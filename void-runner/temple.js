@@ -1,6 +1,6 @@
-/* ZEN ZEPHYR'S TEMPLE, the Sanctum of the Circuit: a separate, taxi-only hilltop area far from the city. docs/development/TEMPLE.md.
+/* ZEN ZEPHYR'S TEMPLE, the Sanctum of the Circuit: a separate hilltop area far from the city. docs/development/TEMPLE.md.
    PURE DATA and rules (layout, collision, interactions, map model, the monk's replacement point); runs in Node and is unit-tested (tests/temple.test.cjs).
-   The 3D build is temple-build.js; the wiring and the chat panel are temple-integration.js; the conversation is zen-chat.js; the way in and out is the East Gate on the Avenue, by road taxi only (ncz-quarters.js, road-taxi.js).
+   The 3D build is temple-build.js; the wiring and the chat panel are temple-integration.js; the conversation is zen-chat.js; the way in and out is the East Gate on the Avenue, by road taxi or on foot (ncz-quarters.js, road-taxi.js, ncz-gate-transit.js).
    World metres in the area's OWN coordinates, x east, z north, centred on (0,0). Collision bounds |x|,|z| < 50. The city lies far below to the south-east.
 
    ==== WHERE TO CHANGE THINGS ====
@@ -13,7 +13,7 @@
  const MODEL={id:'zen-zephyr',name:'Zen Zephyr',role:'MONK · SANCTUM OF THE CIRCUIT',asset:null,placeholder:'primitives',seat:[0,22],yaw:Math.PI,
   look:'Silver head, closed eyes, dark robe with a mustard sash, mechanical details, teal chest lights, calm seated posture (David\'s brief; Origins scenes sanctum_discovery and zen_wisdom for mood).',
   note:'REPLACEMENT POINT: Zen Zephyr. Set `asset` to a packaged model id to replace the primitive monk.'};
- const ARRIVAL={spawn:[0,1.7,-38],yaw:0},CAB_PAD={x:0,z:-43};
+ const ARRIVAL={spawn:[0,1.7,-38],yaw:0},CAB_PAD={x:0,z:-43},WALK_BACK={x:-8,z:-42};
  const HALL=[-18,18,-6,34],ENTRANCE={x:[-3.5,3.5],z:-6},DAIS={x:0,z:22,r:3.6},PLATEAU=[-48,48,-48,48];
  const T=.8,H=13;
  // Wall segments of the hall: [id, 'x'|'z', fixed coordinate, from, to, gaps]. The east wall has a big glass window (visual, solid) onto the city.
@@ -33,6 +33,7 @@
  const ALTAR_TEXT=['DATA ALTAR 1 · the first prayer: "initialise".','DATA ALTAR 2 · a loop scrolls by, endless and calm.','DATA ALTAR 3 · a list of names, each followed by "remembered".','DATA ALTAR 4 · one line: "rest is a valid state".'];
  const INTERACTIONS=[
   {id:'temple-cab',label:'TAXI · RETURN TO NEOCHINATOWN',position:[CAB_PAD.x,1.7,CAB_PAD.z+3.4],action:'temple-cab',range:4},
+  {id:'temple-walk',label:'EAST GATE · WALK TO NEOCHINATOWN',position:[WALK_BACK.x,1.7,WALK_BACK.z],action:'temple-walk',range:2.4},   // as the Corporate District's FUNCTION GATE prompt (16 Nov 2026)
   {id:'temple-monk',label:'SPEAK WITH ZEN ZEPHYR',position:[0,1.7,DAIS.z-DAIS.r-.9],action:'temple-monk',range:4.6},
   ...[[-7,12,0],[7,12,1],[-7,28,2],[7,28,3]].map(([x,z,i])=>({id:'temple-altar-'+(i+1),label:'DATA ALTAR',position:[x,1.7,z-(z<20?1.8:-1.8)],action:'temple-altar',altar:i,range:2.8})),
   {id:'temple-incense',label:'BLUE-FLAME INCENSE',position:[-9,1.7,-17],action:'temple-incense',range:4},
@@ -53,7 +54,7 @@
  const BUILDINGS=[{id:'temple',name:'The Sanctum of the Circuit',rect:HALL}];
  function mapModel(){const rectOf=s=>({id:s.id,x0:s.position[0]-s.size[0]/2,x1:s.position[0]+s.size[0]/2,z0:s.position[2]-s.size[2]/2,z1:s.position[2]+s.size[2]/2});
   return {streets:STREETS,buildings:BUILDINGS,walls:{street:solids().filter(s=>/wall|dais|altar|gate/.test(s.id)).map(rectOf),interior:[]},pois:PLACES.map(p=>({...p,area:'street'})),vestibule:{x:ARRIVAL.spawn[0],z:ARRIVAL.spawn[2]},bounds:{x0:-50,x1:50,z0:-50,z1:50}};}
- const api={ID,SPACE_FLAG,BOUNDS,FARE,MODEL,ARRIVAL,CAB_PAD,HALL,ENTRANCE,DAIS,PLATEAU,SEGMENTS,PROPS,PARAPET,ALTAR_TEXT,INTERACTIONS,PLACES,STREETS,BUILDINGS,solids,layout,mapModel};
+ const api={ID,SPACE_FLAG,BOUNDS,FARE,MODEL,ARRIVAL,CAB_PAD,WALK_BACK,HALL,ENTRANCE,DAIS,PLATEAU,SEGMENTS,PROPS,PARAPET,ALTAR_TEXT,INTERACTIONS,PLACES,STREETS,BUILDINGS,solids,layout,mapModel};
  const AM=typeof module==='object'&&module.exports?require('./area-map.js'):root.VoidAreaMap;
  if(AM)AM.register({id:ID,name:'Zen Zephyr Temple',flag:SPACE_FLAG,bounds:[-50,50,-50,50],cell:5,model:mapModel});
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidTemple=Object.assign(root.VoidTemple||{},api);

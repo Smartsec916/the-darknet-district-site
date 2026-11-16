@@ -6,6 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (latest): PLAYTHROUGH FIXES 1 (build `2026-11-16-fixes-1`, branch `claude/playthrough-fixes-1`, local commits, NOT pushed, no PR)
+
+David played the live site and sent five pictures and nine notes. Full record, with the complete key list: [`PLAYTHROUGH_FIXES_1.md`](PLAYTHROUGH_FIXES_1.md).
+
+- **Sleeping Pod (David authorised the change):** the strip's four buttons are gone; the sign on the glass, the wall screens and the keys do everything. **Q is a new key** (look at the controls). The music player and the light panel are on the right-hand wall. The player's function, playlist and songs are untouched. A click in the pod used to land about a third of the way off on Low (the picture is stretched over the window); fixed in `podPick`.
+- **KeyMap:** four tabs (ON FOOT, CAMERA, SLEEPING POD, FLIGHT), every key the game binds, a drawn mouse map per tab. Keys that only work in a situation are drawn only then. **G is a new key** (taxi).
+- **Store counter:** nothing stands through the glass; items are only laid on tiers they clear (`TALL`, `fitsTier` in `district-rooms.js`).
+- **East Gate:** has a walkers' lane; walked to the Temple and back as the Function Gate is to the Corporate District. At the Temple only a walk-back sign and prompt were added.
+- **"I couldn't get to Milked":** nothing blocked the way (a test walks the collision now); nothing on Main Street said where it is. Two signs with the existing logo and an arrow.
+- **"Couldn't figure out how to call a taxi":** three causes. The terminal's TAXI / TRANSPORT section refused everyone ("Taxis pick up on foot") because the terminal being open is not the walking state; no taxi could be called from the District's door at all (57 m from a road, limit 50, now 80); nothing in the street said how. Now: CALL A TAXI at every stop's post and at a post by the District's door, and the G key.
+- **Every browser script that clicked the pod's EXIT POD button now presses E** (38 files, changed mechanically; only the ones named in `PLAYTHROUGH_FIXES_1.md` were run).
+- **Not verified:** real hardware (software renderer only); High and Ultra; the purchased NULL interior; a second player (trade keys, voice key and Enter are drawn from the code, not from a live session).
 ### 16 Nov 2026 (latest): NEOCHINATOWN IS THREE QUARTERS WITH CHECKPOINTS; SKY CABS REMOVED (build `2026-11-16-quarters-1`, branch `claude/neochinatown-quarters-1`, local commits, NOT pushed, no PR)
 
 David approved map A of the rework plan and this builds it. Full record: [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md); decisions: [`CHECKPOINTS.md`](CHECKPOINTS.md).

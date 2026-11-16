@@ -18,7 +18,7 @@ const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187';
   await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]')?.disabled,null,{timeout:120000});
   await page.locator('[data-cc=confirm]').click();
   await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});
-  await page.locator('[data-pod=exit]').click();
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0,null,{timeout:120000});
   const snapshot=()=>page.evaluate(()=>({credits:state.credits,location:state.location,story:JSON.stringify(state.story),inventory:JSON.stringify(state.inventory||null)}));
   const before=await snapshot();

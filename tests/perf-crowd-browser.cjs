@@ -9,7 +9,7 @@ const out=process.argv[2]||'perf-crowd.json',base=process.env.SITE_TEST_URL||'ht
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:900000,assets:900000,optional:600000,total:1800000,module:900000,artwork:600000}));
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();await page.waitForFunction(()=>mode==='pod-waking'&&walker);
- await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);
+ await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);
  const rows=[];
  const bench=async(scene)=>{await page.waitForTimeout(4000);
   return page.evaluate(async scene=>{const S=VoidBabylon.scene,res={scene};

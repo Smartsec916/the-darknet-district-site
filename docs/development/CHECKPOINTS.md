@@ -44,6 +44,9 @@ Contraband, bribes and shielding are NOT built (not decided). What is built and 
 - **Zoom renders detail (David, 16 Nov 2026):** "if a player is zooming with the camera I want detail to render". Every outdoor distance test for
   people and props now judges the distance as the zoomed picture shows it (`void-runner/zoom-detail.js`).
 
+## Changed in build `2026-11-16-fixes-1`
+- **A4 East Gate has a walkers' lane** (David, 16 Nov 2026: "the east gate checkpoint doesn't have a pedestrian vestibule"). One more entry in the gate's `lanes` (`ncz-quarters.js`); the lane, its doors, scan, PEDESTRIANS sign and collision come from it as at every other gate. It is walked to the Zen Zephyr Temple and back exactly as the Function Gate is walked to the Corporate District. The scan is still a picture only and always passes.
+
 ## Built (build `2026-11-16-quarters-1`)
 - **One entry per checkpoint.** `void-runner/ncz-quarters.js` `GATES` (or `define(entry)` at run time). An entry: `id`, `code`, `name`, `sign` (the
   word on the building), `guard` (`'private'` | `'function'` | none), `rect` (the ground it stands on), `axis` (which way people travel through it),

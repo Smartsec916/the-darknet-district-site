@@ -9,7 +9,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
- await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+ await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  await page.evaluate(()=>VoidVR.launch('tropical',{}));await page.waitForFunction(()=>walkingLocation?.kind==='vr'&&mode==='walking'&&!VoidVR.busy);
  const spot=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='vr-fish'));assert(spot,'the pier has a fishing spot');
  const act=()=>page.evaluate(()=>VoidVR.session.world.interact({id:'vr-fish'})),notice=()=>page.evaluate(()=>document.getElementById('notice').textContent);

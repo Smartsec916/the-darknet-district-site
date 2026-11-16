@@ -10,7 +10,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:q})),tier);await page.goto(base+'/void-runner.html');
   await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const confirm=page.locator('[data-action=menu-new-confirm]');if(await confirm.count())await confirm.click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:120000});await page.waitForTimeout(2000);
   const measure=`(n)=>{const ms=n.getChildMeshes().filter(x=>x.isEnabled()&&x.isVisible);let lo=1e9,hi=-1e9;for(const x of ms){x.computeWorldMatrix(true);x.refreshBoundingInfo?.({applySkeleton:true,applyMorph:false});const b=x.getBoundingInfo().boundingBox;lo=Math.min(lo,b.minimumWorld.y);hi=Math.max(hi,b.maximumWorld.y);}return {meshes:ms.length,lo:+lo.toFixed(3),hi:+hi.toFixed(3),height:+(hi-lo).toFixed(3)};}`;
   const out={};

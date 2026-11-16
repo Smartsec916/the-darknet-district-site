@@ -24,10 +24,15 @@
  /* Where each item lies: every case is cut into bays of one kind of item, each bay filled in rows, front (low) and back (raised) tier. Pure, so a test can check that nothing
     leaves its case or sits in front of a member of staff. dense=false (Low) halves the count. */
  const SCALE=1.25,TIERS=[[.025,.165,.045],[.175,.315,.1],[.33,.47,.2]];   // items are made a quarter larger than life so they read through the glass; tiers: [from, to (m behind the front pane), height above the counter]
+ /* How tall each item stands, life size, in whichever form is taller (the modelled radio with its antenna is 0.17; the built one 0.165), and the underside of a case's top pane above the
+    counter. An item is only laid on a tier where it clears the pane (David, 16 Nov 2026: the radios on the top shelf stood through the top of the case). */
+ const TALL={knife:.026,multitool:.026,flashlight:.036,compass:.022,radio:.17,powerbank:.016,firestarter:.095,lighter:.083,sight:.06,weaponlight:.03,filter:.032,paracord:.061,stakes:.012,canister:.075,tin:.024,card:.01,headlamp:.031,pistol:.045,magazine:.106,ammo:.058},
+  CASE_CEILING=.332,CASE_CLEAR=.015;
+ const fitsTier=(kind,t)=>TIERS[t][2]+TALL[kind]*SCALE<=CASE_CEILING-CASE_CLEAR;
  function counterItems(dense=true){const out=[],rnd=lcg(977);let k=0;
   CASES.forEach(([a,b],c)=>{const zf=COUNTER.z0+.1,tiers=TIERS.map(([f,t,h])=>[zf+f,zf+t,COUNTER.top+h]);let x=a+.05;
    while(x<b-.1){const item=ITEMS[k++%ITEMS.length],[fw,fd]=FOOT[item.kind].map(v=>v*SCALE),pitch=fw+.012,bay=Math.min(b-.05-x,Math.max(1,Math.round((.17+rnd()*.1)/pitch))*pitch);if(bay<fw+.01)break;
-    tiers.forEach(([z0,z1,y],t)=>{const nx=Math.max(1,Math.floor((bay+.001)/pitch)),nz=Math.max(1,Math.floor((z1-z0)/(fd+.01))),sx=bay/nx,sz=(z1-z0)/nz;
+    tiers.forEach(([z0,z1,y],t)=>{if(!fitsTier(item.kind,t))return;const nx=Math.max(1,Math.floor((bay+.001)/pitch)),nz=Math.max(1,Math.floor((z1-z0)/(fd+.01))),sx=bay/nx,sz=(z1-z0)/nz;
      for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){if(!dense&&(i+j+t)%2)continue;out.push({kind:item.kind,like:item.like,case:c,tier:t,x:x+sx*(i+.5),y,z:z0+sz*(j+.5),yaw:(rnd()-.5)*.14,v:Math.floor(rnd()*4)});}});
     out.push({kind:'tag',case:c,tier:0,x:x+bay/2,y:COUNTER.top+.045,z:zf+.008,yaw:0,v:0});x+=bay+.012;}});
   return out;}
@@ -57,7 +62,7 @@
   'bar-stool':{fit:['y',.85],self:.3},'o2-station':{fit:['y',.34],face:Math.PI,self:.2},'o2-tank':{fit:['y',1.3],face:Math.PI,self:.2,glow:[.09,.5,.5]},'vr-headset':{fit:['x',.21],self:.4},
   pistol:{fit:['x',.19],pose:[Math.PI/2,0,0],self:.42},radio:{fit:['y',.17],face:Math.PI,self:.3},flashlight:{fit:['x',.13],self:.42}};
  const propFile=name=>PROP_DIR+'district-'+name+'.glb';
- const api={CAMPAIGN,campaignAt,MACHINES,machineStock,COUNTER,CASES,STAFF,ITEMS,FOOT,SCALE,TIERS,counterItems,BAR,PROPS,PROP_DIR,propFile,build:null};
+ const api={CAMPAIGN,campaignAt,MACHINES,machineStock,COUNTER,CASES,STAFF,ITEMS,FOOT,TALL,CASE_CEILING,CASE_CLEAR,fitsTier,SCALE,TIERS,counterItems,BAR,PROPS,PROP_DIR,propFile,build:null};
 
  // =====================================================================================================================================================
  function build(K){

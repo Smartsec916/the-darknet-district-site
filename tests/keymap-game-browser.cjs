@@ -20,7 +20,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.waitForTimeout(1500);assert.equal(await vis(),false,'not while still in the pod');await page.keyboard.press('KeyK');assert.equal(await vis(),false,'K does nothing inside the pod card');
   assert.equal(await page.evaluate(()=>!!state.story.flags.keymapSeen),false);
   // exit the pod: the KeyMap appears by itself, once
-  await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);
   await page.waitForFunction(()=>!!document.getElementById('keymap')&&!document.getElementById('keymap').hidden,null,{timeout:20000});
   assert.equal(await page.textContent('#keymap .km-hint'),'To hide the KeyMap Press K');assert.equal(await page.evaluate(()=>state.story.flags.keymapSeen),true);
   await page.waitForTimeout(800);await page.screenshot({path:shot+'/dd-keymap-first-exit-'+tier+'.png'});
@@ -39,7 +39,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.reload();await page.waitForFunction(()=>window.VoidStartup?.started);
   await page.locator('[data-action=menu-continue]').click();
   await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:200000});
-  if(await page.evaluate(()=>mode==='pod-waking')){assert.equal(await vis(),false);await page.locator('#pod-wake [data-pod=exit]').click();}
+  if(await page.evaluate(()=>mode==='pod-waking')){assert.equal(await vis(),false);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');}
   await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0);await page.waitForTimeout(2500);assert.equal(await vis(),false,'not shown again on a later exit');
   await page.keyboard.press('KeyK');assert.equal(await vis(),true,'K still opens it on demand');
   // an older save that never saw the KeyMap: clearing the flag makes the next exit show it (existing players)

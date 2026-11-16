@@ -12,7 +12,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
   // new campaigns create a character first (first-player repair): confirm it so the player has a saved look
   await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0);await page.waitForTimeout(1500);
   const pos=()=>page.evaluate(()=>({x:walker.x,z:walker.z,yaw:walker.yaw,keys:[...walkingKeys],mode,frame:VoidBabylon.scene.getFrameId()}));
   const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);

@@ -40,8 +40,9 @@ test('walking through the Function Gate arrives in the Corporate District, and c
  const L=lane('function:foot'),W=world({quarter:'avenue',at:L.mid});assert.equal(await walkIn(W,L),true);assert.equal(W.loc.id,'corporate');assert.deepEqual([W.w.x,W.w.z],[0,-14]);assert.ok(W.log.includes('enter corporate'));
  assert.equal(await W.ctl.arrive({gate:'function',by:'foot'}),true);assert.equal(W.loc.quarter,'avenue');assert.deepEqual([W.w.x,W.w.z],L.mid);assert.ok(W.log.includes('release '+L.doors.hi.id));assert.equal(W.w.yaw,Math.PI/2,'facing into the avenue');
  assert.equal(await W.ctl.tick(),false,'and is not sent straight back');
- // the Temple has no foot lane
- assert.equal(await W.ctl.arrive({gate:'east',by:'foot'}),false);
+ // the East Gate is walked the same way, to the Temple and back (walkers' lane added 16 Nov 2026)
+ {const E=lane('east:foot'),W2=world({quarter:'avenue',at:E.mid});assert.equal(await walkIn(W2,E),true);assert.equal(W2.loc.id,'temple');assert.ok(W2.log.includes('enter temple'));
+  assert.equal(await W2.ctl.arrive({gate:'east',by:'foot'}),true);assert.equal(W2.loc.quarter,'avenue');assert.deepEqual([W2.w.x,W2.w.z],E.mid);assert.ok(W2.log.includes('release '+E.doors.lo.id),'the avenue-side door opens');assert.equal(W2.w.yaw,-Math.PI/2,'facing into the avenue');assert.equal(await W2.ctl.tick(),false);}
 });
 test('a cab in a bay: the shutter behind drops, scan, exchange, the passenger is put back by the caller, the shutter ahead is held open',async()=>{
  const L=lane('north:bay-n'),W=world({quarter:'oldtown',at:L.mid});W.setMode('road-taxi');let put=0;

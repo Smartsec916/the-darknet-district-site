@@ -18,7 +18,7 @@ const hubLog=[];const boot=port=>main({HUB_MODE:'production',HUB_API_BASE:'https
   await page.addInitScript(([q,t])=>{localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:q}));localStorage.setItem('tdd-dev-mp-token',t);},[tier,acct.token]);
   await page.goto(`${base}/void-runner.html?multiplayer=1&hub=ws://127.0.0.1:${port}`);await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>mode==='walking'&&walker&&VoidAssets.pending===0,null,{timeout:tier==='high'?600000:120000});   // a third software-rendered High page is slow to load
   return {ctx,page};}
  const lines=p=>p.page.evaluate(()=>VoidDistrictChat.lines.map(l=>(l.name?l.name+' ':'')+l.text));

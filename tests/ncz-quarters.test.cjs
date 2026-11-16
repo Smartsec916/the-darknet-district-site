@@ -33,7 +33,7 @@ test('the checkpoints of map A: who runs them, what they join, their lanes',()=>
  assert.deepEqual([by.customs.ends.lo.quarter,by.customs.ends.hi.quarter],['oldtown','port']);assert.deepEqual([by.north.ends.lo.quarter,by.north.ends.hi.quarter],['oldtown','avenue']);
  assert.equal(by.function.ends.lo.scene,'corporate');assert.equal(by.function.ends.hi.quarter,'avenue');assert.equal(by.east.ends.hi.scene,'temple');assert.equal(by.south.shut,true);
  assert.deepEqual(Q.GATES.map(g=>g.guard),['private','private','function','private',null]);
- const kinds=id=>Q.lanesOf(id).map(l=>l.kind).sort().join();assert.equal(kinds('customs'),'bay,foot');assert.equal(kinds('north'),'bay,bay,foot,foot');assert.equal(kinds('function'),'bay,foot','The Function\'s gate is walkable and takes cabs');assert.equal(kinds('east'),'bay','the East Gate is for taxis only');assert.equal(kinds('south'),'');
+ const kinds=id=>Q.lanesOf(id).map(l=>l.kind).sort().join();assert.equal(kinds('customs'),'bay,foot');assert.equal(kinds('north'),'bay,bay,foot,foot');assert.equal(kinds('function'),'bay,foot','The Function\'s gate is walkable and takes cabs');assert.equal(kinds('east'),'bay,foot','the East Gate is walkable and takes cabs (walkers\' lane added 16 Nov 2026)');assert.equal(kinds('south'),'');
  for(const l of Q.LANES){const g=Q.gate(l.gate);assert.ok(l.rect[0]>=g.rect[0]-1e-9&&l.rect[1]<=g.rect[1]+1e-9&&l.rect[2]>=g.rect[2]-1e-9&&l.rect[3]<=g.rect[3]+1e-9,l.key+' lies in its gate');
   const c={x:l.mid[0],z:l.mid[1]};assert.equal(Q.laneAt(c).key,l.key);assert.ok(Q.atCentre(l,c));
   // the middle is clear of both doorways, and a cab (4.4 m) fits between a bay's doors

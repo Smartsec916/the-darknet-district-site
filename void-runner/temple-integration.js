@@ -11,6 +11,7 @@
   const R=(a,f)=>VoidInteractions.register(a,f);
   const chat=Z.create();T.chat=chat;   // a future API dialogue registers on T.chat.registerProvider(...) and is switched on with T.chat.enableProvider(true); it is OFF by default
   R('temple-cab',()=>{done();if(!root.VoidRoadTaxi?.returnFrom){note('The taxi is not available.');return;}root.VoidRoadTaxi.returnFrom('temple','cab');});
+  R('temple-walk',()=>{done();if(!root.VoidRoadTaxi?.returnFrom){note('The gate is not available.');return;}root.VoidRoadTaxi.returnFrom('temple','foot');});   // the East Gate's walkers' lane (16 Nov 2026)
   R('temple-altar',({item})=>note(T.ALTAR_TEXT[item?.altar]||'DATA ALTAR: the glass is warm and still.'));
   R('temple-incense',()=>note('Blue-flame incense. It burns without smoke and smells faintly of warm metal and rain.'));
   R('temple-overlook',()=>note('Far below to the south-east the city glows through the mist: towers, traffic, neon. From here it is almost silent.'));

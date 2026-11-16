@@ -10,7 +10,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({quality:q})),tier);await page.goto(base+'/void-runner.html?multiplayer=1');
   await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
-  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
+  await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');
   await page.waitForFunction(()=>mode==='walking'&&VoidAssets.pending===0&&window.VoidRemotePlayers?._message,null,{timeout:120000});
   const A={v:1,base:'female',look:'ncz-neon',hair:'ponytail01',hairColor:'cyan',clothingColor:'crimson',accessories:['collar']};
   await page.evaluate(a=>{VoidRemotePlayers._message({t:'join',peer:{id:'aaaaaaaaaaaa',name:'Neon_Fox',model:'ncz-neon',appearance:a,x:walker.x+Math.sin(walker.yaw)*2.2,z:walker.z+Math.cos(walker.yaw)*2.2,yaw:walker.yaw+Math.PI,clip:'idle'}});

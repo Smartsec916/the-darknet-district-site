@@ -35,21 +35,21 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   const podParts=await page.evaluate(()=>({screens:VoidBabylon.scene.meshes.filter(m=>m.name==='tesana-pod-screen').length,lights:VoidBabylon.scene.materials.filter(m=>/^ncz-tesana-pod-led-\d+$/.test(m.name)).length}));
   assert.deepEqual(podParts,{screens:10,lights:10},'each pod has a local screen and lighting material');
   await page.screenshot({path:shot+'/dd-pod01-'+tier+'.png'});
-  await page.locator('[data-pod=look]').click();assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.inside));
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyQ');assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.controls));
   await page.screenshot({path:shot+'/dd-pod01-inside-'+tier+'.png'});
-  await page.locator('[data-pod=look]').click();assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.hatch));
-  await page.locator('[data-pod=music]').click();await page.waitForSelector('#pod-music');
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyQ');assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.hatch));
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyM');await page.waitForSelector('#pod-music');
   await page.locator('[data-action="pod-music:light:reading"]').click();
   await page.locator('#pod-music-volume').evaluate(el=>{el.value='35';el.dispatchEvent(new Event('input',{bubbles:true}));});
   assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('darknet-pod-controls-1'))),{volume:.35,lighting:'reading'});
   await page.locator('[data-action="pod-music:return"]').click();await page.waitForFunction(()=>mode==='pod-waking');
   // 4. EXIT POD proceeds normally after creation.
-  await page.locator('#pod-wake button').click();await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
   // Pod 01 can be entered again from its hatch, and exiting it returns to open floor.
   assert.equal(await page.evaluate(()=>VoidInteractions.handlers.get('district-pod')()),undefined);
   await page.waitForFunction(()=>mode==='pod-waking',null,{timeout:30000});
   assert.equal(await page.locator('#character-creator.on').count(),0,'re-entering a saved pod does not reopen creation');
-  await page.locator('#pod-wake button').click();await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
   assert.equal(await page.evaluate(()=>VoidExplorer.blocked(walker.x,walker.z,walkingLocation)),false,'pod exit is clear');
   const tenth=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.podIndex===10));
   assert(tenth&&tenth.action==='district-pod');
@@ -57,11 +57,11 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.waitForFunction(()=>mode==='pod-waking'&&state.story.flags.activePod===10,null,{timeout:30000});
   assert.match(await page.locator('#pod-wake .pod-wake-card p').textContent(),/POD 10/);
   await page.screenshot({path:shot+'/dd-pod10-'+tier+'.png'});
-  await page.locator('[data-pod=music]').click();await page.waitForSelector('#pod-music');
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyM');await page.waitForSelector('#pod-music');
   assert.equal(await page.locator('#pod-music-volume').inputValue(),'80','another pod retains its own volume');
   await page.locator('[data-action="pod-music:light:music"]').click();
   await page.locator('[data-action="pod-music:return"]').click();await page.waitForFunction(()=>mode==='pod-waking');
-  await page.locator('#pod-wake button').click();await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
   assert.equal(await page.evaluate(()=>VoidExplorer.blocked(walker.x,walker.z,walkingLocation)),false,'upper pod returns to clear floor');
   // 4b. the wardrobe station exists in the pod room and opens the same screen
   const st=await page.evaluate(()=>{const i=walkingLocation.interactions.find(x=>x.action==='district-wardrobe'),m=VoidBabylon.scene.getMeshByName('pod-wardrobe-panel');return {i:!!i,mesh:!!m,handler:VoidInteractions.handlers.has('district-wardrobe'),pos:i?.position};});
@@ -87,7 +87,7 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.reload();await page.waitForFunction(()=>window.VoidStartup?.started,null,{timeout:120000});
   await page.locator('[data-action=menu-continue]').click();await page.waitForFunction(()=>mode==='pod-waking',null,{timeout:120000});
   assert.equal(await page.locator('#character-creator.on').count(),0,'existing saved character is reused on campaign resume');
-  await page.locator('#pod-wake button').click();await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
   console.log(JSON.stringify({tier,saved,errors}));assert.deepEqual(errors,[]);
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

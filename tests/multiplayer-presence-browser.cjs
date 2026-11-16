@@ -32,7 +32,7 @@ const WHO={'tok-a':{uid:'uid-a',anonymous:false,model:'district-resident',handle
   const door=await a.page.evaluate(()=>{const e=VoidDistrictArea.podExit(VoidNeoChinatown,1);return [e.spawn[0],e.spawn[2]];});
   await a.page.waitForFunction(([x,z])=>{const p=VoidRemotePlayers.peers[0];return p&&Math.hypot(p.x-x,p.z-z)<.3;},door);
   // 2. B gets up and walks; opening the pause menu and the pod's music screen does not take B out of the District.
-  await b.page.locator('#pod-wake [data-pod=exit]').click();await b.page.waitForFunction(()=>mode==='walking');
+  await b.page.waitForSelector('#pod-wake:not([hidden])');await b.page.keyboard.press('KeyE');await b.page.waitForFunction(()=>mode==='walking');
   await b.page.evaluate(()=>{walker.x+=1.2;});await a.page.waitForFunction(([x,z])=>{const p=VoidRemotePlayers.peers[0];return p&&Math.hypot(p.x-x,p.z-z)>.8;},door);
   await b.page.evaluate(()=>openGameMenu());await b.page.waitForFunction(()=>mode==='menu');await b.page.waitForTimeout(2500);
   assert.equal((await d(b)).status,'in','still online with the menu open');assert.equal((await d(a)).players,1,'A still sees B while B has a menu open');

@@ -142,7 +142,7 @@
   function layout(area='all',quarter=null){
     const l=fullLayout();if(area==='all')return l;
     const keep=area==='interior'?insideSide:i=>!insideSide(i)||ENTRANCE.has(i.id),base={...l,area,solids:l.solids.filter(keep),interactions:l.interactions.filter(keep)};
-    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q)]}:base;}
+    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q)],interactions:[...base.interactions,...QT.callPrompts(q)]}:base;}   // callPrompts: CALL A TAXI at every stop's post and by the District's door
     const [x,z]=toWorld(0,22.5);delete base.ship;
     return {...base,name:'THE DARKNET DISTRICT',spawn:[x,1.7,z],yaw:Math.PI};
   }
@@ -786,7 +786,7 @@
      g.fillStyle='#4fae6c';g.font='11px monospace';g.fillText('VOL',226,164);g.fillStyle='#16221c';g.fillRect(254,154,112,10);g.fillStyle='#b8d94a';g.fillRect(254,154,Math.round(112*Math.max(0,Math.min(1,on||st?st.volume??.6:.6))),10);
      g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'CLICK TITLE: PLAYLIST',226,182);
     }
-    // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; the controls stay in MUSIC & LIGHTS.
+    // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; its three presets are clicked on the panel itself.
     const podLightFaces={},POD_LIGHTS=[['rest','REST','#ad5a94','#5a2a66'],['reading','READING','#fff0cb','#d9a860'],['music','MUSIC SYNC','#e96bbf','#7840a5']];
     function drawPodLights(g,index,preset,lv){
      const W=320,H=180,bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#1c1424');bg.addColorStop(1,'#0e0a14');g.fillStyle=bg;g.fillRect(0,0,W,H);
@@ -1052,7 +1052,9 @@
     const drawPodExit=(g,hot)=>{const W=512,H=96;g.clearRect(0,0,W,H);g.fillStyle=hot?'rgba(10,52,28,.8)':'rgba(8,10,16,.5)';g.beginPath();g.roundRect?g.roundRect(4,8,W-8,H-16,14):g.rect(4,8,W-8,H-16);g.fill();g.strokeStyle=hot?'rgba(120,255,170,1)':'rgba(214,236,226,.7)';g.lineWidth=hot?4:2;g.stroke();
      g.textAlign='center';g.textBaseline='middle';g.font='700 44px Arial,Helvetica,sans-serif';g.shadowColor=hot?'#58ff9a':'transparent';g.shadowBlur=hot?18:0;g.fillStyle=hot?'#eafff1':'rgba(240,248,244,.92)';g.fillText('EXIT THE POD',W/2,H/2+2);g.shadowBlur=0;};
     const podExitTex=texture('tesana-pod-exit',512,96,g=>drawPodExit(g,false));podExitTex.hasAlpha=true;const podExitMat=texMat('tesana-pod-exit',podExitTex,{glow:true,alpha:true});podExitMat.backFaceCulling=true;let podExitHot=false;
-    const podPick=(x,y)=>{const hit=scene.pick(x,y,m=>!!m.metadata?.podTouch,false,scene.activeCamera);if(!hit?.hit)return null;const uv=hit.getTextureCoordinates?.();return {...hit.pickedMesh.metadata.podTouch,u:uv?uv.x:.5,v:uv?1-uv.y:.5,distance:hit.distance};};
+    const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.
+     {const eng=scene.getEngine(),k=eng.getHardwareScalingLevel?.()||1,W=root.innerWidth,H=root.innerHeight;if(W>0&&H>0){x=x*eng.getRenderWidth()/W*k;y=y*eng.getRenderHeight()/H*k;}}   // the picture is drawn on its own surface and stretched over the whole window (babylon-integration.js)
+     const hit=scene.pick(x,y,m=>!!m.metadata?.podTouch,false,scene.activeCamera);if(!hit?.hit)return null;const uv=hit.getTextureCoordinates?.();return {...hit.pickedMesh.metadata.podTouch,u:uv?uv.x:.5,v:uv?1-uv.y:.5,distance:hit.distance};};
     const podHover=kind=>{const hot=kind==='exit';if(hot===podExitHot)return;podExitHot=hot;drawPodExit(podExitTex.getContext(),hot);podExitTex.update();};
     if(root.VoidNeoChinatown){root.VoidNeoChinatown.podPick=podPick;root.VoidNeoChinatown.podHover=podHover;}
     framed=[];   // the ten pods, their ladder and ceiling panels: built in the west room's coordinates, then moved to the back wall below
@@ -1075,16 +1077,20 @@
        for(let k=0;k<4;k++){const b=box('tesana-pod-fan-blade',[.19,.006,.07],[fx+Math.cos(k*Math.PI/2+.5)*.1,fy-.014,z-.5+Math.sin(k*Math.PI/2+.5)*.1],podRib);b.rotation.y=-(k*Math.PI/2+.5);}cyl('tesana-pod-fan-hub',.035,.02,[fx,fy-.016,z-.5],podVent,true,10);}
       for(const x of [-16.05,-15.3,-14.55]){box('tesana-pod-rib',[.055,.055,2.16],[x,y+.65,z],podRib);for(const side of [-1,1])box('tesana-pod-rib',[.055,1.34,.055],[x,y,z+side*1.07],podRib);}
       for(const x of [-16.05,-15.3,-14.55])box('tesana-pod-ceiling',[.58,.018,1.65],[x,y+.635,z],podRib);
-      box('tesana-pod-vent',[.04,.18,.55],[-16.53,y+.24,z-.42],podVent);for(let k=0;k<4;k++)box('tesana-pod-vent-slot',[.015,.012,.5],[-16.505,y+.17+k*.045,z-.42],podRib);
+      for(const s of [-1,1]){box('tesana-pod-vent',[.04,.18,.46],[-16.53,y+.26,z+s*.27],podVent);for(let k=0;k<4;k++)box('tesana-pod-vent-slot',[.015,.012,.4],[-16.505,y+.19+k*.045,z+s*.27],podRib);}
       const positions=[],uvs=[],indices=[],cols=12,rows=9;for(let j=0;j<=rows;j++)for(let k=0;k<=cols;k++){const u=k/cols,v=j/rows;positions.push(-15.85+u*1.42,y-.4+.03*Math.sin(u*7+v*3)+.022*Math.sin(v*6+u*2),z-.85+v*1.7);uvs.push(u*2,v*2);if(j<rows&&k<cols){const a=j*(cols+1)+k;indices.push(a,a+1,a+cols+1,a+1,a+cols+2,a+cols+1);}}
       const duvet=new B.Mesh('tesana-pod-duvet',scene),data=new B.VertexData();data.positions=positions;data.uvs=uvs;data.indices=indices;data.normals=[];B.VertexData.ComputeNormals(positions,indices,data.normals);data.applyToMesh(duvet);add(duvet,podFabric,[0,0,0]);
       for(const side of [-1,1]){const pillow=B.MeshBuilder.CreateSphere('tesana-pod-pillow',{segments:12,diameter:1},scene);pillow.scaling.set(.45,.12,.38);add(pillow,podFabric,[-16.13,y-.28,z+side*.43]);}
      }
-     // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing; the controls stay in MUSIC & LIGHTS.
+     // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing.
+     // David, 16 Nov 2026: the player and the light panel are on the RIGHT-hand wall (the occupant's right, facing the hatch), not the back wall. Their clicks are
+     // found by picking the plane and reading where on its picture the pointer is (podPick), so the click regions move with the planes.
      const podTex=texture('tesana-pod-screen-'+index,384,192,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
-     box('tesana-pod-screen-frame',[.05,.56,1.06],[-16.48,y+.14,z+.4],podVent);podTouch(plane('tesana-pod-screen',.98,.49,[-16.44,y+.14,z+.4],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),-Math.PI/2),index,'music');
+     box('tesana-pod-screen-frame',[1.06,.56,.05],[-15.05,y+.14,z-.985],podVent);podTouch(plane('tesana-pod-screen',.98,.49,[-15.05,y+.14,z-.945],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),Math.PI),index,'music');
      const lightTex=texture('tesana-pod-lights-'+index,320,180,g=>drawPodLights(g,index,root.VoidPodMusic?.lightingFor?.(index)||'rest',null));podLightFaces[index]=lightTex;
-     box('tesana-pod-lights-frame',[.05,.32,.56],[-16.48,y-.04,z-.42],podVent);podTouch(plane('tesana-pod-lights',.5,.28,[-16.44,y-.04,z-.42],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),-Math.PI/2),index,'lights');
+     box('tesana-pod-lights-frame',[.56,.32,.05],[-15.92,y+.14,z-.985],podVent);podTouch(plane('tesana-pod-lights',.5,.28,[-15.92,y+.14,z-.945],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),Math.PI),index,'lights');
+     // The back wall, where they used to be: the lamp panel in a moulded frame between the two vents.
+     for(const s of [-1,1]){box('tesana-pod-back-trim',[.02,.025,1.14],[-16.54,y+.05+s*.465,z],podVent);box('tesana-pod-back-trim',[.02,.955,.025],[-16.54,y+.05,z+s*.5575],podVent);}
      // Built-in vending unit on the side wall between two ribs (after the owner's Tesana pod). Browsed from the pod menu (VENDING).
      box('tesana-pod-vend-frame',[.72,.6,.06],[-15.675,y+.08,z+.985],podRib);box('tesana-pod-vend-tray',[.5,.07,.02],[-15.675,y-.19,z+.95],podVent);box('tesana-pod-vend-led',[.03,.03,.012],[-15.36,y+.3,z+.95],amber);
      box('tesana-pod-vend-bezel',[.68,.46,.01],[-15.675,y+.13,z+.959],podVent); podTouch(plane('tesana-pod-vend',.64,.42,[-15.675,y+.13,z+.952],podVendMat,0),index,'vend');

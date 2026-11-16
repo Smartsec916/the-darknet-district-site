@@ -41,18 +41,19 @@ enterWalking=async function(id,options){
  }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){if(id!=='sacramento')board.position=[-2,1.7,-25];   /* the NeoChinatown street has its own landing pad (neochinatown.js): moving BOARD to the hangar default put it inside a building, out of reach */
  board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id,options);}
 };
-const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-actions"><button type="button" data-pod="exit">EXIT POD · E</button><a href="#" role="button" data-pod="music">MUSIC &amp; LIGHTS · M</a><a href="#" role="button" data-pod="look">LOOK INSIDE</a><a href="#" role="button" data-pod="vend">VENDING · V</a></div><div class="pod-wake-hint">Move the mouse to look around. Click the music player, the light panel, the vending unit or EXIT THE POD on the glass to use them. Click anywhere else to hold the mouse for full turns (Esc frees it).</div><div class="pod-vend" hidden><div class="pod-vend-grid" role="group" aria-label="Vending machine stock"></div><div class="pod-vend-info" aria-live="polite"></div><div class="pod-wake-actions"><a href="#" role="button" data-vend="buy" aria-disabled="true">DISPENSE</a><a href="#" role="button" data-vend="back">BACK</a></div></div></div>';document.body.append(podWake);
+const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-hint">Move the mouse to look around. Click the music player, the light panel, the vending unit or EXIT THE POD on the glass to use them. Click anywhere else to hold the mouse for full turns (Esc frees it). Keys: E exit · M music and lights · V vending · Q look at the controls.</div><div class="pod-vend" hidden><div class="pod-vend-grid" role="group" aria-label="Vending machine stock"></div><div class="pod-vend-info" aria-live="polite"></div><div class="pod-wake-actions"><a href="#" role="button" data-vend="buy" aria-disabled="true">DISPENSE</a><a href="#" role="button" data-vend="back">BACK</a></div></div></div>';document.body.append(podWake);
 // The pod's built-in vending unit (stock from neochinatown.js VoidPodVending). Flavour only: no credits are charged and nothing is added to the inventory.
 const podVend={box:podWake.querySelector('.pod-vend'),grid:podWake.querySelector('.pod-vend-grid'),info:podWake.querySelector('.pod-vend-info'),buy:podWake.querySelector('[data-vend="buy"]'),picked:null,yaw:null};
-function podVendShow(on){const main=podWake.querySelector('.pod-wake-card>.pod-wake-actions'),title=podWake.querySelector('#pod-wake-title');podVend.box.hidden=!on;main.hidden=on;title.hidden=on;podWake.classList.toggle('vending',on);
+function podVendShow(on){const main=podWake.querySelector('.pod-wake-hint'),title=podWake.querySelector('#pod-wake-title');podVend.box.hidden=!on;main.hidden=on;title.hidden=on;podWake.classList.toggle('vending',on);
  if(on){const items=globalThis.VoidPodVending?.products||[];if(!podVend.grid.children.length)for(const item of items){const b=document.createElement('a');b.href='#';b.setAttribute('role','button');b.dataset.vendItem=item.code;b.textContent=item.code+' '+item.name;podVend.grid.append(b);}
   podVend.picked=null;podVend.buy.setAttribute('aria-disabled','true');podVend.info.textContent=items.length?'Choose an item.':'The machine is empty.';for(const b of podVend.grid.children)b.setAttribute('aria-pressed','false');if(walker){podVend.yaw=walker.yaw;walker.yaw=VoidDistrictArea.POD_VIEW.vending;walker.pitch=0;}podVend.grid.querySelector('a')?.focus({preventScroll:true});}
  else if(podVend.yaw!==null&&walker){walker.yaw=podVend.yaw;podVend.yaw=null;}}
-podWake.querySelector('[data-pod="vend"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking')podVendShow(true);});
+// The strip's four buttons were removed (David, 16 Nov 2026): the pod's own controls (the sign on the glass, the wall screens, the vending unit) and the keys do the same things.
+const podAct={vend(){if(mode==='pod-waking')podVendShow(true);}};
 podVend.box.addEventListener('click',e=>{const b=e.target.closest('a[role="button"]');if(!b)return;e.preventDefault();if(mode!=='pod-waking')return;
  if(b.dataset.vendItem){const item=(globalThis.VoidPodVending?.products||[]).find(x=>x.code===b.dataset.vendItem);if(!item)return;podVend.picked=item;podVend.buy.setAttribute('aria-disabled','false');for(const x of podVend.grid.children)x.setAttribute('aria-pressed',String(x===b));podVend.info.textContent=item.name+' · '+item.category+' · '+item.price.toFixed(2)+' — '+item.description;}
  else if(b.dataset.vend==='buy'&&podVend.picked){podVend.info.textContent='The coil turns. '+podVend.picked.name+' drops into the tray.';}
- else if(b.dataset.vend==='back'){podVendShow(false);podWake.querySelector('[data-pod="vend"]').focus({preventScroll:true});}});
+ else if(b.dataset.vend==='back'){podVendShow(false);b.blur();}});
 function enterSleepingPod(index=1){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||!walker||!Number.isInteger(index)||index<1||index>10)return false;
  const {x,z}=VoidDistrictArea.podBed(VoidNeoChinatown,index);
@@ -60,7 +61,7 @@ function enterSleepingPod(index=1){
  globalThis.VoidPodMusic?.enterPod?.(index);state.story.flags.activePod=index;state.story.flags.podWakePending=true;save();showPodWake();return true;
 }
 // Lying in the pod the player can look around freely: click the view to take the mouse (as when walking; Esc gives it back), or drag, or use the arrow keys.
-// E, M and V do what the buttons do, so nothing has to be clicked. The buttons that snap the view (hatch / inside) still work and simply set the direction.
+// E leaves, M opens music and lights, V opens the vending unit, Q turns the view to the wall controls and back to the hatch.
 const podLook={drag:null,keys:new Set()},podFree=()=>mode==='pod-waking'&&!podWake.hidden&&podVend.box.hidden&&!!walker;
 const podTurn=(dx,dy)=>{if(Math.abs(dx)>160||Math.abs(dy)>160)return;   // the browser reports one enormous jump at the moment it captures or releases the mouse: not a real movement
  walker.yaw+=dx*.003;walker.pitch=Math.max(-1.2,Math.min(1.2,(walker.pitch||0)+dy*.003));};
@@ -71,8 +72,8 @@ function podAim(){const N=globalThis.VoidNeoChinatown;if(!N?.podPick||!podFree()
  const locked=document.pointerLockElement===podWake,hit=N.podPick(locked?innerWidth/2:podPoint.x,locked?innerHeight/2:podPoint.y),own=hit&&hit.index===(state.story.flags.activePod||1)&&hit.distance<4?hit:null;
  const kind=own?own.kind:null;if(kind!==podPoint.over){podPoint.over=kind;N.podHover?.(kind);podWake.classList.toggle('aiming',!!kind);}return own;}
 function podUse(hit){const c=hit&&VoidDistrictArea.podControl(hit.kind,hit.u,hit.v),M=globalThis.VoidPodMusic;if(!c)return false;
- if(c.action==='exit'||c.action==='vend'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.querySelector('[data-pod="'+c.action+'"]').click();}
- else if(c.action==='playlist'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.querySelector('[data-pod="music"]').click();}
+ if(c.action==='exit'||c.action==='vend'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podAct[c.action]();}
+ else if(c.action==='playlist'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podAct.music();}
  else if(!M)return false;
  else if(c.action==='play'){if(!M.playing)M.toggle();}else if(c.action==='pause'){if(M.playing)M.toggle();}else if(c.action==='stop')M.stop();
  else if(c.action==='previous')M.previous();else if(c.action==='next')M.next();else if(c.action==='volume')M.setVolume(c.value);else if(c.action==='light')M.setLighting(c.preset);
@@ -84,33 +85,33 @@ addEventListener('mousemove',e=>{if(!podFree())return;podPoint.x=e.clientX;podPo
 document.addEventListener('pointerlockchange',()=>podWake.classList.toggle('looking',document.pointerLockElement===podWake));
 addEventListener('keydown',e=>{if(!podFree()||e.repeat&&!/^Arrow/.test(e.code)||e.ctrlKey||e.metaKey||e.altKey)return;
  if(/^Arrow/.test(e.code)){podLook.keys.add(e.code);e.preventDefault();e.stopPropagation();return;}
- const pick={KeyE:'exit',KeyM:'music',KeyV:'vend'}[e.code];if(!pick)return;e.preventDefault();e.stopPropagation();if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.querySelector('[data-pod="'+pick+'"]').click();},true);
+ const pick={KeyE:'exit',KeyM:'music',KeyV:'vend',KeyQ:'look'}[e.code];if(!pick)return;e.preventDefault();e.stopPropagation();if(pick!=='look'&&document.pointerLockElement===podWake)document.exitPointerLock?.();podAct[pick]();},true);
 addEventListener('keyup',e=>podLook.keys.delete(e.code));
 (function podLookFrame(){requestAnimationFrame(podLookFrame);podAim();if(!podLook.keys.size)return;if(!podFree()){podLook.keys.clear();return;}const k=podLook.keys;podTurn(((k.has('ArrowRight')?1:0)-(k.has('ArrowLeft')?1:0))*9,((k.has('ArrowDown')?1:0)-(k.has('ArrowUp')?1:0))*7);})();
-podWake.querySelector('[data-pod="music"]').addEventListener('click',e=>{e.preventDefault();if(mode==='pod-waking'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.hidden=true;globalThis.VoidPodMusic?.open?.({inPod:true});}});
-podWake.querySelector('[data-pod="look"]').addEventListener('click',e=>{e.preventDefault();if(mode!=='pod-waking'||!walker)return;const V=VoidDistrictArea.POD_VIEW,inside=walker.yaw!==V.inside;walker.yaw=inside?V.inside:V.hatch;e.currentTarget.textContent=inside?'LOOK THROUGH HATCH':'LOOK INSIDE';});
-podWake.querySelector('[data-pod="exit"]').addEventListener('click',()=>{
+podAct.music=()=>{if(mode==='pod-waking'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.hidden=true;globalThis.VoidPodMusic?.open?.({inPod:true});}};
+podAct.look=()=>{if(mode!=='pod-waking'||!walker)return;const V=VoidDistrictArea.POD_VIEW;walker.yaw=walker.yaw!==V.controls?V.controls:V.hatch;walker.pitch=0;};   // Q: face the music player and light panel from wherever the view is; pressed again, back to the hatch
+podAct.exit=()=>{
  if(mode!=='pod-waking'||!walker||!state?.story?.flags?.podWakePending)return;
  const exit=VoidDistrictArea.podExit(VoidNeoChinatown,state.story.flags.activePod||1);if(VoidExplorer.blocked(exit.spawn[0],exit.spawn[2],walkingLocation))return;
  Object.assign(walker,{x:exit.spawn[0],y:exit.spawn[1],z:exit.spawn[2],yaw:exit.yaw,pitch:0,vx:0,vz:0,eye:1.68});
  delete state.story.flags.podWakePending;podVend.yaw=null;podVendShow(false);podWake.hidden=true;resumeWalking();save();
-});
+};
 async function showPodWake(){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||state.story.flags.podWakePending!==true)return;
  mode='pod-waking';clearInput();walkingKeys.clear();document.exitPointerLock?.();podVendShow(false);
  if(globalThis.VoidPodMusic?.selectedPod!==(state.story.flags.activePod||1))globalThis.VoidPodMusic?.enterPod?.(state.story.flags.activePod||1);
- const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;podWake.querySelector('[data-pod="look"]').textContent=walker.yaw===VoidDistrictArea.POD_VIEW.inside?'LOOK THROUGH HATCH':'LOOK INSIDE';
+ const podNumber=String(state.story.flags.activePod||1).padStart(2,'0');podWake.querySelector('.pod-wake-card p').textContent='THE DARKNET DISTRICT · POD '+podNumber;
  const creator=globalThis.VoidCharacterCreator,account=globalThis.VoidAccount;
  if(account?.user&&!account.profileReady){podWake.hidden=false;podWake.classList.add('preparing');podWake.querySelectorAll('button,a').forEach(b=>b.hidden=true);
   try{await account.ensureProfile?.();}catch{}if(mode!=='pod-waking'||state.story.flags.podWakePending!==true)return;}
  podWake.classList.remove('preparing');podWake.querySelectorAll('button,a').forEach(b=>b.hidden=false);
  if(!state.story.flags.appearanceOffered&&!creator?.stored()&&!account?.character){
   podWake.hidden=true;
-  const shown=await creator?.open({context:'first',onClose:confirmed=>{if(confirmed){mode='pod-waking';podWake.hidden=false;podWake.querySelector('[data-pod="exit"]').focus({preventScroll:true});}else exitActiveGame().then(renderMainMenu);}});
+  const shown=await creator?.open({context:'first',onClose:confirmed=>{if(confirmed){mode='pod-waking';podWake.hidden=false;}else exitActiveGame().then(renderMainMenu);}});
   if(!shown&&mode==='pod-waking')exitActiveGame().then(renderMainMenu);
   return;
  }
- podWake.hidden=false;podWake.querySelector('[data-pod="exit"]').focus({preventScroll:true});
+ podWake.hidden=false;
 }
 dock=async function(tab='dock'){
  if(VoidGraphics.busy){VoidPreparation.cancel?.();preparationGeneration++;await Promise.allSettled([preparingLaunch,destinationPreparation].filter(Boolean));VoidGraphics.busy=false;walkingLocation=walker=null;}

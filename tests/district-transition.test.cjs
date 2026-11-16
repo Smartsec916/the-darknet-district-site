@@ -140,7 +140,7 @@ test('the new-player start wakes in a pod and Exit Pod leads to open floor',()=>
  assert.equal(A.keyFor(s),'darknet-district');const pod=A.resume(s,N),[x,z]=N.toWorld(pod.spawn[0],pod.spawn[2]);
  assert(Math.abs(x+5.2)<.01&&Math.abs(z-76.7)<.01);assert.equal(pod.spawn[1],1.1);
  const exit=A.podExit(N);assert(!E.blocked(exit.spawn[0],exit.spawn[2],interior));
- assert(w.includes('showPodWake()')&&w.includes('EXIT POD'),'the wake view has an explicit exit');
+ assert(w.includes('showPodWake()')&&w.includes("KeyE:'exit'")&&w.includes('podAct.exit=')&&read('void-runner/neochinatown.js').includes('EXIT THE POD'),'the wake view has an explicit exit: the sign on the hatch glass and the E key (the strip\'s EXIT POD button was removed, 16 Nov 2026)');
 });
 test('the existing interactions, the taxi, the VR arcade and the doors are all still wired',()=>{
  const ids=new Set(street.interactions.map(i=>i.id).concat(interior.interactions.map(i=>i.id)));for(const id of ['board','terminal','admin','district-iris','district-shop','district-bar','district-vr','district-vending','district-pod','district-meeting','district-stairs','district-stairs-down'])assert(ids.has(id),id);assert(!ids.has('tdd')&&!ids.has('district-scan')&&!ids.has('district-pod-music'),'no obsolete room/entrance prompts');

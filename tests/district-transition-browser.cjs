@@ -35,7 +35,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   const c=await pg.$('[data-action=menu-new-confirm]');if(c)await c.click();
   await pg.waitForSelector('#character-creator.on',{timeout:300000});await pg.waitForFunction(()=>!document.querySelector('[data-cc=confirm]')?.disabled,null,{timeout:300000});await pg.click('[data-cc=confirm]');
   await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior',null,{timeout:300000});
-  await pg.click('#pod-wake button');await settle('interior',1000);await walkOut();
+  await pg.waitForSelector('#pod-wake:not([hidden])');await pg.keyboard.press('KeyE');await settle('interior',1000);await walkOut();
   await settle('street');let s=await snap();console.log(q,'start',JSON.stringify(s));
   assert.equal(s.area,'street');assert.equal(s.flags.area,undefined);assert(Math.abs(s.local[0]-2)<.3&&Math.abs(s.local[1]-23.6)<.3,'still in the vestibule, now on the street side');assert.equal(s.interior,0,'no District inside the street');
   const street1=s;
@@ -78,7 +78,7 @@ const within=(a,b,pct)=>Math.abs(a-b)<=Math.max(3,Math.max(a,b)*pct);
   assert.equal(saved.location,'earth');assert.equal(saved.story.flags.area,'district');
   // Continue always wakes the player in their Sleeping Pod (C.socialEntry, since the District social profiles commit 0f42dff), wherever the save was made.
   const continueToPod=async()=>{await pg.goto(BASE);await ready();await pg.click('[data-action=menu-continue]');await pg.waitForFunction(()=>mode==='pod-waking'&&walkingLocation?.area==='interior'&&!!walker,null,{timeout:300000});
-   assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.click('#pod-wake button');await settle('interior',3000);return snap();};
+   assert.equal(await pg.evaluate(()=>state.story.flags.podWakePending),true,'Continue wakes in the pod');await pg.waitForSelector('#pod-wake:not([hidden])');await pg.keyboard.press('KeyE');await settle('interior',3000);return snap();};
   s=await continueToPod();console.log(q,'resumed inside',JSON.stringify(s));
   assert.equal(s.area,'interior');assert.equal(s.street,0);assert(Math.abs(s.local[0]+5.2)<1.5&&Math.abs(s.local[1]-73.8)<1.5,'at the pod exit, at the back of the building: '+s.local);
   await walkOut();

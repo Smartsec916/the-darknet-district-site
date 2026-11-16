@@ -10,7 +10,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
- await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.locator('#pod-wake [data-pod=exit]').click();await page.waitForFunction(()=>mode==='walking');
+ await page.waitForFunction(()=>mode==='pod-waking'&&walker&&VoidAssets.pending===0);await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true});});await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street');
  assert.equal(await page.evaluate(()=>VoidNightclub.enabled()),true,'the club is on for everyone');assert.equal(await page.evaluate(()=>VoidNightclub.NAME),'NULL');
  const at=(x,z,yaw=-Math.PI/2)=>page.evaluate(([x,z,yaw])=>{Object.assign(walker,{x,z,yaw,pitch:0});},[x,z,yaw]);
