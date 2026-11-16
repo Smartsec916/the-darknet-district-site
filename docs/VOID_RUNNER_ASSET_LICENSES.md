@@ -184,6 +184,13 @@ machines (`district/vending-neon.vrpak`, from the private repository, encrypted;
 supplied FBX references a "Vending Machine Textures Official" folder (base colour, emission, metallic, roughness, normal)
 that wasn't in the download. Originals of both are kept outside the repository.
 
+**The Outskirts' purchased packs (16 Nov 2026).** Both bought by David on CGTrader, both **Royalty Free License (no AI)**: use in own projects and commercial use allowed, remixing and modifying allowed; **selling or re-uploading the file is not allowed; AI use (training, fine-tuning) is not allowed**; never sent to any AI tool, image generator or reference prompt.
+| Product | Used for | Where it lives |
+|---|---|---|
+| "Low Poly PBR Shipping Container 20ft" (CGTrader; only the Blue texture set was supplied; the colour variants are made by tinting at load time). Licence screenshot: `licence-page.webp` beside the originals. | The base of the container homes in The Outskirts (`ncz-containers.js`): bodies with doors, instanced, LOD0 close and LOD2 on Low. | Originals (OBJ, FBX, UE, .max, textures) outside the repository in `/home/user/acwork/licensed/cgtrader-container-20ft/` on the build machine. Converted game file `void-runner/assets/models/ncz/outskirts-containers.vrpak` (scrambled; git-ignored here) and the same file in the **private** repository `Smartsec916/void-runner-licensed-assets` (commit `d0d70bc`), encrypted at the Pages build. Converter: `tools/assets/pack_outskirts_licensed.py` (holds no asset). |
+| "Solar panels with clean and dirty textures" (CGTrader, low-poly, Blender): the five DIRTY arrays only. | Rooftop and free-standing panels in The Outskirts. | `/home/user/acwork/licensed/cgtrader-solar-panels/` outside the repository; `void-runner/assets/models/ncz/outskirts-solar.vrpak` (git-ignored here, and in the private repository, same commit). |
+Where the files are absent (a checkout without the private assets) the code-built containers and panels are used. Nothing of either pack is in this public repository, in any form.
+
 **Cyber Club nightclub (2026-11-01).** "cyberpunk - Cyber Club" on CGTrader (https://www.cgtrader.com/3d-models/interior/hall/cyberpunk-cyber-club,
 item 5665404, $12.50), downloaded by David through a **CGTrader subscription** ("subscriptionDownloads"). Package: a 1.9 MB
 animated FBX (363 meshes, 66.5k triangles, 18 materials, 16 FBX clips), 286 MB of 2K TGA/TIF/PNG textures, an Unreal 4 project

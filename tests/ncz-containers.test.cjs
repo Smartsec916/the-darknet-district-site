@@ -21,7 +21,7 @@ test('walking: the gate exit reaches the plaza, both lanes and the reserved home
 test('Kai Kryptos\' home is reserved as data only: an id, a place and a yaw; no character, no text, no interaction',()=>{
  const K=CT.KAI_HOME;assert.equal(K.id,'kai-kryptos-home');assert.equal(K.interaction,null);assert.equal(K.position.length,3);assert.ok(Number.isFinite(K.yaw));
  assert.ok(!/npc-kai|dialogue|VoidInteractions|register\(/.test(src.replace(/\/\*[\s\S]*?\*\//g,'')),'nothing of a character or an interaction');
- assert.ok(!/fillText|font\s*=/.test(src),'no letters are painted anywhere in the kit');
+ assert.deepEqual(CT.GRAFFITI_TEXT,[],'the graffiti word list is EMPTY until David supplies his own words');const calls=[...src.matchAll(/fillText\(([^;]*?)[,)]\s*[a-z]/g)].map(m=>m[1]);assert.ok(calls.every(c=>/^(code|w)$/.test(c.trim())),'the only lettering is a generated container-style code and David\'s (empty) list: '+calls.join(' | '));
 });
 test('The Outskirts has no taxi stop, no road network, no ad screens and no vehicle bay at A6',()=>{
  const R=require('../void-runner/road-taxi-rules.js'),A=require('../void-runner/ad-screens-data.js');

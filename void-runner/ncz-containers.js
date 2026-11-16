@@ -50,13 +50,16 @@
  function leanRect(c){const away=c.axis==='z'?(c.x<61?-1:1):(c.z<-245?-1:1);return c.axis==='z'?(away>0?[c.x+c.w/2,c.x+c.w/2+1.1,c.z-2.2,c.z+2.2]:[c.x-c.w/2-1.1,c.x-c.w/2,c.z-2.2,c.z+2.2]):(away>0?[c.x-2.2,c.x+2.2,c.z+c.d/2,c.z+c.d/2+1.1]:[c.x-2.2,c.x+2.2,c.z-c.d/2-1.1,c.z-c.d/2]);}
  // Plank fences across the two lane ends, behind the end containers, and a short run by the east lane.
  const FENCES=[{id:'fence-west-n',r:[20,21,-250,-247.8]},{id:'fence-west-s',r:[20,21,-242.2,-240]},{id:'fence-east-n',r:[107.2,108,-248,-246.2]},{id:'fence-east-s',r:[107.2,108,-241.8,-240]}];
- const api={CL,CW,CH,PAINT,BASE,PLAN,FENCES,KAI_HOME,plan,solids,deckRect,leanRect,rng,size};
+ /* GRAFFITI (David, 16 Nov 2026: "some graffiti everywhere would help with the feel of The Outskirts"). The marks are ABSTRACT: tags and scribbles, arrows, hazard triangles, crossed circles, stars, eyes,
+    lightning, simple skulls, drips and stencilled container-style codes. NO invented slogans or readable invented words. GRAFFITI_TEXT is David's own list of words, EMPTY until he supplies it. */
+ const GRAFFITI_TEXT=[];
+ const api={GRAFFITI_TEXT,CL,CW,CH,PAINT,BASE,PLAN,FENCES,KAI_HOME,plan,solids,deckRect,leanRect,rng,size};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
  root.VoidContainers=api;
  if(typeof document==='undefined')return;
 
  // ================================================================ the BROWSER part ================================================================
- api.build=function build({B,scene,parent,quality}){
+ api.build=function build({B,scene,parent,quality,mode}){
   const low=quality==='low',own=[],groups=new Map(),r=rng(90210),node=new B.TransformNode('outskirts-homes',scene);node.parent=parent;let disposed=false;
   const lin=h=>B.Color3.FromHexString(h).toLinearSpace();
   const track=o=>{own.push(o);return o;};
@@ -68,6 +71,32 @@
   let ribNormal=null;if(!low){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');for(let x=0;x<256;x+=16){const gr=g.createLinearGradient(x,0,x+16,0);gr.addColorStop(0,'#000');gr.addColorStop(.5,'#fff');gr.addColorStop(1,'#000');g.fillStyle=gr;g.fillRect(x,0,16,256);}
    const src=g.getImageData(0,0,256,256).data,t=track(new B.DynamicTexture('outskirts-rib-normal',{width:256,height:256},scene,true)),tg=t.getContext(),out=tg.createImageData(256,256),o=out.data,H=(x,y)=>src[(((y+256)%256)*256+((x+256)%256))*4]/255;
    for(let y=0;y<256;y++)for(let x=0;x<256;x++){const ax=(H(x+1,y)-H(x-1,y))*2.2,l=1/Math.hypot(ax,1),i=(y*256+x)*4;o[i]=(-ax*l*.5+.5)*255;o[i+1]=128;o[i+2]=(l*.5+.5)*255;o[i+3]=255;}tg.putImageData(out,0,0);t.update();t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;ribNormal=t;}
+  // ---- graffiti: one atlas of marks, laid as decals on walls, doors, fences and the ground; all of it merged into one mesh (one extra draw call) ----
+  const graffiti=(()=>{const N=4,S=256,pal=['#ff8a2a','#f2efe6','#35e0ec','#ff3a2a','#9bff3a'],t=draw((g,W,H)=>{g.clearRect(0,0,W,H);g.lineCap='round';g.lineJoin='round';
+    for(let i=0;i<N*N;i++){const cx=(i%N)*S+S/2,cy=Math.floor(i/N)*S+S/2,col=pal[i%pal.length],kind=i%8;g.strokeStyle=col;g.fillStyle=col;g.lineWidth=11+r()*8;g.shadowColor=col;g.shadowBlur=3;
+     if(kind===0){g.beginPath();g.moveTo(cx-90,cy+40);for(let k=0;k<7;k++)g.quadraticCurveTo(cx-90+k*30+r()*30,cy-70-r()*40,cx-70+k*30+r()*25,cy+30+r()*40);g.stroke();}                                  // a loose scribbled tag
+     else if(kind===1){g.beginPath();g.moveTo(cx-80,cy);g.lineTo(cx+70,cy);g.moveTo(cx+10,cy-55);g.lineTo(cx+75,cy);g.lineTo(cx+10,cy+55);g.stroke();}                                              // an arrow
+     else if(kind===2){g.beginPath();g.moveTo(cx,cy-85);g.lineTo(cx+90,cy+70);g.lineTo(cx-90,cy+70);g.closePath();g.stroke();g.beginPath();g.moveTo(cx,cy-35);g.lineTo(cx,cy+20);g.stroke();g.beginPath();g.arc(cx,cy+45,4,0,6.3);g.fill();}   // a hazard triangle
+     else if(kind===3){g.beginPath();g.arc(cx,cy,75,0,6.3);g.stroke();g.beginPath();g.moveTo(cx-60,cy-60);g.lineTo(cx+60,cy+60);g.moveTo(cx+60,cy-60);g.lineTo(cx-60,cy+60);g.stroke();}                // a crossed circle
+     else if(kind===4){g.beginPath();for(let k=0;k<10;k++){const a=k*Math.PI/5-Math.PI/2,rr=k%2?32:85;g.lineTo(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr);}g.closePath();g.stroke();}                       // a star
+     else if(kind===5){g.beginPath();g.moveTo(cx-95,cy);g.quadraticCurveTo(cx,cy-80,cx+95,cy);g.quadraticCurveTo(cx,cy+80,cx-95,cy);g.stroke();g.beginPath();g.arc(cx,cy,24,0,6.3);g.fill();}          // an eye
+     else if(kind===6){g.beginPath();g.moveTo(cx+20,cy-95);g.lineTo(cx-30,cy+5);g.lineTo(cx+15,cy+5);g.lineTo(cx-25,cy+95);g.stroke();}                                                            // lightning
+     else{g.lineWidth=9;const code=String.fromCharCode(65+Math.floor(r()*26))+String.fromCharCode(65+Math.floor(r()*26))+' '+String(Math.floor(1000+r()*8999));g.font='bold 62px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.shadowBlur=0;g.fillText(code,cx,cy);g.strokeRect(cx-100,cy-48,200,96);}   // a stencilled container-style code
+     if(i%3===0){for(let k=0;k<3;k++){g.lineWidth=5;g.beginPath();const dx=cx-60+r()*120;g.moveTo(dx,cy+60);g.lineTo(dx,cy+90+r()*40);g.stroke();}}   // drips
+     if(i%5===0){g.fillStyle='rgba(0,0,0,.35)';for(let k=0;k<8;k++)g.fillRect(cx-100+r()*200,cy-100+r()*200,6+r()*30,3);}   // overpainted and worn
+    }
+    if(GRAFFITI_TEXT.length){g.shadowBlur=0;g.fillStyle='#f2efe6';g.font='bold 50px Consolas,monospace';g.textAlign='center';GRAFFITI_TEXT.slice(0,4).forEach((w,i)=>g.fillText(w,S*3+S/2,S*3+40+i*60));}});   // (David's own words, when he supplies them)
+   t.hasAlpha=true;const m=new B.StandardMaterial('outskirts-graffiti',scene);m.diffuseTexture=t;m.opacityTexture=t;m.emissiveColor=new B.Color3(low?.35:.2,low?.35:.2,low?.32:.18);m.specularColor=B.Color3.Black();m.backFaceCulling=false;m.zOffset=-2;track(m);
+   const list=[];
+   // cell uv rectangle of cell i
+   const decal=(i,w,h,x,y,z,ry,rx=0)=>{const p=B.MeshBuilder.CreatePlane('o-graffiti',{width:w,height:h},scene),cx=i%N,cy=Math.floor(i/N),u0=cx/N,u1=(cx+1)/N,v0=1-(cy+1)/N,v1=1-cy/N;p.setVerticesData(B.VertexBuffer.UVKind,[u1,v0,u0,v0,u0,v1,u1,v1]);p.position.set(x,y,z);p.rotation.set(rx,ry,0);p.material=m;p.parent=node;p.isPickable=false;list.push(p);};
+   return {decal,list,m,N};})();
+
+  // Far South (a little graffiti on the checkpoint walls, lower density): this build makes only the decals
+  if(mode==='far-south'){const L=[[55,-217.8,Math.PI],[66,-217.8,Math.PI],[53,-129.8,0],[69,-129.8,0],[57.5,-217.8,Math.PI]];
+   L.forEach(([x,z,ry],i)=>graffiti.decal([0,1,3,6,2,5][i%6],1.2,.9,x,1.1+(i%3)*.5,z,ry));
+   if(graffiti.list.length>1){const mm=B.Mesh.MergeMeshes(graffiti.list,true,true,undefined,false,false);if(mm){mm.parent=null;mm.material=graffiti.m;mm.isPickable=false;mm.freezeWorldMatrix?.();own.push(mm);}}
+   return {dispose(){try{node.dispose(false,true);}catch{}for(const o of own)try{o.dispose();}catch{}own.length=0;}};}
   const mats=new Map();
   const paint=hex=>{const k='p'+hex;if(mats.has(k))return mats.get(k);let m;
    if(low){m=new B.StandardMaterial('outskirts-paint',scene);m.diffuseTexture=ribs;m.diffuseColor=B.Color3.FromHexString(hex).scale(1.25);m.specularColor=new B.Color3(.08,.08,.08);m.emissiveColor=B.Color3.FromHexString(hex).scale(.24);}
@@ -87,16 +116,25 @@
   const cyl=(rad,h,x,y,z,m,t=low?8:12)=>add(B.MeshBuilder.CreateCylinder('o-cyl',{diameter:rad*2,height:h,tessellation:t},scene),m,x,y,z);
   const body=(w,h,d,x,y,z,m)=>{const side=a=>new B.Vector4(0,0,a/2.4,h/2.4);return add(B.MeshBuilder.CreateBox('o-body',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),new B.Vector4(0,0,w/3,d/3),new B.Vector4(0,0,.1,.1)],wrap:true},scene),m,x,y,z);};
   const roofs=[];   // the top of each stack: where the clutter goes
+  // ---- the purchased packs (Royalty Free, no AI, never in the public repository): present only where the private files are installed ----
+  const A=root.VoidAssets,licC=!!A?.container?.('ncz:outskirts-containers'),licS=!!A?.container?.('ncz:outskirts-solar'),tinted=new Map(),BLUE=[.2,.36,.6];
+  api.lastSource={containers:licC?'LICENSED':'FALLBACK',solar:licS?'LICENSED':'FALLBACK'};
+  const tintOf=(mat,hex)=>{const key=(mat?.name||'')+hex;if(tinted.has(key))return tinted.get(key);const m=mat.clone(mat.name+'-'+hex);const c=B.Color3.FromHexString(hex);const sc=[c.r/BLUE[0],c.g/BLUE[1],c.b/BLUE[2]].map(v=>Math.min(2.2,v));if(m.albedoColor)m.albedoColor=new B.Color3(...sc).scale(.9);else if(m.diffuseColor)m.diffuseColor=new B.Color3(...sc).scale(.9);track(m);tinted.set(key,m);return m;};
+  const licensed=(c,l,x,y,z)=>{if(!licC)return null;const n=c.id.length%2?'c01':'c02',inst=A.instance('ncz:outskirts-containers',node,n+(low?'_LOD2':'_LOD0'));if(!inst)return null;
+   inst.position.set(x,y,z);inst.rotation.y=(c.axis==='x'?0:Math.PI/2)+(l.doorEnd<0?Math.PI:0);
+   for(const m of inst.getChildMeshes()){m.isPickable=false;if(m.material)m.material=tintOf(m.material,l.paint);}return inst;};
   const wall=(c,l,dir)=>{   // a long side of level l: dir +1 / -1 is the side's outward direction across the container
    const x=c.x+l.off[0],z=c.z+l.off[1],y0=l.k*CH;return {x,z,y0,dir};};
   for(const c of PLAN){
    c.levels.forEach((l,k)=>{const x=c.x+l.off[0],z=c.z+l.off[1],y=k*CH+CH/2,m=paint(l.paint),isX=c.axis==='x';
-    body(c.w,CH,c.d,x,y,z,m);
+    // the body: the purchased container (real corrugation, doors with locking bars) where the file is installed, tinted to this container's paint; else built here
+    const lic=licensed(c,l,x,k*CH,z);
+    if(!lic){body(c.w,CH,c.d,x,y,z,m);
     // roof slab, a little rusty, and corner castings
     box(c.w+.04,.05,c.d+.04,x,k*CH+CH+.02,z,rust);
-    for(const sx of [-1,1])for(const sz of [-1,1]){box(.18,.16,.18,x+sx*(c.w/2-.05),k*CH+CH-.05,z+sz*(c.d/2-.05),dark);if(!low||k===0)box(.18,.16,.18,x+sx*(c.w/2-.05),k*CH+.05,z+sz*(c.d/2-.05),dark);}
+    for(const sx of [-1,1])for(const sz of [-1,1]){box(.18,.16,.18,x+sx*(c.w/2-.05),k*CH+CH-.05,z+sz*(c.d/2-.05),dark);if(!low||k===0)box(.18,.16,.18,x+sx*(c.w/2-.05),k*CH+.05,z+sz*(c.d/2-.05),dark);}}
     // the doors on one short end: two panels, a seam, two locking bars with handles
-    {const e=l.doorEnd,ex=isX?x+e*(c.w/2+.03):x,ez=isX?z:z+e*(c.d/2+.03),ry=isX?0:Math.PI/2;
+    if(!lic){const e=l.doorEnd,ex=isX?x+e*(c.w/2+.03):x,ez=isX?z:z+e*(c.d/2+.03),ry=isX?0:Math.PI/2;
      const put=(w,h,dd,ox,oy,oz,mm)=>{const px=isX?ex+oz*e:ex+ox,pz=isX?ez+ox:ez+oz*e;box(isX?dd:w,h,isX?w:dd,px,k*CH+oy,pz,mm);};
      void ry;put(1.05,2.3,.06,-.55,1.3,0,door);put(1.05,2.3,.06,.55,1.3,0,door);put(.05,2.35,.1,0,1.3,.02,dark);if(!low){for(const ox of [-.7,-.38,.38,.7]){put(.05,2.3,.07,ox,1.3,.05,steel);put(.12,.05,.1,ox,1.3,.1,dark);}}}
     // a window on a long side: a warm lit square with a frame
@@ -129,7 +167,7 @@
     if(kind==='tank'){cyl(.55,1.2,px,y+.9,pz,rust);for(const [a,b] of [[-.4,-.4],[.4,-.4],[-.4,.4],[.4,.4]])cyl(.03,.5,px+a,y+.25,pz+b,steel,5);}
     else if(kind==='antenna'){const h=2.5+r()*3;box(.06,h,.06,px,y+h/2,pz,steel);for(let k=1;k<=3;k++)box(1.2-k*.28,.03,.03,px,y+h*(.45+k*.15),pz,steel);box(.1,.1,.1,px,y+h+.05,pz,glowM('beacon','#ff3b2e',1.1));}
     else if(kind==='dish'){const d=add(B.MeshBuilder.CreateSphere('o-dish',{diameter:1.3,segments:8,slice:.5,sideOrientation:B.Mesh.DOUBLESIDE},scene),steel,px,y+1.2,pz,r()*6.28,-1.1);void d;box(.06,1,.06,px,y+.5,pz,dark);}
-    else if(kind==='solar'){box(1.3,.04,.85,px,y+.55,pz,solar,r()*.6,-.45);box(.05,.5,.05,px,y+.25,pz,steel);}
+    else if(kind==='solar'){if(licS){const si=A.instance('ncz:outskirts-solar',node,'solar-'+(1+Math.floor(r()*5)));if(si){si.position.set(px,y,pz);si.rotation.y=r()*6.28;si.scaling.setAll(.8);for(const m of si.getChildMeshes())m.isPickable=false;continue;}}box(1.3,.04,.85,px,y+.55,pz,solar,r()*.6,-.45);box(.05,.5,.05,px,y+.25,pz,steel);}
     else if(kind==='laundry'){const l=Math.min(R.w,R.d)>3?3:2.2;box(.04,1.6,.04,px-l/2,y+.8,pz,steel);box(.04,1.6,.04,px+l/2,y+.8,pz,steel);box(l,.015,.015,px,y+1.55,pz,dark);for(let k=0;k<3;k++)box(.4,.55,.02,px-l/2+.5+k*.75,y+1.25,pz,cloth[(i+k)%3]);}
     else if(kind==='ac'){box(.9,.7,.6,px,y+.35,pz,steel);box(.7,.04,.5,px,y+.72,pz,dark);}
     else{box(R.w*.5,.04,R.d*.55,px,y+.55,pz,i%2?tarpB:tarpG,r()*.2,.12,.1);}}};
@@ -162,6 +200,21 @@
    for(let i=0;i<10;i++){const p=B.MeshBuilder.CreateDisc('o-puddle',{radius:.5+r()*1.2,tessellation:16},scene);p.material=pm;p.parent=node;p.position.set(40+r()*50,.05,-256+r()*30);p.rotation.x=Math.PI/2;p.scaling.y=.55;p.isPickable=false;}
    // two warm lights in the plaza (the street's own lights are kept for Old Town)
    for(const [x,z] of [[61,-233],[52,-247]]){const L=new B.PointLight('outskirts-lamp',new B.Vector3(x,4,z),scene);L.diffuse=new B.Color3(1,.62,.28);L.specular=new B.Color3(.4,.25,.1);L.intensity=14;L.range=16;own.push(L);}}
+
+  {const n=low?30:70;
+   for(let i=0;i<n;i++){const c=PLAN[Math.floor(r()*PLAN.length)],face=Math.floor(r()*4),w=.9+r()*1.5,h=w*(.55+r()*.5),cell=Math.floor(r()*16),y=.7+r()*1.7;
+    // on a container wall: the four faces, kept off the doors' corners
+    const long=c.axis==='x'?c.w:c.d,off=(r()-.5)*(long-2);
+    if(face===0)graffiti.decal(cell,w,h,c.x+(c.axis==='x'?off:0),y,c.z-(c.d/2+.03)+ (c.axis==='x'?0:off*0)+(c.axis==='z'?off:0),0);
+    else if(face===1)graffiti.decal(cell,w,h,c.x+(c.axis==='x'?off:0),y,c.z+(c.d/2+.03)+(c.axis==='z'?off:0),Math.PI);
+    else if(face===2)graffiti.decal(cell,w,h,c.x+(c.w/2+.03),y,c.z+(c.axis==='z'?off:0),-Math.PI/2);
+    else graffiti.decal(cell,w,h,c.x-(c.w/2+.03),y,c.z+(c.axis==='z'?off:0),Math.PI/2);}
+   // on the fences, on the ground (arrows, circles, codes, at the walkways' edges) and by the gate
+   for(const f of FENCES){const fx=(f.r[0]+f.r[1])/2,fz=(f.r[2]+f.r[3])/2,west=fx<61;graffiti.decal(Math.floor(r()*16),1.6,1.1,fx+(west?1:-1)*((f.r[1]-f.r[0])/2+.03),1.2,fz,west?-Math.PI/2:Math.PI/2);}
+   for(let i=0;i<(low?8:20);i++){const x=40+r()*50,z=-256+r()*28;if(PLAN.some(c=>Math.abs(x-c.x)<c.w/2+1&&Math.abs(z-c.z)<c.d/2+1))continue;graffiti.decal([1,3,6,7,2,5][i%6]+ (r()<.5?8:0),1.2+r()*1.4,1.2+r()*1.4,x,.07,z,r()*6.28,Math.PI/2);}
+   if(graffiti.list.length>1){const mm=B.Mesh.MergeMeshes(graffiti.list,true,true,undefined,false,false);if(mm){mm.parent=null;mm.material=graffiti.m;mm.isPickable=false;mm.freezeWorldMatrix?.();own.push(mm);}}}
+  // ---- free-standing solar panels by the walkways (the purchased file where installed) ----
+  [[43,-251,.4],[84,-241,2.6],[56,-246,1.2]].forEach(([x,z,ry],i)=>{if(low&&i>0)return;if(licS){const si=A.instance('ncz:outskirts-solar',node,'solar-'+(1+i));if(si){si.position.set(x,0,z);si.rotation.y=ry;for(const m of si.getChildMeshes())m.isPickable=false;return;}}box(1.4,.05,.9,x,.75,z,solar,ry,-.5);box(.06,.75,.06,x,.38,z,steel);});
   // ---- merge every group into one mesh per material ----
   for(const [m,list] of groups){if(list.length>1){const mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=null;mm.material=m;mm.isPickable=false;mm.freezeWorldMatrix?.();own.push(mm);}}else{list[0].freezeWorldMatrix?.();}}
   groups.clear();

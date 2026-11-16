@@ -1295,7 +1295,7 @@
      return {dispose(){node.dispose(false,true);for(const x of own)x.dispose();}};}
     // Old Town points the way down Main Street to Milked, which is past the South Gate now (16 Nov 2026): two blade signs, the MILKED logo, an arrow and the words SOUTH GATE (milked-build.js pointers).
     const pointers0=(!QK||QK==='oldtown')&&MK.pointers?MK.pointers({B,scene,parent,quality,spots:[[69.7,4.5,-68],[69.7,4.5,-118.3]]}):null;
-    const homes=QK==='outskirts'&&root.VoidContainers&&root.VoidContainers.build?root.VoidContainers.build({B,scene,parent,quality}):null;
+    const homes=(QK==='outskirts'||QK==='far-south')&&root.VoidContainers&&root.VoidContainers.build?root.VoidContainers.build({B,scene,parent,quality,mode:QK==='far-south'?'far-south':null}):null;
     const pointers={dispose(){pointers0?.dispose();homes?.dispose();}};
     const rectDistance=([x0,x1,z0,z1],x,z)=>Math.hypot(Math.max(x0-x,0,x-x1),Math.max(z0-z,0,z-z1));
     function streamDistricts(cam){if(!cam)return;for(const d of districts){if(d.retired||QK&&!QT.inQuarter(QK,d.center[0],d.center[1]))continue;const near=rectDistance(d.rect,cam.x,cam.z)*(root.VoidZoom?root.VoidZoom.now():1),live=city.live.get(d.id);   /* zoomed in, a far building is built as if near (zoom-detail.js) */
@@ -1411,7 +1411,9 @@
    // Purchased Cyberpunk City pack (CGTrader #4757767, Royalty Free no AI; upgraded blocks above): kept out of the
    // public repository; the live site gets it, encrypted, from the private asset repository. Without it the block
    // keeps its built buildings.
-   'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
+   'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'},
+   // The Outskirts' purchased packs (CGTrader, Royalty Free, NO AI use, no redistribution; docs/VOID_RUNNER_ASSET_LICENSES.md): 20 ft containers and dirty solar panels. Private repository only; without them ncz-containers.js builds its own.
+   'ncz:outskirts-containers':{src:'assets/models/ncz/outskirts-containers.vrpak'},'ncz:outskirts-solar':{src:'assets/models/ncz/outskirts-solar.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
   function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
   const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE,quarters:QT};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;
