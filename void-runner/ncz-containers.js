@@ -42,6 +42,7 @@
   for(const c of PLAN){const h=c.stack*CH,[w,d]=[c.w+(c.stack>1?1.2:0),c.d+(c.stack>1?1.2:0)];out.push({id:c.id,position:[c.x,h/2,c.z],size:[w,h,d]});
    if(c.flag==='deck'){const s=deckRect(c);out.push({id:c.id+'-stairs',position:[(s[0]+s[1])/2,1.4,(s[2]+s[3])/2],size:[s[1]-s[0],2.8,s[3]-s[2]]});}
    if(c.flag==='lean'){const s=leanRect(c);out.push({id:c.id+'-leanto',position:[(s[0]+s[1])/2,1.2,(s[2]+s[3])/2],size:[s[1]-s[0],2.4,s[3]-s[2]]});}}
+  for(const w of WRECKS)out.push({id:w.id,position:[w.x,.8,w.z],size:[w.w*Math.abs(Math.cos(w.yaw))+w.d*Math.abs(Math.sin(w.yaw)),1.6,w.w*Math.abs(Math.sin(w.yaw))+w.d*Math.abs(Math.cos(w.yaw))]});
   for(const f of FENCES)out.push({id:f.id,position:[(f.r[0]+f.r[1])/2,1.1,(f.r[2]+f.r[3])/2],size:[f.r[1]-f.r[0],2.2,f.r[3]-f.r[2]]});
   return out;}
  // The deck and stairs of a 'deck' container sit on the side that faces the plaza middle (x 61): its footprint, [x0,x1,z0,z1].
@@ -49,11 +50,13 @@
  // The lean-to goes on the side away from the plaza, against the next container or the wall behind: the footprint is cut short so it never blocks a walkway.
  function leanRect(c){const away=c.axis==='z'?(c.x<61?-1:1):(c.z<-245?-1:1);return c.axis==='z'?(away>0?[c.x+c.w/2,c.x+c.w/2+1.1,c.z-2.2,c.z+2.2]:[c.x-c.w/2-1.1,c.x-c.w/2,c.z-2.2,c.z+2.2]):(away>0?[c.x-2.2,c.x+2.2,c.z+c.d/2,c.z+c.d/2+1.1]:[c.x-2.2,c.x+2.2,c.z-c.d/2-1.1,c.z-c.d/2]);}
  // Plank fences across the two lane ends, behind the end containers, and a short run by the east lane.
+// Two burnt-out wrecks (David, 16 Nov 2026): set dressing, half sunk, no driving. Code-built boxes until the optimised wreck model is made (the Blender bridge was offline).
+ const WRECKS=[{id:'wreck-1',x:44,z:-247,yaw:.35,w:4.4,d:1.9},{id:'wreck-2',x:84,z:-251,yaw:-.25,w:4.4,d:1.9}];
  const FENCES=[{id:'fence-west-n',r:[20,21,-250,-247.8]},{id:'fence-west-s',r:[20,21,-242.2,-240]},{id:'fence-east-n',r:[107.2,108,-248,-246.2]},{id:'fence-east-s',r:[107.2,108,-241.8,-240]}];
  /* GRAFFITI (David, 16 Nov 2026: "some graffiti everywhere would help with the feel of The Outskirts"). The marks are ABSTRACT: tags and scribbles, arrows, hazard triangles, crossed circles, stars, eyes,
     lightning, simple skulls, drips and stencilled container-style codes. NO invented slogans or readable invented words. GRAFFITI_TEXT is David's own list of words, EMPTY until he supplies it. */
  const GRAFFITI_TEXT=[];
- const api={GRAFFITI_TEXT,CL,CW,CH,PAINT,BASE,PLAN,FENCES,KAI_HOME,plan,solids,deckRect,leanRect,rng,size};
+ const api={WRECKS,GRAFFITI_TEXT,CL,CW,CH,PAINT,BASE,PLAN,FENCES,KAI_HOME,plan,solids,deckRect,leanRect,rng,size};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
  root.VoidContainers=api;
  if(typeof document==='undefined')return;
@@ -190,6 +193,9 @@
     else if(t<.85){box(1.8,.05,.9,x+ox,.6+y0,z+oz,sheet,r()*3,-.5-r()*.4,0);}
     else box(.3+r()*.8,.15+r()*.4,.3+r()*.6,x+ox,.15+y0,z+oz,r()<.5?rust:steel,r()*3,(r()-.5)*.4,(r()-.5)*.4);}};
   [[40,-225.8],[48,-225.8],[74,-225.8],[86,-225.8],[36.9,-233],[91.2,-232],[91.4,-242],[36.8,-239],[30,-240.9],[30,-249.2],[100,-240.9],[100,-247.2],[24,-241],[106,-246],[45,-255],[84,-255]].slice(0,low?8:16).forEach(([x,z],i)=>heap(x,z,i));
+  for(const w of WRECKS){const burnt=flat('burnt','#1c1612',{rough:.9,metal:.4});const c=Math.cos(w.yaw),sn=Math.sin(w.yaw);
+   box(w.w,.8,w.d,w.x,.5,w.z,burnt,w.yaw);box(w.w*.5,.7,w.d*.9,w.x-sn*0*0+c*-.2,1.15,w.z,rust,w.yaw);box(w.w*.45,.04,w.d*.8,w.x+c*-.2,1.52,w.z+sn*-.2,steel,w.yaw);
+   for(const [ox,oz] of [[-1.5,-.95],[1.5,.95]])box(.6,.35,.5,w.x+c*ox-sn*oz,.18,w.z+sn*ox+c*oz,wood,w.yaw);}
   // corrugated sheet fencing between the containers and the lane walls
   for(const [x,z,ry] of [[28,-240.2,Math.PI/2],[28,-249.8,Math.PI/2],[100,-240.2,Math.PI/2],[100,-247.8,Math.PI/2]])box(.05,2.1,3.6,x,1.05,z,sheet,0,0,.06);
   // ---- cables strung between the roofs ----
