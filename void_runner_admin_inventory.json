@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "884ae0e035aeed45",
+  "revision": "5b62f66b35b956cf",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11891,51 +11891,45 @@
       "kind": "source-reference"
     },
     {
-      "source": "void-runner/milked-integration.js",
-      "line": 17,
-      "text": "R('milked-checkin',()=>say(MK.MODELS.eva.id,MK.DIALOGUE.eva.checkin));",
-      "kind": "source-reference"
-    },
-    {
       "source": "void-runner/milked.js",
-      "line": 10,
+      "line": 12,
       "text": "- Dialogue (provisional): DIALOGUE below.  Nothing here is approved canon until David approves it.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked.js",
-      "line": 23,
+      "line": 25,
       "text": "const DIALOGUE={",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked.js",
-      "line": 24,
-      "text": "eva:{greeting:['Welcome to Milked. Studio bookings are through the north door. The biobank is the east door. Please do not mix the two up. People do.',",
+      "line": 26,
+      "text": "eva:{greeting:['Welcome to Milked. We are a small broadcast studio. Everything made here goes out live to members who watch from home.',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked.js",
-      "line": 28,
-      "text": "fish:{greeting:['Back office. Mind the cables.','Two services, one front door. Streaming brings in the viewers. The biobank brings in the trust. Do not ask me to explain the combination.',",
+      "line": 31,
+      "text": "fish:{greeting:['Office. Mind the cables.','Four studios, fixed cameras, nobody behind them. I run every camera from this desk.',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked.js",
-      "line": 32,
-      "text": "objective:'Travel to Milked at the east end of The Avenue and talk to Eva at reception.',steps:[{id:'arrive',text:'Reach Milked (walk east along The Avenue, or take a taxi).'},{id:'reception',text:'Talk to Eva at the reception desk.'}],",
+      "line": 35,
+      "text": "objective:'Travel to Milked, on the side street off Main Street, and talk to Eva at reception.',steps:[{id:'arrive',text:'Reach Milked (the side street off the east side of Main Street, or take a taxi).'},{id:'reception',text:'Talk to Eva at the reception desk.'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked.js",
-      "line": 33,
+      "line": 36,
       "text": "dialogue:['eva.greeting'],reward:null};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked.js",
-      "line": 265,
-      "text": "const api={CONFIG,MODELS,DIALOGUE,MISSION,FOOTPRINT,DOOR,PLAZA,TAXI,SEGMENTS,FURNITURE,ROOMS,INTERACTIONS,PLACES,BOUNDS,inside,roomAt,solids,interactions,create};",
+      "line": 400,
+      "text": "const api={CONFIG,MODELS,DIALOGUE,MISSION,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,BOUNDS,inside,distance,roomAt,solids,interactions,create};",
       "kind": "source-reference"
     },
     {
@@ -12048,7 +12042,7 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1156,
+      "line": 1158,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -13820,7 +13814,7 @@
     "void-runner/district-area.js": "9671f7ff8aa871030eb88947e6c0cab67d580c83e2e4a60cb5a811e79a75f84b",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "d6c860db19dbe4ec7cf521a48a2be9662cb879218dd831943d6ee72a83d15138",
-    "void-runner/district-map.js": "58b56089eef021541f870f4fc6edc10debc9998e151b71c1d1e05c16eeafa792",
+    "void-runner/district-map.js": "1411a2367891eb8af00c34ab2a5b7075ba3ea41eb9a4684f4b50c75ee56e8b7f",
     "void-runner/district-people.js": "457ef63ddee3ced21afcbc590074c70a399205c823cefd4cd298740b076323b5",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "748c71527b459938e848cd52e70feb2d3c30efefe93858e36e5ef44339b443eb",
@@ -13862,14 +13856,14 @@
     "void-runner/meridian-interior.js": "d9f411d4f42b3cf8bacbe377812cda9b3c3563aef0d52127e989898e4b9a2b96",
     "void-runner/meridian-kitbash.js": "5e1efc2246631b5e37507d12fc23206b5ac8838fa8d0b1b34302a8fa2d5b7ebb",
     "void-runner/meridian-station.js": "2ecbbeec490597999c1a11e4c918a694f8e82673944100fe04e6657180556526",
-    "void-runner/milked-integration.js": "b582cbc6bff41a3658fdddcd19706ba70b2c3b7efa41a96b34b4a8c858fe7434",
-    "void-runner/milked.js": "be71b415639b57bf3ec7b48aca4f7c091c425290a7fcc71dc7a5fb9becd3f1dc",
+    "void-runner/milked-integration.js": "ff9e6537c697485b21ec7d2a381ab007d04b13a02dda75bbc7345a3152210b10",
+    "void-runner/milked.js": "619df312df7be3fdf6d426edef3a9f37358ea970f3d3ebec35c11cbd721c1dc2",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "a441c9382c2c393ebcefb482956a9b3aafa0e06391b884207af5912f6c041f2e",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "af8df4b620bba30d4cc4ce2dcfb3a0a8766f143f18bd388c52ba0f5412eadf5e",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
-    "void-runner/music-director.js": "7e201f1cb867e99608e3a3dadd20a9e7f41431a7b02aab640c9ab2d6421b598c",
+    "void-runner/music-director.js": "8aa32574859a31dc60f142755cb98798de012157c838d60225b96f97787f09f9",
     "void-runner/music-engine.js": "01eecadf954ace9df5655135ab20f6341548f1af07b0e864715be33d08eec2ea",
     "void-runner/music-integration.js": "c0c927f0d7a4bfa10d9f4f25b92ee4500d42016119a4d3ca8ecc2416ea42834b",
     "void-runner/music-score.js": "cde27a91273742b759d1fc6aa570ba9159c920b49721ca4cb5278bcea897a9a1",
@@ -13877,8 +13871,8 @@
     "void-runner/ncz-alley.js": "8ab13c0f1bb1a5857b3ec426d07106ec7bf0fa72143ea5d7b3ab01679b7daf58",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-nightclub.js": "58e8f26da2df090c85d2295cb403b5658cfe8241450d70b70c777e276f8425c5",
-    "void-runner/ncz-nightlife.js": "15cf226233896181b848a2d99611ceb0319f8b0cee8eec6035e771f38a7725df",
-    "void-runner/neochinatown.js": "1e17988a95f3242e976601edb03bb9d90caea783079d4c13738054c75dabd1e9",
+    "void-runner/ncz-nightlife.js": "5db758c34d16dfe6cd62f42e96de8b2a36f2ae7640d87ec5b02927a52861132c",
+    "void-runner/neochinatown.js": "89e7d62ed68a305175db2c4cf6a6aad49cbc1375ed7dcd327aaf6e3097fe79cb",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",

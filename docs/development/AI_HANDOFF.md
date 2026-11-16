@@ -6,6 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (early morning): MILKED REDESIGNED AND MOVED (build `2026-11-16-milked-1`, branch `claude/milked-redesign`, one local commit, NOT pushed, no PR)
+
+Phase 2 of David's brief "NeoChinatown Rework, Milked Redesign & V1 Taxi Integration". Full record: [`MILKED.md`](MILKED.md). Pictures: `docs/development/milked/` (seven, Medium quality, brightened).
+
+- **What it is now:** a small adult livestreaming production studio. Members watch from home; nothing is collected and no procedure happens in the building. Everyone is an adult and clothed.
+- **Where:** footprint `[78, 98, -90, -74]` (20 m by 16 m) in the block east of Main Street; a new dead-end side street `streets.milkedLane` `[71, 101, -74, -68.5]` in front and a service alley `streets.milkedAlley` `[71, 98.5, -93.5, -90]` behind, both opening onto Main Street. Sky-cab stop on Main Street at `(61, -82)`. The old plaza and footprint at the east end of the avenue are gone; `avenueEast` now ends in city blocks.
+- **Inside:** its own pink and green double-door vestibule, reception (Eva), a narrow hallway with windows onto four studios (one clothed dancer each, fixed cameras on stands, ON AIR signs, four different sets), Fish's office (monitor wall, remote camera desk), two dressing rooms, two restrooms, a rear door to the alley.
+- **Removed:** the biobank, consultation room, laboratory, cryogenic storage, kiosks, operations room, plaza and all the wording. A test fails if clinical words return.
+- **Checked:** `npm test` 976 of 977 (the known local-only companion-preview failure); `tests/milked-browser.cjs low` passes with no page errors; looked at on Low and Medium.
+- **Not done:** not pushed or merged; dialogue and voices still provisional; no real GPU, Firefox, VR or multiplayer check; no sky-cab flight flown to the new stop; no separate road-taxi stop. The NeoChinatown rework (phase 1) and the taxi in the V1 Map (phase 3) are separate work.
+- Cloud-container note: the repository's own Playwright cannot find its browser; run browser tests with `CHROMIUM_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome`.
+
 ### 16 Nov 2026 (after midnight): TWO BIG BRIEFS RECEIVED; what is done and what is next (build `2026-11-16-companions-2`)
 
 David sent (1) "ActorCore Motion Capture Integration" and (2) "NeoChinatown Rework, Milked Redesign & V1 Taxi Integration" (three phases, in order). Both are large. State:

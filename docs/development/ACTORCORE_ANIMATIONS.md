@@ -49,7 +49,7 @@ In a browser, on Kai (MakeHuman male) in the companion room: standing pose, slow
 
 ## NOT done yet (the rest of David's brief)
 
-- Nothing plays these clips yet except by test: no companion interaction, no Milked dancer, no bench or bar NPC uses them.
+- The four Milked dancers play four of these clips where the library file is installed (16 Nov 2026, `milked.js` `STUDIOS`), and their own dances where it is not. Nothing else plays them yet except by test: no companion interaction, no bench or bar NPC.
 - Purchased companions (Ava, Eva, Yuki, Dex) and Nadia have their own skeletons; whether the library fits them has not been checked. The Meshy residents (24-joint rigs, no fingers) should take them but are unchecked.
 - Group synchronisation, consent and exit for players, furniture alignment, transitions between activities, the NPC Editor listing, ElevenLabs companion voices, and the companion interaction UI are not started.
 - Feet are not pinned (no inverse kinematics pass); some sliding or sinking is expected on figures of a different height.

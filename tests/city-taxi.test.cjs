@@ -30,8 +30,8 @@ test('destinations show a fare before calling, and refuse what makes no sense',(
   const s=city(),L=N.layout(),list=R.destinations(s,{player:[31,-96],layout:L}),by=Object.fromEntries(list.map(d=>[d.id,d]));
   assert.equal(by.ship.ok,false,'already at the ship');assert.ok(by.district.ok&&by.district.fare>0&&by.district.fare<=R.fare.max);
   s.credits=1;assert.equal(R.destinations(s,{player:[31,-96],layout:L}).find(d=>d.id==='district').ok,false);
-  // From Milked, Return to Ship lands at the zone nearest the ship's real position, not on it.
-  const far=R.destinations(city(),{player:[206,-12.5],layout:L}).find(d=>d.id==='ship');assert.ok(far.ok);
+  // From the far end of the avenue, Return to Ship lands at the zone nearest the ship's real position, not on it.
+  const far=R.destinations(city(),{player:[190,-12.5],layout:L}).find(d=>d.id==='ship');assert.ok(far.ok);
   const z=R.zone(city(),far.zone),ship=R.shipPosition(L);assert.ok(Math.hypot(z.position[0]-ship[0],z.position[1]-ship[1])>8,'clear of the ship');
 });
 

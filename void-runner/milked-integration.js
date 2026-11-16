@@ -14,13 +14,11 @@
   const R=(action,fn)=>VoidInteractions.register(action,fn);
   R('milked-eva',()=>say(MK.MODELS.eva.id,MK.DIALOGUE.eva.greeting));
   R('milked-fish',()=>say(MK.MODELS.fish.id,MK.DIALOGUE.fish.greeting));
-  R('milked-checkin',()=>say(MK.MODELS.eva.id,MK.DIALOGUE.eva.checkin));
-  R('milked-studio',({item}={})=>note('STUDIO '+(item?.studio||'')+' CONSOLE: broadcast live, privacy mode on, chat filter active. Viewers see a clothed performer on a stage set. (Display only.)'));
-  R('milked-ops',()=>note('BROADCAST MONITORING: all studio feeds healthy. Encryption on. Privacy and security indicators green.'));
-  R('milked-clinic',()=>note('BIOBANK KIOSK: appointments are by booking only. Adults only, identity checked, nothing leaves the building unrecorded. (Display only.)'));
-  R('milked-consult',()=>note('A frosted, private consultation room. Sound-proofed and not recorded.'));
-  R('milked-lab',()=>note('INVENTORY: sealed units, chain of custody logged, temperature nominal. (Fictional display.)'));
-  R('milked-staff',()=>note('STAFF ONLY. The door is locked.'));
-  R('milked-security',()=>note('SECURITY MONITOR: lobby, hall, lab door and Studio 2. Nothing unusual.'));
+  R('milked-intercom',()=>note('DOOR INTERCOM: adults only. Identity verified. Welcome to Milked.'));
+  R('milked-security',()=>note('SECURITY MONITORS: vestibule, hallway, rear door and the side street. Nothing unusual.'));
+  R('milked-studio',({item}={})=>note('STUDIO '+(item?.studio||'')+' is ON AIR: one performer, fixed cameras, nobody else in the room. The glass is soundproof. (Display only.)'));
+  R('milked-cameras',()=>note('REMOTE CAMERA CONTROLS: every studio camera is on a stand and is moved from this desk. All four studios are live.'));
+  R('milked-dressing',()=>note('DRESSING ROOM B is occupied. The door is locked.'));
+  R('milked-restroom',()=>note('STAFF RESTROOMS. Occupied.'));
  }
 })(globalThis);

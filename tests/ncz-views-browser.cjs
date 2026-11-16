@@ -9,7 +9,7 @@ const views=[
  ['pad',22,-84,Math.PI,.05],['pad-to-passage',30,-100,.9,.02],['road-east',16,-118.5,Math.PI/2,.02],
  ['main-south',61,-118,0,.02],['main-mid',61,-90,0,.0],['main-north',61,-28,Math.PI,.02],['main-west-shops',66,-75,-Math.PI/2,-.05],
  ['alley-mouth',72,-58.5,Math.PI/2,.02],['alley-door',120,-58.5,Math.PI,.15],['avenue-west',8,-12.5,Math.PI/2,.0],['avenue-east',146,-12.5,-Math.PI/2,.0],
- ['avenue-junction',61,-14,Math.PI*.75,-.12],['corporate',-70,-12.5,-Math.PI/2,-.05],['milked',196,-12.5,Math.PI/2,-.05],['containers',61,-185,Math.PI,-.03]];
+ ['avenue-junction',61,-14,Math.PI*.75,-.12],['corporate',-70,-12.5,-Math.PI/2,-.05],['milked',73,-71.2,Math.PI/2,-.05],['containers',61,-185,Math.PI,-.03]];
 function gpuMB(pid){if(process.platform!=='win32'||!pid)return null;try{const ps='$s=Get-Counter -Counter "\\GPU Process Memory(pid_'+pid+'_*)\\Dedicated Usage","\\GPU Process Memory(pid_'+pid+'_*)\\Shared Usage" -ErrorAction Stop;$t=0;foreach($c in $s.CounterSamples){$t+=$c.CookedValue};"$t"';return Math.round(Number(execFileSync('powershell.exe',['-NoProfile','-Command',ps],{encoding:'utf8'}).trim())/1048576);}catch{return null;}}
 (async()=>{const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge',args:['--enable-gpu','--ignore-gpu-blocklist']});const report={label,views:{},errors:[]};
  try{const cdp=await browser.newBrowserCDPSession(),gpuPid=(await cdp.send('SystemInfo.getProcessInfo')).processInfo.find(p=>/gpu/i.test(p.type))?.id;

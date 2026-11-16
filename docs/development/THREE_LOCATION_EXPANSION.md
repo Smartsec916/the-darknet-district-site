@@ -6,7 +6,7 @@
 
 | Location | Status | Evidence |
 |---|---|---|
-| **Milked** | **Deployed** (PR [#265](https://github.com/Smartsec916/the-darknet-district-site/pull/265), `3129a09`). Verified locally and against the live site in a real browser. | `docs/development/MILKED.md`, `tests/milked.test.cjs`, `tests/milked-browser.cjs`, `docs/development/milked/` |
+| **Milked** | First version **deployed** (PR [#265](https://github.com/Smartsec916/the-darknet-district-site/pull/265), `3129a09`). **Redesigned and moved on 16 Nov 2026** (branch `claude/milked-redesign`, not merged): now a small livestreaming studio on a side street off Main Street, with no biobank, laboratory or plaza. | `docs/development/MILKED.md`, `tests/milked.test.cjs`, `tests/milked-browser.cjs`, `docs/development/milked/` |
 | **Corporate District** | **Deployed** (PR #275, `83e8941`), live-verified. Separate scene, reusable sky-cab transition, security, stealth, V1 map with fog. | [`CORPORATE.md`](CORPORATE.md), `tests/corporate*.test.cjs`, `tests/sky-cab.test.cjs`, `tests/corporate-browser.cjs`, `docs/development/corporate/` |
 | **Zen Zephyr Temple** | **Deployed** (PR #283, `ca6eed7`), live-verified. Same sky-cab transition, hilltop chamber, monk, local chat, V1 map with fog. | [`TEMPLE.md`](TEMPLE.md), `tests/temple.test.cjs`, `zen-chat.test.cjs`, `tests/temple-browser.cjs`, `docs/development/temple/` |
 

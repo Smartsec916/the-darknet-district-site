@@ -21,11 +21,13 @@
   const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],
     // City expansion (David's brief, 2026-10-27): walkable streets out to three future districts. The neighbourhood above is
     // unchanged; only the avenue's closed ends and the main street's south end now open onto these.
-    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],milked:[200,212,-30,5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190]};
+    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190],
+    // Milked (David's brief, 2026-11-16): a quiet dead-end side street off Main Street's east side and the service alley behind the building (milked.js).
+    milkedLane:MK.LANE,milkedAlley:MK.ALLEY};
   // Future districts: placeholders until David supplies their designs. Each streams its own detail as you approach.
   const districts=[
     {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','SKY CAB DEPARTURES'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:false,built:true,scene:'corporate'},
-    {id:'milked',name:'Milked',lines:['MILKED','LIVESTREAM STUDIOS AND BIOBANK'],rect:MK.BOUNDS.rect.map((v,i)=>i===0?200:v),center:[206,-12.5],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true},
+    {id:'milked',name:'Milked',lines:['MILKED','LIVE BROADCAST STUDIOS'],rect:MK.BOUNDS.rect,center:[(MK.FOOTPRINT[0]+MK.FOOTPRINT[1])/2,(MK.FOOTPRINT[2]+MK.FOOTPRINT[3])/2],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true},
     {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true}];
   // Taxi landing zones: open street wide enough for the cab, clear of doors, the ship and the sidewalk crowd.
   const taxiZones=[{id:'main',name:'Main Street',position:[61,-100],heading:0},{id:'avenue',name:'The avenue',position:[40,-12.5],heading:Math.PI/2},{id:'alley-mouth',name:'Main Street by the alley',position:[61,-66],heading:0},{id:'passage',name:'The passage by the landing pad',position:[40.75,-101],heading:0},
@@ -224,7 +226,7 @@
     // Street edges, outward normal pointing into the buildings, with gaps where another street joins.
     const edges=[
      {street:'avenue',a:[2,-5],b:[152,-5],n:[0,1],gaps:[]},{street:'avenue',a:[2,-20],b:[152,-20],n:[0,-1],gaps:[[51,71]]},
-     {street:'main',a:[51,-124],b:[51,-20],n:[-1,0],gaps:[[-121,-116]]},{street:'main',a:[71,-124],b:[71,-20],n:[1,0],gaps:[[-61.6,-55.5]]},
+     {street:'main',a:[51,-124],b:[51,-20],n:[-1,0],gaps:[[-121,-116]]},{street:'main',a:[71,-124],b:[71,-20],n:[1,0],gaps:[[-61.6,-55.5],[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]},
      {street:'road',a:[13,-116],b:[51,-116],n:[0,1],gaps:[[37.5,44]]},{street:'road',a:[13,-121],b:[51,-121],n:[0,-1],gaps:[]},
      {street:'passage',a:[37.5,-116],b:[37.5,-106],n:[-1,0],gaps:[]},{street:'passage',a:[44,-116],b:[44,-92],n:[1,0],gaps:[]},
      {street:'pad',a:[13,-106],b:[13,-86],n:[-1,0],gaps:[]},{street:'pad',a:[13,-86],b:[37.5,-86],n:[0,1],gaps:[]},{street:'pad',a:[37.5,-92],b:[37.5,-86],n:[1,0],gaps:[]},{street:'pad',a:[13,-106],b:[37.5,-106],n:[0,-1],gaps:[]}];
