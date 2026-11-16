@@ -17,7 +17,7 @@ test('from the landing pad the street, alley and District door can be reached on
 });
 
 test('with the District doors open every room and the stairs can be reached',()=>{
- const L=N.layout();L.solids=L.solids.filter(s=>!['district-door','district-inner-door','meeting-door'].includes(s.id));
+ const L=N.layout();L.solids=L.solids.filter(s=>!['district-door','district-inner-door','meeting-door','milked-door'].includes(s.id));   // Milked's check-in reader is in its vestibule, behind its street doors
  const cells=reachable(L);
  for(const i of L.interactions.filter(i=>!['district-stairs-down'].includes(i.id)))assert(near(cells,i.position,i.range),i.id+' within reach');
 });

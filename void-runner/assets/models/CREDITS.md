@@ -6,5 +6,6 @@
 - **Meridian furniture** (`meridian-interior/house-*`): "Ultimate House Interior Pack" by Quaternius, CC0 1.0. https://opengameart.org/node/126986
 - **The Darknet District** (`district/`): "Ultimate House Interior Pack" and "Sci-Fi Essentials Kit" by Quaternius, CC0 1.0.
 - **Props** (`props/`): "Sci-Fi Essentials Kit" by Quaternius, CC0 1.0. https://quaternius.com
+- **Milked props** (`milked/`): ten models generated with Meshy on the owner's paid account from text prompts written for this game (16 Nov 2026). Details: `docs/development/MILKED.md`.
 
 CC0 needs no attribution; this credit is given anyway. Full inventory: `docs/VOID_RUNNER_ASSET_LICENSES.md`.

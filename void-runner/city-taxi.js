@@ -96,7 +96,7 @@
   if(trip&&mode==='taxi'&&trip.phase!=='boarding'){const s=seat();walker.x=s.x;walker.y=s.y;walker.z=s.z;walker.yaw=cab.root.rotation.y+look.yaw;walker.pitch=look.pitch;}
  }
  // ---- Status for the HUD ----
- function status(){if(!inCity())return R.availability(state,{inSpace:mode==='play'||VoidHUD?.isOpen&&!walkingLocation});const area=VoidNeoChinatown.zone({x:walker.x,z:walker.z}).area;
+ function status(){if(!inCity())return R.availability(state,{inSpace:mode==='play'||VoidHUD?.isOpen&&!walkingLocation});const area=walkingLocation.area==='milked'?'milked':VoidNeoChinatown.zone({x:walker.x,z:walker.z}).area;   /* the inside of Milked is its own environment: no cab comes indoors */
   return R.availability(state,{onFoot:true,area,busy:typeof VoidGraphics!=='undefined'&&VoidGraphics.busy,combat:!!globalThis.VoidFlightSkirmish?.active});}
  const phaseText={handoff:'In flight',approach:'On its way',descend:'Landing',landed:'Waiting for you, door open',boarding:'Boarding',climb:'Climbing',cruise:'In flight',circle:'Holding over the destination',land:'Landing',opening:'Opening the door',arrived:'Arrived',close:'Leaving',leave:'Leaving'};
  function hudHtml(){const esc=s=>escapeText(String(s??''));const a=status();

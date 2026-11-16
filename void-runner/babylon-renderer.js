@@ -1176,10 +1176,10 @@
       await task.wait('scene',()=>scene.whenReadyAsync(),'workshop');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    // Separate areas built by their own modules: the Corporate District (corporate.js, corporate-build.js) and the sky-cab interior (sky-cab.js). The handle is {tick(time,player), dispose()}.
-    if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.skycab&&root.VoidSkyCab?.build)){
+    // Separate areas built by their own modules: the Corporate District (corporate.js, corporate-build.js), the inside of Milked (milked-build.js) and the sky-cab interior (sky-cab.js). The handle is {tick(time,player), dispose()}.
+    if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.skycab&&root.VoidSkyCab?.build)||(def.milked&&root.VoidMilked?.build)){
       crowdLocation=def.id;root.VoidCrowd?.begin();
-      zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:root.VoidSkyCab).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
+      zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:def.milked?root.VoidMilked:root.VoidSkyCab).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
       await task.wait(def.corporate||def.temple?'area':'scene',()=>scene.whenReadyAsync(),def.id);
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }

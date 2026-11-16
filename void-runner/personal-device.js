@@ -384,7 +384,7 @@
   const city=body.querySelector('[data-district-map]');if(city){if(city.firstChild)root.VoidDistrictMap.refresh();else root.VoidDistrictMap.mount(city);return;}
   const cv=body.querySelector('canvas[data-map]'),wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(!cv||!wl||typeof walker==='undefined'||!walker)return;
   const area=wl.area==='interior'?'interior':'street',N=root.VoidNeoChinatown,to=(x,z)=>N?.toWorld?N.toWorld(x,z):[x,z];   // half turn: maps world to the district frame and back
-  const layout={solids:wl.solids||[],interactions:wl.interactions||[],spawn:wl.spawn||null},ext=D.extent(layout);if(!ext)return;
+  const lay=wl.area==='milked'&&typeof VoidExplorationData!=='undefined'&&VoidExplorationData.locations?.[root.VoidDistrictArea?.KEY?.street]||wl,layout={solids:lay.solids||[],interactions:lay.interactions||[],spawn:lay.spawn||null},ext=D.extent(layout);if(!ext)return;
   const vis=D.visible(dev.map[area],layout),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
   // district frame bounds from the real extent corners
   const corners=[[ext.x0,ext.z0],[ext.x1,ext.z0],[ext.x0,ext.z1],[ext.x1,ext.z1]].map(c=>to(c[0],c[1])),lx0=Math.min(...corners.map(c=>c[0])),lx1=Math.max(...corners.map(c=>c[0])),lz0=Math.min(...corners.map(c=>c[1])),lz1=Math.max(...corners.map(c=>c[1]));
@@ -402,7 +402,9 @@
  function exploreTick(){
   const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(!wl||wl.id!=='neochinatown'||typeof walker==='undefined'||!walker||!(typeof mode!=='undefined'&&mode==='walking'))return;
   const s=state_();if(!s?.story?.flags)return;if(!dev.loaded){dev=D.restore(s.story.flags);dev.loaded=true;}
-  const area=wl.area==='interior'?'interior':'street',ext=D.extent({solids:wl.solids||[],interactions:wl.interactions||[],spawn:wl.spawn||null});if(!ext)return;
+  // The inside of Milked is its own environment at the street's own coordinates: it is charted on the street's grid, so the explored-street map keeps its size.
+  const lay=wl.area==='milked'?(typeof VoidExplorationData!=='undefined'&&VoidExplorationData.locations?.[root.VoidDistrictArea?.KEY?.street]||null):wl;if(!lay)return;
+  const area=wl.area==='interior'?'interior':'street',ext=D.extent({solids:lay.solids||[],interactions:lay.interactions||[],spawn:lay.spawn||null});if(!ext)return;
   const next=D.explore(dev.map[area],ext,walker.x,walker.z);
   if(next!==dev.map[area]){dev.map[area]=next;D.write(s.story.flags,dev);}   // stored in the save in memory now; written to disk by the game's normal saving
  }

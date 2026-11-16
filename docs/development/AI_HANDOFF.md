@@ -6,6 +6,19 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 16 Nov 2026 (evening): MILKED HAS ITS OWN INTERIOR BEHIND A LOADING CARD (build `2026-11-16-milked-3`, branch `claude/milked-aaa`, one local commit, NOT pushed, no PR)
+
+David's request with two reference sheets: "Since Milked is going to have a security vestibule it can have a loading screen that functions like the one at The Darknet District with Milked styling and be more detail inside. Make it AAA standard". Full record: [`MILKED.md`](MILKED.md). Pictures: `docs/development/milked/` (Medium, brightened copies).
+
+- **The transition was built, not the fallback.** The inside of Milked is its own environment (place key `milked`, built by `void-runner/milked-build.js` `build()`), reached through the **front security vestibule** or the **rear lobby**, in both directions, exactly as the District's vestibule works: walk to the middle, every door closes, the door sensors confirm, the loading card covers the view, the other environment loads, the far door opens. The card is Milked's own (pink logo with the white droplets, a green line, four real steps). Controller: `void-runner/milked-transition.js` (`VoidMilkedGate`).
+- **Saves:** the interior is not a save location and writes nothing. A game saved inside resumes outside (every login wakes in the Sleeping Pod anyway). No new save field, id or flag.
+- **Kept working:** the V1 Map, the music zone, the camera's place label and multiplayer presence, because the interior keeps NeoChinatown's id and coordinates (`area: 'milked'`). No cab can be called indoors.
+- **Detail:** the shopfront, vestibule, reception, hallway, four studios, Fish's office, staff corridor, rear corridor and rear lobby were rebuilt after the references with the repository's texture sets, signage (with simple Chinese lines), ceiling services, photo walls and posters.
+- **Meshy props:** ten models in `void-runner/assets/models/milked/` (camera on tripod, ring light, softbox, office chair, bamboo, pothos, lucky cat, shark plush, laundry cart, flight case), **440 credits** (all of the budget). Batch on David's PC: `Documents\DarknetDistrict_Assets\Meshy\milked_props\`. Low quality uses stand-ins built in code.
+- **Checked:** `npm test` 987 of 988 (the known local-only companion-preview failure); `tests/milked-browser.cjs low` passes with no page errors, walking the whole route in small steps both ways through both checkpoints and watching the door rules on every frame; looked at on Low and Medium.
+- **Not done / not verified:** not pushed or merged; wording and dialogue provisional; software renderer only (no real GPU, Firefox, VR or High); multiplayer not tried with two players; the full walk-through was not completed on Medium (the photo tour was); Eva still stands and is still the placeholder figure; it is richer but still not at the art direction's AAA standard (textured, not PBR; no shadows or reflections inside). `MILKED.md` lists every difference from the references.
+- **Found on the way, not fixed at the source:** `character-assembler.js` `ensureLook` remembers a download dropped by a scene change as done, so a figure can fail to appear after re-entering a place. Milked's interior loads its own six figures to avoid it.
+
 ### 16 Nov 2026 (early morning): MILKED REDESIGNED AND MOVED (build `2026-11-16-milked-1`, branch `claude/milked-redesign`, one local commit, NOT pushed, no PR)
 
 Phase 2 of David's brief "NeoChinatown Rework, Milked Redesign & V1 Taxi Integration". Full record: [`MILKED.md`](MILKED.md). Pictures: `docs/development/milked/` (seven, Medium quality, brightened).

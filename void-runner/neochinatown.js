@@ -128,7 +128,7 @@
     solids:[...placed,...(club?club.solids():[]),...MK.solids(),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
     interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},
      // The club's bar (ncz-nightclub.js), when the club is there.
-     ...(club?[{id:'club-bar',label:'ORDER A DRINK',position:[club.BUILT.bar.x,1.7,club.BUILT.bar.z],action:'club-bar',range:2.4}]:[]),...MK.interactions(),...items],signs:[]};}
+     ...(club?[{id:'club-bar',label:'ORDER A DRINK',position:[club.BUILT.bar.x,1.7,club.BUILT.bar.z],action:'club-bar',range:2.4}]:[]),...MK.interactions('street'),...items],signs:[]};}
   // The layout of one environment. 'all' is the original combined layout. The entrance (outer door, front wall, vestibule, inner door and
   // scanner) belongs to both 'street' and 'interior', so the player stands in the same vestibule when one replaces the other.
   const ENTRANCE=new Set(['district-door','district-inner-door','district-front-west','district-front-east','vestibule-west','vestibule-east']);
