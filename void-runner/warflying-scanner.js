@@ -118,10 +118,14 @@
   tick-=dt;if(tick>0)return;tick=X.config.interval;scan();
  };
 
+ // The WarFlying Leadership Board (warflying-board.js): this week's five, with the player measured against them. A player in the five is shown by their
+ // handle (their account's, or YOU without one).
+ const playerName=()=>{const h=globalThis.VoidAccount?.handle;return typeof h==='string'&&h.trim()?h.trim().slice(0,24):'YOU';};
+ const standings=()=>globalThis.VoidWarFlyingBoard.standings(state?.warflying?W.points(state.warflying):0,playerName());
  // ---- The WarFlying log, inside the Mission Log ----
  function section(){
   const db=state.warflying,records=Object.values(db.records),points=W.points(db),fitted=installed();
-  const board=X.leaderboard(db.clock,points,'YOU');
+  const board=standings();
   const recent=Object.entries(db.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,6);
   const latest=Object.entries(db.records).sort((a,b)=>b[1].l-a[1].l).slice(0,6);
   const owned=state.progression.equipment.owned.includes('warflying-module');
@@ -136,7 +140,7 @@
    +'<h3>YOUR SHIP ON THE RELAY</h3><p>'+(trail.linked+trail.unlinked?'Other pilots have uploaded '+(trail.linked+trail.unlinked)+' sighting'+(trail.linked+trail.unlinked===1?'':'s')+' of your ship: '+trail.linked+' identified as you, '+trail.unlinked+' unidentified.':'No uploaded sightings of your ship yet.')
    +(P.utility(state)==='warflying-scrambler'?' Your scrambler is active: new sightings can’t be tied to your ship. It doesn’t hide you from radar or a direct inspection.':'')+'</p>'
    +'<p>'+points+' points · '+W.discoveries(db)+' unique signals identified · '+(records.length-W.discoveries(db))+' partial contacts awaiting identification</p>'
-   +'<h3>LEADERBOARD</h3><table>'+board.map(r=>'<tr'+(r.player?' class="you"':'')+'><td>'+r.rank+'</td><td>'+escapeText(r.name)+'</td><td>'+r.points+'</td></tr>').join('')+'</table>'
+   +'<h3>'+board.header+'</h3><p>This week’s top five. The five change every week.</p><table>'+board.rows.map(r=>'<tr'+(r.player?' class="you"':'')+'><td>'+r.rank+'</td><td>'+escapeText(r.name)+'</td><td>'+r.points+'</td></tr>').join('')+'</table>'+(board.you.rank?'':'<p>Your score: '+board.you.points+' · not in the top five this week.</p>')
    +'<h3>RECENT DISCOVERIES</h3>'+(recent.length?'<ul>'+recent.map(([,r])=>'<li>+1 · '+escapeText(label(r)+kind(r))+' · '+escapeText(placeText(r.places[0]||''))+'</li>').join('')+'</ul>':'<p>None yet.</p>')
    +'<h3>LAST KNOWN OBSERVATIONS</h3>'+(latest.length?'<ul>'+latest.map(([,r])=>'<li>'+escapeText(label(r))+' · last seen '+escapeText(placeText(r.places[r.places.length-1]||''))+' · seen '+r.k+'×'+(r.conf==='partial'?' · identity not established':'')+'</li>').join('')+'</ul>':'<p>Nothing logged yet.</p>')
    +'</section>';
@@ -155,5 +159,5 @@
   }
   return result;
  };
- globalThis.VoidWarFlyingScanner={setActive,get appInstalled(){return appInstalled();},get shielded(){return shielded();},leaderboard:()=>X.leaderboard(state.warflying.clock,W.points(state.warflying),'YOU'),recent:()=>Object.entries(state.warflying.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,8).map(([,r])=>({text:label(r)+kind(r),place:placeText(r.places[0]||'')})),scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};
+ globalThis.VoidWarFlyingScanner={setActive,get appInstalled(){return appInstalled();},get shielded(){return shielded();},leaderboard:()=>X.leaderboard(state.warflying.clock,W.points(state.warflying),playerName()),standings,playerName,recent:()=>Object.entries(state.warflying.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,8).map(([,r])=>({text:label(r)+kind(r),place:placeText(r.places[0]||'')})),scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};
 })();

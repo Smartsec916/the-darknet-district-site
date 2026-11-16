@@ -34,13 +34,14 @@ test('flying a route earns one point per emitter passed, and flying it again ear
   let again=0;for(const p of X.passed('meridian','kepler',0,1))again+=W.observe(db,{sourceId:p.source.id,confidence:'confirmed',place:'erebus'},2).points;
   assert.equal(again,0);
 });
-test('the leaderboard rivals advance slowly with play time and stay beatable',()=>{
-  const start=X.leaderboard(0,0);assert.deepEqual(start.map(r=>r.name),['GhostVector','SignalWraith','EchoNine','VoidWalker','RiftRunner','YOU']);
-  assert.equal(start.find(r=>r.player).rank,6);
-  const tenHours=X.leaderboard(36000,0);assert(tenHours[0].points<80,'no runaway inflation');
-  const forever=X.leaderboard(1e9,0);assert(Math.max(...forever.map(r=>r.points))<S.all().length,'every rival is below the number of real signals');
-  assert.equal(X.leaderboard(36000,S.all().length).find(r=>r.player).rank,1,'a thorough player can reach the top');
-  assert.equal(X.leaderboard(0,48).find(r=>r.player).rank,2,'a tie goes to the rival who got there first');
+test('the board is this week’s five and the player; play time no longer moves it, and it stays beatable',()=>{
+  const when=new Date(Date.UTC(2026,10,16,12)),start=X.leaderboard(0,0,'YOU',when);
+  assert.equal(start.length,6);assert.equal(start.find(r=>r.player).rank,6);assert.deepEqual(start.map(r=>r.rank),[1,2,3,4,5,6]);
+  assert.deepEqual(X.leaderboard(1e9,0,'YOU',when),start,'the play clock changes nothing');
+  assert(!start.some(r=>['GhostVector','SignalWraith','EchoNine','VoidWalker','RiftRunner'].includes(r.name)),'the old rivals are gone');
+  for(let w=0;w<120;w++){const b=X.leaderboard(0,0,'YOU',new Date(when.getTime()+w*7*864e5+w*36e5));assert(Math.max(...b.map(r=>r.points))<S.all().length,'every handle is below the number of real signals');}
+  assert.equal(X.leaderboard(0,S.all().length,'YOU',when).find(r=>r.player).rank,1,'a thorough player can reach the top');
+  assert.equal(X.leaderboard(0,start[0].points,'YOU',when).find(r=>r.player).rank,2,'a tie goes to the handle who got there first');
 });
 test('the play clock is saved and validated',()=>{
   const s=C.fresh();s.warflying.clock=7200;assert.equal(C.restore(JSON.stringify(s)).warflying.clock,7200);

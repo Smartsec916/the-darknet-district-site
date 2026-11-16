@@ -50,7 +50,7 @@
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
  // Apps a player can install: {id,title,generation,note,storagePct}. An app runs on every model of its generation or later (V1, V2, V3 // Shadow...).
  // WarFlying (David, 15 Nov 2026): the scanner is an app on the personal device now, no longer a module fitted to a ship. Free; takes 15% of storage.
- const STORE_EXTRA=[{id:'warflying',title:'WARFLYING',generation:1,storagePct:15,note:'Scans for nearby frequencies and logs them. Send what you log to the WarFlying leaderboard. Does not work inside The Darknet District, which is shielded.'}];
+ const STORE_EXTRA=[{id:'warflying',title:'WARFLYING',generation:1,storagePct:15,note:'Scans for nearby frequencies and logs them. Press SUBMIT SCANS to send what you log to the WarFlying leaderboard. Does not work inside The Darknet District, which is shielded.'}];
  // Which in-game model draws each named NPC's portrait: {npcId: 'crowd-look-id'}. EMPTY on purpose: the game does not yet say which crowd model is which named
  // character, and a guessed face would be wrong. An entry here makes that NPC's portrait appear (and regenerate whenever ASSET_VERSION or the model changes).
  const NPC_MODELS={};

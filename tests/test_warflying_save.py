@@ -69,6 +69,13 @@ class RelaySaveTests(unittest.TestCase):
         self.assertEqual(out['board'], [{'name': 'GhostVector', 'points': 48, 'rank': 1, 'player': False}])
         self.assertEqual(out['said'], {'warflying-new-contender': True})
 
+    def test_weekly_board_rows_survive(self):
+        # The weekly WarFlying Leadership Board (warflying-board.js): David's handles, generated handles and the player's own row.
+        rows = [{'name': 'BeautifulMalfunction', 'points': 93, 'rank': 1, 'player': False}, {'name': 'Vanta_Antenna88', 'points': 84, 'rank': 2, 'player': False},
+                {'name': 'carrierwave', 'points': 76, 'rank': 3, 'player': False}, {'name': 'QuestionableUpgrade', 'points': 70, 'rank': 4, 'player': False},
+                {'name': 'staticmoth67', 'points': 59, 'rank': 5, 'player': False}, {'name': 'A' * 24, 'points': 0, 'rank': 6, 'player': True}]
+        self.assertEqual(clean_relay({'board': rows})['board'], rows)
+
     def test_rejects_oversized_or_malformed_state(self):
         for raw in [[], {'occurred': []}, {'archive': [{}] * 201}, {'heard': {str(i): 1 for i in range(401)}}]:
             with self.assertRaises(ApiError):

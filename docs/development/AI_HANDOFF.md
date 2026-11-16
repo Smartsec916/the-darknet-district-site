@@ -20,6 +20,20 @@ David played the live site and sent five pictures and nine notes. Full record, w
 - **Every browser script that clicked the pod's EXIT POD button now presses E** (38 files, changed mechanically; only the ones named in `PLAYTHROUGH_FIXES_1.md` were run).
 - **Not verified:** real hardware (software renderer only); High and Ultra; the purchased NULL interior; a second player (trade keys, voice key and Enter are drawn from the code, not from a live session).
 ### 16 Nov 2026 (latest): NEOCHINATOWN IS THREE QUARTERS WITH CHECKPOINTS; SKY CABS REMOVED (build `2026-11-16-quarters-1`, branch `claude/neochinatown-quarters-1`, local commits, NOT pushed, no PR)
+### 16 Nov 2026 (latest): STREET ADVERTISEMENT SCREENS AND THE WEEKLY WARFLYING LEADERSHIP BOARD (build `2026-11-16-adscreens-1`, branch `claude/ad-screens-1`, local commits, NOT pushed, no PR)
+
+Built from David's own ad lines and direction (`docs/void-runner/design-source/12-street-advertisements-david.md`). Full record and how to change things: [`AD_SCREENS.md`](AD_SCREENS.md). Voices: [`AD_SCREENS_VOICE_AUDITION.md`](AD_SCREENS_VOICE_AUDITION.md).
+
+- **Built.** The street posters in the Port, Old Town and the Avenue are animated screens in modelled housings, one visual template per ad category, words appearing in step with the voice, news or the WarFlying Leadership Board every fifth slot, sound from where the screen stands (one voice at a time, quiet in checkpoints and indoors). Meridian's station screens have the same look; their content is unchanged and they stay silent.
+- **The board is weekly now** (`void-runner/warflying-board.js`): five handles worked out from the real-world ISO week, the same for every player, no server and no save field. #1 is always one of David's 57 handles; #2 to #5 mostly come from a handle generator. Only the top five are ever shown; the voice names only #1, or says "a new number one" for a real player. The old five rivals that climbed with play time are gone. The device's WarFlying app and the Mission Log show the same five; the app's button is now SUBMIT SCANS.
+- **David's words are data and are tested against his document** (`void-runner/ad-screens-data.js`, `tests/ad-screens.test.cjs`). Do not reword or add ads, news, slogans or announcer lines.
+- **The location table is PROPOSED, not confirmed by David** (which category plays where; no Darknet District ads at the Function Gate end; no screens toward the East Gate, in checkpoints, at the Temple or in the Corporate District). It is one block of data.
+- **Voices: nothing new is cast or recorded.** The four broadcast voices are still the provisional stand-ins. The street plays the recordings that already exist (David's seven space-station ads, his three news reports); all other lines are silent captions until David picks by ear. `RECORD` in `ad-screens-data.js` switches recording on afterwards.
+- **Left alone:** The Function's civic-notice poster (silent, unchanged; The Function has no screen content, voice or look), the Sleeping Pod, the music player, the District interior and its anti-WarFlying screens, Milked, the skyline's far posters.
+- **Eras:** each ad can carry an `era` tag and the data has a current-era value, but no eras exist and none was invented.
+- **Watch out:** `node tools/audio/extract-lines.cjs` on unchanged `main` rewrites the voice manifest and drops about 60 older entries (it has drifted from the dialogue files). Not caused by this work and not committed; check the diff before committing a manifest.
+
+### 16 Nov 2026: NEOCHINATOWN IS THREE QUARTERS WITH CHECKPOINTS; SKY CABS REMOVED (build `2026-11-16-quarters-1`, branch `claude/neochinatown-quarters-1`, local commits, NOT pushed, no PR)
 
 David approved map A of the rework plan and this builds it. Full record: [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md); decisions: [`CHECKPOINTS.md`](CHECKPOINTS.md).
 

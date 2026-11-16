@@ -4,11 +4,13 @@
      (logged, no point) until it is heard clearly. It never reveals a ship that can't be heard.
    - Fixed emitters (stations, beacons, satellites) are passed along a route. Each route passes its
      own subset, so new routes and new systems turn up new signals.
-   - The leaderboard's rivals are fictional and advance slowly with play time; they stay beatable. */
+   - The board itself is warflying-board.js: five handles that change weekly, the same for every player (David, 16 Nov 2026). The old
+     five rivals who climbed with play time (GhostVector and the others) are gone; nothing about them was ever saved. */
 (function(root){
  'use strict';
  const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
  const Signals=typeof module!=='undefined'?require('./signals.js'):root.VoidSignals;
+ const Board=typeof module!=='undefined'?require('./warflying-board.js'):root.VoidWarFlyingBoard;
  const config={interval:.5,range:220,confirmShare:.7,passShare:3};
  const hash=text=>{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
  // How far away a source with this emission level can be heard at all.
@@ -38,20 +40,14 @@
   return null;
  }
 
- // ---- Leaderboard: fictional rivals (doc 11 §17). [name, starting points, play-minutes per point, ceiling]
- const rivals=[['GhostVector',48,40,118],['SignalWraith',36,50,104],['EchoNine',24,60,90],['VoidWalker',14,75,76],['RiftRunner',6,90,62]];
- function leaderboard(clockSeconds,playerPoints,playerName='YOU'){
-  const minutes=Math.max(0,Number(clockSeconds)||0)/60;
-  const rows=rivals.map(([name,start,per,cap])=>({name,points:Math.min(cap,start+Math.floor(minutes/per)),player:false}));
-  rows.push({name:playerName,points:playerPoints,player:true});
-  // Ties: the rival who got there first stays ahead.
-  return rows.sort((x,y)=>y.points-x.points||(x.player?1:y.player?-1:0)).map((r,i)=>({...r,rank:i+1}));
- }
+ // ---- The board: this week's five and the player, ranked (six rows; only the first five are ever shown). The play clock no longer matters
+ // (the argument is kept so old callers still work); `date` is the real-world moment, for tests.
+ function leaderboard(clockSeconds,playerPoints,playerName='YOU',date){return Board.ranked(playerPoints,playerName,date||new Date());}
  // ---- Other pilots logging the player's ship (doc 11 §25, Admin's scene) ----
  // Hobbyists are out on most routes: about half the routes flown end with someone having logged
  // the player's ship. Decided per route and moment, so it can't be farmed or predicted.
  const watched={share:55};
  function noticed(origin,destination,moment){return hash(origin+'>'+destination+'|'+moment)%100<watched.share;}
- const api={config,hearingRange,classify,routeSources,passed,role,rivals,leaderboard,watched,noticed};
+ const api={config,hearingRange,classify,routeSources,passed,role,leaderboard,watched,noticed};
  if(typeof module!=='undefined')module.exports=api;else root.VoidWarFlyingScan=api;
 })(globalThis);
