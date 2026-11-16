@@ -1,3 +1,6 @@
+/* STALE IN PART SINCE build 2026-11-16-adscreens-1: step 6 expects the old rival RiftRunner to pass the player as the play clock advances. The board is now
+   the weekly five (void-runner/warflying-board.js), which moves with the real-world week, not the play clock; that step needs rewriting before this script
+   is run again. The same rule is covered in tests/relay.test.cjs and tests/warflying-board.test.cjs. Not part of npm test. */
 // The Relay in the browser: routine programming, breaking news (queued in combat, then cutting in),
 // the District's silence, no signal in warp, Meridian's screens, the news archive, WarFlying
 // commentary from the real leaderboard, and save/load. Needs the local server and Edge.
@@ -12,7 +15,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');
  const caption=()=>page.evaluate(()=>{const c=document.getElementById('relay-caption');return c.hidden?'':c.innerText;});
  const tick=(n=1,dt=.5)=>page.evaluate(([n,dt])=>{for(let i=0;i<n;i++)update(dt);},[n,dt]);
 
- // 1. Routine programming: an ad or a statement plays as a caption (no broadcaster is cast yet).
+ // 1. Routine programming: an ad or a statement plays as a caption (a line with no recording is a caption; the broadcasters are cast provisionally).
  await tick(8);await page.waitForFunction(()=>VoidRelayRadio.state.state==='playing');
  const first=await page.evaluate(()=>({kind:VoidRelayRadio.state.segment.kind,status:VoidRadio.status}));
  assert.match(first.status,/ON AIR/);assert.match(await caption(),/THE RELAY ·/);

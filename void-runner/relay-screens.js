@@ -4,7 +4,10 @@
    ticker. News slides read relay.js headlines(), so a screen and the radio never disagree; ad slides show the
    ads' own scripted lines. Screens show NO SIGNAL without a satellite link, and none exist in The Darknet
    District. Performance: one small canvas texture per screen, redrawn about 12 times a second only while the
-   screen is on camera and near, and not at all otherwise. Screens are silent; sound stays with the radio. */
+   screen is on camera and near, and not at all otherwise. Screens are silent; sound stays with the radio.
+   Look (David, 16 Nov 2026): the same as the street's advertisement screens (ad-screens.js): each ad is drawn by its category's template, the
+   standings are the WarFlying Leadership Board (this week's five), the news and station slides use the news template's backdrop, and each screen
+   sits in a modelled housing. What the screens SAY is unchanged. */
 (function(){
  const R=VoidRelay;
  // Positions follow meridian-interior.js and stand clear of the wall dressing (meridian-interior-kit.js) and
@@ -32,21 +35,27 @@
    const mesh=B.MeshBuilder.CreatePlane('relay-screen-'+p.id,{width:p.size[0],height:p.size[1]},s);mesh.position.set(...p.position);mesh.rotation.y=p.rotation;mesh.isPickable=false;
    const texture=new B.DynamicTexture('relay-screen-'+p.id,{width:p.res[0],height:p.res[1]},s,true),m=new B.StandardMaterial('relay-screen-'+p.id,s);
    m.diffuseTexture=texture;m.emissiveTexture=texture;m.disableLighting=true;m.specularColor=B.Color3.Black();mesh.material=m;
-   const frame=B.MeshBuilder.CreateBox('relay-screen-frame-'+p.id,{width:p.size[0]+.16,height:p.size[1]+.16,depth:.08},s);frame.position.set(...p.position);frame.rotation.y=p.rotation;
-   frame.locallyTranslate(new B.Vector3(0,0,.06));const fm=new B.StandardMaterial('relay-screen-frame',s);fm.diffuseColor=B.Color3.FromHexString('#20262b');frame.material=fm;frame.isPickable=false;
+   // The housing: the same parts as the street screens' slim panel (casing, raised lips, an accent light and a power light).
+   const fm=new B.StandardMaterial('relay-screen-frame',s);fm.diffuseColor=B.Color3.FromHexString('#14181c');fm.specularColor=new B.Color3(.25,.27,.3);
+   const tm=new B.StandardMaterial('relay-screen-trim',s);tm.diffuseColor=B.Color3.FromHexString('#2c3238');tm.specularColor=new B.Color3(.4,.42,.45);
+   const gm=new B.StandardMaterial('relay-screen-glow',s);gm.diffuseColor=B.Color3.Black();gm.emissiveColor=B.Color3.FromHexString(p.type==='ad'?'#ffb347':'#7fc6ff');gm.disableLighting=true;
+   const lm=new B.StandardMaterial('relay-screen-led',s);lm.diffuseColor=B.Color3.Black();lm.emissiveColor=B.Color3.FromHexString('#ff2b2b');lm.disableLighting=true;
+   const AS=globalThis.VoidAdScreens,parts=AS.housing('panel',p.size[0],p.size[1]).map(([name,size,off,surf])=>{const m=B.MeshBuilder.CreateBox('relay-screen-'+name+'-'+p.id,{width:size[0],height:size[1],depth:size[2]},s);m.position.set(...AS.place(p.position,p.rotation,off));m.rotation.y=p.rotation;m.material=surf==='case'?fm:surf==='trim'?tm:surf==='glow'?gm:lm;m.isPickable=false;return m;});
+   const frame=parts[0];
    // A hanging screen gets two ceiling rods.
    const rods=p.ceiling?[-1,1].map(side=>{const top=p.position[1]+p.size[1]/2,rod=B.MeshBuilder.CreateBox('relay-screen-rod',{width:.06,height:p.ceiling-top,depth:.06},s);const off=side*p.size[0]*.36;rod.position.set(p.position[0]+Math.cos(p.rotation)*off,(p.ceiling+top)/2,p.position[2]-Math.sin(p.rotation)*off);rod.material=fm;rod.isPickable=false;return rod;}):[];
    // Each screen runs on its own clock offset and playlist position, so no two show the same slide.
-   return {place:p,mesh,frame,rods,texture,materials:[m,fm],offset:i*3.7+(p.id==='bar'?24:0),glitchAt:6+i*4.3,glitch:0};
+   return {place:p,mesh,frame,parts,rods,texture,materials:[m,fm,tm,gm,lm],offset:i*3.7+(p.id==='bar'?24:0),glitchAt:6+i*4.3,glitch:0};
   });
  }
- function release(){for(const s of screens){s.texture.dispose();for(const m of s.materials)m.dispose();s.mesh.dispose();s.frame.dispose();for(const r of s.rods)r.dispose();}screens=[];scene=null;}
+ function release(){for(const s of screens){s.texture.dispose();for(const m of s.materials)m.dispose();s.mesh.dispose();for(const x of s.parts)x.dispose();for(const r of s.rods)r.dispose();}screens=[];scene=null;}
  function wrap(g,text,x,y,width,lineHeight,max){const words=String(text).split(/\s+/);let line='',n=0;for(const w of words){const test=line?line+' '+w:w;if(g.measureText(test).width>width&&line){g.fillText(line,x,y+n*lineHeight);line=w;if(++n>=max)return;}else line=test;}if(line)g.fillText(line,x,y+n*lineHeight);}
  // What the screens show, refreshed every few seconds (not every frame).
  function refresh(){
   const content=VoidRelayRadio.content,news=state.relay||R.fresh(),link=VoidComms.status(state,{onFoot:true}),live=VoidComms.canUpload(link);
   const cards=live?R.headlines(news,content,{system:state.universe?.currentSystem||'erebus',clock:state.warflying?.clock||0,matches:w=>VoidStory.matches(state,w)},6):[];
-  const db=state.warflying,board=db?VoidWarFlyingScan.leaderboard(db.clock,VoidWarFlying.points(db),'YOU').slice(0,5):[];
+  // The WarFlying Leadership Board: this week's five (warflying-board.js), the player measured against them.
+  const db=state.warflying,standing=db?(globalThis.VoidWarFlyingScanner?.standings?.()||VoidWarFlyingBoard.standings(VoidWarFlying.points(db),'YOU')):null,board=standing?standing.rows:[];
   const ads=(content.segments||[]).filter(s=>s.kind==='ad'||s.kind==='police');
   // A news channel's playlist: each story followed by an ad; the standings and a station notice once a cycle.
   const slides=[];let a=0;
@@ -55,18 +64,16 @@
   slides.push({type:'station'});
   while(slides.length<6&&ads.length)slides.push({type:'ad',ad:ads[a++%ads.length]});
   for(const s of slides)s.dur=s.type==='ad'?adTime(s.ad):READ[s.type];
-  data={live,cards,board,ads,slides,adSlides:ads.map(ad=>({ad,dur:adTime(ad)})),ticker:[...cards.map(c=>c.headline),...board.length?['WARFLYING STANDINGS: '+board.map(r=>r.rank+'. '+r.name+' '+r.points).join('   ')]:[],here()+' · DOCKING OPEN · '+bar().replace(/^THE /,'')+' OPEN · OUTFITTER OPEN'].join('   ◆   ')};
+  data={live,cards,board,standing,ads,slides,adSlides:ads.map(ad=>({ad,dur:adTime(ad)})),ticker:[...cards.map(c=>c.headline),...board.length?[standing.header+': '+board.map(r=>r.rank+'. '+r.name+' '+r.points).join('   ')]:[],here()+' · DOCKING OPEN · '+bar().replace(/^THE /,'')+' OPEN · OUTFITTER OPEN'].join('   ◆   ')};
  }
  const ease=t=>t<0?0:t>1?1:1-Math.pow(1-t,3);
  // Moving news backdrop: a blue gradient with a travelling light band, drifting stripes, slow particles and an
  // orbit ring that turns in the corner, so the screen visibly lives even between slides.
  function backdrop(g,W,H,t,tint='#12324a'){
-  const grad=g.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#071420');grad.addColorStop(.5+.35*Math.sin(t*.35),tint);grad.addColorStop(1,'#050c14');g.fillStyle=grad;g.fillRect(0,0,W,H);
-  g.save();g.globalAlpha=.07;g.strokeStyle='#8fd4ee';g.lineWidth=18;for(let i=-2;i<10;i++){const x=((t*40+i*140)%(W+280))-140;g.beginPath();g.moveTo(x,H);g.lineTo(x+H*.6,0);g.stroke();}g.restore();
-  const band=((t*.18)%1.6-.3)*W;const bg=g.createLinearGradient(band-120,0,band+120,0);bg.addColorStop(0,'rgba(159,227,201,0)');bg.addColorStop(.5,'rgba(159,227,201,.10)');bg.addColorStop(1,'rgba(159,227,201,0)');g.fillStyle=bg;g.fillRect(0,0,W,H);
-  for(let i=0;i<24;i++){const x=(i*97+t*(14+i%5*6))%W,y=(i*53+Math.sin(t*.6+i)*30+H)%H;g.fillStyle='rgba(180,220,240,'+(.12+.1*Math.sin(t*2+i))+')';g.fillRect(x,y,3,3);}
-  g.save();g.translate(W-120,H*.48);g.rotate(t*.5);g.strokeStyle='rgba(217,164,65,.35)';g.lineWidth=3;for(const r of [46,70]){g.beginPath();g.ellipse(0,0,r,r*.42,0,0,Math.PI*2);g.stroke();}g.fillStyle='rgba(217,164,65,.6)';g.beginPath();g.arc(70,0,6,0,Math.PI*2);g.fill();g.restore();
-  g.fillStyle='rgba(255,255,255,.035)';for(let y=(t*30)%6;y<H;y+=6)g.fillRect(0,y,W,2);
+  // The news template's own backdrop and globe (ad-screens.js), so the station's news and the street's look alike; `tint` colours breaking news and notices.
+  const L=globalThis.VoidAdScreens.LOOKS.news,pal={...L.pal,b:tint};
+  g.save();L.back(g,W,H,t,pal);g.globalAlpha=.8;L.motif(g,W-130,H*.46,74,t,pal);g.restore();g.textAlign='left';g.textBaseline='alphabetic';g.globalAlpha=1;
+  g.fillStyle='rgba(255,255,255,.035)';for(let y=(t*18)%4;y<H;y+=4)g.fillRect(0,y,W,1);
  }
  function header(g,W,t,title,red){
   g.fillStyle=red?(Math.sin(t*6)>0?'#c8392d':'#9e2a20'):'#d9a441';g.fillRect(0,0,W,64);
@@ -87,32 +94,29 @@
   g.fillStyle='#f0ece2';g.font='bold 58px system-ui,sans-serif';wrap(g,card.headline,x,196,W-210,68,3);
   g.fillStyle='#d9a441';g.fillRect(28,140,Math.min(W-60,(local/dur)*(W-60)),4);g.restore();
  }
+ // The WarFlying Leadership Board: the street screens' board slide (the top five only), above the ticker.
  function drawStandings(g,W,H,t,local,board){
-  backdrop(g,W,H,t,'#1d2a12');header(g,W,t,'WARFLYING · STANDINGS',false);
-  const max=Math.max(1,...board.map(r=>r.points));
-  board.forEach((r,i)=>{const y=110+i*62,grow=ease((local-.3-i*.15)/.9),w=(W-420)*(r.points/max)*grow;
-   g.fillStyle=r.name==='YOU'?'#9fe3c9':'#d9a441';g.fillRect(260,y-30,w,40);g.fillStyle='#f0ece2';g.font='bold 32px monospace';g.fillText(r.rank+'. '+r.name,28,y);g.fillText(String(Math.round(r.points*grow)),270+w,y);});
+  const AS=globalThis.VoidAdScreens,slide=globalThis.VoidAdData.slide({type:'board'},{standings:data.standing});
+  g.save();g.beginPath();g.rect(0,0,W,H-100);g.clip();AS.paint(g,W,H-100,slide,{t,slideT:local,i:0,p:clamp(local/8),lineT:local});g.restore();g.textAlign='left';g.textBaseline='alphabetic';g.globalAlpha=1;
  }
+ const clamp=v=>v<0?0:v>1?1:v;
  function drawStation(g,W,H,t,local){
   backdrop(g,W,H,t,'#14243a');header(g,W,t,here(),false);
   const rows=[['DOCKING','OPEN'],[bar(),'OPEN'],['SHIP OUTFITTER','OPEN'],['LIVING AREA','PODS AVAILABLE']];
   rows.forEach(([k,v],i)=>{const y=140+i*70,show=ease((local-.2-i*.2)/.5);g.globalAlpha=show;g.fillStyle='#9fb6c6';g.font='bold 34px monospace';g.fillText(k,40+(1-show)*-60,y);
    g.fillStyle=Math.sin(t*3+i)>-.2?'#9fe3c9':'#6fb79b';g.textAlign='right';g.fillText(v,W-60,y);g.textAlign='left';g.globalAlpha=1;});
  }
- // Ad styles: 0 a product sweep with line-by-line pop-in, 1 a holographic ring, 2 recruitment colour blocks.
- // Sized from the panel's height, so the same ad fills a big news screen or a small corridor panel.
- function drawAdSlide(g,W,H,t,local,per,ad,styleSeed){
-  const k=H/288,lines=R.lines(ad),line=lines[Math.min(lines.length-1,Math.floor(local/(per/lines.length)))],police=ad.kind==='police',style=police?2:styleSeed%2;
-  if(style===0){const grad=g.createLinearGradient(0,0,W,0),p=(local/per);grad.addColorStop(0,'#1a0f2e');grad.addColorStop(Math.min(1,p),'#4a2672');grad.addColorStop(1,'#0c0716');g.fillStyle=grad;g.fillRect(0,0,W,H);
-   for(let i=0;i<6;i++){g.strokeStyle='rgba(255,140,220,'+(.18+.12*Math.sin(t*2+i))+')';g.lineWidth=2*k;g.beginPath();g.moveTo(((t*80*k+i*90*k)%(W+200*k))-100*k,0);g.lineTo(((t*80*k+i*90*k)%(W+200*k))-220*k,H);g.stroke();}}
-  else if(style===1){g.fillStyle='#03121a';g.fillRect(0,0,W,H);g.save();g.translate(W*.82,H*.5);g.rotate(t*.8);g.strokeStyle='rgba(110,230,255,'+(.55+.25*Math.sin(t*9))+')';g.lineWidth=3*k;for(let r=30;r<=90;r+=30){g.beginPath();g.ellipse(0,0,r*k,r*k*.45,0,0,Math.PI*2);g.stroke();}g.restore();
-   g.fillStyle='rgba(110,230,255,.07)';for(let y=(t*40)%4;y<H;y+=4)g.fillRect(0,y,W,1);}
-  else{const flip=Math.floor(t*2.5)%2;g.fillStyle=flip?'#0b2a6b':'#a3161a';g.fillRect(0,0,W,H);g.fillStyle=flip?'#a3161a':'#0b2a6b';g.fillRect(0,H-40*k,W,40*k);g.fillStyle='#ffffff';g.fillRect(0,H-44*k,W,4*k);}
-  // The headline, then the current line popping in.
-  const pop=ease((local%(per/lines.length))/.35);
-  g.fillStyle=style===1?'#8ff0ff':'#ffd27a';g.font='bold '+Math.round(22*k)+'px monospace';g.textAlign='left';g.fillText((ad.headline||'').toUpperCase(),18*k,36*k);
-  g.globalAlpha=pop;g.fillStyle='#ffffff';g.font='bold '+Math.round((style===2?30:28)*k)+'px system-ui,sans-serif';wrap(g,line,18*k+(1-pop)*30*k,92*k,style===1?W*.62:W-36*k,34*k,5);g.globalAlpha=1;
-  g.fillStyle='rgba(255,255,255,.55)';g.font=Math.round(14*k)+'px monospace';g.fillText(police?'PAID RECRUITMENT NOTICE':'ADVERTISEMENT',18*k,H-14*k);
+ // An ad: drawn by its category's template (ad-screens.js), one scripted line at a time, the words arriving at reading pace. The ad's own lines and
+ // headline are unchanged; `h` is the height it may use (a news screen keeps its ticker underneath).
+ const adSlides=new Map();
+ function adSlide(ad){
+  if(adSlides.has(ad.id))return adSlides.get(ad.id);const D=globalThis.VoidAdData;
+  const slide=D.slide({type:'ad',ad:{id:ad.id,cat:D.RELAY[ad.id]||(ad.kind==='police'?'police':'shipgear'),title:ad.headline||'',lines:R.lines(ad),relay:true}});adSlides.set(ad.id,slide);return slide;
+ }
+ function drawAdSlide(g,W,H,t,local,per,ad,h=H){
+  const slide=adSlide(ad),n=slide.lines.length,each=per/n,i=Math.min(n-1,Math.floor(local/each)),lineT=local-i*each,k=h/288;
+  g.save();g.beginPath();g.rect(0,0,W,h);g.clip();globalThis.VoidAdScreens.paint(g,W,h,slide,{t,slideT:local,i,p:clamp(lineT/(each*.82)),lineT});g.restore();g.textAlign='left';g.textBaseline='alphabetic';g.globalAlpha=1;
+  g.fillStyle='rgba(255,255,255,.6)';g.font=Math.round(11*k)+'px monospace';g.textAlign='right';g.fillText(ad.kind==='police'?'PAID RECRUITMENT NOTICE':'ADVERTISEMENT',W-14*k,h-8*k);g.textAlign='left';
  }
  function drawNews(s,t){
   const g=s.texture.getContext(),[W,H]=s.place.res,{slides,ticker,live,board}=data;
@@ -121,8 +125,8 @@
   if(slide.type==='news')drawNewsSlide(g,W,H,t,local,slide.card,dur);
   else if(slide.type==='standings')drawStandings(g,W,H,t,local,board);
   else if(slide.type==='station')drawStation(g,W,H,t,local);
-  else drawAdSlide(g,W,H,t,local,dur,slide.ad,now.index);
-  transition(g,W,H,local,dur);
+  else drawAdSlide(g,W,H,t,local,dur,slide.ad,H-100);
+  if(slide.type==='news'||slide.type==='station')transition(g,W,H,local,dur);
   // Scrolling ticker under every slide.
   g.fillStyle='#0d1c28';g.fillRect(0,H-100,W,100);g.fillStyle='#d9a441';g.fillRect(0,H-100,W,4);
   if(ticker){g.font='bold 34px monospace';g.textAlign='left';const width=g.measureText(ticker+'   ◆   ').width,x=W-(t*TICKER)%(width+W);g.fillStyle='#e6e1d6';g.fillText(ticker+'   ◆   '+ticker,x,H-38);}
@@ -133,7 +137,7 @@
   if(!live||!ads.length){g.fillStyle='#05090e';g.fillRect(0,0,W,H);g.fillStyle='#596570';g.font='bold 36px monospace';g.textAlign='center';g.fillText(live?here():'NO SIGNAL',W/2,H/2+12);g.textAlign='left';glitch(g,s,t,W,H);return;}
   // Each corridor panel starts at a different ad, then runs through them all at reading pace.
   const list=data.adSlides,start=list.slice(0,s.place.style*5%list.length).reduce((n,x)=>n+x.dur,0),now=at(list,t+start);
-  drawAdSlide(g,W,H,t,now.local,now.slide.dur,now.slide.ad,s.place.style+now.index);transition(g,W,H,now.local,now.slide.dur);glitch(g,s,t,W,H);
+  drawAdSlide(g,W,H,t,now.local,now.slide.dur,now.slide.ad);glitch(g,s,t,W,H);
  }
  // Occasional signal interference: a few displaced slices and a colour fringe for a fraction of a second.
  function glitch(g,s,t,W,H){
@@ -159,5 +163,5 @@
   dataTimer-=dt;if(dataTimer<=0){dataTimer=4;refresh();}
   timer-=dt;if(timer<=0){timer=1/fps;draw();}
  };
- globalThis.VoidRelayScreens={get screens(){return screens;},draw,places,refresh,release,get slides(){return data?.slides||[];}};
+ globalThis.VoidRelayScreens={get screens(){return screens;},get time(){return clock;},set time(v){clock=Number(v)||0;},draw,places,refresh,release,get slides(){return data?.slides||[];}};
 })();

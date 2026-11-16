@@ -21,7 +21,7 @@
 | Radio | `void-runner/relay-radio.js` | Plays reports line by line, hooks game events, watches the leaderboard, and adds the news archive to the Mission Log. |
 | Screens | `void-runner/relay-screens.js` | Two screens at Meridian: one hanging in the concourse facing arrivals, one above the Dead Channel bar. |
 | Save | `campaign.js`, `void_runner_api.py clean_relay` | The `relay` save block, bounded and validated on both sides. |
-| Voice tools | `extract-lines.cjs`, audition `server.py`, registry | Each report line is its own clip. A new **commercial announcer** slot (uncast). |
+| Voice tools | `extract-lines.cjs`, audition `server.py`, registry | Each report line is its own clip. A **commercial announcer** slot (cast provisionally, like the other three broadcasters). |
 
 ## 3. Events and editorial versions
 - **An event** has:
@@ -78,8 +78,9 @@
 
 ## 6. Voice, subtitles and screens
 - **Voices:**
-  - No broadcaster is cast yet, so every report shows as captions, line by line, at a natural reading pace.
-  - Once David casts a broadcaster in the audition tool, `extract-lines` → `generate.py` records each line, and playback uses the recording through the live transmission filter.
+  - Updated 16 Nov 2026: the four broadcasters (`news-anchor`, `warflying-host`, `police-recruiter`, `commercial-announcer`) are cast **provisionally** and every fixed report line is recorded, so reports are spoken on the radio through the live transmission filter. They are stand-ins, not David's picks; he chooses by ear (`docs/development/AD_SCREENS_VOICE_AUDITION.md`). A line with no recording still shows as a caption at a natural reading pace.
+  - The WarFlying board the commentary follows is now the weekly five (`void-runner/warflying-board.js`, `docs/development/AD_SCREENS.md`); only David's handles are ever named.
+  - The station screens use the street advertisement screens' look (`void-runner/ad-screens.js`); what they say is unchanged and they stay silent.
   - Lines with leaderboard names filled in at play time can't be pre-recorded, so they stay captions.
   - Audio loads on first play, never at startup.
 - **Screens:**

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "6a060e4c8366eb54",
+  "revision": "ddd91db17720dc63",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11189,6 +11189,108 @@
   ],
   "references": [
     {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 7,
+      "text": "His seven space-station ads and his news stay in relay-content.json (RELAY below only says which of them the street may show).",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 40,
+      "text": "{id:'cyber-chromedaddy',cat:'cyber',brand:\"ChromeDaddy\",line:\"Be the man your warranty says you are.\"},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 89,
+      "text": "{id:'government-4',cat:'government',line:\"See something? Say something. Earn 5 credits per reported neighbor.\"},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 180,
+      "text": "/* One slot as something a screen can show and say. Each slide: {kind, cat, look, speaker, label, title, lines:[{text, say, hold}]}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 186,
+      "text": "say: the exact text a recording is looked up by (null: nothing is ever said for it). hold: seconds on screen without a recording. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 188,
+      "text": "if(slot.type==='board'){const c=CATEGORIES.board;return {kind:'board',cat:'board',look:c.look,speaker:c.speaker,label:standings?.header||'WARFLYING LEADERSHIP BOARD',title:'',standings,lines:[{text:standings?.spoken||'',say:standings?.spoken||null,hold:TIMING.board}]};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 189,
+      "text": "if(slot.type==='news'){const s=slot.segment,c=CATEGORIES.news;return {kind:'news',cat:'news',look:c.look,speaker:s.speaker||'news-anchor',label:c.label,title:s.headline||'',id:s.id,lines:[{text:s.headline||'',say:null,hold:TIMING.headline,headline:true},...s.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 191,
+      "text": "if(ad.brand){const full=ad.brand+' — '+ad.line;return {...base,kind:'brand',title:ad.brand,lines:[{text:ad.line,say:full,hold:TIMING.brand}]};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 192,
+      "text": "if(ad.lines)return {...base,kind:'script',title:ad.title,lines:[...(ad.relay||!ad.title?[]:[{text:ad.title,say:ad.title,hold:TIMING.title,title:true}]),...ad.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 193,
+      "text": "return {...base,kind:'notice',title:'',lines:[{text:ad.line,say:ad.line,hold:TIMING.notice}]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens-data.js",
+      "line": 196,
+      "text": "function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens.js",
+      "line": 9,
+      "text": "two screens never talk over each other; the nearest two hum. Nothing is said in a checkpoint lane, indoors, during a conversation or while the radio's",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens.js",
+      "line": 251,
+      "text": "/* Is this a moment to keep quiet? No player position (sound off, a pod, VR), not out on the street, standing in a checkpoint lane, a conversation, a menu,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens.js",
+      "line": 256,
+      "text": "if(typeof speech!=='undefined'&&speech)return 0;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens.js",
+      "line": 284,
+      "text": "if(speak&&line.say&&!audio.busy&&audio.voice){",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens.js",
+      "line": 285,
+      "text": "const clip=root.VoidVoiceClips?.broadcast?.(f.slide.speaker,line.say,audio.voice.gain);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ad-screens.js",
+      "line": 286,
+      "text": "if(clip){f.clip=clip;audio.busy=f;f.dur=40;f.spoken++;f.lastSpoken={speaker:f.slide.speaker,text:line.say};",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/anim-library.js",
       "line": 27,
       "text": "{id:'ac-3sit-chat-g1-f1',title:'Seated conversation, set 1, first seat',category:'group-sit',seconds:17.9,loop:true,root:'free',needs:'seat',group:'3sit-g1',part:1},",
@@ -12090,13 +12192,13 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 891,
+      "line": 898,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1170,
+      "line": 1177,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -12408,8 +12510,14 @@
     },
     {
       "source": "void-runner/relay-radio.js",
-      "line": 82,
+      "line": 85,
       "text": "const priority=['dialogue','pause','menu','recovery','over','mission-log'].includes(mode)||!!(typeof speech!=='undefined'&&speech)",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/relay-screens.js",
+      "line": 10,
+      "text": "sits in a modelled housing. What the screens SAY is unchanged. */",
       "kind": "source-reference"
     },
     {
@@ -13044,19 +13152,19 @@
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 67,
+      "line": 69,
       "text": "if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 75,
+      "line": 77,
       "text": "renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action=\"speech-replay\" class=\"quiet\" title=\"Replay line\">REPLAY ↺</button>');};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 76,
+      "line": 78,
       "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;const line=speech.lines[speech.index];VoidAudio.speak(line.who,line.text);});",
       "kind": "source-reference"
     },
@@ -13385,9 +13493,27 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/warflying-board.js",
+      "line": 5,
+      "text": "- #1 always comes from David's own handle list (HANDLES: both of his batches, verbatim, repeats removed), because #1 is the only name a voice ever says.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/warflying-board.js",
+      "line": 92,
+      "text": "/* What a board shows and says. rows: the top five only. you: the player's own row (rank null when not in the five). first: #1.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/warflying-board.js",
+      "line": 93,
+      "text": "spoken: the only thing a voice says: #1's handle, or \"a new number one\" when #1 is a real player. */",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/warflying-scanner.js",
-      "line": 158,
-      "text": "globalThis.VoidWarFlyingScanner={setActive,get appInstalled(){return appInstalled();},get shielded(){return shielded();},leaderboard:()=>X.leaderboard(state.warflying.clock,W.points(state.warflying),'YOU'),recent:()=>Object.entries(state.warflying.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,8).map(([,r])=>({text:label(r)+kind(r),place:placeText(r.places[0]||'')})),scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};",
+      "line": 162,
+      "text": "globalThis.VoidWarFlyingScanner={setActive,get appInstalled(){return appInstalled();},get shielded(){return shielded();},leaderboard:()=>X.leaderboard(state.warflying.clock,W.points(state.warflying),playerName()),standings,playerName,recent:()=>Object.entries(state.warflying.records).filter(([,r])=>r.p===1).sort((a,b)=>b[1].f-a[1].f).slice(0,8).map(([,r])=>({text:label(r)+kind(r),place:placeText(r.places[0]||'')})),scan,section,upload,link,get transfer(){return transfer;},get installed(){return installed();}};",
       "kind": "source-reference"
     },
     {
@@ -13804,6 +13930,8 @@
     "void-runner/account.js": "608e9e265d621184a2b95f8b84062859cfc4530340141534991f8bd435d4d1db",
     "void-runner/achievements.js": "2f974b5ab4c9d85d24bfdc3cb95ef1310941d9e9c0608e6965f340afa91fdba5",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
+    "void-runner/ad-screens-data.js": "bfec23ed6c18d262ec74aa02a3c96498f86677b0b9b587b77378db6fe115b0b4",
+    "void-runner/ad-screens.js": "dee5cbc0c4d97ffeae19b2db3d2eb7fcbf5515f59279fc92131643357763cfa2",
     "void-runner/anim-library.js": "21718cc00efa5199c5fd3164b62454e848e0c0519fb001afa7d61524c2510568",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/area-ambience.js": "4a3b6f044b5b1ec76acef62abede55abe91d1d813ca66a9a50f2d6dea6e0b818",
@@ -13850,7 +13978,7 @@
     "void-runner/device-gallery.js": "c597eaf9cd2ca4048bb17f8140b994c545c5f52584b3b4b99d187efe5ab95441",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "804452b16dda42da7d3057a6fd940c508e43dc881e1e9614195e54d8242db594",
-    "void-runner/device-v1.js": "40f2766669b02a3962328b24f39a25b6458758053769b72e8c109e8f647702e5",
+    "void-runner/device-v1.js": "f1a91004b19e806da5ac80a81d3ffe969715ac65be0a1abd124ae9e45b5c37ee",
     "void-runner/district-arcade.js": "c3af70e2fb4cf3ca567309ed745a0862bb455f01397fa075805e5dc6b1a0476c",
     "void-runner/district-area.js": "9671f7ff8aa871030eb88947e6c0cab67d580c83e2e4a60cb5a811e79a75f84b",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
@@ -13919,12 +14047,12 @@
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
     "void-runner/ncz-nightlife.js": "3750630f293c5f32c9555335c9153ae02913e89d5ac3fbf3c5d69d02342d0353",
     "void-runner/ncz-quarters.js": "7990d103e42615a7ac2e58585aa5fb9191d702673f550bf8179f77fabd33b4a8",
-    "void-runner/neochinatown.js": "b3667b3ae938eba11befaeb8a5a01a8ecaee7ca4ae385c1839d7ff793b3d6a53",
+    "void-runner/neochinatown.js": "f5e147985d72b3ac9fdb3c7ce1a7a6fc11ddec789788d044f0af2281e4edabd7",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "5fa04b098945cbc3a2b390ce2a9431e10d64f609909823fd81708cb0c2708700",
+    "void-runner/personal-device.js": "a4aa6f54c2eadaafea20666d432a56ca115e6d8118df68b6b2eac4065d77dfc9",
     "void-runner/personal-hud.js": "2ecd52186e49c45e9c1f23466a6a796116a98bcda3b118dfa3b940754aa257a8",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -13936,8 +14064,8 @@
     "void-runner/progression.js": "6edd038eabf146b9e05c7787ffc3aefd3ee475d8a8f8da9a597e792b5e322ab4",
     "void-runner/prologue-integration.js": "73b6689dec3977c05f5e318d1a24024f2f2d1b70a18cc838d1a5d9640665f800",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
-    "void-runner/relay-radio.js": "2a71125ab14c4dcd2c5a113aa7793ba0a9367503386fa97e0a22a270e7652a80",
-    "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
+    "void-runner/relay-radio.js": "ed5b8686c724bc865e73f89cfdb57aa9e6ab18282b87d7398a5cf6102ef6f5d1",
+    "void-runner/relay-screens.js": "b3365f56117519e9dfe0aa4ff58c62e5feebb7d334db1ca03b20d20e830afb7c",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
     "void-runner/remote-players.js": "f8bbf039d6dc58d8b96adb744622e9dddb5a7d057a761131ded5911e4123cb9a",
     "void-runner/road-taxi-rules.js": "40969019b02ff066cee7323610a9668b6d2becf8dbfbea5ea8c473f1e0b384cb",
@@ -13968,7 +14096,7 @@
     "void-runner/unified-controls.js": "4b4aec06ae8268e43d621f4aa772036353e2fcf62d78d176a6f4508c9f444a8f",
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "208db187d3d3a77b876b1e4a48e97fe50b488ce18567f28c63dea41753029fca",
+    "void-runner/voice-clips.js": "fdf9a06bf86f5900bc4905edb3ebf1593d3dac3ba4d64fa13a5f875a43973012",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "226b270665ea658d0295fc8c29c5da495c3bcde464a21debb7f02dcb11e9561d",
     "void-runner/vr-companions.js": "598fece52ab5cb9016df2caad749aaa076be637f5f3c717e56b37f5596b9ebcc",
@@ -13978,8 +14106,9 @@
     "void-runner/vr-suite-room.js": "505304a77e258c7a99f58e17cc7f5856f706083aa391f11a83cbd77cb8d9836d",
     "void-runner/vr-suite.js": "6e53c6bcd406b85e1bcc1b1298187b53f41a716512c5297c70ca8637f4302266",
     "void-runner/vr-tropical.js": "69461cdf66deffa476b984eda6962bf1708642557818d03514252e75d17e1b22",
-    "void-runner/warflying-scan.js": "f6de823ef265ff4e1cde538ac17b5adefb72547ad0ef2e3b25cdb42de9ce8a87",
-    "void-runner/warflying-scanner.js": "983a0c022fa0a93ddc0f84ad5927e01fbd933823a68afabcc5b7b444ff2f128b",
+    "void-runner/warflying-board.js": "eb1cf09117f384d4cdabe33a7ae3a1a055dc6b965443bd31562b97dd4e9eec45",
+    "void-runner/warflying-scan.js": "ef56065967c02b242b3b443027cbaccd541f3a4f6d56f7c8d80930dc788078ed",
+    "void-runner/warflying-scanner.js": "46a84d6fe041fb3c4d647dcffc08fd193def538dcfe8c6bd771d0a8759535c3b",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
     "void-runner/world-integration.js": "7778a33dbf9dc67116a2e267d25ea85aee3da960dd7edcf4411dba71c89b5369",
