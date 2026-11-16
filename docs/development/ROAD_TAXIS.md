@@ -21,7 +21,7 @@ Only places that already exist, and only the taxi zones that are actually built:
 - Main Street by the alley
 - The passage by the landing pad
 
-Corporate District, Milked and the Container Settlement are not stops. They are still only signs. The cab also does not drive the alley or into the District.
+Corporate District, Milked and the Container Settlement are not stops. Milked (since 16 Nov 2026 on a side street off Main Street) is a short walk from the two Main Street stops; the cab never turns into its side street or service alley. The cab also does not drive the alley or into the District.
 
 To add a stop later: give it a taxi zone in `void-runner/neochinatown.js` (the same list the sky cabs use), then add that zone's id to `REGISTRY` at the top of `void-runner/road-taxi-rules.js`. The map, the fare and the driving pick it up from that list. Do not add a name that is not already a zone.
 

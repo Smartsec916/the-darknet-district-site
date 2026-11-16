@@ -1,0 +1,48 @@
+{
+ "name": "npc-fish",
+ "source": "Fish (Milked's owner), generated with Meshy from a concept that David and the person it is based on approved on 16 Nov 2026 (image-to-image from her own photos, supplied with her permission per David; then image-to-3d, remesh and auto-rig) on David's Meshy account; prepared by prepare_meshy.py",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "output_unwrapped": {
+   "name": "body",
+   "maxTris": 40000
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk-game",
+  "look",
+  "watch",
+  "sit",
+  "smoke",
+  "drink",
+  "laugh",
+  "shrug"
+ ]
+}

@@ -33,12 +33,12 @@
  const lanes=[
   // Nobody leans on the club's front by its door (ncz-nightclub.js, local server only for now).
   {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3,...(club?{noLean:[[-61,-55.6]]}:{})},
-  {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5]]},
+  {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5],[-75,-67.5],[-94.5,-89]]},   /* the alley mouth, and the mouths of Milked's side street and service alley */
   {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:0,noLean:[[0,999]]}   /* weight 0: nobody walks the alley now (David, Nov 2026: four people there at most; ncz-alley.js has them) */,
   {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2},
   {id:'avenue-south',a:[6,-18.4],b:[148,-18.4],wall:[0,-1],half:1,nightlife:true,weight:2,noLean:[[49,73]]}];
  // Spots no one stops or leans at: doors, the taxi zones' kerbs, the static crew.
- const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5]];
+ const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-82,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5]];
  // The street's standing crew (neochinatown.js): walkers step round them.
  const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4]];
  const remarks=['Whoa. The pavement\'s moving again.','Have you seen my taxi? It was right… somewhere.','Love this city. Love it. Hate it. Love it.','One more noodle bar. Then home. Probably.','Is it Tuesday? Feels like a Tuesday.','I\'m fine. I\'m great. I\'m sitting down.'];

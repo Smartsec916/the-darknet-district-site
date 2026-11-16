@@ -27,10 +27,10 @@ David's brief: "Personal HUD, flying taxis, seamless city expansion and immersiv
   | Street | Leads to | Placeholder sign |
   |---|---|---|
   | `avenueWest` | `corporate` plaza | CORPORATE DISTRICT — PLACEHOLDER |
-  | `avenueEast` | `milked` plaza | MILKED — FUTURE LOCATION |
+  | `avenueEast` | nothing now: it ends in city blocks at x 200 | (Milked stood here until 16 Nov 2026; it is now on a side street off Main Street, `docs/development/MILKED.md`) |
   | `mainSouth` | `containers` plaza | CONTAINER SETTLEMENT — PLACEHOLDER |
 
-  Milked is about 180 m on foot from the District door.
+  Milked is about 70 m on foot from the District door (down the alley, south on Main Street, into the side street).
 - **All on foot:** there are no loading points or teleports.
 - **Walls:** everything that isn't street is solid over the whole area (`cityBox`), as before. Walls are now computed row by row: 9 ms instead of 240 ms, giving the same boxes.
 - **The city is filled in:**
