@@ -2,6 +2,14 @@
 (function(root){
  const M=typeof module!=='undefined'?require('./cockpit-math.js'):root.VoidCockpitMath;
  function reset(s){s.velocity={x:0,y:0,z:0};s.yawRate=s.pitchRate=s.rollRate=0;}
+ // At a mechanical stop, discard only momentum pushing farther into the stop.
+ function limitRotation(s,axis,limit){
+  const angle=s[axis],rate=axis+'Rate';
+  if(angle>=limit || angle<=-limit){
+   s[axis]=M.clamp(angle,-limit,limit);
+   if(angle*s[rate]>0)s[rate]=0;
+  }
+ }
  function step(s,input,dt,config,boost=false,engineTier=0){
   s.velocity??={x:0,y:0,z:0};s.rollRate??=0;
   let remaining=M.clamp(Number.isFinite(dt)?dt:0,0,.25);
@@ -13,9 +21,9 @@
     else s[rate]*=Math.exp(-config.angularDamping*h);
     s[rate]=M.clamp(s[rate],-limit*gain,limit*gain);s[axis]+=s[rate]*h;
    }
-   s.pitch=M.clamp(s.pitch,-1.48,1.48);s.yaw=(s.yaw+Math.PI*3)%(Math.PI*2)-Math.PI;
+   limitRotation(s,'pitch',1.48);s.yaw=(s.yaw+Math.PI*3)%(Math.PI*2)-Math.PI;
    if(!input.roll)s.roll*=Math.exp(-2*h);
-   s.roll=M.clamp(s.roll,-1.2,1.2);s.throttle=M.clamp(s.throttle+(input.throttle||0)*h*.5,.3,1.4);
+   limitRotation(s,'roll',1.2);s.throttle=M.clamp(s.throttle+(input.throttle||0)*h*.5,.3,1.4);
    const forward=M.basis(s.yaw,s.pitch,s.roll).f,max=config.maxSpeed*gain*(boost?config.boost:1),target=max*s.throttle/1.4;
    const speed=M.dot(s.velocity,forward),accel=(speed>target?config.braking:config.acceleration)/config.inertia;
    const next=speed+M.clamp(target-speed,-accel*h,accel*h),damping=Math.exp(-config.linearDamping*h);
