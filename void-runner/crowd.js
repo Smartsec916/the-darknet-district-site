@@ -15,6 +15,7 @@
   // The District's VR arcade players (neochinatown.js runs their routines).
   'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk'],
   // Dax (dax.js): a licensed model, published with the live site only.
+  'vr-companion-kai':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Kai's own model (Meshy, 16 Nov 2026): the clips of the old Kai figure, retargeted
   'npc-dax':['idle','talk','look','watch','walk','glance-back','shrug'],
   // Characters made with Meshy from David's reference pictures (docs/development/MESHY_CHARACTERS.md): one skinned mesh each on a 24-joint skeleton (no fingers).
   'npc-admin':['idle','talk','walk','look','shrug'],'npc-iris':['idle','talk','walk','look','shrug'],

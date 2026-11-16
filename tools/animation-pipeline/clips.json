@@ -268,6 +268,166 @@
    "source": "mixamo",
    "start": 0,
    "end": 7.4
+  },
+  "cm-idle": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "idle",
+   "as": "idle",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-talk": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "talk",
+   "as": "talk",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-walk": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "walk",
+   "as": "walk",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-sit": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "sit",
+   "as": "sit",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-sit-enter": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "sit-enter",
+   "as": "sit-enter",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-sit-exit": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "sit-exit",
+   "as": "sit-exit",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-sit-talk": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "sit-talk",
+   "as": "sit-talk",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-dance": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-interact": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "interact",
+   "as": "interact",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-idle-m2": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "idle-m2",
+   "as": "idle-m2",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-blow-kiss": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "blow-kiss",
+   "as": "blow-kiss",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-head-tilt": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "head-tilt",
+   "as": "head-tilt",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-laugh": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "laugh",
+   "as": "laugh",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-glance-back": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "glance-back",
+   "as": "glance-back",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-slow-dance": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "slow-dance",
+   "as": "slow-dance",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-dance-samba": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "dance-samba",
+   "as": "dance-samba",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-sit-relax": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "sit-relax",
+   "as": "sit-relax",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-sit-wave": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "sit-wave",
+   "as": "sit-wave",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-shrug": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "shrug",
+   "as": "shrug",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "cm-recline": {
+   "file": "vr-companion-m.glb",
+   "source": "crowd",
+   "action": "recline",
+   "as": "recline",
+   "loop": "exact",
+   "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
   }
  },
  "fps": 15
