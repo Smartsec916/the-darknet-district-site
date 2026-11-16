@@ -20,6 +20,7 @@
   'npc-dax':['idle','talk','look','watch','walk','glance-back','shrug'],
   // Characters made with Meshy from David's reference pictures (docs/development/MESHY_CHARACTERS.md): one skinned mesh each on a 24-joint skeleton (no fingers).
   'npc-admin':['idle','talk','walk','look','shrug'],'npc-iris':['idle','talk','walk','look','shrug'],
+  'npc-nyx':['idle','talk','walk','look','watch','laugh','shrug','wipe'],   // Nyx, the District's bartender: her own model (Meshy, 16 Nov 2026)
   // The named District residents' own models (district-people.js `own`).
   'npc-rin':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-jonah':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-sable':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-kei':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-mags':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-tavi':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-bishop':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],
   // VR arcade companions (vr-suite.js).

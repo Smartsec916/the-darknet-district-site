@@ -61,3 +61,25 @@ test('the arcade keeps a poster for every playable game and none for a game that
  assert.deepEqual(R.CAMPAIGN.screens.filter(s=>s.replaces).map(s=>s.replaces).sort(),not);assert.equal(N.arcade.length,5,'every cabinet is still there');
  const half=R.CAMPAIGN.w/2+R.CAMPAIGN.frame;for(const [x,wall] of [[-6,'arc-north'],[-4.4,'arc-south']])for(const sc of R.CAMPAIGN.screens.filter(s=>s.wall===wall))assert.ok(Math.abs(sc.x-x)>half+.5+.2,'clear of the poster beside it');
 });
+test('the modelled props: each has its file, a size and a built prop to fall back on; Low never loads one',()=>{
+ const names=Object.keys(R.PROPS);assert.deepEqual(names.slice().sort(),['bar-stool','flashlight','o2-station','o2-tank','pistol','radio','vr-headset']);
+ const src=read('void-runner/district-rooms.js');
+ for(const n of names){const p=R.PROPS[n],file=path.join(__dirname,'..','void-runner',R.propFile(n));assert.ok(fs.existsSync(file),n+': file');const size=fs.statSync(file).size;assert.ok(size>50e3&&size<1.5e6,n+': a web-sized file ('+size+')');
+  const b=fs.readFileSync(file),json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));assert.ok(!(json.extensionsUsed||[]).some(e=>/draco|meshopt/.test(e)),n+': no compressed geometry');
+  const tris=json.meshes.reduce((a,m)=>a+m.primitives.reduce((s,q)=>s+json.accessors[q.indices].count/3,0),0);assert.ok(tris>500&&tris<=12500,n+': triangles '+tris);
+  assert.ok(['x','y','z'].includes(p.fit[0])&&p.fit[1]>.05&&p.fit[1]<2,n+': size');assert.ok(src.includes("prop('"+n+"',")||src.includes('prop(it.kind,'),n+': placed');}
+ for(const k of ['pistol','radio','flashlight'])assert.ok(R.ITEMS.some(i=>i.kind===k),k+' is a kind of goods the counter already shows');
+ assert.match(src,/const prop=\(name,at,standIn\)=>\{const propHome=K\.target;if\(low\|\|/,'Low builds the stand-in at once');
+});
+test('Nyx the bartender: her own model, the same person, place, prompt and line',()=>{
+ const P=require('../void-runner/district-people.js'),C=require('../void-runner/crowd.js'),nyx=P.npc('nyx-district');
+ assert.equal(nyx.name,'Nyx');assert.deepEqual(nyx.jobs,['bartender']);assert.equal(nyx.place,'The bar and oxygen lounge');assert.equal(nyx.model,'npc-nyx');assert.equal(nyx.appearance,undefined,'no other look stands in for her');
+ assert.ok(fs.existsSync(path.join(__dirname,'..','void-runner/assets/models/crowd/npc-nyx.glb')));
+ const spec=JSON.parse(read('tools/animation-pipeline/characters/npc-nyx.json'));assert.deepEqual(spec.clips.map(c=>c==='walk-game'?'walk':c).sort(),C.clips['npc-nyx'].slice().sort());for(const c of ['idle','talk','look','wipe'])assert.ok(C.clips['npc-nyx'].includes(c),c);
+ const b=fs.readFileSync(path.join(__dirname,'..','void-runner/assets/models/crowd/npc-nyx.glb')),json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));
+ assert.deepEqual(json.animations.map(a=>a.name.replace(/\.\d+$/,'')).sort(),C.clips['npc-nyx'].slice().sort(),'the file carries exactly the listed clips');
+ const tris=json.meshes.reduce((a,m)=>a+m.primitives.reduce((s,q)=>s+json.accessors[q.indices].count/3,0),0);assert.ok(tris<=32000,'triangles '+tris);
+ const it=N.layout?N.layout().interactions?.find(i=>i.id==='district-bar'):null;if(it)assert.equal(it.label,'TALK TO THE BARTENDER');
+ const src=read('void-runner/neochinatown.js');assert.match(src,/old=characterModel\('nyx-district',target,pos,false\)/,'her earlier figure is the only stand-in');assert.match(src,/const pos=\[10,0,40\]/,'she stands where she stood');
+ assert.match(read('void-runner/prologue-integration.js'),/register\('district-bar',\(\)=>districtLine\('Bartender','Filtered air is free, the drinks are not\. Pilots talk too much in here, so listen\.'\)\)/,'her line is unchanged');
+});
