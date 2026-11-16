@@ -252,5 +252,7 @@
   return {replaces,tick,dispose,mounts,frontages:D.FRONTAGES,kit:K,people,made,stats:()=>({meshes:made.length,props:[...K.props.values()].map(s=>s.id+':'+s.placed.length+(s.ready?'':' (pending)')),people:people.map(p=>p.id+':'+p.look+':'+(p.node?'in':'waiting')),lights:K.lights.length})};
   }catch(e){for(const p of people){try{p.node?.dispose?.();}catch{}}try{K.dispose();}catch{}throw e;}
  }
- root.VoidPort={build,replaces,COVER,enabled:true,get mounts(){return D.MOUNTS;},get frontages(){return D.FRONTAGES;}};
+ /* PARKED (16 Nov 2026): the Port remake is unfinished work in progress and is switched OFF. Set enabled to true (here, or in the console before entering the
+    Port) to build it; while it is false the old Port is built and the Port's collision is the old one. */
+ root.VoidPort={build,replaces,COVER,enabled:false,get mounts(){return D.MOUNTS;},get frontages(){return D.FRONTAGES;}};
 })(typeof globalThis!=='undefined'?globalThis:this);

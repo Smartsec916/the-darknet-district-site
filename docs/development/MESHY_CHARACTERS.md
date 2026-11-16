@@ -41,6 +41,10 @@ The CLI on David's PC is 0.8.6: `--async` on create, then `meshy <resource> get 
 | 16 Nov | Nyx rig | rigging (id in `Documents/DarknetDistrict_Assets/Meshy/nyx/build_status.json`) | 5 |
 | 16 Nov | Seven District props (oxygen tank, bar stool, oxygen station, VR headset, pistol, radio, flashlight): text-to-image 9, image-to-3d 30, remesh 5 each; the flashlight's picture was made twice | `Documents/DarknetDistrict_Assets/Meshy/district_props/status.json`; table in `DISTRICT_UPGRADE.md` | 317 |
 | | **16 Nov, District second pass** | | **366** (David's limit for it was 400; the account showed 1,767 before and 1,401 after) |
+| 16 Nov | Twelve city-kit props for the NeoChinatown remake (AC cluster, balcony, shutter front, water tank, roof plant, fuel bowser, cargo loader, crate stack, dumpster, vending machine, scooter, customs booth): text-to-image 9, image-to-3d 30, remesh 5 each | `Documents/DarknetDistrict_Assets/Meshy/ncz_port/status.json`; `NEOCHINATOWN_REMAKE.md` | 528 |
+| 16 Nov | A food-stall concept picture (not taken to 3D; generation was stopped) | same file | 9 |
+| 16 Nov | Road taxi: text-to-image 9, image-to-3d 30, remesh 20k 5 | `Documents/DarknetDistrict_Assets/Meshy/ncz_taxi/status.json` | 44 |
+| | **16 Nov, NeoChinatown remake (stopped by David before it was finished; the models are parked)** | | **581** (limit 600; the account showed 1,401 before) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "6a060e4c8366eb54",
+  "revision": "b79e87c10289b74f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11412,25 +11412,25 @@
     },
     {
       "source": "void-runner/corporate-build.js",
-      "line": 170,
+      "line": 171,
       "text": "const bubbles=[];function say(robot,text,t){const tex=canvas(384,64,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle='rgba(6,10,12,.85)';g.fillRect(0,0,w,h);g.strokeStyle='#ff2a5a';g.lineWidth=3;g.strokeRect(2,2,w-4,h-4);g.fillStyle='#ffd9df';g.font='bold 28px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(text.toUpperCase(),w/2,h/2+1);});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/corporate-build.js",
-      "line": 172,
+      "line": 173,
       "text": "sec.on('challenge',e=>{const r=robots.find(x=>x.id===e.guard)||robots[0];if(r){r.faceUntil=clock+4.5;say(r,e.text,clock);}try{root.dispatchEvent?.(new CustomEvent('corporate-security',{detail:{type:'challenge',...e}}));}catch{}});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/corporate-build.js",
-      "line": 173,
+      "line": 174,
       "text": "sec.on('warning',e=>{const r=robots.find(x=>x.id===e.by)||robots.find(x=>x.def.entrance)||robots[0];if(r){r.faceUntil=clock+4;say(r,'Restricted area',clock);}});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/corporate-build.js",
-      "line": 207,
+      "line": 208,
       "text": "return {tick,security:sec,fog,space,robots,cameras:cams,drones:drs,counts:n,say,get detection(){return sec.detection;},meshCount:()=>node.getChildMeshes().length,",
       "kind": "source-reference"
     },
@@ -12071,6 +12071,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/ncz-kit.js",
+      "line": 160,
+      "text": "text:(text,color)=>(g,W,H)=>{font(g,Math.min(H*.86,W/([...text].length*.6)));g.fillStyle=color;g.fillText(text,W/2,H/2);g.globalCompositeOperation='destination-out';for(let i=0;i<W*H/40;i++){g.fillStyle='rgba(0,0,0,'+(.2+rand()*.6)+')';g.fillRect(rand()*W,rand()*H,1+rand()*6,1+rand()*3);}g.globalCompositeOperation='source-over';},",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/ncz-nightlife.js",
       "line": 92,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){",
@@ -12090,13 +12096,13 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 891,
+      "line": 898,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1170,
+      "line": 1177,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -13836,7 +13842,7 @@
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "69404805485cb34daab699d4ac8ad4890b50de188e7f07423d1462b116302ec7",
     "void-runner/corporate-actors.js": "4ded2564263ea8f5ed16a535864a00385925c81bdfb4aa877b69944f55ffd588",
-    "void-runner/corporate-build.js": "c98085378b49c56e77b679078fb7bf5377aa069ea8a7bc8fd8697c98f63a52d0",
+    "void-runner/corporate-build.js": "c6bd60037c8f6bd12027087e107a4cd8bf29cb2c5f1ed3d87b17b018e9398d0c",
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
@@ -13916,10 +13922,14 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-gate-transit.js": "bee951eb7a5dcd8457c3fdba81635ac4aea1dc227b6fe4136ca71062eb8a10d6",
     "void-runner/ncz-gates.js": "59ec2bc2d0b9dadb9eb6e93609c695b64153c19da73c0969fe0434d81119387e",
+    "void-runner/ncz-kit.js": "148aad98c4e6bbf7711d49fdfbcd81469556fcaedc47e30eefa20cccd19d4088",
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
     "void-runner/ncz-nightlife.js": "3750630f293c5f32c9555335c9153ae02913e89d5ac3fbf3c5d69d02342d0353",
+    "void-runner/ncz-oldtown-block.js": "083127974c0625eedce2015d142fc47a43a100f00f6bec3b895cf342a6670ce4",
+    "void-runner/ncz-port-data.js": "905c38d0ab7d6a3bc428388c0aee437052c06fd216f1211194d8f5d7f0d44617",
+    "void-runner/ncz-port.js": "659dcfd84e31d372a5516e153fcef8cebf8a5d4eb26f566e6e438ae7a971a40a",
     "void-runner/ncz-quarters.js": "7990d103e42615a7ac2e58585aa5fb9191d702673f550bf8179f77fabd33b4a8",
-    "void-runner/neochinatown.js": "b3667b3ae938eba11befaeb8a5a01a8ecaee7ca4ae385c1839d7ff793b3d6a53",
+    "void-runner/neochinatown.js": "c46e60883e7fa01f01ec6801245814a90cdcb00036619dfa06f47c8eabcf5e70",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
@@ -13940,8 +13950,9 @@
     "void-runner/relay-screens.js": "d419d3fb544aa24e9a4b4957732ff00f1fae5812b2f578bbc16ef5d1e41c3aa2",
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
     "void-runner/remote-players.js": "f8bbf039d6dc58d8b96adb744622e9dddb5a7d057a761131ded5911e4123cb9a",
+    "void-runner/road-taxi-model.js": "1dfa5288668ff38161d21f767f372bc78afcdf988fe1483836eff10da15168c2",
     "void-runner/road-taxi-rules.js": "40969019b02ff066cee7323610a9668b6d2becf8dbfbea5ea8c473f1e0b384cb",
-    "void-runner/road-taxi.js": "40b0f0b495ead952ddf5f337a30bcda61573c00650ee1f18c59fb61e59bf734a",
+    "void-runner/road-taxi.js": "3518f495d514280247f49458f0e76562d6a4a20055384a6faec1bcd86d9edb1d",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -13959,7 +13970,7 @@
     "void-runner/street-gear.js": "78d203669af47a48ab4d03efa83c0ecb8f2a9132722b952dd5ea83938825e623",
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/temple-build.js": "4f5a440b85ccb62f0dbc012ac1fc4467f104075e842013e7953a7e3867f8c3d1",
+    "void-runner/temple-build.js": "1cb3eec34a6a297f9af5d65a94cbcb7cca5406570f07999aba43bfddb216d66d",
     "void-runner/temple-integration.js": "28f671928b818b663a63c63dca69b132ac4bd09b556ff0cd34dfb149c4490cc5",
     "void-runner/temple.js": "f7b5c0ad21a757ff32dc0007f3c58d0cc71561e0303e90f2d7a652ef61d937ad",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",

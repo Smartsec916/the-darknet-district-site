@@ -44,11 +44,13 @@
    return {fit,made,width:w,height:h,sign};});}
  /* A cab that drives (road-taxi.js): the box cab stays as built until the model is ready, then its parts are hidden (they keep moving: the door and the
     wheels are still animated by road-taxi.js, unseen). A cab on Low, or whose model fails, is left alone. */
- function dress(cab,scene){if(!cab?.root||low()||!root.VoidAssets?.loadContainer)return false;
+ /* PARKED (16 Nov 2026): the modelled cab has not yet been checked in the running game, so it is switched OFF and every cab is the built one. */
+ const api={enabled:false};
+ function dress(cab,scene){if(!api.enabled||!cab?.root||low()||!root.VoidAssets?.loadContainer)return false;
   attach(scene,cab.root).then(r=>{if(!r||cab.root.isDisposed())return;for(const p of cab.parts)p.isVisible=false;cab.model=r;}).catch(e=>console.info('[Taxi] model not available; the built cab is used ('+(e?.message||e)+')'));return true;}
  /* A parked cab at (x,z) heading yaw: the model if it can be had, otherwise fallback() (the builder's own box cab) is called. Returns true when the model was asked for. */
- function park({scene,parent,x,z,yaw=0,length=4.7,fallback}){if(low()||!root.VoidAssets?.loadContainer){fallback?.();return false;}
+ function park({scene,parent,x,z,yaw=0,length=4.7,fallback}){if(!api.enabled||low()||!root.VoidAssets?.loadContainer){fallback?.();return false;}
   const b=B(),holder=new b.TransformNode('road-taxi-parked',scene);holder.parent=parent;holder.position.set(x,0,z);holder.rotation.y=yaw;
   attach(scene,holder,length).catch(e=>{console.info('[Taxi] model not available; the built cab is used ('+(e?.message||e)+')');try{if(!holder.isDisposed()){holder.dispose();fallback?.();}}catch{}});return true;}
- root.VoidRoadTaxiModel={dress,park,attach,SRC,LENGTH};
+ root.VoidRoadTaxiModel=Object.assign(api,{dress,park,attach,SRC,LENGTH});
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -5,11 +5,17 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const D=require('../void-runner/ncz-port-data.js'),Q=require('../void-runner/ncz-quarters.js'),N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js'),S=require('../void-runner/street-sight.js'),R=require('../void-runner/road-taxi-rules.js');
 const read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
 globalThis.VoidPortData=D;require('../void-runner/ncz-port.js');const P=globalThis.VoidPort;
+// PARKED: the Port remake ships switched off (work in progress). These tests switch it on to keep its plan honest; the first one checks that off means off.
+const OFF={enabled:P.enabled,layout:N.layout('street','port')};P.enabled=true;
 const L=N.layout('street','port');
 function reach(from,limit=60000){const key=(x,z)=>Math.round(x*4)+':'+Math.round(z*4),seen=new Set([key(from[0],from[1])]),todo=[[from[0],from[1]]],out=[];
  while(todo.length&&out.length<limit){const [x,z]=todo.pop();out.push([x,z]);for(const [dx,dz] of [[.25,0],[-.25,0],[0,.25],[0,-.25]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(seen.has(k))continue;seen.add(k);if(!E.blocked(nx,nz,L))todo.push([nx,nz]);}}return out;}
 const inside=(r,x,z,m=0)=>x>=r[0]-m&&x<=r[1]+m&&z>=r[2]-m&&z<=r[3]+m;
 
+test('parked: switched off as shipped, and then the Port is exactly the old Port (no new collision, the old build)',()=>{
+ assert.equal(OFF.enabled,false);assert.match(read('void-runner/ncz-port.js'),/enabled:false/);assert.ok(!OFF.layout.solids.some(s=>s.port||/~/.test(s.id)));assert.equal(E.blocked(41,-89,OFF.layout),true);
+ assert.match(read('void-runner/neochinatown.js'),/root\.VoidPort\.enabled===true/);assert.match(read('void-runner/road-taxi-model.js'),/const api=\{enabled:false\}/,'the modelled taxi is parked too');
+});
 test('the plan uses the walkable Port that ncz-quarters.js defines',()=>{
  assert.deepEqual(D.YARD,Q.S.pad);assert.deepEqual(D.LANE,Q.QUARTERS.port.streets[1]);
  for(const [id,x0,x1,z0,z1] of D.BLOCKS){assert.ok(x1>x0&&z1>z0,id);assert.ok(inside(D.YARD,(x0+x1)/2,(z0+z1)/2)||inside(D.LANE,(x0+x1)/2,(z0+z1)/2),id+' stands in the yard or the lane');}
@@ -60,6 +66,7 @@ test('the remade Port stands in for the old one: what it replaces, and what it l
  assert.equal(P.replaces('old-building',[20,8,-80]),true);assert.equal(P.replaces('batch',[24,.06,-96]),true);assert.equal(P.replaces('landing-pad',[24,.06,-96]),true);assert.equal(P.replaces('puddle',[61,.02,-60]),true,'the old neighbourhood is not shown in pieces behind the Port');
  assert.equal(P.replaces('city-ground',[55,-.03,-121]),false);assert.equal(P.replaces('skyline',[400,90,-120]),false);assert.equal(P.replaces('old-building',[-100,8,-200]),false,'the city outside the old neighbourhood stays');
  const n=read('void-runner/neochinatown.js');assert.match(n,/PORT&&target===parent&&PORT\.replaces\(mesh\.name,p\)/);assert.match(n,/PORT&&PORT\.replaces\('batch',c\)/);assert.match(n,/catch\(e\)\{console\.warn\('\[Port\]/,'a failed remake falls back to the old Port');assert.match(n,/PORT\?\.dispose\(\)/);assert.match(n,/PORT\?\.tick\(dt,time\)/);
+ assert.ok(D.WALLS.length>=6&&D.OPENINGS.every(o=>D.WALLS.some(w=>w.id===o.wall)&&o.to>o.from&&o.depth>1),'walls and declared openings for the gap check');
 });
 test('files are loaded in an order that works, and listed for offline play',()=>{
  const h=read('void-runner.html'),at=f=>h.indexOf('src="void-runner/'+f+'"');

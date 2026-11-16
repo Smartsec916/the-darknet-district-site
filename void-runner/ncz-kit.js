@@ -24,7 +24,7 @@
  const PROPS={
   'ac-cluster':{h:1.9,wall:true,mirror:false},'balcony':{h:2.7,wall:true},'shutter-front':{h:4.1,wall:true},
   'water-tank':{h:3.4,mirror:false},'roof-plant':{h:2.1,long:'x',mirror:false},'fuel-bowser':{h:1.75,long:'x'},'cargo-loader':{h:2.0,long:'x'},'crate-stack':{h:1.9,long:'x'},'dumpster':{h:1.75,long:'x'},'vending':{h:1.95},'scooter':{h:1.15,long:'x'},'customs-booth':{h:3.1}};
- function create({B,scene,parent,quality,name='ncz-kit'}){
+ function create({B,scene,parent,quality,name='ncz-kit',models=true}){   // models:false: never load the modelled props; the built stand-ins are used on every tier
   const low=quality==='low',high=quality==='high'||quality==='ultra',own=[],lights=[],late=[],containers=[],systems=[],loose=new Map(),tickers=[];let disposed=false,finished=false;
   const node=new B.TransformNode(name,scene);node.parent=parent;
   let seed=90210;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646,reseed=s=>{seed=Math.max(1,Math.floor(s)%2147483646);},pick=a=>a[Math.floor(rand()*a.length)];
@@ -39,9 +39,9 @@
   function surf(key,{color=null,normal=null,tint='#ffffff',rough=.7,metal=.05,haze=.1,tile=4,bump=1,spec=.08}={}){
    if(mats[key])return mats[key];let m;
    if(low){m=new B.StandardMaterial(name+'-'+key,scene);m.diffuseColor=hex(tint);m.specularColor=new B.Color3(spec,spec,spec*1.1);m.specularPower=48;
-    if(color)m.diffuseTexture=file(color);m.emissiveColor=hex(tint).scale(haze*1.7);}   /* on Low the glow is multiplied by the surface itself (texture, tint and the darkening toward the ground) */
+    if(color)m.diffuseTexture=file(color);m.emissiveColor=hex(tint).scale(Math.min(1,haze*4.4));}   /* on Low the glow is multiplied by the surface itself (texture, tint and the darkening toward the ground) */
    else{m=new B.PBRMaterial(name+'-'+key,scene);m.albedoColor=hex(tint);m.roughness=rough;m.metallic=metal;m.usePhysicalLightFalloff=false;m.maxSimultaneousLights=8;m.environmentIntensity=.5;
-    if(color){m.albedoTexture=file(color);m.emissiveTexture=m.albedoTexture;}if(normal){m.bumpTexture=file(normal);m.bumpTexture.level=bump;}m.emissiveColor=hex(tint).scale(haze);}
+    if(color){m.albedoTexture=file(color);m.emissiveTexture=m.albedoTexture;}if(normal){m.bumpTexture=file(normal);m.bumpTexture.level=bump;}m.emissiveColor=hex(tint).scale(haze*1.7);}
    m.metadata={tile};own.push(m);return mats[key]=m;}
   // A flat colour that only glows (lamp lenses, tubes, lit strips).
   function glow(key,h,k=1){const id='glow:'+key;if(mats[id])return mats[id];const m=new B.StandardMaterial(name+'-glow-'+key,scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveColor=hex(h).scale(k);m.disableLighting=true;m.metadata={tile:1};own.push(m);return mats[id]=m;}
@@ -221,7 +221,7 @@
   function loadProps(){
    for(const st of propState.values()){if(st.asked)continue;st.asked=true;
     const fallback=()=>{if(disposed||st.ready)return;try{const made=standIns[st.id]?.();if(made)adopt(st,made);}catch(e){console.info('[kit] no stand-in for '+st.id,e);}};
-    if(low||!root.VoidAssets?.loadContainer||!PROPS[st.id]){fallback();continue;}
+    if(low||!models||!root.VoidAssets?.loadContainer||!PROPS[st.id]){fallback();continue;}
     late.push(root.VoidAssets.loadContainer({src:PROP_DIR+'ncz-'+st.id+'.glb'},scene,null,'ncz-kit:'+st.id).then(c=>{if(disposed){c.dispose();return;}containers.push(c);c.addAllToScene();for(const m of c.materials)tuneModel(m);
       const meshes=c.meshes.filter(m=>m.getTotalVertices&&m.getTotalVertices()>0);adopt(st,meshes);for(const n of c.transformNodes)if(!n.getChildren().length)n.setEnabled(false);onProp?.(st);})
      .catch(e=>{console.info('[kit] prop not available: '+st.id+' ('+(e?.message||e)+')');fallback();}));}}

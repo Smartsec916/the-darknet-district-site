@@ -1,0 +1,51 @@
+{
+ "note": "Player-eye views for the NeoChinatown art-direction pass. position is the walker's world position in metres (x east, z north), eye height 1.7 m; yaw 0 looks north (+z), positive turns east; pitch positive looks down (the game's own walker.pitch). fov is the walking camera's vertical field of view in radians as read from the running game (filled in by reshoot.cjs on first run). Re-shoot with: node reshoot.cjs <base-url> cameras.json <low|medium> <out-dir> <label>",
+ "viewport": [
+  1920,
+  1080
+ ],
+ "views": [
+  {
+   "name": "1-pad-to-customs",
+   "quarter": "port",
+   "position": [
+    31,
+    1.7,
+    -96
+   ],
+   "yaw": 2.44,
+   "pitch": 0,
+   "what": "standing on the landing pad where an arriving player stands, looking along the way out toward Port Customs",
+   "fov": 1.05,
+   "fovMode": "vertical"
+  },
+  {
+   "name": "2-main-street-to-alley",
+   "quarter": "oldtown",
+   "position": [
+    57.5,
+    1.7,
+    -80
+   ],
+   "yaw": 0.42,
+   "pitch": -0.09,
+   "what": "on Main Street in Old Town, west side of the road just north of Milked's corner, looking north-east up the street; the alley mouth is the opening in the right-hand (east) wall, a little right of centre",
+   "fov": 1.05,
+   "fovMode": "vertical"
+  },
+  {
+   "name": "3-alley-mouth",
+   "quarter": "oldtown",
+   "position": [
+    66.5,
+    1.7,
+    -58.5
+   ],
+   "yaw": 1.5708,
+   "pitch": -0.05,
+   "what": "on Main Street at the alley mouth, looking east into the alley toward The Darknet District's door",
+   "fov": 1.05,
+   "fovMode": "vertical"
+  }
+ ]
+}

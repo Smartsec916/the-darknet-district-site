@@ -6,7 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 16 Nov 2026 (latest): NEOCHINATOWN IS THREE QUARTERS WITH CHECKPOINTS; SKY CABS REMOVED (build `2026-11-16-quarters-1`, branch `claude/neochinatown-quarters-1`, local commits, NOT pushed, no PR)
+### 16 Nov 2026 (latest): NEOCHINATOWN ART-DIRECTION PASS: ONE BLOCK ON MAIN STREET REBUILT FOR DAVID TO JUDGE (build `2026-11-16-oldtown-block-1`, branch `claude/port-remake-1`, local commits, NOT pushed, no PR)
+
+Full record: [`NEOCHINATOWN_REMAKE.md`](NEOCHINATOWN_REMAKE.md). In short:
+
+- **Live in this build:** the alley-corner block on Main Street's east side in Old Town (`void-runner/ncz-oldtown-block.js`): five buildings that meet on party walls from Milked's side street to the North Gate, one ground-floor line and sign band, housing doors, and the Lantern Bridge over the alley mouth as the landmark. Existing textures, sign names and lamp style only; 0 credits. It only draws: collision, the alley, the District's door, NULL and the taxi stop are untouched. Falls back to the old block if it fails. **David is to judge this block before the style goes anywhere else. Do not apply it to other streets until he says so.**
+- **The method:** three matched views (`docs/development/neochinatown-remake/cameras.json`, `tests/ncz-artpass-views-browser.cjs`), a 2D paint-over of the Main Street view (`tools/art/ncz-paintover.py`), and the ray-grid gap check (`tests/ncz-raygrid-browser.cjs`; walls and openings are data in the block's file).
+- **Parked, switched OFF, unfinished:** the Port remake (`ncz-port.js`, `ncz-port-data.js`; `VoidPort.enabled=false`), the modelled road taxi (`road-taxi-model.js`; `VoidRoadTaxiModel.enabled=false`) and thirteen Meshy models in `assets/models/ncz-kit/` (581 credits, all spent before David stopped generation). With the switches off the Port and the taxis are exactly as before. Do not switch them on for players without finishing and checking them.
+- **David's standing requirements for every quarter** (food stalls, housing doors, entertainment, gross public restrooms) are recorded in `NEOCHINATOWN_REMAKE.md` section 4.
+- **Not merged with the two other branches of the same day** (advertisement screens; Sleeping Pod, keymap and East Gate fixes). This branch's edits to `neochinatown.js` are a handful of one-line hooks.
+
+
+### 16 Nov 2026 (earlier): NEOCHINATOWN IS THREE QUARTERS WITH CHECKPOINTS; SKY CABS REMOVED (build `2026-11-16-quarters-1`, branch `claude/neochinatown-quarters-1`, local commits, NOT pushed, no PR)
 
 David approved map A of the rework plan and this builds it. Full record: [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md); decisions: [`CHECKPOINTS.md`](CHECKPOINTS.md).
 
