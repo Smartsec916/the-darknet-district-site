@@ -1,0 +1,46 @@
+{
+ "name": "npc-nyx",
+ "source": "Nyx, the District's bartender, generated with Meshy (image-to-image concept from David's own reference picture of her behind the oxygen bar, then image-to-3d, remesh and auto-rig) on David's Meshy account, 16 Nov 2026; prepared by prepare_meshy.py",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "output_unwrapped": {
+   "name": "body",
+   "maxTris": 40000
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk-game",
+  "look",
+  "watch",
+  "laugh",
+  "shrug",
+  "wipe"
+ ]
+}

@@ -1,6 +1,6 @@
 # The Darknet District interior: rooms made to look real (16 Nov 2026)
 
-> Build `2026-11-16-district-1`, branch `claude/district-upgrade-1`, one local commit, **not pushed, no PR**.
+> **Second pass, 16 Nov 2026 (build `2026-11-16-district-2`, branch `claude/district-upgrade-2`, one local commit, not pushed, no PR):** Nyx the bartender has her own model, and seven of the simplest built props are modelled. See "Second pass" at the end. The rest of this page describes the first pass (build `2026-11-16-district-1`, merged as PR #331).
 
 David's request: "the bar, vr play area, anywhere that has old legacy graphic, the dispensary vending machine just has a flat graphic over it. Lets make them look real... The counter in the Store need higher density items." He supplied four reference pictures (oxygen bar, bartender, store, VR play area). They are kept outside the repository and were used as visual direction only. Later the same day he asked for **every poster in the hallway to be taken down** until he supplies new ones, for **anti-WarFlying campaign screens** showing his own lines (two in the hallway, one in the bar, and in the arcade in place of the posters for games that do not exist yet).
 
@@ -163,8 +163,8 @@ Pictures in `docs/development/district-upgrade/` (about 960 px wide): Low as sho
 ## What still looks legacy, or is short of the references
 
 - **Medium is drawn dim.** Outside VR the game multiplies the finished Medium and High picture by 0.3 (an open decision for David, `docs/development/VR_SESSIONS.md`). The rooms were not given their own exposure, so a Medium picture of the bar is much darker than the reference. The sheets include a brightened copy to judge detail; it is not what a Medium player sees.
-- **The props are built from boxes and cylinders.** Close up, the store items, the headsets, the masks and the taps are simple shapes. The best candidates for modelled props (Meshy or Blender): the oxygen tank, the bar stool, the VR headset and controller, a pistol and three or four of the store goods.
-- **The bartender** is the unchanged figure; on this machine on Medium she is drawn as a pale stand-in block (her model file is not in the public repository). Not part of this pass.
+- **The props are built from boxes and cylinders.** Close up, the store items, the headsets, the masks and the taps are simple shapes. The best candidates for modelled props (Meshy or Blender): the oxygen tank, the bar stool, the VR headset and controller, a pistol and three or four of the store goods. *(Second pass: the tank, stool, oxygen post, headset, pistol, radio and flashlight are modelled on Medium and above.)*
+- **The bartender** is the unchanged figure; on Medium she is drawn as a pale stand-in block. Not part of this pass. *(Second pass: she has her own model now. She had never had one; no file was missing.)*
 - **Bar:** no window, no wall art, no reflections in the floor; the floor is the building's shared tile. People at the bar do not sit.
 - **Store:** the counter itself is the earlier kit model; the staff workstation behind it (a black box and a screen), the storage cage and the wall cases were not touched. The cases on the wall still show goods as lit cards.
 - **VR:** the glass has no smears or reflections (David asked earlier for it to be clear); the floor has no reflections.
@@ -179,3 +179,101 @@ Pictures in `docs/development/district-upgrade/` (about 960 px wide): Low as sho
 - Multiplayer, a VR headset and a quality change made while standing in a room were not tried.
 - The campaign screens' cross-fade was seen in still pictures only, not in motion. The arcade cabinets were not played in the browser in this pass (their code was not touched; their unit tests pass).
 - `python3 -m unittest` was not run (nothing in Python changed).
+
+## Second pass (16 Nov 2026): Nyx, and modelled props
+
+David: "The bartender NPC needs upgrading", with his picture of her behind the oxygen bar; and the first pass's own list said the props were simple shapes close up. Looks only, again: no solid, interaction, line, voice, price, shop item or save field changed. The Sleeping Pod room, the music player, the other characters, Milked, the Corporate District and the temple were not touched.
+
+### Nyx
+
+- **Why she was "a pale stand-in block": she never had a model.** Nothing was missing from this machine and no licensed file is involved. `neochinatown.js` asked for a character model called `nyx-district`; no such model was ever made, so the renderer drew its plain box figure (a blank head, facing the bottles). That was true on every machine and on the live site.
+- **Now:** her own model, `void-runner/assets/models/crowd/npc-nyx.glb` (4.3 MB), made the way Admin, Iris and the seven residents were made (`MESHY_CHARACTERS.md`): a full-body concept drawn from David's picture, then 3D, remesh, auto-rig, and the game's own clips retargeted. 30,942 triangles, one mesh, one material, 2048 colour map with 1024 normal and roughness maps, 24 joints. Clips: `idle`, `talk`, `walk`, `look`, `watch`, `laugh`, `shrug`, `wipe` (spec: `tools/animation-pipeline/characters/npc-nyx.json`).
+- **What she looks like:** a smiling woman with wavy dark hair to the chin and a teal streak on one side, small chrome implants at the temple, a small hoop earring and a pendant, a black work shirt with the sleeves rolled, a worn brown leather bib apron with brass buckles, pens in the chest pocket and a grey bar towel at the belt, dark trousers and black boots, a watch on her left wrist. Adult, fully clothed.
+- **Unchanged:** her id (`nyx-district`), name, job, spot (10, 40 behind the counter), the prompt `TALK TO THE BARTENDER`, her one line and its speaker name, her voice entry. `district-people.js` gained `model:'npc-nyx'` on her line and nothing else, which also gives her a profile picture in the V1.
+- **Behaviour:** she stands facing the customers and plays `idle`; every quarter to half a minute she looks about or wipes down once; while her line is on screen she plays `talk`, then goes back to `idle`.
+- **If her file cannot be loaded** the box figure she had before is shown (never another character), the console says so, and the file is tried again eight times, as for Admin and Iris.
+
+### Modelled props (Medium and above)
+
+Seven models in `void-runner/assets/models/district-props/`, made with Meshy the way the Milked props were (text to image, image to 3D, remesh, textures shrunk to JPEG in headless Blender). `PROPS` at the top of `district-rooms.js` lists each with its size; `prop()` in `build()` loads a file once after the room is up and draws every copy as an instance of the one mesh. **Low never loads them and shows the built props as before. If a file cannot be loaded on Medium, the built prop is built in its place** and the console names the file.
+
+| File | Size | Triangles | Textures | Where | Copies |
+|---|---|---|---|---|---|
+| `district-o2-tank.glb` | 1.1 MB | 11,471 | 1024 | the four oxygen tanks behind the bar | 4 |
+| `district-bar-stool.glb` | 0.7 MB | 6,056 | 1024 | the four stools at the counter | 4 |
+| `district-o2-station.glb` | 1.0 MB | 7,165 | 1024 | the oxygen post with gauge, hose and mask at each seat and on both lounge tables | 6 |
+| `district-vr-headset.glb` | 0.8 MB | 5,900 | 1024 | the rack of spare headsets and each booth's wall grid | 5 |
+| `district-pistol.glb` | 0.4 MB | 3,401 | 512 | the store counter's cases | 6 |
+| `district-radio.glb` | 0.4 MB | 3,001 | 512 | the store counter's cases (the store's Two-Way Radios) | 6 |
+| `district-flashlight.glb` | 0.3 MB | 2,613 | 512 | the store counter's cases (the store's EDC flashlight) | 3 |
+
+- **The tanks** are shorter than the built ones (1.3 m; the model is a stout cylinder like the tanks in David's picture), so each stands on a steel plinth with a vent and two small lamps; a thin sleeve of rising bubbles moves over the glass, and the fluid glows. The brass pipe up to the manifold is the same. If the model fails, the plinths are removed and the built tank stands on the floor as it did.
+- **The goods** keep their places, counts and the store products they stand for (`ITEMS`); the pistols lie on the same felt pads. Nothing was added to the store.
+- Still built in code: the VR controllers, the masks on the wall rail, the spare cylinders, the taps and bottles, and the other 17 kinds of goods in the cases.
+
+Prompts (each ended with: single object, centred, plain grey studio background, soft even lighting, photorealistic product render, slightly worn, no text, no lettering, no logos). Batch folder on David's PC: `Documents\DarknetDistrict_Assets\Meshy\district_props\` (`props.json`, `status.json` with every task id, `run.py`, `shrink.py`); Nyx: `...\Meshy\nyx\`.
+
+| Prop | Prompt in short | Meshy task ids (image, 3D, remesh: first 13 characters) |
+|---|---|---|
+| Oxygen tank | a tall glass cylinder of glowing teal bubbling liquid on a steel pedestal with a small control panel, steel hoops and stay rods, a domed lid, a red valve wheel on a brass stem | `01a1e4ab-b9a5` (the 3D and remesh ids of these six are in `status.json`) |
+| Bar stool | a round padded seat in dark oxblood leather with a chrome band, a chrome column with a foot ring, a round floor plate | `01a1e4ab-b97d` |
+| Oxygen station | a chrome base, a brass post, a regulator with a dial gauge and a knob, a hook with a clear breathing mask, a coiled hose | `01a1e4ab-b9ff` |
+| VR headset | a light grey shell, a glossy black visor with tracking lenses, a foam face cushion, a head strap with a rear cradle | `01a1e4ab-b9ef` |
+| Pistol | a full-size service pistol, black polymer frame, dark steel slide, accessory rail, no markings | `01a1e4ab-b9c8` |
+| Radio | a rugged handheld two-way radio, black with orange grips, a short antenna, a small display, a speaker grille | `01a1e4ab-b988` |
+| Flashlight | a compact black knurled aluminium flashlight with a crenellated bezel, a clip and a tail switch | `01a1e4ae-a01c` (second picture; the first, `01a1e4ab-b979`, came with a room behind it and was not used), 3D `01a1e4b2-1dea`, remesh `01a1e4b3-890a` |
+
+### Meshy credits
+
+**366 spent of the 400 allowed** (the account showed 1,767 before and 1,401 after; nothing was bought and no plan was changed).
+
+| What | Credits |
+|---|---|
+| Nyx: concept 9, 3D 30, remesh 5, rig 5 | 49 |
+| Six props at 44 (picture 9, 3D 30, remesh 5) | 264 |
+| Flashlight (two pictures) | 53 |
+| **Total** | **366** |
+
+David's picture of Nyx was the only reference sent to Meshy. No licensed or purchased model, and no photograph of a real person, was sent to any AI tool.
+
+### Cost in the game (software renderer: counts, one frame each, people move between runs)
+
+| Viewpoint | Low draw calls | Low triangles | Medium draw calls | Medium triangles |
+|---|---|---|---|---|
+| Nyx, from the stools | 421 → 411 | 437 k → 513 k | 990 → 982 | 916 k → 863 k |
+| Nyx, close | 404 → 399 | 389 k → 419 k | 936 → 936 | 1008 k → 1025 k |
+| Bar, at the counter | 438 → 428 | 533 k → 609 k | 1036 → 1058 | 1203 k → 1295 k |
+| Bar, from the doorway | 361 → 351 | 615 k → 691 k | 854 → 888 | 1177 k → 1511 k |
+| Bar, at the tanks | 328 → 329 | 336 k → 382 k | 762 → 808 | 704 k → 936 k |
+| Bar, along the stools | 143 → 126 | 433 k → 323 k | 378 → 382 | 916 k → 949 k |
+| Bar, an oxygen post | 136 → 125 | 340 k → 370 k | 360 → 368 | 637 k → 894 k |
+| VR, the headset rack | 94 → 94 | 142 k → 142 k | 234 → 232 | 303 k → 323 k |
+| VR, a booth wall grid | 27 → 27 | 132 k → 132 k | 80 → 78 | 316 k → 313 k |
+| Store, at the counter | 193 → 193 | 362 k → 362 k | 462 → 478 | 816 k → 994 k |
+| Store, a case close up | 260 → 260 | 432 k → 432 k | 612 → 622 | 699 k → 735 k |
+| Store, the pistol case | 273 → 266 | 450 k → 439 k | 635 → 651 | 524 k → 723 k |
+
+- Low is the same or a little lighter: the props are the built ones, and Nyx is one mesh where the box figure was about twenty.
+- Medium: about the same number of draw calls (within 50 of before at every viewpoint) (each model is one mesh and one material however many copies there are; the built pieces they replace were already merged), and more triangles where the models are in view: the 34 copies come to about 189,000 triangles when all are on screen, and Nyx is 31,000. The scene's mesh count rises by about 82 because every instance is counted as a mesh.
+- Download on Medium and above: 4.7 MB of props, loaded after the room is up; Nyx 4.3 MB on every quality.
+- Leaving and coming back: checked on Medium. On the street afterwards nothing of the props or of Nyx was left (0 prop nodes, 0 prop meshes, 0 of her nodes, 0 of this file's materials and textures). Back inside they were built again (the count was taken 25 seconds after re-entering, on the software renderer, with 30 of the 34 copies in so far).
+
+### What was checked (Chromium, software renderer)
+
+- `npm test`: 1,007 tests, 1,006 pass. The one failure is the known local-only `tests/vr-companion-models.test.cjs` ("ava: preview missing"). Two tests were added to `tests/district-rooms.test.cjs` (the props' files, sizes and fallbacks; Nyx's model, clips, place and unchanged line).
+- **Nyx, Low and Medium:** looked at from the front, three-quarter, close on the face, from the side and from behind the bar, and in each of her clips (idle, talk, look, wipe, laugh, shrug, watch). She stands on the floor (her lowest point is at floor height, her head at 1.68 m), between the counter and the back bar without touching either, arms down, never in the A-pose. The box figure is switched off while she is shown.
+- **Talking to her, Low and Medium:** standing where a player can stand, the prompt reads `[E] TALK TO THE BARTENDER`; E opens her line under the name `Bartender` as before; she plays `talk` while it is up and `idle` after it closes.
+- **Name tag:** the V1 camera tags her `Nyx` / `Bartender` and offers to follow her.
+- **Each prop in place** on Medium (brightened copies) and the built props on Low, before and after at the same viewpoints.
+- **Missing files (Medium, the files for Nyx, the tank and the pistol made to return "not found"):** Nyx's box figure stood in her place, the built tanks stood on the floor with the plinths gone, the built pistols lay in the cases, the other five models loaded, and there were no page errors.
+- No page errors. The console's "failed to load" lines are the same kinds the build before this pass prints here (the blocked network and files this machine does not have), plus the deliberate ones in the missing-file run.
+- Found and fixed while looking: the oxygen post was too large and too bright; the tanks glowed teal all over; the radios were washed out.
+
+Pictures in `docs/development/district-upgrade/`: `nyx-front-low`, `nyx-face-low`, `nyx-three-quarter-medium-brightened`, and `props-*-medium-brightened` (tanks, oxygen station and stools, store pistols, store radios and flashlights, VR headsets). Sheets (outside the repository, in the session's scratch folder, so they will not last): Nyx `/tmp/claude-0/-home-user/f1e045d6-9633-5130-9900-d479eb4e0111/scratchpad/district-up2/SHEET-NYX.jpg`; props `/tmp/claude-0/-home-user/f1e045d6-9633-5130-9900-d479eb4e0111/scratchpad/district-up2/SHEET-PROPS.jpg`. Medium pictures on the sheets are brightened 2.6 times and say so.
+
+### Still legacy after the second pass
+
+- **Nyx stands; she does not serve.** She has no pouring or serving routine and does not walk the bar. Her face is lit like the other residents' (the edge light every character gets), so on Medium, which is drawn dim, she is dark against the lit bottles.
+- **Her hands have no finger joints** (Meshy's skeleton has none), like the other Meshy residents. Her implants and the emblem on the apron are painted on, not modelled.
+- The tank's glass and the mask are solid painted surfaces, not see-through; the moving bubbles are a sleeve over the glass.
+- Everything in "What still looks legacy" above that is not a tank, stool, oxygen post, headset, pistol, radio or flashlight is as it was: the bottles, taps, controllers, the other goods, the staff workstation, the wall cases, the floors, the Medium dimming.
