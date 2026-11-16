@@ -27,7 +27,7 @@ It uses the way in of `tests/ncz-views-browser.cjs`: start the page, make a loca
 2. **Expected walls.** A quarter's streets are rectangles. Every stretch of a street's edge that is not another street of the quarter, a gate, or a declared opening must have a building on it. Each such stretch is a "face" with an id like `oldtown-0e--55_-26` (quarter, street number, side, from and to).
 3. **Rays.** From inside the street, 3 m in front of the wall line (less in a narrow street), level rays are cast straight at the wall every 0.2 m along it at six heights (0.6, 1.4, 2.2, 3.6, 5.0 and 6.4 m). Each ray is just long enough to pass the wall line and go 1 m beyond it. A ray that meets a building piece in that distance is fine. A ray that does not is a gap.
 4. **Pieces that should meet.** For each face with a gap the report lists the building plots that stand behind it (from the layout, cut the way the builder cuts them), with their world coordinates and how many of each plot's rays went through, and the names of the pieces the other rays did meet.
-5. **The picture.** The player is put in the street facing the worst stretch; a red cross is drawn where each flagged ray crossed the wall line; the caption gives the face, the player's position and the count.
+5. **The picture.** The player is put in the street facing the worst stretch; a red cross is drawn where each flagged ray crossed the wall line; the caption gives the quarter, whether its blocks are the PURCHASED models or the FALLBACK built in code, the face, the player's position and the count.
 
 ## What is excluded
 

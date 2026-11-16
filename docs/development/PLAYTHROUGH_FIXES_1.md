@@ -111,9 +111,19 @@ Done the way David set out: a repeatable check, one gap first, shown to fail bef
 
 ## Also fixed on the way
 
+- Inside the District or Milked, the taxi list now says "Street taxis stay on the roads. Step outside first." instead of "No street taxi service operates here."
 - The terminal redrew its TAXI / TRANSPORT and INVENTORY sections once a second, replacing every button. A click whose press and release fell either side of a redraw was lost. It no longer redraws while a button is held.
 
 ## Checked
 
 - `npm test`: all pass (new: `tests/playthrough-fixes.test.cjs`; changed: `keymap`, `district-rooms`, `district-transition`, `ncz-quarters`, `ncz-gate-transit`, `temple`).
-- In the running game (bundled Chromium, software renderer): see the lists in `AI_HANDOFF.md`'s entry for this build.
+- In the running game (bundled Chromium, software renderer, Low unless said):
+  - Pod: no buttons on the strip; E, M, V and Q; READING clicked on the light panel, both ends of the volume bar, the title (opens the playlist); the click regions scanned against the picture; the first-time character creator before the pod. Pictures on Low and Medium.
+  - KeyMap: all four tabs at 1366 by 768 and at 1024 by 600, 1280 by 720 and 1920 by 1080 (`tests/keymap-browser.cjs`); in the game after the first pod exit; with the camera raised; K still does nothing inside the pod.
+  - Store counter: all four cases looked at on Medium (modelled radios) and Low (built radios).
+  - East Gate: walked through the walkers' lane to the Temple; walked back with the prompt; walked out onto the Avenue.
+  - Milked: walked from the District's door to the alley's mouth, along Main Street, into the side street and through the front vestibule into Milked; from the taxi at Milked corner to Milked's door.
+  - Taxi: CALL A TAXI at the alley-mouth post opened the list with fares; G opened it; from the District-door post a cab was called to Milked corner (15 CR, it waited 60 m away at the alley's mouth), boarded with BOARD TAXI, rode, stepped out; then G, Corporate District (60 CR), the ride back.
+- CI's two browser scripts, run to the end: `STABILIZATION_SMOKE=1 BROWSER_CHANNEL=chromium node tests/stabilization-browser.cjs` passes; `tests/blackout-tesana-browser.cjs` passes. Also `tests/keymap-game-browser.cjs` (passes) and `tests/pod-free-look-browser.cjs` (Q, V, M and E pass; its 0.7 s arrow-key step fails here because the software renderer draws about one frame in that time, and passes with a longer hold; the arrow code was not changed).
+- **Not run:** `tests/ncz-quarters-browser.cjs` with its new East Gate and taxi steps (the machine was shared and each start took ten minutes; the same steps were done by hand as above); the other browser scripts whose only change is pressing E instead of clicking EXIT POD; High and Ultra; real hardware.
+- **Not checked with a second player:** the keys drawn for trading (T, Y, N), voice (the talk key) and messages (Enter) are read from the code that handles them.

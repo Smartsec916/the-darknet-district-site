@@ -134,7 +134,7 @@
  }
  // The TAXI / TRANSPORT tab of the terminal (personal-hud.js): the same list the V1 map offers.
  function hudHtml(){const esc=s=>escapeText(String(s??''));
-  if(!inCity())return '<p class="hud-note">'+esc(walkingLocation?.corporate||walkingLocation?.temple?'The taxi stop here takes you back to NeoChinatown. The ride back is included in your fare.':'No street taxi service operates here.')+'</p>';
+  if(!inCity())return '<p class="hud-note">'+esc(walkingLocation?.corporate||walkingLocation?.temple?'The taxi stop here takes you back to NeoChinatown. The ride back is included in your fare.':walkingLocation?.id==='neochinatown'&&state?.location==='earth'?'Street taxis stay on the roads. Step outside first.':'No street taxi service operates here.')+'</p>';
   ensure();const ctx=context(),a=R.availability(state,{...ctx,trip:!!(world?.job&&!world.job.released)}),st=status();
   if(st)return '<article class="hud-card"><h3>'+esc(st.label)+' <small class="hud-tag tracked">'+esc((phaseText[st.phase]||st.phase).toUpperCase())+'</small></h3><p>'+st.distance+' m away · fare '+esc(st.fare)+' CR</p>'+(st.canCancel?'<div class="hud-actions"><button type="button" data-hud-action="taxi-cancel" data-hud-key="taxi-cancel">CANCEL TAXI</button></div>':'')+'</article>';
   if(!a.ok)return '<p class="hud-note">'+esc(a.reason)+'</p>';

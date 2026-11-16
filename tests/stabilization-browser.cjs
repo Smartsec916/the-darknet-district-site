@@ -48,7 +48,8 @@ const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],t
  // Walk that path as a player would: save the look, then get up.
  await page.waitForFunction(()=>!VoidGraphics.busy&&(mode==='walking'||mode==='pod-waking'||!!document.querySelector('#character-creator.on')),null,{timeout:90000});
  if(await page.locator('#character-creator.on').count()){await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled,null,{timeout:90000});await page.locator('[data-cc=confirm]').click({timeout:180000});await page.waitForFunction(()=>mode==='pod-waking'||mode==='walking',null,{timeout:180000});}
- if(await page.evaluate(()=>mode==='pod-waking')){await page.waitForSelector('#pod-wake:not([hidden])',{timeout:180000});await page.keyboard.press('KeyE');}   // the strip's EXIT POD button was removed (16 Nov 2026); E is the key for it
+ if(await page.evaluate(()=>mode==='pod-waking')){await page.waitForSelector('#pod-wake:not([hidden])',{timeout:180000});   // the strip's EXIT POD button was removed (16 Nov 2026); E is the key for it
+  for(let i=0;i<40&&await page.evaluate(()=>mode==='pod-waking');i++){await page.keyboard.press('KeyE');await page.waitForTimeout(3000);}}   // pressed again only while still in the pod (a key pressed before the pod is ready is lost; a button click used to wait)
  await page.waitForFunction(()=>mode==='walking'&&!VoidGraphics.busy,null,{timeout:240000});assert.deepEqual(await page.evaluate(()=>({credits:state.credits,ammo:state.progression.personal.ammo})),saved);assert(!await page.evaluate(()=>state.story.flags.vrReturn));result.interruption=true;
  // Isolated UI mode fixtures: hold the simulation while the existing weapon UI RAF updates.
  const visibility=await page.evaluate(()=>{const e=document.getElementById('weapon-select-hud');return {hidden:e.hidden,display:getComputedStyle(e).display};});assert.equal(visibility.hidden,false);assert.notEqual(visibility.display,'none');

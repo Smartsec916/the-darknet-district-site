@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "0349adf1dcc2a720",
+  "revision": "f0cfe0c364af8345",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13959,7 +13959,7 @@
     "void-runner/relay.js": "524ea9558108ac7053cd55126060826c7868c80103df340de204f1415b8b40cf",
     "void-runner/remote-players.js": "f8bbf039d6dc58d8b96adb744622e9dddb5a7d057a761131ded5911e4123cb9a",
     "void-runner/road-taxi-rules.js": "e1c6974440d930f1d9fa6ee677691058383a6d28326243ab852f03e0ade53935",
-    "void-runner/road-taxi.js": "9c6ac92b19ad9f56bffa2fd75027151d5c319f853f251e124350102a1e26fdd0",
+    "void-runner/road-taxi.js": "96089dbdcbf372903dc24e3238029061ade05159a825233adc46a0ef15160ff4",
     "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
