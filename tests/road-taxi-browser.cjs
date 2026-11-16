@@ -1,3 +1,5 @@
+/* NOTE (build 2026-11-16-quarters-1): the stops are now spread over three quarters (ncz-quarters.js); a hail to a stop in another quarter goes through a gate.
+   This script predates that and may need its stop ids and positions revisiting. tests/ncz-quarters-browser.cjs covers rides through the gates. */
 /* Street taxis in a real browser: the V1 map lists only the existing stops, a cab stops for the player,
    and a hail drives to that stop. Not part of npm test. SITE_TEST_URL=http://127.0.0.1:5187 node tests/road-taxi-browser.cjs */
 'use strict';

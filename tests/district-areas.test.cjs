@@ -68,7 +68,7 @@ test('in the street area the inner door can never open, whatever the flags',()=>
 });
 test('the build is split into gated sections, the entrance is built in every area, and the original random sequence is kept',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8');
- assert(src.includes("function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all'})"));
+ assert(src.includes("function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null})"));
  for(const needle of ['function buildStreet()','function buildEntrance()','function buildInterior()','function buildStreetDetail()','const wantStreet=area!==\'interior\',wantInterior=area!==\'street\'','const SEAMS=low?'])assert(src.includes(needle),needle);
  assert(src.indexOf('function buildEntrance()')<src.indexOf('function buildInterior()'),'the entrance comes before the interior');
  assert(/else if\(!wantStreet\)seed=SEAMS\[0\]/.test(src)&&/if\(!wantInterior\)\{seed=SEAMS\[1\]/.test(src),'each separate build resumes the combined build\'s random sequence');

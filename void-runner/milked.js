@@ -60,7 +60,7 @@
   rear:{id:'rear',name:'Rear lobby',zone:[LOBBY[0]+.12,LOBBY[1]-.12,LOBBY[2]+.12,LOBBY[3]-.12],centre:[94.25,95.5,-89.15,-88.25],outer:'milked-rear-door',inner:['milked-lobby-north','milked-lobby-west']}};
  // The environment key (VoidExplorationData.locations.milked) and the `area` its location record carries. The street keeps NeoChinatown's own key.
  const KEY='milked',AREA='milked';
- // Sky cabs set down at the nearest open point on Main Street (the side street is too narrow for a cab). Road taxis never turn into the side street either.
+ // The nearest taxi stop is on Main Street ("Milked corner", ncz-quarters.js STOPS): the side street is too narrow for a cab.
  const TAXI={id:'milked',position:[61,-82],heading:0};
  const T=.24,H=6,CEIL=3.2;
  // Wall segments: [id, 'x'|'z', fixed coordinate, from, to, gaps]. A 'x' wall runs north-south at x = fixed; a 'z' wall runs east-west at z = fixed.

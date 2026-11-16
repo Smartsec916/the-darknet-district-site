@@ -53,6 +53,7 @@
     The hub refuses a name it does not know (tools/district-hub/protocol.cjs ROOMS), and then this place is simply played alone. */
  const PLACES=new Set(['corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld']);
  const roomOf=wl=>!wl||wl.kind==='vr'?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:null;
+ const QZ=root.VoidQuarters||null;
  const roomNow=()=>{try{return typeof walkingLocation!=='undefined'?roomOf(walkingLocation):null;}catch{return null;}};
  let joinedRoom=null,refusedRoom=null;
  const inRoom=()=>typeof walker!=='undefined'&&walker&&ROOM_MODES.has(mode)&&((!!roomNow()&&roomNow()!==refusedRoom)||(inVrWorld()&&hubVr));
@@ -171,7 +172,7 @@
   // Outside the District and its simulations there is no connection at all. Loading screens between them last a few seconds: the connection is kept across those.
   if(!inRoom()){if(!outSince)outSince=now;if(now-outSince>12000&&(ws||peers.size||retryTimer)){vrWant=null;disconnect();}else if(ws?.readyState===1&&status==='in'&&hubVr&&now-lastSend>=4000){lastSend=now;ws.send('{"t":"vr-list"}');}return;}   // the list of players is kept while a place loads; their figures are drawn again once it is there
   outSince=0;
-  // Walked into a different place (street to District, a sky cab ride, a landing): leave the old room and join the new one.
+  // Walked into a different place (street to District, a taxi to another district, a landing): leave the old room and join the new one.
   if(ws&&status==='in'&&!inVrWorld()&&!vrSession&&roomNow()&&joinedRoom&&roomNow()!==joinedRoom){disconnect();wantOn=true;retry=0;}
   // Signing in as someone else (or out) ends the session; the next one is for the new account.
   if(!isLocalPage&&(ws||retryTimer)&&connectedUid!==accountUid()){disconnect();wantOn=true;retry=0;}
@@ -185,8 +186,11 @@
    if(!p.node||p.node.isDisposed()){p.node=null;place(p);if(!p.node)continue;}
    p.x+=(p.tx-p.x)*k;p.z+=(p.tz-p.z)*k;let d=p.tyaw-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));p.yaw+=d*k;
    p.node.position.set(p.x,floorY(),p.z);p.node.rotation.y=p.yaw;
-   if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)<TAG_RANGE;
-   if(p.char){const d=Math.hypot(p.x-walker.x,p.z-walker.z),far=root.VoidGraphics?.quality==='low'?8:14;p.char.setDetail(p.char.detailNear?d<far:d<far*.8);}   // face details only when close (distance-based rendering; hysteresis avoids flicker)   // no name tags across the whole hall
+   // The quarters of NeoChinatown share one room on the hub (so chat reaches everyone in the city), but a player in another quarter is not drawn here.
+   const here=!QZ||!walkingLocation?.quarter||walkingLocation.area!=='street'||QZ.inQuarter(walkingLocation.quarter,p.x,p.z,1);if(p.node.isEnabled()!==here)p.node.setEnabled(here);p.elsewhere=!here;if(!here)continue;
+   const zf=root.VoidZoom?root.VoidZoom.now():1;   // zoomed with the camera app: tags and faces as the picture shows them (zoom-detail.js)
+   if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)*zf<TAG_RANGE;
+   if(p.char){const d=Math.hypot(p.x-walker.x,p.z-walker.z)*zf,far=root.VoidGraphics?.quality==='low'?8:14;p.char.setDetail(p.char.detailNear?d<far:d<far*.8);}   // face details only when close (distance-based rendering; hysteresis avoids flicker)   // no name tags across the whole hall
    if(p.shownClip!==p.clip){p.shownClip=p.clip;p.ctrl?.play(p.clip);}
   }
  }
@@ -214,7 +218,7 @@
   // Trading hooks (void-runner/trade-window.js): subscribe to trade messages, send one, and ask who is close enough to trade with.
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
-  nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed())continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
+  nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed()||p.elsewhere)continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
   get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
   // Tell the hub my saved look changed (after the wardrobe): it re-reads it from my account and tells nearby players.
   async refreshLook(){if(ws?.readyState===1&&status==='in'){const t=await token();if(t)ws.send(JSON.stringify({t:'refresh',token:t}));}},

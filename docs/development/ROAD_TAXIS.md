@@ -1,5 +1,7 @@
 # Street taxis (NeoChinatown)
 
+> **Update, build `2026-11-16-quarters-1`:** road taxis are now the ONLY taxis (the sky cabs were scrapped by David). Each quarter of NeoChinatown has its own cabs; a trip to another quarter, the Corporate District or the Zen Zephyr Temple drives through a checkpoint's vehicle bay. Stops: The Port, Main Street, Milked corner, NULL / the alley, The Avenue, Function Gate, East Gate. See [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md). Text below that mentions sky cabs or four stops is older.
+
 Self-driving cabs drive the roads. The flying sky cabs are still there; this is the service on the street.
 
 ## Where it lives

@@ -1,6 +1,6 @@
 /* ZEN ZEPHYR'S TEMPLE, the Sanctum of the Circuit: a separate, taxi-only hilltop area far from the city. docs/development/TEMPLE.md.
    PURE DATA and rules (layout, collision, interactions, map model, the monk's replacement point); runs in Node and is unit-tested (tests/temple.test.cjs).
-   The 3D build is temple-build.js; the wiring and the chat panel are temple-integration.js; the conversation is zen-chat.js; the transition is sky-cab.js.
+   The 3D build is temple-build.js; the wiring and the chat panel are temple-integration.js; the conversation is zen-chat.js; the way in and out is the East Gate on the Avenue, by road taxi only (ncz-quarters.js, road-taxi.js).
    World metres in the area's OWN coordinates, x east, z north, centred on (0,0). Collision bounds |x|,|z| < 50. The city lies far below to the south-east.
 
    ==== WHERE TO CHANGE THINGS ====
@@ -32,7 +32,7 @@
  const PARAPET=[[-48.5,48.5,47.5,48.5],[-48.5,48.5,-48.5,-47.5],[-48.5,-47.5,-48.5,48.5],[47.5,48.5,-48.5,48.5]];
  const ALTAR_TEXT=['DATA ALTAR 1 · the first prayer: "initialise".','DATA ALTAR 2 · a loop scrolls by, endless and calm.','DATA ALTAR 3 · a list of names, each followed by "remembered".','DATA ALTAR 4 · one line: "rest is a valid state".'];
  const INTERACTIONS=[
-  {id:'temple-cab',label:'CALL RETURN SKY CAB',position:[CAB_PAD.x,1.7,CAB_PAD.z+3.4],action:'temple-cab',range:4},
+  {id:'temple-cab',label:'TAXI · RETURN TO NEOCHINATOWN',position:[CAB_PAD.x,1.7,CAB_PAD.z+3.4],action:'temple-cab',range:4},
   {id:'temple-monk',label:'SPEAK WITH ZEN ZEPHYR',position:[0,1.7,DAIS.z-DAIS.r-.9],action:'temple-monk',range:4.6},
   ...[[-7,12,0],[7,12,1],[-7,28,2],[7,28,3]].map(([x,z,i])=>({id:'temple-altar-'+(i+1),label:'DATA ALTAR',position:[x,1.7,z-(z<20?1.8:-1.8)],action:'temple-altar',altar:i,range:2.8})),
   {id:'temple-incense',label:'BLUE-FLAME INCENSE',position:[-9,1.7,-17],action:'temple-incense',range:4},
@@ -45,7 +45,7 @@
   solids:solids(),interactions:INTERACTIONS.map(i=>({...i,position:i.position.slice()})),signs:[]};}
  // Named parts, used by the map and the tests.
  const PLACES=[
-  {id:'temple-taxi',name:'Sky cab stop',kind:'transit',x:CAB_PAD.x,z:CAB_PAD.z+2},{id:'temple-gate',name:'Courtyard gate',kind:'entrance',x:0,z:-30},{id:'temple-entrance',name:'Temple entrance',kind:'entrance',x:0,z:-6},
+  {id:'temple-taxi',name:'Taxi stop',kind:'transit',x:CAB_PAD.x,z:CAB_PAD.z+2},{id:'temple-gate',name:'Courtyard gate',kind:'entrance',x:0,z:-30},{id:'temple-entrance',name:'Temple entrance',kind:'entrance',x:0,z:-6},
   {id:'temple-chamber',name:'Main chamber',kind:'service',x:0,z:6},{id:'temple-dais',name:'Zen Zephyr\'s dais',kind:'service',x:0,z:DAIS.z-DAIS.r-.9},
   {id:'temple-altar-1',name:'Data altar',kind:'service',x:-7,z:12},{id:'temple-altar-2',name:'Data altar',kind:'service',x:7,z:12},{id:'temple-altar-3',name:'Data altar',kind:'service',x:-7,z:28},{id:'temple-altar-4',name:'Data altar',kind:'service',x:7,z:28},
   {id:'temple-overlook-poi',name:'Overlook',kind:'service',x:40.6,z:-20}];

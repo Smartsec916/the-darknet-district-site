@@ -25,7 +25,7 @@
    const r=B.event(state,name,VoidMissions,C),lines=r.lines||r.early;
    after(r);
    if(show&&lines?.length){
-    talk('',lines,async()=>{if(refreshPad&&r.objective==='claim'){try{delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true});}catch{resumeWalking();}}else resumeWalking();},'CONTINUE');
+    talk('',lines,async()=>{if(refreshPad&&r.objective==='claim'){try{delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}catch{resumeWalking();}}else resumeWalking();},'CONTINUE');
     return;
    }
    return prev?.(arg);

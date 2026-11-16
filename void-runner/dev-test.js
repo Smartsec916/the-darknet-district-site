@@ -44,7 +44,7 @@
   active=true;banner.hidden=false;panel.hidden=true;
   state=build(choice);walkingLocation=walker=null;mode='menu';
   document.getElementById('screen')?.classList.add('hidden');
-  if(choice.stage==='district-ship'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true});}   // stand on the street beside the pad
+  if(choice.stage==='district-ship'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}   // stand on the street beside the pad (the Port quarter)
   else if(choice.location==='vesper')await worldEnterWalking('vesper');else await dock();
   if(typeof hud==='function')hud();
   announce('TEST MODE · '+(C.stations[choice.location]?.name||choice.location)+' · nothing is saved');

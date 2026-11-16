@@ -1,6 +1,6 @@
 // Corporate District layout: separate area, bounds, reachability, security placement, lighting zones, the back alley, the map model, save compatibility, taxi.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const C=require('../void-runner/corporate.js'),E=require('../void-runner/exploration-controller.js'),S=require('../void-runner/corporate-security.js'),R=require('../void-runner/taxi-rules.js'),N=require('../void-runner/neochinatown.js'),CAM=require('../void-runner/campaign.js'),A=require('../void-runner/area-map.js');
+const C=require('../void-runner/corporate.js'),E=require('../void-runner/exploration-controller.js'),S=require('../void-runner/corporate-security.js'),R=require('../void-runner/road-taxi-rules.js'),N=require('../void-runner/neochinatown.js'),CAM=require('../void-runner/campaign.js'),A=require('../void-runner/area-map.js');
 const L=C.layout();
 const reach=(from=[0,-14])=>{const st=.5,seen=new Set(),key=(x,z)=>x.toFixed(1)+','+z.toFixed(1),q=[from];seen.add(key(...from));for(let i=0;i<q.length;i++){const [x,z]=q[i];for(const [dx,dz] of [[st,0],[-st,0],[0,st],[0,-st]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(seen.has(k)||E.blocked(nx,nz,L))continue;seen.add(k);q.push([nx,nz]);}}return {q,has:(x,z)=>seen.has(key(x,z))};};
 test('Corporate is its own walking location, about 1.8 km away, with a flat 60 CR fare',()=>{
@@ -49,10 +49,12 @@ test('the V1 map module knows the area (district-map.js reads the registered spa
   const src=fs.readFileSync(path.join(__dirname,'../void-runner/district-map.js'),'utf8');assert.match(src,/VoidAreaMap/);assert.match(src,/walkingLocation\.mapSpace/);
   const D=require('../void-runner/district-map.js');assert.ok(D.KIND_LAYER.guard,'guard markers have a layer');const m=D.model(N);assert.ok(!m.pois.some(p=>/^corp-/.test(p.id)),'NeoChinatown\'s own map is unchanged');
 });
-test('the street cab lists Corporate at a flat 60 CR; a player with less cannot call it; NeoChinatown keeps its other destinations',()=>{
-  const s=CAM.fresh();s.location='earth';s.credits=100;const list=R.destinations(s,{player:[61,-100],layout:N.layout()}),d=list.find(x=>x.id==='corporate');
-  assert.ok(d&&d.ok&&d.fare===60&&d.scene==='corporate'&&!d.placeholder);for(const id of ['ship','district','main','avenue','milked'])assert.ok(list.some(x=>x.id===id),id);
-  s.credits=59;assert.equal(R.destinations(s,{player:[61,-100],layout:N.layout()}).find(x=>x.id==='corporate').ok,false);
+test('the street taxi lists Corporate at a flat 60 CR, through the Function Gate; a player with less cannot call it; NeoChinatown keeps its other stops',()=>{
+  const s=CAM.fresh();s.location='earth';s.credits=100;const list=R.destinations(s,{player:[61,-100],quarter:'oldtown'}),d=list.find(x=>x.id==='corporate');
+  assert.ok(d&&d.ok&&d.fare===60&&d.scene==='corporate'&&!d.placeholder);assert.deepEqual(d.legs.map(l=>l.gate),['north','function']);for(const id of ['passage','alley-mouth','main','avenue','milked'])assert.ok(list.some(x=>x.id===id),id);
+  s.credits=59;assert.equal(R.destinations(s,{player:[61,-100],quarter:'oldtown'}).find(x=>x.id==='corporate').ok,false);
+  // back again: by the included cab, or on foot through the gate
+  const L2=C.layout();for(const a of ['corp-cab','corp-gate']){const i=L2.interactions.find(x=>x.action===a);assert.ok(i,a);assert.equal(E.blocked(i.position[0],i.position[2],L2),false,a+' is on open ground');}assert.doesNotMatch(JSON.stringify(L2.interactions)+JSON.stringify(C.mapModel()),/sky/i);
   for(const x of list)if(x.fare!==undefined)assert.ok(x.fare<=R.fare.max,x.id+' within the cap');
   assert.equal(R.charge(s,'corporate',60),0,'59 CR cannot pay');s.credits=100;assert.equal(R.charge(s,'corporate',60),60);assert.equal(s.credits,40);assert.equal(R.charge(s,'corporate',60),0,'never twice');
 });

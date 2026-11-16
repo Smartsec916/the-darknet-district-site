@@ -1,5 +1,7 @@
 # Zen Zephyr Temple: the Sanctum of the Circuit
 
+> **Update, build `2026-11-16-quarters-1`:** the sky cab is gone. The Temple is reached by ROAD taxi through the East Gate at the east end of the Avenue (60 CR, ride back included); it stays taxi-only. Only the arrival stop changed here: the landing ring is removed, the parked cab is a road cab, the sign and prompt read TAXI. Nothing else at the Temple was touched. See [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md). Text below about the sky-cab ride is older.
+
 A separate, **taxi-only hilltop** far from the city, overlooking the distant NeoChinatown skyline. Part 3 of the three-location expansion ([`THREE_LOCATION_EXPANSION.md`](THREE_LOCATION_EXPANSION.md)). Reached by the **same reusable 3D sky-cab transition as the Corporate District** ([`CORPORATE.md`](CORPORATE.md)), flat **60 CR, return included**. Built from Babylon.js geometry and generated textures; nothing is downloaded. Status: **built, provisional** (the quotes are placeholders; the monk is a placeholder model). Screenshots: `docs/development/temple/`.
 
 ## Files

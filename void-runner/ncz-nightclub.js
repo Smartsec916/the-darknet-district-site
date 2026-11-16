@@ -11,6 +11,10 @@
  // HALL is the hall inside. The model is 32 x 20 m; the map box is 28 x 24.5 m, so the hall is 4 m longer to the west
  // and 4.5 m narrower than drawn, centred on the same point. Nothing else on the map is within reach of it.
  const RECT=[18,51,-68.5,-48.5],HALL=[18,50,-68.5,-48.5],DOOR={x:50.5,z:-58.5,half:1.2,height:3.4};
+ /* The way in (David, 16 Nov 2026): an OPEN doorway built as a short passage, 5 m from the street face to the hall, with a door frame at each end and no
+    doors in them. It is the shape of a vestibule on purpose: hanging a door in each frame (ENTRY.doors) and exchanging the street for the club in the middle
+    (as milked-transition.js does) is all a real vestibule would need. Until then nothing closes and nothing is exchanged. */
+ const ENTRY={rect:[46,51,DOOR.z-DOOR.half,DOOR.z+DOOR.half],wall:.25,height:DOOR.height,doors:{outer:{x:50.7,z:DOOR.z,half:DOOR.half},inner:{x:46.3,z:DOOR.z,half:DOOR.half}},vestibule:false};
  // Model (Babylon metres, +x/+z as loaded) to world: turned a quarter turn so its entrance end faces the street.
  const FIT={x:63.2,y:9,z:-78.1,yaw:-Math.PI/2},ID='ncz:nightclub',SRC='assets/models/ncz/nightclub.vrpak';
  const toWorld=(gx,gz)=>[FIT.x-gz,gx+FIT.z];
@@ -42,6 +46,8 @@
   // Shell: north, south and west walls, and the street wall with its doorway (the front is 1 m thick).
   wall('club-north',HALL[0]-.2,HALL[1],HALL[3],HALL[3]+.4);wall('club-south',HALL[0]-.2,HALL[1],HALL[2]-.4,HALL[2]);wall('club-west',HALL[0]-.4,HALL[0],HALL[2],HALL[3]);
   wall('club-front-south',HALL[1],RECT[1],HALL[2]-.4,DOOR.z-DOOR.half);wall('club-front-north',HALL[1],RECT[1],DOOR.z+DOOR.half,HALL[3]+.4);
+  // The entry passage's two side walls, from the front wall into the hall.
+  wall('club-entry-south',ENTRY.rect[0],HALL[1],ENTRY.rect[2]-ENTRY.wall,ENTRY.rect[2],ENTRY.height+.3);wall('club-entry-north',ENTRY.rect[0],HALL[1],ENTRY.rect[3],ENTRY.rect[3]+ENTRY.wall,ENTRY.height+.3);
   // Shuts the doorway until the model is in (see create()); `open` is the flag the door code in neochinatown.js uses.
   out.push({id:'club-shutter',position:[DOOR.x,DOOR.height/2,DOOR.z],size:[1,DOOR.height,DOOR.half*2],open:false});
   for(const [kind,list] of Object.entries(FURNITURE))list.forEach(([gx0,gx1,gz0,gz1],i)=>{const [xa,za]=toWorld(gx0,gz0),[xb,zb]=toWorld(gx1,gz1);
@@ -59,7 +65,9 @@
  function create({B,scene,parent,quality,assets,getSolids,onChange}){
   const low=quality==='low',state={phase:'idle',loads:0,unloads:0,error:null};
   let model=null,own=[],excluded=[],lights=[],beams=[],ball=null,interior=[],cones=[],clock=0,disposed=false,shutter=null;
-  const solidShutter=()=>shutter||(shutter=(getSolids?.()||[]).find(s=>s.id==='club-shutter')||null);
+  // The doorway's collision box in the CURRENT street layout. Looked up again whenever the layout has changed (the street is laid afresh for each quarter, and a
+  // club that finishes loading while the street is still being entered would otherwise open a box that is no longer the one in the way).
+  const solidShutter=()=>{const list=getSolids?.()||[];if(!shutter||!list.includes(shutter))shutter=list.find(s=>s.id==='club-shutter')||null;return shutter;};
   const setOpen=open=>{const s=solidShutter();if(s)s.open=open;onChange?.(open);};
   setOpen(false);
 
@@ -217,7 +225,8 @@
 
   function tick(cam,dt,time){
    if(disposed||!cam)return;clock+=dt;
-   const d=distance(cam.x,cam.z),here=inside(cam);
+   {const s=solidShutter(),open=state.phase==='ready';if(s&&s.open!==open)s.open=open;}   // the doorway's collision always follows the club's state
+   const d=distance(cam.x,cam.z)*(root.VoidZoom?root.VoidZoom.now():1),here=inside(cam);   // zoomed with the camera app, the club is judged as near as it looks (zoom-detail.js)
    if(state.phase==='idle'&&d<70)load();
    else if(state.phase==='ready'&&d>130)unload();
    if(state.phase!=='ready')return;
@@ -233,7 +242,7 @@
 
   return {tick,inside,isOpen:()=>state.phase==='ready',state:()=>({...state}),get model(){return model;},dispose(){disposed=true;if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
  }
- const api={NAME,BUILT,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
+ const api={NAME,BUILT,ENTRY,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightclub=api;
  // The bar: a drink, nothing more for now (no credits, no effect). Registered once the game's interaction table exists.
  if(typeof document!=='undefined'){const t=setInterval(()=>{if(!root.VoidInteractions?.register)return;clearInterval(t);root.VoidInteractions.register('club-bar',()=>{try{resumeWalking();}catch{}try{announce('The bartender slides a glass across the bar. It glows faintly. You drink it anyway.');}catch{}});},500);}

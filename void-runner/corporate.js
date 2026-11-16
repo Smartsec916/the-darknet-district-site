@@ -1,4 +1,4 @@
-/* CORPORATE DISTRICT: a separate area about 1.8 km from central NeoChinatown, reached only by sky cab (sky-cab.js). docs/development/CORPORATE.md.
+/* CORPORATE DISTRICT: a separate area about 1.8 km from central NeoChinatown, reached by road taxi through The Function's gate on the Avenue, or on foot through the same gate (ncz-quarters.js, road-taxi.js). docs/development/CORPORATE.md.
    This file is PURE DATA and rules (layout, collision, cover, light zones, security placement, map model); it runs in Node and is unit-tested (tests/corporate.test.cjs).
    The 3D build is corporate-build.js; the game wiring is corporate-integration.js. Names here are neutral placeholders: no corporation, brand or story has been decided.
    World metres in the area's OWN coordinates, x east, z north, centred on (0,0). The collision bounds are the square |x|,|z| < 100. */
@@ -71,7 +71,8 @@
  // Everything that blocks sight: the same boxes (a camera cannot see through a dumpster or a building).
  const coverBoxes=()=>[...BLOCKS.map(b=>b.rect),...PERIMETER,...PROPS.map(p=>p[1])];
  const INTERACTIONS=[
-  {id:'corp-cab',label:'CALL RETURN SKY CAB',position:[CAB_PAD.x,1.7,CAB_PAD.z+1.6],action:'corp-cab',range:4},
+  {id:'corp-cab',label:'TAXI · RETURN TO NEOCHINATOWN',position:[CAB_PAD.x,1.7,CAB_PAD.z+1.6],action:'corp-cab',range:3},
+  {id:'corp-gate',label:'FUNCTION GATE · WALK TO NEOCHINATOWN',position:[CAB_PAD.x,1.7,CAB_PAD.z-4],action:'corp-gate',range:2.4},
   {id:'corp-hq-door',label:'HEADQUARTERS ENTRANCE',position:[30,1.7,24.4],action:'corp-door',door:'hq',range:3},
   {id:'corp-service-door',label:'SERVICE ENTRANCE',position:[-77,1.7,24.4],action:'corp-door',door:'service-n1',range:3},
   {id:'corp-back-door',label:'MAINTENANCE DOOR',position:[-40,1.7,-89.4],action:'corp-door',door:'back-door',range:2.6},
@@ -85,7 +86,7 @@
  function mapModel(){
   const rectOf=s=>({id:s.id,x0:s.position[0]-s.size[0]/2,x1:s.position[0]+s.size[0]/2,z0:s.position[2]-s.size[2]/2,z1:s.position[2]+s.size[2]/2});
   const kindOf={guarded:'guard',service:'service',bay:'service','break-in':'service'};
-  const pois=[{id:'corp-taxi',name:'Sky cab stop',kind:'transit',area:'street',x:CAB_PAD.x,z:CAB_PAD.z},
+  const pois=[{id:'corp-taxi',name:'Taxi stop',kind:'transit',area:'street',x:CAB_PAD.x,z:CAB_PAD.z},
    ...DOORS.map(d=>({id:'corp-'+d.id,name:d.name+(d.kind==='guarded'?' (guarded)':''),kind:kindOf[d.kind]||'service',area:'street',x:d.pos[0],z:d.pos[1]})),
    {id:'corp-checkpoint-poi',name:'Security checkpoint (guarded)',kind:'guard',area:'street',x:0,z:44}];
   return {streets:STREETS.map(s=>({id:s.id,name:s.name,rect:s.rect,kind:s.kind})),buildings:BLOCKS.map(b=>({id:b.id,name:b.name,rect:b.rect})),walls:{street:solids().filter(s=>/corp-(door|booth|gate)/.test(s.id)||/corp-block/.test(s.id)).map(rectOf),interior:[]},
