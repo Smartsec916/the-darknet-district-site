@@ -136,3 +136,7 @@ No new save fields, location ids, mission ids or flags. A conversation records t
 - The corner building's wall on the south side of the alley mouth is very dark at night.
 - Changing Main Street's shopfront gaps and the city blocks shifts the pseudo-random street dressing (which shop signs, billboards and kiosks appear where) elsewhere in NeoChinatown. Nothing was removed on purpose; the alley to the District, the District front and the landing pad are built separately and are unchanged.
 - Older documents that describe the first version (`docs/void-runner/ncz-upgrade/README.md`, the dated diary in `AI_HANDOFF.md`) were left as history.
+
+## 16 Nov 2026: Fish has her own model
+
+`MODELS.fish.look` is `npc-fish` (`void-runner/assets/models/crowd/npc-fish.glb`): made with Meshy from a concept that David and the person she is based on approved (her photos were supplied with her permission, per David; they are not in this repository). Clothed, realistic style, cyberpunk outfit. Seen in a browser at Low quality standing at the control desk in her office. Eva still uses the placeholder look.

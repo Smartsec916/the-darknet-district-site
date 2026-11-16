@@ -36,7 +36,10 @@ test('Fish\'s name comes from one configurable value',()=>{
   const other=load('Gus');assert.equal(other.MODELS.fish.name,'Gus');assert.equal(other.INTERACTIONS.find(i=>i.id==='milked-fish').label,'TALK TO GUS');assert.ok(other.PLACES.some(p=>/Gus's office/.test(p.name)));assert.ok(other.ROOMS.some(r=>r.name==='Gus\'s office'));
 });
 test('each character has one documented model replacement point and a clothed placeholder',()=>{
-  for(const m of [MK.MODELS.eva,MK.MODELS.fish]){assert.equal(m.asset,null,'no real model yet');assert.ok(m.look&&m.look.length,'a placeholder look');assert.match(m.note,/REPLACEMENT POINT/);}
+  for(const m of [MK.MODELS.eva,MK.MODELS.fish]){assert.equal(m.asset,null);assert.ok(m.look&&m.look.length,'a look');}
+  assert.match(MK.MODELS.eva.note,/REPLACEMENT POINT/,'Eva still waits for her own model');
+  // Fish has her own model (16 Nov 2026): the file is in the repository and carries the clips her spot plays
+  assert.equal(MK.MODELS.fish.look,'npc-fish');assert.ok(require('node:fs').existsSync(require('node:path').join(__dirname,'..','void-runner','assets','models','crowd','npc-fish.glb')));for(const c of MK.MODELS.fish.clips)assert.ok(require('../void-runner/crowd.js').clips['npc-fish'].includes(c),c);
   assert.match(src,/WHERE TO CHANGE THINGS/);assert.match(src,/MODELS\.eva/);
 });
 test('it is a small building on a quiet side street off Main Street, built into the block, with a service alley behind',()=>{

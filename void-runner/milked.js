@@ -20,7 +20,7 @@
  // process, then set `asset` to its id: create() uses it when VoidAssets has it and falls back to `look` when it does not.
  const MODELS={
   eva:{id:'milked-eva',name:CONFIG.EVA_NAME,role:'RECEPTION · MILKED',look:'ncz-neon',asset:null,clips:['talk','idle'],at:[81.3,-81.85],face:[81.3,-78],note:'REPLACEMENT POINT: Milked Eva (not the VR companion Eva).'},
-  fish:{id:'milked-fish',name:CONFIG.FISH_NAME,role:'OFFICE · MILKED',look:'fixer-01',asset:null,clips:['watch','idle'],at:[95.6,-76.9],face:[98,-76.9],note:'REPLACEMENT POINT: Fish.'}};
+  fish:{id:'milked-fish',name:CONFIG.FISH_NAME,role:'OFFICE · MILKED',look:'npc-fish',asset:null,clips:['watch','idle'],at:[95.6,-76.9],face:[98,-76.9],note:'Her own model since 16 Nov 2026 (void-runner/assets/models/crowd/npc-fish.glb: Meshy, from a concept she and David approved).'}};
  // Provisional placeholder lines. Eva's background follows Origins (livestream performer, neural-network engineer, built Iris with the player's character).
  const DIALOGUE={
   eva:{greeting:['Welcome to Milked. We are a small broadcast studio. Everything made here goes out live to members who watch from home.',
