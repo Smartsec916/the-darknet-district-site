@@ -4,7 +4,7 @@ const N=require('../void-runner/neochinatown.js'),M=require('../void-runner/dist
 const m=M.model(N),street=N.layout('street'),interior=N.layout('interior'),by=id=>m.pois.find(p=>p.id===id);
 test('every street on the map is a street of the layout, at the layout\'s own rectangle; unbuilt districts are not streets',()=>{
  for(const s of m.streets){assert.deepEqual(s.rect,N.streets[s.id]);assert(s.name);}
- const placeholders=N.districts.filter(d=>d.placeholder).map(d=>d.id);assert(placeholders.length>0);for(const id of placeholders)assert(!m.streets.some(s=>s.id===id),id+' is not drawn as a street');
+ const placeholders=N.districts.filter(d=>d.placeholder).map(d=>d.id);for(const id of placeholders)assert(!m.streets.some(s=>s.id===id),id+' is not drawn as a street');
  assert.equal(m.streets.length,Object.keys(N.streets).length-placeholders.length);
 });
 test('every place on the map exists in the game, where the game has it',()=>{

@@ -71,3 +71,15 @@ Contraband, bribes and shielding are NOT built (not decided). What is built and 
 ## Needs David before building
 - What counts as contraband, and what happens when caught.
 - How The Function's guards look and sound (The Function gets no voice or treatment without his approval).
+
+## Far South (16 Nov 2026, build `2026-11-16-far-south-1`)
+
+- **A5 South Gate is live:** private guards, a walkers' lane on each pavement and two vehicle bays (the North Gate's twin, no bridge), joining Old Town and **Far South** (Main Street's second stretch, z -224 to -130). Same scan, always passes. Rect `[51,71,-130,-124]`.
+- **A6 Far South Gate** (`far-south-gate`) at the south end, rect `[51,71,-224,-218]`: see stage 2 below for what it became.
+- Milked is in Far South; the route is the District, the alley, Main Street, the South Gate, Milked.
+
+## Stage 2 (16 Nov 2026, build `2026-11-16-outskirts-1`): the Far South Gate is live, walkers only
+
+David: past it is **The Outskirts**; the road stops at the checkpoint; **no car vestibule, only a pedestrian vestibule**.
+- **A6 Far South Gate** (`far-south-gate`, rect `[51,71,-224,-218]`): one walkers' lane (v 59.5 to 62.5), no vehicle bay, private guards, the same scan, always passes. Not in `LINKS`, so no taxi route crosses it; the Far South stop ("Milked corner") stays on the Far South side; there is no taxi stop in The Outskirts.
+- Contraband, bribes and shielding are still undecided and not built.

@@ -18,19 +18,24 @@
   const MK=typeof module!=='undefined'?require('./milked.js'):root.VoidMilked;
   // The three quarters and the checkpoints between them (ncz-quarters.js): which quarter a build makes, and the gates' collision.
   const QT=typeof module!=='undefined'?require('./ncz-quarters.js'):root.VoidQuarters;
+  const CT=typeof module!=='undefined'?require('./ncz-containers.js'):root.VoidContainers;   // The Outskirts' container homes (David, 16 Nov 2026)
   const DOOR={x:126.9,z:-61.9};
   const toWorld=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
   const streets={avenue:[2,152,-20,-5],main:[51,71,-124,-20],alley:[71,136,-61.6,-55.5],road:[13,51,-121,-116],passage:[37.5,44,-116,-92],pad:[13,37.5,-106,-86],
     // City expansion (David's brief, 2026-10-27): walkable streets out to three future districts. The neighbourhood above is
     // unchanged; only the avenue's closed ends and the main street's south end now open onto these.
-    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],mainSouth:[56,66,-190,-124],containers:[30,100,-250,-190],
+    avenueWest:[-60,2,-20,-5],corporate:[-120,-60,-40,15],avenueEast:[152,200,-20,-5],
+    // Far South (David, 16 Nov 2026): Main Street goes on south through the South Gate (A5, z -130..-124) into a second stretch, to the Far South Gate (A6, z -224..-218, shut for now).
+    // This replaces the narrow retired "Main Street South" and "Container Settlement" placeholders that stood here.
+    southGate:[51,71,-130,-124],farSouth:[51,71,-224,-130],
+    // The Outskirts (David, 16 Nov 2026), past the Far South Gate: a compact gravel hub and two lanes that end at containers (ncz-containers.js builds the homes on it).
+    outskirts:[36,92,-260,-224],outskirtsWest:[20,36,-250,-240],outskirtsEast:[92,108,-248,-240],
     // Milked (David's brief, 2026-11-16): a quiet dead-end side street off Main Street's east side and the service alley behind the building (milked.js).
     milkedLane:MK.LANE,milkedAlley:MK.ALLEY};
   // Future districts: placeholders until David supplies their designs. Each streams its own detail as you approach.
   const districts=[
     {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','FUNCTION GATE'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:false,built:true,scene:'corporate',retired:true},
-    {id:'milked',name:'Milked',lines:['MILKED','LIVE BROADCAST STUDIOS'],rect:MK.BOUNDS.rect,center:[(MK.FOOTPRINT[0]+MK.FOOTPRINT[1])/2,(MK.FOOTPRINT[2]+MK.FOOTPRINT[3])/2],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true},
-    {id:'containers',name:'Container Settlement',lines:['CONTAINER SETTLEMENT','PLACEHOLDER'],rect:streets.containers,center:[65,-220],taxi:[65,-215],heading:0,placeholder:true,retired:true}];   // retired: behind a shut gate since the quarters (2026-11-16); nothing of theirs is built on the street
+    {id:'milked',name:'Milked',lines:['MILKED','LIVE BROADCAST STUDIOS'],rect:MK.BOUNDS.rect,center:[(MK.FOOTPRINT[0]+MK.FOOTPRINT[1])/2,(MK.FOOTPRINT[2]+MK.FOOTPRINT[3])/2],taxi:MK.TAXI.position,heading:MK.TAXI.heading,placeholder:false,built:true}];   // (the Container Settlement placeholder is gone: Far South stands where it was)
   // Taxi landing zones: open street wide enough for the cab, clear of doors, the ship and the sidewalk crowd.
   // Since the quarters (2026-11-16) these are the road taxis' kerbside stops (ncz-quarters.js STOPS); the sky cabs and their landing zones are gone.
   // LEGACY_ZONES: where the old zones were. Only the overhead-cable layout still reads it, so the cables hang where they always did.
@@ -142,7 +147,7 @@
   function layout(area='all',quarter=null){
     const l=fullLayout();if(area==='all')return l;
     const keep=area==='interior'?insideSide:i=>!insideSide(i)||ENTRANCE.has(i.id),base={...l,area,solids:l.solids.filter(keep),interactions:l.interactions.filter(keep)};
-    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q)],interactions:[...base.interactions,...QT.callPrompts(q)]}:base;}   // callPrompts: CALL A TAXI at every stop's post and by the District's door
+    if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q),...(q==='outskirts'&&CT?CT.solids():[])],interactions:[...base.interactions,...QT.callPrompts(q)]}:base;}   // callPrompts: CALL A TAXI at every stop's post and by the District's door
     const [x,z]=toWorld(0,22.5);delete base.ship;
     return {...base,name:'THE DARKNET DISTRICT',spawn:[x,1.7,z],yaw:Math.PI};
   }
@@ -151,7 +156,7 @@
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null}){
     // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
-    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-130&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (David, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
+    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-270&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (David, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
     const dropped=(name,p)=>!!QK&&!free&&target===parent&&inCore(p[0],p[2])&&!(roofPiece.test(name)?QT.keepBuilding(QK,p[0],p[2]):QT.keepDetail(QK,p[0],p[2]));
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.
@@ -237,14 +242,17 @@
     // Night facades: the face by day, darkened, with its own lit windows. tile = metres one copy covers (wide, high).
     const windowMats=[['office',[28,34]],['apartment',[40,52]],['glass',[30,36]]].map(([n,tile])=>{const m=new B.StandardMaterial('ncz-facade-'+n,scene);m.diffuseTexture=acg('facade-'+n+'-color');m.emissiveTexture=acg('facade-'+n+'-glow');m.diffuseColor=new B.Color3(.3,.3,.36);m.specularColor=new B.Color3(.08,.08,.1);m.metadata={tile};owned.push(m);return m;});
     function tower(x,z,w,d,h,k){const m=windowMats[k%3],[tw,th]=m.metadata.tile,side=a=>new B.Vector4(0,0,a/tw,h/th),cap=new B.Vector4(0,0,.01,.01);const b=add(B.MeshBuilder.CreateBox('tower',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[x,h/2,z]);const roofY=h+.5;box('tower-crown',[w*.6,1.2,d*.6],[x,roofY,z],frame);if(rand()<.7){cyl('tower-mast',.15,6+rand()*8,[x,roofY+4,z],pipe);add(B.MeshBuilder.CreateSphere('tower-beacon',{diameter:.7,segments:6},scene),red,[x,roofY+9,z]);}if(rand()<.6)box('tower-neon-strip',[.25,h*.7,.25],[x+(w/2+.13)*(x<0?1:-1),h*.45,z-d/2+.6],[cyan,magenta,violet][k%3]);return b;}
-    for(const [name,r] of Object.entries(S))if(name!=='alley')ground('ncz-'+name,r,asphalt,0,4);
+    const gravel=mat('gravel','#ffffff',{rough:.95,metal:0});gravel.albedoTexture=acg('road-cracked-color');gravel.albedoColor=new B.Color3(.55,.42,.3);   // The Outskirts: packed gravel, no paved road
+    for(const [name,r] of Object.entries(S))if(name!=='alley')ground('ncz-'+name,r,/^outskirts/.test(name)?gravel:asphalt,0,4);
     // Street edges, outward normal pointing into the buildings, with gaps where another street joins.
     const edges=[
      {street:'avenue',a:[2,-5],b:[152,-5],n:[0,1],gaps:[]},{street:'avenue',a:[2,-20],b:[152,-20],n:[0,-1],gaps:[[51,71]]},
-     {street:'main',a:[51,-124],b:[51,-20],n:[-1,0],gaps:[[-121,-116]]},{street:'main',a:[71,-124],b:[71,-20],n:[1,0],gaps:[[-61.6,-55.5],[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]},
+     {street:'main',a:[51,-124],b:[51,-20],n:[-1,0],gaps:[[-121,-116]]},{street:'main',a:[71,-124],b:[71,-20],n:[1,0],gaps:[[-61.6,-55.5]]},   // (Milked's two side streets left this edge on 16 Nov 2026: its frontage is closed all the way along)
      {street:'road',a:[13,-116],b:[51,-116],n:[0,1],gaps:[[37.5,44]]},{street:'road',a:[13,-121],b:[51,-121],n:[0,-1],gaps:[]},
      {street:'passage',a:[37.5,-116],b:[37.5,-106],n:[-1,0],gaps:[]},{street:'passage',a:[44,-116],b:[44,-92],n:[1,0],gaps:[]},
-     {street:'pad',a:[13,-106],b:[13,-86],n:[-1,0],gaps:[]},{street:'pad',a:[13,-86],b:[37.5,-86],n:[0,1],gaps:[]},{street:'pad',a:[37.5,-92],b:[37.5,-86],n:[1,0],gaps:[]},{street:'pad',a:[13,-106],b:[37.5,-106],n:[0,-1],gaps:[]}];
+     {street:'pad',a:[13,-106],b:[13,-86],n:[-1,0],gaps:[]},{street:'pad',a:[13,-86],b:[37.5,-86],n:[0,1],gaps:[]},{street:'pad',a:[37.5,-92],b:[37.5,-86],n:[1,0],gaps:[]},{street:'pad',a:[13,-106],b:[37.5,-106],n:[0,-1],gaps:[]},
+     // Far South: Main Street's second stretch, between the two gates (the last entries, so nothing above changes its place in the sequence of random numbers). Milked's side street and service alley open on its east side.
+     {street:'main',a:[51,-218],b:[51,-130],n:[-1,0],gaps:[]},{street:'main',a:[71,-218],b:[71,-130],n:[1,0],gaps:[[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]}];
     // A plane faces -z; turn it to face back into the street (away from its wall).
     const faceInto=n=>n[1]>0?0:n[1]<0?Math.PI:n[0]>0?Math.PI/2:-Math.PI/2;
     const along=(e,t)=>[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t];
@@ -310,6 +318,7 @@
     adScreens?.extras();
     for(const [x0,x1,z] of [[2,152,-12.5]])for(let x=x0+4;x<x1-2;x+=6)box('lane-mark',[2.6,.02,.18],[x,.02,z],glowMat('lane','#d7c06a',.55));
     for(let z=-120;z<-22;z+=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
+    for(let z=-136;z>-216;z-=6)box('lane-mark',[.18,.02,2.6],[61,.02,z],glowMat('lane','#d7c06a',.55));
     // The avenue runs on into the wider city: its ends open onto the expansion streets (streets.avenueWest / avenueEast).
     // Landing pad: the Kestrel, pad lights, a low wall and the landing terminal.
     box('landing-pad',[18,.12,16],[24,.06,-96],mat('pad','#26262c',{rough:.6,metal:.4}));
@@ -443,9 +452,9 @@
     // Nightlife: people walking and standing about on the sidewalks, a few of them drunk (ncz-nightlife.js).
     const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance,quarter:QK}):null;
     // The people who stay in the alley by the District (ncz-alley.js): talking, smoking, sitting, watching the door.
-    const alleyLife=root.VoidAlley&&modelInstance&&(!QK||QK==='oldtown')?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):null;
+    const alleyLife=root.VoidAlley&&modelInstance&&(!QK||QK==='oldtown')?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):(QK==='outskirts'&&root.VoidOutskirtsLife&&modelInstance?root.VoidOutskirtsLife.start({scene,parent,quality,instance:modelInstance}):null);   // The Outskirts' own residents take the alley people's slot (this quarter only)
     // Two street lights (the District's own lights are added with its rooms).
-    const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30]]){if(QK&&!QT.inQuarter(QK,p[0],p[2]))continue;const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
+    const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30],[[61,7,-150],'#ff5bd0',.9,34],[[61,7,-196],'#38e8ff',.8,30]]){if(QK&&!QT.inQuarter(QK,p[0],p[2]))continue;const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
     // ---- Alley: old dark brick, counterculture graffiti, pipes and vents ----
     // Old, dirty red brick (ambientCG Bricks097, CC0), darkened toward charcoal by its material.
@@ -1262,7 +1271,7 @@
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
     // ---- Street detail: taxi zones, streaming districts, club, weather ----
-    const {clubCtl,streamDistricts,weather,city}=!wantStreet?{clubCtl:null,streamDistricts(){},weather:null,city:{live:new Map(),loads:0,unloads:0}}:(function buildStreetDetail(){
+    const {clubCtl,streamDistricts,weather,city,pointers}=!wantStreet?{clubCtl:null,streamDistricts(){},weather:null,city:{live:new Map(),loads:0,unloads:0},pointers:null}:(function buildStreetDetail(){
     const {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle}=sc;
     // (The sky cabs' painted landing zones stood here until the quarters, 2026-11-16. The road taxis' kerbside stops are painted by ncz-gates.js; the loop below makes nothing.)
     {const t=texture('taxi-zone',256,256,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(242,179,61,.85)';g.lineWidth=8;g.setLineDash([22,14]);g.strokeRect(10,10,W-20,H-20);g.setLineDash([]);g.fillStyle='rgba(242,179,61,.8)';g.font='bold 64px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',W/2,H/2);});t.hasAlpha=true;
@@ -1284,6 +1293,10 @@
      const lamp=new B.StandardMaterial('ncz-district-lamp-'+d.id,scene);lamp.emissiveColor=B.Color3.FromHexString('#5ff2ff');lamp.disableLighting=true;own.push(lamp);
      for(const [px,pz] of [[x0+1,z0+1],[x1-1,z0+1],[x0+1,z1-1],[x1-1,z1-1]]){const b=B.MeshBuilder.CreateBox('district-bollard',{width:.3,height:.5,depth:.3},scene);b.material=lamp;b.parent=node;b.position.set(px,.25,pz);b.isPickable=false;}
      return {dispose(){node.dispose(false,true);for(const x of own)x.dispose();}};}
+    // Old Town points the way down Main Street to Milked, which is past the South Gate now (16 Nov 2026): two blade signs, the MILKED logo, an arrow and the words SOUTH GATE (milked-build.js pointers).
+    const pointers0=(!QK||QK==='oldtown')&&MK.pointers?MK.pointers({B,scene,parent,quality,spots:[[69.7,4.5,-68],[69.7,4.5,-118.3]]}):null;
+    const homes=(QK==='outskirts'||QK==='far-south')&&root.VoidContainers&&root.VoidContainers.build?root.VoidContainers.build({B,scene,parent,quality,mode:QK==='far-south'?'far-south':null}):null;
+    const pointers={dispose(){pointers0?.dispose();homes?.dispose();}};
     const rectDistance=([x0,x1,z0,z1],x,z)=>Math.hypot(Math.max(x0-x,0,x-x1),Math.max(z0-z,0,z-z1));
     function streamDistricts(cam){if(!cam)return;for(const d of districts){if(d.retired||QK&&!QT.inQuarter(QK,d.center[0],d.center[1]))continue;const near=rectDistance(d.rect,cam.x,cam.z)*(root.VoidZoom?root.VoidZoom.now():1),live=city.live.get(d.id);   /* zoomed in, a far building is built as if near (zoom-detail.js) */
      if(!live&&near<90){city.live.set(d.id,placeholder(d));city.loads++;}else if(live&&near>140){live.dispose();city.live.delete(d.id);city.unloads++;}}}
@@ -1303,7 +1316,9 @@
      // Shop-sign spill: each storefront neon lights its patch of wall and the sidewalk under it.
      for(const {c,f} of signSpots){wallWash(c,f,0,5.2,5,6.5,.4);const g=onFace(f,0,0,1.6);floorWash(c,g[0],g[2],f.tx?4:2.8,f.tx?2.8:4,.2,.3);}
      // The street faces (outward normal into the street) of the avenue and the main street, with the gaps where streets join.
-     const fronts=[[{x:2,z:-20.12,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.88,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.88,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.12,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]]];
+     const fronts=[[{x:2,z:-20.12,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.88,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.88,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.12,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]],
+      // Far South (after the others, so their sequence of random numbers is as it was)
+      [{x:50.88,z:-218,tx:0,tz:1,len:88,nx:1,nz:0},[]],[{x:71.12,z:-218,tx:0,tz:1,len:88,nx:-1,nz:0},[[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]]];
      const inGapF=(f,s,gaps)=>{const c=f.tx?f.x+s:f.z+s;return gaps.some(([g0,g1])=>c>g0-2&&c<g1+2);};
      // Blade signs: vertical neon sticking out from the wall, readable from both directions (two single-sided faces).
      const blades=[['拉麵','#ff5b5b'],['旅館','#7ff0ff'],['當鋪','#ffcf5a'],['診所','#6cff9e'],['電器','#9b7bff'],['HOTEL','#ff5bd0'],['PHO','#ffb347'],['KEBAB','#ffcf5a'],['CYBERWARE','#7ff0ff'],['網吧','#38e8ff'],['TATTOO','#ff5bd0'],['麻將','#ff5b5b'],['PAWN','#ffcf5a'],['BAR','#ff5bd0'],['NOODLES','#ffb347'],['CLINIC','#6cff9e']];
@@ -1324,6 +1339,7 @@
      function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
      function span(a,b,n){if(LEGACY_ZONES.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
      for(let z=-118;z<-24;z+=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));
+     for(let z=-136;z>-212;z-=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));   // Far South
      for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.95],[x+(rand()-.5)*6,-5.05],1+Math.floor(rand()*2));}
      for(let x=16;x<50;x+=7+rand()*4)span([x,-120.95],[x+(rand()-.5)*4,-116.05],1+Math.floor(rand()*2));
      for(let z=-114;z<-94;z+=6+rand()*3)span([37.55,z],[43.95,z+(rand()-.5)*3],1);
@@ -1344,7 +1360,7 @@
       const hi=quality==='high'||quality==='ultra';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
      weather={flickers,rain,rainRate:rain?.emitRate||0};
      target=saved;}
-    return {clubCtl,streamDistricts,weather,city};})();
+    return {clubCtl,streamDistricts,weather,city,pointers};})();
     // The District's front: a small backlit plaque, violet trim round the reinforced door and a second camera.
     {const saved=target;target=districtRoot;
      neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.6],0,'rgba(8,6,14,.94)',true);
@@ -1376,7 +1392,7 @@
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
     function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);adScreens?.tick(dt);atmosphere(time,dt);gates?.tick(dt,time);sight?.tick();for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
-    return {tick,city,nightlife,alleyLife,sight,doors,etiquette,gates,quarter:QK,adScreens,dispose(){disposed=true;adScreens?.dispose();sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    return {tick,city,nightlife,alleyLife,sight,doors,etiquette,gates,quarter:QK,adScreens,dispose(){disposed=true;pointers?.dispose();adScreens?.dispose();sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.
@@ -1395,7 +1411,9 @@
    // Purchased Cyberpunk City pack (CGTrader #4757767, Royalty Free no AI; upgraded blocks above): kept out of the
    // public repository; the live site gets it, encrypted, from the private asset repository. Without it the block
    // keeps its built buildings.
-   'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'}};
+   'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'},
+   // The Outskirts' purchased packs (CGTrader, Royalty Free, NO AI use, no redistribution; docs/VOID_RUNNER_ASSET_LICENSES.md): 20 ft containers and dirty solar panels. Private repository only; without them ncz-containers.js builds its own.
+   'ncz:outskirts-containers':{src:'assets/models/ncz/outskirts-containers.vrpak'},'ncz:outskirts-solar':{src:'assets/models/ncz/outskirts-solar.vrpak'},'ncz:outskirts-dish':{src:'assets/models/ncz/outskirts-dish.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
   function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}
   const api={layout,layoutByArea,build,models,modelsFor,toWorld,zone,streets,footprints,milked:MK,door:DOOR,districts,taxiZones,cityBox,arcade:ARCADE,quarters:QT};if(typeof module!=='undefined')module.exports=api;else root.VoidNeoChinatown=api;

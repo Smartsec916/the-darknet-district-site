@@ -1,7 +1,7 @@
 /* The two checkpoints of Milked (the front security vestibule and the rear lobby): the zones and doors, which environment may open which door, the
    orchestration (what loads, in what order, how failure recovers) with fakes for the renderer, and that nothing is saved. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const MK=require('../void-runner/milked.js'),T=require('../void-runner/milked-transition.js'),N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js'),A=require('../void-runner/district-area.js'),C=require('../void-runner/campaign.js');
+const MK=require('../void-runner/milked.js'),T=require('../void-runner/milked-transition.js'),N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js'),A=require('../void-runner/district-area.js'),C=require('../void-runner/campaign.js');const DZ=MK.OFFSET[1];   // Milked moved by one rigid translation (16 Nov 2026)
 const read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8'),mid=r=>({x:(r[0]+r[1])/2,z:(r[2]+r[3])/2});
 
 test('two checkpoints: the front vestibule on the side street and the rear lobby on the service alley',()=>{
@@ -11,8 +11,8 @@ test('two checkpoints: the front vestibule on the side street and the rear lobby
   // the middle is clear of every doorway (so no door is held open by the player) and it is open floor in both environments
   for(const d of MK.DOORS.filter(d=>d.gate===g.id))for(const [x,z] of [[g.centre[0],g.centre[2]],[g.centre[1],g.centre[2]],[g.centre[0],g.centre[3]],[g.centre[1],g.centre[3]]]){const across=d.axis==='x'?Math.abs(z-d.z):Math.abs(x-d.x);assert.ok(across>=.72,g.id+' centre is clear of '+d.id+' ('+across.toFixed(2)+' m)');}
   for(const L of [N.layout('street'),MK.layout()])for(const [x,z] of [[c.x,c.z],[g.centre[0],g.centre[2]],[g.centre[1],g.centre[3]]])assert.equal(E.blocked(x,z,L),false,g.id+' centre is open floor');}
- assert.equal(MK.gateAt({x:84,z:-79}),null,'reception is not a checkpoint');assert.equal(MK.gateAt({x:81.75,z:-72}),null,'nor is the side street');assert.equal(MK.gateAt(null),null);
- assert.equal(MK.atCentre(front,{x:81.75,z:-74.3}),false,'the doorway is not the middle');
+ assert.equal(MK.gateAt({x:84,z:-79+DZ}),null,'reception is not a checkpoint');assert.equal(MK.gateAt({x:81.75,z:-72+DZ}),null,'nor is the side street');assert.equal(MK.gateAt(null),null);
+ assert.equal(MK.atCentre(front,{x:81.75,z:-74.3+DZ}),false,'the doorway is not the middle');
 });
 test('the street opens only the two outer doors and the interior only the three inner ones, so an outer and an inner door are never open together',()=>{
  const st=MK.DOORS.filter(d=>MK.openable(d,'street')).map(d=>d.id),inn=MK.DOORS.filter(d=>MK.openable(d,MK.AREA)).map(d=>d.id);
@@ -63,20 +63,20 @@ test('walking out by the rear lobby: both inner doors seal, the street loads, th
 });
 test('it starts by itself in the middle of the room, once, and re-arms only after the player has left the room',async()=>{
  const r=rig();assert.equal(await r.ctl.tick(),false,'appearing in the room does not start it');assert.equal(r.ctl.armed,false);
- Object.assign(r.walker,{x:81.75,z:-72});r.ctl.tick();assert.equal(r.ctl.armed,true);
- Object.assign(r.walker,{x:81.75,z:-74.4});assert.equal(await r.ctl.tick(),false,'the doorway is not the middle');assert.equal(r.ctl.state,'ENTRY_DOOR_OPEN');
+ Object.assign(r.walker,{x:81.75,z:-72+DZ});r.ctl.tick();assert.equal(r.ctl.armed,true);
+ Object.assign(r.walker,{x:81.75,z:-74.4+DZ});assert.equal(await r.ctl.tick(),false,'the doorway is not the middle');assert.equal(r.ctl.state,'ENTRY_DOOR_OPEN');
  Object.assign(r.walker,mid(MK.GATES.front.centre));assert.equal(await r.ctl.tick(),true);assert.equal(r.where,'milked');
  r.tick(5000);assert.equal(await r.ctl.tick(),false,'no immediate return trip');
- Object.assign(r.walker,{x:84,z:-79});r.ctl.tick();Object.assign(r.walker,mid(MK.GATES.front.centre));r.tick(5000);assert.equal(await r.ctl.tick(),true,'after stepping out and back it works the other way');assert.equal(r.where,'street');
+ Object.assign(r.walker,{x:84,z:-79+DZ});r.ctl.tick();Object.assign(r.walker,mid(MK.GATES.front.centre));r.tick(5000);assert.equal(await r.ctl.tick(),true,'after stepping out and back it works the other way');assert.equal(r.where,'street');
 });
 test('the wrong place or direction, a busy game, and a player outside the middle are all refused',async()=>{
  const r=rig();assert.equal(await r.ctl.go('out'),false,'cannot leave from the street');
- Object.assign(r.walker,{x:84,z:-79});assert.equal(await r.ctl.go('in'),false,'not in a checkpoint');
- Object.assign(r.walker,{x:81.75,z:-74.4});assert.equal(await r.ctl.go('in'),false);assert.ok(r.log.some(x=>/middle of the security vestibule/.test(x)));
+ Object.assign(r.walker,{x:84,z:-79+DZ});assert.equal(await r.ctl.go('in'),false,'not in a checkpoint');
+ Object.assign(r.walker,{x:81.75,z:-74.4+DZ});assert.equal(await r.ctl.go('in'),false);assert.ok(r.log.some(x=>/middle of the security vestibule/.test(x)));
  const b=rig({deps:{graphicsBusy:()=>true}});assert.equal(await b.ctl.go('in'),false);const m=rig();m.mode='dialogue';assert.equal(await m.ctl.go('in'),false);
 });
 test('stepping back out while the doors close calls it off; doors that will not close release the player',async()=>{
- const r=rig({stuck:true,deps:{sleep:async function(){r.walker.z=-72;}}});assert.equal(await r.ctl.go('in'),false);assert.equal(r.ctl.state,'IDLE');assert.ok(r.log.includes('secure:false'));assert.ok(!r.log.some(x=>x.startsWith('load:')));
+ const r=rig({stuck:true,deps:{sleep:async function(){r.walker.z=-72+DZ;}}});assert.equal(await r.ctl.go('in'),false);assert.equal(r.ctl.state,'IDLE');assert.ok(r.log.includes('secure:false'));assert.ok(!r.log.some(x=>x.startsWith('load:')));
  const s=rig({stuck:true});assert.equal(await s.ctl.go('in'),false);assert.equal(s.ctl.state,'RECOVERY');assert.ok(s.log.includes('release:milked-door'),'the door behind is released');assert.ok(!s.log.some(x=>x.startsWith('load:')||x.startsWith('card:')),'nothing loaded and no card shown');
 });
 test('a load that fails puts the player back on the side they came from with the door behind them open',async()=>{

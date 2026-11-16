@@ -109,3 +109,14 @@ What exists at once (the whole scene, whichever way you look):
 - **Zoom, live:** from the access road the three alley people (78 to 103 m away) are switched off; with the camera app's zoom at 3x they are switched on; back at 1x they are off again.
 - **Found and fixed on the way:** NULL's doorway could stay solid (though it looked open) when the club finished loading while the street was still being entered. Its collision now always follows the club's state (`ncz-nightclub.js`).
 - `tests/ncz-quarters-browser.cjs` repeats the walking and riding checks.
+
+## Far South and The Outskirts (16 Nov 2026, builds `2026-11-16-far-south-1` and `2026-11-16-outskirts-1`)
+
+Five quarters now. Route: The Darknet District, the alley, Main Street, **South Gate (A5, live)**, **Far South** (Main Street's second stretch, z -224 to -130, with Milked moved there), **Far South Gate (A6, pedestrians only)**, **The Outskirts** (z -260 to -224).
+
+- **Milked** was carried 100 m south by one rigid translation (`OFFSET=[0,-100]` in `milked.js`); nothing of its look changed. Old Town got proper closed frontage where its block stood; two blade signs on Main Street's east wall (the existing logo, an arrow, the words SOUTH GATE) point the way. Taxi stop "Milked corner" is now in Far South at (61,-182); the fare comes from the same stop table.
+- **Saves:** no save stores a street position (every login wakes in the Sleeping Pod); `story.flags.quarter` may now be `'far-south'` or `'outskirts'` (ordinary short strings; a test covers the server). Anything that hands a position from before the move to `enterWalking` goes through `settle()` in `ncz-quarters.js`: a point in Milked's old block follows it into Far South (a player who was inside is put outside its front door), any other point that is no longer open ground goes to the nearest street of the saved quarter. No id was renamed.
+- **The Outskirts** (`ncz-containers.js`, code-built, no model, no generated picture): packed gravel hub 56 by 36 m with two lanes that end at containers and fences, about 25 containers in stacks, offsets, decks with stairs, lean-tos, rooftop clutter, cables, lamps, oil drums, abstract spray marks (no letters). Backdrop massing is the city's own buildings. **Kai Kryptos' home** is one reserved teal container (`KAI_HOME`, id `kai-kryptos-home`): a closed door, a lit window, a step; no character, text or interaction. Not the companion `npc-kai`.
+- No ad screens, no taxi network, no nightlife walkers in The Outskirts; music is the city's.
+- Streets added to `neochinatown.js`: `southGate`, `farSouth`, `outskirts`, `outskirtsWest`, `outskirtsEast` (the retired `mainSouth` and `containers` placeholders are gone). The city blocks are cut differently, so Old Town's random windows and signs are not the same as before.
+- Map: [`neochinatown-map.png`](neochinatown-map.png).

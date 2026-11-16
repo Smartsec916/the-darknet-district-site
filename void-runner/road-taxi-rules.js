@@ -13,7 +13,7 @@
  const REGISTRY=Q.STOPS.map(s=>s.id);
  const FLAG='roadTaxiTrip';
  const SPEC={length:4.4,width:1.9,nose:2.2,cruise:8,accel:7,brake:16,gap:2.6,look:0.45,hold:120,playerR:0.5,taxiR:2.3};
- const DRIVE=['avenue','main','road','passage'];
+ const DRIVE=['avenue','main','road','passage','southGate','farSouth'];
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 
  function stops(quarter){return Q.STOPS.filter(s=>!quarter||s.quarter===quarter).map(s=>({id:s.id,label:s.name,position:[s.position[0],s.position[1]],quarter:s.quarter}));}
@@ -72,17 +72,24 @@
  function buildNetwork(quarter){
   const q=Q.valid(quarter)||'oldtown',bay=key=>{const l=Q.lane(key);return {x:l.mid[0],z:l.mid[1]};},poly=(...pts)=>{const out=[];pts.forEach((p,i)=>{if(i){const seg=line(pts[i-1],p);for(let k=out.length?1:0;k<seg.length;k++)out.push(seg[k]);}});return out;};
   let P,edges,loopIds=[],rank=null;const bays={};
+  if(q==='outskirts')return {quarter:q,nodes:{},edges:[],loop:[],bays,rank:null,drive:DRIVE,none:true};   // no road and no taxi beyond the Far South Gate (walkers only)
   if(q==='port'){const b=bay('customs:bay'),x=b.x,top={x,z:-95.5};bays['customs:bay']=b;P={bay:b,top};rank={x,z:-95.5,yaw:Math.PI};
    edges=[{id:'from-customs',a:'bay',b:'top',pts:line(b,top)},{id:'to-customs',a:'top',b:'bay',pts:line(top,b)}];}
-  else if(q==='oldtown'){const xc=61,off=2.2,sbX=xc-off,nbX=xc+off,zTop=-31.5,zRoad=-118.5,zSouth=-119.6,c=bay('customs:bay'),bn=bay('north:bay-n'),bs=bay('north:bay-s');
-   Object.assign(bays,{'customs:bay':c,'north:bay-n':bn,'north:bay-s':bs});
-   P={tSb:{x:sbX,z:zTop},tNb:{x:nbX,z:zTop},sbRoad:{x:sbX,z:zRoad},sSb:{x:sbX,z:zSouth},sNb:{x:nbX,z:zSouth},nbRoad:{x:nbX,z:zRoad},roadMouth:{x:51,z:zRoad},roadWest:{x:c.x,z:zRoad},customs:c,bayN:bn,bayS:bs};
-   edges=[{id:'from-north',a:'bayS',b:'tSb',pts:line(bs,P.tSb)},{id:'from-customs',a:'customs',b:'roadWest',pts:line(c,P.roadWest)},
+  else if(q==='oldtown'){const xc=61,off=2.2,sbX=xc-off,nbX=xc+off,zTop=-31.5,zRoad=-118.5,zSouth=-119.6,c=bay('customs:bay'),bn=bay('north:bay-n'),bs=bay('north:bay-s'),sn=bay('south:bay-n'),ss=bay('south:bay-s');
+   Object.assign(bays,{'customs:bay':c,'north:bay-n':bn,'north:bay-s':bs,'south:bay-n':sn,'south:bay-s':ss});
+   P={tSb:{x:sbX,z:zTop},tNb:{x:nbX,z:zTop},sbRoad:{x:sbX,z:zRoad},sSb:{x:sbX,z:zSouth},sNb:{x:nbX,z:zSouth},nbRoad:{x:nbX,z:zRoad},roadMouth:{x:51,z:zRoad},roadWest:{x:c.x,z:zRoad},customs:c,bayN:bn,bayS:bs,bayN5:sn,bayS5:ss};
+   edges=[{id:'from-north',a:'bayS',b:'tSb',pts:line(bs,P.tSb)},{id:'from-south',a:'bayN5',b:'sNb',pts:line(sn,P.sNb)},{id:'from-customs',a:'customs',b:'roadWest',pts:line(c,P.roadWest)},
     {id:'sb',a:'tSb',b:'sbRoad',pts:line(P.tSb,P.sbRoad)},{id:'sb-s',a:'sbRoad',b:'sSb',pts:line(P.sbRoad,P.sSb)},{id:'uturn-s',a:'sSb',b:'sNb',pts:arc(xc,zSouth,off,Math.PI,Math.PI*2,6)},
     {id:'nb-s',a:'sNb',b:'nbRoad',pts:line(P.sNb,P.nbRoad)},{id:'nb',a:'nbRoad',b:'tNb',pts:line(P.nbRoad,P.tNb)},{id:'uturn-n',a:'tNb',b:'tSb',pts:arc(xc,zTop,off,0,Math.PI,6)},
     {id:'to-road',a:'sbRoad',b:'roadMouth',pts:line(P.sbRoad,P.roadMouth)},{id:'road',a:'roadMouth',b:'roadWest',pts:line(P.roadMouth,P.roadWest)},{id:'road-back',a:'roadWest',b:'roadMouth',pts:line(P.roadWest,P.roadMouth)},{id:'from-road',a:'roadMouth',b:'nbRoad',pts:line(P.roadMouth,P.nbRoad)},
-    {id:'to-customs',a:'roadWest',b:'customs',pts:line(P.roadWest,c)},{id:'to-north',a:'tNb',b:'bayN',pts:line(P.tNb,bn)}];
+    {id:'to-customs',a:'roadWest',b:'customs',pts:line(P.roadWest,c)},{id:'to-north',a:'tNb',b:'bayN',pts:line(P.tNb,bn)},{id:'to-south',a:'sSb',b:'bayS5',pts:line(P.sSb,ss)}];   // the South Gate (A5, z -130..-124) opened on 16 Nov 2026: Main Street goes on into Far South
    loopIds=['sb','sb-s','uturn-s','nb-s','nb','uturn-n'];}
+  else if(q==='far-south'){const xc=61,off=2.2,sbX=xc-off,nbX=xc+off,zTop=-134,zEnd=-212,ss=bay('south:bay-s'),sn=bay('south:bay-n');   // Main Street's second stretch: the South Gate at its north end, the (shut) Far South Gate beyond zEnd
+   Object.assign(bays,{'south:bay-s':ss,'south:bay-n':sn});
+   P={tSb:{x:sbX,z:zTop},tNb:{x:nbX,z:zTop},sSb:{x:sbX,z:zEnd},sNb:{x:nbX,z:zEnd},bayS:ss,bayN:sn};
+   edges=[{id:'from-gate',a:'bayS',b:'tSb',pts:line(ss,P.tSb)},{id:'sb',a:'tSb',b:'sSb',pts:line(P.tSb,P.sSb)},{id:'uturn-s',a:'sSb',b:'sNb',pts:arc(xc,zEnd,off,Math.PI,Math.PI*2,6)},{id:'nb',a:'sNb',b:'tNb',pts:line(P.sNb,P.tNb)},
+    {id:'uturn-n',a:'tNb',b:'tSb',pts:arc(xc,zTop,off,0,Math.PI,6)},{id:'to-gate',a:'tNb',b:'bayN',pts:line(P.tNb,sn)}];
+   loopIds=['sb','uturn-s','nb','uturn-n'];}
   else{const zc=-12.5,off=3.2,ebZ=zc-off,wbZ=zc+off,xW=17,xE=137,bn=bay('north:bay-n'),bs=bay('north:bay-s'),bf=bay('function:bay'),be=bay('east:bay');
    Object.assign(bays,{'north:bay-n':bn,'north:bay-s':bs,'function:bay':bf,'east:bay':be});
    P={wEb:{x:xW,z:ebZ},jS:{x:bs.x,z:ebZ},jN:{x:bn.x,z:ebZ},eEb:{x:xE,z:ebZ},eWb:{x:xE,z:wbZ},jNw:{x:bn.x,z:wbZ},wWb:{x:xW,z:wbZ},bayN:bn,bayS:bs,bayF:bf,bayE:be};
@@ -184,6 +191,7 @@
  // The cabs of one quarter. A quarter with a circuit has `count` cabs driving it; one without (the Port) keeps a single cab at its rank.
  function createTraffic(count,seed,quarter){
   const net=network(quarter),taxis=[],world={net,quarter:net.quarter,taxis,job:null,seed:seed||1};
+  if(net.none)return world;
   if(!net.loop.length){const t={id:'cab-1'};park(world,t);taxis.push(t);return world;}
   const L=pathLength(net.loop),n=Math.max(1,count|0);
   for(let i=0;i<n;i++){const s=(i+0.2)*L/n,at=pointAlong(net.loop,s,true);

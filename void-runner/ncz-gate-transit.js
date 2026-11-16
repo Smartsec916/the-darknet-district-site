@@ -124,7 +124,7 @@
  }
  /* Which quarter an entry to the street lands in: the one asked for, else the one the spawn point stands in, else the one the save remembers (the Port when
     it remembers none: that is where the street has always put a player with no position). */
- function resolve(Q,options,s){const o=options||{};if(Q.valid(o.quarter))return o.quarter;if(o.spawn){const q=Q.quarterAt(o.spawn[0],o.spawn[2]);if(q)return q;}return Q.resumeQuarter(s);}
+ function resolve(Q,options,s){const o=options||{};if(Q.valid(o.quarter))return o.quarter;if(o.spawn){const t=Q.settle(o.spawn,Q.resumeQuarter(s));if(t)return t.quarter;}return Q.resumeQuarter(s);}
  const api={create,resolve,STATES,SCAN_MS};
  if(typeof module==='object'&&module.exports){module.exports=api;return;}
  root.VoidGateTransitRules=api;
@@ -135,7 +135,9 @@
  function lay(q){const def=VoidExplorationData.locations[KEY];if(!def)return null;const l=N.layout('street',q);Object.assign(def,{quarter:l.quarter,quarterName:l.quarterName,spawn:l.spawn,yaw:l.yaw,solids:l.solids,interactions:l.interactions});return def;}
  const streetEnter=enterWalking;
  enterWalking=async function(id,options){
-  if(id===KEY){const q=resolve(Q,options,typeof state!=='undefined'?state:null);lay(q);if(options&&'quarter' in options){options={...options};delete options.quarter;}}
+  if(id===KEY){const q=resolve(Q,options,typeof state!=='undefined'?state:null);lay(q);if(options&&'quarter' in options){options={...options};delete options.quarter;}
+   // a position from before Milked moved, or on a street that is gone, is put somewhere safe in that quarter (ncz-quarters.js settle)
+   if(options&&options.spawn){const t=Q.settle(options.spawn,q);if(t&&t.moved){options={...options};if(t.quarter===q)options.spawn=t.spawn;else delete options.spawn;}}}
   // Anywhere that is not this city or one of its two far districts (a station, another world, a simulation): the next arrival here is by ship, at the Port.
   else{try{const d=VoidExplorationData.locations[id];if(d&&d.id!=='neochinatown'&&!d.corporate&&!d.temple&&d.kind!=='vr')Q.remember(state,null);}catch{}}
   const r=await streetEnter(id,options);
