@@ -165,7 +165,7 @@
   b.add(black,box([.06,.05,5.4]),[8.88,1.08,0]);b.add(led.mag,box([.02,.02,5.3]),[8.84,.012,0]);W(wash.mag,[8.55,.012,0],'up',1.2,5.6,0);
   // ---- Lights: a magenta key behind the headboard, amber pendants and lamp, the city through the glass, a face light ----
   const P=(name,pos,range)=>{const l=k.own(new B.PointLight('vr-suite-'+name,new B.Vector3(...pos),scene));l.range=range;l.specular=new B.Color3(.35,.3,.35);return l;};
-  const L={head:P('head',[0,1.35,4.35],6),lampL:P('lamp-l',[-2.15,1.12,4.5],4.2),lampR:P('lamp-r',[2.15,1.12,4.5],4.2),city:P('city',[5.6,2.1,0],10),lounge:P('lounge',[-5.3,1.25,-2.6],5.5),face:P('face',[3,1.9,0],3.4)};
+  const L={head:P('head',[0,1.35,4.35],6),lampL:P('lamp-l',[-2.15,1.12,4.5],4.2),lampR:P('lamp-r',[2.15,1.12,4.5],4.2),city:P('city',[5.6,2.1,0],10),lounge:P('lounge',[-5.3,1.25,-2.6],5.5),face:P('face',[3,1.9,0],3.4)};L.face.specular=new B.Color3(1,.95,.9);
   // ---- Curtains: heavy folds hung at each end of the glass; drawn partly closed or pulled back ----
   const curtains=[1,-1].map(s=>{const d=sheet(40,8,(u,v)=>{const zz=-s*u*2.5,y=.02+v*2.86;return [.07*Math.sin(u*2.5*Math.PI*2/.3)*(1+.15*(1-v)),y,zz,u*2.5,y];},[-1,0,0]);
    const m=new B.Mesh('vr-suite-curtain',scene),vd=new B.VertexData();vd.positions=d.p;vd.normals=d.n;vd.uvs=d.uv;vd.indices=d.i;vd.applyToMesh(m);k.mesh(m,curtainMat,[5.8,0,s*4.95]);return m;});
@@ -237,7 +237,7 @@
    flame.emissiveColor=hex(B,'#ffb050',M.candle*(1.25+.25*Math.sin(t*23)*Math.sin(t*7.3)));
    // Each companion has its own floor shadow; the face light lights whichever one is nearest to you.
    let near=null,nearD=Infinity;for(const f of comps){f.blob.position.x=f.node.position.x;f.blob.position.z=f.node.position.z;const d=Math.hypot(walker.x-f.node.position.x,walker.z-f.node.position.z);if(d<nearD){nearD=d;near=f;}}
-   if(near){const comp=near.node,dx=walker.x-comp.position.x,dz=walker.z-comp.position.z,l=Math.hypot(dx,dz)||1;L.face.position.set(comp.position.x+dx/l*.85,near.headY()+.25,comp.position.z+dz/l*.85);}});
+   if(near){const comp=near.node,dx=walker.x-comp.position.x,dz=walker.z-comp.position.z,l=Math.hypot(dx,dz)||1;L.face.position.set(comp.position.x+dx/l*.8-dz/l*.6,near.headY()+.42,comp.position.z+dz/l*.8+dx/l*.6);}});   /* a three-quarter key light (up and to one side of the viewer) instead of a flat one from straight ahead: it shapes the face and puts a point of light in the eyes */
   return {mood,meshes:b.meshes,city,
    curtains(open){curtainTarget=open?.42:1;},
    music(name){track=String(name||'off').toUpperCase();},

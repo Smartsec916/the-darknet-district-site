@@ -16,8 +16,8 @@ test('Ava and Eva are their permanent names; nothing player-facing says PrettyGi
  assert.equal(eva.preview,'void-runner/assets/vr/companions/eva.jpg');
 });
 
-test('each has their own personality, dialogue and voice identity (nothing of Seren\'s)',()=>{
- const seren=C.get('seren'),serenLines=new Set(Object.values(seren.dialogue).flat().filter(t=>t.length>20));
+test('each has their own personality, dialogue and voice identity (nothing of Kai\'s); Seren was removed on 16 Nov 2026',()=>{
+ assert.equal(C.get('seren'),null);const seren=C.get('kai'),serenLines=new Set(Object.values(seren.dialogue).flat().filter(t=>t.length>20));
  for(const e of [C.get('ava'),C.get('eva')]){assert.ok(Object.keys(e.personality).length);assert.equal(C.speaks(e),true);
   assert.ok(e.voice?.characterId&&e.voice.voiceId===null);assert.notEqual(e.dialogue,seren.dialogue);
   for(const t of Object.values(e.dialogue).flat())assert.ok(!serenLines.has(t),e.id+' borrows Seren\'s line: '+t);}
@@ -69,7 +69,7 @@ test('Ava and Eva can come along together; companions that can\'t pair come alon
  assert.deepEqual(C.party({companion:'eva'}).map(e=>e.id),['eva']);
  assert.deepEqual(C.party({companions:['ava','nadia']}).map(e=>e.id),['ava'],'Nadia is not pairable');
  assert.deepEqual(C.party({companions:['nope','eva']}).map(e=>e.id),['eva']);
- assert.deepEqual(C.party({choice:'f'}).map(e=>e.id),['seren']);
+ assert.deepEqual(C.party({choice:'f'}).map(e=>e.id),['nadia']);
 });
 
 test('the bedroom has a talk spot per companion and every spot is reachable',()=>{
@@ -88,7 +88,7 @@ test('the female gallery offers Ava and Eva alone and an "Ava & Eva" room; one c
  assert.ok(!step.choices(['male']).some(c=>c.id.includes('+')),'no rooms for two in the male gallery');
  assert.deepEqual(suite.picker.options(['female','ava+eva']),{companions:['ava','eva']});
  assert.deepEqual(suite.picker.options(['female','eva']),{companion:'eva'});
- assert.deepEqual(suite.picker.options(['female','seren']),{companion:'seren'});
+ assert.deepEqual(suite.picker.options(['female','nadia']),{companion:'nadia'});
  assert.deepEqual(suite.picker.options(['male','base-m']),{companion:'base-m'});
  // Companions of different sexes never share a room (Ava and Dex), even from an old link.
  assert.deepEqual(C.party({companions:['ava','base-m']}).map(e=>e.id),['ava']);
@@ -98,8 +98,8 @@ test('the female gallery offers Ava and Eva alone and an "Ava & Eva" room; one c
 test('Ava and Eva are released on the live site, their models from the private asset repository',()=>{
  for(const id of ['ava','eva']){const e=C.get(id);assert.equal(e.listed,undefined);assert.equal(e.licensed,true);
   assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'thedarknetdistrict.com'),true);}
- assert.equal(C.offered(C.get('seren'),'thedarknetdistrict.com'),true);
- assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['seren','nadia','ava','eva','base-f','ava+eva'],'the public female gallery adds the released companions and the room for two');
+ assert.equal(C.offered(C.get('nadia'),'thedarknetdistrict.com'),true);
+ assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['nadia','ava','eva','base-f','ava+eva'],'the public female gallery adds the released companions and the room for two');
 });
 
 test('the VR menu has look rows per companion, named when two are in the room',()=>{
@@ -108,20 +108,20 @@ test('the VR menu has look rows per companion, named when two are in the room',(
  assert.deepEqual(keys({companion:'eva'}),['mood','music','look-eva-outfit','look-eva-hair','look-eva-eyes','look-eva-face']);
  const both=suite.settings({companions:['ava','eva']});
  assert.equal(both.find(o=>o.key==='look-ava-hair').label,'Ava: Hairstyle');assert.equal(both.find(o=>o.key==='look-eva-hair').label,'Eva: Hair colour');
- assert.deepEqual(keys({companion:'seren'}),['mood','music']);
+ assert.deepEqual(keys({companion:'kai'}),['mood','music']);
  assert.equal(suite.settings({companion:'ava'}).find(o=>o.key==='look-ava-hair').label,'Hairstyle');
 });
 
 test('a retired companion hands over to their successor, for old links and saves too',()=>{
- const seren=C.get('seren');
- assert.equal(C.resolve({companion:'seren'}).id,'seren','Seren is still in place for now');
+ const seren=C.get('kai');
+ assert.equal(C.resolve({companion:'seren'}).id,'nadia','Seren is gone: an old save or link that names her gets Nadia');assert.equal(C.resolve({companion:'kai'}).id,'kai');
  seren.replacedBy='ava';
  try{
-  assert.equal(C.resolve({companion:'seren'}).id,'ava');
-  assert.equal(C.resolve({choice:'f'}).id,'ava','old f/m links');
-  assert.deepEqual(C.party({companion:'seren'}).map(e=>e.id),['ava']);
+  assert.equal(C.resolve({companion:'kai'}).id,'ava');
+  assert.equal(C.resolve({choice:'m'}).id,'ava','old f/m links follow the hand-over');
+  assert.deepEqual(C.party({companion:'kai'}).map(e=>e.id),['ava']);
   assert.equal(C.offered(seren,'localhost'),false,'not offered at the terminal');
-  assert.equal(C.resolve({choice:'m'}).id,'kai','Kai is untouched');
+  assert.equal(C.resolve({choice:'f'}).id,'nadia','the other old link is untouched');
   assert.equal(C.resolve({companion:'nadia'}).id,'nadia','Nadia is untouched');
  }finally{delete seren.replacedBy;}
 });

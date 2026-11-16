@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),path=require('path');
 const C=require('../void-runner/vr-companions.js'),reg=require('../tools/audio/voice-registry.cjs');
 const registry=reg.load(),manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/assets/audio/voice/manifest.json'),'utf8'));
-const pools=Object.keys(C.get('seren').dialogue);
+const pools=Object.keys(C.get('kai').dialogue);
 
 test('every companion has a description for the gallery',()=>{
  for(const e of C.companions.values())if(!e.replacedBy)assert.ok(typeof e.about==='string'&&e.about.length>=30,e.id+' has no description');

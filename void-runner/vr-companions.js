@@ -54,9 +54,9 @@
    return {...e,usable:!reason,reason};});}
  // Old saves and links used choice f/m. A retired companion names its successor (replacedBy), so anything that
  // still asks for them gets the successor instead.
- const legacy={f:'seren',m:'kai'};
+ const legacy={f:'nadia',m:'kai',seren:'nadia'};   // f/m: old saves; seren: removed 16 Nov 2026
  const current=e=>{for(let i=0;e?.replacedBy&&i<4;i++)e=get(e.replacedBy)||e;return e||null;};
- const resolve=opts=>current(get(Array.isArray(opts?.companions)?opts.companions[0]:opts?.companion)||get(legacy[opts?.choice]));
+ const resolve=opts=>{const id=Array.isArray(opts?.companions)?opts.companions[0]:opts?.companion;return current(get(id)||get(legacy[id])||get(legacy[opts?.choice]));};
  // Who comes along: one companion, or up to `partySize` together (all pairable and of one sex: David, 2026-10-31,
  // "Ava and Dex shouldn't be together"). Unknown ids drop out.
  const partySize=2;
@@ -78,35 +78,8 @@
   playfulDance:['dance'],sitAlt:['sit-relax','sit'],sitGreet:['sit-wave','sit-talk'],decline:['shrug','head-tilt'],recline:['recline'],glance:['glance-back','head-tilt'],confident:['hips','head-tilt']};
 
  // Seren and Kai (original adult characters; MakeHuman CC0, Mixamo and Rokoko mocap). DRAFT lines throughout.
- register({id:'seren',name:'Seren',sex:'female',model:'vr-companion-f',skin:['vr_companion_f.body'],preview:'void-runner/assets/vr/companions/seren.jpg',
-  about:'Warm, quick-witted and a little teasing. She notices everything.',voice:{characterId:'vr-seren',voiceId:null},
-  personality:{initiative:.68,flirtatiousness:.7,approachFrequency:.6,personalSpace:.95},
-  clips:{greet:['wave'],flirt:['blow-kiss','coy','head-tilt','hips'],shy:['coy'],idleAlt:['idle-f2','hips','head-tilt'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips']},
-  dialogue:{
-   greet:['There you are. I was starting to think the city kept you.','Hey, you. Come in, the view is better from over here.','You made it. Leave NeoChinatown at the door; it\'s just us up here.'],
-   chat:['Up here, nobody is selling anything. I like that about this place.','I come out to the balcony when the sun goes down. Everything turns the colour of honey.','Tell me something nobody else knows about you. I\'ll keep it, I promise.','I like how quiet you get when you\'re thinking. It\'s a good look.','The rain never reaches this room. I made sure of it.'],
-   compliment:['Careful. Keep saying things like that and I\'ll believe you.','Well. That\'s made my whole evening.','You\'re sweet. I noticed you noticed, by the way.'],
-   flirt:['Is that a line? It\'s working, a little.','Mm. You\'re trouble. The good kind.','Say that again, slower.'],
-   sit:['Room for two. Come here.','That\'s better. I like having you close.'],
-   dance:['Is that an invitation? Then lead.','Don\'t look at your feet. Look at me.','See? You\'re a natural.'],
-   hands:['Your hands are warm.','There. Now don\'t let go too soon.'],
-   kiss:['Come here.'],kissAfter:['Mm. I was hoping you\'d do that.','Well. That was worth waiting for.'],
-   notYet:['Slow down, you. Talk to me a little first.','Not yet. I like the anticipation.'],
-   notNow:['Sit with me first, or ask me to dance.'],
-   relax:['Just breathe. Nothing out there can find you in here.','This is nice. No need to say anything.'],
-   bye:['Go on, then. Come back soon; I\'ll keep the lights low.','Goodnight. Don\'t let the city keep you too long.'],
-   // Her own initiative (DRAFT, new).
-   approach:['Don\'t hide over there. Come talk to me.','You keep wandering off. I\'m starting to take it personally.','There you are. I was just thinking about you.'],
-   window:['Pretty, isn\'t it? From up here even the city looks like it\'s flirting.','All those lights, and you\'re still the most interesting thing in the room.'],
-   joinSofa:['Mind if I join you? Too late, I\'m coming over.','Save me a spot. Actually, I\'ll make one.'],
-   inviteSit:['Come sit with me. I don\'t bite. Much.','My feet hurt and the sofa\'s lonely. Sit with me?'],
-   inviteDance:['This song\'s too good to waste. Dance with me?','Dance with me. One song.'],
-   inviteRecline:['Lie back with me a minute? Just to watch the lights.'],
-   accepted:['Good answer.','I knew you\'d say yes.'],
-   declined:['Fine. But I\'m asking again later.','Your loss. I\'ll be right here.'],
-   welcomeBack:['Missed me? Don\'t answer that, I can tell.','Back already? I knew you would be.'],
-   aside:['You\'re staring. I like it.','Careful. I could get used to this.','You have no idea how good you look in this light.'],
-   comeHere:['On my way.','Mm, you called?'],recline:['This is my favourite view. The ceiling glow, and you.']}});
+ // Seren was removed on 16 Nov 2026 at David's request (he will supply a better model). Anything that still asks for 'seren' (an old save, a shared
+ // session, a remembered choice) is given Nadia: see `retired` below.
  register({id:'kai',name:'Kai',sex:'male',model:'vr-companion-m',skin:['vr_companion_m.body'],preview:'void-runner/assets/vr/companions/kai.jpg',
   about:'Calm, wry and attentive. He listens more than he talks.',voice:{characterId:'vr-kai',voiceId:null},
   personality:{initiative:.45,flirtatiousness:.5,approachFrequency:.42,attention:.92,personalSpace:1.15,walkSpeed:1.05},
@@ -508,13 +481,20 @@
  // container, so nothing else in the scene changes. Returns what it did (for tests and diagnostics).
  const cavityDone=new WeakSet();
  function finish(B,node,entry,{quality='medium'}={}){
-  const t=tier(quality),meshes=node.getChildMeshes().filter(m=>m.material&&m.getTotalVertices?.()>0),mats=[...new Set(meshes.map(m=>m.material))],report={translucent:[],orm:[],cavity:0,rim:0,anisotropy:t.anisotropy};
+  const t=tier(quality),meshes=node.getChildMeshes().filter(m=>m.material&&m.getTotalVertices?.()>0),mats=[...new Set(meshes.map(m=>m.material))],report={translucent:[],orm:[],cavity:0,rim:0,anisotropy:t.anisotropy,eyes:[],hair:[],sheen:[]};
   const Rim=B.MaterialPluginBase?rimPlugin(B):null;
   for(const mat of mats){if(!(mat instanceof B.PBRMaterial))continue;const name=mat.name;
    for(const tex of mat.getActiveTextures?.()||[])if(tex&&(tex.anisotropicFilteringLevel||0)<t.anisotropy)tex.anisotropicFilteringLevel=t.anisotropy;
    if(hasOrm(entry,name)&&mat.metallicTexture){mat.useAmbientOcclusionFromMetallicTextureRed=true;report.orm.push(name);}
    if(t.translucency&&isSkin(entry,name)&&mat.subSurface){const ss=mat.subSurface;ss.isTranslucencyEnabled=true;ss.translucencyIntensity=.55;ss.minimumThickness=0;ss.maximumThickness=.5;
     ss.diffusionDistance=new B.Color3(1,.36,.2);ss.tintColor=new B.Color3(1,.62,.5);report.translucent.push(name);}
+   /* Look pass (16 Nov 2026, waiting for David's approval): wet, bright eyes that catch the light; a soft sheen on skin and a glossier one on lips; hair that
+      shines along the strand instead of looking like felt. Material settings only: no model file is opened, changed or sent anywhere. Not on Low. */
+   if(t.translucency){
+    if(/eye|cornea|cornia|iris|pupil|lacrimal/i.test(name)&&!/brow|lash|lid|shadow/i.test(name)){mat.clearCoat.isEnabled=true;mat.clearCoat.intensity=1;mat.clearCoat.roughness=.04;if(!mat.metallicTexture)mat.roughness=Math.min(mat.roughness??.3,.18);report.eyes.push(name);}
+    else if(/hair|brow/i.test(name)){mat.anisotropy.isEnabled=true;mat.anisotropy.intensity=.65;mat.anisotropy.direction=new B.Vector2(0,1);if(!mat.metallicTexture)mat.roughness=Math.min(mat.roughness??.6,.48);report.hair.push(name);}
+    else if(/lip/i.test(name)){mat.clearCoat.isEnabled=true;mat.clearCoat.intensity=.55;mat.clearCoat.roughness=.22;report.sheen.push(name);}
+    else if(isSkin(entry,name)){mat.clearCoat.isEnabled=true;mat.clearCoat.intensity=.16;mat.clearCoat.roughness=.42;report.sheen.push(name);}}
    if(Rim&&!notSurface.test(name)&&!mat.pluginManager?.getPlugin?.('CompanionRim')){const r=new Rim(mat);r.strength*=t.rim;report.rim++;}}
   // Crease shading where there's no AO map: one glTF mesh's primitives together, in their shared bind space.
   const groups=new Map();for(const m of meshes){const name=m.material.name;if(notSurface.test(name)||hasOrm(entry,name)||!m.geometry||cavityDone.has(m.geometry))continue;const key=m.name.replace(/_primitive\d+$/,'');(groups.get(key)||groups.set(key,[]).get(key)).push(m);}

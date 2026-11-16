@@ -92,6 +92,8 @@
    const container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+C.file(who)},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
    const inst=container.instantiateModelsToScene(n=>look+'-'+n,false,{doNotInstantiate:true}),node=new B.TransformNode('vr-companion'+tag,k.scene),asset=new B.TransformNode('vr-companion-asset'+tag,k.scene);node.parent=k.parent;VoidAssets.ownInstance(inst,node);asset.parent=node;for(const r of inst.rootNodes)r.parent=asset;
    for(const g of inst.animationGroups)g.stop();node.metadata={animationGroups:inst.animationGroups,companion:who.id};for(const m of node.getChildMeshes())m.isPickable=false;
+   // The shared motion-capture library (anim-library.js): extra clips for any companion whose skeleton takes them; nothing happens where the library file is not installed.
+   try{self.library=await globalThis.VoidAnimLibrary?.apply(node,look,{scene:k.scene})||[];}catch(e){self.library=[];console.warn('[VR companion library]',e);}
    // Looks (vr-companions.js): the saved or default outfit, hairstyle, glasses and colours. Parts are shown or hidden;
    // colour variants are separate textures loaded the first time they are chosen.
    const lookParts=new Set(C.looks(who).flatMap(g=>g.options.flatMap(o=>o.parts||[]))),partOf=m=>{const n=m.name.replace(/_primitive\d+$/,'');let hit=null;for(const p of lookParts)if(n.endsWith('_'+p)&&(!hit||p.length>hit.length))hit=p;return hit;};// the longest part wins: "piping_jacket" is not "jacket"
