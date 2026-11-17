@@ -510,7 +510,7 @@
  function chime(){try{const D_=D,tier=D_.notifyTier?.(dev.model),row=D_.NOTIFY?.[tier];if(!row?.sound)return;const A=root.VoidAudio?.settings,vol=A?(A.enabled===false?0:(Number(A.master)||0)*(Number(A.effects)||0)):.5;if(!(vol>0))return;
   let a=sounds.get(row.sound);if(a===null)return;if(!a){a=new Audio(new URL(row.sound,document.baseURI||location.href).href);a.preload='auto';a.addEventListener('error',()=>sounds.set(row.sound,null),{once:true});sounds.set(row.sound,a);}
   a.volume=Math.max(0,Math.min(1,vol));a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch{}}
- let FADE_MS=8000;   // about 8 s on screen (tests on the slow software renderer lengthen it: VoidV1.bannerMs)
+ let FADE_MS=15000;   // about 15 s on screen (David: longer and bigger, bottom right; 17 Nov 2026) (tests on the slow software renderer lengthen it: VoidV1.bannerMs)
  function hideBanner(){clearTimeout(bannerTimer);if(banner){banner.classList.remove('on');banner.hidden=true;}bannerKey='';bannerSound='';}
  /* notify({app, sub, key, from, header, text, hint:{text|'open', help:true}}): a V1 event the player should know about. Shown only while the V1 is closed (an open V1 on that
     app needs no banner). The same key twice is not stacked: the banner is refreshed. It stays until the V1 is opened, or fades after about 8 s and leaves the unread count on
@@ -532,6 +532,6 @@
  {const so=setOpen;setOpen=function(v){if(v&&!open&&noteApp&&!pending&&D.APPS[noteApp.app]?.state==='ready')pending={app:noteApp.app,sub:noteApp.sub};const r=so.apply(this,arguments);if(v&&open){notes=0;noteApp=null;hideBanner();updateBadges();}return r;};}
  // The banner is shown only on foot (a conversation, a menu or the pod card hides it; it comes back while it is still due).
  setInterval(()=>{if(!banner||banner.hidden&&!bannerKey)return;const show=!open&&typeof mode!=='undefined'&&mode==='walking'&&!root.VoidCharacterCreator?.isOpen;banner.classList.toggle('away',!show);},250);
- root.VoidV1={get bannerMs(){return FADE_MS;},set bannerMs(v){FADE_MS=Math.max(1000,Number(v)||8000);},get callTail(){return callTail;},set callTail(v){callTail=Math.max(0,Number(v)||0);},notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
+ root.VoidV1={get bannerMs(){return FADE_MS;},set bannerMs(v){FADE_MS=Math.max(1000,Number(v)||15000);},get callTail(){return callTail;},set callTail(v){callTail=Math.max(0,Number(v)||0);},notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
  root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);
