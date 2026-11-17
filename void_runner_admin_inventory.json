@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "fcc370198673cb2d",
+  "revision": "828e9c56ee1f0a8b",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12179,6 +12179,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/ncz-food-interactions.js",
+      "line": 1,
+      "text": "/* Street-food conversations and first-person counter seating. No save fields. */",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/ncz-gate-transit.js",
       "line": 12,
       "text": "Nothing on screen says anything about loading; there is no bar and no text. A screen reader is told \"Security scan\".",
@@ -12210,19 +12216,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 902,
+      "line": 903,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1066,
+      "line": 1067,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1187,
+      "line": 1188,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -14073,13 +14079,15 @@
     "void-runner/ncz-alley.js": "ab36c39ef7d1cdaa812224c7fa1213d20121542b362c9d635b75964db045a219",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "1622c43eae09d45dcf07cdc42427e18adc371571b5dc629c2c868921b6b142e0",
+    "void-runner/ncz-food-interactions.js": "03d762f7a91df2edddd6803b7ed4a4d0983db0a7a072a0e7e924d649bf326e64",
+    "void-runner/ncz-food-stands.js": "6231d276d61963ce32f773b9ef511725127258a9069c3bc768abc3d9d0ad00dd",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
     "void-runner/ncz-nightlife.js": "764591a2e2bdd2d99732f62da2a67904c7e1da16985f718713d4b7a4bf4ad6be",
     "void-runner/ncz-outskirts-life.js": "9dbc204a317176478e847c9c17272b9b70c5e318eefa6351339bb1544987d6ed",
     "void-runner/ncz-quarters.js": "5c622171495aa0a03ced24039103c1b42535b714a3462344af01ac1b1d06425e",
-    "void-runner/neochinatown.js": "0853b3fb17ec089393340e7f3c8dda3fc7984f2db092de124bcb299ca372bb34",
+    "void-runner/neochinatown.js": "ef7695e38c2ff6469c3040c67e022dcf505cd50a33dd52fb1a1fae48227c7ac5",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",

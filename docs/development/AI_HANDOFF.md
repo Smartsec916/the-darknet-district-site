@@ -6,6 +6,8 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+> **Codex draft, 16 Nov 2026:** David clarified that food stands go **inside each of the five NeoChinaTown checkpoint quarters**, one per quarter. Each has four seats total: three open for players, one occupied by a customer NPC. Work is isolated on `codex/ncz-food-stands`, not merged or live. See [`NCZ_FOOD_STANDS.md`](NCZ_FOOD_STANDS.md) for placements, integration, tests and visual limitations. The parked Port rebuild has its own stall and takes that quarter's spot if enabled later.
+
 > **16 Nov 2026, later (branch `claude/milked-far-south-1`, builds `2026-11-16-far-south-1` then `2026-11-16-outskirts-1`, pushed, no PR, not merged):** Milked moved by one rigid translation (100 m south) into the new **Far South** quarter past the **South Gate (A5, now live)**; **A6 Far South Gate** is a pedestrian-only checkpoint to the new **Outskirts** quarter (code-built container homes on gravel; `ncz-containers.js`; Kai Kryptos' home reserved as data `kai-kryptos-home`, nothing else). See `NEOCHINATOWN_QUARTERS.md` (end), `CHECKPOINTS.md`, `MILKED.md` (position note). Next: David reviews the look of The Outskirts against his reference pictures; the Outskirts' art is a first slice.
 ### 16 Nov 2026 (late): Sleeping Pod exit fixed, wall music player does everything. Branch `claude/pod-exit-1`, build `2026-11-17-pod-2`, pushed, NO PR yet (merged with main after #339)
 
