@@ -48,7 +48,7 @@
  const TALK_FILES=['void-runner/faction-scenes.js','void-runner/homeworld-scenes.js','void-runner/prologue-integration.js','void-runner/scenes.js','void-runner/world-integration.js','void-runner/hangar.js','void-runner/story-content.js','void-runner/milked.js'];
  /* The engine a re-voiced line goes through, per character. Default: Kokoro through tools/audio/generate.py --from-queue with the character's registered approved voice.
     Admin: ElevenLabs "Bill Adams" (the voice of his ElevenLabs lines in assets/audio/voice/extra/manifest.json). Nothing is generated from the editor; ElevenLabs re-voicing waits for David's approval. */
- const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'Bill Adams - Wise and Motivational American Storyteller',voiceId:'V2bPluzT7MuirpucVAKH',note:'waiting for ElevenLabs re-voice (needs approval)'}};
+ const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026',voiceId:'DMyrgzQFny3JI1Y1paM5',note:'waiting for ElevenLabs re-voice (needs approval)'},iris:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026 (android effect still applied)',voiceId:'CvD6hF1BJzAFN428j1cO',note:'waiting for ElevenLabs re-voice (needs approval)'}};
  const PLAYER=new Set(['pilot','You','you','player']);
  const ALIAS={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant','Landing terminal':'landing-terminal'};
  const TARGETS={admin:'admin','district-iris':'iris','district-bar':'bartender','district-shop':null,terminal:'landing-terminal',board:null,rook:'rook',elara:'elara',marcus:'marcus',kess:'kess',mercer:'mercer'};

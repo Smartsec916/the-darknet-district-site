@@ -108,7 +108,7 @@ test('warnings and migration: removed steps and missions never break or wipe a s
  assert(MC.migrate(s2,after).includes('untracked removed mission first-departure'));assert(s2.universe.missions['first-departure'],'the record of a removed mission is kept');
 });
 test('All lines for an NPC: every one of Admin’s voiced lines is found (in missions by scene, or outside), Admin first, ElevenLabs engine recorded; every voiced speaker is listed',()=>{
- const src=sources(),out=T.build(src),admin=out.npcs[0];assert.equal(admin.id,'admin');assert.equal(admin.engine.engine,'elevenlabs');assert.equal(admin.engine.voiceId,'V2bPluzT7MuirpucVAKH');
+ const src=sources(),out=T.build(src),admin=out.npcs[0];assert.equal(admin.id,'admin');assert.equal(admin.engine.engine,'elevenlabs');assert.equal(admin.engine.voiceId,'DMyrgzQFny3JI1Y1paM5');
  const refs=new Set([...admin.inMissions,...admin.outside].map(l=>l.ref));
  for(const l of Object.values(src.manifest.lines))if(l.speaker==='admin')assert(refs.has('admin|'+l.text),'Admin line listed: '+l.text.slice(0,50));
  for(const l of Object.values(src.extraManifest.lines))if(l.speaker==='admin')assert(admin.outside.some(x=>x.text===l.text&&x.adapter==='code-change'&&x.clip&&x.clip.engine==='elevenlabs'));

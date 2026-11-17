@@ -29,9 +29,18 @@ def inventory():
     return json.loads((ROOT / 'void_runner_admin_inventory.json').read_text(encoding='utf-8'))
 
 
+def editor_uid():
+    # The configured content editor: VOID_CONTENT_EDITOR_UID, or, when that is unset, the one and only account in VOID_ADMIN_UIDS (never an email or a browser claim).
+    uid = os.getenv('VOID_CONTENT_EDITOR_UID', '').strip()
+    if uid:
+        return uid
+    admins = [e.strip() for e in os.getenv('VOID_ADMIN_UIDS', '').split(',') if e.strip()]
+    return admins[0] if len(admins) == 1 else ''
+
+
 def editor(uid, allowed, enabled=True):
     # A single explicitly configured owner, never an email or a browser claim.
-    owner = os.getenv('VOID_CONTENT_EDITOR_UID', '').strip()
+    owner = editor_uid()
     if not allowed(uid) or not owner or uid != owner:
         raise DraftError('This account is not the configured content editor.', 403)
     if enabled and os.getenv('VOID_CONTENT_DRAFTS_ENABLED') != 'true':
@@ -39,7 +48,7 @@ def editor(uid, allowed, enabled=True):
 
 
 def roles(uid, allowed):
-    return {'editor': bool(allowed(uid) and uid == os.getenv('VOID_CONTENT_EDITOR_UID', '').strip()), 'publisher': False,
+    return {'editor': bool(allowed(uid) and uid == editor_uid()), 'publisher': False,
             'draftsEnabled': os.getenv('VOID_CONTENT_DRAFTS_ENABLED') == 'true'}
 
 
