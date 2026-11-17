@@ -334,7 +334,7 @@
       "tree"
     ]
   },
-  "revision": "c405779f2431170e",
+  "revision": "192c080c3fab8190",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13204,24 +13204,30 @@
     {
       "source": "void-runner/mouse-control.js",
       "line": 37,
-      "text": "if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}",
+      "text": "if(!fps()||conversationOpen())return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 41,
+      "line": 48,
+      "text": "setInterval(()=>{if(tip&&!tip.hidden&&(!fps()||conversationOpen()))hint(false);},500);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mouse-control.js",
+      "line": 51,
       "text": "const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 42,
+      "line": 52,
       "text": "document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button')&&!conversationOpen())reacquire();});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 43,
+      "line": 53,
       "text": "addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code)&&!conversationOpen())reacquire();});",
       "kind": "source-reference"
     },
@@ -15069,7 +15075,7 @@
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "48a73f8e2b689472007725b022bb02c47ca7de9aa6195c88ab97b6f4bb11c066",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "14d61b91d5ec4eed815104dca8983d2bcd894969bf43be3bcc3a8d69aacedb77",
+    "void-runner/babylon-integration.js": "b54e3fb4ef253d1fc544d255acc85a128457aee078cd9d0f13843f0f18c7670e",
     "void-runner/babylon-renderer.js": "00d6cb6fa9409f2417c96a4ec5ecb7c0fe7ae8290e6d98eb7baede32f69b619b",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -15169,7 +15175,7 @@
     "void-runner/mission-log.js": "a8fd65182fd4f8a7ba11bdd74a30e4627104379f9a24f5583ae0565751b63b8b",
     "void-runner/mission-trees.js": "6412ca1a19689d6cb7c5285276967d463d8303699ce0d0ac91ae025f39bfba86",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "ed9809e0d06f58e82dc51709400174f2ddeaad4bd3eb92c487bde55d1b38c768",
+    "void-runner/mouse-control.js": "c379dc976744a1d005d6f1fa9061af56a6efd751c7fe5c1ed3661393db757fd1",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "c1ebbe2278061e0cd724ce82453022c70078819a38ebce0f97d1d47a350e5264",
     "void-runner/music-engine.js": "01eecadf954ace9df5655135ab20f6341548f1af07b0e864715be33d08eec2ea",
