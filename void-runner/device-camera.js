@@ -189,7 +189,7 @@
  }
  function onShot(e){
   if(!active||e.button!==0)return;const cv=scene()?.getEngine().getRenderingCanvas();
-  if(e.target!==cv&&!el.contains(e.target)&&e.target!==document.body)return;   // a click on a menu or the chat is not a photo
+  if(e.target!==cv&&e.target?.id!=='space'&&!el.contains(e.target)&&e.target!==document.body)return;   // a click on a menu or the chat is not a photo (the game's own overlay canvas, #space, is the view)
   if(root.VoidControls?.deviceClass!=='touch-first'&&!document.pointerLockElement&&cv?.requestPointerLock)try{cv.requestPointerLock()?.catch?.(()=>{});}catch{}
   e.preventDefault();e.stopImmediatePropagation();shoot();
  }
@@ -219,5 +219,5 @@
   let dev=null;try{dev=D.restore(flags()||{});}catch{}
   if(root.VoidPersonalDevice?.isOpen)root.VoidPersonalDevice.close();
   if(start(dev))e.preventDefault();});
- root.VoidDeviceCamera={start,stop,shoot,capture:()=>{const sc=scene();return sc&&el?capture(sc,el.clientWidth||1,el.clientHeight||1):null;},get active(){return active;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
+ root.VoidDeviceCamera={start,stop,shoot,capture:()=>{const sc=scene();return sc&&el?capture(sc,el.clientWidth||1,el.clientHeight||1):null;},get active(){return active;},get shooting(){return shooting;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
 })(typeof globalThis!=='undefined'?globalThis:this);

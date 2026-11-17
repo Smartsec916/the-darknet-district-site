@@ -3,7 +3,7 @@
      outside it, the arrow leads out through the security vestibule first; from the street to a place inside the District, to the vestibule (world-integration.js asks).
    - The yellow marker over the person to photograph (Juno Vex), drawn only while that photo step is in progress AND the mission is tracked. Not before, not after.
    - Contextual hints for the photo and the send-a-photo steps: open the V1 (the player's own key), open Camera, take the photo, open Messages, open the conversation,
-     ATTACH, SEND. Small, yellow-orange, at the bottom of the screen; each goes once it is done (it follows what the player is actually doing). Every hint is tagged
+     ATTACH, SEND. Small, yellow-orange, at the top of the screen under the tracked-mission line (clear of the V1 banner at the bottom right, the KeyMap box and the [E] prompt); each goes once it is done (it follows what the player is actually doing). Every hint is tagged
      data-help="1" for David's future Help switch, and hidden when story.flags.helpOff is true. */
 (function(root){
  'use strict';
@@ -39,7 +39,7 @@
 
  // ---- contextual hints ----
  const hint=document.createElement('div');hint.id='mission-hint';hint.dataset.help='1';hint.hidden=true;hint.setAttribute('role','status');hint.setAttribute('aria-live','polite');document.body.appendChild(hint);
- const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;bottom:15%;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:#ffc35c;background:rgba(24,16,4,.72);border-left:2px solid #ff9f2e;border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:#ffe08a;font-weight:700}';document.head.appendChild(style);
+ const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;top:134px;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:#ffc35c;background:rgba(24,16,4,.72);border-left:2px solid #ff9f2e;border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:#ffe08a;font-weight:700}';document.head.appendChild(style);
  const key=()=>{try{return root.VoidInput.label(root.VoidInput.bindings.missionLog||'KeyL');}catch{return 'L';}};
  const name=id=>{try{return LC()?.giverName?.(id)||id;}catch{return id;}};
  /* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */

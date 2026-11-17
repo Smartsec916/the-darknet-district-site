@@ -130,7 +130,7 @@
 #pd-camera{--pd-tag:#9dff5a;position:fixed;inset:0;z-index:240;pointer-events:none;font:600 clamp(11px,1.25vw,17px)/1.5 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--pd-text-hi);text-shadow:0 0 6px rgba(97,238,233,.45),0 1px 2px #000}
 #pd-camera[hidden]{display:none}
 /* while filming, the game's own readouts step aside (the interact prompt and any dialog stay) */
-body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(#personal-device):not(#mission-log):not(#notice):not(#flash):not(#loading-screen):not(#walking-ui):not(#arcade-play):not(#character-creator):not(#pod-wake):not(script):not(style){visibility:hidden!important}
+body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(#personal-device):not(#mission-log):not(#notice):not(#flash):not(#loading-screen):not(#walking-ui):not(#arcade-play):not(#character-creator):not(#pod-wake):not(#mission-hint):not(script):not(style){visibility:hidden!important}
 #pd-camera b{font-weight:600;color:var(--pd-text-hi)}
 #pd-camera .pc-frame{position:absolute;inset:2.4vmin}
 #pd-camera .pc-corner{position:absolute;width:9vmin;height:9vmin;border:0 solid var(--pd-edge-hi);filter:drop-shadow(0 0 4px var(--pd-edge-hi));opacity:.95}
