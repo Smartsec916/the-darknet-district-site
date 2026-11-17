@@ -413,7 +413,7 @@
       "follow"
     ]
   },
-  "revision": "566ce0508e09c9b1",
+  "revision": "dc1387d170e5f52d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12604,67 +12604,67 @@
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 75,
+      "line": 76,
       "text": "{id:'travel-milked',kind:'enter',place:'milked',label:'Travel to Milked.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 78,
-      "text": "say:[EVA(DRAFT.evaWelcome),EVA(DRAFT.evaBusiness),EVA(DRAFT.evaPaid),YOU(DRAFT.youFish),YOU(DRAFT.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\\'ll find her in her office.')]},",
+      "line": 79,
+      "text": "say:[EVA(APPROVED.evaWelcome),EVA(APPROVED.evaBusiness),EVA(APPROVED.evaWhy),YOU(APPROVED.youFish),YOU(APPROVED.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\\'ll find her in her office.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 80,
+      "line": 81,
       "text": "{id:'meet-fish',kind:'talk',npc:'milked-fish',label:'Meet Fish in her office.',place:'',item:'',early:[],say:[YOU(DRAFT.youHalden),FISH(ZH),V1T(EN)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 82,
+      "line": 83,
       "text": "{id:'await-fish',kind:'await-call',npc:'milked-fish',label:'Await Fish\\'s response.',place:'',item:'',say:[],early:[]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 83,
+      "line": 84,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 90,
+      "line": 91,
       "text": "/* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 91,
+      "line": 92,
       "text": "const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 114,
-      "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']]};",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
       "line": 115,
-      "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
+      "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
       "line": 117,
+      "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 119,
       "text": "const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 118,
+      "line": 120,
       "text": "const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}",
       "kind": "source-reference"
     },
@@ -16042,7 +16042,7 @@
     "void-runner/live-content.js": "5d6d72b831bcf47e3afe2664260eb3d71e5b7d0f8fd6d47172aaad8f375da155",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
-    "void-runner/main-story.js": "b50cf927deec8fc0c7e5b39e53424034eaeb9ae6d50e7c362508879655029dbb",
+    "void-runner/main-story.js": "6ab4259e03504de484634c6466b11561e79f5337b7bf66bc8223106c3689f5d3",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "e33945c3801486b0491f33a7253a44179550127b1efd02dab139be6b61082627",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",

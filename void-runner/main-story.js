@@ -60,9 +60,10 @@
  // The PROPOSED drafts (Claude's wording, 17 Nov 2026; text only until the owner approves them; editable in the Mission Editor). Eva's tone (the owner: "this game is made to make
  // people uncomfortable about possible futures and cultural changes through time"): cheerful corporate normalcy about something unsettling (metrics, payouts, a donor
  // pipeline, viewers at home); the discomfort is in how ordinary she makes it sound. Non-explicit, no crude or graphic words, every performer an adult.
- const DRAFT={evaWelcome:'Welcome to Milked! I\'m Eva. Can I get you a water while you wait?',evaBusiness:'We\'re the district\'s top adult stream and donor programme. Members watch from home; a courier collects their donations.',
-  evaPaid:'Performers are paid by volume collected. Our top earner led the board three quarters running. We\'re so proud of her.',youFish:'Admin sent me. I\'m here to see Fish.',youHi:'He also said to tell you hi.',
-  youHalden:'Admin sent me. He wants anything you can find on a man named Halden Reyes.'};
+ // Approved by the owner 17 Nov 2026: Eva's welcome (his words) and the player's two lines to Eva. Only the player's line to Fish is still a draft.
+ const APPROVED={evaWelcome:'Hey there! Welcome to Milked. First time here?',evaBusiness:'We\'re a little different from your average entertainment venue. We\'re both an adult streaming platform and a sperm bank. Our performers earn credits based on the samples collected from viewers tuning in from home.',
+  evaWhy:'So, what brings you in today? Business or pleasure?',youFish:'Admin sent me. I\'m here to see Fish.',youHi:'He also said to tell you hi.'};
+ const DRAFT={youHalden:'Admin sent me. He wants anything you can find on a man named Halden Reyes.'};
  const PROPOSED=Object.values(DRAFT);
  const isProposed=t=>typeof t==='string'&&PROPOSED.includes(t);
  const ZH='给我一点时间调查一下。如果有什么消息，我会给你打电话。',EN='Give me some time to work on it. I\'ll call you if anything comes up.';
@@ -75,7 +76,7 @@
    {id:'travel-milked',kind:'enter',place:'milked',label:'Travel to Milked.',npc:'',item:'',say:[],early:[]},
    // Objective 2: Eva (the drafts, the player's lines, then her two recorded lines); her last line opens the staff-only door for this player (unlock mf_milkedStaff)
    {id:'speak-eva',kind:'talk',npc:'milked-eva',label:'Speak with Eva at reception.',place:'',item:'',early:[],
-    say:[EVA(DRAFT.evaWelcome),EVA(DRAFT.evaBusiness),EVA(DRAFT.evaPaid),YOU(DRAFT.youFish),YOU(DRAFT.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\'ll find her in her office.')]},
+    say:[EVA(APPROVED.evaWelcome),EVA(APPROVED.evaBusiness),EVA(APPROVED.evaWhy),YOU(APPROVED.youFish),YOU(APPROVED.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\'ll find her in her office.')]},
    // Objective 3: Fish answers in Mandarin; the V1 translation line right after hers (in her OWN voice, English: the owner's standard) is played over it (voice-clips.js) and shown under it as V1 TRANSLATION
    {id:'meet-fish',kind:'talk',npc:'milked-fish',label:'Meet Fish in her office.',place:'',item:'',early:[],say:[YOU(DRAFT.youHalden),FISH(ZH),V1T(EN)]},
    // Objective 4: done by itself right after Fish; her follow-up call becomes due after in-game time (FOLLOWUPS)
@@ -111,12 +112,13 @@
   for(const x of numbersIn(list))if(x.number>max)max=x.number;return Math.min(999,max+1);}
  /* Shipped lines that were later changed by the owner. A saved editor draft that still holds one of these, word for word, is an untouched copy: the shipped
     (or published) text wins and replaces it. A step whose lines the owner edited himself is left as he wrote it. 17 Nov 2026: the zoom line added to 002's call. */
- const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']]};
+ const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']],
+  'm003-corporate-connections/speak-eva':[['Welcome to Milked! I\'m Eva. Can I get you a water while you wait?','We\'re the district\'s top adult stream and donor programme. Members watch from home; a courier collects their donations.','Performers are paid by volume collected. Our top earner led the board three quarters running. We\'re so proud of her.','Admin sent me. I\'m here to see Fish.','He also said to tell you hi.','Oh, Admin! Tell him I said hi, too.','Fish is through the staff-only door. You\'ll find her in her office.']]};
  const textsOf=say=>(say||[]).map(l=>l&&l.text);
  function refreshShipped(tree,shipped=TREE){let changed=0;for(const m of (tree&&tree.missions)||[])for(const o of (m&&m.objectives)||[]){const old=SUPERSEDED[m.id+'/'+o.id];if(!old)continue;
    const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;
    const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}
   return changed;}
- const api={CORPORATE,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
+ const api={CORPORATE,APPROVED,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMainStory=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
