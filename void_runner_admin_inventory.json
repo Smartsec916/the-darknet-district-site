@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "fb6f8e10e07cdca8",
+  "revision": "3e4e3126e908575c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12258,25 +12258,25 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 155,
+      "line": 157,
       "text": "const body=el('div','','me-say');const unlocked=!l.locked||(e&&e.unlocked);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 156,
+      "line": 158,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 186,
+      "line": 188,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 208,
+      "line": 210,
       "text": "const items=lines.filter(l=>l.who!=='player'&&l.voice).map(l=>({ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''}));",
       "kind": "source-reference"
     },
@@ -14489,9 +14489,9 @@
     "void-runner/milked.js": "70d8ccf1bca1c004c3d53a6397e5992cddbebe866dc047445bcd6d08033a382d",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "e21a47edc6fffbdb0b626e88a45f8abbe8c036ec2212a31818f8c154687db8de",
-    "void-runner/mission-editor.js": "b5b819c69383402a32eadce63da63dc639153dc584d6822c6f65fc43422118e0",
+    "void-runner/mission-editor.js": "7d769f6d24fa25e0643c35c9bc3dd41ac329efb4e460b26610074f1043e924c6",
     "void-runner/mission-log.js": "a441c9382c2c393ebcefb482956a9b3aafa0e06391b884207af5912f6c041f2e",
-    "void-runner/mission-trees.js": "52ea4eb64a8a2b66032141b7138cc0efe52ce9f827d144066d1711ccb94c6d05",
+    "void-runner/mission-trees.js": "6ae800584f13b244c027ccbd9f29b51a9d9287fff2d1e1d2c3c814bbdf92abf3",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "ed9809e0d06f58e82dc51709400174f2ddeaad4bd3eb92c487bde55d1b38c768",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
