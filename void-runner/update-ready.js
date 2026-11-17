@@ -1,4 +1,4 @@
-/* WHEN A NEW BUILD MAY TAKE OVER (pure: browser and Node tests). David, 17 Nov 2026: after a deploy he heard the OLD area music until he refreshed the page.
+/* WHEN A NEW BUILD MAY TAKE OVER (pure: browser and Node tests). The owner, 17 Nov 2026: after a deploy he heard the OLD area music until he refreshed the page.
    Cause: the page that was open (or the first load after a deploy) was controlled by the previous service worker, which serves game files cache-first from the
    previous build's cache; the new worker installs during that load, but the files already running are the old ones until the page loads again.
    Rule (cache.js runs it): the build this page was loaded with is remembered (the controlling worker's BUILD, or none when the page came from the network); when a

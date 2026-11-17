@@ -1,4 +1,4 @@
-/* DEVELOPER STUDIO · the mission flow chart (David's 15 Nov 2026 sketch), shared by the Content Studio (admin/studio.js, Missions tab) and the game's
+/* DEVELOPER STUDIO · the mission flow chart (the owner's 15 Nov 2026 sketch), shared by the Content Studio (admin/studio.js, Missions tab) and the game's
    Developer Tools > Mission Editor (void-runner/mission-editor.js). Classic script: StudioFlow.board(panel, options) and StudioFlow.svg(missions).
    options: {draft(), setDraft(list), persist(), redraw(), npcNames(), ctx(), base(), summary(), resetSummary(), select(id), details(id)}. Records and rules: studio-model.js.
    Everything it edits is the owner's local draft; nothing here reaches the live game. */

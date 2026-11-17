@@ -1,4 +1,4 @@
-/* Mission 002 — Eyes on the Street (David's own mission, APPROVED 17 Nov 2026): the place registry and its enter / leave events, the in-person offer with ACCEPT / NOT NOW,
+/* Mission 002 — Eyes on the Street (the owner's own mission, APPROVED 17 Nov 2026): the place registry and its enter / leave events, the in-person offer with ACCEPT / NOT NOW,
    the Comms call on entering NULL, photo checks, sending the photo to Admin, the reward paid once, saves, the Mission Editor's new step / trigger / reward kinds, NULL's cast. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=p=>path.join(__dirname,'..',p);
@@ -54,7 +54,7 @@ test('places: enter / leave events per player: no repeats, nothing on a menu or 
 });
 
 // ---------------------------------------------------------------- the mission
-test('Mission 002 data: the Awakening tree, David\'s words verbatim, number 2, ledger and manifest',()=>{
+test('Mission 002 data: the Awakening tree, the owner\'s words verbatim, number 2, ledger and manifest',()=>{
  const {MS,MC,G,e}=env(),man=JSON.parse(fs.readFileSync(R('void-runner/save-manifest.json'),'utf8'));
  assert.equal(MS.TREE.name,'Awakening');assert.equal(MS.TREE_ID,'main-storyline','the id never changes');assert.deepEqual(MS.TREE.missions.map(m=>m.id),['m001-awakening',ID]);
  assert.deepEqual(man.storyMissions,['m001-awakening',ID]);assert.deepEqual(man.missionNumbers,{1:'m001-awakening',2:ID});assert.equal(MS.label(2,'Eyes on the Street'),'Mission 002 — Eyes on the Street');
@@ -80,7 +80,7 @@ test('the offer: after 001, Admin offers it in person; NOT NOW changes nothing a
  assert.equal(ev(x,s,{type:'accept',mission:ID}).offered,false,'accepting twice does nothing');const t=talk(x,s,'admin');assert.equal(t.ask,undefined,'never offered twice once accepted');
  assert.equal(x.MC.treeWants(s,x.e,['admin']),false,'Admin goes back to his usual business while the player is away');
 });
-test('step 1: entering NULL completes it, also when already inside; Admin\'s Comms call (David\'s lines) reaches the V1 once',()=>{
+test('step 1: entering NULL completes it, also when already inside; Admin\'s Comms call (the owner\'s lines) reaches the V1 once',()=>{
  const x=env(),s=accepted(x);
  assert.equal(place(x,s,'oldtown','district-alley').objective,null,'the street is not NULL');
  const r=place(x,s,'null','oldtown','neochinatown');assert.deepEqual(r.done,['enter-null']);assert.deepEqual(r.lines,[],'not a dialogue: a call');
@@ -169,7 +169,7 @@ test('server parity: the admin inventory lists the places, the people the camera
  assert.ok(inv.subjects.includes('juno-vex'));assert.deepEqual(inv.factions,G.FACTIONS);assert.ok(inv.stepKinds.includes('send-photo'));assert.ok(inv.unlockKinds.includes('reputation'));
  const py=fs.readFileSync(R('void_runner_progression.py'),'utf8');for(const f of G.FACTIONS)assert.ok(py.includes("'"+f+"'"),'the server keeps faction standing for '+f);
 });
-test('NULL: the cast per quality (David\'s table); Juno Vex is always there; no VIP pair or queue',()=>{
+test('NULL: the cast per quality (the owner\'s table); Juno Vex is always there; no VIP pair or queue',()=>{
  const NC=require(R('void-runner/ncz-nightclub.js')),total=q=>{const c=NC.castCounts(q);return c.dancers+c.staff+c.guests+1;};
  assert.deepEqual(['low','medium','high','ultra'].map(total),[6,9,10,10]);
  const src=fs.readFileSync(R('void-runner/ncz-nightclub.js'),'utf8');assert.ok(!/spot\('(vip|queue)-/.test(src),'the VIP pair and the outside queue are gone');assert.ok(!/'fixer-01'.*CAST|CAST=\[[^\]]*'fixer-01'/.test(src),'no crowd figure shares Juno\'s look');

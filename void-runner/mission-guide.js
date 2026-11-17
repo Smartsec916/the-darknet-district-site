@@ -4,7 +4,7 @@
    - The yellow marker over the person to photograph (Juno Vex), drawn only while that photo step is in progress AND the mission is tracked. Not before, not after.
    - Contextual hints for the photo and the send-a-photo steps: open the V1 (the player's own key), open Camera, take the photo, open Messages, open the conversation,
      ATTACH, SEND. Small, yellow-orange, at the top of the screen under the tracked-mission line (clear of the V1 banner at the bottom right, the KeyMap box and the [E] prompt); each goes once it is done (it follows what the player is actually doing). Every hint is tagged
-     data-help="1" for David's future Help switch, and hidden when story.flags.helpOff is true. */
+     data-help="1" for the owner's future Help switch, and hidden when story.flags.helpOff is true. */
 (function(root){
  'use strict';
  const LC=()=>root.VoidLiveContent,P=()=>root.VoidPlaces;

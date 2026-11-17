@@ -13,7 +13,7 @@
    if(globalThis.VoidPodMusic){globalThis.VoidPodMusic.update();if(globalThis.VoidPodMusic.playing){E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});globalThis.VoidMusicArea=null;director.style=null;return;}}
    VoidAudio.composerActive(true);
    // In a sleeping pod (waking, or making a character) no area music plays: the pod is quiet unless the player starts their own playlist.
-   if(mode==='pod-waking'||mode==='character-creator'||state?.story?.flags?.podWakePending===true&&walkingLocation?.area==='interior'){   /* also with the pod's music panel open (David, 15 Nov 2026: the District's music is never heard in the pod) */E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});globalThis.VoidMusicArea=null;director.style=null;return;}
+   if(mode==='pod-waking'||mode==='character-creator'||state?.story?.flags?.podWakePending===true&&walkingLocation?.area==='interior'){   /* also with the pod's music panel open (the owner, 15 Nov 2026: the District's music is never heard in the pod) */E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});globalThis.VoidMusicArea=null;director.style=null;return;}
    const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log','road-taxi'].includes(mode);
    const flying=['play','pause','preparing-flight'].includes(mode)&&!!flight.route||mode==='play';
    const route=flight.route,far=route&&route.progress>=.5&&current?.destination;

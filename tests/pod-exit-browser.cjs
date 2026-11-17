@@ -1,4 +1,4 @@
-/* EXIT THE POD must leave the pod and nothing else (David, 16 Nov 2026: clicking it took him to the main menu).
+/* EXIT THE POD must leave the pod and nothing else (the owner, 16 Nov 2026: clicking it took him to the main menu).
    Cause: after a click on the pod's view the mouse is held by the pod's own screen (#pod-wake), and the first-person mouse code (mouse-control.js) took the game's own release of
    that hold for the player pressing Esc, so as soon as the pod had been left it opened the pause menu. Checks, at two window sizes and two quality settings:
    a click on EXIT THE POD with the mouse held, with the mouse free, and the E key with the mouse held, each ending walking out of the pod with no menu.

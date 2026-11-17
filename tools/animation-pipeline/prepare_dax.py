@@ -1,4 +1,4 @@
-"""Blender 5.2: prepare the bought "Realistic Cyberpunk Girl" (cyberpunk-girl.blend, CGTrader) for build_imported_character.py. She is Dax in the game (David, 15 Nov 2026),
+"""Blender 5.2: prepare the bought "Realistic Cyberpunk Girl" (cyberpunk-girl.blend, CGTrader) for build_imported_character.py. She is Dax in the game (the owner, 15 Nov 2026),
 in the BLACK outfit, which is the texture set the file already wears.
 
 blender -b --factory-startup --disable-autoexec cyberpunk-girl.blend --python prepare_dax.py -- OUT.blend SPEC_OUT.json

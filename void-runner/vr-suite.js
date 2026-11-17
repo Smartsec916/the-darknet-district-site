@@ -7,7 +7,7 @@
    optional and non-explicit; you can simply enjoy the room. The room and the city outside are built in vr-suite-room.js.
    One companion, or two together (Ava and Eva): each has their own looks, brain, place on the sofa and spot by the
    window, keeps clear of the other, and takes "Follow me", "Stay here" and "Go back to your spot".
-   DRAFT: Seren's and Kai's names and all their lines are Claude's placeholders for David's review. Unvoiced.
+   DRAFT: Seren's and Kai's names and all their lines are Claude's placeholders for the owner's review. Unvoiced.
    Characters: MakeHuman (CC0); animation: Rokoko free mocap, Quaternius (CC0) and Mixamo. */
 (function(){
  const {kit,spot}=VoidVRKit,C=globalThis.VoidVRCompanions||require('./vr-companions.js');
@@ -291,7 +291,7 @@
    const blinks=node.getChildMeshes().flatMap(m=>{const mt=m.morphTargetManager;return mt?Array.from({length:mt.numTargets},(_,i)=>mt.getTarget(i)).filter(t=>/^Eye_Blink_[LR]$/.test(t.name)):[];});
    if(blinks.length){let next=1.5+slot,t=-1;k.every(dt=>{next-=dt;if(next<=0&&t<0){t=0;next=Math.random()<.15?.3:2+Math.random()*4;}
     if(t>=0){t+=dt;const w=t<.07?t/.07:t<.18?1-(t-.07)/.11:0;for(const b of blinks)b.influence=Math.max(0,w);if(t>=.18)t=-1;}});}
-   // Life between interactions (David, 2026-10-31): now and then a smile (models with smile shapes), and a reaction to
+   // Life between interactions (the owner, 2026-10-31): now and then a smile (models with smile shapes), and a reaction to
    // the other companion's gestures (a look, a laugh or a shy tilt, a smile). Occasional by design: each has its own
    // random interval and cooldown, and nothing starts while they're walking, busy, or in a scene with you.
    const smiles=node.getChildMeshes().flatMap(m=>{const mt=m.morphTargetManager;return mt?Array.from({length:mt.numTargets},(_,i)=>mt.getTarget(i)).filter(t=>/^Smile_[LR]$/.test(t.name)):[];});
@@ -357,7 +357,7 @@
   shareOpts:opts=>({party:C.party(opts).map(e=>e.id).join(':').slice(0,40)}),
   fromShare:o=>{const ids=String(o?.party||'').split(':').filter(id=>/^[a-z0-9-]{1,24}$/.test(id)).slice(0,2);return ids.length>1?{companions:ids}:{companion:ids[0]||''};},
   validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>all.find(x=>x.id===e.id)?.usable);},
-  defaults:{mood:'rose',music:'velvet'},   // David, 16 Nov 2026: the companion rooms' music is sensual and electronic (the Velvet recording) unless the player picks another
+  defaults:{mood:'rose',music:'velvet'},   // The owner, 16 Nov 2026: the companion rooms' music is sensual and electronic (the Velvet recording) unless the player picks another
   // The VR menu's settings: mood and music, then each companion's looks (outfit, hairstyle, glasses, colours) that
   // have a choice, named for the companion when two are in the room.
   settings(opts){const party=C.party(opts);return [{key:'mood',label:'Mood lighting',values:[['warm','Warm'],['rose','Rose'],['night','Night'],['candle','Candlelight']]},{key:'music',label:'Music',values:[['off','Off'],['velvet','Velvet (sensual)'],['lounge','Lounge'],['midnight','Midnight']]},

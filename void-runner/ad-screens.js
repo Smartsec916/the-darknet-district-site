@@ -1,5 +1,5 @@
-/* The advertisement screens (David, 16 Nov 2026): the pictures, the screen objects and their sound.
-   What they show and where is ad-screens-data.js (David's words, the location table, the every-5th rule); the weekly board is warflying-board.js.
+/* The advertisement screens (the owner, 16 Nov 2026): the pictures, the screen objects and their sound.
+   What they show and where is ad-screens-data.js (the owner's words, the location table, the every-5th rule); the weekly board is warflying-board.js.
    - LOOKS: one visual template per category (colour, type, motion and a moving motif), painted on a canvas. The same painter draws a tall street screen and
      a wide station screen (relay-screens.js uses it for Meridian).
    - A FEED is one channel: a programme, one canvas texture and one material, shared by every screen that shows it. A quarter has one feed per zone on Low
@@ -8,7 +8,7 @@
    - SOUND comes from the screen: level and left/right by where it stands (area-ambience.js heard()). Only one voice ever plays (the screen heard best), so
      two screens never talk over each other; the nearest two hum. Nothing is said in a checkpoint lane, indoors, during a conversation or while the radio's
      Relay is talking. Voices go to the Voice channel and the hum and chimes to the Ambient channel, so the game's volume sliders and mute apply.
-   - A line with no recording is silent. NOTHING is recorded here: the broadcast voices are provisional until David picks them by ear. */
+   - A line with no recording is silent. NOTHING is recorded here: the broadcast voices are provisional until the owner picks them by ear. */
 (function(root){
  'use strict';
  const D=root.VoidAdData,TAU=Math.PI*2;

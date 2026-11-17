@@ -15,7 +15,7 @@ test('the existing homepage uses the readable green ENTER link and does not repl
 test('the homepage does not promise working multiplayer',()=>{
  assert.doesNotMatch(read('index.html'),/\bmultiplayer\b|\bother players\b/i);
 });
-test('the games page lists the District game under its own name, never as the old Void Runner card (David, 15 Nov 2026)',()=>{
+test('the games page lists the District game under its own name, never as the old Void Runner card (the owner, 15 Nov 2026)',()=>{
  for(const f of ['games-list.html','static/games-list.html']){
   const page=read(f);
   if(f==='games-list.html'){assert.match(page,/href="void-runner\.html">\s*<h3>The Darknet District - Game<\/h3>/);assert.doesNotMatch(page,/<h3>[^<]*VOID\/\/RUNNER/i);}else assert.doesNotMatch(page,/href="void-runner\.html"/);

@@ -1,28 +1,28 @@
 /* THE MAIN STORYLINE (pure data and rules: browser and Node tests; no DOM, no network). Loaded for every player before mission-content.js.
-   MISSION NUMBERS (David, 17 Nov 2026: "I also need a backend Mission numbering system, as well as names"): every mission carries a stable number and a name,
+   MISSION NUMBERS (the owner, 17 Nov 2026: "I also need a backend Mission numbering system, as well as names"): every mission carries a stable number and a name,
    shown as "Mission 001 — Awakening". Numbers are unique, zero-padded to three digits, given in order, and NEVER reused once used, even after a mission is removed.
    NUMBERS below is the shipped ledger of every number ever used (number → mission id). It must equal void-runner/save-manifest.json missionNumbers (a test checks),
    and the server's publish check also keeps every number it has published (void_runner_live_content.py). Internal ids stay stable and separate from numbers.
-   MISSION 001 — AWAKENING is David's own mission, APPROVED 17 Nov 2026 (his words are in VOID_RUNNER_HANDOFF.md §11). Admin's introduction to The Darknet District
-   (what he says in person at step 3; step 4 is done when that conversation closes) is NOT written yet: the one line below is a clearly marked placeholder for David. It is shown only in the Mission Editor and in draft play; the game never
+   MISSION 001 — AWAKENING is the owner's own mission, APPROVED 17 Nov 2026 (his words are in VOID_RUNNER_HANDOFF.md §11). Admin's introduction to The Darknet District
+   (what he says in person at step 3; step 4 is done when that conversation closes) is NOT written yet: the one line below is a clearly marked placeholder for the owner. It is shown only in the Mission Editor and in draft play; the game never
    shows it to live players (mission-content.js speak() drops placeholder lines outside draft play).
-   MISSION 002 — EYES ON THE STREET is David's too, APPROVED 17 Nov 2026 (VOID_RUNNER_HANDOFF.md §11): Admin offers it in person after Awakening (ACCEPT / NOT NOW; a player who
+   MISSION 002 — EYES ON THE STREET is the owner's too, APPROVED 17 Nov 2026 (VOID_RUNNER_HANDOFF.md §11): Admin offers it in person after Awakening (ACCEPT / NOT NOW; a player who
    declines can come back), then: walk into NULL (a place trigger; Admin's Comms call about the V1 camera), photograph Juno Vex at NULL's bar (the photo must really show her),
    send the photo to Admin in Messages, and return to him: 100 credits and better standing with Admin (story.relationships.admin), paid once.
    This tree runs in the game through mission-content.js treeEvent, the same adapter as the owner's own trees; the Mission Editor edits it as the tree "Awakening"
-   (David calls it the Awakening Tree; it was shown as "Main storyline" until 17 Nov 2026; its id main-storyline never changes). */
+   (the owner calls it the Awakening Tree; it was shown as "Main storyline" until 17 Nov 2026; its id main-storyline never changes). */
 (function(root){
  'use strict';
  const TREE_ID='main-storyline';
  // The ledger: every number ever used. Append only. A removed mission keeps its number here forever.
  const NUMBERS={1:'m001-awakening',2:'m002-eyes-on-the-street'};
- const PLACEHOLDER='[David: write Admin\'s introduction to The Darknet District here]';
- const isPlaceholder=t=>typeof t==='string'&&/^\s*\[David:/.test(t);
+ const PLACEHOLDER='[Write Admin\'s introduction to The Darknet District here]';
+ const isPlaceholder=t=>typeof t==='string'&&/^\s*\[(?:[^\]:]{1,20}:\s*)?write\b/i.test(t);
  const pad=n=>String(n).padStart(3,'0');
  /* "Mission 001 — Awakening" (no number: just the name). */
  const label=(number,title)=>Number.isInteger(number)&&number>0?'Mission '+pad(number)+(title?' — '+title:''):String(title||'');
  const AWAKENING={id:'m001-awakening',number:1,title:'Awakening',type:'main',category:'Main storyline / Introduction',giver:'admin',location:'district',objective:'Locate Admin',description:'',
-  // HOW IT STARTS (David, 17 Nov 2026): "\"You're awake. Good. When you're ready, come find me. We need to talk.\" comes through Comms. But then they must meet with Admin.
+  // HOW IT STARTS (the owner, 17 Nov 2026): "\"You're awake. Good. When you're ready, come find me. We need to talk.\" comes through Comms. But then they must meet with Admin.
   // Then he says a line in person." A Comms call from Admin on the first exit from the pod; the meeting is in person (step 3, his lines are what is said when it is done).
   start:{how:'notification',channel:'comms',from:'admin',header:'ADMIN // INCOMING MESSAGE',text:'You\'re awake. Good.\nWhen you\'re ready, come find me. We need to talk.',when:{kind:'pod-exit'}},
   offer:[],
@@ -32,7 +32,7 @@
    {id:'speak',kind:'talk',npc:'admin',label:'Find and speak with Admin.',place:'',item:'',say:[{who:'admin',text:PLACEHOLDER}],early:[]},
    {id:'introduction',kind:'hear',npc:'admin',label:'Receive an introduction to The Darknet District.',place:'',item:'',say:[],early:[]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};
- // MISSION 002 (David's words, verbatim; text only until recorded). Players see the name only.
+ // MISSION 002 (the owner's words, verbatim; text only until recorded). Players see the name only.
  const A=t=>({who:'admin',text:t});
  const EYES={id:'m002-eyes-on-the-street',number:2,title:'Eyes on the Street',type:'main',category:'Intelligence gathering / Reconnaissance',giver:'admin',description:'',
   start:{how:'person',accept:true},   // in person: Admin offers it, the player can ACCEPT or say NOT NOW (and come back later)
@@ -48,7 +48,7 @@
     say:[A('Received. That\'s exactly what I needed. Come back when you\'re ready.')],wrong:[A('That\'s not the person I\'m looking for. Check the description and try again.')]},
    {id:'return',kind:'talk',npc:'admin',label:'Return to Admin.',place:'',item:'',early:[],say:[A('Not bad. You can follow instructions and keep a low profile. I might have more work for you.')]}],
   rewards:100,ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'reputation',id:'admin',amount:10}]};
- const TREE={id:TREE_ID,name:'Awakening',note:'David\'s Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Mission 002 follows it.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES]};
+ const TREE={id:TREE_ID,name:'Awakening',note:'Your Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Mission 002 follows it.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES]};
  const clone=v=>JSON.parse(JSON.stringify(v));
  /* The shipped story trees (copies: callers may edit them). */
  const trees=()=>[clone(TREE)];

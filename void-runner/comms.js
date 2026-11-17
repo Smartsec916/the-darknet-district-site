@@ -1,4 +1,4 @@
-/* Communications with The Relay (David's doc 11 §12–§15, §21). Rules only.
+/* Communications with The Relay (the owner's doc 11 §12–§15, §21). Rules only.
    - The satellite link is separate from radar and scanning: losing it never stops the ship seeing,
      scanning or recording locally. It only decides whether records can be uploaded.
    - Default coverage (decision 4, 2026-10-16): connected in every system, disconnected while in warp

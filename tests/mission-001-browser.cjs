@@ -66,7 +66,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    assert.equal(await page.locator('#pd-notify').isHidden(),true,'opening the V1 clears the banner');
    const callCard=page.locator('#personal-device [data-call-live]');await callCard.waitFor();
    assert.match(await callCard.innerText(),/INCOMING CALL · CONNECTED[\s\S]*ADMIN[\s\S]*\d\d:\d\d/);assert.equal(await callCard.locator('.pd-wave i').count(),14,'a waveform');
-   await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:15000});assert.deepEqual(await callCard.locator('.pd-call-line').allInnerTexts(),['You\'re awake. Good.','When you\'re ready, come find me. We need to talk.'],'David\'s two lines as a transcript');
+   await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:15000});assert.deepEqual(await callCard.locator('.pd-call-line').allInnerTexts(),['You\'re awake. Good.','When you\'re ready, come find me. We need to talk.'],'The owner\'s two lines as a transcript');
    assert.equal(await page.locator('#personal-device [data-call-live] input,#personal-device [data-call-live] textarea').count(),0,'no reply');
    await page.screenshot({path:path.join(shots,'v1-call-'+W+'.png')});
    if(await page.locator('[data-hangup]').count())await page.locator('[data-hangup]').dispatchEvent('click');await page.waitForSelector('#personal-device [data-call-live].ended',{timeout:30000});   // ends after the lines, or HANG UP (dispatched: the software renderer's frames are too slow for a pointer click to settle)
@@ -88,7 +88,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    s=await S(page);log(JSON.stringify(s));
    assert.equal(s.m['m001-awakening'],'DONE exit-pod,message,speak,introduction','Mission 001 complete');assert.equal(s.tracked,null);assert.equal(s.log[0].completed,true);
    const seen=await page.evaluate(()=>({speech:typeof speech!=='undefined'&&speech?speech.lines.map(l=>l.text):[],notice:(window.__said||[]).join(' | '),screen:document.querySelector('#screen:not(.hidden)')?.innerText||''}));
-   assert.ok(!/\[David:/.test(JSON.stringify(seen)),'live players never see the placeholder');assert.match(seen.notice,/MISSION COMPLETE · Awakening/);assert.ok(!/001/.test(seen.notice));log('after talking to Admin: '+JSON.stringify(seen).slice(0,300));
+   assert.ok(!/\[Write Admin/.test(JSON.stringify(seen)),'live players never see the placeholder');assert.match(seen.notice,/MISSION COMPLETE · Awakening/);assert.ok(!/001/.test(seen.notice));log('after talking to Admin: '+JSON.stringify(seen).slice(0,300));
    await page.screenshot({path:path.join(shots,'complete-'+W+'.png')});
    assert.deepEqual(errors,[],'no page errors');await ctx.close();}
   // ---------------------------------------------------------------- B

@@ -172,7 +172,7 @@ account.ensureProfile=async()=>{if(account.user&&!account.profileReady)await ref
 // Multiplayer setup uses the same authenticated registry and one-character API as the account page.
 // Neither method writes a campaign save, inventory, credits, or an existing character.
 account.claimMultiplayerHandle=async handle=>{
-  if(!account.user)throw new Error('Sign in or register a handle first.');   // a handle-only account may claim its handle here too (David, 15 Nov 2026)
+  if(!account.user)throw new Error('Sign in or register a handle first.');   // a handle-only account may claim its handle here too (the owner, 15 Nov 2026)
   if(account.handle)return account.handle;
   const uid=account.user.uid,user=account.user,mine=await (await identity()).fetchHandle(user);
   if(account.user?.uid!==uid)throw new Error('Account changed. Sign in again.');

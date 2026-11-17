@@ -47,7 +47,7 @@ for(const e of require(path.join(src,'vr-companions.js')).companions.values())fo
 // Voices come from the permanent registry (tools/audio/npc-voice-registry.json); never cast here.
 const Registry=require('./voice-registry.cjs'),reg=Registry.load(),problems=Registry.validate(reg);
 if(problems.length){console.error('Voice registry problems:\n - '+problems.join('\n - '));process.exit(1);}
-// Relay broadcasts (void-runner/relay-content.json): one clip per report line, in the broadcasters' registry voices (provisional until David picks).
+// Relay broadcasts (void-runner/relay-content.json): one clip per report line, in the broadcasters' registry voices (provisional until the owner picks).
 const Relay=require(path.join(src,'relay.js')),relayContent=JSON.parse(fs.readFileSync(path.join(src,'relay-content.json'),'utf8'));
 const relayProblems=Relay.validate(relayContent);if(relayProblems.length){console.error('Relay content problems:\n - '+relayProblems.join('\n - '));process.exit(1);}
 const voiced=Registry.voiced(reg);
@@ -57,8 +57,8 @@ for(const s of relayContent.segments){const speaker=Relay.speakerOf(s);if(!voice
   for(const text of Relay.lines(s)){if(/\{\w+\}/.test(text))continue;const key=speaker+'|'+text;
    if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source:'relay-content.json'});}}
 // The street advertisement screens (void-runner/ad-screens-data.js) and the WarFlying Leadership Board's handles (void-runner/warflying-board.js).
-// NOT recorded until David has picked the voices by ear (docs/development/AD_SCREENS_VOICE_AUDITION.md): RECORD in ad-screens-data.js is false for both,
-// so nothing is added here today. Turning a switch on adds each ad line (David's whole line, e.g. "Brand — tagline") and each of his handles plus
+// NOT recorded until the owner has picked the voices by ear (docs/development/AD_SCREENS_VOICE_AUDITION.md): RECORD in ad-screens-data.js is false for both,
+// so nothing is added here today. Turning a switch on adds each ad line (the owner's whole line, e.g. "Brand — tagline") and each of his handles plus
 // "a new number one" as its own clip, under the speaker named in ad-screens-data.js.
 const Ads=require(path.join(src,'ad-screens-data.js')),WFBoard=require(path.join(src,'warflying-board.js'));
 const addLine=(speaker,text,source)=>{if(!voiced[speaker]||!text)return;const key=speaker+'|'+text;if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source});};

@@ -11,11 +11,11 @@
    - Eva's model:            MODELS.eva  (milked-eva; separate from the VR companion Eva)  -> set `asset` to a packaged model id; until then the `look` is a clothed crowd model.
    - Fish's model:           MODELS.fish (milked-fish) -> same.
    - The four dancers:       STUDIOS below (one per studio: `look` is a clothed crowd figure, `clips` its own dance, `library` the shared-library clip used when that file is installed).
-   - Dialogue (provisional): DIALOGUE below.  Nothing here is approved canon until David approves it.
+   - Dialogue (provisional): DIALOGUE below.  Nothing here is approved canon until the owner approves it.
    - The inactive mission:   MISSION below (data only; nothing registers it with VoidMissions). */
 (function(root){
  'use strict';
- /* WHERE IT STANDS (David, 16 Nov 2026: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved.").
+ /* WHERE IT STANDS (the owner, 16 Nov 2026: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved.").
     Everything below is written in the building's OWN frame, exactly as it was drawn and built (the numbers in docs/development/MILKED.md before the move).
     OFFSET carries the whole building, both environments (the street side and the inside), by ONE rigid translation [dx, dz] metres to where it stands in the
     city: Far South, the second stretch of Main Street (ncz-quarters.js). No mirror, no turn, no change of any offset to Main Street: the same side of the street,
@@ -31,7 +31,7 @@
  // process, then set `asset` to its id: create() uses it when VoidAssets has it and falls back to `look` when it does not.
  const MODELS={
   eva:{id:'milked-eva',name:CONFIG.EVA_NAME,role:'RECEPTION · MILKED',look:'ncz-neon',asset:null,clips:['talk','idle'],at:[81.3,-81.32],face:[81.3,-78],note:'REPLACEMENT POINT: Milked Eva (not the VR companion Eva).'},
-  fish:{id:'milked-fish',name:CONFIG.FISH_NAME,role:'OFFICE · MILKED',look:'npc-fish',asset:null,clips:['watch','idle'],at:[95.6,-76.9],face:[98,-76.9],note:'Her own model since 16 Nov 2026 (void-runner/assets/models/crowd/npc-fish.glb: Meshy, from a concept she and David approved).'}};
+  fish:{id:'milked-fish',name:CONFIG.FISH_NAME,role:'OFFICE · MILKED',look:'npc-fish',asset:null,clips:['watch','idle'],at:[95.6,-76.9],face:[98,-76.9],note:'Her own model since 16 Nov 2026 (void-runner/assets/models/crowd/npc-fish.glb: Meshy, from a concept she and the owner approved).'}};
  // Provisional placeholder lines. Eva's background follows Origins (livestream performer, neural-network engineer, built Iris with the player's character).
  const DIALOGUE={
   eva:{greeting:['Welcome to Milked. We are a small broadcast studio. Everything made here goes out live to members who watch from home.',
@@ -41,7 +41,7 @@
    'The studios are through the door beside my desk. You can watch from the hallway windows. Please do not knock on the glass. Fish is in the office at the back.']},
   fish:{greeting:['Office. Mind the cables.','Four studios, fixed cameras, nobody behind them. I run every camera from this desk.',
    'Eva runs the front and the technical side. I keep the lights on and the paperwork honest.']}};
- // MISSION 3: data only, INACTIVE. Nothing registers it with VoidMissions and nothing starts it; the beginner missions are untouched. Needs David's approval to activate.
+ // MISSION 3: data only, INACTIVE. Nothing registers it with VoidMissions and nothing starts it; the beginner missions are untouched. Needs the owner's approval to activate.
  const MISSION={id:'meet-eva-milked',number:3,title:'MEET EVA AT MILKED',active:false,status:'inactive',approval:'PROPOSED (placeholder data, not approved canon)',giver:null,npc:'milked-eva',location:'milked',
   objective:'Travel to Milked, on the side street off Main Street, and talk to Eva at reception.',steps:[{id:'arrive',text:'Reach Milked (the side street off the east side of Main Street, or take a taxi).'},{id:'reception',text:'Talk to Eva at the reception desk.'}],
   dialogue:['eva.greeting'],reward:null};

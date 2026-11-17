@@ -33,7 +33,7 @@ body.vr-session #walking-caption,body.vr-session #guidance-card,body.vr-session 
 #vr-menu .vr-confirm button[disabled]{opacity:.45;cursor:default}
 #vr-menu .vr-empty{color:#b9c8ce;text-align:center;padding:40px}
 
-/* Companion conversation in VR (David, 2026-10-28): compact, fully opaque, at the side so most of the room stays
+/* Companion conversation in VR (the owner, 2026-10-28): compact, fully opaque, at the side so most of the room stays
    visible. Plain lines are a slim subtitle box at the bottom; the choice menu is a side panel with grouped compact
    buttons, a clear highlight and its own scroll. Only during VR sessions; story dialogue elsewhere is unchanged. */
 body.vr-session .dialogue-window,body.vr-session .cinematic-space .dialogue-window{left:0!important;right:0!important;margin:0 auto!important;

@@ -1,5 +1,5 @@
 /* NeoChinatown nightclub: the purchased "Cyberpunk Cyber Club" (CGTrader, item 5665404) set into the west side of
-   Main Street where David's map marks "Nightclub" (2026-10-24 plan).
+   Main Street where the owner's map marks "Nightclub" (2026-10-24 plan).
    The placement, collision and door are plain data and run in Node (tests/ncz-nightclub.test.cjs). The model itself is
    licensed content that stays out of the public repository (docs/VOID_RUNNER_ASSET_LICENSES.md): `create()` loads
    assets/models/ncz/nightclub.vrpak only when the player comes near, and unloads it again when they leave. Until the
@@ -11,7 +11,7 @@
  // HALL is the hall inside. The model is 32 x 20 m; the map box is 28 x 24.5 m, so the hall is 4 m longer to the west
  // and 4.5 m narrower than drawn, centred on the same point. Nothing else on the map is within reach of it.
  const RECT=[18,51,-68.5,-48.5],HALL=[18,50,-68.5,-48.5],DOOR={x:50.5,z:-58.5,half:1.2,height:3.4};
- /* The way in (David, 16 Nov 2026): an OPEN doorway built as a short passage, 5 m from the street face to the hall, with a door frame at each end and no
+ /* The way in (the owner, 16 Nov 2026): an OPEN doorway built as a short passage, 5 m from the street face to the hall, with a door frame at each end and no
     doors in them. It is the shape of a vestibule on purpose: hanging a door in each frame (ENTRY.doors) and exchanging the street for the club in the middle
     (as milked-transition.js does) is all a real vestibule would need. Until then nothing closes and nothing is exchanged. */
  const ENTRY={rect:[46,51,DOOR.z-DOOR.half,DOOR.z+DOOR.half],wall:.25,height:DOOR.height,doors:{outer:{x:50.7,z:DOOR.z,half:DOOR.half},inner:{x:46.3,z:DOOR.z,half:DOOR.half}},vestibule:false};
@@ -20,8 +20,8 @@
  const toWorld=(gx,gz)=>[FIT.x-gz,gx+FIT.z];
  let forced=null;
  // Off by default. `?nightclub=1` on the page address (or localStorage 'void-nightclub' = '1') turns it on for a local build;
- // flip the default here once David has cleared the licence for the live site. Tests turn it on with force(true).
- // Since 2026-11-12 the club (named NULL by David) is ON in the game for everyone: where the purchased model is not published, the interior built in code below
+ // flip the default here once the owner has cleared the licence for the live site. Tests turn it on with force(true).
+ // Since 2026-11-12 the club (named NULL by the owner) is ON in the game for everyone: where the purchased model is not published, the interior built in code below
  // (buildOwn) is used instead. `?nightclub=0` or localStorage 'void-nightclub' = '0' switches the club off. Outside a browser (Node tests, tools) it stays off
  // unless a test forces it, so the plain city layout and its tests are exactly as they were.
  const NAME='NULL';
@@ -200,7 +200,7 @@
    const mine=new Set(lights);for(const l of scene.lights){if(mine.has(l)||l.name==='ambient')continue;l.excludedMeshes.push(...all);excluded.push(l);}
    builtMeshes=all;
    // ---- the people (ordinary crowd looks; roles, not named characters) ----
-   // Fewer people (David, 17 Nov 2026, for performance and so the target is easy to find): Low 2 dancers + DJ, bartender, door + Juno Vex = 6; Medium 3 dancers, the three
+   // Fewer people (the owner, 17 Nov 2026, for performance and so the target is easy to find): Low 2 dancers + DJ, bartender, door + Juno Vex = 6; Medium 3 dancers, the three
    // staff, 2 bar guests + Juno = 9; High / Ultra 4 dancers, the staff, 2 bar guests + Juno = 10. The VIP pair and the queue outside are gone. Counts: CAST_COUNTS.
    const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,...opts});
    const cast=castCounts(quality);for(let i=0;i<cast.dancers;i++){const a=i*2.4,r=1.6+(i%3)*1.5;spot('dancer-'+i,35+Math.cos(a)*r*1.5,-58.5+Math.sin(a)*r,[35,-58.5],['dance','laugh','idle'],{dance:true,phase:i*1.3});}
@@ -210,7 +210,7 @@
    if(cast.guests){spot('bar-guest-a',28.1,-51.3,[28.6,-49],['drink','idle']);spot('bar-guest-b',29.5,-51.35,[29,-49],['talk','idle']);}
   }
   let builtMeshes=[];
-  /* JUNO VEX (David's Mission 002, 17 Nov 2026): a woman with a short silver bob and a long black coat, her visor pushed up, sitting alone at NULL's bar checking her
+  /* JUNO VEX (the owner's Mission 002, 17 Nov 2026): a woman with a short silver bob and a long black coat, her visor pushed up, sitting alone at NULL's bar checking her
      device. Built with the character assembler from the crowd kit (the FIXER look, the BOB hairstyle in SILVER, the coat tinted BLACK, the gear visor raised onto her
      forehead) and a small lit device in her hands. In the club for every player and at every quality; the V1 camera identifies her by name (VoidPhotoSubjects).
      She idles seated, now and then looks round the room, and checks her device. Nobody talks to her. */
@@ -290,7 +290,7 @@
     for(const l of lights)l.setEnabled(true);scene.incrementRenderId();await cap(ready());if(disposed)return;for(const l of lights)l.setEnabled(false);scene.incrementRenderId();await cap(ready());},
    get model(){return model;},get juno(){return juno?{built:!!juno.api,state:juno.state,position:juno.holder.getAbsolutePosition().asArray(),enabled:juno.holder.isEnabled()}:null;},dispose(){disposed=true;if(juno){root.VoidPhotoSubjects?.remove?.('juno-vex',juno.holder);try{juno.api?.dispose?.();}catch{}try{juno.prop?.dispose();juno.holder.dispose(false,false);}catch{}juno=null;}if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
  }
- /* How many people NULL holds at each quality (David, 17 Nov 2026), Juno Vex not counted here (she is always there): dancers, staff (DJ, bartender, door), bar guests. */
+ /* How many people NULL holds at each quality (the owner, 17 Nov 2026), Juno Vex not counted here (she is always there): dancers, staff (DJ, bartender, door), bar guests. */
  const CAST_COUNTS={low:{dancers:2,staff:3,guests:0},medium:{dancers:3,staff:3,guests:2},high:{dancers:4,staff:3,guests:2},ultra:{dancers:4,staff:3,guests:2}};
  const castCounts=q=>CAST_COUNTS[q]||CAST_COUNTS.medium;
  // Juno Vex's stool: the east end of the bar (stools at x 28.5 ... 33.5, z -51.15, 0.74 m high), sitting sideways to the bar, turned toward the room and the door so her face can be seen.

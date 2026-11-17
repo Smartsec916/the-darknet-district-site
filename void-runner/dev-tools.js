@@ -1,5 +1,5 @@
 /* UI visibility is not authorization: every private read/write is verified by the API. */
-// What each balance value does, in plain words, grouped as the game uses them (David, 2026-10-24).
+// What each balance value does, in plain words, grouped as the game uses them (the owner, 2026-10-24).
 const balanceHelp={
  'Your ship':{
   playerHull:['Kestrel hull','How much damage your ship can take before it is destroyed. Bigger hulls scale from this.'],
@@ -92,7 +92,7 @@ devPanel.addEventListener('click',async event=>{
  const tools=VoidDevTools,request=tools.request;
  try{
   if(action==='close'){devPanel.hidden=true;return;}
-  // EXIT TO MAIN MENU (David, 17 Nov 2026): the game menu's own path (openGameMenu saves first when a normal save would, then shows the main menu). During a test or
+  // EXIT TO MAIN MENU (the owner, 17 Nov 2026): the game menu's own path (openGameMenu saves first when a normal save would, then shows the main menu). During a test or
   // PLAY THIS DRAFT session it is LEAVE DRAFT (the page reloads with the real save untouched) without reopening the Mission Editor: the game starts on its main menu.
   if(action==='exit-menu'){devPanel.hidden=true;const T=globalThis.VoidDevTest;if(T?.active){try{sessionStorage.removeItem('mission-editor-return');}catch{}T.exit();return;}
    if(typeof mode!=='undefined'&&mode==='menu'){if(typeof renderMainMenu==='function')renderMainMenu();return;}if(typeof openGameMenu==='function')openGameMenu();return;}

@@ -7,7 +7,7 @@ Players read only the live version (GET /live-content, public, cached for a minu
 the shipped missions when this is off, unreachable or refused by the client's own check. Content is validated here with the same closed rules as the client.
 
 RE-VOICE queue: owner only, and off unless VOID_CONTENT_DRAFTS_ENABLED is 'true' (it is private owner storage, like drafts). Nothing is generated here or in a
-browser: David records queued Kokoro lines on his PC (python tools/audio/generate.py --from-queue); ElevenLabs lines wait for his approval of the spend.
+browser: the owner records queued Kokoro lines on his PC (python tools/audio/generate.py --from-queue); ElevenLabs lines wait for his approval of the spend.
 
 MISSION NUMBERS (17 Nov 2026): every tree mission may carry a number (1-999, shown "Mission 001 - Name"); the main storyline's must. Numbers are unique and never
 reused: void-runner/save-manifest.json missionNumbers is the shipped ledger, and every publish adds its numbers to the ledger kept on the state document

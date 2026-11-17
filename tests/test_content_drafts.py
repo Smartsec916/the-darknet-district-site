@@ -115,7 +115,7 @@ class DraftTests(unittest.TestCase):
 
 
 class WorkspaceBackupTests(unittest.TestCase):
-    """The Mission Editor keeps its whole draft on the server (17 Nov 2026: David cleared his browser and lost a tree). One fixed id, ordinary revisions, the byte limit."""
+    """The Mission Editor keeps its whole draft on the server (17 Nov 2026: the owner cleared his browser and lost a tree). One fixed id, ordinary revisions, the byte limit."""
     setUp = DraftTests.setUp
     post = DraftTests.post
     def ws(self, trees=None, **extra):

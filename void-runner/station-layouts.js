@@ -15,7 +15,7 @@
   kess:{coat:'#e1e6ea',hair:'#8d8f92',skin:'#b48f73',style:'glasses',eye:'#7fe6ff'},
   mercer:{coat:'#6b5a3a',hair:'#5a4a36',skin:'#9c6f52',style:'beard'}
  };
- // Every station is built on Meridian's plan (David, 2026-10-23): hangar, pressure door, corridor with the living area and
+ // Every station is built on Meridian's plan (the owner, 2026-10-23): hangar, pressure door, corridor with the living area and
  // store, then the bar and seating hall. Each keeps its own name, colours, bar, contacts and crowd.
  const meridianClass=['meridian','kepler','rusthaven','foundry','sol-belt','vigil','holdfast'];
  const stationNames={kepler:['KEPLER EXCHANGE','KEPLER / EXCHANGE','THE LOADING BAY'],rusthaven:['RUSTHAVEN PORT','RUSTHAVEN / PORT','LOW FREQUENCY'],foundry:['THE FOUNDRY','THE / FOUNDRY','AFTERBURN'],

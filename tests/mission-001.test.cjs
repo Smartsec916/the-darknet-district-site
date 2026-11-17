@@ -1,4 +1,4 @@
-/* Mission 001 — Awakening (David's own mission, APPROVED 17 Nov 2026), mission numbers, and the removal of every older mission from the District game. */
+/* Mission 001 — Awakening (the owner's own mission, APPROVED 17 Nov 2026), mission numbers, and the removal of every older mission from the District game. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=p=>path.join(__dirname,'..',p);
 const fresh=()=>{for(const k of Object.keys(require.cache))if(k.includes('void-runner'+path.sep))delete require.cache[k];};
@@ -30,7 +30,7 @@ test('mission numbers: the shipped ledger matches the save manifest; "Mission 00
 test('the content check: numbers unique and never reused, the main storyline needs numbers, new fields and step kinds are closed',()=>{
  const x=env(),{MC,MS}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()};
  const doc=trees=>({format:MC.FORMAT,version:MC.VERSION,trees});
- const story=MC.treesContent(MS.trees(),{givers:x.e.givers}).trees;assert.equal(story.length,1);assert.equal(story[0].name,'Awakening','David calls it the Awakening tree');assert.equal(story[0].missions[0].number,1);assert.deepEqual(story[0].missions[0].start,{how:'notification',channel:'comms',from:'admin',text:ADMIN_TEXT,header:'ADMIN // INCOMING MESSAGE',when:{kind:'pod-exit'}});
+ const story=MC.treesContent(MS.trees(),{givers:x.e.givers}).trees;assert.equal(story.length,1);assert.equal(story[0].name,'Awakening','The owner calls it the Awakening tree');assert.equal(story[0].missions[0].number,1);assert.deepEqual(story[0].missions[0].start,{how:'notification',channel:'comms',from:'admin',text:ADMIN_TEXT,header:'ADMIN // INCOMING MESSAGE',when:{kind:'pod-exit'}});
  assert.deepEqual(MC.check(doc(story),ctx).errors,[]);
  const st=c=>c[0].missions[0].start;
  const bad=[c=>{delete c[0].missions[0].number;},c=>{c[0].missions[0].number=0;},c=>{c[0].missions[0].location='atlantis';},
@@ -63,7 +63,7 @@ test('Mission 001 starts on the first EXIT POD: a Comms call, Mission Log "Awake
  assert.deepEqual(x.M.guidance(s,m,true),{kind:'local',label:'Locate Admin',interaction:'admin'},'the existing guidance leads to Admin at the counter');
  assert.equal(x.MC.treeWants(s,x.e,['admin']),true);assert.equal(x.MC.treeWants(s,x.e,['iris']),false);
  // the V1 inbox keeps it
- assert.equal(r.how,'notification');assert.equal(r.messages[0].channel,'comms','David: it comes through Comms');
+ assert.equal(r.how,'notification');assert.equal(r.messages[0].channel,'comms','The owner: it comes through Comms');
  const box=x.MC.inbox(s,x.e);assert.equal(box.length,1);assert.equal(box[0].read,false);assert.equal(box[0].text,ADMIN_TEXT);assert.equal(box[0].at,Math.floor(Date.UTC(2026,10,17,12)/1000));
  assert.equal(x.MC.markRead(s,box[0].id),true);assert.equal(x.MC.inbox(s,x.e)[0].read,true);assert.equal(x.MC.markRead(s,box[0].id),false);
  // every flag the mission writes is a safe story flag
@@ -90,12 +90,12 @@ test('live players: talking to Admin completes Mission 001 without showing the p
 test('draft play: Admin\'s Mission 001 lines (the placeholder for now) are shown, and closing them completes the mission',()=>{
  const x=env({draft:true}),s=district(x.C);exitPod(x,s);
  const r=talk(x,s,'admin');assert.deepEqual(r.done,['speak']);assert.equal(r.completed,false);
- assert.deepEqual(r.lines,[{who:'Admin',text:'[David: write Admin\'s introduction to The Darknet District here]'}]);assert.deepEqual(r.hear,{mission:'m001-awakening',step:'introduction'});
+ assert.deepEqual(r.lines,[{who:'Admin',text:'[Write Admin\'s introduction to The Darknet District here]'}]);assert.deepEqual(r.hear,{mission:'m001-awakening',step:'introduction'});
  // closing the window without the 'heard' event (a reload): talking again shows the lines again
  const again=talk(x,s,'admin');assert.equal(again.lines.length,1);assert.deepEqual(again.hear,r.hear);
  const h=x.MC.treeEvent(s,x.e,{type:'heard',mission:'m001-awakening'},x.M,x.C);assert.deepEqual(h.done,['introduction']);assert.equal(h.completed,true);
 });
-test('David\'s lines, once written and published, are shown to live players and then complete the mission',()=>{
+test('The owner\'s lines, once written and published, are shown to live players and then complete the mission',()=>{
  const x=env(),{MC,MS}=x,story=MS.trees();story[0].missions[0].objectives[2].say=[{who:'admin',text:'TEST: the District line one.'},{who:'admin',text:'TEST: line two.'}];
  const c={format:MC.FORMAT,version:MC.VERSION,trees:MC.treesContent(story,{givers:x.e.givers}).trees};assert.deepEqual(MC.apply(c,x.e,{givers:new Map(x.e.givers.map(g=>[g.id,g]))}).refused,[]);
  const s=district(x.C);exitPod(x,s);const r=talk(x,s,'admin');assert.equal(r.lines.length,2);assert.equal(r.lines[0].text,'TEST: the District line one.');assert.equal(r.completed,false);

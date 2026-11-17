@@ -1,4 +1,4 @@
-/* The V1's Camera app: a live viewfinder over the game's own camera (David, 15 Nov 2026). Not a picture laid over the screen: the world keeps running, the
+/* The V1's Camera app: a live viewfinder over the game's own camera (the owner, 15 Nov 2026). Not a picture laid over the screen: the world keeps running, the
    player keeps walking and looking, and what is framed is the real scene.
    - HUD: corner brackets, a plain crosshair (no circle), a running timecode, battery, signal, zoom, focus, camera id, frame rate, ISO.
    - Name tags: a light-green tag for each named District resident (district-people.js) and each other player in view, with a thin line to the person's head.
@@ -7,7 +7,7 @@
    - Look: every colour, line weight and font comes from the device's own CSS variables (device-v1.css, --pd-*), and the HUD is tagged with the device model
      (`data-device`), so a later device with its own theme restyles the camera without any change here.
    Pure helpers (zoom steps, timecode, tag placement) run in Node too (tests/device-camera.test.cjs). 
-   - Photos (David, 15 Nov 2026): the LEFT MOUSE BUTTON takes a picture of what is framed, with the name tags in it, and keeps it in the Gallery
+   - Photos (the owner, 15 Nov 2026): the LEFT MOUSE BUTTON takes a picture of what is framed, with the name tags in it, and keeps it in the Gallery
      (device-gallery.js; this browser only, nothing is uploaded).
    - Photo checks (Mission 002, 17 Nov 2026): at the moment of capture each person the camera can identify (the residents, and the people a scene registers with
      VoidPhotoSubjects, such as Juno Vex in NULL) is judged: in the frame and roughly centred (generous), within 15 m, and not blocked (the line of sight to the head or
@@ -211,7 +211,7 @@
   try{if(baseFov!==null&&sc?.activeCamera)sc.activeCamera.fov=baseFov;}catch{}baseFov=null;
   if(el)el.hidden=true;for(const t of tags.values()){t.tag.remove();t.line.remove();t.dot.remove();}tags.clear();
  }
- /* B (David, 15 Nov 2026): the key the V3 // Shadow uses for the camera in its owner's eye raises and puts away the camera for EVERYONE, whatever device they carry,
+ /* B (the owner, 15 Nov 2026): the key the V3 // Shadow uses for the camera in its owner's eye raises and puts away the camera for EVERYONE, whatever device they carry,
     while on foot. In flight B is still the target lock (input.js), and it does nothing while typing. */
  addEventListener('keydown',e=>{if(e.code!=='KeyB'||e.repeat||e.ctrlKey||e.metaKey||e.altKey||typeof mode==='undefined'||mode!=='walking')return;
   const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return;

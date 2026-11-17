@@ -1,5 +1,5 @@
 /* DEVELOPER TOOLS > MISSION EDITOR (browser only; loaded on demand when the tab is opened by a server-confirmed developer; UI visibility is not authorization,
-   every private read and write is checked by the API). David asked for it on 17 Nov 2026: every mission tree, the NPCs in it, what each NPC says, what has to be done,
+   every private read and write is checked by the API). The owner asked for it on 17 Nov 2026: every mission tree, the NPCs in it, what each NPC says, what has to be done,
    where it ends, and what becomes available; plus every NPC's lines outside missions. Data: mission-trees.js (read-only extraction). Edits: the owner's DRAFT, saved as
    he types (this browser; the beginner campaign in the Content Studio's own draft so both tools edit one draft). PLAY THIS DRAFT uses the same adapter as publishing
    (mission-content.js) in a throwaway test session (dev-test.js). PUBLISH TO ALL PLAYERS and RE-VOICE go through owner-only server routes that are off until switched on. */
@@ -16,11 +16,11 @@
  const ui={mode:'trees',tree:'main-storyline',mission:null,step:null,npc:'admin',flow:false,check:null};
  const server={roles:null,live:null,queue:null,drafts:null,note:{}};
  // ---------------------------------------------------------------- drafts (saved on every edit)
- /* The draft. The main storyline is always in it: until David edits it, the shipped tree (main-story.js) is shown; his first edit saves his copy. */
+ /* The draft. The main storyline is always in it: until the owner edits it, the shipped tree (main-story.js) is shown; his first edit saves his copy. */
  function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[]};
   const S=MS();if(S){const own=d.trees.find(t=>t.id===S.TREE_ID);if(!own)d.trees.unshift(S.trees()[0]);
    // A copy saved before a shipped mission existed (Mission 002, 17 Nov 2026) gets that mission, where it stands in the shipped tree, unless its number was removed in the draft.
-   // The tree's old default name "Main storyline" becomes "Awakening" (David calls it the Awakening Tree; the id never changes). Saved with the next edit.
+   // The tree's old default name "Main storyline" becomes "Awakening" (the owner calls it the Awakening Tree; the id never changes). Saved with the next edit.
    else{if(own.name===S.OLD_NAME)own.name=S.TREE.name;S.trees()[0].missions.forEach((m,i)=>{if(!own.missions.some(x=>x.id===m.id)&&!(d.retiredNumbers||[]).includes(m.number))own.missions.splice(Math.min(i,own.missions.length),0,m);});}}
   return d;}
  // ---- mission numbers: the ledgers (shipped, published), every number in the draft, and numbers retired in the draft are all "used"; the next free one is one past them all.
@@ -37,7 +37,7 @@
   try{const d=JSON.parse(raw);if(d&&typeof d==='object'&&d.version===1)return d;}catch{}
   const bk=KEY+'.backup-'+Date.now();try{if(!Object.keys(root.localStorage).some(k=>k.startsWith(KEY+'.backup-')&&root.localStorage.getItem(k)===raw))root.localStorage.setItem(bk,raw);}catch{}
   backupNote='A draft in this browser could not be read; it was kept unchanged under '+bk+' (nothing was deleted). EXPORT it from the browser\'s storage or ask Claude/Codex to restore it.';return null;}
- // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; David, 17 Nov 2026: a cleared browser must not lose his trees)
+ // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; the owner, 17 Nov 2026: a cleared browser must not lose his trees)
  const WS='mission-editor-workspace',ws={state:'unknown',revision:0,savedAt:null,timer:0,conflict:null,note:''};
  const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
  const wsDoc=b=>({schemaVersion:1,kind:'workspace',adapter:'mission-editor',sourceKey:WS,baseRevision:0,data:{id:WS,title:'Mission Editor workspace',bundle:b}});
@@ -128,7 +128,7 @@
   {const sc=el('p','','me-small',{'data-me-server-copy':'1',role:'status'});root_.append(sc);setTimeout(showServerState,0);}
   for(const t of [storageProblem,backupNote])if(t)root_.append(el('p',t,'me-bad',{'data-me-storage-problem':'1'}));
   if(ws.conflict)root_.append(conflictBox());
-  // One-time note (17 Nov 2026): David made his own tree "Awakening" before Mission 001 shipped. It is never deleted or merged for him.
+  // One-time note (17 Nov 2026): the owner made his own tree "Awakening" before Mission 001 shipped. It is never deleted or merged for him.
   if(local().trees.some(t=>t.id==='draft-awakening')&&!read('mission-editor-note-awakening',false)){const n=el('div','','me-check',{'data-me-awakening-note':'1'});n.append(el('p','Mission 001 — Awakening is now in Main storyline. Your draft \'Awakening\' is separate; delete it if you no longer need it.'),btn('OK',()=>{write('mission-editor-note-awakening',true);draw();}));root_.append(n);}
   const modes=el('nav','','me-modes',{'aria-label':'Mission Editor views'});for(const [id,name] of [['trees','Mission trees'],['npcs','All lines for an NPC'],['publish','Publish & versions']]){const b=btn(name,()=>{ui.mode=id;ui.check=null;draw();},ui.mode===id?'on':'',{'data-me-mode':id,'aria-pressed':String(ui.mode===id)});modes.append(b);}
   root_.append(modes);if(status)root_.append(el('p',status,'me-status',{role:'status',id:'me-status'}));
@@ -140,15 +140,15 @@
   const ul=el('ul');
   ul.append(el('li','Every edit is saved as a DRAFT as you type (in this browser). Nobody else sees it.'));
   ul.append(el('li','PLAY THIS DRAFT tries your draft in a throwaway test session. Your real save is never touched; LEAVE DRAFT brings you back here with the draft intact.'));
-  ul.append(el('li',pubOn?'PUBLISH TO ALL PLAYERS is switched on: after a check screen, your draft goes to every player the next time their game loads. UNDO puts the previous version back.':'PUBLISH TO ALL PLAYERS is switched OFF on the server ('+(server.note.live==='not-authorized'?'this account is not the configured content editor':'waiting for David to switch it on')+'). Until then edits stay drafts.'));
-  ul.append(el('li',server.queue?'RE-VOICE adds a changed line to the re-voice queue; David records it on his PC (Kokoro) or, for Admin, in ElevenLabs once approved.':'RE-VOICE queue: switched off on the server. Changed lines are shown as text until re-voiced.'));
+  ul.append(el('li',pubOn?'PUBLISH TO ALL PLAYERS is switched on: after a check screen, your draft goes to every player the next time their game loads. UNDO puts the previous version back.':'PUBLISH TO ALL PLAYERS is switched OFF on the server ('+(server.note.live==='not-authorized'?'this account is not the configured content editor':'waiting for you to switch it on')+'). Until then edits stay drafts.'));
+  ul.append(el('li',server.queue?'RE-VOICE adds a changed line to the re-voice queue; you record it on your PC (Kokoro) or, for Admin, in ElevenLabs once approved.':'RE-VOICE queue: switched off on the server. Changed lines are shown as text until re-voiced.'));
   ul.append(el('li','Lines marked “needs a code change” are kept in your draft and in EXPORT MY EDITS for Claude or Codex to apply.'));
   box.append(ul);return box;}
  // ---------------- trees
  function treeView(root_){
   const cols=el('div','','me-cols');const side=el('aside','','me-side',{'aria-label':'Mission trees'});
   const groups=[['active','ACTIVE in the current game'],['historical','HISTORICAL (not reachable in the current game)'],['draft','DRAFTS'],['archived','Removed from the game (archived)']];
-  side.append(el('p',built.counts.trees+' trees · '+built.counts.missions+' missions · '+built.counts.lines+' lines ('+built.counts.locked+' from David’s scripts)','me-small'));
+  side.append(el('p',built.counts.trees+' trees · '+built.counts.missions+' missions · '+built.counts.lines+' lines ('+built.counts.locked+' from your scripts)','me-small'));
   side.append(btn('+ NEW MISSION TREE',()=>{ui.newTree=true;draw();},ui.newTree?'on':'',{'data-me-new-tree':'1'}));
   for(const [st,name] of groups){const ts=built.trees.filter(t=>t.status===st);if(!ts.length)continue;
    // Archived trees sit in one collapsed group (open while one of them is shown): readable and copyable, never in the game.
@@ -206,7 +206,7 @@
  function capabilityBox(raw){const c=T().capability(raw,{givers,items,trees:local().trees}),box=el('section','','me-check',{'data-me-capability':'1'});box.append(el('h4','What this tree can do today'));
   const ul=el('ul');ul.append(el('li','Draft and EXPORT MY EDITS: always (saved in this browser as you type).'));
   ul.append(el('li','PLAY THIS DRAFT: '+(c.total?c.play+' of '+c.total+' mission(s) can be played now.':'add a mission first.')));
-  ul.append(el('li','PUBLISH TO ALL PLAYERS: '+(c.total?c.publish+' of '+c.total+' mission(s) would reach players':'nothing yet')+(server.live?.enabled?'.':' (publishing is switched OFF on the server until David switches it on).')));
+  ul.append(el('li','PUBLISH TO ALL PLAYERS: '+(c.total?c.publish+' of '+c.total+' mission(s) would reach players':'nothing yet')+(server.live?.enabled?'.':' (publishing is switched OFF on the server until you switch it on).')));
   ul.append(el('li','The game can run: steps “talk to”, “go to a place”, “enter / leave a place”, “fly to / arrive at”, “deliver to”, “buy an item”, “photograph someone” and “send a photo to someone”; lines said in person, as a Comms call or as a message; unlocks: credits, story flags, open route / place, grant ship, start tree, reputation with an NPC or a faction; starting in person (with or without ACCEPT / NOT NOW) or by notification. Everything else is kept in your draft and marked “needs a code change”.'));box.append(ul);
   for(const x of c.skipped)box.append(el('p','• “'+x.title+'” '+(x.partial?'':'cannot run yet: ')+x.why.join('; ')+'.','me-warn'));
   if((local().trees||[]).some(x=>x.id!==raw.id&&x.missions.some(m=>(m.unlocks||[]).some(u=>u.kind==='tree'&&u.id===raw.id))))box.append(el('p','This tree is started by a link from another tree: its first mission waits for that link.','me-small'));
@@ -241,7 +241,7 @@
    const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].who=v;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+((giver(defWho)||{}).name||defWho):'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);
    const g=giver(l.who||defWho);who.append(el('span',g&&g.voice?'registered voice '+g.voice.voice+' (read-only)':'no registered voice','me-small'));row.append(who);
    const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';ta.oninput=()=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});body.append(ta);
-   const tags=el('div','','me-tags');const ph=!!MS()?.isPlaceholder(l.text);tags.append(el('span',ph?'PLACEHOLDER for David: shown only here and in draft play; live players never see it':(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+(ph?'bad':(l.text||'').trim()?'warn':'muted'),ph?{'data-me-placeholder':'1'}:{}));
+   const tags=el('div','','me-tags');const ph=!!MS()?.isPlaceholder(l.text);tags.append(el('span',ph?'PLACEHOLDER for you: shown only here and in draft play; live players never see it':(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+(ph?'bad':(l.text||'').trim()?'warn':'muted'),ph?{'data-me-placeholder':'1'}:{}));
    if(g&&g.voice&&(l.text||'').trim())tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
    tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);row.append(body);box.append(row);});
   const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');if(a==='offer')return mm.offer;if(a==='ending')return (mm.ending.say=mm.ending.say||[]);const oo=mm.objectives.find(o=>o.id===a);if(!oo)return undefined;if(!Array.isArray(oo[b]))oo[b]=[];return oo[b];};
@@ -288,11 +288,11 @@
   act.append(btn('PLAY THIS DRAFT',()=>play('tree:'+m.id,null),'me-play',{'data-me-play':'tree:'+m.id,...(block.length?{disabled:'',title:'Cannot be played yet: '+block.join('; ')}:{})}));card.append(act);
   if(block.length)card.append(el('p','Cannot be played or published yet: '+block.join('; ')+'.','me-small me-warn'));
   return card;}
- /* HOW THIS MISSION STARTS (David, 17 Nov 2026: "either have Missions start by notification or in person"): in person (the giver offers it), or by notification:
+ /* HOW THIS MISSION STARTS (the owner, 17 Nov 2026: "either have Missions start by notification or in person"): in person (the giver offers it), or by notification:
     channel (Messages, Comms call, notification only), sender, header, body, and the trigger (first pod exit, after a mission, entering a place, a story flag). */
  function startPanel(t,m,ed){const st=m.start||{how:'person'},by=st.how==='notification',box=el('section','','me-end me-start',{'data-me-start':m.id});box.append(el('h4','How this mission starts'));
   const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
-  // One plain choice (David): Starts: In person / By Messages / By Comms call / Notification only.
+  // One plain choice (the owner): Starts: In person / By Messages / By Comms call / Notification only.
   const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['person-accept','In person, with ACCEPT / NOT NOW'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
   sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value;x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;},true);
   how.append(el('b','Starts:'),sel,el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):st.accept===true?'The giver offers it; the player chooses ACCEPT or NOT NOW. NOT NOW changes nothing: the next time they talk, the giver offers it again. Once accepted it is never offered again.':'The giver offers it when the player talks to them.','me-small'));box.append(how);
@@ -403,12 +403,12 @@
   const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));
   const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);
   const tags=el('div','','me-tags');
-  if(l.locked)tags.append(el('span',unlocked?'David’s script — unlocked for your edit':l.lock,'me-lock'));
-  if(l.placeholder)tags.append(el('span','Claude’s placeholder (not David’s words)','me-warn'));
+  if(l.locked)tags.append(el('span',unlocked?'Your script — unlocked for your edit':l.lock,'me-lock'));
+  if(l.placeholder)tags.append(el('span','Claude’s placeholder (not your words)','me-warn'));
   if(l.kind==='design')tags.append(el('span','design note: the game does not speak it yet','me-warn'));
   if(player)tags.append(el('span','the player’s own words: shown for context, not edited here','me-small'));else tags.append(el('span',l.adapter==='code-change'?'can be edited after the next update (needs a code change)':l.adapter==='records'?'shows in the game (mission records)':'shows in the game when played or published','me-small'));
   tags.append(el('span',vs.text,'me-vs me-'+vs.cls));
-  if(l.locked&&!unlocked&&!player)tags.append(btn('UNLOCK TO EDIT MY SCRIPT',()=>{if(!confirm('This is your own script ('+l.lock.replace('David’s script — locked ','')+'). Edit it here?'))return;setLine(l,t,true);draw();}));
+  if(l.locked&&!unlocked&&!player)tags.append(btn('UNLOCK TO EDIT MY SCRIPT',()=>{if(!confirm('This is your own script ('+l.lock.replace('Your script — locked ','')+'). Edit it here?'))return;setLine(l,t,true);draw();}));
   if(vs.revoice)tags.append(btn('RE-VOICE',()=>revoice([l]),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
   if(e)tags.append(btn('UNDO EDIT',()=>{const d=local();delete d.lines[l.ref];saveLocal(d);draw();}));
   body.append(tags);row.append(body);return row;}
@@ -441,7 +441,7 @@
  function npcView(root_){
   const n=built.npcs.find(x=>x.id===ui.npc)||built.npcs[0];ui.npc=n.id;
   const pick=el('div','','me-row');const sel=el('select','','',{'aria-label':'Character','data-me-npc':'1'});for(const x of built.npcs)sel.append(new Option(x.name+' ('+(x.counts.inMissions+x.counts.outside)+' lines)',x.id));sel.value=n.id;sel.onchange=()=>{ui.npc=sel.value;draw();};pick.append(el('b','All lines for '),sel);root_.append(pick);
-  root_.append(el('p',(n.voice?'Registered voice (read-only): '+n.voice.voice+' · '+n.voice.status:'Not in the voice registry.')+(n.engine?' · Re-voice engine: '+(n.engine.engine==='elevenlabs'?'ElevenLabs, '+n.engine.voice+' ('+n.engine.note+')':'Kokoro on David’s PC (generate.py --from-queue)'):''),'dev-note'));
+  root_.append(el('p',(n.voice?'Registered voice (read-only): '+n.voice.voice+' · '+n.voice.status:'Not in the voice registry.')+(n.engine?' · Re-voice engine: '+(n.engine.engine==='elevenlabs'?'ElevenLabs, '+n.engine.voice+' ('+n.engine.note+')':'Kokoro on your PC (generate.py --from-queue)'):''),'dev-note'));
   const out=[...n.inMissions,...n.outside].filter(l=>voiceState(l).revoice);if(server.queue)root_.append(btn('DOWNLOAD THE RE-VOICE QUEUE (for generate.py --from-queue)',downloadQueue));root_.append(btn('RE-VOICE ALL OUT-OF-DATE LINES FOR '+n.name.toUpperCase()+' ('+out.length+')',()=>revoice(out),'',out.length&&server.queue?{}:{disabled:''}));
   root_.append(el('h4','In missions ('+n.inMissions.length+')'));
   const byTree=new Map();for(const l of n.inMissions){const k=l.treeTitle+' › '+l.missionTitle;if(!byTree.has(k))byTree.set(k,[]);byTree.get(k).push(l);}
@@ -537,7 +537,7 @@
  function publishView(root_){
   const live=server.live,content=draftContent(),ctx=checkCtx(),c=MC().check(content,ctx),not=MC().notApplied({studio:studio(),local:local(),givers,items});
   root_.append(el('h3','Publish & versions'));
-  if(!live){root_.append(el('p',server.note.live==='not-authorized'?'Publishing is only for the configured content editor account. The server did not confirm this account.':'Publishing is switched OFF on the server (or the server could not be reached). Nothing can reach players from here until David switches it on. Your draft is safe.','me-warn',{'data-me-publish-off':'1'}));}
+  if(!live){root_.append(el('p',server.note.live==='not-authorized'?'Publishing is only for the configured content editor account. The server did not confirm this account.':'Publishing is switched OFF on the server (or the server could not be reached). Nothing can reach players from here until you switch it on. Your draft is safe.','me-warn',{'data-me-publish-off':'1'}));}
   else root_.append(el('p','Live now: '+(live.version?'version '+live.version+' (published '+new Date(live.publishedAt*1000).toLocaleString()+')':'the shipped missions (nothing published yet)')+'.','dev-note'));
   // the check screen
   const chk=el('section','','me-check',{'aria-label':'Check before publishing','id':'me-check'});chk.append(el('h4','Check before publishing'));

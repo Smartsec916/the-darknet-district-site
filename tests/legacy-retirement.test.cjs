@@ -1,4 +1,4 @@
-/* Old VOID//RUNNER campaigns are retired (David, 2026-11-04: the only player with saved progress authorised it).
+/* Old VOID//RUNNER campaigns are retired (the owner, 2026-11-04: the only player with saved progress authorised it).
    Retired means: never loaded, never accepted by the cloud API, a copy kept in the browser, and nothing deleted anywhere else. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const C=require('../void-runner/campaign.js'),read=f=>fs.readFileSync(f,'utf8');

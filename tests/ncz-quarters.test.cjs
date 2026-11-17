@@ -16,7 +16,7 @@ test('four quarters; the everyday loop (the District, the alley, NULL) is all in
  const L=N.layout('street','oldtown'),cells=reach(L,[exit[0],exit[2]]),has=(x,z)=>cells.some(c=>Math.hypot(c[0]-x,c[1]-z)<.8);
  for(const [name,[x,z]] of Object.entries(loop))assert.ok(has(x,z),name+' is reachable from the District door');
  assert.equal(Q.quarterAt(31,-96),'port');assert.equal(Q.quarterAt(61,-12),'avenue');assert.equal(Q.quarterAt(-50,-12),null,'the retired west street is nobody\'s');assert.equal(Q.quarterAt(61,-150),'far-south','Main Street goes on south of the South Gate');assert.equal(Q.quarterAt(61,-250),'outskirts','beyond the Far South Gate');assert.equal(Q.quarterAt(61,-270),null);
- // Milked is in Far South now (David, 16 Nov 2026): its doors, side street and alley are nobody else's, and nothing of it is left in Old Town
+ // Milked is in Far South now (the owner, 16 Nov 2026): its doors, side street and alley are nobody else's, and nothing of it is left in Old Town
  for(const [name,x,z] of [['front door',MK.DOOR.x,MK.DOOR.z+1],['rear door',MK.REAR.x,MK.REAR.z-1.5],['side street',MK.LANE[0]+10,(MK.LANE[2]+MK.LANE[3])/2],['inside',MK.DOOR.x,MK.DOOR.z-3]])assert.equal(Q.quarterAt(x,z),'far-south','Milked '+name);
  for(const [x,z] of [[84,-80],[75,-71],[90,-91.8],[81.75,-73]])assert.equal(Q.quarterAt(x,z),null,'where Milked stood ('+x+', '+z+') is solid block, nobody\'s street');assert.equal(Q.quarterAt(61,-23,'avenue'),'avenue');assert.equal(Q.quarterAt(61,-23,'oldtown'),'oldtown');
 });

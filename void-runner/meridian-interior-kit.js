@@ -1,5 +1,5 @@
 /* Meridian's walkable interior dressed with Quaternius "Modular Sci-Fi MegaKit" and "Sci-Fi
-   Essentials Kit" pieces (both CC0), after David's reference sheet: riveted panel walls, ribbed
+   Essentials Kit" pieces (both CC0), after the owner's reference sheet: riveted panel walls, ribbed
    columns, cable runs, plated decks, crates and cases along the walls. PROPOSED (renders first).
    Visual only: the walkable plan and every collision box in meridian-interior.js stay exactly as
    they are; panels sit just inside the existing walls. If any piece fails to load, nothing is added.

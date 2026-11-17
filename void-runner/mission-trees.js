@@ -3,7 +3,7 @@
    grouped by the arcs campaign.js runs), Rook's contract board (campaign.js contracts), the free chapters (content.js), and the owner's drafts. For each mission it
    gathers the NPCs involved (giver, speakers, who you deliver to) with their registered voice (read-only), what each NPC says (from the beginner records, the
    structured story scenes, and the plain-text lines of the scene scripts listed in SCENES below), the steps, where the mission ends and what becomes available.
-   Lines from David's own scripts (design docs 05, 06, 07, 09, 10, 12) are LOCKED. Inline lines are read from the scripts' text: only plain quoted lines are listed;
+   Lines from the owner's own scripts (design docs 05, 06, 07, 09, 10, 12) are LOCKED. Inline lines are read from the scripts' text: only plain quoted lines are listed;
    a scene whose lines are partly assembled by code says so (partial). Nothing here changes the game. */
 (function(root){
  'use strict';
@@ -11,13 +11,13 @@
   archived:'REMOVED FROM THE GAME (archived) · not in the game. Kept to read and to copy into a new tree.'};
  const PL_=()=>typeof module!=='undefined'&&module.exports?require('./places.js'):root.VoidPlaces;
  const MS_=()=>typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
- // Every older tree was removed from the game on 17 Nov 2026 (David: "Go ahead and remove all missions in the game"); only the main storyline and the owner's trees run.
+ // Every older tree was removed from the game on 17 Nov 2026 (the owner: "Go ahead and remove all missions in the game"); only the main storyline and the owner's trees run.
  const ARCHIVED=new Set(['beginner','vesper-opening','sealed-cargo','communion','natural-order','other-registry','rook-contracts','district-drafts','draft-studio']);
  const MC_=()=>typeof module!=='undefined'&&module.exports?require('./mission-content.js'):root.VoidMissionContent;
  const G_=()=>typeof module!=='undefined'&&module.exports?require('./mission-givers.js'):root.VoidMissionGivers;
  const DOCS={'05':'design doc 05 (Admin, the Communion and the Natural Order)','06':'design doc 06 (Iris, return for payment)','07':'design doc 07 (the cargo recipients)',
   '09':'design doc 09 (Iris’s follow-up contracts)','10':'design doc 10 (the faction homeworlds)','12':'design doc 12 (Admin introduces WarFlying)'};
- const lockLabel=doc=>'David’s script — locked ('+DOCS[doc]+')';
+ const lockLabel=doc=>'Your script — locked ('+DOCS[doc]+')';
  /* Registry missions grouped by the arc that runs them (campaign.js). Any registry mission missing from these lists still appears, under "Other registry missions". */
  const ARCS=[
   {id:'vesper-opening',title:'Vesper opening and Rook’s first jobs',missions:['ground-training','flight-training','meet-rook','first-station','combat-qualification','legal-run','return','illegal-run','meet-admin'],
@@ -26,7 +26,7 @@
   {id:'communion',title:'The Communion arc',missions:['communion-delivery','communion-supply','communion-origin-mission-01','communion-restoration-01'],note:'Admin’s Communion delivery, Iris’s follow-up contract, Elara’s homeworld run and Dr. Kess’s work on The Nexus. Old (open mission pool) campaigns only.'},
   {id:'natural-order',title:'The Natural Order arc',missions:['order-delivery','order-supply','natural-order-origin-mission-01','natural-order-agriculture-01'],note:'Admin’s Natural Order delivery, Iris’s follow-up contract, Marcus’s homeworld run and Daniel Mercer’s work. Old (open mission pool) campaigns only.'}];
  /* Where each mission's lines are in the scene scripts. at: [mission, slot] where slot is 'offer', 'after' or a step id. from/to: text anchors in the file (to is searched after from).
-    who: the main speaker of lines written as plain strings (questions and farewells). doc: David's script (locked). placeholder: Claude's UNREVIEWED lines. */
+    who: the main speaker of lines written as plain strings (questions and farewells). doc: the owner's script (locked). placeholder: Claude's UNREVIEWED lines. */
  const SCENES=[
   {file:'void-runner/faction-scenes.js',title:'Taking a delivery (or a full hold)',from:'function take(faction,giver){',to:'// ---- Admin (doc 05) ----',at:[['communion-delivery','offer'],['order-delivery','offer']],shared:true},
   {file:'void-runner/faction-scenes.js',title:'Admin offers the two deliveries',from:'// ---- Admin (doc 05) ----',to:'// ---- "Don\'t Ask Questions"',at:[['communion-delivery','offer'],['order-delivery','offer']],doc:'05',shared:true},
@@ -54,9 +54,9 @@
  // Scripts whose lines are shown through talk() → renderLine(), so live-content.js can put an edited line over them at play time. Lines elsewhere need a code change.
  const TALK_FILES=['void-runner/faction-scenes.js','void-runner/homeworld-scenes.js','void-runner/prologue-integration.js','void-runner/scenes.js','void-runner/world-integration.js','void-runner/hangar.js','void-runner/story-content.js','void-runner/milked.js'];
  /* The engine a re-voiced line goes through, per character. Default: Kokoro through tools/audio/generate.py --from-queue with the character's registered approved voice.
-    Admin: ElevenLabs "Bill Adams" (the voice of his ElevenLabs lines in assets/audio/voice/extra/manifest.json). Nothing is generated from the editor; ElevenLabs re-voicing waits for David's approval. */
- const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026',voiceId:'DMyrgzQFny3JI1Y1paM5',note:'waiting for ElevenLabs re-voice (needs approval)'},iris:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026 (android effect still applied)',voiceId:'CvD6hF1BJzAFN428j1cO',note:'waiting for ElevenLabs re-voice (needs approval)'},
-  rook:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026',voiceId:'wzVFxVZCBIi6KBxNhQDI',note:'waiting for ElevenLabs re-voice (needs approval)'}};
+    Admin: ElevenLabs "Bill Adams" (the voice of his ElevenLabs lines in assets/audio/voice/extra/manifest.json). Nothing is generated from the editor; ElevenLabs re-voicing waits for the owner's approval. */
+ const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026',voiceId:'DMyrgzQFny3JI1Y1paM5',note:'waiting for ElevenLabs re-voice (needs approval)'},iris:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026 (android effect still applied)',voiceId:'CvD6hF1BJzAFN428j1cO',note:'waiting for ElevenLabs re-voice (needs approval)'},
+  rook:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026',voiceId:'wzVFxVZCBIi6KBxNhQDI',note:'waiting for ElevenLabs re-voice (needs approval)'}};
  const PLAYER=new Set(['pilot','You','you','player']);
  const ALIAS={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant','Landing terminal':'landing-terminal'};
  const TARGETS={admin:'admin','district-iris':'iris','district-bar':'bartender','district-shop':null,terminal:'landing-terminal',board:null,rook:'rook',elara:'elara',marcus:'marcus',kess:'kess',mercer:'mercer'};
@@ -163,7 +163,7 @@
     steps:(M.steps||[]).map(x=>({id:x.id,label:x.text,event:'',requires:[],where:'Milked',interaction:x.id==='reception'?'milked-eva':'',lines:x.id==='reception'?said:[],early:[]})),offer:[],
     scenes:[{title:'Eva’s greeting at reception',slot:'reception',source:'void-runner/milked.js',doc:null,lock:'',partial:false,lines:said}],ending:{text:'Ends at Milked reception with Eva.',next:[],branches:[]},unlocks:[],order:0,server:null,inactive:true};
    for(const l of said)l.key=m.key+'/reception/'+l.id;
-   trees.push({id:'district-drafts',title:'District drafts in the game data (inactive)',status:'draft',statusText:STATUS.draft,engine:'data',source:'void-runner/milked.js MISSION',note:(M.approval||'PROPOSED')+'. Data only: nothing registers or starts it. Activating it needs David’s approval.',missions:[m]});
+   trees.push({id:'district-drafts',title:'District drafts in the game data (inactive)',status:'draft',statusText:STATUS.draft,engine:'data',source:'void-runner/milked.js MISSION',note:(M.approval||'PROPOSED')+'. Data only: nothing registers or starts it. Activating it needs your approval.',missions:[m]});
    for(const [who,d] of Object.entries(MK.DIALOGUE||{})){const id=(MK.MODELS&&MK.MODELS[who]&&MK.MODELS[who].id)||who;for(const t of d.greeting||[])extraLines.push(line(id,t,{kind:'outside',source:'void-runner/milked.js',editable:'local',group:'Greetings, idle and “come back later” lines'}));}}
   // ---- drafts ----
   if(studio){const added=studio.filter(m=>!B.some(x=>x.id===m.id));if(added.length)trees.push({id:'draft-studio',title:'Your draft: new beginner missions',status:'draft',statusText:STATUS.draft,engine:'beginner',source:'Developer Studio draft (this browser)',note:'Missions you added in the Studio draft. They are part of the beginner campaign tree above too.',missions:bMissions.filter(m=>added.some(a=>a.id===m.id)).map(m=>({...m,tree:'draft-studio'}))});}
@@ -195,7 +195,7 @@
   return {trees,npcs,counts:counts(trees),statusText:STATUS};
  }
  /* "All lines for <NPC>": every line a character speaks, in missions (by tree, mission, step and scene) and outside missions (both voice manifests: greetings, idle remarks,
-    rules such as Admin's scanning line, shop and bar lines). Relay broadcasts are David's own lines for the broadcast voices and are not listed (never edited here). */
+    rules such as Admin's scanning line, shop and bar lines). Relay broadcasts are the owner's own lines for the broadcast voices and are not listed (never edited here). */
  function npcView(trees,src,line,clips,reg,canon,extra=[]){
   const out=new Map(),get=id=>{if(!out.has(id))out.set(id,{id,name:line(id,'').name,voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,engine:line(id,'').engine,inMissions:[],outside:[]});return out.get(id);};
   const seen=new Set();
@@ -208,10 +208,10 @@
    l.group=/companion/.test(src2)?'VR companion talk':/district-people/.test(src2)?'Rules and remarks in the District':/prologue|world-integration|scenes\.js|hangar/.test(src2)?'Greetings, idle and “come back later” lines':'Other lines';get(who).outside.push(l);}
   for(const l of extra)if(!seen.has(l.ref)){seen.add(l.ref);get(l.who).outside.push(l);}
   for(const n of out.values()){n.inMissions.sort((a,b)=>a.treeTitle.localeCompare(b.treeTitle));n.counts={inMissions:n.inMissions.length,outside:n.outside.length,locked:n.inMissions.filter(l=>l.locked).length};}
-  // Admin first (David starts with Admin), then everyone else by name.
+  // Admin first (the owner starts with Admin), then everyone else by name.
   return [...out.values()].sort((a,b)=>(b.id==='admin')-(a.id==='admin')||a.name.localeCompare(b.name));
  }
- /* Validates line edits (local.lines: {ref:{to,unlocked?}}) against every known line. Locked lines (David's own scripts) need the owner's explicit unlock. */
+ /* Validates line edits (local.lines: {ref:{to,unlocked?}}) against every known line. Locked lines (the owner's own scripts) need the owner's explicit unlock. */
  function validateLines(edits,index){
   const out=[],TAG=/<[^>]*>/;
   for(const [ref,e] of Object.entries(edits||{})){const l=index.get(ref);if(!l){out.push({level:'error',text:'A changed line no longer exists in the game: '+ref.slice(0,60)});continue;}
@@ -277,8 +277,8 @@
  function moveStep(m,id,dir){return move(m.objectives,m.objectives.findIndex(o=>o.id===id),dir);}
  function removeMission(tree,id){const i=tree.missions.findIndex(m=>m.id===id);if(i<0)return false;tree.missions.splice(i,1);for(const m of tree.missions)for(const c of m.choices||[])if(c.next===id)c.next='';return true;}
  function removeStep(m,id){if(m.objectives.length<2)return false;const i=m.objectives.findIndex(o=>o.id===id);if(i<0)return false;m.objectives.splice(i,1);for(const u of m.unlocks||[])if(u.when===id)u.when='complete';return true;}
- /* Copies archived missions into a NEW draft tree (David's starting point for a new tree; the archived tree itself never changes). Every step becomes "talk to someone"
-    (with the NPC it named, when that NPC is in the giver list; otherwise left for David to choose), lines are copied as they are, credits kept, and each mission gets the
+ /* Copies archived missions into a NEW draft tree (the owner's starting point for a new tree; the archived tree itself never changes). Every step becomes "talk to someone"
+    (with the NPC it named, when that NPC is in the giver list; otherwise left for the owner to choose), lines are copied as they are, credits kept, and each mission gets the
     next free mission number. built: missions from build() (one tree's, or one). Returns the new tree. */
  function copyToTree(trees,missions,{name,givers,next}={}){const t=newTree(trees,{name:name||'Copy',note:'Copied from a removed (archived) tree. Not in the game until you publish it.'});const known=id=>(givers||[]).some(g=>g.id===id);let n=next||null;
   for(const bm of missions||[]){const m=addMission(t,{giver:known(bm.giver)?bm.giver:''});m.title=String(bm.name||bm.title||'').replace(/^Mission \d{3} — /,'').slice(0,60);m.type=['main','side','cargo','campaign','tutorial','bounty','station'].includes(bm.type)?bm.type:'side';m.description=String(bm.description||'').slice(0,600);m.rewards=Number(bm.credits)||0;

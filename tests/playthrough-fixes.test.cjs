@@ -1,4 +1,4 @@
-/* David's playthrough of 16 Nov 2026 ("I couldn't get to Milked. Couldn't figure out how to call a taxi."): nothing that could be reached before the city was cut into
+/* The owner's playthrough of 16 Nov 2026 ("I couldn't get to Milked. Couldn't figure out how to call a taxi."): nothing that could be reached before the city was cut into
    quarters may be cut off now, and a taxi can be called by walking up to a post. Pure data: the same collision the game walks on (exploration-controller.js blocked()). */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');

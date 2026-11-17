@@ -22,7 +22,7 @@
   ['modulePurchased','Buy a ship module'],['purchasedInstalled','Install the module you bought']
  ];
  const combat=[
-  // One plain step each, in the order you do them (David, 2026-10-23: the old wording was unclear).
+  // One plain step each, in the order you do them (the owner, 2026-10-23: the old wording was unclear).
   ['laserCombat','In flight, fire your lasers at a hostile'],['missileSelected','Get the free missile launcher at the Ship Outfitter, then fit it to your ship at the Hangar / Maintenance terminal'],
   ['targetSelected','In flight, target a hostile (T targets the nearest)'],['missileLocked','Keep it in the targeting ring until it shows LOCKED'],['missileFired','Fire a missile (F or right-click) while locked']
  ];
@@ -49,7 +49,7 @@
   // Iris's follow-up contracts (doc 09).
   'communion-supply':{title:'COMMUNION SUPPLY CONTRACT',type:'cargo',description:'Advanced processing modules, high-precision sensor assemblies and specialized research electronics for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected from Iris at The Darknet District.',giver:'Iris',source:'story',start:'earth',end:'earth',destination:'vigil',interaction:'elara',rewards:1500,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to The Vigil, Cantor System'},{id:'deliver',label:'Deliver the shipment to Dr. Elara Voss'},{id:'payment',label:'Return to The Darknet District and collect payment'}]},
   'order-supply':{title:'NATURAL ORDER SUPPLY CONTRACT',type:'cargo',description:'Industrial control assemblies, heavy-duty mechanical components, and replacement machinery and repair equipment for Marcus Vale at Holdfast, Garrow System. Payment is collected from Iris at The Darknet District.',giver:'Iris',source:'story',start:'earth',end:'earth',destination:'holdfast',interaction:'marcus',rewards:1500,after:{deliver:{destination:'earth',interaction:'district-iris'}},objectives:[{id:'arrive',label:'Fly the cargo to Holdfast, Garrow System'},{id:'deliver',label:'Deliver the shipment to Marcus Vale'},{id:'payment',label:'Return to The Darknet District and collect payment'}]},
-  // Homeworld missions: placeholders awaiting David's design. No destination, rewards or completion.
+  // Homeworld missions: placeholders awaiting the owner's design. No destination, rewards or completion.
   // Homeworld deliveries and planetary work (doc 10). Objectives can name their own place and interaction.
   'communion-origin-mission-01':{title:'DELIVERY TO THE NEXUS',type:'cargo',description:'Dr. Elara Voss is sending supplies down to the Communion homeworld. Deliver them to Dr. Adrian Kess on The Nexus, Cantor System.',giver:'Dr. Elara Voss',source:'story',start:'vigil',end:'nexus',destination:'nexus',interaction:'kess',objectives:[{id:'cargo',label:'Collect the shipment from Dr. Elara Voss',destination:'vigil',interaction:'elara'},{id:'arrive',label:'Fly the shipment to The Nexus'},{id:'deliver',label:'Deliver it to Dr. Adrian Kess'}]},
   'natural-order-origin-mission-01':{title:'DELIVERY TO THE NATURAL ORDER HOMEWORLD',type:'cargo',description:'Marcus Vale is sending supplies down to the Natural Order homeworld. Deliver them to Daniel Mercer, Garrow System.',giver:'Marcus Vale',source:'story',start:'holdfast',end:'order-homeworld',destination:'order-homeworld',interaction:'mercer',objectives:[{id:'cargo',label:'Collect the shipment from Marcus Vale',destination:'holdfast',interaction:'marcus'},{id:'arrive',label:'Fly the shipment to the Natural Order homeworld'},{id:'deliver',label:'Deliver it to Daniel Mercer'}]},
@@ -65,11 +65,11 @@
  const pastFirstOffer=s=>!['inheritance','arrival','legal-offer'].includes(s.quest);
  function define(id,definition){if(!safeId(id)||!definition||!['tutorial','main','side','cargo','campaign','bounty','station'].includes(definition.type)||!Array.isArray(definition.objectives)||!definition.objectives.length||!definition.objectives.every(o=>safeId(o.id)&&typeof o.label==='string'))return false;definitions[id]={...definition,objectives:definition.objectives.map(o=>({...o}))};return true;}
  function records(s){return s.universe.missions??={};}
- // New campaigns since the mission reset (David, 2026-11-03) carry this flag. Older saves never do, so their missions are untouched.
+ // New campaigns since the mission reset (the owner, 2026-11-03) carry this flag. Older saves never do, so their missions are untouched.
  const closed=s=>s?.story?.flags?.missionPool==='closed';
  function available(s,id){const d=definitions[id];if(!d)return true;const requirements=d.prerequisites||[];return requirements.every(key=>s.universe?.missions?.[key]?.completed===true)&&Object.entries(d.storyFlags||{}).every(([key,value])=>s.story?.flags?.[key]===value)&&Object.entries(d.factionFlags||{}).every(([key,value])=>(s.progression?.reputation?.[key]||0)>=value)&&(!d.availability?.locations||d.availability.locations.includes(s.location));}
  // A District campaign (closed pool) runs only tree missions: the main storyline (main-story.js) and the owner's published trees. Every older mission, the beginner
- // campaign included, is retired there (David, 17 Nov 2026: "Go ahead and remove all missions in the game"): never offered, tracked or shown; old records stay in the save.
+ // campaign included, is retired there (the owner, 17 Nov 2026: "Go ahead and remove all missions in the game"): never offered, tracked or shown; old records stay in the save.
  const live=(s,id)=>!closed(s)||!!definitions[id]?.ownerTree;
  function acquire(s,id){if(!live(s,id)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
  function finish(s,id,entry){

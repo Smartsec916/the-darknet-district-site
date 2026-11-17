@@ -1,4 +1,4 @@
-/* The device's Gallery (David, 15 Nov 2026): photos taken with the camera (left mouse button while the viewfinder is up).
+/* The device's Gallery (the owner, 15 Nov 2026): photos taken with the camera (left mouse button while the viewfinder is up).
    - Each photo takes PHOTO_PCT (1%) of the device's storage, on top of the system apps and any installed apps, so a stock V1 (75% used) holds 25.
    - Every photo keeps the name tags of the players and residents who were in the frame: drawn into the picture, and listed with it.
    - A photo can be deleted, or posted to the News app's PEOPLE feed (and taken down again).

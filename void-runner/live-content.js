@@ -10,7 +10,7 @@
    NPC does what the beginner campaign says. Nothing happens outside a District campaign.
    THE MAIN STORYLINE (main-story.js, 17 Nov 2026) is always in force (the shipped tree, or the published copy of it): Mission 001 — Awakening starts when the player leaves the
    Sleeping Pod (podAct.exit in world-integration.js is wrapped here: the pod room itself is untouched), the V1 receives Admin's message (VoidV1.notify, personal-device.js),
-   and talking to Admin plays his Mission 001 lines (David's, from the Mission Editor). Until David writes them, live players see no dialogue: the mission completes with its
+   and talking to Admin plays his Mission 001 lines (the owner's, from the Mission Editor). Until the owner writes them, live players see no dialogue: the mission completes with its
    MISSION COMPLETE notice (the placeholder line is shown only in draft play). The beginner campaign is retired (beginner.js).
    MISSION 002 — EYES ON THE STREET (17 Nov 2026) added: the offer with ACCEPT / NOT NOW (talk-choice.js), the named places of places.js in the place tick (with each
    player's own enter / leave events: VoidPlaces.tracker), a step's lines sent as a Comms call, photo captures (device-camera.js calls photo()) and photos sent in

@@ -1,6 +1,6 @@
-/* THE PLACE REGISTRY (pure data and rules: browser and Node tests; no DOM). Named places a mission step or trigger can name ("Enter / leave a place"), arranged the way David
+/* THE PLACE REGISTRY (pure data and rules: browser and Node tests; no DOM). Named places a mission step or trigger can name ("Enter / leave a place"), arranged the way the owner
    will pick them later: System > Planet > City > Area > Exact location. Today: Tessaly > NeoChinatown (planet and city in one) > a quarter > a place in it.
-   David wants every location named, down to exact spots such as the food stalls: that list is still to be gone through with him; only the places below are named now.
+   The owner wants every location named, down to exact spots such as the food stalls: that list is still to be gone through with him; only the places below are named now.
    Every shape is read from data the game already has (ncz-quarters.js streets and gates, neochinatown.js the District's own plan, ncz-nightclub.js NULL, milked.js Milked),
    in WORLD metres (x east, z north). A place is a rect [x0,x1,z0,z1] or a union of rects, with an optional y range [min,max], inside one walking scene.
    The District's rooms are written in the District's own plan (local metres, door at 0,20) and turned into world metres once, with the same half turn neochinatown.js uses

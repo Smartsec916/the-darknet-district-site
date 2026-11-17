@@ -1,4 +1,4 @@
-/* Personal HUD: the pilot's own terminal (David's brief, 2026-10-27). Fully opaque, full screen.
+/* Personal HUD: the pilot's own terminal (the owner's brief, 2026-10-27). Fully opaque, full screen.
    Four sections: Mission Log (the same missions and tracking as the L log), Comms, Inventory, and Taxi / Transport,
    which shows a service only where one operates (the street taxis, road-taxi.js; otherwise it explains why not).
    Opening it uses the same pattern as the Mission Log: the game switches to its own 'hud' mode (no movement,

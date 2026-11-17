@@ -49,7 +49,7 @@
   if(typeof hud==='function')hud();
   announce('TEST MODE · '+(C.stations[choice.location]?.name||choice.location)+' · nothing is saved');
  }
- /* PLAY AS ADMIN (David, 15 Nov 2026): a developer signs in and walks the District as Admin. First stage, built on the test session above, so NOTHING IS SAVED:
+ /* PLAY AS ADMIN (the owner, 15 Nov 2026): a developer signs in and walks the District as Admin. First stage, built on the test session above, so NOTHING IS SAVED:
     a District campaign with no missions and a ship available (the same award the beginner campaign ends with), the V3 // SHADOW device, Admin's own profile and
     portrait in the V1, and Admin the NPC away from the counter (the existing adminOccupied flag), so Iris is the one behind it. Server-confirmed developers only. */
  function adminBuild(){const d=C.startDistrictCampaign(C.fresh());d.story.flags.podWakePending=false;C.awardStarterShip(d);d.story.flags.testShip=true;d.story.flags.playingAs='admin';d.story.flags.adminOccupied=true;

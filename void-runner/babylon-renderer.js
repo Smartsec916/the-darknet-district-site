@@ -97,7 +97,7 @@
   }
 
   // Station window glass: almost clear, with faint scratches and scuffs and a little specular glint, so the view
-  // outside reads true instead of through a green-teal tint (David, 2026-10-23).
+  // outside reads true instead of through a green-teal tint (the owner, 2026-10-23).
   function windowGlass(){
     if(materials['window-glass-clear'])return materials['window-glass-clear'];
     const b=B(),t=new b.DynamicTexture('window-scratches',{width:512,height:512},scene,true),g=t.getContext();let seed=11;const rnd=()=>((seed=seed*16807%2147483647)-1)/2147483646;
@@ -475,7 +475,7 @@
       for(const [z,w,h]of rings)for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;positions.push(Math.cos(a)*w,Math.sin(a)*h,z);uvs.push(i/8,(z+2)/4.15);}
       for(let r=0;r<3;r++)for(let i=0;i<8;i++){const a=r*8+i,c=r*8+(i+1)%8;indices.push(a,c,c+8,a,c+8,a+8);}for(let i=1;i<7;i++){indices.push(0,i+1,i,24,24+i,24+i+1);}
       for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];b.VertexData.ComputeNormals(positions,indices,normals);const hull=new b.Mesh('kestrel-hull',scene),data=new b.VertexData();Object.assign(data,{positions,indices,normals,uvs});data.applyToMesh(hull);hull.parent=node;hull.material=metal;hull.convertToFlatShadedMesh();
-      // Sleek flanks (David, 2026-10-23): no service stripes, vents, side panels or cheek plates; the cargo is carried inside.
+      // Sleek flanks (the owner, 2026-10-23): no service stripes, vents, side panels or cheek plates; the cargo is carried inside.
       const armor=material('kestrel-armor','#a5a297'),panel=material('kestrel-panel','#727a76'),wingMat=material('kestrel-wing','#a8a39b'),rust=material('kestrel-rust','#9d6550');
       if(!armor.diffuseTexture){armor.diffuseTexture=new b.Texture(new URL('art/vesper-weathered-panels.webp',base).href,scene,true,false);armor.diffuseTexture.uScale=2;armor.diffuseTexture.vScale=2;armor.diffuseColor=b.Color3.White();}
       // The landing-pad view sees the working ship from below; retain readable hull panels in shade.
@@ -695,7 +695,7 @@
       // Interior dressing from the reference sheet (meridian-interior-kit.js): visual only, after the fit-out so it is never merged.
       globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:');}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
-    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(-3,7,-9),scene);fill.parent=roomRoot;fill.diffuse=new BABYLON.Color3(1,.8,.76);fill.specular=new BABYLON.Color3(.5,.4,.38);fill.intensity=1.5;fill.range=34;fill.falloffType=BABYLON.Light.FALLOFF_STANDARD; // brighter, slightly red (David, 2026-10-23); range falloff so the PBR wall panels 15 m out still catch it
+    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(-3,7,-9),scene);fill.parent=roomRoot;fill.diffuse=new BABYLON.Color3(1,.8,.76);fill.specular=new BABYLON.Color3(.5,.4,.38);fill.intensity=1.5;fill.range=34;fill.falloffType=BABYLON.Light.FALLOFF_STANDARD; // brighter, slightly red (the owner, 2026-10-23); range falloff so the PBR wall panels 15 m out still catch it
     // These routes are station-relative and visible through the observation apertures.
     for(let i=0;i<3;i++){const n=shipModel(i?'shuttle':'courier','neutral',roomRoot);n.metadata={...n.metadata,traffic:true,lane:i};actors.push({node:n,traffic:true,lane:i});}
     await task.wait('scene',()=>scene.whenReadyAsync(),'station-'+def.id);diagnostics.location=def.id;

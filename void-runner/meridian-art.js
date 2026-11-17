@@ -84,10 +84,10 @@
   // Potted plants in the hall's corners and at the corridor's end, as on the reference sheet.
   {const pot=metal('planter','#3a3f44',.4,.5),leaf=metal('leaves','#3f6b3a',0,.8),leaf2=metal('leaves-light','#5b8a45',0,.8);
    for(const [x,z,s] of F.plants||[]){cylinder('planter',[x,.3,z],.55*s,.6,pot,.65*s);for(let k=0;k<7;k++){const a=k*2.4,r=.18*s;ellipsoid('foliage',[x+Math.cos(a)*r,.75+(k%3)*.18*s,z+Math.sin(a)*r],[.42*s,.55*s,.42*s],k%2?leaf:leaf2);}}}
-  // Hall lighting pass (David, 2026-10-23: closer to the reference art). Mostly glowing and additive surfaces, which
+  // Hall lighting pass (the owner, 2026-10-23: closer to the reference art). Mostly glowing and additive surfaces, which
   // cost little: two real lights at the bar (amber over the counter, violet behind it), warm light pools on the floor
   // under the bar and tables, neon reflections on the floor in front of the counter, and a warm cove line under the hall
-  // ceiling. The windows show the real view outside (David, 2026-10-23).
+  // ceiling. The windows show the real view outside (the owner, 2026-10-23).
   const H=root.VoidMeridianInterior?.rooms?.hall,B0=F.bar,lights=[];
   if(H&&B0){
    // One real light (it replaces the plain ceiling light over the bar, so the scene stays within 8 lights).

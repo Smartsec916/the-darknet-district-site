@@ -1,10 +1,10 @@
-/* WarFlying passive scanning and the in-universe leaderboard (David's doc 11 §5 and §17). Rules only.
+/* WarFlying passive scanning and the in-universe leaderboard (the owner's doc 11 §5 and §17). Rules only.
    - The scanner listens; it never pings. A ship is heard according to its own emissions: the
      quieter it runs, the closer you must be. Near the edge of hearing a contact is only "partial"
      (logged, no point) until it is heard clearly. It never reveals a ship that can't be heard.
    - Fixed emitters (stations, beacons, satellites) are passed along a route. Each route passes its
      own subset, so new routes and new systems turn up new signals.
-   - The board itself is warflying-board.js: five handles that change weekly, the same for every player (David, 16 Nov 2026). The old
+   - The board itself is warflying-board.js: five handles that change weekly, the same for every player (the owner, 16 Nov 2026). The old
      five rivals who climbed with play time (GhostVector and the others) are gone; nothing about them was ever saved. */
 (function(root){
  'use strict';

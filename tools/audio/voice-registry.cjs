@@ -18,7 +18,7 @@ function parseVoice(v){
   const out=parts.map(([id,w])=>[id,Number(w)]);if(out.some(([id,w])=>!VOICE.test(id)||!(w>0&&w<1)))return null;
   if(new Set(out.map(([id])=>id[1])).size>1)return null; // all women's or all men's voices
   if(Math.abs(out.reduce((s,[,w])=>s+w,0)-1)>.001)return null;return out;}
-// A cast voice: an NPC, or a Relay broadcaster once David assigns one.
+// A cast voice: an NPC, or a Relay broadcaster once the owner assigns one.
 function checkVoice(id,e,engine,problems){
   if(!parseVoice(e.voice))problems.push(id+': voice must be an English Kokoro voice id, or a same-sex blend like am_adam:0.6+am_michael:0.4');
   if(!(e.speed>=.7&&e.speed<=1.3))problems.push(id+': speed out of range');

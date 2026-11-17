@@ -208,7 +208,7 @@ def account(db, uid):
 
 
 def require_handle_if_guest(db, uid, message):
-    """Handle-only accounts (Firebase anonymous sign-in) may keep a character once they hold a District handle (David, 15 Nov 2026).
+    """Handle-only accounts (Firebase anonymous sign-in) may keep a character once they hold a District handle (the owner, 15 Nov 2026).
     The handle is the server's own record (the identity registry, bp_profiles), never a name sent by the browser. A guest with no handle is still refused."""
     if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') != 'anonymous':
         return
@@ -332,7 +332,7 @@ def clean_save(value):
         raise ApiError('Unsupported save format.')
     from pathlib import Path
     import json
-    # The Darknet District reset (David, 2026-11-04): saves from before it carry no campaign epoch and are retired, not converted.
+    # The Darknet District reset (the owner, 2026-11-04): saves from before it carry no campaign epoch and are retired, not converted.
     if not is_current_save(value):
         raise ApiError('This save is from before The Darknet District reset and can no longer be stored. Start a new campaign.', 409)
     manifest=json.loads((Path(__file__).parent/'void-runner'/'save-manifest.json').read_text())
@@ -499,7 +499,7 @@ def clean_save(value):
             raise ApiError('Invalid dialogue checkpoint.')
         cleaned['cursor']=None if cursor is None else {key:cursor[key] for key in ['scene','node','choices']}
 
-    # Missions removed from the game (David, 17 Nov 2026): in a District campaign (story.flags.missionPool == 'closed') only the main storyline
+    # Missions removed from the game (the owner, 17 Nov 2026): in a District campaign (story.flags.missionPool == 'closed') only the main storyline
     # (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run. A tracked removed mission is untracked; its record, credits and items are kept
     # and the save is never rejected for it (campaign.js retireMissions does the same).
     if cleaned.get('flags', {}).get('missionPool') == 'closed':

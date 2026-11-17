@@ -1,4 +1,4 @@
-/* Stable identities for everything WarFlying can detect (David's doc 11 §4 and §7). A source keeps
+/* Stable identities for everything WarFlying can detect (the owner's doc 11 §4 and §7). A source keeps
    the same id every time it is met, so a respawned ship or a revisited beacon is never "new" again.
    - Static emitters per system: stations and settlements (from universe.js), navigation beacons and
      communications satellites.

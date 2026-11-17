@@ -1,4 +1,4 @@
-/* NeoChinatown building-gap check in a real browser (David, 16 Nov 2026; docs/development/NCZ_GAP_CHECK.md). Not part of npm test. Built on the setup of
+/* NeoChinatown building-gap check in a real browser (the owner, 16 Nov 2026; docs/development/NCZ_GAP_CHECK.md). Not part of npm test. Built on the setup of
    tests/ncz-views-browser.cjs: enter the street, wait for it to finish loading, then inspect VoidBabylon.scene.
      node tests/ncz-gaps-browser.cjs <label> [quarter[,quarter]] [low|medium|high]        -> work/ncz-gaps/<label>/report.json, report.txt and marked-up pictures
      SITE_TEST_URL=http://127.0.0.1:5187 (default)   BROWSER_CHANNEL=msedge|chrome (default: the bundled Chromium with the software renderer)
@@ -48,7 +48,7 @@ const OPT={step:Number(process.env.GAP_STEP)||.2,   // 0.2 m: closer than the na
    const Q=await page.evaluate(q=>{const V=window.VoidQuarters,N=VoidNeoChinatown,MK=window.VoidMilked,NC=window.VoidNightclub;if(!V)return null;
     return {streets:V.QUARTERS[q].streets.filter(r=>!NC||r!==NC.RECT),gates:V.gatesOf(q).map(g=>({id:'gate '+g.name,rect:g.rect})),club:NC?{rect:NC.RECT,entry:NC.ENTRY.rect}:null,milked:MK?{door:MK.DOOR,rear:MK.REAR}:null,door:N.door,blocks:walkingLocation.solids.filter(s=>/^city-block-/.test(s.id)).map(s=>({id:s.id,position:s.position,size:s.size})),footprints:N.footprints};},quarter);
    if(!Q){say('This build has no quarters (VoidQuarters is missing): the check needs build 2026-11-16-quarters-1 or later.');break;}
-   const usesPurchased=assets.purchased.some(p=>p.loaded&&p.inScene>0),built=usesPurchased?'PURCHASED models + fallback':'FALLBACK (built in code, no purchased model)';   // every picture says which (David, 16 Nov 2026)
+   const usesPurchased=assets.purchased.some(p=>p.loaded&&p.inScene>0),built=usesPurchased?'PURCHASED models + fallback':'FALLBACK (built in code, no purchased model)';   // every picture says which (the owner, 16 Nov 2026)
    say('\n=== '+quarter.toUpperCase()+' · asset report ===');
    for(const p of assets.purchased)say('  purchased model '+p.id+' ('+p.src+'): '+(p.loaded?'LOADED':'NOT AVAILABLE')+', pieces in the scene: '+p.inScene);
    if(assets.clubModel)say('  purchased model '+assets.clubModel.id+' ('+assets.clubModel.src+'): '+(assets.clubModel.loaded?'LOADED':'NOT AVAILABLE')+(assets.clubModel.built?', built':''));

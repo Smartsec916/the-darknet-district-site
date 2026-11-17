@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const R=require('../void-runner/relay.js'),content=require('../void-runner/relay-content.json'),X=require('../void-runner/warflying-scan.js');
-// Test-only fixture lines. The shipped content file holds only David's scripts.
+// Test-only fixture lines. The shipped content file holds only the owner's scripts.
 const seg=(id,kind,extra={})=>({id,kind,text:'Fixture line '+id+'.',...extra});
 const fixture=[seg('n1','news'),seg('n2','news'),seg('f1','function'),seg('c1','communion'),seg('o1','natural-order'),seg('a1','ad')];
 const on=(system='erebus',extra={})=>({on:true,system,protected:false,priority:false,ended:false,...extra});
@@ -32,7 +32,7 @@ test('the shipped Relay content is valid, and every report has a headline and a 
   assert.deepEqual(R.validate(content),[]);
   for(const s of content.segments){assert.ok(s.headline,s.id);assert.ok(R.speakerOf(s),s.id);assert.ok(Array.isArray(s.lines),s.id);}
   const events=new Set(content.events.map(e=>e.id));for(const s of content.segments)if(s.event)assert.ok(events.has(s.event));
-  // The Function may comment on an event, but never confirms it, and stays caption-only until David approves a voice.
+  // The Function may comment on an event, but never confirms it, and stays caption-only until the owner approves a voice.
   for(const s of content.segments.filter(s=>s.kind==='function'))assert.notEqual(s.standing,'confirmed',s.id);
   assert.equal(require('../tools/audio/npc-voice-registry.json').broadcast['the-function'].status,'unassigned');
 });
@@ -144,7 +144,7 @@ test('WarFlying moments come only from real leaderboard changes, and change nobo
   assert.deepEqual(R.moments(board(t0,0),board(t0,0)),[],'no change, no commentary');
   assert.deepEqual(R.moments(board(t0,0),board(t0,1)).map(m=>m.trigger),['warflying-new-contender'],'your first point');
   const before=board(t0,0),after=board(t1,0);const m=R.moments(before,after);
-  const rift=m.find(x=>x.trigger==='warflying-one-point'&&x.vars.name===mover.name);assert.ok(rift);assert.ok(Board.isDavid(rift.vars.name),'the handle the radio names is one of David’s');
+  const rift=m.find(x=>x.trigger==='warflying-one-point'&&x.vars.name===mover.name);assert.ok(rift);assert.ok(Board.isOwnerHandle(rift.vars.name),'the handle the radio names is one of the owner’s');
   const rank=after.find(r=>r.name===mover.name).rank;assert.deepEqual(rift.vars,{name:mover.name,NAME:mover.name.toUpperCase(),RANK:ORD[rank].toUpperCase(),rank:ORD[rank]});
   assert.deepEqual(board(t1,0),after,'reading the board changes nothing');
   const s=world.segments.find(x=>x.id==='wf');assert.deepEqual(R.render(s,rift.vars),[mover.name.toUpperCase()+' INTO '+rift.vars.RANK+' PLACE!']);

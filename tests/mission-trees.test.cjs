@@ -29,13 +29,13 @@ test('NPCs per tree come from the voice registry, read-only, with the voices reg
  for(const t of out.trees)for(const n of t.npcs)if(n.registered)assert.deepEqual(n.voice,{voice:src.registry.npcs[n.id].voice,status:src.registry.npcs[n.id].status});
  const elara=by('communion').npcs.find(n=>n.id==='elara');assert(elara.roles.includes('you deliver to them'));
 });
-test('David’s scripts are locked; Claude’s UNREVIEWED placeholder lines and the old opening are editable drafts',()=>{
+test('The owner’s scripts are locked; Claude’s UNREVIEWED placeholder lines and the old opening are editable drafts',()=>{
  const out=T.build(sources()),m=id=>out.trees.flatMap(t=>t.missions).find(x=>x.id===id);
- const admin=m('communion-delivery').scenes.find(s=>s.doc==='05');assert(admin.lines.length>10&&admin.lines.every(l=>l.locked&&/David’s script — locked/.test(l.lock)));
+ const admin=m('communion-delivery').scenes.find(s=>s.doc==='05');assert(admin.lines.length>10&&admin.lines.every(l=>l.locked&&/Your script — locked/.test(l.lock)));
  assert(admin.lines.some(l=>l.text.startsWith('Ah, you must be the pilot Rook sent.')));
  const sealed=m('admin-sealed-cargo-01').scenes.find(s=>s.title.startsWith('Admin offers'));assert(sealed.lines.every(l=>!l.locked&&l.placeholder&&l.editable==='local'));
  const wf=m('admin-sealed-cargo-01').scenes.find(s=>s.doc==='12');assert(wf.lines.every(l=>l.locked));
- const kess=m('communion-restoration-01').scenes[0];assert(kess.lines.some(l=>l.placeholder&&!l.locked&&/As promised, the scanner/.test(l.text)),'the UNREVIEWED reward line is not David’s');
+ const kess=m('communion-restoration-01').scenes[0];assert(kess.lines.some(l=>l.placeholder&&!l.locked&&/As promised, the scanner/.test(l.text)),'the UNREVIEWED reward line is not the owner’s');
  assert(T.allLines(m('ground-training')).every(l=>!l.locked));
  const b=T.allLines(m('district-errand'));assert(b.length&&b.every(l=>l.editable==='studio'&&!l.locked));
  const rec=m('communion-delivery').scenes.flatMap(s=>s.lines).filter(l=>l.recorded);assert(rec.length>20,'voice clips are recognised');
@@ -221,7 +221,7 @@ test('the server reads the same lists (admin inventory) as the editor and the ga
  assert.deepEqual(Object.keys(inv.givers).sort(),g.map(x=>x.id).sort());for(const x of g)assert.equal(inv.givers[x.id].canTalk,x.canTalk,x.id);
  assert.deepEqual(inv.places,[...G.placeIds()]);assert.deepEqual(inv.subjects,G.photoSubjects(g).map(x=>x.id));assert.ok(inv.subjects.includes('juno-vex'));assert.deepEqual(inv.factions,G.FACTIONS);assert.deepEqual(inv.items.sort(),[...buyable()].sort());assert.deepEqual(inv.stepKinds,MC.STEP_KINDS);assert.deepEqual(inv.unlockKinds,MC.UNLOCKS);
 });
-test('David’s chain: an Admin tree grants a ship and opens a route, the player flies to Rook, and meeting Rook starts a Rook tree',()=>{
+test('The owner’s chain: an Admin tree grants a ship and opens a route, the player flies to Rook, and meeting Rook starts a Rook tree',()=>{
  const e=env(),givers=roster(),items=buyable(),U=require(R('void-runner/universe.js')),Sh=require(R('void-runner/ships.js'));e.U=U;e.givers=givers;MC.snapshot(e);
  const d={trees:[]},a=T.newTree(d.trees,{name:'District start'});d.trees.push(a);const b=T.newTree(d.trees,{name:'Rook'});d.trees.push(b);
  const a1=T.addMission(a,{giver:'admin'});a1.title='A1';Object.assign(a1.objectives[0],{kind:'talk',npc:'iris',label:'Talk to Iris'});

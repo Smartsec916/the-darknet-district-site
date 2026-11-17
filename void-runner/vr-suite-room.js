@@ -172,7 +172,7 @@
   let curtainTarget=1;tick.push(dt=>{for(const c of curtains)c.scaling.z+=(curtainTarget-c.scaling.z)*Math.min(1,dt*2.5);});
   // ---- Plants: two calatheas ----
   const plant=await k.model('plant');k.place(plant,[5.3,0,4.35],0,1.3);k.place(plant,[-5.35,0,-4.3],2,1.15);
-  /* ---- Room upgrade (David, 16 Nov 2026): furniture and art made with Meshy, a furnished and lit balcony, more to look at outside ----
+  /* ---- Room upgrade (the owner, 16 Nov 2026): furniture and art made with Meshy, a furnished and lit balcony, more to look at outside ----
      The five models are optional files (assets/vr/models/suite-*.glb, docs/development/MESHY_CHARACTERS.md lists how they were made); a missing one is simply not
      there. Each is sized by its height and stood on the floor, so a regenerated model drops in without new numbers. */
   const prop=async(name,[x,z],ry,h,y=0)=>{try{const c=await k.model('suite-'+name),n=k.place(c,[x,0,z],ry,1);n.computeWorldMatrix(true);for(const m of n.getChildMeshes())m.computeWorldMatrix(true);

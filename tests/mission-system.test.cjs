@@ -125,7 +125,7 @@ test('tracking and independent objectives survive legacy save restoration',()=>{
  assert.equal(M.all(restored,C).find(m=>m.id==='meet-rook').objectives.find(o=>o.id==='speak').complete,false);
 });
 
-test('Meridian follows David’s reference: hangar, door, narrow corridor, living area and store on the left, bar and seating at the end',()=>{
+test('Meridian follows the owner’s reference: hangar, door, narrow corridor, living area and store on the left, bar and seating at the end',()=>{
  const room=Meridian.layout(),R=room.rooms,find=id=>room.shell.find(o=>o.id===id).position;
  const door=room.shell.find(o=>o.id==='crew-pressure-door');assert.ok(door.position[2]===R.hangar.z1&&door.position[2]===R.corridor.z0,'the hangar door leads straight into the corridor');
  assert.ok(R.corridor.x1-R.corridor.x0<=door.size[0]+1.5,'the corridor is only a little wider than its door');

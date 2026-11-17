@@ -1,4 +1,4 @@
-/* A new build reaches players without a manual refresh (David, 17 Nov 2026: the old area music played until he refreshed). The decision is pure (update-ready.js). */
+/* A new build reaches players without a manual refresh (the owner, 17 Nov 2026: the old area music played until he refreshed). The decision is pure (update-ready.js). */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const U=require('../void-runner/update-ready.js');
 test('an update is ready only when a worker with a different build takes over the page',()=>{

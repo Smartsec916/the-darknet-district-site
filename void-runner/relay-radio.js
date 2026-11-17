@@ -64,9 +64,9 @@
   const db=state?.warflying;if(!db)return;
   const board=VoidWarFlyingScan.leaderboard(db.clock,VoidWarFlying.points(db),globalThis.VoidWarFlyingScanner?.playerName?.()||'YOU').map(r=>({name:r.name,points:r.points,rank:r.rank,player:r.player}));
   // The five change every week (warflying-board.js). A board saved in another week is a different set of handles: nothing is compared across the change.
-  // A handle the radio names must be one of David's (the only ones that can be recorded); generated handles are never commented on.
+  // A handle the radio names must be one of the owner's (the only ones that can be recorded); generated handles are never commented on.
   const B=globalThis.VoidWarFlyingBoard,names=b=>(b||[]).filter(r=>!r.player).map(r=>r.name).sort().join('|'),same=Array.isArray(rs().board)&&names(rs().board)===names(board);
-  const found=(same?R.moments(rs().board,board):[]).filter(m=>(m.trigger!=='warflying-new-contender'||!rs().said['warflying-new-contender'])&&(!m.vars?.name||B.isDavid(m.vars.name)));
+  const found=(same?R.moments(rs().board,board):[]).filter(m=>(m.trigger!=='warflying-new-contender'||!rs().said['warflying-new-contender'])&&(!m.vars?.name||B.isOwnerHandle(m.vars.name)));
   rs().board=board;
   for(const m of found){moments=moments.filter(x=>x.trigger!==m.trigger);moments.push({...m,at:clock()});}
   moments=moments.filter(m=>clock()-m.at<600);

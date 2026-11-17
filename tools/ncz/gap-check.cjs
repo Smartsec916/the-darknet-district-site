@@ -1,4 +1,4 @@
-/* NeoChinatown building-gap check: the pure parts (David, 16 Nov 2026). No rendering: the browser script tests/ncz-gaps-browser.cjs casts the rays this file lays out
+/* NeoChinatown building-gap check: the pure parts (the owner, 16 Nov 2026). No rendering: the browser script tests/ncz-gaps-browser.cjs casts the rays this file lays out
    and gives each hit back to classify(). Unit-tested in tests/ncz-gap-check.test.cjs. Used for any quarter: the quarter's streets, its openings and the exclusion rules
    are parameters, so a rebuilt quarter (the Port's own builder) can be checked the same way.
 

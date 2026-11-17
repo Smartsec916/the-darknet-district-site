@@ -1,4 +1,4 @@
-/* The District residents' routines (David, 15 Nov 2026): arcade, store, bar; about half wear an oxygen mask at the bar. */
+/* The District residents' routines (the owner, 15 Nov 2026): arcade, store, bar; about half wear an oxygen mask at the bar. */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const L=require('../void-runner/district-life.js'),T0=1.8e9;

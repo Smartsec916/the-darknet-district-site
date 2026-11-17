@@ -1,5 +1,5 @@
 /* Meridian's shared walkable plan, fittings and tagged activity points, in metres.
-   Plan (David's top-down reference, 2026-10-18): HANGAR → HANGAR DOOR → NARROW CORRIDOR → BAR / SEATING.
+   Plan (the owner's top-down reference, 2026-10-18): HANGAR → HANGAR DOOR → NARROW CORRIDOR → BAR / SEATING.
    Walking in from the hangar (+z), the corridor is only a little wider than its door. Off its left side
    are the living area (stacked sleeping pods, lockers, washroom) and then the store. At the far end the
    corridor opens into one social hall: the Dead Channel bar along the left wall, seating across from it,
@@ -80,7 +80,7 @@
    bar:{x:-10.5,z:51,length:14,backX:-15.6},store:{x:-6.2,z:28,length:5,shelves:[24.6,27.6,30.6],shelfX:-12.4},
    terminal:{x:2,z:20,facing:-Math.PI/2},portholes,
    lights:[[-9,13],[-8,28],[9,51]], // the bar's own amber light is added by meridian-art.js
-   plants:[]}; // potted plants removed (David, 2026-10-23)
+   plants:[]}; // potted plants removed (the owner, 2026-10-23)
   // Sleeping pods: two tiers of five, ends against the hangar-side wall, hatches facing into the room.
   for(let i=0;i<5;i++)for(const level of [0,1]){const x=-13.9+i*1.6;furniture.pods.push({id:'pod-'+(i*2+level+1),x,z:5.75,level,y:level?1.62:.3,facing:Math.PI});}
   add('pod-bank',[8.2,2.9,2.5],[-10.7,1.45,5.6],'frame');

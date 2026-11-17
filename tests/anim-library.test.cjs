@@ -1,4 +1,4 @@
-/* The shared animation library's catalogue (David, 16 Nov 2026). */
+/* The shared animation library's catalogue (the owner, 16 Nov 2026). */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const L=require('../void-runner/anim-library.js');

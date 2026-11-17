@@ -1,6 +1,6 @@
 {
  "name": "npc-kai",
- "source": "Kai, generated with Meshy (text-to-image concept approved by David on 16 Nov 2026, then image-to-3d, remesh and auto-rig) on David's Meshy account; prepared by prepare_meshy.py. His clips are the old Kai figure's (vr-companion-m.glb), retargeted.",
+ "source": "Kai, generated with Meshy (text-to-image concept approved by the owner on 16 Nov 2026, then image-to-3d, remesh and auto-rig) on the owner's Meshy account; prepared by prepare_meshy.py. His clips are the old Kai figure's (vr-companion-m.glb), retargeted.",
  "bonePrefix": "",
  "optionalBones": true,
  "bones": {

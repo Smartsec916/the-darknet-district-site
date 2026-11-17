@@ -1,4 +1,4 @@
-/* Shareable guest links in a real browser (David's brief, 2026-11-01). Each link opens in a fresh browser profile
+/* Shareable guest links in a real browser (the owner's brief, 2026-11-01). Each link opens in a fresh browser profile
    straight into Guest Mode: no sign-in, intro or tutorial; the visitor can walk, talk and fly; restart, the Guest Menu
    and refresh work; invalid links fall back to the Guest Menu; the visitor's own browser save is never written;
    Developer Tools, account and cloud actions stay closed; VR enters and exits inside the guest session; repeated

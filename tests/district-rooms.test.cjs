@@ -1,4 +1,4 @@
-/* The District's rebuilt rooms (district-rooms.js; David, 16 Nov 2026): the data behind the vending machines, the store counter's display cases and the oxygen bar. */
+/* The District's rebuilt rooms (district-rooms.js; the owner, 16 Nov 2026): the data behind the vending machines, the store counter's display cases and the oxygen bar. */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=require('../void-runner/district-rooms.js'),N=require('../void-runner/neochinatown.js'),read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
@@ -50,7 +50,7 @@ test('the hallway posters are down, their four spots are kept, and the advertise
  assert.equal(src.split("plane('hall-ad'").length,2,'no other hallway poster');
 });
 const LINES_HASH='6f865bb464d4bd93';
-test('the campaign screen carries David\'s header and his 25 lines word for word, one at a time',()=>{
+test('the campaign screen carries the owner\'s header and his 25 lines word for word, one at a time',()=>{
  const C=R.CAMPAIGN;assert.equal(C.header,'ANTI-WARFLYING CAMPAIGN');assert.equal(C.lines.length,25);assert.equal(new Set(C.lines).size,25);
  assert.equal(C.lines[0],"WarFlying is not a hobby. It's an invasion.");assert.equal(C.lines[19],"Scan my ship again and we'll discover how good your shields are.");assert.equal(C.lines[24],'The Tessaly System has room for everyone. Except snoops.');
  assert.equal(require('node:crypto').createHash('sha256').update(C.lines.join('\n')).digest('hex').slice(0,16),LINES_HASH,'no line was reworded');

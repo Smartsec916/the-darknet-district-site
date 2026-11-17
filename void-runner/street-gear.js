@@ -1,4 +1,4 @@
-/* Street gear (David, 15 Nov 2026: "Upgrade NPC graphics", two reference pictures of NeoChinatown people): the layered kit the references show on everyone and the
+/* Street gear (the owner, 15 Nov 2026: "Upgrade NPC graphics", two reference pictures of NeoChinatown people): the layered kit the references show on everyone and the
    plain character models lack. Each NPC gets its own mix of
      - a utility belt with a buckle and pouches,
      - a chest harness with a row of pouches,
@@ -22,19 +22,19 @@
  // a repeatable 0..1 for a person and a question
  const roll=(seed,salt)=>(hash(seed+'/'+salt)%10007)/10007;
  const HATS=new Set(['district-smuggler','order-farmhand','vesper-trader']),SKIP=/^vr-companion/;
- /* People with a kit of their own (David's reference pictures), keyed by who they are. Admin (three pictures, 15 Nov 2026): an older man in a dark utility jacket with
-    amber panels and an amber-lit collar, a chest rig and a belt; David prefers him WITHOUT eyewear, so he never gets goggles.
+ /* People with a kit of their own (the owner's reference pictures), keyed by who they are. Admin (three pictures, 15 Nov 2026): an older man in a dark utility jacket with
+    amber panels and an amber-lit collar, a chest rig and a belt; the owner prefers him WITHOUT eyewear, so he never gets goggles.
     Iris (two pictures, 15 Nov 2026): a humanoid android who looks very human: a high dark collar closed round the neck, pale ceramic plates over the upper chest and
     shoulders, a black device over each ear, and a few tiny amber lights. No belts or pouches: she is clean, not kitted out. */
  const KITS={admin:{belt:true,pouches:2,harness:true,thighs:'',knees:false,bracer:'',goggles:false,jacket:true,accent:4},
   iris:{belt:false,pouches:0,harness:false,thighs:'',knees:false,bracer:'',goggles:false,jacket:false,android:true,accent:4}};
- /* The Darknet District: Rebellion Edition T-shirt (David, 15 Nov 2026: "have 5% of NPCs be wearing" it; the real one is sold on the site's apparel page). Outside NULL about one
+ /* The Darknet District: Rebellion Edition T-shirt (the owner, 15 Nov 2026: "have 5% of NPCs be wearing" it; the real one is sold on the site's apparel page). Outside NULL about one
     NPC in a hundred wears it: a black tee over whatever top they have (a tube round the torso and short sleeves, fitted to their body), the shirt's own city print on the
     chest (void-runner/art/apparel/rebellion-tee-print.jpg, cut from the store's product picture) and a small coloured patch on each sleeve. */
- /* Inside NULL (David, 15 Nov 2026): "there's always 1 NPC with The Darknet District tshirt on". One dancer who is there at every quality setting always wears it, and nobody
+ /* Inside NULL (the owner, 15 Nov 2026): "there's always 1 NPC with The Darknet District tshirt on". One dancer who is there at every quality setting always wears it, and nobody
     else in the club does, so it is always exactly one. Club figures are known by `metadata.club` (ncz-nightclub.js), which makes their seed end in `:club:<spot id>`. */
  const CLUB_TEE='dancer-0';
- const TEE_SHARE=.01,   /* outside NULL: about 1 NPC in 100 (David, 15 Nov 2026; it was 1 in 20 for a few hours) */TEE_PRINT='void-runner/art/apparel/rebellion-tee-print.jpg';
+ const TEE_SHARE=.01,   /* outside NULL: about 1 NPC in 100 (the owner, 15 Nov 2026; it was 1 in 20 for a few hours) */TEE_PRINT='void-runner/art/apparel/rebellion-tee-print.jpg';
  /* What a person wears: {belt, pouches (2..4), harness, thighs ('', 'L', 'R', 'LR'), knees, bracer ('', 'L', 'R'), goggles, accent (0..5)}. */
  function loadout(seed,look,body,teeShare=TEE_SHARE){
   if(KITS[seed])return {...KITS[seed]};
@@ -171,7 +171,7 @@
     pm.material=printMaterial(scene);pm.isPickable=false;pm.receiveShadows=false;pm.setBoundingInfo(bodyMesh.getBoundingInfo());pm.layerMask=bodyMesh.layerMask;pm.metadata={streetGearPrint:true};me.onDisposeObservable.add(()=>{try{pm.dispose();}catch{}});}}
   me.metadata={streetGear:{seed,look,parts:g.parts,accent:wear.accent}};count++;me.onDisposeObservable.add(()=>{count--;});
   return me;}
- /* The V3 // Shadow eye (David, 15 Nov 2026): the device's camera is in its owner's LEFT eye, and while the device is in use that eye glows a little, in the green the
+ /* The V3 // Shadow eye (the owner, 15 Nov 2026): the device's camera is in its owner's LEFT eye, and while the device is in use that eye glows a little, in the green the
     V3 uses for its screen. A small lit disc on the iris and a faint halo round it, skinned to the head like the gear. eye(node, true) puts it on a figure, eye(node, false)
     takes it off. node: any node above the figure (a player's holder, an NPC). */
  const V3_GREEN=[.275,1,.478],eyes=new WeakMap();
@@ -186,7 +186,7 @@
   const positions=[],colors=[],indices=[],disc=(r,z,alpha)=>{const c=positions.length/3,N=10;positions.push(e[0],e[1],z);colors.push(...V3_GREEN,alpha);
    for(let i=0;i<N;i++){const t=i/N*Math.PI*2;positions.push(e[0]+Math.cos(t)*r,e[1]+Math.sin(t)*r,z);colors.push(...V3_GREEN,alpha>.5?alpha:0);}
    for(let i=0;i<N;i++)indices.push(c,c+1+i,c+1+(i+1)%N);};
-  disc(e[3]*.4,e[2]+e[3]*.06,.6);disc(e[3]*1.35,e[2]+e[3]*.12,.14);   /* David: the eye glows SLIGHTLY */   // the lit iris, then a halo that fades to nothing at its edge
+  disc(e[3]*.4,e[2]+e[3]*.06,.6);disc(e[3]*1.35,e[2]+e[3]*.12,.14);   /* The owner: the eye glows SLIGHTLY */   // the lit iris, then a halo that fades to nothing at its edge
   const n=positions.length/3,mi=new Float32Array(n*4),mw=new Float32Array(n*4);for(let i=0;i<n;i++){mi[i*4]=bi;mw[i*4]=1;}
   const scene=node.getScene(),me=new B.Mesh('v3-eye',scene),vd=new B.VertexData();vd.positions=positions;vd.colors=colors;vd.indices=indices;vd.matricesIndices=mi;vd.matricesWeights=mw;vd.applyToMesh(me);
   me.hasVertexAlpha=true;me.skeleton=sk;me.numBoneInfluencers=1;me.parent=bodyMesh.parent;me.position.copyFrom(bodyMesh.position);me.scaling.copyFrom(bodyMesh.scaling);

@@ -3,7 +3,7 @@ const B=require('../void-runner/warflying-board.js'),S=require('../void-runner/s
 const doc=fs.readFileSync(path.join(__dirname,'../docs/void-runner/design-source/12-street-advertisements-david.md'),'utf8');
 const monday=w=>new Date(Date.UTC(2026,0,5)+w*7*864e5);
 
-test('the handle list is David’s two batches, verbatim, with the repeats removed',()=>{
+test('the handle list is the owner’s two batches, verbatim, with the repeats removed',()=>{
   const first=/board \(verbatim\): (.*?)\.\n/.exec(doc)[1].split(', '),second=/repeat the first batch\): (.*?)\.\n/.exec(doc)[1].split(', ');
   assert.deepEqual(B.HANDLES,[...new Set([...first,...second])]);assert.equal(new Set(B.HANDLES).size,B.HANDLES.length);
   assert.ok(B.HANDLES.includes('DirtyCircuit')&&B.HANDLES.includes('DirtyCircuits'),'two different handles of his, both kept');
@@ -21,24 +21,24 @@ test('the board is the same for everyone in a week and different the next week',
   assert.deepEqual(B.five(new Date(Date.UTC(2026,10,16,0,0,1))).map(r=>r.name).sort(),B.five(new Date(Date.UTC(2026,10,22,23,59))).map(r=>r.name).sort(),'the same five all week');
   assert.notDeepEqual(B.five(new Date(Date.UTC(2026,10,24,9))).map(r=>r.name),a.map(r=>r.name));
 });
-test('number one is always one of David’s, is never overtaken by the other four, and changes from week to week',()=>{
+test('number one is always one of the owner’s, is never overtaken by the other four, and changes from week to week',()=>{
   let last=null;const tops=new Set();
-  for(let w=0;w<300;w++){const plan=B.plan(B.weekOf(monday(w)));assert.ok(B.isDavid(plan[0].name));assert.notEqual(plan[0].name,last,'not the same handle two weeks running');last=plan[0].name;tops.add(last);
+  for(let w=0;w<300;w++){const plan=B.plan(B.weekOf(monday(w)));assert.ok(B.isOwnerHandle(plan[0].name));assert.notEqual(plan[0].name,last,'not the same handle two weeks running');last=plan[0].name;tops.add(last);
    for(const h of [0,30,90,167]){const rows=B.five(new Date(monday(w).getTime()+h*36e5));assert.equal(rows[0].name,plan[0].name);assert.ok(rows[0].points>rows[1].points);
     assert.equal(new Set(rows.map(r=>r.name)).size,5);assert.ok(rows.every(r=>Number.isSafeInteger(r.points)&&r.points>0&&r.points<S.all().length&&r.name.length<=24));}}
   assert.ok(tops.size>40,'most of his handles get a turn');
 });
-test('places two to five mostly come from the generator; only David’s handles ever change place',()=>{
-  let made=0,david=0,moves=0;
-  for(let w=0;w<300;w++){const plan=B.plan(B.weekOf(monday(w)));for(const p of plan.slice(1)){if(p.kind==='david'){david++;assert.ok(B.isDavid(p.name));}else{made++;assert.ok(!B.isDavid(p.name));}}
-   let prev=null;for(let h=0;h<=168;h+=4){const rows=B.ranked(0,'YOU',new Date(monday(w).getTime()+Math.min(h,167.9)*36e5));if(prev)for(const m of R.moments(prev,rows)){moves++;assert.ok(B.isDavid(m.vars.name),m.vars.name);}prev=rows;}}
-  assert.ok(made>david,'more generated than David’s');assert.ok(david>0);assert.ok(moves>50,'the radio’s WarFlying commentary still has real changes to report');
+test('places two to five mostly come from the generator; only the owner’s handles ever change place',()=>{
+  let made=0,owner=0,moves=0;
+  for(let w=0;w<300;w++){const plan=B.plan(B.weekOf(monday(w)));for(const p of plan.slice(1)){if(p.kind==='owner'){owner++;assert.ok(B.isOwnerHandle(p.name));}else{made++;assert.ok(!B.isOwnerHandle(p.name));}}
+   let prev=null;for(let h=0;h<=168;h+=4){const rows=B.ranked(0,'YOU',new Date(monday(w).getTime()+Math.min(h,167.9)*36e5));if(prev)for(const m of R.moments(prev,rows)){moves++;assert.ok(B.isOwnerHandle(m.vars.name),m.vars.name);}prev=rows;}}
+  assert.ok(made>owner,'more generated than the owner’s');assert.ok(owner>0);assert.ok(moves>50,'the radio’s WarFlying commentary still has real changes to report');
 });
-test('generated handles: plausible, some end in two digits, none is one of David’s, none is rude, none is a name',()=>{
+test('generated handles: plausible, some end in two digits, none is one of the owner’s, none is rude, none is a name',()=>{
   const all=B.sample(600,3);assert.equal(new Set(all).size,600);
   assert.ok(all.every(h=>/^[A-Za-z]+(_[A-Za-z]+)?\d{0,2}$/.test(h)&&h.length>=4&&h.length<=24),'letters, at most one underscore, at most two digits');
   const digits=all.filter(h=>/\d\d$/.test(h)).length;assert.ok(digits>180&&digits<480,'a good share look like login handles ending in two digits: '+digits);
-  assert.ok(all.some(h=>B.PLAIN.includes(h.replace(/\d+$/,''))),'some plain ones');assert.ok(!all.some(B.isDavid));
+  assert.ok(all.some(h=>B.PLAIN.includes(h.replace(/\d+$/,''))),'some plain ones');assert.ok(!all.some(B.isOwnerHandle));
   // every word the generator can use is on the lists, and the lists hold nothing from a short list of words that must never appear
   const banned=/slut|whore|bitch|perv|pimp|condom|virgin|gspot|booty|nasty|sinner|flesh|moist|kill|rape|nazi|fuck|shit|cunt|dick|cock|tits|sex|porn|damn|hell|god|jesus/i;
   for(const w of [...B.FIRST,...B.SECOND,...B.PLAIN])assert.ok(!banned.test(w),w);
@@ -47,7 +47,7 @@ test('generated handles: plausible, some end in two digits, none is one of David
 test('only five are shown; the player is measured against them; the voice names only number one',()=>{
   const when=new Date(Date.UTC(2026,10,18,15)),five=B.five(when);
   const out=B.standings(0,'YOU',when);assert.equal(out.header,'WARFLYING LEADERSHIP BOARD');assert.equal(out.rows.length,5);assert.ok(!out.rows.some(r=>r.player));
-  assert.deepEqual(out.you,{name:'YOU',points:0,rank:null});assert.equal(out.spoken,five[0].name);assert.ok(B.isDavid(out.spoken));
+  assert.deepEqual(out.you,{name:'YOU',points:0,rank:null});assert.equal(out.spoken,five[0].name);assert.ok(B.isOwnerHandle(out.spoken));
   const mid=B.standings(five[2].points+1,'Pilot_7',when);assert.equal(mid.rows.length,5);assert.equal(mid.you.rank,3);assert.equal(mid.rows[2].name,'Pilot_7');assert.ok(!mid.rows.some(r=>r.name===five[4].name),'the fifth handle drops off');
   assert.equal(mid.spoken,five[0].name);
   const tie=B.standings(five[0].points,'Pilot_7',when);assert.equal(tie.you.rank,2,'a tie goes to the handle who got there first');
