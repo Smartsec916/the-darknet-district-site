@@ -68,7 +68,7 @@
   map.get=function(action){const h=get(action);if(typeof h!=='function')return h;return function(arg){if(busy||!treesOn())return h.apply(this,arguments);busy=true;try{return talkTo(action,arg,h,this,arguments);}finally{busy=false;}};};}
  // The place the player is in (twice a second).
  setInterval(()=>{try{if(!treesOn()||!G||typeof mode==='undefined'||!['walking','dock','arrival'].includes(mode))return;
-  const places=G.placesNow({walk:typeof walkingLocation!=='undefined'?walkingLocation?.id:null,quarter:state.story.flags.quarter,location:state.location,docked:true});if(!places.length)return;
+  const wl=typeof walkingLocation!=='undefined'?walkingLocation:null,places=G.placesNow({walk:wl?.id,area:wl?.area,quarter:state.story.flags.quarter,location:state.location,docked:true});if(!places.length)return;
   const r=MC.treeEvent(state,env,{type:'place',places},root.VoidMissions,root.C||root.VoidCampaign);if(!r.objective)return;report(r);if(r.lines.length&&mode==='walking')show(r.lines);}catch{}},500);
  // A module bought at the outfitter or Admin's counter.
  if(root.VoidProgression?.buy){const P=root.VoidProgression,buy=P.buy;P.buy=function(s,id){const ok=buy.apply(this,arguments);try{if(ok&&typeof state!=='undefined'&&s===state&&treesOn())report(MC.treeEvent(state,env,{type:'buy',item:id},root.VoidMissions,root.C||root.VoidCampaign));}catch{}return ok;};}

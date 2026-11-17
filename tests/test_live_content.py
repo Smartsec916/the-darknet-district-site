@@ -112,6 +112,35 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(clean['universe']['trackedMission'], 'new-errand')
 
 
+    def test_new_trees_publish_and_their_records_pass_cloud_save(self):
+        """The owner's new trees (draft- ids, givers with a TALK prompt, supported steps and unlocks) publish; anything the game cannot run is refused;
+        their mission records and flags (mt_<id> when paid, mf_<name> from a flag unlock) are accepted by clean_save as they are."""
+        tree = {'id': 'draft-test-tree', 'name': 'Test tree', 'missions': [{'id': 'draft-test-tree-m1', 'title': 'FIRST', 'type': 'side', 'giver': 'admin', 'rewards': 10,
+                'offer': [{'who': 'admin', 'text': 'Test line.'}],
+                'objectives': [{'id': 'step-1', 'label': 'Talk to Iris', 'kind': 'talk', 'npc': 'iris'}, {'id': 'step-2', 'label': 'Go to the Port', 'kind': 'go', 'place': 'port'}],
+                'ending': {'npc': 'rook', 'place': 'meridian'}, 'unlocks': [{'kind': 'flag', 'id': 'testFlag', 'value': True}, {'kind': 'location', 'id': 'vigil'}, {'kind': 'ship', 'id': 'starter'}]}]}
+        good = {'format': live.FORMAT, 'version': 1, 'trees': [tree], 'names': {'vesper-opening': 'Old opening'}}
+        self.assertEqual(live.check(good), [])
+        r = self.post('live-content/publish', {'expected': 0, 'content': good})
+        self.assertEqual(r.status_code, 200, r.json)
+        self.assertEqual(self.get('live-content', token=None).json['content']['trees'][0]['id'], 'draft-test-tree')
+        for change in [lambda m: m.update(giver='rin-takeda'), lambda m: m['objectives'][0].update(kind='fight'), lambda m: m.update(id='first'),
+                       lambda m: m['objectives'][1].update(place='atlantis'), lambda m: m.update(unlocks=[{'kind': 'item', 'id': 'warflying-module'}]),
+                       lambda m: m.update(unlocks=[{'kind': 'ship', 'id': 'ship2'}]), lambda m: m['offer'].append({'who': 'darth', 'text': 'x'})]:
+            c = copy.deepcopy(good)
+            change(c['trees'][0]['missions'][0])
+            self.assertTrue(live.check(c), c)
+        state = test_story_save.StorySaveTests.state(None)
+        state['story']['flags'].update({'missionPool': 'closed', 'mt_draft-test-tree-m1': True, 'mf_testFlag': True})
+        state['story']['met'] = ['Admin', 'iris', 'rook', 'zen-zephyr', 'milked-eva']
+        state['universe'] = {'trackingInitialized': True, 'trackedMission': 'draft-test-tree-m1', 'freeTravel': False,
+                             'missions': {'draft-test-tree-m1': {'acquired': True, 'completed': True, 'objectives': {'step-1': True, 'step-2': True, 'turn-in': True}}}}
+        clean = vr.clean_save(state)
+        self.assertEqual(clean['universe']['missions']['draft-test-tree-m1']['objectives'], {'step-1': True, 'step-2': True, 'turn-in': True})
+        self.assertTrue(clean['story']['flags']['mt_draft-test-tree-m1'])
+        self.assertTrue(clean['story']['flags']['mf_testFlag'])
+
+
 class RevoiceQueueTests(unittest.TestCase):
     def setUp(self):
         fixtures.DraftTests.setUp(self)

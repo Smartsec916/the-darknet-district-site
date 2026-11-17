@@ -35,33 +35,34 @@
    reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},
   elias:{name:'Elias Ward',group:E,kind:'recording',say:'elias',where:'Vesper: an archived recording (PLAY ARCHIVE), not a person.',targets:[],players:false,draft:false,why:'A recording cannot hand over a mission (needs a code change).'},
   elara:{name:'Dr. Elara Voss',group:E,say:'Dr. Elara Voss',where:'The Vigil, Cantor System (station-layouts.js: TALK / DR. ELARA VOSS).',targets:[{action:'talk',character:'elara'}],layout:'elara',enter:AREA.station('vigil'),players:false,draft:true,
-   reach:'Not reachable by a District player today: The Vigil is only discovered by the old Communion delivery. A mission unlock "place opens: The Vigil" would let players fly there.'},
+   reach:'The Vigil is only discovered by the old Communion delivery. A mission unlock "place opens: The Vigil" would let players fly there.'},
   marcus:{name:'Marcus Vale',group:E,say:'Marcus Vale',where:'Holdfast, Garrow System (station-layouts.js: TALK / MARCUS VALE).',targets:[{action:'talk',character:'marcus'}],layout:'marcus',enter:AREA.station('holdfast'),players:false,draft:true,
-   reach:'Not reachable by a District player today: Holdfast is only discovered by the old Natural Order delivery. A "place opens: Holdfast" unlock would open it.'},
+   reach:'Holdfast is only discovered by the old Natural Order delivery. A "place opens: Holdfast" unlock would open it.'},
   kess:{name:'Dr. Adrian Kess',group:E,say:'Dr. Adrian Kess',where:'The Nexus, the Communion homeworld (planets.js: TALK / DR. ADRIAN KESS).',targets:[{action:'homeworld-talk',character:'kess'}],layout:'kess',enter:AREA.station('nexus'),players:false,draft:true,
-   reach:'Not reachable by a District player today (the old homeworld run opens it). Draft play docks there as Test & Jump To does; not checked with a draft mission.'},
+   reach:'Only the old homeworld run opens it. Draft play docks there as Test & Jump To does; not checked with a draft mission.'},
   mercer:{name:'Daniel Mercer',group:E,say:'Daniel Mercer',where:'The Natural Order homeworld, Garrow (planets.js: TALK / DANIEL MERCER).',targets:[{action:'homeworld-talk',character:'mercer'}],layout:'mercer',enter:AREA.station('order-homeworld'),players:false,draft:true,
-   reach:'Not reachable by a District player today (the old homeworld run opens it). Not checked with a draft mission.'},
+   reach:'Only the old homeworld run opens it. Not checked with a draft mission.'},
   iona:{name:'Iona Vale',group:E,say:'iona',where:'Rusthaven Port (station-layouts.js: TALK / IONA).',targets:[{action:'talk',character:'iona'}],layout:'iona',enter:AREA.station('rusthaven'),players:false,draft:true,
-   reach:'Not reachable by a District player today: Rusthaven is not on a District campaign’s list of known places. A "place opens: Rusthaven Port" unlock would open it.'},
+   reach:'Rusthaven is not on a District campaign’s list of known places. A "place opens: Rusthaven Port" unlock would open it.'},
   sol:{name:'Dr. Sol',group:E,say:'sol',where:'Kepler, the clinic network’s station (station-layouts.js: TALK / DR. SOL).',targets:[{action:'talk',character:'sol'}],layout:'sol',enter:AREA.station('kepler'),players:false,draft:true,
-   reach:'Not reachable by a District player today: Kepler is not on a District campaign’s list of known places. A "place opens: Kepler" unlock would open it.'}};
+   reach:'Kepler is not on a District campaign’s list of known places. A "place opens: Kepler" unlock would open it.'}};
  const RESIDENT='Stands in the District as a figure but has no TALK prompt (needs a code change before a mission can start with them).';
  const COMPANION='A VR companion: talks only inside a VR experience, not in the walking game (needs a code change to give missions).';
- /* "Go to" places a step can ask for. walk: the walking scene's id (walkingLocation.id); quarter: story.flags.quarter on the street; location: the save location (stations). */
+ /* "Go to" places a step can ask for. walk/area: the walking scene (walkingLocation.id and .area); quarter: story.flags.quarter on the street; location: the save location (stations).
+    (The `enter` of a giver above is different: the key enterWalking() is called with to put a draft player there.) */
  const PLACES=[
-  {id:'district',name:'Inside The Darknet District',walk:'darknet-district',district:true,players:true},
-  {id:'port',name:'The Port (NeoChinatown street)',walk:'sacramento',quarter:'port',district:true,players:true},
-  {id:'oldtown',name:'Old Town (NeoChinatown street)',walk:'sacramento',quarter:'oldtown',district:true,players:true},
-  {id:'avenue',name:'The Avenue (NeoChinatown street)',walk:'sacramento',quarter:'avenue',district:true,players:true},
-  {id:'far-south',name:'Far South (NeoChinatown street)',walk:'sacramento',quarter:'far-south',district:true,players:true},
-  {id:'outskirts',name:'The Outskirts',walk:'sacramento',quarter:'outskirts',district:true,players:true},
-  {id:'milked',name:'Inside Milked',walk:'milked',district:true,players:true},
+  {id:'district',name:'Inside The Darknet District',walk:'neochinatown',area:'interior',district:true,players:true},
+  {id:'port',name:'The Port (NeoChinatown street)',walk:'neochinatown',area:'street',quarter:'port',district:true,players:true},
+  {id:'oldtown',name:'Old Town (NeoChinatown street)',walk:'neochinatown',area:'street',quarter:'oldtown',district:true,players:true},
+  {id:'avenue',name:'The Avenue (NeoChinatown street)',walk:'neochinatown',area:'street',quarter:'avenue',district:true,players:true},
+  {id:'far-south',name:'Far South (NeoChinatown street)',walk:'neochinatown',area:'street',quarter:'far-south',district:true,players:true},
+  {id:'outskirts',name:'The Outskirts',walk:'neochinatown',area:'street',quarter:'outskirts',district:true,players:true},
+  {id:'milked',name:'Inside Milked',walk:'neochinatown',area:'milked',district:true,players:true},
   {id:'temple',name:'Zen Zephyr’s Temple',walk:'temple',district:true,players:true},
   {id:'corporate',name:'The Corporate District',walk:'corporate',district:true,players:true},
   {id:'meridian',name:'Meridian Station',location:'meridian',players:true,note:'after the beginner campaign’s first departure'},
   {id:'vesper',name:'Vesper',location:'vesper',players:true,note:'known to every District campaign; needs a ship'},
-  ...['kepler','rusthaven','foundry','sol-belt','mars','vigil','holdfast','nexus','order-homeworld'].map(id=>({id,name:id,location:id,players:false,note:'only once something opens it (a “place opens” unlock does)'}))];
+  ...Object.entries({'kepler': 'Kepler', 'rusthaven': 'Rusthaven Port', 'foundry': 'Foundry', 'sol-belt': 'Tessaly Belt Anchorage', 'mars': 'Vantor', 'vigil': 'The Vigil', 'holdfast': 'Holdfast', 'nexus': 'The Nexus', 'order-homeworld': 'The Natural Order homeworld'}).map(([id,name])=>({id,name,location:id,players:false,note:'only once something opens it (a “place opens” unlock does)'}))];
  const PLACE=new Map(PLACES.map(p=>[p.id,p]));
  /* What a step can ask for. supported: the game can run it today (draft play and publish). The others are listed so the owner can plan them; they say "needs a code change". */
  const STEP_KINDS=[
@@ -105,13 +106,13 @@
  /* Plain words for the picker and the check screen. */
  function status(g){if(!g)return 'Not a known NPC.';
   if(!g.canTalk)return g.why||'Cannot be talked to in the game today (needs a code change).';
-  const play=g.draft?'A draft with them can be played now'+(g.group===E?' (draft play starts at '+(g.enter&&g.enter.location||'their place')+')':'')+'.':'A draft with them cannot be played yet.';
-  const pub=g.players?'Players can reach them today.':'Players cannot reach them today: '+(g.reach||'their place is not open to a District player.');
+  const at=g.enter&&g.enter.location,play=g.draft?'A draft with them can be played now'+(g.group===E&&at?' (draft play starts at '+((PLACE.get(at)||{}).name||at)+')':'')+'.':'A draft with them cannot be played yet.';
+  const pub=g.players?'Players can reach them today.'+(g.group===E&&g.reach?' '+g.reach:''):'Players cannot reach them today. '+(g.reach||'Their place is not open to a District player.');
   return (g.group===E?'Earlier character: '+g.where+' ':'')+play+' '+pub;}
  /* Which roster ids answer an interaction (action, and the clicked figure's character id for station people). */
  function whoAt(list,action,character){const out=[];for(const g of list)if(g.targets.some(t=>t.action===action&&(!t.character||t.character===character)))out.push(g.id);return out;}
  /* Which places the player is in right now. w: walkingLocation id, quarter: story.flags.quarter, location: state.location, docked: walking or docked at a station. */
- function placesNow({walk,quarter,location,docked}){const out=[];for(const p of PLACES){if(p.walk&&p.walk===walk&&(!p.quarter||p.quarter===quarter))out.push(p.id);else if(p.location&&p.location===location&&docked)out.push(p.id);}return out;}
+ function placesNow({walk,area,quarter,location,docked}){const out=[];for(const p of PLACES){if(p.walk&&p.walk===walk&&(!p.area||p.area===area)&&(!p.quarter||p.quarter===quarter))out.push(p.id);else if(p.location&&p.location===location&&docked)out.push(p.id);}return out;}
  /* Items a "buy" step can name: modules a store actually sells (progression.js modules: not a reward, not switched off, with a vendor). */
  function buyable(modules){return Object.fromEntries(Object.entries(modules||{}).filter(([,m])=>m&&!m.reward&&m.available!==false&&(m.vendor===undefined||m.vendor)).map(([id,m])=>[id,m.name+' ('+((m.vendor||'outfitter')==='admin'?'Admin’s counter':'ship outfitter')+')']));}
  const api={FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,roster,status,whoAt,placesNow,buyable};

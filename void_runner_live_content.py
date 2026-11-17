@@ -455,7 +455,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names')):
         raise DraftError('There is nothing to publish.', 422)
     note = (content.get('note') or '')[:200]
     return _commit(db, uid, expected, 'publish', lambda tx, live, history: (content, None), note)

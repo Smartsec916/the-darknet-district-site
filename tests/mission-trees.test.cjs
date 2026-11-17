@@ -135,3 +135,90 @@ test('re-voice engines: the editor and the server read the same table; no regist
  assert.deepEqual(Object.keys(T.VOICE_ENGINES).sort(),Object.keys(j).sort());
  const reg=JSON.parse(fs.readFileSync(R('tools/audio/npc-voice-registry.json'),'utf8'));assert.equal(reg.npcs.admin.voice,'am_michael','the registry’s Admin entry is unchanged');
 });
+// ---------------- the owner's NEW trees (create, rename, missions, givers, adapter, saves) ----------------
+const G=require(R('void-runner/mission-givers.js'));
+function roster(){const src=sources();return G.roster({registry:src.registry,people:require(R('void-runner/district-people.js')).npcs(),story:src.story.characters,temple:require(R('void-runner/temple.js')).MODEL});}
+const buyable=()=>new Set(Object.keys(G.buyable(require(R('void-runner/progression.js')).modules)));
+function sampleTree(){const d={trees:[]};const t=T.newTree(d.trees,{name:'My Test Tree!',note:'note'});d.trees.push(t);const m=T.addMission(t,{giver:'admin'});m.title='FIRST';Object.assign(m.objectives[0],{kind:'talk',npc:'iris',label:'Talk to Iris'});
+ m.unlocks.push({kind:'flag',id:'testFlag',value:true},{kind:'credits',amount:40},{kind:'location',id:'vigil'});return {d,t,m};}
+test('new trees: draft- ids that never change, renames are display names only, missions and steps can be added, removed and reordered',()=>{
+ const {d,t,m}=sampleTree();assert.equal(t.id,'draft-my-test-tree');assert.equal(m.id,'draft-my-test-tree-m1');assert.equal(t.status,'draft');
+ assert.equal(T.newTree(d.trees,{name:'my test tree'}).id,'draft-my-test-tree-2','a second tree with the same name gets its own id');
+ T.renameTree(d,t.id,'Another name');assert.equal(t.name,'Another name');assert.equal(t.id,'draft-my-test-tree');
+ T.renameTree(d,'vesper-opening','Old opening','Vesper opening and Rook’s first jobs');assert.deepEqual(d.names,{'vesper-opening':'Old opening'});T.renameTree(d,'vesper-opening','Vesper opening and Rook’s first jobs','Vesper opening and Rook’s first jobs');assert.deepEqual(d.names,{});
+ const m2=T.addMission(t,{giver:'iris'}),m3=T.addMission(t);assert.deepEqual(t.missions.map(x=>x.id),[m.id,m2.id,m3.id]);T.removeMission(t,m2.id);const m4=T.addMission(t);assert.equal(m4.id,'draft-my-test-tree-m4','ids are never reused');
+ assert(T.moveMission(t,m4.id,-1));assert.deepEqual(t.missions.map(x=>x.id),[m.id,m4.id,m3.id]);assert(!T.moveMission(t,m.id,-1));
+ const s2=T.addStep(m);assert.equal(s2.id,'step-2');T.moveStep(m,s2.id,-1);assert.equal(m.objectives[0].id,'step-2');assert(T.removeStep(m,'step-2'));assert(!T.removeStep(m,'step-1'),'a mission keeps at least one step');
+ const src=sources(),out=T.build({...src,ownerTrees:d.trees,names:{'vesper-opening':'Old opening'},givers:roster()});
+ assert.equal(out.trees.find(x=>x.id==='vesper-opening').title,'Old opening');assert.equal(out.trees.find(x=>x.id==='vesper-opening').originalTitle,'Vesper opening and Rook’s first jobs');
+ const mine=out.trees.find(x=>x.id===t.id);assert.equal(mine.status,'draft');assert.equal(mine.ownerTree,true);assert.equal(mine.missions[0].giverName,'Admin');assert(mine.npcs.some(n=>n.id==='iris'));
+});
+test('new trees are validated with the Studio model and the real registries; what cannot run is said in plain words',()=>{
+ const {t,m}=sampleTree(),givers=roster(),items=buyable(),r=T.refs(sources());
+ assert.equal(T.validateTree(t,{givers,items,refs:r,studio:S}).filter(i=>i.level==='error').length,0);
+ m.objectives[0].kind='fight';m.unlocks.push({kind:'item',id:'warflying-module',store:'district-store'},{kind:'ship',id:'ship2'},{kind:'location',id:'atlantis'});m.giver='rin-takeda';m.title='';
+ const all=T.validateTree(t,{givers,items,refs:r,studio:S}),txt=all.map(i=>i.text).join('\n');
+ for(const s of ['needs a code change','Unknown place "atlantis"','Cannot be played or published yet','cannot hand over a mission','Title is required'])assert(txt.includes(s),s);
+ const cap=T.capability(t,{givers,items});assert.equal(cap.play,0);assert.equal(cap.draft,true);assert.equal(cap.export,true);assert(cap.skipped[0].why.some(w=>/step 1 \(fight\) needs a code change/.test(w)));
+});
+test('the giver roster lists every registered NPC, grouped, with where they are today; only NPCs with a TALK prompt can give missions',()=>{
+ const g=roster(),by=id=>g.find(x=>x.id===id),reg=sources().registry.npcs;
+ for(const id of Object.keys(reg))if(!reg[id].broadcast)assert(by(id),'registry NPC listed: '+id);
+ for(const n of require(R('void-runner/district-people.js')).npcs())assert(by(n.id),'District resident listed: '+n.id);
+ for(const id of ['admin','iris','bartender','milked-eva','milked-fish','zen-zephyr'])assert.equal(by(id).group,'district',id);
+ for(const id of ['rook','mara','elias','elara','marcus','kess','mercer','iona','sol','nyx'])assert.equal(by(id).group,'earlier',id);
+ assert(by('admin').players&&by('admin').draft);assert(by('rook').draft&&by('rook').players,'Meridian is reached after the beginner campaign');assert(!by('elara').players&&by('elara').draft);
+ assert(!by('rin-takeda').canTalk&&!by('vr-ava').canTalk&&!by('elias').canTalk,'figures, companions and a recording cannot give missions');
+ assert(!g.some(x=>['news-anchor','commercial-announcer'].includes(x.id)),'broadcast voices are not givers');
+ // every TALK target named here exists in the game's own layouts and handlers
+ const files=['neochinatown.js','meridian-interior.js','station-layouts.js','planets.js','milked-integration.js','temple.js','opening-data.js'].map(f=>fs.readFileSync(R('void-runner/'+f),'utf8')).join('\n');
+ for(const x of g)for(const t of x.targets){assert(files.includes("'"+t.action+"'")||files.includes('action:\''+t.action),x.id+' action '+t.action);if(t.character&&!['elara','marcus'].includes(t.character))assert(files.includes("'"+t.character+"'"),x.id+' character '+t.character);}
+ assert.deepEqual(G.placesNow({walk:'neochinatown',area:'street',quarter:'far-south'}),['far-south']);assert.deepEqual(G.placesNow({walk:'neochinatown',area:'interior'}),['district']);assert.deepEqual(G.placesNow({location:'meridian',docked:true}),['meridian']);
+ assert.deepEqual(G.whoAt(g,'talk','rook'),['rook']);assert.deepEqual(G.whoAt(g,'district-bar'),['bartender','nyx-district']);
+});
+test('adapter: a new tree is checked, applied, run step by step (talk, go, buy, deliver, hand-in), pays once, and rolls back',()=>{
+ const e=env(),givers=roster(),items=buyable(),U=require(R('void-runner/universe.js'));e.U=U;e.givers=givers;MC.snapshot(e);
+ const {d,t,m}=sampleTree(),m2=T.addMission(t,{giver:'iris'});m2.title='SECOND';m2.rewards=25;Object.assign(m2.objectives[0],{kind:'go',place:'port',label:'Go to the Port'});
+ const s2=T.addStep(m2,{kind:'buy'});Object.assign(s2,{item:'warflying-module',label:'Buy a WarFlying Module'});const s3=T.addStep(m2,{kind:'deliver'});Object.assign(s3,{npc:'landing-terminal',label:'Deliver',early:[{who:'',text:'TEST: too soon'}]});
+ m2.ending={npc:'iris',place:'district',label:'',say:[{who:'',text:'TEST: thanks'}]};
+ const c=MC.fromDrafts({local:d,givers,items});assert.deepEqual(c.trees[0].missions.map(x=>x.id),[m.id,m2.id]);
+ const ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(U.locations))};
+ assert.deepEqual(MC.check(c,ctx).errors,[]);assert.deepEqual(MC.apply(c,e,ctx).refused,[]);
+ assert.equal(e.Missions.definitions[m2.id].ownerTree,t.id);assert.deepEqual(e.Missions.definitions[m2.id].prerequisites,[m.id]);assert.equal(e.Missions.definitions[m2.id].objectives.at(-1).id,'turn-in');
+ const s=e.C.startDistrictCampaign(e.C.fresh());s.story.flags.podWakePending=false;const credits=s.credits;
+ assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C).mission,null,'mission 2 waits for mission 1');
+ let r=MC.treeEvent(s,e,{type:'talk',npcs:['admin']},e.Missions,e.C);assert(r.offered);assert.equal(s.universe.trackedMission,m.id);
+ r=MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C);assert(r.completed);assert.equal(s.story.flags.mf_testFlag,true);assert.equal(s.credits,credits+40);assert(s.universe.discoveredLocations.includes('vigil'));assert.equal(s.story.flags['mt_'+m.id],true);
+ assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C).offered,true,'Iris offers the second mission');
+ assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['landing-terminal']},e.Missions,e.C).early[0].text,'TEST: too soon','a later step answers with its too-soon line');
+ assert.equal(MC.treeEvent(s,e,{type:'buy',item:'warflying-module'},e.Missions,e.C).objective,null,'steps run in order');
+ assert.equal(MC.treeEvent(s,e,{type:'place',places:['port']},e.Missions,e.C).objective,'step-1');assert.equal(MC.treeEvent(s,e,{type:'buy',item:'warflying-module'},e.Missions,e.C).objective,'step-2');
+ assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['landing-terminal']},e.Missions,e.C).objective,'step-3');assert(MC.treeWants(s,e,['iris']));
+ r=MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C);assert.equal(r.objective,'turn-in');assert(r.completed);assert.equal(r.reward,25);assert.equal(r.lines[0].text,'TEST: thanks');
+ const after=s.credits;assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C).completed,false);assert.equal(s.credits,after,'never paid twice');
+ // a campaign that is not a District campaign is never touched
+ const old=e.C.fresh();assert.equal(MC.treeEvent(old,e,{type:'talk',npcs:['admin']},e.Missions,e.C).mission,null);
+ MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees,[]);
+});
+test('adapter refuses unknown kinds, givers without a TALK prompt, non-draft ids, unknown places and items; only runnable missions are sent',()=>{
+ const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items};
+ const base=()=>MC.clone(MC.fromDrafts({local:sampleTree().d,givers,items}));
+ const bad=[c=>{c.trees[0].missions[0].objectives[0].kind='fight';},c=>{c.trees[0].missions[0].giver='rin-takeda';},c=>{c.trees[0].id='my-tree';},c=>{c.trees[0].missions[0].id='first';},c=>{c.trees[0].missions[0].objectives[0]={id:'s',label:'x',kind:'go',place:'atlantis'};},
+  c=>{c.trees[0].missions[0].objectives[0]={id:'s',label:'x',kind:'buy',item:'communion-scanner'};},c=>{c.trees[0].missions[0].unlocks=[{kind:'item',id:'warflying-module'}];},c=>{c.trees[0].missions[0].unlocks=[{kind:'ship',id:'ship2'}];},c=>{c.trees[0].missions[0].evil=1;},c=>{c.names={beginner:'<b>x</b>'};},c=>{c.trees[0].missions[0].offer=[{who:'darth',text:'x'}];}];
+ for(const f of bad){const c=base();f(c);assert.equal(MC.check(c,ctx).ok,false,f.toString());}
+ const {d,m}=sampleTree();const m2=T.addMission(d.trees[0],{giver:'rin-takeda'});m2.title='CANNOT';const m3=T.addMission(d.trees[0],{giver:'admin'});m3.title='AFTER';Object.assign(m3.objectives[0],{kind:'talk',npc:'admin',label:'x'});
+ const c=MC.fromDrafts({local:d,givers,items});assert.deepEqual(c.trees[0].missions.map(x=>x.id),[m.id],'missions after one that cannot run are held back');
+ const not=MC.notApplied({local:d,givers,items}).join('\n');assert(/CANNOT.*cannot be played or published yet/.test(not));assert(/AFTER.*an earlier mission in this tree cannot run yet/.test(not));
+});
+test('saves: new mission records and flags pass the save rules; a removed tree mission is untracked, never deleted',()=>{
+ const e=env(),{d,m}=sampleTree(),s=e.C.startDistrictCampaign(e.C.fresh());assert(/^[a-z][a-z0-9-]{0,79}$/.test(m.id));assert(/^[a-zA-Z][\w-]{0,63}$/.test(MC.treeFlag(m.id)));assert(/^[a-zA-Z][\w-]{0,63}$/.test('mf_'+'x'.repeat(48)));
+ for(const g of roster())assert(/^[a-zA-Z][\w-]{0,63}$/.test(g.say),'speaker id is a safe story id: '+g.say);
+ s.universe.missions[m.id]={acquired:true,completed:false,objectives:{}};s.universe.trackedMission=m.id;
+ assert.deepEqual(MC.migrate(s,e.B.MISSIONS,e.B.flagOf,[{missions:[{id:m.id}]}]),[],'a live tree mission stays tracked');
+ assert(MC.migrate(s,e.B.MISSIONS,e.B.flagOf,[]).includes('untracked removed mission '+m.id));assert(s.universe.missions[m.id],'the record is kept');
+});
+test('the server reads the same lists (admin inventory) as the editor and the game',()=>{
+ const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).missionEditor,g=roster();
+ assert.deepEqual(Object.keys(inv.givers).sort(),g.map(x=>x.id).sort());for(const x of g)assert.equal(inv.givers[x.id].canTalk,x.canTalk,x.id);
+ assert.deepEqual(inv.places,G.PLACES.map(p=>p.id));assert.deepEqual(inv.items.sort(),[...buyable()].sort());assert.deepEqual(inv.stepKinds,MC.STEP_KINDS);assert.deepEqual(inv.unlockKinds,MC.UNLOCKS);
+});
