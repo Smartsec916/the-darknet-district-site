@@ -87,7 +87,7 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names']):
         return ['The content record has an unknown shape.']
     if content.get('format') != FORMAT or content.get('version') != 1 or type(content.get('version')) is not int:
         err('Unknown content format or version.')
@@ -235,7 +235,150 @@ def check(content, inv=None):
                 seen.add(key)
                 if line['from'] not in text and line['from'].replace("'", "\\'") not in text:
                     err('"%s..." is not a line the game shows.' % line['from'][:40])
+    names = content.get('names')
+    if names is not None:
+        if not isinstance(names, dict) or len(names) > 60:
+            err('Tree names have an unknown shape.')
+        else:
+            for tid, name in names.items():
+                if not isinstance(tid, str) or not ID.match(tid) or not _plain(name, 60):
+                    err('A tree name must be plain text (60 characters at most).')
+    trees = content.get('trees')
+    if trees is not None:
+        check_trees(trees, inv or _json('void_runner_admin_inventory.json'), err)
     return errors
+
+
+DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
+FLAGNAME = re.compile(r'^[a-zA-Z][a-zA-Z0-9_-]{0,47}$')
+
+
+def check_trees(trees, inv, err):
+    """The owner's new mission trees: the same closed rules as void-runner/mission-content.js checkTrees(), against the lists in the admin inventory
+    (NPCs with a TALK prompt, places, items a store sells, travel places). New mission ids start with draft- and become ordinary save records."""
+    me = inv.get('missionEditor') or {}
+    givers = me.get('givers') or {}
+    talk = {k for k, v in givers.items() if v.get('canTalk')}
+    places, items, locations = set(me.get('places') or []), set(me.get('items') or []), set(me.get('locations') or [])
+    if not isinstance(trees, list) or len(trees) > 10:
+        err('New trees have an unknown shape (10 at most).')
+        return
+    tids, mids, total = set(), set(), 0
+
+    def lines(ls, w):
+        if ls is None:
+            return
+        if not isinstance(ls, list) or len(ls) > 12:
+            err(w + ': too many lines.')
+            return
+        for line in ls:
+            if not _keys(line, ['who', 'text']) or not _plain(line.get('text'), 500):
+                err(w + ': a line must be plain text.')
+            elif line.get('who') != 'You' and line.get('who') not in givers:
+                err(w + ': unknown speaker.')
+    for t in trees:
+        if not _keys(t, ['id', 'name', 'note', 'missions']):
+            err('A tree has unknown fields.')
+            continue
+        tw = str(t.get('id'))
+        if not isinstance(t.get('id'), str) or not DRAFT.match(t['id']) or t['id'] in tids:
+            err(tw + ': a new tree id must start with draft- and be unique.')
+        tids.add(t.get('id'))
+        if not _plain(t.get('name'), 60):
+            err(tw + ': the tree needs a name.')
+        note = t.get('note')
+        if note is not None and not (isinstance(note, str) and len(note) <= 300 and not TAGS.search(note)):
+            err(tw + ': the note must be plain text.')
+        ms = t.get('missions')
+        if not isinstance(ms, list) or not 1 <= len(ms) <= 20:
+            err(tw + ': a tree needs 1 to 20 missions.')
+            continue
+        for m in ms:
+            total += 1
+            if not _keys(m, ['id', 'title', 'type', 'giver', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks']):
+                err(tw + ': unknown fields in a mission.')
+                continue
+            w = tw + ' / ' + str(m.get('id'))
+            if not isinstance(m.get('id'), str) or not DRAFT.match(m['id']) or m['id'] in mids:
+                err(w + ': a new mission id must start with draft- and be unique.')
+            mids.add(m.get('id'))
+            if not _plain(m.get('title'), 60):
+                err(w + ': a title is required.')
+            if m.get('type') not in TYPES:
+                err(w + ': unknown mission type.')
+            if m.get('giver') not in talk:
+                err(w + ': the giver must be an NPC the game has a TALK prompt for.')
+            d = m.get('description')
+            if d is not None and not (isinstance(d, str) and len(d) <= 600 and not TAGS.search(d)):
+                err(w + ': the description must be plain text.')
+            r = m.get('rewards')
+            if r is not None and not (type(r) is int and 0 <= r <= 100000):
+                err(w + ': credits must be a whole number between 0 and 100000.')
+            lines(m.get('offer'), w)
+            objs = m.get('objectives')
+            if not isinstance(objs, list) or not 1 <= len(objs) <= 20:
+                err(w + ': a mission needs 1 to 20 steps.')
+                continue
+            oids = set()
+            for o in objs:
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early']):
+                    err(w + ': unknown fields in a step.')
+                    continue
+                ow = w + ' / ' + str(o.get('id'))
+                if not isinstance(o.get('id'), str) or not ID.match(o['id']) or o['id'] == 'turn-in' or o['id'] in oids:
+                    err(ow + ': bad or duplicate step id.')
+                oids.add(o.get('id'))
+                if not _plain(o.get('label'), 500):
+                    err(ow + ': the step needs a label.')
+                kind = o.get('kind')
+                if kind not in (me.get('stepKinds') or []):
+                    err(ow + ': the game cannot run this kind of step yet.')
+                elif kind in ('talk', 'deliver') and o.get('npc') not in talk:
+                    err(ow + ': unknown NPC.')
+                elif kind == 'go' and o.get('place') not in places:
+                    err(ow + ': unknown place.')
+                elif kind == 'buy' and o.get('item') not in items:
+                    err(ow + ': not an item a store sells.')
+                lines(o.get('say'), ow)
+                lines(o.get('early'), ow)
+            e = m.get('ending')
+            if e is not None:
+                if not _keys(e, ['npc', 'place', 'label', 'say']):
+                    err(w + ': the ending has unknown fields.')
+                else:
+                    if e.get('npc') is not None and e['npc'] not in talk:
+                        err(w + ': unknown hand-in NPC.')
+                    if e.get('place') is not None and not isinstance(e['place'], str):
+                        err(w + ': unknown ending place.')
+                    if e.get('label') is not None and not _plain(e['label'], 500):
+                        err(w + ': the hand-in label must be plain text.')
+                    lines(e.get('say'), w)
+            un = m.get('unlocks')
+            if un is not None:
+                if not isinstance(un, list) or len(un) > 20:
+                    err(w + ': too many unlocks.')
+                    continue
+                for u in un:
+                    if not _keys(u, ['kind', 'id', 'amount', 'value', 'when']) or u.get('kind') not in (me.get('unlockKinds') or []):
+                        err(w + ': the game cannot apply this kind of unlock yet.')
+                        continue
+                    if u.get('when') is not None and u['when'] != 'complete' and u['when'] not in oids:
+                        err(w + ': an unlock names a step that does not exist.')
+                    k = u['kind']
+                    if k == 'credits' and not (type(u.get('amount')) is int and 0 < u['amount'] <= 100000):
+                        err(w + ': credits must be a whole number between 1 and 100000.')
+                    if k == 'flag':
+                        v = u.get('value')
+                        if not isinstance(u.get('id'), str) or not FLAGNAME.match(u['id']):
+                            err(w + ': bad story flag name.')
+                        if not (type(v) is bool or (isinstance(v, str) and len(v) <= 200 and not TAGS.search(v)) or (type(v) is int and abs(v) <= 9007199254740991)):
+                            err(w + ': bad story flag value.')
+                    if k == 'location' and u.get('id') not in locations:
+                        err(w + ': unknown place.')
+                    if k == 'ship' and u.get('id') not in (me.get('ships') or []):
+                        err(w + ': only the courier hull can be given.')
+    if total > 40:
+        err('New trees hold more than 40 missions.')
 
 
 # ---------------------------------------------------------------- versions

@@ -8,6 +8,8 @@
 (function(root){
  'use strict';
  const STATUS={active:'ACTIVE · in the current District game',historical:'HISTORICAL · not reachable in the current District game',draft:'DRAFT · not in the game'};
+ const MC_=()=>typeof module!=='undefined'&&module.exports?require('./mission-content.js'):root.VoidMissionContent;
+ const G_=()=>typeof module!=='undefined'&&module.exports?require('./mission-givers.js'):root.VoidMissionGivers;
  const DOCS={'05':'design doc 05 (Admin, the Communion and the Natural Order)','06':'design doc 06 (Iris, return for payment)','07':'design doc 07 (the cargo recipients)',
   '09':'design doc 09 (Iris’s follow-up contracts)','10':'design doc 10 (the faction homeworlds)','12':'design doc 12 (Admin introduces WarFlying)'};
  const lockLabel=doc=>'David’s script — locked ('+DOCS[doc]+')';
@@ -159,8 +161,22 @@
    for(const [who,d] of Object.entries(MK.DIALOGUE||{})){const id=(MK.MODELS&&MK.MODELS[who]&&MK.MODELS[who].id)||who;for(const t of d.greeting||[])extraLines.push(line(id,t,{kind:'outside',source:'void-runner/milked.js',editable:'local',group:'Greetings, idle and “come back later” lines'}));}}
   // ---- drafts ----
   if(studio){const added=studio.filter(m=>!B.some(x=>x.id===m.id));if(added.length)trees.push({id:'draft-studio',title:'Your draft: new beginner missions',status:'draft',statusText:STATUS.draft,engine:'beginner',source:'Developer Studio draft (this browser)',note:'Missions you added in the Studio draft. They are part of the beginner campaign tree above too.',missions:bMissions.filter(m=>added.some(a=>a.id===m.id)).map(m=>({...m,tree:'draft-studio'}))});}
+  // ---- the owner's NEW trees (local draft; ids start with draft-, never change) ----
+  const roster=src.givers||G_().roster({registry:src.registry,people:src.people,story:src.story&&src.story.characters,temple:src.temple}),gname=id=>(roster.find(g=>g.id===id)||{}).name||id||'';
+  for(const ot of src.ownerTrees||[]){const ms=(ot.missions||[]).map((m,i)=>{
+    const steps=(m.objectives||[]).map(o=>({id:o.id,label:o.label||'',kind:o.kind,event:'',requires:[],where:o.kind==='go'?((G_().PLACE.get(o.place)||{}).name||o.place||''):o.npc?gname(o.npc):o.item||'',interaction:'',
+     lines:(o.say||[]).map((l,k)=>line(l.who||o.npc||m.giver,l.text||'',{key:'tree:'+m.id+'/'+o.id+'/say/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true})),
+     early:(o.early||[]).map((l,k)=>line(l.who||o.npc||m.giver,l.text||'',{key:'tree:'+m.id+'/'+o.id+'/early/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true}))}));
+    const e=m.ending||{};
+    return {key:'tree:'+m.id,id:m.id,tree:ot.id,engine:'tree',title:m.title||'(no name yet)',type:m.type||'side',description:m.description||'',giver:m.giver||'',giverName:gname(m.giver),start:'',destination:'',credits:Number(m.rewards)||0,draftOnly:true,steps,
+     offer:(m.offer||[]).map((l,k)=>line(l.who||m.giver,l.text||'',{key:'tree:'+m.id+'/offer/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true})),scenes:[],
+     ending:{text:e.npc?'Ends when the player hands in to '+gname(e.npc)+(e.place?' at '+((G_().PLACE.get(e.place)||{}).name||e.place):''):'Ends when its last step is done',next:ot.missions[i+1]?[ot.missions[i+1].id]:[],branches:(m.choices||[]).map(c=>({text:'Choice: '+(c.label||'(no text)')+(c.next?' → '+c.next:' → not decided'),draftOnly:true}))},
+     unlocks:(m.unlocks||[]).map(u=>({...u,when:u.when||'complete',name:u.kind==='credits'?u.amount+' credits':u.kind==='flag'?'story flag mf_'+u.id:u.id||u.kind,source:'your new tree (draft)'})),order:i,server:null,raw:m};});
+   trees.push({id:ot.id,title:ot.name||ot.id,status:'draft',statusText:STATUS.draft,engine:'tree',source:'Your new tree (this browser’s draft; id '+ot.id+')',note:ot.note||'',ownerTree:true,missions:ms});}
   if(Array.isArray(src.serverDrafts)&&src.serverDrafts.length)trees.push({id:'draft-server',title:'Your private server drafts',status:'draft',statusText:STATUS.draft,engine:'server',source:'Stage 3B private drafts',note:'Drafts saved on the server. Open them in the Content atlas (admin/void-runner.html) for full editing.',
    missions:src.serverDrafts.map((d,i)=>({key:'server:'+d.id,id:d.id,tree:'draft-server',engine:'server',title:d.title||d.id,type:d.kind||'draft',description:'Private server draft r'+(d.revision||0)+'.',giver:'',giverName:'',credits:0,steps:[],offer:[],scenes:[],ending:{text:'',next:[],branches:[]},unlocks:[],order:i,server:null}))});
+  // ---- display names (renames never change ids) ----
+  for(const t of trees){t.originalTitle=t.title;const n=src.names&&src.names[t.id];if(typeof n==='string'&&n.trim()&&!t.ownerTree)t.title=n.trim();}
   // ---- NPCs per tree ----
   for(const t of trees){const npcs=new Map();const add=(id,role,m)=>{if(!id||id==='player')return;const n=npcs.get(id)||{id,name:npcName(id),roles:new Set(),missions:new Set(),voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,engine:VOICE_ENGINES[id]||(reg[id]?{engine:'kokoro',voice:reg[id].voice}:null),registered:!!reg[id]};n.roles.add(role);n.missions.add(m.id);npcs.set(id,n);};
    for(const m of t.missions){add(m.giver,'gives the mission',m);if(m.target)add(m.target,'you deliver to them',m);for(const s of m.steps){if(s.interaction&&TARGETS[s.interaction])add(TARGETS[s.interaction],'a step happens with them',m);for(const l of [...s.lines,...s.early])add(l.who,'speaks',m);}for(const l of m.offer)add(l.who,'speaks',m);for(const sc of m.scenes)for(const l of sc.lines)add(l.who,'speaks',m);}
@@ -195,7 +211,7 @@
    if(l.adapter==='code-change'&&to!==l.text)out.push({level:'warn',text:'“'+to.slice(0,40)+'…”: can be edited after the next update (needs a code change). Saved as a draft and exported for Claude or Codex.'});}
   return out;
  }
- function lineIndex(built){const idx=new Map();for(const t of built.trees)for(const m of t.missions)for(const l of allLines(m))if(l.ref&&l.kind!=='beginner'&&l.kind!=='design')idx.set(l.ref,l);for(const n of built.npcs||[])for(const l of n.outside)if(!idx.has(l.ref))idx.set(l.ref,l);return idx;}
+ function lineIndex(built){const idx=new Map();for(const t of built.trees)for(const m of t.missions)for(const l of allLines(m))if(l.ref&&l.kind!=='beginner'&&l.kind!=='design'&&l.kind!=='tree')idx.set(l.ref,l);for(const n of built.npcs||[])for(const l of n.outside)if(!idx.has(l.ref))idx.set(l.ref,l);return idx;}
  function counts(trees){const c={trees:trees.length,missions:0,active:0,historical:0,draft:0,lines:0,locked:0};for(const t of trees){c[t.status]++;c.missions+=t.missions.length;for(const m of t.missions){const ls=allLines(m);c.lines+=ls.length;c.locked+=ls.filter(l=>l.locked).length;}}return c;}
  function allLines(m){const seen=new Set(),out=[];for(const l of [...m.offer,...m.steps.flatMap(s=>[...s.lines,...s.early]),...m.scenes.flatMap(s=>s.lines)])if(!seen.has(l.key)){seen.add(l.key);out.push(l);}return out;}
  /* Unlock facts for registry missions, read from campaign.js data (never invented): places discovered on accepting, payments, story flags, follow-up missions and rewards. */
@@ -237,6 +253,48 @@
    if(u.when&&u.when!=='complete'&&!mission.steps.some(s=>s.id===u.when))e('Unlock timing "'+u.when+'" is not a step of this mission.');}
   return out;
  }
- const api={STATUS,ARCS,SCENES,FILES,TALK_FILES,VOICE_ENGINES,DOCS,build,validateLines,lineIndex,sceneLines,allLines,refs,validateEdit,hash,lockLabel};
+ // ---------------------------------------------------------------- the owner's NEW trees (pure operations on the local draft; ids are made once and never change)
+ const slug=s=>String(s||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,24).replace(/-+$/,'')||'tree';
+ const blank=who=>({who:who||'',text:''});
+ /* A new tree: draft-<name>, unique among the trees given. */
+ function newTree(trees,{name,note}={}){const base='draft-'+slug(name);let id=base,n=2;while((trees||[]).some(t=>t.id===id))id=base+'-'+n++;return {id,name:String(name||'').trim().slice(0,60),note:String(note||'').trim().slice(0,300),status:'draft',seq:0,missions:[]};}
+ /* A new mission at the end of the tree (id <tree id>-m<n>, never reused), with one empty step. */
+ function addMission(tree,{giver}={}){tree.seq=(tree.seq||0)+1;const id=(tree.id+'-m'+tree.seq).slice(0,60);
+  const m={id,title:'',type:'side',giver:giver||'',description:'',rewards:0,seq:0,offer:[blank(giver)],objectives:[],ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};addStep(m);tree.missions.push(m);return m;}
+ function addStep(m,{kind='talk'}={}){m.seq=(m.seq||0)+1;let id='step-'+m.seq;while(m.objectives.some(o=>o.id===id)){m.seq++;id='step-'+m.seq;}const o={id,label:'',kind,npc:'',place:'',item:'',say:[blank('')],early:[]};m.objectives.push(o);return o;}
+ const move=(list,i,dir)=>{const j=i+dir;if(i<0||j<0||j>=list.length)return false;[list[i],list[j]]=[list[j],list[i]];return true;};
+ function moveMission(tree,id,dir){return move(tree.missions,tree.missions.findIndex(m=>m.id===id),dir);}
+ function moveStep(m,id,dir){return move(m.objectives,m.objectives.findIndex(o=>o.id===id),dir);}
+ function removeMission(tree,id){const i=tree.missions.findIndex(m=>m.id===id);if(i<0)return false;tree.missions.splice(i,1);for(const m of tree.missions)for(const c of m.choices||[])if(c.next===id)c.next='';return true;}
+ function removeStep(m,id){if(m.objectives.length<2)return false;const i=m.objectives.findIndex(o=>o.id===id);if(i<0)return false;m.objectives.splice(i,1);for(const u of m.unlocks||[])if(u.when===id)u.when='complete';return true;}
+ /* Renames a tree. A new tree keeps its name on the tree itself; an existing tree gets a display name in names{} (removed when it matches the original). Ids never change. */
+ function renameTree(draft,id,name,original){const n=String(name||'').slice(0,60);const t=(draft.trees||[]).find(x=>x.id===id);if(t){t.name=n;return true;}
+  draft.names=draft.names||{};if(!n.trim()||n.trim()===original)delete draft.names[id];else draft.names[id]=n;return true;}
+ /* Checks one new tree: the Studio's mission model (ids, names, types, order, choices), the unlock validator (real items, ships, places, stores), the adapter's own check,
+    and whether each mission can run in the game today. ctx: {givers (roster), refs (refs()), items (Set), studio (StudioModel)}. Returns [{level,where,text}]. */
+ function validateTree(tree,ctx={}){
+  const out=[],add=(level,where,text)=>out.push({level,where,text}),MC=MC_(),G=G_(),givers=ctx.givers||[],g=id=>givers.find(x=>x.id===id);
+  if(!String(tree.name||'').trim())add('error',tree.id,'The tree needs a name.');if(!tree.missions.length)add('warn',tree.id,'No missions yet: press + NEW MISSION.');
+  if(ctx.studio){const proj=tree.missions.map((m,i)=>({id:m.id,title:m.title,type:m.type,giver:(g(m.giver)||{}).name||m.giver,description:m.description,rewards:m.rewards,prerequisites:i?[tree.missions[i-1].id]:[],choices:m.choices,
+    objectives:m.objectives.map((o,k)=>({id:o.id,label:o.label,on:'talk-admin',requires:k?[m.objectives[k-1].id]:[]}))}));
+   for(const i of ctx.studio.validate(proj,{npcs:new Set(givers.map(x=>x.name))}))if(!/store items|completion event/.test(i.text))add(i.level,i.where,i.text);}
+  for(const m of tree.missions){const w=m.title||m.id;
+   if(!m.giver)add('error',w,'Choose who gives this mission.');else{const x=g(m.giver);if(!x)add('error',w,'"'+m.giver+'" is not a known NPC.');else if(!x.players)add('warn',w,x.name+': '+G.status(x));}
+   for(const o of m.objectives){const st=G.STEP_KINDS.find(k=>k.id===o.kind);if(!st)add('error',w+' / '+o.id,'Unknown kind of step.');else if(!st.supported)add('warn',w+' / '+o.id,'“'+st.name+'” needs a code change: the game cannot run it yet.');
+    if(o.kind==='go'&&o.place&&!G.PLACE.has(o.place))add('error',w+' / '+o.id,'Unknown place "'+o.place+'".');if(o.kind==='buy'&&o.item&&ctx.items&&!ctx.items.has(o.item))add('error',w+' / '+o.id,'"'+o.item+'" is not sold in any store.');
+    for(const who of [o.npc].filter(Boolean)){const x=g(who);if(!x)add('error',w+' / '+o.id,'"'+who+'" is not a known NPC.');else if(!x.players&&x.canTalk)add('warn',w+' / '+o.id,x.name+': '+G.status(x));}}
+   if(ctx.refs){const vu=(m.unlocks||[]).filter(u=>['item','ship','location','flag'].includes(u.kind)).map(u=>({...u,when:u.when||'complete'}));for(const i of validateEdit({steps:m.objectives.map(o=>({id:o.id}))},{unlocks:vu},ctx.refs))add(i.level,w,i.text);}
+   for(const u of m.unlocks||[]){if(u.kind==='credits'&&!(Number.isInteger(u.amount)&&u.amount>0&&u.amount<=100000))add('error',w,'Credits must be a whole number between 1 and 100000.');
+    const k=G.UNLOCK_KINDS.find(x=>x.id===u.kind);if(!k)add('error',w,'Unknown kind of unlock "'+u.kind+'".');else if(!k.supported||(u.kind==='ship'&&u.id!=='starter'))add('warn',w,(k.name)+': needs a code change. '+(k.why||k.note||''));}
+   if((m.choices||[]).length)add('warn',w,'Branches are a design note: the game does not offer mission choices yet (needs a code change).');
+   const empty=[...m.offer,...m.objectives.flatMap(o=>[...o.say,...o.early]),...(m.ending.say||[])].filter(l=>!String(l.text||'').trim()).length;if(empty)add('warn',w,empty+' empty line(s): placeholders, not spoken. Write the lines yourself.');
+   const b=MC.treeBlockers(m,givers,ctx.items);if(b.length)add('warn',w,'Cannot be played or published yet: '+b.join('; ')+'.');}
+  const c=MC.treesContent([tree],{givers,items:ctx.items});if(c.trees.length){const chk=MC.check({format:MC.FORMAT,version:MC.VERSION,trees:c.trees},{givers:new Map(givers.map(x=>[x.id,x])),places:new Set(G.PLACES.map(p=>p.id)),items:ctx.items,locations:ctx.refs?new Set(Object.keys(ctx.refs.locations)):null});for(const e of chk.errors)add('error','check',e);}
+  return out;}
+ /* What this tree can do today, in plain words (the editor shows it on every new tree). */
+ function capability(tree,ctx={}){const MC=MC_(),givers=ctx.givers||[],c=MC.treesContent([tree],{givers,items:ctx.items}),runs=c.trees[0]?c.trees[0].missions.length:0,g=id=>givers.find(x=>x.id===id);
+  const unreachable=[...new Set(tree.missions.flatMap(m=>MC.treeTouches(m).npcs))].map(g).filter(x=>x&&x.canTalk&&!x.players);
+  return {draft:true,export:true,play:runs,publish:runs,total:tree.missions.length,skipped:c.skipped,unreachable:unreachable.map(x=>({id:x.id,name:x.name,status:G_().status(x)}))};}
+ const api={STATUS,ARCS,SCENES,FILES,TALK_FILES,VOICE_ENGINES,DOCS,build,validateLines,lineIndex,sceneLines,allLines,refs,validateEdit,hash,lockLabel,newTree,addMission,addStep,moveMission,moveStep,removeMission,removeStep,renameTree,validateTree,capability,slug};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionTrees=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
