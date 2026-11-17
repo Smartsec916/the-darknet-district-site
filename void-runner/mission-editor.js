@@ -17,7 +17,7 @@
  const server={roles:null,live:null,queue:null,drafts:null,note:{}};
  // ---------------------------------------------------------------- drafts (saved on every edit)
  /* The draft. The main storyline is always in it: until David edits it, the shipped tree (main-story.js) is shown; his first edit saves his copy. */
- function local(){const raw=read(KEY,null),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[]};
+ function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[]};
   const S=MS();if(S&&!d.trees.some(t=>t.id===S.TREE_ID))d.trees.unshift(S.trees()[0]);return d;}
  // ---- mission numbers: the ledgers (shipped, published), every number in the draft, and numbers retired in the draft are all "used"; the next free one is one past them all.
  const serverNumbers=()=>Object.fromEntries(Object.entries(server.live?.numbers||{}).map(([k,v])=>[Number(k),v]));
@@ -26,7 +26,41 @@
  const numLabel=(n,t)=>MS()?MS().label(n,t):t;
  /* Missions made before numbers existed get the next free numbers, in order (once, saved). */
  function numberAll(){const d=local();let changed=false;for(const t of d.trees)for(const m of t.missions)if(!Number.isInteger(m.number)){m.number=nextFree(d);changed=true;}if(changed)saveLocal(d);return changed;}
- function saveLocal(d){d.version=1;d.savedAt=new Date().toISOString();write(KEY,d);}
+ function saveLocal(d){d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now.';else storageProblem='';scheduleServer();}
+ /* Drafts are never discarded silently: a draft this version cannot read is copied to a backup key first, and the editor says so. */
+ let storageProblem='',backupNote='';
+ function readDraft(){let raw=null;try{raw=root.localStorage.getItem(KEY);}catch{return null;}if(raw==null)return null;
+  try{const d=JSON.parse(raw);if(d&&typeof d==='object'&&d.version===1)return d;}catch{}
+  const bk=KEY+'.backup-'+Date.now();try{if(!Object.keys(root.localStorage).some(k=>k.startsWith(KEY+'.backup-')&&root.localStorage.getItem(k)===raw))root.localStorage.setItem(bk,raw);}catch{}
+  backupNote='A draft in this browser could not be read; it was kept unchanged under '+bk+' (nothing was deleted). EXPORT it from the browser\'s storage or ask Claude/Codex to restore it.';return null;}
+ // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; David, 17 Nov 2026: a cleared browser must not lose his trees)
+ const WS='mission-editor-workspace',ws={state:'unknown',revision:0,savedAt:null,timer:0,conflict:null,note:''};
+ const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
+ const wsDoc=b=>({schemaVersion:1,kind:'workspace',adapter:'mission-editor',sourceKey:WS,baseRevision:0,data:{id:WS,title:'Mission Editor workspace',bundle:b}});
+ const wsOn=()=>!!(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled);
+ function scheduleServer(){if(!wsOn()||ws.conflict)return;clearTimeout(ws.timer);ws.state='pending';showServerState();ws.timer=setTimeout(()=>{saveServer();},5000);}
+ async function saveServer(){clearTimeout(ws.timer);if(!wsOn()||ws.conflict)return;ws.state='saving';showServerState();
+  try{const rec=await call('developer/drafts/'+WS,{revision:ws.revision,document:wsDoc(bundle())});ws.revision=rec.revision;ws.savedAt=Date.now();ws.state='saved';ws.note='';}
+  catch(e){if(e.status===409){await loadServer(true);}else if(e.status===413){ws.state='too-big';ws.note='Your draft is too big for the server copy (96 KB at most). It is still saved in this browser; EXPORT MY EDITS keeps a file.';}else{ws.state='off';}}
+  showServerState();}
+ const treesOf=b=>(b&&b.trees||[]).filter(t=>!t.shipped).length;
+ /* On open: an empty (or older) browser draft takes the server copy; a newer server copy over a browser draft with content is never applied silently: both are shown. */
+ async function loadServer(afterConflict){if(!wsOn()){ws.state='off';return;}
+  let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}ws.state='off';return;}
+  ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
+  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length);
+  const serverAt=Date.parse(b.savedAt||'')||0,localAt=Date.parse((raw&&raw.savedAt)||'')||0;
+  if(empty&&!afterConflict){useServer(b,rec.updatedAt);return;}
+  if(serverAt>localAt||afterConflict){ws.conflict={server:b,serverAt,local:raw,localAt,revision:rec.revision};ws.state='conflict';return;}
+  ws.savedAt=(rec.updatedAt||0)*1000;ws.state='saved';if(localAt>serverAt)scheduleServer();}
+ function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
+  ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;}
+ function serverLine(){if(ws.conflict){const c=ws.conflict;return 'Your drafts on the server and in this browser differ.';}
+  return ws.state==='saved'?'Saved on the server · '+new Date(ws.savedAt||Date.now()).toLocaleTimeString():ws.state==='pending'||ws.state==='saving'?'Saving to the server…':ws.state==='too-big'?ws.note:ws.state==='none'?'Saving to the server…':'Server copy not available — drafts are only in this browser';}
+ function showServerState(){const n=host&&host.querySelector('[data-me-server-copy]');if(n){n.textContent=serverLine();n.className='me-small '+(ws.state==='saved'?'me-ok':'me-warn');}}
+ function conflictBox(){const c=ws.conflict,box=el('section','','me-check',{'data-me-conflict':'1'});box.append(el('h4','Two copies of your drafts'),el('p','The server copy and this browser’s copy differ. Nothing was overwritten. Choose which one to keep; the other stays readable as an older server revision or in EXPORT MY EDITS.','me-warn'));
+  const r=el('div','','me-row');r.append(btn('USE THE SERVER COPY (saved '+new Date(c.serverAt||0).toLocaleString()+', '+treesOf(c.server)+' tree(s) of yours)',()=>{exportEdits();useServer(c.server,c.serverAt/1000);ws.revision=c.revision;draw();},'',{'data-me-use-server':'1'}),
+   btn('KEEP THIS BROWSER’S COPY (saved '+(c.localAt?new Date(c.localAt).toLocaleString():'unknown')+', '+treesOf(c.local)+' tree(s) of yours)',()=>{ws.conflict=null;ws.revision=c.revision;status='Kept this browser’s copy; it replaces the server copy (the older one stays as a server revision).';saveServer();draw();},'',{'data-me-keep-local':'1'}));box.append(r);return box;}
  const shipped=()=>root.VoidLiveContent?.env?.shipped||{beginner:root.VoidBeginner?.MISSIONS||[],registry:root.VoidMissions?.definitions||{}};
  function studio(){const d=read(STUDIO,null);return d&&Array.isArray(d.missions)?d:null;}
  function studioEnsure(){return studio()||{missions:clone(shipped().beginner),summary:'',savedAt:new Date().toISOString()};}
@@ -45,7 +79,7 @@
   givers=G().roster({registry,people:src.people,story:root.VoidStoryContent?.characters||{},temple:src.temple});src.givers=givers;items=new Set(Object.keys(G().buyable(src.modules)));
   clipKeys=new Set([...Object.values(manifest?.lines||{}),...Object.values(extraManifest?.lines||{})].map(l=>l.speaker+'|'+l.text));
   rebuild();refs=T().refs(src);
-  await refreshServer();if(numberAll())rebuild();
+  await refreshServer();await loadServer();if(numberAll())rebuild();else if(stale)rebuild();
  }
  function rebuild(){const d=local();built=T().build({...src,studioDraft:studio(),serverDrafts:server.drafts,ownerTrees:d.trees,names:d.names});index=T().lineIndex(built);stale=false;}
  async function call(path,body){const r=typeof VoidDevTools!=='undefined'?VoidDevTools.request:null;if(!r)throw new Error('Sign in again.');return r(path,body);}
@@ -55,7 +89,7 @@
   // Lines recorded since they were queued (their clip now ships with the game) are marked done in the queue.
   const shipped_=(server.queue?.items||[]).filter(q=>q.status==='queued'&&q.engine==='kokoro'&&clipKeys.has(q.who+'|'+q.text)).map(q=>q.id);
   if(shipped_.length){try{server.queue=await call('developer/revoice/done',{ids:shipped_});}catch{}}
-  if(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled){try{server.drafts=(await call('developer/drafts')).drafts||[];}catch{server.drafts=null;}}
+  if(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled){try{server.drafts=((await call('developer/drafts')).drafts||[]).filter(x=>x.id!==WS);}catch{server.drafts=null;}}
   rebuild();
  }
  // ---------------------------------------------------------------- what is shown and how edits are stored
@@ -87,6 +121,11 @@
   if(!host||!built)return;if(stale)rebuild();const keepY=host.scrollTop;host.innerHTML='';host.append(headNode());
   const root_=el('div','','me-root',{id:'me-root'});host.append(root_);
   root_.append(howBox());
+  {const sc=el('p','','me-small',{'data-me-server-copy':'1',role:'status'});root_.append(sc);setTimeout(showServerState,0);}
+  for(const t of [storageProblem,backupNote])if(t)root_.append(el('p',t,'me-bad',{'data-me-storage-problem':'1'}));
+  if(ws.conflict)root_.append(conflictBox());
+  // One-time note (17 Nov 2026): David made his own tree "Awakening" before Mission 001 shipped. It is never deleted or merged for him.
+  if(local().trees.some(t=>t.id==='draft-awakening')&&!read('mission-editor-note-awakening',false)){const n=el('div','','me-check',{'data-me-awakening-note':'1'});n.append(el('p','Mission 001 — Awakening is now in Main storyline. Your draft \'Awakening\' is separate; delete it if you no longer need it.'),btn('OK',()=>{write('mission-editor-note-awakening',true);draw();}));root_.append(n);}
   const modes=el('nav','','me-modes',{'aria-label':'Mission Editor views'});for(const [id,name] of [['trees','Mission trees'],['npcs','All lines for an NPC'],['publish','Publish & versions']]){const b=btn(name,()=>{ui.mode=id;ui.check=null;draw();},ui.mode===id?'on':'',{'data-me-mode':id,'aria-pressed':String(ui.mode===id)});modes.append(b);}
   root_.append(modes);if(status)root_.append(el('p',status,'me-status',{role:'status',id:'me-status'}));
   if(ui.mode==='npcs')npcView(root_);else if(ui.mode==='publish')publishView(root_);else treeView(root_);
@@ -209,9 +248,9 @@
   card.append(field('Description (the V1 Mission Log shows it)',m.description,v=>ed(x=>{x.description=v.slice(0,600);}),true,{placeholder:'(your words)'}));
   {const g2=el('div','','me-grid');g2.append(field('Type (shown in the Mission Log)',m.category||'',v=>ed(x=>{x.category=v.slice(0,60);}),false,{'data-me-field':'category',placeholder:'e.g. Main storyline / Introduction',maxlength:'60'}),field('Objective (the Mission Log headline)',m.objective||'',v=>ed(x=>{x.objective=v.slice(0,200);}),false,{'data-me-field':'objective',placeholder:'(empty: the current step)',maxlength:'200'}));card.append(g2);
    const lr=el('div','','me-row');lr.append(el('b','Location'),placeSelect(m.location||'',v=>ed(x=>{x.location=v;}),'Mission location'));card.append(lr);}
-  card.append(startPanel(t,m,ed));
   const gr=el('div','','me-row');gr.append(el('b','Giver'),npcSelect(m.giver,v=>ed(x=>{x.giver=v;},true),{label:'Who gives this mission',attrs:{'data-me-giver':m.id}}));const gv=giver(m.giver);
   gr.append(el('span',gv?G().status(gv):'Choose who gives it.',gv&&gv.draft&&gv.players?'me-ok':'me-warn',{'data-me-giver-status':m.id}));card.append(gr);
+  card.append(startPanel(t,m,ed));   // right under Giver: how this mission starts
   const ty=el('select','','',{'aria-label':'Mission type'});for(const x of SM().TYPES)ty.append(new Option(x,x));ty.value=m.type||'side';ty.onchange=()=>ed(x=>{x.type=ty.value;});const tr=el('div','','me-row');tr.append(el('span','Type','me-small'),ty);card.append(tr);
   if(!(m.start&&m.start.how==='notification'))card.append(linesEditor(t,m,m.offer,'offer',m.giver,'What '+(gv?gv.name:'the giver')+' says when offering it'));
   card.append(el('h4','What needs to be done (steps, in order)'));
@@ -240,11 +279,11 @@
     channel (Messages, Comms call, notification only), sender, header, body, and the trigger (first pod exit, after a mission, entering a place, a story flag). */
  function startPanel(t,m,ed){const st=m.start||{how:'person'},by=st.how==='notification',box=el('section','','me-end me-start',{'data-me-start':m.id});box.append(el('h4','How this mission starts'));
   const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
-  const how=el('div','','me-row');for(const h of G().START_HOW){const lab=el('label','','me-radio');const r=el('input','','',{type:'radio',name:'me-how-'+m.id,value:h.id,'data-me-start-how':h.id});r.checked=(st.how||'person')===h.id;
-   r.onchange=()=>ed(x=>{x.start=h.id==='person'?{how:'person'}:{how:'notification',channel:'messages',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{})};},true);lab.append(r,el('span',h.name));how.append(lab);}box.append(how);
-  if(!by){box.append(el('p','The giver offers it when the player talks to them (their lines are below). Then it is in the Mission Log and tracked.','me-small'));return box;}
-  const ch=el('select','','',{'aria-label':'Channel','data-me-start-channel':m.id});for(const c of G().START_CHANNELS)ch.append(new Option(c.name,c.id));ch.value=st.channel||'messages';ch.onchange=()=>set(x=>{x.channel=ch.value;},true);
-  const r1=el('div','','me-row');r1.append(el('b','Channel'),ch,el('span',(G().START_CHANNELS.find(c=>c.id===ch.value)||{}).note||'','me-small'));box.append(r1);
+  // One plain choice (David): Starts: In person / By Messages / By Comms call / Notification only.
+  const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
+  sel.value=by?(st.channel||'messages'):'person';sel.onchange=()=>ed(x=>{const v=sel.value;x.start=v==='person'?{how:'person'}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};},true);
+  how.append(el('b','Starts:'),sel,el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):'The giver offers it when the player talks to them.','me-small'));box.append(how);
+  if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'));return box;}
   const r2=el('div','','me-row');r2.append(el('b','Sender'),npcSelect(st.from||'',v=>set(x=>{x.from=v;},true),{label:'Sender',attrs:{'data-me-start-from':m.id}}));box.append(r2);
   const hl=el('label','','me-field');hl.append(el('span','Header'+(st.channel==='notify'?' (optional)':'')));const hi=el('input','','',{'aria-label':'Header',maxlength:'80','data-me-start-header':m.id,placeholder:'e.g. ADMIN // INCOMING MESSAGE'});hi.value=st.header||'';hi.oninput=()=>set(x=>{x.header=hi.value.slice(0,80);});hl.append(hi);
   const tl=el('label','','me-field');tl.append(el('span','Body'));const ta=el('textarea','','',{'aria-label':'Body',rows:'3',maxlength:'500','data-me-start-text':m.id,placeholder:'(your words)'});ta.value=st.text||'';ta.oninput=()=>set(x=>{x.text=ta.value.slice(0,500);});tl.append(ta);box.append(hl,tl);
@@ -459,7 +498,7 @@
   const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
   const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first: '+c.errors.slice(0,4).join(' · ');draw();return;}
   const not=MC().notApplied({studio:studio(),local:local(),givers,items});
-  const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);
+  const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);if(wsOn())await saveServer();   // the server copy is up to date before the page reloads
   write(RETURN,{tree:f.tree.id,mission:m.key,step:stepId||null,at:Date.now()},root.sessionStorage);
   const env=root.VoidLiveContent?.env;
   const r=await root.VoidDevTest.session({banner:'PLAYING DRAFT: '+m.title+' — not your real save',leave:'LEAVE DRAFT',kind:'draft',
@@ -483,7 +522,7 @@
   chk.append(el('h5','Problems that block publishing ('+(c.errors.length+(ui.check?.errors||[]).length)+')'));for(const t of [...c.errors,...(ui.check?.errors||[])])chk.append(el('p',t,'me-bad'));if(!c.errors.length&&!(ui.check?.errors||[]).length)chk.append(el('p','None.','me-ok'));
   const ch=MC().changes(shippedB,nextB),regN=Object.keys(content.registry||{}).length,linesN=(content.lines||[]).length;
   chk.append(el('h5','What changes for players'));if(!ch.length&&!regN&&!linesN&&!(content.trees||[]).length&&!Object.keys(content.names||{}).length)chk.append(el('p','Nothing: your draft matches the shipped missions.','me-small'));
-  for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' new mission(s) in '+(content.trees||[]).length+' new tree(s), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
+  for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' mission(s) in '+(content.trees||[]).length+' tree(s) (the Main storyline is always sent), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
   const w=MC().warnings(shippedB,nextB);chk.append(el('h5','Players part-way through ('+w.length+')'));if(!w.length)chk.append(el('p','No saved progress is affected.','me-small'));for(const t of w)chk.append(el('p','⚠ '+t,'me-warn'));
   const outOfDate=(content.lines||[]).filter(l=>index.get(l.who+'|'+l.from)?.recorded);if(outOfDate.length)chk.append(el('p','⚠ '+outOfDate.length+' line(s) have a recorded voice clip that no longer matches: voice clip out of date, text only until re-voiced.','me-warn'));
   const nt=content.trees||[],nn=nt.flatMap(t=>t.missions.map(m=>({t,m})));
@@ -508,5 +547,5 @@
   if(live&&live.enabled&&live.version)vs.append(btn('UNDO: PUT THE PREVIOUS VERSION BACK',async()=>{if(!confirm('Put the previous published version back for every player?'))return;try{const rec=await call('developer/live-content/rollback',{expected:live.version});status='Version '+rec.version+' is live: '+(rec.content?'the content of version '+rec.from:'the shipped missions')+'.';await refreshServer();}catch(e){status='Undo failed: '+e.message;}draw();},'',{'data-me-undo':'1'}));
   root_.append(vs);
  }
- root.VoidMissionEditor={render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
+ root.VoidMissionEditor={get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
 })(globalThis);

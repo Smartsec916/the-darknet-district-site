@@ -2,11 +2,53 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Third pass (17 Nov 2026): Mission 001, mission numbers, starting by notification, every older mission removed
+
+Branch `claude/mission-001`, build `2026-11-17-mission-001-1`. Pushed, no PR, not merged.
+
+**What you will see.** The tree list starts with **Main storyline** (ACTIVE: it is in the game). It holds **Mission 001 — Awakening**, your mission, with every field editable: name, number, type ("Main storyline / Introduction"), location (The Darknet District), objective ("Locate Admin"), giver (Admin), how it starts (below), the four steps, and Admin's lines. Every older tree sits in one collapsed group at the bottom, **Removed from the game (archived)**: each says NOT IN THE GAME, can still be read, and has **COPY THIS TREE INTO A NEW TREE** (and per mission, **COPY THIS MISSION INTO A NEW TREE**). A copy is a new draft tree of yours; the archived tree never changes.
+
+**Admin's introduction is yours to write.** Step 4 ("Receive an introduction to The Darknet District.") holds one line marked **PLACEHOLDER for David**: "[David: write Admin's introduction to The Darknet District here]". It is shown only here and in PLAY THIS DRAFT. **What live players see until you write and publish the lines:** they walk to Admin and press E; no dialogue window opens; the Mission Log ticks steps 3 and 4 and the screen shows "MISSION COMPLETE · Mission 001 — Awakening". Admin's usual "Admin has nothing for you right now." notice is not shown then (it would contradict the mission). Once your lines are published, talking to Admin shows them, and the mission completes when the player closes that conversation. No reward (none specified).
+
+### Mission numbers
+
+- Every mission has a number and a name, shown as **"Mission 001 — Awakening"** (in the tree list, the mission header, the V1 Mission Log, the publish check screen).
+- Numbers are unique, three digits (001 to 999), given in order: **+ NEW MISSION** takes the next free number. You can **SET NUMBER** or **RENUMBER** (with a warning).
+- **A number is never reused**, even after its mission is removed: the shipped ledger (`void-runner/main-story.js` NUMBERS = `save-manifest.json` missionNumbers), every number the server has published (`numbers` on the publish state), and numbers removed in your draft all stay taken. The server refuses a publish that gives a used number to another mission.
+- Internal ids never change and are separate from numbers (Mission 001 is `m001-awakening`). Your existing draft trees got the next free numbers when you first open this version.
+
+### Starting missions by notification ("How this mission starts", on every mission)
+
+- **IN PERSON** (what every mission did before): the giver offers it when the player talks to them.
+- **BY NOTIFICATION**: the mission arrives on the player's device. Choose the **channel** (MESSAGES: a text in the V1 Messages app, INBOX tab, no reply needed · COMMS CALL: a call in the Comms app, CALLS list, sender and words as a transcript; the voice plays only if a recorded clip already exists for that exact line, nothing is generated · NOTIFICATION ONLY: a banner, then the Mission Log), the **sender** (any NPC), the **header** (e.g. "ADMIN // INCOMING MESSAGE"), the **body**, and the **trigger**: first exit from the Sleeping Pod (a character who left the pod before the mission existed gets it on their next exit) · after a mission is completed · entering a place or quarter · a story flag is set.
+- Either way the mission then goes into the Mission Log and is tracked. A step **"The notification arrives"** completes by itself as it arrives (Mission 001's step 2).
+- Mission 001: BY NOTIFICATION, MESSAGES, sender Admin, header "ADMIN // INCOMING MESSAGE", your text, trigger first pod exit.
+- Your open idea, kept for later: Admin's message could come as a Comms **voice** call once his ElevenLabs voice is approved for spending (switch the channel to COMMS CALL; record the line; the call plays it).
+
+### The V1 notification and device sounds
+
+- When something arrives while the V1 is closed: a small banner at the right edge in the V1's style, **"V1 · New message from ADMIN · Press L to open"** (the key is read from the player's own binding), with the device's notification sound at the sound-effects volume. It stays until the V1 is opened or fades after about 8 s, leaving "V1 · L · 1 NEW" on the V1 chip until opened. L then opens the V1 straight on Messages > INBOX. Repeats are not stacked. Desktop only: the V1 has no VR presentation.
+- **Help hint:** the "Press L to open" part is marked as a help hint (`data-help`) so your future yellow/orange HELP switch can hide it. The help system itself is not designed or built.
+- Sounds per device tier (`void-runner/device-v1.js` NOTIFY): **V1** (`device-v1-notify.ogg`, confirmed), **V2** (`device-v2-notify.ogg`, placeholder until the V2 exists), **V3 // SHADOW** (`device-v3-notify.ogg`, your pick). Files and licences: `void-runner/assets/audio/ui/` and its `LICENSES.md`. A missing file is silent.
+
+### Developer Tools: EXIT TO MAIN MENU
+
+Beside CLOSE. It closes Developer Tools and goes to the main menu the way the game menu does (saving first when a normal save would). During PLAY THIS DRAFT (or a Test & Jump To session) it works like LEAVE DRAFT: the page reloads with your real save untouched and opens on the main menu instead of the editor.
+
+### For Claude and Codex (third pass)
+
+- `void-runner/main-story.js` (new, pure, every player): the shipped Main storyline tree, the number ledger, `label()` "Mission 001 — Name", `numberProblems`, `nextNumber`, the placeholder test `isPlaceholder` ("[David:" lines are shown only when `env.draft`).
+- `mission-content.js`: story trees run in the tree engine (`apply` always includes them; a published copy with the same id replaces the shipped one); mission fields `number`, `category`, `location`, `objective`, `start`; step kinds `pod-exit`, `message` (the notification arrives), `hear` (lines after a talk step; done on `heard` when the conversation closes, or at once when nothing can be shown); `treeEvent` events `pod-exit` and `heard`; `inbox`/`markRead` (story flags `v1m_<id>_start` = seconds, `v1r_<id>_start`).
+- `live-content.js`: the shipped story is applied at load; `podAct.exit` (world-integration.js) is wrapped (the pod room is untouched); the place tick also runs the after-mission and flag triggers; `deliver()` sends each channel to `VoidV1.notify`.
+- `personal-device.js`: `VoidV1.notify({app,sub,key,text,hint:{text:'open',help:true}})`, Messages > INBOX, Comms > CALLS, the device sound. `mission-log.js`: in a District campaign only tree missions are offered, tracked or shown (`live()`), `objective` override, `number`. `beginner.js`: `RETIRED`.
+- Saves: removed missions' records are kept; a tracked removed mission is untracked by `campaign.js retireMissions` (restore) and `clean_save`. `save-manifest.json`: `storyTrees`, `storyMissions`, `missionNumbers`, `retiredMissions`. Server: `void_runner_live_content.py` (`start_problems`, `number_problems`, the ledger in the publish transaction).
+- Tests: `tests/mission-001.test.cjs`, `tests/test_live_content.py` (MissionNumberTests, MissionRemovalSaveTests), `tests/mission-001-browser.cjs` (screenshots in `docs/development/mission-001/`), `tests/mission-editor-browser.cjs` parts 1-3 now use the Main storyline. `tests/beginner-browser.cjs` is retired.
+
 ## For David, in plain words
 
 Sign in with your account, open **DEVELOPER TOOLS**, then the **Mission Editor** tab (after Achievement Manager). The tab only appears for an account the server confirms as a developer. Seeing it is not permission: every save, publish and re-voice is checked again by the server.
 
-- **Mission trees.** On the left: every mission tree in the game, grouped as ACTIVE (in today's District game), HISTORICAL (the older VOID//RUNNER missions a District campaign never reaches) and DRAFTS. Click a tree, then a mission.
+- **Mission trees.** On the left: ACTIVE (the Main storyline), DRAFTS (your trees), and every older tree under "Removed from the game (archived)" (third pass, above). Click a tree, then a mission.
 - **For each tree:** the NPCs in it (who gives the mission, who speaks, who you deliver to) with their registered voice. Voices are shown, never changed here.
 - **For each mission:** the name, the credits paid, the description, then each **step** ("what the player must do"), what each NPC says at that step, where the mission ends (and any branches), and **what becomes available** (store items and which store, ships, places that open, story flags, credits, the next mission). You can add your own unlock notes (only real items, ships, places, stores and factions can be picked).
 - **All lines for an NPC:** every line a character says, Admin first: in missions (by tree, mission, step and scene) and outside missions (greetings, idle remarks, "come back later" lines, the District rules such as Admin's "Scanning in here is rude" line, VR companion talk, Milked's Eva and Fish).
@@ -48,7 +90,7 @@ Grouped as **In the current District game** and **Earlier characters (not in the
 | Arcade attendant | District VR booths | no: the prompt opens the VR menu | no | no |
 | District residents (Rin, Jonah, Sable, Cade, Lumi, Kei, Mags, Tavi, Bishop, Dax, DJ Vanta) | District / NULL as figures | no TALK prompt (needs a code change) | no | no |
 | VR companions (Ava, Eva, Una, Yuki, Dex, Seren, Kai, Nadia) | inside VR experiences only | no (needs a code change) | no | no |
-| Rook, Nyx (Meridian) | Meridian Station, the Dead Channel | yes | yes (starts at Meridian with a test ship) | yes, after the beginner campaign's FIRST DEPARTURE, or once a mission grants a ship |
+| Rook, Nyx (Meridian) | Meridian Station, the Dead Channel | yes | yes (starts at Meridian with a test ship) | only once a mission grants a ship (the beginner campaign was removed 17 Nov 2026) |
 | Mara | Vesper workshop (old opening) | yes | yes (not checked with a draft mission) | Vesper is known to every District campaign: yes with a ship; she says her old opening there |
 | Elias Ward | Vesper: a recording | no (a recording) | no | no |
 | Dr. Elara Voss | The Vigil | yes | yes | no, unless a mission opens The Vigil |
@@ -56,7 +98,7 @@ Grouped as **In the current District game** and **Earlier characters (not in the
 | Dr. Adrian Kess, Daniel Mercer | the two homeworlds | yes | yes (not checked with a draft mission) | no |
 | Iona Vale (Rusthaven), Dr. Sol (Kepler) | their stations | yes | yes | no, unless a mission opens the place |
 
-Correction to the request's example: Rook is not only in the historical opening. A District player reaches Meridian at the end of the beginner campaign (FIRST DEPARTURE), and Rook stands there with his TALK prompt (what he says there by himself is his older freight conversation).
+(Out of date since 17 Nov 2026: the beginner campaign is removed, so no player reaches Meridian until a mission grants a ship.) Correction to the request's example: Rook is not only in the historical opening. A District player reached Meridian at the end of the beginner campaign (FIRST DEPARTURE), and Rook stands there with his TALK prompt (what he says there by himself is his older freight conversation).
 
 ### Your first use case: Admin or Iris → a ship → fly to Rook → Rook's own tree
 
@@ -114,11 +156,12 @@ python tools/audio/generate.py --models <your Kokoro folder> --from-queue --queu
 
 Add `--dry-run` first to see what it would record. More than 100 clips needs `--yes`. It uses each character's registered approved voice through the normal generator, so every lock applies (approval fingerprints, protected clips, the reserved slot, broadcast voices refused). Clips go where clips always go (`void-runner/assets/audio/voice/`) and ship with the next push; the editor marks them done when it sees them. Alternatively, without a file: set `VOID_OWNER_ID_TOKEN` to your sign-in token for that one command (never stored) and leave out `--queue-file`. Admin's ElevenLabs lines are only listed.
 
-## Trees found (game data, 17 Nov 2026)
+## Trees found (game data, 17 Nov 2026; every tree but the Main storyline is ARCHIVED since the third pass)
 
 | Tree | Status | Missions | Source |
 |---|---|---|---|
-| Beginner campaign: Sleeping Pod to first ship | ACTIVE (wording PROPOSED, not approved) | 6 | `beginner.js` |
+| Main storyline (Mission 001 — Awakening) | ACTIVE | 1 | `main-story.js` |
+| Beginner campaign: Sleeping Pod to first ship | ARCHIVED (removed 17 Nov 2026; wording was never approved) | 6 | `beginner.js` |
 | Vesper opening and Rook's first jobs | HISTORICAL | 9 | `mission-log.js` |
 | Don't Ask Questions (Admin's sealed cargo) | HISTORICAL | 1 | `mission-log.js`, `campaign.js` |
 | The Communion arc | HISTORICAL | 4 | `mission-log.js`, `campaign.js` |

@@ -1,7 +1,7 @@
 #dev-balance-open{position:fixed;right:16px;top:90px;z-index:35;font-size:11px}
 #dev-balance{position:fixed;inset:8vh 5vw;z-index:60;overflow:auto;background:#081522f7;border:1px solid #58ffe1;padding:24px;color:#dcece9;box-shadow:0 20px 90px #000}
 #dev-balance[hidden],#dev-balance-open[hidden],#combat-debug[hidden]{display:none}
-.dev-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}.dev-heading h2{font-size:18px}
+.dev-heading{display:flex;align-items:center;justify-content:space-between;gap:20px}.dev-heading h2{font-size:18px}.dev-head-actions{display:flex;gap:8px;flex-wrap:wrap}
 .dev-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:20px 0}
 .dev-fields label{display:grid;gap:5px;font:12px Consolas,monospace;align-content:start}
 .dev-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 6px;border-bottom:1px solid #2b4a55;padding-bottom:10px}.dev-tabs button{font-size:11px;background:#102331;color:#9fc7c0;border:1px solid #456270}.dev-tabs button.on{background:#58ffe1;color:#03121a;border-color:#58ffe1}

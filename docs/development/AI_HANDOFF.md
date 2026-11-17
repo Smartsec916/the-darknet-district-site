@@ -6,6 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 17 Nov 2026 (latest): MISSION 001 — AWAKENING; MISSION NUMBERS; MISSIONS START IN PERSON OR BY NOTIFICATION; EVERY OLDER MISSION REMOVED (branch `claude/mission-001`, build `2026-11-17-mission-001-1`, pushed, NO PR, not merged)
+
+David: "I also need a backend Mission numbering system, as well as names", "Go ahead and remove all missions in the game", his Mission 001 text (APPROVED, verbatim in `VOID_RUNNER_HANDOFF.md` §11), "either have Missions start by notification or in person", a V1 notification when it is closed, notification sounds per device ("V3 is Shadow"), and EXIT TO MAIN MENU in Developer Tools. Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Third pass".
+
+- **Live District game:** the only mission is **Mission 001 — Awakening** (`m001-awakening`, `void-runner/main-story.js`). First pod exit (or the next one for a character who left the pod before it existed) → V1 notification "V1 · New message from ADMIN · Press L to open" with the V1 sound → Messages > INBOX holds Admin's message → Mission Log "Mission 001 — Awakening", objective "Locate Admin", tracked, waypoint to Admin → talk to Admin → complete. **Admin's introduction (step 4) is unwritten**: a placeholder shown only in the editor and draft play; live players get no dialogue there, only "MISSION COMPLETE".
+- **Removed:** the beginner campaign (`beginner.js RETIRED`) and every older mission in a District campaign (`mission-log.js live()`); nothing gives a ship now. Code and ids kept; the Mission Editor shows them archived (copyable). Saves: records, credits, items and ships kept; a tracked removed mission is untracked (`campaign.js retireMissions`, `clean_save`).
+- **Numbers:** unique, never reused (shipped ledger + the server's published ledger). **Start modes:** in person, or by notification (Messages / Comms call / banner) on first pod exit, after a mission, a place, or a story flag.
+- **Not verified:** real hardware; the server with publishing on; VR (the V1 and its notification are desktop only); the notification sound by ear (the browser test only sees it requested).
+
 ### 17 Nov 2026 (later): MISSION EDITOR, SECOND PASS: name trees, new trees, givers, ships, routes, tree links (branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, NO PR, not merged; origin/main with #345 merged in)
 
 David asked: "Can I also name mission trees here? Start new ones? Will it have previous Mission givers like Rook?", then his first use case (Admin or Iris → a ship → fly to Rook → a new tree given by Rook). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Naming trees and starting your own".

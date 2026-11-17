@@ -111,4 +111,39 @@ class DraftTests(unittest.TestCase):
         self.post();before=copy.deepcopy(self.db.data);d=copy.deepcopy(self.doc);d['sourceKey']='new';d['data']['id']='draft-altered';self.assertEqual(self.post(d,revision=1).status_code,409);self.assertEqual(self.db.data,before)
     def test_cursor_compatibility_warnings_remain_separate_from_live_saves(self):
         scene=drafts.template('dialogue','mara_workshop_intro',self.inv);scene['data']['nodes']=[scene['data']['nodes'][0]];scene['data']['nodes'][0]['next']=None
-        report=drafts.validate(scene,self.inv);self.assertTrue(any('cursor node IDs' in w for w in report['warnings']));self.assertEqual(self.db.data,{})
+        report=drafts.validate(scene,self.inv);self.assertTrue(any('cursor node IDs' in w for w in report['warnings']));self.assertEqual(self.db.data,{})
+
+
+class WorkspaceBackupTests(unittest.TestCase):
+    """The Mission Editor keeps its whole draft on the server (17 Nov 2026: David cleared his browser and lost a tree). One fixed id, ordinary revisions, the byte limit."""
+    setUp = DraftTests.setUp
+    post = DraftTests.post
+    def ws(self, trees=None, **extra):
+        bundle = {'version': 1, 'savedAt': '2026-11-17T12:00:00Z', 'missions': {}, 'lines': {}, 'played': {}, 'names': {}, 'retiredNumbers': [],
+                  'trees': trees if trees is not None else [{'id': 'draft-awakening', 'name': 'Awakening', 'note': 'This starts as soon as new players enter The Darknet District from the Sleeping Pod', 'missions': []}]}
+        bundle.update(extra)
+        return {'schemaVersion': 1, 'kind': 'workspace', 'adapter': 'mission-editor', 'sourceKey': drafts.WORKSPACE_ID, 'baseRevision': 0,
+                'data': {'id': drafts.WORKSPACE_ID, 'title': 'Mission Editor workspace', 'bundle': bundle}}
+
+    def test_workspace_round_trip_keeps_an_empty_tree_and_revisions(self):
+        r = self.post(self.ws(), name=drafts.WORKSPACE_ID)
+        self.assertEqual(r.status_code, 200, r.json)
+        got = self.client.get(self.url + '/' + drafts.WORKSPACE_ID, headers=self.header).json
+        self.assertEqual(got['document']['data']['bundle']['trees'][0]['id'], 'draft-awakening', 'an empty tree is kept')
+        self.assertEqual(self.post(self.ws(), name=drafts.WORKSPACE_ID).status_code, 409, 'a stale save never overwrites a newer copy')
+        self.assertEqual(self.post(self.ws(trees=[]), revision=1, name=drafts.WORKSPACE_ID).json['revision'], 2)
+        self.assertEqual(len(self.client.get(self.url + '/' + drafts.WORKSPACE_ID + '?revision=1', headers=self.header).json['document']['data']['bundle']['trees']), 1, 'older revisions stay readable')
+
+    def test_workspace_size_and_shape_are_checked(self):
+        big = self.ws(lines={'admin|x' + str(i): {'to': 'y' * 200} for i in range(600)})
+        r = self.post(big, name=drafts.WORKSPACE_ID)
+        self.assertEqual(r.status_code, 413)
+        for bad in [self.ws(trees='x'), self.ws(evil=1), self.ws(retiredNumbers=[0]), self.ws(trees=[{'name': 'no id'}])]:
+            self.assertEqual(self.post(bad, name=drafts.WORKSPACE_ID).status_code, 400, bad['data']['bundle'])
+        doc = self.ws()
+        doc['data']['id'] = 'draft-other'
+        self.assertEqual(self.post(doc, name=drafts.WORKSPACE_ID).status_code, 400)
+        doc = self.ws()
+        doc['baseRevision'] = 5
+        self.assertEqual(self.post(doc, name=drafts.WORKSPACE_ID).status_code, 400, 'not tied to the source inventory')
+        self.assertEqual(self.db.data, {})

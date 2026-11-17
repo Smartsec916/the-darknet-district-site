@@ -30,7 +30,7 @@ test('mission numbers: the shipped ledger matches the save manifest; "Mission 00
 test('the content check: numbers unique and never reused, the main storyline needs numbers, new fields and step kinds are closed',()=>{
  const x=env(),{MC,MS}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:new Set(x.G.PLACES.map(p=>p.id))};
  const doc=trees=>({format:MC.FORMAT,version:MC.VERSION,trees});
- const story=MC.treesContent(MS.trees(),{givers:x.e.givers}).trees;assert.equal(story.length,1);assert.equal(story[0].missions[0].number,1);assert.deepEqual(story[0].missions[0].start,{how:'notification',channel:'messages',from:'admin',text:ADMIN_TEXT,header:'ADMIN // INCOMING MESSAGE',when:{kind:'pod-exit'}});
+ const story=MC.treesContent(MS.trees(),{givers:x.e.givers}).trees;assert.equal(story.length,1);assert.equal(story[0].missions[0].number,1);assert.deepEqual(story[0].missions[0].start,{how:'notification',channel:'comms',from:'admin',text:ADMIN_TEXT,header:'ADMIN // INCOMING MESSAGE',when:{kind:'pod-exit'}});
  assert.deepEqual(MC.check(doc(story),ctx).errors,[]);
  const st=c=>c[0].missions[0].start;
  const bad=[c=>{delete c[0].missions[0].number;},c=>{c[0].missions[0].number=0;},c=>{c[0].missions[0].location='atlantis';},
@@ -48,7 +48,7 @@ test('the content check: numbers unique and never reused, the main storyline nee
 });
 
 // ---------------------------------------------------------------- Mission 001
-test('Mission 001 starts on the first EXIT POD: V1 message, Mission Log "Mission 001 — Awakening", objective "Locate Admin", tracked, guidance to Admin',()=>{
+test('Mission 001 starts on the first EXIT POD: a Comms call, Mission Log "Awakening" (players never see the number), objective "Locate Admin", tracked, guidance to Admin',()=>{
  const x=env(),s=district(x.C);
  assert.equal(talk(x,s,'admin').mission,null,'Admin does not offer it: it starts at the pod');assert.equal(x.MC.treeWants(s,x.e,['admin']),false);
  const r=exitPod(x,s);
@@ -57,13 +57,13 @@ test('Mission 001 starts on the first EXIT POD: V1 message, Mission Log "Mission
  assert.deepEqual(r.lines,[],'no dialogue: the message is the opening');
  assert.equal(s.universe.trackedMission,'m001-awakening');
  const log=x.M.all(s,x.C);assert.equal(log.length,1);const m=log[0];
- assert.equal(m.title,'Mission 001 — Awakening');assert.equal(m.number,1);assert.equal(m.objective,'Locate Admin');assert.equal(m.category,'Main storyline / Introduction');assert.equal(m.location,'district');assert.equal(m.tracked,true);
+ assert.equal(m.title,'Awakening','players see the name only');assert.equal(m.number,1,'the number stays in the data');assert.equal(x.M.definitions['m001-awakening'].devLabel,'Mission 001 — Awakening','developer tools show it');assert.equal(r.messages[0].title,'Awakening','nor in the call');assert.equal(m.objective,'Locate Admin');assert.equal(m.category,'Main storyline / Introduction');assert.equal(m.location,'district');assert.equal(m.tracked,true);
  assert.deepEqual(m.objectives.map(o=>[o.label,o.complete]),[['Exit the Sleeping Pod.',true],['Receive Admin\'s message.',true],['Find and speak with Admin.',false],['Receive an introduction to The Darknet District.',false]]);
  assert.equal(m.destination,'earth');assert.equal(m.interaction,'admin');
  assert.deepEqual(x.M.guidance(s,m,true),{kind:'local',label:'Locate Admin',interaction:'admin'},'the existing guidance leads to Admin at the counter');
  assert.equal(x.MC.treeWants(s,x.e,['admin']),true);assert.equal(x.MC.treeWants(s,x.e,['iris']),false);
  // the V1 inbox keeps it
- assert.equal(r.how,'notification');assert.equal(r.messages[0].channel,'messages');
+ assert.equal(r.how,'notification');assert.equal(r.messages[0].channel,'comms','David: it comes through Comms');
  const box=x.MC.inbox(s,x.e);assert.equal(box.length,1);assert.equal(box[0].read,false);assert.equal(box[0].text,ADMIN_TEXT);assert.equal(box[0].at,Math.floor(Date.UTC(2026,10,17,12)/1000));
  assert.equal(x.MC.markRead(s,box[0].id),true);assert.equal(x.MC.inbox(s,x.e)[0].read,true);assert.equal(x.MC.markRead(s,box[0].id),false);
  // every flag the mission writes is a safe story flag
@@ -95,7 +95,7 @@ test('draft play: Admin\'s Mission 001 lines (the placeholder for now) are shown
  const h=x.MC.treeEvent(s,x.e,{type:'heard',mission:'m001-awakening'},x.M,x.C);assert.deepEqual(h.done,['introduction']);assert.equal(h.completed,true);
 });
 test('David\'s lines, once written and published, are shown to live players and then complete the mission',()=>{
- const x=env(),{MC,MS}=x,story=MS.trees();story[0].missions[0].objectives[3].say=[{who:'admin',text:'TEST: the District line one.'},{who:'admin',text:'TEST: line two.'}];
+ const x=env(),{MC,MS}=x,story=MS.trees();story[0].missions[0].objectives[2].say=[{who:'admin',text:'TEST: the District line one.'},{who:'admin',text:'TEST: line two.'}];
  const c={format:MC.FORMAT,version:MC.VERSION,trees:MC.treesContent(story,{givers:x.e.givers}).trees};assert.deepEqual(MC.apply(c,x.e,{givers:new Map(x.e.givers.map(g=>[g.id,g]))}).refused,[]);
  const s=district(x.C);exitPod(x,s);const r=talk(x,s,'admin');assert.equal(r.lines.length,2);assert.equal(r.lines[0].text,'TEST: the District line one.');assert.equal(r.completed,false);
  assert.equal(MC.treeEvent(s,x.e,{type:'heard'},x.M,x.C).completed,true);
@@ -113,7 +113,7 @@ test('a character who left the pod before Mission 001 existed (with beginner pro
  assert.deepEqual(x.M.all(loaded,x.C),[],'nothing old is shown');
  x.MC.migrate(loaded,[],x.B.flagOf,x.e.trees);assert.equal(loaded.credits,640,'no old reward is paid by the migration');
  loaded.story.flags.podWakePending=true;   // every login wakes in the pod
- const r=exitPod(x,loaded);assert.equal(r.offered,true);assert.equal(r.messages.length,1);assert.deepEqual(x.M.all(loaded,x.C).map(m=>m.title),['Mission 001 — Awakening']);
+ const r=exitPod(x,loaded);assert.equal(r.offered,true);assert.equal(r.messages.length,1);assert.deepEqual(x.M.all(loaded,x.C).map(m=>m.title),['Awakening']);
 });
 
 // ---------------------------------------------------------------- how missions start
@@ -123,24 +123,25 @@ const side=(id,extra)=>({id,number:Number(id.slice(-1))+1,title:'TEST '+id,type:
 test('in person: the giver offers the mission when talked to (the existing behaviour), then it is logged and tracked',()=>{
  const x=env();treeWith(x,[side('draft-test-m1',{offer:[{who:'iris',text:'TEST offer.'}]})]);const s=district(x.C);exitPod(x,s);talk(x,s,'admin');
  const r=talk(x,s,'iris');assert.equal(r.offered,true);assert.equal(r.how,'person');assert.deepEqual(r.messages,[]);assert.equal(r.lines[0].text,'TEST offer.');assert.equal(s.universe.trackedMission,'draft-test-m1');
- assert.deepEqual(x.M.all(s,x.C).filter(m=>!m.completed).map(m=>m.title),['Mission 002 — TEST draft-test-m1']);
+ assert.deepEqual(x.M.all(s,x.C).filter(m=>!m.completed).map(m=>m.title),['TEST draft-test-m1']);
 });
 test('by notification: after a mission completes, entering a place, a story flag; Comms and banner-only channels',()=>{
  const n=(when,channel='comms')=>({start:{how:'notification',channel,from:'iris',header:channel==='notify'?undefined:'IRIS // CALL',text:'TEST: '+when.kind,when}});
  const x=env();treeWith(x,[side('draft-test-m1',n({kind:'after-mission',mission:'m001-awakening'}))]);const s=district(x.C);exitPod(x,s);
  assert.equal(x.MC.treeEvent(s,x.e,{type:'place',places:['district']},x.M,x.C).offered,false,'not before Mission 001 is done');
  talk(x,s,'admin');const r=x.MC.treeEvent(s,x.e,{type:'place',places:[]},x.M,x.C);assert.equal(r.offered,true);assert.equal(r.messages[0].channel,'comms');assert.equal(r.messages[0].text,'TEST: after-mission');
- assert.equal(s.universe.trackedMission,'draft-test-m1');assert.equal(x.MC.inbox(s,x.e,'comms').length,1);assert.equal(x.MC.inbox(s,x.e,'messages').length,1,'Admin\'s message is still in Messages');
+ assert.equal(s.universe.trackedMission,'draft-test-m1');assert.equal(x.MC.inbox(s,x.e,'comms').length,2,'Admin\'s call and this call');assert.equal(x.MC.inbox(s,x.e,'messages').length,0);
  assert.equal(x.MC.treeWants(s,x.e,['iris']),true,'then it runs as usual');
  const y=env();treeWith(y,[side('draft-test-m1',n({kind:'place',place:'port'},'notify'))]);const t=district(y.C);exitPod(y,t);talk(y,t,'admin');
  assert.equal(y.MC.treeEvent(t,y.e,{type:'place',places:['oldtown']},y.M,y.C).offered,false);const p=y.MC.treeEvent(t,y.e,{type:'place',places:['port']},y.M,y.C);assert.equal(p.offered,true);assert.equal(p.messages[0].channel,'notify');
  assert.deepEqual(y.MC.inbox(t,y.e,'notify'),[],'a banner keeps nothing in Messages or Comms');assert.equal(y.MC.treeWants(t,y.e,['iris']),true);
  const z=env();treeWith(z,[side('draft-test-m1',n({kind:'flag',flag:'mf_ready',value:true},'messages'))]);const u=district(z.C);exitPod(z,u);talk(z,u,'admin');
  assert.equal(z.MC.treeEvent(u,z.e,{type:'place',places:[]},z.M,z.C).offered,false);assert.equal(z.MC.treeEvent(u,z.e,{type:'talk',npcs:['iris']},z.M,z.C).offered,false,'talking to the giver does not start a notification mission');
- u.story.flags.mf_ready=true;assert.equal(z.MC.treeEvent(u,z.e,{type:'place',places:[]},z.M,z.C).offered,true);assert.equal(z.MC.inbox(u,z.e,'messages').length,2);
+ u.story.flags.mf_ready=true;assert.equal(z.MC.treeEvent(u,z.e,{type:'place',places:[]},z.M,z.C).offered,true);assert.equal(z.MC.inbox(u,z.e,'messages').length,1);
 });
-test('device notification sounds: one per tier, V1 in the game, files present, a model without its own row uses the V1 sound',()=>{
- const D=require(R('void-runner/device-v1.js'));assert.deepEqual(Object.keys(D.NOTIFY),['v1','v2','v3','shadow']);assert.deepEqual(Object.values(D.NOTIFY).map(t=>t.name),['V1','V2','V3','SHADOW']);
+test('device notification sounds: one per tier (V1, V2, V3 // SHADOW), V1 in the game, files present, a model without its own row uses the V1 sound',()=>{
+ const D=require(R('void-runner/device-v1.js'));assert.deepEqual(Object.keys(D.NOTIFY),['v1','v2','v3']);assert.deepEqual(Object.values(D.NOTIFY).map(t=>t.name),['V1','V2','V3 // SHADOW']);assert.equal(D.NOTIFY.v2.placeholder,true);
+ for(const id of Object.keys(D.NOTIFY))if(D.DEVICES[id])assert.equal(D.DEVICES[id].name,D.NOTIFY[id].name,'the tier is named as the device: '+id);assert.ok(!fs.existsSync(R('void-runner/assets/audio/ui/device-shadow-notify.ogg')),'no separate SHADOW tier');
  for(const t of Object.values(D.NOTIFY)){assert.match(t.sound,/^void-runner\/assets\/audio\/ui\/device-[a-z0-9]+-notify\.ogg$/);assert.ok(fs.existsSync(R(t.sound)),t.sound);}
  assert.equal(D.notifyTier('v1'),'v1');assert.equal(D.notifyTier('v9'),'v1');assert.match(fs.readFileSync(R('void-runner/assets/audio/ui/LICENSES.md'),'utf8'),/device-v1-notify\.ogg/);
 });

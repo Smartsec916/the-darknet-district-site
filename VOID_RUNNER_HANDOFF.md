@@ -550,10 +550,36 @@ Done; see §4.3. Possible follow-ups:
 
 ### Proposed (deployed for testing; NOT approved canon)
 
-- **Beginner campaign (14 Nov 2026):** six short missions from the Sleeping Pod to the first departure (FIRST CONTACT, DISTRICT ERRAND, A JOB WORTH TAKING, THE SHIP OPPORTUNITY, YOUR FIRST SHIP, FIRST DEPARTURE), using only Admin, Iris, the District bar and shop, the Landing Terminal, Pad 01 and Meridian Station. David approved deploying it to the live site for testing. The **mission titles, descriptions and all Admin / Iris dialogue are provisional placeholder wording** written by Claude; they are not canon until David approves or rewrites them. The mechanics (ship award, free travel, arrival fix) are ordinary fixes. See `docs/development/BEGINNER_CAMPAIGN.md`.
+- **REMOVED 17 Nov 2026** (David: "Go ahead and remove all missions in the game"; replaced by Mission 001 below). Kept as archived data in the Mission Editor. **Beginner campaign (14 Nov 2026):** six short missions from the Sleeping Pod to the first departure (FIRST CONTACT, DISTRICT ERRAND, A JOB WORTH TAKING, THE SHIP OPPORTUNITY, YOUR FIRST SHIP, FIRST DEPARTURE), using only Admin, Iris, the District bar and shop, the Landing Terminal, Pad 01 and Meridian Station. David approved deploying it to the live site for testing. The **mission titles, descriptions and all Admin / Iris dialogue are provisional placeholder wording** written by Claude; they are not canon until David approves or rewrites them. The mechanics (ship award, free travel, arrival fix) are ordinary fixes. See `docs/development/BEGINNER_CAMPAIGN.md`.
 
 ### Approved
 
+- **Mission 001 — Awakening (APPROVED 17 Nov 2026, David's own text, verbatim):**
+
+  > Mission 001 — Awakening
+  > Mission giver: Admin
+  > Location: The Darknet District
+  > Type: Main storyline / Introduction
+  > Trigger: Player exits their Sleeping Pod for the first time.
+  > Opening sequence
+  > After the player exits their Sleeping Pod, their V1 device receives an incoming message.
+  > ADMIN // INCOMING MESSAGE
+  > You're awake. Good.
+  > When you're ready, come find me. We need to talk.
+  > A new mission appears in their Mission Log.
+  > Objective: Locate Admin.
+  > Mission progression
+  > 1. Exit the Sleeping Pod.
+  > 2. Receive Admin's message.
+  > 3. Find and speak with Admin.
+  > 4. Receive an introduction to The Darknet District.
+
+  Built as `m001-awakening` in `void-runner/main-story.js`. **Admin's introduction (step 4) is NOT written yet**: David writes it in the Mission Editor; until then live players see no dialogue at step 4 (the mission completes when they talk to Admin). No rewards (none specified). Admin's voice for it is not approved for spending: text only.
+- **All earlier missions removed from the game (17 Nov 2026):** "Go ahead and remove all missions in the game. No players have done missions yet anyways. Only me." The beginner campaign and everything a District campaign could reach are retired (code kept, archived in the Mission Editor); saves keep their records, credits and items. Nothing gives a ship until a future approved mission does.
+- **Mission numbers (17 Nov 2026):** "I also need a backend Mission numbering system, as well as names." Shown as "Mission 001 — Awakening"; unique, three digits, in order, never reused.
+- **How missions start (17 Nov 2026):** "So either have Missions start by notification or in person." In person (the giver offers it) or by notification (Messages, Comms call, banner only) on a trigger. David's open idea: Admin's messages could later come as a Comms voice call once his voice is approved ("But how would players respond? But they wouldn't need to.").
+- **Device notifications (17 Nov 2026):** "There should be a notification system when people have their V1 closed. Maybe this time it tells them to open it with L." "We need a notification sound too. Maybe different for every device V1, V2, V3 // Shadow." "V3 is Shadow. It's the V3 // Shadow." Three tiers (V1, V2, V3 // SHADOW); V1 sound confirmed, V3 his pick, V2 a placeholder. A future yellow/orange in-game HELP system that players switch on and off is wanted but NOT designed: the "Press L to open" hint is marked as a help hint for it.
+- **Developer Tools: EXIT TO MAIN MENU (17 Nov 2026).**
 - Tutorial separate from the cargo campaign; Mission Log with tracking.
 - Mission Log key is **L**, because the game runs in a browser and F1 conflicts.
 - Mara **asks** whether to do the tutorial. Declining sends the player to Rook and the first cargo mission.

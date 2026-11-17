@@ -1,6 +1,7 @@
 /* Developer Tools > Mission Editor in a real browser (offline: every API call is mocked or refused, no Firebase).
    1. Opens Developer Tools > Mission Editor as a confirmed developer (the identity hook dev-tools.js uses after a server-confirmed sign-in) and takes screenshots at 1366x768 and 1920x1080.
-   2. Edits Iris's line at DISTRICT ERRAND / "Report back to Iris", presses PLAY THIS DRAFT on that step, checks the game shows the edited line and objective in a throwaway
+   (17 Nov 2026: the older trees are archived; parts 1-3 now use the Main storyline.) 1b. "How this mission starts" of Mission 001 (screenshot), the archived group, EXIT TO MAIN MENU.
+   2. Writes a test line for Admin's Mission 001 introduction, presses PLAY THIS DRAFT FROM HERE on "Find and speak with Admin", checks the game shows it in a throwaway
       session with the banner, that nothing is written to the real save or the cloud, then LEAVE DRAFT: the page reloads, the real save is byte-identical, the editor
       reopens on the same mission and step, and the edit is still in the draft.
    3. Opens the publish check screen against a mocked server (publishing switched on) and checks blocking problems, player warnings and the PUBLISH TO ALL PLAYERS button.
@@ -16,7 +17,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=r
 const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.SHOTS||path.resolve('docs/development/mission-editor');fs.mkdirSync(shots,{recursive:true});
 const bundled=fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':'/opt/pw-browsers/chromium-1243/chrome-linux64/chrome',exe=process.env.BROWSER_EXECUTABLE||(fs.existsSync(bundled)?bundled:null);
 const REAL_SAVE=JSON.stringify({version:1,quest:'open',location:'earth',credits:4321,savedAt:1700000000000,story:{flags:{missionPool:'closed',realSaveMarker:true}}});
-const EDITED='TEST LINE: quiet bar, open shop, good eyes.';
+const EDITED='TEST LINE: Admin introduces the District (test text).';
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader'],...(exe?{executablePath:exe}:{})});const errors=[],posts=[];
  try{
@@ -36,57 +37,79 @@ const EDITED='TEST LINE: quiet bar, open shop, good eyes.';
   await page.reload();await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});
   const developer=()=>page.evaluate(()=>VoidDevTools.identity(async(p,body)=>{if(p==='developer/balance')return {values:VoidBalance.defaults,revision:1,preset:'NORMAL'};const e=new Error(p.startsWith('developer/live-content')&&window.__publishOn?'':'Switched off in this offline test');e.status=404;if(p==='developer/live-content'&&window.__publishOn)return {enabled:true,editor:true,version:1,publishedAt:1763380000,history:[{version:1,at:1763380000,action:'publish',note:'First test'}]};if(p==='developer/live-content/check')return {ok:true,errors:[],warnings:[]};throw e;}));
   await developer();await page.evaluate(()=>VoidDevTools.open('missions'));
-  await page.waitForSelector('#me-root [data-me-tree="beginner"]',{timeout:60000});
-  const trees=await page.locator('[data-me-tree]').count();assert.equal(trees,10,'ten mission trees');
+  await page.waitForSelector('#me-root [data-me-tree="main-storyline"]',{timeout:60000});
+  const trees=await page.locator('[data-me-tree]').count();assert.equal(trees,11,'the main storyline and ten archived trees');
+  assert.equal(await page.locator('[data-me-archived] [data-me-tree]').count(),10,'every older tree is under "Removed from the game (archived)"');assert.equal(await page.locator('[data-me-archived]').evaluate(d=>d.open),false,'collapsed');
   assert.match(await page.locator('.me-how summary').textContent(),/PUBLISH TO ALL PLAYERS: OFF on the server/);
+  assert.match(await page.locator('[data-me-mission-label="m001-awakening"]').textContent(),/Mission 001 — Awakening/);
   await page.screenshot({path:path.join(shots,'mission-editor-1366.png')});
-  // the Communion arc with David's locked lines
-  await page.locator('[data-me-tree="communion"]').click();await page.waitForSelector('.me-lock');await page.locator('.me-lock').first().scrollIntoViewIfNeeded();
+  // How this mission starts (Mission 001: by notification, Messages, Admin, first pod exit)
+  const sp=page.locator('[data-me-start="m001-awakening"]');await sp.scrollIntoViewIfNeeded();
+  assert.equal(await sp.locator('[data-me-starts]').inputValue(),'comms','Starts: By Comms call');assert.deepEqual(await sp.locator('[data-me-starts] option').allTextContents(),['In person','By Messages','By Comms call','Notification only']);
+  assert.ok(await page.evaluate(()=>{const st=document.querySelector('[data-me-tree-mission="m001-awakening"] [data-me-start]');return !!st.previousElementSibling.querySelector('[data-me-giver]');}),'the panel is right under Giver');
+  assert.equal(await sp.locator('[data-me-start-from] ').inputValue(),'admin');assert.equal(await sp.locator('[data-me-start-header]').inputValue(),'ADMIN // INCOMING MESSAGE');assert.equal(await sp.locator('[data-me-start-when]').inputValue(),'pod-exit');
+  assert.equal(await sp.locator('[data-me-start-text]').inputValue(),'You\'re awake. Good.\nWhen you\'re ready, come find me. We need to talk.');
+  await sp.screenshot({path:path.join(shots,'how-this-mission-starts-1366.png')});
+  assert.equal(await page.locator('[data-me-placeholder]').count(),1,'Admin\'s introduction is marked as a placeholder for David');
+  // the archived trees: open the group, the Communion arc with David's locked lines, marked "not in the game", copyable
+  await page.locator('[data-me-archived] summary').click();await page.locator('[data-me-tree="communion"]').click();await page.waitForSelector('.me-lock');
+  assert.match(await page.locator('[data-me-archived-tree="communion"]').textContent(),/NOT IN THE GAME/);await page.locator('.me-lock').first().scrollIntoViewIfNeeded();
   assert.match(await page.locator('.me-lock').first().textContent(),/David’s script — locked/);await page.screenshot({path:path.join(shots,'mission-editor-communion-1366.png')});
   // All lines for Admin
   await page.locator('[data-me-mode="npcs"]').click();await page.waitForSelector('[data-me-npc]');assert.equal(await page.locator('[data-me-npc]').inputValue(),'admin');
   assert.match(await page.locator('#me-root').textContent(),/ElevenLabs/);await page.screenshot({path:path.join(shots,'mission-editor-admin-lines-1366.png')});
-  await page.setViewportSize({width:1920,height:1080});await page.locator('[data-me-mode="trees"]').click();await page.locator('[data-me-tree="beginner"]').click();
-  await page.locator('[data-me-mission="beginner:district-errand"]').click();await page.waitForSelector('[data-me-step="report"]');
+  await page.setViewportSize({width:1920,height:1080});await page.locator('[data-me-mode="trees"]').click();await page.locator('[data-me-tree="main-storyline"]').click();
+  await page.waitForSelector('[data-me-tree-mission="m001-awakening"]');await page.locator('[data-me-start="m001-awakening"]').scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(shots,'mission-editor-1920.png')});
-  // edit Iris's line and the objective, then play the draft from that step
-  const line=page.locator('[data-me-step="report"] .me-line textarea').first();await line.fill(EDITED);
-  const objective=page.locator('[data-me-step="bar"] .me-field textarea, [data-me-step="bar"] .me-field input').first();await objective.fill('Have a look at the bar');
-  const draft=await page.evaluate(()=>JSON.parse(localStorage.getItem('studio-drafts-v1')));assert.equal(draft.missions[1].objectives[2].say[0].text,EDITED,'autosaved on every edit');
+  await page.locator('[data-me-start="m001-awakening"]').screenshot({path:path.join(shots,'how-this-mission-starts-1920.png')});
+  // write a test introduction line for Admin, then play the draft from "Find and speak with Admin"
+  const line=page.locator('[data-me-tline="speak/say/0"] textarea').first();await line.fill(EDITED);
+  const draft=await page.evaluate(()=>JSON.parse(localStorage.getItem('mission-editor-drafts-v1')));assert.equal(draft.trees.find(t=>t.id==='main-storyline').missions[0].objectives[2].say[0].text,EDITED,'autosaved on every edit');
   await page.screenshot({path:path.join(shots,'mission-editor-edit-1920.png')});
   const before=await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1'));assert(before&&JSON.parse(before).story.flags.realSaveMarker===true,'the real save is in the browser');
   await page.evaluate(()=>{try{VoidGraphics.quality='low';VoidBabylon.setQuality('low');}catch{}});   // the software renderer is slow; the draft play itself is what is checked
-  await page.locator('[data-me-play="beginner:district-errand#report"]').click();
-  await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking',null,{timeout:120000});
-  assert.match(await page.locator('#dev-test-banner').textContent(),/PLAYING DRAFT: DISTRICT ERRAND — not your real save.*LEAVE DRAFT/);
-  const inGame=await page.evaluate(()=>({tracked:VoidMissions.tracked(state,C)?.id,label:VoidBeginner.byId['district-errand'].objectives[0].label,objective:VoidMissions.tracked(state,C)?.objective,steps:VoidBeginner.summary(state).find(m=>m.id==='district-errand').objectives}));
-  assert.equal(inGame.tracked,'district-errand');assert.equal(inGame.label,'Have a look at the bar');assert.deepEqual(inGame.steps.map(s=>s.done),[true,true,false],'started at the chosen step');
-  await page.evaluate(()=>VoidInteractions.handlers.get('district-iris')());
-  const shown=await page.evaluate(()=>speech?.lines?.map(l=>l.text)||[]);assert(shown.includes(EDITED),'Iris says the edited line: '+shown.join(' | '));
+  await page.locator('[data-me-play="tree:m001-awakening#speak"]').click();
+  await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking',null,{timeout:180000});
+  assert.match(await page.locator('#dev-test-banner').textContent(),/PLAYING DRAFT: Mission 001 — Awakening — not your real save.*LEAVE DRAFT/);
+  const inGame=await page.evaluate(()=>({tracked:VoidMissions.tracked(state,C)?.id,objective:VoidMissions.tracked(state,C)?.objective,steps:state.universe.missions['m001-awakening'].objectives}));
+  assert.equal(inGame.tracked,'m001-awakening');assert.equal(inGame.objective,'Locate Admin');assert.deepEqual(inGame.steps,{'exit-pod':true,message:true},'started at the chosen step');
+  await page.evaluate(()=>VoidInteractions.handlers.get('admin')());
+  const shown=await page.evaluate(()=>speech?.lines?.map(l=>l.text)||[]);assert(shown.includes(EDITED),'Admin says the draft introduction: '+shown.join(' | '));
   await page.screenshot({path:path.join(shots,'draft-play-1920.png'),timeout:180000});
   await page.waitForTimeout(1200);
   assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is untouched during draft play');
   assert(!posts.some(p=>p==='save'||p.endsWith('/save')),'no cloud save during draft play: '+posts.join(','));
-  // LEAVE DRAFT: back to the editor on the same mission and step, draft intact
+  // LEAVE DRAFT: back to the editor on the same mission, draft intact
   await Promise.all([page.waitForNavigation({timeout:60000}),page.locator('#dev-test-banner button').click()]);
   await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});
   assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is byte-identical after leaving');
   await developer();
-  await page.waitForSelector('[data-me-step="report"].on',{timeout:60000});
-  assert.equal(await page.locator('[data-me-step="report"] .me-line textarea').first().inputValue(),EDITED,'the edit is still in the draft');
-  assert.match(await page.locator('#me-status').textContent(),/Back from your draft play/);assert.equal(await page.locator('[data-me-played]').count(),1,'last played is shown');
+  await page.waitForSelector('[data-me-tree-mission="m001-awakening"]',{timeout:60000});
+  assert.equal(await page.locator('[data-me-tline="speak/say/0"] textarea').first().inputValue(),EDITED,'the edit is still in the draft');
+  assert.match(await page.locator('#me-status').textContent(),/Back from your draft play/);
   await page.screenshot({path:path.join(shots,'after-leave-1920.png')});
   // the publish check screen against a mocked server with publishing switched on
-  await page.evaluate(()=>{window.__publishOn=true;});await page.evaluate(()=>VoidMissionEditor.refreshServer());if(process.env.DEBUG)console.log(JSON.stringify(await page.evaluate(()=>({live:VoidMissionEditor.server.live,note:VoidMissionEditor.server.note,flag:window.__publishOn}))));
+  await page.evaluate(()=>{window.__publishOn=true;});await page.evaluate(()=>VoidMissionEditor.refreshServer());
   await page.locator('[data-me-mode="publish"]').click();await page.waitForSelector('#me-check');
-  const check=await page.locator('#me-check').textContent();assert.match(check,/What changes for players/);assert.match(check,/now reads "Have a look at the bar"/);assert.match(check,/Players part-way through/);
+  const check=await page.locator('#me-check').textContent();assert.match(check,/What changes for players/);assert.match(check,/Mission numbers \(1\)/);assert.match(check,/Mission 001 — Awakening · Main storyline · id m001-awakening/);
   await page.screenshot({path:path.join(shots,'publish-check-1920.png'),fullPage:false});
   assert.equal(await page.locator('[data-me-publish]').isDisabled(),false,'a valid draft can be published');assert.match(await page.locator('[data-me-publish]').textContent(),/PUBLISH TO ALL PLAYERS/);
-
+  // EXIT TO MAIN MENU during PLAY THIS DRAFT: like LEAVE DRAFT (the real save is restored by the reload) but the game opens on its main menu, not the editor
+  await page.locator('[data-me-mode="trees"]').click();await page.locator('[data-me-play="tree:m001-awakening#speak"]').click();
+  await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking',null,{timeout:180000});
+  await page.evaluate(()=>VoidDevTools.open());await Promise.all([page.waitForNavigation({timeout:60000}),page.locator('[data-dev="exit-menu"]').click()]);
+  await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});
+  assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is byte-identical after EXIT TO MAIN MENU from a draft');
+  assert.equal(await page.evaluate(()=>sessionStorage.getItem('mission-editor-return')),null,'the editor is not reopened');
+  await page.waitForFunction(()=>mode==='menu'&&!!document.querySelector('#screen:not(.hidden) .main-menu'),null,{timeout:60000});
+  await developer();await page.evaluate(()=>VoidDevTools.open('missions'));await page.waitForSelector('[data-me-tree="main-storyline"]',{timeout:60000});await page.evaluate(()=>{window.__publishOn=true;});await page.evaluate(()=>VoidMissionEditor.refreshServer());
+  await page.locator('[data-me-mode="publish"]').click();await page.waitForSelector('#me-check');
   // a broken draft blocks the publish button
-  await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('studio-drafts-v1'));d.missions[0].objectives[0].on='teleport';localStorage.setItem('studio-drafts-v1',JSON.stringify(d));});
+  await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('mission-editor-drafts-v1'));d.trees.find(t=>t.id==='main-storyline').missions[0].start.channel='fax';localStorage.setItem('mission-editor-drafts-v1',JSON.stringify(d));});
   await page.locator('[data-me-mode="trees"]').click();await page.locator('[data-me-mode="publish"]').click();
-  assert.equal(await page.locator('[data-me-publish]').isDisabled(),true,'errors block publishing');assert.match(await page.locator('#me-check').textContent(),/nothing in the game can complete this step/);
+  assert.equal(await page.locator('[data-me-publish]').isDisabled(),true,'errors block publishing');assert.match(await page.locator('#me-check').textContent(),/unknown notification channel/);
+  // EXIT TO MAIN MENU (Developer Tools header): out of the game into the main menu, saving as the game menu does
+  await page.locator('[data-dev="exit-menu"]').click();await page.waitForFunction(()=>mode==='menu'&&document.getElementById('dev-balance').hidden&&!!document.querySelector('#screen:not(.hidden) .main-menu'),null,{timeout:30000});
   assert.deepEqual(errors,[],'no page errors');
   // 4. every player: published content is applied over the shipped missions; a record that fails the check is refused and the shipped missions stay
   for(const [label,body,expect] of [['valid',{version:7,content:{format:'darknet-district-mission-content',version:1,registry:{'legal-run':{title:'AN HONEST DAY'}},lines:[{who:'admin',from:'Always got work. Just depends on where you’re willing to go.',to:'Work? Always.'}]}},'AN HONEST DAY'],
@@ -183,7 +206,7 @@ async function newTrees(browser,errors,posts){
  assert.equal(await page.locator('[data-me-tree-mission]').count(),2,'the tree is intact after leaving');
  // the publish check screen (mocked server, publishing on)
  await page.evaluate(()=>{window.__publishOn=true;});await page.evaluate(()=>VoidMissionEditor.refreshServer());await page.locator('[data-me-mode="publish"]').click();await page.waitForSelector('#me-check');
- assert.equal(await page.locator('[data-me-new-mission]').count(),2,'the check screen lists the new missions');assert.equal(await page.locator('[data-me-far="elara"]').count(),1,'and the giver players cannot reach');
+ assert.equal(await page.locator('[data-me-new-mission^="draft-browser"]').count(),2,'the check screen lists the new missions');assert.equal(await page.locator('[data-me-far="elara"]').count(),1,'and the giver players cannot reach');
  assert.match(await page.locator('#me-check').textContent(),/Tree names/);assert.equal(await page.locator('[data-me-publish]').isDisabled(),false,'the draft can be published');
  const content=await page.evaluate(()=>VoidMissionEditor.draftContent());assert.deepEqual(content.trees[0].missions.map(m=>m.id),[m1,m2]);assert(!JSON.stringify(content).includes('"item"'),'the store item is not sent');
  await page.locator('[data-me-new-missions]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-publish-1920.png')});await page.setViewportSize({width:1366,height:768});await page.locator('[data-me-new-missions]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-publish-1366.png')});

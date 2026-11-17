@@ -61,7 +61,7 @@
     messages: kept in Messages > INBOX; comms: a call in the Comms app (its words as a transcript; the voice plays only when a recorded clip exists for that exact line:
     nothing is generated); notify: the banner only. Every one also puts the mission in the Mission Log and tracks it (mission-content.js). */
  function deliver(r){for(const m of (r&&r.messages)||[]){try{const who=String(m.fromName||'').toUpperCase(),hint={text:'open',help:true};
-  if(m.channel==='comms'){root.VoidV1?.notify?.({app:'comms',key:'call:'+m.id,from:m.fromName,text:'Incoming call from '+who,hint});
+  if(m.channel==='comms'){root.VoidV1?.notify?.({app:'comms',sub:'call',key:'call:'+m.id,from:m.fromName,text:'Incoming call from '+who,hint:{text:'answer',help:true}});
    // The call's voice: only a clip that already exists (voice-clips.js). Admin's ElevenLabs voice is not approved for new lines yet, so his calls are text for now.
    try{if(root.VoidVoiceClips?.has?.(m.from,m.text))root.VoidAudio?.speak?.(m.from,m.text);}catch{}}
   else if(m.channel==='notify')root.VoidV1?.notify?.({app:'missions',key:'note:'+m.id,from:m.fromName,text:(m.header||who)+' · '+String(m.text).replace(/\s+/g,' ').slice(0,90),hint});

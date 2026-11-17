@@ -5,7 +5,7 @@
    Messages > INBOX lists the messages missions send (Admin's in Mission 001; live-content.js inbox, read state in the save). VoidV1.notify() is the V1's notification for
    when the device is closed: a small banner styled like the V1 at the right edge, until the V1 is opened or for about 8 s, then an unread count on the V1 chip.
    Its "Press L to open" part is a HELP hint (hint.help: [data-help]) so David's future help switch can hide it. It plays the device's notification sound
-   (device-v1.js NOTIFY: V1, V2, V3, SHADOW) at the sound-effects volume.
+   (device-v1.js NOTIFY: V1, V2, V3 // SHADOW) at the sound-effects volume.
    Desktop only: the V1 has no VR presentation (VR players see neither the device nor its notification).
    Its look is void-runner/device-v1.css (scoped to #personal-device). Transition timing comes from DEVICES.v1.ui in device-v1.js. */
 (function(root){
@@ -139,6 +139,10 @@
  const unreadText=n=>n>99?'99+':String(n);
  const inbox=(ch='messages')=>{try{return root.VoidLiveContent?.inbox?.(ch)||[];}catch{return [];}};
  const inboxUnread=()=>inbox().filter(m=>!m.read).length,callsUnread=()=>inbox('comms').filter(m=>!m.read).length;
+ let call=null;   // the call on screen in Comms: {id, start, ended, lines}
+ const callClock=()=>{if(!call)return '00:00';const sec=Math.floor(((call.endedAt||Date.now())-call.start)/1000);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');};
+ function endCall(){if(!call||call.ended)return;call.ended=true;call.endedAt=Date.now();root.VoidLiveContent?.markRead?.(call.id);updateBadges();if(open&&stack[0]==='comms')render({keepScroll:true});}
+ setInterval(()=>{if(!call||call.ended)return;if(Date.now()-call.start>call.lines.length*2200+2500){endCall();return;}const t=body&&body.querySelector('[data-call-timer]');if(t)t.textContent=callClock();},500);
  const readAll=list=>{const ids=list.filter(m=>!m.read).map(m=>m.id);if(ids.length)setTimeout(()=>{let any=false;for(const id of ids)any=root.VoidLiveContent?.markRead?.(id)||any;if(any)updateBadges();},0);};
  let notes=0;   // notifications that arrived while the V1 was closed and that the player has not opened the V1 for yet
  /* The chat counts as "being looked at" only while the V1 is open, not mid-transition, on Messages > District chat. Looking at it reads everything that was waiting. */
@@ -247,9 +251,16 @@
   },
   /* Comms: voice with the people near you (district-voice.js). Off until ENABLE is pressed; DISABLE disconnects. */
   comms(){
-   // Calls a mission made (start by notification, channel Comms): the caller, the header and the words as a transcript. No reply is needed.
-   const calls=inbox('comms');readAll(calls);
-   const callHtml=calls.length?'<h2>CALLS</h2>'+calls.map(m=>'<article class="pd-card pd-inmsg pd-call'+(m.read?'':' unread')+'" data-call="'+esc(m.id)+'"><div class="pd-msg-h"><b>'+esc(m.header||('CALL FROM '+String(m.fromName||'').toUpperCase()))+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class="pd-note">'+esc(m.fromName)+' · TRANSCRIPT</div><div class="pd-inmsg-text">'+esc(m.text)+'</div>'+(m.title?'<div class="pd-note">'+esc(m.title)+'</div>':'')+'</article>').join('')+'<h2>VOICE</h2>':'';
+   // Calls a mission made (start by notification, channel Comms). An unanswered call plays as a call: the caller, a timer and a waveform, the words appearing as a transcript
+   // (audio only when a recorded clip exists: none does yet). No reply. It ends after the last line or with HANG UP, and stays below under RECENT CALLS to read again.
+   const calls=inbox('comms'),fresh=calls.find(m=>!m.read);
+   if(fresh&&(!call||call.id!==fresh.id))call={id:fresh.id,start:Date.now(),ended:false,lines:String(fresh.text).split('\n').map(x=>x.trim()).filter(Boolean)};
+   const live=call&&calls.find(m=>m.id===call.id);
+   const liveHtml=live?'<article class="pd-card pd-call-live'+(call.ended?' ended':'')+'" data-call-live="'+esc(live.id)+'"><div class="pd-call-who"><small>'+(call.ended?'CALL ENDED':'INCOMING CALL · CONNECTED')+'</small><b>'+esc(String(live.fromName||'').toUpperCase())+'</b><time data-call-timer>'+callClock()+'</time></div>'
+    +'<div class="pd-wave" aria-hidden="true">'+'<i></i>'.repeat(14)+'</div><div class="pd-note">'+esc(live.header||'')+' · TRANSCRIPT</div>'+call.lines.map((l,i)=>'<p class="pd-call-line" style="--d:'+(call.ended?0:(i*2.2+.4))+'s">'+esc(l)+'</p>').join('')
+    +(call.ended?'':'<div class="pd-tabs"><button type="button" data-hangup="1">HANG UP</button></div>')+'</article>':'';
+   const past=calls.filter(m=>!live||m.id!==live.id||call.ended);
+   const callHtml=liveHtml+(past.length?'<h2>RECENT CALLS</h2>'+past.map(m=>'<article class="pd-card pd-inmsg pd-call'+(m.read?'':' unread')+'" data-call="'+esc(m.id)+'"><div class="pd-msg-h"><b>'+esc(m.header||('CALL FROM '+String(m.fromName||'').toUpperCase()))+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class="pd-note">'+esc(m.fromName)+' · TRANSCRIPT</div><div class="pd-inmsg-text">'+esc(m.text)+'</div>'+(m.title?'<div class="pd-note">'+esc(m.title)+'</div>':'')+'</article>').join(''):'')+(calls.length?'<h2>VOICE</h2>':'');
    const V=root.VoidVoice,r=rp();if(!V)return callHtml+'<div class="pd-empty">Voice is not available in this build.</div>';
    const S=V.settings,st=V.status,on=S.enabled,ok=!!r?.connected&&!!r.features?.voice;
    const line=!on?'OFF':st==='on'?(S.muted?'ON · MICROPHONE MUTED':V.talking?'ON · MICROPHONE LIVE':S.mode==='ptt'?'ON · HOLD '+V.keyLabel(S.pttKey)+' TO TALK':'ON · OPEN MICROPHONE'):st==='connecting'?'CONNECTING…':st==='error'?'PROBLEM':'WAITING';
@@ -383,6 +394,7 @@
   if(t.dataset.openApp){go([t.dataset.openApp],'open');return;}
   if(t.dataset.wf){const X=root.VoidWarFlyingScanner;if(X){if(t.dataset.wf==='send')X.upload(true);else X.setActive(t.dataset.wf==='on');}render({keepScroll:true});setTimeout(()=>{if(open&&stack[0]==='warflying')render({keepScroll:true});},1500);return;}
   if(t.dataset.follow){const P=DP(),f=flags_();if(P&&f){const [kind,id]=t.dataset.follow.split(':');P.toggleFollow(f,kind==='n'?{kind:'npc',id}:{kind:'player',id,name:t.dataset.name});try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
+  if(t.dataset.hangup){endCall();return;}
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}
   if(t.dataset.act==='block'||t.dataset.act==='report'){
@@ -508,10 +520,11 @@
   if(open&&(!n.app||stack[0]===n.app)){updateBadges();return false;}
   if(!banner){banner=document.createElement('div');banner.id='pd-notify';banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');banner.hidden=true;banner.addEventListener('click',()=>{setOpen(true);});document.body.appendChild(banner);}
   const key=String(n.key||n.app+'|'+n.text);if(key!==bannerKey)notes++;bannerKey=key;noteApp=n.app?{app:n.app,sub:n.sub||null}:null;
-  const hint=n.hint?(n.hint.text==='open'||!n.hint.text?'Press '+keyLabel()+' to open':String(n.hint.text)):'';
-  banner.innerHTML='<b class="pd-n-dev">V1</b><span class="pd-n-sep" aria-hidden="true">·</span><span class="pd-n-text">'+esc(n.text)+'</span>'+(hint?'<span class="pd-n-sep" aria-hidden="true">·</span><span class="pd-n-hint"'+(n.hint.help?' data-help="1"':'')+'>'+esc(hint)+'</span>':'');
+  const hint=n.hint?(n.hint.text==='open'||n.hint.text==='answer'||!n.hint.text?'Press '+keyLabel()+' to '+(n.hint.text==='answer'?'answer':'open'):String(n.hint.text)):'';
+  const devName=(D.NOTIFY?.[D.notifyTier?.(dev.model)]?.name)||'V1';
+  banner.innerHTML='<b class="pd-n-dev">'+esc(devName)+'</b><span class="pd-n-sep"> · </span><span class="pd-n-text">'+esc(n.text)+'</span>'+(hint?'<span class="pd-n-sep"> · </span><span class="pd-n-hint"'+(n.hint.help?' data-help="1"':'')+'>'+esc(hint)+'</span>':'');
   banner.dataset.app=n.app||'';banner.hidden=false;void banner.offsetWidth;banner.classList.add('on');
-  if(key!==bannerSound){bannerSound=key;chime();}
+  if(key!==bannerSound){bannerSound=key;if(!n.silent)chime();}
   clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>{if(banner){banner.classList.remove('on');setTimeout(()=>{if(banner&&!banner.classList.contains('on'))banner.hidden=true;},600);}},FADE_MS);
   updateBadges();return true;
  }

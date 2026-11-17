@@ -114,7 +114,10 @@
  const STORY=new Set((MS&&MS.STORY_TREES)||[]),STORY_MISSION=/^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$/;
  const treeIdOk=id=>typeof id==='string'&&(DRAFT.test(id)||STORY.has(id)),missionIdOk=id=>typeof id==='string'&&(DRAFT.test(id)||STORY_MISSION.test(id));
  const placeholder=t=>!!(MS&&MS.isPlaceholder(t));
- const titleOf=m=>MS?MS.label(m.number,m.title):m.title;
+ // Players never see mission numbers (David, 17 Nov 2026: "I want it to be just 'Awakening' in Mission logs. Mission 001 is the backend numbering system").
+ // The number stays in the data (definition.number) for the Mission Editor, Developer Tools and the server; everything a player sees uses the name.
+ const titleOf=m=>m.title;
+ const devLabel=m=>MS?MS.label(m.number,m.title):m.title;
  /* How a mission starts (closed shape). In person needs nothing else; by notification needs a channel, a sender, the text (a header for Messages and Comms) and a trigger. */
  function checkStart(st,w,ctx,err,speakerOk,trees){
   if(!keysOk(st,['how','channel','from','header','text','when'])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
@@ -194,7 +197,7 @@
   const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;const loc=at(who);if(loc)x.destination=loc;return x;});
   if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;if(at(who))x.destination=at(who);objectives.push(x);}
   const extra={};if(Number.isInteger(m.number))extra.number=m.number;for(const k of ['category','location','objective'])if(m[k])extra[k]=m[k];if(m.start&&m.start.how==='notification')extra.start={how:'notification',channel:m.start.channel,from:m.start.from};
-  return {title:titleOf(m),name:m.title,type:m.type,description:m.description||'',giver:name(m.giver),source:STORY.has(t.id)?'main-story':'owner-tree',ownerTree:t.id,rewards:m.rewards||null,prerequisites:i?[t.missions[i-1].id]:[],objectives,...extra};}
+  return {title:titleOf(m),name:m.title,devLabel:devLabel(m),type:m.type,description:m.description||'',giver:name(m.giver),source:STORY.has(t.id)?'main-story':'owner-tree',ownerTree:t.id,rewards:m.rewards||null,prerequisites:i?[t.missions[i-1].id]:[],objectives,...extra};}
  /* Applies one unlock to a campaign state. Returns a plain description, or null when nothing changed. */
  function unlockNow(s,u,env,Camp){
   if(u.kind==='credits'){s.credits=(s.credits||0)+u.amount;return '+'+u.amount+' credits';}
@@ -234,7 +237,8 @@
   const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind))break;if(!step(t,m,o))break;}};
   // After a talk step: a 'hear' step next shows its lines (done when the conversation closes), or is done at once when nothing can be shown.
   const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear')return;const ls=speak(o.say);
-   if(ls.length){out.lines.push(...ls);out.hear={mission:m.id,step:o.id};}else if(step(t,m,o))auto(t,m);};
+   if(ls.length){out.lines.push(...ls);out.hear={mission:m.id,step:o.id};}else if(out.lines.length)out.hear={mission:m.id,step:o.id};   // the talk step's own lines are the introduction: done when they close
+   else if(step(t,m,o))auto(t,m);};
   for(const t of env.trees){if(!open(t))continue;
    for(const m of t.missions){
     const rec=s.universe.missions&&s.universe.missions[m.id];
@@ -247,7 +251,7 @@
     const next=m.objectives.find(o=>rec.objectives[o.id]!==true);
     if(next){
      if(ev.type==='heard'&&next.kind==='hear'&&(!ev.mission||ev.mission===m.id)){if(step(t,m,next))auto(t,m);return out;}
-     if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});hearNext(t,m);return out;}   // came back after a closed conversation
+     if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation
      if(AUTO.includes(next.kind)){auto(t,m);if(out.done.length)return out;}
      if(hit(next)){if(!step(t,m,next))break;auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);return out;}
      const later=ev.type==='talk'&&m.objectives.find(o=>rec.objectives[o.id]!==true&&o!==next&&hit(o)&&(o.early||[]).length);

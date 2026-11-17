@@ -4,7 +4,7 @@
    NUMBERS below is the shipped ledger of every number ever used (number → mission id). It must equal void-runner/save-manifest.json missionNumbers (a test checks),
    and the server's publish check also keeps every number it has published (void_runner_live_content.py). Internal ids stay stable and separate from numbers.
    MISSION 001 — AWAKENING is David's own mission, APPROVED 17 Nov 2026 (his words are in VOID_RUNNER_HANDOFF.md §11). Admin's introduction to The Darknet District
-   (step 4) is NOT written yet: the one line below is a clearly marked placeholder for David. It is shown only in the Mission Editor and in draft play; the game never
+   (what he says in person at step 3; step 4 is done when that conversation closes) is NOT written yet: the one line below is a clearly marked placeholder for David. It is shown only in the Mission Editor and in draft play; the game never
    shows it to live players (mission-content.js speak() drops placeholder lines outside draft play).
    This tree runs in the game through mission-content.js treeEvent, the same adapter as the owner's own trees; the Mission Editor edits it as the tree "Main storyline". */
 (function(root){
@@ -18,14 +18,15 @@
  /* "Mission 001 — Awakening" (no number: just the name). */
  const label=(number,title)=>Number.isInteger(number)&&number>0?'Mission '+pad(number)+(title?' — '+title:''):String(title||'');
  const AWAKENING={id:'m001-awakening',number:1,title:'Awakening',type:'main',category:'Main storyline / Introduction',giver:'admin',location:'district',objective:'Locate Admin',description:'',
-  // HOW IT STARTS (David, 17 Nov 2026: "either have Missions start by notification or in person"): by notification, in the V1 Messages app, from Admin, on the first exit from the pod.
-  start:{how:'notification',channel:'messages',from:'admin',header:'ADMIN // INCOMING MESSAGE',text:'You\'re awake. Good.\nWhen you\'re ready, come find me. We need to talk.',when:{kind:'pod-exit'}},
+  // HOW IT STARTS (David, 17 Nov 2026): "\"You're awake. Good. When you're ready, come find me. We need to talk.\" comes through Comms. But then they must meet with Admin.
+  // Then he says a line in person." A Comms call from Admin on the first exit from the pod; the meeting is in person (step 3, his lines are what is said when it is done).
+  start:{how:'notification',channel:'comms',from:'admin',header:'ADMIN // INCOMING MESSAGE',text:'You\'re awake. Good.\nWhen you\'re ready, come find me. We need to talk.',when:{kind:'pod-exit'}},
   offer:[],
   objectives:[
    {id:'exit-pod',kind:'pod-exit',label:'Exit the Sleeping Pod.',npc:'',place:'',item:'',say:[],early:[]},
    {id:'message',kind:'message',label:'Receive Admin\'s message.',npc:'',place:'',item:'',say:[],early:[]},
-   {id:'speak',kind:'talk',npc:'admin',label:'Find and speak with Admin.',place:'',item:'',say:[],early:[]},
-   {id:'introduction',kind:'hear',npc:'admin',label:'Receive an introduction to The Darknet District.',place:'',item:'',say:[{who:'admin',text:PLACEHOLDER}],early:[]}],
+   {id:'speak',kind:'talk',npc:'admin',label:'Find and speak with Admin.',place:'',item:'',say:[{who:'admin',text:PLACEHOLDER}],early:[]},
+   {id:'introduction',kind:'hear',npc:'admin',label:'Receive an introduction to The Darknet District.',place:'',item:'',say:[],early:[]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};
  const TREE={id:TREE_ID,name:'Main storyline',note:'David\'s main storyline. Mission 001 starts the first time a player leaves their Sleeping Pod.',status:'active',shipped:true,seq:1,missions:[AWAKENING]};
  const clone=v=>JSON.parse(JSON.stringify(v));

@@ -162,11 +162,11 @@ def awakening(**extra):
     """Mission 001 as the Mission Editor publishes it (main-story.js, stripped by mission-content.js treeStrip)."""
     m = {'id': 'm001-awakening', 'number': 1, 'title': 'Awakening', 'type': 'main', 'category': 'Main storyline / Introduction', 'giver': 'admin', 'location': 'district',
          'objective': 'Locate Admin',
-         'start': {'how': 'notification', 'channel': 'messages', 'from': 'admin', 'text': "You're awake. Good.\nWhen you're ready, come find me. We need to talk.", 'header': 'ADMIN // INCOMING MESSAGE', 'when': {'kind': 'pod-exit'}},
+         'start': {'how': 'notification', 'channel': 'comms', 'from': 'admin', 'text': "You're awake. Good.\nWhen you're ready, come find me. We need to talk.", 'header': 'ADMIN // INCOMING MESSAGE', 'when': {'kind': 'pod-exit'}},
          'objectives': [{'id': 'exit-pod', 'label': 'Exit the Sleeping Pod.', 'kind': 'pod-exit'},
                         {'id': 'message', 'label': "Receive Admin's message.", 'kind': 'message'},
-                        {'id': 'speak', 'label': 'Find and speak with Admin.', 'kind': 'talk', 'npc': 'admin'},
-                        {'id': 'introduction', 'label': 'Receive an introduction to The Darknet District.', 'kind': 'hear', 'npc': 'admin', 'say': [{'who': 'admin', 'text': "[David: write Admin's introduction to The Darknet District here]"}]}]}
+                        {'id': 'speak', 'label': 'Find and speak with Admin.', 'kind': 'talk', 'npc': 'admin', 'say': [{'who': 'admin', 'text': "[David: write Admin's introduction to The Darknet District here]"}]},
+                        {'id': 'introduction', 'label': 'Receive an introduction to The Darknet District.', 'kind': 'hear', 'npc': 'admin'}]}
     m.update(extra)
     return {'id': 'main-storyline', 'name': 'Main storyline', 'missions': [m]}
 

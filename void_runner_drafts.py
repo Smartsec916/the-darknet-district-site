@@ -153,7 +153,41 @@ def template(kind, source, inv):
     raise DraftError('Unknown draft kind.')
 
 
+# The Mission Editor's whole draft (trees, missions, lines, names), kept on the server so a cleared browser loses nothing (David, 17 Nov 2026).
+# One fixed draft id, ordinary revisions, the same byte and revision limits. It is a private backup of editor state, never content: nothing releases or applies it.
+WORKSPACE_ID = 'mission-editor-workspace'
+WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio']
+
+
+def validate_workspace(doc):
+    keys(doc, ['schemaVersion', 'kind', 'adapter', 'sourceKey', 'baseRevision', 'data'], ['schemaVersion', 'kind', 'adapter', 'sourceKey', 'baseRevision', 'data'])
+    if doc['schemaVersion'] != 1 or doc['adapter'] != 'mission-editor' or doc['sourceKey'] != WORKSPACE_ID or doc['baseRevision'] != 0:
+        raise DraftError('Unsupported workspace document.')
+    d = doc['data']
+    keys(d, ['id', 'title', 'bundle'], ['id', 'title', 'bundle'])
+    if d['id'] != WORKSPACE_ID:
+        raise DraftError('The workspace has one fixed identifier.')
+    text(d['title'], 160)
+    b = d['bundle']
+    keys(b, WORKSPACE_KEYS)
+    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list)]:
+        if k in b and not isinstance(b[k], kind):
+            raise DraftError('Invalid workspace field: ' + k)
+    if len(b.get('trees', [])) > 30 or any(not isinstance(t, dict) or not isinstance(t.get('id'), str) or not isinstance(t.get('missions', []), list) for t in b.get('trees', [])):
+        raise DraftError('Invalid workspace trees.')
+    if any(type(n) is not int or not 1 <= n <= 999 for n in b.get('retiredNumbers', [])):
+        raise DraftError('Invalid retired numbers.')
+    if b.get('studio') is not None and not isinstance(b['studio'], dict):
+        raise DraftError('Invalid studio draft.')
+    size = len(json.dumps(doc).encode('utf-8'))
+    if size > MAX_BYTES:
+        raise DraftError('Draft exceeds byte limit.', 413, {'code': 'too-big', 'bytes': size, 'limit': MAX_BYTES})
+    return {'valid': True, 'warnings': ['Mission Editor workspace backup. Nothing in it reaches players.']}
+
+
 def validate(doc, inv, graph=None):
+    if isinstance(doc, dict) and doc.get('kind') == 'workspace':
+        return validate_workspace(doc)
     keys(doc, ['schemaVersion', 'kind', 'adapter', 'sourceKey', 'baseRevision', 'duplicateOf', 'data'], ['schemaVersion', 'kind', 'adapter', 'sourceKey', 'baseRevision', 'data'])
     if type(doc['schemaVersion']) is not int or doc['schemaVersion'] != 1:
         raise DraftError('Unsupported draft schema version.')
@@ -302,7 +336,7 @@ def history_of(record):
 def source_info(doc, inv):
     """The source this draft was based on, kept with every revision so a later rebase can tell what the game changed
     (the inventory only keeps the current source)."""
-    if doc['sourceKey']=='new':return {'inventoryRevision':inv['revision'],'hash':None,'snapshot':None}
+    if doc['sourceKey']=='new' or doc['kind']=='workspace':return {'inventoryRevision':inv['revision'],'hash':None,'snapshot':None}
     snapshot=template(doc['kind'],doc['sourceKey'],inv)['data']
     return {'inventoryRevision':inv['revision'],'hash':digest(snapshot),'snapshot':snapshot}
 
