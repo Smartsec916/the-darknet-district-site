@@ -13,6 +13,10 @@ test('a person wears the same kit every time, and people differ',()=>{
  const kits=new Set();for(let i=0;i<60;i++)kits.add(JSON.stringify(G.loadout('hacker-01:walker-'+i,'hacker-01',fit['hacker-01'])));assert.ok(kits.size>25,'60 walkers wear many different kits ('+kits.size+')');
  const accents=new Set();for(let i=0;i<60;i++)accents.add(G.loadout('x:'+i,'hacker-01',fit['hacker-01']).accent);assert.equal(accents.size,G.ACCENTS.length,'every accent colour is used');
 });
+test('food workers wear a work apron instead of street combat gear',()=>{
+ const look='ncz-neon',kit=G.loadout(look+':food-vendor:oldtown',look,fit[look]),mesh=G.build(fit[look],kit);
+ assert.equal(kit.apron,true);assert.equal(kit.thighs,'');assert.equal(kit.bracer,'');assert.ok(mesh.parts.includes('apron'));assert.ok(mesh.indices.length>0);
+});
 test('nothing is strapped over a skirt, and no goggles over a hat',()=>{
  for(let i=0;i<80;i++){const w=G.loadout('fixer-01:'+i,'fixer-01',fit['fixer-01']);assert.equal(w.thighs,'');assert.equal(w.knees,false);
   assert.equal(G.loadout('district-smuggler:'+i,'district-smuggler',fit['district-smuggler']).goggles,false);}

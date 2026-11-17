@@ -30,6 +30,7 @@
  // Sidewalk lanes (NeoChinatown coordinates): a line to walk, the wall side (for leaning) and how lively it is.
  // Nightlife lanes may hold drunks; the avenue's quieter east end has fewer people.
  const NC=typeof module!=='undefined'?require('./ncz-nightclub.js'):root.VoidNightclub,club=!!NC&&NC.enabled();
+ const FS=typeof module!=='undefined'?require('./ncz-food-stands.js'):root.VoidFoodStands;
  const lanes=[
   // Nobody leans on the club's front by its door (ncz-nightclub.js, local server only for now).
   {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3,...(club?{noLean:[[-61,-55.6]]}:{})},
@@ -38,9 +39,9 @@
   {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2},
   {id:'avenue-south',a:[6,-18.4],b:[148,-18.4],wall:[0,-1],half:1,nightlife:true,weight:2,noLean:[[49,73]]}];
  // Spots no one stops or leans at: doors, the taxi zones' kerbs, the static crew.
- const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-182,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5]];
+ const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-182,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5],...Object.values(FS?.STANDS||{}).map(s=>[s.x,s.z,3])];
  // The street's standing crew (neochinatown.js): walkers step round them.
- const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4]];
+ const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4],...Object.values(FS?.STANDS||{}).map(s=>Math.abs(Math.sin(s.yaw))>.5?[s.x+Math.sign(Math.sin(s.yaw))*.65,s.z]:[s.x,s.z-.65])];
  // Far South's two pavements: Main Street goes on south of the South Gate. Their share of the crowd is Old Town's (weights are counted against the lanes above, so the other quarters' crowds did not change).
  const farLanes=[
   {id:'main-far-west',a:[52.6,-131.6],b:[52.6,-216.4],wall:[-1,0],half:1,nightlife:true,weight:3},
@@ -93,7 +94,7 @@
   }};
  }
  // Browser: figures, routines and reactions.
- function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){
+ function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','regular-01','cyborg-01'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){
   const lanes=lanesFor(quarter);
   const people=plan(quality,rnd,cfg,quarter).map(p=>({...p,l:lanes.find(l=>l.id===p.lane),state:'walk',timer:stopIn(p),node:null,anim:null,look:null,react:0,sway:rnd()*6,yaw:0}));
   const byId=new Map(people.map(p=>[p.id,p]));let remarkCool=8,dealt=Math.floor(rnd()*8),disposed=false;
