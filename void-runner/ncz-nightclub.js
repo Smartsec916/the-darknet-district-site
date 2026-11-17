@@ -124,7 +124,14 @@
     cone.material=m;cone.parent=pivot;cone.position.y=-3.6;cone.isPickable=false;
     beams.push({pivot,i});});}
 
-  async function load(){
+  /* Prepared early (prepare(), 17 Nov 2026): the street's loading screen builds the club, so the build and its shaders are not paid in the middle of a walk.
+     It stays hidden (shutter shut, nothing drawn, no lights) until the player first comes within 70 m, exactly as when it was built there. */
+  let shown=false,loading=null;
+  const rootOf=()=>built||model;
+  function reveal(){if(shown||state.phase!=='ready')return;shown=true;rootOf()?.setEnabled(true);setOpen(true);}
+  function hold(){if(!shown)rootOf()?.setEnabled(false);}
+  function load(){if(!loading)loading=load_().finally(()=>{loading=null;});return loading;}
+  async function load_(){
    if(state.phase==='loading'||state.phase==='ready'||state.phase==='failed')return;state.phase='loading';
    try{
     // Ask first whether the purchased model is published at all (one small request): the loader's own retries for a missing file take a long time.
@@ -138,10 +145,10 @@
     // Placed; now the parts that never move again are frozen (the cut above needed them unplaced).
     model.computeWorldMatrix(true);
     for(const mesh of model.getChildMeshes(false)){mesh.computeWorldMatrix(true);{const n=mesh.name.slice(ID.length+1);if(!/^(Box538|head_|_light|lightcone|ball)/.test(n)&&!mesh.parent?.name?.match(/Box538|head_|_light/))mesh.freezeWorldMatrix();}}
-    placeBeams();state.phase='ready';state.loads++;setOpen(true);
+    placeBeams();state.phase='ready';state.loads++;hold();
    }catch(error){
     // The purchased model is not published here: the club is built in code instead, in the same hall, round the same furniture.
-    try{if(disposed)return;buildOwn();placeBeams();state.phase='ready';state.variant='built';state.loads++;state.error=null;setOpen(true);}
+    try{if(disposed)return;buildOwn();placeBeams();state.phase='ready';state.variant='built';state.loads++;state.error=null;staff(0,false);hold();}
     catch(e){state.phase='failed';state.error=e.message;console.warn('[VOID//RUNNER nightclub] unavailable, the door stays shut:',e.message);}}
   }
   /* The code-built NULL: shell, lit dance floor, DJ desk and speaker stacks, tables and chairs where the collision already has them, a bar, a VIP corner, and
@@ -221,15 +228,17 @@
   function unload(){
    if(built)return;   // the code-built club stays for the visit: it is small, and there is nothing to download again
    if(!model)return;setOpen(false);const gone=new Set(model.getChildMeshes(false));for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!gone.has(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];for(const o of own)o.dispose();own=[];fade=null;cones=[];interior=[];ball=null;
-   model.dispose(false,true);model=null;assets.unload(ID);state.phase='idle';state.unloads++;}
+   model.dispose(false,true);model=null;assets.unload(ID);state.phase='idle';state.unloads++;shown=false;}
 
   function tick(cam,dt,time){
    if(disposed||!cam)return;clock+=dt;
-   {const s=solidShutter(),open=state.phase==='ready';if(s&&s.open!==open)s.open=open;}   // the doorway's collision always follows the club's state
+   {const s=solidShutter(),open=state.phase==='ready'&&shown;if(s&&s.open!==open)s.open=open;}   // the doorway's collision always follows the club's state
    const d=distance(cam.x,cam.z)*(root.VoidZoom?root.VoidZoom.now():1),here=inside(cam);   // zoomed with the camera app, the club is judged as near as it looks (zoom-detail.js)
    if(state.phase==='idle'&&d<70)load();
    else if(state.phase==='ready'&&d>130)unload();
+   if(state.phase==='ready'&&!shown&&d<70)reveal();
    if(state.phase!=='ready')return;
+   if(!shown){for(const l of lights)l.setEnabled(false);for(const b of beams)b.pivot.setEnabled(false);if(built)staff(dt,false);return;}
    if(built){const nearby=d<45;if(nearby&&Math.floor(clock*6)!==Math.floor((clock-dt)*6))pulse(time??clock);staff(dt,nearby);for(const m of builtMeshes)if(m.isEnabled()!==(d<130))m.setEnabled(d<130);}
    // Interior detail and lights only while the club could be seen into; the shell stays for the skyline.
    const near=d<45;for(const m of interior)if(m.isEnabled()!==near)m.setEnabled(near);
@@ -240,7 +249,14 @@
    if(near&&ball)ball.rotate(B.Axis.Y,dt*.5,B.Space.LOCAL);
   }
 
-  return {tick,inside,isOpen:()=>state.phase==='ready',state:()=>({...state}),get model(){return model;},dispose(){disposed=true;if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
+  return {tick,inside,isOpen:()=>state.phase==='ready'&&shown,state:()=>({...state,shown}),
+   // Build the club now, hidden (the street's loading screen calls this); resolves when built, or after `ms` if a download is slow (it then finishes in the background).
+   prepare(ms=6000){if(disposed)return Promise.resolve(false);const p=load();return Promise.race([Promise.resolve(p).then(()=>state.phase==='ready'),new Promise(r=>setTimeout(()=>r(false),ms))]);},
+   // Compile the club's shaders both ways its lights will be seen (off from afar, on within 28 m), still behind the loading screen. `ready` waits for the scene.
+   async warm(ready){if(disposed||!lights.length||typeof ready!=='function')return;const cap=p=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);
+    // (a scene that has not drawn a frame since a change takes its shaders as still current: incrementRenderId makes it look again, as a drawn frame would)
+    for(const l of lights)l.setEnabled(true);scene.incrementRenderId();await cap(ready());if(disposed)return;for(const l of lights)l.setEnabled(false);scene.incrementRenderId();await cap(ready());},
+   get model(){return model;},dispose(){disposed=true;if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
  }
  const api={NAME,BUILT,ENTRY,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightclub=api;

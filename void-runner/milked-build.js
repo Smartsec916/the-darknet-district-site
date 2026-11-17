@@ -692,10 +692,12 @@
   function dress(p){const o=OUTFIT[p.look];p.meshes=p.meshes.filter(m=>{const mat=m.material,nm=mat?.name||'';if(COVER.test(nm)){m.setEnabled(false);return false;}
     const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
   const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
+  const asked=new Map();
+  function askLooks(list=LOOKS){for(const look of list){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);asked.set(look,Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+look+'.glb',background:true},scene)).catch(()=>{}).then(()=>{loading.delete(look);asked.delete(look);}));}}return [...asked.values()];}
   function staff(clock){
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
-   if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;for(const look of LOOKS){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+look+'.glb',background:true},scene)).catch(()=>{}).then(()=>loading.delete(look));}}}
+   if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;askLooks();}
    for(const p of people){
     if(!p.node){let n=null,look=null,clip=null;
      if(p.asset&&assets?.container?.(p.asset)){n=assets.instance(p.asset,node);look=p.asset;clip='idle';}
@@ -718,7 +720,23 @@
     if(k.clock>mirNext){mirNext=k.clock+.5;if(!mirAll||k.clock>mirAllNext){mirAllNext=k.clock+(k.clock<45?3:1e9);mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));}mir.renderList=high?mirAll:near(mirAll,cam.x,cam.z,10);}}
    staff(k.clock);
   }
-  return {tick,inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
+  /* Behind the check-in card (17 Nov 2026, docs/development/SMOOTHNESS_AUDIT.md): the people's figures are fetched and placed now, and every shader the rooms need
+     (the people, the floor mirror's view of them, the glow and the key light's shadow) is compiled before the inner doors open. They used to be fetched only once
+     the player was walking, so they arrived, and their shaders compiled, just as the inner doors opened. A slow download (over 8 s) still finishes in the background. */
+  const prepared={};   // how long each step behind the card took, in ms (state().prepared; for checking on a real graphics card)
+  async function prepare(){if(k.disposed)return;let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
+   // only figures already on this computer (in memory or the offline cache), the rule every place follows (asset-pipeline.js prepare): a first visit still downloads after the card
+   const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+look+'.glb'),1500)?look:null))).filter(Boolean);if(k.disposed)return;
+   await cap(Promise.all(askLooks(here)),8000);if(k.disposed)return;lap('figures');staff(k.clock);
+   if(mir){mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));mir.renderList=mirAll;}
+   root.VoidAssets?.settleLights?.(scene);await cap(scene.whenReadyAsync(true),10000);if(k.disposed)return;lap('shaders');
+   // The room picture that every surface reflects was taken 1.2 s after the doors opened (six views of the room in one frame); it is taken now, under the same
+   // light (the lamps faded in as they would have been by then). The next ones come at 14 s and 34 s, as before.
+   const w=typeof walker!=='undefined'&&walker?toLocal({x:walker.x,y:1.7,z:walker.z}):null;
+   if(!low&&w&&probes.length){const zone=zoneOf(w.x,w.z);for(let i=0;i<3;i++){relight(1,w,zone);keyLight(1,w,zone);}faceLamps(w);expose();roomPicture(1.2,zone);const p=probes[probePending];if(p){try{p.cubeTexture.render();}catch{}roomPicture(1.5,zone);}lap('picture');}
+   // The floor mirror draws the room with its own shader variants (a clip plane, mirrored); drawing it once here compiles them.
+   if(mir){try{mir.render();}catch{}await cap(scene.whenReadyAsync(true),5000);try{mir.render();}catch{}lap('mirror');}}
+  return {tick,prepare,inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
    dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;for(const p of probes){const i=scene.customRenderTargets.indexOf(p.cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}k.dispose();
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
     if(sun&&lightPrev.sun!=null)sun.intensity=lightPrev.sun;if(ambient){if(lightPrev.amb!=null)ambient.intensity=lightPrev.amb;if(lightPrev.dif)ambient.diffuse=lightPrev.dif;if(lightPrev.gnd&&ambient.groundColor)ambient.groundColor=lightPrev.gnd;}}};

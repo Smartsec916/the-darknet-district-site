@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 17 Nov 2026: SMOOTHNESS AUDIT (branch `claude/perf-audit-1`, builds `2026-11-17-smooth-1` to `-smooth-3`, pushed, NO PR)
+
+David: lag walking from the District's vestibule toward the street, and when Milked's inner doors open. Measured in the real game (software WebGL; frame trace, shader-compile log, CPU profile), full record and ranked proposals in [`SMOOTHNESS_AUDIT.md`](SMOOTHNESS_AUDIT.md).
+- **District to street:** NULL was built at 70 m, then the glTF loader's light-slot step (every material raised to one slot per scene light when any model loads) rebuilt every shader in view because NULL had added lights. Now done behind the vestibule scan (`neochinatown.js prepare`, `ncz-nightclub.js prepare/warm`, hidden until 70 m as before; `asset-pipeline.js settleLights/keepLights`; street people pre-made). Walk: 2 shader programs instead of 32-40.
+- **Milked:** people's looks were fetched only after walking in; now (when on the computer) loaded, placed and compiled behind the card, with the first reflection picture and the floor mirror (`milked-build.js prepare`, `state().prepared` has step times). 0 programs after the card instead of 37. The card is longer in software rendering (38 s here); check on a real card.
+- Steady state: `renderRoom` no longer gathers every room mesh every frame to find station doors. Tests: `tests/smoothness.test.cjs`, `tests/smoothness-browser.cjs [low|medium]`.
+- **Not verified:** David's GPU (software renderer only); everything that changes the look is a proposal only (audit, ranked list).
+
 > **16 Nov 2026, later (branch `claude/milked-far-south-1`, builds `2026-11-16-far-south-1` then `2026-11-16-outskirts-1`, pushed, no PR, not merged):** Milked moved by one rigid translation (100 m south) into the new **Far South** quarter past the **South Gate (A5, now live)**; **A6 Far South Gate** is a pedestrian-only checkpoint to the new **Outskirts** quarter (code-built container homes on gravel; `ncz-containers.js`; Kai Kryptos' home reserved as data `kai-kryptos-home`, nothing else). See `NEOCHINATOWN_QUARTERS.md` (end), `CHECKPOINTS.md`, `MILKED.md` (position note). Next: David reviews the look of The Outskirts against his reference pictures; the Outskirts' art is a first slice.
 ### 16 Nov 2026 (late): Sleeping Pod exit fixed, wall music player does everything. Branch `claude/pod-exit-1`, build `2026-11-17-pod-2`, pushed, NO PR yet (merged with main after #339)
 
