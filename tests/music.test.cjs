@@ -70,7 +70,7 @@ test('every area of the soundtrack has a recording on disk, and so does every ne
   const fs=require('node:fs'),path=require('node:path'),S=require('../void-runner/music-score.js'),root=path.join(__dirname,'..');
   const areas=['theme','neochinatown','alley','district-hall','district-entry','district-store','district-vr','district-arcade','district-bar','nightclub','corporate','temple','milked','space'];
   for(const id of areas){assert.ok(S.styles[id],id+' is a style');assert.ok(S.files[id],id+' has a recording');}
-  // David, 15 Nov 2026: the hallway's music plays throughout the District at one level; only the arcade keeps its own.
+  // The owner, 15 Nov 2026: the hallway's music plays throughout the District at one level; only the arcade keeps its own.
   const hall=['district-hall','district-entry','district-store','district-vr','district-bar','district-rest'];for(const id of hall){assert.equal(S.files[id],S.files['district-hall'],id+' plays the hallway recording');assert.equal(S.styles[id].gain,S.styles['district-hall'].gain,id+' at the hallway level');}
   assert.notEqual(S.files['district-arcade'],S.files['district-hall'],'the arcade keeps its own music');
   assert.equal(new Set(areas.filter(id=>!hall.includes(id)||id==='district-hall').map(id=>S.files[id])).size,areas.length-4,'every other area has its own track');

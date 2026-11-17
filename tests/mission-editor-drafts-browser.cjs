@@ -1,4 +1,4 @@
-/* The owner's Mission Editor drafts are never lost (David, 17 Nov 2026: a new tree "Awakening" with no missions was gone after he cleared his browser history).
+/* The owner's Mission Editor drafts are never lost (the owner, 17 Nov 2026: a new tree "Awakening" with no missions was gone after he cleared his browser history).
    Offline Chromium with a mocked server (the Stage 3B private draft API kept in this script's memory, so it survives reloads and a cleared browser):
    1. an EMPTY tree survives a reload; 2. and a PLAY THIS DRAFT + LEAVE DRAFT round trip; 3. the whole draft is copied to the server as "mission-editor-workspace"
    ("Saved on the server · <time>"); 4. localStorage cleared → opening the editor restores the drafts from the server and says so; 5. a newer server copy over a browser
@@ -36,7 +36,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   await page.goto(base+'/void-runner.html');await boot();
   await page.evaluate(()=>{const s=C.startDistrictCampaign(C.fresh());s.story.flags.realSaveMarker=true;localStorage.setItem('void-runner-campaign-v1',JSON.stringify({...s,savedAt:1700000000000}));});
   await page.reload();await boot();await openEditor();
-  // 1. an empty tree, as David made it
+  // 1. an empty tree, as the owner made it
   await page.locator('[data-me-new-tree]').click();await page.locator('[data-me-new-name]').fill('Awakening');await page.locator('[data-me-new-note]').fill('This starts as soon as new players enter The Darknet District from the Sleeping Pod');await page.locator('[data-me-create-tree]').click();
   await page.waitForSelector('[data-me-owner-tree="draft-awakening"]');assert.equal(await listed(),1);
   await page.waitForFunction(()=>VoidMissionEditor.serverCopy.state==='saved',null,{timeout:20000});

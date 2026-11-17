@@ -1,5 +1,5 @@
 /* How people are lit: the finish every ordinary character model gets (players, other players, residents). BROWSER ONLY.
-   David, 2026-11-13: the District is dark with coloured light as the accent, and in it the player characters read as near-black silhouettes. The interior is already
+   The owner, 2026-11-13: the District is dark with coloured light as the accent, and in it the player characters read as near-black silhouettes. The interior is already
    at the scene's limit of real lamps, so the light is added in the character's own surface: a soft edge light that slides round the figure as the camera moves,
    cyan on one side and magenta on the other like the hallway's two sides, and a little lift so a dark outfit keeps its shape. Nothing about the models changes.
    Applied once per model file, by the model loader the moment the file is read (asset-pipeline.js loadContainer): a material must have its plugins before it is
@@ -22,7 +22,7 @@
    return language===B.ShaderLanguage?.WGSL
     ?{CUSTOM_FRAGMENT_BEFORE_FINALCOLORCOMPOSITION:'#ifdef CHARACTER_RIM\n{let rimF=pow(1.0-saturate(dot(normalW,viewDirectionW)),uniforms.vCharacterRimA.a);let rimC=mix(uniforms.vCharacterRimA.rgb,uniforms.vCharacterRimB.rgb,saturate(normalW.x*0.5+0.5));finalEmissive+=rimC*rimF*(vec3f(0.7)+0.3*surfaceAlbedo.rgb)+surfaceAlbedo.rgb*uniforms.vCharacterRimB.a;}\n#endif\n'}
     :{CUSTOM_FRAGMENT_BEFORE_FINALCOLORCOMPOSITION:'#ifdef CHARACTER_RIM\n{float rimF=pow(1.0-clamp(dot(normalW,viewDirectionW),0.0,1.0),vCharacterRimA.a);vec3 rimC=mix(vCharacterRimA.rgb,vCharacterRimB.rgb,clamp(normalW.x*0.5+0.5,0.0,1.0));finalEmissive+=rimC*rimF*(vec3(0.7)+0.3*surfaceAlbedo.rgb)+surfaceAlbedo.rgb*vCharacterRimB.a;}\n#endif\n'};}};}
- /* ---- Surface quality (David, 15 Nov 2026: "upgrade all NPCs and player character models"; references: wet, layered, black street clothing under neon) ----
+ /* ---- Surface quality (the owner, 15 Nov 2026: "upgrade all NPCs and player character models"; references: wet, layered, black street clothing under neon) ----
     The models themselves are unchanged (MakeHuman figures, 512-pixel textures, no normal maps). What changes is how each surface answers light, by what it is:
       clothing  a fine woven grain (a small tiling detail map made here, no file) and a thin wet coat, so black cloth shows folds and catches the coloured lights
       footwear  polished, with a stronger coat

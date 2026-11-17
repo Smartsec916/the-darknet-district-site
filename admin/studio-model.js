@@ -10,7 +10,7 @@
  const SPEAKERS=['Admin','Iris','Landing terminal','You','Bartender'];   // on-screen speakers the beginner campaign uses; named NPCs come from the voice registry
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TYPES=['main','side','cargo','campaign','tutorial','bounty','station'];
  const clone=v=>JSON.parse(JSON.stringify(v));
- /* Mission flow chart (David, 15 Nov 2026): three more things a mission can carry. They are DESIGN FIELDS in a draft: the game does not act on them yet.
+ /* Mission flow chart (the owner, 15 Nov 2026): three more things a mission can carry. They are DESIGN FIELDS in a draft: the game does not act on them yet.
       offer    [{who,text}]                      what the giver says when handing the mission over
       choices  [{id,label,next}]                 the choices the mission creates; `next` is the mission a choice leads to ('' = not decided)
       unlocks  [{item,seller,where[],advert}]    store items that become available: where = ['everywhere'] or specific store ids; advert = the line for the V1 News feed */

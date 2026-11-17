@@ -1,7 +1,7 @@
 /* District residents and profile jobs (void-runner/district-people.js): the roster the V1 lists beside real players, and the jobs a profile can show. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const P=require('../void-runner/district-people.js'),Crowd=require('../void-runner/crowd.js'),D=require('../void-runner/device-v1.js');
-test('jobs: David\'s list is there, ids are unique, and a profile holds one or two known jobs',()=>{
+test('jobs: the owner\'s list is there, ids are unique, and a profile holds one or two known jobs',()=>{
  const labels=P.JOBS.map(j=>j.label);for(const l of ['Smuggler','Pirate','Mercenary','Merchant','Influencer','Dancer','DJ','Mechanic'])assert(labels.includes(l),l);
  assert.equal(new Set(P.JOBS.map(j=>j.id)).size,P.JOBS.length);for(const j of P.JOBS)assert.match(j.id,/^[a-z-]{2,20}$/);
  assert.deepEqual(P.cleanJobs('smuggler,nonsense,dj,smuggler,pirate,mechanic'),['smuggler','dj']);assert.deepEqual(P.cleanJobs(null),[]);assert.deepEqual(P.cleanJobs({}),[]);
@@ -51,7 +51,7 @@ test('the house rule on scanning: Admin half the time, Iris the other half, Iris
     const [wx,wz]=N.toWorld(lx,lz);assert(!Ex.blocked(wx,wz,interior),id+' walks through open floor at '+lx.toFixed(1)+','+lz.toFixed(1));}prev=p;}}
  assert.match(E.lines.admin,/rude/i);assert.match(E.lines.admin,/deactivate/i);assert.match(E.lines.iris,/rude/i);assert.match(E.lines.iris,/deactivate/i);
 });
-test('on foot is slightly faster (David, 15 Nov 2026) and still inside what the multiplayer server allows',()=>{
+test('on foot is slightly faster (the owner, 15 Nov 2026) and still inside what the multiplayer server allows',()=>{
  const src=require('node:fs').readFileSync('void-runner/exploration-controller.js','utf8'),m=src.match(/walk:([\d.]+),sprint:([\d.]+)/);assert(m);assert(+m[1]>3.4&&+m[1]<=4.2);assert(+m[2]>5.6&&+m[2]<=7);
  const hub=require('node:fs').readFileSync('tools/district-hub/protocol.cjs','utf8').match(/maxSpeed:(\d+)/);assert(+m[2]<+hub[1]);
 });

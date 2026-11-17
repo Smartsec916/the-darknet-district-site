@@ -167,7 +167,7 @@ def awakening(**extra):
          'start': {'how': 'notification', 'channel': 'comms', 'from': 'admin', 'text': "You're awake. Good.\nWhen you're ready, come find me. We need to talk.", 'header': 'ADMIN // INCOMING MESSAGE', 'when': {'kind': 'pod-exit'}},
          'objectives': [{'id': 'exit-pod', 'label': 'Exit the Sleeping Pod.', 'kind': 'pod-exit'},
                         {'id': 'message', 'label': "Receive Admin's message.", 'kind': 'message'},
-                        {'id': 'speak', 'label': 'Find and speak with Admin.', 'kind': 'talk', 'npc': 'admin', 'say': [{'who': 'admin', 'text': "[David: write Admin's introduction to The Darknet District here]"}]},
+                        {'id': 'speak', 'label': 'Find and speak with Admin.', 'kind': 'talk', 'npc': 'admin', 'say': [{'who': 'admin', 'text': "[Write Admin's introduction to The Darknet District here]"}]},
                         {'id': 'introduction', 'label': 'Receive an introduction to The Darknet District.', 'kind': 'hear', 'npc': 'admin'}]}
     m.update(extra)
     return {'id': 'main-storyline', 'name': 'Main storyline', 'missions': [m]}
@@ -323,7 +323,7 @@ class RevoiceQueueTests(unittest.TestCase):
         self.assertEqual(by['admin']['engine'], 'elevenlabs')
         self.assertEqual(by['admin']['voiceId'], 'DMyrgzQFny3JI1Y1paM5')
         self.assertEqual(by['admin']['waiting'], 'waiting for ElevenLabs re-voice (needs approval)')
-        self.assertEqual(by['rook']['engine'], 'elevenlabs', 'Rook: David chose an ElevenLabs voice on 17 Nov 2026')
+        self.assertEqual(by['rook']['engine'], 'elevenlabs', 'Rook: the owner chose an ElevenLabs voice on 17 Nov 2026')
         self.assertEqual(by['rook']['voiceId'], 'wzVFxVZCBIi6KBxNhQDI')
         self.assertEqual(by['mara']['engine'], 'kokoro')
         self.assertEqual(by['mara']['voice'], 'af_bella', 'the registered voice, never a new one')
@@ -332,7 +332,7 @@ class RevoiceQueueTests(unittest.TestCase):
         self.assertEqual(len(listed), 3)
         done = self.post('revoice/done', {'ids': [by['mara']['id'], by['admin']['id'], by['rook']['id']]}).json['items']
         st = {i['who']: i['status'] for i in done}
-        self.assertEqual(st, {'mara': 'done', 'admin': 'queued', 'rook': 'queued'}, 'ElevenLabs lines stay queued until David approves')
+        self.assertEqual(st, {'mara': 'done', 'admin': 'queued', 'rook': 'queued'}, 'ElevenLabs lines stay queued until the owner approves')
         for bad in [{'items': [{**items[0], 'who': 'news-anchor'}]}, {'items': [{**items[0], 'who': 'special-character'}]}, {'items': [{**items[0], 'text': '<b>x</b>'}]}, {'items': [{**items[0], 'voice': 'af_bella'}]}]:
             self.assertIn(self.post('revoice', bad).status_code, (400, 422))
         self.assertTrue(all(k.startswith('vr_revoice_queue/') for k in self.db.data))

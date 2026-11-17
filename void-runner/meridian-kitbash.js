@@ -67,7 +67,7 @@
   }
   // Deck plates over a roof, with some machinery.
   function roof(center,w,d,clutter){
-   // One plain deck plate everywhere (David, 2026-10-16: plainer roofs, fewer patterns).
+   // One plain deck plate everywhere (the owner, 2026-10-16: plainer roofs, fewer patterns).
    const cols=Math.max(1,Math.ceil(w/4)),rows=Math.max(1,Math.ceil(d/4)),cw=w/cols,cd=d/rows;
    for(let i=0;i<cols;i++)for(let j=0;j<rows;j++)place('deck',[center[0]-w/2+cw*(i+.5),center[1]+.06,center[2]-d/2+cd*(j+.5)],[cw,0,cd]);
    for(let k=0;k<clutter;k++){const x=center[0]-w*.35+(k%3)*w*.35,z=center[2]-d*.3+Math.floor(k/3)*d*.3;

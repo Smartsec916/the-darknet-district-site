@@ -14,7 +14,7 @@
  // Best effort and silent: while the server feature is off the API answers 404 and nothing happens beyond the local save.
  async function upload(a){try{const u=root.VoidAccount?.user;if(!u||root.VoidAccount.guestOnly||!root.VoidAccount.character||!root.VoidNetwork?.request)return false;
   await root.VoidNetwork.request('character/appearance',{body:a,token:await u.getIdToken(),scope:u.uid+':appearance'});root.VoidAccount.appearance=a;return true;}catch{return false;}}
- // Extras (face mask, eyewear and the like) start OFF (David, 15 Nov 2026): a new character, a new body or a new outfit comes without them until the player switches one on.
+ // Extras (face mask, eyewear and the like) start OFF (the owner, 15 Nov 2026): a new character, a new body or a new outfit comes without them until the player switches one on.
  const plain=id=>({...A.defaults(id),accessories:[]});
  const current=()=>stored()||plain(A.DEFAULT_LOOK.male);
 

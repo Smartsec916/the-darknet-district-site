@@ -22,7 +22,7 @@
     engines: { name: 'Vector thrusters', description: 'Faster movement and more responsive handling.', prices: [250, 500, 900] },
     shields: { name: 'Deflector shield', get description(){return B.shieldPerTier+' shield capacity per tier. Regenerates '+B.shieldRechargeRate+' per second after '+B.shieldRechargeDelay+' seconds without a hit.';}, prices: [300, 650, 1000] }
   };
-  // The District's faction deliveries (David's docs 05/06). Delivering the cargo and collecting
+  // The District's faction deliveries (the owner's docs 05/06). Delivering the cargo and collecting
   // payment from Iris at The Darknet District are separate steps. Progress lives in story.flags.
   const factionDeliveries={
     communion:{id:'communion-delivery',faction:'communion',flag:'communionDelivery',name:'Communion delivery',cargo:'Advanced electronics and research equipment',legal:true,destination:'vigil',payment:1200,reward:1200,enemies:3,tier:1,duration:40,contact:'Admin',recipient:'elara',briefing:'Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District.'},
@@ -36,7 +36,7 @@
     'natural-order':{id:'order-supply',faction:'natural-order',kind:'supply',flag:'orderSupply',name:'Natural Order supply contract',cargo:'Industrial control assemblies, heavy-duty mechanical components, and replacement machinery and repair equipment',legal:true,destination:'holdfast',payment:1500,reward:1500,enemies:3,tier:1,duration:40,contact:'Iris',recipient:'marcus',briefing:'Industrial control assemblies, replacement machinery and heavy-duty mechanical components for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.'}
   };
   const supplyList=Object.values(supplyDeliveries),payable=[...factionList,...supplyList];
-  // Homeworld missions are placeholders until David designs them: they can be offered and
+  // Homeworld missions are placeholders until the owner designs them: they can be offered and
   // accepted, but have no destination, objectives or rewards and never complete.
   const originMissions={communion:{id:'communion-origin-mission-01',faction:'communion',flag:'communionOrigin',giver:'elara'},'natural-order':{id:'natural-order-origin-mission-01',faction:'natural-order',flag:'orderOrigin',giver:'marcus'}};
   // Homeworlds (design doc 10). Elara and Marcus send a shipment down to their homeworld; Kess and
@@ -140,7 +140,7 @@
   }
   // Rook routes no freight into a faction system until the player has made Admin's delivery there.
   function heldForAdmin(s,system){const d=factionList.find(x=>U.system(x.destination)===system);return !!d&&!['delivered','paid'].includes(factionStage(s,d.faction));}
-  // "Don't Ask Questions" (David's brief doc 11 §23): Admin's sealed cargo for Rook. Offered once the
+  // "Don't Ask Questions" (the owner's brief doc 11 §23): Admin's sealed cargo for Rook. Offered once the
   // first District delivery is paid and Admin is free. The run is trouble-free: no patrols, inspection,
   // confiscation or interdiction, and the contents are never revealed. Rook pays on handover at Meridian.
   // story.flags.sealedCargo: accepted -> delivered. ('seized' exists only in saves from PR #59; Admin offers again.)
@@ -252,7 +252,7 @@
   }
   const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, sealedCargo, ...content.missions];
   function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:currentStory(), warflying:WarFlying.fresh(), relay:Relay.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
-  // The Darknet District reset (David, 2026-11-04): every campaign carries story.flags.campaignEpoch. Saves from before the reset have none and are retired: restore() refuses them.
+  // The Darknet District reset (the owner, 2026-11-04): every campaign carries story.flags.campaignEpoch. Saves from before the reset have none and are retired: restore() refuses them.
   const CAMPAIGN_EPOCH = 1;
   const isCurrent = s => !!s && typeof s === 'object' && Number.isSafeInteger(s.story?.flags?.campaignEpoch) && s.story.flags.campaignEpoch >= CAMPAIGN_EPOCH;
   // True for a well-formed campaign from before the reset (so the game can say it was retired, and keep a copy), false for anything else.
@@ -423,7 +423,7 @@
     out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Missions.sync(out,{missionFlight,contracts});return out;
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
-  /* Missions removed from the game (David, 17 Nov 2026): in a District campaign only the main storyline (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run.
+  /* Missions removed from the game (the owner, 17 Nov 2026): in a District campaign only the main storyline (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run.
      A tracked removed mission (the beginner campaign, anything older) is untracked; its record, credits, items and ships are kept, and nothing is rejected. void_runner_api.py clean_save does the same. */
   const storyMission=id=>typeof id==='string'&&/^(draft-|main-storyline-m\d|m\d{3}-)/.test(id);
   function retireMissions(s){if(!Missions.closed(s)||!s.universe)return false;const t=s.universe.trackedMission;if(t==null||storyMission(t))return false;s.universe.trackedMission=null;s.universe.autoTrack=true;return true;}

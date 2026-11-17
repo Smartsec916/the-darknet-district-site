@@ -1,6 +1,6 @@
 {
  "version": 1,
- "engine": "ElevenLabs eleven_v4 (rendered once on David's Starter plan, 15 Nov 2026; stored here so nothing is generated at play time)",
+ "engine": "ElevenLabs eleven_v4 (rendered once on the owner's Starter plan, 15 Nov 2026; stored here so nothing is generated at play time)",
  "format": "ogg/vorbis 24 kHz mono",
  "note": "Lines voiced outside the Kokoro pipeline. voice-clips.js merges these with manifest.json; a speaker's live effect (Iris: android) still applies.",
  "lines": {
@@ -11,7 +11,7 @@
    "voice": "Bill Adams - Wise and Motivational American Storyteller",
    "voiceId": "V2bPluzT7MuirpucVAKH",
    "source": "district-people.js",
-   "note": "Re-voiced 15 Nov 2026: David asked for Admin to sound older."
+   "note": "Re-voiced 15 Nov 2026: the owner asked for Admin to sound older."
   },
   "iris-scanning-rude": {
    "speaker": "iris",

@@ -40,7 +40,7 @@ test('the belt goes round the waist and the bracer round the forearm',()=>{
  const e=b.joints.RightForeArm,h=b.joints.RightHand;for(let i=0;i<br.positions.length;i+=3){const x=br.positions[i];assert.ok(x<Math.max(e[0],h[0])+.001&&x>Math.min(e[0],h[0])-.001,'between elbow and wrist');}
 });
 test('Admin has his own kit: amber, a jacket, and never eyewear',()=>{
- const w=G.loadout('admin','district-smuggler',fit['district-smuggler']);assert.equal(w.goggles,false,'David prefers Admin without eyewear');assert.equal(w.jacket,true);assert.deepEqual(G.ACCENTS[w.accent],[1,.62,.08],'amber');
+ const w=G.loadout('admin','district-smuggler',fit['district-smuggler']);assert.equal(w.goggles,false,'The owner prefers Admin without eyewear');assert.equal(w.jacket,true);assert.deepEqual(G.ACCENTS[w.accent],[1,.62,.08],'amber');
  const g=G.build(fit['district-smuggler'],w);assert.ok(g.parts.includes('jacket')&&g.parts.includes('harness')&&g.parts.includes('belt')&&!g.parts.includes('goggles'));
  assert.equal(G.loadout('hacker-01:walker-3','hacker-01',fit['hacker-01']).jacket,false,'the jacket is Admin\'s alone');
 });

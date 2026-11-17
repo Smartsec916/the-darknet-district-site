@@ -153,7 +153,7 @@ def template(kind, source, inv):
     raise DraftError('Unknown draft kind.')
 
 
-# The Mission Editor's whole draft (trees, missions, lines, names), kept on the server so a cleared browser loses nothing (David, 17 Nov 2026).
+# The Mission Editor's whole draft (trees, missions, lines, names), kept on the server so a cleared browser loses nothing (the owner, 17 Nov 2026).
 # One fixed draft id, ordinary revisions, the same byte and revision limits. It is a private backup of editor state, never content: nothing releases or applies it.
 WORKSPACE_ID = 'mission-editor-workspace'
 WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio']

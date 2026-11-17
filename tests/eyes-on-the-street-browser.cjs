@@ -1,7 +1,7 @@
 /* MISSION 002 — EYES ON THE STREET in the real game (Chromium, software GL, offline: every API call refused, so the shipped missions are in force).
    The whole flow at 1366x768 and 1920x1080: a new character finishes Awakening (EXIT POD, Admin's call, talk to Admin) → Admin's in-person offer: NOT NOW, then talking
    again and ACCEPT → Mission Log "Eyes on the Street", tracked, the yellow arrow out through the District's vestibule and then to NULL's door → walking into NULL brings
-   Admin's Comms call (David's five lines) → Juno Vex at the bar with the yellow marker over her and the hints (open the V1 / Camera / take the picture) → a photo of
+   Admin's Comms call (the owner's five lines) → Juno Vex at the bar with the yellow marker over her and the hints (open the V1 / Camera / take the picture) → a photo of
    the wrong person, then a valid photo of Juno (left click in the camera) → Messages > Admin's conversation: ATTACH the wrong photo, SEND → "That's not the person...",
    ATTACH the right photo, SEND → "Received..." → back to Admin in the District → "Not bad..." and the reward (100 credits, better standing with Admin), paid once.
    Usage: node tests/eyes-on-the-street-browser.cjs   (its own static server on a free port; SITE_TEST_URL to use another; SHOTS=dir; BROWSER_EXECUTABLE=path; SIZES=1366;
@@ -51,7 +51,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await useE('admin');await page.waitForFunction(()=>state.universe.missions['m001-awakening']?.completed===true);await page.evaluate(()=>{try{resumeWalking();}catch{}});await page.waitForFunction(()=>mode==='walking');
    // ---- the offer: NOT NOW, then again and ACCEPT
    log('offer');await useE('admin');
-   let d=await toLast();assert.ok(d,'Admin offers it in person');assert.deepEqual(d.lines,OFFER,'David\'s four lines, verbatim');assert.equal(d.main,'ACCEPT');assert.deepEqual(d.choices,['NOT NOW']);
+   let d=await toLast();assert.ok(d,'Admin offers it in person');assert.deepEqual(d.lines,OFFER,'The owner\'s four lines, verbatim');assert.equal(d.main,'ACCEPT');assert.deepEqual(d.choices,['NOT NOW']);
    await shot('offer');
    await page.locator('[data-talk-choice]').dispatchEvent('click');await page.waitForFunction(()=>mode==='walking'&&!speech);
    let s=await S();assert.equal(s.rec,null,'NOT NOW takes nothing');assert.deepEqual(s.log,[]);
@@ -78,7 +78,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    assert.equal(banner,'V1 · Incoming call from ADMIN · Press L to answer','the V1 notification, with the player\'s own key');await shot('call-banner');
    await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);const call=page.locator('#personal-device [data-call-live]');await call.waitFor();
    await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].length===5&&[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:30000});
-   assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'David\'s five lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
+   assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'The owner\'s five lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
    await page.locator('[data-hangup]').dispatchEvent('click');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    s=await S();assert.equal(s.log[0].objective,'Photograph the target.');assert.equal(s.hint&&s.hint.id,'open','hint: open the V1');assert.match(s.hint.text,/Press L to open your V1/);
    // ---- Juno Vex and her marker

@@ -1,4 +1,4 @@
-/* The shared humanoid animation library (David, 16 Nov 2026): motion-capture clips kept ONCE, on a bare skeleton, and applied to every character whose
+/* The shared humanoid animation library (the owner, 16 Nov 2026): motion-capture clips kept ONCE, on a bare skeleton, and applied to every character whose
    skeleton has the same bones, instead of being baked into each character's own file. A new clip is added by retargeting it into the library
    (tools/animation-pipeline/retarget_library.py) and listing it in CLIPS below; nothing else changes.
 
@@ -31,7 +31,7 @@
   {id:'ac-sit-cuddle-hug-f',title:'Seated cuddle and hug (her part)',category:'together',seconds:12,loop:false,root:'free',needs:'seat',group:'sit-cuddle-hug',part:1,partner:'missing'}
  ]};
  const FILES={actorcore:'assets/models/anim/anim-actorcore.vrpak'};
- const SOURCES={actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by David; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
+ const SOURCES={actorcore:{name:'ActorCore (Reallusion) motion capture',licence:'Reallusion content licence, bought by the owner; originals are kept outside this repository',skeleton:'Mixamo-named humanoid (MakeHuman figures and anything retargeted to them)'}};
  const bare=n=>String(n||'').split(':').pop();
  const all=()=>Object.entries(CLIPS).flatMap(([lib,list])=>list.map(c=>({...c,library:lib})));
  const clip=id=>all().find(c=>c.id===id)||null;

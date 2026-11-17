@@ -1085,7 +1085,7 @@ def int_scanner_kiosk(p):
 
 
 # ---- Phase B: the main hallway (x -3..3, z 26..70.5, ceiling at 4.05 m). Wall modules of 2 m, 1 m and a 0.5 m pilaster, all sharing one section so they run on
-# from each other; a 4 m ceiling module across the full 6 m width. Left of the hallway is lit magenta, right cyan (David's corridor reference): pieces that carry
+# from each other; a 4 m ceiling module across the full 6 m width. Left of the hallway is lit magenta, right cyan (the owner's corridor reference): pieces that carry
 # a light or a display have BOTH colours as separate nodes (…_0 magenta, …_1 cyan) and the game shows one.
 HALL_H = 4.05
 
@@ -1233,7 +1233,7 @@ def hall_ceiling(p):
 
 # ---- Phase F: the Sleeping Pod room. kit_shell is the pods' own moulded plastic: it has no texture here, and the game gives it the existing Tesana pod paint.
 def pod_facade(p):
-    """The moulded surround of one pod hatch (David's capsule-hotel reference): a rounded-rectangle shell with an oval opening sized to sit round the pod's
+    """The moulded surround of one pod hatch (the owner's capsule-hotel reference): a rounded-rectangle shell with an oval opening sized to sit round the pod's
     existing lit ring and glass, grab bars, vent slots and a status light. Goes flat against the pod front; nothing about the pod itself changes."""
     W, H, D, N, y0 = 2.56, 1.66, .22, 48, .02
     sg = lambda v: (v > 0) - (v < 0)
@@ -1257,7 +1257,7 @@ def pod_facade(p):
     p.snap.update({'mount': {}, 'opening': {'centre': [W / 2, H / 2], 'radii': [1.05, .64]}})
 
 
-# ---- Phase E: the Admin & Iris shop (David's two shop reference pictures: a gear wall of hanging packs over a worktop, shelves of books and media, red and
+# ---- Phase E: the Admin & Iris shop (the owner's two shop reference pictures: a gear wall of hanging packs over a worktop, shelves of books and media, red and
 # cyan screens, bare fluorescent tubes on a cabled ceiling). Merchandise colours come from the kit_goods sheet; packs are kit_canvas.
 def shop_counter(p):
     """The shop counter, 8 m: steel body, a worn mustard top with goods laid out on it, a till with a screen (screen_0) facing the customer."""
@@ -1518,7 +1518,7 @@ def prop_bench(p):
 
 
 # ---------------------------------------------------------------- District wall modules (painted-in wear) ----------------------------------------------------------------
-# district_hall_wall_4m_a is the first module made with David's Blender through the Higgsfield bridge (Nov 2026) and then moved into this builder, so the same code
+# district_hall_wall_4m_a is the first module made with the owner's Blender through the Higgsfield bridge (Nov 2026) and then moved into this builder, so the same code
 # makes it here, in CI and in his Blender. It is exactly 4 x 3 x 0.2 m and tiles along X: both ends are the same half rib, the plinth, rail and header run through.
 # Its wear is painted into VERTEX COLOURS (exported as COLOR_0, multiplied into the albedo by the game): bright chamfers and panel rims (worn edges), dark recesses
 # and wells, grime towards the floor and a slightly different tone per part. The three shared textures (kit_gunmetal, kit_steel, kit_paint) stay calm and small.
@@ -1681,7 +1681,7 @@ def _w_corrugated(p, x0, x1, z0, z1, y_out, y_in, mat, tone, pitch=.2):
 
 
 def hall_wall_4m(p):
-    """4 x 3 x 0.2 m corridor wall built like the side of a shipping container (David's reference, Nov 2026): a corrugated sheet between a bottom rail, a top rail and
+    """4 x 3 x 0.2 m corridor wall built like the side of a shipping container (the owner's reference, Nov 2026): a corrugated sheet between a bottom rail, a top rail and
     corner posts, with a louvred vent unit, a surface-mounted cabinet, a junction box, conduits, an amber strip light and a cold white bulkhead lamp."""
     _w_start(p)
     rng = p.rng
@@ -1758,7 +1758,7 @@ def hall_services_4m(p):
 
 
 # ---------------------------------------------------------------- shop guns ----------------------------------------------------------------
-# The Admin & Iris shop's gun wall (David, Nov 2026: "make the guns look more real, texture, shade"). Four fictional firearms, each lying in the X-Z plane as it hangs
+# The Admin & Iris shop's gun wall (the owner, Nov 2026: "make the guns look more real, texture, shade"). Four fictional firearms, each lying in the X-Z plane as it hangs
 # on the pegboard (X = muzzle direction, Z = up, Y = thickness, front at Y = 0). Shaped parts with chamfers, round barrels, rails and sights; the wall metals with wear
 # in the vertex colours: bright worn edges, a dark tone for polymer furniture, a warm tint for wood.
 G_STEEL, G_POLY, G_WOOD, G_DARK = (.5, .53, .6), (.3, .31, .33), (1.0, .58, .3), (.17, .17, .2)

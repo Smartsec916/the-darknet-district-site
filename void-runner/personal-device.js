@@ -4,7 +4,7 @@
    the Relay news archive, District chat, the explored map); it keeps no messages, accounts or profiles of its own. Camera and Gallery are placeholders.
    Messages > INBOX lists the messages missions send (Admin's in Mission 001; live-content.js inbox, read state in the save). VoidV1.notify() is the V1's notification for
    when the device is closed: a small banner styled like the V1 at the right edge, until the V1 is opened or for about 8 s, then an unread count on the V1 chip.
-   Its "Press L to open" part is a HELP hint (hint.help: [data-help]) so David's future help switch can hide it. It plays the device's notification sound
+   Its "Press L to open" part is a HELP hint (hint.help: [data-help]) so the owner's future help switch can hide it. It plays the device's notification sound
    (device-v1.js NOTIFY: V1, V2, V3 // SHADOW) at the sound-effects volume.
    Desktop only: the V1 has no VR presentation (VR players see neither the device nor its notification).
    CONVERSATIONS WITH CONTACTS (Mission 002, 17 Nov 2026): Messages > INBOX lists a conversation for each person a mission has the player send something to (Admin).
@@ -40,7 +40,7 @@
   sources.set(p.portrait.key,p.portrait);
   return '<img class="pd-portrait" alt="Portrait of '+esc(p.name)+'" data-pk="'+esc(p.portrait.key)+'" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="112" height="112">';
  }
- /* Achievements on a profile (David, 15 Nov 2026): three shown, the hardest (and anything bought with real money) first; VIEW ALL opens the rest, and the list can be put
+ /* Achievements on a profile (the owner, 15 Nov 2026): three shown, the hardest (and anything bought with real money) first; VIEW ALL opens the rest, and the list can be put
     in order of most recent, difficulty or type. A resident's come from district-people.js; a player's come from the server's verified records, which do not exist yet,
     so players show none for now (achievements.js: the browser never grants one). */
  const achView=new Map();   // profile key -> {open, sort}
@@ -116,7 +116,7 @@
   return out;
  }
  /* How far away another player is, in metres. Inside The Darknet District everyone is simply "here", so no distance is shown; on the street, in NULL and
-    everywhere else the list says how far each person is (David, 15 Nov 2026). null = not shown. */
+    everywhere else the list says how far each person is (the owner, 15 Nov 2026). null = not shown. */
  function distanceTo(p){try{if(areasHere().includes('interior')||typeof walker==='undefined'||!walker||!Number.isFinite(p.x)||!Number.isFinite(p.z))return null;return Math.round(Math.hypot(p.x-walker.x,p.z-walker.z));}catch{return null;}}
  const distText=d=>d==null?'':d<1000?d+' m away':(d/1000).toFixed(1)+' km away';
  const REASONS=[['harassment','HARASSMENT'],['spam','SPAM'],['inappropriate','INAPPROPRIATE'],['cheating','CHEATING'],['other','OTHER']];
@@ -268,7 +268,7 @@
   },
   camera(){return '<div class="pd-empty"><b>CAMERA</b><br>The viewfinder opens over the world.<br>Left mouse button takes a photo; photos are kept in the Gallery.</div>';},
   gallery(){return root.VoidGallery?root.VoidGallery.view(dev,stack[1]):'<div class="pd-empty"><b>GALLERY</b><br>The gallery is not available.</div>';},
-  /* The App Store is empty until David adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
+  /* The App Store is empty until the owner adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
   store(){
    const l=D.storeListing(dev),st=l.storage;
    const card=r=>{const on=r.status==='installed',room=st.availablePct>=r.storagePct;return '<article class="pd-card"><h3>'+icon(r.id)+' '+esc(r.title)+' <small>'+(on?'INSTALLED':r.status==='locked'?'NEEDS A NEWER DEVICE':'FREE')+'</small></h3><p>'+esc(r.note)+'</p><div class="pd-note">Uses '+r.storagePct+'% of storage · '+st.availablePct+'% available on this '+esc(st.model)+'</div><div class="pd-tabs" style="margin:6px 0 0">'
@@ -364,7 +364,7 @@
   el.querySelector('[data-do=expand]').textContent=expanded?'COLLAPSE':'EXPAND';el.querySelector('[data-do=expand]').setAttribute('aria-label',expanded?'Collapse device':'Expand device');
   el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=label();
  }
- /* News filters (David, 15 Nov 2026): ALL, BROADCASTS (what was heard on the Relay), COMMERCE (the adverts), PEOPLE (pictures posted by residents and by you). */
+ /* News filters (the owner, 15 Nov 2026): ALL, BROADCASTS (what was heard on the Relay), COMMERCE (the adverts), PEOPLE (pictures posted by residents and by you). */
  const NEWS_FILTERS=[['all','ALL'],['broadcasts','BROADCASTS'],['commerce','COMMERCE'],['people','PEOPLE']];let newsFilter='all';
  const newsOld=()=>APP_VIEW.newsOld_();
  setTimeout(()=>{try{root.VoidGallery?.onChange(()=>{if(open&&!busy&&stack[0]==='gallery')render({keepScroll:true});});}catch{}},0);
@@ -535,7 +535,7 @@
  // The L key now opens the V1 on foot and in stations; in flight the older Mission Log keeps working unchanged.
  if(typeof openMissionLog==='function'){const legacy=openMissionLog;openMissionLog=function(){if(open||onFootOrDock()){toggle();return;}return legacy.apply(this,arguments);};}
  try{chat()?.onChange(onChatChange);}catch{}
- // ---- Notifications while the V1 is closed (David, 17 Nov 2026: "There should be a notification system when people have their V1 closed") ----
+ // ---- Notifications while the V1 is closed (the owner, 17 Nov 2026: "There should be a notification system when people have their V1 closed") ----
  function keyLabel(){try{return root.VoidInput?.label?root.VoidInput.label(root.VoidInput.bindings?.missionLog||'KeyL'):'L';}catch{return 'L';}}
  let banner=null,bannerTimer=0,bannerKey='',noteApp=null,bannerSound='';
  /* The device's notification sound (device-v1.js NOTIFY, per device tier) at the game's sound-effects volume (master x effects, off when sound is off). A missing or
@@ -544,7 +544,7 @@
  function chime(){try{const D_=D,tier=D_.notifyTier?.(dev.model),row=D_.NOTIFY?.[tier];if(!row?.sound)return;const A=root.VoidAudio?.settings,vol=A?(A.enabled===false?0:(Number(A.master)||0)*(Number(A.effects)||0)):.5;if(!(vol>0))return;
   let a=sounds.get(row.sound);if(a===null)return;if(!a){a=new Audio(new URL(row.sound,document.baseURI||location.href).href);a.preload='auto';a.addEventListener('error',()=>sounds.set(row.sound,null),{once:true});sounds.set(row.sound,a);}
   a.volume=Math.max(0,Math.min(1,vol));a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch{}}
- let FADE_MS=15000;   // about 15 s on screen (David: longer and bigger, bottom right; 17 Nov 2026) (tests on the slow software renderer lengthen it: VoidV1.bannerMs)
+ let FADE_MS=15000;   // about 15 s on screen (the owner: longer and bigger, bottom right; 17 Nov 2026) (tests on the slow software renderer lengthen it: VoidV1.bannerMs)
  function hideBanner(){clearTimeout(bannerTimer);if(banner){banner.classList.remove('on');banner.hidden=true;}bannerKey='';bannerSound='';}
  /* notify({app, sub, key, from, header, text, hint:{text|'open', help:true}}): a V1 event the player should know about. Shown only while the V1 is closed (an open V1 on that
     app needs no banner). The same key twice is not stacked: the banner is refreshed. It stays until the V1 is opened, or fades after about 8 s and leaves the unread count on

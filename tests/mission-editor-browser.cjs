@@ -10,7 +10,7 @@
       untouched, LEAVE DRAFT returns with the tree intact. The publish check screen (mocked server) lists the new missions and the unreachable giver. Players get a published tree.
    Usage: node tests/serve-modern.cjs, then node tests/mission-editor-browser.cjs  (SITE_TEST_URL=http://127.0.0.1:<port>, SHOTS=dir, BROWSER_EXECUTABLE=path; default: the bundled
    Chromium if present; ONLY=trees runs part 5 alone, ONLY=chain part 6 alone)
-   6. DAVID'S CHAIN (17 Nov 2026): tree A, given by Admin: "talk to Iris" GRANTS A SHIP; "fly to Meridian"; "talk to Rook" STARTS tree B, given by Rook. Draft play from the start (Admin
+   6. THE OWNER'S CHAIN (17 Nov 2026): tree A, given by Admin: "talk to Iris" GRANTS A SHIP; "fly to Meridian"; "talk to Rook" STARTS tree B, given by Rook. Draft play from the start (Admin
       offers it, Iris grants the ship), then PLAY THIS DRAFT FROM HERE at the flight step: the player starts at the Port with the ship, boards, really flies and docks at Meridian,
       meets Rook (link fires), and Rook offers tree B's mission. All text is placeholder test text in this file only. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
@@ -50,11 +50,11 @@ const EDITED='TEST LINE: Admin introduces the District (test text).';
   assert.equal(await sp.locator('[data-me-start-from] ').inputValue(),'admin');assert.equal(await sp.locator('[data-me-start-header]').inputValue(),'ADMIN // INCOMING MESSAGE');assert.equal(await sp.locator('[data-me-start-when]').inputValue(),'pod-exit');
   assert.equal(await sp.locator('[data-me-start-text]').inputValue(),'You\'re awake. Good.\nWhen you\'re ready, come find me. We need to talk.');
   await sp.screenshot({path:path.join(shots,'how-this-mission-starts-1366.png')});
-  assert.equal(await page.locator('[data-me-placeholder]').count(),1,'Admin\'s introduction is marked as a placeholder for David');
-  // the archived trees: open the group, the Communion arc with David's locked lines, marked "not in the game", copyable
+  assert.equal(await page.locator('[data-me-placeholder]').count(),1,'Admin\'s introduction is marked as a placeholder for the owner');
+  // the archived trees: open the group, the Communion arc with the owner's locked lines, marked "not in the game", copyable
   await page.locator('[data-me-archived] summary').click();await page.locator('[data-me-tree="communion"]').click();await page.waitForSelector('.me-lock');
   assert.match(await page.locator('[data-me-archived-tree="communion"]').textContent(),/NOT IN THE GAME/);await page.locator('.me-lock').first().scrollIntoViewIfNeeded();
-  assert.match(await page.locator('.me-lock').first().textContent(),/David’s script — locked/);await page.screenshot({path:path.join(shots,'mission-editor-communion-1366.png')});
+  assert.match(await page.locator('.me-lock').first().textContent(),/Your script — locked/);await page.screenshot({path:path.join(shots,'mission-editor-communion-1366.png')});
   // All lines for Admin
   await page.locator('[data-me-mode="npcs"]').click();await page.waitForSelector('[data-me-npc]');assert.equal(await page.locator('[data-me-npc]').inputValue(),'admin');
   assert.match(await page.locator('#me-root').textContent(),/ElevenLabs/);await page.screenshot({path:path.join(shots,'mission-editor-admin-lines-1366.png')});
@@ -221,7 +221,7 @@ async function newTrees(browser,errors,posts){
  await c2.close();
 }
 
-// ---------------- 6. David's chain: Admin's tree grants a ship, the player flies to Rook, meeting Rook starts Rook's tree ----------------
+// ---------------- 6. The owner's chain: Admin's tree grants a ship, the player flies to Rook, meeting Rook starts Rook's tree ----------------
 const L=t=>[{who:'',text:'TEST LINE: '+t}];
 function chainDraft(){const step=(id,kind,x,label,say)=>({id,label,kind,npc:'',place:'',item:'',say:say?L(say):[],early:[],...x});
  const a={id:'draft-test-district-start',name:'Test: District start',note:'browser test fixture',status:'draft',seq:1,missions:[{id:'draft-test-district-start-m1',title:'TEST: ADMIN JOB',type:'side',giver:'admin',description:'',rewards:0,seq:3,offer:L('Admin offers the job.'),

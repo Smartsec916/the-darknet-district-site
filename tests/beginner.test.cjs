@@ -5,7 +5,7 @@ B.register(M);
 const fresh=()=>{const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;return s;};
 const ev=(s,n)=>B.event(s,n,M,C);
 const talkChain=(s,names)=>names.map(n=>ev(s,n));
-// 17 Nov 2026: the beginner campaign was removed from the game (David: "Go ahead and remove all missions in the game"); Mission 001 — Awakening replaced it.
+// 17 Nov 2026: the beginner campaign was removed from the game (the owner: "Go ahead and remove all missions in the game"); Mission 001 — Awakening replaced it.
 // Its records stay as archived data (the Mission Editor shows them), and the ship plumbing it used (awardStarterShip, destinations) is kept for future missions.
 test('the beginner campaign is retired: a new District campaign is offered none of it, events do nothing, and the closed pool refuses its missions',()=>{
  const s=fresh();assert.equal(B.RETIRED,true);assert.equal(S.hasShip(s),false);assert.equal(M.closed(s),true);assert.deepEqual(Object.keys(s.universe.missions||{}),[]);assert.equal(s.universe.freeTravel,false);

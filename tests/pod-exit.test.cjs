@@ -1,4 +1,4 @@
-/* Leaving the Sleeping Pod with the mouse held must not open the pause menu (David, 16 Nov 2026). The browser test is tests/pod-exit-browser.cjs. */
+/* Leaving the Sleeping Pod with the mouse held must not open the pause menu (the owner, 16 Nov 2026). The browser test is tests/pod-exit-browser.cjs. */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');

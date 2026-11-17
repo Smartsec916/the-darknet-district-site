@@ -47,7 +47,7 @@ function dashboard(p){
   const d=el('div','','card'+(state==='planned'?' planned':''));d.append(el('b',name+' — '+LABEL[state]),el('div',note));if(link){const a=el('a','Open '+link);a.href=link;d.append(a);}p.append(d);}
 }
 // ---------------------------------------------------------------- Missions
-/* The mission flow chart (David, 15 Nov 2026): every mission as a step read left to right, the way he sketched it: WHO gives it (blue), its NAME and WHAT IS SAID
+/* The mission flow chart (the owner, 15 Nov 2026): every mission as a step read left to right, the way he sketched it: WHO gives it (blue), its NAME and WHAT IS SAID
    (green, pink), WHAT NEEDS TO BE DONE (tall green box), then the CHOICES it creates and the STORE ITEMS it makes available (everywhere or in named stores).
    It edits the same draft records as the form editor; nothing here reaches the live game. */
 let missionView='flow';
@@ -141,7 +141,7 @@ function settings(p){
  for(const [name,ok,note] of [
   ['Server-verified authorization',true,'Studio data and drafts are behind the existing administrator check (VOID_ADMIN_UIDS, verified by the server on every call). The browser holds no GitHub or publishing credential.'],
   ['Validation before publish',true,'studio-model.js: references, requirements, chains, speakers, events, rewards. Runs on every edit.'],
-  ['Draft → review → pull request workflow',false,'Not built. Planned: the server opens a pull request from an exported draft (server-side token only); David reviews and merges. Drafts are exported as JSON with a change list today.'],
+  ['Draft → review → pull request workflow',false,'Not built. Planned: the server opens a pull request from an exported draft (server-side token only); you review and merge. Drafts are exported as JSON with a change list today.'],
   ['Rollback',false,'Not built. With pull requests, rollback is reverting the merge. The old Stage 3 release-candidate rollback (private) exists but is not connected to the live game.'],
   ['Audit trail',false,'Not built beyond the existing draft and release history. A publish must record who, what and when.'],
   ['Role separation (editor, publisher, reviewer)',false,'Today one allow-listed account can edit; a second reviewer is not enforced.']]){const c=el('div','','card'+(ok?'':' planned'));c.append(el('b',(ok?'READY — ':'NOT READY — ')+name),el('div',note));p.append(c);}

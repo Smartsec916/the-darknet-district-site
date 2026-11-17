@@ -18,7 +18,7 @@ async function open(browser,status,extra=0){
   assert.equal(await page.locator('#tabs button').count(),12);const tabs=await page.locator('#tabs button').allTextContents();assert.ok(/Dashboard.*WORKING/.test(tabs[0])&&/Characters.*PLANNED/.test(tabs[4])&&/NPCs.*PARTIAL/.test(tabs[2]),tabs.join(' | '));
   await page.screenshot({path:shots+'/studio-dashboard.png'});assert.match(await page.textContent('#panel'),/every mission can be reached and finished/);
   // Missions: pick, edit, see validation react, flowchart, preview, draft persistence, export
-  // Missions opens on the flow chart (David, 15 Nov 2026): a row per mission, read left to right; add what is said, a choice and a store item, and see them validated
+  // Missions opens on the flow chart (the owner, 15 Nov 2026): a row per mission, read left to right; add what is said, a choice and a store item, and see them validated
   await page.click('#tabs button:has-text("Missions")');assert.equal(await page.locator('.fc-step').count(),6,'six missions on the chart');assert.equal(await page.locator('.fc-step').first().locator('.fc-npc select').inputValue(),'Admin');
   const first=page.locator('.fc-step').first();await first.locator('.fc-said textarea').fill('Welcome to the District.\nIris keeps the contracts.');
   await first.locator('button:has-text("+ choice")').click();await page.locator('.fc-step').first().locator('button:has-text("+ choice")').click();

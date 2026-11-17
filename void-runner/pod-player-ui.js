@@ -1,4 +1,4 @@
-/* The DARKNET·AMP on the Sleeping Pod's right-hand wall: its layout, what a click on each part does, and how it is drawn (David, 16 Nov 2026: the wall player
+/* The DARKNET·AMP on the Sleeping Pod's right-hand wall: its layout, what a click on each part does, and how it is drawn (the owner, 16 Nov 2026: the wall player
    does everything and the pop-up panel is gone). Pure rules plus a canvas painter: it runs in the browser and in Node (tests/pod-player-ui.test.cjs).
    Coordinates are in a 384 x 192 design space; the painter scales to whatever size the wall texture is. The playback itself is pod-music.js, untouched. */
 (function(root){

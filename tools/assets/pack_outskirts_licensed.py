@@ -5,7 +5,7 @@ they are kept out of this public repository and published only as scrambled .vrp
   2. "solar panels with clean and dirty textures": Collada. The five DIRTY arrays become nodes solar-1..5 (each stood on y 0 around its own middle).
   3. "Satellite Dish Low-poly" (GLB, 10.7k triangles kept as they are; its three 16 MB PNG pictures become 1024 px JPEGs, with a little grime laid over the colour).
 Usage: python3 tools/assets/pack_outskirts_licensed.py <containers-dir> <solar-dir> <out-dir> [<dish-dir>]   then: node tools/assets/pack-model.cjs <glb> <vrpak>
-Run on David's side or here after fetching; nothing is sent anywhere. Needs Pillow."""
+Run on the owner's side or here after fetching; nothing is sent anywhere. Needs Pillow."""
 import sys, os, re, json, struct, io, math
 from PIL import Image
 

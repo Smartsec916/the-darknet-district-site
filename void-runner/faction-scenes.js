@@ -1,6 +1,6 @@
 /* The District's faction deliveries in play: Admin's offer (design doc 05), the recipients at
    The Vigil and Holdfast (doc 07), and Iris's payment and second offer (doc 06). The dialogue is
-   David's script; lines marked UNREVIEWED are Claude's functional placeholders. Rules live in campaign.js. */
+   The owner's script; lines marked UNREVIEWED are Claude's functional placeholders. Rules live in campaign.js. */
 (function(){
  const D=C.factionDeliveries,HEAD='The Darknet District';
  Object.assign(characters,{
@@ -67,7 +67,7 @@
   admin('Well, nothing that’s supposed to be exciting.'),
   adminPrompt
  ];
- // ---- "Don't Ask Questions": Admin's sealed cargo for Rook. UNREVIEWED: Claude's placeholder lines for David to rewrite. ----
+ // ---- "Don't Ask Questions": Admin's sealed cargo for Rook. UNREVIEWED: Claude's placeholder lines for the owner to rewrite. ----
  function sealedOffer(){
   const f=state.story.flags,first=!f.sealedIntro;f.sealedIntro=true;save();
   const opening=first?[admin('Got a minute? I’ve got something for Rook. Small crate. Sealed.'),you('What’s in it?'),admin('Something Rook paid for, and something you don’t need to know about. It stays sealed.')]
@@ -81,7 +81,7 @@
    {label:'NOT RIGHT NOW',quiet:true,run:()=>leave([you('Not right now.'),admin('Suit yourself. It’ll keep.')])}
   ],HEAD);
  }
- // ---- Admin introduces WarFlying (doc 12, David's script word for word) after "Don't Ask Questions" ----
+ // ---- Admin introduces WarFlying (doc 12, the owner's script word for word) after "Don't Ask Questions" ----
  const warflyingIntro=[
   admin('So, you made it back. Good. Rook said everything arrived.'),
   admin('Lucky you.'),
@@ -112,7 +112,7 @@
   admin('After that last delivery? I’d say you got lucky.')
  ];
  const warflyingDue=()=>state.story.flags.sealedCargo==='delivered'&&state.story.flags.warflyingIntro!==true;
- // Admin's stock: only the WarFlying Scrambler (David, 2026-10-16). Nothing is bought or fitted for the player.
+ // Admin's stock: only the WarFlying Scrambler (the owner, 2026-10-16). Nothing is bought or fitted for the player.
  function adminStore(){
   const id='warflying-scrambler',m=P.modules[id],owned=state.progression.equipment.owned.includes(id);
   localPanel('Admin’s <em>stock.</em>','<p>Admin sells one thing here. WarFlying Modules are sold at station outfitters. Fit either at a hangar maintenance terminal; they share the one Utility slot.</p><div class="module-grid"><article>'+equipmentIcon(m.icon)+'<h2>'+m.name+'</h2><p>'+m.price+' CR · '+P.slotLabel(m.slot)+' slot · all current hulls</p>'

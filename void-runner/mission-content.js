@@ -18,10 +18,10 @@
    the shipped one; without it the shipped tree runs. Its missions may start by notification (HOW A MISSION STARTS, below) instead of being
    offered by the giver, and have three more step kinds: 'pod-exit', 'message' (the mission's notification arrives; automatic) and 'hear' (the giver's lines after a talk step;
    done when the conversation closes).
-   HOW A MISSION STARTS (David, 17 Nov 2026: "either have Missions start by notification or in person"): start {how:'person'} (default: the giver offers it when
+   HOW A MISSION STARTS (the owner, 17 Nov 2026: "either have Missions start by notification or in person"): start {how:'person'} (default: the giver offers it when
    talked to) or {how:'notification', channel:'messages'|'comms'|'notify', from:<NPC>, header, text, when:{kind:'pod-exit'|'after-mission'|'place'|'flag', mission|place|flag,value}}:
    the mission arrives on the player's device when `when` happens (Messages: a text in the V1 inbox; Comms: a call with its transcript; notify: a banner only). MISSION NUMBERS: every tree mission may carry `number` (1-999, shown "Mission 001 — Name"); numbers are unique and never reused (main-story.js
-   NUMBERS and the server's published ledger). Story-tree missions must have one. Lines that are placeholders for David ("[David: ...") are shown only in draft play.
+   NUMBERS and the server's published ledger). Story-tree missions must have one. Lines that are placeholders ("[Write ...") are shown only in draft play.
    EYES ON THE STREET (Mission 002, 17 Nov 2026) added reusable pieces: an in-person start with ACCEPT / NOT NOW (start {how:'person', accept:true}: the offer is shown with
    a choice; nothing is taken until ACCEPT; a player who declines gets the offer again next time), step kinds 'enter' / 'leave' (a place from places.js: done while the
    player is inside / outside it, so a player already inside when the step starts is counted), 'photo' (a capture whose photo really shows the NPC: device-camera.js
@@ -122,7 +122,7 @@
  const STORY=new Set((MS&&MS.STORY_TREES)||[]),STORY_MISSION=/^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$/;
  const treeIdOk=id=>typeof id==='string'&&(DRAFT.test(id)||STORY.has(id)),missionIdOk=id=>typeof id==='string'&&(DRAFT.test(id)||STORY_MISSION.test(id));
  const placeholder=t=>!!(MS&&MS.isPlaceholder(t));
- // Players never see mission numbers (David, 17 Nov 2026: "I want it to be just 'Awakening' in Mission logs. Mission 001 is the backend numbering system").
+ // Players never see mission numbers (the owner, 17 Nov 2026: "I want it to be just 'Awakening' in Mission logs. Mission 001 is the backend numbering system").
  // The number stays in the data (definition.number) for the Mission Editor, Developer Tools and the server; everything a player sees uses the name.
  const titleOf=m=>m.title;
  const devLabel=m=>MS?MS.label(m.number,m.title):m.title;

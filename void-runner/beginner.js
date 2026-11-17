@@ -1,11 +1,11 @@
-/* RETIRED 17 Nov 2026 (David: "Go ahead and remove all missions in the game"). The beginner campaign is no longer offered, tracked or shown; Mission 001 — Awakening
+/* RETIRED 17 Nov 2026 (the owner: "Go ahead and remove all missions in the game"). The beginner campaign is no longer offered, tracked or shown; Mission 001 — Awakening
    (main-story.js) replaced it. The records below are kept as ARCHIVED data: the Mission Editor shows them under "Removed from the game (archived)" (viewable, copyable into a
    new tree), and old saves that hold their records still load (the records are kept and ignored; mission-log.js hides them in a District campaign). RETIRED makes offer()
    and event() do nothing; nothing else reads this file in the game. The text below is the original description.
    THE BEGINNER CAMPAIGN (rules + content; runs in the browser and in Node tests). Six short missions that take a new player from the Sleeping Pod to their first ship and the
    first departure for Meridian Station. It uses only what exists: Admin and Iris in The Darknet District, the District bar and shop, the Landing Terminal and Pad 01 on the
    NeoChinatown street, the V1 Mission Log, the real ship system (Campaign.awardStarterShip) and real flight and travel. It adds no new character, place, mechanic or voice.
-   STATUS: PROPOSED (David has not approved this story content; CLAUDE.md). All mission and dialogue text here is UNREVIEWED placeholder wording in the established voices of Admin
+   STATUS: PROPOSED (the owner has not approved this story content; CLAUDE.md). All mission and dialogue text here is UNREVIEWED placeholder wording in the established voices of Admin
    and Iris, shown as text (no new voice clips). Nothing replaces or revives the archived missions: the mission pool of a District campaign stays closed for everything else.
    Progress is ordinary mission records (universe.missions) plus story.flags booleans, so saves need no new fields and the cloud save validator accepts them as they are.
    The records below are plain data: the Developer Studio reads and edits this same structure (docs/development/BEGINNER_CAMPAIGN.md). */

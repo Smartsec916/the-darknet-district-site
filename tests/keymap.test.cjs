@@ -43,7 +43,7 @@ test('the Sleeping Pod tab lists the pod\'s own keys and nothing else',()=>{
  const p=K.place(K.entries('pod',K.DEFAULTS,{armed:true,chat:true}));assert.deepEqual(p.conflicts,[]);
  assert.deepEqual(p.keys.map(k=>k.code+':'+k.label).sort(),['ArrowDown:Look','ArrowLeft:Look','ArrowRight:Look','ArrowUp:Look','KeyE:Exit pod','KeyQ:Look at controls (not needed)','KeyV:Vending']);
  const w=fs.readFileSync(path.join(__dirname,'..','void-runner','world-integration.js'),'utf8');assert.match(w,/KeyE:'exit',KeyV:'vend',KeyQ:'look'/,'the pod really handles those three keys (M and the pop-up are gone)');
- assert.ok(!/data-pod=/.test(w),'the strip\'s buttons are gone (David, 16 Nov 2026)');
+ assert.ok(!/data-pod=/.test(w),'the strip\'s buttons are gone (the owner, 16 Nov 2026)');
 });
 test('the mouse map: each part says what it does in the context, and a part that does nothing has no label',()=>{
  assert.deepEqual(K.mouse('camera'),{move:'Look around',left:'Take a photo',right:null,wheel:'Zoom in / out'});

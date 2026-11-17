@@ -6,7 +6,7 @@
                                                           reception, the studio hallway, four studios, Fish's office, the staff area and the rear corridor.
    The vestibule and the rear lobby are built by the same code in both, so the player stands in the same room before and after the exchange
    (milked-transition.js). In the street build only the two outer doors can open; in the interior only the three inner ones.
-   After David's reference sheets of 16 Nov 2026: near-black weathered metal and stained concrete, dark wet floors, pink neon as the accent and green as the
+   After the owner's reference sheets of 16 Nov 2026: near-black weathered metal and stained concrete, dark wet floors, pink neon as the accent and green as the
    second, exposed ducts, pipes and cable trays, plants, pinned photos and plush toys. Surfaces use the repository's own texture sets (the District interior kit,
    the street set, the suite's wood and fabric); the props in assets/models/milked/ were made with Meshy (optional files: a missing one is replaced by a simple
    stand-in built here, and Low quality always uses the stand-ins).
@@ -383,7 +383,7 @@
   picture(1.5,3.3,76.3,1.65,FZ+.02,TON,128,282,(g,w,h)=>{g.fillStyle='#050809';g.fillRect(0,0,w,h);for(let i=0;i<6;i++){const s=1-i*.13,x0=w/2-w*.42*s,y0=h*(.06+i*.05);g.strokeStyle='rgba(57,255,156,'+(.55-i*.08)+')';g.lineWidth=3;g.strokeRect(x0,y0,w*.84*s,h*.9*s);}g.fillStyle='#ff3a2a';g.shadowColor='#ff3a2a';g.shadowBlur=12;for(const [x,y,r] of [[40,70,9],[84,96,7],[60,120,5]]){g.beginPath();g.arc(x,y,r,0,7);g.fill();}g.shadowBlur=0;g.fillStyle=GREEN;g.font=HAN(22);g.textAlign='center';for(const [c,i] of [['茶',0],['室',1]])g.fillText(c,w*.5,h*.62+i*26);},.9);
   box(.12,2.4,.5,74.9,3.4,FZ+.3,black);for(const [s,ry] of [[-1,TOW],[1,TOE]])sign(.42,2.2,74.9+s*.07,3.4,FZ+.3,ry,60,314,(g,w,h)=>{g.fillStyle='#04100a';g.fillRect(0,0,w,h);g.fillStyle=GREEN;g.shadowColor=GREEN;g.shadowBlur=8;g.font=HAN(40);g.textAlign='center';['旅','馆'].forEach((c,i)=>g.fillText(c,w/2,110+i*90));});
   {const lan=G('lantern-red','#ff3a2a',.9);pipe(.012,5.4,'z',77.3,3.75,-71.2,black);[-73,-71.2,-69.4].forEach((z,i)=>{ball(.42,77.3,3.42,z,lan,1.15);cyl(.14,.05,77.3,3.68,z,black,false,8);cyl(.1,.05,77.3,3.17,z,black,false,8);box(.02,.16,.02,77.3,3.06,z,M('tassel','#b8860b','#4a3604'));flat(pool('#ff3a2a',2,2,77.3,.024,z,.2));});}
-  /* Finding it from Main Street (David, 16 Nov 2026: "I couldn't get to Milked"; the side street had nothing on Main Street saying what is down it). A blade sign on a bracket
+  /* Finding it from Main Street (the owner, 16 Nov 2026: "I couldn't get to Milked"; the side street had nothing on Main Street saying what is down it). A blade sign on a bracket
      at the side street's corner, read from both directions along Main Street, and a wall sign on the corner building facing across the road. Each is the existing logo and an
      arrow into the side street; no new wording. */
   {const way=(dir)=>(g,w,h)=>{g.fillStyle='#0b0b10';g.fillRect(0,0,w,h);g.strokeStyle='#4a4e58';g.lineWidth=5;g.strokeRect(5,5,w-10,h-10);const ax=dir<0?w*.13:w*.87;logo(g,w/2-dir*w*.09,h*.52,h*.42);
@@ -684,7 +684,7 @@
   for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
    p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
    p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
-  /* The dancers' clothes lean to black and pink (David's reference). The figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are
+  /* The dancers' clothes lean to black and pink (the owner's reference). The figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are
      separate materials: each dancer gets its own tinted copy of those two (the model files and everyone else who wears the look are untouched). A face
      covering that came with a look (the street mask, the VR headset and its trackers) is hidden so that every dancer's face shows. Nothing else changes:
      the same clothed figures, the same clips. */
@@ -744,7 +744,7 @@
  // How far each Meshy model must be turned so that its front faces the way the code asks. Checked by looking (16 Nov 2026): all four come in facing +z, which is
  // what a yaw of 0 means here, so none needs a turn. A regenerated model may need a new number.
  const FACE={camera:0,ring:0,softbox:0,chair:0};
- /* The pointer signs in Old Town (David, 16 Nov 2026: Milked moved down the street, past the South Gate). Each is a blade sign on a bracket from the east wall of Main Street,
+ /* The pointer signs in Old Town (the owner, 16 Nov 2026: Milked moved down the street, past the South Gate). Each is a blade sign on a bracket from the east wall of Main Street,
     read walking south: the existing MILKED logo, an arrow straight ahead and the plain words SOUTH GATE. No new wording. spots: [[x of the plate's middle, y, z]]. Built in Old Town's
     own frame (no move): they belong to Old Town, not to the building. */
  function pointers({B,scene,parent,quality,spots}){

@@ -6,9 +6,9 @@
    Everyone keeps to the sidewalk lanes (no new collision, nothing blocks a door, a taxi stand or the player).
    Density adapts: figures far from you are switched off, and if the frame rate drops the furthest people are hidden
    until it recovers (config.fps).
-   Crowd looks and clips: crowd.js (MakeHuman CC0; drunk clips from David's Mixamo downloads).
+   Crowd looks and clips: crowd.js (MakeHuman CC0; drunk clips from the owner's Mixamo downloads).
    Pure planning runs in Node (tests/ncz-nightlife.test.cjs); the figures run in the browser (neochinatown.js).
-   DRAFT: the drunks' remarks are Claude's placeholders for David's review. */
+   DRAFT: the drunks' remarks are Claude's placeholders for the owner's review. */
 (function(root){
  // Settings: how many people, how many drunk, how often things happen.
  const config={
@@ -34,7 +34,7 @@
   // Nobody leans on the club's front by its door (ncz-nightclub.js, local server only for now).
   {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3,...(club?{noLean:[[-61,-55.6]]}:{})},
   {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5]]},   /* the alley mouth (Milked's side street and service alley moved to Far South on 16 Nov 2026: main-far-east) */
-  {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:0,noLean:[[0,999]]}   /* weight 0: nobody walks the alley now (David, Nov 2026: four people there at most; ncz-alley.js has them) */,
+  {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:0,noLean:[[0,999]]}   /* weight 0: nobody walks the alley now (the owner, Nov 2026: four people there at most; ncz-alley.js has them) */,
   {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2},
   {id:'avenue-south',a:[6,-18.4],b:[148,-18.4],wall:[0,-1],half:1,nightlife:true,weight:2,noLean:[[49,73]]}];
  // Spots no one stops or leans at: doors, the taxi zones' kerbs, the static crew.

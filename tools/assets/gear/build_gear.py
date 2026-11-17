@@ -1,5 +1,5 @@
 """Cyberpunk gear for the player characters (docs/development/CHARACTER_GEAR.md): a visor, a collar, shoulder plates and a lit chest line (deliberately minimal), built by code with Blender's
-`bpy` (the same way as tools/assets/kit/). LOCAL WORK FOR DAVID'S REVIEW: nothing here is loaded by the game yet.
+`bpy` (the same way as tools/assets/kit/). LOCAL WORK FOR THE OWNER'S REVIEW: nothing here is loaded by the game yet.
 
     python tools/assets/gear/build_gear.py [--preview out.png] [--on male|female] [--only name,name]
 

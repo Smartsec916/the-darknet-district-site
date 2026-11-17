@@ -1,4 +1,4 @@
-/* The Sleeping Pod's wall controls (David, 15 Nov 2026): what a click on each wall screen does, and that the District's music stays off in the pod. */
+/* The Sleeping Pod's wall controls (the owner, 15 Nov 2026): what a click on each wall screen does, and that the District's music stays off in the pod. */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const A=require('../void-runner/district-area.js'),read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');

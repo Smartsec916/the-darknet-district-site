@@ -1,4 +1,4 @@
-/* First-person mouse (David's editor brief, part 7 and 8). One owner for pointer lock in the walking modes:
+/* First-person mouse (the owner's editor brief, part 7 and 8). One owner for pointer lock in the walking modes:
    the click that captures the mouse never fires, Esc (the browser releasing the lock) pauses, closing a
    dialogue or menu takes the mouse back, and the wheel cycles the weapons you own. Flight is untouched. */
 (function(){
@@ -36,7 +36,7 @@
   if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation
   if(!fps()||conversationOpen())return;
   walkingKeys?.clear?.();
-  // Clicking out of the browser (another window or app) also releases the mouse. That is not Esc: stay in the game, nothing opens, and a click on the game takes the mouse back (David, 17 Nov 2026). Focus is checked a moment later because the browser reports the release and the lost focus in either order.
+  // Clicking out of the browser (another window or app) also releases the mouse. That is not Esc: stay in the game, nothing opens, and a click on the game takes the mouse back (the owner, 17 Nov 2026). Focus is checked a moment later because the browser reports the release and the lost focus in either order.
   setTimeout(()=>{if(locked()||!fps())return;if(away||document.hidden||!document.hasFocus()){hint(true);return;}if(typeof openGameMenu==='function')openGameMenu();},120);
  });
  let away=false;

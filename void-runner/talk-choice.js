@@ -1,4 +1,4 @@
-/* A CONVERSATION THAT ENDS WITH A CHOICE (browser only; small and reusable). Built for Mission 002's in-person offer (David, 17 Nov 2026: Admin offers it, the player
+/* A CONVERSATION THAT ENDS WITH A CHOICE (browser only; small and reusable). Built for Mission 002's in-person offer (the owner, 17 Nov 2026: Admin offers it, the player
    can ACCEPT or decline and come back later), usable by anything that needs one.
    talkChoice(lines, choices, heading): shows the lines in the ordinary conversation window (scenes.js talk(), so voice clips, the floating walking window and the
    conversation history all behave as usual). On the last line the main button is the first choice and the other choices sit beside it.

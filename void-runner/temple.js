@@ -6,12 +6,12 @@
    ==== WHERE TO CHANGE THINGS ====
    - Zen Zephyr's model: MODEL below (id 'zen-zephyr'). Package the real model with the usual private asset process, then set `asset` to its id: temple-build.js uses it when
      VoidAssets has it and falls back to the primitive monk. Nothing else needs to change (seat, facing and the interaction are here).
-   - His lines: zen-chat.js QUOTES (provisional; two are the exact lines David specified). A future API dialogue plugs in through zen-chat.js registerProvider (off by default). */
+   - His lines: zen-chat.js QUOTES (provisional; two are the exact lines the owner specified). A future API dialogue plugs in through zen-chat.js registerProvider (off by default). */
 (function(root){
  'use strict';
  const ID='temple',SPACE_FLAG='templeFog',BOUNDS=[50,50],FARE=60;
  const MODEL={id:'zen-zephyr',name:'Zen Zephyr',role:'MONK · SANCTUM OF THE CIRCUIT',asset:null,placeholder:'primitives',seat:[0,22],yaw:Math.PI,
-  look:'Silver head, closed eyes, dark robe with a mustard sash, mechanical details, teal chest lights, calm seated posture (David\'s brief; Origins scenes sanctum_discovery and zen_wisdom for mood).',
+  look:'Silver head, closed eyes, dark robe with a mustard sash, mechanical details, teal chest lights, calm seated posture (the owner\'s brief; Origins scenes sanctum_discovery and zen_wisdom for mood).',
   note:'REPLACEMENT POINT: Zen Zephyr. Set `asset` to a packaged model id to replace the primitive monk.'};
  const ARRIVAL={spawn:[0,1.7,-38],yaw:0},CAB_PAD={x:0,z:-43},WALK_BACK={x:-8,z:-42};
  const HALL=[-18,18,-6,34],ENTRANCE={x:[-3.5,3.5],z:-6},DAIS={x:0,z:22,r:3.6},PLATEAU=[-48,48,-48,48];

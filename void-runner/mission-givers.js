@@ -1,7 +1,7 @@
 /* MISSION GIVERS AND PLACES (pure data and rules: browser and Node tests; no network, no DOM). Used by the Mission Editor (giver and target pickers, "can this be
    played or published") and by the content adapter at play time (which interaction belongs to which NPC, where a "go to" place is). Every entry here is a FACT read from
    the game's own code (the source is named on each line); nothing here moves an NPC, gives anyone a new place or line, or decides story. Placing an earlier character in the
-   District is David's story decision: this file only says where each character is today.
+   District is the owner's story decision: this file only says where each character is today.
    An NPC can give a mission or be the person a step happens with only if the game has a TALK prompt for them (`targets`: the interaction action, and for station people the
    character id). `district` = in the current District game (NeoChinatown and the places a District player walks to); everyone else is an earlier character.
    `players`: whether an ordinary District player can reach them today. `draft`: whether PLAY THIS DRAFT can start next to them (the same places Test & Jump To can open). */
@@ -26,7 +26,7 @@
   'milked-fish':{name:'Fish',group:D,say:'milked-fish',where:'Milked, Far South (milked-integration.js: Fish).',targets:[{action:'milked-fish'}],enter:AREA.milked,players:true,draft:true,note:'Draft play starts on Far South’s street; walk into Milked. Provisional voice.'},
   'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,
    note:'Reached by road taxi (60 CR) or on foot through the East Gate from The Avenue. Draft play starts on The Avenue. No registered voice.'},
-  // Juno Vex (David's Mission 002, 17 Nov 2026): the person Admin wants photographed. She sits alone at NULL's bar (ncz-nightclub.js); the V1 camera names her. Nobody talks to her.
+  // Juno Vex (the owner's Mission 002, 17 Nov 2026): the person Admin wants photographed. She sits alone at NULL's bar (ncz-nightclub.js); the V1 camera names her. Nobody talks to her.
   'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, alone at the bar, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,
    why:'No TALK prompt: she is someone to photograph (Mission 002), not to talk to.'},
   // ---- earlier characters (not in the District today) ----
@@ -94,7 +94,7 @@
   {id:'reputation',name:'Reputation with an NPC or a faction',supported:true,note:'An NPC: their standing with the player (story.relationships, -100 to 100). A faction: the faction standing (progression.reputation). Paid once with the mission.'},
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
- /* How a mission starts (David, 17 Nov 2026: "either have Missions start by notification or in person"). */
+ /* How a mission starts (the owner, 17 Nov 2026: "either have Missions start by notification or in person"). */
  const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / NOT NOW: the giver offers it and the player chooses (a player who says NOT NOW can come back)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
  const START_CHANNELS=[{id:'messages',name:'MESSAGES',note:'A text in the V1 Messages app (INBOX). No reply is needed.'},
   {id:'comms',name:'COMMS CALL',note:'A call in the Comms app: the sender and the words as a transcript. The voice plays only if a recorded clip exists for that exact line (nothing is generated).'},

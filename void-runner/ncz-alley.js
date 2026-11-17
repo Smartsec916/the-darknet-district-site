@@ -11,7 +11,7 @@
  const ALLEY={x0:71,x1:136,south:-61.6,north:-55.5},DOOR=[126.9,-61.9],LANE={z:-59.3,half:.75},CLEAR_DOOR=4.5;
  // Who is there. `clips` lists what the person does, in order of preference (the first one their look can play is used); `seat` is how far the figure is lowered
  // onto what they sit on; `face` is the point they look at; `tier` is the lowest quality setting that shows them (1 low, 2 medium, 3 high).
- // David, Nov 2026: fewer people in the alley, four at the most, and one of them is ALWAYS a drunk. Nobody else walks through (the nightlife lane here has no walkers).
+ // The owner, Nov 2026: fewer people in the alley, four at the most, and one of them is ALWAYS a drunk. Nobody else walks through (the nightlife lane here has no walkers).
  const PEOPLE=[
   {id:'alley-drunk',x:88.0,z:-56.5,face:[88.6,-60],clips:['drink','idle'],tier:1,drunk:true},
   {id:'alley-watcher',x:122.4,z:-56.25,face:DOOR,clips:['watch','idle'],tier:1,watchesDoor:true},

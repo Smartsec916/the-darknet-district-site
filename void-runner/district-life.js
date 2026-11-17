@@ -1,4 +1,4 @@
-/* What the District's residents do with their time (David, 15 Nov 2026): the people who used to stand in one place all day now go and play the arcade
+/* What the District's residents do with their time (the owner, 15 Nov 2026): the people who used to stand in one place all day now go and play the arcade
    machines (the ones without a game too), walk into the store and look around, and go to the bar to order a drink or oxygen, then come back to where they
    hang out. About half of the people at the bar wear a clear oxygen mask while they are there.
    - Who: the ambient crew figures the District already places (neochinatown.js: crew-hall-*, crew-vr-watch, crew-bar*). Nothing is added or removed; while a

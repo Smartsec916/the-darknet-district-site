@@ -10,9 +10,9 @@ Usage (from the repo root, with the voice venv's python):
   python tools/audio/generate.py --models <folder> --speaker rook
   python tools/audio/generate.py --protect ID | --unprotect ID  mark a hand-approved clip
   python tools/audio/generate.py --models <folder> --from-queue [--dry-run] [--yes]
-      record the lines David queued with RE-VOICE in the Mission Editor, each in its character's registered approved voice.
+      record the lines the owner queued with RE-VOICE in the Mission Editor, each in its character's registered approved voice.
       The queue comes from the server (sign-in token in the VOID_OWNER_ID_TOKEN environment variable, never stored) or from
-      an exported file (--queue-file queue.json). ElevenLabs lines (Admin) are listed and left waiting for David's approval.
+      an exported file (--queue-file queue.json). ElevenLabs lines (Admin) are listed and left waiting for the owner's approval.
       More than 100 clips needs --yes. Recorded lines are marked done in the queue.
 The model folder holds kokoro-v1.0.onnx and voices-v1.0.bin (see docs/VOID_RUNNER_VOICE_PRODUCTION.md).
 """
@@ -36,7 +36,7 @@ def config_hash(entry, engine):
     return hashlib.sha256(key.encode('utf-8')).hexdigest()[:12]
 
 def voiced(registry):
-    """NPCs plus Relay broadcasters David has cast (same as voiced() in voice-registry.cjs)."""
+    """NPCs plus Relay broadcasters the owner has cast (same as voiced() in voice-registry.cjs)."""
     out = dict(registry['npcs'])
     out.update({k: v for k, v in registry.get('broadcast', {}).items() if v.get('status') != 'unassigned'})
     return out

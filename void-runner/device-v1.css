@@ -125,7 +125,7 @@
 #personal-device .pd-steps{list-style:none;margin:4px 0 8px;padding:0;font-size:11px;color:var(--pd-muted)}#personal-device .pd-steps li.on{color:var(--pd-edge-hi)}
 /* V3 // SHADOW: the same interface as an old monochrome green monitor. Only the variables change, so every screen and the camera follow. */
 #personal-device[data-device=v3],#pd-camera[data-device=v3]{--pd-panel:#031006;--pd-panel-hi:#07200d;--pd-panel-on:#0a2b12;--pd-edge:#1f7a3a;--pd-edge-hi:#46ff7a;--pd-text:#3fe070;--pd-text-hi:#8dffb0;--pd-muted:#2a9a4e;--pd-tick:#46ff7a;--pd-line:#0f3d1c}
-/* profile and social pictures stay in full colour on the V3, as on the V1 (David, 15 Nov 2026) */
+/* profile and social pictures stay in full colour on the V3, as on the V1 (the owner, 15 Nov 2026) */
 /* ---- Camera viewfinder (device-camera.js). Every colour is a device variable, so a later model's theme restyles it; --pd-tag is the name-tag green. ---- */
 #pd-camera{--pd-tag:#9dff5a;position:fixed;inset:0;z-index:240;pointer-events:none;font:600 clamp(11px,1.25vw,17px)/1.5 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--pd-text-hi);text-shadow:0 0 6px rgba(97,238,233,.45),0 1px 2px #000}
 #pd-camera[hidden]{display:none}
@@ -164,7 +164,7 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 #personal-device .pd-ach{margin:8px 0 4px;padding-top:6px;border-top:1px solid var(--pd-edge)}#personal-device .pd-ach h4{margin:0 0 4px;font-size:.78em;letter-spacing:.14em;color:var(--pd-muted)}#personal-device .pd-achrow{display:flex;gap:8px;align-items:flex-start;padding:4px 0}#personal-device .pd-achrow b{color:var(--pd-edge-hi);min-width:1.2em;text-align:center}#personal-device .pd-achrow strong{display:block;font-weight:600;color:var(--pd-text-hi)}#personal-device .pd-achrow small{display:block;color:var(--pd-muted);font-size:.82em}#personal-device .pd-achmore{margin-top:4px;font:inherit;font-size:.82em;letter-spacing:.1em;color:var(--pd-text);background:none;border:1px solid var(--pd-edge);padding:4px 10px;cursor:pointer}#personal-device .pd-achmore:hover,#personal-device .pd-achmore:focus-visible{border-color:var(--pd-edge-hi);color:var(--pd-text-hi)}#personal-device .pd-achsort{display:block;margin:2px 0 4px;font-size:.78em;letter-spacing:.1em;color:var(--pd-muted)}#personal-device .pd-achsort select{font:inherit;color:var(--pd-text);background:var(--pd-panel);border:1px solid var(--pd-edge);margin-left:6px}
 #personal-device .pd-stars{color:var(--pd-edge-hi);letter-spacing:.08em}
 
-/* Camera shutter flash, the Gallery and the News app's filters and picture posts (device-gallery.js; David, 15 Nov 2026). */
+/* Camera shutter flash, the Gallery and the News app's filters and picture posts (device-gallery.js; the owner, 15 Nov 2026). */
 #pd-camera .pc-flash{position:absolute;inset:0;background:rgba(255,255,255,1);opacity:0;pointer-events:none}#pd-camera .pc-flash.on{animation:pc-flash .28s ease-out}@keyframes pc-flash{0%{opacity:.55}100%{opacity:0}}
 #personal-device .pd-photogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;margin-top:8px}
 #personal-device .pd-photogrid button{position:relative;padding:0;border:1px solid var(--pd-line);background:#000;aspect-ratio:16/10;overflow:hidden;cursor:pointer}

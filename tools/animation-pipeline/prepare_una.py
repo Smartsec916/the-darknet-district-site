@@ -3,7 +3,7 @@ build her outfits, for build_imported_character.py.
 
 blender -b --factory-startup --python prepare_una.py -- UNA.fbx UNA_TEXTURES FEMALE_BASE.fbx OUT.blend VARIANT_DIR
 
-Rigging (David approved, 2026-10-31): the Female Base figure is scaled to Una's height and posed so each arm and leg
+Rigging (the owner approved, 2026-10-31): the Female Base figure is scaled to Una's height and posed so each arm and leg
 chain runs from her shoulder to her fingertips and from her hip to her toes; the posed base body lends its skin
 weights to Una's body by nearest surface (bone heat fails on her body's separate eye and teeth pieces), the pose
 becomes the rest pose, the clothing takes Una's body weights, and hair and the tear line follow the head. Nearest
@@ -19,7 +19,7 @@ Textures: her UDIM tiles (skin 1001-1006, outfit 1001-1003) become one material 
 their tile offset and the textures repeat). Each garment gets its own material (outfit_jacket, outfit_pants,
 outfit_top, outfit_shoes) so a look can recolour one without the others.
 
-Outfits (David chose Style A as her default): extra parts made from her own garments, never replacing them -
+Outfits (the owner chose Style A as her default): extra parts made from her own garments, never replacing them -
 "shorts" (the leggings cut at 0.75 m with a clean hem) and thin emissive piping bands (cyan on the top hem and the
 waistband, magenta on the shorts' hem and the jacket's hem), plus recoloured outfit tiles written to VARIANT_DIR
 (charcoal top and leggings, violet leggings, violet jacket) for pack-variant-textures.cjs.
