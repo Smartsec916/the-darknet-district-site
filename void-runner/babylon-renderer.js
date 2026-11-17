@@ -1186,6 +1186,7 @@
     if(def.district&&root.VoidNeoChinatown){
       crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all')||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{})},task),'district models');
       districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},area:def.area||'all',quarter:def.quarter||null,instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
+      await districtHandle.prepare?.();   // NULL and the street's light slots, behind the loading screen (neochinatown.js prepare; bounded, never throws)
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
