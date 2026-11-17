@@ -6,6 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 17 Nov 2026: MISSION EDITOR in Developer Tools (branch `claude/mission-editor-1`, build `2026-11-17-mission-editor-1`, pushed, NO PR, not merged)
+
+David asked for a mission editor next to Achievement Manager. Full record and how to use it: [`MISSION_EDITOR.md`](MISSION_EDITOR.md).
+
+- **Built:** Developer Tools > **Mission Editor**: all 10 mission trees in the game data (1 active, 8 historical, 1 inactive District draft at Milked; 40 missions), the NPCs in each with their registered voice (read-only), every step, what each NPC says, where it ends, what becomes available; **All lines for an NPC** (Admin first: all 40 Kokoro lines and the ElevenLabs line). David's scripts (docs 05, 06, 07, 09, 10, 12) are locked until he unlocks a line himself.
+- **Drafts** save as he types (the beginner campaign shares the Content Studio's draft; the Studio's flow chart is now shared code, `admin/studio-flow.js`, and the Studio page loads again: it was missing two District scripts on `main`).
+- **PLAY THIS DRAFT** (per mission and per step) runs the draft in a throwaway session: nothing saved, banner, LEAVE DRAFT back to the editor on the same step with the draft intact.
+- **PUBLISH TO ALL PLAYERS** with a check screen, versions and UNDO, and an owner-only **RE-VOICE** queue (`python tools/audio/generate.py --from-queue`; Admin's lines wait for ElevenLabs approval). **Both are OFF on the server** until David sets `VOID_CONTENT_PUBLISH_ENABLED` / `VOID_CONTENT_DRAFTS_ENABLED` and `VOID_CONTENT_EDITOR_UID` on Render. Nothing was deployed, no secret, rule or IAM changed; players keep the shipped missions while it is off.
+- **Cannot apply live yet** (kept as drafts, listed in plain words): lines spoken outside the conversation window (needs a code change), unlock and reputation additions, historical credits, contracts.
 ### 17 Nov 2026: SMOOTHNESS AUDIT (branch `claude/perf-audit-1`, builds `2026-11-17-smooth-1` to `-smooth-3`, pushed, NO PR)
 
 David: lag walking from the District's vestibule toward the street, and when Milked's inner doors open. Measured in the real game (software WebGL; frame trace, shader-compile log, CPU profile), full record and ranked proposals in [`SMOOTHNESS_AUDIT.md`](SMOOTHNESS_AUDIT.md).

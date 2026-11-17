@@ -1,0 +1,150 @@
+"""Mission Editor publishing and re-voice queue: owner only, off by default, immutable versions, undo, fake storage only (no production calls)."""
+import copy
+import os
+import unittest
+from unittest.mock import patch
+import test_content_drafts as fixtures
+import test_story_save
+import void_runner_api as vr
+import void_runner_live_content as live
+
+LINE = 'Always got work. Just depends on where you’re willing to go.'
+
+
+def beginner(title='FIRST CONTACT'):
+    return [{'id': 'first-contact', 'title': title, 'type': 'main', 'giver': 'Admin', 'rewards': 0,
+             'objectives': [{'id': 'speak', 'label': 'Speak with Admin', 'on': 'talk-admin', 'interaction': 'admin', 'say': [{'who': 'Admin', 'text': 'Welcome.'}]}]},
+            {'id': 'new-errand', 'title': 'NEW ERRAND', 'type': 'main', 'giver': 'Iris', 'rewards': 50, 'prerequisites': ['first-contact'],
+             'objectives': [{'id': 'go', 'label': 'Talk to Iris', 'on': 'talk-iris'}]}]
+
+
+def content(**extra):
+    c = {'format': live.FORMAT, 'version': 1, 'beginner': beginner(), 'registry': {'legal-run': {'title': 'AN HONEST DAY', 'objectives': {'arrive': 'Bring the filters'}}},
+         'lines': [{'who': 'admin', 'from': LINE, 'to': 'Work? Always.'}]}
+    c.update(extra)
+    return c
+
+
+class LiveContentTests(unittest.TestCase):
+    setUp = fixtures.DraftTests.setUp
+
+    def setUp(self):
+        fixtures.DraftTests.setUp(self)
+        live.clear_cache()
+        self.addCleanup(live.clear_cache)
+        env = patch.dict(os.environ, {'VOID_CONTENT_PUBLISH_ENABLED': 'true', 'VOID_ACCOUNTS_ENABLED': 'true'})
+        env.start()
+        self.addCleanup(env.stop)
+
+    def post(self, path, body, token='owner'):
+        return self.client.post('/api/void-runner/developer/' + path, headers={'Authorization': 'Bearer ' + token}, json=body)
+
+    def get(self, path, token='owner'):
+        return self.client.get('/api/void-runner/' + path, headers={'Authorization': 'Bearer ' + token} if token else {})
+
+    def test_owner_only_and_off_by_default(self):
+        for token, status in [(None, 401), ('forged', 401), ('outsider', 403)]:
+            h = {} if token is None else {'Authorization': 'Bearer ' + token}
+            self.assertEqual(self.client.post('/api/void-runner/developer/live-content/publish', headers=h, json={'expected': 0, 'content': content()}).status_code, status)
+            self.assertEqual(self.client.post('/api/void-runner/developer/live-content/rollback', headers=h, json={'expected': 0}).status_code, status)
+        with patch.dict(os.environ, {'VOID_CONTENT_EDITOR_UID': ''}):
+            self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': content()}).status_code, 403)
+        with patch.dict(os.environ, {'VOID_CONTENT_PUBLISH_ENABLED': 'false'}):
+            self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': content()}).status_code, 404)
+            self.assertEqual(self.get('developer/live-content').status_code, 404)
+            self.assertEqual(self.get('live-content', token=None).status_code, 404, 'players get nothing: the shipped missions stay')
+        with patch.dict(os.environ, {'VOID_CONTENT_PUBLISH_ENABLED': ''}):
+            self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': content()}).status_code, 404)
+        self.assertEqual(self.db.data, {}, 'nothing written by refused calls')
+
+    def test_publish_versions_and_one_click_undo(self):
+        self.assertEqual(self.get('live-content', token=None).json, {'version': 0, 'content': None})
+        first = self.post('live-content/publish', {'expected': 0, 'content': content(note='First')})
+        self.assertEqual(first.status_code, 200, first.json)
+        self.assertEqual(first.json['version'], 1)
+        self.assertEqual(self.get('live-content', token=None).json['content']['registry']['legal-run']['title'], 'AN HONEST DAY')
+        stale = self.post('live-content/publish', {'expected': 0, 'content': content()})
+        self.assertEqual(stale.status_code, 409, 'a stale publish never overwrites')
+        second = self.post('live-content/publish', {'expected': 1, 'content': content(beginner=beginner('HELLO'))})
+        self.assertEqual(second.json['version'], 2)
+        undo = self.post('live-content/rollback', {'expected': 2})
+        self.assertEqual(undo.status_code, 200, undo.json)
+        self.assertEqual(undo.json['version'], 3)
+        self.assertEqual(undo.json['from'], 1)
+        self.assertEqual(undo.json['content'], first.json['content'], 'undo restores the previous version as a new version')
+        self.assertEqual(self.get('live-content', token=None).json['content']['beginner'][0]['title'], 'FIRST CONTACT')
+        self.assertEqual(self.get('developer/live-content/1').json, first.json, 'old versions are never changed')
+        back = self.post('live-content/rollback', {'expected': 3, 'target': 0})
+        self.assertEqual(back.json['content'], None)
+        self.assertEqual(self.get('live-content', token=None).json, {'version': 4, 'content': None, 'publishedAt': back.json['at']})
+        state = self.get('developer/live-content').json
+        self.assertEqual([h['version'] for h in state['history']], [1, 2, 3, 4])
+        self.assertEqual([h['action'] for h in state['history']], ['publish', 'publish', 'rollback', 'rollback'])
+        self.assertTrue(all(k.startswith(('vr_live_content_state/', 'vr_live_content_versions/')) for k in self.db.data))
+
+    def test_validation_blocks_bad_content(self):
+        bad = []
+        c = content(); c['beginner'][0]['objectives'][0]['on'] = 'teleport'; bad.append(c)
+        c = content(); c['beginner'][0]['title'] = '<b>x</b>'; bad.append(c)
+        c = content(); c['beginner'][1]['prerequisites'] = ['nope']; bad.append(c)
+        c = content(); c['registry'] = {'no-such-mission': {'title': 'x'}}; bad.append(c)
+        c = content(); c['lines'] = [{'who': 'admin', 'from': 'A line that is not in the game.', 'to': 'x'}]; bad.append(c)
+        c = content(); c['lines'] = [{'who': 'player', 'from': LINE, 'to': 'x'}]; bad.append(c)
+        c = content(); c['script'] = 'alert(1)'; bad.append(c)
+        c = content(); c['beginner'][0]['objectives'][0]['award'] = 'spectre'; bad.append(c)
+        for c in bad:
+            r = self.post('live-content/publish', {'expected': 0, 'content': c})
+            self.assertEqual(r.status_code, 422 if 'script' not in c else 422, r.json)
+        self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': {'format': live.FORMAT, 'version': 1}}).status_code, 422, 'nothing to publish')
+        ok = self.post('live-content/check', {'content': content()})
+        self.assertTrue(ok.json['ok'])
+        self.assertEqual(self.db.data, {})
+
+    def test_published_ids_pass_cloud_save_validation(self):
+        """A published beginner mission that adds an id (and its reward flag) is accepted by clean_save as it is: no manifest change is needed."""
+        state = test_story_save.StorySaveTests.state(None)
+        state['story']['flags'].update({'missionPool': 'closed', 'br_new-errand': True})
+        state['universe'] = {'trackingInitialized': True, 'trackedMission': 'new-errand', 'freeTravel': False,
+                             'missions': {'new-errand': {'acquired': True, 'completed': False, 'objectives': {'go': True}}, 'first-contact': {'acquired': True, 'completed': True, 'objectives': {'speak': True}}}}
+        clean = vr.clean_save(state)
+        self.assertEqual(clean['universe']['missions']['new-errand']['objectives'], {'go': True})
+        self.assertTrue(clean['story']['flags']['br_new-errand'])
+        self.assertEqual(clean['universe']['trackedMission'], 'new-errand')
+
+
+class RevoiceQueueTests(unittest.TestCase):
+    def setUp(self):
+        fixtures.DraftTests.setUp(self)
+
+    def post(self, path, body, token='owner'):
+        return self.client.post('/api/void-runner/developer/' + path, headers={'Authorization': 'Bearer ' + token}, json=body)
+
+    def test_queue_add_list_done_and_auth(self):
+        items = [{'ref': 'admin|' + LINE, 'who': 'admin', 'text': 'Work? Always.', 'from': LINE, 'mission': 'registry:communion-delivery', 'source': 'void-runner/faction-scenes.js'},
+                 {'ref': 'rook|x', 'who': 'rook', 'text': 'Seal is intact.', 'from': 'Seal’s intact. Good.', 'mission': 'registry:admin-sealed-cargo-01', 'source': 'void-runner/faction-scenes.js'}]
+        for token, status in [('forged', 401), ('outsider', 403)]:
+            self.assertEqual(self.post('revoice', {'items': items}, token).status_code, status)
+        with patch.dict(os.environ, {'VOID_CONTENT_DRAFTS_ENABLED': 'false'}):
+            self.assertEqual(self.post('revoice', {'items': items}).status_code, 404)
+        self.assertEqual(self.db.data, {})
+        r = self.post('revoice', {'items': items})
+        self.assertEqual(r.status_code, 200, r.json)
+        by = {i['who']: i for i in r.json['items']}
+        self.assertEqual(by['admin']['engine'], 'elevenlabs')
+        self.assertEqual(by['admin']['voiceId'], 'V2bPluzT7MuirpucVAKH')
+        self.assertEqual(by['admin']['waiting'], 'waiting for ElevenLabs re-voice (needs approval)')
+        self.assertEqual(by['rook']['engine'], 'kokoro')
+        self.assertEqual(by['rook']['voice'], 'bm_fable', 'the registered voice, never a new one')
+        self.assertEqual(by['rook']['id'], live.item_id('rook', 'Seal is intact.'))
+        listed = self.client.get('/api/void-runner/developer/revoice', headers=self.header).json['items']
+        self.assertEqual(len(listed), 2)
+        done = self.post('revoice/done', {'ids': [by['rook']['id'], by['admin']['id']]}).json['items']
+        st = {i['who']: i['status'] for i in done}
+        self.assertEqual(st, {'rook': 'done', 'admin': 'queued'}, 'ElevenLabs lines stay queued until David approves')
+        for bad in [{'items': [{**items[0], 'who': 'news-anchor'}]}, {'items': [{**items[0], 'who': 'special-character'}]}, {'items': [{**items[0], 'text': '<b>x</b>'}]}, {'items': [{**items[0], 'voice': 'af_bella'}]}]:
+            self.assertIn(self.post('revoice', bad).status_code, (400, 422))
+        self.assertTrue(all(k.startswith('vr_revoice_queue/') for k in self.db.data))
+
+
+if __name__ == '__main__':
+    unittest.main()

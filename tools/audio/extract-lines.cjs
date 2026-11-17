@@ -64,6 +64,8 @@ const Ads=require(path.join(src,'ad-screens-data.js')),WFBoard=require(path.join
 const addLine=(speaker,text,source)=>{if(!voiced[speaker]||!text)return;const key=speaker+'|'+text;if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source});};
 if(Ads.RECORD.ads)for(const l of Ads.spokenLines(relayContent))addLine(l.speaker,l.text,'ad-screens-data.js');
 if(Ads.RECORD.board){const speaker=Ads.CATEGORIES.board.speaker;for(const h of WFBoard.HANDLES)addLine(speaker,h,'warflying-board.js');addLine(speaker,WFBoard.NEW_ONE,'warflying-board.js');}
+// Lines re-voiced from the Mission Editor's queue (python tools/audio/generate.py --from-queue) are kept: their text comes from published content, not from the scripts.
+try{const prev=JSON.parse(fs.readFileSync(path.join(out,'manifest.json'),'utf8'));for(const l of Object.values(prev.lines||{}))if(l.source==='mission-editor-queue')addLine(l.speaker,l.text,'mission-editor-queue');}catch{}
 const cast={},missingSpeakers=new Set();
 for(const l of lines.values()){const e=voiced[l.speaker];if(!e){missingSpeakers.add(l.speaker);continue;}cast[l.speaker]={voice:e.voice,...(e.profile!=='none'?{effect:e.profile}:{}),status:e.status};}
 if(missingSpeakers.size){console.error('Speakers missing from the registry: '+[...missingSpeakers].join(', '));process.exit(1);}
