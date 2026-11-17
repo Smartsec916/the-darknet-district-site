@@ -55,10 +55,33 @@
    const prev=k.dispose.bind(k);k.dispose=function(){dispose();return prev();};api.live=dolphins;return {dolphins,dispose};}
   const api={create,step,spawn,SURFACE,SEA,SCALE,LEAP_H,lanes,live:null};return api;})();
  globalThis.VoidTropicalDolphins=Dolphins;
+ /* Where you can fish from (the owner, 17 Nov 2026: "you pick up the fishing pole from the rack, but you can fish anywhere of the pier as long as you're facing the water").
+    Until then the cast was an E-interaction at one point in the middle of the pier, and the game's interaction picker only offers a point you are looking toward
+    (within about 57 degrees of it), so you had to face that point, not the water. Now the rule is about the water itself, pure and unit-tested:
+    - you must be on the pier deck;
+    - facing inland is no: if the line straight ahead reaches the sand before any water (within 28 m: the pier's length), there is no cast (on a pier that narrow, everything else has water in view);
+    - otherwise the cast goes out along the ray nearest to straight ahead, within 60 degrees either side, that reaches open water (past the shallows, clear of the pier)
+      within 14 m, and lands 3.5 to 11 m out on it. */
+ const Fishing=(function(){
+  const CONE=Math.PI/3,STEP=Math.PI/36,REACH=14,INLAND=28,MIN=3.5,MAX=11;
+  const inSea=(x,z)=>z>SHORE+3&&z<PIER_END+16&&!(x>PIER[0]-.8&&x<PIER[1]+.8&&z<PIER_END+.8)&&Math.abs(x)<60;
+  const land=(x,z)=>!onPier(x,z)&&z<SHORE+1;
+  // Along one horizontal ray: the stretch of open water it crosses first ({near,far} in metres), {land} if it reaches the sand before any water, or null.
+  function ray(x,z,yaw,max){const sx=Math.sin(yaw),sz=Math.cos(yaw);let near=-1,far=-1;for(let d=.25;d<=max+1e-9;d+=.25){const px=x+sx*d,pz=z+sz*d;if(inSea(px,pz)){if(near<0)near=d;far=d;}else if(near>=0)break;else if(land(px,pz))return {land:d};}return near<0?null:{near,far};}
+  function facing(x,z,yaw){if(!onPier(x,z))return {ok:false,why:'off-pier'};
+   const ahead=ray(x,z,yaw,INLAND);if(ahead&&ahead.land!=null)return {ok:false,why:'inland'};
+   for(let i=0;i*STEP<=CONE+1e-9;i++)for(const s of i?[1,-1]:[1]){const off=s*i*STEP,r=ray(x,z,yaw+off,REACH);if(!r||r.land!=null)continue;const lo=Math.max(r.near,MIN),hi=Math.min(r.far,MAX);if(hi>=lo)return {ok:true,yaw:yaw+off,off,lo,hi};}
+   return {ok:false,why:'away'};}
+  // Where the float lands: on that water, a little to either side and at a new distance each time.
+  function target(x,z,yaw,rnd=Math.random){const f=facing(x,z,yaw);if(!f.ok)return f;
+   for(let n=0;n<8;n++){const a=f.yaw+(rnd()-.5)*.3,d=f.lo+rnd()*(f.hi-f.lo),tx=x+Math.sin(a)*d,tz=z+Math.cos(a)*d;if(inSea(tx,tz))return {...f,x:tx,z:tz};}
+   const d=(f.lo+f.hi)/2;return {...f,x:x+Math.sin(f.yaw)*d,z:z+Math.cos(f.yaw)*d};}
+  return {onPier,inSea,land,ray,facing,target,CONE,REACH,INLAND,RACK:[22.8,16],SHORE,PIER,PIER_END};})();
+ globalThis.VoidTropicalFishing=Fishing;
  function layout(){const sea=(x0,x1)=>({id:'vr-sea',position:[(x0+x1)/2,1,27],size:[x1-x0,2,26]});
   return {id:'vr-tropical',name:'VR · TROPICAL ESCAPE',bounds:[40,40],spawn:[-4,1.7,-24],yaw:0,music:null,signs:[],
-   solids:[sea(-41,PIER[0]),sea(PIER[1],41),{id:'vr-pier-end',position:[21.5,1,PIER_END+1],size:[4,2,2]},{id:'vr-hut',position:[-18,1,-16.6],size:[.4,2,.4]},{id:'vr-hut2',position:[-14.6,1,-16.6],size:[.4,2,.4]}],
-   interactions:[...spots.lounger.map(([x,z],i)=>spot('lounger'+i,'RELAX ON THE LOUNGER',x,z-1.2,1.8)),spot('pier-bench','SIT AT THE END OF THE PIER',21.5,31.6,2),spot('fish','FISH FROM THE PIER (E TO CAST)',21.5,25,7),spot('hut','CHANGE THE SKY (DAY / SUNSET)',-16.3,-12.4,2.4),spot('surf','WADE INTO THE SURF',-10,11.5,3),...spots.shells.map(([x,z],i)=>spot('shell'+i,'PICK UP THE SHELL',x,z,1.8))]};}
+   solids:[sea(-41,PIER[0]),sea(PIER[1],41),{id:'vr-pier-end',position:[21.5,1,PIER_END+1],size:[4,2,2]},{id:'vr-rod-rack',position:[Fishing.RACK[0],1,Fishing.RACK[1]],size:[.36,2,1.4]},{id:'vr-hut',position:[-18,1,-16.6],size:[.4,2,.4]},{id:'vr-hut2',position:[-14.6,1,-16.6],size:[.4,2,.4]}],
+   interactions:[...spots.lounger.map(([x,z],i)=>spot('lounger'+i,'RELAX ON THE LOUNGER',x,z-1.2,1.8)),spot('pier-bench','SIT AT THE END OF THE PIER',21.5,31.6,2),spot('rack','TAKE A FISHING ROD',Fishing.RACK[0]-.65,Fishing.RACK[1],2.2),spot('fish','CAST',21.5,25,1),   /* moved to where you stand, and switched off (range -1), every frame by the world */spot('hut','CHANGE THE SKY (DAY / SUNSET)',-16.3,-12.4,2.4),spot('surf','WADE INTO THE SURF',-10,11.5,3),...spots.shells.map(([x,z],i)=>spot('shell'+i,'PICK UP THE SHELL',x,z,1.8))]};}
  async function build(ctx){
   const k=kit(ctx),B=k.B,api=ctx.api,low=ctx.quality==='low';
   const presets={day:{sky:'beach-day',light:{clear:[.55,.75,.95],fog:[.72,.82,.9],fogDensity:.0028,sunColor:[1,.97,.9],sunIntensity:1.7,sunDir:[-.3,-.9,.4],sky:[.85,.92,1],ground:[.6,.55,.42],ambient:.9,exposure:1.05},sea:'#0d4a63'},
@@ -131,7 +154,11 @@
   Dolphins.spawn(k,dolphin,low?2:3);
   let found=0;
   /* ---- Fishing from the pier (the owner, 16 Nov 2026: like fishing in World of Warcraft).
-     Cast (E at the pier): the rod swings back and forward and the float flies out to a spot on the water in front of you, a different spot each time.
+     The rod (17 Nov 2026): take one from the rack at the start of the pier ([E] TAKE A FISHING ROD) and put it back there ([E] RETURN THE ROD); leaving the
+     simulation puts it back too. It is not saved. With it in your hands, [E] CAST works anywhere on the pier while you face the water (VoidTropicalFishing above):
+     the "vr-fish" interaction is moved to where you stand each frame and offered only when a cast (or reeling in, or the strike) is possible, so the picker's
+     look-toward-a-point rule no longer decides it. Facing away, a help hint says so.
+     Cast (E on the pier): the rod swings back and forward and the float flies out to a spot on the water in front of you, a different spot each time.
      Then wait. Some seconds later the float splashes and dips: LOOK AT THE FLOAT AND CLICK IT (left mouse button, or E) before it stops, and the fish is yours.
      Click before it bites and you reel in with nothing; too late and it gets away. Every fish is counted, by kind and in all, and the count is kept outside the
      simulation and outside the campaign save (local-progress.js): it survives a new campaign. 100 fish is the goal of the Catch 100 Fish achievement.
@@ -153,7 +180,19 @@
   const splash=new B.ParticleSystem('vr-fish-splash',60,k.scene);splash.particleTexture=dropTex;splash.emitter=new B.Vector3(0,0,0);splash.minEmitBox=new B.Vector3(-.12,0,-.12);splash.maxEmitBox=new B.Vector3(.12,.05,.12);splash.minSize=.05;splash.maxSize=.2;splash.minLifeTime=.3;splash.maxLifeTime=.7;splash.emitRate=0;
   splash.direction1=new B.Vector3(-.8,1.6,-.8);splash.direction2=new B.Vector3(.8,3,.8);splash.gravity=new B.Vector3(0,-9,0);splash.minEmitPower=.6;splash.maxEmitPower=1.4;splash.color1=new B.Color4(1,1,1,.8);splash.color2=new B.Color4(.85,.95,1,.5);splash.colorDead=new B.Color4(1,1,1,0);splash.blendMode=B.ParticleSystem.BLENDMODE_STANDARD;splash.start();
   for(const m of [rodNode,bob,line,fish])m.setEnabled(false);
-  const fishing={state:'idle',t:0,bite:0,target:[0,0],side:1,tip:new B.Vector3(),jump:0,from:null,session:0,last:''};
+  // The rod rack: weathered planks against the pier's edge, three rods standing in it (each part one mesh, the rods thin instances).
+  const RACK=Fishing.RACK,rackSlots=[-.42,0,.42],rackParts=[];
+  {const y=.66,x=RACK[0],z=RACK[1],planks=[k.box('rack-base',[.34,.07,1.36],[x-.04,y+.07,z],wood),k.box('rack-rail',[.1,.08,1.36],[x+.1,y+1.12,z],wood),k.box('rack-brace',[.06,.06,1.3],[x+.1,y+.5,z],wood)];
+   for(const dz of [-.64,.64])planks.push(k.box('rack-post',[.09,1.24,.09],[x+.1,y+.62,z+dz],wood));for(const dz of [-.21,.21])planks.push(k.box('rack-peg',[.16,.05,.04],[x+.04,y+1.12,z+dz],wood));k.merge(planks,wood);
+   const part=(m,mat,M)=>{m.bakeTransformIntoVertices(M);k.mesh(m,mat,[0,0,0]);rackParts.push(m);};
+   part(B.MeshBuilder.CreateCylinder('vr-rack-rod',{diameterTop:.01,diameterBottom:.028,height:2.7,tessellation:6},k.scene),rodMat,B.Matrix.Translation(0,1.35,0));
+   part(B.MeshBuilder.CreateCylinder('vr-rack-grip',{diameter:.042,height:.42,tessellation:8},k.scene),k.material('rod-grip',{hex:'#1c1c1e'}),B.Matrix.Translation(0,.2,0));
+   part(B.MeshBuilder.CreateCylinder('vr-rack-reel',{diameter:.07,height:.045,tessellation:10},k.scene),k.material('rod-reel',{hex:'#3c4046',spec:.5}),B.Matrix.RotationX(Math.PI/2).multiply(B.Matrix.Translation(0,.5,.055)));}
+  // each rod leans its tip out against the rail (+x), its reel turned a little differently
+  const rackMatrix=(i,shown)=>B.Matrix.Compose(new B.Vector3(1,1,1).scale(shown?1:0),B.Quaternion.RotationYawPitchRoll(i*.9-.9,.07*Math.sin(i*.9-.9),-.07*Math.cos(i*.9-.9)),new B.Vector3(RACK[0]-.06,.74,RACK[1]+rackSlots[i]));
+  for(const m of rackParts){const buf=new Float32Array(rackSlots.length*16);rackSlots.forEach((_,i)=>rackMatrix(i,true).copyToArray(buf,i*16));m.thinInstanceSetBuffer('matrix',buf,16);m.thinInstanceRefreshBoundingInfo(true);}
+  const showRackRod=(i,shown)=>{const M=rackMatrix(i,shown);for(const m of rackParts)m.thinInstanceSetMatrixAt(i,M,true);};
+  const fishing={rod:false,state:'idle',t:0,bite:0,target:[0,0],side:1,tip:new B.Vector3(),jump:0,from:null,session:0,last:''};
   const ring=()=>{const r=rings.find(x=>x.t<0)||rings[0];r.t=0;r.mesh.position.set(bob.position.x,.03,bob.position.z);r.mesh.setEnabled(true);};
   const plop=n=>{splash.emitter.set(bob.position.x,.02,bob.position.z);splash.manualEmitCount=n;ring();};
   // the counter on screen while you are on the pier
@@ -161,17 +200,22 @@
   const LP=()=>globalThis.VoidLocalProgress;
   function drawHud(){const P=LP(),total=P?.total?.('tropical-fish')||0,kinds=P?.kinds?.('tropical-fish')||{},rows=[...FISH.map(f=>[f[0],f[1]]),...(kinds[RARE.id]?[[RARE.id,RARE.name]]:[])].filter(([id])=>kinds[id]).map(([id,name])=>'<div style="display:flex;justify-content:space-between;gap:1rem;font-weight:400;opacity:.85"><span>'+name.replace(/^an? /,'')+'</span><span>'+kinds[id]+'</span></div>').join('');
    hud.innerHTML='<div style="color:#7fe6f2">FISH CAUGHT</div><div style="font-size:22px">'+total+' <span style="font-size:12px;opacity:.7">/ 100</span></div>'+(fishing.session?'<div style="opacity:.8">this visit: '+fishing.session+'</div>':'')+rows+(fishing.last?'<div style="margin-top:.3rem;color:#ffe9a8;font-weight:400">'+fishing.last+'</div>':'');}
-  const stow=()=>{fishing.state='idle';for(const m of [rodNode,bob,line])m.setEnabled(false);};
+  const stow=()=>{fishing.state='idle';for(const m of [bob,line])m.setEnabled(false);rodNode.setEnabled(fishing.rod);};
+  const keyName=()=>globalThis.VoidControls?.label?.('interact')||'E';
+  // A short help hint over the [E] prompt (data-help: the owner's Help switch can hide it; story.flags.helpOff hides it now).
+  const hint=document.createElement('div');hint.id='vr-fish-hint';hint.dataset.help='1';hint.hidden=true;hint.setAttribute('role','status');hint.style.cssText='position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:9;padding:.3rem .7rem;border:1px solid rgba(255,206,120,.45);background:rgba(20,14,4,.62);color:#ffe2a8;font:600 12px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.06em;pointer-events:none;white-space:nowrap';document.body.appendChild(hint);
+  const setHint=text=>{if(text&&state?.story?.flags?.helpOff===true)text='';if(hint.textContent!==text)hint.textContent=text;if(hint.hidden===!!text)hint.hidden=!text;};
+  function takeRod(){if(fishing.rod)return returnRod();fishing.rod=true;showRackRod(0,false);stow();poseRod(-.3);api.sfx(520,.12,'triangle',.04);announce('You take a fishing rod from the rack. Out on the pier, face the water and press '+keyName()+' to cast.');}
+  function returnRod(silent){if(!fishing.rod)return;fishing.rod=false;stow();showRackRod(0,true);if(!silent){api.sfx(380,.12,'triangle',.04);announce('You put the rod back in the rack.');}}
   const hand=()=>{const f=[Math.sin(walker.yaw),Math.cos(walker.yaw)],r=[f[1],-f[0]];return new B.Vector3(walker.x+f[0]*.6+r[0]*.36,walker.y-.55,walker.z+f[1]*.6+r[1]*.36);};
   function poseRod(swing){   // swing: -1 drawn back over the shoulder .. 0 upright .. 1 forward over the water
    rodNode.position.copyFrom(hand());rodNode.rotationQuaternion=B.Quaternion.RotationYawPitchRoll(walker.yaw,.35+swing*.75,.12);rodNode.computeWorldMatrix(true);B.Vector3.TransformCoordinatesToRef(new B.Vector3(0,2.7,0),rodNode.getWorldMatrix(),fishing.tip);if(k.parent)B.Vector3.TransformCoordinatesToRef(fishing.tip,B.Matrix.Invert(k.parent.getWorldMatrix()),fishing.tip);}
   function drawLine(){const a=fishing.tip,b=bob.position,mid=new B.Vector3((a.x+b.x)/2,(a.y+b.y)/2-.22,(a.z+b.z)/2);line=B.MeshBuilder.CreateLines('vr-line',{points:[a,mid,new B.Vector3(b.x,b.y+.24,b.z)],instance:line});}
-  const inSea=(x,z)=>z>SHORE+3&&z<PIER_END+16&&!(x>PIER[0]-.8&&x<PIER[1]+.8&&z<PIER_END+.8)&&Math.abs(x)<60;
   function cast(){
-   // out over the water in front of you, at a new distance and angle each time; if you are facing the planks, out to the nearer side
-   let tx=0,tz=0,ok=false;for(let n=0;n<12&&!ok;n++){const a=walker.yaw+(Math.random()-.5)*.7,d=6+Math.random()*5;tx=walker.x+Math.sin(a)*d;tz=walker.z+Math.cos(a)*d;ok=inSea(tx,tz);}
-   if(!ok){const side=walker.x<21.5?-1:1;walker.yaw=side*Math.PI/2;tx=walker.x+side*(6+Math.random()*4);tz=Math.max(SHORE+4,walker.z+(Math.random()-.5)*4);}
-   walker.pitch=.1;fishing.target=[tx,tz];fishing.state='casting';fishing.t=0;fishing.bite=5+Math.random()*13;fishing.last='';
+   // out over the water in front of you (VoidTropicalFishing.target), at a new distance and angle each time; no rod or not facing the water, no cast
+   if(!fishing.rod){announce('Take a fishing rod from the rack at the start of the pier first.');return;}
+   const t=Fishing.target(walker.x,walker.z,walker.yaw);if(!t.ok){announce(t.why==='off-pier'?'Walk out onto the pier to fish.':'Face the water to cast.');return;}
+   walker.pitch=.1;fishing.target=[t.x,t.z];fishing.state='casting';fishing.t=0;fishing.bite=5+Math.random()*13;fishing.last='';
    rodNode.setEnabled(true);bob.setEnabled(false);line.setEnabled(false);poseRod(0);api.sfx(240,.25,'sine',.04);announce('You draw the rod back and cast.');drawHud();}
   function land(){
    const rare=RARE.chance>0&&Math.random()<RARE.chance,f=rare?[RARE.id,RARE.name,RARE.min,RARE.max,RARE.color]:FISH[Math.min(FISH.length-1,Math.floor(Math.random()**1.6*FISH.length))],kg=(f[2]+Math.random()*(f[3]-f[2])).toFixed(1),r=LP()?.count('tropical-fish',1,f[0]);
@@ -187,12 +231,21 @@
    if(fishing.state==='bite'){if(aimed())land();else announce('Look at the float and click it!');}}
   const onClick=e=>{if(e.button!==0||fishing.state==='idle'||!globalThis.VoidVR?.active)return;if(typeof mode!=='undefined'&&mode!=='walking')return;e.preventDefault();e.stopImmediatePropagation();act(true);};
   addEventListener('mousedown',onClick,{capture:true});
-  {const prev=k.dispose.bind(k);k.dispose=function(){removeEventListener('mousedown',onClick,{capture:true});try{hud.remove();}catch{}try{splash.dispose();}catch{}try{line.dispose();}catch{}return prev();};}
+  // Each frame on foot: the cast prompt goes where you stand, offered only when E would do something; the rack's own prompt wins while you look at it with a rod.
+  const item=id=>(typeof walkingLocation!=='undefined'&&walkingLocation?.interactions||[]).find(i=>i.id===id);
+  const inView=it=>{if(!it||!(it.range>0))return false;const dx=it.position[0]-walker.x,dz=it.position[2]-walker.z,d=Math.hypot(dx,dz);return d<=it.range&&(d<=.5||(dx*Math.sin(walker.yaw)+dz*Math.cos(walker.yaw))/d>=.55);};
+  function fishFrame(){const c=item('vr-fish'),r=item('vr-rack');if(!c)return;if(r)r.label=fishing.rod?'RETURN THE ROD':'TAKE A FISHING ROD';
+   const pier=onPier(walker.x,walker.z),idle=fishing.state==='idle',atRack=inView(r),face=fishing.rod&&idle&&pier?Fishing.facing(walker.x,walker.z,walker.yaw):null;let label=null;
+   if(fishing.rod&&pier){if(idle){if(face.ok&&!atRack)label='CAST';}else if(fishing.state==='waiting')label='REEL IN';else if(fishing.state==='bite')label='STRIKE (LOOK AT THE FLOAT)';}
+   c.position[0]=walker.x;c.position[2]=walker.z;c.range=label?1:-1;if(label)c.label=label;
+   setHint(atRack?'':fishing.rod?(idle?(!pier?'Walk out onto the pier to fish':face.ok?'':'Face the water to cast'):''):(pier?'Fishing rods are in the rack at the start of the pier':''));}
+  {const prev=k.dispose.bind(k);k.dispose=function(){removeEventListener('mousedown',onClick,{capture:true});try{hud.remove();}catch{}try{hint.remove();}catch{}try{splash.dispose();}catch{}try{line.dispose();}catch{}return prev();};}
   k.every((dt,time)=>{
    for(const r of rings)if(r.t>=0){r.t+=dt;const u=r.t/1.3;r.mesh.scaling.setAll(.3+u*2.4);r.mesh.visibility=Math.max(0,.7*(1-u));if(u>=1){r.t=-1;r.mesh.setEnabled(false);}}
    if(fishing.jump>0&&fishing.from){fishing.jump-=dt*1.25;const j=1-Math.max(0,fishing.jump),fx=fishing.from[0]+(walker.x-fishing.from[0])*j*.85,fz=fishing.from[1]+(walker.z-fishing.from[1])*j*.85;fish.position.set(fx,Math.sin(j*Math.PI)*2.1+j*(walker.y-.7),fz);fish.rotation.z=j*7;fish.rotation.y=walker.yaw;if(fishing.jump<=0)fish.setEnabled(false);}
    const pier=onPier(walker.x,walker.z);if(hud.hidden===pier){hud.hidden=!pier;if(pier)drawHud();}
-   if(fishing.state==='idle')return;fishing.t+=dt;
+   if(typeof mode!=='undefined'&&mode!=='walking'&&!hint.hidden)setHint('');
+   if(fishing.state==='idle'){if(fishing.rod)poseRod(-.3+Math.sin(time*1.1)*.01);return;}fishing.t+=dt;
    if(!pier){stow();announce('You reel in and leave the pier.');return;}
    if(fishing.state==='casting'){const u=fishing.t/CAST_TIME;
     // back over the shoulder, a quick whip forward, then the float flies out on an arc and lands
@@ -205,13 +258,15 @@
    poseRod(.65+Math.sin(time*1.3)*.02);
    if(fishing.state==='waiting'){bob.position.y=-.02+Math.sin(time*2.2)*.025;bob.rotation.z=Math.sin(time*1.7)*.08;drawLine();if(fishing.t>=fishing.bite){fishing.state='bite';fishing.t=0;plop(46);api.sfx(300,.2,'sine',.09);api.sfx(1900,.12,'triangle',.04);announce('A BITE! Look at the float and click!');}}
    else if(fishing.state==='bite'){bob.position.y=-.15+Math.sin(time*26)*.06;bob.rotation.z=Math.sin(time*31)*.3;drawLine();if(Math.floor(fishing.t*3)!==Math.floor((fishing.t-dt)*3))plop(10);if(fishing.t>WINDOW){stow();api.sfx(180,.3,'sine',.05);announce('Too slow. It took the bait and got away.');}}});
-  return {tick:k.tick,dispose:k.dispose,fishing:()=>({state:fishing.state,float:[bob.position.x,bob.position.y,bob.position.z],session:fishing.session}),
-   update(){walker.y+=onPier(walker.x,walker.z)?.66:height(walker.x,Math.min(walker.z,SHORE+1.5));api.audioLevel('waves',.06+.12*Math.max(0,1-Math.abs(walker.z-SHORE)/40)**2,.3);},
+  return {tick:k.tick,dispose:k.dispose,fishing:()=>({rod:fishing.rod,state:fishing.state,float:[bob.position.x,bob.position.y,bob.position.z],target:fishing.target.slice(),session:fishing.session}),
+   onExit(){returnRod(true);setHint('');},
+   update(){walker.y+=onPier(walker.x,walker.z)?.66:height(walker.x,Math.min(walker.z,SHORE+1.5));fishFrame();api.audioLevel('waves',.06+.12*Math.max(0,1-Math.abs(walker.z-SHORE)/40)**2,.3);},
    interact(item){const id=item.id.slice(3);
     if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}
     else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});
     else if(id==='hut'){const next=k.time==='day'?'sunset':'day';setTime(next);api.session.settings.time=next;announce(next==='day'?'Bright afternoon.':'Sunset over the water.');}
     else if(id==='fish')act(false);
+    else if(id==='rack')takeRod();
     else if(id==='surf'){api.sfx(220,.8,'sine',.06);announce('Warm water runs over your feet and draws back across the sand.');}
     else if(id.startsWith('shell')){const s=shells[+id.slice(5)];if(s.isEnabled()){s.setEnabled(false);found++;api.sfx(1200,.25,'triangle',.05);announce('A shell, pink inside. ('+found+' of '+shells.length+' found. They stay in the simulation.)');}}},
    setOption(key,val){if(key==='time'&&val!==k.time)setTime(val);if(key==='gulls')api.audioSet('birdLevel',val==='off'?0:1);}};
