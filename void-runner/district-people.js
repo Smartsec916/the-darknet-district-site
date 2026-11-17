@@ -46,8 +46,8 @@
   {id:'dax',achievements:[['arcade-top-blackout-protocol','2026-10-19'],['arcade-top-corporate-zombies','2026-11-02'],['arcade-top-underground-overdrive','2026-11-13'],['rook-three-runs','2026-09-27']],name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
   {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'},
   /* Fish (Mission 003 — Corporate Connections, 17 Nov 2026): the player follows her Social profile and has her as a V1 contact after meeting her. Her figure in Milked is drawn by
-     milked-build.js (this entry draws nothing); her picture is her own model. Bio: the owner's word, 18 Nov 2026 ("just Entrepreneur"): it hides her intel work. */
-  {id:'milked-fish',name:'Fish',jobs:['entrepreneur'],area:'milked',place:'Milked, Far South',bio:'Entrepreneur',model:'npc-fish'}
+     milked-build.js (this entry draws nothing); her picture is her own model. Job tag Entrepreneur and bio in her own words, both the owner's, 18 Nov 2026: they hide her intel work. */
+  {id:'milked-fish',name:'Fish',jobs:['entrepreneur'],area:'milked',place:'Milked, Far South',bio:'I\'m a dancer and the CEO at Milked',model:'npc-fish'}
  ].map(n=>Object.freeze({...n,jobs:cleanJobs(n.jobs)}));
  /* A resident's achievements (the owner, 15 Nov 2026: "some NPCs will have Achievements, although most will be easy ones"; Dax holds every arcade high score and three
     cargo runs for Rook). Each is [achievement id, the day it was earned]. They are part of who the resident is, not earned in play. DRAFT: which resident has which, and the
