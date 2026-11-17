@@ -130,7 +130,7 @@
 #pd-camera{--pd-tag:#9dff5a;position:fixed;inset:0;z-index:240;pointer-events:none;font:600 clamp(11px,1.25vw,17px)/1.5 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--pd-text-hi);text-shadow:0 0 6px rgba(97,238,233,.45),0 1px 2px #000}
 #pd-camera[hidden]{display:none}
 /* while filming, the game's own readouts step aside (the interact prompt and any dialog stay) */
-body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(#personal-device):not(#mission-log):not(#notice):not(#flash):not(#loading-screen):not(#walking-ui):not(#arcade-play):not(#character-creator):not(#pod-wake):not(script):not(style){visibility:hidden!important}
+body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(#personal-device):not(#mission-log):not(#notice):not(#flash):not(#loading-screen):not(#walking-ui):not(#arcade-play):not(#character-creator):not(#pod-wake):not(#mission-hint):not(script):not(style){visibility:hidden!important}
 #pd-camera b{font-weight:600;color:var(--pd-text-hi)}
 #pd-camera .pc-frame{position:absolute;inset:2.4vmin}
 #pd-camera .pc-corner{position:absolute;width:9vmin;height:9vmin;border:0 solid var(--pd-edge-hi);filter:drop-shadow(0 0 4px var(--pd-edge-hi));opacity:.95}
@@ -197,3 +197,10 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 #personal-device .pd-call-line{color:var(--pd-text-hi);margin:6px 0;opacity:0;animation:pd-line .4s ease forwards;animation-delay:var(--d)}
 @keyframes pd-line{to{opacity:1}}
 @media (prefers-reduced-motion:reduce){#personal-device .pd-wave i{animation:none;height:50%}#personal-device .pd-call-line{animation:none;opacity:1}}
+/* Conversations with contacts (Mission 002, 17 Nov 2026): a contact card, a photo in the conversation, the ATTACH picker and the send form. */
+#personal-device .pd-thread{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;cursor:pointer;color:var(--pd-text-hi);font:inherit;border-top:0;border-right:0;border-bottom:0}
+#personal-device .pd-thread b{color:var(--pd-edge-hi);letter-spacing:.06em;font-size:13px}
+#personal-device .pd-attach-img{display:block;max-width:100%;max-height:200px;margin:5px 0;border:1px solid var(--pd-line);object-fit:contain;background:#000}
+#personal-device .pd-attach{margin-top:8px;border-top:1px solid var(--pd-line);padding-top:6px}
+#personal-device .pd-attach input[type=text]{width:100%;box-sizing:border-box;margin:4px 0}
+#personal-device [data-thread-log]{max-height:46vh;overflow:auto}

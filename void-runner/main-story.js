@@ -6,12 +6,16 @@
    MISSION 001 — AWAKENING is David's own mission, APPROVED 17 Nov 2026 (his words are in VOID_RUNNER_HANDOFF.md §11). Admin's introduction to The Darknet District
    (what he says in person at step 3; step 4 is done when that conversation closes) is NOT written yet: the one line below is a clearly marked placeholder for David. It is shown only in the Mission Editor and in draft play; the game never
    shows it to live players (mission-content.js speak() drops placeholder lines outside draft play).
-   This tree runs in the game through mission-content.js treeEvent, the same adapter as the owner's own trees; the Mission Editor edits it as the tree "Main storyline". */
+   MISSION 002 — EYES ON THE STREET is David's too, APPROVED 17 Nov 2026 (VOID_RUNNER_HANDOFF.md §11): Admin offers it in person after Awakening (ACCEPT / NOT NOW; a player who
+   declines can come back), then: walk into NULL (a place trigger; Admin's Comms call about the V1 camera), photograph Juno Vex at NULL's bar (the photo must really show her),
+   send the photo to Admin in Messages, and return to him: 100 credits and better standing with Admin (story.relationships.admin), paid once.
+   This tree runs in the game through mission-content.js treeEvent, the same adapter as the owner's own trees; the Mission Editor edits it as the tree "Awakening"
+   (David calls it the Awakening Tree; it was shown as "Main storyline" until 17 Nov 2026; its id main-storyline never changes). */
 (function(root){
  'use strict';
  const TREE_ID='main-storyline';
  // The ledger: every number ever used. Append only. A removed mission keeps its number here forever.
- const NUMBERS={1:'m001-awakening'};
+ const NUMBERS={1:'m001-awakening',2:'m002-eyes-on-the-street'};
  const PLACEHOLDER='[David: write Admin\'s introduction to The Darknet District here]';
  const isPlaceholder=t=>typeof t==='string'&&/^\s*\[David:/.test(t);
  const pad=n=>String(n).padStart(3,'0');
@@ -28,7 +32,23 @@
    {id:'speak',kind:'talk',npc:'admin',label:'Find and speak with Admin.',place:'',item:'',say:[{who:'admin',text:PLACEHOLDER}],early:[]},
    {id:'introduction',kind:'hear',npc:'admin',label:'Receive an introduction to The Darknet District.',place:'',item:'',say:[],early:[]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};
- const TREE={id:TREE_ID,name:'Main storyline',note:'David\'s main storyline. Mission 001 starts the first time a player leaves their Sleeping Pod.',status:'active',shipped:true,seq:1,missions:[AWAKENING]};
+ // MISSION 002 (David's words, verbatim; text only until recorded). Players see the name only.
+ const A=t=>({who:'admin',text:t});
+ const EYES={id:'m002-eyes-on-the-street',number:2,title:'Eyes on the Street',type:'main',category:'Intelligence gathering / Reconnaissance',giver:'admin',description:'',
+  start:{how:'person',accept:true},   // in person: Admin offers it, the player can ACCEPT or say NOT NOW (and come back later)
+  offer:[A('I heard you\'re looking for work.'),A('Before I trust you with anything important, I need you to do a little reconnaissance.'),
+   A('Head outside. Across the street, you\'ll find a nightclub called NULL. There\'s someone hanging out in there I need you to take their picture so I can scrape it for more data'),A('I\'ll mark their location')],
+  objectives:[
+   // the first LOCATION TRIGGER: done when the player is inside NULL; what is said then reaches the V1 as a Comms call from Admin
+   {id:'enter-null',kind:'enter',place:'null',label:'Go to NULL, across the street.',via:'comms',npc:'',item:'',early:[],
+    say:[A('Your V1 has a camera. Press L to open your device, then select the Camera app.'),A('Point it at the target. Your device should identify them automatically.'),A('Left click will take a picture'),
+     A('Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.'),A('Nothing complicated. Just keep your eyes open.')]},
+   {id:'photograph',kind:'photo',npc:'juno-vex',label:'Photograph the target.',place:'',item:'',say:[],early:[]},
+   {id:'send-photo',kind:'send-photo',npc:'admin',subject:'juno-vex',label:'Send the photo to Admin.',place:'',item:'',early:[],
+    say:[A('Received. That\'s exactly what I needed. Come back when you\'re ready.')],wrong:[A('That\'s not the person I\'m looking for. Check the description and try again.')]},
+   {id:'return',kind:'talk',npc:'admin',label:'Return to Admin.',place:'',item:'',early:[],say:[A('Not bad. You can follow instructions and keep a low profile. I might have more work for you.')]}],
+  rewards:100,ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'reputation',id:'admin',amount:10}]};
+ const TREE={id:TREE_ID,name:'Awakening',note:'David\'s Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Mission 002 follows it.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES]};
  const clone=v=>JSON.parse(JSON.stringify(v));
  /* The shipped story trees (copies: callers may edit them). */
  const trees=()=>[clone(TREE)];
@@ -48,6 +68,6 @@
  /* The next free number: one past the highest number ever used (the ledgers, the trees and any numbers retired in a draft). */
  function nextNumber(list,...ledgers){let max=0;for(const l of ledgers)for(const k of Object.keys(l||{})){const n=Number(k);if(Number.isInteger(n)&&n>max)max=n;}
   for(const x of numbersIn(list))if(x.number>max)max=x.number;return Math.min(999,max+1);}
- const api={TREE_ID,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
+ const api={TREE_ID,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMainStory=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

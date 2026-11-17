@@ -5,8 +5,8 @@ const B=require('../tools/assets/build-pages.cjs'),{pack}=require('../tools/asse
 const asArrayBuffer=buf=>buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.length);
 
 test('the site publishes what the branch deployment did, without dot or underscore paths and exports/',()=>{
- for(const f of ['void-runner.html','CNAME','void-runner/asset-pipeline.js','docs/VOID_RUNNER_VR_ARCADE.md'])assert.ok(B.publishable(f),f);
- for(const f of ['.github/workflows/pages.yml','.gitignore','.agents/memory/MEMORY.md','_licensed/void-runner/x.vrpak','exports/blackout-protocol-primary.zip'])assert.ok(!B.publishable(f),f);
+ for(const f of ['void-runner.html','CNAME','void-runner/asset-pipeline.js','tools/audio/npc-voice-registry.json'])assert.ok(B.publishable(f),f);
+ for(const f of ['.github/workflows/pages.yml','.gitignore','.agents/memory/MEMORY.md','_licensed/void-runner/x.vrpak','exports/blackout-protocol-primary.zip','docs/VOID_RUNNER_VR_ARCADE.md','docs/development/mission-001/notification-1920.png','tests/smoke.cjs'])assert.ok(!B.publishable(f),f);
 });
 
 test('a packed model is encrypted, and the deployed loader decrypts it with the injected key',async()=>{

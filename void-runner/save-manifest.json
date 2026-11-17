@@ -62,10 +62,12 @@
     "main-storyline"
   ],
   "storyMissions": [
-    "m001-awakening"
+    "m001-awakening",
+    "m002-eyes-on-the-street"
   ],
   "missionNumbers": {
-    "1": "m001-awakening"
+    "1": "m001-awakening",
+    "2": "m002-eyes-on-the-street"
   },
   "retiredMissions": [
     "first-contact",

@@ -9,6 +9,7 @@
  'use strict';
  const STATUS={active:'ACTIVE · in the current District game',historical:'HISTORICAL · not reachable in the current District game',draft:'DRAFT · not in the game',
   archived:'REMOVED FROM THE GAME (archived) · not in the game. Kept to read and to copy into a new tree.'};
+ const PL_=()=>typeof module!=='undefined'&&module.exports?require('./places.js'):root.VoidPlaces;
  const MS_=()=>typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
  // Every older tree was removed from the game on 17 Nov 2026 (David: "Go ahead and remove all missions in the game"); only the main storyline and the owner's trees run.
  const ARCHIVED=new Set(['beginner','vesper-opening','sealed-cargo','communion','natural-order','other-registry','rook-contracts','district-drafts','draft-studio']);
@@ -170,8 +171,9 @@
   const roster=src.givers||G_().roster({registry:src.registry,people:src.people,story:src.story&&src.story.characters,temple:src.temple}),gname=id=>(roster.find(g=>g.id===id)||{}).name||id||'';
   const MSx=MS_(),num=(n,t)=>MSx?MSx.label(n,t):t;
   for(const ot of src.ownerTrees||[]){const story=!!(MSx&&MSx.STORY_TREES.includes(ot.id));const ms=(ot.missions||[]).map((m,i)=>{
-    const steps=(m.objectives||[]).map(o=>({id:o.id,label:o.label||'',kind:o.kind,event:'',requires:[],where:o.kind==='go'?((G_().PLACE.get(o.place)||{}).name||o.place||''):o.kind==='pod-exit'?'the Sleeping Pod':o.kind==='message'?'the V1 (Messages)':o.npc?gname(o.npc):o.item||'',interaction:'',message:o.message||null,
-     lines:(o.say||[]).map((l,k)=>line(l.who||o.npc||m.giver,l.text||'',{key:'tree:'+m.id+'/'+o.id+'/say/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true})),
+    const steps=(m.objectives||[]).map(o=>({id:o.id,label:o.label||'',kind:o.kind,event:'',requires:[],where:o.kind==='go'||o.kind==='enter'||o.kind==='leave'?((G_().PLACE.get(o.place)||{}).name||(PL_()&&PL_().node(o.place)?PL_().label(o.place):'')||o.place||''):o.kind==='send-photo'?'the V1 (Messages) · to '+gname(o.npc):o.kind==='pod-exit'?'the Sleeping Pod':o.kind==='message'?'the V1 (Messages)':o.npc?gname(o.npc):o.item||'',interaction:'',message:o.message||null,
+     lines:[...(o.say||[]).map((l,k)=>line(l.who||(o.kind==='photo'?m.giver:o.npc||m.giver),l.text||'',{key:'tree:'+m.id+'/'+o.id+'/say/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true})),
+      ...(o.wrong||[]).map((l,k)=>line(l.who||o.npc||m.giver,l.text||'',{key:'tree:'+m.id+'/'+o.id+'/wrong/'+k,kind:'tree',editable:'tree',source:'your new tree (draft): reply to the wrong photo',needsVoice:true}))],
      early:(o.early||[]).map((l,k)=>line(l.who||o.npc||m.giver,l.text||'',{key:'tree:'+m.id+'/'+o.id+'/early/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true}))}));
     const e=m.ending||{};
     return {key:'tree:'+m.id,id:m.id,tree:ot.id,engine:'tree',title:num(m.number,m.title||'(no name yet)'),name:m.title||'',number:Number.isInteger(m.number)?m.number:null,type:m.type||'side',description:m.description||'',giver:m.giver||'',giverName:gname(m.giver),start:'',destination:'',credits:Number(m.rewards)||0,draftOnly:true,steps,
@@ -302,7 +304,7 @@
   for(const m of tree.missions){const w=m.title||m.id;
    if(!m.giver)add('error',w,'Choose who gives this mission.');else{const x=g(m.giver);if(!x)add('error',w,'"'+m.giver+'" is not a known NPC.');else if(!x.players)add('warn',w,x.name+': '+G.status(x));}
    for(const o of m.objectives){const st=G.STEP_KINDS.find(k=>k.id===o.kind);if(!st)add('error',w+' / '+o.id,'Unknown kind of step.');else if(!st.supported)add('warn',w+' / '+o.id,'“'+st.name+'” needs a code change: the game cannot run it yet.');
-    if((o.kind==='go'||o.kind==='arrive')&&o.place&&!G.PLACE.has(o.place))add('error',w+' / '+o.id,'Unknown place "'+o.place+'".');if(o.kind==='arrive'&&o.place&&!(G.PLACE.get(o.place)||{}).location)add('error',w+' / '+o.id,'A flight has to end at a station or planet.');if(o.kind==='buy'&&o.item&&ctx.items&&!ctx.items.has(o.item))add('error',w+' / '+o.id,'"'+o.item+'" is not sold in any store.');
+    if((o.kind==='go'||o.kind==='arrive'||o.kind==='enter'||o.kind==='leave')&&o.place&&!G.placeIds().has(o.place))add('error',w+' / '+o.id,'Unknown place "'+o.place+'".');if(o.kind==='arrive'&&o.place&&!(G.PLACE.get(o.place)||{}).location)add('error',w+' / '+o.id,'A flight has to end at a station or planet.');if(o.kind==='buy'&&o.item&&ctx.items&&!ctx.items.has(o.item))add('error',w+' / '+o.id,'"'+o.item+'" is not sold in any store.');
     for(const who of [o.npc].filter(Boolean)){const x=g(who);if(!x)add('error',w+' / '+o.id,'"'+who+'" is not a known NPC.');else if(!x.players&&x.canTalk)add('warn',w+' / '+o.id,x.name+': '+G.status(x));}}
    if(ctx.refs){const vu=(m.unlocks||[]).filter(u=>['item','ship','location','flag'].includes(u.kind)).map(u=>({...u,when:u.when||'complete'}));for(const i of validateEdit({steps:m.objectives.map(o=>({id:o.id}))},{unlocks:vu},ctx.refs))add(i.level,w,i.text);}
    for(const u of m.unlocks||[]){if(u.kind==='credits'&&!(Number.isInteger(u.amount)&&u.amount>0&&u.amount<=100000))add('error',w,'Credits must be a whole number between 1 and 100000.');
@@ -310,9 +312,9 @@
     if(u.kind==='ship'&&ctx.refs&&ctx.refs.premium&&ctx.refs.premium.has(u.id))add('error',w,'A paid hull is never given by a mission.');
     if(u.kind==='tree'&&(!ctx.trees||!ctx.trees.some(x=>x.id===u.id)||u.id===tree.id))add('error',w,'“Start tree” must name another of your trees.');}
    if((m.choices||[]).length)add('warn',w,'Branches are a design note: the game does not offer mission choices yet (needs a code change).');
-   const empty=[...m.offer,...m.objectives.flatMap(o=>[...o.say,...o.early]),...(m.ending.say||[])].filter(l=>!String(l.text||'').trim()).length;if(empty)add('warn',w,empty+' empty line(s): placeholders, not spoken. Write the lines yourself.');
+   const empty=[...m.offer,...m.objectives.flatMap(o=>[...(o.say||[]),...(o.early||[]),...(o.wrong||[])]),...(m.ending.say||[])].filter(l=>!String(l.text||'').trim()).length;if(empty)add('warn',w,empty+' empty line(s): placeholders, not spoken. Write the lines yourself.');
    const b=MC.treeBlockers(m,givers,ctx.items);if(b.length)add('warn',w,'Cannot be played or published yet: '+b.join('; ')+'.');}
-  const every=ctx.trees&&ctx.trees.some(x=>x.id===tree.id)?ctx.trees:[...(ctx.trees||[]),tree],c=MC.treesContent(every,{givers,items:ctx.items});if(c.trees.some(x=>x.id===tree.id)){const chk=MC.check({format:MC.FORMAT,version:MC.VERSION,trees:c.trees},{givers:new Map(givers.map(x=>[x.id,x])),places:new Set(G.PLACES.map(p=>p.id)),items:ctx.items,locations:ctx.refs?new Set(Object.keys(ctx.refs.locations)):null});for(const e of chk.errors)if(e.startsWith(tree.id+':')||e.startsWith(tree.id+' /'))add('error',(tree.missions.find(m=>e.startsWith(tree.id+' / '+m.id))||{}).id||tree.id,e);}
+  const every=ctx.trees&&ctx.trees.some(x=>x.id===tree.id)?ctx.trees:[...(ctx.trees||[]),tree],c=MC.treesContent(every,{givers,items:ctx.items});if(c.trees.some(x=>x.id===tree.id)){const chk=MC.check({format:MC.FORMAT,version:MC.VERSION,trees:c.trees},{givers:new Map(givers.map(x=>[x.id,x])),places:G.placeIds(),subjects:new Set(G.photoSubjects(givers).map(x=>x.id)),items:ctx.items,locations:ctx.refs?new Set(Object.keys(ctx.refs.locations)):null});for(const e of chk.errors)if(e.startsWith(tree.id+':')||e.startsWith(tree.id+' /'))add('error',(tree.missions.find(m=>e.startsWith(tree.id+' / '+m.id))||{}).id||tree.id,e);}
   return out;}
  /* What this tree can do today, in plain words (the editor shows it on every new tree). */
  function capability(tree,ctx={}){const MC=MC_(),givers=ctx.givers||[],every=ctx.trees&&ctx.trees.some(x=>x.id===tree.id)?ctx.trees:[tree],all=MC.treesContent(every,{givers,items:ctx.items}),c={trees:all.trees.filter(x=>x.id===tree.id),skipped:all.skipped.filter(x=>x.tree===tree.id)},runs=c.trees[0]?c.trees[0].missions.length:0,g=id=>givers.find(x=>x.id===id);

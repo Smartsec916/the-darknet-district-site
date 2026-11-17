@@ -1,5 +1,7 @@
 """Mission Editor publishing and re-voice queue: owner only, off by default, immutable versions, undo, fake storage only (no production calls)."""
 import copy
+import json
+from pathlib import Path
 import os
 import unittest
 from unittest.mock import patch
@@ -186,7 +188,7 @@ class MissionNumberTests(unittest.TestCase):
         return {'format': live.FORMAT, 'version': 1, 'trees': list(trees)}
 
     def test_shipped_ledger_and_main_storyline(self):
-        self.assertEqual(live.shipped_numbers(), {1: 'm001-awakening'})
+        self.assertEqual(live.shipped_numbers(), {1: 'm001-awakening', 2: 'm002-eyes-on-the-street'})
         self.assertEqual(live.check(self.mc(awakening())), [], 'Mission 001 as shipped is valid')
         self.assertTrue(live.check(self.mc(awakening(number=None))), 'a main storyline mission needs a number')
         self.assertTrue(live.check(self.mc(awakening(number=1000))))
@@ -201,7 +203,7 @@ class MissionNumberTests(unittest.TestCase):
         bad = awakening()
         bad['missions'][0]['objectives'][1]['message'] = {'from': 'admin', 'header': 'H', 'text': 'x'}
         self.assertTrue(live.check(self.mc(bad)), 'steps carry no message of their own')
-        side = side_tree('draft-a', 2)
+        side = side_tree('draft-a', 5)
         for when in [{'kind': 'after-mission', 'mission': 'm001-awakening'}, {'kind': 'place', 'place': 'port'}, {'kind': 'flag', 'flag': 'mf_x', 'value': True}, {'kind': 'pod-exit'}]:
             side['missions'][0]['start'] = {'how': 'notification', 'channel': 'comms', 'from': 'iris', 'header': 'IRIS // CALL', 'text': 'Test.', 'when': when}
             self.assertEqual(live.check(self.mc(awakening(), side)), [], when)
@@ -211,21 +213,22 @@ class MissionNumberTests(unittest.TestCase):
         self.assertTrue(live.check(self.mc(other)), 'only listed story trees may skip the draft- prefix')
 
     def test_duplicates_and_reuse_are_refused(self):
-        self.assertTrue(any('two missions' in p for p in live.check(self.mc(awakening(), side_tree('draft-a', 2), side_tree('draft-b', 2)))))
+        self.assertTrue(any('two missions' in p for p in live.check(self.mc(awakening(), side_tree('draft-a', 5), side_tree('draft-b', 5)))))
         self.assertTrue(any('never reused' in p for p in live.check(self.mc(side_tree('draft-a', 1)))), 'number 1 belongs to Mission 001')
-        self.assertEqual(live.check(self.mc(awakening(), side_tree('draft-a', 2))), [])
+        self.assertEqual(live.check(self.mc(awakening(), side_tree('draft-a', 5))), [])
 
     def test_published_numbers_are_never_reused(self):
-        first = self.post('live-content/publish', {'expected': 0, 'content': self.mc(awakening(), side_tree('draft-a', 2))})
+        # (002 is Mission 002 — Eyes on the Street since 17 Nov 2026: test trees use 005 and 006)
+        first = self.post('live-content/publish', {'expected': 0, 'content': self.mc(awakening(), side_tree('draft-a', 5))})
         self.assertEqual(first.status_code, 200, first.json)
-        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'draft-a-m1'})
-        # draft-a is removed; its number 2 stays taken
-        again = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 2))})
+        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '5': 'draft-a-m1'})
+        # draft-a is removed; its number 5 stays taken
+        again = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 5))})
         self.assertEqual(again.status_code, 422, again.json)
         self.assertIn('never reused', ' '.join(again.json.get('problems', [again.json.get('error', '')])))
-        ok = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 3))})
+        ok = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 6))})
         self.assertEqual(ok.status_code, 200, ok.json)
-        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'draft-a-m1', '3': 'draft-b-m1'})
+        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '5': 'draft-a-m1', '6': 'draft-b-m1'})
 
 
 class MissionRemovalSaveTests(unittest.TestCase):
@@ -254,10 +257,47 @@ class MissionRemovalSaveTests(unittest.TestCase):
         state['universe']['trackedMission'] = 'legal-run'
         self.assertEqual(vr.clean_save(state)['universe']['trackedMission'], 'legal-run')
 
+    def test_mission_002_save_is_accepted(self):
+        """Mission 002 — Eyes on the Street (17 Nov 2026): its record, its Comms call flags, the paid flag, the credits and Admin's standing (story.relationships) all pass."""
+        state = test_story_save.StorySaveTests.state(None)
+        state['credits'] = 600
+        mid = 'm002-eyes-on-the-street'
+        state['story']['flags'].update({'missionPool': 'closed', 'mt_m001-awakening': True, 'v1m_' + mid + '_enter-null': 1763400100, 'v1r_' + mid + '_enter-null': True, 'mt_' + mid: True})
+        state['story']['relationships'] = {'admin': 10}
+        state['universe'] = {'trackingInitialized': True, 'trackedMission': mid, 'freeTravel': False,
+                             'missions': {'m001-awakening': {'acquired': True, 'completed': True, 'objectives': {'exit-pod': True, 'message': True, 'speak': True, 'introduction': True}},
+                                          mid: {'acquired': True, 'completed': False, 'objectives': {'enter-null': True, 'photograph': True}}}}
+        clean = vr.clean_save(state)
+        self.assertEqual(clean['universe']['trackedMission'], mid, 'a story mission stays tracked')
+        self.assertEqual(clean['universe']['missions'][mid]['objectives'], {'enter-null': True, 'photograph': True})
+        self.assertEqual(clean['story']['flags']['v1m_' + mid + '_enter-null'], 1763400100)
+        self.assertIs(clean['story']['flags']['mt_' + mid], True)
+        self.assertEqual(clean['story']['relationships'], {'admin': 10})
+        self.assertEqual(clean['credits'], 600)
+        state['story']['relationships'] = {'admin': 101}
+        with self.assertRaises(vr.ApiError):
+            vr.clean_save(state)
+
+    def test_mission_002_publishes_with_its_new_kinds(self):
+        """The shipped Awakening tree with Mission 002, as the editor publishes it, passes the server check; broken new kinds are refused."""
+        import copy, subprocess
+        out = subprocess.run(['node', '-e', "const MC=require('./void-runner/mission-content.js'),MS=require('./void-runner/main-story.js');process.stdout.write(JSON.stringify(MC.treesContent(MS.trees(),{givers:[{id:'admin',canTalk:true,draft:true}]}).trees))"],
+                             capture_output=True, text=True, cwd=str(Path(__file__).resolve().parent.parent), check=True)
+        trees = json.loads(out.stdout)
+        content = {'format': 'darknet-district-mission-content', 'version': 1, 'trees': trees}
+        self.assertEqual(live.check(content), [])
+        for change in [lambda m: m['objectives'][0].update(place='atlantis'), lambda m: m['objectives'][1].update(npc='nobody'), lambda m: m['objectives'][2].update(subject='nobody'),
+                       lambda m: m['objectives'][0].update(via='fax'), lambda m: m['unlocks'][0].update(amount=0), lambda m: m['unlocks'][0].update(id='nobody'), lambda m: m['start'].update(accept='yes'),
+                       lambda m: m['objectives'][3].update(wrong=[{'who': 'admin', 'text': 'x'}])]:
+            bad = copy.deepcopy(content)
+            change(bad['trees'][0]['missions'][1])
+            self.assertTrue(live.check(bad), 'refused')
+
     def test_manifest_lists_mission_001(self):
         m = live.manifest()
         self.assertIn('m001-awakening', m['storyMissions'])
-        self.assertEqual(m['missionNumbers'], {'1': 'm001-awakening'})
+        self.assertIn('m002-eyes-on-the-street', m['storyMissions'])
+        self.assertEqual(m['missionNumbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street'})
         self.assertIn('main-storyline', m['storyTrees'])
 
 

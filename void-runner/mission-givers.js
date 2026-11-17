@@ -26,6 +26,9 @@
   'milked-fish':{name:'Fish',group:D,say:'milked-fish',where:'Milked, Far South (milked-integration.js: Fish).',targets:[{action:'milked-fish'}],enter:AREA.milked,players:true,draft:true,note:'Draft play starts on Far South’s street; walk into Milked. Provisional voice.'},
   'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,
    note:'Reached by road taxi (60 CR) or on foot through the East Gate from The Avenue. Draft play starts on The Avenue. No registered voice.'},
+  // Juno Vex (David's Mission 002, 17 Nov 2026): the person Admin wants photographed. She sits alone at NULL's bar (ncz-nightclub.js); the V1 camera names her. Nobody talks to her.
+  'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, alone at the bar, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,
+   why:'No TALK prompt: she is someone to photograph (Mission 002), not to talk to.'},
   // ---- earlier characters (not in the District today) ----
   rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,
    reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},
@@ -72,6 +75,10 @@
   {id:'deliver',name:'Deliver to someone',supported:true,needs:'npc',note:'Completes when you talk to the recipient after the earlier steps. The parcel is not an inventory item.'},
   {id:'buy',name:'Buy an item',supported:true,needs:'item',note:'Completes when the item is bought at the outfitter or Admin’s counter (progression.js buy).'},
   {id:'pod-exit',name:'Leave the Sleeping Pod',supported:true,note:'Completes when the player leaves their Sleeping Pod (EXIT POD). A mission that starts by notification on “first exit from the Sleeping Pod” completes it as it starts.'},
+  {id:'enter',name:'Enter a place',supported:true,needs:'region',note:'Done while the player is inside the place (places.js; a player already inside when the step starts counts). Use “say it as a Comms call” for a call that arrives as they walk in.'},
+  {id:'leave',name:'Leave a place',supported:true,needs:'region',note:'Done while the player is outside the place.'},
+  {id:'photo',name:'Photograph someone',supported:true,needs:'subject',note:'Done when the player takes a photo with the V1 camera that really shows them: in the frame, roughly centred, within 15 m, nothing in the way, taken during this step.'},
+  {id:'send-photo',name:'Send a photo to someone',supported:true,needs:'recipient',note:'In Messages: the player opens the recipient’s conversation, ATTACH, picks the photo, SEND. Only a photo of the chosen person taken during this mission counts. “What is said” is the reply to the right photo; the second set of lines is the reply to any other photo (unlimited tries, no fail). Photos stay on the player’s computer; only what was checked when the photo was taken is used.'},
   {id:'message',name:'The notification arrives',supported:true,note:'Completes by itself as the mission’s notification reaches the device (see “How this mission starts”). Only for a mission that starts by notification. No reply is needed.'},
   {id:'hear',name:'Hear what they say',supported:true,note:'The lines below are shown right after the talk step before it; the step is done when the player closes that conversation.'},
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
@@ -84,16 +91,16 @@
   {id:'ship',name:'Grant ship',supported:true,note:'The ship becomes the player’s (campaign.js awardStarterShip opens the pad, boarding and free travel; another hull is added as if bought: giveShip). A paid hull (Spectre) is never given.'},
   {id:'item',name:'Store item (and its store)',supported:false,why:'No store reads a per-player list of unlocked items yet: the outfitter sells every listed module to everyone and Admin’s counter sells only the scrambler.'},
   {id:'gate',name:'Area or gate opens',supported:false,why:'Checkpoint gates are open or shut for everyone (ncz-quarters.js GATES); there is no per-player gate state.'},
-  {id:'reputation',name:'Reputation',supported:false,why:'The game has no faction reputation for the player.'},
+  {id:'reputation',name:'Reputation with an NPC or a faction',supported:true,note:'An NPC: their standing with the player (story.relationships, -100 to 100). A faction: the faction standing (progression.reputation). Paid once with the mission.'},
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
  /* How a mission starts (David, 17 Nov 2026: "either have Missions start by notification or in person"). */
- const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
+ const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / NOT NOW: the giver offers it and the player chooses (a player who says NOT NOW can come back)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
  const START_CHANNELS=[{id:'messages',name:'MESSAGES',note:'A text in the V1 Messages app (INBOX). No reply is needed.'},
   {id:'comms',name:'COMMS CALL',note:'A call in the Comms app: the sender and the words as a transcript. The voice plays only if a recorded clip exists for that exact line (nothing is generated).'},
   {id:'notify',name:'NOTIFICATION ONLY',note:'A banner on the screen, then the Mission Log. Nothing is kept in Messages or Comms.'}];
  const START_WHEN=[{id:'pod-exit',name:'First exit from the Sleeping Pod',note:'Also a character who left the pod before this mission existed: on their next pod exit.'},{id:'after-mission',name:'After a mission is completed'},
-  {id:'place',name:'Entering a place or quarter'},{id:'flag',name:'A story flag is set'}];
+  {id:'place',name:'Entering a place'},{id:'leave',name:'Leaving a place'},{id:'flag',name:'A story flag is set'}];
  const FLAG_PREFIX='mf_',FLAG=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const nameOf=(id,reg,people,story,temple)=>reg[id]?.displayName||FACTS[id]?.name||people.get(id)?.name||story[id]?.name||(temple&&temple.id===id?temple.name:'')||id;
  /* Every registered NPC (voice registry, District residents, story characters, the temple's monk) with where they are today. src: {registry, people (district-people NPCS), story (characters), temple (MODEL)} */
@@ -110,7 +117,7 @@
    else e={group:E,where:'Not placed in any scene the editor knows of.',targets:[],players:false,draft:false,why:'No TALK prompt for this character anywhere in the game (needs a code change).'};
    const canTalk=e.targets.length>0;
    out.push({id,name,say:/^[a-zA-Z][\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,
-    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,
+    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),photo:!!(e.photo||p),place:e.place||null,reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,
     sources:[reg[id]&&'npc-voice-registry.json',p&&'district-people.js',story[id]&&'story-content.js',temple&&temple.id===id&&'temple.js'].filter(Boolean)});}
   const rank=g=>g.group===D?0:1;
   return out.sort((a,b)=>rank(a)-rank(b)||(b.id==='admin')-(a.id==='admin')||(b.id==='iris')-(a.id==='iris')||a.name.localeCompare(b.name));
@@ -125,8 +132,14 @@
  function whoAt(list,action,character){const out=[];for(const g of list)if(g.targets.some(t=>t.action===action&&(!t.character||t.character===character)))out.push(g.id);return out;}
  /* Which places the player is in right now. w: walkingLocation id, quarter: story.flags.quarter, location: state.location, docked: walking or docked at a station. */
  function placesNow({walk,area,quarter,location,docked}){const out=[];for(const p of PLACES){if(p.walk&&p.walk===walk&&(!p.area||p.area===area)&&(!p.quarter||p.quarter===quarter))out.push(p.id);else if(p.location&&p.location===location&&docked)out.push(p.id);}return out;}
+ /* Every place id a mission may name: the "go to" places above and the named places of places.js (System > Planet > City > Area > Exact location). */
+ const PL=()=>typeof module!=='undefined'&&module.exports?require('./places.js'):root.VoidPlaces;
+ function placeIds(){const out=new Set(PLACES.map(p=>p.id));for(const id of (PL()&&PL().IDS)||[])if(!(PL().BY.get(id)||{}).group)out.add(id);return out;}
+ /* Who a photo step can name: people the V1 camera identifies (the District's residents, Juno Vex). */
+ const photoSubjects=list=>(list||[]).filter(g=>g.photo);
+ const FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];
  /* Items a "buy" step can name: modules a store actually sells (progression.js modules: not a reward, not switched off, with a vendor). */
  function buyable(modules){return Object.fromEntries(Object.entries(modules||{}).filter(([,m])=>m&&!m.reward&&m.available!==false&&(m.vendor===undefined||m.vendor)).map(([id,m])=>[id,m.name+' ('+((m.vendor||'outfitter')==='admin'?'Admin’s counter':'ship outfitter')+')']));}
- const api={START_HOW,START_CHANNELS,START_WHEN,FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,roster,status,whoAt,placesNow,buyable};
+ const api={START_HOW,START_CHANNELS,START_WHEN,FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,FACTIONS,roster,status,whoAt,placesNow,placeIds,photoSubjects,buyable};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionGivers=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -2,6 +2,39 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Fourth pass (17 Nov 2026): Mission 002 — Eyes on the Street, places, photos, Messages, reputation
+
+Branch `claude/eyes-on-the-street`, build `2026-11-17-eyes-1`.
+
+**What you will see.** The tree that was called "Main storyline" is now **Awakening** (your name for it; its id `main-storyline` never changes). It holds Mission 001 — Awakening and **Mission 002 — Eyes on the Street**, your text, every field editable: the offer lines, the four steps, Admin's Comms call, the two replies in Messages, the return line, the reward (100 credits and +10 standing with Admin). If your browser draft already had its own copy of the tree, Mission 002 is added to it where it stands in the shipped tree (unless you removed number 002), and the old name becomes "Awakening".
+
+**New, and reusable for any mission:**
+
+- **Starts: In person, with ACCEPT / NOT NOW.** The giver says the offer lines; on the last line the main button is ACCEPT and NOT NOW sits beside it. NOT NOW changes nothing: the next time the player talks to the giver, the offer comes again. Once accepted it is never offered again. (`void-runner/talk-choice.js` is the small reusable choice window.)
+- **Steps "Enter a place" and "Leave a place"**, and the triggers **"Entering a place" / "Leaving a place"**, picked from the **place list** by hierarchy: System › Planet / City › Area › Exact location (today Tessaly › NeoChinatown › a quarter › a place). An "enter" step is done while the player is inside, so a player already inside when the step starts counts. The yellow arrow leads to the place (out through the District's security vestibule first when the player is inside the District).
+- **Step "Photograph someone"** (pick someone the V1 camera identifies: the District's residents and Juno Vex). Done by a photo that really shows them: in the frame and roughly centred (generous), within 15 m, nothing in the way (a line to the head or chest is clear), taken during this step. A yellow marker sits over them while the step is in progress and the mission is tracked.
+- **Step "Send a photo to someone"** (pick the recipient and who must be in the photo). In the V1: Messages › INBOX › the recipient's conversation › ATTACH › pick the photo (preview, optional text) › SEND. "What is said" is the reply to the right photo; a second set of lines is the reply to any other photo (unlimited tries, no fail). Only a photo of that person taken during this mission counts. Photos stay on the player's computer: only what the camera checked when the photo was taken is used, nothing is uploaded. Sending photos to other players is not built (it needs server storage, a separate decision).
+- **"How it is said"** on a step: in person (the conversation window), **as a Comms call** or **as a message**. Mission 002's call when the player walks into NULL is step 1's lines said as a Comms call.
+- **Reward "Reputation with an NPC or a faction".** An NPC: their standing with the player (`story.relationships`, -100 to 100). A faction: `progression.reputation`. Both are kept by the cloud save as they are. Paid once with the mission.
+- **Hints.** Small yellow-orange hints under the tracked-mission line for the photo and send-a-photo steps (open the V1 with the player's own key, open Camera, take the picture, open Messages, open the conversation, ATTACH, SEND), each gone once done. Every hint is tagged `data-help="1"` for your future Help switch (`story.flags.helpOff` already hides them).
+
+**The place list (named so far).** David wants every location named; to go through later (exact locations such as the food stalls are not named yet).
+
+| Level | Places |
+|---|---|
+| System | Tessaly System |
+| Planet / City | NeoChinatown |
+| Area | The Port · Old Town · The Avenue · Far South · The Outskirts · The Corporate District · Zen Zephyr's Temple · Gates and checkpoints |
+| Exact location | The Darknet District (security vestibule, hallway, Sleeping Pod room, VR play area, the Arcade, the Store, the Bar, the meeting room) · the District alley · NULL (and NULL entrance) · Milked · Port Customs (A1), North Gate (A2), Function Gate (A3), East Gate (A4), South Gate (A5), Far South Gate (A6) |
+
+**Juno Vex** (`juno-vex`), as built: the character kit's FIXER figure with the BOB hairstyle in SILVER, the outfit tinted BLACK, the gear VISOR raised onto the top of her bob, and a small lit device in her hands; she sits alone at the east end of NULL's bar, turned toward the room, idles, now and then looks round the room, and checks her device. The kit has no long coat: the FIXER outfit is a black jacket and skirt (closest available). She is there for every player at every quality; the camera names her "Juno Vex". FIXER is no longer used for NULL's other people, so nobody else there shares her look.
+
+**NULL's people:** Low 2 dancers + DJ + bartender + door + Juno = 6; Medium 3 dancers + the three staff + 2 bar guests + Juno = 9; High / Ultra 4 dancers + staff + 2 bar guests + Juno = 10. The VIP pair and the queue outside are gone; the bar guests stand at the west end of the bar, away from Juno.
+
+**Draft play and publish** carry all of the above. Draft play from a photo step starts on Main Street outside NULL; from a send-a-photo step you need a photo taken during that mission, so play from the photo step.
+
+**For Claude and Codex:** `void-runner/places.js` (VoidPlaces: nodes, `at`, `deepest`, `tracker()` enter / leave events per player, `options()` for the picker, `target()` for the arrow); `mission-content.js` (step kinds `enter`, `leave`, `photo`, `send-photo`; step fields `subject`, `wrong`, `via`; start `accept`; trigger `leave`; unlock `reputation`; `photoOk`, `during`; inbox entries for a step's call or message); `live-content.js` (offer choice, the registry in the place tick, `photo()`, `sendPhoto()`, `step()`, `contacts()`); `device-camera.js` (`judge`, `capture`, `VoidPhotoSubjects`); `device-gallery.js` (`cleanMeta`, photo `meta`); `personal-device.js` (conversations, ATTACH, SEND); `mission-guide.js` (arrow to places and people, the marker, the hints); `ncz-nightclub.js` (`CAST_COUNTS`, `JUNO`). Server: `void_runner_live_content.py` (same checks), `void_runner_admin_inventory.json` (`places`, `subjects`, `factions`). Saves: ordinary mission records and story flags (`v1m_<mission>_<step>` for the call), `story.relationships.admin`; nothing new for `clean_save()`. Tests: `tests/eyes-on-the-street.test.cjs`, `tests/test_live_content.py` (Mission 002 save and publish), `tests/eyes-on-the-street-browser.cjs` (screenshots in `docs/development/eyes-on-the-street/`).
+
 ## Third pass (17 Nov 2026): Mission 001, mission numbers, starting by notification, every older mission removed
 
 Branch `claude/mission-001`, build `2026-11-17-mission-001-1`. Pushed, no PR, not merged.
