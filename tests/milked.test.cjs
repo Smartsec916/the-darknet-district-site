@@ -105,7 +105,8 @@ test('each studio has exactly one adult dancer, a window and a closed door on th
   assert.equal(new Set(MK.STUDIOS.map(s=>s.dancer.clips[0])).size>=3,true,'the dances differ where the figures\' own clips allow');assert.equal(new Set(MK.STUDIOS.map(s=>s.dancer.library)).size,4,'and all four differ with the shared library');
   for(const c of ['pink','green','mixed'])assert.ok(MK.STUDIOS.some(s=>s.light===c),c+' lighting');
   for(const s of MK.STUDIOS){const r=MK.ROOMS.find(q=>q.id===s.room),d=s.dancer;assert.ok(r&&r.kind==='studio'&&r.closed);
-   assert.ok(Crowd.clips[d.look],d.look+' is a crowd figure');assert.ok(Crowd.clips[d.look].includes(d.clips[0]),d.look+' really has '+d.clips[0]);assert.match(d.clips[0],/dance/);assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+d.look+'.glb')),d.look+' is in the repository');
+   assert.ok(Crowd.clips[d.look],d.look+' is a crowd figure');assert.ok(Crowd.clips[d.look].includes(d.clips[0]),d.look+' really has '+d.clips[0]);assert.match(d.clips[0],/dance/);if(s.n===2){assert.equal(d.look,'studio-warrior');assert.equal(d.file,'studio-warrior.vrpak');}
+   else assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+d.look+'.glb')),d.look+' is in the repository');
    assert.ok(Lib.clip(d.library),d.library+' is a library clip');assert.ok(d.id!==MK.MODELS.eva.id&&d.look!==MK.MODELS.eva.look&&d.look!==MK.MODELS.fish.look);
    for(const span of [s.window,s.door])assert.ok(span[0]>=r.rect[0]&&span[1]<=r.rect[1]&&span[1]>span[0]);assert.ok(s.window[1]-s.window[0]>=2,'a real window');assert.ok(s.window[1]<=s.door[0]||s.door[1]<=s.window[0]);
    assert.ok(MK.INTERACTIONS.some(i=>i.action==='milked-studio'&&i.studio===s.n&&MK.roomAt(i.position[0],i.position[2]).id==='hallway'),'watched from the hallway');}
