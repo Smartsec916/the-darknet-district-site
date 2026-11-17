@@ -35,6 +35,7 @@
  },
  "clips": [
   "idle",
+  "walk",
   "vr-aim",
   "vr-aim-up",
   "vr-aim-down",
