@@ -29,3 +29,4 @@ python tools/voice/generate.py --models <folder with kokoro-v1.0.onnx and voices
 - Admin's ElevenLabs voice is an older, natural American male (David asked for him to sound older, 15 Nov 2026); Iris's is a calm British female, and her synthetic colour is still added live by `voice-clips.js`, as for her Kokoro lines.
 - The same character now has lines in two different voices (Kokoro and ElevenLabs). Re-voicing the older lines for consistency is David's decision.
 
+- 17 Nov 2026: Admin's lines for 001 Awakening (the Comms call) and 002 Eyes on the Street (offer, Comms call in NULL, replies, return), plus a re-voice of his scanning-rule line, were recorded in the ElevenLabs voice the owner chose for Admin (Donovan, DMyrgzQFny3JI1Y1paM5), one take each, about 1,034 credits, with the owner's approval.
