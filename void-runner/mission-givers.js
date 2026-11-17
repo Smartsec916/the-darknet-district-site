@@ -68,6 +68,7 @@
  const STEP_KINDS=[
   {id:'talk',name:'Talk to someone',supported:true,needs:'npc'},
   {id:'go',name:'Go to a place',supported:true,needs:'place'},
+  {id:'arrive',name:'Fly to / arrive at a place',supported:true,needs:'location',note:'Completes when the player is docked or walking at that place. The flight is the game’s own: board at Pad 01 (The Port), line up on the marker, jump, dock. It needs a ship (GRANT SHIP) and the place open for travel.'},
   {id:'deliver',name:'Deliver to someone',supported:true,needs:'npc',note:'Completes when you talk to the recipient after the earlier steps. The parcel is not an inventory item.'},
   {id:'buy',name:'Buy an item',supported:true,needs:'item',note:'Completes when the item is bought at the outfitter or Admin’s counter (progression.js buy).'},
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
@@ -76,11 +77,12 @@
  const UNLOCK_KINDS=[
   {id:'credits',name:'Credits',supported:true},
   {id:'flag',name:'Story flag',supported:true,note:'Saved as story.flags.mf_<name> so it can never overwrite one of the game’s own flags.'},
-  {id:'location',name:'Place opens (for travel)',supported:true,note:'The place is added to the places the player knows (universe.discoveredLocations); flying there needs a ship.'},
-  {id:'ship',name:'Ship',supported:true,only:['starter'],note:'Only the courier hull can be given (campaign.js awardStarterShip). Other ships need a code change.'},
+  {id:'location',name:'Open route / place',supported:true,note:'The place and its system are added to what the player knows (universe.js discover); with a ship it is offered as a flight destination.'},
+  {id:'ship',name:'Grant ship',supported:true,note:'The ship becomes the player’s (campaign.js awardStarterShip opens the pad, boarding and free travel; another hull is added as if bought: giveShip). A paid hull (Spectre) is never given.'},
   {id:'item',name:'Store item (and its store)',supported:false,why:'No store reads a per-player list of unlocked items yet: the outfitter sells every listed module to everyone and Admin’s counter sells only the scrambler.'},
   {id:'gate',name:'Area or gate opens',supported:false,why:'Checkpoint gates are open or shut for everyone (ncz-quarters.js GATES); there is no per-player gate state.'},
   {id:'reputation',name:'Reputation',supported:false,why:'The game has no faction reputation for the player.'},
+  {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
  const FLAG_PREFIX='mf_',FLAG=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const nameOf=(id,reg,people,story,temple)=>reg[id]?.displayName||FACTS[id]?.name||people.get(id)?.name||story[id]?.name||(temple&&temple.id===id?temple.name:'')||id;

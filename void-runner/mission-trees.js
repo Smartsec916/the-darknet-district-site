@@ -50,7 +50,8 @@
  const TALK_FILES=['void-runner/faction-scenes.js','void-runner/homeworld-scenes.js','void-runner/prologue-integration.js','void-runner/scenes.js','void-runner/world-integration.js','void-runner/hangar.js','void-runner/story-content.js','void-runner/milked.js'];
  /* The engine a re-voiced line goes through, per character. Default: Kokoro through tools/audio/generate.py --from-queue with the character's registered approved voice.
     Admin: ElevenLabs "Bill Adams" (the voice of his ElevenLabs lines in assets/audio/voice/extra/manifest.json). Nothing is generated from the editor; ElevenLabs re-voicing waits for David's approval. */
- const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'Bill Adams - Wise and Motivational American Storyteller',voiceId:'V2bPluzT7MuirpucVAKH',note:'waiting for ElevenLabs re-voice (needs approval)'}};
+ const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026',voiceId:'DMyrgzQFny3JI1Y1paM5',note:'waiting for ElevenLabs re-voice (needs approval)'},iris:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026 (android effect still applied)',voiceId:'CvD6hF1BJzAFN428j1cO',note:'waiting for ElevenLabs re-voice (needs approval)'},
+  rook:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by David on 17 Nov 2026',voiceId:'wzVFxVZCBIi6KBxNhQDI',note:'waiting for ElevenLabs re-voice (needs approval)'}};
  const PLAYER=new Set(['pilot','You','you','player']);
  const ALIAS={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant','Landing terminal':'landing-terminal'};
  const TARGETS={admin:'admin','district-iris':'iris','district-bar':'bartender','district-shop':null,terminal:'landing-terminal',board:null,rook:'rook',elara:'elara',marcus:'marcus',kess:'kess',mercer:'mercer'};
@@ -234,7 +235,7 @@
  }
  /* The unlock kinds the editor offers, with the real ids they may name (validation: only real NPCs, items, ships, locations and store ids). */
  function refs(src){const items={};for(const [id,m] of Object.entries(src.modules||{}))items[id]=m.name;for(const [id,g] of Object.entries((src.content&&src.content.creditGear)||{}))items[id]=g.name;for(const [id,g] of Object.entries((src.content&&src.content.gear)||{}))items[id]=g.name;
-  return {items,ships:Object.fromEntries(Object.entries(src.ships||{}).map(([id,s])=>[id,s.name])),locations:Object.fromEntries(Object.entries(src.locations||{}).map(([id,l])=>[id,((src.campaign&&src.campaign.stations&&src.campaign.stations[id]&&src.campaign.stations[id].name)||l.name||id)])),
+  return {items,ships:Object.fromEntries(Object.entries(src.ships||{}).map(([id,s])=>[id,s.name])),premium:new Set(Object.entries(src.ships||{}).filter(([,s])=>s.premium).map(([id])=>id)),locations:Object.fromEntries(Object.entries(src.locations||{}).map(([id,l])=>[id,((src.campaign&&src.campaign.stations&&src.campaign.stations[id]&&src.campaign.stations[id].name)||l.name||id)])),
    stores:Object.fromEntries((src.stores||[]).map(s=>[s.id,s.name])),npcs:Object.fromEntries(Object.entries((src.registry&&src.registry.npcs)||{}).map(([id,n])=>[id,n.displayName])),factions:{communion:'The Communion','natural-order':'The Natural Order'}};}
  /* Validates the owner's local edits for one mission against the real registries. edit: {title,description,steps{},lines{},credits,reputation[],unlocks[]}. */
  function validateEdit(mission,edit,r){
@@ -281,11 +282,13 @@
   for(const m of tree.missions){const w=m.title||m.id;
    if(!m.giver)add('error',w,'Choose who gives this mission.');else{const x=g(m.giver);if(!x)add('error',w,'"'+m.giver+'" is not a known NPC.');else if(!x.players)add('warn',w,x.name+': '+G.status(x));}
    for(const o of m.objectives){const st=G.STEP_KINDS.find(k=>k.id===o.kind);if(!st)add('error',w+' / '+o.id,'Unknown kind of step.');else if(!st.supported)add('warn',w+' / '+o.id,'“'+st.name+'” needs a code change: the game cannot run it yet.');
-    if(o.kind==='go'&&o.place&&!G.PLACE.has(o.place))add('error',w+' / '+o.id,'Unknown place "'+o.place+'".');if(o.kind==='buy'&&o.item&&ctx.items&&!ctx.items.has(o.item))add('error',w+' / '+o.id,'"'+o.item+'" is not sold in any store.');
+    if((o.kind==='go'||o.kind==='arrive')&&o.place&&!G.PLACE.has(o.place))add('error',w+' / '+o.id,'Unknown place "'+o.place+'".');if(o.kind==='arrive'&&o.place&&!(G.PLACE.get(o.place)||{}).location)add('error',w+' / '+o.id,'A flight has to end at a station or planet.');if(o.kind==='buy'&&o.item&&ctx.items&&!ctx.items.has(o.item))add('error',w+' / '+o.id,'"'+o.item+'" is not sold in any store.');
     for(const who of [o.npc].filter(Boolean)){const x=g(who);if(!x)add('error',w+' / '+o.id,'"'+who+'" is not a known NPC.');else if(!x.players&&x.canTalk)add('warn',w+' / '+o.id,x.name+': '+G.status(x));}}
    if(ctx.refs){const vu=(m.unlocks||[]).filter(u=>['item','ship','location','flag'].includes(u.kind)).map(u=>({...u,when:u.when||'complete'}));for(const i of validateEdit({steps:m.objectives.map(o=>({id:o.id}))},{unlocks:vu},ctx.refs))add(i.level,w,i.text);}
    for(const u of m.unlocks||[]){if(u.kind==='credits'&&!(Number.isInteger(u.amount)&&u.amount>0&&u.amount<=100000))add('error',w,'Credits must be a whole number between 1 and 100000.');
-    const k=G.UNLOCK_KINDS.find(x=>x.id===u.kind);if(!k)add('error',w,'Unknown kind of unlock "'+u.kind+'".');else if(!k.supported||(u.kind==='ship'&&u.id!=='starter'))add('warn',w,(k.name)+': needs a code change. '+(k.why||k.note||''));}
+    const k=G.UNLOCK_KINDS.find(x=>x.id===u.kind);if(!k)add('error',w,'Unknown kind of unlock "'+u.kind+'".');else if(!k.supported)add('warn',w,(k.name)+': needs a code change. '+(k.why||k.note||''));
+    if(u.kind==='ship'&&ctx.refs&&ctx.refs.premium&&ctx.refs.premium.has(u.id))add('error',w,'A paid hull is never given by a mission.');
+    if(u.kind==='tree'&&(!ctx.trees||!ctx.trees.some(x=>x.id===u.id)||u.id===tree.id))add('error',w,'“Start tree” must name another of your trees.');}
    if((m.choices||[]).length)add('warn',w,'Branches are a design note: the game does not offer mission choices yet (needs a code change).');
    const empty=[...m.offer,...m.objectives.flatMap(o=>[...o.say,...o.early]),...(m.ending.say||[])].filter(l=>!String(l.text||'').trim()).length;if(empty)add('warn',w,empty+' empty line(s): placeholders, not spoken. Write the lines yourself.');
    const b=MC.treeBlockers(m,givers,ctx.items);if(b.length)add('warn',w,'Cannot be played or published yet: '+b.join('; ')+'.');}

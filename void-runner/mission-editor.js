@@ -130,7 +130,7 @@
   for(const [grp,name] of [['district','In the current District game'],['earlier','Earlier characters (not in the District today)']]){const og=el('optgroup','',null,{label:name});
    for(const g of givers.filter(x=>x.group===grp))og.append(new Option(g.name+(g.name.toLowerCase()!==g.id?' ('+g.id+')':'')+(!g.canTalk?' — cannot be talked to yet':!g.players?' — players cannot reach today':''),g.id));sel.append(og);}
   sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
- function placeSelect(value,on,label){const sel=el('select','','',{'aria-label':label||'Place'});sel.append(new Option('— choose a place —',''));for(const p of G().PLACES)sel.append(new Option((refs.locations[p.id]||p.name)+(p.players?'':' — players cannot reach today'),p.id));sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
+ function placeSelect(value,on,label,flights){const sel=el('select','','',{'aria-label':label||'Place'});sel.append(new Option('— choose a place —',''));for(const p of G().PLACES.filter(p=>!flights||p.location))sel.append(new Option((refs.locations[p.id]||p.name)+(p.players?'':' — players cannot reach today'),p.id));sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
  function itemSelect(value,on){const sel=el('select','','',{'aria-label':'Item to buy'});sel.append(new Option('— choose an item a store sells —',''));for(const [id,n] of Object.entries(G().buyable(src.modules)))sel.append(new Option(n,id));sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
  function newTreeForm(){const box=el('section','','me-mission-panel',{'data-me-new-tree-form':'1'});box.append(el('h3','New mission tree'),el('p','A new tree is your DRAFT: nobody else sees it. Its id is made from the first name you give it (draft-…) and never changes; you can rename the tree any time.','dev-note'));
   const name=el('input','','',{'aria-label':'New tree name',placeholder:'Tree name (your words)',maxlength:'60','data-me-new-name':'1'}),note=el('textarea','','',{'aria-label':'Short note',placeholder:'Short note (optional)',rows:'2','data-me-new-note':'1'});
@@ -140,8 +140,9 @@
   const ul=el('ul');ul.append(el('li','Draft and EXPORT MY EDITS: always (saved in this browser as you type).'));
   ul.append(el('li','PLAY THIS DRAFT: '+(c.total?c.play+' of '+c.total+' mission(s) can be played now.':'add a mission first.')));
   ul.append(el('li','PUBLISH TO ALL PLAYERS: '+(c.total?c.publish+' of '+c.total+' mission(s) would reach players':'nothing yet')+(server.live?.enabled?'.':' (publishing is switched OFF on the server until David switches it on).')));
-  ul.append(el('li','The game can run: steps “talk to”, “go to a place”, “deliver to” and “buy an item”; unlocks: credits, story flags, a place opening for travel, the courier hull. Everything else is kept in your draft and marked “needs a code change”.'));box.append(ul);
-  for(const x of c.skipped)box.append(el('p','• “'+x.title+'” cannot run yet: '+x.why.join('; ')+'.','me-warn'));
+  ul.append(el('li','The game can run: steps “talk to”, “go to a place”, “fly to / arrive at”, “deliver to” and “buy an item”; unlocks: credits, story flags, open route / place, grant ship, start tree. Everything else is kept in your draft and marked “needs a code change”.'));box.append(ul);
+  for(const x of c.skipped)box.append(el('p','• “'+x.title+'” '+(x.partial?'':'cannot run yet: ')+x.why.join('; ')+'.','me-warn'));
+  if((local().trees||[]).some(x=>x.id!==raw.id&&x.missions.some(m=>(m.unlocks||[]).some(u=>u.kind==='tree'&&u.id===raw.id))))box.append(el('p','This tree is started by a link from another tree: its first mission waits for that link.','me-small'));
   for(const x of c.unreachable)box.append(el('p','⚠ '+x.name+': '+x.status,'me-warn',{'data-me-unreachable':x.id}));
   return box;}
  function ownerTreePanel(t){const d=local(),raw=d.trees.find(x=>x.id===t.id),box=el('div','','',{'data-me-owner-tree':t.id});
@@ -149,14 +150,24 @@
   const g=el('div','','me-grid'),nm=el('input','','',{'aria-label':'Tree name','data-me-rename':t.id,maxlength:'60'});nm.value=raw.name;nm.oninput=()=>editTree(t.id,x=>{x.name=nm.value;});
   const f1=el('label','','me-field');f1.append(el('span','Tree name'),nm);const st=el('label','','me-field');st.append(el('span','Status'),el('b','DRAFT'));g.append(f1,st);box.append(g);
   const note=el('textarea','','',{'aria-label':'Short note',rows:'2',placeholder:'Short note (optional)'});note.value=raw.note||'';note.oninput=()=>editTree(t.id,x=>{x.note=note.value.slice(0,300);});const f2=el('label','','me-field');f2.append(el('span','Short note'),note);box.append(f2);
-  box.append(capabilityBox(raw));
+  box.append(capabilityBox(raw),treeLinks(raw));
   if(raw.missions.length&&root.StudioFlow){const fl=el('div','','me-flow');fl.append(root.StudioFlow.svg(raw.missions.map((m,i)=>({id:m.id,title:m.title||'(no name yet)',prerequisites:i?[raw.missions[i-1].id]:[],objectives:m.objectives,rewards:m.rewards,giver:(giver(m.giver)||{}).name||'no giver yet'}))));box.append(el('h4','Flow chart (same model as the Content Studio)'),fl);}
   box.append(npcTable(t));
-  const issues=T().validateTree(raw,{givers,items,refs,studio:SM()});
+  const issues=T().validateTree(raw,{givers,items,refs,studio:SM(),trees:d.trees});
   raw.missions.forEach((m,i)=>box.append(treeMissionCard(t,raw,m,i,issues)));
   const row=el('div','','me-row me-actions');row.append(btn('+ NEW MISSION',()=>{let id;editTree(t.id,x=>{id=T().addMission(x,{giver:x.missions.length?x.missions[x.missions.length-1].giver:''}).id;},false);ui.mission='tree:'+id;ui.scrollTo=true;draw();},'',{'data-me-add-mission':'1'}),
    btn('EXPORT MY EDITS',exportEdits),btn('DELETE THIS TREE',()=>{if(!confirm('Delete your tree “'+raw.name+'” and all its missions from the draft?'))return;const d2=local();d2.trees=d2.trees.filter(x=>x.id!==t.id);saveLocal(d2);stale=true;ui.tree='beginner';draw();},'me-x'));
   box.append(row);return box;}
+ /* Links between trees (“start tree” unlocks): what this tree leads to and what starts it. */
+ function treeLinks(raw){const all=local().trees||[],name=id=>((all.find(x=>x.id===id)||{}).name||id),box=el('section','','me-check',{'data-me-links':raw.id});box.append(el('h4','Links to other trees'));
+  const out=[],inn=[];for(const m of raw.missions)for(const u of m.unlocks||[])if(u.kind==='tree')out.push('leads to tree “'+name(u.id)+'” from “'+(m.title||m.id)+'”'+(u.when&&u.when!=='complete'?', at step '+u.when:', when it is done'));
+  for(const x of all)if(x.id!==raw.id)for(const m of x.missions)for(const u of m.unlocks||[])if(u.kind==='tree'&&u.id===raw.id)inn.push('started by tree “'+(x.name||x.id)+'” from “'+(m.title||m.id)+'”'+(u.when&&u.when!=='complete'?', at step '+u.when:', when it is done'));
+  if(!out.length&&!inn.length)box.append(el('p','None. Add “Start tree” under “What becomes available” to link a mission or a step to another of your trees.','me-small'));
+  for(const x of inn)box.append(el('p','← '+x,'',{'data-me-started-by':'1'}));for(const x of out)box.append(el('p','→ '+x,'',{'data-me-leads-to':'1'}));
+  if(inn.length)box.append(el('p','This tree’s first mission waits until one of those links fires; then its giver offers it.','me-small'));
+  // a small map of every new tree and its links
+  const edges=all.flatMap(x=>x.missions.flatMap(m=>(m.unlocks||[]).filter(u=>u.kind==='tree').map(u=>[x.id,u.id])));if(edges.length){const map=el('p','','me-small',{'data-me-tree-map':'1'});map.textContent='Map: '+[...new Set(edges.map(([a,b])=>name(a)+' → '+name(b)))].join('   ·   ');box.append(map);}
+  return box;}
  function linesEditor(t,m,lines,keyBase,defWho,title){const box=el('div','','me-scene');box.append(el('h5',title));
   lines.forEach((l,k)=>{const row=el('div','','me-line',{'data-me-tline':keyBase+'/'+k});const who=el('div','','me-who');
    const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].who=v;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+((giver(defWho)||{}).name||defWho):'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);
@@ -205,7 +216,7 @@
   const kind=el('select','','',{'aria-label':'Kind of step','data-me-kind':o.id});for(const x of G().STEP_KINDS)kind.append(new Option(x.name+(x.supported?'':' — needs a code change'),x.id));kind.value=o.kind||'talk';kind.onchange=()=>eo(x=>{x.kind=kind.value;},true);head.append(kind);
   const st=G().STEP_KINDS.find(x=>x.id===o.kind);
   if(o.kind==='talk'||o.kind==='deliver')head.append(npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who it happens with',attrs:{'data-me-step-npc':o.id}}));
-  else if(o.kind==='go')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to go to'));else if(o.kind==='buy')head.append(itemSelect(o.item,v=>eo(x=>{x.item=v;},true)));
+  else if(o.kind==='go')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to go to'));else if(o.kind==='arrive')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to fly to',true));else if(o.kind==='buy')head.append(itemSelect(o.item,v=>eo(x=>{x.item=v;},true)));
   else head.append(el('span','Needs a code change: the game cannot run this kind of step yet. It stays in your draft.','me-warn'));
   const blocked=MC().treeBlockers(m,givers,items).length>0;
   head.append(btn('▲',()=>ed(x=>T().moveStep(x,o.id,-1),true),'',{'aria-label':'Move step up',...(k?{}:{disabled:''})}),btn('▼',()=>ed(x=>T().moveStep(x,o.id,1),true),'',{'aria-label':'Move step down',...(k<m.objectives.length-1?{}:{disabled:''})}),
@@ -216,15 +227,16 @@
   if(o.kind==='talk'||o.kind==='deliver')sb.append(linesEditor(t,m,o.early||[],o.id+'/early',o.npc||m.giver,'If the player comes too soon'));
   return sb;}
  function treeUnlocks(t,m,ed){const box=el('section','','me-unlocks');box.append(el('h4','What becomes available'));const UK=G().UNLOCK_KINDS,when=u=>!u.when||u.when==='complete'?'when the mission is done':'at step '+u.when;
-  const text=u=>u.kind==='credits'?u.amount+' credits':u.kind==='flag'?'story flag mf_'+u.id+' = '+u.value:u.kind==='location'?(refs.locations[u.id]||u.id):u.kind==='ship'?(refs.ships[u.id]||u.id):u.kind==='item'?(refs.items[u.id]||u.id)+' at '+(refs.stores[u.store]||u.store):u.kind==='reputation'?(refs.factions[u.id]||u.id)+' '+(u.amount>0?'+':'')+u.amount:u.kind==='gate'?'gate '+u.id:u.kind==='mission'?'the next mission in this tree':u.id;
-  for(const [i,u] of (m.unlocks||[]).entries()){const k=UK.find(x=>x.id===u.kind)||{},ok=k.supported&&(u.kind!=='ship'||u.id==='starter'),r=el('div','','me-row',{'data-me-unlock':u.kind});
-   r.append(el('span',(k.name||u.kind)+': '+text(u)+' · '+when(u)),el('span',ok?'the game applies it':'needs a code change'+(k.why?': '+k.why:u.kind==='ship'?': only the courier hull can be given today':''),ok?'me-ok me-small':'me-warn me-small'),btn('×',()=>ed(x=>{x.unlocks.splice(i,1);},true),'me-x',{'aria-label':'Remove'}));box.append(r);}
+  const text=u=>u.kind==='tree'?'start tree “'+(((local().trees||[]).find(x=>x.id===u.id)||{}).name||u.id)+'”':u.kind==='credits'?u.amount+' credits':u.kind==='flag'?'story flag mf_'+u.id+' = '+u.value:u.kind==='location'?(refs.locations[u.id]||u.id):u.kind==='ship'?(refs.ships[u.id]||u.id):u.kind==='item'?(refs.items[u.id]||u.id)+' at '+(refs.stores[u.store]||u.store):u.kind==='reputation'?(refs.factions[u.id]||u.id)+' '+(u.amount>0?'+':'')+u.amount:u.kind==='gate'?'gate '+u.id:u.kind==='mission'?'the next mission in this tree':u.id;
+  for(const [i,u] of (m.unlocks||[]).entries()){const k=UK.find(x=>x.id===u.kind)||{},ok=k.supported&&(u.kind!=='ship'||!(root.VoidShips?.ships?.[u.id]||{}).premium),r=el('div','','me-row',{'data-me-unlock':u.kind});
+   r.append(el('span',(k.name||u.kind)+': '+text(u)+' · '+when(u)),el('span',ok?'the game applies it':'needs a code change'+(k.why?': '+k.why:u.kind==='ship'?': a paid hull is never given':''),ok?'me-ok me-small':'me-warn me-small'),btn('×',()=>ed(x=>{x.unlocks.splice(i,1);},true),'me-x',{'aria-label':'Remove'}));box.append(r);}
   box.append(el('p','Next mission: '+((()=>{const raw=local().trees.find(x=>x.id===t.id),j=raw?raw.missions.findIndex(x=>x.id===m.id):-1,n=raw&&raw.missions[j+1];return n?(n.title||n.id)+' opens when this one is done':'none (the last mission in this tree)';})()),'me-small'));
   const add=el('div','','me-row me-add'),kindSel=el('select','','',{'aria-label':'Kind of unlock','data-me-unlock-kind':m.id});for(const k of UK.filter(x=>x.id!=='mission'))kindSel.append(new Option(k.name+(k.supported?'':' — needs a code change'),k.id));
   const idSel=el('select','','',{'aria-label':'Which','data-me-unlock-id':m.id}),storeSel=el('select','','',{'aria-label':'Store'}),valIn=el('input','','',{'aria-label':'Value','data-me-unlock-value':m.id}),whenSel=el('select','','',{'aria-label':'When'});
   for(const [k,n] of Object.entries(refs.stores))storeSel.append(new Option(n,k));whenSel.append(new Option('when the mission is done','complete'));for(const o of m.objectives)whenSel.append(new Option('at step: '+(o.label||o.id).slice(0,40),o.id));
   const gates=(root.VoidQuarters?.GATES||[]).map(g=>[g.id,(g.name||g.id)+(g.shut?' (shut)':'')]);
-  const fill=()=>{idSel.replaceChildren();const k=kindSel.value,list=k==='item'?refs.items:k==='ship'?refs.ships:k==='location'?refs.locations:k==='reputation'?refs.factions:k==='gate'?Object.fromEntries(gates):{};for(const [id,n] of Object.entries(list))idSel.append(new Option(n+' ('+id+')',id));
+  const ships=Object.fromEntries(Object.entries(root.VoidShips?.ships||{}).map(([id,x])=>[id,x.name+(x.premium?' — a paid purchase, never given by a mission':'')])),otherTrees=Object.fromEntries((local().trees||[]).filter(x=>x.id!==t.id).map(x=>[x.id,x.name||x.id]));
+  const fill=()=>{idSel.replaceChildren();const k=kindSel.value,list=k==='item'?refs.items:k==='ship'?ships:k==='location'?refs.locations:k==='reputation'?refs.factions:k==='gate'?Object.fromEntries(gates):k==='tree'?otherTrees:{};for(const [id,n] of Object.entries(list))idSel.append(new Option(n+' ('+id+')',id));
    idSel.hidden=['flag','credits'].includes(k);storeSel.hidden=k!=='item';valIn.hidden=!['flag','credits','reputation'].includes(k);valIn.placeholder=k==='flag'?'flag name (letters, digits, - _)':'amount';};
   kindSel.onchange=fill;fill();
   add.append(kindSel,idSel,storeSel,valIn,whenSel,btn('+ ADD',()=>{const k=kindSel.value,v=valIn.value.trim(),n=parseInt(v,10);ed(x=>{x.unlocks=x.unlocks||[];const u=k==='credits'?{kind:k,amount:Number.isFinite(n)?n:0}:k==='flag'?{kind:k,id:v,value:true}:k==='reputation'?{kind:k,id:idSel.value,amount:Number.isFinite(n)?n:0}:{kind:k,id:idSel.value,...(k==='item'?{store:storeSel.value}:{})};if(whenSel.value!=='complete')u.when=whenSel.value;x.unlocks.push(u);},true);},'',{'data-me-unlock-add':m.id}));
@@ -360,11 +372,16 @@
   for(const b of B.MISSIONS){M.acquire(s,b.id);for(const o of b.objectives)M.complete(s,b.id,o.id,C);s.story.flags[B.flagOf(b.id)]=true;}s.universe.trackedMission=null;
   const t=(env.trees||[]).find(x=>x.missions.some(y=>y.id===mid));if(!t)throw new Error('This mission is not in the draft that was applied.');
   const i=t.missions.findIndex(y=>y.id===mid),m=t.missions[i];
-  for(const p of t.missions.slice(0,i)){M.acquire(s,p.id);for(const o of M.definitions[p.id].objectives)M.complete(s,p.id,o.id,C);s.story.flags[MC().treeFlag(p.id)]=true;}
-  let where=(giver(m.giver)||{}).enter;
-  if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);const o=m.objectives[k];where=o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;}
-  if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;}
-  M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes:[]};}
+  // a tree that another tree starts: the links to it have fired
+  for(const x of env.trees)for(const p of x.missions)for(const u of p.unlocks||[])if(u.kind==='tree'&&u.id===t.id)s.story.flags[MC().linkFlag(t.id)]=true;
+  const done=(p,ids)=>{for(const u of p.unlocks||[])if(ids.includes(u.when||'complete'))MC().unlockNow(s,u,env,C);};
+  for(const p of t.missions.slice(0,i)){M.acquire(s,p.id);for(const o of M.definitions[p.id].objectives)M.complete(s,p.id,o.id,C);s.story.flags[MC().treeFlag(p.id)]=true;done(p,[...M.definitions[p.id].objectives.map(o=>o.id),'complete']);}
+  let where=(giver(m.giver)||{}).enter;const notes=[];
+  if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
+   where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;}
+  if(where&&where.walk==='sacramento'&&where.quarter==='port'&&m.objectives.some(o=>o.kind==='arrive'))s.story.flags.quarter='port';
+  if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
+  M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes};}
  async function enterTree(w){
   if(w.walk==='darknet-district'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
   else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;state.story.flags.quarter=w.quarter;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}

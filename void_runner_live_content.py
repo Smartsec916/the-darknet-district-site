@@ -16,7 +16,7 @@ import re
 import time
 from pathlib import Path
 
-from void_runner_drafts import DraftError
+from void_runner_drafts import DraftError, editor_uid
 
 ROOT = Path(__file__).parent
 MAX_BYTES = 200_000
@@ -56,7 +56,7 @@ def enabled():
 
 def owner(uid, allowed, need=None):
     """The single configured content editor. need: 'publish' (publishing switched on) or 'queue' (private storage switched on)."""
-    editor = os.getenv('VOID_CONTENT_EDITOR_UID', '').strip()
+    editor = editor_uid()
     if not allowed(uid) or not editor or uid != editor:
         raise DraftError('This account is not the configured content editor.', 403)
     if need == 'publish' and not enabled():
@@ -264,6 +264,7 @@ def check_trees(trees, inv, err):
         err('New trees have an unknown shape (10 at most).')
         return
     tids, mids, total = set(), set(), 0
+    every = {t.get('id') for t in trees if isinstance(t, dict)}
 
     def lines(ls, w):
         if ls is None:
@@ -337,6 +338,8 @@ def check_trees(trees, inv, err):
                     err(ow + ': unknown NPC.')
                 elif kind == 'go' and o.get('place') not in places:
                     err(ow + ': unknown place.')
+                elif kind == 'arrive' and o.get('place') not in locations:
+                    err(ow + ': not a place a ship can fly to.')
                 elif kind == 'buy' and o.get('item') not in items:
                     err(ow + ': not an item a store sells.')
                 lines(o.get('say'), ow)
@@ -376,7 +379,9 @@ def check_trees(trees, inv, err):
                     if k == 'location' and u.get('id') not in locations:
                         err(w + ': unknown place.')
                     if k == 'ship' and u.get('id') not in (me.get('ships') or []):
-                        err(w + ': only the courier hull can be given.')
+                        err(w + ': only a ship that is not a paid purchase can be given.')
+                    if k == 'tree' and (u.get('id') not in every or u.get('id') == t.get('id')):
+                        err(w + ': a start-tree link must name another of the new trees being sent.')
     if total > 40:
         err('New trees hold more than 40 missions.')
 

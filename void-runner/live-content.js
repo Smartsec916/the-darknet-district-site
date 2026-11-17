@@ -16,7 +16,7 @@
  const ctx=()=>({registryIds:new Set(Object.keys(env.shipped.registry).filter(id=>env.shipped.registry[id]?.beginner!==true)),registryObjectives:Object.fromEntries(Object.entries(env.shipped.registry).map(([id,d])=>[id,new Set((d.objectives||[]).map(o=>o.id))])),
   speakers:new Set(Object.values(root.VoidStoryContent?.characters||{}).map(c=>c.name)),...treeCtx()});
  // What a new tree may name: NPCs with a TALK prompt, the places, items a store sells, travel places (mission-givers.js; the server checks the same lists).
- const treeCtx=()=>({givers:new Map(env.givers.map(g=>[g.id,g])),places:new Set((G?.PLACES||[]).map(p=>p.id)),items:new Set(Object.keys(G?G.buyable(root.VoidProgression?.modules):{})),locations:new Set(Object.keys(root.VoidUniverse?.locations||{}))});
+ const treeCtx=()=>({givers:new Map(env.givers.map(g=>[g.id,g])),places:new Set((G?.PLACES||[]).map(p=>p.id)),items:new Set(Object.keys(G?G.buyable(root.VoidProgression?.modules):{})),locations:new Set(Object.keys(root.VoidUniverse?.locations||{})),ships:new Map(Object.entries(root.VoidShips?.ships||{}))});
  function use(content,source,version){
   const r=MC.apply(content,env,ctx());
   if(r.refused.length){MC.apply(null,env);current={version:0,source:'shipped',content:null,refused:r.refused};try{console.warn('[VOID//RUNNER] published missions refused; the shipped missions stay in force.',r.refused.slice(0,5));}catch{}return false;}

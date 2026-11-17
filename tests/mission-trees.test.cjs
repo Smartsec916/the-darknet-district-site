@@ -108,7 +108,7 @@ test('warnings and migration: removed steps and missions never break or wipe a s
  assert(MC.migrate(s2,after).includes('untracked removed mission first-departure'));assert(s2.universe.missions['first-departure'],'the record of a removed mission is kept');
 });
 test('All lines for an NPC: every one of Admin’s voiced lines is found (in missions by scene, or outside), Admin first, ElevenLabs engine recorded; every voiced speaker is listed',()=>{
- const src=sources(),out=T.build(src),admin=out.npcs[0];assert.equal(admin.id,'admin');assert.equal(admin.engine.engine,'elevenlabs');assert.equal(admin.engine.voiceId,'V2bPluzT7MuirpucVAKH');
+ const src=sources(),out=T.build(src),admin=out.npcs[0];assert.equal(admin.id,'admin');assert.equal(admin.engine.engine,'elevenlabs');assert.equal(admin.engine.voiceId,'DMyrgzQFny3JI1Y1paM5');
  const refs=new Set([...admin.inMissions,...admin.outside].map(l=>l.ref));
  for(const l of Object.values(src.manifest.lines))if(l.speaker==='admin')assert(refs.has('admin|'+l.text),'Admin line listed: '+l.text.slice(0,50));
  for(const l of Object.values(src.extraManifest.lines))if(l.speaker==='admin')assert(admin.outside.some(x=>x.text===l.text&&x.adapter==='code-change'&&x.clip&&x.clip.engine==='elevenlabs'));
@@ -201,10 +201,10 @@ test('adapter: a new tree is checked, applied, run step by step (talk, go, buy, 
  MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees,[]);
 });
 test('adapter refuses unknown kinds, givers without a TALK prompt, non-draft ids, unknown places and items; only runnable missions are sent',()=>{
- const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items};
+ const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(require(R('void-runner/universe.js')).locations))};
  const base=()=>MC.clone(MC.fromDrafts({local:sampleTree().d,givers,items}));
  const bad=[c=>{c.trees[0].missions[0].objectives[0].kind='fight';},c=>{c.trees[0].missions[0].giver='rin-takeda';},c=>{c.trees[0].id='my-tree';},c=>{c.trees[0].missions[0].id='first';},c=>{c.trees[0].missions[0].objectives[0]={id:'s',label:'x',kind:'go',place:'atlantis'};},
-  c=>{c.trees[0].missions[0].objectives[0]={id:'s',label:'x',kind:'buy',item:'communion-scanner'};},c=>{c.trees[0].missions[0].unlocks=[{kind:'item',id:'warflying-module'}];},c=>{c.trees[0].missions[0].unlocks=[{kind:'ship',id:'ship2'}];},c=>{c.trees[0].missions[0].evil=1;},c=>{c.names={beginner:'<b>x</b>'};},c=>{c.trees[0].missions[0].offer=[{who:'darth',text:'x'}];}];
+  c=>{c.trees[0].missions[0].objectives[0]={id:'s',label:'x',kind:'buy',item:'communion-scanner'};},c=>{c.trees[0].missions[0].unlocks=[{kind:'item',id:'warflying-module'}];},c=>{c.trees[0].missions[0].unlocks=[{kind:'ship',id:'ship3'}];},c=>{c.trees[0].missions[0].unlocks=[{kind:'tree',id:'draft-nowhere'}];},c=>{c.trees[0].missions[0].objectives[0]={id:'s',label:'x',kind:'arrive',place:'district'};},c=>{c.trees[0].missions[0].evil=1;},c=>{c.names={beginner:'<b>x</b>'};},c=>{c.trees[0].missions[0].offer=[{who:'darth',text:'x'}];}];
  for(const f of bad){const c=base();f(c);assert.equal(MC.check(c,ctx).ok,false,f.toString());}
  const {d,m}=sampleTree();const m2=T.addMission(d.trees[0],{giver:'rin-takeda'});m2.title='CANNOT';const m3=T.addMission(d.trees[0],{giver:'admin'});m3.title='AFTER';Object.assign(m3.objectives[0],{kind:'talk',npc:'admin',label:'x'});
  const c=MC.fromDrafts({local:d,givers,items});assert.deepEqual(c.trees[0].missions.map(x=>x.id),[m.id],'missions after one that cannot run are held back');
@@ -221,4 +221,28 @@ test('the server reads the same lists (admin inventory) as the editor and the ga
  const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).missionEditor,g=roster();
  assert.deepEqual(Object.keys(inv.givers).sort(),g.map(x=>x.id).sort());for(const x of g)assert.equal(inv.givers[x.id].canTalk,x.canTalk,x.id);
  assert.deepEqual(inv.places,G.PLACES.map(p=>p.id));assert.deepEqual(inv.items.sort(),[...buyable()].sort());assert.deepEqual(inv.stepKinds,MC.STEP_KINDS);assert.deepEqual(inv.unlockKinds,MC.UNLOCKS);
+});
+test('David’s chain: an Admin tree grants a ship and opens a route, the player flies to Rook, and meeting Rook starts a Rook tree',()=>{
+ const e=env(),givers=roster(),items=buyable(),U=require(R('void-runner/universe.js')),Sh=require(R('void-runner/ships.js'));e.U=U;e.givers=givers;MC.snapshot(e);
+ const d={trees:[]},a=T.newTree(d.trees,{name:'District start'});d.trees.push(a);const b=T.newTree(d.trees,{name:'Rook'});d.trees.push(b);
+ const a1=T.addMission(a,{giver:'admin'});a1.title='A1';Object.assign(a1.objectives[0],{kind:'talk',npc:'iris',label:'Talk to Iris'});
+ const fly=T.addStep(a1,{kind:'arrive'});Object.assign(fly,{place:'meridian',label:'Fly to Meridian'});const meet=T.addStep(a1,{kind:'talk'});Object.assign(meet,{npc:'rook',label:'Find Rook'});
+ a1.unlocks.push({kind:'ship',id:'ship2',when:'step-1'},{kind:'location',id:'kepler',when:'step-1'},{kind:'tree',id:b.id,when:meet.id});
+ const b1=T.addMission(b,{giver:'rook'});b1.title='B1';Object.assign(b1.objectives[0],{kind:'arrive',place:'kepler',label:'Fly to Kepler'});
+ assert.equal(T.validateTree(a,{givers,items,refs:T.refs(sources()),studio:S,trees:d.trees}).filter(i=>i.level==='error').length,0);
+ const c=MC.fromDrafts({local:d,givers,items}),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(U.locations)),ships:new Map(Object.entries(Sh.ships))};
+ assert.deepEqual(MC.check(c,ctx).errors,[]);MC.apply(c,e,ctx);
+ const s=e.C.startDistrictCampaign(e.C.fresh());s.story.flags.podWakePending=false;
+ assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['rook']},e.Missions,e.C).mission,null,'the Rook tree waits for its link');assert(!MC.treeWants(s,e,['rook']));
+ MC.treeEvent(s,e,{type:'talk',npcs:['admin']},e.Missions,e.C);const r=MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C);
+ assert(Sh.hasShip(s),'the ship grant opens the pad (awardStarterShip)');assert.deepEqual(s.ownedShips,['starter','ship2']);assert(s.shipLoadouts.ship2,'the granted hull has its loadout');assert.equal(s.universe.freeTravel,true);
+ assert(s.universe.discoveredLocations.includes('kepler')&&s.universe.discoveredSystems.includes(U.system('kepler')),'the route opens');assert(r.notes.includes('SHIP ACQUIRED'));
+ assert.equal(MC.treeEvent(s,e,{type:'place',places:['port']},e.Missions,e.C).objective,null);s.location='meridian';
+ assert.equal(MC.treeEvent(s,e,{type:'place',places:G.placesNow({location:'meridian',docked:true})},e.Missions,e.C).objective,fly.id,'arriving at Meridian completes the flight step');
+ const met=MC.treeEvent(s,e,{type:'talk',npcs:G.whoAt(givers,'talk','rook')},e.Missions,e.C);assert.equal(met.objective,meet.id);assert(met.completed);assert.equal(s.story.flags['ts_'+b.id],true,'meeting Rook fires the link');
+ const o=MC.treeEvent(s,e,{type:'talk',npcs:['rook']},e.Missions,e.C);assert(o.offered);assert.equal(o.mission,b1.id,'Rook now offers the first mission of his tree');
+ // the save rules accept what the chain wrote
+ for(const k of Object.keys(s.story.flags))assert(/^[a-zA-Z][\w-]{0,63}$/.test(k),k);assert(s.ownedShips.every(x=>['starter','ship2','ship3'].includes(x)));
+ // a link to a tree that cannot run is left out (and said); the rest still runs
+ b1.giver='rin-takeda';const c2=MC.fromDrafts({local:d,givers,items});assert.deepEqual(c2.trees.map(t=>t.id),[a.id]);assert(!JSON.stringify(c2).includes('"tree"'));assert(MC.notApplied({local:d,givers,items}).some(t=>/start tree/.test(t)));
 });
