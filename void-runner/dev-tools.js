@@ -48,15 +48,19 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   this.authorized=false;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
   if(devMissileTrial){devMissileTrial=false;resetMissileFlight();}
   if(!request)return;
-  try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.receive(data);devButton.hidden=false;}catch{/* Fail closed; ordinary players get no private controls. */}
+  try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.receive(data);devButton.hidden=false;try{if(sessionStorage.getItem('mission-editor-return'))this.open('missions');}catch{}}catch{/* Fail closed; ordinary players get no private controls. */}
  },
  receive(data){this.values=VoidBalance.validate(data.values);this.revision=data.revision;this.preset=data.preset||'CUSTOM';this.pending=this.values;},
  open(tab){if(!this.authorized)return;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;this.render();},
  // One window, one section at a time. Sections that aren't built yet are listed, not faked.
- sections:[['balance','Combat Balance'],['test','Test & Jump To'],['achievements','Achievement Manager']],
+ sections:[['balance','Combat Balance'],['test','Test & Jump To'],['achievements','Achievement Manager'],['missions','Mission Editor']],
+ // The Mission Editor's scripts load only when a confirmed developer opens it (players never download them).
+ editorScripts:['admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/mission-editor.js'],
+ loadEditor(){return this.editorLoad??=this.editorScripts.reduce((p,src)=>p.then(()=>new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>fail(new Error('Could not load '+src));document.head.append(s);})),Promise.resolve());},
  render(){
   const tabs='<nav class="dev-tabs" aria-label="Developer sections">'+this.sections.map(([id,name])=>`<button data-dev-tab="${id}" class="${this.tab===id?'on':''}" aria-pressed="${this.tab===id}">${name}</button>`).join('')+'</nav>';
   const head=`<div class="dev-heading"><h2>DEVELOPER TOOLS</h2><button data-dev="close">CLOSE</button></div>`+tabs;
+  if(this.tab==='missions'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidMissionEditor)return VoidMissionEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the Mission Editor…</p>';this.loadEditor().then(()=>{if(this.tab==='missions'&&!devPanel.hidden)VoidMissionEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">'+escapeText(e.message)+'</p>';});return;}
   if(this.tab==='test'){devPanel.innerHTML=head+(globalThis.VoidDevTest?.render()||'<p>Test tools are loading.</p>');return;}
   if(this.tab==='achievements'){const items=globalThis.VoidAchievements?.definitions||[];devPanel.innerHTML=head+'<p>Read-only catalog preview. Publishing, granting, and revoking require a server-authorized manager that is not enabled yet.</p>'+items.map(d=>'<article class="dev-field"><h3>'+escapeText(d.icon+' '+d.name)+'</h3><p>'+escapeText(d.description)+'</p><p>'+escapeText(d.category+' · '+d.condition.event+' · '+d.condition.count)+'</p></article>').join('');return;}
   const known=new Set(Object.values(balanceHelp).flatMap(g=>Object.keys(g))),field=(key,[name,help])=>{const s=VoidBalance.spec[key];return `<label class="dev-field"><span class="dev-name">${name}</span><input data-balance="${key}" type="number" min="${s.min}" max="${s.max}" step="any" value="${this.values[key]}"><span class="dev-help">${help}</span><span class="dev-range">${key} · ${s.min}–${s.max} · default ${VoidBalance.defaults[key]}</span></label>`;};

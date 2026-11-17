@@ -63,13 +63,25 @@
   state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});
   if(typeof hud==='function')hud();announce('You are Admin. Iris has the counter. Nothing in this session is saved.');return true;
  }
+ /* A throwaway session built by another tool (Mission Editor > PLAY THIS DRAFT). Same rules as a test: re-checked with the server first, nothing saved to this browser
+    or the cloud while it runs, and leaving reloads the page, which brings the real save back untouched. opts: {banner, leave, apply(), build()→state, enter(), message}. */
+ async function session(opts){
+  try{await VoidDevTools.request('developer/balance');}catch(e){return {error:'Developer access could not be confirmed: '+e.message};}
+  if(!VoidDevTools.authorized)return {error:'Developer access could not be confirmed.'};
+  active=true;banner.hidden=false;banner.dataset.kind=opts.kind||'test';banner.querySelector('span').textContent=opts.banner||'TEST MODE · NOTHING IS SAVED';banner.querySelector('button').textContent=opts.leave||'EXIT TEST';
+  const panel=document.getElementById('dev-balance');if(panel)panel.hidden=true;
+  try{opts.apply?.();state=opts.build();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');await opts.enter();if(typeof hud==='function')hud();}
+  catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Use '+(opts.leave||'EXIT TEST')+'.');return {started:true,problem:String(e?.message||e)};}
+  if(opts.message)announce(opts.message);return {started:true};
+ }
  function action(name,panel){if(name==='test-start')return start(panel);if(name==='test-exit')return exit();}
- function exit(){active=false;location.reload();}
+ // Stays "active" through the reload so nothing can write the throwaway state on the way out.
+ function exit(){location.reload();}
 
  // While testing, the browser save is never written and cloud save/load is off.
  const campaignSave=save;save=function(){if(active)return false;return campaignSave.apply(this,arguments);};
  document.addEventListener('click',e=>{const a=e.target.closest?.('button')?.dataset.action;if(active&&a&&/^cloud-(save|load)/.test(a)){e.preventDefault();e.stopImmediatePropagation();announce('Test mode: cloud saves are off. Exit the test first.');}},{capture:true});
  const banner=document.createElement('div');banner.id='dev-test-banner';banner.hidden=true;banner.innerHTML='<span>TEST MODE · NOTHING IS SAVED</span><button type="button">EXIT TEST</button>';document.body.append(banner);
  banner.querySelector('button').onclick=exit;
- globalThis.VoidDevTest={render,action,build,adminBuild,playAsAdmin,get active(){return active;}};
+ globalThis.VoidDevTest={render,action,build,adminBuild,playAsAdmin,session,exit,get active(){return active;}};
 })();
