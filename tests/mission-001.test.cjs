@@ -19,18 +19,18 @@ test('mission numbers: the shipped ledger matches the save manifest; "Mission 00
  assert.deepEqual(man.storyMissions,MS.MISSION_IDS);assert.deepEqual(man.storyTrees,MS.STORY_TREES);
  assert.equal(MS.label(1,'Awakening'),'Mission 001 — Awakening');assert.equal(MS.label(42,'X'),'Mission 042 — X');assert.equal(MS.pad(7),'007');
  assert.equal(MS.AWAKENING.id,'m001-awakening');assert.equal(MS.AWAKENING.number,1);
- assert.equal(MS.nextNumber(MS.trees(),MS.NUMBERS),2);
+ assert.equal(MS.nextNumber(MS.trees(),MS.NUMBERS),3,'001 and 002 are used (Mission 002 — Eyes on the Street, 17 Nov 2026)');
  assert.equal(MS.nextNumber([],MS.NUMBERS,{5:'retired'}),6,'a retired number is never handed out again');
  const t=(id,n)=>({id,missions:[{id:id+'-m1',number:n,title:'x'}]});
- assert.equal(MS.numberProblems([t('draft-a',2),t('draft-b',2)]).length,1,'duplicates refused');
+ assert.equal(MS.numberProblems([t('draft-a',5),t('draft-b',5)]).length,1,'duplicates refused');
  assert.match(MS.numberProblems([t('draft-a',1)])[0],/never reused/,'001 belongs to Mission 001');
  assert.match(MS.numberProblems([t('draft-a',3)],{...MS.NUMBERS,3:'draft-gone-m1'})[0],/already used by "draft-gone-m1"/,'a removed mission keeps its number');
- assert.deepEqual(MS.numberProblems([...MS.trees(),t('draft-a',2)]),[]);
+ assert.deepEqual(MS.numberProblems([...MS.trees(),t('draft-a',3)]),[]);
 });
 test('the content check: numbers unique and never reused, the main storyline needs numbers, new fields and step kinds are closed',()=>{
- const x=env(),{MC,MS}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:new Set(x.G.PLACES.map(p=>p.id))};
+ const x=env(),{MC,MS}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()};
  const doc=trees=>({format:MC.FORMAT,version:MC.VERSION,trees});
- const story=MC.treesContent(MS.trees(),{givers:x.e.givers}).trees;assert.equal(story.length,1);assert.equal(story[0].missions[0].number,1);assert.deepEqual(story[0].missions[0].start,{how:'notification',channel:'comms',from:'admin',text:ADMIN_TEXT,header:'ADMIN // INCOMING MESSAGE',when:{kind:'pod-exit'}});
+ const story=MC.treesContent(MS.trees(),{givers:x.e.givers}).trees;assert.equal(story.length,1);assert.equal(story[0].name,'Awakening','David calls it the Awakening tree');assert.equal(story[0].missions[0].number,1);assert.deepEqual(story[0].missions[0].start,{how:'notification',channel:'comms',from:'admin',text:ADMIN_TEXT,header:'ADMIN // INCOMING MESSAGE',when:{kind:'pod-exit'}});
  assert.deepEqual(MC.check(doc(story),ctx).errors,[]);
  const st=c=>c[0].missions[0].start;
  const bad=[c=>{delete c[0].missions[0].number;},c=>{c[0].missions[0].number=0;},c=>{c[0].missions[0].location='atlantis';},
@@ -40,11 +40,11 @@ test('the content check: numbers unique and never reused, the main storyline nee
   c=>{c[0].missions[0].objectives[1].message={from:'admin',header:'H',text:'T'};},
   c=>{c[0].id='story';},c=>{c[0].missions[0].id='awakening';},c=>{c.push({id:'draft-x',name:'X',missions:[{id:'draft-x-m1',number:1,title:'X',type:'side',giver:'admin',objectives:[{id:'s',label:'x',kind:'talk',npc:'iris'}]}]});}];
  for(const f of bad){const c=MC.clone(story);f(c);assert.equal(MC.check(doc(c),ctx).ok,false,f.toString());}
- const ok=MC.clone(story);ok.push({id:'draft-x',name:'X',missions:[{id:'draft-x-m1',number:2,title:'X',type:'side',giver:'admin',objectives:[{id:'s',label:'x',kind:'talk',npc:'iris'}]}]});
+ const ok=MC.clone(story);ok.push({id:'draft-x',name:'X',missions:[{id:'draft-x-m1',number:3,title:'X',type:'side',giver:'admin',objectives:[{id:'s',label:'x',kind:'talk',npc:'iris'}]}]});
  assert.deepEqual(MC.check(doc(ok),ctx).errors,[]);
  for(const when of [{kind:'after-mission',mission:'m001-awakening'},{kind:'place',place:'port'},{kind:'flag',flag:'mf_seen',value:true},{kind:'pod-exit'}]){const c=MC.clone(ok);c[1].missions[0].start={how:'notification',channel:'comms',from:'iris',header:'IRIS // CALL',text:'TEST call.',when};assert.deepEqual(MC.check(doc(c),ctx).errors,[],JSON.stringify(when));}
  {const c=MC.clone(ok);c[1].missions[0].start={how:'notification',channel:'notify',from:'iris',text:'TEST banner.',when:{kind:'pod-exit'}};assert.deepEqual(MC.check(doc(c),ctx).errors,[],'a banner needs no header');}
- assert.equal(MC.check(doc(ok),{...ctx,numbers:{2:'draft-old-m1'}}).ok,false,'a number the server has published for another mission is refused');
+ assert.equal(MC.check(doc(ok),{...ctx,numbers:{3:'draft-old-m1'}}).ok,false,'a number the server has published for another mission is refused');
 });
 
 // ---------------------------------------------------------------- Mission 001
@@ -84,7 +84,8 @@ test('live players: talking to Admin completes Mission 001 without showing the p
  assert.equal(r.reward,0);assert.equal(s.credits,credits,'no reward (none specified)');assert.deepEqual(r.notes,[]);
  assert.equal(s.universe.missions['m001-awakening'].completed,true);assert.equal(s.story.flags['mt_m001-awakening'],true);assert.equal(s.universe.trackedMission,null);
  assert.equal(x.M.all(s,x.C)[0].completed,true);assert.equal(x.M.all(s,x.C)[0].objective,'Complete');
- const again=talk(x,s,'admin');assert.equal(again.mission,null,'Admin goes back to what he normally does');assert.equal(x.MC.treeWants(s,x.e,['admin']),false);
+ // since Mission 002 (17 Nov 2026) the next conversation with Admin is his in-person offer of Eyes on the Street (tests/eyes-on-the-street.test.cjs)
+ const again=talk(x,s,'admin');assert.equal(again.mission,'m002-eyes-on-the-street');assert.ok(again.ask,'an offer to accept or decline');assert.equal(again.offered,false);assert.equal(s.universe.missions['m002-eyes-on-the-street'],undefined,'nothing is taken until ACCEPT');
 });
 test('draft play: Admin\'s Mission 001 lines (the placeholder for now) are shown, and closing them completes the mission',()=>{
  const x=env({draft:true}),s=district(x.C);exitPod(x,s);
@@ -118,8 +119,8 @@ test('a character who left the pod before Mission 001 existed (with beginner pro
 
 // ---------------------------------------------------------------- how missions start
 function treeWith(x,missions){const {MC}=x,c={format:MC.FORMAT,version:MC.VERSION,trees:[...MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,{id:'draft-test',name:'Test',missions}]};
- const r=MC.apply(c,x.e,{givers:new Map(x.e.givers.map(g=>[g.id,g])),places:new Set(x.G.PLACES.map(p=>p.id))});assert.deepEqual(r.refused,[]);}
-const side=(id,extra)=>({id,number:Number(id.slice(-1))+1,title:'TEST '+id,type:'side',giver:'iris',objectives:[{id:'s1',label:'Talk to Iris',kind:'talk',npc:'iris'}],...extra});
+ const r=MC.apply(c,x.e,{givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()});assert.deepEqual(r.refused,[]);}
+const side=(id,extra)=>({id,number:Number(id.slice(-1))+2,title:'TEST '+id,type:'side',giver:'iris',objectives:[{id:'s1',label:'Talk to Iris',kind:'talk',npc:'iris'}],...extra});
 test('in person: the giver offers the mission when talked to (the existing behaviour), then it is logged and tracked',()=>{
  const x=env();treeWith(x,[side('draft-test-m1',{offer:[{who:'iris',text:'TEST offer.'}]})]);const s=district(x.C);exitPod(x,s);talk(x,s,'admin');
  const r=talk(x,s,'iris');assert.equal(r.offered,true);assert.equal(r.how,'person');assert.deepEqual(r.messages,[]);assert.equal(r.lines[0].text,'TEST offer.');assert.equal(s.universe.trackedMission,'draft-test-m1');
@@ -163,5 +164,6 @@ test('removed from the District game: the beginner campaign, Rook\'s board, fact
 test('the game page loads main-story.js before the mission adapter; the service worker build is bumped',()=>{
  const html=fs.readFileSync(R('void-runner.html'),'utf8');assert.ok(html.indexOf('void-runner/main-story.js')>0&&html.indexOf('void-runner/main-story.js')<html.indexOf('void-runner/mission-content.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);
- assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8'),/const BUILD='2026-11-17-mission-001-\d+'/);
+ // the build stamp exists and has moved on from the build Mission 001 shipped in (later work bumps it again; it is not hard-coded here)
+ const build=(fs.readFileSync(R('void-runner-sw.js'),'utf8').match(/const BUILD='([^']+)'/)||[])[1];assert.ok(build&&/^\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/.test(build),'BUILD exists');assert.doesNotMatch(build,/mission-001/,'BUILD was bumped after Mission 001 shipped');
 });

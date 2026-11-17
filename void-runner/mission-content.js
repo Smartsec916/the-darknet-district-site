@@ -22,10 +22,17 @@
    talked to) or {how:'notification', channel:'messages'|'comms'|'notify', from:<NPC>, header, text, when:{kind:'pod-exit'|'after-mission'|'place'|'flag', mission|place|flag,value}}:
    the mission arrives on the player's device when `when` happens (Messages: a text in the V1 inbox; Comms: a call with its transcript; notify: a banner only). MISSION NUMBERS: every tree mission may carry `number` (1-999, shown "Mission 001 — Name"); numbers are unique and never reused (main-story.js
    NUMBERS and the server's published ledger). Story-tree missions must have one. Lines that are placeholders for David ("[David: ...") are shown only in draft play.
+   EYES ON THE STREET (Mission 002, 17 Nov 2026) added reusable pieces: an in-person start with ACCEPT / NOT NOW (start {how:'person', accept:true}: the offer is shown with
+   a choice; nothing is taken until ACCEPT; a player who declines gets the offer again next time), step kinds 'enter' / 'leave' (a place from places.js: done while the
+   player is inside / outside it, so a player already inside when the step starts is counted), 'photo' (a capture whose photo really shows the NPC: device-camera.js
+   judges it at the moment of capture) and 'send-photo' (a photo of `subject`, taken during this mission, sent in Messages to `npc`; `say` is the reply to the right photo,
+   `wrong` to any other; unlimited tries), a step's lines delivered `via` 'comms' or 'messages' instead of the dialogue window, a 'leave' trigger, and the unlock
+   'reputation' (id: an NPC → story.relationships[id], or a faction → progression.reputation[id]; amount -100..100; both are kept by clean_save()).
    Content shape: {format:'darknet-district-mission-content',version:1,beginner?:[...],registry?:{...},lines?:[...],trees?:[...],names?:{...}}. Unknown fields are refused, never ignored. */
 (function(root){
  'use strict';
  const MS=typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
+ const PL=typeof module!=='undefined'&&module.exports?require('./places.js'):root.VoidPlaces;
  const FORMAT='darknet-district-mission-content',VERSION=1;
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TAGS=/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/;
  // The events the beginner runner fires (beginner-integration.js); the same list as the Developer Studio (admin/studio-model.js EVENTS, checked by a test).
@@ -108,7 +115,8 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','flag'],AUTO=['message'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag'],AUTO=['message'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
  const STORY=new Set((MS&&MS.STORY_TREES)||[]),STORY_MISSION=/^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$/;
@@ -120,15 +128,16 @@
  const devLabel=m=>MS?MS.label(m.number,m.title):m.title;
  /* How a mission starts (closed shape). In person needs nothing else; by notification needs a channel, a sender, the text (a header for Messages and Comms) and a trigger. */
  function checkStart(st,w,ctx,err,speakerOk,trees){
-  if(!keysOk(st,['how','channel','from','header','text','when'])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
-  if(st.how==='person'){if(Object.keys(st).length>1)err(w+': a mission given in person has no notification fields.');return;}
+  if(!keysOk(st,['how','channel','from','header','text','when','accept'])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
+  if(st.accept!=null&&(typeof st.accept!=='boolean'||st.how!=='person'))err(w+': only a mission offered in person can be accepted or declined.');
+  if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'))err(w+': a mission given in person has no notification fields.');return;}
   if(!CHANNELS.includes(st.channel))err(w+': unknown notification channel.');
   if(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from))err(w+': the notification must come from a known NPC.');
   if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
   if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');
   const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
   if(x.kind==='after-mission'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[])]);if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
-  if(x.kind==='place'&&(typeof x.place!=='string'||(ctx.places&&!ctx.places.has(x.place))))err(w+': unknown trigger place "'+x.place+'".');
+  if((x.kind==='place'||x.kind==='leave')&&(typeof x.place!=='string'||(ctx.places&&!ctx.places.has(x.place))))err(w+': unknown trigger place "'+x.place+'".');
   if(x.kind==='flag'){if(!STORY_FLAG.test(x.flag||''))err(w+': the trigger flag must be a story flag name (letters, digits, - or _).');if(!(typeof x.value==='boolean'||(typeof x.value==='string'&&x.value.length<=200&&!TAGS.test(x.value))||Number.isSafeInteger(x.value)))err(w+': the trigger flag value must be true/false, a number or short text.');}}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
  const linked=trees=>new Set((trees||[]).flatMap(t=>(t.missions||[]).flatMap(m=>(m.unlocks||[]).filter(u=>u&&u.kind==='tree').map(u=>u.id))));
@@ -138,6 +147,7 @@
   const tids=new Set(),mids=new Set(),all=new Set(trees.map(t=>t&&t.id));let total=0;
   const npcOk=id=>typeof id==='string'&&(!ctx.givers||(ctx.givers.get(id)||{}).canTalk===true);
   const speakerOk=id=>id==='You'||(typeof id==='string'&&(!ctx.givers||ctx.givers.has(id)));
+  const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
   const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
    if(!keysOk(t,['id','name','note','missions'])){err(tw+': unknown fields in a tree.');continue;}
@@ -162,7 +172,7 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early'])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','wrong','via'])){err(ow+': unknown fields in a step.');continue;}
      if(!ID.test(o.id||'')||o.id==='turn-in')err(ow+': step id must be lowercase letters, digits and hyphens.');if(oids.has(o.id))err(ow+': duplicate step id.');oids.add(o.id);
      if(!plain(o.label,LIMIT.text))err(ow+': the step needs a label (plain text).');
      if(!STEP_KINDS.includes(o.kind))err(ow+': the game cannot run this kind of step yet (needs a code change).');
@@ -172,7 +182,13 @@
      else if(o.kind==='buy'){if(typeof o.item!=='string'||(ctx.items&&!ctx.items.has(o.item)))err(ow+': "'+o.item+'" is not an item a store sells.');}
      else if(o.kind==='message'){if(!(m.start&&m.start.how==='notification'))err(ow+': a “notification arrives” step needs the mission to start by notification.');}
      else if(o.kind==='hear'){if(o.npc!=null&&o.npc!==''&&!npcOk(o.npc))err(ow+': who is heard must be an NPC the game has a TALK prompt for.');}
-     lines(o.say,ow);lines(o.early,ow);}
+     else if(o.kind==='enter'||o.kind==='leave'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
+     else if(o.kind==='photo'){if(!subjectOk(o.npc))err(ow+': choose someone the V1 camera can identify.');}
+     else if(o.kind==='send-photo'){if(typeof o.npc!=='string'||o.npc==='You'||!speakerOk(o.npc))err(ow+': the photo must be sent to a known NPC.');if(!subjectOk(o.subject))err(ow+': choose who must be in the photo (someone the V1 camera can identify).');}
+     if(o.subject!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step names who must be in the photo.');
+     if(o.wrong!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step has a reply for the wrong photo.');
+     if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}
+     lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}
     if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{
      if(m.ending.npc!=null&&!npcOk(m.ending.npc))err(w+': the hand-in NPC must be an NPC the game has a TALK prompt for.');
      if(m.ending.place!=null&&typeof m.ending.place!=='string')err(w+': unknown ending place.');if(m.ending.label!=null&&!plain(m.ending.label,LIMIT.text))err(w+': the hand-in label must be plain text.');lines(m.ending.say,w+' / ending');}}
@@ -183,7 +199,8 @@
      if(u.kind==='flag'){if(!FLAGNAME.test(u.id||''))err(uw+': a story flag name must be letters, digits, - or _ (48 at most).');if(!(typeof u.value==='boolean'||(typeof u.value==='string'&&u.value.length<=200&&!TAGS.test(u.value))||Number.isSafeInteger(u.value)))err(uw+': a story flag value must be true/false, a number or short text.');}
      if(u.kind==='location'&&(typeof u.id!=='string'||(ctx.locations&&!ctx.locations.has(u.id))))err(uw+': unknown place "'+u.id+'".');
      if(u.kind==='ship'&&(typeof u.id!=='string'||(ctx.ships?!ctx.ships.has(u.id)||ctx.ships.get(u.id).premium:!['starter','ship2'].includes(u.id))))err(uw+': only a ship from the ship list that is not a paid purchase can be given.');
-     if(u.kind==='tree'&&(typeof u.id!=='string'||!all.has(u.id)||u.id===t.id))err(uw+': "'+u.id+'" is not another of the new trees being sent.');}}
+     if(u.kind==='tree'&&(typeof u.id!=='string'||!all.has(u.id)||u.id===t.id))err(uw+': "'+u.id+'" is not another of the new trees being sent.');
+     if(u.kind==='reputation'){if(typeof u.id!=='string'||!(FACTIONS.includes(u.id)||(ctx.givers?ctx.givers.has(u.id):/^[a-z][a-z0-9-]{0,40}$/.test(u.id))))err(uw+': reputation must name an NPC or a faction.');if(!(Number.isInteger(u.amount)&&u.amount!==0&&Math.abs(u.amount)<=100))err(uw+': a reputation change must be a whole number from -100 to 100 (not 0).');}}}
    }}
   if(total>40)err('New trees hold '+total+' missions; 40 at most (each one is a record in every player’s save).');
   if(MS)for(const p of MS.numberProblems(trees,{...MS.NUMBERS,...(ctx.numbers||{})}))err(p);
@@ -194,7 +211,11 @@
  function treeDefinition(t,m,i,givers){const g=id=>(givers||[]).find(x=>x.id===id)||null,name=id=>(g(id)||{}).name||id;
   // An NPC who stands in NeoChinatown (the District, the street) is at 'earth', so the Mission Log's guidance and waypoint lead to them (as the beginner campaign's did).
   const at=who=>who&&who.enter?(who.enter.location||(who.enter.walk?'earth':null)):null;
-  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;const loc=at(who);if(loc)x.destination=loc;return x;});
+  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&o.kind!=='photo'&&o.kind!=='send-photo'&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;const loc=at(who);if(loc)x.destination=loc;
+   // a place step (and a photo step: the arrow and the marker lead to the person in the photo) is guided in NeoChinatown (places.js target; mission-log.js guidance)
+   if(o.kind==='enter'||o.kind==='leave'||o.kind==='go'&&PL&&PL.BY.has(o.place)){x.place=o.place;if(PL&&PL.within(o.place,'neochinatown'))x.destination='earth';}
+   if(o.kind==='photo'){const sub=g(o.npc);x.target=o.npc;if(sub&&sub.place)x.place=sub.place;x.destination='earth';}
+   return x;});
   if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;if(at(who))x.destination=at(who);objectives.push(x);}
   const extra={};if(Number.isInteger(m.number))extra.number=m.number;for(const k of ['category','location','objective'])if(m[k])extra[k]=m[k];if(m.start&&m.start.how==='notification')extra.start={how:'notification',channel:m.start.channel,from:m.start.from};
   return {title:titleOf(m),name:m.title,devLabel:devLabel(m),type:m.type,description:m.description||'',giver:name(m.giver),source:STORY.has(t.id)?'main-story':'owner-tree',ownerTree:t.id,rewards:m.rewards||null,prerequisites:i?[t.missions[i-1].id]:[],objectives,...extra};}
@@ -204,6 +225,10 @@
   if(u.kind==='flag'){s.story.flags['mf_'+u.id]=u.value;return null;}
   if(u.kind==='location'){const U=env.U;if(U&&U.discover){const known=(s.universe.discoveredLocations||[]).includes(u.id);U.discover(s,u.id);return known?null:'NEW PLACE · '+((U.locations&&U.locations[u.id]&&U.locations[u.id].name)||u.id);}return null;}
   if(u.kind==='ship'&&Camp&&Camp.awardStarterShip){const had=(s.ownedShips||[]).includes(u.id)&&s.story.flags.starterShipAwarded===true;Camp.awardStarterShip(s);if(u.id!=='starter'&&Camp.giveShip)Camp.giveShip(s,u.id);return had?null:'SHIP ACQUIRED';}
+  if(u.kind==='reputation'){const n=Math.trunc(u.amount)||0,cl=v=>Math.max(-100,Math.min(100,v));if(!n)return null;
+   if(FACTIONS.includes(u.id)){s.progression=s.progression||{};s.progression.reputation=s.progression.reputation||{};s.progression.reputation[u.id]=cl((Number(s.progression.reputation[u.id])||0)+n);}
+   else{s.story.relationships=s.story.relationships||{};s.story.relationships[u.id]=cl((Number(s.story.relationships[u.id])||0)+n);}
+   const who=((env.givers||[]).find(g=>g.id===u.id)||{}).name||u.id;return (n>0?'BETTER':'WORSE')+' STANDING WITH '+String(who).toUpperCase();}
   if(u.kind==='tree'){if(s.story.flags[linkFlag(u.id)]===true)return null;s.story.flags[linkFlag(u.id)]=true;const t=(env.trees||[]).find(x=>x.id===u.id);return 'NEW STORY · '+((t&&t.name)||u.id);}
   return null;}
  const treeLive=s=>!!(s&&s.universe&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed');
@@ -213,6 +238,14 @@
     a 'hear' step after a talk step shows its lines and is done when that conversation closes (ev 'heard'), or at once when it has no lines to show.
     It ends when the last step is done, or at the hand-in NPC. Pays once (story.flags.mt_<id>). Never repeats anything. Placeholder lines are shown only in draft play (env.draft).
     Returns {tree, mission, offered, objective, done:[step ids], lines, early, completed, reward, notes, messages:[...], hear:{mission,step}|null}. */
+ /* Is this photo good for a "send a photo" step? Its metadata (device-camera.js, judged at the moment of capture) must show `subject` as valid, and it must have been taken
+    during this mission: while the mission's own photo step of that subject was the step in progress (or, with no such step, while any step of this mission was).
+    photo: {subjects:[{id, valid}], during:['<mission>/<step>', ...]}. Older photos, and photos of anyone else, never count. */
+ function photoOk(photo,subject,m){if(!photo||!Array.isArray(photo.subjects)||!Array.isArray(photo.during))return false;if(!photo.subjects.some(x=>x&&x.id===subject&&x.valid===true))return false;
+  const ps=(m.objectives||[]).find(x=>x.kind==='photo'&&x.npc===subject);return ps?photo.during.includes(m.id+'/'+ps.id):photo.during.some(k=>typeof k==='string'&&k.startsWith(m.id+'/'));}
+ /* What a camera capture counts for right now: the step in progress of every active tree mission ('<mission>/<step>'). */
+ function during(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id];if(!rec||!rec.acquired||rec.completed)continue;const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o)out.push(m.id+'/'+o.id);}return out;}
+ const stepMessage=(m,o,gv,at,read)=>{const from=(o.say.find(l=>l&&l.who!=='You')||{}).who,name=gv(from).name||from;return {id:m.id+'/'+o.id,mission:m.id,number:m.number,title:titleOf(m),channel:o.via,from,fromName:name,header:String(name).toUpperCase()+' // '+(o.via==='comms'?'INCOMING CALL':'MESSAGE'),text:o.say.filter(l=>l&&l.who!=='You').map(l=>l.text).join('\n'),at,...(read==null?{}:{read})};};
  const msgFlag=(mid,sid)=>'v1m_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18),readFlag=(mid,sid)=>'v1r_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
  function treeEvent(s,env,ev,Missions,Camp){
   const out={tree:null,mission:null,offered:false,objective:null,done:[],lines:[],early:null,completed:false,reward:0,notes:[],messages:[],hear:null};
@@ -220,18 +253,23 @@
   const npcs=ev.npcs||[],places=ev.places||[],gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>({who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text}));
   const gated=linked(env.trees),open=t=>!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true;
-  const hit=o=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive')?ev.type==='place'&&places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit':false;
+  const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
+   :o.kind==='photo'?ev.type==='photo'&&(ev.subjects||[]).includes(o.npc):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,o.subject,m,o):false;
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
    if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
   const step=(t,m,o)=>{if(!Missions.complete(s,m.id,o.id,Camp))return false;Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
-   out.lines.push(...speak(o.say));settle(m,o.id);return true;};
+   if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
+   else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else out.lines.push(...speak(o.say));settle(m,o.id);return true;};
+  // A step's lines that reach the device instead of the dialogue window (a Comms call or a message from the NPC who says them): kept like a start notification.
+  const sendLines=(m,o)=>{const ls=speak(o.say);if(!ls.length)return;const at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)]))s.story.flags[msgFlag(m.id,o.id)]=at;
+   out.messages.push(stepMessage(m,o,gv,at));};
   // A mission that starts by notification: its notification reaches the device (story.flags v1m_<mission>_start = the time, seconds; Messages and Comms keep it).
   const notify=(t,m)=>{const st=m.start,at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,'start')]))s.story.flags[msgFlag(m.id,'start')]=at;
    out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};
   // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
   const startsNow=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver);const w=st.when||{};
-   if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);
+   if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);if(w.kind==='leave')return ev.type==='place'&&(ev.left||[]).includes(w.place);
    if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
   // After a step: the automatic steps that follow it (messages) complete at once.
   const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind))break;if(!step(t,m,o))break;}};
@@ -244,17 +282,25 @@
     const rec=s.universe.missions&&s.universe.missions[m.id];
     if(rec&&rec.completed)continue;
     if(!rec||!rec.acquired){
-     const byNote=!!(m.start&&m.start.how==='notification');
+     const byNote=!!(m.start&&m.start.how==='notification'),asks=!byNote&&!!(m.start&&m.start.accept===true);
+     // In person with ACCEPT / NOT NOW: talking to the giver shows the offer and asks; nothing is taken until ACCEPT ('accept' event). NOT NOW changes nothing, so the
+     // next conversation offers it again. Once accepted the mission has a record and is never offered again.
+     if(asks){
+      if(ev.type==='accept'&&ev.mission===m.id&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:'person'});return out;}
+      if(ev.type==='decline'&&ev.mission===m.id){Object.assign(out,{tree:t.id,mission:m.id,declined:true});return out;}
+      if(startsNow(m)&&Missions.available(s,m.id)){Object.assign(out,{tree:t.id,mission:m.id,ask:{mission:m.id,title:titleOf(m),accept:'ACCEPT',decline:'NOT NOW'}});out.lines.push(...speak(m.offer));return out;}
+      break;}
      if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote)notify(t,m);else out.lines.push(...speak(m.offer));
-      const first=m.objectives[0];if(byNote&&first&&hit(first))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
+      const first=m.objectives[0];if(byNote&&first&&hit(first,m))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
      break;}
     const next=m.objectives.find(o=>rec.objectives[o.id]!==true);
     if(next){
+     if(ev.type==='send-photo'&&next.kind==='send-photo'&&ev.to===next.npc&&!photoOk(ev.photo,next.subject,m,next)){Object.assign(out,{tree:t.id,mission:m.id,reply:{to:next.npc,ok:false,lines:speak(next.wrong)}});return out;}   // the wrong photo: the reply says so; no fail, unlimited tries
      if(ev.type==='heard'&&next.kind==='hear'&&(!ev.mission||ev.mission===m.id)){if(step(t,m,next))auto(t,m);return out;}
      if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation
      if(AUTO.includes(next.kind)){auto(t,m);if(out.done.length)return out;}
-     if(hit(next)){if(!step(t,m,next))break;auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);return out;}
-     const later=ev.type==='talk'&&m.objectives.find(o=>rec.objectives[o.id]!==true&&o!==next&&hit(o)&&(o.early||[]).length);
+     if(hit(next,m)){if(!step(t,m,next))break;auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);return out;}
+     const later=ev.type==='talk'&&m.objectives.find(o=>rec.objectives[o.id]!==true&&o!==next&&hit(o,m)&&(o.early||[]).length);
      if(later){Object.assign(out,{tree:t.id,mission:m.id,early:speak(later.early)});return out;}
      break;}
     if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');return out;}
@@ -266,6 +312,10 @@
  function inbox(s,env,channel){const out=[];if(!s||!s.universe||!s.story||!s.story.flags||!env||!Array.isArray(env.trees))return out;const gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id],st=m.start;if(!rec||!rec.acquired||!st||st.how!=='notification'||st.channel==='notify'||(channel&&st.channel!==channel))continue;
    out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
+  // lines a step sent as a Comms call or a message (Mission 002's call on entering NULL)
+  for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id];if(!rec||!rec.acquired)continue;
+   for(const o of m.objectives||[]){if((o.via!=='comms'&&o.via!=='messages')||(channel&&o.via!==channel)||rec.objectives[o.id]!==true||!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)])||!(o.say||[]).length)continue;
+    out.push(stepMessage(m,o,gv,Number(s.story.flags[msgFlag(m.id,o.id)])||0,s.story.flags[readFlag(m.id,o.id)]===true));}}
   return out.sort((a,b)=>b.at-a.at);}
  function markRead(s,id){const [mid,sid]=String(id||'').split('/');if(!mid||!sid||!s||!s.story||!s.story.flags)return false;if(s.story.flags[readFlag(mid,sid)]===true)return false;s.story.flags[readFlag(mid,sid)]=true;return true;}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
@@ -314,9 +364,10 @@
  const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>({who:l.who||who||'You',text:l.text.trim()}));
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
  function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();
-   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission')wk.mission=w.mission;if(wk.kind==='place')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;r.start=x;}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
+   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission')wk.mission=w.mission;if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',accept:true};if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
-  r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];const sy=said(o.say,o.npc||m.giver),ea=said(o.early,o.npc||m.giver);if(sy.length)x.say=sy;if(ea.length)x.early=ea;return x;});
+  r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;
+   const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
   if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}
   const un=(m.unlocks||[]).filter(SUPPORTED_UNLOCK).map(u=>{const x={kind:u.kind};for(const k of ['id','amount','value','when'])if(u[k]!=null&&u[k]!=='')x[k]=u[k];if(x.when==='complete')delete x.when;return x;});if(un.length)r.unlocks=un;
   return r;}
@@ -330,9 +381,13 @@
    if(!String(o.label||'').trim())out.push(w+' needs “what the player must do”');
    if((o.kind==='talk'||o.kind==='deliver')&&!can(o.npc))out.push(w+': '+(o.npc?nm(o.npc)+' cannot be talked to in the game today':'choose who it happens with'));
    if((o.kind==='go'||o.kind==='arrive')&&!o.place)out.push(w+': choose the place');if(o.kind==='buy'&&(!o.item||(items&&!items.has(o.item))))out.push(w+': choose an item a store sells');
-   if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))out.push(w+': “the notification arrives” needs the mission to start by notification');}
+   if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))out.push(w+': “the notification arrives” needs the mission to start by notification');
+   if((o.kind==='enter'||o.kind==='leave')&&!o.place)out.push(w+': choose the place');
+   if(o.kind==='photo'&&!o.npc)out.push(w+': choose who is photographed');
+   if(o.kind==='send-photo'){if(!o.npc)out.push(w+': choose who the photo is sent to');if(!o.subject)out.push(w+': choose who must be in the photo');}
+   if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)out.push(w+': a Comms call or a message needs its lines');}
   if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!String(st.text||'').trim())out.push('the notification needs its text');if(st.channel!=='notify'&&!String(st.header||'').trim())out.push('the notification needs a header');if(!st.from)out.push('choose who the notification is from');
-   if(w.kind==='after-mission'&&!w.mission)out.push('choose the mission it follows');if(w.kind==='place'&&!w.place)out.push('choose the place that starts it');if(w.kind==='flag'&&!w.flag)out.push('name the story flag that starts it');}
+   if(w.kind==='after-mission'&&!w.mission)out.push('choose the mission it follows');if((w.kind==='place'||w.kind==='leave')&&!w.place)out.push('choose the place that starts it');if(w.kind==='flag'&&!w.flag)out.push('name the story flag that starts it');}
   if(m.ending&&m.ending.npc&&!can(m.ending.npc))out.push('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today');
   return out;}
  function treesContent(trees,{givers,items}={}){const out=[],skipped=[];
@@ -422,7 +477,7 @@
   const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
   return acts;
  }
- const api={HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={VIA,FACTIONS,photoOk,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

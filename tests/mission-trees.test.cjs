@@ -219,7 +219,7 @@ test('saves: new mission records and flags pass the save rules; a removed tree m
 test('the server reads the same lists (admin inventory) as the editor and the game',()=>{
  const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).missionEditor,g=roster();
  assert.deepEqual(Object.keys(inv.givers).sort(),g.map(x=>x.id).sort());for(const x of g)assert.equal(inv.givers[x.id].canTalk,x.canTalk,x.id);
- assert.deepEqual(inv.places,G.PLACES.map(p=>p.id));assert.deepEqual(inv.items.sort(),[...buyable()].sort());assert.deepEqual(inv.stepKinds,MC.STEP_KINDS);assert.deepEqual(inv.unlockKinds,MC.UNLOCKS);
+ assert.deepEqual(inv.places,[...G.placeIds()]);assert.deepEqual(inv.subjects,G.photoSubjects(g).map(x=>x.id));assert.ok(inv.subjects.includes('juno-vex'));assert.deepEqual(inv.factions,G.FACTIONS);assert.deepEqual(inv.items.sort(),[...buyable()].sort());assert.deepEqual(inv.stepKinds,MC.STEP_KINDS);assert.deepEqual(inv.unlockKinds,MC.UNLOCKS);
 });
 test('David’s chain: an Admin tree grants a ship and opens a route, the player flies to Rook, and meeting Rook starts a Rook tree',()=>{
  const e=env(),givers=roster(),items=buyable(),U=require(R('void-runner/universe.js')),Sh=require(R('void-runner/ships.js'));e.U=U;e.givers=givers;MC.snapshot(e);

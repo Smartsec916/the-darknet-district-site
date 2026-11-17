@@ -200,18 +200,49 @@
    const mine=new Set(lights);for(const l of scene.lights){if(mine.has(l)||l.name==='ambient')continue;l.excludedMeshes.push(...all);excluded.push(l);}
    builtMeshes=all;
    // ---- the people (ordinary crowd looks; roles, not named characters) ----
+   // Fewer people (David, 17 Nov 2026, for performance and so the target is easy to find): Low 2 dancers + DJ, bartender, door + Juno Vex = 6; Medium 3 dancers, the three
+   // staff, 2 bar guests + Juno = 9; High / Ultra 4 dancers, the staff, 2 bar guests + Juno = 10. The VIP pair and the queue outside are gone. Counts: CAST_COUNTS.
    const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,...opts});
-   const n=low?3:(quality==='high'||quality==='ultra')?9:6;for(let i=0;i<n;i++){const a=i*2.4,r=1.6+(i%3)*1.5;spot('dancer-'+i,35+Math.cos(a)*r*1.5,-58.5+Math.sin(a)*r,[35,-58.5],['dance','laugh','idle'],{dance:true,phase:i*1.3});}
+   const cast=castCounts(quality);for(let i=0;i<cast.dancers;i++){const a=i*2.4,r=1.6+(i%3)*1.5;spot('dancer-'+i,35+Math.cos(a)*r*1.5,-58.5+Math.sin(a)*r,[35,-58.5],['dance','laugh','idle'],{dance:true,phase:i*1.3});}
    spot('dj',dj.x-1,dj.z,[dj.x+6,dj.z],['interact','idle'],{dance:true,phase:.4,small:true});spot('bartender',BUILT.bar.x,-49.45,[BUILT.bar.x,-53],['idle']);
    spot('door',52.3,DOOR.z-2.1,[58,DOOR.z-2.6],['watch','idle']);
-   if(!low){spot('bar-guest-a',29.4,-51.25,[29.4,-49],['drink','idle']);spot('bar-guest-b',33,-51.3,[32,-49],['talk','idle']);spot('vip-a',36.6,-66.9,[38,-66.2],['talk','idle']);spot('vip-b',39.5,-66.9,[38,-66.2],['drink','laugh','idle']);
-    spot('queue-a',52.4,DOOR.z+2.4,[52.4,DOOR.z+1],['talk','idle']);spot('queue-b',53.1,DOOR.z+3.3,[52.4,DOOR.z+2.4],['laugh','talk','idle']);}
+   // the two bar guests stand at the bar's west end, away from Juno's stool at the east end, so she reads as alone
+   if(cast.guests){spot('bar-guest-a',28.1,-51.3,[28.6,-49],['drink','idle']);spot('bar-guest-b',29.5,-51.35,[29,-49],['talk','idle']);}
   }
   let builtMeshes=[];
+  /* JUNO VEX (David's Mission 002, 17 Nov 2026): a woman with a short silver bob and a long black coat, her visor pushed up, sitting alone at NULL's bar checking her
+     device. Built with the character assembler from the crowd kit (the FIXER look, the BOB hairstyle in SILVER, the coat tinted BLACK, the gear visor raised onto her
+     forehead) and a small lit device in her hands. In the club for every player and at every quality; the V1 camera identifies her by name (VoidPhotoSubjects).
+     She idles seated, now and then looks round the room, and checks her device. Nobody talks to her. */
+  let juno=null,junoAsked=false;
+  function junoBuild(){
+   if(junoAsked||!root.VoidCharacterAssembler?.build)return;junoAsked=true;
+   const holder=new B.TransformNode('ncz-null-juno',scene);holder.parent=built||parent;holder.position.set(JUNO.x,JUNO.y,JUNO.z);holder.rotation.y=JUNO.yaw;holder.metadata={club:'juno',photoSubject:'juno-vex'};
+   juno={holder,api:null,phase:0,state:'sit',t:0,prop:null,look:0};
+   Promise.resolve(root.VoidCharacterAssembler.build(JUNO.appearance,holder,{scene,clip:'sit'})).then(api=>{
+    if(disposed||!juno){api?.dispose?.();return;}juno.api=api;
+    // the visor pushed up onto her forehead: the same piece, moved up and back (it is skinned to the head, so it stays there through every clip)
+    for(const m of api.meshes())if(/^gear:/.test(m.name)&&/visor/i.test(m.name+' '+(m.material?.name||''))){try{m.makeGeometryUnique();const P=B.VertexBuffer.PositionKind,pos=Float32Array.from(m.getVerticesData(P));for(let i=0;i<pos.length;i+=3){pos[i+1]+=JUNO.visorUp;pos[i+2]-=JUNO.visorBack;}m.setVerticesData(P,pos,false);m.refreshBoundingInfo?.();}catch{}}
+    // her device: a small dark slab with a lit screen, held in front of her at lap height (the seated clip keeps her hands there)
+    const dev=B.MeshBuilder.CreateBox('ncz-null-juno-device',{width:.075,height:.012,depth:.14},scene),dm=new B.StandardMaterial('ncz-null-juno-device',scene);dm.diffuseColor=new B.Color3(.02,.02,.03);dm.emissiveColor=new B.Color3(.12,.55,.75);dm.disableLighting=true;own.push(dm);
+    dev.material=dm;dev.parent=holder;dev.position.set(0,JUNO.device[1],JUNO.device[2]);dev.rotation.x=-.55;dev.isPickable=false;juno.prop=dev;
+    for(const m of api.meshes())m.isPickable=false;
+    root.VoidPhotoSubjects?.set?.('juno-vex',holder,{name:'Juno Vex',role:''});
+   }).catch(e=>{try{console.warn('[VOID//RUNNER nightclub] Juno Vex could not be built:',e?.message||e);}catch{}});
+  }
+  // idle, looking around (a slow turn of her head and shoulders toward the room and back), checking her device (the screen brightens, she looks down at it)
+  function junoTick(dt,near){
+   if(!juno)return;if(juno.holder.isEnabled()!==near)juno.holder.setEnabled(near);if(!near||!juno.api)return;
+   juno.t+=dt;const want=juno.state==='sit'?7:juno.state==='look'?5:6;
+   if(juno.t>want){juno.t=0;juno.phase++;juno.state=['look','sit','device','sit'][juno.phase%4];if(juno.state==='device')juno.api.play('sit-talk');else juno.api.play('sit');}
+   const k=juno.state==='look'?Math.sin(juno.t/5*Math.PI):0;juno.look+=(k*.55-juno.look)*Math.min(1,dt*3);juno.holder.rotation.y=JUNO.yaw-juno.look;
+   if(juno.prop)juno.prop.material.emissiveColor.set(.12,juno.state==='device'?.75:.45,juno.state==='device'?1:.65);}
   const CAST=['district-resident','ncz-neon','outlaw-01','fixer-01','hacker-01','runner-02','district-smuggler','communion-tech'],clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
   function staff(dt,near){
+   if(!people.length&&!built){if(clock>2)junoBuild();junoTick(dt,near);return;}   // the purchased model has no crowd of its own: Juno still sits at the bar
    if(!people.length)return;
    if(!looksAsked&&clock>3&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=true;for(const look of CAST.slice(0,5))try{Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(look,scene)).catch(()=>{});}catch{}}
+   if(clock>2)junoBuild();junoTick(dt,near);
    people.forEach((p,i)=>{
     if(!p.node){const want=p.clips[0],order=[...CAST.slice(i%CAST.length),...CAST.slice(0,i%CAST.length)];let node=null,look=null,clip=null;
      for(const c of order){if(clipsOf(c).includes(want)&&(node=assets.instance('crowd:'+c,built))){look=c;clip=want;break;}}
@@ -239,7 +270,7 @@
    if(state.phase==='ready'&&!shown&&d<70)reveal();
    if(state.phase!=='ready')return;
    if(!shown){for(const l of lights)l.setEnabled(false);for(const b of beams)b.pivot.setEnabled(false);if(built)staff(dt,false);return;}
-   if(built){const nearby=d<45;if(nearby&&Math.floor(clock*6)!==Math.floor((clock-dt)*6))pulse(time??clock);staff(dt,nearby);for(const m of builtMeshes)if(m.isEnabled()!==(d<130))m.setEnabled(d<130);}
+   if(built){const nearby=d<45;if(nearby&&Math.floor(clock*6)!==Math.floor((clock-dt)*6))pulse(time??clock);staff(dt,nearby);for(const m of builtMeshes)if(m.isEnabled()!==(d<130))m.setEnabled(d<130);}else staff(dt,d<45);
    // Interior detail and lights only while the club could be seen into; the shell stays for the skyline.
    const near=d<45;for(const m of interior)if(m.isEnabled()!==near)m.setEnabled(near);
    const live=d<28;
@@ -256,9 +287,14 @@
    async warm(ready){if(disposed||!lights.length||typeof ready!=='function')return;const cap=p=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);
     // (a scene that has not drawn a frame since a change takes its shaders as still current: incrementRenderId makes it look again, as a drawn frame would)
     for(const l of lights)l.setEnabled(true);scene.incrementRenderId();await cap(ready());if(disposed)return;for(const l of lights)l.setEnabled(false);scene.incrementRenderId();await cap(ready());},
-   get model(){return model;},dispose(){disposed=true;if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
+   get model(){return model;},get juno(){return juno?{built:!!juno.api,state:juno.state,position:juno.holder.getAbsolutePosition().asArray(),enabled:juno.holder.isEnabled()}:null;},dispose(){disposed=true;if(juno){root.VoidPhotoSubjects?.remove?.('juno-vex',juno.holder);try{juno.api?.dispose?.();}catch{}try{juno.prop?.dispose();juno.holder.dispose(false,false);}catch{}juno=null;}if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
  }
- const api={NAME,BUILT,ENTRY,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
+ /* How many people NULL holds at each quality (David, 17 Nov 2026), Juno Vex not counted here (she is always there): dancers, staff (DJ, bartender, door), bar guests. */
+ const CAST_COUNTS={low:{dancers:2,staff:3,guests:0},medium:{dancers:3,staff:3,guests:2},high:{dancers:4,staff:3,guests:2},ultra:{dancers:4,staff:3,guests:2}};
+ const castCounts=q=>CAST_COUNTS[q]||CAST_COUNTS.medium;
+ // Juno Vex's stool: the east end of the bar (stools at x 28.5 ... 33.5, z -51.15, 0.74 m high), turned a little toward the room so she can be seen from the door.
+ const JUNO={x:33.55,y:.3,z:-51.35,yaw:.75,visorUp:.07,visorBack:.03,device:[0,.62,.32],appearance:{v:1,base:'female',look:'fixer-01',hair:'bob01',hairColor:'silver',clothingColor:'black',accessories:['gear-visor']}};
+ const api={NAME,BUILT,ENTRY,CAST_COUNTS,castCounts,JUNO,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightclub=api;
  // The bar: a drink, nothing more for now (no credits, no effect). Registered once the game's interaction table exists.
  if(typeof document!=='undefined'){const t=setInterval(()=>{if(!root.VoidInteractions?.register)return;clearInterval(t);root.VoidInteractions.register('club-bar',()=>{try{resumeWalking();}catch{}try{announce('The bartender slides a glass across the bar. It glows faintly. You drink it anyway.');}catch{}});},500);}

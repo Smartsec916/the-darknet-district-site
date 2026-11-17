@@ -11,7 +11,10 @@
    THE MAIN STORYLINE (main-story.js, 17 Nov 2026) is always in force (the shipped tree, or the published copy of it): Mission 001 — Awakening starts when the player leaves the
    Sleeping Pod (podAct.exit in world-integration.js is wrapped here: the pod room itself is untouched), the V1 receives Admin's message (VoidV1.notify, personal-device.js),
    and talking to Admin plays his Mission 001 lines (David's, from the Mission Editor). Until David writes them, live players see no dialogue: the mission completes with its
-   MISSION COMPLETE notice (the placeholder line is shown only in draft play). The beginner campaign is retired (beginner.js). */
+   MISSION COMPLETE notice (the placeholder line is shown only in draft play). The beginner campaign is retired (beginner.js).
+   MISSION 002 — EYES ON THE STREET (17 Nov 2026) added: the offer with ACCEPT / NOT NOW (talk-choice.js), the named places of places.js in the place tick (with each
+   player's own enter / leave events: VoidPlaces.tracker), a step's lines sent as a Comms call, photo captures (device-camera.js calls photo()) and photos sent in
+   Messages (personal-device.js calls sendPhoto()). */
 (function(root){
  'use strict';
  const MC=root.VoidMissionContent;if(!MC||!root.VoidBeginner||!root.VoidMissions)return;
@@ -20,7 +23,7 @@
  const ctx=()=>({registryIds:new Set(Object.keys(env.shipped.registry).filter(id=>env.shipped.registry[id]?.beginner!==true)),registryObjectives:Object.fromEntries(Object.entries(env.shipped.registry).map(([id,d])=>[id,new Set((d.objectives||[]).map(o=>o.id))])),
   speakers:new Set(Object.values(root.VoidStoryContent?.characters||{}).map(c=>c.name)),...treeCtx()});
  // What a new tree may name: NPCs with a TALK prompt, the places, items a store sells, travel places (mission-givers.js; the server checks the same lists).
- const treeCtx=()=>({givers:new Map(env.givers.map(g=>[g.id,g])),places:new Set((G?.PLACES||[]).map(p=>p.id)),items:new Set(Object.keys(G?G.buyable(root.VoidProgression?.modules):{})),locations:new Set(Object.keys(root.VoidUniverse?.locations||{})),ships:new Map(Object.entries(root.VoidShips?.ships||{}))});
+ const treeCtx=()=>({givers:new Map(env.givers.map(g=>[g.id,g])),places:G?.placeIds?G.placeIds():new Set((G?.PLACES||[]).map(p=>p.id)),subjects:new Set((G?.photoSubjects?.(env.givers)||[]).map(g=>g.id)),items:new Set(Object.keys(G?G.buyable(root.VoidProgression?.modules):{})),locations:new Set(Object.keys(root.VoidUniverse?.locations||{})),ships:new Map(Object.entries(root.VoidShips?.ships||{}))});
  function use(content,source,version){
   const r=MC.apply(content,env,ctx());
   if(r.refused.length){MC.apply(null,env);current={version:0,source:'shipped',content:null,refused:r.refused};try{console.warn('[VOID//RUNNER] published missions refused; the shipped missions stay in force.',r.refused.slice(0,5));}catch{}return false;}
@@ -69,6 +72,11 @@
  // The NPC's lines; when the mission waits on a 'hear' step, closing the conversation completes it.
  const heard=r=>()=>{try{const x=MC.treeEvent(state,env,{type:'heard',mission:r.hear.mission},root.VoidMissions,root.C||root.VoidCampaign);report(x);deliver(x);}catch{}try{resumeWalking();}catch{}};
  const show=(lines,r)=>{try{talk('',lines.map(l=>MC.mapLine(env,l)),r&&r.hear?heard(r):()=>{try{resumeWalking();}catch{}},'CONTINUE');return true;}catch{return false;}};
+ /* An in-person offer with ACCEPT / NOT NOW (talk-choice.js). ACCEPT takes the mission (Mission Log, tracked, the arrow); NOT NOW changes nothing: the next
+    conversation with the giver offers it again. Without the choice window (it failed to load) the offer is not shown and nothing is taken. */
+ function ask(r){if(typeof root.talkChoice!=='function'||!r.lines.length)return false;const a=r.ask,M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
+  const pick=type=>()=>{let x=null;try{x=MC.treeEvent(state,env,{type,mission:a.mission},M,Cp);report(x);deliver(x);}catch{}try{resumeWalking();}catch{}};
+  return root.talkChoice(r.lines.map(l=>MC.mapLine(env,l)),[{label:a.accept||'ACCEPT',run:pick('accept')},{label:a.decline||'NOT NOW',run:pick('decline')}]);}
  // The beginner campaign keeps its turn with the NPCs it uses.
  const BEGIN={admin:'talk-admin','district-iris':'talk-iris','district-bar':'visit-bar','district-shop':'visit-shop',terminal:'use-terminal'};
  function beginnerWants(action){const B=root.VoidBeginner,ev=BEGIN[action];if(!B||!ev||!B.applies(state))return false;const m=B.current(state),rec=m&&state.universe.missions?.[m.id];return !!(m&&m.objectives.some(o=>o.on===ev&&rec?.objectives?.[o.id]!==true));}
@@ -76,18 +84,36 @@
   const npcs=G?G.whoAt(env.givers,action,arg?.item?.character):[];
   if(!npcs.length||beginnerWants(action)||!MC.treeWants(state,env,npcs))return handler.apply(self,args);
   const r=MC.treeEvent(state,env,{type:'talk',npcs},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);
+  if(r.ask&&ask(r))return;
   const lines=r.lines.length?r.lines:(r.early||[]);if(lines.length&&show(lines,r))return;
   if(r.mission){try{resumeWalking();}catch{}return;}
   return handler.apply(self,args);
  }
  if(root.VoidInteractions?.handlers&&G){const map=root.VoidInteractions.handlers,get=map.get.bind(map);let busy=false;
   map.get=function(action){const h=get(action);if(typeof h!=='function')return h;return function(arg){if(busy||!treesOn())return h.apply(this,arguments);busy=true;try{return talkTo(action,arg,h,this,arguments);}finally{busy=false;}};};}
- // The place the player is in (twice a second).
+ // The place the player is in (twice a second): the "go to" places (mission-givers.js) and every named place of places.js the player stands in, with this player's own
+ // enter / leave events (a tracker per page: nothing fires twice; a menu, the pod card or a vestibule exchange changes nothing, so walking through it never fires a leave
+ // and an enter again). A step "enter NULL" that starts while the player is already in NULL is done on the next tick.
+ const tracker=root.VoidPlaces?.tracker?.()||null;let lastPlaces=[];
+ const where=()=>{try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(!wl||typeof walker==='undefined'||!walker)return null;return {scene:wl.id,x:walker.x,y:Number.isFinite(walker.y)?walker.y:undefined,z:walker.z};}catch{return null;}};
  setInterval(()=>{try{if(!treesOn()||!G||typeof mode==='undefined'||!['walking','dock','arrival'].includes(mode))return;
-  const wl=typeof walkingLocation!=='undefined'?walkingLocation:null,places=G.placesNow({walk:wl?.id,area:wl?.area,quarter:wl?.quarter||state.story.flags.quarter,location:state.location,docked:true});
+  const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;let places=G.placesNow({walk:wl?.id,area:wl?.area,quarter:wl?.quarter||state.story.flags.quarter,location:state.location,docked:true});
   if(mode==='walking'&&state.story.flags.podWakePending===true)return;   // still in the pod
+  const ch=mode==='walking'&&tracker?tracker.update(where()):{entered:[],left:[],inside:tracker?tracker.inside:[]};places=[...new Set([...places,...ch.inside])];lastPlaces=places;
+  if(ch.entered.length||ch.left.length)try{root.dispatchEvent?.(new CustomEvent('void-place',{detail:{entered:ch.entered,left:ch.left,inside:ch.inside}}));}catch{}
   // also the moment for missions started by notification "after mission N" or "when a story flag is set" (checked on every event)
-  const r=MC.treeEvent(state,env,{type:'place',places},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.objective||r.offered))return;report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
+  const r=MC.treeEvent(state,env,{type:'place',places,entered:ch.entered,left:ch.left},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.objective||r.offered))return;report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
+ /* A photo was taken (device-camera.js). meta: what the camera judged at the moment of capture {subjects:[{id,valid}], during, place}. A valid photo of the person a
+    photo step names completes it. */
+ function photo(meta){try{if(!treesOn()||!meta)return null;const subjects=(meta.subjects||[]).filter(x=>x&&x.valid===true).map(x=>x.id);const r=MC.treeEvent(state,env,{type:'photo',subjects},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);return r;}catch{return null;}}
+ /* A photo sent in Messages (personal-device.js). photo: the photo's metadata (never the picture: photos stay in this browser). Returns {ok, lines, mission} (the reply), or
+    null when nothing is waiting for a photo from this person. */
+ function sendPhoto(to,meta){try{if(!treesOn())return null;const r=MC.treeEvent(state,env,{type:'send-photo',to,photo:meta||{}},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);return r.reply?{...r.reply,mission:r.mission}:null;}catch{return null;}}
+ /* The step in progress of the tracked mission (for the hints, the marker over the person to photograph and the Messages contacts). */
+ function stepNow(){try{if(!treesOn())return null;const id=state.universe.trackedMission;for(const t of env.trees)for(const m of t.missions){const rec=state.universe.missions?.[m.id];if(!rec||!rec.acquired||rec.completed)continue;
+  const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&m.id===id)return {tree:t.id,mission:m.id,title:m.title,step:o,tracked:true};}}catch{}return null;}
+ /* Who the player can message: whoever an active "send a photo" step is waiting on. */
+ function contacts(){const out=new Set();try{if(!treesOn())return [];for(const t of env.trees)for(const m of t.missions){const rec=state.universe.missions?.[m.id];if(!rec||!rec.acquired)continue;for(const o of m.objectives)if(o.kind==='send-photo'&&o.npc&&(rec.objectives[o.id]===true||!rec.completed))out.add(o.npc);}}catch{}return [...out];}
  // A module bought at the outfitter or Admin's counter.
  if(root.VoidProgression?.buy){const P=root.VoidProgression,buy=P.buy;P.buy=function(s,id){const ok=buy.apply(this,arguments);try{if(ok&&typeof state!=='undefined'&&s===state&&treesOn())report(MC.treeEvent(state,env,{type:'buy',item:id},root.VoidMissions,root.C||root.VoidCampaign));}catch{}return ok;};}
  // Leaving the Sleeping Pod (EXIT POD): the one hook into the pod (world-integration.js podAct.exit is wrapped; the room and the music player are untouched).
@@ -97,5 +123,7 @@
  if(root.VoidNetwork?.request)refresh();
  const inbox=channel=>{try{return typeof state!=='undefined'&&state?MC.inbox(state,env,channel):[];}catch{return [];}};
  const markRead=id=>{try{if(MC.markRead(state,id)){try{save();}catch{}return true;}}catch{}return false;};
- root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,get current(){return current;},get draft(){return draft;}};
+ const during=()=>{try{return typeof state!=='undefined'&&state?MC.during(state,env):[];}catch{return [];}};
+ const giverName=id=>(env.givers.find(g=>g.id===id)||{}).name||id;
+ root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

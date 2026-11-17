@@ -257,16 +257,19 @@ DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
 STORY_MISSION = re.compile(r'^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$')
 HOW = ['person', 'notification']
 CHANNELS = ['messages', 'comms', 'notify']
-WHEN = ['pod-exit', 'after-mission', 'place', 'flag']
+WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag']
+VIA = ['talk', 'comms', 'messages']
 STORY_FLAG = re.compile(r'^[a-zA-Z][\w-]{0,63}$')
 
 
 def start_problems(st, givers, places, mission_ids):
     """How a mission starts: in person (the giver offers it) or by notification (channel, sender, header, text, trigger). Same rules as mission-content.js checkStart()."""
-    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when']) or st.get('how') not in HOW:
+    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept']) or st.get('how') not in HOW:
         return ['unknown way of starting.']
+    if st.get('accept') is not None and (type(st['accept']) is not bool or st['how'] != 'person'):
+        return ['only a mission offered in person can be accepted or declined.']
     if st['how'] == 'person':
-        return [] if len(st) == 1 else ['a mission given in person has no notification fields.']
+        return [] if set(st) <= {'how', 'accept'} else ['a mission given in person has no notification fields.']
     out = []
     if st.get('channel') not in CHANNELS:
         out.append('unknown notification channel.')
@@ -281,7 +284,7 @@ def start_problems(st, givers, places, mission_ids):
         return out + ['the notification needs a trigger it knows.']
     if w['kind'] == 'after-mission' and w.get('mission') not in mission_ids:
         out.append('"after mission" must name a mission that exists.')
-    if w['kind'] == 'place' and w.get('place') not in places:
+    if w['kind'] in ('place', 'leave') and w.get('place') not in places:
         out.append('unknown trigger place.')
     if w['kind'] == 'flag':
         v = w.get('value')
@@ -337,6 +340,7 @@ def check_trees(trees, inv, err):
     givers = me.get('givers') or {}
     talk = {k for k, v in givers.items() if v.get('canTalk')}
     places, items, locations = set(me.get('places') or []), set(me.get('items') or []), set(me.get('locations') or [])
+    subjects, factions = set(me.get('subjects') or []), set(me.get('factions') or [])
     if not isinstance(trees, list) or len(trees) > 10:
         err('New trees have an unknown shape (10 at most).')
         return
@@ -417,7 +421,7 @@ def check_trees(trees, inv, err):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early']):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'wrong', 'via']):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))
@@ -441,8 +445,26 @@ def check_trees(trees, inv, err):
                     err(ow + ': a "notification arrives" step needs the mission to start by notification.')
                 elif kind == 'hear' and o.get('npc') not in (None, '') and o.get('npc') not in talk:
                     err(ow + ': unknown NPC.')
+                elif kind in ('enter', 'leave') and o.get('place') not in places:
+                    err(ow + ': unknown place.')
+                elif kind == 'photo' and o.get('npc') not in subjects:
+                    err(ow + ': not someone the V1 camera can identify.')
+                elif kind == 'send-photo' and (o.get('npc') not in givers or o.get('subject') not in subjects):
+                    err(ow + ': the photo must go to a known NPC and show someone the camera can identify.')
+                if o.get('subject') is not None and kind != 'send-photo':
+                    err(ow + ': only a send-a-photo step names who must be in the photo.')
+                if o.get('wrong') is not None and kind != 'send-photo':
+                    err(ow + ': only a send-a-photo step has a reply for the wrong photo.')
+                via = o.get('via')
+                if via is not None:
+                    say = o.get('say') if isinstance(o.get('say'), list) else []
+                    if via not in VIA:
+                        err(ow + ': unknown way of saying the lines.')
+                    elif via != 'talk' and not (say and all(isinstance(x, dict) and x.get('who') not in (None, 'You') and x.get('who') == say[0].get('who') for x in say)):
+                        err(ow + ': a Comms call or a message needs its lines, all from one NPC.')
                 lines(o.get('say'), ow)
                 lines(o.get('early'), ow)
+                lines(o.get('wrong'), ow)
             e = m.get('ending')
             if e is not None:
                 if not _keys(e, ['npc', 'place', 'label', 'say']):
@@ -481,6 +503,12 @@ def check_trees(trees, inv, err):
                         err(w + ': only a ship that is not a paid purchase can be given.')
                     if k == 'tree' and (u.get('id') not in every or u.get('id') == t.get('id')):
                         err(w + ': a start-tree link must name another of the new trees being sent.')
+                    if k == 'reputation':
+                        if u.get('id') not in givers and u.get('id') not in factions:
+                            err(w + ': reputation must name an NPC or a faction.')
+                        a = u.get('amount')
+                        if not (type(a) is int and a != 0 and abs(a) <= 100):
+                            err(w + ': a reputation change must be a whole number from -100 to 100 (not 0).')
     if total > 40:
         err('New trees hold more than 40 missions.')
     for p in number_problems(trees, shipped_numbers()):
