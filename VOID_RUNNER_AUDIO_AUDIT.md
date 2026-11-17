@@ -1,6 +1,6 @@
 # VOID//RUNNER: Audio Audit (Phase 1)
 
-**As of:** 2026-10-15 · `main` after PR #49 · Status: **audit only, nothing changed.** Decisions marked ⚑ need David's approval before Phase 2.
+**As of:** 2026-10-15 · `main` after PR #49 · Status: **audit only, nothing changed.** Decisions marked ⚑ need the owner's approval before Phase 2.
 
 ## 1. What exists today
 

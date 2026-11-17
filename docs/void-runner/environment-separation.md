@@ -1,6 +1,6 @@
 # Separating The Darknet District interior from NeoChinatown
 
-Status: steps 1, 2a and 2b are implemented. The game now loads the street and the District interior as separate environments and switches between them at the security vestibule (step 2b). The combined 'all' environment remains for tests and tools. The interior layout is unchanged until David supplies the revised map.
+Status: steps 1, 2a and 2b are implemented. The game now loads the street and the District interior as separate environments and switches between them at the security vestibule (step 2b). The combined 'all' environment remains for tests and tools. The interior layout is unchanged until the owner supplies the revised map.
 Internal ids (`earth`, `sol`, `neochinatown`) are kept for save compatibility; players only ever see NeoChinatown and the Tessaly System.
 
 ## Where things are today
@@ -24,7 +24,7 @@ Add a second location to the existing loader. Do not build a second engine, a se
 3. **The vestibule is the loading boundary.** Entering the outer door while the street is loaded plays a short scan animation, calls `release()`, and prepares the interior. Leaving reverses it. Preloading the other side's textures and models while the player stands in the vestibule is allowed; building its scene is not.
 4. **Saves.** Keep `location: 'earth'`. Add the sub-area as a tolerant story flag (for example `area: 'street' | 'district'`), never a new location id, so the cloud validator keeps working. A save with no flag resumes on the street.
 5. **Fix dependents one at a time**, each with its own test: taxi (street only), crowd casts, music zones, VR arcade (interior only, drop the `neochinatown` id check in favour of an area check), share links (`darknet-district` opens the interior directly), guest mode.
-6. **Only then** replace the interior with David's revised map. Interior, store, sleeping pods, meeting area and the VR play area live in the interior build, which can now be changed without touching the street.
+6. **Only then** replace the interior with the owner's revised map. Interior, store, sleeping pods, meeting area and the VR play area live in the interior build, which can now be changed without touching the street.
 
 ## Why this is the safest option
 - Reuses the loader that already isolates every other room, so memory is released between environments.
@@ -36,7 +36,7 @@ Add a second location to the existing loader. Do not build a second engine, a se
 - The terrace and its stairs belong to the interior, even though the terrace sits at a different world position. The interior build must own it.
 - The street shows the District only as a door and facade. If the revised map wants windows onto the street, they should be baked textures, not live geometry.
 - First-load time for the interior is unmeasured. Measure it before and after step 2 on the target handheld.
-- The scan animation wording and visuals are for David to approve.
+- The scan animation wording and visuals are for the owner to approve.
 
 ## Step 2a: how the area builds work (implemented)
 - `VoidNeoChinatown.layout(area)` and `build({area})` take `'all'` (default, the original combined environment), `'street'` or `'interior'`. A location definition carries `area`, and `prepareRoom` passes it to the build and to the asset lists (`modelsFor(area)`, `VoidCrowd.models(location, quality, area)`).
@@ -51,9 +51,9 @@ Add a second location to the existing loader. Do not build a second engine, a se
 - **Rules in `district-area.js`** (pure, tested in Node): which environment a save is in (`areaOf`, `keyFor`), where a player appears (`resume`, `exitSpawn`), and the vestibule trigger zones (`enterTrigger`, `exitTrigger`).
 - **Orchestration in `district-transition.js`**: the checkpoint (in) and airlock (out) sequence. It freezes input, shows the overlay, loads the other environment silently at the player's own position, sets the flags, saves, opens the inner door, and on failure puts the player back and says so. Walking into the vestibule with a badge, or using the scanner, goes in; walking out through the open outer door goes out.
 - **Saves.** `location` stays `earth`. `story.flags.area='district'` marks a player inside, and counts only with `districtBadge` (so a save without one resumes outside). Campaigns from before the 2026-11-04 reset are retired (`docs/void-runner/SAVE-RESET.md`), so there is no old-save path to support. Resuming inside puts the player just past the inner door. New campaigns still start outside the doors.
-- **Share links are retired** (David, 2026-11-04): links that dropped a visitor into a chosen place or scenario are gone, so every visit starts at the main menu and the new campaign begins outside the doors.
+- **Share links are retired** (the owner, 2026-11-04): links that dropped a visitor into a chosen place or scenario are gone, so every visit starts at the main menu and the new campaign begins outside the doors.
 - **Left alone:** the District layout, NPC placement, interactions, VR experiences, taxi and music (all keyed on world coordinates, which are unchanged).
 - **Multiplayer later.** The interior is now its own location with its own spawn, solids, interactions and build, so a shared room can host other players and NPC interactions without touching the street. Nothing multiplayer is implemented.
 
-## Platform targets (David, 2026-11-04)
+## Platform targets (the owner, 2026-11-04)
 The 3D game is for desktop and capable devices such as the ROG Ally; high and low graphics settings both matter. Phones keep using the regular website. Do not redirect phones into the game, and do not spend time optimising 3D gameplay on phones. Basic mobile checks cover the regular site only: homepage, navigation, login and the link to the game.

@@ -41,7 +41,7 @@ Approved requirements, as given:
 
 **What exists today:** the placeholder plaza west of the Avenue, a taxi zone `corporate` marked placeholder, and a "Corporate District / PLACEHOLDER" sign. Sky-cab and road-taxi rules live in `taxi-rules.js`, `city-taxi.js`, `road-taxi-rules.js`. The current sky cab flies inside the one street scene; the scene-switching transition does not exist yet. `district-transition.js` / `district-area.js` already load the District interior separately from the street and are the closest existing pattern. The V1 map (`district-map.js`) has one coordinate space (street and interior); a second map space does not exist yet. The unrelated "Corporate Zombies" arcade cabinet (#257) is a different thing.
 
-**Missing decisions (do not invent):** the district's name and corporate identity (companies, logos, branding); what it is for in the story; any NPCs or dialogue beyond the guard's one line; whether the break-in mission exists and what it is; exact map extents and the fare formula versus the flat 60; whether the guards ever escalate; progression or rewards. Propose options to David for anything story-related.
+**Missing decisions (do not invent):** the district's name and corporate identity (companies, logos, branding); what it is for in the story; any NPCs or dialogue beyond the guard's one line; whether the break-in mission exists and what it is; exact map extents and the fare formula versus the flat 60; whether the guards ever escalate; progression or rewards. Propose options to the owner for anything story-related.
 
 **Next action:** a branch from `main`; read `district-transition.js`, `district-area.js`, `city-taxi.js`, `taxi-rules.js`, `district-map.js`; design the reusable cab-transition and the second scene lifecycle first; write the unit tests; then build the area.
 
@@ -57,7 +57,7 @@ Approved requirements, as given:
 
 **Source material that exists:** `docs/development/VISUAL_REFERENCES.md` ("Zen Zephyr": an android monk in a misty temple whose pillars are server racks; the picture is still "pending", not in the repo). `origins/index.html` scenes `direct`, `detour` (temple of technology, quantum incense with blue flame), `sanctum_discovery`, `zen_wisdom`, `sanctum_introduction` (Zen Zephyr gives a contact at Milked), `resistance_philosophy`. In Origins the Sanctum is hidden in a pocket of digital space reached through a maintenance door in an abandoned server farm; **the game brief overrides that: it is a hilltop reached by taxi.** A shop T-shirt and the track "Sanctum of the Circuit" already use the name. Origins is mood, not canon, unless approved.
 
-**Missing decisions (do not invent):** the monk's exact name usage and voice (no voice cast; do not assign one without David); the full set of 20 quotes beyond the two exact ones (placeholders only until approved); the hill's map position; relationship to Milked and Eva in the game story; any missions or rewards; whether the optional API dialogue is ever wanted.
+**Missing decisions (do not invent):** the monk's exact name usage and voice (no voice cast; do not assign one without the owner); the full set of 20 quotes beyond the two exact ones (placeholders only until approved); the hill's map position; relationship to Milked and Eva in the game story; any missions or rewards; whether the optional API dialogue is ever wanted.
 
 **Dependencies:** the reusable cab transition and second-scene lifecycle from Corporate; the map's multi-space support from Corporate. Do Corporate first.
 

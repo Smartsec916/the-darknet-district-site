@@ -6,7 +6,7 @@
 
 This expansion begins after the player completes the original two introductory cargo deliveries and returns to The Darknet District to collect payment. Its purpose is to transition the player from ordinary cargo deliveries into faction-specific storylines on the factions' respective origin planets.
 
-Important: David will personally decide what happens on each planet next. Do not invent or implement those planetary storylines yet.
+Important: The owner will personally decide what happens on each planet next. Do not invent or implement those planetary storylines yet.
 
 ## 1. Admin and Iris must always be in the store
 
@@ -15,7 +15,7 @@ Both Admin and Iris should be present in their store on every visit, and both re
 - **Admin:** handles the original introduction to the Communion and Natural Order, provides his established dialogue, and remains available for appropriate future interactions.
 - **Iris:** handles payment for the established faction cargo contracts, offers additional cargo missions after the introductory deliveries, and remains available for appropriate future interactions.
 
-**David's clarification (2026-10-15):** on the visit where Iris pays the first delivery and says Admin is "Occupied", Admin is not shown. Keep "Occupied".
+**The owner's clarification (2026-10-15):** on the visit where Iris pays the first delivery and says Admin is "Occupied", Admin is not shown. Keep "Occupied".
 
 ## 2. Return after the second introductory cargo delivery
 
@@ -128,4 +128,4 @@ Stable unique ids; both Iris contracts independently tracked; accepting one does
 
 Admin (always present; nonchalant, business-minded), Iris (always present; android Chief Security Officer; handles payments and follow-up contracts), Dr. Elara Voss (Communion recipient; introduces Communion homeworld missions), Marcus Vale (Natural Order recipient; introduces Natural Order homeworld missions). Do not rename, replace or relocate them without approval.
 
-**STOP DEVELOPMENT AT THE PLANETARY MISSION STAGE.** David will provide the planetary mission designs, events, objectives and outcomes later.
+**STOP DEVELOPMENT AT THE PLANETARY MISSION STAGE.** The owner will provide the planetary mission designs, events, objectives and outcomes later.

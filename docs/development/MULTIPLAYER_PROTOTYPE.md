@@ -70,7 +70,7 @@ The VR rooms and companions, NPC crowds, Sleeping Pod 01, the pod music player, 
 
 It is one of the game scripts the device gate keeps inert, so phones never download it. Merging to `main` still publishes the file, so it ships as inert code; **do not remove the gates**. The tester's token is the player's own Firebase sign-in (`VoidAccount.user.getIdToken()`); a locally stored test token is honoured only on a local page.
 
-## Infrastructure needed for a future public multiplayer test (all need David's approval)
+## Infrastructure needed for a future public multiplayer test (all need the owner's approval)
 
 1. A hosted hub (Node, `ws`): a Render free web service (sleeps when idle, cold start) or a small always-on plan (cost), per `docs/void-runner/multiplayer-and-mobile-chat-plan.md` option A.
 2. Real token verification (Google public keys, no secret) and a server-side read of the character (Firestore service access, or the character API) to replace `emulator-providers.cjs`.

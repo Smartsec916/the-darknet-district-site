@@ -1,6 +1,6 @@
 # VOID//RUNNER: the Darknet District VR arcade (2026-10-27)
 
-David's brief: make the District's VR play area a working entertainment system. You approach the terminal, take a booth from its player, the world dissolves, and a different interactive world assembles around you.
+The owner's brief: make the District's VR play area a working entertainment system. You approach the terminal, take a booth from its player, the world dissolves, and a different interactive world assembles around you.
 
 ## How it works
 
@@ -77,7 +77,7 @@ David's brief: make the District's VR play area a working entertainment system. 
 
 ## Companions, choosing one, and life on the streets (2026-10-28)
 
-David's briefs: believable, attentive companions with their own initiative, a two-step companion choice built for many more models later, the Combat Simulator off the terminal for now, and nightlife in NeoChinatown. The bedroom's look is unchanged: the same eight camera views, compared pixel by pixel before and after, differ by under 1 brightness level out of 255. The only changed pixels are moving things: traffic, the cycling ad and the music screen.
+The owner's briefs: believable, attentive companions with their own initiative, a two-step companion choice built for many more models later, the Combat Simulator off the terminal for now, and nightlife in NeoChinatown. The bedroom's look is unchanged: the same eight camera views, compared pixel by pixel before and after, differ by under 1 brightness level out of 255. The only changed pixels are moving things: traffic, the cycling ad and the music screen.
 
 - **Terminal:**
   - **Experiences offered:** Relax in a Forest, Tropical Escape and Play in a Bedroom.
@@ -121,8 +121,8 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 
 ## Nadia, the first converted companion (2026-10-28)
 
-- **Who she is:** **Nadia** (named by David): grounded, warm and direct. She grew up in NeoChinatown and teases you for being an outsider. She has her own settings: medium initiative and flirtatiousness, she comes over often, and she speaks a little more often than Seren. Her lines are her own DRAFTs.
-- **Her model:** David's free CGTrader model "Realistic Contemporary Woman FC1" by Ludovisions. It is now a third companion in the Female gallery. The model's internal name stays `vr-companion-fc1`.
+- **Who she is:** **Nadia** (named by the owner): grounded, warm and direct. She grew up in NeoChinatown and teases you for being an outsider. She has her own settings: medium initiative and flirtatiousness, she comes over often, and she speaks a little more often than Seren. Her lines are her own DRAFTs.
+- **Her model:** The owner's free CGTrader model "Realistic Contemporary Woman FC1" by Ludovisions. It is now a third companion in the Female gallery. The model's internal name stays `vr-companion-fc1`.
 - **How she was made:** `tools/animation-pipeline/build_imported_character.py` with `characters/vr-companion-fc1.json`:
   - **Skeleton:** her bones are renamed to our Mixamo names, so head tracking and all 24 companion clips work. Her own A-pose rest pose is kept, and the clips are mapped from their T-pose.
   - **Size:** she was cut from 775,000 polygons to about 55,000 triangles:
@@ -150,7 +150,7 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 
 ## Ava and Eva: two companions together, with looks (2026-10-30)
 
-- **Who:** **Ava** (BGShop's "Ava" v2.0) and **Eva** (the CGTrader model "PrettyGirl_01"; that name is only in the build tools). Names by David. Registered as `ava` and `eva` in `vr-companions.js` (Eva's model keeps its internal name `vr-companion-pg`). Each has her own empty `personality` and `dialogue` and her own voice identity (`voice.characterId` `vr-ava` / `vr-eva`, no voice chosen yet); nothing is copied from Seren. Their personalities, lines and voices are David's to write.
+- **Who:** **Ava** (BGShop's "Ava" v2.0) and **Eva** (the CGTrader model "PrettyGirl_01"; that name is only in the build tools). Names by the owner. Registered as `ava` and `eva` in `vr-companions.js` (Eva's model keeps its internal name `vr-companion-pg`). Each has her own empty `personality` and `dialogue` and her own voice identity (`voice.characterId` `vr-ava` / `vr-eva`, no voice chosen yet); nothing is copied from Seren. Their personalities, lines and voices are the owner's to write.
 - **Offered only on a local development server** (`listed:'dev'`): their CGTrader licences aren't confirmed for release, so on the public site the terminal still offers Seren and Nadia only. Locally (localhost or 127.0.0.1) the Female gallery shows Ava and Eva too.
 - **Together:** both are `pairable`. In the gallery, selecting one and then the other brings both (`{companions:['ava','eva']}`); selecting a picked one again leaves it out; any other companion comes alone. The terminal remembers the last choice (`localStorage['void-runner-companion-party-v1']`) and picks it again. Each companion has her own model, looks, brain, head tracking, spot by the window, place on the sofa (you sit between them) and talk spot (`vr-companion`, `vr-companion-2`); each has her own floor shadow, and the face light lights whichever is nearer.
 - **Keeping apart:** a destination closer than 0.9 m to where the other one is or is going moves round her; on the way the second gives way to the first for a moment, and either steps round one standing in the way. In the browser test the two were never closer than 0.79 m while following.
@@ -170,9 +170,9 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 
 ## Una and the two base figures (2026-10-31)
 
-- **Who:** **Una** (`una`, the CGTrader model "Una 1.0") and two base figures, **Yuki** (`base-f`) and **Dex** (`base-m`), from the CGTrader "Male / Female Base" pack. Names by David (2026-10-31); Dex's clothing is to be supplied by David. All three have empty `personality` and `dialogue` and their own voice identity (`vr-una`, `vr-base-f`, `vr-base-m`); nothing is copied from Seren.
+- **Who:** **Una** (`una`, the CGTrader model "Una 1.0") and two base figures, **Yuki** (`base-f`) and **Dex** (`base-m`), from the CGTrader "Male / Female Base" pack. Names by the owner (2026-10-31); Dex's clothing is to be supplied by the owner. All three have empty `personality` and `dialogue` and their own voice identity (`vr-una`, `vr-base-f`, `vr-base-m`); nothing is copied from Seren.
 - **Live site (2026-10-31):** Ava, Eva, Yuki and Dex are offered on thedarknetdistrict.com (`licensed:true`: their files come from the private asset repository, encrypted at deploy; see VOID_RUNNER_ASSET_LICENSES.md). Una stays on a local development server (`listed:'dev'`) until her product page and licence are identified. All three are `pairable`, so any two of Ava, Eva, Una and the base figures can come together.
-- **Una's outfits** (*Outfit* look): **Minimalist** (default, David's choice): charcoal crop top and leggings, thin cyan piping on the top's hem and the waistband. **Nightlife:** the jacket over the top, violet shorts (her leggings cut at mid-thigh) with magenta piping, glossier finish. **Elegant:** violet jacket and charcoal leggings, magenta piping on the jacket's hem. **Original:** her own outfit unchanged. The piping is emissive; recoloured tiles are KTX2 variants in `vr-companion-una/*.vrtex` (3.4 MB together), loaded only when worn. Gloss per look is a material value (`materials` in the look, applied by `wear()`).
+- **Una's outfits** (*Outfit* look): **Minimalist** (default, the owner's choice): charcoal crop top and leggings, thin cyan piping on the top's hem and the waistband. **Nightlife:** the jacket over the top, violet shorts (her leggings cut at mid-thigh) with magenta piping, glossier finish. **Elegant:** violet jacket and charcoal leggings, magenta piping on the jacket's hem. **Original:** her own outfit unchanged. The piping is emissive; recoloured tiles are KTX2 variants in `vr-companion-una/*.vrtex` (3.4 MB together), loaded only when worn. Gloss per look is a material value (`materials` in the look, applied by `wear()`).
 - **Rigging Una** (`tools/animation-pipeline/prepare_una.py`; the source has no skeleton): the Female Base skeleton is scaled and posed to her limbs, its posed body lends her its skin weights, and `prune()` then removes weights that went to the wrong place (a bone far from the vertex, the other side of the body, or anything but the head's bones above her jaw line). The Female Base FBX carries a stray pose (its right calf moved about 20 cm); it is cleared before fitting, which had sent her right foot's weights to the left leg. Her eyes are an iris shell behind the sclera; the sclera is opened where the source's cornea mask (`Eyeball_A`) is white. She has no face shapes, so she doesn't blink or smile; the base figures do both.
 - **Social life** (all companions, `vr-suite.js`): now and then a smile (figures with smile shapes: a random 7-19 s interval, 40% chance); with two companions, an 18% chance a glance goes to the other's face; after one companion's greeting, flirt, laugh, confident or shy gesture, the other may react (35%, 8 s cooldown, within 4.5 m, only when idle): a look, a smile, then a laugh or a shy gesture. Measured over 100 s of greetings every 9 s: 4 reactions in 11, 8 smiles, 8% of the time glancing at the other.
 - **Fixes found on the way:** the converter matched mesh parts by suffix, so "piping_top" became "top" (an exact name now wins, `build_imported_character.py`); `wear()` had the same suffix issue ("piping_jacket" showed with "jacket"; the longest part now wins).
@@ -182,9 +182,9 @@ David's briefs: believable, attentive companions with their own initiative, a tw
 
 ## Rooms for two, gallery pictures and voices (2026-10-31, second pass)
 
-- **Who shares a room:** only the rooms David asked for. The Female gallery has **Ava & Eva** as its own card (both in one room) beside Ava and Eva alone; any other companion comes alone. Two companions of different sexes never share a room, even from an old saved choice or link (`C.party`). Dex is not pairable: he has a room of his own. Rooms for two are listed in `C.pairs` (`vr-companions.js`).
+- **Who shares a room:** only the rooms the owner asked for. The Female gallery has **Ava & Eva** as its own card (both in one room) beside Ava and Eva alone; any other companion comes alone. Two companions of different sexes never share a room, even from an old saved choice or link (`C.party`). Dex is not pairable: he has a room of his own. Rooms for two are listed in `C.pairs` (`vr-companions.js`).
 - **Gallery pictures:** the Female and Male cards show a strip of up to four of that gallery's companions instead of a plain pink or blue panel; the Ava & Eva card shows both.
-- **Voices:** a companion's lines used to fall back to Rook's browser voice (a man's), so Seren and Nadia spoke as men. Now Seren, Kai and Nadia have recorded lines (Kokoro-82M, `tools/audio`; 164 clips): Seren `af_nicole`, Nadia `af_aoede`, Kai `am_fenrir`, all **provisional** for David to approve or change in the audition tool (`tools/audio/audition`). Companions without recordings (Ava, Eva, Yuki, Dex, Una: no lines yet) get a browser voice of their own sex. When their lines exist, Kokoro has women's voices free; for a man the registry has none left (Dex would need a voice moved from a provisional radio broadcaster).
+- **Voices:** a companion's lines used to fall back to Rook's browser voice (a man's), so Seren and Nadia spoke as men. Now Seren, Kai and Nadia have recorded lines (Kokoro-82M, `tools/audio`; 164 clips): Seren `af_nicole`, Nadia `af_aoede`, Kai `am_fenrir`, all **provisional** for the owner to approve or change in the audition tool (`tools/audio/audition`). Companions without recordings (Ava, Eva, Yuki, Dex, Una: no lines yet) get a browser voice of their own sex. When their lines exist, Kokoro has women's voices free; for a man the registry has none left (Dex would need a voice moved from a provisional radio broadcaster).
 
 ## Companion quality audit and organic finish (2026-11-12)
 
@@ -215,9 +215,9 @@ The organic finish (`vr-companions.js` `finish`, `breath`; applied in `vr-suite.
 - Texture filtering raised to 8x (Medium) / 16x (High and Ultra) anisotropic on companion textures.
 Tests: `tests/vr-companion-organic.test.cjs`.
 
-## Needs David's review
+## Needs the owner's review
 
-- **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if David wants.
+- **Lines that still mention the sea:** the companions' draft lines were written for the old seaside suite. Three mention the sea or salt air ("the sea and the sky", "the air smells like salt", "the colour of honey" at sundown). They are unchanged here because dialogue was out of scope; they can be rewritten for the city if the owner wants.
 
 - **Companions:** their names (Seren, Kai), personalities and every line are **drafts**, including the new lines for their initiative and the drunks' remarks in `ncz-nightlife.js`. They are unvoiced until their voices are approved through the audition tool.
 - **Experience descriptions:** the menu descriptions too.

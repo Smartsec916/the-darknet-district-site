@@ -19,7 +19,7 @@ Characters, Animations, Asset Library, Stores & Items, Factions & Progression, S
 ## Asset Library plan (not started)
 A local indexing service bound to 127.0.0.1 only, with a configurable folder path (the previously named Windows folder may have moved and was not visible from the cloud session), licence notes per pack (AI-processing and redistribution limits), no upload of purchased assets to public GitHub and no automatic extraction of large archives.
 
-## Proposed next steps (need David's approval)
+## Proposed next steps (need the owner's approval)
 1. A server endpoint that turns an exported draft into a pull request with a server-side token (backend change).
 2. Audit trail and reviewer role (extends the existing allow-list).
 3. NPC metadata and interaction-point editing writing to the real registry and layouts.
@@ -27,7 +27,7 @@ A local indexing service bound to 127.0.0.1 only, with a configurable folder pat
 
 ## 15 Nov 2026: mission flow chart (Missions tab, default view)
 
-David asked for a flow chart for mission making, after his own sketch. The Missions tab now opens on **FLOW CHART** (the old screen is **FORM EDITOR**, one click away; DETAILS on a row opens that mission there).
+The owner asked for a flow chart for mission making, after his own sketch. The Missions tab now opens on **FLOW CHART** (the old screen is **FORM EDITOR**, one click away; DETAILS on a row opens that mission there).
 
 - One row per mission, read left to right: **NPC, who gives it** (blue) · **mission name** and **what is said** (green, pink) · **what needs to be done** (steps, each with the event that completes it) · the **choices** it creates (each can lead to another mission) · **store items that become available**, sold by Admin, Iris or nobody named, **everywhere or in chosen stores**, with an optional advert line for the V1 News feed.
 - Rows follow the chain (a mission's row is followed by the mission it leads to). "+ mission after this" adds the next one.

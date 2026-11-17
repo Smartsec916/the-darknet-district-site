@@ -12,7 +12,7 @@ How a third-party model gets from a download into the game.
    - Shortlist and Reject buttons write `<library>/decisions.json`.
    - The 3D view can be orbited.
 4. **Try it in the game (optional):** copy a GLB into `void-runner/assets/models/_staging/` (git-ignored) and point a slot at it from the browser console. For example, `VoidAssets.models.ships.raider={src:'assets/models/_staging/striker.glb',scale:.45,yaw:0}` before launching.
-5. **Approve and register:** only after David's approval, the GLB is committed under `void-runner/assets/models/<category>/`, listed in `VOID_RUNNER_ASSET_LICENSES.md`, and mapped to a game object.
+5. **Approve and register:** only after the owner's approval, the GLB is committed under `void-runner/assets/models/<category>/`, listed in `VOID_RUNNER_ASSET_LICENSES.md`, and mapped to a game object.
    - The registry file (planned: `void-runner/assets/models/registry.json`) replaces the empty in-code `VoidAssets.models` object.
    - Gameplay keeps using stable ids such as `ship:raider`, so swapping a model never touches flight, combat or collision code.
    - If a model fails to load, the procedural model is used automatically.

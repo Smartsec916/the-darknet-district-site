@@ -2,7 +2,7 @@
    PURE DATA AND RULES: runs in the browser and in Node (tests/ad-screens.test.cjs). The drawing, the screens and the sound are ad-screens.js.
    How to change things is written up in docs/development/AD_SCREENS.md.
 
-   THE WORDS ARE THE OWNER'S, VERBATIM (docs/void-runner/design-source/12-street-advertisements-david.md): brand, tagline, punctuation and the trademark sign.
+   THE WORDS ARE THE OWNER'S, VERBATIM (docs/void-runner/design-source/12-street-advertisements-owner.md): brand, tagline, punctuation and the trademark sign.
    Do not reword them and do not add to them; new ads, news or announcer lines need him. A test compares this file with his document.
    His seven space-station ads and his news stay in relay-content.json (RELAY below only says which of them the street may show).
    The Function has NO content here: its "civic notice" is the old silent poster, and it gets no voice, look or announcement without the owner. */

@@ -1,6 +1,6 @@
 # NeoChinatown visual upgrade with the Cyberpunk City pack (2026-10-31)
 
-Stage A (inspection) and Stage B (one prototype block). Stage C, David's review, comes next; nothing beyond block A is
+Stage A (inspection) and Stage B (one prototype block). Stage C, the owner's review, comes next; nothing beyond block A is
 changed. Pack: "ULTRA Detailled Cyberpunk City - Small Version" (CGTrader,
 https://www.cgtrader.com/3d-models/exterior/cityscape/ultra-detailled-cyberpunk-city-blend-files-small-version).
 The pack and everything converted from it are licensed content: they live in
@@ -140,7 +140,7 @@ kiosks). Files: building5.vrpak 5.7 MB, storefronts.vrpak 8.4 MB.
 Cost (same viewpoints, with and without the block): frame time unchanged (25 ms median); draw calls +100 to +170 where
 the block is in view (main-mid 384 -> 500, pad passage 765 -> 934); render time within +-1.5 ms; GPU process +70 MB.
 
-## Plan for the rest of the city (after David's review)
+## Plan for the rest of the city (after the owner's review)
 
 Street level first, where players are: replace the grey shopfront panels along the avenue and Main Street with stall
 rows; pack neon blade signs and lampions on Main Street; vending machines, crates, bins and vents in the alley.

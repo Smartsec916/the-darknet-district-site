@@ -2,7 +2,7 @@
 
 | Item | Source | Licence | Commercial use |
 |---|---|---|---|
-| `*.ogg` (10 loops, a door lock, 18 single footsteps) | Generated once with ElevenLabs Sound Effects (model `eleven_text_to_sound_v2`, one take each) on David's ElevenLabs account, Starter plan, 15 Nov 2026; converted to mono, levelled, the loops closed with a short blend, and the three footstep recordings cut into single steps. Stored here so the game never generates sound at play time. | ElevenLabs terms for paid plans | David to confirm the Starter plan's commercial terms cover sound effects used in the game; the plan and date are recorded here as the evidence available |
+| `*.ogg` (10 loops, a door lock, 18 single footsteps) | Generated once with ElevenLabs Sound Effects (model `eleven_text_to_sound_v2`, one take each) on the owner's ElevenLabs account, Starter plan, 15 Nov 2026; converted to mono, levelled, the loops closed with a short blend, and the three footstep recordings cut into single steps. Stored here so the game never generates sound at play time. | ElevenLabs terms for paid plans | The owner to confirm the Starter plan's commercial terms cover sound effects used in the game; the plan and date are recorded here as the evidence available |
 
 | File | Used for |
 |---|---|

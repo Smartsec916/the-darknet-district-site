@@ -2,7 +2,7 @@
 
 | Item | Source | Licence | Commercial use |
 |---|---|---|---|
-| `vr-*.ogg` (5 loops) | Generated once with ElevenLabs Music (model `eleven_music_v2`, prompts asked for instrumental, 60 seconds each, one take each) on David's ElevenLabs account, Starter plan, 16 Nov 2026 (900 credits each, 4,500 in all). Each was levelled, trimmed and folded into a loop (the last 3 seconds blended into the first 3). | ElevenLabs terms for paid plans | Same open question as the area soundtrack: David to confirm the Starter plan's commercial terms |
+| `vr-*.ogg` (5 loops) | Generated once with ElevenLabs Music (model `eleven_music_v2`, prompts asked for instrumental, 60 seconds each, one take each) on the owner's ElevenLabs account, Starter plan, 16 Nov 2026 (900 credits each, 4,500 in all). Each was levelled, trimmed and folded into a loop (the last 3 seconds blended into the first 3). | ElevenLabs terms for paid plans | Same open question as the area soundtrack: the owner to confirm the Starter plan's commercial terms |
 
 | File | Where it plays | Prompt in brief |
 |---|---|---|

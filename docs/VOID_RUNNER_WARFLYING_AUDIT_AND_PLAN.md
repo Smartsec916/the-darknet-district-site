@@ -1,6 +1,6 @@
 # VOID//RUNNER: WarFlying, Relay, Privacy and Piracy — Audit and Plan
 
-**As of:** 2026-10-16 · **Brief:** `docs/void-runner/design-source/11-warflying-relay-privacy-piracy.md` and Admin's scene `12-scene-admin-warflying-intro.md` (both David's, word for word) · **Status:** decisions APPROVED 2026-10-16 (see §2).
+**As of:** 2026-10-16 · **Brief:** `docs/void-runner/design-source/11-warflying-relay-privacy-piracy.md` and Admin's scene `12-scene-admin-warflying-intro.md` (both the owner's, word for word) · **Status:** decisions APPROVED 2026-10-16 (see §2).
 
 ## 1. Audit: what the game has today
 
@@ -26,13 +26,13 @@
 | Economy / stores | **Partial** | Upgrade shop, credit gear, ships, module purchases; **no selling** of anything | Cargo buyers |
 | Documentation | **Working** | Handoff doc, design sources, voice production doc | WarFlying docs as built |
 
-## 2. Decisions (David, 2026-10-16)
+## 2. Decisions (the owner, 2026-10-16)
 
 **Outcome:**
 - **1:** APPROVED.
 - **2, 5 and 6:** approved as recommended.
 - **3:** REVISED. Admin sells **only the WarFlying Scrambler**, because he sees WarFlying as an invasion of privacy. **WarFlying scanners are sold in every other store.** The Signal Tracker is listed but can't be bought yet.
-- **4:** APPROVED, unless David changes it later.
+- **4:** APPROVED, unless the owner changes it later.
 
 The original recommendations follow for reference.
 
@@ -58,7 +58,7 @@ The original recommendations follow for reference.
    - **Recommended:** reputable markets at Meridian and Kepler refuse stolen cargo; Rusthaven Port (already the smuggling port) buys it at a discount.
    - No new criminal faction. This needs your approval before Stage E.
 
-## 3. Staged plan (one PR per stage, each tested and merged only on David's word)
+## 3. Staged plan (one PR per stage, each tested and merged only on the owner's word)
 
 | Stage | Contents | Notes |
 |---|---|---|
@@ -106,7 +106,7 @@ The Signal Tracker is defined as equipment but stays non-purchasable and inert.
 - **Admin:**
   - His WarFlying scene (doc 12) plays word for word the first time you see him after "Don't Ask Questions". All 19 of his lines are voiced with his approved voice.
   - After the scene, and on later visits, he offers his stock: only the WarFlying Scrambler, 900 CR. Nothing is bought or fitted automatically.
-- **Claude's wording for David to review** (UI text, not dialogue):
+- **Claude's wording for the owner to review** (UI text, not dialogue):
   - the "Admin's briefing" journal note in the Mission Log
   - the scrambler's store description
   - the choice buttons SHOW ME THE SCRAMBLER and NOT RIGHT NOW

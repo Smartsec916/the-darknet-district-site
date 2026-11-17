@@ -2,7 +2,7 @@
 
 > **2026-11-15 PERMANENT DIRECTION:** the 3D game is PC-only and the target look is AAA dark cyberpunk. See `docs/VOID_RUNNER_ART_DIRECTION.md` ("PERMANENT DIRECTION"). It supersedes anything below that conflicts (for example, treating bright neon as the identity). Phases below remain a record of what was built and what is planned; the modernisation proceeds progressively, player-visible areas first.
 
-> **2026-11-12:** Phase H below (Ultra, shadows outside the opening scene, ambient occlusion, a better HDRI) is still not started. A separate four-win branch (sharpness, High default plus Ultra, stronger glow, remove fake shopfront/graffiti/puddle glow) is in flight. See `docs/development/AI_HANDOFF.md`. Do not download a Poly Haven HDRI without David's OK. Leave the Sleeping Pod room and the music player alone.
+> **2026-11-12:** Phase H below (Ultra, shadows outside the opening scene, ambient occlusion, a better HDRI) is still not started. A separate four-win branch (sharpness, High default plus Ultra, stronger glow, remove fake shopfront/graffiti/puddle glow) is in flight. See `docs/development/AI_HANDOFF.md`. Do not download a Poly Haven HDRI without the owner's OK. Leave the Sleeping Pod room and the music player alone.
 
 **As of 2026-10-16.** "Done" means it's in the game and was checked on screen; everything else is planned.
 
@@ -15,8 +15,8 @@
   - developer gallery (`tools/assets/gallery-server.cjs`)
   - before/after captures (`tests/graphics-snapshots-browser.cjs`)
   - see `VOID_RUNNER_ASSET_PIPELINE.md`
-- **Phase D (discovery):** three CC0 packs downloaded with David's permission, 237 models imported and reviewed (`VOID_RUNNER_ASSET_CANDIDATES.md`).
-- **Phase E (first replacements), approved by David:**
+- **Phase D (discovery):** three CC0 packs downloaded with the owner's permission, 237 models imported and reviewed (`VOID_RUNNER_ASSET_CANDIDATES.md`).
+- **Phase E (first replacements), approved by the owner:**
   - **Ships:** raider (Striker), interceptor (Challenger), gunship (Insurgent), courier (Dispatcher), shuttle (Imperial), station security (Omen). These are 3D models in flight, station exteriors and skirmish, scaled to the old gameplay sizes. Hit sizes and AI are unchanged.
   - **Meridian:**
     - the hangar cargo corner: 4 crates and 2 barrels replace 5 boxes
@@ -27,7 +27,7 @@
   - **Reflection environment** for PBR materials, built in code with no downloads. Vesper was checked and looks unchanged.
 - **Total model download size for players:** about 6 MB (models load only in scenes that use them).
 
-## Meridian Station consistency (David's requirement, 2026-10-16)
+## Meridian Station consistency (the owner's requirement, 2026-10-16)
 
 **Where Meridian is drawn, all from one shared definition:**
 - **Exterior:** `VoidMeridian` in `void-runner/meridian-station.js` holds the station's design (hangars H01–H03, solar arrays, docking collar, comms, windows, tanks), builder and model slot. It's used by:
@@ -39,7 +39,7 @@
 - **Retired:** the old painted ring-station image (`art/station.png`). It looked nothing like the 3D station and was only used by the old 2D renderer, which never runs, yet it was downloaded (2.7 MB) on every visit. Verified: no longer requested.
 - **Screenshots:** `docs/void-runner/graphics/meridian-consistency/` (menu, arrival exterior, interior).
 
-**Exterior cladding (approved by David 2026-10-16, with plainer roofs):** `meridian-kitbash.js` covers the shared design's hangars and modules with about 1,440 MegaKit pieces. It's applied wherever Meridian is built: the menu, the campaign exterior (arrivals and docked screens), and the station scene seen from the hangar.
+**Exterior cladding (approved by the owner 2026-10-16, with plainer roofs):** `meridian-kitbash.js` covers the shared design's hangars and modules with about 1,440 MegaKit pieces. It's applied wherever Meridian is built: the menu, the campaign exterior (arrivals and docked screens), and the station scene seen from the hangar.
 - **Pieces:** panels, structural ribs, one plain deck plate, pipe racks, vents and light strips.
 - **One definition:** the module sizes now live in `VoidMeridian.design.modules`, so the builder and the cladding can't drift apart.
 - **Never half-clad:** if any piece fails to load, the plain hull stays.
@@ -47,14 +47,14 @@
 - **Screenshots:** `docs/void-runner/graphics/meridian-kitbash/`.
 
 **Still outdated or open:**
-- **Layout versus David's reference art** (`D:/Pictures/Game/Start/Meridan Station/`):
+- **Layout versus the owner's reference art** (`D:/Pictures/Game/Start/Meridan Station/`):
   - **Done** (approved 2026-10-16): H01–H03 now stand side by side at the same size, with their mouths in one line. H02 and H03 continue the row past H01, which didn't move, and the large-ship docking collar now sits past H03. Screenshots are in `docs/void-runner/graphics/meridian-hangar-row/`. These are visuals only: there's no exterior collision, and the walkable H01 interior is unchanged.
   - **Still different from the reference, each needing its own approval:** the "MERIDIAN STATION / FUEL · REPAIRS · SUPPLIES" block directly above the hangars, solar wings above and below, the tanks stacked aft, and the hanging module underneath.
 - **Mirrored sign:** "SUPPLIES / OUTFITTER" reads mirrored from inside the concourse. It predates this work.
 
 ## Not done / known limits
 - **Kestrel and faction ships:** still procedural (by decision).
-- **Named NPCs:** still box figures. No free set of realistic clothed humans has been found; this needs David's choice (a Sketchfab CC-BY set or a paid pack).
+- **Named NPCs:** still box figures. No free set of realistic clothed humans has been found; this needs the owner's choice (a Sketchfab CC-BY set or a paid pack).
 - **Meridian props have no collision.** The old boxes in the hangar corner had none either; adding collision would change navigation and needs approval. The supply shelves sit on their existing collision boxes.
 - **Supply shelves look empty:** the old box "cases" were hidden with the shelves. Small crates or cases could be added on them.
 - **Not visually re-checked** after the new environment: the derelict station, the Darknet District, the homeworlds. The capture script's District view also needs fixing.
@@ -63,7 +63,7 @@
   - shadows outside the opening scene
   - an Ultra preset
   - ambient occlusion
-  - a better HDR environment (a Poly Haven HDRI would need David's OK to download)
+  - a better HDR environment (a Poly Haven HDRI would need the owner's OK to download)
 
 ## Next suggested steps
 1. Fill the empty shelves and add a few more Essentials props to the bar and hangar.

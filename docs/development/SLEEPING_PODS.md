@@ -20,7 +20,7 @@ The pods are still BUILT in the old room's coordinates and then set down as one 
 
 ## 16 Nov 2026 (build `2026-11-16-fixes-1`): the strip's buttons are gone; the controls are on the right-hand wall
 
-David, after a playthrough: "Remove these button from the Sleeping Pod now that there's an Exit the Pod button above the door. Move the music and lighting controls to the right side of the sleeping pod, not the back."
+The owner, after a playthrough: "Remove these button from the Sleeping Pod now that there's an Exit the Pod button above the door. Move the music and lighting controls to the right side of the sleeping pod, not the back."
 
 - **The strip along the bottom has no buttons** (EXIT POD, MUSIC & LIGHTS, LOOK INSIDE, VENDING are removed). It keeps the pod's number, "You wake in a Sleeping Pod." and one line of help that ends with the keys. Everything is still reachable: click EXIT THE POD on the glass, the music player, the light panel or the vending unit; or press **E** (exit), **M** (music and lights), **V** (vending), **Q** (look at the controls on the right wall; again for the hatch), arrow keys to look.
 - **Q is new.** It replaces the LOOK INSIDE button, and it now faces the controls rather than the back wall.
@@ -37,21 +37,21 @@ Lying in a pod the player is not held to the buttons: click the view to take the
 
 Entering and leaving a pod, the pod menu, private music and lighting per pod, the vending unit, wake-up in your own pod, multiplayer (a player in a pod is shown at their pod door), saves (a save made in a pod resumes in the same pod number at the new place).
 
-## Not done yet (David's Tesana brief, 2026-11-12)
+## Not done yet (the owner's Tesana brief, 2026-11-12)
 
 This step is the relocation only. Still to do for the Tesana match: the pod's window view, worn/scratched surfaces, amber accent lights, ceiling fan vent, lighting colour and brightness controls beyond the three presets, and lying-down animation. The reference picture shows a single large capsule with a window; the game has ten compact capsules, so the match will be in materials, lighting and controls rather than room shape.
 
 ## 13 Nov 2026: dark pods
 
-David: the pods read almost white; the District should be dark with coloured light as the accent. The pod shell, ribs, bedding and mattress materials in `neochinatown.js` are now near-black violet (the earlier off-white Tesana plastic is superseded); the lit rings, LED strips, screens and the moulded surrounds' status lights carry the colour. Nothing about the pods' behaviour changed.
+The owner: the pods read almost white; the District should be dark with coloured light as the accent. The pod shell, ribs, bedding and mattress materials in `neochinatown.js` are now near-black violet (the earlier off-white Tesana plastic is superseded); the lit rings, LED strips, screens and the moulded surrounds' status lights carry the colour. Nothing about the pods' behaviour changed.
 
-## Nov 2026 (David): look around at once on waking
+## Nov 2026 (the owner): look around at once on waking
 
-David: after creating a character the player should be able to look around inside the pod, not be held to the buttons. Moving the mouse over the view (not over the buttons) now turns the view immediately, with no click first (`world-integration.js`, the `mousemove` handler by `podLook`); a click still holds the mouse for full turns, and drag and arrow keys work as before. The wake-up card is a low strip along the bottom edge (`pod-start.css`, last block) so the pod is visible. Buttons, keys (E, M, V), vending and music are unchanged. Picture: `docs/development/hall-wall/pod-wake-look.jpg`. Not done: the pod's window view and a lighter panel look from his newest pod pictures (he earlier asked for darker panels; ask which he wants).
+The owner: after creating a character the player should be able to look around inside the pod, not be held to the buttons. Moving the mouse over the view (not over the buttons) now turns the view immediately, with no click first (`world-integration.js`, the `mousemove` handler by `podLook`); a click still holds the mouse for full turns, and drag and arrow keys work as before. The wake-up card is a low strip along the bottom edge (`pod-start.css`, last block) so the pod is visible. Buttons, keys (E, M, V), vending and music are unchanged. Picture: `docs/development/hall-wall/pod-wake-look.jpg`. Not done: the pod's window view and a lighter panel look from his newest pod pictures (he earlier asked for darker panels; ask which he wants).
 
-## 15 Nov 2026 (David): the wall controls work, EXIT THE POD on the glass
+## 15 Nov 2026 (the owner): the wall controls work, EXIT THE POD on the glass
 
-David: inside the pod the player looks around and uses the controls on the walls; an Exit the Pod sign (above the door or lettered on the glass, a little see-through) lights up under the mouse; the District's music is never heard in the pod, only the pod's own player.
+The owner: inside the pod the player looks around and uses the controls on the walls; an Exit the Pod sign (above the door or lettered on the glass, a little see-through) lights up under the mouse; the District's music is never heard in the pod, only the pod's own player.
 
 - **Pointing and clicking.** `neochinatown.js` marks each pod's music screen, light panel, vending face and exit sign as clickable (`podTouch`) and offers `VoidNeoChinatown.podPick(x, y)` / `podHover(kind)`. `world-integration.js` (`podAim`, `podUse`) asks what is under the mouse (or under the middle of the screen while the mouse is held) and acts on a click. Only the player's own pod answers.
 - **What each click does** is decided by the pure `VoidDistrictArea.podControl(kind, u, v)` (tested in `tests/district-area.test.cjs`): on the music player the five transport buttons (previous, play, pause, stop, next) and the volume bar work directly, and anywhere else on it opens the playlist panel; on the light panel the three presets; the vending face opens the vending list; the sign gets up.
@@ -59,4 +59,4 @@ David: inside the pod the player looks around and uses the controls on the walls
 - **Music.** `music-integration.js` now keeps the District's score and ambience off for as long as the player is in a pod, including while the playlist panel is open (before, the panel counted as "walking" and the hallway music could return).
 - The bottom strip with the buttons and the E / M / V keys stay as they were.
 - Checked in a browser at low quality: the sign lights under the mouse, READING switches the light, play starts a song with the pod view still up, the sign click gets the player out.
-- Not done: the pod interior's look is still far from David's Tesana pictures (pale moulded plastic, 3D goods in the vending cabinet, the bigger light panel with colours and a brightness slider, a square window). That is a separate modelling job.
+- Not done: the pod interior's look is still far from the owner's Tesana pictures (pale moulded plastic, 3D goods in the vending cabinet, the bigger light panel with colours and a brightness slider, a square window). That is a separate modelling job.
