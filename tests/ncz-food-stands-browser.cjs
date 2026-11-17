@@ -1,6 +1,6 @@
 /* SITE_TEST_URL=http://127.0.0.1:5187 node tests/ncz-food-stands-browser.cjs */
 'use strict';
-const {chromium}=require('playwright'),assert=require('node:assert/strict'),path=require('node:path'),os=require('node:os'),F=require('../void-runner/ncz-food-stands.js');
+const {chromium}=require('playwright'),assert=require('node:assert/strict'),path=require('node:path'),os=require('node:os'),fs=require('node:fs'),F=require('../void-runner/ncz-food-stands.js');
 (async()=>{
  const browser=await chromium.launch({...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:{}),args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--enable-webgl','--ignore-gpu-blocklist','--no-sandbox']});
  const page=await browser.newPage({viewport:{width:1280,height:720},serviceWorkers:'block'}),errors=[];page.setDefaultTimeout(300000);
@@ -17,9 +17,11 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
   await page.evaluate(q=>{const s=VoidFoodStands.STANDS[q];walker.x=s.x-5*Math.sin(s.yaw);walker.z=s.z-5*Math.cos(s.yaw);walker.yaw=s.yaw;walker.pitch=0;},q);
   await page.waitForFunction(q=>VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodVendor===q)&&VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodCustomer===q),q,{timeout:60000});
   await page.waitForFunction(q=>VoidBabylon.scene.meshes.some(m=>m.name.includes('food-vendor:'+q)),q,{timeout:60000});
-  const result=await page.evaluate(q=>({cart:!!VoidBabylon.scene.getTransformNodeByName('food-stand-'+q),seats:walkingLocation.interactions.filter(i=>i.action==='ncz-food-seat'&&i.quarter===q).length,worker:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodVendor===q),customer:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodCustomer===q),apron:VoidBabylon.scene.meshes.some(m=>m.name.includes('food-vendor:'+q))}),q);
+  const result=await page.evaluate(q=>({cart:!!VoidBabylon.scene.getTransformNodeByName('food-stand-'+q),seats:walkingLocation.interactions.filter(i=>i.action==='ncz-food-seat'&&i.quarter===q).length,worker:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodVendor===q),customer:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodCustomer===q),apron:VoidBabylon.scene.meshes.some(m=>m.name.includes('food-vendor:'+q)),nearbyScreens:VoidAdScreens.current?.spots.filter(p=>Math.hypot(p.x-VoidFoodStands.STANDS[q].x,p.z-VoidFoodStands.STANDS[q].z)<20).map(p=>[p.x,p.z])||[]}),q);
   assert.equal(result.cart,true,q);assert.equal(result.seats,3,q);assert.equal(result.worker,true,q);assert.equal(result.customer,true,q);assert.equal(result.apron,true,q);
+  for(const [x,z] of result.nearbyScreens)assert.ok(Math.hypot(x-s.x,z-s.z)>=6,q+' ad screen crowding food stand at '+x+','+z);
   console.log(q,result);
+  if(process.env.FOOD_SCREENSHOT_DIR){fs.mkdirSync(process.env.FOOD_SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.FOOD_SCREENSHOT_DIR,q+'-street.png')});}
   if(q==='oldtown'){
    await page.screenshot({path:process.env.FOOD_STANDING_SCREENSHOT||path.join(os.tmpdir(),'food-stand-oldtown-standing.png')});
    const seat=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='food-seat-oldtown-1'));

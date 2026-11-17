@@ -5,8 +5,8 @@
  const STANDS={
   port:{name:'Port Noodles',x:35.5,z:-87.8,yaw:0,food:'NOODLES',accent:'#df9b5a',look:'communion-tech'},
   oldtown:{name:'Main Street Kitchen',x:68.4,z:-87,yaw:Math.PI/2,food:'HOT NOODLES',accent:'#d58165',look:'ncz-neon'},
-  avenue:{name:'Avenue Dumplings',x:86,z:-16.8,yaw:Math.PI,food:'DUMPLINGS',accent:'#8dc6af',look:'fixer-01'},
-  'far-south':{name:'South Gate Broth',x:68.4,z:-155,yaw:Math.PI/2,food:'BROTH',accent:'#d0a66c',look:'runner-02'},
+  avenue:{name:'Avenue Dumplings',x:110,z:-16.8,yaw:Math.PI,food:'DUMPLINGS',accent:'#8dc6af',look:'fixer-01'},
+  'far-south':{name:'South Gate Broth',x:53.6,z:-155,yaw:-Math.PI/2,food:'BROTH',accent:'#d0a66c',look:'runner-02'},
   outskirts:{name:'Outskirts Rice',x:86,z:-237,yaw:Math.PI/2,food:'RICE / TEA',accent:'#b6a786',look:'fixer-01'}
  };
  const world=(s,x,z)=>[s.x+Math.cos(s.yaw)*x+Math.sin(s.yaw)*z,s.z-Math.sin(s.yaw)*x+Math.cos(s.yaw)*z];

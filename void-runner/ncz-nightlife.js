@@ -41,7 +41,7 @@
  // Spots no one stops or leans at: doors, the taxi zones' kerbs, the static crew.
  const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-182,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5],...Object.values(FS?.STANDS||{}).map(s=>[s.x,s.z,3])];
  // The street's standing crew (neochinatown.js): walkers step round them.
- const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4],...Object.values(FS?.STANDS||{}).map(s=>Math.abs(Math.sin(s.yaw))>.5?[s.x+.65,s.z]:[s.x,s.z-.65])];
+ const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4],...Object.values(FS?.STANDS||{}).map(s=>Math.abs(Math.sin(s.yaw))>.5?[s.x+Math.sign(Math.sin(s.yaw))*.65,s.z]:[s.x,s.z-.65])];
  // Far South's two pavements: Main Street goes on south of the South Gate. Their share of the crowd is Old Town's (weights are counted against the lanes above, so the other quarters' crowds did not change).
  const farLanes=[
   {id:'main-far-west',a:[52.6,-131.6],b:[52.6,-216.4],wall:[-1,0],half:1,nightlife:true,weight:3},

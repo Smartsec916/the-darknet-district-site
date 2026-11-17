@@ -6,12 +6,14 @@ David requested one food stand inside each of the five checkpoint quarters, with
 | --- | ---: | --- |
 | Port | 35.5, -87.8 | Pad |
 | Old Town | 68.4, -87 | Main Street |
-| Avenue | 86, -16.8 | Road |
-| Far South | 68.4, -155 | Main Street |
+| Avenue | 110, -16.8 | Road |
+| Far South | 53.6, -155 | Main Street |
 | Outskirts | 86, -237 | Gravel route |
 
 `void-runner/ncz-food-stands.js` owns the placement, meshes, one vendor and one seated customer in each quarter. The counters use existing crowd models and procedurally worn PBR materials; they introduce no licensed assets, paid generation or new voice. `street-gear.js` now dresses food workers in a fitted work apron instead of a thigh rig and bracer. `ncz-food-interactions.js` makes the three empty stools usable in first person, with E or Space to stand. The vendor turns to a talk animation when addressed and gives one short line; the customer holds a seated pose. There is no purchase, inventory or save change. If the parked Port rebuild is enabled later, its own stand replaces this Port counter.
 
 Street walkers and standing groups in `ncz-nightlife.js` now keep the counters clear. The street cast now preloads and uses two existing measured models, `regular-01` and `cyborg-01`, alongside its original four; headcount stays the same. This is a limited visual variety pass. The larger replacement of the blocky street character models remains open.
 
-The static collider test checks all five carts and stools against the existing city solids and gate doors. `tests/ncz-food-stands-browser.cjs` loads the running game and checks the counter, worker and customer in every quarter; it also sits and stands in Old Town. The test is optional and uses a local web server plus Playwright. The work still needs a graphics review on real hardware, especially the workers' visibility and the food materials. Current counters add readable street activity but remain a step toward the permanent AAA art target, not the final modeled food venues.
+The static collider test checks all five carts and stools against the existing city solids and gate doors. `tests/ncz-food-stands-browser.cjs` loads the running game and checks the counter, worker and customer in every quarter; it also sits and stands in Old Town and checks that ad screens stay at least 6 m from each cart. The test is optional and uses a local web server plus Playwright. The work still needs a graphics review on real hardware, especially the workers' visibility and the food materials. Current counters add readable street activity but remain a step toward the permanent AAA art target, not the final modeled food venues.
+
+Player-eye captures from the local low-graphics browser run: [Port](ncz-food-stands/port-street.png), [Old Town](ncz-food-stands/oldtown-street.png), [Old Town seated](ncz-food-stands/oldtown-seated.png), [Avenue](ncz-food-stands/avenue-street.png), [Far South](ncz-food-stands/far-south-street.png), and [Outskirts](ncz-food-stands/outskirts-street.png). These show existing fallback crowd models and procedural cart materials. They are not production renders.
