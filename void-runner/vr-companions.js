@@ -400,8 +400,11 @@
  // How far round the head must turn to face a target: yaw relative to the body's facing, pitch up/down, both
  // clamped; and whether the whole body should turn (standing only, beyond bodyTurnAt until within bodyTurnUntil).
  const wrap=a=>((a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
- function look(bodyYaw,head,target,c=defaults,turning=false){
-  const dx=target.x-head.x,dz=target.z-head.z,dy=target.y-head.y,want=Math.atan2(dx,dz),off=wrap(want-bodyYaw),flat=Math.hypot(dx,dz)||1e-6;
+ // `side` (-1 or 1, optional): the side the head last turned to. With you almost straight behind them it keeps that side instead of whipping
+ // across from one shoulder to the other as you cross the line behind their back (17 Nov 2026).
+ function look(bodyYaw,head,target,c=defaults,turning=false,side=0){
+  const dx=target.x-head.x,dz=target.z-head.z,dy=target.y-head.y,want=Math.atan2(dx,dz),flat=Math.hypot(dx,dz)||1e-6;let off=wrap(want-bodyYaw);
+  if(side&&Math.abs(off)>behindAt&&Math.sign(off)!==Math.sign(side))off+=Math.sign(side)*2*Math.PI;
   const yaw=Math.max(-c.maxHeadYaw,Math.min(c.maxHeadYaw,off)),pitch=Math.max(-c.maxHeadPitch,Math.min(c.maxHeadPitch,Math.atan2(dy,flat)));
   const turn=turning?Math.abs(off)>c.bodyTurnUntil:Math.abs(off)>c.bodyTurnAt;
   return {yaw,pitch,offset:off,want,turn};}
@@ -409,6 +412,24 @@
  const ease=(from,to,rate,dt)=>from+(to-from)*Math.min(1,dt*rate);
  // Shares of the turn each bone takes, chest to head.
  const chain=[['Spine2',.22,.15],['Neck',.33,.35],['Head',.45,.5]];
+ /* Companion fixes (the owner, 17 Nov 2026: "sometimes their head, eyes, arms disappear ... sometimes in odd positions, probably because of head tracking").
+    behindAt: past this (you almost straight behind) the head keeps the side it was turned to (see look).
+    maxCorrection: the most the attention pass adds to whatever the clip is doing with the head, so a clip that already turns the head (a glance
+    back, a tilt) is never twisted round a further 70 degrees on top.
+    headWeight: one-off moves that act with the head themselves keep most of their own head movement (the attention pass steps back).
+    reach: the space a companion's body can occupy in any of their clips (standing, sitting, lying back, dancing, arms out), in metres around their own
+    origin. Every part's culling box is set to it (vr-suite.js): a skinned part's own box is measured once, in its bind pose, and an eye, the teeth or
+    an arm whose animated pose had left that box were dropped from the picture whenever the box fell outside the view (close up, at the screen edge).
+    turnSpeed: the fastest a standing companion turns on the spot, radians a second (no spinning on the heels). */
+ const behindAt=150*DEG,maxCorrection={yaw:80*DEG,pitch:35*DEG},turnSpeed=1.9;
+ const reach={x:[-1.9,1.9],y:[-.35,2.35],z:[-1.9,1.9]};
+ const headMoves={'glance-back':.35,'head-tilt':.55,coy:.55,laugh:.7,'blow-kiss':.7,shrug:.8,'sit-enter':.5,'sit-exit':.5,wave:.85};
+ const headWeight=clip=>{const n=String(clip||'');for(const [k,w] of Object.entries(headMoves))if(n===k||n.endsWith('-'+k))return w;return 1;};
+ // One step of an on-the-spot turn toward `want` (radians): eases in and out, never faster than turnSpeed. v: the turn's current speed (rad/s).
+ function turnStep(yaw,want,v,dt,{rate=2.6,max=turnSpeed,accel=6}={}){const d=wrap(want-yaw),goal=Math.max(-max,Math.min(max,d*rate)),nv=v+(goal-v)*Math.min(1,dt*accel);
+  let step=nv*dt;if(Math.sign(step)!==Math.sign(d)&&d)step=0;if(Math.abs(step)>Math.abs(d))step=d;return {yaw:yaw+step,v:step===d?0:nv,left:Math.abs(d-step)};}
+ // Smoothstep from a to b over u in 0..1 (positions and turns that glide instead of jumping).
+ const glideAt=(a,b,u)=>{const t=Math.max(0,Math.min(1,u));return a+(b-a)*t*t*(3-2*t);};
 
  // ---- Paths around furniture: A* on a 0.2 m grid over the room's collision, then string-pulled ----
  function path(from,to,blocked,{step=.2,limit=6000}={}){
@@ -505,6 +526,6 @@
     m.setVerticesData(B.VertexBuffer.ColorKind,rgba,false,4);m.hasVertexAlpha=false;cavityDone.add(m.geometry);report.cavity++;});}
   return report;}
 
- const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
+ const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,behindAt,maxCorrection,turnSpeed,reach,headWeight,turnStep,glideAt,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);
