@@ -47,7 +47,7 @@
   {id:'district-alley',name:'The District alley',level:'place',parent:'oldtown',scene:'neochinatown',rects:[ALLEY],enter:{...street,quarter:'oldtown'}},
   {id:'null',name:'NULL',level:'place',parent:'oldtown',scene:'neochinatown',rects:[HALL],enter:{...street,quarter:'oldtown'},target:[DOOR.x+1.6,1.7,DOOR.z],note:'The nightclub across Main Street: the hall, entry passage included (ncz-nightclub.js HALL).'},
   {id:'null-entrance',name:'NULL entrance',level:'place',parent:'null',scene:'neochinatown',rects:[ENTRY],enter:{...street,quarter:'oldtown'},target:[DOOR.x+1.6,1.7,DOOR.z]},
-  {id:'milked',name:'Milked',level:'place',parent:'far-south',scene:'neochinatown',rects:[(MK&&MK.FOOTPRINT)||[78,98,-190,-174]],enter:{...street,quarter:'far-south'}},
+  {id:'milked',name:'Milked',level:'place',parent:'far-south',scene:'neochinatown',rects:[(MK&&MK.FOOTPRINT)||[78,98,-190,-174]],enter:{...street,quarter:'far-south'},target:MK&&MK.VESTIBULE?[(MK.VESTIBULE[0]+MK.VESTIBULE[1])/2,(MK.VESTIBULE[2]+MK.VESTIBULE[3])/2]:undefined,note:'The arrow leads to the front vestibule (Mission 003: walking in completes “Travel to Milked”).'},
   ...((QT&&QT.GATES)||[]).map(g=>({id:'gate-'+g.id.replace(/-gate$/,''),name:g.name+' ('+g.code+')',level:'place',parent:'gates',scene:'neochinatown',rects:[g.rect],enter:{...street,quarter:(g.ends.hi&&g.ends.hi.quarter)||(g.ends.lo&&g.ends.lo.quarter)||'avenue'}}))];
  const BY=new Map(NODES.map(n=>[n.id,n]));
  const IDS=NODES.map(n=>n.id);

@@ -33,6 +33,8 @@
  'use strict';
  const MS=typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
  const PL=typeof module!=='undefined'&&module.exports?require('./places.js'):root.VoidPlaces;
+ const GC=typeof module!=='undefined'&&module.exports?require('./game-clock.js'):root.VoidClock;
+ const DPL=()=>typeof module!=='undefined'&&module.exports?require('./district-people.js'):root.VoidDistrictPeople;
  const FORMAT='darknet-district-mission-content',VERSION=1;
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TAGS=/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/;
  // The events the beginner runner fires (beginner-integration.js); the same list as the Developer Studio (admin/studio-model.js EVENTS, checked by a test).
@@ -115,7 +117,7 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag'],AUTO=['message'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -136,7 +138,9 @@
   if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
   if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');
   const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
-  if(x.kind==='after-mission'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[])]);if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
+  // "after N in-game hours / minutes" (Mission 003, 17 Nov 2026): value = IN-GAME minutes (1..10080, a week) after the mission named here was completed (game-clock.js)
+  if(x.kind==='game-time'&&!(Number.isInteger(x.value)&&x.value>=1&&x.value<=10080))err(w+': “after in-game time” needs a whole number of in-game minutes from 1 to 10080 (a week).');
+  if(x.kind==='after-mission'||x.kind==='game-time'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[]),...((MS&&MS.MISSION_IDS)||[])]);/* the shipped story's missions always exist */if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
   if((x.kind==='place'||x.kind==='leave')&&(typeof x.place!=='string'||(ctx.places&&!ctx.places.has(x.place))))err(w+': unknown trigger place "'+x.place+'".');
   if(x.kind==='flag'){if(!STORY_FLAG.test(x.flag||''))err(w+': the trigger flag must be a story flag name (letters, digits, - or _).');if(!(typeof x.value==='boolean'||(typeof x.value==='string'&&x.value.length<=200&&!TAGS.test(x.value))||Number.isSafeInteger(x.value)))err(w+': the trigger flag value must be true/false, a number or short text.');}}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
@@ -182,6 +186,7 @@
      else if(o.kind==='buy'){if(typeof o.item!=='string'||(ctx.items&&!ctx.items.has(o.item)))err(ow+': "'+o.item+'" is not an item a store sells.');}
      else if(o.kind==='message'){if(!(m.start&&m.start.how==='notification'))err(ow+': a “notification arrives” step needs the mission to start by notification.');}
      else if(o.kind==='hear'){if(o.npc!=null&&o.npc!==''&&!npcOk(o.npc))err(ow+': who is heard must be an NPC the game has a TALK prompt for.');}
+     else if(o.kind==='await-call'){if(o.npc!=null&&o.npc!==''&&!speakerOk(o.npc))err(ow+': who will call must be a known NPC.');}
      else if(o.kind==='enter'||o.kind==='leave'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
      else if(o.kind==='photo'){if(!subjectOk(o.npc))err(ow+': choose someone the V1 camera can identify.');}
      else if(o.kind==='send-photo'){if(typeof o.npc!=='string'||o.npc==='You'||!speakerOk(o.npc))err(ow+': the photo must be sent to a known NPC.');if(!subjectOk(o.subject))err(ow+': choose who must be in the photo (someone the V1 camera can identify).');}
@@ -201,6 +206,7 @@
      if(u.kind==='location'&&(typeof u.id!=='string'||(ctx.locations&&!ctx.locations.has(u.id))))err(uw+': unknown place "'+u.id+'".');
      if(u.kind==='ship'&&(typeof u.id!=='string'||(ctx.ships?!ctx.ships.has(u.id)||ctx.ships.get(u.id).premium:!['starter','ship2'].includes(u.id))))err(uw+': only a ship from the ship list that is not a paid purchase can be given.');
      if(u.kind==='tree'&&(typeof u.id!=='string'||!all.has(u.id)||u.id===t.id))err(uw+': "'+u.id+'" is not another of the new trees being sent.');
+     if((u.kind==='contact'||u.kind==='follow')&&(typeof u.id!=='string'||!/^[a-z][a-z0-9-]{0,39}$/.test(u.id)||u.id==='You'||!speakerOk(u.id)))err(uw+': a contact or a follow must name a known NPC.');
      if(u.kind==='reputation'){if(typeof u.id!=='string'||!(FACTIONS.includes(u.id)||(ctx.givers?ctx.givers.has(u.id):/^[a-z][a-z0-9-]{0,40}$/.test(u.id))))err(uw+': reputation must name an NPC or a faction.');if(!(Number.isInteger(u.amount)&&u.amount!==0&&Math.abs(u.amount)<=100))err(uw+': a reputation change must be a whole number from -100 to 100 (not 0).');}}}
    }}
   if(total>40)err('New trees hold '+total+' missions; 40 at most (each one is a record in every player’s save).');
@@ -230,6 +236,10 @@
    if(FACTIONS.includes(u.id)){s.progression=s.progression||{};s.progression.reputation=s.progression.reputation||{};s.progression.reputation[u.id]=cl((Number(s.progression.reputation[u.id])||0)+n);}
    else{s.story.relationships=s.story.relationships||{};s.story.relationships[u.id]=cl((Number(s.story.relationships[u.id])||0)+n);}
    const who=((env.givers||[]).find(g=>g.id===u.id)||{}).name||u.id;return (n>0?'BETTER':'WORSE')+' STANDING WITH '+String(who).toUpperCase();}
+  // The V1 (Mission 003): a contact in the player's device (story.flags.v1Contacts, comma separated ids; hud-data.js lists them) and a follow on Social (district-people.js).
+  if(u.kind==='contact'){const who=((env.givers||[]).find(g=>g.id===u.id)||{}).name||u.id,list=String(s.story.flags.v1Contacts||'').split(',').filter(Boolean);if(list.includes(u.id))return null;
+   list.push(u.id);while(list.join(',').length>200)list.shift();s.story.flags.v1Contacts=list.join(',');return String(who).toUpperCase()+' ADDED TO CONTACTS';}
+  if(u.kind==='follow'){const P=DPL(),who=((env.givers||[]).find(g=>g.id===u.id)||{}).name||u.id;if(!P||!P.isFollowing||P.isFollowing(s.story.flags,'n:'+u.id))return null;return P.toggleFollow(s.story.flags,{kind:'npc',id:u.id})?'FOLLOWING '+String(who).toUpperCase()+' ON SOCIAL':null;}
   if(u.kind==='tree'){if(s.story.flags[linkFlag(u.id)]===true)return null;s.story.flags[linkFlag(u.id)]=true;const t=(env.trees||[]).find(x=>x.id===u.id);return 'NEW STORY · '+((t&&t.name)||u.id);}
   return null;}
  const treeLive=s=>!!(s&&s.universe&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed');
@@ -260,7 +270,7 @@
   const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
    :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):false;
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
-   if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
+   if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(GC)GC.stamp(s,m.id);/* the in-game wait of "after N in-game hours" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
   const step=(t,m,o)=>{if(!Missions.complete(s,m.id,o.id,Camp))return false;Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
    if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
@@ -274,7 +284,7 @@
   // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
   const startsNow=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver);const w=st.when||{};
    if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);if(w.kind==='leave')return ev.type==='place'&&(ev.left||[]).includes(w.place);
-   if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
+   if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='game-time')return !!(GC&&GC.due(s,w.mission,w.value));if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
   // After a step: the automatic steps that follow it (messages) complete at once.
   const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind))break;if(!step(t,m,o))break;}};
   // After a talk step: a 'hear' step next shows its lines (done when the conversation closes), or is done at once when nothing can be shown.

@@ -85,8 +85,8 @@ test('the map lists the building, its named places and the taxi stop',()=>{
   const e=MK.PLACES.find(p=>p.id==='milked-entrance'),r=MK.PLACES.find(p=>p.id==='milked-rear-door');assert.ok(e.z>MK.LANE[2]&&e.z<MK.LANE[3],'the entrance pin is on the side street');assert.ok(r.z>MK.ALLEY[2]&&r.z<MK.ALLEY[3],'the rear-door pin is in the service alley');
   assert.ok(m.streets.some(s=>s.id==='milkedLane'&&/Side street/.test(s.name))&&m.streets.some(s=>s.id==='milkedAlley'&&/Service alley/.test(s.name)));
 });
-test('mission 3 is data only and inactive; the beginner missions are untouched',()=>{
-  const m=MK.MISSION;assert.equal(m.id,'meet-eva-milked');assert.equal(m.title,'MEET EVA AT MILKED');assert.equal(m.number,3);assert.equal(m.active,false);assert.equal(m.npc,'milked-eva');assert.equal(m.location,'milked');assert.ok(m.objective&&m.steps.length);
+test('the old Milked draft is data only and inactive; the beginner missions are untouched',()=>{
+  const m=MK.MISSION;assert.equal(m.id,'meet-eva-milked');assert.equal(m.title,'MEET EVA AT MILKED');assert.equal(m.number,null,'no number: 003 is the owner\'s Corporate Connections (main-story.js)');assert.equal(m.active,false);assert.equal(m.npc,'milked-eva');assert.equal(m.location,'milked');assert.ok(m.objective&&m.steps.length);
   const B=require('../void-runner/beginner.js'),V=require('../void-runner/mission-log.js');
   assert.equal(Object.keys(B.MISSIONS).length,6);assert.ok(!B.MISSIONS[m.id]&&!V.definitions[m.id],'nothing registers it');
   assert.ok(!/VoidMissions|register\(/.test(code),'milked.js never touches the mission manager');
@@ -123,7 +123,12 @@ test('the logo is MILKED followed by three white droplets drawn as shapes, in pi
 });
 test('inside: every room that is open and every interaction can be walked to; the studios are only seen through their windows; nobody walks out through a wall',()=>{
   // the interior environment, with its three inner doors open (the door control opens them as the player comes up) and the two outer doors shut
-  const L=MK.layout();for(const s of L.solids)if(s.door)s.open=MK.openable(MK.DOORS.find(d=>d.id===s.id),MK.AREA);const cells=reach(L);
+  const L=MK.layout();for(const s of L.solids)if(s.door)s.open=MK.openable(MK.DOORS.find(d=>d.id===s.id),MK.AREA);
+  // the STAFF ONLY door at the hallway's far end is locked until Eva lets the player through (Mission 003): solid, and the office cannot be reached that way
+  const staff=L.solids.find(s=>s.staff);assert.ok(staff&&!staff.open,'the staff-only door starts locked');assert.equal(E.blocked(93.5,-81.8+DZ,L),true,'locked staff door is solid');
+  assert.equal(MK.staffAccess({}),false);assert.equal(MK.staffAccess({[MK.STAFF_FLAG]:true}),true);assert.equal(MK.STAFF_FLAG,'mf_milkedStaff');
+  staff.open=true;   // granted (milked-build.js opens it for a player with the flag): everything below is the building as such a player walks it
+  const cells=reach(L);
   for(const i of L.interactions)assert.ok(near(cells,i.position[0],i.position[2],i.range),i.id+' within reach');
   for(const r of MK.ROOMS){const c=[(r.rect[0]+r.rect[1])/2,(r.rect[2]+r.rect[3])/2];assert.equal(near(cells,c[0],c[1],.8),!r.closed,r.id+(r.closed?' is closed':' is reachable'));}
   for(const s of MK.STUDIOS){const r=MK.ROOMS.find(q=>q.id===s.room).rect;assert.ok(!cells.some(([x,z])=>x>r[0]+.5&&x<r[1]-.5&&z>r[2]+.5&&z<r[3]-.5),s.room+' is never entered');}
@@ -144,7 +149,7 @@ test('outside: the street reaches the vestibule and the rear lobby and nothing f
 });
 test('Milked adds no save fields, no location id and no mission',()=>{
   const man=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/save-manifest.json'),'utf8'));assert.ok(!JSON.stringify(man).includes('milked'));
-  assert.ok(!/state\.|story\.flags/.test(code),'the data module touches no game state');assert.ok(!/story\.flags|[^.\w]save\(/.test(bcode),'the presentation module writes nothing to the save');
+  assert.ok(!/state\.|story\.flags/.test(code),'the data module touches no game state');assert.match(code,/const staffAccess=flags=>/,'the staff-only door only READS the flags it is given (Mission 003)');assert.ok(!/story\.flags|[^.\w]save\(/.test(bcode),'the presentation module writes nothing to the save');
 });
 test('every interaction has a registered handler in the integration script',()=>{
   const integ=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');

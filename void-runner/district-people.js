@@ -21,7 +21,7 @@
  function writeJobs(flags,ids){const c=cleanJobs(ids);if(!flags)return c;if(c.length)flags[FLAG]=c.join(',');else delete flags[FLAG];return c;}
  function toggleJob(ids,id){const c=cleanJobs(ids);if(!JOB.has(id))return c;if(c.includes(id))return c.filter(x=>x!==id);return c.length>=MAX_JOBS?c:[...c,id];}
 
- const AREAS={interior:'The Darknet District',club:'NULL nightclub, NeoChinatown'};
+ const AREAS={interior:'The Darknet District',club:'NULL nightclub, NeoChinatown',milked:'Milked, Far South'};
  const NPCS=[
   /* `model`: the character's own model file (assets/models/crowd/<model>.glb), drawn in the scene and in the profile picture instead of the creator look in `appearance`,
      which stays as the fallback if the file cannot be loaded. `scale` brings the file to the game's standard height. */
@@ -44,7 +44,10 @@
   /* Dax (the owner, 15 Nov 2026): there is only one. Her model is a licensed one drawn by dax.js, which also says where she is at any moment (`live`); her profile picture is a
      labelled silhouette until one is made from her own model. DRAFT: the line about her is Claude's. */
   {id:'dax',achievements:[['arcade-top-blackout-protocol','2026-10-19'],['arcade-top-corporate-zombies','2026-11-02'],['arcade-top-underground-overdrive','2026-11-13'],['rook-three-runs','2026-09-27']],name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
-  {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'}
+  {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'},
+  /* Fish (Mission 003 — Corporate Connections, 17 Nov 2026): the player follows her Social profile and has her as a V1 contact after meeting her. Her figure in Milked is drawn by
+     milked-build.js (this entry draws nothing); her picture is her own model. PROPOSED: the bio line is Claude's, minimal, awaiting the owner. */
+  {id:'milked-fish',name:'Fish',jobs:['info-broker'],area:'milked',place:'Milked, Far South',bio:'Intel broker. Works at Milked.',model:'npc-fish',proposed:true}
  ].map(n=>Object.freeze({...n,jobs:cleanJobs(n.jobs)}));
  /* A resident's achievements (the owner, 15 Nov 2026: "some NPCs will have Achievements, although most will be easy ones"; Dax holds every arcade high score and three
     cargo runs for Rook). Each is [achievement id, the day it was earned]. They are part of who the resident is, not earned in play. DRAFT: which resident has which, and the

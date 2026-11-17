@@ -56,7 +56,10 @@
  /* The engine a re-voiced line goes through, per character. Default: Kokoro through tools/audio/generate.py --from-queue with the character's registered approved voice.
     Admin: ElevenLabs "Bill Adams" (the voice of his ElevenLabs lines in assets/audio/voice/extra/manifest.json). Nothing is generated from the editor; ElevenLabs re-voicing waits for the owner's approval. */
  const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026',voiceId:'DMyrgzQFny3JI1Y1paM5',note:'waiting for ElevenLabs re-voice (needs approval)'},iris:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026 (android effect still applied)',voiceId:'CvD6hF1BJzAFN428j1cO',note:'waiting for ElevenLabs re-voice (needs approval)'},
-  rook:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026',voiceId:'wzVFxVZCBIi6KBxNhQDI',note:'waiting for ElevenLabs re-voice (needs approval)'}};
+  rook:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026',voiceId:'wzVFxVZCBIi6KBxNhQDI',note:'waiting for ElevenLabs re-voice (needs approval)'},
+  // Mission 003 (17 Nov 2026): the voices the owner named for Eva and Fish (a V1 translation is spoken in the speaker's own voice)
+  'milked-eva':{engine:'elevenlabs',voice:'ElevenLabs voice named by the owner for Eva on 17 Nov 2026',voiceId:'gJx1vCzNCD1EQHT212Ls',note:'Mission 003 lines recorded; others wait for approval'},
+  'milked-fish':{engine:'elevenlabs',voice:'ElevenLabs voice named by the owner for Fish on 17 Nov 2026 (Mandarin, and English for her V1 translations)',voiceId:'ggacvEjbmpoSuEinfFWs',note:'Mission 003 line recorded; others wait for approval'}};
  const PLAYER=new Set(['pilot','You','you','player']);
  const ALIAS={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant','Landing terminal':'landing-terminal'};
  const TARGETS={admin:'admin','district-iris':'iris','district-bar':'bartender','district-shop':null,terminal:'landing-terminal',board:null,rook:'rook',elara:'elara',marcus:'marcus',kess:'kess',mercer:'mercer'};

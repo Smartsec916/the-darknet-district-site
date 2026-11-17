@@ -71,10 +71,17 @@
   if(NC&&NC.ENTRY&&NC.HALL){const E=NC.ENTRY;regions.push({id:'null-entry',rects:[E.rect]},{id:'null-hall',rects:[NC.HALL]});
    portals.push({id:'null-door',a:'q:oldtown',b:'null-entry',x:E.doors.outer.x,z:E.doors.outer.z,nx:-1,nz:0,half:E.doors.outer.half},{id:'null-inner-door',a:'null-entry',b:'null-hall',x:E.doors.inner.x,z:E.doors.inner.z,nx:-1,nz:0,half:E.doors.inner.half});}
   if(MK&&MK.DOOR&&MK.FOOTPRINT){const front=QT?QT.quarterAt(MK.DOOR.x,MK.DOOR.z+2):null,rear=QT?QT.quarterAt(MK.REAR.x,MK.REAR.z-2):null;
-   regions.push({id:'milked-vestibule',rects:[MK.VESTIBULE]},{id:'milked-lobby',rects:[MK.LOBBY]},{id:'milked',rects:[MK.FOOTPRINT]});
-   const north=(MK.DOORS||[]).find(x=>x.id==='milked-lobby-north')||{x:MK.REAR.x,z:MK.REAR.z+2.6,half:.7};
-   portals.push({id:'milked-door',a:'q:'+(front||'far-south'),b:'milked-vestibule',x:MK.DOOR.x,z:MK.DOOR.z,nx:0,nz:-1,half:MK.DOOR.half||1},{id:'milked-inner-door',a:'milked-vestibule',b:'milked',x:MK.INNER.x,z:MK.INNER.z,nx:0,nz:-1,half:MK.INNER.half||1},
-    {id:'milked-rear-door',a:'q:'+(rear||'far-south'),b:'milked-lobby',x:MK.REAR.x,z:MK.REAR.z,nx:0,nz:1,half:MK.REAR.half||.7},{id:'milked-lobby-door',a:'milked-lobby',b:'milked',x:north.x,z:north.z,nx:0,nz:1,half:north.half||.7});}
+   // Inside (Mission 003, 17 Nov 2026: the arrow to Eva at reception and on to Fish's office): reception, the studio hallway, the staff corridor and Fish's office are
+   // regions of their own, joined by the door beside the desk, the STAFF ONLY door at the hallway's far end and the office door, so the arrow never points through a wall.
+   // The rest of the building (studios, dressing rooms, the rear corridor) stays one region ('milked'), as before.
+   const room=id=>((MK.ROOMS||[]).find(r=>r.id===id)||{}).rect,rooms=[['milked-reception','reception'],['milked-hall','hallway'],['milked-office','office'],['milked-staff','staff-corridor']].filter(([,r])=>room(r));
+   regions.push({id:'milked-vestibule',rects:[MK.VESTIBULE]},{id:'milked-lobby',rects:[MK.LOBBY]},...rooms.map(([id,r])=>({id,rects:[room(r)]})),{id:'milked',rects:[MK.FOOTPRINT]});
+   const north=(MK.DOORS||[]).find(x=>x.id==='milked-lobby-north')||{x:MK.REAR.x,z:MK.REAR.z+2.6,half:.7},inside=rooms.length===4;
+   const hz=MK.HALL?(MK.HALL[2]+MK.HALL[3])/2:0,office=room('office');
+   portals.push({id:'milked-door',a:'q:'+(front||'far-south'),b:'milked-vestibule',x:MK.DOOR.x,z:MK.DOOR.z,nx:0,nz:-1,half:MK.DOOR.half||1},{id:'milked-inner-door',a:'milked-vestibule',b:inside?'milked-reception':'milked',x:MK.INNER.x,z:MK.INNER.z,nx:0,nz:-1,half:MK.INNER.half||1},
+    {id:'milked-rear-door',a:'q:'+(rear||'far-south'),b:'milked-lobby',x:MK.REAR.x,z:MK.REAR.z,nx:0,nz:1,half:MK.REAR.half||.7},{id:'milked-lobby-door',a:'milked-lobby',b:inside?'milked-staff':'milked',x:north.x,z:north.z,nx:0,nz:1,half:north.half||.7});
+   if(inside)portals.push({id:'milked-side-door',a:'milked-reception',b:'milked-hall',x:MK.HALL[0],z:hz,nx:1,nz:0,half:.65},{id:'milked-staff-door',a:'milked-hall',b:'milked-staff',x:MK.HALL[1],z:hz,nx:1,nz:0,half:.65},
+    {id:'milked-office-door',a:'milked-staff',b:'milked-office',x:office[0]+1.25,z:office[2],nx:0,nz:1,half:.65},{id:'milked-lobby-west',a:'milked-lobby',b:'milked',x:(MK.LOBBY_W||{}).x||MK.LOBBY[0],z:(MK.LOBBY_W||{}).z||MK.LOBBY[2]+1,nx:-1,nz:0,half:.65});}
   if(QT&&QT.LANES){for(const l of QT.LANES){const g=QT.gate(l.gate);if(!g)continue;regions.push({id:'lane:'+l.key,rects:[l.rect]});
     for(const end of ['lo','hi']){const e=g.ends[end],door=l.doors&&l.doors[end];if(!e||!door)continue;const into=end==='lo'?1:-1;   // from the quarter at this end, into the lane
      portals.push({id:l.key+':'+end,a:e.quarter?'q:'+e.quarter:'scene:'+e.scene,b:'lane:'+l.key,x:door.x,z:door.z,nx:g.axis==='x'?into:0,nz:g.axis==='z'?into:0,half:door.half||1,penalty:l.kind==='bay'?TUNE.bayPenalty:0});}}}

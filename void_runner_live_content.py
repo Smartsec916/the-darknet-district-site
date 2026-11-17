@@ -260,7 +260,7 @@ DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
 STORY_MISSION = re.compile(r'^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$')
 HOW = ['person', 'notification']
 CHANNELS = ['messages', 'comms', 'notify']
-WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag']
+WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time']
 VIA = ['talk', 'comms', 'messages']
 STORY_FLAG = re.compile(r'^[a-zA-Z][\w-]{0,63}$')
 
@@ -285,8 +285,11 @@ def start_problems(st, givers, places, mission_ids):
     w = st.get('when')
     if not _keys(w, ['kind', 'mission', 'place', 'flag', 'value']) or w.get('kind') not in WHEN:
         return out + ['the notification needs a trigger it knows.']
-    if w['kind'] == 'after-mission' and w.get('mission') not in mission_ids:
+    if w['kind'] in ('after-mission', 'game-time') and w.get('mission') not in mission_ids:
         out.append('"after mission" must name a mission that exists.')
+    if w['kind'] == 'game-time' and not (type(w.get('value')) is int and 1 <= w['value'] <= 10080):
+        # "after N in-game hours / minutes" (Mission 003, game-clock.js): N in-game minutes after the named mission was completed
+        out.append('"after in-game time" needs a whole number of in-game minutes from 1 to 10080.')
     if w['kind'] in ('place', 'leave') and w.get('place') not in places:
         out.append('unknown trigger place.')
     if w['kind'] == 'flag':
@@ -448,6 +451,8 @@ def check_trees(trees, inv, err):
                     err(ow + ': a "notification arrives" step needs the mission to start by notification.')
                 elif kind == 'hear' and o.get('npc') not in (None, '') and o.get('npc') not in talk:
                     err(ow + ': unknown NPC.')
+                elif kind == 'await-call' and o.get('npc') not in (None, '') and o.get('npc') not in givers:
+                    err(ow + ': unknown NPC.')
                 elif kind in ('enter', 'leave') and o.get('place') not in places:
                     err(ow + ': unknown place.')
                 elif kind == 'photo' and o.get('npc') not in subjects:
@@ -515,6 +520,8 @@ def check_trees(trees, inv, err):
                         err(w + ': only a ship that is not a paid purchase can be given.')
                     if k == 'tree' and (u.get('id') not in every or u.get('id') == t.get('id')):
                         err(w + ': a start-tree link must name another of the new trees being sent.')
+                    if k in ('contact', 'follow') and (not isinstance(u.get('id'), str) or not re.match(r'^[a-z][a-z0-9-]{0,39}$', u['id']) or u['id'] not in givers):
+                        err(w + ': a contact or a follow must name a known NPC.')
                     if k == 'reputation':
                         if u.get('id') not in givers and u.get('id') not in factions:
                             err(w + ': reputation must name an NPC or a faction.')
