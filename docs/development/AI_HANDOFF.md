@@ -6,6 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 17 Nov 2026 (newest): MISSION 002 — EYES ON THE STREET; THE AWAKENING TREE; PLACES, PHOTOS, MESSAGES, REPUTATION (branch `claude/eyes-on-the-street`, build `2026-11-17-eyes-1`, pushed, NO PR, not merged)
+
+David's agreed Awakening Tree script (APPROVED, verbatim in `VOID_RUNNER_HANDOFF.md` §11). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourth pass".
+
+- **Live game:** after Awakening, talking to Admin gives his in-person offer of **Eyes on the Street** (backend 002, `m002-eyes-on-the-street`) with ACCEPT / NOT NOW (NOT NOW: offered again next time) → Mission Log, tracked, the yellow arrow out through the vestibule to NULL's door → walking into NULL completes step 1 and brings Admin's Comms call (David's five lines) → **Juno Vex** at NULL's bar with a yellow marker (only while that step is in progress and tracked) → a photo that really shows her (camera checks at capture: frame, centred, ≤15 m, line of sight) → Messages › INBOX › Admin › ATTACH › SEND (wrong photo: "That's not the person…", unlimited tries; right photo: "Received…") → back to Admin: "Not bad…", 100 credits, `story.relationships.admin` +10, paid once.
+- **Reusable:** `void-runner/places.js` (named places by hierarchy, enter / leave events per player), step kinds enter / leave / photo / send-photo, lines `via` Comms call or message, start `accept`, trigger `leave`, unlock `reputation` (NPC → `story.relationships`, faction → `progression.reputation`), `talk-choice.js`, `mission-guide.js` (arrow to places and people, marker, help hints `data-help`). The Mission Editor edits and plays all of them; the server check (`void_runner_live_content.py`) is the same. The tree "Main storyline" is shown as **Awakening** (id unchanged).
+- **NULL:** Low 6 / Medium 9 / High-Ultra 10 people with Juno; VIP pair and outside queue removed; FIXER no longer in NULL's crowd (Juno is built on it).
+- **Not verified:** real hardware (software renderer only); High / Ultra in the browser test (Low only); the purchased NULL model variant (Juno sits at the built bar's stool position; that model has no stools); VR; the server with publishing on. Juno's "long black coat" is the kit's black FIXER jacket and skirt (no coat in the kit); the raised visor is the gear visor moved up onto her bob.
+
 ### 17 Nov 2026 (latest): MISSION 001 — AWAKENING; MISSION NUMBERS; MISSIONS START IN PERSON OR BY NOTIFICATION; EVERY OLDER MISSION REMOVED (branch `claude/mission-001`, build `2026-11-17-mission-001-1`, pushed, NO PR, not merged)
 
 David: "I also need a backend Mission numbering system, as well as names", "Go ahead and remove all missions in the game", his Mission 001 text (APPROVED, verbatim in `VOID_RUNNER_HANDOFF.md` §11), "either have Missions start by notification or in person", a V1 notification when it is closed, notification sounds per device ("V3 is Shadow"), and EXIT TO MAIN MENU in Developer Tools. Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Third pass".

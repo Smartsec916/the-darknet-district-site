@@ -112,7 +112,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    log('C in person');
    const {ctx,page}=await open(1366,768);
    const trees=await page.evaluate(()=>{const MC=VoidMissionContent,G=VoidLiveContent.env.givers;const t=MC.treesContent(VoidMainStory.trees(),{givers:G}).trees;
-    t.push({id:'draft-browser-person',name:'Browser test: in person',missions:[{id:'draft-browser-person-m1',number:2,title:'TEST IN PERSON',type:'side',giver:'iris',offer:[{who:'iris',text:'TEST: a job, in person.'}],objectives:[{id:'step-1',label:'TEST: talk to Admin',kind:'talk',npc:'admin'}]}]});return t;});
+    t.push({id:'draft-browser-person',name:'Browser test: in person',missions:[{id:'draft-browser-person-m1',number:5,title:'TEST IN PERSON',type:'side',giver:'iris',offer:[{who:'iris',text:'TEST: a job, in person.'}],objectives:[{id:'step-1',label:'TEST: talk to Admin',kind:'talk',npc:'admin'}]}]});return t;});
    await ctx.close();
    const o=await open(1366,768,{content:{format:'darknet-district-mission-content',version:1,trees}});const p=o.page;
    await p.waitForFunction(()=>VoidLiveContent.current.version===3,null,{timeout:30000});
