@@ -16,8 +16,9 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
   await page.waitForFunction(q=>mode==='walking'&&walkingLocation?.quarter===q,q);
   await page.evaluate(q=>{const s=VoidFoodStands.STANDS[q];walker.x=s.x-5*Math.sin(s.yaw);walker.z=s.z-5*Math.cos(s.yaw);walker.yaw=s.yaw;walker.pitch=0;},q);
   await page.waitForFunction(q=>VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodVendor===q)&&VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodCustomer===q),q,{timeout:60000});
-  const result=await page.evaluate(q=>({cart:!!VoidBabylon.scene.getTransformNodeByName('food-stand-'+q),seats:walkingLocation.interactions.filter(i=>i.action==='ncz-food-seat'&&i.quarter===q).length,worker:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodVendor===q),customer:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodCustomer===q)}),q);
-  assert.equal(result.cart,true,q);assert.equal(result.seats,3,q);assert.equal(result.worker,true,q);assert.equal(result.customer,true,q);
+  await page.waitForFunction(q=>VoidBabylon.scene.meshes.some(m=>m.name.includes('food-vendor:'+q)),q,{timeout:60000});
+  const result=await page.evaluate(q=>({cart:!!VoidBabylon.scene.getTransformNodeByName('food-stand-'+q),seats:walkingLocation.interactions.filter(i=>i.action==='ncz-food-seat'&&i.quarter===q).length,worker:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodVendor===q),customer:VoidBabylon.scene.transformNodes.some(n=>n.metadata?.foodCustomer===q),apron:VoidBabylon.scene.meshes.some(m=>m.name.includes('food-vendor:'+q))}),q);
+  assert.equal(result.cart,true,q);assert.equal(result.seats,3,q);assert.equal(result.worker,true,q);assert.equal(result.customer,true,q);assert.equal(result.apron,true,q);
   console.log(q,result);
   if(q==='oldtown'){
    await page.screenshot({path:process.env.FOOD_STANDING_SCREENSHOT||path.join(os.tmpdir(),'food-stand-oldtown-standing.png')});

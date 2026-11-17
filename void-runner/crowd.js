@@ -36,7 +36,7 @@
   rusthaven:['outlaw-01','district-smuggler','vesper-trader','regular-01'],          // pirates and outlaws
   vigil:['communion-worker','communion-tech','cyborg-01'],nexus:['communion-worker','communion-tech','cyborg-01'],
   holdfast:['order-farmhand','order-militia','order-grower'],'order-homeworld':['order-farmhand','order-grower','order-militia','vesper-mechanic'],
-  neochinatown:['ncz-neon','fixer-01','runner-02','communion-tech'],               // street crowd
+  neochinatown:['ncz-neon','fixer-01','runner-02','communion-tech','regular-01','cyborg-01'], // street crowd; two existing looks add variety without increasing headcount
   district:['hacker-01','district-smuggler','district-resident','outlaw-01']       // The Darknet District
  };
  // NeoChinatown and The Darknet District share one scene; these crew belong to the District.

@@ -3,6 +3,7 @@ const assert=require('node:assert/strict');
 const F=require('../void-runner/ncz-food-stands.js');
 const Q=require('../void-runner/ncz-quarters.js');
 const N=require('../void-runner/neochinatown.js');
+const Night=require('../void-runner/ncz-nightlife.js');
 
 test('each checkpoint quarter has one vendor, four seats, and three usable player prompts',()=>{
  assert.deepEqual(Object.keys(F.STANDS).sort(),Q.IDS.slice().sort());
@@ -25,5 +26,12 @@ test('food carts and stools do not overlap existing solid walls or gate doors',(
    const overlap=Math.abs(x-wx)<(sx+ww)/2-.02&&Math.abs(z-wz)<(sz+wd)/2-.02;
    assert.equal(overlap,false,q+' '+s.id+' overlaps '+wall.id);
   }
+ }
+});
+
+test('sidewalk NPCs keep the food counters clear',()=>{
+ for(const s of Object.values(F.STANDS)){
+  assert.ok(Night.keepClear.some(([x,z,r])=>x===s.x&&z===s.z&&r>=3));
+  assert.ok(Night.standing.some(([x,z])=>Math.hypot(x-s.x,z-s.z)<1));
  }
 });

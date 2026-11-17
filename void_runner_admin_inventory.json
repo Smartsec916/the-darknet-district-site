@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "828e9c56ee1f0a8b",
+  "revision": "e9fb16e4415e0f07",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12192,13 +12192,13 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 96,
-      "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){",
+      "line": 97,
+      "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','regular-01','cyborg-01'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 161,
+      "line": 162,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -12966,8 +12966,8 @@
     },
     {
       "source": "void-runner/street-gear.js",
-      "line": 205,
-      "text": "const who=node.metadata?.character||node.metadata?.id||(node.metadata?.club?'club:'+node.metadata.club:'')||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}",
+      "line": 209,
+      "text": "const who=node.metadata?.character||node.metadata?.id||(node.metadata?.foodVendor?'food-vendor:'+node.metadata.foodVendor:'')||(node.metadata?.club?'club:'+node.metadata.club:'')||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}",
       "kind": "source-reference"
     },
     {
@@ -14004,7 +14004,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crowd.js": "1fc13d5def25c199c7f2ed439942e7850caf597ecd87778bf667f583c060f8a6",
+    "void-runner/crowd.js": "7f0146a6507449fe85c580797cf68af017f21c1f061888bc9af8ef8d113c338d",
     "void-runner/dax.js": "c3c782e8ffb3efe7e694eb919e03f8f5660e0e3ef128c52271cd95b291135d87",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -14080,11 +14080,11 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "1622c43eae09d45dcf07cdc42427e18adc371571b5dc629c2c868921b6b142e0",
     "void-runner/ncz-food-interactions.js": "03d762f7a91df2edddd6803b7ed4a4d0983db0a7a072a0e7e924d649bf326e64",
-    "void-runner/ncz-food-stands.js": "6231d276d61963ce32f773b9ef511725127258a9069c3bc768abc3d9d0ad00dd",
+    "void-runner/ncz-food-stands.js": "3d7b4ed39624aace00a3d0e26af30bc7e94a35f9adab33e5781828b4b856b36c",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
-    "void-runner/ncz-nightlife.js": "764591a2e2bdd2d99732f62da2a67904c7e1da16985f718713d4b7a4bf4ad6be",
+    "void-runner/ncz-nightlife.js": "500d1e0cd40619110a0923934e9504d8a3760c6994f813abc0ecea6a38d52993",
     "void-runner/ncz-outskirts-life.js": "9dbc204a317176478e847c9c17272b9b70c5e318eefa6351339bb1544987d6ed",
     "void-runner/ncz-quarters.js": "5c622171495aa0a03ced24039103c1b42535b714a3462344af01ac1b1d06425e",
     "void-runner/neochinatown.js": "ef7695e38c2ff6469c3040c67e022dcf505cd50a33dd52fb1a1fae48227c7ac5",
@@ -14125,7 +14125,7 @@
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
     "void-runner/story-scenes.js": "322106e619d1a2456c5dac94dd252bd2373cb0c03273c75954d068b378cad5dd",
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
-    "void-runner/street-gear.js": "78d203669af47a48ab4d03efa83c0ecb8f2a9132722b952dd5ea83938825e623",
+    "void-runner/street-gear.js": "41841baec2e04c8987db5ecfd65eab835d20b20e4f8fe7555f15fc843841eafc",
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/temple-build.js": "d3dffa174073ca7a72663fbf3eaee0aeccf8f9c9794d2edd7f8a98477232a8d1",
