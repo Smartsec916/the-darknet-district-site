@@ -337,7 +337,7 @@
       "tree"
     ]
   },
-  "revision": "237c7efb3fa5d9fc",
+  "revision": "9d4942bf249eb02c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -15392,7 +15392,7 @@
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "7f9d8fb40f109787b89905d45bb6c40ef60f513ca281562eadffde61560c3b17",
+    "void-runner/personal-device.js": "946df7f6b67a3f9e82701a58db7c4128f33c6c9b7760dc7c51ccf06b4b8a9182",
     "void-runner/personal-hud.js": "3a4b8ded6b03ad1029a64f38764261dbf6786022ba248ec8e33bc632ae6611bf",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
