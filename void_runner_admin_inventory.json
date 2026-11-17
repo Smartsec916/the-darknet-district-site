@@ -394,7 +394,7 @@
       "reputation"
     ]
   },
-  "revision": "14859fbd0853c8cd",
+  "revision": "82c7e640796e779a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -15699,7 +15699,7 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "7cc9669a5c397b04321a7374f45a20b452524d88d6d724a21627a20613baa42f",
     "void-runner/dev-tools.js": "699da69dcaa0367e3242fce09d6d2336190f7c545102c715961df71b9b860207",
-    "void-runner/device-camera.js": "0b72109eb740df8008efa8c4ed25c52c84ffb773e4d07e9f781f0ae2ea3790dd",
+    "void-runner/device-camera.js": "0563a64389921704dc829c1402b8f55783896163b57ee28e4aed74389df336f4",
     "void-runner/device-gallery.js": "d83a4d0d0b6f119559abc6a0b1f637fb0be607e7ad50e8f7daecdeb0978f5a94",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "804452b16dda42da7d3057a6fd940c508e43dc881e1e9614195e54d8242db594",
@@ -15761,7 +15761,7 @@
     "void-runner/mission-content.js": "5e22bdd6052a263d2333b3ac3ab9db6abd3d5a4a485ecf67e35298d11842f495",
     "void-runner/mission-editor.js": "79a85e0e05542a0c414693baca2aad20c60537ada8fe5d32541029eee0903231",
     "void-runner/mission-givers.js": "35fcdf545d922d700af0eead65359a0dcadd44ade014cca6f938d22bfb4426df",
-    "void-runner/mission-guide.js": "80e650d43fcb84cbcbc8bea62249cfc22a91cd77130f77753a3f1e4ff5223a8f",
+    "void-runner/mission-guide.js": "cb7959c661eb1df22c9bbb716a2d5eadf0810ae09c958722e5fdcaf96643cf29",
     "void-runner/mission-log.js": "56b36c43cf4e51d55c8b5c0a925c603a8b347d5448b4969ab26d5710a7c46308",
     "void-runner/mission-trees.js": "948ddf0d1b14fae82ca8f97e0e51e0c65ce17fa8cc8819764629899106b74735",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
