@@ -402,7 +402,7 @@
       "reputation"
     ]
   },
-  "revision": "2ff1897faf59d136",
+  "revision": "fdfc1fd30d608192",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13805,19 +13805,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 902,
+      "line": 910,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1066,
+      "line": 1074,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1187,
+      "line": 1195,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -15359,19 +15359,19 @@
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 160,
+      "line": 175,
       "text": "look-toward-a-point rule no longer decides it. Facing away, a help hint says so.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 265,
+      "line": 280,
       "text": "if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 266,
+      "line": 281,
       "text": "else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});",
       "kind": "source-reference"
     },
@@ -15851,7 +15851,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crowd.js": "29ba945ba34f4ff9e8c34597dc8df7c34706e3375dd9a354c251b219e2d9251b",
+    "void-runner/crowd.js": "3a5d8e9c1b83a162d8d0af17085a7a695cea535b081d0905b89fca50d5bcc965",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -15940,7 +15940,7 @@
     "void-runner/ncz-nightlife.js": "62a34cc3f23577a3b882a058e0dbeda5203dbb774d974aab1bd9c6e314f73186",
     "void-runner/ncz-outskirts-life.js": "e4d918db16db1d688cb05fa5bbace2613a3bab7a80ce998a651e7463915ded6a",
     "void-runner/ncz-quarters.js": "05638797b6b66e9bd572ba5dadce60da7d20b6a9c42e9897a23c39d6c960c8b4",
-    "void-runner/neochinatown.js": "4593e788e71bfb5b5dfb86ca2b6c97f59262b47f0fb93e55d1c8ac9b78be5cec",
+    "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-look.js": "cc2d498066154935427bd4f52b5d2f0ad53360c5036dc3c95a1165882a6f9357",
@@ -16003,7 +16003,7 @@
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "fdf9fd1fea29a2d8683739b3732db6f32c6f2af654838ace9f2741343ea32947",
     "void-runner/vr-suite.js": "8a4ea0f657a73441f47b0b2aaee91037ff0c3aaa527a58a0710df28302010d0c",
-    "void-runner/vr-tropical.js": "c52cae1e4b00b093c710d3acc2c579c81accd1dc911d7abb5b59f311348a51e4",
+    "void-runner/vr-tropical.js": "093635e6848f8b2dea73bc2fb9031e4158ac613363d2e337f1b7a8610175055b",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",

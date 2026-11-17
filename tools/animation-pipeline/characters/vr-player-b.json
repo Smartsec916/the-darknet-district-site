@@ -36,6 +36,7 @@
  },
  "clips": [
   "idle",
+  "walk",
   "dance",
   "pickup",
   "interact",

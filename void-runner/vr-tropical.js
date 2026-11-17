@@ -8,6 +8,12 @@
  // Sand rises gently from the waterline; small dunes toward the back.
  const height=(x,z)=>z>SHORE+2?-.6-(z-SHORE-2)*.25:(SHORE-z)*.035+.25*Math.sin(x*.12)*Math.max(0,(SHORE-6-z)/30);
  const onPier=(x,z)=>x>PIER[0]&&x<PIER[1]&&z>SHORE-2&&z<PIER_END;
+ /* The pier's shore end (the owner, 17 Nov 2026: "the pier doesn't touch the sand on the beach side"). The deck (top .66) ended at z 8 over sand only .07 high, with no
+    posts under its first 2 m: a floating edge and a 0.6 m step up. Now a plank ramp runs down from the deck onto the beach, its low end set 2 cm into the sand, on
+    stringers and posts that go into the sand; the walking height follows the ramp, so you walk from the sand onto the pier without a step. */
+ const DECK=.66,RAMP=[3.6,SHORE-2],sandAt=z=>(SHORE-z)*.035;   // sandAt: the beach's height on the pier's line (height() without its dune ripple, which is 0 for z>=4)
+ const onRamp=(x,z)=>x>PIER[0]&&x<PIER[1]&&z>RAMP[0]&&z<=RAMP[1];
+ const rampY=z=>{const y0=sandAt(RAMP[0])-.02,t=Math.max(0,Math.min(1,(z-RAMP[0])/(RAMP[1]-RAMP[0])));return y0+(DECK-y0)*t;};
  const spots={lounger:[[-6,3],[-2.5,3],[1,3]],pierBench:[21.5,32.5],hut:[-18,-14],surf:[-10,11.5],shells:[[-26,8.5],[6,9.2],[30,8]]};
  // Dolphins stay on the sea surface. The body is placed so the waterline (the opaque sea, untouched) cuts the belly;
  // a leap is a sine arc that leaves and returns to that height, then the model is hidden until it surfaces again.
@@ -76,7 +82,9 @@
   function target(x,z,yaw,rnd=Math.random){const f=facing(x,z,yaw);if(!f.ok)return f;
    for(let n=0;n<8;n++){const a=f.yaw+(rnd()-.5)*.3,d=f.lo+rnd()*(f.hi-f.lo),tx=x+Math.sin(a)*d,tz=z+Math.cos(a)*d;if(inSea(tx,tz))return {...f,x:tx,z:tz};}
    const d=(f.lo+f.hi)/2;return {...f,x:x+Math.sin(f.yaw)*d,z:z+Math.cos(f.yaw)*d};}
-  return {onPier,inSea,land,ray,facing,target,CONE,REACH,INLAND,RACK:[22.8,16],SHORE,PIER,PIER_END};})();
+  // The floor you walk on: the deck, the ramp down to the beach, or the sand.
+  const groundY=(x,z)=>onPier(x,z)?DECK:onRamp(x,z)?Math.max(rampY(z),height(x,z)):height(x,Math.min(z,SHORE+1.5));
+  return {onPier,onRamp,rampY,groundY,inSea,land,ray,facing,target,CONE,REACH,INLAND,RACK:[22.8,16],SHORE,PIER,PIER_END,DECK,RAMP};})();
  globalThis.VoidTropicalFishing=Fishing;
  function layout(){const sea=(x0,x1)=>({id:'vr-sea',position:[(x0+x1)/2,1,27],size:[x1-x0,2,26]});
   return {id:'vr-tropical',name:'VR · TROPICAL ESCAPE',bounds:[40,40],spawn:[-4,1.7,-24],yaw:0,music:null,signs:[],
@@ -146,6 +154,13 @@
   k.cyl('umbrella-pole',.07,2.8,[-2.5,height(-2.5,2)+1.4,2],pole,8);k.cyl('umbrella',4.2,.7,[-2.5,height(-2.5,2)+2.9,2],canvas,16,.1);
   // The pier: planks on posts out over the water, a bench at the end.
   for(let z=SHORE-2;z<PIER_END;z+=.5)k.box('plank',[3,.08,.42],[21.5,.62,z],wood);for(let z=SHORE;z<PIER_END;z+=3)for(const x of PIER)k.cyl('pier-post',.25,2.4,[x,-.4,z],wood,8);
+  // Its shore end: posts at the deck's first edge, and the ramp down onto the sand (planks on two stringers, a sill bedded in the sand, a short post halfway).
+  {const [r0,r1]=RAMP,len=r1-r0,tilt=-Math.atan2(DECK-rampY(r0),len),run=Math.hypot(len,DECK-rampY(r0));
+   for(const x of PIER)k.cyl('pier-post',.25,1.5,[x,.05,r1],wood,8);
+   for(let z=r0+.21;z<r1;z+=.5){const p=k.box('ramp-plank',[3,.08,.44],[21.5,rampY(z)-.04,z],wood);p.rotation.x=tilt;}
+   for(const x of [PIER[0]+.18,PIER[1]-.18]){const st=k.box('ramp-stringer',[.14,.24,run+.3],[x,(rampY(r0)+DECK)/2-.2,(r0+r1)/2+.1],wood);st.rotation.x=tilt;
+    k.cyl('ramp-post',.2,1,[x,rampY(r0+len/2)-.6,r0+len/2],wood,8);}
+   k.box('ramp-sill',[3.1,.2,.3],[21.5,sandAt(r0)-.1,r0+.12],wood);}
   const bench=await k.model('bench');k.place(bench,[21.5,.66,33],0,1);
   // Gulls wheeling out over the water.
   const gullMat=k.material('gull',{hex:'#f2f2f2'}),gulls=[];for(let i=0;i<6;i++){const n=new B.TransformNode('vr-gull',k.scene);n.parent=k.parent;for(const s of [-1,1]){const w=B.MeshBuilder.CreatePlane('vr-gwing',{width:.8,height:.22,sideOrientation:B.Mesh.DOUBLESIDE},k.scene);w.material=gullMat;w.parent=n;w.position.x=s*.4;w.rotation.x=Math.PI/2;w.side=s;w.isPickable=false;}gulls.push({n,a:i,r:20+i*5,h:12+i*2});}
@@ -260,7 +275,7 @@
    else if(fishing.state==='bite'){bob.position.y=-.15+Math.sin(time*26)*.06;bob.rotation.z=Math.sin(time*31)*.3;drawLine();if(Math.floor(fishing.t*3)!==Math.floor((fishing.t-dt)*3))plop(10);if(fishing.t>WINDOW){stow();api.sfx(180,.3,'sine',.05);announce('Too slow. It took the bait and got away.');}}});
   return {tick:k.tick,dispose:k.dispose,fishing:()=>({rod:fishing.rod,state:fishing.state,float:[bob.position.x,bob.position.y,bob.position.z],target:fishing.target.slice(),session:fishing.session}),
    onExit(){returnRod(true);setHint('');},
-   update(){walker.y+=onPier(walker.x,walker.z)?.66:height(walker.x,Math.min(walker.z,SHORE+1.5));fishFrame();api.audioLevel('waves',.06+.12*Math.max(0,1-Math.abs(walker.z-SHORE)/40)**2,.3);},
+   update(){walker.y+=Fishing.groundY(walker.x,walker.z);fishFrame();api.audioLevel('waves',.06+.12*Math.max(0,1-Math.abs(walker.z-SHORE)/40)**2,.3);},
    interact(item){const id=item.id.slice(3);
     if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}
     else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});

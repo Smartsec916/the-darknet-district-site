@@ -51,3 +51,11 @@ test('the rod rack stands on the pier, near its start, and the cast spot is plac
   assert.equal(rack.label,'TAKE A FISHING ROD');assert.ok(F.onPier(rack.position[0],rack.position[2]));assert.ok(fish,'the cast prompt exists (the world moves it to the player each frame)');
   assert.ok(L.solids.some(s=>s.id==='vr-rod-rack'));
 });
+
+test('the pier meets the sand: walking from the beach onto the deck has no step (the owner, 17 Nov 2026)',()=>{
+  const [r0,r1]=F.RAMP;assert.equal(r1,F.SHORE-2,'the ramp joins the deck where it starts');assert.ok(r1-r0>=3,'a gentle ramp');
+  assert.ok(Math.abs(F.rampY(r1)-F.DECK)<1e-9,'level with the deck at the top');
+  for(const x of [20.3,21.5,22.7]){let prev=null;for(let z=-2;z<=F.PIER_END-.5;z+=.05){const y=F.groundY(x,z);if(prev!=null)assert.ok(Math.abs(y-prev)<.02,'step at '+x+','+z.toFixed(2)+': '+prev.toFixed(3)+' to '+y.toFixed(3));prev=y;}}
+  assert.ok(F.onRamp(21.5,6)&&!F.onPier(21.5,6),'the ramp is not the fishing deck');assert.equal(F.facing(21.5,6,0).why,'off-pier');
+  assert.equal(F.groundY(21.5,20),F.DECK);
+});

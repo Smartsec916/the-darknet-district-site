@@ -867,20 +867,28 @@
     const vrPlayers=[];
     function vrPlayer(look,x,z,routine){
      const place=()=>{const node=root.VoidAssets?.instance?.('crowd:'+look,target);if(!node)return false;node.position.set(x,0,z);node.rotation.y=Math.PI/2;node.metadata={...node.metadata,character:look}; // faces the glass and the viewers; named for the V1 camera's tags
-      const c=root.VoidCrowd?.animate(node,look,'idle');if(c)vrPlayers.push({node,c,routine,step:0,timer:.5+rand()*2,base:Math.PI/2,turn:0,want:0});return true;};
+      const c=root.VoidCrowd?.animate(node,look,'idle');if(c)vrPlayers.push({node,c,routine,home:z<36?0:1,step:0,timer:.5+rand()*2,base:Math.PI/2,turn:0,want:0});return true;};
      if(!place())root.VoidAssets?.onLoaded?.(id=>{if(id==='crowd:'+look&&!disposed)place();});}
     // Shooter: lift into aim, track, fire, take a hit, duck, come back up, aim low, fire, lower and breathe.
     const shooter=[['vr-aim',1.2,0],['vr-shoot',0,.15,'vr-aim'],['vr-aim',.8,-.35],['vr-shoot',0,-.35,'vr-aim'],['vr-aim-up',1.4,.25],['vr-shoot',0,.25,'vr-aim-up'],['vr-hit',0,0,'vr-aim'],['vr-duck',1.6,0],['vr-aim-down',1.3,-.2],['vr-shoot',0,-.2,'vr-aim-down'],['vr-aim',1,.4],['vr-shoot',0,.4,'vr-aim'],['idle',2.4,0]];
     // Second player: a dance, then a virtual meal, then working menus and talking to someone only they can see.
     const social=[['dance',9,0],['idle',1.6,0],['pickup',0,0,'idle'],['interact',0,0,'idle'],['idle',1.2,0],['pickup',0,.2,'idle'],['interact',0,.2,'idle'],['idle',1.8,0],['menu',2.6,-.2],['menu-tap',0,-.2,'menu'],['menu',1.4,.25],['menu-tap',0,.25,'menu'],['talk',3.4,0],['idle',2.2,0]];
     vrPlayer('vr-player-a',-12.6,32.4,shooter);vrPlayer('vr-player-b',-12.6,39.6,social);
-    // The arcade terminal (vr-core.js): a booth's player takes off the session and steps to the corner for a visitor.
+    // The arcade terminal (vr-core.js): a booth's player takes off the session and gives the booth to the visitor.
+    // The owner, 17 Nov 2026: they used to slide to the booth's far corner in 1.4 s ("pushed to the far corner"). Now they walk out of the play area the way people
+    // come in: through the gap at the end of the glass (north of booth one, south of booth two), round the rail's end, across the viewing strip, out of the room's
+    // door into the hallway and up it, out of sight; then they are hidden. Only this player's own view changes (the booth players are local scenery, not shared).
     // The scene is rebuilt after the simulation, so they are back at their rig when the visitor returns.
-    root.VoidNeoChinatown&&(root.VoidNeoChinatown.booths={stepAside(i){const z=[32.4,39.6][i],p=vrPlayers.find(p=>Math.abs(p.node.position.z-z)<.5);if(!p||p.aside)return false;
-     p.aside={t:0,from:[p.node.position.x,p.node.position.z],to:[-15.6,z+(i?2.6:-2.6)]};try{p.c.play('walk');}catch{try{p.c.play('idle');}catch{}}return true;}});
+    const BOOTH_EXITS=[[[-9.7,28.62],[-8.5,28.62],[-7.3,28.95],[-6.4,30.2],[-4.4,31.9],[-3.4,32.4],[0,32.4],[0,26]],[[-9.7,43.38],[-8.5,43.38],[-7.3,43.05],[-6.3,42],[-6,38.4],[-4.4,37.2],[-3.4,35.6],[0,35.6],[0,26]]];
+    const pathAt=(path,d)=>{for(let i=1;i<path.length;i++){const L=Math.hypot(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]);if(d<=L||i===path.length-1){const k=L?Math.min(1,d/L):1;return {x:path[i-1][0]+(path[i][0]-path[i-1][0])*k,z:path[i-1][1]+(path[i][1]-path[i-1][1])*k,yaw:Math.atan2(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1])};}d-=L;}return {x:path[0][0],z:path[0][1],yaw:0};};
+    root.VoidNeoChinatown&&(root.VoidNeoChinatown.booths={exits:BOOTH_EXITS,stepAside(i){const z=[32.4,39.6][i],p=vrPlayers.find(p=>Math.abs(p.node.position.z-z)<.5);if(!p||p.aside||!BOOTH_EXITS[i])return false;
+     const path=[[p.node.position.x,p.node.position.z],...BOOTH_EXITS[i]];p.aside={d:0,path,len:path.reduce((s,q,k)=>k?s+Math.hypot(q[0]-path[k-1][0],q[1]-path[k-1][1]):0,0),time:0};p.want=p.turn=0;
+     if(p.c.has('walk'))try{p.c.play('walk');}catch{}return true;},
+     where(i){const p=vrPlayers.find(p=>p.home===i);return p&&!p.node.isDisposed()?{x:p.node.position.x,z:p.node.position.z,yaw:p.node.rotation.y,shown:p.node.isEnabled(),leaving:!!p.aside,gone:!!p.aside?.gone}:null;}});
     function vrTick(dt){for(const p of vrPlayers){if(p.node.isDisposed())continue;
-      if(p.aside){const a=p.aside;a.t=Math.min(1,a.t+dt/1.4);const e=a.t<.5?2*a.t*a.t:1-Math.pow(-2*a.t+2,2)/2;p.node.position.x=a.from[0]+(a.to[0]-a.from[0])*e;p.node.position.z=a.from[1]+(a.to[1]-a.from[1])*e;
-       p.node.rotation.y=a.t<1?Math.atan2(a.to[0]-a.from[0],a.to[1]-a.from[1]):Math.PI/2;if(a.t>=1&&!a.idle){a.idle=true;try{p.c.play('idle');}catch{}}continue;}
+      if(p.aside){const a=p.aside;if(a.gone)continue;a.time+=dt;a.d=Math.min(a.len,a.d+dt*1.25);const at=pathAt(a.path,a.d);p.node.position.x=at.x;p.node.position.z=at.z;   // a walking pace (district-life.js)
+       const turn=Math.atan2(Math.sin(at.yaw-p.node.rotation.y),Math.cos(at.yaw-p.node.rotation.y));p.node.rotation.y+=turn*Math.min(1,dt*7);if(!p.c.has('walk'))p.c.walk(a.time);
+       if(a.d>=a.len){a.gone=true;p.node.setEnabled(false);}continue;}
       p.timer-=dt;
       // Small turns of the whole body toward where the virtual action is; the arms and legs come from the clips.
       p.turn+=(p.want-p.turn)*Math.min(1,dt*2.5);p.node.rotation.y=p.base+p.turn;
