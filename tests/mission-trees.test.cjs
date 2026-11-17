@@ -129,3 +129,9 @@ test('line adapter: an edited line replaces the shown words for its speaker only
  MC.apply(c,e);assert.equal(MC.mapLine(e,{who:'Admin',text:line}).text,'Work? Always.');assert.equal(MC.mapLine(e,{who:'Iris',text:line}).text,line);
  MC.apply(null,e);assert.equal(MC.mapLine(e,{who:'Admin',text:line}).text,line,'rollback restores the shipped line');
 });
+test('re-voice engines: the editor and the server read the same table; no registered voice is changed',()=>{
+ const j=JSON.parse(fs.readFileSync(R('tools/audio/revoice-engines.json'),'utf8')).characters;
+ for(const [id,e] of Object.entries(j))for(const k of ['engine','voice','voiceId'])assert.equal(T.VOICE_ENGINES[id][k],e[k],id+' '+k);
+ assert.deepEqual(Object.keys(T.VOICE_ENGINES).sort(),Object.keys(j).sort());
+ const reg=JSON.parse(fs.readFileSync(R('tools/audio/npc-voice-registry.json'),'utf8'));assert.equal(reg.npcs.admin.voice,'am_michael','the registry’s Admin entry is unchanged');
+});

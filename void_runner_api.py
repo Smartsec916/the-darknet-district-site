@@ -917,3 +917,69 @@ def content_release_compare(db, uid):
     return jsonify(fromRevision=numbers[0], toRevision=numbers[1],
                    diff=content_releases.comparison(before['documents'], after['documents']),
                    writes=0, liveActivationImplemented=False)
+
+
+# Mission Editor: published mission content (off unless VOID_CONTENT_PUBLISH_ENABLED=true) and the owner's re-voice queue.
+import void_runner_live_content as live_content
+
+
+@api.get('/live-content')
+def live_content_public():
+    """Public, read-only: the one live version of published mission content (or none). Off = 404, and the game keeps the shipped missions."""
+    if not live_content.enabled():
+        return jsonify(error='Published mission content is switched off.'), 404
+    db, _, _ = services()
+    return jsonify(live_content.public(db))
+
+
+@api.get('/developer/live-content')
+@signed_in
+def live_content_state(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.summary(db))
+
+
+@api.get('/developer/live-content/<int:version>')
+@signed_in
+def live_content_version(db, uid, version):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.load(db, version))
+
+
+@api.post('/developer/live-content/check')
+@signed_in
+def live_content_check(db, uid):
+    live_content.owner(uid, balance_admin)
+    body = request.get_json(silent=True)
+    problems = live_content.check((body or {}).get('content') if isinstance(body, dict) else None)
+    return jsonify(ok=not problems, errors=problems, warnings=[])
+
+
+@api.post('/developer/live-content/publish')
+@signed_in
+def live_content_publish(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.publish(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/live-content/rollback')
+@signed_in
+def live_content_rollback(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.rollback(db, uid, request.get_json(silent=True)))
+
+
+@api.route('/developer/revoice', methods=['GET', 'POST'])
+@signed_in
+def revoice_queue(db, uid):
+    live_content.owner(uid, balance_admin, need='queue')
+    if request.method == 'GET':
+        return jsonify(live_content.queue_list(db, uid))
+    return jsonify(live_content.queue_add(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/revoice/done')
+@signed_in
+def revoice_done(db, uid):
+    live_content.owner(uid, balance_admin, need='queue')
+    return jsonify(live_content.queue_done(db, uid, request.get_json(silent=True)))

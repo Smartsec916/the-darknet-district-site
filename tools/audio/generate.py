@@ -9,6 +9,11 @@ Usage (from the repo root, with the voice venv's python):
   python tools/audio/generate.py --models <folder> --line ID    re-render one line (not if protected)
   python tools/audio/generate.py --models <folder> --speaker rook
   python tools/audio/generate.py --protect ID | --unprotect ID  mark a hand-approved clip
+  python tools/audio/generate.py --models <folder> --from-queue [--dry-run] [--yes]
+      record the lines David queued with RE-VOICE in the Mission Editor, each in its character's registered approved voice.
+      The queue comes from the server (sign-in token in the VOID_OWNER_ID_TOKEN environment variable, never stored) or from
+      an exported file (--queue-file queue.json). ElevenLabs lines (Admin) are listed and left waiting for David's approval.
+      More than 100 clips needs --yes. Recorded lines are marked done in the queue.
 The model folder holds kokoro-v1.0.onnx and voices-v1.0.bin (see docs/VOID_RUNNER_VOICE_PRODUCTION.md).
 """
 import argparse, datetime, hashlib, json, os, sys
@@ -65,6 +70,10 @@ def main():
     p.add_argument('--protect', action='append', default=[])
     p.add_argument('--unprotect', action='append', default=[])
     p.add_argument('--accept-model-change', action='store_true', help='allow model files whose checksum differs from the registry')
+    p.add_argument('--from-queue', action='store_true', help='record the lines queued with RE-VOICE in the Mission Editor')
+    p.add_argument('--queue-file', help='an exported queue file instead of the server')
+    p.add_argument('--api', default='https://the-darknet-district-site.onrender.com', help='the game API (with --from-queue)')
+    p.add_argument('--yes', action='store_true', help='confirm recording more than 100 clips')
     a = p.parse_args()
 
     registry, manifest = load(REGISTRY), load(os.path.join(OUT, 'manifest.json'))
@@ -81,6 +90,10 @@ def main():
         return
 
     engine, problems, cast = registry['engine'], [], voiced(registry)
+    queued = []
+    if a.from_queue:
+        queued = queue_lines(a, registry, manifest, engine)
+        a.line = a.line + [q['clip'] for q in queued]
     for npc_id, entry in cast.items():
         if entry['status'] == 'approved' and entry.get('approvedConfigHash') != config_hash(entry, engine):
             problems.append('%s: approved voice changed without re-approval' % npc_id)
@@ -111,6 +124,8 @@ def main():
         sys.exit('Unknown line id(s): ' + ', '.join(unknown))
     if kept:
         print('Protected clips kept (unprotect them to re-render):', ', '.join(kept))
+    if a.from_queue and len(todo) > 100 and not a.yes and not a.dry_run:
+        sys.exit('%d clips would be recorded. That is more than 100: run again with --yes to confirm.' % len(todo))
     if a.dry_run or not todo:
         print(('Would render' if a.dry_run else 'Nothing to render;'), len(todo), 'clip(s)', *(['\n ' + '\n '.join(todo)] if todo else []))
         return
@@ -148,8 +163,63 @@ def main():
             failures.append('%s: %s' % (line_id, error))
     save(renders_path, renders)
     print('rendered', len(todo) - len(failures), 'clip(s)')
+    if queued:
+        save(os.path.join(OUT, 'manifest.json'), manifest)
+        done = [q['id'] for q in queued if q['clip'] in renders and not any(f.startswith(q['clip'] + ':') for f in failures)]
+        mark_done(a, done)
     if failures:
         sys.exit('Failed:\n - ' + '\n - '.join(failures))
+
+def queue_lines(a, registry, manifest, engine):
+    """Queued RE-VOICE lines → manifest entries with the same ids extract-lines.cjs gives (speaker + sha1(speaker|text)), source 'mission-editor-queue'.
+    Only characters in the registry's npcs, with their registered voice; the reserved slot and broadcast voices are refused. ElevenLabs lines are only listed."""
+    if a.queue_file:
+        data = load(a.queue_file)
+    else:
+        token = os.environ.get('VOID_OWNER_ID_TOKEN', '')
+        if not token:
+            sys.exit('Set VOID_OWNER_ID_TOKEN to your sign-in token (never saved anywhere), or pass --queue-file.')
+        import urllib.request
+        req = urllib.request.Request(a.api.rstrip('/') + '/api/void-runner/developer/revoice', headers={'Authorization': 'Bearer ' + token, 'Accept': 'application/json'})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.loads(r.read().decode('utf-8'))
+    npcs, out, waiting = registry['npcs'], [], []
+    for item in data.get('items', []):
+        if item.get('status') != 'queued':
+            continue
+        who, text = item.get('who'), item.get('text', '')
+        if item.get('engine') == 'elevenlabs':
+            waiting.append(item)
+            continue
+        if who not in npcs or who in registry.get('reserved', {}):
+            print('skipped (not a registered character):', who, text[:50])
+            continue
+        clip = who + '-' + hashlib.sha1((who + '|' + text).encode('utf-8')).hexdigest()[:10]
+        manifest['lines'][clip] = {'speaker': who, 'text': text, 'file': clip + '.ogg', 'source': 'mission-editor-queue', 'configHash': config_hash(npcs[who], engine)}
+        out.append({'id': item.get('id', clip), 'clip': clip})
+    if waiting:
+        print('Waiting for ElevenLabs re-voice (needs approval), not recorded here:', len(waiting), 'line(s)')
+        for w in waiting:
+            print('  %-10s %s' % (w.get('who'), w.get('text', '')[:70]))
+    print('Queued for Kokoro:', len(out), 'line(s)')
+    return out
+
+def mark_done(a, ids):
+    if not ids:
+        return
+    if a.queue_file:
+        data = load(a.queue_file)
+        for item in data.get('items', []):
+            if item.get('id') in ids:
+                item['status'] = 'done'
+        save(a.queue_file, data)
+    else:
+        import urllib.request
+        body = json.dumps({'ids': ids}).encode('utf-8')
+        req = urllib.request.Request(a.api.rstrip('/') + '/api/void-runner/developer/revoice/done', data=body, method='POST',
+                                     headers={'Authorization': 'Bearer ' + os.environ.get('VOID_OWNER_ID_TOKEN', ''), 'Content-Type': 'application/json'})
+        urllib.request.urlopen(req, timeout=30).read()
+    print('marked done in the queue:', len(ids))
 
 if __name__ == '__main__':
     main()
