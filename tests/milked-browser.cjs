@@ -16,8 +16,8 @@ fs.mkdirSync(shots,{recursive:true});
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
  await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.waitForTimeout(3000);await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'far-south'});});await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street'&&walkingLocation.quarter==='far-south');   // Milked moved to Far South on 16 Nov 2026
- // the save's flags, apart from the V1's explored-map bits (walking anywhere charts the map)
- const flagsNow=()=>page.evaluate(()=>JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap/.test(k)))));
+ // the save's flags, apart from the V1's explored-map bits (walking anywhere charts the map) and the in-game clock (game-clock.js: it runs while walking)
+ const flagsNow=()=>page.evaluate(()=>JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap|^gameMin$/.test(k)))));
  const saveBefore=await flagsNow(),mapBefore=await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length);
  // Every coordinate below is in the building's OWN frame (as drawn: front wall z -74); DZ carries it to where it stands (VoidMilked.OFFSET, 16 Nov 2026). at, walk and blocked take and give that frame.
  const DZ=await page.evaluate(()=>VoidMilked.OFFSET[1]);
@@ -116,7 +116,7 @@ fs.mkdirSync(shots,{recursive:true});
  // 10. nothing leaked, nothing saved, no errors
  const st=await page.evaluate(()=>VoidBabylon.zone.state());assert.ok(st.ready&&st.area==='milked'&&st.screens>=14&&st.doors.length===5,JSON.stringify(st));
  const w=await page.evaluate(()=>window.__mk);assert.ok(w.frames>50,'the door watch ran: '+w.frames);assert.deepEqual([...new Set(w.bad)].slice(0,5),[],'door rules held on every frame');
- assert.equal(await page.evaluate(()=>{delete state.story.flags.mf_milkedStaff;return JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap/.test(k))));}),saveBefore,'still nothing written to the save (the staff flag this test granted aside)');assert.ok(await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length)>=mapBefore,'the explored-street map is not replaced by a smaller one (the inside is charted on the street\'s grid)');
+ assert.equal(await page.evaluate(()=>{delete state.story.flags.mf_milkedStaff;return JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap|^gameMin$/.test(k))));}),saveBefore,'still nothing written to the save (the staff flag this test granted aside)');assert.ok(await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length)>=mapBefore,'the explored-street map is not replaced by a smaller one (the inside is charted on the street\'s grid)');
  assert.equal(await page.evaluate(()=>VoidDistrictArea.keyFor(state)),'sacramento','a game saved in here resumes on the street side (and wakes in the Sleeping Pod)');
  assert.deepEqual(errs,[],'no page errors: '+errs.join(' | '));
  console.log('MILKED browser walk-through passed ('+tier+'), '+w.frames+' frames watched. Screenshots: '+shots);await b.close();
