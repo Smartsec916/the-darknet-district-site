@@ -6,7 +6,10 @@
      beginner  [mission records in the beginner.js / Studio shape]  titles, descriptions, steps (label, completion event, order/requires, place), what each NPC says
                                                                      when a step is done and the "too soon" line, the credits paid, the ship award, missions added
      registry  {id:{title,description,objectives:{id:label}}}         the V1 Mission Log text of the older registry missions (mission-log.js)
-   Content shape: {format:'darknet-district-mission-content',version:1,beginner?:[...],registry?:{...}}. Unknown fields are refused, never ignored. */
+     lines     [{who,from,to}]                                         any NPC line shown through the dialogue window (scenes.js talk() → renderLine()): the line whose
+                                                                     speaker and words match `from` is shown as `to`. Its recorded voice clip no longer matches, so it is
+                                                                     shown as text (the game's existing behaviour for a line without a clip) until it is re-voiced.
+   Content shape: {format:'darknet-district-mission-content',version:1,beginner?:[...],registry?:{...},lines?:[...]}. Unknown fields are refused, never ignored. */
 (function(root){
  'use strict';
  const FORMAT='darknet-district-mission-content',VERSION=1;
@@ -15,7 +18,7 @@
  const EVENTS=['v1-open','keymap-seen','talk-admin','talk-iris','visit-bar','visit-shop','use-terminal','board-ship','launch','warp-meridian','dock-meridian'];
  const TYPES=['main','side','cargo','campaign','tutorial','bounty','station'],AWARDS=['ship'],DESTINATIONS=['earth','meridian'];
  const SPEAKERS=['Admin','Iris','Landing terminal','You','Bartender'];   // the beginner campaign's on-screen speakers (studio-model.js SPEAKERS)
- const LIMIT={missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000};
+ const LIMIT={lineEdits:600,missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000};
  const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
  const plain=(v,max)=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!TAGS.test(v);
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
@@ -23,7 +26,7 @@
     Returns {ok, errors:[plain text]}; a record with any error is never applied. */
  function check(content,ctx={}){
   const errors=[],err=t=>errors.push(t),speakers=new Set([...SPEAKERS,...(ctx.speakers||[])]);
-  if(!keysOk(content,['format','version','beginner','registry','note']))return {ok:false,errors:['The content record has an unknown shape.']};
+  if(!keysOk(content,['format','version','beginner','registry','lines','note']))return {ok:false,errors:['The content record has an unknown shape.']};
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
   if(content.note!=null&&!(typeof content.note==='string'&&content.note.length<=500&&!TAGS.test(content.note)))err('The change note must be plain text (500 characters at most).');
   if(content.beginner!=null){
@@ -80,10 +83,18 @@
      else for(const [oid,label] of Object.entries(e.objectives)){if(!ID.test(oid)||(ctx.registryObjectives&&!(ctx.registryObjectives[id]||new Set()).has(oid)))err(id+': "'+oid+'" is not one of its steps.');if(!plain(label,LIMIT.text))err(id+' / '+oid+': the label must be plain text.');}}
    }
   }
+  if(content.lines!=null){
+   if(!Array.isArray(content.lines)||content.lines.length>LIMIT.lineEdits)err('Line edits have an unknown shape (at most '+LIMIT.lineEdits+').');
+   else{const seen=new Set();for(const l of content.lines){if(!keysOk(l,['who','from','to'])||!/^[a-z][a-z0-9-]{0,40}$/.test(l.who||'')||!plain(l.from,LIMIT.text)||!plain(l.to,LIMIT.text)){err('A changed line must name a speaker and be plain text (500 characters at most).');continue;}
+    if(l.who==='player')err('The player’s own lines are not changed here.');const k=l.who+'|'+l.from;if(seen.has(k))err('The same line is changed twice.');seen.add(k);if(ctx.lines&&!ctx.lines.has(k))err('“'+l.from.slice(0,40)+'…” is not a line in the game.');}}
+  }
   return {ok:!errors.length,errors};
  }
+ // Speaker names as the scripts write them ('Admin', 'pilot', 'elara') → the voice registry's ids.
+ const ALIAS={you:'player',pilot:'player',player:'player','arcade attendant':'attendant','landing terminal':'landing-terminal'};
+ const who=w=>{const l=String(w||'').toLowerCase();return ALIAS[l]||l.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');};
  /* Shipped snapshot (taken once, before anything is applied): applying always starts from it, so a newer version or a rollback never stacks on an older one. */
- function snapshot(env){if(env.shipped)return env.shipped;env.shipped={beginner:clone(env.B?env.B.MISSIONS:[]),registry:clone(env.Missions?env.Missions.definitions:{})};return env.shipped;}
+ function snapshot(env){if(env.shipped)return env.shipped;env.lineMap=env.lineMap||new Map();env.shipped={beginner:clone(env.B?env.B.MISSIONS:[]),registry:clone(env.Missions?env.Missions.definitions:{})};return env.shipped;}
  /* Puts content over the shipped missions in place (the runners hold references to these objects). content=null restores the shipped missions.
     env: {B:VoidBeginner, Missions:VoidMissions}. Returns {applied:[...], refused:[...]}; a record that fails check() changes nothing. */
  function apply(content,env,ctx={}){
@@ -100,8 +111,11 @@
    for(const [id,e] of Object.entries((content&&content.registry)||{})){const d=env.Missions.definitions[id];if(!d||d.beginner===true)continue;
     if(e.title!=null)d.title=e.title;if(e.description!=null)d.description=e.description;for(const o of d.objectives||[])if(e.objectives&&e.objectives[o.id]!=null)o.label=e.objectives[o.id];out.applied.push('mission log text: '+id);}
   }
+  env.lineMap=new Map();for(const l of (content&&content.lines)||[])env.lineMap.set(l.who+'|'+l.from,l.to);if(content&&content.lines&&content.lines.length)out.applied.push(content.lines.length+' changed line(s)');
   return out;
  }
+ /* A line about to be shown ({who,text}) → the edited line, or the same object when nothing applies. */
+ function mapLine(env,l){if(!l||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}
  /* Builds content from the owner's drafts. studio: the Developer Studio's local draft {missions:[...]} (beginner campaign); local: Mission Editor edits {missions:{key:edit}}. */
  const strip=m=>{const r={id:m.id,title:m.title,type:m.type};for(const k of ['giver','description','destination','prerequisites'])if(m[k]!=null)r[k]=clone(m[k]);if(m.rewards!=null)r.rewards=Number(m.rewards)||0;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:o.label,on:o.on};for(const k of ['requires','interaction','destination','award','say','early'])if(o[k]!=null&&!(Array.isArray(o[k])&&!o[k].length))x[k]=clone(o[k]);if(x.requires)x.requires=x.requires.slice();return x;});return r;};
@@ -112,10 +126,11 @@
   for(const [key,e] of Object.entries((local&&local.missions)||{})){if(!key.startsWith('registry:'))continue;const id=key.slice(9),r={};
    if(e.title!=null)r.title=e.title;if(e.description!=null)r.description=e.description;if(e.steps&&Object.keys(e.steps).length)r.objectives=clone(e.steps);if(Object.keys(r).length)reg[id]=r;}
   if(Object.keys(reg).length)out.registry=reg;
+  const lines=Object.entries((local&&local.lines)||{}).filter(([,e])=>e&&e.adapter==='talk'&&typeof e.to==='string'&&e.to!==e.from).map(([ref,e])=>({who:ref.split('|')[0],from:e.from,to:e.to}));if(lines.length)out.lines=lines;
   if(note)out.note=String(note).slice(0,500);
   return out;
  }
- const empty=c=>!c||(!c.beginner&&!c.registry);
+ const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length));
  /* Edits in the drafts that the game cannot apply live (draft play and publishing alike), in plain words. */
  function notApplied({studio,local}={}){
   const out=[];
@@ -126,13 +141,13 @@
   }
   for(const [key,e] of Object.entries((local&&local.missions)||{})){
    const name=e.name||key,reg=key.startsWith('registry:');
-   if(e.lines&&Object.keys(e.lines).length)out.push(name+': '+Object.keys(e.lines).length+' changed NPC line(s). These lines are written inside the game code and have no adapter yet.');
    if(e.unlocks&&e.unlocks.length)out.push(name+': what becomes available (store items, ships, areas, flags). Unlocks are a design note until the game reads them.');
    if(e.reputation&&e.reputation.length)out.push(name+': reputation changes. The game has no mission reputation rewards yet.');
    if(e.credits!=null)out.push(name+': the credits. Payment for this mission is set in campaign code, not in the mission record.');
    if(e.endingNote)out.push(name+': the note about where the mission ends (a design note).');
    if(!reg&&!key.startsWith('beginner:')&&(e.title!=null||e.description!=null||(e.steps&&Object.keys(e.steps).length)))out.push(name+': title, description and step text. Contracts are flown, not tracked in the Mission Log, and have no adapter yet.');
   }
+  for(const [ref,e] of Object.entries((local&&local.lines)||{}))if(e&&e.adapter!=='talk'&&e.to!==e.from)out.push('“'+String(e.to).slice(0,50)+'…” ('+ref.split('|')[0]+'): can be edited after the next update (needs a code change). It is kept in your draft and in the export for Claude or Codex.');
   return out;
  }
  /* What changes for players, and what needs care for players who are part-way through (pure). before/after: lists of beginner missions. */
@@ -177,6 +192,6 @@
   const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
   return acts;
  }
- const api={FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,check,apply,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone};
+ const api={FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

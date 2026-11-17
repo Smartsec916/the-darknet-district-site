@@ -21,9 +21,11 @@
  /* Where each mission's lines are in the scene scripts. at: [mission, slot] where slot is 'offer', 'after' or a step id. from/to: text anchors in the file (to is searched after from).
     who: the main speaker of lines written as plain strings (questions and farewells). doc: David's script (locked). placeholder: Claude's UNREVIEWED lines. */
  const SCENES=[
+  {file:'void-runner/faction-scenes.js',title:'Taking a delivery (or a full hold)',from:'function take(faction,giver){',to:'// ---- Admin (doc 05) ----',at:[['communion-delivery','offer'],['order-delivery','offer']],shared:true},
   {file:'void-runner/faction-scenes.js',title:'Admin offers the two deliveries',from:'// ---- Admin (doc 05) ----',to:'// ---- "Don\'t Ask Questions"',at:[['communion-delivery','offer'],['order-delivery','offer']],doc:'05',shared:true},
   {file:'void-runner/faction-scenes.js',title:'Admin offers the sealed crate',from:'// ---- "Don\'t Ask Questions"',to:'// ---- Admin introduces WarFlying',at:[['admin-sealed-cargo-01','offer']],placeholder:true},
   {file:'void-runner/faction-scenes.js',title:'Afterwards: Admin introduces WarFlying',from:'// ---- Admin introduces WarFlying',to:'const warflyingDue',at:[['admin-sealed-cargo-01','after']],doc:'12'},
+  {file:'void-runner/faction-scenes.js',title:'Admin between jobs',from:'const warflyingDue',to:'// ---- Rook takes the sealed crate',at:[['communion-delivery','after'],['order-delivery','after'],['admin-sealed-cargo-01','after']],shared:true},
   {file:'void-runner/faction-scenes.js',title:'Rook takes the crate and pays',from:'// ---- Rook takes the sealed crate',to:'// ---- Iris (doc 06) ----',at:[['admin-sealed-cargo-01','deliver']],placeholder:true},
   {file:'void-runner/faction-scenes.js',title:'Iris offers the delivery you did not take',from:'// ---- Iris (doc 06) ----',to:'// ---- Iris\'s follow-up contracts (doc 09) ----',at:[['communion-delivery','payment'],['order-delivery','payment']],doc:'06',shared:true},
   {file:'void-runner/faction-scenes.js',title:'Iris pays and offers the follow-up contracts',from:'// ---- Iris\'s follow-up contracts (doc 09) ----',to:'// ---- Recipients (doc 07) ----',at:[['communion-delivery','payment'],['order-delivery','payment'],['communion-supply','offer'],['order-supply','offer']],doc:'09',shared:true},
@@ -38,9 +40,15 @@
   {file:'void-runner/prologue-integration.js',title:'Elias’s recording and Mara in the workshop',from:'VoidInteractions.register(\'opening-recording\'',to:'function openingCockpit',at:[['ground-training','offer']]},
   {file:'void-runner/prologue-integration.js',title:'Mara offers the lessons, or sends you to Rook',from:'function skipTutorial',to:'screen.addEventListener(\'click\',e=>{const a=e.target.closest(\'button\')?.dataset.action;if(a===\'tutorial-yes\')',at:[['meet-rook','offer']]},
   {file:'void-runner/prologue-integration.js',title:'Iris at the District scanner (Rook vouched for you)',from:'function districtBadgeIssued',to:'VoidInteractions.register(\'district-scan\'',at:[['meet-admin','meet-admin']]},
+  {file:'void-runner/prologue-integration.js',title:'Admin and Iris welcome you to the District',from:'VoidInteractions.register(\'admin\',()=>{state.universe.completedObjectives',to:'VoidInteractions.register(\'terminal\'',at:[['meet-admin','meet-admin']]},
   {file:'void-runner/scenes.js',title:'Rook at the bar offers the next job',from:'function rookConversation(){',to:'// Leaving the offer never commits',at:[['legal-run','offer'],['illegal-run','offer']],shared:true},
   {file:'void-runner/hangar.js',title:'Rook’s missile launcher voucher',from:'const rookMissileLine',to:'\n',at:[['combat-qualification','offer']]}];
  const FILES=[...new Set(SCENES.map(s=>s.file))];
+ // Scripts whose lines are shown through talk() → renderLine(), so live-content.js can put an edited line over them at play time. Lines elsewhere need a code change.
+ const TALK_FILES=['void-runner/faction-scenes.js','void-runner/homeworld-scenes.js','void-runner/prologue-integration.js','void-runner/scenes.js','void-runner/world-integration.js','void-runner/hangar.js','void-runner/story-content.js','void-runner/milked.js'];
+ /* The engine a re-voiced line goes through, per character. Default: Kokoro through tools/audio/generate.py --from-queue with the character's registered approved voice.
+    Admin: ElevenLabs "Bill Adams" (the voice of his ElevenLabs lines in assets/audio/voice/extra/manifest.json). Nothing is generated from the editor; ElevenLabs re-voicing waits for David's approval. */
+ const VOICE_ENGINES={admin:{engine:'elevenlabs',voice:'Bill Adams - Wise and Motivational American Storyteller',voiceId:'V2bPluzT7MuirpucVAKH',note:'waiting for ElevenLabs re-voice (needs approval)'}};
  const PLAYER=new Set(['pilot','You','you','player']);
  const ALIAS={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant','Landing terminal':'landing-terminal'};
  const TARGETS={admin:'admin','district-iris':'iris','district-bar':'bartender','district-shop':null,terminal:'landing-terminal',board:null,rook:'rook',elara:'elara',marcus:'marcus',kess:'kess',mercer:'mercer'};
@@ -70,14 +78,15 @@
     stores (StudioModel.STORES), studioDraft ({missions}|null), localDraft ({missions}|null), serverDrafts ([{id,title,kind,revision}]|null)} */
  function build(src){
   const reg=(src.registry&&src.registry.npcs)||{},byName={};for(const [id,n] of Object.entries(reg))byName[n.displayName]=id;
-  const recorded=new Set(Object.values((src.manifest&&src.manifest.lines)||{}).map(l=>l.speaker+'|'+l.text));
+  const clips=new Map();for(const [m,label] of [[src.manifest,'kokoro'],[src.extraManifest,'elevenlabs']])for(const [cid,l] of Object.entries((m&&m.lines)||{}))clips.set(l.speaker+'|'+l.text,{id:cid,engine:label,voice:l.voice||null,source:l.source});
+  const recorded=new Set(clips.keys()),clipOf=(id,text)=>clips.get(id+'|'+text)||null,engineOf=id=>VOICE_ENGINES[id]||(reg[id]?{engine:'kokoro',voice:reg[id].voice}:null);
   const locs=src.locations||{},stations=(src.campaign&&src.campaign.stations)||{};
   const place=id=>id?((stations[id]&&stations[id].name)||(locs[id]&&locs[id].name)||({earth:'NeoChinatown'})[id]||id):'';
   const labels={'landing-terminal':'Landing terminal'};
   const canon=who=>{if(!who)return '';if(PLAYER.has(who))return 'player';if(ALIAS[who])return ALIAS[who];if(reg[who])return who;if(byName[who])return byName[who];const l=String(who).toLowerCase();if(reg[l])return l;const id=l.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');labels[id]=String(who);return id;};
   const npcName=id=>id==='player'?'You (the player)':reg[id]?reg[id].displayName:labels[id]||id;
-  const line=(who,text,extra)=>{const id=canon(who);return {id:'L-'+id+'-'+hash(id+'|'+text),who:id,name:npcName(id),text,recorded:recorded.has(id+'|'+text),voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,...extra};};
-  const trees=[];
+  const line=(who,text,extra)=>{const id=canon(who);const l={id:'L-'+id+'-'+hash(id+'|'+text),ref:id+'|'+text,who:id,name:npcName(id),text,recorded:recorded.has(id+'|'+text),clip:clipOf(id,text),voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,engine:engineOf(id),...extra};l.adapter=l.kind==='beginner'||l.kind==='design'?'records':TALK_FILES.includes(l.source)?'talk':'code-change';return l;};
+  const trees=[],extraLines=[];
   // ---- the beginner campaign (active) ----
   const B=src.beginner||[],studio=src.studioDraft&&Array.isArray(src.studioDraft.missions)?src.studioDraft.missions:null,useB=studio||B;
   const bMissions=useB.map((m,i)=>{
@@ -121,7 +130,7 @@
   const all=new Map();for(const t of trees)for(const m of t.missions)all.set(m.id,m);
   for(const sc of SCENES){const text=(src.files||{})[sc.file];if(text==null)continue;const r=sceneLines(text,sc);if(!r)continue;
    for(const [mid,slot] of sc.at){const m=all.get(mid);if(!m)continue;
-    const lines=r.lines.map(l=>{const locked=!!sc.doc&&!l.placeholder;return line(l.who,l.text,{kind:'inline',source:sc.file,locked,lock:locked?lockLabel(sc.doc):'',placeholder:l.placeholder,editable:locked?false:'local',scene:sc.title});});
+    const lines=r.lines.map(l=>{const locked=!!sc.doc&&!l.placeholder;return line(l.who,l.text,{kind:'inline',source:sc.file,locked,lock:locked?lockLabel(sc.doc):'',placeholder:l.placeholder,editable:'local',scene:sc.title});});
     for(const l of lines)l.key=m.key+'/'+slot+'/'+l.id;
     const scene={title:sc.title,slot,source:sc.file,doc:sc.doc||null,lock:sc.doc?lockLabel(sc.doc):'',partial:r.partial,shared:!!sc.shared,lines};
     m.scenes.push(scene);const step=m.steps.find(s=>s.id===slot);if(step)step.lines.push(...lines);else if(slot==='offer')m.offer.push(...lines);}}
@@ -139,6 +148,15 @@
   for(const ch of content.chapters||[]){const ms=(content.missions||[]).filter(m=>m.chapter===ch.id).map((c,i)=>{const m=contract(c,'chapter-'+ch.id,i,'void-runner/content.js');m.key='campaign:'+c.id;m.server='campaign:'+c.id;return m;});
    ms.forEach((m,i)=>{if(ms[i+1]){m.ending.next=[ms[i+1].id];m.unlocks.push({kind:'mission',id:ms[i+1].id,when:'complete',name:'Next contract: '+ms[i+1].title,source:'void-runner/content.js requires'});}});
    trees.push({id:'chapter-'+ch.id,title:'Chapter: '+ch.name,status:'historical',statusText:STATUS.historical,engine:'contract',source:'void-runner/content.js',note:ch.subtitle+' Free flown contracts (combat runs). Old (open mission pool) campaigns only.',missions:ms});}
+  // ---- District drafts kept as data in the game (inactive, not started by anything) ----
+  const MK=src.milked;
+  if(MK&&MK.MISSION){const M=MK.MISSION,npc=M.npc,dl=(MK.DIALOGUE||{})[(String((M.dialogue||[])[0]||'').split('.')[0])]||{},said=((dl.greeting)||[]).map(t=>line(npc,t,{kind:'inline',source:'void-runner/milked.js',editable:'local',scene:'Eva’s greeting at reception'}));
+   const m={key:'district:'+M.id,id:M.id,tree:'district-drafts',engine:'data',title:M.title,type:'side',description:M.objective||'',giver:npc,giverName:line(npc,'').name,target:npc,start:'earth',destination:'earth',credits:0,
+    steps:(M.steps||[]).map(x=>({id:x.id,label:x.text,event:'',requires:[],where:'Milked',interaction:x.id==='reception'?'milked-eva':'',lines:x.id==='reception'?said:[],early:[]})),offer:[],
+    scenes:[{title:'Eva’s greeting at reception',slot:'reception',source:'void-runner/milked.js',doc:null,lock:'',partial:false,lines:said}],ending:{text:'Ends at Milked reception with Eva.',next:[],branches:[]},unlocks:[],order:0,server:null,inactive:true};
+   for(const l of said)l.key=m.key+'/reception/'+l.id;
+   trees.push({id:'district-drafts',title:'District drafts in the game data (inactive)',status:'draft',statusText:STATUS.draft,engine:'data',source:'void-runner/milked.js MISSION',note:(M.approval||'PROPOSED')+'. Data only: nothing registers or starts it. Activating it needs David’s approval.',missions:[m]});
+   for(const [who,d] of Object.entries(MK.DIALOGUE||{})){const id=(MK.MODELS&&MK.MODELS[who]&&MK.MODELS[who].id)||who;for(const t of d.greeting||[])extraLines.push(line(id,t,{kind:'outside',source:'void-runner/milked.js',editable:'local',group:'Greetings, idle and “come back later” lines'}));}}
   // ---- drafts ----
   if(studio){const added=studio.filter(m=>!B.some(x=>x.id===m.id));if(added.length)trees.push({id:'draft-studio',title:'Your draft: new beginner missions',status:'draft',statusText:STATUS.draft,engine:'beginner',source:'Developer Studio draft (this browser)',note:'Missions you added in the Studio draft. They are part of the beginner campaign tree above too.',missions:bMissions.filter(m=>added.some(a=>a.id===m.id)).map(m=>({...m,tree:'draft-studio'}))});}
   if(Array.isArray(src.serverDrafts)&&src.serverDrafts.length)trees.push({id:'draft-server',title:'Your private server drafts',status:'draft',statusText:STATUS.draft,engine:'server',source:'Stage 3B private drafts',note:'Drafts saved on the server. Open them in the Content atlas (admin/void-runner.html) for full editing.',
@@ -147,8 +165,37 @@
   for(const t of trees){const npcs=new Map();const add=(id,role,m)=>{if(!id||id==='player')return;const n=npcs.get(id)||{id,name:npcName(id),roles:new Set(),missions:new Set(),voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,registered:!!reg[id]};n.roles.add(role);n.missions.add(m.id);npcs.set(id,n);};
    for(const m of t.missions){add(m.giver,'gives the mission',m);if(m.target)add(m.target,'you deliver to them',m);for(const s of m.steps){if(s.interaction&&TARGETS[s.interaction])add(TARGETS[s.interaction],'a step happens with them',m);for(const l of [...s.lines,...s.early])add(l.who,'speaks',m);}for(const l of m.offer)add(l.who,'speaks',m);for(const sc of m.scenes)for(const l of sc.lines)add(l.who,'speaks',m);}
    t.npcs=[...npcs.values()].map(n=>({...n,roles:[...n.roles],missions:[...n.missions]})).sort((a,b)=>a.name.localeCompare(b.name));}
-  return {trees,counts:counts(trees),statusText:STATUS};
+  const npcs=npcView(trees,src,line,clips,reg,canon,extraLines);
+  return {trees,npcs,counts:counts(trees),statusText:STATUS};
  }
+ /* "All lines for <NPC>": every line a character speaks, in missions (by tree, mission, step and scene) and outside missions (both voice manifests: greetings, idle remarks,
+    rules such as Admin's scanning line, shop and bar lines). Relay broadcasts are David's own lines for the broadcast voices and are not listed (never edited here). */
+ function npcView(trees,src,line,clips,reg,canon,extra=[]){
+  const out=new Map(),get=id=>{if(!out.has(id))out.set(id,{id,name:line(id,'').name,voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,engine:line(id,'').engine,inMissions:[],outside:[]});return out.get(id);};
+  const seen=new Set();
+  for(const t of trees)for(const m of t.missions){
+   const push=(l,where)=>{if(l.who==='player'||!l.text)return;get(l.who).inMissions.push({...l,tree:t.id,treeTitle:t.title,mission:m.id,missionTitle:m.title,where});seen.add(l.ref);};
+   for(const l of m.offer)push(l,'When the mission is offered');for(const s of m.steps){for(const l of s.lines)push(l,'Step: '+s.label);for(const l of s.early)push(l,'Too soon at: '+s.label);}
+   for(const sc of m.scenes)for(const l of sc.lines)if(!m.offer.includes(l)&&!m.steps.some(s=>s.lines.includes(l)))push(l,'Scene: '+sc.title);}
+  for(const [ref,c] of clips){const [who,...rest]=ref.split('|'),text=rest.join('|');if(seen.has(ref)||/relay-content\.json$/.test(c.source||''))continue;if(!reg[who])continue;
+   const src2=c.source?(c.source.startsWith('void-runner/')?c.source:'void-runner/'+c.source):'';const l=line(who,text,{kind:'outside',source:src2,editable:'local'});seen.add(ref);
+   l.group=/companion/.test(src2)?'VR companion talk':/district-people/.test(src2)?'Rules and remarks in the District':/prologue|world-integration|scenes\.js|hangar/.test(src2)?'Greetings, idle and “come back later” lines':'Other lines';get(who).outside.push(l);}
+  for(const l of extra)if(!seen.has(l.ref)){seen.add(l.ref);get(l.who).outside.push(l);}
+  for(const n of out.values()){n.inMissions.sort((a,b)=>a.treeTitle.localeCompare(b.treeTitle));n.counts={inMissions:n.inMissions.length,outside:n.outside.length,locked:n.inMissions.filter(l=>l.locked).length};}
+  // Admin first (David starts with Admin), then everyone else by name.
+  return [...out.values()].sort((a,b)=>(b.id==='admin')-(a.id==='admin')||a.name.localeCompare(b.name));
+ }
+ /* Validates line edits (local.lines: {ref:{to,unlocked?}}) against every known line. Locked lines (David's own scripts) need the owner's explicit unlock. */
+ function validateLines(edits,index){
+  const out=[],TAG=/<[^>]*>/;
+  for(const [ref,e] of Object.entries(edits||{})){const l=index.get(ref);if(!l){out.push({level:'error',text:'A changed line no longer exists in the game: '+ref.slice(0,60)});continue;}
+   const to=e&&e.to;if(typeof to!=='string'||!to.trim()||to.length>500||TAG.test(to)){out.push({level:'error',text:'“'+l.text.slice(0,40)+'…”: a line must be plain text, 500 characters at most.'});continue;}
+   if(l.locked&&!e.unlocked)out.push({level:'error',text:'“'+l.text.slice(0,40)+'…” is '+l.lock+'. Unlock it first to change your own script.'});
+   if(l.recorded&&to!==l.text)out.push({level:'warn',text:'“'+to.slice(0,40)+'…”: voice clip out of date. Text only until re-voiced.'});
+   if(l.adapter==='code-change'&&to!==l.text)out.push({level:'warn',text:'“'+to.slice(0,40)+'…”: can be edited after the next update (needs a code change). Saved as a draft and exported for Claude or Codex.'});}
+  return out;
+ }
+ function lineIndex(built){const idx=new Map();for(const t of built.trees)for(const m of t.missions)for(const l of allLines(m))if(l.ref&&l.kind!=='beginner'&&l.kind!=='design')idx.set(l.ref,l);for(const n of built.npcs||[])for(const l of n.outside)if(!idx.has(l.ref))idx.set(l.ref,l);return idx;}
  function counts(trees){const c={trees:trees.length,missions:0,active:0,historical:0,draft:0,lines:0,locked:0};for(const t of trees){c[t.status]++;c.missions+=t.missions.length;for(const m of t.missions){const ls=allLines(m);c.lines+=ls.length;c.locked+=ls.filter(l=>l.locked).length;}}return c;}
  function allLines(m){const seen=new Set(),out=[];for(const l of [...m.offer,...m.steps.flatMap(s=>[...s.lines,...s.early]),...m.scenes.flatMap(s=>s.lines)])if(!seen.has(l.key)){seen.add(l.key);out.push(l);}return out;}
  /* Unlock facts for registry missions, read from campaign.js data (never invented): places discovered on accepting, payments, story flags, follow-up missions and rewards. */
@@ -179,8 +226,6 @@
   if(edit.title!=null&&(!String(edit.title).trim()||edit.title.length>60||TAG.test(edit.title)))e('The title must be plain text, 1 to 60 characters.');
   if(edit.description!=null&&(edit.description.length>600||TAG.test(edit.description)))e('The description must be plain text, 600 characters at most.');
   for(const [id,label] of Object.entries(edit.steps||{})){if(!mission.steps.some(s=>s.id===id))e('Step "'+id+'" is not a step of this mission.');if(!String(label).trim()||label.length>500||TAG.test(label))e('Step "'+id+'": the label must be plain text.');}
-  const lines=new Map(allLines(mission).map(l=>[l.key,l]));
-  for(const [key,text] of Object.entries(edit.lines||{})){const l=lines.get(key);if(!l){e('A changed line no longer exists in the game: '+key);continue;}if(l.locked)e('“'+l.text.slice(0,40)+'…” is '+l.lock+'. It cannot be changed here.');if(!String(text).trim()||text.length>500||TAG.test(text))e('A line must be plain text, 500 characters at most.');if(l.recorded&&text!==l.text)w('“'+text.slice(0,40)+'…”: voice clip out of date. Text only until re-voiced.');}
   if(edit.credits!=null&&!(Number.isInteger(edit.credits)&&edit.credits>=0&&edit.credits<=100000))e('Credits must be a whole number between 0 and 100000.');
   for(const x of edit.reputation||[]){if(!r.factions[x.faction])e('Unknown faction "'+x.faction+'".');if(!(Number.isInteger(x.amount)&&x.amount>=-100&&x.amount<=100))e('Reputation must be a whole number between -100 and 100.');}
   for(const u of edit.unlocks||[]){
@@ -192,6 +237,6 @@
    if(u.when&&u.when!=='complete'&&!mission.steps.some(s=>s.id===u.when))e('Unlock timing "'+u.when+'" is not a step of this mission.');}
   return out;
  }
- const api={STATUS,ARCS,SCENES,FILES,DOCS,build,sceneLines,allLines,refs,validateEdit,hash,lockLabel};
+ const api={STATUS,ARCS,SCENES,FILES,TALK_FILES,VOICE_ENGINES,DOCS,build,validateLines,lineIndex,sceneLines,allLines,refs,validateEdit,hash,lockLabel};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionTrees=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

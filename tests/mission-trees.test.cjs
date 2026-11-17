@@ -4,17 +4,18 @@ const R=p=>path.join(__dirname,'..',p),T=require(R('void-runner/mission-trees.js
 const fresh=()=>{for(const k of Object.keys(require.cache))if(k.includes('void-runner'+path.sep))delete require.cache[k];};
 function sources(extra={}){fresh();return {missions:require(R('void-runner/mission-log.js')).definitions,beginner:require(R('void-runner/beginner.js')).MISSIONS,content:require(R('void-runner/content.js')),campaign:require(R('void-runner/campaign.js')),story:require(R('void-runner/story-content.js')),
  registry:JSON.parse(fs.readFileSync(R('tools/audio/npc-voice-registry.json'),'utf8')),manifest:JSON.parse(fs.readFileSync(R('void-runner/assets/audio/voice/manifest.json'),'utf8')),files:Object.fromEntries(T.FILES.map(f=>[f,fs.readFileSync(R(f),'utf8')])),
- modules:require(R('void-runner/progression.js')).modules,ships:require(R('void-runner/ships.js')).ships,locations:require(R('void-runner/universe.js')).locations,stores:S.STORES,...extra};}
+ extraManifest:JSON.parse(fs.readFileSync(R('void-runner/assets/audio/voice/extra/manifest.json'),'utf8')),milked:require(R('void-runner/milked.js')),modules:require(R('void-runner/progression.js')).modules,ships:require(R('void-runner/ships.js')).ships,locations:require(R('void-runner/universe.js')).locations,stores:S.STORES,...extra};}
 
 test('every mission tree in the game data is listed, with its status, and no registry, contract or chapter mission is missing',()=>{
  const src=sources(),out=T.build(src),ids=out.trees.map(t=>t.id);
- assert.deepEqual(ids,['beginner','vesper-opening','sealed-cargo','communion','natural-order','rook-contracts','chapter-belt','chapter-lockdown','chapter-gate']);
- assert.equal(out.trees.find(t=>t.id==='beginner').status,'active');assert(out.trees.filter(t=>t.id!=='beginner').every(t=>t.status==='historical'));
+ assert.deepEqual(ids,['beginner','vesper-opening','sealed-cargo','communion','natural-order','rook-contracts','chapter-belt','chapter-lockdown','chapter-gate','district-drafts']);
+ assert.equal(out.trees.find(t=>t.id==='district-drafts').status,'draft');assert.equal(out.trees.find(t=>t.id==='district-drafts').missions[0].id,src.milked.MISSION.id);
+ assert.equal(out.trees.find(t=>t.id==='beginner').status,'active');assert(out.trees.filter(t=>!['beginner','district-drafts'].includes(t.id)).every(t=>t.status==='historical'));
  const listed=new Set(out.trees.flatMap(t=>t.missions.map(m=>m.id)));
  for(const id of Object.keys(src.missions))if(src.missions[id].beginner!==true)assert(listed.has(id),'registry mission '+id+' is listed');
  for(const m of src.beginner)assert(listed.has(m.id));for(const c of src.campaign.contracts)assert(listed.has(c.id));for(const c of src.content.missions)assert(listed.has(c.id));
- assert.equal(out.counts.missions,6+Object.keys(src.missions).length+src.campaign.contracts.length+src.content.missions.length);
- assert.equal(out.counts.trees,9);
+ assert.equal(out.counts.missions,6+Object.keys(src.missions).length+src.campaign.contracts.length+src.content.missions.length+1);
+ assert.equal(out.counts.trees,10);
 });
 test('every scene anchor still exists in its script (a changed script fails here instead of silently losing lines)',()=>{
  for(const sc of T.SCENES){const text=fs.readFileSync(R(sc.file),'utf8');assert(text.includes(sc.from),sc.file+' has '+sc.from);const r=T.sceneLines(text,sc);assert(r&&r.lines.length>0,sc.title+' has lines');}
@@ -53,12 +54,12 @@ test('steps, endings and unlocks come from the data (store items, ships, places,
 test('drafts appear as draft trees; edits are validated against the real items, ships, places, stores and locks',()=>{
  const src=sources(),studio={missions:[...S.clone(src.beginner),{id:'new-mission-1',title:'NEW',type:'main',giver:'Admin',prerequisites:['first-departure'],objectives:[{id:'step-1',label:'x',on:'talk-admin'}]}]};
  const out=T.build({...src,studioDraft:studio,serverDrafts:[{id:'me-flight',title:'Flight',kind:'mission',revision:2}]});
- assert.deepEqual(out.trees.filter(t=>t.status==='draft').map(t=>t.id),['draft-studio','draft-server']);
+ assert.deepEqual(out.trees.filter(t=>t.status==='draft').map(t=>t.id),['district-drafts','draft-studio','draft-server']);
  const r=T.refs(src),m=out.trees.flatMap(t=>t.missions).find(x=>x.id==='communion-delivery'),locked=m.scenes[0].lines[0],free=T.allLines(out.trees.flatMap(t=>t.missions).find(x=>x.id==='admin-sealed-cargo-01')).find(l=>l.editable==='local');
  assert.equal(T.validateEdit(m,{unlocks:[{kind:'item',id:'warflying-scrambler',store:'district-store'},{kind:'ship',id:'ship2'},{kind:'location',id:'holdfast'},{kind:'flag',id:'myFlag',value:true}],reputation:[{faction:'communion',amount:5}],credits:10},r).filter(i=>i.level==='error').length,0);
- const bad=T.validateEdit(m,{unlocks:[{kind:'item',id:'laser-sword',store:'district-store'},{kind:'ship',id:'x-wing'},{kind:'location',id:'atlantis'},{kind:'item',id:'cooling',store:'mall'}],reputation:[{faction:'empire',amount:5}],credits:-1,lines:{[locked.key]:'changed'}},r).filter(i=>i.level==='error').map(i=>i.text).join('\n');
- for(const t of ['laser-sword','x-wing','atlantis','mall','empire','Credits','David’s script'])assert(bad.includes(t),t);
- const sm=out.trees.flatMap(t=>t.missions).find(x=>x.id==='admin-sealed-cargo-01');const v=T.validateEdit(sm,{lines:{[free.key]:'New placeholder words.'}},r);assert(!v.some(i=>i.level==='error'));assert(v.some(i=>/voice clip out of date/.test(i.text)));
+ const bad=T.validateEdit(m,{unlocks:[{kind:'item',id:'laser-sword',store:'district-store'},{kind:'ship',id:'x-wing'},{kind:'location',id:'atlantis'},{kind:'item',id:'cooling',store:'mall'}],reputation:[{faction:'empire',amount:5}],credits:-1},r).filter(i=>i.level==='error').map(i=>i.text).join('\n');
+ for(const t of ['laser-sword','x-wing','atlantis','mall','empire','Credits'])assert(bad.includes(t),t);
+
 });
 // ---------------- content adapter (draft play and publishing) ----------------
 function env(){fresh();const M=require(R('void-runner/mission-log.js')),B=require(R('void-runner/beginner.js')),C=require(R('void-runner/campaign.js'));B.register(M);return {B,Missions:M,C};}
@@ -93,8 +94,8 @@ test('check refuses unknown fields, HTML, unknown events, speakers, loops and un
  assert.deepEqual(MC.EVENTS,Object.keys(S.EVENTS),'the same completion events as the Studio');assert.deepEqual(MC.SPEAKERS,S.SPEAKERS);
 });
 test('notApplied lists, in plain words, every kind of edit the game cannot apply live',()=>{
- const list=MC.notApplied({studio:{missions:[{title:'A',giver:'Admin',offer:[{who:'Admin',text:'x'}],choices:[{id:'a',label:'b'}],unlocks:[{item:'x',where:['everywhere']}]}]},local:{missions:{'registry:communion-delivery':{name:'COMMUNION DELIVERY',lines:{a:'b'},unlocks:[{kind:'ship',id:'ship2'}],reputation:[{faction:'communion',amount:1}],credits:5},'rook-contracts:medicine':{name:'Cold chain',title:'X'}}}});
- for(const t of ['does not speak','choices','store items','adapter','design note','reputation','campaign code','Contracts are flown'])assert(list.some(x=>x.includes(t)),t);
+ const list=MC.notApplied({studio:{missions:[{title:'A',giver:'Admin',offer:[{who:'Admin',text:'x'}],choices:[{id:'a',label:'b'}],unlocks:[{item:'x',where:['everywhere']}]}]},local:{lines:{'admin|Scanning in here is rude. Open WarFlying on your device and deactivate it.':{from:'Scanning in here is rude. Open WarFlying on your device and deactivate it.',to:'No scanning.',adapter:'code-change'}},missions:{'registry:communion-delivery':{name:'COMMUNION DELIVERY',unlocks:[{kind:'ship',id:'ship2'}],reputation:[{faction:'communion',amount:1}],credits:5},'rook-contracts:medicine':{name:'Cold chain',title:'X'}}}});
+ for(const t of ['does not speak','choices','store items','needs a code change','design note','reputation','campaign code','Contracts are flown'])assert(list.some(x=>x.includes(t)),t);
 });
 test('warnings and migration: removed steps and missions never break or wipe a save; an unfinishable mission is completed and paid once',()=>{
  const e=env(),shipped=MC.clone(e.B.MISSIONS),after=MC.clone(shipped);after[1].objectives=after[1].objectives.filter(o=>o.id!=='report');after.splice(5,1);
@@ -105,4 +106,26 @@ test('warnings and migration: removed steps and missions never break or wipe a s
  assert.deepEqual(MC.migrate(s,after),[],'idempotent: never paid twice');
  const s2=e.C.startDistrictCampaign(e.C.fresh());s2.universe.missions={'first-departure':{acquired:true,completed:false,objectives:{launch:true}}};s2.universe.trackedMission='first-departure';
  assert(MC.migrate(s2,after).includes('untracked removed mission first-departure'));assert(s2.universe.missions['first-departure'],'the record of a removed mission is kept');
+});
+test('All lines for an NPC: every one of Admin’s voiced lines is found (in missions by scene, or outside), Admin first, ElevenLabs engine recorded; every voiced speaker is listed',()=>{
+ const src=sources(),out=T.build(src),admin=out.npcs[0];assert.equal(admin.id,'admin');assert.equal(admin.engine.engine,'elevenlabs');assert.equal(admin.engine.voiceId,'V2bPluzT7MuirpucVAKH');
+ const refs=new Set([...admin.inMissions,...admin.outside].map(l=>l.ref));
+ for(const l of Object.values(src.manifest.lines))if(l.speaker==='admin')assert(refs.has('admin|'+l.text),'Admin line listed: '+l.text.slice(0,50));
+ for(const l of Object.values(src.extraManifest.lines))if(l.speaker==='admin')assert(admin.outside.some(x=>x.text===l.text&&x.adapter==='code-change'&&x.clip&&x.clip.engine==='elevenlabs'));
+ assert(admin.inMissions.every(l=>['talk','records'].includes(l.adapter)),'every Admin mission line can be overridden live');
+ const speakers=new Set(out.npcs.map(n=>n.id));for(const l of Object.values(src.manifest.lines))if(!/relay-content/.test(l.source))assert(speakers.has(l.speaker),l.speaker);
+ assert(!out.npcs.some(n=>['news-anchor','commercial-announcer'].includes(n.id)),'Relay broadcasts are not listed');
+ assert(out.npcs.find(n=>n.id==='milked-fish').outside.length===3);
+ const idx=T.lineIndex(out),locked=admin.inMissions.find(l=>l.locked),free=admin.inMissions.find(l=>!l.locked&&l.adapter==='talk');
+ assert.equal(T.validateLines({[locked.ref]:{to:'Mine now.'}},idx).filter(i=>i.level==='error').length,1,'a locked line needs an unlock');
+ const ok=T.validateLines({[locked.ref]:{to:'Mine now.',unlocked:true},[free.ref]:{to:'Also mine.'}},idx);assert.equal(ok.filter(i=>i.level==='error').length,0);assert(ok.some(i=>/voice clip out of date/.test(i.text)));
+});
+test('line adapter: an edited line replaces the shown words for its speaker only; content checks lines against the game',()=>{
+ const e=env(),line='Always got work. Just depends on where you’re willing to go.';
+ const c=MC.fromDrafts({local:{lines:{['admin|'+line]:{from:line,to:'Work? Always.',adapter:'talk'},'admin|x':{from:'x',to:'y',adapter:'code-change'}}}});
+ assert.deepEqual(c.lines,[{who:'admin',from:line,to:'Work? Always.'}]);
+ assert(MC.check(c,{lines:new Set(['admin|'+line])}).ok);assert(!MC.check({...c,lines:[{who:'admin',from:'not in game',to:'z'}]},{lines:new Set(['admin|'+line])}).ok);
+ assert(!MC.check({...c,lines:[{who:'admin',from:line,to:'<script>'}]}).ok);
+ MC.apply(c,e);assert.equal(MC.mapLine(e,{who:'Admin',text:line}).text,'Work? Always.');assert.equal(MC.mapLine(e,{who:'Iris',text:line}).text,line);
+ MC.apply(null,e);assert.equal(MC.mapLine(e,{who:'Admin',text:line}).text,line,'rollback restores the shipped line');
 });
