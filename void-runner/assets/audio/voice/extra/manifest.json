@@ -176,6 +176,33 @@
    "voiceId": "ggacvEjbmpoSuEinfFWs",
    "source": "main-story.js (003 Corporate Connections, the V1's English translation of Fish's line, in her own voice)",
    "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 (about 68 credits); approved by the owner, who chose Fish's own voice for the translation. Played over her Mandarin line with the settings in translations['milked-fish']."
+  },
+  "eva-m003-welcome-1": {
+   "speaker": "milked-eva",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "The owner's words; recorded 17 Nov 2026 with ElevenLabs eleven_v4, one take.",
+   "text": "Hey there! Welcome to Milked. First time here?",
+   "file": "extra/eva-m003-welcome-1.ogg"
+  },
+  "eva-m003-welcome-2": {
+   "speaker": "milked-eva",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "The owner's words; recorded 17 Nov 2026 with ElevenLabs eleven_v4, one take.",
+   "text": "We're a little different from your average entertainment venue. We're both an adult streaming platform and a sperm bank. Our performers earn credits based on the samples collected from viewers tuning in from home.",
+   "file": "extra/eva-m003-welcome-2.ogg"
+  },
+  "eva-m003-welcome-3": {
+   "speaker": "milked-eva",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "The owner's words; recorded 17 Nov 2026 with ElevenLabs eleven_v4, one take.",
+   "text": "So, what brings you in today? Business or pleasure?",
+   "file": "extra/eva-m003-welcome-3.ogg"
   }
  },
  "translations": {

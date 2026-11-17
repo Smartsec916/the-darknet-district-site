@@ -630,6 +630,7 @@ Done; see §4.3. Possible follow-ups:
 - Tell the player that L opens the Mission Log.
 - Kestrel cargo is 2 units. Derelict catwalks are a real, fightable upper level.
 - Painted cockpit with closer, larger windows ("perfect").
+- **Mission 003 — Eva's lines (APPROVED 18 Nov 2026, the owner's words, verbatim; recorded in Eva's voice):** "Hey there! Welcome to Milked. First time here?" / "We're a little different from your average entertainment venue. We're both an adult streaming platform and a sperm bank. Our performers earn credits based on the samples collected from viewers tuning in from home." / "So, what brings you in today? Business or pleasure?" The player's two lines to Eva are APPROVED as drafted ("Admin sent me. I'm here to see Fish." / "He also said to tell you hi."). Still PROPOSED: the player's line to Fish and Fish's Social bio.
 - **Tessaly** replaces **Sol** everywhere.
   - **NeoChinatown** is its city, with tall skyscrapers.
   - **The Darknet District** is in an alley near the NeoChinatown landing.

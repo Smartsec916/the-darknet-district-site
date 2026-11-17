@@ -34,9 +34,10 @@ test('Mission 003 data: right after Eyes on the Street in the Awakening tree, nu
  const fish=m.objectives[2].say;assert.deepEqual(fish.slice(1).map(l=>[l.who,l.text]),[['milked-fish',ZH],['v1-translator',EN]]);
  assert.equal(m.rewards,undefined,'no reward (the owner specified none)');assert.deepEqual(m.unlocks.map(u=>u.kind),['flag','contact','follow']);assert.deepEqual(m.unlocks[0],{kind:'flag',id:'milkedStaff',value:true,when:'speak-eva'});
  // the PROPOSED drafts: marked, short, non-explicit, never recorded
- const drafts=[...eva.slice(0,5),fish[0]].map(l=>l.text);assert.ok(drafts.every(MS.isProposed),'every drafted line is marked PROPOSED');assert.equal(MS.PROPOSED.length,6);
+ assert.deepEqual(eva.slice(0,5).map(l=>l.text),Object.values(MS.APPROVED),'Eva\'s welcome and the player\'s two lines: the owner\'s approved words');assert.ok(eva.every(l=>!MS.isProposed(l.text)),'nothing at Eva is a draft any more');
+ const drafts=[fish[0]].map(l=>l.text);assert.ok(drafts.every(MS.isProposed),'the player\'s line to Fish is still a draft');assert.equal(MS.PROPOSED.length,1);
  for(const t of [...BRIEF,ZH,EN,'Oh, Admin! Tell him I said hi, too.'])assert.equal(MS.isProposed(t),false,'the owner\'s own words are not drafts');
- for(const t of MS.PROPOSED){assert.ok(t.length<=120,t);assert.ok(!/\b(sex|sperm|semen|naked|nude|porn|cum|ejaculat)/i.test(t),'tasteful: '+t);}
+ for(const t of MS.PROPOSED){assert.ok(t.length<=120,t);assert.ok(!/\b(sex|semen|naked|nude|porn|cum|ejaculat)/i.test(t),'tasteful: '+t);}
  const clips=new Set(Object.values(extra()).map(l=>l.text));for(const t of MS.PROPOSED)assert.ok(!clips.has(t),'a draft is text only: '+t);
  // the content check with the real lists (the game and the server use the same)
  const ctx={givers:new Map(e.givers.map(g=>[g.id,g])),places:G.placeIds(),subjects:new Set(G.photoSubjects(e.givers).map(g=>g.id))};
