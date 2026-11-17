@@ -1,5 +1,7 @@
 """Mission Editor publishing and re-voice queue: owner only, off by default, immutable versions, undo, fake storage only (no production calls)."""
 import copy
+import json
+from pathlib import Path
 import os
 import unittest
 from unittest.mock import patch
@@ -254,6 +256,42 @@ class MissionRemovalSaveTests(unittest.TestCase):
         state['story']['flags'].pop('missionPool')
         state['universe']['trackedMission'] = 'legal-run'
         self.assertEqual(vr.clean_save(state)['universe']['trackedMission'], 'legal-run')
+
+    def test_mission_002_save_is_accepted(self):
+        """Mission 002 — Eyes on the Street (17 Nov 2026): its record, its Comms call flags, the paid flag, the credits and Admin's standing (story.relationships) all pass."""
+        state = test_story_save.StorySaveTests.state(None)
+        state['credits'] = 600
+        mid = 'm002-eyes-on-the-street'
+        state['story']['flags'].update({'missionPool': 'closed', 'mt_m001-awakening': True, 'v1m_' + mid + '_enter-null': 1763400100, 'v1r_' + mid + '_enter-null': True, 'mt_' + mid: True})
+        state['story']['relationships'] = {'admin': 10}
+        state['universe'] = {'trackingInitialized': True, 'trackedMission': mid, 'freeTravel': False,
+                             'missions': {'m001-awakening': {'acquired': True, 'completed': True, 'objectives': {'exit-pod': True, 'message': True, 'speak': True, 'introduction': True}},
+                                          mid: {'acquired': True, 'completed': False, 'objectives': {'enter-null': True, 'photograph': True}}}}
+        clean = vr.clean_save(state)
+        self.assertEqual(clean['universe']['trackedMission'], mid, 'a story mission stays tracked')
+        self.assertEqual(clean['universe']['missions'][mid]['objectives'], {'enter-null': True, 'photograph': True})
+        self.assertEqual(clean['story']['flags']['v1m_' + mid + '_enter-null'], 1763400100)
+        self.assertIs(clean['story']['flags']['mt_' + mid], True)
+        self.assertEqual(clean['story']['relationships'], {'admin': 10})
+        self.assertEqual(clean['credits'], 600)
+        state['story']['relationships'] = {'admin': 101}
+        with self.assertRaises(vr.ApiError):
+            vr.clean_save(state)
+
+    def test_mission_002_publishes_with_its_new_kinds(self):
+        """The shipped Awakening tree with Mission 002, as the editor publishes it, passes the server check; broken new kinds are refused."""
+        import copy, subprocess
+        out = subprocess.run(['node', '-e', "const MC=require('./void-runner/mission-content.js'),MS=require('./void-runner/main-story.js');process.stdout.write(JSON.stringify(MC.treesContent(MS.trees(),{givers:[{id:'admin',canTalk:true,draft:true}]}).trees))"],
+                             capture_output=True, text=True, cwd=str(Path(__file__).resolve().parent.parent), check=True)
+        trees = json.loads(out.stdout)
+        content = {'format': 'darknet-district-mission-content', 'version': 1, 'trees': trees}
+        self.assertEqual(live.check(content), [])
+        for change in [lambda m: m['objectives'][0].update(place='atlantis'), lambda m: m['objectives'][1].update(npc='nobody'), lambda m: m['objectives'][2].update(subject='nobody'),
+                       lambda m: m['objectives'][0].update(via='fax'), lambda m: m['unlocks'][0].update(amount=0), lambda m: m['unlocks'][0].update(id='nobody'), lambda m: m['start'].update(accept='yes'),
+                       lambda m: m['objectives'][3].update(wrong=[{'who': 'admin', 'text': 'x'}])]:
+            bad = copy.deepcopy(content)
+            change(bad['trees'][0]['missions'][1])
+            self.assertTrue(live.check(bad), 'refused')
 
     def test_manifest_lists_mission_001(self):
         m = live.manifest()

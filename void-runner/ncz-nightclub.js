@@ -221,7 +221,7 @@
    juno={holder,api:null,phase:0,state:'sit',t:0,prop:null,look:0};
    Promise.resolve(root.VoidCharacterAssembler.build(JUNO.appearance,holder,{scene,clip:'sit'})).then(api=>{
     if(disposed||!juno){api?.dispose?.();return;}juno.api=api;
-    // the visor pushed up onto her forehead: the same piece, moved up and back (it is skinned to the head, so it stays there through every clip)
+    // the visor pushed up onto her forehead: the same piece, moved up and back (it is skinned to the head, so it stays there through every clip); raised onto the top of her bob, its front edge just out over the fringe
     for(const m of api.meshes())if(/^gear:/.test(m.name)&&/visor/i.test(m.name+' '+(m.material?.name||''))){try{m.makeGeometryUnique();const P=B.VertexBuffer.PositionKind,pos=Float32Array.from(m.getVerticesData(P));for(let i=0;i<pos.length;i+=3){pos[i+1]+=JUNO.visorUp;pos[i+2]-=JUNO.visorBack;}m.setVerticesData(P,pos,false);m.refreshBoundingInfo?.();}catch{}}
     // her device: a small dark slab with a lit screen, held in front of her at lap height (the seated clip keeps her hands there)
     const dev=B.MeshBuilder.CreateBox('ncz-null-juno-device',{width:.075,height:.012,depth:.14},scene),dm=new B.StandardMaterial('ncz-null-juno-device',scene);dm.diffuseColor=new B.Color3(.02,.02,.03);dm.emissiveColor=new B.Color3(.12,.55,.75);dm.disableLighting=true;own.push(dm);
@@ -237,7 +237,8 @@
    if(juno.t>want){juno.t=0;juno.phase++;juno.state=['look','sit','device','sit'][juno.phase%4];if(juno.state==='device')juno.api.play('sit-talk');else juno.api.play('sit');}
    const k=juno.state==='look'?Math.sin(juno.t/5*Math.PI):0;juno.look+=(k*.55-juno.look)*Math.min(1,dt*3);juno.holder.rotation.y=JUNO.yaw-juno.look;
    if(juno.prop)juno.prop.material.emissiveColor.set(.12,juno.state==='device'?.75:.45,juno.state==='device'?1:.65);}
-  const CAST=['district-resident','ncz-neon','outlaw-01','fixer-01','hacker-01','runner-02','district-smuggler','communion-tech'],clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
+  // (FIXER is left out of the crowd since 17 Nov 2026: Juno Vex is built on it, and a second figure with her bob and shades at the bar would not let her read as alone)
+  const CAST=['district-resident','ncz-neon','outlaw-01','hacker-01','runner-02','district-smuggler','communion-tech'],clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
   function staff(dt,near){
    if(!people.length&&!built){if(clock>2)junoBuild();junoTick(dt,near);return;}   // the purchased model has no crowd of its own: Juno still sits at the bar
    if(!people.length)return;
@@ -292,8 +293,8 @@
  /* How many people NULL holds at each quality (David, 17 Nov 2026), Juno Vex not counted here (she is always there): dancers, staff (DJ, bartender, door), bar guests. */
  const CAST_COUNTS={low:{dancers:2,staff:3,guests:0},medium:{dancers:3,staff:3,guests:2},high:{dancers:4,staff:3,guests:2},ultra:{dancers:4,staff:3,guests:2}};
  const castCounts=q=>CAST_COUNTS[q]||CAST_COUNTS.medium;
- // Juno Vex's stool: the east end of the bar (stools at x 28.5 ... 33.5, z -51.15, 0.74 m high), turned a little toward the room so she can be seen from the door.
- const JUNO={x:33.55,y:.3,z:-51.35,yaw:.75,visorUp:.07,visorBack:.03,device:[0,.62,.32],appearance:{v:1,base:'female',look:'fixer-01',hair:'bob01',hairColor:'silver',clothingColor:'black',accessories:['gear-visor']}};
+ // Juno Vex's stool: the east end of the bar (stools at x 28.5 ... 33.5, z -51.15, 0.74 m high), sitting sideways to the bar, turned toward the room and the door so her face can be seen.
+ const JUNO={x:33.55,y:.3,z:-51.35,yaw:1.9,visorUp:.095,visorBack:-.045,device:[0,.62,.32],appearance:{v:1,base:'female',look:'fixer-01',hair:'bob01',hairColor:'silver',clothingColor:'black',accessories:['gear-visor']}};
  const api={NAME,BUILT,ENTRY,CAST_COUNTS,castCounts,JUNO,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightclub=api;
  // The bar: a drink, nothing more for now (no credits, no effect). Registered once the game's interaction table exists.
