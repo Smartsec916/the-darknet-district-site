@@ -32,12 +32,10 @@
  // Leaving works the same way, from the same spot: the middle of the vestibule.
  function exitTrigger(N,p){return centre(N,p);}
  /* What a click on a pod's wall screen does. (u, v) is where on the screen, 0..1 from its top left; the layouts are the ones drawn in neochinatown.js
-    (drawPodPlayer 384x192, drawPodLights 320x180). Music: the five transport buttons, the volume bar, anything else opens the playlist. Lights: the three presets. */
- function podControl(kind,u,v){if(!(u>=0&&u<=1&&v>=0&&v<=1))return null;
+    (pod-player-ui.js draws and tests the player on a 384x192 face, drawPodLights 320x180). Music: everything the player does is decided in pod-player-ui.js (ctx is its view, source, list length and scroll). Lights: the three presets. */
+ function podControl(kind,u,v,ctx){if(!(u>=0&&u<=1&&v>=0&&v<=1))return null;
   if(kind==='exit')return {action:'exit'};if(kind==='vend')return {action:'vend'};
-  if(kind==='music'){const x=u*384,y=v*192;if(y>=142&&y<=178){const k=Math.floor((x-14)/40);if(x>=14&&k>=0&&k<5&&x-14-k*40<=38)return {action:['previous','play','pause','stop','next'][k]};
-    if(x>=248&&x<=372)return {action:'volume',value:Math.max(0,Math.min(1,(x-254)/112))};}
-   return {action:'playlist'};}
+  if(kind==='music'){const UI=typeof module==='object'&&module.exports?require('./pod-player-ui.js'):root.VoidPodPlayerUI;return UI?UI.hit(ctx||{view:'player'},u*UI.W,v*UI.H):null;}
   if(kind==='lights'){const x=u*320,y=v*180;if(x>=8&&x<=166)for(let i=0;i<3;i++)if(y>=31+i*46&&y<=75+i*46)return {action:'light',preset:['rest','reading','music'][i]};return null;}
   return null;}
  const api={KEY,POINT,POD_VIEW,podBed,podControl,ENTER,EXIT,CENTRE,VESTIBULE,centre,inVestibule,areaOf,keyFor,resume,podExit,exitSpawn,enterTrigger,exitTrigger};

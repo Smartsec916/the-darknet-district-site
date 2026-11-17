@@ -12,3 +12,7 @@ test('the pod releases the mouse through document.exitPointerLock before it leav
  assert.match(w,/c\.action==='exit'\|\|c\.action==='vend'\)\{if\(document\.pointerLockElement===podWake\)document\.exitPointerLock/);
  assert.match(w,/pick!=='look'&&document\.pointerLockElement===podWake\)document\.exitPointerLock/);
 });
+test('a late "mouse taken" event from the pod\'s own screen is not an Esc either',()=>{
+ const m=read('void-runner/mouse-control.js');
+ assert.match(m,/if\(document\.pointerLockElement\)\{if\(fps\(\)\)document\.exitPointerLock\(\);return;\}/);
+});

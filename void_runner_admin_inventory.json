@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "dd246090ba422e97",
+  "revision": "cb7fd7c464b28607",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12096,31 +12096,31 @@
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 35,
+      "line": 36,
       "text": "if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 36,
+      "line": 37,
       "text": "if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 40,
+      "line": 41,
       "text": "const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 41,
+      "line": 42,
       "text": "document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button')&&!conversationOpen())reacquire();});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 42,
+      "line": 43,
       "text": "addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code)&&!conversationOpen())reacquire();});",
       "kind": "source-reference"
     },
@@ -12198,19 +12198,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 907,
+      "line": 893,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1071,
+      "line": 1057,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1192,
+      "line": 1178,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -12349,7 +12349,7 @@
     {
       "source": "void-runner/pod-music.js",
       "line": 60,
-      "text": "function say(text){status=text||'';const el=byId('pod-music-status');if(el)el.textContent=status;}",
+      "text": "function say(text){status=text||'';statusAt=Date.now();}",
       "kind": "source-reference"
     },
     {
@@ -12408,14 +12408,14 @@
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 218,
-      "text": "else if(cmd==='shuffle'){l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();}",
+      "line": 177,
+      "text": "toggleShuffle(){const l=lists[source];l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/pod-music.js",
-      "line": 219,
-      "text": "else if(cmd==='repeat'){const m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();}",
+      "line": 178,
+      "text": "cycleRepeat(){const l=lists[source],m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();},",
       "kind": "source-reference"
     },
     {
@@ -13542,103 +13542,103 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 132,
+      "line": 139,
       "text": "arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 133,
+      "line": 140,
       "text": "const lines=speech?.lines.slice(),label=speech?.label;speech=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 143,
+      "line": 150,
       "text": "renderLine=function(){worldRenderLine();if(walkingLocation){screen.dataset.scene='';screen.classList.remove('cinematic');screen.querySelectorAll('.portrait').forEach(el=>el.remove());/* A conversation in a station is in person: name the place. Only comms calls and messages are transmissions. */const eyebrow=screen.querySelector('.scene-heading .eyebrow');if(eyebrow&&!/comms|message|transmission/i.test(speech?.heading||''))eyebrow.textContent=globalThis.VoidVR?.active?'VR · '+VoidVR.session.exp.title.toUpperCase():(C.stations[state.location]?.name||'').toUpperCase();}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 153,
+      "line": 160,
       "text": "talk('',[{who:'rook',text:'Client confirmed the drop. Here’s your pay.'}],()=>{announce('PAYMENT RECEIVED · '+paid.toLocaleString()+' credits · ROOK FREIGHT RUN #'+owed.number+' COMPLETE');rookFreightOffer();},'NEXT →','Rook’s booth');return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 155,
+      "line": 162,
       "text": "talk('',[{who:'rook',text:'The '+r.cargo.toLowerCase()+' are still in your hold. '+place(r.destination)+' is waiting on them.'}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 157,
+      "line": 164,
       "text": "if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 158,
+      "line": 165,
       "text": "if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 163,
+      "line": 170,
       "text": "talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 164,
+      "line": 171,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 165,
+      "line": 172,
       "text": "screen.querySelector('.dialogue-window')?.classList.add('choice-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 166,
+      "line": 173,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class=\"rook-board\">'+jobs+'</ul>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 167,
+      "line": 174,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',board.map(j=>button(j.units>free?'NO HOLD SPACE · '+j.label.toUpperCase():'TAKE '+j.label.toUpperCase()+' →','rook-job:'+j.kind,false,j.units>free)).join('')+button('NOT NOW','walk-resume',true));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 170,
+      "line": 177,
       "text": "if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 173,
+      "line": 180,
       "text": "else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 182,
+      "line": 189,
       "text": "talk('',[{who:item.character,text:texts[item.character]}],resumeWalking,'RETURN TO STATION');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 228,
+      "line": 235,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 239,
+      "line": 246,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -13998,7 +13998,7 @@
     "void-runner/device-portraits.js": "804452b16dda42da7d3057a6fd940c508e43dc881e1e9614195e54d8242db594",
     "void-runner/device-v1.js": "f1a91004b19e806da5ac80a81d3ffe969715ac65be0a1abd124ae9e45b5c37ee",
     "void-runner/district-arcade.js": "c3af70e2fb4cf3ca567309ed745a0862bb455f01397fa075805e5dc6b1a0476c",
-    "void-runner/district-area.js": "691220341919fe9ae6839cc50aaebaa84d6d59d3a6a0c35accb790d3de946dc8",
+    "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "d6c860db19dbe4ec7cf521a48a2be9662cb879218dd831943d6ee72a83d15138",
     "void-runner/district-map.js": "8f33aa30542246c708803780ad46605fc7689fd75e01206b64654d1706c6d0f4",
@@ -14034,7 +14034,7 @@
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
-    "void-runner/keymap.js": "fcb9a0a01ce4a0eaadeb0687d22f2188ae0a69b2a0d921023bcf1a0287f2e1fd",
+    "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
@@ -14051,7 +14051,7 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-log.js": "a441c9382c2c393ebcefb482956a9b3aafa0e06391b884207af5912f6c041f2e",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
-    "void-runner/mouse-control.js": "af8df4b620bba30d4cc4ce2dcfb3a0a8766f143f18bd388c52ba0f5412eadf5e",
+    "void-runner/mouse-control.js": "ed9809e0d06f58e82dc51709400174f2ddeaad4bd3eb92c487bde55d1b38c768",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "8aa32574859a31dc60f142755cb98798de012157c838d60225b96f97787f09f9",
     "void-runner/music-engine.js": "01eecadf954ace9df5655135ab20f6341548f1af07b0e864715be33d08eec2ea",
@@ -14065,7 +14065,7 @@
     "void-runner/ncz-nightclub.js": "09c1373360df509732ccb609f0e879d615551e568cbaf09e278af8247b97e6fb",
     "void-runner/ncz-nightlife.js": "3750630f293c5f32c9555335c9153ae02913e89d5ac3fbf3c5d69d02342d0353",
     "void-runner/ncz-quarters.js": "2f21dbe9d1c243d5be8975f4c774513ee9650bf49f4bc42a1860b8c162f1a692",
-    "void-runner/neochinatown.js": "0bdd57591228b0d095f52b35712516d9b1c7697460b95a29e33504eeb81a47c0",
+    "void-runner/neochinatown.js": "7826f2d9bfdab305cb1877b15920ad14265814742bb3b40ac7a22dd5131bbea7",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
@@ -14074,7 +14074,8 @@
     "void-runner/personal-hud.js": "3a4b8ded6b03ad1029a64f38764261dbf6786022ba248ec8e33bc632ae6611bf",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
-    "void-runner/pod-music.js": "e4b64a57bf7b6bceaf880691cbac2ac018b57ced2251c27e69314785505aa8d6",
+    "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
+    "void-runner/pod-player-ui.js": "aec21e05d147750399be36c483109834d6355cd9fe92defc48c4f19fadd04f66",
     "void-runner/pod-playlist.js": "551f33d389b5090865394f22b1607761e72e711cdc5625e822a60b96f0fb77c1",
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "2d9e4804ce9fed613295f24f81571185c83bf22341f5fddd89cc8f72c41077a5",
@@ -14129,7 +14130,7 @@
     "void-runner/warflying-scanner.js": "46a84d6fe041fb3c4d647dcffc08fd193def538dcfe8c6bd771d0a8759535c3b",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "d48267b54396ffdc6dd748770571703a1b01465c6093bba3958c983db2cbb1c2",
+    "void-runner/world-integration.js": "2737e86fabd9d9f23f90c4abd3c97966a845f299d256bf480da0945951cf6353",
     "void-runner/world-markers.js": "31f8cc2fa59c41b144f97dcaf6793e7eaeb98ffd09fa692e4e0c8dd0c9845be0",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "e8847f58f9caa5f7257c5c1ab1e09469c8714a4918355e7df32c2bae55e3784a",

@@ -32,6 +32,7 @@
  if(release)document.exitPointerLock=function(){if(document.pointerLockElement)gameReleased=true;return release();};
  document.addEventListener('pointerlockchange',()=>{
   if(locked()){failures=0;gameReleased=false;return;}
+  if(document.pointerLockElement){if(fps())document.exitPointerLock();return;}   // the mouse was taken by some other screen (the Sleeping Pod's view): not an Esc. If the pod has since been left, hand the mouse back to the game.
   if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation
   if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}
  });

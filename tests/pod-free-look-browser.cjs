@@ -26,8 +26,8 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  await page.keyboard.press('KeyV');await page.waitForFunction(()=>!document.querySelector('.pod-vend').hidden);const yv=(await view()).yaw;
  await page.mouse.move(300,200);await page.mouse.down();await page.mouse.move(500,260,{steps:4});await page.mouse.up();assert.equal((await view()).yaw,yv);
  await page.locator('[data-vend=back]').click();await page.waitForFunction(()=>document.querySelector('.pod-vend').hidden);
- // M opens music and lights; returning comes back to the pod
- await page.keyboard.press('KeyM');await page.waitForFunction(()=>mode==='equipment');await page.locator('[data-action="pod-music:return"]').click();await page.waitForFunction(()=>mode==='pod-waking');
+ // M and the music pop-up are gone: the controls are on the wall (tests/pod-music-browser.cjs)
+ await page.keyboard.press('KeyM');await page.waitForTimeout(300);assert.equal(await page.evaluate(()=>mode),'pod-waking','M does nothing now');
  // E gets up
  await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');assert.equal(await page.evaluate(()=>document.getElementById('pod-wake').hidden),true);
  assert.deepEqual(errs,[]);console.log(JSON.stringify({ok:true}));await b.close();})().catch(e=>{console.error(String(e.stack||e).slice(0,800));process.exit(1);});
