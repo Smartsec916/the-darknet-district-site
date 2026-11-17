@@ -1,6 +1,6 @@
 # Graphics modernization: progress record
 
-Direction (David, 2026-11-11/12): a cinematic science-fiction look. Blade Runner 2049 for atmosphere (darkness, haze, rain, restrained neon), Altered Carbon for urban density, The Expanse for believable engineering. References for mood only; nothing is copied. Work outward from the first thing a player sees. One finished area = one verified live release.
+Direction (the owner, 2026-11-11/12): a cinematic science-fiction look. Blade Runner 2049 for atmosphere (darkness, haze, rain, restrained neon), Altered Carbon for urban density, The Expanse for believable engineering. References for mood only; nothing is copied. Work outward from the first thing a player sees. One finished area = one verified live release.
 
 Excluded: mission characters; existing companions except one male and one female reference companion (not chosen yet).
 
@@ -25,7 +25,7 @@ Scores are honest estimates within the limits of a browser game, judged from scr
 - **Now:** `void-runner/menu-backdrop.js` paints the city around the District at night in rain: cold air over an amber smog horizon, a stepped megastructure and towers fading into haze, dense lit windows, a few neon accents, a wet street that mirrors them, slow aircraft lights and rain. Still layers are painted once; each frame adds only rain, aircraft and drifting haze. With reduced motion it is a still picture. The same picture, dimmed, sits behind the "preparing" card. No assets, no 3D scene.
 - **Files:** `void-runner/menu-backdrop.js` (new), `void-runner/world-integration.js` (`drawModernBackground`), `void-runner.html` + `static/void-runner.html`.
 - **Scorecard:** atmosphere and identity 8, lighting/composition 7, interface 6 (the menu text and buttons are unchanged), performance 9 (2D only), stability 10 (unit tests and creator browser test pass).
-- **Known limits:** it is a painted 2D picture, not the real 3D city. The menu still lists CAMPAIGN / SKIRMISH from the older game; changing those is a design decision for David. The old station scene is still loaded in the background to warm up the 3D engine (not shown): removing that load is a possible start-up saving.
+- **Known limits:** it is a painted 2D picture, not the real 3D city. The menu still lists CAMPAIGN / SKIRMISH from the older game; changing those is a design decision for the owner. The old station scene is still loaded in the background to warm up the 3D engine (not shown): removing that load is a possible start-up saving.
 
 ## Area 2: character creator (first pass)
 
@@ -40,7 +40,7 @@ Scores are honest estimates within the limits of a browser game, judged from scr
 - Pod interior: clean but flat lilac surfaces; hatch ring is a flat yellow band; no wear, no depth.
 - Pod room: walls nearly black, pods are plain boxes, marker labels float in the air.
 
-## Nov 2026 (David): loading screen restyled; main menu attract mode asked for (not built)
+## Nov 2026 (the owner): loading screen restyled; main menu attract mode asked for (not built)
 
 - **Loading screen (done, `void-runner/loading.css`, last block):** pure CSS, because it shows before any script runs: the city skyline in rain (an inline SVG), a framed panel, a teal-to-pink progress bar. Ids and markup unchanged. Picture: `docs/development/hall-wall/loading-screen.jpg`.
-- **Main menu (NOT built):** David wants a cinematic "attract mode" behind the menu that cycles real scenes (The Darknet District, the nightclub, dogfighting, space stations), **drawn from the live game assets** so asset upgrades appear there by themselves. Today the menu is the painted 2D city (`menu-backdrop.js`); a 3D path already exists and is unused for display (`VoidBabylon.prepareMenu` / `renderMenu`, the old station scene, called from `drawModernBackground` in `world-integration.js`). Open design points to settle before building: which scenes can be built without a campaign state; how long the menu may take to become interactive (scenes should load after the menu is usable, one at a time); memory when several scenes are prepared; what Low quality and reduced motion show (the painted city); and that it must not delay or break CONTINUE CAMPAIGN.
+- **Main menu (NOT built):** The owner wants a cinematic "attract mode" behind the menu that cycles real scenes (The Darknet District, the nightclub, dogfighting, space stations), **drawn from the live game assets** so asset upgrades appear there by themselves. Today the menu is the painted 2D city (`menu-backdrop.js`); a 3D path already exists and is unused for display (`VoidBabylon.prepareMenu` / `renderMenu`, the old station scene, called from `drawModernBackground` in `world-integration.js`). Open design points to settle before building: which scenes can be built without a campaign state; how long the menu may take to become interactive (scenes should load after the menu is usable, one at a time); memory when several scenes are prepared; what Low quality and reduced motion show (the painted city); and that it must not delay or break CONTINUE CAMPAIGN.

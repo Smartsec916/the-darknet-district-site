@@ -1,6 +1,6 @@
 # The arcade (west room of the District)
 
-Built 2026-11-12 in part of the old Sleeping Pod room. David's direction: a small room, about five games, a 1980s arcade inside a cyberpunk future, with placeholder cabinets for games to come.
+Built 2026-11-12 in part of the old Sleeping Pod room. The owner's direction: a small room, about five games, a 1980s arcade inside a cyberpunk future, with placeholder cabinets for games to come.
 
 ## The room
 
@@ -16,7 +16,7 @@ Built 2026-11-12 in part of the old Sleeping Pod room. David's direction: a smal
 | HEXADUEL | Placeholder (fighting) |
 | COBALT STAIRS | Placeholder (platform) |
 
-The four placeholder names are working titles written by Claude for David to change or approve. No copyrighted characters, logos or artwork are used.
+The four placeholder names are working titles written by Claude for the owner to change or approve. No copyrighted characters, logos or artwork are used.
 
 ## Playing
 
@@ -39,11 +39,11 @@ Walk up to the Blackout Protocol cabinet and press E. `void-runner/district-arca
 
 ## 13 Nov 2026: Corporate Zombies
 
-David's second game, **Corporate Zombies** (an arcade light-gun shooter made with Tesana), is built into `corporate-zombies/` (the export in `game-20261113-b23d2e92-code.zip`, built with `npm install && npx vite build`; only the build output, `index.html` plus one script and three small images, is kept here, not the source). It takes the fourth cabinet, replacing the placeholder HEXADUEL, and is playable the same way as Blackout Protocol (`district-arcade.js` GAMES, interaction `district-arcade-zombies`). It is also on the games page (`games-list.html`). The cabinet marquee, poster and attract screen use the working title style; the game loads Tesana's play SDK from unpkg for its own saves and leaderboard, the same way the export is wired.
+The owner's second game, **Corporate Zombies** (an arcade light-gun shooter made with Tesana), is built into `corporate-zombies/` (the export in `game-20261113-b23d2e92-code.zip`, built with `npm install && npx vite build`; only the build output, `index.html` plus one script and three small images, is kept here, not the source). It takes the fourth cabinet, replacing the placeholder HEXADUEL, and is playable the same way as Blackout Protocol (`district-arcade.js` GAMES, interaction `district-arcade-zombies`). It is also on the games page (`games-list.html`). The cabinet marquee, poster and attract screen use the working title style; the game loads Tesana's play SDK from unpkg for its own saves and leaderboard, the same way the export is wired.
 
 ## 15 Nov 2026: UNDERGROUND//OVERDRIVE
 
-David's third game, **UNDERGROUND//OVERDRIVE** (a 3D arcade fighting game made with Tesana: tournament, same-device versus, training, online versus through Tesana rooms), is built into `underground-overdrive/` from the export `game-20261102-b9874ec6-code.zip` (`npm install && npx vite build`). Kept here: `index.html`, one script (`_app/`), the character models (`assets/characters/`, 7 MB) and `assets/manifest.json`. Left out because the game never loads them: Tesana's store-page art (`assets/ui/`) and three's Draco/Basis decoders. A viewport line was added to `index.html`; nothing else differs from the build.
+The owner's third game, **UNDERGROUND//OVERDRIVE** (a 3D arcade fighting game made with Tesana: tournament, same-device versus, training, online versus through Tesana rooms), is built into `underground-overdrive/` from the export `game-20261102-b9874ec6-code.zip` (`npm install && npx vite build`). Kept here: `index.html`, one script (`_app/`), the character models (`assets/characters/`, 7 MB) and `assets/manifest.json`. Left out because the game never loads them: Tesana's store-page art (`assets/ui/`) and three's Draco/Basis decoders. A viewport line was added to `index.html`; nothing else differs from the build.
 
 It takes the **fifth cabinet**, replacing the placeholder COBALT STAIRS (interaction `district-arcade-overdrive`, which replaces the south COMING SOON prompt), and is on the games page. Three cabinets are now playable (Blackout Protocol, Corporate Zombies, UNDERGROUND//OVERDRIVE); LASER MOTH and TURBO KELP are still placeholders. The screens of playable cabinets now flash PRESS E TO PLAY instead of COMING SOON (Corporate Zombies' screen had been saying COMING SOON by mistake).
 

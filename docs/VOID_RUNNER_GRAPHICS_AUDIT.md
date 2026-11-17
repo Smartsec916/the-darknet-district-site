@@ -1,6 +1,6 @@
 # VOID//RUNNER: Graphics Audit
 
-**As of:** 2026-10-16 · **Brief:** David's "Comprehensive Game-Wide 3D Graphics Modernization" (Phase A) · **Baseline screenshots:** `docs/void-runner/graphics/baseline/` (captured with `tests/graphics-snapshots-browser.cjs`, Edge, 1280×720, High quality).
+**As of:** 2026-10-16 · **Brief:** The owner's "Comprehensive Game-Wide 3D Graphics Modernization" (Phase A) · **Baseline screenshots:** `docs/void-runner/graphics/baseline/` (captured with `tests/graphics-snapshots-browser.cjs`, Edge, 1280×720, High quality).
 
 ## 1. How the game draws things today
 
@@ -31,7 +31,7 @@ Visual quality: 1 is primitive, 5 is modern. Priority: 1 is first.
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | Enemy raider / interceptor / gunship | Enemy ships | Generic box ship, `shipModel()` | 1 | Hit radius by `size`, not mesh | Low (hook exists) | 3 matching light/medium/heavy fighters from one pack | 1 | Low |
 | 2 | Courier / shuttle / security traffic | Civilian ships | Same generic ship | 1 | None (visual only) | Low | Civilian hauler and shuttle from the same pack | 1 | Low |
-| 3 | Named and generic NPCs | Characters | Stacked boxes, `characterModel()` | 1 | Interaction points are separate | Medium (scale, idle animation) | Rigged realistic or semi-realistic humans; **named characters need David's approval** | 2 | Medium |
+| 3 | Named and generic NPCs | Characters | Stacked boxes, `characterModel()` | 1 | Interaction points are separate | Medium (scale, idle animation) | Rigged realistic or semi-realistic humans; **named characters need the owner's approval** | 2 | Medium |
 | 4 | Kestrel (starter) | Player ship | Custom procedural mesh | 3 | Cockpit view is a painted overlay; exterior seen in hangars | Low (hook exists) | Only a model that keeps the Kestrel's identity; **needs approval** | 3 | High (iconic) |
 | 5 | ship2 / ship3 | Player ships | Stretched Kestrel | 2 | Shop and hangar | Low | Distinct hulls from the same pack | 2 | Medium |
 | 6 | Meridian hangar and bar props (stools, counters, crates, consoles) | Station furniture | Boxes and cylinders | 2 | Walk solids are separate | Low to medium | Coordinated modular sci-fi props | 2 | Low |
@@ -56,7 +56,7 @@ Visual quality: 1 is primitive, 5 is modern. Priority: 1 is first.
 ## 3. Highest-impact opportunities
 
 1. **Ships in flight** (items 1, 2 and 5) are the biggest visual problem the player sees most. The hook already exists, so a coordinated ship pack can replace every generic ship without touching flight or combat code.
-2. **NPCs** (item 3) are the most dated-looking element. Rigged models need a small idle-animation step, and named characters need David's sign-off.
+2. **NPCs** (item 3) are the most dated-looking element. Rigged models need a small idle-animation step, and named characters need the owner's sign-off.
 3. **Lighting:** add an environment (IBL) texture so PBR materials render properly, plus Ultra and shadow options. This is only worth doing after real models arrive (brief §2: lighting can't fix boxes).
 4. **Props** in Meridian's hangar and bar (item 6): cheap and visible.
 

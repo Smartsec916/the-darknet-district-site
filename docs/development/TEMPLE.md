@@ -35,7 +35,7 @@ Open `void-runner/temple.js`, block `==== WHERE TO CHANGE THINGS ====`, object `
 
 Press **E** at the dais: **SPEAK WITH ZEN ZEPHYR**. A panel opens: header **"LOCAL RECITATION · NOT AN AI"**, a log, a text box (up to 200 characters), **SEND**, and **LEAVE · ESC**. Typing does not move the player or trigger game keys; Escape closes the panel (not the pause menu).
 
-- **22 local quotes** (`zen-chat.js QUOTES`): the two **exact lines** David specified ("In the network of complex codes, serenity lies in the simplest line." and "A mindful soul is like a processor; it understands, computes, and calmly executes."), two taken from the Origins Zen Zephyr scenes (mood only), and 18 **provisional placeholders** for David to approve or replace. All can be chosen from **CHOOSE A TEACHING**.
+- **22 local quotes** (`zen-chat.js QUOTES`): the two **exact lines** the owner specified ("In the network of complex codes, serenity lies in the simplest line." and "A mindful soul is like a processor; it understands, computes, and calmly executes."), two taken from the Origins Zen Zephyr scenes (mood only), and 18 **provisional placeholders** for the owner to approve or replace. All can be chosen from **CHOOSE A TEACHING**.
 - **Matching:** keywords map to topics (serenity, code, mind, network, fear, change, breath, silence, machines, city, sanctuary, work); the reply is the first quote of that topic not yet said, restarting when all have been. Greetings, farewells and thanks have short replies.
 - **Fallback:** when nothing matches, a calm line inviting a different question; never a claim to understand.
 - **It is not an AI and does not pretend to be one.** Everything stays on the device: no network, no credentials, no cost (a test checks the module has no network or storage code).
@@ -55,4 +55,4 @@ No new location id, mission id or server change. New tolerant `story.flags`: `te
 - The quotes beyond the two exact lines (and the two from Origins) are provisional placeholders. No voice. The altar and incense texts are short placeholders.
 - Reload while inside the Temple resumes on the street. One return point (the cab pad).
 - Visuals are MeshBuilder with generated textures: a step toward the art direction, an upgrade candidate for Blender-made PBR architecture.
-- Origins puts the Sanctum in a hidden pocket of an abandoned server farm; David's brief (a taxi-only hilltop) is what is built. Whether Origins is canon is not decided.
+- Origins puts the Sanctum in a hidden pocket of an abandoned server farm; the owner's brief (a taxi-only hilltop) is what is built. Whether Origins is canon is not decided.

@@ -1,6 +1,6 @@
 # VOID//RUNNER: The Relay (news, propaganda, commercials, WarFlying coverage)
 
-**As of:** 2026-10-17 · **Brief:** David's "The Relay: news, propaganda, commercials & dynamic broadcasts" · **Status:** built and tested. The content is David's sample scripts only. Decisions in §9 await David.
+**As of:** 2026-10-17 · **Brief:** The owner's "The Relay: news, propaganda, commercials & dynamic broadcasts" · **Status:** built and tested. The content is the owner's sample scripts only. Decisions in §9 await the owner.
 
 ## 1. What already existed (kept and extended, not replaced)
 - **THE RELAY radio station** (PR #60):
@@ -17,7 +17,7 @@
 | Piece | File | What it does |
 |---|---|---|
 | Rules | `void-runner/relay.js` | Event records, report metadata, validation, scheduling, the breaking-news queue, cooldowns, developing stories, saved news state, leaderboard moments, headlines for screens. Pure, tested in Node. |
-| Content | `void-runner/relay-content.json` | **Events** (the canonical record) and **reports** (what broadcasters say). Scripts are David's lines only. |
+| Content | `void-runner/relay-content.json` | **Events** (the canonical record) and **reports** (what broadcasters say). Scripts are the owner's lines only. |
 | Radio | `void-runner/relay-radio.js` | Plays reports line by line, hooks game events, watches the leaderboard, and adds the news archive to the Mission Log. |
 | Screens | `void-runner/relay-screens.js` | Two screens at Meridian: one hanging in the concourse facing arrivals, one above the Dead Channel bar. |
 | Save | `campaign.js`, `void_runner_api.py clean_relay` | The `relay` save block, bounded and validated on both sides. |
@@ -70,7 +70,7 @@
 
 ## 5. WarFlying coverage
 - Every 20 seconds the radio compares the current leaderboard with the last one it saw (saved), using `leaderboard()` from `warflying-scan.js`. Moments are only real changes:
-  - a rival gains **one** point and climbs (David's broadcast A)
+  - a rival gains **one** point and climbs (the owner's broadcast A)
   - a rival gains several and climbs (broadcast B)
   - your first point (broadcast D, once ever)
 - Names, ranks and numbers come from the board.
@@ -78,8 +78,8 @@
 
 ## 6. Voice, subtitles and screens
 - **Voices:**
-  - Updated 16 Nov 2026: the four broadcasters (`news-anchor`, `warflying-host`, `police-recruiter`, `commercial-announcer`) are cast **provisionally** and every fixed report line is recorded, so reports are spoken on the radio through the live transmission filter. They are stand-ins, not David's picks; he chooses by ear (`docs/development/AD_SCREENS_VOICE_AUDITION.md`). A line with no recording still shows as a caption at a natural reading pace.
-  - The WarFlying board the commentary follows is now the weekly five (`void-runner/warflying-board.js`, `docs/development/AD_SCREENS.md`); only David's handles are ever named.
+  - Updated 16 Nov 2026: the four broadcasters (`news-anchor`, `warflying-host`, `police-recruiter`, `commercial-announcer`) are cast **provisionally** and every fixed report line is recorded, so reports are spoken on the radio through the live transmission filter. They are stand-ins, not the owner's picks; he chooses by ear (`docs/development/AD_SCREENS_VOICE_AUDITION.md`). A line with no recording still shows as a caption at a natural reading pace.
+  - The WarFlying board the commentary follows is now the weekly five (`void-runner/warflying-board.js`, `docs/development/AD_SCREENS.md`); only the owner's handles are ever named.
   - The station screens use the street advertisement screens' look (`void-runner/ad-screens.js`); what they say is unchanged and they stay silent.
   - Lines with leaderboard names filled in at play time can't be pre-recorded, so they stay captions.
   - Audio loads on first play, never at startup.
@@ -95,7 +95,7 @@
   - the archive is saved, up to 80 entries
 
 ## 7. What's in the content now
-All of these are David's lines from the brief, word for word:
+All of these are the owner's lines from the brief, word for word:
 - breaking news about the Tessaly communications disruption
 - the Communion and Natural Order statements
 - The Function
@@ -133,37 +133,37 @@ All of these are David's lines from the brief, word for word:
 - **`tests/relay-browser.cjs`** (Edge play-test): routine play, breaking news waiting for a conversation then airing, save and reload while queued, breaking news cutting an ad, both Meridian screens, the archive, a real RiftRunner overtake announced with real names, District silence, no signal in warp.
 - **Screenshots:** `docs/void-runner/graphics/relay/`.
 
-## 9. Decisions for David (PROPOSED)
-1. **More content: who writes it?** The brief asks for a living stream of background news, developing stories, Nexus coverage, faction responses and mission-triggered reports. Today there are only David's samples, roughly 18 reports. Options:
-   - **A.** David writes every script; Claude supplies a list of event slots.
-   - **B. (Recommended)** Claude drafts a PROPOSED pack in David's style (about 10 background events, a developing Tessaly follow-up, a neutral Nexus report, and news for the Nexus and Natural Order aid deliveries). David approves or edits line by line before anything ships.
-   - **C.** Claude drafts only the event facts, and David writes all spoken lines.
+## 9. Decisions for the owner (PROPOSED)
+1. **More content: who writes it?** The brief asks for a living stream of background news, developing stories, Nexus coverage, faction responses and mission-triggered reports. Today there are only the owner's samples, roughly 18 reports. Options:
+   - **A.** The owner writes every script; Claude supplies a list of event slots.
+   - **B. (Recommended)** Claude drafts a PROPOSED pack in the owner's style (about 10 background events, a developing Tessaly follow-up, a neutral Nexus report, and news for the Nexus and Natural Order aid deliveries). The owner approves or edits line by line before anything ships.
+   - **C.** Claude drafts only the event facts, and the owner writes all spoken lines.
    - **D.** Mission-triggered news only, for now.
 2. **Where faction statements are heard.** Today they air only in their own territory (decided with the original Relay). The brief wants players to hear competing views:
    - **A. (Recommended)** Keep them in their own territory. The archive lets players compare.
    - **B.** Air them everywhere, labelled.
 3. **WarFlying broadcasts A and B** now use the real names, ranks and counts instead of the fixed "GhostVector… third place" and "EchoNine… three". Approve?
 4. **Short labels** written by Claude: report headlines, event summaries and the background timings in §7.
-5. **Casting:** seven broadcasters, including the new commercial announcer. The Function's voice also needs David's explicit approval.
+5. **Casting:** seven broadcasters, including the new commercial announcer. The Function's voice also needs the owner's explicit approval.
 6. **The apparel ad** mentions no products or links, as the brief requires. Should it ever link to the real store, outside gameplay?
 
 ## 10. Not built (deferred or awaiting content)
-- Content beyond David's samples (decision 1).
+- Content beyond the owner's samples (decision 1).
 - Recorded broadcast audio (decision 5). Replay in the archive is text until then.
 - Screens at other stations: Meridian only.
 - Regional outages: the hook exists (`VoidComms.setRegion`), but there are no missions for it, as the brief requires.
 
-## 11. Content and voices added 2026-10-17 (David: “Make more voice and broadcasts”)
+## 11. Content and voices added 2026-10-17 (the owner: “Make more voice and broadcasts”)
 - **Decision 1 resolved as option B:** Claude drafted a pack. Every drafted report is marked `"draft": true` in `void-runner/relay-content.json` so it can be reviewed, edited or struck. It contains:
   - **10 new events:** Kepler ore delays, the Meridian water recycler, a Foundry accident and its review, the overdue Rusthaven hauler (found safe), the Garrow harvest, the Vigil diagnostic network, and Meridian's lost-and-found gloves, plus three mission-triggered events: deliveries to the Vigil and Holdfast, and aid reaching The Nexus.
-  - **24 new reports:** the Tessaly outage now develops in three stages (David's breaking report, an update, and a resolution, with a cryptic Function line at stage 2); a neutral Nexus report and a Natural Order statement on The Nexus; Communion and Natural Order statements on their own news; four ads (navigation, hull repair, sleep pods), a public warp notice, and a WarFlying filler.
+  - **24 new reports:** the Tessaly outage now develops in three stages (the owner's breaking report, an update, and a resolution, with a cryptic Function line at stage 2); a neutral Nexus report and a Natural Order statement on The Nexus; Communion and Natural Order statements on their own news; four ads (navigation, hull repair, sleep pods), a public warp notice, and a WarFlying filler.
 - **Mission news never names the player.** The reports say “an independent courier”.
-- **Decision 5 (casting):** six broadcasters are cast as **provisional**, so David can change any of them in the audition tool:
+- **Decision 5 (casting):** six broadcasters are cast as **provisional**, so the owner can change any of them in the audition tool:
   - news anchor: af_heart
   - WarFlying host: am_adam (1.12x)
   - police recruiter: am_echo (1.08x)
   - Communion spokesperson: af_nova (0.95x)
   - Natural Order spokesperson: bm_george (0.95x)
   - commercial announcer: af_sarah (1.04x)
-- **The Function stays uncast** (captions only) until David approves a voice.
+- **The Function stays uncast** (captions only) until the owner approves a voice.
 - **135 broadcast clips** are recorded. Lines with leaderboard names filled in at play time stay captions.

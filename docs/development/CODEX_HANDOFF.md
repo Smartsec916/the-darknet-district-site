@@ -2,11 +2,11 @@
 
 > **Superseded 2026-11-12.** Do not start here. Current handoff: the Start here section of `docs/development/AI_HANDOFF.md`. This file is the 4 Nov 2026 snapshot. Its "nothing is merged to `main`" and "start from `claude/first-test-readiness`" instructions are historical. The District game is on `main`. Two later notes are still worth reading inside this file: Tesana shared-library models (section 9.1, wording softened 8 Nov) and music rights (section 9.2, settled 8 Nov). `WEBSITE_PLAYLIST` is `true` on `main` as of 12 Nov 2026; the "off by default" lines below are the 4 Nov state.
 
-Written 2026-11-04 by Claude Code Cloud at David's request. Repository: `Smartsec916/the-darknet-district-site` (live site `https://thedarknetdistrict.com`, GitHub Pages; game API on Render).
+Written 2026-11-04 by Claude Code Cloud at the owner's request. Repository: `Smartsec916/the-darknet-district-site` (live site `https://thedarknetdistrict.com`, GitHub Pages; game API on Render).
 
 **Historical reading order from 4 Nov (do not follow as the current start):** `CLAUDE.md`, `AGENTS.md`, `VOID_RUNNER_HANDOFF.md`, then this file, `docs/development/TESANA_ASSET_AUDIT.md`, `docs/void-runner/social-universe-architecture.md` (PR #191) and `docs/SLEEPING-POD-MUSIC.md` (PR #192).
 
-**Standing rules from David that still apply:** do not merge, deploy, delete production data, or buy anything without his explicit approval. Keep every PR open. Do not put the Iris chatbot in the game. Story and world content needs his approval (PROPOSED, APPROVED, REVISE, REJECTED, DEFERRED). He is not reading code: write to him in plain language.
+**Standing rules from the owner that still apply:** do not merge, deploy, delete production data, or buy anything without his explicit approval. Keep every PR open. Do not put the Iris chatbot in the game. Story and world content needs his approval (PROPOSED, APPROVED, REVISE, REJECTED, DEFERRED). He is not reading code: write to him in plain language.
 
 ---
 
@@ -16,11 +16,11 @@ Written 2026-11-04 by Claude Code Cloud at David's request. Repository: `Smartse
 
 | Change | Where | Why |
 |---|---|---|
-| **Device gate.** Phones, touch-only tablets and browsers without WebGL get a landing page and download **no** game script, stylesheet, model or engine file and register **no** service worker; desktops (including Windows touch machines such as the ROG Ally, Macs, Chromebooks and Linux) start the game exactly as before. A touch-only tablet gets a "try anyway" choice; a phone never does. | `void-runner/device-gate.js`, `void-runner.html` (every game script and stylesheet is inert until the gate releases it), `static/void-runner.html`; tests `tests/device-gate.test.cjs` (9), `tests/device-gate-browser.cjs` (9) | David: the 3D game is desktop-first; phones keep the regular website. |
+| **Device gate.** Phones, touch-only tablets and browsers without WebGL get a landing page and download **no** game script, stylesheet, model or engine file and register **no** service worker; desktops (including Windows touch machines such as the ROG Ally, Macs, Chromebooks and Linux) start the game exactly as before. A touch-only tablet gets a "try anyway" choice; a phone never does. | `void-runner/device-gate.js`, `void-runner.html` (every game script and stylesheet is inert until the gate releases it), `static/void-runner.html`; tests `tests/device-gate.test.cjs` (9), `tests/device-gate-browser.cjs` (9) | The owner: the 3D game is desktop-first; phones keep the regular website. |
 | **Back to website** button in the main menu; **download an earlier campaign as a backup** button | `void-runner/menu.js` | A way home; a way to keep a file of an old save. |
-| **Safer save retirement.** A retired campaign is copied to `...campaign-v1.retired`, then `.retired.2`, `.retired.3` ... , each copy is checked to read back identical, and only then is the active slot freed. If the copy fails the original is left alone and saving is switched off. **This fixes a real data-loss path**: before, a second retired campaign was deleted with no copy kept. | `void-runner/campaign.js` (`retireLegacy`, `retiredKeys`), `game.js`; tests in `tests/legacy-retirement.test.cjs` | David: reversible, non-destructive migration. |
+| **Safer save retirement.** A retired campaign is copied to `...campaign-v1.retired`, then `.retired.2`, `.retired.3` ... , each copy is checked to read back identical, and only then is the active slot freed. If the copy fails the original is left alone and saving is switched off. **This fixes a real data-loss path**: before, a second retired campaign was deleted with no copy kept. | `void-runner/campaign.js` (`retireLegacy`, `retiredKeys`), `game.js`; tests in `tests/legacy-retirement.test.cjs` | The owner: reversible, non-destructive migration. |
 | **Website playlist was OFF by default in the game on 4 Nov** (`WEBSITE_PLAYLIST=false`); the pod player then offers **My music** only and works fully. One line turns the 27 songs on. **On `main` as of 12 Nov 2026 the flag is `true`.** | `void-runner/pod-music.js`; `docs/development/MUSIC_LICENSING.md` | Rights settled 8 Nov 2026 (section 9.2): paid 2025 Riffusion subscription. |
-| **Homepage unchanged.** The `ENTER THE DARKNET DISTRICT` button (PR #176's homepage change) is now an isolated patch that is **not applied**. `index.html` and `accents.css` are byte-identical to `main`. | `docs/development/homepage-entry/activate-homepage-entry.patch` | David: prepare it, do not publish it. |
+| **Homepage unchanged.** The `ENTER THE DARKNET DISTRICT` button (PR #176's homepage change) is now an isolated patch that is **not applied**. `index.html` and `accents.css` are byte-identical to `main`. | `docs/development/homepage-entry/activate-homepage-entry.patch` | The owner: prepare it, do not publish it. |
 | **Unlisting commit** (revert it to list the game): the shop's game equipment card is removed, the game is removed from `sitemap.xml`, and the game page carries `noindex`. The Games page card was already removed by #176. | `store-first-page.html`, `static/store-first-page.html`, `sitemap.xml`, `void-runner.html` | The live site links the old game from three public places today; an unlisted test needs them gone. |
 | Small District fixes: the scanner prompt "[E] PRESENT BADGE TO SCANNER" now goes away once the badge is held (it stayed on screen after "Scan accepted"); a quiet "MUSIC" world marker for the pod music screen. | `void-runner/neochinatown.js`, `void-runner/world-markers.js` | Found by looking at the screenshots. |
 | Tests retargeted to the new reality: the entrance is checked through the patch, the live homepage is checked unchanged, the smoke test allows only the known decorative teaser downloads, the transition test compares street counts with the largest warm trip. | `tests/*` | See known issue 13 and 14 in section 7. |
@@ -37,13 +37,13 @@ Written 2026-11-04 by Claude Code Cloud at David's request. Repository: `Smartse
 - `6be2799` Hide the scanner prompt once the visitor badge is held; transition test compares with the largest warm trip
 - `11144e6` Lighting probe tool; areas browser test counts the pod music screen
 
-**Readiness for the first unlisted live test (wording updated 2026-11-08; the test itself has since happened — see the banner):** ready for a desktop-only, unlisted test once the items below are confirmed; publishing the homepage button and switching the 27 songs on were open items to confirm with David first. (details in section 12).
+**Readiness for the first unlisted live test (wording updated 2026-11-08; the test itself has since happened — see the banner):** ready for a desktop-only, unlisted test once the items below are confirmed; publishing the homepage button and switching the 27 songs on were open items to confirm with the owner first. (details in section 12).
 
 ## 1. Executive summary
 
 - **What exists.** A Babylon.js 3D game (VOID//RUNNER) whose first location is now The Darknet District in NeoChinatown: a new campaign starts in the alley outside the District's double doors with no ship and no missions; the player passes a security door into the District interior (hall, bar, VR arcade, vending, sleeping pods, meeting room, stairs), talks to Admin and the in-game Iris, rests in a pod to save, and can walk back out to the street. The street and the interior are separate loaded environments joined by a short transition. Old (pre-reset) campaigns are retired, share links are removed, and the empty landing pad has no invisible collision box. A wall-mounted music player in the sleeping-pod room plays the website playlist or the player's own songs, privately, with a spectrum and music-reactive lights.
 - **Where it is.** The work is spread over **17 open pull requests** (a stack of 14, three documentation-only plans, the music player, the handoff, and now PR #194). The whole stack plus the music player is merged into the tested branch `integration/codex-start`, and PR #194 (`claude/first-test-readiness`) adds the second session's work on top. **Start from `claude/first-test-readiness` (section 3).** **Nothing is merged to `main`, nothing is deployed, no production data, configuration or secret was touched, and no PR was closed.**
-- **Is it ready for a live test?** For a **desktop-only, unlisted test: conditionally yes** (section 12.5). The phone gate, the way back to the website, the unlisting, safer save retirement and a rollback runbook are done and tested. What remains needs David: back up his save, check the Render setting, run it once on his own PC with a real GPU, and decide the playlist. The homepage button is prepared as an isolated patch and is **not** part of the first test.
+- **Is it ready for a live test?** For a **desktop-only, unlisted test: conditionally yes** (section 12.5). The phone gate, the way back to the website, the unlisting, safer save retirement and a rollback runbook are done and tested. What remains needs the owner: back up his save, check the Render setting, run it once on his own PC with a real GPU, and decide the playlist. The homepage button is prepared as an isolated patch and is **not** part of the first test.
 - **Not built (documentation only):** multiplayer, the shared-room hub, mobile chat, friends, automatic cloud saves, the session lease, wake-in-a-pod, pod allocation, character customization, shared VR, the Tesana pod re-build. These are in the PR #191 plan.
 
 ## 2. Current repository state
@@ -84,7 +84,7 @@ Notes: the stack uses "base = previous PR's branch", so the PR page for #177 to 
 What `integration/codex-start` and `claude/first-test-readiness` do **not** contain: #184 (share-link guest policy; obsolete, see 2.4), #191 (docs only; read it from its branch), and anything newer than the heads above.
 
 ### 2.4 PR #184
-Share-link guest policy. Share links are retired (`#189`), so the feature is obsolete. The two fixes inside it were kept elsewhere: the invisible Kestrel box (now `#190`) and the boarding-prompt gating on `shipAccess:'none'`, which **the pod-start work (PR 2 in section 12 of #191) must port**. Do not close #184 until David says so.
+Share-link guest policy. Share links are retired (`#189`), so the feature is obsolete. The two fixes inside it were kept elsewhere: the invisible Kestrel box (now `#190`) and the boarding-prompt gating on `shipAccess:'none'`, which **the pod-start work (PR 2 in section 12 of #191) must port**. Do not close #184 until the owner says so.
 
 ## 3. Recommended starting branch and commit
 
@@ -97,7 +97,7 @@ git config core.autocrlf false          # many files have mixed or CRLF line end
 git checkout claude/first-test-readiness
 git switch -c codex/<topic>             # new work on a new branch from here
 ```
-If David has reviewed and merged PR #194 into `integration/codex-start` first, start from that branch instead (same code).
+If the owner has reviewed and merged PR #194 into `integration/codex-start` first, start from that branch instead (same code).
 
 ## 4. PR dependency map and recommended integration order
 
@@ -117,7 +117,7 @@ main
 
 **Overlaps (measured with `git diff --name-only`):** every code PR touches `void-runner.html`, `static/void-runner.html`, `void-runner-sw.js` (the `BUILD` line) and `void_runner_admin_inventory.json`; resolve these mechanically (take one side, re-apply the other's script tag, bump `BUILD`, run `node tools/admin-inventory.cjs`). The real overlaps are in `void-runner/neochinatown.js` (#181, #182, #183, #185, #187, #190, #192), `void-runner/babylon-integration.js`, `world-integration.js`, `vr-core.js` and `campaign.js` (the #187/#188/#190 chain). #176 also changes the homepage and two site pages (see section 10). #191, #186 and #180 touch only docs and conflict with nothing.
 
-**Order if the PRs are merged one at a time** (each needs a fresh `BUILD` and a regenerated inventory): #176, #177, #178, #179, then #180, #186, #183, #185, #187, #188, #189, #190, #181, #182, then #191, then #192 (re-applying the interior-only change described in 2.3). **Recommended instead:** one reviewed PR from `integration/codex-start` to `main` (the work is already combined and tested), leaving the stacked PRs as review history, to be closed only when David says so.
+**Order if the PRs are merged one at a time** (each needs a fresh `BUILD` and a regenerated inventory): #176, #177, #178, #179, then #180, #186, #183, #185, #187, #188, #189, #190, #181, #182, then #191, then #192 (re-applying the interior-only change described in 2.3). **Recommended instead:** one reviewed PR from `integration/codex-start` to `main` (the work is already combined and tested), leaving the stacked PRs as review history, to be closed only when the owner says so.
 
 ## 5. Completed, unfinished and documentation-only features
 
@@ -127,9 +127,9 @@ main
 | District entrance lighting (cool lamp over the door, violet trim) | Built, tested | #181 |
 | District wording on the walking loading screen | Built | #182 |
 | Street and interior built and loaded separately; security-door transitions ("SECURITY CHECKPOINT", "AIRLOCK") | Built, tested low and high | #183, #185, #187 |
-| Pre-reset campaigns retired; District campaign is the only campaign; cloud API refuses legacy saves (never deletes) | Built, tested. **Production save reset NOT run** (needs David's final approval) | #188, `tools/reset-void-runner-saves.py`, `docs/void-runner/SAVE-RESET.md` |
+| Pre-reset campaigns retired; District campaign is the only campaign; cloud API refuses legacy saves (never deletes) | Built, tested. **Production save reset NOT run** (needs the owner's final approval) | #188, `tools/reset-void-runner-saves.py`, `docs/void-runner/SAVE-RESET.md` |
 | Share links and guest sessions removed | Built | #189 |
-| Local preview server for David's PC/ROG Ally | Built (`START-PREVIEW.bat`, `start-preview.sh`, `tools/preview-server.cjs`, `docs/PREVIEW.md`) | integration branch |
+| Local preview server for the owner's PC/ROG Ally | Built (`START-PREVIEW.bat`, `start-preview.sh`, `tools/preview-server.cjs`, `docs/PREVIEW.md`) | integration branch |
 | In-game pod music (wall screen, own songs, website playlist, spectrum, reactive lights) | Built; tests in section 6 | #192 |
 | Wake in a pod, Exit Pod, ship return, automatic cloud save, session lease | **Documentation only** | #191 sections 5 and 12 |
 | Multiplayer hub, rooms, presence, chat, direct messages, friends, directory | **Documentation only** | #191, #186 |
@@ -213,38 +213,38 @@ Everything below ran on **`claude/first-test-readiness`** at the commit shown in
 - **Do not touch** `blackout-protocol/`, `origins/` and other pages while working on the game.
 
 ## 9. Tesana audit
-`docs/development/TESANA_ASSET_AUDIT.md`. Summary: **inspected, nothing imported.** Textures are CC0 and clear; the 17 AI-generated GLB models carry no licence file; David has verified that his Tesana Max Plan gives full ownership and commercial rights (section 9.1), which covers the 7 models generated in his own projects, while the **10 shared-library models stay pending per-asset verification**; the characters have no animations and cannot use our Mixamo clips; the pod's wear, geometry, bedding, light presets, vending machine and synth music are the valuable parts and must be re-written for Babylon with a re-lit scene (its ~13 lights exceed our budget). PR #192's music player is our own code, not Tesana's.
+`docs/development/TESANA_ASSET_AUDIT.md`. Summary: **inspected, nothing imported.** Textures are CC0 and clear; the 17 AI-generated GLB models carry no licence file; the owner has verified that his Tesana Max Plan gives full ownership and commercial rights (section 9.1), which covers the 7 models generated in his own projects, while the **10 shared-library models stay pending per-asset verification**; the characters have no animations and cannot use our Mixamo clips; the pod's wear, geometry, bedding, light presets, vending machine and synth music are the valuable parts and must be re-written for Babylon with a re-lit scene (its ~13 lights exceed our budget). PR #192's music player is our own code, not Tesana's.
 
-## 9.1 Tesana licensing status (updated 2026-11-04 after David's verification)
+## 9.1 Tesana licensing status (updated 2026-11-04 after the owner's verification)
 
-**How this was verified.** David reported that he read Tesana's official pages and that they state the **Max Plan includes all Pro benefits, including full ownership and commercial rights**. The sources he named are:
+**How this was verified.** The owner reported that he read Tesana's official pages and that they state the **Max Plan includes all Pro benefits, including full ownership and commercial rights**. The sources he named are:
 - https://tesana.com/pricing
 - https://docs.tesana.ai/support/faq
 - https://docs.tesana.ai/building/exports
 
-**Claude Code could not open any of these three pages**: `tesana.com` and `docs.tesana.ai` are outside the Claude session's allowed network domains (the lookup failed), so their wording was **not** independently re-read and is **not quoted here**. "Verified" below therefore means *verified by David against the official pages*. Whoever picks this up with network access should open the three URLs, copy the exact clauses into this file with the date, and check them against the table. If David wants Claude Code to read them, the two hosts must be allowed in the session's network settings.
+**Claude Code could not open any of these three pages**: `tesana.com` and `docs.tesana.ai` are outside the Claude session's allowed network domains (the lookup failed), so their wording was **not** independently re-read and is **not quoted here**. "Verified" below therefore means *verified by the owner against the official pages*. Whoever picks this up with network access should open the three URLs, copy the exact clauses into this file with the date, and check them against the table. If the owner wants Claude Code to read them, the two hosts must be allowed in the session's network settings.
 
 Two different questions are kept apart:
 
 | What | Status | Basis |
 |---|---|---|
-| **The games and what David built on Tesana** (the Sleeping Pod project and the spaceflight project: their source code, the scenes and the assets he generated in his own projects) | **Verified by David: rights covered.** Max Plan includes the Pro benefits, with full ownership and commercial rights. | The three official URLs above. Exact clause text not yet recorded in the repository. |
-| **The 7 models generated inside David's own project** (`captain`, `elara`, `flying_taxi`, `freighter`, `pirate_fighter`, `player_ship`, `meridian_station`; their own generation ids in `.tesana/asset-gen-ledger.json`) | **Covered at plan level, per David's verification.** Not yet recorded clause by clause. They remain **unimported**. | Same sources. |
-| **The 10 models from Tesana's shared library** (`library:` task ids in `.tesana/asset-gen-ledger.json`): characters `iris`, `kai`, `mara`, `marcus`, `nadia`, `pedestrian_a`, `pedestrian_b`, `rook`, `seren`, and the prop `satellite` | **To confirm, per asset.** A plan statement that David owns what he builds and may use it commercially does not by itself say what licence a *shared-library* item carries, or whether the library's original creator or Tesana grants the same rights for items taken from it. No per-asset licence has been shown. | Needs one of: the library's own licence terms, a per-asset licence line, or written confirmation from Tesana support, recorded with the URL and date. |
+| **The games and what the owner built on Tesana** (the Sleeping Pod project and the spaceflight project: their source code, the scenes and the assets he generated in his own projects) | **Verified by the owner: rights covered.** Max Plan includes the Pro benefits, with full ownership and commercial rights. | The three official URLs above. Exact clause text not yet recorded in the repository. |
+| **The 7 models generated inside the owner's own project** (`captain`, `elara`, `flying_taxi`, `freighter`, `pirate_fighter`, `player_ship`, `meridian_station`; their own generation ids in `.tesana/asset-gen-ledger.json`) | **Covered at plan level, per the owner's verification.** Not yet recorded clause by clause. They remain **unimported**. | Same sources. |
+| **The 10 models from Tesana's shared library** (`library:` task ids in `.tesana/asset-gen-ledger.json`): characters `iris`, `kai`, `mara`, `marcus`, `nadia`, `pedestrian_a`, `pedestrian_b`, `rook`, `seren`, and the prop `satellite` | **To confirm, per asset.** A plan statement that the owner owns what he builds and may use it commercially does not by itself say what licence a *shared-library* item carries, or whether the library's original creator or Tesana grants the same rights for items taken from it. No per-asset licence has been shown. | Needs one of: the library's own licence terms, a per-asset licence line, or written confirmation from Tesana support, recorded with the URL and date. |
 | **Textures** (11 CC0 material sets, ambientCG) | **Verified from the files**: every `material.json` says `"license": "CC0 (AmbientCG)"`. | The ZIP contents themselves. |
 | **AI mood images** (`title_bg.jpg`, `holo_ad.jpg`) and store art | Not covered by anything above. Not wanted. | n/a |
 
-**What changes in practice.** The licence is no longer the reason to set aside the seven non-library vehicles, captain, elara and the station: they are not recommended, or are on hold, for *other* reasons in `TESANA_ASSET_AUDIT.md` (Kestrel and Meridian are canon, our CC0 ships already fill those roles, NPC identities change only with David's approval, no animations). The ten shared-library models, including the two background pedestrians the audit flags as the most useful (`pedestrian_a`, `pedestrian_b`), **remain an open item until each is confirmed**. Nothing was imported, removed, replaced or modified as part of this verification, and nothing was merged or deployed.
+**What changes in practice.** The licence is no longer the reason to set aside the seven non-library vehicles, captain, elara and the station: they are not recommended, or are on hold, for *other* reasons in `TESANA_ASSET_AUDIT.md` (Kestrel and Meridian are canon, our CC0 ships already fill those roles, NPC identities change only with the owner's approval, no animations). The ten shared-library models, including the two background pedestrians the audit flags as the most useful (`pedestrian_a`, `pedestrian_b`), **remain an open item until each is confirmed**. Nothing was imported, removed, replaced or modified as part of this verification, and nothing was merged or deployed.
 
 ## 9.2 Music: the 27-song playlist (details in `docs/development/MUSIC_LICENSING.md`)
-- All 27 songs are David's own, made with Riffusion / Producer.ai; "(Cover)" is Riffusion's label for his own remixes and is treated as such. Nothing suggests third-party compositions, and none was assumed.
-- **Update 2026-11-08 (David): rights settled.** David held a **paid Riffusion subscription in 2025, when the songs were created**, which is also why their quality is better than the free plan's. The free tier's non-commercial limitation does not apply, and the music rights are considered settled for the game's use. His receipt for a paid **Starter** plan (17 March to 17 April 2026) is a later paid period. That settlement is for use in the game. It is not a grant to redistribute, sublicense, or use the files for AI training.
+- All 27 songs are the owner's own, made with Riffusion / Producer.ai; "(Cover)" is Riffusion's label for his own remixes and is treated as such. Nothing suggests third-party compositions, and none was assumed.
+- **Update 2026-11-08 (the owner): rights settled.** The owner held a **paid Riffusion subscription in 2025, when the songs were created**, which is also why their quality is better than the free plan's. The free tier's non-commercial limitation does not apply, and the music rights are considered settled for the game's use. His receipt for a paid **Starter** plan (17 March to 17 April 2026) is a later paid period. That settlement is for use in the game. It is not a grant to redistribute, sublicense, or use the files for AI training.
 - Earlier note, now superseded: Riffusion's terms could not be opened from the Claude session, and secondary sources say free-tier output is non-commercial. That concern applied only to free-tier songs, which these are not.
 - Explicit lyrics are not a reason to remove a song; they belong to the age policy, recorded separately.
 - **On 4 Nov the website playlist was OFF by default** (`WEBSITE_PLAYLIST=false`). **On `main` as of 12 Nov 2026 the flag is `true`** in `void-runner/pod-music.js`. "My music" still works. The website's own player is unchanged, and the files stay public on the site as before.
 
 ## 10. Homepage entrance: prepared, NOT published
-**David's latest wording:** the future homepage entry button must read **ENTER THE DARKNET DISTRICT**; it replaces the old Void Runner promotional entry **when approved**; it keeps the existing navigation; it works on desktop and mobile; there is **no second game entry or conflicting route**. (This supersedes the earlier idea of making the title graphic itself clickable with a small ENTER tag. One entrance only. Ask David if he also wants the title graphic to link to the same address.)
+**The owner's latest wording:** the future homepage entry button must read **ENTER THE DARKNET DISTRICT**; it replaces the old Void Runner promotional entry **when approved**; it keeps the existing navigation; it works on desktop and mobile; there is **no second game entry or conflicting route**. (This supersedes the earlier idea of making the title graphic itself clickable with a small ENTER tag. One entrance only. Ask the owner if he also wants the title graphic to link to the same address.)
 
 **State.** PR #176's homepage change is exactly that button (it replaces the "Void Runner / under construction" teaser, adds the line "No account needed. Guest progress stays in this browser." and a Log in link). It is **not on this branch's homepage**: it is saved as `docs/development/homepage-entry/activate-homepage-entry.patch`. `index.html` and `accents.css` are byte-identical to `main`, so merging this branch does not publish the button.
 
@@ -252,9 +252,9 @@ Two different questions are kept apart:
 
 **Checked visually** (desktop 1440x900 and a Pixel 7 phone, side by side with the live page, patched copy served from a scratch folder): the button uses the site's cut corners and green glow, sits where the teaser was, does not overflow on a phone, and the navigation is unchanged.
 
-**To activate (Codex, after David's approval):** `git apply docs/development/homepage-entry/activate-homepage-entry.patch`. The three tests that read the entrance through the patch (`tests/darknet-entrance.test.cjs`, `tests/share-links-removed.test.cjs`, and the smoke test's mobile-home step) must then read `index.html` directly; each says so. Then run `npm test` and the site-navigation browser test.
+**To activate (Codex, after the owner's approval):** `git apply docs/development/homepage-entry/activate-homepage-entry.patch`. The three tests that read the entrance through the patch (`tests/darknet-entrance.test.cjs`, `tests/share-links-removed.test.cjs`, and the smoke test's mobile-home step) must then read `index.html` directly; each says so. Then run `npm test` and the site-navigation browser test.
 
-**Phones:** the button leads to `void-runner.html`, where the device gate shows the landing page (no 3D, no game download, a link back). If David prefers, the button can also be hidden on phones with a small script that uses the same device test (`void-runner/device-gate.js` exports `classify`).
+**Phones:** the button leads to `void-runner.html`, where the device gate shows the landing page (no 3D, no game download, a link back). If the owner prefers, the button can also be hidden on phones with a small script that uses the same device test (`void-runner/device-gate.js` exports `classify`).
 
 ## 11. First playable website milestone
 
@@ -267,7 +267,7 @@ Two different questions are kept apart:
 |---|---|---|
 | Desktop launch | **Ready** | Smoke, transition, areas and navigation suites at low and high; real-GPU run still needed (12.5). |
 | Guest entry | **Ready** | Smoke: a new local campaign with no ship, no missions, an empty landing pad. |
-| Account entry and cloud saves | **Unverified live** | Needs Firebase and the Render API, unreachable from the sandbox. The API change is in `FIRST_LIVE_TEST_RUNBOOK.md`; whether Render redeploys on merge is **not in the repository** and David must check. |
+| Account entry and cloud saves | **Unverified live** | Needs Firebase and the Render API, unreachable from the sandbox. The API change is in `FIRST_LIVE_TEST_RUNBOOK.md`; whether Render redeploys on merge is **not in the repository** and the owner must check. |
 | Server and session selection | **Not built** (documentation only, PR #191). The test is single-player. | |
 | Arrival at the District security entrance | **Correct as is: kept.** A new campaign starts in the alley at local (0, 17), three metres before the outer security door (door at local z 20), facing it. | Smoke test "new campaign". |
 | Double doors, vestibule, transition | **Ready.** Screenshots reviewed: SECURITY CHECKPOINT, the interior hall with its neon and VR / ARCADE sign, the AIRLOCK panel, the alley. | #187; 3 trips at low, 6 at high. |
@@ -280,11 +280,11 @@ Two different questions are kept apart:
 | Phones and tablets | **Ready in emulation**; not tried on a physical phone | Device gate. |
 | Unlisted | **Done in one commit** (shop card, sitemap, noindex; Games page already unlisted). The homepage still shows the Void Runner teaser, which links nowhere. | Revert the unlisting commit to list the game. |
 
-### 12.2 Desktop versus phones and tablets (David's rule)
+### 12.2 Desktop versus phones and tablets (the owner's rule)
 The game is **desktop-first**. The device gate (section 0) decides with several signals together (pointer type, screen size, platform, user agent, input hardware, cores and memory, WebGL), never width or user agent alone, and a small desktop window is still a desktop.
 - **Desktop and Windows touch machines (the ROG Ally, Surface), Macs, Chromebooks, Linux:** the game, keyboard and mouse, the existing gamepad support, and Low graphics chosen once for weak hardware (never over a player's own choice).
 - **Phones:** never the game; a landing page that says so, links back to the website, and **does not claim social features exist**.
-- **Tablets:** touch-only tablets get the landing page with a "try anyway" choice; a tablet with a mouse or trackpad, at least 4 cores and 4 GB is let in. (David asked to allow suitable devices where practical: confirm this policy.)
+- **Tablets:** touch-only tablets get the landing page with a "try anyway" choice; a tablet with a mouse or trackpad, at least 4 cores and 4 GB is let in. (The owner asked to allow suitable devices where practical: confirm this policy.)
 - **Browsers without WebGL:** an explanation and the way back.
 - **Mobile social features** (global chat, direct messages, friends, player directory, notifications): **documentation only** (PR #191 section 12, items 3, 4, 6, 7, 8). They depend on the hub skeleton and authentication, `Guest####` identities, chat with baseline safety and the age policy. **No code exists. The desktop test does not wait for them.**
 
@@ -297,7 +297,7 @@ The game is **desktop-first**. The device gate (section 0) decides with several 
 - **Lower-resolution desktops:** the music panel and layouts were checked at 1280x720 and the transition tests at 1100x640; the game's fixed footer covers the bottom 72 px of any panel (panels have bottom padding). 1366x768, 1024x600 and display scaling were not checked.
 
 ### 12.4 Deployment, safety and rollback
-The full account is in **`docs/development/FIRST_LIVE_TEST_RUNBOOK.md`**: what a merge to `main` triggers (GitHub Pages publishes automatically; Iris and Neon are not affected; the game API's Render deploy setting is **unknown and needs David**), the service-worker and storage effects, the backup and restore procedure, rollback of code **and** browser state, and the checklist. Key points: use the existing `/void-runner.html` (no `/district-test/` copy; it would need its own service-worker scope and would still share saves); revert the merge commit to roll back the site; **reverting code does not restore browser storage or caches**, so back up first and use the restore snippet.
+The full account is in **`docs/development/FIRST_LIVE_TEST_RUNBOOK.md`**: what a merge to `main` triggers (GitHub Pages publishes automatically; Iris and Neon are not affected; the game API's Render deploy setting is **unknown and needs the owner**), the service-worker and storage effects, the backup and restore procedure, rollback of code **and** browser state, and the checklist. Key points: use the existing `/void-runner.html` (no `/district-test/` copy; it would need its own service-worker scope and would still share saves); revert the merge commit to roll back the site; **reverting code does not restore browser storage or caches**, so back up first and use the restore snippet.
 
 ### 12.5 Readiness summary
 **Ready, with open items to confirm,** for the first unlisted **desktop** test at `/void-runner.html`, on these conditions (as written on 4 Nov; the live site has since moved on — see the banner):
@@ -312,19 +312,19 @@ The full account is in **`docs/development/FIRST_LIVE_TEST_RUNBOOK.md`**: what a
 **Why not more than conditional (4 Nov):** no real GPU, phone, Firefox or Safari was available; the device gate rewrites how the page loads its scripts (it writes them back in order with `document.write`, which Chromium handles; other browsers are untested); the game API's deploy behaviour was unknown. **This would need another look if** item 3 shows unplayable frame rates at Low on the target PC, if the browser console shows errors on the live page after deploy, or if the Render API rejects a guest or account save in a way the runbook does not cover.
 
 ## 13. Architecture decisions from PR #191 (`docs/void-runner/social-universe-architecture.md`, revision 2)
-Confirmed by David on 2026-11-04 (D1 to D10): every player has a display handle, picked or an automatic `Guest####`, never the database identity (an immutable internal id); development is local and free first, no paid hosting, the single Node hub is the accepted direction and the roughly $7 a month figure is **not** approved; automatic account-bound saving is a priority and every full 3D login starts in an available Sleeping Pod with the ship at the landing zone and no restored location; persistent social features need an authenticated identity and a local guest mode stays separate; one active 3D session per account (a newer login replaces the older one) while a mobile chat connection never ends a desktop game; multiplayer is strictly social, no shared combat or mission progress, shared companion state belongs to the session; chat safety from the beginning and public chat stays off until safeguards exist; build the pod allocator before the hallway geometry (the final hallway waits for David's floor plan); reuse existing character assets and no purchases; keep #184 until its fixes are moved.
+Confirmed by the owner on 2026-11-04 (D1 to D10): every player has a display handle, picked or an automatic `Guest####`, never the database identity (an immutable internal id); development is local and free first, no paid hosting, the single Node hub is the accepted direction and the roughly $7 a month figure is **not** approved; automatic account-bound saving is a priority and every full 3D login starts in an available Sleeping Pod with the ship at the landing zone and no restored location; persistent social features need an authenticated identity and a local guest mode stays separate; one active 3D session per account (a newer login replaces the older one) while a mobile chat connection never ends a desktop game; multiplayer is strictly social, no shared combat or mission progress, shared companion state belongs to the session; chat safety from the beginning and public chat stays off until safeguards exist; build the pod allocator before the hallway geometry (the final hallway waits for the owner's floor plan); reuse existing character assets and no purchases; keep #184 until its fixes are moved.
 
-Open and needing David: **age policy (blocks launch)**; hosting for a public launch; illegal cargo at the landing zone; handle rename cooldown; moderation staffing; privacy defaults; the District floor plan.
+Open and needing the owner: **age policy (blocks launch)**; hosting for a public launch; illegal cargo at the landing zone; handle rename cooldown; moderation staffing; privacy defaults; the District floor plan.
 
 Effort: the old 65 working days is a planning range (50 to 85), not a commitment.
 
 ## 14. Deferred multiplayer features (open items, not yet scheduled as of 4 Nov 2026)
-Hub skeleton, auth and rooms; global, location and direct chat with block, report and rate limits; presence and Players Online directory; friends and invitations; shared avatars and customization; public and private VR sessions; shared companions; more station interiors; modular pod hallway; the **mobile chat page**. First two PRs when David approves: **(1) automatic account-bound saving with a session lease; (2) pod start and ship return** (replaces the location-resume code in #187 and #188 and ports the boarding-prompt gating from #184). Plan: #191 sections 5, 7 and 12.
+Hub skeleton, auth and rooms; global, location and direct chat with block, report and rate limits; presence and Players Online directory; friends and invitations; shared avatars and customization; public and private VR sessions; shared companions; more station interiors; modular pod hallway; the **mobile chat page**. First two PRs when the owner approves: **(1) automatic account-bound saving with a session lease; (2) pod start and ship return** (replaces the location-resume code in #187 and #188 and ports the boarding-prompt gating from #184). Plan: #191 sections 5, 7 and 12.
 
-## 15. Open items to confirm with David (as of 8 Nov 2026; several have since shipped — see AI_HANDOFF.md)
-1. **Merging anything into `main`** (this deploys the live site; and the game API too if its Render service auto-deploys from `main`; David checks that setting first).
+## 15. Open items to confirm with the owner (as of 8 Nov 2026; several have since shipped — see AI_HANDOFF.md)
+1. **Merging anything into `main`** (this deploys the live site; and the game API too if its Render service auto-deploys from `main`; the owner checks that setting first).
 2. Review and merge of draft PR #194 into `integration/codex-start` (not `main`).
-3. **The website playlist:** keep it off in the game, or switch it on. Rights are settled (section 9.2): the songs were made during David's paid 2025 Riffusion subscription. On `main` as of 12 Nov 2026 the flag is already on.
+3. **The website playlist:** keep it off in the game, or switch it on. Rights are settled (section 9.2): the songs were made during the owner's paid 2025 Riffusion subscription. On `main` as of 12 Nov 2026 the flag is already on.
 4. **Applying the homepage patch** (section 10): wording, and whether the title graphic should link too.
 5. **The unlisting commit** (removes the shop's equipment card and the sitemap entry; adds noindex): keep for the test or revert.
 6. **Tablet policy:** the landing page with a "try anyway" choice, with capable tablets let in.
@@ -335,8 +335,8 @@ Hub skeleton, auth and rooms; global, location and direct chat with block, repor
 
 ## 16. First suggested Codex tasks (small, in order)
 1. Read this file, `FIRST_LIVE_TEST_RUNBOOK.md` and `MUSIC_LICENSING.md`. Check out `claude/first-test-readiness`, run `npm test` and the browser commands in 6.1 (use a different port for the second checkout).
-2. With David: back up his save (runbook section 3); ask him to read the Render setting; decide the playlist; confirm the tablet policy and the unlisting commit.
-3. David's own-PC checks (runbook section 7): real frame rates at Low and High, the licensed buildings, Windows scaling, a gamepad.
-4. When David says go: open **one** PR from the branch to `main`; read the PR build and the three CI checks; **do not merge**.
+2. With the owner: back up his save (runbook section 3); ask him to read the Render setting; decide the playlist; confirm the tablet policy and the unlisting commit.
+3. The owner's own-PC checks (runbook section 7): real frame rates at Low and High, the licensed buildings, Windows scaling, a gamepad.
+4. When the owner says go: open **one** PR from the branch to `main`; read the PR build and the three CI checks; **do not merge**.
 5. Afterwards, on separate branches: apply the homepage patch; then PR 1 and PR 2 of #191 (automatic saves with a session lease; wake in a pod); then the lighting work in 12.3.
 

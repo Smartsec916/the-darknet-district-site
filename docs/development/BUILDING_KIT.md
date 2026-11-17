@@ -11,7 +11,7 @@ A set of modular building pieces for replacing the box buildings on the street. 
 
 Rules: metres; 1 m grid; widths 2 / 4 / 6 m; upper floors 3.5 m, shopfront floor 4.5 m; Y up, front faces +Z, origin at the bottom-left-front corner; under 3,000
 triangles a piece; seven shared materials (`kit_concrete`, `kit_metal`, `kit_glass`, `kit_emissive`, `kit_asphalt`, `kit_ticker`, `kit_fabric`); light only from `kit_emissive` and `kit_ticker`, no lamps.
-Shop signs are an LED text strip (`kit_ticker`, one texture repeating every 20 m): the game scrolls it by sliding that texture sideways. Its wording in `kit_textures.py` (`TICKER_TEXT`) is a placeholder until David approves it.
+Shop signs are an LED text strip (`kit_ticker`, one texture repeating every 20 m): the game scrolls it by sliding that texture sideways. Its wording in `kit_textures.py` (`TICKER_TEXT`) is a placeholder until the owner approves it.
 Neon tubes (`__neon_<n>`) and shop sign faces (`__sign_0`) are separate child nodes too, so the game can switch them off or give a sign its own picture.
 Window panes are separate child nodes (`<piece>__glass_<n>`) so the game can switch a window between dark glass and a lit look from the emissive atlas.
 

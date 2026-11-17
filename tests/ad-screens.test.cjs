@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const D=require('../void-runner/ad-screens-data.js'),relay=require('../void-runner/relay-content.json'),Q=require('../void-runner/ncz-quarters.js'),Board=require('../void-runner/warflying-board.js');
-const doc=fs.readFileSync(path.join(__dirname,'../docs/void-runner/design-source/12-street-advertisements-david.md'),'utf8');
+const doc=fs.readFileSync(path.join(__dirname,'../docs/void-runner/design-source/12-street-advertisements-owner.md'),'utf8');
 const section=(from,to)=>{const a=doc.indexOf(from);return doc.slice(a,to?doc.indexOf(to,a):undefined);};
 
 test('every brand, tagline and announcement is the owner’s, word for word, and none is missing or added',()=>{

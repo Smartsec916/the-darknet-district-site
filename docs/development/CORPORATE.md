@@ -28,7 +28,7 @@ Part 2 of the three-location expansion ([`THREE_LOCATION_EXPANSION.md`](THREE_LO
 4. **The cab room** (`skycab`) replaces NeoChinatown, which the loader releases, so only one real place is loaded at a time. It is built from geometry in well under a second: rear bench, two front seats, a dashboard with teal and magenta glow strips, a fare readout and progress bar, glass with rain streaks that run down, neon bars streaking past, distant towers, a city glow far below, and a subtle sway. The player sits and can look around.
 5. The ride lasts at least 4.5 s (6 s for 1.8 km; 3.5 s with reduced motion) **and** the destination must be ready; only then does Corporate replace the cab. If the loader needs longer it simply waits.
 6. Arrival on the cab pad. `cabReturn` (text in the save) keeps where the player boarded.
-7. **Return:** "CALL RETURN SKY CAB" at the pad, **no second fare** (David's brief asked for a return cab and one fare; this also means nobody is stranded without credits). It lands the player exactly where they boarded.
+7. **Return:** "CALL RETURN SKY CAB" at the pad, **no second fare** (the owner's brief asked for a return cab and one fare; this also means nobody is stranded without credits). It lands the player exactly where they boarded.
 8. **Failure handling** (unit-tested and played in the browser test): if the cab or the destination fails to load, the fare is refunded once, the player is put back where they left, and a notice says so. If even that fails, the record stays and the next load refunds it. A failed return leaves the player safely in Corporate.
 
 ## The area

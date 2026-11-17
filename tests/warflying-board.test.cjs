@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const B=require('../void-runner/warflying-board.js'),S=require('../void-runner/signals.js'),R=require('../void-runner/relay.js');
-const doc=fs.readFileSync(path.join(__dirname,'../docs/void-runner/design-source/12-street-advertisements-david.md'),'utf8');
+const doc=fs.readFileSync(path.join(__dirname,'../docs/void-runner/design-source/12-street-advertisements-owner.md'),'utf8');
 const monday=w=>new Date(Date.UTC(2026,0,5)+w*7*864e5);
 
 test('the handle list is the owner’s two batches, verbatim, with the repeats removed',()=>{

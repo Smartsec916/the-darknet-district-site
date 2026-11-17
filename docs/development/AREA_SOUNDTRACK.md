@@ -1,6 +1,6 @@
 # Area soundtrack and environmental sound (15 Nov 2026)
 
-David asked for the code-generated background music to be replaced by recorded music made with ElevenLabs, one loop per existing area, plus environmental sound. This is what was built, where it lives and how to change it.
+The owner asked for the code-generated background music to be replaced by recorded music made with ElevenLabs, one loop per existing area, plus environmental sound. This is what was built, where it lives and how to change it.
 
 ## What plays where
 
@@ -23,7 +23,7 @@ David asked for the code-generated background music to be replaced by recorded m
 | Zen Zephyr Temple | `temple.ogg` | wind and chimes |
 | Flight (all three systems) | `space.ogg` | none |
 
-**There is no "black market" area in the game** (David's list named one). No location was created for it; when one exists it needs one more track.
+**There is no "black market" area in the game** (the owner's list named one). No location was created for it; when one exists it needs one more track.
 
 **Still generated in code (no recording yet):** the older-campaign places that the District-first game does not currently send players to (Vesper, Meridian, Kepler, Rusthaven, Foundry, the Belt Anchorage, Vantor, The Vigil, Holdfast, the Nexus, the Order homeworld, the derelict station) and the warp and hazard cues in flight. Each would be one more 900-credit track.
 
@@ -47,7 +47,7 @@ Replace the `.ogg` in `void-runner/assets/audio/score/` (same name), bump `BUILD
 
 ## Not verified
 
-The cloud test machine has no speakers. What was checked: every room resolves to the right track and ambience in a real browser run, every file loads, the pod is silent, levels are even across tracks, and each loop's seam was matched by analysis. **Nobody has listened to it yet.** David should listen for: any track whose mood is wrong, a loop seam that can be heard, and the balance of ambience against music.
+The cloud test machine has no speakers. What was checked: every room resolves to the right track and ambience in a real browser run, every file loads, the pod is silent, levels are even across tracks, and each loop's seam was matched by analysis. **Nobody has listened to it yet.** The owner should listen for: any track whose mood is wrong, a loop seam that can be heard, and the balance of ambience against music.
 
 ## Cost
 

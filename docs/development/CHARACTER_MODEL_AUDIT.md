@@ -170,10 +170,10 @@ The body is the lever: at 15,000 to 20,000 triangles it is far heavier than its 
 
 ## 15 Nov 2026: surface quality pass (first step of the character upgrade)
 
-David asked for all NPC and player characters to be upgraded after two reference pictures (`VISUAL_REFERENCES.md`, "Characters"). This step changes **how the existing models are shaded**, not the models: `void-runner/character-finish.js` `refine()` runs once per model file as it loads and treats each material by the MakeHuman part it came from.
+The owner asked for all NPC and player characters to be upgraded after two reference pictures (`VISUAL_REFERENCES.md`, "Characters"). This step changes **how the existing models are shaded**, not the models: `void-runner/character-finish.js` `refine()` runs once per model file as it loads and treats each material by the MakeHuman part it came from.
 
 - Clothing: a woven grain (a small detail map made in code, no file) and a thin wet coat. Footwear: polished. Skin: slightly smoother with a soft sheen. Hair: a tighter highlight. Masks, visors and shades: dark coated shell; a mask's slits are lit in one accent colour per figure.
 - Applies to every crowd figure and so to player characters and other players (they are the same files); VR companions keep their own finish. Low quality skips the grain. `VoidCharacterFinish.config.quality=false` turns it off.
 - Before and after: `character-audit/finish-before-men.png`, `finish-after-men.png` (software renderer, so darker than a real GPU).
-- **What this does not do:** new bodies, faces, outfits, tattoos, layered gear or higher-resolution textures. The references need those, and they need new assets: outfits modelled by code (free, slow, limited), purchased models, or generated ones (paid credits). David's Blender has the MakeHuman add-on but no clothing, hair or skin packs installed. Saved looks were NOT reset; nothing about a saved look changed.
+- **What this does not do:** new bodies, faces, outfits, tattoos, layered gear or higher-resolution textures. The references need those, and they need new assets: outfits modelled by code (free, slow, limited), purchased models, or generated ones (paid credits). The owner's Blender has the MakeHuman add-on but no clothing, hair or skin packs installed. Saved looks were NOT reset; nothing about a saved look changed.
 

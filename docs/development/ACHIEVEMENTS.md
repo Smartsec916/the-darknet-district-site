@@ -12,18 +12,18 @@ The catalogue and its rules. **An achievement is unlocked only by server-verifie
 | District Supporter | A verified official T-shirt purchase |
 | **Catch 100 Fish** (added 2026-11-12) | 100 `vr_fish_landed` events in Tropical Escape |
 
-The server side that records verified events does not exist yet. David approved building it (2026-11-12) together with the Blackout Protocol leaderboard. Until then no achievement can actually be unlocked.
+The server side that records verified events does not exist yet. The owner approved building it (2026-11-12) together with the Blackout Protocol leaderboard. Until then no achievement can actually be unlocked.
 
 ## Achievements on profiles (15 Nov 2026)
 
-David asked for achievements to show on people's profiles.
+The owner asked for achievements to show on people's profiles.
 
 - **New achievements:** "Make Highest Score in [game]" for each playable arcade game (Blackout Protocol, Corporate Zombies, Underground//Overdrive): holding the top verified score. Event `arcade_high_score_verified`.
 - **Each achievement now has** a `difficulty` (1 Easy to 5 Hardest) and `paid` (true when it takes a real purchase: District Supporter).
-- **On a profile** (`personal-device.js` `achievementsHtml`, rules in `achievements.js` `profileList`): three are shown, those bought with real money first, then the hardest; difficulty is shown as one to five stars (David asked for stars instead of the word); **VIEW ALL** opens the rest, and an ORDER menu sorts by Featured, Most recent, Difficulty or Type.
-- **Residents** have achievements as part of who they are (`district-people.js` `achievements`, read with `achievementsOf(id)`): Dax holds all three arcade high scores and Reliable Courier (three cargo runs for Rook), as David specified; the others have one or two easy ones. Which resident has which, and the dates, are Claude's draft except Dax's.
+- **On a profile** (`personal-device.js` `achievementsHtml`, rules in `achievements.js` `profileList`): three are shown, those bought with real money first, then the hardest; difficulty is shown as one to five stars (the owner asked for stars instead of the word); **VIEW ALL** opens the rest, and an ORDER menu sorts by Featured, Most recent, Difficulty or Type.
+- **Residents** have achievements as part of who they are (`district-people.js` `achievements`, read with `achievementsOf(id)`): Dax holds all three arcade high scores and Reliable Courier (three cargo runs for Rook), as the owner specified; the others have one or two easy ones. Which resident has which, and the dates, are Claude's draft except Dax's.
 - **Players show none yet.** A player's achievements must come from server-verified events (rule above), and that server side still does not exist. When it does, pass the player's verified unlocks to the same `profileList`.
-- David wrote "filter for Most recent, Difficulty, or by Try": read as "Type". Change the labels in `achievements.js` `SORTS` if he meant something else.
+- The owner wrote "filter for Most recent, Difficulty, or by Try": read as "Type". Change the labels in `achievements.js` `SORTS` if he meant something else.
 
 ## Local progress (`void-runner/local-progress.js`)
 

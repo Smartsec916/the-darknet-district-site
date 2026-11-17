@@ -2,7 +2,7 @@
 
 > **Second pass, 16 Nov 2026 (build `2026-11-16-district-2`, branch `claude/district-upgrade-2`, one local commit, not pushed, no PR):** Nyx the bartender has her own model, and seven of the simplest built props are modelled. See "Second pass" at the end. The rest of this page describes the first pass (build `2026-11-16-district-1`, merged as PR #331).
 
-David's request: "the bar, vr play area, anywhere that has old legacy graphic, the dispensary vending machine just has a flat graphic over it. Lets make them look real... The counter in the Store need higher density items." He supplied four reference pictures (oxygen bar, bartender, store, VR play area). They are kept outside the repository and were used as visual direction only. Later the same day he asked for **every poster in the hallway to be taken down** until he supplies new ones, for **anti-WarFlying campaign screens** showing his own lines (two in the hallway, one in the bar, and in the arcade in place of the posters for games that do not exist yet).
+The owner's request: "the bar, vr play area, anywhere that has old legacy graphic, the dispensary vending machine just has a flat graphic over it. Lets make them look real... The counter in the Store need higher density items." He supplied four reference pictures (oxygen bar, bartender, store, VR play area). They are kept outside the repository and were used as visual direction only. Later the same day he asked for **every poster in the hallway to be taken down** until he supplies new ones, for **anti-WarFlying campaign screens** showing his own lines (two in the hallway, one in the bar, and in the arcade in place of the posters for games that do not exist yet).
 
 This pass changes looks only. No solid, interaction, person, voice, line of dialogue, price, shop item or save field was changed. The Sleeping Pod room, the music player, Milked, the Corporate District, the temple and the other games were not touched. The bartender (Nyx) is unchanged: her look is a later task.
 
@@ -13,7 +13,7 @@ This pass changes looks only. No solid, interaction, person, voice, line of dial
 | `void-runner/district-rooms.js` (new) | `VoidDistrictRooms`. The top is plain data that runs in Node (which goods each machine stocks, the store counter's cases and where every item lies, the bar's measurements and allowed wording). `build(kit)` is the 3D build: `machine()`, `alcove()`, `bar()`, `store()`, `vr()`. It is handed `neochinatown.js`'s own kit (`box`, `cyl`, `mat`, `texture`, `lightPool`...), so everything it makes is merged by material, owned and released with the rest of the interior. |
 | `void-runner/neochinatown.js` | The old bar, vending, VR-dressing and counter-glow lines were removed and replaced by calls to the new file. The hallway posters are switched off (below). Nothing else. |
 | `void-runner.html`, `static/void-runner.html` | Load `district-rooms.js` just before `neochinatown.js`. |
-| `tests/district-rooms.test.cjs` (new, 7 tests) | Goods on the counter are real store products; every item lies inside a case, on the counter, clear of Admin and Iris; the machines are stocked from the pod vending list; the bar keeps to its counter and its allowed wording; the posters are down with their spots kept; the campaign screens carry David's lines word for word, each whole on solid wall with at least half a metre to any doorway or corner; the arcade keeps a poster for every playable game and none for the others. |
+| `tests/district-rooms.test.cjs` (new, 7 tests) | Goods on the counter are real store products; every item lies inside a case, on the counter, clear of Admin and Iris; the machines are stocked from the pod vending list; the bar keeps to its counter and its allowed wording; the posters are down with their spots kept; the campaign screens carry the owner's lines word for word, each whole on solid wall with at least half a metre to any doorway or corner; the arcade keeps a poster for every playable game and none for the others. |
 
 **Quality tiers.** Low keeps plain coloured materials, fewer bottles and no wall lining. Medium and above use the District interior kit's physically based metals and concrete (`assets/textures/district-interior/kit_*`: colour, normal map, roughness/metal map) on the walls, counters, cabinets and machine bodies, and add the drawn light pools, light shafts and wall glows the rest of the interior uses. No real lamp was added (the scene's limit of lights is already used).
 
@@ -41,7 +41,7 @@ This pass changes looks only. No solid, interaction, person, voice, line of dial
 ### Store counter
 - **Four glass display cases stand along the customers' edge of the counter**, with gaps where Admin and Iris face a customer. Each has a steel base and cap, corner posts, clear panes, a cold light strip, a felt floor, a raised middle step and a glass shelf at the back: three tiers of goods and a row of boxed stock under the shelf.
 - **143 items and 20 blank price tags** lie in them, in bays of one kind each. They are small versions of goods the store already shows: 16 kinds from the survival range on the wall cases (knives, multi-tools, red-dot sights, flashlights, weapon lights, two-way radios, compasses, power banks, fire starters, lighters, water filters, paracord, tent stakes, filter canisters, fishing-kit tins, tool cards, headlamps) and three from the gun wall (pistols, magazines, ammunition boxes). `ITEMS` in `district-rooms.js` names the store product each one stands for; a test checks the names against `store-atlas.json`. **No new product, no prices.**
-- **16 Nov 2026 (build `2026-11-16-fixes-1`): nothing stands through the glass.** David's picture showed the two radios on the top shelf sticking out of the top of a case. Every kind of item now has a height (`TALL` in `district-rooms.js`, the taller of its built and modelled forms; the modelled radio with its antenna is 0.17 m) and is laid only on tiers where it clears the top pane by 15 mm (`fitsTier`). That takes radios, magazines and fire starters off the top shelf (radios stay on the lower two tiers); a test checks every item on Medium and Low against the pane, the side panes and its own tier.
+- **16 Nov 2026 (build `2026-11-16-fixes-1`): nothing stands through the glass.** The owner's picture showed the two radios on the top shelf sticking out of the top of a case. Every kind of item now has a height (`TALL` in `district-rooms.js`, the taller of its built and modelled forms; the modelled radio with its antenna is 0.17 m) and is laid only on tiers where it clears the top pane by 15 mm (`fitsTier`). That takes radios, magazines and fire starters off the top shelf (radios stay on the lower two tiers); a test checks every item on Medium and Low against the pane, the side panes and its own tier.
 - More stock stands on the counter behind the cases (boxes in stacks, steel bottles, radios, ration packs), with a card reader and a tray at each member of staff.
 - The model's flat coloured trays were taken off the counter top, and the glowing violet bar along its front edge is now a thin pink line under each case.
 
@@ -54,7 +54,7 @@ The room, both booths, the glass, the players, the terminal and the bench are wh
 - The two session signs keep their wording.
 
 ### Hallway: posters taken down
-David asked for all hallway posters to be removed until he supplies new ones (one, by the bar's doorway, hung half off the end of the wall). The four posters were the only ones in the hallway. They are switched off, not deleted:
+The owner asked for all hallway posters to be removed until he supplies new ones (one, by the bar's doorway, hung half off the end of the wall). The four posters were the only ones in the hallway. They are switched off, not deleted:
 
 ```js
 // void-runner/neochinatown.js
@@ -63,8 +63,8 @@ const HALL_POSTER_SPOTS=[[30.5,1],[46,-1],[58,1],[66,-1]],HALL_POSTERS_SHOWN=fal
 
 Each entry is `[metres along the hallway, side (1 east, -1 west)]`. To hang posters again set `HALL_POSTERS_SHOWN` to `true`, or give each spot its own picture. Each spot still takes its turn in the advertisement order, so every other screen in the game keeps the advertisement it had. A poster was a single flat panel with no lamp, glow or shadow of its own, so nothing is left behind. The spot by the bar (`30.5`) is centred on the very end of that wall, which is why it overhung the doorway: move it to about `29` before using it again. The arcade's own game posters and the advertisement screens elsewhere were not touched.
 
-### Anti-WarFlying campaign screens (David's own lines)
-Five lit panels, 1.2 m wide and 1.8 m high, each in a steel housing 10 cm deep with a bezel, corner bolts, a hood, a status lamp and a conduit up the wall. Each shows the header **ANTI-WARFLYING CAMPAIGN** and one of David's 25 lines at a time, with a struck-through scanner sweep drawn under it (a picture, no words). A line stays five seconds and gives way to the next in a 0.9 second cross-fade. **No voice, no sound.**
+### Anti-WarFlying campaign screens (the owner's own lines)
+Five lit panels, 1.2 m wide and 1.8 m high, each in a steel housing 10 cm deep with a bezel, corner bolts, a hood, a status lamp and a conduit up the wall. Each shows the header **ANTI-WARFLYING CAMPAIGN** and one of the owner's 25 lines at a time, with a struck-through scanner sweep drawn under it (a picture, no words). A line stays five seconds and gives way to the next in a 0.9 second cross-fade. **No voice, no sound.**
 
 | Screen | Wall | Where (District metres) | Clear of the nearest opening or corner |
 |---|---|---|---|
@@ -76,7 +76,7 @@ Five lit panels, 1.2 m wide and 1.8 m high, each in a steel housing 10 cm deep w
 
 None is in the Sleeping Pod room. A test checks that each is whole on its wall with at least half a metre to the wall's end, clear of the solid props, and that no hallway resident stands in front of one.
 
-- **The lines** are `CAMPAIGN.lines` in `district-rooms.js`, in David's order. To add one, add it to the list. `seconds`, `fade` and `screens` are beside it. A test holds a fingerprint of the 25 lines so a later edit cannot reword one unnoticed (update the fingerprint when David adds lines).
+- **The lines** are `CAMPAIGN.lines` in `district-rooms.js`, in the owner's order. To add one, add it to the list. `seconds`, `fade` and `screens` are beside it. A test holds a fingerprint of the 25 lines so a later edit cannot reword one unnoticed (update the fingerprint when the owner adds lines).
 - **Cost:** one drawn picture (512 x 768; 256 x 384 on Low) and one material for all five, so they always show the same line; the five screens are one merged mesh. The picture is redrawn only during a cross-fade (about twelve times a second for under a second, once every five seconds) and only while the player is within 16 m of a screen. **Low shows the first line and never redraws.**
 
 **Arcade posters: which stayed and which went.** The arcade had five game posters. A poster stays only if its game can be played (`playable` in the cabinet list):
@@ -105,7 +105,7 @@ Nothing was invented. Everything shown is either wording the game already had or
 | Vending machines | DRINKS, DISPENSARY, NEUROHACKERS; product names, shelf codes and prices | Already in the game (`POD_VENDING`) |
 | Vending display | ENTER CODE; keypad 0-9, A, B | Plain functional label |
 | VR session signs | NEON STRIKE..., SKYLINE SOCIAL... | Already in the game, unchanged |
-| Campaign screens | ANTI-WARFLYING CAMPAIGN and 25 lines | David's own, word for word |
+| Campaign screens | ANTI-WARFLYING CAMPAIGN and 25 lines | The owner's own, word for word |
 | Store price tags, bottle labels | blank / shapes only | No wording |
 
 ## Performance
@@ -159,16 +159,16 @@ Pictures in `docs/development/district-upgrade/` (about 960 px wide): Low as sho
 
 ## Meshy and the Blender bridge
 
-**0 credits spent.** The Blender bridge on David's PC was connected, but nothing was generated: every prop here is built in code, which kept the pass inside one session and added no model files. The pieces that would gain most from a modelled prop are listed below.
+**0 credits spent.** The Blender bridge on the owner's PC was connected, but nothing was generated: every prop here is built in code, which kept the pass inside one session and added no model files. The pieces that would gain most from a modelled prop are listed below.
 
 ## What still looks legacy, or is short of the references
 
-- **Medium is drawn dim.** Outside VR the game multiplies the finished Medium and High picture by 0.3 (an open decision for David, `docs/development/VR_SESSIONS.md`). The rooms were not given their own exposure, so a Medium picture of the bar is much darker than the reference. The sheets include a brightened copy to judge detail; it is not what a Medium player sees.
+- **Medium is drawn dim.** Outside VR the game multiplies the finished Medium and High picture by 0.3 (an open decision for the owner, `docs/development/VR_SESSIONS.md`). The rooms were not given their own exposure, so a Medium picture of the bar is much darker than the reference. The sheets include a brightened copy to judge detail; it is not what a Medium player sees.
 - **The props are built from boxes and cylinders.** Close up, the store items, the headsets, the masks and the taps are simple shapes. The best candidates for modelled props (Meshy or Blender): the oxygen tank, the bar stool, the VR headset and controller, a pistol and three or four of the store goods. *(Second pass: the tank, stool, oxygen post, headset, pistol, radio and flashlight are modelled on Medium and above.)*
 - **The bartender** is the unchanged figure; on Medium she is drawn as a pale stand-in block. Not part of this pass. *(Second pass: she has her own model now. She had never had one; no file was missing.)*
 - **Bar:** no window, no wall art, no reflections in the floor; the floor is the building's shared tile. People at the bar do not sit.
 - **Store:** the counter itself is the earlier kit model; the staff workstation behind it (a black box and a screen), the storage cage and the wall cases were not touched. The cases on the wall still show goods as lit cards.
-- **VR:** the glass has no smears or reflections (David asked earlier for it to be clear); the floor has no reflections.
+- **VR:** the glass has no smears or reflections (the owner asked earlier for it to be clear); the floor has no reflections.
 - **Vending:** on Low the alcove walls are still the plain dark panels.
 - **Not touched and still simple:** the arcade's coloured ceiling tubes and cabinets (a deliberate 1980s look; the two cabinets for games not built yet still stand, with their name plates), the meeting room, the room signs over the doorways, the terrace, the Sleeping Pod room (protected).
 - **Low** keeps plain walls in the bar and the alcove by design.
@@ -183,12 +183,12 @@ Pictures in `docs/development/district-upgrade/` (about 960 px wide): Low as sho
 
 ## Second pass (16 Nov 2026): Nyx, and modelled props
 
-David: "The bartender NPC needs upgrading", with his picture of her behind the oxygen bar; and the first pass's own list said the props were simple shapes close up. Looks only, again: no solid, interaction, line, voice, price, shop item or save field changed. The Sleeping Pod room, the music player, the other characters, Milked, the Corporate District and the temple were not touched.
+The owner: "The bartender NPC needs upgrading", with his picture of her behind the oxygen bar; and the first pass's own list said the props were simple shapes close up. Looks only, again: no solid, interaction, line, voice, price, shop item or save field changed. The Sleeping Pod room, the music player, the other characters, Milked, the Corporate District and the temple were not touched.
 
 ### Nyx
 
 - **Why she was "a pale stand-in block": she never had a model.** Nothing was missing from this machine and no licensed file is involved. `neochinatown.js` asked for a character model called `nyx-district`; no such model was ever made, so the renderer drew its plain box figure (a blank head, facing the bottles). That was true on every machine and on the live site.
-- **Now:** her own model, `void-runner/assets/models/crowd/npc-nyx.glb` (4.3 MB), made the way Admin, Iris and the seven residents were made (`MESHY_CHARACTERS.md`): a full-body concept drawn from David's picture, then 3D, remesh, auto-rig, and the game's own clips retargeted. 30,942 triangles, one mesh, one material, 2048 colour map with 1024 normal and roughness maps, 24 joints. Clips: `idle`, `talk`, `walk`, `look`, `watch`, `laugh`, `shrug`, `wipe` (spec: `tools/animation-pipeline/characters/npc-nyx.json`).
+- **Now:** her own model, `void-runner/assets/models/crowd/npc-nyx.glb` (4.3 MB), made the way Admin, Iris and the seven residents were made (`MESHY_CHARACTERS.md`): a full-body concept drawn from the owner's picture, then 3D, remesh, auto-rig, and the game's own clips retargeted. 30,942 triangles, one mesh, one material, 2048 colour map with 1024 normal and roughness maps, 24 joints. Clips: `idle`, `talk`, `walk`, `look`, `watch`, `laugh`, `shrug`, `wipe` (spec: `tools/animation-pipeline/characters/npc-nyx.json`).
 - **What she looks like:** a smiling woman with wavy dark hair to the chin and a teal streak on one side, small chrome implants at the temple, a small hoop earring and a pendant, a black work shirt with the sleeves rolled, a worn brown leather bib apron with brass buckles, pens in the chest pocket and a grey bar towel at the belt, dark trousers and black boots, a watch on her left wrist. Adult, fully clothed.
 - **Unchanged:** her id (`nyx-district`), name, job, spot (10, 40 behind the counter), the prompt `TALK TO THE BARTENDER`, her one line and its speaker name, her voice entry. `district-people.js` gained `model:'npc-nyx'` on her line and nothing else, which also gives her a profile picture in the V1.
 - **Behaviour:** she stands facing the customers and plays `idle`; every quarter to half a minute she looks about or wipes down once; while her line is on screen she plays `talk`, then goes back to `idle`.
@@ -208,11 +208,11 @@ Seven models in `void-runner/assets/models/district-props/`, made with Meshy the
 | `district-radio.glb` | 0.4 MB | 3,001 | 512 | the store counter's cases (the store's Two-Way Radios) | 6 |
 | `district-flashlight.glb` | 0.3 MB | 2,613 | 512 | the store counter's cases (the store's EDC flashlight) | 3 |
 
-- **The tanks** are shorter than the built ones (1.3 m; the model is a stout cylinder like the tanks in David's picture), so each stands on a steel plinth with a vent and two small lamps; a thin sleeve of rising bubbles moves over the glass, and the fluid glows. The brass pipe up to the manifold is the same. If the model fails, the plinths are removed and the built tank stands on the floor as it did.
+- **The tanks** are shorter than the built ones (1.3 m; the model is a stout cylinder like the tanks in the owner's picture), so each stands on a steel plinth with a vent and two small lamps; a thin sleeve of rising bubbles moves over the glass, and the fluid glows. The brass pipe up to the manifold is the same. If the model fails, the plinths are removed and the built tank stands on the floor as it did.
 - **The goods** keep their places, counts and the store products they stand for (`ITEMS`); the pistols lie on the same felt pads. Nothing was added to the store.
 - Still built in code: the VR controllers, the masks on the wall rail, the spare cylinders, the taps and bottles, and the other 17 kinds of goods in the cases.
 
-Prompts (each ended with: single object, centred, plain grey studio background, soft even lighting, photorealistic product render, slightly worn, no text, no lettering, no logos). Batch folder on David's PC: `Documents\DarknetDistrict_Assets\Meshy\district_props\` (`props.json`, `status.json` with every task id, `run.py`, `shrink.py`); Nyx: `...\Meshy\nyx\`.
+Prompts (each ended with: single object, centred, plain grey studio background, soft even lighting, photorealistic product render, slightly worn, no text, no lettering, no logos). Batch folder on the owner's PC: `Documents\DarknetDistrict_Assets\Meshy\district_props\` (`props.json`, `status.json` with every task id, `run.py`, `shrink.py`); Nyx: `...\Meshy\nyx\`.
 
 | Prop | Prompt in short | Meshy task ids (image, 3D, remesh: first 13 characters) |
 |---|---|---|
@@ -235,7 +235,7 @@ Prompts (each ended with: single object, centred, plain grey studio background, 
 | Flashlight (two pictures) | 53 |
 | **Total** | **366** |
 
-David's picture of Nyx was the only reference sent to Meshy. No licensed or purchased model, and no photograph of a real person, was sent to any AI tool.
+The owner's picture of Nyx was the only reference sent to Meshy. No licensed or purchased model, and no photograph of a real person, was sent to any AI tool.
 
 ### Cost in the game (software renderer: counts, one frame each, people move between runs)
 

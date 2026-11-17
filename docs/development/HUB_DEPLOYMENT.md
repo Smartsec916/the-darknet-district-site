@@ -78,7 +78,7 @@ The hub's trading code (`TRADING_ARCHITECTURE.md`) is present but **cannot be en
 
 ## 15 Nov 2026: players are visible everywhere they can walk
 
-David asked for multiplayer visibility throughout NeoChinatown, NULL nightclub and the other places, not only inside the District. No hosting plan was changed (he said not to).
+The owner asked for multiplayer visibility throughout NeoChinatown, NULL nightclub and the other places, not only inside the District. No hosting plan was changed (he said not to).
 
 - **Hub** (`protocol.cjs` `ROOMS`): one room per place: `district-interior` (as before), `neochinatown-street` (the street, the alley and NULL share one scene, so one room), `corporate`, `temple`, and each station or landing place by its id. A player is in one room and sees only the people in it. An unknown name is refused, as before. Chat stays per room.
 - **Client** (`remote-players.js` `roomOf`): joins the room of the place it is walking in; walking into another place (the vestibule, a sky cab, a landing) leaves the old room and joins the new one by reconnecting. VR simulations work as before (entered from the District). Flying, taxi rides and loading screens are solo.
@@ -87,10 +87,10 @@ David asked for multiplayer visibility throughout NeoChinatown, NULL nightclub a
 
 ## 15 Nov 2026: voice (LiveKit), first stage
 
-David created a LiveKit project (free Build plan) and prepared `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` on the Render `district-hub` service. He asked for no plan to be bought or upgraded.
+The owner created a LiveKit project (free Build plan) and prepared `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` on the Render `district-hub` service. He asked for no plan to be bought or upgraded.
 
 - **Hub** (`tools/district-hub/voice.cjs`, `protocol.cjs` `voiceToken`): a registered (not handle-only) player sends `{t:'voice-token'}` and gets a ten-minute LiveKit token for the voice room of the hub room they are in (`dd-<room>`; a VR session has its own). Microphone only; no recording grant. The secret stays in the hub process. If the three variables are missing or malformed the hub runs normally with voice off and logs which variable to check (never a value).
 - **Client** (`void-runner/district-voice.js`, vendored `vendor/livekit-client-2.24.1.umd.js`, Apache-2.0, loaded only when voice is switched on): proximity voice with direction, distance fade and wall muffling; push-to-talk (default V, changeable) or open microphone; mute; microphone, speaker and volume; per-player volume and mute; a small on-screen indicator. Off until the player presses ENABLE VOICE in the **Comms** app (between Messages and Social on the V1 and V3); DISABLE disconnects from LiveKit.
 - **Not built:** private calls, group calls, ringing and notification sounds, voice inside shared VR menus beyond the automatic separate room, reports that reference voice, participant-minute metering and a quota message, Admin's character voice transformation (ElevenLabs speech-to-speech), lip movement.
-- **NOT TESTED END TO END.** The cloud session cannot reach LiveKit or see the secret, so no audio has been sent between two sessions. Unit tests cover token shape and signature, room naming, refusal rules and the loudness rules. David must try it live with two accounts: both press ENABLE VOICE in Comms, stand near each other, hold V.
+- **NOT TESTED END TO END.** The cloud session cannot reach LiveKit or see the secret, so no audio has been sent between two sessions. Unit tests cover token shape and signature, room naming, refusal rules and the loudness rules. The owner must try it live with two accounts: both press ENABLE VOICE in Comms, stand near each other, hold V.
 
