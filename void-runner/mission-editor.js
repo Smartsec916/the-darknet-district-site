@@ -5,7 +5,7 @@
    (mission-content.js) in a throwaway test session (dev-test.js). PUBLISH TO ALL PLAYERS and RE-VOICE go through owner-only server routes that are off until switched on. */
 (function(root){
  'use strict';
- const T=()=>root.VoidMissionTrees,MC=()=>root.VoidMissionContent,SM=()=>root.StudioModel,G=()=>root.VoidMissionGivers;
+ const T=()=>root.VoidMissionTrees,MC=()=>root.VoidMissionContent,SM=()=>root.StudioModel,G=()=>root.VoidMissionGivers,MS=()=>root.VoidMainStory;
  const KEY='mission-editor-drafts-v1',STUDIO='studio-drafts-v1',RETURN='mission-editor-return';
  const el=(tag,text,cls,attrs)=>{const e=document.createElement(tag);if(text!==undefined&&text!==null)e.textContent=text;if(cls)e.className=cls;for(const [k,v] of Object.entries(attrs||{}))e.setAttribute(k,v);return e;};
  const btn=(text,fn,cls,attrs)=>{const b=el('button',text,cls,{type:'button',...(attrs||{})});b.onclick=e=>{e.preventDefault();fn(e);};return b;};
@@ -13,11 +13,54 @@
  const write=(k,v,where=root.localStorage)=>{try{where.setItem(k,JSON.stringify(v));return true;}catch{return false;}};
  const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
  let built=null,index=null,refs=null,src=null,clipKeys=new Set(),host=null,headNode=null,loading=null,status='',givers=[],items=new Set(),stale=false;
- const ui={mode:'trees',tree:'beginner',mission:null,step:null,npc:'admin',flow:false,check:null};
+ const ui={mode:'trees',tree:'main-storyline',mission:null,step:null,npc:'admin',flow:false,check:null};
  const server={roles:null,live:null,queue:null,drafts:null,note:{}};
  // ---------------------------------------------------------------- drafts (saved on every edit)
- function local(){const d=read(KEY,null);return d&&d.version===1?{missions:{},lines:{},played:{},trees:[],names:{},...d}:{version:1,missions:{},lines:{},played:{},trees:[],names:{}};}
- function saveLocal(d){d.version=1;d.savedAt=new Date().toISOString();write(KEY,d);}
+ /* The draft. The main storyline is always in it: until David edits it, the shipped tree (main-story.js) is shown; his first edit saves his copy. */
+ function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[]};
+  const S=MS();if(S&&!d.trees.some(t=>t.id===S.TREE_ID))d.trees.unshift(S.trees()[0]);return d;}
+ // ---- mission numbers: the ledgers (shipped, published), every number in the draft, and numbers retired in the draft are all "used"; the next free one is one past them all.
+ const serverNumbers=()=>Object.fromEntries(Object.entries(server.live?.numbers||{}).map(([k,v])=>[Number(k),v]));
+ const ledger=()=>({...(MS()?.NUMBERS||{}),...serverNumbers()});
+ function nextFree(d=local()){return MS().nextNumber(d.trees,ledger(),Object.fromEntries((d.retiredNumbers||[]).map(n=>[n,'retired'])));}
+ const numLabel=(n,t)=>MS()?MS().label(n,t):t;
+ /* Missions made before numbers existed get the next free numbers, in order (once, saved). */
+ function numberAll(){const d=local();let changed=false;for(const t of d.trees)for(const m of t.missions)if(!Number.isInteger(m.number)){m.number=nextFree(d);changed=true;}if(changed)saveLocal(d);return changed;}
+ function saveLocal(d){d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now.';else storageProblem='';scheduleServer();}
+ /* Drafts are never discarded silently: a draft this version cannot read is copied to a backup key first, and the editor says so. */
+ let storageProblem='',backupNote='';
+ function readDraft(){let raw=null;try{raw=root.localStorage.getItem(KEY);}catch{return null;}if(raw==null)return null;
+  try{const d=JSON.parse(raw);if(d&&typeof d==='object'&&d.version===1)return d;}catch{}
+  const bk=KEY+'.backup-'+Date.now();try{if(!Object.keys(root.localStorage).some(k=>k.startsWith(KEY+'.backup-')&&root.localStorage.getItem(k)===raw))root.localStorage.setItem(bk,raw);}catch{}
+  backupNote='A draft in this browser could not be read; it was kept unchanged under '+bk+' (nothing was deleted). EXPORT it from the browser\'s storage or ask Claude/Codex to restore it.';return null;}
+ // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; David, 17 Nov 2026: a cleared browser must not lose his trees)
+ const WS='mission-editor-workspace',ws={state:'unknown',revision:0,savedAt:null,timer:0,conflict:null,note:''};
+ const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
+ const wsDoc=b=>({schemaVersion:1,kind:'workspace',adapter:'mission-editor',sourceKey:WS,baseRevision:0,data:{id:WS,title:'Mission Editor workspace',bundle:b}});
+ const wsOn=()=>!!(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled);
+ function scheduleServer(){if(!wsOn()||ws.conflict)return;clearTimeout(ws.timer);ws.state='pending';showServerState();ws.timer=setTimeout(()=>{saveServer();},5000);}
+ async function saveServer(){clearTimeout(ws.timer);if(!wsOn()||ws.conflict)return;ws.state='saving';showServerState();
+  try{const rec=await call('developer/drafts/'+WS,{revision:ws.revision,document:wsDoc(bundle())});ws.revision=rec.revision;ws.savedAt=Date.now();ws.state='saved';ws.note='';}
+  catch(e){if(e.status===409){await loadServer(true);}else if(e.status===413){ws.state='too-big';ws.note='Your draft is too big for the server copy (96 KB at most). It is still saved in this browser; EXPORT MY EDITS keeps a file.';}else{ws.state='off';}}
+  showServerState();}
+ const treesOf=b=>(b&&b.trees||[]).filter(t=>!t.shipped).length;
+ /* On open: an empty (or older) browser draft takes the server copy; a newer server copy over a browser draft with content is never applied silently: both are shown. */
+ async function loadServer(afterConflict){if(!wsOn()){ws.state='off';return;}
+  let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}ws.state='off';return;}
+  ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
+  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length);
+  const serverAt=Date.parse(b.savedAt||'')||0,localAt=Date.parse((raw&&raw.savedAt)||'')||0;
+  if(empty&&!afterConflict){useServer(b,rec.updatedAt);return;}
+  if(serverAt>localAt||afterConflict){ws.conflict={server:b,serverAt,local:raw,localAt,revision:rec.revision};ws.state='conflict';return;}
+  ws.savedAt=(rec.updatedAt||0)*1000;ws.state='saved';if(localAt>serverAt)scheduleServer();}
+ function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
+  ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;}
+ function serverLine(){if(ws.conflict){const c=ws.conflict;return 'Your drafts on the server and in this browser differ.';}
+  return ws.state==='saved'?'Saved on the server · '+new Date(ws.savedAt||Date.now()).toLocaleTimeString():ws.state==='pending'||ws.state==='saving'?'Saving to the server…':ws.state==='too-big'?ws.note:ws.state==='none'?'Saving to the server…':'Server copy not available — drafts are only in this browser';}
+ function showServerState(){const n=host&&host.querySelector('[data-me-server-copy]');if(n){n.textContent=serverLine();n.className='me-small '+(ws.state==='saved'?'me-ok':'me-warn');}}
+ function conflictBox(){const c=ws.conflict,box=el('section','','me-check',{'data-me-conflict':'1'});box.append(el('h4','Two copies of your drafts'),el('p','The server copy and this browser’s copy differ. Nothing was overwritten. Choose which one to keep; the other stays readable as an older server revision or in EXPORT MY EDITS.','me-warn'));
+  const r=el('div','','me-row');r.append(btn('USE THE SERVER COPY (saved '+new Date(c.serverAt||0).toLocaleString()+', '+treesOf(c.server)+' tree(s) of yours)',()=>{exportEdits();useServer(c.server,c.serverAt/1000);ws.revision=c.revision;draw();},'',{'data-me-use-server':'1'}),
+   btn('KEEP THIS BROWSER’S COPY (saved '+(c.localAt?new Date(c.localAt).toLocaleString():'unknown')+', '+treesOf(c.local)+' tree(s) of yours)',()=>{ws.conflict=null;ws.revision=c.revision;status='Kept this browser’s copy; it replaces the server copy (the older one stays as a server revision).';saveServer();draw();},'',{'data-me-keep-local':'1'}));box.append(r);return box;}
  const shipped=()=>root.VoidLiveContent?.env?.shipped||{beginner:root.VoidBeginner?.MISSIONS||[],registry:root.VoidMissions?.definitions||{}};
  function studio(){const d=read(STUDIO,null);return d&&Array.isArray(d.missions)?d:null;}
  function studioEnsure(){return studio()||{missions:clone(shipped().beginner),summary:'',savedAt:new Date().toISOString()};}
@@ -36,7 +79,7 @@
   givers=G().roster({registry,people:src.people,story:root.VoidStoryContent?.characters||{},temple:src.temple});src.givers=givers;items=new Set(Object.keys(G().buyable(src.modules)));
   clipKeys=new Set([...Object.values(manifest?.lines||{}),...Object.values(extraManifest?.lines||{})].map(l=>l.speaker+'|'+l.text));
   rebuild();refs=T().refs(src);
-  await refreshServer();
+  await refreshServer();await loadServer();if(numberAll())rebuild();else if(stale)rebuild();
  }
  function rebuild(){const d=local();built=T().build({...src,studioDraft:studio(),serverDrafts:server.drafts,ownerTrees:d.trees,names:d.names});index=T().lineIndex(built);stale=false;}
  async function call(path,body){const r=typeof VoidDevTools!=='undefined'?VoidDevTools.request:null;if(!r)throw new Error('Sign in again.');return r(path,body);}
@@ -46,7 +89,7 @@
   // Lines recorded since they were queued (their clip now ships with the game) are marked done in the queue.
   const shipped_=(server.queue?.items||[]).filter(q=>q.status==='queued'&&q.engine==='kokoro'&&clipKeys.has(q.who+'|'+q.text)).map(q=>q.id);
   if(shipped_.length){try{server.queue=await call('developer/revoice/done',{ids:shipped_});}catch{}}
-  if(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled){try{server.drafts=(await call('developer/drafts')).drafts||[];}catch{server.drafts=null;}}
+  if(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled){try{server.drafts=((await call('developer/drafts')).drafts||[]).filter(x=>x.id!==WS);}catch{server.drafts=null;}}
   rebuild();
  }
  // ---------------------------------------------------------------- what is shown and how edits are stored
@@ -78,6 +121,11 @@
   if(!host||!built)return;if(stale)rebuild();const keepY=host.scrollTop;host.innerHTML='';host.append(headNode());
   const root_=el('div','','me-root',{id:'me-root'});host.append(root_);
   root_.append(howBox());
+  {const sc=el('p','','me-small',{'data-me-server-copy':'1',role:'status'});root_.append(sc);setTimeout(showServerState,0);}
+  for(const t of [storageProblem,backupNote])if(t)root_.append(el('p',t,'me-bad',{'data-me-storage-problem':'1'}));
+  if(ws.conflict)root_.append(conflictBox());
+  // One-time note (17 Nov 2026): David made his own tree "Awakening" before Mission 001 shipped. It is never deleted or merged for him.
+  if(local().trees.some(t=>t.id==='draft-awakening')&&!read('mission-editor-note-awakening',false)){const n=el('div','','me-check',{'data-me-awakening-note':'1'});n.append(el('p','Mission 001 — Awakening is now in Main storyline. Your draft \'Awakening\' is separate; delete it if you no longer need it.'),btn('OK',()=>{write('mission-editor-note-awakening',true);draw();}));root_.append(n);}
   const modes=el('nav','','me-modes',{'aria-label':'Mission Editor views'});for(const [id,name] of [['trees','Mission trees'],['npcs','All lines for an NPC'],['publish','Publish & versions']]){const b=btn(name,()=>{ui.mode=id;ui.check=null;draw();},ui.mode===id?'on':'',{'data-me-mode':id,'aria-pressed':String(ui.mode===id)});modes.append(b);}
   root_.append(modes);if(status)root_.append(el('p',status,'me-status',{role:'status',id:'me-status'}));
   if(ui.mode==='npcs')npcView(root_);else if(ui.mode==='publish')publishView(root_);else treeView(root_);
@@ -95,22 +143,26 @@
  // ---------------- trees
  function treeView(root_){
   const cols=el('div','','me-cols');const side=el('aside','','me-side',{'aria-label':'Mission trees'});
-  const groups=[['active','ACTIVE in the current game'],['historical','HISTORICAL (not reachable in the current game)'],['draft','DRAFTS']];
+  const groups=[['active','ACTIVE in the current game'],['historical','HISTORICAL (not reachable in the current game)'],['draft','DRAFTS'],['archived','Removed from the game (archived)']];
   side.append(el('p',built.counts.trees+' trees · '+built.counts.missions+' missions · '+built.counts.lines+' lines ('+built.counts.locked+' from David’s scripts)','me-small'));
   side.append(btn('+ NEW MISSION TREE',()=>{ui.newTree=true;draw();},ui.newTree?'on':'',{'data-me-new-tree':'1'}));
-  for(const [st,name] of groups){const ts=built.trees.filter(t=>t.status===st);if(!ts.length)continue;side.append(el('h4',name,'me-group'));
-   for(const t of ts){const b=btn(t.title+' ('+t.missions.length+')',()=>{ui.tree=t.id;ui.mission=null;ui.step=null;ui.newTree=false;draw();},ui.tree===t.id?'on':'',{'data-me-tree':t.id});side.append(b);
-    if(ui.tree===t.id)for(const m of t.missions){const mb=btn(m.title+(editCount(m)?' ✎':''),()=>{ui.mission=m.key;ui.step=null;draw();},'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key});side.append(mb);}}}
+  for(const [st,name] of groups){const ts=built.trees.filter(t=>t.status===st);if(!ts.length)continue;
+   // Archived trees sit in one collapsed group (open while one of them is shown): readable and copyable, never in the game.
+   let box=side;if(st==='archived'){const d=el('details','','me-archived',{'data-me-archived':'1'});d.open=!!ui.archivedOpen||ts.some(t=>t.id===ui.tree);d.ontoggle=()=>{ui.archivedOpen=d.open;};d.append(el('summary',name+' ('+ts.length+')','me-group'),el('p','Not in the game. Kept so you can read them and copy them into a new tree.','me-small'));side.append(d);box=d;}
+   else side.append(el('h4',name,'me-group'));
+   for(const t of ts){const b=btn(t.title+' ('+t.missions.length+')',()=>{ui.tree=t.id;ui.mission=null;ui.step=null;ui.newTree=false;draw();},ui.tree===t.id?'on':'',{'data-me-tree':t.id});box.append(b);
+    if(ui.tree===t.id)for(const m of t.missions){const mb=btn(m.title+(editCount(m)?' ✎':''),()=>{ui.mission=m.key;ui.step=null;draw();},'me-mission'+(ui.mission===m.key?' on':''),{'data-me-mission':m.key});box.append(mb);}}}
   const t=built.trees.find(x=>x.id===ui.tree)||built.trees[0];const main=el('div','','me-main');
   if(ui.newTree){main.append(newTreeForm());cols.append(side,main);root_.append(cols);return;}
   if(t.ownerTree){main.append(ownerTreePanel(t));cols.append(side,main);root_.append(cols);if(ui.mission){const target=root_.querySelector('[data-me-tree-mission="'+CSS.escape(ui.mission.replace(/^tree:/,''))+'"]');if(target&&ui.scrollTo)setTimeout(()=>target.scrollIntoView({block:'start'}),0);ui.scrollTo=false;}return;}
   main.append(el('h3',t.title),el('p',t.statusText,'me-badge me-'+t.status),el('p',t.note,'dev-note'),el('p','Source: '+t.source,'me-small'));
+  if(t.archived){const r=el('div','','me-row',{'data-me-archived-tree':t.id});r.append(el('b','NOT IN THE GAME','me-bad'),btn('COPY THIS TREE INTO A NEW TREE',()=>copyInto(t.missions,t.title),'',{'data-me-copy-tree':t.id}));main.append(r);}
   {const r=el('div','','me-row');const i=el('input','','',{'aria-label':'Tree name','data-me-rename':t.id,placeholder:t.originalTitle,maxlength:'60'});i.value=t.title;i.oninput=()=>{const d=local();T().renameTree(d,t.id,i.value,t.originalTitle);saveLocal(d);stale=true;setStatus('Draft saved. Tree name: “'+(i.value.trim()||t.originalTitle)+'” (the id '+t.id+' never changes).');};
    r.append(el('b','Tree name'),i,el('span','id '+t.id+' (never changes)'+(t.title!==t.originalTitle?' · was “'+t.originalTitle+'”':''),'me-small'));main.append(r);}
   main.append(npcTable(t));
   if(t.id==='beginner'||t.id==='draft-studio'){const sw=el('div','','me-row');sw.append(btn(ui.flow?'Back to the step editor':'Flow chart (same as the Content Studio)',()=>{ui.flow=!ui.flow;draw();},'',{'data-me-flow':'1'}));main.append(sw);
    if(ui.flow&&root.StudioFlow){const box=el('div','','me-flow');main.append(box);flowChart(box);cols.append(side,main);root_.append(cols);return;}}
-  const m=t.missions.find(x=>x.key===ui.mission)||t.missions[0];if(m){ui.mission=m.key;main.append(missionPanel(t,m));}
+  const m=t.missions.find(x=>x.key===ui.mission)||t.missions[0];if(m){ui.mission=m.key;if(t.archived){const r=el('div','','me-row');r.append(btn('COPY THIS MISSION INTO A NEW TREE',()=>copyInto([m],m.title),'',{'data-me-copy-mission':m.key}));main.append(r);}main.append(missionPanel(t,m));}
   cols.append(side,main);root_.append(cols);
   if(ui.step){const target=root_.querySelector('[data-me-step="'+CSS.escape(ui.step)+'"]');if(target)setTimeout(()=>target.scrollIntoView({block:'center'}),0);}
  }
@@ -119,6 +171,8 @@
   const interactions=new Set([...(root.VoidNeoChinatown?.layout('interior').interactions||[]),...(root.VoidNeoChinatown?.layout('street').interactions||[])].map(i=>i.id));
   root.StudioFlow.board(box,{draft:()=>draft,setDraft:v=>{draft=v;},persist:()=>{const st=studioEnsure();st.missions=draft;saveStudio(st);rebuild();},redraw:()=>draw(),npcNames,ctx:()=>({interactions,npcs:npcNames()}),base:()=>clone(shipped().beginner),summary:()=>studio()?.summary||'',resetSummary:()=>{}});
  }
+ /* An archived tree or mission → a new draft tree (the archived one never changes). */
+ function copyInto(ms,name){const d=local();const t=T().copyToTree(d.trees,ms,{name:('Copy of '+name).slice(0,60),givers,next:nextFree(d)});d.trees.push(t);saveLocal(d);stale=true;ui.tree=t.id;ui.mission=null;status='Copied into your new tree “'+t.name+'” ('+t.id+'). It is a draft: not in the game until you publish it. Check each step’s NPC.';draw();}
  const setStatus=t=>{status=t;const s_=host&&host.querySelector('#me-status');if(s_)s_.textContent=t;else if(host)draw();};
  // ---------------- the owner's NEW trees
  const treeOf=mid=>(local().trees||[]).find(t=>t.missions.some(m=>m.id===mid))?.id;
@@ -146,17 +200,18 @@
   for(const x of c.unreachable)box.append(el('p','⚠ '+x.name+': '+x.status,'me-warn',{'data-me-unreachable':x.id}));
   return box;}
  function ownerTreePanel(t){const d=local(),raw=d.trees.find(x=>x.id===t.id),box=el('div','','',{'data-me-owner-tree':t.id});
-  box.append(el('h3',t.title),el('p',t.statusText+' · your new tree','me-badge me-draft'),el('p','Id '+t.id+' (never changes). Missions run in the order listed: finishing one opens the next, given by its own giver.','me-small'));
+  box.append(el('h3',t.title),el('p',t.story?t.statusText+' · the main storyline':t.statusText+' · your new tree','me-badge me-'+(t.story?'active':'draft')),el('p','Id '+t.id+' (never changes). Missions run in the order listed: finishing one opens the next, given by its own giver (or started by its own trigger).','me-small'));
+  if(t.story)box.append(el('p','This tree is in the game for every player. Your edits here are a DRAFT (this browser) until you publish them; PLAY THIS DRAFT tries them first.','dev-note'));
   const g=el('div','','me-grid'),nm=el('input','','',{'aria-label':'Tree name','data-me-rename':t.id,maxlength:'60'});nm.value=raw.name;nm.oninput=()=>editTree(t.id,x=>{x.name=nm.value;});
-  const f1=el('label','','me-field');f1.append(el('span','Tree name'),nm);const st=el('label','','me-field');st.append(el('span','Status'),el('b','DRAFT'));g.append(f1,st);box.append(g);
+  const f1=el('label','','me-field');f1.append(el('span','Tree name'),nm);const st=el('label','','me-field');st.append(el('span','Status'),el('b',t.story?'ACTIVE (in the game)':'DRAFT'));g.append(f1,st);box.append(g);
   const note=el('textarea','','',{'aria-label':'Short note',rows:'2',placeholder:'Short note (optional)'});note.value=raw.note||'';note.oninput=()=>editTree(t.id,x=>{x.note=note.value.slice(0,300);});const f2=el('label','','me-field');f2.append(el('span','Short note'),note);box.append(f2);
   box.append(capabilityBox(raw),treeLinks(raw));
   if(raw.missions.length&&root.StudioFlow){const fl=el('div','','me-flow');fl.append(root.StudioFlow.svg(raw.missions.map((m,i)=>({id:m.id,title:m.title||'(no name yet)',prerequisites:i?[raw.missions[i-1].id]:[],objectives:m.objectives,rewards:m.rewards,giver:(giver(m.giver)||{}).name||'no giver yet'}))));box.append(el('h4','Flow chart (same model as the Content Studio)'),fl);}
   box.append(npcTable(t));
   const issues=T().validateTree(raw,{givers,items,refs,studio:SM(),trees:d.trees});
   raw.missions.forEach((m,i)=>box.append(treeMissionCard(t,raw,m,i,issues)));
-  const row=el('div','','me-row me-actions');row.append(btn('+ NEW MISSION',()=>{let id;editTree(t.id,x=>{id=T().addMission(x,{giver:x.missions.length?x.missions[x.missions.length-1].giver:''}).id;},false);ui.mission='tree:'+id;ui.scrollTo=true;draw();},'',{'data-me-add-mission':'1'}),
-   btn('EXPORT MY EDITS',exportEdits),btn('DELETE THIS TREE',()=>{if(!confirm('Delete your tree “'+raw.name+'” and all its missions from the draft?'))return;const d2=local();d2.trees=d2.trees.filter(x=>x.id!==t.id);saveLocal(d2);stale=true;ui.tree='beginner';draw();},'me-x'));
+  const row=el('div','','me-row me-actions');row.append(btn('+ NEW MISSION',()=>{let id;const n=nextFree();editTree(t.id,x=>{const m=T().addMission(x,{giver:x.missions.length?x.missions[x.missions.length-1].giver:''});m.number=n;id=m.id;},false);ui.mission='tree:'+id;ui.scrollTo=true;status='New mission: Mission '+MS().pad(n)+' (the next free number).';draw();},'',{'data-me-add-mission':'1'}),
+   btn('EXPORT MY EDITS',exportEdits),t.story?btn('PUT BACK THE SHIPPED VERSION',()=>{if(!confirm('Throw away your draft edits to the main storyline and show the shipped version again?'))return;const d2=local();d2.trees=d2.trees.filter(x=>x.id!==t.id);saveLocal(d2);stale=true;draw();},'me-x',{'data-me-reset-story':'1'}):btn('DELETE THIS TREE',()=>{if(!confirm('Delete your tree “'+raw.name+'” and all its missions from the draft?'))return;const d2=local();const gone=(d2.trees.find(x=>x.id===t.id)||{missions:[]}).missions.map(m=>m.number).filter(Number.isInteger);d2.retiredNumbers=[...new Set([...(d2.retiredNumbers||[]),...gone])];d2.trees=d2.trees.filter(x=>x.id!==t.id);saveLocal(d2);stale=true;ui.tree='main-storyline';draw();},'me-x'));
   box.append(row);return box;}
  /* Links between trees (“start tree” unlocks): what this tree leads to and what starts it. */
  function treeLinks(raw){const all=local().trees||[],name=id=>((all.find(x=>x.id===id)||{}).name||id),box=el('section','','me-check',{'data-me-links':raw.id});box.append(el('h4','Links to other trees'));
@@ -173,22 +228,31 @@
    const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].who=v;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+((giver(defWho)||{}).name||defWho):'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);
    const g=giver(l.who||defWho);who.append(el('span',g&&g.voice?'registered voice '+g.voice.voice+' (read-only)':'no registered voice','me-small'));row.append(who);
    const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';ta.oninput=()=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});body.append(ta);
-   const tags=el('div','','me-tags');tags.append(el('span',(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+((l.text||'').trim()?'warn':'muted')));
+   const tags=el('div','','me-tags');const ph=!!MS()?.isPlaceholder(l.text);tags.append(el('span',ph?'PLACEHOLDER for David: shown only here and in draft play; live players never see it':(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+(ph?'bad':(l.text||'').trim()?'warn':'muted'),ph?{'data-me-placeholder':'1'}:{}));
    if(g&&g.voice&&(l.text||'').trim())tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
    tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);row.append(body);box.append(row);});
   const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');return a==='offer'?mm.offer:a==='ending'?(mm.ending.say=mm.ending.say||[]):(mm.objectives.find(o=>o.id===a)||{})[b];};
   box.append(btn('+ LINE',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.push({who:'',text:''});},true)));return box;}
  function treeMissionCard(t,raw,m,i,issues){const card=el('article','','me-mission-panel',{'data-me-tree-mission':m.id}),ed=(fn,redraw)=>editTree(t.id,x=>{const mm=x.missions.find(y=>y.id===m.id);if(mm)fn(mm,x);},redraw);
-  const head=el('div','','me-row');head.append(el('b','MISSION '+(i+1)+' · '+(m.title||'(no name yet)')),el('span',m.id,'me-small'),
+  const head=el('div','','me-row');head.append(el('b',Number.isInteger(m.number)?numLabel(m.number,m.title||'(no name yet)'):'MISSION '+(i+1)+' · '+(m.title||'(no name yet)'),'',{'data-me-mission-label':m.id}),el('span','id '+m.id+' (never changes)','me-small'),
    btn('▲',()=>editTree(t.id,x=>T().moveMission(x,m.id,-1),true),'',{'aria-label':'Move up',...(i?{}:{disabled:''})}),btn('▼',()=>editTree(t.id,x=>T().moveMission(x,m.id,1),true),'',{'aria-label':'Move down',...(i<raw.missions.length-1?{}:{disabled:''})}),
-   btn('REMOVE MISSION',()=>{if(!confirm('Remove “'+(m.title||m.id)+'” from your tree?'))return;editTree(t.id,x=>T().removeMission(x,m.id),true);},'me-x'));card.append(head);
+   btn('REMOVE MISSION',()=>{if(!confirm('Remove “'+(m.title||m.id)+'” from your tree?'+(Number.isInteger(m.number)?' Its number, '+MS().pad(m.number)+', is never given to another mission.':'')))return;editTree(t.id,(x,d)=>{if(Number.isInteger(m.number))d.retiredNumbers=[...new Set([...(d.retiredNumbers||[]),m.number])];T().removeMission(x,m.id);},true);},'me-x'));card.append(head);
+  // the mission number: set or renumber (with a warning); numbers are unique and never reused
+  {const nr=el('div','','me-row',{'data-me-number':m.id}),inp=el('input','','',{'aria-label':'Mission number',inputmode:'numeric',maxlength:'3',size:'4','data-me-number-input':m.id});inp.value=Number.isInteger(m.number)?MS().pad(m.number):'';
+   nr.append(el('b','Mission number'),inp,btn(Number.isInteger(m.number)?'RENUMBER':'SET NUMBER',()=>{const n=parseInt(inp.value,10),d=local(),used=new Map();for(const [k,v] of Object.entries(ledger()))used.set(Number(k),v);for(const tt of d.trees)for(const mm of tt.missions)if(Number.isInteger(mm.number))used.set(mm.number,mm.id);for(const r of d.retiredNumbers||[])if(!used.has(r))used.set(r,'(removed)');
+    if(!(n>=1&&n<=999)){setStatus('A mission number is a whole number from 001 to 999.');return;}if(n===m.number)return;if(used.has(n)&&used.get(n)!==m.id){setStatus('Mission '+MS().pad(n)+' is already used by '+used.get(n)+'. A number is never reused, even after a mission is removed. The next free number is '+MS().pad(nextFree(d))+'.');return;}
+    if(Number.isInteger(m.number)&&!confirm('Renumber Mission '+MS().pad(m.number)+' as Mission '+MS().pad(n)+'?\n\nNumbers are permanent: '+MS().pad(m.number)+' will never be given to another mission. Players who have seen “Mission '+MS().pad(m.number)+'” will see the new number after you publish.'))return;
+    const d2=local();T().setNumber(d2,m.id,n);saveLocal(d2);stale=true;status='Mission '+MS().pad(n)+' — '+(m.title||m.id)+'.';draw();},'',{'data-me-renumber':m.id}),el('span','Shown as “'+numLabel(Number.isInteger(m.number)?m.number:nextFree(),m.title||'Name')+'”. Unique; never reused once used. The id '+m.id+' stays the same.','me-small'));card.append(nr);}
   const field=(label,value,on,area,attrs)=>{const l=el('label','','me-field');l.append(el('span',label));const inp=el(area?'textarea':'input','','',attrs||{});inp.value=value??'';inp.oninput=()=>on(inp.value);l.append(inp);return l;};
   const g=el('div','','me-grid');g.append(field('Mission name',m.title,v=>ed(x=>{x.title=v.slice(0,60);}),false,{'data-me-field':'title',placeholder:'(your words)',maxlength:'60'}),field('Credits paid',String(m.rewards||0),v=>ed(x=>{const n=parseInt(v,10);x.rewards=Number.isFinite(n)&&n>=0?Math.min(n,100000):0;}),false,{'data-me-field':'rewards',inputmode:'numeric'}));card.append(g);
   card.append(field('Description (the V1 Mission Log shows it)',m.description,v=>ed(x=>{x.description=v.slice(0,600);}),true,{placeholder:'(your words)'}));
+  {const g2=el('div','','me-grid');g2.append(field('Type (shown in the Mission Log)',m.category||'',v=>ed(x=>{x.category=v.slice(0,60);}),false,{'data-me-field':'category',placeholder:'e.g. Main storyline / Introduction',maxlength:'60'}),field('Objective (the Mission Log headline)',m.objective||'',v=>ed(x=>{x.objective=v.slice(0,200);}),false,{'data-me-field':'objective',placeholder:'(empty: the current step)',maxlength:'200'}));card.append(g2);
+   const lr=el('div','','me-row');lr.append(el('b','Location'),placeSelect(m.location||'',v=>ed(x=>{x.location=v;}),'Mission location'));card.append(lr);}
   const gr=el('div','','me-row');gr.append(el('b','Giver'),npcSelect(m.giver,v=>ed(x=>{x.giver=v;},true),{label:'Who gives this mission',attrs:{'data-me-giver':m.id}}));const gv=giver(m.giver);
   gr.append(el('span',gv?G().status(gv):'Choose who gives it.',gv&&gv.draft&&gv.players?'me-ok':'me-warn',{'data-me-giver-status':m.id}));card.append(gr);
+  card.append(startPanel(t,m,ed));   // right under Giver: how this mission starts
   const ty=el('select','','',{'aria-label':'Mission type'});for(const x of SM().TYPES)ty.append(new Option(x,x));ty.value=m.type||'side';ty.onchange=()=>ed(x=>{x.type=ty.value;});const tr=el('div','','me-row');tr.append(el('span','Type','me-small'),ty);card.append(tr);
-  card.append(linesEditor(t,m,m.offer,'offer',m.giver,'What '+(gv?gv.name:'the giver')+' says when offering it'));
+  if(!(m.start&&m.start.how==='notification'))card.append(linesEditor(t,m,m.offer,'offer',m.giver,'What '+(gv?gv.name:'the giver')+' says when offering it'));
   card.append(el('h4','What needs to be done (steps, in order)'));
   m.objectives.forEach((o,k)=>card.append(treeStepRow(t,raw,m,o,k,ed)));
   card.append(btn('+ STEP',()=>ed(x=>T().addStep(x),true),'',{'data-me-add-step':m.id}));
@@ -211,19 +275,43 @@
   act.append(btn('PLAY THIS DRAFT',()=>play('tree:'+m.id,null),'me-play',{'data-me-play':'tree:'+m.id,...(block.length?{disabled:'',title:'Cannot be played yet: '+block.join('; ')}:{})}));card.append(act);
   if(block.length)card.append(el('p','Cannot be played or published yet: '+block.join('; ')+'.','me-small me-warn'));
   return card;}
+ /* HOW THIS MISSION STARTS (David, 17 Nov 2026: "either have Missions start by notification or in person"): in person (the giver offers it), or by notification:
+    channel (Messages, Comms call, notification only), sender, header, body, and the trigger (first pod exit, after a mission, entering a place, a story flag). */
+ function startPanel(t,m,ed){const st=m.start||{how:'person'},by=st.how==='notification',box=el('section','','me-end me-start',{'data-me-start':m.id});box.append(el('h4','How this mission starts'));
+  const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
+  // One plain choice (David): Starts: In person / By Messages / By Comms call / Notification only.
+  const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
+  sel.value=by?(st.channel||'messages'):'person';sel.onchange=()=>ed(x=>{const v=sel.value;x.start=v==='person'?{how:'person'}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};},true);
+  how.append(el('b','Starts:'),sel,el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):'The giver offers it when the player talks to them.','me-small'));box.append(how);
+  if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'));return box;}
+  const r2=el('div','','me-row');r2.append(el('b','Sender'),npcSelect(st.from||'',v=>set(x=>{x.from=v;},true),{label:'Sender',attrs:{'data-me-start-from':m.id}}));box.append(r2);
+  const hl=el('label','','me-field');hl.append(el('span','Header'+(st.channel==='notify'?' (optional)':'')));const hi=el('input','','',{'aria-label':'Header',maxlength:'80','data-me-start-header':m.id,placeholder:'e.g. ADMIN // INCOMING MESSAGE'});hi.value=st.header||'';hi.oninput=()=>set(x=>{x.header=hi.value.slice(0,80);});hl.append(hi);
+  const tl=el('label','','me-field');tl.append(el('span','Body'));const ta=el('textarea','','',{'aria-label':'Body',rows:'3',maxlength:'500','data-me-start-text':m.id,placeholder:'(your words)'});ta.value=st.text||'';ta.oninput=()=>set(x=>{x.text=ta.value.slice(0,500);});tl.append(ta);box.append(hl,tl);
+  const w=st.when||{kind:'pod-exit'},wk=el('select','','',{'aria-label':'Trigger','data-me-start-when':m.id});for(const x of G().START_WHEN)wk.append(new Option(x.name,x.id));wk.value=w.kind||'pod-exit';wk.onchange=()=>set(x=>{x.when={kind:wk.value,...(wk.value==='flag'?{flag:'',value:true}:{})};},true);
+  const r3=el('div','','me-row');r3.append(el('b','Trigger'),wk);
+  if(w.kind==='after-mission'){const ms=el('select','','',{'aria-label':'After which mission','data-me-start-mission':m.id});ms.append(new Option('— choose a mission —',''));for(const tt of local().trees)for(const mm of tt.missions)if(mm.id!==m.id)ms.append(new Option(numLabel(mm.number,mm.title||mm.id)+' ('+(tt.name||tt.id)+')',mm.id));ms.value=w.mission||'';ms.onchange=()=>set(x=>{x.when={kind:'after-mission',mission:ms.value};},true);r3.append(ms);}
+  if(w.kind==='place')r3.append(placeSelect(w.place||'',v=>set(x=>{x.when={kind:'place',place:v};},true),'Trigger place'));
+  if(w.kind==='flag'){const fi=el('input','','',{'aria-label':'Story flag','data-me-start-flag':m.id,placeholder:'story flag name, e.g. mf_metRook'});fi.value=w.flag||'';fi.oninput=()=>set(x=>{x.when={...x.when,flag:fi.value.trim().slice(0,64)};});
+   const fv=el('input','','',{'aria-label':'Flag value',placeholder:'true'});fv.value=w.value===undefined?'true':String(w.value);fv.oninput=()=>set(x=>{const v=fv.value.trim();x.when={...x.when,value:v==='true'?true:v==='false'?false:/^-?\d+$/.test(v)?Number(v):v.slice(0,200)};});r3.append(fi,el('span','=','me-small'),fv);}
+  const wn=(G().START_WHEN.find(x=>x.id===w.kind)||{}).note;if(wn)r3.append(el('span',wn,'me-small'));box.append(r3);
+  box.append(el('p','When the trigger happens, the notification arrives on the player’s device with the device’s notification sound (and a banner while the V1 is closed), the mission goes into the Mission Log and is tracked. Text only: no voice is generated.','me-small'));
+  return box;}
  function treeStepRow(t,raw,m,o,k,ed){const sb=el('section','','me-step',{'data-me-tstep':o.id,'data-me-step':o.id}),eo=(fn,redraw)=>ed(x=>{const oo=x.objectives.find(y=>y.id===o.id);if(oo)fn(oo,x);},redraw);
   const head=el('div','','me-row');head.append(el('b','STEP '+(k+1)+' · '+o.id));
   const kind=el('select','','',{'aria-label':'Kind of step','data-me-kind':o.id});for(const x of G().STEP_KINDS)kind.append(new Option(x.name+(x.supported?'':' — needs a code change'),x.id));kind.value=o.kind||'talk';kind.onchange=()=>eo(x=>{x.kind=kind.value;},true);head.append(kind);
   const st=G().STEP_KINDS.find(x=>x.id===o.kind);
   if(o.kind==='talk'||o.kind==='deliver')head.append(npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who it happens with',attrs:{'data-me-step-npc':o.id}}));
   else if(o.kind==='go')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to go to'));else if(o.kind==='arrive')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to fly to',true));else if(o.kind==='buy')head.append(itemSelect(o.item,v=>eo(x=>{x.item=v;},true)));
+  else if(o.kind==='hear')head.append(npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who is heard',empty:'(the giver)',attrs:{'data-me-step-npc':o.id}}));
+  else if(o.kind==='pod-exit')head.append(el('span','Done when the player leaves the Sleeping Pod (EXIT POD).','me-small'));
+  else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));
   else head.append(el('span','Needs a code change: the game cannot run this kind of step yet. It stays in your draft.','me-warn'));
   const blocked=MC().treeBlockers(m,givers,items).length>0;
   head.append(btn('▲',()=>ed(x=>T().moveStep(x,o.id,-1),true),'',{'aria-label':'Move step up',...(k?{}:{disabled:''})}),btn('▼',()=>ed(x=>T().moveStep(x,o.id,1),true),'',{'aria-label':'Move step down',...(k<m.objectives.length-1?{}:{disabled:''})}),
    btn('×',()=>ed(x=>T().removeStep(x,o.id),true),'me-x',{'aria-label':'Remove step',...(m.objectives.length>1?{}:{disabled:''})}),btn('PLAY THIS DRAFT FROM HERE',()=>play('tree:'+m.id,o.id),'me-play',{'data-me-play':'tree:'+m.id+'#'+o.id,...(blocked?{disabled:''}:{})}));
   sb.append(head);if(st&&st.note)sb.append(el('p',st.note,'me-small'));
   const l=el('label','','me-field');l.append(el('span','What the player must do (V1 Mission Log)'));const inp=el('input','','',{placeholder:'(your words)','data-me-label':o.id,maxlength:'500'});inp.value=o.label||'';inp.oninput=()=>eo(x=>{x.label=inp.value.slice(0,500);});l.append(inp);sb.append(l);
-  sb.append(linesEditor(t,m,o.say||[],o.id+'/say',o.npc||m.giver,'What is said when this step is done'));
+  if(o.kind!=='message'&&o.kind!=='pod-exit')sb.append(linesEditor(t,m,o.say||[],o.id+'/say',o.npc||m.giver,o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':'What is said when this step is done'));
   if(o.kind==='talk'||o.kind==='deliver')sb.append(linesEditor(t,m,o.early||[],o.id+'/early',o.npc||m.giver,'If the player comes too soon'));
   return sb;}
  function treeUnlocks(t,m,ed){const box=el('section','','me-unlocks');box.append(el('h4','What becomes available'));const UK=G().UNLOCK_KINDS,when=u=>!u.when||u.when==='complete'?'when the mission is done':'at step '+u.when;
@@ -364,12 +452,11 @@
  function draftContent(){return MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,note:'draft play',givers,items});}
  function checkCtx(){return {speakers:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName)),registryIds:new Set(Object.keys(shipped().registry).filter(id=>shipped().registry[id]?.beginner!==true)),
   registryObjectives:Object.fromEntries(Object.entries(shipped().registry).map(([id,d])=>[id,new Set((d.objectives||[]).map(o=>o.id))])),lines:new Set(index.keys()),
-  givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G().PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(refs.locations)),treeIds:new Set(built.trees.map(t=>t.id))};}
+  givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G().PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(refs.locations)),treeIds:new Set(built.trees.map(t=>t.id)),numbers:serverNumbers()};}
  /* A throwaway District campaign for a new tree's mission: the beginner campaign is marked done (so it does not compete for Admin and Iris), the tree's earlier missions are
     done, and, when starting from a step, this mission is taken and its earlier steps done. Where: next to the giver (or the NPC or place of the step). */
  function treeState(mid,stepId){
-  const B=root.VoidBeginner,M=root.VoidMissions,C=root.C||root.VoidCampaign,U=root.VoidUniverse,env=root.VoidLiveContent.env,s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;
-  for(const b of B.MISSIONS){M.acquire(s,b.id);for(const o of b.objectives)M.complete(s,b.id,o.id,C);s.story.flags[B.flagOf(b.id)]=true;}s.universe.trackedMission=null;
+  const M=root.VoidMissions,C=root.C||root.VoidCampaign,U=root.VoidUniverse,env=root.VoidLiveContent.env,s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.appearanceOffered=true;s.universe.trackedMission=null;
   const t=(env.trees||[]).find(x=>x.missions.some(y=>y.id===mid));if(!t)throw new Error('This mission is not in the draft that was applied.');
   const i=t.missions.findIndex(y=>y.id===mid),m=t.missions[i];
   // a tree that another tree starts: the links to it have fired
@@ -377,6 +464,12 @@
   const done=(p,ids)=>{for(const u of p.unlocks||[])if(ids.includes(u.when||'complete'))MC().unlockNow(s,u,env,C);};
   for(const p of t.missions.slice(0,i)){M.acquire(s,p.id);for(const o of M.definitions[p.id].objectives)M.complete(s,p.id,o.id,C);s.story.flags[MC().treeFlag(p.id)]=true;done(p,[...M.definitions[p.id].objectives.map(o=>o.id),'complete']);}
   let where=(giver(m.giver)||{}).enter;const notes=[];
+  // A mission that starts when the player leaves the Sleeping Pod: draft play starts in the pod (EXIT POD starts it).
+  const w=m.start&&m.start.how==='notification'&&!stepId?m.start.when||{}:null;
+  if(w&&w.kind==='pod-exit'){s.story.flags.podWakePending=true;where={walk:'darknet-district'};}
+  else if(w&&w.kind==='place'&&w.place)where=PLACE_ENTER(w.place)||where;
+  else if(w&&w.kind==='flag'&&w.flag){s.story.flags[w.flag]=w.value===undefined?true:w.value;notes.push('Draft play sets the story flag '+w.flag+' so it starts.');}
+  else if(w&&w.kind==='after-mission'&&w.mission){M.acquire(s,w.mission);for(const o of ((M.definitions[w.mission]||{}).objectives||[]))M.complete(s,w.mission,o.id,C);if(s.universe.missions[w.mission])s.universe.missions[w.mission].completed=true;notes.push('Draft play marks the mission it follows as done.');}
   if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
    where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;}
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
@@ -405,7 +498,7 @@
   const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
   const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first: '+c.errors.slice(0,4).join(' · ');draw();return;}
   const not=MC().notApplied({studio:studio(),local:local(),givers,items});
-  const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);
+  const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);if(wsOn())await saveServer();   // the server copy is up to date before the page reloads
   write(RETURN,{tree:f.tree.id,mission:m.key,step:stepId||null,at:Date.now()},root.sessionStorage);
   const env=root.VoidLiveContent?.env;
   const r=await root.VoidDevTest.session({banner:'PLAYING DRAFT: '+m.title+' — not your real save',leave:'LEAVE DRAFT',kind:'draft',
@@ -414,7 +507,7 @@
    enter:async()=>{const w=play.where;if(m.engine==='tree')return enterTree(w);if(w==='interior'||w==='earth'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
     else if(w==='street'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}
     else if(w==='vesper')await worldEnterWalking('vesper');else{state.location=w;await dock();}},
-   message:()=>'DRAFT · '+m.title+(stepId?' · from step '+stepId:'')+(m.engine==='tree'&&!stepId?' · talk to '+(giver(m.giver)||{}).name+' to get it':'')+' · nothing is saved'+(not.length?' · '+not.length+' edit(s) cannot show (listed in the Mission Editor)':'')+((play.notes||[]).length?' · '+play.notes.join(' '):'')});
+   message:()=>'DRAFT · '+m.title+(stepId?' · from step '+stepId:'')+(m.engine==='tree'&&!stepId?(m.raw&&m.raw.start&&m.raw.start.how==='notification'?' · it starts by notification: '+((G().START_WHEN.find(x=>x.id===(m.raw.start.when||{}).kind)||{}).name||'its trigger').toLowerCase():' · talk to '+(giver(m.giver)||{}).name+' to get it'):'')+' · nothing is saved'+(not.length?' · '+not.length+' edit(s) cannot show (listed in the Mission Editor)':'')+((play.notes||[]).length?' · '+play.notes.join(' '):'')});
   if(r&&r.error){status=r.error;try{root.sessionStorage.removeItem(RETURN);}catch{}draw();}
  }
  // ---------------- PUBLISH TO ALL PLAYERS (server-verified owner only; the server keeps every version)
@@ -429,11 +522,15 @@
   chk.append(el('h5','Problems that block publishing ('+(c.errors.length+(ui.check?.errors||[]).length)+')'));for(const t of [...c.errors,...(ui.check?.errors||[])])chk.append(el('p',t,'me-bad'));if(!c.errors.length&&!(ui.check?.errors||[]).length)chk.append(el('p','None.','me-ok'));
   const ch=MC().changes(shippedB,nextB),regN=Object.keys(content.registry||{}).length,linesN=(content.lines||[]).length;
   chk.append(el('h5','What changes for players'));if(!ch.length&&!regN&&!linesN&&!(content.trees||[]).length&&!Object.keys(content.names||{}).length)chk.append(el('p','Nothing: your draft matches the shipped missions.','me-small'));
-  for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' new mission(s) in '+(content.trees||[]).length+' new tree(s), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
+  for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' mission(s) in '+(content.trees||[]).length+' tree(s) (the Main storyline is always sent), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
   const w=MC().warnings(shippedB,nextB);chk.append(el('h5','Players part-way through ('+w.length+')'));if(!w.length)chk.append(el('p','No saved progress is affected.','me-small'));for(const t of w)chk.append(el('p','⚠ '+t,'me-warn'));
   const outOfDate=(content.lines||[]).filter(l=>index.get(l.who+'|'+l.from)?.recorded);if(outOfDate.length)chk.append(el('p','⚠ '+outOfDate.length+' line(s) have a recorded voice clip that no longer matches: voice clip out of date, text only until re-voiced.','me-warn'));
-  const nt=content.trees||[],nn=nt.flatMap(t=>t.missions.map(m=>({t,m})));chk.append(el('h5','New missions ('+nn.length+')',null,{'data-me-new-missions':String(nn.length)}));if(!nn.length)chk.append(el('p','None.','me-small'));
-  for(const {t,m} of nn)chk.append(el('p','• '+t.name+' › '+m.title+' ('+m.id+') · given by '+((giver(m.giver)||{}).name||m.giver)+' · '+m.objectives.length+' step(s)'+(m.rewards?' · '+m.rewards+' credits':''),'',{'data-me-new-mission':m.id}));
+  const nt=content.trees||[],nn=nt.flatMap(t=>t.missions.map(m=>({t,m})));
+  {const nums=nn.filter(({m})=>Number.isInteger(m.number)).sort((a,b)=>a.m.number-b.m.number),probs=MS().numberProblems(nt,ledger()),box=el('div','',null,{'data-me-numbers':String(nums.length)});box.append(el('h5','Mission numbers ('+nums.length+')'));
+   for(const {t,m} of nums)box.append(el('p','• '+numLabel(m.number,m.title)+' · '+t.name+' · id '+m.id+(ledger()[m.number]===m.id?'':' · new number'),'',{'data-me-number-row':m.id}));for(const p of probs)box.append(el('p','⚠ '+p,'me-bad'));
+   box.append(el('p','Numbers are unique and never reused: every number the game has shipped or published stays taken, even after its mission is removed. The next free number is '+MS().pad(nextFree())+'.','me-small'));chk.append(box);}
+  chk.append(el('h5','Missions in trees ('+nn.length+')',null,{'data-me-new-missions':String(nn.length)}));if(!nn.length)chk.append(el('p','None.','me-small'));
+  for(const {t,m} of nn)chk.append(el('p','• '+t.name+' › '+numLabel(m.number,m.title)+' ('+m.id+') · given by '+((giver(m.giver)||{}).name||m.giver)+' · '+m.objectives.length+' step(s)'+(m.rewards?' · '+m.rewards+' credits':''),'',{'data-me-new-mission':m.id}));
   const far=[...new Set(nn.flatMap(({m})=>MC().treeTouches(m).npcs))].map(giver).filter(g=>g&&!g.players);chk.append(el('h5','New givers players cannot reach in the current game ('+far.length+')'));if(!far.length)chk.append(el('p','None: every NPC in your new missions can be reached by a District player today.','me-small'));
   for(const g of far)chk.append(el('p','⚠ '+g.name+': '+G().status(g),'me-warn',{'data-me-far':g.id}));
   const names=Object.entries(content.names||{});if(names.length){chk.append(el('h5','Tree names ('+names.length+')'));for(const [id,n] of names)chk.append(el('p','• '+id+' is shown as “'+n+'” (its id never changes).','me-small'));}
@@ -450,5 +547,5 @@
   if(live&&live.enabled&&live.version)vs.append(btn('UNDO: PUT THE PREVIOUS VERSION BACK',async()=>{if(!confirm('Put the previous published version back for every player?'))return;try{const rec=await call('developer/live-content/rollback',{expected:live.version});status='Version '+rec.version+' is live: '+(rec.content?'the content of version '+rec.from:'the shipped missions')+'.';await refreshServer();}catch(e){status='Undo failed: '+e.message;}draw();},'',{'data-me-undo':'1'}));
   root_.append(vs);
  }
- root.VoidMissionEditor={render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
+ root.VoidMissionEditor={get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
 })(globalThis);

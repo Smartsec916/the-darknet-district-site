@@ -68,7 +68,10 @@
  // New campaigns since the mission reset (David, 2026-11-03) carry this flag. Older saves never do, so their missions are untouched.
  const closed=s=>s?.story?.flags?.missionPool==='closed';
  function available(s,id){const d=definitions[id];if(!d)return true;const requirements=d.prerequisites||[];return requirements.every(key=>s.universe?.missions?.[key]?.completed===true)&&Object.entries(d.storyFlags||{}).every(([key,value])=>s.story?.flags?.[key]===value)&&Object.entries(d.factionFlags||{}).every(([key,value])=>(s.progression?.reputation?.[key]||0)>=value)&&(!d.availability?.locations||d.availability.locations.includes(s.location));}
- function acquire(s,id){if((closed(s)&&definitions[id]?.beginner!==true&&!definitions[id]?.ownerTree)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
+ // A District campaign (closed pool) runs only tree missions: the main storyline (main-story.js) and the owner's published trees. Every older mission, the beginner
+ // campaign included, is retired there (David, 17 Nov 2026: "Go ahead and remove all missions in the game"): never offered, tracked or shown; old records stay in the save.
+ const live=(s,id)=>!closed(s)||!!definitions[id]?.ownerTree;
+ function acquire(s,id){if(!live(s,id)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
  function finish(s,id,entry){
   if(entry.completed&&s.universe.trackedMission===id){s.universe.trackedMission=null;s.universe.autoTrack=true;}
  }
@@ -157,13 +160,13 @@
  }
  function all(s,C){
   if(!s?.universe)return [];
-  return Object.entries(records(s)).filter(([,entry])=>entry?.acquired).map(([id,entry])=>{
+  return Object.entries(records(s)).filter(([id,entry])=>entry?.acquired&&live(s,id)).map(([id,entry])=>{
    const def=description(s,C,id),objectives=def.objectives.map(objective=>({...objective,complete:entry.objectives?.[objective.id]===true}));
    // A finished objective can move the goal (a delivery returns the player to the District).
    const stage=Object.entries(def.after||{}).filter(([key])=>entry.objectives?.[key]===true).map(([,next])=>next).pop();const pendingStep=def.objectives.find(o=>o.required!==false&&entry.objectives?.[o.id]!==true);
    const complete=entry.completed===true||!tutorials.includes(id)&&objectives.filter(objective=>objective.required!==false).every(objective=>objective.complete);
    const destination=stage?.destination?stage.destination:pendingStep?.destination?pendingStep.destination:id==='flight-training'&&pastWorkshop(s)?C?.missionFlight?.({...s,destination:null})?.destination||def.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
-   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,objectives,objective:objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id};
+   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,objectives,objective:complete?'Complete':def.objective||objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id,...(Number.isInteger(def.number)?{number:def.number,name:def.name||def.title}:{}),...(def.category?{category:def.category}:{}),...(def.location?{location:def.location}:{})};
   });
  }
  function active(s,C){sync(s,C);return all(s,C).filter(mission=>!mission.completed);}
@@ -195,6 +198,6 @@
   return {kind:U.route(s.location,hop).kind,label:(U.system(s.location)!==U.system(hop)?'INTERSTELLAR / ':'LOCAL / ')+(U.locations[hop]?.name||hop).toUpperCase(),destination:hop};
  }
  function metadata(s,C,id){return {availability:{},giver:null,source:null,start:null,end:null,prerequisites:[],storyFlags:{},factionFlags:{},completion:null,...description(s,C,id)};}
- const api={closed,definitions,trainingIds,groundIds,stationIds,combatIds,tutorials,define,available,metadata,acquire,complete,sync,all,active,tracked,track,untrack,guidance,nextMission};
+ const api={closed,live,definitions,trainingIds,groundIds,stationIds,combatIds,tutorials,define,available,metadata,acquire,complete,sync,all,active,tracked,track,untrack,guidance,nextMission};
  if(typeof module!=='undefined')module.exports=api;else root.VoidMissions=api;
 })(globalThis);

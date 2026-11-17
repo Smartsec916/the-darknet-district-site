@@ -14,9 +14,18 @@
                                                                      unlocks are credits, story flags (mf_<name>), places that open, the courier hull. Missions run in order.
                                                                      They are ordinary mission records (universe.missions) plus story.flags.mt_<id>, which clean_save() accepts.
      names     {treeId:name}                                           display names of trees (renames; ids never change).
+   THE MAIN STORYLINE (main-story.js) is a SHIPPED tree run by the same tree engine: content.trees may carry an edited copy (same id, main-storyline), which replaces
+   the shipped one; without it the shipped tree runs. Its missions may start by notification (HOW A MISSION STARTS, below) instead of being
+   offered by the giver, and have three more step kinds: 'pod-exit', 'message' (the mission's notification arrives; automatic) and 'hear' (the giver's lines after a talk step;
+   done when the conversation closes).
+   HOW A MISSION STARTS (David, 17 Nov 2026: "either have Missions start by notification or in person"): start {how:'person'} (default: the giver offers it when
+   talked to) or {how:'notification', channel:'messages'|'comms'|'notify', from:<NPC>, header, text, when:{kind:'pod-exit'|'after-mission'|'place'|'flag', mission|place|flag,value}}:
+   the mission arrives on the player's device when `when` happens (Messages: a text in the V1 inbox; Comms: a call with its transcript; notify: a banner only). MISSION NUMBERS: every tree mission may carry `number` (1-999, shown "Mission 001 — Name"); numbers are unique and never reused (main-story.js
+   NUMBERS and the server's published ledger). Story-tree missions must have one. Lines that are placeholders for David ("[David: ...") are shown only in draft play.
    Content shape: {format:'darknet-district-mission-content',version:1,beginner?:[...],registry?:{...},lines?:[...],trees?:[...],names?:{...}}. Unknown fields are refused, never ignored. */
 (function(root){
  'use strict';
+ const MS=typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
  const FORMAT='darknet-district-mission-content',VERSION=1;
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TAGS=/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/;
  // The events the beginner runner fires (beginner-integration.js); the same list as the Developer Studio (admin/studio-model.js EVENTS, checked by a test).
@@ -99,8 +108,28 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy'],UNLOCKS=['credits','flag','location','ship','tree'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','flag'],AUTO=['message'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
+ // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
+ const STORY=new Set((MS&&MS.STORY_TREES)||[]),STORY_MISSION=/^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$/;
+ const treeIdOk=id=>typeof id==='string'&&(DRAFT.test(id)||STORY.has(id)),missionIdOk=id=>typeof id==='string'&&(DRAFT.test(id)||STORY_MISSION.test(id));
+ const placeholder=t=>!!(MS&&MS.isPlaceholder(t));
+ // Players never see mission numbers (David, 17 Nov 2026: "I want it to be just 'Awakening' in Mission logs. Mission 001 is the backend numbering system").
+ // The number stays in the data (definition.number) for the Mission Editor, Developer Tools and the server; everything a player sees uses the name.
+ const titleOf=m=>m.title;
+ const devLabel=m=>MS?MS.label(m.number,m.title):m.title;
+ /* How a mission starts (closed shape). In person needs nothing else; by notification needs a channel, a sender, the text (a header for Messages and Comms) and a trigger. */
+ function checkStart(st,w,ctx,err,speakerOk,trees){
+  if(!keysOk(st,['how','channel','from','header','text','when'])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
+  if(st.how==='person'){if(Object.keys(st).length>1)err(w+': a mission given in person has no notification fields.');return;}
+  if(!CHANNELS.includes(st.channel))err(w+': unknown notification channel.');
+  if(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from))err(w+': the notification must come from a known NPC.');
+  if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
+  if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');
+  const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
+  if(x.kind==='after-mission'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[])]);if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
+  if(x.kind==='place'&&(typeof x.place!=='string'||(ctx.places&&!ctx.places.has(x.place))))err(w+': unknown trigger place "'+x.place+'".');
+  if(x.kind==='flag'){if(!STORY_FLAG.test(x.flag||''))err(w+': the trigger flag must be a story flag name (letters, digits, - or _).');if(!(typeof x.value==='boolean'||(typeof x.value==='string'&&x.value.length<=200&&!TAGS.test(x.value))||Number.isSafeInteger(x.value)))err(w+': the trigger flag value must be true/false, a number or short text.');}}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
  const linked=trees=>new Set((trees||[]).flatMap(t=>(t.missions||[]).flatMap(m=>(m.unlocks||[]).filter(u=>u&&u.kind==='tree').map(u=>u.id))));
  /* ctx: givers (Map id → {canTalk}), places (Set), items (Set: buyable module ids), locations (Set), ships (Map id → {premium}), registryIds (Set: ids a draft id may not take). */
@@ -112,13 +141,19 @@
   const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
    if(!keysOk(t,['id','name','note','missions'])){err(tw+': unknown fields in a tree.');continue;}
-   if(!DRAFT.test(t.id||''))err(tw+': a new tree id must start with draft-.');if(tids.has(t.id))err(tw+': duplicate tree id.');tids.add(t.id);
+   if(!treeIdOk(t.id))err(tw+': a new tree id must start with draft-.');if(tids.has(t.id))err(tw+': duplicate tree id.');tids.add(t.id);
    if(!plain(t.name,LIMIT.title))err(tw+': the tree needs a name (60 characters at most).');
    if(t.note!=null&&!(typeof t.note==='string'&&t.note.length<=300&&!TAGS.test(t.note)))err(tw+': the note must be plain text (300 characters at most).');
    if(!Array.isArray(t.missions)||!t.missions.length||t.missions.length>20){err(tw+': a tree needs 1 to 20 missions.');continue;}
    for(const m of t.missions){total++;const w=tw+' / '+((m&&m.id)||'?');
-    if(!keysOk(m,['id','title','type','giver','description','rewards','offer','objectives','ending','unlocks'])){err(w+': unknown fields in a mission.');continue;}
-    if(!DRAFT.test(m.id||''))err(w+': a new mission id must start with draft- (60 characters at most).');if(mids.has(m.id)||(ctx.registryIds&&ctx.registryIds.has(m.id)))err(w+': duplicate mission id.');mids.add(m.id);
+    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks'])){err(w+': unknown fields in a mission.');continue;}
+    if(!missionIdOk(m.id))err(w+': a new mission id must start with draft- (60 characters at most).');
+    if(m.number!=null&&!(Number.isInteger(m.number)&&m.number>=1&&m.number<=999))err(w+': a mission number must be a whole number from 001 to 999.');
+    if(m.number==null&&STORY.has(t.id))err(w+': every mission in the main storyline needs a mission number.');
+    if(m.start!=null)checkStart(m.start,w,ctx,err,speakerOk,trees);
+    if(m.category!=null&&!plain(m.category,LIMIT.title))err(w+': the mission type label must be plain text (60 characters at most).');
+    if(m.objective!=null&&!plain(m.objective,200))err(w+': the objective must be plain text (200 characters at most).');
+    if(m.location!=null&&(typeof m.location!=='string'||(ctx.places&&!ctx.places.has(m.location))))err(w+': unknown location "'+m.location+'".');if(mids.has(m.id)||(ctx.registryIds&&ctx.registryIds.has(m.id)))err(w+': duplicate mission id.');mids.add(m.id);
     if(!plain(m.title,LIMIT.title))err(w+': a title is required (60 characters at most, no HTML).');if(!TYPES.includes(m.type))err(w+': unknown mission type.');
     if(!npcOk(m.giver))err(w+': the giver must be an NPC the game has a TALK prompt for.');
     if(m.description!=null&&!(typeof m.description==='string'&&m.description.length<=LIMIT.description&&!TAGS.test(m.description)))err(w+': the description must be plain text (600 characters at most).');
@@ -135,6 +170,8 @@
      else if(o.kind==='go'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
      else if(o.kind==='arrive'){if(typeof o.place!=='string'||(ctx.locations&&!ctx.locations.has(o.place)))err(ow+': "'+o.place+'" is not a place a ship can fly to.');}
      else if(o.kind==='buy'){if(typeof o.item!=='string'||(ctx.items&&!ctx.items.has(o.item)))err(ow+': "'+o.item+'" is not an item a store sells.');}
+     else if(o.kind==='message'){if(!(m.start&&m.start.how==='notification'))err(ow+': a “notification arrives” step needs the mission to start by notification.');}
+     else if(o.kind==='hear'){if(o.npc!=null&&o.npc!==''&&!npcOk(o.npc))err(ow+': who is heard must be an NPC the game has a TALK prompt for.');}
      lines(o.say,ow);lines(o.early,ow);}
     if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{
      if(m.ending.npc!=null&&!npcOk(m.ending.npc))err(w+': the hand-in NPC must be an NPC the game has a TALK prompt for.');
@@ -149,14 +186,18 @@
      if(u.kind==='tree'&&(typeof u.id!=='string'||!all.has(u.id)||u.id===t.id))err(uw+': "'+u.id+'" is not another of the new trees being sent.');}}
    }}
   if(total>40)err('New trees hold '+total+' missions; 40 at most (each one is a record in every player’s save).');
+  if(MS)for(const p of MS.numberProblems(trees,{...MS.NUMBERS,...(ctx.numbers||{})}))err(p);
  }
  /* The places and NPCs a mission touches (for reachability and draft play). */
  function treeTouches(m){const npcs=new Set([m.giver]),places=new Set();for(const o of m.objectives||[]){if(o.npc)npcs.add(o.npc);if(o.place)places.add(o.place);}if(m.ending&&m.ending.npc)npcs.add(m.ending.npc);return {npcs:[...npcs].filter(Boolean),places:[...places]};}
  /* The VoidMissions record for a tree mission (what the V1 Mission Log shows). env.givers: roster list (say names, layout ids and places). */
  function treeDefinition(t,m,i,givers){const g=id=>(givers||[]).find(x=>x.id===id)||null,name=id=>(g(id)||{}).name||id;
-  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;const loc=who&&who.enter&&who.enter.location;if(loc)x.destination=loc;return x;});
-  if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;if(who&&who.enter&&who.enter.location)x.destination=who.enter.location;objectives.push(x);}
-  return {title:m.title,type:m.type,description:m.description||'',giver:name(m.giver),source:'owner-tree',ownerTree:t.id,rewards:m.rewards||null,prerequisites:i?[t.missions[i-1].id]:[],objectives};}
+  // An NPC who stands in NeoChinatown (the District, the street) is at 'earth', so the Mission Log's guidance and waypoint lead to them (as the beginner campaign's did).
+  const at=who=>who&&who.enter?(who.enter.location||(who.enter.walk?'earth':null)):null;
+  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;const loc=at(who);if(loc)x.destination=loc;return x;});
+  if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;if(at(who))x.destination=at(who);objectives.push(x);}
+  const extra={};if(Number.isInteger(m.number))extra.number=m.number;for(const k of ['category','location','objective'])if(m[k])extra[k]=m[k];if(m.start&&m.start.how==='notification')extra.start={how:'notification',channel:m.start.channel,from:m.start.from};
+  return {title:titleOf(m),name:m.title,devLabel:devLabel(m),type:m.type,description:m.description||'',giver:name(m.giver),source:STORY.has(t.id)?'main-story':'owner-tree',ownerTree:t.id,rewards:m.rewards||null,prerequisites:i?[t.missions[i-1].id]:[],objectives,...extra};}
  /* Applies one unlock to a campaign state. Returns a plain description, or null when nothing changed. */
  function unlockNow(s,u,env,Camp){
   if(u.kind==='credits'){s.credits=(s.credits||0)+u.amount;return '+'+u.amount+' credits';}
@@ -166,40 +207,72 @@
   if(u.kind==='tree'){if(s.story.flags[linkFlag(u.id)]===true)return null;s.story.flags[linkFlag(u.id)]=true;const t=(env.trees||[]).find(x=>x.id===u.id);return 'NEW STORY · '+((t&&t.name)||u.id);}
   return null;}
  const treeLive=s=>!!(s&&s.universe&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed');
- /* Something happened: ev {type:'talk', npcs:[roster ids]} | {type:'place', places:[ids]} | {type:'buy', item}. Runs the owner's trees in order: a tree's next mission is offered
-    when its giver is talked to; its steps complete in order; it ends when the last step is done, or at the hand-in NPC. Pays once (story.flags.mt_<id>). Never repeats anything.
-    Returns {tree, mission, offered, objective, lines, early, completed, reward, notes}. */
+ /* Something happened: ev {type:'talk', npcs:[roster ids]} | {type:'place', places:[ids]} | {type:'buy', item} | {type:'pod-exit'} | {type:'heard', mission}. Runs the trees in order:
+    a tree's next mission is offered when its giver is talked to (or, when it starts by notification, when its trigger happens: the device receives it); its steps complete in order;
+    'message' steps ("the notification arrives") complete by themselves right after the step before them;
+    a 'hear' step after a talk step shows its lines and is done when that conversation closes (ev 'heard'), or at once when it has no lines to show.
+    It ends when the last step is done, or at the hand-in NPC. Pays once (story.flags.mt_<id>). Never repeats anything. Placeholder lines are shown only in draft play (env.draft).
+    Returns {tree, mission, offered, objective, done:[step ids], lines, early, completed, reward, notes, messages:[...], hear:{mission,step}|null}. */
+ const msgFlag=(mid,sid)=>'v1m_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18),readFlag=(mid,sid)=>'v1r_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
  function treeEvent(s,env,ev,Missions,Camp){
-  const out={tree:null,mission:null,offered:false,objective:null,lines:[],early:null,completed:false,reward:0,notes:[]};
+  const out={tree:null,mission:null,offered:false,objective:null,done:[],lines:[],early:null,completed:false,reward:0,notes:[],messages:[],hear:null};
   if(!treeLive(s)||!env||!Array.isArray(env.trees)||!env.trees.length||!ev)return out;
-  const npcs=ev.npcs||[],places=ev.places||[],speak=ls=>(ls||[]).map(l=>({who:l.who==='You'?'You':((env.givers||[]).find(g=>g.id===l.who)||{}).say||l.who,text:l.text}));
+  const npcs=ev.npcs||[],places=ev.places||[],gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
+  const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>({who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text}));
   const gated=linked(env.trees),open=t=>!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true;
-  const hit=o=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive')?ev.type==='place'&&places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:false;
+  const hit=o=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive')?ev.type==='place'&&places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit':false;
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
    if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
+  const step=(t,m,o)=>{if(!Missions.complete(s,m.id,o.id,Camp))return false;Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
+   out.lines.push(...speak(o.say));settle(m,o.id);return true;};
+  // A mission that starts by notification: its notification reaches the device (story.flags v1m_<mission>_start = the time, seconds; Messages and Comms keep it).
+  const notify=(t,m)=>{const st=m.start,at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,'start')]))s.story.flags[msgFlag(m.id,'start')]=at;
+   out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};
+  // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
+  const startsNow=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver);const w=st.when||{};
+   if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);
+   if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
+  // After a step: the automatic steps that follow it (messages) complete at once.
+  const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind))break;if(!step(t,m,o))break;}};
+  // After a talk step: a 'hear' step next shows its lines (done when the conversation closes), or is done at once when nothing can be shown.
+  const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear')return;const ls=speak(o.say);
+   if(ls.length){out.lines.push(...ls);out.hear={mission:m.id,step:o.id};}else if(out.lines.length)out.hear={mission:m.id,step:o.id};   // the talk step's own lines are the introduction: done when they close
+   else if(step(t,m,o))auto(t,m);};
   for(const t of env.trees){if(!open(t))continue;
    for(const m of t.missions){
     const rec=s.universe.missions&&s.universe.missions[m.id];
     if(rec&&rec.completed)continue;
     if(!rec||!rec.acquired){
-     if(ev.type==='talk'&&npcs.includes(m.giver)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,lines:speak(m.offer)});return out;}
+     const byNote=!!(m.start&&m.start.how==='notification');
+     if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote)notify(t,m);else out.lines.push(...speak(m.offer));
+      const first=m.objectives[0];if(byNote&&first&&hit(first))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
      break;}
     const next=m.objectives.find(o=>rec.objectives[o.id]!==true);
     if(next){
-     if(hit(next)){if(!Missions.complete(s,m.id,next.id,Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:next.id,lines:speak(next.say)});settle(m,next.id);return out;}
+     if(ev.type==='heard'&&next.kind==='hear'&&(!ev.mission||ev.mission===m.id)){if(step(t,m,next))auto(t,m);return out;}
+     if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation
+     if(AUTO.includes(next.kind)){auto(t,m);if(out.done.length)return out;}
+     if(hit(next)){if(!step(t,m,next))break;auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);return out;}
      const later=ev.type==='talk'&&m.objectives.find(o=>rec.objectives[o.id]!==true&&o!==next&&hit(o)&&(o.early||[]).length);
      if(later){Object.assign(out,{tree:t.id,mission:m.id,early:speak(later.early)});return out;}
      break;}
-    if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in',lines:speak(m.ending.say)});settle(m,'turn-in');return out;}
+    if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');return out;}
     break;}}
   return out;
  }
+ /* What missions have sent to this player's device (newest first): Messages (channel 'messages') and Comms calls ('comms'); a banner-only notification keeps nothing.
+    read: story.flags v1r_<mission>_start. channel: only that channel. */
+ function inbox(s,env,channel){const out=[];if(!s||!s.universe||!s.story||!s.story.flags||!env||!Array.isArray(env.trees))return out;const gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
+  for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id],st=m.start;if(!rec||!rec.acquired||!st||st.how!=='notification'||st.channel==='notify'||(channel&&st.channel!==channel))continue;
+   out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
+  return out.sort((a,b)=>b.at-a.at);}
+ function markRead(s,id){const [mid,sid]=String(id||'').split('/');if(!mid||!sid||!s||!s.story||!s.story.flags)return false;if(s.story.flags[readFlag(mid,sid)]===true)return false;s.story.flags[readFlag(mid,sid)]=true;return true;}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
  function treeWants(s,env,npcs){if(!treeLive(s)||!env||!env.trees)return false;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees)if(!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true)for(const m of t.missions){const rec=recs[m.id];if(rec&&rec.completed)continue;
-   if(!rec||!rec.acquired){if(npcs.includes(m.giver))return true;break;}
-   const rest=m.objectives.filter(o=>rec.objectives[o.id]!==true),talks=o=>(o.kind==='talk'||o.kind==='deliver')&&npcs.includes(o.npc);
+   if(!rec||!rec.acquired){if(!(m.start&&m.start.how==='notification')&&npcs.includes(m.giver))return true;break;}
+   const rest=m.objectives.filter(o=>rec.objectives[o.id]!==true),talks=o=>(o.kind==='talk'||o.kind==='deliver'||o.kind==='hear')&&npcs.includes(o.npc||(o.kind==='hear'?m.giver:''));
    if(rest.length&&(talks(rest[0])||rest.some(o=>talks(o)&&(o.early||[]).length)))return true;if(!rest.length&&m.ending&&npcs.includes(m.ending.npc))return true;break;}
   return false;}
  // Speaker names as the scripts write them ('Admin', 'pilot', 'elara') → the voice registry's ids.
@@ -225,11 +298,13 @@
   }
   env.lineMap=new Map();for(const l of (content&&content.lines)||[])env.lineMap.set(l.who+'|'+l.from,l.to);if(content&&content.lines&&content.lines.length)out.applied.push(content.lines.length+' changed line(s)');
   if(env.Missions){for(const id of Object.keys(env.Missions.definitions))if(env.Missions.definitions[id]&&env.Missions.definitions[id].ownerTree)delete env.Missions.definitions[id];}
-  env.trees=clone((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
+  env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
   if(env.Missions)for(const t of env.trees)t.missions.forEach((m,i)=>env.Missions.define(m.id,treeDefinition(t,m,i,env.givers)));
   if(env.trees.length)out.applied.push('new trees: '+env.trees.map(t=>t.name+' ('+t.missions.length+')').join(', '));if(Object.keys(env.names).length)out.applied.push(Object.keys(env.names).length+' tree name(s)');
   return out;
  }
+ /* The trees that run: the shipped story trees (an edited copy in the content replaces the one with the same id), then the content's other trees. */
+ function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x={...t};delete x.status;delete x.shipped;delete x.seq;return x;});}
  /* A line about to be shown ({who,text}) → the edited line, or the same object when nothing applies. */
  function mapLine(env,l){if(!l||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}
  /* Builds content from the owner's drafts. studio: the Developer Studio's local draft {missions:[...]} (beginner campaign); local: Mission Editor edits {missions:{key:edit}}. */
@@ -238,7 +313,8 @@
  /* ---- new trees in the owner's draft → content. Only what the game can run is sent: in each tree, the missions in order up to the first one that cannot run yet. */
  const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>({who:l.who||who||'You',text:l.text.trim()}));
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
- function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
+ function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();
+   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission')wk.mission=w.mission;if(wk.kind==='place')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;r.start=x;}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];const sy=said(o.say,o.npc||m.giver),ea=said(o.early,o.npc||m.giver);if(sy.length)x.say=sy;if(ea.length)x.early=ea;return x;});
   if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}
@@ -253,7 +329,10 @@
    if(!STEP_KINDS.includes(o.kind)){out.push(w+' ('+(o.kind||'no kind')+') needs a code change');continue;}
    if(!String(o.label||'').trim())out.push(w+' needs “what the player must do”');
    if((o.kind==='talk'||o.kind==='deliver')&&!can(o.npc))out.push(w+': '+(o.npc?nm(o.npc)+' cannot be talked to in the game today':'choose who it happens with'));
-   if((o.kind==='go'||o.kind==='arrive')&&!o.place)out.push(w+': choose the place');if(o.kind==='buy'&&(!o.item||(items&&!items.has(o.item))))out.push(w+': choose an item a store sells');}
+   if((o.kind==='go'||o.kind==='arrive')&&!o.place)out.push(w+': choose the place');if(o.kind==='buy'&&(!o.item||(items&&!items.has(o.item))))out.push(w+': choose an item a store sells');
+   if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))out.push(w+': “the notification arrives” needs the mission to start by notification');}
+  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!String(st.text||'').trim())out.push('the notification needs its text');if(st.channel!=='notify'&&!String(st.header||'').trim())out.push('the notification needs a header');if(!st.from)out.push('choose who the notification is from');
+   if(w.kind==='after-mission'&&!w.mission)out.push('choose the mission it follows');if(w.kind==='place'&&!w.place)out.push('choose the place that starts it');if(w.kind==='flag'&&!w.flag)out.push('name the story flag that starts it');}
   if(m.ending&&m.ending.npc&&!can(m.ending.npc))out.push('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today');
   return out;}
  function treesContent(trees,{givers,items}={}){const out=[],skipped=[];
@@ -343,7 +422,7 @@
   const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
   return acts;
  }
- const api={FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

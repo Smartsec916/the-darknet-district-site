@@ -1,6 +1,8 @@
 /* THE BEGINNER CAMPAIGN, played in the real game from a fresh save (software GL; slow, about 20-30 minutes): Sleeping Pod -> six missions -> own ship -> launch -> real flight -> Meridian.
    Interactions are pressed with the real E key at the real spots; the District/street change uses enterWalking (the two doors are not walked through); the ship is steered with the
    same mouse input a player uses (a small controller loop does the aiming, as a player's hand would). Usage: node tests/beginner-browser.cjs   (SHOTS=dir)  */
+// RETIRED 17 Nov 2026: the beginner campaign was removed from the game (Mission 001 — Awakening replaced it; tests/mission-001-browser.cjs). Kept for history; it exits at once.
+if(!process.env.RUN_RETIRED){console.log('tests/beginner-browser.cjs is retired: the beginner campaign was removed from the game. See tests/mission-001-browser.cjs.');process.exit(0);}
 const {chromium}=require('playwright'),assert=require('node:assert/strict');
 const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.SHOTS||'/tmp';
 (async()=>{

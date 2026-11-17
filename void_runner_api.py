@@ -499,6 +499,14 @@ def clean_save(value):
             raise ApiError('Invalid dialogue checkpoint.')
         cleaned['cursor']=None if cursor is None else {key:cursor[key] for key in ['scene','node','choices']}
 
+    # Missions removed from the game (David, 17 Nov 2026): in a District campaign (story.flags.missionPool == 'closed') only the main storyline
+    # (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run. A tracked removed mission is untracked; its record, credits and items are kept
+    # and the save is never rejected for it (campaign.js retireMissions does the same).
+    if cleaned.get('flags', {}).get('missionPool') == 'closed':
+        tracked_id = result['universe'].get('trackedMission')
+        if tracked_id is not None and not re.match(r'^(draft-|main-storyline-m\d|m\d{3}-)', tracked_id):
+            result['universe']['trackedMission'] = None
+            result['universe']['autoTrack'] = True
     if 'story' in value:
         result['story'] = cleaned
     if 'warflying' in value:

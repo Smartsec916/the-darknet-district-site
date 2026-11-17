@@ -164,6 +164,13 @@
    facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:data.appearance?{key:portraitKey('npc',data.id||'',data.appearance),source:{type:'appearance',appearance:data.appearance,resident:true},state:'ready'}:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
- const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ /* NOTIFICATION SOUNDS per device tier (David, 17 Nov 2026: "We need a notification sound too. Maybe different for every device V1, V2, V3 // Shadow"; "V3 is Shadow.
+    It's the V3 // Shadow"). Three tiers: v1, v2, v3 (the device model 'v3', "V3 // SHADOW"). Only the V1 is in a player's hands; V2 and V3 are data only (no UI).
+    Files: void-runner/assets/audio/ui/ (ElevenLabs Sound Effects on David's paid plan; LICENSES.md there). David's picks: V1 confirmed; V3 his choice; V2 is a
+    PLACEHOLDER until the V2 exists. A model without its own row uses the V1's. A missing file plays nothing (personal-device.js). */
+ const NOTIFY={v1:{name:'V1',sound:'void-runner/assets/audio/ui/device-v1-notify.ogg'},v2:{name:'V2',placeholder:true,sound:'void-runner/assets/audio/ui/device-v2-notify.ogg'},
+  v3:{name:'V3 // SHADOW',sound:'void-runner/assets/audio/ui/device-v3-notify.ogg'}};
+ const notifyTier=model=>NOTIFY[model]?model:'v1';
+ const api={NOTIFY,notifyTier,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

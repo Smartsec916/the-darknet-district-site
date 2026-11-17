@@ -9,8 +9,9 @@ function sources(extra={}){fresh();return {missions:require(R('void-runner/missi
 test('every mission tree in the game data is listed, with its status, and no registry, contract or chapter mission is missing',()=>{
  const src=sources(),out=T.build(src),ids=out.trees.map(t=>t.id);
  assert.deepEqual(ids,['beginner','vesper-opening','sealed-cargo','communion','natural-order','rook-contracts','chapter-belt','chapter-lockdown','chapter-gate','district-drafts']);
- assert.equal(out.trees.find(t=>t.id==='district-drafts').status,'draft');assert.equal(out.trees.find(t=>t.id==='district-drafts').missions[0].id,src.milked.MISSION.id);
- assert.equal(out.trees.find(t=>t.id==='beginner').status,'active');assert(out.trees.filter(t=>!['beginner','district-drafts'].includes(t.id)).every(t=>t.status==='historical'));
+ assert.equal(out.trees.find(t=>t.id==='district-drafts').missions[0].id,src.milked.MISSION.id);
+ // 17 Nov 2026: every one of these trees was removed from the game; all are archived (readable, copyable, "not in the game")
+ assert(out.trees.every(t=>t.status==='archived'&&t.archived&&/not in the game/.test(t.statusText)),'every older tree is archived');
  const listed=new Set(out.trees.flatMap(t=>t.missions.map(m=>m.id)));
  for(const id of Object.keys(src.missions))if(src.missions[id].beginner!==true)assert(listed.has(id),'registry mission '+id+' is listed');
  for(const m of src.beginner)assert(listed.has(m.id));for(const c of src.campaign.contracts)assert(listed.has(c.id));for(const c of src.content.missions)assert(listed.has(c.id));
@@ -54,7 +55,7 @@ test('steps, endings and unlocks come from the data (store items, ships, places,
 test('drafts appear as draft trees; edits are validated against the real items, ships, places, stores and locks',()=>{
  const src=sources(),studio={missions:[...S.clone(src.beginner),{id:'new-mission-1',title:'NEW',type:'main',giver:'Admin',prerequisites:['first-departure'],objectives:[{id:'step-1',label:'x',on:'talk-admin'}]}]};
  const out=T.build({...src,studioDraft:studio,serverDrafts:[{id:'me-flight',title:'Flight',kind:'mission',revision:2}]});
- assert.deepEqual(out.trees.filter(t=>t.status==='draft').map(t=>t.id),['district-drafts','draft-studio','draft-server']);
+ assert.deepEqual(out.trees.filter(t=>t.status==='draft').map(t=>t.id),['draft-server']);assert.deepEqual(out.trees.filter(t=>t.status==='archived').map(t=>t.id).slice(-2),['district-drafts','draft-studio']);
  const r=T.refs(src),m=out.trees.flatMap(t=>t.missions).find(x=>x.id==='communion-delivery'),locked=m.scenes[0].lines[0],free=T.allLines(out.trees.flatMap(t=>t.missions).find(x=>x.id==='admin-sealed-cargo-01')).find(l=>l.editable==='local');
  assert.equal(T.validateEdit(m,{unlocks:[{kind:'item',id:'warflying-scrambler',store:'district-store'},{kind:'ship',id:'ship2'},{kind:'location',id:'holdfast'},{kind:'flag',id:'myFlag',value:true}],reputation:[{faction:'communion',amount:5}],credits:10},r).filter(i=>i.level==='error').length,0);
  const bad=T.validateEdit(m,{unlocks:[{kind:'item',id:'laser-sword',store:'district-store'},{kind:'ship',id:'x-wing'},{kind:'location',id:'atlantis'},{kind:'item',id:'cooling',store:'mall'}],reputation:[{faction:'empire',amount:5}],credits:-1},r).filter(i=>i.level==='error').map(i=>i.text).join('\n');
@@ -69,10 +70,8 @@ test('apply puts edited lines, steps and rewards over the shipped beginner recor
  const content=MC.fromDrafts({studio:{missions:edited},shippedBeginner:shipped});assert(content.beginner);
  const r=MC.apply(content,e);assert.deepEqual(r.refused,[]);assert.equal(e.B.MISSIONS,ref,'same array object (the runner keeps it)');
  assert.equal(e.B.byId['district-errand'].objectives[2].say[0].text,'TEST LINE: good eyes.');assert.equal(e.Missions.definitions['district-errand'].objectives[0].label,'Have a look at the bar');
- // the runner itself uses the edited data
- const s=e.C.startDistrictCampaign(e.C.fresh());s.story.flags.podWakePending=false;for(const id of ['first-contact']){e.Missions.acquire(s,id);for(const o of e.B.byId[id].objectives)e.Missions.complete(s,id,o.id,e.C);s.story.flags['br_'+id]=true;}
- e.B.offer(s,e.Missions,e.C);e.B.event(s,'visit-bar',e.Missions,e.C);e.B.event(s,'visit-shop',e.Missions,e.C);const out=e.B.event(s,'talk-iris',e.Missions,e.C);
- assert.equal(out.lines[0].text,'TEST LINE: good eyes.');assert.equal(out.reward,150);
+ // the beginner runner is retired (17 Nov 2026): edited data is applied, but nothing in a District campaign runs it any more
+ const s=e.C.startDistrictCampaign(e.C.fresh());s.story.flags.podWakePending=false;assert.equal(e.B.offer(s,e.Missions,e.C),null);const out=e.B.event(s,'talk-iris',e.Missions,e.C);assert.equal(out.objective,null);assert.equal(out.reward,0);
  MC.apply(null,e);assert.deepEqual(e.B.MISSIONS,shipped);assert.equal(e.Missions.definitions['district-errand'].objectives[0].label,shipped[1].objectives[0].label);
  // a second version replaces the first, never stacks on it
  const v2=MC.clone(shipped);v2[0].title='HELLO';MC.apply(MC.fromDrafts({studio:{missions:v2},shippedBeginner:shipped}),e);assert.equal(e.B.byId['district-errand'].objectives[2].say[0].text,shipped[1].objectives[2].say[0].text);assert.equal(e.B.byId['first-contact'].title,'HELLO');
@@ -167,7 +166,7 @@ test('the giver roster lists every registered NPC, grouped, with where they are 
  for(const n of require(R('void-runner/district-people.js')).npcs())assert(by(n.id),'District resident listed: '+n.id);
  for(const id of ['admin','iris','bartender','milked-eva','milked-fish','zen-zephyr'])assert.equal(by(id).group,'district',id);
  for(const id of ['rook','mara','elias','elara','marcus','kess','mercer','iona','sol','nyx'])assert.equal(by(id).group,'earlier',id);
- assert(by('admin').players&&by('admin').draft);assert(by('rook').draft&&by('rook').players,'Meridian is reached after the beginner campaign');assert(!by('elara').players&&by('elara').draft);
+ assert(by('admin').players&&by('admin').draft);assert(by('rook').draft&&!by('rook').players,'nobody reaches Meridian until a mission grants a ship (the beginner campaign is retired)');assert(!by('elara').players&&by('elara').draft);
  assert(!by('rin-takeda').canTalk&&!by('vr-ava').canTalk&&!by('elias').canTalk,'figures, companions and a recording cannot give missions');
  assert(!g.some(x=>['news-anchor','commercial-announcer'].includes(x.id)),'broadcast voices are not givers');
  // every TALK target named here exists in the game's own layouts and handlers
@@ -198,7 +197,7 @@ test('adapter: a new tree is checked, applied, run step by step (talk, go, buy, 
  const after=s.credits;assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C).completed,false);assert.equal(s.credits,after,'never paid twice');
  // a campaign that is not a District campaign is never touched
  const old=e.C.fresh();assert.equal(MC.treeEvent(old,e,{type:'talk',npcs:['admin']},e.Missions,e.C).mission,null);
- MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees,[]);
+ MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees.map(t=>t.id),['main-storyline'],'only the shipped main storyline stays');
 });
 test('adapter refuses unknown kinds, givers without a TALK prompt, non-draft ids, unknown places and items; only runnable missions are sent',()=>{
  const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(require(R('void-runner/universe.js')).locations))};

@@ -59,7 +59,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  loadEditor(){return this.editorLoad??=this.editorScripts.reduce((p,src)=>p.then(()=>new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>fail(new Error('Could not load '+src));document.head.append(s);})),Promise.resolve());},
  render(){
   const tabs='<nav class="dev-tabs" aria-label="Developer sections">'+this.sections.map(([id,name])=>`<button data-dev-tab="${id}" class="${this.tab===id?'on':''}" aria-pressed="${this.tab===id}">${name}</button>`).join('')+'</nav>';
-  const head=`<div class="dev-heading"><h2>DEVELOPER TOOLS</h2><button data-dev="close">CLOSE</button></div>`+tabs;
+  const head=`<div class="dev-heading"><h2>DEVELOPER TOOLS</h2><span class="dev-head-actions"><button data-dev="close">CLOSE</button><button data-dev="exit-menu">EXIT TO MAIN MENU</button></span></div>`+tabs;
   if(this.tab==='missions'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidMissionEditor)return VoidMissionEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the Mission Editor…</p>';this.loadEditor().then(()=>{if(this.tab==='missions'&&!devPanel.hidden)VoidMissionEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">'+escapeText(e.message)+'</p>';});return;}
   if(this.tab==='test'){devPanel.innerHTML=head+(globalThis.VoidDevTest?.render()||'<p>Test tools are loading.</p>');return;}
   if(this.tab==='achievements'){const items=globalThis.VoidAchievements?.definitions||[];devPanel.innerHTML=head+'<p>Read-only catalog preview. Publishing, granting, and revoking require a server-authorized manager that is not enabled yet.</p>'+items.map(d=>'<article class="dev-field"><h3>'+escapeText(d.icon+' '+d.name)+'</h3><p>'+escapeText(d.description)+'</p><p>'+escapeText(d.category+' · '+d.condition.event+' · '+d.condition.count)+'</p></article>').join('');return;}
@@ -92,6 +92,10 @@ devPanel.addEventListener('click',async event=>{
  const tools=VoidDevTools,request=tools.request;
  try{
   if(action==='close'){devPanel.hidden=true;return;}
+  // EXIT TO MAIN MENU (David, 17 Nov 2026): the game menu's own path (openGameMenu saves first when a normal save would, then shows the main menu). During a test or
+  // PLAY THIS DRAFT session it is LEAVE DRAFT (the page reloads with the real save untouched) without reopening the Mission Editor: the game starts on its main menu.
+  if(action==='exit-menu'){devPanel.hidden=true;const T=globalThis.VoidDevTest;if(T?.active){try{sessionStorage.removeItem('mission-editor-return');}catch{}T.exit();return;}
+   if(typeof mode!=='undefined'&&mode==='menu'){if(typeof renderMainMenu==='function')renderMainMenu();return;}if(typeof openGameMenu==='function')openGameMenu();return;}
   if(action==='defaults'){tools.values={...VoidBalance.defaults};tools.preset='NORMAL';tools.render();return;}
   if(action==='reload'||action==='save'){
    const data=await request('developer/balance',action==='save'?{values:tools.read(),preset:tools.preset,revision:tools.revision}:undefined);
