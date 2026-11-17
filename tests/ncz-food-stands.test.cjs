@@ -7,8 +7,10 @@ const Night=require('../void-runner/ncz-nightlife.js');
 
 test('each checkpoint quarter has one vendor, four seats, and three usable player prompts',()=>{
  assert.deepEqual(Object.keys(F.STANDS).sort(),Q.IDS.slice().sort());
+ assert.equal(new Set(Object.values(F.STANDS).map(s=>s.name)).size,Q.IDS.length,'each stand needs its own name');
  for(const q of Q.IDS){
   const layout=N.layout('street',q),seats=F.seats(q),prompts=F.seatPrompts(q);
+  assert.ok(F.STANDS[q].name.trim()&&F.prompt(q).label.includes(F.STANDS[q].name.toUpperCase()),q+' name in vendor prompt');
   assert.equal(seats.length,4,q);assert.equal(seats.filter(s=>s.occupied).length,1,q);
   assert.equal(prompts.length,3,q);
   assert.equal(layout.interactions.filter(i=>i.action==='ncz-food-vendor'&&i.quarter===q).length,1,q);

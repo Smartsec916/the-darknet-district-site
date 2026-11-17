@@ -2,13 +2,15 @@
 
 David requested one food stand inside each of the five checkpoint quarters, with **four seats per stand: three open to players and one occupied by a customer NPC**. This branch is isolated from Claude's Old Town, Port and playthrough branches. It is not merged or live.
 
-| Quarter | Counter centre (x, z) | Faces |
-| --- | ---: | --- |
-| Port | 35.5, -87.8 | Pad |
-| Old Town | 68.4, -87 | Main Street |
-| Avenue | 110, -16.8 | Road |
-| Far South | 53.6, -155 | Main Street |
-| Outskirts | 86, -237 | Gravel route |
+| Quarter | Stand name | Counter centre (x, z) | Faces |
+| --- | --- | ---: | --- |
+| Port | Docklight Noodles | 35.5, -87.8 | Pad |
+| Old Town | Lantern Kitchen | 68.4, -87 | Main Street |
+| Avenue | Jade Circuit Dumplings | 110, -16.8 | Road |
+| Far South | Southline Broth | 53.6, -155 | Main Street |
+| Outskirts | Last Light Rice & Tea | 86, -237 | Gravel route |
+
+Each stand's name appears on its sign above the food type and in its interaction prompts.
 
 `void-runner/ncz-food-stands.js` owns the placement, meshes, one vendor and one seated customer in each quarter. The counters use existing crowd models and procedurally worn PBR materials; they introduce no licensed assets, paid generation or new voice. `street-gear.js` now dresses food workers in a fitted work apron instead of a thigh rig and bracer. `ncz-food-interactions.js` makes the three empty stools usable in first person, with E or Space to stand. The vendor turns to a talk animation when addressed and gives one short line; the customer holds a seated pose. There is no purchase, inventory or save change. If the parked Port rebuild is enabled later, its own stand replaces this Port counter.
 

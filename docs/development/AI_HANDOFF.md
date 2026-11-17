@@ -6,7 +6,7 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-> **Codex draft, 17 Nov 2026:** David requested one food stand inside each of the five NeoChinaTown checkpoint quarters. Each has four seats total: three open for players and one occupied by a customer NPC. Work is isolated on `codex/ncz-food-stands` / PR #356, not merged or live. See [`NCZ_FOOD_STANDS.md`](NCZ_FOOD_STANDS.md) for placements, integration, tests, and player-eye screenshots. The parked Port rebuild has its own stall and takes that quarter's spot if enabled later.
+> **Codex draft, 17 Nov 2026:** David requested one named food stand inside each of the five NeoChinaTown checkpoint quarters. Each name appears on the cart sign and in interaction prompts. Each has four seats total: three open for players and one occupied by a customer NPC. Work is isolated on `codex/ncz-food-stands` / PR #356, not merged or live. See [`NCZ_FOOD_STANDS.md`](NCZ_FOOD_STANDS.md) for names, placements, integration, tests, and player-eye screenshots. The parked Port rebuild has its own stall and takes that quarter's spot if enabled later.
 
 ### 17 Nov 2026 (newest): HALDEN REYES IN MISSION 002 (branch `claude/halden-reyes`, build `2026-11-17-halden-1`, pushed, NO PR, not merged)
 

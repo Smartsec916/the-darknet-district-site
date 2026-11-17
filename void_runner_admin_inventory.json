@@ -402,7 +402,7 @@
       "reputation"
     ]
   },
-  "revision": "35e7752404630ef8",
+  "revision": "2e79aebe3cedc113",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -15808,7 +15808,7 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-food-interactions.js": "03d762f7a91df2edddd6803b7ed4a4d0983db0a7a072a0e7e924d649bf326e64",
-    "void-runner/ncz-food-stands.js": "f12ab6dc27cbce1de57ff47d8d567d473888373d61371ac4ec20d44624919d3f",
+    "void-runner/ncz-food-stands.js": "8e917ac5e6adf4d25bd04ae890650611e27e9fbcfd9a5882baeec5d22d1ef298",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
     "void-runner/ncz-nightclub.js": "ba0e2bc98e1ec86c2425f486dd5ea0da007cb6f4db7aa4fcac48b5e07bb22be8",

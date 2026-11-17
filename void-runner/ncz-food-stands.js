@@ -3,11 +3,11 @@
 (function(root){
  'use strict';
  const STANDS={
-  port:{name:'Port Noodles',x:35.5,z:-87.8,yaw:0,food:'NOODLES',accent:'#df9b5a',look:'communion-tech'},
-  oldtown:{name:'Main Street Kitchen',x:68.4,z:-87,yaw:Math.PI/2,food:'HOT NOODLES',accent:'#d58165',look:'ncz-neon'},
-  avenue:{name:'Avenue Dumplings',x:110,z:-16.8,yaw:Math.PI,food:'DUMPLINGS',accent:'#8dc6af',look:'fixer-01'},
-  'far-south':{name:'South Gate Broth',x:53.6,z:-155,yaw:-Math.PI/2,food:'BROTH',accent:'#d0a66c',look:'runner-02'},
-  outskirts:{name:'Outskirts Rice',x:86,z:-237,yaw:Math.PI/2,food:'RICE / TEA',accent:'#b6a786',look:'fixer-01'}
+  port:{name:'Docklight Noodles',x:35.5,z:-87.8,yaw:0,food:'NOODLES',accent:'#df9b5a',look:'communion-tech'},
+  oldtown:{name:'Lantern Kitchen',x:68.4,z:-87,yaw:Math.PI/2,food:'HOT NOODLES',accent:'#d58165',look:'ncz-neon'},
+  avenue:{name:'Jade Circuit Dumplings',x:110,z:-16.8,yaw:Math.PI,food:'DUMPLINGS',accent:'#8dc6af',look:'fixer-01'},
+  'far-south':{name:'Southline Broth',x:53.6,z:-155,yaw:-Math.PI/2,food:'BROTH',accent:'#d0a66c',look:'runner-02'},
+  outskirts:{name:'Last Light Rice & Tea',x:86,z:-237,yaw:Math.PI/2,food:'RICE / TEA',accent:'#b6a786',look:'fixer-01'}
  };
  const world=(s,x,z)=>[s.x+Math.cos(s.yaw)*x+Math.sin(s.yaw)*z,s.z-Math.sin(s.yaw)*x+Math.cos(s.yaw)*z];
  const front=s=>world(s,0,-2.15);
@@ -47,7 +47,9 @@
   // Small practical lamp, no outline glow. Shared sign texture is readable at player height.
   const lamp=new B.StandardMaterial('food-'+quarter+'-lamp',scene);lamp.emissiveColor=B.Color3.FromHexString('#e8b477').scale(.55);lamp.diffuseColor=B.Color3.FromHexString('#75664e');materials.push(lamp);
   box('task-lamp',.48,.07,.11,[0,2.7,-.47],lamp);
-  const sign=new B.DynamicTexture('food-'+quarter+'-menu',{width:512,height:128},scene,true);const g=sign.getContext();g.fillStyle='#161d1d';g.fillRect(0,0,512,128);g.fillStyle=s.accent;g.fillRect(0,0,512,7);g.fillStyle='#e5ddd1';g.font='bold 48px sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(s.food,256,66);sign.update();textures.push(sign);
+  const sign=new B.DynamicTexture('food-'+quarter+'-menu',{width:512,height:128},scene,true);const g=sign.getContext();g.fillStyle='#161d1d';g.fillRect(0,0,512,128);g.fillStyle=s.accent;g.fillRect(0,0,512,7);g.textAlign='center';g.textBaseline='middle';
+  let nameSize=40;do{g.font='bold '+nameSize+'px sans-serif';if(g.measureText(s.name.toUpperCase()).width<=470)break;nameSize-=2;}while(nameSize>24);
+  g.fillStyle='#f2e8d8';g.fillText(s.name.toUpperCase(),256,45);g.fillStyle=s.accent;g.font='bold 25px sans-serif';g.fillText(s.food,256,96);sign.update();textures.push(sign);
   const signMat=new B.StandardMaterial('food-'+quarter+'-sign',scene);signMat.diffuseTexture=sign;signMat.emissiveTexture=sign;signMat.emissiveColor=new B.Color3(.22,.22,.22);signMat.backFaceCulling=false;materials.push(signMat);
   keep(B.MeshBuilder.CreatePlane('food-menu-'+quarter,{width:2.45,height:.61,sideOrientation:B.Mesh.DOUBLESIDE},scene),signMat,[0,2.54,-.53]);
   const steam=[];if(!low){const puff=new B.DynamicTexture('food-puff-'+quarter,{width:32,height:32},scene,true);const pg=puff.getContext(),grad=pg.createRadialGradient(16,16,1,16,16,16);grad.addColorStop(0,'rgba(255,255,255,.6)');grad.addColorStop(1,'rgba(255,255,255,0)');pg.fillStyle=grad;pg.fillRect(0,0,32,32);puff.update();textures.push(puff);for(const x of [-.17,.52]){const ps=new B.ParticleSystem('food-steam-'+quarter,24,scene);ps.particleTexture=puff;ps.emitter=node;ps.minEmitBox=new B.Vector3(x-.08,1.72,.09);ps.maxEmitBox=new B.Vector3(x+.08,1.75,.25);ps.color1=new B.Color4(.6,.68,.67,.11);ps.color2=new B.Color4(.55,.6,.6,.04);ps.colorDead=new B.Color4(.55,.6,.6,0);ps.minSize=.12;ps.maxSize=.32;ps.minLifeTime=.7;ps.maxLifeTime=1.5;ps.emitRate=7;ps.direction1=new B.Vector3(-.05,.22,-.04);ps.direction2=new B.Vector3(.08,.4,.05);ps.minEmitPower=.2;ps.maxEmitPower=.5;ps.updateSpeed=.03;ps.start();steam.push(ps);}}
