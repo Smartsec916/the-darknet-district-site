@@ -19,7 +19,9 @@
  let B=null,M=null,qT=null,ID=null;   // Babylon is loaded after the game scripts: taken when the first 3D scene appears
  let scene=null,before=null,after=null,current=null,lastWho=null,lastPlace=null,missed=null,last=performance.now();
  const isPlayer=n=>/^remote-player:|^player|avatar|walker/i.test(n?.name||'');
- function figures(sc){const out=[];for(const n of [...sc.transformNodes,...sc.meshes])if(n.metadata?.character&&!n.isDisposed()&&n.isEnabled()&&!isPlayer(n)&&!isPlayer(n.parent))out.push(n);return out;}
+ // VR companions (vr-suite.js) have their own attention pass; a second head turn on top of it would fight it. Never theirs (17 Nov 2026).
+ const isCompanion=n=>{for(let p=n;p;p=p.parent)if(p.metadata?.companion)return true;return false;};
+ function figures(sc){const out=[];for(const n of [...sc.transformNodes,...sc.meshes])if(n.metadata?.character&&!n.isDisposed()&&n.isEnabled()&&!isPlayer(n)&&!isPlayer(n.parent)&&!isCompanion(n))out.push(n);return out;}
  function bonesOf(node){const found={};for(const t of node.getDescendants(false)){if(!t.rotationQuaternion&&!(t instanceof B.TransformNode))continue;for(const [b] of CHAIN)if(!found[b]&&new RegExp('(^|[:_ .|])'+b+'$').test(t.name))found[b]=t;}
   if(!found.Head)for(const m of node.getChildMeshes(false)){const sk=m.skeleton;if(!sk)continue;for(const [b] of CHAIN){const bone=!found[b]&&sk.bones.find(x=>new RegExp('(^|[:_ .|])'+b+'$').test(x.name)),tn=bone?.getTransformNode?.();if(tn)found[b]=tn;}if(found.Head)break;}
   for(const b of Object.keys(found))if(!found[b].rotationQuaternion)found[b].rotationQuaternion=B.Quaternion.FromEulerVector(found[b].rotation);
