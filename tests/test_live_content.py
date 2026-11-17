@@ -286,9 +286,17 @@ class MissionRemovalSaveTests(unittest.TestCase):
         trees = json.loads(out.stdout)
         content = {'format': 'darknet-district-mission-content', 'version': 1, 'trees': trees}
         self.assertEqual(live.check(content), [])
+        eyes = content['trees'][0]['missions'][1]
+        self.assertEqual(eyes['objectives'][1]['subjects'], ['juno-vex', 'halden-reyes'])
+        self.assertEqual(eyes['objectives'][2]['subjects'], ['juno-vex', 'halden-reyes'])
+        self.assertIn('halden-reyes', json.loads((Path(__file__).resolve().parent.parent / 'void_runner_admin_inventory.json').read_text())['missionEditor']['subjects'])
         for change in [lambda m: m['objectives'][0].update(place='atlantis'), lambda m: m['objectives'][1].update(npc='nobody'), lambda m: m['objectives'][2].update(subject='nobody'),
                        lambda m: m['objectives'][0].update(via='fax'), lambda m: m['unlocks'][0].update(amount=0), lambda m: m['unlocks'][0].update(id='nobody'), lambda m: m['start'].update(accept='yes'),
-                       lambda m: m['objectives'][3].update(wrong=[{'who': 'admin', 'text': 'x'}])]:
+                       lambda m: m['objectives'][3].update(wrong=[{'who': 'admin', 'text': 'x'}]),
+                       # the photo needs Juno Vex and Halden Reyes (the owner, 17 Nov 2026): a broken list of people is refused
+                       lambda m: m['objectives'][1].update(subjects=['halden-reyes', 'juno-vex']), lambda m: m['objectives'][1].update(subjects=['juno-vex', 'nobody']),
+                       lambda m: m['objectives'][2].update(subjects=['juno-vex', 'juno-vex']), lambda m: m['objectives'][2].update(subjects='juno-vex'),
+                       lambda m: m['objectives'][3].update(subjects=['admin'])]:
             bad = copy.deepcopy(content)
             change(bad['trees'][0]['missions'][1])
             self.assertTrue(live.check(bad), 'refused')

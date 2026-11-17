@@ -200,25 +200,30 @@
    const mine=new Set(lights);for(const l of scene.lights){if(mine.has(l)||l.name==='ambient')continue;l.excludedMeshes.push(...all);excluded.push(l);}
    builtMeshes=all;
    // ---- the people (ordinary crowd looks; roles, not named characters) ----
-   // Fewer people (the owner, 17 Nov 2026, for performance and so the target is easy to find): Low 2 dancers + DJ, bartender, door + Juno Vex = 6; Medium 3 dancers, the three
-   // staff, 2 bar guests + Juno = 9; High / Ultra 4 dancers, the staff, 2 bar guests + Juno = 10. The VIP pair and the queue outside are gone. Counts: CAST_COUNTS.
+   // Fewer people (the owner, 17 Nov 2026, for performance and so the target is easy to find): Low 2 dancers + DJ, bartender, door + Juno Vex and Halden Reyes = 7; Medium 3
+   // dancers, the three staff, 2 bar guests + the pair = 10; High / Ultra 4 dancers, the staff, 2 bar guests + the pair = 11. The VIP pair and the queue outside are gone. Counts: CAST_COUNTS.
    const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,...opts});
    const cast=castCounts(quality);for(let i=0;i<cast.dancers;i++){const a=i*2.4,r=1.6+(i%3)*1.5;spot('dancer-'+i,35+Math.cos(a)*r*1.5,-58.5+Math.sin(a)*r,[35,-58.5],['dance','laugh','idle'],{dance:true,phase:i*1.3});}
-   spot('dj',dj.x-1,dj.z,[dj.x+6,dj.z],['interact','idle'],{dance:true,phase:.4,small:true});spot('bartender',BUILT.bar.x,-49.45,[BUILT.bar.x,-53],['idle']);
+   spot('dj',dj.x-1,dj.z,[dj.x+6,dj.z],['interact','idle'],{dance:true,phase:.4,small:true});spot('bartender',BUILT.bar.x,-49.45,[BUILT.bar.x,-53],['idle'],{plain:true});
    spot('door',52.3,DOOR.z-2.1,[58,DOOR.z-2.6],['watch','idle']);
-   // the two bar guests stand at the bar's west end, away from Juno's stool at the east end, so she reads as alone
-   if(cast.guests){spot('bar-guest-a',28.1,-51.3,[28.6,-49],['drink','idle']);spot('bar-guest-b',29.5,-51.35,[29,-49],['talk','idle']);}
+   // the two bar guests stand at the bar's west end, away from Juno and Halden at the east end
+   if(cast.guests){spot('bar-guest-a',28.1,-51.3,[28.6,-49],['drink','idle'],{plain:true});spot('bar-guest-b',29.5,-51.35,[29,-49],['talk','idle'],{plain:true});}
   }
   let builtMeshes=[];
-  /* JUNO VEX (the owner's Mission 002, 17 Nov 2026): a woman with a short silver bob and a long black coat, her visor pushed up, sitting alone at NULL's bar checking her
-     device. Built with the character assembler from the crowd kit (the FIXER look, the BOB hairstyle in SILVER, the coat tinted BLACK, the gear visor raised onto her
+  /* JUNO VEX (the owner's Mission 002, 17 Nov 2026): a woman with a short silver bob and a long black coat, her visor pushed up, at NULL's bar checking her device.
+     Built with the character assembler from the crowd kit (the FIXER look, the BOB hairstyle in SILVER, the coat tinted BLACK, the gear visor raised onto her
      forehead) and a small lit device in her hands. In the club for every player and at every quality; the V1 camera identifies her by name (VoidPhotoSubjects).
-     She idles seated, now and then looks round the room, and checks her device. Nobody talks to her. */
-  let juno=null,junoAsked=false;
+     HALDEN REYES (the owner, 17 Nov 2026, APPROVED): she is talking closely with him. A well-dressed corporate man in a dark corporate coat who looks out of place in NULL.
+     Built the same way from the kit (HALDEN: the TRADER look without its hat, the SHORT NEAT hair, the pinstriped suit tinted a deep midnight blue, darker and finer than anyone else's in the club). He
+     stands in front of her stool, about 0.85 m away, the two of them angled toward each other and toward the room, so a photo of Juno from the floor shows him too.
+     Mission 002's photo needs both. No dialogue for him (what Admin learns about him is the owner's to write). Nobody talks to either of them.
+     The conversation (BEATS): she talks, he listens; he talks with his hands, she listens; she glances at her device (the screen brightens) while he looks round the
+     room; and now and then both look out at the club. */
+  let juno=null,junoAsked=false,halden=null,haldenAsked=false;const pair={i:0,t:0};
   function junoBuild(){
    if(junoAsked||!root.VoidCharacterAssembler?.build)return;junoAsked=true;
    const holder=new B.TransformNode('ncz-null-juno',scene);holder.parent=built||parent;holder.position.set(JUNO.x,JUNO.y,JUNO.z);holder.rotation.y=JUNO.yaw;holder.metadata={club:'juno',photoSubject:'juno-vex'};
-   juno={holder,api:null,phase:0,state:'sit',t:0,prop:null,look:0};
+   juno={holder,api:null,state:'sit',prop:null,look:0};
    Promise.resolve(root.VoidCharacterAssembler.build(JUNO.appearance,holder,{scene,clip:'sit'})).then(api=>{
     if(disposed||!juno){api?.dispose?.();return;}juno.api=api;
     // the visor pushed up onto her forehead: the same piece, moved up and back (it is skinned to the head, so it stays there through every clip); raised onto the top of her bob, its front edge just out over the fringe
@@ -230,22 +235,40 @@
     root.VoidPhotoSubjects?.set?.('juno-vex',holder,{name:'Juno Vex',role:''});
    }).catch(e=>{try{console.warn('[VOID//RUNNER nightclub] Juno Vex could not be built:',e?.message||e);}catch{}});
   }
-  // idle, looking around (a slow turn of her head and shoulders toward the room and back), checking her device (the screen brightens, she looks down at it)
-  function junoTick(dt,near){
-   if(!juno)return;if(juno.holder.isEnabled()!==near)juno.holder.setEnabled(near);if(!near||!juno.api)return;
-   juno.t+=dt;const want=juno.state==='sit'?7:juno.state==='look'?5:6;
-   if(juno.t>want){juno.t=0;juno.phase++;juno.state=['look','sit','device','sit'][juno.phase%4];if(juno.state==='device')juno.api.play('sit-talk');else juno.api.play('sit');}
-   const k=juno.state==='look'?Math.sin(juno.t/5*Math.PI):0;juno.look+=(k*.55-juno.look)*Math.min(1,dt*3);juno.holder.rotation.y=JUNO.yaw-juno.look;
-   if(juno.prop)juno.prop.material.emissiveColor.set(.12,juno.state==='device'?.75:.45,juno.state==='device'?1:.65);}
+  function haldenBuild(){
+   if(haldenAsked||!root.VoidCharacterAssembler?.build)return;haldenAsked=true;
+   const holder=new B.TransformNode('ncz-null-halden',scene);holder.parent=built||parent;holder.position.set(HALDEN.x,HALDEN.y,HALDEN.z);holder.rotation.y=HALDEN.yaw;holder.metadata={club:'halden',photoSubject:'halden-reyes'};
+   halden={holder,api:null,clip:'idle',look:0};
+   Promise.resolve(root.VoidCharacterAssembler.build(HALDEN.appearance,holder,{scene,clip:'idle'})).then(api=>{
+    if(disposed||!halden){api?.dispose?.();return;}halden.api=api;
+    // the suit: the kit's colour taken darker, with a faint blue-black cast and a little more sheen (a finer cloth); only his own tinted copy of the material is changed
+    for(const m of api.meshes()){const mt=m.material;if(!mt||!/-tint$/.test(mt.name||'')||!/suit/i.test(m.name))continue;if(mt.albedoColor)mt.albedoColor=mt.albedoColor.multiply(new B.Color3(...HALDEN.cloth));if(typeof mt.roughness==='number')mt.roughness=HALDEN.sheen;}
+    for(const m of api.meshes())m.isPickable=false;
+    root.VoidPhotoSubjects?.set?.('halden-reyes',holder,{name:'Halden Reyes',role:''});
+   }).catch(e=>{try{console.warn('[VOID//RUNNER nightclub] Halden Reyes could not be built:',e?.message||e);}catch{}});
+  }
+  function pairTick(dt,near){
+   for(const p of [juno,halden])if(p&&p.holder.isEnabled()!==near)p.holder.setEnabled(near);if(!near)return;
+   pair.t+=dt;if(pair.t>BEATS[pair.i][2]){pair.t=0;pair.i=(pair.i+1)%BEATS.length;}
+   const [js,hs,len]=BEATS[pair.i],f=Math.min(1,pair.t/len),ease=Math.min(1,dt*3);
+   if(juno&&juno.api){if(juno.state!==js){juno.state=js;juno.api.play(js==='talk'?'sit-talk':'sit');}
+    // turned toward him while they talk; a little away, down to her device; round the room toward the door on 'look' (and back)
+    const k=js==='look'?Math.sin(f*Math.PI)*JUNO.look:js==='device'?JUNO.look*.3:0;juno.look+=(k-juno.look)*ease;juno.holder.rotation.y=JUNO.yaw-juno.look;
+    if(juno.prop)juno.prop.material.emissiveColor.set(.12,js==='device'?.75:.45,js==='device'?1:.65);}
+   if(halden&&halden.api){const clip=hs==='talk'?'talk':hs==='look'?'look':'idle';if(halden.clip!==clip){halden.clip=clip;halden.api.play(clip);}
+    const k=hs==='look'?Math.sin(f*Math.PI)*HALDEN.look:0;halden.look+=(k-halden.look)*ease;halden.holder.rotation.y=HALDEN.yaw+halden.look;}
+  }
+  const pairBuild=()=>{if(clock>2){junoBuild();haldenBuild();}};
   // (FIXER is left out of the crowd since 17 Nov 2026: Juno Vex is built on it, and a second figure with her bob and shades at the bar would not let her read as alone)
-  const CAST=['district-resident','ncz-neon','outlaw-01','hacker-01','runner-02','district-smuggler','communion-tech'],clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
+  // (the TRADER look is Halden Reyes's and is not in the crowd; the bartender and the bar guests also never wear the other men's suit, SUITED, so nobody near the pair looks like him)
+  const CAST=['district-resident','ncz-neon','outlaw-01','hacker-01','runner-02','district-smuggler','communion-tech'],SUITED=['district-smuggler','vesper-trader'],clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
   function staff(dt,near){
-   if(!people.length&&!built){if(clock>2)junoBuild();junoTick(dt,near);return;}   // the purchased model has no crowd of its own: Juno still sits at the bar
+   if(!people.length&&!built){pairBuild();pairTick(dt,near);return;}   // the purchased model has no crowd of its own: Juno and Halden are still at the bar
    if(!people.length)return;
    if(!looksAsked&&clock>3&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=true;for(const look of CAST.slice(0,5))try{Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(look,scene)).catch(()=>{});}catch{}}
-   if(clock>2)junoBuild();junoTick(dt,near);
+   pairBuild();pairTick(dt,near);
    people.forEach((p,i)=>{
-    if(!p.node){const want=p.clips[0],order=[...CAST.slice(i%CAST.length),...CAST.slice(0,i%CAST.length)];let node=null,look=null,clip=null;
+    if(!p.node){const want=p.clips[0],order=[...CAST.slice(i%CAST.length),...CAST.slice(0,i%CAST.length)].filter(c=>!(p.plain&&SUITED.includes(c)));let node=null,look=null,clip=null;
      for(const c of order){if(clipsOf(c).includes(want)&&(node=assets.instance('crowd:'+c,built))){look=c;clip=want;break;}}
      if(!node&&clock>14)for(const c of order){if((node=assets.instance('crowd:'+c,built))){look=c;clip=p.clips.find(k=>clipsOf(c).includes(k))||'idle';break;}}
      if(!node)return;p.node=node;p.look=look;p.clip=clip;p.anim=root.VoidCrowd?.animate?.(node,look,clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw;node.metadata={...node.metadata,crowd:look,club:p.id};return;}
@@ -288,14 +311,19 @@
    async warm(ready){if(disposed||!lights.length||typeof ready!=='function')return;const cap=p=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);
     // (a scene that has not drawn a frame since a change takes its shaders as still current: incrementRenderId makes it look again, as a drawn frame would)
     for(const l of lights)l.setEnabled(true);scene.incrementRenderId();await cap(ready());if(disposed)return;for(const l of lights)l.setEnabled(false);scene.incrementRenderId();await cap(ready());},
-   get model(){return model;},get juno(){return juno?{built:!!juno.api,state:juno.state,position:juno.holder.getAbsolutePosition().asArray(),enabled:juno.holder.isEnabled()}:null;},dispose(){disposed=true;if(juno){root.VoidPhotoSubjects?.remove?.('juno-vex',juno.holder);try{juno.api?.dispose?.();}catch{}try{juno.prop?.dispose();juno.holder.dispose(false,false);}catch{}juno=null;}if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
+   get model(){return model;},get juno(){return juno?{built:!!juno.api,state:juno.state,position:juno.holder.getAbsolutePosition().asArray(),enabled:juno.holder.isEnabled()}:null;},get halden(){return halden?{built:!!halden.api,clip:halden.clip,position:halden.holder.getAbsolutePosition().asArray(),enabled:halden.holder.isEnabled()}:null;},dispose(){disposed=true;if(juno){root.VoidPhotoSubjects?.remove?.('juno-vex',juno.holder);try{juno.api?.dispose?.();}catch{}try{juno.prop?.dispose();juno.holder.dispose(false,false);}catch{}juno=null;}if(halden){root.VoidPhotoSubjects?.remove?.('halden-reyes',halden.holder);try{halden.api?.dispose?.();}catch{}try{halden.holder.dispose(false,false);}catch{}halden=null;}if(built){for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();}people=[];for(const l of excluded)l.excludedMeshes=l.excludedMeshes.filter(m=>!builtMeshes.includes(m));excluded=[];for(const l of lights)l.dispose();lights=[];for(const b of beams)b.pivot.dispose(false,true);beams=[];built.dispose(false,false);built=null;builtMeshes=[];for(const o of own)o.dispose();own=[];}else unload();setOpen(false);},get people(){return people.map(p=>({id:p.id,look:p.look||null,clip:p.clip||null,spawned:!!p.node}));}};
  }
- /* How many people NULL holds at each quality (the owner, 17 Nov 2026), Juno Vex not counted here (she is always there): dancers, staff (DJ, bartender, door), bar guests. */
+ /* How many people NULL holds at each quality (the owner, 17 Nov 2026), Juno Vex and Halden Reyes not counted here (the pair is always there): dancers, staff (DJ, bartender, door), bar guests. */
  const CAST_COUNTS={low:{dancers:2,staff:3,guests:0},medium:{dancers:3,staff:3,guests:2},high:{dancers:4,staff:3,guests:2},ultra:{dancers:4,staff:3,guests:2}};
  const castCounts=q=>CAST_COUNTS[q]||CAST_COUNTS.medium;
- // Juno Vex's stool: the east end of the bar (stools at x 28.5 ... 33.5, z -51.15, 0.74 m high), sitting sideways to the bar, turned toward the room and the door so her face can be seen.
- const JUNO={x:33.55,y:.3,z:-51.35,yaw:1.9,visorUp:.095,visorBack:-.045,device:[0,.62,.32],appearance:{v:1,base:'female',look:'fixer-01',hair:'bob01',hairColor:'silver',clothingColor:'black',accessories:['gear-visor']}};
- const api={NAME,BUILT,ENTRY,CAST_COUNTS,castCounts,JUNO,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
+ // Juno Vex's stool: the east end of the bar (stools at x 28.5 ... 33.5, z -51.15, 0.74 m high), sitting sideways to the bar. Since Halden Reyes (17 Nov 2026) she is turned
+ // toward him (he stands in front of her stool, south-west, 0.85 m away), angled toward the room so both faces read from the floor; `look` turns her toward the door and back.
+ const JUNO={x:33.55,y:.3,z:-51.35,yaw:3.35,look:.95,visorUp:.095,visorBack:-.045,device:[0,.62,.32],appearance:{v:1,base:'female',look:'fixer-01',hair:'bob01',hairColor:'silver',clothingColor:'black',accessories:['gear-visor']}};
+ // Halden Reyes: standing, facing her, a little open to the room. cloth: the suit's tint (NAVY, a pinstriped suit) multiplied down to a deep midnight blue, near black; sheen: its roughness.
+ const HALDEN={x:33,y:0,z:-52,yaw:.8,look:.7,cloth:[.4,.4,.48],sheen:.42,appearance:{v:1,base:'male',look:'vesper-trader',hair:'short04',hairColor:'jet',clothingColor:'navy',accessories:[]}};
+ // The conversation, one beat at a time: [Juno, Halden, seconds]. Juno: talk / listen / device / look; Halden: talk (his hands move) / idle (listening) / look (round the room).
+ const BEATS=[['talk','idle',6],['listen','talk',7],['device','look',6],['listen','talk',6],['talk','idle',5],['look','look',5]];
+ const api={NAME,BUILT,ENTRY,CAST_COUNTS,castCounts,JUNO,HALDEN,BEATS,enabled,force:v=>{forced=v;},RECT,HALL,DOOR,FIT,ID,SRC,toWorld,inside,distance,solids,emitters,create};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightclub=api;
  // The bar: a drink, nothing more for now (no credits, no effect). Registered once the game's interaction table exists.
  if(typeof document!=='undefined'){const t=setInterval(()=>{if(!root.VoidInteractions?.register)return;clearInterval(t);root.VoidInteractions.register('club-bar',()=>{try{resumeWalking();}catch{}try{announce('The bartender slides a glass across the bar. It glows faintly. You drink it anyway.');}catch{}});},500);}

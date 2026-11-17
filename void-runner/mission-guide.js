@@ -1,7 +1,7 @@
 /* MISSION GUIDE ON FOOT (browser only): what the yellow guidance needs for place steps and photo steps (Mission 002 — Eyes on the Street, 17 Nov 2026).
    - missionPlaceRoute(g): where the yellow arrow leads for a step that names a place (places.js) or a person to photograph. From inside The Darknet District to a place
      outside it, the arrow leads out through the security vestibule first; from the street to a place inside the District, to the vestibule (world-integration.js asks).
-   - The yellow marker over the person to photograph (Juno Vex), drawn only while that photo step is in progress AND the mission is tracked. Not before, not after.
+   - The yellow marker over the person to photograph (one marker over the middle of Juno Vex and Halden Reyes), drawn only while that photo step is in progress AND the mission is tracked. Not before, not after.
    - Contextual hints for the photo and the send-a-photo steps: open the V1 (the player's own key), open Camera, take the photo, open Messages, open the conversation,
      ATTACH, SEND. Small, yellow-orange, at the top of the screen under the tracked-mission line (clear of the V1 banner at the bottom right, the KeyMap box and the [E] prompt); each goes once it is done (it follows what the player is actually doing). Every hint is tagged
      data-help="1" for the owner's future Help switch, and hidden when story.flags.helpOff is true. */
@@ -26,9 +26,11 @@
  const photoStep=()=>{try{const s=LC()?.step?.();return s&&s.tracked&&s.step&&s.step.kind==='photo'?s:null;}catch{return null;}};
  function drawSubject(){
   if(typeof mode==='undefined'||mode!=='walking'||typeof walker==='undefined'||!walker||typeof ctx==='undefined')return;
-  const s=photoStep();if(!s)return;const x=root.VoidPhotoSubjects?.get?.(s.step.npc);if(!x||!x.node||x.node.isDisposed?.()||!x.node.isEnabled?.())return;
+  // one marker for everyone the photo needs: over the person, or over the middle of a pair (Juno Vex and Halden Reyes), at the taller head's height
+  const s=photoStep();if(!s)return;const ids=Array.isArray(s.step.subjects)&&s.step.subjects.length?s.step.subjects:[s.step.npc];
+  const xs=ids.map(id=>root.VoidPhotoSubjects?.get?.(id)).filter(x=>x&&x.node&&!x.node.isDisposed?.()&&x.node.isEnabled?.());if(!xs.length)return;
   const sc=root.VoidBabylon?.scene,cam=sc?.activeCamera,B=root.BABYLON;if(!cam||!B)return;
-  const p=x.node.getAbsolutePosition(),v=new B.Vector3(p.x,p.y+1.75,p.z);if(B.Vector3.TransformCoordinates(v,cam.getViewMatrix()).z<.3)return;
+  const ps=xs.map(x=>x.node.getAbsolutePosition()),p={x:ps.reduce((a,q)=>a+q.x,0)/ps.length,y:Math.min(...ps.map(q=>q.y)),z:ps.reduce((a,q)=>a+q.z,0)/ps.length},v=new B.Vector3(p.x,p.y+1.95,p.z);if(B.Vector3.TransformCoordinates(v,cam.getViewMatrix()).z<.3)return;
   const sp=B.Vector3.Project(v,B.Matrix.Identity(),sc.getTransformMatrix(),cam.viewport.toGlobal(W,H));if(sp.x<-40||sp.x>W+40||sp.y<-40||sp.y>H+40)return;
   const d=Math.hypot(p.x-walker.x,p.z-walker.z),r=Math.max(8,Math.min(14,200/Math.max(d,1))),pulse=.85+.15*Math.sin(performance.now()/180);
   ctx.save();ctx.translate(sp.x,sp.y);ctx.shadowColor='#000';ctx.shadowBlur=8;ctx.fillStyle='#f2b33d';ctx.strokeStyle='#0b0f17';ctx.lineWidth=2.5;ctx.globalAlpha=pulse;

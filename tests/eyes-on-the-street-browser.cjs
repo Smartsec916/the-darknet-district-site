@@ -1,9 +1,9 @@
 /* MISSION 002 — EYES ON THE STREET in the real game (Chromium, software GL, offline: every API call refused, so the shipped missions are in force).
    The whole flow at 1366x768 and 1920x1080: a new character finishes Awakening (EXIT POD, Admin's call, talk to Admin) → Admin's in-person offer: NOT NOW, then talking
    again and ACCEPT → Mission Log "Eyes on the Street", tracked, the yellow arrow out through the District's vestibule and then to NULL's door → walking into NULL brings
-   Admin's Comms call (the owner's five lines) → Juno Vex at the bar with the yellow marker over her and the hints (open the V1 / Camera / take the picture) → a photo of
-   the wrong person, then a valid photo of Juno (left click in the camera) → Messages > Admin's conversation: ATTACH the wrong photo, SEND → "That's not the person...",
-   ATTACH the right photo, SEND → "Received..." → back to Admin in the District → "Not bad..." and the reward (100 credits, better standing with Admin), paid once.
+   Admin's Comms call (the owner's five lines) → Juno Vex at the bar talking with Halden Reyes, the yellow marker over the pair, and the hints (open the V1 / Camera / take
+   the picture) → a photo of the wrong person, a photo of Juno ALONE (Halden out of the frame: does not count), then a valid photo of both (left click in the camera; the
+   camera tags both by name) → Messages > Admin's conversation: ATTACH the wrong photo, SEND → "That's not the person...", the same for Juno alone, ATTACH the right photo, SEND → "Received..." → back to Admin in the District → "Not bad..." and the reward (100 credits, better standing with Admin), paid once.
    Usage: node tests/eyes-on-the-street-browser.cjs   (its own static server on a free port; SITE_TEST_URL to use another; SHOTS=dir; BROWSER_EXECUTABLE=path; SIZES=1366;
    QUALITY=low|medium|high) */
 'use strict';
@@ -81,12 +81,16 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'The owner\'s five lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
    await page.locator('[data-hangup]').dispatchEvent('click');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    s=await S();assert.equal(s.log[0].objective,'Photograph the target.');assert.equal(s.hint&&s.hint.id,'open','hint: open the V1');assert.match(s.hint.text,/Press L to open your V1/);
-   // ---- Juno Vex and her marker
-   await page.waitForFunction(()=>!!VoidPhotoSubjects.get('juno-vex')&&VoidPhotoSubjects.get('juno-vex').node.getChildMeshes().length>4,null,{timeout:240000});
+   // ---- Juno Vex, Halden Reyes and the marker over the pair
+   await page.waitForFunction(()=>['juno-vex','halden-reyes'].every(id=>!!VoidPhotoSubjects.get(id)&&VoidPhotoSubjects.get(id).node.getChildMeshes().length>4),null,{timeout:240000});
+   const pairAt=await page.evaluate(()=>{const a=VoidPhotoSubjects.get('juno-vex').node.getAbsolutePosition(),b=VoidPhotoSubjects.get('halden-reyes').node.getAbsolutePosition();return {d:Math.hypot(a.x-b.x,a.z-b.z),mid:[(a.x+b.x)/2,(a.z+b.z)/2],j:[a.x,a.z],h:[b.x,b.z]};});
+   log('the pair '+JSON.stringify(pairAt));assert.ok(pairAt.d>=.6&&pairAt.d<=.9,'Juno and Halden close together');
+   const facePair=(x,z)=>page.evaluate(([x,z,m])=>{Object.assign(walker,{x,z,yaw:Math.atan2(m[0]-x,m[1]-z),pitch:-.1});},[x,z,pairAt.mid]);
    const J=await page.evaluate(()=>VoidNightclub.JUNO);
    const face=(x,z)=>page.evaluate(([x,z,J])=>{const p=VoidPhotoSubjects.get('juno-vex').node.getAbsolutePosition();Object.assign(walker,{x,z,yaw:Math.atan2(p.x-x,p.z-z),pitch:-.1});},[x,z,J]);
    await face(39.5,-55.5);await page.waitForTimeout(4000);w=await way();assert.deepEqual(w.g,{kind:'local',label:'Photograph the target.',place:'null',target:'juno-vex'});
-   const mark=await page.evaluate(()=>performance.now()-VoidMissionGuide.markerShown);assert.ok(mark<2000,'the yellow marker is drawn over Juno while the step is active and tracked');await shot('juno-marker');
+   const mark=await page.evaluate(()=>performance.now()-VoidMissionGuide.markerShown);assert.ok(mark<2000,'the yellow marker is drawn over the pair while the step is active and tracked');await shot('juno-marker');
+   await facePair(36.2,-54.6);await page.waitForTimeout(2500);await shot('pair');
    await page.evaluate(()=>VoidMissions.untrack(state));await page.waitForTimeout(1200);const before=await page.evaluate(()=>VoidMissionGuide.markerShown);await page.waitForTimeout(1200);assert.equal(await page.evaluate(()=>VoidMissionGuide.markerShown),before,'no marker when the mission is not tracked');
    await page.evaluate(id=>VoidMissions.track(state,id,C),ID);
    // ---- a photo of the wrong person (facing the DJ, Juno out of the frame), then a valid one
@@ -99,9 +103,21 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    const wrong=await click();log('wrong photo '+JSON.stringify(wrong.meta));assert.ok(wrong.meta,'the checks are kept with the photo');assert.ok(!wrong.meta.subjects.some(x=>x.id==='juno-vex'&&x.valid),'Juno is not in this one');if(!wrong.meta.subjects.some(x=>x.id==='dj-vanta'&&x.valid))log('note: the DJ was not judged a valid subject in the wrong photo');assert.equal(wrong.meta.place,'null');assert.deepEqual(wrong.meta.during,[ID+'/photograph']);
    assert.equal((await S()).rec.objectives.photograph,undefined,'a wrong photo does not complete the step');
    await page.keyboard.press('KeyB');await page.waitForFunction(()=>!VoidDeviceCamera.active);
-   await face(37.2,-55.2);await camera();assert.equal((await S()).hint.id,'shoot','hint: left click');
-   await page.waitForFunction(()=>VoidDeviceCamera.tags.some(t=>t.name==='Juno Vex'),null,{timeout:30000});await shot('camera-juno');
-   const good=await click();log('good photo '+JSON.stringify(good.meta));const j=good.meta.subjects.find(x=>x.id==='juno-vex');assert.ok(j&&j.valid,'a valid photo of Juno: '+JSON.stringify(good.meta.subjects));assert.ok(j.dist<=15);
+   // Juno ALONE: close to the pair, side on, Juno in the middle of the frame and Halden out of it (the zoom at 2x). Found by trying aims with the camera's own judge.
+   await camera();await page.mouse.move(Math.round(W/2),Math.round(H/2));for(let i=0;i<3;i++){await page.mouse.wheel(0,-120);await page.waitForTimeout(250);}
+   const alone=await page.evaluate(async([j,h])=>{const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const mx=(j[0]+h[0])/2,mz=(j[1]+h[1])/2,dx=j[0]-h[0],dz=j[1]-h[1],L=Math.hypot(dx,dz),px=dz/L,pz=-dx/L;
+    for(const r of [1.2,1.5,1.0,1.8])for(const side of [1,-1])for(const along of [.3,.6,0]){const x=mx+px*r*side+dx/L*along,z=mz+pz*r*side+dz/L*along,base=Math.atan2(j[0]-x,j[1]-z);
+     for(const off of [0,.08,-.08,.16,-.16,.24,-.24,.32,-.32]){Object.assign(walker,{x,z,yaw:base+off,pitch:-.12,vx:0,vz:0});await frame();await frame();const c=VoidDeviceCamera.capture(),J=c&&c.subjects.find(s=>s.id==='juno-vex'),Hn=c&&c.subjects.find(s=>s.id==='halden-reyes');
+      if(J&&J.valid&&!(Hn&&Hn.valid))return {x,z,yaw:base+off,halden:Hn||null};}}return null;},[pairAt.j,pairAt.h]);
+   log('Juno alone at '+JSON.stringify(alone));assert.ok(alone,'an aim that shows Juno without Halden exists');await page.evaluate(a=>Object.assign(walker,{x:a.x,z:a.z,yaw:a.yaw,pitch:-.12}),alone);await page.waitForTimeout(800);await shot('camera-juno-alone');
+   const solo=await click();log('Juno alone '+JSON.stringify(solo.meta));assert.ok(solo.meta.subjects.some(x=>x.id==='juno-vex'&&x.valid),'Juno is in it');assert.ok(!solo.meta.subjects.some(x=>x.id==='halden-reyes'&&x.valid),'Halden is not');
+   await page.waitForTimeout(1500);assert.equal((await S()).rec.objectives.photograph,undefined,'a photo of Juno alone does not complete the step');
+   await page.keyboard.press('KeyB');await page.waitForFunction(()=>!VoidDeviceCamera.active);
+   // both of them: from the floor, the pair in the middle of the frame; the camera tags both by name
+   await facePair(37.2,-55.2);await camera();assert.equal((await S()).hint.id,'shoot','hint: left click');assert.equal(await page.evaluate(()=>VoidDeviceCamera.zoom),1,'the zoom is back at 1x when the camera opens again');
+   await page.waitForFunction(()=>['Juno Vex','Halden Reyes'].every(n=>VoidDeviceCamera.tags.some(t=>t.name===n)),null,{timeout:30000});await shot('camera-juno');
+   const good=await click();log('good photo '+JSON.stringify(good.meta));const j=good.meta.subjects.find(x=>x.id==='juno-vex'),hr=good.meta.subjects.find(x=>x.id==='halden-reyes');assert.ok(j&&j.valid,'a valid photo of Juno: '+JSON.stringify(good.meta.subjects));assert.ok(j.dist<=15);
+   assert.ok(hr&&hr.valid&&hr.dist<=15,'and of Halden Reyes, in the same photo');assert.ok(good.tags.some(t=>t.name==='Juno Vex')&&good.tags.some(t=>t.name==='Halden Reyes'),'both tags drawn into the photo');
    await page.waitForFunction(id=>state.universe.missions[id]?.objectives.photograph===true,ID,{timeout:30000});
    await page.keyboard.press('KeyB');await page.waitForFunction(()=>!VoidDeviceCamera.active);s=await S();assert.equal(s.log[0].objective,'Send the photo to Admin.');assert.equal(s.hint.id,'open');
    // ---- Messages: Admin's conversation, ATTACH, SEND
@@ -110,9 +126,12 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await page.waitForFunction(()=>VoidPersonalDevice.app==='messages'&&!VoidPersonalDevice.busy);assert.equal((await S()).hint.id,'thread');
    await page.locator('#personal-device [data-thread=admin]').dispatchEvent('click');await page.waitForFunction(()=>VoidPersonalDevice.thread==='admin'&&!VoidPersonalDevice.busy);assert.equal((await S()).hint.id,'attach');
    const send=async id=>{await page.locator('#personal-device [data-attach-open]').dispatchEvent('click');await page.locator('#personal-device [data-attach-photo="'+id+'"]').waitFor();await page.locator('#personal-device [data-attach-photo="'+id+'"]').dispatchEvent('click');
-    await page.locator('#personal-device [data-attach-form]').waitFor();await page.waitForTimeout(400);assert.equal((await S()).hint.id,'send');return page.locator('#personal-device [data-attach-send]').click();};
+    await page.locator('#personal-device [data-attach-form]').waitFor();await page.waitForFunction(()=>VoidMissionGuide.hint?.id==='send',null,{timeout:5000}).catch(()=>{});assert.equal((await S()).hint.id,'send');return page.locator('#personal-device [data-attach-send]').click();};
+   const nots=()=>page.evaluate(()=>((document.querySelector('#personal-device [data-thread-log]')?.innerText||'').match(/That's not the person I'm looking for\. Check the description and try again\./g)||[]).length);
    await send(wrong.id);await page.waitForFunction(()=>/That's not the person I'm looking for\. Check the description and try again\./.test(document.querySelector('#personal-device [data-thread-log]')?.innerText||''),null,{timeout:30000});
    assert.equal((await S()).rec.objectives['send-photo'],undefined,'no fail, try again');await shot('wrong-photo-reply');
+   const n1=await nots();await send(solo.id);await page.waitForFunction(n=>((document.querySelector('#personal-device [data-thread-log]')?.innerText||'').match(/That's not the person I'm looking for/g)||[]).length>n,n1,{timeout:30000});
+   assert.equal((await S()).rec.objectives['send-photo'],undefined,'Juno alone is refused too');
    await send(good.id);await page.waitForFunction(()=>/Received\. That's exactly what I needed\. Come back when you're ready\./.test(document.querySelector('#personal-device [data-thread-log]')?.innerText||''),null,{timeout:30000});
    s=await S();assert.equal(s.rec.objectives['send-photo'],true);assert.equal(s.log[0].objective,'Return to Admin.');await shot('received');
    await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);

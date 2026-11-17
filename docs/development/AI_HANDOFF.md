@@ -6,7 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 17 Nov 2026 (newest): MISSION 002 — EYES ON THE STREET; THE AWAKENING TREE; PLACES, PHOTOS, MESSAGES, REPUTATION (branch `claude/eyes-on-the-street`, build `2026-11-17-eyes-1`, pushed, NO PR, not merged)
+### 17 Nov 2026 (newest): HALDEN REYES IN MISSION 002 (branch `claude/halden-reyes`, build `2026-11-17-halden-1`, pushed, NO PR, not merged)
+
+The owner's decision (APPROVED, `VOID_RUNNER_HANDOFF.md` §11): at NULL Juno Vex is talking closely with **Halden Reyes**, a well-dressed corporate man; the Mission 002 photo counts only with both. Record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourth pass" (Halden Reyes).
+
+- **Built:** `halden-reyes` from the character kit (TRADER look, no hat, short neat jet hair, suit tinted deep midnight blue), standing 0.85 m from Juno's stool, the two angled toward each other; a conversation loop (talk, listen, her device, glances at the room). The camera names him "Halden Reyes". Photo and send-a-photo steps take `subjects` (one or more, all in the same photo; editor tick boxes; same check on the server `void_runner_live_content.py`); 002 requires `[juno-vex, halden-reyes]`. One marker over the middle of the pair. NULL: Low 7 / Medium 10 / High-Ultra 11. No dialogue for Halden; what Admin learns about him is the owner's to write.
+- **Not verified:** real hardware (software renderer only); High / Ultra in the browser test (Low only); the purchased NULL model variant; VR. The kit has no long coat (his is the suit jacket).
+
+### 17 Nov 2026: MISSION 002 — EYES ON THE STREET; THE AWAKENING TREE; PLACES, PHOTOS, MESSAGES, REPUTATION (branch `claude/eyes-on-the-street`, build `2026-11-17-eyes-1`, pushed, NO PR, not merged)
 
 The owner's agreed Awakening Tree script (APPROVED, verbatim in `VOID_RUNNER_HANDOFF.md` §11). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourth pass".
 

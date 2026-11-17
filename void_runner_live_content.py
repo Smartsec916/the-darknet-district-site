@@ -69,6 +69,9 @@ def owner(uid, allowed, need=None):
         raise DraftError('The re-voice queue is switched off on the server.', 404)
 
 
+PHOTO_SUBJECTS = 6  # at most this many people required in one photo (mission-content.js LIMIT.subjects)
+
+
 def _plain(value, limit):
     return isinstance(value, str) and value.strip() != '' and len(value) <= limit and not TAGS.search(value)
 
@@ -421,7 +424,7 @@ def check_trees(trees, inv, err):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'wrong', 'via']):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via']):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))
@@ -453,6 +456,15 @@ def check_trees(trees, inv, err):
                     err(ow + ': the photo must go to a known NPC and show someone the camera can identify.')
                 if o.get('subject') is not None and kind != 'send-photo':
                     err(ow + ': only a send-a-photo step names who must be in the photo.')
+                many = o.get('subjects')
+                if many is not None:
+                    # several people who must all be in the same photo (Mission 002: Juno Vex and Halden Reyes); the first is the one chosen above
+                    one = o.get('npc') if kind == 'photo' else o.get('subject')
+                    if kind not in ('photo', 'send-photo'):
+                        err(ow + ': only a photo step or a send-a-photo step names several people.')
+                    elif (not isinstance(many, list) or not 1 <= len(many) <= PHOTO_SUBJECTS or len(set(map(str, many))) != len(many)
+                          or not all(isinstance(x, str) and x in subjects for x in many) or many[0] != one):
+                        err(ow + ': the people in the photo must be 1 to %d different people the V1 camera can identify, the first one chosen above.' % PHOTO_SUBJECTS)
                 if o.get('wrong') is not None and kind != 'send-photo':
                     err(ow + ': only a send-a-photo step has a reply for the wrong photo.')
                 via = o.get('via')

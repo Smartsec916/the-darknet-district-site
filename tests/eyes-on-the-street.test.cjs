@@ -102,25 +102,27 @@ test('photo checks: in the frame, roughly centred, within 15 m, not blocked; the
  const meta=Gal.cleanMeta({subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.34},{id:'<x>',valid:true},{id:'dj-vanta',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph','bad step'],at:5,extra:1});
  assert.deepEqual(meta,{subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.3},{id:'dj-vanta',name:'',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph'],at:5});assert.equal(Gal.cleanMeta(null),null,'an older photo has no checks');
 });
-test('step 2: a valid capture of Juno during the step completes it; others do not; what the camera records as "during"',()=>{
+test('step 2: a valid capture of Juno AND Halden Reyes (the same photo) during the step completes it; Juno alone, him alone or others do not; what the camera records as "during"',()=>{
  const x=env(),s=accepted(x);place(x,s,'null');
  assert.deepEqual(x.MC.during(s,x.e),[ID+'/photograph']);
  assert.equal(ev(x,s,{type:'photo',subjects:['dj-vanta']}).objective,null,'someone else');assert.equal(ev(x,s,{type:'photo',subjects:[]}).objective,null,'a photo that does not really show her');
- const r=ev(x,s,{type:'photo',subjects:['juno-vex']});assert.deepEqual(r.done,['photograph']);assert.deepEqual(x.MC.during(s,x.e),[ID+'/send-photo']);
- assert.equal(ev(x,s,{type:'photo',subjects:['juno-vex']}).objective,null,'no repeat');
+ assert.equal(ev(x,s,{type:'photo',subjects:['juno-vex']}).objective,null,'Juno alone (Halden out of the frame or blocked) is not enough');assert.equal(ev(x,s,{type:'photo',subjects:['halden-reyes','dj-vanta']}).objective,null,'Halden without her');
+ const r=ev(x,s,{type:'photo',subjects:['halden-reyes','juno-vex']});assert.deepEqual(r.done,['photograph']);assert.deepEqual(x.MC.during(s,x.e),[ID+'/send-photo']);
+ assert.equal(ev(x,s,{type:'photo',subjects:['juno-vex','halden-reyes']}).objective,null,'no repeat');
 });
 test('step 3: sending the photo to Admin; the wrong photo is refused (unlimited tries, no fail); the right one completes it once',()=>{
- const x=env(),s=accepted(x);place(x,s,'null');ev(x,s,{type:'photo',subjects:['juno-vex']});
- const DURING=[ID+'/photograph'],wrong=[['wrong person',photo([['dj-vanta',true]],DURING)],['not really her',photo([['juno-vex',false]],DURING)],['taken earlier',photo([['juno-vex',true]],[ID+'/enter-null'])],['an old photo',{subjects:[{id:'juno-vex',valid:true}]}],['no checks',null]];
+ const x=env(),s=accepted(x);place(x,s,'null');ev(x,s,{type:'photo',subjects:['juno-vex','halden-reyes']});
+ const H=['halden-reyes',true],DURING=[ID+'/photograph'],wrong=[['wrong person',photo([['dj-vanta',true]],DURING)],['Juno alone',photo([['juno-vex',true]],DURING)],['Juno, Halden blocked',photo([['juno-vex',true],['halden-reyes',false]],DURING)],['Halden alone',photo([H],DURING)],['not really her',photo([['juno-vex',false],H],DURING)],['taken earlier',photo([['juno-vex',true],H],[ID+'/enter-null'])],['an old photo',{subjects:[{id:'juno-vex',valid:true},{id:'halden-reyes',valid:true}]}],['no checks',null]];
  for(const [why,p] of wrong){const r=ev(x,s,{type:'send-photo',to:'admin',photo:p});assert.equal(r.reply.ok,false,why);assert.equal(r.reply.lines[0].text,'That\'s not the person I\'m looking for. Check the description and try again.');assert.deepEqual(r.done,[]);}
  assert.equal(ev(x,s,{type:'send-photo',to:'iris',photo:photo([['juno-vex',true]],DURING)}).reply,undefined,'Iris is not waiting for it');
- const ok=ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],['dj-vanta',true]],DURING)});assert.deepEqual(ok.done,['send-photo']);assert.equal(ok.reply.ok,true);assert.equal(ok.reply.lines[0].text,'Received. That\'s exactly what I needed. Come back when you\'re ready.');assert.deepEqual(ok.lines,[]);
- const again=ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true]],DURING)});assert.equal(again.reply,undefined,'no duplicate completion');assert.deepEqual(again.done,[]);
- assert.equal(x.MC.photoOk(photo([['juno-vex',true]],DURING),'juno-vex',x.MS.EYES),true);
+ const ok=ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],['dj-vanta',true],H],DURING)});assert.deepEqual(ok.done,['send-photo']);assert.equal(ok.reply.ok,true);assert.equal(ok.reply.lines[0].text,'Received. That\'s exactly what I needed. Come back when you\'re ready.');assert.deepEqual(ok.lines,[]);
+ const again=ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],H],DURING)});assert.equal(again.reply,undefined,'no duplicate completion');assert.deepEqual(again.done,[]);
+ assert.equal(x.MC.photoOk(photo([['juno-vex',true]],DURING),'juno-vex',x.MS.EYES),true,'one person still works for a one-person step');assert.equal(x.MC.photoOk(photo([['juno-vex',true]],DURING),['juno-vex','halden-reyes'],x.MS.EYES),false);
+ assert.equal(x.MC.photoOk(photo([['juno-vex',true],H],DURING),['juno-vex','halden-reyes'],x.MS.EYES),true);assert.deepEqual(x.MC.photoNeed(x.MS.EYES.objectives[1]),['juno-vex','halden-reyes']);assert.deepEqual(x.MC.photoNeed(x.MS.EYES.objectives[2]),['juno-vex','halden-reyes']);
  assert.deepEqual(x.M.guidance(s,x.M.tracked(s,x.C),true),{kind:'local',label:'Return to Admin.',interaction:'admin'},'the arrow back to Admin');
 });
 test('step 4 and the reward: Admin\'s line, 100 credits and better standing with Admin, paid once; the save keeps it',()=>{
- const x=env(),s=accepted(x);place(x,s,'null');ev(x,s,{type:'photo',subjects:['juno-vex']});ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true]],[ID+'/photograph'])});
+ const x=env(),s=accepted(x);place(x,s,'null');ev(x,s,{type:'photo',subjects:['juno-vex','halden-reyes']});ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],['halden-reyes',true]],[ID+'/photograph'])});
  const credits=s.credits,r=talk(x,s,'admin');
  assert.deepEqual(r.done,['return']);assert.equal(r.completed,true);assert.equal(r.lines[0].text,'Not bad. You can follow instructions and keep a low profile. I might have more work for you.');
  assert.equal(r.reward,100);assert.equal(s.credits,credits+100);assert.equal(s.story.relationships.admin,10);assert.deepEqual(r.notes,['BETTER STANDING WITH ADMIN']);
@@ -169,13 +171,30 @@ test('server parity: the admin inventory lists the places, the people the camera
  assert.ok(inv.subjects.includes('juno-vex'));assert.deepEqual(inv.factions,G.FACTIONS);assert.ok(inv.stepKinds.includes('send-photo'));assert.ok(inv.unlockKinds.includes('reputation'));
  const py=fs.readFileSync(R('void_runner_progression.py'),'utf8');for(const f of G.FACTIONS)assert.ok(py.includes("'"+f+"'"),'the server keeps faction standing for '+f);
 });
-test('NULL: the cast per quality (the owner\'s table); Juno Vex is always there; no VIP pair or queue',()=>{
- const NC=require(R('void-runner/ncz-nightclub.js')),total=q=>{const c=NC.castCounts(q);return c.dancers+c.staff+c.guests+1;};
- assert.deepEqual(['low','medium','high','ultra'].map(total),[6,9,10,10]);
+test('NULL: the cast per quality (the owner\'s table); Juno Vex and Halden Reyes are always there; no VIP pair or queue',()=>{
+ const NC=require(R('void-runner/ncz-nightclub.js')),total=q=>{const c=NC.castCounts(q);return c.dancers+c.staff+c.guests+2;};
+ assert.deepEqual(['low','medium','high','ultra'].map(total),[7,10,11,11]);
  const src=fs.readFileSync(R('void-runner/ncz-nightclub.js'),'utf8');assert.ok(!/spot\('(vip|queue)-/.test(src),'the VIP pair and the outside queue are gone');assert.ok(!/'fixer-01'.*CAST|CAST=\[[^\]]*'fixer-01'/.test(src),'no crowd figure shares Juno\'s look');
  const j=NC.JUNO;assert.deepEqual(j.appearance,{v:1,base:'female',look:'fixer-01',hair:'bob01',hairColor:'silver',clothingColor:'black',accessories:['gear-visor']});
  assert.ok(j.x>=NC.BUILT.solid[0].x0&&j.x<=NC.BUILT.solid[0].x1&&j.z<NC.BUILT.solid[0].z0,'on a stool at the bar');assert.ok(Math.abs(j.x-28.8)>3,'apart from the bar guests at the west end');
  const A=require(R('void-runner/character-appearance.js'));assert.equal(A.validate(j.appearance),true,'a look the character kit can build');
+ // Halden Reyes: a man in the kit's suit (TRADER, no hat), tinted dark; beside Juno, 0.6 to 0.9 m, turned toward her (and she toward him)
+ const h=NC.HALDEN,d=Math.hypot(h.x-j.x,h.z-j.z);assert.equal(A.validate(h.appearance),true);assert.equal(h.appearance.base,'male');assert.equal(h.appearance.look,'vesper-trader');assert.deepEqual(h.appearance.accessories,[]);
+ assert.ok(d>=.6&&d<=.9,'close together: '+d);const facing=(yaw,fx,fz,tx,tz)=>Math.cos(yaw-Math.atan2(tx-fx,tz-fz));assert.ok(facing(h.yaw,h.x,h.z,j.x,j.z)>.9,'he faces her');assert.ok(facing(j.yaw,j.x,j.z,h.x,h.z)>.8,'she is turned toward him');
+ assert.ok(h.cloth.every(c=>c<.6),'his suit is darker than the kit colour');assert.ok(!/CAST=\[[^\]]*'vesper-trader'/.test(src),'nobody in the crowd wears his look');
+ assert.match(src,/spot\('bartender'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-a'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-b'[^;]*\{plain:true\}\)/);assert.match(src,/SUITED=\['district-smuggler','vesper-trader'\]/);
+ assert.ok(NC.BEATS.some(b=>b[0]==='device')&&NC.BEATS.some(b=>b[0]==='talk'&&b[1]!=='talk')&&NC.BEATS.some(b=>b[1]==='talk'),'they take turns talking, and she still checks her device');
+});
+test('several people in one photo: the editor keeps them in `subjects`, the check accepts them, the draft runs them',()=>{
+ const x=env(),{MC,G}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:G.placeIds(),subjects:new Set(G.photoSubjects(x.e.givers).map(g=>g.id))};
+ assert.ok(ctx.subjects.has('halden-reyes'),'the camera identifies Halden Reyes');assert.equal(x.e.givers.find(g=>g.id==='halden-reyes').canTalk,false,'nobody talks to him');
+ const story=MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,doc=t=>({format:MC.FORMAT,version:MC.VERSION,trees:t?[...story,t]:story});
+ const eyes=story[0].missions.find(m=>m.id===ID);assert.deepEqual(eyes.objectives[1].subjects,['juno-vex','halden-reyes'],'published with both');assert.deepEqual(eyes.objectives[2].subjects,['juno-vex','halden-reyes']);
+ assert.equal(MC.check(doc(),ctx).ok,true,'the shipped tree passes');
+ const tree={id:'draft-pair',name:'Pair',missions:[{id:'draft-pair-m1',number:9,title:'P',type:'side',giver:'iris',objectives:[{id:'p',label:'Photograph them',kind:'photo',npc:'rin-takeda',subjects:['rin-takeda','juno-vex']},{id:'s',label:'Send it',kind:'send-photo',npc:'iris',subject:'rin-takeda',subjects:['rin-takeda','juno-vex'],say:[{who:'iris',text:'TEST ok.'}]}]}]};
+ assert.equal(MC.check(doc(tree),ctx).ok,true,JSON.stringify(MC.check(doc(tree),ctx).errors||''));
+ for(const f of [o=>{o.subjects=['juno-vex','rin-takeda'];},o=>{o.subjects=['rin-takeda','nobody'];},o=>{o.subjects=['rin-takeda','rin-takeda'];},o=>{o.subjects=[];},o=>{o.subjects='rin-takeda';},o=>{o.subjects=Array(7).fill(0).map((_,i)=>'rin-takeda'+i);}]){const t=MC.clone(tree);f(t.missions[0].objectives[0]);assert.equal(MC.check(doc(t),ctx).ok,false,f.toString());}
+ {const t=MC.clone(tree);t.missions[0].objectives.push({id:'t',label:'x',kind:'talk',npc:'iris',subjects:['iris']});assert.equal(MC.check(doc(t),ctx).ok,false,'only photo steps name several people');}
 });
 test('hints: the next thing to do, from the player\'s real state, the key from the binding; tagged for the Help switch',()=>{
  const src=fs.readFileSync(R('void-runner/mission-guide.js'),'utf8');assert.match(src,/hint\.dataset\.help='1'/);
