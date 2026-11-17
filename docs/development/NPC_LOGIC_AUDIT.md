@@ -26,7 +26,7 @@ A local Babylon browser run on this commit entered the District interior with AP
 ## Architecture and feature status
 
 - **Tier 1 works in several forms.** `crowd.js` chooses and controls clips, including culling and animation variants. `ncz-outskirts-life.js` plans static and short-route residents. `babylon-renderer.js` drives station activity actors.
-- **Tier 2 is partial.** `district-life.js` completes home â†’ destination â†’ destination â†’ home movement for seven residents. At the arcade and store, arrival selects an animation and timed stay. There is no purchase or inventory transaction. Bar oxygen mask behavior is visible. No system-wide Tier 2 ratio exists in these modules.
+- **Tier 2 is partial.** `district-life.js` completes home Ã¢â€ â€™ destination Ã¢â€ â€™ destination Ã¢â€ â€™ home movement for seven residents. At the arcade and store, arrival selects an animation and timed stay. There is no purchase or inventory transaction. Bar oxygen mask behavior is visible. No system-wide Tier 2 ratio exists in these modules.
 - **Tier 3 is partial.** `dax.js` produces a shared-by-clock route and device eye effect. The file explicitly defers player memory, dialogue, recruitment, bounty behavior and life outside the District. No active API-backed NPC decision loop was found in these modules.
 - **Navigation is authored.** District routines and Dax use manually specified hallway routes. Outskirts walkers move between two coordinates. These are neither navmesh paths nor dynamic obstacle avoidance. Station activities use their own activity points. A cross-location NPC route network was not found.
 - **Animation is functional but specialized.** `crowd.js` blends and avoids restarting a playing clip. `anim-library.js` applies compatible licensed motion to a model's skeleton. The renderer maps activity states to clips. Eating, photographing, sneaking and prop handoff synchronization have no demonstrated generic implementation.
@@ -36,7 +36,7 @@ A local Babylon browser run on this commit entered the District interior with AP
 
 ## Performance
 
-The District smoke run measured scene size and playing groups only. It is insufficient for per-NPC CPU or GPU conclusions. `tests/perf-crowd-browser.cjs` contains a controlled `Scene.animate()` benchmark and a visible-crowd check. Run it on the baseline and a candidate change before prioritizing animation optimizations. The Outskirts caps populations by graphics tier and skips far-away actors. Counts of 25, 50 and 100 are not supported by that population and should not be fabricated from it.
+The District smoke run measured scene size and playing groups only. It is insufficient for per-NPC CPU or GPU conclusions. The existing performance script first failed because its Chromium Headless Shell was not installed. A temporary Edge-channel copy did not reach its benchmark output during the observation window and was stopped. No performance result is claimed. `tests/perf-crowd-browser.cjs` contains a controlled `Scene.animate()` benchmark and a visible-crowd check. Run it on the baseline and a candidate change before prioritizing animation optimizations. The Outskirts caps populations by graphics tier and skips far-away actors. Counts of 25, 50 and 100 are not supported by that population and should not be fabricated from it.
 
 ## Prioritized work
 
