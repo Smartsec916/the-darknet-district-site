@@ -394,7 +394,7 @@
       "reputation"
     ]
   },
-  "revision": "8bd7e5efe7b80fd7",
+  "revision": "69265b28c6a92d63",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -15655,7 +15655,7 @@
     "void-runner/account.js": "ab3f6e8a5e42651cddb4e84975b5341f0fda57b3e0d4a2ce079b1848e89806a4",
     "void-runner/achievements.js": "c9fcfe10ff0b63159be95d0b2e139ac3dcc3848080d80f40f50589148fddf200",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
-    "void-runner/ad-screens-data.js": "43ffb7a1a485ef06b8e32e9a61e59234e14dca574464889f9ae1f53b63cadc7a",
+    "void-runner/ad-screens-data.js": "bbdb0ddd518b7abf30b85125f2a1aaa7a54331626581a23ea7282f4b4512c47a",
     "void-runner/ad-screens.js": "c8e07956069c4ff4a8489f2a2fd38054817c847e9904534d7f612781d2f5208c",
     "void-runner/anim-library.js": "80f7b4684feb97267eb60508861bd64113d35a6bacd156861a9178d522c7486a",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
@@ -15844,7 +15844,7 @@
     "void-runner/vr-suite-room.js": "fdf9fd1fea29a2d8683739b3732db6f32c6f2af654838ace9f2741343ea32947",
     "void-runner/vr-suite.js": "8a4ea0f657a73441f47b0b2aaee91037ff0c3aaa527a58a0710df28302010d0c",
     "void-runner/vr-tropical.js": "76e15aff1babbcd5a065bc75e3f7285f26dbbc496780f5326ff3a4794f83354a",
-    "void-runner/warflying-board.js": "b76c54fe33389a0336543392e08ada80ad47bdfa7e1fc9b0f94c52eec4bc7a21",
+    "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",

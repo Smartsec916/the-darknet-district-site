@@ -1,6 +1,6 @@
 # Shared Sleeping Pod music and administrator publishing
 
-The public catalog is `void-runner/music-catalog.js`. The website Sleeping Pod and the 3D Sleeping Pod read its published entries in the same order and stream the same files from `attached_assets/`. The 27 existing MP3 files remain where they are; no audio was copied. The website keeps its current shuffled playback. The game offers the same hosted playlist by default, as David requested. **My music** remains local to the player's browser. The 2025 Riffusion rights question remains open.
+The public catalog is `void-runner/music-catalog.js`. The website Sleeping Pod and the 3D Sleeping Pod read its published entries in the same order and stream the same files from `attached_assets/`. The 27 existing MP3 files remain where they are; no audio was copied. The website keeps its current shuffled playback. The game offers the same hosted playlist by default, as the owner requested. **My music** remains local to the player's browser. The 2025 Riffusion rights question remains open.
 
 GitHub Pages is a static host and cannot receive authenticated browser uploads. The existing game API uses Firebase identity and a configured developer allowlist, but has no managed media store or GitHub publishing credential. A client-only Music Manager would allow unauthorized writes if it had any publishing capability, so no upload or edit controls are enabled yet.
 

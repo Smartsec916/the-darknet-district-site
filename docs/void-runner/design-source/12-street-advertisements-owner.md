@@ -1,31 +1,31 @@
-# Street advertisement examples (David, 16 Nov 2026)
+# Street advertisement examples (the owner, 16 Nov 2026)
 
-David's own lines, sent as "some advertisement examples" for the reworked advertisement screens. They are his approved wording: use them verbatim, do not rewrite them, and do not invent more in their style without a proposal.
+The owner's own lines, sent as "some advertisement examples" for the reworked advertisement screens. They are his approved wording: use them verbatim, do not rewrite them, and do not invent more in their style without a proposal.
 
-## David's direction for the screens
+## The owner's direction for the screens
 
 - Screens scroll and are read aloud by a voice, with sound coming from the screen's place.
-- Voices: news-broadcaster style, cheesy and over-dramatic; more than one reader, including a female voice for other news, so it is not always the same voice. David picks the voices by ear (audition first).
+- Voices: news-broadcaster style, cheesy and over-dramatic; more than one reader, including a female voice for other news, so it is not always the same voice. The owner picks the voices by ear (audition first).
 - News and WarFlying Leadership Board announcements come often between ads: "Not every other time, but maybe every 5th".
 - Location based: no Darknet District advertisements near the Corporate District; no screens near the Temple, so it remains meditative.
 - The content will probably change with the lore timeline later.
 - The name is "WarFlying". Leaderboard names can be made up for now, until real players earn places.
-- The earlier space-station ads (void-runner/relay-content.json, David's) stay; their graphics need updating and voices added.
+- The earlier space-station ads (void-runner/relay-content.json, the owner's) stay; their graphics need updating and voices added.
 
-## Open questions (ask David, do not decide)
+## Open questions (ask the owner, do not decide)
 
 - Which categories play in which area (see the location rule above).
 
-## Answered by David (16 Nov 2026)
+## Answered by the owner (16 Nov 2026)
 
 - "2187" in the HackMart line is just a joke number, not a lore date.
 - Attribution of the government announcements does not matter much; what matters is "quality of the animation or delivery, sound, etc". Keep them unattributed; still give The Function no voice or look without approval.
 
-- News may be attributed to a source later. David will write The Function's announcements himself later; until then The Function gets no screen content.
+- News may be attributed to a source later. The owner will write The Function's announcements himself later; until then The Function gets no screen content.
 
-## Anti-WarFlying campaign (David, 16 Nov 2026)
+## Anti-WarFlying campaign (the owner, 16 Nov 2026)
 
-For The Darknet District: a poster that SCROLLS through these lines, with NO voice. Verbatim, David's own:
+For The Darknet District: a poster that SCROLLS through these lines, with NO voice. Verbatim, the owner's own:
 
 - WarFlying is not a hobby. It's an invasion.
 - My ship. My signal. My business.
@@ -53,23 +53,23 @@ For The Darknet District: a poster that SCROLLS through these lines, with NO voi
 - Unauthorized scanning is digital trespassing.
 - The Tessaly System has room for everyone. Except snoops.
 
-## WarFlying Leadership Board announcements (David, 16 Nov 2026)
+## WarFlying Leadership Board announcements (the owner, 16 Nov 2026)
 
 - Only the top 5 are ever shown: "everyone wants to be mentioned, but only 5 are". Do not pad the board with a long list.
 - The screen LISTS the top 5; the voice mentions ONLY #1.
 - Names may be made up for now (until real players earn places). Some should look like login handles ending in two digits, e.g. a word or handle followed by "67" or "04".
 
-- Mix in some more normal handles too. David's own handles for the board (verbatim): GlitchBitch, ChromeSlut, DeepSocket, RustyProbe, DirtyCircuit, WetwareWhore, NeonNasty, FilthyFirmware, CyberPerv, DeadInside, SinDealer, ChromeDaddy, FleshGlitch, MalwareMama, DirtyRAM.
+- Mix in some more normal handles too. The owner's own handles for the board (verbatim): GlitchBitch, ChromeSlut, DeepSocket, RustyProbe, DirtyCircuit, WetwareWhore, NeonNasty, FilthyFirmware, CyberPerv, DeadInside, SinDealer, ChromeDaddy, FleshGlitch, MalwareMama, DirtyRAM.
 
-- Second batch from David (verbatim; a few repeat the first batch): ChromeSlut, DirtyCircuits, RustyOrifice, CyberPimp, GlitchBitch, NeonSinner, FilthyFirmware, BrokenCondom, WetwareWhore, ShadyBytes, SyntheticVice, DirtySocket, DaddysFirmware, NastyGlitch, RustyProbe, BootyProtocol, SinDealer, FleshFirmware, EmotionalDamage, CorruptedVirgin, BarelyHuman, HappyEnding, HardDrive, DeepSocket, ForbiddenPlug, MaliciousIntent, GlitchedGSpot, DirtyMotherboard, MorningAfter, QuestionableUpgrade, MoistCircuit, SiliconeSinner, UnethicalPleasure, FatalAttraction, ScreamingImplant, BadDecisions, ConsentError, BlackMass, OrganDonor, DeadInside, HumanError, LastBadIdea, UnholyHardware, CorporateBastard, CheapFlesh, DisposableHuman, TerminalPleasure, BeautifulMalfunction, NoRefunds, FactoryDefect.
+- Second batch from the owner (verbatim; a few repeat the first batch): ChromeSlut, DirtyCircuits, RustyOrifice, CyberPimp, GlitchBitch, NeonSinner, FilthyFirmware, BrokenCondom, WetwareWhore, ShadyBytes, SyntheticVice, DirtySocket, DaddysFirmware, NastyGlitch, RustyProbe, BootyProtocol, SinDealer, FleshFirmware, EmotionalDamage, CorruptedVirgin, BarelyHuman, HappyEnding, HardDrive, DeepSocket, ForbiddenPlug, MaliciousIntent, GlitchedGSpot, DirtyMotherboard, MorningAfter, QuestionableUpgrade, MoistCircuit, SiliconeSinner, UnethicalPleasure, FatalAttraction, ScreamingImplant, BadDecisions, ConsentError, BlackMass, OrganDonor, DeadInside, HumanError, LastBadIdea, UnholyHardware, CorporateBastard, CheapFlesh, DisposableHuman, TerminalPleasure, BeautifulMalfunction, NoRefunds, FactoryDefect.
 
-- Voices: record the announcer saying every one of David's handles (only #1 is ever spoken, so #1 comes from that recorded list). Places #2 to #5 often come from a handle GENERATOR (never spoken, so no recording needed). The top 5 changes WEEKLY.
+- Voices: record the announcer saying every one of the owner's handles (only #1 is ever spoken, so #1 comes from that recorded list). Places #2 to #5 often come from a handle GENERATOR (never spoken, so no recording needed). The top 5 changes WEEKLY.
 
-- When a real player (no recording of their name) is #1, the voice says "a new number one" for now (David, 16 Nov 2026); the screen shows the name.
+- When a real player (no recording of their name) is #1, the voice says "a new number one" for now (the owner, 16 Nov 2026); the screen shows the name.
 
-## Pro-WarFlying advertisements (David, 16 Nov 2026)
+## Pro-WarFlying advertisements (the owner, 16 Nov 2026)
 
-Verbatim, David's own. They tell the player how WarFlying works (App Store, SUBMIT SCANS, leaderboard), so the game must really work that way before they run: check the device's App Store, a WarFlying app and a SUBMIT SCANS action exist, or build them.
+Verbatim, the owner's own. They tell the player how WarFlying works (App Store, SUBMIT SCANS, leaderboard), so the game must really work that way before they run: check the device's App Store, a WarFlying app and a SUBMIT SCANS action exist, or build them.
 
 ### 1. WARFLYING — THE GALAXY IS YOUR PLAYGROUND!
 

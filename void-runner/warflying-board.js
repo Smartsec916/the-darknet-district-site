@@ -1,4 +1,4 @@
-/* The WarFlying Leadership Board (the owner, 16 Nov 2026; docs/void-runner/design-source/12-street-advertisements-david.md).
+/* The WarFlying Leadership Board (the owner, 16 Nov 2026; docs/void-runner/design-source/12-street-advertisements-owner.md).
    PURE RULES: runs in the browser and in Node (tests/warflying-board.test.cjs). No server, no save field.
    - Only the top 5 are ever shown.
    - The five change WEEKLY and are the same for every player: they are worked out from the real-world ISO week alone.

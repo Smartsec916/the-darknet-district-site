@@ -3,16 +3,16 @@
 **Status (hall wall session, after 15 Nov 2026): WORKING.** `get_host_status` returns `blr: true` once Blender is signed in to the **same Higgsfield account** as the Claude connector (the earlier fault was an account mismatch: Blender had to be signed in to the Higgsfield Plus account). The first asset, the modular hallway wall, was modelled through the bridge, then moved into the code-built kit and is in the game. Everything below the next heading is the older fault record, kept as history.
 
 ## How Blender work reaches the game (verified)
-- **The cloud session cannot read David's Windows files and Blender cannot hand files to it.** A `.glb` saved on the PC stays on the PC. The bridge's screenshot links (`*.r2.dev`) were also not readable from the cloud session.
-- **So the source of truth is code:** a piece is a Python function in `tools/assets/kit/build_kit.py`. The cloud session runs it with the `bpy` package (`pip install bpy pillow numpy` in a virtual environment; 5.3 works) and commits the `.glb`. The same function can be run inside David's Blender through the bridge to look at or adjust the piece there. Model first in Blender if that helps, then write the result down as code.
+- **The cloud session cannot read the owner's Windows files and Blender cannot hand files to it.** A `.glb` saved on the PC stays on the PC. The bridge's screenshot links (`*.r2.dev`) were also not readable from the cloud session.
+- **So the source of truth is code:** a piece is a Python function in `tools/assets/kit/build_kit.py`. The cloud session runs it with the `bpy` package (`pip install bpy pillow numpy` in a virtual environment; 5.3 works) and commits the `.glb`. The same function can be run inside the owner's Blender through the bridge to look at or adjust the piece there. Model first in Blender if that helps, then write the result down as code.
 - **Look at it in Babylon, not only in Blender:** `tools/assets/kit/piece-viewer.html`.
-- David's local copy of the first version (kept as a Blender file, not used by the game): `C:\Users\smart\Documents\DarknetDistrict_Assets\HallwayWall_4x3_A\` (`DD_HallwayWall_4x3_A.blend`, a 13 MB `.glb` with its own 2K textures). The game uses the kit version instead: 225 KB of geometry plus three shared 1K texture sets.
+- The owner's local copy of the first version (kept as a Blender file, not used by the game): `C:\Users\smart\Documents\DarknetDistrict_Assets\HallwayWall_4x3_A\` (`DD_HallwayWall_4x3_A.blend`, a 13 MB `.glb` with its own 2K textures). The game uses the kit version instead: 225 KB of geometry plus three shared 1K texture sets.
 - **Reference archives** (`C:\Users\smart\Downloads\New Downloads\DDD-References-00..08-*.zip`) were **not readable** from the cloud session. Work used the written art direction instead.
 
 ## Older fault record (15 Nov 2026, resolved)
 **Status (15 Nov 2026): NOT FUNCTIONAL from the Claude Code cloud session. Do not describe the integration as working.** No Blender object has been read or changed through it, and no asset has been created.
 
-## Reported local setup (from David; not independently verifiable from the cloud session)
+## Reported local setup (from the owner; not independently verifiable from the cloud session)
 - Blender 5.2.3 LTS, Windows. Higgsfield Blender extension 1.5.61 (updated from 1.5.59), **MCP Control enabled**, the Higgsfield MCP panel shows **Connected**.
 - Claude custom connector **Higgsfield Bridge**, URL `https://bridge.higgsfield.ai/mcp`, authenticated. Claude recognises about 182 tools (`ae_*`, `pr_*`, `bl_*`, `c4d_*`, plus `get_host_status`). The connector tool list was refreshed in Claude Desktop.
 
@@ -26,7 +26,7 @@ The Blender extension saying "Connected" does **not** prove this session can rea
 **Exact next test:** start a **new regular Claude conversation** (Claude Desktop, or a brand-new session) with Blender open and MCP Control on, and call `get_host_status` first, before any scene change. If `blr` is true: do the read-only inspection (`bl_get_scene_summary`, `bl_get_object` on the cube; report objects and dimensions in metres) and only then build. If it is still false in a fresh session: check that "Supercomputer Connection" in the Blender panel is connected, that both sides use the same Higgsfield account, and escalate to Higgsfield support with extension 1.5.61.
 
 ## Rules for using the Blender tools (from the bridge's own instructions)
-Right-handed, Z up, metres, radians. Before building or changing a scene, load the bridge skills with `bl_get_skill` (`blender-scene` first, then only the modules the task needs; the audit/finalize gate last). Prefer a specific `bl_*` tool over `bl_execute` (arbitrary Python). Save only when David asks. Generation tools spend Higgsfield credits: do not use them without an explicit request. Do not use the After Effects, Premiere or Cinema 4D tools for game work.
+Right-handed, Z up, metres, radians. Before building or changing a scene, load the bridge skills with `bl_get_skill` (`blender-scene` first, then only the modules the task needs; the audit/finalize gate last). Prefer a specific `bl_*` tool over `bl_execute` (arbitrary Python). Save only when the owner asks. Generation tools spend Higgsfield credits: do not use them without an explicit request. Do not use the After Effects, Premiere or Cinema 4D tools for game work.
 
 ## First planned asset: modular hallway wall (NOT started, NOT exported)
 - Size: **4 m wide, 3 m high, 0.2 m thick.** The open Blender scene reportedly holds a resized default cube standing in for it; **its scale has not been applied** (apply scale before any modelling or export). I have not seen that scene.

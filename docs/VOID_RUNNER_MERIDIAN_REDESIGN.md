@@ -1,6 +1,6 @@
 # VOID//RUNNER: Meridian Station redesign and NPC animation
 
-**As of:** 2026-10-22 · **Brief:** David's "Meridian Station redesign & NPC animation improvements", with his top-down reference sheet · **Status:** built and tested locally, in review (PR). Nothing here is live until David merges it.
+**As of:** 2026-10-22 · **Brief:** The owner's "Meridian Station redesign & NPC animation improvements", with his top-down reference sheet · **Status:** built and tested locally, in review (PR). Nothing here is live until the owner merges it.
 
 ## 1. Files
 
@@ -83,7 +83,7 @@
 **Named NPCs** (Rook, Nyx) keep their looks, places and dialogue.
 
 ## 6. Animated broadcasts and ads (relay-screens.js)
-- **Update (2026-10-22, David: "these screens are supposed to scroll through the different ads and news"):**
+- **Update (2026-10-22, the owner: "these screens are supposed to scroll through the different ads and news"):**
   - Every news screen is now a channel. It cycles 8-second slides: each news story the player has received with an ad after it, the WarFlying standings (bars grow in), and a station notice. Slides have animated entries and exits.
   - The backgrounds move visibly: a travelling light band, drifting stripes and particles, and a turning orbit ring.
   - The bar screen now hangs over the bar, clear of the wall pipe, lamps and canopy.
@@ -104,7 +104,7 @@
 | Moves | Source | Licence |
 |---|---|---|
 | walk, sit-enter, sit-exit, sit-talk, interact, pickup | Quaternius Universal Animation Library, Standard (`UAL1_Standard.glb`) | **CC0** (licence file checked) |
-| look (`Idle_LookingAround`), polish (`Clipboard_Lever_Computer`) and the earlier idle, talk, sit, watch, smoke and work | David's Rokoko free mocap set (`VOID_RUNNER_KEEP`) | Rokoko: free for commercial use in games. David approved the clips being public (2026-10-16). |
+| look (`Idle_LookingAround`), polish (`Clipboard_Lever_Computer`) and the earlier idle, talk, sit, watch, smoke and work | The owner's Rokoko free mocap set (`VOID_RUNNER_KEEP`) | Rokoko: free for commercial use in games. The owner approved the clips being public (2026-10-16). |
 | Bartender body, clothes, hair | MakeHuman / MPFB system assets | **CC0** |
 
 Nothing was downloaded for this stage. The full record is in `void-runner/assets/models/crowd/README.md`.

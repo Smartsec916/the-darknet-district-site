@@ -1,6 +1,6 @@
 # Retiring old VOID//RUNNER campaigns
 
-Decision (David, 2026-11-04): David is the only player with saved progress and has authorised retiring it. The new Darknet District campaign is the only campaign. Nothing in production has been deleted or changed. The reset below is prepared, tested against fake data, and **waits for David's final approval**.
+Decision (the owner, 2026-11-04): the owner is the only player with saved progress and has authorised retiring it. The new Darknet District campaign is the only campaign. Nothing in production has been deleted or changed. The reset below is prepared, tested against fake data, and **waits for the owner's final approval**.
 
 ## What the code now does (no production data involved)
 - Every new campaign carries `story.flags.campaignEpoch = 1` (`CAMPAIGN_EPOCH` in `void-runner/campaign.js`; the same number in `void_runner_api.py`). A campaign without it was made before the reset and is **retired**.
@@ -40,12 +40,12 @@ So the reset can be limited to game progress, and the tool is written so it cann
 ## The tool and the procedure
 `tools/reset-void-runner-saves.py` (tested with fake data in `tests/test_reset_tool.py`). It needs Firebase Admin credentials in your own environment (`GOOGLE_APPLICATION_CREDENTIALS`); the repository holds none.
 
-1. **Report (read-only; default).** `python tools/reset-void-runner-saves.py`. Prints, as JSON: documents in `vr_players`, how many have a save, how many are current, and the exact list of old campaigns that would be retired (document id, revision, saved date, and a one-line summary: quest, location, credits, deliveries). **I have not been able to run this against production (no credentials, by design), so the real counts are unknown until you or someone with access run it.** David expects one.
+1. **Report (read-only; default).** `python tools/reset-void-runner-saves.py`. Prints, as JSON: documents in `vr_players`, how many have a save, how many are current, and the exact list of old campaigns that would be retired (document id, revision, saved date, and a one-line summary: quest, location, credits, deliveries). **I have not been able to run this against production (no credentials, by design), so the real counts are unknown until you or someone with access run it.** The owner expects one.
 2. **Review.** Check the list. Anything unexpected stops here.
-3. **Approval.** David's explicit go-ahead for that list.
+3. **Approval.** The owner's explicit go-ahead for that list.
 4. **Apply.** `python tools/reset-void-runner-saves.py --apply --backup-file saves-backup.json`. It prints the report again, asks you to type `RETIRE OLD VOID RUNNER SAVES`, writes a complete owner-only backup of every field it will remove (refusing to overwrite an existing file), then retires each document in its own transaction, skipping any that changed since the report.
 5. **Verify.** Run the report again: `oldCampaignsToRetire` should be 0. Sign in on the site: the account page shows no cloud save, and the game starts the new campaign.
-6. **Rollback (if ever needed).** `python tools/reset-void-runner-saves.py --restore saves-backup.json --apply` puts the saves back, but never over a document that has a save now. The backup file is the only copy, so keep it private. A matching local copy of David's browser save is already kept under `void-runner-campaign-v1.retired` when the game first starts after the update.
+6. **Rollback (if ever needed).** `python tools/reset-void-runner-saves.py --restore saves-backup.json --apply` puts the saves back, but never over a document that has a save now. The backup file is the only copy, so keep it private. A matching local copy of the owner's browser save is already kept under `void-runner-campaign-v1.retired` when the game first starts after the update.
 
 ## Order of rollout
 1. Merge and deploy the code (this PR and the stack). Old saves are immediately unusable and invisible; nothing is deleted.

@@ -18,7 +18,7 @@ Branch `claude/eyes-on-the-street`, build `2026-11-17-eyes-1`.
 - **Reward "Reputation with an NPC or a faction".** An NPC: their standing with the player (`story.relationships`, -100 to 100). A faction: `progression.reputation`. Both are kept by the cloud save as they are. Paid once with the mission.
 - **Hints.** Small yellow-orange hints under the tracked-mission line for the photo and send-a-photo steps (open the V1 with the player's own key, open Camera, take the picture, open Messages, open the conversation, ATTACH, SEND), each gone once done. Every hint is tagged `data-help="1"` for your future Help switch (`story.flags.helpOff` already hides them).
 
-**The place list (named so far).** David wants every location named; to go through later (exact locations such as the food stalls are not named yet).
+**The place list (named so far).** The owner wants every location named; to go through later (exact locations such as the food stalls are not named yet).
 
 | Level | Places |
 |---|---|
@@ -45,7 +45,7 @@ Branch `claude/mission-001`, build `2026-11-17-mission-001-1`. Pushed, no PR, no
 
 **Your own draft tree "Awakening"** (`draft-awakening`, made before this shipped) is never deleted or merged. The editor shows a one-time note: "Mission 001 — Awakening is now in Main storyline. Your draft 'Awakening' is separate; delete it if you no longer need it."  Every older tree sits in one collapsed group at the bottom, **Removed from the game (archived)**: each says NOT IN THE GAME, can still be read, and has **COPY THIS TREE INTO A NEW TREE** (and per mission, **COPY THIS MISSION INTO A NEW TREE**). A copy is a new draft tree of yours; the archived tree never changes.
 
-**Admin's in-person lines are yours to write.** Step 3 ("Find and speak with Admin."), "What is said when this step is done", holds one line marked **PLACEHOLDER for David**: "[David: write Admin's introduction to The Darknet District here]". It is shown only here and in PLAY THIS DRAFT. **What live players see until you write and publish the lines:** they walk to Admin and press E; no dialogue window opens; the Mission Log ticks steps 3 and 4 and the screen shows "MISSION COMPLETE · Awakening". Admin's usual "Admin has nothing for you right now." notice is not shown then (it would contradict the mission). Once your lines are published, talking to Admin shows them, and the mission completes when the player closes that conversation. No reward (none specified).
+**Admin's in-person lines are yours to write.** Step 3 ("Find and speak with Admin."), "What is said when this step is done", holds one line marked **PLACEHOLDER for the owner**: "[the owner: write Admin's introduction to The Darknet District here]". It is shown only here and in PLAY THIS DRAFT. **What live players see until you write and publish the lines:** they walk to Admin and press E; no dialogue window opens; the Mission Log ticks steps 3 and 4 and the screen shows "MISSION COMPLETE · Awakening". Admin's usual "Admin has nothing for you right now." notice is not shown then (it would contradict the mission). Once your lines are published, talking to Admin shows them, and the mission completes when the player closes that conversation. No reward (none specified).
 
 ### Mission numbers
 
@@ -91,7 +91,7 @@ Beside CLOSE. It closes Developer Tools and goes to the main menu the way the ga
 
 ### For Claude and Codex (third pass)
 
-- `void-runner/main-story.js` (new, pure, every player): the shipped Main storyline tree, the number ledger, `label()` "Mission 001 — Name", `numberProblems`, `nextNumber`, the placeholder test `isPlaceholder` ("[David:" lines are shown only when `env.draft`).
+- `void-runner/main-story.js` (new, pure, every player): the shipped Main storyline tree, the number ledger, `label()` "Mission 001 — Name", `numberProblems`, `nextNumber`, the placeholder test `isPlaceholder` ("[the owner:" lines are shown only when `env.draft`).
 - `mission-content.js`: story trees run in the tree engine (`apply` always includes them; a published copy with the same id replaces the shipped one); mission fields `number`, `category`, `location`, `objective`, `start`; step kinds `pod-exit`, `message` (the notification arrives), `hear` (lines after a talk step; done on `heard` when the conversation closes, or at once when nothing can be shown); `treeEvent` events `pod-exit` and `heard`; `inbox`/`markRead` (story flags `v1m_<id>_start` = seconds, `v1r_<id>_start`).
 - `live-content.js`: the shipped story is applied at load; `podAct.exit` (world-integration.js) is wrapped (the pod room is untouched); the place tick also runs the after-mission and flag triggers; `deliver()` sends each channel to `VoidV1.notify`.
 - `personal-device.js`: `VoidV1.notify({app,sub,key,text,hint:{text:'open',help:true}})`, Messages > INBOX, Comms > CALLS, the device sound. `mission-log.js`: in a District campaign only tree missions are offered, tracked or shown (`live()`), `objective` override, `number`. `beginner.js`: `RETIRED`.
@@ -99,7 +99,7 @@ Beside CLOSE. It closes Developer Tools and goes to the main menu the way the ga
 - Tests: `tests/mission-001.test.cjs`, `tests/update-ready.test.cjs`, `tests/test_live_content.py` (MissionNumberTests, MissionRemovalSaveTests), `tests/test_content_drafts.py` (WorkspaceBackupTests), `tests/mission-001-browser.cjs` (screenshots in `docs/development/mission-001/`), `tests/mission-editor-drafts-browser.cjs`, `tests/mission-editor-browser.cjs` (parts 1-3 now use the Main storyline; EXIT TO MAIN MENU in the editor and during draft play). `tests/beginner-browser.cjs` is retired. The browser tests serve the worktree themselves on a free port (or SITE_TEST_URL) and use the bundled Chromium; they lengthen the banner and the call (`VoidV1.bannerMs`, `VoidV1.callTail`) because the software renderer is slow.
 - Server copy: `void_runner_drafts.py` kind `workspace` (`validate_workspace`, fixed id `mission-editor-workspace`, baseRevision 0, not tied to the source inventory); `mission-editor.js` `saveServer`/`loadServer`/`useServer`/`conflictBox`.
 
-## For David, in plain words
+## For the owner, in plain words
 
 Sign in with your account, open **DEVELOPER TOOLS**, then the **Mission Editor** tab (after Achievement Manager). The tab only appears for an account the server confirms as a developer. Seeing it is not permission: every save, publish and re-voice is checked again by the server.
 
@@ -107,7 +107,7 @@ Sign in with your account, open **DEVELOPER TOOLS**, then the **Mission Editor**
 - **For each tree:** the NPCs in it (who gives the mission, who speaks, who you deliver to) with their registered voice. Voices are shown, never changed here.
 - **For each mission:** the name, the credits paid, the description, then each **step** ("what the player must do"), what each NPC says at that step, where the mission ends (and any branches), and **what becomes available** (store items and which store, ships, places that open, story flags, credits, the next mission). You can add your own unlock notes (only real items, ships, places, stores and factions can be picked).
 - **All lines for an NPC:** every line a character says, Admin first: in missions (by tree, mission, step and scene) and outside missions (greetings, idle remarks, "come back later" lines, the District rules such as Admin's "Scanning in here is rude" line, VR companion talk, Milked's Eva and Fish).
-- **Your own scripts are protected.** Lines from your design docs 05, 06, 07, 09, 10 and 12 show **"David's script — locked"**. Press **UNLOCK TO EDIT MY SCRIPT** on a line to change it yourself. Claude's placeholder lines say so.
+- **Your own scripts are protected.** Lines from your design docs 05, 06, 07, 09, 10 and 12 show **"the owner's script — locked"**. Press **UNLOCK TO EDIT MY SCRIPT** on a line to change it yourself. Claude's placeholder lines say so.
 - **Drafts.** Every edit is saved as you type, as a draft in this browser. Nobody else sees it. The beginner campaign uses the same draft as the Content Studio, so both tools show the same edits.
 - **PLAY THIS DRAFT** (per mission, and per step: "PLAY THIS DRAFT FROM HERE"). Closes Developer Tools and starts a throwaway test game at that step with your draft applied. An orange banner says **PLAYING DRAFT: <mission> — not your real save · LEAVE DRAFT**. Nothing is saved, to this browser or the cloud. **LEAVE DRAFT** reloads the game with your real save exactly as it was and opens the Mission Editor on the same mission and step, draft intact ("last played" is shown).
 - **PUBLISH TO ALL PLAYERS** (tab "Publish & versions"). A check screen first: problems that block publishing, what changes for players, warnings for players who are part-way through a mission, voice clips that no longer match, and the edits that cannot reach players yet. Publishing makes a new version; **UNDO** puts the previous version back (also as a new version), and the list shows every version with its time. **It is switched OFF on the server until you decide to switch it on** (see "Switching things on" below).
@@ -181,13 +181,13 @@ Flying from the District to Meridian needed no new flight code: the beginner cam
 | In new trees: branches, store items, gates, reputation, fights, scans, escorts, pick-ups, waits; givers with no TALK prompt | yes | no | no: **needs a code change**, kept in your draft and in EXPORT MY EDITS |
 | Voices, voice assignments, Relay broadcasts, The Function | never | never | never |
 
-### Switching things on (waiting for David; nothing was changed)
+### Switching things on (waiting for the owner; nothing was changed)
 
 Everything new on the server is **inert until switched on**. On the Render API service (Environment):
 
 | Setting | Value | What it switches on |
 |---|---|---|
-| `VOID_CONTENT_EDITOR_UID` | David's Firebase UID (it must also be in `VOID_ADMIN_UIDS`) | Who may publish, undo, use private server drafts and the re-voice queue. Already used by the Stage 3B drafts; check whether it is set. |
+| `VOID_CONTENT_EDITOR_UID` | The owner's Firebase UID (it must also be in `VOID_ADMIN_UIDS`) | Who may publish, undo, use private server drafts and the re-voice queue. Already used by the Stage 3B drafts; check whether it is set. |
 | `VOID_CONTENT_PUBLISH_ENABLED` | `true` | PUBLISH TO ALL PLAYERS, UNDO, the version list, and the public `GET /api/void-runner/live-content` that every game reads. Off: players keep the shipped missions. |
 | `VOID_CONTENT_DRAFTS_ENABLED` | `true` | The re-voice queue (and the existing Stage 3B private server drafts). |
 
@@ -226,7 +226,7 @@ Add `--dry-run` first to see what it would record. More than 100 clips needs `--
 | District drafts in the game data (Meet Eva at Milked, inactive) | DRAFT | 1 | `milked.js MISSION` |
 | Your Studio draft's new missions; your private server drafts | DRAFT | when present | browser draft; Stage 3B |
 
-Totals: 10 trees, 40 missions, 382 listed lines (296 from David's scripts). All 40 of Admin's Kokoro lines and his ElevenLabs line are listed (63 entries: the faction scenes appear under both arcs).
+Totals: 10 trees, 40 missions, 382 listed lines (296 from the owner's scripts). All 40 of Admin's Kokoro lines and his ElevenLabs line are listed (63 entries: the faction scenes appear under both arcs).
 
 ## For Claude and Codex
 
@@ -240,15 +240,15 @@ Totals: 10 trees, 40 missions, 382 listed lines (296 from David's scripts). All 
 
 - New trees (second pass): `void-runner/mission-givers.js` (pure; loaded for every player before `mission-content.js`): the giver facts (where every registered NPC is, their TALK prompt, draft and player reachability), the "go to" places (walking scene id + area + quarter, or the save location), step and unlock kinds. `mission-content.js`: `checkTrees`, `treesContent` (only runnable missions, in order), `treeDefinition`, `treeEvent` (offer at the giver, steps in order, hand-in, pays once with `story.flags.mt_<id>`, link flags `ts_<tree>`), `treeWants`, `unlockNow`. `live-content.js` feeds it NPC interactions (it wraps `VoidInteractions.handlers.get` once, so handlers registered later are covered; the beginner campaign keeps its turn with an NPC it is waiting on), the place twice a second, and `progression.js buy`. `mission-log.js acquire` lets owner-tree missions (`ownerTree`) into a District campaign's closed pool. `campaign.js giveShip` (shared with `buyShip`) gives a hull. The server reads the same lists from `void_runner_admin_inventory.json` (`missionEditor`), regenerated by `node tools/admin-inventory.cjs`.
 - Saves: new mission records are ordinary `universe.missions` entries (`draft-...` ids pass `clean_save`); flags `mt_`, `mf_`, `ts_` pass the story-flag rules; a granted Peregrine is an ordinary `ownedShips` entry. Up to 40 new missions in total (each is a record in every player's save; `clean_save` allows 100 records). A tracked new mission that is no longer published is untracked, never deleted.
-- Rook's re-voice engine is ElevenLabs `wzVFxVZCBIi6KBxNhQDI` (chosen by David 17 Nov 2026), as Admin and Iris. The voice registry is unchanged.
+- Rook's re-voice engine is ElevenLabs `wzVFxVZCBIi6KBxNhQDI` (chosen by the owner 17 Nov 2026), as Admin and Iris. The voice registry is unchanged.
 
 ## Tests
 
 - `tests/mission-trees.test.cjs`: every tree, NPCs, locks, unlocks, endings, Admin's lines, the adapter (apply, rollback, registry text, lines), refusals, `notApplied`, warnings and save migration.
 - `tests/test_live_content.py`: publish auth (owner allowed, others 403, switched off 404), versions, stale-write 409, undo, validation, cloud-save acceptance; re-voice queue add/list/done and auth.
 - `tests/test_revoice_tool.py`: `generate.py --from-queue --dry-run` against a sample queue file.
-- `tests/mission-trees.test.cjs` also covers: create/rename/ids, add/remove/reorder, validation with the Studio model and the real registries, the giver roster (every registered NPC, every TALK target exists in the game's code), the adapter running talk/go/fly/deliver/buy/hand-in, refusals, held-back missions, save rules, the server's lists, and David's chain (ship grant, route, flight step, Rook link). `tests/test_live_content.py`: trees publish, refusals, and `clean_save` accepting the records, flags and a granted Peregrine.
-- `tests/mission-editor-browser.cjs` parts 5 and 6 (`ONLY=trees`, `ONLY=chain`): a new tree made in the UI and played (Admin and Iris); David's chain with a real flight to Meridian.
+- `tests/mission-trees.test.cjs` also covers: create/rename/ids, add/remove/reorder, validation with the Studio model and the real registries, the giver roster (every registered NPC, every TALK target exists in the game's code), the adapter running talk/go/fly/deliver/buy/hand-in, refusals, held-back missions, save rules, the server's lists, and the owner's chain (ship grant, route, flight step, Rook link). `tests/test_live_content.py`: trees publish, refusals, and `clean_save` accepting the records, flags and a granted Peregrine.
+- `tests/mission-editor-browser.cjs` parts 5 and 6 (`ONLY=trees`, `ONLY=chain`): a new tree made in the UI and played (Admin and Iris); the owner's chain with a real flight to Meridian.
 - `tests/mission-editor-browser.cjs` (Chromium, offline, not in CI): opens the tab, screenshots at 1366x768 and 1920x1080, edits Iris's line and a step, PLAY THIS DRAFT from that step, checks the line and objective in the game, the real save and no cloud save, LEAVE DRAFT back to the same step with the draft intact, the publish check screen against a mocked server, a broken draft blocking publish, and published content applied or refused (fail safe) for players.
 - Screenshots: `docs/development/mission-editor/` (second pass: `new-tree-*.png` for a tree made in the editor and played, `chain-*.png` for the Admin → ship → Meridian → Rook chain).
 - `tests/stabilization-browser.cjs` smoke (`STABILIZATION_SMOKE=1`) was run once on this branch: no errors.
@@ -256,4 +256,4 @@ Totals: 10 trees, 40 missions, 382 listed lines (296 from David's scripts). All 
 ## Not verified
 
 Second pass: draft play of Eva, Fish and Zen Zephyr was checked only up to standing on the right street (their handlers were called directly, not by walking into Milked or the Temple); Mara, Kess and Mercer draft play was not run; a "go to a place" step and a "buy" step were tested in Node, not in a browser; publishing with the real server switched on; real graphics hardware. 
-The real server with the switches on (Firestore transactions, deployed rules, David's UID), a real Firebase sign-in, the Kokoro render itself (dry run only; no models here), voice clips of edited lines in a real playthrough, draft play of every historical mission (only the beginner campaign was played in the browser test; historical missions start at their place and stage, and the editor says when a mission could not be started directly), and real graphics hardware.
+The real server with the switches on (Firestore transactions, deployed rules, the owner's UID), a real Firebase sign-in, the Kokoro render itself (dry run only; no models here), voice clips of edited lines in a real playthrough, draft play of every historical mission (only the beginner campaign was played in the browser test; historical missions start at their place and stage, and the editor says when a mission could not be started directly), and real graphics hardware.

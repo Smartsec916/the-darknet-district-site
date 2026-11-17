@@ -1,8 +1,8 @@
 # Smoothness audit (17 Nov 2026)
 
-Branch `claude/perf-audit-1`, builds `2026-11-17-smooth-1` to `-smooth-3`. David's request: "do an audit on how to make the game run smoother without sacrificing graphic quality. Like when you exit the vestibule from The Darknet District to the alley, when you walk towards the street there's a lag moment. Grok said it's because it's loading the nightclub. So maybe load it before the loading is over inside the vestibule. After the Milked vestibule opens to the inside there's a big lag moment too."
+Branch `claude/perf-audit-1`, builds `2026-11-17-smooth-1` to `-smooth-3`. The owner's request: "do an audit on how to make the game run smoother without sacrificing graphic quality. Like when you exit the vestibule from The Darknet District to the alley, when you walk towards the street there's a lag moment. Grok said it's because it's loading the nightclub. So maybe load it before the loading is over inside the vestibule. After the Milked vestibule opens to the inside there's a big lag moment too."
 
-## In plain words (for David)
+## In plain words (for the owner)
 
 **The lag walking out of the District toward the street.** Grok was half right. The nightclub (NULL) was being built the moment you came within 70 metres of it, which is about four steps out of the District's door, and that cost a little. The big lag came a few seconds later and was a side effect: the club brings its own coloured lights, and the next time any character model finished loading, the game engine redid the "recipe" (the shader) of every surface in view to make room for those lights. That is 25 to 40 recipes in one go, and that is the freeze you felt.
 
@@ -92,7 +92,7 @@ Note: both remaining spikes are also in the `main` run at the same places: one i
 | Frames more than 250 ms above their local median | 7 | 0 |
 | Check-in card time | 5 s | 38 s in software rendering |
 
-**The card is longer in software rendering**: figures 14 s (loading six 3 to 4.5 MB models from the local server and parsing them on a slow virtual processor), shaders 12 s (compiling on the processor), mirror 9 s (two full mirror drawings at about 1 frame a second). The same work used to happen after the card, as stutter. On a real graphics card these steps should take a small fraction of that; `VoidBabylon.zone.state().prepared` reports each step in ms so it can be checked on David's PC. Not verified on a real card.
+**The card is longer in software rendering**: figures 14 s (loading six 3 to 4.5 MB models from the local server and parsing them on a slow virtual processor), shaders 12 s (compiling on the processor), mirror 9 s (two full mirror drawings at about 1 frame a second). The same work used to happen after the card, as stutter. On a real graphics card these steps should take a small fraction of that; `VoidBabylon.zone.state().prepared` reports each step in ms so it can be checked on the owner's PC. Not verified on a real card.
 
 ## Same look: checked
 
@@ -124,7 +124,7 @@ From a 5-minute CPU profile of the street walk (Low), excluding the software ren
 
 ## Ranked further proposals
 
-Marked **(same look)** where the picture would not change, **(changes look)** where it would and needs David's approval.
+Marked **(same look)** where the picture would not change, **(changes look)** where it would and needs the owner's approval.
 
 1. **(same look) Other first-time stutters found in the same way.** The same light-slot rule and people preparation now run for every street quarter (gates, road taxi between quarters, Outskirts), because they all go through the same loader. Not yet measured one by one: the gate and taxi swaps, the pod exit into the District (the pod room was deliberately not touched), the VR rooms. The probe method above can be pointed at each.
 2. **(same look) A first visit to Milked or a new street figure** still downloads models after the loading screen and makes their shaders when they first appear. Starting those downloads while the player walks toward Milked's door would move it earlier; it was not done because a large download during a walk has its own cost.

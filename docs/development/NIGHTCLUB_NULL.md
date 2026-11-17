@@ -1,6 +1,6 @@
 # NULL, the nightclub
 
-On Main Street's west side, directly across from the mouth of the alley that leads to The Darknet District. Named by David (2026-11-12). Code: `void-runner/ncz-nightclub.js` (place, collision, interior, people), `void-runner/ncz-club-audio.js` (sound), and the club front in `void-runner/neochinatown.js`.
+On Main Street's west side, directly across from the mouth of the alley that leads to The Darknet District. Named by the owner (2026-11-12). Code: `void-runner/ncz-nightclub.js` (place, collision, interior, people), `void-runner/ncz-club-audio.js` (sound), and the club front in `void-runner/neochinatown.js`.
 
 ## What is there
 
@@ -13,7 +13,7 @@ On Main Street's west side, directly across from the mouth of the alley that lea
 
 ## Two versions of the interior
 
-The module was written for a purchased model ("Cyber Club", CGTrader). That model is **not published**: it is not on the live site or in the private asset repository, only on David's computer. So:
+The module was written for a purchased model ("Cyber Club", CGTrader). That model is **not published**: it is not on the live site or in the private asset repository, only on the owner's computer. So:
 
 1. The game asks once whether `assets/models/ncz/nightclub.vrpak` exists.
 2. If it does, the purchased model is used, as before.
@@ -30,7 +30,7 @@ To use the purchased model later: confirm its licence, put `nightclub.vrpak` in 
 ## Not done
 
 - **Multiplayer:** the street is not a shared place (only the District interior is), so players do not see each other in the club. Making it shared needs a new room on the hub and a hub redeploy.
-- **Named staff and dialogue** (DJ, bartender, door, manager): not written; names and lines are David's to approve.
+- **Named staff and dialogue** (DJ, bartender, door, manager): not written; names and lines are the owner's to approve.
 - **Player dancing, sitting, strobe setting, club music volume control, social posts and photo metadata:** not built.
 - The club's shop row on that stretch of Main Street is replaced by the club front.
 

@@ -1,8 +1,8 @@
 # Advertisement screens: voice audition plan
 
-Written 16 Nov 2026 with build `2026-11-16-adscreens-1`. **Nothing in this file has been recorded.** No new voice is cast, no clip was generated, and no paid service (ElevenLabs or any other) was used. David picks by ear; this is what to play him and what gets recorded once he has picked.
+Written 16 Nov 2026 with build `2026-11-16-adscreens-1`. **Nothing in this file has been recorded.** No new voice is cast, no clip was generated, and no paid service (ElevenLabs or any other) was used. The owner picks by ear; this is what to play him and what gets recorded once he has picked.
 
-## What David asked for
+## What the owner asked for
 
 - "News broadcaster sounding voices, cheesy and over dramatic."
 - More than one reader, including a female voice for other news, so it is not always the same voice.
@@ -12,16 +12,16 @@ Written 16 Nov 2026 with build `2026-11-16-adscreens-1`. **Nothing in this file 
 
 | Slot (tools/audio/npc-voice-registry.json) | Today | Used on the street for |
 |---|---|---|
-| `commercial-announcer` | provisional, female | brand ads; David's five space-station ads (already recorded in this voice) |
-| `police-recruiter` | provisional, male | David's two police recruitment ads (already recorded in this voice) |
-| `news-anchor` | provisional, female | David's news reports (already recorded in this voice); government announcements (not recorded) |
+| `commercial-announcer` | provisional, female | brand ads; the owner's five space-station ads (already recorded in this voice) |
+| `police-recruiter` | provisional, male | The owner's two police recruitment ads (already recorded in this voice) |
+| `news-anchor` | provisional, female | The owner's news reports (already recorded in this voice); government announcements (not recorded) |
 | `warflying-host` | provisional, male | pro-WarFlying ads and the board's "#1" callout (not recorded) |
 
-All four are provisional: they were stand-ins from 17 Oct 2026, not David's picks. The Function has no voice and is not part of this.
+All four are provisional: they were stand-ins from 17 Oct 2026, not the owner's picks. The Function has no voice and is not part of this.
 
 ## Step 1: the audition (four short lines per candidate voice)
 
-Play each candidate voice reading exactly these. They are David's own words, unchanged.
+Play each candidate voice reading exactly these. They are the owner's own words, unchanged.
 
 1. Ad: `Real-ish Chicken™ — Genetically convinced it's chicken.`
 2. Ad: `DeathCab — We guarantee arrival. Not necessarily yours.`
@@ -30,12 +30,12 @@ Play each candidate voice reading exactly these. They are David's own words, unc
 
 How to run it: the audition tool (`tools/audio/audition/server.py`, see `docs/VOID_RUNNER_VOICE_PRODUCTION.md`) on the machine that has the Kokoro models (they are not on the cloud machine this was written on). Put the four lines in as the sample text for each candidate and listen. Audition samples are never committed.
 
-Suggested shape of the audition (suggestions only; the choice is David's):
+Suggested shape of the audition (suggestions only; the choice is the owner's):
 - Three or four male and three or four female candidates, each tried at normal speed and about 10% faster, since "cheesy and over dramatic" usually needs the pace up.
 - Listen for at least three winners: an ad reader, a second news/announcement reader of the other sex, and the WarFlying board announcer (he may want the board announcer to stay the sports-commentator type the radio already uses).
 - If Kokoro cannot do "over dramatic" well enough, say so and decide then whether to try another engine. That would be a new decision about cost; nothing paid was tried here.
 
-## Step 2: David's picks (fill in)
+## Step 2: The owner's picks (fill in)
 
 | Role | Voice picked | Speed | Notes |
 |---|---|---|---|
@@ -52,17 +52,17 @@ Which category each voice reads is one word per category in `void-runner/ad-scre
 
 1. Record the picks in the registry through the audition tool (never by hand-editing an approved voice).
 2. In `void-runner/ad-screens-data.js` set `RECORD={ads:true,board:true}`.
-3. `node tools/audio/extract-lines.cjs`, then `python tools/audio/generate.py --models <folder> --dry-run`, then without `--dry-run`. Ask David before the bulk run: it is 74 ad lines plus 58 board clips.
+3. `node tools/audio/extract-lines.cjs`, then `python tools/audio/generate.py --models <folder> --dry-run`, then without `--dry-run`. Ask the owner before the bulk run: it is 74 ad lines plus 58 board clips.
    - Note: on 16 Nov 2026 `extract-lines.cjs` run on unchanged `main` rewrites the manifest and drops about 60 older entries (it has drifted from the game's dialogue files). That is not part of this work and was not committed; look at the diff before committing a manifest.
 4. The game needs no change: a line plays its recording as soon as the manifest lists one, and stays a silent caption until then.
 
-Things the text-to-speech step will need to handle (the words on screen stay exactly David's): the trademark sign in a brand name is not spoken; the long dash between brand and tagline is a pause; `TOFU.EXE`, `Divorce.exe`, `CyberEyes 4K`, `#1` and handles such as `DirtyRAM` and `GlitchedGSpot` may need a pronunciation hint.
+Things the text-to-speech step will need to handle (the words on screen stay exactly the owner's): the trademark sign in a brand name is not spoken; the long dash between brand and tagline is a pause; `TOFU.EXE`, `Divorce.exe`, `CyberEyes 4K`, `#1` and handles such as `DirtyRAM` and `GlitchedGSpot` may need a pronunciation hint.
 
 ## The clip list
 
 ### Already recorded (provisional voices), playing on the street now: 36 lines
 
-David's seven space-station ads, line by line (`void-runner/relay-content.json`):
+The owner's seven space-station ads, line by line (`void-runner/relay-content.json`):
 
 - `commercial-announcer` · Out here, nobody remembers what you wore to your last firefight.
 - `commercial-announcer` · Unless you survived it.
@@ -211,7 +211,7 @@ His three news reports are also already recorded (`news-anchor`, 11 lines) and p
 
 ### To record: the board, 58 clips (today's slot: `warflying-host`)
 
-Every one of David's handles (both of his lists, repeats removed), because #1 is always one of them and #1 is the only name ever said:
+Every one of the owner's handles (both of his lists, repeats removed), because #1 is always one of them and #1 is the only name ever said:
 
 - GlitchBitch
 - ChromeSlut
@@ -280,5 +280,5 @@ Places #2 to #5 are never spoken, so generated handles need no recording.
 ### Not recorded, on purpose
 
 - News headlines on the street screens (shown, not read; the report's lines are read).
-- David's radio commentary lines with a name in them (`{name} moves into {rank} place`): they are filled in at play time, so they stay captions.
+- The owner's radio commentary lines with a name in them (`{name} moves into {rank} place`): they are filled in at play time, so they stay captions.
 - Anything for The Function.

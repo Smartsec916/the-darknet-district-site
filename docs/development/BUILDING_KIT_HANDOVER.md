@@ -24,7 +24,7 @@ The job is to replace the box buildings that `void-runner/neochinatown.js` build
    - `<piece>__sign_0`: a sign face. On shopfronts it uses `kit_ticker`; on `kit_sign_*` a coloured light box you can replace with a shop's own picture.
 10. **Scrolling shop signs.** `kit_ticker` is one LED text strip repeating every 20 m. Scroll it by adding to its texture's `uOffset` each frame (about 0.03 per second).
     For shops to show different words, give each a cloned material with a different starting `uOffset` (a handful of clones, not one per shop).
-    **The wording is a placeholder** (`TICKER_TEXT` in `tools/assets/kit/kit_textures.py`) until David approves it.
+    **The wording is a placeholder** (`TICKER_TEXT` in `tools/assets/kit/kit_textures.py`) until the owner approves it.
 11. **Performance.** No piece is over 1404 triangles. Use instances for repeats, freeze world matrices, and merge a finished building where it helps.
     Keep the existing quality tiers: on `low`, drop the hanging pieces and roof clutter.
 12. **Do not** edit the `.glb` files by hand. Change `tools/assets/kit/build_kit.py` / `kit_textures.py` and rebuild (`docs/development/BUILDING_KIT.md`). Bump `BUILD` in `void-runner-sw.js` when the game starts using the kit.

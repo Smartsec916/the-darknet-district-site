@@ -1,12 +1,12 @@
 # VOID//RUNNER: visual editor, guidance and controls
 
-**Brief:** David's "Comprehensive Visual Editor & Gameplay Improvements" (2026-10-23). It has 17 parts.
+**Brief:** The owner's "Comprehensive Visual Editor & Gameplay Improvements" (2026-10-23). It has 17 parts.
 **Status:** built in stages, one PR per stage. This file records:
 - what exists today
 - the plan for each stage
 - what each finished stage delivered
 
-Nothing is live until David merges a stage.
+Nothing is live until the owner merges a stage.
 
 ## 1. Audit: what the game has today
 
@@ -64,11 +64,11 @@ Every editable thing gets a permanent developer ID: `M` mission, `S` store, `N` 
 
 ## 5. Developer Tools window (2026-10-24)
 
-David asked to know which developer tools really exist and to have one Developer Tools window.
+The owner asked to know which developer tools really exist and to have one Developer Tools window.
 
 **Access, verified:**
 - The window opens only after the server confirms the signed-in Firebase account is on the developer list. That list is the `VOID_ADMIN_UIDS` setting on Render: Firebase account ids, never email addresses.
-- David's account already passes this check; that is why he sees the balance panel.
+- The owner's account already passes this check; that is why he sees the balance panel.
 - Ordinary accounts never see the button or the menu entry. Every save of balance values, and the start of every test session, is checked again by the server.
 
 **Where to find it:**
@@ -90,7 +90,7 @@ David asked to know which developer tools really exist and to have one Developer
   - The click that captures the mouse is swallowed, so it never fires.
   - Esc (the browser releasing the lock) opens the pause menu.
   - Clicking or pressing a key to close a dialogue or menu takes the mouse back right away.
-  - No on-screen hint while the mouse is free (David asked for the CLICK TO CONTROL box to be removed, 2026-10-23).
+  - No on-screen hint while the mouse is free (the owner asked for the CLICK TO CONTROL box to be removed, 2026-10-23).
   - If the browser refuses pointer lock, clicks go back to normal, so the game never gets stuck.
 - **Weapon wheel:**
   - The mouse wheel cycles the weapons you own: Unarmed, Ward pistol, then a Rifle slot. The rifle is skipped until a rifle exists and is owned.
@@ -190,7 +190,7 @@ David asked to know which developer tools really exist and to have one Developer
 
 ### Voice
 
-- **New voiced line:** one, Rook's "Client confirmed the drop. Here's your pay." David approved it on 2026-10-27. It is rendered in Rook's existing voice (`rook-c5d856b671.ogg`); `extract-lines.cjs --check` passes.
+- **New voiced line:** one, Rook's "Client confirmed the drop. Here's your pay." The owner approved it on 2026-10-27. It is rendered in Rook's existing voice (`rook-c5d856b671.ogg`); `extract-lines.cjs --check` passes.
 - **Not voiced:**
   - job details on the board (data, not dialogue)
   - the receiver's arrival lines (not a cast voice)
@@ -202,4 +202,4 @@ David asked to know which developer tools really exist and to have one Developer
 - Paying at a third contact.
 - Faction, WarFlying, Relay, piracy and wanted-level work.
 
-The payment rules support a third contact, but no job uses one yet. Any new giver or contact is a story decision for David.
+The payment rules support a third contact, but no job uses one yet. Any new giver or contact is a story decision for the owner.

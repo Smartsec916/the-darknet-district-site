@@ -1,6 +1,6 @@
 # The District community: one server for desktop 3D players and mobile chat
 
-Status: PLAN ONLY (David, 2026-11-04). Nothing here is built. No multiplayer, no mobile chat, no new services, no database changes.
+Status: PLAN ONLY (the owner, 2026-11-04). Nothing here is built. No multiplayer, no mobile chat, no new services, no database changes.
 Finish the environment-separation work first (PRs #183, #185 and the transition PR).
 Free-tier figures marked **(verify)** could not be checked from the build session (render.com and firebase.google.com are not on its network allow-list); confirm them before any decision.
 

@@ -1,12 +1,12 @@
 # The Darknet District as a social universe: architecture and development plan
 
-Status: PLAN ONLY, revision 2 (David's decisions of 2026-11-04 folded in). Nothing here is built. No merges, deploys, production changes, deletions or paid services.
+Status: PLAN ONLY, revision 2 (the owner's decisions of 2026-11-04 folded in). Nothing here is built. No merges, deploys, production changes, deletions or paid services.
 This revises the earlier plan in place and carries over what is still useful from PR #186 (section 11.2).
-Notation: **[confirmed]** is a decision David has made; **[recommended]** is my recommendation awaiting approval; **[open]** is unresolved. Prices and limits marked **[checked]** were looked up by web search on 2026-11-04 (links in the Sources section); **(verify)** means I could not confirm it from official pages (render.com and firebase.google.com cannot be fetched from the build session).
+Notation: **[confirmed]** is a decision the owner has made; **[recommended]** is my recommendation awaiting approval; **[open]** is unresolved. Prices and limits marked **[checked]** were looked up by web search on 2026-11-04 (links in the Sources section); **(verify)** means I could not confirm it from official pages (render.com and firebase.google.com cannot be fetched from the build session).
 
 ## 0. Decisions and open questions
 
-### 0.1 Confirmed requirements (from David, 2026-11-04)
+### 0.1 Confirmed requirements (from the owner, 2026-11-04)
 | # | Decision |
 |---|---|
 | D1 | Every player has a display handle. During onboarding they pick one or skip and automatically receive a unique `Guest####`. Handles can be changed later. The database identity is an immutable internal id, never the handle. A registered player may keep a `Guest####` handle indefinitely. Guest naming and anonymous authentication are separate concepts. |
@@ -16,11 +16,11 @@ Notation: **[confirmed]** is a decision David has made; **[recommended]** is my 
 | D5 | One authoritative active 3D session per account; a newer login may replace the older one with a clear notice. A mobile chat connection is a different kind of connection and never ends a desktop game. |
 | D6 | Multiplayer is strictly social: no cooperative combat, shared space combat or shared mission progress. Shared VR companion state belongs to the session; individual relationship records stay separate. Existing scripted and recorded companion systems only; no paid AI without approval. |
 | D7 | Safety from the beginning: block, report, rate limits, size validation, private-access protection, moderation and retention controls. Public chat is not activated until the safeguards are ready. |
-| D8 | Build the pod allocator before the hallway geometry. The final hallway waits for David's revised floor plan. |
+| D8 | Build the pod allocator before the hallway geometry. The final hallway waits for the owner's revised floor plan. |
 | D9 | Reuse existing character assets; no purchases. Blender is not available in the sandbox; the plan documents an asset pipeline instead. |
 | D10 | PR #184 is not closed automatically; its useful fixes are retained or moved. PR #186 may be superseded once its useful content is preserved. Integration tests are not interfered with. |
 
-### 0.2 Open decisions (need David)
+### 0.2 Open decisions (need the owner)
 1. **Age policy [open, blocks launch].** Is the game adults-only, open to minors, or split by feature? I do not assume either. It gates: public chat, direct messages between strangers, shared and private companion content, private VR sessions and friend requests. Section 9.4 lays out the options.
 2. **Hosting for a public launch [open].** Local development needs nothing. A live hub needs an always-on host; section 4 compares the options and the verified costs. Nothing is chosen.
 3. **Illegal cargo at the landing zone [open].** A player who logs out with illegal cargo wakes with it aboard at a pad that police patrols watch. Section 5.4 proposes no inspection at login arrival; confirm.
@@ -191,7 +191,7 @@ Server-enforced, never trusted to the client:
 - **Report:** every message and every player; stored with 20 messages of context and the name at the time; admin view restricted to an admin id list.
 - **Escalation:** automatic mute (1 minute, then 10, then 1 hour), disconnect, admin mute and ban, slow mode, and an instant kill switch for each public channel.
 - **Retention controls:** configurable retention and deletion jobs; privacy text.
-- **Gate:** public channels stay behind a flag (`CHAT_PUBLIC_ENABLED`, default off) until this list passes tests and David approves. Development chat runs on localhost only.
+- **Gate:** public channels stay behind a flag (`CHAT_PUBLIC_ENABLED`, default off) until this list passes tests and the owner approves. Development chat runs on localhost only.
 
 ### 8.2 Membership and privacy per channel
 Global, location, VR session and direct messages each check their own membership on every send and every delivery. Private VR sessions are never listed anywhere, and a session id alone grants nothing: joining needs a server-checked invitation or friend authorization. A direct message is stored against the two internal player ids; only those two accounts (and an admin handling a report) can read it, and a blocked sender's message is never delivered or stored for the recipient.

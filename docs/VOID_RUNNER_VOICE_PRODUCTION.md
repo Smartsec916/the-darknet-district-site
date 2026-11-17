@@ -1,6 +1,6 @@
 # VOID//RUNNER: NPC Voice Production
 
-How the game's recorded NPC dialogue is cast, approved, recorded and protected. The engine is **Kokoro-82M v1.0** (Apache-2.0), approved by David on 2026-10-15 (see `VOID_RUNNER_FREE_AI_VOICE_COMPARISON.md`). Everything runs offline on this computer and costs nothing. Players only download the finished Ogg clips.
+How the game's recorded NPC dialogue is cast, approved, recorded and protected. The engine is **Kokoro-82M v1.0** (Apache-2.0), approved by the owner on 2026-10-15 (see `VOID_RUNNER_FREE_AI_VOICE_COMPARISON.md`). Everything runs offline on this computer and costs nothing. Players only download the finished Ogg clips.
 
 ## The pieces
 
@@ -18,9 +18,9 @@ How the game's recorded NPC dialogue is cast, approved, recorded and protected. 
 - **Provisional:** the voice can be changed freely. Every voice starts here.
 - **Approved:** the voice is locked. The registry stores a fingerprint of the settings that decide how it sounds: model file, voice, speed and accent. Notes and live processing are not part of the fingerprint.
   - If anything in the fingerprint changes without re-approval, the generator refuses to run and `npm test` fails.
-  - The audition tool changes an approved voice only after David confirms the replacement. **Unlock** returns a voice to provisional, also only after confirmation.
+  - The audition tool changes an approved voice only after the owner confirms the replacement. **Unlock** returns a voice to provisional, also only after confirmation.
   - A different model file breaks every approval at once on purpose: the voices may sound different and need re-auditioning.
-- **Protected clip:** a single recording David has signed off is never re-recorded automatically, even if its character's voice changes. Use `--protect <line id>` and `--unprotect <line id>`.
+- **Protected clip:** a single recording the owner has signed off is never re-recorded automatically, even if its character's voice changes. Use `--protect <line id>` and `--unprotect <line id>`.
 
 ## One-time setup (already done on the Ally)
 
@@ -55,7 +55,7 @@ Then run `npm test`.
 - Only new lines and lines whose voice changed are recorded.
 - `--speaker rook` or `--line <id>` narrows the run.
 - Failures are listed at the end; the game shows subtitles (and the browser voice) for any line without a clip.
-- Ask David before a run that would record hundreds of clips.
+- Ask the owner before a run that would record hundreds of clips.
 
 ## Relay broadcasters
 
@@ -66,12 +66,12 @@ The Relay's scripts are in `void-runner/relay-content.json`. Each segment has an
 
 ## Not built yet
 
-- **Broadcast voices:** the Relay's scripts are in (David's lines from his Relay brief; see `docs/VOID_RUNNER_RELAY.md`), and four broadcasters are cast **provisionally** (`news-anchor`, `warflying-host`, `police-recruiter`, `commercial-announcer`: stand-ins from 17 Oct 2026, not David's picks), so every fixed report line has a recording and plays on the radio. Each report line is its own clip; lines with leaderboard names filled in at play time stay captions. The Function is not cast.
-- **Street advertisement screens (16 Nov 2026):** they play the existing recordings of David's seven space-station ads and his three news reports from where the screens stand; every other ad line, the government announcements and the WarFlying board's "#1" callout have **no recording and are silent** until David picks voices by ear. The audition lines, the pick sheet and the full clip list are in [`development/AD_SCREENS_VOICE_AUDITION.md`](development/AD_SCREENS_VOICE_AUDITION.md). Recording is switched on by `RECORD` in `void-runner/ad-screens-data.js`.
-- The special-character slot stays reserved until David introduces that character.
+- **Broadcast voices:** the Relay's scripts are in (the owner's lines from his Relay brief; see `docs/VOID_RUNNER_RELAY.md`), and four broadcasters are cast **provisionally** (`news-anchor`, `warflying-host`, `police-recruiter`, `commercial-announcer`: stand-ins from 17 Oct 2026, not the owner's picks), so every fixed report line has a recording and plays on the radio. Each report line is its own clip; lines with leaderboard names filled in at play time stay captions. The Function is not cast.
+- **Street advertisement screens (16 Nov 2026):** they play the existing recordings of the owner's seven space-station ads and his three news reports from where the screens stand; every other ad line, the government announcements and the WarFlying board's "#1" callout have **no recording and are silent** until the owner picks voices by ear. The audition lines, the pick sheet and the full clip list are in [`development/AD_SCREENS_VOICE_AUDITION.md`](development/AD_SCREENS_VOICE_AUDITION.md). Recording is switched on by `RECORD` in `void-runner/ad-screens-data.js`.
+- The special-character slot stays reserved until the owner introduces that character.
 
 ## Companion voices and blends (2026-11-01)
 
-- **Rule:** every VR companion has their own Kokoro voice, a woman's voice for the women and a man's voice for the men (David). `tests/vr-companion-voices.test.cjs` checks this, along with a description and recorded lines for every companion.
+- **Rule:** every VR companion has their own Kokoro voice, a woman's voice for the women and a man's voice for the men (the owner). `tests/vr-companion-voices.test.cjs` checks this, along with a description and recorded lines for every companion.
 - **Cast:** Seren af_nicole, Nadia af_aoede, Ava af_alloy, Eva af_sky, Una bf_lily, Yuki bf_alice; Kai am_fenrir, Dex `am_adam:0.5+am_michael:0.5`. All are provisional, and every line is a DRAFT.
 - **Blends:** Kokoro has only 13 English men's voices, and all of them were already cast. A registry voice can therefore be a weighted blend of 2–3 voices of the same sex, written `am_adam:0.5+am_michael:0.5` (weights add up to 1). A blend counts as its own voice; `voice-registry.cjs` checks it, and `generate.py` mixes the voice styles. The audition page still auditions single voices only.
