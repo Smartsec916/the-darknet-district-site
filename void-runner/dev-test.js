@@ -72,7 +72,7 @@
   const panel=document.getElementById('dev-balance');if(panel)panel.hidden=true;
   try{opts.apply?.();state=opts.build();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');await opts.enter();if(typeof hud==='function')hud();}
   catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Use '+(opts.leave||'EXIT TEST')+'.');return {started:true,problem:String(e?.message||e)};}
-  if(opts.message)announce(opts.message);return {started:true};
+  const msg=typeof opts.message==='function'?opts.message():opts.message;if(msg)announce(msg);return {started:true};
  }
  function action(name,panel){if(name==='test-start')return start(panel);if(name==='test-exit')return exit();}
  // Stays "active" through the reload so nothing can write the throwaway state on the way out.

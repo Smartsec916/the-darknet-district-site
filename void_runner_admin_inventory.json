@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "readOnly": true,
-  "revision": "3e4e3126e908575c",
+  "revision": "c5c7972f9ad0a03e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12222,61 +12222,67 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 54,
+      "line": 58,
       "text": "const d=local(),prev=d.lines[l.ref]||{};if(text===l.text&&!(unlocked??prev.unlocked))delete d.lines[l.ref];else d.lines[l.ref]={who:l.who,from:l.text,to:text,adapter:l.adapter,source:l.source,...((unlocked??prev.unlocked)?{unlocked:true}:{})};saveLocal(d);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 57,
+      "line": 61,
       "text": "if(l.who==='player')return {text:'the player’s own line (not voiced)',cls:'muted'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 58,
+      "line": 62,
+      "text": "if(edited&&clipKeys.has(l.who+'|'+t))return {text:'re-voiced',cls:'ok'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor.js",
+      "line": 63,
       "text": "if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:q.engine==='elevenlabs'?{text:'waiting for ElevenLabs re-voice (needs approval)',cls:'warn'}:{text:'queued for re-voice',cls:'warn'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 59,
+      "line": 64,
       "text": "if(edited&&l.recorded)return {text:'voice clip out of date: text only until re-voiced',cls:'bad',revoice:true};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 60,
+      "line": 65,
       "text": "if(edited)return {text:'text only',cls:'muted',revoice:!!l.voice};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 61,
+      "line": 66,
       "text": "return l.recorded?{text:'voice clip recorded'+(l.clip?.engine==='elevenlabs'?' (ElevenLabs)':''),cls:'ok'}:{text:'text only (no voice clip)',cls:'muted'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 157,
-      "text": "const body=el('div','','me-say');const unlocked=!l.locked||(e&&e.unlocked);",
+      "line": 163,
+      "text": "const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 158,
+      "line": 164,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 188,
+      "line": 194,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 210,
+      "line": 216,
       "text": "const items=lines.filter(l=>l.who!=='player'&&l.voice).map(l=>({ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''}));",
       "kind": "source-reference"
     },
@@ -14428,7 +14434,7 @@
     "void-runner/dax.js": "c3c782e8ffb3efe7e694eb919e03f8f5660e0e3ef128c52271cd95b291135d87",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
-    "void-runner/dev-test.js": "28b804cb3e3ae1d33b09aa2651c2a2cac4695dd008329f2c017742def4770fdd",
+    "void-runner/dev-test.js": "7cc9669a5c397b04321a7374f45a20b452524d88d6d724a21627a20613baa42f",
     "void-runner/dev-tools.js": "0cfee893c7166b5550ea55d8a8f4f9f527abd0088d67e168959d07878d2ea571",
     "void-runner/device-camera.js": "57d78a02ec8e652b3f864777f732d421fc07158c9bfe73c18f2c4c38816ccefd",
     "void-runner/device-gallery.js": "c597eaf9cd2ca4048bb17f8140b994c545c5f52584b3b4b99d187efe5ab95441",
@@ -14489,7 +14495,7 @@
     "void-runner/milked.js": "70d8ccf1bca1c004c3d53a6397e5992cddbebe866dc047445bcd6d08033a382d",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "e21a47edc6fffbdb0b626e88a45f8abbe8c036ec2212a31818f8c154687db8de",
-    "void-runner/mission-editor.js": "7d769f6d24fa25e0643c35c9bc3dd41ac329efb4e460b26610074f1043e924c6",
+    "void-runner/mission-editor.js": "4c461e463a3d0d6b09ef487cd818d40cf8b2465012c65534a8e880f87cf0e731",
     "void-runner/mission-log.js": "a441c9382c2c393ebcefb482956a9b3aafa0e06391b884207af5912f6c041f2e",
     "void-runner/mission-trees.js": "6ae800584f13b244c027ccbd9f29b51a9d9287fff2d1e1d2c3c814bbdf92abf3",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",

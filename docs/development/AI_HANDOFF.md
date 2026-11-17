@@ -6,6 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 17 Nov 2026: MISSION EDITOR in Developer Tools (branch `claude/mission-editor-1`, build `2026-11-17-mission-editor-1`, pushed, NO PR, not merged)
+
+David asked for a mission editor next to Achievement Manager. Full record and how to use it: [`MISSION_EDITOR.md`](MISSION_EDITOR.md).
+
+- **Built:** Developer Tools > **Mission Editor**: all 10 mission trees in the game data (1 active, 8 historical, 1 inactive District draft at Milked; 40 missions), the NPCs in each with their registered voice (read-only), every step, what each NPC says, where it ends, what becomes available; **All lines for an NPC** (Admin first: all 40 Kokoro lines and the ElevenLabs line). David's scripts (docs 05, 06, 07, 09, 10, 12) are locked until he unlocks a line himself.
+- **Drafts** save as he types (the beginner campaign shares the Content Studio's draft; the Studio's flow chart is now shared code, `admin/studio-flow.js`, and the Studio page loads again: it was missing two District scripts on `main`).
+- **PLAY THIS DRAFT** (per mission and per step) runs the draft in a throwaway session: nothing saved, banner, LEAVE DRAFT back to the editor on the same step with the draft intact.
+- **PUBLISH TO ALL PLAYERS** with a check screen, versions and UNDO, and an owner-only **RE-VOICE** queue (`python tools/audio/generate.py --from-queue`; Admin's lines wait for ElevenLabs approval). **Both are OFF on the server** until David sets `VOID_CONTENT_PUBLISH_ENABLED` / `VOID_CONTENT_DRAFTS_ENABLED` and `VOID_CONTENT_EDITOR_UID` on Render. Nothing was deployed, no secret, rule or IAM changed; players keep the shipped missions while it is off.
+- **Cannot apply live yet** (kept as drafts, listed in plain words): lines spoken outside the conversation window (needs a code change), unlock and reputation additions, historical credits, contracts.
+
 > **16 Nov 2026, later (branch `claude/milked-far-south-1`, builds `2026-11-16-far-south-1` then `2026-11-16-outskirts-1`, pushed, no PR, not merged):** Milked moved by one rigid translation (100 m south) into the new **Far South** quarter past the **South Gate (A5, now live)**; **A6 Far South Gate** is a pedestrian-only checkpoint to the new **Outskirts** quarter (code-built container homes on gravel; `ncz-containers.js`; Kai Kryptos' home reserved as data `kai-kryptos-home`, nothing else). See `NEOCHINATOWN_QUARTERS.md` (end), `CHECKPOINTS.md`, `MILKED.md` (position note). Next: David reviews the look of The Outskirts against his reference pictures; the Outskirts' art is a first slice.
 ### 16 Nov 2026 (late): Sleeping Pod exit fixed, wall music player does everything. Branch `claude/pod-exit-1`, build `2026-11-17-pod-2`, pushed, NO PR yet (merged with main after #339)
 

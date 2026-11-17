@@ -12,7 +12,7 @@
  const read=(k,fallback,where=root.localStorage)=>{try{const v=JSON.parse(where.getItem(k)||'null');return v??fallback;}catch{return fallback;}};
  const write=(k,v,where=root.localStorage)=>{try{where.setItem(k,JSON.stringify(v));return true;}catch{return false;}};
  const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
- let built=null,index=null,refs=null,src=null,host=null,headNode=null,loading=null,status='';
+ let built=null,index=null,refs=null,src=null,clipKeys=new Set(),host=null,headNode=null,loading=null,status='';
  const ui={mode:'trees',tree:'beginner',mission:null,step:null,npc:'admin',flow:false,check:null};
  const server={roles:null,live:null,queue:null,drafts:null,note:{}};
  // ---------------------------------------------------------------- drafts (saved on every edit)
@@ -33,6 +33,7 @@
   const [registry,manifest,extraManifest]=await Promise.all([getJSON('tools/audio/npc-voice-registry.json'),getJSON('void-runner/assets/audio/voice/manifest.json'),getJSON('void-runner/assets/audio/voice/extra/manifest.json')]);
   const sh=shipped();src={missions:sh.registry,beginner:sh.beginner,content:root.VoidContent,campaign:root.VoidCampaign||root.C,story:root.VoidStoryContent,registry,manifest,extraManifest,files,milked:root.VoidMilked,
    modules:root.VoidProgression?.modules,ships:root.VoidShips?.ships,locations:root.VoidUniverse?.locations,stores:SM().STORES};
+  clipKeys=new Set([...Object.values(manifest?.lines||{}),...Object.values(extraManifest?.lines||{})].map(l=>l.speaker+'|'+l.text));
   rebuild();refs=T().refs(src);
   await refreshServer();
  }
@@ -41,6 +42,9 @@
  async function refreshServer(){
   const tries=[['roles','developer/drafts/schema'],['live','developer/live-content'],['queue','developer/revoice']];
   await Promise.all(tries.map(async([k,p])=>{try{server[k]=await call(p);server.note[k]='';}catch(e){server[k]=null;server.note[k]=e.status===404?'off':e.status===403?'not-authorized':e.status===503?'off':'unreachable';}}));
+  // Lines recorded since they were queued (their clip now ships with the game) are marked done in the queue.
+  const shipped_=(server.queue?.items||[]).filter(q=>q.status==='queued'&&q.engine==='kokoro'&&clipKeys.has(q.who+'|'+q.text)).map(q=>q.id);
+  if(shipped_.length){try{server.queue=await call('developer/revoice/done',{ids:shipped_});}catch{}}
   if(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled){try{server.drafts=(await call('developer/drafts')).drafts||[];}catch{server.drafts=null;}}
   rebuild();
  }
@@ -55,6 +59,7 @@
  const queueItem=(who,text)=>(server.queue?.items||[]).find(q=>q.who===who&&q.text===text)||null;
  function voiceState(l){const t=shownText(l),edited=t!==l.text,q=queueItem(l.who,t);
   if(l.who==='player')return {text:'the player’s own line (not voiced)',cls:'muted'};
+  if(edited&&clipKeys.has(l.who+'|'+t))return {text:'re-voiced',cls:'ok'};
   if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:q.engine==='elevenlabs'?{text:'waiting for ElevenLabs re-voice (needs approval)',cls:'warn'}:{text:'queued for re-voice',cls:'warn'};
   if(edited&&l.recorded)return {text:'voice clip out of date: text only until re-voiced',cls:'bad',revoice:true};
   if(edited)return {text:'text only',cls:'muted',revoice:!!l.voice};
@@ -147,6 +152,7 @@
   if(m.server&&server.roles?.roles?.editor&&server.roles.roles.draftsEnabled)act.append(btn('SAVE AS PRIVATE SERVER DRAFT',()=>serverDraft(m)));
   act.append(btn('EXPORT MY EDITS',exportEdits),btn('REVERT THIS MISSION',()=>{if(!confirm('Throw away your edits to "'+m.title+'"?'))return;revertMission(m);draw();}));
   box.append(act);if(!playable(m))box.append(el('p',playable(m,true),'me-small'));
+  const not=MC().notApplied({studio:studio(),local:local()});if(not.length){const d=el('details','','me-npc-group',{'data-me-not-applied':'1'});d.append(el('summary',not.length+' edit(s) in your draft will NOT show when you play or publish it (click to see which)'));for(const t of not)d.append(el('p','• '+t,'me-small'));box.append(d);}
   return box;
  }
  function groupByScene(lines){const out=[];for(const l of lines){const t=l.scene||'';let g=out.find(x=>x.title===t);if(!g){g={title:t,lines:[],meta:{}};out.push(g);}g.lines.push(l);}return out;}
@@ -154,15 +160,15 @@
  function lineRow(l){
   const row=el('div','','me-line',{'data-me-line':l.ref||l.key});const t=shownText(l),e=lineEdit(l),vs=voiceState(l);
   const who=el('div','','me-who');who.append(el('b',l.name),el('span',l.voice?'voice '+l.voice.voice+' ('+l.voice.status+')':'no registered voice','me-small'));row.append(who);
-  const body=el('div','','me-say');const unlocked=!l.locked||(e&&e.unlocked);
+  const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));
   const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);
   const tags=el('div','','me-tags');
   if(l.locked)tags.append(el('span',unlocked?'David’s script — unlocked for your edit':l.lock,'me-lock'));
   if(l.placeholder)tags.append(el('span','Claude’s placeholder (not David’s words)','me-warn'));
   if(l.kind==='design')tags.append(el('span','design note: the game does not speak it yet','me-warn'));
-  tags.append(el('span',l.adapter==='code-change'?'can be edited after the next update (needs a code change)':l.adapter==='records'?'shows in the game (mission records)':'shows in the game when played or published','me-small'));
+  if(player)tags.append(el('span','the player’s own words: shown for context, not edited here','me-small'));else tags.append(el('span',l.adapter==='code-change'?'can be edited after the next update (needs a code change)':l.adapter==='records'?'shows in the game (mission records)':'shows in the game when played or published','me-small'));
   tags.append(el('span',vs.text,'me-vs me-'+vs.cls));
-  if(l.locked&&!unlocked)tags.append(btn('UNLOCK TO EDIT MY SCRIPT',()=>{if(!confirm('This is your own script ('+l.lock.replace('David’s script — locked ','')+'). Edit it here?'))return;setLine(l,t,true);draw();}));
+  if(l.locked&&!unlocked&&!player)tags.append(btn('UNLOCK TO EDIT MY SCRIPT',()=>{if(!confirm('This is your own script ('+l.lock.replace('David’s script — locked ','')+'). Edit it here?'))return;setLine(l,t,true);draw();}));
   if(vs.revoice)tags.append(btn('RE-VOICE',()=>revoice([l]),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
   if(e)tags.append(btn('UNDO EDIT',()=>{const d=local();delete d.lines[l.ref];saveLocal(d);draw();}));
   body.append(tags);row.append(body);return row;}
@@ -196,7 +202,7 @@
   const n=built.npcs.find(x=>x.id===ui.npc)||built.npcs[0];ui.npc=n.id;
   const pick=el('div','','me-row');const sel=el('select','','',{'aria-label':'Character','data-me-npc':'1'});for(const x of built.npcs)sel.append(new Option(x.name+' ('+(x.counts.inMissions+x.counts.outside)+' lines)',x.id));sel.value=n.id;sel.onchange=()=>{ui.npc=sel.value;draw();};pick.append(el('b','All lines for '),sel);root_.append(pick);
   root_.append(el('p',(n.voice?'Registered voice (read-only): '+n.voice.voice+' · '+n.voice.status:'Not in the voice registry.')+(n.engine?' · Re-voice engine: '+(n.engine.engine==='elevenlabs'?'ElevenLabs, '+n.engine.voice+' ('+n.engine.note+')':'Kokoro on David’s PC (generate.py --from-queue)'):''),'dev-note'));
-  const out=[...n.inMissions,...n.outside].filter(l=>voiceState(l).revoice);root_.append(btn('RE-VOICE ALL OUT-OF-DATE LINES FOR '+n.name.toUpperCase()+' ('+out.length+')',()=>revoice(out),'',out.length&&server.queue?{}:{disabled:''}));
+  const out=[...n.inMissions,...n.outside].filter(l=>voiceState(l).revoice);if(server.queue)root_.append(btn('DOWNLOAD THE RE-VOICE QUEUE (for generate.py --from-queue)',downloadQueue));root_.append(btn('RE-VOICE ALL OUT-OF-DATE LINES FOR '+n.name.toUpperCase()+' ('+out.length+')',()=>revoice(out),'',out.length&&server.queue?{}:{disabled:''}));
   root_.append(el('h4','In missions ('+n.inMissions.length+')'));
   const byTree=new Map();for(const l of n.inMissions){const k=l.treeTitle+' › '+l.missionTitle;if(!byTree.has(k))byTree.set(k,[]);byTree.get(k).push(l);}
   for(const [k,ls] of byTree){const d=el('details','','me-npc-group');d.open=n.inMissions.length<40;d.append(el('summary',k+' ('+ls.length+')'));const ws=new Map();for(const l of ls){if(!ws.has(l.where))ws.set(l.where,[]);ws.get(l.where).push(l);}for(const [w,ll] of ws){d.append(el('h5',w));for(const l of ll)d.append(lineRow(l));}root_.append(d);}
@@ -216,6 +222,7 @@
    let revision=0;try{revision=(await call('developer/drafts/'+id)).revision||0;}catch{}
    const rec=await call('developer/drafts/'+id,{revision,document:tpl});status='Saved as private server draft '+id+' (revision '+rec.revision+'). Lines and unlocks stay in your local draft (the server draft holds the mission text and rewards).';}
   catch(e){status='Server draft not saved: '+e.message;}draw();}
+ function downloadQueue(){const a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({format:'mission-editor-revoice-queue',exportedAt:new Date().toISOString(),items:server.queue?.items||[]},null,1)],{type:'application/json'}));a.download='mission-editor-revoice-queue.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
  function exportEdits(){const data={format:'darknet-district-mission-editor-export',version:1,exportedAt:new Date().toISOString(),note:'Owner draft. Lines marked "needs a code change" are for Claude or Codex to apply in the source.',
    content:MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner}),notApplied:MC().notApplied({studio:studio(),local:local()}),local:local(),studio:studio()};
   const a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download='mission-editor-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
@@ -255,7 +262,7 @@
    enter:async()=>{const w=play.where;if(w==='interior'||w==='earth'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
     else if(w==='street'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}
     else if(w==='vesper')await worldEnterWalking('vesper');else{state.location=w;await dock();}},
-   message:'DRAFT · '+m.title+(stepId?' · from step '+stepId:'')+' · nothing is saved'+(not.length?' · '+not.length+' edit(s) cannot show (listed in the Mission Editor)':'')+((play.notes||[]).length?' · '+play.notes.join(' '):'')});
+   message:()=>'DRAFT · '+m.title+(stepId?' · from step '+stepId:'')+' · nothing is saved'+(not.length?' · '+not.length+' edit(s) cannot show (listed in the Mission Editor)':'')+((play.notes||[]).length?' · '+play.notes.join(' '):'')});
   if(r&&r.error){status=r.error;try{root.sessionStorage.removeItem(RETURN);}catch{}draw();}
  }
  // ---------------- PUBLISH TO ALL PLAYERS (server-verified owner only; the server keeps every version)

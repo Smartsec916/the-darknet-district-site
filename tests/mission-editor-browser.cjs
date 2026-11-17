@@ -33,7 +33,7 @@ const EDITED='TEST LINE: quiet bar, open shop, good eyes.';
   assert.match(await page.locator('.me-how summary').textContent(),/PUBLISH TO ALL PLAYERS: OFF on the server/);
   await page.screenshot({path:path.join(shots,'mission-editor-1366.png')});
   // the Communion arc with David's locked lines
-  await page.locator('[data-me-tree="communion"]').click();await page.waitForSelector('.me-lock');
+  await page.locator('[data-me-tree="communion"]').click();await page.waitForSelector('.me-lock');await page.locator('.me-lock').first().scrollIntoViewIfNeeded();
   assert.match(await page.locator('.me-lock').first().textContent(),/David’s script — locked/);await page.screenshot({path:path.join(shots,'mission-editor-communion-1366.png')});
   // All lines for Admin
   await page.locator('[data-me-mode="npcs"]').click();await page.waitForSelector('[data-me-npc]');assert.equal(await page.locator('[data-me-npc]').inputValue(),'admin');
@@ -79,6 +79,17 @@ const EDITED='TEST LINE: quiet bar, open shop, good eyes.';
   await page.evaluate(()=>{const d=JSON.parse(localStorage.getItem('studio-drafts-v1'));d.missions[0].objectives[0].on='teleport';localStorage.setItem('studio-drafts-v1',JSON.stringify(d));});
   await page.locator('[data-me-mode="trees"]').click();await page.locator('[data-me-mode="publish"]').click();
   assert.equal(await page.locator('[data-me-publish]').isDisabled(),true,'errors block publishing');assert.match(await page.locator('#me-check').textContent(),/nothing in the game can complete this step/);
+  assert.deepEqual(errors,[],'no page errors');
+  // 4. every player: published content is applied over the shipped missions; a record that fails the check is refused and the shipped missions stay
+  for(const [label,body,expect] of [['valid',{version:7,content:{format:'darknet-district-mission-content',version:1,registry:{'legal-run':{title:'AN HONEST DAY'}},lines:[{who:'admin',from:'Always got work. Just depends on where you’re willing to go.',to:'Work? Always.'}]}},'AN HONEST DAY'],
+   ['refused',{version:8,content:{format:'darknet-district-mission-content',version:1,registry:{'legal-run':{title:'<script>x</script>'}}}},'AN HONEST LIVING']]){
+   const c2=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),p2=await c2.newPage();p2.on('pageerror',e=>errors.push(label+': '+e.message));
+   await p2.route('https://**/*',r=>r.abort());await p2.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
+   await p2.route('**/api/**',r=>new URL(r.request().url()).pathname.endsWith('/live-content')?r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)}):r.fulfill({status:503,body:'{}'}));
+   await p2.goto(base+'/void-runner.html');await p2.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});await p2.waitForFunction(()=>VoidLiveContent.current.version>0||VoidLiveContent.current.refused,null,{timeout:30000});
+   const got=await p2.evaluate(()=>({title:VoidMissions.definitions['legal-run'].title,line:VoidMissionContent.mapLine(VoidLiveContent.env,{who:'Admin',text:'Always got work. Just depends on where you’re willing to go.'}).text,cur:VoidLiveContent.current}));
+   assert.equal(got.title,expect,label);if(label==='valid')assert.equal(got.line,'Work? Always.');else assert(got.cur.refused&&got.cur.version===0,'fail safe');
+   await c2.close();}
   assert.deepEqual(errors,[],'no page errors');
   console.log('mission editor browser test passed; screenshots in',shots);
  }finally{await browser.close();}
