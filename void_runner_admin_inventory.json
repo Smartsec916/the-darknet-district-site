@@ -402,7 +402,7 @@
       "reputation"
     ]
   },
-  "revision": "cb13ada3572bafb1",
+  "revision": "b336d9fee30f5862",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -15239,13 +15239,19 @@
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 211,
+      "line": 160,
+      "text": "look-toward-a-point rule no longer decides it. Facing away, a help hint says so.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-tropical.js",
+      "line": 265,
       "text": "if(id.startsWith('lounger')){const [x,z]=spots.lounger[+id.slice(7)];api.sit({x,z:z-.6,yaw:0,eye:.95,pitch:.05,text:'You stretch out on the lounger. The sea is warm and blue.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-tropical.js",
-      "line": 212,
+      "line": 266,
       "text": "else if(id==='pier-bench')api.sit({x:21.5,z:33.2,yaw:0,eye:1.75,text:'You sit at the end of the pier, the sea all around you.'});",
       "kind": "source-reference"
     },
@@ -15877,7 +15883,7 @@
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "fdf9fd1fea29a2d8683739b3732db6f32c6f2af654838ace9f2741343ea32947",
     "void-runner/vr-suite.js": "8a4ea0f657a73441f47b0b2aaee91037ff0c3aaa527a58a0710df28302010d0c",
-    "void-runner/vr-tropical.js": "76e15aff1babbcd5a065bc75e3f7285f26dbbc496780f5326ff3a4794f83354a",
+    "void-runner/vr-tropical.js": "c52cae1e4b00b093c710d3acc2c579c81accd1dc911d7abb5b59f311348a51e4",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
