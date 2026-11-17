@@ -23,32 +23,41 @@
     }
   }
 
+  /* Talking to people (the owner, 17 Nov 2026: "make the area that makes 'Talk to...' show up for all characters a little bigger"): a person's prompt reaches
+     1.5x as far and over a wider look (about 69 degrees off centre instead of 57). Among people, the one nearest the centre of the view wins (then the nearer);
+     against an object, a person counts at two thirds of the distance. Line of sight is checked as before: never through a wall or a counter. */
+  const TALK = {reach: 1.5, cos: .35, objectCos: .55};
+  const isTalk = item => item.talk === true || (item.talk !== false && /^(SPEAK WITH |TALK TO |TALK \/ |TALK — )/.test(String(item.label || '')));
+  function visible(player, location, item, dx, dz, distance) {
+    for (let t = .15; t < distance - .45; t += .15)
+      if (blocked(player.x + dx * t / distance, player.z + dz * t / distance, location, item.action==='station-door'?item.door:null)) return false;
+    return true;
+  }
   function select(player, location, allowed = () => true) {
-    let best = null,
-      nearest = Infinity;
+    let object = null, objectDistance = Infinity, person = null, personScore = null;
+    const fx = Math.sin(player.yaw), fz = Math.cos(player.yaw);
     for (const item of location.interactions) {
       const dx = item.position[0] - player.x,
         dz = item.position[2] - player.z,
-        distance = Math.hypot(dx, dz);
-      if (distance > item.range || distance > nearest || !allowed(item)) continue;
-      if (distance > .5 && (dx * Math.sin(player.yaw) + dz * Math.cos(player.yaw)) / distance < .55) continue;
-      // Test horizontal line of sight; never interact through a wall.
-      let occluded = false;
-      for (let t = .15; t < distance - .45; t += .15)
-        if (blocked(player.x + dx * t / distance, player.z + dz * t / distance, location, item.action==='station-door'?item.door:null)) {
-          occluded = true;
-          break;
-        }
-      if (!occluded) {
-        best = item;
-        nearest = distance;
+        distance = Math.hypot(dx, dz), talk = isTalk(item);
+      const facing = distance > .5 ? (dx * fx + dz * fz) / distance : 1;
+      if (talk) {
+        if (distance > item.range * TALK.reach || facing < TALK.cos || !allowed(item)) continue;
+        if (person && (facing < personScore.facing - .02 || (Math.abs(facing - personScore.facing) <= .02 && distance >= personScore.distance))) continue;
+        if (visible(player, location, item, dx, dz, distance)) { person = item; personScore = {facing, distance}; }
+      } else {
+        if (distance > item.range || distance > objectDistance || !allowed(item)) continue;
+        if (facing < TALK.objectCos) continue;
+        if (visible(player, location, item, dx, dz, distance)) { object = item; objectDistance = distance; }
       }
     }
-    return best;
+    if (!person) return object;
+    if (!object) return person;
+    return objectDistance < personScore.distance / TALK.reach ? object : person;
   }
   const api = {
     step,config,
-    select,
+    select, isTalk, TALK,
     blocked,
     radius
   };

@@ -12,21 +12,38 @@ function talk(sceneName, lines, done, label='CONTINUE →', heading='') {
  speech={lines,index:0,shown:0,done,label,heading,scene:sceneName};renderLine();
 }
 function renderLine(){
- const line=speech.lines[speech.index], c=characters[line.who]||{name:line.who,role:''};const newlyMet=!state.story.met.includes(line.who);if(newlyMet)state.story.met.push(line.who);const events=VoidStory.emit(state,'talk',line.who);if(newlyMet||events.length)save();speech.shown=reducedMotion?line.text.length:0;
- screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class="dialogue-window social-dialogue">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class="speech-body social-message"><div class="speaker"><h2>${c.name}</h2><span>${c.role}</span></div><p id="spoken-text" aria-hidden="true"></p><p class="sr-only" aria-live="polite">${c.name}: ${line.text}</p><div class="speech-controls"><span id="speech-status">TRANSMITTING <span class="talk-light">●</span></span><button data-action="speech-next" id="speech-next">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;
- globalThis.VoidAudio?.speak(line.who,line.text);
+ const line=speech.lines[speech.index], c=characters[line.who]||{name:line.who,role:''};const newlyMet=!state.story.met.includes(line.who);if(newlyMet)state.story.met.push(line.who);const events=VoidStory.emit(state,'talk',line.who);if(newlyMet||events.length)save();speech.shown=reducedMotion?line.text.length:0;speech.tick=performance.now();speech.auto=typeof walkingLocation!=='undefined'&&!!walkingLocation&&typeof walker!=='undefined'&&!!walker;
+ screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class="dialogue-window social-dialogue">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class="speech-body social-message"><div class="speaker"><h2>${c.name}</h2><span>${c.role}</span></div><p id="spoken-text" aria-hidden="true"></p><p class="sr-only" aria-live="polite">${c.name}: ${line.text}</p><div class="speech-controls"><span id="speech-status">${speech.auto?'SPEAKING':'TRANSMITTING'} <span class="talk-light">●</span></span><button data-action="speech-next" id="speech-next">${reducedMotion?nextLabel():typingLabel()}</button></div></div></div></section>`;
+ speakLine();
  $('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));
 }
 function nextLabel(){return speech.index===speech.lines.length-1?speech.label:'NEXT →';}
+// While a line is still typing: a walking conversation offers SKIP (to the next line; on the last line it shows the whole line, so a choice is never taken by accident).
+function typingLabel(){return speech.auto?'SKIP ›':'SHOW FULL LINE';}
+// Speaks the current line and notes what to wait for: speech.voice.clip (a recording exists), started / ended (voice-clips.js reports them).
+function speakLine(){const line=speech.lines[speech.index];speech.readyAt=null;speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:!!globalThis.VoidVoiceClips?.has?.(line.who,line.text)};if(!globalThis.VoidAudio?.speak(line.who,line.text))speech.voice.clip=false;}
 function advanceSpeech(){
  if(!speech)return;
  const line=speech.lines[speech.index];
- if(speech.shown<line.text.length){speech.shown=line.text.length;updateSpeech(0);return;}
+ if(speech.shown<line.text.length&&!(speech.auto&&speech.index<speech.lines.length-1)){speech.shown=line.text.length;updateSpeech(0);return;}
  if(speech.index<speech.lines.length-1){speech.index++;renderLine();return;}
  const done=speech.done;speech=null;globalThis.VoidAudio?.cancel();done();
 }
-function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*(speech.rate||48));$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():'SHOW FULL LINE';$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}
-const originalUpdate=update;update=function(dt){originalUpdate(dt);updateSpeech(dt);};
+function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*(speech.rate||48));$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():typingLabel();$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}
+/* Conversations flow by themselves in walking mode (the owner, 17 Nov 2026: clicking SHOW FULL LINE between every line "kind of stopped the natural flow").
+   Text types at once, in real time (frame rate does not slow it). A line with a recording advances when the recording has ended; a line without one (or whose
+   recording fails or has not started within 1.5 s) after its typing plus a reading pause of 1.2 s + 35 ms a character. Then a beat of 0.5 s and the next line.
+   The LAST line never advances by itself: it waits for CONTINUE or a choice. A minimized conversation or a choice menu holds. Safe to call more than once a frame. */
+const SPEECH_TIMING={beat:500,clipWait:1500,read:1200,perChar:35};
+function speechDue(now){const line=speech.lines[speech.index],v=speech.voice||{},T=SPEECH_TIMING;if(speech.shown<line.text.length)return null;speech.readyAt??=now;
+ if(v.started&&!v.ended){if(now-v.startedAt<(v.duration||0)*1000+T.clipWait)return null;v.ended=true;v.endedAt=now;}   // a recording that never reports its end (a suspended audio device) does not hold the conversation
+ if(v.ended)return Math.max(speech.readyAt,v.endedAt)+T.beat;
+ if(v.clip&&now-v.at<T.clipWait)return null;
+ return speech.readyAt+T.read+T.perChar*line.text.length+T.beat;}
+function tickSpeech(){if(!speech)return;const now=performance.now(),dt=speech.tick?Math.max(0,Math.min(.25,(now-speech.tick)/1000)):0;speech.tick=now;updateSpeech(dt);
+ if(!speech?.auto||speech.index>=speech.lines.length-1||screen.classList.contains('hidden')||screen.querySelector('.choice-menu')||$('speech-next')?.style.display==='none')return;
+ const due=speechDue(now);if(due!==null&&now>=due)advanceSpeech();}
+const originalUpdate=update;update=function(dt){originalUpdate(dt);tickSpeech();};
 function barRoom(){
  speech=null;mode='dock';view='bar';clearInput();flightUI(false);scene('bar');screen.classList.remove('hidden');
  screen.innerHTML=`<section class="cinematic-space"><div class="scene-heading"><div class="eyebrow">${C.stations[state.location].name.toUpperCase()}</div><h1>${C.stations[state.location].bar}</h1></div><button class="place bartender" data-action="talk-nyx">NYX · TALK</button><button class="place booth" data-action="talk-rook">ROOK · TALK</button>${state.quest==='open'?'<button class="place job-board" data-action="contacts">CARGO CONTACTS →</button>':''}</section>`;

@@ -5,7 +5,7 @@
 (function(root){
  const base=new URL('assets/audio/voice/',document.currentScript?.src||location.href);
  const alias={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant'};
- let manifest=null,lookup=new Map(),source=null,stopTimer=null;const cache=new Map();
+ let manifest=null,lookup=new Map(),source=null,stopTimer=null,seq=0;const cache=new Map();
  fetch(new URL('manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;manifest=m;
   for(const [id,l] of Object.entries(m.lines))lookup.set(l.speaker+'|'+l.text,{id,...l});}).catch(()=>{});
  /* A few lines voiced outside the Kokoro pipeline (ElevenLabs, rendered once and stored): extra/manifest.json. Same lookup, same playback, same live effects. */
@@ -58,16 +58,20 @@
   // words in step with these (ad-screens.js).
   return {done,stop(){stopped=true;try{playing?.stop();}catch{}},get duration(){return duration;},get progress(){return startedAt===null||!duration?0:Math.min(1,(bus.context.currentTime-startedAt)/duration);}};
  }
- function cancel(){clearTimeout(stopTimer);try{source?.stop();}catch{}source=null;}
+ // seq: a clip still loading when the next line (or a cancel) comes is dropped instead of playing over it.
+ function cancel(){seq++;clearTimeout(stopTimer);try{source?.stop();}catch{}source=null;}
  async function speak({characterId,text,bus}){
-  cancel();const line=lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
-  const ctx=bus.context,data=await clip(ctx,line),cast=manifest?.cast?.[line.speaker]||{};
+  cancel();const mine=seq,line=lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
+  // The conversation's line this recording is for (scenes.js speakLine): told when it starts and ends, so a walking conversation moves on when it has been heard.
+  const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};
+  const ctx=bus.context,data=await clip(ctx,line);if(mine!==seq)return;const cast=manifest?.cast?.[line.speaker]||{};
   const playing=ctx.createBufferSource();playing.buffer=data;source=playing;
   const input=ctx.createGain(),out=ctx.createGain();out.connect(bus);playing.connect(input);
   const extra=cast.effect==='android'?android(ctx,input,out):cast.effect==='hologram'?hologram(ctx,input,out):cast.effect==='radio'?radio(ctx,input,out):(input.connect(out),[]);
   // Subtitles reveal in step with the recording.
   if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));
-  await new Promise(resolve=>{playing.onended=resolve;playing.start();});
+  await new Promise(resolve=>{playing.onended=resolve;playing.start();if(v)Object.assign(v,{play,started:true,ended:false,startedAt:performance.now(),duration:data.duration});});
+  if(v&&v.play===play)Object.assign(v,{ended:true,endedAt:performance.now()});
   for(const o of extra)try{o.stop();}catch{}out.disconnect();if(source===playing)source=null;
  }
  root.VoidVoiceClips={has,speak,cancel,broadcast,get count(){return lookup.size;}};
@@ -75,5 +79,5 @@
  // Replay the current line on demand.
  const voicedRender=renderLine;
  renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action="speech-replay" class="quiet" title="Replay line">REPLAY ↺</button>');};
- screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;const line=speech.lines[speech.index];VoidAudio.speak(line.who,line.text);});
+ screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;speakLine();});
 })(globalThis);

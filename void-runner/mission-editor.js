@@ -21,7 +21,9 @@
   const S=MS();if(S){const own=d.trees.find(t=>t.id===S.TREE_ID);if(!own)d.trees.unshift(S.trees()[0]);
    // A copy saved before a shipped mission existed (Mission 002, 17 Nov 2026) gets that mission, where it stands in the shipped tree, unless its number was removed in the draft.
    // The tree's old default name "Main storyline" becomes "Awakening" (the owner calls it the Awakening Tree; the id never changes). Saved with the next edit.
-   else{if(own.name===S.OLD_NAME)own.name=S.TREE.name;S.trees()[0].missions.forEach((m,i)=>{if(!own.missions.some(x=>x.id===m.id)&&!(d.retiredNumbers||[]).includes(m.number))own.missions.splice(Math.min(i,own.missions.length),0,m);});}}
+   else{if(own.name===S.OLD_NAME)own.name=S.TREE.name;S.trees()[0].missions.forEach((m,i)=>{if(!own.missions.some(x=>x.id===m.id)&&!(d.retiredNumbers||[]).includes(m.number))own.missions.splice(Math.min(i,own.missions.length),0,m);});
+   // A step still holding lines the owner later changed in the shipped game (002's call, before the zoom line) takes the shipped text; his own edits are kept.
+   if(S.refreshShipped)S.refreshShipped(own);}}
   return d;}
  // ---- mission numbers: the ledgers (shipped, published), every number in the draft, and numbers retired in the draft are all "used"; the next free one is one past them all.
  const serverNumbers=()=>Object.fromEntries(Object.entries(server.live?.numbers||{}).map(([k,v])=>[Number(k),v]));

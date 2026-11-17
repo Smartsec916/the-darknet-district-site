@@ -28,5 +28,8 @@
  advanceSpeech=function(...args){const result=priorAdvance(...args);if(!hasContent()&&screen.classList.contains('conversation-live')){activeMode=null;screen.classList.remove('conversation-live');screen.classList.add('hidden');restore.hidden=true;}return result;};
  if(typeof renderStoryChoices==='function'){const priorChoices=renderStoryChoices;renderStoryChoices=function(...args){priorChoices(...args);if(activeMode&&walkingLocation&&walker){screen.querySelector('.dialogue-window')?.classList.add('choice-menu');mode=activeMode;screen.classList.add('conversation-live');screen.classList.remove('hidden');}};}
  document.addEventListener('keydown',e=>{if(e.code==='Escape'&&speech&&screen.classList.contains('conversation-live')){minimized=true;screen.classList.add('hidden');restore.hidden=false;}},true);
+ // The walking update (babylon-integration.js) returns before the older update chain, so scenes.js never typed or advanced a walking conversation:
+ // the line sat empty until the player clicked (the owner, 17 Nov 2026). Tick it here, outside that chain (tickSpeech is safe to call twice a frame).
+ const priorUpdate=update;update=function(...args){const result=priorUpdate(...args);if(mode!=='pause')tickSpeech();return result;};
  globalThis.VoidConversationUI={get isOpen(){return hasContent()&&screen.classList.contains('conversation-live');},continueWalking(){if(!this.isOpen)return false;activeMode='walking';mode='walking';walkingKeys.clear();canvas.focus({preventScroll:true});return true;}};
 })();

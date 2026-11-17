@@ -18,7 +18,7 @@ function after001(x){const s=district(x.C);s.story.flags.podWakePending=false;ev
 const accepted=x=>{const s=after001(x);talk(x,s,'admin');ev(x,s,{type:'accept',mission:ID});return s;};
 const photo=(subjects,during)=>({subjects:subjects.map(([id,valid])=>({id,valid})),during,place:'null',at:1});
 const OFFER=['I heard you\'re looking for work.','Before I trust you with anything important, I need you to do a little reconnaissance.','Head outside. Across the street, you\'ll find a nightclub called NULL. There\'s someone hanging out in there I need you to take their picture so I can scrape it for more data','I\'ll mark their location'];
-const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
+const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','You can also zoom with the camera by using the mouse wheel','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
 
 // ---------------------------------------------------------------- the place registry
 test('places: a hierarchy System > City > Area > place seeded from the game\'s own data; the District rooms match neochinatown.js',()=>{
