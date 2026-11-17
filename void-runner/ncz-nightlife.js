@@ -162,7 +162,14 @@
     place(p,dt);}}
   function sideOf(l,o){const p=[o.node.position.x,o.node.position.z],L=len(l),ux=(l.b[0]-l.a[0])/L,uz=(l.b[1]-l.a[1])/L,t=along(l,p),bx=l.a[0]+ux*t,bz=l.a[1]+uz*t;return (p[0]-bx)*l.wall[0]+(p[1]-bz)*l.wall[1];}
   function dispose(){disposed=true;for(const p of people)p.node?.dispose(false,false);people.length=0;}
-  return {tick,dispose,people,stats,config:cfg};}
+  // Everyone whose look is ready is made now, behind the loading screen (neochinatown.js prepare), instead of at random in the first second after the doors open;
+  // each still starts unseen and fades in as before.
+  function prewarm(){for(const p of people)if(!p.node)spawn(p);}
+  // A figure's shaders differ while it fades (see-through) and once it is solid: both are compiled now, still behind the loading screen. `ready` waits for the scene.
+  async function warm(ready){const all=people.filter(p=>p.parts);if(!all.length||typeof ready!=='function')return;const cap=q=>Promise.race([Promise.resolve(q).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);
+   for(const k of [1,.5]){for(const p of all)for(const [m,v]of p.parts)m.visibility=v*k;scene.incrementRenderId();await cap(ready());if(disposed)return;}
+   for(const p of all){for(const [m,v]of p.parts)m.visibility=v*(p.fade||0);p.lastFade=p.fade;}}
+  return {tick,dispose,prewarm,warm,people,stats,config:cfg};}
  const api={config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

@@ -62,7 +62,7 @@
     // The drunk never stands straight: a slow sway on the spot, now and then a lurch.
     if(p.drunk){p.sway=(p.sway||0)+dt;const lurch=Math.max(0,Math.sin(p.sway*.23))**6;p.node.rotation.z=.07*Math.sin(p.sway*.9)+.05*lurch*Math.sin(p.sway*3.1);p.node.rotation.x=.05*Math.sin(p.sway*.61+1)+.04*lurch;}}
   }
-  return {tick,people,stats:()=>({people:people.length,spawned:people.filter(p=>p.node).length,reacting:people.filter(p=>p.react>0).length,clips:people.map(p=>p.id+':'+p.look+':'+p.now)}),
+  return {tick,people,prewarm(){for(const p of people)if(!p.node)spawn(p);},stats:()=>({people:people.length,spawned:people.filter(p=>p.node).length,reacting:people.filter(p=>p.react>0).length,clips:people.map(p=>p.id+':'+p.look+':'+p.now)}),
    dispose(){disposed=true;for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();p.node=null;}}};
  }
  root.VoidAlley={...api,start};

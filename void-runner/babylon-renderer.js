@@ -80,7 +80,7 @@
     materials = {},
     lastWidth = 0,
     lastHeight = 0;
-  let roomFrame = 0;
+  let roomFrame = 0;const doorCache={root:null,count:-1,list:[]};
   const diagnostics = {
     ready: false,
     location: null,
@@ -1180,12 +1180,14 @@
     if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.milked&&root.VoidMilked?.build)){
       crowdLocation=def.id;root.VoidCrowd?.begin();
       zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:root.VoidMilked).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
+      await zoneHandle?.prepare?.();   // Milked: its people and their shaders, behind the check-in card (milked-build.js prepare; bounded, never throws)
       await task.wait(def.corporate||def.temple?'area':'scene',()=>scene.whenReadyAsync(),def.id);
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){
       crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all')||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{})},task),'district models');
       districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},area:def.area||'all',quarter:def.quarter||null,instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
+      await districtHandle.prepare?.();   // NULL and the street's light slots, behind the loading screen (neochinatown.js prepare; bounded, never throws)
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
@@ -1327,7 +1329,9 @@
     const roomDt=lastRoomTime===null?0:Math.min(.1,Math.max(0,time-lastRoomTime));lastRoomTime=time;
     if(stationActivity){VoidStationActivities.step(stationActivity,lastActivityTime===null?0:Math.min(.1,Math.max(0,time-lastActivityTime)));lastActivityTime=time;}
     // Doors slide rather than snap. Inner doors open for crew walking through and close behind them, unless the player opened them.
-    for(const mesh of roomRoot.getChildMeshes()){const d=mesh.metadata?.stationDoor;if(!d)continue;
+    // The door list is gathered again only when the room or its number of meshes changes (it was gathered from every mesh in the room every frame: about 1,000 in NeoChinatown, none of them doors).
+    if(doorCache.root!==roomRoot||doorCache.count!==scene.meshes.length){doorCache.root=roomRoot;doorCache.count=scene.meshes.length;doorCache.list=roomRoot.getChildMeshes().filter(m=>m.metadata?.stationDoor);}
+    for(const mesh of doorCache.list){const d=mesh.metadata?.stationDoor;if(!d||mesh.isDisposed())continue;
       if(stationActivity&&d.id!=='crew-pressure-door'){const near=(x,z,m)=>Math.abs(x-d.position[0])<d.size[0]/2+m&&Math.abs(z-d.position[2])<d.size[2]/2+m,crew=stationActivity.actors.some(a=>near(a.x,a.z,1.6));
         if(crew&&!d.open){d.open=true;d.byCrew=true;}else if(!crew&&d.byCrew&&!near(player.x,player.z,1.2)){d.open=false;d.byCrew=false;}}
       const target=d.position[1]+(d.open?3.5:0);mesh.position.y+=(target-mesh.position.y)*(roomDt?Math.min(1,roomDt*5):1);}

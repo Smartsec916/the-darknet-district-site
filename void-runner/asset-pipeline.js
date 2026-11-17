@@ -130,6 +130,14 @@
     return container;
   }
 
+  // What the glTF loader does to every material when a model finishes loading (above), done now: one light slot per light in the scene, at most eight.
+  // A place calls this before its loading screen lifts (neochinatown.js prepare), so the next model to arrive changes no material and no shader is rebuilt
+  // mid-walk. A material lit by no more lights than it already had slots for draws exactly the same; one lit by more is drawn as it would be after that model.
+  // keepLights: settle now, and return a check for each frame that settles again whenever the scene's number of materials has changed (a road taxi, a
+  // figure's tinted clothes made after the loading screen), before that frame is drawn.
+  function keepLights(scene){settleLights(scene);let count=scene?.materials?.length;return ()=>{const n=scene?.materials?.length;if(n!==count){count=n;settleLights(scene);}};}
+  function settleLights(scene){const n=Math.min(8,scene?.lights?.length||0);let raised=0;for(const m of scene?.materials||[])if(m.maxSimultaneousLights!==undefined&&m.maxSimultaneousLights<n){m.maxSimultaneousLights=n;raised++;}if(raised)scene.incrementRenderId?.();return raised;}   /* a scene that has drawn no frame since takes its shaders as current: this makes the next readiness check look again */
+
   // Clones own skeletons (including their bone textures) and animation groups; materials stay with the container.
   function ownInstance(result, owner) {
     let disposed=false;
@@ -233,7 +241,10 @@
     load,
     instance,
     prepare,
-    release
+    release,
+    settleLights,
+    keepLights,
+    isCached:src=>cached({src})   // is a model already in the offline cache (then loading it costs no download)
   };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidAssets = api;
