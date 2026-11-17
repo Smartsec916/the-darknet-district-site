@@ -11,8 +11,9 @@
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),{execFileSync}=require('child_process');
 const PACKED=0x4b505256,SEALED=0x45505256,PAGES_LIMIT=1024**3;
 
-// Published by Pages (as Jekyll did): no part of the path starts with "." or "_", and not exports/.
-const publishable=f=>!f.split('/').some(p=>p.startsWith('.')||p.startsWith('_'))&&!f.startsWith('exports/');
+// Published by Pages (as Jekyll did): no part of the path starts with "." or "_", and not exports/. Also not docs/ or tests/ (17 Nov 2026):
+// development notes, screenshots and test scripts are not part of the site (no page loads them) and pushed the site over GitHub Pages' 1 GB limit.
+const publishable=f=>!f.split('/').some(p=>p.startsWith('.')||p.startsWith('_'))&&!/^(exports|docs|tests)\//.test(f);
 
 // The .vrpak scramble (tools/assets/pack-model.cjs), undone.
 function unscramble(buf){
