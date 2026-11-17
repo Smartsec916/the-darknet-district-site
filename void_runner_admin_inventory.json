@@ -337,7 +337,7 @@
       "tree"
     ]
   },
-  "revision": "32cd1b6a0a83a383",
+  "revision": "9f2612cbb60bc295",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14940,13 +14940,13 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 235,
+      "line": 238,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 246,
+      "line": 249,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -15386,7 +15386,7 @@
     "void-runner/news-feed.js": "18ed7b60b2c2ca134d2a6865ce2160ab74f292a027a61e21e9746040c0a912ef",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "4172df44fc02d43d56016c17c76bc6af4daa80edcc1c5200be582903d7075a19",
-    "void-runner/personal-device.js": "15d90e2cf9b55e135f5e72b72da9f1effe0ee403bed665b0e667b75c27021e4a",
+    "void-runner/personal-device.js": "7f9d8fb40f109787b89905d45bb6c40ef60f513ca281562eadffde61560c3b17",
     "void-runner/personal-hud.js": "3a4b8ded6b03ad1029a64f38764261dbf6786022ba248ec8e33bc632ae6611bf",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
@@ -15447,7 +15447,7 @@
     "void-runner/warflying-scanner.js": "46a84d6fe041fb3c4d647dcffc08fd193def538dcfe8c6bd771d0a8759535c3b",
     "void-runner/warflying.js": "e3a319a7538e4df7e014be7ccb50b32bb2b0cf6cbcfe10ccfca2e46edb013a4f",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "2737e86fabd9d9f23f90c4abd3c97966a845f299d256bf480da0945951cf6353",
+    "void-runner/world-integration.js": "c56150a24f2fb7179a264859f562629d919276e2d6f146464656786d9ec4951f",
     "void-runner/world-markers.js": "31f8cc2fa59c41b144f97dcaf6793e7eaeb98ffd09fa692e4e0c8dd0c9845be0",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "e8847f58f9caa5f7257c5c1ab1e09469c8714a4918355e7df32c2bae55e3784a",

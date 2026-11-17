@@ -50,6 +50,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    const {ctx,page,errors,sounds}=await open(W,H);log('A '+W+'x'+H);
    await newCharacter(page);await toPod(page);
    let s=await S(page);assert.deepEqual(s.m,{},'no mission in the pod');assert.deepEqual(s.log,[]);
+   await page.evaluate(()=>{VoidV1.bannerMs=120000;});   // the software renderer is slow: keep the banner up while it is checked and photographed (players: about 8 s)
    await exitPod(page);
    await page.waitForFunction(()=>!!state.universe.missions['m001-awakening']?.acquired,null,{timeout:30000});
    await page.waitForSelector('#pd-notify.on:not(.away)',{timeout:30000}).catch(async e=>{console.log(JSON.stringify(await page.evaluate(()=>({mode,cls:document.getElementById('pd-notify')?.className,hidden:document.getElementById('pd-notify')?.hidden,text:document.getElementById('pd-notify')?.textContent,pending:VoidV1?.pending,notice:document.getElementById('notice')?.textContent}))));throw e;});
@@ -60,14 +61,15 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    s=await S(page);log(JSON.stringify(s));assert.equal(s.tracked,'m001-awakening');assert.deepEqual(s.log,[{title:'Awakening',objective:'Locate Admin',tracked:true,completed:false}],'in the Mission Log even before the call is answered');
    assert.ok(sounds.includes('device-v1-notify.ogg'),'the V1 notification sound is requested: '+sounds.join(','));
    // L answers: the V1 opens on Comms with Admin's call
+   await page.evaluate(()=>{VoidV1.callTail=120000;});   // the software renderer is slow: keep the call connected long enough to look at it (a player's call ends 6 s after the last line)
    await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.waitForFunction(()=>!VoidPersonalDevice.busy&&VoidPersonalDevice.app==='comms');
    assert.equal(await page.locator('#pd-notify').isHidden(),true,'opening the V1 clears the banner');
    const callCard=page.locator('#personal-device [data-call-live]');await callCard.waitFor();
    assert.match(await callCard.innerText(),/INCOMING CALL · CONNECTED[\s\S]*ADMIN[\s\S]*\d\d:\d\d/);assert.equal(await callCard.locator('.pd-wave i').count(),14,'a waveform');
-   await page.waitForTimeout(4000);assert.deepEqual(await callCard.locator('.pd-call-line').allInnerTexts(),['You\'re awake. Good.','When you\'re ready, come find me. We need to talk.'],'David\'s two lines as a transcript');
+   await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:15000});assert.deepEqual(await callCard.locator('.pd-call-line').allInnerTexts(),['You\'re awake. Good.','When you\'re ready, come find me. We need to talk.'],'David\'s two lines as a transcript');
    assert.equal(await page.locator('#personal-device [data-call-live] input,#personal-device [data-call-live] textarea').count(),0,'no reply');
    await page.screenshot({path:path.join(shots,'v1-call-'+W+'.png')});
-   await page.locator('[data-hangup]').click();await page.waitForSelector('#personal-device [data-call-live].ended');
+   if(await page.locator('[data-hangup]').count())await page.locator('[data-hangup]').dispatchEvent('click');await page.waitForSelector('#personal-device [data-call-live].ended',{timeout:30000});   // ends after the lines, or HANG UP (dispatched: the software renderer's frames are too slow for a pointer click to settle)
    assert.match(await page.locator('#personal-device').innerText(),/CALL ENDED[\s\S]*RECENT CALLS[\s\S]*ADMIN \/\/ INCOMING MESSAGE/,'kept under RECENT CALLS to read again');
    assert.ok(!/Mission 001|001/.test(await page.locator('#personal-device').innerText()),'no mission number on the device');
    // the Mission Log
@@ -110,14 +112,25 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    log('C in person');
    const {ctx,page}=await open(1366,768);
    const trees=await page.evaluate(()=>{const MC=VoidMissionContent,G=VoidLiveContent.env.givers;const t=MC.treesContent(VoidMainStory.trees(),{givers:G}).trees;
-    t.push({id:'draft-browser-person',name:'Browser test: in person',missions:[{id:'draft-browser-person-m1',number:2,title:'TEST IN PERSON',type:'side',giver:'iris',offer:[{who:'iris',text:'TEST: a job, in person.'}],objectives:[{id:'step-1',label:'TEST: go to the Port',kind:'go',place:'port'}]}]});return t;});
+    t.push({id:'draft-browser-person',name:'Browser test: in person',missions:[{id:'draft-browser-person-m1',number:2,title:'TEST IN PERSON',type:'side',giver:'iris',offer:[{who:'iris',text:'TEST: a job, in person.'}],objectives:[{id:'step-1',label:'TEST: talk to Admin',kind:'talk',npc:'admin'}]}]});return t;});
    await ctx.close();
    const o=await open(1366,768,{content:{format:'darknet-district-mission-content',version:1,trees}});const p=o.page;
    await p.waitForFunction(()=>VoidLiveContent.current.version===3,null,{timeout:30000});
    await newCharacter(p);await toPod(p);await exitPod(p);await p.waitForFunction(()=>!!state.universe.missions['m001-awakening']?.acquired,null,{timeout:30000});
+   // HANG UP at once: the call ends, the mission stays in the log
+   await p.evaluate(()=>{VoidV1.callTail=120000;});
+   await p.keyboard.press('KeyL');await p.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);await p.locator('[data-hangup]').waitFor();await p.locator('[data-hangup]').dispatchEvent('click');await p.waitForSelector('#personal-device [data-call-live].ended');
+   assert.ok((await S(p)).log.some(m=>m.title==='Awakening'&&m.tracked));await p.keyboard.press('KeyL');await p.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    await p.evaluate(()=>VoidInteractions.handlers.get('admin')());await p.waitForFunction(()=>state.universe.missions['m001-awakening']?.completed===true);
    await useE(p,'district-iris');const shown=await p.evaluate(()=>typeof speech!=='undefined'&&speech?speech.lines.map(l=>l.text):[]);assert.ok(shown.includes('TEST: a job, in person.'),'Iris offers it in person: '+shown.join(' | '));
    const s=await S(p);assert.equal(s.tracked,'draft-browser-person-m1');assert.ok(s.log.some(m=>m.title==='TEST IN PERSON'&&m.tracked&&!m.completed));
+   // the tracked tree mission feeds the yellow arrow: it points at Admin (step 1: talk to Admin); STOP TRACKING hides it
+   await p.evaluate(()=>{try{resumeWalking();}catch{}});await p.waitForFunction(()=>mode==='walking');
+   const way=async()=>{await p.waitForTimeout(1200);return p.evaluate(()=>({wp:typeof trackedWalkWaypoint!=='undefined'&&trackedWalkWaypoint?trackedWalkWaypoint.position:null,admin:walkingLocation.interactions.find(i=>i.id==='admin').position,g:VoidMissions.guidance(state,VoidMissions.tracked(state,C),true)}));};
+   let w=await way();assert.deepEqual(w.g,{kind:'local',label:'TEST: talk to Admin',interaction:'admin'});assert.deepEqual(w.wp,w.admin,'the arrow points at Admin');
+   await p.screenshot({path:path.join(shots,'tree-arrow-to-admin-1366.png')});
+   await p.evaluate(()=>VoidMissions.untrack(state));w=await way();assert.equal(w.wp,null,'STOP TRACKING hides the arrow');
+   assert.deepEqual(await p.evaluate(()=>VoidMissions.all(state,C).map(m=>m.title)),['Awakening','TEST IN PERSON'],'no removed (beginner) mission is listed');
    assert.deepEqual(o.errors,[],'no page errors');await o.ctx.close();}
   console.log('mission 001 browser test passed; screenshots in',shots);
  }finally{await browser.close();if(srv)srv.close();}

@@ -21,3 +21,8 @@ test('the page loads the rule before the cache script, and the worker activates 
  const sw=fs.readFileSync(path.join(__dirname,'..','void-runner-sw.js'),'utf8');assert.match(sw,/skipWaiting\(\)/);assert.match(sw,/clients\.claim\(\)/);
  const cache=fs.readFileSync(path.join(__dirname,'..','void-runner/cache.js'),'utf8');assert.match(cache,/controllerchange/);assert.match(cache,/U\.when\(ctx\)==='reload'/);
 });
+test('every game script the page loads compiles (a syntax error would leave players on a broken build)',()=>{
+ const vm=require('node:vm'),root=path.join(__dirname,'..'),html=fs.readFileSync(path.join(root,'void-runner.html'),'utf8');
+ const files=[...html.matchAll(/<script type="text\/tdd-game" src="([^"]+)"/g)].map(m=>m[1]).filter(f=>f.startsWith('void-runner/')&&!f.includes('/vendor/'));assert.ok(files.length>100);
+ for(const f of files)assert.doesNotThrow(()=>new vm.Script(fs.readFileSync(path.join(root,f),'utf8'),{filename:f}),f);
+});

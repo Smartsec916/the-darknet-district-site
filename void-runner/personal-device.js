@@ -139,10 +139,10 @@
  const unreadText=n=>n>99?'99+':String(n);
  const inbox=(ch='messages')=>{try{return root.VoidLiveContent?.inbox?.(ch)||[];}catch{return [];}};
  const inboxUnread=()=>inbox().filter(m=>!m.read).length,callsUnread=()=>inbox('comms').filter(m=>!m.read).length;
- let call=null;   // the call on screen in Comms: {id, start, ended, lines}
+ let call=null,callTail=6000;   // the call on screen in Comms: {id, start, ended, lines}
  const callClock=()=>{if(!call)return '00:00';const sec=Math.floor(((call.endedAt||Date.now())-call.start)/1000);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');};
  function endCall(){if(!call||call.ended)return;call.ended=true;call.endedAt=Date.now();root.VoidLiveContent?.markRead?.(call.id);updateBadges();if(open&&stack[0]==='comms')render({keepScroll:true});}
- setInterval(()=>{if(!call||call.ended)return;if(Date.now()-call.start>call.lines.length*2200+2500){endCall();return;}const t=body&&body.querySelector('[data-call-timer]');if(t)t.textContent=callClock();},500);
+ setInterval(()=>{if(!call||call.ended)return;if(Date.now()-call.start>call.lines.length*3000+callTail){endCall();return;}/* the lines appear 2.2 s apart; the call stays a moment after the last one */const t=body&&body.querySelector('[data-call-timer]');if(t)t.textContent=callClock();},500);
  const readAll=list=>{const ids=list.filter(m=>!m.read).map(m=>m.id);if(ids.length)setTimeout(()=>{let any=false;for(const id of ids)any=root.VoidLiveContent?.markRead?.(id)||any;if(any)updateBadges();},0);};
  let notes=0;   // notifications that arrived while the V1 was closed and that the player has not opened the V1 for yet
  /* The chat counts as "being looked at" only while the V1 is open, not mid-transition, on Messages > District chat. Looking at it reads everything that was waiting. */
@@ -510,7 +510,7 @@
  function chime(){try{const D_=D,tier=D_.notifyTier?.(dev.model),row=D_.NOTIFY?.[tier];if(!row?.sound)return;const A=root.VoidAudio?.settings,vol=A?(A.enabled===false?0:(Number(A.master)||0)*(Number(A.effects)||0)):.5;if(!(vol>0))return;
   let a=sounds.get(row.sound);if(a===null)return;if(!a){a=new Audio(new URL(row.sound,document.baseURI||location.href).href);a.preload='auto';a.addEventListener('error',()=>sounds.set(row.sound,null),{once:true});sounds.set(row.sound,a);}
   a.volume=Math.max(0,Math.min(1,vol));a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch{}}
- const FADE_MS=8000;
+ let FADE_MS=8000;   // about 8 s on screen (tests on the slow software renderer lengthen it: VoidV1.bannerMs)
  function hideBanner(){clearTimeout(bannerTimer);if(banner){banner.classList.remove('on');banner.hidden=true;}bannerKey='';bannerSound='';}
  /* notify({app, sub, key, from, header, text, hint:{text|'open', help:true}}): a V1 event the player should know about. Shown only while the V1 is closed (an open V1 on that
     app needs no banner). The same key twice is not stacked: the banner is refreshed. It stays until the V1 is opened, or fades after about 8 s and leaves the unread count on
@@ -532,6 +532,6 @@
  {const so=setOpen;setOpen=function(v){if(v&&!open&&noteApp&&!pending&&D.APPS[noteApp.app]?.state==='ready')pending={app:noteApp.app,sub:noteApp.sub};const r=so.apply(this,arguments);if(v&&open){notes=0;noteApp=null;hideBanner();updateBadges();}return r;};}
  // The banner is shown only on foot (a conversation, a menu or the pod card hides it; it comes back while it is still due).
  setInterval(()=>{if(!banner||banner.hidden&&!bannerKey)return;const show=!open&&typeof mode!=='undefined'&&mode==='walking'&&!root.VoidCharacterCreator?.isOpen;banner.classList.toggle('away',!show);},250);
- root.VoidV1={notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
+ root.VoidV1={get bannerMs(){return FADE_MS;},set bannerMs(v){FADE_MS=Math.max(1000,Number(v)||8000);},get callTail(){return callTail;},set callTail(v){callTail=Math.max(0,Number(v)||0);},notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
  root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);

@@ -124,6 +124,8 @@ test('in person: the giver offers the mission when talked to (the existing behav
  const x=env();treeWith(x,[side('draft-test-m1',{offer:[{who:'iris',text:'TEST offer.'}]})]);const s=district(x.C);exitPod(x,s);talk(x,s,'admin');
  const r=talk(x,s,'iris');assert.equal(r.offered,true);assert.equal(r.how,'person');assert.deepEqual(r.messages,[]);assert.equal(r.lines[0].text,'TEST offer.');assert.equal(s.universe.trackedMission,'draft-test-m1');
  assert.deepEqual(x.M.all(s,x.C).filter(m=>!m.completed).map(m=>m.title),['TEST draft-test-m1']);
+ const m=x.M.tracked(s,x.C);assert.deepEqual(x.M.guidance(s,m,true),{kind:'local',label:'Talk to Iris',interaction:'district-iris'},'a tracked tree mission feeds the guidance arrow (to the NPC of the current step)');
+ x.M.untrack(s);assert.equal(x.M.tracked(s,x.C),null,'STOP TRACKING: nothing to guide to');
 });
 test('by notification: after a mission completes, entering a place, a story flag; Comms and banner-only channels',()=>{
  const n=(when,channel='comms')=>({start:{how:'notification',channel,from:'iris',header:channel==='notify'?undefined:'IRIS // CALL',text:'TEST: '+when.kind,when}});
