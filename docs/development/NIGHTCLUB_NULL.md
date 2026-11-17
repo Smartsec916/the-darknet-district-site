@@ -6,7 +6,7 @@ On Main Street's west side, directly across from the mouth of the alley that lea
 
 - **Outside:** the club front with a lit doorway, canopy and the NULL sign, visible from the alley mouth; door staff and (on Medium and High) two people waiting.
 - **Inside** (32 x 20 m hall): a tile dance floor that changes with time, eight sweeping light beams, a DJ desk on a riser in front of a wall of light, speaker stacks, tables and seats along both long walls, a bar on the north wall with a bartender, a VIP corner on the south wall (riser, sofa, lit table, rope).
-- **People:** dancers (3 / 6 / 9 by quality), the DJ, the bartender, door staff, and on Medium and High two guests at the bar, two in the VIP corner and two outside. Ordinary crowd looks; roles, not named characters; no dialogue.
+- **People:** dancers (3 / 6 / 9 by quality), the DJ, the bartender, door staff, and on Medium and High two guests at the bar, two in the VIP corner and two outside. Ordinary crowd looks; roles, not named characters; no dialogue. *(Superseded 17 Nov 2026: Low 7 / Medium 10 / High-Ultra 11 including Juno Vex and Halden Reyes at the bar's east end; no VIP pair or queue. See `MISSION_EDITOR.md`, Fourth pass.)*
 - **Walking in:** the doorway is open once the club is ready; no key press. The bar has one prompt, ORDER A DRINK (a line of text; no credits, no effect).
 - **Sound:** the existing club sound system: bass through the walls outside, full sound inside, from the speaker stacks and DJ desk.
 - **Map:** NULL is on the V1 map with its building outline and a marker at the door.

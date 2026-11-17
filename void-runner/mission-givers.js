@@ -27,8 +27,11 @@
   'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,
    note:'Reached by road taxi (60 CR) or on foot through the East Gate from The Avenue. Draft play starts on The Avenue. No registered voice.'},
   // Juno Vex (the owner's Mission 002, 17 Nov 2026): the person Admin wants photographed. She sits alone at NULL's bar (ncz-nightclub.js); the V1 camera names her. Nobody talks to her.
-  'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, alone at the bar, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,
+  'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, at the bar talking with Halden Reyes, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,
    why:'No TALK prompt: she is someone to photograph (Mission 002), not to talk to.'},
+  // Halden Reyes (the owner, 17 Nov 2026, APPROVED): the well-dressed corporate man Juno is talking with at NULL's bar; Mission 002's photo must show them both. No dialogue.
+  'halden-reyes':{name:'Halden Reyes',group:D,say:'Halden Reyes',where:'NULL, at the bar talking with Juno Vex (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,
+   why:'No TALK prompt: he is someone to photograph (Mission 002), not to talk to.'},
   // ---- earlier characters (not in the District today) ----
   rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,
    reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},

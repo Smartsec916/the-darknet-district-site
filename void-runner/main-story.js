@@ -43,8 +43,9 @@
    {id:'enter-null',kind:'enter',place:'null',label:'Go to NULL, across the street.',via:'comms',npc:'',item:'',early:[],
     say:[A('Your V1 has a camera. Press L to open your device, then select the Camera app.'),A('Point it at the target. Your device should identify them automatically.'),A('Left click will take a picture'),
      A('Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.'),A('Nothing complicated. Just keep your eyes open.')]},
-   {id:'photograph',kind:'photo',npc:'juno-vex',label:'Photograph the target.',place:'',item:'',say:[],early:[]},
-   {id:'send-photo',kind:'send-photo',npc:'admin',subject:'juno-vex',label:'Send the photo to Admin.',place:'',item:'',early:[],
+   // the photo must show BOTH Juno Vex and Halden Reyes, the man she is talking with (the owner, 17 Nov 2026): each in the frame, within 15 m, not blocked, in the same photo
+   {id:'photograph',kind:'photo',npc:'juno-vex',subjects:['juno-vex','halden-reyes'],label:'Photograph the target.',place:'',item:'',say:[],early:[]},
+   {id:'send-photo',kind:'send-photo',npc:'admin',subject:'juno-vex',subjects:['juno-vex','halden-reyes'],label:'Send the photo to Admin.',place:'',item:'',early:[],
     say:[A('Received. That\'s exactly what I needed. Come back when you\'re ready.')],wrong:[A('That\'s not the person I\'m looking for. Check the description and try again.')]},
    {id:'return',kind:'talk',npc:'admin',label:'Return to Admin.',place:'',item:'',early:[],say:[A('Not bad. You can follow instructions and keep a low profile. I might have more work for you.')]}],
   rewards:100,ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'reputation',id:'admin',amount:10}]};

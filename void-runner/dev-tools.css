@@ -24,7 +24,7 @@
 .me-modes{display:flex;gap:6px;margin:8px 0}.me-status{color:#58ffe1;margin:4px 0}
 .me-cols{display:grid;grid-template-columns:270px minmax(0,1fr);gap:16px;align-items:start}
 .me-side{display:flex;flex-direction:column;gap:4px;position:sticky;top:0;max-height:78vh;overflow:auto;padding-right:4px}.me-side button{text-align:left}.me-side .me-mission{margin-left:12px;font-size:11px;background:#0b1c26}
-.me-group{font:600 11px Consolas,monospace;letter-spacing:.1em;color:#f2b33d;margin:10px 0 2px}.me-small{font-size:11px;color:var(--muted)}
+.me-group{font:600 11px Consolas,monospace;letter-spacing:.1em;color:#f2b33d;margin:10px 0 2px}.me-small{font-size:11px;color:var(--muted)}.me-subjects{display:inline-flex;flex-wrap:wrap;gap:4px 12px;align-items:center}.me-subjects label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
 .me-badge{display:inline-block;font:600 11px Consolas,monospace;padding:2px 8px;margin:0}.me-active{background:#123d2c;color:#7dffb2}.me-historical{background:#2c2a14;color:#f2d36b}.me-draft{background:#2a1832;color:#e6a6ff}
 .me-main h3{margin:0 0 4px}.me-main h4{font:600 12px Consolas,monospace;letter-spacing:.08em;color:#f2b33d;margin:16px 0 6px;border-bottom:1px solid #2b4a55;padding-bottom:3px}.me-main h5{margin:8px 0 4px;color:#b5cbc6;font-size:12px}
 .me-table{border-collapse:collapse;width:100%;font-size:12px}.me-table th,.me-table td{border-bottom:1px solid #1d3540;padding:4px 6px;text-align:left;vertical-align:top}.me-link{background:none!important;border:0!important;color:#58ffe1!important;padding:0!important;text-decoration:underline}

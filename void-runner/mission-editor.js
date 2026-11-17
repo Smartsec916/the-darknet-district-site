@@ -195,9 +195,14 @@
  function regionSelect(value,on,label,attrs){const sel=el('select','','',{'aria-label':label||'Place',...(attrs||{})});sel.append(new Option('— choose a place —',''));
   for(const o of (root.VoidPlaces?.options()||[])){const opt=new Option('\u00a0'.repeat(o.depth*3)+o.name+(o.selectable?'':' ('+(o.level==='system'?'system':'group')+')'),o.id);opt.title=o.label;if(!o.selectable)opt.disabled=true;sel.append(opt);}
   sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
- /* Who a photo can be of: people the V1 camera identifies (the District's residents, Juno Vex). */
- function subjectSelect(value,on,label,attrs){const sel=el('select','','',{'aria-label':label||'Who is photographed',...(attrs||{})});sel.append(new Option('— choose someone the camera identifies —',''));
-  for(const g of G().photoSubjects(givers))sel.append(new Option(g.name+(g.where?' · '+g.where.replace(/\s*\(.*$/,'').slice(0,50):''),g.id));sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
+ /* One or more people who must ALL be in the same photo (Mission 002: Juno Vex and Halden Reyes): a tick box per person the camera identifies. The first ticked is the
+    step's main person (npc / subject: the arrow leads to them); with two or more the step keeps the list in `subjects`. */
+ function subjectsPicker(list,on,label,attrs){const box=el('span','','me-subjects',{role:'group','aria-label':label||'Who must be in the photo',...(attrs||{})}),cur=(list||[]).filter(Boolean);
+  for(const g of G().photoSubjects(givers)){const l=el('label','','me-small'),c=el('input','','',{type:'checkbox',value:g.id,'data-me-subject':g.id});c.checked=cur.includes(g.id);
+   c.onchange=()=>on(c.checked?[...cur.filter(x=>x!==g.id),g.id]:cur.filter(x=>x!==g.id));l.title=g.where||'';l.append(c,' '+g.name);box.append(l);}
+  if(cur.length>1)box.append(el('span','· all of them in the same photo','me-small'));return box;}
+ const photoPeople=o=>Array.isArray(o.subjects)&&o.subjects.length?o.subjects:[o.kind==='photo'?o.npc:o.subject].filter(Boolean);
+ const setPhotoPeople=(x,list,key)=>{x[key]=list[0]||'';if(list.length>1)x.subjects=list.slice();else delete x.subjects;};
  function itemSelect(value,on){const sel=el('select','','',{'aria-label':'Item to buy'});sel.append(new Option('— choose an item a store sells —',''));for(const [id,n] of Object.entries(G().buyable(src.modules)))sel.append(new Option(n,id));sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
  function newTreeForm(){const box=el('section','','me-mission-panel',{'data-me-new-tree-form':'1'});box.append(el('h3','New mission tree'),el('p','A new tree is your DRAFT: nobody else sees it. Its id is made from the first name you give it (draft-…) and never changes; you can rename the tree any time.','dev-note'));
   const name=el('input','','',{'aria-label':'New tree name',placeholder:'Tree name (your words)',maxlength:'60','data-me-new-name':'1'}),note=el('textarea','','',{'aria-label':'Short note',placeholder:'Short note (optional)',rows:'2','data-me-new-note':'1'});
@@ -317,8 +322,8 @@
   else if(o.kind==='go')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to go to'));else if(o.kind==='arrive')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to fly to',true));else if(o.kind==='buy')head.append(itemSelect(o.item,v=>eo(x=>{x.item=v;},true)));
   else if(o.kind==='hear')head.append(npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who is heard',empty:'(the giver)',attrs:{'data-me-step-npc':o.id}}));
   else if(o.kind==='enter'||o.kind==='leave')head.append(regionSelect(o.place,v=>eo(x=>{x.place=v;},true),o.kind==='enter'?'Place to enter':'Place to leave',{'data-me-step-place':o.id}));
-  else if(o.kind==='photo')head.append(subjectSelect(o.npc,v=>eo(x=>{x.npc=v;},true),'Who is photographed',{'data-me-step-subject':o.id}));
-  else if(o.kind==='send-photo')head.append(el('span','to','me-small'),npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who the photo is sent to',attrs:{'data-me-step-npc':o.id}}),el('span','showing','me-small'),subjectSelect(o.subject,v=>eo(x=>{x.subject=v;},true),'Who must be in the photo',{'data-me-step-subject':o.id}));
+  else if(o.kind==='photo')head.append(el('span','showing','me-small'),subjectsPicker(photoPeople(o),v=>eo(x=>setPhotoPeople(x,v,'npc'),true),'Who is photographed',{'data-me-step-subject':o.id}));
+  else if(o.kind==='send-photo')head.append(el('span','to','me-small'),npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who the photo is sent to',attrs:{'data-me-step-npc':o.id}}),el('span','showing','me-small'),subjectsPicker(photoPeople(o),v=>eo(x=>setPhotoPeople(x,v,'subject'),true),'Who must be in the photo',{'data-me-step-subject':o.id}));
   else if(o.kind==='pod-exit')head.append(el('span','Done when the player leaves the Sleeping Pod (EXIT POD).','me-small'));
   else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));
   else head.append(el('span','Needs a code change: the game cannot run this kind of step yet. It stays in your draft.','me-warn'));
