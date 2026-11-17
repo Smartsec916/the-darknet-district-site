@@ -1180,6 +1180,7 @@
     if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.milked&&root.VoidMilked?.build)){
       crowdLocation=def.id;root.VoidCrowd?.begin();
       zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:root.VoidMilked).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
+      await zoneHandle?.prepare?.();   // Milked: its people and their shaders, behind the check-in card (milked-build.js prepare; bounded, never throws)
       await task.wait(def.corporate||def.temple?'area':'scene',()=>scene.whenReadyAsync(),def.id);
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
