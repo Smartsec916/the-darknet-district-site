@@ -347,13 +347,11 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => walkingKeys.delete(e.code));
 addEventListener('blur', () => {
-  walkingKeys.clear();
-  if (['walking', 'transit3d'].includes(mode)) openGameMenu();
+  walkingKeys.clear();   // clicking out of the browser keeps you in the game (no menu); mouse-control.js shows CLICK TO RETURN TO THE GAME
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     walkingKeys.clear();
-    if (['walking', 'transit3d'].includes(mode)) openGameMenu();
   }
 });
 canvas.addEventListener('click', () => {

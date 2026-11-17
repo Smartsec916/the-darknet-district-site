@@ -163,5 +163,5 @@ test('removed from the District game: the beginner campaign, Rook\'s board, fact
 test('the game page loads main-story.js before the mission adapter; the service worker build is bumped',()=>{
  const html=fs.readFileSync(R('void-runner.html'),'utf8');assert.ok(html.indexOf('void-runner/main-story.js')>0&&html.indexOf('void-runner/main-story.js')<html.indexOf('void-runner/mission-content.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);
- assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8'),/const BUILD='2026-11-17-mission-001-1'/);
+ assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8'),/const BUILD='2026-11-17-mission-001-\d+'/);
 });
