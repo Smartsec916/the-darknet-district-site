@@ -64,8 +64,10 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await shot('mission-log');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    // ---- the arrow: out through the vestibule, then to NULL's door
    let w=await way();assert.deepEqual(w.g,{kind:'local',label:'Go to NULL, across the street.',place:'null'});assert.equal(w.area,'interior');
-   const vest=await page.evaluate(()=>VoidNeoChinatown.toWorld(0,23));assert.deepEqual(w.wp.p,[vest[0],1.7,vest[1]],'inside the District the arrow leads to the security vestibule first');
-   await page.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,32);Object.assign(walker,{x,z,yaw:Math.PI*0,pitch:0});const p=trackedWalkWaypoint.position;walker.yaw=Math.atan2(p[0]-walker.x,p[2]-walker.z);});await page.waitForTimeout(1500);await shot('arrow-vestibule');
+   // the goal is NULL's door; the arrow's route leads out through the District's inner door, the vestibule and the outer door first (guide-route.js, 17 Nov 2026)
+   assert.deepEqual(w.wp.p,await page.evaluate(()=>VoidPlaces.target('null')),'the goal is NULL\'s door');
+   await page.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,32);Object.assign(walker,{x,z,yaw:0,pitch:0});const [vx,vz]=VoidNeoChinatown.toWorld(0,23);walker.yaw=Math.atan2(vx-walker.x,vz-walker.z);});await page.waitForTimeout(1500);
+   const live=await page.evaluate(()=>VoidGuideRoute.live);assert.deepEqual(live.route.slice(0,3),['district-inner-door<','district-door<','district-door<+'],'inside the District the arrow leads out through the vestibule first');assert.equal(live.waypoint,'district-inner-door<');await shot('arrow-vestibule');
    log('to the street');await page.evaluate(async()=>{state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'oldtown'});});
    await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street');await page.evaluate(()=>{Object.assign(walker,{x:66,z:-58.5,yaw:-Math.PI/2,pitch:0});});await page.waitForTimeout(1500);
    w=await way();const door=await page.evaluate(()=>VoidPlaces.target('null'));assert.deepEqual(w.wp.p,door,'on the street the arrow leads to NULL\'s door');

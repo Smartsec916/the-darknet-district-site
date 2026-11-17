@@ -6,7 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 17 Nov 2026 (newest): TALK FLOW — WALKING CONVERSATIONS FLOW BY THEMSELVES, A BIGGER "TALK TO" AREA, THE SPEAKER LOOKS AT YOU, ADMIN'S ZOOM LINE (branch `claude/talk-flow-1`, build `2026-11-17-talk-flow-1`, pushed, NO PR, not merged)
+### 17 Nov 2026 (newest): THE GUIDE ARROW NO LONGER TURNS ROUND AT DOORWAYS; ONE ROUTE MODULE FOR EVERY MISSION (branch `claude/arrow-smoothing`, build `2026-11-17-arrow-1`, pushed, NO PR, not merged)
+
+The owner: "if it's pointing at a doorway and you walk slightly past the marker point the arrow points backwards for a bit ... look for other cases". Full record and tunables: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "The guide arrow".
+
+- **Root cause:** inside the District the arrow aimed at one point, the vestibule's middle, until the scan swapped the street in; the checkpoint starts 1.2 m before that point and the player keeps walking while the doors seal, so the arrow pointed back for the whole scan, then straight at NULL through the vestibule wall. Also the arrow aimed at the point's screen position, which drops below the arrow's ring within about 2 m, so it swung down (backwards) just before any marker.
+- **Fix:** `void-runner/guide-route.js` (new, pure, `TUNE` in one place): regions and portals (District rooms, vestibule, NULL, Milked, gate lanes A1–A6, every quarter's streets and their junctions); doorways passed by radius or by crossing their plane; hysteresis; damped shortest-arc smoothing; snap with a fade only on a new goal, a teleport or a scene / area / quarter change; fades near the goal. `trackedWalkWaypoint` is now always the goal; `world-integration.js drawMissionWaypoint` draws the follower's bearing. `mission-guide.js missionPlaceRoute` and `districtRoute` return the real goal.
+- **Tests:** `tests/guide-route.test.cjs`; `tests/arrow-route-browser.cjs` (Mission 002's route walked frame by frame through the real checkpoint); `tests/eyes-on-the-street-browser.cjs` updated (the goal is NULL's door; the route leads out through the vestibule). Screenshots: `docs/development/arrow-smoothing/`.
+- **Not verified:** real hardware; VR (the arrow is off in VR, as before); the older stations in the browser (unit-tested only).
+
+### 17 Nov 2026: TALK FLOW — WALKING CONVERSATIONS FLOW BY THEMSELVES, A BIGGER "TALK TO" AREA, THE SPEAKER LOOKS AT YOU, ADMIN'S ZOOM LINE (branch `claude/talk-flow-1`, build `2026-11-17-talk-flow-1`, pushed, NO PR, not merged)
 
 The owner: Admin's lines "came one at a time ... it kind of stopped the natural flow" (an empty text area, TRANSMITTING, and SHOW FULL LINE to click between every line); "make the area that makes 'Talk to . . .' show up for all characters a little bigger"; "if a mission giver is speaking their mission lines to the player engage head tracking on the mission giver NPC"; and a new line in Admin's 002 call (APPROVED, `VOID_RUNNER_HANDOFF.md` §11).
 

@@ -1,6 +1,6 @@
 /* MISSION GUIDE ON FOOT (browser only): what the yellow guidance needs for place steps and photo steps (Mission 002 — Eyes on the Street, 17 Nov 2026).
-   - missionPlaceRoute(g): where the yellow arrow leads for a step that names a place (places.js) or a person to photograph. From inside The Darknet District to a place
-     outside it, the arrow leads out through the security vestibule first; from the street to a place inside the District, to the vestibule (world-integration.js asks).
+   - missionPlaceRoute(g): the goal of a step that names a place (places.js) or a person to photograph (world-integration.js asks). The route to it (out through the
+     District's security vestibule, into NULL, through a gate lane) and how the arrow moves are guide-route.js's.
    - The yellow marker over the person to photograph (one marker over the middle of Juno Vex and Halden Reyes), drawn only while that photo step is in progress AND the mission is tracked. Not before, not after.
    - Contextual hints for the photo and the send-a-photo steps: open the V1 (the player's own key), open Camera, take the photo, open Messages, open the conversation,
      ATTACH, SEND. Small, yellow-orange, at the top of the screen under the tracked-mission line (clear of the V1 banner at the bottom right, the KeyMap box and the [E] prompt); each goes once it is done (it follows what the player is actually doing). Every hint is tagged
@@ -8,7 +8,6 @@
 (function(root){
  'use strict';
  const LC=()=>root.VoidLiveContent,P=()=>root.VoidPlaces;
- const inRect=([x0,x1,z0,z1],x,z)=>x>=x0&&x<=x1&&z>=z0&&z<=z1;
  function subjectPoint(id){try{const x=root.VoidPhotoSubjects?.get?.(id);if(x&&x.node&&!x.node.isDisposed?.()){const p=x.node.getAbsolutePosition();return [p.x,1.7,p.z];}}catch{}
   if(id==='juno-vex'&&root.VoidNightclub?.JUNO){const j=root.VoidNightclub.JUNO;return [j.x,1.7,j.z];}return null;}
  function missionPlaceRoute(g){
@@ -16,10 +15,9 @@
    const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
    if(node&&node.scene&&!node.whole&&node.scene!==wl.id)return null;
    const pt=(g.target&&subjectPoint(g.target))||(g.place&&P()?.target(g.place));if(!pt)return null;
-   if(wl.id==='neochinatown'&&typeof VoidNeoChinatown!=='undefined'){const D=(P()?.node('district')||{}).rects?.[0],tIn=D&&inRect(D,pt[0],pt[2]),[vx,vz]=VoidNeoChinatown.toWorld(0,23);
-    if(wl.area==='interior'&&D&&!tIn)return {position:[vx,1.7,vz],route:true,label:'DISTRICT EXIT'};   // out through the security vestibule first
-    if(wl.area!=='interior'&&tIn)return {position:[vx,1.7,vz],route:true,label:'DISTRICT SECURITY ENTRANCE'};}
-   return {position:pt,route:true};}catch{return null;}}
+   // The goal itself (a person's live position, or the place's point). The way there (out of a room, through the District's vestibule, NULL's entry, a gate lane)
+   // is guide-route.js's, for every mission (17 Nov 2026, arrow smoothing: this used to return the vestibule's middle as the goal, and the arrow turned round past it).
+   return {position:pt,route:true,label:g.label||''};}catch{return null;}}
  root.missionPlaceRoute=missionPlaceRoute;
 
  // ---- the marker over the person to photograph ----

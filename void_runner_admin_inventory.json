@@ -402,7 +402,7 @@
       "reputation"
     ]
   },
-  "revision": "bc11cba82f30ccf8",
+  "revision": "2ff1897faf59d136",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12274,6 +12274,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/guide-route.js",
+      "line": 4,
+      "text": "Every mission, old and future, goes through it: world-integration.js (and anything else) only says WHERE THE GOAL IS (trackedWalkWaypoint); the route, the",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/hangar.js",
       "line": 14,
       "text": "const rookMissileLine={who:'rook',text:'Two hot runs and you’re still breathing. I’ve got something for the next one. Head to the station shop. Tell them Rook sent you. They’ll fit a missile launcher — installation’s on me. I know a guy in Tessaly with more work. Admin. Runs The Darknet District in NeoChinatown with his partner Iris. I’ve marked the Tessaly Belt Anchorage. Press L for your Mission Log; pick what you want to track.'};",
@@ -13331,49 +13337,49 @@
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 47,
+      "line": 45,
       "text": "/* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 49,
+      "line": 47,
       "text": "if(st.kind==='photo'){if(v.camera)return {id:'shoot',text:'Put the target in the frame · <b>LEFT CLICK</b> takes a picture'};if(v.deviceOpen)return v.app?{id:'camera',text:'Go back (<b>Esc</b>) and select the <b>Camera</b> app'}:{id:'camera',text:'Select the <b>Camera</b> app'};return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 50,
+      "line": 48,
       "text": "if(st.kind==='send-photo'){const who=v.name(st.npc);if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 51,
+      "line": 49,
       "text": "if(v.app!=='messages')return v.app?{id:'messages',text:'Go back (<b>Esc</b>) and open <b>Messages</b>'}:{id:'messages',text:'Open <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 52,
+      "line": 50,
       "text": "if(v.thread!==st.npc)return {id:'thread',text:'Select <b>'+who+'</b>’s conversation (INBOX)'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 53,
+      "line": 51,
       "text": "if(v.attach&&v.attach.picking)return {id:'attach',text:'Choose the photo of the target'};if(!(v.attach&&v.attach.photo))return {id:'attach',text:'Press <b>ATTACH</b>'};return {id:'send',text:'Press <b>SEND</b>'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 59,
+      "line": 57,
       "text": "const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 60,
+      "line": 58,
       "text": "root.VoidMissionGuide={missionPlaceRoute,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};",
       "kind": "source-reference"
     },
@@ -15491,13 +15497,13 @@
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 238,
+      "line": 243,
       "text": "if(!['play','walking','dock','dialogue'].includes(mode))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/world-integration.js",
-      "line": 249,
+      "line": 254,
       "text": "addEventListener('keydown',e=>{if(e.code===(VoidInput.bindings.missionLog||'KeyL')&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){if(!['play','walking','dock','dialogue','mission-log'].includes(mode))return;e.preventDefault();if(!e.repeat)openMissionLog();}if(e.code==='Escape'&&missionPanel){e.preventDefault();closeMissionLog();}});",
       "kind": "source-reference"
     },
@@ -15888,6 +15894,7 @@
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
+    "void-runner/guide-route.js": "3b5b05a220152adf2178ace16824894689a8d633001320f6d74badd7d6636ed7",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "ab10b0b6a6a95a50c28751a44eee205e0cc6d6e063bae78d89087f39411bde35",
@@ -15913,7 +15920,7 @@
     "void-runner/mission-content.js": "74f98de7a94b071bfd8a0738200e3e562bf41a425ec27dc65f97c2ceaad00265",
     "void-runner/mission-editor.js": "069b915f0d789522a2ffd02747adac35e2f3d85e6b6d9303615a006e460ccc9d",
     "void-runner/mission-givers.js": "88ebc35053f63120bfcdc60443d272d5552f15df0186aeec03baa1872ccbf7b1",
-    "void-runner/mission-guide.js": "6a536e16991d3dab121762f4a3c89d4e8e16d6a371b45a96d977eb69750ad6cf",
+    "void-runner/mission-guide.js": "bfed9736285e40678a982313ef3a341bb0d8974430fb1cfd63004989692fe71d",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
     "void-runner/mission-trees.js": "6a96e87c31637a2b23c17d59350bb6f8ac99e263059f3f0b20ff4d4c077e4a94",
     "void-runner/model-registry.js": "2330947f95ab6a71231f65a0cec1d347f884dcd550c2d8c9b488588febf7b579",
@@ -16002,7 +16009,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "00b9140038cca444949afe14532bc717b2b7ac6da977d2d9a49428764560f164",
+    "void-runner/world-integration.js": "96c4fa9c4e293eac13ff9ebd56066cf7d31e8fcc62d4c0b91db06683d30f8989",
     "void-runner/world-markers.js": "dfc0e6d708d668e149baf44a6db16c672023b4321a0fa16655180886e77c50fe",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "aa455143f96ac375be4e3e10d2f67a5e778e7746e43afa9e438846d80a6e82cc",
