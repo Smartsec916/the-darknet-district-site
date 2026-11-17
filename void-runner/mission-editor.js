@@ -136,7 +136,7 @@
   const name=el('input','','',{'aria-label':'New tree name',placeholder:'Tree name (your words)',maxlength:'60','data-me-new-name':'1'}),note=el('textarea','','',{'aria-label':'Short note',placeholder:'Short note (optional)',rows:'2','data-me-new-note':'1'});
   const l1=el('label','','me-field');l1.append(el('span','Name'),name);const l2=el('label','','me-field');l2.append(el('span','Short note'),note);box.append(l1,l2);
   const row=el('div','','me-row');row.append(btn('CREATE TREE',()=>{if(!name.value.trim()){setStatus('Give the tree a name first.');return;}const d=local();const t=T().newTree(d.trees,{name:name.value,note:note.value});d.trees.push(t);saveLocal(d);stale=true;ui.newTree=false;ui.tree=t.id;ui.mission=null;status='Created “'+t.name+'” ('+t.id+'). Add its first mission.';draw();},'',{'data-me-create-tree':'1'}),btn('CANCEL',()=>{ui.newTree=false;draw();}));box.append(row);return box;}
- function capabilityBox(raw){const c=T().capability(raw,{givers,items}),box=el('section','','me-check',{'data-me-capability':'1'});box.append(el('h4','What this tree can do today'));
+ function capabilityBox(raw){const c=T().capability(raw,{givers,items,trees:local().trees}),box=el('section','','me-check',{'data-me-capability':'1'});box.append(el('h4','What this tree can do today'));
   const ul=el('ul');ul.append(el('li','Draft and EXPORT MY EDITS: always (saved in this browser as you type).'));
   ul.append(el('li','PLAY THIS DRAFT: '+(c.total?c.play+' of '+c.total+' mission(s) can be played now.':'add a mission first.')));
   ul.append(el('li','PUBLISH TO ALL PLAYERS: '+(c.total?c.publish+' of '+c.total+' mission(s) would reach players':'nothing yet')+(server.live?.enabled?'.':' (publishing is switched OFF on the server until David switches it on).')));
@@ -379,12 +379,11 @@
   let where=(giver(m.giver)||{}).enter;const notes=[];
   if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
    where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;}
-  if(where&&where.walk==='sacramento'&&where.quarter==='port'&&m.objectives.some(o=>o.kind==='arrive'))s.story.flags.quarter='port';
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
   M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes};}
  async function enterTree(w){
   if(w.walk==='darknet-district'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
-  else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;state.story.flags.quarter=w.quarter;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
+  else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
   else if(w.location==='vesper')await worldEnterWalking('vesper');else{state.location=w.location;await dock();}}
  function beginnerState(mid,stepId){
   const B=root.VoidBeginner,M=root.VoidMissions,C=root.C||root.VoidCampaign,s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;
@@ -430,7 +429,7 @@
   chk.append(el('h5','Problems that block publishing ('+(c.errors.length+(ui.check?.errors||[]).length)+')'));for(const t of [...c.errors,...(ui.check?.errors||[])])chk.append(el('p',t,'me-bad'));if(!c.errors.length&&!(ui.check?.errors||[]).length)chk.append(el('p','None.','me-ok'));
   const ch=MC().changes(shippedB,nextB),regN=Object.keys(content.registry||{}).length,linesN=(content.lines||[]).length;
   chk.append(el('h5','What changes for players'));if(!ch.length&&!regN&&!linesN&&!(content.trees||[]).length&&!Object.keys(content.names||{}).length)chk.append(el('p','Nothing: your draft matches the shipped missions.','me-small'));
-  for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));
+  for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' new mission(s) in '+(content.trees||[]).length+' new tree(s), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
   const w=MC().warnings(shippedB,nextB);chk.append(el('h5','Players part-way through ('+w.length+')'));if(!w.length)chk.append(el('p','No saved progress is affected.','me-small'));for(const t of w)chk.append(el('p','⚠ '+t,'me-warn'));
   const outOfDate=(content.lines||[]).filter(l=>index.get(l.who+'|'+l.from)?.recorded);if(outOfDate.length)chk.append(el('p','⚠ '+outOfDate.length+' line(s) have a recorded voice clip that no longer matches: voice clip out of date, text only until re-voiced.','me-warn'));
   const nt=content.trees||[],nn=nt.flatMap(t=>t.missions.map(m=>({t,m})));chk.append(el('h5','New missions ('+nn.length+')',null,{'data-me-new-missions':String(nn.length)}));if(!nn.length)chk.append(el('p','None.','me-small'));

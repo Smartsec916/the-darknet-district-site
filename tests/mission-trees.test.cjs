@@ -230,6 +230,7 @@ test('David’s chain: an Admin tree grants a ship and opens a route, the player
  a1.unlocks.push({kind:'ship',id:'ship2',when:'step-1'},{kind:'location',id:'kepler',when:'step-1'},{kind:'tree',id:b.id,when:meet.id});
  const b1=T.addMission(b,{giver:'rook'});b1.title='B1';Object.assign(b1.objectives[0],{kind:'arrive',place:'kepler',label:'Fly to Kepler'});
  assert.equal(T.validateTree(a,{givers,items,refs:T.refs(sources()),studio:S,trees:d.trees}).filter(i=>i.level==='error').length,0);
+ const capA=T.capability(a,{givers,items,trees:d.trees});assert.equal(capA.play,1);assert.deepEqual(capA.skipped,[],'the link to tree B is kept when both trees are looked at together');
  const c=MC.fromDrafts({local:d,givers,items}),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(U.locations)),ships:new Map(Object.entries(Sh.ships))};
  assert.deepEqual(MC.check(c,ctx).errors,[]);MC.apply(c,e,ctx);
  const s=e.C.startDistrictCampaign(e.C.fresh());s.story.flags.podWakePending=false;

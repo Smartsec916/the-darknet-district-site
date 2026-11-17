@@ -8,7 +8,10 @@
       Dr. Elara Voss (an earlier character players cannot reach today). PLAY THIS DRAFT: Admin offers it, Iris completes it, the flag and credits are applied, the real save is
       untouched, LEAVE DRAFT returns with the tree intact. The publish check screen (mocked server) lists the new missions and the unreachable giver. Players get a published tree.
    Usage: node tests/serve-modern.cjs, then node tests/mission-editor-browser.cjs  (SITE_TEST_URL=http://127.0.0.1:<port>, SHOTS=dir, BROWSER_EXECUTABLE=path; default: the bundled
-   Chromium if present; ONLY=trees runs part 5 alone) */
+   Chromium if present; ONLY=trees runs part 5 alone, ONLY=chain part 6 alone)
+   6. DAVID'S CHAIN (17 Nov 2026): tree A, given by Admin: "talk to Iris" GRANTS A SHIP; "fly to Meridian"; "talk to Rook" STARTS tree B, given by Rook. Draft play from the start (Admin
+      offers it, Iris grants the ship), then PLAY THIS DRAFT FROM HERE at the flight step: the player starts at the Port with the ship, boards, really flies and docks at Meridian,
+      meets Rook (link fires), and Rook offers tree B's mission. All text is placeholder test text in this file only. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.SHOTS||path.resolve('docs/development/mission-editor');fs.mkdirSync(shots,{recursive:true});
 const bundled=fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':'/opt/pw-browsers/chromium-1243/chrome-linux64/chrome',exe=process.env.BROWSER_EXECUTABLE||(fs.existsSync(bundled)?bundled:null);
@@ -27,7 +30,7 @@ const EDITED='TEST LINE: quiet bar, open shop, good eyes.';
    if(p==='developer/live-content/check')return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,errors:[],warnings:[]})});
    return r.fulfill({status:503,contentType:'application/json',body:'{"error":"offline test"}'});});
   await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});
-  if(process.env.ONLY!=='trees'){
+  if(!process.env.ONLY){
   // A real save of a District campaign, written the way the game writes it, then one reload so the game has read it back.
   await page.evaluate(m=>{const s=C.startDistrictCampaign(C.fresh());s.credits=4321;s.story.flags.realSaveMarker=true;localStorage.setItem('void-runner-campaign-v1',JSON.stringify({...s,savedAt:1700000000000}));},null);
   await page.reload();await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});
@@ -97,7 +100,8 @@ const EDITED='TEST LINE: quiet bar, open shop, good eyes.';
    await c2.close();}
   assert.deepEqual(errors,[],'no page errors');
   }
-  await newTrees(browser,errors,posts);
+  if(process.env.ONLY!=='chain')await newTrees(browser,errors,posts);
+  if(process.env.ONLY!=='trees')await chain(browser,errors,posts);
   assert.deepEqual(errors,[],'no page errors');
   console.log('mission editor browser test passed; screenshots in',shots);
  }finally{await browser.close();}
@@ -182,7 +186,7 @@ async function newTrees(browser,errors,posts){
  assert.equal(await page.locator('[data-me-new-mission]').count(),2,'the check screen lists the new missions');assert.equal(await page.locator('[data-me-far="elara"]').count(),1,'and the giver players cannot reach');
  assert.match(await page.locator('#me-check').textContent(),/Tree names/);assert.equal(await page.locator('[data-me-publish]').isDisabled(),false,'the draft can be published');
  const content=await page.evaluate(()=>VoidMissionEditor.draftContent());assert.deepEqual(content.trees[0].missions.map(m=>m.id),[m1,m2]);assert(!JSON.stringify(content).includes('"item"'),'the store item is not sent');
- await page.screenshot({path:path.join(shots,'new-tree-publish-1920.png')});await page.setViewportSize({width:1366,height:768});await page.screenshot({path:path.join(shots,'new-tree-publish-1366.png')});
+ await page.locator('[data-me-new-missions]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-publish-1920.png')});await page.setViewportSize({width:1366,height:768});await page.locator('[data-me-new-missions]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-publish-1366.png')});
  await ctx.close();
  // every player: a published tree is applied (fail safe otherwise)
  const c2=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),p2=await c2.newPage();p2.on('pageerror',e=>errors.push('trees player: '+e.message));
@@ -191,4 +195,66 @@ async function newTrees(browser,errors,posts){
  await p2.goto(base+'/void-runner.html');await p2.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});await p2.waitForFunction(()=>VoidLiveContent.current.version>0||VoidLiveContent.current.refused,null,{timeout:30000});
  const got=await p2.evaluate(m=>({def:VoidMissions.definitions[m],refused:VoidLiveContent.current.refused}),m1);assert.equal(got.refused,null,'published tree accepted: '+JSON.stringify(got.refused));assert.equal(got.def.ownerTree,'draft-browser-test-tree');
  await c2.close();
+}
+
+// ---------------- 6. David's chain: Admin's tree grants a ship, the player flies to Rook, meeting Rook starts Rook's tree ----------------
+const L=t=>[{who:'',text:'TEST LINE: '+t}];
+function chainDraft(){const step=(id,kind,x,label,say)=>({id,label,kind,npc:'',place:'',item:'',say:say?L(say):[],early:[],...x});
+ const a={id:'draft-test-district-start',name:'Test: District start',note:'browser test fixture',status:'draft',seq:1,missions:[{id:'draft-test-district-start-m1',title:'TEST: ADMIN JOB',type:'side',giver:'admin',description:'',rewards:0,seq:3,offer:L('Admin offers the job.'),
+  objectives:[step('step-1','talk',{npc:'iris'},'Talk to Iris (test)','Iris hands over the ship.'),step('step-2','arrive',{place:'meridian'},'Fly to Meridian (test)'),step('step-3','talk',{npc:'rook'},'Find Rook (test)','Rook says hello.')],
+  ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'ship',id:'starter',when:'step-1'},{kind:'location',id:'meridian',when:'step-1'},{kind:'tree',id:'draft-test-rook',when:'step-3'}]}]};
+ const b={id:'draft-test-rook',name:'Test: Rook',note:'browser test fixture',status:'draft',seq:1,missions:[{id:'draft-test-rook-m1',title:'TEST: ROOK JOB',type:'side',giver:'rook',description:'',rewards:0,seq:1,offer:L('Rook offers his job.'),
+  objectives:[step('step-1','talk',{npc:'nyx'},'Talk to Nyx (test)','Nyx answers.')],ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]}]};
+ return {version:1,missions:{},lines:{},played:{},trees:[a,b],names:{}};}
+async function chain(browser,errors,posts){
+ const ctx=await browser.newContext({viewport:{width:1920,height:1080},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push('chain: '+e.message));const log=t=>console.log('[chain] '+t);
+ await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
+ await page.route('**/api/**',r=>{const p=new URL(r.request().url()).pathname.replace('/api/void-runner/','');if(r.request().method()==='POST')posts.push(p);return r.fulfill({status:p==='live-content'?404:503,contentType:'application/json',body:'{"error":"offline test"}'});});
+ const boot=async()=>{await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});};
+ const developer=()=>page.evaluate(()=>VoidDevTools.identity(async(p)=>{if(p==='developer/balance')return {values:VoidBalance.defaults,revision:1,preset:'NORMAL'};const e=new Error('Switched off in this offline test');e.status=404;throw e;}));
+ await page.goto(base+'/void-runner.html');await boot();
+ await page.evaluate(d=>{const s=C.startDistrictCampaign(C.fresh());s.story.flags.realSaveMarker=true;localStorage.setItem('void-runner-campaign-v1',JSON.stringify({...s,savedAt:1700000000000}));localStorage.setItem('mission-editor-drafts-v1',JSON.stringify(d));},chainDraft());
+ await page.reload();await boot();const before=await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1'));
+ await developer();await page.evaluate(()=>VoidDevTools.open('missions'));await page.waitForSelector('[data-me-tree="draft-test-district-start"]',{timeout:60000});
+ await page.locator('[data-me-tree="draft-test-district-start"]').click();await page.waitForSelector('[data-me-links]');
+ assert.match(await page.locator('[data-me-links]').textContent(),/leads to tree “Test: Rook” from “TEST: ADMIN JOB”, at step step-3/);assert.equal(await page.locator('[data-me-tree-map]').count(),1);
+ await page.locator('[data-me-links]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'chain-links-1920.png')});
+ await page.locator('[data-me-tree="draft-test-rook"]').click();await page.waitForSelector('[data-me-started-by]');assert.match(await page.locator('[data-me-links]').textContent(),/started by tree “Test: District start”/);
+ await page.locator('[data-me-tree="draft-test-district-start"]').click();await page.waitForSelector('[data-me-play="tree:draft-test-district-start-m1"]');
+ // 1. from the start: Admin offers, Iris grants the ship
+ await page.evaluate(()=>{try{VoidGraphics.quality='low';VoidBabylon.setQuality('low');}catch{}});
+ await page.locator('[data-me-play="tree:draft-test-district-start-m1"]').click();await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking',null,{timeout:120000});
+ await page.evaluate(()=>VoidInteractions.handlers.get('admin')());await page.evaluate(()=>{try{resumeWalking();}catch{}});
+ assert.equal(await page.evaluate(()=>VoidInteractions.handlers.get('district-iris')()||state.universe.trackedMission),'draft-test-district-start-m1');
+ let st=await page.evaluate(()=>({ship:VoidShips.hasShip(state),owned:state.ownedShips,free:state.universe.freeTravel,rook:VoidMissionContent.treeWants(state,VoidLiveContent.env,['rook'])}));
+ assert(st.ship&&st.owned.includes('starter')&&st.free,'Iris’s step grants the ship: '+JSON.stringify(st));log('ship granted '+JSON.stringify(st));
+ await Promise.all([page.waitForNavigation({timeout:60000}),page.locator('#dev-test-banner button').click()]);await boot();await developer();
+ await page.waitForSelector('[data-me-play="tree:draft-test-district-start-m1#step-2"]',{timeout:60000});
+ // 2. jump to "ship granted": PLAY THIS DRAFT FROM HERE at the flight step
+ await page.evaluate(()=>{try{VoidGraphics.quality='low';VoidBabylon.setQuality('low');}catch{}});
+ await page.locator('[data-me-play="tree:draft-test-district-start-m1#step-2"]').click();await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking'&&VoidAssets.pending===0,null,{timeout:180000});
+ st=await page.evaluate(()=>({wl:walkingLocation?.id,area:walkingLocation?.area,q:walkingLocation?.quarter,ship:VoidShips.hasShip(state),rec:state.universe.missions['draft-test-district-start-m1']}));log('at the pad '+JSON.stringify(st));
+ assert.equal(st.area,'street');assert.equal(st.q,'port');assert(st.ship,'the ship from step 1 is there');assert.deepEqual(st.rec.objectives,{'step-1':true});
+ await page.screenshot({path:path.join(shots,'chain-port-1920.png'),timeout:180000});
+ // board at Pad 01 (the same call as pressing E at the ship) and fly the real route to Meridian
+ await page.evaluate(()=>leaveWalking());await page.waitForFunction(()=>mode==='play',null,{timeout:300000});
+ await page.evaluate(()=>{window.__iv=setInterval(()=>{const r=flight.route;if(!r||r.phase!=='align'){flight.mouseX=0;flight.mouseY=0;return;}const m=flightRoutes().find(x=>x.id==='meridian');if(!m)return;const b=flightBasis(),v=m.vector,al=b.f.x*v.x+b.f.y*v.y+b.f.z*v.z,ex=b.r.x*v.x+b.r.y*v.y+b.r.z*v.z,ey=b.u.x*v.x+b.u.y*v.y+b.u.z*v.z;
+  const S=window.__st||(window.__st={sx:1,sy:1,flip:1});if(S.last!==undefined&&al<S.last-.002){if(S.flip===1)S.sy=-S.sy;else S.sx=-S.sx;S.flip=-S.flip;}S.last=al;flight.mouseX=Math.max(-1,Math.min(1,ex*4))*S.sx;flight.mouseY=Math.max(-1,Math.min(1,ey*4))*S.sy;},200);});
+ for(let i=0;i<200;i++){await page.waitForTimeout(8000);const f=await page.evaluate(()=>({mode,loc:state.location,phase:flight?.route?.phase,progress:flight?.route?.progress}));if(i%5===0)log('flight '+JSON.stringify(f));if(['over','arrival','dock','walking'].includes(f.mode)||f.loc!=='earth')break;}
+ await page.evaluate(()=>clearInterval(window.__iv));
+ for(let i=0;i<6;i++){const m=await page.evaluate(()=>mode);if(m==='walking')break;const clicked=await page.evaluate(()=>{const b=document.querySelector('#screen:not(.hidden) [data-action=dock]');if(b){b.click();return true;}return false;});await page.waitForTimeout(clicked?4000:3000);}
+ await page.waitForFunction(()=>(mode==='walking'||mode==='dock')&&state.location==='meridian'&&VoidAssets.pending===0,null,{timeout:300000});await page.waitForTimeout(2000);
+ st=await page.evaluate(()=>state.universe.missions['draft-test-district-start-m1']);assert.equal(st.objectives['step-2'],true,'docking at Meridian completes the flight step');log('docked at Meridian');
+ await page.screenshot({path:path.join(shots,'chain-meridian-1920.png'),timeout:180000});
+ // 3. meet Rook: the link fires; Rook then offers his tree's mission; Nyx completes it
+ await page.evaluate(()=>VoidInteractions.handlers.get('talk')({item:{character:'rook'}}));
+ st=await page.evaluate(()=>({rec:state.universe.missions['draft-test-district-start-m1'],link:state.story.flags['ts_draft-test-rook'],lines:speech?.lines?.map(l=>l.text)||[]}));
+ assert.equal(st.rec.completed,true);assert.equal(st.link,true,'meeting Rook starts the Rook tree');assert(st.lines.includes('TEST LINE: Rook says hello.'));
+ await page.evaluate(()=>{try{resumeWalking();}catch{}});await page.evaluate(()=>VoidInteractions.handlers.get('talk')({item:{character:'rook'}}));
+ st=await page.evaluate(()=>({tracked:state.universe.trackedMission,lines:speech?.lines?.map(l=>l.text)||[]}));assert.equal(st.tracked,'draft-test-rook-m1','Rook offers the first mission of his tree');assert(st.lines.includes('TEST LINE: Rook offers his job.'));
+ await page.screenshot({path:path.join(shots,'chain-rook-tree-1920.png'),timeout:180000});
+ await page.evaluate(()=>{try{resumeWalking();}catch{}});await page.evaluate(()=>VoidInteractions.handlers.get('talk')({item:{character:'nyx'}}));
+ assert.equal(await page.evaluate(()=>state.universe.missions['draft-test-rook-m1'].completed),true,'Nyx completes it');
+ assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is untouched');assert(!posts.some(p=>p==='save'||p.endsWith('/save')),'no cloud save');
+ await ctx.close();
 }

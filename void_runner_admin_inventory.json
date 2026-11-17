@@ -334,7 +334,7 @@
       "tree"
     ]
   },
-  "revision": "c643c595ce8d014f",
+  "revision": "c405779f2431170e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -15148,7 +15148,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
     "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
-    "void-runner/live-content.js": "970bdee67eb30b267df38854a8daa84736de7fac5ee409b40ef00f1b58b3f7e2",
+    "void-runner/live-content.js": "5b3df7a8341f54651948e0bff0128fb1981cdd15343b3dffbac062df0b8cc988",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
@@ -15164,10 +15164,10 @@
     "void-runner/milked.js": "70d8ccf1bca1c004c3d53a6397e5992cddbebe866dc047445bcd6d08033a382d",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "6c44298e038dc6285f5678025ef9bb9a1c4687c0a10f85b0a4fd5dde53f054c8",
-    "void-runner/mission-editor.js": "ffa398e7ccfe1c3fa39c23da4fbb4bfb3cb1a10edce20a3af9b5ead1094b0287",
-    "void-runner/mission-givers.js": "884a3ac6526f960ed74a17170dacf6f23c9c6e40f333ba19e4352ebeca37ccb4",
+    "void-runner/mission-editor.js": "0c977402b85e75c937f3c47be0048285c1eef6b4ae8e6977101c64ec8480576e",
+    "void-runner/mission-givers.js": "d1a0e06f37e94aadc0a99a645e216398f50d46b7c28d3e335aaea0fe844fd115",
     "void-runner/mission-log.js": "a8fd65182fd4f8a7ba11bdd74a30e4627104379f9a24f5583ae0565751b63b8b",
-    "void-runner/mission-trees.js": "f3f593e0ad635e8db4bfeb50fa31adabae5d1c73c52ccf919fb32251a16f5167",
+    "void-runner/mission-trees.js": "6412ca1a19689d6cb7c5285276967d463d8303699ce0d0ac91ae025f39bfba86",
     "void-runner/model-registry.js": "b130f5e459a23f36b6c1f367006b1cc3a2dc320a84c0052c707eb75f752c8932",
     "void-runner/mouse-control.js": "ed9809e0d06f58e82dc51709400174f2ddeaad4bd3eb92c487bde55d1b38c768",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",

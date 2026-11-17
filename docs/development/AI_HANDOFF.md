@@ -6,6 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 17 Nov 2026 (later): MISSION EDITOR, SECOND PASS: name trees, new trees, givers, ships, routes, tree links (branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, NO PR, not merged; origin/main with #345 merged in)
+
+David asked: "Can I also name mission trees here? Start new ones? Will it have previous Mission givers like Rook?", then his first use case (Admin or Iris → a ship → fly to Rook → a new tree given by Rook). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Naming trees and starting your own".
+
+- **Built:** a name for every tree (display only; ids never change); **+ NEW MISSION TREE** (`draft-` ids, stable); missions and steps added, removed, reordered; giver picker of every registered NPC grouped "in the current District game" / "earlier characters", each with where they are today and whether a draft can be played and players can reach them (`void-runner/mission-givers.js`, facts from the game's code; nobody moved, nothing written for anyone). Steps: talk, go to a place, fly to / arrive at, deliver, buy. Unlocks: credits, story flag (`mf_`), open route / place, grant ship (any non-paid hull, `campaign.js giveShip` shared with `buyShip`), start tree (link; the started tree waits for it). Branches, store items, gates, reputation, fights, scans, escorts, pick-ups, waits: kept as "needs a code change".
+- **Runs in the game** through the one adapter (`mission-content.js` `treeEvent`, fed by `live-content.js`); draft play and publish carry only the missions that can run, in order. Publishing is still OFF on the server. Saves: ordinary mission records plus `mt_`/`mf_`/`ts_` flags and `ownedShips`, all accepted by `clean_save` as it is (tested).
+- **Rook's re-voice engine:** ElevenLabs `wzVFxVZCBIi6KBxNhQDI` (David, 17 Nov 2026), as Admin and Iris. Registry unchanged; nothing generated.
+- **Correction:** Rook is reachable in a District game: Meridian is the beginner campaign's FIRST DEPARTURE, and Rook stands there.
+- **Not verified:** Eva/Fish/Zen Zephyr draft play beyond entering the street (handlers called directly, not by walking into Milked or the Temple); Mara, Kess, Mercer draft play; real hardware; the server with publishing on.
+
 ### 17 Nov 2026: MISSION EDITOR in Developer Tools (branch `claude/mission-editor-1`, build `2026-11-17-mission-editor-1`, pushed, NO PR, not merged)
 
 David asked for a mission editor next to Achievement Manager. Full record and how to use it: [`MISSION_EDITOR.md`](MISSION_EDITOR.md).
