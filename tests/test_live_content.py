@@ -122,6 +122,39 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(clean['universe']['trackedMission'], 'new-errand')
 
 
+    def test_new_trees_publish_and_their_records_pass_cloud_save(self):
+        """The owner's new trees (draft- ids, givers with a TALK prompt, supported steps and unlocks) publish; anything the game cannot run is refused;
+        their mission records and flags (mt_<id> when paid, mf_<name> from a flag unlock) are accepted by clean_save as they are."""
+        tree = {'id': 'draft-test-tree', 'name': 'Test tree', 'missions': [{'id': 'draft-test-tree-m1', 'title': 'FIRST', 'type': 'side', 'giver': 'admin', 'rewards': 10,
+                'offer': [{'who': 'admin', 'text': 'Test line.'}],
+                'objectives': [{'id': 'step-1', 'label': 'Talk to Iris', 'kind': 'talk', 'npc': 'iris'}, {'id': 'step-2', 'label': 'Go to the Port', 'kind': 'go', 'place': 'port'}],
+                'ending': {'npc': 'rook', 'place': 'meridian'}, 'unlocks': [{'kind': 'flag', 'id': 'testFlag', 'value': True}, {'kind': 'location', 'id': 'vigil'}, {'kind': 'ship', 'id': 'ship2'}]}]}
+        good = {'format': live.FORMAT, 'version': 1, 'trees': [tree], 'names': {'vesper-opening': 'Old opening'}}
+        self.assertEqual(live.check(good), [])
+        r = self.post('live-content/publish', {'expected': 0, 'content': good})
+        self.assertEqual(r.status_code, 200, r.json)
+        self.assertEqual(self.get('live-content', token=None).json['content']['trees'][0]['id'], 'draft-test-tree')
+        for change in [lambda m: m.update(giver='rin-takeda'), lambda m: m['objectives'][0].update(kind='fight'), lambda m: m.update(id='first'),
+                       lambda m: m['objectives'][1].update(place='atlantis'), lambda m: m.update(unlocks=[{'kind': 'item', 'id': 'warflying-module'}]),
+                       lambda m: m.update(unlocks=[{'kind': 'ship', 'id': 'ship3'}]), lambda m: m.update(unlocks=[{'kind': 'tree', 'id': 'draft-test-tree'}]),
+                       lambda m: m['objectives'][1].update(kind='arrive', place='district'), lambda m: m['offer'].append({'who': 'darth', 'text': 'x'})]:
+            c = copy.deepcopy(good)
+            change(c['trees'][0]['missions'][0])
+            self.assertTrue(live.check(c), c)
+        state = test_story_save.StorySaveTests.state(None)
+        state['story']['flags'].update({'missionPool': 'closed', 'mt_draft-test-tree-m1': True, 'mf_testFlag': True, 'ts_draft-test-tree': True, 'starterShipAwarded': True, 'shipAccess': 'granted'})
+        state['ownedShips'] = ['starter', 'ship2']
+        state['shipLoadouts'] = {'ship2': dict(state['loadout'])}
+        state['story']['met'] = ['Admin', 'iris', 'rook', 'zen-zephyr', 'milked-eva']
+        state['universe'] = {'trackingInitialized': True, 'trackedMission': 'draft-test-tree-m1', 'freeTravel': False,
+                             'missions': {'draft-test-tree-m1': {'acquired': True, 'completed': True, 'objectives': {'step-1': True, 'step-2': True, 'turn-in': True}}}}
+        clean = vr.clean_save(state)
+        self.assertEqual(clean['universe']['missions']['draft-test-tree-m1']['objectives'], {'step-1': True, 'step-2': True, 'turn-in': True})
+        self.assertTrue(clean['story']['flags']['mt_draft-test-tree-m1'])
+        self.assertTrue(clean['story']['flags']['mf_testFlag'])
+        self.assertEqual(clean['ownedShips'], ['starter', 'ship2'], 'a granted hull is an ordinary owned ship')
+
+
 class RevoiceQueueTests(unittest.TestCase):
     def setUp(self):
         fixtures.DraftTests.setUp(self)
@@ -131,7 +164,8 @@ class RevoiceQueueTests(unittest.TestCase):
 
     def test_queue_add_list_done_and_auth(self):
         items = [{'ref': 'admin|' + LINE, 'who': 'admin', 'text': 'Work? Always.', 'from': LINE, 'mission': 'registry:communion-delivery', 'source': 'void-runner/faction-scenes.js'},
-                 {'ref': 'rook|x', 'who': 'rook', 'text': 'Seal is intact.', 'from': 'Seal’s intact. Good.', 'mission': 'registry:admin-sealed-cargo-01', 'source': 'void-runner/faction-scenes.js'}]
+                 {'ref': 'rook|x', 'who': 'rook', 'text': 'Seal is intact.', 'from': 'Seal’s intact. Good.', 'mission': 'registry:admin-sealed-cargo-01', 'source': 'void-runner/faction-scenes.js'},
+                 {'ref': 'mara|y', 'who': 'mara', 'text': 'Test line for Mara.', 'from': 'x', 'mission': '', 'source': 'void-runner/story-content.js'}]
         for token, status in [('forged', 401), ('outsider', 403)]:
             self.assertEqual(self.post('revoice', {'items': items}, token).status_code, status)
         with patch.dict(os.environ, {'VOID_CONTENT_DRAFTS_ENABLED': 'false'}):
@@ -143,14 +177,16 @@ class RevoiceQueueTests(unittest.TestCase):
         self.assertEqual(by['admin']['engine'], 'elevenlabs')
         self.assertEqual(by['admin']['voiceId'], 'DMyrgzQFny3JI1Y1paM5')
         self.assertEqual(by['admin']['waiting'], 'waiting for ElevenLabs re-voice (needs approval)')
-        self.assertEqual(by['rook']['engine'], 'kokoro')
-        self.assertEqual(by['rook']['voice'], 'bm_fable', 'the registered voice, never a new one')
-        self.assertEqual(by['rook']['id'], live.item_id('rook', 'Seal is intact.'))
+        self.assertEqual(by['rook']['engine'], 'elevenlabs', 'Rook: David chose an ElevenLabs voice on 17 Nov 2026')
+        self.assertEqual(by['rook']['voiceId'], 'wzVFxVZCBIi6KBxNhQDI')
+        self.assertEqual(by['mara']['engine'], 'kokoro')
+        self.assertEqual(by['mara']['voice'], 'af_bella', 'the registered voice, never a new one')
+        self.assertEqual(by['mara']['id'], live.item_id('mara', 'Test line for Mara.'))
         listed = self.client.get('/api/void-runner/developer/revoice', headers=self.header).json['items']
-        self.assertEqual(len(listed), 2)
-        done = self.post('revoice/done', {'ids': [by['rook']['id'], by['admin']['id']]}).json['items']
+        self.assertEqual(len(listed), 3)
+        done = self.post('revoice/done', {'ids': [by['mara']['id'], by['admin']['id'], by['rook']['id']]}).json['items']
         st = {i['who']: i['status'] for i in done}
-        self.assertEqual(st, {'rook': 'done', 'admin': 'queued'}, 'ElevenLabs lines stay queued until David approves')
+        self.assertEqual(st, {'mara': 'done', 'admin': 'queued', 'rook': 'queued'}, 'ElevenLabs lines stay queued until David approves')
         for bad in [{'items': [{**items[0], 'who': 'news-anchor'}]}, {'items': [{**items[0], 'who': 'special-character'}]}, {'items': [{**items[0], 'text': '<b>x</b>'}]}, {'items': [{**items[0], 'voice': 'af_bella'}]}]:
             self.assertIn(self.post('revoice', bad).status_code, (400, 422))
         self.assertTrue(all(k.startswith('vr_revoice_queue/') for k in self.db.data))
