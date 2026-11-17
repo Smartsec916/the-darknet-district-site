@@ -110,11 +110,11 @@ test('All lines for an NPC: every one of Admin’s voiced lines is found (in mis
  const src=sources(),out=T.build(src),admin=out.npcs[0];assert.equal(admin.id,'admin');assert.equal(admin.engine.engine,'elevenlabs');assert.equal(admin.engine.voiceId,'DMyrgzQFny3JI1Y1paM5');
  const refs=new Set([...admin.inMissions,...admin.outside].map(l=>l.ref));
  for(const l of Object.values(src.manifest.lines))if(l.speaker==='admin')assert(refs.has('admin|'+l.text),'Admin line listed: '+l.text.slice(0,50));
- for(const l of Object.values(src.extraManifest.lines))if(l.speaker==='admin')assert(admin.outside.some(x=>x.text===l.text&&x.adapter==='code-change'&&x.clip&&x.clip.engine==='elevenlabs'));
+ for(const l of Object.values(src.extraManifest.lines))if(l.speaker==='admin')assert(admin.outside.some(x=>x.text===l.text&&x.adapter==='code-change'&&x.clip&&x.clip.engine==='elevenlabs'),'extra Admin line listed: '+l.text.slice(0,50));
  assert(admin.inMissions.every(l=>['talk','records'].includes(l.adapter)),'every Admin mission line can be overridden live');
  const speakers=new Set(out.npcs.map(n=>n.id));for(const l of Object.values(src.manifest.lines))if(!/relay-content/.test(l.source))assert(speakers.has(l.speaker),l.speaker);
  assert(!out.npcs.some(n=>['news-anchor','commercial-announcer'].includes(n.id)),'Relay broadcasts are not listed');
- assert(out.npcs.find(n=>n.id==='milked-fish').outside.length===3);
+ assert(out.npcs.find(n=>n.id==='milked-fish').outside.length===5,'Fish: three greetings and her two recorded Mission 003 lines (Mandarin, and its English translation in her own voice)');
  const idx=T.lineIndex(out),locked=admin.inMissions.find(l=>l.locked),free=admin.inMissions.find(l=>!l.locked&&l.adapter==='talk');
  assert.equal(T.validateLines({[locked.ref]:{to:'Mine now.'}},idx).filter(i=>i.level==='error').length,1,'a locked line needs an unlock');
  const ok=T.validateLines({[locked.ref]:{to:'Mine now.',unlocked:true},[free.ref]:{to:'Also mine.'}},idx);assert.equal(ok.filter(i=>i.level==='error').length,0);assert(ok.some(i=>/voice clip out of date/.test(i.text)));

@@ -14,7 +14,11 @@
    MISSION COMPLETE notice (the placeholder line is shown only in draft play). The beginner campaign is retired (beginner.js).
    MISSION 002 — EYES ON THE STREET (17 Nov 2026) added: the offer with ACCEPT / NOT NOW (talk-choice.js), the named places of places.js in the place tick (with each
    player's own enter / leave events: VoidPlaces.tracker), a step's lines sent as a Comms call, photo captures (device-camera.js calls photo()) and photos sent in
-   Messages (personal-device.js calls sendPhoto()). */
+   Messages (personal-device.js calls sendPhoto()).
+   MISSION 003 — CORPORATE CONNECTIONS (17 Nov 2026) added: a line by the V1 translator ('v1-translator') straight after another speaker's line is shown UNDER that line as
+   V1 TRANSLATION and its recording plays over it (voice-clips.js `with`), the speaker's gesture on a step's last line (main-story.js GESTURES; Eva toward the staff-only door),
+   the V1 contact and the Social follow (a small V1 banner when the conversation closes), and the ACTIVE PLAYTIME clock (playtime.js; story.flags.playSec) with the
+   follow-ups it makes due (main-story.js FOLLOWUPS: Fish's call is a STUB, only the event 'fish-followup-due' fires: window event 'void-tree-event'). */
 (function(root){
  'use strict';
  const MC=root.VoidMissionContent;if(!MC||!root.VoidBeginner||!root.VoidMissions)return;
@@ -36,7 +40,14 @@
   if(acts.length&&!root.VoidDevTest?.active){try{save();}catch{}}
  }
  // Edited lines are put over the words just before they are shown (every conversation goes through talk() → renderLine()).
- if(typeof renderLine==='function'){const shown=renderLine;renderLine=function(){try{if(typeof speech!=='undefined'&&speech&&Array.isArray(speech.lines))speech.lines=speech.lines.map(l=>MC.mapLine(env,l));}catch{}return shown.apply(this,arguments);};}
+ if(typeof renderLine==='function'){const shown=renderLine;renderLine=function(){try{if(typeof speech!=='undefined'&&speech&&Array.isArray(speech.lines))speech.lines=speech.lines.map(l=>MC.mapLine(env,l));}catch{}const out=shown.apply(this,arguments);
+  // a translated line: the translation under the original, labelled V1 TRANSLATION (it fades in as the translator's voice starts)
+  try{const l=speech&&speech.lines[speech.index],t=l&&l.translation,sp=typeof document!=='undefined'?document.getElementById('spoken-text'):null;if(t&&sp&&!document.querySelector('[data-v1-translation]')){const p=document.createElement('p');p.className='v1-translation';p.dataset.v1Translation='1';
+   const lab=document.createElement('span');lab.textContent='V1 TRANSLATION';const tx=document.createElement('span');tx.className='v1-translation-text';tx.textContent=t.text;p.append(lab,tx);sp.after(p);
+   const sr=document.querySelector('.speech-body .sr-only');if(sr)sr.textContent+=' V1 translation: '+t.text;}}catch{}
+  gestureNow();return out;};}
+ try{if(typeof document!=='undefined'&&!document.getElementById('v1-translation-style')){const st=document.createElement('style');st.id='v1-translation-style';
+  st.textContent='.v1-translation{margin:.55em 0 0;padding:.45em .7em;border-left:2px solid #39d0ff;background:rgba(10,30,40,.55);color:#cfefff;font-size:.95em;line-height:1.45;animation:v1tr .5s ease .7s both}.v1-translation>span:first-child{display:block;font:700 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.18em;color:#39d0ff;margin-bottom:.2em}@keyframes v1tr{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.v1-translation{animation:none}}';document.head.appendChild(st);}}catch{}
  async function refresh(){
   if(draft||root.VoidDevTest?.active)return current;
   try{const d=await root.VoidNetwork.request('live-content');if(draft)return current;if(d&&Number.isInteger(d.version)&&d.version>0&&d.content)use(d.content,'live',d.version);else use(null,'shipped',0);}
@@ -70,13 +81,25 @@
   else if(m.channel==='notify')root.VoidV1?.notify?.({app:'missions',key:'note:'+m.id,from:m.fromName,text:(m.header||who)+' · '+String(m.text).replace(/\s+/g,' ').slice(0,90),hint});
   else root.VoidV1?.notify?.({app:'messages',sub:'inbox',key:'msg:'+m.id,from:m.fromName,header:m.header,text:'New message from '+who,hint});}catch{}}}
  // The NPC's lines; when the mission waits on a 'hear' step, closing the conversation completes it.
+ /* A line by the V1 translator straight after another speaker's line becomes that line's translation: one line on screen (the original, then V1 TRANSLATION), and
+    the original's recording carries the translation's recording over it (voice-clips.js). */
+ const TRANSLATOR='v1-translator';
+ function merge(lines){const out=[];for(const l of lines||[]){const prev=out[out.length-1];if(l&&l.who===TRANSLATOR&&prev&&prev.who!=='You'&&prev.who!==TRANSLATOR&&!prev.translation){out[out.length-1]={...prev,translation:{who:TRANSLATOR,text:l.text}};continue;}out.push(l);}return out;}
+ const MSx=()=>root.VoidMainStory;
+ // the speaker's gesture on the last line of a step (main-story.js GESTURES): Eva turns toward the staff-only door as she says where Fish is
+ function gestureNow(){try{const g=typeof speech!=='undefined'&&speech?speech.gesture:null;if(!g||speech.gestured||speech.index!==speech.lines.length-1)return;speech.gestured=true;root.VoidBabylon?.zone?.gesture?.(g.who,g.toward,g.seconds);}catch{}}
+ /* After the conversation: the V1 banner for a contact added / a profile followed (the Mission Log notice already said it). */
+ function contactBanner(r){try{const n=(r&&r.notes||[]).filter(x=>/ADDED TO CONTACTS|^FOLLOWING /.test(x));if(!n.length)return;const who=n[0].replace(/ ADDED TO CONTACTS$| ON SOCIAL$/,'').replace(/^FOLLOWING /,'');
+  const name=who.charAt(0)+who.slice(1).toLowerCase();root.VoidV1?.notify?.({app:'social',key:'contact:'+r.mission+':'+who,from:name,text:name+' added to contacts · following on Social',hint:{text:'open',help:true}});lastContact={text:name+' added to contacts · following on Social',at:Date.now()};}catch{}}
+ let lastContact=null;
  const heard=r=>()=>{try{const x=MC.treeEvent(state,env,{type:'heard',mission:r.hear.mission},root.VoidMissions,root.C||root.VoidCampaign);report(x);deliver(x);}catch{}try{resumeWalking();}catch{}};
- const show=(lines,r)=>{try{talk('',lines.map(l=>MC.mapLine(env,l)),r&&r.hear?heard(r):()=>{try{resumeWalking();}catch{}},'CONTINUE');return true;}catch{return false;}};
+ const show=(lines,r)=>{try{const after=r&&r.hear?heard(r):()=>{try{resumeWalking();}catch{}};talk('',merge(lines.map(l=>MC.mapLine(env,l))),()=>{after();contactBanner(r);},'CONTINUE');
+  const g=r&&r.mission&&MSx()?.GESTURES?.[r.mission+'/'+r.objective];if(g&&typeof speech!=='undefined'&&speech){speech.gesture=g;gestureNow();}return true;}catch{return false;}};
  /* An in-person offer with ACCEPT / NOT NOW (talk-choice.js). ACCEPT takes the mission (Mission Log, tracked, the arrow); NOT NOW changes nothing: the next
     conversation with the giver offers it again. Without the choice window (it failed to load) the offer is not shown and nothing is taken. */
  function ask(r){if(typeof root.talkChoice!=='function'||!r.lines.length)return false;const a=r.ask,M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
   const pick=type=>()=>{let x=null;try{x=MC.treeEvent(state,env,{type,mission:a.mission},M,Cp);report(x);deliver(x);}catch{}try{resumeWalking();}catch{}};
-  return root.talkChoice(r.lines.map(l=>MC.mapLine(env,l)),[{label:a.accept||'ACCEPT',run:pick('accept')},{label:a.decline||'NOT NOW',run:pick('decline')}]);}
+  return root.talkChoice(merge(r.lines.map(l=>MC.mapLine(env,l))),[{label:a.accept||'ACCEPT',run:pick('accept')},{label:a.decline||'NOT NOW',run:pick('decline')}]);}
  // The beginner campaign keeps its turn with the NPCs it uses.
  const BEGIN={admin:'talk-admin','district-iris':'talk-iris','district-bar':'visit-bar','district-shop':'visit-shop',terminal:'use-terminal'};
  function beginnerWants(action){const B=root.VoidBeginner,ev=BEGIN[action];if(!B||!ev||!B.applies(state))return false;const m=B.current(state),rec=m&&state.universe.missions?.[m.id];return !!(m&&m.objectives.some(o=>o.on===ev&&rec?.objectives?.[o.id]!==true));}
@@ -125,5 +148,17 @@
  const markRead=id=>{try{if(MC.markRead(state,id)){try{save();}catch{}return true;}}catch{}return false;};
  const during=()=>{try{return typeof state!=='undefined'&&state?MC.during(state,env):[];}catch{return [];}};
  const giverName=id=>(env.givers.find(g=>g.id===id)||{}).name||id;
- root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ /* ACTIVE PLAYTIME (playtime.js): once a second, while the tab is visible and the game is in play (not a menu, pause, the pod card or a hidden tab), the seconds go into
+    story.flags.playSec. A gap (the computer asleep, the tab in the background) counts 5 s at most. Saved every 60 s of play and whenever a follow-up becomes due.
+    Follow-ups (main-story.js FOLLOWUPS) fire ONCE (story.flags.ev_<event>): the window event 'void-tree-event' {id, followup}. Fish's call is a STUB: nothing reaches the player. */
+ const PT=root.VoidPlaytime,ptClock=PT?PT.clock():null;let ptLast=null,ptUnsaved=0;const fired=[];
+ function playView(){let paused=false,menu=false;try{paused=typeof mode!=='undefined'&&mode==='pause';menu=typeof mode!=='undefined'&&mode==='menu';}catch{}
+  return {visible:typeof document==='undefined'||document.visibilityState==='visible',mode:typeof mode!=='undefined'?mode:'',paused,menu,podCard:typeof state!=='undefined'&&state?.story?.flags?.podWakePending===true};}
+ function playtimeTick(now=performance.now()){try{if(!PT||!treesOn()||root.VoidDevTest?.active&&!root.VoidDevTest?.playtime)return null;const dt=ptLast===null?0:(now-ptLast)/1000;ptLast=now;
+  const added=ptClock.add(state,dt,PT.active(playView()));ptUnsaved+=added;const due=PT.fire(state,MSx()?.FOLLOWUPS||[]);
+  for(const x of due){fired.push({event:x.event,at:Date.now()});try{root.dispatchEvent?.(new CustomEvent('void-tree-event',{detail:{id:x.event,followup:x}}));}catch{}try{console.info('[VOID//RUNNER] follow-up due: '+x.event+' ('+(x.status||'')+')');}catch{}}
+  if(due.length||ptUnsaved>=60){ptUnsaved=0;try{save();}catch{}}return {added,due};}catch{return null;}}
+ setInterval(()=>playtimeTick(),1000);
+ const playtime=()=>{try{return {seconds:PT?PT.seconds(state):0,followups:PT?PT.status(state,MSx()?.FOLLOWUPS||[]):[],fired:fired.slice()};}catch{return {seconds:0,followups:[],fired:[]};}};
+ root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,playtime,playtimeTick,get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

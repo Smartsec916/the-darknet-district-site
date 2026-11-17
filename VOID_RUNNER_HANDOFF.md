@@ -589,6 +589,39 @@ Done; see §4.3. Possible follow-ups:
   > "I heard you're looking for work." / "Before I trust you with anything important, I need you to do a little reconnaissance." / "Head outside. Across the street, you'll find a nightclub called NULL. There's someone hanging out in there I need you to take their picture so I can scrape it for more data" / "I'll mark their location"
 
   Step 1 go into NULL (a location trigger). On entering, a Comms call from Admin: "Your V1 has a camera. Press L to open your device, then select the Camera app." / "Point it at the target. Your device should identify them automatically." / "Left click will take a picture" / "You can also zoom with the camera by using the mouse wheel" (added 17 Nov 2026, see below) / "Once you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me." / "Nothing complicated. Just keep your eyes open." Step 2 photograph the target, **Juno Vex** (a woman with a short silver bob and a long black coat, her visor pushed up, sitting alone at NULL's bar checking her device; the photo must really show her; no talking, no combat; Admin does not say why). Step 3 send the photo to Admin in Messages: right person "Received. That's exactly what I needed. Come back when you're ready."; wrong person "That's not the person I'm looking for. Check the description and try again." (unlimited tries, no fail). Step 4 return to Admin: "Not bad. You can follow instructions and keep a low profile. I might have more work for you." **Reward:** 100 credits and better standing with Admin, paid once. Next: the next Awakening mission when one exists (not written). Built as `m002-eyes-on-the-street` in `void-runner/main-story.js`; the standing is `story.relationships.admin` +10 (the amount is Claude's pick, editable in the Mission Editor). Also approved in the same script: NULL's population per quality (Low 6, Medium 9, High / Ultra 10, Juno included; VIP pair and outside queue removed). Lines are text only until recorded; no voice was generated.
+- **Mission 003 — Corporate Connections (APPROVED 17 Nov 2026, the owner's own text, verbatim; the Awakening Tree script continues):** the owner's specification, word for word:
+
+  > Mission 003 — Corporate Connections. Add the next mission to the existing Awakening Tree, immediately following Eyes on the Street. Players should see the mission name only.
+  >
+  > Admin — Mission Briefing. When the player returns to Admin, he has conducted preliminary research into Halden Reyes, the individual photographed speaking with Juno Vex at NULL. Admin dialogue:
+  > "I did some digging. Halden Reyes has ties to an arms dealer who works closely with The Function."
+  > "I know an intel broker named Fish. She's a close friend of mine and works over at Milked. She might be able to tell us more."
+  > "Head over there and let the receptionist, Eva, know you're there to see Fish."
+  > "And tell Eva I said hi."
+  >
+  > Objective 1 — Travel to Milked. Display the standard yellow mission guidance marker. Automatically complete the arrival objective when the player enters Milked. Direct the player toward Eva at reception.
+  >
+  > Objective 2 — Speak with Eva. Eva warmly welcomes the player and briefly explains Milked's business: an adult streaming platform and sperm bank where performers receive compensation based on the amount of sample collected from viewers at home. The player explains that Admin sent them to speak with Fish and passes along his greeting. Eva responds warmly:
+  > "Oh, Admin! Tell him I said hi, too."
+  > "Fish is through the staff-only door. You'll find her in her office."
+  > Eva gestures toward the staff entrance and grants the player access.
+  >
+  > Objective 3 — Meet Fish. The player enters the staff area and locates Fish in her office. The player explains that Admin sent them to obtain information about Halden Reyes. Fish responds in Mandarin:
+  > "给我一点时间调查一下。如果有什么消息，我会给你打电话。"
+  > English translation: "Give me some time to work on it. I'll call you if anything comes up."
+  > Play the original Mandarin dialogue slightly ahead of the English translation and at a slightly lower volume, creating the effect of a real-time cyberpunk translation system. Both languages should remain audible. Automatically add Fish as a contact in the player's device and follow her Social profile.
+  >
+  > Objective 4 — Await Fish's Response. Complete the current assignment after speaking with Fish. Her follow-up Comms call should become available after a configurable amount of active gameplay, excluding time spent offline. Persist the timer across sessions and prevent duplicate calls. The follow-up conversation and next mission will be written later.
+  >
+  > ElevenLabs Voices: Eva gJx1vCzNCD1EQHT212Ls; Fish ggacvEjbmpoSuEinfFWs. Use Fish's designated voice for her original Mandarin dialogue and a separate consistent voice for the device's English translation.
+  >
+  > Implementation: integrate with the existing Awakening Tree and Mission Editor. Use the existing location boundaries, mission guidance, dialogue, Comms and Social systems. Preserve existing Milked functionality. Ensure mission progression works independently for multiplayer users. Update the Awakening Tree script and handoff documentation. Test, commit, push, and deploy verified changes.
+
+  Also the owner, on Eva's tone (17 Nov 2026): "Eva's line don't have to be vulgar, but this game is made to make people uncomfortable about possible futures and cultural changes through time."
+
+  Built as `m003-corporate-connections`, number 3, in `void-runner/main-story.js` (in person with ACCEPT / NOT NOW, as 002; no reward). Steps: `travel-milked` (enter Milked), `speak-eva` (Eva; unlock: story flag `mf_milkedStaff` opens the STAFF ONLY door at the hallway's far end for that player), `meet-fish` (Fish; unlocks: V1 contact and Social follow), `await-fish` (done at once: the mission ends). Fish's follow-up call becomes DUE after **15 minutes of active play** (`main-story.js FOLLOWUPS`; `playtime.js`), fires once (`story.flags.ev_fish-followup-due`); **the call and the next mission are a stub, waiting for the owner's script**. Recorded clips (eleven_v4, about 517 credits, approved by the owner): Admin's four lines, Eva's two lines, Fish's Mandarin line, and its English translation **in Fish's own voice** (the owner's choice, 17 Nov 2026, about 68 credits; replaces a first take in a library voice). **Standard from now on (the owner): a V1 translation is spoken in the speaker's own voice, in English** (one setting per character: `extra/manifest.json translations`).
+
+  **PROPOSED (Claude's drafts, NOT canon, text only, editable in the Mission Editor), awaiting the owner:** Eva: "Welcome to Milked! I'm Eva. Can I get you a water while you wait?" / "We're the district's top adult stream and donor programme. Members watch from home; a courier collects their donations." / "Performers are paid by volume collected. Our top earner led the board three quarters running. We're so proud of her." · the player to Eva: "Admin sent me. I'm here to see Fish." / "He also said to tell you hi." · the player to Fish: "Admin sent me. He wants anything you can find on a man named Halden Reyes." · Fish's Social bio: "Intel broker. Works at Milked."
 - Tutorial separate from the cargo campaign; Mission Log with tracking.
 - Mission Log key is **L**, because the game runs in a browser and F1 conflicts.
 - Mara **asks** whether to do the tutorial. Declining sends the player to Rook and the first cargo mission.

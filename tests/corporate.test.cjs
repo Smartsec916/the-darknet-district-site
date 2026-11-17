@@ -59,7 +59,7 @@ test('the street taxi lists Corporate at a flat 60 CR, through the Function Gate
   assert.equal(R.charge(s,'corporate',60),0,'59 CR cannot pay');s.credits=100;assert.equal(R.charge(s,'corporate',60),60);assert.equal(s.credits,40);assert.equal(R.charge(s,'corporate',60),0,'never twice');
 });
 test('Corporate adds no location id, mission or save field except the fog flag',()=>{
-  const man=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/save-manifest.json'),'utf8'));assert.ok(!JSON.stringify(man).includes('corporate'));
+  const man=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/save-manifest.json'),'utf8'));assert.ok(!JSON.stringify(man).replace(/m003-corporate-connections/g,'').includes('corporate'));   // Mission 003's id names "corporate connections", not this place
   const src=fs.readFileSync(path.join(__dirname,'../void-runner/corporate.js'),'utf8').replace(/\/\*[\s\S]*?\*\//g,'');assert.ok(!/story\.flags|state\./.test(src));
   assert.equal(C.SPACE_FLAG,'corpFog');assert.equal(L.spawn[2],-14);
 });

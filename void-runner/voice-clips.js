@@ -5,11 +5,14 @@
 (function(root){
  const base=new URL('assets/audio/voice/',document.currentScript?.src||location.href);
  const alias={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant'};
- let manifest=null,lookup=new Map(),source=null,stopTimer=null,seq=0;const cache=new Map();
+ let manifest=null,lookup=new Map(),source=null,source2=null,stopTimer=null,seq=0;const cache=new Map(),extraById=new Map(),extraCast={},translations={};
  fetch(new URL('manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;manifest=m;
   for(const [id,l] of Object.entries(m.lines))lookup.set(l.speaker+'|'+l.text,{id,...l});}).catch(()=>{});
  /* A few lines voiced outside the Kokoro pipeline (ElevenLabs, rendered once and stored): extra/manifest.json. Same lookup, same playback, same live effects. */
- fetch(new URL('extra/manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/[a-z0-9-]+\.ogg$/.test(l.file))lookup.set(l.speaker+'|'+l.text,{id:'extra:'+id,...l});}).catch(()=>{});
+ // A line may carry `with` {id} (Mission 003: Fish's Mandarin line): the extra clip `id` (the V1's English translation, in her own voice) starts `offset` seconds after it, at full volume,
+ // while this one plays at `gain`: both stay audible, like a real-time translator. offset, gain and the translation's live effect are ONE setting per speaker
+ // (extra/manifest.json translations[speaker]; `with` may override them); the translation clip's file can be swapped in its own entry. `cast` gives a speaker a live effect.
+ fetch(new URL('extra/manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(extraCast,m.cast||{});Object.assign(translations,m.translations||{});for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/[a-z0-9-]+\.ogg$/.test(l.file)){const e={id:'extra:'+id,...l};extraById.set(id,e);lookup.set(l.speaker+'|'+l.text,e);}}).catch(()=>{});
  const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
  function has(who,text){return lookup.has(key(who,text));}
  async function clip(context,line){
@@ -33,6 +36,12 @@
   const trem=ctx.createGain();trem.gain.value=.94;const lfo=ctx.createOscillator(),depth=ctx.createGain();lfo.frequency.value=7;depth.gain.value=.05;lfo.connect(depth);depth.connect(trem.gain);lfo.start();
   input.connect(hp);hp.connect(lp);lp.connect(trem);trem.connect(output);return [lfo];
  }
+ // A V1 translation (spoken in the speaker's own voice, in English): a SUBTLE device colour, a little band-limited with a touch of presence; no hiss.
+ function device(ctx,input,output){
+  const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=170;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=8000;
+  const peak=ctx.createBiquadFilter();peak.type='peaking';peak.frequency.value=2400;peak.gain.value=1.5;peak.Q.value=.9;input.connect(hp);hp.connect(lp);lp.connect(peak);peak.connect(output);return [];
+ }
+ const effectOf=(ctx,name,input,output)=>name==='android'?android(ctx,input,output):name==='hologram'?hologram(ctx,input,output):name==='radio'?radio(ctx,input,output):name==='device'?device(ctx,input,output):(input.connect(output),[]);
  // Relay broadcasts: a transmission band with light grit and a faint carrier hiss, applied live so
  // the recording (the broadcaster's voice) stays clean.
  function radio(ctx,input,output){
@@ -59,22 +68,34 @@
   return {done,stop(){stopped=true;try{playing?.stop();}catch{}},get duration(){return duration;},get progress(){return startedAt===null||!duration?0:Math.min(1,(bus.context.currentTime-startedAt)/duration);}};
  }
  // seq: a clip still loading when the next line (or a cancel) comes is dropped instead of playing over it.
- function cancel(){seq++;clearTimeout(stopTimer);try{source?.stop();}catch{}source=null;}
+ function cancel(){seq++;clearTimeout(stopTimer);try{source?.stop();}catch{}try{source2?.stop();}catch{}source=null;source2=null;}
  async function speak({characterId,text,bus}){
   cancel();const mine=seq,line=lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
   // The conversation's line this recording is for (scenes.js speakLine): told when it starts and ends, so a walking conversation moves on when it has been heard.
   const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};
-  const ctx=bus.context,data=await clip(ctx,line);if(mine!==seq)return;const cast=manifest?.cast?.[line.speaker]||{};
+  const ctx=bus.context,data=await clip(ctx,line);if(mine!==seq)return;const cast=manifest?.cast?.[line.speaker]||extraCast[line.speaker]||{};
+  // the translation that plays over this line (loaded first, so the two start on time)
+  const effect2=p=>'effect' in tset?tset.effect:(manifest?.cast?.[p.line.speaker]||extraCast[p.line.speaker]||{}).effect;
+  let pair=null;const w=line.with&&extraById.get(line.with.id),tset={...(translations[line.speaker]||{}),...(line.with||{})};if(w){try{pair={line:w,data:await clip(ctx,w)};}catch{pair=null;}if(mine!==seq)return;}
   const playing=ctx.createBufferSource();playing.buffer=data;source=playing;
-  const input=ctx.createGain(),out=ctx.createGain();out.connect(bus);playing.connect(input);
-  const extra=cast.effect==='android'?android(ctx,input,out):cast.effect==='hologram'?hologram(ctx,input,out):cast.effect==='radio'?radio(ctx,input,out):(input.connect(out),[]);
+  const input=ctx.createGain(),out=ctx.createGain();out.connect(bus);playing.connect(input);if(pair)input.gain.value=Number.isFinite(tset.gain)?tset.gain:.7;
+  const extra=effectOf(ctx,cast.effect,input,out);
+  let second=null,extra2=[];if(pair){second=ctx.createBufferSource();second.buffer=pair.data;source2=second;const in2=ctx.createGain();second.connect(in2);extra2=effectOf(ctx,effect2(pair),in2,out);}
+  const offset=pair?Math.max(0,Number(tset.offset)||0):0,total=pair?Math.max(data.duration,offset+pair.data.duration):data.duration;
   // Subtitles reveal in step with the recording.
   if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));
-  await new Promise(resolve=>{playing.onended=resolve;playing.start();if(v)Object.assign(v,{play,started:true,ended:false,startedAt:performance.now(),duration:data.duration});});
+  const ends=[new Promise(resolve=>{playing.onended=resolve;})];if(second)ends.push(new Promise(resolve=>{second.onended=resolve;}));
+  const t0=ctx.currentTime+.02,wall=performance.now()+20;playing.start(t0);if(second)second.start(t0+offset);
+  // what started when (ctx time and page time): the browser test checks the translator's offset from these
+  const rec={primary:{id:line.id,speaker:line.speaker,gain:input.gain.value,at:t0,wall,duration:data.duration}};if(second)rec.secondary={id:pair.line.id,speaker:pair.line.speaker,gain:1,at:t0+offset,wall:wall+offset*1000,offset,duration:pair.data.duration,effect:effect2(pair)||null};
+  played.push(rec);if(played.length>20)played.shift();
+  if(v)Object.assign(v,{play,started:true,ended:false,startedAt:performance.now(),duration:total});
+  await Promise.all(ends);
   if(v&&v.play===play)Object.assign(v,{ended:true,endedAt:performance.now()});
-  for(const o of extra)try{o.stop();}catch{}out.disconnect();if(source===playing)source=null;
+  for(const o of [...extra,...extra2])try{o.stop();}catch{}out.disconnect();if(source===playing)source=null;if(source2===second)source2=null;
  }
- root.VoidVoiceClips={has,speak,cancel,broadcast,get count(){return lookup.size;}};
+ const played=[];
+ root.VoidVoiceClips={has,speak,cancel,broadcast,get count(){return lookup.size;},get played(){return played.slice();},pairOf:(who,text)=>{const l=lookup.get(key(who,text));return l&&l.with?{...(translations[l.speaker]||{}),...l.with}:null;},get translations(){return JSON.parse(JSON.stringify(translations));}};
  root.VoidAudio?.setVoiceProvider?.(root.VoidVoiceClips);
  // Replay the current line on demand.
  const voicedRender=renderLine;

@@ -79,6 +79,9 @@ fs.mkdirSync(shots,{recursive:true});
  for(const [n,x,z,tx,tz] of [[1,87.2,-82.3,87.4,-77.5],[2,91.2,-82.3,91.4,-77.5],[3,87.8,-81.3,87.6,-85.5],[4,91.8,-81.3,91.6,-85.5]]){await at(x,z,Math.atan2(tx-x,tz-z),-.02);await shot('07-studio-'+n,1200);}
  await page.evaluate(()=>VoidInteractions.handlers.get('milked-studio')({item:{studio:2}}));assert.match(await page.evaluate(()=>document.getElementById('notice').textContent),/STUDIO 2 is ON AIR/);
  // 6. the staff area: Fish in her office, the rear corridor
+ // the STAFF ONLY door is locked until Eva lets the player through (Mission 003, 17 Nov 2026: story flag mf_milkedStaff); this walk-through grants it for the rest of the tour
+ await at(92.6,-81.8,EAST);await stops(94.75,-81.8,'the locked staff-only door');assert.equal(await page.evaluate(()=>VoidBabylon.zone.state().staffDoor.blocking),true);
+ await page.evaluate(()=>{state.story.flags.mf_milkedStaff=true;});await page.waitForFunction(()=>VoidBabylon.zone.state().staffDoor.blocking===false);await page.waitForTimeout(1200*slow);
  await at(92.6,-81.8,EAST);await reaches(94.75,-81.8,'through the staff door');await reaches(94.75,-78.6,'into Fish\'s office');
  await page.waitForFunction(()=>VoidBabylon.zone.people.some(p=>p.spawned&&p.role==='fish'),null,{timeout:400000});await at(94.3,-79.2,Math.atan2(97-94.3,-76.2+79.2),-.03);await shot('08-fish-office',1500);
  const fish=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='milked-fish'));await page.evaluate(i=>VoidInteractions.handlers.get('milked-fish')({item:i}),fish);await page.waitForTimeout(400);
@@ -113,7 +116,7 @@ fs.mkdirSync(shots,{recursive:true});
  // 10. nothing leaked, nothing saved, no errors
  const st=await page.evaluate(()=>VoidBabylon.zone.state());assert.ok(st.ready&&st.area==='milked'&&st.screens>=14&&st.doors.length===5,JSON.stringify(st));
  const w=await page.evaluate(()=>window.__mk);assert.ok(w.frames>50,'the door watch ran: '+w.frames);assert.deepEqual([...new Set(w.bad)].slice(0,5),[],'door rules held on every frame');
- assert.equal(await flagsNow(),saveBefore,'still nothing written to the save');assert.ok(await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length)>=mapBefore,'the explored-street map is not replaced by a smaller one (the inside is charted on the street\'s grid)');
+ assert.equal(await page.evaluate(()=>{delete state.story.flags.mf_milkedStaff;return JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap/.test(k))));}),saveBefore,'still nothing written to the save (the staff flag this test granted aside)');assert.ok(await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length)>=mapBefore,'the explored-street map is not replaced by a smaller one (the inside is charted on the street\'s grid)');
  assert.equal(await page.evaluate(()=>VoidDistrictArea.keyFor(state)),'sacramento','a game saved in here resumes on the street side (and wakes in the Sleeping Pod)');
  assert.deepEqual(errs,[],'no page errors: '+errs.join(' | '));
  console.log('MILKED browser walk-through passed ('+tier+'), '+w.frames+' frames watched. Screenshots: '+shots);await b.close();

@@ -42,7 +42,8 @@
   fish:{greeting:['Office. Mind the cables.','Four studios, fixed cameras, nobody behind them. I run every camera from this desk.',
    'Eva runs the front and the technical side. I keep the lights on and the paperwork honest.']}};
  // MISSION 3: data only, INACTIVE. Nothing registers it with VoidMissions and nothing starts it; the beginner missions are untouched. Needs the owner's approval to activate.
- const MISSION={id:'meet-eva-milked',number:3,title:'MEET EVA AT MILKED',active:false,status:'inactive',approval:'PROPOSED (placeholder data, not approved canon)',giver:null,npc:'milked-eva',location:'milked',
+ // number: none. This inactive draft once carried 3 as a placeholder; Mission 003 is the owner's Corporate Connections (main-story.js, 17 Nov 2026), and numbers are never shared.
+ const MISSION={id:'meet-eva-milked',number:null,title:'MEET EVA AT MILKED',active:false,status:'inactive',approval:'PROPOSED (placeholder data, not approved canon)',giver:null,npc:'milked-eva',location:'milked',
   objective:'Travel to Milked, on the side street off Main Street, and talk to Eva at reception.',steps:[{id:'arrive',text:'Reach Milked (the side street off the east side of Main Street, or take a taxi).'},{id:'reception',text:'Talk to Eva at the reception desk.'}],
   dialogue:['eva.greeting'],reward:null};
 
@@ -51,6 +52,10 @@
  const FOOTPRINT=[78,98,-90,-74],LANE=[71,101,-74,-68.5],ALLEY=[71,98.5,-93.5,-90];
  const DOOR={x:81.75,z:-74,half:1,height:2.7},INNER={x:81.75,z:-77,half:1,height:2.5},REAR={x:94.75,z:-90,half:.7,height:2.3};
  const VESTIBULE=[79.75,83.75,-77,-74],HALL=[85.5,93.5,-82.8,-80.8];
+ /* The STAFF ONLY door at the far (east) end of the studio hallway, into the staff corridor and Fish's office. Locked for a player until Eva grants access (Mission 003:
+    story.flags.mf_milkedStaff, set by the mission's 'flag' unlock). The rear lobby (from the service alley) is the staff and deliveries entrance and is not changed. */
+ const STAFF_DOOR={id:'milked-staff-door',x:93.5,z:-81.8,half:.65},STAFF_FLAG='mf_milkedStaff';
+ const staffAccess=flags=>!!flags&&typeof flags==='object'&&flags[STAFF_FLAG]===true;   // flags: the player's story flags (read only: nothing here writes to the save)
  // The rear lobby: a small airlock between the staff area and the service alley. Its two inner doors lead to the staff corridor (north) and the rear corridor (west).
  const LOBBY=[93.5,96,-90,-87.4],LOBBY_N={x:94.75,z:-87.4,half:.7,height:2.2},LOBBY_W={x:93.5,z:-89,half:.65,height:2.2};
  /* The five real doors. Each has a collision box (in solids(), id = the door's id) that is in place whenever the door is less than 80% open. `side` says which
@@ -148,10 +153,13 @@
   // the doors: shut until the door control (milked-build.js) opens them
   for(const d of DOORS)out.push({id:d.id,door:true,position:[d.x,d.height/2,d.z],size:d.axis==='x'?[d.half*2,d.height,T]:[T,d.height,d.half*2]});
   return out;}
+ // The staff-only door at the far end of the studio hallway (Mission 003, 17 Nov 2026): locked (solid) until Eva lets this player through (story flag STAFF_FLAG);
+ // milked-build.js opens it, per player, only for a player who has that flag. Only the interior has it (the street never reaches that part of the building).
+ const staffSolidLocal=()=>({id:STAFF_DOOR.id,staff:true,position:[STAFF_DOOR.x,1.1,STAFF_DOOR.z],size:[T,2.2,STAFF_DOOR.half*2]});
  const gateAtLocal=p=>{if(!p)return null;for(const g of Object.values(GATES))if(inRect(g.zone,p.x,p.z))return g;return null;};
  // Which doors an environment may open ('street' or the interior).
  const openable=(d,area)=>d.side===(area===AREA?'interior':'street');
- const LOCAL={CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
+ const LOCAL={STAFF_DOOR,CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
 
  // ---- the same things in WORLD metres: what the rest of the game reads ----
  const [OX,OZ]=OFFSET;
@@ -179,12 +187,13 @@
  /* The interior as a place of its own. It keeps NeoChinatown's id and world coordinates, so the map, the music zone, the camera's place label and multiplayer
     presence all carry on unchanged; `area` tells the street systems (taxis, street life) that this is indoors. A save made in here stores nothing of it:
     every login wakes in the player's Sleeping Pod, and anything that re-enters NeoChinatown uses the street. */
- function layout(){return {id:'neochinatown',name:CONFIG.NAME,kind:'city',milked:true,area:AREA,bounds:[260,270],spawn:[WDOOR.x,1.7,-78.6+OZ],yaw:Math.PI,color:'#17141c',music:'earth',solids:solids(),interactions:interactions(AREA),signs:[]};}
+ const staffSolid=()=>{const x=staffSolidLocal();return {...x,position:[x.position[0]+OX,x.position[1],x.position[2]+OZ]};};
+ function layout(){return {id:'neochinatown',name:CONFIG.NAME,kind:'city',milked:true,area:AREA,bounds:[260,270],spawn:[WDOOR.x,1.7,-78.6+OZ],yaw:Math.PI,color:'#17141c',music:'earth',solids:[...solids(),staffSolid()],interactions:interactions(AREA),signs:[]};}
  /* A position from a save or a link made BEFORE the move (the District's old street): where that point is now. Anything inside the building's old block (its footprint,
     the side street and the service alley, with a margin) goes with it, by OFFSET; anything else stays. Returns [x, z] or null when the point was not Milked's. */
  const OLD_BLOCK=[FOOTPRINT[0]-1,Math.max(LANE[1],ALLEY[1])+1,FOOTPRINT[2]-4,LANE[3]+1];
  const fromOld=(x,z)=>inRect(OLD_BLOCK,x,z)?[x+OX,z+OZ]:null;
 
- const api={OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
+ const api={STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMilked=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

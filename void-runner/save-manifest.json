@@ -63,11 +63,13 @@
   ],
   "storyMissions": [
     "m001-awakening",
-    "m002-eyes-on-the-street"
+    "m002-eyes-on-the-street",
+    "m003-corporate-connections"
   ],
   "missionNumbers": {
     "1": "m001-awakening",
-    "2": "m002-eyes-on-the-street"
+    "2": "m002-eyes-on-the-street",
+    "3": "m003-corporate-connections"
   },
   "retiredMissions": [
     "first-contact",
