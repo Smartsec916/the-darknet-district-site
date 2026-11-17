@@ -16,7 +16,7 @@ import re
 import time
 from pathlib import Path
 
-from void_runner_drafts import DraftError
+from void_runner_drafts import DraftError, editor_uid
 
 ROOT = Path(__file__).parent
 MAX_BYTES = 200_000
@@ -56,7 +56,7 @@ def enabled():
 
 def owner(uid, allowed, need=None):
     """The single configured content editor. need: 'publish' (publishing switched on) or 'queue' (private storage switched on)."""
-    editor = os.getenv('VOID_CONTENT_EDITOR_UID', '').strip()
+    editor = editor_uid()
     if not allowed(uid) or not editor or uid != editor:
         raise DraftError('This account is not the configured content editor.', 403)
     if need == 'publish' and not enabled():

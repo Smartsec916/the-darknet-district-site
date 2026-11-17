@@ -57,6 +57,16 @@ class LiveContentTests(unittest.TestCase):
             self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': content()}).status_code, 404)
         self.assertEqual(self.db.data, {}, 'nothing written by refused calls')
 
+    def test_editor_falls_back_to_the_single_admin(self):
+        import void_runner_drafts as drafts
+        with patch.dict(os.environ, {'VOID_CONTENT_EDITOR_UID': '', 'VOID_ADMIN_UIDS': 'owner'}):
+            self.assertEqual(drafts.editor_uid(), 'owner')
+            self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': content()}).status_code, 200)
+        with patch.dict(os.environ, {'VOID_CONTENT_EDITOR_UID': '', 'VOID_ADMIN_UIDS': 'owner,outsider'}):
+            self.assertEqual(drafts.editor_uid(), '', 'two developers: an explicit editor must be configured')
+        with patch.dict(os.environ, {'VOID_CONTENT_EDITOR_UID': 'outsider', 'VOID_ADMIN_UIDS': 'owner'}):
+            self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': content()}).status_code, 403, 'the explicit setting wins and must still be an allowlisted developer')
+
     def test_publish_versions_and_one_click_undo(self):
         self.assertEqual(self.get('live-content', token=None).json, {'version': 0, 'content': None})
         first = self.post('live-content/publish', {'expected': 0, 'content': content(note='First')})
@@ -131,7 +141,7 @@ class RevoiceQueueTests(unittest.TestCase):
         self.assertEqual(r.status_code, 200, r.json)
         by = {i['who']: i for i in r.json['items']}
         self.assertEqual(by['admin']['engine'], 'elevenlabs')
-        self.assertEqual(by['admin']['voiceId'], 'V2bPluzT7MuirpucVAKH')
+        self.assertEqual(by['admin']['voiceId'], 'DMyrgzQFny3JI1Y1paM5')
         self.assertEqual(by['admin']['waiting'], 'waiting for ElevenLabs re-voice (needs approval)')
         self.assertEqual(by['rook']['engine'], 'kokoro')
         self.assertEqual(by['rook']['voice'], 'bm_fable', 'the registered voice, never a new one')
