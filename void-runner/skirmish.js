@@ -2,7 +2,7 @@
 (function(root){
  const station=VoidDerelictStation,layout=station.layout;
  const tuning={easy:{damage:7,accuracy:.46,reaction:1.5,speed:.8},normal:{damage:11,accuracy:.66,reaction:1.1,speed:1.05},hard:{damage:15,accuracy:.82,reaction:.7,speed:1.3}};
- // Loadout (David, 2026-10-23): one gun for now, the Ward pistol Mara hands you on Vesper.
+ // Loadout (the owner, 2026-10-23): one gun for now, the Ward pistol Mara hands you on Vesper.
  const weapons={'ward-pistol':{name:'WARD PISTOL',note:'Elias’s pistol, the one Mara gives you on Vesper. 12-round magazine.'}};
  let choice={type:'fps',location:'derelict-station',difficulty:'normal',weapon:'ward-pistol'},match=null,generation=0;
  const keys=new Set(),hud=document.createElement('div');hud.id='skirmish-hud';hud.hidden=true;document.body.append(hud);

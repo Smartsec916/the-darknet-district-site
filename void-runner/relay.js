@@ -1,4 +1,4 @@
-/* The Relay: the in-universe broadcast network (David's Option D and his Relay brief). Rules only.
+/* The Relay: the in-universe broadcast network (the owner's Option D and his Relay brief). Rules only.
    - Content (relay-content.json) has two parts. EVENTS are the canonical record of what happened:
      confirmed facts, unknowns, who is involved, when it becomes public. REPORTS (segments) are what
      a broadcaster says about an event, or standalone programming (ads, WarFlying, The Function).

@@ -1,6 +1,6 @@
 {
  "name": "npc-fish",
- "source": "Fish (Milked's owner), generated with Meshy from a concept that David and the person it is based on approved on 16 Nov 2026 (image-to-image from her own photos, supplied with her permission per David; then image-to-3d, remesh and auto-rig) on David's Meshy account; prepared by prepare_meshy.py",
+ "source": "Fish (Milked's owner), generated with Meshy from a concept that the owner and the person it is based on approved on 16 Nov 2026 (image-to-image from her own photos, supplied with her permission per the owner; then image-to-3d, remesh and auto-rig) on the owner's Meshy account; prepared by prepare_meshy.py",
  "bonePrefix": "",
  "optionalBones": true,
  "bones": {

@@ -22,7 +22,7 @@
    // its own `storagePct` (in STORE_EXTRA) on top, and the total is capped at 100.
    storage:{baseUsedPct:75}
   },
-  /* V3 // SHADOW (David, 15 Nov 2026): the device Dax carries, bought from Admin. Faster than the V1; the same interface drawn like an old monochrome green monitor
+  /* V3 // SHADOW (the owner, 15 Nov 2026): the device Dax carries, bought from Admin. Faster than the V1; the same interface drawn like an old monochrome green monitor
      (device-v1.css, [data-device=v3]); its camera is in the wearer's eye and zooms to 4. No player can get one yet: nothing sells or grants it. */
   v3:{id:'v3',generation:3,name:'V3 // SHADOW',tagline:'PERSONAL DEVICE · MODEL V3 // SHADOW',theme:'mono-green',
    apps:['missions','messages','comms','social','news','map','camera','gallery','store','device','settings'],
@@ -49,7 +49,7 @@
  };
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
  // Apps a player can install: {id,title,generation,note,storagePct}. An app runs on every model of its generation or later (V1, V2, V3 // Shadow...).
- // WarFlying (David, 15 Nov 2026): the scanner is an app on the personal device now, no longer a module fitted to a ship. Free; takes 15% of storage.
+ // WarFlying (the owner, 15 Nov 2026): the scanner is an app on the personal device now, no longer a module fitted to a ship. Free; takes 15% of storage.
  const STORE_EXTRA=[{id:'warflying',title:'WARFLYING',generation:1,storagePct:15,note:'Scans for nearby frequencies and logs them. Press SUBMIT SCANS to send what you log to the WarFlying leaderboard. Does not work inside The Darknet District, which is shielded.'}];
  // Which in-game model draws each named NPC's portrait: {npcId: 'crowd-look-id'}. EMPTY on purpose: the game does not yet say which crowd model is which named
  // character, and a guessed face would be wrong. An entry here makes that NPC's portrait appear (and regenerate whenever ASSET_VERSION or the model changes).
@@ -164,6 +164,13 @@
    facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:data.appearance?{key:portraitKey('npc',data.id||'',data.appearance),source:{type:'appearance',appearance:data.appearance,resident:true},state:'ready'}:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
- const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ /* NOTIFICATION SOUNDS per device tier (the owner, 17 Nov 2026: "We need a notification sound too. Maybe different for every device V1, V2, V3 // Shadow"; "V3 is Shadow.
+    It's the V3 // Shadow"). Three tiers: v1, v2, v3 (the device model 'v3', "V3 // SHADOW"). Only the V1 is in a player's hands; V2 and V3 are data only (no UI).
+    Files: void-runner/assets/audio/ui/ (ElevenLabs Sound Effects on the owner's paid plan; LICENSES.md there). The owner's picks: V1 confirmed; V3 his choice; V2 is a
+    PLACEHOLDER until the V2 exists. A model without its own row uses the V1's. A missing file plays nothing (personal-device.js). */
+ const NOTIFY={v1:{name:'V1',sound:'void-runner/assets/audio/ui/device-v1-notify.ogg'},v2:{name:'V2',placeholder:true,sound:'void-runner/assets/audio/ui/device-v2-notify.ogg'},
+  v3:{name:'V3 // SHADOW',sound:'void-runner/assets/audio/ui/device-v3-notify.ogg'}};
+ const notifyTier=model=>NOTIFY[model]?model:'v1';
+ const api={NOTIFY,notifyTier,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

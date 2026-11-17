@@ -35,7 +35,7 @@ test('the fingerprint matches the Python pipeline',()=>{
 });
 test('Relay broadcasters are cast provisionally (The Function stays uncast), then follow the same lock',()=>{
   const reg=clone();for(const e of Object.values(reg.broadcast))assert.ok(['unassigned','provisional','approved'].includes(e.status));
-  assert.equal(reg.broadcast['the-function'].status,'unassigned','The Function needs David’s explicit approval for a voice');
+  assert.equal(reg.broadcast['the-function'].status,'unassigned','The Function needs the owner’s explicit approval for a voice');
   reg.broadcast['the-function'].voice='bm_lewis';assert.match(Registry.validate(reg).join(),/unassigned broadcaster has no voice/);
   const cast=clone(),e=Object.assign(cast.broadcast['news-anchor'],{voice:'af_jessica',speed:1,lang:'en-us',profile:'radio',status:'approved'});
   e.approvedConfigHash=Registry.configHash(e,cast.engine);assert.deepEqual(Registry.validate(cast),[]);assert(Registry.voiced(cast)['news-anchor']);

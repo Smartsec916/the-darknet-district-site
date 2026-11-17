@@ -14,7 +14,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict');cons
  const spot=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='vr-fish'));assert(spot,'the pier has a fishing spot');
  const act=()=>page.evaluate(()=>VoidVR.session.world.interact({id:'vr-fish'})),notice=()=>page.evaluate(()=>document.getElementById('notice').textContent);
  await page.evaluate(p=>{walker.x=p[0];walker.z=p[2];},spot.position);await page.waitForTimeout(500);
- // World-of-Warcraft style (David, 16 Nov 2026): E casts (the rod swings, the float flies out), the float splashes when a fish bites, and it must be LOOKED AT and clicked.
+ // World-of-Warcraft style (the owner, 16 Nov 2026): E casts (the rod swings, the float flies out), the float splashes when a fish bites, and it must be LOOKED AT and clicked.
  const state=()=>page.evaluate(()=>VoidVR.session.world.fishing()),look=()=>page.evaluate(()=>{const f=VoidVR.session.world.fishing();walker.yaw=Math.atan2(f.float[0]-walker.x,f.float[2]-walker.z);walker.pitch=Math.atan2(walker.y-f.float[1]-.1,Math.hypot(f.float[0]-walker.x,f.float[2]-walker.z));}),away=()=>page.evaluate(()=>{walker.yaw+=1.2;});
  const click=()=>page.evaluate(()=>dispatchEvent(new MouseEvent('mousedown',{button:0,bubbles:true,cancelable:true})));
  const bite=()=>page.waitForFunction(()=>VoidVR.session.world.fishing().state==='bite');

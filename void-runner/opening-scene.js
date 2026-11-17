@@ -145,7 +145,7 @@
    mergeModule(n);return n;
   }
   const store=commerce('store',-50,23,2.12),bar=commerce('bar',-62,41,2.20);
-  // A few villagers (David, 2026-10-16): patio talk at the Dust Bar, a trader at Frontier Supply, a mechanic up a comms pole.
+  // A few villagers (the owner, 2026-10-16): patio talk at the Dust Bar, a trader at Frontier Supply, a mechanic up a comms pole.
   // They are background crew (no dialogue; skipped on low quality); the workshop stays Mara's.
   const villager=(id,node,p,yaw)=>{if(low)return null;const n=characterModel(id,node,p,true);if(n)n.rotation.y=yaw;return n;};
   villager('crew-vesper-sit1',bar,[2.15,0,7],Math.PI/2);villager('crew-vesper-sit2',bar,[3.85,0,7],-Math.PI/2);

@@ -3,10 +3,10 @@
    save's story.flags.profileJobs (a short string), and are NOT yet sent to other players (the District server accepts no profile fields).
    To add a resident: add a line to NPCS with the id the scene uses for that figure (`crew`), a fixed crowd `look` or a creator `appearance`, and the `area`
    they are in ('interior' = inside the District, 'club' = NULL nightclub). The V1's Players list and Social app pick it up from here.
-   DRAFT: every name, job and line below except Admin, Iris and Nyx was written by Claude on David's request (15 Nov 2026) and is his to change. */
+   DRAFT: every name, job and line below except Admin, Iris and Nyx was written by Claude on the owner's request (15 Nov 2026) and is his to change. */
 (function(root){
  'use strict';
- // Jobs: David's list first (Smuggler .. Mechanic), then additions for him to keep or cut.
+ // Jobs: the owner's list first (Smuggler .. Mechanic), then additions for him to keep or cut.
  const JOBS=[['smuggler','Smuggler'],['pirate','Pirate'],['mercenary','Mercenary'],['merchant','Merchant'],['influencer','Influencer'],['dancer','Dancer'],['dj','DJ'],['mechanic','Mechanic'],
   ['bounty-hunter','Bounty Hunter'],['courier','Courier'],['pilot','Pilot'],['hacker','Hacker'],['fixer','Fixer'],['info-broker','Info Broker'],['bartender','Bartender'],['bodyguard','Bodyguard'],
   ['medic','Medic'],['salvager','Salvager'],['miner','Miner'],['engineer','Engineer'],['explorer','Explorer'],['racer','Racer'],['gambler','Gambler'],['musician','Musician'],
@@ -29,7 +29,7 @@
    appearance:{v:1,base:'male',look:'district-smuggler',hair:'short03',hairColor:'silver',clothingColor:'graphite',accessories:[]}},
   {id:'iris',achievements:[['district-first-visit','2026-01-04']],name:'Iris',jobs:['merchant','info-broker'],area:'interior',place:'The Darknet District store',bio:'Works the store counter beside Admin.',model:'npc-iris',scale:.99,
    appearance:{v:1,base:'female',look:'fixer-01',hair:'bob02',hairColor:'silver',clothingColor:'black',accessories:['gear-collar','gear-shoulders','gear-chest']}},
-  /* Nyx (David, 16 Nov 2026: "The bartender NPC needs upgrading"): her own model, made with Meshy from his picture of her behind the oxygen bar. She has no creator look: if the file cannot be
+  /* Nyx (the owner, 16 Nov 2026: "The bartender NPC needs upgrading"): her own model, made with Meshy from his picture of her behind the oxygen bar. She has no creator look: if the file cannot be
      loaded the scene shows the plain stand-in figure she had before (neochinatown.js), never another character. */
   {id:'nyx-district',achievements:[['district-first-visit','2026-02-11']],name:'Nyx',jobs:['bartender'],area:'interior',place:'The bar and oxygen lounge',bio:'Behind the bar.',model:'npc-nyx',scale:1},
   {id:'rin-takeda',own:'npc-rin',achievements:[['district-first-visit','2026-06-30']],crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
@@ -41,12 +41,12 @@
   {id:'mags-oduya',own:'npc-mags',achievements:[['district-first-visit','2026-02-27']],crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
   {id:'tavi-rourke',own:'npc-tavi',achievements:[['district-first-visit','2026-09-12']],crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
   {id:'bishop-hale',own:'npc-bishop',achievements:[['district-first-visit','2026-03-19']],crew:'crew-hall-watch1',look:'outlaw-01',name:'Bishop Hale',jobs:['bodyguard'],area:'interior',place:'The hallway',bio:'Watches the hallway by the arcade.'},
-  /* Dax (David, 15 Nov 2026): there is only one. Her model is a licensed one drawn by dax.js, which also says where she is at any moment (`live`); her profile picture is a
+  /* Dax (the owner, 15 Nov 2026): there is only one. Her model is a licensed one drawn by dax.js, which also says where she is at any moment (`live`); her profile picture is a
      labelled silhouette until one is made from her own model. DRAFT: the line about her is Claude's. */
   {id:'dax',achievements:[['arcade-top-blackout-protocol','2026-10-19'],['arcade-top-corporate-zombies','2026-11-02'],['arcade-top-underground-overdrive','2026-11-13'],['rook-three-runs','2026-09-27']],name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
   {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'}
  ].map(n=>Object.freeze({...n,jobs:cleanJobs(n.jobs)}));
- /* A resident's achievements (David, 15 Nov 2026: "some NPCs will have Achievements, although most will be easy ones"; Dax holds every arcade high score and three
+ /* A resident's achievements (the owner, 15 Nov 2026: "some NPCs will have Achievements, although most will be easy ones"; Dax holds every arcade high score and three
     cargo runs for Rook). Each is [achievement id, the day it was earned]. They are part of who the resident is, not earned in play. DRAFT: which resident has which, and the
     dates, are Claude's except Dax's list. Returns [{id, at}] for achievements.js profileList(). */
  const achievementsOf=id=>((NPCS.find(n=>n.id===id)||{}).achievements||[]).map(([a,day])=>({id:a,at:Date.parse(day+'T12:00:00Z')||0}));
@@ -57,7 +57,7 @@
  /* `own`: a resident's own model (assets/models/crowd/<own>.glb, made with Meshy: docs/development/MESHY_CHARACTERS.md). It is who they are in the scene and in their
     profile picture; `look` is the crowd figure they had before, kept as a record. */
  const lookFor=crewId=>{const n=BY_CREW.get(crewId);return n?n.own||n.look||null:null;};
- /* Following (David, 15 Nov 2026): people a player chose to follow, by aiming the V1 camera at them. Kept in the save as one short string
+ /* Following (the owner, 15 Nov 2026): people a player chose to follow, by aiming the V1 camera at them. Kept in the save as one short string
     (story.flags.socialFollowing): 'n:<resident id>' or 'p:<public player id>:<handle>', comma separated, newest last, oldest dropped when it would pass 200 characters. */
  const FOLLOW_FLAG='socialFollowing',FOLLOW_KEY=/^(n:[a-z][a-z0-9-]{0,39}|p:[0-9a-f]{1,12}:[A-Za-z0-9_]{3,20})$/;
  function readFollowing(flags){const out=[];for(const part of String(flags&&flags[FOLLOW_FLAG]||'').split(',')){if(!FOLLOW_KEY.test(part)||out.some(f=>f.key===part.split(':').slice(0,2).join(':')))continue;const [kind,id,name]=part.split(':');
@@ -69,10 +69,10 @@
   const key=part.split(':').slice(0,2).join(':'),l=readFollowing(flags);if(l.some(f=>f.key===key)){writeFollowing(flags,l.filter(f=>f.key!==key));return false;}
   const [kind,id,name]=part.split(':');l.push(kind==='n'?{key,kind:'npc',id,name:BY_ID.get(id).name}:{key,kind:'player',id,name});writeFollowing(flags,l);return true;}
  const isFollowing=(flags,key)=>readFollowing(flags).some(f=>f.key===key);
- /* House rule (David, 15 Nov 2026): the District is shielded, and scanning inside it is rude. When someone comes in with the WarFlying app ACTIVE, Admin or Iris
+ /* House rule (the owner, 15 Nov 2026): the District is shielded, and scanning inside it is rude. When someone comes in with the WarFlying app ACTIVE, Admin or Iris
     notices, walks over and tells them to deactivate it. Admin goes half the time and Iris the other half; if Admin is not in the District, Iris always goes.
-    DRAFT: the two lines are Claude's wording of David's instruction ("tell them it's rude and to Deactivate it in the App"). They are voiced with ElevenLabs
-    (David, 15 Nov 2026) and the recordings are kept in the game's assets. */
+    DRAFT: the two lines are Claude's wording of the owner's instruction ("tell them it's rude and to Deactivate it in the App"). They are voiced with ElevenLabs
+    (the owner, 15 Nov 2026) and the recordings are kept in the game's assets. */
  const ETIQUETTE={noticeAfter:2.5,speed:1.5,stopAt:1.7,talkFor:7,
   // who says it and the words (spoken with a stored recording: assets/audio/voice/extra; the caption is `who: text`)
   spoken:{admin:['Admin','Scanning in here is rude. Open WarFlying on your device and deactivate it.'],iris:['Iris','You are scanning inside the District. That is rude. Deactivate WarFlying in the app.']},   /* [speaker, words]: kept as a pair so the Kokoro line extractor does not take these for its own lines */

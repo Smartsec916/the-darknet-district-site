@@ -4,8 +4,8 @@
    Adding a companion: build a MakeHuman look with the companion clips (tools/animation-pipeline), or convert a
    licensed model with build_imported_character.py, list it in crowd.js, then register() an entry here with its
    model, preview, dialogue and personality. Nothing else changes.
-   DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Every companion's lines are recorded (tools/audio, provisional voices): women's voices for the women, a man's
-   voice for the men (David, 2026-11-01). */
+   DRAFT: every line of companion dialogue is Claude's placeholder for the owner's review. Every companion's lines are recorded (tools/audio, provisional voices): women's voices for the women, a man's
+   voice for the men (the owner, 2026-11-01). */
 (function(root){
  const DEG=Math.PI/180;
  // ---- Behaviour settings (sensible defaults; a companion's personality overrides any of them) ----
@@ -57,10 +57,10 @@
  const legacy={f:'nadia',m:'kai',seren:'nadia'};   // f/m: old saves; seren: removed 16 Nov 2026
  const current=e=>{for(let i=0;e?.replacedBy&&i<4;i++)e=get(e.replacedBy)||e;return e||null;};
  const resolve=opts=>{const id=Array.isArray(opts?.companions)?opts.companions[0]:opts?.companion;return current(get(id)||get(legacy[id])||get(legacy[opts?.choice]));};
- // Who comes along: one companion, or up to `partySize` together (all pairable and of one sex: David, 2026-10-31,
+ // Who comes along: one companion, or up to `partySize` together (all pairable and of one sex: the owner, 2026-10-31,
  // "Ava and Dex shouldn't be together"). Unknown ids drop out.
  const partySize=2;
- // Rooms for two offered at the terminal, beside each one's own room (David, 2026-10-31).
+ // Rooms for two offered at the terminal, beside each one's own room (the owner, 2026-10-31).
  const pairs=[{id:'ava+eva',name:'Ava & Eva',companions:['ava','eva']}];
  function party(opts){
   const ids=Array.isArray(opts?.companions)?opts.companions:[];
@@ -78,9 +78,9 @@
   playfulDance:['dance'],sitAlt:['sit-relax','sit'],sitGreet:['sit-wave','sit-talk'],decline:['shrug','head-tilt'],recline:['recline'],glance:['glance-back','head-tilt'],confident:['hips','head-tilt']};
 
  // Seren and Kai (original adult characters; MakeHuman CC0, Mixamo and Rokoko mocap). DRAFT lines throughout.
- // Seren was removed on 16 Nov 2026 at David's request (he will supply a better model). Anything that still asks for 'seren' (an old save, a shared
+ // Seren was removed on 16 Nov 2026 at the owner's request (he will supply a better model). Anything that still asks for 'seren' (an old save, a shared
  // session, a remembered choice) is given Nadia: see `retired` below.
- register({id:'kai',name:'Kai',sex:'male',model:'npc-kai',skin:[],   /* his own model since 16 Nov 2026 (Meshy, from a concept David approved); vr-companion-m was the MakeHuman stand-in */
+ register({id:'kai',name:'Kai',sex:'male',model:'npc-kai',skin:[],   /* his own model since 16 Nov 2026 (Meshy, from a concept the owner approved); vr-companion-m was the MakeHuman stand-in */
   preview:'void-runner/assets/vr/companions/kai.jpg',
   about:'Calm, wry and attentive. He listens more than he talks.',voice:{characterId:'vr-kai',voiceId:null},
   personality:{initiative:.45,flirtatiousness:.5,approachFrequency:.42,attention:.92,personalSpace:1.15,walkSpeed:1.05},
@@ -110,10 +110,10 @@
    aside:['You\'ve got a great laugh. Just so you know.','I could stay up here all night with you.','You make this city look quiet.'],
    comeHere:['Coming.','Right here.'],recline:['Not bad, right? Best ceiling in NeoChinatown.']}});
 
- // Nadia (named and characterised by David, 2026-10-28): grounded, warm and direct; grew up in NeoChinatown and
+ // Nadia (named and characterised by the owner, 2026-10-28): grounded, warm and direct; grew up in NeoChinatown and
  // teases you for being an outsider. Model: "Realistic Contemporary Woman FC1" by Ludovisions (CGTrader, free,
  // Royalty Free License - no AI), converted by build_imported_character.py. Her licence asks that the file not be
- // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for David's review.
+ // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for the owner's review.
  register({id:'nadia',name:'Nadia',sex:'female',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',skin:['ludovisions_FC1_mat_23','ludovisions_FC1_mat_24','ludovisions_FC1_mat_25','ludovisions_FC1_mat_26','ludovisions_FC1_mat_27'],preview:'void-runner/assets/vr/companions/nadia.jpg',
   about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:{characterId:'vr-nadia',voiceId:null},
   personality:{initiative:.56,flirtatiousness:.5,approachFrequency:.7,attention:.88,personalSpace:.9,remarkCooldown:18},
@@ -144,13 +144,13 @@
    aside:['You\'re staring again. Locals notice that.','You\'re not so bad, for someone from out there.','The city likes you. I can tell. So do I, a little.'],
    comeHere:['Coming, coming.','What, lost already?'],recline:['Best ceiling in NeoChinatown. Don\'t tell anyone.']}});
 
- // Ava and Eva (names by David, 2026-10-30): characters from models David supplied from CGTrader, "Ava" v2.0 by
+ // Ava and Eva (names by the owner, 2026-10-30): characters from models the owner supplied from CGTrader, "Ava" v2.0 by
  // BGShop and "PrettyGirl_01" (Eva), prepared by prepare_ava.py / prepare_prettygirl.py and converted by
- // build_imported_character.py. Their personalities, descriptions and lines are DRAFTs by Claude (David, 2026-11-01:
+ // build_imported_character.py. Their personalities, descriptions and lines are DRAFTs by Claude (the owner, 2026-11-01:
  // "Draft it all"), each in their own voice (Ava: quick and stylish, a holo-fashion designer; Eva: gentle and dreamy,
  // she paints the skyline). They can come along together (pairable). Released on
- // the live site (David, 2026-10-31: CGTrader Royalty Free licences, subscription kept active).
- // Default looks are David's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
+ // the live site (the owner, 2026-10-31: CGTrader Royalty Free licences, subscription kept active).
+ // Default looks are the owner's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
  // worn under the skirt, so nothing shows when she sits); Eva in the white slip dress with her natural
  // orange-and-white hair.
  register({id:'ava',name:'Ava',sex:'female',model:'vr-companion-ava',file:'vr-companion-ava.vrpak',skin:['head','body','arm','leg','genital','lips'],preview:'void-runner/assets/vr/companions/ava.jpg',
@@ -227,14 +227,14 @@
    {key:'eyes',label:'Eye colour',default:'brown',options:[['brown','Brown'],['blue','Blue'],['green','Green'],['hazel','Hazel']].map(([id,label])=>variant(id,label,'brown',c=>({eye_r3:'eyes-'+c,eye_l3:'eyes-'+c})))},
    {key:'face',label:'Make-up',default:'5',options:['1','2','3','4','5','6'].map(n=>variant(n,'Look '+n,'5',()=>({head5:'face-0'+n})))}]});
 
- // Una and the two base figures (CGTrader packages David supplied, 2026-10-31). Una was a static model: she is rigged
+ // Una and the two base figures (CGTrader packages the owner supplied, 2026-10-31). Una was a static model: she is rigged
  // on the Female Base skeleton (prepare_una.py); the base figures come rigged (prepare_basemesh.py). Like Ava and Eva:
  // their own DRAFT personality, description, lines and voice (Una: a guarded ex-corporate netrunner; Yuki: sporty
  // and upbeat; Dex: an easy-going dockworker), able to come along in pairs (not Dex). Yuki and Dex are released on the live
  // site (Male Female Base Rig, CGTrader #4027823, Royalty Free no AI); Una stays on a local development server until
- // her product page and licence are identified. The two base figures are Yuki and Dex (names by David, 2026-10-31; ids base-f / base-m); Dex comes in briefs
- // only, until David adds clothing.
- // Una's outfits are David's Style A (default), B and C made from her own clothes, plus the original. A look may
+ // her product page and licence are identified. The two base figures are Yuki and Dex (names by the owner, 2026-10-31; ids base-f / base-m); Dex comes in briefs
+ // only, until the owner adds clothing.
+ // Una's outfits are the owner's Style A (default), B and C made from her own clothes, plus the original. A look may
  // also set material values (`materials`: roughness factors) for a glossier finish.
  register({id:'una',name:'Una',sex:'female',model:'vr-companion-una',file:'vr-companion-una.vrpak',preview:'void-runner/assets/vr/companions/una.jpg',
   about:'Cool, precise and a little guarded. A former corporate netrunner who keeps her own hours now, and her own secrets.',
@@ -349,7 +349,7 @@
  function readLooks(store){try{return JSON.parse(store?.getItem(lookKey)||'{}')||{};}catch{return {};}}
  const savedLooks=(entry,store=globalThis.localStorage)=>chosen(entry,readLooks(store)[entry.id]);
  function saveLook(entry,key,id,store=globalThis.localStorage){const o=option(entry,key,id);if(!o)return false;try{const all=readLooks(store);all[entry.id]={...chosen(entry,all[entry.id]),[key]:o.id};store.setItem(lookKey,JSON.stringify(all));return true;}catch{return false;}}
- // Whether a companion has lines yet (Ava and Eva don't, until David writes them).
+ // Whether a companion has lines yet (Ava and Eva don't, until the owner writes them).
  const speaks=entry=>Object.values(entry?.dialogue||{}).some(p=>p?.length);
 
  // Lines drawn from a pool never repeat the last one used.
@@ -427,7 +427,7 @@
   const out=[];let at=from;for(let i=1;i<cells.length;i++)if(!clear(at,cells[i])){out.push(cells[i-1]);at=cells[i-1];}
   out.push(cells[cells.length-1]);return out;}
 
- // ---- Organic finish (David, 2026-11-12): skin that lets a little light through at thin, backlit edges (PBR
+ // ---- Organic finish (the owner, 2026-11-12): skin that lets a little light through at thin, backlit edges (PBR
  // sub-surface translucency), shading in the creases (the model's own AO map where it has one, else a cavity term
  // worked out once from the mesh), a breath and a slight sway so nobody stands perfectly still (vr-suite.js), and a
  // soft rim light that follows the camera. Desktop and VR only; the per-pixel translucency is left out on Low quality.
@@ -489,7 +489,7 @@
    if(hasOrm(entry,name)&&mat.metallicTexture){mat.useAmbientOcclusionFromMetallicTextureRed=true;report.orm.push(name);}
    if(t.translucency&&isSkin(entry,name)&&mat.subSurface){const ss=mat.subSurface;ss.isTranslucencyEnabled=true;ss.translucencyIntensity=.55;ss.minimumThickness=0;ss.maximumThickness=.5;
     ss.diffusionDistance=new B.Color3(1,.36,.2);ss.tintColor=new B.Color3(1,.62,.5);report.translucent.push(name);}
-   /* Look pass (16 Nov 2026, waiting for David's approval): wet, bright eyes that catch the light; a soft sheen on skin and a glossier one on lips; hair that
+   /* Look pass (16 Nov 2026, waiting for the owner's approval): wet, bright eyes that catch the light; a soft sheen on skin and a glossier one on lips; hair that
       shines along the strand instead of looking like felt. Material settings only: no model file is opened, changed or sent anywhere. Not on Low. */
    if(t.translucency){
     if(/eye|cornea|cornia|iris|pupil|lacrimal/i.test(name)&&!/brow|lash|lid|shadow/i.test(name)){mat.clearCoat.isEnabled=true;mat.clearCoat.intensity=1;mat.clearCoat.roughness=.04;if(!mat.metallicTexture)mat.roughness=Math.min(mat.roughness??.3,.18);report.eyes.push(name);}

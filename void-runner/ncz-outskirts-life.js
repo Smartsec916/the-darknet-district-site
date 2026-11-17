@@ -1,4 +1,4 @@
-/* The residents of The Outskirts (David, 16 Nov 2026): "about half of the people living in The Outskirts will look like NPCs from north of Far South Gate and the other half
+/* The residents of The Outskirts (the owner, 16 Nov 2026): "about half of the people living in The Outskirts will look like NPCs from north of Far South Gate and the other half
    look poor". Ambient figures only: no names, no dialogue, no voices, no interactions, no missions, no collision. They live in that quarter only (started by neochinatown.js for
    the Outskirts' build and nowhere else), so nobody here is streamed to another quarter; like the alley's people they are not synchronised between players.
    HALF look like the street crowd (the same looks as ncz-alley.js). The OTHER HALF are the same bodies made to read as poor: their clothes and shoes are re-tinted dull, faded,

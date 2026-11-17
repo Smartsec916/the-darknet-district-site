@@ -1,4 +1,4 @@
-/* First-person mouse (David's editor brief, part 7 and 8). One owner for pointer lock in the walking modes:
+/* First-person mouse (the owner's editor brief, part 7 and 8). One owner for pointer lock in the walking modes:
    the click that captures the mouse never fires, Esc (the browser releasing the lock) pauses, closing a
    dialogue or menu takes the mouse back, and the wheel cycles the weapons you own. Flight is untouched. */
 (function(){
@@ -34,8 +34,18 @@
   if(locked()){failures=0;gameReleased=false;return;}
   if(document.pointerLockElement){if(fps())document.exitPointerLock();return;}   // the mouse was taken by some other screen (the Sleeping Pod's view): not an Esc. If the pod has since been left, hand the mouse back to the game.
   if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation
-  if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}
+  if(!fps()||conversationOpen())return;
+  walkingKeys?.clear?.();
+  // Clicking out of the browser (another window or app) also releases the mouse. That is not Esc: stay in the game, nothing opens, and a click on the game takes the mouse back (the owner, 17 Nov 2026). Focus is checked a moment later because the browser reports the release and the lost focus in either order.
+  setTimeout(()=>{if(locked()||!fps())return;if(away||document.hidden||!document.hasFocus()){hint(true);return;}if(typeof openGameMenu==='function')openGameMenu();},120);
  });
+ let away=false;
+ addEventListener('blur',()=>{away=true;});addEventListener('focus',()=>{away=false;});
+ // A quiet line in the middle of the screen while the game is waiting for a click to take the mouse back.
+ let tip=null;
+ function hint(on){if(on&&!tip){tip=document.createElement('div');tip.id='resume-hint';tip.textContent='CLICK TO RETURN TO THE GAME';tip.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 18px;background:rgba(5,10,14,.78);border:1px solid rgba(94,242,214,.55);color:#5ef2d6;font:600 13px/1.2 monospace;letter-spacing:.18em;pointer-events:none;z-index:40';document.body.appendChild(tip);}if(tip)tip.hidden=!on;}
+ document.addEventListener('pointerlockchange',()=>{if(locked())hint(false);});
+ setInterval(()=>{if(tip&&!tip.hidden&&(!fps()||conversationOpen()))hint(false);},500);
 
  // Closing a dialogue, menu or panel with a click or key returns to play: take the mouse straight back.
  const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);

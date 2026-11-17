@@ -44,7 +44,7 @@ test('the belt goes round the waist and the bracer round the forearm',()=>{
  const e=b.joints.RightForeArm,h=b.joints.RightHand;for(let i=0;i<br.positions.length;i+=3){const x=br.positions[i];assert.ok(x<Math.max(e[0],h[0])+.001&&x>Math.min(e[0],h[0])-.001,'between elbow and wrist');}
 });
 test('Admin has his own kit: amber, a jacket, and never eyewear',()=>{
- const w=G.loadout('admin','district-smuggler',fit['district-smuggler']);assert.equal(w.goggles,false,'David prefers Admin without eyewear');assert.equal(w.jacket,true);assert.deepEqual(G.ACCENTS[w.accent],[1,.62,.08],'amber');
+ const w=G.loadout('admin','district-smuggler',fit['district-smuggler']);assert.equal(w.goggles,false,'The owner prefers Admin without eyewear');assert.equal(w.jacket,true);assert.deepEqual(G.ACCENTS[w.accent],[1,.62,.08],'amber');
  const g=G.build(fit['district-smuggler'],w);assert.ok(g.parts.includes('jacket')&&g.parts.includes('harness')&&g.parts.includes('belt')&&!g.parts.includes('goggles'));
  assert.equal(G.loadout('hacker-01:walker-3','hacker-01',fit['hacker-01']).jacket,false,'the jacket is Admin\'s alone');
 });
@@ -72,7 +72,7 @@ test('outside NULL about one NPC in a hundred wears the Rebellion Edition tee: a
 });
 
 test('inside NULL exactly one NPC wears the tee, always the same dancer, at every quality',()=>{
- const src=fs.readFileSync(path.join(root,'void-runner/ncz-nightclub.js'),'utf8');assert.match(src,/low\?3:/,'even the lowest quality has dancers');assert.match(src,/spot\('dancer-'\+i/);assert.match(src,/club:p\.id/);
+ const src=fs.readFileSync(path.join(root,'void-runner/ncz-nightclub.js'),'utf8');{const NC=require(path.join(root,'void-runner/ncz-nightclub.js'));for(const q of ['low','medium','high','ultra'])assert.ok(NC.castCounts(q).dancers>=2,'even the lowest quality has dancers: '+q);}assert.match(src,/spot\('dancer-'\+i/);assert.match(src,/club:p\.id/);
  const ids=['dancer-0','dancer-1','dancer-2','dancer-3','dancer-8','dj','bartender','door','bar-guest-a','bar-guest-b','vip-a','vip-b','queue-a','queue-b'];let n=0;
  for(const look of ['district-resident','ncz-neon','outlaw-01','hacker-01'])for(const share of [0,.05,1]){const w=ids.filter(id=>G.loadout(look+':club:'+id,look,fit[look],share).tee);assert.deepEqual(w,['dancer-0'],look+' share '+share);n++;}
  assert.equal(G.CLUB_TEE,'dancer-0');assert.equal(G.loadout('hacker-01:club:dancer-0','hacker-01',fit['hacker-01']).harness,false);

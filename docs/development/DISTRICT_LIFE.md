@@ -1,6 +1,6 @@
 # District life: what the residents do (15 Nov 2026)
 
-David: "Many the NPCs in The Darknet District aren't doing anything, just standing there. Make them go over to the Arcade Games, play the Games with no games in them for a while, walk into the Store to look around, go to the bar and order a drink or oxygen. Give about half of the NPCs at the Bar oxygen masks while they're there."
+The owner: "Many the NPCs in The Darknet District aren't doing anything, just standing there. Make them go over to the Arcade Games, play the Games with no games in them for a while, walk into the Store to look around, go to the bar and order a drink or oxygen. Give about half of the NPCs at the Bar oxygen masks while they're there."
 
 ## What happens
 

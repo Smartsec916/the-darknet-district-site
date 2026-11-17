@@ -1,4 +1,4 @@
-/* Footsteps you can place by ear (David, 15 Nov 2026): other players and NPCs who are walking near you make steps that come from where they are, fade with
+/* Footsteps you can place by ear (the owner, 15 Nov 2026): other players and NPCs who are walking near you make steps that come from where they are, fade with
    distance, and are louder and quicker when they run. Your own steps are louder when you run (babylon-integration.js).
    - Who: every figure the scene is moving (crowd figures, named residents, other players). Nothing is asked of the multiplayer server: a figure's speed is
      measured from how far it moved on screen, so a running player sounds like running without any new network field.

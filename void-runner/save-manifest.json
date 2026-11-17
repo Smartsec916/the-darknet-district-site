@@ -57,5 +57,24 @@
     "gate-2",
     "gate-3",
     "gate-4"
+  ],
+  "storyTrees": [
+    "main-storyline"
+  ],
+  "storyMissions": [
+    "m001-awakening",
+    "m002-eyes-on-the-street"
+  ],
+  "missionNumbers": {
+    "1": "m001-awakening",
+    "2": "m002-eyes-on-the-street"
+  },
+  "retiredMissions": [
+    "first-contact",
+    "district-errand",
+    "job-worth-taking",
+    "ship-opportunity",
+    "first-ship",
+    "first-departure"
   ]
 }

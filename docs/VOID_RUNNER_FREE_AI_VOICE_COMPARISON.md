@@ -1,6 +1,6 @@
 # VOID//RUNNER: Free AI Voice Comparison
 
-> **Line counts below are stale (2026-11-12).** The shipped set is **736** manifest lines and **738** ogg clips, Kokoro-82M, not 136 lines. Engine choice in this file (Kokoro, Piper as backup) still matches `main`. Paid re-record notes (ElevenLabs, Google Chirp 3 HD) are in `docs/development/AI_HANDOFF.md`. Do not change an approved voice without David.
+> **Line counts below are stale (2026-11-12).** The shipped set is **736** manifest lines and **738** ogg clips, Kokoro-82M, not 136 lines. Engine choice in this file (Kokoro, Piper as backup) still matches `main`. Paid re-record notes (ElevenLabs, Google Chirp 3 HD) are in `docs/development/AI_HANDOFF.md`. Do not change an approved voice without the owner.
 
 **As of:** 2026-10-15 · Hardware tested: ASUS ROG Ally Extreme (AMD Ryzen Z1 Extreme, 11.7 GB RAM, AMD Radeon graphics, so **no NVIDIA CUDA**), Windows 11, Python 3.12.
 
@@ -22,7 +22,7 @@
 | WarFlying announcements | **Planned only** | — |
 | Recorded sound effects | **Missing**: all SFX are synthesized live | `ship-audio.js` |
 
-Every voice in the game today is **provisional**. David hasn't approved any of them yet.
+Every voice in the game today is **provisional**. The owner hasn't approved any of them yet.
 
 ## 2. Candidates
 
@@ -51,7 +51,7 @@ Players never run any of these. All audio is pre-rendered and shipped as small O
 | Admin: "Eh. Trouble's good for business…" | am_michael: 3.8 s, made in 1.4 s | speaker 20: 3.4 s, made in 0.1 s |
 | Iris: "Of course. I'll keep the contract available. For now." | bf_emma: 2.8 s, made in 1.4 s | speaker 205: 2.9 s, made in 0.1 s |
 
-The six sample recordings were sent to David for listening; they are not committed. Speed favours Piper, but both are fast enough for offline rendering, where even Kokoro renders all 136 lines in a few minutes. Naturalness and pacing must be judged by ear, and that is David's call.
+The six sample recordings were sent to the owner for listening; they are not committed. Speed favours Piper, but both are fast enough for offline rendering, where even Kokoro renders all 136 lines in a few minutes. Naturalness and pacing must be judged by ear, and that is the owner's call.
 
 ## 4. Recommendation
 
@@ -59,7 +59,7 @@ The six sample recordings were sent to David for listening; they are not committ
 
 - **Piper** stays a documented fallback, using only voices whose model card names a commercial-use licence.
 - **F5-TTS** is excluded for production.
-- **Chatterbox** could be revisited for an expressive Iris or Relay pass. It would need David's approval for the large PyTorch download, plus reference voices we own the rights to.
+- **Chatterbox** could be revisited for an expressive Iris or Relay pass. It would need the owner's approval for the large PyTorch download, plus reference voices we own the rights to.
 
 ## 5. Sources checked
 - Kokoro: https://huggingface.co/hexgrad/Kokoro-82M (Apache-2.0; data sources listed)

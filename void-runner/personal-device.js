@@ -2,6 +2,15 @@
    L opens and closes it. It does NOT change the game's mode: the world, other players and NPCs keep running; only YOUR movement is held. The mouse is free over
    the device and dragging the world outside it looks around. It is a read-and-act layer over systems that already exist (Mission Log, conversation history,
    the Relay news archive, District chat, the explored map); it keeps no messages, accounts or profiles of its own. Camera and Gallery are placeholders.
+   Messages > INBOX lists the messages missions send (Admin's in Mission 001; live-content.js inbox, read state in the save). VoidV1.notify() is the V1's notification for
+   when the device is closed: a small banner styled like the V1 at the right edge, until the V1 is opened or for about 8 s, then an unread count on the V1 chip.
+   Its "Press L to open" part is a HELP hint (hint.help: [data-help]) so the owner's future help switch can hide it. It plays the device's notification sound
+   (device-v1.js NOTIFY: V1, V2, V3 // SHADOW) at the sound-effects volume.
+   Desktop only: the V1 has no VR presentation (VR players see neither the device nor its notification).
+   CONVERSATIONS WITH CONTACTS (Mission 002, 17 Nov 2026): Messages > INBOX lists a conversation for each person a mission has the player send something to (Admin).
+   In it: ATTACH opens the Gallery picker, the chosen photo is previewed with an optional line of text, SEND sends it. Photos stay in this browser: only the checks the
+   camera kept with the photo go to the mission (live-content.js sendPhoto), and the reply comes back into the conversation. Kept per browser (threads below).
+   Sending photos to other players is not built (it needs server storage, a separate decision).
    Its look is void-runner/device-v1.css (scoped to #personal-device). Transition timing comes from DEVICES.v1.ui in device-v1.js. */
 (function(root){
  'use strict';
@@ -31,7 +40,7 @@
   sources.set(p.portrait.key,p.portrait);
   return '<img class="pd-portrait" alt="Portrait of '+esc(p.name)+'" data-pk="'+esc(p.portrait.key)+'" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" width="112" height="112">';
  }
- /* Achievements on a profile (David, 15 Nov 2026): three shown, the hardest (and anything bought with real money) first; VIEW ALL opens the rest, and the list can be put
+ /* Achievements on a profile (the owner, 15 Nov 2026): three shown, the hardest (and anything bought with real money) first; VIEW ALL opens the rest, and the list can be put
     in order of most recent, difficulty or type. A resident's come from district-people.js; a player's come from the server's verified records, which do not exist yet,
     so players show none for now (achievements.js: the browser never grants one). */
  const achView=new Map();   // profile key -> {open, sort}
@@ -107,7 +116,7 @@
   return out;
  }
  /* How far away another player is, in metres. Inside The Darknet District everyone is simply "here", so no distance is shown; on the street, in NULL and
-    everywhere else the list says how far each person is (David, 15 Nov 2026). null = not shown. */
+    everywhere else the list says how far each person is (the owner, 15 Nov 2026). null = not shown. */
  function distanceTo(p){try{if(areasHere().includes('interior')||typeof walker==='undefined'||!walker||!Number.isFinite(p.x)||!Number.isFinite(p.z))return null;return Math.round(Math.hypot(p.x-walker.x,p.z-walker.z));}catch{return null;}}
  const distText=d=>d==null?'':d<1000?d+' m away':(d/1000).toFixed(1)+' km away';
  const REASONS=[['harassment','HARASSMENT'],['spam','SPAM'],['inappropriate','INAPPROPRIATE'],['cheating','CHEATING'],['other','OTHER']];
@@ -132,6 +141,35 @@
    +'<div class="pd-note" style="margin-top:8px">Reports go to the District server\'s log for review. They are not kept as a permanent case file.</div>';
  }
  const unreadText=n=>n>99?'99+':String(n);
+ // ---- Conversations with contacts (photos sent, replies): this browser only, per account; the mission's own progress is in the save.
+ const THREADS='void-runner-v1-threads-v1';
+ const threadsAll=()=>{try{const v=JSON.parse(localStorage.getItem(THREADS+':'+uid())||'{}');return v&&typeof v==='object'?v:{};}catch{return {};}};
+ const threadOf=id=>{const v=threadsAll()[id];return Array.isArray(v)?v:[];};
+ function threadAdd(id,entry){const all=threadsAll(),list=Array.isArray(all[id])?all[id]:[];list.push(entry);all[id]=list.slice(-40);try{localStorage.setItem(THREADS+':'+uid(),JSON.stringify(all));}catch{}}
+ const contactName=id=>root.VoidLiveContent?.giverName?.(id)||id;
+ function contacts(){const out=new Set();try{for(const id of root.VoidLiveContent?.contacts?.()||[])out.add(id);}catch{}for(const [id,v] of Object.entries(threadsAll()))if(Array.isArray(v)&&v.length&&/^[a-z][a-z0-9-]{0,40}$/.test(id))out.add(id);return [...out];}
+ let attach={picking:false,photo:null,text:'',sending:false};
+ function threadHtml(id){const name=contactName(id),G_=root.VoidGallery,list=threadOf(id);
+  const from=inbox().filter(m=>m.from===id).map(m=>({who:'npc',text:m.text,at:(m.at||0)*1000}));
+  const rows=[...from,...list.map(x=>({...x,at:x.at||0}))].sort((a,b)=>a.at-b.at);
+  const bubble=x=>'<div class="pd-msg '+(x.who==='me'?'me':'')+'"><div class="pd-msg-h"><b>'+esc(x.who==='me'?'You':name)+'</b><time>'+esc(clock(x.at))+'</time></div>'+(x.photo?(G_?.url?.(x.photo)?'<img class="pd-attach-img" alt="Photo you sent" src="'+esc(G_.url(x.photo))+'">':'<div class="pd-note">[photo no longer in your gallery]</div>'):'')+(x.text?'<div>'+esc(x.text).replace(/\n/g,'<br>')+'</div>':'')+'</div>';
+  let compose='';
+  if(attach.picking){const ph=G_?.photos||[];compose='<div class="pd-attach" data-attach-picker><h2>CHOOSE A PHOTO</h2>'+(ph.length?'<div class="pd-photogrid">'+ph.map(p=>'<button type="button" data-attach-photo="'+esc(p.id)+'" aria-label="Photo taken at '+esc(p.place)+'"><img alt="" src="'+esc(G_.url(p.id))+'"></button>').join('')+'</div>':'<div class="pd-empty">No photos yet. Raise the camera (B) and press the left mouse button to take one.</div>')+'<div class="pd-tabs"><button type="button" data-attach-cancel="1">CANCEL</button></div></div>';}
+  else if(attach.photo){compose='<form class="pd-attach" data-attach-form><img class="pd-attach-img" alt="The photo to send" src="'+esc(G_?.url?.(attach.photo)||'')+'"><input type="text" maxlength="200" autocomplete="off" aria-label="Message (optional)" placeholder="Add a message (optional)" value="'+esc(attach.text)+'"><div class="pd-tabs"><button type="submit" data-attach-send="1"'+(attach.sending?' disabled':'')+'>SEND</button><button type="button" data-attach-cancel="1">CANCEL</button></div></form>';}
+  else compose='<div class="pd-tabs pd-compose-row"><button type="button" data-attach-open="1">ATTACH</button></div><div class="pd-note">Photos only for now. Your photos stay on this device; only what the camera checked is used.</div>';
+  return '<div class="pd-chat-head"><b>'+esc(String(name).toUpperCase())+'</b><span class="pd-note">CONVERSATION</span></div><div class="pd-chatlog" data-thread-log="'+esc(id)+'">'+(rows.length?rows.map(bubble).join(''):'<div class="pd-empty">No messages yet.</div>')+'</div>'+compose;}
+ async function sendAttach(id){if(!attach.photo||attach.sending)return;attach.sending=true;const photo=attach.photo,text=String(attach.text||'').replace(/[\u0000-\u001f<>]/g,'').trim().slice(0,200);
+  threadAdd(id,{who:'me',photo,text,at:Date.now()});let reply=null;try{reply=root.VoidLiveContent?.sendPhoto?.(id,root.VoidGallery?.meta?.(photo))||null;}catch{}
+  attach={picking:false,photo:null,text:'',sending:false};render({keepScroll:true});
+  if(reply&&reply.lines&&reply.lines.length)setTimeout(()=>{threadAdd(id,{who:'npc',text:reply.lines.map(l=>l.text).join('\n'),at:Date.now(),ok:!!reply.ok});if(open&&stack[0]==='messages'&&stack[2]===id)render({keepScroll:true});else notify({app:'messages',sub:'inbox',key:'reply:'+id+':'+Date.now(),text:'New message from '+String(contactName(id)).toUpperCase(),hint:{text:'open',help:true}});},1200);}
+ const inbox=(ch='messages')=>{try{return root.VoidLiveContent?.inbox?.(ch)||[];}catch{return [];}};
+ const inboxUnread=()=>inbox().filter(m=>!m.read).length,callsUnread=()=>inbox('comms').filter(m=>!m.read).length;
+ let call=null,callTail=6000;   // the call on screen in Comms: {id, start, ended, lines}
+ const callClock=()=>{if(!call)return '00:00';const sec=Math.floor(((call.endedAt||Date.now())-call.start)/1000);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');};
+ function endCall(){if(!call||call.ended)return;call.ended=true;call.endedAt=Date.now();root.VoidLiveContent?.markRead?.(call.id);updateBadges();if(open&&stack[0]==='comms')render({keepScroll:true});}
+ setInterval(()=>{if(!call||call.ended)return;if(Date.now()-call.start>call.lines.length*3000+callTail){endCall();return;}/* the lines appear 2.2 s apart; the call stays a moment after the last one */const t=body&&body.querySelector('[data-call-timer]');if(t)t.textContent=callClock();},500);
+ const readAll=list=>{const ids=list.filter(m=>!m.read).map(m=>m.id);if(ids.length)setTimeout(()=>{let any=false;for(const id of ids)any=root.VoidLiveContent?.markRead?.(id)||any;if(any)updateBadges();},0);};
+ let notes=0;   // notifications that arrived while the V1 was closed and that the player has not opened the V1 for yet
  /* The chat counts as "being looked at" only while the V1 is open, not mid-transition, on Messages > District chat. Looking at it reads everything that was waiting. */
  const viewingNow=()=>open&&!busy&&stack[0]==='messages'&&(stack[1]||'chat')==='chat';
  const topSeq=()=>{const ls=chat()?.lines||[];return ls.length?ls[ls.length-1].seq:0;};
@@ -143,11 +181,13 @@
   wasViewing=v;C_?.setViewing(v);
  }
  function updateBadges(){
-  const n=chat()?.unread||0;
-  if(chip){chip.textContent=n?'V1 · L · '+unreadText(n)+' NEW':'V1 · L';chip.classList.toggle('unread',n>0);chip.setAttribute('aria-label',n?'Open the V1 device. '+n+' unread message'+(n===1?'':'s'):'Open the V1 device');}
+  const c=chat()?.unread||0,ib=inboxUnread(),cl=callsUnread(),n=c+Math.max(ib+cl,notes),key=keyLabel();
+  if(chip){chip.textContent=n?'V1 · '+key+' · '+unreadText(n)+' NEW':'V1 · '+key;chip.classList.toggle('unread',n>0);chip.setAttribute('aria-label',n?'Open the V1 device. '+n+' unread message'+(n===1?'':'s'):'Open the V1 device');}
   if(!body)return;
-  const tile=body.querySelector('[data-app=messages] .pd-badge');if(tile){tile.hidden=!n;tile.textContent=n?unreadText(n):'';}
-  const tb=body.querySelector('[data-tabbadge=chat]');if(tb){tb.hidden=!n;tb.textContent=n?unreadText(n):'';}
+  const tile=body.querySelector('[data-app=messages] .pd-badge');if(tile){tile.hidden=!(c+ib);tile.textContent=c+ib?unreadText(c+ib):'';}
+  const tb=body.querySelector('[data-tabbadge=chat]');if(tb){tb.hidden=!c;tb.textContent=c?unreadText(c):'';}
+  const ti=body.querySelector('[data-tabbadge=inbox]');if(ti){ti.hidden=!ib;ti.textContent=ib?unreadText(ib):'';}
+  const tc=body.querySelector('[data-app=comms] .pd-badge');if(tc){tc.hidden=!cl;tc.textContent=cl?unreadText(cl):'';}
  }
  function onChatChange(){
   if(open&&!busy&&viewingNow()){   // redraw only the message list so what the player is typing is never disturbed
@@ -166,19 +206,25 @@
   missions(){
    const s=state_(),V=root.VoidMissions;let list=[];try{list=s&&V?V.sync(s,C):[];}catch{}
    const steps=m=>{const o=(m.objectives||[]).filter(x=>x.required!==false),n=o.filter(x=>x.complete).length;return {n,total:o.length};};
-   const card=m=>{const p=steps(m),rew=Number(m.rewards)>0?m.rewards+' credits':null;return '<article class="pd-card '+(m.completed?'done':'')+'"><h3>'+esc(m.title)+' <small>'+(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h3><p>'+esc(m.description)+'</p><div class="pd-note">'+esc(String(m.type||'').toUpperCase())
-    +(m.destination?' · '+esc(C.stations?.[m.destination]?.name||m.destination):'')+(p.total?' · '+p.n+' OF '+p.total+' STEPS':'')+(rew?' · REWARD '+esc(rew):'')+'</div>'
+   const where=id=>{const p=root.VoidMissionGivers?.PLACE?.get(id);return p?String(p.name).replace(/^Inside /,''):id;};
+   const card=m=>{const p=steps(m),rew=Number(m.rewards)>0?m.rewards+' credits':null;return '<article class="pd-card '+(m.completed?'done':'')+'"'+(m.number?' data-mission-number="'+m.number+'"':'')+'><h3>'+esc(m.title)+' <small>'+(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h3>'+(m.description?'<p>'+esc(m.description)+'</p>':'')+'<div class="pd-note">'+esc(String(m.category||m.type||'').toUpperCase())
+    +(m.location?' · '+esc(where(m.location).toUpperCase()):m.destination?' · '+esc(C.stations?.[m.destination]?.name||m.destination):'')+(p.total?' · '+p.n+' OF '+p.total+' STEPS':'')+(rew?' · REWARD '+esc(rew):'')+'</div>'
     +(m.completed?'':(m.objective?'<div class="pd-obj"><b>OBJECTIVE</b> '+esc(m.objective)+'</div>':'')+'<ul class="pd-steps">'+(m.objectives||[]).map(o=>'<li class="'+(o.complete?'on':'')+'">'+(o.complete?'✓ ':'○ ')+esc(o.label)+'</li>').join('')+'</ul>')
     +(m.completed?'':'<button type="button" data-'+(m.tracked?'untrack':'track')+'="'+esc(m.id)+'">'+(m.tracked?'STOP TRACKING':'TRACK')+'</button>')+'</article>';};
    const active=list.filter(m=>!m.completed),done=list.filter(m=>m.completed);
    return (active.length?active.map(card).join(''):'<div class="pd-empty">No active missions.<br>Missions appear here when someone in the District offers you work.</div>')+(done.length?'<h2>COMPLETED</h2>'+done.map(card).join(''):'');
   },
   messages(){
-   const r=rp(),C_=chat(),sub=stack[1]||'chat',un=C_?.unread||0;
+   const r=rp(),C_=chat(),sub=stack[1]||(contacts().length?'inbox':'chat'),un=C_?.unread||0;
    const tab=(id,label,badge)=>'<button type="button" data-sub="'+id+'" aria-pressed="'+(sub===id)+'">'+label+(badge?'<span class="pd-badge pd-inline" data-tabbadge="'+id+'">'+badge+'</span>':'')+'</button>';
-   const tabs='<div class="pd-tabs">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';
+   const ib=inboxUnread();
+   const tabs='<div class="pd-tabs">'+tab('inbox','INBOX',ib?unreadText(ib):'')+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';
    if(sub==='dm')return tabs+'<div class="pd-empty"><b>PRIVATE MESSAGES</b><br>Not available yet.<br>They need a server feature (delivery, blocking checks, storage) that has not been built or approved. Planned for a later phase. Nothing is stored on this device.</div>';
    if(sub==='players')return tabs+playersHtml();
+   if(sub==='inbox'&&stack[2])return tabs+threadHtml(stack[2]);
+   if(sub==='inbox'){const list=inbox();readAll(list);   // looking at the inbox reads it
+    const people=contacts(),last=id=>{const t=threadOf(id);return t.length?(t[t.length-1].photo&&!t[t.length-1].text?'[photo]':t[t.length-1].text):'';};
+    return tabs+(people.length?'<h2>CONVERSATIONS</h2>'+people.map(id=>'<button type="button" class="pd-card pd-thread" data-thread="'+esc(id)+'"><b>'+esc(String(contactName(id)).toUpperCase())+'</b><span class="pd-note">'+esc(last(id)||'Open the conversation')+'</span></button>').join('')+'<h2>INBOX</h2>':'')+'<div class="pd-note">Messages sent to your V1. No reply is needed.</div>'+(list.length?list.map(m=>'<article class="pd-card pd-inmsg'+(m.read?'':' unread')+'" data-inbox="'+esc(m.id)+'"><div class="pd-msg-h"><b>'+esc(m.header)+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class="pd-inmsg-text">'+esc(m.text)+'</div>'+(m.title?'<div class="pd-note">'+esc(m.title)+'</div>':'')+'</article>').join(''):'<div class="pd-empty">No messages yet.</div>');}
    if(sub==='talk'){
     let rows=[];try{rows=root.VoidConversationHistory?.read(localStorage,uid())||[];}catch{}
     return tabs+'<div class="pd-note">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class="pd-line"><b>'+esc(m.name)+'</b><span class="pd-note">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class="pd-empty">No conversations yet. People you talk to appear here.</div>');
@@ -222,7 +268,7 @@
   },
   camera(){return '<div class="pd-empty"><b>CAMERA</b><br>The viewfinder opens over the world.<br>Left mouse button takes a photo; photos are kept in the Gallery.</div>';},
   gallery(){return root.VoidGallery?root.VoidGallery.view(dev,stack[1]):'<div class="pd-empty"><b>GALLERY</b><br>The gallery is not available.</div>';},
-  /* The App Store is empty until David adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
+  /* The App Store is empty until the owner adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
   store(){
    const l=D.storeListing(dev),st=l.storage;
    const card=r=>{const on=r.status==='installed',room=st.availablePct>=r.storagePct;return '<article class="pd-card"><h3>'+icon(r.id)+' '+esc(r.title)+' <small>'+(on?'INSTALLED':r.status==='locked'?'NEEDS A NEWER DEVICE':'FREE')+'</small></h3><p>'+esc(r.note)+'</p><div class="pd-note">Uses '+r.storagePct+'% of storage · '+st.availablePct+'% available on this '+esc(st.model)+'</div><div class="pd-tabs" style="margin:6px 0 0">'
@@ -232,14 +278,24 @@
   },
   /* Comms: voice with the people near you (district-voice.js). Off until ENABLE is pressed; DISABLE disconnects. */
   comms(){
-   const V=root.VoidVoice,r=rp();if(!V)return '<div class="pd-empty">Voice is not available in this build.</div>';
+   // Calls a mission made (start by notification, channel Comms). An unanswered call plays as a call: the caller, a timer and a waveform, the words appearing as a transcript
+   // (audio only when a recorded clip exists: none does yet). No reply. It ends after the last line or with HANG UP, and stays below under RECENT CALLS to read again.
+   const calls=inbox('comms'),fresh=calls.find(m=>!m.read);
+   if(fresh&&(!call||call.id!==fresh.id))call={id:fresh.id,start:Date.now(),ended:false,lines:String(fresh.text).split('\n').map(x=>x.trim()).filter(Boolean)};
+   const live=call&&calls.find(m=>m.id===call.id);
+   const liveHtml=live?'<article class="pd-card pd-call-live'+(call.ended?' ended':'')+'" data-call-live="'+esc(live.id)+'"><div class="pd-call-who"><small>'+(call.ended?'CALL ENDED':'INCOMING CALL · CONNECTED')+'</small><b>'+esc(String(live.fromName||'').toUpperCase())+'</b><time data-call-timer>'+callClock()+'</time></div>'
+    +'<div class="pd-wave" aria-hidden="true">'+'<i></i>'.repeat(14)+'</div><div class="pd-note">'+esc(live.header||'')+' · TRANSCRIPT</div>'+call.lines.map((l,i)=>'<p class="pd-call-line" style="--d:'+(call.ended?0:(i*2.2+.4))+'s">'+esc(l)+'</p>').join('')
+    +(call.ended?'':'<div class="pd-tabs"><button type="button" data-hangup="1">HANG UP</button></div>')+'</article>':'';
+   const past=calls.filter(m=>!live||m.id!==live.id||call.ended);
+   const callHtml=liveHtml+(past.length?'<h2>RECENT CALLS</h2>'+past.map(m=>'<article class="pd-card pd-inmsg pd-call'+(m.read?'':' unread')+'" data-call="'+esc(m.id)+'"><div class="pd-msg-h"><b>'+esc(m.header||('CALL FROM '+String(m.fromName||'').toUpperCase()))+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class="pd-note">'+esc(m.fromName)+' · TRANSCRIPT</div><div class="pd-inmsg-text">'+esc(m.text)+'</div>'+(m.title?'<div class="pd-note">'+esc(m.title)+'</div>':'')+'</article>').join(''):'')+(calls.length?'<h2>VOICE</h2>':'');
+   const V=root.VoidVoice,r=rp();if(!V)return callHtml+'<div class="pd-empty">Voice is not available in this build.</div>';
    const S=V.settings,st=V.status,on=S.enabled,ok=!!r?.connected&&!!r.features?.voice;
    const line=!on?'OFF':st==='on'?(S.muted?'ON · MICROPHONE MUTED':V.talking?'ON · MICROPHONE LIVE':S.mode==='ptt'?'ON · HOLD '+V.keyLabel(S.pttKey)+' TO TALK':'ON · OPEN MICROPHONE'):st==='connecting'?'CONNECTING…':st==='error'?'PROBLEM':'WAITING';
    const press=(k,v,label,cur)=>'<button type="button" data-voice-set="'+k+'" data-value="'+v+'" aria-pressed="'+(cur===v)+'">'+label+'</button>';
    const peers=(r?.connected?r.peers:[]),speaking=new Set(V.speaking);
    const who=peers.length?peers.map(p=>{const own=S.players[p.id]||{vol:1,muted:false},d=distanceTo(p);return '<article class="pd-card"><h3>'+esc(p.name)+(speaking.has(p.id)?' <small class="pd-speaking">SPEAKING</small>':'')+(d!=null?' <small>'+esc(distText(d).toUpperCase())+'</small>':'')+'</h3><div class="pd-voicerow"><label>VOLUME<input type="range" min="0" max="2" step="0.1" value="'+own.vol+'" data-voice-player="'+esc(p.id)+'" aria-label="Volume of '+esc(p.name)+'"></label>'
      +'<button type="button" data-voice-mute="'+esc(p.id)+'" aria-pressed="'+!!own.muted+'">'+(own.muted?'UNMUTE VOICE':'MUTE VOICE')+'</button><button type="button" data-ig="block" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">BLOCK</button><button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button></div></article>';}).join(''):'<div class="pd-empty">'+(r?.connected?'Nobody else is in this place right now.':'Not connected to other players.')+'</div>';
-   return '<section class="pd-storage"><div class="pd-stat"><span>VOICE</span><span>'+esc(line)+'</span></div>'
+   return callHtml+'<section class="pd-storage"><div class="pd-stat"><span>VOICE</span><span>'+esc(line)+'</span></div>'
     +'<div class="pd-note" style="margin-top:6px">'+(on?(V.note?esc(V.note):'You hear the people in the same place as you, from where they stand. Walls muffle them.'):'Voice is off. Nothing is sent or heard until you enable it. Your microphone is asked for only then. Nothing is recorded.')+(!ok&&!on?' '+(r?.connected?'Voice needs an account secured with an email or Google, and a server that carries voice.':'You are not connected to other players right now.'):'')+'</div>'
     +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" data-voice="'+(on?'off':'on')+'" class="'+(on?'':'pd-hot')+'">'+(on?'DISABLE VOICE':'ENABLE VOICE')+'</button>'+(on?'<button type="button" data-voice-set="muted" data-value="'+(S.muted?'0':'1')+'" aria-pressed="'+S.muted+'">'+(S.muted?'UNMUTE MICROPHONE':'MUTE MICROPHONE')+'</button>':'')+'</div></section>'
     +'<h2>HOW YOU TALK</h2><div class="pd-tabs">'+press('mode','ptt','PUSH TO TALK',S.mode)+press('mode','open','OPEN MICROPHONE',S.mode)+'<button type="button" data-voice-key>'+(rebinding?'PRESS A KEY…':'TALK KEY: '+esc(V.keyLabel(S.pttKey))+' · CHANGE')+'</button></div>'
@@ -292,7 +348,9 @@
   el.addEventListener('click',onClick);
   el.addEventListener('input',e=>{const t=e.target,V=root.VoidVoice;if(!V)return;if(t.matches?.('input[data-voice-volume]'))V.set('volume',t.value);else if(t.matches?.('input[data-voice-player]'))V.setPlayer(t.dataset.voicePlayer,{vol:t.value});});
   el.addEventListener('change',e=>{const t=e.target;if(t.matches?.('select[data-ach-sort]')){const k=t.dataset.achSort,v=achView.get(k)||{open:true,sort:'featured'};achView.set(k,{...v,sort:t.value});render();return;}if(t.matches?.('select[data-voice-device]')){root.VoidVoice?.set(t.dataset.voiceDevice,t.value);return;}if(!t.matches?.('select[data-jobsel]'))return;const P=DP(),f=flags_();if(!P||!f)return;const picks=[...body.querySelectorAll('select[data-jobsel]')].map(x=>x.value).filter(Boolean);P.writeJobs(f,picks);try{if(typeof save==='function')save();}catch{}render({keepScroll:true});});
-  el.addEventListener('submit',e=>{const ab=e.target.closest('[data-aboutform]');if(ab){e.preventDefault();const fl=flags_();if(fl){const v=cleanAbout(ab.querySelector('input').value);if(v)fl.profileAbout=v;else delete fl.profileAbout;try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
+  el.addEventListener('input',e=>{if(e.target.closest?.('[data-attach-form]'))attach.text=e.target.value.slice(0,200);});
+  el.addEventListener('submit',e=>{const af=e.target.closest('[data-attach-form]');if(af){e.preventDefault();attach.text=af.querySelector('input')?.value||'';if(stack[0]==='messages'&&stack[2])sendAttach(stack[2]);return;}
+   const ab=e.target.closest('[data-aboutform]');if(ab){e.preventDefault();const fl=flags_();if(fl){const v=cleanAbout(ab.querySelector('input').value);if(v)fl.profileAbout=v;else delete fl.profileAbout;try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
    const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};
    if(res.ok){i.value='';if(res.players)go(['messages','players'],'tab','LOADING');}else{const h=body.querySelector('[data-chathint]');if(h)h.textContent=res.text||'';}});
   el.addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))e.stopPropagation();});   // typing stays in the box: no movement, no shortcuts
@@ -306,7 +364,7 @@
   el.querySelector('[data-do=expand]').textContent=expanded?'COLLAPSE':'EXPAND';el.querySelector('[data-do=expand]').setAttribute('aria-label',expanded?'Collapse device':'Expand device');
   el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=label();
  }
- /* News filters (David, 15 Nov 2026): ALL, BROADCASTS (what was heard on the Relay), COMMERCE (the adverts), PEOPLE (pictures posted by residents and by you). */
+ /* News filters (the owner, 15 Nov 2026): ALL, BROADCASTS (what was heard on the Relay), COMMERCE (the adverts), PEOPLE (pictures posted by residents and by you). */
  const NEWS_FILTERS=[['all','ALL'],['broadcasts','BROADCASTS'],['commerce','COMMERCE'],['people','PEOPLE']];let newsFilter='all';
  const newsOld=()=>APP_VIEW.newsOld_();
  setTimeout(()=>{try{root.VoidGallery?.onChange(()=>{if(open&&!busy&&stack[0]==='gallery')render({keepScroll:true});});}catch{}},0);
@@ -323,7 +381,7 @@
   if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
   const app=stack[0],def=D.DEVICES[dev.model];chrome();syncViewing();
   const top=body.scrollTop;
-  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
+  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'||id==='comms'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
   hydratePortraits();if(app==='map')drawMap();if(app==='comms')fillVoiceDevices();
@@ -346,6 +404,10 @@
   const t=e.target.closest('button');if(!t)return;
   if(t.dataset.newsFilter){newsFilter=t.dataset.newsFilter;render();return;}
   if(t.dataset.photo){go(['gallery',t.dataset.photo],'tab','OPENING PHOTO');return;}
+  if(t.dataset.thread){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox',t.dataset.thread],'tab','OPENING CONVERSATION');return;}
+  if(t.dataset.attachOpen){attach={picking:true,photo:null,text:'',sending:false};render({keepScroll:true});return;}
+  if(t.dataset.attachPhoto){attach={picking:false,photo:t.dataset.attachPhoto,text:'',sending:false};render({keepScroll:true});setTimeout(()=>body?.querySelector('[data-attach-form] input')?.focus(),0);return;}
+  if(t.dataset.attachCancel){attach={picking:false,photo:null,text:'',sending:false};render({keepScroll:true});return;}
   if(t.dataset.photoDel){if(t.dataset.sure!=='1'){t.dataset.sure='1';t.textContent='DELETE THIS PHOTO? PRESS AGAIN';return;}root.VoidGallery?.remove(t.dataset.photoDel).then(()=>{if(open&&stack[0]==='gallery'){stack=['gallery'];render();}});return;}
   if(t.dataset.photoPost){root.VoidGallery?.post(t.dataset.photoPost,t.dataset.on==='1').then(()=>{if(open&&stack[0]==='gallery')render({keepScroll:true});});return;}
   if(t.dataset.app){if(busy)return;if(!reduced()){t.classList.add('launching');t.style.setProperty('--pd-ms',D.delayMs(dev,'open',false)+'ms');}go([t.dataset.app],'open');return;}
@@ -365,6 +427,7 @@
   if(t.dataset.openApp){go([t.dataset.openApp],'open');return;}
   if(t.dataset.wf){const X=root.VoidWarFlyingScanner;if(X){if(t.dataset.wf==='send')X.upload(true);else X.setActive(t.dataset.wf==='on');}render({keepScroll:true});setTimeout(()=>{if(open&&stack[0]==='warflying')render({keepScroll:true});},1500);return;}
   if(t.dataset.follow){const P=DP(),f=flags_();if(P&&f){const [kind,id]=t.dataset.follow.split(':');P.toggleFollow(f,kind==='n'?{kind:'npc',id}:{kind:'player',id,name:t.dataset.name});try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
+  if(t.dataset.hangup){endCall();return;}
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}
   if(t.dataset.act==='block'||t.dataset.act==='report'){
@@ -376,7 +439,8 @@
  }
  // Comms: the device lists are asked from the browser after the screen is drawn (names appear once the microphone has been allowed).
  function fillVoiceDevices(){const V=root.VoidVoice;if(!V||!body)return;V.devices().then(d=>{for(const [kind,list] of [['mic',d.mics],['speaker',d.speakers]]){const sel=body.querySelector('select[data-voice-device='+kind+']');if(!sel||!sel.isConnected)continue;for(const x of list){if(!x.id||x.id==='default')continue;const o=document.createElement('option');o.value=x.id;o.textContent=x.label.slice(0,60);sel.appendChild(o);}sel.value=V.settings[kind]||'';}}).catch(()=>{});}
- function back(){if(stack.length>1&&stack[0]!=='messages'){go(stack.slice(0,-1),'tab','LOADING');return true;}   // tabs inside Messages are not history: Back goes home
+ function back(){if(stack[0]==='messages'&&stack[2]){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox'],'tab','LOADING');return true;}   // a conversation goes back to the list
+  if(stack.length>1&&stack[0]!=='messages'){go(stack.slice(0,-1),'tab','LOADING');return true;}   // tabs inside Messages are not history: Back goes home
   if(stack.length){go([],'home','RETURNING HOME');return true;}setOpen(false);return false;}
 
  // ---- Map drawing: only explored walls and places, in the District's own orientation (door at the top, deeper = lower) ----
@@ -471,5 +535,37 @@
  // The L key now opens the V1 on foot and in stations; in flight the older Mission Log keeps working unchanged.
  if(typeof openMissionLog==='function'){const legacy=openMissionLog;openMissionLog=function(){if(open||onFootOrDock()){toggle();return;}return legacy.apply(this,arguments);};}
  try{chat()?.onChange(onChatChange);}catch{}
- root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
+ // ---- Notifications while the V1 is closed (the owner, 17 Nov 2026: "There should be a notification system when people have their V1 closed") ----
+ function keyLabel(){try{return root.VoidInput?.label?root.VoidInput.label(root.VoidInput.bindings?.missionLog||'KeyL'):'L';}catch{return 'L';}}
+ let banner=null,bannerTimer=0,bannerKey='',noteApp=null,bannerSound='';
+ /* The device's notification sound (device-v1.js NOTIFY, per device tier) at the game's sound-effects volume (master x effects, off when sound is off). A missing or
+    unplayable file is silent. */
+ const sounds=new Map();
+ function chime(){try{const D_=D,tier=D_.notifyTier?.(dev.model),row=D_.NOTIFY?.[tier];if(!row?.sound)return;const A=root.VoidAudio?.settings,vol=A?(A.enabled===false?0:(Number(A.master)||0)*(Number(A.effects)||0)):.5;if(!(vol>0))return;
+  let a=sounds.get(row.sound);if(a===null)return;if(!a){a=new Audio(new URL(row.sound,document.baseURI||location.href).href);a.preload='auto';a.addEventListener('error',()=>sounds.set(row.sound,null),{once:true});sounds.set(row.sound,a);}
+  a.volume=Math.max(0,Math.min(1,vol));a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch{}}
+ let FADE_MS=15000;   // about 15 s on screen (the owner: longer and bigger, bottom right; 17 Nov 2026) (tests on the slow software renderer lengthen it: VoidV1.bannerMs)
+ function hideBanner(){clearTimeout(bannerTimer);if(banner){banner.classList.remove('on');banner.hidden=true;}bannerKey='';bannerSound='';}
+ /* notify({app, sub, key, from, header, text, hint:{text|'open', help:true}}): a V1 event the player should know about. Shown only while the V1 is closed (an open V1 on that
+    app needs no banner). The same key twice is not stacked: the banner is refreshed. It stays until the V1 is opened, or fades after about 8 s and leaves the unread count on
+    the V1 chip until the V1 is opened. The hint "Press <key> to open" uses the player's own binding and is marked as a help hint (data-help) for the future help switch. */
+ function notify(n={}){
+  if(!n||typeof n.text!=='string')return false;
+  if(open&&(!n.app||stack[0]===n.app)){updateBadges();return false;}
+  if(!banner){banner=document.createElement('div');banner.id='pd-notify';banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');banner.hidden=true;banner.addEventListener('click',()=>{setOpen(true);});document.body.appendChild(banner);}
+  const key=String(n.key||n.app+'|'+n.text);if(key!==bannerKey)notes++;bannerKey=key;noteApp=n.app?{app:n.app,sub:n.sub||null}:null;
+  const hint=n.hint?(n.hint.text==='open'||n.hint.text==='answer'||!n.hint.text?'Press '+keyLabel()+' to '+(n.hint.text==='answer'?'answer':'open'):String(n.hint.text)):'';
+  const devName=(D.NOTIFY?.[D.notifyTier?.(dev.model)]?.name)||'V1';
+  banner.innerHTML='<b class="pd-n-dev">'+esc(devName)+'</b><span class="pd-n-sep"> · </span><span class="pd-n-text">'+esc(n.text)+'</span>'+(hint?'<span class="pd-n-sep"> · </span><span class="pd-n-hint"'+(n.hint.help?' data-help="1"':'')+'>'+esc(hint)+'</span>':'');
+  banner.dataset.app=n.app||'';banner.hidden=false;void banner.offsetWidth;banner.classList.add('on');
+  if(key!==bannerSound){bannerSound=key;if(!n.silent)chime();}
+  clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>{if(banner){banner.classList.remove('on');setTimeout(()=>{if(banner&&!banner.classList.contains('on'))banner.hidden=true;},600);}},FADE_MS);
+  updateBadges();return true;
+ }
+ // Opening the V1 clears the notification; with one waiting, the V1 opens on its app (Messages > INBOX for a message).
+ {const so=setOpen;setOpen=function(v){if(v&&!open&&noteApp&&!pending&&D.APPS[noteApp.app]?.state==='ready')pending={app:noteApp.app,sub:noteApp.sub};const r=so.apply(this,arguments);if(v&&open){notes=0;noteApp=null;hideBanner();updateBadges();}return r;};}
+ // The banner is shown only on foot (a conversation, a menu or the pod card hides it; it comes back while it is still due).
+ setInterval(()=>{if(!banner||banner.hidden&&!bannerKey)return;const show=!open&&typeof mode!=='undefined'&&mode==='walking'&&!root.VoidCharacterCreator?.isOpen;banner.classList.toggle('away',!show);},250);
+ root.VoidV1={get bannerMs(){return FADE_MS;},set bannerMs(v){FADE_MS=Math.max(1000,Number(v)||15000);},get callTail(){return callTail;},set callTail(v){callTail=Math.max(0,Number(v)||0);},notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
+ root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},get thread(){return stack[0]==='messages'&&stack[1]==='inbox'?stack[2]||null:null;},get attach(){return {picking:attach.picking,photo:attach.photo};},contacts,openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);

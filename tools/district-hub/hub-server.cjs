@@ -15,7 +15,7 @@ const LOCAL_ORIGIN=/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/;
 function start({voice=null,ledger=null,identify,access={allowed:null,denied:new Set(),registeredOnly:false,verifiedEmail:false},origins=null,gate=new ConnectionGate(),trustHops=0,port=0,host='127.0.0.1',log=()=>{}}){
   const profileRefusal=who=>{
     if(!access.requireProfile)return null;
-    /* A handle-only (anonymous) account is admitted like any other once the API holds its handle and character (David, 15 Nov 2026); with neither it is told what is missing. */
+    /* A handle-only (anonymous) account is admitted like any other once the API holds its handle and character (the owner, 15 Nov 2026); with neither it is told what is missing. */
     return ({'missing-handle':[4410,'District handle required'],'missing-character':[4411,'saved character required'],
       'missing-both':[4414,'District handle and character required'],'unavailable':[4413,'account verification unavailable']})[who.profileStatus]||
       (who.profileStatus==='ready'?null:[4413,'account verification unavailable']);

@@ -1,4 +1,4 @@
-/* The DARKNET·AMP on the pod's right-hand wall does everything (David, 16 Nov 2026; the pop-up panel is gone): real audio, song list, buttons, local-file privacy and independent
+/* The DARKNET·AMP on the pod's right-hand wall does everything (the owner, 16 Nov 2026; the pop-up panel is gone): real audio, song list, buttons, local-file privacy and independent
    pod controls, all by looking at the wall (no Q) and clicking. Run against tests/serve-modern.cjs. Args: [low|high] [width height]. */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const tier=['medium','high'].includes(process.argv[2])?process.argv[2]:'low',SIZE=[Number(process.argv[3])||1366,Number(process.argv[4])||768],base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187';

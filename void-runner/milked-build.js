@@ -6,7 +6,7 @@
                                                           reception, the studio hallway, four studios, Fish's office, the staff area and the rear corridor.
    The vestibule and the rear lobby are built by the same code in both, so the player stands in the same room before and after the exchange
    (milked-transition.js). In the street build only the two outer doors can open; in the interior only the three inner ones.
-   After David's reference sheets of 16 Nov 2026: near-black weathered metal and stained concrete, dark wet floors, pink neon as the accent and green as the
+   After the owner's reference sheets of 16 Nov 2026: near-black weathered metal and stained concrete, dark wet floors, pink neon as the accent and green as the
    second, exposed ducts, pipes and cable trays, plants, pinned photos and plush toys. Surfaces use the repository's own texture sets (the District interior kit,
    the street set, the suite's wood and fabric); the props in assets/models/milked/ were made with Meshy (optional files: a missing one is replaced by a simple
    stand-in built here, and Low quality always uses the stand-ins).
@@ -383,7 +383,7 @@
   picture(1.5,3.3,76.3,1.65,FZ+.02,TON,128,282,(g,w,h)=>{g.fillStyle='#050809';g.fillRect(0,0,w,h);for(let i=0;i<6;i++){const s=1-i*.13,x0=w/2-w*.42*s,y0=h*(.06+i*.05);g.strokeStyle='rgba(57,255,156,'+(.55-i*.08)+')';g.lineWidth=3;g.strokeRect(x0,y0,w*.84*s,h*.9*s);}g.fillStyle='#ff3a2a';g.shadowColor='#ff3a2a';g.shadowBlur=12;for(const [x,y,r] of [[40,70,9],[84,96,7],[60,120,5]]){g.beginPath();g.arc(x,y,r,0,7);g.fill();}g.shadowBlur=0;g.fillStyle=GREEN;g.font=HAN(22);g.textAlign='center';for(const [c,i] of [['茶',0],['室',1]])g.fillText(c,w*.5,h*.62+i*26);},.9);
   box(.12,2.4,.5,74.9,3.4,FZ+.3,black);for(const [s,ry] of [[-1,TOW],[1,TOE]])sign(.42,2.2,74.9+s*.07,3.4,FZ+.3,ry,60,314,(g,w,h)=>{g.fillStyle='#04100a';g.fillRect(0,0,w,h);g.fillStyle=GREEN;g.shadowColor=GREEN;g.shadowBlur=8;g.font=HAN(40);g.textAlign='center';['旅','馆'].forEach((c,i)=>g.fillText(c,w/2,110+i*90));});
   {const lan=G('lantern-red','#ff3a2a',.9);pipe(.012,5.4,'z',77.3,3.75,-71.2,black);[-73,-71.2,-69.4].forEach((z,i)=>{ball(.42,77.3,3.42,z,lan,1.15);cyl(.14,.05,77.3,3.68,z,black,false,8);cyl(.1,.05,77.3,3.17,z,black,false,8);box(.02,.16,.02,77.3,3.06,z,M('tassel','#b8860b','#4a3604'));flat(pool('#ff3a2a',2,2,77.3,.024,z,.2));});}
-  /* Finding it from Main Street (David, 16 Nov 2026: "I couldn't get to Milked"; the side street had nothing on Main Street saying what is down it). A blade sign on a bracket
+  /* Finding it from Main Street (the owner, 16 Nov 2026: "I couldn't get to Milked"; the side street had nothing on Main Street saying what is down it). A blade sign on a bracket
      at the side street's corner, read from both directions along Main Street, and a wall sign on the corner building facing across the road. Each is the existing logo and an
      arrow into the side street; no new wording. */
   {const way=(dir)=>(g,w,h)=>{g.fillStyle='#0b0b10';g.fillRect(0,0,w,h);g.strokeStyle='#4a4e58';g.lineWidth=5;g.strokeRect(5,5,w-10,h-10);const ax=dir<0?w*.13:w*.87;logo(g,w/2-dir*w*.09,h*.52,h*.42);
@@ -684,7 +684,7 @@
   for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
    p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
    p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
-  /* The dancers' clothes lean to black and pink (David's reference). The figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are
+  /* The dancers' clothes lean to black and pink (the owner's reference). The figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are
      separate materials: each dancer gets its own tinted copy of those two (the model files and everyone else who wears the look are untouched). A face
      covering that came with a look (the street mask, the VR headset and its trackers) is hidden so that every dancer's face shows. Nothing else changes:
      the same clothed figures, the same clips. */
@@ -692,10 +692,12 @@
   function dress(p){const o=OUTFIT[p.look];p.meshes=p.meshes.filter(m=>{const mat=m.material,nm=mat?.name||'';if(COVER.test(nm)){m.setEnabled(false);return false;}
     const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
   const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
+  const asked=new Map();
+  function askLooks(list=LOOKS){for(const look of list){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);asked.set(look,Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+look+'.glb',background:true},scene)).catch(()=>{}).then(()=>{loading.delete(look);asked.delete(look);}));}}return [...asked.values()];}
   function staff(clock){
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
-   if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;for(const look of LOOKS){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+look+'.glb',background:true},scene)).catch(()=>{}).then(()=>loading.delete(look));}}}
+   if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;askLooks();}
    for(const p of people){
     if(!p.node){let n=null,look=null,clip=null;
      if(p.asset&&assets?.container?.(p.asset)){n=assets.instance(p.asset,node);look=p.asset;clip='idle';}
@@ -718,7 +720,23 @@
     if(k.clock>mirNext){mirNext=k.clock+.5;if(!mirAll||k.clock>mirAllNext){mirAllNext=k.clock+(k.clock<45?3:1e9);mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));}mir.renderList=high?mirAll:near(mirAll,cam.x,cam.z,10);}}
    staff(k.clock);
   }
-  return {tick,inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
+  /* Behind the check-in card (17 Nov 2026, docs/development/SMOOTHNESS_AUDIT.md): the people's figures are fetched and placed now, and every shader the rooms need
+     (the people, the floor mirror's view of them, the glow and the key light's shadow) is compiled before the inner doors open. They used to be fetched only once
+     the player was walking, so they arrived, and their shaders compiled, just as the inner doors opened. A slow download (over 8 s) still finishes in the background. */
+  const prepared={};   // how long each step behind the card took, in ms (state().prepared; for checking on a real graphics card)
+  async function prepare(){if(k.disposed)return;let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
+   // only figures already on this computer (in memory or the offline cache), the rule every place follows (asset-pipeline.js prepare): a first visit still downloads after the card
+   const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+look+'.glb'),1500)?look:null))).filter(Boolean);if(k.disposed)return;
+   await cap(Promise.all(askLooks(here)),8000);if(k.disposed)return;lap('figures');staff(k.clock);
+   if(mir){mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));mir.renderList=mirAll;}
+   root.VoidAssets?.settleLights?.(scene);await cap(scene.whenReadyAsync(true),10000);if(k.disposed)return;lap('shaders');
+   // The room picture that every surface reflects was taken 1.2 s after the doors opened (six views of the room in one frame); it is taken now, under the same
+   // light (the lamps faded in as they would have been by then). The next ones come at 14 s and 34 s, as before.
+   const w=typeof walker!=='undefined'&&walker?toLocal({x:walker.x,y:1.7,z:walker.z}):null;
+   if(!low&&w&&probes.length){const zone=zoneOf(w.x,w.z);for(let i=0;i<3;i++){relight(1,w,zone);keyLight(1,w,zone);}faceLamps(w);expose();roomPicture(1.2,zone);const p=probes[probePending];if(p){try{p.cubeTexture.render();}catch{}roomPicture(1.5,zone);}lap('picture');}
+   // The floor mirror draws the room with its own shader variants (a clip plane, mirrored); drawing it once here compiles them.
+   if(mir){try{mir.render();}catch{}await cap(scene.whenReadyAsync(true),5000);try{mir.render();}catch{}lap('mirror');}}
+  return {tick,prepare,inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
    dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;for(const p of probes){const i=scene.customRenderTargets.indexOf(p.cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}k.dispose();
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
     if(sun&&lightPrev.sun!=null)sun.intensity=lightPrev.sun;if(ambient){if(lightPrev.amb!=null)ambient.intensity=lightPrev.amb;if(lightPrev.dif)ambient.diffuse=lightPrev.dif;if(lightPrev.gnd&&ambient.groundColor)ambient.groundColor=lightPrev.gnd;}}};
@@ -726,7 +744,7 @@
  // How far each Meshy model must be turned so that its front faces the way the code asks. Checked by looking (16 Nov 2026): all four come in facing +z, which is
  // what a yaw of 0 means here, so none needs a turn. A regenerated model may need a new number.
  const FACE={camera:0,ring:0,softbox:0,chair:0};
- /* The pointer signs in Old Town (David, 16 Nov 2026: Milked moved down the street, past the South Gate). Each is a blade sign on a bracket from the east wall of Main Street,
+ /* The pointer signs in Old Town (the owner, 16 Nov 2026: Milked moved down the street, past the South Gate). Each is a blade sign on a bracket from the east wall of Main Street,
     read walking south: the existing MILKED logo, an arrow straight ahead and the plain words SOUTH GATE. No new wording. spots: [[x of the plate's middle, y, z]]. Built in Old Town's
     own frame (no move): they belong to Old Town, not to the building. */
  function pointers({B,scene,parent,quality,spots}){

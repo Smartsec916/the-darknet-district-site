@@ -1,9 +1,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const D=require('../void-runner/ad-screens-data.js'),relay=require('../void-runner/relay-content.json'),Q=require('../void-runner/ncz-quarters.js'),Board=require('../void-runner/warflying-board.js');
-const doc=fs.readFileSync(path.join(__dirname,'../docs/void-runner/design-source/12-street-advertisements-david.md'),'utf8');
+const doc=fs.readFileSync(path.join(__dirname,'../docs/void-runner/design-source/12-street-advertisements-owner.md'),'utf8');
 const section=(from,to)=>{const a=doc.indexOf(from);return doc.slice(a,to?doc.indexOf(to,a):undefined);};
 
-test('every brand, tagline and announcement is David’s, word for word, and none is missing or added',()=>{
+test('every brand, tagline and announcement is the owner’s, word for word, and none is missing or added',()=>{
   const want=section('## The lines').split('\n').filter(l=>l.startsWith('- ')).map(l=>l.slice(2));
   const have=D.ADS.filter(a=>a.cat!=='warflying').map(a=>a.brand?a.brand+' — '+a.line:a.line);
   assert.deepEqual(have,want);assert.equal(want.length,54);
@@ -11,7 +11,7 @@ test('every brand, tagline and announcement is David’s, word for word, and non
   // what a voice would say for a brand ad is the whole of his line
   for(const ad of D.ADS.filter(a=>a.brand)){const s=D.slide({type:'ad',ad});assert.equal(s.lines.length,1);assert.equal(s.lines[0].say,ad.brand+' — '+ad.line);assert.equal(s.title,ad.brand);}
 });
-test('the three pro-WarFlying ads are David’s text, in order, with nothing added',()=>{
+test('the three pro-WarFlying ads are the owner’s text, in order, with nothing added',()=>{
   const text=section('## Pro-WarFlying advertisements','## The lines'),norm=s=>s.replace(/\s+/g,' ').trim();
   const blocks=text.split(/\n### \d+\. /).slice(1).map(b=>{const [title,...rest]=b.split('\n');return norm(title+' '+rest.join(' ').replace(/(^|\s)- /g,' '));});
   const ads=D.ADS.filter(a=>a.cat==='warflying');assert.equal(ads.length,3);
@@ -23,7 +23,7 @@ test('the game really works the way the pro-WarFlying ads say: an App Store, a W
   assert.ok(/data-wf="send"[^>]*>SUBMIT SCANS<\/button>/.test(device));assert.ok(!device.includes('SEND DATA TO WARFLYING LEADERBOARD'));
   assert.ok(/title:'APP STORE'/.test(v1)&&/STORE_EXTRA=\[\{id:'warflying'/.test(v1));
 });
-test('David’s seven space-station ads are the only Relay ads the street shows; drafts and The Function never appear',()=>{
+test('The owner’s seven space-station ads are the only Relay ads the street shows; drafts and The Function never appear',()=>{
   assert.equal(Object.keys(D.RELAY).length,7);
   for(const id of Object.keys(D.RELAY)){const s=relay.segments.find(x=>x.id===id);assert.ok(s&&!s.draft&&(s.kind==='ad'||s.kind==='police'),id);}
   const all=Object.keys(D.ZONES).flatMap(z=>Object.values(D.adsFor(z,{relay})).flat());
@@ -63,7 +63,7 @@ test('rotation: every fifth slot is news or the board, and never two in a row',(
   assert.deepEqual(D.programme('oldtown',{relay,seed:1}),D.programme('oldtown',{relay,seed:1}));
   assert.equal(D.EVERY,5);
 });
-test('a break is the board or one of David’s own news reports; with no news that fits it is always the board',()=>{
+test('a break is the board or one of the owner’s own news reports; with no news that fits it is always the board',()=>{
   for(let n=0;n<8;n++)assert.deepEqual(D.breakSlot(n,[]),{type:'board'});
   assert.deepEqual(D.newsFor(relay,{}),[],'no story has happened yet for a new player');
   const all=D.newsFor(relay,Object.fromEntries(relay.events.map(e=>[e.id,1])));
@@ -76,14 +76,14 @@ test('a break is the board or one of David’s own news reports; with no news th
 });
 test('the board slide lists five and says only number one, or "a new number one"',()=>{
   const when=new Date(Date.UTC(2026,10,18)),st=Board.standings(0,'YOU',when),s=D.slide({type:'board'},{standings:st});
-  assert.equal(s.label,'WARFLYING LEADERSHIP BOARD');assert.equal(s.standings.rows.length,5);assert.equal(s.lines.length,1);assert.equal(s.lines[0].say,st.rows[0].name);assert.ok(Board.isDavid(s.lines[0].say));
+  assert.equal(s.label,'WARFLYING LEADERSHIP BOARD');assert.equal(s.standings.rows.length,5);assert.equal(s.lines.length,1);assert.equal(s.lines[0].say,st.rows[0].name);assert.ok(Board.isOwnerHandle(s.lines[0].say));
   const top=D.slide({type:'board'},{standings:Board.standings(999,'Pilot',when)});assert.equal(top.lines[0].say,'a new number one');
 });
 test('eras: an ad with no era always runs; an ad tagged with an era runs only in it; there are no eras yet',()=>{
   assert.equal(D.ERA,null);assert.ok(D.ADS.every(a=>a.era===undefined));
   assert.ok(D.inEra({},null)&&D.inEra({},'x'));assert.ok(!D.inEra({era:'later'},null));assert.ok(D.inEra({era:'later'},'later'));assert.ok(D.inEra({era:['a','b']},'b'));assert.ok(!D.inEra({era:['a','b']},'c'));
 });
-test('every line a voice could say is David’s, and nothing is said for The Function',()=>{
+test('every line a voice could say is the owner’s, and nothing is said for The Function',()=>{
   const lines=D.spokenLines(relay),own=new Set([...D.ADS.flatMap(a=>a.brand?[a.brand+' — '+a.line]:a.lines?[a.title,...a.lines]:[a.line]),...relay.segments.filter(s=>D.RELAY[s.id]).flatMap(s=>s.lines)]);
   assert.ok(lines.length>100);for(const l of lines){assert.ok(own.has(l.text),l.text);assert.notEqual(l.speaker,'the-function');}
 });

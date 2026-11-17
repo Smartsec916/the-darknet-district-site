@@ -25,7 +25,7 @@ test('each has their own personality, dialogue and voice identity (nothing of Ka
  assert.equal(C.speaks(seren),true);
 });
 
-test('default looks are David\'s picks',()=>{
+test('default looks are the owner\'s picks',()=>{
  assert.deepEqual(C.chosen(C.get('ava')),{outfit:'red',hair:'bob',glasses:'none',face:'natural'});
  assert.deepEqual(C.chosen(C.get('eva')),{outfit:'white',hair:'natural',eyes:'brown',face:'5'});
  assert.deepEqual(C.lookTextures(C.get('eva')),{},'the defaults are the model\'s own textures');

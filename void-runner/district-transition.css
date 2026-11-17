@@ -26,6 +26,6 @@
 @keyframes dt-pulse{50%{opacity:.35}}
 @keyframes dt-sweep{from{top:-90px}to{top:100%}}
 @media (prefers-reduced-motion:reduce){#district-transition{transition:none}#district-transition .dt-beam{display:none}#district-transition .dt-bar i{animation:none;width:100%;opacity:.5}#district-transition li.now::before{animation:none}}
-/* David, 16 Nov 2026: nothing here may read as a loading screen. The checkpoint wording stays for screen readers only; the picture is the vestibule and the scan light. */
+/* The owner, 16 Nov 2026: nothing here may read as a loading screen. The checkpoint wording stays for screen readers only; the picture is the vestibule and the scan light. */
 #district-transition .dt-panel{width:1px;height:1px;padding:0;border:0;overflow:hidden;clip-path:inset(50%);opacity:0}
 #district-transition .dt-frame{display:none}

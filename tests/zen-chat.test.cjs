@@ -4,11 +4,11 @@ const Z=require('../void-runner/zen-chat.js');
 const src=fs.readFileSync(path.join(__dirname,'../void-runner/zen-chat.js'),'utf8');
 test('there are about twenty local quotes, each with an id, topics and a source, and no duplicates',()=>{
   assert.ok(Z.QUOTES.length>=20&&Z.QUOTES.length<=30,String(Z.QUOTES.length));assert.equal(new Set(Z.QUOTES.map(q=>q.id)).size,Z.QUOTES.length);assert.equal(new Set(Z.QUOTES.map(q=>q.text)).size,Z.QUOTES.length);
-  for(const q of Z.QUOTES){assert.ok(q.text.length>20&&q.text.length<200,q.id);assert.ok(q.topics.length>=1);assert.ok(['david','origins','placeholder'].includes(q.source));for(const t of q.topics)assert.ok(Z.TOPICS[t],q.id+' topic '+t);}
+  for(const q of Z.QUOTES){assert.ok(q.text.length>20&&q.text.length<200,q.id);assert.ok(q.topics.length>=1);assert.ok(['owner','origins','placeholder'].includes(q.source));for(const t of q.topics)assert.ok(Z.TOPICS[t],q.id+' topic '+t);}
 });
 test('the two exact lines are present, word for word',()=>{
   const texts=Z.QUOTES.map(q=>q.text);assert.ok(texts.includes('In the network of complex codes, serenity lies in the simplest line.'));assert.ok(texts.includes('A mindful soul is like a processor; it understands, computes, and calmly executes.'));
-  assert.deepEqual(Z.QUOTES.filter(q=>q.source==='david').length,2);
+  assert.deepEqual(Z.QUOTES.filter(q=>q.source==='owner').length,2);
 });
 test('every topic has at least two quotes, so matching can rotate',()=>{for(const t of Object.keys(Z.TOPICS))assert.ok(Z.QUOTES.filter(q=>q.topics.includes(t)).length>=2,t);});
 test('keyword matching picks the topic, case and punctuation do not matter, and stems count',async()=>{

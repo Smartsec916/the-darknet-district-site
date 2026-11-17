@@ -1,6 +1,6 @@
 {
  "version": 1,
- "engine": "ElevenLabs eleven_v4 (rendered once on David's Starter plan, 15 Nov 2026; stored here so nothing is generated at play time)",
+ "engine": "ElevenLabs eleven_v4 (rendered once on the owner's Starter plan; stored here so nothing is generated at play time)",
  "format": "ogg/vorbis 24 kHz mono",
  "note": "Lines voiced outside the Kokoro pipeline. voice-clips.js merges these with manifest.json; a speaker's live effect (Iris: android) still applies.",
  "lines": {
@@ -8,10 +8,10 @@
    "speaker": "admin",
    "text": "Scanning in here is rude. Open WarFlying on your device and deactivate it.",
    "file": "extra/admin-scanning-rude.ogg",
-   "voice": "Bill Adams - Wise and Motivational American Storyteller",
-   "voiceId": "V2bPluzT7MuirpucVAKH",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
    "source": "district-people.js",
-   "note": "Re-voiced 15 Nov 2026: David asked for Admin to sound older."
+   "note": "Re-voiced 17 Nov 2026 in the voice the owner chose for Admin (was Bill Adams)."
   },
   "iris-scanning-rude": {
    "speaker": "iris",
@@ -20,6 +20,87 @@
    "voice": "Clarice - Natural & Calm British Voice",
    "voiceId": "MWUpoNpAY0rOQGP294mF",
    "source": "district-people.js"
+  },
+  "admin-m001-call": {
+   "speaker": "admin",
+   "text": "You're awake. Good.\nWhen you're ready, come find me. We need to talk.",
+   "file": "extra/admin-m001-call.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (001 Awakening, Comms call)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-1": {
+   "speaker": "admin",
+   "text": "I heard you're looking for work.",
+   "file": "extra/admin-m002-offer-1.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 Eyes on the Street, offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-2": {
+   "speaker": "admin",
+   "text": "Before I trust you with anything important, I need you to do a little reconnaissance.",
+   "file": "extra/admin-m002-offer-2.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-3": {
+   "speaker": "admin",
+   "text": "Head outside. Across the street, you'll find a nightclub called NULL. There's someone hanging out in there I need you to take their picture so I can scrape it for more data",
+   "file": "extra/admin-m002-offer-3.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-4": {
+   "speaker": "admin",
+   "text": "I'll mark their location",
+   "file": "extra/admin-m002-offer-4.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-call": {
+   "speaker": "admin",
+   "text": "Your V1 has a camera. Press L to open your device, then select the Camera app.\nPoint it at the target. Your device should identify them automatically.\nLeft click will take a picture\nOnce you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.\nNothing complicated. Just keep your eyes open.",
+   "file": "extra/admin-m002-call.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 Comms call on entering NULL)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-received": {
+   "speaker": "admin",
+   "text": "Received. That's exactly what I needed. Come back when you're ready.",
+   "file": "extra/admin-m002-received.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 reply)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-wrong": {
+   "speaker": "admin",
+   "text": "That's not the person I'm looking for. Check the description and try again.",
+   "file": "extra/admin-m002-wrong.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 reply)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-not-bad": {
+   "speaker": "admin",
+   "text": "Not bad. You can follow instructions and keep a low profile. I might have more work for you.",
+   "file": "extra/admin-m002-not-bad.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 return)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
   }
  }
 }

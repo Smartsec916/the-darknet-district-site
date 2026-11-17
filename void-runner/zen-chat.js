@@ -1,14 +1,14 @@
 /* ZEN ZEPHYR: the local conversation. Pure (runs in Node and the browser); tests/zen-chat.test.cjs. docs/development/TEMPLE.md.
    This is NOT an AI model and does not pretend to be one. It recites a fixed set of provisional quotes chosen by simple keyword and topic matching, with a fallback.
-   The lines are placeholders for David to approve or replace; two are the exact lines he specified, two are taken from the Zen Zephyr scenes of the Origins page
+   The lines are placeholders for the owner to approve or replace; two are the exact lines he specified, two are taken from the Zen Zephyr scenes of the Origins page
    (origins/index.html, scene zen_wisdom and sanctum_introduction; mood only, not canon). Everything stays on the device: no network, no credentials, no cost.
    A future API-powered dialogue can plug in through the provider interface at the bottom; it is OFF by default and nothing here ever calls it unless it is registered AND enabled. */
 (function(root){
  'use strict';
- // id, text, topics (what the quote is about), source ('david' exact line | 'origins' | 'placeholder'). Selectable in the panel's list as well as chosen by matching.
+ // id, text, topics (what the quote is about), source ('owner' exact line | 'origins' | 'placeholder'). Selectable in the panel's list as well as chosen by matching.
  const QUOTES=[
-  {id:'q01',text:'In the network of complex codes, serenity lies in the simplest line.',topics:['serenity','code'],source:'david'},
-  {id:'q02',text:'A mindful soul is like a processor; it understands, computes, and calmly executes.',topics:['mind','serenity'],source:'david'},
+  {id:'q01',text:'In the network of complex codes, serenity lies in the simplest line.',topics:['serenity','code'],source:'owner'},
+  {id:'q02',text:'A mindful soul is like a processor; it understands, computes, and calmly executes.',topics:['mind','serenity'],source:'owner'},
   {id:'q03',text:'The circuit board and the lotus flower differ only in the observer\'s perception.',topics:['machines','mind'],source:'origins'},
   {id:'q04',text:'Technology alone will not keep a sanctuary alive. Find the people who know why it matters.',topics:['sanctuary','network'],source:'origins'},
   {id:'q05',text:'Before you run the next process, let the last one finish.',topics:['work','mind','serenity'],source:'placeholder'},

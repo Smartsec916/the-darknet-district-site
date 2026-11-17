@@ -1,9 +1,11 @@
-/* The device's Gallery (David, 15 Nov 2026): photos taken with the camera (left mouse button while the viewfinder is up).
+/* The device's Gallery (the owner, 15 Nov 2026): photos taken with the camera (left mouse button while the viewfinder is up).
    - Each photo takes PHOTO_PCT (1%) of the device's storage, on top of the system apps and any installed apps, so a stock V1 (75% used) holds 25.
    - Every photo keeps the name tags of the players and residents who were in the frame: drawn into the picture, and listed with it.
    - A photo can be deleted, or posted to the News app's PEOPLE feed (and taken down again).
    - Photos live in THIS browser only (IndexedDB). Nothing is uploaded: a post is seen by its owner, not yet by other players (that needs a server feature).
    Residents post too: NPC_POSTS are pictures taken in the game with this same camera (void-runner/art/news), with the tags of who is in them.
+   Each photo also keeps what the camera judged at the moment it was taken (Mission 002, 17 Nov 2026: meta {subjects:[{id,name,valid,dist,why}], place, during, at}):
+   who it really shows, where it was taken (places.js), and which mission steps were in progress. Missions use only that (cleanMeta); the picture stays here.
    Pure helpers run in Node (tests/device-gallery.test.cjs). */
 (function(root){
  'use strict';
@@ -14,6 +16,11 @@
  const usedPct=count=>Math.max(0,Math.round((Number(count)||0)*PHOTO_PCT));
  /* The tags kept with a photo: name and role of each person in the frame, without duplicates, at most 24. */
  function cleanTags(list){const out=[],seen=new Set();for(const t of list||[]){const name=text(t&&t.name,40);if(!name||seen.has(name.toLowerCase()))continue;seen.add(name.toLowerCase());out.push({name,role:text(t.role,40),kind:t.kind==='player'?'player':'npc'});if(out.length>=24)break;}return out;}
+ /* The checks kept with a photo, cleaned (closed shape, short ids and text only). Missing or broken: null (an older photo: it counts for nothing). */
+ const ID=/^[a-z][a-z0-9-]{0,63}$/,STEP=/^[a-z][a-z0-9-]{0,79}\/[a-z][a-z0-9-]{0,79}$/;
+ function cleanMeta(m){if(!m||typeof m!=='object'||!Array.isArray(m.subjects))return null;
+  const subjects=m.subjects.filter(x=>x&&ID.test(x.id||'')).slice(0,24).map(x=>({id:x.id,name:text(x.name,40),valid:x.valid===true,...(Number.isFinite(x.dist)?{dist:Math.round(x.dist*10)/10}:{}),...(x.why?{why:text(x.why,60)}:{})}));
+  return {subjects,place:ID.test(m.place||'')?m.place:null,during:(Array.isArray(m.during)?m.during:[]).filter(x=>typeof x==='string'&&STEP.test(x)).slice(0,20),at:Number.isFinite(m.at)?m.at:0};}
  const AREAS={neochinatown:'NeoChinatown',alley:'NeoChinatown · the alley',milked:'Milked',corporate:'Corporate District',temple:'Zen Zephyr Temple','district-entry':'The Darknet District · entrance','district-hall':'The Darknet District · hallway',
   'district-store':'The Darknet District · store','district-bar':'The Darknet District · bar','district-vr':'The Darknet District · VR','district-arcade':'The Darknet District · arcade','district-rest':'The Darknet District · sleeping pods','district-terrace':'The Darknet District · terrace',club:'NULL'};
  const placeName=area=>AREAS[area]||(String(area||'').startsWith('district')?'The Darknet District':'NeoChinatown');
@@ -31,7 +38,7 @@
   return out.sort((a,b)=>b.at-a.at);
  }
  const ago=(at,now)=>{const m=Math.max(0,Math.round((now-at)/60000));return m<1?'just now':m<60?m+' min ago':m<1440?Math.round(m/60)+' h ago':Math.round(m/1440)+' d ago';};
- const pure={PHOTO_PCT,WIDTH,capacity,usedPct,cleanTags,placeName,NPC_POSTS,peopleFeed,ago};
+ const pure={PHOTO_PCT,WIDTH,capacity,usedPct,cleanTags,cleanMeta,placeName,NPC_POSTS,peopleFeed,ago};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -46,9 +53,9 @@
  const appsPct=device=>{try{const D=root.VoidDeviceV1,st=D.storage(device);return st.usedPct-usedPct(photos.length);}catch{return 75;}};
  const room=device=>Math.max(0,capacity(appsPct(device))-photos.length);
  /* Keep a new photo. -> the stored record, or null when the device is full. */
- async function add(device,{blob,tags,area,zoom}){
+ async function add(device,{blob,tags,area,zoom,meta}){
   if(!blob||room(device)<=0)return null;
-  const p={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),at:Date.now(),place:placeName(area),tags:cleanTags(tags),zoom:Number(zoom)||1,postedAt:0,blob};
+  const p={id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),at:Date.now(),place:placeName(area),tags:cleanTags(tags),zoom:Number(zoom)||1,postedAt:0,blob,meta:cleanMeta(meta)};
   photos.unshift(p);await tx('readwrite',s=>s.put(p));changed();return p;
  }
  async function remove(id){const i=photos.findIndex(p=>p.id===id);if(i<0)return false;photos.splice(i,1);const u=urls.get(id);if(u){URL.revokeObjectURL(u);urls.delete(id);}await tx('readwrite',s=>s.delete(id));changed();return true;}
@@ -71,5 +78,5 @@
   return list.map(x=>{const src=x.mine?(()=>{const p=photos.find(q=>q.id===x.photo);return p?urlOf(p):'';})():x.image,who=x.mine?x.by:(nameOf?.(x.npc)||x.npc);
    return '<article class="pd-post" data-news-kind="people"><header><b>'+esc(who)+'</b><small>'+esc(x.place)+' · '+esc(ago(x.at,now))+'</small></header><img alt="Picture posted by '+esc(who)+'" loading="lazy" src="'+esc(src)+'">'+(x.tags.length?tagLine(x.tags):'')+'</article>';}).join('');
  }
- root.VoidGallery={...pure,ready,add,remove,post,view,peopleHtml,room,onChange(f){listeners.add(f);},get count(){return photos.length;},get photos(){return photos.map(p=>({id:p.id,at:p.at,place:p.place,tags:p.tags,postedAt:p.postedAt}));}};
+ root.VoidGallery={...pure,ready,add,remove,post,view,peopleHtml,room,onChange(f){listeners.add(f);},get count(){return photos.length;},get photos(){return photos.map(p=>({id:p.id,at:p.at,place:p.place,tags:p.tags,postedAt:p.postedAt,meta:p.meta||null}));},meta:id=>{const p=photos.find(x=>x.id===id);return p&&p.meta?JSON.parse(JSON.stringify(p.meta)):null;},url:id=>{const p=photos.find(x=>x.id===id);return p?urlOf(p):'';}};
 })(typeof globalThis!=='undefined'?globalThis:this);

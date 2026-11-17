@@ -68,7 +68,7 @@
   setTime(ctx.settings.time||'day');
   const sand=k.material('sand',{color:'sand-color',normal:'sand-normal',scale:30,hex:'#f2e3c4'});k.terrain('beach',220,160,height,sand);
   sea=k.water('sea',{hex:presets[k.time].sea,alpha:1,sky:presets[k.time].sky,scale:30,reflect:.12,spec:.45});const ocean=k.mesh(B.MeshBuilder.CreateGround('vr-ocean',{width:2400,height:2400},k.scene),sea,[0,-.05,1200+SHORE-1]);
-  /* Better water and beach (David, 16 Nov 2026). The open sea keeps its plane and collision; over it and along the shore go:
+  /* Better water and beach (the owner, 16 Nov 2026). The open sea keeps its plane and collision; over it and along the shore go:
      - shallows: clear turquoise over the sand near the beach, deepening to the sea's own colour further out;
      - wet sand: a darker, shinier band where the waves reach, which lightens as each wave draws back;
      - a second line of foam behind the first, and sun glitter far out on the water. */
@@ -130,13 +130,13 @@
   // Offshore, in sight of the beach and the pier. The sea plane and its collision are left as they are.
   Dolphins.spawn(k,dolphin,low?2:3);
   let found=0;
-  /* ---- Fishing from the pier (David, 16 Nov 2026: like fishing in World of Warcraft).
+  /* ---- Fishing from the pier (the owner, 16 Nov 2026: like fishing in World of Warcraft).
      Cast (E at the pier): the rod swings back and forward and the float flies out to a spot on the water in front of you, a different spot each time.
      Then wait. Some seconds later the float splashes and dips: LOOK AT THE FLOAT AND CLICK IT (left mouse button, or E) before it stops, and the fish is yours.
      Click before it bites and you reel in with nothing; too late and it gets away. Every fish is counted, by kind and in all, and the count is kept outside the
      simulation and outside the campaign save (local-progress.js): it survives a new campaign. 100 fish is the goal of the Catch 100 Fish achievement.
      Each player fishes on their own screen: in a shared session the others do not see the line.
-     RARE is where a rare catch goes when David adds one: give it a chance above 0 and it can come up (its own count is kept under its id). */
+     RARE is where a rare catch goes when the owner adds one: give it a chance above 0 and it can come up (its own count is kept under its id). */
   const FISH=[['silver','a small silver fish',.2,.6,'#c8d4de'],['reef','a striped reef fish',.4,1.2,'#f0b23a'],['yellowtail','a yellow-tailed fish',.6,1.8,'#e8d24a'],['flat','a broad flat fish',.9,2.6,'#b89a6a'],['blue','a long blue fish',1.5,4.5,'#3f7fd0'],['red','a heavy red fish',2.5,7,'#d0503a']];
   const RARE={id:'rare',name:'a rare fish',chance:0,min:3,max:9,color:'#f4f0ff'};
   const CAST_TIME=1.05,FLY=.62,WINDOW=2.6,AIM=.17;   // AIM: how close to the float you must be looking, in radians (about 10 degrees)

@@ -1,4 +1,4 @@
-// Una and the two base figures: roster placement, dev-only listing, pairing, Una's outfits (David's Style A by
+// Una and the two base figures: roster placement, dev-only listing, pairing, Una's outfits (the owner's Style A by
 // default) with their parts, textures and glossier finishes, and nothing changed for the public roster.
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../void-runner/vr-companions.js');

@@ -70,7 +70,7 @@ class RelaySaveTests(unittest.TestCase):
         self.assertEqual(out['said'], {'warflying-new-contender': True})
 
     def test_weekly_board_rows_survive(self):
-        # The weekly WarFlying Leadership Board (warflying-board.js): David's handles, generated handles and the player's own row.
+        # The weekly WarFlying Leadership Board (warflying-board.js): the owner's handles, generated handles and the player's own row.
         rows = [{'name': 'BeautifulMalfunction', 'points': 93, 'rank': 1, 'player': False}, {'name': 'Vanta_Antenna88', 'points': 84, 'rank': 2, 'player': False},
                 {'name': 'carrierwave', 'points': 76, 'rank': 3, 'player': False}, {'name': 'QuestionableUpgrade', 'points': 70, 'rank': 4, 'player': False},
                 {'name': 'staticmoth67', 'points': 59, 'rank': 5, 'player': False}, {'name': 'A' * 24, 'points': 0, 'rank': 6, 'player': True}]

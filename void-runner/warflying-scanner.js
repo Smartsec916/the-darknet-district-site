@@ -1,4 +1,4 @@
-/* WarFlying in play (David's doc 11, Stage B). With a WarFlying Module in the Utility slot, the ship
+/* WarFlying in play (the owner's doc 11, Stage B). With a WarFlying Module in the Utility slot, the ship
    listens twice a second while flying: it logs fixed emitters passed on the route and any moving
    ship it can hear (traffic, pirates, faction battle crews). New identifications score one point and
    show a short notice. It works with no connection to the Relay and never runs on foot, so nothing
@@ -14,7 +14,7 @@
   +'#mission-log .warflying .relay-actions{display:flex;flex-wrap:wrap;gap:8px}#mission-log .warflying .relay-actions button{width:auto;flex:0 0 auto;min-width:180px}#mission-log .warflying .journal{color:#c9d6d2;border-left:2px solid #3d6f62;padding-left:10px}';
  document.head.append(css);
  const hudEl=document.createElement('div');hudEl.id='warflying-hud';hudEl.hidden=true;document.body.append(hudEl);
- /* WarFlying is an app on the personal device now (David, 15 Nov 2026), not a module fitted to a ship: it listens when the app is installed AND switched on.
+ /* WarFlying is an app on the personal device now (the owner, 15 Nov 2026), not a module fitted to a ship: it listens when the app is installed AND switched on.
     The old ship module is no longer needed for anything. Inside The Darknet District the building is shielded: nothing is heard there. */
  const appInstalled=()=>String(state?.story?.flags?.deviceApps||'').split(',').includes('warflying');
  const installed=()=>appInstalled()&&state?.story?.flags?.warflyingActive===true;

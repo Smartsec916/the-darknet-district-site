@@ -1,10 +1,10 @@
 # VOID//RUNNER — Faction Homeworlds, Planetary Missions & Admin's Secret Cargo
 
-David's brief (October 2026), condensed. **All dialogue in the game uses his exact wording**; the rules below are summarized. Sections 17–20 (Admin's secret cargo, police patrols, Rook's delivery) are built separately.
+The owner's brief (October 2026), condensed. **All dialogue in the game uses his exact wording**; the rules below are summarized. Sections 17–20 (Admin's secret cargo, police patrols, Rook's delivery) are built separately.
 
-## Decisions (David, 2026-10-15)
+## Decisions (the owner, 2026-10-15)
 - **The Nexus** is the Communion homeworld, in the **Cantor System**, orbited by The Vigil.
-- The Natural Order homeworld is in the **Garrow System**, shown as **"Natural Order Homeworld"** until David names it.
+- The Natural Order homeworld is in the **Garrow System**, shown as **"Natural Order Homeworld"** until the owner names it.
 - The homeworlds open when Elara's or Marcus's homeworld offer is accepted.
 
 ## Continuity

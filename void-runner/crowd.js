@@ -18,7 +18,7 @@
   'npc-kai':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Kai's own model (Meshy, 16 Nov 2026): the clips of the old Kai figure, retargeted
   'npc-fish':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],   // Fish, Milked's owner: her own model (Meshy, 16 Nov 2026)
   'npc-dax':['idle','talk','look','watch','walk','glance-back','shrug'],
-  // Characters made with Meshy from David's reference pictures (docs/development/MESHY_CHARACTERS.md): one skinned mesh each on a 24-joint skeleton (no fingers).
+  // Characters made with Meshy from the owner's reference pictures (docs/development/MESHY_CHARACTERS.md): one skinned mesh each on a 24-joint skeleton (no fingers).
   'npc-admin':['idle','talk','walk','look','shrug'],'npc-iris':['idle','talk','walk','look','shrug'],
   'npc-nyx':['idle','talk','walk','look','watch','laugh','shrug','wipe'],   // Nyx, the District's bartender: her own model (Meshy, 16 Nov 2026)
   // The named District residents' own models (district-people.js `own`).
@@ -66,7 +66,7 @@
  // A look without a clip falls back to the nearest one it has, then to idle.
  const fallback={look:'watch','sit-talk':'sit',typing:'watch',wipe:'interact',pickup:'interact'};
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
- // Model definitions to preload for a place, at every quality (David, 2026-10-28: no primitive stand-ins on the
+ // Model definitions to preload for a place, at every quality (the owner, 2026-10-28: no primitive stand-ins on the
  // street). Low quality simply has fewer people (ncz-nightlife.js).
  function models(location,quality,area='all'){
   if(!casts[location])return {};

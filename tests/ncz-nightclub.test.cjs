@@ -1,4 +1,4 @@
-// The NeoChinatown nightclub (David's map, 2026-10-24): where it stands, how you get in, and that nothing else moved.
+// The NeoChinatown nightclub (the owner's map, 2026-10-24): where it stands, how you get in, and that nothing else moved.
 const test=require('node:test'),assert=require('node:assert/strict'),path=require('node:path'),E=require('../void-runner/exploration-controller.js');
 const club=require('../void-runner/ncz-nightclub.js'),townPath=require.resolve('../void-runner/neochinatown.js');
 const off=require('../void-runner/neochinatown.js');

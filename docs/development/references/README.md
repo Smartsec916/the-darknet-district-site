@@ -1,6 +1,6 @@
 # Reference images
 
-The pictures David supplied on 12 November 2026 are not in this folder yet. They will be added later.
+The pictures the owner supplied on 12 November 2026 are not in this folder yet. They will be added later.
 
 Until the files are here, use the written descriptions in [`../VISUAL_REFERENCES.md`](../VISUAL_REFERENCES.md). Every entry there is marked image pending. Do not invent stand-in files, and do not commit unrelated images into this folder.
 

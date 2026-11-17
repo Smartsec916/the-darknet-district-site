@@ -6,7 +6,7 @@ Apparel: each product picture has its plain background removed (flooded in from 
 into one cell, standing on the cell's bottom edge. Survival: the pictures in attached_assets/ already have their own neon backdrop, so each is kept whole as a
 square display card. store-atlas.json lists every cell (sheet, column, row, product name, the picture's width/height as a share of the cell).
 Sources: survival = the photos already in attached_assets/ (read from store-survival.html); apparel = the store's own product pictures, fetched from its
-storefront into DIR with a list.json of [title, file] (not kept in the repository). The electronics page is left out (David, Nov 2026).
+storefront into DIR with a list.json of [title, file] (not kept in the repository). The electronics page is left out (the owner, Nov 2026).
 The survival photos show other makers' products: see docs/VOID_RUNNER_ASSET_LICENSES.md."""
 import json, os, re, sys
 from PIL import Image, ImageDraw, ImageFilter, ImageChops

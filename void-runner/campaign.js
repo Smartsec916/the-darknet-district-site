@@ -22,7 +22,7 @@
     engines: { name: 'Vector thrusters', description: 'Faster movement and more responsive handling.', prices: [250, 500, 900] },
     shields: { name: 'Deflector shield', get description(){return B.shieldPerTier+' shield capacity per tier. Regenerates '+B.shieldRechargeRate+' per second after '+B.shieldRechargeDelay+' seconds without a hit.';}, prices: [300, 650, 1000] }
   };
-  // The District's faction deliveries (David's docs 05/06). Delivering the cargo and collecting
+  // The District's faction deliveries (the owner's docs 05/06). Delivering the cargo and collecting
   // payment from Iris at The Darknet District are separate steps. Progress lives in story.flags.
   const factionDeliveries={
     communion:{id:'communion-delivery',faction:'communion',flag:'communionDelivery',name:'Communion delivery',cargo:'Advanced electronics and research equipment',legal:true,destination:'vigil',payment:1200,reward:1200,enemies:3,tier:1,duration:40,contact:'Admin',recipient:'elara',briefing:'Advanced electronics and research equipment for Dr. Elara Voss at The Vigil, Cantor System. Payment is collected at The Darknet District.'},
@@ -36,7 +36,7 @@
     'natural-order':{id:'order-supply',faction:'natural-order',kind:'supply',flag:'orderSupply',name:'Natural Order supply contract',cargo:'Industrial control assemblies, heavy-duty mechanical components, and replacement machinery and repair equipment',legal:true,destination:'holdfast',payment:1500,reward:1500,enemies:3,tier:1,duration:40,contact:'Iris',recipient:'marcus',briefing:'Industrial control assemblies, replacement machinery and heavy-duty mechanical components for Marcus Vale at Holdfast, Garrow System. Payment is collected at The Darknet District.'}
   };
   const supplyList=Object.values(supplyDeliveries),payable=[...factionList,...supplyList];
-  // Homeworld missions are placeholders until David designs them: they can be offered and
+  // Homeworld missions are placeholders until the owner designs them: they can be offered and
   // accepted, but have no destination, objectives or rewards and never complete.
   const originMissions={communion:{id:'communion-origin-mission-01',faction:'communion',flag:'communionOrigin',giver:'elara'},'natural-order':{id:'natural-order-origin-mission-01',faction:'natural-order',flag:'orderOrigin',giver:'marcus'}};
   // Homeworlds (design doc 10). Elara and Marcus send a shipment down to their homeworld; Kess and
@@ -140,7 +140,7 @@
   }
   // Rook routes no freight into a faction system until the player has made Admin's delivery there.
   function heldForAdmin(s,system){const d=factionList.find(x=>U.system(x.destination)===system);return !!d&&!['delivered','paid'].includes(factionStage(s,d.faction));}
-  // "Don't Ask Questions" (David's brief doc 11 §23): Admin's sealed cargo for Rook. Offered once the
+  // "Don't Ask Questions" (the owner's brief doc 11 §23): Admin's sealed cargo for Rook. Offered once the
   // first District delivery is paid and Admin is free. The run is trouble-free: no patrols, inspection,
   // confiscation or interdiction, and the contents are never revealed. Rook pays on handover at Meridian.
   // story.flags.sealedCargo: accepted -> delivered. ('seized' exists only in saves from PR #59; Admin offers again.)
@@ -252,7 +252,7 @@
   }
   const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, sealedCargo, ...content.missions];
   function fresh() { return { version: 2, progression:P.fresh(), universe:U.fresh(), story:currentStory(), warflying:WarFlying.fresh(), relay:Relay.fresh(), savedAt:null, quest: 'inheritance', location: 'meridian', credits: 100, completed: 0, upgrades: { guns: 0, armor: 0, engines: 0, shields:0 }, contract: null, cleared: [], creditGear:[], ownedShips:['starter'], activeShip:'starter', standardGear:['pulse1','shield1'], shipLoadouts:{}, combatRuns:0, missileOfferSeen:false, missileUnlocked:false, travel:null, destination:null, loadout: {weapon:null,shield:null,utility:null,missile:null} }; }
-  // The Darknet District reset (David, 2026-11-04): every campaign carries story.flags.campaignEpoch. Saves from before the reset have none and are retired: restore() refuses them.
+  // The Darknet District reset (the owner, 2026-11-04): every campaign carries story.flags.campaignEpoch. Saves from before the reset have none and are retired: restore() refuses them.
   const CAMPAIGN_EPOCH = 1;
   const isCurrent = s => !!s && typeof s === 'object' && Number.isSafeInteger(s.story?.flags?.campaignEpoch) && s.story.flags.campaignEpoch >= CAMPAIGN_EPOCH;
   // True for a well-formed campaign from before the reset (so the game can say it was retired, and keep a copy), false for anything else.
@@ -420,9 +420,13 @@
     {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
-    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);Missions.sync(out,{missionFlight,contracts});return out;
+    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Missions.sync(out,{missionFlight,contracts});return out;
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
+  /* Missions removed from the game (the owner, 17 Nov 2026): in a District campaign only the main storyline (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run.
+     A tracked removed mission (the beginner campaign, anything older) is untracked; its record, credits, items and ships are kept, and nothing is rejected. void_runner_api.py clean_save does the same. */
+  const storyMission=id=>typeof id==='string'&&/^(draft-|main-storyline-m\d|m\d{3}-)/.test(id);
+  function retireMissions(s){if(!Missions.closed(s)||!s.universe)return false;const t=s.universe.trackedMission;if(t==null||storyMission(t))return false;s.universe.trackedMission=null;s.universe.autoTrack=true;return true;}
   function grantShip(s){if(s.story?.flags?.shipAccess==='none')s.story.flags.shipAccess='granted';return S.hasShip(s);}
   /* The beginner campaign's reward (and the developer test ship): a REAL starter ship plus the travel the ship system needs. Idempotent: the flag makes a second call change nothing.
      What it opens: the pad ship and BOARD (shipAccess), boarding past the old Vesper opening gate (quest 'open'; a closed-pool campaign has no Vesper lessons, see progression.groundDone),
@@ -434,7 +438,9 @@
    if(!s.loadout||!Object.keys(s.loadout).length)s.loadout={...S.defaults[s.activeShip]};
    s.quest='open';s.universe=U.restore({...s.universe,missionLogUnlocked:true,freeTravel:true},s);f.starterShipAwarded=true;return S.hasShip(s);
   }
-  function buyShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Story.emit(s,'ownShip',id);return true;}
+  /* A hull becomes the player's (ownership, its loadout and its standard gear): buying it, or a mission reward (Mission Editor GRANT SHIP). Never a premium hull. */
+  function giveShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id))return false;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Story.emit(s,'ownShip',id);return true;}
+  function buyShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;return giveShip(s,id);}
   function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
   function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&(S.equipment[id].ship==='ship3'?S.owns(s,'ship3'):s.standardGear.includes(id));}
   function equip(s,id,verified=[]){const g={...content.gear,...content.creditGear,...S.equipment}[id];if(!g||!ownsEquipment(s,id,verified))return false;s.loadout[g.slot]=s.loadout[g.slot]===id?null:id;s.shipLoadouts[s.activeShip]={...s.loadout};return true;}
@@ -492,7 +498,7 @@
       }
     };
   }
-  const api = { campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

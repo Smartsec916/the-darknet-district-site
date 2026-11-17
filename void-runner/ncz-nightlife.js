@@ -6,9 +6,9 @@
    Everyone keeps to the sidewalk lanes (no new collision, nothing blocks a door, a taxi stand or the player).
    Density adapts: figures far from you are switched off, and if the frame rate drops the furthest people are hidden
    until it recovers (config.fps).
-   Crowd looks and clips: crowd.js (MakeHuman CC0; drunk clips from David's Mixamo downloads).
+   Crowd looks and clips: crowd.js (MakeHuman CC0; drunk clips from the owner's Mixamo downloads).
    Pure planning runs in Node (tests/ncz-nightlife.test.cjs); the figures run in the browser (neochinatown.js).
-   DRAFT: the drunks' remarks are Claude's placeholders for David's review. */
+   DRAFT: the drunks' remarks are Claude's placeholders for the owner's review. */
 (function(root){
  // Settings: how many people, how many drunk, how often things happen.
  const config={
@@ -35,7 +35,7 @@
   // Nobody leans on the club's front by its door (ncz-nightclub.js, local server only for now).
   {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3,...(club?{noLean:[[-61,-55.6]]}:{})},
   {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5]]},   /* the alley mouth (Milked's side street and service alley moved to Far South on 16 Nov 2026: main-far-east) */
-  {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:0,noLean:[[0,999]]}   /* weight 0: nobody walks the alley now (David, Nov 2026: four people there at most; ncz-alley.js has them) */,
+  {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:0,noLean:[[0,999]]}   /* weight 0: nobody walks the alley now (the owner, Nov 2026: four people there at most; ncz-alley.js has them) */,
   {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2},
   {id:'avenue-south',a:[6,-18.4],b:[148,-18.4],wall:[0,-1],half:1,nightlife:true,weight:2,noLean:[[49,73]]}];
  // Spots no one stops or leans at: doors, the taxi zones' kerbs, the static crew.
@@ -163,7 +163,14 @@
     place(p,dt);}}
   function sideOf(l,o){const p=[o.node.position.x,o.node.position.z],L=len(l),ux=(l.b[0]-l.a[0])/L,uz=(l.b[1]-l.a[1])/L,t=along(l,p),bx=l.a[0]+ux*t,bz=l.a[1]+uz*t;return (p[0]-bx)*l.wall[0]+(p[1]-bz)*l.wall[1];}
   function dispose(){disposed=true;for(const p of people)p.node?.dispose(false,false);people.length=0;}
-  return {tick,dispose,people,stats,config:cfg};}
+  // Everyone whose look is ready is made now, behind the loading screen (neochinatown.js prepare), instead of at random in the first second after the doors open;
+  // each still starts unseen and fades in as before.
+  function prewarm(){for(const p of people)if(!p.node)spawn(p);}
+  // A figure's shaders differ while it fades (see-through) and once it is solid: both are compiled now, still behind the loading screen. `ready` waits for the scene.
+  async function warm(ready){const all=people.filter(p=>p.parts);if(!all.length||typeof ready!=='function')return;const cap=q=>Promise.race([Promise.resolve(q).catch(()=>{}),new Promise(r=>setTimeout(r,5000))]);
+   for(const k of [1,.5]){for(const p of all)for(const [m,v]of p.parts)m.visibility=v*k;scene.incrementRenderId();await cap(ready());if(disposed)return;}
+   for(const p of all){for(const [m,v]of p.parts)m.visibility=v*(p.fade||0);p.lastFade=p.fade;}}
+  return {tick,dispose,prewarm,warm,people,stats,config:cfg};}
  const api={config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

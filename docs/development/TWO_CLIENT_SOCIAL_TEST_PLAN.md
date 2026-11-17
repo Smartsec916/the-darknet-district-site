@@ -32,7 +32,7 @@ Written 2026-11-05. **Plan only. Nothing here is built, deployed or connected to
 - Everything above on one machine: Auth + Firestore emulators (done), the dev hub on `127.0.0.1`, two Playwright browser contexts (two independent localStorage/IndexedDB profiles) signed in as two emulator accounts, asserting each sees the other's model and position, tamper attempts rejected, disconnect cleanup, and Low/High graphics.
 - Limits: software rendering gives low frame rates; this proves correctness and rejection logic, not real latency, bandwidth or GPU cost.
 
-## 5. What needs David's approval
+## 5. What needs the owner's approval
 
 | Item | Why |
 |---|---|
@@ -41,11 +41,11 @@ Written 2026-11-05. **Plan only. Nothing here is built, deployed or connected to
 | Publishing the game route that loads `remote-players.js` for real players | Merging to `main` publishes the site automatically. |
 | Any stored data (reports, bans, presence history) in Neon or Firestore | Production databases and a retention/privacy decision (minors, chat policy). |
 | Deploying Firestore rules (none are in the repo; see `LOCAL_API_TEST.md`) | Production change. |
-| Real-device or real-GPU testing | Needs David's PC, or a second person for a true two-person session. |
+| Real-device or real-GPU testing | Needs the owner's PC, or a second person for a true two-person session. |
 
 ## 6. Proposed order
 
 1. Dev hub with emulator tokens and a protocol unit test (pure logic: validation, speed/bounds, rate limit) in `npm test`.
 2. `remote-players.js` (dev-only) and a two-context Playwright test at Low and High.
-3. A two-person session on David's PC against a hub on his machine (LAN), still no cloud.
+3. A two-person session on the owner's PC against a hub on his machine (LAN), still no cloud.
 4. Only then: decide hosting and approvals above.

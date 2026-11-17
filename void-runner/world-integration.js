@@ -48,7 +48,7 @@ function podVendShow(on){const main=podWake.querySelector('.pod-wake-hint'),titl
  if(on){const items=globalThis.VoidPodVending?.products||[];if(!podVend.grid.children.length)for(const item of items){const b=document.createElement('a');b.href='#';b.setAttribute('role','button');b.dataset.vendItem=item.code;b.textContent=item.code+' '+item.name;podVend.grid.append(b);}
   podVend.picked=null;podVend.buy.setAttribute('aria-disabled','true');podVend.info.textContent=items.length?'Choose an item.':'The machine is empty.';for(const b of podVend.grid.children)b.setAttribute('aria-pressed','false');if(walker){podVend.yaw=walker.yaw;walker.yaw=VoidDistrictArea.POD_VIEW.vending;walker.pitch=0;}podVend.grid.querySelector('a')?.focus({preventScroll:true});}
  else if(podVend.yaw!==null&&walker){walker.yaw=podVend.yaw;podVend.yaw=null;}}
-// The strip's four buttons were removed (David, 16 Nov 2026): the pod's own controls (the sign on the glass, the wall screens, the vending unit) and the keys do the same things.
+// The strip's four buttons were removed (the owner, 16 Nov 2026): the pod's own controls (the sign on the glass, the wall screens, the vending unit) and the keys do the same things.
 const podAct={vend(){if(mode==='pod-waking')podVendShow(true);}};
 podVend.box.addEventListener('click',e=>{const b=e.target.closest('a[role="button"]');if(!b)return;e.preventDefault();if(mode!=='pod-waking')return;
  if(b.dataset.vendItem){const item=(globalThis.VoidPodVending?.products||[]).find(x=>x.code===b.dataset.vendItem);if(!item)return;podVend.picked=item;podVend.buy.setAttribute('aria-disabled','false');for(const x of podVend.grid.children)x.setAttribute('aria-pressed',String(x===b));podVend.info.textContent=item.name+' · '+item.category+' · '+item.price.toFixed(2)+' — '+item.description;}
@@ -65,7 +65,7 @@ function enterSleepingPod(index=1){
 const podLook={drag:null,keys:new Set()},podFree=()=>mode==='pod-waking'&&!podWake.hidden&&podVend.box.hidden&&!!walker;
 const podTurn=(dx,dy)=>{if(Math.abs(dx)>160||Math.abs(dy)>160)return;   // the browser reports one enormous jump at the moment it captures or releases the mouse: not a real movement
  walker.yaw+=dx*.003;walker.pitch=Math.max(-1.2,Math.min(1.2,(walker.pitch||0)+dy*.003));};
-// The pod's wall controls (David, 15 Nov 2026): the music player, the light panel, the vending unit and EXIT THE POD on the hatch glass are used by pointing at them
+// The pod's wall controls (the owner, 15 Nov 2026): the music player, the light panel, the vending unit and EXIT THE POD on the hatch glass are used by pointing at them
 // and clicking. With the mouse held (after a click on the view) the middle of the screen is the pointer. The sign lights up under the pointer.
 const podPoint={x:0,y:0,over:null};
 function podAim(){const N=globalThis.VoidNeoChinatown;if(!N?.podPick||!podFree()){if(podPoint.over){podPoint.over=null;N?.podHover?.(null);podWake.classList.remove('aiming');}return null;}
@@ -89,7 +89,7 @@ podWake.addEventListener('wheel',e=>{const UI=globalThis.VoidPodPlayerUI,N=globa
 podWake.addEventListener('pointerdown',e=>{if(e.target!==podWake||!podFree())return;podPoint.x=e.clientX;podPoint.y=e.clientY;if(podUse(podAim())){e.preventDefault();return;}podLook.drag={x:e.clientX,y:e.clientY};if(e.pointerType==='mouse'&&VoidControls?.deviceClass!=='touch-first')podWake.requestPointerLock?.()?.catch?.(()=>{});});
 addEventListener('pointerup',()=>{podLook.drag=null;});addEventListener('pointercancel',()=>{podLook.drag=null;});
 addEventListener('mousemove',e=>{if(!podFree())return;podPoint.x=e.clientX;podPoint.y=e.clientY;if(document.pointerLockElement===podWake)podTurn(e.movementX,e.movementY);else if(podLook.drag){podTurn(e.clientX-podLook.drag.x,e.clientY-podLook.drag.y);podLook.drag={x:e.clientX,y:e.clientY};}
- else if(e.target===podWake&&e.pointerType!=='touch'&&!podCtl(podAim(),globalThis.VoidPodMusic?.state?.()))podTurn((e.movementX||0)*.7,(e.movementY||0)*.7);});   // David, Nov 2026: no need to click first. Moving the mouse over the view (not over the buttons) looks around at once; a click still holds the mouse for full turns.
+ else if(e.target===podWake&&e.pointerType!=='touch'&&!podCtl(podAim(),globalThis.VoidPodMusic?.state?.()))podTurn((e.movementX||0)*.7,(e.movementY||0)*.7);});   // The owner, Nov 2026: no need to click first. Moving the mouse over the view (not over the buttons) looks around at once; a click still holds the mouse for full turns.
 document.addEventListener('pointerlockchange',()=>podWake.classList.toggle('looking',document.pointerLockElement===podWake));
 addEventListener('keydown',e=>{if(!podFree()||e.repeat&&!/^Arrow/.test(e.code)||e.ctrlKey||e.metaKey||e.altKey)return;
  if(/^Arrow/.test(e.code)){podLook.keys.add(e.code);e.preventDefault();e.stopPropagation();return;}
@@ -139,7 +139,7 @@ let solHandover=null;
 arrive=function(){const previous=state.location,quest=state.quest;solHandover=null;worldArrive();if(!['arrival','dialogue'].includes(mode)||state.location===previous&&state.quest===quest)return;
  const lines=speech?.lines.slice(),label=speech?.label;speech=null;
  const docking=dock(),token=preparationGeneration;Promise.resolve(docking).then(()=>{
-  // A delivery to Kepler is handed over to Dr. Sol at the bar (David, 2026-10-23): his lines wait until you talk to him.
+  // A delivery to Kepler is handed over to Dr. Sol at the bar (the owner, 2026-10-23): his lines wait until you talk to him.
   if(token===preparationGeneration&&lines&&mode==='walking'&&state.location==='kepler'&&lines[0]?.who==='sol'&&walkingLocation?.interactions.some(i=>i.id==='sol')){solHandover={lines,label};announce('Hand the delivery to Dr. Sol at the bar.');return;}
   if(token===preparationGeneration&&lines&&mode==='walking')talk('',lines,()=>{if(walkingLocation)resumeWalking();},label||'EXPLORE STATION');});
 };
@@ -152,7 +152,7 @@ barRoom=()=>resumeWalking();bar=barRoom;contacts=function(){campaignBoard();};
 const originalRookConversation=rookConversation;
 // Rook's cargo network (campaign.js): he pays what he owes first, then shows the jobs on his board.
 // Each job says what it is, where it goes, how much hold it takes, what it pays and who pays.
-// Rook's payment line approved by David, 2026-10-27.
+// Rook's payment line approved by the owner, 2026-10-27.
 function rookFreightOffer(){
  const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),place=id=>C.stations[id]?.name||id,far=id=>VoidUniverse.system(id)!==VoidUniverse.system(state.location);
  const owed=C.rookOwed(state);
@@ -179,7 +179,7 @@ screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.
   else announce('Not enough free hold space for that job.');resumeWalking();}
  else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}
 });
-rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){rookFreightOffer();return;}/* freight never waits on the missile drill (David, 2026-10-23) */originalRookConversation();};
+rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){rookFreightOffer();return;}/* freight never waits on the missile drill (the owner, 2026-10-23) */originalRookConversation();};
 VoidInteractions.register('talk',({item})=>{
  if(item.character==='rook')return rookConversation();
  if(item.character==='mara')return playStoryScene('mara_workshop_intro');
@@ -219,10 +219,13 @@ update=function(dt){
  {const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),text='MISSION LOG · '+key;if(missionLogButton.textContent!==text)missionLogButton.textContent=text;
   // First time the log becomes available, say how to open it.
   if(!missionLogButton.hidden&&state.story&&!state.story.flags.missionLogHint){state.story.flags.missionLogHint=true;announce('Mission Log unlocked. Press '+key+' to open it and choose what to track.');save();}}
- trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null);let waypoint=item;if(item){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}
+ trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null)||districtRoute(g.interaction)||(typeof missionPlaceRoute==='function'?missionPlaceRoute(g):null);let waypoint=item;if(item&&!item.route){if(walker.z<3&&item.position[2]>4)waypoint={position:[0,1.7,3]};else if(walker.z<18&&item.position[2]>18)waypoint={position:[0,1.7,19]};else if(walker.z>19&&item.position[2]<18)waypoint={position:[0,1.7,19]};else if(walker.z>4&&item.position[2]<4)waypoint={position:[0,1.7,3]};}trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m':'');}
   // The Kepler hand-over leads to Dr. Sol at the bar (through the door and corridor, as above).
   const sol=solHandover&&state.location==='kepler'&&walkingLocation?.interactions.find(i=>i.id==='sol');if(sol){const waypoint=walker.z<3?{position:[0,1.7,3]}:walker.z<18?{position:[0,1.7,19]}:sol;trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · Hand the delivery to Dr. Sol at the bar · '+Math.round(Math.hypot(waypoint.position[0]-walker.x,waypoint.position[2]-walker.z))+'m';}}
 };
+// A tracked mission's person inside The Darknet District while the player is out on the NeoChinatown street: the arrow leads to the District's vestibule (its way in),
+// as the station guidance leads to a door first (17 Nov 2026: the owner tracked a mission given by Admin and saw no arrow).
+let districtIds=null;function districtRoute(id){try{if(!id||walkingLocation?.id!=='neochinatown'||walkingLocation.area==='interior'||typeof VoidNeoChinatown==='undefined')return null;districtIds??=new Set(VoidNeoChinatown.layout('interior').interactions.map(i=>i.id));if(!districtIds.has(id))return null;const [x,z]=VoidNeoChinatown.toWorld(0,23);return {position:[x,1.7,z],route:true};}catch{return null;}}
 const worldMarker=drawWarpMarker;
 drawWarpMarker=function(){
  if(!state.universe.freeTravel)return worldMarker();if(flight.route?.phase!=='align'||VoidNavigationReveal.opacity(navigationReveal)<=0)return;

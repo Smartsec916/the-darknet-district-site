@@ -208,7 +208,7 @@ def account(db, uid):
 
 
 def require_handle_if_guest(db, uid, message):
-    """Handle-only accounts (Firebase anonymous sign-in) may keep a character once they hold a District handle (David, 15 Nov 2026).
+    """Handle-only accounts (Firebase anonymous sign-in) may keep a character once they hold a District handle (the owner, 15 Nov 2026).
     The handle is the server's own record (the identity registry, bp_profiles), never a name sent by the browser. A guest with no handle is still refused."""
     if getattr(g, 'auth_claims', {}).get('firebase', {}).get('sign_in_provider') != 'anonymous':
         return
@@ -332,7 +332,7 @@ def clean_save(value):
         raise ApiError('Unsupported save format.')
     from pathlib import Path
     import json
-    # The Darknet District reset (David, 2026-11-04): saves from before it carry no campaign epoch and are retired, not converted.
+    # The Darknet District reset (the owner, 2026-11-04): saves from before it carry no campaign epoch and are retired, not converted.
     if not is_current_save(value):
         raise ApiError('This save is from before The Darknet District reset and can no longer be stored. Start a new campaign.', 409)
     manifest=json.loads((Path(__file__).parent/'void-runner'/'save-manifest.json').read_text())
@@ -499,6 +499,14 @@ def clean_save(value):
             raise ApiError('Invalid dialogue checkpoint.')
         cleaned['cursor']=None if cursor is None else {key:cursor[key] for key in ['scene','node','choices']}
 
+    # Missions removed from the game (the owner, 17 Nov 2026): in a District campaign (story.flags.missionPool == 'closed') only the main storyline
+    # (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run. A tracked removed mission is untracked; its record, credits and items are kept
+    # and the save is never rejected for it (campaign.js retireMissions does the same).
+    if cleaned.get('flags', {}).get('missionPool') == 'closed':
+        tracked_id = result['universe'].get('trackedMission')
+        if tracked_id is not None and not re.match(r'^(draft-|main-storyline-m\d|m\d{3}-)', tracked_id):
+            result['universe']['trackedMission'] = None
+            result['universe']['autoTrack'] = True
     if 'story' in value:
         result['story'] = cleaned
     if 'warflying' in value:
@@ -917,3 +925,69 @@ def content_release_compare(db, uid):
     return jsonify(fromRevision=numbers[0], toRevision=numbers[1],
                    diff=content_releases.comparison(before['documents'], after['documents']),
                    writes=0, liveActivationImplemented=False)
+
+
+# Mission Editor: published mission content (off unless VOID_CONTENT_PUBLISH_ENABLED=true) and the owner's re-voice queue.
+import void_runner_live_content as live_content
+
+
+@api.get('/live-content')
+def live_content_public():
+    """Public, read-only: the one live version of published mission content (or none). Off = 404, and the game keeps the shipped missions."""
+    if not live_content.enabled():
+        return jsonify(error='Published mission content is switched off.'), 404
+    db, _, _ = services()
+    return jsonify(live_content.public(db))
+
+
+@api.get('/developer/live-content')
+@signed_in
+def live_content_state(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.summary(db))
+
+
+@api.get('/developer/live-content/<int:version>')
+@signed_in
+def live_content_version(db, uid, version):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.load(db, version))
+
+
+@api.post('/developer/live-content/check')
+@signed_in
+def live_content_check(db, uid):
+    live_content.owner(uid, balance_admin)
+    body = request.get_json(silent=True)
+    problems = live_content.check((body or {}).get('content') if isinstance(body, dict) else None)
+    return jsonify(ok=not problems, errors=problems, warnings=[])
+
+
+@api.post('/developer/live-content/publish')
+@signed_in
+def live_content_publish(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.publish(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/live-content/rollback')
+@signed_in
+def live_content_rollback(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.rollback(db, uid, request.get_json(silent=True)))
+
+
+@api.route('/developer/revoice', methods=['GET', 'POST'])
+@signed_in
+def revoice_queue(db, uid):
+    live_content.owner(uid, balance_admin, need='queue')
+    if request.method == 'GET':
+        return jsonify(live_content.queue_list(db, uid))
+    return jsonify(live_content.queue_add(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/revoice/done')
+@signed_in
+def revoice_done(db, uid):
+    live_content.owner(uid, balance_admin, need='queue')
+    return jsonify(live_content.queue_done(db, uid, request.get_json(silent=True)))

@@ -1,4 +1,4 @@
-/* Environmental sound (David, 15 Nov 2026): recorded ambience for each area, on top of the area's music.
+/* Environmental sound (the owner, 15 Nov 2026): recorded ambience for each area, on top of the area's music.
    - Beds: what a whole area sounds like (rain and the far city on the street, dripping in the alley, ventilation inside the District, wind at the temple,
      the hum of the corporate plaza). They fade in and out as you move; nothing restarts at a doorway.
    - Emitters: sounds that come from a place (the arcade machines, the shop terminals, the VR rigs, the bar's neon, the security scanner, the neon over the

@@ -48,7 +48,7 @@
  // Inside a VR simulation the player is in a shared VR session on the hub (vrSession below), or in a private one of their own when playing solo.
  let hubVr=false;   // the hub said it knows shared VR sessions (an older hub treats those messages as faults, so none are sent to it and VR stays offline, as before)
  const inVrWorld=()=>typeof walkingLocation!=='undefined'&&walkingLocation?.kind==='vr';
- /* Which room of the hub this place is (David, 15 Nov 2026: players see each other everywhere they can walk, not only inside the District). The District interior
+ /* Which room of the hub this place is (the owner, 15 Nov 2026: players see each other everywhere they can walk, not only inside the District). The District interior
     keeps its name; the NeoChinatown street (with the alley and NULL nightclub, which are part of it) is one room; every other place is a room named by its own id.
     The hub refuses a name it does not know (tools/district-hub/protocol.cjs ROOMS), and then this place is simply played alone. */
  const PLACES=new Set(['corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld']);
@@ -76,7 +76,7 @@
  async function token(){try{if(isLocalPage){const t=get(root.localStorage,'tdd-dev-mp-token');if(t)return t;}return await root.VoidAccount?.user?.getIdToken?.()||null;}catch{return null;}}
  const accountUid=()=>root.VoidAccount?.user?.uid||null;
 
- /* No name floats over another player's head (David, 15 Nov 2026): who is here is read from the V1's Players list. makeTag stays as a no-op so callers need no change. */
+ /* No name floats over another player's head (the owner, 15 Nov 2026): who is here is read from the V1's Players list. makeTag stays as a no-op so callers need no change. */
  function makeTag(){return null;}
  function removePeer(id){const p=peers.get(id);if(!p)return;p.off?.();p.ctrl?.dispose?.();p.node?.dispose?.();peers.delete(id);}
  function clearPeers(){for(const id of [...peers.keys()])removePeer(id);}
@@ -198,7 +198,7 @@
  root.addEventListener('pagehide',()=>{if(ws?.readyState===1)try{ws.send('{"t":"bye"}');}catch{}});
  requestAnimationFrame(frame);
  // Frames stop while a place loads or the tab is in the background; this timer still tells the hub the player is there, so a slow load is not taken for a dead connection.
- /* V3 // Shadow (David, 15 Nov 2026): the device's camera is in the left eye, and while its owner is using it that eye glows a little, in the device's own green.
+ /* V3 // Shadow (the owner, 15 Nov 2026): the device's camera is in the left eye, and while its owner is using it that eye glows a little, in the device's own green.
     Twice a second: tell the server when my own use starts or stops, and put the light on (or take it off) each player I can see. */
  let eyeSent=false;
  setInterval(()=>{let using=false;try{using=state?.story?.flags?.deviceModel==='v3'&&(!!root.VoidPersonalDevice?.isOpen||!!root.VoidDeviceCamera?.active);}catch{}

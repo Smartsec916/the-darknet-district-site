@@ -46,10 +46,10 @@
   danger:{bpm:66,root:45,mode:'phrygian',prog:[0,1,0,5],chordBars:2,gain:.8,mood:'Asteroids and hazards: low drones, sparse pulses, uncertain harmony.',layers:[L('drone',{vel:.09}),L('bass',{pattern:'x.......x.......',vel:.13,octave:-1}),L('metal',{pattern:'......x.........',chance:.45,vel:.05})],combat:'default'},
   derelict:{bpm:50,root:36,mode:'phrygian',prog:[0,1,0,4],chordBars:4,gain:.75,mood:'Derelict station: dark ambient, long near-silence, odd mechanical sounds.',layers:[L('drone',{vel:.09}),L('cluster',{everyBars:8,chance:.5,vel:.04}),L('metal',{pattern:'.......x........',chance:.25,vel:.035}),L('pad',{wave:'sawtooth',cutoff:400,vel:.03,attack:4,bars:3,of:8})],combat:'heavy'}
  };
- // Recorded tracks David supplies later: { styleId: 'void-runner/assets/audio/music/<file>.ogg' }.
+ // Recorded tracks the owner supplies later: { styleId: 'void-runner/assets/audio/music/<file>.ogg' }.
  // A style with a file plays that file instead of the generated score.
  // The club's final soundtrack goes here once it exists, e.g. files.nightclub='void-runner/assets/audio/music/nightclub.ogg' (loops; no commercial music without permission).
- // 15 Nov 2026: the area soundtrack (David). Each area below plays a recorded loop made with ElevenLabs Music; see void-runner/assets/audio/score/LICENSES.md.
+ // 15 Nov 2026: the area soundtrack (the owner). Each area below plays a recorded loop made with ElevenLabs Music; see void-runner/assets/audio/score/LICENSES.md.
  // The generated score above stays as the fallback (a file that fails to load) and for the places that have no recording yet (stations, warp, hazards).
  const SCORE='void-runner/assets/audio/score/',track=id=>SCORE+id+'.ogg';
  // Areas added with the soundtrack. Their generated fallback borrows a neighbour's.
@@ -58,7 +58,7 @@
  styles.milked={...styles['district-bar'],gain:.8,mood:'Milked: slow, glossy, late night.'};
  styles.corporate={...styles.vantor,gain:.8,mood:'Corporate District: cold, imposing, watched.'};
  styles.temple={...styles.communion,gain:.8,mood:'Zen Zephyr Temple: bowls, flute and wind above the city.'};
- // David, 15 Nov 2026: the hallway's music is the music of the whole District, at one level; only the arcade keeps its own. The rooms are still separate areas
+ // The owner, 15 Nov 2026: the hallway's music is the music of the whole District, at one level; only the arcade keeps its own. The rooms are still separate areas
  // (their ambience, footsteps and the door lock depend on that), they just all play the hallway's recording.
  for(const k of ['district-entry','district-store','district-bar','district-vr','district-rest'])styles[k]={...styles['district-hall'],mood:styles[k].mood};
  const files={theme:track('theme'),neochinatown:track('neochinatown'),alley:track('alley'),'district-hall':track('district-hall'),'district-entry':track('district-hall'),'district-store':track('district-hall'),

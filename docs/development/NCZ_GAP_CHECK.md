@@ -1,6 +1,6 @@
 # NeoChinatown building-gap check
 
-Build `2026-11-16-fixes-1` (16 Nov 2026). David, after playing the live site: "Much of NeoChinaTown has gaps in the buildings", and then how to find them:
+Build `2026-11-16-fixes-1` (16 Nov 2026). The owner, after playing the live site: "Much of NeoChinaTown has gaps in the buildings", and then how to find them:
 
 > Please add a repeatable 3D building-gap check to the NeoChinaTown rework. Reuse the setup in tests/ncz-views-browser.cjs so you can inspect VoidBabylon.scene after the street finishes loading. First report which building assets actually appeared and whether the affected block is using the purchased models or the fallback. Start with one visible gap. Identify the two building pieces that should meet and record their names and world coordinates. From the street, cast a closely spaced grid of short rays toward the visible wall around that join. Flag places where rays pass through the expected wall depth. Exclude collision boxes, signs, and intentional openings such as doors and alleys. Save a marked-up screenshot from the player's position so I can recognize the spot. Show that the check detects the gap before changing the placement. Then fix the join, rerun the same check, and show the before-and-after result. Once it works on that spot, apply it to the other reworked storefronts.
 
@@ -62,7 +62,7 @@ Intentional openings (no wall is expected there; given to `wallFaces` as rectang
 | This machine, Old Town and the Avenue | file absent | file absent | file absent | **the fallback built in code** |
 
 - **Every block in Old Town and on the Avenue is built in code, on the live site as well as here.** The purchased Cyberpunk City pack is used in one place only, "Block A" on Main Street's west side, and that block was replaced by NULL's front: the street's code only places the two purchased files when there is no club (`both=!club&&...` in `neochinatown.js`), and there is always a club now. The live site still downloads both files and places nothing from them.
-- **So the gaps David saw are not a purchased-model problem,** and this machine, which does not have the purchased files, sees exactly what the live site shows: the first face checked gave 143 of 348 rays on the live site and 143 of 348 here.
+- **So the gaps the owner saw are not a purchased-model problem,** and this machine, which does not have the purchased files, sees exactly what the live site shows: the first face checked gave 143 of 348 rays on the live site and 143 of 348 here.
 - The purchased files cannot be had here by an approved route (the private repository `Smartsec916/void-runner-licensed-assets` is not attached to this session, and nothing in `tools/assets` fetches them). The check does not need them; where a purchased model is ever placed, run it on a build that has it, or against the live site as above.
 - NULL's purchased interior is not on the live site either (its `.vrpak` answers 404 there), so NULL is its built stand-in on live.
 

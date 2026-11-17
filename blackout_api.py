@@ -28,7 +28,7 @@ BLOCKED_FRAGMENTS = {'nigger', 'faggot', 'kike', 'rape'}
 IMPERSONATION_WORDS = {'admin', 'administrator', 'moderator', 'mod', 'support', 'staff', 'official', 'system',
                        'root', 'owner', 'superuser', 'sysadmin', 'security', 'helpdesk', 'server', 'firebase',
                        'google', 'iris', 'darknet', 'darknetdistrict', 'thedarknetdistrict', 'district',
-                       'voidrunner', 'blackout', 'blackoutprotocol', 'david', 'smartsec', 'anonymous', 'null',
+                       'voidrunner', 'blackout', 'blackoutprotocol', 'smartsec', 'anonymous', 'null',
                        'mara', 'rook', 'nyx', 'elara', 'marcus', 'iona', 'kai', 'sol'}
 # A numbered NPC-inspired handle is distinct from that character (Iris_02), but
 # numbering a staff role or official site identity can still impersonate it.

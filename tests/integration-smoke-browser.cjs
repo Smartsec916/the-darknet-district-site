@@ -1,4 +1,4 @@
-/* Combined-build smoke test (David, 2026-11-04): campaigns from before the District reset are retired, new campaigns have no ship or missions,
+/* Combined-build smoke test (the owner, 2026-11-04): campaigns from before the District reset are retired, new campaigns have no ship or missions,
    NPC dialogue still answers, ship gating and the empty landing pad hold, and the regular mobile site stays separate from the 3D game.
    Run: node tests/serve-modern.cjs &  then  node tests/integration-smoke-browser.cjs [low|high]   (Playwright, software GL is fine) */
 const {chromium,devices}=require('playwright'),assert=require('node:assert/strict');

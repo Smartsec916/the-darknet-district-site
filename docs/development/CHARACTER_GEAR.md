@@ -1,6 +1,6 @@
-# Cyberpunk character gear (LOCAL, awaiting David's review)
+# Cyberpunk character gear (LOCAL, awaiting the owner's review)
 
-Status: built and integrated locally on branch `claude/character-gear`. **Not pushed, not merged, not deployed.** David approved the minimal design for local integration and testing (13 Nov 2026) and wants to review before anything is published.
+Status: built and integrated locally on branch `claude/character-gear`. **Not pushed, not merged, not deployed.** The owner approved the minimal design for local integration and testing (13 Nov 2026) and wants to review before anything is published.
 
 - Source: `tools/assets/gear/build_gear.py` (parts built by code with Blender's `bpy`, the same way as `tools/assets/kit/`).
   Rebuild: `python tools/assets/gear/build_gear.py [--preview out_dir --on male|female --pose talk]`.
@@ -11,7 +11,7 @@ Status: built and integrated locally on branch `claude/character-gear`. **Not pu
 - Skinned 100% to one joint of the character's own 52-joint skeleton and exported with that skeleton (the way the hairstyle parts work), so the parts follow every
   existing animation with no extra clips or per-frame code. Checked in Blender in the `talk` clip.
 - Triangles per part: visor 216, collar 216, plate 56, chest line 24 (all under 300).
-- Not done yet (needs David's review first): loading the parts in `character-assembler.js`, an accessory list in the catalog and creator, the hub catalog copy,
+- Not done yet (needs the owner's review first): loading the parts in `character-assembler.js`, an accessory list in the catalog and creator, the hub catalog copy,
   tinting `gear_glow` by the player's accent colour, and a Babylon check of skinned parts on the shared skeleton.
 
 ## Integration (local)
@@ -24,7 +24,7 @@ Status: built and integrated locally on branch `claude/character-gear`. **Not pu
   for the whole set. Rebuilt only when the chosen set changes. 18 small files are fetched on first use only.
 - **Test:** `tests/character-gear-browser.cjs` (defaults, all 16 combinations on both bodies, skeleton, and a vertex-level clipping measurement over every outfit and every animation clip that exists).
 
-## What a live release would need (not done, awaiting David's approval)
+## What a live release would need (not done, awaiting the owner's approval)
 
 1. Merge `claude/character-gear` to `main` (pages deploy, build id bump, admin inventory).
 2. **Game API:** redeploy from `main` so `character-catalog.json` carries the four ids; otherwise saving an appearance WITH gear is refused ("That appearance is not available"), the same way the four outfits were until 13 Nov. No code, environment or database change.

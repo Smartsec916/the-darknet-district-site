@@ -195,7 +195,7 @@
 ✔ later prologue lessons appear as their own Mission Log entries (7.4826ms)
 ✔ auto-tracking follows completions but respects an explicit untrack (26.699ms)
 ✔ tracking and independent objectives survive legacy save restoration (2.7195ms)
-✔ Meridian follows David’s reference: hangar, door, narrow corridor, living area and store on the left, bar and seating at the end (15.1103ms)
+✔ Meridian follows the owner’s reference: hangar, door, narrow corridor, living area and store on the left, bar and seating at the end (15.1103ms)
 ✔ a registered multi-objective mission completes only after each required event (0.6927ms)
 ✔ boarding after the opening unlocks the Flight Training Mission Log (0.6288ms)
 ✔ Rook unlock migrates old saves and tracking survives round trip (6.2306ms)

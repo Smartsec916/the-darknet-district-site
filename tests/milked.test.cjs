@@ -71,7 +71,7 @@ test('Milked is a built taxi destination; the cab sets down on Main Street, not 
   const z=N.taxiZones.find(z=>z.id==='milked'),[zx,zz]=z.position,m=N.streets.farSouth;assert.ok(zx>m[0]+2&&zx<m[1]-2&&zz>m[2]&&zz<m[3],'the stop is on Main Street, in Far South');assert.equal(z.quarter,'far-south');
   assert.ok(Math.abs(zz-(MK.LANE[2]+MK.LANE[3])/2)<12,'near the mouth of the side street');for(const o of N.taxiZones.filter(o=>o.id!=='milked'))assert.ok(Math.hypot(o.position[0]-zx,o.position[1]-zz)>8,'clear of '+o.id);
   const s=C.fresh();s.location='earth';s.credits=100;const dest=R.destinations(s,{player:[61,-40],quarter:'oldtown'}).find(x=>x.id==='milked');
-  assert.ok(dest.ok&&dest.fare>0&&dest.fare<=R.fare.max&&!dest.placeholder);assert.deepEqual(dest.legs.map(l=>l.gate),['south'],'one checkpoint, the South Gate, between the District and Milked (David, 16 Nov 2026)');
+  assert.ok(dest.ok&&dest.fare>0&&dest.fare<=R.fare.max&&!dest.placeholder);assert.deepEqual(dest.legs.map(l=>l.gate),['south'],'one checkpoint, the South Gate, between the District and Milked (the owner, 16 Nov 2026)');
   const l=R.destinations(s,{player:[61,-40],quarter:'oldtown'});assert.equal(l.filter(x=>x.placeholder).length,0,'no placeholder is offered');
   // road taxis keep to the roads they already drive: they never turn into the side street or the service alley
   const RT=require('../void-runner/road-taxi-rules.js'),rsrc=fs.readFileSync(path.join(__dirname,'../void-runner/road-taxi-rules.js'),'utf8');assert.ok(!/milkedLane|milkedAlley/.test(rsrc));

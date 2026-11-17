@@ -1,12 +1,12 @@
 # MILKED
 
-> **Moved, build `2026-11-16-far-south-1` (16 Nov 2026):** David: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved." The whole building (street shell, side street, service alley, vestibule, rear lobby and the interior environment) was carried by ONE rigid translation, `OFFSET=[0,-100]` in `milked.js`: same side of Main Street, same offsets, same doors, no mirror or turn. It now stands in the **Far South** quarter, past the South Gate. Every number in the tables below is in the building's own frame; add 100 m south (z minus 100) for where it stands. `milked.js` exports world metres and `LOCAL` (the building's own frame, used by `milked-build.js`, which draws under a node moved by `OFFSET` so no number inside the build changed). The taxi stop "Milked corner" is now at (61, -182) in Far South. A pointer blade sign (existing logo, an arrow, the words SOUTH GATE) hangs on Main Street's east wall in Old Town at z -68 and z -118.3.
+> **Moved, build `2026-11-16-far-south-1` (16 Nov 2026):** The owner: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved." The whole building (street shell, side street, service alley, vestibule, rear lobby and the interior environment) was carried by ONE rigid translation, `OFFSET=[0,-100]` in `milked.js`: same side of Main Street, same offsets, same doors, no mirror or turn. It now stands in the **Far South** quarter, past the South Gate. Every number in the tables below is in the building's own frame; add 100 m south (z minus 100) for where it stands. `milked.js` exports world metres and `LOCAL` (the building's own frame, used by `milked-build.js`, which draws under a node moved by `OFFSET` so no number inside the build changed). The taxi stop "Milked corner" is now at (61, -182) in Far South. A pointer blade sign (existing logo, an arrow, the words SOUTH GATE) hangs on Main Street's east wall in Old Town at z -68 and z -118.3.
 
 > **Update, build `2026-11-16-quarters-1`:** Milked is in the Old Town quarter; nothing inside it changed. The sky cab that set down on Main Street is gone; the road-taxi stop there is "Milked corner". See [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md).
 
 > **Surfaces and light, 16 Nov 2026 (fourth pass, build `2026-11-16-milked-4`, branch `claude/milked-surfaces`, one local commit, not pushed):** the layout, the props and the loading transition are those of the third pass; this pass changed how the surfaces are made and lit. See "Surfaces and light (fourth pass)" below.
 >
-> **Rebuilt on 16 Nov 2026 (third pass, build `2026-11-16-milked-3`, branch `claude/milked-aaa`)** after David's two reference sheets (one exterior picture, one six-panel interior sheet) and his request: "Since Milked is going to have a security vestibule it can have a loading screen that functions like the one at The Darknet District with Milked styling and be more detail inside. Make it AAA standard". The inside of Milked is now **its own environment behind a loading card**, like The Darknet District. The building's place, size and rooms are those of the second pass earlier the same day (PR #326); "What changed in this pass" lists the differences.
+> **Rebuilt on 16 Nov 2026 (third pass, build `2026-11-16-milked-3`, branch `claude/milked-aaa`)** after the owner's two reference sheets (one exterior picture, one six-panel interior sheet) and his request: "Since Milked is going to have a security vestibule it can have a loading screen that functions like the one at The Darknet District with Milked styling and be more detail inside. Make it AAA standard". The inside of Milked is now **its own environment behind a loading card**, like The Darknet District. The building's place, size and rooms are those of the second pass earlier the same day (PR #326); "What changed in this pass" lists the differences.
 
 A **small adult livestreaming production studio** on a quiet side street off Main Street in NeoChinatown. It makes live broadcasts and nothing else. Members watch from home; whatever else the service involves happens privately at the member's own address. **Nothing is collected and no procedure of any kind happens in this building.** It is not a nightclub, hospital, laboratory or public venue: no bar, no dance floor, no audience.
 
@@ -78,7 +78,7 @@ The interior keeps **NeoChinatown's id and the same world coordinates** (its pla
 
 ## Where it is (world metres, x east, z north)
 
-> **16 Nov 2026 (build `2026-11-16-fixes-1`): finding it.** David: "I couldn't get to Milked." Nothing blocked the way (a test now walks the collision from the District's door to both of Milked's doors), but nothing on Main Street said what was down the side street. There is now a blade sign at the side street's corner, read from both directions along Main Street, and a wall sign on the corner building facing across the road: the existing MILKED logo and an arrow, no new wording (`milked-build.js`, after the lanterns). A taxi can be called to the "Milked corner" stop from any TAXI post or with G.
+> **16 Nov 2026 (build `2026-11-16-fixes-1`): finding it.** The owner: "I couldn't get to Milked." Nothing blocked the way (a test now walks the collision from the District's door to both of Milked's doors), but nothing on Main Street said what was down the side street. There is now a blade sign at the side street's corner, read from both directions along Main Street, and a wall sign on the corner building facing across the road: the existing MILKED logo and an arrow, no new wording (`milked-build.js`, after the lanterns). A taxi can be called to the "Milked corner" stop from any TAXI post or with G.
 
 | Piece | Rectangle `[x0, x1, z0, z1]` | Notes |
 |---|---|---|
@@ -130,7 +130,7 @@ See "Surfaces and light (fourth pass)" for the materials, the lamps, the shadows
 
 ## Props made with Meshy (16 Nov 2026)
 
-Ten props, made on David's PC through the Blender bridge with his Meshy account, the same way as the companion suite's furniture: text to image (nano-banana-pro), image to 3D, remesh to about 14,000 triangles, then textures shrunk to 1024 px JPEG in headless Blender. **44 credits each, 440 credits in total** (the whole budget David gave). Batch folder on his PC: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\milked_props\` (`props.json` has the prompts, `status.json` the task ids, `run.py`, `shrink.py`).
+Ten props, made on the owner's PC through the Blender bridge with his Meshy account, the same way as the companion suite's furniture: text to image (nano-banana-pro), image to 3D, remesh to about 14,000 triangles, then textures shrunk to 1024 px JPEG in headless Blender. **44 credits each, 440 credits in total** (the whole budget the owner gave). Batch folder on his PC: `C:\Users\smart\Documents\DarknetDistrict_Assets\Meshy\milked_props\` (`props.json` has the prompts, `status.json` the task ids, `run.py`, `shrink.py`).
 
 | File in `void-runner/assets/models/milked/` | Size | Used | Meshy task ids (image, 3D, remesh: last 12 characters) |
 |---|---|---|---|
@@ -155,7 +155,7 @@ They are optional files, loaded after the room is up (`prop()` in `milked-build.
 | `milked-fish` | Fish (`CONFIG.FISH_NAME`) | At the desk in her office | her own model `npc-fish` |
 | `milked-dancer-1` to `-4` | (no names) | One in each studio | `district-resident`, `vr-companion-f`, `vr-companion-m`, `vr-player-b` |
 
-Nobody else is in the building. Eva is **not** the VR companion Eva, and her figure and look were not touched in the fourth pass (David will supply a reference).
+Nobody else is in the building. Eva is **not** the VR companion Eva, and her figure and look were not touched in the fourth pass (the owner will supply a reference).
 
 **The dancers' clothes lean to black and pink (fourth pass).** The four figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are separate materials. Each dancer gets its own tinted copy of those two materials: studio 1 black with pink shoes, studio 2 a pink suit with dark shoes, studio 3 a black suit with pink shoes, studio 4 pink with dark shoes. The model files, and anyone else in the game who wears the same look, are unchanged. A face covering that came with a look (the street mask on `district-resident`, the VR headset and trackers on `vr-player-b`) is hidden in here so each dancer's face shows. It is a recolour, not the reference outfit (cropped jacket, pleated skirt, tights, platform boots): that needs new clothing models. No licensed "No AI" model was used and no AI tool was used on any model. The dancers play a loop from the shared animation library when it is installed (`ac-sensual-dance-3`, `ac-sensual-movement-1`, `ac-stand-curve-2`, `ac-stand-curve-3`); without it each plays its own dance (`dance`, `slow-dance`, `dance-samba`, `dance`). If a dancer's model is missing after 25 seconds a spare clothed figure takes the spot. The interior loads these six figures itself (the shared look loader was not reliable after a change of scene).
 
@@ -167,7 +167,7 @@ Replacement points are at the top of `void-runner/milked.js` (`==== WHERE TO CHA
 
 ## Surfaces and light (fourth pass, 16 Nov 2026, build `2026-11-16-milked-4`)
 
-David's note on the third pass: layout, props and the loading transition were right, the surfaces were flat. This pass is about surfaces and light only. Nothing about the rooms, the doors, the checkpoints, the people's places, the interactions or the saves changed. All of it is in `void-runner/milked-build.js`.
+The owner's note on the third pass: layout, props and the loading transition were right, the surfaces were flat. This pass is about surfaces and light only. Nothing about the rooms, the doors, the checkpoints, the people's places, the interactions or the saves changed. All of it is in `void-runner/milked-build.js`.
 
 ### 1. Materials
 
@@ -204,7 +204,7 @@ The scene's limit is twelve lights, and eight for any one material. Inside, on M
 
 Every quality has **contact shadows**: a soft dark patch under each person and each piece of furniture (one merged mesh). Low has no lamps: its sky light was raised so the rooms are no longer black, and it keeps the light pools.
 
-**About the dimming outside VR.** Medium and High multiply the finished picture by 0.3 (`babylon-renderer.js`; an open decision for David in `docs/development/VR_SESSIONS.md`). That was not changed. It means nothing on a Medium screen can be brighter than 30% white. While the player is inside Milked the exposure is raised (2.6 times) so the walls, floors and faces sit higher under that ceiling; the number is read from the live setting every frame and everything is put back on leaving. Medium is still a dark picture, like the rest of the game on Medium, and Low is not dimmed at all, so the two do not look the same.
+**About the dimming outside VR.** Medium and High multiply the finished picture by 0.3 (`babylon-renderer.js`; an open decision for the owner in `docs/development/VR_SESSIONS.md`). That was not changed. It means nothing on a Medium screen can be brighter than 30% white. While the player is inside Milked the exposure is raised (2.6 times) so the walls, floors and faces sit higher under that ceiling; the number is read from the live setting every frame and everything is put back on leaving. Medium is still a dark picture, like the rest of the game on Medium, and Low is not dimmed at all, so the two do not look the same.
 
 ### 4. Mismatches with the pictures that were fixed
 
@@ -287,11 +287,11 @@ Pictures in `docs/development/milked/` (Medium quality, about 900 px wide). **"b
 - A quality change made while standing inside was not tried in the fourth pass either (the materials are chosen when the place is built).
 - The lamps' light is not blocked by walls (only the key light casts shadows), so a pink or green tint can show on a floor on the far side of a thin wall.
 - The room picture changes about a third of a second after the player walks into another group of rooms; the change was not judged in motion.
-- Dialogue, the card's wording and the signs' wording are provisional and need David's approval. Voices are not generated.
+- Dialogue, the card's wording and the signs' wording are provisional and need the owner's approval. Voices are not generated.
 - **No real-GPU check.** Everything was run with the software renderer; door timing and loading are faster on real hardware. No Firefox, no VR headset. **High quality was not run** (its larger mirror, shadow map and room picture are untested).
 - **Multiplayer was not tested with two players.** The interior shares the street's room on purpose; a player on the street and a player inside are at the same coordinates on opposite sides of a wall and should not see each other, but name tags through walls were not checked.
 - The full Medium run of `tests/milked-browser.cjs` was not completed (it takes very long on the software renderer); Medium was checked with the photo tour instead, which uses the real front checkpoint.
 - A quality change made while standing inside, and a real sky-cab flight to the stop, were not exercised.
 - The shared look loader's fault (`character-assembler.js` `ensureLook` remembers a download dropped by a scene change as done) was worked round here, not fixed there; other places that use it may show the same thing.
-- The Meshy models' licence wording is for David to confirm (same question as the earlier Meshy models).
+- The Meshy models' licence wording is for the owner to confirm (same question as the earlier Meshy models).
 - Older documents that describe the first two versions were left as history.

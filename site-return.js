@@ -1,4 +1,4 @@
-/* A small "back to the website" button for the site's games (David, 15 Nov 2026). One file, loaded by each game's page.
+/* A small "back to the website" button for the site's games (the owner, 15 Nov 2026). One file, loaded by each game's page.
    - On a game's own page it shows a quiet button in the top-left corner that goes to the games page.
    - Inside the District arcade (the game runs in a frame over VOID//RUNNER) it shows nothing: the cabinet's own RETURN TO THE DARKNET DISTRICT button (EXIT GAME) returns the player to the arcade room.
    - In VOID//RUNNER itself it shows only on the main menu, never over play.

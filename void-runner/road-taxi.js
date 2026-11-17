@@ -170,7 +170,7 @@
  const phaseText={cruise:'Driving','to-pickup':'On its way',waiting:'Waiting, door open','to-dest':'Driving','in-bay':'Checkpoint',arrived:'Arrived',rejoin:'Leaving',parked:'At the rank'};
 
  if(globalThis.VoidInteractions)VoidInteractions.register('road-taxi-board',()=>board());
- /* Calling a taxi (David, 16 Nov 2026: "Couldn't figure out how to call a taxi"): CALL A TAXI at the post of every stop and by the District's door, and the G key anywhere on foot.
+ /* Calling a taxi (the owner, 16 Nov 2026: "Couldn't figure out how to call a taxi"): CALL A TAXI at the post of every stop and by the District's door, and the G key anywhere on foot.
     Both open the list of destinations with their fares (the terminal's TAXI / TRANSPORT section, the same list the V1 map has). */
  const callList=()=>{if(mode!=='walking')return false;globalThis.VoidHUD?.open?.('taxi');return !!globalThis.VoidHUD?.isOpen;};
  if(globalThis.VoidInteractions)VoidInteractions.register('road-taxi-call',()=>{callList();});
