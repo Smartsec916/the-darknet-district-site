@@ -21,11 +21,15 @@
    why:'The VR prompt opens the VR menu, not a conversation (needs a code change to talk to the attendant).'},
   'landing-terminal':{name:'Landing terminal',group:D,kind:'machine',say:'Landing terminal',where:'The Landing Terminal on the street by Pad 01, The Port (neochinatown.js: terminal).',targets:[{action:'terminal'}],layout:'terminal',enter:AREA.street('port'),players:true,draft:true,
    note:'A machine, not a person: fine as the place a step happens, odd as a mission giver.'},
-  'milked-eva':{name:'Eva',group:D,say:'milked-eva',where:'Milked reception, Far South (milked-integration.js: Eva). Main Street south through the South Gate.',targets:[{action:'milked-eva'}],enter:AREA.milked,players:true,draft:true,
+  'milked-eva':{name:'Eva',group:D,say:'milked-eva',where:'Milked reception, Far South (milked-integration.js: Eva). Main Street south through the South Gate.',targets:[{action:'milked-eva'}],layout:'milked-eva',enter:AREA.milked,players:true,draft:true,
    note:'Draft play starts on Far South’s street; walk into Milked. Her voice is a provisional placeholder.'},
-  'milked-fish':{name:'Fish',group:D,say:'milked-fish',where:'Milked, Far South (milked-integration.js: Fish).',targets:[{action:'milked-fish'}],enter:AREA.milked,players:true,draft:true,note:'Draft play starts on Far South’s street; walk into Milked. Provisional voice.'},
+  'milked-fish':{name:'Fish',group:D,say:'milked-fish',where:'Milked, Far South (milked-integration.js: Fish).',targets:[{action:'milked-fish'}],layout:'milked-fish',enter:AREA.milked,players:true,draft:true,note:'Draft play starts on Far South’s street; walk into Milked. Provisional voice.'},
   'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,
    note:'Reached by road taxi (60 CR) or on foot through the East Gate from The Avenue. Draft play starts on The Avenue. No registered voice.'},
+  // The V1's translation (Mission 003, 17 Nov 2026): a line by `v1-translator` straight after another speaker's line is that line's English translation: shown under it as
+  // V1 TRANSLATION and played over it IN THE SPEAKER'S OWN VOICE (the owner's standard; live-content.js, voice-clips.js, extra/manifest.json translations). Not a person.
+  'v1-translator':{name:'V1 translation',group:D,kind:'device',say:'v1-translator',where:'The player\u2019s V1 device: translates what is said in another language, in the speaker\u2019s own voice.',targets:[],players:false,draft:false,
+   why:'Not a person: use it only for a line straight after another speaker\u2019s line in another language (the translation, spoken in that speaker\u2019s own voice).'},
   // Juno Vex (the owner's Mission 002, 17 Nov 2026): the person Admin wants photographed. She sits alone at NULL's bar (ncz-nightclub.js); the V1 camera names her. Nobody talks to her.
   'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, at the bar talking with Halden Reyes, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,
    why:'No TALK prompt: she is someone to photograph (Mission 002), not to talk to.'},
@@ -83,6 +87,7 @@
   {id:'photo',name:'Photograph someone',supported:true,needs:'subject',note:'Done when the player takes a photo with the V1 camera that really shows them: in the frame, roughly centred, within 15 m, nothing in the way, taken during this step.'},
   {id:'send-photo',name:'Send a photo to someone',supported:true,needs:'recipient',note:'In Messages: the player opens the recipient’s conversation, ATTACH, picks the photo, SEND. Only a photo of the chosen person taken during this mission counts. “What is said” is the reply to the right photo; the second set of lines is the reply to any other photo (unlimited tries, no fail). Photos stay on the player’s computer; only what was checked when the photo was taken is used.'},
   {id:'message',name:'The notification arrives',supported:true,note:'Completes by itself as the mission’s notification reaches the device (see “How this mission starts”). Only for a mission that starts by notification. No reply is needed.'},
+  {id:'await-call',name:'Wait for their call',supported:true,note:'Completes by itself right after the step before it (Mission 003: “Await Fish’s response” ends the mission). The call itself comes from a later mission, started BY COMMS CALL with the trigger “After in-game time”.'},
   {id:'hear',name:'Hear what they say',supported:true,note:'The lines below are shown right after the talk step before it; the step is done when the player closes that conversation.'},
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
   {id:'pickup',name:'Pick something up in the world',supported:false},{id:'wait',name:'Wait / come back later',supported:false}];
@@ -95,6 +100,8 @@
   {id:'item',name:'Store item (and its store)',supported:false,why:'No store reads a per-player list of unlocked items yet: the outfitter sells every listed module to everyone and Admin’s counter sells only the scrambler.'},
   {id:'gate',name:'Area or gate opens',supported:false,why:'Checkpoint gates are open or shut for everyone (ncz-quarters.js GATES); there is no per-player gate state.'},
   {id:'reputation',name:'Reputation with an NPC or a faction',supported:true,note:'An NPC: their standing with the player (story.relationships, -100 to 100). A faction: the faction standing (progression.reputation). Paid once with the mission.'},
+  {id:'contact',name:'Add to the V1 contacts',supported:true,note:'The NPC is listed in the V1 (Social, PEOPLE YOU KNOW) from then on: story.flags.v1Contacts. Once only.'},
+  {id:'follow',name:'Follow their Social profile',supported:true,note:'The player follows the NPC on Social (FOLLOWING), as if they had pressed FOLLOW: story.flags.socialFollowing. Only NPCs with a Social profile (district-people.js). Once only.'},
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
  /* How a mission starts (the owner, 17 Nov 2026: "either have Missions start by notification or in person"). */
@@ -103,7 +110,8 @@
   {id:'comms',name:'COMMS CALL',note:'A call in the Comms app: the sender and the words as a transcript. The voice plays only if a recorded clip exists for that exact line (nothing is generated).'},
   {id:'notify',name:'NOTIFICATION ONLY',note:'A banner on the screen, then the Mission Log. Nothing is kept in Messages or Comms.'}];
  const START_WHEN=[{id:'pod-exit',name:'First exit from the Sleeping Pod',note:'Also a character who left the pod before this mission existed: on their next pod exit.'},{id:'after-mission',name:'After a mission is completed'},
-  {id:'place',name:'Entering a place'},{id:'leave',name:'Leaving a place'},{id:'flag',name:'A story flag is set'}];
+  {id:'place',name:'Entering a place'},{id:'leave',name:'Leaving a place'},{id:'flag',name:'A story flag is set'},
+  {id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];
  const FLAG_PREFIX='mf_',FLAG=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const nameOf=(id,reg,people,story,temple)=>reg[id]?.displayName||FACTS[id]?.name||people.get(id)?.name||story[id]?.name||(temple&&temple.id===id?temple.name:'')||id;
  /* Every registered NPC (voice registry, District residents, story characters, the temple's monk) with where they are today. src: {registry, people (district-people NPCS), story (characters), temple (MODEL)} */

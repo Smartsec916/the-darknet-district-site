@@ -108,7 +108,7 @@ test('quarter gates A1-A6: walkers go through the nearest foot lane, both doors,
  const l6=QT.lane('far-south-gate:foot'),p6=[[60,-200],[l6.doors.hi.x,l6.doors.hi.z+1],[l6.doors.lo.x,l6.doors.lo.z-1],[60,-240]];smooth(walk(p6,{x:60,z:-245}),'A6 south');smooth(walk(p6.slice().reverse(),{x:61,z:-190}),'A6 north');});
 
 test('Milked: in through the front security vestibule, out through the rear lobby',()=>{
- const inside={x:88,z:-181.5};assert.deepEqual(ids({x:81.75,z:-171},inside),['milked-door>','milked-inner-door>','milked-inner-door>+','goal']);
+ const inside={x:88,z:-181.5};assert.deepEqual(ids({x:81.75,z:-171},inside),['milked-door>','milked-inner-door>','milked-inner-door>+','milked-side-door>','goal']);   // the hallway is its own region since Mission 003
  assert.deepEqual(ids({x:94.75,z:-195},inside).slice(0,2),['milked-rear-door>','milked-lobby-door>']);
  const s=walk([[81.75,-171],[81.75,-174],[81.75,-177],[81.75,-179],[85,-181.5],[88,-181.5]],inside);smooth(s,'Milked');neverBackwards(s.filter(q=>q.seg<3),'Milked');});
 

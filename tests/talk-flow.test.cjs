@@ -27,12 +27,13 @@ test('the call the game builds (stepMessage) equals the re-recorded clip\'s mani
 
 test('every Admin line of Missions 001 and 002 that has a clip matches its manifest text exactly (in person: one line; a call or message: the lines joined with \\n)',()=>{
  const {MS}=env(),texts=new Set(),joined=[];
- for(const m of [MS.AWAKENING,MS.EYES]){const lines=[...(m.offer||[]),...(m.ending?.say||[])];if(m.start?.text)joined.push(m.start.text);
+ const whoOf=new Map();   // text -> speaker (Mission 003 adds Eva, Fish and the V1 translator: tests/mission-003.test.cjs)
+ for(const m of [MS.AWAKENING,MS.EYES,MS.CORPORATE]){const lines=[...(m.offer||[]),...(m.ending?.say||[])];if(m.start?.text)joined.push(m.start.text);
   for(const o of m.objectives){lines.push(...(o.say||[]),...(o.wrong||[]));const own=(o.say||[]).filter(l=>l&&l.who!=='You');if(o.via&&own.length){joined.push(own.map(l=>l.text).join('\n'));}}
-  for(const l of lines)if(l&&l.who==='admin')texts.add(l.text);}
- for(const j of joined)texts.add(j);
- const clips=Object.entries(extra()).filter(([,l])=>/^main-story\.js/.test(l.source||''));assert.ok(clips.length>=8);
- for(const [id,l] of clips){assert.equal(l.speaker,'admin',id);assert.ok(texts.has(l.text),id+' matches a line in main-story.js exactly: '+JSON.stringify(l.text));}
+  lines.forEach((l,i)=>{if(l&&l.who!=='You'){texts.add(l.text);whoOf.set(l.text,l.who==='v1-translator'&&lines[i-1]?lines[i-1].who:l.who);}});}   // a V1 translation is in the speaker's own voice
+ for(const j of joined){texts.add(j);whoOf.set(j,'admin');}
+ const clips=Object.entries(extra()).filter(([,l])=>/^main-story\.js/.test(l.source||''));assert.ok(clips.length>=16);
+ for(const [id,l] of clips){assert.ok(texts.has(l.text),id+' matches a line in main-story.js exactly: '+JSON.stringify(l.text));assert.equal(l.speaker,whoOf.get(l.text),id+' speaker');}
  // and every call or message has its clip
  const have=new Set(clips.map(([,l])=>l.text));for(const j of joined)assert.ok(have.has(j),'a clip for '+JSON.stringify(j.slice(0,60)));});
 

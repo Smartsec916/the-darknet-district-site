@@ -10,12 +10,18 @@
    declines can come back), then: walk into NULL (a place trigger; Admin's Comms call about the V1 camera), photograph Juno Vex at NULL's bar (the photo must really show her),
    send the photo to Admin in Messages, and return to him: 100 credits and better standing with Admin (story.relationships.admin), paid once.
    This tree runs in the game through mission-content.js treeEvent, the same adapter as the owner's own trees; the Mission Editor edits it as the tree "Awakening"
-   (the owner calls it the Awakening Tree; it was shown as "Main storyline" until 17 Nov 2026; its id main-storyline never changes). */
+   (the owner calls it the Awakening Tree; it was shown as "Main storyline" until 17 Nov 2026; its id main-storyline never changes).
+   MISSION 003 — CORPORATE CONNECTIONS is the owner's, APPROVED 17 Nov 2026 (VOID_RUNNER_HANDOFF.md §11, his words verbatim): Admin's briefing in person after Eyes on the Street
+   (ACCEPT / NOT NOW, as 002), walk into Milked (Far South), Eva at reception (the staff-only door opens for this player: story flag mf_milkedStaff), Fish in her office
+   (her Mandarin line with the V1's English translation over it), Fish is added to the V1 contacts and followed on Social, and the mission ends ("Await Fish's response").
+   Her follow-up call becomes DUE after FOLLOWUPS[0].gameMinutes of IN-GAME time (game-clock.js: 6 in-game hours, about 30 minutes of play), so the player can do other things
+   meanwhile; the call itself and the next mission are the owner's to write later (a stub).
+   Lines marked in PROPOSED below are Claude's short drafts of what the owner described but did not write word for word: text only (no voice) until he approves them. */
 (function(root){
  'use strict';
  const TREE_ID='main-storyline';
  // The ledger: every number ever used. Append only. A removed mission keeps its number here forever.
- const NUMBERS={1:'m001-awakening',2:'m002-eyes-on-the-street'};
+ const NUMBERS={1:'m001-awakening',2:'m002-eyes-on-the-street',3:'m003-corporate-connections'};
  const PLACEHOLDER='[Write Admin\'s introduction to The Darknet District here]';
  const isPlaceholder=t=>typeof t==='string'&&/^\s*\[(?:[^\]:]{1,20}:\s*)?write\b/i.test(t);
  const pad=n=>String(n).padStart(3,'0');
@@ -49,7 +55,41 @@
     say:[A('Received. That\'s exactly what I needed. Come back when you\'re ready.')],wrong:[A('That\'s not the person I\'m looking for. Check the description and try again.')]},
    {id:'return',kind:'talk',npc:'admin',label:'Return to Admin.',place:'',item:'',early:[],say:[A('Not bad. You can follow instructions and keep a low profile. I might have more work for you.')]}],
   rewards:100,ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'reputation',id:'admin',amount:10}]};
- const TREE={id:TREE_ID,name:'Awakening',note:'Your Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Mission 002 follows it.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES]};
+ // MISSION 003 (the owner's words verbatim where he wrote them; the PROPOSED lines are drafts awaiting his approval). Players see the name only. No reward (none specified).
+ const EVA=t=>({who:'milked-eva',text:t}),FISH=t=>({who:'milked-fish',text:t}),YOU=t=>({who:'You',text:t}),V1T=t=>({who:'v1-translator',text:t});
+ // The PROPOSED drafts (Claude's wording, 17 Nov 2026; text only until the owner approves them; editable in the Mission Editor). Eva's tone (the owner: "this game is made to make
+ // people uncomfortable about possible futures and cultural changes through time"): cheerful corporate normalcy about something unsettling (metrics, payouts, a donor
+ // pipeline, viewers at home); the discomfort is in how ordinary she makes it sound. Non-explicit, no crude or graphic words, every performer an adult.
+ const DRAFT={evaWelcome:'Welcome to Milked! I\'m Eva. Can I get you a water while you wait?',evaBusiness:'We\'re the district\'s top adult stream and donor programme. Members watch from home; a courier collects their donations.',
+  evaPaid:'Performers are paid by volume collected. Our top earner led the board three quarters running. We\'re so proud of her.',youFish:'Admin sent me. I\'m here to see Fish.',youHi:'He also said to tell you hi.',
+  youHalden:'Admin sent me. He wants anything you can find on a man named Halden Reyes.'};
+ const PROPOSED=Object.values(DRAFT);
+ const isProposed=t=>typeof t==='string'&&PROPOSED.includes(t);
+ const ZH='给我一点时间调查一下。如果有什么消息，我会给你打电话。',EN='Give me some time to work on it. I\'ll call you if anything comes up.';
+ const CORPORATE={id:'m003-corporate-connections',number:3,title:'Corporate Connections',type:'main',category:'Intelligence gathering',giver:'admin',location:'milked',description:'',
+  start:{how:'person',accept:true},   // in person, as 002: Admin's briefing, then ACCEPT / NOT NOW
+  offer:[A('I did some digging. Halden Reyes has ties to an arms dealer who works closely with The Function.'),A('I know an intel broker named Fish. She\'s a close friend of mine and works over at Milked. She might be able to tell us more.'),
+   A('Head over there and let the receptionist, Eva, know you\'re there to see Fish.'),A('And tell Eva I said hi.')],
+  objectives:[
+   // Objective 1: done as the player walks into Milked (places.js 'milked'); the arrow then leads to Eva at reception
+   {id:'travel-milked',kind:'enter',place:'milked',label:'Travel to Milked.',npc:'',item:'',say:[],early:[]},
+   // Objective 2: Eva (the drafts, the player's lines, then her two recorded lines); her last line opens the staff-only door for this player (unlock mf_milkedStaff)
+   {id:'speak-eva',kind:'talk',npc:'milked-eva',label:'Speak with Eva at reception.',place:'',item:'',early:[],
+    say:[EVA(DRAFT.evaWelcome),EVA(DRAFT.evaBusiness),EVA(DRAFT.evaPaid),YOU(DRAFT.youFish),YOU(DRAFT.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\'ll find her in her office.')]},
+   // Objective 3: Fish answers in Mandarin; the V1 translation line right after hers (in her OWN voice, English: the owner's standard) is played over it (voice-clips.js) and shown under it as V1 TRANSLATION
+   {id:'meet-fish',kind:'talk',npc:'milked-fish',label:'Meet Fish in her office.',place:'',item:'',early:[],say:[YOU(DRAFT.youHalden),FISH(ZH),V1T(EN)]},
+   // Objective 4: done by itself right after Fish; her follow-up call becomes due after in-game time (FOLLOWUPS)
+   {id:'await-fish',kind:'await-call',npc:'milked-fish',label:'Await Fish\'s response.',place:'',item:'',say:[],early:[]}],
+  ending:{npc:'',place:'',label:'',say:[]},choices:[],
+  unlocks:[{kind:'flag',id:'milkedStaff',value:true,when:'speak-eva'},{kind:'contact',id:'milked-fish',when:'meet-fish'},{kind:'follow',id:'milked-fish',when:'meet-fish'}]};
+ /* Follow-up calls that become due after IN-GAME time (the owner, 17 Nov 2026: Fish's callback waits on in-game time; game-clock.js: 12 in-game minutes a real minute of
+    walking or flight; story.flags.gameMin). `after`: the mission whose completion starts the wait; `gameMinutes`: how long, in in-game minutes (the one place to change it:
+    360 = 6 in-game hours, about 30 minutes of play: the owner, so a player can finish a side mission meanwhile); `event`: fired once when due (story.flags ev_<event> = true). STUB: the owner's script for the call and the next
+    mission are not written; nothing is delivered to the player yet. */
+ const FOLLOWUPS=[{event:'fish-followup-due',after:'m003-corporate-connections',gameMinutes:360,from:'milked-fish',channel:'comms',status:'stub',note:'Fish\'s follow-up call: the owner\'s script and the next mission are not written yet. Nothing is delivered.'}];
+ /* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */
+ const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};
+ const TREE={id:TREE_ID,name:'Awakening',note:'Your Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Mission 002 and Mission 003 follow it.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES,CORPORATE]};
  const clone=v=>JSON.parse(JSON.stringify(v));
  /* The shipped story trees (copies: callers may edit them). */
  const trees=()=>[clone(TREE)];
@@ -77,6 +117,6 @@
    const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;
    const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}
   return changed;}
- const api={TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
+ const api={CORPORATE,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMainStory=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -19,13 +19,13 @@ test('mission numbers: the shipped ledger matches the save manifest; "Mission 00
  assert.deepEqual(man.storyMissions,MS.MISSION_IDS);assert.deepEqual(man.storyTrees,MS.STORY_TREES);
  assert.equal(MS.label(1,'Awakening'),'Mission 001 — Awakening');assert.equal(MS.label(42,'X'),'Mission 042 — X');assert.equal(MS.pad(7),'007');
  assert.equal(MS.AWAKENING.id,'m001-awakening');assert.equal(MS.AWAKENING.number,1);
- assert.equal(MS.nextNumber(MS.trees(),MS.NUMBERS),3,'001 and 002 are used (Mission 002 — Eyes on the Street, 17 Nov 2026)');
+ assert.equal(MS.nextNumber(MS.trees(),MS.NUMBERS),4,'001, 002 and 003 are used (Mission 003 — Corporate Connections, 17 Nov 2026)');
  assert.equal(MS.nextNumber([],MS.NUMBERS,{5:'retired'}),6,'a retired number is never handed out again');
  const t=(id,n)=>({id,missions:[{id:id+'-m1',number:n,title:'x'}]});
  assert.equal(MS.numberProblems([t('draft-a',5),t('draft-b',5)]).length,1,'duplicates refused');
  assert.match(MS.numberProblems([t('draft-a',1)])[0],/never reused/,'001 belongs to Mission 001');
- assert.match(MS.numberProblems([t('draft-a',3)],{...MS.NUMBERS,3:'draft-gone-m1'})[0],/already used by "draft-gone-m1"/,'a removed mission keeps its number');
- assert.deepEqual(MS.numberProblems([...MS.trees(),t('draft-a',3)]),[]);
+ assert.match(MS.numberProblems([t('draft-a',4)],{...MS.NUMBERS,4:'draft-gone-m1'})[0],/already used by "draft-gone-m1"/,'a removed mission keeps its number');
+ assert.deepEqual(MS.numberProblems([...MS.trees(),t('draft-a',4)]),[]);
 });
 test('the content check: numbers unique and never reused, the main storyline needs numbers, new fields and step kinds are closed',()=>{
  const x=env(),{MC,MS}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()};
@@ -40,7 +40,7 @@ test('the content check: numbers unique and never reused, the main storyline nee
   c=>{c[0].missions[0].objectives[1].message={from:'admin',header:'H',text:'T'};},
   c=>{c[0].id='story';},c=>{c[0].missions[0].id='awakening';},c=>{c.push({id:'draft-x',name:'X',missions:[{id:'draft-x-m1',number:1,title:'X',type:'side',giver:'admin',objectives:[{id:'s',label:'x',kind:'talk',npc:'iris'}]}]});}];
  for(const f of bad){const c=MC.clone(story);f(c);assert.equal(MC.check(doc(c),ctx).ok,false,f.toString());}
- const ok=MC.clone(story);ok.push({id:'draft-x',name:'X',missions:[{id:'draft-x-m1',number:3,title:'X',type:'side',giver:'admin',objectives:[{id:'s',label:'x',kind:'talk',npc:'iris'}]}]});
+ const ok=MC.clone(story);ok.push({id:'draft-x',name:'X',missions:[{id:'draft-x-m1',number:4,title:'X',type:'side',giver:'admin',objectives:[{id:'s',label:'x',kind:'talk',npc:'iris'}]}]});
  assert.deepEqual(MC.check(doc(ok),ctx).errors,[]);
  for(const when of [{kind:'after-mission',mission:'m001-awakening'},{kind:'place',place:'port'},{kind:'flag',flag:'mf_seen',value:true},{kind:'pod-exit'}]){const c=MC.clone(ok);c[1].missions[0].start={how:'notification',channel:'comms',from:'iris',header:'IRIS // CALL',text:'TEST call.',when};assert.deepEqual(MC.check(doc(c),ctx).errors,[],JSON.stringify(when));}
  {const c=MC.clone(ok);c[1].missions[0].start={how:'notification',channel:'notify',from:'iris',text:'TEST banner.',when:{kind:'pod-exit'}};assert.deepEqual(MC.check(doc(c),ctx).errors,[],'a banner needs no header');}
@@ -120,7 +120,7 @@ test('a character who left the pod before Mission 001 existed (with beginner pro
 // ---------------------------------------------------------------- how missions start
 function treeWith(x,missions){const {MC}=x,c={format:MC.FORMAT,version:MC.VERSION,trees:[...MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,{id:'draft-test',name:'Test',missions}]};
  const r=MC.apply(c,x.e,{givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()});assert.deepEqual(r.refused,[]);}
-const side=(id,extra)=>({id,number:Number(id.slice(-1))+2,title:'TEST '+id,type:'side',giver:'iris',objectives:[{id:'s1',label:'Talk to Iris',kind:'talk',npc:'iris'}],...extra});
+const side=(id,extra)=>({id,number:Number(id.slice(-1))+3,title:'TEST '+id,type:'side',giver:'iris',objectives:[{id:'s1',label:'Talk to Iris',kind:'talk',npc:'iris'}],...extra});
 test('in person: the giver offers the mission when talked to (the existing behaviour), then it is logged and tracked',()=>{
  const x=env();treeWith(x,[side('draft-test-m1',{offer:[{who:'iris',text:'TEST offer.'}]})]);const s=district(x.C);exitPod(x,s);talk(x,s,'admin');
  const r=talk(x,s,'iris');assert.equal(r.offered,true);assert.equal(r.how,'person');assert.deepEqual(r.messages,[]);assert.equal(r.lines[0].text,'TEST offer.');assert.equal(s.universe.trackedMission,'draft-test-m1');

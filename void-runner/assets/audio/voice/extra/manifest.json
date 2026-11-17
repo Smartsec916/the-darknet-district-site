@@ -101,6 +101,91 @@
    "voiceId": "DMyrgzQFny3JI1Y1paM5",
    "source": "main-story.js (002 return)",
    "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-1": {
+   "speaker": "admin",
+   "text": "I did some digging. Halden Reyes has ties to an arms dealer who works closely with The Function.",
+   "file": "extra/admin-m003-brief-1.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-2": {
+   "speaker": "admin",
+   "text": "I know an intel broker named Fish. She's a close friend of mine and works over at Milked. She might be able to tell us more.",
+   "file": "extra/admin-m003-brief-2.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-3": {
+   "speaker": "admin",
+   "text": "Head over there and let the receptionist, Eva, know you're there to see Fish.",
+   "file": "extra/admin-m003-brief-3.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-4": {
+   "speaker": "admin",
+   "text": "And tell Eva I said hi.",
+   "file": "extra/admin-m003-brief-4.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "eva-m003-hi": {
+   "speaker": "milked-eva",
+   "text": "Oh, Admin! Tell him I said hi, too.",
+   "file": "extra/eva-m003-hi.ogg",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4; approved by the owner."
+  },
+  "eva-m003-staff-door": {
+   "speaker": "milked-eva",
+   "text": "Fish is through the staff-only door. You'll find her in her office.",
+   "file": "extra/eva-m003-staff-door.ogg",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4; approved by the owner."
+  },
+  "fish-m003-zh": {
+   "speaker": "milked-fish",
+   "text": "给我一点时间调查一下。如果有什么消息，我会给你打电话。",
+   "file": "extra/fish-m003-zh.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (003 Corporate Connections, Fish in her office; Mandarin)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4; approved by the owner. Its English translation (`with`) plays over it with the settings in `translations` for this speaker (voice-clips.js).",
+   "with": {
+    "id": "fish-m003-en"
+   }
+  },
+  "fish-m003-en": {
+   "speaker": "milked-fish",
+   "text": "Give me some time to work on it. I'll call you if anything comes up.",
+   "file": "extra/fish-m003-en.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (003 Corporate Connections, the V1's English translation of Fish's line, in her own voice)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 (about 68 credits); approved by the owner, who chose Fish's own voice for the translation. Played over her Mandarin line with the settings in translations['milked-fish']."
+  }
+ },
+ "translations": {
+  "milked-fish": {
+   "voice": "Fish (ElevenLabs): her own voice speaking English",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "effect": "device",
+   "offset": 0.75,
+   "gain": 0.7,
+   "note": "STANDARD (the owner, 17 Nov 2026): a V1 translation is spoken in the speaker's OWN voice, in English. ONE setting per character: the voice, a subtle live device filter ('device'; null for none), when the English starts after the original (s) and the original's volume. The clip is the line in `with`; its `file` can be swapped."
   }
  }
 }

@@ -10,8 +10,12 @@
  const LC=()=>root.VoidLiveContent,P=()=>root.VoidPlaces;
  function subjectPoint(id){try{const x=root.VoidPhotoSubjects?.get?.(id);if(x&&x.node&&!x.node.isDisposed?.()){const p=x.node.getAbsolutePosition();return [p.x,1.7,p.z];}}catch{}
   if(id==='juno-vex'&&root.VoidNightclub?.JUNO){const j=root.VoidNightclub.JUNO;return [j.x,1.7,j.z];}return null;}
+ // A person inside Milked (Mission 003: Eva at reception, Fish in her office) while the player is out on the street or in the other part of the building: the goal is their
+ // interaction point (milked.js, world metres); the route through the front doors, the vestibule, the door beside the desk and the STAFF ONLY door is guide-route.js's.
+ function milkedPerson(g){try{if(!g||!g.interaction||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown')return null;
+  const it=(root.VoidMilked?.INTERACTIONS||[]).find(i=>i.id===g.interaction);return it?{position:it.position.slice(),route:true,label:it.label||g.label||''}:null;}catch{return null;}}
  function missionPlaceRoute(g){
-  try{if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
+  try{const mp=milkedPerson(g);if(mp)return mp;if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
    const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
    if(node&&node.scene&&!node.whole&&node.scene!==wl.id)return null;
    const pt=(g.target&&subjectPoint(g.target))||(g.place&&P()?.target(g.place));if(!pt)return null;

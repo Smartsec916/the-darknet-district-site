@@ -6,7 +6,17 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 17 Nov 2026 (newest): THE GUIDE ARROW NO LONGER TURNS ROUND AT DOORWAYS; ONE ROUTE MODULE FOR EVERY MISSION (branch `claude/arrow-smoothing`, build `2026-11-17-arrow-1`, pushed, NO PR, not merged)
+### 17 Nov 2026 (newest): MISSION 003 — CORPORATE CONNECTIONS (branch `claude/mission-003`, build `2026-11-17-mission-003-1`, pushed, NO PR, not merged)
+
+The owner's mission (APPROVED, verbatim in `VOID_RUNNER_HANDOFF.md` §11). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fifth pass".
+
+- **Live game:** after Eyes on the Street, talking to Admin gives his four-line briefing (recorded) with ACCEPT / NOT NOW → "Corporate Connections", tracked, the arrow to Milked's front vestibule (Far South) → walking into Milked completes "Travel to Milked" and the arrow points to Eva → Eva (PROPOSED drafts, text only; then her two recorded lines); she turns toward the staff door and the STAFF ONLY door at the studio hallway's far end opens for that player (`story.flags.mf_milkedStaff`; locked before) → the arrow leads through it to Fish → Fish: the player's line (PROPOSED), her Mandarin line at 70% with the V1's English translation starting 0.75 s later over it, shown under it as "V1 TRANSLATION" → Fish added to the V1 contacts and followed on Social (banner) → mission complete, no reward.
+- **The in-game clock (the owner: CLOCK ONLY for now):** `void-runner/game-clock.js` (`VoidClock`): 1 real minute of walking or flight (tab visible; never menus, pause, conversations, the pod card or offline) = 12 in-game minutes, so an in-game day is 2 hours of play. Per player in the save: `story.flags.gameMin` (in-game minutes since the campaign started; a new campaign is Day 1, 21:00). Shown on the V1's header ("21:40 · DAY 1") and kept in photo metadata (`gameMin`, `gameTime`). No day / night lighting, crowds or shop hours yet (they can read `VoidClock.now()` later).
+- **Fish's follow-up call:** becomes DUE **6 in-game hours** (about 30 minutes of play: the owner, so a side mission fits in) after Mission 003 (one value in the mission data: `main-story.js FOLLOWUPS gameMinutes:360`; stamped `gc_<mission>` at completion, fired once `ev_fish-followup-due`). **Stub:** only the event `void-tree-event` {id:'fish-followup-due'} fires; no call or content until the owner writes it. Due state and the in-game time it is due: Mission Editor, Mission 003's card. New reusable editor pieces: trigger "After in-game time" (hours and minutes), step "Wait for their call", unlocks "Add to the V1 contacts" and "Follow their Social profile" (server check the same).
+- **Translations (the owner's standard from now on): spoken in the speaker's OWN voice, in English** (Fish: `fish-m003-en.ogg`, her ElevenLabs voice). One setting per character: `void-runner/assets/audio/voice/extra/manifest.json translations['milked-fish']` (voice, a subtle device filter, offset 0.75 s, the original at 70%); the clip file can be swapped.
+- **Not verified:** real hardware (software renderer only); hearing the overlap by ear (start times checked in the browser); VR; the rear staff entrance from the service alley still reaches the staff area without Eva (unchanged; the owner's call); Eva's gesture is a turn plus her talk clip (her look has no pointing clip).
+
+### 17 Nov 2026: THE GUIDE ARROW NO LONGER TURNS ROUND AT DOORWAYS; ONE ROUTE MODULE FOR EVERY MISSION (branch `claude/arrow-smoothing`, build `2026-11-17-arrow-1`, pushed, NO PR, not merged)
 
 The owner: "if it's pointing at a doorway and you walk slightly past the marker point the arrow points backwards for a bit ... look for other cases". Full record and tunables: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "The guide arrow".
 

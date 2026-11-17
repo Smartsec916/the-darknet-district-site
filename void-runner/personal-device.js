@@ -342,7 +342,7 @@
  // ---- Shell ----
  function build(){
   el=document.createElement('section');el.id='personal-device';el.setAttribute('role','dialog');el.setAttribute('aria-label','V1 personal device');
-  el.innerHTML='<div class="pd-head"><span class="pd-brand">V1</span><span class="pd-tag"></span><button type="button" data-do="expand" aria-label="Expand device"></button><button type="button" data-do="close" aria-label="Close device">CLOSE · L</button></div>'
+  el.innerHTML='<div class="pd-head"><span class="pd-brand">V1</span><span class="pd-tag"></span><span class="pd-clock" data-pd-clock role="timer" aria-label="In-game time" style="margin-left:auto;margin-right:10px;font:600 12px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;color:#9fe8ff;white-space:nowrap"></span><button type="button" data-do="expand" aria-label="Expand device"></button><button type="button" data-do="close" aria-label="Close device">CLOSE · L</button></div>'
    +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
   document.body.appendChild(el);body=el.querySelector('.pd-main');
   el.addEventListener('click',onClick);
@@ -362,8 +362,11 @@
   const def=D.DEVICES[dev.model],app=stack[0];
   el.querySelector('.pd-brand').textContent=def.name.split(' ')[0];el.querySelector('.pd-tag').textContent=def.tagline;el.classList.toggle('expanded',expanded);el.classList.toggle('fx',dev.settings.scan==='1'&&!reduced());el.classList.toggle('pd-still',reduced());
   el.querySelector('[data-do=expand]').textContent=expanded?'COLLAPSE':'EXPAND';el.querySelector('[data-do=expand]').setAttribute('aria-label',expanded?'Collapse device':'Expand device');
-  el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=label();
+  el.querySelector('[data-do=back]').hidden=!app;el.querySelector('.pd-title').textContent=label();clockNow();
  }
+ // The in-game time on the V1 (game-clock.js; the owner, 17 Nov 2026: 1 real minute of walking or flight = 12 in-game minutes), e.g. "21:40 · DAY 1". Refreshed while open.
+ function clockNow(){try{const c=el&&el.querySelector('[data-pd-clock]');if(!c)return;const s=state_(),t=s&&root.VoidClock?root.VoidClock.now(s).label:'';if(c.textContent!==t)c.textContent=t;}catch{}}
+ setInterval(()=>{if(open)clockNow();},1000);
  /* News filters (the owner, 15 Nov 2026): ALL, BROADCASTS (what was heard on the Relay), COMMERCE (the adverts), PEOPLE (pictures posted by residents and by you). */
  const NEWS_FILTERS=[['all','ALL'],['broadcasts','BROADCASTS'],['commerce','COMMERCE'],['people','PEOPLE']];let newsFilter='all';
  const newsOld=()=>APP_VIEW.newsOld_();
