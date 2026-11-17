@@ -302,17 +302,17 @@ class MissionRemovalSaveTests(unittest.TestCase):
             self.assertTrue(live.check(bad), 'refused')
 
     def test_mission_003_save_is_accepted(self):
-        """Mission 003 — Corporate Connections (17 Nov 2026): its record, the staff-door flag, the V1 contact, the Social follow, the active-playtime counter, the
+        """Mission 003 — Corporate Connections (17 Nov 2026): its record, the staff-door flag, the V1 contact, the Social follow, the in-game clock, the
         completion stamp and the fired follow-up all pass clean_save as they are (story.flags: booleans, short strings, safe integers)."""
         state = test_story_save.StorySaveTests.state(None)
         mid = 'm003-corporate-connections'
         state['story']['flags'].update({'missionPool': 'closed', 'mt_m001-awakening': True, 'mt_m002-eyes-on-the-street': True, 'mt_' + mid: True, 'mf_milkedStaff': True,
-                                        'v1Contacts': 'milked-fish', 'socialFollowing': 'n:milked-fish', 'playSec': 5400, 'pc_' + mid: 4500, 'ev_fish-followup-due': True})
+                                        'v1Contacts': 'milked-fish', 'socialFollowing': 'n:milked-fish', 'gameMin': 5400, 'gc_' + mid: 4500, 'ev_fish-followup-due': True})
         state['universe'] = {'trackingInitialized': True, 'trackedMission': None, 'freeTravel': False,
                              'missions': {mid: {'acquired': True, 'completed': True, 'objectives': {'travel-milked': True, 'speak-eva': True, 'meet-fish': True, 'await-fish': True}}}}
         clean = vr.clean_save(state)
         self.assertEqual(clean['universe']['missions'][mid]['objectives'], {'travel-milked': True, 'speak-eva': True, 'meet-fish': True, 'await-fish': True})
-        for k, v in {'mf_milkedStaff': True, 'v1Contacts': 'milked-fish', 'socialFollowing': 'n:milked-fish', 'playSec': 5400, 'pc_' + mid: 4500, 'ev_fish-followup-due': True}.items():
+        for k, v in {'mf_milkedStaff': True, 'v1Contacts': 'milked-fish', 'socialFollowing': 'n:milked-fish', 'gameMin': 5400, 'gc_' + mid: 4500, 'ev_fish-followup-due': True}.items():
             self.assertEqual(clean['story']['flags'][k], v, k)
         state['universe']['trackedMission'] = mid
         state['universe']['missions'][mid]['completed'] = False
@@ -320,7 +320,7 @@ class MissionRemovalSaveTests(unittest.TestCase):
 
     def test_mission_003_publishes_with_its_new_kinds(self):
         """The shipped Awakening tree with Mission 003 passes the server check; the new kinds (await-call step, contact and follow unlocks, the
-        "after active play" trigger) are checked the same way as in the game."""
+        "after in-game time" trigger) are checked the same way as in the game."""
         import copy, subprocess
         out = subprocess.run(['node', '-e', "const MC=require('./void-runner/mission-content.js'),MS=require('./void-runner/main-story.js');process.stdout.write(JSON.stringify(MC.treesContent(MS.trees(),{givers:['admin','milked-eva','milked-fish'].map(id=>({id,canTalk:true,draft:true}))}).trees))"],
                              capture_output=True, text=True, cwd=str(Path(__file__).resolve().parent.parent), check=True)
@@ -334,14 +334,14 @@ class MissionRemovalSaveTests(unittest.TestCase):
             bad = copy.deepcopy(content)
             change(bad['trees'][0]['missions'][2])
             self.assertTrue(live.check(bad), 'refused')
-        # "after active play": a follow-up mission started by a Comms call N minutes of active play after Mission 003
+        # "after in-game time": a follow-up mission started by a Comms call N in-game minutes after Mission 003
         follow = {'id': 'draft-fish', 'name': 'Fish', 'missions': [{'id': 'draft-fish-m1', 'number': 9, 'title': 'Fish calls', 'type': 'side', 'giver': 'milked-fish',
-                  'start': {'how': 'notification', 'channel': 'comms', 'from': 'milked-fish', 'header': 'FISH // INCOMING CALL', 'text': 'x', 'when': {'kind': 'playtime', 'mission': 'm003-corporate-connections', 'value': 15}},
+                  'start': {'how': 'notification', 'channel': 'comms', 'from': 'milked-fish', 'header': 'FISH // INCOMING CALL', 'text': 'x', 'when': {'kind': 'game-time', 'mission': 'm003-corporate-connections', 'value': 360}},
                   'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'milked-fish'}]}]}
         good = copy.deepcopy(content)
         good['trees'].append(follow)
         self.assertEqual(live.check(good), [])
-        for v in (0, 1441, '15', 2.5):
+        for v in (0, 10081, '360', 2.5):
             bad = copy.deepcopy(good)
             bad['trees'][1]['missions'][0]['start']['when']['value'] = v
             self.assertTrue(live.check(bad), v)

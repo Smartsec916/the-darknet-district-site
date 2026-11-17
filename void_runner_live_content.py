@@ -260,7 +260,7 @@ DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
 STORY_MISSION = re.compile(r'^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$')
 HOW = ['person', 'notification']
 CHANNELS = ['messages', 'comms', 'notify']
-WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'playtime']
+WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time']
 VIA = ['talk', 'comms', 'messages']
 STORY_FLAG = re.compile(r'^[a-zA-Z][\w-]{0,63}$')
 
@@ -285,11 +285,11 @@ def start_problems(st, givers, places, mission_ids):
     w = st.get('when')
     if not _keys(w, ['kind', 'mission', 'place', 'flag', 'value']) or w.get('kind') not in WHEN:
         return out + ['the notification needs a trigger it knows.']
-    if w['kind'] in ('after-mission', 'playtime') and w.get('mission') not in mission_ids:
+    if w['kind'] in ('after-mission', 'game-time') and w.get('mission') not in mission_ids:
         out.append('"after mission" must name a mission that exists.')
-    if w['kind'] == 'playtime' and not (type(w.get('value')) is int and 1 <= w['value'] <= 1440):
-        # "after N minutes of active play" (Mission 003, playtime.js): N minutes after the named mission was completed
-        out.append('"after active play" needs a whole number of minutes from 1 to 1440.')
+    if w['kind'] == 'game-time' and not (type(w.get('value')) is int and 1 <= w['value'] <= 10080):
+        # "after N in-game hours / minutes" (Mission 003, game-clock.js): N in-game minutes after the named mission was completed
+        out.append('"after in-game time" needs a whole number of in-game minutes from 1 to 10080.')
     if w['kind'] in ('place', 'leave') and w.get('place') not in places:
         out.append('unknown trigger place.')
     if w['kind'] == 'flag':

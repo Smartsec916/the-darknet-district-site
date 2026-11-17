@@ -1,14 +1,15 @@
 /* Mission 003 — Corporate Connections (the owner's mission, APPROVED 17 Nov 2026): the data and its order in the Awakening tree, the owner's words verbatim, the recorded
    clips matching their lines, the in-person briefing with ACCEPT / NOT NOW, Milked, Eva (the staff-only door flag), Fish (contact and follow, once), the mission ending,
-   the ACTIVE PLAYTIME timer (counts only while active, persists in the save, the follow-up fires once), the "after active play" trigger, and saves. */
+   the IN-GAME CLOCK (12 in-game minutes a real minute of walking or flight; pauses; persists in the save; the follow-up after 6 in-game hours fires once), the
+   "after in-game time" trigger, and saves. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=p=>path.join(__dirname,'..',p);
 const fresh=()=>{for(const k of Object.keys(require.cache))if(k.includes('void-runner'+path.sep))delete require.cache[k];};
 function env(){fresh();
- const M=require(R('void-runner/mission-log.js')),B=require(R('void-runner/beginner.js')),C=require(R('void-runner/campaign.js')),U=require(R('void-runner/universe.js')),MC=require(R('void-runner/mission-content.js')),G=require(R('void-runner/mission-givers.js')),MS=require(R('void-runner/main-story.js')),PT=require(R('void-runner/playtime.js')),DP=require(R('void-runner/district-people.js'));
+ const M=require(R('void-runner/mission-log.js')),B=require(R('void-runner/beginner.js')),C=require(R('void-runner/campaign.js')),U=require(R('void-runner/universe.js')),MC=require(R('void-runner/mission-content.js')),G=require(R('void-runner/mission-givers.js')),MS=require(R('void-runner/main-story.js')),GC=require(R('void-runner/game-clock.js')),DP=require(R('void-runner/district-people.js'));
  B.register(M);
  const givers=G.roster({registry:JSON.parse(fs.readFileSync(R('tools/audio/npc-voice-registry.json'),'utf8')),people:DP.npcs(),story:require(R('void-runner/story-content.js')).characters,temple:require(R('void-runner/temple.js')).MODEL});
- const e={B,Missions:M,U,givers};MC.snapshot(e);MC.apply(null,e);return {e,M,B,C,U,MC,G,MS,PT,DP};}
+ const e={B,Missions:M,U,givers};MC.snapshot(e);MC.apply(null,e);return {e,M,B,C,U,MC,G,MS,GC,DP};}
 const ID='m003-corporate-connections',M2='m002-eyes-on-the-street';
 const ev=(x,s,e)=>x.MC.treeEvent(s,x.e,e,x.M,x.C);
 const talk=(x,s,npc)=>ev(x,s,{type:'talk',npcs:[npc]});
@@ -93,45 +94,52 @@ test('each player\'s progress is their own (multiplayer): two saves never share 
  assert.equal(talk(x,b,'milked-eva').objective,null,'b has not accepted');assert.equal(b.story.flags.v1Contacts,undefined);
 });
 
-test('ACTIVE PLAYTIME: counts only while active (visible, in play), never in menus, pause, a hidden tab or offline; persists; the follow-up fires once',()=>{
- const {PT,MS,C}=env(),s=C.startDistrictCampaign(C.fresh()),f=s.story.flags,clock=PT.clock();
- // active or not
- assert.equal(PT.active({visible:true,mode:'walking'}),true);assert.equal(PT.active({visible:true,mode:'dialogue'}),true);assert.equal(PT.active({visible:true,mode:'play'}),true);
- for(const v of [{visible:false,mode:'walking'},{visible:true,mode:'menu'},{visible:true,mode:'pause'},{visible:true,mode:'walking',podCard:true},{visible:true,mode:'character-creator'},{visible:true,mode:'loading'}])assert.equal(PT.active(v),false,JSON.stringify(v));
- // counting: whole seconds go into the save; a long gap (offline, asleep) counts 5 s at most
- for(let i=0;i<10;i++)clock.add(s,.25,true);assert.equal(f.playSec,2);clock.add(s,3,false);assert.equal(f.playSec,2,'inactive time never counts');
- clock.add(s,3600,true);assert.equal(f.playSec,7,'a gap counts MAX_STEP at most');assert.ok(Number.isSafeInteger(f.playSec));
- // the follow-up: the clock starts when Mission 003 completes (its stamp), 15 minutes by default (one constant), fires once
- const F=MS.FOLLOWUPS;assert.deepEqual(F.map(x=>[x.event,x.after,x.minutes,x.from,x.status]),[['fish-followup-due',ID,15,'milked-fish','stub']]);
- assert.deepEqual(PT.fire(s,F),[],'not before the mission is done');assert.equal(PT.status(s,F)[0].started,false);
- s.universe.missions[ID]={acquired:true,completed:true,objectives:{}};PT.stamp(s,ID);assert.equal(f['pc_'+ID],7);
- for(let i=0;i<14*60;i++)clock.add(s,1,true);assert.deepEqual(PT.fire(s,F),[]);assert.equal(PT.status(s,F)[0].remaining,60);
- for(let i=0;i<120;i++)clock.add(s,1,false);assert.deepEqual(PT.fire(s,F),[],'two minutes in a menu changed nothing');
- for(let i=0;i<60;i++)clock.add(s,1,true);const due=PT.fire(s,F);assert.equal(due.length,1);assert.equal(due[0].event,'fish-followup-due');assert.equal(f['ev_fish-followup-due'],true);
- assert.deepEqual(PT.fire(s,F),[],'never twice');for(let i=0;i<600;i++)clock.add(s,1,true);assert.deepEqual(PT.fire(s,F),[]);
- // persists: the counter, the stamp and the fired flag are plain story flags (a reload, another device through the cloud save)
- const back=C.restore(JSON.stringify(s));assert.equal(back.story.flags.playSec,f.playSec);assert.equal(back.story.flags['ev_fish-followup-due'],true);assert.deepEqual(PT.fire(back,F),[]);
- // mid-way through a reload: the time already played is kept
- const t=C.startDistrictCampaign(C.fresh());t.universe.missions[ID]={acquired:true,completed:true,objectives:{}};const c1=PT.clock();for(let i=0;i<600;i++)c1.add(t,1,true);PT.stamp(t,ID);for(let i=0;i<400;i++)c1.add(t,1,true);
- const u=C.restore(JSON.stringify(t)),c2=PT.clock();assert.equal(PT.since(u,ID),400);for(let i=0;i<499;i++)c2.add(u,1,true);assert.deepEqual(PT.fire(u,F),[]);c2.add(u,1,true);assert.equal(PT.fire(u,F).length,1);
- // a mission completed before the stamp existed starts its clock the first time it is checked
- const v=C.startDistrictCampaign(C.fresh());v.story.flags.playSec=1000;v.universe.missions[ID]={acquired:true,completed:true,objectives:{}};assert.equal(PT.since(v,ID),0);assert.equal(v.story.flags['pc_'+ID],1000);
+test('THE IN-GAME CLOCK: 12 in-game minutes a real minute of walking or flight; paused in menus, pause, conversations, a hidden tab and offline; Day 1 21:00; persists; the follow-up fires once',()=>{
+ const {GC,MS,C}=env(),s=C.startDistrictCampaign(C.fresh()),f=s.story.flags,clock=GC.clock();
+ // a new campaign: Day 1, 21:00
+ assert.equal(GC.minutes(s),0);assert.equal(GC.now(s).label,'21:00 · DAY 1');assert.deepEqual([GC.RATE,GC.START.day,GC.START.hour],[12,1,21]);
+ // the rate: 1 real minute = 12 in-game minutes; an in-game day = 2 hours of play
+ for(let i=0;i<60;i++)clock.add(s,1,true);assert.equal(f.gameMin,12);assert.equal(GC.now(s).label,'21:12 · DAY 1');
+ const d=C.startDistrictCampaign(C.fresh()),cd=GC.clock();for(let i=0;i<7200;i++)cd.add(d,1,true);assert.equal(GC.minutes(d),1440,'two hours of play = one in-game day');assert.equal(GC.now(d).label,'21:00 · DAY 2');
+ assert.equal(GC.at(180).label,'00:00 · DAY 2','midnight rolls the day');assert.equal(GC.at(179).time,'23:59');assert.equal(GC.realMinutes(360),30);
+ // it runs only in walking or flight with the tab visible
+ for(const m of ['walking','play','road-taxi'])assert.equal(GC.active({visible:true,mode:m}),true,m);
+ for(const v of [{visible:false,mode:'walking'},{visible:true,mode:'menu'},{visible:true,mode:'pause'},{visible:true,mode:'dialogue'},{visible:true,mode:'walking',podCard:true},{visible:true,mode:'character-creator'},{visible:true,mode:'loading'},{visible:true,mode:'dock'}])assert.equal(GC.active(v),false,JSON.stringify(v));
+ for(let i=0;i<600;i++)clock.add(s,1,false);assert.equal(f.gameMin,12,'paused: ten minutes in a menu changed nothing');
+ clock.add(s,3600,true);assert.equal(f.gameMin,13,'a gap (offline, asleep) counts 5 real seconds at most: 1 in-game minute');assert.ok(Number.isSafeInteger(f.gameMin));
+ // the follow-up: 6 in-game hours (about 30 minutes of play; the owner, 17 Nov 2026), one value in the mission data; it fires once
+ const F=MS.FOLLOWUPS;assert.deepEqual(F.map(x=>[x.event,x.after,x.gameMinutes,x.from,x.status]),[['fish-followup-due',ID,360,'milked-fish','stub']]);
+ assert.deepEqual(GC.fire(s,F),[],'not before the mission is done');assert.equal(GC.status(s,F)[0].started,false);
+ s.universe.missions[ID]={acquired:true,completed:true,objectives:{}};GC.stamp(s,ID);assert.equal(f['gc_'+ID],13);assert.equal(GC.status(s,F)[0].dueAt,GC.at(13+360).label);
+ for(let i=0;i<29*60;i++)clock.add(s,1,true);assert.deepEqual(GC.fire(s,F),[]);assert.equal(GC.status(s,F)[0].remaining,12,'29 minutes of play: 12 in-game minutes to go');
+ for(let i=0;i<300;i++)clock.add(s,1,false);assert.deepEqual(GC.fire(s,F),[],'five minutes paused changed nothing');
+ for(let i=0;i<60;i++)clock.add(s,1,true);const due=GC.fire(s,F);assert.equal(due.length,1);assert.equal(due[0].event,'fish-followup-due');assert.equal(f['ev_fish-followup-due'],true);
+ assert.deepEqual(GC.fire(s,F),[],'never twice');for(let i=0;i<3600;i++)clock.add(s,1,true);assert.deepEqual(GC.fire(s,F),[]);assert.equal(GC.status(s,F)[0].fired,true);
+ // persists: plain story flags (a reload, another computer through the cloud save)
+ const back=C.restore(JSON.stringify(s));assert.equal(back.story.flags.gameMin,f.gameMin);assert.equal(GC.now(back).label,GC.now(s).label);assert.equal(back.story.flags['ev_fish-followup-due'],true);assert.deepEqual(GC.fire(back,F),[]);
+ // a reload part-way keeps the in-game time already passed
+ const t=C.startDistrictCampaign(C.fresh());t.universe.missions[ID]={acquired:true,completed:true,objectives:{}};const c1=GC.clock();for(let i=0;i<300;i++)c1.add(t,1,true);GC.stamp(t,ID);for(let i=0;i<1000;i++)c1.add(t,1,true);
+ const u=C.restore(JSON.stringify(t)),c2=GC.clock();assert.equal(GC.since(u,ID),200);for(let i=0;i<799;i++)c2.add(u,1,true);assert.deepEqual(GC.fire(u,F),[]);c2.add(u,1,true);assert.equal(GC.fire(u,F).length,1);
+ // a mission completed before the stamp existed starts its wait the first time it is checked
+ const v=C.startDistrictCampaign(C.fresh());v.story.flags.gameMin=1000;v.universe.missions[ID]={acquired:true,completed:true,objectives:{}};assert.equal(GC.since(v,ID),0);assert.equal(v.story.flags['gc_'+ID],1000);
+ // the V1 photo metadata keeps the in-game time (device-gallery.js cleanMeta)
+ const DG=require(R('void-runner/device-gallery.js'));const m=DG.cleanMeta({subjects:[],at:1,gameMin:13,gameTime:'21:13 · DAY 1'});assert.equal(m.gameMin,13);assert.equal(m.gameTime,'21:13 · DAY 1');assert.equal(DG.cleanMeta({subjects:[],gameMin:5,gameTime:'<b>'}).gameTime,'');
 });
 
-test('the reusable trigger "after active play": a mission started by Comms call N minutes of active play after another; checked in the game and on the server',()=>{
+test('the reusable trigger "after in-game time": a mission started by Comms call N in-game hours after another; checked in the game and on the server',()=>{
  const x=env(),{MC,MS,G}=x;
- const tree={id:'draft-fish',name:'Fish',missions:[{id:'draft-fish-m1',number:9,title:'Fish calls',type:'side',giver:'milked-fish',start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL',text:'Test call.',when:{kind:'playtime',mission:ID,value:15}},
+ const tree={id:'draft-fish',name:'Fish',missions:[{id:'draft-fish-m1',number:9,title:'Fish calls',type:'side',giver:'milked-fish',start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL',text:'Test call.',when:{kind:'game-time',mission:ID,value:360}},
   objectives:[{id:'call',kind:'message',label:'Fish calls.'},{id:'meet',kind:'talk',npc:'milked-fish',label:'See Fish.'}]}]};
  const ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:G.placeIds()},doc=t=>({format:MC.FORMAT,version:MC.VERSION,trees:[...MC.treesContent(MS.trees(),{givers:x.e.givers}).trees,t]});
  assert.deepEqual(MC.check(doc(tree),ctx).errors,[]);
- for(const v of [0,1441,'15',2.5]){const b=JSON.parse(JSON.stringify(tree));b.missions[0].start.when.value=v;assert.ok(MC.check(doc(b),ctx).errors.length,String(v));}
+ for(const v of [0,10081,'360',2.5]){const b=JSON.parse(JSON.stringify(tree));b.missions[0].start.when.value=v;assert.ok(MC.check(doc(b),ctx).errors.length,String(v));}
  const b=JSON.parse(JSON.stringify(tree));b.missions[0].start.when.mission='nowhere';assert.ok(MC.check(doc(b),ctx).errors.length);
- assert.ok(G.START_WHEN.some(w=>w.id==='playtime'),'listed in the editor\'s trigger list');assert.ok(MC.WHEN.includes('playtime'));
- // runs: nothing until 15 active minutes after Mission 003; then the call arrives once
+ assert.ok(G.START_WHEN.some(w=>w.id==='game-time'),'listed in the editor\'s trigger list');assert.ok(MC.WHEN.includes('game-time'));
+ // runs: nothing until 6 in-game hours after Mission 003; then the call arrives once
  MC.apply({format:MC.FORMAT,version:MC.VERSION,trees:[tree]},x.e);const s=after002(x);talk(x,s,'admin');ev(x,s,{type:'accept',mission:ID});place(x,s,'milked');talk(x,s,'milked-eva');talk(x,s,'milked-fish');
- assert.equal(s.universe.missions[ID].completed,true);assert.equal(Number.isSafeInteger(s.story.flags['pc_'+ID]),true,'stamped at completion');
- assert.equal(place(x,s,'milked').offered,false);s.story.flags.playSec=(s.story.flags['pc_'+ID]||0)+15*60-1;assert.equal(place(x,s,'milked').offered,false);
- s.story.flags.playSec++;const r=place(x,s,'milked');assert.equal(r.offered,true);assert.equal(r.messages[0].channel,'comms');assert.equal(r.messages[0].from,'milked-fish');assert.equal(place(x,s,'milked').offered,false,'once');
+ assert.equal(s.universe.missions[ID].completed,true);assert.equal(Number.isSafeInteger(s.story.flags['gc_'+ID]),true,'stamped at completion');
+ assert.equal(place(x,s,'milked').offered,false);s.story.flags.gameMin=(s.story.flags['gc_'+ID]||0)+359;assert.equal(place(x,s,'milked').offered,false);
+ s.story.flags.gameMin++;const r=place(x,s,'milked');assert.equal(r.offered,true);assert.equal(r.messages[0].channel,'comms');assert.equal(r.messages[0].from,'milked-fish');assert.equal(place(x,s,'milked').offered,false,'once');
 });
 
 test('the Milked staff-only door, the guide route to Eva and Fish, and the place target',()=>{

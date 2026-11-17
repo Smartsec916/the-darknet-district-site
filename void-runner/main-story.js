@@ -14,7 +14,8 @@
    MISSION 003 — CORPORATE CONNECTIONS is the owner's, APPROVED 17 Nov 2026 (VOID_RUNNER_HANDOFF.md §11, his words verbatim): Admin's briefing in person after Eyes on the Street
    (ACCEPT / NOT NOW, as 002), walk into Milked (Far South), Eva at reception (the staff-only door opens for this player: story flag mf_milkedStaff), Fish in her office
    (her Mandarin line with the V1's English translation over it), Fish is added to the V1 contacts and followed on Social, and the mission ends ("Await Fish's response").
-   Her follow-up call becomes DUE after FOLLOWUPS[0].minutes of ACTIVE play (playtime.js); the call itself and the next mission are the owner's to write later (a stub).
+   Her follow-up call becomes DUE after FOLLOWUPS[0].gameMinutes of IN-GAME time (game-clock.js: 6 in-game hours, about 30 minutes of play), so the player can do other things
+   meanwhile; the call itself and the next mission are the owner's to write later (a stub).
    Lines marked in PROPOSED below are Claude's short drafts of what the owner described but did not write word for word: text only (no voice) until he approves them. */
 (function(root){
  'use strict';
@@ -77,14 +78,15 @@
     say:[EVA(DRAFT.evaWelcome),EVA(DRAFT.evaBusiness),EVA(DRAFT.evaPaid),YOU(DRAFT.youFish),YOU(DRAFT.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\'ll find her in her office.')]},
    // Objective 3: Fish answers in Mandarin; the V1 translation line right after hers (in her OWN voice, English: the owner's standard) is played over it (voice-clips.js) and shown under it as V1 TRANSLATION
    {id:'meet-fish',kind:'talk',npc:'milked-fish',label:'Meet Fish in her office.',place:'',item:'',early:[],say:[YOU(DRAFT.youHalden),FISH(ZH),V1T(EN)]},
-   // Objective 4: done by itself right after Fish; her follow-up call becomes due after active play (FOLLOWUPS)
+   // Objective 4: done by itself right after Fish; her follow-up call becomes due after in-game time (FOLLOWUPS)
    {id:'await-fish',kind:'await-call',npc:'milked-fish',label:'Await Fish\'s response.',place:'',item:'',say:[],early:[]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],
   unlocks:[{kind:'flag',id:'milkedStaff',value:true,when:'speak-eva'},{kind:'contact',id:'milked-fish',when:'meet-fish'},{kind:'follow',id:'milked-fish',when:'meet-fish'}]};
- /* Follow-up calls that become due after ACTIVE play (playtime.js counts only visible, in-play time; story.flags.playSec). `after`: the mission whose completion starts the
-    clock; `minutes`: how long (the one place to change it); `event`: the tree event fired once when due (story.flags ev_<event> = true). STUB: the owner's script for the call
-    and the next mission are not written; nothing is delivered to the player yet. */
- const FOLLOWUPS=[{event:'fish-followup-due',after:'m003-corporate-connections',minutes:15,from:'milked-fish',channel:'comms',status:'stub',note:'Fish\'s follow-up call: the owner\'s script and the next mission are not written yet. Nothing is delivered.'}];
+ /* Follow-up calls that become due after IN-GAME time (the owner, 17 Nov 2026: Fish's callback waits on in-game time; game-clock.js: 12 in-game minutes a real minute of
+    walking or flight; story.flags.gameMin). `after`: the mission whose completion starts the wait; `gameMinutes`: how long, in in-game minutes (the one place to change it:
+    360 = 6 in-game hours, about 30 minutes of play: the owner, so a player can finish a side mission meanwhile); `event`: fired once when due (story.flags ev_<event> = true). STUB: the owner's script for the call and the next
+    mission are not written; nothing is delivered to the player yet. */
+ const FOLLOWUPS=[{event:'fish-followup-due',after:'m003-corporate-connections',gameMinutes:360,from:'milked-fish',channel:'comms',status:'stub',note:'Fish\'s follow-up call: the owner\'s script and the next mission are not written yet. Nothing is delivered.'}];
  /* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */
  const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};
  const TREE={id:TREE_ID,name:'Awakening',note:'Your Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Mission 002 and Mission 003 follow it.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES,CORPORATE]};

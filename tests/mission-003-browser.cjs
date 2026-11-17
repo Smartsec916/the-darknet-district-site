@@ -5,7 +5,8 @@
    Eva (the PROPOSED drafts, the player's lines, her two recorded lines) → she turns toward the staff door, the STAFF ONLY door opens for this player → the arrow leads to Fish
    through the staff door → Fish: the player's line, her Mandarin line at about 70% with the V1's English translation in her own voice starting about 0.75 s later (both clips' start times are
    checked), the line shown with "V1 TRANSLATION" under it → Fish added to the contacts and followed on Social (banner) → the mission is complete, no reward → active play
-   is advanced (the page's own playtime ticker, faked time) and Fish's follow-up becomes due once (a stub: no call is delivered).
+   the V1 shows the in-game time; in-game time is advanced (the page's own clock ticker, faked time: stopped in a menu and a conversation) and Fish's follow-up becomes
+   due once after 6 in-game hours (a stub: no call is delivered).
    Usage: node tests/mission-003-browser.cjs  (its own static server on a free port; SITE_TEST_URL to use another; SHOTS=dir; BROWSER_EXECUTABLE=path; SIZES=1366,1920; QUALITY=low) */
 'use strict';
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
@@ -40,7 +41,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await page.waitForFunction(()=>mode==='pod-waking'&&walker&&!document.getElementById('pod-wake').hidden,null,{timeout:600000});
    await page.waitForFunction(()=>VoidAssets.pending===0,null,{timeout:600000});await page.waitForTimeout(800);await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking'&&walker,null,{timeout:600000});
    await page.evaluate(()=>{VoidV1.bannerMs=600000;VoidV1.callTail=600000;window.__said=[];const a=announce;announce=function(t){window.__said.push(String(t));return a.apply(this,arguments);};});
-   const S=()=>page.evaluate(id=>({mode,credits:state.credits,tracked:state.universe.trackedMission,rec:state.universe.missions[id]||null,flags:{staff:state.story.flags.mf_milkedStaff,contacts:state.story.flags.v1Contacts,following:state.story.flags.socialFollowing,playSec:state.story.flags.playSec,stamp:state.story.flags['pc_'+id],due:state.story.flags['ev_fish-followup-due']},
+   const S=()=>page.evaluate(id=>({mode,credits:state.credits,tracked:state.universe.trackedMission,rec:state.universe.missions[id]||null,flags:{staff:state.story.flags.mf_milkedStaff,contacts:state.story.flags.v1Contacts,following:state.story.flags.socialFollowing,gameMin:state.story.flags.gameMin,stamp:state.story.flags['gc_'+id],due:state.story.flags['ev_fish-followup-due']},
     log:VoidMissions.all(state,C).filter(m=>m.id===id).map(m=>({title:m.title,objective:m.objective,tracked:m.tracked,completed:m.completed}))}),ID);
    const useE=async id=>{const ok=await page.evaluate(id=>{const it=walkingLocation.interactions.find(i=>i.id===id);if(!it)return false;const inside=(x,z)=>walkingLocation.solids.some(o=>o.position&&o.size&&!o.open&&Math.abs(x-o.position[0])<o.size[0]/2+.35&&Math.abs(z-o.position[2])<o.size[2]/2+.35);
     for(const d of [1.6,1.3,1.9,1.0,2.1,.7])for(let a=0;a<16;a++){const ang=a*Math.PI/8,x=it.position[0]+Math.sin(ang)*d,z=it.position[2]+Math.cos(ang)*d,yaw=Math.atan2(it.position[0]-x,it.position[2]-z);if(inside(x,z))continue;
@@ -132,12 +133,16 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    assert.equal(await page.evaluate(()=>VoidDistrictPeople.isFollowing(state.story.flags,'n:milked-fish')),true,'and followed on Social');
    assert.equal((await S()).credits,s.credits,'no reward');
 
-   // ---- the follow-up: ACTIVE play only; fires once (a stub: nothing is delivered)
-   log('active play');const fired=await page.evaluate(()=>{const out=[];addEventListener('void-tree-event',e=>out.push(e.detail.id));window.__fired=out;const L=VoidLiveContent;let t=performance.now()+1e6;
-    L.playtimeTick(t);const st0=L.playtime();mode='menu';for(let i=0;i<200;i++)L.playtimeTick(t+=5000);const inMenu=L.playtime().followups[0].elapsed;mode='walking';
-    for(let i=0;i<14*12;i++)L.playtimeTick(t+=5000);const mid=L.playtime().followups[0];for(let i=0;i<14;i++)L.playtimeTick(t+=5000);const end=L.playtime().followups[0];for(let i=0;i<50;i++)L.playtimeTick(t+=5000);
-    return {st0:st0.followups[0],inMenu,mid,end,events:out.slice(),flag:state.story.flags['ev_fish-followup-due']};});
-   log(JSON.stringify(fired));assert.ok(fired.inMenu<=fired.st0.elapsed+1,'time in the menu does not count');assert.equal(fired.mid.due,false);assert.equal(fired.end.fired,true);assert.deepEqual(fired.events,['fish-followup-due'],'fires once');assert.equal(fired.flag,true);
+   // ---- the V1 shows the in-game time; the follow-up waits 6 in-game hours (in-game time runs only while walking or flying); fires once (a stub: nothing is delivered)
+   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen);await page.waitForTimeout(1500);
+   const v1=await page.evaluate(()=>({shown:document.querySelector('[data-pd-clock]')?.textContent||'',now:VoidClock.now(state).label}));assert.match(v1.shown,/^\d\d:\d\d · DAY \d+$/,'the V1 shows the in-game time: '+v1.shown);assert.equal(v1.shown,v1.now);
+   await shot('v1-clock');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);await page.waitForFunction(()=>mode==='walking');
+   log('in-game time');const fired=await page.evaluate(()=>{const out=[];addEventListener('void-tree-event',e=>out.push(e.detail.id));const L=VoidLiveContent;let t=performance.now()+1e6;
+    L.clockTick(t);const st0=L.gameClock().followups[0];mode='menu';for(let i=0;i<200;i++)L.clockTick(t+=5000);const inMenu=L.gameClock().followups[0].elapsed;mode='dialogue';for(let i=0;i<50;i++)L.clockTick(t+=5000);const inTalk=L.gameClock().followups[0].elapsed;mode='walking';
+    for(let i=0;i<st0.remaining-1;i++)L.clockTick(t+=5000);const mid=L.gameClock().followups[0];for(let i=0;i<2;i++)L.clockTick(t+=5000);const end=L.gameClock().followups[0];for(let i=0;i<50;i++)L.clockTick(t+=5000);
+    return {st0,inMenu,inTalk,mid,end,events:out.slice(),flag:state.story.flags['ev_fish-followup-due'],now:L.gameClock().now.label};});
+   log(JSON.stringify(fired));assert.equal(fired.st0.gameMinutes,360,'6 in-game hours');assert.equal(fired.inMenu,fired.st0.elapsed,'the clock stops in a menu');assert.equal(fired.inTalk,fired.st0.elapsed,'and in a conversation');
+   assert.equal(fired.mid.due,false);assert.equal(fired.end.fired,true);assert.deepEqual(fired.events,['fish-followup-due'],'fires once');assert.equal(fired.flag,true);assert.equal(fired.end.dueAt,fired.st0.dueAt);
    assert.equal(await page.evaluate(()=>document.querySelector('#pd-notify')?.textContent.includes('Fish')&&!/call/i.test(document.querySelector('#pd-notify').textContent)),true,'no call is delivered (stub)');
    assert.deepEqual(errors.filter(e=>!/ResizeObserver|AbortError|The play\(\) request/.test(e)),[],'no page errors');
    log(W+' done');await ctx.close();}

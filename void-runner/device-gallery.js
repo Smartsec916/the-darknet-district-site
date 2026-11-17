@@ -20,7 +20,8 @@
  const ID=/^[a-z][a-z0-9-]{0,63}$/,STEP=/^[a-z][a-z0-9-]{0,79}\/[a-z][a-z0-9-]{0,79}$/;
  function cleanMeta(m){if(!m||typeof m!=='object'||!Array.isArray(m.subjects))return null;
   const subjects=m.subjects.filter(x=>x&&ID.test(x.id||'')).slice(0,24).map(x=>({id:x.id,name:text(x.name,40),valid:x.valid===true,...(Number.isFinite(x.dist)?{dist:Math.round(x.dist*10)/10}:{}),...(x.why?{why:text(x.why,60)}:{})}));
-  return {subjects,place:ID.test(m.place||'')?m.place:null,during:(Array.isArray(m.during)?m.during:[]).filter(x=>typeof x==='string'&&STEP.test(x)).slice(0,20),at:Number.isFinite(m.at)?m.at:0};}
+  return {subjects,place:ID.test(m.place||'')?m.place:null,during:(Array.isArray(m.during)?m.during:[]).filter(x=>typeof x==='string'&&STEP.test(x)).slice(0,20),at:Number.isFinite(m.at)?m.at:0,
+   ...(Number.isSafeInteger(m.gameMin)&&m.gameMin>=0?{gameMin:m.gameMin,gameTime:/^\d\d:\d\d · DAY \d{1,6}$/.test(m.gameTime||'')?m.gameTime:''}:{})};}   // the in-game time it was taken (game-clock.js)
  const AREAS={neochinatown:'NeoChinatown',alley:'NeoChinatown · the alley',milked:'Milked',corporate:'Corporate District',temple:'Zen Zephyr Temple','district-entry':'The Darknet District · entrance','district-hall':'The Darknet District · hallway',
   'district-store':'The Darknet District · store','district-bar':'The Darknet District · bar','district-vr':'The Darknet District · VR','district-arcade':'The Darknet District · arcade','district-rest':'The Darknet District · sleeping pods','district-terrace':'The Darknet District · terrace',club:'NULL'};
  const placeName=area=>AREAS[area]||(String(area||'').startsWith('district')?'The Darknet District':'NeoChinatown');
@@ -66,7 +67,7 @@
   if(!loaded)return '<div class="pd-empty">Opening the gallery…</div>';
   const cap=capacity(appsPct(device)),head='<div class="pd-stat"><span>PHOTOS: '+photos.length+' / '+cap+'</span><span>EACH PHOTO: '+PHOTO_PCT+'% OF STORAGE</span></div>';
   if(sub){const p=photos.find(x=>x.id===sub);if(!p)return '<div class="pd-empty">That photo is gone.</div>';
-   return '<article class="pd-photo"><img alt="Photo taken at '+esc(p.place)+'" src="'+esc(urlOf(p))+'"><div class="pd-note">'+esc(p.place)+' · '+esc(new Date(p.at).toLocaleString())+(p.zoom>1?' · '+p.zoom+'x':'')+'</div>'+tagLine(p.tags)
+   return '<article class="pd-photo"><img alt="Photo taken at '+esc(p.place)+'" src="'+esc(urlOf(p))+'"><div class="pd-note">'+esc(p.place)+' · '+esc(p.meta&&p.meta.gameTime?p.meta.gameTime:new Date(p.at).toLocaleString())+(p.zoom>1?' · '+p.zoom+'x':'')+'</div>'+tagLine(p.tags)
     +'<div class="pd-row"><button type="button" data-photo-post="'+esc(p.id)+'" data-on="'+(p.postedAt?'0':'1')+'">'+(p.postedAt?'TAKE DOWN FROM NEWS':'POST TO NEWS')+'</button><button type="button" data-photo-del="'+esc(p.id)+'">DELETE</button></div>'
     +(p.postedAt?'<div class="pd-note">Posted to News · People. For now only you can see your posts: showing them to other players needs a server feature that is not built.</div>':'')+'</article>';}
   if(!photos.length)return head+'<div class="pd-empty"><b>GALLERY</b><br>No photos yet.<br>Raise the camera (B) and press the left mouse button to take one.</div>';

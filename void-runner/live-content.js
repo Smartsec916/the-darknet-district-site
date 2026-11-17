@@ -17,7 +17,7 @@
    Messages (personal-device.js calls sendPhoto()).
    MISSION 003 — CORPORATE CONNECTIONS (17 Nov 2026) added: a line by the V1 translator ('v1-translator') straight after another speaker's line is shown UNDER that line as
    V1 TRANSLATION and its recording plays over it (voice-clips.js `with`), the speaker's gesture on a step's last line (main-story.js GESTURES; Eva toward the staff-only door),
-   the V1 contact and the Social follow (a small V1 banner when the conversation closes), and the ACTIVE PLAYTIME clock (playtime.js; story.flags.playSec) with the
+   the V1 contact and the Social follow (a small V1 banner when the conversation closes), and the IN-GAME CLOCK (game-clock.js; story.flags.gameMin) with the
    follow-ups it makes due (main-story.js FOLLOWUPS: Fish's call is a STUB, only the event 'fish-followup-due' fires: window event 'void-tree-event'). */
 (function(root){
  'use strict';
@@ -148,17 +148,18 @@
  const markRead=id=>{try{if(MC.markRead(state,id)){try{save();}catch{}return true;}}catch{}return false;};
  const during=()=>{try{return typeof state!=='undefined'&&state?MC.during(state,env):[];}catch{return [];}};
  const giverName=id=>(env.givers.find(g=>g.id===id)||{}).name||id;
- /* ACTIVE PLAYTIME (playtime.js): once a second, while the tab is visible and the game is in play (not a menu, pause, the pod card or a hidden tab), the seconds go into
-    story.flags.playSec. A gap (the computer asleep, the tab in the background) counts 5 s at most. Saved every 60 s of play and whenever a follow-up becomes due.
-    Follow-ups (main-story.js FOLLOWUPS) fire ONCE (story.flags.ev_<event>): the window event 'void-tree-event' {id, followup}. Fish's call is a STUB: nothing reaches the player. */
- const PT=root.VoidPlaytime,ptClock=PT?PT.clock():null;let ptLast=null,ptUnsaved=0;const fired=[];
+ /* THE IN-GAME CLOCK (game-clock.js): once a second, while the tab is visible and the player is walking or flying (not a menu, pause, a conversation, the pod card or a
+    hidden tab), the clock runs at 12 in-game minutes a real minute into story.flags.gameMin. A gap (the computer asleep, the tab in the background) counts 5 s at most.
+    Saved every 12 in-game minutes and whenever a follow-up becomes due. Follow-ups (main-story.js FOLLOWUPS, in in-game minutes) fire ONCE (story.flags.ev_<event>):
+    the window event 'void-tree-event' {id, followup}. Fish's call is a STUB: nothing reaches the player. */
+ const GC=root.VoidClock,gcClock=GC?GC.clock():null;let gcLast=null,gcUnsaved=0;const fired=[];
  function playView(){let paused=false,menu=false;try{paused=typeof mode!=='undefined'&&mode==='pause';menu=typeof mode!=='undefined'&&mode==='menu';}catch{}
   return {visible:typeof document==='undefined'||document.visibilityState==='visible',mode:typeof mode!=='undefined'?mode:'',paused,menu,podCard:typeof state!=='undefined'&&state?.story?.flags?.podWakePending===true};}
- function playtimeTick(now=performance.now()){try{if(!PT||!treesOn()||root.VoidDevTest?.active&&!root.VoidDevTest?.playtime)return null;const dt=ptLast===null?0:(now-ptLast)/1000;ptLast=now;
-  const added=ptClock.add(state,dt,PT.active(playView()));ptUnsaved+=added;const due=PT.fire(state,MSx()?.FOLLOWUPS||[]);
-  for(const x of due){fired.push({event:x.event,at:Date.now()});try{root.dispatchEvent?.(new CustomEvent('void-tree-event',{detail:{id:x.event,followup:x}}));}catch{}try{console.info('[VOID//RUNNER] follow-up due: '+x.event+' ('+(x.status||'')+')');}catch{}}
-  if(due.length||ptUnsaved>=60){ptUnsaved=0;try{save();}catch{}}return {added,due};}catch{return null;}}
- setInterval(()=>playtimeTick(),1000);
- const playtime=()=>{try{return {seconds:PT?PT.seconds(state):0,followups:PT?PT.status(state,MSx()?.FOLLOWUPS||[]):[],fired:fired.slice()};}catch{return {seconds:0,followups:[],fired:[]};}};
- root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,playtime,playtimeTick,get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ function clockTick(now=performance.now()){try{if(!GC||typeof state==='undefined'||!state?.story?.flags||root.VoidDevTest?.active&&!root.VoidDevTest?.clock)return null;const dt=gcLast===null?0:(now-gcLast)/1000;gcLast=now;
+  const added=gcClock.add(state,dt,GC.active(playView()));gcUnsaved+=added;const due=treesOn()?GC.fire(state,MSx()?.FOLLOWUPS||[]):[];
+  for(const x of due){fired.push({event:x.event,at:Date.now(),gameTime:GC.now(state).label});try{root.dispatchEvent?.(new CustomEvent('void-tree-event',{detail:{id:x.event,followup:x}}));}catch{}try{console.info('[VOID//RUNNER] follow-up due: '+x.event+' ('+(x.status||'')+')');}catch{}}
+  if(due.length||gcUnsaved>=12){gcUnsaved=0;try{save();}catch{}}return {added,due};}catch{return null;}}
+ setInterval(()=>clockTick(),1000);
+ const gameClock=()=>{try{return {minutes:GC?GC.minutes(state):0,now:GC?GC.now(state):null,followups:GC?GC.status(state,MSx()?.FOLLOWUPS||[]):[],fired:fired.slice()};}catch{return {minutes:0,now:null,followups:[],fired:[]};}};
+ root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

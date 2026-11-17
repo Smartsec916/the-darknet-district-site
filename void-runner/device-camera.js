@@ -185,7 +185,9 @@
    const j=pure.judge({points:pts,W,H,dist});out.push({id,name:p.name,valid:j.valid,dist:Math.round(dist*10)/10,...(j.why?{why:j.why}:{})});}
   let place=null;try{const wl=walkingLocation;place=root.VoidPlaces?.deepest?.({scene:wl.id,x:from.x,z:from.z})||null;}catch{}
   let during=[];try{during=root.VoidLiveContent?.during?.()||[];}catch{}
-  return {subjects:out,place,during,at:Date.now()};
+  // the in-game time it was taken (game-clock.js): minutes since the campaign started and the V1's label, e.g. "21:40 · DAY 1"
+  let gameMin=null,gameTime='';try{if(root.VoidClock&&typeof state!=='undefined'&&state){gameMin=root.VoidClock.minutes(state);gameTime=root.VoidClock.now(state).label;}}catch{}
+  return {subjects:out,place,during,at:Date.now(),...(gameMin!==null?{gameMin,gameTime}:{})};
  }
  function onShot(e){
   if(!active||e.button!==0)return;const cv=scene()?.getEngine().getRenderingCanvas();

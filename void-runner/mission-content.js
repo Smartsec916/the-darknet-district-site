@@ -33,7 +33,7 @@
  'use strict';
  const MS=typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
  const PL=typeof module!=='undefined'&&module.exports?require('./places.js'):root.VoidPlaces;
- const PT=typeof module!=='undefined'&&module.exports?require('./playtime.js'):root.VoidPlaytime;
+ const GC=typeof module!=='undefined'&&module.exports?require('./game-clock.js'):root.VoidClock;
  const DPL=()=>typeof module!=='undefined'&&module.exports?require('./district-people.js'):root.VoidDistrictPeople;
  const FORMAT='darknet-district-mission-content',VERSION=1;
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TAGS=/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/;
@@ -117,7 +117,7 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','playtime'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -138,9 +138,9 @@
   if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
   if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');
   const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
-  // "after N minutes of active play" (Mission 003, 17 Nov 2026): N (value, 1..1440 minutes) of active play after the mission named here was completed (playtime.js)
-  if(x.kind==='playtime'&&!(Number.isInteger(x.value)&&x.value>=1&&x.value<=1440))err(w+': “after active play” needs a whole number of minutes from 1 to 1440.');
-  if(x.kind==='after-mission'||x.kind==='playtime'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[]),...((MS&&MS.MISSION_IDS)||[])]);/* the shipped story's missions always exist */if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
+  // "after N in-game hours / minutes" (Mission 003, 17 Nov 2026): value = IN-GAME minutes (1..10080, a week) after the mission named here was completed (game-clock.js)
+  if(x.kind==='game-time'&&!(Number.isInteger(x.value)&&x.value>=1&&x.value<=10080))err(w+': “after in-game time” needs a whole number of in-game minutes from 1 to 10080 (a week).');
+  if(x.kind==='after-mission'||x.kind==='game-time'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[]),...((MS&&MS.MISSION_IDS)||[])]);/* the shipped story's missions always exist */if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
   if((x.kind==='place'||x.kind==='leave')&&(typeof x.place!=='string'||(ctx.places&&!ctx.places.has(x.place))))err(w+': unknown trigger place "'+x.place+'".');
   if(x.kind==='flag'){if(!STORY_FLAG.test(x.flag||''))err(w+': the trigger flag must be a story flag name (letters, digits, - or _).');if(!(typeof x.value==='boolean'||(typeof x.value==='string'&&x.value.length<=200&&!TAGS.test(x.value))||Number.isSafeInteger(x.value)))err(w+': the trigger flag value must be true/false, a number or short text.');}}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
@@ -270,7 +270,7 @@
   const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
    :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):false;
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
-   if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(PT)PT.stamp(s,m.id);/* the active-play clock of "after N minutes of active play" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
+   if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(GC)GC.stamp(s,m.id);/* the in-game wait of "after N in-game hours" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
   const step=(t,m,o)=>{if(!Missions.complete(s,m.id,o.id,Camp))return false;Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
    if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
@@ -284,7 +284,7 @@
   // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
   const startsNow=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver);const w=st.when||{};
    if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);if(w.kind==='leave')return ev.type==='place'&&(ev.left||[]).includes(w.place);
-   if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='playtime')return !!(PT&&PT.due(s,w.mission,w.value));if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
+   if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='game-time')return !!(GC&&GC.due(s,w.mission,w.value));if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
   // After a step: the automatic steps that follow it (messages) complete at once.
   const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind))break;if(!step(t,m,o))break;}};
   // After a talk step: a 'hear' step next shows its lines (done when the conversation closes), or is done at once when nothing can be shown.

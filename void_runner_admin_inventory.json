@@ -413,7 +413,7 @@
       "follow"
     ]
   },
-  "revision": "a0a444b5a477e49e",
+  "revision": "24cd2e49d5875947",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12279,6 +12279,18 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/game-clock.js",
+      "line": 5,
+      "text": "conversation or the pod card, while the tab is hidden, or while the game is closed or the computer asleep (a gap between ticks counts MAX_STEP real seconds at most).",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/game-clock.js",
+      "line": 20,
+      "text": "const ACTIVE_MODES=['walking','play','road-taxi'];   // walking, flight ('play' in game.js), a taxi ride; 'dialogue', 'menu', 'pause', loading and the creator never run it",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/game.js",
       "line": 62,
       "text": "else if (state.quest === 'return') story += ' “Tell Rook you kept your word,” the receiver says. Time to head back to Meridian.';",
@@ -12401,7 +12413,7 @@
     {
       "source": "void-runner/live-content.js",
       "line": 20,
-      "text": "the V1 contact and the Social follow (a small V1 banner when the conversation closes), and the ACTIVE PLAYTIME clock (playtime.js; story.flags.playSec) with the",
+      "text": "the V1 contact and the Social follow (a small V1 banner when the conversation closes), and the IN-GAME CLOCK (game-clock.js; story.flags.gameMin) with the",
       "kind": "source-reference"
     },
     {
@@ -12489,6 +12501,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/live-content.js",
+      "line": 151,
+      "text": "/* THE IN-GAME CLOCK (game-clock.js): once a second, while the tab is visible and the player is walking or flying (not a menu, pause, a conversation, the pod card or a",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/main-story.js",
       "line": 7,
       "text": "(what he says in person at step 3; step 4 is done when that conversation closes) is NOT written yet: the one line below is a clearly marked placeholder for the owner. It is shown only in the Mission Editor and in draft play; the game never",
@@ -12496,157 +12514,157 @@
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 32,
+      "line": 33,
       "text": "start:{how:'notification',channel:'comms',from:'admin',header:'ADMIN // INCOMING MESSAGE',text:'You\\'re awake. Good.\\nWhen you\\'re ready, come find me. We need to talk.',when:{kind:'pod-exit'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 35,
+      "line": 36,
       "text": "{id:'exit-pod',kind:'pod-exit',label:'Exit the Sleeping Pod.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 36,
+      "line": 37,
       "text": "{id:'message',kind:'message',label:'Receive Admin\\'s message.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 37,
+      "line": 38,
       "text": "{id:'speak',kind:'talk',npc:'admin',label:'Find and speak with Admin.',place:'',item:'',say:[{who:'admin',text:PLACEHOLDER}],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 38,
+      "line": 39,
       "text": "{id:'introduction',kind:'hear',npc:'admin',label:'Receive an introduction to The Darknet District.',place:'',item:'',say:[],early:[]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 39,
+      "line": 40,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 41,
+      "line": 42,
       "text": "const A=t=>({who:'admin',text:t});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 43,
+      "line": 44,
       "text": "start:{how:'person',accept:true},   // in person: Admin offers it, the player can ACCEPT or say NOT NOW (and come back later)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 49,
+      "line": 50,
       "text": "say:[A('Your V1 has a camera. Press L to open your device, then select the Camera app.'),A('Point it at the target. Your device should identify them automatically.'),A('Left click will take a picture'),A('You can also zoom with the camera by using the mouse wheel'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 50,
+      "line": 51,
       "text": "A('Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.'),A('Nothing complicated. Just keep your eyes open.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 52,
+      "line": 53,
       "text": "{id:'photograph',kind:'photo',npc:'juno-vex',subjects:['juno-vex','halden-reyes'],label:'Photograph the target.',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 54,
+      "line": 55,
       "text": "say:[A('Received. That\\'s exactly what I needed. Come back when you\\'re ready.')],wrong:[A('That\\'s not the person I\\'m looking for. Check the description and try again.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 55,
+      "line": 56,
       "text": "{id:'return',kind:'talk',npc:'admin',label:'Return to Admin.',place:'',item:'',early:[],say:[A('Not bad. You can follow instructions and keep a low profile. I might have more work for you.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 56,
+      "line": 57,
       "text": "rewards:100,ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'reputation',id:'admin',amount:10}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 58,
+      "line": 59,
       "text": "const EVA=t=>({who:'milked-eva',text:t}),FISH=t=>({who:'milked-fish',text:t}),YOU=t=>({who:'You',text:t}),V1T=t=>({who:'v1-translator',text:t});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 74,
+      "line": 75,
       "text": "{id:'travel-milked',kind:'enter',place:'milked',label:'Travel to Milked.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 77,
+      "line": 78,
       "text": "say:[EVA(DRAFT.evaWelcome),EVA(DRAFT.evaBusiness),EVA(DRAFT.evaPaid),YOU(DRAFT.youFish),YOU(DRAFT.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\\'ll find her in her office.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 79,
+      "line": 80,
       "text": "{id:'meet-fish',kind:'talk',npc:'milked-fish',label:'Meet Fish in her office.',place:'',item:'',early:[],say:[YOU(DRAFT.youHalden),FISH(ZH),V1T(EN)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 81,
+      "line": 82,
       "text": "{id:'await-fish',kind:'await-call',npc:'milked-fish',label:'Await Fish\\'s response.',place:'',item:'',say:[],early:[]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 82,
+      "line": 83,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 88,
+      "line": 90,
       "text": "/* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 89,
+      "line": 91,
       "text": "const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 112,
+      "line": 114,
       "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 113,
+      "line": 115,
       "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 115,
+      "line": 117,
       "text": "const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 116,
+      "line": 118,
       "text": "const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}",
       "kind": "source-reference"
     },
@@ -13198,49 +13216,49 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 332,
+      "line": 334,
       "text": "else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 340,
+      "line": 342,
       "text": "if(!['message','pod-exit','hear','send-photo','await-call'].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 342,
+      "line": 344,
       "text": "const sayWho=o.kind==='photo'?m.giver:o.npc||m.giver;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 343,
+      "line": 345,
       "text": "if(o.kind!=='message'&&o.kind!=='pod-exit')sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 421,
+      "line": 423,
       "text": "const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 422,
+      "line": 424,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 452,
+      "line": 454,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 474,
+      "line": 476,
       "text": "const items=lines.filter(l=>l.who!=='player'&&l.voice).map(l=>({ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''}));",
       "kind": "source-reference"
     },
@@ -13434,6 +13452,12 @@
       "source": "void-runner/mission-givers.js",
       "line": 108,
       "text": "const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / NOT NOW: the giver offers it and the player chooses (a player who says NOT NOW can come back)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-givers.js",
+      "line": 114,
+      "text": "{id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];",
       "kind": "source-reference"
     },
     {
@@ -14086,37 +14110,37 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 407,
+      "line": 410,
       "text": "if(t.dataset.thread){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox',t.dataset.thread],'tab','OPENING CONVERSATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 408,
+      "line": 411,
       "text": "if(t.dataset.attachOpen){attach={picking:true,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 409,
+      "line": 412,
       "text": "if(t.dataset.attachPhoto){attach={picking:false,photo:t.dataset.attachPhoto,text:'',sending:false};render({keepScroll:true});setTimeout(()=>body?.querySelector('[data-attach-form] input')?.focus(),0);return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 410,
+      "line": 413,
       "text": "if(t.dataset.attachCancel){attach={picking:false,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 442,
+      "line": 445,
       "text": "function back(){if(stack[0]==='messages'&&stack[2]){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox'],'tab','LOADING');return true;}   // a conversation goes back to the list",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 524,
+      "line": 527,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -14136,18 +14160,6 @@
       "source": "void-runner/personal-hud.js",
       "line": 32,
       "text": "'<h2>PEOPLE</h2><p class=\"hud-note\">NPC conversation history stays in this browser. Player messaging needs the future authenticated social service.</p>'+",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/playtime.js",
-      "line": 3,
-      "text": "(live-content.js) adds time only while the tab is visible and the game is in play (walking, a conversation, flight, docked, a taxi ride): never in a menu, while paused, in the",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/playtime.js",
-      "line": 22,
-      "text": "const ACTIVE_MODES=['walking','dialogue','play','dock','arrival','road-taxi'];   // game.js modes: 'play' is flight; 'menu' (the game menu), 'pause', loading and the creator never count",
       "kind": "source-reference"
     },
     {
@@ -15982,8 +15994,8 @@
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "2c1042417e3da3d508ba056adc265a06fb130e152153df6e983cbb77a82e6cbb",
     "void-runner/dev-tools.js": "28f2d3d80f905f5ebe5abe4934d34e3a45e248510b949b7547bdf85097f9a54a",
-    "void-runner/device-camera.js": "591eef3228a171e5121671731ea015b25a25925f2e59dfc13e52ed7198b542f6",
-    "void-runner/device-gallery.js": "36744ade2dc9d809772bec376e0ed266f25ecf5dfcff7576d5c2d370408b1a5f",
+    "void-runner/device-camera.js": "b73c339368effd4afb11ca89470e6c122d8efd7887c75c150f515508a5d91506",
+    "void-runner/device-gallery.js": "f3c1e528a3d28a466b6c8166cd98eb09a731d7b0127d080809608e5560f18b2c",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "ac582ed30699de5c983ef2f3f74b711e3818db33c17a574f4649fbb4aa14e95d",
     "void-runner/device-v1.js": "fe32021bdece5cd2d8181fdd8398c0dfab816dd0a9471c75d4dfde7113c1c579",
@@ -16017,6 +16029,7 @@
     "void-runner/flight-skirmish.js": "d34dcc71253521e0b64617552cce2db27b7e1e37420611fa7471de848c8a5573",
     "void-runner/footsteps.js": "5caeb3f07017f1a72a1c91633de003f601104c9997862691e6b8b262ce1ff137",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
+    "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/guide-route.js": "6b4a239286230724187c938153c4802032b7a3f847ea1af07ef33e34555adc6b",
@@ -16026,10 +16039,10 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
     "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
-    "void-runner/live-content.js": "678494c47d676eb6dbe0c58244d3983742948928bb88f95ba1a968788304b28f",
+    "void-runner/live-content.js": "5d6d72b831bcf47e3afe2664260eb3d71e5b7d0f8fd6d47172aaad8f375da155",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
-    "void-runner/main-story.js": "64b62ee2ac9109b11abcd971e5db7d44d0acdfe08070da7875b849a9d82eda7a",
+    "void-runner/main-story.js": "b50cf927deec8fc0c7e5b39e53424034eaeb9ae6d50e7c362508879655029dbb",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "e33945c3801486b0491f33a7253a44179550127b1efd02dab139be6b61082627",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -16042,9 +16055,9 @@
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
     "void-runner/milked.js": "58d5d68419e52c8ce4ec14c7e220990cf446393f3bbd085c432d1102097845e1",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-content.js": "833c00820d1f86eb458a2a61a231f3a18f444b3d22c424c40d65af5d108153a1",
-    "void-runner/mission-editor.js": "9ca321098bf091f1983c28b0874dc8138c0d67b1aba755af9a637285b4495c9d",
-    "void-runner/mission-givers.js": "f356b0e1f42c7601ef9b61558e70b6f4524db04cb399a5ac3c3444fa0b598001",
+    "void-runner/mission-content.js": "bf3392a245a142eaa3e076931db15c4416db1af6c7ba8123dca21cdf65fbf44c",
+    "void-runner/mission-editor.js": "6d9b263f9d70a50e269f9cf4ccde9656903a2fb5e350f2374e6090521fd87fb4",
+    "void-runner/mission-givers.js": "c497e6ad7bf36f9592a94c18969d55abee99269e3f15e88029cc93b9b5483574",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
     "void-runner/mission-trees.js": "cb61be24326c723f53fc6125396f6bc49723737fd39a3f5532a4e60c51394f1d",
@@ -16071,12 +16084,11 @@
     "void-runner/npc-look.js": "cc2d498066154935427bd4f52b5d2f0ad53360c5036dc3c95a1165882a6f9357",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
-    "void-runner/personal-device.js": "0a6df9706c0c469b3d578bc8b8a2baf46d8781538a1ff4af10d4862251e6e74c",
+    "void-runner/personal-device.js": "c76ebafbc10161c6639ce3c4afc835b1a08011f96cbdd70c8300786143ca6c57",
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "9ffa3ef07bad24d27dedb8d79fdea41fb3f57c97b1bfd0d134824bfde4a12412",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
-    "void-runner/playtime.js": "ebed15f56e3ac5cced135d856d3fea55cae1a13725825830287cd9e77788a66f",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",
     "void-runner/pod-playlist.js": "551f33d389b5090865394f22b1607761e72e711cdc5625e822a60b96f0fb77c1",
