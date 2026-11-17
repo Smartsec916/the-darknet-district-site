@@ -420,9 +420,13 @@
     {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
-    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);Missions.sync(out,{missionFlight,contracts});return out;
+    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Missions.sync(out,{missionFlight,contracts});return out;
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
+  /* Missions removed from the game (David, 17 Nov 2026): in a District campaign only the main storyline (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run.
+     A tracked removed mission (the beginner campaign, anything older) is untracked; its record, credits, items and ships are kept, and nothing is rejected. void_runner_api.py clean_save does the same. */
+  const storyMission=id=>typeof id==='string'&&/^(draft-|main-storyline-m\d|m\d{3}-)/.test(id);
+  function retireMissions(s){if(!Missions.closed(s)||!s.universe)return false;const t=s.universe.trackedMission;if(t==null||storyMission(t))return false;s.universe.trackedMission=null;s.universe.autoTrack=true;return true;}
   function grantShip(s){if(s.story?.flags?.shipAccess==='none')s.story.flags.shipAccess='granted';return S.hasShip(s);}
   /* The beginner campaign's reward (and the developer test ship): a REAL starter ship plus the travel the ship system needs. Idempotent: the flag makes a second call change nothing.
      What it opens: the pad ship and BOARD (shipAccess), boarding past the old Vesper opening gate (quest 'open'; a closed-pool campaign has no Vesper lessons, see progression.groundDone),
@@ -494,7 +498,7 @@
       }
     };
   }
-  const api = { campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

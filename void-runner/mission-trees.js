@@ -7,7 +7,11 @@
    a scene whose lines are partly assembled by code says so (partial). Nothing here changes the game. */
 (function(root){
  'use strict';
- const STATUS={active:'ACTIVE · in the current District game',historical:'HISTORICAL · not reachable in the current District game',draft:'DRAFT · not in the game'};
+ const STATUS={active:'ACTIVE · in the current District game',historical:'HISTORICAL · not reachable in the current District game',draft:'DRAFT · not in the game',
+  archived:'REMOVED FROM THE GAME (archived) · not in the game. Kept to read and to copy into a new tree.'};
+ const MS_=()=>typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
+ // Every older tree was removed from the game on 17 Nov 2026 (David: "Go ahead and remove all missions in the game"); only the main storyline and the owner's trees run.
+ const ARCHIVED=new Set(['beginner','vesper-opening','sealed-cargo','communion','natural-order','other-registry','rook-contracts','district-drafts','draft-studio']);
  const MC_=()=>typeof module!=='undefined'&&module.exports?require('./mission-content.js'):root.VoidMissionContent;
  const G_=()=>typeof module!=='undefined'&&module.exports?require('./mission-givers.js'):root.VoidMissionGivers;
  const DOCS={'05':'design doc 05 (Admin, the Communion and the Natural Order)','06':'design doc 06 (Iris, return for payment)','07':'design doc 07 (the cargo recipients)',
@@ -110,7 +114,7 @@
      next:next.map(x=>x.id),branches:(m.choices||[]).map(c=>({text:'Choice: '+c.label+(c.next?' → '+c.next:' → not decided'),draftOnly:true}))},
     unlocks,order:i,server:null};});
   trees.push({id:'beginner',title:'Beginner campaign: Sleeping Pod to first ship',status:'active',statusText:STATUS.active,engine:'beginner',source:'void-runner/beginner.js',
-   note:'Runs for every new District campaign. The wording is PROPOSED placeholder text David has not approved yet (docs/development/BEGINNER_CAMPAIGN.md). The Developer Studio edits the same records.'+(studio?' Showing your Studio draft.':''),missions:bMissions});
+   note:'Removed from the game on 17 Nov 2026 (Mission 001 — Awakening replaced it). It was never approved: its wording was PROPOSED placeholder text (docs/development/BEGINNER_CAMPAIGN.md). Its FIRST DEPARTURE used to give the courier hull and Meridian; nothing gives a ship now until a future mission does.'+(studio?' Showing your Studio draft.':''),missions:bMissions});
   // ---- registry missions (historical arcs) ----
   const defs=src.missions||{},C=src.campaign||{},seen=new Set();
   const facts=registryUnlocks(C,src);
@@ -164,18 +168,21 @@
   if(studio){const added=studio.filter(m=>!B.some(x=>x.id===m.id));if(added.length)trees.push({id:'draft-studio',title:'Your draft: new beginner missions',status:'draft',statusText:STATUS.draft,engine:'beginner',source:'Developer Studio draft (this browser)',note:'Missions you added in the Studio draft. They are part of the beginner campaign tree above too.',missions:bMissions.filter(m=>added.some(a=>a.id===m.id)).map(m=>({...m,tree:'draft-studio'}))});}
   // ---- the owner's NEW trees (local draft; ids start with draft-, never change) ----
   const roster=src.givers||G_().roster({registry:src.registry,people:src.people,story:src.story&&src.story.characters,temple:src.temple}),gname=id=>(roster.find(g=>g.id===id)||{}).name||id||'';
-  for(const ot of src.ownerTrees||[]){const ms=(ot.missions||[]).map((m,i)=>{
-    const steps=(m.objectives||[]).map(o=>({id:o.id,label:o.label||'',kind:o.kind,event:'',requires:[],where:o.kind==='go'?((G_().PLACE.get(o.place)||{}).name||o.place||''):o.npc?gname(o.npc):o.item||'',interaction:'',
+  const MSx=MS_(),num=(n,t)=>MSx?MSx.label(n,t):t;
+  for(const ot of src.ownerTrees||[]){const story=!!(MSx&&MSx.STORY_TREES.includes(ot.id));const ms=(ot.missions||[]).map((m,i)=>{
+    const steps=(m.objectives||[]).map(o=>({id:o.id,label:o.label||'',kind:o.kind,event:'',requires:[],where:o.kind==='go'?((G_().PLACE.get(o.place)||{}).name||o.place||''):o.kind==='pod-exit'?'the Sleeping Pod':o.kind==='message'?'the V1 (Messages)':o.npc?gname(o.npc):o.item||'',interaction:'',message:o.message||null,
      lines:(o.say||[]).map((l,k)=>line(l.who||o.npc||m.giver,l.text||'',{key:'tree:'+m.id+'/'+o.id+'/say/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true})),
      early:(o.early||[]).map((l,k)=>line(l.who||o.npc||m.giver,l.text||'',{key:'tree:'+m.id+'/'+o.id+'/early/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true}))}));
     const e=m.ending||{};
-    return {key:'tree:'+m.id,id:m.id,tree:ot.id,engine:'tree',title:m.title||'(no name yet)',type:m.type||'side',description:m.description||'',giver:m.giver||'',giverName:gname(m.giver),start:'',destination:'',credits:Number(m.rewards)||0,draftOnly:true,steps,
+    return {key:'tree:'+m.id,id:m.id,tree:ot.id,engine:'tree',title:num(m.number,m.title||'(no name yet)'),name:m.title||'',number:Number.isInteger(m.number)?m.number:null,type:m.type||'side',description:m.description||'',giver:m.giver||'',giverName:gname(m.giver),start:'',destination:'',credits:Number(m.rewards)||0,draftOnly:true,steps,
      offer:(m.offer||[]).map((l,k)=>line(l.who||m.giver,l.text||'',{key:'tree:'+m.id+'/offer/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true})),scenes:[],
      ending:{text:e.npc?'Ends when the player hands in to '+gname(e.npc)+(e.place?' at '+((G_().PLACE.get(e.place)||{}).name||e.place):''):'Ends when its last step is done',next:ot.missions[i+1]?[ot.missions[i+1].id]:[],branches:(m.choices||[]).map(c=>({text:'Choice: '+(c.label||'(no text)')+(c.next?' → '+c.next:' → not decided'),draftOnly:true}))},
      unlocks:(m.unlocks||[]).map(u=>({...u,when:u.when||'complete',name:u.kind==='credits'?u.amount+' credits':u.kind==='flag'?'story flag mf_'+u.id:u.id||u.kind,source:'your new tree (draft)'})),order:i,server:null,raw:m};});
-   trees.push({id:ot.id,title:ot.name||ot.id,status:'draft',statusText:STATUS.draft,engine:'tree',source:'Your new tree (this browser’s draft; id '+ot.id+')',note:ot.note||'',ownerTree:true,missions:ms});}
+   trees.push({id:ot.id,title:ot.name||ot.id,status:story?'active':'draft',statusText:story?STATUS.active:STATUS.draft,engine:'tree',source:story?'The main storyline (void-runner/main-story.js; your edits are this browser’s draft until published)':'Your new tree (this browser’s draft; id '+ot.id+')',note:ot.note||'',ownerTree:true,story,missions:ms});}
   if(Array.isArray(src.serverDrafts)&&src.serverDrafts.length)trees.push({id:'draft-server',title:'Your private server drafts',status:'draft',statusText:STATUS.draft,engine:'server',source:'Stage 3B private drafts',note:'Drafts saved on the server. Open them in the Content atlas (admin/void-runner.html) for full editing.',
    missions:src.serverDrafts.map((d,i)=>({key:'server:'+d.id,id:d.id,tree:'draft-server',engine:'server',title:d.title||d.id,type:d.kind||'draft',description:'Private server draft r'+(d.revision||0)+'.',giver:'',giverName:'',credits:0,steps:[],offer:[],scenes:[],ending:{text:'',next:[],branches:[]},unlocks:[],order:i,server:null}))});
+  // ---- everything older is archived (removed from the game; still readable and copyable) ----
+  for(const t of trees)if(ARCHIVED.has(t.id)||t.id.startsWith('chapter-')){t.status='archived';t.statusText=STATUS.archived;t.archived=true;}
   // ---- display names (renames never change ids) ----
   for(const t of trees){t.originalTitle=t.title;const n=src.names&&src.names[t.id];if(typeof n==='string'&&n.trim()&&!t.ownerTree)t.title=n.trim();}
   // ---- NPCs per tree ----
@@ -213,7 +220,7 @@
   return out;
  }
  function lineIndex(built){const idx=new Map();for(const t of built.trees)for(const m of t.missions)for(const l of allLines(m))if(l.ref&&l.kind!=='beginner'&&l.kind!=='design'&&l.kind!=='tree')idx.set(l.ref,l);for(const n of built.npcs||[])for(const l of n.outside)if(!idx.has(l.ref))idx.set(l.ref,l);return idx;}
- function counts(trees){const c={trees:trees.length,missions:0,active:0,historical:0,draft:0,lines:0,locked:0};for(const t of trees){c[t.status]++;c.missions+=t.missions.length;for(const m of t.missions){const ls=allLines(m);c.lines+=ls.length;c.locked+=ls.filter(l=>l.locked).length;}}return c;}
+ function counts(trees){const c={trees:trees.length,missions:0,active:0,historical:0,draft:0,archived:0,lines:0,locked:0};for(const t of trees){c[t.status]++;c.missions+=t.missions.length;for(const m of t.missions){const ls=allLines(m);c.lines+=ls.length;c.locked+=ls.filter(l=>l.locked).length;}}return c;}
  function allLines(m){const seen=new Set(),out=[];for(const l of [...m.offer,...m.steps.flatMap(s=>[...s.lines,...s.early]),...m.scenes.flatMap(s=>s.lines)])if(!seen.has(l.key)){seen.add(l.key);out.push(l);}return out;}
  /* Unlock facts for registry missions, read from campaign.js data (never invented): places discovered on accepting, payments, story flags, follow-up missions and rewards. */
  function registryUnlocks(C,src){
@@ -268,6 +275,19 @@
  function moveStep(m,id,dir){return move(m.objectives,m.objectives.findIndex(o=>o.id===id),dir);}
  function removeMission(tree,id){const i=tree.missions.findIndex(m=>m.id===id);if(i<0)return false;tree.missions.splice(i,1);for(const m of tree.missions)for(const c of m.choices||[])if(c.next===id)c.next='';return true;}
  function removeStep(m,id){if(m.objectives.length<2)return false;const i=m.objectives.findIndex(o=>o.id===id);if(i<0)return false;m.objectives.splice(i,1);for(const u of m.unlocks||[])if(u.when===id)u.when='complete';return true;}
+ /* Copies archived missions into a NEW draft tree (David's starting point for a new tree; the archived tree itself never changes). Every step becomes "talk to someone"
+    (with the NPC it named, when that NPC is in the giver list; otherwise left for David to choose), lines are copied as they are, credits kept, and each mission gets the
+    next free mission number. built: missions from build() (one tree's, or one). Returns the new tree. */
+ function copyToTree(trees,missions,{name,givers,next}={}){const t=newTree(trees,{name:name||'Copy',note:'Copied from a removed (archived) tree. Not in the game until you publish it.'});const known=id=>(givers||[]).some(g=>g.id===id);let n=next||null;
+  for(const bm of missions||[]){const m=addMission(t,{giver:known(bm.giver)?bm.giver:''});m.title=String(bm.name||bm.title||'').replace(/^Mission \d{3} — /,'').slice(0,60);m.type=['main','side','cargo','campaign','tutorial','bounty','station'].includes(bm.type)?bm.type:'side';m.description=String(bm.description||'').slice(0,600);m.rewards=Number(bm.credits)||0;
+   if(Number.isInteger(n)){m.number=n;n++;}
+   const line=l=>({who:l.who==='player'?'You':l.who,text:String(l.text||'').slice(0,500)});
+   m.offer=(bm.offer||[]).map(line);if(!m.offer.length)m.offer=[blank(m.giver)];
+   m.objectives=[];m.seq=0;for(const st of bm.steps||[]){const o=addStep(m);const npc=st.interaction&&TARGETS[st.interaction];o.label=String(st.label||'').slice(0,500);o.kind='talk';o.npc=npc&&known(npc)?npc:'';o.say=(st.lines||[]).map(line);o.early=(st.early||[]).map(line);if(!o.say.length)o.say=[blank('')];}
+   if(!m.objectives.length)addStep(m);}
+  return t;}
+ /* Gives a mission a number (renumbering): the old number is kept in retired so it is never given again. Returns the old number. */
+ function setNumber(draft,missionId,number){for(const t of draft.trees||[])for(const m of t.missions||[])if(m.id===missionId){const old=m.number;if(Number.isInteger(old)&&old!==number){draft.retiredNumbers=[...new Set([...(draft.retiredNumbers||[]),old])];}m.number=number;return old;}return null;}
  /* Renames a tree. A new tree keeps its name on the tree itself; an existing tree gets a display name in names{} (removed when it matches the original). Ids never change. */
  function renameTree(draft,id,name,original){const n=String(name||'').slice(0,60);const t=(draft.trees||[]).find(x=>x.id===id);if(t){t.name=n;return true;}
   draft.names=draft.names||{};if(!n.trim()||n.trim()===original)delete draft.names[id];else draft.names[id]=n;return true;}
@@ -298,6 +318,6 @@
  function capability(tree,ctx={}){const MC=MC_(),givers=ctx.givers||[],every=ctx.trees&&ctx.trees.some(x=>x.id===tree.id)?ctx.trees:[tree],all=MC.treesContent(every,{givers,items:ctx.items}),c={trees:all.trees.filter(x=>x.id===tree.id),skipped:all.skipped.filter(x=>x.tree===tree.id)},runs=c.trees[0]?c.trees[0].missions.length:0,g=id=>givers.find(x=>x.id===id);
   const unreachable=[...new Set(tree.missions.flatMap(m=>MC.treeTouches(m).npcs))].map(g).filter(x=>x&&x.canTalk&&!x.players);
   return {draft:true,export:true,play:runs,publish:runs,total:tree.missions.length,skipped:c.skipped,unreachable:unreachable.map(x=>({id:x.id,name:x.name,status:G_().status(x)}))};}
- const api={STATUS,ARCS,SCENES,FILES,TALK_FILES,VOICE_ENGINES,DOCS,build,validateLines,lineIndex,sceneLines,allLines,refs,validateEdit,hash,lockLabel,newTree,addMission,addStep,moveMission,moveStep,removeMission,removeStep,renameTree,validateTree,capability,slug};
+ const api={copyToTree,setNumber,ARCHIVED,STATUS,ARCS,SCENES,FILES,TALK_FILES,VOICE_ENGINES,DOCS,build,validateLines,lineIndex,sceneLines,allLines,refs,validateEdit,hash,lockLabel,newTree,addMission,addStep,moveMission,moveStep,removeMission,removeStep,renameTree,validateTree,capability,slug};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionTrees=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -111,7 +111,8 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(self.db.data, {})
 
     def test_published_ids_pass_cloud_save_validation(self):
-        """A published beginner mission that adds an id (and its reward flag) is accepted by clean_save as it is: no manifest change is needed."""
+        """A beginner mission's records and reward flag are still accepted by clean_save (old saves load). Since 17 Nov 2026 the beginner campaign is removed
+        from the game, so a tracked beginner mission in a District campaign is untracked; the records are kept."""
         state = test_story_save.StorySaveTests.state(None)
         state['story']['flags'].update({'missionPool': 'closed', 'br_new-errand': True})
         state['universe'] = {'trackingInitialized': True, 'trackedMission': 'new-errand', 'freeTravel': False,
@@ -119,7 +120,9 @@ class LiveContentTests(unittest.TestCase):
         clean = vr.clean_save(state)
         self.assertEqual(clean['universe']['missions']['new-errand']['objectives'], {'go': True})
         self.assertTrue(clean['story']['flags']['br_new-errand'])
-        self.assertEqual(clean['universe']['trackedMission'], 'new-errand')
+        self.assertIsNone(clean['universe']['trackedMission'], 'a removed mission is untracked')
+        self.assertTrue(clean['universe']['autoTrack'])
+        self.assertTrue(clean['universe']['missions']['first-contact']['completed'], 'records are kept')
 
 
     def test_new_trees_publish_and_their_records_pass_cloud_save(self):
@@ -153,6 +156,109 @@ class LiveContentTests(unittest.TestCase):
         self.assertTrue(clean['story']['flags']['mt_draft-test-tree-m1'])
         self.assertTrue(clean['story']['flags']['mf_testFlag'])
         self.assertEqual(clean['ownedShips'], ['starter', 'ship2'], 'a granted hull is an ordinary owned ship')
+
+
+def awakening(**extra):
+    """Mission 001 as the Mission Editor publishes it (main-story.js, stripped by mission-content.js treeStrip)."""
+    m = {'id': 'm001-awakening', 'number': 1, 'title': 'Awakening', 'type': 'main', 'category': 'Main storyline / Introduction', 'giver': 'admin', 'location': 'district',
+         'objective': 'Locate Admin',
+         'start': {'how': 'notification', 'channel': 'messages', 'from': 'admin', 'text': "You're awake. Good.\nWhen you're ready, come find me. We need to talk.", 'header': 'ADMIN // INCOMING MESSAGE', 'when': {'kind': 'pod-exit'}},
+         'objectives': [{'id': 'exit-pod', 'label': 'Exit the Sleeping Pod.', 'kind': 'pod-exit'},
+                        {'id': 'message', 'label': "Receive Admin's message.", 'kind': 'message'},
+                        {'id': 'speak', 'label': 'Find and speak with Admin.', 'kind': 'talk', 'npc': 'admin'},
+                        {'id': 'introduction', 'label': 'Receive an introduction to The Darknet District.', 'kind': 'hear', 'npc': 'admin', 'say': [{'who': 'admin', 'text': "[David: write Admin's introduction to The Darknet District here]"}]}]}
+    m.update(extra)
+    return {'id': 'main-storyline', 'name': 'Main storyline', 'missions': [m]}
+
+
+def side_tree(tid, number):
+    return {'id': tid, 'name': 'Tree ' + tid, 'missions': [{'id': tid + '-m1', 'number': number, 'title': 'SIDE', 'type': 'side', 'giver': 'admin',
+            'objectives': [{'id': 'step-1', 'label': 'Talk to Iris', 'kind': 'talk', 'npc': 'iris'}]}]}
+
+
+class MissionNumberTests(unittest.TestCase):
+    """Mission numbers (17 Nov 2026): unique, never reused once used (shipped ledger and every published number), and the main storyline needs one."""
+    setUp = LiveContentTests.setUp
+    post = LiveContentTests.post
+    get = LiveContentTests.get
+
+    def mc(self, *trees):
+        return {'format': live.FORMAT, 'version': 1, 'trees': list(trees)}
+
+    def test_shipped_ledger_and_main_storyline(self):
+        self.assertEqual(live.shipped_numbers(), {1: 'm001-awakening'})
+        self.assertEqual(live.check(self.mc(awakening())), [], 'Mission 001 as shipped is valid')
+        self.assertTrue(live.check(self.mc(awakening(number=None))), 'a main storyline mission needs a number')
+        self.assertTrue(live.check(self.mc(awakening(number=1000))))
+        self.assertTrue(live.check(self.mc(awakening(trigger='pod-exit'))), 'unknown fields are refused')
+        for change in [dict(how='telepathy'), dict(channel='fax'), dict(header='<b>x</b>'), dict(text=''), dict(**{'from': 'darth'}), dict(when={'kind': 'moon'}),
+                       dict(when={'kind': 'place', 'place': 'atlantis'}), dict(when={'kind': 'after-mission', 'mission': 'nowhere'}), dict(when={'kind': 'flag', 'flag': 'bad flag', 'value': True})]:
+            bad = awakening()
+            bad['missions'][0]['start'].update(change)
+            self.assertTrue(live.check(self.mc(bad)), change)
+        bad = awakening(start={'how': 'person'})
+        self.assertTrue(live.check(self.mc(bad)), 'a "notification arrives" step needs a notification start')
+        bad = awakening()
+        bad['missions'][0]['objectives'][1]['message'] = {'from': 'admin', 'header': 'H', 'text': 'x'}
+        self.assertTrue(live.check(self.mc(bad)), 'steps carry no message of their own')
+        side = side_tree('draft-a', 2)
+        for when in [{'kind': 'after-mission', 'mission': 'm001-awakening'}, {'kind': 'place', 'place': 'port'}, {'kind': 'flag', 'flag': 'mf_x', 'value': True}, {'kind': 'pod-exit'}]:
+            side['missions'][0]['start'] = {'how': 'notification', 'channel': 'comms', 'from': 'iris', 'header': 'IRIS // CALL', 'text': 'Test.', 'when': when}
+            self.assertEqual(live.check(self.mc(awakening(), side)), [], when)
+        side['missions'][0]['start'] = {'how': 'notification', 'channel': 'notify', 'from': 'iris', 'text': 'Test.', 'when': {'kind': 'pod-exit'}}
+        self.assertEqual(live.check(self.mc(awakening(), side)), [], 'a banner needs no header')
+        other = {'id': 'some-tree', 'name': 'X', 'missions': awakening()['missions']}
+        self.assertTrue(live.check(self.mc(other)), 'only listed story trees may skip the draft- prefix')
+
+    def test_duplicates_and_reuse_are_refused(self):
+        self.assertTrue(any('two missions' in p for p in live.check(self.mc(awakening(), side_tree('draft-a', 2), side_tree('draft-b', 2)))))
+        self.assertTrue(any('never reused' in p for p in live.check(self.mc(side_tree('draft-a', 1)))), 'number 1 belongs to Mission 001')
+        self.assertEqual(live.check(self.mc(awakening(), side_tree('draft-a', 2))), [])
+
+    def test_published_numbers_are_never_reused(self):
+        first = self.post('live-content/publish', {'expected': 0, 'content': self.mc(awakening(), side_tree('draft-a', 2))})
+        self.assertEqual(first.status_code, 200, first.json)
+        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'draft-a-m1'})
+        # draft-a is removed; its number 2 stays taken
+        again = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 2))})
+        self.assertEqual(again.status_code, 422, again.json)
+        self.assertIn('never reused', ' '.join(again.json.get('problems', [again.json.get('error', '')])))
+        ok = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 3))})
+        self.assertEqual(ok.status_code, 200, ok.json)
+        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'draft-a-m1', '3': 'draft-b-m1'})
+
+
+class MissionRemovalSaveTests(unittest.TestCase):
+    """Saves after the missions were removed (17 Nov 2026): never rejected, removed missions untracked, Mission 001 accepted."""
+
+    def test_old_progress_is_kept_and_untracked_and_mission_001_is_accepted(self):
+        state = test_story_save.StorySaveTests.state(None)
+        state['credits'] = 4321
+        state['story']['flags'].update({'missionPool': 'closed', 'br_first-contact': True, 'br_district-errand': True, 'starterShipAwarded': True, 'shipAccess': 'granted',
+                                        'v1m_m001-awakening_message': 1763400000, 'v1r_m001-awakening_message': True})
+        state['universe'] = {'trackingInitialized': True, 'trackedMission': 'job-worth-taking', 'freeTravel': True,
+                             'missions': {'first-contact': {'acquired': True, 'completed': True, 'objectives': {'speak': True}},
+                                          'job-worth-taking': {'acquired': True, 'completed': False, 'objectives': {'collect': True}}}}
+        clean = vr.clean_save(state)
+        self.assertIsNone(clean['universe']['trackedMission'])
+        self.assertEqual(clean['credits'], 4321)
+        self.assertEqual(set(clean['universe']['missions']), {'first-contact', 'job-worth-taking'}, 'old ids are still accepted and kept')
+        state['universe']['trackedMission'] = 'm001-awakening'
+        state['universe']['missions']['m001-awakening'] = {'acquired': True, 'completed': False, 'objectives': {'exit-pod': True, 'message': True}}
+        clean = vr.clean_save(state)
+        self.assertEqual(clean['universe']['trackedMission'], 'm001-awakening')
+        self.assertEqual(clean['universe']['missions']['m001-awakening']['objectives'], {'exit-pod': True, 'message': True})
+        self.assertEqual(clean['story']['flags']['v1m_m001-awakening_message'], 1763400000)
+        # an old (open pool) campaign keeps whatever it tracks
+        state['story']['flags'].pop('missionPool')
+        state['universe']['trackedMission'] = 'legal-run'
+        self.assertEqual(vr.clean_save(state)['universe']['trackedMission'], 'legal-run')
+
+    def test_manifest_lists_mission_001(self):
+        m = live.manifest()
+        self.assertIn('m001-awakening', m['storyMissions'])
+        self.assertEqual(m['missionNumbers'], {'1': 'm001-awakening'})
+        self.assertIn('main-storyline', m['storyTrees'])
 
 
 class RevoiceQueueTests(unittest.TestCase):

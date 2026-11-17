@@ -1,7 +1,7 @@
 /* V1 personal device: its look. Scoped to #personal-device and #pd-chip only (nothing here touches another game screen).
    The shapes and colours come from the website's navigation buttons (home-navigation.css): panel #0c1b23, edge #38808b, rail #61eee9, one small #d56cba tick.
    Timing for transitions is NOT here: it comes from DEVICES.v1.ui in device-v1.js (the starter V1 is deliberately a little slow; later models can be faster). */
-#personal-device,#pd-chip,#pd-camera{--pd-panel:#0c1b23;--pd-panel-hi:#122d37;--pd-panel-on:#103139;--pd-edge:#38808b;--pd-edge-hi:#61eee9;--pd-text:#c3d8de;--pd-text-hi:#f1ffff;--pd-muted:#8caaaf;--pd-tick:#d56cba;--pd-line:#21454d;
+#pd-notify,#personal-device,#pd-chip,#pd-camera{--pd-panel:#0c1b23;--pd-panel-hi:#122d37;--pd-panel-on:#103139;--pd-edge:#38808b;--pd-edge-hi:#61eee9;--pd-text:#c3d8de;--pd-text-hi:#f1ffff;--pd-muted:#8caaaf;--pd-tick:#d56cba;--pd-line:#21454d;
  --pd-gap:10px;--pd-pad:14px;--pd-font:'Courier New',Courier,monospace;--pd-fast:160ms;--pd-ms:.3s}
 #personal-device{position:fixed;top:54px;right:12px;bottom:12px;width:max(430px,calc(50vw - 12px));z-index:44;display:none;flex-direction:column;box-sizing:border-box;color:var(--pd-text);font:13px/1.5 var(--pd-font);
  background:linear-gradient(160deg,rgba(7,17,22,.94),rgba(8,13,20,.96) 72%,rgba(10,16,22,.96));border:1px solid var(--pd-edge);box-shadow:0 0 22px rgba(97,238,233,.10),inset 0 0 36px rgba(97,238,233,.04);
@@ -179,3 +179,10 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 #personal-device .pd-post header small{opacity:.7}
 #personal-device .pd-newsfilter{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 #personal-device .pd-newsfilter button[aria-pressed=true]{background:var(--pd-edge-hi);color:#000}
+/* Messages > INBOX (missions' messages) and the V1 notification shown while the device is closed (personal-device.js VoidV1.notify). */
+#personal-device .pd-inmsg .pd-inmsg-text{white-space:pre-line;color:var(--pd-text-hi);margin:6px 0}
+#personal-device .pd-inmsg.unread{border-color:var(--pd-edge-hi)}
+#pd-notify{position:fixed;right:24px;top:188px;z-index:44;display:flex;align-items:center;gap:8px;max-width:min(560px,calc(100vw - 48px));font:600 12px var(--pd-font);letter-spacing:.08em;color:var(--pd-text-hi);background:rgba(12,27,35,.94);border:1px solid var(--pd-edge-hi);border-left:3px solid var(--pd-tick);padding:8px 14px;cursor:pointer;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);opacity:0;transform:translateX(16px);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
+#pd-notify.on{opacity:1;transform:none;pointer-events:auto}#pd-notify[hidden],#pd-notify.away{display:none}
+#pd-notify .pd-n-dev{color:var(--pd-edge-hi)}#pd-notify .pd-n-sep{color:var(--pd-muted)}#pd-notify .pd-n-hint{color:var(--pd-edge-hi)}
+@media (prefers-reduced-motion:reduce){#pd-notify{transition:none;transform:none}}

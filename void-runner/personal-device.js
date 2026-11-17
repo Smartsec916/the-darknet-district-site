@@ -2,6 +2,11 @@
    L opens and closes it. It does NOT change the game's mode: the world, other players and NPCs keep running; only YOUR movement is held. The mouse is free over
    the device and dragging the world outside it looks around. It is a read-and-act layer over systems that already exist (Mission Log, conversation history,
    the Relay news archive, District chat, the explored map); it keeps no messages, accounts or profiles of its own. Camera and Gallery are placeholders.
+   Messages > INBOX lists the messages missions send (Admin's in Mission 001; live-content.js inbox, read state in the save). VoidV1.notify() is the V1's notification for
+   when the device is closed: a small banner styled like the V1 at the right edge, until the V1 is opened or for about 8 s, then an unread count on the V1 chip.
+   Its "Press L to open" part is a HELP hint (hint.help: [data-help]) so David's future help switch can hide it. It plays the device's notification sound
+   (device-v1.js NOTIFY: V1, V2, V3, SHADOW) at the sound-effects volume.
+   Desktop only: the V1 has no VR presentation (VR players see neither the device nor its notification).
    Its look is void-runner/device-v1.css (scoped to #personal-device). Transition timing comes from DEVICES.v1.ui in device-v1.js. */
 (function(root){
  'use strict';
@@ -132,6 +137,10 @@
    +'<div class="pd-note" style="margin-top:8px">Reports go to the District server\'s log for review. They are not kept as a permanent case file.</div>';
  }
  const unreadText=n=>n>99?'99+':String(n);
+ const inbox=(ch='messages')=>{try{return root.VoidLiveContent?.inbox?.(ch)||[];}catch{return [];}};
+ const inboxUnread=()=>inbox().filter(m=>!m.read).length,callsUnread=()=>inbox('comms').filter(m=>!m.read).length;
+ const readAll=list=>{const ids=list.filter(m=>!m.read).map(m=>m.id);if(ids.length)setTimeout(()=>{let any=false;for(const id of ids)any=root.VoidLiveContent?.markRead?.(id)||any;if(any)updateBadges();},0);};
+ let notes=0;   // notifications that arrived while the V1 was closed and that the player has not opened the V1 for yet
  /* The chat counts as "being looked at" only while the V1 is open, not mid-transition, on Messages > District chat. Looking at it reads everything that was waiting. */
  const viewingNow=()=>open&&!busy&&stack[0]==='messages'&&(stack[1]||'chat')==='chat';
  const topSeq=()=>{const ls=chat()?.lines||[];return ls.length?ls[ls.length-1].seq:0;};
@@ -143,11 +152,13 @@
   wasViewing=v;C_?.setViewing(v);
  }
  function updateBadges(){
-  const n=chat()?.unread||0;
-  if(chip){chip.textContent=n?'V1 · L · '+unreadText(n)+' NEW':'V1 · L';chip.classList.toggle('unread',n>0);chip.setAttribute('aria-label',n?'Open the V1 device. '+n+' unread message'+(n===1?'':'s'):'Open the V1 device');}
+  const c=chat()?.unread||0,ib=inboxUnread(),cl=callsUnread(),n=c+Math.max(ib+cl,notes),key=keyLabel();
+  if(chip){chip.textContent=n?'V1 · '+key+' · '+unreadText(n)+' NEW':'V1 · '+key;chip.classList.toggle('unread',n>0);chip.setAttribute('aria-label',n?'Open the V1 device. '+n+' unread message'+(n===1?'':'s'):'Open the V1 device');}
   if(!body)return;
-  const tile=body.querySelector('[data-app=messages] .pd-badge');if(tile){tile.hidden=!n;tile.textContent=n?unreadText(n):'';}
-  const tb=body.querySelector('[data-tabbadge=chat]');if(tb){tb.hidden=!n;tb.textContent=n?unreadText(n):'';}
+  const tile=body.querySelector('[data-app=messages] .pd-badge');if(tile){tile.hidden=!(c+ib);tile.textContent=c+ib?unreadText(c+ib):'';}
+  const tb=body.querySelector('[data-tabbadge=chat]');if(tb){tb.hidden=!c;tb.textContent=c?unreadText(c):'';}
+  const ti=body.querySelector('[data-tabbadge=inbox]');if(ti){ti.hidden=!ib;ti.textContent=ib?unreadText(ib):'';}
+  const tc=body.querySelector('[data-app=comms] .pd-badge');if(tc){tc.hidden=!cl;tc.textContent=cl?unreadText(cl):'';}
  }
  function onChatChange(){
   if(open&&!busy&&viewingNow()){   // redraw only the message list so what the player is typing is never disturbed
@@ -166,8 +177,9 @@
   missions(){
    const s=state_(),V=root.VoidMissions;let list=[];try{list=s&&V?V.sync(s,C):[];}catch{}
    const steps=m=>{const o=(m.objectives||[]).filter(x=>x.required!==false),n=o.filter(x=>x.complete).length;return {n,total:o.length};};
-   const card=m=>{const p=steps(m),rew=Number(m.rewards)>0?m.rewards+' credits':null;return '<article class="pd-card '+(m.completed?'done':'')+'"><h3>'+esc(m.title)+' <small>'+(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h3><p>'+esc(m.description)+'</p><div class="pd-note">'+esc(String(m.type||'').toUpperCase())
-    +(m.destination?' · '+esc(C.stations?.[m.destination]?.name||m.destination):'')+(p.total?' · '+p.n+' OF '+p.total+' STEPS':'')+(rew?' · REWARD '+esc(rew):'')+'</div>'
+   const where=id=>{const p=root.VoidMissionGivers?.PLACE?.get(id);return p?String(p.name).replace(/^Inside /,''):id;};
+   const card=m=>{const p=steps(m),rew=Number(m.rewards)>0?m.rewards+' credits':null;return '<article class="pd-card '+(m.completed?'done':'')+'"'+(m.number?' data-mission-number="'+m.number+'"':'')+'><h3>'+esc(m.title)+' <small>'+(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h3>'+(m.description?'<p>'+esc(m.description)+'</p>':'')+'<div class="pd-note">'+esc(String(m.category||m.type||'').toUpperCase())
+    +(m.location?' · '+esc(where(m.location).toUpperCase()):m.destination?' · '+esc(C.stations?.[m.destination]?.name||m.destination):'')+(p.total?' · '+p.n+' OF '+p.total+' STEPS':'')+(rew?' · REWARD '+esc(rew):'')+'</div>'
     +(m.completed?'':(m.objective?'<div class="pd-obj"><b>OBJECTIVE</b> '+esc(m.objective)+'</div>':'')+'<ul class="pd-steps">'+(m.objectives||[]).map(o=>'<li class="'+(o.complete?'on':'')+'">'+(o.complete?'✓ ':'○ ')+esc(o.label)+'</li>').join('')+'</ul>')
     +(m.completed?'':'<button type="button" data-'+(m.tracked?'untrack':'track')+'="'+esc(m.id)+'">'+(m.tracked?'STOP TRACKING':'TRACK')+'</button>')+'</article>';};
    const active=list.filter(m=>!m.completed),done=list.filter(m=>m.completed);
@@ -176,9 +188,12 @@
   messages(){
    const r=rp(),C_=chat(),sub=stack[1]||'chat',un=C_?.unread||0;
    const tab=(id,label,badge)=>'<button type="button" data-sub="'+id+'" aria-pressed="'+(sub===id)+'">'+label+(badge?'<span class="pd-badge pd-inline" data-tabbadge="'+id+'">'+badge+'</span>':'')+'</button>';
-   const tabs='<div class="pd-tabs">'+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';
+   const ib=inboxUnread();
+   const tabs='<div class="pd-tabs">'+tab('inbox','INBOX',ib?unreadText(ib):'')+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';
    if(sub==='dm')return tabs+'<div class="pd-empty"><b>PRIVATE MESSAGES</b><br>Not available yet.<br>They need a server feature (delivery, blocking checks, storage) that has not been built or approved. Planned for a later phase. Nothing is stored on this device.</div>';
    if(sub==='players')return tabs+playersHtml();
+   if(sub==='inbox'){const list=inbox();readAll(list);   // looking at the inbox reads it
+    return tabs+'<div class="pd-note">Messages sent to your V1. No reply is needed.</div>'+(list.length?list.map(m=>'<article class="pd-card pd-inmsg'+(m.read?'':' unread')+'" data-inbox="'+esc(m.id)+'"><div class="pd-msg-h"><b>'+esc(m.header)+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class="pd-inmsg-text">'+esc(m.text)+'</div>'+(m.title?'<div class="pd-note">'+esc(m.title)+'</div>':'')+'</article>').join(''):'<div class="pd-empty">No messages yet.</div>');}
    if(sub==='talk'){
     let rows=[];try{rows=root.VoidConversationHistory?.read(localStorage,uid())||[];}catch{}
     return tabs+'<div class="pd-note">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class="pd-line"><b>'+esc(m.name)+'</b><span class="pd-note">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class="pd-empty">No conversations yet. People you talk to appear here.</div>');
@@ -232,14 +247,17 @@
   },
   /* Comms: voice with the people near you (district-voice.js). Off until ENABLE is pressed; DISABLE disconnects. */
   comms(){
-   const V=root.VoidVoice,r=rp();if(!V)return '<div class="pd-empty">Voice is not available in this build.</div>';
+   // Calls a mission made (start by notification, channel Comms): the caller, the header and the words as a transcript. No reply is needed.
+   const calls=inbox('comms');readAll(calls);
+   const callHtml=calls.length?'<h2>CALLS</h2>'+calls.map(m=>'<article class="pd-card pd-inmsg pd-call'+(m.read?'':' unread')+'" data-call="'+esc(m.id)+'"><div class="pd-msg-h"><b>'+esc(m.header||('CALL FROM '+String(m.fromName||'').toUpperCase()))+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class="pd-note">'+esc(m.fromName)+' · TRANSCRIPT</div><div class="pd-inmsg-text">'+esc(m.text)+'</div>'+(m.title?'<div class="pd-note">'+esc(m.title)+'</div>':'')+'</article>').join('')+'<h2>VOICE</h2>':'';
+   const V=root.VoidVoice,r=rp();if(!V)return callHtml+'<div class="pd-empty">Voice is not available in this build.</div>';
    const S=V.settings,st=V.status,on=S.enabled,ok=!!r?.connected&&!!r.features?.voice;
    const line=!on?'OFF':st==='on'?(S.muted?'ON · MICROPHONE MUTED':V.talking?'ON · MICROPHONE LIVE':S.mode==='ptt'?'ON · HOLD '+V.keyLabel(S.pttKey)+' TO TALK':'ON · OPEN MICROPHONE'):st==='connecting'?'CONNECTING…':st==='error'?'PROBLEM':'WAITING';
    const press=(k,v,label,cur)=>'<button type="button" data-voice-set="'+k+'" data-value="'+v+'" aria-pressed="'+(cur===v)+'">'+label+'</button>';
    const peers=(r?.connected?r.peers:[]),speaking=new Set(V.speaking);
    const who=peers.length?peers.map(p=>{const own=S.players[p.id]||{vol:1,muted:false},d=distanceTo(p);return '<article class="pd-card"><h3>'+esc(p.name)+(speaking.has(p.id)?' <small class="pd-speaking">SPEAKING</small>':'')+(d!=null?' <small>'+esc(distText(d).toUpperCase())+'</small>':'')+'</h3><div class="pd-voicerow"><label>VOLUME<input type="range" min="0" max="2" step="0.1" value="'+own.vol+'" data-voice-player="'+esc(p.id)+'" aria-label="Volume of '+esc(p.name)+'"></label>'
      +'<button type="button" data-voice-mute="'+esc(p.id)+'" aria-pressed="'+!!own.muted+'">'+(own.muted?'UNMUTE VOICE':'MUTE VOICE')+'</button><button type="button" data-ig="block" data-id="'+esc(p.id)+'" data-name="'+esc(p.name)+'">BLOCK</button><button type="button" data-rep-open="'+esc(p.id)+'">REPORT</button></div></article>';}).join(''):'<div class="pd-empty">'+(r?.connected?'Nobody else is in this place right now.':'Not connected to other players.')+'</div>';
-   return '<section class="pd-storage"><div class="pd-stat"><span>VOICE</span><span>'+esc(line)+'</span></div>'
+   return callHtml+'<section class="pd-storage"><div class="pd-stat"><span>VOICE</span><span>'+esc(line)+'</span></div>'
     +'<div class="pd-note" style="margin-top:6px">'+(on?(V.note?esc(V.note):'You hear the people in the same place as you, from where they stand. Walls muffle them.'):'Voice is off. Nothing is sent or heard until you enable it. Your microphone is asked for only then. Nothing is recorded.')+(!ok&&!on?' '+(r?.connected?'Voice needs an account secured with an email or Google, and a server that carries voice.':'You are not connected to other players right now.'):'')+'</div>'
     +'<div class="pd-tabs" style="margin:10px 0 0"><button type="button" data-voice="'+(on?'off':'on')+'" class="'+(on?'':'pd-hot')+'">'+(on?'DISABLE VOICE':'ENABLE VOICE')+'</button>'+(on?'<button type="button" data-voice-set="muted" data-value="'+(S.muted?'0':'1')+'" aria-pressed="'+S.muted+'">'+(S.muted?'UNMUTE MICROPHONE':'MUTE MICROPHONE')+'</button>':'')+'</div></section>'
     +'<h2>HOW YOU TALK</h2><div class="pd-tabs">'+press('mode','ptt','PUSH TO TALK',S.mode)+press('mode','open','OPEN MICROPHONE',S.mode)+'<button type="button" data-voice-key>'+(rebinding?'PRESS A KEY…':'TALK KEY: '+esc(V.keyLabel(S.pttKey))+' · CHANGE')+'</button></div>'
@@ -323,7 +341,7 @@
   if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
   const app=stack[0],def=D.DEVICES[dev.model];chrome();syncViewing();
   const top=body.scrollTop;
-  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
+  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'||id==='comms'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
   hydratePortraits();if(app==='map')drawMap();if(app==='comms')fillVoiceDevices();
@@ -471,5 +489,36 @@
  // The L key now opens the V1 on foot and in stations; in flight the older Mission Log keeps working unchanged.
  if(typeof openMissionLog==='function'){const legacy=openMissionLog;openMissionLog=function(){if(open||onFootOrDock()){toggle();return;}return legacy.apply(this,arguments);};}
  try{chat()?.onChange(onChatChange);}catch{}
+ // ---- Notifications while the V1 is closed (David, 17 Nov 2026: "There should be a notification system when people have their V1 closed") ----
+ function keyLabel(){try{return root.VoidInput?.label?root.VoidInput.label(root.VoidInput.bindings?.missionLog||'KeyL'):'L';}catch{return 'L';}}
+ let banner=null,bannerTimer=0,bannerKey='',noteApp=null,bannerSound='';
+ /* The device's notification sound (device-v1.js NOTIFY, per device tier) at the game's sound-effects volume (master x effects, off when sound is off). A missing or
+    unplayable file is silent. */
+ const sounds=new Map();
+ function chime(){try{const D_=D,tier=D_.notifyTier?.(dev.model),row=D_.NOTIFY?.[tier];if(!row?.sound)return;const A=root.VoidAudio?.settings,vol=A?(A.enabled===false?0:(Number(A.master)||0)*(Number(A.effects)||0)):.5;if(!(vol>0))return;
+  let a=sounds.get(row.sound);if(a===null)return;if(!a){a=new Audio(new URL(row.sound,document.baseURI||location.href).href);a.preload='auto';a.addEventListener('error',()=>sounds.set(row.sound,null),{once:true});sounds.set(row.sound,a);}
+  a.volume=Math.max(0,Math.min(1,vol));a.currentTime=0;const p=a.play();if(p&&p.catch)p.catch(()=>{});}catch{}}
+ const FADE_MS=8000;
+ function hideBanner(){clearTimeout(bannerTimer);if(banner){banner.classList.remove('on');banner.hidden=true;}bannerKey='';bannerSound='';}
+ /* notify({app, sub, key, from, header, text, hint:{text|'open', help:true}}): a V1 event the player should know about. Shown only while the V1 is closed (an open V1 on that
+    app needs no banner). The same key twice is not stacked: the banner is refreshed. It stays until the V1 is opened, or fades after about 8 s and leaves the unread count on
+    the V1 chip until the V1 is opened. The hint "Press <key> to open" uses the player's own binding and is marked as a help hint (data-help) for the future help switch. */
+ function notify(n={}){
+  if(!n||typeof n.text!=='string')return false;
+  if(open&&(!n.app||stack[0]===n.app)){updateBadges();return false;}
+  if(!banner){banner=document.createElement('div');banner.id='pd-notify';banner.setAttribute('role','status');banner.setAttribute('aria-live','polite');banner.hidden=true;banner.addEventListener('click',()=>{setOpen(true);});document.body.appendChild(banner);}
+  const key=String(n.key||n.app+'|'+n.text);if(key!==bannerKey)notes++;bannerKey=key;noteApp=n.app?{app:n.app,sub:n.sub||null}:null;
+  const hint=n.hint?(n.hint.text==='open'||!n.hint.text?'Press '+keyLabel()+' to open':String(n.hint.text)):'';
+  banner.innerHTML='<b class="pd-n-dev">V1</b><span class="pd-n-sep" aria-hidden="true">·</span><span class="pd-n-text">'+esc(n.text)+'</span>'+(hint?'<span class="pd-n-sep" aria-hidden="true">·</span><span class="pd-n-hint"'+(n.hint.help?' data-help="1"':'')+'>'+esc(hint)+'</span>':'');
+  banner.dataset.app=n.app||'';banner.hidden=false;void banner.offsetWidth;banner.classList.add('on');
+  if(key!==bannerSound){bannerSound=key;chime();}
+  clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>{if(banner){banner.classList.remove('on');setTimeout(()=>{if(banner&&!banner.classList.contains('on'))banner.hidden=true;},600);}},FADE_MS);
+  updateBadges();return true;
+ }
+ // Opening the V1 clears the notification; with one waiting, the V1 opens on its app (Messages > INBOX for a message).
+ {const so=setOpen;setOpen=function(v){if(v&&!open&&noteApp&&!pending&&D.APPS[noteApp.app]?.state==='ready')pending={app:noteApp.app,sub:noteApp.sub};const r=so.apply(this,arguments);if(v&&open){notes=0;noteApp=null;hideBanner();updateBadges();}return r;};}
+ // The banner is shown only on foot (a conversation, a menu or the pod card hides it; it comes back while it is still due).
+ setInterval(()=>{if(!banner||banner.hidden&&!bannerKey)return;const show=!open&&typeof mode!=='undefined'&&mode==='walking'&&!root.VoidCharacterCreator?.isOpen;banner.classList.toggle('away',!show);},250);
+ root.VoidV1={notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
  root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);

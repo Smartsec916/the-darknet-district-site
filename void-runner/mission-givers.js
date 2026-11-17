@@ -27,12 +27,12 @@
   'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,
    note:'Reached by road taxi (60 CR) or on foot through the East Gate from The Avenue. Draft play starts on The Avenue. No registered voice.'},
   // ---- earlier characters (not in the District today) ----
-  rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:true,draft:true,
-   reach:'Not in the District. A District player reaches Meridian after the beginner campaign (YOUR FIRST SHIP, then FIRST DEPARTURE). Talking to him otherwise runs his older freight conversation.'},
-  nyx:{name:'Nyx',group:E,say:'nyx',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / NYX).',targets:[{action:'talk',character:'nyx'}],layout:'nyx',enter:AREA.station('meridian'),players:true,draft:true,
-   reach:'Not in the District. Reached at Meridian after the beginner campaign’s FIRST DEPARTURE.'},
-  mara:{name:'Mara',group:E,say:'mara',where:'Vesper, the Ward Freight workshop of the old opening (opening-data.js, station-layouts.js).',targets:[{action:'talk',character:'mara'},{action:'opening-mara'}],enter:AREA.station('vesper'),players:true,draft:true,
-   reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},
+  rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,
+   reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},
+  nyx:{name:'Nyx',group:E,say:'nyx',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / NYX).',targets:[{action:'talk',character:'nyx'}],layout:'nyx',enter:AREA.station('meridian'),players:false,draft:true,
+   reach:'Not in the District. Reached at Meridian once a mission grants a ship (GRANT SHIP).'},
+  mara:{name:'Mara',group:E,say:'mara',where:'Vesper, the Ward Freight workshop of the old opening (opening-data.js, station-layouts.js).',targets:[{action:'talk',character:'mara'},{action:'opening-mara'}],enter:AREA.station('vesper'),players:false,draft:true,
+   reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship (once a mission grants one) can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},
   elias:{name:'Elias Ward',group:E,kind:'recording',say:'elias',where:'Vesper: an archived recording (PLAY ARCHIVE), not a person.',targets:[],players:false,draft:false,why:'A recording cannot hand over a mission (needs a code change).'},
   elara:{name:'Dr. Elara Voss',group:E,say:'Dr. Elara Voss',where:'The Vigil, Cantor System (station-layouts.js: TALK / DR. ELARA VOSS).',targets:[{action:'talk',character:'elara'}],layout:'elara',enter:AREA.station('vigil'),players:false,draft:true,
    reach:'The Vigil is only discovered by the old Communion delivery. A mission unlock "open route / place: The Vigil" would let players fly there.'},
@@ -60,8 +60,8 @@
   {id:'milked',name:'Inside Milked',walk:'neochinatown',area:'milked',district:true,players:true},
   {id:'temple',name:'Zen Zephyr’s Temple',walk:'temple',district:true,players:true},
   {id:'corporate',name:'The Corporate District',walk:'corporate',district:true,players:true},
-  {id:'meridian',name:'Meridian Station',location:'meridian',players:true,note:'after the beginner campaign’s first departure'},
-  {id:'vesper',name:'Vesper',location:'vesper',players:true,note:'known to every District campaign; needs a ship'},
+  {id:'meridian',name:'Meridian Station',location:'meridian',players:false,note:'needs a ship: once a mission grants one (GRANT SHIP)'},
+  {id:'vesper',name:'Vesper',location:'vesper',players:false,note:'known to every District campaign; needs a ship (once a mission grants one)'},
   ...Object.entries({'kepler': 'Kepler', 'rusthaven': 'Rusthaven Port', 'foundry': 'Foundry', 'sol-belt': 'Tessaly Belt Anchorage', 'mars': 'Vantor', 'vigil': 'The Vigil', 'holdfast': 'Holdfast', 'nexus': 'The Nexus', 'order-homeworld': 'The Natural Order homeworld'}).map(([id,name])=>({id,name,location:id,players:false,note:'only once something opens it (an “open route / place” unlock does)'}))];
  const PLACE=new Map(PLACES.map(p=>[p.id,p]));
  /* What a step can ask for. supported: the game can run it today (draft play and publish). The others are listed so the owner can plan them; they say "needs a code change". */
@@ -71,6 +71,9 @@
   {id:'arrive',name:'Fly to / arrive at a place',supported:true,needs:'location',note:'Completes when the player is docked or walking at that place. The flight is the game’s own: board at Pad 01 (The Port), line up on the marker, jump, dock. It needs a ship (GRANT SHIP) and the place open for travel.'},
   {id:'deliver',name:'Deliver to someone',supported:true,needs:'npc',note:'Completes when you talk to the recipient after the earlier steps. The parcel is not an inventory item.'},
   {id:'buy',name:'Buy an item',supported:true,needs:'item',note:'Completes when the item is bought at the outfitter or Admin’s counter (progression.js buy).'},
+  {id:'pod-exit',name:'Leave the Sleeping Pod',supported:true,note:'Completes when the player leaves their Sleeping Pod (EXIT POD). A mission that starts by notification on “first exit from the Sleeping Pod” completes it as it starts.'},
+  {id:'message',name:'The notification arrives',supported:true,note:'Completes by itself as the mission’s notification reaches the device (see “How this mission starts”). Only for a mission that starts by notification. No reply is needed.'},
+  {id:'hear',name:'Hear what they say',supported:true,note:'The lines below are shown right after the talk step before it; the step is done when the player closes that conversation.'},
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
   {id:'pickup',name:'Pick something up in the world',supported:false},{id:'wait',name:'Wait / come back later',supported:false}];
  /* What a mission can make available. supported: applied by the game when the mission (or the step named in `when`) is done. */
@@ -84,6 +87,13 @@
   {id:'reputation',name:'Reputation',supported:false,why:'The game has no faction reputation for the player.'},
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
+ /* How a mission starts (David, 17 Nov 2026: "either have Missions start by notification or in person"). */
+ const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
+ const START_CHANNELS=[{id:'messages',name:'MESSAGES',note:'A text in the V1 Messages app (INBOX). No reply is needed.'},
+  {id:'comms',name:'COMMS CALL',note:'A call in the Comms app: the sender and the words as a transcript. The voice plays only if a recorded clip exists for that exact line (nothing is generated).'},
+  {id:'notify',name:'NOTIFICATION ONLY',note:'A banner on the screen, then the Mission Log. Nothing is kept in Messages or Comms.'}];
+ const START_WHEN=[{id:'pod-exit',name:'First exit from the Sleeping Pod',note:'Also a character who left the pod before this mission existed: on their next pod exit.'},{id:'after-mission',name:'After a mission is completed'},
+  {id:'place',name:'Entering a place or quarter'},{id:'flag',name:'A story flag is set'}];
  const FLAG_PREFIX='mf_',FLAG=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const nameOf=(id,reg,people,story,temple)=>reg[id]?.displayName||FACTS[id]?.name||people.get(id)?.name||story[id]?.name||(temple&&temple.id===id?temple.name:'')||id;
  /* Every registered NPC (voice registry, District residents, story characters, the temple's monk) with where they are today. src: {registry, people (district-people NPCS), story (characters), temple (MODEL)} */
@@ -117,6 +127,6 @@
  function placesNow({walk,area,quarter,location,docked}){const out=[];for(const p of PLACES){if(p.walk&&p.walk===walk&&(!p.area||p.area===area)&&(!p.quarter||p.quarter===quarter))out.push(p.id);else if(p.location&&p.location===location&&docked)out.push(p.id);}return out;}
  /* Items a "buy" step can name: modules a store actually sells (progression.js modules: not a reward, not switched off, with a vendor). */
  function buyable(modules){return Object.fromEntries(Object.entries(modules||{}).filter(([,m])=>m&&!m.reward&&m.available!==false&&(m.vendor===undefined||m.vendor)).map(([id,m])=>[id,m.name+' ('+((m.vendor||'outfitter')==='admin'?'Admin’s counter':'ship outfitter')+')']));}
- const api={FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,roster,status,whoAt,placesNow,buyable};
+ const api={START_HOW,START_CHANNELS,START_WHEN,FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,roster,status,whoAt,placesNow,buyable};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionGivers=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

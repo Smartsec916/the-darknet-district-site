@@ -164,6 +164,13 @@
    facts:learned,places:data.place?[String(data.place).slice(0,100)]:[],portrait:data.appearance?{key:portraitKey('npc',data.id||'',data.appearance),source:{type:'appearance',appearance:data.appearance,resident:true},state:'ready'}:{key:portraitKey('npc',data.id||'',data.model?{model:data.model}:null),source:data.model?{type:'model',model:data.model}:null,state:data.model?'ready':'unavailable'},
    actions:[{id:'talk',label:'CONVERSATION',enabled:!!data.here,reason:data.here?'':'Talk to them in person.'}]};
  }
- const api={ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ /* NOTIFICATION SOUNDS per device tier (David, 17 Nov 2026: "We need a notification sound too. Maybe different for every device V1, V2, V3 // Shadow"). Only the V1 is in the
+    game; V2, V3 and SHADOW are data only (no UI). Files: void-runner/assets/audio/ui/ (ElevenLabs Sound Effects on David's paid plan; LICENSES.md there). A device model
+    without its own row uses the V1's; today's 'v3' model (named "V3 // SHADOW") uses the v3 row. A missing file plays nothing (personal-device.js).
+    David's picks (17 Nov 2026): V1 confirmed; V3 his choice; V2 is a PLACEHOLDER until the V2 exists; SHADOW as generated. */
+ const NOTIFY={v1:{name:'V1',sound:'void-runner/assets/audio/ui/device-v1-notify.ogg'},v2:{name:'V2',placeholder:true,sound:'void-runner/assets/audio/ui/device-v2-notify.ogg'},
+  v3:{name:'V3',sound:'void-runner/assets/audio/ui/device-v3-notify.ogg'},shadow:{name:'SHADOW',sound:'void-runner/assets/audio/ui/device-shadow-notify.ogg'}};
+ const notifyTier=model=>NOTIFY[model]?model:'v1';
+ const api={NOTIFY,notifyTier,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

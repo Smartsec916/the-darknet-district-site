@@ -8,6 +8,10 @@ the shipped missions when this is off, unreachable or refused by the client's ow
 
 RE-VOICE queue: owner only, and off unless VOID_CONTENT_DRAFTS_ENABLED is 'true' (it is private owner storage, like drafts). Nothing is generated here or in a
 browser: David records queued Kokoro lines on his PC (python tools/audio/generate.py --from-queue); ElevenLabs lines wait for his approval of the spend.
+
+MISSION NUMBERS (17 Nov 2026): every tree mission may carry a number (1-999, shown "Mission 001 - Name"); the main storyline's must. Numbers are unique and never
+reused: void-runner/save-manifest.json missionNumbers is the shipped ledger, and every publish adds its numbers to the ledger kept on the state document
+(`numbers`), so a number once published can never be given to another mission id, even after that mission is removed.
 """
 import hashlib
 import json
@@ -250,6 +254,79 @@ def check(content, inv=None):
 
 
 DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
+STORY_MISSION = re.compile(r'^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$')
+HOW = ['person', 'notification']
+CHANNELS = ['messages', 'comms', 'notify']
+WHEN = ['pod-exit', 'after-mission', 'place', 'flag']
+STORY_FLAG = re.compile(r'^[a-zA-Z][\w-]{0,63}$')
+
+
+def start_problems(st, givers, places, mission_ids):
+    """How a mission starts: in person (the giver offers it) or by notification (channel, sender, header, text, trigger). Same rules as mission-content.js checkStart()."""
+    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when']) or st.get('how') not in HOW:
+        return ['unknown way of starting.']
+    if st['how'] == 'person':
+        return [] if len(st) == 1 else ['a mission given in person has no notification fields.']
+    out = []
+    if st.get('channel') not in CHANNELS:
+        out.append('unknown notification channel.')
+    if st.get('from') not in givers:
+        out.append('the notification must come from a known NPC.')
+    if (st.get('channel') != 'notify' or st.get('header') is not None) and not _plain(st.get('header'), 80):
+        out.append('the notification needs a header (plain text, 80 characters at most).')
+    if not _plain(st.get('text'), 500):
+        out.append('the notification needs its text (plain text, 500 characters at most).')
+    w = st.get('when')
+    if not _keys(w, ['kind', 'mission', 'place', 'flag', 'value']) or w.get('kind') not in WHEN:
+        return out + ['the notification needs a trigger it knows.']
+    if w['kind'] == 'after-mission' and w.get('mission') not in mission_ids:
+        out.append('"after mission" must name a mission that exists.')
+    if w['kind'] == 'place' and w.get('place') not in places:
+        out.append('unknown trigger place.')
+    if w['kind'] == 'flag':
+        v = w.get('value')
+        if not isinstance(w.get('flag'), str) or not STORY_FLAG.match(w['flag']):
+            out.append('the trigger flag must be a story flag name.')
+        if not (type(v) is bool or (isinstance(v, str) and len(v) <= 200 and not TAGS.search(v)) or (type(v) is int and abs(v) <= 9007199254740991)):
+            out.append('bad trigger flag value.')
+    return out
+
+
+def manifest():
+    return _json('void-runner/save-manifest.json')
+
+
+def shipped_numbers():
+    """The shipped ledger {number: mission id} (save-manifest.json missionNumbers, keys as text)."""
+    return {int(k): v for k, v in (manifest().get('missionNumbers') or {}).items()}
+
+
+def number_problems(trees, ledger):
+    """Duplicate numbers in the content, and numbers the ledger already gave to another mission id (never reused)."""
+    out, seen = [], {}
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') if isinstance(t, dict) and isinstance(t.get('missions'), list) else []):
+            if not isinstance(m, dict) or m.get('number') is None:
+                continue
+            n, mid = m.get('number'), m.get('id')
+            if type(n) is not int or not 1 <= n <= 999:
+                out.append('%s: a mission number must be a whole number from 001 to 999.' % mid)
+                continue
+            if n in seen and seen[n] != mid:
+                out.append('Mission %03d is given to two missions (%s and %s). Numbers are unique.' % (n, mid, seen[n]))
+            seen[n] = mid
+            if ledger.get(n) not in (None, mid):
+                out.append('Mission %03d was already used by %s. A number is never reused, even after a mission is removed.' % (n, ledger[n]))
+    return out
+
+
+def content_numbers(content):
+    out = {}
+    for t in (content or {}).get('trees') or []:
+        for m in t.get('missions') or []:
+            if type(m.get('number')) is int:
+                out[m['number']] = m['id']
+    return out
 FLAGNAME = re.compile(r'^[a-zA-Z][a-zA-Z0-9_-]{0,47}$')
 
 
@@ -263,6 +340,9 @@ def check_trees(trees, inv, err):
     if not isinstance(trees, list) or len(trees) > 10:
         err('New trees have an unknown shape (10 at most).')
         return
+    story = set(manifest().get('storyTrees') or [])
+    every_mission = {m.get('id') for t in trees if isinstance(t, dict) and isinstance(t.get('missions'), list) for m in t['missions'] if isinstance(m, dict)}
+    every_mission |= set(manifest().get('missions') or []) | set(manifest().get('storyMissions') or [])
     tids, mids, total = set(), set(), 0
     every = {t.get('id') for t in trees if isinstance(t, dict)}
 
@@ -282,7 +362,7 @@ def check_trees(trees, inv, err):
             err('A tree has unknown fields.')
             continue
         tw = str(t.get('id'))
-        if not isinstance(t.get('id'), str) or not DRAFT.match(t['id']) or t['id'] in tids:
+        if not isinstance(t.get('id'), str) or not (DRAFT.match(t['id']) or t['id'] in story) or t['id'] in tids:
             err(tw + ': a new tree id must start with draft- and be unique.')
         tids.add(t.get('id'))
         if not _plain(t.get('name'), 60):
@@ -296,12 +376,27 @@ def check_trees(trees, inv, err):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'title', 'type', 'giver', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
-            if not isinstance(m.get('id'), str) or not DRAFT.match(m['id']) or m['id'] in mids:
+            if not isinstance(m.get('id'), str) or not (DRAFT.match(m['id']) or STORY_MISSION.match(m['id'])) or m['id'] in mids:
                 err(w + ': a new mission id must start with draft- and be unique.')
+            num = m.get('number')
+            if num is not None and not (type(num) is int and 1 <= num <= 999):
+                err(w + ': a mission number must be a whole number from 001 to 999.')
+            if num is None and t.get('id') in story:
+                err(w + ': every mission in the main storyline needs a mission number.')
+            if m.get('start') is not None:
+                for p in start_problems(m['start'], givers, places, every_mission):
+                    err(w + ': ' + p)
+            by_note = isinstance(m.get('start'), dict) and m['start'].get('how') == 'notification'
+            if m.get('category') is not None and not _plain(m['category'], 60):
+                err(w + ': the mission type label must be plain text.')
+            if m.get('objective') is not None and not _plain(m['objective'], 200):
+                err(w + ': the objective must be plain text.')
+            if m.get('location') is not None and m['location'] not in places:
+                err(w + ': unknown location.')
             mids.add(m.get('id'))
             if not _plain(m.get('title'), 60):
                 err(w + ': a title is required.')
@@ -342,6 +437,10 @@ def check_trees(trees, inv, err):
                     err(ow + ': not a place a ship can fly to.')
                 elif kind == 'buy' and o.get('item') not in items:
                     err(ow + ': not an item a store sells.')
+                elif kind == 'message' and not by_note:
+                    err(ow + ': a "notification arrives" step needs the mission to start by notification.')
+                elif kind == 'hear' and o.get('npc') not in (None, '') and o.get('npc') not in talk:
+                    err(ow + ': unknown NPC.')
                 lines(o.get('say'), ow)
                 lines(o.get('early'), ow)
             e = m.get('ending')
@@ -384,6 +483,8 @@ def check_trees(trees, inv, err):
                         err(w + ': a start-tree link must name another of the new trees being sent.')
     if total > 40:
         err('New trees hold more than 40 missions.')
+    for p in number_problems(trees, shipped_numbers()):
+        err(p)
 
 
 # ---------------------------------------------------------------- versions
@@ -397,7 +498,9 @@ def _version_ref(db, n):
 
 def summary(db):
     state = _state_ref(db).get().to_dict() or {}
-    return {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', [])}
+    numbers = {str(k): v for k, v in shipped_numbers().items()}
+    numbers.update(state.get('numbers') or {})
+    return {'enabled': enabled(), 'editor': True, 'version': state.get('live', 0), 'publishedAt': state.get('at'), 'history': state.get('history', []), 'numbers': numbers}
 
 
 def public(db, now=None):
@@ -441,11 +544,19 @@ def _commit(db, uid, expected, action, content_for, note=''):
             raise DraftError('The version history is full.', 409)
         nxt = (history[-1]['version'] if history else 0) + 1
         content, source = content_for(tx, live, history)
+        # Numbers once published are never reused: the ledger on the state document keeps every number any version published.
+        ledger = {int(k): v for k, v in (state.get('numbers') or {}).items()}
+        ledger.update({k: v for k, v in shipped_numbers().items() if k not in ledger})
+        problems = number_problems((content or {}).get('trees') or [], ledger)
+        if problems:
+            raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
+        for n, mid in content_numbers(content).items():
+            ledger.setdefault(n, mid)
         at = int(time.time())
         record = {'version': nxt, 'action': action, 'from': source, 'content': content, 'at': at, 'by': owner_tag, 'note': note}
         tx.create(_version_ref(db, nxt), record)
         history.append({'version': nxt, 'at': at, 'action': action, 'from': source, 'note': note})
-        tx.set(_state_ref(db), {'live': nxt, 'at': at, 'history': history})
+        tx.set(_state_ref(db), {'live': nxt, 'at': at, 'history': history, 'numbers': {str(k): v for k, v in sorted(ledger.items())}})
         return record
     result = commit(db.transaction())
     clear_cache()
