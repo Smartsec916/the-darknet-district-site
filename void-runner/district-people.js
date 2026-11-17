@@ -8,7 +8,7 @@
  'use strict';
  // Jobs: the owner's list first (Smuggler .. Mechanic), then additions for him to keep or cut.
  const JOBS=[['smuggler','Smuggler'],['pirate','Pirate'],['mercenary','Mercenary'],['merchant','Merchant'],['influencer','Influencer'],['dancer','Dancer'],['dj','DJ'],['mechanic','Mechanic'],
-  ['bounty-hunter','Bounty Hunter'],['courier','Courier'],['pilot','Pilot'],['hacker','Hacker'],['fixer','Fixer'],['info-broker','Info Broker'],['bartender','Bartender'],['bodyguard','Bodyguard'],
+  ['bounty-hunter','Bounty Hunter'],['courier','Courier'],['pilot','Pilot'],['hacker','Hacker'],['fixer','Fixer'],['info-broker','Info Broker'],['entrepreneur','Entrepreneur'],['bartender','Bartender'],['bodyguard','Bodyguard'],
   ['medic','Medic'],['salvager','Salvager'],['miner','Miner'],['engineer','Engineer'],['explorer','Explorer'],['racer','Racer'],['gambler','Gambler'],['musician','Musician'],
   ['street-vendor','Street Vendor'],['chef','Chef'],['tattoo-artist','Tattoo Artist'],['bouncer','Bouncer'],['vr-athlete','VR Athlete'],['companion','Companion'],['scavenger','Scavenger'],['drifter','Drifter']]
   .map(([id,label])=>({id,label}));
@@ -46,8 +46,8 @@
   {id:'dax',achievements:[['arcade-top-blackout-protocol','2026-10-19'],['arcade-top-corporate-zombies','2026-11-02'],['arcade-top-underground-overdrive','2026-11-13'],['rook-three-runs','2026-09-27']],name:'Dax',jobs:['bounty-hunter','mercenary'],area:'interior',place:'Comes and goes',bio:'Bounty hunter. Watches more than she talks.',device:'v3',live:'dax'},
   {id:'dj-vanta',crew:'dj',name:'DJ Vanta',jobs:['dj'],area:'club',place:'NULL nightclub, NeoChinatown',bio:'Plays the desk at NULL.'},
   /* Fish (Mission 003 — Corporate Connections, 17 Nov 2026): the player follows her Social profile and has her as a V1 contact after meeting her. Her figure in Milked is drawn by
-     milked-build.js (this entry draws nothing); her picture is her own model. PROPOSED: the bio line is Claude's, minimal, awaiting the owner. */
-  {id:'milked-fish',name:'Fish',jobs:['info-broker'],area:'milked',place:'Milked, Far South',bio:'Intel broker. Works at Milked.',model:'npc-fish',proposed:true}
+     milked-build.js (this entry draws nothing); her picture is her own model. Bio: the owner's word, 18 Nov 2026 ("just Entrepreneur"): it hides her intel work. */
+  {id:'milked-fish',name:'Fish',jobs:['entrepreneur'],area:'milked',place:'Milked, Far South',bio:'Entrepreneur',model:'npc-fish'}
  ].map(n=>Object.freeze({...n,jobs:cleanJobs(n.jobs)}));
  /* A resident's achievements (the owner, 15 Nov 2026: "some NPCs will have Achievements, although most will be easy ones"; Dax holds every arcade high score and three
     cargo runs for Rook). Each is [achievement id, the day it was earned]. They are part of who the resident is, not earned in play. DRAFT: which resident has which, and the

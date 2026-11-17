@@ -63,7 +63,8 @@
  // Approved by the owner 17 Nov 2026: Eva's welcome (his words) and the player's two lines to Eva. Only the player's line to Fish is still a draft.
  const APPROVED={evaWelcome:'Hey there! Welcome to Milked. First time here?',evaBusiness:'We\'re a little different from your average entertainment venue. We\'re both an adult streaming platform and a sperm bank. Our performers earn credits based on the samples collected from viewers tuning in from home.',
   evaWhy:'So, what brings you in today? Business or pleasure?',youFish:'Admin sent me. I\'m here to see Fish.',youHi:'He also said to tell you hi.'};
- const DRAFT={youHalden:'Admin sent me. He wants anything you can find on a man named Halden Reyes.'};
+ APPROVED.youHalden='Admin sent me. He wants anything you can find on a man named Halden Reyes.';   // approved by the owner 18 Nov 2026
+ const DRAFT={};
  const PROPOSED=Object.values(DRAFT);
  const isProposed=t=>typeof t==='string'&&PROPOSED.includes(t);
  const ZH='给我一点时间调查一下。如果有什么消息，我会给你打电话。',EN='Give me some time to work on it. I\'ll call you if anything comes up.';
@@ -78,7 +79,7 @@
    {id:'speak-eva',kind:'talk',npc:'milked-eva',label:'Speak with Eva at reception.',place:'',item:'',early:[],
     say:[EVA(APPROVED.evaWelcome),EVA(APPROVED.evaBusiness),EVA(APPROVED.evaWhy),YOU(APPROVED.youFish),YOU(APPROVED.youHi),EVA('Oh, Admin! Tell him I said hi, too.'),EVA('Fish is through the staff-only door. You\'ll find her in her office.')]},
    // Objective 3: Fish answers in Mandarin; the V1 translation line right after hers (in her OWN voice, English: the owner's standard) is played over it (voice-clips.js) and shown under it as V1 TRANSLATION
-   {id:'meet-fish',kind:'talk',npc:'milked-fish',label:'Meet Fish in her office.',place:'',item:'',early:[],say:[YOU(DRAFT.youHalden),FISH(ZH),V1T(EN)]},
+   {id:'meet-fish',kind:'talk',npc:'milked-fish',label:'Meet Fish in her office.',place:'',item:'',early:[],say:[YOU(APPROVED.youHalden),FISH(ZH),V1T(EN)]},
    // Objective 4: done by itself right after Fish; her follow-up call becomes due after in-game time (FOLLOWUPS)
    {id:'await-fish',kind:'await-call',npc:'milked-fish',label:'Await Fish\'s response.',place:'',item:'',say:[],early:[]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],
