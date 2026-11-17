@@ -68,12 +68,12 @@
   },
   "admin-m002-call": {
    "speaker": "admin",
-   "text": "Your V1 has a camera. Press L to open your device, then select the Camera app.\nPoint it at the target. Your device should identify them automatically.\nLeft click will take a picture\nOnce you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.\nNothing complicated. Just keep your eyes open.",
+   "text": "Your V1 has a camera. Press L to open your device, then select the Camera app.\nPoint it at the target. Your device should identify them automatically.\nLeft click will take a picture\nYou can also zoom with the camera by using the mouse wheel\nOnce you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.\nNothing complicated. Just keep your eyes open.",
    "file": "extra/admin-m002-call.ogg",
    "voice": "Donovan (ElevenLabs)",
    "voiceId": "DMyrgzQFny3JI1Y1paM5",
    "source": "main-story.js (002 Comms call on entering NULL)",
-   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner. Re-recorded 17 Nov 2026 with the zoom line (402 credits)."
   },
   "admin-m002-received": {
    "speaker": "admin",

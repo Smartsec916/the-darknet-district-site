@@ -1,7 +1,7 @@
 /* MISSION 002 — EYES ON THE STREET in the real game (Chromium, software GL, offline: every API call refused, so the shipped missions are in force).
    The whole flow at 1366x768 and 1920x1080: a new character finishes Awakening (EXIT POD, Admin's call, talk to Admin) → Admin's in-person offer: NOT NOW, then talking
    again and ACCEPT → Mission Log "Eyes on the Street", tracked, the yellow arrow out through the District's vestibule and then to NULL's door → walking into NULL brings
-   Admin's Comms call (the owner's five lines) → Juno Vex at the bar talking with Halden Reyes, the yellow marker over the pair, and the hints (open the V1 / Camera / take
+   Admin's Comms call (the owner's six lines) → Juno Vex at the bar talking with Halden Reyes, the yellow marker over the pair, and the hints (open the V1 / Camera / take
    the picture) → a photo of the wrong person, a photo of Juno ALONE (Halden out of the frame: does not count), then a valid photo of both (left click in the camera; the
    camera tags both by name) → Messages > Admin's conversation: ATTACH the wrong photo, SEND → "That's not the person...", the same for Juno alone, ATTACH the right photo, SEND → "Received..." → back to Admin in the District → "Not bad..." and the reward (100 credits, better standing with Admin), paid once.
    Usage: node tests/eyes-on-the-street-browser.cjs   (its own static server on a free port; SITE_TEST_URL to use another; SHOTS=dir; BROWSER_EXECUTABLE=path; SIZES=1366;
@@ -13,7 +13,7 @@ const bundled=['/opt/pw-browsers/chromium','/opt/pw-browsers/chromium-1243/chrom
 const sizes=(process.env.SIZES||'1366,1920').split(',').map(w=>w==='1920'?[1920,1080]:[1366,768]),quality=process.env.QUALITY||'low';
 const ID='m002-eyes-on-the-street';
 const OFFER=['I heard you\'re looking for work.','Before I trust you with anything important, I need you to do a little reconnaissance.','Head outside. Across the street, you\'ll find a nightclub called NULL. There\'s someone hanging out in there I need you to take their picture so I can scrape it for more data','I\'ll mark their location'];
-const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
+const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','You can also zoom with the camera by using the mouse wheel','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
 function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/javascript','.css':'text/css','.html':'text/html','.json':'application/json','.ogg':'audio/ogg','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.glb':'model/gltf-binary'};
  const srv=http.createServer((req,res)=>{let f;try{f=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));}catch{res.writeHead(400);return res.end();}if(!f.startsWith(root+path.sep)){res.writeHead(403);return res.end();}
   fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',types[path.extname(f)]||'application/octet-stream');res.end(d);});});
@@ -77,8 +77,8 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await page.waitForSelector('#pd-notify.on:not(.away)',{timeout:30000});const banner=(await page.locator('#pd-notify').innerText()).replace(/\s+/g,' ').trim();
    assert.equal(banner,'V1 · Incoming call from ADMIN · Press L to answer','the V1 notification, with the player\'s own key');await shot('call-banner');
    await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);const call=page.locator('#personal-device [data-call-live]');await call.waitFor();
-   await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].length===5&&[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:30000});
-   assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'The owner\'s five lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
+   await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].length===6&&[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:30000});
+   assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'The owner\'s six lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
    await page.locator('[data-hangup]').dispatchEvent('click');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    s=await S();assert.equal(s.log[0].objective,'Photograph the target.');assert.equal(s.hint&&s.hint.id,'open','hint: open the V1');assert.match(s.hint.text,/Press L to open your V1/);
    // ---- Juno Vex, Halden Reyes and the marker over the pair

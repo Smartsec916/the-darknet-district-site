@@ -2,6 +2,12 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## 17 Nov 2026: Admin's call gains the zoom line
+
+Mission 002's Comms call on entering NULL is now **six lines** (the owner's text, APPROVED): "Your V1 has a camera. Press L to open your device, then select the Camera app." / "Point it at the target. Your device should identify them automatically." / "Left click will take a picture" / **"You can also zoom with the camera by using the mouse wheel"** / "Once you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me." / "Nothing complicated. Just keep your eyes open." The voice clip was re-recorded with the new line.
+
+**Your drafts:** if your saved draft still holds the old five-line call exactly as it shipped, the editor shows the new six lines (the shipped text wins; what is published to players wins over any draft). If you changed those lines yourself, your version is kept as you wrote it. Note: a recorded clip plays only while the call's text matches the recording word for word, so an edited call is text only until it is re-recorded.
+
 ## Fourth pass (17 Nov 2026): Mission 002 — Eyes on the Street, places, photos, Messages, reputation
 
 Branch `claude/eyes-on-the-street`, build `2026-11-17-eyes-1`.

@@ -402,7 +402,7 @@
       "reputation"
     ]
   },
-  "revision": "a0c10e4ee04d8bad",
+  "revision": "bc11cba82f30ccf8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -11927,7 +11927,7 @@
     },
     {
       "source": "void-runner/conversation-ui.js",
-      "line": 31,
+      "line": 34,
       "text": "globalThis.VoidConversationUI={get isOpen(){return hasContent()&&screen.classList.contains('conversation-live');},continueWalking(){if(!this.isOpen)return false;activeMode='walking';mode='walking';walkingKeys.clear();canvas.focus({preventScroll:true});return true;}};",
       "kind": "source-reference"
     },
@@ -12480,7 +12480,7 @@
     {
       "source": "void-runner/main-story.js",
       "line": 44,
-      "text": "say:[A('Your V1 has a camera. Press L to open your device, then select the Camera app.'),A('Point it at the target. Your device should identify them automatically.'),A('Left click will take a picture'),",
+      "text": "say:[A('Your V1 has a camera. Press L to open your device, then select the Camera app.'),A('Point it at the target. Your device should identify them automatically.'),A('Left click will take a picture'),A('You can also zoom with the camera by using the mouse wheel'),",
       "kind": "source-reference"
     },
     {
@@ -12511,6 +12511,30 @@
       "source": "void-runner/main-story.js",
       "line": 51,
       "text": "rewards:100,ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'reputation',id:'admin',amount:10}]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 74,
+      "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 75,
+      "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 77,
+      "text": "const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 78,
+      "text": "const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}",
       "kind": "source-reference"
     },
     {
@@ -12947,163 +12971,163 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 34,
+      "line": 36,
       "text": "/* Drafts are never discarded silently: a draft this version cannot read is copied to a backup key first, and the editor says so. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 105,
+      "line": 107,
       "text": "if(l.kind==='tree'){const [mid,a,b,c]=l.key.slice(5).split('/');editTree(treeOf(mid),t=>{const m=t.missions.find(x=>x.id===mid);if(!m)return;const list=a==='offer'?m.offer:a==='ending'?m.ending.say:(m.objectives.find(o=>o.id===a)||{})[b];const k=Number(a==='offer'||a==='ending'?b:c);if(list&&list[k])list[k].text=text;});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 107,
+      "line": 109,
       "text": "const d=local(),prev=d.lines[l.ref]||{};if(text===l.text&&!(unlocked??prev.unlocked))delete d.lines[l.ref];else d.lines[l.ref]={who:l.who,from:l.text,to:text,adapter:l.adapter,source:l.source,...((unlocked??prev.unlocked)?{unlocked:true}:{})};saveLocal(d);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 110,
+      "line": 112,
       "text": "if(l.who==='player')return {text:'the player’s own line (not voiced)',cls:'muted'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 111,
+      "line": 113,
       "text": "if(l.needsVoice){if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:{text:'queued for voice',cls:'warn'};return t.trim()?{text:'needs voice (text only until recorded)',cls:'warn',revoice:!!l.voice}:{text:'empty: a placeholder, not spoken',cls:'muted'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 112,
+      "line": 114,
       "text": "if(edited&&clipKeys.has(l.who+'|'+t))return {text:'re-voiced',cls:'ok'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 113,
+      "line": 115,
       "text": "if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:q.engine==='elevenlabs'?{text:'waiting for ElevenLabs re-voice (needs approval)',cls:'warn'}:{text:'queued for re-voice',cls:'warn'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 114,
+      "line": 116,
       "text": "if(edited&&l.recorded)return {text:'voice clip out of date: text only until re-voiced',cls:'bad',revoice:true};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 115,
+      "line": 117,
       "text": "if(edited)return {text:'text only',cls:'muted',revoice:!!l.voice};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 116,
+      "line": 118,
       "text": "return l.recorded?{text:'voice clip recorded'+(l.clip?.engine==='elevenlabs'?' (ElevenLabs)':''),cls:'ok'}:{text:'text only (no voice clip)',cls:'muted'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 246,
+      "line": 248,
       "text": "const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].who=v;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+((giver(defWho)||{}).name||defWho):'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 248,
+      "line": 250,
       "text": "const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';ta.oninput=()=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});body.append(ta);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 250,
+      "line": 252,
       "text": "if(g&&g.voice&&(l.text||'').trim())tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 252,
+      "line": 254,
       "text": "const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');if(a==='offer')return mm.offer;if(a==='ending')return (mm.ending.say=mm.ending.say||[]);const oo=mm.objectives.find(o=>o.id===a);if(!oo)return undefined;if(!Array.isArray(oo[b]))oo[b]=[];return oo[b];};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 253,
+      "line": 255,
       "text": "box.append(btn('+ LINE',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.push({who:'',text:''});},true)));return box;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 273,
+      "line": 275,
       "text": "if(!(m.start&&m.start.how==='notification'))card.append(linesEditor(t,m,m.offer,'offer',m.giver,'What '+(gv?gv.name:'the giver')+' says when offering it'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 280,
+      "line": 282,
       "text": "if(m.ending.npc){end.append(field('Hand-in step in the Mission Log',m.ending.label,v=>ed(x=>{x.ending.label=v.slice(0,200);}),false,{placeholder:'(empty: “Hand in to '+((giver(m.ending.npc)||{}).name||'')+'”)'}));end.append(linesEditor(t,m,m.ending.say||[],'ending',m.ending.npc,'What is said at the hand-in'));}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 302,
+      "line": 304,
       "text": "sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value;x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;},true);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 304,
+      "line": 306,
       "text": "if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'));return box;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 328,
+      "line": 330,
       "text": "else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 336,
+      "line": 338,
       "text": "if(!['message','pod-exit','hear','send-photo'].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 338,
+      "line": 340,
       "text": "const sayWho=o.kind==='photo'?m.giver:o.npc||m.giver;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 339,
+      "line": 341,
       "text": "if(o.kind!=='message'&&o.kind!=='pod-exit')sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 408,
+      "line": 410,
       "text": "const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 409,
+      "line": 411,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 439,
+      "line": 441,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 461,
+      "line": 463,
       "text": "const items=lines.filter(l=>l.who!=='player'&&l.voice).map(l=>({ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''}));",
       "kind": "source-reference"
     },
@@ -13816,6 +13840,24 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/npc-look.js",
+      "line": 2,
+      "text": "mission giver NPC\"). While a walking conversation is open, its speaker's head (and a little of the neck) turns toward the player's eyes, eased in and out,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-look.js",
+      "line": 70,
+      "text": "if(typeof speech!=='undefined'&&speech?.lines?.[speech.index]){lastWho=speech.lines[speech.index].who;return lastWho;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-look.js",
+      "line": 79,
+      "text": "Object.defineProperty(api,'current',{get(){return current?{who:current.who,character:current.node.metadata?.character,...current.debug}:null;}});",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/opening-scene.js",
       "line": 210,
       "text": "const maraCue=B.MeshBuilder.CreateTorus('mara-conversation-locus',{diameter:1.8,thickness:.017,tessellation:24},scene);add(maraCue,blue,[0,.05,0],mara,false);maraCue.isPickable=false;",
@@ -14274,13 +14316,13 @@
     {
       "source": "void-runner/scenes.js",
       "line": 15,
-      "text": "const line=speech.lines[speech.index], c=characters[line.who]||{name:line.who,role:''};const newlyMet=!state.story.met.includes(line.who);if(newlyMet)state.story.met.push(line.who);const events=VoidStory.emit(state,'talk',line.who);if(newlyMet||events.length)save();speech.shown=reducedMotion?line.text.length:0;",
+      "text": "const line=speech.lines[speech.index], c=characters[line.who]||{name:line.who,role:''};const newlyMet=!state.story.met.includes(line.who);if(newlyMet)state.story.met.push(line.who);const events=VoidStory.emit(state,'talk',line.who);if(newlyMet||events.length)save();speech.shown=reducedMotion?line.text.length:0;speech.tick=performance.now();speech.auto=typeof walkingLocation!=='undefined'&&!!walkingLocation&&typeof walker!=='undefined'&&!!walker;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 16,
-      "text": "screen.innerHTML=`<section class=\"cinematic-space\"><div class=\"scene-heading\"><div class=\"eyebrow\">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class=\"dialogue-window social-dialogue\">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class=\"speech-body social-message\"><div class=\"speaker\"><h2>${c.name}</h2><span>${c.role}</span></div><p id=\"spoken-text\" aria-hidden=\"true\"></p><p class=\"sr-only\" aria-live=\"polite\">${c.name}: ${line.text}</p><div class=\"speech-controls\"><span id=\"speech-status\">TRANSMITTING <span class=\"talk-light\">●</span></span><button data-action=\"speech-next\" id=\"speech-next\">${reducedMotion?nextLabel():'SHOW FULL LINE'}</button></div></div></div></section>`;",
+      "text": "screen.innerHTML=`<section class=\"cinematic-space\"><div class=\"scene-heading\"><div class=\"eyebrow\">${speech.scene==='vesper'?'VESPER / WARD FREIGHT WORKSHOP':speech.scene==='bar'?C.stations[state.location].name.toUpperCase()+' / '+C.stations[state.location].bar.toUpperCase():'INCOMING TRANSMISSION'}</div><h1>${speech.heading}</h1></div><div class=\"dialogue-window social-dialogue\">${characters[line.who]&&!(typeof walkingLocation!=='undefined'&&walkingLocation)?portrait(line.who):''}<div class=\"speech-body social-message\"><div class=\"speaker\"><h2>${c.name}</h2><span>${c.role}</span></div><p id=\"spoken-text\" aria-hidden=\"true\"></p><p class=\"sr-only\" aria-live=\"polite\">${c.name}: ${line.text}</p><div class=\"speech-controls\"><span id=\"speech-status\">${speech.auto?'SPEAKING':'TRANSMITTING'} <span class=\"talk-light\">●</span></span><button data-action=\"speech-next\" id=\"speech-next\">${reducedMotion?nextLabel():typingLabel()}</button></div></div></div></section>`;",
       "kind": "source-reference"
     },
     {
@@ -14298,96 +14340,168 @@
     {
       "source": "void-runner/scenes.js",
       "line": 22,
-      "text": "if(!speech)return;",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/scenes.js",
-      "line": 23,
-      "text": "const line=speech.lines[speech.index];",
+      "text": "function typingLabel(){return speech.auto?'SKIP ›':'SHOW FULL LINE';}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 24,
-      "text": "if(speech.shown<line.text.length){speech.shown=line.text.length;updateSpeech(0);return;}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/scenes.js",
-      "line": 25,
-      "text": "if(speech.index<speech.lines.length-1){speech.index++;renderLine();return;}",
+      "text": "function speakLine(){const line=speech.lines[speech.index];speech.readyAt=null;speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:!!globalThis.VoidVoiceClips?.has?.(line.who,line.text)};if(!globalThis.VoidAudio?.speak(line.who,line.text))speech.voice.clip=false;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 26,
-      "text": "const done=speech.done;speech=null;globalThis.VoidAudio?.cancel();done();",
+      "text": "if(!speech)return;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 27,
+      "text": "const line=speech.lines[speech.index];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 28,
-      "text": "function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*(speech.rate||48));$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():'SHOW FULL LINE';$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}",
+      "text": "if(speech.shown<line.text.length&&!(speech.auto&&speech.index<speech.lines.length-1)){speech.shown=line.text.length;updateSpeech(0);return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
-      "line": 31,
-      "text": "speech=null;mode='dock';view='bar';clearInput();flightUI(false);scene('bar');screen.classList.remove('hidden');",
+      "line": 29,
+      "text": "if(speech.index<speech.lines.length-1){speech.index++;renderLine();return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 30,
+      "text": "const done=speech.done;speech=null;globalThis.VoidAudio?.cancel();done();",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 32,
+      "text": "function updateSpeech(dt){if(!speech)return;const line=speech.lines[speech.index];speech.shown=Math.min(line.text.length,speech.shown+dt*(speech.rate||48));$('spoken-text').textContent=line.text.slice(0,Math.floor(speech.shown));const finished=speech.shown>=line.text.length;$('speech-next').textContent=finished?nextLabel():typingLabel();$('speech-status').textContent=finished?`${speech.index+1} / ${speech.lines.length} · END OF LINE`:'● SPEAKING';}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 33,
+      "text": "/* Conversations flow by themselves in walking mode (the owner, 17 Nov 2026: clicking SHOW FULL LINE between every line \"kind of stopped the natural flow\").",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 36,
+      "text": "The LAST line never advances by itself: it waits for CONTINUE or a choice. A minimized conversation or a choice menu holds. Safe to call more than once a frame. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 37,
+      "text": "const SPEECH_TIMING={beat:500,clipWait:1500,read:1200,perChar:35};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 38,
-      "text": "if(!['legal-offer','illegal-offer'].includes(state.quest))return talk('bar',[{who:'rook',text:'Deliver the cargo. Then come back for more work.'}],barRoom,'BACK');",
+      "text": "function speechDue(now){const line=speech.lines[speech.index],v=speech.voice||{},T=SPEECH_TIMING;if(speech.shown<line.text.length)return null;speech.readyAt??=now;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 39,
+      "text": "if(v.started&&!v.ended){if(now-v.startedAt<(v.duration||0)*1000+T.clipWait)return null;v.ended=true;v.endedAt=now;}   // a recording that never reports its end (a suspended audio device) does not hold the conversation",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 40,
+      "text": "if(v.ended)return Math.max(speech.readyAt,v.endedAt)+T.beat;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 42,
-      "text": "talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Rusthaven. Illegal. This run might be more dangerous. 800 credits.':(state.story.met.includes('rook')?'The filters are still waiting. Take them to Kepler. Watch for raiders. 350 credits. Then come back.':'Elias sent you? Take legal filters to Kepler. Look out for raiders. 350 credits. Then come back.')}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');",
+      "text": "return speech.readyAt+T.read+T.perChar*line.text.length+T.beat;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 43,
+      "text": "function tickSpeech(){if(!speech)return;const now=performance.now(),dt=speech.tick?Math.max(0,Math.min(.25,(now-speech.tick)/1000)):0;speech.tick=now;updateSpeech(dt);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 44,
-      "text": "screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('NOT YET','bar',true));",
+      "text": "if(!speech?.auto||speech.index>=speech.lines.length-1||screen.classList.contains('hidden')||screen.querySelector('.choice-menu')||$('speech-next')?.style.display==='none')return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
-      "line": 47,
-      "text": "speech=null;scene('dock');mode='dock';view='bar';screen.classList.remove('hidden');",
+      "line": 45,
+      "text": "const due=speechDue(now);if(due!==null&&now>=due)advanceSpeech();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
-      "line": 50,
-      "text": "function brief(id){const c=C.contracts.find(c=>c.id===id);if(!c)return;const who=id==='medicine'?'sol':id==='ghost'?'iona':'rook',here=typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.interactions?.some(i=>i.character===who);talk('dock',[{who,text: `${c.cargo}. ${c.legal?'Legal':'Illegal'}. To ${C.stations[c.destination===state.location?'meridian':c.destination].name}. ${c.reward} credits.`}],()=>{if(C.accept(state,id)){save();dock();}else contacts();},'ACCEPT JOB →',here?'Cargo job':'Comms channel · cargo job');screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('BACK','contacts',true));}",
+      "line": 48,
+      "text": "speech=null;mode='dock';view='bar';clearInput();flightUI(false);scene('bar');screen.classList.remove('hidden');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
-      "line": 56,
-      "text": "if(f.payAt==='rook'){talk('dock',[{who,text:'Delivery confirmed. Rook has your pay at Meridian.'+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');return;}",
+      "line": 55,
+      "text": "if(!['legal-offer','illegal-offer'].includes(state.quest))return talk('bar',[{who:'rook',text:'Deliver the cargo. Then come back for more work.'}],barRoom,'BACK');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
-      "line": 58,
-      "text": "talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/scenes.js",
-      "line": 60,
-      "text": "screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});",
+      "line": 59,
+      "text": "talk('bar',[{who:'rook',text:`${illegal?'Good run. Next job: memory wafers to Rusthaven. Illegal. This run might be more dangerous. 800 credits.':(state.story.met.includes('rook')?'The filters are still waiting. Take them to Kepler. Watch for raiders. 350 credits. Then come back.':'Elias sent you? Take legal filters to Kepler. Look out for raiders. 350 credits. Then come back.')}`}],()=>{if(C.accept(state)){save();dock();announce('Cargo loaded. Ready for departure.');}else dock();},'ACCEPT JOB →','Rook’s booth');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/scenes.js",
       "line": 61,
+      "text": "screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('NOT YET','bar',true));",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 64,
+      "text": "speech=null;scene('dock');mode='dock';view='bar';screen.classList.remove('hidden');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 67,
+      "text": "function brief(id){const c=C.contracts.find(c=>c.id===id);if(!c)return;const who=id==='medicine'?'sol':id==='ghost'?'iona':'rook',here=typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.interactions?.some(i=>i.character===who);talk('dock',[{who,text: `${c.cargo}. ${c.legal?'Legal':'Illegal'}. To ${C.stations[c.destination===state.location?'meridian':c.destination].name}. ${c.reward} credits.`}],()=>{if(C.accept(state,id)){save();dock();}else contacts();},'ACCEPT JOB →',here?'Cargo job':'Comms channel · cargo job');screen.querySelector('.speech-controls').insertAdjacentHTML('beforeend',button('BACK','contacts',true));}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 73,
+      "text": "if(f.payAt==='rook'){talk('dock',[{who,text:'Delivery confirmed. Rook has your pay at Meridian.'+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 75,
+      "text": "talk('dock',[{who,text:line+(f.repairCharged?` Dock servicing costs ${f.repairCharged} credits.`:'')}],()=>dock(),'GO BACK TO YOUR SHIP →','Delivery confirmed');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 77,
+      "text": "screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(a==='speech-next')advanceSpeech();else if(a==='talk-rook')rookConversation();else if(a==='talk-nyx')talk('bar',[{who:'nyx',text:state.quest==='legal-offer'?'Rook has work. He’s in the booth.':state.quest==='illegal-offer'?'Rook is waiting. This job pays better.':'Need work? Visit the cargo contacts. Need upgrades? Try the shop.'}],barRoom,'BACK TO THE BAR','At the counter');else if(a==='contacts')contacts();else if(a?.startsWith('brief:'))brief(a.slice(6));});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/scenes.js",
+      "line": 78,
       "text": "addEventListener('keydown',e=>{if(speech&&mode!=='walking'&&['Space','Enter'].includes(e.code)&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)advanceSpeech();}});",
       "kind": "source-reference"
     },
@@ -14903,20 +15017,26 @@
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 69,
+      "line": 66,
+      "text": "const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/voice-clips.js",
+      "line": 72,
       "text": "if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 77,
+      "line": 81,
       "text": "renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action=\"speech-replay\" class=\"quiet\" title=\"Replay line\">REPLAY ↺</button>');};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 78,
-      "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;const line=speech.lines[speech.index];VoidAudio.speak(line.who,line.text);});",
+      "line": 82,
+      "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;speakLine();});",
       "kind": "source-reference"
     },
     {
@@ -15719,7 +15839,7 @@
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
-    "void-runner/conversation-ui.js": "69404805485cb34daab699d4ac8ad4890b50de188e7f07423d1462b116302ec7",
+    "void-runner/conversation-ui.js": "617d4b10f68c5ccb82bc001b7a0f2652abe64ed9515463f51bf4c8bcf5fafb2b",
     "void-runner/corporate-actors.js": "4ded2564263ea8f5ed16a535864a00385925c81bdfb4aa877b69944f55ffd588",
     "void-runner/corporate-build.js": "c98085378b49c56e77b679078fb7bf5377aa069ea8a7bc8fd8697c98f63a52d0",
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
@@ -15749,7 +15869,7 @@
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
-    "void-runner/exploration-controller.js": "f899c3dc128695c947a76a0aea1cbc06acc58833081325412b0e2a641e7a574f",
+    "void-runner/exploration-controller.js": "d8255e248f1ce8c045f4f74f004ef69e880ea5ce2e3d57105455f46a8959c9a2",
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
@@ -15777,7 +15897,7 @@
     "void-runner/live-content.js": "e4166ee82abc0205f42e85a58057aa594ce396e464a29685b2e7a6f8bad6f17c",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
-    "void-runner/main-story.js": "97f91560d33a42ee3e40cd36167aaaea61031714d070e4e34fff149979aa156c",
+    "void-runner/main-story.js": "0047905efa117413d28c11fda0654aca839e2417de87cc4f8fe8cdeb251b6f51",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "e33945c3801486b0491f33a7253a44179550127b1efd02dab139be6b61082627",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -15791,7 +15911,7 @@
     "void-runner/milked.js": "58ba704c41340ec0b737ef3e097f5ae23abe79bae2c39326ba4d3ac45d778cb3",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "74f98de7a94b071bfd8a0738200e3e562bf41a425ec27dc65f97c2ceaad00265",
-    "void-runner/mission-editor.js": "e0b8dd487e628d98543042ead6711d573ed8e9ecab4dcbb987a60234d55bd755",
+    "void-runner/mission-editor.js": "069b915f0d789522a2ffd02747adac35e2f3d85e6b6d9303615a006e460ccc9d",
     "void-runner/mission-givers.js": "88ebc35053f63120bfcdc60443d272d5552f15df0186aeec03baa1872ccbf7b1",
     "void-runner/mission-guide.js": "6a536e16991d3dab121762f4a3c89d4e8e16d6a371b45a96d977eb69750ad6cf",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
@@ -15816,6 +15936,7 @@
     "void-runner/neochinatown.js": "4593e788e71bfb5b5dfb86ca2b6c97f59262b47f0fb93e55d1c8ac9b78be5cec",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
+    "void-runner/npc-look.js": "cc2d498066154935427bd4f52b5d2f0ad53360c5036dc3c95a1165882a6f9357",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/personal-device.js": "0a6df9706c0c469b3d578bc8b8a2baf46d8781538a1ff4af10d4862251e6e74c",
@@ -15838,7 +15959,7 @@
     "void-runner/remote-players.js": "e01cb63b2155cd3f79e7fa9e322422a46f8f7fdc56a1552274904e8e6a9f5d16",
     "void-runner/road-taxi-rules.js": "40803f3a813522104e26984aacbe008b2390851c4e4624374d3c75dcc3fa003c",
     "void-runner/road-taxi.js": "f8174bb0bc43dcc74286e8eb93888c52bbedc0a11388fcdceaee12f57ffc73c2",
-    "void-runner/scenes.js": "63235eb4b3f85720f10c420f89968778314dd3d4fc6bb31c682678632d9ae2eb",
+    "void-runner/scenes.js": "cf1061512432f0329ed03cccf7dd5e15c771f9ef21aa51fb96aaffdbd68c858c",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
     "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
@@ -15866,7 +15987,7 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "80a0fe1767b21c63b0ec19967f6e0d27414ace87de2dd046da09ef330c97cdec",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "fdf9a06bf86f5900bc4905edb3ebf1593d3dac3ba4d64fa13a5f875a43973012",
+    "void-runner/voice-clips.js": "6cb0102ccebf1ea23d8f98287d5225dcb70d9ea110566a0ffad7cb0bfa2f464f",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
     "void-runner/vr-companions.js": "2bb5ba52f5d7a45cd148d3fc4d73e285b265d7030c77a8f0fa8c1f61269aeb0a",

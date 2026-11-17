@@ -41,7 +41,7 @@
   objectives:[
    // the first LOCATION TRIGGER: done when the player is inside NULL; what is said then reaches the V1 as a Comms call from Admin
    {id:'enter-null',kind:'enter',place:'null',label:'Go to NULL, across the street.',via:'comms',npc:'',item:'',early:[],
-    say:[A('Your V1 has a camera. Press L to open your device, then select the Camera app.'),A('Point it at the target. Your device should identify them automatically.'),A('Left click will take a picture'),
+    say:[A('Your V1 has a camera. Press L to open your device, then select the Camera app.'),A('Point it at the target. Your device should identify them automatically.'),A('Left click will take a picture'),A('You can also zoom with the camera by using the mouse wheel'),
      A('Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.'),A('Nothing complicated. Just keep your eyes open.')]},
    // the photo must show BOTH Juno Vex and Halden Reyes, the man she is talking with (the owner, 17 Nov 2026): each in the frame, within 15 m, not blocked, in the same photo
    {id:'photograph',kind:'photo',npc:'juno-vex',subjects:['juno-vex','halden-reyes'],label:'Photograph the target.',place:'',item:'',say:[],early:[]},
@@ -69,6 +69,14 @@
  /* The next free number: one past the highest number ever used (the ledgers, the trees and any numbers retired in a draft). */
  function nextNumber(list,...ledgers){let max=0;for(const l of ledgers)for(const k of Object.keys(l||{})){const n=Number(k);if(Number.isInteger(n)&&n>max)max=n;}
   for(const x of numbersIn(list))if(x.number>max)max=x.number;return Math.min(999,max+1);}
- const api={TREE_ID,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
+ /* Shipped lines that were later changed by the owner. A saved editor draft that still holds one of these, word for word, is an untouched copy: the shipped
+    (or published) text wins and replaces it. A step whose lines the owner edited himself is left as he wrote it. 17 Nov 2026: the zoom line added to 002's call. */
+ const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']]};
+ const textsOf=say=>(say||[]).map(l=>l&&l.text);
+ function refreshShipped(tree,shipped=TREE){let changed=0;for(const m of (tree&&tree.missions)||[])for(const o of (m&&m.objectives)||[]){const old=SUPERSEDED[m.id+'/'+o.id];if(!old)continue;
+   const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;
+   const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}
+  return changed;}
+ const api={TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMainStory=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
