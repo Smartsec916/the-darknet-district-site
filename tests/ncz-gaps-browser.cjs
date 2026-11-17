@@ -15,7 +15,7 @@
 'use strict';
 const {chromium}=require('playwright'),fs=require('node:fs'),path=require('node:path');
 const G=require('../tools/ncz/gap-check.cjs');
-const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',label=process.argv[2]||'run',quarters=(process.argv[3]||'oldtown,avenue').split(','),tier=process.argv[4]||'low',live=process.env.GAP_LIVE==='1';
+const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',label=process.argv[2]||'run',quarters=(process.argv[3]||'oldtown,far-south,outskirts,avenue').split(','),tier=process.argv[4]||'low',live=process.env.GAP_LIVE==='1';
 const out=path.resolve('work/ncz-gaps',label);fs.mkdirSync(out,{recursive:true});
 // GAP_COMPARE=<label of an earlier run>: each face is pictured from the place the earlier run pictured it from, so the two pictures can be laid side by side.
 let before=null;try{if(process.env.GAP_COMPARE)before=JSON.parse(fs.readFileSync(path.resolve('work/ncz-gaps',process.env.GAP_COMPARE,'report.json'),'utf8'));}catch{}

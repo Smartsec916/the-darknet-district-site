@@ -15,20 +15,22 @@ fs.mkdirSync(shots,{recursive:true});
  await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');const c=page.locator('[data-action=menu-new-confirm]');if(await c.count())await c.click();
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
  await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.waitForTimeout(3000);await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
- await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true});});await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street');
+ await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'far-south'});});await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street'&&walkingLocation.quarter==='far-south');   // Milked moved to Far South on 16 Nov 2026
  // the save's flags, apart from the V1's explored-map bits (walking anywhere charts the map)
  const flagsNow=()=>page.evaluate(()=>JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap/.test(k)))));
  const saveBefore=await flagsNow(),mapBefore=await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length);
- const at=(x,z,yaw=0,pitch=0)=>page.evaluate(([x,z,yaw,pitch])=>{Object.assign(walker,{x,z,yaw,pitch,vx:0,vz:0});},[x,z,yaw,pitch]);
+ // Every coordinate below is in the building's OWN frame (as drawn: front wall z -74); DZ carries it to where it stands (VoidMilked.OFFSET, 16 Nov 2026). at, walk and blocked take and give that frame.
+ const DZ=await page.evaluate(()=>VoidMilked.OFFSET[1]);
+ const at=(x,z,yaw=0,pitch=0)=>page.evaluate(([x,z,yaw,pitch])=>{Object.assign(walker,{x,z,yaw,pitch,vx:0,vz:0});},[x,z+DZ,yaw,pitch]);
  const shot=async(name,wait=900)=>{await page.waitForTimeout(wait*slow);await page.screenshot({path:path.join(shots,name+'.jpg'),type:'jpeg',quality:82});};
- const blocked=(x,z)=>page.evaluate(([x,z])=>VoidExplorer.blocked(x,z,walkingLocation),[x,z]);
+ const blocked=(x,z)=>page.evaluate(([x,z])=>VoidExplorer.blocked(x,z,walkingLocation),[x,z+DZ]);
  // walk toward a point in small steps, the way a player moves: stops at anything solid. Returns where the walker ended up.
- const walk=(x,z)=>page.evaluate(async([tx,tz])=>{const step=.12;for(let i=0;i<900;i++){const dx=tx-walker.x,dz=tz-walker.z,d=Math.hypot(dx,dz);if(d<step){if(!VoidExplorer.blocked(tx,tz,walkingLocation)){walker.x=tx;walker.z=tz;}break;}const nx=walker.x+dx/d*step,nz=walker.z+dz/d*step;if(VoidExplorer.blocked(nx,nz,walkingLocation))break;walker.x=nx;walker.z=nz;walker.yaw=Math.atan2(dx,dz);if(i%3===2)await new Promise(r=>requestAnimationFrame(r));}return [+walker.x.toFixed(2),+walker.z.toFixed(2)];},[x,z]);
+ const walk=(x,z)=>page.evaluate(async([tx,tzd,DZ])=>{const tz=tzd+DZ,step=.12;for(let i=0;i<900;i++){const dx=tx-walker.x,dz=tz-walker.z,d=Math.hypot(dx,dz);if(d<step){if(!VoidExplorer.blocked(tx,tz,walkingLocation)){walker.x=tx;walker.z=tz;}break;}const nx=walker.x+dx/d*step,nz=walker.z+dz/d*step;if(VoidExplorer.blocked(nx,nz,walkingLocation))break;walker.x=nx;walker.z=nz;walker.yaw=Math.atan2(dx,dz);if(i%3===2)await new Promise(r=>requestAnimationFrame(r));}return [+walker.x.toFixed(2),+(walker.z-DZ).toFixed(2)];},[x,z,DZ]);
  const reaches=async(x,z,what)=>{const p=await walk(x,z);assert.ok(Math.hypot(p[0]-x,p[1]-z)<.05,what+': walked to '+p+' instead of '+[x,z]);};
  const stops=async(x,z,what)=>{const p=await walk(x,z);assert.ok(Math.hypot(p[0]-x,p[1]-z)>.3,what+' should be solid, but the walker reached '+p);return p;};
  const doorsNow=()=>page.evaluate(()=>(walkingLocation?.area==='milked'?VoidBabylon.zone?.doors:VoidNeoChinatown.city?.live?.get('milked')?.doors)?.state()||null);
  const doorOpen=(id,want=true)=>page.waitForFunction(([id,want])=>{const d=(walkingLocation?.area==='milked'?VoidBabylon.zone?.doors:VoidNeoChinatown.city?.live?.get('milked')?.doors)?.state().find(d=>d.id===id);return !!d&&(want?d.open>=.8&&!d.blocking:d.open<=.02&&d.blocking);},[id,want],{timeout:300000});
- const EAST=Math.PI/2,WEST=-Math.PI/2,NORTH=0,SOUTH=Math.PI,MK=await page.evaluate(()=>({F:VoidMilked.FOOTPRINT,D:VoidMilked.DOOR,R:VoidMilked.REAR,G:VoidMilked.GATES,S:VoidMilked.STUDIOS.map(s=>({n:s.n,room:VoidMilked.ROOMS.find(r=>r.id===s.room).rect}))}));
+ const EAST=Math.PI/2,WEST=-Math.PI/2,NORTH=0,SOUTH=Math.PI,MK=await page.evaluate(()=>{const L=VoidMilked.LOCAL;return {F:L.FOOTPRINT,D:L.DOOR,R:L.REAR,G:L.GATES,S:L.STUDIOS.map(s=>({n:s.n,room:L.ROOMS.find(r=>r.id===s.room).rect}))};});
  // Every frame from here on: the loading card is only ever up with every door shut, and an outer and an inner door are never open together.
  await page.evaluate(()=>{window.__mk={frames:0,bad:[]};const outer=new Set(['milked-door','milked-rear-door']);(function watch(){const st=(walkingLocation?.area==='milked'?VoidBabylon.zone?.doors:VoidNeoChinatown.city?.live?.get('milked')?.doors)?.state();
    if(st){__mk.frames++;const card=!!document.querySelector('#milked-transition.on'),open=st.filter(d=>d.open>.02);if(card&&open.length)__mk.bad.push('card up with '+open.map(d=>d.id+':'+d.open));if(open.some(d=>outer.has(d.id))&&open.some(d=>!outer.has(d.id)))__mk.bad.push('outer and inner open together: '+open.map(d=>d.id+':'+d.open));}requestAnimationFrame(watch);})();});
@@ -53,7 +55,7 @@ fs.mkdirSync(shots,{recursive:true});
  assert.match(await card.jsonValue(),/MILKED.*VISITOR CHECK-IN/);await page.waitForTimeout(900);await page.screenshot({path:path.join(shots,'03-loading-card.jpg'),type:'jpeg',quality:82});
  await page.evaluate(()=>{VoidMilkedTransition.TEXT.front.in.min=1800;});
  await through('milked','in by the front');
- const pos=await page.evaluate(()=>[walker.x,walker.z]);assert.ok(Math.abs(pos[0]-MK.D.x)<.2&&Math.abs(pos[1]+75.5)<.2,'the player is in the same spot after the exchange: '+pos);
+ const pos=await page.evaluate(()=>[walker.x,walker.z]);assert.ok(Math.abs(pos[0]-MK.D.x)<.2&&Math.abs(pos[1]-DZ+75.5)<.2,'the player is in the same spot after the exchange: '+pos);
  assert.equal(await page.evaluate(()=>VoidBabylon.scene.meshes.some(m=>/^ncz-|^district-/.test(m.name))),false,'the street is not loaded while inside');
  assert.equal(await flagsNow(),saveBefore,'nothing was written to the save');
  await page.evaluate(()=>VoidBabylon.zone.doors.secure(true));await page.waitForTimeout(2500*slow);await at(MK.D.x,-74.55,SOUTH,-.03);await shot('04-vestibule',600);await page.evaluate(()=>VoidBabylon.zone.doors.secure(false));
@@ -85,12 +87,12 @@ fs.mkdirSync(shots,{recursive:true});
  await page.evaluate(()=>VoidInteractions.handlers.get('milked-cameras')({item:{}}));assert.match(await page.evaluate(()=>document.getElementById('notice').textContent),/REMOTE CAMERA CONTROLS/);
  await at(94.75,-80.4,SOUTH);await stops(97,-82.75,'a restroom door');await at(94.75,-80.4,SOUTH);await reaches(94.75,-86.4,'down the staff corridor');
  // 7. inside it is "Milked" for the camera and the music, taxis do not come indoors, the map still knows where the player is
- assert.equal(await page.evaluate(()=>VoidMilked.inside({x:89.5,z:-81.8})&&!VoidMilked.inside({x:89.5,z:-71})),true);
+ assert.equal(await page.evaluate(DZ=>VoidMilked.inside({x:89.5,z:-81.8+DZ})&&!VoidMilked.inside({x:89.5,z:-71+DZ}),DZ),true);
  assert.equal(await page.evaluate(()=>VoidMusicDirector.streetZones.find(q=>walker.x>=q.rect[0]&&walker.x<=q.rect[1]&&walker.z>=q.rect[2]&&walker.z<=q.rect[3])?.style),'milked','the music and the camera\'s place label read the same footprint');
- const taxi=await page.evaluate(()=>VoidTaxi?.status?.()||null);if(taxi)assert.ok(!taxi.ok&&/Milked/.test(taxi.reason),'no cab indoors: '+JSON.stringify(taxi));
+ const taxi=await page.evaluate(()=>typeof VoidTaxi!=='undefined'?VoidTaxi?.status?.()||null:null);   // (the sky cabs are gone since the quarters: nothing to check unless it exists)if(taxi)assert.ok(!taxi.ok&&/Milked/.test(taxi.reason),'no cab indoors: '+JSON.stringify(taxi));
  await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.locator('#personal-device [data-app=map]').click();await page.waitForSelector('#personal-device canvas.dm-canvas');
  const map=await page.evaluate(()=>{const m=VoidDistrictMap.model(VoidNeoChinatown);return {b:m.buildings.filter(x=>x.id==='milked').map(x=>x.name+'@'+x.rect.join(',')),p:m.pois.filter(x=>/^milked-|taxi-milked/.test(x.id)).map(x=>x.name),s:m.streets.map(s=>s.name)};});
- assert.ok(map.b.length===1&&/^MILKED/.test(map.b[0])&&map.b[0].endsWith('@'+MK.F.join(',')),'the building is on the map where it stands: '+map.b);
+ assert.ok(map.b.length===1&&/^MILKED/.test(map.b[0])&&map.b[0].endsWith('@'+(await page.evaluate(()=>VoidMilked.FOOTPRINT)).join(',')),'the building is on the map where it stands: '+map.b);
  for(const k of [/reception/,/studio hallway/,/office/,/rear door/,/Taxi stop/])assert.ok(map.p.some(n=>k.test(n)),k+' in '+map.p.join('|'));assert.ok(map.s.some(n=>/Side street/.test(n))&&map.s.some(n=>/Service alley/.test(n)));
  await shot('09-map',700);await page.keyboard.press('KeyL');await page.waitForFunction(()=>!document.querySelector('#personal-device.open'));
  // 8. out by the rear lobby: its north door opens, the alley door does not; the exchange; then the alley door opens onto the service alley

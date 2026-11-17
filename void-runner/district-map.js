@@ -7,7 +7,7 @@
 (function(root){
  'use strict';
  // Names for what the layout calls by id. Only naming: every item's position and size comes from the layout itself.
- const STREET_NAMES={avenue:'The Avenue',avenueWest:'The Avenue · west',avenueEast:'The Avenue · east',main:'Main Street',mainSouth:'Main Street · south',milkedLane:'Side street · Milked',milkedAlley:'Service alley · Milked',alley:'The Alley',road:'Access Road',passage:'Landing Pad Passage',pad:'Landing Pad'};
+ const STREET_NAMES={avenue:'The Avenue',avenueWest:'The Avenue · west',avenueEast:'The Avenue · east',main:'Main Street',southGate:'South Gate',farSouth:'Main Street · Far South',outskirts:'The Outskirts',outskirtsWest:'The Outskirts · west lane',outskirtsEast:'The Outskirts · east lane',milkedLane:'Side street · Milked',milkedAlley:'Service alley · Milked',alley:'The Alley',road:'Access Road',passage:'Landing Pad Passage',pad:'Landing Pad'};
  const PLACE={board:['Landing pad · your ship','transit'],terminal:['Landing terminal','transit'],admin:['Admin counter','service'],'district-iris':['Iris','service'],'district-shop':['Shop','shop'],'district-bar':['Bar','shop'],
   'district-vr':['VR arcade','vr'],'district-vending':['Vending machines','shop'],'district-pod':['Sleeping pods','service'],'district-wardrobe':['Wardrobe','service'],'district-meeting':['Meeting room','service'],
   'district-stairs':['Stairs to the smoking terrace','service'],'district-stairs-down':['Stairs down to the District','service'],'district-scan':['Checkpoint scanner','entrance'],'club-bar':['Bar at the nightclub','shop']};

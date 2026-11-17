@@ -11,7 +11,7 @@
  'use strict';
  const base=typeof document!=='undefined'&&document.currentScript?new URL('.',document.currentScript.src):null;
  // A taxi post: where each stands is in ncz-quarters.js (STOPS[].post, CALL_POINTS).
- const TALL={function:15.5,east:15.5,south:13.5};
+ const TALL={function:15.5,east:15.5};   // (a gate's own `height` wins: the Far South Gate, shut, is 13.5 m)
  function build({B,scene,parent,quality,quarter,instance}){
   const Q=root.VoidQuarters,low=quality==='low',high=quality==='high'||quality==='ultra',own=[],nodes=[],merge=new Map(),lights=[],guards=[];let disposed=false;
   const tex=(name,w,h,draw)=>{const t=new B.DynamicTexture('gate-'+name,{width:w,height:h},scene,true);draw(t.getContext(),w,h);t.update();own.push(t);return t;};
@@ -69,7 +69,7 @@
   const doorList=[],scanners=new Map(),statusLights=[];
   function buildGate(g){
    const F=gateFrame(g),{s,mid,box,cyl,face,flat}=F,W=s.v1-s.v0,D=s.u1-s.u0,vc=F.vc,H=g.height||TALL[g.id]||Q.WALL_H;
-   const lanes=Q.lanesOf(g.id),spans=g.lanes.slice().sort((a,b)=>a.v[0]-b.v[0]);
+   const lanes=Q.lanesOf(g.id),spans=g.shut?[]:g.lanes.slice().sort((a,b)=>a.v[0]-b.v[0]);   // a shut gate is one wall (its lanes are only defined, for when it opens)
    // A gate shows a face to each side this quarter can stand on: one for a gate at the quarter's edge, both for a checkpoint inside the quarter.
    const sides=Q.sidesOf(g,quarter);let first=true;
    for(const l of lanes){const [a,b]=g.lanes.find(x=>x.id===l.id).v,top=l.kind==='foot'?3.05:3.8;buildDoors(F,g,l,a,b,top);buildScanner(F,g,l,a,b,top);}

@@ -15,6 +15,15 @@
    - The inactive mission:   MISSION below (data only; nothing registers it with VoidMissions). */
 (function(root){
  'use strict';
+ /* WHERE IT STANDS (David, 16 Nov 2026: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved.").
+    Everything below is written in the building's OWN frame, exactly as it was drawn and built (the numbers in docs/development/MILKED.md before the move).
+    OFFSET carries the whole building, both environments (the street side and the inside), by ONE rigid translation [dx, dz] metres to where it stands in the
+    city: Far South, the second stretch of Main Street (ncz-quarters.js). No mirror, no turn, no change of any offset to Main Street: the same side of the street,
+    the same distance from it, the same doors. Every name this file exports (FOOTPRINT, DOOR, solids(), PLACES, gateAt, layout() ...) is in WORLD metres, so
+    the street, the map, the taxis, the doors and multiplayer all read where Milked really is. milked-build.js draws in the building's own frame, under a node moved by
+    OFFSET (LOCAL below), so not one number inside the build changed. To move it again, change OFFSET and nothing else (then the street data in neochinatown.js and
+    ncz-quarters.js that places the quarter around it). */
+ const OFFSET=[0,-100];
  const CONFIG={NAME:'MILKED',TAGLINE:'LIVE · PRIVATE · ADULTS ONLY',BUSINESS:'small adult livestreaming production studio',NIGHTCLUB:false,ON_SITE_COLLECTION:false,
   FISH_NAME:'Fish',      // <<< Fish's display name. Change it here and nowhere else.
   EVA_NAME:'Eva',PROVISIONAL:true};
@@ -125,12 +134,13 @@
   {id:'milked-rear-door',name:CONFIG.NAME+' · rear door (service alley)',kind:'service',x:REAR.x,z:REAR.z-1.2}];
  const BOUNDS={rect:FOOTPRINT};
 
+ // ---- the building's own frame: tests and the 3D build use these (LOCAL below) ----
  const inRect=([x0,x1,z0,z1],x,z)=>x>=x0&&x<=x1&&z>=z0&&z<=z1;
  const inside=p=>!!p&&p.x>FOOTPRINT[0]+.1&&p.x<FOOTPRINT[1]-.1&&p.z>FOOTPRINT[2]+.1&&p.z<FOOTPRINT[3]-.1;
  const distance=(x,z)=>Math.hypot(Math.max(FOOTPRINT[0]-x,0,x-FOOTPRINT[1]),Math.max(FOOTPRINT[2]-z,0,z-FOOTPRINT[3]));
  const roomAt=(x,z)=>ROOMS.filter(r=>inRect(r.rect,x,z)).sort((a,b)=>(a.rect[1]-a.rect[0])*(a.rect[3]-a.rect[2])-(b.rect[1]-b.rect[0])*(b.rect[3]-b.rect[2]))[0]||null;
  const spansOf=([,,,a,b,gaps])=>{const spans=[];let from=a;for(const [g0,g1] of [...gaps].sort((p,q)=>p[0]-q[0])){if(g0>from)spans.push([from,g0]);from=Math.max(from,g1);}if(b>from)spans.push([from,b]);return spans;};
- function solids(){
+ function solidsLocal(){
   const out=[];
   for(const seg of SEGMENTS){const [id,axis,c]=seg,spans=spansOf(seg);
    spans.forEach(([s0,s1],i)=>out.push({id:'milked-wall-'+id+(spans.length>1?'-'+i:''),position:axis==='x'?[c,H/2,(s0+s1)/2]:[(s0+s1)/2,H/2,c],size:axis==='x'?[T,H,s1-s0]:[s1-s0,H,T]}));}
@@ -138,17 +148,43 @@
   // the doors: shut until the door control (milked-build.js) opens them
   for(const d of DOORS)out.push({id:d.id,door:true,position:[d.x,d.height/2,d.z],size:d.axis==='x'?[d.half*2,d.height,T]:[T,d.height,d.half*2]});
   return out;}
- // The street environment keeps only what can be reached from the street (the check-in reader in the vestibule); the interior has everything.
- const interactions=area=>INTERACTIONS.filter(i=>area!=='street'||i.both).map(i=>({...i,position:i.position.slice()}));
- const gateAt=p=>{if(!p)return null;for(const g of Object.values(GATES))if(inRect(g.zone,p.x,p.z))return g;return null;};
- const atCentre=(g,p)=>!!g&&!!p&&inRect(g.centre,p.x,p.z);
+ const gateAtLocal=p=>{if(!p)return null;for(const g of Object.values(GATES))if(inRect(g.zone,p.x,p.z))return g;return null;};
  // Which doors an environment may open ('street' or the interior).
  const openable=(d,area)=>d.side===(area===AREA?'interior':'street');
+ const LOCAL={CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
+
+ // ---- the same things in WORLD metres: what the rest of the game reads ----
+ const [OX,OZ]=OFFSET;
+ const R=r=>[r[0]+OX,r[1]+OX,r[2]+OZ,r[3]+OZ],P=o=>({...o,x:o.x+OX,z:o.z+OZ}),local=p=>p?{...p,x:p.x-OX,z:p.z-OZ}:p;
+ const WFOOTPRINT=R(FOOTPRINT),WLANE=R(LANE),WALLEY=R(ALLEY),WDOOR=P(DOOR),WINNER=P(INNER),WREAR=P(REAR),WVESTIBULE=R(VESTIBULE),WHALL=R(HALL),WLOBBY=R(LOBBY),WLOBBY_N=P(LOBBY_N),WLOBBY_W=P(LOBBY_W);
+ const WDOORS=DOORS.map(P),WGATES=Object.fromEntries(Object.entries(GATES).map(([k,g])=>[k,{...g,inner:g.inner.slice(),zone:R(g.zone),centre:R(g.centre)}]));
+ const WTAXI={...TAXI,position:[TAXI.position[0]+OX,TAXI.position[1]+OZ]};
+ const WSEGMENTS=SEGMENTS.map(([id,axis,c,a,b,gaps])=>axis==='x'?[id,axis,c+OX,a+OZ,b+OZ,gaps.map(([g0,g1])=>[g0+OZ,g1+OZ])]:[id,axis,c+OZ,a+OX,b+OX,gaps.map(([g0,g1])=>[g0+OX,g1+OX])]);
+ const WFURNITURE=FURNITURE.map(([id,x0,x1,z0,z1,h])=>[id,x0+OX,x1+OX,z0+OZ,z1+OZ,h]);
+ const WROOMS=ROOMS.map(r=>({...r,rect:R(r.rect)}));
+ const WSTUDIOS=STUDIOS.map(s=>({...s,window:s.window.map(v=>v+OX),door:s.door.map(v=>v+OX)}));
+ const WMODELS=Object.fromEntries(Object.entries(MODELS).map(([k,m])=>[k,{...m,at:[m.at[0]+OX,m.at[1]+OZ],face:[m.face[0]+OX,m.face[1]+OZ]}]));
+ const WINTERACTIONS=INTERACTIONS.map(i=>({...i,position:[i.position[0]+OX,i.position[1],i.position[2]+OZ]}));
+ const WPLACES=PLACES.map(P);
+ const WBOUNDS={rect:WFOOTPRINT};
+ // Queries take a world point.
+ const winside=p=>inside(local(p));
+ const wdistance=(x,z)=>distance(x-OX,z-OZ);
+ const wroomAt=(x,z)=>{const r=roomAt(x-OX,z-OZ);return r?WROOMS.find(q=>q.id===r.id):null;};
+ const gateAt=p=>{const g=gateAtLocal(local(p));return g?WGATES[g.id]:null;};
+ const atCentre=(g,p)=>!!g&&!!p&&inRect(g.centre,p.x,p.z);
+ const solids=()=>solidsLocal().map(s=>({...s,position:[s.position[0]+OX,s.position[1],s.position[2]+OZ],size:s.size.slice()}));
+ // The street environment keeps only what can be reached from the street (the check-in reader in the vestibule); the interior has everything.
+ const interactions=area=>WINTERACTIONS.filter(i=>area!=='street'||i.both).map(i=>({...i,position:i.position.slice()}));
  /* The interior as a place of its own. It keeps NeoChinatown's id and world coordinates, so the map, the music zone, the camera's place label and multiplayer
     presence all carry on unchanged; `area` tells the street systems (taxis, street life) that this is indoors. A save made in here stores nothing of it:
     every login wakes in the player's Sleeping Pod, and anything that re-enters NeoChinatown uses the street. */
- function layout(){return {id:'neochinatown',name:CONFIG.NAME,kind:'city',milked:true,area:AREA,bounds:[260,270],spawn:[DOOR.x,1.7,-78.6],yaw:Math.PI,color:'#17141c',music:'earth',solids:solids(),interactions:interactions(AREA),signs:[]};}
+ function layout(){return {id:'neochinatown',name:CONFIG.NAME,kind:'city',milked:true,area:AREA,bounds:[260,270],spawn:[WDOOR.x,1.7,-78.6+OZ],yaw:Math.PI,color:'#17141c',music:'earth',solids:solids(),interactions:interactions(AREA),signs:[]};}
+ /* A position from a save or a link made BEFORE the move (the District's old street): where that point is now. Anything inside the building's old block (its footprint,
+    the side street and the service alley, with a margin) goes with it, by OFFSET; anything else stays. Returns [x, z] or null when the point was not Milked's. */
+ const OLD_BLOCK=[FOOTPRINT[0]-1,Math.max(LANE[1],ALLEY[1])+1,FOOTPRINT[2]-4,LANE[3]+1];
+ const fromOld=(x,z)=>inRect(OLD_BLOCK,x,z)?[x+OX,z+OZ]:null;
 
- const api={CONFIG,MODELS,DIALOGUE,MISSION,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,BOUNDS,inside,distance,roomAt,solids,interactions};
+ const api={OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMilked=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

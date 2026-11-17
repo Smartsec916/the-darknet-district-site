@@ -13,8 +13,8 @@ test('the interior owns the District interactions, plus the terrace stairs',()=>
  assert.deepEqual(g.district.sort(),['admin','district-arcade-blackout','district-arcade-overdrive','district-arcade-soon-north','district-arcade-zombies','district-bar','district-iris','district-meeting','district-pod','district-pod-02','district-pod-03','district-pod-04','district-pod-05','district-pod-06','district-pod-07','district-pod-08','district-pod-09','district-pod-10','district-shop','district-stairs','district-vending','district-vr','district-wardrobe']);
  assert.deepEqual(g.terrace,['district-stairs-down']);
 });
-test('solids split 51 district, 3 terrace, 29 street (+61 Milked)',()=>{
- const g=group(L.solids);assert.equal(g.district.length,51);assert.equal(g.terrace.length,3);assert.equal(g.street.length,29+61);
+test('solids split 51 district, 3 terrace, 31 street (+61 Milked; the city blocks are cut differently since Far South and The Outskirts opened)',()=>{
+ const g=group(L.solids);assert.equal(g.district.length,51);assert.equal(g.terrace.length,3);assert.equal(g.street.length,31+61);
 });
 test('the security vestibule is two doors six metres apart, both on the District side of the seam',()=>{
  const outer=L.solids.find(s=>s.id==='district-door'),inner=L.solids.find(s=>s.id==='district-inner-door');
