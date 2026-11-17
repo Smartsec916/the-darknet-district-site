@@ -41,15 +41,15 @@ test('keys that only work in a situation are drawn only then: weapon keys, the r
 });
 test('the Sleeping Pod tab lists the pod\'s own keys and nothing else',()=>{
  const p=K.place(K.entries('pod',K.DEFAULTS,{armed:true,chat:true}));assert.deepEqual(p.conflicts,[]);
- assert.deepEqual(p.keys.map(k=>k.code+':'+k.label).sort(),['ArrowDown:Look','ArrowLeft:Look','ArrowRight:Look','ArrowUp:Look','KeyE:Exit pod','KeyM:Music & lights','KeyQ:Look at controls','KeyV:Vending']);
- const w=fs.readFileSync(path.join(__dirname,'..','void-runner','world-integration.js'),'utf8');assert.match(w,/KeyE:'exit',KeyM:'music',KeyV:'vend',KeyQ:'look'/,'the pod really handles those four keys');
+ assert.deepEqual(p.keys.map(k=>k.code+':'+k.label).sort(),['ArrowDown:Look','ArrowLeft:Look','ArrowRight:Look','ArrowUp:Look','KeyE:Exit pod','KeyQ:Look at controls (not needed)','KeyV:Vending']);
+ const w=fs.readFileSync(path.join(__dirname,'..','void-runner','world-integration.js'),'utf8');assert.match(w,/KeyE:'exit',KeyV:'vend',KeyQ:'look'/,'the pod really handles those three keys (M and the pop-up are gone)');
  assert.ok(!/data-pod=/.test(w),'the strip\'s buttons are gone (David, 16 Nov 2026)');
 });
 test('the mouse map: each part says what it does in the context, and a part that does nothing has no label',()=>{
  assert.deepEqual(K.mouse('camera'),{move:'Look around',left:'Take a photo',right:null,wheel:'Zoom in / out'});
  assert.deepEqual(K.mouse('flight'),{move:'Aim',left:'Fire (hold)',right:null,wheel:null});
  const un=K.mouse('walking',{}),ar=K.mouse('walking',{armed:true});assert.equal(un.right,null);assert.equal(un.wheel,null);assert.match(un.left,/hold the mouse/);assert.equal(ar.right,'Aim');assert.equal(ar.wheel,'Change weapon');assert.match(ar.left,/^Fire/);
- const pod=K.mouse('pod');assert.match(pod.left,/screen or sign/);assert.equal(pod.wheel,null);assert.equal(pod.right,null);
+ const pod=K.mouse('pod');assert.match(pod.left,/music player/);assert.match(pod.wheel,/song list/);assert.equal(pod.right,null);
  assert.match(src('device-camera.js'),/addEventListener\('wheel',onWheel/);assert.match(src('device-camera.js'),/addEventListener\('mousedown',onShot/);assert.match(src('mouse-control.js'),/addEventListener\('wheel'/);
  assert.deepEqual(K.CONTEXTS.map(c=>c[0]),['walking','camera','pod','flight']);
 });

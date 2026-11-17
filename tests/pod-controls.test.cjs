@@ -2,11 +2,11 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const A=require('../void-runner/district-area.js'),read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
-test('the music player: transport buttons, volume, and the rest opens the playlist',()=>{
- const at=(x,y)=>A.podControl('music',x/384,y/192);
+test('the music player: transport buttons and volume on the wall face (the rest of the face is tests/pod-player-ui.test.cjs)',()=>{
+ const at=(x,y)=>A.podControl('music',x/384,y/192,{view:'player',source:'website',count:27,offset:0});
  assert.deepEqual([35,75,115,155,195].map(x=>at(x,160).action),['previous','play','pause','stop','next']);
  assert.equal(at(254,160).value,0);assert.equal(at(366,160).value,1);assert.ok(Math.abs(at(310,160).value-.5)<.01);
- assert.equal(at(200,60).action,'playlist');assert.equal(at(100,124).action,'playlist');assert.equal(at(53,160).action,'playlist','the gap between two buttons is not a button');
+ assert.equal(at(200,124).action,'list');assert.equal(at(53,160),null,'the gap between two buttons is not a button');
 });
 test('the light panel: three presets, nothing elsewhere',()=>{
  const at=(x,y)=>A.podControl('lights',x/320,y/180);
@@ -21,5 +21,6 @@ test('the pod pieces are wired together',()=>{
  for(const kind of ['music','lights','vend','exit'])assert.ok(n.includes(",index,'"+kind+"')"),kind+' is clickable');
  assert.ok(n.includes('EXIT THE POD'));assert.ok(/podPick/.test(w)&&/podControl/.test(w));
  assert.ok(m.includes('podWakePending===true'),'no District music while the player is in a pod, whatever panel is open');
- for(const f of ['setVolume','setLighting','stop'])assert.ok(p.includes(f+'('));
+ for(const f of ['setVolume','setLighting','stop','playIndex','toggleShuffle','cycleRepeat','removeAt','chooseFiles'])assert.ok(p.includes(f+'('));
+ assert.ok(!/pod-music\)/.test(p)&&!p.includes('SLEEPING POD / MUSIC')&&!p.includes('pod-music:'),'the pop-up panel is gone');
 });

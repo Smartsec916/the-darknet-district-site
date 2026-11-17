@@ -41,7 +41,7 @@ enterWalking=async function(id,options){
  }else {const d=VoidExplorationData.locations[id];if(d){d.ship=VoidShips.get(state).id;const board=d.interactions.find(i=>i.action==='board');if(board){if(id!=='sacramento')board.position=[-2,1.7,-25];   /* the NeoChinatown street has its own landing pad (neochinatown.js): moving BOARD to the hangar default put it inside a building, out of reach */
  board.label='BOARD '+VoidShips.get(state).name.toUpperCase();}}await worldEnterWalking(id,options);}
 };
-const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-hint">Move the mouse to look around. Click the music player, the light panel, the vending unit or EXIT THE POD on the glass to use them. Click anywhere else to hold the mouse for full turns (Esc frees it). Keys: E exit · M music and lights · V vending · Q look at the controls.</div><div class="pod-vend" hidden><div class="pod-vend-grid" role="group" aria-label="Vending machine stock"></div><div class="pod-vend-info" aria-live="polite"></div><div class="pod-wake-actions"><a href="#" role="button" data-vend="buy" aria-disabled="true">DISPENSE</a><a href="#" role="button" data-vend="back">BACK</a></div></div></div>';document.body.append(podWake);
+const podWake=document.createElement('section');podWake.id='pod-wake';podWake.hidden=true;podWake.setAttribute('aria-labelledby','pod-wake-title');podWake.innerHTML='<div class="pod-wake-card"><p>THE DARKNET DISTRICT · POD 01</p><h2 id="pod-wake-title">You wake in a Sleeping Pod.</h2><div class="pod-wake-hint">Move the mouse to look around. Look at the music player or the light panel on the right-hand wall, the vending unit or EXIT THE POD on the glass and click them to use them. Click anywhere else to hold the mouse for full turns (Esc frees it). Keys: E exit · V vending · Q turns to the music player and back (not needed).</div><div class="pod-vend" hidden><div class="pod-vend-grid" role="group" aria-label="Vending machine stock"></div><div class="pod-vend-info" aria-live="polite"></div><div class="pod-wake-actions"><a href="#" role="button" data-vend="buy" aria-disabled="true">DISPENSE</a><a href="#" role="button" data-vend="back">BACK</a></div></div></div>';document.body.append(podWake);
 // The pod's built-in vending unit (stock from neochinatown.js VoidPodVending). Flavour only: no credits are charged and nothing is added to the inventory.
 const podVend={box:podWake.querySelector('.pod-vend'),grid:podWake.querySelector('.pod-vend-grid'),info:podWake.querySelector('.pod-vend-info'),buy:podWake.querySelector('[data-vend="buy"]'),picked:null,yaw:null};
 function podVendShow(on){const main=podWake.querySelector('.pod-wake-hint'),title=podWake.querySelector('#pod-wake-title');podVend.box.hidden=!on;main.hidden=on;title.hidden=on;podWake.classList.toggle('vending',on);
@@ -58,7 +58,7 @@ function enterSleepingPod(index=1){
  if(mode!=='walking'||walkingLocation?.area!=='interior'||!walker||!Number.isInteger(index)||index<1||index>10)return false;
  const {x,z}=VoidDistrictArea.podBed(VoidNeoChinatown,index);
  Object.assign(walker,{x,y:1.1+(index>5?1.7:0),z,yaw:VoidDistrictArea.POD_VIEW.hatch,pitch:0,vx:0,vz:0,eye:1.1+(index>5?1.7:0)});
- globalThis.VoidPodMusic?.enterPod?.(index);state.story.flags.activePod=index;state.story.flags.podWakePending=true;save();showPodWake();return true;
+ globalThis.VoidPodPlayerUI?.reset();globalThis.VoidPodMusic?.enterPod?.(index);state.story.flags.activePod=index;state.story.flags.podWakePending=true;save();showPodWake();return true;
 }
 // Lying in the pod the player can look around freely: click the view to take the mouse (as when walking; Esc gives it back), or drag, or use the arrow keys.
 // E leaves, M opens music and lights, V opens the vending unit, Q turns the view to the wall controls and back to the hatch.
@@ -71,24 +71,31 @@ const podPoint={x:0,y:0,over:null};
 function podAim(){const N=globalThis.VoidNeoChinatown;if(!N?.podPick||!podFree()){if(podPoint.over){podPoint.over=null;N?.podHover?.(null);podWake.classList.remove('aiming');}return null;}
  const locked=document.pointerLockElement===podWake,hit=N.podPick(locked?innerWidth/2:podPoint.x,locked?innerHeight/2:podPoint.y),own=hit&&hit.index===(state.story.flags.activePod||1)&&hit.distance<4?hit:null;
  const kind=own?own.kind:null;if(kind!==podPoint.over){podPoint.over=kind;N.podHover?.(kind);podWake.classList.toggle('aiming',!!kind);}return own;}
-function podUse(hit){const c=hit&&VoidDistrictArea.podControl(hit.kind,hit.u,hit.v),M=globalThis.VoidPodMusic;if(!c)return false;
+const podCtl=(hit,st)=>{const UI=globalThis.VoidPodPlayerUI;return hit&&VoidDistrictArea.podControl(hit.kind,hit.u,hit.v,{view:UI?.ui.view,source:st?.source,count:st?.count,offset:UI?.ui.offset});};
+function podUse(hit){const UI=globalThis.VoidPodPlayerUI,M=globalThis.VoidPodMusic,st=M?.state?.(),c=podCtl(hit,st);if(!c)return false;
  if(c.action==='exit'||c.action==='vend'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podAct[c.action]();}
- else if(c.action==='playlist'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podAct.music();}
+ else if(c.action==='list'){UI?.toggleList(st);}
+ else if(c.action==='scroll'){if(c.delta)UI?.scroll(c.delta,st?.count);}
  else if(!M)return false;
  else if(c.action==='play'){if(!M.playing)M.toggle();}else if(c.action==='pause'){if(M.playing)M.toggle();}else if(c.action==='stop')M.stop();
  else if(c.action==='previous')M.previous();else if(c.action==='next')M.next();else if(c.action==='volume')M.setVolume(c.value);else if(c.action==='light')M.setLighting(c.preset);
+ else if(c.action==='source')M.switchSource(c.source);else if(c.action==='shuffle')M.toggleShuffle();else if(c.action==='repeat')M.cycleRepeat();
+ else if(c.action==='track')M.playIndex(c.index);else if(c.action==='remove')M.removeAt(c.index);else if(c.action==='clear')M.clearMine();else if(c.action==='keep')M.setKeeping(!M.keeping);
+ else if(c.action==='add'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();M.chooseFiles();}   // the browser's own file dialog; needs the mouse free
+ if(c.action==='source'&&UI)UI.ui.offset=UI.offsetFor(M.state().index,M.state().count);
  return true;}
+// The wheel over the player scrolls its song list (when the list is showing).
+podWake.addEventListener('wheel',e=>{const UI=globalThis.VoidPodPlayerUI,N=globalThis.VoidNeoChinatown;if(!podFree()||!UI||UI.ui.view!=='list'||!N?.podPick)return;podPoint.x=e.clientX;podPoint.y=e.clientY;const hit=podAim();if(!hit||hit.kind!=='music')return;e.preventDefault();UI.scroll(Math.sign(e.deltaY)*2,globalThis.VoidPodMusic?.state?.().count);},{passive:false});
 podWake.addEventListener('pointerdown',e=>{if(e.target!==podWake||!podFree())return;podPoint.x=e.clientX;podPoint.y=e.clientY;if(podUse(podAim())){e.preventDefault();return;}podLook.drag={x:e.clientX,y:e.clientY};if(e.pointerType==='mouse'&&VoidControls?.deviceClass!=='touch-first')podWake.requestPointerLock?.()?.catch?.(()=>{});});
 addEventListener('pointerup',()=>{podLook.drag=null;});addEventListener('pointercancel',()=>{podLook.drag=null;});
 addEventListener('mousemove',e=>{if(!podFree())return;podPoint.x=e.clientX;podPoint.y=e.clientY;if(document.pointerLockElement===podWake)podTurn(e.movementX,e.movementY);else if(podLook.drag){podTurn(e.clientX-podLook.drag.x,e.clientY-podLook.drag.y);podLook.drag={x:e.clientX,y:e.clientY};}
- else if(e.target===podWake&&e.pointerType!=='touch')podTurn((e.movementX||0)*.7,(e.movementY||0)*.7);});   // David, Nov 2026: no need to click first. Moving the mouse over the view (not over the buttons) looks around at once; a click still holds the mouse for full turns.
+ else if(e.target===podWake&&e.pointerType!=='touch'&&!podCtl(podAim(),globalThis.VoidPodMusic?.state?.()))podTurn((e.movementX||0)*.7,(e.movementY||0)*.7);});   // David, Nov 2026: no need to click first. Moving the mouse over the view (not over the buttons) looks around at once; a click still holds the mouse for full turns.
 document.addEventListener('pointerlockchange',()=>podWake.classList.toggle('looking',document.pointerLockElement===podWake));
 addEventListener('keydown',e=>{if(!podFree()||e.repeat&&!/^Arrow/.test(e.code)||e.ctrlKey||e.metaKey||e.altKey)return;
  if(/^Arrow/.test(e.code)){podLook.keys.add(e.code);e.preventDefault();e.stopPropagation();return;}
- const pick={KeyE:'exit',KeyM:'music',KeyV:'vend',KeyQ:'look'}[e.code];if(!pick)return;e.preventDefault();e.stopPropagation();if(pick!=='look'&&document.pointerLockElement===podWake)document.exitPointerLock?.();podAct[pick]();},true);
+ const pick={KeyE:'exit',KeyV:'vend',KeyQ:'look'}[e.code];if(!pick)return;e.preventDefault();e.stopPropagation();if(pick!=='look'&&document.pointerLockElement===podWake)document.exitPointerLock?.();podAct[pick]();},true);
 addEventListener('keyup',e=>podLook.keys.delete(e.code));
 (function podLookFrame(){requestAnimationFrame(podLookFrame);podAim();if(!podLook.keys.size)return;if(!podFree()){podLook.keys.clear();return;}const k=podLook.keys;podTurn(((k.has('ArrowRight')?1:0)-(k.has('ArrowLeft')?1:0))*9,((k.has('ArrowDown')?1:0)-(k.has('ArrowUp')?1:0))*7);})();
-podAct.music=()=>{if(mode==='pod-waking'){if(document.pointerLockElement===podWake)document.exitPointerLock?.();podWake.hidden=true;globalThis.VoidPodMusic?.open?.({inPod:true});}};
 podAct.look=()=>{if(mode!=='pod-waking'||!walker)return;const V=VoidDistrictArea.POD_VIEW;walker.yaw=walker.yaw!==V.controls?V.controls:V.hatch;walker.pitch=0;};   // Q: face the music player and light panel from wherever the view is; pressed again, back to the hatch
 podAct.exit=()=>{
  if(mode!=='pod-waking'||!walker||!state?.story?.flags?.podWakePending)return;

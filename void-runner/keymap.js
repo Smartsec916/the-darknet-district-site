@@ -24,14 +24,14 @@
   {codes:['KeyF'],label:'Follow person',when:'camera',src:'device-camera.js'}
  ];
  // The Sleeping Pod (world-integration.js): lying in the pod only these keys do anything.
- const POD=[{codes:['KeyE'],label:'Exit pod',src:'world-integration.js'},{codes:['KeyM'],label:'Music & lights',src:'world-integration.js'},{codes:['KeyV'],label:'Vending',src:'world-integration.js'},{codes:['KeyQ'],label:'Look at controls',src:'world-integration.js'},
+ const POD=[{codes:['KeyE'],label:'Exit pod',src:'world-integration.js'},{codes:['KeyV'],label:'Vending',src:'world-integration.js'},{codes:['KeyQ'],label:'Look at controls (not needed)',src:'world-integration.js'},
   {codes:['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'],label:'Look',src:'world-integration.js'}];
  const CONTEXTS=[['walking','ON FOOT'],['camera','CAMERA'],['pod','SLEEPING POD'],['flight','FLIGHT']];
  /* The mouse, part by part, in a context. null: that part does nothing there (it is drawn dim, with no label). Sources: mouse-control.js (the first click holds the mouse; the
     wheel changes weapon), prologue-integration.js (left fires, right aims), device-camera.js (left takes a photo, the wheel zooms), world-integration.js (the pod), game.js (flight). */
  function mouse(context,opts={}){
   if(context==='flight')return {move:'Aim',left:'Fire (hold)',right:null,wheel:null};
-  if(context==='pod')return {move:'Look around',left:'Use the screen or sign under the pointer. Anywhere else: hold the mouse (Esc frees it)',right:null,wheel:null};
+  if(context==='pod')return {move:'Look around',left:'Use the music player, light panel, vending unit or sign under the pointer. Anywhere else: hold the mouse (Esc frees it)',right:null,wheel:'Scroll the music player\'s song list'};
   if(context==='camera')return {move:'Look around',left:'Take a photo',right:null,wheel:'Zoom in / out'};
   return {move:'Look around',left:opts.armed?'Fire (weapon drawn). First click: hold the mouse':'First click: hold the mouse (Esc frees it)',right:opts.armed?'Aim':null,wheel:opts.armed?'Change weapon':null};
  }

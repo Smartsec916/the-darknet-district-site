@@ -2,7 +2,7 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const smoke=process.env.STABILIZATION_SMOKE==='1',base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',out=process.env.STABILIZATION_OUTPUT||path.resolve('work/stabilization');
 const channel=process.env.BROWSER_CHANNEL||'msedge',result={resources:[],vr:[],timing:[],errors:[]};fs.mkdirSync(out,{recursive:true});
-(async()=>{const browser=await chromium.launch({headless:true,...(channel==='chromium'?{}:{channel})});try{
+(async()=>{const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:channel==='chromium'?{}:{channel})});try{
  const page=await browser.newPage({viewport:{width:1280,height:720},serviceWorkers:'block'});page.on('pageerror',e=>result.errors.push(e.stack));page.on('console',async m=>{if(/VOID frame|VOID.*preparation/.test(m.text())){const details=await Promise.all(m.args().map(a=>a.evaluate(v=>v?.error?.stack||v?.stack||v)));console.log('GAME ERROR',details);result.errors.push(m.text());}});
  await page.route('https://**/*',r=>r.abort());await page.route('**/api/**',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>VoidStartup.started,null,{timeout:90000});

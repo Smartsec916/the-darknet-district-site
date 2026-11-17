@@ -27,11 +27,12 @@
  },{capture:true});
 
  // The lock went away while still in play: the player pressed Esc (or the browser took the mouse). Pause.
- // The game itself releases the mouse too (every E interaction does). Only a release the game didn't ask for is Esc.
+ // The game itself releases the mouse too (every E interaction does, and so does leaving the Sleeping Pod, where the mouse is held on the pod's own view rather than the canvas: that used to count as Esc and opened the menu). Only a release the game didn't ask for is Esc.
  let gameReleased=false;const release=document.exitPointerLock?.bind(document);
- if(release)document.exitPointerLock=function(){if(locked())gameReleased=true;return release();};
+ if(release)document.exitPointerLock=function(){if(document.pointerLockElement)gameReleased=true;return release();};
  document.addEventListener('pointerlockchange',()=>{
   if(locked()){failures=0;gameReleased=false;return;}
+  if(document.pointerLockElement){if(fps())document.exitPointerLock();return;}   // the mouse was taken by some other screen (the Sleeping Pod's view): not an Esc. If the pod has since been left, hand the mouse back to the game.
   if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation
   if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}
  });

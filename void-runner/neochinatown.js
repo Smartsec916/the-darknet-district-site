@@ -796,21 +796,7 @@
     // Every capsule owns its emissive surfaces. The shared room no longer carries a music player.
     const podPlayers={};
     // st: null (idle) or {playing,title,position,volume,source}. 384x192, green-on-black like the reference.
-    function drawPodPlayer(g,index,st){
-     const W=384,H=192,on=!!st&&!!st.title,t=on?Math.max(0,Math.floor(st.position||0)):0,mm=String(Math.floor(t/60)).padStart(2,'0'),ss=String(t%60).padStart(2,'0');
-     g.fillStyle='#05080a';g.fillRect(0,0,W,H);g.strokeStyle='#2a3a33';g.lineWidth=2;g.strokeRect(2,2,W-4,H-4);
-     g.fillStyle='#6f8f7c';g.font='bold 13px monospace';g.fillText('DARKNET·AMP  v2.9',12,20);g.fillStyle='#e96bbf';g.fillText('POD '+String(index).padStart(2,'0'),W-70,20);
-     g.fillStyle=on&&st.playing?'#63ff8f':'#2f6b45';g.fillRect(14,34,10,10);
-     g.fillStyle=on?'#63ff8f':'#2f6b45';g.font='bold 58px monospace';g.fillText(mm+':'+ss,34,84);
-     g.font='12px monospace';g.fillStyle='#4fae6c';g.fillText('128 kbps   44 kHz   '+(on?(st.playing?'PLAYING':'PAUSED'):'STOPPED'),14,104);
-     g.fillStyle='#0b1410';g.fillRect(10,112,W-20,24);g.fillStyle='#63ff8f';g.font='bold 15px monospace';
-     const title=on?String(st.title).replace(/[^\x20-\x7e]/g,'').slice(0,60):'NO TRACK  ***  CLICK HERE TO CHOOSE A SONG';const shift=on&&title.length>36?Math.floor((st.position||0)*2)%(title.length+5):0;
-     g.save();g.beginPath();g.rect(12,112,W-24,24);g.clip();g.fillText((title+'  ***  '+title).slice(shift,shift+44),16,129);g.restore();
-     // transport row and volume: clickable from inside the pod (POD_PLAYER_HITS below)
-     const bx=[18,58,98,138,178],glyph=['|<','>','||','[]','>|'];g.font='bold 14px monospace';for(let k=0;k<5;k++){g.fillStyle='#16221c';g.fillRect(bx[k],146,34,28);g.strokeStyle='#31503f';g.strokeRect(bx[k],146,34,28);g.fillStyle=(on&&st.playing&&k===1)||(on&&!st.playing&&k===2)?'#63ff8f':'#7fa08c';g.fillText(glyph[k],bx[k]+8,165);}
-     g.fillStyle='#4fae6c';g.font='11px monospace';g.fillText('VOL',226,164);g.fillStyle='#16221c';g.fillRect(254,154,112,10);g.fillStyle='#b8d94a';g.fillRect(254,154,Math.round(112*Math.max(0,Math.min(1,on||st?st.volume??.6:.6))),10);
-     g.fillStyle='#4fae6c';g.fillText(on?(st.source==='mine'?'MY MUSIC':'DISTRICT PLAYLIST'):'CLICK TITLE: PLAYLIST',226,182);
-    }
+    function drawPodPlayer(g,index,st){root.VoidPodPlayerUI?.draw(g,index,st);}   // the face, its buttons and their click regions are pod-player-ui.js
     // The pod's ambient-light panel face (after the owner's Tesana pod). It shows THIS pod's lighting choice; its three presets are clicked on the panel itself.
     const podLightFaces={},POD_LIGHTS=[['rest','REST','#ad5a94','#5a2a66'],['reading','READING','#fff0cb','#d9a860'],['music','MUSIC SYNC','#e96bbf','#7840a5']];
     function drawPodLights(g,index,preset,lv){
@@ -867,7 +853,7 @@
      let playerClock=0,playerSig='',lightSigs={};
      return {tick(dt=.016){const music=root.VoidPodMusic,lv=music?.levels?.();
       const nowMs=typeof performance!=='undefined'?performance.now():Date.now();   // real time: the game clock stands still while the player lies in the pod
-      if(nowMs>=playerClock&&music?.state){playerClock=nowMs+500;const st=music.state(),index=music.activePod||music.selectedPod||0,sig=index+'|'+st.playing+'|'+st.title+'|'+Math.floor(st.position||0)+'|'+Math.round((st.volume||0)*20)+'|'+st.source;
+      if(nowMs>=playerClock&&music?.state){playerClock=nowMs+120;const st=music.state(),index=music.activePod||music.selectedPod||0,sig=index+'|'+st.playing+'|'+st.title+'|'+Math.floor(st.position||0)+'|'+Math.round((st.volume||0)*20)+'|'+st.source+'|'+st.shuffle+'|'+st.repeat+'|'+st.index+'|'+st.count+'|'+st.keeping+'|'+st.status+'|'+(root.VoidPodPlayerUI?.sig()||'');
        if(sig!==playerSig){const prev=Number(playerSig.split('|')[0])||0;playerSig=sig;if(prev&&prev!==index&&podPlayers[prev]){drawPodPlayer(podPlayers[prev].getContext(),prev,null);podPlayers[prev].update();}
         if(podPlayers[index]){drawPodPlayer(podPlayers[index].getContext(),index,st);podPlayers[index].update();}}
         for(let index=1;index<=10;index++){const face=podLightFaces[index];if(!face)continue;const preset=music.lightingFor?.(index)||'rest',live=preset==='music'&&music.activePod===index&&lv?.on,sig=preset+(live?'|'+Math.round(lv.bass*6)+Math.round(lv.mid*6)+Math.round(lv.high*6):'');if(lightSigs[index]!==sig){lightSigs[index]=sig;drawPodLights(face.getContext(),index,preset,live?lv:null);face.update();}}}
@@ -1110,7 +1096,7 @@
      // The pod's own music player face (after the owner's Tesana pod: an old-style amp display). It shows what THIS pod is playing.
      // David, 16 Nov 2026: the player and the light panel are on the RIGHT-hand wall (the occupant's right, facing the hatch), not the back wall. Their clicks are
      // found by picking the plane and reading where on its picture the pointer is (podPick), so the click regions move with the planes.
-     const podTex=texture('tesana-pod-screen-'+index,384,192,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
+     const podTex=texture('tesana-pod-screen-'+index,768,384,g=>drawPodPlayer(g,index,null));podPlayers[index]=podTex;
      box('tesana-pod-screen-frame',[1.06,.56,.05],[-15.05,y+.14,z-.985],podVent);podTouch(plane('tesana-pod-screen',.98,.49,[-15.05,y+.14,z-.945],texMat('tesana-pod-screen-'+index,podTex,{glow:true}),Math.PI),index,'music');
      const lightTex=texture('tesana-pod-lights-'+index,320,180,g=>drawPodLights(g,index,root.VoidPodMusic?.lightingFor?.(index)||'rest',null));podLightFaces[index]=lightTex;
      box('tesana-pod-lights-frame',[.56,.32,.05],[-15.92,y+.14,z-.985],podVent);podTouch(plane('tesana-pod-lights',.5,.28,[-15.92,y+.14,z-.945],texMat('tesana-pod-lights-'+index,lightTex,{glow:true}),Math.PI),index,'lights');

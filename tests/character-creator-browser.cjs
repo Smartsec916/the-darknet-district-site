@@ -38,11 +38,8 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyQ');assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.controls));
   await page.screenshot({path:shot+'/dd-pod01-inside-'+tier+'.png'});
   await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyQ');assert.equal(await page.evaluate(()=>walker.yaw),await page.evaluate(()=>VoidDistrictArea.POD_VIEW.hatch));
-  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyM');await page.waitForSelector('#pod-music');
-  await page.locator('[data-action="pod-music:light:reading"]').click();
-  await page.locator('#pod-music-volume').evaluate(el=>{el.value='35';el.dispatchEvent(new Event('input',{bubbles:true}));});
-  assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('darknet-pod-controls-1'))),{volume:.35,lighting:'reading'});
-  await page.locator('[data-action="pod-music:return"]').click();await page.waitForFunction(()=>mode==='pod-waking');
+  await page.waitForSelector('#pod-wake:not([hidden])');await page.evaluate(()=>{VoidPodMusic.setLighting('reading');VoidPodMusic.setVolume(.35);});   // the wall controls call these (tests/pod-music-browser.cjs clicks them)
+  assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('darknet-pod-controls-1'))),{volume:.35,lighting:'reading'});assert.equal(await page.locator('#pod-music').count(),0,'no pop-up panel');
   // 4. EXIT POD proceeds normally after creation.
   await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
   // Pod 01 can be entered again from its hatch, and exiting it returns to open floor.
@@ -57,10 +54,8 @@ const tier=process.argv[2]==='high'?'high':'low',base=process.env.SITE_TEST_URL|
   await page.waitForFunction(()=>mode==='pod-waking'&&state.story.flags.activePod===10,null,{timeout:30000});
   assert.match(await page.locator('#pod-wake .pod-wake-card p').textContent(),/POD 10/);
   await page.screenshot({path:shot+'/dd-pod10-'+tier+'.png'});
-  await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyM');await page.waitForSelector('#pod-music');
-  assert.equal(await page.locator('#pod-music-volume').inputValue(),'80','another pod retains its own volume');
-  await page.locator('[data-action="pod-music:light:music"]').click();
-  await page.locator('[data-action="pod-music:return"]').click();await page.waitForFunction(()=>mode==='pod-waking');
+  await page.waitForSelector('#pod-wake:not([hidden])');assert.equal(Math.round(await page.evaluate(()=>VoidPodMusic.volume*100)),80,'another pod retains its own volume');
+  await page.evaluate(()=>VoidPodMusic.setLighting('music'));
   await page.waitForSelector('#pod-wake:not([hidden])');await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking',null,{timeout:60000});
   assert.equal(await page.evaluate(()=>VoidExplorer.blocked(walker.x,walker.z,walkingLocation)),false,'upper pod returns to clear floor');
   // 4b. the wardrobe station exists in the pod room and opens the same screen

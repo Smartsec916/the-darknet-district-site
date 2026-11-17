@@ -29,7 +29,7 @@
   const old=podPlayback[selectedPod-1];old.source=source;old[source].id=lists[source].currentId;old[source].position=audio&&loadedKey?audio.currentTime||0:positions[source];
   if(audio)audio.pause();selectedPod=index;const next=podPlayback[index-1];source=next.source;
   for(const key of ['website','mine']){if(next[key].id&&lists[key].find(next[key].id))lists[key].select(next[key].id);else lists[key].deselect();positions[key]=next[key].position;}
-  loadedKey=null;volume=podSettings[index-1].volume;if(audio)audio.volume=volume;return true;
+  loadedKey=null;volume=podSettings[index-1].volume;if(audio)audio.volume=volume;restore();return true;
  }
  const byId=id=>document.getElementById(id);
  const esc=t=>typeof escapeText==='function'?escapeText(t):String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -57,7 +57,7 @@
  }
 
  // ── The player ──
- function say(text){status=text||'';const el=byId('pod-music-status');if(el)el.textContent=status;}
+ function say(text){status=text||'';statusAt=Date.now();}
  function ensureAudio(){
   if(audio)return !!link;
   audio=new Audio();audio.preload='auto';audio.volume=volume;
@@ -70,7 +70,7 @@
   if(!link)say('Audio is not available (check Settings, Audio).');
   return !!link;
  }
- let pending=false;
+ let pending=false,statusAt=0;
  function load(seek){
   const t=current();if(!t||!ensureAudio())return false;
   if(source==='mine'){if(objectUrl)root.URL.revokeObjectURL(objectUrl);objectUrl=root.URL.createObjectURL(t.file);audio.src=objectUrl;}else audio.src=t.url;
@@ -157,74 +157,13 @@
   const pulse=.55+.45*Math.sin(t*4);g.fillStyle='rgba(232,251,255,'+pulse.toFixed(2)+')';g.font='bold 20px monospace';g.fillText('[E] OPEN THE PLAYER',20,H-24);
  }
 
- // ── The panel (opened with E at the wall screen) ──
- function css(){
-  /* #pod-music has bottom padding so the whole panel can scroll clear of the game footer, which is fixed to the bottom of the window */
-  if(byId('pod-music-style'))return;const s=document.createElement('style');s.id='pod-music-style';
-  s.textContent='#pod-music{display:grid;gap:10px;max-width:640px;padding-bottom:96px}#pod-music .row{display:flex;flex-wrap:wrap;gap:8px}#pod-music button.on{background:#35ff8f;color:#03130c}#pod-music canvas{width:100%;height:70px;background:#03090a;border:1px solid rgba(47,224,196,.35)}#pod-music .now{color:#e6fff7;font-weight:700;min-height:1.4em}#pod-music .bar{height:10px;background:rgba(47,224,196,.2);cursor:pointer}#pod-music .bar i{display:block;height:100%;width:0;background:#35ff8f}#pod-music ol{list-style:none;margin:0;padding:0;max-height:150px;overflow:auto;border:1px solid rgba(47,224,196,.3)}#pod-music li{display:flex;border-bottom:1px solid rgba(47,224,196,.12)}#pod-music li.cur{background:rgba(53,255,143,.16)}#pod-music li.bad span{color:#ff8a9a;text-decoration:line-through}#pod-music li button{border:0;background:none;color:inherit;font:inherit;text-align:left;cursor:pointer;padding:6px 8px}#pod-music li .go{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}#pod-music .note,#pod-music .keep{font-size:12px;opacity:.8;margin:0}#pod-music .status{min-height:1.4em;margin:0;font-size:13px}#pod-music input[type=range]{flex:1;min-width:120px}';
-  document.head.appendChild(s);
- }
- function body(){
-  const l=lists[source],t=current(),tracks=l.tracks,mine=source==='mine';
-  const b=(label,action,on,disabled)=>'<button data-action="pod-music:'+action+'" class="quiet'+(on?' on':'')+'"'+(on===true||on===false?' aria-pressed="'+on+'"':'')+(disabled?' disabled':'')+'>'+label+'</button>';
-  const items=tracks.map((x,i)=>'<li class="'+(x.id===l.currentId?'cur ':'')+(x.failed?'bad':'')+'"><button class="go" data-action="pod-music:play:'+x.id+'" aria-label="Play '+esc(x.label)+'"><b>'+String(i+1).padStart(2,'0')+'</b> <span>'+esc(x.label)+'</span></button>'+(mine?'<button data-action="pod-music:remove:'+x.id+'" aria-label="Remove '+esc(x.label)+'">×</button>':'')+'</li>').join('');
-  return '<div id="pod-music"><canvas id="pod-music-spectrum" width="480" height="70" aria-label="Audio spectrum"></canvas>'
-   +'<div class="row" role="group" aria-label="Music source">'+(siteOn()?b('Website playlist','source:website',!mine)+b('My music','source:mine',mine):'')+'</div>'
-   +'<div class="now" id="pod-music-now">'+(t?esc(t.label):mine?'No songs yet':'Choose a song')+'</div>'
-   +'<div class="bar" id="pod-music-seek" role="progressbar" aria-label="Playback position"><i id="pod-music-bar"></i></div><div id="pod-music-time">0:00 / 0:00</div>'
-   +'<div class="row">'+b('⏮ Previous','prev')+b(isPlaying()?'⏸ Pause':'▶ Play','toggle')+b('Next ⏭','next')+b('Shuffle','shuffle',l.shuffle)+b('Repeat: '+l.repeat,'repeat',l.repeat!=='off')+'</div>'
-   +'<div class="row"><label for="pod-music-volume">Pod '+String(activePod()).padStart(2,'0')+' volume</label><input type="range" id="pod-music-volume" min="0" max="100" value="'+Math.round(volume*100)+'"></div>'
-   +'<div class="row" role="group" aria-label="Pod lighting">'+LIGHTS.map(x=>b(x==='rest'?'Rest':x==='reading'?'Reading':'Music reactive','light:'+x,setting().lighting===x)).join('')+'</div>'
-   +(mine?'<div class="row">'+b('Add songs','add')+b('Clear playlist','clear',undefined,!tracks.length)+'</div>':'')
-   +(tracks.length?'<ol aria-label="'+(mine?'My music':'Website playlist')+'">'+items+'</ol>':(mine?'<p class="note">No songs yet. Choose Add songs to pick MP3, WAV, OGG or M4A files from your computer.</p>':''))
-   +'<p class="status" id="pod-music-status" role="status" aria-live="polite">'+esc(status)+'</p>'
-   +(mine?'<p class="note">Your songs play in this browser only and are never uploaded, and nobody else can hear them. After you reload the game the list is empty, because a browser does not let a page reopen files you chose earlier.</p><label class="keep"><input type="checkbox" data-pod-keep '+(keeping?'checked':'')+'> Keep my songs in this browser. Copies are saved on this device only, never sent anywhere, and removed when you untick this, remove them or clear your site data.</label>':'')
-   +'</div>';
- }
- const open_=()=>!!document.getElementById('pod-music')&&typeof mode!=='undefined'&&mode==='equipment';
- let lastHtml=null;
- // The panel is rebuilt only when what it shows has changed: a rebuild between a button press and its release would lose the click.
- function render(){
-  if(!open_())return;const html=body();if(html===lastHtml){live();return;}lastHtml=html;
-  const scroll=document.querySelector('#pod-music ol'),top=scroll?scroll.scrollTop:0;
-  panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',html,button(panelReturn==='pod'?'RETURN TO POD':'RETURN TO GAMEPLAY',panelReturn==='pod'?'pod-music:return':'progress-return',true));
-  const ol=document.querySelector('#pod-music ol');if(ol)ol.scrollTop=top;live();
- }
- function live(){
-  const el=byId('pod-music-spectrum');if(!el)return;const g=el.getContext('2d');g.clearRect(0,0,el.width,el.height);led(g,2,2,el.width-4,el.height-4);
-  const dur=audio&&isFinite(audio.duration)?audio.duration:0,pos=audio&&loadedKey?audio.currentTime||0:0;
-  const bar=byId('pod-music-bar'),time=byId('pod-music-time');if(bar)bar.style.width=(dur?Math.min(100,pos/dur*100):0)+'%';if(time)time.textContent=clock(pos)+' / '+clock(dur);
- }
- function open(options={}){
-  css();restore();panelReturn=options.inPod?'pod':'game';volume=setting().volume;if(audio)audio.volume=volume;
-  hud();clearInput();walkingKeys.clear();document.exitPointerLock?.();mode='equipment';view='equipment';
-  lastHtml=body();panel('SLEEPING POD / MUSIC','Pod <em>music.</em>',lastHtml,button(panelReturn==='pod'?'RETURN TO POD':'RETURN TO GAMEPLAY',panelReturn==='pod'?'pod-music:return':'progress-return',true));live();
-  clearInterval(ticker);ticker=setInterval(()=>{if(!open_()){clearInterval(ticker);ticker=0;return;}live();},70);
- }
+ // The player's controls are drawn and clicked on the pod's own wall screen (pod-player-ui.js, world-integration.js): there is no pop-up panel. The screen polls state() a few times a second.
+ function render(){}
  function fileInput(){
   let el=byId('pod-music-input');if(el)return el;
   el=document.createElement('input');el.type='file';el.id='pod-music-input';el.multiple=true;el.hidden=true;el.accept='audio/*,.mp3,.wav,.ogg,.oga,.m4a,.aac,.flac,.opus';el.setAttribute('aria-label','Choose songs from your computer');
   el.addEventListener('change',()=>{addFiles(el.files);el.value='';});document.body.appendChild(el);return el;
  }
- if(typeof screen!=='undefined'&&screen&&screen.addEventListener){
-  screen.addEventListener('click',e=>{
-   const seek=e.target.closest&&e.target.closest('#pod-music-seek');
-   if(seek&&audio&&isFinite(audio.duration)&&loadedKey){const r=seek.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*audio.duration;live();return;}
-   const a=e.target.closest&&e.target.closest('button')?.dataset.action;if(!a||!a.startsWith('pod-music:'))return;
-   const [,cmd,arg]=a.split(':'),l=lists[source];
-   if(cmd==='return'){resumeWalking();showPodWake();return;}
-   if(cmd==='source')switchSource(arg);else if(cmd==='toggle'){toggle();render();}else if(cmd==='next'){if(l.size)advance(false);}else if(cmd==='prev'){if(l.size)previous();}
-   else if(cmd==='light'&&LIGHTS.includes(arg)){setting().lighting=arg;keepSetting();render();}
-   else if(cmd==='shuffle'){l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();}
-   else if(cmd==='repeat'){const m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();}
-   else if(cmd==='play'){if(l.select(arg))load(0);}
-   else if(cmd==='add')fileInput().click();else if(cmd==='remove')removeTrack(arg);else if(cmd==='clear')clearMine();
-  });
-  screen.addEventListener('input',e=>{if(e.target.id==='pod-music-volume'){volume=Math.max(0,Math.min(1,Number(e.target.value)/100));setting().volume=volume;keepSetting();if(audio)audio.volume=volume;}});
-  screen.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('[data-pod-keep]')){setKeeping(e.target.checked);render();}});
- }
- if(root.VoidInteractions)root.VoidInteractions.register('district-pod-music',open);
-
  const api={
   get playing(){return isPlaying();},get element(){return audio;},get source(){return source;},get volume(){return volume;},get lighting(){return setting().lighting;},get activePod(){return activePod();},get selectedPod(){return selectedPod;},lightingFor(index){return podSettings[index-1]?.lighting||'rest';},get status(){return status;},lists,
   /* Smoothed bass / mid / high energy (0 to 1) for lighting that follows the music; all zero when nothing plays and the columns have settled. */
@@ -233,8 +172,15 @@
   setVolume(v){volume=Math.max(0,Math.min(1,Number(v)||0));setting().volume=volume;keepSetting();if(audio)audio.volume=volume;render();},
   setLighting(x){if(!LIGHTS.includes(x))return false;setting().lighting=x;keepSetting();render();return true;},
   stop(){if(audio&&loadedKey){audio.pause();audio.currentTime=0;positions[source]=0;render();}},
-  open,drawScreen,bands,addFiles,toggle,next:()=>advance(false),previous,switchSource,clearMine,removeTrack,setKeeping,restore,enterPod,
-  state(){const t=current();return {source,playing:isPlaying(),title:t?t.label:'',shuffle:lists[source].shuffle,repeat:lists[source].repeat,mine:lists.mine.tracks.map(x=>x.label),website:lists.website.size,position:audio?audio.currentTime:0,volume,status};},
+  /* What the wall player's buttons call (the same moves the pop-up's buttons made). */
+  playIndex(i){const l=lists[source],t=l.tracks[i];if(t&&l.select(t.id))load(0);},
+  toggleShuffle(){const l=lists[source];l.setShuffle(!l.shuffle);say('Shuffle '+(l.shuffle?'on.':'off.'));render();},
+  cycleRepeat(){const l=lists[source],m=l.cycleRepeat();say(m==='off'?'Repeat off: the list stops after the last song.':m==='all'?'Repeat all: the list starts again after the last song.':'Repeat one: the current song plays again when it ends.');render();},
+  removeAt(i){const t=lists.mine.tracks[i];if(t&&source==='mine')removeTrack(t.id);},
+  chooseFiles(){fileInput().click();},
+  get keeping(){return keeping;},
+  drawScreen,bands,addFiles,toggle,next:()=>advance(false),previous,switchSource,clearMine,removeTrack,setKeeping,restore,enterPod,
+  state(){const t=current(),l=lists[source];return {source,playing:isPlaying(),title:t?t.label:'',shuffle:l.shuffle,repeat:l.repeat,mine:lists.mine.tracks.map(x=>x.label),website:lists.website.size,position:audio?audio.currentTime:0,volume,status:Date.now()-statusAt<6000?status:'',list:l.tracks.map(x=>({label:x.label,failed:!!x.failed})),index:l.tracks.findIndex(x=>x.id===l.currentId),count:l.size,keeping};},
   /* Called every frame by the game's music integration: the music belongs to the District, so it pauses when the player leaves it. */
   update(){if(audio&&!audio.paused){const inside=typeof state!=='undefined'&&state?.story?.flags?.podWakePending===true&&typeof walkingLocation!=='undefined'&&walkingLocation?.area==='interior';if(!inside){positions[source]=audio.currentTime||0;audio.pause();}}}
  };
