@@ -97,7 +97,7 @@ const EDITED='TEST LINE: Admin introduces the District (test text).';
   // EXIT TO MAIN MENU during PLAY THIS DRAFT: like LEAVE DRAFT (the real save is restored by the reload) but the game opens on its main menu, not the editor
   await page.locator('[data-me-mode="trees"]').click();await page.locator('[data-me-play="tree:m001-awakening#speak"]').click();
   await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking',null,{timeout:180000});
-  await page.evaluate(()=>VoidDevTools.open());await Promise.all([page.waitForNavigation({timeout:60000}),page.locator('[data-dev="exit-menu"]').click()]);
+  await page.evaluate(()=>VoidDevTools.open());await Promise.all([page.waitForNavigation({timeout:60000}),page.locator('[data-dev="exit-menu"]').dispatchEvent('click')]);   // dispatched: in the running game the software renderer's frames are too slow for a pointer click to settle
   await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});
   assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is byte-identical after EXIT TO MAIN MENU from a draft');
   assert.equal(await page.evaluate(()=>sessionStorage.getItem('mission-editor-return')),null,'the editor is not reopened');
@@ -148,6 +148,7 @@ async function newTrees(browser,errors,posts){
  await page.locator('[data-me-rename="draft-browser-test-tree"]').fill('Renamed test tree');await page.locator('[data-me-mode="trees"]').click();
  assert.match(await page.locator('[data-me-tree="draft-browser-test-tree"]').textContent(),/Renamed test tree/,'renamed; the id is unchanged');
  // rename an existing tree too (display name only)
+ await page.locator('[data-me-archived] summary').click();   // the older trees sit in the collapsed "Removed from the game (archived)" group
  await page.locator('[data-me-tree="vesper-opening"]').click();await page.locator('[data-me-rename="vesper-opening"]').fill('Old opening (renamed)');await page.locator('[data-me-tree="beginner"]').click();
  assert.match(await page.locator('[data-me-tree="vesper-opening"]').textContent(),/Old opening \(renamed\)/);
  const names=await page.evaluate(()=>JSON.parse(localStorage.getItem('mission-editor-drafts-v1')).names);assert.deepEqual(names,{'vesper-opening':'Old opening (renamed)'});
@@ -178,7 +179,7 @@ async function newTrees(browser,errors,posts){
  assert.match(await page.locator('[data-me-giver-status="'+m2+'"]').textContent(),/Earlier character.*Players cannot reach them today/);
  await page.locator('[data-me-mode="trees"]').click();
  const cap=await page.locator('[data-me-capability]').textContent();assert.match(cap,/PLAY THIS DRAFT: 2 of 2 mission\(s\) can be played now/);assert.match(cap,/Dr\. Elara Voss/);
- const draft=await page.evaluate(()=>JSON.parse(localStorage.getItem('mission-editor-drafts-v1')).trees[0]);assert.equal(draft.id,'draft-browser-test-tree');assert.equal(draft.name,'Renamed test tree');assert.deepEqual(draft.missions.map(m=>m.id),[m1,m2]);
+ const draft=await page.evaluate(()=>JSON.parse(localStorage.getItem('mission-editor-drafts-v1')).trees.find(t=>t.id!=='main-storyline'));assert.equal(draft.id,'draft-browser-test-tree');assert.equal(draft.name,'Renamed test tree');assert.deepEqual(draft.missions.map(m=>m.id),[m1,m2]);
  await page.locator('[data-me-owner-tree]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-1366.png')});
  await page.locator('[data-me-tree-mission="'+m1+'"]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-mission-1366.png')});
  await page.setViewportSize({width:1920,height:1080});await page.locator('[data-me-capability]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-1920.png')});
@@ -187,7 +188,7 @@ async function newTrees(browser,errors,posts){
  await page.evaluate(()=>{try{VoidGraphics.quality='low';VoidBabylon.setQuality('low');}catch{}});
  await page.locator('[data-me-play="tree:'+m1+'"]').click();
  await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking',null,{timeout:120000});
- assert.match(await page.locator('#dev-test-banner').textContent(),/PLAYING DRAFT: TEST MISSION ONE/);
+ assert.match(await page.locator('#dev-test-banner').textContent(),/PLAYING DRAFT: Mission 002 — TEST MISSION ONE/);
  assert.deepEqual(await page.evaluate(()=>[walkingLocation?.id,walkingLocation?.area]),['neochinatown','interior'],'draft play starts inside the District, next to Admin');
  await page.evaluate(()=>VoidInteractions.handlers.get('admin')());
  let st=await page.evaluate(m=>({tracked:state.universe.trackedMission,rec:state.universe.missions[m],lines:speech?.lines?.map(l=>l.text)||[]}),m1);
@@ -208,7 +209,7 @@ async function newTrees(browser,errors,posts){
  await page.evaluate(()=>{window.__publishOn=true;});await page.evaluate(()=>VoidMissionEditor.refreshServer());await page.locator('[data-me-mode="publish"]').click();await page.waitForSelector('#me-check');
  assert.equal(await page.locator('[data-me-new-mission^="draft-browser"]').count(),2,'the check screen lists the new missions');assert.equal(await page.locator('[data-me-far="elara"]').count(),1,'and the giver players cannot reach');
  assert.match(await page.locator('#me-check').textContent(),/Tree names/);assert.equal(await page.locator('[data-me-publish]').isDisabled(),false,'the draft can be published');
- const content=await page.evaluate(()=>VoidMissionEditor.draftContent());assert.deepEqual(content.trees[0].missions.map(m=>m.id),[m1,m2]);assert(!JSON.stringify(content).includes('"item"'),'the store item is not sent');
+ const content=await page.evaluate(()=>VoidMissionEditor.draftContent());assert.deepEqual(content.trees.find(t=>t.id==='draft-browser-test-tree').missions.map(m=>m.id),[m1,m2]);assert.equal(content.trees[0].id,'main-storyline','the main storyline is always sent');assert(!JSON.stringify(content).includes('"item"'),'the store item is not sent');
  await page.locator('[data-me-new-missions]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-publish-1920.png')});await page.setViewportSize({width:1366,height:768});await page.locator('[data-me-new-missions]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'new-tree-publish-1366.png')});
  await ctx.close();
  // every player: a published tree is applied (fail safe otherwise)
