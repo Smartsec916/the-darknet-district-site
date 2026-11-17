@@ -24,3 +24,18 @@ test('the arcade spots stand in front of all five cabinets, playable or not; the
  assert.ok(fs.readFileSync('void-runner/babylon-renderer.js','utf8').includes('metadata?.life'));assert.ok(fs.readFileSync('void-runner/crowd.js','utf8').includes('controller:node=>'));
  assert.ok(fs.readFileSync('void-runner.html','utf8').includes('void-runner/district-life.js'));
 });
+
+test('every resident route stays clear of the current District solids',()=>{
+ const N=require('../void-runner/neochinatown.js'),solids=N.layout('interior').solids;
+ const places=[...Object.values(L.HOMES),...L.PLACES];
+ for(const from of places)for(const to of places){
+  if(from===to)continue;
+  const path=L.route(from,to),length=L.length(path);
+  for(let distance=0;distance<=length;distance+=.2){
+   const point=L.along(path,distance),[x,z]=N.toWorld(point.x,point.z);
+   const hit=solids.find(s=>s.position[1]-s.size[1]/2<1.6&&
+    Math.abs(x-s.position[0])<s.size[0]/2+.25&&Math.abs(z-s.position[2])<s.size[2]/2+.25);
+   assert.equal(hit,undefined,`${from.at} to ${to.at} crosses ${hit?.id} at ${point.x.toFixed(1)}, ${point.z.toFixed(1)}`);
+  }
+ }
+});
