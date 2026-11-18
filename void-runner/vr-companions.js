@@ -523,7 +523,9 @@
  // (lavender, like the city glow through the glass), so it slides round the figure as the camera moves.
  let RimPlugin=null;
  function rimPlugin(B){return RimPlugin??=class CompanionRimPlugin extends B.MaterialPluginBase{
-  constructor(material){super(material,'CompanionRim',210,{COMPANION_RIM:false});this.color=new B.Color3(.62,.52,1);this.strength=.2;this.power=3.2;this._enable(true);}
+  constructor(material){super(material,'CompanionRim',210,{COMPANION_RIM:false});this.color=new B.Color3(.62,.52,1);this.strength=.2;this.power=3.2;this._isEnabled=false;this.isEnabled=true;}
+  get isEnabled(){return this._isEnabled;}   // Babylon 8's MaterialPluginBase keeps no enabled flag: without this the rim's define was never set (fixed 18 Nov 2026)
+  set isEnabled(on){on=!!on;if(this._isEnabled===on)return;this._isEnabled=on;this.markAllDefinesAsDirty();this._enable(on);}
   getClassName(){return 'CompanionRimPlugin';}
   isCompatible(){return true;}
   prepareDefines(defines){defines.COMPANION_RIM=this._isEnabled;}
