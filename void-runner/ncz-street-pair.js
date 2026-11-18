@@ -52,6 +52,7 @@
   // The clips keep the hips in place horizontally (the game moves the figure), so sitting down and standing up need the figure moved under them: measured on the
   // rig (the hips sit 0.34 m behind the feet origin in `sit`, 0.03 in sit-enter and 0.28 in sit-exit; sit-enter slides the feet 0.36 m forward, sit-exit 0.28 back).
   seatShift:{enter:.36,sit:.31,exitStart:.06,exit:.34,walk:.3,blendFor:.42},
+  clipShift:{'sit-wave':-.38},                                 // the seated wave clip sits 0.38 m further back than `sit`: the figure comes forward while she waves
   favourite:.7,catNear:1.6,dance:{cat:.3,alone:.05},
   showRadius:80,animRadius:40,lowAnimRadius:25,blend:.04,      // hide / stop limbs beyond these (m); cross-fade speed per frame (about 0.4 s at 60 fps)
   // A glance at a player close in front of her (the owner, 18 Nov 2026: "slight head tracking when a player is near the front of them"): within `radius` metres
@@ -163,7 +164,7 @@
    const t=B.MeshBuilder.CreateBox('street-pair-'+st.id+'-edge',{width:st.w+.04,height:.04,depth:st.d+.04},scene);t.parent=parent;t.position.set(st.x,PAVE+st.h+.02,st.z);t.material=trimMat;t.isPickable=false;owned.push(b,t);b.freezeWorldMatrix();t.freezeWorldMatrix();}
   // ---- loading: only the one who is out, and the cat ----
   const src=a=>'assets/models/crowd/'+a+'.glb',has=a=>!!assets?.container?.('crowd:'+a);
-  const dbg={asks:0,fails:[]};
+  const dbg={asks:0,fails:[],nan:{her:0,cat:0,look:0}};   // nan: times a bad number was caught and reset (should stay 0)
   function ask(){if(clock<asked||!assets?.load)return;asked=clock+20;dbg.asks++;const who=onStreet(now(),cfg);for(const a of [CAT,...(who?[who.asset]:[])])if(!has(a))Promise.resolve(assets.load('crowd:'+a,{src:src(a),background:true},scene)).catch(e=>{if(dbg.fails.length<6)dbg.fails.push(a+': '+(e?.message||e));});}
   // ---- the woman who is out ----
   let her=null;   // {p (PAIR entry), node, anim, s (her routine), clip}
@@ -181,7 +182,8 @@
   function tickHer(dt,c){const want=onStreet(now(),cfg);if(her&&(!want||want.id!==her.p.id))leave();if(!her&&want&&has(want.asset))arrive(want);if(!her)return;
    const n=her.node,d=c?Math.hypot(c.x-n.position.x,c.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
    const me=player(),ctx={cat:cat?{x:cat.x,z:cat.z}:null,player:me?{x:me.x,z:me.z}:null};
-   const s=routineStep(her.s,dt,rnd,cfg,ctx);n.position.set(s.x,PAVE,s.z+(s.zo||0));n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
+   if(!Number.isFinite(her.s.x+her.s.z+her.s.yaw+(her.s.zo||0))){dbg.nan.her++;her.s=routineStart(her.p,rnd,cfg);}
+   const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);n.position.set(s.x,PAVE,s.z+(s.zo||0)+her.cz);n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
    if(her.anim&&s.clip!==her.clip){her.clip=s.clip;if(s.once&&her.anim.playOnce)her.anim.playOnce(s.clip,s.clip===CLIPS.sitDown?CLIPS.sit:'idle');else her.anim.play(s.clip);}}
   // ---- the cat ----
   let cat=null;   // {node, bones, x, z, yaw, gait, sit, mode, ...}
@@ -203,9 +205,9 @@
    c.node.position.y=PAVE-.11*s+Math.abs(Math.sin(c.gait))*.008*st;}
   function catGo(c,tx,tz,dt,fast){const dx=tx-c.x,dz=tz-c.z,d=Math.hypot(dx,dz);if(d<.04)return 0;const sp=Math.min(d/dt,fast?cfg.cat.trot:cfg.cat.walk)*(1-c.sit*.95),want=Math.atan2(dx,dz);
    let dy=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw));c.yaw+=dy*Math.min(1,dt*cfg.cat.turn);const k=Math.max(0,Math.cos(dy));const step=sp*k*dt;c.x+=Math.sin(c.yaw)*step;c.z+=Math.cos(c.yaw)*step;
-   c.z=Math.min(WALL-.12,c.z);c.gait+=step/(fast?.3:.22)*Math.PI*2;return step/dt;}
+   c.z=Math.min(WALL-.12,c.z);c.gait+=step/(fast?.3:.22)*Math.PI*2;return dt>0?step/dt:0;}
   function sitTo(c,v,dt){c.sit+=(v-c.sit)*Math.min(1,dt*(v>c.sit?2.2:4));}
-  function tickCat(dt,c0){if(!cat){if(has(CAT))catArrive();if(!cat)return;}const c=cat,n=c.node;
+  function tickCat(dt,c0){if(!cat){if(has(CAT))catArrive();if(!cat)return;}const c=cat,n=c.node;if(!Number.isFinite(c.x+c.z+c.yaw+c.sit+c.gait)){dbg.nan.cat++;Object.assign(c,{x:CAT_HOME.x,z:CAT_HOME.z,yaw:Math.PI,sit:0,gait:0,ang:0,mode:'home'});}
    const far=c0?Math.hypot(c0.x-c.x,c0.z-c.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius:false;if(n.isEnabled()===far)n.setEnabled(!far);if(far)return;
    const me=player(),h=herNow(),meP=me?{x:me.x,z:me.z}:null,near=!!meP&&dist(meP,c)<cfg.cat.playerRadius;
    let chance=1;if(near&&!c.lastNear)chance=rnd();c.lastNear=near;
@@ -243,14 +245,15 @@
    for(const n of lk.remote||[]){if(n.isDisposed()||!n.isEnabled())continue;const p=n.getAbsolutePosition();lk.eyes.push({x:p.x,y:p.y+1.6,z:p.z});}}
   function lookApply(dt){if(!her?.node||!her.node.isEnabled()){lk.w=0;return;}if(lk.node!==her.node){lk.node=her.node;lk.bones=lookBones(her.node);lk.w=0;}if(!lk.bones)return;
    const head=lk.bones.Head;head.computeWorldMatrix(true);const hp=head.getAbsolutePosition(),n=her.node.position;lookEyes();
+   if(!Number.isFinite(hp.x+hp.y+hp.z)){dbg.nan.look++;lk.w=0;return;}
    const t=canLook(her.s)?lookAt({x:n.x,z:n.z,yaw:her.node.rotation.y},hp,lk.eyes,cfg.look):null;
    const k=Math.min(1,dt/cfg.look.blend);lk.w=Math.max(0,Math.min(1,lk.w+(t?k:-k)));if(t){lk.yaw+=(t.yaw-lk.yaw)*Math.min(1,dt*6);lk.pitch+=(t.pitch-lk.pitch)*Math.min(1,dt*6);}
-   lk.debug={on:!!t,w:+lk.w.toFixed(2),yaw:+(lk.yaw*180/Math.PI).toFixed(1),pitch:+(lk.pitch*180/Math.PI).toFixed(1)};if(lk.w<.005)return;
+   if(!Number.isFinite(lk.yaw+lk.pitch)){dbg.nan.look++;lk.yaw=lk.pitch=0;lk.w=0;}lk.debug={on:!!t,w:+lk.w.toFixed(2),yaw:+(lk.yaw*180/Math.PI).toFixed(1),pitch:+(lk.pitch*180/Math.PI).toFixed(1)};if(lk.w<.005)return;
    // turn the head's forward (+Z of a Mixamo head) toward body yaw + yaw, pitch: the neck takes its share, the head the rest
    const yw=her.node.rotation.y+lk.yaw*lk.w,pt=lk.pitch*lk.w,want=new B.Vector3(Math.sin(yw)*Math.cos(pt),Math.sin(pt),Math.cos(yw)*Math.cos(pt));let done=0;
    for(const [name,share] of [['Neck',cfg.look.neck],['Head',1]]){const b=lk.bones[name];if(!b?.parent)continue;const frac=(share-done)/(1-done);done=share;
     head.computeWorldMatrix(true);const fw=B.Vector3.TransformNormal(B.Axis.Z,head.getWorldMatrix()).normalize();b.parent.computeWorldMatrix(true);b.parent.getWorldMatrix().invertToRef(MI);
-    const fp=B.Vector3.TransformNormal(fw,MI).normalize(),wp=B.Vector3.TransformNormal(want,MI).normalize(),Q=new B.Quaternion();B.Quaternion.FromUnitVectorsToRef(fp,wp,Q);const d=B.Quaternion.Slerp(ID,Q,frac);
+    const fp=B.Vector3.TransformNormal(fw,MI).normalize(),wp=B.Vector3.TransformNormal(want,MI).normalize(),Q=new B.Quaternion();B.Quaternion.FromUnitVectorsToRef(fp,wp,Q);const d=B.Quaternion.Slerp(ID,Q,frac);if(!Number.isFinite(d.x+d.y+d.z+d.w)){dbg.nan.look++;continue;}
     d.multiplyToRef(b.rotationQuaternion,qT);b.rotationQuaternion.copyFrom(qT);b.computeWorldMatrix(true);const prev=lk.applied.get(b);lk.applied.set(b,prev?d.multiply(prev):d);}}
   let lookClock=performance.now();
   const lookBefore=scene.onBeforeAnimationsObservable.add(()=>{try{lookUndo();}catch{lk.applied.clear();}});
@@ -260,7 +263,7 @@
   function lit(n){if(!lamp||!n)return;for(const m of n.getChildMeshes(false))if(!lamp.includedOnlyMeshes.includes(m))lamp.includedOnlyMeshes.push(m);lamp.includedOnlyMeshes=lamp.includedOnlyMeshes;}
   function lampTo(){if(!lamp)return;const h=herNow(),c=cat;const x=h?h.x:c?c.x:SEAT.x,z=Math.min(WALL-1.05,(h?h.z:c?c.z:SEAT.z)-1.05);lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
   function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&mode==='walking')ask();const c=cam();tickHer(dt,c);tickCat(dt,c);lampTo();}
-  return {tick,stats:()=>({pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:onStreet(now(),cfg)?.id||null,her:her?{id:her.p.id,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z}:null,cat:cat?{mode:cat.mode,x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null}),
+  return {tick,stats:()=>({pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:onStreet(now(),cfg)?.id||null,her:her?{id:her.p.id,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z}:null,cat:cat?{mode:cat.mode,x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null}),
    get her(){return her;},get cat(){return cat;},setClock(fn){now=fn||clockFn;asked=-1;},
    dispose(){disposed=true;scene.onBeforeAnimationsObservable.remove(lookBefore);scene.onAfterAnimationsObservable.remove(lookAfter);lookUndo();leave();cat?.node?.dispose?.();cat=null;for(const o of owned)o.dispose?.();}};
  }

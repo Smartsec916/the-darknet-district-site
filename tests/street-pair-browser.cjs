@@ -36,6 +36,12 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   const until=async(fn,steps=60)=>{for(let i=0;i<steps;i++){if(await page.evaluate(fn))return true;await ff(1);}return false;};
   await street('avenue',[100,1.7,-14]);   // the player waits out in the road, beyond the cat's reach
   assert.ok(await SP(),'the street pair runs on the Avenue');
+  if(process.env.PROBE){await force(+process.env.PROBE||6);await page.waitForFunction(()=>VoidBabylon.district.streetPair.stats().her,null,{timeout:300000,polling:1000});
+   await page.evaluate(()=>{for(const g of VoidBabylon.district.streetPair.her.node.metadata.animationGroups)g.blendingSpeed=1;});
+   for(const clip of ['idle','sit','sit-wave']){await page.evaluate(clip=>{const sp=VoidBabylon.district.streetPair,h=sp.her,st=VoidStreetPair.STEPS[1];Object.assign(h.s,{mode:'stop',left:999,clip,x:st.x,z:VoidStreetPair.seatOf(st),yaw:Math.PI,zo:0,device:null,sub:'test'});},clip);await page.waitForTimeout(6000);
+    const r=await page.evaluate(()=>{const h=VoidBabylon.district.streetPair.her,m=h.node.getChildMeshes(false).find(m=>m.skeleton),sk=m.skeleton;const o={clip:h.clip,node:[+h.node.position.x.toFixed(2),+h.node.position.z.toFixed(2),+h.node.rotation.y.toFixed(2)]};
+     for(const n of ['Hips','Head','LeftFoot','LeftHand']){const b=sk.bones.find(b=>b.name.endsWith(n));const t=b.getTransformNode?.();if(t)t.computeWorldMatrix(true);const v=t?t.getAbsolutePosition():b.getAbsolutePosition(m);o[n]=[+v.x.toFixed(2),+v.y.toFixed(2),+v.z.toFixed(2)];}return o;});log('probe '+JSON.stringify(r));}
+   return;}
   const who=process.env.WHO||'both';
   // Hold her in one clip at a spot for a close-up (the routine's own 'stop' mode, long), the cross-fade given time to finish.
   const hold=(clip,extra={})=>page.evaluate(([clip,extra])=>{const h=VoidBabylon.district.streetPair.her;Object.assign(h.s,{mode:'stop',left:999,clip,device:null,face:null,sub:'test'},extra);},[clip,extra]);
@@ -45,6 +51,8 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   async function library(id,hour,tag){
    await force(hour);await page.waitForFunction(id=>VoidBabylon.district.streetPair.stats().her?.id===id&&VoidBabylon.district.streetPair.stats().cat,id,{timeout:300000,polling:1000});
    const groups=await page.evaluate(()=>VoidBabylon.district.streetPair.her.node.metadata.animationGroups.map(g=>g.name.replace(/^.*?-(?=[a-z-]+(\.\d+)?$)/,'')));log(tag+' clips '+JSON.stringify(groups));
+   // software GL draws about a frame a second, and the 0.4 s cross-fade is per frame (about 25 frames): for the stills it is made quick, so each shows its clip
+   await page.evaluate(()=>{for(const g of VoidBabylon.district.streetPair.her.node.metadata.animationGroups)g.blendingSpeed=.5;});
    // walking (the cat at her heel)
    await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;Object.assign(s,{mode:'walk',left:60,x:102,dir:1,device:null});});await ff(2);
    assert.equal((await SP()).her.clip,'walk');await close(tag+'-walk',1.2,3.2);log(tag+' walk feet '+JSON.stringify(await feet()));
@@ -62,18 +70,18 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    // the glance: a player close in front and to one side; her head and neck turn toward them (clamped), and back when they leave
    await hold('idle',{yaw:Math.PI});await close(tag+'-look-player',.55,2.3,.05,3500);{const l=(await SP()).look;log(tag+' glance '+JSON.stringify(l));assert.ok(l?.on&&l.w>.9,'she glances at the player');assert.ok(Math.abs(l.yaw)<=35.01);}
    await close(tag+'-look-player-wide',1.0,2.0,.05,3500);{const l=(await SP()).look;log(tag+' glance wide '+JSON.stringify(l));assert.ok(Math.abs(Math.abs(l.yaw)-35)<1.5,'clamped at 35 degrees');}
-   await at(106,-12,0,0);await page.waitForTimeout(2500);{const l=(await SP()).look;assert.ok(!l?.on&&l.w<.1,'and looks away when the player leaves');}
+   {const [hx,hz]=await herAt();await at(hx,hz-7,0,0);}await page.waitForTimeout(4000);{const l=(await SP()).look,c=await page.evaluate(()=>{const p=VoidBabylon.scene.activeCamera.globalPosition;return [p.x,p.z];});log(tag+' glance after leaving '+JSON.stringify(l)+' camera '+JSON.stringify(c));assert.ok(l&&!l.on,'and looks away when the player leaves');await page.waitForFunction(()=>VoidBabylon.district.streetPair.stats().look.w<.05,null,{timeout:60000,polling:500});}   /* software GL draws a frame or two a second: the 0.4 s ease takes a few frames */
    // the V1: a scroll, a selfie, a photo of the cat (npc-device.js poses, forced by the routine)
    await hold('idle',{yaw:Math.PI,device:'scroll'});await close(tag+'-v1-scroll',.5,2.2,.18,3500);
    await hold('idle',{yaw:Math.PI,device:'selfie'});await close(tag+'-v1-selfie',.4,2.4,.12,3500);
    await page.evaluate(()=>{const sp=VoidBabylon.district.streetPair,c=sp.cat,h=sp.her;c.x=h.s.x+.9;c.z=h.s.z+.35;});
-   await hold('idle',{device:'photo',face:{x:0,z:0},yaw:Math.PI/2});await page.evaluate(()=>{const sp=VoidBabylon.district.streetPair;sp.her.s.face={x:sp.cat.x,z:sp.cat.z};});await ff(1);await close(tag+'-v1-photo-cat',-.6,2.6,.2,3500);
+   await hold('idle',{device:'photo',face:{x:0,z:0},yaw:Math.PI/2});await page.evaluate(()=>{const sp=VoidBabylon.district.streetPair;sp.her.s.face={x:sp.cat.x,z:sp.cat.z};});await ff(1);await close(tag+'-v1-photo-cat',.9,2.6,.2,3500);
    log(tag+' device '+JSON.stringify(await page.evaluate(()=>VoidNPCDevice?.stats?.()||null)));
    // sitting down on a ledge (the transition), sitting, standing up
    const ledge=id==='grey-reverie'?'ledge-reverie':'ledge-laundry';
    await page.evaluate(l=>{const S=VoidStreetPair,h=VoidBabylon.district.streetPair.her,st=S.STEPS.find(t=>t.id===l);Object.assign(h.s,{mode:'to-step',step:st,x:st.x-1.5,z:S.frontOf(st),device:null,face:null,sub:null,left:0});},ledge);
    assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().her.mode==='sit-down',200),'she sits down');await page.waitForTimeout(500);await close(tag+'-sit-down',.6,2.8,.12,10);
-   assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().her.mode==='sit',60),'she sits');await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.left=999;s.device=null;});
+   assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().her.mode==='sit',60),'she sits');await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.left=999;s.device=null;s.waved=true;s.sub=null;});
    await close(tag+'-sit',.5,2.6,.15,3500);log(tag+' sit feet '+JSON.stringify(await feet()));await close(tag+'-sit-side',1.3,2.4,.15,1200);
    await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.sub='wave';s.waveLeft=999;});await close(tag+'-sit-wave',.4,2.6,.15,3000);
    await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.sub=null;s.left=0;});await ff(.1);assert.equal((await SP()).her.mode,'stand-up');await page.waitForTimeout(450);await close(tag+'-stand-up',.6,2.8,.12,10);
@@ -87,6 +95,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   // ---- the player walks up to the cat: now and then it comes to them ----
   {let came=false;for(let k=0;k<6&&!came;k++){await page.evaluate(()=>{const c=VoidBabylon.district.streetPair.cat;c.until=0;c.lastNear=false;Object.assign(walker,{x:c.x+1.6,z:c.z-1.8});});await ff(.2);came=await until(()=>VoidBabylon.district.streetPair.stats().cat.mode==='player',40);if(!came){await page.evaluate(()=>Object.assign(walker,{x:100,z:-14}));await ff(.2);}}
    log('cat to player: '+came);if(came){const s=await SP();await at(await page.evaluate(()=>walker.x),await page.evaluate(()=>walker.z),await page.evaluate(()=>{const c=VoidBabylon.district.streetPair.cat;return Math.atan2(c.x-walker.x,c.z-walker.z);}),.55);await shot('cat-player',1500,true);}}
+  {const s=await SP();log('bad numbers caught '+JSON.stringify(s.nan));assert.deepEqual(s.nan,{her:0,cat:0,look:0},'no bad numbers');}
   const real=errs.filter(e=>!/cache\.js/.test(e));   /* cache.js's 15-minute service-worker update tick throws when the test blocks service workers (a run over 15 minutes) */
   log('errors '+JSON.stringify(real.slice(0,5)));assert.equal(real.length,0,'page errors');
  }finally{await b.close();srv.close();}
