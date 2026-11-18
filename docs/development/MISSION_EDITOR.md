@@ -2,6 +2,30 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Eleventh pass (18 Nov 2026): the NPC appearance editor (NPCs > Appearance)
+
+Branch `claude/npc-appearance`, build `2026-11-18-npc-appearance-1`. Pushed, no PR, not merged. Queue item 0c.
+
+### How to use it (plain steps)
+
+1. Open **Developer tools > NPCs** and pick anyone (a named character, a **Street figure**, or a **Figure ... (other places)**: the older multi-part figures are listed there too). Go down to **Appearance** and press **Show me in 3D to change the look**: the editor reads the model file and offers only what that model can do.
+2. Press **+ NEW LOOK**. A look starts as the model "as made" (which never changes). Give it a name.
+3. **Parts you can take off**: tick off an accessory or hair (hat, sunglasses, visor, face mask, collar, VR headset, hand trackers ...). Clothing that covers the body, the shoes, the body and the face always stay, and a part whose name does not say what it is stays too. Most street figures are made in one piece, so they have nothing to take off.
+4. **Colours**: click a colour dot or pick any colour; the clothes take it and keep their own light and dark. A one-piece figure is recoloured as a whole and its skin keeps its own tone; a multi-part figure has one row per piece (suit, shoes, hair, headset ...). **Reset colour** puts one back. In **Advanced** mode you also get hue, saturation and brightness sliders.
+5. **Add pieces from the character creator** (visor, tech collar, shoulder plates, chest light, and the creator's hairstyles): only on figures built on the creator's skeleton (the District resident / smuggler bodies and figures made like them). Everywhere else they are greyed with the reason. A long hairstyle needs the hat hidden first.
+6. **Which look the game uses**: as made, one of your looks, or **a mix of my looks** (each person keeps one). A look belongs to the model, so everyone the game draws with that model wears it.
+7. The 3D preview changes as you go; UNDO / REDO (or Ctrl+Z) work on every change; **RESET TO ORIGINAL** clears a look; **DELETE THIS LOOK** removes it.
+8. **SEE IT ON THE STREET** plays your draft on The Avenue (your real save is never touched). PLAY THIS DRAFT carries the looks too, and PUBLISH sends them to every player (the server checks them first), so every player sees the same looks.
+9. Rules kept for you: licensed models (the VR companions, the studio dancer, Dax) can only be recoloured and have accessories hidden, nothing is added and their files never go to any AI tool; Reverie and Lace stay in ordinary street clothing (colours only); the model files are never edited.
+
+### For Claude and Codex
+
+- `void-runner/npc-looks.js` (pure + browser): `classify` (mesh / material names -> body, face, garment, shoes, hair, accessory, unknown; only hair and accessory are hideable), `capabilities(asset, meta, data)` (meta from `metaFromContainer` in the editor or `metaFromGlb` in Node), `problems` / `clean` / `pick` / `variant`, `inventory` (the admin inventory's `npcLooks`). Browser: `applyLook(node, asset, look)` / `reset` / `dressIn`; `install()` wraps `VoidCrowd.animate` and `VoidCrowd.dress` so every NPC figure is dressed when it loads; player figures (under `character:`, `remote-player:`, `avatar-preview`) never are.
+- Content: `content.looks[asset] = {looks:[{id, name, hide, colour:{material|'*': {tint, hue, sat, bright}}, gear, hair}], use:'original'|id|'mix'}`; draft key `looks`; checked by `mission-content.js check` (name rules) and `void_runner_live_content.py look_problems` (against `void_runner_admin_inventory.json` `npcLooks`, built from the model files by `tools/admin-inventory.cjs`: run it after adding a model). The editor's server copy (`void_runner_drafts.py`) carries and checks `looks`.
+- Colour uses the street-variant shader (`npc-variants.js`; `variantMaterial` is exported; a variant with `all` recolours a separate material whole, no skin test): one material per source material and colour, shared by every figure, disposed with its source. Gear and hair are fitted once per model and scene (`gear-fit.json`, `bind-data.json`, `character-fit.js`) and copied with shared geometry.
+- Not done: a texture-mask region for partial recolours (no model has a mask yet); figures already on screen keep their look until they are placed again (draft play and publishing start a fresh scene).
+- Tests: `tests/npc-looks.test.cjs`, `tests/test_npc_looks.py`, browser `tests/npc-looks-browser.cjs` (`PART=editor` for the editor only).
+
 ## Tenth pass (18 Nov 2026): choose an ElevenLabs voice for any NPC or giver
 
 Branch `claude/editor-voices`, build `2026-11-18-editor-voices-1`. Pushed, no PR, not merged. Queue item 0b.

@@ -81,3 +81,5 @@
 .eh-tour-target{outline:3px solid #f2b33d!important;outline-offset:3px}
 .eh-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:85;background:#0d2733;border:1px solid #58ffe1;color:#dcece9;padding:10px 16px;font:13px system-ui,sans-serif;box-shadow:0 8px 30px #000}.eh-toast[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){.eh-progress span{transition:none}}
+/* NPCs > Appearance (npc-looks.js) */.npc-look-sec{border-top:1px solid #23404a;margin-top:10px;padding-top:8px}.npc-look-sec>b{display:block;color:#f2b33d;margin-bottom:2px}.me-check-row{display:block;padding:4px 0;min-height:24px;cursor:pointer}.me-check-row.me-disabled{opacity:.5;cursor:not-allowed}.npc-swatch{border:2px solid #44606a!important}.npc-swatch.on{border-color:#f2b33d!important;box-shadow:0 0 0 2px #f2b33d}
+.npc-look-picker{width:44px!important;min-width:44px;height:28px;padding:0 2px;flex:0 0 auto}

@@ -41,7 +41,9 @@
    if(!added.length)return {ok:false,why:meta.animLibraryRefused!=null?'Her rig does not take it: the rest pose is '+meta.animLibraryRefused+' degrees off (the limit is '+L.REST_LIMIT+').':(library==='actorcore'?'The animation library file is not on this computer (licensed motion capture is published with the live site only), or her bones do not match.':'Her bones do not match that file’s, so it was not added.')};
    const g=(meta.animationGroups||[]).find(x=>x.name.endsWith(id));if(g&&!groups.includes(g))groups.push(g);play(id);return {ok:true};}
   function dispose(){disposed=true;clear();engine.stopRenderLoop();scene.dispose();engine.dispose();cv.remove();}
-  return {show,play,tryLibrary,dispose,get clips(){return groups.map(g=>g.name);},get current(){return current;},get info(){return info;},get spinning(){return spin;},set spinning(v){spin=!!v;},canvas:cv,scene};
+  /* NPC looks (npc-looks.js): the file as loaded (what the model supports is read from it) and a look put on the figure live (null: as made). */
+  function look(asset,l){const L=root.VoidNPCLooks;if(!L||!rootNode)return null;return L.applyLook(rootNode,asset,l||null,{scene});}
+  return {show,play,tryLibrary,dispose,look,get container(){return container;},get root(){return rootNode;},get clips(){return groups.map(g=>g.name);},get current(){return current;},get info(){return info;},get spinning(){return spin;},set spinning(v){spin=!!v;},canvas:cv,scene};
  }
  root.VoidNPCPreview={mount,loaders};
 })(globalThis);
