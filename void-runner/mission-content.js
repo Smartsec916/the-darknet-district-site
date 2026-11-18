@@ -36,6 +36,7 @@
  const GC=typeof module!=='undefined'&&module.exports?require('./game-clock.js'):root.VoidClock;
  const DPL=()=>typeof module!=='undefined'&&module.exports?require('./district-people.js'):root.VoidDistrictPeople;
  const GVS=()=>typeof module!=='undefined'&&module.exports?require('./mission-givers.js'):root.VoidMissionGivers;
+ const NPX=()=>typeof module!=='undefined'&&module.exports?require('./npc-paths.js'):root.VoidNPCPaths;   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
  /* "When walked near" (the owner, 18 Nov 2026): when:{kind:'near', npc (default: the giver), distance (metres, 1..30, default 5)}. The game measures the player's distance to that
     person's TALK prompt (live-content.js, four times a second) and sends {type:'near', near:{<npc>: metres}}; the mission starts once, in tree order. */
  const NEAR={min:1,max:30,def:5},nearMetres=v=>{const G=GVS();if(G&&G.nearMetres)return G.nearMetres(v);return typeof v==='number'&&Number.isFinite(v)?Math.min(NEAR.max,Math.max(NEAR.min,v)):NEAR.def;};
@@ -57,8 +58,9 @@
     Returns {ok, errors:[plain text]}; a record with any error is never applied. */
  function check(content,ctx={}){
   const errors=[],err=t=>errors.push(t),speakers=new Set([...SPEAKERS,...(ctx.speakers||[])]);
-  if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names']))return {ok:false,errors:['The content record has an unknown shape.']};
+  if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs']))return {ok:false,errors:['The content record has an unknown shape.']};
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
+  if(content.npcs!=null){const X=NPX();if(!X)err('NPC placements cannot be checked here.');else for(const p of X.checkAll(content.npcs))err(p);}
   if(content.note!=null&&!(typeof content.note==='string'&&content.note.length<=500&&!TAGS.test(content.note)))err('The change note must be plain text (500 characters at most).');
   if(content.beginner!=null){
    const list=content.beginner;
@@ -171,7 +173,8 @@
    if(t.note!=null&&!(typeof t.note==='string'&&t.note.length<=300&&!TAGS.test(t.note)))err(tw+': the note must be plain text (300 characters at most).');
    if(!Array.isArray(t.missions)||!t.missions.length||t.missions.length>20){err(tw+': a tree needs 1 to 20 missions.');continue;}
    for(const m of t.missions){total++;const w=tw+' / '+((m&&m.id)||'?');
-    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks'])){err(w+': unknown fields in a mission.');continue;}
+    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt'])){err(w+': unknown fields in a mission.');continue;}
+    if(m.waitAt!=null){const X=NPX();for(const p of X?X.waitAtProblems(m.giver,m.waitAt):['“Giver waits at” cannot be checked here.'])err(w+': '+p);}
     if(!missionIdOk(m.id))err(w+': a new mission id must start with draft- (60 characters at most).');
     if(m.number!=null&&!(Number.isInteger(m.number)&&m.number>=1&&m.number<=999))err(w+': a mission number must be a whole number from 001 to 999.');
     if(m.number==null&&STORY.has(t.id))err(w+': every mission in the main storyline needs a mission number.');
@@ -353,6 +356,14 @@
     out.push(stepMessage(m,o,gv,Number(s.story.flags[msgFlag(m.id,o.id)])||0,s.story.flags[readFlag(m.id,o.id)]===true));}}
   return out.sort((a,b)=>b.at-a.at);}
  function markRead(s,id){const [mid,sid]=String(id||'').split('/');if(!mid||!sid||!s||!s.story||!s.story.flags)return false;if(s.story.flags[readFlag(mid,sid)]===true)return false;s.story.flags[readFlag(mid,sid)]=true;return true;}
+ /* "GIVER WAITS AT" (the owner approved it for Reverie and Lace, 18 Nov 2026): the spots where a giver should wait now, one per giver: the first mission of an open tree
+    that is waiting to be offered by her (not taken, not done, every mission before it done), offered in person or "when walked near" her, with a waitAt. */
+ function waitingAt(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;
+   if(!rec||!rec.acquired){const st=m.start,w=st&&st.how==='notification'?st.when||{}:null,byHer=!st||st.how!=='notification'||(w&&w.kind==='near'&&(w.npc||m.giver)===m.giver);
+    if(m.waitAt&&byHer&&!out[m.giver])out[m.giver]={...m.waitAt,mission:m.id};}
+   break;}}
+  return out;}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
  function treeWants(s,env,npcs){if(!treeLive(s)||!env||!env.trees)return false;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees)if(!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true)for(const m of t.missions){const rec=recs[m.id];if(rec&&rec.completed)continue;
@@ -383,6 +394,7 @@
   }
   env.lineMap=new Map();for(const l of (content&&content.lines)||[])env.lineMap.set(l.who+'|'+l.from,l.to);if(content&&content.lines&&content.lines.length)out.applied.push(content.lines.length+' changed line(s)');
   if(env.Missions){for(const id of Object.keys(env.Missions.definitions))if(env.Missions.definitions[id]&&env.Missions.definitions[id].ownerTree)delete env.Missions.definitions[id];}
+  env.npcPlans=clone((content&&content.npcs)||{});if(content&&content.npcs&&Object.keys(content.npcs).length)out.applied.push(Object.keys(content.npcs).length+' NPC placement(s)');
   env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
   if(env.Missions)for(const t of env.trees)t.missions.forEach((m,i)=>env.Missions.define(m.id,treeDefinition(t,m,i,env.givers)));
   if(env.trees.length)out.applied.push('new trees: '+env.trees.map(t=>t.name+' ('+t.missions.length+')').join(', '));if(Object.keys(env.names).length)out.applied.push(Object.keys(env.names).length+' tree name(s)');
@@ -400,6 +412,7 @@
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
  function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();
    const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',accept:true};if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
+  {const X=NPX(),wa=X&&m.waitAt&&X.MOVABLE[m.giver]?X.cleanWait(m.waitAt):null;if(wa)r.waitAt=wa;}   // "Giver waits at" (Reverie, Lace)
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
    const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
@@ -407,25 +420,29 @@
   const un=(m.unlocks||[]).filter(SUPPORTED_UNLOCK).map(u=>{const x={kind:u.kind};for(const k of ['id','amount','value','when'])if(u[k]!=null&&u[k]!=='')x[k]=u[k];if(x.when==='complete')delete x.when;return x;});if(un.length)r.unlocks=un;
   return r;}
  /* Why a draft mission cannot run in the game yet (plain words; empty = it can). givers: roster list; items: buyable ids (Set). */
- function treeBlockers(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody';
-  if(!String(m.title||'').trim())out.push('it needs a name');
-  if(!m.giver)out.push('nobody gives it yet');else if(!can(m.giver))out.push(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')');
-  if(!(m.objectives||[]).length)out.push('it has no steps');
-  for(const [i,o] of (m.objectives||[]).entries()){const w='step '+(i+1);
-   if(!STEP_KINDS.includes(o.kind)){out.push(w+' ('+(o.kind||'no kind')+') needs a code change');continue;}
-   if(!String(o.label||'').trim())out.push(w+' needs “what the player must do”');
-   if((o.kind==='talk'||o.kind==='deliver')&&!can(o.npc))out.push(w+': '+(o.npc?nm(o.npc)+' cannot be talked to in the game today':'choose who it happens with'));
-   if((o.kind==='go'||o.kind==='arrive')&&!o.place)out.push(w+': choose the place');if(o.kind==='buy'&&(!o.item||(items&&!items.has(o.item))))out.push(w+': choose an item a store sells');
-   if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))out.push(w+': “the notification arrives” needs the mission to start by notification');
-   if((o.kind==='enter'||o.kind==='leave')&&!o.place)out.push(w+': choose the place');
-   if(o.kind==='photo'&&!o.npc)out.push(w+': choose who is photographed');
-   if(o.kind==='send-photo'){if(!o.npc)out.push(w+': choose who the photo is sent to');if(!o.subject)out.push(w+': choose who must be in the photo');}
-   if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)out.push(w+': a Comms call or a message needs its lines');}
-  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!String(st.text||'').trim())out.push('the notification needs its text');if(st.channel!=='notify'&&!String(st.header||'').trim())out.push('the notification needs a header');if(!st.from)out.push('choose who the notification is from');
-   if(w.kind==='after-mission'&&!w.mission)out.push('choose the mission it follows');if((w.kind==='place'||w.kind==='leave')&&!w.place)out.push('choose the place that starts it');if(w.kind==='flag'&&!w.flag)out.push('name the story flag that starts it');
-   if(w.kind==='near'){const who=w.npc||m.giver;if(!who)out.push('choose who the player walks near');else if(!can(who))out.push(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)');}}
-  if(m.ending&&m.ending.npc&&!can(m.ending.npc))out.push('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today');
+ /* What a draft mission still needs before it can run, as {text (plain words), field (which input: the editor's "next required input" guide highlights it), step (the step id)}.
+    treeBlockers is the same list as plain words, so the guide and the play / publish check never disagree. */
+ function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
+  if(!String(m.title||'').trim())need('it needs a name','title');
+  if(!m.giver)need('nobody gives it yet','giver');else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')','giver');
+  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!st.from)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!String(st.text||'').trim())need('the notification needs its text','start-text');
+   if(w.kind==='after-mission'&&!w.mission)need('choose the mission it follows','start-mission');if((w.kind==='place'||w.kind==='leave')&&!w.place)need('choose the place that starts it','start-place');if(w.kind==='flag'&&!w.flag)need('name the story flag that starts it','start-flag');
+   if(w.kind==='near'){const who=w.npc||m.giver;if(!who)need('choose who the player walks near','start-near');else if(!can(who))need(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)','start-near');}}
+  if(!(m.objectives||[]).length)need('it has no steps','add-step');
+  for(const [i,o] of (m.objectives||[]).entries()){const w='step '+(i+1),id=o.id;
+   if(!STEP_KINDS.includes(o.kind)){need(w+' ('+(o.kind||'no kind')+') needs a code change','kind',id);continue;}
+   if((o.kind==='talk'||o.kind==='deliver')&&!can(o.npc))need(w+': '+(o.npc?nm(o.npc)+' cannot be talked to in the game today':'choose who it happens with'),'step-npc',id);
+   if((o.kind==='go'||o.kind==='arrive')&&!o.place)need(w+': choose the place','step-place',id);if(o.kind==='buy'&&(!o.item||(items&&!items.has(o.item))))need(w+': choose an item a store sells','step-item',id);
+   if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))need(w+': “the notification arrives” needs the mission to start by notification','kind',id);
+   if((o.kind==='enter'||o.kind==='leave')&&!o.place)need(w+': choose the place','step-place',id);
+   if(o.kind==='photo'&&!o.npc)need(w+': choose who is photographed','step-subject',id);
+   if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
+   if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
+   if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}
+  if(m.ending&&m.ending.npc&&!can(m.ending.npc))need('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today','ending');
+  {const X=NPX();if(X&&m.waitAt)for(const p of X.waitAtProblems(m.giver,m.waitAt))need('“Giver waits at”: '+p,'wait-at');}
   return out;}
+ function treeBlockers(m,givers,items){return treeNeeds(m,givers,items).map(x=>x.text);}
  function treesContent(trees,{givers,items}={}){const out=[],skipped=[];
   for(const t of trees||[]){const ms=[];for(const m of t.missions||[]){const b=treeBlockers(m,givers,items);if(b.length){skipped.push({tree:t.id,mission:m.id,title:m.title||'(no name)',why:b});for(const r of (t.missions||[]).slice(t.missions.indexOf(m)+1))skipped.push({tree:t.id,mission:r.id,title:r.title||'(no name)',why:['an earlier mission in this tree cannot run yet']});break;}ms.push(treeStrip(m));}
    if(ms.length){const x={id:t.id,name:String(t.name||'').trim()||t.id,missions:ms};if(t.note&&t.note.trim())x.note=t.note.trim().slice(0,300);out.push(x);}}
@@ -441,11 +458,12 @@
   if(Object.keys(reg).length)out.registry=reg;
   const lines=Object.entries((local&&local.lines)||{}).filter(([,e])=>e&&e.adapter==='talk'&&typeof e.to==='string'&&e.to!==e.from).map(([ref,e])=>({who:ref.split('|')[0],from:e.from,to:e.to}));if(lines.length)out.lines=lines;
   const tc=treesContent((local&&local.trees)||[],{givers,items});if(tc.trees.length)out.trees=tc.trees;
+  {const X=NPX(),np={};for(const [id,p] of Object.entries((local&&local.npcs)||{})){const c=X&&X.MOVABLE[id]?X.clean(p):null;if(c)np[id]=c;}if(Object.keys(np).length)out.npcs=np;}   // Developer Tools > NPCs
   const names=Object.fromEntries(Object.entries((local&&local.names)||{}).filter(([id,n])=>ID.test(id)&&typeof n==='string'&&n.trim()).map(([id,n])=>[id,n.trim().slice(0,60)]));if(Object.keys(names).length)out.names=names;
   if(note)out.note=String(note).slice(0,500);
   return out;
  }
- const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length));
+ const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length));
  /* Edits in the drafts that the game cannot apply live (draft play and publishing alike), in plain words. */
  function notApplied({studio,local,givers,items}={}){
   const out=[];
@@ -514,6 +532,6 @@
   return acts;
  }
  const api={NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
-  treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
+  waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -94,8 +94,11 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs']):
         return ['The content record has an unknown shape.']
+    if content.get('npcs') is not None:
+        for p in npc_problems(content['npcs'], inv or _json('void_runner_admin_inventory.json')):
+            err(p)
     if content.get('format') != FORMAT or content.get('version') != 1 or type(content.get('version')) is not int:
         err('Unknown content format or version.')
     if len(json.dumps(content).encode('utf-8')) > MAX_BYTES:
@@ -266,6 +269,162 @@ VIA = ['talk', 'comms', 'messages']
 STORY_FLAG = re.compile(r'^[a-zA-Z][\w-]{0,63}$')
 
 
+# ---- NPC placements (Developer Tools > NPCs) and "Giver waits at": the same rules as void-runner/npc-paths.js, from the admin inventory (npcPaths) ----
+def _num(v):
+    return type(v) in (int, float) and v == v and abs(v) != float('inf')
+
+
+def _movable(inv):
+    return ((inv or {}).get('npcPaths') or {}).get('movable') or {}
+
+
+def spot_problems(npc, p, inv):
+    mv = _movable(inv).get(npc)
+    if not mv:
+        return ['This NPC cannot be moved by the editor yet.']
+    if not isinstance(p, dict) or not _num(p.get('x')) or not _num(p.get('z')) or abs(p['x']) > 400 or abs(p['z']) > 400:
+        return ['The spot has no position.']
+    out, a = [], mv['area']
+    if not (a['x0'] <= p['x'] <= a['x1'] and a['z0'] <= p['z'] <= a['z1']):
+        out.append('That is off the pavement this NPC can walk on.')
+    for (px, pz) in mv.get('posts') or []:
+        if ((p['x'] - px) ** 2 + (p['z'] - pz) ** 2) ** .5 < mv['post']:
+            out.append('That is on a taxi post.')
+    m = mv.get('clear', .3)
+    for (x0, x1, z0, z1) in mv.get('obstacles') or []:
+        if x0 - m < p['x'] < x1 + m and z0 - m < p['z'] < z1 + m:
+            out.append('That is in street furniture standing on the pavement.')
+            break
+    if p.get('yaw') is not None and not _num(p.get('yaw')):
+        out.append('The facing is not a number.')
+    return out
+
+
+def _leg_problems(mv, a, b):
+    m = mv.get('clear', .3) - .1
+    for (x0, x1, z0, z1) in mv.get('obstacles') or []:
+        for k in range(21):
+            t = k / 20
+            x, z = a['x'] + (b['x'] - a['x']) * t, a['z'] + (b['z'] - a['z']) * t
+            if x0 - m < x < x1 + m and z0 - m < z < z1 + m:
+                return ['the walk to the next point goes through street furniture.']
+    for (sx, sz) in mv.get('posts') or []:
+        dx, dz = b['x'] - a['x'], b['z'] - a['z']
+        L = dx * dx + dz * dz
+        t = max(0.0, min(1.0, ((sx - a['x']) * dx + (sz - a['z']) * dz) / L)) if L else 0.0
+        if ((a['x'] + dx * t - sx) ** 2 + (a['z'] + dz * t - sz) ** 2) ** .5 < mv['post'] - .15:
+            return ['the walk to the next point goes through a taxi post.']
+    return []
+
+
+def _ledge_at(mv, p):
+    return any(abs(p['x'] - l['x']) <= l['w'] / 2 + .3 and p['z'] >= l['front'] - 1 for l in mv.get('ledges') or [])
+
+
+def wait_at_problems(giver, w, inv):
+    if w is None:
+        return []
+    if not _movable(inv).get(giver):
+        return ['"Giver waits at" works only for a giver the editor can move (Reverie or Lace).']
+    if not _keys(w, ['x', 'z', 'yaw']):
+        return ['"Giver waits at" has unknown fields.']
+    return spot_problems(giver, w, inv)
+
+
+def npc_problems(npcs, inv):
+    """content.npcs {id: {mode: 'stay'|'path'|'original', ...}}: only movable NPCs, spots on their pavement, actions from their own allowed list (no banned clip)."""
+    if not isinstance(npcs, dict) or len(npcs) > 20:
+        return ['NPC placements have an unknown shape.']
+    out = []
+    for npc, p in npcs.items():
+        mv = _movable(inv).get(npc)
+        if not mv:
+            out.append(str(npc) + ': this NPC cannot be moved by the editor yet.')
+            continue
+        w = mv['name'] + ': '
+        if not isinstance(p, dict) or p.get('mode') not in ('stay', 'path', 'original'):
+            out.append(w + 'unknown kind of placement.')
+            continue
+        anims = p.get('anims')
+        if anims is not None and (not isinstance(anims, list) or len(anims) > 8 or any(a not in (mv.get('anims') or []) for a in anims)):
+            out.append(w + 'an added animation is not allowed for this NPC.')
+        ok = set(mv.get('actions') or []) | set(anims if isinstance(anims, list) else [])
+        path_only = set(mv.get('pathOnly') or [])
+        if p['mode'] == 'original':
+            if not _keys(p, ['mode', 'anims']):
+                out.append(w + 'unknown fields.')
+            continue
+        if p['mode'] == 'stay':
+            if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims']):
+                out.append(w + 'the stay has unknown fields.')
+                continue
+            out += [w + x for x in spot_problems(npc, p, inv)]
+            acts = p.get('actions')
+            if not isinstance(acts, list) or not 1 <= len(acts) <= 6:
+                out.append(w + 'a stay needs 1 to 6 actions.')
+            else:
+                for a in acts:
+                    if a not in ok or a in path_only:
+                        out.append(w + 'an action is not something she can do here.')
+                    elif a == 'sit' and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p):
+                        out.append(w + '"Sit" needs a ledge.')
+            continue
+        if not _keys(p, ['mode', 'points', 'anims']):
+            out.append(w + 'the path has unknown fields.')
+            continue
+        pts = p.get('points')
+        if not isinstance(pts, list) or not 2 <= len(pts) <= 12:
+            out.append(w + 'a path needs 2 to 12 points.')
+            continue
+        for i, q in enumerate(pts):
+            pw = w + 'point %d: ' % (i + 1)
+            if not _keys(q, ['x', 'z', 'action', 'seconds']):
+                out.append(pw + 'unknown fields.')
+                continue
+            out += [pw + x for x in spot_problems(npc, q, inv)]
+            if q.get('action') not in ok:
+                out.append(pw + 'not something she can do.')
+            elif q['action'] == 'sit' and _num(q.get('x')) and _num(q.get('z')) and not _ledge_at(mv, q):
+                out.append(pw + '"Sit" needs a ledge.')
+            if q.get('action') != 'walk-on' and not (type(q.get('seconds')) is int and 1 <= q['seconds'] <= 120):
+                out.append(pw + 'how long: 1 to 120 seconds.')
+            n = pts[(i + 1) % len(pts)]
+            if isinstance(n, dict) and all(_num(v) for v in (q.get('x'), q.get('z'), n.get('x'), n.get('z'))):
+                out += [pw + x for x in _leg_problems(mv, q, n)]
+        if all(isinstance(q, dict) and q.get('action') == 'walk-on' for q in pts):
+            out.append(w + 'at least one point needs something to do.')
+    return out
+
+
+def import_package_problems(pkg, inv=None):
+    """An "Add to the game" package from Developer Tools > NPCs > Import model (handed to Claude/Codex; never published by itself): the caps (one place:
+    npc-paths.js IMPORT, copied into the admin inventory) and the licence questions that must be answered before anyone commits the model."""
+    cap = ((inv or _json('void_runner_admin_inventory.json')).get('npcPaths') or {}).get('import') or {}
+    out = []
+    if not isinstance(pkg, dict) or pkg.get('format') != 'darknet-district-npc-import':
+        return ['This is not an NPC import package.']
+    m = pkg.get('model') or {}
+    tri, size = m.get('triangles'), m.get('bytes')
+    if type(tri) is not int or tri < 0:
+        out.append('The package does not say how many triangles the model has.')
+    elif tri > cap.get('maxTriangles', 50000):
+        out.append('This model has %d triangles; the limit is %d.' % (tri, cap.get('maxTriangles', 50000)))
+    if type(size) is not int or size < 0:
+        out.append('The package does not say how big the file is.')
+    elif size > cap.get('maxBytes', 15 * 1024 * 1024):
+        out.append('The file is over the size limit.')
+    lic = pkg.get('licence') or {}
+    if not _plain(lic.get('source'), 300):
+        out.append('Where the model is from is missing.')
+    if not _plain(lic.get('type'), 120):
+        out.append('The licence type is missing.')
+    if lic.get('noAI') not in (True, False):
+        out.append('"No AI licence?" must be answered yes or no.')
+    if not _plain(pkg.get('name'), 60):
+        out.append('The model needs a name.')
+    return out
+
+
 def start_problems(st, givers, places, mission_ids):
     """How a mission starts: in person (the giver offers it) or by notification (channel, sender, header, text, trigger). Same rules as mission-content.js checkStart()."""
     if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept']) or st.get('how') not in HOW:
@@ -396,10 +555,13 @@ def check_trees(trees, inv, err):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
+            if m.get('waitAt') is not None:
+                for p in wait_at_problems(m.get('giver'), m['waitAt'], inv):
+                    err(w + ': ' + p)
             if not isinstance(m.get('id'), str) or not (DRAFT.match(m['id']) or STORY_MISSION.match(m['id'])) or m['id'] in mids:
                 err(w + ': a new mission id must start with draft- and be unique.')
             num = m.get('number')
@@ -628,7 +790,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs')):
         raise DraftError('There is nothing to publish.', 422)
     note = (content.get('note') or '')[:200]
     return _commit(db, uid, expected, 'publish', lambda tx, live, history: (content, None), note)
