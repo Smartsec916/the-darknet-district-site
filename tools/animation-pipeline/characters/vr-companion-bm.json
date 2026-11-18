@@ -121,8 +121,15 @@
   "sit-relax",
   "sit-wave",
   "shrug",
-  "recline"
+  "recline",
+  "dance-hiphop",
+  "dance-hiphop-2",
+  "dance-hiphop-3",
+  "dance-groove",
+  "dance-bass",
+  "dance-samba"
  ],
+ "addedClips": "18 Nov 2026 (Milked studio 3): the six men's dances were added to the shipped file afterwards by retarget_world.py (world-space retarget on this machine, never through Meshy or any AI tool: CGTrader No AI licence): dance-samba from vr-companion-m.glb; the other five from Meshy library motions played on Auburn's own Meshy rig (npc-milked-auburn, the owner's model). The same pass holds LeftToeBase/RightToeBase at rest in every clip (the first build left the toes curled about 90 degrees).",
  "cutoutMaterials": [
   "Eyelash_M"
  ]

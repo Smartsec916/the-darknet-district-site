@@ -280,6 +280,13 @@ Pictures in `docs/development/milked/` (Medium quality, about 900 px wide). **"b
 - **Studio 2's dancer** plays a floor routine from the shared animation library and has her back to the window for part of it; the clip was not changed.
 - The orchid, the lantern, the desk bell and most plush toys are simple shapes.
 
+## Studios 3 and 4: a rotation of dances (18 Nov 2026)
+
+The owner: "The new girl in studio 4 needs more dance animations, the male in 3 isn't doing much and his feet look distorted", then "I like the black dress, but she just swaying a little" (dress and lighting unchanged). Dex (studio 3) had played `hips`, a women's standing hip-shift pose, with the build's fake sway on top, and every clip of his file curled his toes up about 90 degrees. Now `milked.js` gives studios 3 and 4 a `dances` list and `danceTurn` (one shuffled order per dancer, 20-40 s per dance, never the same twice running); `milked-build.js` plays only the dances the loaded file has and crowd.js cross-fades them.
+
+- **Dex:** `dance-hiphop`, `dance-hiphop-2`, `dance-hiphop-3`, `dance-groove`, `dance-bass` (Meshy library motions played on Auburn's rig, retargeted onto Dex locally with `tools/animation-pipeline/retarget_world.py`; Dex never sent to Meshy or any AI tool), `dance-samba` (Kai's old figure), his own `dance`. Toes held at rest in every clip. Private repo file `vr-companion-bm.vrpak` (branch `claude/studio-dances` there).
+- **Auburn:** `dance-allnight`, `dance-shake`, `dance-lovepop`, `dance-denim`, `dance-omg` (Meshy library, her own rig). `npc-milked-auburn.glb` 5.31 MB.
+
 ## What is not done or not verified
 
 - **Not pushed, no PR, not merged.** The fourth pass is one local commit on `claude/milked-surfaces` (the third pass merged as build milked-3).
