@@ -192,7 +192,7 @@
   // the overlook: a glass rail on the east edge, a sign
   {const r=T.PROPS.find(p=>p[0]==='overlook-rail')[1];rbox(r,0,1.1,M('rail','#10333f','#124452',.7,.35));rbox([r[0]-.05,r[1]+.05,r[2],r[3]],1.1,1.2,metal);sign(2.4,.5,41.2,1.9,-20,TOW,256,56,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle='#ffb347';g.shadowColor='#ffb347';g.shadowBlur=8;g.font='bold 24px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('THE CITY BELOW',w/2,h/2);});pool('#ffb347',40,-20,6,8,.3,.04);}
   // parapet round the plateau
-  for(const r of T.PARAPET){rbox(r,0,1.2,stone);}
+  if(root.VoidTempleWall?.build)root.VoidTempleWall.build({scene,parent:node,quality,own,mats:{layer,trim,dark}});else for(const r of T.PARAPET){rbox(r,0,1.2,stone);}   // the monastery wall at the edge (temple-wall.js, 18 Nov 2026); the old parapet if it is missing
   // stone path
   {const pm=M('path','#222c33','#0b1013',.5);box(6,.04,31,0,.025,-21.5,pm);box(40,.04,24,0,.02,-18,M('court','#1b242a','#090d10',.4));}
   // the taxi stop where the hill road ends: a parked road cab, a sign, a pool of light (the sky-cab ring is gone: sky cabs were scrapped, 16 Nov 2026)

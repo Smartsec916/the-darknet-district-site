@@ -6,6 +6,12 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 18 Nov 2026 (newest): TEMPLE MONASTERY WALL AT THE EDGE (branch `claude/temple-wall`, build `2026-11-18-temple-wall-1`, pushed, NO PR, not merged)
+
+- **The owner:** "a Buddhist monastery style wall around the outside of the Temple area, cyberpunk style but matching the Temple ... right at the dropoff on the edge, not very high, just taller than the player". New file `void-runner/temple-wall.js` (pure layout + 3D build), loaded after `temple.js`; one hook line in `temple-build.js` where the parapet was drawn (falls back to the parapet if the file is missing). 2.3 m tall, outer face 0.35 m inside the drop; battered base, the hall's printed concrete, a dark maroon band with gilt bosses, tiled coping, prayer-wheel and glyph niches, a few warm lanterns, stupa finials on corners and gate piers, saffron cloth only at the gate and the overlook.
+- **Openings:** a gatehouse behind the taxi stop (road bay + walkers' bay behind the EAST GATE sign, road and path running down the hill) and a 1 m-sill window at the overlook so the city view is kept. Collision: the wall's segments replace the parapet's solids through a wrap of `VoidTemple.layout()` in its own file; every interaction is still reachable (unit + browser tested). Not drawn on the V1 map yet.
+- **Cost:** 8 merged meshes, no real lights; Low plain colours. Measured in the browser test (software GL): Low +6-7 draw calls, Medium +12-14 (drawn in two passes there); frame time within noise. Tests: `tests/temple-wall.test.cjs`, `tests/temple-browser.cjs` (new wall section; `NO_WALL=1` for before numbers, `VIEW=1366x768`). Screenshots: `docs/development/temple-wall/`. Details: [`TEMPLE.md`](TEMPLE.md).
+
 ### 18 Nov 2026 (newest): ZEN ZEPHYR SPEAKS — THE OWNER'S APPROVED, VOICED SCRIPT; TEMPLE CHANT (branch `claude/zen-zephyr-voice`, build `2026-11-18-zen-voice-1`, pushed, NO PR, not merged)
 
 - **The placeholder keyword chat and its typed panel are gone.** Zen Zephyr says the owner's own script (APPROVED 18 Nov 2026: greeting, five topics with 80 quotes, the follow-up line), recorded with ElevenLabs "Sigma Centauri - AI Robot" (`bAq8AI9QURijOtmeFFqT`, eleven_v4, the owner's choice), in the ordinary conversation window: a greeting from about 14 m as the player walks up the hall (once per visit, in his sight), then the five choices (label — subtitle); a random quote of the chosen topic, the follow-up, the choices again and **Yes** to leave. Details: `docs/development/TEMPLE.md` (top update).
