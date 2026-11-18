@@ -6,6 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 18 Nov 2026 (newest): DISTRICT STAFF AFTER COMING BACK IN; ADMIN GOES STRAIGHT ON TO MISSION 003 (branch `claude/district-npc-fix`, build `2026-11-18-district-fix-1`, pushed, NO PR, not merged)
+
+The owner: "After going the camera mission I returned to The Darknet District. Iris and the bartender are both block NPCs, Admin is the old model now" and "After saying \"I might have more work for you\" he didn't continue with the next line for the next mission".
+
+- **Block figures / old Admin (cause):** `character-assembler.js ensureLook` kept each finished download's promise for the whole page. Every change of place releases the models (`VoidAssets.release`), so on coming back into the interior the kept promise said "loaded" while the model was gone: every retry failed, Admin stayed on his creator look, Iris and Nyx on their stand-ins until a reload. Any interior → street → interior trip did it (the camera mission is just the first time players leave). **Fix:** a finished look whose model has been released is loaded again. Unrelated to `npc-device.js` and to the arms-out pose glitch.
+- **Mission 003 straight after 002 (cause):** `mission-content.js treeEvent` ended the conversation when Admin's closing line completed 002; 003's offer only came on the next talk. **Fix:** when a talk completes a mission with a closing line and the tree's next mission is offered in person (ACCEPT / NOT NOW) by the same person, its offer (the shipped lines only, nothing new) follows in the same window. NOT NOW: the next talk offers it again. Players who already finished 002 get the offer by talking to Admin (unchanged rule, now tested). Mission 001 (its introduction is still the placeholder, so nothing is said) is unchanged.
+- Tests: `tests/character-assembler-reload.test.cjs`, a new case in `tests/eyes-on-the-street.test.cjs`; browser `tests/district-reentry-browser.cjs` (interior, Old Town street, back in: Admin, Iris and Nyx on their own models both times; failed before the fix with Admin and Iris on their creator looks and Nyx on her stand-in). Screenshots `docs/development/district-reentry/`.
+- Not verified: the live site's exact sequence (the camera mission played through by hand); 003's offer in the browser (unit-tested only).
+
 ### 18 Nov 2026 (newest): PLAYERS SEE EACH OTHER'S DEVICE IN MULTIPLAYER (branch `claude/mp-device-visible`, build `2026-11-18-mp-device-1`, pushed, NO PR, not merged)
 
 The owner: in multiplayer, players see each other using their device, styled by the device they carry. Built on `npc-device.js` (the NPC hologram, no duplicate code).

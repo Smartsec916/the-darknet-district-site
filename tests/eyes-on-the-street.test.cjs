@@ -212,3 +212,18 @@ test('the game page loads the new files in order',()=>{
  assert.ok(i('conversation-ui.js')<i('talk-choice.js')&&i('talk-choice.js')<i('main-story.js')&&i('places.js')<i('mission-givers.js')&&i('live-content.js')<i('mission-guide.js')&&i('ncz-quarters.js')<i('places.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);
 });
+test('straight on to Mission 003: Admin\'s "I might have more work for you" is followed in the same conversation by the Corporate Connections offer (ACCEPT / NOT NOW); a save that already finished 002 gets the offer by talking to Admin',()=>{
+ const x=env(),s=accepted(x);place(x,s,'null');ev(x,s,{type:'photo',subjects:['juno-vex','halden-reyes']});ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],['halden-reyes',true]],[ID+'/photograph'])});
+ const C3='m003-corporate-connections',r=talk(x,s,'admin');
+ assert.equal(r.mission,ID,'the completion is still reported for 002');assert.equal(r.completed,true);assert.equal(r.reward,100);
+ assert.deepEqual(r.lines.map(l=>l.text),['Not bad. You can follow instructions and keep a low profile. I might have more work for you.',...x.MS.CORPORATE.offer.map(l=>l.text)],'the completion line, then 003\'s offer, only shipped lines');
+ assert.ok(r.lines.every(l=>l.who==='Admin'));assert.deepEqual(r.ask,{mission:C3,title:'Corporate Connections',accept:'ACCEPT',decline:'NOT NOW'});assert.equal(s.universe.missions[C3],undefined,'nothing taken before ACCEPT');
+ // NOT NOW: the next conversation offers it again; ACCEPT takes it
+ ev(x,s,{type:'decline',mission:C3});const again=talk(x,s,'admin');assert.equal(again.ask.mission,C3);assert.equal(again.reward,0);assert.deepEqual(again.lines.map(l=>l.text),x.MS.CORPORATE.offer.map(l=>l.text));
+ const acc=ev(x,s,{type:'accept',mission:C3});assert.equal(acc.offered,true);assert.equal(s.universe.missions[C3].acquired,true);assert.equal(s.universe.trackedMission,C3);
+ // an existing save that finished 002 before this change (no offer was ever shown): talking to Admin offers 003
+ const old=x.C.restore(JSON.stringify((()=>{const t=accepted(x);place(x,t,'null');ev(x,t,{type:'photo',subjects:['juno-vex','halden-reyes']});ev(x,t,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],['halden-reyes',true]],[ID+'/photograph'])});talk(x,t,'admin');ev(x,t,{type:'decline',mission:C3});return t;})()));
+ assert.equal(old.universe.missions[ID].completed,true);assert.equal(x.MC.treeWants(old,x.e,['admin']),true,'Admin still has something for this player');const o=talk(x,old,'admin');assert.equal(o.ask.mission,C3);assert.equal(o.lines[0].text,x.MS.CORPORATE.offer[0].text);
+ // Iris completing nothing never offers Admin's mission
+ assert.equal(talk(x,old,'iris').ask,undefined);
+});

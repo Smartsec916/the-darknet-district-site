@@ -291,6 +291,13 @@
   const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear')return;const ls=speak(o.say);
    if(ls.length){out.lines.push(...ls);out.hear={mission:m.id,step:o.id};}else if(out.lines.length)out.hear={mission:m.id,step:o.id};   // the talk step's own lines are the introduction: done when they close
    else if(step(t,m,o))auto(t,m);};
+  /* Straight on (the owner, 18 Nov 2026: after Admin's "I might have more work for you" he expected the next mission's offer): when talking to someone completes a mission and the
+     tree's next mission is offered in person, with ACCEPT / NOT NOW, by someone in this same conversation, its offer follows in the same window. Nothing is taken until ACCEPT
+     (out.ask; out.mission stays the completed one, so its MISSION COMPLETE notice and reward are reported as before). NOT NOW: the next conversation offers it again. */
+  const chain=(t,m)=>{if(ev.type!=='talk'||!out.completed||out.hear||out.ask||!out.lines.length)return;   /* only after a line that closes the mission (Mission 001's unwritten introduction says nothing, so it stays as it was) */
+   const n=t.missions[t.missions.indexOf(m)+1];if(!n||!(n.start&&n.start.how!=='notification'&&n.start.accept===true))return;
+   const r=s.universe.missions&&s.universe.missions[n.id];if(r&&(r.acquired||r.completed))return;if(!startsNow(n)||!Missions.available(s,n.id))return;const ls=speak(n.offer);if(!ls.length)return;
+   out.ask={mission:n.id,title:titleOf(n),accept:'ACCEPT',decline:'NOT NOW'};out.next=n.id;out.lines.push(...ls);};
   for(const t of env.trees){if(!open(t))continue;
    for(const m of t.missions){
     const rec=s.universe.missions&&s.universe.missions[m.id];
@@ -313,11 +320,11 @@
      if(ev.type==='heard'&&next.kind==='hear'&&(!ev.mission||ev.mission===m.id)){if(step(t,m,next))auto(t,m);return out;}
      if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation
      if(AUTO.includes(next.kind)){auto(t,m);if(out.done.length)return out;}
-     if(hit(next,m)){if(!step(t,m,next))break;auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);return out;}
+     if(hit(next,m)){if(!step(t,m,next))break;auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);chain(t,m);return out;}
      const later=ev.type==='talk'&&m.objectives.find(o=>rec.objectives[o.id]!==true&&o!==next&&hit(o,m)&&(o.early||[]).length);
      if(later){Object.assign(out,{tree:t.id,mission:m.id,early:speak(later.early)});return out;}
      break;}
-    if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');return out;}
+    if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');chain(t,m);return out;}
     break;}}
   return out;
  }
