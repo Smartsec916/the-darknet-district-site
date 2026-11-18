@@ -105,12 +105,41 @@
   if(r<.75)return {sub:'device',clip:pick(rnd,['idle','idle-shift']),device:'scroll',left:between(rnd,st.device)};
   if(r<.88)return {sub:'selfie',clip:'idle',device:'selfie',left:between(rnd,st.selfie)};
   return {sub:'shrug',clip:CLIPS.shrug,left:between(rnd,st.shrug)};}
+ /* THE EDITOR'S PLAN (Developer Tools > NPCs and a mission's "Giver waits at", npc-paths.js planNow): ctx.plan {key, mode:'stay', x, z, yaw, actions} or {key, mode:'path',
+    points:[{x, z, action, seconds}]}. She walks there (mode plan-go), does the action (plan-do: a clip, a V1 pose, or the ledge's sit through the usual sit-down / sit /
+    stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her
+    stretch on foot (never a jump). ACT: an action id -> {clip, device, sit}. */
+ const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'walk-on':{clip:'walk',pass:true}};
+ const actOf=a=>ACT[a]||{clip:a};
+ const FREE=new Set(['walk','run','pause','stop']),PLAN=new Set(['plan-go','plan-do']);
+ function planTarget(s,P){if(P.mode==='stay')return P;const n=P.points.length;s.pi=((s.pi||0)%n+n)%n;return P.points[s.pi];}
+ function ledgeNear(t){for(const st of STEPS)if(Math.abs(t.x-st.x)<=st.w/2+.3&&t.z>=frontOf(st)-1)return st;return null;}
+ function planNext(s,P){if(P.mode==='path')s.pi=((s.pi||0)+1)%P.points.length;}
+ function planDo(s,P,rnd,cfg){const t=planTarget(s,P),a=P.mode==='stay'?pick(rnd,P.actions&&P.actions.length?P.actions:['idle']):t.action,A=actOf(a);s.pact=a;
+  if(A.sit){const st=ledgeNear(t);if(st){s.step=st;s.mode='to-step';s.psit=true;s.psec=P.mode==='path'?t.seconds:null;s.psecSet=false;s.device=null;s.face=null;return;}}
+  if(A.pass){planNext(s,P);s.mode='plan-go';return;}
+  s.mode='plan-do';s.clip=A.clip;s.device=A.device||null;s.face=null;s.sub=null;const st=cfg.stop;
+  s.left=P.mode==='path'?Math.max(1,t.seconds||5):between(rnd,a==='scroll'?st.device:a==='selfie'?st.selfie:/^dance/.test(a)?st.dance:/^(talk|gesture)/.test(a)?st.talk:a==='shrug'?st.shrug:a==='look'||a==='watch'?st.look:st.idle);}
+ function planStep(s,dt,rnd,cfg,P){
+  if(s.planKey!==P.key){s.planKey=P.key;s.pi=0;s.psit=false;if(PLAN.has(s.mode)||FREE.has(s.mode)){s.mode='plan-go';s.device=null;s.sub=null;}}
+  if(s.psit&&s.mode==='walk'){s.psit=false;planNext(s,P);s.mode='plan-go';}   // back on her feet after sitting at a point
+  if(FREE.has(s.mode)&&s.sub!=='chat')s.mode='plan-go';
+  if(s.mode==='plan-go'){const t=planTarget(s,P),v=cfg.speed*dt,dx=t.x-s.x,dz=t.z-s.z,d=Math.hypot(dx,dz);s.clip='walk';s.device=null;s.face=null;s.once=false;
+   if(d<=v+.02){s.x=t.x;s.z=t.z;planDo(s,P,rnd,cfg);}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return true;}
+  if(s.mode==='plan-do'){s.left-=dt;s.once=false;const want=P.mode==='stay'&&Number.isFinite(P.yaw)?P.yaw:s.yaw,dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*3);
+   if(s.left<=0){if(P.mode==='path'){planNext(s,P);s.mode='plan-go';}else planDo(s,P,rnd,cfg);}return true;}
+  if(s.mode==='sit'&&s.psec&&!s.psecSet){s.left=Math.max(2,s.psec);s.psecSet=true;}   // a path point's seconds of sitting
+  return false;}   // sitting at a point, or held for a conversation: the ordinary steps below
  function routineStep(s,dt,rnd=Math.random,cfg=config,ctx={}){
+  if(ctx.plan&&planStep(s,dt,rnd,cfg,ctx.plan))return s;
+  if(!ctx.plan&&(PLAN.has(s.mode)||s.planKey)){s.planKey=null;s.psit=false;if(PLAN.has(s.mode)){s.mode='walk';s.clip='walk';s.device=null;s.left=between(rnd,cfg.walk);}}
   s.left-=dt;s.once=false;
-  const clampEnds=()=>{if(s.x>STRETCH.x1||s.x<STRETCH.x0){s.x=Math.max(STRETCH.x0,Math.min(STRETCH.x1,s.x));s.dir*=-1;return true;}return false;};
+  // off her stretch (the editor's plan took her elsewhere): she walks back to it rather than being put back
+  const clampEnds=()=>{if(s.x>STRETCH.x1+.6||s.x>STRETCH.x1&&s.dir<0){s.dir=-1;return false;}if(s.x<STRETCH.x0-.6||s.x<STRETCH.x0&&s.dir>0){s.dir=1;return false;}if(s.x>STRETCH.x1||s.x<STRETCH.x0){s.x=Math.max(STRETCH.x0,Math.min(STRETCH.x1,s.x));s.dir*=-1;return true;}return false;};
   const toWalk=()=>{s.mode='walk';s.clip='walk';s.device=null;s.face=null;s.sub=null;s.left=between(rnd,cfg.walk);};
   if(s.mode==='walk'||s.mode==='run'){const run=s.mode==='run',v=(run?cfg.run:cfg.speed)*dt;s.x+=s.dir*v;s.z+=(STRETCH.z-s.z)*Math.min(1,dt*2);s.yaw=s.dir>0?Math.PI/2:-Math.PI/2;s.clip=run?'run':'walk';s.device=null;s.face=null;
    if(clampEnds()){if(run)toWalk();else if(rnd()<cfg.pauseShare){s.mode='pause';s.left=between(rnd,cfg.pause);s.clip=pick(rnd,CLIPS.look);}return s;}
+   if(s.left<=0&&(s.x>STRETCH.x1+.6||s.x<STRETCH.x0-.6)){s.left=2;return s;}   // still walking back to her stretch
    if(s.left<=0){if(run){toWalk();return s;}
     const r=rnd(),n=cfg.next;
     if(r<n.sit){s.step=chooseStep(s,rnd,cfg);s.mode='to-step';}
@@ -152,7 +181,7 @@
  const canLook=s=>!!s&&s.mode!=='run'&&s.sub!=='dance'&&!s.device;
  // Older names (the first version had only Lace walking).
  const laceStart=(rnd=Math.random,cfg=config)=>routineStart(PAIR[1],rnd,cfg),laceStep=routineStep;
- const api={PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,lookAt,canLook,GREETING,TALK_ACTION,talkId};
+ const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,lookAt,canLook,GREETING,TALK_ACTION,talkId};
  if(typeof module==='object'&&module.exports){module.exports=api;return;}
 
  /* start({B, scene, parent, quality, player, now}) -> {tick(dt), stats(), dispose()}. The figures and the cat appear when their files have loaded. */
@@ -180,11 +209,16 @@
   function arrive(p){const node=assets?.instance?.('crowd:'+p.asset,parent);if(!node)return;node.metadata={...node.metadata,character:p.id,streetPair:p.id,displayName:p.name};
    for(const m of node.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
    her={p,node,anim:null,s:routineStart(p,rnd,cfg),clip:null};lit(node);
+   {const P=planOf(p.id),t=P&&(P.mode==='stay'?P:P.points[0]);if(t){her.s.x=t.x;her.s.z=t.z;}}   // the editor's plan: she is already at its spot when she comes out
+   // animations added in the editor (Developer Tools > NPCs > Add animation; the shared library, anim-library.js; only clips allowed for her)
+   {const an=root.VoidStreetPair?.animsFor?.(p.id)||[];if(an.length&&root.VoidNPCPaths?.applyAnims)root.VoidNPCPaths.applyAnims(node,p.asset,an).catch(()=>{});}
    her.anim=root.VoidCrowd?.animate?.(node,p.asset,'walk')||null;her.clip='walk';node.position.set(her.s.x,PAVE,her.s.z);
    for(const g of node.metadata?.animationGroups||[])g.blendingSpeed=cfg.blend;   // a slower cross-fade than the crowd's (about 0.4 s)
    // her V1 (npc-device.js): its own scheduler gives the walking glances; the routine forces a scroll, a selfie or a photo of the cat when she stops
    try{root.VoidNPCDevice?.enlist?.(node,{kind:'walker',state:()=>({moving:her?.s?.mode==='walk'||her?.s?.mode==='run',can:her?.s?.mode==='walk'||her?.s?.mode==='sit'}),
     force:()=>her?.node===node?her.s.device:null,target:()=>cat&&her?.s?.device==='photo'?new B.Vector3(cat.x,PAVE+.15,cat.z):null});}catch{}}
+  // the editor's plan for her (live-content.js sets VoidStreetPair.planFor: a mission's "Giver waits at" while it waits for her, else Developer Tools > NPCs)
+  const planOf=id=>{try{return root.VoidStreetPair?.planFor?.(id)||null;}catch{return null;}};
   const SITTING=new Set(['sit','settle','sit-down','stand-up']),MOVING=new Set(['walk','run','to-step','step-off']);
   function herNow(){if(!her?.node)return null;const n=her.node.position;return {x:n.x,z:n.z,sitting:SITTING.has(her.s.mode),moving:MOVING.has(her.s.mode)};}
   // ---- her TALK TO prompt: one interaction per woman, made once; its position follows her figure (mutated in place: no allocation per frame) ----
@@ -201,13 +235,13 @@
   // from her prompt (her prompt was the one selected when it opened; latched until it closes, so walking about during it changes nothing)
   const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatHer=null;
   function chatting(){if(!convo()){chatSeen=false;chatHer=null;return false;}if(!chatSeen){chatSeen=true;chatHer=her&&typeof walkTarget!=='undefined'&&walkTarget===talkItems[her.p.id]?her.p.id:null;}return !!her&&chatHer===her.p.id;}
-  const HOLD=new Set(['walk','run','pause','stop','to-step']),SEATED=new Set(['sit','sit-down','settle']);
+  const HOLD=new Set(['walk','run','pause','stop','to-step','plan-go','plan-do']),SEATED=new Set(['sit','sit-down','settle']);
   function hold(s,me){if(SEATED.has(s.mode)){if(s.mode==='sit'){s.left=Math.max(s.left,2);if(s.sub==='wave')s.sub=null;}return;}
    if(!HOLD.has(s.mode))return;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left,1.2);
    if(me){if(!s.face)s.face={x:me.x,z:me.z};else{s.face.x=me.x;s.face.z=me.z;}}}
   function tickHer(dt,c){const want=out();if(her&&(!want||want.id!==her.p.id))leave();if(!her&&want&&has(want.asset))arrive(want);if(!her)return;
    const n=her.node,d=c?Math.hypot(c.x-n.position.x,c.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
-   const me=player(),talking=chatting(),ctx={cat:cat&&!talking?{x:cat.x,z:cat.z}:null,player:me?{x:me.x,z:me.z}:null};
+   const me=player(),talking=chatting(),ctx={cat:cat&&!talking?{x:cat.x,z:cat.z}:null,player:me?{x:me.x,z:me.z}:null,plan:planOf(her.p.id)};
    if(!Number.isFinite(her.s.x+her.s.z+her.s.yaw+(her.s.zo||0))){dbg.nan.her++;her.s=routineStart(her.p,rnd,cfg);}
    if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way
    const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);n.position.set(s.x,PAVE,s.z+(s.zo||0)+her.cz);n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
@@ -290,9 +324,11 @@
   function lit(n){if(!lamp||!n)return;for(const m of n.getChildMeshes(false))if(!lamp.includedOnlyMeshes.includes(m))lamp.includedOnlyMeshes.push(m);lamp.includedOnlyMeshes=lamp.includedOnlyMeshes;}
   function lampTo(){if(!lamp)return;const h=herNow(),c=cat;const x=h?h.x:c?c.x:SEAT.x,z=Math.min(WALL-1.05,(h?h.z:c?c.z:SEAT.z)-1.05);lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
   function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&mode==='walking')ask();const c=cam();tickHer(dt,c);talkSync(dt,!!her&&her.node.isEnabled());tickCat(dt,c);lampTo();}
-  return {tick,stats:()=>({pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{id:her.p.id,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z}:null,cat:cat?{mode:cat.mode,x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null}),
+  const self={tick,stats:()=>({pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{id:her.p.id,plan:her.s.planKey||null,act:her.s.pact||null,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z}:null,cat:cat?{mode:cat.mode,x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null}),
    get her(){return her;},get cat(){return cat;},setClock(fn){now=fn||clockFn;asked=-1;},talkItems,
-   dispose(){disposed=true;talkOff();scene.onBeforeAnimationsObservable.remove(lookBefore);scene.onAfterAnimationsObservable.remove(lookAfter);lookUndo();leave();cat?.node?.dispose?.();cat=null;for(const o of owned)o.dispose?.();}};
+   dispose(){disposed=true;talkOff();scene.onBeforeAnimationsObservable.remove(lookBefore);scene.onAfterAnimationsObservable.remove(lookAfter);lookUndo();leave();cat?.node?.dispose?.();cat=null;for(const o of owned)o.dispose?.();if(root.VoidStreetPair&&root.VoidStreetPair.live===liveFn)root.VoidStreetPair.live=null;}};
+  // the editor's map shows where she is now (Developer Tools)
+  const liveFn=()=>self.stats();if(root.VoidStreetPair)root.VoidStreetPair.live=liveFn;return self;
  }
  root.VoidStreetPair={...api,start,force:null};
  // TALK TO REVERIE / LACE with no mission waiting: her greeting (live-content.js offers a Mission Editor mission first). Name cards for the dialogue window.

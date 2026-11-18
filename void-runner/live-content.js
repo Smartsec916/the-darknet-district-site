@@ -178,5 +178,12 @@
   for(const n of nearWatch){const r=recs[n.mission];if(r&&(r.acquired||r.completed))continue;if(!(n.npc in nearD)||nearD[n.npc]===Infinity)nearD[n.npc]=giverDistance(n.npc,walkingLocation,walker.x,walker.z);if(MC.nearHit(nearD[n.npc],n.metres))hit=true;}
   if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);return r;}catch{return null;}}
  setInterval(nearTick,250);
- root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ // ---------------------------------------------------------------- NPC placements (Developer Tools > NPCs) and "Giver waits at"
+ /* What Reverie and Lace do (ncz-street-pair.js asks every frame; worked out twice a second): a mission's "Giver waits at" while that mission waits to be offered by her,
+    else the placement published or played from Developer Tools > NPCs (content.npcs), else her own routine. */
+ let planCache={},planAt=0;
+ function plans(){const t=Date.now();if(t-planAt<500)return planCache;planAt=t;const X=root.VoidNPCPaths,out={};if(!X)return planCache=out;let wait={};try{if(treesOn())wait=MC.waitingAt(state,env);}catch{}
+  for(const id of Object.keys(X.MOVABLE)){const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
+ if(root.VoidStreetPair){root.VoidStreetPair.planFor=id=>plans()[id]||null;root.VoidStreetPair.animsFor=id=>((env.npcPlans||{})[id]||{}).anims||[];}
+ root.VoidLiveContent={plans,env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);
