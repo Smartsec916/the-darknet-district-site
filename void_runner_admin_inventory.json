@@ -213,6 +213,13 @@
         "draft": false,
         "group": "district"
       },
+      "vr-zane": {
+        "name": "Zane",
+        "canTalk": false,
+        "players": false,
+        "draft": false,
+        "group": "district"
+      },
       "zen-zephyr": {
         "name": "Zen Zephyr",
         "canTalk": true,
@@ -551,7 +558,7 @@
       "follow"
     ]
   },
-  "revision": "7a18b8b29991088b",
+  "revision": "272a37b19089dcc7",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -1833,6 +1840,18 @@
       ],
       "voice": {
         "voice": "am_adam:0.5+am_michael:0.5",
+        "status": "provisional",
+        "profile": "none"
+      }
+    },
+    {
+      "id": "vr-zane",
+      "name": "Zane",
+      "sources": [
+        "tools/audio/npc-voice-registry.json"
+      ],
+      "voice": {
+        "voice": "am_onyx:0.6+am_echo:0.4",
         "status": "provisional",
         "profile": "none"
       }
@@ -8640,6 +8659,492 @@
       "voiceProfile": "warflying-host"
     },
     {
+      "id": "vr-zane-00ba1ad7fb",
+      "character": "vr-zane",
+      "text": "Patience. I like knowing who I'm with.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-03e6ea78a5",
+      "character": "vr-zane",
+      "text": "I hoped you would.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-05318508b0",
+      "character": "vr-zane",
+      "text": "Most people talk to fill the quiet. You don't have to.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-14b9bfdce9",
+      "character": "vr-zane",
+      "text": "The lights below never sleep. Up here, I can.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-1964f18653",
+      "character": "vr-zane",
+      "text": "I wondered how long you would wait.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-200eaa52ee",
+      "character": "vr-zane",
+      "text": "There you are. Come in.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-28b3541f42",
+      "character": "vr-zane",
+      "text": "Look up. That is the only view that never changes.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-387c4e7ccb",
+      "character": "vr-zane",
+      "text": "I kept your place.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-397a8d1a36",
+      "character": "vr-zane",
+      "text": "Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-3c5d6b1365",
+      "character": "vr-zane",
+      "text": "The sofa is wide enough for two.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-3d1ff69390",
+      "character": "vr-zane",
+      "text": "You came. Good.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-3d94bd4649",
+      "character": "vr-zane",
+      "text": "Will you dance? I'll lead.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-3f13716a17",
+      "character": "vr-zane",
+      "text": "I count the drones sometimes. Fewer tonight.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-403044b53a",
+      "character": "vr-zane",
+      "text": "Worth the wait.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-43d5fb8254",
+      "character": "vr-zane",
+      "text": "Rain on the glass. Best sound in the city.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-44a958017e",
+      "character": "vr-zane",
+      "text": "Understood. The offer stays.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-4884415351",
+      "character": "vr-zane",
+      "text": "From up here, the city looks almost honest.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-4ac2f38de2",
+      "character": "vr-zane",
+      "text": "Another time.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-4d28bb1b3e",
+      "character": "vr-zane",
+      "text": "Just us. Forget the room.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-5186fafcdb",
+      "character": "vr-zane",
+      "text": "Slowly, then. Follow me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-57e8c41d14",
+      "character": "vr-zane",
+      "text": "You looked far away. I came to bring you back.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-5a0c6fd212",
+      "character": "vr-zane",
+      "text": "Not yet. Tell me something true first.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-61cd7f9a72",
+      "character": "vr-zane",
+      "text": "You move well. I was watching.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-620d17bb4a",
+      "character": "vr-zane",
+      "text": "Goodnight. I'll be here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-634e89723c",
+      "character": "vr-zane",
+      "text": "Here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-684cb16e6e",
+      "character": "vr-zane",
+      "text": "Warm hands.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-6ac57bfe36",
+      "character": "vr-zane",
+      "text": "Come and sit beside me.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-6c62174921",
+      "character": "vr-zane",
+      "text": "Lie back with me. Just for a minute.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-7218266613",
+      "character": "vr-zane",
+      "text": "You say that like you mean it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-7ab6ae47b3",
+      "character": "vr-zane",
+      "text": "On my way.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-8596bcd084",
+      "character": "vr-zane",
+      "text": "Quiet nights suit you.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-86e03bc66e",
+      "character": "vr-zane",
+      "text": "Sit with me, or ask me for a dance.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-8cb3a60841",
+      "character": "vr-zane",
+      "text": "May I?",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-910e01d2e6",
+      "character": "vr-zane",
+      "text": "I thought you might want company.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-914db2a51c",
+      "character": "vr-zane",
+      "text": "Stay like this a while.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-91d42aacdb",
+      "character": "vr-zane",
+      "text": "Go on. I'm listening.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-9ac53c9fca",
+      "character": "vr-zane",
+      "text": "You're back. I noticed.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-af1b26a9be",
+      "character": "vr-zane",
+      "text": "Dance with me. One song.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-af678c6185",
+      "character": "vr-zane",
+      "text": "You can sit in silence with me. I won't mind.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-c444312316",
+      "character": "vr-zane",
+      "text": "Don't let go yet.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-c4f5554f12",
+      "character": "vr-zane",
+      "text": "You laugh more than you think you do.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-c63dabda2a",
+      "character": "vr-zane",
+      "text": "I heard that. I'll keep it.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-ca8916bac3",
+      "character": "vr-zane",
+      "text": "I could listen to you a long time.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-cb845da158",
+      "character": "vr-zane",
+      "text": "You're trouble. Quiet trouble.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-d08bde5462",
+      "character": "vr-zane",
+      "text": "There. That's better.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-d2bde01180",
+      "character": "vr-zane",
+      "text": "Go carefully out there.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-d741b6792e",
+      "character": "vr-zane",
+      "text": "I'll sit. If you don't mind.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-df4b2ad4dc",
+      "character": "vr-zane",
+      "text": "Say that again, slower.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-e53e29495f",
+      "character": "vr-zane",
+      "text": "Evening. Take your time, there is no hurry here.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-e68ee3a4ad",
+      "character": "vr-zane",
+      "text": "I notice things. It is a habit I never broke.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-eaeba6032d",
+      "character": "vr-zane",
+      "text": "Sit. Stay a while.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-f5e0440209",
+      "character": "vr-zane",
+      "text": "Breathe. Nobody needs you right now.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-f738375c17",
+      "character": "vr-zane",
+      "text": "Closer.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
+      "id": "vr-zane-fa87915573",
+      "character": "vr-zane",
+      "text": "Careful. I remember everything.",
+      "source": "void-runner/vr-companions.js",
+      "kind": "recorded-literal",
+      "provenance": "Voice manifest literal; may be conditional or retained for archived playback. Source references show current code.",
+      "voiceProfile": "vr-zane"
+    },
+    {
       "id": "kai:dialogue.greet.0",
       "character": "kai",
       "text": "Hey. Glad you came up. The city can wait an hour.",
@@ -9090,7 +9595,7 @@
     {
       "id": "zane:dialogue.greet.2",
       "character": "zane",
-      "text": "I saw you on the stairs. Come in.",
+      "text": "There you are. Come in.",
       "source": "void-runner/vr-companions.js",
       "kind": "companion-literal",
       "context": "dialogue.greet.2"
@@ -15592,7 +16097,7 @@
     {
       "source": "void-runner/talk-choice.js",
       "line": 21,
-      "text": "if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&(l.silent||l.unvoiced)){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}",
+      "text": "if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&l.silent){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}",
       "kind": "source-reference"
     },
     {
@@ -15934,7 +16439,7 @@
     {
       "source": "void-runner/vr-companions.js",
       "line": 119,
-      "text": "about:'Composed and observant. Says little, misses nothing.',voice:{characterId:'vr-zane',voiceId:null,pending:true},",
+      "text": "about:'Composed and observant. Says little, misses nothing.',voice:{characterId:'vr-zane',voiceId:null},",
       "kind": "source-reference"
     },
     {
@@ -16089,145 +16594,145 @@
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 48,
-      "text": "function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text,unvoiced:!!comp.who.voice?.pending}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}",
+      "line": 47,
+      "text": "function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 55,
+      "line": 54,
       "text": "if(text)say(comp,text,()=>{},'');else talk('',[{who:'',text:'With '+comp.who.name+'. What would you like to do?'}],()=>{},'');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 56,
+      "line": 55,
       "text": "speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';screen.querySelector('.dialogue-window')?.classList.add('choice-menu','vr-companion-menu');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 59,
+      "line": 58,
       "text": "screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend','<div class=\"vr-choices\" role=\"menu\">'+html+'</div>');focusChoice(0);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 77,
+      "line": 76,
       "text": "function onChoice(e){const a=e.target.closest('button')?.dataset.action;if(!a?.startsWith('vr-choice:')||!choices)return;const f=choices[+a.slice(10)][1];choices=null;speech=null;f();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 92,
+      "line": 91,
       "text": "const L=who.dialogue||{},cfg=C.settings(who),look=who.model,mem={},home=S.home,talks=C.speaks(who),tag=slot?'-'+(slot+1):'',self={who,slot,cfg};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 284,
+      "line": 283,
       "text": "if(i.do==='say'){remark(i.pool);if(i.gesture)gesture(i.gesture);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 302,
+      "line": 301,
       "text": "function reseat(){if(c.youSeat)api.sit({...c.youSeat,text:'You settle back in.'});c.youSeat=null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 313,
+      "line": 312,
       "text": "['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 317,
+      "line": 316,
       "text": "function chat(){say(self,C.pick(L.chat,mem,'chat'),after);gesture(Math.random()<.4?'laugh':'idleAlt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 318,
+      "line": 317,
       "text": "function compliment(){c.affection++;say(self,C.pick(L.compliment,mem,'compliment'),after);gesture(Math.random()<.5?'shy':'laugh');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 319,
+      "line": 318,
       "text": "function flirt(){c.affection++;say(self,C.pick(L.flirt,mem,'flirt'),after);gesture('flirt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 320,
+      "line": 319,
       "text": "function sitTogether(){c.dancing=false;resumeWalking();c.withYou=true;walkTo(...S.sofa.from,sitOnSofa,true);api.sit({...(party2?pairSeat:seats.sofa),text:C.pick(L.sit,mem,'sit')||'You sit down together.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 328,
+      "line": 327,
       "text": "if(!asked)say(self,C.pick(L.dance,mem,'dance'),()=>{resumeWalking();anim.play(c.danceClip);});else resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 330,
+      "line": 329,
       "text": "function recline(){resumeWalking();walkTo(1.95,2.9,()=>{c.reclining=true;c.state='idle';c.faceTo=null;glide({x:.95,y:.5,z:3.35,yaw:-Math.PI/2},.8);c.looping=false;anim.play('recline');remark('recline');},true);api.sit({x:-.35,z:3.1,yaw:Math.PI/2+.25,eye:1.05,text:'You stretch out on the bed. The ceiling glows violet.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 331,
+      "line": 330,
       "text": "function hands(){c.affection++;const near=Math.hypot(walker.x-node.position.x,walker.z-node.position.z);if(!c.sitting&&near>1.3)approach(()=>gesture('interact'));else gesture('interact');say(self,C.pick(L.hands,mem,'hands'),after);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 333,
+      "line": 332,
       "text": "function kiss(){if(!c.sitting&&!c.dancing&&!c.reclining)return say(self,C.pick(L.notNow,mem,'notNow'));if(c.affection<3)return say(self,C.pick(L.notYet,mem,'notYet'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 334,
+      "line": 333,
       "text": "say(self,L.kiss[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 335,
+      "line": 334,
       "text": "function relax(){c.affection++;if(!c.sitting)return sitTogether();say(self,C.pick(L.relax,mem,'relax'),after);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 336,
+      "line": 335,
       "text": "function goodbye(){say(self,C.pick(L.bye,mem,'bye'),()=>{api.exit();},'EXIT VR →');gesture('flirt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 359,
+      "line": 358,
       "text": "greet(){c.greeted=true;gesture('greet');if(talks)say(self,C.pick(L.greet,mem,'greet'));},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 368,
+      "line": 367,
       "text": "return {tick:k.tick,dispose,companions:comps,anim:first.anim,companion:first.node,who:first.who,config:first.cfg,brain:first.brain,attention:first.att,bones:first.bones,state:first.c,act:first.act,overlay:(g,W,H)=>k.overlayFn(g,W,H),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 377,
+      "line": 376,
       "text": "else if(id.startsWith('sit-')||id==='balcony'){const s=seats[id.replace('sit-','')]||seats.balcony;api.sit({...s,text:id==='balcony'?'You lean on the rail. The city hums far below, all neon and rain-haze.':'You sit down. The room is quiet and soft.'});}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 398,
+      "line": 397,
       "text": "{title:'CHOOSE A COMPANION',prompt:'Pick who you would like to meet: one companion alone, or two together where a card says so. You can change your mind by leaving the simulation and choosing again.',",
       "kind": "source-reference"
     },
@@ -16690,7 +17195,7 @@
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/street-gear.js": "2be48f25f050c110c6f1297168d446acd839ad5fe074b0d2a8f7804b11717921",
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
-    "void-runner/talk-choice.js": "c7e88039e316de27cd77276ae5373557905a27fe290ddeaac25d6fb83f3a5d16",
+    "void-runner/talk-choice.js": "a9b14bbfc1a903ef542704de8188f9298517138bff2ff9af46a9ac838e8b65e6",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/temple-build.js": "3aeb4fa76a499963c4ef1e6984ce0d58658b3823d586e350f3eb41ef7f56b814",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
@@ -16706,12 +17211,12 @@
     "void-runner/voice-clips.js": "a607f8c3cc324c480a2dd38c16610e1cae76d7172f7d1db8f9dd53d64e687a3f",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
-    "void-runner/vr-companions.js": "3e0f14c7a5761a9c3e86032e5013d9cfed1f2e1437d55e15bbc581d13099abef",
+    "void-runner/vr-companions.js": "53c7c66befd42195941f0fcadbbd5822462767bb9f29fae62fe19b75fa122fc3",
     "void-runner/vr-core.js": "c364675b2545feb70e5e16813a2a0a9d61dfb98ab0ecf524f29e187a3581a2dd",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "fdf9fd1fea29a2d8683739b3732db6f32c6f2af654838ace9f2741343ea32947",
-    "void-runner/vr-suite.js": "cad68ff16db9bb91f6eaa3470c086bfdc9347d72466e97ba56714fecce58b256",
+    "void-runner/vr-suite.js": "0f67067a27cd96cdd5cb4492cabed87fef7a07937530d06db3e9e2b0079964ca",
     "void-runner/vr-tropical.js": "093635e6848f8b2dea73bc2fb9031e4158ac613363d2e337f1b7a8610175055b",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
@@ -16724,8 +17229,8 @@
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
     "tools/admin-inventory.cjs": "45eac6b3de1edea32b0990606c8cbed066f331277fdbe3945f25d3bf765cdd0b",
-    "tools/audio/npc-voice-registry.json": "aed4240258bba3314fd784ce8acfe4bc0204ed1da43dd4c71b00bb42a01fddef",
-    "void-runner/assets/audio/voice/manifest.json": "be220f919a172ad4122718393d1b92d3726fe44819639c88c0579cf9d224e8ac",
+    "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",
+    "void-runner/assets/audio/voice/manifest.json": "edcb82b66784d955f92d42544495a083408ef7b588f7bf30eb4b8872f35cc166",
     "void-runner/save-manifest.json": "16cefcb17caf8c00260f657fdec1241fb16a2f3f13eaf56bec5bfe28eff0442c"
   },
   "coverage": {

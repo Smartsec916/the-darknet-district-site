@@ -116,6 +116,10 @@
   "police-recruiter": {
    "voice": "am_echo",
    "status": "provisional"
+  },
+  "vr-zane": {
+   "voice": "am_onyx:0.6+am_echo:0.4",
+   "status": "provisional"
   }
  },
  "lines": {
@@ -5270,6 +5274,384 @@
    "file": "warflying-host-f0577d8031.ogg",
    "source": "relay-content.json",
    "configHash": "dba1b040ba69"
+  },
+  "vr-zane-00ba1ad7fb": {
+   "speaker": "vr-zane",
+   "text": "Patience. I like knowing who I'm with.",
+   "file": "vr-zane-00ba1ad7fb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-03e6ea78a5": {
+   "speaker": "vr-zane",
+   "text": "I hoped you would.",
+   "file": "vr-zane-03e6ea78a5.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-05318508b0": {
+   "speaker": "vr-zane",
+   "text": "Most people talk to fill the quiet. You don't have to.",
+   "file": "vr-zane-05318508b0.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-14b9bfdce9": {
+   "speaker": "vr-zane",
+   "text": "The lights below never sleep. Up here, I can.",
+   "file": "vr-zane-14b9bfdce9.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-1964f18653": {
+   "speaker": "vr-zane",
+   "text": "I wondered how long you would wait.",
+   "file": "vr-zane-1964f18653.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-200eaa52ee": {
+   "speaker": "vr-zane",
+   "text": "There you are. Come in.",
+   "file": "vr-zane-200eaa52ee.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-28b3541f42": {
+   "speaker": "vr-zane",
+   "text": "Look up. That is the only view that never changes.",
+   "file": "vr-zane-28b3541f42.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-387c4e7ccb": {
+   "speaker": "vr-zane",
+   "text": "I kept your place.",
+   "file": "vr-zane-387c4e7ccb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-397a8d1a36": {
+   "speaker": "vr-zane",
+   "text": "Good.",
+   "file": "vr-zane-397a8d1a36.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-3c5d6b1365": {
+   "speaker": "vr-zane",
+   "text": "The sofa is wide enough for two.",
+   "file": "vr-zane-3c5d6b1365.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-3d1ff69390": {
+   "speaker": "vr-zane",
+   "text": "You came. Good.",
+   "file": "vr-zane-3d1ff69390.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-3d94bd4649": {
+   "speaker": "vr-zane",
+   "text": "Will you dance? I'll lead.",
+   "file": "vr-zane-3d94bd4649.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-3f13716a17": {
+   "speaker": "vr-zane",
+   "text": "I count the drones sometimes. Fewer tonight.",
+   "file": "vr-zane-3f13716a17.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-403044b53a": {
+   "speaker": "vr-zane",
+   "text": "Worth the wait.",
+   "file": "vr-zane-403044b53a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-43d5fb8254": {
+   "speaker": "vr-zane",
+   "text": "Rain on the glass. Best sound in the city.",
+   "file": "vr-zane-43d5fb8254.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-44a958017e": {
+   "speaker": "vr-zane",
+   "text": "Understood. The offer stays.",
+   "file": "vr-zane-44a958017e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-4884415351": {
+   "speaker": "vr-zane",
+   "text": "From up here, the city looks almost honest.",
+   "file": "vr-zane-4884415351.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-4ac2f38de2": {
+   "speaker": "vr-zane",
+   "text": "Another time.",
+   "file": "vr-zane-4ac2f38de2.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-4d28bb1b3e": {
+   "speaker": "vr-zane",
+   "text": "Just us. Forget the room.",
+   "file": "vr-zane-4d28bb1b3e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-5186fafcdb": {
+   "speaker": "vr-zane",
+   "text": "Slowly, then. Follow me.",
+   "file": "vr-zane-5186fafcdb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-57e8c41d14": {
+   "speaker": "vr-zane",
+   "text": "You looked far away. I came to bring you back.",
+   "file": "vr-zane-57e8c41d14.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-5a0c6fd212": {
+   "speaker": "vr-zane",
+   "text": "Not yet. Tell me something true first.",
+   "file": "vr-zane-5a0c6fd212.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-61cd7f9a72": {
+   "speaker": "vr-zane",
+   "text": "You move well. I was watching.",
+   "file": "vr-zane-61cd7f9a72.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-620d17bb4a": {
+   "speaker": "vr-zane",
+   "text": "Goodnight. I'll be here.",
+   "file": "vr-zane-620d17bb4a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-634e89723c": {
+   "speaker": "vr-zane",
+   "text": "Here.",
+   "file": "vr-zane-634e89723c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-684cb16e6e": {
+   "speaker": "vr-zane",
+   "text": "Warm hands.",
+   "file": "vr-zane-684cb16e6e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-6ac57bfe36": {
+   "speaker": "vr-zane",
+   "text": "Come and sit beside me.",
+   "file": "vr-zane-6ac57bfe36.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-6c62174921": {
+   "speaker": "vr-zane",
+   "text": "Lie back with me. Just for a minute.",
+   "file": "vr-zane-6c62174921.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-7218266613": {
+   "speaker": "vr-zane",
+   "text": "You say that like you mean it.",
+   "file": "vr-zane-7218266613.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-7ab6ae47b3": {
+   "speaker": "vr-zane",
+   "text": "On my way.",
+   "file": "vr-zane-7ab6ae47b3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-8596bcd084": {
+   "speaker": "vr-zane",
+   "text": "Quiet nights suit you.",
+   "file": "vr-zane-8596bcd084.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-86e03bc66e": {
+   "speaker": "vr-zane",
+   "text": "Sit with me, or ask me for a dance.",
+   "file": "vr-zane-86e03bc66e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-8cb3a60841": {
+   "speaker": "vr-zane",
+   "text": "May I?",
+   "file": "vr-zane-8cb3a60841.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-910e01d2e6": {
+   "speaker": "vr-zane",
+   "text": "I thought you might want company.",
+   "file": "vr-zane-910e01d2e6.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-914db2a51c": {
+   "speaker": "vr-zane",
+   "text": "Stay like this a while.",
+   "file": "vr-zane-914db2a51c.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-91d42aacdb": {
+   "speaker": "vr-zane",
+   "text": "Go on. I'm listening.",
+   "file": "vr-zane-91d42aacdb.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-9ac53c9fca": {
+   "speaker": "vr-zane",
+   "text": "You're back. I noticed.",
+   "file": "vr-zane-9ac53c9fca.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-af1b26a9be": {
+   "speaker": "vr-zane",
+   "text": "Dance with me. One song.",
+   "file": "vr-zane-af1b26a9be.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-af678c6185": {
+   "speaker": "vr-zane",
+   "text": "You can sit in silence with me. I won't mind.",
+   "file": "vr-zane-af678c6185.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-c444312316": {
+   "speaker": "vr-zane",
+   "text": "Don't let go yet.",
+   "file": "vr-zane-c444312316.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-c4f5554f12": {
+   "speaker": "vr-zane",
+   "text": "You laugh more than you think you do.",
+   "file": "vr-zane-c4f5554f12.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-c63dabda2a": {
+   "speaker": "vr-zane",
+   "text": "I heard that. I'll keep it.",
+   "file": "vr-zane-c63dabda2a.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-ca8916bac3": {
+   "speaker": "vr-zane",
+   "text": "I could listen to you a long time.",
+   "file": "vr-zane-ca8916bac3.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-cb845da158": {
+   "speaker": "vr-zane",
+   "text": "You're trouble. Quiet trouble.",
+   "file": "vr-zane-cb845da158.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-d08bde5462": {
+   "speaker": "vr-zane",
+   "text": "There. That's better.",
+   "file": "vr-zane-d08bde5462.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-d2bde01180": {
+   "speaker": "vr-zane",
+   "text": "Go carefully out there.",
+   "file": "vr-zane-d2bde01180.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-d741b6792e": {
+   "speaker": "vr-zane",
+   "text": "I'll sit. If you don't mind.",
+   "file": "vr-zane-d741b6792e.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-df4b2ad4dc": {
+   "speaker": "vr-zane",
+   "text": "Say that again, slower.",
+   "file": "vr-zane-df4b2ad4dc.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-e53e29495f": {
+   "speaker": "vr-zane",
+   "text": "Evening. Take your time, there is no hurry here.",
+   "file": "vr-zane-e53e29495f.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-e68ee3a4ad": {
+   "speaker": "vr-zane",
+   "text": "I notice things. It is a habit I never broke.",
+   "file": "vr-zane-e68ee3a4ad.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-eaeba6032d": {
+   "speaker": "vr-zane",
+   "text": "Sit. Stay a while.",
+   "file": "vr-zane-eaeba6032d.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-f5e0440209": {
+   "speaker": "vr-zane",
+   "text": "Breathe. Nobody needs you right now.",
+   "file": "vr-zane-f5e0440209.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-f738375c17": {
+   "speaker": "vr-zane",
+   "text": "Closer.",
+   "file": "vr-zane-f738375c17.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
+  },
+  "vr-zane-fa87915573": {
+   "speaker": "vr-zane",
+   "text": "Careful. I remember everything.",
+   "file": "vr-zane-fa87915573.ogg",
+   "source": "vr-companions.js",
+   "configHash": "94c9b7cd8d66"
   }
  }
 }

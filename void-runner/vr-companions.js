@@ -112,15 +112,15 @@
 
  // Zane (named by the owner, 18 Nov 2026), the second male companion: his own Meshy model from a concept the owner approved (long charcoal overcoat with
  // an oxblood lining, black high-neck knit, silver chain and rings; an original adult man of about 30), made and animated exactly as Kai (spec characters/npc-zane.json).
- // TODO(owner): his VOICE waits for the owner. He has no cast voice and no recorded lines (voice.pending): his lines show in the dialogue panel and are
- // not read aloud (vr-suite.js say). His `about`, personality and every line are DRAFT and PROPOSED, not canon.
+ // GENERIC PLACEHOLDERS, approved for now by the owner (18 Nov 2026: "His voice, lines, and personality, just keep them generic for now"): his `about`,
+ // personality and every line below are generic and non-canon; the owner may revise them later. Voice: vr-zane in tools/audio/npc-voice-registry.json.
  register({id:'zane',name:'Zane',sex:'male',model:'npc-zane',skin:[],
   preview:'void-runner/assets/vr/companions/zane.jpg',
-  about:'Composed and observant. Says little, misses nothing.',voice:{characterId:'vr-zane',voiceId:null,pending:true},
+  about:'Composed and observant. Says little, misses nothing.',voice:{characterId:'vr-zane',voiceId:null},
   personality:{initiative:.38,flirtatiousness:.45,approachFrequency:.36,attention:.95,personalSpace:1.2,walkSpeed:1},
   clips:{greet:['head-tilt'],flirt:['head-tilt','blow-kiss'],shy:['head-tilt'],idleAlt:['idle-m2','glance-back'],dance:['slow-dance'],playfulDance:['dance']},
   dialogue:{
-   greet:['You came. Good.','Evening. Take your time, there is no hurry here.','I saw you on the stairs. Come in.'],
+   greet:['You came. Good.','Evening. Take your time, there is no hurry here.','There you are. Come in.'],
    chat:['I notice things. It is a habit I never broke.','Rain on the glass. Best sound in the city.','You can sit in silence with me. I won\'t mind.','Most people talk to fill the quiet. You don\'t have to.','The lights below never sleep. Up here, I can.'],
    compliment:['Careful. I remember everything.','I heard that. I\'ll keep it.','You say that like you mean it.'],
    flirt:['Go on. I\'m listening.','You\'re trouble. Quiet trouble.','Say that again, slower.'],

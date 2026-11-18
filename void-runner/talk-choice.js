@@ -18,7 +18,7 @@ const next=box.querySelector('#speech-next');if(next)next.style.display='none';
     speech.choices.forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type="button" class="talk-menu-choice'+(c.leave?' quiet':'')+'" data-talk-choice="'+i+'" data-action="talk-choice">'+esc(c.label)+'</button>'));return;}
    speech.choices.slice(1).forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type="button" class="quiet" data-talk-choice="'+(i+1)+'" data-action="talk-choice">'+esc(c.label)+'</button>'));}catch{}}
  // A silent line is shown but not spoken (and so waits only for its reading time).
- if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&(l.silent||l.unvoiced)){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}
+ if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&l.silent){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}
  const shown=renderLine;renderLine=function(){const r=shown.apply(this,arguments);decorate();return r;};
  function talkChoice(lines,choices,heading,opts={}){
   if(!Array.isArray(lines)||!lines.length||!Array.isArray(choices)||!choices.length)return false;

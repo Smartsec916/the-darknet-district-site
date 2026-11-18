@@ -25,7 +25,7 @@ test('each has their own personality, dialogue and voice identity (nothing of Ka
  assert.equal(C.speaks(seren),true);
 });
 
-test('Zane (the second male companion) has his own personality and lines, nothing of Kai\'s; his voice waits for the owner',()=>{
+test('Zane (the second male companion) has his own personality and lines, nothing of Kai\'s; generic placeholders the owner approved for now',()=>{
  const m2=C.get('zane'),kai=C.get('kai'),kaiLines=new Set(Object.values(kai.dialogue).flat());
  assert.equal(m2.sex,'male');assert.equal(m2.name,'Zane');assert.equal(m2.model,'npc-zane');assert.equal(m2.preview,'void-runner/assets/vr/companions/zane.jpg');
  assert.ok(Object.keys(m2.personality).length);assert.equal(C.speaks(m2),true);assert.equal(m2.voice.voiceId,null);

@@ -43,9 +43,8 @@
   function showLine(name,text){line.innerHTML='<b>'+name+'</b> '+text.replace(/</g,'&lt;');line.classList.add('show');lineTime=Math.min(7,2.5+text.length*.055);}
   k.every(dt=>{if(lineTime>0){lineTime-=dt;if(lineTime<=0)line.classList.remove('show');}});
   // A companion's line in the game's dialogue panel. With no line (a companion without dialogue) there's no panel at
-  // all: whatever follows the line happens straight away. A companion whose voice is still to be chosen by the owner
-  // (voice.pending) is shown, not read aloud: an unvoiced line skips the voice and still goes in the history (talk-choice.js speakLine).
-  function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text,unvoiced:!!comp.who.voice?.pending}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}
+  // all: whatever follows the line happens straight away.
+  function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}
   let choices=null;
   // The choice panel (vr.css: compact, opaque, beside the room rather than across it). Options may carry a group
   // (Talk / Together / Leave); arrows, WASD or the d-pad move the highlight, Enter / Space / E or A choose, Escape or B
