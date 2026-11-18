@@ -44,7 +44,14 @@
  /* Which clips a figure can take: its bones must include the ones the clip moves. bones: the figure's bare bone names. */
  const CORE=['Hips','Spine','Spine1','Spine2','Neck','Head','LeftArm','LeftForeArm','LeftHand','RightArm','RightForeArm','RightHand','LeftUpLeg','LeftLeg','LeftFoot','RightUpLeg','RightLeg','RightFoot'];
  const compatible=bones=>{const have=new Set(bones||[]);return CORE.every(b=>have.has(b));};
- const pure={CLIPS,FILES,SOURCES,CORE,bare,all,clip,byCategory,group,groups,compatible};
+ /* Rotations are copied as they are, so a figure's bones must also REST the way the library's do (the same local axes). Same names are not enough: Dex and Yuki
+    (the licensed Male Female Base Rig) name their bones mixamorig:* but every limb bone points along different local axes, and the copied clips twisted them
+    into knots (the owner, 18 Nov 2026: "the new male model in Studio 3 is looking weird"). restOffset(lib, fig): the largest difference, in degrees, between the
+    two rest rotations of any core bone (lib / fig: bare bone name -> [x,y,z,w]); restMatches: within REST_LIMIT. A figure that does not match keeps its own clips. */
+ const REST_LIMIT=25;
+ function restOffset(lib,fig){let worst=0;for(const b of CORE){const p=lib?.[b],q=fig?.[b];if(!p||!q)continue;const d=Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3])/((Math.hypot(...p)*Math.hypot(...q))||1));worst=Math.max(worst,2*Math.acos(d)*180/Math.PI);}return worst;}
+ const restMatches=(lib,fig,limit=REST_LIMIT)=>restOffset(lib,fig)<=limit;
+ const pure={CLIPS,FILES,SOURCES,CORE,bare,all,clip,byCategory,group,groups,compatible,REST_LIMIT,restOffset,restMatches};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -56,7 +63,8 @@
     const container=await root.VoidAssets.loadContainer({src:FILES[lib]},scene,null,'anim:'+lib);
     const groups=new Map();for(const g of container.animationGroups||[]){g.stop();groups.set(g.name,g);}
     const hips=(container.transformNodes||[]).find(t=>bare(t.name)==='Hips');
-    return {container,groups,hipY:hips?Math.abs(hips.position.y)||1:1,hipsRest:hips?hips.position.clone():null};
+    const rest={};for(const t of container.transformNodes||[]){const b=bare(t.name);if(!rest[b]&&t.rotationQuaternion)rest[b]=t.rotationQuaternion.asArray();}
+    return {container,groups,rest,hipY:hips?Math.abs(hips.position.y)||1:1,hipsRest:hips?hips.position.clone():null};
    }catch(e){console.info('[VOID//RUNNER] animation library "'+lib+'" is not on this machine (licensed motion capture is published with the live site only). Characters keep their own clips.');return null;}})();
   loaded.set(key,{scene,promise});return promise;}
  /* Give a figure the library's clips. node: the figure's root (its bones are transform nodes under it); look: its look id (for VoidCrowd.clips);
@@ -65,6 +73,9 @@
   const sc=scene||node.getScene(),B=root.BABYLON,L=await load(library,sc);if(!L||node.isDisposed())return [];
   const bones=new Map();for(const t of node.getDescendants(false))if(t.rotationQuaternion!==undefined&&t.getClassName?.()==='TransformNode'){const b=bare(t.name);if(!bones.has(b))bones.set(b,t);}
   if(!compatible([...bones.keys()]))return [];
+  // the figure's own rest pose (its skeleton's bind-time local rotations; the bones themselves are already posed by a clip)
+  const rest={};for(const m of node.getChildMeshes(false)){const sk=m.skeleton;if(!sk)continue;for(const b of sk.bones){const k=bare(b.name);if(rest[k])continue;const q=new B.Quaternion();b.getRestMatrix().decompose(undefined,q);rest[k]=q.asArray();}}
+  if(Object.keys(rest).length&&!restMatches(L.rest,rest)){node.metadata=node.metadata||{};node.metadata.animLibraryRefused=Math.round(restOffset(L.rest,rest));return [];}   // degrees off, for the browser test
   const hips=bones.get('Hips'),scale=hips&&L.hipsRest?(hips.position.length()||1)/(L.hipsRest.length()||1):1,meta=node.metadata=node.metadata||{},list=meta.animationGroups=meta.animationGroups||[],added=[];
   for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.id);if(!src)continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
    const g=new B.AnimationGroup(name,sc);

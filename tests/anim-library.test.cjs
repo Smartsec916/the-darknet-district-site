@@ -14,6 +14,9 @@ test('group sequences say which seats have no recording, so mismatched parts are
 });
 test('a figure takes the library only if it has the bones; names are matched after the last colon',()=>{
  assert.equal(L.bare('look-mixamorig:LeftArm'),'LeftArm');assert.equal(L.compatible(L.CORE),true);assert.equal(L.compatible(L.CORE.filter(b=>b!=='LeftFoot')),false);assert.equal(L.compatible(null),false);
+ // same bone names are not enough: the rests must match (Dex's base rig names its bones mixamorig:* but every limb rests on other local axes, 18 Nov 2026)
+ {const lib={Hips:[0,.02,0,1],LeftArm:[0,-.25,0,.97],LeftUpLeg:[.06,0,-1,0]},makehuman={Hips:[0,.02,0,1],LeftArm:[0,-.24,0,.97],LeftUpLeg:[.06,0,-1,0]},dex={Hips:[-.01,.71,-.01,.71],LeftArm:[.46,.09,.13,.88],LeftUpLeg:[1,0,0,.08]};
+  assert.ok(L.restMatches(lib,makehuman),'a MakeHuman figure takes the clips');assert.equal(L.restMatches(lib,dex),false,'Dex keeps his own clips');assert.ok(L.restOffset(lib,dex)>60);assert.ok(L.restOffset(lib,{})===0,'no shared bones: nothing to compare');}
 });
 test('the licensed files are not in the public repository; the code and the page are',()=>{
  assert.equal(fs.existsSync('void-runner/assets/models/anim/anim-actorcore.glb'),false);

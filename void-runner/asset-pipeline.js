@@ -127,8 +127,31 @@
     for(const m of [...container.materials,...scene.materials])if(m.maxSimultaneousLights>8)m.maxSimultaneousLights=8;
     // Character models get their edge light now, before any of their materials is prepared (character-finish.js): a material's plugins must be in place first.
     try{globalThis.VoidCharacterFinish?.applyContainer?.(id,container);}catch(error){console.warn('[VOID//RUNNER character finish]',error);}
+    trimLeadIn(container);
     return container;
   }
+
+  /* The bind pose at both ends of a clip (18 Nov 2026). The talk, watch, drink and wipe clips that almost every figure carries (the crowd looks, the named
+     residents, Fish, Eva, Admin, Iris, the companions) open with ONE key in the bind pose (arms straight out to the sides) and close by easing back into it
+     over their last nine keys (about half a second). So every time such a loop came round the figure raised its arms out to both sides and dropped them
+     again (the owner: "that arms down then out to both sides thing that many of the NPCs are currently doing"), and a clip started from its beginning flicked
+     them out. leadInEnd(keys) / leadOutStart(keys): given an upper arm's rotation keys ({frame, value:[x,y,z,w]}), the frame the clip should start at (the
+     first key that leaves a bind-pose opening by more than 45 degrees) and end at (where the closing ease toward that same pose begins), else null.
+     trimLeadIn plays each such clip between the two; copies of a figure get the same range (keepTrim). The model files are untouched. */
+  const keyAngle=(p,q)=>2*Math.acos(Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3])));
+  function leadInEnd(keys){if(!keys||keys.length<4)return null;const p=keys[0].value;
+    // the opening key may be doubled (Babylon copies a clip's first key to frame 0): skip copies of it, then look at the first key that differs
+    for(let i=1;i<Math.min(4,keys.length-1);i++){const a=keyAngle(p,keys[i].value);if(a<.02)continue;return a>Math.PI/4?keys[i].frame:null;}return null;}
+  function leadOutStart(keys){if(leadInEnd(keys)===null)return null;const bind=keys[0].value,n=keys.length,d=i=>keyAngle(keys[i].value,bind);if(d(n-1)>.05)return null;
+    // back from the end while each key is clearly further from the bind pose than the one after it (the closing ease); stop at the plateau before it
+    let i=n-1;while(i>1&&d(i-1)>d(i)+.02)i--;return i<n-1&&n-1-i<=n*.25?keys[i].frame:null;}
+  function trimLeadIn(container){let n=0;for(const g of container?.animationGroups||[]){let start=null,end=null;
+    for(const ta of g.targetedAnimations){if(ta.animation.targetProperty!=='rotationQuaternion'||!/(^|:)(Left|Right)Arm$/.test(ta.target?.name||''))continue;const keys=ta.animation.getKeys().map(k=>({frame:k.frame,value:k.value.asArray?k.value.asArray():k.value}));if(keys[0].frame>g.from+1e-3)continue;   // only keys that open the clip count
+     const f=leadInEnd(keys),e=leadOutStart(keys);if(f!==null)start=Math.max(start??f,f);if(e!==null)end=Math.min(end??e,e);}
+    if(start!==null&&(end??g.to)>start){g.normalize(start,end??g.to);n++;}}
+   return n;}
+  // A copy of a model (instantiateModelsToScene) rebuilds each clip's range from its keys: give the copies the trimmed start again (groups come in the same order).
+  function keepTrim(container,result){(result?.animationGroups||[]).forEach((g,i)=>{const src=container?.animationGroups?.[i];if(src&&src.name&&g.name.endsWith(src.name)&&(src.from>g.from+1e-3||src.to<g.to-1e-3)&&src.from<src.to)g.normalize(src.from,src.to);});return result;}
 
   // What the glTF loader does to every material when a model finishes loading (above), done now: one light slot per light in the scene, at most eight.
   // A place calls this before its loading screen lifts (neochinatown.js prepare), so the next model to arrive changes no material and no shader is rebuilt
@@ -152,7 +175,7 @@
   function instance(id, parent, only) {
     const item = containers.get(id);
     if (!item) return null;
-    const result = item.container.instantiateModelsToScene(name => id + '-' + name, false),
+    const result = keepTrim(item.container, item.container.instantiateModelsToScene(name => id + '-' + name, false)),
       node = new BABYLON.TransformNode(id + '-model', parent.getScene()),
       asset = new BABYLON.TransformNode(id + '-asset', parent.getScene());
     node.parent = parent;
@@ -235,6 +258,7 @@
   const api = {
     models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
+    leadInEnd,leadOutStart,trimLeadIn,keepTrim,
     unpack,
     open,
     useKTX2Locally,

@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "8ae34415806ea6b8",
+  "revision": "86938c0771e637dc",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12861,6 +12861,18 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/milked-build.js",
+      "line": 708,
+      "text": "function speakerNow(){try{const line=typeof speech!=='undefined'&&speech?.lines?.[speech.index];if(line){lastSpeaker=line.who;return lastSpeaker;}return root.VoidConversationUI?.isOpen?lastSpeaker:(lastSpeaker=null);}catch{return null;}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/milked-build.js",
+      "line": 724,
+      "text": "/* Where Eva and Fish face: a gesture's turn (Mission 003: Eva turns toward the staff-only door as she says where Fish is), else toward the player while she is",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/milked-integration.js",
       "line": 2,
       "text": "Everything here is provisional placeholder text. Nothing starts a mission and nothing is saved except the usual \"met\" entry a conversation records. */",
@@ -16156,11 +16168,11 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "bbdb0ddd518b7abf30b85125f2a1aaa7a54331626581a23ea7282f4b4512c47a",
     "void-runner/ad-screens.js": "c8e07956069c4ff4a8489f2a2fd38054817c847e9904534d7f612781d2f5208c",
-    "void-runner/anim-library.js": "80f7b4684feb97267eb60508861bd64113d35a6bacd156861a9178d522c7486a",
+    "void-runner/anim-library.js": "1f31d41d5b68f927cb3882a410c96183de485c6d7e7c0d15b6f1a64da98d594f",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
-    "void-runner/asset-pipeline.js": "48a73f8e2b689472007725b022bb02c47ca7de9aa6195c88ab97b6f4bb11c066",
+    "void-runner/asset-pipeline.js": "90851d8ed9cef4b0787a957d235c4ae69d7dad33285d0809e3e04892b7c449f2",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "b54e3fb4ef253d1fc544d255acc85a128457aee078cd9d0f13843f0f18c7670e",
     "void-runner/babylon-renderer.js": "86ed4d3a95af03cd5dc38b0774b6496ba01eb8d99c7bfd6627c7db6a4924545c",
@@ -16192,7 +16204,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crowd.js": "215a00ee8e33c51ce57caadaed170d3d83768112a34daff6ff37dcc8e71a8a1c",
+    "void-runner/crowd.js": "bbf5f82b1384a361a993fe22b2852762d289aedd3f25d7ce6c50455300d53cb4",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -16254,10 +16266,10 @@
     "void-runner/meridian-interior.js": "a0689f98ce5713e84c4fd36d9ee5147a790837838dca04ca98b1fbc449354b1b",
     "void-runner/meridian-kitbash.js": "9a56e451e8020d2eab0294e2a8f7c763e1fb1dc62d29bfa02dbf7646b715ed28",
     "void-runner/meridian-station.js": "39d79973df4dd6b069d1826cfb85a755f83e2ae90a6cf05b54f97b3f7c80c109",
-    "void-runner/milked-build.js": "3a416301f9b68aca94770caa2fe29d5d85e545c4fe9108d15a96e66bea54346e",
+    "void-runner/milked-build.js": "9871abf1b5b6680f223ba1522414dad98c34364e11b3ac99d890212ea105e8c6",
     "void-runner/milked-integration.js": "886ec02f0991098a1007dfa6e8dd03992ca1ded5962871002a229459b180327e",
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
-    "void-runner/milked.js": "5e98328a1cdeec526a3787df983ffc148ad53b5edafec0d8b8a982ba0b94c4c2",
+    "void-runner/milked.js": "6d61dc3fa3cdf056572a8b3f0ae89e7c2da90a5318119cd44bd0dbe08d5e2e85",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "1dda9430b683d40fd0ce43491ee6c8f1d0b1977bdd2b468737588060823f1b86",
     "void-runner/mission-editor.js": "a522b5a71cae3cb68f65eb0d934518065dba499adfd77ea37db831ffa50fa9b7",
@@ -16345,7 +16357,7 @@
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "fdf9fd1fea29a2d8683739b3732db6f32c6f2af654838ace9f2741343ea32947",
-    "void-runner/vr-suite.js": "77dd66c3c52e63a3cb1e244291d623e50a38190ebd9fbbb20100303e9e4bab4e",
+    "void-runner/vr-suite.js": "0f67067a27cd96cdd5cb4492cabed87fef7a07937530d06db3e9e2b0079964ca",
     "void-runner/vr-tropical.js": "093635e6848f8b2dea73bc2fb9031e4158ac613363d2e337f1b7a8610175055b",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",

@@ -90,7 +90,7 @@
   async function companion(who,S,slot){
    const L=who.dialogue||{},cfg=C.settings(who),look=who.model,mem={},home=S.home,talks=C.speaks(who),tag=slot?'-'+(slot+1):'',self={who,slot,cfg};
    const container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+C.file(who)},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
-   const inst=container.instantiateModelsToScene(n=>look+'-'+n,false,{doNotInstantiate:true}),node=new B.TransformNode('vr-companion'+tag,k.scene),asset=new B.TransformNode('vr-companion-asset'+tag,k.scene);node.parent=k.parent;VoidAssets.ownInstance(inst,node);asset.parent=node;for(const r of inst.rootNodes)r.parent=asset;
+   const inst=VoidAssets.keepTrim(container,container.instantiateModelsToScene(n=>look+'-'+n,false,{doNotInstantiate:true})),node=new B.TransformNode('vr-companion'+tag,k.scene),asset=new B.TransformNode('vr-companion-asset'+tag,k.scene);node.parent=k.parent;VoidAssets.ownInstance(inst,node);asset.parent=node;for(const r of inst.rootNodes)r.parent=asset;
    for(const g of inst.animationGroups)g.stop();node.metadata={animationGroups:inst.animationGroups,companion:who.id};for(const m of node.getChildMeshes())m.isPickable=false;
    // The shared motion-capture library (anim-library.js): extra clips for any companion whose skeleton takes them; nothing happens where the library file is not installed.
    try{self.library=await globalThis.VoidAnimLibrary?.apply(node,look,{scene:k.scene})||[];}catch(e){self.library=[];console.warn('[VR companion library]',e);}
