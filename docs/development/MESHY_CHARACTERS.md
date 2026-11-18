@@ -82,6 +82,7 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 18 Nov | Auburn remesh 40k | remesh `01a1ef7b-82b8-7734-b9dc-5fbba9a9200f` | 5 |
 | 18 Nov | Auburn rig, 1.72 m | rigging `01a1ef7d-f1ee-71cb-b295-8626faed4f05` | 5 |
 | | **18 Nov, Auburn** | | **49** (cap 70; the account showed 323 before and 269 after: 54, five more than the four tasks report, not traced to this job; no retry. Working folder `Documents/DarknetDistrict_Assets/Meshy/studio4/` (`build_all.py`, `build_cfg.json`, renders)) |
+| 18 Nov | Milked dances (the owner: studio 4 "needs more dance animations", "she just swaying a little"): Meshy library animate on Auburn's rig, ten actions in one request (All Night Dance, Shake It Off Dance, Love You Pop Dance, Denim Pop Dance, OMG Groove for Auburn; Hip Hop Dance, Hip Hop Dance 2, Hip Hop Dance 3, You Groove, Bass Beats retargeted locally onto Dex afterwards; Dex never sent to Meshy) | animate `01a1f03c-38d4-751a-ae09-d87d83428918` | 30 (3 per action; balance 171 -> 141; floor 50) |
 | 18 Nov | Lace ("Ethereal Lace", the owner's own Meshy generation from his Downloads): first rig, of a plain decimation whose textures came out shattered (not used) | rigging `01a1ef5c-5d99…` | 5 |
 | 18 Nov | Lace: rigged again from the welded, decimated and re-baked mesh (`--model-url` local file; used) | rigging `01a1ef88-49b4…` | 5 |
 | 18 Nov | Reverie ("Grey Reverie") and the street cat: decimated and re-encoded locally; Reverie static (sculpted seated), the cat rigged in Blender | none | 0 |

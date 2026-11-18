@@ -685,7 +685,7 @@
   const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,y:0,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,spawned:false,...opts});
   const eva=MODELS.eva,fish=MODELS.fish;
   spot(eva.id,eva.at[0],eva.at[1],eva.face,eva.clips,{fixedLook:eva.look,asset:eva.asset,role:'eva'});spot(fish.id,fish.at[0],fish.at[1],fish.face,fish.clips,{fixedLook:fish.look,asset:fish.asset,role:'fish'});
-  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
+  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,dances:s.dancer.dances,y:.055,phase:s.n*1.3});
   for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
    p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
    p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
@@ -718,6 +718,9 @@
       for(const c of order){if(clipsOf(c).some(q=>p.clips.includes(q))&&(n=assets?.instance?.('crowd:'+c,node))){look=c;clip=p.clips.find(q=>clipsOf(c).includes(q))||'idle';break;}}}
      if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id,...(p.role!=='dancer'?{character:p.id}:{})};   /* character: the head tracking (npc-look.js) finds Eva and Fish by it */p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
      if(p.role==='dancer'){
+      // a rotation of dances (milked.js danceTurn), from the ones this figure's file really has; with fewer than two the old single loop below plays
+      const groupsOf=(n.metadata?.animationGroups||[]).map(g=>g.name.replace(/\.\d{3}$/,'')),own=(p.dances||[]).filter(c=>clipsOf(look).includes(c)&&groupsOf.some(g=>g===c||g.endsWith('-'+c)));
+      if(own.length>1){p.rot={list:own,n:0,until:clock+(MK.danceTurn(own,0,p.studio)?.seconds||30)};p.clip=MK.danceTurn(own,0,p.studio).clip;try{p.anim?.play?.(p.clip);}catch{}continue;}
       // the shared animation library, where it is installed: a different loop for each studio. Without it the look's own dance plays.
       if(p.library&&root.VoidAnimLibrary?.apply)Promise.resolve(root.VoidAnimLibrary.apply(n,look,{only:[p.library],scene})).then(added=>{if(k.disposed||p.node!==n||!added?.includes(p.library))return;p.anim?.play?.(p.library);p.clip=p.library;}).catch(()=>{});}
      continue;}
@@ -728,6 +731,7 @@
      if(p.face===undefined)p.face=p.node.rotation.y;const d=Math.atan2(Math.sin(want-p.face),Math.cos(want-p.face));p.face+=d*Math.min(1,p.turn?.12:dt*5);p.node.rotation.y=p.face;
      if(talking!==!!p.talking){p.talking=talking;if(!p.turn)try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clip);}catch{}}
      if(p.turn&&clock>=p.turn.until&&Math.abs(d)<.02){p.turn=null;try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clips.includes('idle')?'idle':p.clip);}catch{}}}
+    if(p.rot&&clock>=p.rot.until){const t=MK.danceTurn(p.rot.list,++p.rot.n,p.studio);p.rot.until=clock+t.seconds;p.clip=t.clip;try{p.anim?.play?.(t.clip);}catch{}}   // the next dance, cross-faded
     // a figure with no dance of its own still moves: a slow sway on the spot
     if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
   }
@@ -761,7 +765,7 @@
   function gesture(who,toward,seconds=4){const p=people.find(x=>x.id===who&&x.node);const at=TOWARD[toward];if(!p||!at)return false;let d=Math.atan2(at[0]-p.x,at[1]-p.z)-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));
    p.turn={yaw:p.yaw+Math.max(-1.22,Math.min(1.22,d)),until:k.clock+Math.max(1,seconds),toward,at:k.clock};try{if(p.clips.includes('talk'))p.anim?.play?.('talk');}catch{}gestures.push({who,toward,at:k.clock});return true;}
   const gestures=[];
-  return {tick,prepare,gesture,get gestures(){return gestures.slice();},inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,staffDoor:(()=>{const sd=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(x=>x.staff);return {granted:!!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null),blocking:!!sd&&!sd.open};})(),prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
+  return {tick,prepare,gesture,get gestures(){return gestures.slice();},inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,staffDoor:(()=>{const sd=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(x=>x.staff);return {granted:!!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null),blocking:!!sd&&!sd.open};})(),prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip,dances:p.rot?.list.slice()||null,next:p.rot?+(p.rot.until-k.clock).toFixed(1):null})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
    dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;for(const p of probes){const i=scene.customRenderTargets.indexOf(p.cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}k.dispose();
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
     if(sun&&lightPrev.sun!=null)sun.intensity=lightPrev.sun;if(ambient){if(lightPrev.amb!=null)ambient.intensity=lightPrev.amb;if(lightPrev.dif)ambient.diffuse=lightPrev.dif;if(lightPrev.gnd&&ambient.groundColor)ambient.groundColor=lightPrev.gnd;}}};

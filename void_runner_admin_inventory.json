@@ -558,7 +558,7 @@
       "follow"
     ]
   },
-  "revision": "7dfee8c0c4a0c2b2",
+  "revision": "c42753274209242d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -13816,7 +13816,7 @@
     },
     {
       "source": "void-runner/milked-build.js",
-      "line": 724,
+      "line": 727,
       "text": "/* Where Eva and Fish face: a gesture's turn (Mission 003: Eva turns toward the staff-only door as she says where Fish is), else toward the player while she is",
       "kind": "source-reference"
     },
@@ -13894,8 +13894,8 @@
     },
     {
       "source": "void-runner/milked.js",
-      "line": 197,
-      "text": "const api={STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};",
+      "line": 206,
+      "text": "const api={STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,DANCES,danceTurn,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};",
       "kind": "source-reference"
     },
     {
@@ -17068,7 +17068,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crowd.js": "f80df2ccb7453cc69cbe62ed360a70bb3b3b1e8694f158c93005cc412ac4177e",
+    "void-runner/crowd.js": "b33840ccb4c211cf1046e33a6bb33ac8f6bcabc231fd179b921e0db226ac5bff",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -17130,10 +17130,10 @@
     "void-runner/meridian-interior.js": "a0689f98ce5713e84c4fd36d9ee5147a790837838dca04ca98b1fbc449354b1b",
     "void-runner/meridian-kitbash.js": "9a56e451e8020d2eab0294e2a8f7c763e1fb1dc62d29bfa02dbf7646b715ed28",
     "void-runner/meridian-station.js": "39d79973df4dd6b069d1826cfb85a755f83e2ae90a6cf05b54f97b3f7c80c109",
-    "void-runner/milked-build.js": "9871abf1b5b6680f223ba1522414dad98c34364e11b3ac99d890212ea105e8c6",
+    "void-runner/milked-build.js": "7149be0b65e0db69566c273b21e76ba7363641aebc13a19efb926b631ed40965",
     "void-runner/milked-integration.js": "886ec02f0991098a1007dfa6e8dd03992ca1ded5962871002a229459b180327e",
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
-    "void-runner/milked.js": "89ae6da0e377baa3d1b9342eef5478cc1a2bd8d89938128a8859e2b96e10aacf",
+    "void-runner/milked.js": "57353c8955ecec96f59c0775a7b4d269f8d56cf898ebe30afea4be9a87def187",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "1dda9430b683d40fd0ce43491ee6c8f1d0b1977bdd2b468737588060823f1b86",
     "void-runner/mission-editor.js": "a522b5a71cae3cb68f65eb0d934518065dba499adfd77ea37db831ffa50fa9b7",
