@@ -190,7 +190,12 @@
   if(f[FLAG]!==undefined&&!valid(f[FLAG]))delete f[FLAG];
   if(back&&typeof s.credits==='number')s.credits+=back;return back;}
 
- const api={S,lanesOfGate:lanes,settle,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,CALL_POINTS,CALL_LABEL,callPrompts,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
+ /* A fortified gate's two corner pylons (ncz-gates.js), as [from, to] spans ACROSS the gate. Each stands at its edge of the gate, 1.5 m wide, but never over a
+    lane's opening: where the outer core beside a lane is narrower than that (the East and Function Gates' walkers' lanes run 0.3 m from the gate's edge), the
+    pylon stands from the lane's wall outward instead, into the building row beside the gate. (The East Gate's foot lane was half hidden inside its pylon, 18 Nov 2026.) */
+ function pylons(g,w=1.5){const s=span(g),ls=(g.lanes||[]).slice().sort((a,b)=>a.v[0]-b.v[0]),first=ls[0],last=ls[ls.length-1];
+  const lo=first&&first.v[0]-s.v0<w?[first.v[0]-w,first.v[0]]:[s.v0,s.v0+w],hi=last&&s.v1-last.v[1]<w?[last.v[1],last.v[1]+w]:[s.v1-w,s.v1];return [lo,hi];}
+ const api={S,lanesOfGate:lanes,pylons,settle,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,CALL_POINTS,CALL_LABEL,callPrompts,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
   span,world,endOf,sidesOf,internal,define,other,beyond,laneAt,atCentre,openable,footArrival,bayPoint,bayFor,yawInto,solids,stop,far,gatesBetween,resumeQuarter,remember,migrateSave};
  if(node)module.exports=api;else root.VoidQuarters=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
