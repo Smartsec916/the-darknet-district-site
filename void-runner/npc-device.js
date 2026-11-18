@@ -24,9 +24,9 @@
  // V2: PLACEHOLDER colour, pending the owner's V2 design ("V2 will look similar to V1, just different color. I'll come up with V2 details later"). One constant.
  const V2_PLACEHOLDER_COLOR='#b58cff';
  const TIERS={
-  v1:{share:.72,color:'#61eee9',alpha:.62,name:'V1'},                 // device-v1.css --pd-edge-hi (the V1's rail): the cuff and panel
-  v2:{share:.23,color:V2_PLACEHOLDER_COLOR,alpha:.6,name:'V2',placeholder:true}, // the same cuff and panel as the V1, its own colour
-  v3:{share:.05,color:'#46ff7a',alpha:.5,name:'V3 // SHADOW',eye:true}}; // device-v1.css [data-device=v3]. The owner: "V3 // Shadow get it streamed into their eye. So just their eye glows." No cuff, no panel
+  v1:{share:.72,color:'#61eee9',alpha:.82,name:'V1'},                 // device-v1.css --pd-edge-hi (the V1's rail): the cuff and panel
+  v2:{share:.23,color:V2_PLACEHOLDER_COLOR,alpha:.8,name:'V2',placeholder:true}, // the same cuff and panel as the V1, its own colour
+  v3:{share:.05,color:'#46ff7a',alpha:.66,name:'V3 // SHADOW',eye:true}}; // device-v1.css [data-device=v3]. The owner: "V3 // Shadow get it streamed into their eye. So just their eye glows." No cuff, no panel
  const CAPS={low:4,medium:10,high:16,ultra:16};
  const capFor=q=>CAPS[q]??CAPS.medium;
  // What each kind of person does with it. Poses: scroll (reading), photo, selfie, pair-selfie, film, food-photo.
