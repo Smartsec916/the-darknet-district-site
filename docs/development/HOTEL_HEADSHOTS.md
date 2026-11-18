@@ -4,7 +4,7 @@
 
 ## Owner's direction
 
-Five-floor, nonlethal first-person arcade shooter with money theft, evasive play, a foam blaster, defensive hit detection and local high scores. The owner subsequently specified **neon, slightly cyberpunk, not fancy**, a **centered blaster**, and **no gray or white attachments on the blaster**. Those corrections supersede the initial luxury hotel treatment. The weapon now has only a tan barrel, tan nozzle and tan grip, centered below the crosshair and brought close enough that its circular back end is out of view.
+Five-floor, nonlethal first-person arcade shooter with money theft, evasive play, a foam blaster, defensive hit detection and local high scores. The owner subsequently specified **neon, slightly cyberpunk, not fancy**, a **centered blaster**, and **no gray or white attachments on the blaster**. Those corrections supersede the initial luxury hotel treatment. The weapon now has only a tan barrel, tan nozzle and tan grip, centered below the crosshair and brought close enough that its circular back end is out of view. The owner’s subsequent width adjustment narrows it by approximately 14% without moving it.
 
 ## Play
 
@@ -26,7 +26,7 @@ Enter through the front door and pay the receptionist $250 from the initial $10,
 
 The games list has a Hotel Headshots card in root and static copies. Cabinet 1 (`arcade-cab-01`, formerly LASER MOTH) now runs `hotel-headshots/index.html` through the existing isolated arcade iframe. TURBO KELP remains unused. The cabinet has its own title, colors, poster, interaction and four-frame attract image captured from the game's actual opening screen. The existing anti-WarFlying screen is retained in place; only its obsolete `replaces: laser-moth` metadata is removed.
 
-The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-18-hotel-headshots-1`.
+The existing rule that every playable cabinet has a highest-score achievement and Dax holds those cabinet achievements is extended to this title. This is catalog/profile metadata only: the local leaderboard does not grant a verified District achievement. The read-only admin inventory is regenerated. District service-worker build: `2026-11-18-hotel-headshots-2`.
 
 No Sleeping Pod, music-player, account/save implementation, production API, merchandise, entitlement, payment or licensed-model file changed. The District HTML entrypoints remain unchanged and byte-identical.
 
