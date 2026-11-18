@@ -698,7 +698,9 @@
     const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
   const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
   const asked=new Map();
-  function askLooks(list=LOOKS){for(const look of list){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);asked.set(look,Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+look+'.glb',background:true},scene)).catch(()=>{}).then(()=>{loading.delete(look);asked.delete(look);}));}}return [...asked.values()];}
+  // A look that is a licensed companion model (the studio 3 dancer is Dex since 18 Nov 2026, the owner's choice) ships as an encrypted .vrpak, not a .glb.
+  const fileOf=look=>{const C=root.VoidVRCompanions,e=C?.companions&&[...C.companions.values()].find(x=>x.model===look);return e?C.file(e):look+'.glb';};
+  function askLooks(list=LOOKS){for(const look of list){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);asked.set(look,Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+fileOf(look),background:true},scene)).catch(()=>{}).then(()=>{loading.delete(look);asked.delete(look);}));}}return [...asked.values()];}
   function staff(clock){
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
@@ -734,7 +736,7 @@
   const prepared={};   // how long each step behind the card took, in ms (state().prepared; for checking on a real graphics card)
   async function prepare(){if(k.disposed)return;let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
    // only figures already on this computer (in memory or the offline cache), the rule every place follows (asset-pipeline.js prepare): a first visit still downloads after the card
-   const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+look+'.glb'),1500)?look:null))).filter(Boolean);if(k.disposed)return;
+   const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+fileOf(look)),1500)?look:null))).filter(Boolean);if(k.disposed)return;
    await cap(Promise.all(askLooks(here)),8000);if(k.disposed)return;lap('figures');staff(k.clock);
    if(mir){mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));mir.renderList=mirAll;}
    root.VoidAssets?.settleLights?.(scene);await cap(scene.whenReadyAsync(true),10000);if(k.disposed)return;lap('shaders');

@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "3324e5a7fd3885d8",
+  "revision": "c70fdb8f9b87e873",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16194,10 +16194,10 @@
     "void-runner/meridian-interior.js": "a0689f98ce5713e84c4fd36d9ee5147a790837838dca04ca98b1fbc449354b1b",
     "void-runner/meridian-kitbash.js": "9a56e451e8020d2eab0294e2a8f7c763e1fb1dc62d29bfa02dbf7646b715ed28",
     "void-runner/meridian-station.js": "39d79973df4dd6b069d1826cfb85a755f83e2ae90a6cf05b54f97b3f7c80c109",
-    "void-runner/milked-build.js": "91c4ce5d23e28a025a1508ef6433d4735cdb4520102e66696077b7cf5705e072",
+    "void-runner/milked-build.js": "3a416301f9b68aca94770caa2fe29d5d85e545c4fe9108d15a96e66bea54346e",
     "void-runner/milked-integration.js": "886ec02f0991098a1007dfa6e8dd03992ca1ded5962871002a229459b180327e",
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
-    "void-runner/milked.js": "58d5d68419e52c8ce4ec14c7e220990cf446393f3bbd085c432d1102097845e1",
+    "void-runner/milked.js": "5e98328a1cdeec526a3787df983ffc148ad53b5edafec0d8b8a982ba0b94c4c2",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "bf3392a245a142eaa3e076931db15c4416db1af6c7ba8123dca21cdf65fbf44c",
     "void-runner/mission-editor.js": "a522b5a71cae3cb68f65eb0d934518065dba499adfd77ea37db831ffa50fa9b7",
