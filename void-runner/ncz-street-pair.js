@@ -227,7 +227,7 @@
     else if(h.moving){// at her heel, on the road side (a run leaves it trotting behind)
      c.rubbed=false;c.circleLeft=between(rnd,cfg.cat.circleFor);const yaw=her?.s?.yaw??0,tx=h.x-Math.sin(yaw)*cfg.cat.heel,tz=Math.min(WALL-.2,h.z-.32);const dd=Math.hypot(tx-c.x,tz-c.z);speed=dd>.08?catGo(c,tx,tz,dt,dd>.9):0;}
     else{// she has stopped: round her legs, rubbing, then sit by her feet (a little further off while she dances)
-     const dancing=her?.s?.sub==='dance',r0=dancing?.8:cfg.circleR;
+     const dancing=her?.s?.sub==='dance',r0=dancing?.8:cfg.cat.circleR;
      if(d>.9+(dancing?.4:0)&&!c.rubbed){speed=catGo(c,h.x,h.z-.4-(dancing?.4:0),dt,true);}
      else if(c.circleLeft>0&&!dancing){c.ang=(c.ang||Math.atan2(c.x-h.x,c.z-h.z))+dt*1.6;speed=catGo(c,h.x+Math.sin(c.ang)*r0,Math.min(WALL-.2,h.z+Math.cos(c.ang)*r0),dt,false);c.rub=true;c.circleLeft-=dt;if(c.circleLeft<=0)c.rubbed=true;}
      else{const tx=h.x+(dancing?.85:.45),tz=h.z-(dancing?.55:.25),dd=Math.hypot(tx-c.x,tz-c.z);if(dd>.06)speed=catGo(c,tx,tz,dt,false);else sit=1;}}

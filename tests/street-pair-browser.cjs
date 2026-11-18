@@ -36,6 +36,8 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   const until=async(fn,steps=60)=>{for(let i=0;i<steps;i++){if(await page.evaluate(fn))return true;await ff(1);}return false;};
   await street('avenue',[100,1.7,-14]);   // the player waits out in the road, beyond the cat's reach
   assert.ok(await SP(),'the street pair runs on the Avenue');
+  if(process.env.NANPROBE){for(const h of [15,6]){await force(h);await page.waitForFunction(()=>VoidBabylon.district.streetPair.stats().her&&VoidBabylon.district.streetPair.stats().cat,null,{timeout:300000,polling:1000});
+    for(let i=0;i<40;i++){await ff(3);await page.waitForTimeout(300);const s=await SP();if(s.nan.her||s.nan.cat){log('NAN '+JSON.stringify(s));break;}if(i%10==0)log('ok '+JSON.stringify({her:s.her,cat:s.cat}));}}return;}
   if(process.env.PROBE){await force(+process.env.PROBE||6);await page.waitForFunction(()=>VoidBabylon.district.streetPair.stats().her,null,{timeout:300000,polling:1000});
    await page.evaluate(()=>{for(const g of VoidBabylon.district.streetPair.her.node.metadata.animationGroups)g.blendingSpeed=1;});
    for(const clip of ['idle','sit','sit-wave']){await page.evaluate(clip=>{const sp=VoidBabylon.district.streetPair,h=sp.her,st=VoidStreetPair.STEPS[1];Object.assign(h.s,{mode:'stop',left:999,clip,x:st.x,z:VoidStreetPair.seatOf(st),yaw:Math.PI,zo:0,device:null,sub:'test'});},clip);await page.waitForTimeout(6000);

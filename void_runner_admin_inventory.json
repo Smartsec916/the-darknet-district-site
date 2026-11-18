@@ -558,7 +558,7 @@
       "follow"
     ]
   },
-  "revision": "58353dc5632cbca3",
+  "revision": "0e02973d097136f6",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -15082,7 +15082,7 @@
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 80,
+      "line": 85,
       "text": "function routineStart(p=PAIR[1],rnd=Math.random,cfg=config){const x=between(rnd,[STRETCH.x0+3,STRETCH.x1-3]);return {who:p.id,favourite:p.favourite||null,mode:'walk',x,z:STRETCH.z,dir:rnd()<.5?1:-1,left:between(rnd,cfg.walk),step:null,yaw:0,clip:'walk',once:false,device:null,face:null,sub:null};}",
       "kind": "source-reference"
     },
@@ -17164,7 +17164,7 @@
     "void-runner/ncz-nightlife.js": "cff3409cb13cc62b577ec150a8068379f84b240ba59d7e4ba8068ef9420f49fa",
     "void-runner/ncz-outskirts-life.js": "e4d918db16db1d688cb05fa5bbace2613a3bab7a80ce998a651e7463915ded6a",
     "void-runner/ncz-quarters.js": "2452dc8d471d63247c98e6f5f5f0e5f9327b5df3a41934abe081d2146393919b",
-    "void-runner/ncz-street-pair.js": "243611b13d1e2856543a375cf5fb9fed956422093569bb703ba5e171adb58d15",
+    "void-runner/ncz-street-pair.js": "285d4b413b90680acb8946d1bddb8bbca4304d513251de3b7cce638919e23e3b",
     "void-runner/neochinatown.js": "4b5b2c2314b2df5c26cef32c5d760bf4e29569743fba771703d89d665be3a842",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
