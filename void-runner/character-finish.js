@@ -7,12 +7,17 @@
    have their own finish (vr-companions.js). Mission characters are not model files and are not touched. */
 (function(root){
  'use strict';
- const config={quality:true,strength:1,power:2.2,lift:.09,cyan:[.25,.9,1],magenta:[1,.25,.75]};
+ // Rim tuned 18 Nov 2026 when it first rendered (strength 1, power 2.2, lift .09 washed figures milky with a cyan outline): a soft edge, not a glow.
+ const config={quality:true,strength:.3,power:3.2,lift:.03,cyan:[.25,.9,1],magenta:[1,.25,.75]};
  // Eyes, lashes, teeth and the like are not given an edge light: it makes them glow.
  const notSurface=/eye|cornea|pupil|iris|teeth|tooth|tongue|lash|brow|glass|nail|lacrimal/i,skip=id=>/^crowd:vr-companion/.test(id);
  let Plugin=null;
  function plugin(B){return Plugin??=class CharacterRimPlugin extends B.MaterialPluginBase{
-  constructor(material){super(material,'CharacterRim',212,{CHARACTER_RIM:false});this._enable(true);}
+  // MaterialPluginBase has no enabled flag of its own (Babylon 8): the subclass keeps _isEnabled and marks the defines dirty when it changes. Before 18 Nov 2026
+  // only _enable(true) was called, _isEnabled stayed undefined and the rim was never compiled in.
+  constructor(material){super(material,'CharacterRim',212,{CHARACTER_RIM:false});this._isEnabled=false;this.isEnabled=true;}
+  get isEnabled(){return this._isEnabled;}
+  set isEnabled(on){on=!!on;if(this._isEnabled===on)return;this._isEnabled=on;this.markAllDefinesAsDirty();this._enable(on);}
   getClassName(){return 'CharacterRimPlugin';}
   isCompatible(){return true;}
   prepareDefines(defines){defines.CHARACTER_RIM=this._isEnabled;}

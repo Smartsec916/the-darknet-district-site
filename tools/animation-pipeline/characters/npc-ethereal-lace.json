@@ -1,6 +1,6 @@
 {
  "name": "npc-ethereal-lace",
- "source": "Lace (placeholder name; the owner's Meshy title 'Ethereal Lace'), a street resident of the Avenue: the owner's own Meshy generation on his paid plan (downloaded from meshy.ai), decimated to 45k triangles, rigged with Meshy's auto-rig on 18 Nov 2026; prepared by prepare_meshy.py. Neutral street clips only.",
+ "source": "Lace (placeholder name; the owner's Meshy title 'Ethereal Lace'), a street resident of the Avenue. The owner's own Meshy generation was sculpted with her hands clasped at her chest, so its auto-rig tore her arms and hair in any arm movement; on 18 Nov 2026 she was remade standing in an A-pose on his Meshy account: image-to-image (nano-banana-pro) from a front render of the original, image-to-3d, remesh 45k and auto-rig 1.65 m; prepared by prepare_meshy.py. Casual street clips only.",
  "bonePrefix": "",
  "optionalBones": true,
  "bones": {
@@ -28,15 +28,27 @@
   "RightToeBase": "RightToeBase"
  },
  "meshes": {
-  "output_unwrapped": {
+  "char1": {
    "name": "body",
    "maxTris": 46000
   }
  },
  "clips": [
   "idle",
-  "walk-game",
+  "sp-idle-shift",
+  "sp-idle-stretch",
+  "look",
+  "watch",
+  "sp-walk",
+  "sp-run",
+  "sp-sit-enter",
   "sit",
-  "look"
+  "sp-sit-exit",
+  "sp-sit-wave",
+  "sp-dance-groove",
+  "sp-dance-bop",
+  "talk",
+  "sp-gesture",
+  "sp-shrug"
  ]
 }

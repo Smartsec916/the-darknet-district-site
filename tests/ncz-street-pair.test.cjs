@@ -16,20 +16,35 @@ test('nobody is out for the first moments of a shift (the handover), then the on
  assert.equal(S.onStreet(at(0,0,19)+1000),null);assert.equal(S.onStreet(at(6,0)).id,'grey-reverie');
 });
 
-test('names: no spaces, placeholders, the Meshy titles kept; neither has dialogue or a voice',()=>{
+test('names: no spaces, placeholders, the Meshy titles kept; neither has dialogue or a voice; both walk now',()=>{
+ assert.deepEqual(S.PAIR.map(p=>p.kind),['walker','walker']);
  assert.deepEqual(S.PAIR.map(p=>p.id),['grey-reverie','ethereal-lace']);assert.deepEqual(S.PAIR.map(p=>p.name),['Reverie','Lace']);
  for(const p of S.PAIR){assert.doesNotMatch(p.name,/\s/);assert.equal(p.placeholder,true);}assert.deepEqual(S.PAIR.map(p=>p.title),['Grey Reverie','Ethereal Lace']);
  const src=fs.readFileSync(path.join(__dirname,'../void-runner/ncz-street-pair.js'),'utf8');assert.doesNotMatch(src,/talkChoice|speech\s*=|announce\(|VoidInteractions|voice-clips/);
  const reg=fs.readFileSync(path.join(__dirname,'../tools/audio/npc-voice-registry.json'),'utf8');assert.doesNotMatch(reg,/reverie|ethereal|"lace"/i);
 });
 
-test('Lace plays neutral street clips only (no dance, flirt or performance clips)',()=>{
- assert.deepEqual(C.clips['npc-ethereal-lace'].slice().sort(),['idle','look','sit','walk']);
- const spec=JSON.parse(fs.readFileSync(path.join(__dirname,'../tools/animation-pipeline/characters/npc-ethereal-lace.json'),'utf8'));assert.deepEqual(spec.clips.map(c=>c==='walk-game'?'walk':c).sort(),['idle','look','sit','walk']);
- const b=fs.readFileSync(path.join(__dirname,'../void-runner/assets/models/crowd/npc-ethereal-lace.glb')),j=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));
- assert.deepEqual(j.animations.map(a=>a.name.replace(/\.\d+$/,'')).sort(),['idle','look','sit','walk'],'the file carries exactly these clips');
- for(const f of ['npc-ethereal-lace','npc-grey-reverie','npc-street-cat']){const n=fs.statSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+f+'.glb')).size;assert.ok(n<5.2e6,f+' is game-sized ('+n+')');}
+test('both carry the same casual street library; no sensual, flirt or club clip is allowed anywhere',()=>{
+ const want=S.CLIP_LIST.slice().sort();assert.equal(new Set(want).size,want.length);
+ for(const k of ['idle','idle-shift','idle-stretch','look','watch','walk','run','sit-enter','sit','sit-exit','sit-wave','dance-groove','dance-bop','talk','gesture','shrug'])assert.ok(want.includes(k),k);
+ const banned=['slow-dance','dance-belly','dance-samba','blow-kiss','coy','hips','recline','sensual-movement','twerk','grind','pole-dance','milked-dance','flirt','seductive-idle','lap-dance','club-dance'];
+ for(const b of banned)assert.match(b,S.BANNED,b+' is caught by the rule');
+ for(const c of S.CLIP_LIST)assert.doesNotMatch(c,S.BANNED,c);
+ const clips=JSON.parse(fs.readFileSync(path.join(__dirname,'../tools/animation-pipeline/clips.json'),'utf8')).clips;
+ for(const f of ['npc-grey-reverie','npc-ethereal-lace']){
+  assert.deepEqual(C.clips[f].slice().sort(),want,f+' in crowd.js');
+  const spec=JSON.parse(fs.readFileSync(path.join(__dirname,'../tools/animation-pipeline/characters/'+f+'.json'),'utf8'));
+  assert.deepEqual(spec.clips.map(c=>clips[c].as||c).sort(),want,f+' spec');
+  for(const c of spec.clips){assert.doesNotMatch(c,S.BANNED);assert.doesNotMatch(clips[c].as||c,S.BANNED);assert.doesNotMatch(String(clips[c].action||''),S.BANNED,c+' source action');assert.doesNotMatch(clips[c].file,/flirt|belly|samba|sensual|seduc|laying|twerk|pole/i,c+' source file');}
+  const b=fs.readFileSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+f+'.glb')),j=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));
+  assert.deepEqual(j.animations.map(a=>a.name.replace(/\.\d+$/,'')).sort(),want,f+': the file carries exactly these clips');
+  for(const a of j.animations)assert.doesNotMatch(a.name,S.BANNED);
+  assert.ok(b.length<6.2e6,f+' is game-sized ('+b.length+')');
+  const tris=j.meshes.reduce((n,m)=>n+m.primitives.reduce((k,p)=>k+j.accessors[p.indices].count/3,0),0);assert.ok(tris>30000&&tris<47000,f+' triangles '+tris);
+  const names=new Set(j.nodes.map(n=>n.name));for(const bn of ['Hips','Spine','Spine1','Spine2','Neck','Head','LeftArm','LeftForeArm','LeftHand','RightArm','RightForeArm','RightHand','LeftUpLeg','LeftLeg','LeftFoot','RightUpLeg','RightLeg','RightFoot'])assert.ok(names.has('mixamorig:'+bn),f+' has the standard joint '+bn);}
  assert.ok(fs.statSync(path.join(__dirname,'../void-runner/assets/models/crowd/npc-street-cat.glb')).size<1.2e6,'the cat is small');
+ // the V1 poses they use are npc-device.js poses
+ const D=require('../void-runner/npc-device.js'),src=fs.readFileSync(path.join(__dirname,'../void-runner/npc-device.js'),'utf8');for(const p of S.DEVICE)assert.match(src,new RegExp("case '"+p+"'|'"+p+"'"),p);
 });
 
 test('they stay on one ordinary stretch of the Avenue, far from Milked, NULL and the club',()=>{
@@ -39,13 +54,60 @@ test('they stay on one ordinary stretch of the Avenue, far from Milked, NULL and
  for(const p of pts)assert.ok(Math.hypot(p.x-61,p.z+60)>50);
 });
 
-test("Lace's routine: walks, sits on a ledge, gets up and walks again, never leaving her stretch",()=>{
- let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
- const s=S.laceStart(rnd);const seen=new Set();let sat=0,minX=1e9,maxX=-1e9;
- for(let i=0;i<20*60*10;i++){S.laceStep(s,.1,rnd);seen.add(s.mode);if(s.mode==='sit'){sat++;assert.ok(S.STEPS.some(t=>Math.abs(t.x-s.x)<.01),'sits on a ledge');assert.equal(s.clip,'sit');}
-  minX=Math.min(minX,s.x);maxX=Math.max(maxX,s.x);assert.ok(s.z<S.WALL&&s.z>-7.5,'on the pavement: '+s.z);assert.ok(['walk','idle','sit','look'].includes(s.clip));}
- for(const m of ['walk','to-step','settle','sit','rise'])assert.ok(seen.has(m),m);
- assert.ok(sat>0);assert.ok(minX>=S.STRETCH.x0-.01&&maxX<=S.STRETCH.x1+.01,minX+'..'+maxX);
+const seeded=k=>{let seed=k;return ()=>(seed=(seed*16807)%2147483647)/2147483647;};
+function simulate(p,minutes,ctxAt,rnd=seeded(7)){const s=S.routineStart(p,rnd);const seen={modes:new Set(),clips:new Set(),devices:new Set(),subs:new Set(),ledges:{},onceClips:new Set(),minX:1e9,maxX:-1e9};let t=0;
+ for(let i=0;i<minutes*600;i++,t+=.1){const ctx=ctxAt?ctxAt(s,t):{};S.routineStep(s,.1,rnd,S.config,ctx);seen.modes.add(s.mode);seen.clips.add(s.clip);if(s.device)seen.devices.add(s.device);if(s.sub)seen.subs.add(s.sub);if(s.once)seen.onceClips.add(s.clip);
+  if(s.mode==='sit'){seen.ledges[s.step.id]=(seen.ledges[s.step.id]||0)+1;assert.ok(S.STEPS.some(st=>Math.abs(st.x-s.x)<.01),'sits on a ledge');assert.ok(['sit','sit-wave'].includes(s.clip));}
+  if(s.mode==='run')assert.equal(s.clip,'run');
+  seen.minX=Math.min(seen.minX,s.x);seen.maxX=Math.max(seen.maxX,s.x);assert.ok(s.z<S.WALL&&s.z>-7.5,'on the pavement: '+s.z);assert.ok(S.CLIP_LIST.includes(s.clip),s.clip);if(s.device)assert.ok(S.DEVICE.includes(s.device));}
+ return seen;}
+
+test('the routine (both): walks, runs a short way, stops for idles, looks and the V1, sits down, sits and stands up through the transitions, never leaving the stretch',()=>{
+ for(const p of S.PAIR){const seen=simulate(p,40);
+  for(const m of ['walk','run','stop','pause','to-step','settle','sit-down','sit','stand-up','step-off'])assert.ok(seen.modes.has(m),p.id+' '+m);
+  for(const c of ['walk','run','sit-enter','sit','sit-exit','look'])assert.ok(seen.clips.has(c),p.id+' '+c);
+  assert.ok(seen.onceClips.has('sit-enter')&&seen.onceClips.has('sit-exit'),'the sit-down and stand-up clips play once');
+  assert.ok(seen.clips.has('idle-shift')||seen.clips.has('idle-stretch'),'idle variations');
+  assert.ok(seen.devices.has('scroll')&&seen.devices.has('selfie'),'the V1: scrolling and a selfie');
+  assert.ok(seen.minX>=S.STRETCH.x0-.01&&seen.maxX<=S.STRETCH.x1+.01,seen.minX+'..'+seen.maxX);}
+});
+
+test('the order of a sit: settle -> sit-down (once) -> sit -> stand-up (once) -> step-off -> walk',()=>{
+ const rnd=seeded(3),s=S.routineStart(S.PAIR[0],rnd);s.left=0;s.mode='walk';const order=[];for(let i=0;i<4000&&order.length<8;i++){const m0=s.mode;S.routineStep(s,.1,()=>0.01,S.config,{});if(s.mode!==m0)order.push(s.mode);}
+ const i=order.indexOf('settle');assert.ok(i>=0,order.join(','));assert.deepEqual(order.slice(i,i+6),['settle','sit-down','sit','stand-up','step-off','walk']);
+});
+
+test('Reverie keeps her favourite seat against the LAUNDRY wall; Lace uses all three ledges',()=>{
+ const fav=S.STEPS.find(t=>t.id==='ledge-reverie');assert.ok(Math.abs(fav.x-S.SEAT.x)<.01&&fav.z<S.WALL);
+ const r=simulate(S.PAIR[0],60),l=simulate(S.PAIR[1],60);const tot=o=>Object.values(o).reduce((a,b)=>a+b,0);
+ assert.ok(r.ledges['ledge-reverie']/tot(r.ledges)>.5,JSON.stringify(r.ledges));assert.ok(Object.keys(l.ledges).length>=2,JSON.stringify(l.ledges));
+});
+
+test('with the cat close she talks to it, photographs it and now and then dances (casual clips only)',()=>{
+ for(const p of S.PAIR){const seen=simulate(p,60,s=>({cat:{x:s.x+.7,z:s.z+.25}}));
+  assert.ok(seen.subs.has('dance')&&(seen.clips.has('dance-groove')||seen.clips.has('dance-bop')),p.id+' dances');
+  assert.ok(seen.subs.has('talk')&&(seen.clips.has('talk')||seen.clips.has('gesture')),p.id+' talks to the cat');
+  assert.ok(seen.devices.has('photo'),p.id+' photographs the cat');}
+ // alone, dancing is rare
+ const alone=simulate(S.PAIR[1],60,null,seeded(11));const withCat=simulate(S.PAIR[1],60,s=>({cat:{x:s.x+.7,z:s.z+.25}}),seeded(11));
+ assert.ok(!alone.subs.has('dance')||withCat.subs.has('dance'));
+ // seated, a player close by gets a wave from the seat
+ const w=simulate(S.PAIR[0],40,s=>({player:{x:s.x,z:s.z-2}}));assert.ok(w.clips.has('sit-wave'));
+});
+
+test('the glance: the nearest player within 4.5 m and 70 degrees of her front; head turn clamped to 35 / 15 degrees; never while dancing, running or on the V1',()=>{
+ const D=Math.PI/180,L=S.config.look,body={x:100,z:-6.8,yaw:Math.PI},head={x:100,y:1.45,z:-6.8},at=(deg,d,y=1.6)=>({x:100+Math.sin(Math.PI+deg*D)*d,y,z:-6.8+Math.cos(Math.PI+deg*D)*d});
+ assert.ok(Math.abs(L.radius-4.5)<.6&&Math.abs(L.cone-70*D)<1e-9&&Math.abs(L.yaw-35*D)<1e-9&&Math.abs(L.pitch-15*D)<1e-9&&Math.abs(L.blend-.4)<.11);
+ assert.equal(S.lookAt(body,head,[]),null);assert.equal(S.lookAt(body,head,[at(0,6)]),null,'too far');assert.equal(S.lookAt(body,head,[at(100,2)]),null,'behind the cone');assert.equal(S.lookAt(body,head,[at(180,1.5)]),null,'behind her');
+ const straight=S.lookAt(body,head,[at(0,3)]);assert.ok(straight&&Math.abs(straight.yaw)<1e-6&&straight.pitch>0&&straight.pitch<=L.pitch);
+ const side=S.lookAt(body,head,[at(60,2)]);assert.ok(Math.abs(side.yaw)<=L.yaw+1e-9&&Math.abs(Math.abs(side.yaw)-L.yaw)<1e-9,'clamped to 35 degrees');
+ const small=S.lookAt(body,head,[at(20,2)]);assert.ok(Math.abs(Math.abs(small.yaw)-20*D)<1e-6,'a small turn is not clamped');
+ const low=S.lookAt(body,head,[at(0,1,0)]);assert.ok(Math.abs(low.pitch+L.pitch)<1e-9,'pitch clamped');
+ const two=S.lookAt(body,head,[at(10,4),at(-30,1.5)]);assert.equal(two.i,1,'the nearest player wins');
+ assert.equal(S.canLook({mode:'walk'}),true);assert.equal(S.canLook({mode:'sit'}),true);assert.equal(S.canLook({mode:'stop',sub:'idle'}),true);
+ assert.equal(S.canLook({mode:'run'}),false);assert.equal(S.canLook({mode:'stop',sub:'dance'}),false);assert.equal(S.canLook({mode:'stop',device:'selfie'}),false);
+ // no eye bones to aim on their rigs (the eyes are painted into the face): head tracking only
+ for(const f of ['npc-grey-reverie','npc-ethereal-lace']){const b=fs.readFileSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+f+'.glb')),j=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));assert.ok(!j.nodes.some(n=>/eye/i.test(n.name)),f);assert.equal(j.meshes.length,1,f+' is one mesh');}
 });
 
 test("the cat's target: whoever is out, else home; a close player now and then, never during its cool-down",()=>{
