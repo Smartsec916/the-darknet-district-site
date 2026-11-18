@@ -348,6 +348,22 @@ class MissionRemovalSaveTests(unittest.TestCase):
         bad = copy.deepcopy(good)
         bad['trees'][1]['missions'][0]['start']['when']['mission'] = 'nowhere'
         self.assertTrue(live.check(bad))
+        # "when walked near" (18 Nov 2026): who (a person with a TALK prompt; Reverie and Lace are givers) and how far (1..30 m, default 5)
+        near = {'id': 'draft-near', 'name': 'Near', 'missions': [{'id': 'draft-near-m1', 'number': 42, 'title': 'Walk by', 'type': 'side', 'giver': 'grey-reverie',
+                'start': {'how': 'notification', 'channel': 'notify', 'from': 'grey-reverie', 'text': 'x', 'when': {'kind': 'near', 'npc': 'grey-reverie', 'distance': 5}},
+                'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'ethereal-lace'}]}]}
+        good = copy.deepcopy(content)
+        good['trees'].append(near)
+        self.assertEqual(live.check(good), [])
+        for w in ({'kind': 'near'}, {'kind': 'near', 'distance': 1}, {'kind': 'near', 'distance': 30}, {'kind': 'near', 'npc': 'admin', 'distance': 2.5}):
+            ok = copy.deepcopy(good)
+            ok['trees'][1]['missions'][0]['start']['when'] = w
+            self.assertEqual(live.check(ok), [], w)
+        for w in ({'kind': 'near', 'distance': 0}, {'kind': 'near', 'distance': 31}, {'kind': 'near', 'distance': '5'}, {'kind': 'near', 'distance': True},
+                  {'kind': 'near', 'npc': 'juno-vex'}, {'kind': 'near', 'npc': 'nobody'}, {'kind': 'place', 'place': 'port', 'distance': 5}, {'kind': 'near', 'radius': 5}):
+            bad = copy.deepcopy(good)
+            bad['trees'][1]['missions'][0]['start']['when'] = w
+            self.assertTrue(live.check(bad), w)
 
     def test_manifest_lists_mission_001(self):
         m = live.manifest()

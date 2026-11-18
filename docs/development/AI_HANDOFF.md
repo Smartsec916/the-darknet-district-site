@@ -6,7 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 18 Nov 2026 (newest): REVERIE AND LACE REMADE STANDING AND RIGGED, WITH A FULL STREET ANIMATION LIBRARY; LACE'S TORN ARMS FIXED (branch `claude/street-pair-anims`, build `2026-11-18-pair-anims-1`, pushed, NO PR, not merged)
+### 18 Nov 2026 (newest): MISSION EDITOR — REVERIE AND LACE AS GIVERS; START TRIGGER "WHEN WALKED NEAR" (branch `claude/editor-givers-proximity`, build `2026-11-18-editor-givers-1`, pushed, NO PR, not merged)
+
+The owner asked for two separate editor features. Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Seventh pass".
+
+- **Reverie and Lace give missions:** in the giver roster (`mission-givers.js`, ids `grey-reverie` / `ethereal-lace`, `shift`), selectable in the editor with an availability note (UTC 00-12 Reverie, 12-24 Lace, nobody for the first 90 s; "out now / not out now"). In the game the one who is out has a TALK TO prompt that follows her (`ncz-street-pair.js`, interaction action `street-pair`); she stops and turns to the player while talked to. Her missions are offered only while she is out (`mission-content.js duty()`; draft play puts her out at any hour: `VoidStreetPair.force`). No mission: one neutral placeholder line each, text only. Ordinary street residents: nothing flirtatious.
+- **"When walked near"** (any mission, any giver with a TALK prompt): Starts by notification, Trigger "When walked near", within N metres (1-30, default 5) of the chosen person (default the giver). `live-content.js nearTick` every 250 ms, walking only (not conversations / cutscenes, character creator, pod, KeyMap); fires once, in tree order; server check in `void_runner_live_content.py`. Side fixes: the editor export now keeps "after in-game time"'s mission and minutes (it dropped them), and a changed Giver takes the offer lines with it.
+- **Tests:** `tests/editor-givers-near.test.cjs`, `tests/editor-givers-browser.cjs`, `test_live_content.py`, `test_story_save.py`; updated `ncz-street-pair.test.cjs` (they now have a line and a prompt), `mission-trees.test.cjs`.
+- **Not verified:** real hardware; VR; Lace in the browser (same code path as Reverie); a live player at a shift change.
+
+### 18 Nov 2026: REVERIE AND LACE REMADE STANDING AND RIGGED, WITH A FULL STREET ANIMATION LIBRARY; LACE'S TORN ARMS FIXED (branch `claude/street-pair-anims`, build `2026-11-18-pair-anims-1`, pushed, NO PR, not merged)
 
 The owner: "Upgrade Reverie (npc-grey-reverie.glb) and Lace (npc-ethereal-lace.glb) to support a wider range of animations ... Preserve their existing appearance, clothing, textures, and character identities." Both stay ordinary street residents (youthful faces): casual clips only, never in Milked, NULL or the clubs; clothes unchanged.
 
