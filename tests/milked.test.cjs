@@ -108,7 +108,7 @@ test('each studio has exactly one adult dancer, a window and a closed door on th
   for(const c of ['pink','green','mixed'])assert.ok(MK.STUDIOS.some(s=>s.light===c),c+' lighting');
   for(const s of MK.STUDIOS){const r=MK.ROOMS.find(q=>q.id===s.room),d=s.dancer;assert.ok(r&&r.kind==='studio'&&r.closed);
    assert.ok(Crowd.clips[d.look],d.look+' is a crowd figure');assert.ok(Crowd.clips[d.look].includes(d.clips[0]),d.look+' really has '+d.clips[0]);assert.match(d.clips[0],/dance|hips/);if(d.look==='studio-warrior'){assert.equal(d.id,'milked-dancer-2','the licensed Female Warrior (private .vrpak, not in the public repository) dances in studio 2: the owner\'s choice, 18 Nov 2026');assert.equal(d.file,'studio-warrior.vrpak');}else if(d.look==='vr-companion-bm')assert.equal(d.id,'milked-dancer-3','Dex (licensed, private .vrpak, not in the public repository) dances in studio 3: the owner\'s choice, 18 Nov 2026');else assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+d.look+'.glb')),d.look+' is in the repository');
-   assert.ok(Lib.clip(d.library),d.library+' is a library clip');assert.ok(d.id!==MK.MODELS.eva.id&&d.look!==MK.MODELS.eva.look&&d.look!==MK.MODELS.fish.look);
+   if(s.n!==1)assert.ok(Lib.clip(d.library),d.library+' is a library clip');assert.ok(d.id!==MK.MODELS.eva.id&&d.look!==MK.MODELS.eva.look&&d.look!==MK.MODELS.fish.look);
    for(const span of [s.window,s.door])assert.ok(span[0]>=r.rect[0]&&span[1]<=r.rect[1]&&span[1]>span[0]);assert.ok(s.window[1]-s.window[0]>=2,'a real window');assert.ok(s.window[1]<=s.door[0]||s.door[1]<=s.window[0]);
    assert.ok(MK.INTERACTIONS.some(i=>i.action==='milked-studio'&&i.studio===s.n&&MK.roomAt(i.position[0],i.position[2]).id==='hallway'),'watched from the hallway');}
   // the build: one dancer per studio and nobody else in them; no camera operators; an ON AIR sign per studio door
@@ -154,4 +154,18 @@ test('Milked adds no save fields, no location id and no mission',()=>{
 test('every interaction has a registered handler in the integration script',()=>{
   const integ=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');
   for(const a of new Set(MK.INTERACTIONS.map(i=>i.action)))assert.ok(integ.includes("R('"+a+"'"),a);
+});
+
+test('Studio 1 uses the other Avenue resident on each 12-hour UTC shift',()=>{
+ const S=require('../void-runner/ncz-street-pair.js'),C=require('../void-runner/crowd.js');
+ for(let hour=0;hour<24;hour++)for(const minute of [0,1,30,59]){
+  const ms=Date.UTC(2026,10,18,hour,minute),p=MK.studioOnePerformer(ms),street=S.onShift(ms);
+  assert.equal(p.look,street.id==='grey-reverie'?'npc-ethereal-lace':'npc-grey-reverie');
+  assert.deepEqual(p.dances,['dance-groove','dance-bop']);
+  for(const clip of p.dances)assert.ok(C.clips[p.look].includes(clip),p.look+' has '+clip);
+ }
+ assert.equal(MK.STUDIOS[0].dancer.id,'milked-dancer-1');
+ assert.match(bcode,/function syncStudioOne\(/);
+ assert.match(bcode,/studioOne\.node\?\.dispose\?\.\(\)/);
+ assert.match(bcode,/syncStudioOne\(\);/);
 });
