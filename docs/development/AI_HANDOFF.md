@@ -6,6 +6,17 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 18 Nov 2026 (newest): MILKED STUDIO 4 — AUBURN, THE OWNER'S OWN MESHY MODEL, REPLACES THE VR-PLAYER FIGURE (branch `claude/studio4-model`, build `2026-11-18-studio4-1`, pushed, NO PR, not merged)
+
+The owner: "Go ahead and add her into Studio 4. I think she looks about 21." **Auburn is an adult woman of 21 (his statement, 18 Nov 2026).** Clothed: green long-sleeved high-neck bodycon dress over black shorts, black knee-high stiletto boots.
+
+- **Made from his own Meshy file** (`Meshy_AI_Auburn_Morning_in_the_1118031722_texture.glb`, Downloads; bent over, hands on knees, unrigged, 1.38 M triangles: it could not be rigged). A standing A-pose concept of the same woman was made from renders of it, then 3D, remesh 40k, rig 1.72 m: **49 credits** (cap 70; 323 before), no retry. Ledger: `MESHY_CHARACTERS.md`; licence row (with her age): `docs/VOID_RUNNER_ASSET_LICENSES.md`.
+- **File:** `void-runner/assets/models/crowd/npc-milked-auburn.glb`, 4.58 MB, one skinned mesh, 41,285 triangles, 24 joints, three JPEG maps; spec `tools/animation-pipeline/characters/npc-milked-auburn.json`; clips `idle` and `dance` (`clips.json` `pb-idle` / `pb-dance`: studio 4's own, from `vr-player-b.glb`; that dance is a 1 s sway loop).
+- **In the game:** `milked.js` studio 4 dancer `{id:'milked-auburn',name:'Auburn',look:'npc-milked-auburn',...}`; `crowd.js` clip list. Nothing else changed (`vr-player-b` stays for the VR booth; no other studio touched; no voice, no lines).
+- **The library move `ac-stand-curve-3` does not apply to her:** `anim-library.js` refuses her (rest-pose offset 180 degrees against the 25 degree limit, the Meshy rig's bone axes), so on the live site she dances `dance`, where the old figure played the hand-on-hip library loop. The `library` field is left in place (harmless; the studios' library ids must stay distinct for the test).
+- **Studios are `closed:true`:** a closed room is seen through its hallway window, never entered; every dancer is shown regardless. Studio 4 was not opened.
+- **Checked in a browser** (bundled Chromium, software GL, Medium, 1366x768 at scale 1, private assets served beside the worktree): through the studio 4 window, dancing and idle; feet on the floor (within 2 cm), arms not twisted, no clipping. **Not verified:** real GPU, Low/High, VR; her face at close range in game (only seen through the window).
+
 ### 18 Nov 2026 (newest): THE AVENUE'S STREET PAIR — REVERIE AND LACE TAKE 12-HOUR TURNS ON THE PAVEMENT; A STREET CAT LOOKS FOR WHICHEVER IS OUT (branch `claude/studio1-models`, build `2026-11-18-street-pair-1`, pushed, NO PR, not merged)
 
 The owner: "Put Reverie and Lace in the streets rotated every 12 hours" (his own Meshy generations "Grey Reverie" and "Ethereal Lace"), and a cat "which seeks these two out on the street and seeks attention from them". **Not in Milked: Studio 1 stays closed and unchanged.** Both have soft, youthful faces and styling, so they are ordinary ambient street residents only: neutral clips, no dance, flirt or performance clips, a plain daytime stretch.
