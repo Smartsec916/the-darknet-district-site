@@ -159,3 +159,14 @@ test('the cab, the registry and the map hail control ship with the game page',()
   const page=fs.readFileSync('void-runner/road-taxi.js','utf8');
   assert.match(page,/road-taxi-rules/);assert.doesNotMatch(page,/pod-music|Sleeping Pod|drawPod/);
 });
+test('rides are free on the developer account only (VoidDevTools.authorized, set after the server accepts the developer request)',()=>{
+ const s=city();const paidBefore=R.destinations(s,{player:[40,-12.5]}).filter(d=>d.ok);assert.ok(paidBefore.some(d=>d.fare>0));
+ assert.ok(R.charge(city(),'x',12));
+ globalThis.VoidDevTools={authorized:true};
+ try{
+  assert.equal(R.cost([0,0],[5000,0]),0);
+  const ds=R.destinations(s,{player:[40,-12.5]}).filter(d=>!/Already there|No road/.test(d.reason||''));assert.ok(ds.length&&ds.every(d=>d.fare===0&&d.ok));
+  const t=city();t.credits=0;assert.ok(R.charge(t,'old-town',0));assert.equal(t.credits,0);assert.equal(R.recover(t),0);
+ }finally{delete globalThis.VoidDevTools;}
+ assert.ok(R.cost([0,0],[80,0])>0);
+});
