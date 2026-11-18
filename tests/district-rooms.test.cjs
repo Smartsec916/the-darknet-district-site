@@ -67,7 +67,7 @@ test('the campaign screen carries the owner\'s header and his 25 lines word for 
 });
 test('the arcade keeps a poster for every playable game and none for a game that is not built; a campaign screen hangs where each of those was',()=>{
  const src=read('void-runner/neochinatown.js'),playable=N.arcade.filter(c=>c.playable).map(c=>c.game).sort(),not=N.arcade.filter(c=>!c.playable).map(c=>c.game).sort();
- assert.deepEqual(playable,['blackout-protocol','corporate-zombies','underground-overdrive']);assert.deepEqual(not,['laser-moth','turbo-kelp']);
+ assert.deepEqual(playable,['blackout-protocol','corporate-zombies','hotel-headshots','underground-overdrive']);assert.deepEqual(not,['turbo-kelp']);
  const line=src.split('\n').find(l=>l.includes("if(ARCADE.find(c=>c.game===key)?.playable)poster(key,p,ry)"));assert.ok(line);for(const g of playable)assert.ok(line.includes("['"+g+"',["),g+' keeps its poster');for(const g of not)assert.ok(!line.includes("['"+g+"'"),g+' has no poster');
  assert.deepEqual(R.CAMPAIGN.screens.filter(s=>s.replaces).map(s=>s.replaces).sort(),not);assert.equal(N.arcade.length,5,'every cabinet is still there');
  const half=R.CAMPAIGN.w/2+R.CAMPAIGN.frame;for(const [x,wall] of [[-6,'arc-north'],[-4.4,'arc-south']])for(const sc of R.CAMPAIGN.screens.filter(s=>s.wall===wall))assert.ok(Math.abs(sc.x-x)>half+.5+.2,'clear of the poster beside it');

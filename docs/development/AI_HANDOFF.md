@@ -6,6 +6,9 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+> **Codex draft, 18 Nov 2026 — HOTEL HEADSHOTS:** New standalone five-floor foam-blaster arcade game on `codex/hotel-headshots`, with a games-list card and the first unused District cabinet (formerly LASER MOTH). Owner corrections: neon/cyberpunk, not fancy; centered tan-only blaster without gray/white attachments. Playable procedural 3D; not a realistic/AAA model pass. Not merged or live. Implementation, verification and limitations: [`HOTEL_HEADSHOTS.md`](HOTEL_HEADSHOTS.md).
+
+
 ### 17 Nov 2026 (newest): MISSION 003 — CORPORATE CONNECTIONS (branch `claude/mission-003`, build `2026-11-17-mission-003-1`, pushed, NO PR, not merged)
 
 The owner's mission (APPROVED, verbatim in `VOID_RUNNER_HANDOFF.md` §11). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fifth pass".
