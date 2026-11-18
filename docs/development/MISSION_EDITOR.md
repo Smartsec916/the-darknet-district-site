@@ -2,6 +2,25 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Sixth pass (18 Nov 2026): every place has a name; photo METADATA; device IDs
+
+Branch `claude/gallery-metadata`, build `2026-11-18-metadata-1`. Pushed, no PR, not merged.
+
+**What you will see.** The place pickers (steps "Enter / leave a place" and the triggers) now list **every** named place, indented by level, each with its level ("· area", "· venue", "· exact location") and **(working name)** where the game had no name and Claude gave a plain descriptive one for you to replace. Hovering an option, or the chosen place, shows its whole chain (Tessaly System › NeoChinatown › NeoChinatown › Old Town › The Darknet District › The Bar).
+
+- **The hierarchy:** System › Planet › City › Area › Venue › Exact location. *Venue* is a building with rooms (The Darknet District, NULL, Milked). An exact location can hold smaller ones (a shopfront or a taxi stop on a stretch of street); the smallest one the player stands in counts.
+- **The planet:** the game shows "NeoChinatown" for the planet as well as the city. The planet's own name is not settled, so it is a PROPOSED row on the sheet.
+- **168 places:** 147 use a name the game already has (signs, menus, the map, the game's own data), of which 50 are **shopfronts** named by their neon sign; **21 are PROPOSED** working names (stretches of Main Street and the Avenue, the access road, the Outskirts' yards and lanes, Milked's side street, the Temple grounds, the planet).
+- **Your review sheet:** [`LOCATION_NAMES.md`](LOCATION_NAMES.md) (one row per place, with an empty "Owner's name" column) and the map [`location-names-map.png`](location-names-map.png) (numbers match the sheet). Changing a name never breaks a mission: missions use the internal id, which never changes.
+- **Gallery › METADATA** (your request): with a photo open in the V1 Gallery, **METADATA** shows **TAGGED** (each person the camera identified, and how: "District resident registry", "Camera identification" for people a scene registers such as Juno Vex, or "Their device (another player)"; with "clear shot · 6.2 m" or why not), **LOCATION** (most specific first: "The Bar · The Darknet District · Old Town · NeoChinatown · Tessaly System"), **DEVICE ID** and **TAKEN** (the in-game time, "21:51 · DAY 1"). Back returns to the photo.
+- **Anonymous photographer (your correction):** no handle, account or player id is kept with a photo. The **device ID** is the only link to whoever took it, and it cannot be turned back into an account. **Tracing a device ID back to a person is a future gameplay mechanic** (not built). A row "POSTED ONLINE BY @handle" is ready for when a photo is posted online by a person or NPC; it is empty for now and is not shown while empty.
+- **Device ID:** every player's device has one, e.g. **V1-7F3A-91C2** (the model, then eight characters). It is made once per campaign from a one-time random number (with the campaign and, when signed in, the account mixed in, then thrown away), kept in the save (`story.flags.deviceSerial`), the same after a reload or on another computer, and shown in MY V1 as well. A later model keeps the number with its own prefix (V3-...).
+- **Fresh start (your instruction):** this update deletes every Gallery photo taken before it, once, for every player. Photos only ever lived in the player's browser (nothing in the cloud save), so this empties the Gallery's photo store in each browser the first time the update loads, and touches nothing else (messages that showed a photo now say "[photo no longer in your gallery]").
+
+**For Claude and Codex:** `void-runner/places.js` (`LEVELS` with `venue`; node fields `proposed`, `src`, `where`, `fallback`, `shop`; `SHOPFRONTS` read from the built city's `shop-sign-N` meshes, words from `neochinatown.js shopSigns`; `at()` sorts deepest, then named before fallback, then smallest; `chain()`); `device-v1.js` (`KEY.serial`, `makeSerial`, `ensureSerial`, `deviceId`, `DEVICE_ID`); `device-camera.js` (`capture()` records `device`; tags carry `via`; `VoidDeviceId.now()`); `device-gallery.js` (`FIELDS`, `metadata()`, `postedBy`, `DB_VERSION` 2 and `upgrade()`); `personal-device.js` (`['gallery', id, 'meta']`; MY V1 DEVICE ID); `mission-editor.js` (`placeText`). Regenerate the sheet and map with `node tools/location-names.cjs --json /tmp/places.json` and `python3 tools/location-names-map.py /tmp/places.json docs/development/location-names-map.png <date>`. When the owner names a place: change `name`, drop `proposed`, never the `id`. Tests: `tests/places-names.test.cjs`, `tests/gallery-metadata-browser.cjs` (screenshots in `gallery-metadata/`), `tests/test_story_save.py` (deviceSerial survives `clean_save`). `tests/guide-route.test.cjs` also walks the arrow from the District hall to every new exact location.
+
+**Not verified:** real hardware (software renderer only); the shopfront positions were read from the city as built on 18 Nov 2026 (they follow the city's fixed random sequence: a change to street furniture can move them, rerun the reading); Vesper, Meridian and the other historical stations have no places (not reachable in a District campaign); another player in a photo (the "their device" path) was not photographed in a browser.
+
 ## Fifth pass (17 Nov 2026): Mission 003 — Corporate Connections; the in-game clock; contacts and Social; the V1 translation
 
 Branch `claude/mission-003`, build `2026-11-17-mission-003-1`. Your text is verbatim in `VOID_RUNNER_HANDOFF.md` §11.
@@ -69,7 +88,7 @@ Branch `claude/eyes-on-the-street`, build `2026-11-17-eyes-1`.
 - **Reward "Reputation with an NPC or a faction".** An NPC: their standing with the player (`story.relationships`, -100 to 100). A faction: `progression.reputation`. Both are kept by the cloud save as they are. Paid once with the mission.
 - **Hints.** Small yellow-orange hints under the tracked-mission line for the photo and send-a-photo steps (open the V1 with the player's own key, open Camera, take the picture, open Messages, open the conversation, ATTACH, SEND), each gone once done. Every hint is tagged `data-help="1"` for your future Help switch (`story.flags.helpOff` already hides them).
 
-**The place list (named so far).** The owner wants every location named; to go through later (exact locations such as the food stalls are not named yet).
+**The place list (as of the fourth pass; superseded by the sixth pass: every place now has a name, see `LOCATION_NAMES.md`).**
 
 | Level | Places |
 |---|---|

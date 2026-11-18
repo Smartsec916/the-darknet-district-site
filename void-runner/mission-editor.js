@@ -191,12 +191,15 @@
    for(const g of givers.filter(x=>x.group===grp))og.append(new Option(g.name+(g.name.toLowerCase()!==g.id?' ('+g.id+')':'')+(!g.canTalk?' — cannot be talked to yet':!g.players?' — players cannot reach today':''),g.id));sel.append(og);}
   sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
  function placeSelect(value,on,label,flights){const sel=el('select','','',{'aria-label':label||'Place'});sel.append(new Option('— choose a place —',''));for(const p of G().PLACES.filter(p=>!flights||p.location))sel.append(new Option((refs.locations[p.id]||p.name)+(p.players?'':' — players cannot reach today'),p.id));
-  if(!flights&&root.VoidPlaces){const og=el('optgroup','',null,{label:'Named places (System › City › Area › Exact location)'});for(const o of root.VoidPlaces.options())if(o.selectable&&!G().PLACE.has(o.id))og.append(new Option('\u00a0'.repeat(o.depth*2)+o.name,o.id));sel.append(og);}
+  if(!flights&&root.VoidPlaces){const og=el('optgroup','',null,{label:'Named places (System › Planet › City › Area › Venue › Exact location)'});for(const o of root.VoidPlaces.options())if(o.selectable&&!G().PLACE.has(o.id)){const opt=new Option(placeText(o,2),o.id);opt.title=o.label;og.append(opt);}sel.append(og);}
   sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
- /* The place registry by hierarchy (places.js): System › Planet / City › Area › Exact location. For "Enter / leave a place" steps and triggers. */
+ /* The place registry by hierarchy (places.js): System › Planet › City › Area › Venue › Exact location (18 Nov 2026: every walkable spot is named). For "Enter / leave a
+    place" steps and triggers. Each option shows its level and, for a working name not yet chosen by the owner, "(working name)"; hovering shows the whole chain, and the
+    chosen place's whole chain is the select's tooltip. */
+ const placeText=(o,k)=>'\u00a0'.repeat(o.depth*k)+o.name+' · '+(((root.VoidPlaces?.LEVELS||[]).find(l=>l.id===o.level)||{}).name||o.level).toLowerCase()+(o.proposed?' (working name)':'');
  function regionSelect(value,on,label,attrs){const sel=el('select','','',{'aria-label':label||'Place',...(attrs||{})});sel.append(new Option('— choose a place —',''));
-  for(const o of (root.VoidPlaces?.options()||[])){const opt=new Option('\u00a0'.repeat(o.depth*3)+o.name+(o.selectable?'':' ('+(o.level==='system'?'system':'group')+')'),o.id);opt.title=o.label;if(!o.selectable)opt.disabled=true;sel.append(opt);}
-  sel.value=value||'';sel.onchange=()=>on(sel.value);return sel;}
+  for(const o of (root.VoidPlaces?.options()||[])){const opt=new Option(o.selectable?placeText(o,3):'\u00a0'.repeat(o.depth*3)+o.name+' ('+(o.level==='system'?'system':'group')+')',o.id);opt.title=o.label;if(!o.selectable)opt.disabled=true;sel.append(opt);}
+  const tip=()=>{sel.title=root.VoidPlaces?.label?.(sel.value)||'';};sel.value=value||'';tip();sel.onchange=()=>{tip();on(sel.value);};return sel;}
  /* One or more people who must ALL be in the same photo (Mission 002: Juno Vex and Halden Reyes): a tick box per person the camera identifies. The first ticked is the
     step's main person (npc / subject: the arrow leads to them); with two or more the step keeps the list in `subjects`. */
  function subjectsPicker(list,on,label,attrs){const box=el('span','','me-subjects',{role:'group','aria-label':label||'Who must be in the photo',...(attrs||{})}),cur=(list||[]).filter(Boolean);

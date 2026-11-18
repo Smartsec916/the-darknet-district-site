@@ -267,7 +267,7 @@
    return '<div class="pd-note">'+(area==='interior'?'THE DARKNET DISTRICT':'NEOCHINATOWN')+' · only places you have explored are shown.</div><canvas class="pd-map" width="800" height="560" data-map aria-label="Map of explored areas"></canvas><div data-places></div>';
   },
   camera(){return '<div class="pd-empty"><b>CAMERA</b><br>The viewfinder opens over the world.<br>Left mouse button takes a photo; photos are kept in the Gallery.</div>';},
-  gallery(){return root.VoidGallery?root.VoidGallery.view(dev,stack[1]):'<div class="pd-empty"><b>GALLERY</b><br>The gallery is not available.</div>';},
+  gallery(){return root.VoidGallery?root.VoidGallery.view(dev,stack[1],stack[2]):'<div class="pd-empty"><b>GALLERY</b><br>The gallery is not available.</div>';},
   /* The App Store is empty until the owner adds apps (15 Nov 2026): the device's own details moved to MY V1 (the `device` app). */
   store(){
    const l=D.storeListing(dev),st=l.storage;
@@ -323,7 +323,7 @@
    const l=D.storeListing(dev),st=l.storage,row=(r,tag)=>'<div class="pd-sys">'+icon(r.id)+'<span>'+esc(r.title)+'</span><em>'+esc(tag)+'</em></div>';
    return '<h2>STORAGE</h2><section class="pd-storage" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>STORAGE AVAILABLE: '+st.availablePct+'%</span></div>'
     +'<div class="pd-bar" role="img" aria-label="'+st.usedPct+' percent of storage used"><i style="width:'+st.usedPct+'%"></i></div>'
-    +'<dl class="pd-kv"><dt>DEVICE MODEL</dt><dd>'+esc(st.model)+'</dd><dt>SYSTEM APPS</dt><dd>'+st.systemApps+'</dd><dt>ADDITIONAL APPS INSTALLED</dt><dd>'+st.optionalApps+'</dd></dl>'
+    +'<dl class="pd-kv"><dt>DEVICE MODEL</dt><dd>'+esc(st.model)+'</dd><dt>DEVICE ID</dt><dd data-device-id>'+esc(root.VoidDeviceId?.now?.()||'—')+'</dd><dt>SYSTEM APPS</dt><dd>'+st.systemApps+'</dd><dt>ADDITIONAL APPS INSTALLED</dt><dd>'+st.optionalApps+'</dd></dl>'
     +'<div class="pd-note" style="margin-top:8px">The stock '+esc(st.model)+' ships with its system apps taking '+st.baselinePct+'% of storage. This is the model\'s defined baseline, not a measurement of your computer. Each optional app you install will add its own share.</div></section>'
     +'<h2>SYSTEM APPS</h2>'+l.system.map(r=>row(r,r.placeholder?'PREINSTALLED · COMING LATER':'PREINSTALLED')).join('')
     +'<h2>INSTALLED APPS</h2>'+(l.installed.length?l.installed.map(r=>row(r,'INSTALLED')).join(''):'<div class="pd-empty">No additional apps installed.</div>');
@@ -407,6 +407,7 @@
   const t=e.target.closest('button');if(!t)return;
   if(t.dataset.newsFilter){newsFilter=t.dataset.newsFilter;render();return;}
   if(t.dataset.photo){go(['gallery',t.dataset.photo],'tab','OPENING PHOTO');return;}
+  if(t.dataset.photoMeta){go(['gallery',t.dataset.photoMeta,'meta'],'tab','READING METADATA');return;}   // METADATA (the owner, 18 Nov 2026); Back returns to the photo
   if(t.dataset.thread){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox',t.dataset.thread],'tab','OPENING CONVERSATION');return;}
   if(t.dataset.attachOpen){attach={picking:true,photo:null,text:'',sending:false};render({keepScroll:true});return;}
   if(t.dataset.attachPhoto){attach={picking:false,photo:t.dataset.attachPhoto,text:'',sending:false};render({keepScroll:true});setTimeout(()=>body?.querySelector('[data-attach-form] input')?.focus(),0);return;}

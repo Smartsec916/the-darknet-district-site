@@ -56,7 +56,7 @@
  const NPC_MODELS={};
  const DEFAULT_SETTINGS={motion:'auto',scan:'1',size:'half'};   // motion: auto (follow the system), full, reduced
  const SETTING_VALUES={motion:['auto','full','reduced'],scan:['0','1'],size:['half','expanded']};
- const KEY={model:'deviceModel',version:'deviceVersion',apps:'deviceApps',settings:'deviceSettings',map:'deviceMap'};
+ const KEY={serial:'deviceSerial',model:'deviceModel',version:'deviceVersion',apps:'deviceApps',settings:'deviceSettings',map:'deviceMap'};
 
  // ---- What is saved (in story.flags) ----
  function parseSettings(text){
@@ -171,6 +171,22 @@
  const NOTIFY={v1:{name:'V1',sound:'void-runner/assets/audio/ui/device-v1-notify.ogg'},v2:{name:'V2',placeholder:true,sound:'void-runner/assets/audio/ui/device-v2-notify.ogg'},
   v3:{name:'V3 // SHADOW',sound:'void-runner/assets/audio/ui/device-v3-notify.ogg'}};
  const notifyTier=model=>NOTIFY[model]?model:'v1';
- const api={NOTIFY,notifyTier,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ /* DEVICE ID (the owner, 18 Nov 2026: a photo's metadata shows "the device ID on the person who took it"). Shown as V<generation>-XXXX-XXXX, e.g. "V1-7F3A-91C2".
+    The 8 hex digits (story.flags.deviceSerial, a short string the cloud save already accepts) are made ONCE per campaign from a hash of a one-time random number,
+    the campaign's epoch and, when signed in, the account id; the random number is thrown away, so the ID can never be turned back into the account, the email or the
+    handle, and nobody can check a guessed account against it. It stays the same across reloads and computers (it is in the save); a new campaign gets a new one.
+    The ID is the ONLY link from a photo to whoever took it (the owner: "the person who took it remains anonymous. Although there will be ways to track it later"):
+    tracing an ID back to a person is a FUTURE gameplay mechanic, not built. A later model keeps the serial and shows its own prefix (V3-...). */
+ const SERIAL=/^[0-9a-f]{8}$/;
+ function fnv(text,h=2166136261){for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h>>>0;}
+ /* The serial for a new device: seed = {account (optional), epoch, nonce (random)}. Two rounds of FNV-1a so every input bit spreads. */
+ function makeSerial(seed){const s=seed||{},base=String(s.nonce||'')+'|'+String(s.epoch||'')+'|'+String(s.account||'');return (fnv('void-device|'+base,fnv(base))>>>0).toString(16).padStart(8,'0');}
+ /* Reads the serial from the flags, creating it (seed: {account, epoch}; a random nonce is always added) when missing or malformed. Returns the serial. */
+ function ensureSerial(flags,seed){if(!flags||typeof flags!=='object')return null;if(!SERIAL.test(flags[KEY.serial]||''))flags[KEY.serial]=makeSerial({...(seed||{}),nonce:Math.random().toString(36).slice(2)+Date.now().toString(36)});return flags[KEY.serial];}
+ const prefixOf=model=>'V'+((DEVICES[model]||DEVICES.v1).generation||1);
+ /* "V1-7F3A-91C2" for a serial and model; null when the serial is missing or malformed. */
+ const deviceId=(serial,model)=>SERIAL.test(serial||'')?prefixOf(model)+'-'+serial.slice(0,4).toUpperCase()+'-'+serial.slice(4).toUpperCase():null;
+ const DEVICE_ID=/^V\d-[0-9A-F]{4}-[0-9A-F]{4}$/;
+ const api={NOTIFY,notifyTier,SERIAL,DEVICE_ID,makeSerial,ensureSerial,deviceId,prefixOf,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

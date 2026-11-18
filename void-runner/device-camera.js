@@ -158,7 +158,7 @@
   const G=root.VoidGallery,sc=scene();if(!active||!G||!sc||shooting)return false;
   if(G.room(device)<=0){say('STORAGE FULL · DELETE PHOTOS IN THE GALLERY');return false;}
   shooting=true;const cv=sc.getEngine().getRenderingCanvas(),vw=el.clientWidth||cv.clientWidth||1,vh=el.clientHeight||cv.clientHeight||1;
-  const who=[...tags.values()].filter(t=>!t.tag.hidden&&t.box).map(t=>({name:t.name,role:t.role,kind:t.who?.key?.startsWith('player:')?'player':'npc',...t.box}));
+  const who=[...tags.values()].filter(t=>!t.tag.hidden&&t.box).map(t=>({name:t.name,role:t.role,kind:t.who?.key?.startsWith('player:')?'player':'npc',via:t.who?.key?.startsWith('player:')?'player':t.who?.key?.startsWith('subject:')?'subject':'resident',...t.box}));
   const area=areaNow(sc),zoom=steps[zi];let meta=null;try{meta=capture(sc,vw,vh);}catch{meta=null;}
   sc.onAfterRenderObservable.addOnce(()=>{try{
    const W=G.WIDTH,H=Math.round(W*vh/vw),c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),k=W/vw;g.drawImage(cv,0,0,W,H);
@@ -187,8 +187,14 @@
   let during=[];try{during=root.VoidLiveContent?.during?.()||[];}catch{}
   // the in-game time it was taken (game-clock.js): minutes since the campaign started and the V1's label, e.g. "21:40 · DAY 1"
   let gameMin=null,gameTime='';try{if(root.VoidClock&&typeof state!=='undefined'&&state){gameMin=root.VoidClock.minutes(state);gameTime=root.VoidClock.now(state).label;}}catch{}
-  return {subjects:out,place,during,at:Date.now(),...(gameMin!==null?{gameMin,gameTime}:{})};
+  // the photographer's device ID (device-v1.js deviceId): the only link to who took it; never a handle, account or player id (the owner, 18 Nov 2026)
+  let device='';try{device=deviceIdNow();}catch{}
+  return {subjects:out,place,during,at:Date.now(),...(gameMin!==null?{gameMin,gameTime}:{}),device};
  }
+ /* This player's device ID, made once per campaign (story.flags.deviceSerial) and saved. */
+ function deviceIdNow(){const fl=flags();if(!fl)return '';const had=fl[D.KEY.serial],serial=D.ensureSerial(fl,{account:root.VoidAccount?.user?.uid||'',epoch:fl.campaignEpoch||''});
+  if(serial!==had)try{if(typeof save==='function')save();}catch{}return D.deviceId(serial,(device||D.restore(fl)).model)||'';}
+ root.VoidDeviceId={now:()=>{try{return deviceIdNow();}catch{return '';}}};
  function onShot(e){
   if(!active||e.button!==0)return;const cv=scene()?.getEngine().getRenderingCanvas();
   if(e.target!==cv&&e.target?.id!=='space'&&!el.contains(e.target)&&e.target!==document.body)return;   // a click on a menu or the chat is not a photo (the game's own overlay canvas, #space, is the view)

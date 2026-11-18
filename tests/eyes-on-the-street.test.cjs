@@ -25,32 +25,32 @@ test('places: a hierarchy System > City > Area > place seeded from the game\'s o
  const {PL}=env(),N=require(R('void-runner/neochinatown.js')),Q=require(R('void-runner/ncz-quarters.js')),NC=require(R('void-runner/ncz-nightclub.js'));
  assert.deepEqual(PL.DISTRICT_DOOR,N.door,'the District frame is the one neochinatown.js uses');
  for(const id of ['tessaly','neochinatown','port','oldtown','avenue','far-south','outskirts','corporate','temple','district','district-pods','district-vr','district-arcade','district-store','district-bar','district-meeting','district-alley','null','null-entrance','milked','gate-customs','gate-north','gate-function','gate-east','gate-south','gate-far-south'])assert.ok(PL.node(id),id);
- assert.deepEqual(PL.path('null'),['tessaly','neochinatown','oldtown','null']);assert.equal(PL.label('district-bar'),'Tessaly System › NeoChinatown › Old Town › The Darknet District › The Bar');
- assert.deepEqual(PL.node('null').rects,[NC.HALL],'NULL is the club\'s hall');assert.deepEqual(PL.node('far-south').rects.slice(0,1),Q.QUARTERS['far-south'].streets.slice(0,1));
+ assert.deepEqual(PL.path('null'),['tessaly','ncz-planet','neochinatown','oldtown','null']);   // the planet level since the naming pass (18 Nov 2026)assert.equal(PL.label('district-bar'),'Tessaly System › NeoChinatown › NeoChinatown › Old Town › The Darknet District › The Bar');
+ assert.deepEqual(PL.node('null').rects,[NC.RECT],'NULL is the club\'s hall with its front (ncz-nightclub.js RECT)');assert.deepEqual(PL.node('far-south').rects.slice(0,1),Q.QUARTERS['far-south'].streets.slice(0,1));
  const at=(lx,lz)=>{const [x,z]=N.toWorld(lx,lz);return PL.at({scene:'neochinatown',x,z});};
  // rooms by the District's own plan (music-director.js zones say the same)
  assert.equal(at(10,35)[0],'district-bar');assert.equal(at(10,48)[0],'district-store');assert.equal(at(-10,36)[0],'district-vr');assert.equal(at(-6,62)[0],'district-arcade');assert.equal(at(0,74)[0],'district-pods');assert.equal(at(9,62)[0],'district-meeting');
  assert.equal(at(0,23)[0],'district-vestibule');assert.equal(N.zone({x:N.toWorld(10,35)[0],z:N.toWorld(10,35)[1]}).area,'district');
- assert.deepEqual(PL.at({scene:'neochinatown',x:30,z:-55}),['null','oldtown','neochinatown','tessaly']);assert.equal(PL.deepest({scene:'neochinatown',x:48,z:-58.5}),'null-entrance');
- assert.deepEqual(PL.at({scene:'temple',x:5,z:5}),['temple','neochinatown','tessaly'],'a scene beyond a gate is one place');assert.deepEqual(PL.at({scene:'meridian',x:30,z:-55}),[],'another scene is nowhere here');
+ assert.deepEqual(PL.at({scene:'neochinatown',x:30,z:-55}),['null-floor','null','oldtown','neochinatown','ncz-planet','tessaly']);assert.equal(PL.deepest({scene:'neochinatown',x:48,z:-58.5}),'null-entrance');
+ assert.equal(PL.deepest({scene:'temple',x:5,z:5}),'temple-chamber');assert.ok(PL.at({scene:'temple',x:5,z:5}).includes('temple'),'a scene beyond a gate is its own area');assert.deepEqual(PL.at({scene:'meridian',x:30,z:-55}),[],'another scene is nowhere here');
  // the picker: every node once, the group heading not selectable
- const o=PL.options();assert.equal(o.length,PL.NODES.length);assert.equal(o.find(x=>x.id==='gates').selectable,false);assert.equal(o.find(x=>x.id==='null').depth,3);
+ const o=PL.options();assert.equal(o.length,PL.NODES.length);assert.equal(o.find(x=>x.id==='gates').selectable,false);assert.equal(o.find(x=>x.id==='null').depth,4);
  assert.deepEqual(PL.target('null'),[NC.DOOR.x+1.6,1.7,NC.DOOR.z],'the arrow leads to NULL\'s door');
  // an optional height range
  const n={id:'roof',scene:'neochinatown',rects:[[0,10,0,10]],y:[5,9]};PL.NODES.push(n);PL.BY.set('roof',n);assert.ok(PL.at({scene:'neochinatown',x:1,y:6,z:1}).includes('roof'));assert.ok(!PL.at({scene:'neochinatown',x:1,y:1,z:1}).includes('roof'));
 });
 test('places: enter / leave events per player: no repeats, nothing on a menu or transition, through the vestibule without flapping',()=>{
  const {PL}=env(),N=require(R('void-runner/neochinatown.js')),t=PL.tracker(),w=(lx,lz)=>{const [x,z]=N.toWorld(lx,lz);return {scene:'neochinatown',x,z};};
- let r=t.update(w(10,35));assert.deepEqual(r.entered.sort(),['district','district-bar','neochinatown','oldtown','tessaly'].sort());assert.deepEqual(r.left,[]);
+ let r=t.update(w(10,35));assert.deepEqual(r.entered.sort(),['district','district-bar','ncz-planet','neochinatown','oldtown','tessaly'].sort());assert.deepEqual(r.left,[]);
  r=t.update(w(10,36));assert.deepEqual([r.entered,r.left],[[],[]],'standing still in the bar fires nothing again');
  r=t.update(null);assert.deepEqual([r.entered,r.left],[[],[]],'a menu or a transition changes nothing');assert.ok(t.has('district-bar'));
  // walking out: hall, vestibule, alley, Main Street, NULL
  const walk=[w(0,40),w(0,23),{scene:'neochinatown',x:126.9,z:-58},{scene:'neochinatown',x:60,z:-58},{scene:'neochinatown',x:52,z:-58.5},{scene:'neochinatown',x:47,z:-58.5},{scene:'neochinatown',x:40,z:-56}];
  const log=[];for(const p of walk){r=t.update(p);log.push(...r.entered.map(x=>'+'+x),...r.left.map(x=>'-'+x));}
- assert.deepEqual(log,['+district-hall','-district-bar','+district-vestibule','-district-hall','+district-alley','-district-vestibule','-district','-district-alley','+null-entrance','+null','-null-entrance']);
+ assert.deepEqual(log,['+district-hall','-district-bar','+district-vestibule','-district-hall','+alley-district-door','+district-alley','-district-vestibule','-district','+main-null','-alley-district-door','-district-alley','+null-entrance','+null','+null-floor','-main-null','-null-entrance']);   // the named stretches of street since the naming pass
  assert.equal(log.filter(x=>x==='+oldtown'||x==='-oldtown').length,0,'Old Town is never left on the way: no flapping across the vestibule');
  assert.equal(log.filter(x=>x==='+null').length,1);r=t.update({scene:'neochinatown',x:35,z:-58});assert.deepEqual([r.entered,r.left],[[],[]]);
- r=t.update({scene:'neochinatown',x:60,z:-58});assert.deepEqual(r.left,['null']);
+ r=t.update({scene:'neochinatown',x:60,z:-58});assert.deepEqual(r.left,['null-floor','null']);
 });
 
 // ---------------------------------------------------------------- the mission
@@ -100,7 +100,7 @@ test('photo checks: in the frame, roughly centred, within 15 m, not blocked; the
  assert.equal(Cam.judge({points:[c],W,H,dist:15.5}).why,'too far away');assert.equal(Cam.judge({points:[{...c,clear:false}],W,H,dist:8}).why,'something is in the way');
  assert.equal(Cam.judge({points:[{...c,clear:false},{...c,y:450,clear:true}],W,H,dist:8}).valid,true,'a clear chest is enough when the head is hidden');assert.equal(Cam.judge({points:[{...c,front:false}],W,H,dist:8}).valid,false,'behind the camera');
  const meta=Gal.cleanMeta({subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.34},{id:'<x>',valid:true},{id:'dj-vanta',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph','bad step'],at:5,extra:1});
- assert.deepEqual(meta,{subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.3},{id:'dj-vanta',name:'',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph'],at:5});assert.equal(Gal.cleanMeta(null),null,'an older photo has no checks');
+ assert.deepEqual(meta,{subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.3},{id:'dj-vanta',name:'',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph'],at:5,device:'',postedBy:''});assert.equal(Gal.cleanMeta(null),null,'an older photo has no checks');
 });
 test('step 2: a valid capture of Juno AND Halden Reyes (the same photo) during the step completes it; Juno alone, him alone or others do not; what the camera records as "during"',()=>{
  const x=env(),s=accepted(x);place(x,s,'null');

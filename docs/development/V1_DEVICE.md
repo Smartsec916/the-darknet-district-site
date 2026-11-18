@@ -2,6 +2,10 @@
 
 The V1 is the player's holographic device (L key, on foot or in a station). Rules and saved state: `void-runner/device-v1.js` (pure, unit-tested). Screen: `void-runner/personal-device.js`. Look: `void-runner/device-v1.css` (scoped to `#personal-device` and `#pd-chip`; loaded through `void-runner.html` like the other game stylesheets, and covered by the service-worker build number). `personal-hud.js` is the older P-key terminal and is NOT the V1.
 
+
+## 18 Nov 2026: Gallery METADATA and the device ID
+
+With a photo open, **METADATA** shows TAGGED, LOCATION, DEVICE ID and TAKEN (`device-gallery.js FIELDS`; add a row there). The photographer is anonymous: only the device ID (`device-v1.js deviceId`, e.g. V1-7F3A-91C2, from `story.flags.deviceSerial`) links a photo to its taker; tracing it to a person is a future gameplay mechanic. MY V1 shows the device ID. This update empties every Gallery once (IndexedDB version 2). Details: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), Sixth pass.
 ## Look (Phase 1, local)
 Matches the website navigation buttons (`home-navigation.css`): panel `#0c1b23`, edge `#38808b`, rail `#61eee9`, a single small `#d56cba` tick on launcher tiles. Teal is the main colour; pink is used only for that tick and the map's shop marker. Colours, spacing and timing are CSS variables at the top of the stylesheet.
 

@@ -146,9 +146,16 @@ test('the older stations: hangar, corridor and concourse doors on the centre lin
  assert.equal(R.graphFor('corporate'),null);assert.equal(R.graphFor('temple'),null);assert.deepEqual(R.plan(null,{x:0,z:0},{x:5,z:5}).map(w=>w.id),['goal']);});
 
 test('every route between the named places walks without a flip (all future missions use the same rules)',()=>{
- const P=require(path.join(__dirname,'..','void-runner','places.js'));const spots=P.NODES.filter(n=>n.scene==='neochinatown'&&!n.whole&&!n.group&&n.rects&&!n.id.startsWith('gate-'))/* a gate's point is the middle of its building, between the lanes */.map(n=>({id:n.id,p:P.target(n.id)})).filter(x=>x.p);
+ const P=require(path.join(__dirname,'..','void-runner','places.js'));const OLD=new Set(['port','oldtown','avenue','far-south','outskirts','district','district-vestibule','district-hall','district-pods','district-vr','district-arcade','district-store','district-bar','district-meeting','district-alley','null','null-entrance','milked']);   // the places named before the naming pass (18 Nov 2026); every exact location since then is checked as a goal from the District below
+ const spots=P.NODES.filter(n=>OLD.has(n.id)&&n.scene==='neochinatown'&&!n.whole&&!n.group&&n.rects&&!n.id.startsWith('gate-'))/* a gate's point is the middle of its building, between the lanes */.map(n=>({id:n.id,p:P.target(n.id)})).filter(x=>x.p);
  let walks=0;for(const a of spots)for(const b of spots){if(a===b)continue;const from={x:a.p[0],z:a.p[2]},goal={x:b.p[0],y:1.7,z:b.p[2]},route=R.plan(G,from,goal);
   const pts=[[from.x,from.z],...route.map(w=>[w.x,w.z])];const s=walk(pts,goal,{step:.1});smooth(s,a.id+' -> '+b.id);walks++;}
+ assert.ok(walks>100,'walks '+walks);});
+
+test('every exact location named since the naming pass (18 Nov 2026) can be a goal: the walk to it from the District hall has no flip',()=>{
+ const P=require(path.join(__dirname,'..','void-runner','places.js'));const [hx,hz]=L(0,40),from={x:hx,z:hz};let walks=0;
+ for(const n of P.NODES){if(n.scene!=='neochinatown'||n.whole||n.group||!n.rects||n.id.startsWith('gate-')||n.level!=='place')continue;const p=P.target(n.id);if(!p)continue;
+  const goal={x:p[0],y:1.7,z:p[2]},route=R.plan(G,from,goal);const pts=[[from.x,from.z],...route.map(w=>[w.x,w.z])];smooth(walk(pts,goal,{step:.1}),'District hall -> '+n.id);walks++;}
  assert.ok(walks>100,'walks '+walks);});
 
 test('the route leaves the vestibule as one route across the checkpoint exchange in both directions (the game\'s own trigger zone)',()=>{
