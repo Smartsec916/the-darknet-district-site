@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "1f93b3277679af22",
+  "revision": "230c8613dd8dd97d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16172,7 +16172,7 @@
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
-    "void-runner/asset-pipeline.js": "2dbcf53c2eec6b68e1780b2890f7ac7b008990bea0c87693c5413686c0465cb3",
+    "void-runner/asset-pipeline.js": "0615b956cff15e3e6ed496a5e9ebfbfba11cd1a4c0330d21558347252664825e",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "b54e3fb4ef253d1fc544d255acc85a128457aee078cd9d0f13843f0f18c7670e",
     "void-runner/babylon-renderer.js": "86ed4d3a95af03cd5dc38b0774b6496ba01eb8d99c7bfd6627c7db6a4924545c",
@@ -16357,7 +16357,7 @@
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "fdf9fd1fea29a2d8683739b3732db6f32c6f2af654838ace9f2741343ea32947",
-    "void-runner/vr-suite.js": "77dd66c3c52e63a3cb1e244291d623e50a38190ebd9fbbb20100303e9e4bab4e",
+    "void-runner/vr-suite.js": "0f67067a27cd96cdd5cb4492cabed87fef7a07937530d06db3e9e2b0079964ca",
     "void-runner/vr-tropical.js": "093635e6848f8b2dea73bc2fb9031e4158ac613363d2e337f1b7a8610175055b",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",

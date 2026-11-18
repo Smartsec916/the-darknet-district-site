@@ -6,7 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 18 Nov 2026 (newest): TEMPLE GRAPHICS PASS, SOFT TEMPLE FOOTSTEPS, EAST GATE WALKERS' LANE FIXED (branch `claude/temple-east-gate`, build `2026-11-18-temple-1`, pushed, NO PR, not merged)
+### 18 Nov 2026 (newest): MILKED DANCERS, FISH TURNS TO TALK, NPC ARM FLICK FIXED (branch `claude/milked-dancers-fish`, build `2026-11-18-milked-fix-1`, pushed, NO PR, not merged)
+
+- **Studio 2:** the dancer is the licensed Female Warrior (`studio-warrior.vrpak`, private repo; CGTrader, seller techykitty; `docs/VOID_RUNNER_ASSET_LICENSES.md`). Codex's draft PR #341 ported by hand onto `main` (`milked.js` `file`, `milked-build.js` `fileOf`, `crowd.js` clip list). With the animation library installed she plays `ac-sensual-movement-1` (a floor routine); without it her own `slow-dance`.
+- **Studio 3 (Dex looked "weird"):** `anim-library.js` copies rotations verbatim, but Dex and Yuki (Male Female Base Rig) rest every limb bone on other local axes, so the ActorCore clip twisted him into knots. `apply()` now compares the figure's rest pose with the library's (`restOffset`, limit 25 degrees) and refuses a figure that differs (Dex: 173 degrees); he dances his own `dance-belly`. This also removes the contorted ActorCore moves from Dex/Yuki in the VR suite (their menu simply does not offer them).
+- **The arms-out flick many NPCs did:** the shared `talk`, `watch`, `drink` and `wipe` clips in almost every figure (crowd looks, named residents, Fish, Eva, Admin, Iris, companions) open with ONE key in the bind pose, arms straight out. Every loop (8 s) or clip start flung the arms out and down. `asset-pipeline.js trimLeadIn` starts such clips after that key at load (model files untouched). Not caused by `npc-device.js` or `npc-look.js`.
+- **Fish (and Eva) turn to you while speaking:** `milked-build.js` turns the speaker's body toward the player and plays her `talk` clip, then back; the figures carry `metadata.character` so `npc-look.js` head tracking finds them.
+- **Tests:** `tests/clip-lead-in.test.cjs`, `anim-library.test.cjs`, `milked.test.cjs`; browser checks with the private assets served beside the worktree (never copied in). Screenshots: `docs/development/milked-fix/`.
+
+### 18 Nov 2026: TEMPLE GRAPHICS PASS, SOFT TEMPLE FOOTSTEPS, EAST GATE WALKERS' LANE FIXED (branch `claude/temple-east-gate`, build `2026-11-18-temple-1`, pushed, NO PR, not merged)
 
 The owner: the East Gate's pedestrian lane is "cut off on one side"; the Temple needs graphical updates; footsteps don't work there (quieter would be nice); Grok built the Temple, so check for code that differs. Full record: [`TEMPLE.md`](TEMPLE.md) (update at the top).
 
@@ -18,7 +26,7 @@ The owner: the East Gate's pedestrian lane is "cut off on one side"; the Temple 
 - **Browser:** `tests/temple-browser.cjs` rewritten (it rode the scrapped sky cab): walks the East Gate both ways, screenshots, performance, steps, chat, map. Passed on Medium and Low. Screenshots: `docs/development/temple/*-medium.png`, `*-low.png`, before pictures in `docs/development/temple/before-2026-11-18/`. (Low was darkened after its run: only `05`/`06` `-low` show the final Low look.)
 - **Not verified:** real GPU, High/Ultra in a browser run, VR, the footstep sound by ear, the arrival by road taxi (only walking was run).
 
-### 18 Nov 2026 (newest): DISTRICT STAFF AFTER COMING BACK IN; ADMIN GOES STRAIGHT ON TO MISSION 003 (branch `claude/district-npc-fix`, build `2026-11-18-district-fix-1`, pushed, NO PR, not merged)
+### 18 Nov 2026: DISTRICT STAFF AFTER COMING BACK IN; ADMIN GOES STRAIGHT ON TO MISSION 003 (branch `claude/district-npc-fix`, build `2026-11-18-district-fix-1`, pushed, NO PR, not merged)
 
 The owner: "After going the camera mission I returned to The Darknet District. Iris and the bartender are both block NPCs, Admin is the old model now" and "After saying \"I might have more work for you\" he didn't continue with the next line for the next mission".
 
@@ -27,7 +35,7 @@ The owner: "After going the camera mission I returned to The Darknet District. I
 - Tests: `tests/character-assembler-reload.test.cjs`, a new case in `tests/eyes-on-the-street.test.cjs`; browser `tests/district-reentry-browser.cjs` (interior, Old Town street, back in: Admin, Iris and Nyx on their own models both times; failed before the fix with Admin and Iris on their creator looks and Nyx on her stand-in). Screenshots `docs/development/district-reentry/`.
 - Not verified: the live site's exact sequence (the camera mission played through by hand); 003's offer in the browser (unit-tested only).
 
-### 18 Nov 2026 (newest): PLAYERS SEE EACH OTHER'S DEVICE IN MULTIPLAYER (branch `claude/mp-device-visible`, build `2026-11-18-mp-device-1`, pushed, NO PR, not merged)
+### 18 Nov 2026: PLAYERS SEE EACH OTHER'S DEVICE IN MULTIPLAYER (branch `claude/mp-device-visible`, build `2026-11-18-mp-device-1`, pushed, NO PR, not merged)
 
 The owner: in multiplayer, players see each other using their device, styled by the device they carry. Built on `npc-device.js` (the NPC hologram, no duplicate code).
 

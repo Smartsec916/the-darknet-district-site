@@ -13,6 +13,7 @@ test('a first key far from the second (the bind pose) is skipped; an ordinary st
  const T=[.42,.42,-.57,.57],down=[-.566,.324,-.184,.736],near=[-.55,.33,-.19,.74];
  assert.equal(A.leadInEnd([{frame:1,value:T},{frame:2,value:down},{frame:3,value:down},{frame:4,value:down}]),2);
  assert.equal(A.leadInEnd([{frame:1,value:near},{frame:2,value:down},{frame:3,value:down},{frame:4,value:down}]),null);
+ assert.equal(A.leadInEnd([{frame:0,value:T},{frame:4,value:T},{frame:8,value:down},{frame:12,value:down},{frame:484,value:down}]),8,'the stray key copied to frame 0 (as Babylon loads it)');
  assert.equal(A.leadInEnd([{frame:1,value:T},{frame:2,value:down}]),null,'too short to judge');assert.equal(A.leadInEnd(null),null);
 });
 test('the shipped clips that carry it are found (Fish\'s talk and watch, a crowd look\'s talk), and her idle is left alone',()=>{
@@ -23,7 +24,12 @@ test('the shipped clips that carry it are found (Fish\'s talk and watch, a crowd
 });
 test('trimLeadIn moves a clip\'s start past the stray key and leaves the others',()=>{
  const T={asArray:()=>[.42,.42,-.57,.57]},down={asArray:()=>[-.566,.324,-.184,.736]};
- const group=(name,first)=>{const g={name,from:1,to:121,normalized:null,targetedAnimations:[{target:{name:'mixamorig:LeftArm'},animation:{targetProperty:'rotationQuaternion',getKeys:()=>[{frame:1,value:first},{frame:2,value:down},{frame:3,value:down},{frame:121,value:down}]}}],normalize(a,b){this.normalized=[a,b];}};return g;};
+ const group=(name,first)=>{const g={name,from:0,to:121,normalized:null,targetedAnimations:[{target:{name:'mixamorig:LeftArm'},animation:{targetProperty:'rotationQuaternion',getKeys:()=>[{frame:0,value:first},{frame:1,value:first},{frame:2,value:down},{frame:3,value:down},{frame:121,value:down}]}}],normalize(a,b){this.normalized=[a,b];}};return g;};
  const talk=group('talk',T),idle=group('idle',down);
  assert.equal(A.trimLeadIn({animationGroups:[talk,idle]}),1);assert.deepEqual(talk.normalized,[2,121]);assert.equal(idle.normalized,null);
+});
+test('copies of a model keep the trimmed start (a copy rebuilds its clip range from the keys)',()=>{
+ const made=[];const copy=(name,from)=>({name,from,to:121,normalize(a,b){made.push([name,a,b]);this.from=a;}});
+ const r=A.keepTrim({animationGroups:[{name:'talk',from:8,to:121},{name:'idle',from:0,to:121}]},{animationGroups:[copy('crowd:npc-fish-talk',0),copy('crowd:npc-fish-idle',0)]});
+ assert.deepEqual(made,[['crowd:npc-fish-talk',8,121]]);assert.equal(r.animationGroups[0].from,8);
 });

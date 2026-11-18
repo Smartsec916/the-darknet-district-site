@@ -232,6 +232,12 @@ muffled 124 BPM thump), nothing recorded or licensed.
 |---|---|---|---|
 | Dax's model (`cyberpunk-girl.blend` and its texture folders, on the owner's PC in `Documents/DarknetDistrict_Assets/Dax/source`; converted to `npc-dax.vrpak` in the private repository `Smartsec916/void-runner-licensed-assets`) | "Realistic Cyberpunk Girl Fully Rigged Game Ready Low-poly 3D model" (the seller's pictures call her "Lucia"), CGTrader: https://www.cgtrader.com/3d-models/character/woman/realistic-cyberpunk-girl-fully-rigged-game-ready. Downloaded with the owner's CGTrader subscription. | **Royalty Free License (no AI)**, confirmed by the owner's screenshots of the listing, 15 Nov 2026: use in own projects, backups, modifying and commercial use allowed; reselling or re-uploading the file not allowed; training or fine-tuning AI models not allowed; a third party must not be able to retrieve the model individually. | **Cleared for the game.** Converted for the game only (`tools/animation-pipeline/prepare_dax.py`, `build_imported_character.py`), kept out of this public repository, published encrypted with the site, never used for AI training or as input to an AI generator. Because it was downloaded with a subscription, CGTrader's subscription condition applies as for the other models (keep the subscription active, or the game counts as a project completed while it was). |
 
+## Milked Studio 2 dancer: Female Warrior (18 Nov 2026)
+
+| Item | Source | Licence | Status |
+|---|---|---|---|
+| Studio 2's dancer at Milked (`studio-warrior.vrpak`, look id `studio-warrior`; the source files stay on the owner's PC, the converted, scrambled file is only in the private repository `Smartsec916/void-runner-licensed-assets`, sealed at the Pages build like the other licensed models) | "Female Warrior" low-poly character, CGTrader, seller techykitty, bought by the owner. Converted and packed by Codex (draft PR #341), ported to `main` on 18 Nov 2026. | **Royalty free, remix and commercial use allowed**, per the owner's purchase page. Not committed to this public repository. The listing's wording on AI use was not recorded: treat it like the other CGTrader models (never send it to Meshy or any AI tool) until the owner checks. | In game (Milked Studio 2) |
+
 ## Characters made with Meshy (from 15 Nov 2026)
 
 | Item | Source | Licence | Status |

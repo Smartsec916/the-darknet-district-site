@@ -137,11 +137,16 @@
      arms down then out to both sides thing that many of the NPCs are currently doing"). leadInEnd(keys): given an upper arm's rotation keys ({frame, value:
      [x,y,z,w]}), the frame the clip should start at when its first key is such a jump (more than 45 degrees to the second), else null. trimLeadIn moves each
      such clip's start past it; copies of a figure take the trimmed range with them. The model files are untouched. */
-  function leadInEnd(keys){if(!keys||keys.length<4)return null;const p=keys[0].value,q=keys[1].value,d=Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3]));return 2*Math.acos(d)>Math.PI/4?keys[1].frame:null;}
+  function leadInEnd(keys){if(!keys||keys.length<4)return null;const ang=(p,q)=>2*Math.acos(Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3])));const p=keys[0].value;
+    // the stray key may be doubled (Babylon copies a clip's first key to frame 0): skip copies of it, then look at the first key that differs
+    for(let i=1;i<Math.min(4,keys.length-1);i++){const a=ang(p,keys[i].value);if(a<.02)continue;return a>Math.PI/4?keys[i].frame:null;}return null;}
+  // Only a key that opens the clip counts.
   function trimLeadIn(container){let n=0;for(const g of container?.animationGroups||[]){let start=null;
     for(const ta of g.targetedAnimations){if(ta.animation.targetProperty!=='rotationQuaternion'||!/(^|:)(Left|Right)Arm$/.test(ta.target?.name||''))continue;const keys=ta.animation.getKeys().map(k=>({frame:k.frame,value:k.value.asArray?k.value.asArray():k.value}));const f=leadInEnd(keys);if(f!==null&&keys[0].frame<=g.from+1e-3)start=Math.max(start??f,f);}
     if(start!==null&&start<g.to){g.normalize(start,g.to);n++;}}
    return n;}
+  // A copy of a model (instantiateModelsToScene) rebuilds each clip's range from its keys: give the copies the trimmed start again (groups come in the same order).
+  function keepTrim(container,result){(result?.animationGroups||[]).forEach((g,i)=>{const src=container?.animationGroups?.[i];if(src&&src.name&&g.name.endsWith(src.name)&&src.from>g.from+1e-3&&src.from<g.to)g.normalize(src.from,g.to);});return result;}
 
   // What the glTF loader does to every material when a model finishes loading (above), done now: one light slot per light in the scene, at most eight.
   // A place calls this before its loading screen lifts (neochinatown.js prepare), so the next model to arrive changes no material and no shader is rebuilt
@@ -165,7 +170,7 @@
   function instance(id, parent, only) {
     const item = containers.get(id);
     if (!item) return null;
-    const result = item.container.instantiateModelsToScene(name => id + '-' + name, false),
+    const result = keepTrim(item.container, item.container.instantiateModelsToScene(name => id + '-' + name, false)),
       node = new BABYLON.TransformNode(id + '-model', parent.getScene()),
       asset = new BABYLON.TransformNode(id + '-asset', parent.getScene());
     node.parent = parent;
@@ -248,7 +253,7 @@
   const api = {
     models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
-    leadInEnd,trimLeadIn,
+    leadInEnd,trimLeadIn,keepTrim,
     unpack,
     open,
     useKTX2Locally,
