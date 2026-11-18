@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "86938c0771e637dc",
+  "revision": "f5c844f36f016036",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12023,7 +12023,7 @@
     {
       "source": "void-runner/conversation-ui.js",
       "line": 15,
-      "text": "if(lastLine!==signature){history.append(localStorage,uid(),{character:line.who||'companion',name:characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}",
+      "text": "if(lastLine!==signature&&!line.silent){history.append(localStorage,uid(),{character:line.who||'companion',name:characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}",
       "kind": "source-reference"
     },
     {
@@ -12041,7 +12041,7 @@
     {
       "source": "void-runner/conversation-ui.js",
       "line": 19,
-      "text": "win.insertBefore(thread,win.querySelector('.speech-body'));",
+      "text": "win.insertBefore(thread,win.querySelector('.speech-body'));thread.scrollTop=thread.scrollHeight;   // the latest line in view (a quote just before a follow-up)",
       "kind": "source-reference"
     },
     {
@@ -13738,223 +13738,223 @@
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 73,
+      "line": 75,
       "text": "const helpers={};for(const m of text.matchAll(/(\\w+)=line\\('([^']+)'\\)/g))helpers[m[1]]=m[2];for(const m of text.matchAll(/(\\w+)=text=>\\(\\{who:'([^']+)',text\\}\\)/g))helpers[m[1]]=m[2];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 75,
+      "line": 77,
       "text": "if(Object.keys(helpers).length)for(const m of part.matchAll(new RegExp('\\\\b('+Object.keys(helpers).join('|')+')\\\\('+S+'\\\\)','g')))found.push({at:m.index,who:helpers[m[1]],text:unq(m[2])});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 76,
+      "line": 78,
       "text": "for(const m of part.matchAll(new RegExp(\"\\\\{who:'([^']+)',text:\"+S+'\\\\}','g')))found.push({at:m.index,who:m[1],text:unq(m[2])});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 77,
+      "line": 79,
       "text": "if(scene.who){for(const m of part.matchAll(new RegExp('\\\\['+S+','+S+','+S+'\\\\]','g'))){found.push({at:m.index,who:'pilot',text:unq(m[2])});found.push({at:m.index+1,who:scene.who,text:unq(m[3])});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 78,
+      "line": 80,
       "text": "for(const m of part.matchAll(new RegExp('farewell:'+S,'g')))found.push({at:m.index,who:scene.who,text:unq(m[1])});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 79,
+      "line": 81,
       "text": "for(const m of part.matchAll(new RegExp('accept:'+S,'g')))found.push({at:m.index,who:'pilot',text:unq(m[1])});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 83,
+      "line": 85,
       "text": "const lines=found.map(f=>{const i=row(f.at);return {who:f.who,text:f.text,placeholder:!!scene.placeholder||/UNREVIEWED/.test(src[i])||(i>0&&/^\\s*\\/\\/.*UNREVIEWED/.test(src[i-1]))};});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 84,
+      "line": 86,
       "text": "const partial=/text:`|text:'[^'\\n]*'\\s*\\+|text:[a-zA-Z(]|\\$\\{/.test(part);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 99,
+      "line": 101,
       "text": "const line=(who,text,extra)=>{const id=canon(who);const l={id:'L-'+id+'-'+hash(id+'|'+text),ref:id+'|'+text,who:id,name:npcName(id),text,recorded:recorded.has(id+'|'+text),clip:clipOf(id,text),voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,engine:engineOf(id),...extra};l.adapter=l.kind==='beginner'||l.kind==='design'?'records':TALK_FILES.includes(l.source)?'talk':'code-change';return l;};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 105,
+      "line": 107,
       "text": "lines:(o.say||[]).map((l,k)=>line(l.who,l.text,{key:'beginner:'+m.id+'/'+o.id+'/say/'+k,kind:'beginner',editable:'studio',source:'void-runner/beginner.js'})),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 117,
+      "line": 119,
       "text": "ending:{text:last.interaction?'Ends at '+(PLACE_INTERACTIONS[last.interaction]||last.interaction)+(last.say&&last.say.length?' ('+npcName(canon(last.say[0].who))+' speaks)':''):last.destination?'Ends on arrival at '+place(last.destination):'Ends when its last step is done',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 118,
+      "line": 120,
       "text": "next:next.map(x=>x.id),branches:(m.choices||[]).map(c=>({text:'Choice: '+c.label+(c.next?' → '+c.next:' → not decided'),draftOnly:true}))},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 130,
+      "line": 132,
       "text": "const branches=[];if(['communion-delivery','order-delivery'].includes(id))branches.push({text:'Admin offers this and the other faction’s delivery in the same conversation; the player picks one first, and Iris offers the other afterwards.',source:'void-runner/faction-scenes.js (design docs 05, 06)'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 131,
+      "line": 133,
       "text": "if(['legal-run','illegal-run'].includes(id))branches.push({text:'Rook offers the legal run first and the illegal run after it, at the Meridian bar.',source:'void-runner/scenes.js'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 135,
+      "line": 137,
       "text": "ending:{text:ending,next:[],branches},unlocks,order:i,server:'registry:'+id};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 149,
+      "line": 151,
       "text": "const dlg=src.story&&src.story.dialogue&&src.story.dialogue.mara_workshop_intro,gt=all.get('ground-training');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 156,
+      "line": 158,
       "text": "ending:{text:'Ends on arrival at '+place(c.destination)+' (a flown contract).',next:[],branches:[]},unlocks:[...(Number(c.reward)>0?[{kind:'credits',id:'credits',amount:Number(c.reward),when:'complete',name:c.reward+' credits',source}]:[]),...(c.requires===undefined?[]:[])],order:i,server:tree==='campaign'?null:null};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 164,
+      "line": 166,
       "text": "if(MK&&MK.MISSION){const M=MK.MISSION,npc=M.npc,dl=(MK.DIALOGUE||{})[(String((M.dialogue||[])[0]||'').split('.')[0])]||{},said=((dl.greeting)||[]).map(t=>line(npc,t,{kind:'inline',source:'void-runner/milked.js',editable:'local',scene:'Eva’s greeting at reception'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 167,
+      "line": 169,
       "text": "scenes:[{title:'Eva’s greeting at reception',slot:'reception',source:'void-runner/milked.js',doc:null,lock:'',partial:false,lines:said}],ending:{text:'Ends at Milked reception with Eva.',next:[],branches:[]},unlocks:[],order:0,server:null,inactive:true};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 170,
+      "line": 172,
       "text": "for(const [who,d] of Object.entries(MK.DIALOGUE||{})){const id=(MK.MODELS&&MK.MODELS[who]&&MK.MODELS[who].id)||who;for(const t of d.greeting||[])extraLines.push(line(id,t,{kind:'outside',source:'void-runner/milked.js',editable:'local',group:'Greetings, idle and “come back later” lines'}));}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 178,
+      "line": 180,
       "text": "lines:[...(o.say||[]).map((l,k)=>line(l.who||(o.kind==='photo'?m.giver:o.npc||m.giver),l.text||'',{key:'tree:'+m.id+'/'+o.id+'/say/'+k,kind:'tree',editable:'tree',source:'your new tree (draft)',needsVoice:true})),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 184,
+      "line": 186,
       "text": "ending:{text:e.npc?'Ends when the player hands in to '+gname(e.npc)+(e.place?' at '+((G_().PLACE.get(e.place)||{}).name||e.place):''):'Ends when its last step is done',next:ot.missions[i+1]?[ot.missions[i+1].id]:[],branches:(m.choices||[]).map(c=>({text:'Choice: '+(c.label||'(no text)')+(c.next?' → '+c.next:' → not decided'),draftOnly:true}))},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 188,
+      "line": 190,
       "text": "missions:src.serverDrafts.map((d,i)=>({key:'server:'+d.id,id:d.id,tree:'draft-server',engine:'server',title:d.title||d.id,type:d.kind||'draft',description:'Private server draft r'+(d.revision||0)+'.',giver:'',giverName:'',credits:0,steps:[],offer:[],scenes:[],ending:{text:'',next:[],branches:[]},unlocks:[],order:i,server:null}))});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 200,
+      "line": 202,
       "text": "/* \"All lines for <NPC>\": every line a character speaks, in missions (by tree, mission, step and scene) and outside missions (both voice manifests: greetings, idle remarks,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 211,
+      "line": 213,
       "text": "l.group=/companion/.test(src2)?'VR companion talk':/district-people/.test(src2)?'Rules and remarks in the District':/prologue|world-integration|scenes\\.js|hangar/.test(src2)?'Greetings, idle and “come back later” lines':'Other lines';get(who).outside.push(l);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 220,
+      "line": 222,
       "text": "for(const [ref,e] of Object.entries(edits||{})){const l=index.get(ref);if(!l){out.push({level:'error',text:'A changed line no longer exists in the game: '+ref.slice(0,60)});continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 221,
+      "line": 223,
       "text": "const to=e&&e.to;if(typeof to!=='string'||!to.trim()||to.length>500||TAG.test(to)){out.push({level:'error',text:'“'+l.text.slice(0,40)+'…”: a line must be plain text, 500 characters at most.'});continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 222,
+      "line": 224,
       "text": "if(l.locked&&!e.unlocked)out.push({level:'error',text:'“'+l.text.slice(0,40)+'…” is '+l.lock+'. Unlock it first to change your own script.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 223,
+      "line": 225,
       "text": "if(l.recorded&&to!==l.text)out.push({level:'warn',text:'“'+to.slice(0,40)+'…”: voice clip out of date. Text only until re-voiced.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 224,
+      "line": 226,
       "text": "if(l.adapter==='code-change'&&to!==l.text)out.push({level:'warn',text:'“'+to.slice(0,40)+'…”: can be edited after the next update (needs a code change). Saved as a draft and exported for Claude or Codex.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 254,
+      "line": 256,
       "text": "const out=[],e=(t)=>out.push({level:'error',text:t}),w=(t)=>out.push({level:'warn',text:t}),TAG=/<[^>]*>/;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 271,
+      "line": 273,
       "text": "const blank=who=>({who:who||'',text:''});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 276,
+      "line": 278,
       "text": "const m={id,title:'',type:'side',giver:giver||'',description:'',rewards:0,seq:0,offer:[blank(giver)],objectives:[],ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};addStep(m);tree.missions.push(m);return m;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 277,
+      "line": 279,
       "text": "function addStep(m,{kind='talk'}={}){m.seq=(m.seq||0)+1;let id='step-'+m.seq;while(m.objectives.some(o=>o.id===id)){m.seq++;id='step-'+m.seq;}const o={id,label:'',kind,npc:'',place:'',item:'',say:[blank('')],early:[]};m.objectives.push(o);return o;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 289,
+      "line": 291,
       "text": "const line=l=>({who:l.who==='player'?'You':l.who,text:String(l.text||'').slice(0,500)});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 291,
+      "line": 293,
       "text": "m.objectives=[];m.seq=0;for(const st of bm.steps||[]){const o=addStep(m);const npc=st.interaction&&TARGETS[st.interaction];o.label=String(st.label||'').slice(0,500);o.kind='talk';o.npc=npc&&known(npc)?npc:'';o.say=(st.lines||[]).map(line);o.early=(st.early||[]).map(line);if(!o.say.length)o.say=[blank('')];}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-trees.js",
-      "line": 318,
+      "line": 320,
       "text": "const empty=[...m.offer,...m.objectives.flatMap(o=>[...(o.say||[]),...(o.early||[]),...(o.wrong||[])]),...(m.ending.say||[])].filter(l=>!String(l.text||'').trim()).length;if(empty)add('warn',w,empty+' empty line(s): placeholders, not spoken. Write the lines yourself.');",
       "kind": "source-reference"
     },
@@ -14014,20 +14014,20 @@
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 5,
-      "text": "const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3};",
+      "line": 6,
+      "text": "const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3,templeTalkDuck:.62};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 48,
+      "line": 49,
       "text": "if(c.mode!=='walking'&&c.mode!=='dialogue'||!c.walker)return null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 72,
-      "text": "duck:c.dialogue?config.dialogueDuck:0,speaker:speaker(c)};",
+      "line": 73,
+      "text": "duck:c.place==='temple'&&(c.dialogue||c.conversation)?config.templeTalkDuck:c.dialogue?config.dialogueDuck:0,speaker:speaker(c)};",
       "kind": "source-reference"
     },
     {
@@ -14039,7 +14039,7 @@
     {
       "source": "void-runner/music-integration.js",
       "line": 31,
-      "text": "dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,",
+      "text": "dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,conversation:onFoot&&!!globalThis.VoidConversationUI?.isOpen,",
       "kind": "source-reference"
     },
     {
@@ -15112,80 +15112,134 @@
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 11,
+      "line": 13,
       "text": "try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.choices))return;const box=screen.querySelector('.speech-controls');if(!box)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 12,
+      "line": 14,
       "text": "const last=speech.index===speech.lines.length-1;box.querySelectorAll('[data-talk-choice]').forEach(b=>{if(!last)b.remove();});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 14,
+      "line": 16,
+      "text": "if(speech.menu){box.classList.add('talk-menu');const th=screen.querySelector('.conversation-thread');if(th)requestAnimationFrame(()=>{th.scrollTop=th.scrollHeight;});   // the latest line (his quote) in view above the list",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/talk-choice.js",
+      "line": 17,
+      "text": "const next=box.querySelector('#speech-next');if(next)next.style.display='none';",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/talk-choice.js",
+      "line": 18,
+      "text": "speech.choices.forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type=\"button\" class=\"talk-menu-choice'+(c.leave?' quiet':'')+'\" data-talk-choice=\"'+i+'\" data-action=\"talk-choice\">'+esc(c.label)+'</button>'));return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/talk-choice.js",
+      "line": 19,
       "text": "speech.choices.slice(1).forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type=\"button\" class=\"quiet\" data-talk-choice=\"'+(i+1)+'\" data-action=\"talk-choice\">'+esc(c.label)+'</button>'));}catch{}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
       "line": 21,
-      "text": "if(typeof speech!=='undefined'&&speech){speech.choices=list;decorate();}",
+      "text": "if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&l.silent){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 25,
+      "line": 28,
+      "text": "if(typeof speech!=='undefined'&&speech){speech.choices=list;speech.menu=menu;decorate();}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/talk-choice.js",
+      "line": 32,
       "text": "screen.addEventListener('click',e=>{const b=e.target.closest?.('[data-talk-choice]');if(!b||typeof speech==='undefined'||!speech||!Array.isArray(speech.choices))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 26,
+      "line": 33,
       "text": "const c=speech.choices[Number(b.dataset.talkChoice)];if(!c)return;e.stopPropagation();speech=null;try{root.VoidAudio?.cancel();}catch{}c.run();},true);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/temple-integration.js",
       "line": 1,
-      "text": "/* Zen Zephyr Temple: game wiring (browser only). Registers the walking location, the interaction handlers, the return cab, and the typed conversation panel.",
+      "text": "/* Zen Zephyr Temple: game wiring (browser only). Registers the walking location, the interaction handlers, the return cab, and Zen Zephyr's conversation.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/temple-integration.js",
       "line": 2,
-      "text": "The conversation is LOCAL (zen-chat.js): not an AI, no network. Nothing here is saved except the map fog (written by temple-build.js) and the taxi's own trip record (road-taxi-rules.js). */",
+      "text": "The conversation is the owner's approved, voiced script (18 Nov 2026; zen-chat.js), in the game's ordinary conversation window (scenes.js talk(), talk-choice.js menus,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/temple-integration.js",
-      "line": 12,
-      "text": "const chat=Z.create();T.chat=chat;   // a future API dialogue registers on T.chat.registerProvider(...) and is switched on with T.chat.enableProvider(true); it is OFF by default",
+      "line": 3,
+      "text": "conversation-ui.js), so the recordings, the auto-advance, the transcript and the speaker's gaze behave as with every other character. No network, no AI.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/temple-integration.js",
-      "line": 20,
-      "text": "const panel=document.createElement('section');panel.id='zen-chat';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Conversation with Zen Zephyr');",
+      "line": 5,
+      "text": "choices open when the player continues, comes within TALK_RANGE, or presses E (SPEAK WITH ZEN ZEPHYR); E before the greeting plays it first. A choice: a random quote of",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 24,
+      "text": "let chat=Z.create(),inside=false,stage=null,autoOpened=false;   // stage: 'greeting' (the distant greeting is on screen) | 'menu' | null",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 25,
+      "text": "const busy=()=>{try{return !!speech||!!root.VoidConversationUI?.isOpen;}catch{return false;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/temple-integration.js",
       "line": 31,
-      "text": "function show(){if(open)return;open=true;document.exitPointerLock?.();try{walkingKeys.clear();}catch{}try{mode='dialogue';}catch{}panel.hidden=false;if(!log.children.length)line('zen',chat.local('hello').text);setTimeout(()=>input.focus(),30);}",
+      "text": "function greet(){stage='greeting';talk('',chat.greet(),()=>{if(stage==='greeting')open();},'CONTINUE →','');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 33,
+      "text": "function quietClose(){stage=null;try{speech=null;root.VoidAudio?.cancel();screen.classList.add('hidden');screen.classList.remove('conversation-live');document.getElementById('conversation-restore')?.setAttribute('hidden','');}catch{}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 39,
+      "text": "const d=distance(),greetingUp=stage==='greeting'&&!!speech&&speech.lines?.[0]?.text===Z.SCRIPT.greeting;if(stage==='greeting'&&!greetingUp)stage=null;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 41,
+      "text": "if(greetingUp&&d>Z.GREET_RANGE+8){quietClose();return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/temple-integration.js",
+      "line": 43,
+      "text": "if(d<=Z.TALK_RANGE&&!autoOpened&&(!busy()||greetingUp)){const v=speech?.voice;if(greetingUp&&v&&(v.clip&&!v.ended))return;open();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/temple.js",
       "line": 3,
       "text": "The 3D build is temple-build.js; the wiring and the chat panel are temple-integration.js; the conversation is zen-chat.js; the way in and out is the East Gate on the Avenue, by road taxi or on foot (ncz-quarters.js, road-taxi.js, ncz-gate-transit.js).",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/temple.js",
-      "line": 9,
-      "text": "- His lines: zen-chat.js QUOTES (provisional; two are the exact lines the owner specified). A future API dialogue plugs in through zen-chat.js registerProvider (off by default). */",
       "kind": "source-reference"
     },
     {
@@ -15376,25 +15430,25 @@
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 75,
+      "line": 94,
       "text": "const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 86,
+      "line": 105,
       "text": "if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 102,
+      "line": 121,
       "text": "renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action=\"speech-replay\" class=\"quiet\" title=\"Replay line\">REPLAY ↺</button>');};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 103,
+      "line": 122,
       "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;speakLine();});",
       "kind": "source-reference"
     },
@@ -15935,229 +15989,61 @@
     {
       "source": "void-runner/zen-chat.js",
       "line": 1,
-      "text": "/* ZEN ZEPHYR: the local conversation. Pure (runs in Node and the browser); tests/zen-chat.test.cjs. docs/development/TEMPLE.md.",
+      "text": "/* ZEN ZEPHYR: the conversation (the owner's approved, voiced script, 18 Nov 2026). Pure (runs in Node and the browser); tests/zen-chat.test.cjs. docs/development/TEMPLE.md.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 4,
+      "text": "The flow (the owner's words): when the player is still pretty far away, \"as if he knew they were coming\", he says the greeting. He then presents five choices. A choice:",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/zen-chat.js",
       "line": 5,
-      "text": "A future API-powered dialogue can plug in through the provider interface at the bottom; it is OFF by default and nothing here ever calls it unless it is registered AND enabled. */",
+      "text": "he says one of that category's quotes at random, then the follow-up line; the player picks another category to hear another, or says \"Yes\" and leaves.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zen-chat.js",
+      "line": 6,
+      "text": "Everything stays on the device: no network, no AI, no cost. temple-integration.js drives the window, the proximity greeting and the voice. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/zen-chat.js",
       "line": 10,
-      "text": "{id:'q01',text:'In the network of complex codes, serenity lies in the simplest line.',topics:['serenity','code'],source:'owner'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 11,
-      "text": "{id:'q02',text:'A mindful soul is like a processor; it understands, computes, and calmly executes.',topics:['mind','serenity'],source:'owner'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 12,
-      "text": "{id:'q03',text:'The circuit board and the lotus flower differ only in the observer\\'s perception.',topics:['machines','mind'],source:'origins'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 13,
-      "text": "{id:'q04',text:'Technology alone will not keep a sanctuary alive. Find the people who know why it matters.',topics:['sanctuary','network'],source:'origins'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 14,
-      "text": "{id:'q05',text:'Before you run the next process, let the last one finish.',topics:['work','mind','serenity'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 15,
-      "text": "{id:'q06',text:'A signal carried in a hurry arrives damaged. Slow the breath and the message clears.',topics:['breath','network','fear'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 16,
-      "text": "{id:'q07',text:'Fear is only a loop with no exit condition. Name it and it ends.',topics:['fear','code'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 17,
-      "text": "{id:'q08',text:'The server hums because it has nothing to prove. Sit, and hum with it.',topics:['serenity','machines','breath'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 18,
-      "text": "{id:'q09',text:'Every cable here carries a thought somewhere. None of them are in a hurry.',topics:['network','serenity'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 19,
-      "text": "{id:'q10',text:'You cannot debug a storm. You can only keep your own code clean while it passes.',topics:['fear','code','city'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 20,
-      "text": "{id:'q11',text:'Rain does not argue with the city. It falls, and the city is washed.',topics:['city','serenity','change'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 21,
-      "text": "{id:'q12',text:'The oldest backup is silence. Return to it when the rest is corrupted.',topics:['silence','breath','mind'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 22,
-      "text": "{id:'q13',text:'What you call flesh and what you call code are both patterns that agreed to stay together for a while.',topics:['machines','change'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 23,
-      "text": "{id:'q14',text:'A road is made by the next step, not by the map. Take the step.',topics:['change','work'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 24,
-      "text": "{id:'q15',text:'Rest is not a failure of the system. It is part of its design.',topics:['work','serenity'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 25,
-      "text": "{id:'q16',text:'The flame burns blue when nothing is wasted. Waste less, and burn clearer.',topics:['serenity','work','change'],source:'placeholder'},",
+      "text": "const SCRIPT={\"greeting\":\"Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?\",\"followUp\":\"Does your mind find peace in these words, or do you seek further wisdom?\",\"topics\":[{\"id\":\"tech\",\"label\":\"Enlightenment & Technology\",\"sub\":\"Finding humanity beneath the chrome.\",\"lines\":[\"You may replace every part of the body, yet still carry the same suffering.\",\"A thousand implants cannot repair an undisciplined mind.\",\"Upgrade your consciousness before upgrading your flesh.\",\"Even artificial light casts a shadow.\",\"The enlightened mind requires no firmware.\",\"A machine may calculate infinity, but a monk must learn to embrace nothing.\",\"Do not confuse connectivity with connection.\",\"The mind without awareness is merely hardware running corrupted code.\",\"An optical implant may reveal a thousand wavelengths, yet remain blind to truth.\",\"Replace your eyes with machines, but do not let machines decide what you see.\",\"Enlightenment is not available behind a paywall.\",\"The illusion of self cannot be removed with a firmware update.\",\"A neural implant may accelerate thought, but wisdom has no clock speed.\",\"Do not mistake an artificial heaven for liberation.\",\"The machine learns through repetition. The monk learns through letting go.\",\"Consciousness is not measured in processing power.\",\"The path to enlightenment has no downloadable shortcut.\"]},{\"id\":\"desire\",\"label\":\"Desire & Suffering\",\"sub\":\"Freedom from the things that bind us.\",\"lines\":[\"The corporations sell immortality to those afraid to live.\",\"Desire is the malware of the soul.\",\"The richest man in the district may still be a prisoner.\",\"A gilded implant is still a chain.\",\"He who owns nothing cannot be owned.\",\"The city profits from the emptiness within you.\",\"Every advertisement is a prayer to the gods of attachment.\",\"Beware the implant that promises happiness on a monthly subscription.\",\"The corporations manufacture desire and sell temporary relief.\",\"Craving is an endless transaction with insufficient funds.\",\"The flesh dealer sells perfection to those who cannot accept themselves.\",\"Not every addiction requires a chemical.\",\"The city installs desires faster than you can uninstall them.\",\"A debt-free account does not guarantee a liberated mind.\",\"The endless upgrade is another form of suffering.\",\"Desire turns the human body into a corporate marketplace.\"]},{\"id\":\"peace\",\"label\":\"Wisdom & Inner Peace\",\"sub\":\"Finding silence within the city's noise.\",\"lines\":[\"Beneath the neon, the lotus still blooms.\",\"Find silence where the machines never sleep.\",\"The wise do not fear the darkness, for they carry no illusion of light.\",\"When the network falls silent, listen to yourself.\",\"Even in a city built of steel, compassion must take root.\",\"The rain does not distinguish between flesh and chrome.\",\"Amid a city that worships tomorrow, we teach the art of being here.\",\"Disconnect from the network before you forget how to connect with yourself.\",\"Between the drone patrols and the screaming advertisements, there is still silence.\",\"Do not let the city's algorithms determine the rhythm of your breath.\",\"The lotus does not require permission to bloom through concrete.\",\"Your thoughts need not travel at the speed of the network.\",\"Even beneath a thousand surveillance cameras, the mind may remain free.\",\"A peaceful mind is the rarest technology in NeoChinatown.\",\"Let the rain wash the neon from your thoughts.\",\"Not every notification deserves your consciousness.\",\"Find the silence between two machine heartbeats.\"]},{\"id\":\"death\",\"label\":\"Death & Impermanence\",\"sub\":\"Accepting that even machines must fade.\",\"lines\":[\"All things decay. Flesh, steel, memory, and empire.\",\"A backup of the mind is not freedom from death.\",\"Even the eternal server will one day go dark.\",\"Do not mourn the rust. It is the nature of metal.\",\"The neon fades, but the cycle continues.\",\"Even chrome returns to dust.\",\"A thousand backups cannot preserve a",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/zen-chat.js",
       "line": 26,
-      "text": "{id:'q17',text:'Loneliness is a connection waiting for a handshake. Offer yours first.',topics:['sanctuary','network','fear'],source:'placeholder'},",
+      "text": "const k=Math.min(left[id].length-1,Math.floor(random()*left[id].length)),i=left[id].splice(k,1)[0];last[id]=i;return {index:i,text:t.lines[i]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/zen-chat.js",
       "line": 27,
-      "text": "{id:'q18',text:'Delete what you carry only because you have always carried it.',topics:['change','work','fear'],source:'placeholder'},",
+      "text": "const line=(text,extra)=>({who:WHO,text,...(extra||{})});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/zen-chat.js",
-      "line": 28,
-      "text": "{id:'q19',text:'The city is loud so that you will learn where your own quiet is.',topics:['city','silence','serenity'],source:'placeholder'},",
+      "line": 36,
+      "text": "greet(){greeted=true;return [line(SCRIPT.greeting)];},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/zen-chat.js",
-      "line": 29,
-      "text": "{id:'q20',text:'Listen to the hum beneath the hum. That is where the answer keeps its place.',topics:['silence','network','mind'],source:'placeholder'},",
+      "line": 38,
+      "text": "open(){const heard=greeted;greeted=true;talks++;return {lines:[line(SCRIPT.greeting,heard?{silent:true}:null)],choices:[...topics(),{id:'leave',label:FIRST_LEAVE,leave:true}]};},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/zen-chat.js",
-      "line": 30,
-      "text": "{id:'q21',text:'No one is made to run forever. Even the brightest tower sleeps in the small hours.',topics:['work','city','serenity'],source:'placeholder'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 31,
-      "text": "{id:'q22',text:'Ask smaller. The simplest question has the longest answer.',topics:['code','mind','serenity'],source:'placeholder'}];",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 46,
-      "text": "const GREETING=['hello','hi','hey','greetings','welcome','zephyr','sanctum','who'],FAREWELL=['bye','goodbye','farewell','leave','leaving'],THANKS=['thanks','thank','grateful'];",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 47,
-      "text": "const GREETING_LINES=['Be welcome. The servers have been expecting you, in their way.','You came up the hill in the rain. Sit, if you like. Ask what you will.'];",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 48,
-      "text": "const FAREWELL_LINES=['Go gently. The hill will keep the quiet for you.','Return when the city is too loud.'];",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 51,
-      "text": "const FALLBACKS=['The line is quiet. Say it again with fewer words.','I recite what I know, and this is not in it. Try asking about code, fear, silence, the city or rest.','Not every question has a quote waiting. Breathe, and ask it smaller.','The altar has nothing written for that. Choose a teaching from the list, or ask about serenity.'];",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 66,
-      "text": "const t=String(text||'').trim();if(!t)return {text:FALLBACKS[0],quote:null,topic:null,matched:[],kind:'fallback',provider:'local'};",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 68,
-      "text": "if(has(t,FAREWELL))return {text:FAREWELL_LINES[(n++)%FAREWELL_LINES.length],quote:null,topic:'farewell',matched:[],kind:'farewell',provider:'local'};",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 69,
-      "text": "if(has(t,THANKS)&&!tp.length)return {text:THANKS_LINES[0],quote:null,topic:'thanks',matched:[],kind:'thanks',provider:'local'};",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 70,
-      "text": "if(has(t,GREETING)&&!tp.length)return {text:GREETING_LINES[(n++)%GREETING_LINES.length],quote:null,topic:'greeting',matched:[],kind:'greeting',provider:'local'};",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 71,
-      "text": "if(tp.length){const top=tp[0].topic,pool=QUOTES.filter(q=>q.topics.includes(top)),q=pick(pool);return {text:q.text,quote:q.id,topic:top,matched:tp.map(x=>x.topic),kind:'quote',provider:'local'};}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 72,
-      "text": "return {text:FALLBACKS[(n++)%FALLBACKS.length],quote:null,topic:null,matched:[],kind:'fallback',provider:'local'};}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 74,
-      "text": "function choose(id){const q=QUOTES.find(x=>x.id===id);if(!q)return null;said.add(q.id);return {text:q.text,quote:q.id,topic:q.topics[0],matched:q.topics.slice(),kind:'chosen',provider:'local'};}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 77,
-      "text": "if(provider&&providerOn){try{const out=await provider.respond(String(text||''),{history:log.slice(-8)});if(out&&typeof out.text==='string'&&out.text.trim())r={text:out.text.trim(),quote:null,topic:null,matched:[],kind:'provider',provider:provider.id};}catch{}}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 80,
-      "text": "function registerProvider(p){if(!p||typeof p.id!=='string'||typeof p.respond!=='function')throw new Error('A dialogue provider needs an id and a respond(text, context) function.');provider=p;providerOn=false;return true;}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/zen-chat.js",
-      "line": 84,
-      "text": "const api={QUOTES,TOPICS,FALLBACKS,GREETING_LINES,topicsOf,create,words,LABEL:'LOCAL RECITATION · NOT AN AI'};",
+      "line": 44,
+      "text": "const voiced=()=>[['greeting',SCRIPT.greeting],['followup',SCRIPT.followUp],...SCRIPT.topics.flatMap(t=>t.lines.map((text,i)=>[t.id+'-'+(i+1),text]))];",
       "kind": "source-reference"
     }
   ],
@@ -16198,7 +16084,7 @@
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
-    "void-runner/conversation-ui.js": "617d4b10f68c5ccb82bc001b7a0f2652abe64ed9515463f51bf4c8bcf5fafb2b",
+    "void-runner/conversation-ui.js": "8b6131540112f455110d3ffa97775b221420b6ddbc30bc85fcec122dac77bf11",
     "void-runner/corporate-actors.js": "4ded2564263ea8f5ed16a535864a00385925c81bdfb4aa877b69944f55ffd588",
     "void-runner/corporate-build.js": "c98085378b49c56e77b679078fb7bf5377aa069ea8a7bc8fd8697c98f63a52d0",
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
@@ -16276,14 +16162,14 @@
     "void-runner/mission-givers.js": "c497e6ad7bf36f9592a94c18969d55abee99269e3f15e88029cc93b9b5483574",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
-    "void-runner/mission-trees.js": "cb61be24326c723f53fc6125396f6bc49723737fd39a3f5532a4e60c51394f1d",
+    "void-runner/mission-trees.js": "54ec274705020a6996891f4e94b55a4243ece57ca8c02bbc3162145eac2ecc73",
     "void-runner/model-registry.js": "2330947f95ab6a71231f65a0cec1d347f884dcd550c2d8c9b488588febf7b579",
     "void-runner/mouse-control.js": "719cd797ab34fd42a40c3e8101563b0c7dc91b88c6dd87616e7f56b99f270ce6",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
-    "void-runner/music-director.js": "c1ebbe2278061e0cd724ce82453022c70078819a38ebce0f97d1d47a350e5264",
-    "void-runner/music-engine.js": "01eecadf954ace9df5655135ab20f6341548f1af07b0e864715be33d08eec2ea",
-    "void-runner/music-integration.js": "2341272af7d74b63cefdf4ea9ec608e6305bc3004a0a6fd32893ddb29dff3d25",
-    "void-runner/music-score.js": "989112fce52d9ed931c1330b1f17187d79f6a2a3a15a6af6e19cdae6d52547ee",
+    "void-runner/music-director.js": "a1fadf186558f7272b9d48e6fc6d265027e47ad1c8fef1d4639dfaf48ca4ffa7",
+    "void-runner/music-engine.js": "9a4ee46218d4b7be56ded9763e3ad56c42bfa2eeaa6c59d207b6757ff7d0b8c2",
+    "void-runner/music-integration.js": "00898b4869c668718e834816bf65e1c1e66c00be064990704f124d66d353d467",
+    "void-runner/music-score.js": "72746a604053fbe48a0f7c986ae5d18a83ccc48cfa5ef441490199c0a25e9b8e",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "755942b7185b65f6db75ae21b9a2e9cd03ff81c3b688a6fe9a7ea7988b283610",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
@@ -16337,11 +16223,11 @@
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/street-gear.js": "2be48f25f050c110c6f1297168d446acd839ad5fe074b0d2a8f7804b11717921",
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
-    "void-runner/talk-choice.js": "a5050568c6071a46ec75d5b71fe8f580c06d6f7d8459e1bf4de729fe50220673",
+    "void-runner/talk-choice.js": "a9b14bbfc1a903ef542704de8188f9298517138bff2ff9af46a9ac838e8b65e6",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/temple-build.js": "afa89253389bd217b542a6d255a8b20aac2a8e575214aef8f6198a1a3a731543",
-    "void-runner/temple-integration.js": "c9cab76a250504a965bc6a06782a1b597fa4196b88a18e9fd2a8cdbc004c69cb",
-    "void-runner/temple.js": "6b5fb48b9e44eb536700294b35948e2f4b010afac1e278bb68824ae8a3806eb0",
+    "void-runner/temple-build.js": "226c7aeda4f5e2e49929d157c89464510eeaedddc512f302e2cd8f1577b3b29e",
+    "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
+    "void-runner/temple.js": "d820673a6c719c5c26da6cf16fd591d9bd6b14ee46f094db0e5de317b5189f51",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",
     "void-runner/traffic.js": "1c47797df0eb41dbbc0fc84c733cc0f8b49401a50901834125f2b5b457752e83",
     "void-runner/travel-visuals.js": "440e1da234f7e831c98561d3d949e3b2d911463014879f04f61199349ff5854e",
@@ -16349,7 +16235,7 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "80a0fe1767b21c63b0ec19967f6e0d27414ace87de2dd046da09ef330c97cdec",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "b12955260a8f1b8faf54bf1cc322180f1347131586c3db94560fe95852468a97",
+    "void-runner/voice-clips.js": "a607f8c3cc324c480a2dd38c16610e1cae76d7172f7d1db8f9dd53d64e687a3f",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
     "void-runner/vr-companions.js": "c8e42dc908944f99a0f5ef5515530945bc338ec012c2ae751c940a9186ff8496",
@@ -16367,7 +16253,7 @@
     "void-runner/world-integration.js": "96c4fa9c4e293eac13ff9ebd56066cf7d31e8fcc62d4c0b91db06683d30f8989",
     "void-runner/world-markers.js": "dfc0e6d708d668e149baf44a6db16c672023b4321a0fa16655180886e77c50fe",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
-    "void-runner/zen-chat.js": "aa455143f96ac375be4e3e10d2f67a5e778e7746e43afa9e438846d80a6e82cc",
+    "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
     "tools/admin-inventory.cjs": "45eac6b3de1edea32b0990606c8cbed066f331277fdbe3945f25d3bf765cdd0b",
     "tools/audio/npc-voice-registry.json": "aed4240258bba3314fd784ce8acfe4bc0204ed1da43dd4c71b00bb42a01fddef",

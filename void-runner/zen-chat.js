@@ -1,86 +1,47 @@
-/* ZEN ZEPHYR: the local conversation. Pure (runs in Node and the browser); tests/zen-chat.test.cjs. docs/development/TEMPLE.md.
-   This is NOT an AI model and does not pretend to be one. It recites a fixed set of provisional quotes chosen by simple keyword and topic matching, with a fallback.
-   The lines are placeholders for the owner to approve or replace; two are the exact lines he specified, two are taken from the Zen Zephyr scenes of the Origins page
-   (origins/index.html, scene zen_wisdom and sanctum_introduction; mood only, not canon). Everything stays on the device: no network, no credentials, no cost.
-   A future API-powered dialogue can plug in through the provider interface at the bottom; it is OFF by default and nothing here ever calls it unless it is registered AND enabled. */
+/* ZEN ZEPHYR: the conversation (the owner's approved, voiced script, 18 Nov 2026). Pure (runs in Node and the browser); tests/zen-chat.test.cjs. docs/development/TEMPLE.md.
+   The words are the owner's, verbatim: tools/audio/zen-zephyr-script.json is the ONE source; tools/audio/zen-import.cjs writes it into the block below and registers every
+   line's recording (assets/audio/voice/extra/, speaker 'zen-zephyr'). Never edit the lines here by hand.
+   The flow (the owner's words): when the player is still pretty far away, "as if he knew they were coming", he says the greeting. He then presents five choices. A choice:
+   he says one of that category's quotes at random, then the follow-up line; the player picks another category to hear another, or says "Yes" and leaves.
+   Everything stays on the device: no network, no AI, no cost. temple-integration.js drives the window, the proximity greeting and the voice. */
 (function(root){
  'use strict';
- // id, text, topics (what the quote is about), source ('owner' exact line | 'origins' | 'placeholder'). Selectable in the panel's list as well as chosen by matching.
- const QUOTES=[
-  {id:'q01',text:'In the network of complex codes, serenity lies in the simplest line.',topics:['serenity','code'],source:'owner'},
-  {id:'q02',text:'A mindful soul is like a processor; it understands, computes, and calmly executes.',topics:['mind','serenity'],source:'owner'},
-  {id:'q03',text:'The circuit board and the lotus flower differ only in the observer\'s perception.',topics:['machines','mind'],source:'origins'},
-  {id:'q04',text:'Technology alone will not keep a sanctuary alive. Find the people who know why it matters.',topics:['sanctuary','network'],source:'origins'},
-  {id:'q05',text:'Before you run the next process, let the last one finish.',topics:['work','mind','serenity'],source:'placeholder'},
-  {id:'q06',text:'A signal carried in a hurry arrives damaged. Slow the breath and the message clears.',topics:['breath','network','fear'],source:'placeholder'},
-  {id:'q07',text:'Fear is only a loop with no exit condition. Name it and it ends.',topics:['fear','code'],source:'placeholder'},
-  {id:'q08',text:'The server hums because it has nothing to prove. Sit, and hum with it.',topics:['serenity','machines','breath'],source:'placeholder'},
-  {id:'q09',text:'Every cable here carries a thought somewhere. None of them are in a hurry.',topics:['network','serenity'],source:'placeholder'},
-  {id:'q10',text:'You cannot debug a storm. You can only keep your own code clean while it passes.',topics:['fear','code','city'],source:'placeholder'},
-  {id:'q11',text:'Rain does not argue with the city. It falls, and the city is washed.',topics:['city','serenity','change'],source:'placeholder'},
-  {id:'q12',text:'The oldest backup is silence. Return to it when the rest is corrupted.',topics:['silence','breath','mind'],source:'placeholder'},
-  {id:'q13',text:'What you call flesh and what you call code are both patterns that agreed to stay together for a while.',topics:['machines','change'],source:'placeholder'},
-  {id:'q14',text:'A road is made by the next step, not by the map. Take the step.',topics:['change','work'],source:'placeholder'},
-  {id:'q15',text:'Rest is not a failure of the system. It is part of its design.',topics:['work','serenity'],source:'placeholder'},
-  {id:'q16',text:'The flame burns blue when nothing is wasted. Waste less, and burn clearer.',topics:['serenity','work','change'],source:'placeholder'},
-  {id:'q17',text:'Loneliness is a connection waiting for a handshake. Offer yours first.',topics:['sanctuary','network','fear'],source:'placeholder'},
-  {id:'q18',text:'Delete what you carry only because you have always carried it.',topics:['change','work','fear'],source:'placeholder'},
-  {id:'q19',text:'The city is loud so that you will learn where your own quiet is.',topics:['city','silence','serenity'],source:'placeholder'},
-  {id:'q20',text:'Listen to the hum beneath the hum. That is where the answer keeps its place.',topics:['silence','network','mind'],source:'placeholder'},
-  {id:'q21',text:'No one is made to run forever. Even the brightest tower sleeps in the small hours.',topics:['work','city','serenity'],source:'placeholder'},
-  {id:'q22',text:'Ask smaller. The simplest question has the longest answer.',topics:['code','mind','serenity'],source:'placeholder'}];
- // What each topic listens for. Words are matched whole, lower case, after a little cleaning ("breathing" counts as "breath").
- const TOPICS={
-  serenity:['serenity','peace','peaceful','calm','quiet','still','stillness','relax','tranquil','serene','gentle'],
-  code:['code','simple','simplest','program','script','line','bug','debug','compile','logic','loop','algorithm'],
-  mind:['mind','mindful','think','thought','thoughts','processor','compute','understand','focus','soul','wisdom','learn','know'],
-  network:['network','connect','connection','signal','internet','grid','link','data','server','cable','online','message'],
-  fear:['fear','afraid','worry','worried','anxious','anxiety','scared','stress','stressed','panic','nervous','dread'],
-  change:['change','future','tomorrow','begin','beginning','start','path','journey','new','grow','growth','lost'],
-  breath:['breath','breathe','breathing','inhale','exhale','air'],
-  silence:['silence','silent','listen','listening','sound','noise','meditate','meditation','pray','prayer'],
-  machines:['machine','machines','robot','human','humans','flesh','android','synthetic','alive','conscious','consciousness','body'],
-  city:['city','neon','rain','street','streets','crowd','tower','towers','light','lights','night','home'],
-  sanctuary:['help','sanctuary','safe','people','friend','friends','together','resist','resistance','function','alone','lonely','loneliness'],
-  work:['work','tired','sleep','rest','burnout','busy','time','hurry','job','duty']};
- const GREETING=['hello','hi','hey','greetings','welcome','zephyr','sanctum','who'],FAREWELL=['bye','goodbye','farewell','leave','leaving'],THANKS=['thanks','thank','grateful'];
- const GREETING_LINES=['Be welcome. The servers have been expecting you, in their way.','You came up the hill in the rain. Sit, if you like. Ask what you will.'];
- const FAREWELL_LINES=['Go gently. The hill will keep the quiet for you.','Return when the city is too loud.'];
- const THANKS_LINES=['Nothing was given that was not already yours.'];
- // When nothing matches: still a calm, honest answer, and an invitation to ask differently. Never a claim to understand what was not understood.
- const FALLBACKS=['The line is quiet. Say it again with fewer words.','I recite what I know, and this is not in it. Try asking about code, fear, silence, the city or rest.','Not every question has a quote waiting. Breathe, and ask it smaller.','The altar has nothing written for that. Choose a teaching from the list, or ask about serenity.'];
- const words=t=>String(t||'').toLowerCase().replace(/[^a-z\s']/g,' ').split(/\s+/).filter(Boolean);
- const stem=w=>w.replace(/(ing|ed|es|s)$/,'');
- // Which topics does the text touch? Returns [{topic, hits}] best first.
- function topicsOf(text){const ws=words(text),stems=new Set(ws.map(stem)),found=[];
-  for(const [topic,keys] of Object.entries(TOPICS)){let hits=0;for(const k of keys)if(ws.includes(k)||stems.has(stem(k)))hits++;if(hits)found.push({topic,hits});}
-  return found.sort((a,b)=>b.hits-a.hits);}
- const has=(text,list)=>{const ws=words(text);return list.some(k=>ws.includes(k));};
-
- // A conversation. Deterministic: it rotates through the matching quotes and prefers ones not yet said.
+ /* ZEN-SCRIPT: generated by tools/audio/zen-import.cjs from tools/audio/zen-zephyr-script.json (the owner's approved script, verbatim). Do not edit by hand. */
+ const SCRIPT={"greeting":"Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?","followUp":"Does your mind find peace in these words, or do you seek further wisdom?","topics":[{"id":"tech","label":"Enlightenment & Technology","sub":"Finding humanity beneath the chrome.","lines":["You may replace every part of the body, yet still carry the same suffering.","A thousand implants cannot repair an undisciplined mind.","Upgrade your consciousness before upgrading your flesh.","Even artificial light casts a shadow.","The enlightened mind requires no firmware.","A machine may calculate infinity, but a monk must learn to embrace nothing.","Do not confuse connectivity with connection.","The mind without awareness is merely hardware running corrupted code.","An optical implant may reveal a thousand wavelengths, yet remain blind to truth.","Replace your eyes with machines, but do not let machines decide what you see.","Enlightenment is not available behind a paywall.","The illusion of self cannot be removed with a firmware update.","A neural implant may accelerate thought, but wisdom has no clock speed.","Do not mistake an artificial heaven for liberation.","The machine learns through repetition. The monk learns through letting go.","Consciousness is not measured in processing power.","The path to enlightenment has no downloadable shortcut."]},{"id":"desire","label":"Desire & Suffering","sub":"Freedom from the things that bind us.","lines":["The corporations sell immortality to those afraid to live.","Desire is the malware of the soul.","The richest man in the district may still be a prisoner.","A gilded implant is still a chain.","He who owns nothing cannot be owned.","The city profits from the emptiness within you.","Every advertisement is a prayer to the gods of attachment.","Beware the implant that promises happiness on a monthly subscription.","The corporations manufacture desire and sell temporary relief.","Craving is an endless transaction with insufficient funds.","The flesh dealer sells perfection to those who cannot accept themselves.","Not every addiction requires a chemical.","The city installs desires faster than you can uninstall them.","A debt-free account does not guarantee a liberated mind.","The endless upgrade is another form of suffering.","Desire turns the human body into a corporate marketplace."]},{"id":"peace","label":"Wisdom & Inner Peace","sub":"Finding silence within the city's noise.","lines":["Beneath the neon, the lotus still blooms.","Find silence where the machines never sleep.","The wise do not fear the darkness, for they carry no illusion of light.","When the network falls silent, listen to yourself.","Even in a city built of steel, compassion must take root.","The rain does not distinguish between flesh and chrome.","Amid a city that worships tomorrow, we teach the art of being here.","Disconnect from the network before you forget how to connect with yourself.","Between the drone patrols and the screaming advertisements, there is still silence.","Do not let the city's algorithms determine the rhythm of your breath.","The lotus does not require permission to bloom through concrete.","Your thoughts need not travel at the speed of the network.","Even beneath a thousand surveillance cameras, the mind may remain free.","A peaceful mind is the rarest technology in NeoChinatown.","Let the rain wash the neon from your thoughts.","Not every notification deserves your consciousness.","Find the silence between two machine heartbeats."]},{"id":"death","label":"Death & Impermanence","sub":"Accepting that even machines must fade.","lines":["All things decay. Flesh, steel, memory, and empire.","A backup of the mind is not freedom from death.","Even the eternal server will one day go dark.","Do not mourn the rust. It is the nature of metal.","The neon fades, but the cycle continues.","Even chrome returns to dust.","A thousand backups cannot preserve a single moment.","Your digital ghost is not the self you believe it to be.","The corporation promises eternal life but cannot guarantee server uptime.","The richest executive and the poorest street beggar eventually become forgotten data.","Every signal eventually becomes silence.","Memory can be archived. Experience cannot.","Even the brightest hologram disappears when the power fails.","Do not fear becoming obsolete. Everything that exists already carries its expiration.","The body is temporary hardware. Do not mistake its serial number for your identity."]},{"id":"rebellion","label":"Rebellion & Freedom","sub":"Liberating the mind from systems of control.","lines":["Break the chains within before breaking those around you.","The greatest rebellion is refusing to become what you hate.","A free mind cannot be purchased, programmed, or patented.","Hatred is another corporation seeking ownership of your soul.","When the world demands obedience, questioning becomes meditation.","The most dangerous citizen is one who desires nothing the corporation sells.","Compassion is an act of rebellion in a city that monetizes suffering.","Do not trade one corporate master for another wearing the mask of revolution.","Before hacking the system, examine the programming of your own mind.","The prison with no visible bars is the hardest to escape.","A government may blacklist your identity, but it cannot erase your awareness.","The revolution that begins with hatred ends with another tyrant.","Do not become the weapon of those who profit from your anger.","The greatest firewall is a disciplined mind.","In a civilization built upon ownership, letting go is the ultimate rebellion."]}]};
+ /* /ZEN-SCRIPT */
+ const WHO='zen-zephyr',NAME='Zen Zephyr',ROLE='MONK · SANCTUM OF THE CIRCUIT';
+ // Distances in metres from his seat. GREET_RANGE: the greeting comes as the player walks up the hall toward the dais (he knew they were coming); line of sight is
+ // checked by temple-integration.js. TALK_RANGE: close enough that the choices open by themselves (the SPEAK WITH ZEN ZEPHYR prompt, E, opens them from its own range).
+ const GREET_RANGE=14,TALK_RANGE=6.5;
+ const LEAVE='Yes',FIRST_LEAVE='LEAVE';   // "Yes" is the owner's own leave option after the follow-up; before any quote the window offers a plain LEAVE
+ const topic=id=>SCRIPT.topics.find(t=>t.id===id)||null;
+ const choiceLabel=t=>t.label+' — '+t.sub;
+ // A visit's conversation. random: a function returning [0,1) (Math.random in the game; a seeded one in the tests).
  function create(opts={}){
-  const said=new Set(),log=[];let n=0,provider=null,providerOn=false;
-  // The first quote of the topic not yet said, in the list's order; when all have been said the topic starts again from its first. (Not tied to a shared counter, so a greeting does not change which line comes first.)
-  const pick=list=>{let fresh=list.filter(q=>!said.has(q.id));if(!fresh.length){for(const q of list)said.delete(q.id);fresh=list.slice();}const choice=fresh[0];said.add(choice.id);return choice;};
-  function local(text){
-   const t=String(text||'').trim();if(!t)return {text:FALLBACKS[0],quote:null,topic:null,matched:[],kind:'fallback',provider:'local'};
-   const tp=topicsOf(t);
-   if(has(t,FAREWELL))return {text:FAREWELL_LINES[(n++)%FAREWELL_LINES.length],quote:null,topic:'farewell',matched:[],kind:'farewell',provider:'local'};
-   if(has(t,THANKS)&&!tp.length)return {text:THANKS_LINES[0],quote:null,topic:'thanks',matched:[],kind:'thanks',provider:'local'};
-   if(has(t,GREETING)&&!tp.length)return {text:GREETING_LINES[(n++)%GREETING_LINES.length],quote:null,topic:'greeting',matched:[],kind:'greeting',provider:'local'};
-   if(tp.length){const top=tp[0].topic,pool=QUOTES.filter(q=>q.topics.includes(top)),q=pick(pool);return {text:q.text,quote:q.id,topic:top,matched:tp.map(x=>x.topic),kind:'quote',provider:'local'};}
-   return {text:FALLBACKS[(n++)%FALLBACKS.length],quote:null,topic:null,matched:[],kind:'fallback',provider:'local'};}
-  // The panel's list: choosing a quote just says it.
-  function choose(id){const q=QUOTES.find(x=>x.id===id);if(!q)return null;said.add(q.id);return {text:q.text,quote:q.id,topic:q.topics[0],matched:q.topics.slice(),kind:'chosen',provider:'local'};}
-  // ask(): always answers locally unless a provider has been registered AND switched on; a failing provider falls back to the local answer.
-  async function ask(text){let r;
-   if(provider&&providerOn){try{const out=await provider.respond(String(text||''),{history:log.slice(-8)});if(out&&typeof out.text==='string'&&out.text.trim())r={text:out.text.trim(),quote:null,topic:null,matched:[],kind:'provider',provider:provider.id};}catch{}}
-   if(!r)r=local(text);log.push({you:String(text||''),zen:r.text});if(log.length>200)log.shift();return r;}
-  // The future API hook. provider: {id:string, respond(text,{history})->Promise<{text}>}. Registering does NOT switch it on.
-  function registerProvider(p){if(!p||typeof p.id!=='string'||typeof p.respond!=='function')throw new Error('A dialogue provider needs an id and a respond(text, context) function.');provider=p;providerOn=false;return true;}
-  const enableProvider=on=>{providerOn=!!on&&!!provider;return providerOn;};
-  return {ask,local,choose,registerProvider,enableProvider,get providerOn(){return providerOn;},get providerId(){return provider?.id||null;},get log(){return log.slice();},get said(){return [...said];}};
+  const random=typeof opts.random==='function'?opts.random:Math.random;
+  let greeted=false,talks=0;const left={},last={};
+  // One quote of the topic at random: never the one said last time in that topic, and none again until all of that topic's lines have been said.
+  function quote(id){const t=topic(id);if(!t)return null;
+   if(!left[id]?.length)left[id]=t.lines.map((_,i)=>i).filter(i=>t.lines.length<2||i!==last[id]);
+   const k=Math.min(left[id].length-1,Math.floor(random()*left[id].length)),i=left[id].splice(k,1)[0];last[id]=i;return {index:i,text:t.lines[i]};}
+  const line=(text,extra)=>({who:WHO,text,...(extra||{})});
+  const topics=()=>SCRIPT.topics.map(t=>({id:t.id,label:choiceLabel(t),title:t.label,sub:t.sub}));
+  return {
+   // A new visit to the temple: he greets again (once).
+   visit(){greeted=false;},
+   get greeted(){return greeted;},get talks(){return talks;},
+   // Should the greeting play now? distance from his seat in metres, sight: true when nothing stands between.
+   shouldGreet(distance,sight=true){return !greeted&&sight!==false&&Number.isFinite(distance)&&distance<=GREET_RANGE;},
+   // The greeting on its own (spoken at a distance). Marks the visit as greeted.
+   greet(){greeted=true;return [line(SCRIPT.greeting)];},
+   // The conversation opens (talk range or E): the greeting (spoken now if it has not been heard this visit, else shown silently as his question) and the five choices.
+   open(){const heard=greeted;greeted=true;talks++;return {lines:[line(SCRIPT.greeting,heard?{silent:true}:null)],choices:[...topics(),{id:'leave',label:FIRST_LEAVE,leave:true}]};},
+   // A choice: one random quote of that category, then the follow-up; then the five choices again and "Yes" to leave. null for an unknown id.
+   pick(id){const q=quote(id);if(!q)return null;return {topic:id,quote:q.index,lines:[line(q.text),line(SCRIPT.followUp)],choices:[...topics(),{id:'leave',label:LEAVE,leave:true}]};}
+  };
  }
- const api={QUOTES,TOPICS,FALLBACKS,GREETING_LINES,topicsOf,create,words,LABEL:'LOCAL RECITATION · NOT AN AI'};
+ // Every voiced line with its clip key (greeting, followup, <topic>-<n>): the same list zen-import.cjs registers.
+ const voiced=()=>[['greeting',SCRIPT.greeting],['followup',SCRIPT.followUp],...SCRIPT.topics.flatMap(t=>t.lines.map((text,i)=>[t.id+'-'+(i+1),text]))];
+ const api={SCRIPT,WHO,NAME,ROLE,GREET_RANGE,TALK_RANGE,LEAVE,FIRST_LEAVE,create,topic,choiceLabel,voiced};
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidZenChat=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

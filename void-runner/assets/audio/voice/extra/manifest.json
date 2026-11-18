@@ -203,6 +203,826 @@
    "note": "The owner's words; recorded 17 Nov 2026 with ElevenLabs eleven_v4, one take.",
    "text": "So, what brings you in today? Business or pleasure?",
    "file": "extra/eva-m003-welcome-3.ogg"
+  },
+  "zen-greeting": {
+   "speaker": "zen-zephyr",
+   "text": "Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?",
+   "file": "extra/zen-greeting.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-followup": {
+   "speaker": "zen-zephyr",
+   "text": "Does your mind find peace in these words, or do you seek further wisdom?",
+   "file": "extra/zen-followup.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-1": {
+   "speaker": "zen-zephyr",
+   "text": "You may replace every part of the body, yet still carry the same suffering.",
+   "file": "extra/zen-tech-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-2": {
+   "speaker": "zen-zephyr",
+   "text": "A thousand implants cannot repair an undisciplined mind.",
+   "file": "extra/zen-tech-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-3": {
+   "speaker": "zen-zephyr",
+   "text": "Upgrade your consciousness before upgrading your flesh.",
+   "file": "extra/zen-tech-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-4": {
+   "speaker": "zen-zephyr",
+   "text": "Even artificial light casts a shadow.",
+   "file": "extra/zen-tech-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-5": {
+   "speaker": "zen-zephyr",
+   "text": "The enlightened mind requires no firmware.",
+   "file": "extra/zen-tech-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-6": {
+   "speaker": "zen-zephyr",
+   "text": "A machine may calculate infinity, but a monk must learn to embrace nothing.",
+   "file": "extra/zen-tech-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-7": {
+   "speaker": "zen-zephyr",
+   "text": "Do not confuse connectivity with connection.",
+   "file": "extra/zen-tech-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-8": {
+   "speaker": "zen-zephyr",
+   "text": "The mind without awareness is merely hardware running corrupted code.",
+   "file": "extra/zen-tech-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-9": {
+   "speaker": "zen-zephyr",
+   "text": "An optical implant may reveal a thousand wavelengths, yet remain blind to truth.",
+   "file": "extra/zen-tech-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-10": {
+   "speaker": "zen-zephyr",
+   "text": "Replace your eyes with machines, but do not let machines decide what you see.",
+   "file": "extra/zen-tech-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-11": {
+   "speaker": "zen-zephyr",
+   "text": "Enlightenment is not available behind a paywall.",
+   "file": "extra/zen-tech-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-12": {
+   "speaker": "zen-zephyr",
+   "text": "The illusion of self cannot be removed with a firmware update.",
+   "file": "extra/zen-tech-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-13": {
+   "speaker": "zen-zephyr",
+   "text": "A neural implant may accelerate thought, but wisdom has no clock speed.",
+   "file": "extra/zen-tech-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-14": {
+   "speaker": "zen-zephyr",
+   "text": "Do not mistake an artificial heaven for liberation.",
+   "file": "extra/zen-tech-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-15": {
+   "speaker": "zen-zephyr",
+   "text": "The machine learns through repetition. The monk learns through letting go.",
+   "file": "extra/zen-tech-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-16": {
+   "speaker": "zen-zephyr",
+   "text": "Consciousness is not measured in processing power.",
+   "file": "extra/zen-tech-16.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-17": {
+   "speaker": "zen-zephyr",
+   "text": "The path to enlightenment has no downloadable shortcut.",
+   "file": "extra/zen-tech-17.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-1": {
+   "speaker": "zen-zephyr",
+   "text": "The corporations sell immortality to those afraid to live.",
+   "file": "extra/zen-desire-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-2": {
+   "speaker": "zen-zephyr",
+   "text": "Desire is the malware of the soul.",
+   "file": "extra/zen-desire-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-3": {
+   "speaker": "zen-zephyr",
+   "text": "The richest man in the district may still be a prisoner.",
+   "file": "extra/zen-desire-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-4": {
+   "speaker": "zen-zephyr",
+   "text": "A gilded implant is still a chain.",
+   "file": "extra/zen-desire-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-5": {
+   "speaker": "zen-zephyr",
+   "text": "He who owns nothing cannot be owned.",
+   "file": "extra/zen-desire-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-6": {
+   "speaker": "zen-zephyr",
+   "text": "The city profits from the emptiness within you.",
+   "file": "extra/zen-desire-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-7": {
+   "speaker": "zen-zephyr",
+   "text": "Every advertisement is a prayer to the gods of attachment.",
+   "file": "extra/zen-desire-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-8": {
+   "speaker": "zen-zephyr",
+   "text": "Beware the implant that promises happiness on a monthly subscription.",
+   "file": "extra/zen-desire-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-9": {
+   "speaker": "zen-zephyr",
+   "text": "The corporations manufacture desire and sell temporary relief.",
+   "file": "extra/zen-desire-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-10": {
+   "speaker": "zen-zephyr",
+   "text": "Craving is an endless transaction with insufficient funds.",
+   "file": "extra/zen-desire-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-11": {
+   "speaker": "zen-zephyr",
+   "text": "The flesh dealer sells perfection to those who cannot accept themselves.",
+   "file": "extra/zen-desire-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-12": {
+   "speaker": "zen-zephyr",
+   "text": "Not every addiction requires a chemical.",
+   "file": "extra/zen-desire-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-13": {
+   "speaker": "zen-zephyr",
+   "text": "The city installs desires faster than you can uninstall them.",
+   "file": "extra/zen-desire-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-14": {
+   "speaker": "zen-zephyr",
+   "text": "A debt-free account does not guarantee a liberated mind.",
+   "file": "extra/zen-desire-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-15": {
+   "speaker": "zen-zephyr",
+   "text": "The endless upgrade is another form of suffering.",
+   "file": "extra/zen-desire-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-16": {
+   "speaker": "zen-zephyr",
+   "text": "Desire turns the human body into a corporate marketplace.",
+   "file": "extra/zen-desire-16.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-1": {
+   "speaker": "zen-zephyr",
+   "text": "Beneath the neon, the lotus still blooms.",
+   "file": "extra/zen-peace-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-2": {
+   "speaker": "zen-zephyr",
+   "text": "Find silence where the machines never sleep.",
+   "file": "extra/zen-peace-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-3": {
+   "speaker": "zen-zephyr",
+   "text": "The wise do not fear the darkness, for they carry no illusion of light.",
+   "file": "extra/zen-peace-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-4": {
+   "speaker": "zen-zephyr",
+   "text": "When the network falls silent, listen to yourself.",
+   "file": "extra/zen-peace-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-5": {
+   "speaker": "zen-zephyr",
+   "text": "Even in a city built of steel, compassion must take root.",
+   "file": "extra/zen-peace-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-6": {
+   "speaker": "zen-zephyr",
+   "text": "The rain does not distinguish between flesh and chrome.",
+   "file": "extra/zen-peace-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-7": {
+   "speaker": "zen-zephyr",
+   "text": "Amid a city that worships tomorrow, we teach the art of being here.",
+   "file": "extra/zen-peace-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-8": {
+   "speaker": "zen-zephyr",
+   "text": "Disconnect from the network before you forget how to connect with yourself.",
+   "file": "extra/zen-peace-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-9": {
+   "speaker": "zen-zephyr",
+   "text": "Between the drone patrols and the screaming advertisements, there is still silence.",
+   "file": "extra/zen-peace-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-10": {
+   "speaker": "zen-zephyr",
+   "text": "Do not let the city's algorithms determine the rhythm of your breath.",
+   "file": "extra/zen-peace-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-11": {
+   "speaker": "zen-zephyr",
+   "text": "The lotus does not require permission to bloom through concrete.",
+   "file": "extra/zen-peace-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-12": {
+   "speaker": "zen-zephyr",
+   "text": "Your thoughts need not travel at the speed of the network.",
+   "file": "extra/zen-peace-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-13": {
+   "speaker": "zen-zephyr",
+   "text": "Even beneath a thousand surveillance cameras, the mind may remain free.",
+   "file": "extra/zen-peace-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-14": {
+   "speaker": "zen-zephyr",
+   "text": "A peaceful mind is the rarest technology in NeoChinatown.",
+   "file": "extra/zen-peace-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-15": {
+   "speaker": "zen-zephyr",
+   "text": "Let the rain wash the neon from your thoughts.",
+   "file": "extra/zen-peace-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-16": {
+   "speaker": "zen-zephyr",
+   "text": "Not every notification deserves your consciousness.",
+   "file": "extra/zen-peace-16.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-17": {
+   "speaker": "zen-zephyr",
+   "text": "Find the silence between two machine heartbeats.",
+   "file": "extra/zen-peace-17.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-1": {
+   "speaker": "zen-zephyr",
+   "text": "All things decay. Flesh, steel, memory, and empire.",
+   "file": "extra/zen-death-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-2": {
+   "speaker": "zen-zephyr",
+   "text": "A backup of the mind is not freedom from death.",
+   "file": "extra/zen-death-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-3": {
+   "speaker": "zen-zephyr",
+   "text": "Even the eternal server will one day go dark.",
+   "file": "extra/zen-death-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-4": {
+   "speaker": "zen-zephyr",
+   "text": "Do not mourn the rust. It is the nature of metal.",
+   "file": "extra/zen-death-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-5": {
+   "speaker": "zen-zephyr",
+   "text": "The neon fades, but the cycle continues.",
+   "file": "extra/zen-death-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-6": {
+   "speaker": "zen-zephyr",
+   "text": "Even chrome returns to dust.",
+   "file": "extra/zen-death-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-7": {
+   "speaker": "zen-zephyr",
+   "text": "A thousand backups cannot preserve a single moment.",
+   "file": "extra/zen-death-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-8": {
+   "speaker": "zen-zephyr",
+   "text": "Your digital ghost is not the self you believe it to be.",
+   "file": "extra/zen-death-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-9": {
+   "speaker": "zen-zephyr",
+   "text": "The corporation promises eternal life but cannot guarantee server uptime.",
+   "file": "extra/zen-death-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-10": {
+   "speaker": "zen-zephyr",
+   "text": "The richest executive and the poorest street beggar eventually become forgotten data.",
+   "file": "extra/zen-death-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-11": {
+   "speaker": "zen-zephyr",
+   "text": "Every signal eventually becomes silence.",
+   "file": "extra/zen-death-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-12": {
+   "speaker": "zen-zephyr",
+   "text": "Memory can be archived. Experience cannot.",
+   "file": "extra/zen-death-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-13": {
+   "speaker": "zen-zephyr",
+   "text": "Even the brightest hologram disappears when the power fails.",
+   "file": "extra/zen-death-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-14": {
+   "speaker": "zen-zephyr",
+   "text": "Do not fear becoming obsolete. Everything that exists already carries its expiration.",
+   "file": "extra/zen-death-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-15": {
+   "speaker": "zen-zephyr",
+   "text": "The body is temporary hardware. Do not mistake its serial number for your identity.",
+   "file": "extra/zen-death-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-1": {
+   "speaker": "zen-zephyr",
+   "text": "Break the chains within before breaking those around you.",
+   "file": "extra/zen-rebellion-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-2": {
+   "speaker": "zen-zephyr",
+   "text": "The greatest rebellion is refusing to become what you hate.",
+   "file": "extra/zen-rebellion-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-3": {
+   "speaker": "zen-zephyr",
+   "text": "A free mind cannot be purchased, programmed, or patented.",
+   "file": "extra/zen-rebellion-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-4": {
+   "speaker": "zen-zephyr",
+   "text": "Hatred is another corporation seeking ownership of your soul.",
+   "file": "extra/zen-rebellion-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-5": {
+   "speaker": "zen-zephyr",
+   "text": "When the world demands obedience, questioning becomes meditation.",
+   "file": "extra/zen-rebellion-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-6": {
+   "speaker": "zen-zephyr",
+   "text": "The most dangerous citizen is one who desires nothing the corporation sells.",
+   "file": "extra/zen-rebellion-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-7": {
+   "speaker": "zen-zephyr",
+   "text": "Compassion is an act of rebellion in a city that monetizes suffering.",
+   "file": "extra/zen-rebellion-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-8": {
+   "speaker": "zen-zephyr",
+   "text": "Do not trade one corporate master for another wearing the mask of revolution.",
+   "file": "extra/zen-rebellion-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-9": {
+   "speaker": "zen-zephyr",
+   "text": "Before hacking the system, examine the programming of your own mind.",
+   "file": "extra/zen-rebellion-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-10": {
+   "speaker": "zen-zephyr",
+   "text": "The prison with no visible bars is the hardest to escape.",
+   "file": "extra/zen-rebellion-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-11": {
+   "speaker": "zen-zephyr",
+   "text": "A government may blacklist your identity, but it cannot erase your awareness.",
+   "file": "extra/zen-rebellion-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-12": {
+   "speaker": "zen-zephyr",
+   "text": "The revolution that begins with hatred ends with another tyrant.",
+   "file": "extra/zen-rebellion-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-13": {
+   "speaker": "zen-zephyr",
+   "text": "Do not become the weapon of those who profit from your anger.",
+   "file": "extra/zen-rebellion-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-14": {
+   "speaker": "zen-zephyr",
+   "text": "The greatest firewall is a disciplined mind.",
+   "file": "extra/zen-rebellion-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-15": {
+   "speaker": "zen-zephyr",
+   "text": "In a civilization built upon ownership, letting go is the ultimate rebellion.",
+   "file": "extra/zen-rebellion-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
   }
  },
  "translations": {
@@ -213,6 +1033,11 @@
    "offset": 0.75,
    "gain": 0.7,
    "note": "STANDARD (the owner, 17 Nov 2026): a V1 translation is spoken in the speaker's OWN voice, in English. ONE setting per character: the voice, a subtle live device filter ('device'; null for none), when the English starts after the original (s) and the original's volume. The clip is the line in `with`; its `file` can be swapped."
+  }
+ },
+ "cast": {
+  "zen-zephyr": {
+   "effect": "monk"
   }
  }
 }

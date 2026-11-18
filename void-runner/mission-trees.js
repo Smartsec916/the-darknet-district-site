@@ -59,7 +59,9 @@
   rook:{engine:'elevenlabs',voice:'ElevenLabs voice chosen by the owner on 17 Nov 2026',voiceId:'wzVFxVZCBIi6KBxNhQDI',note:'waiting for ElevenLabs re-voice (needs approval)'},
   // Mission 003 (17 Nov 2026): the voices the owner named for Eva and Fish (a V1 translation is spoken in the speaker's own voice)
   'milked-eva':{engine:'elevenlabs',voice:'ElevenLabs voice named by the owner for Eva on 17 Nov 2026',voiceId:'gJx1vCzNCD1EQHT212Ls',note:'Mission 003 lines recorded; others wait for approval'},
-  'milked-fish':{engine:'elevenlabs',voice:'ElevenLabs voice named by the owner for Fish on 17 Nov 2026 (Mandarin, and English for her V1 translations)',voiceId:'ggacvEjbmpoSuEinfFWs',note:'Mission 003 line recorded; others wait for approval'}};
+  'milked-fish':{engine:'elevenlabs',voice:'ElevenLabs voice named by the owner for Fish on 17 Nov 2026 (Mandarin, and English for her V1 translations)',voiceId:'ggacvEjbmpoSuEinfFWs',note:'Mission 003 line recorded; others wait for approval'},
+  // Zen Zephyr (18 Nov 2026): the voice the owner chose; his whole approved script is recorded in extra/ (tools/audio/zen-import.cjs), with a live 'monk' effect
+  'zen-zephyr':{engine:'elevenlabs',voice:'Sigma Centauri - AI Robot (ElevenLabs), chosen by the owner on 18 Nov 2026',voiceId:'bAq8AI9QURijOtmeFFqT',note:'his approved script is recorded; new lines wait for approval'}};
  const PLAYER=new Set(['pilot','You','you','player']);
  const ALIAS={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant','Landing terminal':'landing-terminal'};
  const TARGETS={admin:'admin','district-iris':'iris','district-bar':'bartender','district-shop':null,terminal:'landing-terminal',board:null,rook:'rook',elara:'elara',marcus:'marcus',kess:'kess',mercer:'mercer'};

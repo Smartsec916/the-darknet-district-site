@@ -55,16 +55,16 @@ test('scene lifecycle: it is built when the Temple loads and fully disposed (sce
   const src=read('temple-build.js');assert.match(src,/dispose\(\)\{/);for(const r of ['scene.clearColor=prev.clear','scene.fogDensity=prev.fogDensity','ip.exposure=prev.exposure','ambient.intensity=lp.amb','node.dispose(false,true)','Area.save(space,fog,flags)'])assert.ok(src.includes(r),r);
   const rend=fs.readFileSync(path.join(__dirname,'../void-runner/babylon-renderer.js'),'utf8');assert.match(rend,/def\.temple&&root\.VoidTemple\?\.build/);assert.match(rend,/zoneHandle\?\.dispose/);assert.match(rend,/def\.corporate\|\|def\.temple\?'area':'scene'/);
 });
-test('nothing is downloaded: no images, models or network in the build; the conversation panel stays local',()=>{
+test('nothing is downloaded: no images, models or network in the build; the conversation stays local',()=>{
   const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.glb','.png','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
   // the only files it reads are the game's own interior texture kit (the same files the District rooms use), never on Low
   for(const m of b.match(/assets\/textures\/[^'"]+/g)||[])assert.match(m,/^assets\/textures\/district-interior\/$/,m);
   for(const set of (b.match(/set:'(kit_[a-z]+)'/g)||[]).map(x=>x.slice(5,-1)))for(const k of ['color','normal','orm'])assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/textures/district-interior',set+'_'+k+'.jpg')),set+'_'+k);
   assert.match(b,/if\(set&&!low\)/,'Low reads no texture files');
-  for(const bad of ['fetch(','XMLHttpRequest','WebSocket','sendBeacon','localStorage'])assert.ok(!i.includes(bad),'panel: '+bad);assert.match(i,/Z\.LABEL/);assert.match(read('temple-integration.js'),/registerProvider/,'the future API hook is documented where it plugs in');assert.match(Z.LABEL,/NOT AN AI/);
+  for(const bad of ['fetch(','XMLHttpRequest','WebSocket','sendBeacon','localStorage'])assert.ok(!i.includes(bad),'wiring: '+bad);
 });
-test('the typed panel keeps typing away from the game, and Escape closes the panel',()=>{
-  const i=read('temple-integration.js');assert.match(i,/stopPropagation/);assert.match(i,/key==='Escape'/);assert.match(i,/maxlength="200"/);assert.match(i,/resumeWalking/);assert.match(i,/CHOOSE A TEACHING/);assert.match(i,/R\('temple-monk'/);for(const a of new Set(L.interactions.map(x=>x.action)))assert.ok(i.includes("R('"+a+"'"),a);
+test('Zen Zephyr talks in the ordinary conversation window (voiced lines, a choice list), and every interaction is wired',()=>{
+  const i=read('temple-integration.js');assert.match(i,/talkChoice\(/);assert.match(i,/menu:true/);assert.match(i,/resumeWalking/);assert.match(i,/R\('temple-monk'/);assert.match(i,/seesMonk\(/);for(const a of new Set(L.interactions.map(x=>x.action)))assert.ok(i.includes("R('"+a+"'"),a);
 });
 test('the Temple adds no location id, mission or save field except the fog flag and the shared trip records',()=>{
   const man=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/save-manifest.json'),'utf8'));assert.ok(!JSON.stringify(man).includes('temple'));assert.equal(T.SPACE_FLAG,'templeFog');const src=strip(read('temple.js'));assert.ok(!/story\.flags|state\./.test(src));
