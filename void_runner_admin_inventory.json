@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "86485430b336f4f7",
+  "revision": "1ae6c86064af5271",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14056,13 +14056,13 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 96,
+      "line": 104,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 172,
+      "line": 199,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -14128,13 +14128,13 @@
     },
     {
       "source": "void-runner/npc-device.js",
-      "line": 86,
+      "line": 88,
       "text": "function spectacle(ev,agents,now){const e={id:++serial,x:+ev.x||0,z:+ev.z||0,radius:ev.radius??cfg.radius,kind:ev.kind||'spectacle',t0:now,end:now+(ev.duration??cfg.duration),who:new Map(),y:ev.y??1.25};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-device.js",
-      "line": 122,
+      "line": 124,
       "text": "const talking=()=>{try{return !!root.VoidConversationUI?.isOpen||(typeof speech!=='undefined'&&!!speech?.lines?.length&&typeof walkingLocation!=='undefined'&&!!walkingLocation);}catch{return false;}};",
       "kind": "source-reference"
     },
@@ -16237,13 +16237,13 @@
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
     "void-runner/ncz-nightclub.js": "904fd3e94147374118ea2e125e724533f3d774e11b799284879275ab42c62876",
-    "void-runner/ncz-nightlife.js": "b53d410324c71f70facfccca50c2758162960796193f5ea75cac8f391e09d374",
+    "void-runner/ncz-nightlife.js": "0aedae456b074e3acc3d5d84a75cdef6a8e29488617b08668112ec117bffff28",
     "void-runner/ncz-outskirts-life.js": "e4d918db16db1d688cb05fa5bbace2613a3bab7a80ce998a651e7463915ded6a",
     "void-runner/ncz-quarters.js": "05638797b6b66e9bd572ba5dadce60da7d20b6a9c42e9897a23c39d6c960c8b4",
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-device.js": "29847a28cc9f4c19f9e4bf5c1449d0320984da0ab37c47444117b6579e9a9591",
+    "void-runner/npc-device.js": "14d51d17861b51d58c170523f1db40a4ccfb2662019ba0110fd506903fedcc2f",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
