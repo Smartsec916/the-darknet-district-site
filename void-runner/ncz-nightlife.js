@@ -36,7 +36,7 @@
   // VoidNPCDevice.tag(node,{monk:true}) or marked monk in its metadata. `speed`: their pace against the street's average walker (one steady pace, no hurrying);
   // `anim`: the walk clip's playback to match (no sliding feet); `sense`: how far ahead (m) they foresee anyone on a collision course (others notice at 1.7 m);
   // `clear`: the gap (m, across the sidewalk) they leave; `sidestep`: how fast (m/s) they drift aside; `hold`: seconds they stay aside once the other has passed; `turn`: turn rate.
-  monk:{speed:.65,anim:.65,sense:9,clear:1.05,margin:.1,sidestep:.42,hold:1.4,turn:1.8,check:.5}};
+  monk:{speed:.65,anim:.65,sense:9,clear:1.05,margin:.1,sidestep:.42,urgent:1.4,hold:1.4,turn:1.8,check:.5}};
  // Sidewalk lanes (NeoChinatown coordinates): a line to walk, the wall side (for leaning) and how lively it is.
  // Nightlife lanes may hold drunks; the avenue's quieter east end has fewer people.
  const NC=typeof module!=='undefined'?require('./ncz-nightclub.js'):root.VoidNightclub,club=!!NC&&NC.enabled();
@@ -110,15 +110,22 @@
   for(const o of others){const gap=o.t-me.t;if(!gap||Math.abs(gap)>cfg.sense)continue;const closing=(me.v-o.v)*Math.sign(gap);if(closing<=.05)continue;
    if(!lines.some(s=>Math.abs(o.side-s)<cfg.clear))continue;threats.push(o);if(!first||Math.abs(gap)<Math.abs(first.t-me.t))first=o;}
   if(!first)return null;
+  const gap=Math.abs(first.t-me.t),eta=gap/Math.max(.05,(me.v-first.v)*Math.sign(first.t-me.t));
+  // Committed: the side already chosen for this same person is kept while it still leaves them room (no wavering from side to side).
+  if(me.avoid&&me.avoid.who===first.id&&Math.abs(me.avoid.side-first.side)>=.8)return {who:first.id,gap,eta,side:me.avoid.side};
+  // Otherwise the side that leaves the nearest one the most room, then the others.
   const room=c=>Math.min(...threats.map(o=>Math.abs(c-o.side))),keep=me.avoid?.side;
   const options=[...(keep!=null?[keep]:[]),lo,hi,Math.max(lo,Math.min(hi,me.side))].map(c=>Math.max(lo,Math.min(hi,c)));
-  let side=options.find(c=>room(c)>=cfg.clear);if(side==null)side=options.reduce((a,c)=>room(c)>room(a)+1e-6?c:a);
-  return {who:first.id,gap:Math.abs(first.t-me.t),side};}
+  const score=c=>Math.min(Math.abs(c-first.side),cfg.clear)*10+Math.min(room(c),cfg.clear);
+  const side=options.reduce((a,c)=>score(c)>score(a)+1e-6?c:a);
+  return {who:first.id,gap,eta,side};}
  // One step of a monk across the sidewalk: foresee, drift calmly aside (eased, at most cfg.sidestep m/s), stay aside `hold` seconds after they pass, then drift home.
  function monkStep(me,others,half,dt,cfg=config.monk){const seen=foresee(me,others,half,cfg);
-  if(seen){if(me.avoid?.who!==seen.who)me.sensed=(me.sensed||0)+1;me.avoid={side:seen.side,who:seen.who,hold:cfg.hold,gap:seen.gap};}
-  else if(me.avoid){me.avoid.hold-=dt;if(me.avoid.hold<=0)me.avoid=null;}
-  const goal=me.avoid?me.avoid.side:(me.home??me.side),d=goal-me.side,step=Math.min(cfg.sidestep*dt,Math.abs(d)*Math.min(1,dt*2.5));
+  if(seen){if(me.avoid?.who!==seen.who)me.sensed=(me.sensed||0)+1;me.avoid={side:seen.side,who:seen.who,hold:cfg.hold,gap:seen.gap,eta:seen.eta};}
+  else if(me.avoid){me.avoid.hold-=dt;me.avoid.eta=null;if(me.avoid.hold<=0)me.avoid=null;}
+  // Calm: at most cfg.sidestep m/s, unless someone is suddenly close (they come out of a doorway), then just enough to be aside a moment before they pass.
+  const goal=me.avoid?me.avoid.side:(me.home??me.side),d=goal-me.side,need=me.avoid?.eta!=null?Math.abs(d)/Math.max(.35,me.avoid.eta-.6):0,rate=Math.min(cfg.urgent??1.4,Math.max(cfg.sidestep,need));
+  const step=Math.min(rate*dt,Math.abs(d)*Math.min(1,dt*2.5)+(need>cfg.sidestep?rate*dt*.5:0));
   me.side=Math.max(-half+cfg.margin,Math.min(half-cfg.margin,me.side+Math.sign(d)*step));return seen;}
 
  // Hysteresis uses the main loop's measured frame intervals, never Babylon's unmaintained FPS counter.

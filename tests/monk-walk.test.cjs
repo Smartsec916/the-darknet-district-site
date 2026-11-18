@@ -36,3 +36,9 @@ test('nobody bumps into a monk',()=>{assert.equal(N.bumpable({monk:true}),false)
 test('a monk is anyone tagged monk (VoidNPCDevice.tag) or marked monk in their metadata',()=>{
   const parent={metadata:{monk:true}},child={parent,metadata:{crowd:'x'}};assert.ok(N.isMonk(child,null));assert.ok(N.isMonk({metadata:{npcDevice:{monk:true}}},null));
   const node={metadata:{crowd:'y'}};assert.ok(!N.isMonk(node,null));assert.ok(N.isMonk(node,{_agent:n=>n===node?{monk:true}:null}));assert.ok(!N.isMonk(node,{_agent:()=>({monk:false})}));});
+test('a monk does not waver: once a side is chosen for someone it is kept while it leaves them room, even with people standing about',()=>{
+  const me={t:0,side:0,home:0,v:N.monkSpeed()},r={id:'reader',t:9,side:.1,v:-1.3},lean={id:'lean',t:6,side:.75,v:0},kerb={id:'kerb',t:7,side:-.8,v:0};const sides=new Set();
+  for(let i=0;i<120;i++){const seen=N.monkStep(me,[r,lean,kerb].filter(o=>(o.t-me.t)*1>-1),1,1/30);if(seen&&seen.who==='reader')sides.add(Math.sign(seen.side));me.t+=me.v/30;r.t+=r.v/30;}
+  assert.ok(sides.size<=1,'one side for the reader');});
+test('someone appearing close (out of a doorway) still gets room: the monk steps a little quicker, only then',()=>{
+  const m=meet({start:4.2});assert.ok(m.minSep>=.8,'gap '+m.minSep);const calm=meet({start:14});assert.ok(calm.minSep>=.8);});
