@@ -3,11 +3,11 @@ const C=require('../void-runner/crowd.js');
 const specs=path.join(__dirname,'../tools/animation-pipeline/characters'),models=path.join(__dirname,'../void-runner/assets/models/crowd');
 
 test('every look in a cast has a clip list that matches its character spec',()=>{
- const used=new Set(Object.values(C.casts).flat());
+ const used=new Set([...Object.values(C.casts).flat(),...Object.keys(C.street)]),lib=JSON.parse(fs.readFileSync(path.join(__dirname,'../tools/animation-pipeline/clips.json'),'utf8')).clips;
  for(const look of used){
   assert.ok(C.clips[look],look+' has no clip list');
   const spec=JSON.parse(fs.readFileSync(path.join(specs,look+'.json'),'utf8'));
-  assert.deepEqual([...spec.clips].sort(),[...C.clips[look]].sort(),look+' clips differ from its spec');
+  assert.deepEqual(spec.clips.map(c=>lib[c]?.as||c).sort(),[...C.clips[look]].sort(),look+' clips differ from its spec');
   assert.ok(C.clips[look].includes('idle'),look+' needs an idle fallback');
  }
 });

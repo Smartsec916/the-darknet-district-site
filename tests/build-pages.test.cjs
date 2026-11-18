@@ -4,9 +4,11 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const B=require('../tools/assets/build-pages.cjs'),{pack}=require('../tools/assets/pack-model.cjs');
 const asArrayBuffer=buf=>buf.buffer.slice(buf.byteOffset,buf.byteOffset+buf.length);
 
-test('the site publishes what the branch deployment did, without dot or underscore paths and exports/',()=>{
+test('the site publishes what the branch deployment did, without dot or underscore paths, exports/, docs/, tests/, tools/ (but the voice registry a page reads) and static/',()=>{
+ // every tools/ path a page or game script fetches stays published
+ {const fs=require('node:fs'),path=require('node:path'),R=path.join(__dirname,'..');for(const f of [...fs.readdirSync(path.join(R,'void-runner')).filter(x=>x.endsWith('.js')).map(x=>'void-runner/'+x),...fs.readdirSync(R).filter(x=>x.endsWith('.html'))]){const src=fs.readFileSync(path.join(R,f),'utf8');for(const m of src.matchAll(/['"](tools\/[^'"]+)['"]/g))assert.ok(B.publishable(m[1]),f+' loads '+m[1]);for(const m of src.matchAll(/['"]\/?(static|docs|tests)\/[^'"]+['"]/g))assert.fail(f+' links '+m[0]);}}
  for(const f of ['void-runner.html','CNAME','void-runner/asset-pipeline.js','tools/audio/npc-voice-registry.json'])assert.ok(B.publishable(f),f);
- for(const f of ['.github/workflows/pages.yml','.gitignore','.agents/memory/MEMORY.md','_licensed/void-runner/x.vrpak','exports/blackout-protocol-primary.zip','docs/VOID_RUNNER_VR_ARCADE.md','docs/development/mission-001/notification-1920.png','tests/smoke.cjs'])assert.ok(!B.publishable(f),f);
+ for(const f of ['.github/workflows/pages.yml','.gitignore','.agents/memory/MEMORY.md','_licensed/void-runner/x.vrpak','exports/blackout-protocol-primary.zip','docs/VOID_RUNNER_VR_ARCADE.md','docs/development/mission-001/notification-1920.png','tests/smoke.cjs','tools/assets/build-pages.cjs','tools/animation-pipeline/clips.json','static/void-runner.html','static/attached_assets/x.png'])assert.ok(!B.publishable(f),f);
 });
 
 test('a packed model is encrypted, and the deployed loader decrypts it with the injected key',async()=>{
