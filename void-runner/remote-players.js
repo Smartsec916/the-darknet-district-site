@@ -131,7 +131,7 @@
   else if(m.t==='chat'||m.t==='chat-refused'||m.t==='reported'||m.t==='report-refused'){if(m.t==='chat'&&ignored.has(m.id))return;emitChat(m);return;}
   else if(m.t==='trade'){for(const fn of listeners)try{fn(m);}catch{}return;}
   else if(m.t==='join')upsert(m.peer);
-  else if(m.t==='state'){if(peers.has(m.id))upsert({...peers.get(m.id),...m});}
+  else if(m.t==='state'){if(peers.has(m.id)){const {dev,devPose,...was}=peers.get(m.id);upsert({...was,...m});}}   // a position never carries the device: it keeps what the last dev message said
   else if(m.t==='look'){const p=peers.get(m.id),VA=root.VoidCharacterAppearance;if(p){const ok=!!VA&&VA.validate(m.appearance);p.appearance=ok?VA.normalize(m.appearance):null;p.model=ok?VA.CATALOG.looks[p.appearance.look].model:(['district-smuggler','district-resident'].includes(m.model)?m.model:p.model);
    if(p.char&&p.appearance&&root.VoidCharacterAppearance?.validate(p.appearance))p.char.set(p.appearance).catch(()=>{});
    else{p.ctrl?.dispose?.();p.ctrl=p.char=null;p.node?.dispose?.();p.node=null;place(p);}}}
