@@ -26,7 +26,7 @@
   const kitTex=new Map(),kit=(name,kind,scale)=>{const key=name+kind+scale;if(kitTex.has(key))return kitTex.get(key);const rel='assets/textures/district-interior/'+name+'_'+kind+'.jpg',t=new B.Texture(base?new URL(rel,base).href:rel,scene,false,true);
    t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;t.uScale=t.vScale=scale;own.push(t);kitTex.set(key,t);return t;};
   const P=(name,hex,{rough=.6,metal=.2,set=null,scale=1,self=.12,bump=1,albedo=null}={})=>{const key='p'+name;if(mc.has(key))return mc.get(key);const m=new B.PBRMaterial('tmp-'+name,scene),c=B.Color3.FromHexString(hex);
-   m.albedoColor=low?c.scale(.6):c;m.roughness=rough;m.metallic=metal;m.usePhysicalLightFalloff=false;m.maxSimultaneousLights=6;m.emissiveColor=c.scale(low?self*.6:self);
+   m.albedoColor=low?c.scale(.36):c;m.roughness=rough;m.metallic=metal;m.usePhysicalLightFalloff=false;m.maxSimultaneousLights=6;m.emissiveColor=c.scale(low?self*.4:self);   /* Low's sky light shows a plain colour about twice as bright (district-rooms.js), so Low takes a darker share */
    if(albedo)m.albedoTexture=albedo;
    if(set&&!low){if(!albedo)m.albedoTexture=kit(set,'color',scale);m.bumpTexture=kit(set,'normal',scale);m.bumpTexture.level=bump;m.metallicTexture=kit(set,'orm',scale);m.useAmbientOcclusionFromMetallicTextureRed=true;m.useRoughnessFromMetallicTextureGreen=true;m.useMetallnessFromMetallicTextureBlue=true;}
    own.push(m);mc.set(key,m);return m;};
@@ -106,7 +106,7 @@
   const floorM=new B.StandardMaterial('tmp-floor',scene);floorM.diffuseTexture=floorTex;floorM.specularColor=new B.Color3(.55,.7,.7);floorM.specularPower=180;floorM.emissiveColor=new B.Color3(.012,.026,.028);floorM.maxSimultaneousLights=6;own.push(floorM);
   const floor=B.MeshBuilder.CreateGround('tmp-floor',{width:hx1-hx0,height:hz1-hz0},scene);floor.material=floorM;floor.parent=node;floor.position.set(0,.012,(hz0+hz1)/2);floor.isPickable=false;floor.receiveShadows=false;
   let mirror=null;if(!low){mirror=new B.MirrorTexture('temple-floor-mirror',{ratio:hi?.75:.5},scene,true,0,B.Texture.TRILINEAR_SAMPLINGMODE);mirror.mirrorPlane=new B.Plane(0,-1,0,.012);mirror.clearColor=new B.Color4(.02,.04,.042,1);
-   mirror.renderList=[];mirror.level=.62;mirror.gammaSpace=!ip.applyByPostProcess;own.push(mirror);floorM.reflectionTexture=mirror;floorM.diffuseColor=new B.Color3(.62,.72,.72);}
+   mirror.renderList=[];mirror.level=.62;mirror.gammaSpace=!ip.applyByPostProcess;own.push(mirror);floorM.reflectionTexture=mirror;floorM.diffuseColor=new B.Color3(.62,.72,.72);}else floorM.diffuseColor=new B.Color3(.5,.58,.58);
   // the dais's inlay: dark glyph rings and spokes set into the floor round it (the reference picture's engraved floor), not lit lines
   {const gt=canvas(512,512,(g,w,h)=>{g.clearRect(0,0,w,h);g.strokeStyle='rgba(2,5,6,.92)';g.fillStyle='rgba(2,5,6,.92)';const c=w/2;
     for(const [r,lw] of [[248,5],[226,2],[196,6],[172,2]]){g.lineWidth=lw;g.beginPath();g.arc(c,c,r,0,7);g.stroke();}

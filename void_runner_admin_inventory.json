@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "1708b3e2ee8845e9",
+  "revision": "8ae34415806ea6b8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16327,7 +16327,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "a5050568c6071a46ec75d5b71fe8f580c06d6f7d8459e1bf4de729fe50220673",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/temple-build.js": "a9ef482f93b02b6ff838162fd383307639ba543b2a3138c3865fa6b0c1d3bf6b",
+    "void-runner/temple-build.js": "afa89253389bd217b542a6d255a8b20aac2a8e575214aef8f6198a1a3a731543",
     "void-runner/temple-integration.js": "c9cab76a250504a965bc6a06782a1b597fa4196b88a18e9fd2a8cdbc004c69cb",
     "void-runner/temple.js": "6b5fb48b9e44eb536700294b35948e2f4b010afac1e278bb68824ae8a3806eb0",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",

@@ -62,7 +62,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  await at(-8,-40,0);await page.evaluate(()=>VoidInteractions.handlers.get('temple-walk')({item:{}}));await page.waitForFunction(()=>walkingLocation?.quarter==='avenue'&&mode==='walking'&&!VoidGateTransit.busy,null,{timeout:600000});
  const back=await page.evaluate(()=>({pos:[walker.x,walker.z],temple:VoidBabylon.scene.meshes.some(m=>/^tmp-|^mk-/.test(m.name)),templeLights:VoidBabylon.scene.lights.some(l=>/^temple-/.test(l.name)),mirror:VoidBabylon.scene.textures.some(t=>t.name==='temple-floor-mirror'),fog:state.story.flags.templeFog}));
  log('back '+JSON.stringify(back));assert.equal(back.temple,false,'nothing of the Temple is left');assert.equal(back.templeLights,false);assert.equal(back.mirror,false);assert.ok(typeof back.fog==='string'&&back.fog.length>10);
- await page.waitForTimeout(2500);await walk(141,-6.8);await at(141,-6.8,EAST,-.05);await shot('10-east-gate-lane-back-on-the-avenue');
+ await page.waitForTimeout(2500);await walk(141,-6.8);await at(135,-10,1.25,-.08);await shot('10-east-gate-lane-back-on-the-avenue');
  assert.deepEqual(errs,[]);console.log(JSON.stringify({ok:true,tier,perf,lights:arr.own,mirrored:arr.mirrored,steps:snd.surface}));
  }finally{await b.close();srv.close();}
 })().catch(e=>{console.error(String(e.stack||e).slice(0,1500));process.exit(1);});
