@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "19e59238aaefb5d5",
+  "revision": "0e5a3b46b77a0d3a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16166,7 +16166,7 @@
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
     "void-runner/district-life.js": "eccfe36dd54efc2a2e28a283e6417598eda8dafaca0796f2ea847af78489ace2",
     "void-runner/district-map.js": "c8e80d051734fac11dc1289db27c25c5ed38677e79d0f1fd3cac17cdcadd2b32",
-    "void-runner/district-people.js": "e40094c1d540afdbb77b4211fc66eb00e0e312260690408aca5eaad4e24ed48d",
+    "void-runner/district-people.js": "278d861dd1311da00eee3c36054f09ed5b86989056bfdd8d59132c207ca2599c",
     "void-runner/district-rooms.js": "240bd61023dd1410f46b61b1f26ba8fa2a35fce3db27555960e2fff82cdc13ab",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
@@ -16243,7 +16243,7 @@
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-device.js": "cb36119864d182def07725c3f7dd3b76b6343bb00b05b20fd9df9c8faaf46f3f",
+    "void-runner/npc-device.js": "390baaec2fbd24e2d298734587d987dc5bfec0e269629b32b80a2945a82ca978",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",

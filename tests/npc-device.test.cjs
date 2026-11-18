@@ -81,3 +81,10 @@ test('reading while walking: rare bumps, deterministic from the walker and the l
  assert.deepEqual(N.distraction('night-3',2),N.distraction('night-3',2),'the same walker and look: the same outcome');
  assert.ok(DC.notice<N.config.spacing+.6,'readers notice people later than everyone else (near misses)');assert.ok(DC.sidestep>1.5,'and sidestep faster');
 });
+
+test('Admin and Dax carry a V3 // Shadow; Iris (an android, all internal) never shows a device',()=>{
+ const D=require('../void-runner/npc-device.js'),P=require('../void-runner/district-people.js');
+ const ppl=(P.npcs?P.npcs():P.NPCS||P.people||[]);const by=id=>ppl.find(n=>n.id===id);
+ assert.equal(by('admin')?.device,'v3');assert.equal(by('dax')?.device,'v3');
+ assert.equal(D.kindOf({character:'admin'}),'story');assert.equal(D.kindOf({character:'iris'}),null);
+});
