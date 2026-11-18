@@ -260,7 +260,8 @@ DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
 STORY_MISSION = re.compile(r'^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$')
 HOW = ['person', 'notification']
 CHANNELS = ['messages', 'comms', 'notify']
-WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time']
+WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time', 'near']
+NEAR_MIN, NEAR_MAX = 1, 30
 VIA = ['talk', 'comms', 'messages']
 STORY_FLAG = re.compile(r'^[a-zA-Z][\w-]{0,63}$')
 
@@ -283,8 +284,17 @@ def start_problems(st, givers, places, mission_ids):
     if not _plain(st.get('text'), 500):
         out.append('the notification needs its text (plain text, 500 characters at most).')
     w = st.get('when')
-    if not _keys(w, ['kind', 'mission', 'place', 'flag', 'value']) or w.get('kind') not in WHEN:
+    if not _keys(w, ['kind', 'mission', 'place', 'flag', 'value', 'npc', 'distance']) or w.get('kind') not in WHEN:
         return out + ['the notification needs a trigger it knows.']
+    if w['kind'] != 'near' and (w.get('npc') is not None or w.get('distance') is not None):
+        out.append('only "when walked near" names a person and a distance.')
+    if w['kind'] == 'near':
+        # "when walked near" (18 Nov 2026): the player comes within `distance` metres (1..30, default 5) of `npc` (default: the giver), someone with a TALK prompt
+        if w.get('npc') is not None and not (isinstance(w['npc'], str) and (givers.get(w['npc']) or {}).get('canTalk')):
+            out.append('"when walked near" must name someone the game has a TALK prompt for.')
+        d = w.get('distance')
+        if d is not None and not (type(d) in (int, float) and d == d and NEAR_MIN <= d <= NEAR_MAX):
+            out.append('"when walked near" needs a distance from 1 to 30 metres.')
     if w['kind'] in ('after-mission', 'game-time') and w.get('mission') not in mission_ids:
         out.append('"after mission" must name a mission that exists.')
     if w['kind'] == 'game-time' and not (type(w.get('value')) is int and 1 <= w['value'] <= 10080):

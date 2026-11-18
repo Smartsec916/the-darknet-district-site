@@ -271,7 +271,7 @@
   card.append(field('Description (the V1 Mission Log shows it)',m.description,v=>ed(x=>{x.description=v.slice(0,600);}),true,{placeholder:'(your words)'}));
   {const g2=el('div','','me-grid');g2.append(field('Type (shown in the Mission Log)',m.category||'',v=>ed(x=>{x.category=v.slice(0,60);}),false,{'data-me-field':'category',placeholder:'e.g. Main storyline / Introduction',maxlength:'60'}),field('Objective (the Mission Log headline)',m.objective||'',v=>ed(x=>{x.objective=v.slice(0,200);}),false,{'data-me-field':'objective',placeholder:'(empty: the current step)',maxlength:'200'}));card.append(g2);
    const lr=el('div','','me-row');lr.append(el('b','Location'),placeSelect(m.location||'',v=>ed(x=>{x.location=v;}),'Mission location'));card.append(lr);}
-  const gr=el('div','','me-row');gr.append(el('b','Giver'),npcSelect(m.giver,v=>ed(x=>{x.giver=v;},true),{label:'Who gives this mission',attrs:{'data-me-giver':m.id}}));const gv=giver(m.giver);
+  const gr=el('div','','me-row');gr.append(el('b','Giver'),npcSelect(m.giver,v=>ed(x=>{const old=x.giver;x.giver=v;for(const l of x.offer||[])if(l&&old&&l.who===old)l.who=v;},true),{label:'Who gives this mission',attrs:{'data-me-giver':m.id}}));const gv=giver(m.giver);
   gr.append(el('span',gv?G().status(gv):'Choose who gives it.',gv&&gv.draft&&gv.players?'me-ok':'me-warn',{'data-me-giver-status':m.id}));card.append(gr);
   card.append(startPanel(t,m,ed));   // right under Giver: how this mission starts
   const ty=el('select','','',{'aria-label':'Mission type'});for(const x of SM().TYPES)ty.append(new Option(x,x));ty.value=m.type||'side';ty.onchange=()=>ed(x=>{x.type=ty.value;});const tr=el('div','','me-row');tr.append(el('span','Type','me-small'),ty);card.append(tr);
@@ -310,7 +310,7 @@
   const r2=el('div','','me-row');r2.append(el('b','Sender'),npcSelect(st.from||'',v=>set(x=>{x.from=v;},true),{label:'Sender',attrs:{'data-me-start-from':m.id}}));box.append(r2);
   const hl=el('label','','me-field');hl.append(el('span','Header'+(st.channel==='notify'?' (optional)':'')));const hi=el('input','','',{'aria-label':'Header',maxlength:'80','data-me-start-header':m.id,placeholder:'e.g. ADMIN // INCOMING MESSAGE'});hi.value=st.header||'';hi.oninput=()=>set(x=>{x.header=hi.value.slice(0,80);});hl.append(hi);
   const tl=el('label','','me-field');tl.append(el('span','Body'));const ta=el('textarea','','',{'aria-label':'Body',rows:'3',maxlength:'500','data-me-start-text':m.id,placeholder:'(your words)'});ta.value=st.text||'';ta.oninput=()=>set(x=>{x.text=ta.value.slice(0,500);});tl.append(ta);box.append(hl,tl);
-  const w=st.when||{kind:'pod-exit'},wk=el('select','','',{'aria-label':'Trigger','data-me-start-when':m.id});for(const x of G().START_WHEN)wk.append(new Option(x.name,x.id));wk.value=w.kind||'pod-exit';wk.onchange=()=>set(x=>{x.when={kind:wk.value,...(wk.value==='flag'?{flag:'',value:true}:{}),...(wk.value==='game-time'?{value:360}:{})};},true);
+  const w=st.when||{kind:'pod-exit'},wk=el('select','','',{'aria-label':'Trigger','data-me-start-when':m.id});for(const x of G().START_WHEN)wk.append(new Option(x.name,x.id));wk.value=w.kind||'pod-exit';wk.onchange=()=>set((x,mm)=>{x.when={kind:wk.value,...(wk.value==='flag'?{flag:'',value:true}:{}),...(wk.value==='game-time'?{value:360}:{}),...(wk.value==='near'?{npc:mm.giver||'',distance:G().NEAR.def}:{})};},true);
   const r3=el('div','','me-row');r3.append(el('b','Trigger'),wk);
   if(w.kind==='after-mission'||w.kind==='game-time'){const ms=el('select','','',{'aria-label':'After which mission','data-me-start-mission':m.id});ms.append(new Option('— choose a mission —',''));for(const tt of local().trees)for(const mm of tt.missions)if(mm.id!==m.id)ms.append(new Option(numLabel(mm.number,mm.title||mm.id)+' ('+(tt.name||tt.id)+')',mm.id));ms.value=w.mission||'';ms.onchange=()=>set(x=>{x.when={...x.when,kind:w.kind,mission:ms.value};},true);r3.append(ms);}
   // "After in-game time": N in-game hours and minutes after that mission is done (game-clock.js; stored as in-game minutes)
@@ -320,6 +320,11 @@
   if(w.kind==='place'||w.kind==='leave')r3.append(regionSelect(w.place||'',v=>set(x=>{x.when={kind:w.kind,place:v};},true),w.kind==='leave'?'Place left':'Place entered',{'data-me-start-place':m.id}));
   if(w.kind==='flag'){const fi=el('input','','',{'aria-label':'Story flag','data-me-start-flag':m.id,placeholder:'story flag name, e.g. mf_metRook'});fi.value=w.flag||'';fi.oninput=()=>set(x=>{x.when={...x.when,flag:fi.value.trim().slice(0,64)};});
    const fv=el('input','','',{'aria-label':'Flag value',placeholder:'true'});fv.value=w.value===undefined?'true':String(w.value);fv.oninput=()=>set(x=>{const v=fv.value.trim();x.when={...x.when,value:v==='true'?true:v==='false'?false:/^-?\d+$/.test(v)?Number(v):v.slice(0,200)};});r3.append(fi,el('span','=','me-small'),fv);}
+  // "When walked near" (18 Nov 2026): who (default: the giver) and how close, in metres (1..30, default 5)
+  if(w.kind==='near'){const who=w.npc||m.giver||'',N=G().NEAR,di=el('input','','',{type:'number',min:String(N.min),max:String(N.max),step:'0.5','aria-label':'Distance in metres','data-me-start-distance':m.id,style:'width:5em'});
+   di.value=String(G().nearMetres(w.distance));di.onchange=()=>{const v=G().nearMetres(di.value);di.value=String(v);set(x=>{x.when={...x.when,kind:'near',distance:v};});};
+   r3.append(el('span','within','me-small'),di,el('span','metres of','me-small'),npcSelect(who,v=>set(x=>{x.when={...x.when,kind:'near',npc:v};},true),{label:'Who the player walks near',attrs:{'data-me-start-near':m.id}}));
+   const ng=giver(who);if(ng&&!ng.canTalk)r3.append(el('span','⚠ '+ng.name+' has no TALK prompt, so there is nothing to measure from.','me-small me-warn'));if(ng&&ng.shift)r3.append(el('span',G().shiftText(ng),'me-small me-warn',{'data-me-near-shift':m.id}));}
   const wn=(G().START_WHEN.find(x=>x.id===w.kind)||{}).note;if(wn)r3.append(el('span',wn,'me-small'));box.append(r3);
   box.append(el('p','When the trigger happens, the notification arrives on the player’s device with the device’s notification sound (and a banner while the V1 is closed), the mission goes into the Mission Log and is tracked. Text only: no voice is generated.','me-small'));
   return box;}
@@ -513,11 +518,15 @@
   const w=m.start&&m.start.how==='notification'&&!stepId?m.start.when||{}:null;
   if(w&&w.kind==='pod-exit'){s.story.flags.podWakePending=true;where={walk:'darknet-district'};}
   else if(w&&(w.kind==='place'||w.kind==='leave')&&w.place)where=PLACE_ENTER(w.place)||where;
+  else if(w&&w.kind==='near'&&(w.npc||m.giver)){where=(giver(w.npc||m.giver)||{}).enter||where;notes.push('Walk up to '+((giver(w.npc||m.giver)||{}).name||'them')+' (within '+G().nearMetres(w.distance)+' m) to start it.');}
   else if(w&&w.kind==='flag'&&w.flag){s.story.flags[w.flag]=w.value===undefined?true:w.value;notes.push('Draft play sets the story flag '+w.flag+' so it starts.');}
   else if(w&&w.kind==='after-mission'&&w.mission){M.acquire(s,w.mission);for(const o of ((M.definitions[w.mission]||{}).objectives||[]))M.complete(s,w.mission,o.id,C);if(s.universe.missions[w.mission])s.universe.missions[w.mission].completed=true;notes.push('Draft play marks the mission it follows as done.');}
   if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
    where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.kind==='photo'?PLACE_ENTER((giver(o.npc)||{}).place)||where:o.kind==='send-photo'?where:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;
    if(o.kind==='send-photo')notes.push('Sending needs a photo taken during this mission: play from the photo step to take one.');}
+  // Reverie and Lace take turns on one UTC clock: draft play puts the one this mission needs on the street now (throwaway session only)
+  {const ids=[m.giver,w&&w.kind==='near'?w.npc:null,...m.objectives.map(o=>o.npc),m.ending&&m.ending.npc].filter(Boolean),sh=ids.map(giver).find(g=>g&&g.shift);
+   if(sh&&root.VoidStreetPair){root.VoidStreetPair.force=sh.id;notes.push('Draft play puts '+sh.name+' on the street now, whatever the hour.');}}
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
   M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes};}
  async function enterTree(w){
