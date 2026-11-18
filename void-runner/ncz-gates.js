@@ -204,12 +204,13 @@
    if(fo_){const p=beside(fo_);if(p)spots.push(p);}
    if(ba&&(!low||!spots.length)){const p=beside(ba);if(p)spots.push(p);}
    spots.forEach(([x,z],i)=>guards.push({gate:g.id,kind:g.guard,x,z,yaw:facing+(i?-.35:.3),node:null,tried:0,i}));}
-  const UNIFORM=new B.Color3(.2,.24,.34),LOOKS=['fixer-01','communion-tech','runner-02','ncz-neon'];
+  const UNIFORM=new B.Color3(.2,.24,.34),LOOKS=['npc-security','fixer-01','communion-tech'];   // the corporate security contractor (NPC upgrade, 18 Nov 2026; crowd.js street), the old looks only if his file is missing
   function spawnGuard(p){
    if(p.kind==='function'){const A=root.VoidCorporateActors;if(!A?.buildRobot){p.tried=99;return;}const r=A.buildRobot({B,scene,parent,own,id:'gate-'+p.gate+'-'+p.i,x:p.x,z:p.z,yaw:p.yaw});p.node=r.root||r;p.robot=r;p.node.metadata={...(p.node.metadata||{}),gateGuard:p.gate,standIn:'corporate security robot (silent)'};return;}
    if(typeof instance!=='function')return;let node=null,look=null;for(let k=0;k<LOOKS.length&&!node;k++){look=LOOKS[(p.i+k+p.gate.length)%LOOKS.length];node=instance('crowd:'+look,parent);}if(!node)return;
    node.position.set(p.x,0,p.z);node.rotation.y=p.yaw;node.metadata={...(node.metadata||{}),crowd:look,gateGuard:p.gate,placeholder:'private security: street figure in a uniform tint'};p.node=node;p.anim=root.VoidCrowd?.animate?.(node,look,p.i?'watch':'idle')||null;if(p.anim&&!p.anim.has?.(p.i?'watch':'idle'))p.anim.play?.('idle');
-   // the uniform: every piece of clothing takes one dark blue-grey; skin, hair and eyes are left alone
+   // the uniform: every piece of clothing takes one dark blue-grey; skin, hair and eyes are left alone (the contractor comes in his own uniform: his navy variant)
+   if(root.VoidCrowd?.street?.[look]){root.VoidCrowd.dress(node,look,p.gate+p.i,'navy');return;}
    for(const m of node.getChildMeshes()){const mat=m.material,n=((m.name||'')+' '+(mat?.name||'')).toLowerCase();if(!mat||/\.body( |$)|eyebrow|eyelash|low-poly|short\d|long\d|bob\d|braid\d|ponytail\d|afro\d|hair|teeth|tongue|street-gear/.test(n))continue;const c=mat.clone(mat.name+'-uniform');if(!c)continue;own.push(c);
      if(c.albedoColor)c.albedoColor=UNIFORM.clone();else if(c.diffuseColor)c.diffuseColor=UNIFORM.clone();if(c.emissiveTexture)c.emissiveTexture=null;if(c.emissiveColor)c.emissiveColor=B.Color3.Black();m.material=c;}}
 

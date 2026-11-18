@@ -40,11 +40,54 @@
   rusthaven:['outlaw-01','district-smuggler','vesper-trader','regular-01'],          // pirates and outlaws
   vigil:['communion-worker','communion-tech','cyborg-01'],nexus:['communion-worker','communion-tech','cyborg-01'],
   holdfast:['order-farmhand','order-militia','order-grower'],'order-homeworld':['order-farmhand','order-grower','order-militia','vesper-mechanic'],
-  neochinatown:['ncz-neon','fixer-01','runner-02','communion-tech'],               // street crowd
-  district:['hacker-01','district-smuggler','district-resident','outlaw-01']       // The Darknet District
+  neochinatown:['npc-casual-f','npc-office-m'],        // street crowd (the street's standing crew; the walkers: ncz-nightlife.js). Before 18 Nov 2026: ncz-neon, fixer-01, runner-02, communion-tech
+  district:['npc-hacker','npc-lookout','npc-fixer','npc-enforcer','npc-merc','npc-student']   // The Darknet District (before 18 Nov 2026: hacker-01, district-smuggler, district-resident, outlaw-01)
  };
  // The monks' looks (ncz-nightlife.js deals them to the street's monks; temple-build.js to the Temple's).
  const monks=['npc-monk-elder','npc-monk-tech','npc-monk-grey'];
+ // The street people (NPC upgrade, 18 Nov 2026: docs/development/NPC_UPGRADE.md): 25 figures made with Meshy from the owner's approved concept pictures, one skinned mesh
+ // each on the 24-joint skeleton, rigged and given the street's clips (the crowd's own walk, sit-down, drunk and dance clips grafted from the old looks). They replace the
+ // anonymous MakeHuman figures on NeoChinatown's streets and in the District (`replaced` below; the old files stay for the off-world places and named characters built on them).
+ // n: the concept number; roles: where they belong (placement below and in ncz-nightlife.js). Each wears one of 2-4 colour variants (npc-variants.js).
+ const STREET_CLIPS=['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug','sit-enter','sit-exit','sit-talk','interact','drunk-walk','drunk-idle','drunk-sway','dance'];
+ const street={
+  'npc-office-f':{n:1,sex:'f',roles:['mixed','corporate']},'npc-office-m':{n:2,sex:'m',roles:['mixed','corporate','drunk']},'npc-security':{n:3,sex:'m',roles:['corporate'],extra:['vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck']},
+  'npc-executive':{n:4,sex:'f',roles:['corporate']},'npc-cook-old':{n:5,sex:'m',roles:['cook']},'npc-courier':{n:6,sex:'f',roles:['mixed','district','outskirts']},'npc-cook-f':{n:7,sex:'f',roles:['cook']},
+  'npc-club-f':{n:8,sex:'f',roles:['club','drunk'],extra:['pickup','menu','menu-tap']},'npc-club-m':{n:9,sex:'m',roles:['club','drunk','district']},'npc-hacker':{n:10,sex:'m',roles:['mixed','club','district','drunk']},
+  'npc-merc':{n:11,sex:'f',roles:['mixed','district']},'npc-veteran':{n:12,sex:'m',roles:['mixed','outskirts','drunk']},'npc-fixer':{n:13,sex:'m',roles:['mixed','district']},'npc-vendor':{n:14,sex:'f',roles:['vendor']},
+  'npc-student':{n:15,sex:'f',roles:['mixed','club','district']},'npc-tourist':{n:16,sex:'m',roles:['mixed']},'npc-medic':{n:17,sex:'f',roles:['mixed']},'npc-enforcer':{n:19,sex:'m',roles:['mixed','club','district','drunk']},
+  'npc-lookout':{n:20,sex:'f',roles:['mixed','club','district']},'npc-outskirts-f':{n:21,sex:'f',roles:['outskirts']},'npc-outskirts-m':{n:22,sex:'m',roles:['outskirts']},'npc-elder-f':{n:23,sex:'f',roles:['mixed','outskirts']},
+  'npc-busker':{n:24,sex:'m',roles:['busker','drunk']},'npc-casual-f':{n:26,sex:'f',roles:['mixed','club','outskirts','creator']},'npc-casual-m':{n:27,sex:'m',roles:['mixed','outskirts','creator']}};
+ for(const [id,f] of Object.entries(street))clips[id]=[...STREET_CLIPS,...(f.extra||[])];
+ const pool=role=>Object.keys(street).filter(id=>street[id].roles.includes(role));
+ const pools={mixed:pool('mixed'),corporate:pool('corporate'),club:pool('club'),cook:pool('cook'),outskirts:pool('outskirts'),drunk:pool('drunk'),district:pool('district'),vendor:pool('vendor'),busker:pool('busker')};
+ // The old anonymous looks and who now stands in their place (code that still names an old look, a crowd member of an old build, a saved id: swap(look)).
+ // vr-player-a/b are the VR booth players Cade and Lumi (district-people.js `figure`); vr-player-b also stays Milked studio 4's dancer (not part of this upgrade).
+ const replaced={'district-resident':'npc-casual-f','regular-01':'npc-office-m','ncz-neon':'npc-club-f','fixer-01':'npc-executive','runner-02':'npc-courier','hacker-01':'npc-hacker','outlaw-01':'npc-enforcer',
+  'district-smuggler':'npc-fixer','cyborg-01':'npc-merc','communion-tech':'npc-medic','vr-player-a':'npc-security','vr-player-b':'npc-club-f'};
+ const swap=look=>replaced[look]||look;
+ /* Where each kind of person is (pure, tests/npc-upgrade.test.cjs). The weight of a look at a point of the city: corporate types toward the Function Gate (the Avenue's west
+    end, x 6), club-goers round NULL's door, the Outskirts' own people in the Outskirts, everyone else mixed through the streets. Monks are dealt separately (monkShare). */
+ const ZONES={functionGate:[6,-12.5],corpFar:70,nullDoor:[50.5,-58.5],clubNear:8,clubFar:34};
+ const clamp01=v=>Math.max(0,Math.min(1,v));
+ function weightAt(look,x,z,quarter){const f=street[look];if(!f)return 0;const r=f.roles;
+  if(quarter==='outskirts')return r.includes('outskirts')?(look.startsWith('npc-outskirts')?6:1.5):r.includes('mixed')?.25:0;
+  if(!r.includes('mixed')&&!r.includes('corporate')&&!r.includes('club'))return 0;   // cooks, the vendor, the busker and the Outskirts' poor have their own spots
+  const corp=quarter==='avenue'||quarter==null?clamp01(1-(Math.hypot(x-ZONES.functionGate[0],z-ZONES.functionGate[1])-10)/(ZONES.corpFar-10)):0,
+   club=clamp01(1-(Math.hypot(x-ZONES.nullDoor[0],z-ZONES.nullDoor[1])-ZONES.clubNear)/(ZONES.clubFar-ZONES.clubNear));
+  const m=r.includes('mixed');let w=m?1:0;if(r.includes('corporate'))w+=m?.2+3*corp:.12+4.5*corp;if(r.includes('club'))w+=m?1.2*club:.15+6*club;return w;}   // the specialists (the security contractor, the executive, the two club-goers) most where they belong
+ const unit=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>15;h=Math.imul(h,2246822507);h^=h>>>13;return ((h>>>0)+.5)/4294967296;};
+ /* The looks to try for one person at (x,z), best first: a weighted order without repeats, fixed by `key` (their id), so the same person always has the same face. */
+ function orderAt(x,z,quarter,key,looks=Object.keys(street)){return looks.map(l=>({l,w:weightAt(l,x,z,quarter)})).filter(o=>o.w>0).map(o=>({l:o.l,k:Math.pow(unit(key+'|'+o.l),1/o.w)})).sort((a,b)=>b.k-a.k).map(o=>o.l);}
+ /* Which street figures a quarter downloads (background, as the monks): the quarter's own kinds first, then the mixed crowd, capped per quality so Low downloads fewer files. */
+ const QUARTER_KINDS={oldtown:['club'],'far-south':[],avenue:['corporate'],outskirts:['outskirts'],port:[]},SPOTS={oldtown:['cook','vendor','busker'],'far-south':['cook','vendor'],avenue:['cook','busker'],outskirts:[],port:[]};
+ const STREET_CAP={low:8,medium:14,high:25,ultra:25},CORE=['npc-casual-f','npc-office-m','npc-security'];   // CORE: always there (the street's standing crew, casts.neochinatown; the private gates' guards, ncz-gates.js)
+ function streetFigures(quarter,quality='medium'){const cap=STREET_CAP[quality]??STREET_CAP.medium,set=new Set(CORE),add=l=>{if(set.size<cap)set.add(l);};
+  for(const k of quarter?SPOTS[quarter]||[]:['cook','vendor','busker'])pools[k].forEach(l=>set.add(l));   // the cooks, the vendor and the busker have fixed spots: always theirs
+  for(const k of quarter?QUARTER_KINDS[quarter]||[]:['corporate','club','outskirts'])[...pools[k]].sort((x,y)=>(street[x].roles.includes('mixed')?1:0)-(street[y].roles.includes('mixed')?1:0)).forEach(add);   // the quarter's own kinds, the specialists first
+  [...pools.mixed].sort((x,y)=>unit('fill|'+x)-unit('fill|'+y)).forEach(add);return [...set];}
+ /* Dresses a placed street figure in its colour variant (npc-variants.js), chosen from `key` so neighbours differ and a person keeps theirs. */
+ function dress(node,look,key,variant){const V=typeof module!=='undefined'&&module.exports?null:root.VoidNPCVariants;if(!V||!street[look])return null;return V.apply(node,look,variant||V.pick(look,key));}
  // NeoChinatown and The Darknet District share one scene; these crew belong to the District.
  const districtCrew=/^crew-(vr|bar|smoke)/;
  // Behind each bar: Meridian's own bartender; elsewhere a local look (they polish and pour with the reach move).
@@ -74,10 +117,10 @@
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
  // Model definitions to preload for a place, at every quality (the owner, 2026-10-28: no primitive stand-ins on the
  // street). Low quality simply has fewer people (ncz-nightlife.js).
- function models(location,quality,area='all'){
+ function models(location,quality,area='all',quarter=null){
   if(!casts[location])return {};
   // area: NeoChinatown's street and the District interior are separate environments; each needs only its own people.
-  const set=new Set(area==='interior'&&location==='neochinatown'?[]:[...casts[location],...(staff[location]||[])]);if(location==='neochinatown'&&area!=='interior')monks.forEach(l=>set.add(l));   /* the street's monks (ncz-nightlife.js) */if(location==='neochinatown'&&area!=='street')casts.district.forEach(l=>set.add(l));
+  const set=new Set(area==='interior'&&location==='neochinatown'?[]:[...casts[location],...(staff[location]||[])]);if(location==='neochinatown'&&area!=='interior'){monks.forEach(l=>set.add(l));   /* the street's monks (ncz-nightlife.js) */streetFigures(quarter,quality).forEach(l=>set.add(l));}   /* the street people of this quarter (ncz-nightlife.js, ncz-outskirts-life.js, NULL) */if(location==='neochinatown'&&area!=='street')casts.district.forEach(l=>set.add(l));
   // Background: a figure that isn't downloaded within the scene's few seconds keeps loading and is
   // swapped in when it arrives (asset-pipeline.js), instead of being dropped for the procedural crew.
   // The named residents' own models are loaded with the District's people, so each is there when their spot is filled; if one fails, a look of the place stands in (babylon-renderer.js).
@@ -154,6 +197,6 @@
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={casts,staff,clips,monks,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
+ const api={casts,staff,clips,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);

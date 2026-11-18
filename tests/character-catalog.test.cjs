@@ -17,6 +17,7 @@ test('catalog integrity: counts, ids, files, colours',()=>{
  assert.deepEqual(Object.keys(CAT.bases).sort(),['female','male']);
  for(const [id,l] of Object.entries(CAT.looks)){
   assert.ok(CAT.bases[l.base]);assert.ok(fs.existsSync(path.join(ROOT,'void-runner/assets/models/crowd',l.model+'.glb')),id);
+  if(l.street){assert.deepEqual(l.hairOk,[]);assert.deepEqual(l.accessories,{});assert.deepEqual(l.defaultAccessories,[]);assert.ok(l.topY>1.4&&l.topY<2,id);assert.ok(!l.retired,id);continue;}   // a street figure (one Meshy mesh): its own hair, no extras
   assert.ok(BIND.bodies[l.model],'no bind data for '+id);
   const names=parseGlb(path.join(ROOT,'void-runner/assets/models/crowd',l.model+'.glb')).json.materials.map(m=>m.name);   // runtime mesh names are the material names
   assert.ok(names.includes(l.outfit)&&names.includes(l.body)&&(!l.shoes||names.includes(l.shoes))&&(!l.nativeHair||names.includes(l.nativeHair)),id+' mesh names');   // armoured looks (OUTLAW, CYBORG) have no separate shoes, and CYBORG has no native hair
@@ -30,15 +31,16 @@ test('catalog integrity: counts, ids, files, colours',()=>{
 test('standard heights are configured per base, not per model',()=>{
  assert.equal(CAT.bases.male.height,1.78);assert.equal(CAT.bases.female.height,1.66);
  for(const l of Object.values(CAT.looks)){
-  const s=A.heightScale(l.base,BIND.bodies[l.model].topY);
+  const top=l.street?l.topY:BIND.bodies[l.model].topY,s=A.heightScale(l.base,top);
   assert.ok(s>0.9&&s<1.3,l.model+' scale '+s+' is outside the uniform-scale limit'); // the shipped bodies really differ (district-resident is 1.32 m native): standardising is one uniform scale, never a per-axis stretch
-  assert.ok(Math.abs(BIND.bodies[l.model].topY*s-CAT.bases[l.base].height)<1e-9);
+  assert.ok(Math.abs(top*s-CAT.bases[l.base].height)<1e-9);
  }
 });
 test('every look has a valid default appearance and preset looks keep their legacy ids',()=>{
  for(const id of Object.keys(CAT.looks))assert.deepEqual(A.problems(A.defaults(id)),[]);
- assert.deepEqual(A.fromLegacy({gender:'male',model:'district-smuggler'}),A.defaults('district-smuggler'));
- assert.deepEqual(A.fromLegacy({gender:'female',model:'district-resident'}),A.defaults('district-resident'));
+ // an old {gender, model} character: its preset, moved on to the street figure that replaced it (18 Nov 2026)
+ assert.deepEqual(A.fromLegacy({gender:'male',model:'district-smuggler'}),A.defaults('street-casual-m'));
+ assert.deepEqual(A.fromLegacy({gender:'female',model:'district-resident'}),A.defaults('street-casual-f'));
  assert.equal(A.fromLegacy({gender:'male',model:'admin'}),null);assert.equal(A.fromLegacy(null),null);assert.equal(A.fromLegacy({gender:'female',model:'district-smuggler'}),null);
 });
 test('valid combinations pass',()=>{
@@ -57,7 +59,7 @@ test('invalid or hostile data is rejected, never repaired halfway',()=>{
  hat.hair='short01';assert.deepEqual(A.problems(hat),[]);
  // fallback is always a fully valid appearance
  assert.deepEqual(A.normalize({base:'male',look:'nope'},'district-resident'),A.defaults('district-resident'));
- assert.deepEqual(A.normalize('garbage'),A.defaults('district-smuggler'));
+ assert.deepEqual(A.normalize('garbage'),A.defaults(A.DEFAULT_LOOK.male));assert.equal(A.DEFAULT_LOOK.male,'street-casual-m');
  for(const x of bad)assert.doesNotThrow(()=>A.normalize(x));
 });
 test('the creator offers only what is valid together (hat hides long hair)',()=>{
@@ -80,10 +82,10 @@ test('legacy characters map to the same two looks and the server record stays co
 test('local persistence: save, load, per-account, bad data, legacy fallback, no storage',()=>{
  const mem=()=>{const m={};return {getItem:k=>(k in m?m[k]:null),setItem:(k,v)=>{m[k]=v;},m};};
  const s=mem(),a=A.defaults('fixer-01');a.hair='short03';a.hairColor='silver';
- assert.equal(A.save(s,'uid-1',a),true);assert.deepEqual(A.load(s,'uid-1'),a);assert.equal(A.load(s,'uid-2'),null);
- assert.deepEqual(A.load(s,'uid-2',{gender:'female',model:'district-resident'}),A.defaults('district-resident'),'an old character keeps its look');
+ assert.equal(A.save(s,'uid-1',a),true);assert.deepEqual(A.load(s,'uid-1'),{...A.defaults('street-office-f'),clothingColor:a.clothingColor},'a saved retired look loads as its street figure');assert.equal(A.load(s,'uid-2'),null);
+ assert.deepEqual(A.load(s,'uid-2',{gender:'female',model:'district-resident'}),A.defaults('street-casual-f'),'an old character gets the street figure that replaced its look');
  s.setItem(A.KEY+'uid-3','{not json');assert.equal(A.load(s,'uid-3'),null);
- s.setItem(A.KEY+'uid-4',JSON.stringify({...a,look:'../x'}));assert.equal(A.load(s,'uid-4',{gender:'male',model:'district-smuggler'}).look,'district-smuggler');
+ s.setItem(A.KEY+'uid-4',JSON.stringify({...a,look:'../x'}));assert.equal(A.load(s,'uid-4',{gender:'male',model:'district-smuggler'}).look,'street-casual-m');
  assert.equal(A.save(s,'uid-1',{base:'x'}),false);
  assert.equal(A.save({getItem(){throw new Error('x');},setItem(){throw new Error('x');}},'u',a),false);
  assert.equal(A.load({getItem(){throw new Error('x');}},'u'),null);

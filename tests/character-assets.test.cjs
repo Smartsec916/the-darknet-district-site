@@ -29,7 +29,7 @@ test('the characters have separate body, hair, outfit and shoe meshes, no face r
 });
 test('the two current player looks and everything the hub may render exist, with the clips remote players need',()=>{
  const {RENDERABLE}=require('../tools/district-hub/protocol.cjs');
- for(const model of RENDERABLE){const m=all.find(x=>x.f===model+'.glb');assert(m,model);const clips=m.animations.map(a=>a.name);assert(clips.includes('idle')&&clips.includes('walk'),model+' clips: '+clips);}
+ for(const model of RENDERABLE){const m=all.find(x=>x.f===model+'.glb')||(fs.existsSync(path.join(dir,model+'.glb'))?{f:model+'.glb',...analyze(fs.readFileSync(path.join(dir,model+'.glb')),model)}:null);   /* the street figures (npc-*) are Meshy files, outside the MakeHuman set */assert(m,model);const clips=m.animations.map(a=>a.name);assert(clips.includes('idle')&&clips.includes('walk'),model+' clips: '+clips);}
 });
 test('no run, hug or turn clip exists in any built character (the audit says so)',()=>{
  for(const m of all)for(const a of m.animations)assert.doesNotMatch(a.name,/^(run|jog|sprint|hug|turn|jump|crouch)/,m.f+' now has '+a.name+': update the audit and plan');

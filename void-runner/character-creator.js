@@ -10,7 +10,7 @@
  const uid=()=>root.VoidAccount?.user?.uid||'guest';
  const storage=()=>{try{return root.localStorage;}catch{return null;}};
  // The look saved with the account (once the server feature is on) wins on a new browser or device; otherwise this browser's own copy; otherwise the old character's look.
- const stored=()=>{const server=root.VoidAccount?.appearance;if(server&&A.validate(server))return A.normalize(server);const s=storage();return s?A.load(s,uid(),root.VoidAccount?.character):A.fromLegacy(root.VoidAccount?.character);};
+ const stored=()=>{const server=root.VoidAccount?.appearance;if(server&&A.validate(server))return A.migrate(A.normalize(server));const s=storage();return s?A.load(s,uid(),root.VoidAccount?.character):A.fromLegacy(root.VoidAccount?.character);};
  // Best effort and silent: while the server feature is off the API answers 404 and nothing happens beyond the local save.
  async function upload(a){try{const u=root.VoidAccount?.user;if(!u||root.VoidAccount.guestOnly||!root.VoidAccount.character||!root.VoidNetwork?.request)return false;
   await root.VoidNetwork.request('character/appearance',{body:a,token:await u.getIdToken(),scope:u.uid+':appearance'});root.VoidAccount.appearance=a;return true;}catch{return false;}}
@@ -53,10 +53,10 @@
   ui.innerHTML=`<div class="cc-panel"><h1>${ctx.context==='first'||ctx.context==='multiplayer-setup'?'CREATE YOUR CHARACTER':'WARDROBE'}</h1><p class="cc-sub">${ctx.context==='first'||ctx.context==='multiplayer-setup'?'You can change all of this later, free, in the Sleeping Pod wardrobe.':'Free and unlimited. Your location, inventory, credits and missions are not affected.'}</p>
   <h2>BODY</h2><div class="cc-row">${Object.entries(CAT.bases).map(([id,b])=>btn('base',id,b.label,draft.base===id)).join('')}</div>
   <h2>OUTFIT</h2><div class="cc-row">${o.looks.map(l=>btn('look',l.id,l.label,draft.look===l.id)).join('')}</div>
-  <p class="cc-note">Each outfit comes with its own shoes. Swapping outfits and shoes separately needs extra character files that are not made yet.</p>
+  <p class="cc-note">${look.street?'Each outfit is a whole figure with its own hair, shoes and details; the colour versions are listed beside it.':'Each outfit comes with its own shoes. Swapping outfits and shoes separately needs extra character files that are not made yet.'}</p>
   <h2>CLOTHING COLOUR</h2><div class="cc-row">${btn('clothingColor','','ORIGINAL',draft.clothingColor===null)}${CAT.clothingColors.map(c=>swatch('clothingColor',c,draft.clothingColor===c.id)).join('')}</div>
   <h2>HAIRSTYLE</h2><div class="cc-row">${o.hair.map(h=>btn('hair',h.id,h.label,draft.hair===h.id,h.enabled,h.reason||'')).join('')}</div>
-  <h2>HAIR COLOUR</h2><div class="cc-row">${btn('hairColor','','ORIGINAL',draft.hairColor===null)}${CAT.hairColors.map(c=>swatch('hairColor',c,draft.hairColor===c.id)).join('')}</div>
+  <h2>HAIR COLOUR</h2>${o.hairColor===false?'<p class="cc-note">This outfit\'s hair is part of the figure: its colour cannot be changed yet.</p>':`<div class="cc-row">${btn('hairColor','','ORIGINAL',draft.hairColor===null)}${CAT.hairColors.map(c=>swatch('hairColor',c,draft.hairColor===c.id)).join('')}</div>`}
   ${o.accessories.filter(a=>!a.gear).length?`<h2>EXTRAS</h2><div class="cc-row">${o.accessories.filter(a=>!a.gear).map(a=>btn('acc',a.id,a.label+(draft.accessories.includes(a.id)?' · ON':' · OFF'),draft.accessories.includes(a.id))).join('')}</div>`:''}
   ${o.accessories.some(a=>a.gear)?`<h2>CYBER GEAR</h2><div class="cc-row">${o.accessories.filter(a=>a.gear).map(a=>btn('acc',a.id,a.label+(draft.accessories.includes(a.id)?' · ON':' · OFF'),draft.accessories.includes(a.id))).join('')}</div><p class="cc-note">Each piece switches on or off on its own. The visor replaces eyewear and the tech collar replaces a collar.</p>`:''}
   <p class="cc-note">Height is standard for each body (${CAT.bases.male.height} m / ${CAT.bases.female.height} m).</p></div>
@@ -76,14 +76,16 @@
  // after an outfit or body change: which of the new outfit's own default pieces the carried gear replaces (so they come back when the gear goes off)
  const remember=(n,gearOn)=>{taken={};for(const [g,native] of Object.entries(REPLACES))if(gearOn.includes(g)&&n.accessories.includes(native))taken[g]=native;};
  const withoutCovered=(acc)=>acc.filter(x=>!Object.entries(REPLACES).some(([g,n])=>n===x&&acc.includes(g)));
+ // What carries over to a new body or outfit: the gear it offers, the hair colour where the new figure takes one, the clothing colour. A street figure (one mesh) has none of the extras.
+ const carry=(n,gearOn,d)=>{const street=!!CAT.looks[n.look].street,gear=gearOn.filter(g=>CAT.looks[n.look].accessories[g]);return {...n,accessories:street?[]:withoutCovered([...n.accessories,...gear]),hairColor:street?null:d.hairColor,clothingColor:d.clothingColor};};
  function act(kind,v){
   if(kind==='confirm')return close(true);if(kind==='cancel')return close(false);
   if(kind==='rotl'){spin-=.5;auto=false;return render();}if(kind==='rotr'){spin+=.5;auto=false;return render();}if(kind==='auto'){auto=!auto;return render();}
   const d={...draft,accessories:[...draft.accessories]};
   // changing body or outfit keeps the gear that was chosen (every outfit offers all of it); the new outfit's own default pieces come with it, minus any the gear replaces
   const gearOn=d.accessories.filter(x=>CAT.accessories[x]?.gear);
-  if(kind==='base'){if(v===d.base)return;const n=plain(Object.keys(CAT.looks).find(id=>CAT.looks[id].base===v));remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
-  if(kind==='look'){if(v===d.look)return;const n=plain(v);remember(n,gearOn);return apply({...n,accessories:withoutCovered([...n.accessories,...gearOn]),hairColor:d.hairColor,clothingColor:d.clothingColor});}
+  if(kind==='base'){if(v===d.base)return;const n=plain(A.DEFAULT_LOOK[v]||Object.keys(CAT.looks).find(id=>CAT.looks[id].base===v&&!CAT.looks[id].retired));remember(n,gearOn);return apply(carry(n,gearOn,d));}
+  if(kind==='look'){if(v===d.look)return;const n=plain(v);remember(n,gearOn);return apply(carry(n,gearOn,d));}
   if(kind==='hair'){d.hair=v;}
   if(kind==='hairColor')d.hairColor=v||null;if(kind==='clothingColor')d.clothingColor=v||null;
   if(kind==='acc'){const i=d.accessories.indexOf(v);if(i>=0){d.accessories.splice(i,1);if(taken[v]&&CAT.looks[d.look].accessories[taken[v]]&&!d.accessories.includes(taken[v]))d.accessories.push(taken[v]);delete taken[v];}else{d.accessories.push(v);for(const [x,y] of Object.entries(REPLACES)){if(v===x){const j=d.accessories.indexOf(y);if(j>=0){d.accessories.splice(j,1);taken[x]=y;}}else if(v===y){const j=d.accessories.indexOf(x);if(j>=0){d.accessories.splice(j,1);delete taken[x];}}}if(v==='hat'&&d.hair!=='native'&&d.hair!=='none'&&!CAT.hair[d.hair].hatOk)d.hair='native';}}

@@ -18,6 +18,9 @@
   // People outside the food shopfronts (noodles, ramen, tacos, tea, the night market: places.js SHOPFRONTS), bowl in hand; now and then they photograph it
   // (npc-device.js food photo). Per quality for the whole street, scaled to the quarter like the standers. There are no food stalls yet: these are the street's food spots.
   diners:{high:6,medium:4,low:2},foodSigns:/NOODLE|RAMEN|TACOS|TEA HOUSE|CHAI|NIGHT MARKET|BENTO/,
+  // The street food's cooks (NPC upgrade, 18 Nov 2026: the old Japanese cook #5 and the cook #7) at the window of a food shopfront, facing the street, per quarter with food
+  // shopfronts; the street vendor (#14) and the busker (#24) each at one spot of the quarters crowd.js SPOTS names (kept in step by tests/npc-upgrade.test.cjs).
+  cooks:{high:3,medium:2,low:1},vendorIn:['oldtown','far-south',null],buskerIn:['oldtown','avenue',null],
   leaveShare:.5,           // share of walkers who leave at a street's end (and return elsewhere later)
   awayFor:[6,25],
   drunkShare:.08,          // share of walkers who are drunk (nightlife lanes only)
@@ -109,6 +112,12 @@
    for(const f of fronts){if(made>=n)break;const t=f.t+(rnd()-.5)*2,p=at(f.l,t,f.l.half-.3);if(!clearAt(p)||people.some(o=>o.fixed&&Math.hypot(o.x-p[0],o.z-p[1])<2.5))continue;
     const ux=(f.l.b[0]-f.l.a[0])/len(f.l),uz=(f.l.b[1]-f.l.a[1])/len(f.l),sd=rnd()<.5?-1:1;
     people.push({id:'stand-food-'+(made++),fixed:true,kind:'food',dish:true,sign:f.word,grp:null,lane:f.l.id,t,side:f.l.half-.3,x:p[0],z:p[1],face:[p[0]-f.l.wall[0]*2+ux*sd*1.6,p[1]-f.l.wall[1]*2+uz*sd*1.6],clip:'idle'});}}
+  // Cooks at the food shopfronts' windows (after the diners, so their plan is unchanged), then the vendor and the busker on clear stretches of the wall side.
+  {const n=cfg.cooks?.[quality]??0,fronts=foodFronts(lanes,cfg.foodSigns).map(f=>({f,r:rnd()})).sort((a,b)=>a.r-b.r).map(x=>x.f);let made=0;
+   for(const f of fronts){if(made>=n)break;const p=at(f.l,f.t,f.l.half-.12);if(!clearAt(p)||people.some(o=>o.fixed&&Math.hypot(o.x-p[0],o.z-p[1])<1.6))continue;
+    people.push({id:'stand-cook-'+(made++),fixed:true,kind:'cook',sign:f.word,grp:null,lane:f.l.id,t:f.t,side:f.l.half-.12,x:p[0],z:p[1],face:[p[0]-f.l.wall[0]*2,p[1]-f.l.wall[1]*2],clip:rnd()<.5?'talk':'idle'});}}
+  for(const [kind,where,clip] of [['vendor',cfg.vendorIn,'talk'],['busker',cfg.buskerIn,'idle']]){if(!(where||[]).includes(quarter))continue;const s=spot(true);if(!s)continue;
+   people.push({id:'stand-'+kind,fixed:true,kind,grp:null,lane:s.l.id,t:s.t,side:s.side,x:s.p[0],z:s.p[1],face:[s.p[0]-s.l.wall[0]*2,s.p[1]-s.l.wall[1]*2],clip});}
   return people;}}
  /* The food shopfronts along these lanes: {word, l (lane), t (along it)} for each sign whose words are food (cfg.foodSigns) and whose pavement the lane runs along
     (the lane's wall side faces the shop). Signs from places.js SHOPFRONTS (read from the built city). */
@@ -176,16 +185,21 @@
   }};
  }
  // Browser: figures, routines and reactions.
- function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],monkCast=root.VoidCrowd?.monks||['npc-monk-elder','npc-monk-tech','npc-monk-grey'],rnd=Math.random,cfg=config,quarter=null}){
+ function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=null,drunkCast=null,monkCast=root.VoidCrowd?.monks||['npc-monk-elder','npc-monk-tech','npc-monk-grey'],rnd=Math.random,cfg=config,quarter=null}){
   const lanes=lanesFor(quarter);
   const people=plan(quality,rnd,cfg,quarter).map(p=>({...p,l:lanes.find(l=>l.id===p.lane),state:'walk',timer:stopIn(p),node:null,monkPlan:!!p.monk,monk:false,anim:null,look:null,react:0,sway:rnd()*6,yaw:0}));
   const byId=new Map(people.map(p=>[p.id,p]));let remarkCool=8,dealt=Math.floor(rnd()*8),disposed=false;
   const budget=createBudget(people.length,cfg.fps),gov={budget:people.length,fps:0,check:0},cam=()=>scene?.activeCamera?.globalPosition||null;
   function stopIn(p){const [a,b]=p.drunk?cfg.drunkStopEvery:cfg.stopEvery;return a+rnd()*(b-a);}
   // Figures appear as their looks finish downloading; until then the person is simply not there yet.
-  function spawn(p){if(p.node||disposed)return;const looks=p.monkPlan?monkCast:p.drunk?drunkCast:cast;let node=null,look=null;   /* a monk waits for a monk's figure */
-   // Try the next look; one still downloading is skipped for one that is ready.
-   for(let i=0;i<looks.length&&!node;i++){look=looks[(dealt++)%looks.length];node=instance('crowd:'+look,parent);}if(!node)return;
+  // Who wears which figure (crowd.js orderAt: corporate types toward the Function Gate, club-goers round NULL, everyone else mixed); cooks, the vendor and the busker have their own.
+  const C=()=>root.VoidCrowd,looksFor=p=>{const c=C(),pos=p.fixed?[p.x,p.z]:at(p.l,p.t);if(p.kind==='cook'||p.kind==='vendor'||p.kind==='busker')return c?.pools?.[p.kind]||[];
+   if(p.drunk)return drunkCast||c?.orderAt?.(pos[0],pos[1],quarter,p.id,c.pools.drunk)||[];return cast||c?.orderAt?.(pos[0],pos[1],quarter,p.id)||[];};
+  function spawn(p){if(p.node||disposed)return;let node=null,look=null;   /* a monk waits for a monk's figure */
+   // Monks take the next monk figure; everyone else their own order of looks, best first. One still downloading is skipped for one that is ready.
+   if(p.monkPlan){for(let i=0;i<monkCast.length&&!node;i++){look=monkCast[(dealt++)%monkCast.length];node=instance('crowd:'+look,parent);}}
+   else{const looks=looksFor(p),k=p.kind==='cook'?Number(p.id.replace(/\D/g,''))||0:0;for(let i=0;i<looks.length&&!node;i++){look=looks[(i+k)%looks.length];node=instance('crowd:'+look,parent);}}
+   if(!node)return;C()?.dress?.(node,look,p.id);
    node.metadata={...node.metadata,crowd:look,nightlife:p.id,...(p.monkPlan?{monk:true}:{})};if(p.monkPlan){root.VoidNPCDevice?.tag?.(node,{monk:true});p.monkIn=0;}p.node=node;p.look=look;p.fade=0;p.parts=node.getChildMeshes().map(m=>[m,m.visibility]);for(const [m]of p.parts)m.visibility=0;
    enlistDevice(p);
    if(p.fixed){p.anim=animate(node,look,p.clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw=Math.atan2(p.face[0]-p.x,p.face[1]-p.z);return;}

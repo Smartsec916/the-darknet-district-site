@@ -393,8 +393,8 @@
  let staged=null;
  function stageArgument(opts={}){if(!scene||!B)return {error:'No 3D scene.'};stopArgument();
   const me=typeof walker!=='undefined'&&walker?walker:null,yaw=me?.yaw||0,cx=opts.x??(me?me.x+Math.sin(yaw)*5:0),cz=opts.z??(me?me.z+Math.cos(yaw)*5:0);
-  const parent=[...agents.values()].find(a=>a&&a.node.parent)?.node.parent||null,looks=['ncz-neon','runner-02','outlaw-01','hacker-01','district-resident','fixer-01','district-smuggler','communion-tech'];const made=[];
-  for(const look of looks){if(made.length>=2)break;const n=root.VoidAssets?.instance?.('crowd:'+look,parent);if(!n)continue;n.metadata={...n.metadata,crowd:look,argument:true};made.push({node:n,look});}
+  const parent=[...agents.values()].find(a=>a&&a.node.parent)?.node.parent||null,looks=[...(root.VoidCrowd?.orderAt?.(cx,cz,root.VoidQuarters?.quarterAt?.(cx,cz)||null,'argument'+Math.floor(cx*7+cz*3))||[]),'ncz-neon','runner-02','outlaw-01','hacker-01'];const made=[];   /* street people of this spot (crowd.js), the old looks only where none is loaded */
+  for(const look of looks){if(made.length>=2)break;const n=root.VoidAssets?.instance?.('crowd:'+look,parent);if(!n)continue;root.VoidCrowd?.dress?.(n,look,'argument-'+made.length);n.metadata={...n.metadata,crowd:look,argument:true};made.push({node:n,look});}
   if(made.length<2){for(const m of made)m.node.dispose();return {error:'No street figures are loaded here.'};}
   const along=yaw+Math.PI/2;made.forEach((m,i)=>{const s=i?.65:-.65;m.node.position.set(cx+Math.sin(along)*s,0,cz+Math.cos(along)*s);m.node.rotation.y=along+(i?-Math.PI/2:Math.PI/2);m.anim=root.VoidCrowd.animate(m.node,m.look,'talk');m.yaw=m.node.rotation.y;});
   const dur=opts.duration??14,ev=spectacle({x:cx,z:cz,radius:opts.radius??config.spectacle.radius,kind:'argument',duration:dur});

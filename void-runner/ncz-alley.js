@@ -17,7 +17,7 @@
   {id:'alley-watcher',x:122.4,z:-56.25,face:DOOR,clips:['watch','idle'],tier:1,watchesDoor:true},
   {id:'alley-smoker',x:104.0,z:-56.15,face:[104.0,-60],clips:['smoke','idle'],tier:1},
   {id:'alley-sitter',x:93.6,z:-60.75,face:[93.6,-56],clips:['sit','idle'],seat:0,tier:2,sits:true}];
- const TIER={low:1,medium:2,high:3,ultra:3},CAST=['ncz-neon','fixer-01','hacker-01','outlaw-01','district-resident','district-smuggler','runner-02','communion-tech'];
+ const TIER={low:1,medium:2,high:3,ultra:3},CAST=['npc-hacker','npc-enforcer','npc-lookout','npc-club-m','npc-courier','npc-fixer','npc-casual-m','npc-veteran'];   // the street people (NPC upgrade, 18 Nov 2026; crowd.js street). Before: ncz-neon, fixer-01, hacker-01, outlaw-01, district-resident, district-smuggler, runner-02, communion-tech
  const config={reactRadius:3.2,reactFor:[2.5,4.5],doorWatchRadius:7,showRadius:75,turn:4};
  /* plan(quality, clipsOf): who appears, with the look and clip each will use. clipsOf(look) -> the clips that look can play. Looks are dealt in turn so
     neighbours differ; a person gets the first look in the deal that can do their first-choice clip, else any look and their best available clip. */
@@ -45,7 +45,7 @@
   let asked=false;const askForLooks=()=>{asked=true;for(const look of new Set(people.map(p=>p.look)))try{Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(look,scene)).catch(()=>{});}catch{}};
   function spawn(p){if(p.node||disposed)return;let node=instance('crowd:'+p.look,parent);
    if(!node&&clock>(p.drunk?.5:14)){for(const want of [p.clip,'idle']){   /* the drunk must always be there: if their look is slow or missing they take any ready look at once (the sway does not need a clip) */const alt=CAST.find(c=>clipsOf(c).includes(want)&&(node=instance('crowd:'+c,parent)));if(alt){p.look=alt;p.clip=p.now=want;break;}}}
-   if(!node)return;node.metadata={...node.metadata,crowd:p.look,alley:p.id};
+   if(!node)return;root.VoidCrowd?.dress?.(node,p.look,p.id);node.metadata={...node.metadata,crowd:p.look,alley:p.id};
    p.node=node;p.anim=animate(node,p.look,p.clip);node.position.set(p.x,-(p.seat||0),p.z);node.rotation.y=p.rot;}
   const cam=()=>scene?.activeCamera?.globalPosition||null;
   function tick(dt){

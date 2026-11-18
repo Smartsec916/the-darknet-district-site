@@ -5,7 +5,9 @@
  const CAT=typeof module!=='undefined'&&module.exports?require('./character-catalog.json'):root.VoidCharacterCatalog;
  const ID=/^[a-z0-9][a-z0-9-]{0,39}$/,KEYS=['v','base','look','hair','hairColor','clothingColor','accessories'];
  const has=(o,k)=>Object.prototype.hasOwnProperty.call(o,k);
- const DEFAULT_LOOK={male:'district-smuggler',female:'district-resident'};
+ // The street figures replaced the creator's MakeHuman looks on 18 Nov 2026 (NPC upgrade): a new character starts in these. The old record {gender, model} keeps the two
+ // old presets (LEGACY_PRESET), so old clients and the old server field still work.
+ const DEFAULT_LOOK={male:'street-casual-m',female:'street-casual-f'},LEGACY_PRESET={male:'district-smuggler',female:'district-resident'};
 
  function defaults(lookId){
   const l=CAT.looks[lookId];
@@ -22,6 +24,8 @@
   if(!idOk(a.look)||!has(CAT.looks,a.look)){e.push('unknown look');return e;}
   const look=CAT.looks[a.look];
   if(look.base!==a.base)e.push('look does not belong to this base');
+  // a street figure is one mesh: its own hair, no hair colour, no extras
+  if(look.street){if(a.hair!=='native')e.push('hairstyle does not fit this body');if(a.hairColor!==null)e.push('hair colour is not available on this body');}
   if(a.hair!=='native'&&a.hair!=='none'){
    if(!idOk(a.hair)||!has(CAT.hair,a.hair))e.push('unknown hairstyle');
    else if(!look.hairOk.includes(a.hair))e.push('hairstyle does not fit this body');
@@ -49,24 +53,30 @@
   }
   return defaults(fallbackLook&&has(CAT.looks,fallbackLook)?fallbackLook:DEFAULT_LOOK.male);
  }
- /* Saved characters from before the creator are {gender, model}. They keep their look exactly. */
+ /* A player's saved look from before the street figures (18 Nov 2026): a retired look moves to its replacement (catalog `replacedBy`, same body), keeping the clothing
+    colour; the hairstyle, hair colour and extras of the old figure do not exist on the new one. Anything else is returned unchanged. Mirrors void_runner_api.py migrate_appearance. */
+ function migrate(a){
+  if(!validate(a))return a;const look=CAT.looks[a.look],to=look.retired&&look.replacedBy;if(!to||!has(CAT.looks,to)||CAT.looks[to].base!==a.base)return a;
+  const n=defaults(to);n.clothingColor=a.clothingColor;return n;
+ }
+ /* Saved characters from before the creator are {gender, model}: their preset look, then migrate (now a street figure of the same body). */
  function fromLegacy(c){
   if(!c||typeof c!=='object')return null;
-  for(const [id,l] of Object.entries(CAT.looks))if(l.legacy&&l.legacy.gender===c.gender&&l.legacy.model===c.model)return defaults(id);
+  for(const [id,l] of Object.entries(CAT.looks))if(l.legacy&&l.legacy.gender===c.gender&&l.legacy.model===c.model)return migrate(defaults(id));
   return null;
  }
  /* What the older server record can carry: gender plus the preset that matches. Keeps old clients and old validation working. */
  function toLegacy(a){
-  const look=CAT.looks[a.look],preset=look&&look.preset?a.look:DEFAULT_LOOK[a.base];
+  const look=CAT.looks[a.look],preset=look&&look.preset?a.look:LEGACY_PRESET[a.base];
   return {gender:a.base,model:CAT.looks[preset].legacy.model};
  }
  /* The creator offers only what is valid together; this is the single place that decides. */
  function options(a){
-  const look=CAT.looks[a.look],hat=a.accessories.includes('hat');
+  const look=CAT.looks[a.look],hat=a.accessories.includes('hat'),street=!!look.street;
   return {
-   looks:Object.entries(CAT.looks).filter(([,l])=>l.base===a.base).map(([id,l])=>({id,label:l.label})),
-   hair:[{id:'native',label:'ORIGINAL',enabled:true},{id:'none',label:'NONE',enabled:true},...Object.entries(CAT.hair).map(([id,h])=>({id,label:h.label,enabled:look.hairOk.includes(id)&&(!hat||h.hatOk),reason:!look.hairOk.includes(id)?'does not fit this body':(hat&&!h.hatOk?'not with a hat':'')}))],
-   hairColors:CAT.hairColors,clothingColors:CAT.clothingColors,
+   looks:Object.entries(CAT.looks).filter(([,l])=>l.base===a.base&&!l.retired).map(([id,l])=>({id,label:l.label})),   // retired looks are never offered (they still load)
+   hair:[{id:'native',label:'ORIGINAL',enabled:true},{id:'none',label:'NONE',enabled:!street,reason:street?'part of this body':''},...Object.entries(CAT.hair).map(([id,h])=>({id,label:h.label,enabled:look.hairOk.includes(id)&&(!hat||h.hatOk),reason:!look.hairOk.includes(id)?(street?'part of this body':'does not fit this body'):(hat&&!h.hatOk?'not with a hat':'')}))],
+   hairColor:!street,hairColors:CAT.hairColors,clothingColors:CAT.clothingColors,
    accessories:Object.keys(look.accessories).map(id=>({id,label:CAT.accessories[id].label,enabled:true,gear:!!CAT.accessories[id].gear}))
   };
  }
@@ -77,13 +87,13 @@
  /* Local persistence. `storage` is anything with getItem/setItem (localStorage in the game, a plain object in tests). Keyed by account id or 'guest'. */
  const KEY='void-runner-appearance:';
  function load(storage,owner,legacyCharacter){
-  try{const raw=storage.getItem(KEY+(owner||'guest'));if(raw){const a=JSON.parse(raw);if(validate(a))return normalize(a);}}catch(e){}
+  try{const raw=storage.getItem(KEY+(owner||'guest'));if(raw){const a=JSON.parse(raw);if(validate(a))return migrate(normalize(a));}}catch(e){}
   return fromLegacy(legacyCharacter);   // nothing saved yet: an old character keeps its look; null means "never created"
  }
  function save(storage,owner,a){
   if(!validate(a))return false;
   try{storage.setItem(KEY+(owner||'guest'),JSON.stringify(normalize(a)));return true;}catch(e){return false;}
  }
- const api={CATALOG:CAT,DEFAULT_LOOK,defaults,problems,validate,normalize,fromLegacy,toLegacy,options,heightScale,eyeHeight,load,save,KEY};
+ const api={CATALOG:CAT,DEFAULT_LOOK,LEGACY_PRESET,migrate,defaults,problems,validate,normalize,fromLegacy,toLegacy,options,heightScale,eyeHeight,load,save,KEY};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidCharacterAppearance=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
