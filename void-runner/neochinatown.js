@@ -1268,7 +1268,7 @@
     if(!wantInterior){seed=SEAMS[1];target=districtRoot;}else if(area==='all'&&seed!==SEAMS[1])console.warn('[NeoChinatown] random state after the interior changed; update SEAMS');
 
     // ---- Street detail: taxi zones, streaming districts, club, weather ----
-    const {clubCtl,streamDistricts,weather,city,pointers}=!wantStreet?{clubCtl:null,streamDistricts(){},weather:null,city:{live:new Map(),loads:0,unloads:0},pointers:null}:(function buildStreetDetail(){
+    const {clubCtl,streamDistricts,weather,city,pointers,litSpots=[]}=!wantStreet?{clubCtl:null,streamDistricts(){},weather:null,city:{live:new Map(),loads:0,unloads:0},pointers:null}:(function buildStreetDetail(){
     const {clubShutter,onFace,faceRot,signSpots,bbox,A,decal,graffiti,S,puddle}=sc;
     // (The sky cabs' painted landing zones stood here until the quarters, 2026-11-16. The road taxis' kerbside stops are painted by ncz-gates.js; the loop below makes nothing.)
     {const t=texture('taxi-zone',256,256,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(242,179,61,.85)';g.lineWidth=8;g.setLineDash([22,14]);g.strokeRect(10,10,W-20,H-20);g.setLineDash([]);g.fillStyle='rgba(242,179,61,.8)';g.font='bold 64px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',W/2,H/2);});t.hasAlpha=true;
@@ -1298,7 +1298,7 @@
     function streamDistricts(cam){if(!cam)return;for(const d of districts){if(d.retired||QK&&!QT.inQuarter(QK,d.center[0],d.center[1]))continue;const near=rectDistance(d.rect,cam.x,cam.z)*(root.VoidZoom?root.VoidZoom.now():1),live=city.live.get(d.id);   /* zoomed in, a far building is built as if near (zoom-detail.js) */
      if(!live&&near<90){city.live.set(d.id,placeholder(d));city.loads++;}else if(live&&near>140){live.dispose();city.live.delete(d.id);city.unloads++;}}}
     root.VoidNeoChinatown&&(root.VoidNeoChinatown.city=city);
-    let weather=null;
+    let weather=null;const litSpots=[];   // where the city's own light pools fall (ncz-street-glow.js puts its lights in the dark stretches between them)
     // The club itself streams in when the player comes near and out again when they leave (ncz-nightclub.js).
     const clubCtl=club&&root.VoidAssets&&(!QK||QK==='oldtown')?club.create({B,scene,parent,quality,assets:root.VoidAssets,getSolids:()=>typeof walkingLocation!=='undefined'?walkingLocation?.solids:null,onChange:open=>{if(clubShutter)clubShutter.setEnabled(!open);}}):null;
     root.VoidNeoChinatown&&(root.VoidNeoChinatown.nightclub=clubCtl);
@@ -1309,7 +1309,7 @@
      const washMats={};function washMat(c,k){const key=c+k;if(washMats[key])return washMats[key];const t=texture('wash-'+c,128,128,(g,W,H)=>{g.fillStyle='#000';g.fillRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,1,W/2,H/2,W/2);r.addColorStop(0,c);r.addColorStop(.35,c+'88');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
       const m=new B.StandardMaterial('ncz-wash',scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.alphaMode=B.Engine.ALPHA_ADD;m.alpha=k;m.disableDepthWrite=true;owned.push(m);washMats[key]=m;return m;}
      const wallWash=(c,f,s,y,w,h,k)=>{const p=add(B.MeshBuilder.CreatePlane('wall-wash',{width:w,height:h},scene),washMat(c,k),onFace(f,s,y,.09));p.rotation.y=faceRot(f.nx,f.nz);return p;};
-     const floorWash=(c,x,z,w,d,y,k)=>add(B.MeshBuilder.CreateGround('floor-wash',{width:w,height:d},scene),washMat(c,k),[x,y,z]);
+     const floorWash=(c,x,z,w,d,y,k)=>(litSpots.push([x,z]),add(B.MeshBuilder.CreateGround('floor-wash',{width:w,height:d},scene),washMat(c,k),[x,y,z]));
      // Shop-sign spill: each storefront neon lights its patch of wall and the sidewalk under it.
      for(const {c,f} of signSpots){wallWash(c,f,0,5.2,5,6.5,.4);const g=onFace(f,0,0,1.6);floorWash(c,g[0],g[2],f.tx?4:2.8,f.tx?2.8:4,.2,.3);}
      // The street faces (outward normal into the street) of the avenue and the main street, with the gaps where streets join.
@@ -1357,7 +1357,7 @@
       const hi=quality==='high'||quality==='ultra';rain=new B.ParticleSystem('ncz-rain',hi?3200:1700,scene);rain.particleTexture=drop;rain.emitter=v(31,0,-96);rain.minEmitBox=v(-24,12,-24);rain.maxEmitBox=v(24,17,24);rain.direction1=v(-.8,-24,-.4);rain.direction2=v(-.3,-28,.4);rain.minLifeTime=rain.maxLifeTime=.72;rain.minSize=.03;rain.maxSize=.045;rain.minScaleX=rain.maxScaleX=1;rain.minScaleY=11;rain.maxScaleY=15;rain.billboardMode=B.ParticleSystem.BILLBOARDMODE_STRETCHED;rain.color1=new B.Color4(.55,.72,.85,.3);rain.color2=new B.Color4(.45,.62,.78,.2);rain.colorDead=new B.Color4(.4,.5,.6,0);rain.emitRate=hi?3400:1800;rain.blendMode=B.ParticleSystem.BLENDMODE_ADD;rain.start();}
      weather={flickers,rain,rainRate:rain?.emitRate||0};
      target=saved;}
-    return {clubCtl,streamDistricts,weather,city,pointers};})();
+    return {clubCtl,streamDistricts,weather,city,pointers,litSpots};})();
     // The District's front: a small backlit plaque, violet trim round the reinforced door and a second camera.
     {const saved=target;target=districtRoot;
      neon('district-plaque',['THE DARKNET DISTRICT'],['#c9b4ff'],2.3,.32,[0,4.05,19.6],0,'rgba(8,6,14,.94)',true);
@@ -1378,6 +1378,8 @@
     // The checkpoints at this quarter's edges (ncz-gates.js): gatehouses, doors, scan beams, guards. The District's entrance is Old Town's.
     const gates=QK&&root.VoidGates?root.VoidGates.build({B,scene,parent,quality,quarter:QK,instance:modelInstance}):null;
     if(QK&&QK!=='oldtown')districtRoot.setEnabled(false);
+    // A little more coloured light where the street is dark (ncz-street-glow.js, 18 Nov 2026): emissive fixtures and ground pools, no real lights.
+    const streetGlow=area==='street'&&wantStreet&&root.VoidStreetGlow?root.VoidStreetGlow.start({B,scene,parent,quality,quarter:QK,lit:litSpots}):null;
     function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&(zone({x:cam.x,z:cam.z}).area==='district'||MK.inside(cam));applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
      // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
@@ -1388,13 +1390,13 @@
      for(const fl of weather?.flickers||[]){if(fl.off>0){fl.off-=dt;if(fl.off<=0)for(const m of fl.meshes)m.isVisible=true;}else if(time>fl.next){fl.off=.05+Math.random()*.12;fl.next=time+2+Math.random()*7;for(const m of fl.meshes)m.isVisible=false;}}
      for(const s of screens)if(time>s.next){s.mesh.material=adMat(nextAd());s.next=time+9+Math.random()*4;}}
     let wasInside=null;
-    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;lightCheck?.();if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);streetPair?.tick(dt);adScreens?.tick(dt);atmosphere(time,dt);gates?.tick(dt,time);sight?.tick();for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
+    function tick(time){const dt=lastTick===null?0:Math.min(.1,Math.max(0,time-lastTick));lastTick=time;lightCheck?.();if(skyShells[1])skyShells[1].rotation.y+=dt*.0035;vrTick(dt);etiquette.tick(dt);doors.tick(dt);terminal.tick(dt);podScreen.tick(dt);arcade?.tick(time);nightlife?.tick(dt);alleyLife?.tick(dt);streetPair?.tick(dt);streetGlow?.tick(dt);adScreens?.tick(dt);atmosphere(time,dt);gates?.tick(dt,time);sight?.tick();for(const d of drones){d.n.position.set(d.x+Math.sin(time*.3+d.phase)*6,9+Math.sin(time*1.3+d.phase)*.4,d.z+Math.cos(time*.21+d.phase)*4);d.n.rotation.y=time*.3+d.phase;}}
     /* Called by the loader before the loading screen lifts (17 Nov 2026, docs/development/SMOOTHNESS_AUDIT.md): NULL is built now instead of when the player first walks within 70 m,
        and every material is given the light slots the glTF loader would give it at its next model (asset-pipeline.js settleLights). Both used to happen in the
        middle of the walk from the District's door: the club's build, then a few seconds later every shader in view compiled again. Nothing drawn changes. */
     let lightCheck=null;   // keepLights' per-frame check once the street is prepared
     async function prepare(){if(!wantStreet)return;try{if(clubCtl)await clubCtl.prepare();if(disposed)return;nightlife?.prewarm?.();alleyLife?.prewarm?.();lightCheck=root.VoidAssets?.keepLights?.(scene)||null;if(clubCtl)await clubCtl.warm(()=>scene.whenReadyAsync());if(!disposed)await nightlife?.warm?.(()=>scene.whenReadyAsync());}catch(e){console.warn('[NeoChinatown] street not prepared early',e);}}
-    return {tick,prepare,city,nightlife,alleyLife,streetPair,sight,doors,etiquette,gates,quarter:QK,adScreens,dispose(){disposed=true;pointers?.dispose();adScreens?.dispose();sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();streetPair?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    return {tick,prepare,city,nightlife,alleyLife,streetPair,streetGlow,sight,doors,etiquette,gates,quarter:QK,adScreens,dispose(){disposed=true;pointers?.dispose();adScreens?.dispose();sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();streetPair?.dispose();streetGlow?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.
