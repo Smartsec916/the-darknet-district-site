@@ -21,10 +21,12 @@
 (function(root){
  'use strict';
  // Device tiers: share of people carrying each (when their data gives none), the hologram colour (the device's UI colour) and its strength.
+ // V2: PLACEHOLDER colour, pending the owner's V2 design ("V2 will look similar to V1, just different color. I'll come up with V2 details later"). One constant.
+ const V2_PLACEHOLDER_COLOR='#b58cff';
  const TIERS={
-  v1:{share:.72,color:'#61eee9',alpha:.36,name:'V1'},                 // device-v1.css --pd-edge-hi (the V1's rail)
-  v2:{share:.23,color:'#8fb8ff',alpha:.32,name:'V2',placeholder:true}, // the V2 has no interface yet: a placeholder colour until it does
-  v3:{share:.05,color:'#46ff7a',alpha:.06,name:'V3 // SHADOW',eye:true}}; // device-v1.css [data-device=v3]; camera in the eye
+  v1:{share:.72,color:'#61eee9',alpha:.36,name:'V1'},                 // device-v1.css --pd-edge-hi (the V1's rail): the cuff and panel
+  v2:{share:.23,color:V2_PLACEHOLDER_COLOR,alpha:.34,name:'V2',placeholder:true}, // the same cuff and panel as the V1, its own colour
+  v3:{share:.05,color:'#46ff7a',alpha:.5,name:'V3 // SHADOW',eye:true}}; // device-v1.css [data-device=v3]. The owner: "V3 // Shadow get it streamed into their eye. So just their eye glows." No cuff, no panel
  const CAPS={low:4,medium:10,high:16,ultra:16};
  const capFor=q=>CAPS[q]??CAPS.medium;
  // What each kind of person does with it. Poses: scroll (reading), photo, selfie, pair-selfie, film, food-photo.
@@ -106,7 +108,7 @@
   return null;}
  // Fixed pairs among the places' own people (who takes a selfie with whom).
  const PAIRS={'crew-hall-talk1':'crew-hall-talk2','crew-hall-talk2':'crew-hall-talk1','bar-guest-a':'bar-guest-b','bar-guest-b':'bar-guest-a','dancer-0':'dancer-1','dancer-1':'dancer-0','dancer-2':'dancer-3','dancer-3':'dancer-2','crew-bar1':'crew-bar2','crew-bar2':'crew-bar1'};
- const pure={TIERS,CAPS,capFor,KINDS,GROUPS,STILL,PHOTO,config,hash,tierFor,poseFor,createScheduler,choosePosed,excluded,createReactor,kindOf,PAIRS};
+ const pure={V2_PLACEHOLDER_COLOR,TIERS,CAPS,capFor,KINDS,GROUPS,STILL,PHOTO,config,hash,tierFor,poseFor,createScheduler,choosePosed,excluded,createReactor,kindOf,PAIRS};
  if(typeof module==='object'&&module.exports){module.exports=pure;return;}
 
  /* ---------------- browser ---------------- */
@@ -120,33 +122,48 @@
  const metaOf=n=>{const out={};for(let p=n;p;p=p.parent)if(p.metadata)for(const k in p.metadata)if(!(k in out))out[k]=p.metadata[k];return out;};
  const isCompanion=n=>{for(let p=n;p;p=p.parent)if(p.metadata?.companion||/^remote-player:|^player|avatar/i.test(p.name||''))return true;return false;};
  const talking=()=>{try{return !!root.VoidConversationUI?.isOpen||(typeof speech!=='undefined'&&!!speech?.lines?.length&&typeof walkingLocation!=='undefined'&&!!walkingLocation);}catch{return false;}};
- // The hologram's textures: blurred blocks and scanlines, never anything readable. Black is see-through (the material adds light).
- function hologramTexture(name,hex,kind){const T=new B.DynamicTexture('npc-holo-'+name,{width:128,height:96},scene,true);const g=T.getContext();g.clearRect(0,0,128,96);g.fillStyle='#000';g.fillRect(0,0,128,96);
-  const c=B.Color3.FromHexString(hex),rgb=(a)=>'rgba('+Math.round(c.r*255)+','+Math.round(c.g*255)+','+Math.round(c.b*255)+','+a+')';
-  if(kind==='panel'){g.fillStyle=rgb(.16);g.fillRect(3,3,122,90);g.filter='blur(3px)';let s=hash(name);const R=()=>((s=Math.imul(s^s>>>15,2246822507)>>>0)%1000)/1000;
-   for(let i=0;i<9;i++){g.fillStyle=rgb(.25+R()*.45);g.fillRect(10+R()*20,8+i*9.5,30+R()*70,4+R()*3);}g.fillStyle=rgb(.5);g.fillRect(96,12,20,20);g.filter='none';
-   g.strokeStyle=rgb(.75);g.lineWidth=1.5;g.strokeRect(2,2,124,92);}
-  else{g.strokeStyle=rgb(.9);g.lineWidth=3;const L=18;for(const [x,y,dx,dy] of [[3,3,1,1],[125,3,-1,1],[3,93,1,-1],[125,93,-1,-1]]){g.beginPath();g.moveTo(x,y+dy*L);g.lineTo(x,y);g.lineTo(x+dx*L,y);g.stroke();}
-   g.fillStyle=rgb(.08);g.fillRect(6,6,116,84);g.filter='blur(1px)';g.strokeStyle=rgb(.35);g.lineWidth=1;g.strokeRect(54,38,20,20);g.filter='none';}
-  g.fillStyle='rgba(0,0,0,.45)';for(let y=0;y<96;y+=3)g.fillRect(0,y,128,1);   // scanlines
-  T.update();T.hasAlpha=false;return T;}
- function buildKit(){const own=[],src={};const flashMat=new B.StandardMaterial('npc-holo-flash',scene);flashMat.disableLighting=true;flashMat.diffuseColor=B.Color3.Black();flashMat.emissiveColor=new B.Color3(1,1,1);flashMat.alpha=.55;flashMat.alphaMode=B.Engine.ALPHA_ADD;flashMat.backFaceCulling=false;own.push(flashMat);
-  const flash=B.MeshBuilder.CreateDisc('npc-holo-flash',{radius:.5,tessellation:12},scene);flash.material=flashMat;flash.billboardMode=B.TransformNode.BILLBOARDMODE_ALL;flash.isPickable=false;flash.position.y=-500;flash.scaling.setAll(.001);own.push(flash);
-  for(const [tier,T] of Object.entries(TIERS)){src[tier]={};for(const kind of ['panel','frame']){const tex=hologramTexture(tier+'-'+kind,T.color,kind),m=new B.StandardMaterial('npc-holo-'+tier+'-'+kind,scene);
-    m.disableLighting=true;m.diffuseColor=B.Color3.Black();m.emissiveTexture=tex;m.alpha=T.alpha;m.alphaMode=B.Engine.ALPHA_ADD;m.backFaceCulling=false;m.fogEnabled=true;own.push(tex,m);
-    const w=kind==='panel'?.2:.15,mesh=B.MeshBuilder.CreatePlane('npc-holo-'+tier+'-'+kind,{width:w,height:w*.72},scene);mesh.material=m;mesh.isPickable=false;mesh.position.y=-500;mesh.alwaysSelectAsActiveMesh=false;own.push(mesh);
-    src[tier][kind]={mesh,mat:m,tex,pool:[]};}}
+ // The hologram's textures. From outside it is never readable: soft blurred blocks (reading) or a blurred smear of a "picture" inside viewfinder corners (camera),
+ // a glowing edge and scanlines, in the tier's colour. Black is see-through (the material adds light).
+ function hologramTexture(name,hex,kind){const T=new B.DynamicTexture('npc-holo-'+name,{width:128,height:96},scene,true);const g=T.getContext();g.fillStyle='#000';g.fillRect(0,0,128,96);
+  const c=B.Color3.FromHexString(hex),rgb=a=>'rgba('+Math.round(c.r*255)+','+Math.round(c.g*255)+','+Math.round(c.b*255)+','+a+')';let s=hash(name);const R=()=>((s=Math.imul(s^s>>>15,2246822507)>>>0)%1000)/1000;
+  g.fillStyle=rgb(.13);g.fillRect(3,3,122,90);g.filter='blur(3px)';
+  if(kind==='panel'){g.fillStyle=rgb(.55);g.fillRect(10,9,46,6);g.fillStyle=rgb(.3);g.fillRect(10,21,108,22);for(let i=0;i<3;i++){g.fillStyle=rgb(.5);g.fillRect(12,52+i*13,9,8);g.fillStyle=rgb(.25+R()*.3);g.fillRect(27,53+i*13,40+R()*50,5);}}
+  else{for(let i=0;i<14;i++){g.fillStyle=rgb(.12+R()*.35);g.fillRect(14+R()*90,14+R()*60,8+R()*26,6+R()*22);}g.filter='blur(1px)';g.strokeStyle=rgb(.95);g.lineWidth=3;const L=15;for(const [x,y,dx,dy] of [[9,9,1,1],[119,9,-1,1],[9,87,1,-1],[119,87,-1,-1]]){g.beginPath();g.moveTo(x,y+dy*L);g.lineTo(x,y);g.lineTo(x+dx*L,y);g.stroke();}
+   g.beginPath();g.arc(108,76,6,0,Math.PI*2);g.lineWidth=2;g.stroke();}
+  g.filter='none';g.strokeStyle=rgb(.9);g.lineWidth=2;g.strokeRect(2,2,124,92);
+  g.fillStyle='rgba(0,0,0,.4)';for(let y=0;y<96;y+=3)g.fillRect(0,y,128,1);   // scanlines
+  T.update();return T;}
+ // The kit, made once per scene: per tier a reading panel, a camera panel, the light cone from the emitter and the emitter strip (instances of one mesh each, one material
+ // each); the cuff itself (dark metal, one lit material for all); a flash.
+ function buildKit(){const own=[],src={};
+  const unlit=(name,alpha,tex,color)=>{const m=new B.StandardMaterial(name,scene);m.disableLighting=true;m.diffuseColor=B.Color3.Black();if(tex)m.emissiveTexture=tex;else m.emissiveColor=color;m.alpha=alpha;m.alphaMode=B.Engine.ALPHA_ADD;m.backFaceCulling=false;own.push(m);return m;};
+  const hidden=m=>{m.isPickable=false;m.position.y=-500;m.alwaysSelectAsActiveMesh=false;own.push(m);return m;};
+  const flashMat=unlit('npc-holo-flash',.55,null,new B.Color3(1,1,1));
+  const flash=hidden(B.MeshBuilder.CreateDisc('npc-holo-flash',{radius:.5,tessellation:12},scene));flash.material=flashMat;flash.billboardMode=B.TransformNode.BILLBOARDMODE_ALL;flash.scaling.setAll(.001);
+  // the cuff: a short dark metal band round the left forearm (its axis is the mesh's Y), lit by the scene
+  const metal=new B.StandardMaterial('npc-v1-cuff',scene);metal.diffuseColor=new B.Color3(.05,.055,.06);metal.specularColor=new B.Color3(.45,.5,.55);metal.specularPower=48;own.push(metal);
+  const cuff=hidden(B.MeshBuilder.CreateCylinder('npc-v1-cuff',{diameter:.092,height:.085,tessellation:12},scene));cuff.material=metal;
+  // the light cone: a four-sided frustum from the emitter (bottom, y 0) to the panel (top, y 1), scaled each frame
+  const cone=B.MeshBuilder.CreateCylinder('npc-holo-cone',{diameterTop:1.414,diameterBottom:.06,height:1,tessellation:4,cap:B.Mesh.NO_CAP},scene);cone.bakeTransformIntoVertices(B.Matrix.RotationY(Math.PI/4).multiply(B.Matrix.Translation(0,.5,0)));hidden(cone);
+  for(const [tier,T] of Object.entries(TIERS)){src[tier]={};const col=B.Color3.FromHexString(T.color);
+   for(const kind of ['panel','camera']){const tex=hologramTexture(tier+'-'+kind,T.color,kind);own.push(tex);const m=unlit('npc-holo-'+tier+'-'+kind,T.alpha,tex);
+    const mesh=hidden(B.MeshBuilder.CreatePlane('npc-holo-'+tier+'-'+kind,{width:1,height:.72},scene));mesh.material=m;src[tier][kind]={mesh,mat:m,tex,pool:[]};}
+   const cm=unlit('npc-holo-'+tier+'-cone',T.alpha*.22,null,col),cc=cone.clone('npc-holo-'+tier+'-cone');cc.material=cm;hidden(cc);src[tier].cone={mesh:cc,mat:cm,pool:[]};
+   const em=unlit('npc-v1-'+tier+'-emitter',Math.min(1,T.alpha*2.6),null,col.scale(1.4)),e=hidden(B.MeshBuilder.CreateBox('npc-v1-'+tier+'-emitter',{width:.034,height:.012,depth:.05},scene));e.material=em;src[tier].emitter={mesh:e,mat:em,pool:[]};}
+  // the Shadow's eye: a small soft glow at one eye (a billboard disc, one material)
+  const eyeMat=unlit('npc-v3-eye',.5,null,B.Color3.FromHexString(TIERS.v3.color)),eyeGlow=hidden(B.MeshBuilder.CreateDisc('npc-v3-eye',{radius:.5,tessellation:10},scene));eyeGlow.material=eyeMat;eyeGlow.billboardMode=B.TransformNode.BILLBOARDMODE_ALL;
+  src.cuff={mesh:cuff,pool:[]};src.eye={mesh:eyeGlow,mat:eyeMat,pool:[]};cone.dispose();own.splice(own.indexOf(cone),1);
   scene.onDisposeObservable.addOnce(()=>{for(const o of own)try{o.dispose();}catch{}});
   return {src,flash,flashMat,flashes:[]};}
- function take(tier,kind){const s=kit.src[tier][kind];const m=s.pool.pop()||s.mesh.createInstance('npc-holo-'+tier+'-'+kind+'-i');m.setEnabled(true);m.isPickable=false;return m;}
- function give(tier,kind,m){if(!m)return;m.setEnabled(false);kit.src[tier][kind].pool.push(m);}
+ function take(tier,kind){const s=kind==='cuff'||kind==='eye'?kit.src[kind]:kit.src[tier][kind];const m=s.pool.pop()||s.mesh.createInstance(s.mesh.name+'-i');m.setEnabled(true);m.isPickable=false;return m;}
+ function give(tier,kind,m){if(!m)return;m.setEnabled(false);(kind==='cuff'||kind==='eye'?kit.src[kind]:kit.src[tier][kind]).pool.push(m);}
  function spark(at,size,dim){const f=kit.flash.createInstance('npc-holo-flash-i');f.position.copyFrom(at);f.scaling.setAll(.001);kit.flashes.push({f,t:0,size,dim});stats.flashes++;}
  // ---- bones ----
- const BONES=['Hips','Spine2','Neck','Head','RightShoulder','RightArm','RightForeArm','RightHand','RightHandMiddle1','LeftArm','LeftForeArm','LeftHand'];
+ const BONES=['Hips','Spine2','Neck','Head','RightArm','RightForeArm','RightHand','RightHandMiddle1','LeftArm','LeftForeArm','LeftHand','LeftHandMiddle1'];
  function bonesOf(node){const found={};for(const t of node.getDescendants(false)){if(!t.rotationQuaternion&&!(t instanceof B.TransformNode))continue;for(const b of BONES)if(!found[b]&&(t.name.endsWith('mixamorig:'+b)||new RegExp('(^|[:_ .|])'+b+'$').test(t.name)))found[b]=t;}
   if(!found.Head)for(const m of node.getChildMeshes(false)){const sk=m.skeleton;if(!sk)continue;for(const b of BONES){const bone=!found[b]&&sk.bones.find(x=>new RegExp('(^|[:_ .|])'+b+'$').test(x.name)),tn=bone?.getTransformNode?.();if(tn)found[b]=tn;}if(found.Head)break;}
   for(const b of Object.keys(found))if(!found[b].rotationQuaternion)found[b].rotationQuaternion=B.Quaternion.FromEulerVector(found[b].rotation);
-  return found.Head&&found.RightArm&&found.RightForeArm&&found.RightHand&&found.Neck?found:null;}
+  return found.Head&&found.Neck&&found.LeftArm&&found.LeftForeArm&&found.LeftHand&&found.RightArm&&found.RightForeArm&&found.RightHand?found:null;}
  const refresh=b=>{const chain=[];for(let n=b;n;n=n.parent)chain.unshift(n);for(const n of chain)n.computeWorldMatrix(true);};
  let saved=new Map();   // bone -> its clip rotation, put back after the frame is drawn
  function keep(b){if(!saved.has(b))saved.set(b,b.rotationQuaternion.clone());}
@@ -154,21 +171,23 @@
  function aimDir(b,cur,want,w){if(!b?.parent||w<=0)return;keep(b);b.parent.getWorldMatrix().invertToRef(M);const f=B.Vector3.TransformNormal(cur,M),g=B.Vector3.TransformNormal(want,M);if(f.lengthSquared()<1e-10||g.lengthSquared()<1e-10)return;f.normalize();g.normalize();
   const Q=new B.Quaternion();B.Quaternion.FromUnitVectorsToRef(f,g,Q);const d=B.Quaternion.Slerp(ID,Q,Math.min(1,w));d.multiplyToRef(b.rotationQuaternion,qT);b.rotationQuaternion.copyFrom(qT);b.computeWorldMatrix(true);}
  const P=b=>b.getAbsolutePosition().clone();
- // Two-bone reach: the right wrist toward T (world), the elbow bending toward `pole` (a world direction), by weight w.
- function reach(fig,T,pole,w){const {RightArm:a,RightForeArm:f,RightHand:h}=fig.bones;refresh(h);const S=P(a),E=P(f),W=P(h),L1=B.Vector3.Distance(S,E),L2=B.Vector3.Distance(E,W);
+ // Two-bone reach: one wrist (side 'Left' or 'Right') toward T (world), the elbow bending toward `pole` (a world direction), by weight w; the wrist then follows the
+ // forearm, tipped by `tip` (a world direction added to it: up for a hand held flat, the bracer facing up).
+ function reach(fig,s,T,pole,w,tip){const a=fig.bones[s+'Arm'],f=fig.bones[s+'ForeArm'],h=fig.bones[s+'Hand'];refresh(h);const S=P(a),E=P(f),W=P(h),L1=B.Vector3.Distance(S,E),L2=B.Vector3.Distance(E,W);
   let to=T.subtract(S),d=to.length();if(d<1e-4)return;const u=to.scale(1/d);d=Math.max(Math.abs(L1-L2)+.01,Math.min((L1+L2)*.985,d));
   const x=(L1*L1-L2*L2+d*d)/(2*d),hh=Math.sqrt(Math.max(0,L1*L1-x*x));let v=pole.subtract(u.scale(B.Vector3.Dot(pole,u)));if(v.lengthSquared()<1e-6)v=new B.Vector3(0,-1,0);v.normalize();
   const E2=S.add(u.scale(x)).add(v.scale(hh)),T2=S.add(u.scale(d));aimDir(a,E.subtract(S),E2.subtract(S),w);refresh(h);const E3=P(f),W3=P(h);aimDir(f,W3.subtract(E3),T2.subtract(E3),w);
-  // the wrist straight (fingers on from the forearm), tipped up a little: an open, light hand
-  if(fig.bones.RightHandMiddle1){refresh(fig.bones.RightHandMiddle1);const Wn=P(h),Fn=P(fig.bones.RightHandMiddle1),fore=Wn.subtract(P(f)).normalize();aimDir(h,Fn.subtract(Wn),fore.add(new B.Vector3(0,.35,0)),w*.8);}}
- // Neck and head toward a world point (35% / 65%), within natural limits.
+  const mid=fig.bones[s+'HandMiddle1'];if(mid){refresh(mid);const Wn=P(h),Fn=P(mid),fore=Wn.subtract(P(f)).normalize();aimDir(h,Fn.subtract(Wn),fore.add(tip||B.Vector3.Zero()),w*.8);}}
+ // Neck and head toward a world point (35% / 65%), within natural limits; `tilt` rolls the head a little to one side (a pose for a selfie).
  function lookAt(fig,target,w,body){const h=fig.bones.Head;refresh(h);const hp=P(h);let dir=target.subtract(hp);const flat=Math.hypot(dir.x,dir.z)||1e-6;let pitch=Math.atan2(dir.y,flat),yaw=Math.atan2(dir.x,dir.z)-body.yaw;yaw=Math.atan2(Math.sin(yaw),Math.cos(yaw));
-  pitch=Math.max(-.75,Math.min(.5,pitch));yaw=Math.max(-1.1,Math.min(1.1,yaw));const yw=body.yaw+yaw;dir=new B.Vector3(Math.sin(yw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yw)*Math.cos(pitch));
+  pitch=Math.max(-.8,Math.min(.5,pitch));yaw=Math.max(-1.1,Math.min(1.1,yaw));const yw=body.yaw+yaw;dir=new B.Vector3(Math.sin(yw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yw)*Math.cos(pitch));
   let done=0,acc=0;for(const [name,share] of [['Neck',.35],['Head',.65]]){const b=fig.bones[name];acc+=share;const goal=acc*w,frac=done>=1?0:Math.max(0,Math.min(1,(goal-done)/(1-done)));done=goal;if(!frac)continue;
    refresh(h);const fwd=B.Vector3.TransformNormal(B.Axis.Z,h.getWorldMatrix()).normalize();aimDir(b,fwd,dir,frac);}}
  // Lean the chest toward a point (a friend leaning into a selfie).
- function lean(fig,toward,w){const s=fig.bones.Spine2;if(!s)return;refresh(s);const up=B.Vector3.TransformNormal(B.Axis.Y,s.getWorldMatrix()).normalize(),side=toward.subtract(P(s));side.y=0;if(side.lengthSquared()<1e-6)return;side.normalize();aimDir(s,up,up.add(side.scale(.22)),w);}
+ function lean(fig,toward,w,k=.22){const s=fig.bones.Spine2;if(!s)return;refresh(s);const up=B.Vector3.TransformNormal(B.Axis.Y,s.getWorldMatrix()).normalize(),side=toward.subtract(P(s));side.y=0;if(side.lengthSquared()<1e-6)return;side.normalize();aimDir(s,up,up.add(side.scale(k)),w);}
  function bodyFrame(node){const m=node.getWorldMatrix(),f=B.Vector3.TransformNormal(B.Axis.Z,m);f.y=0;f.normalize();return {fwd:f,yaw:Math.atan2(f.x,f.z)};}
+ // A rotation from three axes (Babylon: X right, Y up, Z forward).
+ function basis(x,y,z,out){B.Quaternion.RotationQuaternionFromAxisToRef(x,y,z,out);return out;}
  // ---- people ----
  function agentFor(f){let a=agents.get(f);if(a!==undefined)return a;const node=f.node;if(!node||isCompanion(node)){agents.set(f,null);return null;}
   const m=metaOf(node),extra=tagged.get(node)||m.npcDevice||{},kind=extra.kind||kindOf(m);if(!kind){agents.set(f,null);return null;}
@@ -177,7 +196,7 @@
   agents.set(f,a);return a;}
  function figOf(a){if(a.fig===undefined)a.fig=bonesOf(a.node)?{bones:bonesOf(a.node)}:null;return a.fig;}
  function listAgents(){const out=[];for(const f of root.VoidCrowd?.figures?.()||[]){const a=agentFor(f);if(a&&!a.node.isDisposed())out.push(a);}for(const [f,a] of agents)if(a&&(a.node.isDisposed()||!root.VoidCrowd.figures().has(f))){drop(a);agents.delete(f);sched.forget(a.id);}return out;}
- function drop(a){if(a.holo){give(a.holoTier,'panel',a.holo);a.holo=null;}if(a.frame){give(a.holoTier,'frame',a.frame);a.frame=null;}}
+ function drop(a){for(const k of ['cuff','emitter','cone','panel','camera','eye'])if(a['m_'+k]){give(a.pieceTier,k,a['m_'+k]);a['m_'+k]=null;}}
  const byKey=new Map();
  // ---- spectacle ----
  function spectacle(ev={}){const list=listAgents().filter(a=>a.kind!=='story'&&a.node.isEnabled()).map(a=>{const p=a.node.getAbsolutePosition();return {id:a.id,x:p.x,z:p.z,tier:a.tier,monk:a.monk};});
@@ -217,50 +236,71 @@
    else{if(a.reacting){a.reacting=null;if(a.restore){a.f.play(a.restore);a.restore=null;}}a.yaw=null;a.off=0;}}
   // the pair-selfie couple face the same way, the friend on the holder's left
   for(const a of list){if(a.pose!=='pair-selfie'||a.role!=='holder'||a.w<=0)continue;const b=list.find(x=>x.id===a.partner);if(!b||b.node.rotationQuaternion||a.node.rotationQuaternion)continue;
-   const pa=a.node.getAbsolutePosition(),pb=b.node.getAbsolutePosition(),dx=pb.x-pa.x,dz=pb.z-pa.z;const face=Math.atan2(dx,dz)+Math.PI/2;   // b to a's left when both face `face`
+   const pa=a.node.getAbsolutePosition(),pb=b.node.getAbsolutePosition(),dx=pb.x-pa.x,dz=pb.z-pa.z;const face=Math.atan2(dx,dz)-Math.PI/2;   // b on a's right when both face `face` (a holds the bracer out to the left)
    for(const x of [a,b]){if(!xform.some(e=>e[0]===x.node))xform.push([x.node,x.node.position.clone(),x.node.rotation.y]);const cur=x.node.rotation.y,dd=Math.atan2(Math.sin(face-cur),Math.cos(face-cur));x.node.rotation.y=cur+dd*Math.min(1,a.w*1.1);}}
   stats.posed=n;
   // flashes
   for(let i=kit.flashes.length-1;i>=0;i--){const s=kit.flashes[i];s.t+=dt;const k=s.t/.16;if(k>=1){s.f.dispose();kit.flashes.splice(i,1);continue;}s.f.scaling.setAll(s.size*Math.sin(Math.PI*Math.min(1,k))*(s.dim?.4:1)+.001);}
-  for(const T of Object.values(kit.src))for(const k of ['panel','frame']){const s=T[k];s.tex.vOffset=(clock*.04)%1;}
-  for(const [tier,T] of Object.entries(kit.src)){const fl=.88+.12*Math.sin(clock*23.7+tier.length)*Math.sin(clock*7.1);T.panel.mat.alpha=TIERS[tier].alpha*fl;T.frame.mat.alpha=TIERS[tier].alpha*1.3*fl;}
+  for(const [t,T] of Object.entries(kit.src))if(TIERS[t])for(const k of ['panel','camera'])T[k].tex.vOffset=(clock*.03)%1;
+  kit.src.eye.mat.alpha=TIERS.v3.alpha*(.75+.25*Math.sin(clock*17.3)*Math.sin(clock*5.9));for(const [tier,T] of Object.entries(kit.src)){if(!TIERS[tier]||TIERS[tier].eye)continue;const fl=.88+.12*Math.sin(clock*23.7+tier.length)*Math.sin(clock*7.1);T.panel.mat.alpha=TIERS[tier].alpha*fl;T.camera.mat.alpha=TIERS[tier].alpha*1.15*fl;}
   stats.ms=performance.now()-t0;}
  function after(){const t0=performance.now();if(!kit)return;
   for(const a of agents.values()){if(!a||!a.pose||a.w<=0)continue;const fig=figOf(a);if(!fig||!a.node.isEnabled()){drop(a);continue;}try{pose(a,fig);}catch(e){console.warn('[VOID npc device]',e);a.fig=null;drop(a);}}
   stats.ms+=performance.now()-t0;}
  const ease=w=>w*w*(3-2*w);
+ // The pieces a person shows while using it: the cuff and its emitter, the cone of light and the panel (reading) or the camera panel (viewfinder).
+ function show(a,kind,on){const key='m_'+kind;if(on){if(a[key]&&a.pieceTier!==a.tier){for(const k of ['cuff','emitter','cone','panel','camera','eye'])if(a['m_'+k]){give(a.pieceTier,k,a['m_'+k]);a['m_'+k]=null;}}a.pieceTier=a.tier;if(!a[key])a[key]=take(a.tier,kind);return a[key];}
+  if(a[key]){give(a.pieceTier,kind,a[key]);a[key]=null;}return null;}
  function pose(a,fig){const w=ease(a.w),body=bodyFrame(a.node),up=B.Axis.Y,h=fig.bones.Head;refresh(h);
-  const side=P(fig.bones.RightArm).subtract(P(fig.bones.LeftArm||fig.bones.Neck));side.y=0;side.normalize();   // toward the person's own right
-  const head0=P(h),eye0=head0.add(up.scale(.09)).add(body.fwd.scale(.07)),pole=up.scale(-1).add(side.scale(.7)).add(body.fwd.scale(-.2));
+  const side=P(fig.bones.RightArm).subtract(P(fig.bones.LeftArm));side.y=0;side.normalize();const left=side.scale(-1);   // `side`: toward the person's own right
+  const head0=P(h),eye0=head0.add(up.scale(.09)).add(body.fwd.scale(.07)),chest=fig.bones.Spine2?P(fig.bones.Spine2):head0.add(up.scale(-.42));
   const tier=a.tier,eyeCam=TIERS[tier].eye,r=a.react,s=a.session||{},partner=a.partner&&[...agents.values()].find(x=>x&&x.id===a.partner);
-  let frameAt=null,frameW=0,panel=false;
-  const subject=()=>{if(r)return new B.Vector3(r.x,r.y,r.z);if(a.pose==='food-photo')return new B.Vector3(eye0.x+body.fwd.x*.55,eye0.y-.75,eye0.z+body.fwd.z*.55);const t=a.extra.target?.();if(t)return t;return eye0.add(body.fwd.scale(4)).add(up.scale(-.1));};
+  const shL=P(fig.bones.LeftArm),armL=B.Vector3.Distance(shL,P(fig.bones.LeftForeArm))+B.Vector3.Distance(P(fig.bones.LeftForeArm),P(fig.bones.LeftHand));
+  const subject=()=>{if(r)return new B.Vector3(r.x,r.y,r.z);if(a.pose==='food-photo')return new B.Vector3(eye0.x+body.fwd.x*.6,eye0.y-.8,eye0.z+body.fwd.z*.6);const t=a.extra.target?.();if(t)return t;return eye0.add(body.fwd.scale(4)).add(up.scale(-.1));};
+  if(eyeCam){   // V3 // SHADOW: streamed into the eye. One eye glows faintly; no arm moves; at most a slight tilt of the head or a stare at the subject
+   for(const k of ['cuff','emitter','cone','panel','camera'])show(a,k,false);
+   if(a.pose==='scroll')lookAt(fig,eye0.add(body.fwd.scale(1.2)).add(up.scale(-.35)),w*.45,body);else if(a.pose!=='watch')lookAt(fig,subject(),w*.6,body);
+   refresh(h);const hm=h.getWorldMatrix(),gl=P(h).add(B.Vector3.TransformNormal(up,hm).normalize().scale(.085)).add(B.Vector3.TransformNormal(B.Axis.Z,hm).normalize().scale(.095)).add(side.scale(.031));
+   if(a.pose==='watch')show(a,'eye',false);else{const g=show(a,'eye',true);g.position.copyFrom(gl);g.scaling.setAll(.022*w+.001);}
+   for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)){(a.flashed=a.flashed||[]).push(t);spark(gl,.02,true);}
+   if(!a.session)a.flashed=null;return;}
+  let panel=null,cam=false,cuff=true,lift=.12;   // panel: where the hologram stands; cam: the viewfinder rather than the reading panel; lift: how high above the emitter
+  const poleL=left.add(up.scale(-.45)).add(body.fwd.scale(-.15));
   switch(a.pose){
-   case 'scroll':{a.swipe+=1/60;const sw=Math.max(0,Math.sin(a.swipe*1.3))**8;
-    lookAt(fig,eye0.add(body.fwd.scale(.35)).add(up.scale(-.13)),w,body);
-    if(!a.moving||a.kind!=='walker'||true)reach(fig,eye0.add(body.fwd.scale(.27)).add(up.scale(-.3+sw*.04)).add(side.scale(.11+sw*.06)),pole,w*(a.moving?.8:1));
-    panel=true;break;}
-   case 'watch':{lookAt(fig,subject(),w,body);break;}
-   case 'photo':case 'film':case 'food-photo':{const S=subject();
-    if(eyeCam){lookAt(fig,S,w,body);reach(fig,eye0.add(side.scale(.09)).add(body.fwd.scale(.02)).add(up.scale(-.02)),pole,w*.9);break;}
-    const sh=P(fig.bones.RightArm),dir=S.subtract(sh).normalize(),L=B.Vector3.Distance(sh,P(fig.bones.RightForeArm))+B.Vector3.Distance(P(fig.bones.RightForeArm),P(fig.bones.RightHand));
-    const T=sh.add(dir.scale(L*(a.pose==='food-photo'?.78:.84))).add(side.scale(-.05));reach(fig,T,pole,w);lookAt(fig,S,w,body);frameAt=true;frameW=w;break;}
-   case 'selfie':{const T=head0.add(body.fwd.scale(.42)).add(up.scale(.2)).add(side.scale(.16));reach(fig,T,pole,w);refresh(h);lookAt(fig,P(fig.bones.RightHand).add(up.scale(.06)),w,body);frameAt=true;frameW=w;break;}
+   case 'scroll':{   // the left forearm across the chest, the panel rising from the bracer toward the face, the head down to it; the right hand swipes now and then
+    reach(fig,'Left',chest.add(body.fwd.scale(.33)).add(up.scale(.02)).add(side.scale(.07)),left.add(up.scale(-.25)),w,up.scale(.15));
+    panel='read';a.swipe+=1/60;const sw=Math.max(0,Math.sin(a.swipe*.9))**10;
+    if(sw>.02&&!a.moving)reach(fig,'Right',chest.add(body.fwd.scale(.36)).add(up.scale(.2)).add(side.scale(.02+sw*.06)),side.add(up.scale(-.6)),w*sw*.85,up.scale(.3));
+    break;}
+   case 'watch':{cuff=false;lookAt(fig,subject(),w,body);break;}
+   case 'photo':case 'film':case 'food-photo':{const S=subject();const dir=S.subtract(shL).normalize();reach(fig,'Left',shL.add(dir.scale(armL*(a.pose==='food-photo'?.8:.9))).add(side.scale(.06)),poleL,w,up.scale(.5));panel='cam';cam=true;lift=.11;break;}
+   case 'selfie':{   // the arm out to the front-left, the panel turned back to the face; the right hand up by the face (a peace sign, as near as a rig without finger poses gets)
+    const out=body.fwd.scale(.62).add(left.scale(.42)).add(up.scale(.32)).normalize();reach(fig,'Left',shL.add(out.scale(armL*.93)),poleL,w,up.scale(.4));
+    reach(fig,'Right',head0.add(side.scale(.13)).add(body.fwd.scale(.13)).add(up.scale(-.02)),side.add(up.scale(-.9)),w*.9,up.scale(.6));panel='cam';cam=true;lift=.1;break;}
    case 'pair-selfie':{const pf=partner&&figOf(partner),ph=pf?P(pf.bones.Head):null;
-    if(a.role==='friend'){const hold=pf?.bones.RightHand;if(ph)lean(fig,ph,w);lookAt(fig,hold?P(hold).add(up.scale(.06)):eye0.add(body.fwd.scale(.5)),w,body);break;}
-    const mid=ph?head0.add(ph).scale(.5):head0,T=mid.add(body.fwd.scale(.5)).add(up.scale(.18)).add(side.scale(.12));reach(fig,T,pole,w);if(ph)lean(fig,ph,w*.5);refresh(h);lookAt(fig,P(fig.bones.RightHand).add(up.scale(.06)),w,body);frameAt=true;frameW=w;break;}
+    if(a.role==='friend'){if(ph)lean(fig,ph,w,.3);const pc=partner?.m_camera;lookAt(fig,pc?pc.position:eye0.add(body.fwd.scale(.5)),w,body);cuff=false;break;}
+    const mid=ph?head0.add(ph).scale(.5):head0,T=mid.add(body.fwd.scale(.55)).add(left.scale(.12)).add(up.scale(.2));reach(fig,'Left',T,poleL,w,up.scale(.4));if(ph)lean(fig,ph,w*.5);panel='cam';cam=true;lift=.1;break;}
   }
-  refresh(h);
-  // the hologram in front of the face, following the head
-  if(panel){if(!a.holo||a.holoTier!==tier){drop(a);a.holoTier=tier;a.holo=take(tier,'panel');}const hm=h.getWorldMatrix(),hp=P(h),fwd=B.Vector3.TransformNormal(B.Axis.Z,hm).normalize(),eye=hp.add(up.scale(.09)).add(fwd.scale(.07));
-   const at=eye.add(fwd.scale(.33)).add(up.scale(-.03));a.holo.position.copyFrom(at);a.holo.lookAt(eye.add(at.subtract(eye).scale(2)));a.holo.scaling.set(.35+.65*w,w,1);}
-  else if(a.holo){give(a.holoTier,'panel',a.holo);a.holo=null;}
-  // the frame at the outstretched hand, square to the line from the eye
-  if(frameAt){if(!a.frame||a.holoTier!==tier){drop(a);a.holoTier=tier;a.frame=take(tier,'frame');}const hb=fig.bones.RightHand,mid=fig.bones.RightHandMiddle1;refresh(mid||hb);const wp=P(hb),fp=mid?P(mid):wp,along=fp.subtract(wp);
-   const hp=P(h),eye=hp.add(up.scale(.09)),at=wp.add(along.normalize().scale(.13)).add(up.scale(.05));a.frame.position.copyFrom(at);a.frame.lookAt(at.add(at.subtract(eye)));a.frame.scaling.set(frameW,frameW,1);
-   for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)&&frameW>.8){(a.flashed=a.flashed||[]).push(t);spark(at,.07,tier==='v2');}
-   if(r&&r.mode==='film'&&Math.random()<.003)spark(at,.05,true);}
-  else if(a.frame){give(a.holoTier,'frame',a.frame);a.frame=null;}
+  // the bracer on the left forearm, near the wrist; its emitter on the side facing the panel
+  const fL=fig.bones.LeftForeArm,hL=fig.bones.LeftHand;refresh(hL);const elbow=P(fL),wrist=P(hL),axis=wrist.subtract(elbow).normalize(),at=elbow.add(wrist.subtract(elbow).scale(.78));
+  if(cuff){const c=show(a,'cuff',true);c.position.copyFrom(at);c.rotationQuaternion=c.rotationQuaternion||new B.Quaternion();let x=B.Vector3.Cross(axis,up);if(x.lengthSquared()<1e-4)x=side.clone();x.normalize();basis(x,axis,B.Vector3.Cross(x,axis),c.rotationQuaternion);c.scaling.setAll(Math.min(1,.6+w));}
+  else show(a,'cuff',false);
+  refresh(h);const hm=h.getWorldMatrix(),eye=P(h).add(B.Vector3.TransformNormal(up,hm).normalize().scale(.09)).add(B.Vector3.TransformNormal(B.Axis.Z,hm).normalize().scale(.07));
+  if(cuff&&panel){
+   // the emitter: on top of the bracer (the side toward the panel's rise)
+   let n=up.subtract(axis.scale(B.Vector3.Dot(up,axis)));if(n.lengthSquared()<1e-4)n=eye.subtract(at);n.normalize();const em=at.add(n.scale(.047));
+   const e=show(a,'emitter',true);e.position.copyFrom(em);e.rotationQuaternion=e.rotationQuaternion||new B.Quaternion();basis(B.Vector3.Cross(n,axis).normalize(),n,axis,e.rotationQuaternion);e.scaling.setAll(w);
+   // the panel above the emitter, a little toward the eye, square to the line from the eye; it unfolds with the pose
+   const toEye=eye.subtract(em);toEye.y=0;const pc=em.add(up.scale(lift+.06)).add(toEye.normalize().scale(cam?0:.04));const z=pc.subtract(eye).normalize();let px=B.Vector3.Cross(up,z);if(px.lengthSquared()<1e-4)px=side.clone();px.normalize();const py=B.Vector3.Cross(z,px);
+   const pw=cam?.15:.2,k=.25+.75*w,pm=show(a,cam?'camera':'panel',true);show(a,cam?'panel':'camera',false);pm.position.copyFrom(pc);pm.rotationQuaternion=pm.rotationQuaternion||new B.Quaternion();basis(px,py,z,pm.rotationQuaternion);pm.scaling.set(pw*k,pw*w,1);
+   // the faint cone of light from the emitter to the panel's lower edge
+   const base=pc.subtract(py.scale(pw*.72*w*.5)),dir=base.subtract(em),len=dir.length();if(len>.01){const cy=dir.scale(1/len),cx=px.subtract(cy.scale(B.Vector3.Dot(px,cy))).normalize(),cz=B.Vector3.Cross(cx,cy);
+    const cn=show(a,'cone',true);cn.position.copyFrom(em);cn.rotationQuaternion=cn.rotationQuaternion||new B.Quaternion();basis(cx,cy,cz,cn.rotationQuaternion);cn.scaling.set(pw*k*.7,len,.02+.01*w);}
+   // the reader looks down at it; a camera user at the subject through it (the viewfinder is in line); a selfie at the panel
+   if(a.pose==='scroll')lookAt(fig,pc,w,body);else if(a.pose==='selfie'||a.pose==='pair-selfie')lookAt(fig,pc,w,body);else lookAt(fig,pc.add(pc.subtract(eye).normalize().scale(2)),w,body);
+   for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)&&w>.8){(a.flashed=a.flashed||[]).push(t);spark(pc,.08,tier==='v3');}
+   if(r&&r.mode==='film'&&Math.random()<.003)spark(pc,.05,true);}
+  else for(const k of ['emitter','cone','panel','camera'])show(a,k,false);
   if(eyeCam&&PHOTO.has(a.pose))for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)){(a.flashed=a.flashed||[]).push(t);spark(eye0.add(side.scale(.035)),.012,true);}
   if(!a.session)a.flashed=null;
  }
@@ -292,7 +332,7 @@
  function stopArgument(){if(!staged)return;try{scene.onBeforeRenderObservable.remove(staged.obs);}catch{}for(const m of staged.made){try{m.anim?.dispose?.();m.node.dispose();}catch{}}staged=null;}
  const api={...pure,tag,enlist,spectacle,stageArgument,stopArgument,reactionOf,holds,pace,sessionOf,
   stats:()=>({...stats,poses:{...stats.poses},tiers:{...stats.tiers},staged:staged?{x:staged.x,z:staged.z,t:staged.t}:null}),
-  agents:()=>[...agents.values()].filter(Boolean).map(a=>({id:a.id,key:a.key,kind:a.kind,tier:a.tier,monk:a.monk,pose:a.pose,w:a.w,visible:a.visible,d:a.d,react:a.react?a.react.mode:null,session:a.session?a.session.pose:null,holo:!!a.holo,frame:!!a.frame,node:a.node})),
+  agents:()=>[...agents.values()].filter(Boolean).map(a=>({id:a.id,key:a.key,kind:a.kind,tier:a.tier,monk:a.monk,pose:a.pose,w:a.w,visible:a.visible,d:a.d,react:a.react?a.react.mode:null,session:a.session?a.session.pose:null,holo:!!a.m_panel,frame:!!a.m_camera,cuff:!!a.m_cuff,eye:!!a.m_eye,node:a.node})),
   scheduler:sched,reactor,get scene(){return scene;}};
  root.VoidNPCDevice=api;
  root.VoidCrowdReact={spectacle,stageArgument,stopArgument,reactionOf,holds,pace,tag,get active(){return reactor.active;}};

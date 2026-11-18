@@ -8,7 +8,8 @@ test('tiers: data wins, otherwise mostly V1, some V2, rare V3 // Shadow',()=>{
  const c={v1:0,v2:0,v3:0};for(let i=0;i<20000;i++)c[D.tierFor('night-'+i)]++;
  assert.ok(c.v1/20000>.66&&c.v1/20000<.78,'V1 most '+c.v1);assert.ok(c.v2/20000>.18&&c.v2/20000<.28,'V2 some '+c.v2);assert.ok(c.v3/20000>.03&&c.v3/20000<.07,'V3 rare '+c.v3);
  assert.equal(D.tierFor('night-7'),D.tierFor('night-7'),'stable for a seed');
- assert.ok(D.TIERS.v3.alpha<D.TIERS.v1.alpha/3,'the Shadow hologram is nearly invisible');assert.equal(D.TIERS.v1.color,'#61eee9');
+ assert.equal(D.TIERS.v3.eye,true,'the V3 // Shadow streams into the eye');assert.equal(D.TIERS.v3.color,'#46ff7a');assert.equal(D.TIERS.v1.color,'#61eee9');
+ assert.equal(D.TIERS.v2.color,D.V2_PLACEHOLDER_COLOR);assert.ok(D.TIERS.v2.placeholder&&D.TIERS.v2.color!==D.TIERS.v1.color,'V2: a different placeholder colour until the owner designs it');
 });
 
 test('street walkers: 10-20% use their V1 at a time, for 5-15 s',()=>{
