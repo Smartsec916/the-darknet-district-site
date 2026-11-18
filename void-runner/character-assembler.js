@@ -72,7 +72,7 @@
    const look=CAT.looks[a.look];await ensureLook(look.model,scene);if(disposed)return null;
    const holder=new B.TransformNode('character:'+a.look,scene);holder.parent=parent;
    const made=root.VoidAssets.instance('crowd:'+look.model,holder);if(!made){holder.dispose();throw Error('model not available');}
-   const bind=await bindData();made.scaling.setAll(A.heightScale(look.base,bind.bodies[look.model].topY));   // ONE uniform scale: standard height, never a stretch
+   const topY=look.street?look.topY:(await bindData()).bodies[look.model].topY;made.scaling.setAll(A.heightScale(look.base,topY));   // ONE uniform scale: standard height, never a stretch (a street figure's own height is in the catalog)
    const s={look:a.look,lookDef:look,model:look.model,holder,node:made,made,ctrl:root.VoidCrowd.animate(made,look.model,clip),hairMesh:null,tinted:new Map(),hair:null};
    return s;
   }
@@ -111,6 +111,8 @@
     const s=await makeLook();if(!s)return;if(my!==seq||disposed){destroy(s);return;}st=s;
    }
    const s=st,look=s.lookDef,CATH=CAT.hair;
+   // A street figure (NPC upgrade, 18 Nov 2026) is one mesh: its outfit's colour version, or the chosen clothing colour on its clothes (never the skin), in the shader (npc-variants.js).
+   if(look.street){const V=root.VoidNPCVariants,cc=a.clothingColor&&CAT.clothingColors.find(c=>c.id===a.clothingColor);V?.apply?.(s.made,look.model,cc?V.colour(cc):(look.variant||'orig'));return;}
    faceDetail(s);
    // accessories (meshes that belong to the look): shown only when chosen
    // the gear visor replaces the outfit's own eyewear, and the gear collar its own collar (they would sit in the same place)

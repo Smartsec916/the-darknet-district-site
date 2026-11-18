@@ -93,7 +93,8 @@
   // A player with a saved creator look (ids already checked by the hub, checked again here) is built by the assembler; anyone else uses the plain crowd model.
   if(p.appearance&&root.VoidCharacterAssembler&&root.VoidCharacterAppearance?.validate(p.appearance)){
    const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene);mark(parent,p);p.node=parent;p.tag=makeTag(scene,parent,p.name);parent.position.set(p.x,floorY(),p.z);parent.rotation.y=p.yaw;p.shownClip=p.clip||'idle';
-   root.VoidCharacterAssembler.build(p.appearance,parent,{scene,clip:p.shownClip}).then(ch=>{if(peers.get(p.id)!==p||parent.isDisposed()){ch.dispose();return;}p.ctrl=ch;p.char=ch;})
+   const VA=root.VoidCharacterAppearance,shownLook=VA.migrate?VA.migrate(p.appearance):p.appearance;   /* a look saved before the street figures (18 Nov 2026), from an older hub: shown as the figure that replaced it */
+   root.VoidCharacterAssembler.build(shownLook,parent,{scene,clip:p.shownClip}).then(ch=>{if(peers.get(p.id)!==p||parent.isDisposed()){ch.dispose();return;}p.ctrl=ch;p.char=ch;})
     .catch(()=>{if(peers.get(p.id)===p){p.appearance=null;parent.dispose();p.node=null;}});   // could not build it: fall back to the plain crowd model
    return true;
   }
@@ -133,7 +134,7 @@
   else if(m.t==='join')upsert(m.peer);
   else if(m.t==='state'){if(peers.has(m.id)){const {dev,devPose,...was}=peers.get(m.id);upsert({...was,...m});}}   // a position never carries the device: it keeps what the last dev message said
   else if(m.t==='look'){const p=peers.get(m.id),VA=root.VoidCharacterAppearance;if(p){const ok=!!VA&&VA.validate(m.appearance);p.appearance=ok?VA.normalize(m.appearance):null;p.model=ok?VA.CATALOG.looks[p.appearance.look].model:(['district-smuggler','district-resident'].includes(m.model)?m.model:p.model);
-   if(p.char&&p.appearance&&root.VoidCharacterAppearance?.validate(p.appearance))p.char.set(p.appearance).catch(()=>{});
+   if(p.char&&p.appearance&&root.VoidCharacterAppearance?.validate(p.appearance))p.char.set(root.VoidCharacterAppearance.migrate?root.VoidCharacterAppearance.migrate(p.appearance):p.appearance).catch(()=>{});
    else{p.ctrl?.dispose?.();p.ctrl=p.char=null;p.node?.dispose?.();p.node=null;place(p);}}}
   else if(m.t==='eye'){const p=peers.get(m.id);if(p)p.eye=!!m.on;}
   else if(m.t==='dev'){const p=peers.get(m.id);if(p){const d=theirDevice(m);p.dev=d.dev;p.devPose=d.pose;}}   // that player opened or closed their device (model, read or cam: never what is on it)   // that player is (or is no longer) using a V3 // Shadow: their left eye glows green (street-gear.js)

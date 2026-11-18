@@ -54,7 +54,9 @@
     "gender": "male",
     "model": "district-smuggler"
    },
-   "body": "district_smuggler.body"
+   "body": "district_smuggler.body",
+   "retired": true,
+   "replacedBy": "street-casual-m"
   },
   "hacker-01": {
    "base": "male",
@@ -86,7 +88,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "hacker_01.body"
+   "body": "hacker_01.body",
+   "retired": true,
+   "replacedBy": "street-hacker"
   },
   "regular-01": {
    "base": "male",
@@ -120,7 +124,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "regular_01.body"
+   "body": "regular_01.body",
+   "retired": true,
+   "replacedBy": "street-office-m"
   },
   "vesper-trader": {
    "base": "male",
@@ -155,7 +161,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "vesper_trader.body"
+   "body": "vesper_trader.body",
+   "retired": true,
+   "replacedBy": "street-office-m-warm"
   },
   "district-resident": {
    "base": "female",
@@ -194,7 +202,9 @@
     "gender": "female",
     "model": "district-resident"
    },
-   "body": "district_resident.body"
+   "body": "district_resident.body",
+   "retired": true,
+   "replacedBy": "street-casual-f"
   },
   "ncz-neon": {
    "base": "female",
@@ -226,7 +236,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "ncz_neon.body"
+   "body": "ncz_neon.body",
+   "retired": true,
+   "replacedBy": "street-casual-f-wine"
   },
   "fixer-01": {
    "base": "female",
@@ -258,7 +270,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "fixer_01.body"
+   "body": "fixer_01.body",
+   "retired": true,
+   "replacedBy": "street-office-f"
   },
   "outlaw-01": {
    "base": "male",
@@ -287,7 +301,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "outlaw_01.body"
+   "body": "outlaw_01.body",
+   "retired": true,
+   "replacedBy": "street-casual-m-olive"
   },
   "cyborg-01": {
    "base": "male",
@@ -321,7 +337,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "cyborg_01.body"
+   "body": "cyborg_01.body",
+   "retired": true,
+   "replacedBy": "street-hacker-navy"
   },
   "vesper-pilot": {
    "base": "female",
@@ -353,7 +371,9 @@
     "long01",
     "ponytail01"
    ],
-   "body": "vesper_pilot.body"
+   "body": "vesper_pilot.body",
+   "retired": true,
+   "replacedBy": "street-merc"
   },
   "meridian-bartender": {
    "base": "female",
@@ -385,7 +405,207 @@
     "long01",
     "ponytail01"
    ],
-   "body": "meridian_bartender.body"
+   "body": "meridian_bartender.body",
+   "retired": true,
+   "replacedBy": "street-office-f-navy"
+  },
+  "street-casual-f": {
+   "base": "female",
+   "model": "npc-casual-f",
+   "label": "CASUAL · BLACK",
+   "street": true,
+   "variant": "orig",
+   "topY": 1.69,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-casual-f-classic": {
+   "base": "female",
+   "model": "npc-casual-f",
+   "label": "CASUAL · GREY TEE, BLUE JEANS",
+   "street": true,
+   "variant": "classic",
+   "topY": 1.69,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-casual-f-wine": {
+   "base": "female",
+   "model": "npc-casual-f",
+   "label": "CASUAL · WINE",
+   "street": true,
+   "variant": "wine",
+   "topY": 1.69,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-office-f": {
+   "base": "female",
+   "model": "npc-office-f",
+   "label": "NIGHT SHIFT",
+   "street": true,
+   "variant": "orig",
+   "topY": 1.68,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-office-f-navy": {
+   "base": "female",
+   "model": "npc-office-f",
+   "label": "NIGHT SHIFT · NAVY",
+   "street": true,
+   "variant": "navy",
+   "topY": 1.68,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-office-f-warm": {
+   "base": "female",
+   "model": "npc-office-f",
+   "label": "NIGHT SHIFT · UMBER",
+   "street": true,
+   "variant": "warm",
+   "topY": 1.68,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-merc": {
+   "base": "female",
+   "model": "npc-merc",
+   "label": "MERCENARY",
+   "street": true,
+   "variant": "orig",
+   "topY": 1.72,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-merc-slate": {
+   "base": "female",
+   "model": "npc-merc",
+   "label": "MERCENARY · ASH",
+   "street": true,
+   "variant": "slate",
+   "topY": 1.72,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-merc-warm": {
+   "base": "female",
+   "model": "npc-merc",
+   "label": "MERCENARY · DESERT",
+   "street": true,
+   "variant": "warm",
+   "topY": 1.72,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-casual-m": {
+   "base": "male",
+   "model": "npc-casual-m",
+   "label": "CASUAL · BLACK",
+   "street": true,
+   "variant": "orig",
+   "topY": 1.8,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-casual-m-classic": {
+   "base": "male",
+   "model": "npc-casual-m",
+   "label": "CASUAL · GREY TEE, BLUE JEANS",
+   "street": true,
+   "variant": "classic",
+   "topY": 1.8,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-casual-m-olive": {
+   "base": "male",
+   "model": "npc-casual-m",
+   "label": "CASUAL · OLIVE",
+   "street": true,
+   "variant": "olive",
+   "topY": 1.8,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-office-m": {
+   "base": "male",
+   "model": "npc-office-m",
+   "label": "OFFICE",
+   "street": true,
+   "variant": "orig",
+   "topY": 1.8,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-office-m-slate": {
+   "base": "male",
+   "model": "npc-office-m",
+   "label": "OFFICE · ASH",
+   "street": true,
+   "variant": "slate",
+   "topY": 1.8,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-office-m-warm": {
+   "base": "male",
+   "model": "npc-office-m",
+   "label": "OFFICE · UMBER",
+   "street": true,
+   "variant": "warm",
+   "topY": 1.8,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-hacker": {
+   "base": "male",
+   "model": "npc-hacker",
+   "label": "NETRUNNER",
+   "street": true,
+   "variant": "orig",
+   "topY": 1.76,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-hacker-olive": {
+   "base": "male",
+   "model": "npc-hacker",
+   "label": "NETRUNNER · OLIVE",
+   "street": true,
+   "variant": "olive",
+   "topY": 1.76,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-hacker-navy": {
+   "base": "male",
+   "model": "npc-hacker",
+   "label": "NETRUNNER · NAVY",
+   "street": true,
+   "variant": "navy",
+   "topY": 1.76,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
   }
  },
  "accessories": {
@@ -588,5 +808,6 @@
    }
   ],
   "status": "needs-export"
- }
+ },
+ "streetNote": "Looks with \"street\": true are the Meshy street figures (NPC upgrade, 18 Nov 2026; void-runner/crowd.js street): one skinned mesh each, so hair and extras are their own (hair 'native', no hair colour, no accessories) and the outfit's colour variant (npc-variants.js) is the look's `variant`; a clothing colour re-colours the clothes in the shader, never the skin. topY: the figure's own height (m) for the uniform scale to the base's standard height. Looks with \"retired\": true were the creator's figures before; they stay valid (named characters such as Juno Vex and old saves) but are never offered, and a player's saved look moves to `replacedBy` (character-appearance.js migrate; void_runner_api.py clean_appearance)."
 }

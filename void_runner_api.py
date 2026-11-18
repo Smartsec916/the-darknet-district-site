@@ -144,6 +144,8 @@ def clean_appearance(value):
     look = cat['looks'][value['look']]
     if look['base'] != value['base']:
         bad()
+    if look.get('street') and (value['hair'] != 'native' or value['hairColor'] is not None):
+        bad()   # a street figure (NPC upgrade, 18 Nov 2026) is one mesh: its own hair, no hair colour
     hair = value['hair']
     if hair not in ('native', 'none') and not (ident(hair) and hair in cat['hair'] and hair in look['hairOk']):
         bad()
@@ -160,6 +162,18 @@ def clean_appearance(value):
         bad()
     return {'v': 1, 'base': value['base'], 'look': value['look'], 'hair': hair, 'hairColor': value['hairColor'],
             'clothingColor': value['clothingColor'], 'accessories': list(acc)}
+
+
+def migrate_appearance(value):
+    """A player's saved look from before the street figures (18 Nov 2026): stored looks are never rewritten and a retired look stays valid; the game moves it on load (and the hub when showing it). For server-side tools, the same rule: it moves to its `replacedBy` (same body), keeping the clothing colour; the old
+    figure's hairstyle, hair colour and extras do not exist on the new one. Mirrors migrate() in void-runner/character-appearance.js."""
+    look = APPEARANCE_CATALOG['looks'].get(value.get('look')) or {}
+    to = look.get('replacedBy') if look.get('retired') else None
+    new = APPEARANCE_CATALOG['looks'].get(to) if to else None
+    if not new or new['base'] != value.get('base'):
+        return value
+    return {'v': 1, 'base': value['base'], 'look': to, 'hair': 'native', 'hairColor': None, 'clothingColor': value.get('clothingColor'),
+            'accessories': list(new.get('defaultAccessories', []))}
 
 
 def inventory(db, uid):

@@ -13,7 +13,11 @@ const PACKED=0x4b505256,SEALED=0x45505256,PAGES_LIMIT=1024**3;
 
 // Published by Pages (as Jekyll did): no part of the path starts with "." or "_", and not exports/. Also not docs/ or tests/ (17 Nov 2026):
 // development notes, screenshots and test scripts are not part of the site (no page loads them) and pushed the site over GitHub Pages' 1 GB limit.
-const publishable=f=>!f.split('/').some(p=>p.startsWith('.')||p.startsWith('_'))&&!/^(exports|docs|tests)\//.test(f);
+// Also not tools/ (build and pipeline sources, except SITE_TOOLS) or static/ (the Flask mirror the Render backend serves from its own checkout: server.py static_folder) (18 Nov 2026, the
+// owner: "Yes take them off the live site"; no page links into any of them). They stay in the repository.
+// The one file under tools/ a page reads: the voice registry the mission editor (Developer Tools) loads.
+const SITE_TOOLS=new Set(['tools/audio/npc-voice-registry.json']);
+const publishable=f=>!f.split('/').some(p=>p.startsWith('.')||p.startsWith('_'))&&!/^(exports|docs|tests|static)\//.test(f)&&(!f.startsWith('tools/')||SITE_TOOLS.has(f));
 
 // The .vrpak scramble (tools/assets/pack-model.cjs), undone.
 function unscramble(buf){

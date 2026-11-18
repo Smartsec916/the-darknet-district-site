@@ -1,0 +1,56 @@
+{
+ "name": "npc-vendor",
+ "source": "Street vendor (F, 60s): layered shawls, apron of trinkets, umbrella hat. Concept #14 of the 18 Nov 2026 NPC upgrade (Meshy text-to-image, nano-banana-pro, approved by the owner), then Meshy image-to-3d, remesh 30k and auto-rig on the owner's Meshy account, 18 Nov 2026; prepared by prepare_meshy.py",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "output_unwrapped": {
+   "name": "body",
+   "maxTris": 32000
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk-game",
+  "look",
+  "watch",
+  "sit",
+  "smoke",
+  "drink",
+  "laugh",
+  "shrug",
+  "hk-sit-enter",
+  "hk-sit-exit",
+  "hk-sit-talk",
+  "hk-interact",
+  "nz-drunk-walk",
+  "nz-drunk-idle",
+  "nz-drunk-sway",
+  "dr-dance"
+ ]
+}

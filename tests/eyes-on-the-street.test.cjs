@@ -182,7 +182,7 @@ test('NULL: the cast per quality (the owner\'s table); Juno Vex and Halden Reyes
  const h=NC.HALDEN,d=Math.hypot(h.x-j.x,h.z-j.z);assert.equal(A.validate(h.appearance),true);assert.equal(h.appearance.base,'male');assert.equal(h.appearance.look,'vesper-trader');assert.deepEqual(h.appearance.accessories,[]);
  assert.ok(d>=.6&&d<=.9,'close together: '+d);const facing=(yaw,fx,fz,tx,tz)=>Math.cos(yaw-Math.atan2(tx-fx,tz-fz));assert.ok(facing(h.yaw,h.x,h.z,j.x,j.z)>.9,'he faces her');assert.ok(facing(j.yaw,j.x,j.z,h.x,h.z)>.8,'she is turned toward him');
  assert.ok(h.cloth.every(c=>c<.6),'his suit is darker than the kit colour');assert.ok(!/CAST=\[[^\]]*'vesper-trader'/.test(src),'nobody in the crowd wears his look');
- assert.match(src,/spot\('bartender'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-a'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-b'[^;]*\{plain:true\}\)/);assert.match(src,/SUITED=\['district-smuggler','vesper-trader'\]/);
+ assert.match(src,/spot\('bartender'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-a'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-b'[^;]*\{plain:true\}\)/);assert.match(src,/SUITED=\[[^\]]*'district-smuggler','vesper-trader'\]/);assert.match(src,/SUITED=\['npc-fixer','npc-office-m',/,'the street figures in suits (NPC upgrade) are kept from the plain spots too');
  assert.ok(NC.BEATS.some(b=>b[0]==='device')&&NC.BEATS.some(b=>b[0]==='talk'&&b[1]!=='talk')&&NC.BEATS.some(b=>b[1]==='talk'),'they take turns talking, and she still checks her device');
 });
 test('several people in one photo: the editor keeps them in `subjects`, the check accepts them, the draft runs them',()=>{

@@ -35,8 +35,8 @@
   {id:'rin-takeda',own:'npc-rin',achievements:[['district-first-visit','2026-06-30']],crew:'crew-bar1',look:'district-resident',name:'Rin Takeda',jobs:['influencer'],area:'interior',place:'The bar and oxygen lounge',bio:'Usually at the bar.'},
   {id:'jonah-pike',own:'npc-jonah',achievements:[['district-first-visit','2026-03-08'],['rook-three-runs','2026-08-15']],crew:'crew-bar2',look:'outlaw-01',name:'Jonah Pike',jobs:['smuggler'],area:'interior',place:'The bar and oxygen lounge',bio:'Keeps to the back of the lounge.'},
   {id:'sable-quon',own:'npc-sable',achievements:[['district-first-visit','2026-05-21'],['blackout-score','2026-09-03']],crew:'crew-vr-watch',look:'hacker-01',name:'Sable Quon',jobs:['influencer','hacker'],area:'interior',place:'VR play area',bio:'Watches the VR booths.'},
-  {id:'cade-moreno',achievements:[['district-first-visit','2026-04-17'],['blackout-score','2026-07-29']],crew:'vr-player-a',look:'vr-player-a',name:'Cade Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
-  {id:'lumi-ashby',achievements:[['district-first-visit','2026-07-06'],['tropical-100-fish','2026-10-28']],crew:'vr-player-b',look:'vr-player-b',name:'Lumi Ashby',jobs:['dancer','influencer'],area:'interior',place:'VR play area, booth two',bio:'In the social booth: dancing, eating, talking to someone only they can see.'},
+  {id:'cade-moreno',achievements:[['district-first-visit','2026-04-17'],['blackout-score','2026-07-29']],crew:'vr-player-a',look:'vr-player-a',figure:'npc-security',name:'Cade Moreno',jobs:['mercenary','vr-athlete'],area:'interior',place:'VR play area, booth one',bio:'In the shooter booth most nights.'},
+  {id:'lumi-ashby',achievements:[['district-first-visit','2026-07-06'],['tropical-100-fish','2026-10-28']],crew:'vr-player-b',look:'vr-player-b',figure:'npc-club-f',name:'Lumi Ashby',jobs:['dancer','influencer'],area:'interior',place:'VR play area, booth two',bio:'In the social booth: dancing, eating, talking to someone only they can see.'},
   {id:'kei-navarro',own:'npc-kei',achievements:[['district-first-visit','2026-08-01']],crew:'crew-hall-talk1',look:'district-smuggler',name:'Kei Navarro',jobs:['courier'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
   {id:'mags-oduya',own:'npc-mags',achievements:[['district-first-visit','2026-02-27']],crew:'crew-hall-talk2',look:'district-resident',name:'Mags Oduya',jobs:['mechanic'],area:'interior',place:'The hallway',bio:'Talking in the hallway.'},
   {id:'tavi-rourke',own:'npc-tavi',achievements:[['district-first-visit','2026-09-12']],crew:'crew-hall-talk3',look:'hacker-01',name:'Tavi Rourke',jobs:['influencer'],area:'interior',place:'The hallway',bio:'Hangs about near the bar door.'},
@@ -58,8 +58,8 @@
  const npcs=area=>area?NPCS.filter(n=>n.area===area):NPCS.slice();
  // The fixed look of a named resident's figure, so the same person has the same face on every visit (crowd.js asks here before dealing a random look).
  /* `own`: a resident's own model (assets/models/crowd/<own>.glb, made with Meshy: docs/development/MESHY_CHARACTERS.md). It is who they are in the scene and in their
-    profile picture; `look` is the crowd figure they had before, kept as a record. */
- const lookFor=crewId=>{const n=BY_CREW.get(crewId);return n?n.own||n.look||null:null;};
+    profile picture; `look` is the crowd figure they had before, kept as a record. `figure`: a street figure they wear (not theirs alone; the NPC upgrade, 18 Nov 2026: the VR booth players). */
+ const lookFor=crewId=>{const n=BY_CREW.get(crewId);return n?n.own||n.figure||n.look||null:null;};
  /* Following (the owner, 15 Nov 2026): people a player chose to follow, by aiming the V1 camera at them. Kept in the save as one short string
     (story.flags.socialFollowing): 'n:<resident id>' or 'p:<public player id>:<handle>', comma separated, newest last, oldest dropped when it would pass 200 characters. */
  const FOLLOW_FLAG='socialFollowing',FOLLOW_KEY=/^(n:[a-z][a-z0-9-]{0,39}|p:[0-9a-f]{1,12}:[A-Za-z0-9_]{3,20})$/;
