@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "0e5a3b46b77a0d3a",
+  "revision": "7ddd2c52ec275844",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14056,13 +14056,25 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 104,
+      "line": 116,
+      "text": "return {who:first.id,gap:Math.abs(first.t-me.t),side};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ncz-nightlife.js",
+      "line": 119,
+      "text": "if(seen){if(me.avoid?.who!==seen.who)me.sensed=(me.sensed||0)+1;me.avoid={side:seen.side,who:seen.who,hold:cfg.hold,gap:seen.gap};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ncz-nightlife.js",
+      "line": 135,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 199,
+      "line": 240,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -16237,7 +16249,7 @@
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
     "void-runner/ncz-nightclub.js": "904fd3e94147374118ea2e125e724533f3d774e11b799284879275ab42c62876",
-    "void-runner/ncz-nightlife.js": "0aedae456b074e3acc3d5d84a75cdef6a8e29488617b08668112ec117bffff28",
+    "void-runner/ncz-nightlife.js": "c7d2d3d72cca338e535b8045c76e34ad75a21ed364a5cf0f4637195c93b918d3",
     "void-runner/ncz-outskirts-life.js": "e4d918db16db1d688cb05fa5bbace2613a3bab7a80ce998a651e7463915ded6a",
     "void-runner/ncz-quarters.js": "05638797b6b66e9bd572ba5dadce60da7d20b6a9c42e9897a23c39d6c960c8b4",
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
