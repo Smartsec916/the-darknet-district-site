@@ -17,7 +17,7 @@
   {id:'alley-watcher',x:122.4,z:-56.25,face:DOOR,clips:['watch','idle'],tier:1,watchesDoor:true},
   {id:'alley-smoker',x:104.0,z:-56.15,face:[104.0,-60],clips:['smoke','idle'],tier:1},
   {id:'alley-sitter',x:93.6,z:-60.75,face:[93.6,-56],clips:['sit','idle'],seat:0,tier:2,sits:true}];
- const TIER={low:1,medium:2,high:3,ultra:3},CAST=['npc-hacker','npc-enforcer','npc-lookout','npc-club-m','npc-courier','npc-fixer','npc-casual-m','npc-veteran'];   // the street people (NPC upgrade, 18 Nov 2026; crowd.js street). Before: ncz-neon, fixer-01, hacker-01, outlaw-01, district-resident, district-smuggler, runner-02, communion-tech
+ const TIER={low:1,medium:2,high:3,ultra:3},CAST=['npc-hacker','npc-enforcer','npc-lookout','npc-club-m','npc-courier','npc-club-f','npc-student','npc-casual-f'];   // the street people (NPC upgrade, 18 Nov 2026; crowd.js street). Before: ncz-neon, fixer-01, hacker-01, outlaw-01, district-resident, district-smuggler, runner-02, communion-tech
  const config={reactRadius:3.2,reactFor:[2.5,4.5],doorWatchRadius:7,showRadius:75,turn:4};
  /* plan(quality, clipsOf): who appears, with the look and clip each will use. clipsOf(look) -> the clips that look can play. Looks are dealt in turn so
     neighbours differ; a person gets the first look in the deal that can do their first-choice clip, else any look and their best available clip. */

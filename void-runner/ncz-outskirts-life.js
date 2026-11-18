@@ -7,7 +7,7 @@
    (tests/ncz-outskirts-life.test.cjs). Figures hide with distance (zoom-detail rule) and wait for their looks to load, as the alley's do. */
 (function(root){
  'use strict';
- const CAST=['npc-outskirts-f','npc-outskirts-m','npc-veteran','npc-outskirts-f','npc-elder-f','npc-outskirts-m','npc-courier','npc-casual-m'];   // the Outskirts' own people first (NPC upgrade, 18 Nov 2026: #21, #22; crowd.js street). Before: the street crowd's eight MakeHuman looks
+ const CAST=['npc-outskirts-f','npc-outskirts-m','npc-veteran','npc-outskirts-f','npc-elder-f','npc-outskirts-m','npc-courier','npc-casual-f'];   // the Outskirts' own people first (NPC upgrade, 18 Nov 2026: #21, #22; crowd.js street). Before: the street crowd's eight MakeHuman looks
  // x, z (world metres, clear of the containers in ncz-containers.js), what they do (clips in order of preference), who they face, and `poor`.
  const PEOPLE=[
   // around the fire barrel in the plaza

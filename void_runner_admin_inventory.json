@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "35a2df1db1f36f37",
+  "revision": "19c8afb2e09c8e4e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14086,31 +14086,31 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 161,
+      "line": 162,
       "text": "if(me.avoid&&me.avoid.who===first.id&&Math.abs(me.avoid.side-first.side)>=.8)return {who:first.id,gap,eta,side:me.avoid.side};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 167,
+      "line": 168,
       "text": "return {who:first.id,gap,eta,side};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 170,
+      "line": 171,
       "text": "if(seen){if(me.avoid?.who!==seen.who)me.sensed=(me.sensed||0)+1;me.avoid={side:seen.side,who:seen.who,hold:cfg.hold,gap:seen.gap,eta:seen.eta};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 188,
+      "line": 189,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=null,drunkCast=null,monkCast=root.VoidCrowd?.monks||['npc-monk-elder','npc-monk-tech','npc-monk-grey'],rnd=Math.random,cfg=config,quarter=null}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 303,
+      "line": 304,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -16071,7 +16071,7 @@
     "void-runner/campaign.js": "77c72e73cddf5290b3552654169966df6d5e8c55098761b77c6c8e8808324e2c",
     "void-runner/character-appearance.js": "7372025301419d5e5cb122e8a12a6afe9bcd829c3696be1cfa80924cf63eecf2",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
-    "void-runner/character-catalog.js": "47125761c4a6c33565307911006618dc2533010a3e1724c847940a6a9595ea53",
+    "void-runner/character-catalog.js": "ea78b08534532257fa54b1c1ed6146552565063aed2869faca3daad81ed8cb6f",
     "void-runner/character-creator.js": "e1b12bf9d7a612c75602f5f9e7e6c256e941506365321e4f0962aa04a7c42bd6",
     "void-runner/character-finish.js": "e3f7924764f22cbf33e3a5220221c1c39e5080c8625b7d9a8123df739c014b7a",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
@@ -16171,21 +16171,21 @@
     "void-runner/music-integration.js": "00898b4869c668718e834816bf65e1c1e66c00be064990704f124d66d353d467",
     "void-runner/music-score.js": "72746a604053fbe48a0f7c986ae5d18a83ccc48cfa5ef441490199c0a25e9b8e",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
-    "void-runner/ncz-alley.js": "b2d1bab234daa26b0c5a15e9c0876de9662f1bea0afa5d6e788b72a4e567cb0e",
+    "void-runner/ncz-alley.js": "88f245b9915421bafe227b3ca54f28736b7d711f2969562e56d1f9674178e04d",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "37376d18f55cb16d8c8fca8dc64bef6bbf39b7e700b3f2c6314df6e1b1f072ab",
     "void-runner/ncz-nightclub.js": "a1d721fd07f77e5658e72a2d676c858383c6997248c0fa70b8cfb3cdcfa2c4a6",
-    "void-runner/ncz-nightlife.js": "610f392c71fcd0ce1fb4b126d684c3aaaa667c5303f29307e843055478b78b49",
-    "void-runner/ncz-outskirts-life.js": "6321ce5a5885bd030b6e1fe394b7e183ff75b500a2d094beda2ba77412c1b470",
+    "void-runner/ncz-nightlife.js": "4db88bd528a27f24f31cf006f7bc5d6011a9c588658a1259ac9476963ef34504",
+    "void-runner/ncz-outskirts-life.js": "ef8ba76e2d44fcdecf0ebf25cff847f641b468355631fe2fdfed184f6f982b1a",
     "void-runner/ncz-quarters.js": "2452dc8d471d63247c98e6f5f5f0e5f9327b5df3a41934abe081d2146393919b",
     "void-runner/neochinatown.js": "515236257c08e4251ac3cb6d46dabaf71894218273fadf6b9f31db2690ec635e",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-device.js": "6011436c5f2163d7c2ce97f5ee014e86e04033740c313490479562bb8d714141",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
-    "void-runner/npc-variants.js": "dd6d1edce8937fb686d77c5a44d4e7fea6662da211c9f88dfbfda971fa7f65ad",
+    "void-runner/npc-variants.js": "cceb66f462a8c52194427d8aa9552f248d11e5159b0a16c2af4f6aa0b76a4284",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/personal-device.js": "9a6cb784a1d9419bf9318e5ae741112ee3c10c16050769ca09a3627a44b1e605",

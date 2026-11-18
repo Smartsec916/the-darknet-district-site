@@ -21,6 +21,7 @@
   // The street food's cooks (NPC upgrade, 18 Nov 2026: the old Japanese cook #5 and the cook #7) at the window of a food shopfront, facing the street, per quarter with food
   // shopfronts; the street vendor (#14) and the busker (#24) each at one spot of the quarters crowd.js SPOTS names (kept in step by tests/npc-upgrade.test.cjs).
   cooks:{high:3,medium:2,low:1},vendorIn:['oldtown','far-south',null],buskerIn:['oldtown','avenue',null],
+  waitForLook:40,          // seconds a person waits for one of their own looks to download before wearing any figure that is ready
   leaveShare:.5,           // share of walkers who leave at a street's end (and return elsewhere later)
   awayFor:[6,25],
   drunkShare:.08,          // share of walkers who are drunk (nightlife lanes only)
@@ -188,7 +189,7 @@
  function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=null,drunkCast=null,monkCast=root.VoidCrowd?.monks||['npc-monk-elder','npc-monk-tech','npc-monk-grey'],rnd=Math.random,cfg=config,quarter=null}){
   const lanes=lanesFor(quarter);
   const people=plan(quality,rnd,cfg,quarter).map(p=>({...p,l:lanes.find(l=>l.id===p.lane),state:'walk',timer:stopIn(p),node:null,monkPlan:!!p.monk,monk:false,anim:null,look:null,react:0,sway:rnd()*6,yaw:0}));
-  const byId=new Map(people.map(p=>[p.id,p]));let remarkCool=8,dealt=Math.floor(rnd()*8),disposed=false;
+  const byId=new Map(people.map(p=>[p.id,p]));let age=0,remarkCool=8,dealt=Math.floor(rnd()*8),disposed=false;
   const budget=createBudget(people.length,cfg.fps),gov={budget:people.length,fps:0,check:0},cam=()=>scene?.activeCamera?.globalPosition||null;
   function stopIn(p){const [a,b]=p.drunk?cfg.drunkStopEvery:cfg.stopEvery;return a+rnd()*(b-a);}
   // Figures appear as their looks finish downloading; until then the person is simply not there yet.
@@ -198,7 +199,7 @@
   function spawn(p){if(p.node||disposed)return;let node=null,look=null;   /* a monk waits for a monk's figure */
    // Monks take the next monk figure; everyone else their own order of looks, best first. One still downloading is skipped for one that is ready.
    if(p.monkPlan){for(let i=0;i<monkCast.length&&!node;i++){look=monkCast[(dealt++)%monkCast.length];node=instance('crowd:'+look,parent);}}
-   else{const looks=looksFor(p),k=p.kind==='cook'?Number(p.id.replace(/\D/g,''))||0:0;for(let i=0;i<looks.length&&!node;i++){look=looks[(i+k)%looks.length];node=instance('crowd:'+look,parent);}}
+   else{const looks=looksFor(p),k=p.kind==='cook'?Number(p.id.replace(/\D/g,''))||0:0,n=age<cfg.waitForLook?Math.min(2,looks.length):looks.length;for(let i=0;i<n&&!node;i++){look=looks[(i+k)%looks.length];node=instance('crowd:'+look,parent);}}   /* for the first seconds a person waits for one of their own two looks (else everyone would wear the first file to arrive), then takes any that is ready */
    if(!node)return;C()?.dress?.(node,look,p.id);
    node.metadata={...node.metadata,crowd:look,nightlife:p.id,...(p.monkPlan?{monk:true}:{})};if(p.monkPlan){root.VoidNPCDevice?.tag?.(node,{monk:true});p.monkIn=0;}p.node=node;p.look=look;p.fade=0;p.parts=node.getChildMeshes().map(m=>[m,m.visibility]);for(const [m]of p.parts)m.visibility=0;
    enlistDevice(p);
@@ -249,7 +250,7 @@
     if(has(p,'shrug'))p.anim.playOnce('shrug','idle');else play(p,'talk');if(has(o,'shrug')&&rnd()<.5)o.anim.playOnce('shrug','idle');else play(o,'talk');p.bumped=o.id;o.bumped=p.id;}
    else{p.sideTo=p.l.half-.45;p.faceTo=null;play(p,has(p,'look')?'look':'watch','idle');p.bumped='wall';}}
   const hasCompanion=p=>people.some(o=>o.friendOf===p.id||o.pairOf===p.id);
-  function tick(dt){if(disposed)return;const me=player();remarkCool-=dt;density(dt);
+  function tick(dt){if(disposed)return;age+=dt;const me=player();remarkCool-=dt;density(dt);
    for(const p of people){if(!p.node){if(rnd()<dt)spawn(p);continue;}
     if(p.fixed)continue;
     if(p.away){p.away-=dt;if(p.away<=0)comeBack(p);continue;}

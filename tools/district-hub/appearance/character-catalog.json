@@ -412,7 +412,7 @@
   "street-casual-f": {
    "base": "female",
    "model": "npc-casual-f",
-   "label": "CASUAL",
+   "label": "CASUAL · BLACK",
    "street": true,
    "variant": "orig",
    "topY": 1.69,
@@ -420,12 +420,12 @@
    "defaultAccessories": [],
    "hairOk": []
   },
-  "street-casual-f-navy": {
+  "street-casual-f-classic": {
    "base": "female",
    "model": "npc-casual-f",
-   "label": "CASUAL · NAVY",
+   "label": "CASUAL · GREY TEE, BLUE JEANS",
    "street": true,
-   "variant": "navy",
+   "variant": "classic",
    "topY": 1.69,
    "accessories": {},
    "defaultAccessories": [],
@@ -511,9 +511,20 @@
   "street-casual-m": {
    "base": "male",
    "model": "npc-casual-m",
-   "label": "CASUAL",
+   "label": "CASUAL · BLACK",
    "street": true,
    "variant": "orig",
+   "topY": 1.8,
+   "accessories": {},
+   "defaultAccessories": [],
+   "hairOk": []
+  },
+  "street-casual-m-classic": {
+   "base": "male",
+   "model": "npc-casual-m",
+   "label": "CASUAL · GREY TEE, BLUE JEANS",
+   "street": true,
+   "variant": "classic",
    "topY": 1.8,
    "accessories": {},
    "defaultAccessories": [],
@@ -525,17 +536,6 @@
    "label": "CASUAL · OLIVE",
    "street": true,
    "variant": "olive",
-   "topY": 1.8,
-   "accessories": {},
-   "defaultAccessories": [],
-   "hairOk": []
-  },
-  "street-casual-m-navy": {
-   "base": "male",
-   "model": "npc-casual-m",
-   "label": "CASUAL · NAVY",
-   "street": true,
-   "variant": "navy",
    "topY": 1.8,
    "accessories": {},
    "defaultAccessories": [],
