@@ -2,10 +2,12 @@
 into a light companion GLB with our clips.
 
 blender -b --factory-startup --python build_imported_character.py -- SPEC.json OUT.glb --source MODEL.fbx \
-    --mocap DIR [--ual DIR] [--mixamo DIR] [--crowd DIR] [--master MASTER.blend]
+    --mocap DIR [--ual DIR] [--mixamo DIR] [--crowd DIR] [--own DIR] [--master MASTER.blend]
 
 --crowd DIR is the game's own void-runner/assets/models/crowd folder: a clip whose source is "crowd" is taken from a
 character the game already ships (same 52 joints, T-pose bind), for machines that do not have the UAL or Mixamo files.
+--own DIR holds clips made on the character's own skeleton (a Meshy rig's bundled running clip, "source": "own", "sameRig": true):
+their bones carry the source names of the spec's "bones" map and their rest pose is the character's own, so they map one to one.
 
 The source is never modified. Its bones are renamed to the Mixamo names in the spec's "bones" map (so the
 game's head tracking and clip names work unchanged); bones without a Mixamo match (twists, pelvis, face)
@@ -28,12 +30,12 @@ args = sys.argv[sys.argv.index('--') + 1:]
 spec = json.loads(Path(args[0]).read_text(encoding='utf-8'))
 output_path = Path(args[1])
 opts = {}
-for flag in ('--source', '--mocap', '--ual', '--mixamo', '--crowd', '--master'):
+for flag in ('--source', '--mocap', '--ual', '--mixamo', '--crowd', '--own', '--master'):
     if flag in args:
         opts[flag[2:]] = Path(args[args.index(flag) + 1])
 library_doc = json.loads((Path(__file__).resolve().parent / 'clips.json').read_text(encoding='utf-8'))
 FPS = library_doc.get('fps', 24)
-folders = {'ual': opts.get('ual'), 'mixamo': opts.get('mixamo'), 'crowd': opts.get('crowd')}
+folders = {'ual': opts.get('ual'), 'mixamo': opts.get('mixamo'), 'crowd': opts.get('crowd'), 'own': opts.get('own')}
 clips = []
 for name in ([] if '--noclips' in args else spec.get('clips', [])):  # --noclips: a quick look at the geometry
     c = library_doc['clips'][name]
@@ -313,6 +315,7 @@ for side, S in (('l', 'Left'), ('r', 'Right')):
         for k in (1, 2, 3):
             UE[f'{f}_0{k}_{side}'] = f'{S}Hand{F}{k}'
 UE_BACK = {'mixamorig:' + v: k for k, v in UE.items()}
+OWN_BACK = {'mixamorig:' + v: spec.get('bonePrefix', '') + k for k, v in spec['bones'].items()}   # a clip on the character's own (unrenamed) skeleton
 
 
 def import_source(path):
@@ -330,7 +333,7 @@ def import_source(path):
     have = {b.name for b in arm.data.bones}
     names = {}
     for n in bones:
-        for cand in (n, n.replace('mixamorig:', 'Character1_'), UE_BACK.get(n)):
+        for cand in (n, n.replace('mixamorig:', 'Character1_'), UE_BACK.get(n), OWN_BACK.get(n)):
             if cand in have:
                 names[n] = cand
                 break
@@ -410,6 +413,8 @@ def retarget(name, path, span, copts):
         pick_action(src, copts['action'])
     s_rest = {n: rest_all[smap[n]] for n in smap}
     s_rest_inv = {n: rot3(m).inverted() for n, m in s_rest.items()}
+    # the same skeleton as the character (its own Meshy clip): the source rest IS the character's rest, so map onto that, not the bent T-pose
+    ref = {n: rot3(tgt_rest[n]) for n in names} if copts.get('sameRig') else bent
     action = src.animation_data.action
     first_frame, last_frame = action.frame_range
     t0, t1 = span or (0.0, (last_frame - first_frame) / src_fps)
@@ -426,7 +431,7 @@ def retarget(name, path, span, copts):
         for n in names:
             p = parent_of[n]
             if n in smap:
-                world[n] = arm_rot_inv @ rot3(src.matrix_world @ src.pose.bones[smap[n]].matrix) @ s_rest_inv[n] @ bent[n]
+                world[n] = arm_rot_inv @ rot3(src.matrix_world @ src.pose.bones[smap[n]].matrix) @ s_rest_inv[n] @ ref[n]
             elif p in world:
                 world[n] = world[p] @ rot3(tgt_rest[p]).inverted() @ rot3(tgt_rest[n])
             else:
