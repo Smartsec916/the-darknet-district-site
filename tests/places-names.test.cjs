@@ -35,7 +35,7 @@ test('the right names in the right places (spot checks)',()=>{
  for(const r of MK.ROOMS){const c=[(r.rect[0]+r.rect[1])/2,(r.rect[2]+r.rect[3])/2];assert.equal(at('neochinatown',...c),'milked-'+r.id,r.id);}
  assert.equal(at('neochinatown',79.5,-235),'kai-home');assert.equal(at('neochinatown',61,-23),'gate-north');assert.equal(at('neochinatown',61,-221),'gate-far-south');
  assert.equal(at('neochinatown',24,-96),'landing-pad');assert.equal(at('corporate',0,-18),'corp-taxi');assert.equal(at('temple',0,-20),'temple-path');assert.equal(at('vr-tropical',3,4),'vr-tropical');
- assert.equal(P.chain('district-bar'),'The Bar · The Darknet District · Old Town · NeoChinatown · Tessaly System','planet and city share a name: shown once');
+ assert.equal(P.chain('district-bar'),'The Bar · The Darknet District · Old Town · NeoChinatown · Servo · Tessaly System','the city on the planet Servo');
  assert.equal(P.chain('nowhere'),'');});
 test('the hierarchy is valid: System > Planet > City > Area > Venue > Exact location',()=>{
  const ids=new Set();for(const n of P.NODES){assert.ok(/^[a-z][a-z0-9-]{0,63}$/.test(n.id),n.id);assert.ok(!ids.has(n.id),'unique '+n.id);ids.add(n.id);assert.ok(typeof n.name==='string'&&n.name.trim(),n.id+' has a name');
@@ -76,7 +76,7 @@ test('the metadata is recorded at capture: who, where, the device ID and the in-
  const photo={tags:G.cleanTags([{name:'Juno Vex',role:'',kind:'npc',via:'subject'},{name:'Nyx',role:'Bartender',kind:'npc',via:'resident'}]),meta:m};
  const rows=G.metadata(photo,{placeLabel:P.chain});assert.deepEqual(rows.map(r=>r.label),['TAGGED','LOCATION','DEVICE ID','TAKEN'],'POSTED ONLINE BY shows only when set');
  assert.equal(rows[0].rows[0].name,'Juno Vex');assert.equal(rows[0].rows[0].how,'Camera identification');assert.match(rows[0].rows[0].detail,/clear shot · 6\.2 m/);assert.equal(rows[0].rows[1].how,'District resident registry');
- assert.equal(rows[1].value,'Bar · NULL · Old Town · NeoChinatown · Tessaly System');assert.equal(rows[2].value,'V1-7F3A-91C2');assert.equal(rows[3].value,'21:51 · DAY 1');
+ assert.equal(rows[1].value,'Bar · NULL · Old Town · NeoChinatown · Servo · Tessaly System');assert.equal(rows[2].value,'V1-7F3A-91C2');assert.equal(rows[3].value,'21:51 · DAY 1');
  const posted=G.metadata({...photo,meta:{...m,postedBy:'Zed_9'}},{placeLabel:P.chain});assert.equal(posted[4].label,'POSTED ONLINE BY');assert.equal(posted[4].value,'@Zed_9');});
 test('the fresh start: once, and only the Gallery\'s photos',()=>{
  const mock=stores=>{const log=[];return {log,db:{objectStoreNames:{contains:n=>stores.includes(n)},createObjectStore:(n)=>{log.push('create '+n);stores.push(n);}},tx:{objectStore:n=>({clear:()=>log.push('clear '+n)})}};};

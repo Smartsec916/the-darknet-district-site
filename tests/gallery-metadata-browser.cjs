@@ -1,7 +1,7 @@
 /* GALLERY › METADATA in the real game (Chromium, software GL, offline). The owner, 18 Nov 2026: "In the Gallery App players can click MetaData on selected pictures, in
    MetaData it shows who was tagged, the location, the device ID on the person who took it". A new character leaves the pod, stands in The Darknet District's bar facing
    Nyx, raises the camera (B) and takes a photo (left click) → V1 (L) › GALLERY › the photo › METADATA: TAGGED (Nyx, and how she was identified), LOCATION "The Bar · The
-   Darknet District · Old Town · NeoChinatown · Tessaly System", DEVICE ID (V1-XXXX-XXXX, the same as MY V1 shows), TAKEN (the in-game time "HH:MM · DAY N"). No handle
+   Darknet District · Old Town · NeoChinatown · Servo · Tessaly System", DEVICE ID (V1-XXXX-XXXX, the same as MY V1 shows), TAKEN (the in-game time "HH:MM · DAY N"). No handle
    anywhere. A reload keeps the device ID. Screenshots at 1366x768 and 1920x1080 in docs/development/gallery-metadata/.
    Usage: node tests/gallery-metadata-browser.cjs   (its own static server on a free port; SITE_TEST_URL to use another; SHOTS=dir; BROWSER_EXECUTABLE=path; SIZES=1366) */
 'use strict';
@@ -56,7 +56,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    const meta=await page.evaluate(()=>Object.fromEntries([...document.querySelectorAll('#personal-device .pd-meta dt')].map(dt=>[dt.textContent,dt.nextElementSibling.textContent])));log('METADATA '+JSON.stringify(meta));
    assert.deepEqual(Object.keys(meta),['TAGGED','LOCATION','DEVICE ID','TAKEN'],'TAGGED, LOCATION, DEVICE ID and TAKEN only (no handle)');
    assert.match(meta.TAGGED,/Nyx/);assert.match(meta.TAGGED,/District resident registry/);
-   assert.equal(meta.LOCATION,'The Bar · The Darknet District · Old Town · NeoChinatown · Tessaly System');
+   assert.equal(meta.LOCATION,'The Bar · The Darknet District · Old Town · NeoChinatown · Servo · Tessaly System');
    assert.equal(meta['DEVICE ID'],photo.meta.device);assert.equal(meta.TAKEN,photo.meta.gameTime);
    await page.evaluate(()=>{const b=document.querySelector('#personal-device .pd-body')||document.querySelector('#personal-device');const m=document.querySelector('#personal-device .pd-meta');m&&m.scrollIntoView({block:'start'});});await page.waitForTimeout(300);
    await shot('metadata');

@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "c70fdb8f9b87e873",
+  "revision": "c79ab6814f823167",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16139,7 +16139,7 @@
     "void-runner/dev-test.js": "2c1042417e3da3d508ba056adc265a06fb130e152153df6e983cbb77a82e6cbb",
     "void-runner/dev-tools.js": "28f2d3d80f905f5ebe5abe4934d34e3a45e248510b949b7547bdf85097f9a54a",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
-    "void-runner/device-gallery.js": "2eb9044ffdf2cd29d62717868066701db07acccc215f68f1b1c49f89aee98cd4",
+    "void-runner/device-gallery.js": "483ac716963115b3ae9adc425912e0d18c36ae5a721e9daf2292c432c152bde6",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "ac582ed30699de5c983ef2f3f74b711e3818db33c17a574f4649fbb4aa14e95d",
     "void-runner/device-v1.js": "196a314fa23174b4fdc98886f3dc05883b1907d2827f7a25f3436b82eff49676",
@@ -16231,7 +16231,7 @@
     "void-runner/personal-device.js": "3691f06cd4b8d0bda8223c767ffcb4334eb31bd2bcb3db8781d2a7c2ad2f8590",
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
-    "void-runner/places.js": "fce1881f3f120cf29fe17b5a62e030621ef6580f83593a9fbf55775c67c9d251",
+    "void-runner/places.js": "608c57799f6b79c82715886bc236568651fbd2f08d4cbde61f6c7d682a3b0f17",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",

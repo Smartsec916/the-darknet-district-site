@@ -6,14 +6,14 @@
    THE NAMING PASS (18 Nov 2026): every walkable spot of NeoChinatown's quarters, the District, NULL, Milked, the gates, the Corporate District, the Temple and the VR rooms
    resolves to a named exact location (tests/places-names.test.cjs grid-samples them). Names come from the game's own data and signs where there are any (`src` says where);
    a spot the game does not name has a short descriptive WORKING name with `proposed:true` (not canon: the owner names it; review sheet docs/development/LOCATION_NAMES.md).
-   The planet: universe.js shows 'NeoChinatown' for the planet (id 'earth'); its real name is not settled, so the planet node uses that display name and is PROPOSED.
+   The planet is Servo (the owner, 18 Nov 2026). Location id 'earth' is NeoChinatown, the city on Servo; the ids stay as they are (saves depend on them).
    Every shape is read from data the game already has (ncz-quarters.js streets and gates, neochinatown.js the District's own plan, ncz-nightclub.js NULL, milked.js Milked,
    ncz-containers.js Kai's home, corporate.js and temple.js streets), in WORLD metres (x east, z north). A place is a rect [x0,x1,z0,z1] or a union of rects, with an
    optional y range, inside one walking scene (`scene`: walkingLocation.id), or a whole scene (`whole`). `fallback`: named for whatever of its parent no sibling covers.
    The District's rooms are written in the District's own plan (local metres, door at 0,20) and turned into world metres once, with the same half turn neochinatown.js uses
    (a test checks DISTRICT_DOOR against it). Shopfronts: SHOPFRONTS below (the neon shop signs neochinatown.js puts up, read from the built city; the sign's own words).
    at(point) -> every place the point is in, with all their parents (a player in NULL's bar is also in NULL, Old Town, NeoChinatown and Tessaly).
-   chain(id) -> "Bar · The Darknet District · Old Town · NeoChinatown · Tessaly System" (most specific first; a repeated name is shown once).
+   chain(id) -> "Bar · The Darknet District · Old Town · NeoChinatown · Servo · Tessaly System" (most specific first; a repeated name is shown once).
    tracker() -> per player enter / leave events: update(point) returns {entered, left, inside}; nothing fires twice; a point not in a walking scene (a menu, the pod card,
    a transition) changes nothing, so going through a vestibule never fires a leave and an enter again.
    IDS NEVER CHANGE once published (missions name them); a name can change freely. */
@@ -41,7 +41,7 @@
     leads), proposed (a working name, not canon), src (where an existing name comes from), where (a plain description for the owner's review sheet), fallback. */
  const NODES=[
   {id:'tessaly',name:'Tessaly System',level:'system',parent:null,system:'sol',src:'universe.js (system "sol")',where:'The star system.'},
-  {id:'ncz-planet',name:'NeoChinatown',level:'planet',parent:'tessaly',location:'earth',proposed:true,src:'universe.js shows "NeoChinatown" for the planet (id earth)',where:'The planet. Its own name is not settled: the city\'s name stands in.'},
+  {id:'ncz-planet',name:'Servo',level:'planet',parent:'tessaly',location:'earth',src:'the owner, 18 Nov 2026',where:'The planet NeoChinatown is on.'},
   {id:'neochinatown',name:'NeoChinatown',level:'city',parent:'ncz-planet',location:'earth',scenes:['neochinatown','corporate','temple'],src:'universe.js, signs',where:'The city.'},
   // ---- areas: the quarters (ncz-quarters.js) and the scenes beyond the gates ----
   {id:'port',name:'The Port',level:'area',parent:'neochinatown',scene:'neochinatown',rects:[...Q('port').streets],enter:S('port'),src:'ncz-quarters.js',where:'The landing pad and the passage north of Port Customs.'},
