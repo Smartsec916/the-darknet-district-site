@@ -6,6 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 18 Nov 2026 (newest): PLAYERS SEE EACH OTHER'S DEVICE IN MULTIPLAYER (branch `claude/mp-device-visible`, build `2026-11-18-mp-device-1`, pushed, NO PR, not merged)
+
+The owner: in multiplayer, players see each other using their device, styled by the device they carry. Built on `npc-device.js` (the NPC hologram, no duplicate code).
+
+- **Looks:** V1 = the NPCs' cuff and teal hologram panel; V2 = the same in the placeholder violet (`V2_PLACEHOLDER_COLOR`); V3 // Shadow = no cuff or panel, only the faint green eye glow. Reading shows the panel; the camera shows the viewfinder frame. Never readable.
+- **Privacy:** the only thing sent is open/closed, the model (v1/v2/v3) and read/cam. No screen content, app, message or photo. The hub refuses any other key or value.
+- **Hub (`tools/district-hub/protocol.cjs`, `hub-server.cjs`):** new `dev` message, relayed only on change, at most every 250 ms (faster changes wait for the next position), kept for latecomers; `welcome.features.dev:true`. Old clients ignore it; new clients send nothing to an old hub. **The Render service `district-hub` needs a redeploy** before live players see devices (the game side alone shows nothing against the current hub, and breaks nothing).
+- **Client (`remote-players.js`):** sends its own state (from `story.flags.deviceModel`, `VoidPersonalDevice.isOpen`, `VoidDeviceCamera.active`) twice a second when it changes; marks each remote avatar for `npc-device.js` (`metadata.remoteDevice`), which now draws that one kind of player (kind `player-remote`, never in a crowd spectacle). The older V3 `eye` message is still sent for older clients.
+- **Tests:** hub protocol, client mapping and pose units in `npm test`; `tests/mp-device-browser.cjs` (real local hub, the game page and a scripted second player). Screenshots: `docs/development/mp-device/`. Details: `MULTIPLAYER_PROTOTYPE.md` (update 2026-11-18).
+- **Not verified:** two real browsers against each other (the second player was scripted), the deployed hub, real GPU, VR.
+
+### 18 Nov 2026: PEOPLE USE THEIR V1 — WRIST BRACER HOLOGRAMS, PHOTOS, SELFIES, THE SHADOW'S EYE, DISTRACTED READERS, CROWDS FILMING A SPECTACLE (branch `claude/npc-v1-use`, build `2026-11-18-npc-v1-1`, pushed, NO PR, not merged)
 ### 18 Nov 2026 (newest): MONKS WALK SLOWLY AND SEE YOU COMING (branch `claude/monk-walk`, build `2026-11-18-monk-walk-1`, pushed, NO PR, not merged)
 
 The owner: "Monk move slowly, they are never in a hurry, they walk steady and intentful. They can almost tell the future so instead of someone using their V1 while walking might bump into them, the Monk senses it a mile away and steps to one side of the sidewalk".
