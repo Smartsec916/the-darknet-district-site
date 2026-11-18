@@ -77,7 +77,12 @@
  const numLabel=(n,t)=>MS()?MS().label(n,t):t;
  /* Missions made before numbers existed get the next free numbers, in order (once, saved). */
  function numberAll(){const d=local();let changed=false;for(const t of d.trees)for(const m of t.missions)if(!Number.isInteger(m.number)){m.number=nextFree(d);changed=true;}if(changed)saveLocal(d);return changed;}
- function saveLocal(d){d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now.';else storageProblem='';scheduleServer();}
+ /* Every save is one step of the session's UNDO (editor-home.js; Developer Tools > UNDO / Ctrl+Z): the stored text before and after. */
+ const rawOf=k=>{try{return root.localStorage.getItem(k);}catch{return null;}};
+ const undoRecord=(k,before)=>{try{root.VoidEditorHome?.record(k,before,rawOf(k));}catch{}};
+ function saveLocal(d){const before=rawOf(KEY);d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now to keep a file, then free some space (or allow site storage) and edit again.';else{storageProblem='';undoRecord(KEY,before);}scheduleServer();}
+ /* UNDO / REDO put a stored draft back (editor-home.js): never recorded again, saved to the server copy like any edit. */
+ function restoreRaw(k,raw){if(k!==KEY&&k!==STUDIO)return false;try{if(raw==null)root.localStorage.removeItem(k);else root.localStorage.setItem(k,raw);}catch{return false;}stale=true;if(k===KEY)scheduleServer();return true;}
  /* Drafts are never discarded silently: a draft this version cannot read is copied to a backup key first, and the editor says so. */
  let storageProblem='',backupNote='';
  function readDraft(){let raw=null;try{raw=root.localStorage.getItem(KEY);}catch{return null;}if(raw==null)return null;
@@ -115,7 +120,7 @@
  const shipped=()=>root.VoidLiveContent?.env?.shipped||{beginner:root.VoidBeginner?.MISSIONS||[],registry:root.VoidMissions?.definitions||{}};
  function studio(){const d=read(STUDIO,null);return d&&Array.isArray(d.missions)?d:null;}
  function studioEnsure(){return studio()||{missions:clone(shipped().beginner),summary:'',savedAt:new Date().toISOString()};}
- function saveStudio(d){d.savedAt=new Date().toISOString();write(STUDIO,d);}
+ function saveStudio(d){const before=rawOf(STUDIO);d.savedAt=new Date().toISOString();if(write(STUDIO,d))undoRecord(STUDIO,before);}
  function editOf(key){return local().missions[key]||{};}
  function setEdit(key,fn,name){const d=local(),e=d.missions[key]||{};fn(e);e.name=name||e.name;for(const k of Object.keys(e))if(e[k]==null||(typeof e[k]==='object'&&!Array.isArray(e[k])&&!Object.keys(e[k]).length)||(Array.isArray(e[k])&&!e[k].length))delete e[k];
   if(Object.keys(e).filter(k=>k!=='name').length)d.missions[key]=e;else delete d.missions[key];saveLocal(d);}
@@ -164,7 +169,7 @@
  // ---------------------------------------------------------------- rendering
  function render(panel,head){
   host=panel;headNode=head;
-  if(!built){panel.innerHTML='';panel.append(head(),el('p','Loading every mission tree from the game data…','dev-note'));loading=loading||load().then(()=>{restoreReturn();draw();}).catch(e=>{panel.append(el('p','The Mission Editor could not load: '+e.message,'me-bad'));});return;}
+  if(!built){panel.innerHTML='';panel.append(head(),el('p','Loading every mission tree from the game data…','dev-note'));loading=loading||load().then(()=>{restoreReturn();draw();}).catch(e=>{panel.append(el('p','The Mission Editor could not load ('+e.message+'). Check your connection, then press CLOSE and open Developer tools again. Your draft is safe in this browser.','me-bad'));});return;}
   draw();
  }
  function restoreReturn(){const r=read(RETURN,null,root.sessionStorage);if(!r)return;try{root.sessionStorage.removeItem(RETURN);}catch{}Object.assign(ui,{mode:'trees',tree:r.tree||ui.tree,mission:r.mission||null,step:r.step||null});status='Back from your draft play. Your draft is saved and waiting'+(r.mission?' on this mission':'')+'.';}
@@ -258,7 +263,7 @@
  function newTreeForm(){const box=el('section','','me-mission-panel',{'data-me-new-tree-form':'1'});box.append(el('h3','New mission tree'),el('p','A new tree is your DRAFT: nobody else sees it. Its id is made from the first name you give it (draft-…) and never changes; you can rename the tree any time.','dev-note'));
   const name=el('input','','',{'aria-label':'New tree name',placeholder:'Tree name (your words)',maxlength:'60','data-me-new-name':'1'}),note=el('textarea','','',{'aria-label':'Short note',placeholder:'Short note (optional)',rows:'2','data-me-new-note':'1'});
   const l1=el('label','','me-field');l1.append(el('span','Name'),name);const l2=el('label','','me-field');l2.append(el('span','Short note'),note);box.append(l1,l2);
-  const row=el('div','','me-row');row.append(btn('CREATE TREE',()=>{if(!name.value.trim()){setStatus('Give the tree a name first.');return;}const d=local();const t=T().newTree(d.trees,{name:name.value,note:note.value});d.trees.push(t);saveLocal(d);stale=true;ui.newTree=false;ui.tree=t.id;ui.mission=null;status='Created “'+t.name+'” ('+t.id+'). Add its first mission.';root.VoidEditorGuide?.focusNext();draw();},'',{'data-me-create-tree':'1'}),btn('CANCEL',()=>{ui.newTree=false;draw();}));box.append(row);return box;}
+  const row=el('div','','me-row');row.append(btn('CREATE TREE',()=>{if(!name.value.trim()){setStatus('Give the tree a name first: type it in the Name box, then press CREATE TREE.');return;}const d=local();const t=T().newTree(d.trees,{name:name.value,note:note.value});d.trees.push(t);saveLocal(d);stale=true;ui.newTree=false;ui.tree=t.id;ui.mission=null;status='Created “'+t.name+'” ('+t.id+'). Add its first mission.';root.VoidEditorGuide?.focusNext();draw();},'',{'data-me-create-tree':'1'}),btn('CANCEL',()=>{ui.newTree=false;draw();}));box.append(row);return box;}
  function capabilityBox(raw){const c=T().capability(raw,{givers,items,trees:local().trees}),box=el('section','','me-check',{'data-me-capability':'1'});box.append(el('h4','What this tree can do today'));
   const ul=el('ul');ul.append(el('li','Draft and EXPORT MY EDITS: always (saved in this browser as you type).'));
   ul.append(el('li','PLAY THIS DRAFT: '+(c.total?c.play+' of '+c.total+' mission(s) can be played now.':'add a mission first.')));
@@ -309,7 +314,7 @@
   // the mission number: set or renumber (with a warning); numbers are unique and never reused
   {const nr=el('div','','me-row',{'data-me-number':m.id}),inp=el('input','','',{'aria-label':'Mission number',inputmode:'numeric',maxlength:'3',size:'4','data-me-number-input':m.id});inp.value=Number.isInteger(m.number)?MS().pad(m.number):'';
    nr.append(el('b','Mission number'),inp,btn(Number.isInteger(m.number)?'RENUMBER':'SET NUMBER',()=>{const n=parseInt(inp.value,10),d=local(),used=new Map();for(const [k,v] of Object.entries(ledger()))used.set(Number(k),v);for(const tt of d.trees)for(const mm of tt.missions)if(Number.isInteger(mm.number))used.set(mm.number,mm.id);for(const r of d.retiredNumbers||[])if(!used.has(r))used.set(r,'(removed)');
-    if(!(n>=1&&n<=999)){setStatus('A mission number is a whole number from 001 to 999.');return;}if(n===m.number)return;if(used.has(n)&&used.get(n)!==m.id){setStatus('Mission '+MS().pad(n)+' is already used by '+used.get(n)+'. A number is never reused, even after a mission is removed. The next free number is '+MS().pad(nextFree(d))+'.');return;}
+    if(!(n>=1&&n<=999)){setStatus('A mission number is a whole number from 001 to 999. Type one in the box (for example '+MS().pad(nextFree())+', the next free number), then press the button again.');return;}if(n===m.number)return;if(used.has(n)&&used.get(n)!==m.id){setStatus('Mission '+MS().pad(n)+' is already used by '+used.get(n)+'. A number is never reused, even after a mission is removed. The next free number is '+MS().pad(nextFree(d))+'.');return;}
     if(Number.isInteger(m.number)&&!confirm('Renumber Mission '+MS().pad(m.number)+' as Mission '+MS().pad(n)+'?\n\nNumbers are permanent: '+MS().pad(m.number)+' will never be given to another mission. Players who have seen “Mission '+MS().pad(m.number)+'” will see the new number after you publish.'))return;
     const d2=local();T().setNumber(d2,m.id,n);saveLocal(d2);stale=true;status='Mission '+MS().pad(n)+' — '+(m.title||m.id)+'.';draw();},'',{'data-me-renumber':m.id}),el('span','Shown as “'+numLabel(Number.isInteger(m.number)?m.number:nextFree(),m.title||'Name')+'”. Unique; never reused once used. The id '+m.id+' stays the same.','me-small'));card.append(nr);}
   const field=(label,value,on,area,attrs,help)=>{const l=el('label','','me-field');l.append(el('span',label));const inp=el(area?'textarea':'input','','',attrs||{});inp.value=value??'';inp.oninput=()=>{on(inp.value);guideSoon();};l.append(inp);if(help)l.append(hint(help));return l;};
@@ -656,7 +661,7 @@
   return {state:s,where:loc,notes};}
  async function play(key,stepId){
   const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
-  const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first: '+c.errors.slice(0,4).join(' · ');draw();return;}
+  const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first (Guide me highlights each box), then press PLAY again: '+c.errors.slice(0,4).join(' · ');draw();return;}
   const not=MC().notApplied({studio:studio(),local:local(),givers,items});
   const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);if(wsOn())await saveServer();   // the server copy is up to date before the page reloads
   write(RETURN,{tree:f.tree.id,mission:m.key,step:stepId||null,at:Date.now()},root.sessionStorage);
@@ -708,7 +713,12 @@
   root_.append(vs);
  }
  /* What Developer Tools > NPCs uses from here: the same draft, the same lines and voice view, the same play and check, the same help style. */
- const shared={el,btn,hint,optHelp,HELP,local,saveLocal,giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,
+ const shared={el,btn,hint,optHelp,HELP,local,saveLocal,restoreRaw,KEY,STUDIO,
+  // the beginner layer (editor-home.js): jump to a view, add the wizard's mission, play a tree mission, what blocks one
+  goto(o){Object.assign(ui,{check:null,newTree:false,...o});},
+  addWizardMission(make){const d=local();const r=make(d,{T:T(),number:nextFree(d),givers});saveLocal(d);stale=true;Object.assign(ui,{mode:'trees',tree:r.tree.id,mission:'tree:'+r.mission.id,step:null,scrollTo:true,newTree:false});return {tree:r.tree.id,mission:r.mission.id};},
+  playTree(id,step){if(stale)rebuild();return play('tree:'+id,step||null);},
+  blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
   addGiverMission(npc,treeId){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};

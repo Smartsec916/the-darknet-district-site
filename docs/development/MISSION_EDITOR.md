@@ -2,6 +2,40 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Ninth pass (18 Nov 2026): the beginner redesign (Start page, "Make a mission", Basic / Advanced, tour, undo)
+
+Branch `claude/editor-redesign`, build `2026-11-18-editor-redesign-1`. Pushed, no PR, not merged.
+
+### How to use it (plain steps)
+
+**Start.** Developer Tools now opens on **Start**: "What do you want to do?" with four big cards. The other tools are under "More tools" and in the tabs along the top.
+
+**Make a mission.** Press the card and answer one question per page; the bar at the top shows how far you are; **BACK** goes back, **NEXT** goes on. If something is missing, a yellow box says what and how to fix it.
+1. *What kind of mission?* Deliver something, Meet someone, Go somewhere, Photograph something with the V1, or Talk to someone.
+2. *Who gives the mission?* People players can meet today are listed first.
+3. *How does it start?* When the player talks to them; they ask and the player says yes or not now; when the player walks near them (a banner); or a text message on the V1 when the player first leaves the Sleeping Pod (you write the message).
+4. *What must the player do?* Each step: what they do and who / where. The Mission Log line is filled in for you ("Talk to Iris"); type your own words if you like. **+ ADD A STEP**, move steps up or down, or remove one.
+5. *What does the player get?* Press a button (Nothing, 50, 100, 250, 500 credits) or type a number.
+6. *What is it called?* The name, an optional description, optionally what the giver says when offering it (your words), and which tree it goes in ("My missions" unless you pick another).
+Then **MAKE MY MISSION**. It is an ordinary DRAFT mission: **PLAY IT NOW** tries it in a practice game (your real save is never touched), **OPEN IT IN THE MISSION EDITOR** shows every setting.
+
+**Test my mission** lists every mission in your draft: **PLAY** if it is ready, or what is still missing with **OPEN TO FIX**. **Publish** opens Mission Editor > Publish & versions. **Place a character** opens the NPCs tab.
+
+**Basic and Advanced.** Basic (the normal view) hides things you rarely need: the mission number, Type / Objective / Location, the mission type, Branches, Follow-ups, "If the player comes too soon", flow charts, internal names (ids) and step kinds the game cannot run yet. Tick **Advanced** at the top to see everything. Your choice is remembered in this browser.
+
+**UNDO and REDO** (top right, or Ctrl+Z / Ctrl+Shift+Z when you are not typing in a box) put back any change you made in the Mission Editor or the NPCs tab since Developer Tools was opened, including removing a mission or a step.
+
+**The tour.** The first time, a short tour (7 stops) shows where things are. **SKIP TOUR** ends it; the round **?** button shows it again.
+
+### For Claude and Codex
+
+- `void-runner/editor-wizard.js` (pure, Node-tested): `TEMPLATES` (only kinds in `mission-givers.js STEP_KINDS` with `supported`), `STEPS`, `STARTS`, `PAGES`, `fresh`, `setTemplate`, `labelFor` / `relabel`, `problems(answers, page, ctx)` (plain words, each with the fix), `build(draft, answers, {T, number})` (mission-trees.js `newTree` / `addMission` / `addStep`; never into a shipped tree), `mode` (`editor-mode`), `createUndo` (merges only saves from the same text box within 1.2 s).
+- `void-runner/editor-home.js` (browser): the Start page, wizard, Test my mission, tour (`editor-tour-done`), UNDO / REDO (`record` is called by `mission-editor.js saveLocal` / `saveStudio`; `shared.restoreRaw` puts a stored draft back), Basic marking (`mark()` after every change in the panel adds `adv-only`; `dev-tools.css` hides it under `#dev-balance.dev-basic`). New `mission-editor.js shared`: `goto`, `addWizardMission`, `playTree`, `blockers`, `restoreRaw`.
+- `dev-tools.js`: tab `home` first (default), icons (`DEV_ICON_PATHS`, `VoidDevTools.icon`), header UNDO / REDO / Advanced / ?, `setMode`; `editorScripts` end with `editor-wizard.js`, `editor-home.js`.
+- Tests: `tests/editor-redesign.test.cjs`, `tests/editor-redesign-browser.cjs` (`PART=editor`).
+
+**Not verified:** real hardware; publishing with the server switched on; the "walked near" and "message" starts made by the wizard in a browser (checked in Node); screen readers.
+
 ## Eighth pass (18 Nov 2026): help on every setting, "Guide me", "Giver waits at" on a map, and the new NPCs tab
 
 Branch `claude/editor-npc-tools`, build `2026-11-18-npc-tools-1`. Pushed, no PR, not merged.
