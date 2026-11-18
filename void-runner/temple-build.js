@@ -240,6 +240,36 @@
    add(new B.PointLight('temple-doorway',new B.Vector3(0,3.4,hz1-1.6),scene),1.15,new B.Color3(.62,.92,.88),15);
    add(new B.PointLight('temple-candles',new B.Vector3(0,1.1,19.2),scene),.85,new B.Color3(1,.64,.32),6.5).metadata={candle:true};
    if(hi)for(const s of [-1,1])add(new B.PointLight('temple-fill-'+(s<0?'w':'e'),new B.Vector3(s*7.5,1.6,6),scene),.55,new B.Color3(.32,.7,.72),11);}
+  // ---- people: Zen Zephyr's own model and the Temple's monks (18 Nov 2026; docs/development/TEMPLE.md "Monks"). Both come from model files loaded in the background
+  // (VoidAssets, as Milked's people); the primitive Zen Zephyr above stands in until his model arrives, and a monk simply appears once his figure is ready. ----
+  const assets=root.VoidAssets,crowdAnim=root.VoidCrowd?.animate,NL=root.VoidNightlife,monkPace=NL?.monkSpeed?NL.monkSpeed():.81,monkGait=NL?.config?.monk?.anim??.65;
+  const want=new Map();   // asset id -> file
+  if(T.MODEL.asset)want.set('crowd:'+T.MODEL.asset,T.MODEL.file||'assets/models/crowd/'+T.MODEL.asset+'.glb');
+  const monks=(T.monksFor?T.monksFor(quality):[]).map(m=>({...m,node:null,anim:null,state:'walk',leg:0,t:0,wait:0,yaw:0}));
+  for(const m of monks)want.set('crowd:'+m.look,'assets/models/crowd/'+m.look+'.glb');
+  let asked=-1,zenModel=null;
+  function ask(clock){if(clock<asked||!assets?.load)return;asked=clock+20;   /* asked again every 20 s while one is missing (a download dropped by a change of scene) */
+   for(const [id,src] of want)if(!assets.container?.(id))Promise.resolve(assets.load(id,{src,background:true},scene)).catch(()=>{});}
+  // A figure lit like the hall: the hall's lights (lit only for their own meshes) and the floor mirror take its meshes too.
+  function light(n){const ms=n.getChildMeshes(false);for(const l of lights)for(const m of ms)if(!l.L.includedOnlyMeshes.includes(m))l.L.includedOnlyMeshes.push(m);if(mirror)for(const m of ms)if(!mirror.renderList.includes(m))mirror.renderList.push(m);for(const m of ms){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<6)m.material.maxSimultaneousLights=6;}}
+  // Zen Zephyr: his seated model replaces the primitive figure. Its 'zz:Neck' and 'zz:Head' nodes (pivots at the neck) are what the speaker's gaze turns (npc-look.js).
+  function zen(){if(zenModel||!T.MODEL.asset)return;const id='crowd:'+T.MODEL.asset;if(!assets?.container?.(id))return;const n=assets.instance(id,monk);if(!n)return;
+   const b=n.getHierarchyBoundingVectors(true),h=b.max.y-b.min.y;if(h>.1){const k=(T.MODEL.height||1.3)/h;n.scaling.setAll(k);n.position.y=-b.min.y*k;}   /* sits on the dais, `height` tall */
+   for(const c of monk.getChildren(null,true))if(c!==n){c.dispose(false,false);}   /* the primitive figure (its meshes and its 'mk:Head') goes */
+   zenModel=n;n.metadata={...n.metadata,character:'zen-zephyr',monk:true};light(n);}
+  // The monks: praying at the altars, or walking slowly up and down their path with a pause and an unhurried turn at each end.
+  function spawnMonk(m){const n=assets?.instance?.('crowd:'+m.look,node);if(!n)return;m.node=n;n.metadata={...n.metadata,crowd:m.look,monk:true,temple:m.id};root.VoidNPCDevice?.tag?.(n,{monk:true});
+   if(m.kind==='pray'){n.position.set(m.at[0],0,m.at[1]);n.rotation.y=m.yaw=Math.atan2(m.face[0]-m.at[0],m.face[1]-m.at[1]);m.anim=crowdAnim?.(n,m.look,m.clip||'idle');}
+   else{const [a,b2]=m.path;m.t=((m.id.length*7)%10)/10;m.leg=0;n.position.set(a[0]+(b2[0]-a[0])*m.t,0,a[1]+(b2[1]-a[1])*m.t);n.rotation.y=m.yaw=Math.atan2(b2[0]-a[0],b2[1]-a[1]);m.anim=crowdAnim?.(n,m.look,'walk');gaitOf(m);}
+   light(n);}
+  const gaitOf=m=>{for(const g of m.node?.metadata?.animationGroups||[])if(g.isPlaying&&/walk$/.test(g.name.replace(/\.\d{3}$/,'')))g.speedRatio=monkGait;};
+  function people(dt,clock){ask(clock);zen();
+   for(const m of monks){if(!m.node){if(assets?.container?.('crowd:'+m.look))spawnMonk(m);continue;}if(m.kind!=='walk')continue;
+    const [a,b2]=m.leg?[m.path[1],m.path[0]]:m.path,L=Math.hypot(b2[0]-a[0],b2[1]-a[1]),goal=Math.atan2(b2[0]-a[0],b2[1]-a[1]);
+    if(m.state==='pause'){m.wait-=dt;const d=Math.atan2(Math.sin(goal-m.yaw),Math.cos(goal-m.yaw));if(m.wait<1.2)m.yaw+=d*Math.min(1,dt*1.8);m.node.rotation.y=m.yaw;
+     if(m.wait<=0){m.state='walk';m.anim?.play('walk');gaitOf(m);}continue;}
+    m.t+=dt*monkPace/L;if(m.t>=1){m.t=0;m.leg=1-m.leg;m.state='pause';m.wait=2.5+((m.id.length+m.leg)%3);m.anim?.play('idle');continue;}
+    m.node.position.set(a[0]+(b2[0]-a[0])*m.t,0,a[1]+(b2[1]-a[1])*m.t);const d=Math.atan2(Math.sin(goal-m.yaw),Math.cos(goal-m.yaw));m.yaw+=d*Math.min(1,dt*1.8);m.node.rotation.y=m.yaw;}}
   // ---- exploration (V1 map) ----
   const space=Area?.get(T.ID),flags=state?.story?.flags,fog=space?Area.load(space,flags):null;let fogDirty=false,fogNext=0,fogSaved=0;
   let clock=0,last=null;const warmBase=warmF.emissiveColor.clone();
@@ -249,10 +279,12 @@
    // flames flicker (the blue incense and the candles); the monk breathes
    for(const fl of flames)fl.f.forEach((s,k)=>{const q=Math.sin(time*7+fl.p+k*1.9)*.5+Math.sin(time*11.3+fl.p*2+k)*.3;s.scaling.y=(1.5+k*.3)*(1+q*.14);s.scaling.x=s.scaling.z=.8*(1+q*.07);});
    const cf=1+Math.sin(time*9.1)*.06+Math.sin(time*15.7+1.3)*.04;warmF.emissiveColor.copyFrom(warmBase).scaleInPlace(cf);for(const l of lights)if(l.L.metadata?.candle)l.L.intensity=l.base*(.94+(cf-1)*1.6);
+   people(dt,time);if(zenModel){const br=Math.sin(time*.9),k=zenModel.metadata.k??(zenModel.metadata.k=zenModel.scaling.y);zenModel.scaling.y=k*(1+br*.006);}   /* his model breathes too, very slightly */
    const br=Math.sin(time*.9);torso.scaling.set(1+br*.012,1+br*.018,1+br*.012);head.rotation.x=br*.012;head.rotation.y=Math.sin(time*.23)*.05;for(const [i,l] of chestLights.entries())l.visibility=.7+.3*Math.sin(time*1.4+i);
    for(const s of screens)if(time>s.next){s.next=time+s.period;s.draw(s.t.getContext(),s.cw,s.ch,time);s.t.update();}
    if(fog&&player&&time>fogNext){fogNext=time+.5;if(fog.reveal(player.x,player.z,14)>0)fogDirty=true;if(fogDirty&&time>fogSaved+4){fogSaved=time;fogDirty=false;if(flags)Area.save(space,fog,flags);try{save();}catch{}}}}
-  return {tick,fog,space,monk,head,flames,lights:()=>lights.map(l=>l.L.name),mirrored:()=>mirror?mirror.renderList.length:0,meshCount:()=>node.getChildMeshes().length,
+  return {tick,fog,space,monk,head,flames,monks:()=>monks.map(m=>({id:m.id,look:m.look,kind:m.kind,state:m.state,shown:!!m.node,x:m.node?.position.x,z:m.node?.position.z,yaw:m.node?.rotation.y})),holdMonk:(id,sec=10)=>{const m=monks.find(x=>x.id===id);if(!m?.node||m.kind!=='walk')return false;m.state='pause';m.wait=sec;m.anim?.play('idle');return true;},   /* a walking monk stops where he is for `sec` seconds (screenshots) */
+   zen:()=>({model:!!zenModel,asset:T.MODEL.asset,head:!!zenModel?.getDescendants(false).find(n=>/:Head$/.test(n.name))}),lights:()=>lights.map(l=>l.L.name),mirrored:()=>mirror?mirror.renderList.length:0,meshCount:()=>node.getChildMeshes().length,
    dispose(){if(disposed)return;disposed=true;if(fog&&flags){Area.save(space,fog,flags);try{save();}catch{}}node.dispose(false,true);for(const o of own)try{o.dispose();}catch{}own.length=0;
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;if(prev.env!=null)scene.environmentIntensity=prev.env;
     if(sun&&lp.sun!=null)sun.intensity=lp.sun;if(ambient){if(lp.amb!=null)ambient.intensity=lp.amb;if(lp.dif)ambient.diffuse=lp.dif;if(lp.gnd&&ambient.groundColor)ambient.groundColor=lp.gnd;}}};

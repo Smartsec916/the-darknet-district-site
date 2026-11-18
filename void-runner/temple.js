@@ -4,15 +4,30 @@
    World metres in the area's OWN coordinates, x east, z north, centred on (0,0). Collision bounds |x|,|z| < 50. The city lies far below to the south-east.
 
    ==== WHERE TO CHANGE THINGS ====
-   - Zen Zephyr's model: MODEL below (id 'zen-zephyr'). Package the real model with the usual private asset process, then set `asset` to its id: temple-build.js uses it when
-     VoidAssets has it and falls back to the primitive monk. Nothing else needs to change (seat, facing and the interaction are here).
+   - Zen Zephyr's model: MODEL below (id 'zen-zephyr'). `asset` names his model file (since 18 Nov 2026 his own seated model, made with Meshy from the owner's picture:
+     assets/models/crowd/npc-zen-zephyr.glb; docs/development/MESHY_CHARACTERS.md). temple-build.js loads it in the background and shows the primitive figure until it
+     arrives (or if it fails). `height` is how tall he sits (m, cushion to crown). Seat, facing and the interaction are here.
+   - The Temple's other monks: MONKS below (who stands where, who walks which path, from which quality up). Nobody stands on the walk up to the dais.
    - His lines: the owner's approved, voiced script (18 Nov 2026): tools/audio/zen-zephyr-script.json, written into zen-chat.js by tools/audio/zen-import.cjs. Never edit them by hand. */
 (function(root){
  'use strict';
  const ID='temple',SPACE_FLAG='templeFog',BOUNDS=[50,50],FARE=60;
- const MODEL={id:'zen-zephyr',name:'Zen Zephyr',role:'MONK · SANCTUM OF THE CIRCUIT',asset:null,placeholder:'primitives',seat:[0,22],yaw:0,   /* turned 180 degrees so he faces away from the entrance (the owner, 18 Nov 2026) */ 
+ const MODEL={id:'zen-zephyr',name:'Zen Zephyr',role:'MONK · SANCTUM OF THE CIRCUIT',asset:'npc-zen-zephyr',file:'assets/models/crowd/npc-zen-zephyr.glb',height:1.45,placeholder:'primitives',seat:[0,22],yaw:0,   /* turned 180 degrees so he faces away from the entrance (the owner, 18 Nov 2026) */ 
   look:'Silver head, closed eyes, dark robe with a mustard sash, mechanical details, teal chest lights, calm seated posture (the owner\'s brief; Origins scenes sanctum_discovery and zen_wisdom for mood).',
-  note:'REPLACEMENT POINT: Zen Zephyr. Set `asset` to a packaged model id to replace the primitive monk.'};
+  note:'REPLACEMENT POINT: Zen Zephyr. `asset` is his model (a different file can be named here); the primitive monk stands in until it loads.'};
+ /* The Temple's monks (the owner, 18 Nov 2026: "The closer you get to the Temple the more Monks there are compared to other NPCs"): the three monks' models (crowd.js monks).
+    pray: standing still at a data altar, on the side away from the altar's prompt, facing it. walk: slowly back and forth along `path` (the side aisles, the courtyard's
+    sides), pausing at each end. `from`: the lowest quality that has them (low 2, medium 5, high 7). The walk up the middle to the dais stays clear (tests/monks.test.cjs). */
+ const MONKS=[
+  {id:'monk-altar-1',look:'npc-monk-elder',kind:'pray',at:[-7,13.7],face:[-7,12],clip:'idle',from:'low'},
+  {id:'monk-aisle-w',look:'npc-monk-grey',kind:'walk',path:[[-14.5,0],[-14.5,30]],from:'low'},
+  {id:'monk-altar-4',look:'npc-monk-grey',kind:'pray',at:[7,26.3],face:[7,28],clip:'watch',from:'medium'},
+  {id:'monk-aisle-e',look:'npc-monk-elder',kind:'walk',path:[[14.5,28],[14.5,4]],from:'medium'},
+  {id:'monk-court-w',look:'npc-monk-tech',kind:'walk',path:[[-14,-27],[-14,-9]],from:'medium'},
+  {id:'monk-altar-2',look:'npc-monk-tech',kind:'pray',at:[7,13.7],face:[7,12],clip:'idle',from:'high'},
+  {id:'monk-court-e',look:'npc-monk-grey',kind:'walk',path:[[14,-10],[14,-26]],from:'high'}];
+ const TIERS={low:0,medium:1,high:2,ultra:2};
+ const monksFor=quality=>MONKS.filter(m=>TIERS[m.from]<=(TIERS[quality]??1));
  const ARRIVAL={spawn:[0,1.7,-38],yaw:0},CAB_PAD={x:0,z:-43},WALK_BACK={x:-8,z:-42};
  const HALL=[-18,18,-6,34],ENTRANCE={x:[-3.5,3.5],z:-6},DAIS={x:0,z:22,r:3.6},PLATEAU=[-48,48,-48,48];
  const T=.8,H=13;
@@ -60,7 +75,7 @@
  const BUILDINGS=[{id:'temple',name:'The Sanctum of the Circuit',rect:HALL}];
  function mapModel(){const rectOf=s=>({id:s.id,x0:s.position[0]-s.size[0]/2,x1:s.position[0]+s.size[0]/2,z0:s.position[2]-s.size[2]/2,z1:s.position[2]+s.size[2]/2});
   return {streets:STREETS,buildings:BUILDINGS,walls:{street:solids().filter(s=>/wall|dais|altar|gate/.test(s.id)).map(rectOf),interior:[]},pois:PLACES.map(p=>({...p,area:'street'})),vestibule:{x:ARRIVAL.spawn[0],z:ARRIVAL.spawn[2]},bounds:{x0:-50,x1:50,z0:-50,z1:50}};}
- const api={ID,SPACE_FLAG,BOUNDS,FARE,MODEL,ARRIVAL,CAB_PAD,WALK_BACK,HALL,ENTRANCE,DAIS,PLATEAU,SEGMENTS,PROPS,PARAPET,ALTAR_TEXT,INTERACTIONS,PLACES,STREETS,BUILDINGS,solids,layout,mapModel,seesMonk};
+ const api={ID,SPACE_FLAG,BOUNDS,FARE,MODEL,MONKS,monksFor,ARRIVAL,CAB_PAD,WALK_BACK,HALL,ENTRANCE,DAIS,PLATEAU,SEGMENTS,PROPS,PARAPET,ALTAR_TEXT,INTERACTIONS,PLACES,STREETS,BUILDINGS,solids,layout,mapModel,seesMonk};
  const AM=typeof module==='object'&&module.exports?require('./area-map.js'):root.VoidAreaMap;
  if(AM)AM.register({id:ID,name:'Zen Zephyr Temple',flag:SPACE_FLAG,bounds:[-50,50,-50,50],cell:5,model:mapModel});
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidTemple=Object.assign(root.VoidTemple||{},api);

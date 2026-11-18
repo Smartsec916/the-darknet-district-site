@@ -41,6 +41,11 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 16 Nov | Nyx rig | rigging (id in `Documents/DarknetDistrict_Assets/Meshy/nyx/build_status.json`) | 5 |
 | 16 Nov | Seven District props (oxygen tank, bar stool, oxygen station, VR headset, pistol, radio, flashlight): text-to-image 9, image-to-3d 30, remesh 5 each; the flashlight's picture was made twice | `Documents/DarknetDistrict_Assets/Meshy/district_props/status.json`; table in `DISTRICT_UPGRADE.md` | 317 |
 | | **16 Nov, District second pass** | | **366** (the owner's limit for it was 400; the account showed 1,767 before and 1,401 after) |
+| 18 Nov | Monk concepts, image-to-image (nano-banana-pro) from the owner's picture of three monks: elder `01a1eddb-c7df…`, tech `01a1eddb-ca08…`, grey `01a1eddb-c8bc…` | 9 each | 27 |
+| 18 Nov | Zen Zephyr concepts from his picture in the owner's book: standing A-pose `01a1eddb-c72d…` (not used) and seated `01a1eddb-c9ec…` (used) | 9 each | 18 |
+| 18 Nov | The three monks: 3D (30), remesh 30k (5), rig (5) each | ids in `Documents/DarknetDistrict_Assets/Meshy/monks/build_status.json` | 120 |
+| 18 Nov | Zen Zephyr seated: 3D (30), remesh 40k (5); not rigged (a static seated figure) | same file | 35 |
+| | **18 Nov, the monks** | | **200** (budget for this job 200 to 300; the account showed 620 afterwards; no retries were needed) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 
@@ -57,3 +62,11 @@ Lessons: never `time.sleep` inside a `bl_execute` call (it blocks Blender and th
 ## Residents (15 Nov)
 
 `district-people.js` `own` names a resident's own model; `lookFor(crew)` returns it, `crowd.js` loads it with the District interior and `pick()` gives it to their spot. If a file fails to load, a look of the place stands in. Residents done: Rin Takeda, Jonah Pike, Sable Quon, Kei Navarro, Mags Oduya, Tavi Rourke, Bishop Hale. Nyx (bartender) was done on 16 Nov from the owner's own picture: `model:'npc-nyx'` in `district-people.js`, 30,942 triangles, clips idle, talk, walk, look, watch, laugh, shrug, wipe; she is placed by `neochinatown.js` (not by a crew spot), and the figure she had before is the only stand-in. Not done: Cade and Lumi (the VR players need clips from the UAL library: take them from `vr-player-a/b.glb` with `--crowd`), DJ Vanta (in NULL), the street crowd, player characters, companions, mission-givers. The residents' looks (faces, clothes) are Claude's designs from their jobs and the owner's style references: the owner may want any of them changed.
+
+## The monks and Zen Zephyr (18 Nov 2026)
+
+From the owner's reference picture of three monks (`docs/development/monks/reference-monks.jpg`) and his book picture of Zen Zephyr (`reference-zen-zephyr.jpg`). Concepts for the owner to look at: `docs/development/monks/concept-*.jpg`. Working folder on the owner's PC: `Documents/DarknetDistrict_Assets/Meshy/monks/` (`prompts.json`, `concepts.py`, `build_all.py`, `build_cfg.json`, `zen_build.py`, statuses).
+
+- **Monks** `npc-monk-elder` (saffron robes, mala, grey goatee), `npc-monk-tech` (dark brown robe, amber visor and light panels, belt and pouches), `npc-monk-grey` (grey patterned robe, wrapped scarf, face seams): concept in A-pose with the robe hem at mid-calf so the legs rig cleanly, then 3D, remesh 30k, rig 1.70 / 1.76 / 1.74 m, `prepare_meshy.py` + `build_imported_character.py` (specs `tools/animation-pipeline/characters/npc-monk-*.json`), clips idle, talk, walk (the game's street walk), look, watch, sit. About 30,600 triangles and 3.7 to 3.9 MB each (maps re-encoded as JPEG with `shrink_glb.py`).
+- **Zen Zephyr** `npc-zen-zephyr`: the A-pose concept lost too much of the reference (the sash became a collar), so the seated concept was used instead and made a static figure (no rig: a robe pooled on the floor cannot be posed seated from an A-pose rig without tearing). `zen_build.py` (Blender, background) cuts the head off at the neck (z 0.405 m, within 0.13 m of the middle) into `zz:HeadMesh` under `zz:Head` under `zz:Neck` (pivot at the neck), so the speaker's gaze (`npc-look.js`) turns his head; maps 2048 JPEG; 41,000 triangles, 3.8 MB.
+- **In the game:** `crowd.js` (`monks`, clips), `ncz-nightlife.js` (`monkShare`: rare in Old Town, more along the Avenue toward the East Gate, up to 70% at the gate), `temple.js` (`MODEL.asset`, `MONKS`), `temple-build.js`. Details and screenshots: `docs/development/TEMPLE.md` ("Monks") and `docs/development/monks/`.
