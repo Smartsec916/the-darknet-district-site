@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "16c60d7d77e9d2ec",
+  "revision": "8d772c06bd2a3f08",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14086,31 +14086,31 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 137,
+      "line": 152,
       "text": "if(me.avoid&&me.avoid.who===first.id&&Math.abs(me.avoid.side-first.side)>=.8)return {who:first.id,gap,eta,side:me.avoid.side};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 143,
+      "line": 158,
       "text": "return {who:first.id,gap,eta,side};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 146,
+      "line": 161,
       "text": "if(seen){if(me.avoid?.who!==seen.who)me.sensed=(me.sensed||0)+1;me.avoid={side:seen.side,who:seen.who,hold:cfg.hold,gap:seen.gap,eta:seen.eta};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 164,
+      "line": 179,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],monkCast=root.VoidCrowd?.monks||['npc-monk-elder','npc-monk-tech','npc-monk-grey'],rnd=Math.random,cfg=config,quarter=null}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 274,
+      "line": 289,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -14176,13 +14176,13 @@
     },
     {
       "source": "void-runner/npc-device.js",
-      "line": 88,
+      "line": 100,
       "text": "function spectacle(ev,agents,now){const e={id:++serial,x:+ev.x||0,z:+ev.z||0,radius:ev.radius??cfg.radius,kind:ev.kind||'spectacle',t0:now,end:now+(ev.duration??cfg.duration),who:new Map(),y:ev.y??1.25};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-device.js",
-      "line": 130,
+      "line": 148,
       "text": "const talking=()=>{try{return !!root.VoidConversationUI?.isOpen||(typeof speech!=='undefined'&&!!speech?.lines?.length&&typeof walkingLocation!=='undefined'&&!!walkingLocation);}catch{return false;}};",
       "kind": "source-reference"
     },
@@ -16177,13 +16177,13 @@
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a0dd124b7b6d40e50f13f3c9d87f038e1f5bc938a34e9cd779b53c379436e9de",
     "void-runner/ncz-nightclub.js": "904fd3e94147374118ea2e125e724533f3d774e11b799284879275ab42c62876",
-    "void-runner/ncz-nightlife.js": "6ac2b8cffbf370232a6ea1fec0b12807d5c93f4db66197b5cf1562885ab69273",
+    "void-runner/ncz-nightlife.js": "dafd029ab6aea0ce1b1194a44674e6f1cab2edf7da966d6612aa979bedcaacc4",
     "void-runner/ncz-outskirts-life.js": "e4d918db16db1d688cb05fa5bbace2613a3bab7a80ce998a651e7463915ded6a",
     "void-runner/ncz-quarters.js": "2452dc8d471d63247c98e6f5f5f0e5f9327b5df3a41934abe081d2146393919b",
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-device.js": "c2567d337b5406c1917063da99be035a0e2df838584038571753723e8fff0f50",
+    "void-runner/npc-device.js": "3b5cf903b8b63f00ccf5d6cad92611a11519065bbd1cf17a94538f87ab9fe8ab",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",

@@ -1,0 +1,22 @@
+{
+ "quality": "medium",
+ "base": false,
+ "idle": {
+  "ms": 0.265,
+  "msMax": 1.1,
+  "bookkeeping": 0.258,
+  "posing": 0.007,
+  "posed": 0,
+  "agents": 38,
+  "cap": 10
+ },
+ "reading": {
+  "ms": 2.638,
+  "msMax": 18.1,
+  "bookkeeping": 0.29,
+  "posing": 2.347,
+  "posed": 4,
+  "agents": 44,
+  "cap": 10
+ }
+}

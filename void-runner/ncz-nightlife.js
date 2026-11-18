@@ -15,6 +15,9 @@
   walkers:{high:44,medium:28,low:12},
   // People standing about: groups of 2-3 talking, couples, window-shoppers, people leaning or smoking on a wall.
   standers:{high:{group:7,couple:4,shop:7,lean:6},medium:{group:4,couple:3,shop:4,lean:4},low:{group:2,couple:1,shop:1,lean:1}},
+  // People outside the food shopfronts (noodles, ramen, tacos, tea, the night market: places.js SHOPFRONTS), bowl in hand; now and then they photograph it
+  // (npc-device.js food photo). Per quality for the whole street, scaled to the quarter like the standers. There are no food stalls yet: these are the street's food spots.
+  diners:{high:6,medium:4,low:2},foodSigns:/NOODLE|RAMEN|TACOS|TEA HOUSE|CHAI|NIGHT MARKET|BENTO/,
   leaveShare:.5,           // share of walkers who leave at a street's end (and return elsewhere later)
   awayFor:[6,25],
   drunkShare:.08,          // share of walkers who are drunk (nightlife lanes only)
@@ -101,7 +104,19 @@
     // Groups face their middle; window-shoppers face the storefront; leaners face the street.
     const face=size>1?[cx,cz]:kind==='shop'?[x+s.l.wall[0]*2,z+s.l.wall[1]*2]:[x-s.l.wall[0]*2,z-s.l.wall[1]*2];
     people.push({id:'stand-'+(k++),fixed:true,kind,grp:size>1?kind+'-'+i+'-'+Math.round(cx):null,lane:s.l.id,t:s.t,side:s.side,x,z,face,clip:kind==='lean'?(rnd()<.5?'smoke':'idle'):kind==='shop'?(rnd()<.5?'watch':'idle'):'talk'});}}
+  // Diners at the food shopfronts of these lanes (after everyone else, so the rest of the plan is unchanged): by the window, half turned to the street.
+  {const n=Math.round((cfg.diners?.[quality]??0)*part),fronts=foodFronts(lanes,cfg.foodSigns).map(f=>({f,r:rnd()})).sort((a,b)=>a.r-b.r).map(x=>x.f);let made=0;
+   for(const f of fronts){if(made>=n)break;const t=f.t+(rnd()-.5)*2,p=at(f.l,t,f.l.half-.3);if(!clearAt(p)||people.some(o=>o.fixed&&Math.hypot(o.x-p[0],o.z-p[1])<2.5))continue;
+    const ux=(f.l.b[0]-f.l.a[0])/len(f.l),uz=(f.l.b[1]-f.l.a[1])/len(f.l),sd=rnd()<.5?-1:1;
+    people.push({id:'stand-food-'+(made++),fixed:true,kind:'food',dish:true,sign:f.word,grp:null,lane:f.l.id,t,side:f.l.half-.3,x:p[0],z:p[1],face:[p[0]-f.l.wall[0]*2+ux*sd*1.6,p[1]-f.l.wall[1]*2+uz*sd*1.6],clip:'idle'});}}
   return people;}}
+ /* The food shopfronts along these lanes: {word, l (lane), t (along it)} for each sign whose words are food (cfg.foodSigns) and whose pavement the lane runs along
+    (the lane's wall side faces the shop). Signs from places.js SHOPFRONTS (read from the built city). */
+ function foodFronts(ls,signs=config.foodSigns){const P=root.VoidPlaces||(typeof module!=='undefined'?require('./places.js'):null),out=[];
+  for(const [word,x,z,side] of P?.SHOPFRONTS||[]){if(!signs.test(word))continue;const c=side==='n'?[x,z-1.5]:side==='s'?[x,z+1.5]:side==='w'?[x+1.5,z]:[x-1.5,z];
+   for(const l of ls){const L=len(l),t=along(l,c);if(t<3||t>L-3)continue;const q=at(l,t),dx=c[0]-q[0],dz=c[1]-q[1];if(Math.hypot(dx,dz)>3.5)continue;
+    const fx=side==='w'?-1:side==='e'?1:0,fz=side==='n'?1:side==='s'?-1:0;if(l.wall[0]*fx+l.wall[1]*fz<.5)continue;out.push({word,l,t});break;}}
+  return out;}
  /* What one distracted walk brings: 'bump' (they will walk into something) or null, and after how many seconds of reading a wall bump comes (if nobody is met first).
     Deterministic from the walker's id and how many times they have looked at their V1. */
  function distraction(id,n,cfg=config.distracted){let h=2166136261;for(const c of String(id)+':'+n){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>13;h=Math.imul(h,3266489909);h^=h>>>16;const r=(h>>>0)/4294967296,r2=((Math.imul(h,2246822507)>>>0)%1000)/1000;
@@ -184,7 +199,7 @@
     const walk=/walk$/.test(g.name.replace(/\.\d{3}$/,''));if(walk&&r!=null&&Math.abs(g.speedRatio-r)>.005)g.speedRatio=r;}p.gaitSet=r!=null;}
   // People check their V1 now and then (npc-device.js): who walks with whom, and whether they are walking now.
   function enlistDevice(p){const D=root.VoidNPCDevice;if(!D?.enlist)return;const mate=p.pairOf||p.friendOf||people.find(o=>o.pairOf===p.id||o.friendOf===p.id)?.id||(p.grp&&people.find(o=>o!==p&&o.grp===p.grp)?.id)||null;
-   D.enlist(p.node,{kind:p.fixed?(p.kind==='shop'?'shop':'stander'):'walker',pair:mate,state:()=>({moving:!p.fixed&&p.state==='walk',can:!p.monk&&!p.drunk&&!p.away&&!p.hidden&&!byId.get(p.friendOf)?.drunk})});}
+   D.enlist(p.node,{kind:p.fixed?(p.kind==='shop'||p.kind==='food'?p.kind:'stander'):'walker',...(p.dish?{dish:true}:{}),pair:mate,state:()=>({moving:!p.fixed&&p.state==='walk',can:!p.monk&&!p.drunk&&!p.away&&!p.hidden&&!byId.get(p.friendOf)?.drunk})});}
   const R=()=>root.VoidCrowdReact;
   function play(p,clip,alt='idle'){if(!p.anim)return;p.anim.play(has(p,clip)?clip:alt);}
   function place(p,dt){const sway=p.drunk&&p.state==='walk'?Math.sin(p.sway)*.32+Math.sin(p.sway*2.7)*.08:0,side=Math.max(-p.l.half,Math.min(p.l.half,p.side+sway));
@@ -291,6 +306,6 @@
    for(const k of [1,.5]){for(const p of all)for(const [m,v]of p.parts)m.visibility=v*k;scene.incrementRenderId();await cap(ready());if(disposed)return;}
    for(const p of all){for(const [m,v]of p.parts)m.visibility=v*(p.fade||0);p.lastFade=p.fade;}}
   return {tick,dispose,prewarm,warm,people,stats,config:cfg};}
- const api={distraction,isMonk,monkSpeed,monkShareAt,monkRange,monkAverage,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
+ const api={foodFronts,distraction,isMonk,monkSpeed,monkShareAt,monkRange,monkAverage,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

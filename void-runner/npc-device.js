@@ -17,6 +17,9 @@
    SPECTACLE. VoidCrowdReact.spectacle({x,z,radius,kind,duration}): people within the radius stop, turn and (most of them) film it; some step closer, some back. Monks
    (metadata.monk) and V3 // Shadow carriers ignore it or walk away. Ends `duration` seconds later plus a few seconds of lingering. Developer Tools > Test & Jump To >
    STAGE A STREET ARGUMENT HERE puts two people arguing in front of the player and fires it.
+   It is THE hook for any fight or street argument (call it with the place; radius about 12 m). Filmers are capped per quality (FILM_CAPS: the nearest film, the rest
+   watch); those stepping closer walk in on spread lines (gatherMove) and walk back afterwards. Food: diners at the street's food shopfronts (ncz-nightlife.js) hold a
+   takeaway bowl and photograph it. Cost: one batch of people refreshed per frame, the scheduler at 10 Hz, only posed people touched every frame (18 Nov 2026).
    The rules (tiers, scheduler, caps, spectacle) are pure and run in Node (tests/npc-device.test.cjs); the drawing runs in the browser. */
 (function(root){
  'use strict';
@@ -29,6 +32,9 @@
   v3:{share:.05,color:'#46ff7a',alpha:.66,name:'V3 // SHADOW',eye:true}}; // device-v1.css [data-device=v3]. The owner: "V3 // Shadow get it streamed into their eye. So just their eye glows." No cuff, no panel
  const CAPS={low:4,medium:10,high:16,ultra:16};
  const capFor=q=>CAPS[q]??CAPS.medium;
+ // How many of a spectacle's onlookers film it (the nearest; the rest only watch), by quality. Within CAPS, so the filmers are drawn first.
+ const FILM_CAPS={low:3,medium:6,high:10,ultra:10};
+ const filmCapFor=q=>FILM_CAPS[q]??FILM_CAPS.medium;
  // What each kind of person does with it. Poses: scroll (reading), photo, selfie, pair-selfie, film, food-photo.
  const KINDS={
   walker:{group:'street',moving:[['scroll',1]],still:[['scroll',.6],['photo',.4]],pair:.35},
@@ -43,7 +49,10 @@
  const GROUPS={street:{share:[.1,.2],dur:[5,15]},food:{share:[.15,.3],dur:[5,12]},club:{share:[.15,.3],dur:[4,10]},story:{share:[0,.5],dur:[6,10],cool:[60,140]}};
  const STILL=new Set(['photo','selfie','pair-selfie','film','food-photo']);   // poses that need the person to stop
  const PHOTO=new Set(['photo','selfie','pair-selfie','food-photo']);
- const config={near:22,flashShare:.5,spectacle:{radius:12,duration:12,film:.78,closer:.25,back:.2,linger:[2,5],delay:[.2,1.5]}};
+ const config={near:22,flashShare:.5,spectacle:{radius:12,duration:12,film:.78,closer:.25,back:.2,linger:[2,5],delay:[.2,1.5],
+  // gathering loosely: those stepping closer walk in up to `max` m (more from further out) and never nearer than `near` m; onlookers beyond `far` drift in a little;
+  // a step back is `back` m; each comes in on a slightly different line (`arc` radians in all), so they spread round it rather than queue
+  gather:{near:3.5,far:8,step:.8,pull:.3,max:2.2,drift:.4,back:.8,arc:.6}}};
  // A well mixed hash of a string (seeds such as 'night-12' differ by one character).
  function hash(s){let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>16;h=Math.imul(h,2246822507);h^=h>>>13;h=Math.imul(h,3266489909);h^=h>>>16;return h>>>0;}
  // The tier a person carries: their data's (district-people.js `device`) or one from the seed.
@@ -83,13 +92,19 @@
  const excluded=a=>!!(a.monk||a.tier==='v3');
  /* createReactor() -> {spectacle(ev, agents, now), reactionOf(id, now), step(now), active}. ev: {x, z, radius, kind, duration}. agents: [{id, x, z, tier, monk}].
     Each person within the radius gets {mode:'film'|'watch'|'ignore'|'leave', step:+1 closer|-1 back|0, from (start time), until (end time)}. */
+ /* How far an onlooker at distance d walks in (+) or steps back (-), in metres, for their step (+1 closer, -1 back, 0 stay): a loose gathering, never on top of it. */
+ function gatherMove(d,step,g=config.spectacle.gather){if(step<0)return -g.back;const want=step>0?Math.min(g.max,g.step+Math.max(0,d-g.near)*g.pull):Math.max(0,d-g.far)*g.drift;return Math.max(0,Math.min(want,d-g.near));}
  function createReactor({rnd=Math.random,cfg=config.spectacle}={}){
   const events=[];let serial=0;
+  // ev.filmCap: at most this many film (the nearest of those who would); the others watch. Omitted: no cap (the browser passes filmCapFor(quality)).
   function spectacle(ev,agents,now){const e={id:++serial,x:+ev.x||0,z:+ev.z||0,radius:ev.radius??cfg.radius,kind:ev.kind||'spectacle',t0:now,end:now+(ev.duration??cfg.duration),who:new Map(),y:ev.y??1.25};
+   const films=[],cap=ev.filmCap??cfg.filmCap??Infinity,g=cfg.gather||config.spectacle.gather;
    for(const a of agents){const d=Math.hypot(a.x-e.x,a.z-e.z);if(d>e.radius||(ev.skip&&ev.skip.has(a.id)))continue;
     const ex=excluded(a),mode=ex?(a.monk?'ignore':(rnd()<.5?'leave':'ignore')):(rnd()<cfg.film?'film':'watch');
     const r=rnd(),step=ex?0:r<cfg.closer?1:r<cfg.closer+cfg.back?-1:0;
-    e.who.set(a.id,{id:a.id,event:e.id,mode,step,d,x:e.x,z:e.z,y:e.y,from:now+cfg.delay[0]+rnd()*(cfg.delay[1]-cfg.delay[0]),until:e.end+cfg.linger[0]+rnd()*(cfg.linger[1]-cfg.linger[0])});}
+    const x={id:a.id,event:e.id,mode,step,move:ex?0:gatherMove(d,step,g),arc:ex?0:(rnd()-.5)*g.arc,d,x:e.x,z:e.z,y:e.y,from:now+cfg.delay[0]+rnd()*(cfg.delay[1]-cfg.delay[0]),until:e.end+cfg.linger[0]+rnd()*(cfg.linger[1]-cfg.linger[0])};
+    e.who.set(a.id,x);if(mode==='film')films.push(x);}
+   films.sort((p,q)=>p.d-q.d);for(const x of films.slice(Math.max(0,cap)))x.mode='watch';
    events.push(e);return e;}
   function reactionOf(id,now){let best=null;for(const e of events){const r=e.who.get(id);if(r&&now>=r.from&&now<r.until&&(!best||r.from>best.from))best=r;}return best;}
   function step(now){for(let i=events.length-1;i>=0;i--){let live=false;for(const r of events[i].who.values())if(now<r.until)live=true;if(!live&&now>=events[i].end)events.splice(i,1);}}
@@ -106,6 +121,9 @@
   const c=String(m.character||'');if(STORY.has(c))return 'story';
   if(/^crew-bar\d/.test(c))return 'food';if(/^crew-(vr|bartender)|^crew-pressure/.test(c))return null;if(/^crew-/.test(c)&&m.ambient)return /sit/.test(c)?'seated':'stander';
   return null;}
+ /* The device a named person carries (district-people.js `device`), or null. Only for people with a name: the street's people carry no `character`, and matching
+    `undefined` against a person with no `crew` gave every one of them Admin's V3 // Shadow (fixed 18 Nov 2026: almost nobody on the street could film a spectacle). */
+ function deviceOf(people,character){if(!character||!Array.isArray(people))return null;const p=people.find(n=>n&&(n.id===character||(n.crew&&n.crew===character)));return p?.device||null;}
  // Fixed pairs among the places' own people (who takes a selfie with whom).
  const PAIRS={'crew-hall-talk1':'crew-hall-talk2','crew-hall-talk2':'crew-hall-talk1','bar-guest-a':'bar-guest-b','bar-guest-b':'bar-guest-a','dancer-0':'dancer-1','dancer-1':'dancer-0','dancer-2':'dancer-3','dancer-3':'dancer-2','crew-bar1':'crew-bar2','crew-bar2':'crew-bar1'};
  /* OTHER PLAYERS (multiplayer, the owner, 18 Nov 2026: "players see each other using their device"). The hub tells only open or closed, the model (v1, v2, v3) and
@@ -113,7 +131,7 @@
     'remote-player:<id>' node: {tier(), force()}) and is the ONE kind of player this module draws: same cuff and panel as people (V1 teal, V2 the placeholder
     violet), the V3 // Shadow only its eye. Never the local player, never companions. remotePose: what the avatar shows for what the hub said (null: nothing). */
  function remotePose(dev,pose){if(!TIERS[dev])return null;return pose==='cam'?'photo':'scroll';}
- const pure={V2_PLACEHOLDER_COLOR,remotePose,TIERS,CAPS,capFor,KINDS,GROUPS,STILL,PHOTO,config,hash,tierFor,poseFor,createScheduler,choosePosed,excluded,createReactor,kindOf,PAIRS};
+ const pure={deviceOf,V2_PLACEHOLDER_COLOR,remotePose,TIERS,CAPS,capFor,FILM_CAPS,filmCapFor,gatherMove,KINDS,GROUPS,STILL,PHOTO,config,hash,tierFor,poseFor,createScheduler,choosePosed,excluded,createReactor,kindOf,PAIRS};
  if(typeof module==='object'&&module.exports){module.exports=pure;return;}
 
  /* ---------------- browser ---------------- */
@@ -158,11 +176,17 @@
    const em=unlit('npc-v1-'+tier+'-emitter',Math.min(1,T.alpha*1.6),null,col),e=hidden(B.MeshBuilder.CreateBox('npc-v1-'+tier+'-emitter',{width:.024,height:.008,depth:.038},scene));e.material=em;src[tier].emitter={mesh:e,mat:em,pool:[]};}
   // the Shadow's eye: a small soft glow at one eye (a billboard disc, one material)
   const eyeMat=unlit('npc-v3-eye',.5,null,B.Color3.FromHexString(TIERS.v3.color)),eyeGlow=hidden(B.MeshBuilder.CreateDisc('npc-v3-eye',{radius:.5,tessellation:10},scene));eyeGlow.material=eyeMat;eyeGlow.billboardMode=B.TransformNode.BILLBOARDMODE_ALL;
-  src.cuff={mesh:cuff,pool:[]};src.eye={mesh:eyeGlow,mat:eyeMat,pool:[]};cone.dispose();own.splice(own.indexOf(cone),1);
+  // a diner's takeaway bowl (the food photo at a food shopfront): a paper bowl with a pair of chopsticks across it, lit by the scene, faintly warm so it reads at night
+  const paper=new B.StandardMaterial('npc-dish',scene);paper.diffuseColor=new B.Color3(.82,.76,.66);paper.emissiveColor=new B.Color3(.1,.08,.06);paper.specularColor=new B.Color3(.08,.08,.08);own.push(paper);
+  const bowl=B.MeshBuilder.CreateCylinder('npc-dish-b',{diameterTop:.13,diameterBottom:.085,height:.07,tessellation:14},scene),st1=B.MeshBuilder.CreateBox('npc-dish-s1',{width:.006,height:.006,depth:.21},scene),st2=st1.clone('npc-dish-s2');
+  st1.position.set(-.012,.045,0);st1.rotation.set(.12,.35,0);st2.position.set(.012,.045,0);st2.rotation.set(.12,.42,0);
+  const dish=hidden(B.Mesh.MergeMeshes([bowl,st1,st2],true,true));dish.name='npc-dish';dish.material=paper;
+  src.cuff={mesh:cuff,pool:[]};src.eye={mesh:eyeGlow,mat:eyeMat,pool:[]};src.dish={mesh:dish,pool:[]};cone.dispose();own.splice(own.indexOf(cone),1);
   scene.onDisposeObservable.addOnce(()=>{for(const o of own)try{o.dispose();}catch{}});
   return {src,flash,flashMat,flashes:[]};}
- function take(tier,kind){const s=kind==='cuff'||kind==='eye'?kit.src[kind]:kit.src[tier][kind];const m=s.pool.pop()||s.mesh.createInstance(s.mesh.name+'-i');m.setEnabled(true);m.isPickable=false;return m;}
- function give(tier,kind,m){if(!m)return;m.setEnabled(false);(kind==='cuff'||kind==='eye'?kit.src[kind]:kit.src[tier][kind]).pool.push(m);}
+ const solo=k=>k==='cuff'||k==='eye'||k==='dish';
+ function take(tier,kind){const s=solo(kind)?kit.src[kind]:kit.src[tier][kind];const m=s.pool.pop()||s.mesh.createInstance(s.mesh.name+'-i');m.setEnabled(true);m.isPickable=false;return m;}
+ function give(tier,kind,m){if(!m)return;m.setEnabled(false);(solo(kind)?kit.src[kind]:kit.src[tier][kind]).pool.push(m);}
  function spark(at,size,dim){const f=kit.flash.createInstance('npc-holo-flash-i');f.position.copyFrom(at);f.scaling.setAll(.001);kit.flashes.push({f,t:0,size,dim});stats.flashes++;}
  // ---- bones ----
  const BONES=['Hips','Spine2','Neck','Head','RightArm','RightForeArm','RightHand','RightHandMiddle1','LeftArm','LeftForeArm','LeftHand','LeftHandMiddle1'];
@@ -200,16 +224,16 @@
   if(remote){const key=String(remote.id||node.name);a={id:'remote:'+key+'#'+node.uniqueId,key:'remote:'+key,f,node,kind:'player-remote',remote:true,tier:TIERS[remote.tier?.()]?remote.tier():'v1',monk:false,pairKey:null,fig:undefined,last:null,speed:0,w:0,pose:null,holo:null,frame:null,swipe:Math.random()*9,yaw:null,off:0,extra:remote};agents.set(f,a);return a;}
   if(!node||isCompanion(node)){agents.set(f,null);return null;}
   const m=metaOf(node),extra=tagged.get(node)||m.npcDevice||{},kind=extra.kind||kindOf(m);if(!kind){agents.set(f,null);return null;}
-  const key=String(m.nightlife||m.club||m.alley||m.character||node.name),person=root.VoidDistrictPeople?.npcs?.()?.find?.(n=>n.crew===m.character||n.id===m.character);
+  const key=String(m.nightlife||m.club||m.alley||m.character||node.name),person={device:deviceOf(root.VoidDistrictPeople?.npcs?.(),m.character)};
   a={id:key+'#'+f.node.uniqueId,key,f,node,kind,tier:tierFor(key,extra.tier||person?.device),monk:!!(extra.monk||m.monk),pairKey:extra.pair||PAIRS[key]||null,fig:undefined,last:null,speed:0,w:0,pose:null,holo:null,frame:null,swipe:Math.random()*9,yaw:null,off:0,extra};
   agents.set(f,a);return a;}
  function figOf(a){if(a.fig===undefined)a.fig=bonesOf(a.node)?{bones:bonesOf(a.node)}:null;return a.fig;}
  function listAgents(){const out=[];for(const f of root.VoidCrowd?.figures?.()||[]){const a=agentFor(f);if(a&&!a.node.isDisposed())out.push(a);}for(const [f,a] of agents)if(a&&(a.node.isDisposed()||!root.VoidCrowd.figures().has(f))){drop(a);agents.delete(f);sched.forget(a.id);}return out;}
- function drop(a){for(const k of ['cuff','emitter','cone','panel','camera','eye'])if(a['m_'+k]){give(a.pieceTier,k,a['m_'+k]);a['m_'+k]=null;}}
+ function drop(a){for(const k of ['cuff','emitter','cone','panel','camera','eye','dish'])if(a['m_'+k]){give(a.pieceTier,k,a['m_'+k]);a['m_'+k]=null;}}
  const byKey=new Map();
  // ---- spectacle ----
  function spectacle(ev={}){const list=listAgents().filter(a=>a.kind!=='story'&&!a.remote&&a.node.isEnabled()).map(a=>{const p=a.node.getAbsolutePosition();return {id:a.id,x:p.x,z:p.z,tier:a.tier,monk:a.monk};});
-  const e=reactor.spectacle({...ev,skip:new Set(ev.skip||[])},list,clock);return {id:e.id,kind:e.kind,x:e.x,z:e.z,radius:e.radius,end:()=>reactor.end(e.id,clock),reactions:[...e.who.values()].map(r=>({id:r.id,mode:r.mode,step:r.step}))};}
+  const e=reactor.spectacle({filmCap:filmCapFor(quality()),...ev,skip:new Set(ev.skip||[])},list,clock);return {id:e.id,kind:e.kind,x:e.x,z:e.z,radius:e.radius,end:()=>reactor.end(e.id,clock),reactions:[...e.who.values()].map(r=>({id:r.id,mode:r.mode,step:r.step}))};}
  const reactionOf=node=>{for(const a of agents.values())if(a&&a.node===node)return reactor.reactionOf(a.id,clock);return null;};
  const sessionOf=node=>{for(const a of agents.values())if(a&&a.node===node)return sched.session(a.id);return null;};
  // A walker the owner's script should keep still (a photo, a selfie, filming, watching).
@@ -220,34 +244,62 @@
  function startle(node,{close=false}={}){for(const a of agents.values())if(a&&a.node===node){a.flick=clock+.8;if(close){a.hush=clock+3;sched.end(a.id,a.kind);}else a.w=Math.min(a.w,.45);stats.startles=(stats.startles||0)+1;return true;}return false;}
  // Walking pace while reading: slower.
  function pace(node){const s=sessionOf(node);return s&&s.pose==='scroll'?.62:1;}
+ /* One step of a gathering onlooker: a.off (metres along a.ux/a.uz, toward the spectacle) eases toward `goal` at a walking pace; facing `face` (the spectacle), or the
+    way they walk. Walking more than a few tens of centimetres plays their walk clip (no sliding), then idle. Moved and turned for this frame only (xform, put back
+    after the frame is drawn). Street walkers on their way home again are not turned or re-clipped (ncz-nightlife.js walks them on). */
+ function gather(a,dt,goal,face){const n=a.node,free=!n.rotationQuaternion&&!n.parent?.rotationQuaternion,walker=a.extra.walker===true,dd=goal-a.off,far=Math.abs(dd)>.12;
+  a.off+=Math.sign(dd)*Math.min(Math.abs(dd),dt*(walker&&face===null?1.2:.95));if(Math.abs(a.off)<.005&&goal===0)a.off=0;
+  const walkIn=far&&(dd>.25||a.gathering&&dd>.05||face===null&&a.off>.3)&&!(walker&&face===null),home=n.rotation.y;
+  if(a.yaw===null)a.yaw=n.rotationQuaternion?0:home;
+  const want=walkIn?Math.atan2(dd>0?a.ux:-a.ux,dd>0?a.uz:-a.uz):face!==null?face:home,dy=Math.atan2(Math.sin(want-a.yaw),Math.cos(want-a.yaw));a.yaw+=dy*Math.min(1,dt*3);
+  if(face===null&&!a.off&&Math.abs(dy)<.05)a.yaw=null;
+  if(a.f.play&&!(walker&&face===null)){if(walkIn&&!a.gathering&&a.f.has?.('walk')!==false){a.gathering=true;if(!a.restore&&!walker)a.restore=a.f.clip;a.f.play('walk');}else if(!walkIn&&a.gathering){a.gathering=false;a.f.play('idle');}}
+  else if(a.gathering){a.gathering=false;}
+  if(free&&(a.off||a.yaw!==null)){xform.push([n,n.position.clone(),home]);n.position.x+=a.ux*a.off;n.position.z+=a.uz*a.off;if(a.yaw!==null&&!(walker&&face===null))n.rotation.y=a.yaw;}}
  // ---- each frame ----
  let xform=[];   // [node, position, rotationY] to put back after the frame
+ /* Each frame is cheap: one batch of people (every BATCHES-th, in turn) has its position, speed, view and state refreshed; the scheduler and who is drawn are worked
+    out every THINK seconds from those; only the people in a pose (or gathering) are eased and moved every frame. No per-frame lists. */
+ const THINK=.1,BATCHES=3,PLANES=[];let tick=0,thinkAcc=THINK,list=[],posedSet=new Set();const INPUT=[],WANT=[];
+ function sense(a,eye,zf,chat,lookBusy){if(a.node.isDisposed())return;const p=a.node.getAbsolutePosition(),el=clock-(a.seenAt??clock);if(a.seenAt!==undefined&&el>0)a.speed=a.speed*.55+.45*Math.hypot(p.x-a.lx,p.z-a.lz)/el;a.lx=p.x;a.lz=p.z;a.seenAt=clock;
+  a.d=Math.hypot(p.x-eye.x,p.z-eye.z)*zf;
+  if(a.remote){const tr=a.extra.tier?.();if(TIERS[tr])a.tier=tr;}   // another player: their model may change while they are here
+  const ext=a.extra.state?.()||{},react=a.remote?null:reactor.reactionOf(a.id,clock);a.react=react;
+  const moving=ext.moving??a.speed>.25,forced=a.extra.force?.();a.forced=forced||null;
+  a.can=!forced&&!react&&a.node.isEnabled()&&!(a.kind==='story'&&(chat||lookBusy===String(metaOf(a.node).character)||moving))&&ext.can!==false;a.moving=moving;
+  let vis=a.node.isEnabled()&&!a.f.culled&&a.f.active!==false&&a.d<config.near;if(vis)for(const pl of PLANES)if(pl.normal.x*p.x+pl.normal.y*(p.y+1.4)+pl.normal.z*p.z+pl.d<-.6){vis=false;break;}a.visible=vis;}
+ function think(dt){byKey.clear();for(const a of list)byKey.set(a.key,a);INPUT.length=0;
+  for(const a of list){const o=a.input||(a.input={});o.id=a.id;o.kind=a.kind;o.tier=a.tier;o.can=a.can;o.moving=a.moving;o.pair=a.pairKey&&byKey.get(a.pairKey)?.id;INPUT.push(o);}
+  sched.step(dt,INPUT);
+  // who is drawn using it
+  WANT.length=0;let using=0;stats.tiers={};
+  for(const a of list){a.session=sched.session(a.id);a.goal=a.hush>clock&&!a.react?null:a.forced?{pose:a.forced,role:'solo'}:a.react&&a.react.mode==='film'?FILM:a.react&&a.react.mode==='watch'?WATCH:a.session;
+   if(a.goal||a.w>0){const o=a.want||(a.want={});o.id=a.id;o.d=a.d;o.visible=a.visible;o.shown=a.w>0;WANT.push(o);}
+   if(a.session||a.forced||a.react?.mode==='film')using++;stats.tiers[a.tier]=(stats.tiers[a.tier]||0)+1;}
+  const cap=capFor(quality());posedSet=choosePosed(WANT,cap);stats.agents=list.length;stats.using=using;stats.cap=cap;}
+ const FILM={pose:'film',role:'solo'},WATCH={pose:'watch',role:'solo'};
  function before(dt){const t0=performance.now();clock+=dt;reactor.step(clock);
   const cam=scene.activeCamera;if(!cam)return;if(!kit)kit=buildKit();
-  const list=listAgents(),eye=cam.globalPosition,planes=B.Frustum.GetPlanes(cam.getTransformationMatrix()),zf=root.VoidZoom?root.VoidZoom.now():1,chat=talking(),lookBusy=root.VoidNPCLook?.current?.character;
-  byKey.clear();for(const a of list)byKey.set(a.key,a);
-  const input=[];
-  for(const a of list){const p=a.node.getAbsolutePosition();if(a.last){a.speed=a.speed*.8+.2*Math.hypot(p.x-a.last.x,p.z-a.last.z)/Math.max(dt,1e-3);}a.last={x:p.x,z:p.z};a.d=Math.hypot(p.x-eye.x,p.z-eye.z)*zf;
-   if(a.remote){const tr=a.extra.tier?.();if(TIERS[tr])a.tier=tr;}   // another player: their model may change while they are here
-   const ext=a.extra.state?.()||{},react=a.remote?null:reactor.reactionOf(a.id,clock);a.react=react;
-   const moving=ext.moving??a.speed>.25,forced=a.extra.force?.();a.forced=forced||null;
-   const can=!forced&&!react&&a.node.isEnabled()&&!(a.kind==='story'&&(chat||lookBusy===String(metaOf(a.node).character)||moving))&&ext.can!==false;
-   a.moving=moving;input.push({id:a.id,kind:a.kind,tier:a.tier,can,moving,pair:a.pairKey&&byKey.get(a.pairKey)?.id});
-   let vis=a.node.isEnabled()&&!a.f.culled&&a.f.active!==false&&a.d<config.near;if(vis)for(const pl of planes)if(pl.normal.x*p.x+pl.normal.y*(p.y+1.4)+pl.normal.z*p.z+pl.d<-.6){vis=false;break;}a.visible=vis;}
-  sched.step(dt,input);
-  // who is drawn using it
-  const want=[];for(const a of list){a.session=sched.session(a.id);a.goal=a.hush>clock&&!a.react?null:a.forced?{pose:a.forced,role:'solo'}:a.react&&a.react.mode==='film'?{pose:'film',role:'solo'}:a.react&&a.react.mode==='watch'?{pose:'watch',role:'solo'}:a.session;if(a.goal||a.w>0)want.push({id:a.id,d:a.d,visible:a.visible,shown:a.w>0});}
-  const cap=capFor(quality()),posed=choosePosed(want,cap);
-  stats.agents=list.length;stats.using=list.filter(a=>a.session||a.forced||a.react?.mode==='film').length;stats.cap=cap;stats.poses={};stats.tiers={};
-  let n=0;for(const a of list){stats.tiers[a.tier]=(stats.tiers[a.tier]||0)+1;const on=!!a.goal&&posed.has(a.id);if(on&&a.goal.pose!==a.pose&&a.w>.05){a.ending=true;}else if(on){a.pose=a.goal.pose;a.role=a.goal.role;a.partner=a.goal.partner;a.ending=false;}
-   a.w=Math.max(0,Math.min(1,a.w+(on&&!a.ending?1:-1)*dt*2.2));if(a.w<=0){a.ending=false;if(on){a.pose=a.goal.pose;a.role=a.goal.role;a.partner=a.goal.partner;}else{a.pose=null;drop(a);}}
+  thinkAcc+=dt;tick++;const thinking=thinkAcc>=THINK;if(thinking)list=listAgents();
+  const eye=cam.globalPosition,zf=root.VoidZoom?root.VoidZoom.now():1,chat=talking(),lookBusy=root.VoidNPCLook?.current?.character,batch=tick%BATCHES;
+  if(!PLANES.length)for(let i=0;i<6;i++)PLANES.push(new B.Plane(0,0,0,0));B.Frustum.GetPlanesToRef(cam.getTransformationMatrix(),PLANES);
+  for(let i=0;i<list.length;i++){const a=list[i];if(a.seenAt===undefined||i%BATCHES===batch)sense(a,eye,zf,chat,lookBusy);}
+  if(thinking){think(thinkAcc);thinkAcc=0;}
+  let n=0;stats.poses={};
+  for(const a of list){const on=!!a.goal&&posedSet.has(a.id);if(!on&&a.w<=0&&!a.pose&&!a.react&&!a.reacting&&!a.off&&a.yaw===null)continue;
+   if(on&&a.goal.pose!==a.pose&&a.w>.05){a.ending=true;}else if(on){a.pose=a.goal.pose;a.role=a.goal.role;a.partner=a.goal.partner;a.ending=false;}
+   a.w=Math.max(0,Math.min(1,a.w+(on&&!a.ending?1:-1)*dt*2.2));if(a.w<=0){a.ending=false;if(on){a.pose=a.goal.pose;a.role=a.goal.role;a.partner=a.goal.partner;}else if(a.pose){a.pose=null;drop(a);}}
    if(a.w>0&&a.pose){n++;stats.poses[a.pose]=(stats.poses[a.pose]||0)+1;}
    // turning toward a spectacle (and a step closer or back), turning away for those who leave
-   const r=a.react;if(r&&r.mode!=='ignore'&&a.node.isEnabled()){const p=a.node.position;const wp=a.node.getAbsolutePosition(),tx=r.x-wp.x,tz=r.z-wp.z,to=Math.atan2(tx,tz)+(r.mode==='leave'?Math.PI:0);
-    if(a.yaw===null)a.yaw=a.node.rotationQuaternion?0:a.node.rotation.y;const dy=Math.atan2(Math.sin(to-a.yaw),Math.cos(to-a.yaw));a.yaw+=dy*Math.min(1,dt*3);a.off+=((r.step||0)*Math.min(1,Math.max(0,(clock-r.from)/1.5))*.8-a.off)*Math.min(1,dt*2);
-    if(!a.node.rotationQuaternion&&!a.node.parent?.rotationQuaternion){xform.push([a.node,p.clone(),a.node.rotation.y]);const len=Math.hypot(tx,tz)||1;p.x+=tx/len*a.off;p.z+=tz/len*a.off;a.node.rotation.y=a.yaw;}
-    if(!a.reacting){a.reacting=r.event;if(a.extra.walker!==true&&a.f.play&&(r.mode==='film'||r.mode==='watch')){a.restore=a.f.clip;a.f.play('idle');}}}
-   else{if(a.reacting){a.reacting=null;if(a.restore){a.f.play(a.restore);a.restore=null;}}a.yaw=null;a.off=0;}}
+   // gathering loosely (reactor gatherMove): those who come closer WALK in on their own slightly different line (r.arc), then face it; afterwards they walk back
+   const r=a.react;if(r&&r.mode!=='ignore'&&a.node.isEnabled()){const wp=a.node.getAbsolutePosition(),tx=r.x-wp.x,tz=r.z-wp.z,len=Math.hypot(tx,tz)||1,ca=Math.cos(r.arc||0),sa=Math.sin(r.arc||0);
+    a.ux=(tx*ca-tz*sa)/len;a.uz=(tx*sa+tz*ca)/len;const goal=r.mode==='leave'?0:(r.move??(r.step||0)*.8),to=Math.atan2(tx,tz)+(r.mode==='leave'?Math.PI:0);
+    if(!a.reacting){a.reacting=r.event;a.homing=false;if(a.extra.walker!==true&&a.f.play&&(r.mode==='film'||r.mode==='watch')){if(!a.restore)a.restore=a.f.clip;a.f.play('idle');}}
+    gather(a,dt,clock>=r.from+.3?goal:0,to);}
+   else if(a.reacting||a.off){if(a.reacting){a.reacting=null;a.homing=true;}gather(a,dt,0,null);
+    if(!a.off&&a.yaw===null){a.homing=false;if(a.restore){a.f.play(a.restore);a.restore=null;}}}
+   else a.yaw=null;
+   }
   // the pair-selfie couple face the same way, the friend on the holder's left
   for(const a of list){if(a.pose!=='pair-selfie'||a.role!=='holder'||a.w<=0)continue;const b=list.find(x=>x.id===a.partner);if(!b||b.node.rotationQuaternion||a.node.rotationQuaternion)continue;
    const pa=a.node.getAbsolutePosition(),pb=b.node.getAbsolutePosition(),dx=pb.x-pa.x,dz=pb.z-pa.z;const face=Math.atan2(dx,dz)-Math.PI/2;   // b on a's right when both face `face` (a holds the bracer out to the left)
@@ -262,25 +314,25 @@
   stats.ms=performance.now()-t0;}
  function after(){const t0=performance.now();if(!kit)return;
   for(const a of agents.values()){if(!a||!a.pose||a.w<=0)continue;const fig=figOf(a);if(!fig||!a.node.isEnabled()){drop(a);continue;}try{pose(a,fig);}catch(e){console.warn('[VOID npc device]',e);a.fig=null;drop(a);}}
-  stats.ms+=performance.now()-t0;}
+  stats.msPose=performance.now()-t0;stats.msFrame=stats.ms;stats.ms+=stats.msPose;}
  const ease=w=>w*w*(3-2*w);
  // The pieces a person shows while using it: the cuff and its emitter, the cone of light and the panel (reading) or the camera panel (viewfinder).
- function show(a,kind,on){const key='m_'+kind;if(on){if(a[key]&&a.pieceTier!==a.tier){for(const k of ['cuff','emitter','cone','panel','camera','eye'])if(a['m_'+k]){give(a.pieceTier,k,a['m_'+k]);a['m_'+k]=null;}}a.pieceTier=a.tier;if(!a[key])a[key]=take(a.tier,kind);return a[key];}
+ function show(a,kind,on){const key='m_'+kind;if(on){if(a[key]&&a.pieceTier!==a.tier){for(const k of ['cuff','emitter','cone','panel','camera','eye','dish'])if(a['m_'+k]){give(a.pieceTier,k,a['m_'+k]);a['m_'+k]=null;}}a.pieceTier=a.tier;if(!a[key])a[key]=take(a.tier,kind);return a[key];}
   if(a[key]){give(a.pieceTier,kind,a[key]);a[key]=null;}return null;}
  function pose(a,fig){const w=ease(a.w),body=bodyFrame(a.node),up=B.Axis.Y,h=fig.bones.Head;refresh(h);
   const side=P(fig.bones.RightArm).subtract(P(fig.bones.LeftArm));side.y=0;side.normalize();const left=side.scale(-1);   // `side`: toward the person's own right
   const head0=P(h),eye0=head0.add(up.scale(.09)).add(body.fwd.scale(.07)),chest=fig.bones.Spine2?P(fig.bones.Spine2):head0.add(up.scale(-.42));
   const tier=a.tier,eyeCam=TIERS[tier].eye,r=a.react,s=a.session||{},partner=a.partner&&[...agents.values()].find(x=>x&&x.id===a.partner);
   const shL=P(fig.bones.LeftArm),armL=B.Vector3.Distance(shL,P(fig.bones.LeftForeArm))+B.Vector3.Distance(P(fig.bones.LeftForeArm),P(fig.bones.LeftHand));
-  const subject=()=>{if(r)return new B.Vector3(r.x,r.y,r.z);if(a.pose==='food-photo')return new B.Vector3(eye0.x+body.fwd.x*.6,eye0.y-.8,eye0.z+body.fwd.z*.6);const t=a.extra.target?.();if(t)return t;return eye0.add(body.fwd.scale(4)).add(up.scale(-.1));};
+  const subject=()=>{if(r)return new B.Vector3(r.x,r.y,r.z);if(a.pose==='food-photo'&&a.dishAt)return a.dishAt;if(a.pose==='food-photo')return new B.Vector3(eye0.x+body.fwd.x*.6,eye0.y-.8,eye0.z+body.fwd.z*.6);const t=a.extra.target?.();if(t)return t;return eye0.add(body.fwd.scale(4)).add(up.scale(-.1));};
   if(eyeCam){   // V3 // SHADOW: streamed into the eye. One eye glows faintly; no arm moves; at most a slight tilt of the head or a stare at the subject
-   for(const k of ['cuff','emitter','cone','panel','camera'])show(a,k,false);
+   for(const k of ['cuff','emitter','cone','panel','camera','dish'])show(a,k,false);
    if(a.pose==='scroll')lookAt(fig,eye0.add(body.fwd.scale(1.2)).add(up.scale(-.35)),w*.45,body);else if(a.pose!=='watch')lookAt(fig,subject(),w*.6,body);
    refresh(h);const hm=h.getWorldMatrix(),gl=P(h).add(B.Vector3.TransformNormal(up,hm).normalize().scale(.085)).add(B.Vector3.TransformNormal(B.Axis.Z,hm).normalize().scale(.11)).add(side.scale(.031));
    if(a.pose==='watch')show(a,'eye',false);else{const g=show(a,'eye',true);g.position.copyFrom(gl);g.scaling.setAll(.028*w+.001);}
    for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)){(a.flashed=a.flashed||[]).push(t);spark(gl,.02,true);}
    if(!a.session)a.flashed=null;return;}
-  let panel=null,cam=false,cuff=true,lift=.08;   // panel: where the hologram stands; cam: the viewfinder rather than the reading panel; lift: how high above the emitter
+  let panel=null,cam=false,cuff=true,lift=.08,dish=false;   // panel: where the hologram stands; cam: the viewfinder rather than the reading panel; lift: how high above the emitter
   const poleL=left.add(up.scale(-.45)).add(body.fwd.scale(-.15));
   switch(a.pose){
    case 'scroll':{   // the left forearm across the chest, the panel rising from the bracer toward the face, the head down to it; the right hand swipes now and then
@@ -289,7 +341,12 @@
     if(sw>.02&&!a.moving)reach(fig,'Right',chest.add(body.fwd.scale(.36)).add(up.scale(.2)).add(side.scale(.02+sw*.06)),side.add(up.scale(-.6)),w*sw*.85,up.scale(.3));
     break;}
    case 'watch':{cuff=false;lookAt(fig,subject(),w,body);break;}
-   case 'photo':case 'film':case 'food-photo':{const S=subject();const dir=S.subtract(shL).normalize();reach(fig,'Left',shL.add(dir.scale(armL*(a.pose==='food-photo'?.8:.9))).add(side.scale(.06)),poleL,w,up.scale(.5));panel='cam';cam=true;lift=.11;break;}
+   case 'food-photo':if(a.extra.dish){   // a diner: the bowl held out low in the right hand, the frame held between the eye and the bowl, looking down through it
+    const bowlAt=chest.add(body.fwd.scale(.4)).add(up.scale(-.32)).add(side.scale(.06));reach(fig,'Right',bowlAt,side.add(up.scale(-.7)),w,up.scale(.6));refresh(fig.bones.RightHand);
+    const bw=P(fig.bones.RightHand).add(up.scale(.05)).add(body.fwd.scale(.03)),b=show(a,'dish',true);b.position.copyFrom(bw);b.rotation.y=body.yaw;b.scaling.setAll(Math.max(.001,Math.min(1,w*1.4)));a.dishAt=bw;dish=true;
+    const pcW=eye0.add(bw.subtract(eye0).scale(.42));reach(fig,'Left',pcW.subtract(up.scale(.17)),poleL,w,up.scale(.5));panel='cam';cam=true;lift=.11;break;}
+   // falls through: someone at a bar photographs their drink on the counter
+   case 'photo':case 'film':{const S=subject();const dir=S.subtract(shL).normalize();reach(fig,'Left',shL.add(dir.scale(armL*(a.pose==='food-photo'?.8:.9))).add(side.scale(.06)),poleL,w,up.scale(.5));panel='cam';cam=true;lift=.11;break;}
    case 'selfie':{   // the arm out to the front-left, the panel turned back to the face; the right hand up by the face (a peace sign, as near as a rig without finger poses gets)
     const out=body.fwd.scale(.62).add(left.scale(.42)).add(up.scale(.32)).normalize();reach(fig,'Left',shL.add(out.scale(armL*.93)),poleL,w,up.scale(.4));
     reach(fig,'Right',head0.add(side.scale(.13)).add(body.fwd.scale(.13)).add(up.scale(-.02)),side.add(up.scale(-.9)),w*.9,up.scale(.6));panel='cam';cam=true;lift=.1;break;}
@@ -318,6 +375,7 @@
    if(r&&r.mode==='film'&&Math.random()<.003)spark(pc,.05,true);}
   else for(const k of ['emitter','cone','panel','camera'])show(a,k,false);
   if(eyeCam&&PHOTO.has(a.pose))for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)){(a.flashed=a.flashed||[]).push(t);spark(eye0.add(side.scale(.035)),.012,true);}
+  if(!dish){show(a,'dish',false);a.dishAt=null;}
   if(!a.session)a.flashed=null;
  }
  function restore(){for(const [b,q] of saved)if(!b.isDisposed?.())b.rotationQuaternion.copyFrom(q);saved.clear();for(const [n,p,ry] of xform)if(!n.isDisposed()){n.position.copyFrom(p);n.rotation.y=ry;}xform=[];}
@@ -339,7 +397,7 @@
   for(const look of looks){if(made.length>=2)break;const n=root.VoidAssets?.instance?.('crowd:'+look,parent);if(!n)continue;n.metadata={...n.metadata,crowd:look,argument:true};made.push({node:n,look});}
   if(made.length<2){for(const m of made)m.node.dispose();return {error:'No street figures are loaded here.'};}
   const along=yaw+Math.PI/2;made.forEach((m,i)=>{const s=i?.65:-.65;m.node.position.set(cx+Math.sin(along)*s,0,cz+Math.cos(along)*s);m.node.rotation.y=along+(i?-Math.PI/2:Math.PI/2);m.anim=root.VoidCrowd.animate(m.node,m.look,'talk');m.yaw=m.node.rotation.y;});
-  const dur=opts.duration??14,ev=spectacle({x:cx,z:cz,radius:opts.radius??14,kind:'argument',duration:dur});
+  const dur=opts.duration??14,ev=spectacle({x:cx,z:cz,radius:opts.radius??config.spectacle.radius,kind:'argument',duration:dur});
   staged={made,t:0,dur,ev,x:cx,z:cz};
   // the two of them: a jab of the arm toward the other, a lean in, turns of the shoulder (their talk clip underneath)
   const tick=()=>{if(!staged)return;staged.t+=Math.min(.1,scene.getEngine().getDeltaTime()/1000);if(staged.t>dur+1){stopArgument();return;}for(const [i,m] of staged.made.entries()){const k=Math.sin(staged.t*(i?3.3:2.7)+i*2);m.node.rotation.y=m.yaw+k*.18;m.node.rotation.x=Math.max(0,k)*.05;}};
@@ -348,7 +406,7 @@
  function stopArgument(){if(!staged)return;try{scene.onBeforeRenderObservable.remove(staged.obs);}catch{}for(const m of staged.made){try{m.anim?.dispose?.();m.node.dispose();}catch{}}staged=null;}
  const api={...pure,detach(){dead=true;stopArgument();attach(null);},tag,enlist,distracted,startle,spectacle,stageArgument,stopArgument,reactionOf,holds,pace,sessionOf,
   stats:()=>({...stats,poses:{...stats.poses},tiers:{...stats.tiers},staged:staged?{x:staged.x,z:staged.z,t:staged.t}:null}),
-  agents:()=>[...agents.values()].filter(Boolean).map(a=>({id:a.id,key:a.key,kind:a.kind,tier:a.tier,monk:a.monk,pose:a.pose,w:a.w,visible:a.visible,d:a.d,react:a.react?a.react.mode:null,session:a.session?a.session.pose:null,holo:!!a.m_panel,frame:!!a.m_camera,cuff:!!a.m_cuff,eye:!!a.m_eye,node:a.node})),
+  agents:()=>[...agents.values()].filter(Boolean).map(a=>({id:a.id,key:a.key,kind:a.kind,tier:a.tier,monk:a.monk,pose:a.pose,w:a.w,visible:a.visible,d:a.d,react:a.react?a.react.mode:null,session:a.session?a.session.pose:null,holo:!!a.m_panel,frame:!!a.m_camera,cuff:!!a.m_cuff,eye:!!a.m_eye,dish:!!a.m_dish,off:+(a.off||0).toFixed(2),gathering:!!a.gathering,node:a.node})),
   scheduler:sched,reactor,get scene(){return scene;},_agent:node=>[...agents.values()].find(a=>a&&a.node===node)||null};
  root.VoidNPCDevice=api;
  root.VoidCrowdReact={spectacle,stageArgument,stopArgument,reactionOf,holds,pace,tag,get active(){return reactor.active;}};
