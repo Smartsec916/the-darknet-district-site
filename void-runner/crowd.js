@@ -16,6 +16,7 @@
   'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck','walk'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk','walk'],   // walk: grafted 17 Nov 2026 (tools/animation-pipeline/graft_clip.py), for stepping out of the booth
   // Dax (dax.js): a licensed model, published with the live site only.
   'npc-kai':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Kai's own model (Meshy, 16 Nov 2026): the clips of the old Kai figure, retargeted
+  'npc-zane':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Zane's own model (Meshy, 18 Nov 2026; the second male companion): Kai's clips, retargeted the same way
   'npc-fish':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],   // Fish, Milked's owner: her own model (Meshy, 16 Nov 2026)
   'npc-dax':['idle','talk','look','watch','walk','glance-back','shrug'],
   // Characters made with Meshy from the owner's reference pictures (docs/development/MESHY_CHARACTERS.md): one skinned mesh each on a 24-joint skeleton (no fingers).

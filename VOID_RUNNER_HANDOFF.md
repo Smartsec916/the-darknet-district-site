@@ -554,6 +554,8 @@ Done; see §4.3. Possible follow-ups:
 
 ### Approved
 
+- **Zane (APPROVED 18 Nov 2026, the owner's decision):** the second male VR companion is named **Zane** (internal id `zane`, model `npc-zane`). The owner approved his concept the same day. His voice is still to be chosen by the owner; his description, personality and lines are PROPOSED drafts, not canon.
+
 - **Mission 001 — Awakening (APPROVED 17 Nov 2026, the owner's own text, verbatim):**
 
   > Mission 001 — Awakening

@@ -14,7 +14,7 @@ test('every companion speaks: lines in every pool the bedroom uses',()=>{
 
 test("women's voices for the women, men's voices for the men, none shared",()=>{
  assert.deepEqual(reg.validate(registry),[]);
- for(const e of C.companions.values()){if(e.replacedBy)continue;const v=registry.npcs[e.voice.characterId];assert.ok(v,e.id+' has no cast voice');
+ for(const e of C.companions.values()){if(e.replacedBy||e.voice?.pending)continue;const v=registry.npcs[e.voice.characterId];assert.ok(v,e.id+' has no cast voice');
   const kinds=new Set(reg.parseVoice(v.voice).map(([id])=>id[1]));assert.deepEqual([...kinds],[e.sex==='male'?'m':'f'],e.id+' ('+e.sex+') has voice '+v.voice);}
  // Blends must be same-sex and add up to 1.
  assert.ok(reg.parseVoice('am_adam:0.5+am_michael:0.5'));assert.equal(reg.parseVoice('am_adam:0.5+af_sky:0.5'),null);assert.equal(reg.parseVoice('am_adam:0.7+am_michael:0.7'),null);
@@ -22,7 +22,15 @@ test("women's voices for the women, men's voices for the men, none shared",()=>{
 
 test('every companion line is recorded in its own voice',()=>{
  const have=new Map(Object.values(manifest.lines).map(l=>[l.speaker+'|'+l.text,l]));
- for(const e of C.companions.values()){if(e.replacedBy)continue;
+ for(const e of C.companions.values()){if(e.replacedBy||e.voice?.pending)continue;
   for(const t of Object.values(e.dialogue).flat()){const l=have.get(e.voice.characterId+'|'+t);assert.ok(l,e.id+' line not recorded: '+t);
    assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/audio/voice',l.file)),e.id+' clip file missing: '+l.file);}}
+});
+
+test('a companion whose voice waits for the owner (voice.pending) has none: no cast voice, no recordings, lines shown unvoiced',()=>{
+ const m2=C.get('zane');assert.equal(m2.voice.pending,true);assert.equal(m2.voice.voiceId,null);
+ assert.equal(registry.npcs[m2.voice.characterId],undefined,'no voice is cast for him');
+ assert.ok(!Object.values(manifest.lines).some(l=>l.speaker===m2.voice.characterId),'no lines are recorded for him');
+ assert.ok(require('fs').readFileSync(path.join(__dirname,'../void-runner/vr-suite.js'),'utf8').includes('unvoiced:!!comp.who.voice?.pending'),'the bedroom shows his lines without reading them aloud');
+ for(const e of C.companions.values())if(e.id!=='zane')assert.ok(!e.voice?.pending,e.id+' is not affected');
 });

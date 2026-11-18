@@ -110,6 +110,40 @@
    aside:['You\'ve got a great laugh. Just so you know.','I could stay up here all night with you.','You make this city look quiet.'],
    comeHere:['Coming.','Right here.'],recline:['Not bad, right? Best ceiling in NeoChinatown.']}});
 
+ // Zane (named by the owner, 18 Nov 2026), the second male companion: his own Meshy model from a concept the owner approved (long charcoal overcoat with
+ // an oxblood lining, black high-neck knit, silver chain and rings; an original adult man of about 30), made and animated exactly as Kai (spec characters/npc-zane.json).
+ // TODO(owner): his VOICE waits for the owner. He has no cast voice and no recorded lines (voice.pending): his lines show in the dialogue panel and are
+ // not read aloud (vr-suite.js say). His `about`, personality and every line are DRAFT and PROPOSED, not canon.
+ register({id:'zane',name:'Zane',sex:'male',model:'npc-zane',skin:[],
+  preview:'void-runner/assets/vr/companions/zane.jpg',
+  about:'Composed and observant. Says little, misses nothing.',voice:{characterId:'vr-zane',voiceId:null,pending:true},
+  personality:{initiative:.38,flirtatiousness:.45,approachFrequency:.36,attention:.95,personalSpace:1.2,walkSpeed:1},
+  clips:{greet:['head-tilt'],flirt:['head-tilt','blow-kiss'],shy:['head-tilt'],idleAlt:['idle-m2','glance-back'],dance:['slow-dance'],playfulDance:['dance']},
+  dialogue:{
+   greet:['You came. Good.','Evening. Take your time, there is no hurry here.','I saw you on the stairs. Come in.'],
+   chat:['I notice things. It is a habit I never broke.','Rain on the glass. Best sound in the city.','You can sit in silence with me. I won\'t mind.','Most people talk to fill the quiet. You don\'t have to.','The lights below never sleep. Up here, I can.'],
+   compliment:['Careful. I remember everything.','I heard that. I\'ll keep it.','You say that like you mean it.'],
+   flirt:['Go on. I\'m listening.','You\'re trouble. Quiet trouble.','Say that again, slower.'],
+   sit:['Sit. Stay a while.','There. That\'s better.'],
+   dance:['Slowly, then. Follow me.','Just us. Forget the room.','You move well. I was watching.'],
+   hands:['Warm hands.','Don\'t let go yet.'],
+   kiss:['Closer.'],kissAfter:['I wondered how long you would wait.','Worth the wait.'],
+   notYet:['Not yet. Tell me something true first.','Patience. I like knowing who I\'m with.'],
+   notNow:['Sit with me, or ask me for a dance.'],
+   relax:['Breathe. Nobody needs you right now.','Stay like this a while.'],
+   bye:['Go carefully out there.','Goodnight. I\'ll be here.'],
+   approach:['You looked far away. I came to bring you back.','I thought you might want company.'],
+   window:['From up here, the city looks almost honest.','I count the drones sometimes. Fewer tonight.'],
+   joinSofa:['May I?','I\'ll sit. If you don\'t mind.'],
+   inviteSit:['Come and sit beside me.','The sofa is wide enough for two.'],
+   inviteDance:['Dance with me. One song.','Will you dance? I\'ll lead.'],
+   inviteRecline:['Lie back with me. Just for a minute.'],
+   accepted:['Good.','I hoped you would.'],
+   declined:['Another time.','Understood. The offer stays.'],
+   welcomeBack:['You\'re back. I noticed.','I kept your place.'],
+   aside:['You laugh more than you think you do.','I could listen to you a long time.','Quiet nights suit you.'],
+   comeHere:['On my way.','Here.'],recline:['Look up. That is the only view that never changes.']}});
+
  // Nadia (named and characterised by the owner, 2026-10-28): grounded, warm and direct; grew up in NeoChinatown and
  // teases you for being an outsider. Model: "Realistic Contemporary Woman FC1" by Ludovisions (CGTrader, free,
  // Royalty Free License - no AI), converted by build_imported_character.py. Her licence asks that the file not be
