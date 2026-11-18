@@ -117,12 +117,12 @@
  // the shared animation library (anim-library.js), used instead when that licensed file is installed.
  // Studio 1 is always the opposite of the Avenue's 12-hour UTC shift.
  function studioOnePerformer(ms=Date.now()){
-  const pair=root.VoidStreetPair||(typeof module==='object'&&module.exports?require('./ncz-street-pair.js'):null);
+  const pair=root.VoidStreetPair; // same UTC boundaries even when the street module is not loaded
   const street=pair?.onShift(ms)?.id||(new Date(ms).getUTCHours()<12?'grey-reverie':'ethereal-lace');
   return street==='grey-reverie'?{id:'ethereal-lace',look:'npc-ethereal-lace',clips:['idle','look','sit'],library:null}:{id:'grey-reverie',look:'npc-grey-reverie',clips:[],library:null};
  }
  const STUDIOS=[
-  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:{id:'milked-dancer-1',...studioOnePerformer()}},
+  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:{...studioOnePerformer(),id:'milked-dancer-1'}},
   {n:2,room:'studio-2',light:'green',theme:'fern',window:[90,92.4],door:[92.55,93.35],dancer:{id:'milked-dancer-2',look:'studio-warrior',file:'studio-warrior.vrpak',clips:['slow-dance','dance','idle'],library:'ac-sensual-movement-1'}},
   {n:3,room:'studio-3',light:'mixed',theme:'arcade',window:[86.6,89],door:[85.65,86.45],dancer:{id:'milked-dancer-3',look:'vr-companion-bm',clips:['hips','dance','idle'],library:'ac-stand-curve-2'}},
   {n:4,room:'studio-4',light:'mixed',theme:'mirror',window:[90.6,93],door:[89.65,90.45],dancer:{id:'milked-dancer-4',look:'vr-player-b',clips:['dance','idle'],library:'ac-stand-curve-3'}}];
