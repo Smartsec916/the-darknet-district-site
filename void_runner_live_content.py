@@ -94,10 +94,13 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices']):
         return ['The content record has an unknown shape.']
     if content.get('npcs') is not None:
         for p in npc_problems(content['npcs'], inv or _json('void_runner_admin_inventory.json')):
+            err(p)
+    if content.get('voices') is not None:
+        for p in voice_problems(content['voices'], inv or _json('void_runner_admin_inventory.json')):
             err(p)
     if content.get('format') != FORMAT or content.get('version') != 1 or type(content.get('version')) is not int:
         err('Unknown content format or version.')
@@ -393,6 +396,58 @@ def npc_problems(npcs, inv):
                 out += [pw + x for x in _leg_problems(mv, q, n)]
         if all(isinstance(q, dict) and q.get('action') == 'walk-on' for q in pts):
             out.append(w + 'at least one point needs something to do.')
+    return out
+
+
+# ---- ElevenLabs voice choices (Developer Tools > NPCs > Lines & voice, the Mission Editor's giver card): the same rules as void-runner/npc-voices.js ----
+# Only a voice ID and a name are stored. Nothing is generated here or in a browser and no API key is ever involved: lines re-voiced for that character wait in the
+# re-voice queue until the owner approves the spend. The reserved slot, broadcast voices and The Function are refused.
+VOICE_ID = re.compile(r'^[A-Za-z0-9]{20}$')
+VOICE_CHOSEN = re.compile(r'^\d{4}-\d{2}-\d{2} by the owner$')
+VOICE_REFUSED = {'special-character': 'This slot is reserved for a special character the owner will introduce later: no voice is assigned to it.',
+                 'the-function': 'The Function has no voice: it gets no voice or treatment without the owner.',
+                 'news-anchor': 'Broadcast voices (The Relay) are not chosen here.', 'commercial-announcer': 'Broadcast voices (The Relay) are not chosen here.',
+                 'warflying-host': 'Broadcast voices (The Relay) are not chosen here.'}
+MAX_VOICES = 80
+
+
+def voice_refusal(who, reg=None):
+    reg = reg or registry()
+    if not isinstance(who, str) or not WHO.match(who):
+        return 'Unknown character.'
+    if who in VOICE_REFUSED:
+        return VOICE_REFUSED[who]
+    if who in (reg.get('reserved') or {}):
+        return VOICE_REFUSED['special-character']
+    if who in (reg.get('broadcast') or {}):
+        return VOICE_REFUSED['news-anchor']
+    n = (reg.get('npcs') or {}).get(who) or {}
+    if n.get('broadcast'):
+        return VOICE_REFUSED['news-anchor']
+    if re.search(r'the function', n.get('displayName') or '', re.I):
+        return VOICE_REFUSED['the-function']
+    return None
+
+
+def voice_ok(v):
+    return _keys(v, ['engine', 'voiceId', 'name', 'chosen']) and v.get('engine') == 'elevenlabs' and isinstance(v.get('voiceId'), str) and bool(VOICE_ID.match(v['voiceId'])) \
+        and _plain(v.get('name'), 60) and isinstance(v.get('chosen'), str) and bool(VOICE_CHOSEN.match(v['chosen']))
+
+
+def voice_problems(voices, inv=None):
+    """content.voices {who: {engine: 'elevenlabs', voiceId, name, chosen}}: characters the editor knows (the admin inventory's givers), never a refused one."""
+    if not isinstance(voices, dict) or len(voices) > MAX_VOICES:
+        return ['Voice choices have an unknown shape.']
+    givers = ((inv or _json('void_runner_admin_inventory.json')).get('missionEditor') or {}).get('givers') or {}
+    reg, out = registry(), []
+    for who, v in voices.items():
+        r = voice_refusal(who, reg)
+        if r:
+            out.append('%s: %s' % (who, r))
+        elif who not in givers:
+            out.append('%s: not a character the editor knows.' % who)
+        elif not voice_ok(v):
+            out.append('%s: a voice choice needs an ElevenLabs voice ID (20 letters and digits), a plain name and the date it was chosen.' % who)
     return out
 
 
@@ -790,7 +845,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices')):
         raise DraftError('There is nothing to publish.', 422)
     note = (content.get('note') or '')[:200]
     return _commit(db, uid, expected, 'publish', lambda tx, live, history: (content, None), note)
@@ -841,6 +896,34 @@ def item_id(who, text):
     return who + '-' + hashlib.sha1((who + '|' + text).encode('utf-8')).hexdigest()[:10]
 
 
+def live_voices(db):
+    """The voice choices in the published content (content.voices), or {} when nothing is published or it cannot be read."""
+    try:
+        c = public(db).get('content') or {}
+    except Exception:  # noqa: BLE001 - the queue still works from the re-voice file and the item's own choice
+        return {}
+    v = c.get('voices') if isinstance(c, dict) else None
+    return v if isinstance(v, dict) else {}
+
+
+def revoice_engine(who, item, published, eng):
+    """Which engine re-voices this character's line: the voice sent with the item (chosen in the owner's editor draft), else the published choice, else
+    tools/audio/revoice-engines.json, else the registered Kokoro voice. None: no voice at all (not re-voiceable)."""
+    vid, vname = item.get('voiceId'), item.get('voiceName')
+    if vid is not None or vname is not None:
+        if not (isinstance(vid, str) and VOICE_ID.match(vid) and _plain(vname, 60)):
+            raise DraftError('A chosen ElevenLabs voice needs its 20-character voice ID and a plain name.', 422)
+        return {'engine': 'elevenlabs', 'voice': vname.strip(), 'voiceId': vid, 'from': 'editor'}
+    p = published.get(who)
+    if isinstance(p, dict) and voice_ok(p):
+        return {'engine': 'elevenlabs', 'voice': p['name'], 'voiceId': p['voiceId'], 'from': 'published'}
+    if who in eng:
+        return eng[who]
+    if who in registry()['npcs']:
+        return {'engine': 'kokoro'}
+    return None
+
+
 def queue_list(db, uid):
     data = _queue_ref(db, uid).get().to_dict() or {}
     items = sorted(data.get('items', {}).values(), key=lambda x: x.get('at', 0))
@@ -852,22 +935,25 @@ def queue_add(db, uid, payload):
         raise DraftError('Send 1 to 200 lines.')
     reg, eng = registry(), engines()
     npcs = reg['npcs']
+    published = live_voices(db)
     clean = []
     for it in payload['items']:
-        if not _keys(it, ['ref', 'who', 'text', 'from', 'mission', 'source']):
+        if not _keys(it, ['ref', 'who', 'text', 'from', 'mission', 'source', 'voiceId', 'voiceName']):
             raise DraftError('Unknown fields in a re-voice item.')
         who, text = it.get('who'), it.get('text')
-        if not isinstance(who, str) or who not in npcs:
-            raise DraftError('Only characters in the voice registry can be re-voiced (broadcast voices and the reserved slot cannot).', 422)
+        if voice_refusal(who, reg):
+            raise DraftError('This character cannot be re-voiced: ' + voice_refusal(who, reg), 422)
         if not _plain(text, 500):
             raise DraftError('A line must be plain text, 500 characters at most.')
         extra = {k: str(it.get(k) or '')[:200] for k in ['ref', 'from', 'mission', 'source'] if not TAGS.search(str(it.get(k) or ''))}
-        e = eng.get(who) or {'engine': 'kokoro'}
+        e = revoice_engine(who, it, published, eng)
+        if e is None:
+            raise DraftError('Only characters with a registered voice or a chosen ElevenLabs voice can be re-voiced (broadcast voices and the reserved slot cannot).', 422)
         rec = {'id': item_id(who, text), 'who': who, 'text': text, 'engine': e['engine'], 'status': 'queued', 'at': int(time.time()), **extra}
         if e['engine'] == 'elevenlabs':
             rec.update(voice=e.get('voice', ''), voiceId=e.get('voiceId', ''), waiting='waiting for ElevenLabs re-voice (needs approval)')
         else:
-            rec['voice'] = npcs[who]['voice']
+            rec['voice'] = (npcs.get(who) or {}).get('voice', '')
         clean.append(rec)
     from firebase_admin import firestore
     ref = _queue_ref(db, uid)

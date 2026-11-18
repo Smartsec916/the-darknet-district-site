@@ -14,6 +14,9 @@ Usage (from the repo root, with the voice venv's python):
       The queue comes from the server (sign-in token in the VOID_OWNER_ID_TOKEN environment variable, never stored) or from
       an exported file (--queue-file queue.json). ElevenLabs lines (Admin) are listed and left waiting for the owner's approval.
       More than 100 clips needs --yes. Recorded lines are marked done in the queue.
+      ElevenLabs voices chosen in Developer Tools (NPCs > Lines & voice, or a giver card) are read from the published content (with the server queue)
+      and from --voices FILE (the editor's DOWNLOAD THE VOICES FILE, revoice-engines.json format): a queued Kokoro line of such a character waits for
+      ElevenLabs too. Waiting lines are listed with their voice, characters and an estimated credit cost; nothing is ever sent to ElevenLabs from here.
 The model folder holds kokoro-v1.0.onnx and voices-v1.0.bin (see docs/VOID_RUNNER_VOICE_PRODUCTION.md).
 """
 import argparse, datetime, hashlib, json, os, sys
@@ -72,6 +75,7 @@ def main():
     p.add_argument('--accept-model-change', action='store_true', help='allow model files whose checksum differs from the registry')
     p.add_argument('--from-queue', action='store_true', help='record the lines queued with RE-VOICE in the Mission Editor')
     p.add_argument('--queue-file', help='an exported queue file instead of the server')
+    p.add_argument('--voices', help='with --from-queue: an exported voices file (revoice-engines.json format) from Developer Tools')
     p.add_argument('--api', default='https://the-darknet-district-site.onrender.com', help='the game API (with --from-queue)')
     p.add_argument('--yes', action='store_true', help='confirm recording more than 100 clips')
     a = p.parse_args()
@@ -184,12 +188,16 @@ def queue_lines(a, registry, manifest, engine):
         with urllib.request.urlopen(req, timeout=30) as r:
             data = json.loads(r.read().decode('utf-8'))
     npcs, out, waiting = registry['npcs'], [], []
+    chosen = chosen_voices(a)
     for item in data.get('items', []):
         if item.get('status') != 'queued':
             continue
         who, text = item.get('who'), item.get('text', '')
         if item.get('engine') == 'elevenlabs':
             waiting.append(item)
+            continue
+        if who in chosen and who not in registry.get('reserved', {}):
+            waiting.append({**item, 'engine': 'elevenlabs', **chosen[who], 'moved': True})
             continue
         if who not in npcs or who in registry.get('reserved', {}):
             print('skipped (not a registered character):', who, text[:50])
@@ -198,11 +206,38 @@ def queue_lines(a, registry, manifest, engine):
         manifest['lines'][clip] = {'speaker': who, 'text': text, 'file': clip + '.ogg', 'source': 'mission-editor-queue', 'configHash': config_hash(npcs[who], engine)}
         out.append({'id': item.get('id', clip), 'clip': clip})
     if waiting:
-        print('Waiting for ElevenLabs re-voice (needs approval), not recorded here:', len(waiting), 'line(s)')
+        chars = sum(len(w.get('text', '').strip()) for w in waiting)
+        print('Waiting for ElevenLabs re-voice (needs approval), not recorded here:', len(waiting), 'line(s),', chars, 'characters,',
+              'about', chars, 'credits (estimate: ~1 credit per character on Multilingual v2 / v3; Flash / Turbo about half)')
         for w in waiting:
-            print('  %-10s %s' % (w.get('who'), w.get('text', '')[:70]))
+            print('  %-10s %s%s' % (w.get('who'), w.get('text', '')[:70], ('  [voice %s %s%s]' % (w.get('voice', ''), w.get('voiceId', ''), ', chosen in the editor' if w.get('moved') else '')) if w.get('voiceId') else ''))
     print('Queued for Kokoro:', len(out), 'line(s)')
     return out
+
+VOICE_ID_CHARS = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')
+
+
+def chosen_voices(a):
+    """ElevenLabs voices chosen in Developer Tools: {who: {'voice', 'voiceId'}}. From the published content (when the queue comes from the server), then
+    --voices FILE (revoice-engines.json format), which wins. The reserved slot, broadcast voices and The Function are never taken."""
+    out, refused = {}, {'special-character', 'the-function', 'news-anchor', 'commercial-announcer', 'warflying-host'}
+    ok = lambda i: isinstance(i, str) and len(i) == 20 and set(i) <= VOICE_ID_CHARS
+    if not a.queue_file:
+        try:
+            import urllib.request
+            with urllib.request.urlopen(a.api.rstrip('/') + '/api/void-runner/live-content', timeout=30) as r:
+                content = (json.loads(r.read().decode('utf-8')) or {}).get('content') or {}
+            for who, v in (content.get('voices') or {}).items():
+                if isinstance(v, dict) and v.get('engine') == 'elevenlabs' and ok(v.get('voiceId')):
+                    out[who] = {'voice': str(v.get('name', ''))[:60], 'voiceId': v['voiceId']}
+        except Exception as e:  # noqa: BLE001 - the published content is optional here
+            print('(published voice choices not read: %s)' % e)
+    if getattr(a, 'voices', None):
+        for who, e in (load(a.voices).get('characters') or {}).items():
+            if isinstance(e, dict) and e.get('engine') == 'elevenlabs' and ok(e.get('voiceId')):
+                out[who] = {'voice': str(e.get('voice', ''))[:120], 'voiceId': e['voiceId']}
+    return {k: v for k, v in out.items() if k not in refused}
+
 
 def mark_done(a, ids):
     if not ids:

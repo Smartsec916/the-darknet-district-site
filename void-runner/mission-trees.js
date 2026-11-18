@@ -92,7 +92,7 @@
  function build(src){
   const reg=(src.registry&&src.registry.npcs)||{},byName={};for(const [id,n] of Object.entries(reg))byName[n.displayName]=id;
   const clips=new Map();for(const [m,label] of [[src.manifest,'kokoro'],[src.extraManifest,'elevenlabs']])for(const [cid,l] of Object.entries((m&&m.lines)||{}))clips.set(l.speaker+'|'+l.text,{id:cid,engine:label,voice:l.voice||null,source:l.source});
-  const recorded=new Set(clips.keys()),clipOf=(id,text)=>clips.get(id+'|'+text)||null,engineOf=id=>VOICE_ENGINES[id]||(reg[id]?{engine:'kokoro',voice:reg[id].voice}:null);
+  const recorded=new Set(clips.keys()),clipOf=(id,text)=>clips.get(id+'|'+text)||null,engineOf=id=>{const v=src.voices&&src.voices[id];if(v&&v.engine==='elevenlabs'&&v.voiceId)return {engine:'elevenlabs',voice:v.name,voiceId:v.voiceId,chosen:v.chosen,from:'editor',note:'chosen in the editor; waiting for ElevenLabs re-voice (needs approval)'};return ((src.engines&&src.engines[id])||VOICE_ENGINES[id])||(reg[id]?{engine:'kokoro',voice:reg[id].voice}:null);};   // a voice chosen in the editor (content.voices) wins, then revoice-engines.json
   const locs=src.locations||{},stations=(src.campaign&&src.campaign.stations)||{};
   const place=id=>id?((stations[id]&&stations[id].name)||(locs[id]&&locs[id].name)||({earth:'NeoChinatown'})[id]||id):'';
   const labels={'landing-terminal':'Landing terminal'};
@@ -193,7 +193,7 @@
   // ---- display names (renames never change ids) ----
   for(const t of trees){t.originalTitle=t.title;const n=src.names&&src.names[t.id];if(typeof n==='string'&&n.trim()&&!t.ownerTree)t.title=n.trim();}
   // ---- NPCs per tree ----
-  for(const t of trees){const npcs=new Map();const add=(id,role,m)=>{if(!id||id==='player')return;const n=npcs.get(id)||{id,name:npcName(id),roles:new Set(),missions:new Set(),voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,engine:VOICE_ENGINES[id]||(reg[id]?{engine:'kokoro',voice:reg[id].voice}:null),registered:!!reg[id]};n.roles.add(role);n.missions.add(m.id);npcs.set(id,n);};
+  for(const t of trees){const npcs=new Map();const add=(id,role,m)=>{if(!id||id==='player')return;const n=npcs.get(id)||{id,name:npcName(id),roles:new Set(),missions:new Set(),voice:reg[id]?{voice:reg[id].voice,status:reg[id].status}:null,engine:engineOf(id),registered:!!reg[id]};n.roles.add(role);n.missions.add(m.id);npcs.set(id,n);};
    for(const m of t.missions){add(m.giver,'gives the mission',m);if(m.target)add(m.target,'you deliver to them',m);for(const s of m.steps){if(s.interaction&&TARGETS[s.interaction])add(TARGETS[s.interaction],'a step happens with them',m);for(const l of [...s.lines,...s.early])add(l.who,'speaks',m);}for(const l of m.offer)add(l.who,'speaks',m);for(const sc of m.scenes)for(const l of sc.lines)add(l.who,'speaks',m);}
    t.npcs=[...npcs.values()].map(n=>({...n,roles:[...n.roles],missions:[...n.missions]})).sort((a,b)=>a.name.localeCompare(b.name));}
   const npcs=npcView(trees,src,line,clips,reg,canon,extraLines);
