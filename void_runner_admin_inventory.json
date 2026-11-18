@@ -9627,7 +9627,7 @@
       }
     }
   },
-  "revision": "2a03a789dc2562d1",
+  "revision": "a834ae3cc899d497",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -26952,7 +26952,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "ad46f548b287001649c13cc0326cb2d25d284ab74c326ab4ee9a0797787fcf45",
-    "void-runner/dev-tools.js": "f4bc9aba18c7ab5c83bb2e7bd6d183e314bde0cf101548636f246b6c417d8221",
+    "void-runner/dev-tools.js": "0e1e2cf395ad52512c236f8f675866869b4883e56cc031c617a4430f0ef2a3c3",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "483ac716963115b3ae9adc425912e0d18c36ae5a721e9daf2292c432c152bde6",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
