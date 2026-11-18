@@ -24,6 +24,9 @@ const LIMITS={maxBytes:512,maxHelloBytes:4400,helloMs:45000,maxSpeed:9,speedSlac
 
 // A public handle (3 to 20 letters, digits, underscore: the same rule as the handle registry) is the display name; the server re-checks it.
 const HANDLE=/^[A-Za-z0-9_]{3,20}$/;
+/* Other players see a player using their device (the owner, 18 Nov 2026): open or closed, which model (v1, v2, v3) and whether it is a reading panel or the camera.
+   A change is relayed at most every DEVICE.minMs; a faster change is held and goes out with the player's next position, so the last word always arrives. */
+const DEVICE={tiers:['v1','v2','v3'],poses:['read','cam'],minMs:250};
 /* ---- Shared VR sessions (docs/development/VR_SESSIONS.md). A session is a room of its own, named 'vr:<id>': everything that is per room (who sees whom, chat) is
    therefore per session without further code. PUBLIC sessions are listed and joinable by id. PRIVATE sessions are never listed, cannot be joined by id (the answer
    is the same as for a session that does not exist) and are entered only with their join code; whoever entered once may come back while the session lives.
@@ -50,6 +53,9 @@ function parse(raw){
   if(m.t==='bye')return keys==='t'?m:null;
   if(m.t==='chat')return keys==='t,text'&&typeof m.text==='string'&&m.text.length<=Chat.RULES.maxChars*4?m:null;   // the cleaned length is checked again by chat.cjs
   if(m.t==='eye')return keys==='on,t'&&typeof m.on==='boolean'?m:null;   // "I am using my V3 // Shadow" (its camera is in the left eye, which glows): looks only
+  // "My device is open (and which model it is)": v1, v2 or v3, or null when closed; pose is only read (a panel) or cam (the camera). Nothing about what is on the
+  // screen, which app, messages or pictures exists in this message, and nothing else is accepted.
+  if(m.t==='dev')return (keys==='dev,t'&&(m.dev===null||DEVICE.tiers.includes(m.dev)))||(keys==='dev,pose,t'&&DEVICE.tiers.includes(m.dev)&&DEVICE.poses.includes(m.pose))?m:null;
   if(m.t==='ignore')return keys==='id,on,t'&&/^[0-9a-f]{12}$/.test(String(m.id))&&typeof m.on==='boolean'?m:null;
   if(m.t==='report')return (keys==='id,reason,t'||keys==='id,note,reason,t')&&/^[0-9a-f]{12}$/.test(String(m.id))&&Chat.RULES.reasons.includes(m.reason)&&(m.note===undefined||typeof m.note==='string')?m:null;
   if(m.t==='vr-list'||m.t==='vr-leave'||m.t==='voice-token')return keys==='t'?m:null;
@@ -73,7 +79,7 @@ class Hub{
   trade(conn,m){const p=this.byConn.get(conn);if(!p)return Promise.resolve();if(!this.trades)return Promise.resolve(this.send(conn,{t:'trade',ev:'refused',reason:'Trading is not enabled.'}));
    return this.trades.handle(p.uid,m).catch(()=>this.send(conn,{t:'trade',ev:'refused',reason:'The trade could not be processed.'}));}
   roomPeers(room){return [...this.peers.values()].filter(p=>p.room===room);}
-  view(p){return {id:p.id,name:p.name,model:p.model,appearance:p.appearance,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,eye:!!p.eye};}
+  view(p){return {id:p.id,name:p.name,model:p.model,appearance:p.appearance,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,eye:!!p.eye,dev:p.dev||null,...(p.dev?{pose:p.devPose}:{})};}
   /* The look a verified account is shown with: its saved appearance when valid (ids checked again here), else the look matching its old {gender, model} character, else the default. */
   look(who){
    if(who.anonymous&&!who.model&&!who.appearance)return {model:DEFAULT_MODEL,appearance:null};   /* a guest with no saved character; a handle account with one is shown as saved */
@@ -104,7 +110,7 @@ class Hub{
     const {model,appearance}=this.look(who);
     const peer={uid:who.uid,id,conn,room:message.room,name:typeof who.handle==='string'&&HANDLE.test(who.handle)?who.handle:(who.anonymous?'Guest-':'Pilot-')+id.slice(0,4),model,appearance,x:0,z:0,yaw:0,clip:'idle',placed:false,anonymous:!!who.anonymous,ignoring:new Set(),chatTimes:[],chatRefusals:0,chatLockUntil:0,reports:0,lastReportAt:-Infinity,lastAt:t,lastMove:t,lastSnap:-Infinity,bucketAt:t,bucket:0,violations:0};
     this.peers.set(who.uid,peer);this.byConn.set(conn,peer);
-    this.send(conn,{t:'welcome',you:id,features:{trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true,voice:!!this.voice&&!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
+    this.send(conn,{t:'welcome',you:id,features:{dev:true,trade:!!this.trades?.enabled,tradeSimulated:!!this.trades?.simulated,chat:!who.anonymous,vr:true,voice:!!this.voice&&!who.anonymous},peers:this.roomPeers(message.room).filter(p=>p.id!==id&&p.placed).map(p=>this.view(p))});
     return true;
   }
 
@@ -129,6 +135,13 @@ class Hub{
   /* Mute or block: the hub stops delivering that player's chat to this connection. (The game also hides a blocked player's avatar.) */
   // The player's V3 eye light, on or off: kept so people who arrive later see it, and passed to everyone in the room. Nothing but a look.
   eye(conn,m){const p=this.byConn.get(conn);if(!p||!!p.eye===m.on)return false;p.eye=m.on;if(p.placed)this.broadcast(p.room,{t:'eye',id:p.id,on:m.on},p.id);return true;}
+  /* The player's device, open (v1/v2/v3, read or cam) or closed (null). Only a change is relayed, at most every DEVICE.minMs (a faster one waits for the next
+     position: devFlush). Kept for people who arrive later. Never echoed to the sender. */
+  dev(conn,m){const p=this.byConn.get(conn);if(!p)return false;const dev=m.dev||null,pose=dev?(m.pose||'read'):null;
+   if((p.dev||null)===dev&&(p.devPose||null)===pose){p.devPending=false;return false;}
+   p.dev=dev;p.devPose=pose;p.devPending=true;return this.devFlush(p);}
+  devFlush(p){const t=this.now();if(!p.devPending||t-(p.devSent??-Infinity)<DEVICE.minMs)return false;p.devPending=false;const val=(p.dev||'')+'/'+(p.devPose||'');if(val===(p.devShown??'/'))return false;p.devSent=t;p.devShown=val;
+   if(p.placed)this.broadcast(p.room,{t:'dev',id:p.id,dev:p.dev||null,...(p.dev?{pose:p.devPose}:{})},p.id);return true;}
   ignore(conn,m){const p=this.byConn.get(conn);if(!p||m.id===p.id)return false;if(m.on){if(p.ignoring.size>=Chat.RULES.maxIgnored&&!p.ignoring.has(m.id))return false;p.ignoring.add(m.id);}else p.ignoring.delete(m.id);return true;}
   /* A report goes to the hub's log (the owner's handling path: docs/development/MODERATION.md) together with the reported player's recent lines. */
   reportPlayer(conn,m){
@@ -169,6 +182,8 @@ class Hub{
     const first=!p.placed;p.placed=true;
     if(first)this.broadcast(p.room,{t:'join',peer:this.view(p)},p.id);
     else this.broadcast(p.room,{t:'state',id:p.id,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip},p.id);
+    if(p.devPending&&!first)this.devFlush(p);   // a device change that came too soon after the last one
+    if(first){p.devPending=false;p.devShown=(p.dev||'')+'/'+(p.devPose||'');}   // the join already carried it
     return {ok:true};
   }
   violate(p,reason,hard){
@@ -230,4 +245,4 @@ class Hub{
   /* Players that went silent (a dead network, a sleeping laptop) leave too, so no ghost avatar stays. */
   sweep(){this.trades?.sweep();const t=this.now();for(const p of [...this.peers.values()])if(t-p.lastAt>LIMITS.staleMs)this.drop(p.conn,4004,'timed out');}
 }
-module.exports={ROOMS,RENDERABLE,DEFAULT_MODEL,LIMITS,VR,publicId,parse,Hub};
+module.exports={ROOMS,RENDERABLE,DEFAULT_MODEL,LIMITS,VR,DEVICE,publicId,parse,Hub};

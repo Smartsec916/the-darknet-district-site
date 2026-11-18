@@ -27,7 +27,13 @@
   'connecting':'Connecting...','waking the server':'Waking the test server (it sleeps when idle and can take about a minute)...','sign in to join':'Sign in to your account first (Account, in the main menu).',
   'not on the test list':'Your account is not on the test list.','registered account required':'Multiplayer and chat need a registered account. Create one from the account menu.','create an account':'Multiplayer and chat need a registered account. Create one from the account menu.','checking account':'Checking your District account…','District handle required':'Choose a unique District handle below.','saved character required':'Create your character below.','District handle and character required':'Choose a handle and create your character below.','account verification unavailable':'Account verification is unavailable. Solo play continues; multiplayer will retry.','duplicate District handle':'That handle is already in use. Contact support if this is your account.','verified email required':'Please verify your email address to use multiplayer.','sign-in not accepted':'Your sign-in was not accepted. Sign in again.','replaced by another session':'This account joined from another window.',
   'server restarting':'The server is restarting; reconnecting...','offline':'Cannot reach the server; solo play continues while retrying.','no hub configured':'No multiplayer server is set up.'}[st]||(st?.startsWith('setup error:')?st.slice(13):st&&st.startsWith('refused')?'The server refused the connection.':'Off.'));
- if(typeof module!=='undefined')module.exports={allowed,available,hubUrl,clean,words,LIVE_HUB};
+ /* What the others are told about MY device (the owner, 18 Nov 2026: players see each other using it, styled by the model they carry): the model while it is open
+    (v1, v2, v3; v1 when none is recorded) and whether it is a reading panel or the camera; null when it is closed. Nothing about what is on the screen. */
+ const DEVICE_TIERS=['v1','v2','v3'];
+ const myDevice=(flags,open,camera)=>{if(!open&&!camera)return {dev:null};const m=flags&&DEVICE_TIERS.includes(flags.deviceModel)?flags.deviceModel:'v1';return {dev:m,pose:camera?'cam':'read'};};
+ // What the hub said about another player's device, cleaned: {dev, pose} (dev null: closed or not said).
+ const theirDevice=m=>{const dev=m&&DEVICE_TIERS.includes(m.dev)?m.dev:null;return {dev,pose:dev?(m.pose==='cam'?'cam':'read'):null};};
+ if(typeof module!=='undefined')module.exports={allowed,available,hubUrl,clean,words,LIVE_HUB,myDevice,theirDevice};
  if(typeof document==='undefined')return;
  const isLocalPage=LOCAL.test(root.location.hostname);
  let booted=false;
@@ -78,18 +84,20 @@
 
  /* No name floats over another player's head (the owner, 15 Nov 2026): who is here is read from the V1's Players list. makeTag stays as a no-op so callers need no change. */
  function makeTag(){return null;}
+ // Their device, drawn by npc-device.js (the one path by which it draws a player): the cuff and hologram (V1, V2) or the eye (V3 // Shadow), only while the hub says it is open.
+ function mark(node,p){node.metadata={...(node.metadata||{}),remoteDevice:{id:p.id,tier:()=>p.dev,force:()=>root.VoidNPCDevice?.remotePose?.(p.dev,p.devPose)||null}};return node;}
  function removePeer(id){const p=peers.get(id);if(!p)return;p.off?.();p.ctrl?.dispose?.();p.node?.dispose?.();peers.delete(id);}
  function clearPeers(){for(const id of [...peers.keys()])removePeer(id);}
  function place(p){
   const scene=root.VoidBabylon?.scene;if(!scene||!walker||!consistent())return false;if(p.node&&!p.node.isDisposed())return true;
   // A player with a saved creator look (ids already checked by the hub, checked again here) is built by the assembler; anyone else uses the plain crowd model.
   if(p.appearance&&root.VoidCharacterAssembler&&root.VoidCharacterAppearance?.validate(p.appearance)){
-   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene);p.node=parent;p.tag=makeTag(scene,parent,p.name);parent.position.set(p.x,floorY(),p.z);parent.rotation.y=p.yaw;p.shownClip=p.clip||'idle';
+   const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene);mark(parent,p);p.node=parent;p.tag=makeTag(scene,parent,p.name);parent.position.set(p.x,floorY(),p.z);parent.rotation.y=p.yaw;p.shownClip=p.clip||'idle';
    root.VoidCharacterAssembler.build(p.appearance,parent,{scene,clip:p.shownClip}).then(ch=>{if(peers.get(p.id)!==p||parent.isDisposed()){ch.dispose();return;}p.ctrl=ch;p.char=ch;})
     .catch(()=>{if(peers.get(p.id)===p){p.appearance=null;parent.dispose();p.node=null;}});   // could not build it: fall back to the plain crowd model
    return true;
   }
-  const parent=new root.BABYLON.TransformNode('remote-player:'+p.id,scene),made=root.VoidAssets.instance('crowd:'+p.model,parent);
+  const parent=mark(new root.BABYLON.TransformNode('remote-player:'+p.id,scene),p),made=root.VoidAssets.instance('crowd:'+p.model,parent);
   if(!made){parent.dispose();
    // The model is not in memory: ask for it once. If it cannot be loaded (or takes too long) the player is still shown, as a plain glowing figure with their name.
    if(!p.asked){p.asked=performance.now();Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(p.model,scene)).catch(()=>{p.failed=true;diag.modelFailures++;});}
@@ -105,6 +113,7 @@
   if(!p){p={id:v.id,name:clean(v.name),model:v.model,appearance:v.appearance||null,x:v.x,z:v.z,yaw:v.yaw,tx:v.x,tz:v.z,tyaw:v.yaw,clip:v.clip};peers.set(v.id,p);}
   else{p.tx=v.x;p.tz=v.z;p.tyaw=v.yaw;p.clip=v.clip;}
   if(typeof v.eye==='boolean')p.eye=v.eye;
+  if('dev' in v){const d=theirDevice(v);p.dev=d.dev;p.devPose=d.pose;}
   (p.seen||(p.seen=new Set())).add(v.clip);   // every animation the hub has sent for this player (lets a test see short clips on a slow machine)
   if(ignored.get(v.id)==='block'){removePeer(v.id);return;}
   if(!place(p)&&!p.off&&root.VoidAssets.onLoaded)p.off=root.VoidAssets.onLoaded(id=>{if(id==='crowd:'+p.model&&peers.get(p.id)===p){place(p);p.off?.();p.off=null;}});
@@ -112,7 +121,7 @@
  function onMessage(m){
   if(m.t==='error'&&m.reason==='unknown room'){refusedRoom=joinedRoom;return;}   // this hub does not carry this place: it is played alone, and other places still connect
   if(m.t==='voice-token'||m.t==='voice-refused'){const w=voiceWaiting;voiceWaiting=null;if(w){clearTimeout(w.timer);m.t==='voice-token'&&/^wss:\/\//.test(String(m.url))?w.resolve({url:m.url,token:m.token,room:m.room,identity:m.identity,expires:m.expires}):w.reject(new Error(m.reason||'Voice is not available.'));}return;}
-  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice};hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
+  if(m.t==='welcome'){diag.joins++;emitChat({t:'chat-status',on:true});if(diag.joins>1)diag.reconnects++;selfId=String(m.you||'');clearPeers();retry=0;status='in';clearTimeout(wakeTimer);features={trade:!!m.features?.trade,tradeSimulated:!!m.features?.tradeSimulated,chat:!!m.features?.chat,voice:!!m.features?.voice,dev:!!m.features?.dev};devSent='';hubVr=!!m.features?.vr;loadIgnored();for(const [id,mode] of ignored)if(ws?.readyState===1)ws.send(JSON.stringify({t:'ignore',id,on:true}));for(const v of m.peers)upsert(v);emitChat({t:'chat-status',on:features.chat});vrSession=null;
    if(vrWant&&vrActive()&&ws?.readyState===1)ws.send(JSON.stringify({t:'vr-join',id:vrWant.id}));}   // reconnected during a simulation (or while it loads): go back into the same session
   else if(m.t==='vr-room'){clearPeers();vrSession=m.session||null;vrWant=vrSession?{id:vrSession.id,exp:vrSession.exp,opts:vrSession.opts,private:vrSession.private}:null;for(const v of m.peers||[])upsert(v);vrSettle(true,vrSession);}
   else if(m.t==='vr-update'){if(vrSession&&m.session?.id===vrSession.id)vrSession=m.session;}
@@ -126,7 +135,8 @@
   else if(m.t==='look'){const p=peers.get(m.id),VA=root.VoidCharacterAppearance;if(p){const ok=!!VA&&VA.validate(m.appearance);p.appearance=ok?VA.normalize(m.appearance):null;p.model=ok?VA.CATALOG.looks[p.appearance.look].model:(['district-smuggler','district-resident'].includes(m.model)?m.model:p.model);
    if(p.char&&p.appearance&&root.VoidCharacterAppearance?.validate(p.appearance))p.char.set(p.appearance).catch(()=>{});
    else{p.ctrl?.dispose?.();p.ctrl=p.char=null;p.node?.dispose?.();p.node=null;place(p);}}}
-  else if(m.t==='eye'){const p=peers.get(m.id);if(p)p.eye=!!m.on;}   // that player is (or is no longer) using a V3 // Shadow: their left eye glows green (street-gear.js)
+  else if(m.t==='eye'){const p=peers.get(m.id);if(p)p.eye=!!m.on;}
+  else if(m.t==='dev'){const p=peers.get(m.id);if(p){const d=theirDevice(m);p.dev=d.dev;p.devPose=d.pose;}}   // that player opened or closed their device (model, read or cam: never what is on it)   // that player is (or is no longer) using a V3 // Shadow: their left eye glows green (street-gear.js)
   else if(m.t==='leave')removePeer(m.id);
   else if(m.t==='error'||m.t==='refused')status='refused: '+m.reason;
  }
@@ -200,10 +210,15 @@
  // Frames stop while a place loads or the tab is in the background; this timer still tells the hub the player is there, so a slow load is not taken for a dead connection.
  /* V3 // Shadow (the owner, 15 Nov 2026): the device's camera is in the left eye, and while its owner is using it that eye glows a little, in the device's own green.
     Twice a second: tell the server when my own use starts or stops, and put the light on (or take it off) each player I can see. */
- let eyeSent=false;
- setInterval(()=>{let using=false;try{using=state?.story?.flags?.deviceModel==='v3'&&(!!root.VoidPersonalDevice?.isOpen||!!root.VoidDeviceCamera?.active);}catch{}
-  if(ws?.readyState===1&&status==='in'){if(using!==eyeSent){eyeSent=using;try{ws.send(JSON.stringify({t:'eye',on:using}));}catch{}}}else eyeSent=false;
-  for(const p of peers.values())if(p.node&&!p.fallback&&!!p.eye!==!!p.eyeShown){p.eyeShown=!!p.eye;root.VoidStreetGear?.eye?.(p.node,p.eyeShown);}},500);
+ let eyeSent=false,devSent='';
+ /* The device itself (any model, see myDevice): sent only to a hub that says it knows it (features.dev; an older hub would count the message as a fault), and only
+    when it changes. The eye message above stays for players on older versions. A player whose hub reports their device is drawn by npc-device.js (eye included), so the
+    older eye light (street-gear.js) is used only for a player whose device the hub does not report. */
+ setInterval(()=>{let using=false,open=false,cam=false;try{open=!!root.VoidPersonalDevice?.isOpen;cam=!!root.VoidDeviceCamera?.active;using=state?.story?.flags?.deviceModel==='v3'&&(open||cam);}catch{}
+  if(ws?.readyState===1&&status==='in'){if(using!==eyeSent){eyeSent=using;try{ws.send(JSON.stringify({t:'eye',on:using}));}catch{}}
+   if(features.dev){let d={dev:null};try{d=myDevice(state?.story?.flags,open,cam);}catch{}const key=d.dev?d.dev+'/'+d.pose:'';if(key!==devSent){devSent=key;try{ws.send(JSON.stringify(d.dev?{t:'dev',dev:d.dev,pose:d.pose}:{t:'dev',dev:null}));}catch{}}}}
+  else{eyeSent=false;devSent='';}
+  for(const p of peers.values()){const want=!!p.eye&&!p.dev;if(p.node&&!p.fallback&&want!==!!p.eyeShown){p.eyeShown=want;root.VoidStreetGear?.eye?.(p.node,want);}}},500);
  setInterval(()=>{if(ws?.readyState===1&&status==='in'&&hubVr&&performance.now()-lastSend>=3500){lastSend=performance.now();try{ws.send('{"t":"vr-list"}');}catch{}}},2000);
  root.VoidRemotePlayers={get status(){return status;},
   // For the on-screen indicator and for developers (no token, no account id, no address): where the connection stands and how many players are really drawn.
@@ -219,7 +234,7 @@
   onTrade(fn){listeners.add(fn);return ()=>listeners.delete(fn);},
   sendTrade(msg){if(ws?.readyState===1&&status==='in'&&features.trade&&msg&&msg.t==='trade'){ws.send(JSON.stringify(msg));return true;}return false;},
   nearest(maxMetres=3){let best=null;for(const p of peers.values()){if(!p.node||p.node.isDisposed()||p.elsewhere)continue;const d=Math.hypot(p.x-walker.x,p.z-walker.z);if(d<=maxMetres&&(!best||d<best.dist))best={id:p.id,name:p.name,dist:d};}return best;},
-  get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
+  get peers(){return [...peers.values()].map(p=>({id:p.id,name:p.name,model:p.model,x:p.x,z:p.z,yaw:p.yaw,clip:p.clip,dev:p.dev||null,devPose:p.devPose||null,seen:[...(p.seen||[])],appearance:p.appearance||null,drawn:!!p.node&&!p.node.isDisposed(),tagged:!!p.node&&p.node.getChildMeshes().some(m=>m.name==='remote-tag')}));},
   // Tell the hub my saved look changed (after the wardrobe): it re-reads it from my account and tells nearby players.
   async refreshLook(){if(ws?.readyState===1&&status==='in'){const t=await token();if(t)ws.send(JSON.stringify({t:'refresh',token:t}));}},
   ...(isLocalPage?{_message:onMessage}:{}),

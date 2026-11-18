@@ -108,7 +108,12 @@
   return null;}
  // Fixed pairs among the places' own people (who takes a selfie with whom).
  const PAIRS={'crew-hall-talk1':'crew-hall-talk2','crew-hall-talk2':'crew-hall-talk1','bar-guest-a':'bar-guest-b','bar-guest-b':'bar-guest-a','dancer-0':'dancer-1','dancer-1':'dancer-0','dancer-2':'dancer-3','dancer-3':'dancer-2','crew-bar1':'crew-bar2','crew-bar2':'crew-bar1'};
- const pure={V2_PLACEHOLDER_COLOR,TIERS,CAPS,capFor,KINDS,GROUPS,STILL,PHOTO,config,hash,tierFor,poseFor,createScheduler,choosePosed,excluded,createReactor,kindOf,PAIRS};
+ /* OTHER PLAYERS (multiplayer, the owner, 18 Nov 2026: "players see each other using their device"). The hub tells only open or closed, the model (v1, v2, v3) and
+    read or cam (remote-players.js); never what is on the screen. A remote player's avatar is marked by remote-players.js (metadata.remoteDevice on its
+    'remote-player:<id>' node: {tier(), force()}) and is the ONE kind of player this module draws: same cuff and panel as people (V1 teal, V2 the placeholder
+    violet), the V3 // Shadow only its eye. Never the local player, never companions. remotePose: what the avatar shows for what the hub said (null: nothing). */
+ function remotePose(dev,pose){if(!TIERS[dev])return null;return pose==='cam'?'photo':'scroll';}
+ const pure={V2_PLACEHOLDER_COLOR,remotePose,TIERS,CAPS,capFor,KINDS,GROUPS,STILL,PHOTO,config,hash,tierFor,poseFor,createScheduler,choosePosed,excluded,createReactor,kindOf,PAIRS};
  if(typeof module==='object'&&module.exports){module.exports=pure;return;}
 
  /* ---------------- browser ---------------- */
@@ -120,6 +125,7 @@
  const stats={agents:0,using:0,posed:0,cap:0,poses:{},tiers:{},flashes:0,ms:0};
  const quality=()=>root.VoidBabylon?.quality||'medium';
  const metaOf=n=>{const out={};for(let p=n;p;p=p.parent)if(p.metadata)for(const k in p.metadata)if(!(k in out))out[k]=p.metadata[k];return out;};
+ const remoteOf=n=>{for(let p=n;p;p=p.parent){const r=p.metadata?.remoteDevice;if(r)return r;if(/^remote-player:/.test(p.name||''))return null;}return null;};   // a remote player's avatar (the deliberate exception)
  const isCompanion=n=>{for(let p=n;p;p=p.parent)if(p.metadata?.companion||/^remote-player:|^player|avatar/i.test(p.name||''))return true;return false;};
  const talking=()=>{try{return !!root.VoidConversationUI?.isOpen||(typeof speech!=='undefined'&&!!speech?.lines?.length&&typeof walkingLocation!=='undefined'&&!!walkingLocation);}catch{return false;}};
  // The hologram's textures. From outside it is never readable: soft blurred blocks (reading) or a blurred smear of a "picture" inside viewfinder corners (camera),
@@ -190,7 +196,9 @@
  // A rotation from three axes (Babylon: X right, Y up, Z forward).
  function basis(x,y,z,out){B.Quaternion.RotationQuaternionFromAxisToRef(x,y,z,out);return out;}
  // ---- people ----
- function agentFor(f){let a=agents.get(f);if(a!==undefined)return a;const node=f.node;if(!node||isCompanion(node)){agents.set(f,null);return null;}
+ function agentFor(f){let a=agents.get(f);if(a!==undefined)return a;const node=f.node,remote=node&&remoteOf(node);
+  if(remote){const key=String(remote.id||node.name);a={id:'remote:'+key+'#'+node.uniqueId,key:'remote:'+key,f,node,kind:'player-remote',remote:true,tier:TIERS[remote.tier?.()]?remote.tier():'v1',monk:false,pairKey:null,fig:undefined,last:null,speed:0,w:0,pose:null,holo:null,frame:null,swipe:Math.random()*9,yaw:null,off:0,extra:remote};agents.set(f,a);return a;}
+  if(!node||isCompanion(node)){agents.set(f,null);return null;}
   const m=metaOf(node),extra=tagged.get(node)||m.npcDevice||{},kind=extra.kind||kindOf(m);if(!kind){agents.set(f,null);return null;}
   const key=String(m.nightlife||m.club||m.alley||m.character||node.name),person=root.VoidDistrictPeople?.npcs?.()?.find?.(n=>n.crew===m.character||n.id===m.character);
   a={id:key+'#'+f.node.uniqueId,key,f,node,kind,tier:tierFor(key,extra.tier||person?.device),monk:!!(extra.monk||m.monk),pairKey:extra.pair||PAIRS[key]||null,fig:undefined,last:null,speed:0,w:0,pose:null,holo:null,frame:null,swipe:Math.random()*9,yaw:null,off:0,extra};
@@ -200,7 +208,7 @@
  function drop(a){for(const k of ['cuff','emitter','cone','panel','camera','eye'])if(a['m_'+k]){give(a.pieceTier,k,a['m_'+k]);a['m_'+k]=null;}}
  const byKey=new Map();
  // ---- spectacle ----
- function spectacle(ev={}){const list=listAgents().filter(a=>a.kind!=='story'&&a.node.isEnabled()).map(a=>{const p=a.node.getAbsolutePosition();return {id:a.id,x:p.x,z:p.z,tier:a.tier,monk:a.monk};});
+ function spectacle(ev={}){const list=listAgents().filter(a=>a.kind!=='story'&&!a.remote&&a.node.isEnabled()).map(a=>{const p=a.node.getAbsolutePosition();return {id:a.id,x:p.x,z:p.z,tier:a.tier,monk:a.monk};});
   const e=reactor.spectacle({...ev,skip:new Set(ev.skip||[])},list,clock);return {id:e.id,kind:e.kind,x:e.x,z:e.z,radius:e.radius,end:()=>reactor.end(e.id,clock),reactions:[...e.who.values()].map(r=>({id:r.id,mode:r.mode,step:r.step}))};}
  const reactionOf=node=>{for(const a of agents.values())if(a&&a.node===node)return reactor.reactionOf(a.id,clock);return null;};
  const sessionOf=node=>{for(const a of agents.values())if(a&&a.node===node)return sched.session(a.id);return null;};
@@ -220,7 +228,8 @@
   byKey.clear();for(const a of list)byKey.set(a.key,a);
   const input=[];
   for(const a of list){const p=a.node.getAbsolutePosition();if(a.last){a.speed=a.speed*.8+.2*Math.hypot(p.x-a.last.x,p.z-a.last.z)/Math.max(dt,1e-3);}a.last={x:p.x,z:p.z};a.d=Math.hypot(p.x-eye.x,p.z-eye.z)*zf;
-   const ext=a.extra.state?.()||{},react=reactor.reactionOf(a.id,clock);a.react=react;
+   if(a.remote){const tr=a.extra.tier?.();if(TIERS[tr])a.tier=tr;}   // another player: their model may change while they are here
+   const ext=a.extra.state?.()||{},react=a.remote?null:reactor.reactionOf(a.id,clock);a.react=react;
    const moving=ext.moving??a.speed>.25,forced=a.extra.force?.();a.forced=forced||null;
    const can=!forced&&!react&&a.node.isEnabled()&&!(a.kind==='story'&&(chat||lookBusy===String(metaOf(a.node).character)||moving))&&ext.can!==false;
    a.moving=moving;input.push({id:a.id,kind:a.kind,tier:a.tier,can,moving,pair:a.pairKey&&byKey.get(a.pairKey)?.id});

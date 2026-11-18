@@ -73,6 +73,7 @@ function start({voice=null,ledger=null,identify,access={allowed:null,denied:new 
       if(m.t==='vr-leave'){hub.vrLeave(ws);return;}
       if(m.t==='chat'){hub.chat(ws,m);return;}
       if(m.t==='eye'){hub.eye(ws,m);return;}
+      if(m.t==='dev'){hub.dev(ws,m);return;}
       if(m.t==='ignore'){hub.ignore(ws,m);return;}
       if(m.t==='report'){hub.reportPlayer(ws,m);return;}
       if(m.t==='trade'){hub.trade(ws,m);return;}

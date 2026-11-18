@@ -61,3 +61,17 @@ test('the script is a game script: a phone never downloads it, and it ships once
  assert.equal((html.match(/remote-players\.js/g)||[]).length,1);assert.equal(fs.readFileSync('static/void-runner.html','utf8'),html);
 });
 test('no name floats over another player: the tag builder draws nothing',()=>{const src=require('node:fs').readFileSync('void-runner/remote-players.js','utf8');assert.match(src,/function makeTag\(\)\{return null;\}/);assert.doesNotMatch(src,/remote-tag-tex/);});
+test('my device as other players are told: only the model while it is open and read or cam; nothing when closed',()=>{
+ assert.deepEqual(R.myDevice({deviceModel:'v1'},true,false),{dev:'v1',pose:'read'});assert.deepEqual(R.myDevice({deviceModel:'v2'},true,true),{dev:'v2',pose:'cam'});
+ assert.deepEqual(R.myDevice({deviceModel:'v3'},false,true),{dev:'v3',pose:'cam'});assert.deepEqual(R.myDevice({},true,false),{dev:'v1',pose:'read'},'no model recorded: the starter V1');
+ assert.deepEqual(R.myDevice({deviceModel:'v9'},true,false),{dev:'v1',pose:'read'});assert.deepEqual(R.myDevice({deviceModel:'v3'},false,false),{dev:null});
+ assert.deepEqual(Object.keys(R.myDevice({deviceModel:'v1',deviceApps:'messages',deviceSettings:'x'},true,false)).sort(),['dev','pose'],'no app, setting or screen content');
+});
+test('another player\'s device from the hub is cleaned before it is drawn',()=>{
+ assert.deepEqual(R.theirDevice({dev:'v2'}),{dev:'v2',pose:'read'});assert.deepEqual(R.theirDevice({dev:'v3',pose:'cam'}),{dev:'v3',pose:'cam'});assert.deepEqual(R.theirDevice({dev:'v1',pose:'x'}),{dev:'v1',pose:'read'});
+ for(const bad of [{dev:null},{dev:'V1'},{dev:'<b>'},{},null,undefined])assert.deepEqual(R.theirDevice(bad),{dev:null,pose:null});
+});
+test('the client sends its device only to a hub that says it knows it, and keeps the older eye message',()=>{
+ const src=fs.readFileSync(require.resolve('../void-runner/remote-players.js'),'utf8');
+ assert.match(src,/if\(features\.dev\)\{/);assert.match(src,/dev:!!m\.features\?\.dev/);assert.match(src,/t:'eye',on:using/);
+});
