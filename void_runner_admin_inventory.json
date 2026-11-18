@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "dfc764c5942449de",
+  "revision": "86938c0771e637dc",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16269,7 +16269,7 @@
     "void-runner/milked-build.js": "9871abf1b5b6680f223ba1522414dad98c34364e11b3ac99d890212ea105e8c6",
     "void-runner/milked-integration.js": "886ec02f0991098a1007dfa6e8dd03992ca1ded5962871002a229459b180327e",
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
-    "void-runner/milked.js": "4fa9d468c798a3520cc3c3d4df6f99739b564f614901895194aeed566147f667",
+    "void-runner/milked.js": "6d61dc3fa3cdf056572a8b3f0ae89e7c2da90a5318119cd44bd0dbe08d5e2e85",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "1dda9430b683d40fd0ce43491ee6c8f1d0b1977bdd2b468737588060823f1b86",
     "void-runner/mission-editor.js": "a522b5a71cae3cb68f65eb0d934518065dba499adfd77ea37db831ffa50fa9b7",
