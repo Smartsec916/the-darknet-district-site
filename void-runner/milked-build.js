@@ -685,7 +685,7 @@
   const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,y:0,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,spawned:false,...opts});
   const eva=MODELS.eva,fish=MODELS.fish;
   spot(eva.id,eva.at[0],eva.at[1],eva.face,eva.clips,{fixedLook:eva.look,asset:eva.asset,role:'eva'});spot(fish.id,fish.at[0],fish.at[1],fish.face,fish.clips,{fixedLook:fish.look,asset:fish.asset,role:'fish'});
-  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
+  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:s.n===1?null:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
   for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
    p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
    p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
@@ -696,7 +696,7 @@
   const OUTFIT={'district-resident':{suit:[.5,.45,.55],shoes:[3,.6,2]},'vr-companion-m':{suit:[.55,.5,.6],shoes:[1.4,.35,1.6]},'vr-player-b':{suit:[1.3,.3,5],shoes:[.2,.2,.22]}},COVER=/\.(mask0|headset0|trackers1)/;
   function dress(p){const o=OUTFIT[p.look];p.meshes=p.meshes.filter(m=>{const mat=m.material,nm=mat?.name||'';if(COVER.test(nm)){m.setEnabled(false);return false;}
     const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
-  const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
+  const LOOKS=[...new Set([...people.map(p=>p.fixedLook),'npc-grey-reverie','npc-ethereal-lace'])];
   const asked=new Map();
   // A look that is a licensed companion model (the studio 3 dancer is Dex since 18 Nov 2026, the owner's choice) ships as an encrypted .vrpak, not a .glb.
   // Studio 2's dancer (the licensed Female Warrior, 18 Nov 2026) names her own .vrpak in milked.js; she is not a companion.
@@ -706,7 +706,19 @@
   // Who is speaking to the player now: the open walking conversation's current line (Eva and Fish speak as milked-eva / milked-fish, milked-integration.js).
   let lastSpeaker=null;
   function speakerNow(){try{const line=typeof speech!=='undefined'&&speech?.lines?.[speech.index];if(line){lastSpeaker=line.who;return lastSpeaker;}return root.VoidConversationUI?.isOpen?lastSpeaker:(lastSpeaker=null);}catch{return null;}}
-  function staff(clock,cam=null,dt=0){const speaker=cam?speakerNow():null;
+  const studioOne=people.find(p=>p.studio===1);
+   function syncStudioOne(){
+    if(!studioOne)return;
+    const wanted=MK.studioOnePerformer(Date.now());
+    if(studioOne.fixedLook===wanted.look)return;
+    studioOne.anim?.dispose?.();studioOne.node?.dispose?.();
+    studioOne.node=null;studioOne.anim=null;studioOne.meshes=[];studioOne.spawned=false;
+    studioOne.fixedLook=wanted.look;studioOne.clips=wanted.clips;studioOne.library=null;
+    studioOne.look=null;studioOne.clip=null;
+    askLooks([wanted.look]);
+    mirAll=null;mirNext=0;
+   }
+   function staff(clock,cam=null,dt=0){syncStudioOne();const speaker=cam?speakerNow():null;
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
    if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;askLooks();}
@@ -715,8 +727,8 @@
      if(p.asset&&assets?.container?.(p.asset)){n=assets.instance(p.asset,node);look=p.asset;clip='idle';}
      else{   // Eva and Fish only ever use their own look; a dancer whose look is not on this machine after a while uses a spare clothed figure
       const order=p.spare&&clock>25&&!loading.has(p.fixedLook)?[p.fixedLook,...p.spare]:[p.fixedLook];   // a large licensed file still downloading is waited for, not replaced
-      for(const c of order){if(clipsOf(c).some(q=>p.clips.includes(q))&&(n=assets?.instance?.('crowd:'+c,node))){look=c;clip=p.clips.find(q=>clipsOf(c).includes(q))||'idle';break;}}}
-     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id,...(p.role!=='dancer'?{character:p.id}:{})};   /* character: the head tracking (npc-look.js) finds Eva and Fish by it */p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
+      for(const c of order){if((p.studio===1||clipsOf(c).some(q=>p.clips.includes(q)))&&(n=assets?.instance?.('crowd:'+c,node))){look=c;clip=p.studio===1&&c==='npc-grey-reverie'?null:p.clips.find(q=>clipsOf(c).includes(q))||'idle';break;}}}
+     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset||!clip?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id,...(p.role!=='dancer'?{character:p.id}:{})};   /* character: the head tracking (npc-look.js) finds Eva and Fish by it */p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
      if(p.role==='dancer'){
       // the shared animation library, where it is installed: a different loop for each studio. Without it the look's own dance plays.
       if(p.library&&root.VoidAnimLibrary?.apply)Promise.resolve(root.VoidAnimLibrary.apply(n,look,{only:[p.library],scene})).then(added=>{if(k.disposed||p.node!==n||!added?.includes(p.library))return;p.anim?.play?.(p.library);p.clip=p.library;}).catch(()=>{});}
@@ -729,7 +741,7 @@
      if(talking!==!!p.talking){p.talking=talking;if(!p.turn)try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clip);}catch{}}
      if(p.turn&&clock>=p.turn.until&&Math.abs(d)<.02){p.turn=null;try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clips.includes('idle')?'idle':p.clip);}catch{}}}
     // a figure with no dance of its own still moves: a slow sway on the spot
-    if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
+    if(p.role==='dancer'&&p.studio!==1&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
   }
   function tick(time){
    if(k.disposed)return;const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;const cam=toLocal(scene.activeCamera?.globalPosition);
@@ -743,7 +755,7 @@
      (the people, the floor mirror's view of them, the glow and the key light's shadow) is compiled before the inner doors open. They used to be fetched only once
      the player was walking, so they arrived, and their shaders compiled, just as the inner doors opened. A slow download (over 8 s) still finishes in the background. */
   const prepared={};   // how long each step behind the card took, in ms (state().prepared; for checking on a real graphics card)
-  async function prepare(){if(k.disposed)return;let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
+  async function prepare(){if(k.disposed)return;syncStudioOne();let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
    // only figures already on this computer (in memory or the offline cache), the rule every place follows (asset-pipeline.js prepare): a first visit still downloads after the card
    const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+fileOf(look)),1500)?look:null))).filter(Boolean);if(k.disposed)return;
    await cap(Promise.all(askLooks(here)),8000);if(k.disposed)return;lap('figures');staff(k.clock);
