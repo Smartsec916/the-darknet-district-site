@@ -1,5 +1,6 @@
 /* V1 personal holographic device: the screen (browser only; phones never download it). Rules and saved state are in device-v1.js.
-   L opens and closes it. It does NOT change the game's mode: the world, other players and NPCs keep running; only YOUR movement is held. The mouse is free over
+   L opens and closes it. It does NOT change the game's mode: the world, other players and NPCs keep running, and YOU keep walking (WASD/arrows/Shift and the stick) with it open;
+   movement stops only while a text box is selected (the owner, 18 Nov 2026). The mouse is free over
    the device and dragging the world outside it looks around. It is a read-and-act layer over systems that already exist (Mission Log, conversation history,
    the Relay news archive, District chat, the explored map); it keeps no messages, accounts or profiles of its own. Camera and Gallery are placeholders.
    Messages > INBOX lists the messages missions send (Admin's in Mission 001; live-content.js inbox, read state in the save). VoidV1.notify() is the V1's notification for
@@ -15,6 +16,8 @@
 (function(root){
  'use strict';
  const D=root.VoidDeviceV1;if(!D)return;
+ const WALK=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);   // walking passes through an open device; typing in a box stops it
+ const typingNow=()=>{const a=document.activeElement;return !!(open&&a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&el?.contains(a));};
  const MOVE=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','ControlLeft','ControlRight','KeyC','Space','KeyQ','KeyR','KeyX','KeyE','KeyF','KeyG']);
   const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));   // own escaper: attributes need quotes escaped too
  const reduced=()=>dev.settings.motion==='reduced'||dev.settings.motion==='auto'&&root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -484,13 +487,13 @@
    if(!onFootOrDock())return false;
    if(!el)build();const s=state_();dev=D.restore(s?.story?.flags||{});dev.loaded=true;
    expanded=dev.settings.size==='expanded';stack=[];open=true;busy=false;clearTimeout(navTimer);navSeq++;
-   walkingKeys?.clear?.();try{clearInput?.();}catch{}for(const c of held)if(MOVE.has(c))suppressed.add(c);   // keys already held do nothing until released and pressed again
+   for(const c of held)if(MOVE.has(c)&&!WALK.has(c))suppressed.add(c);   // walking keys keep walking; other held action keys do nothing until released and pressed again
    document.exitPointerLock?.();el.dataset.device=dev.model;el.classList.add('open');el.classList.toggle('anim',!reduced());chip.classList.remove('on');
    if(pending){const q=pending;pending=null;booted=true;go(q.sub?[q.app,q.sub]:[q.app],'open');}
    else if(!booted){booted=true;go([],'startup','V1 STARTING');}else render();   // the first opening after the page loads shows a short start-up card
    setTimeout(()=>{if(!el.querySelector('input:focus'))el.querySelector('.pd-main')?.focus({preventScroll:true});},0);
   }else{
-   open=false;busy=false;clearTimeout(navTimer);navSeq++;syncViewing();el.classList.remove('open');commit();walkingKeys?.clear?.();for(const c of held)if(MOVE.has(c))suppressed.add(c);
+   open=false;busy=false;clearTimeout(navTimer);navSeq++;syncViewing();el.classList.remove('open');commit();for(const c of held)if(MOVE.has(c)&&!WALK.has(c))suppressed.add(c);
    try{canvas?.focus?.();}catch{}
   }
   return true;
@@ -513,14 +516,17 @@
   if(code==='Escape'){e.preventDefault();e.stopImmediatePropagation();if(typing&&e.target.value){e.target.value='';return;}back();return;}
   if(code===(root.VoidInput?.bindings?.missionLog||'KeyL')&&!typing&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();e.stopImmediatePropagation();if(!e.repeat)setOpen(false);return;}
   if(typing)return;   // the input's own handler keeps the key inside the box
+  if(WALK.has(code)&&!e.ctrlKey&&!e.metaKey&&!e.altKey){if(suppressed.has(code))e.stopImmediatePropagation();return;}   // walking with the device open: the game gets the key (one held through a text box waits for a fresh press)
   if(MOVE.has(code))suppressed.add(code);
   if(code!=='Tab')e.stopImmediatePropagation();   // the game never sees the key (a button still activates: its default action is not cancelled)
  },true);
  addEventListener('keyup',e=>{held.delete(e.code);suppressed.delete(e.code);},true);
  addEventListener('blur',()=>{held.clear();suppressed.clear();});
 
- // Gamepad / virtual stick movement is held while the device is open
- try{const ax=root.VoidInput?.axes;if(ax)for(const k of ['moveX','moveZ']){let v=ax[k]||0;Object.defineProperty(ax,k,{configurable:true,enumerable:true,get(){return open?0:v;},set(n){v=n;}});}}catch{}
+ // Typing in a box stops walking: selecting a text box releases the held walking keys (they work again once released and pressed after leaving the box)
+ addEventListener('focusin',e=>{if(!open||!el?.contains(e.target)||!/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName||''))return;try{walkingKeys?.clear?.();}catch{}try{root.VoidInput?.held?.clear?.();}catch{}for(const c of held)if(MOVE.has(c))suppressed.add(c);},true);
+ // Gamepad / virtual stick movement is held only while a text box is selected
+ try{const ax=root.VoidInput?.axes;if(ax)for(const k of ['moveX','moveZ']){let v=ax[k]||0;Object.defineProperty(ax,k,{configurable:true,enumerable:true,get(){return typingNow()?0:v;},set(n){v=n;}});}}catch{}
 
  function frame(){
   if(!el&&onFootOrDock()&&typeof state!=='undefined'&&state?.story)build();

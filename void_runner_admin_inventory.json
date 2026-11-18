@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "8e127a754c41c6e9",
+  "revision": "0179e551c24ed663",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14182,139 +14182,139 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 3,
+      "line": 4,
       "text": "the device and dragging the world outside it looks around. It is a read-and-act layer over systems that already exist (Mission Log, conversation history,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 10,
+      "line": 11,
       "text": "CONVERSATIONS WITH CONTACTS (Mission 002, 17 Nov 2026): Messages > INBOX lists a conversation for each person a mission has the player send something to (Admin).",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 12,
+      "line": 13,
       "text": "camera kept with the photo go to the mission (live-content.js sendPhoto), and the reply comes back into the conversation. Kept per browser (threads below).",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 70,
+      "line": 73,
       "text": "const A=root.VoidCharacterCreator?.stored?.()||null,h=root.VoidAccount?.handle;   // no saved look: the portrait says unavailable, never a guess",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 84,
+      "line": 87,
       "text": "function residentProfile(n,here){const P=DP(),live=n.live==='dax'?root.VoidDax?.where:null;   /* Dax moves about on her own: her profile says where she is now */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 119,
+      "line": 122,
       "text": "everywhere else the list says how far each person is (the owner, 15 Nov 2026). null = not shown. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 151,
+      "line": 154,
       "text": "let attach={picking:false,photo:null,text:'',sending:false};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 153,
+      "line": 156,
       "text": "const from=inbox().filter(m=>m.from===id).map(m=>({who:'npc',text:m.text,at:(m.at||0)*1000}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 160,
+      "line": 163,
       "text": "return '<div class=\"pd-chat-head\"><b>'+esc(String(name).toUpperCase())+'</b><span class=\"pd-note\">CONVERSATION</span></div><div class=\"pd-chatlog\" data-thread-log=\"'+esc(id)+'\">'+(rows.length?rows.map(bubble).join(''):'<div class=\"pd-empty\">No messages yet.</div>')+'</div>'+compose;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 162,
+      "line": 165,
       "text": "threadAdd(id,{who:'me',photo,text,at:Date.now()});let reply=null;try{reply=root.VoidLiveContent?.sendPhoto?.(id,root.VoidGallery?.meta?.(photo))||null;}catch{}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 163,
+      "line": 166,
       "text": "attach={picking:false,photo:null,text:'',sending:false};render({keepScroll:true});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 164,
+      "line": 167,
       "text": "if(reply&&reply.lines&&reply.lines.length)setTimeout(()=>{threadAdd(id,{who:'npc',text:reply.lines.map(l=>l.text).join('\\n'),at:Date.now(),ok:!!reply.ok});if(open&&stack[0]==='messages'&&stack[2]===id)render({keepScroll:true});else notify({app:'messages',sub:'inbox',key:'reply:'+id+':'+Date.now(),text:'New message from '+String(contactName(id)).toUpperCase(),hint:{text:'open',help:true}});},1200);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 221,
+      "line": 224,
       "text": "const tabs='<div class=\"pd-tabs\">'+tab('inbox','INBOX',ib?unreadText(ib):'')+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 227,
+      "line": 230,
       "text": "return tabs+(people.length?'<h2>CONVERSATIONS</h2>'+people.map(id=>'<button type=\"button\" class=\"pd-card pd-thread\" data-thread=\"'+esc(id)+'\"><b>'+esc(String(contactName(id)).toUpperCase())+'</b><span class=\"pd-note\">'+esc(last(id)||'Open the conversation')+'</span></button>').join('')+'<h2>INBOX</h2>':'')+'<div class=\"pd-note\">Messages sent to your V1. No reply is needed.</div>'+(list.length?list.map(m=>'<article class=\"pd-card pd-inmsg'+(m.read?'':' unread')+'\" data-inbox=\"'+esc(m.id)+'\"><div class=\"pd-msg-h\"><b>'+esc(m.header)+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class=\"pd-inmsg-text\">'+esc(m.text)+'</div>'+(m.title?'<div class=\"pd-note\">'+esc(m.title)+'</div>':'')+'</article>').join(''):'<div class=\"pd-empty\">No messages yet.</div>');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 230,
+      "line": 233,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 236,
+      "line": 239,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 354,
+      "line": 357,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 411,
+      "line": 414,
       "text": "if(t.dataset.thread){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox',t.dataset.thread],'tab','OPENING CONVERSATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 412,
+      "line": 415,
       "text": "if(t.dataset.attachOpen){attach={picking:true,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 413,
+      "line": 416,
       "text": "if(t.dataset.attachPhoto){attach={picking:false,photo:t.dataset.attachPhoto,text:'',sending:false};render({keepScroll:true});setTimeout(()=>body?.querySelector('[data-attach-form] input')?.focus(),0);return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 414,
+      "line": 417,
       "text": "if(t.dataset.attachCancel){attach={picking:false,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 446,
+      "line": 449,
       "text": "function back(){if(stack[0]==='messages'&&stack[2]){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox'],'tab','LOADING');return true;}   // a conversation goes back to the list",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 528,
+      "line": 534,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -16265,7 +16265,7 @@
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
-    "void-runner/personal-device.js": "3691f06cd4b8d0bda8223c767ffcb4334eb31bd2bcb3db8781d2a7c2ad2f8590",
+    "void-runner/personal-device.js": "9a6cb784a1d9419bf9318e5ae741112ee3c10c16050769ca09a3627a44b1e605",
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "608c57799f6b79c82715886bc236568651fbd2f08d4cbde61f6c7d682a3b0f17",
