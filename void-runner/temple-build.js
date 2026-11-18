@@ -254,7 +254,7 @@
   function light(n){const ms=n.getChildMeshes(false);for(const l of lights)for(const m of ms)if(!l.L.includedOnlyMeshes.includes(m))l.L.includedOnlyMeshes.push(m);if(mirror)for(const m of ms)if(!mirror.renderList.includes(m))mirror.renderList.push(m);for(const m of ms){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<6)m.material.maxSimultaneousLights=6;}}
   // Zen Zephyr: his seated model replaces the primitive figure. Its 'zz:Neck' and 'zz:Head' nodes (pivots at the neck) are what the speaker's gaze turns (npc-look.js).
   function zen(){if(zenModel||!T.MODEL.asset)return;const id='crowd:'+T.MODEL.asset;if(!assets?.container?.(id))return;const n=assets.instance(id,monk);if(!n)return;
-   const b=n.getHierarchyBoundingVectors(true),h=b.max.y-b.min.y;if(h>.1){const k=(T.MODEL.height||1.3)/h;n.scaling.setAll(k);n.position.y=-b.min.y*k;}   /* sits on the dais, `height` tall */
+   monk.computeWorldMatrix(true);const base=monk.getAbsolutePosition().y,b=n.getHierarchyBoundingVectors(true),h=b.max.y-b.min.y;if(h>.1){const k=(T.MODEL.height||1.3)/h;n.scaling.setAll(k);n.position.y=-(b.min.y-base)*k;}   /* the bounds are in world space: measure from the seat (the dais top), or he sinks into the dais by its height (the owner, 18 Nov 2026) */   /* sits on the dais, `height` tall */
    for(const c of monk.getChildren(null,true))if(c!==n){c.dispose(false,false);}   /* the primitive figure (its meshes and its 'mk:Head') goes */
    zenModel=n;n.metadata={...n.metadata,character:'zen-zephyr',monk:true};light(n);}
   // The monks: praying at the altars, or walking slowly up and down their path with a pause and an unhurried turn at each end.

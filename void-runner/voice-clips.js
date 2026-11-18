@@ -9,7 +9,7 @@
  const ZEN_STRENGTH=1;
  const PRESETS={
   android:{dry:.86,shelfHz:5500,shelfDb:2.5,combMs:2.3,combFeedback:.22,combMix:.1,chorusMs:12,chorusDepthMs:1.2,chorusHz:.6,chorusMix:.07},
-  monk:{strength:ZEN_STRENGTH,highpassHz:90,crushBits:10,crushMix:.25,flangerMs:2,flangerDepthMs:1.5,flangerFeedback:.2,flangerHz:.25,flangerMix:.5,echoMs:18,echoDecay:.18}};
+  monk:{strength:ZEN_STRENGTH,highpassHz:90,crushBits:10,crushMix:.25,flangerMs:2,flangerDepthMs:1.5,flangerFeedback:.2,flangerHz:.25,flangerMix:.5,echoMs:18,echoDecay:.18,level:1.9}};   // level: his overall loudness (the owner, 18 Nov 2026: "make his voice louder"; about +5.6 dB, a limiter stops it clipping)
  if(typeof module==='object'&&module.exports&&typeof document==='undefined'){module.exports={PRESETS,ZEN_STRENGTH};return;}
  const base=new URL('assets/audio/voice/',document.currentScript?.src||location.href);
  const alias={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant'};
@@ -40,13 +40,14 @@
  }
  // Zen Zephyr: PRESETS.monk. The high-passed voice goes out clean, plus (each scaled by strength) the bit-crushed copy, the flanged copy and the 18 ms echo.
  function monk(ctx,input,output){const P=PRESETS.monk,k=Math.max(0,P.strength);
+  const out=ctx.createGain();out.gain.value=P.level||1;const lim=ctx.createDynamicsCompressor();lim.threshold.value=-3;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.003;lim.release.value=.1;out.connect(lim);lim.connect(output);
   const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=P.highpassHz;input.connect(hp);
-  const dry=ctx.createGain();dry.gain.value=1-Math.min(.6,P.crushMix*k);hp.connect(dry);dry.connect(output);
+  const dry=ctx.createGain();dry.gain.value=1-Math.min(.6,P.crushMix*k);hp.connect(dry);dry.connect(out);
   const crush=ctx.createWaveShaper(),steps=Math.pow(2,P.crushBits-1),curve=new Float32Array(4096);for(let i=0;i<curve.length;i++){const x=i/(curve.length-1)*2-1;curve[i]=Math.round(x*steps)/steps;}crush.curve=curve;
-  const cw=ctx.createGain();cw.gain.value=P.crushMix*k;hp.connect(crush);crush.connect(cw);cw.connect(output);
+  const cw=ctx.createGain();cw.gain.value=P.crushMix*k;hp.connect(crush);crush.connect(cw);cw.connect(out);
   const fl=ctx.createDelay(.05);fl.delayTime.value=(P.flangerMs+P.flangerDepthMs/2)/1000;const lfo=ctx.createOscillator(),depth=ctx.createGain();lfo.frequency.value=P.flangerHz;depth.gain.value=P.flangerDepthMs/2000;lfo.connect(depth);depth.connect(fl.delayTime);lfo.start();
-  const ffb=ctx.createGain();ffb.gain.value=P.flangerFeedback;fl.connect(ffb);ffb.connect(fl);const fw=ctx.createGain();fw.gain.value=P.flangerMix*k;hp.connect(fl);fl.connect(fw);fw.connect(output);
-  const echo=ctx.createDelay(.1);echo.delayTime.value=P.echoMs/1000;const ew=ctx.createGain();ew.gain.value=P.echoDecay*k;hp.connect(echo);echo.connect(ew);ew.connect(output);
+  const ffb=ctx.createGain();ffb.gain.value=P.flangerFeedback;fl.connect(ffb);ffb.connect(fl);const fw=ctx.createGain();fw.gain.value=P.flangerMix*k;hp.connect(fl);fl.connect(fw);fw.connect(out);
+  const echo=ctx.createDelay(.1);echo.delayTime.value=P.echoMs/1000;const ew=ctx.createGain();ew.gain.value=P.echoDecay*k;hp.connect(echo);echo.connect(ew);ew.connect(out);
   const trim=1/(1+P.flangerMix*k*.5+P.echoDecay*k*.5);if(trim<1)output.gain.value*=trim;return [lfo];
  }
  // Elias: an archived hologram recording; band-limited with a slight flicker.
