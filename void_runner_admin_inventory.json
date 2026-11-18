@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "697c5044b0782284",
+  "revision": "f5c844f36f016036",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12023,7 +12023,7 @@
     {
       "source": "void-runner/conversation-ui.js",
       "line": 15,
-      "text": "if(lastLine!==signature){history.append(localStorage,uid(),{character:line.who||'companion',name:characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}",
+      "text": "if(lastLine!==signature&&!line.silent){history.append(localStorage,uid(),{character:line.who||'companion',name:characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}",
       "kind": "source-reference"
     },
     {
@@ -12041,7 +12041,7 @@
     {
       "source": "void-runner/conversation-ui.js",
       "line": 19,
-      "text": "win.insertBefore(thread,win.querySelector('.speech-body'));",
+      "text": "win.insertBefore(thread,win.querySelector('.speech-body'));thread.scrollTop=thread.scrollHeight;   // the latest line in view (a quote just before a follow-up)",
       "kind": "source-reference"
     },
     {
@@ -14014,20 +14014,20 @@
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 5,
-      "text": "const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3};",
+      "line": 6,
+      "text": "const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3,templeTalkDuck:.62};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 48,
+      "line": 49,
       "text": "if(c.mode!=='walking'&&c.mode!=='dialogue'||!c.walker)return null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/music-director.js",
-      "line": 72,
-      "text": "duck:c.dialogue?config.dialogueDuck:0,speaker:speaker(c)};",
+      "line": 73,
+      "text": "duck:c.place==='temple'&&(c.dialogue||c.conversation)?config.templeTalkDuck:c.dialogue?config.dialogueDuck:0,speaker:speaker(c)};",
       "kind": "source-reference"
     },
     {
@@ -14039,7 +14039,7 @@
     {
       "source": "void-runner/music-integration.js",
       "line": 31,
-      "text": "dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,",
+      "text": "dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,conversation:onFoot&&!!globalThis.VoidConversationUI?.isOpen,",
       "kind": "source-reference"
     },
     {
@@ -15125,42 +15125,48 @@
     {
       "source": "void-runner/talk-choice.js",
       "line": 16,
-      "text": "if(speech.menu){box.classList.add('talk-menu');const next=box.querySelector('#speech-next');if(next)next.style.display='none';",
+      "text": "if(speech.menu){box.classList.add('talk-menu');const th=screen.querySelector('.conversation-thread');if(th)requestAnimationFrame(()=>{th.scrollTop=th.scrollHeight;});   // the latest line (his quote) in view above the list",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
       "line": 17,
-      "text": "speech.choices.forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type=\"button\" class=\"talk-menu-choice'+(c.leave?' quiet':'')+'\" data-talk-choice=\"'+i+'\" data-action=\"talk-choice\">'+esc(c.label)+'</button>'));return;}",
+      "text": "const next=box.querySelector('#speech-next');if(next)next.style.display='none';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
       "line": 18,
+      "text": "speech.choices.forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type=\"button\" class=\"talk-menu-choice'+(c.leave?' quiet':'')+'\" data-talk-choice=\"'+i+'\" data-action=\"talk-choice\">'+esc(c.label)+'</button>'));return;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/talk-choice.js",
+      "line": 19,
       "text": "speech.choices.slice(1).forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type=\"button\" class=\"quiet\" data-talk-choice=\"'+(i+1)+'\" data-action=\"talk-choice\">'+esc(c.label)+'</button>'));}catch{}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 20,
+      "line": 21,
       "text": "if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&l.silent){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 27,
+      "line": 28,
       "text": "if(typeof speech!=='undefined'&&speech){speech.choices=list;speech.menu=menu;decorate();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 31,
+      "line": 32,
       "text": "screen.addEventListener('click',e=>{const b=e.target.closest?.('[data-talk-choice]');if(!b||typeof speech==='undefined'||!speech||!Array.isArray(speech.choices))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 32,
+      "line": 33,
       "text": "const c=speech.choices[Number(b.dataset.talkChoice)];if(!c)return;e.stopPropagation();speech=null;try{root.VoidAudio?.cancel();}catch{}c.run();},true);",
       "kind": "source-reference"
     },
@@ -16078,7 +16084,7 @@
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
-    "void-runner/conversation-ui.js": "617d4b10f68c5ccb82bc001b7a0f2652abe64ed9515463f51bf4c8bcf5fafb2b",
+    "void-runner/conversation-ui.js": "8b6131540112f455110d3ffa97775b221420b6ddbc30bc85fcec122dac77bf11",
     "void-runner/corporate-actors.js": "4ded2564263ea8f5ed16a535864a00385925c81bdfb4aa877b69944f55ffd588",
     "void-runner/corporate-build.js": "c98085378b49c56e77b679078fb7bf5377aa069ea8a7bc8fd8697c98f63a52d0",
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
@@ -16160,10 +16166,10 @@
     "void-runner/model-registry.js": "2330947f95ab6a71231f65a0cec1d347f884dcd550c2d8c9b488588febf7b579",
     "void-runner/mouse-control.js": "719cd797ab34fd42a40c3e8101563b0c7dc91b88c6dd87616e7f56b99f270ce6",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
-    "void-runner/music-director.js": "c1ebbe2278061e0cd724ce82453022c70078819a38ebce0f97d1d47a350e5264",
-    "void-runner/music-engine.js": "01eecadf954ace9df5655135ab20f6341548f1af07b0e864715be33d08eec2ea",
-    "void-runner/music-integration.js": "2341272af7d74b63cefdf4ea9ec608e6305bc3004a0a6fd32893ddb29dff3d25",
-    "void-runner/music-score.js": "989112fce52d9ed931c1330b1f17187d79f6a2a3a15a6af6e19cdae6d52547ee",
+    "void-runner/music-director.js": "a1fadf186558f7272b9d48e6fc6d265027e47ad1c8fef1d4639dfaf48ca4ffa7",
+    "void-runner/music-engine.js": "9a4ee46218d4b7be56ded9763e3ad56c42bfa2eeaa6c59d207b6757ff7d0b8c2",
+    "void-runner/music-integration.js": "00898b4869c668718e834816bf65e1c1e66c00be064990704f124d66d353d467",
+    "void-runner/music-score.js": "72746a604053fbe48a0f7c986ae5d18a83ccc48cfa5ef441490199c0a25e9b8e",
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "755942b7185b65f6db75ae21b9a2e9cd03ff81c3b688a6fe9a7ea7988b283610",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
@@ -16217,7 +16223,7 @@
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/street-gear.js": "2be48f25f050c110c6f1297168d446acd839ad5fe074b0d2a8f7804b11717921",
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
-    "void-runner/talk-choice.js": "9333e6a2f2035c4faaf2d5b2d34224aa992e461bdb153d236dcbfe4343a404e8",
+    "void-runner/talk-choice.js": "a9b14bbfc1a903ef542704de8188f9298517138bff2ff9af46a9ac838e8b65e6",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/temple-build.js": "226c7aeda4f5e2e49929d157c89464510eeaedddc512f302e2cd8f1577b3b29e",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",

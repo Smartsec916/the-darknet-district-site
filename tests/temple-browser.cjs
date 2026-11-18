@@ -15,7 +15,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  const srv=await serve(),base='http://127.0.0.1:'+srv.address().port,log=m=>console.log(new Date().toISOString().slice(11,19),m);
  const b=await chromium.launch({headless:true,...(exe?{executablePath:exe}:{}),args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
  try{
- const page=await (await b.newContext({viewport:{width:1280,height:720},serviceWorkers:'block'})).newPage();page.setDefaultTimeout(600000);const errs=[],zenRequests=[];page.on('pageerror',e=>errs.push(e.message));page.on('request',r=>{if(/\/extra\/zen-[a-z0-9-]+\.ogg$/.test(r.url()))zenRequests.push(r.url());});
+ const page=await (await b.newContext({viewport:{width:1280,height:720},serviceWorkers:'block'})).newPage();page.setDefaultTimeout(600000);const errs=[],zenRequests=[];page.on('pageerror',e=>errs.push(e.message));page.on('request',r=>{if(/\/extra\/zen-[a-z0-9-]+\.ogg$|\/score\/temple[a-z-]*\.ogg$/.test(r.url()))zenRequests.push(r.url());});
  await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/api/**',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));
  await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({renderer:'babylon',quality:q,v:2,chosen:true})),tier);
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
@@ -43,34 +43,40 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  await at(-14,-3,.55,-.05);await shot('06-temple-hall-corner');
  // 3b. Zen Zephyr (the owner's approved, voiced script, 18 Nov 2026): walking up the aisle he greets the player from afar, once; the five choices; a quote and the follow-up; "Yes"
  await page.evaluate(()=>{try{VoidAudio.unlock?.();}catch{}});
+ // the Temple's own music: the owner's chant, fetched only here, looped in Web Audio
+ await page.waitForFunction(()=>VoidMusicEngine.seamless?.id==='temple'&&VoidMusicEngine.seamless.ready,null,{timeout:60000});
+ const music=await page.evaluate(()=>({...VoidMusicEngine.seamless,current:VoidMusicEngine.current,duck:VoidMusicEngine.duck}));log('music '+JSON.stringify(music));
+ assert.ok(Math.abs(music.duration-288)<2,'the 288 s chant');assert.equal(music.duck,1);assert.ok(zenRequests.some(u=>u.endsWith('/score/temple-chant.ogg')),'the chant was requested');assert.ok(!zenRequests.some(u=>u.endsWith('/score/temple.ogg')),'not the old loop');
  const script=JSON.parse(fs.readFileSync(path.resolve(__dirname,'..','tools/audio/zen-zephyr-script.json'),'utf8'));
  const zenState=()=>page.evaluate(()=>({stage:VoidTemple.zen.stage,d:+VoidTemple.zen.distance().toFixed(2),line:speech?.lines?.[speech.index]?.text||null,who:speech?.lines?.[speech.index]?.who||null,index:speech?.index??null,count:speech?.lines?.length??null,
   choices:[...document.querySelectorAll('[data-talk-choice]')].map(b=>b.textContent),visible:!document.getElementById('screen').classList.contains('hidden'),mode,look:VoidNPCLook.current}));
  await walk(0,4);let z=await zenState();assert.equal(z.stage,null,'no greeting yet at '+z.d+' m');
  for(let zz=4;zz<=12;zz+=.5){await walk(0,zz);z=await zenState();if(z.stage==='greeting')break;}
  log('greeting '+JSON.stringify(z));assert.equal(z.stage,'greeting');assert.ok(z.d>12&&z.d<=14.01,'he greets from afar: '+z.d+' m');assert.equal(z.line,script.greeting);assert.equal(z.who,'zen-zephyr');
- await page.waitForFunction(()=>VoidVoiceClips.played.some(p=>p.id==='extra:zen-greeting'),null,{timeout:20000});
+ await page.waitForFunction(()=>VoidVoiceClips.played.some(p=>p.primary.id==='extra:zen-greeting'),null,{timeout:20000});
  await page.waitForFunction(()=>speech&&document.getElementById('spoken-text')?.textContent.length>40,null,{timeout:20000});await shot('07a-zen-greeting-at-distance',300);
  // on up the aisle: once the greeting has been heard, the choices open by themselves within talk range
  await page.waitForFunction(()=>speech?.voice?.ended||!speech?.voice?.clip,null,{timeout:30000});
  await walk(0,16);await page.waitForFunction(()=>VoidTemple.zen.stage==='menu'&&document.querySelectorAll('[data-talk-choice]').length===6,null,{timeout:20000});
  z=await zenState();log('menu '+JSON.stringify(z));assert.deepEqual(z.choices,[...script.topics.map(t=>t.label+' — '+t.sub),'LEAVE']);assert.equal(z.line,script.greeting);
- assert.equal(await page.evaluate(()=>VoidVoiceClips.played.filter(p=>p.id==='extra:zen-greeting').length),1,'the greeting is not spoken again');
+ assert.equal(await page.evaluate(()=>VoidVoiceClips.played.filter(p=>p.primary.id==='extra:zen-greeting').length),1,'the greeting is not spoken again');
+ await page.waitForFunction(()=>VoidMusicEngine.duck<.45,null,{timeout:10000});log('music ducked to '+(await page.evaluate(()=>VoidMusicEngine.duck)));
  await at(0,16,NORTH,.1);await shot('07b-zen-choices',800);
  const heard=async(topic)=>{const t=script.topics.find(x=>x.id===topic),i=script.topics.indexOf(t);await page.click('[data-talk-choice="'+i+'"]');
   await page.waitForFunction(()=>speech&&speech.lines.length===2&&speech.index===0,null,{timeout:10000});const q=(await zenState()).line;assert.ok(t.lines.includes(q),topic+': '+q);
-  const key='zen-'+topic+'-'+(t.lines.indexOf(q)+1);await page.waitForFunction(k=>VoidVoiceClips.played.some(p=>p.id==='extra:'+k),key,{timeout:20000});
+  const key='zen-'+topic+'-'+(t.lines.indexOf(q)+1);await page.waitForFunction(k=>VoidVoiceClips.played.some(p=>p.primary.id==='extra:'+k),key,{timeout:20000});
   const look=(await zenState()).look;log('gaze '+JSON.stringify(look));
   await page.waitForFunction(()=>speech&&speech.index===1&&document.querySelectorAll('[data-talk-choice]').length===6,null,{timeout:60000});
-  const f=await zenState();assert.equal(f.line,script.followUp);assert.equal(f.choices.at(-1),'Yes');await page.waitForFunction(()=>VoidVoiceClips.played.some(p=>p.id==='extra:zen-followup'),null,{timeout:20000});return {q,key,look};};
+  const f=await zenState();assert.equal(f.line,script.followUp);assert.equal(f.choices.at(-1),'Yes');await page.waitForFunction(()=>VoidVoiceClips.played.some(p=>p.primary.id==='extra:zen-followup'),null,{timeout:20000});return {q,key,look};};
  const first=await heard('tech');await shot('07c-zen-quote-and-follow-up',1500);const second=await heard('peace');log('quotes '+JSON.stringify([first.key,second.key]));
  assert.ok(first.look&&first.look.character==='zen-zephyr','his head turns toward the player while he speaks: '+JSON.stringify(first.look));
  await page.click('[data-talk-choice="5"]');await page.waitForFunction(()=>!speech&&mode==='walking'&&document.getElementById('screen').classList.contains('hidden'));
  await page.waitForTimeout(1500);assert.equal((await zenState()).stage,null,'"Yes" ends the conversation and it does not reopen by itself');
+ await page.waitForFunction(()=>VoidMusicEngine.duck===1,null,{timeout:10000});
  await page.evaluate(()=>VoidInteractions.handlers.get('temple-monk')({item:{}}));await page.waitForFunction(()=>VoidTemple.zen.stage==='menu'&&document.querySelectorAll('[data-talk-choice]').length===6);
- assert.equal(await page.evaluate(()=>VoidVoiceClips.played.filter(p=>p.id==='extra:zen-greeting').length),1,'E later in the visit does not greet again');
+ assert.equal(await page.evaluate(()=>VoidVoiceClips.played.filter(p=>p.primary.id==='extra:zen-greeting').length),1,'E later in the visit does not greet again');
  await page.click('[data-talk-choice="5"]');await page.waitForFunction(()=>!speech&&mode==='walking');
- const zenClips=await page.evaluate(()=>VoidVoiceClips.played.map(p=>p.id).filter(i=>/zen-/.test(i)));log('zen clips played '+JSON.stringify(zenClips));
+ const zenClips=await page.evaluate(()=>VoidVoiceClips.played.map(p=>p.primary.id).filter(i=>/zen-/.test(i)));log('zen clips played '+JSON.stringify(zenClips));
  assert.ok(zenRequests.some(u=>u.endsWith('/extra/zen-greeting.ogg'))&&zenRequests.some(u=>u.endsWith('/extra/zen-followup.ogg'))&&zenRequests.some(u=>u.endsWith('/extra/'+first.key+'.ogg'))&&zenRequests.some(u=>u.endsWith('/extra/'+second.key+'.ogg')),'clips requested: '+JSON.stringify(zenRequests));
  await at(12,17,WEST,.05);await shot('07-temple-hall-across');await at(0,14.2,NORTH,-.12);await shot('08-temple-dais-zen-zephyr');
  // performance: the hall's draw calls and the frame's cost (software GL: relative numbers only)

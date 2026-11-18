@@ -13,7 +13,8 @@
   try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.choices))return;const box=screen.querySelector('.speech-controls');if(!box)return;
    const last=speech.index===speech.lines.length-1;box.querySelectorAll('[data-talk-choice]').forEach(b=>{if(!last)b.remove();});
    if(!last||box.querySelector('[data-talk-choice]'))return;
-   if(speech.menu){box.classList.add('talk-menu');const next=box.querySelector('#speech-next');if(next)next.style.display='none';
+   if(speech.menu){box.classList.add('talk-menu');const th=screen.querySelector('.conversation-thread');if(th)requestAnimationFrame(()=>{th.scrollTop=th.scrollHeight;});   // the latest line (his quote) in view above the list
+const next=box.querySelector('#speech-next');if(next)next.style.display='none';
     speech.choices.forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type="button" class="talk-menu-choice'+(c.leave?' quiet':'')+'" data-talk-choice="'+i+'" data-action="talk-choice">'+esc(c.label)+'</button>'));return;}
    speech.choices.slice(1).forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type="button" class="quiet" data-talk-choice="'+(i+1)+'" data-action="talk-choice">'+esc(c.label)+'</button>'));}catch{}}
  // A silent line is shown but not spoken (and so waits only for its reading time).

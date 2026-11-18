@@ -28,7 +28,7 @@
     phase:route?.phase,hazard:flying&&current?.kind==='hazard',
     combat:flying&&enemies.some(VoidStory.hostile),
     danger:flying&&stats&&hp<stats.hull*.25,
-    dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,
+    dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,conversation:onFoot&&!!globalThis.VoidConversationUI?.isOpen,
     battle:flying&&!!globalThis.VoidFactionBattleState?.(),
     layoutKind:onFoot?walkingLocation.kind:null,place:onFoot?walkingLocation.id:null,
     walker:onFoot?{x:walker.x,z:walker.z}:null

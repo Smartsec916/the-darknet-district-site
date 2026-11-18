@@ -20,7 +20,7 @@ The owner asked for the code-generated background music to be replaced by record
 | NULL nightclub | `nightclub.ogg` (heard from the street by distance and through the walls, as before) | none inside |
 | Milked | `milked.ogg` | ventilation |
 | Corporate District | `corporate.ogg` | plaza hum; metal footsteps |
-| Zen Zephyr Temple | `temple.ogg` | wind and chimes |
+| Zen Zephyr Temple | `temple-chant.ogg` (18 Nov 2026: the owner's commissioned 288 s chant, looped seamlessly in Web Audio, ducked to about 38% while Zen Zephyr's conversation is open; see `TEMPLE.md`) | wind and chimes |
 | Flight (all three systems) | `space.ogg` | none |
 
 **There is no "black market" area in the game** (the owner's list named one). No location was created for it; when one exists it needs one more track.
