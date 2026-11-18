@@ -97,7 +97,7 @@
   return {spectacle,reactionOf,step,end,get active(){return events.slice();}};
  }
  // Kind of a person from the marks their makers leave (metadata), or null for people this never touches.
- const STORY=new Set(['admin','iris','dax']);
+ const STORY=new Set(['admin','dax']);   // both carry a V3 // Shadow (district-people.js). Iris is an android: her device is all internal, so she never shows one (the owner, 18 Nov 2026)
  function kindOf(m){if(!m||m.argument||m.companion||m.life)return null;
   if(m.npcDevice?.kind)return m.npcDevice.kind;
   if(typeof m.alley==='string')return /sitter/.test(m.alley)?'seated':/drunk/.test(m.alley)?null:'stander';
