@@ -73,6 +73,19 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 18 Nov | #26 `npc-casual-f`: 3D `01a1ef60-1f21…` (30), remesh 30k `01a1ef6b-157d…` (5), rig `01a1ef6d-7cab…` (5); no retry | `.../npc_upgrade/build3d_status.json`, `status/npc-casual-f.json` | 40 |
 | 18 Nov | #27 `npc-casual-m`: 3D `01a1ef61-2825…` (30), remesh 30k `01a1ef6d-d136…` (5), rig `01a1ef70-52b5…` (5); no retry | `.../npc_upgrade/build3d_status.json`, `status/npc-casual-m.json` | 40 |
 | | **18 Nov, the NPC upgrade: 25 figures** | | **1,000** (hard cap for the job 1,400; no retries were needed. The account showed 1,328 before and 314 after: 14 more than this job's tasks, spent by another session on the same account at the same time) |
+| 18 Nov | Zane (second male VR companion) 3D, image-to-3d from the concept `01a1ee4a-e1aa…` (text-to-image, 9 credits, counted in the NPC concept batch) | `01a1ef1d-a7bd-7391-b0ff-a4f716afcca6` | 30 |
+| 18 Nov | Zane remesh 45k | remesh `01a1ef20-c8b0-73d6-9e9f-cc06be77c3ae` | 5 |
+| 18 Nov | Zane rig, 1.82 m | rigging `01a1ef22-d719-762e-8252-756458b85b59` | 5 |
+| | **18 Nov, Zane** | | **40** (budget 40 to 60, stop at 120; the account showed 368 before and 328 after; no retry. Runner `Documents/DarknetDistrict_Assets/Meshy/companions/companion-m2/build_all.py`) |
+| 18 Nov | Auburn (Milked studio 4's dancer; an adult woman of 21, the owner's statement of 18 Nov 2026) concept: image-to-image (nano-banana-pro, 9:16) from renders of the owner's own Meshy model `Meshy_AI_Auburn_Morning_in_the_1118031722_texture.glb` (his Downloads; bent over, unrigged, 1.38 M triangles), asking for the same woman standing in an A-pose with adult features, the dress over black shorts | `01a1ef75-071c-7298-a5c9-46539b6d6d2f` | 9 |
+| 18 Nov | Auburn 3D | image-to-3d `01a1ef76-c15c-7659-8428-11355fb07fbb` | 30 |
+| 18 Nov | Auburn remesh 40k | remesh `01a1ef7b-82b8-7734-b9dc-5fbba9a9200f` | 5 |
+| 18 Nov | Auburn rig, 1.72 m | rigging `01a1ef7d-f1ee-71cb-b295-8626faed4f05` | 5 |
+| | **18 Nov, Auburn** | | **49** (cap 70; the account showed 323 before and 269 after: 54, five more than the four tasks report, not traced to this job; no retry. Working folder `Documents/DarknetDistrict_Assets/Meshy/studio4/` (`build_all.py`, `build_cfg.json`, renders)) |
+| 18 Nov | Lace ("Ethereal Lace", the owner's own Meshy generation from his Downloads): first rig, of a plain decimation whose textures came out shattered (not used) | rigging `01a1ef5c-5d99…` | 5 |
+| 18 Nov | Lace: rigged again from the welded, decimated and re-baked mesh (`--model-url` local file; used) | rigging `01a1ef88-49b4…` | 5 |
+| 18 Nov | Reverie ("Grey Reverie") and the street cat: decimated and re-encoded locally; Reverie static (sculpted seated), the cat rigged in Blender | none | 0 |
+| | **18 Nov, the street pair** | | **10** (cap 20; the account showed 1,328 before and 269 after: other jobs (image-to-3d, remesh and rigging tasks from other work) ran on the account at the same time; this job's two rigging tasks are the ones above) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 
@@ -106,3 +119,15 @@ From the owner's approved concepts (`docs/development/npc-upgrade/concepts-conta
 - **Sizes:** 30,400 to 31,100 triangles, one mesh and one material each, 3.1 to 4.7 MB (2048 JPEG maps).
 - **Moving files without a 12 MB call:** to the PC, from this public repository's raw GitHub URLs of a pushed commit (specs, `clips.json`, the old crowd files the clips are grafted from); from the PC, in 2.4 MB pieces as base64 (each tool result is saved to a file in the cloud session, reassembled and checked by MD5).
 - **Rights:** as the monks (`docs/VOID_RUNNER_ASSET_LICENSES.md`).
+## Auburn, Milked studio 4 (18 Nov 2026)
+
+The owner's own Meshy generation ("Auburn Morning in the Kitchen") was bent over with her hands on her knees and could not be rigged, so a standing A-pose concept of the same woman was made from renders of it (above), then 3D, remesh 40k and rig. The owner: "Go ahead and add her into Studio 4. I think she looks about 21": she is an adult woman of 21 (his statement, 18 Nov 2026). Green long-sleeved high-neck bodycon dress over black shorts, black knee-high stiletto boots, long auburn hair; covered in every view. `npc-milked-auburn.glb`: one skinned mesh, 41,285 triangles, 24 joints, three JPEG maps, 4.58 MB; spec `tools/animation-pipeline/characters/npc-milked-auburn.json`, clips `pb-idle` / `pb-dance` (studio 4's idle and dance as `vr-player-b.glb` ships them; its dance is a 1 s loop). In `milked.js` she is the studio 4 dancer `milked-auburn`, name `Auburn`; no voice, no lines.
+## The Avenue's street pair and the cat (18 Nov 2026)
+
+The owner's own Meshy generations (he downloaded them from meshy.ai; GLB and .blend in his Downloads), not concepts made here. Working folder on the owner's PC: `Documents/DarknetDistrict_Assets/Meshy/studio1/` (`render.py` content renders, `prep.py` / `prep_cat.py` decimate, scale to metres and (the cat) rig, `shrink.py` re-encodes the maps, `lace_build.py` rigs Lace and runs the two pipeline steps, `lace_status.json`).
+
+- **Decimating a Meshy download (lesson):** a plain Decimate of the 0.7 to 1.2 million-triangle Meshy mesh with its own UVs gives a shattered look in the game (the UV islands collapse into each other: light and dark shards over the skin and clothes). What works (`bake2.py`, 25 to 40 s each on the owner's GPU): weld (merge by distance 0.05 mm), make normals consistent, Decimate (collapse) to 45,000, shade smooth, a fresh Smart UV Project, then bake from the full mesh onto it with Cycles (selected to active, cage 12 mm, ray 40 mm): colour 2048 (diffuse colour only), normal 1024, roughness 1024; metallic 0.
+- **Lace** `npc-ethereal-lace` (white tiered lace mini dress, frilled ankle socks, white platform shoes, a ribbon in her hair): baked as above, then `meshy rigging create --model-url <local glb> --height-meters 1.65` (the CLI uploads a local file; no remesh task was needed) and `prepare_meshy.py` + `build_imported_character.py` (spec `characters/npc-ethereal-lace.json`): clips idle, walk (the street walk, exported as `walk.001`), sit, look. 45,000 triangles, 4.56 MB. The rigged mesh is named `lace-mesh`, not Meshy's `output_unwrapped`, so the spec's mesh entry did not match; the converter kept it whole anyway. The sit clip is a chair sit: hips 0.65 m up and 0.35 m behind the feet, so her ledges are 0.6 m high and she stands 0.3 m in front of their middle.
+- **Reverie** `npc-grey-reverie` (oversized grey hoodie, dark ankle socks, chunky buckled platform loafers; sculpted sitting on the ground hugging her knees, head on her arms): baked as above, scaled to 0.88 m seated height, static (no rig: the pose is the sculpt). 45,000 triangles, 2.59 MB.
+- **Content check** (renders in the session scratchpad, not in the repo): both women clothed, nothing explicit. Both have soft, youthful faces and styling, so they were kept out of Milked entirely (the owner then asked for them only on the street).
+

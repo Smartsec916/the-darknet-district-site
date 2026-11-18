@@ -572,6 +572,22 @@
    "as": "menu-tap",
    "loop": "exact",
    "note": "The clip as the game already ships it on a crowd look (vr-player-b.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "pb-dance": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance",
+   "loop": "exact",
+   "note": "Studio 4's dance and idle as the game already ships them on the VR arcade player two (vr-player-b), for Auburn's Meshy model (Milked studio 4, 18 Nov 2026)."
+  },
+  "pb-idle": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "idle",
+   "as": "idle",
+   "loop": "exact",
+   "note": "Studio 4's dance and idle as the game already ships them on the VR arcade player two (vr-player-b), for Auburn's Meshy model (Milked studio 4, 18 Nov 2026)."
   }
  },
  "fps": 15

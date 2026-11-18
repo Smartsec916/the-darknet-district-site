@@ -59,7 +59,7 @@ test('the two scanning lines have stored recordings: the words match exactly, th
  const fs=require('node:fs'),m=JSON.parse(fs.readFileSync('void-runner/assets/audio/voice/extra/manifest.json','utf8')),E=P.ETIQUETTE;
  for(const who of ['admin','iris']){const l=Object.values(m.lines).find(x=>x.speaker===who);assert(l,who);assert.equal(l.text,E.spoken[who][1]);assert.equal(E.lines[who],E.spoken[who][0]+': '+E.spoken[who][1]);assert.match(l.file,/^extra\/[a-z0-9-]+\.ogg$/);
   const st=fs.statSync('void-runner/assets/audio/voice/'+l.file);assert(st.size>5000&&st.size<400000,who+' clip size');assert(l.voice&&l.voiceId,'the voice used is recorded');}
- const main=JSON.parse(fs.readFileSync('void-runner/assets/audio/voice/manifest.json','utf8'));assert(!Object.values(main.lines).some(l=>l.text===E.spoken.admin[1]||l.text===E.spoken.iris[1]));assert.equal(Object.keys(main.lines).length,736,'the Kokoro manifest is as it was');
+ const main=JSON.parse(fs.readFileSync('void-runner/assets/audio/voice/manifest.json','utf8'));assert(!Object.values(main.lines).some(l=>l.text===E.spoken.admin[1]||l.text===E.spoken.iris[1]));assert.equal(Object.keys(main.lines).length,790,'the Kokoro manifest is as it was (736, plus Zane\'s 54 companion lines on 18 Nov 2026)');
  assert.match(fs.readFileSync('void-runner/voice-clips.js','utf8'),/extra\/manifest\.json/);
 });
 test('player lists show distance outside The Darknet District and not inside it',()=>{

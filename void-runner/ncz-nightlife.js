@@ -57,10 +57,10 @@
   {id:'main-west',a:[52.6,-121],b:[52.6,-22],wall:[-1,0],half:1,nightlife:true,weight:3,...(club?{noLean:[[-61,-55.6]]}:{})},
   {id:'main-east',a:[69.4,-121],b:[69.4,-22],wall:[1,0],half:1,nightlife:true,weight:3,noLean:[[-62.5,-54.5]]},   /* the alley mouth (Milked's side street and service alley moved to Far South on 16 Nov 2026: main-far-east) */
   {id:'alley',a:[73,-59.3],b:[117,-59.3],wall:[0,1],half:.6,nightlife:true,weight:0,noLean:[[0,999]]}   /* weight 0: nobody walks the alley now (the owner, Nov 2026: four people there at most; ncz-alley.js has them) */,
-  {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2},
+  {id:'avenue-north',a:[6,-6.6],b:[148,-6.6],wall:[0,1],half:1,nightlife:false,weight:2,noLean:[[88.9,92.1],[102.6,106.2],[111.6,114.8]]},   /* the street pair's ledges and Reverie's spot (ncz-street-pair.js) */
   {id:'avenue-south',a:[6,-18.4],b:[148,-18.4],wall:[0,-1],half:1,nightlife:true,weight:2,noLean:[[49,73]]}];
  // Spots no one stops or leans at: doors, the taxi zones' kerbs, the static crew.
- const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-182,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5]];
+ const keepClear=[[126.9,-61.9,3],[61,-100,4],[40,-12.5,4],[61,-66,4],[61,-182,4],[52.6,-40,1.5],[69.4,-78,1.5],[52.6,-100,1.5],[34,-6.6,1.5],[98,-18.4,1.5],[104.4,-6,1.6],[90.5,-6,1.2],[113.2,-6,1.2]];
  // The street's standing crew (neochinatown.js): walkers step round them.
  const standing=[[52.6,-40],[69.4,-78],[52.6,-100],[34,-6.6],[98,-18.4]];
  // Far South's two pavements: Main Street goes on south of the South Gate. Their share of the crowd is Old Town's (weights are counted against the lanes above, so the other quarters' crowds did not change).
