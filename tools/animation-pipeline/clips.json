@@ -428,6 +428,150 @@
    "as": "recline",
    "loop": "exact",
    "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "hk-sit-enter": {
+   "file": "hacker-01.glb",
+   "source": "crowd",
+   "action": "sit-enter",
+   "as": "sit-enter",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (hacker-01.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "hk-sit-exit": {
+   "file": "hacker-01.glb",
+   "source": "crowd",
+   "action": "sit-exit",
+   "as": "sit-exit",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (hacker-01.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "hk-sit-talk": {
+   "file": "hacker-01.glb",
+   "source": "crowd",
+   "action": "sit-talk",
+   "as": "sit-talk",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (hacker-01.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "hk-interact": {
+   "file": "hacker-01.glb",
+   "source": "crowd",
+   "action": "interact",
+   "as": "interact",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (hacker-01.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "nz-drunk-walk": {
+   "file": "ncz-neon.glb",
+   "source": "crowd",
+   "action": "drunk-walk",
+   "as": "drunk-walk",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (ncz-neon.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "nz-drunk-idle": {
+   "file": "ncz-neon.glb",
+   "source": "crowd",
+   "action": "drunk-idle",
+   "as": "drunk-idle",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (ncz-neon.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "nz-drunk-sway": {
+   "file": "ncz-neon.glb",
+   "source": "crowd",
+   "action": "drunk-sway",
+   "as": "drunk-sway",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (ncz-neon.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "dr-dance": {
+   "file": "district-resident.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (district-resident.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "va-vr-aim": {
+   "file": "vr-player-a.glb",
+   "source": "crowd",
+   "action": "vr-aim",
+   "as": "vr-aim",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-a.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "va-vr-aim-up": {
+   "file": "vr-player-a.glb",
+   "source": "crowd",
+   "action": "vr-aim-up",
+   "as": "vr-aim-up",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-a.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "va-vr-aim-down": {
+   "file": "vr-player-a.glb",
+   "source": "crowd",
+   "action": "vr-aim-down",
+   "as": "vr-aim-down",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-a.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "va-vr-shoot": {
+   "file": "vr-player-a.glb",
+   "source": "crowd",
+   "action": "vr-shoot",
+   "as": "vr-shoot",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-a.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "va-vr-hit": {
+   "file": "vr-player-a.glb",
+   "source": "crowd",
+   "action": "vr-hit",
+   "as": "vr-hit",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-a.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "va-vr-duck": {
+   "file": "vr-player-a.glb",
+   "source": "crowd",
+   "action": "vr-duck",
+   "as": "vr-duck",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-a.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "vb-dance": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-b.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "vb-pickup": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "pickup",
+   "as": "pickup",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-b.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "vb-menu": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "menu",
+   "as": "menu",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-b.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
+  },
+  "vb-menu-tap": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "menu-tap",
+   "as": "menu-tap",
+   "loop": "exact",
+   "note": "The clip as the game already ships it on a crowd look (vr-player-b.glb), for the Meshy street people (18 Nov 2026 NPC upgrade), built without the UAL/Mixamo folders."
   }
  },
  "fps": 15
