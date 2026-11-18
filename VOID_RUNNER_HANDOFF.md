@@ -631,6 +631,7 @@ Done; see §4.3. Possible follow-ups:
 - Kestrel cargo is 2 units. Derelict catwalks are a real, fightable upper level.
 - Painted cockpit with closer, larger windows ("perfect").
 - **Mission 003 — Eva's lines (APPROVED 18 Nov 2026, the owner's words, verbatim; recorded in Eva's voice):** "Hey there! Welcome to Milked. First time here?" / "We're a little different from your average entertainment venue. We're both an adult streaming platform and a sperm bank. Our performers earn credits based on the samples collected from viewers tuning in from home." / "So, what brings you in today? Business or pleasure?" The player's two lines to Eva are APPROVED as drafted ("Admin sent me. I'm here to see Fish." / "He also said to tell you hi."). Still PROPOSED: the player's line to Fish and Fish's Social bio.
+- **Milked studio 3 dancer is Dex (APPROVED 18 Nov 2026):** the owner asked to replace the male dancer (the old MakeHuman stand-in Kai used to have) with the other male Companion model, Dex (`vr-companion-bm`, licensed, encrypted `.vrpak`). Dex has no clothing yet and wears briefs only; the owner explicitly approved briefs for this dancer as an exception to the Milked "clothed" rule (adults only, non-explicit, unchanged).
 - **Tessaly** replaces **Sol** everywhere.
   - **NeoChinatown** is its city, with tall skyscrapers.
   - **The Darknet District** is in an alley near the NeoChinatown landing.
