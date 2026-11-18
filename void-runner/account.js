@@ -16,6 +16,8 @@ async function loadHandle(){
 }
 function render(){
   globalThis.VoidMenu?.refreshAccount();
+  // A background refresh (the account check when the browser tab gets focus back) must not redraw over the Developer tools or Mission Editor: that took the owner from the editor to Pilot account on every tab switch (18 Nov 2026).
+  const panel=document.getElementById('dev-balance');if(panel&&!panel.hidden)return;
   if(mode==='dock'&&view==='market')market();
   if(mode==='dock'&&view==='account')accountPage();
 }
