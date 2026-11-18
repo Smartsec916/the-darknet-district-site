@@ -2,6 +2,47 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Eighth pass (18 Nov 2026): help on every setting, "Guide me", "Giver waits at" on a map, and the new NPCs tab
+
+Branch `claude/editor-npc-tools`, build `2026-11-18-npc-tools-1`. Pushed, no PR, not merged.
+
+### How to use it (plain steps)
+
+**Short help everywhere.** Under every setting in the Mission Editor there is now one or two lines of small grey text saying what it does in the game, with an example. A dropdown also says what the option you chose does, and its round **?** opens the list of every option. *Location* says plainly that it is only a label for the Mission Log: it does not move anyone.
+
+**Guide me.** At the top of the editor (and of the NPCs tab) is a switch, **Guide me**, on unless you turn it off. The next box you still have to fill in has a soft glowing outline and a small **Next: ...** tag (for example "Next: nobody gives it yet"). It uses exactly the same rules as PLAY THIS DRAFT and PUBLISH, so the two never disagree. When everything required is filled in it says **All required fields filled** and points at PLAY THIS DRAFT. Optional boxes are never highlighted.
+
+**Giver waits at (Reverie and Lace).**
+1. Open a mission given by Reverie or Lace. Under *Giver* is a box **Giver waits at** with a map of The Avenue (north is up; the green strip is the pavement she can walk on).
+2. Click the green strip where you want her. A pink marker appears. Drag it to move it; drag its small round handle (or press *face N / E / S / W*) to choose which way she looks.
+3. **JUMP THERE** opens a throwaway test session standing a few steps from the spot. **CLEAR** puts her back on her usual walk.
+4. In the game: while that mission is waiting to be offered and she is out on her shift, she walks to the spot and waits there doing her normal things (stands, looks about, checks her V1; if the spot is just in front of a ledge she sometimes sits). Once the player accepts it (or it is done) she walks back to her usual walk.
+5. She can only wait on the Avenue's north pavement, between the two gates, away from the taxi poles and the advertising screens' stands at the kerb (orange on the map). A click on the road snaps onto the pavement; anything she cannot reach shows in red with the reason.
+
+**The NPCs tab** (Developer Tools > **NPCs**). It starts with **What do you want to do?** and six big choices: *Move a character to a spot*, *Make a character walk a route*, *Give a character a mission*, *Look at a character in 3D*, *See what a character says*, *Bring in a new 3D model*. Or pick anyone from the list on the left (type part of a name to find them).
+
+- **About:** their model file, where the game puts them, their voice (read only: voices are locked and are never changed here), and whether they can give missions.
+- **Show me in 3D:** their model turning slowly; drag to turn it, scroll to zoom; press a clip's button to play it.
+- **Give them a mission:** makes a new draft mission given by them (in a tree you pick, or a new tree) and opens it in the Mission Editor ready for your words. Nothing is written for them.
+- **Where they are in the game** (Reverie and Lace today): **Let her do her usual thing**, **Keep her at one spot** (drag her on the map, turn her, tick what she does there), or **Make her walk a route** (click the pavement to add numbered points; drag a point to move it; for each point choose what she does and for how many seconds; after the last point she walks back to the first). Everyone else says why they cannot be moved yet (for example "Placed by the District's own room code").
+- **Add animation:** every animation in the game, by kind (idle, talk / gesture, dance ...), with a search box. The ones she can use are listed; tick one to add it to the things she can do at a spot or a route point; **Try it** plays it on the 3D preview first. Tick "also show the ones she cannot use" to see the rest and why (her content rule, a different skeleton, a licensed file); **Request it** fills in a request.
+- **Request an animation:** describe what you want; **DOWNLOAD REQUESTS** gives a file to send to Claude or Codex, who make it on your PC. Licensed "No AI" models are marked *local retarget only* (never Meshy or any AI tool).
+- **Lines & voice:** everything they say (this used to be the Mission Editor's "All lines for an NPC"; that button and the NPC names in a tree now open it here), with a search box, line counts and **OPEN THIS MISSION**. RE-VOICE works as before.
+- **Bring in a new 3D model** (+ IMPORT MODEL): pick a .glb (or a self-contained .gltf) from your computer. It stays in this browser only (nothing is uploaded) and is labelled LOCAL TEST ONLY. **Show me in 3D** runs the checklist: triangles (over 50,000 is refused: "This model has N triangles; the limit is 50,000. Reduce it in Blender, or send it to me to reduce"; 20,000 to 50,000 is accepted with an amber note; up to 20,000 green), file size (15 MB at most), textures (amber over 2048 px), skeleton and whether it matches the game's rig, its clips, its height. Put it on the map (one spot or a route, with its own clips) and **PLAY THIS DRAFT (LOCAL TEST)**. **ADD TO THE GAME** downloads the model and a small package file (name, placement, clips, checklist, and your answers: where it is from, its licence, and "No AI licence?" yes or no). Send both to Claude or Codex; a licensed or unknown model never goes into the public files by itself.
+- **Advanced** shows the internal names (ids); you never need them. Removing a route point or a model can be undone with **UNDO**.
+- Every placement is part of your DRAFT (saved as you work, also on the server copy), tried with **PLAY THIS DRAFT** (a throwaway session on The Avenue with her out whatever the hour) and sent to players with **PUBLISH TO ALL PLAYERS** (Mission Editor > Publish & versions), checked by the server like missions.
+
+### For Claude and Codex
+
+- `void-runner/npc-paths.js` (pure, Node-tested): `MOVABLE` (only `grey-reverie`, `ethereal-lace`, `youthful`), `AREAS` / `AVENUE_NORTH` (x 12.5..141.5, z -7.6..-5.8; taxi posts from `ncz-quarters.js STOPS` kept 0.7 m clear; `OBSTACLES`: the ad screens' stands and taxi poles read from the built city by `tests/npc-obstacles-browser.cjs`, kept 0.3 m clear; rerun it when the street furniture changes), `ACTIONS` (from her own crowd.js clips; device poses; ledge sit; walk-on), `actionsFor`, `spotProblems`, `legProblems`, `waitAtProblems`, `planProblems`, `checkAll`, `clean`, `planNow` (a waiting mission > a placement > her routine), `mapData`, `libraryOffer` (every clip: the ActorCore library and every public crowd file from `npc-clip-index.json`; usable = same 24-joint Mixamo rig, rest pose within `anim-library.js REST_LIMIT`, not BANNED, not an adult-only source `ADULT`, no smoking / drinking / drunk / VR-shooter for youthful NPCs, no walking / seated / transition clips), `animAllowed` (the game's own check without the index), `applyAnims`, `IMPORT` caps and `importCheck`, `importPlanProblems`, `request` / `noAI`, `inventory()` (the server's copy, `void_runner_admin_inventory.json npcPaths`).
+- `tools/npc-clip-index.cjs` writes `void-runner/npc-clip-index.json` (65 KB, fetched by the NPCs tab only). Rerun after adding a model; a test checks it is current.
+- Content: `content.npcs` and `mission.waitAt` (`mission-content.js check`, `treeStrip`, `fromDrafts`, `apply` -> `env.npcPlans`, `waitingAt`, `treeNeeds`); server `void_runner_live_content.py` (`npc_problems`, `wait_at_problems`, `import_package_problems`). The editor's draft keeps `npcs` and `animRequests` (requests are exported, never published).
+- Game: `ncz-street-pair.js` (`ACT`, `planStep`, modes `plan-go` / `plan-do`; `stats().her.plan` / `.act`; `VoidStreetPair.planFor` / `animsFor` set by `live-content.js plans()`; `VoidStreetPair.live()` for the map); `anim-library.js register()` (a crowd file as a clip source; `c.group` / `c.clip`).
+- Editor: `void-runner/editor-guide.js`, `npc-map.js` (`canvas.npcMap.toScreen`), `npc-preview.js`, `npc-editor.js`; `mission-editor.js` (`HELP`, `optHelp`, `waitAtPanel`, `jumpTo`, `linesView`, `guideNow`, `shared`). `dev-tools.js` tab `npcs`; return key `npc-editor-return`. `game.css` fixes every canvas full screen: `dev-tools.css` puts the editor's canvases back in the page.
+- Tests: `tests/npc-tools.test.cjs`, `tests/test_npc_tools.py`, `tests/npc-tools-browser.cjs` (`PART=editor`).
+
+**Not verified:** real hardware; VR; Lace in a browser (same code as Reverie); an added animation on the street in a browser; the imported-model test session in a browser; publishing with the server switched on.
+
 ## Seventh pass (18 Nov 2026): Reverie and Lace as mission givers; the start trigger "When walked near"
 
 Branch `claude/editor-givers-proximity`, build `2026-11-18-editor-givers-1`. Pushed, no PR, not merged. Two separate features (your words: they are separate things).

@@ -77,7 +77,7 @@
   const rest={};for(const m of node.getChildMeshes(false)){const sk=m.skeleton;if(!sk)continue;for(const b of sk.bones){const k=bare(b.name);if(rest[k])continue;const q=new B.Quaternion();b.getRestMatrix().decompose(undefined,q);rest[k]=q.asArray();}}
   if(Object.keys(rest).length&&!restMatches(L.rest,rest)){node.metadata=node.metadata||{};node.metadata.animLibraryRefused=Math.round(restOffset(L.rest,rest));return [];}   // degrees off, for the browser test
   const hips=bones.get('Hips'),scale=hips&&L.hipsRest?(hips.position.length()||1)/(L.hipsRest.length()||1):1,meta=node.metadata=node.metadata||{},list=meta.animationGroups=meta.animationGroups||[],added=[];
-  for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.id);if(!src)continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
+  for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.group||c.id)||(c.clip?[...L.groups.values()].find(g=>g.name.replace(/\.\d{3}$/,'')===c.clip):null);if(!src)continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
    const g=new B.AnimationGroup(name,sc);
    for(const ta of src.targetedAnimations){const target=bones.get(bare(ta.target.name));if(!target)continue;let a=ta.animation;
     if(a.targetProperty==='position'){if(bare(ta.target.name)!=='Hips')continue;a=a.clone();const rest=L.hipsRest,own=hips.position.clone();
@@ -89,5 +89,8 @@
   const clips=root.VoidCrowd?.clips;if(clips&&look){clips[look]=clips[look]||[];for(const id of added)if(!clips[look].includes(id))clips[look].push(id);}
   meta.animLibrary=[...(meta.animLibrary||[]),...added.filter(id=>!(meta.animLibrary||[]).includes(id))];
   return added;}
- root.VoidAnimLibrary={...pure,load,apply,has:(node,id)=>!!node?.metadata?.animLibrary?.includes(id)};
+ /* Another model file as a source of clips (Developer Tools > NPCs > Add animation, 18 Nov 2026): a public crowd file on a compatible rig. lib 'crowd:<asset>'; clips
+    [{id:'<asset>/<clip>', clip:'<clip>'}]. The same rules apply: matching bone names and the rest pose within REST_LIMIT, or nothing is added. */
+ function register(lib,file,clips){FILES[lib]=file;const have=CLIPS[lib]||(CLIPS[lib]=[]);for(const c of clips||[])if(!have.some(x=>x.id===c.id))have.push({loop:true,root:'inplace',category:'shared',title:c.id,...c});return CLIPS[lib];}
+ root.VoidAnimLibrary={...pure,register,load,apply,has:(node,id)=>!!node?.metadata?.animLibrary?.includes(id)};
 })(typeof globalThis!=='undefined'?globalThis:this);

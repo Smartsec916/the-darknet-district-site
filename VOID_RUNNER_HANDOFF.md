@@ -552,6 +552,10 @@ Done; see §4.3. Possible follow-ups:
 
 - **REMOVED 17 Nov 2026** (the owner: "Go ahead and remove all missions in the game"; replaced by Mission 001 below). Kept as archived data in the Mission Editor. **Beginner campaign (14 Nov 2026):** six short missions from the Sleeping Pod to the first departure (FIRST CONTACT, DISTRICT ERRAND, A JOB WORTH TAKING, THE SHIP OPPORTUNITY, YOUR FIRST SHIP, FIRST DEPARTURE), using only Admin, Iris, the District bar and shop, the Landing Terminal, Pad 01 and Meridian Station. The owner approved deploying it to the live site for testing. The **mission titles, descriptions and all Admin / Iris dialogue are provisional placeholder wording** written by Claude; they are not canon until the owner approves or rewrites them. The mechanics (ship award, free travel, arrival fix) are ordinary fixes. See `docs/development/BEGINNER_CAMPAIGN.md`.
 
+### Deferred
+
+- **VR Companion sentience mission (DEFERRED, the owner's idea, 18 Nov 2026; not canon, details not decided):** after a player has used one specific companion in the VR Companion area, that companion admits to the player that they are sentient, which starts a mission. A possible direction the owner mentioned: they ask the player to bring their loved one in to see them. Companion, conditions, story and lines are undecided; needs the owner's details and a proposal before any work. (The trigger it needs, "Companion use", is in the approved queue in `docs/development/AI_HANDOFF.md`, item 3.)
+
 ### Approved
 
 - **Zane (APPROVED 18 Nov 2026, the owner's decision):** the second male VR companion is named **Zane** (internal id `zane`, model `npc-zane`). The owner approved his concept the same day. His voice, lines and personality are generic placeholders the owner approved for now (18 Nov 2026: "His voice, lines, and personality, just keep them generic for now"); not canon, the owner may revise them.
