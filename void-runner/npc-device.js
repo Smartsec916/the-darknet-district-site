@@ -24,8 +24,8 @@
  // V2: PLACEHOLDER colour, pending the owner's V2 design ("V2 will look similar to V1, just different color. I'll come up with V2 details later"). One constant.
  const V2_PLACEHOLDER_COLOR='#b58cff';
  const TIERS={
-  v1:{share:.72,color:'#61eee9',alpha:.36,name:'V1'},                 // device-v1.css --pd-edge-hi (the V1's rail): the cuff and panel
-  v2:{share:.23,color:V2_PLACEHOLDER_COLOR,alpha:.34,name:'V2',placeholder:true}, // the same cuff and panel as the V1, its own colour
+  v1:{share:.72,color:'#61eee9',alpha:.62,name:'V1'},                 // device-v1.css --pd-edge-hi (the V1's rail): the cuff and panel
+  v2:{share:.23,color:V2_PLACEHOLDER_COLOR,alpha:.6,name:'V2',placeholder:true}, // the same cuff and panel as the V1, its own colour
   v3:{share:.05,color:'#46ff7a',alpha:.5,name:'V3 // SHADOW',eye:true}}; // device-v1.css [data-device=v3]. The owner: "V3 // Shadow get it streamed into their eye. So just their eye glows." No cuff, no panel
  const CAPS={low:4,medium:10,high:16,ultra:16};
  const capFor=q=>CAPS[q]??CAPS.medium;
@@ -126,7 +126,7 @@
  // a glowing edge and scanlines, in the tier's colour. Black is see-through (the material adds light).
  function hologramTexture(name,hex,kind){const T=new B.DynamicTexture('npc-holo-'+name,{width:128,height:96},scene,true);const g=T.getContext();g.fillStyle='#000';g.fillRect(0,0,128,96);
   const c=B.Color3.FromHexString(hex),rgb=a=>'rgba('+Math.round(c.r*255)+','+Math.round(c.g*255)+','+Math.round(c.b*255)+','+a+')';let s=hash(name);const R=()=>((s=Math.imul(s^s>>>15,2246822507)>>>0)%1000)/1000;
-  g.fillStyle=rgb(.13);g.fillRect(3,3,122,90);g.filter='blur(3px)';
+  g.fillStyle=rgb(.24);g.fillRect(3,3,122,90);g.filter='blur(3px)';
   if(kind==='panel'){g.fillStyle=rgb(.55);g.fillRect(10,9,46,6);g.fillStyle=rgb(.3);g.fillRect(10,21,108,22);for(let i=0;i<3;i++){g.fillStyle=rgb(.5);g.fillRect(12,52+i*13,9,8);g.fillStyle=rgb(.25+R()*.3);g.fillRect(27,53+i*13,40+R()*50,5);}}
   else{for(let i=0;i<14;i++){g.fillStyle=rgb(.12+R()*.35);g.fillRect(14+R()*90,14+R()*60,8+R()*26,6+R()*22);}g.filter='blur(1px)';g.strokeStyle=rgb(.95);g.lineWidth=3;const L=15;for(const [x,y,dx,dy] of [[9,9,1,1],[119,9,-1,1],[9,87,1,-1],[119,87,-1,-1]]){g.beginPath();g.moveTo(x,y+dy*L);g.lineTo(x,y);g.lineTo(x+dx*L,y);g.stroke();}
    g.beginPath();g.arc(108,76,6,0,Math.PI*2);g.lineWidth=2;g.stroke();}
@@ -149,7 +149,7 @@
    for(const kind of ['panel','camera']){const tex=hologramTexture(tier+'-'+kind,T.color,kind);own.push(tex);const m=unlit('npc-holo-'+tier+'-'+kind,T.alpha,tex);
     const mesh=hidden(B.MeshBuilder.CreatePlane('npc-holo-'+tier+'-'+kind,{width:1,height:.72},scene));mesh.material=m;src[tier][kind]={mesh,mat:m,tex,pool:[]};}
    const cm=unlit('npc-holo-'+tier+'-cone',T.alpha*.22,null,col),cc=cone.clone('npc-holo-'+tier+'-cone');cc.material=cm;hidden(cc);src[tier].cone={mesh:cc,mat:cm,pool:[]};
-   const em=unlit('npc-v1-'+tier+'-emitter',Math.min(1,T.alpha*2.6),null,col.scale(1.4)),e=hidden(B.MeshBuilder.CreateBox('npc-v1-'+tier+'-emitter',{width:.034,height:.012,depth:.05},scene));e.material=em;src[tier].emitter={mesh:e,mat:em,pool:[]};}
+   const em=unlit('npc-v1-'+tier+'-emitter',Math.min(1,T.alpha*1.6),null,col),e=hidden(B.MeshBuilder.CreateBox('npc-v1-'+tier+'-emitter',{width:.024,height:.008,depth:.038},scene));e.material=em;src[tier].emitter={mesh:e,mat:em,pool:[]};}
   // the Shadow's eye: a small soft glow at one eye (a billboard disc, one material)
   const eyeMat=unlit('npc-v3-eye',.5,null,B.Color3.FromHexString(TIERS.v3.color)),eyeGlow=hidden(B.MeshBuilder.CreateDisc('npc-v3-eye',{radius:.5,tessellation:10},scene));eyeGlow.material=eyeMat;eyeGlow.billboardMode=B.TransformNode.BILLBOARDMODE_ALL;
   src.cuff={mesh:cuff,pool:[]};src.eye={mesh:eyeGlow,mat:eyeMat,pool:[]};cone.dispose();own.splice(own.indexOf(cone),1);
@@ -177,6 +177,7 @@
   let to=T.subtract(S),d=to.length();if(d<1e-4)return;const u=to.scale(1/d);d=Math.max(Math.abs(L1-L2)+.01,Math.min((L1+L2)*.985,d));
   const x=(L1*L1-L2*L2+d*d)/(2*d),hh=Math.sqrt(Math.max(0,L1*L1-x*x));let v=pole.subtract(u.scale(B.Vector3.Dot(pole,u)));if(v.lengthSquared()<1e-6)v=new B.Vector3(0,-1,0);v.normalize();
   const E2=S.add(u.scale(x)).add(v.scale(hh)),T2=S.add(u.scale(d));aimDir(a,E.subtract(S),E2.subtract(S),w);refresh(h);const E3=P(f),W3=P(h);aimDir(f,W3.subtract(E3),T2.subtract(E3),w);
+  if(fig.debug){refresh(h);fig.debug[s]={T:T.asArray(),T2:T2.asArray(),E2:E2.asArray(),elbow:P(f).asArray(),wrist:P(h).asArray(),S:S.asArray(),w};}
   const mid=fig.bones[s+'HandMiddle1'];if(mid){refresh(mid);const Wn=P(h),Fn=P(mid),fore=Wn.subtract(P(f)).normalize();aimDir(h,Fn.subtract(Wn),fore.add(tip||B.Vector3.Zero()),w*.8);}}
  // Neck and head toward a world point (35% / 65%), within natural limits; `tilt` rolls the head a little to one side (a pose for a selfie).
  function lookAt(fig,target,w,body){const h=fig.bones.Head;refresh(h);const hp=P(h);let dir=target.subtract(hp);const flat=Math.hypot(dir.x,dir.z)||1e-6;let pitch=Math.atan2(dir.y,flat),yaw=Math.atan2(dir.x,dir.z)-body.yaw;yaw=Math.atan2(Math.sin(yaw),Math.cos(yaw));
@@ -272,7 +273,7 @@
   const poleL=left.add(up.scale(-.45)).add(body.fwd.scale(-.15));
   switch(a.pose){
    case 'scroll':{   // the left forearm across the chest, the panel rising from the bracer toward the face, the head down to it; the right hand swipes now and then
-    reach(fig,'Left',chest.add(body.fwd.scale(.34)).add(up.scale(-.1)).add(side.scale(.09)),left.add(body.fwd.scale(.6)).add(up.scale(-.6)),w,up.scale(.1));
+    reach(fig,'Left',chest.add(body.fwd.scale(.25)).add(up.scale(-.08)).add(side.scale(.12)),left.add(up.scale(-.35)).add(body.fwd.scale(.15)),w,up.scale(.1));
     panel='read';a.swipe+=1/60;const sw=Math.max(0,Math.sin(a.swipe*.9))**10;
     if(sw>.02&&!a.moving)reach(fig,'Right',chest.add(body.fwd.scale(.36)).add(up.scale(.2)).add(side.scale(.02+sw*.06)),side.add(up.scale(-.6)),w*sw*.85,up.scale(.3));
     break;}
@@ -295,8 +296,8 @@
    let n=up.subtract(axis.scale(B.Vector3.Dot(up,axis)));if(n.lengthSquared()<1e-4)n=eye.subtract(at);n.normalize();const em=at.add(n.scale(.047));
    const e=show(a,'emitter',true);e.position.copyFrom(em);e.rotationQuaternion=e.rotationQuaternion||new B.Quaternion();basis(B.Vector3.Cross(n,axis).normalize(),n,axis,e.rotationQuaternion);e.scaling.setAll(w);
    // the panel above the emitter, a little toward the eye, square to the line from the eye; it unfolds with the pose
-   const toEye=eye.subtract(em);toEye.y=0;const pc=em.add(up.scale(lift+.06)).add(toEye.normalize().scale(cam?0:.04));const z=pc.subtract(eye).normalize();let px=B.Vector3.Cross(up,z);if(px.lengthSquared()<1e-4)px=side.clone();px.normalize();const py=B.Vector3.Cross(z,px);
-   const pw=(cam?.15:.2)*(a.flick>clock&&Math.random()<.45?.3:1),k=.25+.75*w,pm=show(a,cam?'camera':'panel',true);show(a,cam?'panel':'camera',false);pm.position.copyFrom(pc);pm.rotationQuaternion=pm.rotationQuaternion||new B.Quaternion();basis(px,py,z,pm.rotationQuaternion);pm.scaling.set(pw*k,pw*w,1);
+   const toEye=eye.subtract(em);toEye.y=0;const pc=em.add(up.scale(lift+.06)).add(cam?B.Vector3.Zero():body.fwd.scale(.07));void toEye;const z=pc.subtract(eye).normalize();let px=B.Vector3.Cross(up,z);if(px.lengthSquared()<1e-4)px=side.clone();px.normalize();const py=B.Vector3.Cross(z,px);
+   const pw=(cam?.2:.27)*(a.flick>clock&&Math.random()<.45?.3:1),k=.25+.75*w,pm=show(a,cam?'camera':'panel',true);show(a,cam?'panel':'camera',false);pm.position.copyFrom(pc);pm.rotationQuaternion=pm.rotationQuaternion||new B.Quaternion();basis(px,py,z,pm.rotationQuaternion);pm.scaling.set(pw*k,pw*w,1);
    // the faint cone of light from the emitter to the panel's lower edge
    const base=pc.subtract(py.scale(pw*.72*w*.5)),dir=base.subtract(em),len=dir.length();if(len>.01){const cy=dir.scale(1/len),cx=px.subtract(cy.scale(B.Vector3.Dot(px,cy))).normalize(),cz=B.Vector3.Cross(cx,cy);
     const cn=show(a,'cone',true);cn.position.copyFrom(em);cn.rotationQuaternion=cn.rotationQuaternion||new B.Quaternion();basis(cx,cy,cz,cn.rotationQuaternion);cn.scaling.set(pw*k*.7,len,.02+.01*w);}
@@ -314,7 +315,7 @@
   obs.push([sc.onBeforeAnimationsObservable,sc.onBeforeAnimationsObservable.add(()=>{const now=performance.now(),dt=Math.min(.1,(now-last)/1000);last=now;try{before(dt);}catch(e){console.warn('[VOID npc device]',e);}})]);
   obs.push([sc.onAfterAnimationsObservable,sc.onAfterAnimationsObservable.add(()=>{try{after();}catch(e){console.warn('[VOID npc device]',e);}})]);
   obs.push([sc.onAfterRenderObservable,sc.onAfterRenderObservable.add(()=>{try{restore();}catch{}})]);}
- if(typeof update==='function'){const prior=update;update=function(...args){const r=prior(...args);try{const sc=root.VoidBabylon?.scene||null;if(sc&&!B&&root.BABYLON){B=root.BABYLON;M=new B.Matrix();qT=new B.Quaternion();ID=B.Quaternion.Identity();V=B.Vector3;}if(sc!==scene&&B)attach(sc&&!sc.isDisposed?sc:null);}catch{}return r;};}
+ let dead=false;if(typeof update==='function'){const prior=update;update=function(...args){const r=prior(...args);if(dead)return r;try{const sc=root.VoidBabylon?.scene||null;if(sc&&!B&&root.BABYLON){B=root.BABYLON;M=new B.Matrix();qT=new B.Quaternion();ID=B.Quaternion.Identity();V=B.Vector3;}if(sc!==scene&&B)attach(sc&&!sc.isDisposed?sc:null);}catch{}return r;};}
  /* Tag a person: {monk:true} (never films a spectacle), {tier:'v3'}, {kind}, {pair}. Works before or after they are first seen. */
  function tag(node,extra){if(!node)return;tagged.set(node,{...(tagged.get(node)||{}),...extra});for(const [f,a] of agents)if(a===null&&f.node===node)agents.delete(f);for(const a of agents.values())if(a&&a.node===node){Object.assign(a.extra,extra);if(extra.tier)a.tier=extra.tier;if('monk' in extra)a.monk=!!extra.monk;if(extra.kind)a.kind=extra.kind;if(extra.pair)a.pairKey=extra.pair;}}
  /* Owners that move their people (ncz-nightlife.js) enlist them: {kind, pair, state()->{moving, can}}. */
@@ -334,10 +335,10 @@
   staged.obs=scene.onBeforeRenderObservable.add(tick);
   return {x:cx,z:cz,people:made.map(m=>m.look),reactions:ev.reactions};}
  function stopArgument(){if(!staged)return;try{scene.onBeforeRenderObservable.remove(staged.obs);}catch{}for(const m of staged.made){try{m.anim?.dispose?.();m.node.dispose();}catch{}}staged=null;}
- const api={...pure,tag,enlist,distracted,startle,spectacle,stageArgument,stopArgument,reactionOf,holds,pace,sessionOf,
+ const api={...pure,detach(){dead=true;stopArgument();attach(null);},tag,enlist,distracted,startle,spectacle,stageArgument,stopArgument,reactionOf,holds,pace,sessionOf,
   stats:()=>({...stats,poses:{...stats.poses},tiers:{...stats.tiers},staged:staged?{x:staged.x,z:staged.z,t:staged.t}:null}),
   agents:()=>[...agents.values()].filter(Boolean).map(a=>({id:a.id,key:a.key,kind:a.kind,tier:a.tier,monk:a.monk,pose:a.pose,w:a.w,visible:a.visible,d:a.d,react:a.react?a.react.mode:null,session:a.session?a.session.pose:null,holo:!!a.m_panel,frame:!!a.m_camera,cuff:!!a.m_cuff,eye:!!a.m_eye,node:a.node})),
-  scheduler:sched,reactor,get scene(){return scene;}};
+  scheduler:sched,reactor,get scene(){return scene;},_agent:node=>[...agents.values()].find(a=>a&&a.node===node)||null};
  root.VoidNPCDevice=api;
  root.VoidCrowdReact={spectacle,stageArgument,stopArgument,reactionOf,holds,pace,tag,get active(){return reactor.active;}};
 })(typeof globalThis!=='undefined'?globalThis:this);
