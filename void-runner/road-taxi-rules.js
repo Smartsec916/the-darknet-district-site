@@ -12,6 +12,8 @@
  const fare={base:12,perMetre:.05,max:60};
  const REGISTRY=Q.STOPS.map(s=>s.id);
  const FLAG='roadTaxiTrip';
+ // Free rides on the owner's developer account only (the owner, 18 Nov 2026: "for now ... just for my dev account", to get around while testing). VoidDevTools.authorized is set only after the server accepts the developer request; everyone else pays as before.
+ const free=()=>typeof VoidDevTools!=='undefined'&&VoidDevTools?.authorized===true;   // dev-tools.js declares VoidDevTools as a top-level const (not on window)
  const SPEC={length:4.4,width:1.9,nose:2.2,cruise:8,accel:7,brake:16,gap:2.6,look:0.45,hold:120,playerR:0.5,taxiR:2.3};
  const DRIVE=['avenue','main','road','passage','southGate','farSouth'];
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
@@ -27,7 +29,7 @@
   if(s.story?.flags?.taxiBlocked)return {ok:false,reason:'Taxi service is suspended for this mission.'};
   return {ok:true,network:'NeoChinatown street taxis'};
  }
- const cost=(from,to)=>Math.min(fare.max,Math.round(fare.base+fare.perMetre*Math.hypot(from[0]-to[0],from[1]-to[1])));
+ const cost=(from,to)=>free()?0:Math.min(fare.max,Math.round(fare.base+fare.perMetre*Math.hypot(from[0]-to[0],from[1]-to[1])));
  const gateNames=legs=>legs.map(l=>Q.gate(l.gate).name).join(', then ');
  // Every place a cab goes from here: the stops of all three quarters and the two places beyond the gates. ctx: {player:[x,z], quarter}.
  function destinations(s,ctx){
@@ -35,9 +37,9 @@
   const row=(d,price,legs,here)=>{if(here)return {...d,fare:price,legs,ok:false,reason:'Already there.'};if(!legs)return {...d,fare:price,legs:null,ok:false,reason:'No road from here.'};
    const afford=!s||s.credits>=price,via=legs.length?'Through '+gateNames(legs)+'.':null;return {...d,fare:price,legs,via,ok:!!afford,reason:afford?null:'Not enough credits ('+price+' CR).'};};
   return [...stops().map(d=>row(d,cost(player,d.position),quarter?Q.gatesBetween(quarter,d.quarter):null,d.quarter===quarter&&Math.hypot(player[0]-d.position[0],player[1]-d.position[1])<18)),
-   ...Q.FAR.map(f=>row({id:f.id,label:f.name,scene:f.scene,far:true,blurb:'The ride back is included.'},f.fare,quarter?Q.gatesBetween(quarter,f.id):null,false))];
+   ...Q.FAR.map(f=>row({id:f.id,label:f.name,scene:f.scene,far:true,blurb:'The ride back is included.'},free()?0:f.fare,quarter?Q.gatesBetween(quarter,f.id):null,false))];
  }
- function charge(s,dest,price){if(!s?.story?.flags||s.story.flags[FLAG]||s.credits<price)return 0;s.credits-=price;s.story.flags[FLAG]=dest+':'+price;return price;}
+ function charge(s,dest,price){if(!s?.story?.flags||s.story.flags[FLAG])return 0;if(free()){s.story.flags[FLAG]=dest+':0';return true;}if(s.credits<price)return 0;s.credits-=price;s.story.flags[FLAG]=dest+':'+price;return price;}
  function arrive(s){if(s?.story?.flags)delete s.story.flags[FLAG];}
  function recover(s){const m=/^[a-z-]+:(\d{1,4})$/.exec(String(s?.story?.flags?.[FLAG]||''));if(!m)return 0;delete s.story.flags[FLAG];const back=Number(m[1]);s.credits+=back;return back;}
 
