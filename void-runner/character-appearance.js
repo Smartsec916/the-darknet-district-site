@@ -59,10 +59,11 @@
   if(!validate(a))return a;const look=CAT.looks[a.look],to=look.retired&&look.replacedBy;if(!to||!has(CAT.looks,to)||CAT.looks[to].base!==a.base)return a;
   const n=defaults(to);n.clothingColor=a.clothingColor;return n;
  }
- /* Saved characters from before the creator are {gender, model}: their preset look, then migrate (now a street figure of the same body). */
+ /* Saved characters from before the creator are {gender, model}: their preset look, exactly as before (the hub and old clients rely on it; the game then
+    shows it as its street figure with migrate()). */
  function fromLegacy(c){
   if(!c||typeof c!=='object')return null;
-  for(const [id,l] of Object.entries(CAT.looks))if(l.legacy&&l.legacy.gender===c.gender&&l.legacy.model===c.model)return migrate(defaults(id));
+  for(const [id,l] of Object.entries(CAT.looks))if(l.legacy&&l.legacy.gender===c.gender&&l.legacy.model===c.model)return defaults(id);
   return null;
  }
  /* What the older server record can carry: gender plus the preset that matches. Keeps old clients and old validation working. */
@@ -88,7 +89,7 @@
  const KEY='void-runner-appearance:';
  function load(storage,owner,legacyCharacter){
   try{const raw=storage.getItem(KEY+(owner||'guest'));if(raw){const a=JSON.parse(raw);if(validate(a))return migrate(normalize(a));}}catch(e){}
-  return fromLegacy(legacyCharacter);   // nothing saved yet: an old character keeps its look; null means "never created"
+  const old=fromLegacy(legacyCharacter);return old&&migrate(old);   // nothing saved yet: an old character gets the street figure that replaced its look; null means "never created"
  }
  function save(storage,owner,a){
   if(!validate(a))return false;

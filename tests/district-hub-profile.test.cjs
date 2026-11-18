@@ -31,7 +31,7 @@ test('registered entry preserves complete accounts, guides partial/new accounts,
   {fetchJwks:w.fetchJwks,fetchImpl:w.fetchImpl,quiet:true});
  try{
   const veteran=await connect(hub,w.accounts.veteran);assert.equal(result(veteran).t,'welcome');
-  assert.deepEqual(hub.hub.peers.get('veteran').appearance,Appearance.migrate(w.accounts.veteran.appearance));   /* shown as the street figure that replaced the old look (18 Nov 2026); the stored record is unchanged (below) */
+  assert.deepEqual(hub.hub.peers.get('veteran').appearance,w.accounts.veteran.appearance);
   for(const [key,code,reason] of [['handleOnly',4411,'saved character required'],['characterOnly',4410,'District handle required'],
     ['newcomer',4414,'District handle and character required'],['duplicate',4412,'duplicate District handle']]){
     const c=await connect(hub,w.accounts[key]);assert.equal(result(c).reason,reason,key);assert.equal(await closed(c),code,key);

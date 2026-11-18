@@ -38,9 +38,10 @@ test('standard heights are configured per base, not per model',()=>{
 });
 test('every look has a valid default appearance and preset looks keep their legacy ids',()=>{
  for(const id of Object.keys(CAT.looks))assert.deepEqual(A.problems(A.defaults(id)),[]);
- // an old {gender, model} character: its preset, moved on to the street figure that replaced it (18 Nov 2026)
- assert.deepEqual(A.fromLegacy({gender:'male',model:'district-smuggler'}),A.defaults('street-casual-m'));
- assert.deepEqual(A.fromLegacy({gender:'female',model:'district-resident'}),A.defaults('street-casual-f'));
+ // an old {gender, model} character: its preset (as the hub and old clients expect), which the game then shows as the street figure that replaced it (18 Nov 2026)
+ assert.deepEqual(A.fromLegacy({gender:'male',model:'district-smuggler'}),A.defaults('district-smuggler'));
+ assert.deepEqual(A.fromLegacy({gender:'female',model:'district-resident'}),A.defaults('district-resident'));
+ assert.deepEqual(A.migrate(A.fromLegacy({gender:'male',model:'district-smuggler'})),A.defaults('street-casual-m'));
  assert.equal(A.fromLegacy({gender:'male',model:'admin'}),null);assert.equal(A.fromLegacy(null),null);assert.equal(A.fromLegacy({gender:'female',model:'district-smuggler'}),null);
 });
 test('valid combinations pass',()=>{

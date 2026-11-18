@@ -77,9 +77,11 @@ test('the character creator: six street bases with their colour versions replace
  const fresh={...A.defaults('street-merc-slate'),clothingColor:'navy'};assert.deepEqual(A.migrate(fresh),fresh);assert.equal(A.migrate('junk'),'junk');
  assert.equal(A.validate({...A.defaults('street-hacker'),hair:'bob01'}),false);assert.equal(A.validate({...A.defaults('street-hacker'),hairColor:'jet'}),false);assert.equal(A.validate({...A.defaults('street-hacker'),accessories:['gear-visor']}),false);
  assert.deepEqual(A.toLegacy(A.defaults('street-casual-f')),{gender:'female',model:'district-resident'},'the old server field keeps its two presets');
- // the hub copy shows an old player's look as the street figure too
- const hub=new Hub({send(){},close(){},now:()=>1e6}),shown=hub.look({uid:'u',anonymous:false,model:'district-smuggler',appearance:{...HubA.defaults('fixer-01'),clothingColor:'plum'}});
- assert.equal(shown.appearance.look,'street-office-f');assert.equal(shown.model,'npc-office-f');assert.equal(shown.appearance.clothingColor,'plum');
+ // the hub relays an old player's look exactly as saved (clients on the old build must still see it); the new client shows its replacement (remote-players.js migrates)
+ const hub=new Hub({send(){},close(){},now:()=>1e6}),old={...HubA.defaults('fixer-01'),clothingColor:'plum'},shown=hub.look({uid:'u',anonymous:false,model:'district-smuggler',appearance:old});
+ assert.deepEqual(shown.appearance,old);assert.equal(shown.model,'fixer-01');assert.equal(HubA.migrate(shown.appearance).look,'street-office-f');
+ const freshShown=hub.look({uid:'v',anonymous:false,model:'district-resident',appearance:HubA.defaults('street-casual-f-classic')});assert.equal(freshShown.model,'npc-casual-f');assert.equal(freshShown.appearance.look,'street-casual-f-classic');
+ const src=fs.readFileSync(path.join(ROOT,'void-runner/remote-players.js'),'utf8');assert.match(src,/VA\.migrate\?VA\.migrate\(p\.appearance\)/);
 });
 test('the creator figures are real files the hub may render, and the scene keeps their ids',()=>{
  const {RENDERABLE}=require('../tools/district-hub/protocol.cjs');for(const m of ['npc-casual-f','npc-casual-m','npc-hacker','npc-merc','npc-office-f','npc-office-m'])assert.ok(RENDERABLE.includes(m),m);

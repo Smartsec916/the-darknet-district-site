@@ -34,8 +34,8 @@ test('the hub (its own copy of the rules) accepts, shows and broadcasts every ge
  const who=(uid,appearance)=>({uid,anonymous:false,model:'district-resident',handle:uid,appearance}),mk=(look,accessories)=>({v:1,base:C.looks[look].base,look,hair:'native',hairColor:null,clothingColor:null,accessories});
  const a={},b={};hub.join(a,hello,who('alpha',mk('district-smuggler',[])));hub.join(b,hello,who('bravo',mk('fixer-01',[])));hub.state(a,{t:'state',x:0,z:0,yaw:0});hub.state(b,{t:'state',x:2,z:2,yaw:0});
  for(const look of Object.keys(MH))for(const gear of subsets(GEAR)){
-  const acc=[...C.looks[look].defaultAccessories,...gear],sent0=mk(look,acc),ap=A.migrate(sent0),shown=hub.look(who('u',sent0));assert.equal(shown.model,C.looks[ap.look].model);assert.deepEqual(shown.appearance,ap,look+' '+gear);   // these outfits are retired (18 Nov 2026): the hub shows each as the street figure that replaced it
-  sent.clear();now+=5000;assert(hub.refresh(a,who('alpha',sent0)));const told=(sent.get(b)||[]).filter(m=>m.t==='look');
+  const acc=[...C.looks[look].defaultAccessories,...gear],ap=mk(look,acc),shown=hub.look(who('u',ap));assert.equal(shown.model,C.looks[look].model);assert.deepEqual(shown.appearance,ap,look+' '+gear);   // retired outfits (18 Nov 2026) are relayed exactly as saved, so clients on the old build still see them; new clients show the replacement (remote-players.js)
+  sent.clear();now+=5000;assert(hub.refresh(a,who('alpha',ap)));const told=(sent.get(b)||[]).filter(m=>m.t==='look');
   if(JSON.stringify(ap)!==JSON.stringify(hub.byConn.get(a).appearance)||told.length)assert.deepEqual(told.at(-1).appearance,ap);
   assert.deepEqual(hub.byConn.get(a).appearance,ap,'the hub holds exactly what was saved');}
 });
