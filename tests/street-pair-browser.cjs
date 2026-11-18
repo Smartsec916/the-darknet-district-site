@@ -1,6 +1,7 @@
-/* THE AVENUE'S STREET PAIR in a real browser (Chromium, software GL, offline): Reverie on shift (forced UTC 06:30) with the cat beside her, Lace on shift (UTC 15:30)
-   walking with the cat at her heel and sitting on a ledge with the cat sitting by her, the handover (nobody out), and the cat coming to the player.
-     node tests/street-pair-browser.cjs [low|medium|high]   (SHOTS=dir; own static server on a free port) */
+/* THE AVENUE'S STREET PAIR in a real browser (Chromium, software GL, offline): Reverie on shift (forced UTC 06:30) and Lace on shift (UTC 15:30), each through
+   her clip library (an idle, walking, running, sitting down, sitting, standing up, dancing, talking / gesturing, the V1: scrolling, a selfie, a photo of the cat)
+   with the cat, the handover (nobody out), and the cat coming to the player. Close-ups are taken at deviceScaleFactor 1.
+     node tests/street-pair-browser.cjs [low|medium|high]   (SHOTS=dir; WHO=reverie|lace for one of them; own static server on a free port) */
 'use strict';
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const tier=['low','medium','high'].includes(process.argv[2])?process.argv[2]:'medium',shots=process.env.SHOTS||path.resolve(__dirname,'..','docs/development/street-pair');fs.mkdirSync(shots,{recursive:true});
@@ -35,23 +36,51 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   const until=async(fn,steps=60)=>{for(let i=0;i<steps;i++){if(await page.evaluate(fn))return true;await ff(1);}return false;};
   await street('avenue',[100,1.7,-14]);   // the player waits out in the road, beyond the cat's reach
   assert.ok(await SP(),'the street pair runs on the Avenue');
-  // ---- Reverie (UTC 06:30) ----
-  await force(6);await page.waitForFunction(()=>{const s=VoidBabylon.district.streetPair.stats();return s.her?.id==='grey-reverie'&&s.cat;},null,{timeout:300000,polling:1000});
-  assert.ok(await until(()=>{const s=VoidBabylon.district.streetPair.stats();return Math.hypot(s.cat.x-s.her.x,s.cat.z-s.her.z)<1&&s.cat.sit>.9;}),'the cat sits by Reverie');
-  log('reverie '+JSON.stringify(await SP()));
-  await at(104.4,-9.8,0,.16);await shot('reverie-street',2500,true);
-  await at(103.1,-7.9,Math.atan2(1.1,2.3),.36);await shot('reverie-cat',1500,true);
-  // ---- Lace (UTC 15:30): walking, the cat at her heel ----
-  await force(15);await page.waitForFunction(()=>VoidBabylon.district.streetPair.stats().her?.id==='ethereal-lace',null,{timeout:300000,polling:1000});
-  assert.equal((await SP()).her.clip,'walk');
-  await until(()=>{const s=VoidBabylon.district.streetPair.stats();return s.her.mode==='walk'&&Math.hypot(s.cat.x-s.her.x,s.cat.z-s.her.z)<1.2;},200);
-  {const s=await SP();log('lace walking '+JSON.stringify(s));const cx=s.her.x+(s.cat.x<s.her.x?-3.2:3.2);await at(cx,-9.8,Math.atan2(s.her.x-cx,s.her.z+9.8),.14);await shot('lace-walking-cat',1500,true);}
-  // ---- she sits on a ledge, the cat sits by her ----
-  await page.evaluate(()=>{const h=VoidBabylon.district.streetPair.her;if(h.s.mode==='walk')h.s.left=.05;});
-  assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().her.mode==='sit',400),'Lace sits');
-  assert.ok(await until(()=>{const s=VoidBabylon.district.streetPair.stats();return Math.hypot(s.cat.x-s.her.x,s.cat.z-s.her.z)<1.2&&s.cat.sit>.9;},300),'the cat sits by Lace');
-  {const s=await SP();log('lace sitting '+JSON.stringify(s));await at(s.her.x-.6,-9.6,.12,.17);await shot('lace-sitting-cat',2000,true);await at(s.her.x+2.2,-8.2,Math.atan2(-2.2,2.8),.25);await shot('lace-sitting-cat-side',1500,true);}
-  {const p=await perf();log('perf (both on the street, the cat posed) '+JSON.stringify(p));}
+  const who=process.env.WHO||'both';
+  // Hold her in one clip at a spot for a close-up (the routine's own 'stop' mode, long), the cross-fade given time to finish.
+  const hold=(clip,extra={})=>page.evaluate(([clip,extra])=>{const h=VoidBabylon.district.streetPair.her;Object.assign(h.s,{mode:'stop',left:999,clip,device:null,face:null,sub:'test'},extra);},[clip,extra]);
+  const herAt=()=>page.evaluate(()=>{const n=VoidBabylon.district.streetPair.her.node;return [n.position.x,n.position.z,n.rotation.y];});
+  const close=async(name,off=.5,dist=2.6,pitch=.12,wait=2600)=>{const [x,z,y]=await herAt();const a=y+off,cx=x+Math.sin(a)*dist,cz=Math.max(-11,z+Math.cos(a)*dist);await at(cx,cz,Math.atan2(x-cx,z-cz),pitch);await shot(name,wait,true);};
+  const feet=()=>page.evaluate(()=>{const h=VoidBabylon.district.streetPair.her.node;const sk=h.getChildMeshes(false).find(m=>m.skeleton)?.skeleton;if(!sk)return null;sk.computeAbsoluteMatrices(true);const y=['LeftToeBase','RightToeBase','LeftFoot','RightFoot'].map(n=>{const b=sk.bones.find(b=>b.name.endsWith(n));return b?b.getAbsolutePosition(h.getChildMeshes(false).find(m=>m.skeleton)).y:null;});return {pave:VoidBabylon.district.streetPair.stats().pave,y:y.map(v=>v===null?null:+v.toFixed(3))};});
+  async function library(id,hour,tag){
+   await force(hour);await page.waitForFunction(id=>VoidBabylon.district.streetPair.stats().her?.id===id&&VoidBabylon.district.streetPair.stats().cat,id,{timeout:300000,polling:1000});
+   const groups=await page.evaluate(()=>VoidBabylon.district.streetPair.her.node.metadata.animationGroups.map(g=>g.name.replace(/^.*?-(?=[a-z-]+(\.\d+)?$)/,'')));log(tag+' clips '+JSON.stringify(groups));
+   // walking (the cat at her heel)
+   await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;Object.assign(s,{mode:'walk',left:60,x:102,dir:1,device:null});});await ff(2);
+   assert.equal((await SP()).her.clip,'walk');await close(tag+'-walk',1.2,3.2);log(tag+' walk feet '+JSON.stringify(await feet()));
+   // running a short way
+   await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;Object.assign(s,{mode:'run',left:30,x:96,dir:1});});await ff(.4);assert.equal((await SP()).her.clip,'run');
+   await page.evaluate(()=>{VoidBabylon.district.streetPair.her.s.left=30;});await close(tag+'-run',1.3,3.4,.1,1800);await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.mode='walk';s.left=60;});
+   // idles, the cat near
+   await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;Object.assign(s,{x:106,z:-6.85,yaw:Math.PI});});
+   for(const c of ['idle','idle-shift','idle-stretch','look']){await hold(c,{yaw:Math.PI});await close(tag+'-'+c,.35,2.6,.12,3200);}
+   await hold('dance-groove',{yaw:Math.PI});await close(tag+'-dance-groove',.35,2.8,.12,3000);
+   await hold('dance-bop',{yaw:Math.PI});await close(tag+'-dance-bop',-.4,2.8,.12,3000);
+   await hold('gesture',{yaw:Math.PI*.8});await close(tag+'-gesture',.3,2.6,.12,3200);
+   await hold('talk',{yaw:Math.PI});await close(tag+'-talk',.3,2.6,.12,3000);
+   await hold('shrug',{yaw:Math.PI});await close(tag+'-shrug',.3,2.6,.12,2400);
+   // the glance: a player close in front and to one side; her head and neck turn toward them (clamped), and back when they leave
+   await hold('idle',{yaw:Math.PI});await close(tag+'-look-player',.55,2.3,.05,3500);{const l=(await SP()).look;log(tag+' glance '+JSON.stringify(l));assert.ok(l?.on&&l.w>.9,'she glances at the player');assert.ok(Math.abs(l.yaw)<=35.01);}
+   await close(tag+'-look-player-wide',1.0,2.0,.05,3500);{const l=(await SP()).look;log(tag+' glance wide '+JSON.stringify(l));assert.ok(Math.abs(Math.abs(l.yaw)-35)<1.5,'clamped at 35 degrees');}
+   await at(106,-12,0,0);await page.waitForTimeout(2500);{const l=(await SP()).look;assert.ok(!l?.on&&l.w<.1,'and looks away when the player leaves');}
+   // the V1: a scroll, a selfie, a photo of the cat (npc-device.js poses, forced by the routine)
+   await hold('idle',{yaw:Math.PI,device:'scroll'});await close(tag+'-v1-scroll',.5,2.2,.18,3500);
+   await hold('idle',{yaw:Math.PI,device:'selfie'});await close(tag+'-v1-selfie',.4,2.4,.12,3500);
+   await page.evaluate(()=>{const sp=VoidBabylon.district.streetPair,c=sp.cat,h=sp.her;c.x=h.s.x+.9;c.z=h.s.z+.35;});
+   await hold('idle',{device:'photo',face:{x:0,z:0},yaw:Math.PI/2});await page.evaluate(()=>{const sp=VoidBabylon.district.streetPair;sp.her.s.face={x:sp.cat.x,z:sp.cat.z};});await ff(1);await close(tag+'-v1-photo-cat',-.6,2.6,.2,3500);
+   log(tag+' device '+JSON.stringify(await page.evaluate(()=>VoidNPCDevice?.stats?.()||null)));
+   // sitting down on a ledge (the transition), sitting, standing up
+   const ledge=id==='grey-reverie'?'ledge-reverie':'ledge-laundry';
+   await page.evaluate(l=>{const S=VoidStreetPair,h=VoidBabylon.district.streetPair.her,st=S.STEPS.find(t=>t.id===l);Object.assign(h.s,{mode:'to-step',step:st,x:st.x-1.5,z:S.frontOf(st),device:null,face:null,sub:null,left:0});},ledge);
+   assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().her.mode==='sit-down',200),'she sits down');await page.waitForTimeout(500);await close(tag+'-sit-down',.6,2.8,.12,10);
+   assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().her.mode==='sit',60),'she sits');await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.left=999;s.device=null;});
+   await close(tag+'-sit',.5,2.6,.15,3500);log(tag+' sit feet '+JSON.stringify(await feet()));await close(tag+'-sit-side',1.3,2.4,.15,1200);
+   await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.sub='wave';s.waveLeft=999;});await close(tag+'-sit-wave',.4,2.6,.15,3000);
+   await page.evaluate(()=>{const s=VoidBabylon.district.streetPair.her.s;s.sub=null;s.left=0;});await ff(.1);assert.equal((await SP()).her.mode,'stand-up');await page.waitForTimeout(450);await close(tag+'-stand-up',.6,2.8,.12,10);
+   assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().her.mode==='walk',80),'and walks on');
+   {const p=await perf();log(tag+' perf '+JSON.stringify(p));}}
+  if(who!=='lace')await library('grey-reverie',6,'reverie');
+  if(who!=='reverie')await library('ethereal-lace',15,'lace');
   // ---- handover (UTC 12:00:20): nobody is out; the cat goes home ----
   await force(12,0,20);await ff(1);
   {const s=await SP();log('handover '+JSON.stringify(s));assert.equal(s.her,null);assert.equal(s.onStreet,null);assert.ok(await until(()=>VoidBabylon.district.streetPair.stats().cat.mode==='home',10));}

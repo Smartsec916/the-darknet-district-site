@@ -27,9 +27,10 @@
   // The monks (Meshy, 18 Nov 2026, from the owner's reference picture of three monks; docs/development/MESHY_CHARACTERS.md): the elder in saffron, the tech monk, the grey monk.
   // On the streets more of them toward the East Gate (ncz-nightlife.js monkShare); at the Temple most people are monks (temple-build.js).
   'npc-monk-elder':['idle','talk','walk','look','watch','sit'],'npc-monk-tech':['idle','talk','walk','look','watch','sit'],'npc-monk-grey':['idle','talk','walk','look','watch','sit'],
-  // The Avenue's street pair (ncz-street-pair.js; the owner's own Meshy generations, 18 Nov 2026): Lace's neutral street clips only. Reverie (npc-grey-reverie) is a static
-  // seated figure and the street cat (npc-street-cat) is moved by code; neither has clips.
-  'npc-ethereal-lace':['idle','walk','sit','look'],
+  // The Avenue's street pair (ncz-street-pair.js; the owner's own Meshy generations, remade standing in an A-pose and rigged 18 Nov 2026): the same casual street
+  // library for both (VoidStreetPair.CLIP_LIST; never sensual, flirt or club clips). The street cat (npc-street-cat) is moved by code and has no clips.
+  'npc-grey-reverie':['idle','idle-shift','idle-stretch','look','watch','walk','run','sit-enter','sit','sit-exit','sit-wave','dance-groove','dance-bop','talk','gesture','shrug'],
+  'npc-ethereal-lace':['idle','idle-shift','idle-stretch','look','watch','walk','run','sit-enter','sit','sit-exit','sit-wave','dance-groove','dance-bop','talk','gesture','shrug'],
   // VR arcade companions (vr-suite.js).
   'studio-warrior':['slow-dance','dance','idle'],   // Milked studio 2's dancer (licensed Female Warrior, private .vrpak; 18 Nov 2026)
   'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-fc1':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],
