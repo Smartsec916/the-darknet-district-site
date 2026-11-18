@@ -42,3 +42,5 @@
 .guide-topics{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin:12px 0}
 /* Rook's cargo board: one line per job (what, where, hold space, legality, pay and who pays). */
 .rook-board{list-style:none;margin:8px 0 10px;padding:0;display:grid;gap:6px;font-size:13px;line-height:1.45}.rook-board li{padding:7px 10px;border-left:3px solid #38e8ff;background:rgba(56,232,255,.06)}.rook-board b{color:#f2b33d}.rook-board em{color:#ff8a7a;font-style:normal}
+/* A conversation that ends in a list of choices (talk-choice.js opts.menu; Zen Zephyr's five teachings, 18 Nov 2026): one choice a row, left aligned. */
+.dialogue-window .speech-controls.talk-menu{display:flex;flex-direction:column;align-items:stretch;gap:5px}.speech-controls.talk-menu #speech-status{align-self:flex-end}.speech-controls.talk-menu [data-action=speech-replay]{align-self:flex-end}.speech-controls.talk-menu .talk-menu-choice{text-align:left;justify-content:flex-start;white-space:normal;line-height:1.35}.speech-controls.talk-menu .talk-menu-choice.quiet{align-self:flex-start;min-width:6rem;text-align:center}

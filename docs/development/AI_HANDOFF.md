@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 18 Nov 2026 (newest): ZEN ZEPHYR SPEAKS — THE OWNER'S APPROVED, VOICED SCRIPT (branch `claude/zen-zephyr-voice`, build `2026-11-18-zen-voice-1`, pushed, NO PR, not merged)
+
+- **The placeholder keyword chat and its typed panel are gone.** Zen Zephyr says the owner's own script (APPROVED 18 Nov 2026: greeting, five topics with 80 quotes, the follow-up line), recorded with ElevenLabs "Sigma Centauri - AI Robot" (`bAq8AI9QURijOtmeFFqT`, eleven_v4, the owner's choice), in the ordinary conversation window: a greeting from about 14 m as the player walks up the hall (once per visit, in his sight), then the five choices (label — subtitle); a random quote of the chosen topic, the follow-up, the choices again and **Yes** to leave. Details: `docs/development/TEMPLE.md` (top update).
+- **One source:** `tools/audio/zen-zephyr-script.json`; `node tools/audio/zen-import.cjs --clips <folder>` writes it into `zen-chat.js`, registers each clip in `assets/audio/voice/extra/manifest.json` and copies the clips; `--check` verifies. Never hand-edit his lines.
+- **Voice effect:** a live `monk` preset in `voice-clips.js` (`PRESETS.monk`, tune with `ZEN_STRENGTH`): high-pass 90 Hz, 10-bit crush at 25 %, a slow flanger, an 18 ms echo (the owner: "slightly synthetic", then "more digital"). The recordings stay clean.
+- **Shared change:** `talkChoice(lines, choices, heading, {menu:true, cancel})` shows every choice as a row under the last line (no default choice); a line with `silent:true` is shown without being spoken. Existing callers (Admin's Mission 002 offer) are unchanged.
+- **Also recorded:** the owner's canon on Zen Zephyr (`VOID_RUNNER_HANDOFF.md` §11) and the Female Warrior's CGTrader licence ("Royalty Free License (no AI)": no redistribution, no AI training; `docs/VOID_RUNNER_ASSET_LICENSES.md`).
+
 ### 18 Nov 2026 (newest): MILKED DANCERS, FISH TURNS TO TALK, NPC ARM FLICK FIXED (branch `claude/milked-dancers-fish`, build `2026-11-18-milked-fix-1`, pushed, NO PR, not merged)
 
 - **Studio 2:** the dancer is the licensed Female Warrior (`studio-warrior.vrpak`, private repo; CGTrader, seller techykitty; `docs/VOID_RUNNER_ASSET_LICENSES.md`). Codex's draft PR #341 ported by hand onto `main` (`milked.js` `file`, `milked-build.js` `fileOf`, `crowd.js` clip list). With the animation library installed she plays `ac-sensual-movement-1` (a floor routine); without it her own `slow-dance`.

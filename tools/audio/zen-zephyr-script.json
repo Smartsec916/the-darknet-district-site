@@ -1,0 +1,126 @@
+{
+ "source": "the owner, 18 Nov 2026 (approved script, verbatim)",
+ "voiceId": "bAq8AI9QURijOtmeFFqT",
+ "greeting": "Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?",
+ "greetingNote": "When the player gets close to him, still pretty far as if he knew they were coming",
+ "topics": [
+  {
+   "id": "tech",
+   "label": "Enlightenment & Technology",
+   "sub": "Finding humanity beneath the chrome.",
+   "lines": [
+    "You may replace every part of the body, yet still carry the same suffering.",
+    "A thousand implants cannot repair an undisciplined mind.",
+    "Upgrade your consciousness before upgrading your flesh.",
+    "Even artificial light casts a shadow.",
+    "The enlightened mind requires no firmware.",
+    "A machine may calculate infinity, but a monk must learn to embrace nothing.",
+    "Do not confuse connectivity with connection.",
+    "The mind without awareness is merely hardware running corrupted code.",
+    "An optical implant may reveal a thousand wavelengths, yet remain blind to truth.",
+    "Replace your eyes with machines, but do not let machines decide what you see.",
+    "Enlightenment is not available behind a paywall.",
+    "The illusion of self cannot be removed with a firmware update.",
+    "A neural implant may accelerate thought, but wisdom has no clock speed.",
+    "Do not mistake an artificial heaven for liberation.",
+    "The machine learns through repetition. The monk learns through letting go.",
+    "Consciousness is not measured in processing power.",
+    "The path to enlightenment has no downloadable shortcut."
+   ]
+  },
+  {
+   "id": "desire",
+   "label": "Desire & Suffering",
+   "sub": "Freedom from the things that bind us.",
+   "lines": [
+    "The corporations sell immortality to those afraid to live.",
+    "Desire is the malware of the soul.",
+    "The richest man in the district may still be a prisoner.",
+    "A gilded implant is still a chain.",
+    "He who owns nothing cannot be owned.",
+    "The city profits from the emptiness within you.",
+    "Every advertisement is a prayer to the gods of attachment.",
+    "Beware the implant that promises happiness on a monthly subscription.",
+    "The corporations manufacture desire and sell temporary relief.",
+    "Craving is an endless transaction with insufficient funds.",
+    "The flesh dealer sells perfection to those who cannot accept themselves.",
+    "Not every addiction requires a chemical.",
+    "The city installs desires faster than you can uninstall them.",
+    "A debt-free account does not guarantee a liberated mind.",
+    "The endless upgrade is another form of suffering.",
+    "Desire turns the human body into a corporate marketplace."
+   ]
+  },
+  {
+   "id": "peace",
+   "label": "Wisdom & Inner Peace",
+   "sub": "Finding silence within the city's noise.",
+   "lines": [
+    "Beneath the neon, the lotus still blooms.",
+    "Find silence where the machines never sleep.",
+    "The wise do not fear the darkness, for they carry no illusion of light.",
+    "When the network falls silent, listen to yourself.",
+    "Even in a city built of steel, compassion must take root.",
+    "The rain does not distinguish between flesh and chrome.",
+    "Amid a city that worships tomorrow, we teach the art of being here.",
+    "Disconnect from the network before you forget how to connect with yourself.",
+    "Between the drone patrols and the screaming advertisements, there is still silence.",
+    "Do not let the city's algorithms determine the rhythm of your breath.",
+    "The lotus does not require permission to bloom through concrete.",
+    "Your thoughts need not travel at the speed of the network.",
+    "Even beneath a thousand surveillance cameras, the mind may remain free.",
+    "A peaceful mind is the rarest technology in NeoChinatown.",
+    "Let the rain wash the neon from your thoughts.",
+    "Not every notification deserves your consciousness.",
+    "Find the silence between two machine heartbeats."
+   ]
+  },
+  {
+   "id": "death",
+   "label": "Death & Impermanence",
+   "sub": "Accepting that even machines must fade.",
+   "lines": [
+    "All things decay. Flesh, steel, memory, and empire.",
+    "A backup of the mind is not freedom from death.",
+    "Even the eternal server will one day go dark.",
+    "Do not mourn the rust. It is the nature of metal.",
+    "The neon fades, but the cycle continues.",
+    "Even chrome returns to dust.",
+    "A thousand backups cannot preserve a single moment.",
+    "Your digital ghost is not the self you believe it to be.",
+    "The corporation promises eternal life but cannot guarantee server uptime.",
+    "The richest executive and the poorest street beggar eventually become forgotten data.",
+    "Every signal eventually becomes silence.",
+    "Memory can be archived. Experience cannot.",
+    "Even the brightest hologram disappears when the power fails.",
+    "Do not fear becoming obsolete. Everything that exists already carries its expiration.",
+    "The body is temporary hardware. Do not mistake its serial number for your identity."
+   ]
+  },
+  {
+   "id": "rebellion",
+   "label": "Rebellion & Freedom",
+   "sub": "Liberating the mind from systems of control.",
+   "lines": [
+    "Break the chains within before breaking those around you.",
+    "The greatest rebellion is refusing to become what you hate.",
+    "A free mind cannot be purchased, programmed, or patented.",
+    "Hatred is another corporation seeking ownership of your soul.",
+    "When the world demands obedience, questioning becomes meditation.",
+    "The most dangerous citizen is one who desires nothing the corporation sells.",
+    "Compassion is an act of rebellion in a city that monetizes suffering.",
+    "Do not trade one corporate master for another wearing the mask of revolution.",
+    "Before hacking the system, examine the programming of your own mind.",
+    "The prison with no visible bars is the hardest to escape.",
+    "A government may blacklist your identity, but it cannot erase your awareness.",
+    "The revolution that begins with hatred ends with another tyrant.",
+    "Do not become the weapon of those who profit from your anger.",
+    "The greatest firewall is a disciplined mind.",
+    "In a civilization built upon ownership, letting go is the ultimate rebellion."
+   ]
+  }
+ ],
+ "followUp": "Does your mind find peace in these words, or do you seek further wisdom?",
+ "flow": "Zen Zephyr randomly says one of the quotes from that category, then says the followUp line. The player can choose another category to hear another one or say yes and leave (the owner, 18 Nov 2026).",
+ "source2": "the owner, 18 Nov 2026: second batch of quotes (\"also these\"), verbatim"
+}

@@ -3,6 +3,14 @@
    channel, and lines without a clip fall back to the browser voice. Iris gets a faint synthetic
    colour and Elias a hologram tone, both applied live so the recordings stay clean. */
 (function(root){
+ /* Live voice effects, as numbers (tests/zen-chat.test.cjs reads them in Node). android: Iris. monk: Zen Zephyr (the owner, 18 Nov 2026: a [meditative] delivery and a
+    MORE digital sound than "slightly synthetic"): a 90 Hz high-pass, a 10-bit crush mixed in, a slow flanger and a short metallic echo; the recording itself stays clean.
+    ZEN_STRENGTH scales every wet part of his effect at once (0 = the clean recording, 1 = the chain the owner heard as an ffmpeg preview, more = harsher). */
+ const ZEN_STRENGTH=1;
+ const PRESETS={
+  android:{dry:.86,shelfHz:5500,shelfDb:2.5,combMs:2.3,combFeedback:.22,combMix:.1,chorusMs:12,chorusDepthMs:1.2,chorusHz:.6,chorusMix:.07},
+  monk:{strength:ZEN_STRENGTH,highpassHz:90,crushBits:10,crushMix:.25,flangerMs:2,flangerDepthMs:1.5,flangerFeedback:.2,flangerHz:.25,flangerMix:.5,echoMs:18,echoDecay:.18}};
+ if(typeof module==='object'&&module.exports&&typeof document==='undefined'){module.exports={PRESETS,ZEN_STRENGTH};return;}
  const base=new URL('assets/audio/voice/',document.currentScript?.src||location.href);
  const alias={Admin:'admin',Iris:'iris',Bartender:'bartender','Arcade attendant':'attendant'};
  let manifest=null,lookup=new Map(),source=null,source2=null,stopTimer=null,seq=0;const cache=new Map(),extraById=new Map(),extraCast={},translations={};
@@ -22,13 +30,24 @@
   cache.set(line.id,data);if(cache.size>40)cache.delete(cache.keys().next().value);return data;
  }
  // Iris: ~95% natural. A faint short comb resonance, a soft high sheen and a tiny chorus; no vocoder.
- function android(ctx,input,output){
-  const dry=ctx.createGain();dry.gain.value=.86;input.connect(dry);
-  const shelf=ctx.createBiquadFilter();shelf.type='highshelf';shelf.frequency.value=5500;shelf.gain.value=2.5;dry.connect(shelf);shelf.connect(output);
-  const comb=ctx.createDelay(.05);comb.delayTime.value=.0023;const fb=ctx.createGain();fb.gain.value=.22;const wet=ctx.createGain();wet.gain.value=.1;
+ function android(ctx,input,output){const P=PRESETS.android;
+  const dry=ctx.createGain();dry.gain.value=P.dry;input.connect(dry);
+  const shelf=ctx.createBiquadFilter();shelf.type='highshelf';shelf.frequency.value=P.shelfHz;shelf.gain.value=P.shelfDb;dry.connect(shelf);shelf.connect(output);
+  const comb=ctx.createDelay(.05);comb.delayTime.value=P.combMs/1000;const fb=ctx.createGain();fb.gain.value=P.combFeedback;const wet=ctx.createGain();wet.gain.value=P.combMix;
   input.connect(comb);comb.connect(fb);fb.connect(comb);comb.connect(wet);wet.connect(output);
-  const chorus=ctx.createDelay(.05);chorus.delayTime.value=.012;const lfo=ctx.createOscillator(),depth=ctx.createGain();lfo.frequency.value=.6;depth.gain.value=.0012;lfo.connect(depth);depth.connect(chorus.delayTime);lfo.start();
-  const cw=ctx.createGain();cw.gain.value=.07;input.connect(chorus);chorus.connect(cw);cw.connect(output);return [lfo];
+  const chorus=ctx.createDelay(.05);chorus.delayTime.value=P.chorusMs/1000;const lfo=ctx.createOscillator(),depth=ctx.createGain();lfo.frequency.value=P.chorusHz;depth.gain.value=P.chorusDepthMs/1000;lfo.connect(depth);depth.connect(chorus.delayTime);lfo.start();
+  const cw=ctx.createGain();cw.gain.value=P.chorusMix;input.connect(chorus);chorus.connect(cw);cw.connect(output);return [lfo];
+ }
+ // Zen Zephyr: PRESETS.monk. The high-passed voice goes out clean, plus (each scaled by strength) the bit-crushed copy, the flanged copy and the 18 ms echo.
+ function monk(ctx,input,output){const P=PRESETS.monk,k=Math.max(0,P.strength);
+  const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=P.highpassHz;input.connect(hp);
+  const dry=ctx.createGain();dry.gain.value=1-Math.min(.6,P.crushMix*k);hp.connect(dry);dry.connect(output);
+  const crush=ctx.createWaveShaper(),steps=Math.pow(2,P.crushBits-1),curve=new Float32Array(4096);for(let i=0;i<curve.length;i++){const x=i/(curve.length-1)*2-1;curve[i]=Math.round(x*steps)/steps;}crush.curve=curve;
+  const cw=ctx.createGain();cw.gain.value=P.crushMix*k;hp.connect(crush);crush.connect(cw);cw.connect(output);
+  const fl=ctx.createDelay(.05);fl.delayTime.value=(P.flangerMs+P.flangerDepthMs/2)/1000;const lfo=ctx.createOscillator(),depth=ctx.createGain();lfo.frequency.value=P.flangerHz;depth.gain.value=P.flangerDepthMs/2000;lfo.connect(depth);depth.connect(fl.delayTime);lfo.start();
+  const ffb=ctx.createGain();ffb.gain.value=P.flangerFeedback;fl.connect(ffb);ffb.connect(fl);const fw=ctx.createGain();fw.gain.value=P.flangerMix*k;hp.connect(fl);fl.connect(fw);fw.connect(output);
+  const echo=ctx.createDelay(.1);echo.delayTime.value=P.echoMs/1000;const ew=ctx.createGain();ew.gain.value=P.echoDecay*k;hp.connect(echo);echo.connect(ew);ew.connect(output);
+  const trim=1/(1+P.flangerMix*k*.5+P.echoDecay*k*.5);if(trim<1)output.gain.value*=trim;return [lfo];
  }
  // Elias: an archived hologram recording; band-limited with a slight flicker.
  function hologram(ctx,input,output){
@@ -41,7 +60,7 @@
   const hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=170;const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=8000;
   const peak=ctx.createBiquadFilter();peak.type='peaking';peak.frequency.value=2400;peak.gain.value=1.5;peak.Q.value=.9;input.connect(hp);hp.connect(lp);lp.connect(peak);peak.connect(output);return [];
  }
- const effectOf=(ctx,name,input,output)=>name==='android'?android(ctx,input,output):name==='hologram'?hologram(ctx,input,output):name==='radio'?radio(ctx,input,output):name==='device'?device(ctx,input,output):(input.connect(output),[]);
+ const effectOf=(ctx,name,input,output)=>name==='android'?android(ctx,input,output):name==='monk'?monk(ctx,input,output):name==='hologram'?hologram(ctx,input,output):name==='radio'?radio(ctx,input,output):name==='device'?device(ctx,input,output):(input.connect(output),[]);
  // Relay broadcasts: a transmission band with light grit and a faint carrier hiss, applied live so
  // the recording (the broadcaster's voice) stays clean.
  function radio(ctx,input,output){
@@ -95,7 +114,7 @@
   for(const o of [...extra,...extra2])try{o.stop();}catch{}out.disconnect();if(source===playing)source=null;if(source2===second)source2=null;
  }
  const played=[];
- root.VoidVoiceClips={has,speak,cancel,broadcast,get count(){return lookup.size;},get played(){return played.slice();},pairOf:(who,text)=>{const l=lookup.get(key(who,text));return l&&l.with?{...(translations[l.speaker]||{}),...l.with}:null;},get translations(){return JSON.parse(JSON.stringify(translations));}};
+ root.VoidVoiceClips={has,speak,cancel,broadcast,PRESETS,get count(){return lookup.size;},get played(){return played.slice();},pairOf:(who,text)=>{const l=lookup.get(key(who,text));return l&&l.with?{...(translations[l.speaker]||{}),...l.with}:null;},get translations(){return JSON.parse(JSON.stringify(translations));}};
  root.VoidAudio?.setVoiceProvider?.(root.VoidVoiceClips);
  // Replay the current line on demand.
  const voicedRender=renderLine;

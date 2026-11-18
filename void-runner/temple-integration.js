@@ -1,36 +1,48 @@
-/* Zen Zephyr Temple: game wiring (browser only). Registers the walking location, the interaction handlers, the return cab, and the typed conversation panel.
-   The conversation is LOCAL (zen-chat.js): not an AI, no network. Nothing here is saved except the map fog (written by temple-build.js) and the taxi's own trip record (road-taxi-rules.js). */
+/* Zen Zephyr Temple: game wiring (browser only). Registers the walking location, the interaction handlers, the return cab, and Zen Zephyr's conversation.
+   The conversation is the owner's approved, voiced script (18 Nov 2026; zen-chat.js), in the game's ordinary conversation window (scenes.js talk(), talk-choice.js menus,
+   conversation-ui.js), so the recordings, the auto-advance, the transcript and the speaker's gaze behave as with every other character. No network, no AI.
+   Flow: inside the hall, within zen-chat.js GREET_RANGE of his seat and in his sight, he greets the player once per visit ("as if he knew they were coming"). The five
+   choices open when the player continues, comes within TALK_RANGE, or presses E (SPEAK WITH ZEN ZEPHYR); E before the greeting plays it first. A choice: a random quote of
+   that category and the follow-up line, then the choices again with "Yes" to leave. Nothing is saved except the map fog (temple-build.js) and the taxi's trip (road-taxi-rules.js). */
 (function(root){
  'use strict';
  const T=root.VoidTemple,Z=root.VoidZenChat;if(!T||!Z||typeof document==='undefined')return;
- const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof VoidExplorationData==='undefined'||typeof announce==='undefined')return;clearInterval(wait);start();},400);
+ const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof VoidExplorationData==='undefined'||typeof announce==='undefined'||typeof talk!=='function'||typeof root.talkChoice!=='function')return;clearInterval(wait);start();},400);
  function start(){
   VoidExplorationData.locations.temple=T.layout();
   const done=()=>{try{resumeWalking();}catch{}};
   const note=t=>{done();try{announce(t);}catch{}};
   const R=(a,f)=>VoidInteractions.register(a,f);
-  const chat=Z.create();T.chat=chat;   // a future API dialogue registers on T.chat.registerProvider(...) and is switched on with T.chat.enableProvider(true); it is OFF by default
+  // His name and role in the conversation window
+  const chars=root.VoidStoryContent?.characters;if(chars&&!chars[Z.WHO])chars[Z.WHO]={id:Z.WHO,name:Z.NAME,role:Z.ROLE,portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['temple'],biography:'The AI monk of the Sanctum of the Circuit.',relationshipDefault:0};
   R('temple-cab',()=>{done();if(!root.VoidRoadTaxi?.returnFrom){note('The taxi is not available.');return;}root.VoidRoadTaxi.returnFrom('temple','cab');});
   R('temple-walk',()=>{done();if(!root.VoidRoadTaxi?.returnFrom){note('The gate is not available.');return;}root.VoidRoadTaxi.returnFrom('temple','foot');});   // the East Gate's walkers' lane (16 Nov 2026)
   R('temple-altar',({item})=>note(T.ALTAR_TEXT[item?.altar]||'DATA ALTAR: the glass is warm and still.'));
   R('temple-incense',()=>note('Blue-flame incense. It burns without smoke and smells faintly of warm metal and rain.'));
   R('temple-overlook',()=>note('Far below to the south-east the city glows through the mist: towers, traffic, neon. From here it is almost silent.'));
-  // ---- the conversation panel ----
-  const css=document.createElement('style');css.textContent='#zen-chat{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);width:min(680px,94vw);max-height:78vh;overflow:hidden;z-index:60;display:flex;flex-direction:column;background:rgba(4,12,17,.94);border:1px solid #2a7f8a;box-shadow:0 0 40px rgba(56,232,255,.12);font:14px Consolas,monospace;color:#cfeff5}#zen-chat[hidden]{display:none}#zen-chat header,#zen-chat form,#zen-chat details{flex:none}#zen-chat header{padding:8px 12px;border-bottom:1px solid #1d4f58;display:flex;justify-content:space-between;gap:10px;align-items:baseline;background:#07161c;position:relative;z-index:2}#zen-chat header b{color:#7fe9ff;letter-spacing:.12em}#zen-chat header span{color:#ffb347;font-size:11px;letter-spacing:.1em}#zen-log{padding:10px 12px;overflow:auto;flex:1 1 140px;min-height:90px;max-height:34vh;contain:paint;position:relative;z-index:1}#zen-log p{margin:0 0 9px;line-height:1.45}#zen-log .you{color:#9fb0b8}#zen-log .zen{color:#d9f6ff}#zen-log .zen:before{content:"ZEN ZEPHYR  ";color:#38e8ff;font-size:11px;letter-spacing:.1em}#zen-log .you:before{content:"YOU  ";color:#6a8790;font-size:11px;letter-spacing:.1em}#zen-chat form{display:flex;gap:8px;padding:8px 12px;border-top:1px solid #1d4f58}#zen-chat input{flex:1;background:#06141a;border:1px solid #2a7f8a;color:#e8fbff;padding:7px 9px;font:inherit}#zen-chat button{background:#0b2a33;border:1px solid #2a7f8a;color:#7fe9ff;padding:6px 12px;font:inherit;cursor:pointer;letter-spacing:.08em}#zen-chat button:hover,#zen-chat button:focus-visible{background:#12414d;outline:none}#zen-chat details{padding:0 12px 8px}#zen-chat summary{cursor:pointer;color:#7fe9ff;padding:4px 0;letter-spacing:.08em}#zen-list{display:grid;gap:4px;max-height:22vh;overflow:auto;margin-top:4px}#zen-list button{text-align:left;letter-spacing:0;font-size:12px;padding:5px 8px}';document.head.appendChild(css);
-  const panel=document.createElement('section');panel.id='zen-chat';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-label','Conversation with Zen Zephyr');
-  panel.innerHTML='<header><b>ZEN ZEPHYR</b><span>'+Z.LABEL+'</span></header><div id="zen-log" aria-live="polite"></div><details><summary>CHOOSE A TEACHING ('+Z.QUOTES.length+')</summary><div id="zen-list"></div></details><form autocomplete="off"><input type="text" maxlength="200" aria-label="Type to Zen Zephyr" placeholder="Type, and press Enter. Try: fear, silence, the city, code, rest."><button type="submit">SEND</button><button type="button" data-close>LEAVE · ESC</button></form>';
-  document.body.appendChild(panel);
-  const log=panel.querySelector('#zen-log'),input=panel.querySelector('input'),list=panel.querySelector('#zen-list');let open=false;
-  const line=(who,text)=>{const p=document.createElement('p');p.className=who;p.textContent=text;log.appendChild(p);log.scrollTop=log.scrollHeight;};
-  for(const q of Z.QUOTES){const b=document.createElement('button');b.type='button';b.textContent=q.text;b.dataset.quote=q.id;list.appendChild(b);}
-  list.addEventListener('click',e=>{const b=e.target.closest('[data-quote]');if(!b)return;const r=chat.choose(b.dataset.quote);if(r){line('you','(asks for a teaching)');line('zen',r.text);}input.focus();});
-  panel.querySelector('form').addEventListener('submit',async e=>{e.preventDefault();const t=input.value.trim();if(!t)return;input.value='';line('you',t);const r=await chat.ask(t);line('zen',r.text);});
-  // Typing must not move the player or trigger game keys, and Escape closes this panel, not the pause menu.
-  const stop=e=>{e.stopPropagation();};panel.addEventListener('keydown',e=>{stop(e);if(e.key==='Escape'){e.preventDefault();close();}},false);panel.addEventListener('keyup',stop,false);panel.addEventListener('keypress',stop,false);
-  panel.addEventListener('click',e=>{if(e.target.closest('[data-close]'))close();});
-  function show(){if(open)return;open=true;document.exitPointerLock?.();try{walkingKeys.clear();}catch{}try{mode='dialogue';}catch{}panel.hidden=false;if(!log.children.length)line('zen',chat.local('hello').text);setTimeout(()=>input.focus(),30);}
-  function close(){if(!open)return;open=false;panel.hidden=true;input.blur();done();}
-  T.panel={show,close,get isOpen(){return open;}};
-  R('temple-monk',()=>show());
+  // ---- Zen Zephyr ----
+  let chat=Z.create(),inside=false,stage=null,autoOpened=false;   // stage: 'greeting' (the distant greeting is on screen) | 'menu' | null
+  const busy=()=>{try{return !!speech||!!root.VoidConversationUI?.isOpen;}catch{return false;}};
+  const seat=()=>({x:T.MODEL.seat[0],z:T.MODEL.seat[1]});
+  const distance=()=>{try{const s=seat();return Math.hypot(walker.x-s.x,walker.z-s.z);}catch{return Infinity;}};
+  function leave(){stage=null;done();}
+  function menu(r){stage='menu';root.talkChoice(r.lines,r.choices.map(c=>({label:c.label,leave:!!c.leave,run:c.leave?leave:()=>menu(chat.pick(c.id))})),'',{menu:true,cancel:leave});}
+  function open(){autoOpened=true;menu(chat.open());}
+  function greet(){stage='greeting';talk('',chat.greet(),()=>{if(stage==='greeting')open();},'CONTINUE →','');}
+  // The greeting window closes by itself if the player turns away from him; it never takes the keys or the mouse back while they walk.
+  function quietClose(){stage=null;try{speech=null;root.VoidAudio?.cancel();screen.classList.add('hidden');screen.classList.remove('conversation-live');document.getElementById('conversation-restore')?.setAttribute('hidden','');}catch{}}
+  setInterval(()=>{
+   let here=false;try{here=typeof walkingLocation!=='undefined'&&walkingLocation?.id===T.ID&&typeof walker!=='undefined'&&!!walker;}catch{}
+   if(!here){if(inside){inside=false;stage=null;}return;}
+   if(!inside){inside=true;chat=Z.create();T.chat=chat;stage=null;autoOpened=false;}   // a new visit: he greets again, once
+   if(mode!=='walking')return;
+   const d=distance(),greetingUp=stage==='greeting'&&!!speech&&speech.lines?.[0]?.text===Z.SCRIPT.greeting;if(stage==='greeting'&&!greetingUp)stage=null;
+   if(!busy()&&chat.shouldGreet(d,T.seesMonk(walker.x,walker.z))){greet();return;}
+   if(greetingUp&&d>Z.GREET_RANGE+8){quietClose();return;}
+   // close enough to talk: the choices open once by themselves (after the greeting has been heard, or with it if it has not played)
+   if(d<=Z.TALK_RANGE&&!autoOpened&&(!busy()||greetingUp)){const v=speech?.voice;if(greetingUp&&v&&(v.clip&&!v.ended))return;open();}
+  },200);
+  T.chat=chat;T.zen={open,greet,get stage(){return stage;},get chat(){return chat;},distance};
+  R('temple-monk',()=>{if(stage==='menu'&&busy())return;open();});
  }
 })(globalThis);

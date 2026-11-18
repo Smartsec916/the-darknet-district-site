@@ -6,7 +6,7 @@
    ==== WHERE TO CHANGE THINGS ====
    - Zen Zephyr's model: MODEL below (id 'zen-zephyr'). Package the real model with the usual private asset process, then set `asset` to its id: temple-build.js uses it when
      VoidAssets has it and falls back to the primitive monk. Nothing else needs to change (seat, facing and the interaction are here).
-   - His lines: zen-chat.js QUOTES (provisional; two are the exact lines the owner specified). A future API dialogue plugs in through zen-chat.js registerProvider (off by default). */
+   - His lines: the owner's approved, voiced script (18 Nov 2026): tools/audio/zen-zephyr-script.json, written into zen-chat.js by tools/audio/zen-import.cjs. Never edit them by hand. */
 (function(root){
  'use strict';
  const ID='temple',SPACE_FLAG='templeFog',BOUNDS=[50,50],FARE=60;
@@ -42,6 +42,12 @@
   for(const [id,axis,c,a,b,gaps] of SEGMENTS){const spans=[];let from=a;for(const [g0,g1] of [...gaps].sort((p,q)=>p[0]-q[0])){if(g0>from)spans.push([from,g0]);from=Math.max(from,g1);}if(b>from)spans.push([from,b]);
    spans.forEach(([s0,s1],i)=>box('temple-wall-'+id+(spans.length>1?'-'+i:''),axis==='x'?[c-T/2,c+T/2,s0,s1]:[s0,s1,c-T/2,c+T/2],H));}
   for(const [id,r,h] of PROPS)box('temple-'+id,r,h);PARAPET.forEach((r,i)=>box('temple-parapet-'+i,r,1.2));return out;};
+ // Can the monk see the player at (x,z)? Inside the hall, with no pillar between them (the low altars and the dais do not block a seated man's view). Used for his greeting.
+ function seesMonk(x,z){const [hx0,hx1,hz0,hz1]=HALL;if(!(x>hx0+T/2&&x<hx1-T/2&&z>hz0+T/2&&z<hz1-T/2))return false;const sx=MODEL.seat[0],sz=MODEL.seat[1];
+  for(const [id,r] of PROPS){if(!/^pillar/.test(id))continue;let t0=0,t1=1;const dx=sx-x,dz=sz-z;let hit=true;
+   for(const [p,q] of [[-dx,x-r[0]],[dx,r[1]-x],[-dz,z-r[2]],[dz,r[3]-z]]){if(p===0){if(q<0){hit=false;break;}continue;}const u=q/p;if(p<0){if(u>t1){hit=false;break;}if(u>t0)t0=u;}else{if(u<t0){hit=false;break;}if(u<t1)t1=u;}}
+   if(hit&&t0<=t1)return false;}
+  return true;}
  function layout(){return {id:ID,name:'ZEN ZEPHYR TEMPLE',kind:'city',temple:true,mapSpace:ID,bounds:BOUNDS.slice(),spawn:ARRIVAL.spawn.slice(),yaw:ARRIVAL.yaw,color:'#0a141c',music:'earth',
   solids:solids(),interactions:INTERACTIONS.map(i=>({...i,position:i.position.slice()})),signs:[]};}
  // Named parts, used by the map and the tests.
@@ -54,7 +60,7 @@
  const BUILDINGS=[{id:'temple',name:'The Sanctum of the Circuit',rect:HALL}];
  function mapModel(){const rectOf=s=>({id:s.id,x0:s.position[0]-s.size[0]/2,x1:s.position[0]+s.size[0]/2,z0:s.position[2]-s.size[2]/2,z1:s.position[2]+s.size[2]/2});
   return {streets:STREETS,buildings:BUILDINGS,walls:{street:solids().filter(s=>/wall|dais|altar|gate/.test(s.id)).map(rectOf),interior:[]},pois:PLACES.map(p=>({...p,area:'street'})),vestibule:{x:ARRIVAL.spawn[0],z:ARRIVAL.spawn[2]},bounds:{x0:-50,x1:50,z0:-50,z1:50}};}
- const api={ID,SPACE_FLAG,BOUNDS,FARE,MODEL,ARRIVAL,CAB_PAD,WALK_BACK,HALL,ENTRANCE,DAIS,PLATEAU,SEGMENTS,PROPS,PARAPET,ALTAR_TEXT,INTERACTIONS,PLACES,STREETS,BUILDINGS,solids,layout,mapModel};
+ const api={ID,SPACE_FLAG,BOUNDS,FARE,MODEL,ARRIVAL,CAB_PAD,WALK_BACK,HALL,ENTRANCE,DAIS,PLATEAU,SEGMENTS,PROPS,PARAPET,ALTAR_TEXT,INTERACTIONS,PLACES,STREETS,BUILDINGS,solids,layout,mapModel,seesMonk};
  const AM=typeof module==='object'&&module.exports?require('./area-map.js'):root.VoidAreaMap;
  if(AM)AM.register({id:ID,name:'Zen Zephyr Temple',flag:SPACE_FLAG,bounds:[-50,50,-50,50],cell:5,model:mapModel});
  if(typeof module==='object'&&module.exports)module.exports=api;else root.VoidTemple=Object.assign(root.VoidTemple||{},api);

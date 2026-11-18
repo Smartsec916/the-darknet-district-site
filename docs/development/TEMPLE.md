@@ -1,5 +1,12 @@
 # Zen Zephyr Temple: the Sanctum of the Circuit
 
+> **Update, build `2026-11-18-zen-voice-1` (Zen Zephyr speaks: the owner's approved, voiced script):** the placeholder keyword chat and its typed panel are gone. Zen Zephyr now says the owner's own words (approved 18 Nov 2026), recorded with ElevenLabs (voice "Sigma Centauri - AI Robot", `bAq8AI9QURijOtmeFFqT`, model eleven_v4, chosen by the owner), in the game's ordinary conversation window (`talk()` and the new list form of `talkChoice()`, so the recordings, auto-advance, the transcript and his gaze behave as with every other character). Canon from the owner the same day: *"Zen Zephyr is almost seen as the Dali Llama there. He's an AI Monk who speaks in cyberpunk themed proverbs."*
+> - **One source:** `tools/audio/zen-zephyr-script.json` (the owner's script, verbatim). `node tools/audio/zen-import.cjs [--clips <folder>] [--check]` writes it into `zen-chat.js` (the `ZEN-SCRIPT` block; never edit those lines by hand), registers one clip per line in `assets/audio/voice/extra/manifest.json` (speaker `zen-zephyr`, exact text, `extra/zen-<key>.ogg`; keys `greeting`, `followup`, `<topic>-<n>`) and copies the clips. Adding or changing lines = edit the JSON, render the clips, run the tool.
+> - **Flow:** walking up the hall, about **14 m** from his seat and in his sight (inside the hall, no pillar between: `temple.js seesMonk`), he greets the player **once per visit** ("as if he knew they were coming"). The five choices (label — subtitle) open when the player presses CONTINUE, comes within **6.5 m** (once per visit, after the greeting has been heard) or presses **E** (SPEAK WITH ZEN ZEPHYR). Reaching him or pressing E before the greeting plays it first; later in the visit E shows his question again without re-speaking it. A choice: one quote of that category at random (never the same twice in a row; none repeats until the category is used up), then *"Does your mind find peace in these words, or do you seek further wisdom?"*, then the five choices again and **Yes** to leave. Before any quote the list's way out is **LEAVE**. Walking far away while only the greeting is on screen closes it quietly.
+> - **His voice effect:** a live `monk` preset in `voice-clips.js` (`PRESETS.monk`, one strength constant `ZEN_STRENGTH`): a 90 Hz high-pass, a 10-bit crush at 25 % mix, a slow flanger (2 ms, depth 1.5 ms, 20 % feedback, 0.25 Hz) and an 18 ms echo at 0.18. The owner asked for it to sound synthetic, then "more digital"; the recordings stay clean. Set `ZEN_STRENGTH` lower or higher to tune.
+> - **Gaze:** his head node is named `mk:Head`, so the speaker's head turn (`npc-look.js`) turns it toward the player while he speaks; he stays seated.
+> - **Tests:** `tests/zen-chat.test.cjs` (exact text against the JSON, five topics, a clip for every line, random without repeats, follow-up, "Yes", greeting once per visit, sight line, the voice preset). `tests/temple-browser.cjs` walks up the aisle and checks the greeting at a distance, the choices, two quotes with their follow-ups, the clips requested, "Yes", and E without a second greeting; screenshots `07a`–`07c`.
+
 > **Update, build `2026-11-18-temple-1` (graphics, footsteps, East Gate):** the hall was rebuilt toward the owner's reference picture of Zen Zephyr's temple (deep teal-green haze, towering dark ribbed server columns with small cyan readouts and thin data strips, thin hanging cables, a wet mirror-like floor with dark inlaid circuit and glyph lines, a bright arched doorway behind the dais), with warm accents only (candles, saffron runner and banners, prayer beads on the altars). Layout, collision, interactions, the monk and his lines are unchanged. Details:
 > - **Surfaces:** physically based, from the game's own interior texture kit (`void-runner/assets/textures/district-interior/kit_*`, the files the District rooms use; nothing new is downloaded). Low uses plain colours and reads no texture files.
 > - **Floor:** Medium and up mirror the hall in it (a planar mirror at half resolution, three quarters on High, as Milked's floor), listing only the hall's own solid meshes; Low keeps the painted glows under the pillars.
@@ -20,8 +27,9 @@ A separate, **taxi-only hilltop** far from the city, overlooking the distant Neo
 |---|---|
 | `void-runner/temple.js` | Pure data: layout, collision, interactions, the monk's replacement point, map model and its registered map space. |
 | `void-runner/temple-build.js` | The 3D scene (browser only). |
-| `void-runner/temple-integration.js` | Registers the location and handlers, the return cab, and the typed conversation panel. |
-| `void-runner/zen-chat.js` | The local conversation (pure): quotes, topic matching, fallback, the inactive provider hook. |
+| `void-runner/temple-integration.js` | Registers the location and handlers, the return cab, and Zen Zephyr's conversation (proximity greeting, the choice list). |
+| `void-runner/zen-chat.js` | The conversation (pure): the owner's script (generated block) and its flow. |
+| `tools/audio/zen-zephyr-script.json`, `tools/audio/zen-import.cjs` | The owner's script (the one source) and the tool that writes it into the game and registers its clips. |
 | Shared | `sky-cab.js` (a `temple` row in `DESTINATIONS`), `area-map.js` (fog and map spaces), `taxi-rules.js`, `city-taxi.js`, `babylon-renderer.js` (`zoneHandle`), `district-map.js` and `personal-device.js` (now read `walkingLocation.mapSpace`, so the next area needs no code there). |
 | Tests | `tests/temple.test.cjs`, `zen-chat.test.cjs`, `sky-cab.test.cjs` (Temple legs), `tests/temple-browser.cjs` (real browser). |
 
@@ -37,17 +45,11 @@ Personal HUD taxi list: **Zen Zephyr Temple · 60 CR, return included**. The str
 - **Zen Zephyr:** a seated placeholder monk on the dais: silver head, closed eyes, dark robe, mustard sash, mechanical joints and hands, teal chest lights, calm cross-legged posture, gentle breathing and a slow head sway.
 
 ### Replacement point for the monk (easy to find)
-Open `void-runner/temple.js`, block `==== WHERE TO CHANGE THINGS ====`, object `MODEL` (`id: 'zen-zephyr'`, `asset: null`). Package the real model with the usual private asset process and set `asset`; `temple-build.js` is where the primitive monk is built (search `mk-skull`). The seat, the facing, and the interaction are in `temple.js`. No voice is cast and none was invented.
+Open `void-runner/temple.js`, block `==== WHERE TO CHANGE THINGS ====`, object `MODEL` (`id: 'zen-zephyr'`, `asset: null`). Package the real model with the usual private asset process and set `asset`; `temple-build.js` is where the primitive monk is built (search `mk-skull`). The seat, the facing, and the interaction are in `temple.js`. A real model keeps his gaze if its head bone is named `...Head`.
 
 ## The conversation
 
-Press **E** at the dais: **SPEAK WITH ZEN ZEPHYR**. A panel opens: header **"LOCAL RECITATION · NOT AN AI"**, a log, a text box (up to 200 characters), **SEND**, and **LEAVE · ESC**. Typing does not move the player or trigger game keys; Escape closes the panel (not the pause menu).
-
-- **22 local quotes** (`zen-chat.js QUOTES`): the two **exact lines** the owner specified ("In the network of complex codes, serenity lies in the simplest line." and "A mindful soul is like a processor; it understands, computes, and calmly executes."), two taken from the Origins Zen Zephyr scenes (mood only), and 18 **provisional placeholders** for the owner to approve or replace. All can be chosen from **CHOOSE A TEACHING**.
-- **Matching:** keywords map to topics (serenity, code, mind, network, fear, change, breath, silence, machines, city, sanctuary, work); the reply is the first quote of that topic not yet said, restarting when all have been. Greetings, farewells and thanks have short replies.
-- **Fallback:** when nothing matches, a calm line inviting a different question; never a claim to understand.
-- **It is not an AI and does not pretend to be one.** Everything stays on the device: no network, no credentials, no cost (a test checks the module has no network or storage code).
-- **Future API hook:** `VoidTemple.chat.registerProvider({id, respond(text,{history})})` then `enableProvider(true)`. It is **off by default** and nothing calls it unless registered and enabled; a failing provider falls back to the local answer.
+See the `2026-11-18-zen-voice-1` update at the top: the owner's approved, voiced script in the ordinary conversation window. (The earlier typed panel with 22 provisional keyword-matched quotes and an unused API hook was removed on 18 Nov 2026.)
 
 ## V1 map
 
@@ -60,7 +62,7 @@ No new location id, mission id or server change. New tolerant `story.flags`: `te
 ## Known limits and next
 
 - Tested in a software-rendered browser; the long street legs of the street cab were shortened in the test. No real-GPU, Firefox or multiplayer testing.
-- The quotes beyond the two exact lines (and the two from Origins) are provisional placeholders. No voice. The altar and incense texts are short placeholders.
+- The altar and incense texts are short placeholders.
 - Reload while inside the Temple resumes on the street. One return point (the cab pad).
 - Visuals are still MeshBuilder geometry (now with the interior kit's PBR surfaces, a floor mirror and a few real lights on Medium and up): an upgrade candidate for Blender-made architecture. Zen Zephyr is still the primitive placeholder (a real model plugs in through `temple.js MODEL.asset`).
 - Origins puts the Sanctum in a hidden pocket of an abandoned server farm; the owner's brief (a taxi-only hilltop) is what is built. Whether Origins is canon is not decided.
