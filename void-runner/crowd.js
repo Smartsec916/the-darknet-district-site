@@ -91,7 +91,7 @@
  function animate_(node,look,clip){
   const list=node.metadata?.animationGroups||[];list.forEach(g=>groups.add(g));
   const bones={};for(const t of node.getDescendants(false))for(const b of ['LeftUpLeg','RightUpLeg','LeftLeg','RightLeg','LeftArm','RightArm'])if(t.name.endsWith('mixamorig:'+b)&&t.rotationQuaternion)bones[b]={node:t,rest:t.rotationQuaternion.clone()};
-  const speed=.9+(hash(node.name)%20)/100;let current=null,walking=false,active=true,culled=false,held=false,heldAt=0,heldFor=0,heldN=0,disposed=false;
+  const speed=.9+(hash(node.name)%20)/100;let current=null,named=clip,walking=false,active=true,culled=false,held=false,heldAt=0,heldFor=0,heldN=0,disposed=false;
   // A figure animates only while its owner wants it to (setActive) AND it is not hidden behind a building or out of view (setCulled, street-sight.js).
   const live=()=>active&&!culled;
   // Clips cross-fade instead of snapping.
@@ -101,7 +101,7 @@
   // the figure's prefix (crowd:look-walk), so compare the group itself, never the bare clip name. Comparing
   // names restarted the clip each frame and froze it on one pose while the figure slid along.
   function play(name){
-   if(disposed)return;name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;
+   if(disposed)return;name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;named=name;
    if(current===next&&!walking&&!once)return;walking=false;once=null;
    for(const g of list)if(g!==next)g.stop();
    next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;held=false;if(!live())next.pause();
@@ -143,7 +143,7 @@
    heldAt=current.from+(((heldAt-current.from+heldFor*fps*speed)%span)+span)%span;heldFor=0;current.goToFrame(heldAt);
   }
   function dispose(){if(disposed)return;disposed=true;once=null;for(const g of list){groups.delete(g);g.stop();}controllers.delete(api);}
-  const serial=made++,api={play,playOnce,walk,look,node,setActive,setCulled,lod,dispose,has:name=>clipIn(look,name)===name,get busy(){return !!once;},get active(){return active;},get culled(){return culled;},get held(){return held;}};
+  const serial=made++,api={play,playOnce,walk,look,node,setActive,setCulled,lod,dispose,has:name=>clipIn(look,name)===name,get busy(){return !!once;},get clip(){return named;},get active(){return active;},get culled(){return culled;},get held(){return held;}};
   controllers.add(api);node.onDisposeObservable?.addOnce(dispose);play(clip);return api;
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}

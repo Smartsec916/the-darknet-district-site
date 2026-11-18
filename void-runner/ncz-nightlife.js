@@ -79,7 +79,7 @@
    for(let j=0;j<size;j++){const a=size>1?j/size*Math.PI*2+rnd()*.4:0,x=cx+(size>1?Math.sin(a)*.55:0),z=cz+(size>1?Math.cos(a)*.55:0);
     // Groups face their middle; window-shoppers face the storefront; leaners face the street.
     const face=size>1?[cx,cz]:kind==='shop'?[x+s.l.wall[0]*2,z+s.l.wall[1]*2]:[x-s.l.wall[0]*2,z-s.l.wall[1]*2];
-    people.push({id:'stand-'+(k++),fixed:true,kind,lane:s.l.id,t:s.t,side:s.side,x,z,face,clip:kind==='lean'?(rnd()<.5?'smoke':'idle'):kind==='shop'?(rnd()<.5?'watch':'idle'):'talk'});}}
+    people.push({id:'stand-'+(k++),fixed:true,kind,grp:size>1?kind+'-'+i+'-'+Math.round(cx):null,lane:s.l.id,t:s.t,side:s.side,x,z,face,clip:kind==='lean'?(rnd()<.5?'smoke':'idle'):kind==='shop'?(rnd()<.5?'watch':'idle'):'talk'});}}
   return people;}}
 
  // Hysteresis uses the main loop's measured frame intervals, never Babylon's unmaintained FPS counter.
@@ -104,9 +104,14 @@
    // Try the next look; one still downloading is skipped for one that is ready.
    for(let i=0;i<looks.length&&!node;i++){look=looks[(dealt++)%looks.length];node=instance('crowd:'+look,parent);}if(!node)return;
    node.metadata={...node.metadata,crowd:look,nightlife:p.id};p.node=node;p.look=look;p.fade=0;p.parts=node.getChildMeshes().map(m=>[m,m.visibility]);for(const [m]of p.parts)m.visibility=0;
+   enlistDevice(p);
    if(p.fixed){p.anim=animate(node,look,p.clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw=Math.atan2(p.face[0]-p.x,p.face[1]-p.z);return;}
    p.anim=animate(node,look,p.drunk?'drunk-walk':'walk');place(p,0);}
   const has=(p,c)=>p.anim?.has?.(c);
+  // People check their V1 now and then (npc-device.js): who walks with whom, and whether they are walking now.
+  function enlistDevice(p){const D=root.VoidNPCDevice;if(!D?.enlist)return;const mate=p.pairOf||p.friendOf||people.find(o=>o.pairOf===p.id||o.friendOf===p.id)?.id||(p.grp&&people.find(o=>o!==p&&o.grp===p.grp)?.id)||null;
+   D.enlist(p.node,{kind:p.fixed?(p.kind==='shop'?'shop':'stander'):'walker',pair:mate,state:()=>({moving:!p.fixed&&p.state==='walk',can:!p.drunk&&!p.away&&!p.hidden&&!byId.get(p.friendOf)?.drunk})});}
+  const R=()=>root.VoidCrowdReact;
   function play(p,clip,alt='idle'){if(!p.anim)return;p.anim.play(has(p,clip)?clip:alt);}
   function place(p,dt){const sway=p.drunk&&p.state==='walk'?Math.sin(p.sway)*.32+Math.sin(p.sway*2.7)*.08:0,side=Math.max(-p.l.half,Math.min(p.l.half,p.side+sway));
    const [x,z]=p.state==='lean'?at(p.l,p.t,p.l.half+.05):at(p.l,p.t,side);const dx=x-p.node.position.x,dz=z-p.node.position.z;
@@ -137,6 +142,11 @@
     if(p.hidden)continue;
     const far=me&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.activeRadius;if(far)continue;
     p.timer-=dt;p.react=Math.max(0,p.react-dt);p.sway+=dt*(p.drunk?1.6:0);
+    // A spectacle (VoidCrowdReact): stop and watch or film it; those who would rather not turn round and walk the other way.
+    const react=R()?.reactionOf?.(p.node);
+    if(react&&(react.mode==='film'||react.mode==='watch')){if(p.state!=='spectate'){p.state='spectate';play(p,'idle');}p.faceTo=[react.x,react.z];place(p,dt);continue;}
+    if(p.state==='spectate'){p.state='walk';p.faceTo=null;p.timer=stopIn(p);play(p,p.drunk?'drunk-walk':'walk');}
+    if(react&&react.mode==='leave'&&p.leftFrom!==react.event){p.leftFrom=react.event;const toward=(along(p.l,[react.x,react.z])-p.t)*p.dir>0;if(toward)p.dir*=-1;if(p.state!=='walk'){p.state='walk';p.faceTo=null;play(p,p.drunk?'drunk-walk':'walk');}}
     const lead=p.friendOf?byId.get(p.friendOf):p.pairOf?byId.get(p.pairOf):null;
     if(lead?.node){// Friends keep pace beside their friend, stop when they stop.
      p.t=lead.t-lead.dir*.2;p.dir=lead.dir;if(lead.state!=='walk'&&p.state==='walk'){p.state='wait';p.faceTo=[lead.node.position.x,lead.node.position.z];play(p,'talk');}
@@ -146,7 +156,7 @@
      const ahead=[...people.filter(o=>o!==p&&o.node&&o.l===p.l&&!o.friendOf&&!o.pairOf),...(me?[{node:{position:{x:me.x,z:me.z}},player:true}]:[]),...standing.map(([x,z])=>({node:{position:{x,z}}})),...people.filter(o=>o.fixed&&o.node&&o.l===p.l)].find(o=>{const s=along(p.l,[o.node.position.x,o.node.position.z])-p.t;return s*p.dir>0&&s*p.dir<cfg.spacing+.6&&Math.abs(sideOf(p.l,o)-p.side)<.8;});
      if(ahead)p.side+=(p.side>0?-1:1)*dt*1.5;else p.side+=((p.homeSide??(p.homeSide=p.side))-p.side)*Math.min(1,dt*.5);
      p.side=Math.max(-p.l.half+.1,Math.min(p.l.half-.1,p.side));
-     p.t+=p.dir*p.speed*dt*(ahead?.4:1);const L=len(p.l);if(p.t<1||p.t>L-1){p.dir*=-1;p.t=Math.max(1,Math.min(L-1,p.t));
+     p.t+=p.dir*p.speed*dt*(ahead?.4:1)*(R()?.pace?.(p.node)??1);const L=len(p.l);if(p.t<1||p.t>L-1){p.dir*=-1;p.t=Math.max(1,Math.min(L-1,p.t));
       if(!hasCompanion(p)&&rnd()<cfg.leaveShare){leave(p);continue;}}
      if(p.timer<=0){const where=at(p.l,p.t);p.timer=cfg.stopFor[0]+rnd()*(cfg.stopFor[1]-cfg.stopFor[0]);
       if(p.drunk&&canLean(p.l,p.t)&&rnd()<.45){p.state='lean';p.timer=cfg.leanFor[0]+rnd()*(cfg.leanFor[1]-cfg.leanFor[0]);play(p,'drunk-idle');}
@@ -156,6 +166,7 @@
      // Passers-by react to a drunk close by: a glance, a step aside, sometimes a laugh.
      if(!p.drunk&&!p.react){const d=people.find(o=>o.drunk&&o.node&&Math.hypot(o.node.position.x-p.node.position.x,o.node.position.z-p.node.position.z)<cfg.reactRadius);
       if(d){p.react=cfg.reactCooldown;p.side+=(sideOf(p.l,d)>p.side?-.5:.5);p.state='react';p.timer=1.6;p.faceTo=[d.node.position.x,d.node.position.z];if(has(p,'laugh')&&rnd()<.4)p.anim.playOnce('laugh','idle');else play(p,'watch','idle');}}}
+    else if(p.timer<=0&&R()?.holds?.(p.node))p.timer=.5;   /* a photo or selfie being taken: they finish it first */
     else if(p.timer<=0){p.state='walk';p.faceTo=null;p.timer=stopIn(p);play(p,p.drunk?'drunk-walk':'walk');}
     // A drunk near you says something now and then.
     if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: "'+remarks[Math.floor(rnd()*remarks.length)]+'"');}
