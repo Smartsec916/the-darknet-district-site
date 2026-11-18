@@ -115,8 +115,14 @@
  // The four livestream studios. Each has exactly one adult dancer (a clothed crowd figure), its own lighting and its own set. `window` and `door` are the spans
  // (along x) of the observation window and the closed studio door in the hallway wall. `clips` are the look's own clips, tried in order; `library` is a clip from
  // the shared animation library (anim-library.js), used instead when that licensed file is installed.
+ // Studio 1 is always the opposite of the Avenue's 12-hour UTC shift.
+ function studioOnePerformer(ms=Date.now()){
+  const pair=root.VoidStreetPair||(typeof module==='object'&&module.exports?require('./ncz-street-pair.js'):null);
+  const street=pair?.onShift(ms)?.id||(new Date(ms).getUTCHours()<12?'grey-reverie':'ethereal-lace');
+  return street==='grey-reverie'?{id:'ethereal-lace',look:'npc-ethereal-lace',clips:['idle','look','sit'],library:null}:{id:'grey-reverie',look:'npc-grey-reverie',clips:[],library:null};
+ }
  const STUDIOS=[
-  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:{id:'milked-dancer-1',look:'district-resident',clips:['dance','idle'],library:'ac-sensual-dance-3'}},
+  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:{id:'milked-dancer-1',...studioOnePerformer()}},
   {n:2,room:'studio-2',light:'green',theme:'fern',window:[90,92.4],door:[92.55,93.35],dancer:{id:'milked-dancer-2',look:'studio-warrior',file:'studio-warrior.vrpak',clips:['slow-dance','dance','idle'],library:'ac-sensual-movement-1'}},
   {n:3,room:'studio-3',light:'mixed',theme:'arcade',window:[86.6,89],door:[85.65,86.45],dancer:{id:'milked-dancer-3',look:'vr-companion-bm',clips:['hips','dance','idle'],library:'ac-stand-curve-2'}},
   {n:4,room:'studio-4',light:'mixed',theme:'mirror',window:[90.6,93],door:[89.65,90.45],dancer:{id:'milked-dancer-4',look:'vr-player-b',clips:['dance','idle'],library:'ac-stand-curve-3'}}];
@@ -159,7 +165,7 @@
  const gateAtLocal=p=>{if(!p)return null;for(const g of Object.values(GATES))if(inRect(g.zone,p.x,p.z))return g;return null;};
  // Which doors an environment may open ('street' or the interior).
  const openable=(d,area)=>d.side===(area===AREA?'interior':'street');
- const LOCAL={STAFF_DOOR,CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
+ const LOCAL={studioOnePerformer,STAFF_DOOR,CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
 
  // ---- the same things in WORLD metres: what the rest of the game reads ----
  const [OX,OZ]=OFFSET;
@@ -194,6 +200,6 @@
  const OLD_BLOCK=[FOOTPRINT[0]-1,Math.max(LANE[1],ALLEY[1])+1,FOOTPRINT[2]-4,LANE[3]+1];
  const fromOld=(x,z)=>inRect(OLD_BLOCK,x,z)?[x+OX,z+OZ]:null;
 
- const api={STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
+ const api={studioOnePerformer,STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMilked=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
