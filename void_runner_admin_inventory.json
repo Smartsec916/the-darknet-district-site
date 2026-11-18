@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "8d772c06bd2a3f08",
+  "revision": "ec7c2fb8fa4e76ba",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -12640,7 +12640,7 @@
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 151,
+      "line": 154,
       "text": "/* THE IN-GAME CLOCK (game-clock.js): once a second, while the tab is visible and the player is walking or flying (not a menu, pause, a conversation, the pod card or a",
       "kind": "source-reference"
     },
@@ -16141,7 +16141,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
     "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
-    "void-runner/live-content.js": "5d6d72b831bcf47e3afe2664260eb3d71e5b7d0f8fd6d47172aaad8f375da155",
+    "void-runner/live-content.js": "d4d9660e77ae44f171bd023bb8e2fd6b169ec8225ebddbbf5449a81aa24986a9",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/main-story.js": "555c68b38b14f6434ff744f863df027bfd0359b70909af23587a716f4f79d95c",

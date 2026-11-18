@@ -142,7 +142,10 @@
  // Leaving the Sleeping Pod (EXIT POD): the one hook into the pod (world-integration.js podAct.exit is wrapped; the room and the music player are untouched).
  // Mission 001 starts on the first exit, or on the next exit for a character who left the pod before it existed. It never starts twice (its record stays in the save).
  function podExit(){try{if(!treesOn())return null;const r=MC.treeEvent(state,env,{type:'pod-exit'},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.offered||r.objective))return r;report(r);deliver(r);return r;}catch{return null;}}
- try{if(typeof podAct!=='undefined'&&typeof podAct.exit==='function'){const exit=podAct.exit;podAct.exit=function(){const was=state?.story?.flags?.podWakePending===true,out=exit.apply(this,arguments);if(was&&state?.story?.flags?.podWakePending!==true)podExit();return out;};}}catch{}
+ // The first exit opens the KeyMap (keymap.js); Admin's call waits until the player closes it (the owner, 18 Nov 2026: "Wait to send Admin's first mission until players press K to close the keymap").
+ // If the KeyMap was seen before, or does not open within 3 s of walking, the call comes at once.
+ function afterKeyMap(seen,fn){const K=root.VoidKeyMapUI;if(seen||!K)return fn();let t=0,opened=false;const id=setInterval(()=>{if(K.open)opened=true;else if((typeof mode!=='undefined'?mode:'')==='walking'&&!root.VoidCharacterCreator?.isOpen)t+=250;if((opened&&!K.open)||(!opened&&t>=3000)){clearInterval(id);fn();}},250);}
+ try{if(typeof podAct!=='undefined'&&typeof podAct.exit==='function'){const exit=podAct.exit;podAct.exit=function(){const was=state?.story?.flags?.podWakePending===true,out=exit.apply(this,arguments);if(was&&state?.story?.flags?.podWakePending!==true)afterKeyMap(state?.story?.flags?.keymapSeen===true,podExit);return out;};}}catch{}
  if(root.VoidNetwork?.request)refresh();
  const inbox=channel=>{try{return typeof state!=='undefined'&&state?MC.inbox(state,env,channel):[];}catch{return [];}};
  const markRead=id=>{try{if(MC.markRead(state,id)){try{save();}catch{}return true;}}catch{}return false;};
