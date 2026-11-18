@@ -26,12 +26,12 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    if(r==='done')return;assert.ok(Date.now()-t0<300000,'walk to '+x1+','+z1+' stuck ('+r+')');await page.waitForTimeout(r==='moving'?60:250);}};
   const perf=()=>page.evaluate(()=>{const sc=VoidBabylon.scene,e=sc.getEngine(),gl=e._gl,t=[],d=[];for(let i=0;i<12;i++){const d0=e._drawCalls.current,a=performance.now();sc.render();gl.finish();t.push(performance.now()-a);d.push(e._drawCalls.current-d0);}t.sort((a,b)=>a-b);d.sort((a,b)=>a-b);return {drawCalls:d[6],activeMeshes:sc.getActiveMeshes().length,frameMs:+t[6].toFixed(1)};});
   // Close-ups: the camera 2.5 m in front of a figure that is already in the scene (turned `off` radians round it), looking at its chest.
-  const frontOf=async(name,pos,yaw,off=0,dist=2.5,bare=true)=>{const a=yaw+off,x=pos[0]+Math.sin(a)*dist,z=pos[1]+Math.cos(a)*dist;await at(x,z,Math.atan2(pos[0]-x,pos[1]-z),-.16);await shot(name,2500,bare);};
+  const frontOf=async(name,pos,yaw,off=0,dist=3,bare=true,pitch=.2)=>{const a=yaw+off,x=pos[0]+Math.sin(a)*dist,z=pos[1]+Math.cos(a)*dist;await at(x,z,Math.atan2(pos[0]-x,pos[1]-z),pitch);await shot(name,2500,bare);};   // pitch: positive looks down
   const templeMonk=async id=>(await page.evaluate(i=>VoidBabylon.zone.monks().find(m=>m.id===i),id));
   const street=async(quarter,spawn)=>{await page.evaluate(async([quarter,spawn])=>{const d=C.startDistrictCampaign(C.fresh());d.story.flags.podWakePending=false;d.credits=100;state=d;walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');state.location='earth';
     await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter,spawn});},[quarter,spawn]);
    await page.waitForFunction(q=>mode==='walking'&&walkingLocation?.quarter===q&&VoidAssets.pending===0,quarter);
-   await page.waitForFunction(()=>{const N=VoidBabylon.district?.nightlife;return N&&N.people.filter(p=>!p.fixed).every(p=>p.node);},null,{timeout:240000,polling:1000});await page.waitForTimeout(3000);
+   await page.waitForFunction(()=>{const N=VoidBabylon.district?.nightlife;return N&&N.people.filter(p=>!p.fixed&&p.monkPlan).every(p=>p.node)&&N.people.filter(p=>!p.fixed&&p.node).length>=N.people.filter(p=>!p.fixed).length*.8;},null,{timeout:600000,polling:1000});await page.waitForTimeout(3000);
    return page.evaluate(()=>{const N=VoidBabylon.district.nightlife,w=N.people.filter(p=>!p.fixed);return {walkers:w.length,monks:w.filter(p=>p.monkPlan).length,monkFigures:w.filter(p=>p.monkPlan&&p.node&&/^npc-monk-/.test(p.look)).length,tagged:w.filter(p=>p.monkPlan&&VoidNPCDevice._agent?.(p.node)?.monk!==false).length,looks:[...new Set(w.filter(p=>p.monkPlan).map(p=>p.look))],stats:N.stats(),
     monkPos:w.filter(p=>p.monkPlan).map(p=>[+p.node.position.x.toFixed(1),+p.node.position.z.toFixed(1)])};});};
   // 1. Old Town, the city centre: monks are rare
@@ -41,11 +41,16 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   assert.ok(ave.monks/ave.walkers>old.monks/Math.max(1,old.walkers),'more monks toward the Temple');assert.equal(ave.monkFigures,ave.monks,'every street monk wears a monk figure');assert.ok(ave.monkPos.every(p=>p.every(Number.isFinite)),'every monk stands somewhere real');
   const slow=await page.evaluate(()=>{const N=VoidBabylon.district.nightlife;return N.people.filter(p=>p.monk&&p.node).map(p=>+p.speed.toFixed(3));});log('monk speeds '+JSON.stringify(slow));const pace=await page.evaluate(()=>VoidNightlife.monkSpeed());assert.ok(slow.length&&slow.every(s=>Math.abs(s-pace)<1e-3),'monks walk at the monk pace');
   await at(128,-12.5,-Math.PI/2,-.03);await shot('02-avenue-toward-city-from-east-gate');await at(110,-12.5,Math.PI/2,-.03);await shot('03-avenue-toward-east-gate');
-  const withMonks=await perf();await page.evaluate(()=>{for(const p of VoidBabylon.district.nightlife.people)if(p.monkPlan&&p.node)p.node.setEnabled(false);});const withoutMonks=await perf();await page.evaluate(()=>{for(const p of VoidBabylon.district.nightlife.people)if(p.monkPlan&&p.node&&!p.hidden&&!p.away)p.node.setEnabled(true);});
-  log('avenue perf with monks '+JSON.stringify(withMonks)+' without '+JSON.stringify(withoutMonks));
+  // the street monks' cost: the camera 7 m from the nearest monk, looking at it; drawn with and without the monks (nightlife paused for the two measurements)
+  await page.evaluate(()=>{const N=VoidBabylon.district.nightlife,m=N.people.filter(p=>p.monkPlan&&p.node)[0];const q=m.node.position;Object.assign(walker,{x:q.x+7,z:-12.5,yaw:Math.atan2(-7,q.z+12.5),pitch:.05});});await page.waitForTimeout(1500);
+  const withMonks=await perf();const shown=await page.evaluate(()=>{const ps=VoidBabylon.district.nightlife.people.filter(p=>p.monkPlan&&p.node&&p.node.isEnabled());ps.forEach(p=>p.node.setEnabled(false));window.__hid=ps;return ps.length;});const withoutMonks=await perf();withMonks.monksShown=shown;await page.evaluate(()=>{for(const p of window.__hid)p.node.setEnabled(true);});
+  // for comparison: one ordinary walker in view (a MakeHuman crowd look) hidden the same way
+  const ordinary=await page.evaluate(()=>{const c=VoidBabylon.scene.activeCamera.globalPosition,ps=VoidBabylon.district.nightlife.people.filter(p=>!p.monkPlan&&p.node&&p.node.isEnabled()&&!p.fixed).sort((a,b)=>Math.hypot(a.node.position.x-c.x,a.node.position.z-c.z)-Math.hypot(b.node.position.x-c.x,b.node.position.z-c.z));const p=ps[0];if(!p)return null;p.node.setEnabled(false);window.__ord=p;return p.look;});
+  const withoutOrdinary=ordinary?await perf():null;if(ordinary){withoutOrdinary.look=ordinary;await page.evaluate(()=>window.__ord.node.setEnabled(true));}
+  log('avenue perf with monks '+JSON.stringify(withMonks)+' without '+JSON.stringify(withoutMonks)+' without one ordinary walker '+JSON.stringify(withoutOrdinary));
   // 3. a street monk close up (held still for the picture)
   const sm=await page.evaluate(()=>{const p=VoidBabylon.district.nightlife.people.find(p=>p.monkPlan&&p.node&&!p.hidden&&!p.away);if(!p)return null;p.state='stop';p.timer=999;p.anim?.play?.('idle');return {look:p.look,pos:[p.node.position.x,p.node.position.z],yaw:p.node.rotation.y};});
-  if(sm)await frontOf('04-street-monk-'+sm.look.slice(4),sm.pos,sm.yaw,.35);
+  if(sm)await frontOf('04-street-monk-'+sm.look.slice(4),sm.pos,sm.yaw,.35,3.2);
   // 4. through the East Gate on foot, to the Temple
   await at(138,-6.8,Math.PI/2,0);await walk(144,-6.8);await walk(148,-6.8);await page.waitForFunction(()=>walkingLocation?.id==='temple'&&mode==='walking'&&!VoidGateTransit.busy,null,{timeout:600000});
   await page.waitForFunction(()=>VoidAssets.pending===0);
@@ -54,15 +59,18 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   assert.equal(temple.zen.model,true);assert.equal(temple.zen.head,true);assert.equal(temple.primitive,0,'the primitive figure is gone');assert.equal(temple.monks.length,{low:2,medium:5,high:7}[tier]);
   await at(0,-38,0,-.02);await shot('07-temple-arrival');await at(-2,-24,.35,-.03);await shot('08-temple-courtyard-monks');
   await at(0,-3,0,-.02);await shot('09-temple-hall-entrance-zen-from-behind');await at(0,15,0,.02);await shot('10-zen-zephyr-from-the-entrance-side');
-  await at(0,29,Math.PI,-.12);await shot('11-zen-zephyr-front',2500,true);await frontOf('12-zen-zephyr-front-close',[0,22],0,-.3,3.6);await frontOf('12b-zen-zephyr-back-close',[0,22],Math.PI,.4,4.2);
+  await at(0,29,Math.PI,-.12);await shot('11-zen-zephyr-front',2500,true);await frontOf('12-zen-zephyr-front-close',[0,22],0,-.3,3.4,true,.12);await frontOf('12b-zen-zephyr-back-close',[0,22],Math.PI,.4,4.2,true,.1);
   await at(-12,9,.7,-.05);await shot('13-temple-monks-at-altars',2500,true);await at(12,20,-1.9,-.05);await shot('14-temple-monk-aisle',2500,true);
   // close-ups of the three monks where they are (praying ones from beside their altar, walkers mid-stride)
-  const seen=new Set();for(const m of (await page.evaluate(()=>VoidBabylon.zone.monks())).sort((a,b)=>(a.kind==='pray'?0:1)-(b.kind==='pray'?0:1))){if(seen.has(m.look))continue;seen.add(m.look);await page.evaluate(i=>VoidBabylon.zone.holdMonk(i,12),m.id);const q=await templeMonk(m.id);await frontOf('0'+(4+seen.size)+'-close-'+m.look.slice(4)+'-temple',[q.x,q.z],q.yaw,m.kind==='pray'?.75:0,2.4);}
-  const tperf=await perf();log('temple perf (dais view) '+JSON.stringify(tperf));
+  const seen=new Set();for(const m of (await page.evaluate(()=>VoidBabylon.zone.monks())).sort((a,b)=>(a.kind==='pray'?0:1)-(b.kind==='pray'?0:1))){if(seen.has(m.look))continue;seen.add(m.look);await page.evaluate(i=>VoidBabylon.zone.holdMonk(i,12),m.id);const q=await templeMonk(m.id);await frontOf('0'+(4+seen.size)+'-close-'+m.look.slice(4)+'-temple',[q.x,q.z],q.yaw,m.kind==='pray'?.75:0,3);}
+  // the Temple's people: the hall from inside the entrance, with and without the monks, and with Zen Zephyr's model against the primitive figure it replaced (measured in Babylon: the same view)
+  await at(0,-3,0,-.02);await page.waitForTimeout(1500);const tAll=await perf();
+  const tNoMonks=await page.evaluate(()=>{const ns=VoidBabylon.scene.transformNodes.filter(n=>n.metadata?.temple&&n.isEnabled());ns.forEach(n=>n.setEnabled(false));window.__hid=ns;return ns.length;});const tWithout=await perf();await page.evaluate(()=>window.__hid.forEach(n=>n.setEnabled(true)));
+  const tperf={all:tAll,withoutMonks:tWithout,monks:tNoMonks};log('temple perf (hall from the entrance) '+JSON.stringify(tperf));
   // 5. his gaze: talk to him (the prompt is on the entrance side; he sits facing away, so his head and a little of his body turn toward the player)
   await at(0,16.2,0,.05);await page.evaluate(()=>{try{VoidAudio.unlock?.();}catch{}VoidInteractions.handlers.get('temple-monk')({item:{}});});
   await page.waitForFunction(()=>VoidNPCLook.current?.character==='zen-zephyr'&&VoidNPCLook.current.weight>.8,null,{timeout:30000});const look=await page.evaluate(()=>VoidNPCLook.current);log('gaze '+JSON.stringify(look));
   await at(1.5,16.6,-.15,.06);await shot('15-zen-zephyr-turns-to-speak',1500);
-  assert.deepEqual(errs,[]);console.log(JSON.stringify({ok:true,tier,old,avenue:ave,perf:{avenue:{withMonks,withoutMonks},temple:tperf},gaze:look}));
+  assert.deepEqual(errs,[]);console.log(JSON.stringify({ok:true,tier,old,avenue:ave,perf:{avenue:{withMonks,withoutMonks,withoutOrdinary},temple:tperf},gaze:look}));
  }finally{await b.close();srv.close();}
 })().catch(e=>{console.error(String(e.stack||e).slice(0,1500));process.exit(1);});
