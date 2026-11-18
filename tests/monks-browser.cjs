@@ -39,8 +39,8 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   const old=await street('oldtown',[61,1.7,-70]);log('old town '+JSON.stringify(old));await at(61,-70,Math.PI,-.04);await shot('01-old-town-centre');
   // 2. the Avenue toward the East Gate: many more of the walkers are monks; they walk slowly and are tagged monks (no V1, never film)
   const ave=await street('avenue',[100,1.7,-12]);log('avenue '+JSON.stringify(ave));
-  assert.ok(ave.monks/ave.walkers>old.monks/Math.max(1,old.walkers),'more monks toward the Temple');assert.equal(ave.monkFigures,ave.monks,'every street monk wears a monk figure');
-  const slow=await page.evaluate(()=>{const N=VoidBabylon.district.nightlife;return N.people.filter(p=>p.monk&&p.node).map(p=>+p.speed.toFixed(3));});log('monk speeds '+JSON.stringify(slow));assert.ok(slow.length&&slow.every(s=>Math.abs(s-VoidNightlife.monkSpeed())<1e-6),'monks walk at the monk pace');
+  assert.ok(ave.monks/ave.walkers>old.monks/Math.max(1,old.walkers),'more monks toward the Temple');assert.equal(ave.monkFigures,ave.monks,'every street monk wears a monk figure');assert.ok(ave.monkPos.every(p=>p.every(Number.isFinite)),'every monk stands somewhere real');
+  const slow=await page.evaluate(()=>{const N=VoidBabylon.district.nightlife;return N.people.filter(p=>p.monk&&p.node).map(p=>+p.speed.toFixed(3));});log('monk speeds '+JSON.stringify(slow));const pace=await page.evaluate(()=>VoidNightlife.monkSpeed());assert.ok(slow.length&&slow.every(s=>Math.abs(s-pace)<1e-3),'monks walk at the monk pace');
   await at(128,-12.5,-Math.PI/2,-.03);await shot('02-avenue-toward-city-from-east-gate');await at(110,-12.5,Math.PI/2,-.03);await shot('03-avenue-toward-east-gate');
   const withMonks=await perf();await page.evaluate(()=>{for(const p of VoidBabylon.district.nightlife.people)if(p.monkPlan&&p.node)p.node.setEnabled(false);});const withoutMonks=await perf();await page.evaluate(()=>{for(const p of VoidBabylon.district.nightlife.people)if(p.monkPlan&&p.node&&!p.hidden&&!p.away)p.node.setEnabled(true);});
   log('avenue perf with monks '+JSON.stringify(withMonks)+' without '+JSON.stringify(withoutMonks));

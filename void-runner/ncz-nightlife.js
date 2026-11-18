@@ -129,7 +129,7 @@
     the one leaving the most room, kept if it is already enough, never past the lane's edges) or null when the way is clear. */
  function foresee(me,others,half,cfg=config.monk){const lo=-half+cfg.margin,hi=half-cfg.margin,lines=[me.side,me.home??me.side,...(me.avoid?[me.avoid.side]:[])];
   const threats=[];let first=null;
-  for(const o of others){const gap=o.t-me.t;if(!gap||Math.abs(gap)>cfg.sense)continue;const closing=(me.v-o.v)*Math.sign(gap);if(closing<=.05)continue;
+  for(const o of others){const gap=o.t-me.t;if(!gap||Math.abs(gap)>cfg.sense)continue;const closing=(me.v-o.v)*Math.sign(gap);if(!(closing>.05))continue;   /* a speed that is not a number never counts as a threat */
    if(!lines.some(s=>Math.abs(o.side-s)<cfg.clear))continue;threats.push(o);if(!first||Math.abs(gap)<Math.abs(first.t-me.t))first=o;}
   if(!first)return null;
   const gap=Math.abs(first.t-me.t),eta=gap/Math.max(.05,(me.v-first.v)*Math.sign(first.t-me.t));
@@ -274,7 +274,8 @@
     if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: "'+remarks[Math.floor(rnd()*remarks.length)]+'"');}
     place(p,dt);gait(p);}}
   // The monk's view of their lane: walkers (with their speed along it), people standing, the street's crew and you; then one monkStep.
-  function monkWay(p,me,dt){const l=p.l,others=[],v=o=>o.state==='walk'&&!o.away?o.dir*o.speed*(o.monk?1:(R()?.pace?.(o.node)??1)):0;
+  // People standing about count as still (v 0): they carry state 'walk' from the start but no speed, and a monk meeting one used to get a NaN side (18 Nov 2026).
+  function monkWay(p,me,dt){const l=p.l,others=[],v=o=>!o.fixed&&o.state==='walk'&&!o.away?o.dir*(o.speed||0)*(o.monk?1:(R()?.pace?.(o.node)??1)):0;
    for(const o of people)if(o!==p&&o.node&&!o.away&&!o.hidden&&o.l===l&&o.pairOf!==p.id&&o.friendOf!==p.id){const pos=[o.node.position.x,o.node.position.z];others.push({id:o.id,t:along(l,pos),side:sideOf(l,o),v:v(o)});}
    for(const [x,z] of standing){const o={node:{position:{x,z}}};const t=along(l,[x,z]);if(t>-2&&t<len(l)+2&&Math.abs(sideOf(l,o))<l.half+.6)others.push({id:'crew@'+x+','+z,t,side:sideOf(l,o),v:0});}
    if(me){const o={node:{position:{x:me.x,z:me.z}}},s=sideOf(l,o);if(Math.abs(s)<l.half+.6)others.push({id:'player',t:along(l,[me.x,me.z]),side:s,v:0});}

@@ -72,3 +72,8 @@ test('the Temple\'s monks: more on higher quality, praying at the altars or walk
  assert.ok(T.MONKS.every(m=>m.kind==='pray'||Math.hypot(m.path[1][0]-m.path[0][0],m.path[1][1]-m.path[0][1])>10));
  const b=fs.readFileSync(R('void-runner/temple-build.js'),'utf8');assert.match(b,/VoidNPCDevice\?\.tag\?\.\(n,\{monk:true\}\)/);assert.match(b,/monkSpeed/);
 });
+
+test('a monk meeting someone with no speed (a person standing about) stays on a real line across the sidewalk',()=>{
+ const me={t:0,side:0,home:0,v:.8};for(let i=0;i<40;i++)N.monkStep(me,[{id:'stand',t:6-i*.1,side:0,v:0},{id:'odd',t:4,side:.1,v:NaN}],1,.1);
+ assert.ok(Number.isFinite(me.side)&&Math.abs(me.side)>.3,'stepped aside: '+me.side);
+});
