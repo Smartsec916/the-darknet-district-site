@@ -129,7 +129,8 @@
     if(first){box('bridge-roof',[W+1.2,.3,D+2.8],[vc,top+.15,mid],dark);for(const x of [s.v0+3,s.v1-4]){box('roof-unit',[2,1.2,1.6],[x,top+.9,mid],rail);}cyl('mast',.06,5,[vc+4,top+2.8,mid],rail);box('mast-tip',[.1,.1,.1],[vc+4,top+5.35,mid],red);}
     box('bridge-pipe',[W+.4,.16,.16],[vc,H+1.0,fo(1.28)],rail);}
    if((g.fortified||TALL[g.id])&&!g.shut){   // a fortified portal: two pylons, a deep cap beam, slit lights, beacons
-    for(const sd of [-1,1]){if(first){box('pylon',[1.5,H+3,D+.6],[sd<0?s.v0+.75:s.v1-.75,(H+3)/2,mid],concrete);box('beacon',[.22,.22,.22],[sd<0?s.v0+.75:s.v1-.75,H+3.15,mid],red);}box('pylon-slit',[.12,4.2,.06],[sd<0?s.v0+.75:s.v1-.75,H-3,fo(.34)],dimRed);}
+    const py=Q.pylons(g);   // never over a lane's opening (ncz-quarters.js pylons)
+    for(const [a,b] of py){const pc=(a+b)/2;if(first){box('pylon',[b-a,H+3,D+.6],[pc,(H+3)/2,mid],concrete);box('beacon',[.22,.22,.22],[pc,H+3.15,mid],red);}box('pylon-slit',[.12,4.2,.06],[pc,H-3,fo(.34)],dimRed);}
     if(first)box('cap-beam',[W,1.4,D+.9],[vc,H-.2,mid],dark);for(let x=s.v0+2.6;x<s.v1-2;x+=2.4)box('cap-rib',[.25,2.6,.3],[x,H-2.2,fo(.15)],frame);
     box('upper-plate',[W-3.4,2.2,.1],[vc,9.6,fo(.05)],plate);for(let x=s.v0+3;x<s.v1-2.6;x+=1.6)box('slit',[.5,.07,.05],[x,11.4,fo(.06)],cold);}
    if(g.shut)buildShut(F,g,H,out,fo);
