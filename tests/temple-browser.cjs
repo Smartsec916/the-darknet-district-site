@@ -15,8 +15,9 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  const srv=await serve(),base='http://127.0.0.1:'+srv.address().port,log=m=>console.log(new Date().toISOString().slice(11,19),m);
  const b=await chromium.launch({headless:true,...(exe?{executablePath:exe}:{}),args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
  try{
- const page=await (await b.newContext({viewport:{width:1280,height:720},serviceWorkers:'block'})).newPage();page.setDefaultTimeout(600000);const errs=[],zenRequests=[];page.on('pageerror',e=>errs.push(e.message));page.on('request',r=>{if(/\/extra\/zen-[a-z0-9-]+\.ogg$|\/score\/temple[a-z-]*\.ogg$/.test(r.url()))zenRequests.push(r.url());});
+ const page=await (await b.newContext({viewport:(([w,h])=>({width:+w||1280,height:+h||720}))((process.env.VIEW||'').split('x')),serviceWorkers:'block'})).newPage();page.setDefaultTimeout(600000);const errs=[],zenRequests=[];page.on('pageerror',e=>{console.log('page error: '+String(e.stack||e).slice(0,700));if(/void-runner\/cache\.js/.test(String(e.stack))&&/'update'/.test(e.message))return;errs.push(e.message);});page.on('request',r=>{if(/\/extra\/zen-[a-z0-9-]+\.ogg$|\/score\/temple[a-z-]*\.ogg$/.test(r.url()))zenRequests.push(r.url());});   /* cache.js's 15-minute service-worker update tick throws when the test blocks service workers (runs over 15 min); not a game fault */
  await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/api/**',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));
+ if(process.env.NO_WALL)await page.addInitScript(()=>Object.defineProperty(window,'VoidTempleWall',{get(){},set(){},configurable:true}));   // NO_WALL=1: the old parapet, for before/after numbers
  await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({renderer:'babylon',quality:q,v:2,chosen:true})),tier);
  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
  await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:900000,assets:900000,optional:600000,area:900000,total:1800000,module:600000,artwork:300000}));
@@ -79,6 +80,17 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  const zenClips=await page.evaluate(()=>VoidVoiceClips.played.map(p=>p.primary.id).filter(i=>/zen-/.test(i)));log('zen clips played '+JSON.stringify(zenClips));
  assert.ok(zenRequests.some(u=>u.endsWith('/extra/zen-greeting.ogg'))&&zenRequests.some(u=>u.endsWith('/extra/zen-followup.ogg'))&&zenRequests.some(u=>u.endsWith('/extra/'+first.key+'.ogg'))&&zenRequests.some(u=>u.endsWith('/extra/'+second.key+'.ogg')),'clips requested: '+JSON.stringify(zenRequests));
  await at(12,17,WEST,.05);await shot('07-temple-hall-across');await at(0,14.2,NORTH,-.12);await shot('08-temple-dais-zen-zephyr');
+ // 3c. the monastery wall at the edge (temple-wall.js, build 2026-11-18-temple-wall-1): along the edge, a corner, the gatehouse, the view over it to the city; solid, open at the gates
+ const wallPerf=async(x,z,yaw,pitch)=>{await at(x,z,yaw,pitch);await page.waitForTimeout(600);return page.evaluate(()=>{const sc=VoidBabylon.scene,e=sc.getEngine(),gl=e._gl,t=[],d=[];for(let i=0;i<10;i++){const d0=e._drawCalls.current,a=performance.now();sc.render();gl.finish();t.push(performance.now()-a);d.push(e._drawCalls.current-d0);}t.sort((a,b)=>a-b);d.sort((a,b)=>a-b);
+  return {drawCalls:d[5],frameMs:+t[5].toFixed(1),wallMeshes:sc.meshes.filter(m=>/^tmp-wall-/.test(m.name)).length,wallVerts:sc.meshes.filter(m=>/^tmp-wall-/.test(m.name)).reduce((a,m)=>a+m.getTotalVertices(),0)};});};
+ const wp={gate:await wallPerf(-3,-36,Math.PI,-.02),corner:await wallPerf(-40,-40,-2.36,0),city:await wallPerf(30,-40,2.36,.02)};log('wall performance '+JSON.stringify(wp));
+ if(!process.env.NO_WALL){const wc=await page.evaluate(()=>({wall:!!window.VoidTempleWall,solid:[[20,-49],[-49,0],[0,49],[49,-20],[49,30]].map(([x,z])=>VoidExplorer.blocked(x,z,walkingLocation)),gate:VoidTempleWall.GATES.map(g=>VoidExplorer.blocked((g.from+g.to)/2,-49,walkingLocation)),parapet:walkingLocation.solids.some(s=>/parapet/.test(s.id))}));
+  log('wall collision '+JSON.stringify(wc));assert.ok(wc.wall&&wc.solid.every(Boolean),'the wall is solid');assert.ok(wc.gate.every(b=>!b),'the gates are open');assert.equal(wc.parapet,false);
+  await at(20,-46,Math.PI,0);let r='';for(let i=0;i<20&&r!=='blocked';i++)r=await page.evaluate(()=>{const nz=walker.z-.25;if(VoidExplorer.blocked(walker.x,nz,walkingLocation))return 'blocked';walker.z=nz;return 'moving';});assert.equal(r,'blocked','walking south into the wall stops');assert.ok(await page.evaluate(()=>walker.z>-48.85),'stopped at the wall');
+  await at(0,-44.5,Math.PI,0);await walk(0,-49.3);}
+ await at(-20,-46.6,-1.75,-.03);await shot('11-wall-along-the-edge');await at(-41,-41,-2.36,.02);await shot('12-wall-corner-stupa');await at(-3,-35.5,Math.PI,.02);await shot('13-wall-gatehouse-road-and-walkers');
+ await at(28,-38,2.2,.03);await shot('14-wall-view-over-to-the-city');await at(36.5,-20,EAST,-.02);await shot('15-wall-overlook-window');
+ {const f=await page.evaluate(()=>VoidTempleWall?.features().find(f=>f.kind==='glyph'&&f.side==='north'));if(f){await at(f.along+1.2,45.2,-.3,-.08);await shot('16-wall-glyph-in-the-glass');}}
  // performance: the hall's draw calls and the frame's cost (software GL: relative numbers only)
  const perf=await page.evaluate(()=>{const sc=VoidBabylon.scene,e=sc.getEngine(),gl=e._gl,t=[],d=[];for(let i=0;i<14;i++){const d0=e._drawCalls.current,a=performance.now();sc.render();gl.finish();t.push(performance.now()-a);d.push(e._drawCalls.current-d0);}t.sort((a,b)=>a-b);d.sort((a,b)=>a-b);
   return {drawCalls:d[7],activeMeshes:sc.getActiveMeshes().length,meshes:sc.meshes.length,materials:sc.materials.length,textures:sc.textures.length,frameMs:+t[7].toFixed(1)};});log('performance at the dais '+JSON.stringify(perf));
@@ -96,6 +108,6 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  const back=await page.evaluate(()=>({pos:[walker.x,walker.z],temple:VoidBabylon.scene.meshes.some(m=>/^tmp-|^mk-/.test(m.name)),templeLights:VoidBabylon.scene.lights.some(l=>/^temple-/.test(l.name)),mirror:VoidBabylon.scene.textures.some(t=>t.name==='temple-floor-mirror'),fog:state.story.flags.templeFog}));
  log('back '+JSON.stringify(back));assert.equal(back.temple,false,'nothing of the Temple is left');assert.equal(back.templeLights,false);assert.equal(back.mirror,false);assert.ok(typeof back.fog==='string'&&back.fog.length>10);
  await page.waitForTimeout(2500);await walk(141,-6.8);await at(135,-10,1.25,-.08);await shot('10-east-gate-lane-back-on-the-avenue');
- assert.deepEqual(errs,[]);console.log(JSON.stringify({ok:true,tier,perf,lights:arr.own,mirrored:arr.mirrored,steps:snd.surface}));
+ assert.deepEqual(errs,[]);console.log(JSON.stringify({ok:true,tier,wall:!process.env.NO_WALL,wp,perf,lights:arr.own,mirrored:arr.mirrored,steps:snd.surface}));
  }finally{await b.close();srv.close();}
 })().catch(e=>{console.error(String(e.stack||e).slice(0,1500));process.exit(1);});
