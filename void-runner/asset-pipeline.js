@@ -17,9 +17,10 @@
     for (const item of [...data.buffers || [], ...data.images || []])
       if (item.uri && !item.uri.startsWith('data:')) throw Error('Use a self-contained GLB; external asset URIs are not enabled.');
     // KTX2 / Basis Universal textures (KHR_texture_basisu) are decoded by the locally hosted transcoder in
-    // vendor/ktx2 (useKTX2Locally); compressed geometry still has no decoder here.
-    const compressed = ['KHR_draco_mesh_compression', 'EXT_meshopt_compression'];
-    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed geometry needs a configured, locally hosted decoder. Export an uncompressed GLB for this milestone.');
+    // vendor/ktx2 (useKTX2Locally), and meshopt geometry (EXT_meshopt_compression, lossless, 18 Nov 2026) by the
+    // locally hosted vendor/meshopt_decoder-1.3.0.js (useMeshoptLocally). Draco still has no decoder here.
+    const compressed = ['KHR_draco_mesh_compression', 'KHR_meshopt_compression'];
+    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed geometry needs a configured, locally hosted decoder. Export an uncompressed or EXT_meshopt_compression GLB.');
     return data;
   }
 
@@ -34,6 +35,15 @@
       wasmUASTCToRGBA_UNORM: at('uastc_rgba8_unorm_v2.wasm'), wasmUASTCToRGBA_SRGB: at('uastc_rgba8_srgb_v2.wasm'), wasmUASTCToR8_UNORM: at('uastc_r8_unorm.wasm'),
       wasmUASTCToRG8_UNORM: at('uastc_rg8_unorm.wasm'), jsMSCTranscoder: at('msc_basis_transcoder.js'), wasmMSCTranscoder: at('msc_basis_transcoder.wasm'), wasmZSTDDecoder: at('zstddec.wasm')};
     K.DefaultNumWorkers = Math.max(1, Math.min(2, (root.navigator?.hardwareConcurrency || 2) - 1));
+  }
+
+  // Babylon's meshopt decoder defaults to a CDN; the game serves its own copy (meshoptimizer 1.3.0, MIT:
+  // vendor/LICENSE-meshoptimizer.md), set before any model loads.
+  function useMeshoptLocally() {
+    const M = root.BABYLON?.MeshoptCompression;
+    if (!M || !base) return;
+    const url = new URL('vendor/meshopt_decoder-1.3.0.js', base).href;
+    if (M.Configuration?.decoder?.url !== url) M.Configuration = {decoder: {url}};
   }
 
   // Licensed models whose terms ask games to keep the file from casual extraction ship as .vrpak: the GLB
@@ -68,6 +78,7 @@
 
   function loadPlugin(task) {
     useKTX2Locally();
+    useMeshoptLocally();
     if (loader) return loader;
     loader = new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -262,6 +273,7 @@
     unpack,
     open,
     useKTX2Locally,
+    useMeshoptLocally,
     load,
     instance,
     prepare,
