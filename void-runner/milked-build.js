@@ -685,23 +685,28 @@
   const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,y:0,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,spawned:false,...opts});
   const eva=MODELS.eva,fish=MODELS.fish;
   spot(eva.id,eva.at[0],eva.at[1],eva.face,eva.clips,{fixedLook:eva.look,asset:eva.asset,role:'eva'});spot(fish.id,fish.at[0],fish.at[1],fish.face,fish.clips,{fixedLook:fish.look,asset:fish.asset,role:'fish'});
-  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,spare:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
+  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
   for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
    p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
    p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
   /* The dancers' clothes lean to black and pink (the owner's reference). The figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are
      separate materials: each dancer gets its own tinted copy of those two (the model files and everyone else who wears the look are untouched). A face
      covering that came with a look (the street mask, the VR headset and its trackers) is hidden so that every dancer's face shows. Nothing else changes:
-     the same clothed figures, the same clips. */
-  const OUTFIT={'district-resident':{suit:[.5,.45,.55],shoes:[3,.6,2]},'vr-companion-f':{suit:[1.6,1,2.2],shoes:[.6,.6,.7]},'vr-companion-m':{suit:[.55,.5,.6],shoes:[1.4,.35,1.6]},'vr-player-b':{suit:[1.3,.3,5],shoes:[.2,.2,.22]}},COVER=/\.(mask0|headset0|trackers1)/;
+     the same clothed figures, the same clips. The licensed dancers (studio 2's Female Warrior, studio 3's Dex) keep their own outfits. */
+  const OUTFIT={'district-resident':{suit:[.5,.45,.55],shoes:[3,.6,2]},'vr-companion-m':{suit:[.55,.5,.6],shoes:[1.4,.35,1.6]},'vr-player-b':{suit:[1.3,.3,5],shoes:[.2,.2,.22]}},COVER=/\.(mask0|headset0|trackers1)/;
   function dress(p){const o=OUTFIT[p.look];p.meshes=p.meshes.filter(m=>{const mat=m.material,nm=mat?.name||'';if(COVER.test(nm)){m.setEnabled(false);return false;}
     const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
   const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
   const asked=new Map();
   // A look that is a licensed companion model (the studio 3 dancer is Dex since 18 Nov 2026, the owner's choice) ships as an encrypted .vrpak, not a .glb.
-  const fileOf=look=>{const C=root.VoidVRCompanions,e=C?.companions&&[...C.companions.values()].find(x=>x.model===look);return e?C.file(e):look+'.glb';};
+  // Studio 2's dancer (the licensed Female Warrior, 18 Nov 2026) names her own .vrpak in milked.js; she is not a companion.
+  const FILES=new Map(people.filter(p=>p.file).map(p=>[p.fixedLook,p.file]));
+  const fileOf=look=>{if(FILES.has(look))return FILES.get(look);const C=root.VoidVRCompanions,e=C?.companions&&[...C.companions.values()].find(x=>x.model===look);return e?C.file(e):look+'.glb';};
   function askLooks(list=LOOKS){for(const look of list){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);asked.set(look,Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+fileOf(look),background:true},scene)).catch(()=>{}).then(()=>{loading.delete(look);asked.delete(look);}));}}return [...asked.values()];}
-  function staff(clock){
+  // Who is speaking to the player now: the open walking conversation's current line (Eva and Fish speak as milked-eva / milked-fish, milked-integration.js).
+  let lastSpeaker=null;
+  function speakerNow(){try{const line=typeof speech!=='undefined'&&speech?.lines?.[speech.index];if(line){lastSpeaker=line.who;return lastSpeaker;}return root.VoidConversationUI?.isOpen?lastSpeaker:(lastSpeaker=null);}catch{return null;}}
+  function staff(clock,cam=null,dt=0){const speaker=cam?speakerNow():null;
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
    if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;askLooks();}
@@ -709,16 +714,20 @@
     if(!p.node){let n=null,look=null,clip=null;
      if(p.asset&&assets?.container?.(p.asset)){n=assets.instance(p.asset,node);look=p.asset;clip='idle';}
      else{   // Eva and Fish only ever use their own look; a dancer whose look is not on this machine after a while uses a spare clothed figure
-      const order=p.spare&&clock>25?[p.fixedLook,...p.spare]:[p.fixedLook];
+      const order=p.spare&&clock>25&&!loading.has(p.fixedLook)?[p.fixedLook,...p.spare]:[p.fixedLook];   // a large licensed file still downloading is waited for, not replaced
       for(const c of order){if(clipsOf(c).some(q=>p.clips.includes(q))&&(n=assets?.instance?.('crowd:'+c,node))){look=c;clip=p.clips.find(q=>clipsOf(c).includes(q))||'idle';break;}}}
-     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id};p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
+     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id,...(p.role!=='dancer'?{character:p.id}:{})};   /* character: the head tracking (npc-look.js) finds Eva and Fish by it */p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
      if(p.role==='dancer'){
       // the shared animation library, where it is installed: a different loop for each studio. Without it the look's own dance plays.
       if(p.library&&root.VoidAnimLibrary?.apply)Promise.resolve(root.VoidAnimLibrary.apply(n,look,{only:[p.library],scene})).then(added=>{if(k.disposed||p.node!==n||!added?.includes(p.library))return;p.anim?.play?.(p.library);p.clip=p.library;}).catch(()=>{});}
      continue;}
-    // a gesture (Mission 003: Eva turns toward the staff-only door as she says where Fish is): eased toward the turn, held, then eased back
-    if(p.turn){const want=clock<p.turn.until?p.turn.yaw:p.yaw,d=Math.atan2(Math.sin(want-p.node.rotation.y),Math.cos(want-p.node.rotation.y));p.node.rotation.y+=d*Math.min(1,.12);
-     if(clock>=p.turn.until&&Math.abs(d)<.02){p.node.rotation.y=p.yaw;p.turn=null;try{p.anim?.play?.(p.clips.includes('idle')?'idle':p.clip);}catch{}}}
+    /* Where Eva and Fish face: a gesture's turn (Mission 003: Eva turns toward the staff-only door as she says where Fish is), else toward the player while she is
+       the one speaking to them (the owner, 18 Nov 2026: "When I got to Fish she didn't turn to look at me"), else her own way. Eased on its own value and written
+       outright every frame, so the small body turn of the head tracking (npc-look.js) is never added up. While she speaks she plays her talk clip, if her look has one. */
+    if(p.role!=='dancer'){const talking=!!cam&&speaker===p.id,want=p.turn&&clock<p.turn.until?p.turn.yaw:talking?Math.atan2(cam.x-p.x,cam.z-p.z):p.yaw;
+     if(p.face===undefined)p.face=p.node.rotation.y;const d=Math.atan2(Math.sin(want-p.face),Math.cos(want-p.face));p.face+=d*Math.min(1,p.turn?.12:dt*5);p.node.rotation.y=p.face;
+     if(talking!==!!p.talking){p.talking=talking;if(!p.turn)try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clip);}catch{}}
+     if(p.turn&&clock>=p.turn.until&&Math.abs(d)<.02){p.turn=null;try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clips.includes('idle')?'idle':p.clip);}catch{}}}
     // a figure with no dance of its own still moves: a slow sway on the spot
     if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
   }
@@ -728,7 +737,7 @@
    expose();if(!low&&cam){const zone=zoneOf(cam.x,cam.z);relight(dt,cam,zone);keyLight(dt,cam,zone);if(k.clock>faceNext){faceNext=k.clock+.5;faceLamps(cam);}roomPicture(k.clock,zone);
     // the mirror's list: everything it may show is gathered a few times as the place fills up; on Medium only what is near the player is drawn into it
     if(k.clock>mirNext){mirNext=k.clock+.5;if(!mirAll||k.clock>mirAllNext){mirAllNext=k.clock+(k.clock<45?3:1e9);mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));}mir.renderList=high?mirAll:near(mirAll,cam.x,cam.z,10);}}
-   staff(k.clock);
+   staff(k.clock,cam,dt);
   }
   /* Behind the check-in card (17 Nov 2026, docs/development/SMOOTHNESS_AUDIT.md): the people's figures are fetched and placed now, and every shader the rooms need
      (the people, the floor mirror's view of them, the glow and the key light's shadow) is compiled before the inner doors open. They used to be fetched only once

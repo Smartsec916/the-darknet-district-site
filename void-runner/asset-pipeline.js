@@ -127,8 +127,21 @@
     for(const m of [...container.materials,...scene.materials])if(m.maxSimultaneousLights>8)m.maxSimultaneousLights=8;
     // Character models get their edge light now, before any of their materials is prepared (character-finish.js): a material's plugins must be in place first.
     try{globalThis.VoidCharacterFinish?.applyContainer?.(id,container);}catch(error){console.warn('[VOID//RUNNER character finish]',error);}
+    trimLeadIn(container);
     return container;
   }
+
+  /* A stray first frame (18 Nov 2026). The talk, watch, drink and wipe clips that almost every figure carries (the crowd looks, the named residents, Fish,
+     Eva, Admin, Iris, the companions) begin with ONE key in the bind pose, arms straight out to the sides, then drop to the real motion a fifteenth of a
+     second later. Every time such a loop came round, or a clip started at its beginning, the figure flung its arms out and down again (the owner: "that
+     arms down then out to both sides thing that many of the NPCs are currently doing"). leadInEnd(keys): given an upper arm's rotation keys ({frame, value:
+     [x,y,z,w]}), the frame the clip should start at when its first key is such a jump (more than 45 degrees to the second), else null. trimLeadIn moves each
+     such clip's start past it; copies of a figure take the trimmed range with them. The model files are untouched. */
+  function leadInEnd(keys){if(!keys||keys.length<4)return null;const p=keys[0].value,q=keys[1].value,d=Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3]));return 2*Math.acos(d)>Math.PI/4?keys[1].frame:null;}
+  function trimLeadIn(container){let n=0;for(const g of container?.animationGroups||[]){let start=null;
+    for(const ta of g.targetedAnimations){if(ta.animation.targetProperty!=='rotationQuaternion'||!/(^|:)(Left|Right)Arm$/.test(ta.target?.name||''))continue;const keys=ta.animation.getKeys().map(k=>({frame:k.frame,value:k.value.asArray?k.value.asArray():k.value}));const f=leadInEnd(keys);if(f!==null&&keys[0].frame<=g.from+1e-3)start=Math.max(start??f,f);}
+    if(start!==null&&start<g.to){g.normalize(start,g.to);n++;}}
+   return n;}
 
   // What the glTF loader does to every material when a model finishes loading (above), done now: one light slot per light in the scene, at most eight.
   // A place calls this before its loading screen lifts (neochinatown.js prepare), so the next model to arrive changes no material and no shader is rebuilt
@@ -235,6 +248,7 @@
   const api = {
     models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
+    leadInEnd,trimLeadIn,
     unpack,
     open,
     useKTX2Locally,
