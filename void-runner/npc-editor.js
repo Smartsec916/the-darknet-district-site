@@ -3,7 +3,7 @@
    location. If they have routes can I change them or make them stay?", "be able to add animations to them", "maybe be able to import new models, then place them in",
    "just have a cap on poly counts for each import", "also short description on things in the npc editor", and the old "All lines for an NPC" moved here ("Lines & voice").
    - The list: everyone the giver roster knows (voice registry, District residents, story characters, the monk), the street crowd's figures, and models imported here.
-   - For one NPC: look (the model file), where they are, the registered voice (READ-ONLY: voices are never changed), a 3D preview with their clips, MAKE GIVER (a new draft
+   - For one NPC: look (the model file), where they are, their voice (a registered Kokoro voice is READ-ONLY; an ElevenLabs voice can be chosen in Lines & voice: npc-voices.js), a 3D preview with their clips, MAKE GIVER (a new draft
      mission given by them: no lore, no lines are written), placement (only NPCs the editor can move: Reverie and Lace today; their own routine / stay at a spot / a route of
      points with actions from their own clip list), added animations (the shared library, allowed clips only), animation requests (exported for Claude/Codex; No AI models
      are marked local retarget only), and their lines and voice.
@@ -23,7 +23,7 @@
   search:'Type part of a name or an id to shorten the list.',
   look:'The model file the game draws them with (assets/models/crowd/…). Licensed models are kept outside the public files.',
   where:'Where the game puts them today, in its own code.',
-  voice:'Read-only. The voice they speak with (the voice registry). Voices are locked and are never changed from here.',
+  voice:'The voice they speak with. A registered Kokoro voice is locked and never changed here; you can choose an ElevenLabs voice for new or changed lines in “Lines & voice”.',
   preview:'A turntable view of their model with every clip in its file. Drag to turn it, scroll to zoom. Nothing changes in the game.',
   clips:'Plays one of the clips (animations) the model really has.',
   giver:'Starts a new draft mission given by this NPC, in the tree you pick, and opens it in the Mission Editor. Nothing is written for them: you add the lines.',
@@ -96,7 +96,7 @@
   card('🚶','Make a character walk a route','Click points on the street; she walks them in order.',pick(rev,route),{'data-npc-start-card':'route'});
   card('💬','Give a character a mission','Choose who hands it out; the Mission Editor opens with it ready to fill in.',pick((first('givers').id)||'admin',giv),{'data-npc-start-card':'giver'});
   card('👀','Look at a character in 3D','Turn them around and play their animations.',pick(ui.id||rev,look),{'data-npc-start-card':'look'});
-  card('📝','See what a character says','Every line, in missions and outside them, and their (locked) voice.',pick(ui.id||'admin',lines),{'data-npc-start-card':'lines'});
+  card('📝','See what a character says','Every line, in missions and outside them, and their voice (choose an ElevenLabs voice there).',pick(ui.id||'admin',lines),{'data-npc-start-card':'lines'});
   card('📦','Bring in a new 3D model','Load a model file from your computer and try it on the street (only you see it).',()=>{ui.start=false;importPick();},{'data-npc-start-card':'import'});
   d.append(grid);return d;}
  function listInto(list){list.replaceChildren();const q=ui.search.trim().toLowerCase(),all=entries().filter(x=>!q||x.name.toLowerCase().includes(q)||x.id.toLowerCase().includes(q));
@@ -113,7 +113,7 @@
   row('Look (model)',asset?asset+(clips.length?' · '+clips.length+' clips':''):'no crowd model (drawn by its own scene code)',HELP.look);
   if(e.kind==='crowd'){row('Where','The street picks figures from this pool (crowd.js, ncz-nightlife.js).',HELP.crowd);}
   else{const live=root.VoidStreetPair?.live?.(),lh=live&&live.her&&live.her.id===e.id?' · in this game now at x '+live.her.x.toFixed(1)+', z '+live.her.z.toFixed(1)+' ('+(live.her.mode||'')+')':'';row('Where',(g.where||'')+lh,HELP.where);
-   const reg=S().src?.registry?.npcs?.[e.id];row('Voice (read-only)',reg?reg.voice+' · '+reg.status:'no registered voice (their lines are text)',HELP.voice);
+   const reg=S().src?.registry?.npcs?.[e.id],vn=S().voiceNow?S().voiceNow(e.id):{kind:'none'};row('Voice',vn.kind==='elevenlabs'?'ElevenLabs: '+vn.name+(reg?' (recorded lines: Kokoro '+reg.voice+', locked)':''):reg?reg.voice+' · '+reg.status+' (Kokoro, locked)':'no voice yet (their lines are text)',HELP.voice);
    row('Missions',g.canTalk?(g.players?'Can give missions; players can reach them today.':'Can give missions in a draft; players cannot reach them today.'):'Cannot give missions yet: '+(g.why||'no TALK prompt')+'.');
    if(g.shift)facts.append(el('p',S().G().shiftText(g),'me-small me-warn'));}
   main.append(facts);
@@ -203,7 +203,7 @@
   mine.forEach((q,i)=>{const row=el('div','','me-row',{'data-npc-request':String(i)});row.append(el('span','• '+q.want+' · '+(q.route==='local-retarget-only'?'local retarget only':'retarget or library'),'me-small'),btn('×',()=>{const d=S().local();d.animRequests=(d.animRequests||[]).filter(x=>x!==d.animRequests.find(y=>y.at===q.at&&y.npc===q.npc));S().saveLocal(d);draw();},'me-x',{'aria-label':'Remove request'}));box.append(row);});
   main.append(box);}
  // ---- lines & voice (the old "All lines for an NPC")
- function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));
+ function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));
   const q=el('input','','',{'aria-label':'Find in the lines',placeholder:'Find words in the lines','data-npc-line-search':'1'});q.value=ui.lineSearch;const inner=el('div');
   q.oninput=()=>{ui.lineSearch=q.value;inner.replaceChildren();S().linesView(inner,e.id,{search:ui.lineSearch});};box.append(q,hint(HELP.lineSearch),inner);S().linesView(inner,e.id,{search:ui.lineSearch});main.append(box);}
  const download=(name,data)=>{const a=document.createElement('a');a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};

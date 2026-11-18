@@ -2,6 +2,31 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Tenth pass (18 Nov 2026): choose an ElevenLabs voice for any NPC or giver
+
+Branch `claude/editor-voices`, build `2026-11-18-editor-voices-1`. Pushed, no PR, not merged. Queue item 0b.
+
+### How to use it (plain steps)
+
+1. Open **Developer tools > NPCs**, pick the character, and go down to **Lines & voice**. (In the Mission Editor, the same **Voice** box sits under each mission's **Giver**.)
+2. **Voice** shows what they speak with now: a **Kokoro** voice from the voice registry (free, recorded on your PC; locked, read-only), or an **ElevenLabs** voice (yours from the re-voice file, or one you chose here), or **No voice yet**. **Listen on ElevenLabs** opens that voice's page on elevenlabs.io in a new tab (listening there costs nothing).
+3. Under it: how many lines they have, how many characters that is, and **about how many ElevenLabs credits** re-voicing all of them would take. This is an estimate: about 1 credit per character (Multilingual v2 / v3 and newer models); Flash / Turbo use about half. Your plan and model decide the real cost.
+4. To choose a voice, open **Choose an ElevenLabs voice**: paste the link of the voice's page (for example `https://elevenlabs.io/voices/...`) or just its 20-character ID, give it a name, and press **USE THIS VOICE**. A wrong link says why straight away. UNDO (or Ctrl+Z) takes it back; **REMOVE MY CHOICE** goes back to the voice they had before.
+5. The choice is part of your **draft**: PLAY THIS DRAFT carries it, PUBLISH keeps it (the server checks it). **DOWNLOAD THE VOICES FILE** (NPCs tab) gives the same choices in the format of `tools/audio/revoice-engines.json`, for Claude or Codex to keep in the game files.
+6. **Nothing is generated or paid from the editor, and your ElevenLabs key is never asked for.** Lines you RE-VOICE for that character go to the re-voice queue marked "waiting for ElevenLabs re-voice (needs approval)". When you approve the spend, Claude records them with the ElevenLabs connector.
+
+Not offered: the reserved special-character slot, broadcast voices (The Relay) and The Function (no voice). Reverie and Lace can have one: choose an ordinary, neutral street voice (the editor reminds you).
+
+### For Claude and Codex
+
+- `void-runner/npc-voices.js` (pure, Node-tested): `parse` (link or bare id; only elevenlabs.io; ids are `[A-Za-z0-9]{20}`), `refusal`, `make`, `clean`, `problems`, `current` (editor choice > `revoice-engines.json` > registered Kokoro), `estimate`, `exportEngines` (revoice-engines.json format; the file's own entries kept), `listenUrl`.
+- Content: `content.voices {who: {engine:'elevenlabs', voiceId, name, chosen:'YYYY-MM-DD by the owner'}}`. Draft `local().voices`, server copy (the workspace now also accepts `npcs`, `animRequests` and `voices`: it refused them before, so the server copy failed once a placement existed), `fromDrafts`, `check` (browser) and `void_runner_live_content.py voice_problems` (server: only admin-inventory givers, refusals, id format). `apply` keeps `env.voices`.
+- Re-voice queue: `queue_add` takes an optional `voiceId` + `voiceName` (sent by the editor from the draft) and otherwise uses the published `content.voices`, then `revoice-engines.json`, then the registered Kokoro voice. Characters with an ElevenLabs voice but no registry entry (e.g. Zen Zephyr, Reverie) can now be queued. ElevenLabs items stay queued (never marked done by `revoice/done`).
+- `tools/audio/generate.py --from-queue`: reads the published voices (server queue) and `--voices FILE` (the downloaded voices file); a queued Kokoro line of such a character is listed as waiting for ElevenLabs. Waiting lines print their voice, character count and estimated credits. It never calls ElevenLabs.
+- The editor reads `tools/audio/revoice-engines.json` (now published by the Pages build: ids and names only). `mission-trees.js build` takes `src.engines` / `src.voices`.
+- Tests: `tests/npc-voices.test.cjs`, `tests/test_npc_voices.py`, browser `tests/npc-voices-browser.cjs`.
+- Not verified: publishing and the queue with the server switched on (fake storage only); a real ElevenLabs page (the link is only a link).
+
 ## Ninth pass (18 Nov 2026): the beginner redesign (Start page, "Make a mission", Basic / Advanced, tour, undo)
 
 Branch `claude/editor-redesign`, build `2026-11-18-editor-redesign-1`. Pushed, no PR, not merged.

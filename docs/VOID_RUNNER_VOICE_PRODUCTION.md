@@ -13,6 +13,14 @@ How the game's recorded NPC dialogue is cast, approved, recorded and protected. 
 | `tools/audio/generate.py` | Records only what is missing or out of date. |
 | `void-runner/assets/audio/voice/renders.json` | What each clip was recorded with, when, and whether it is **protected**. |
 
+## ElevenLabs voices chosen in the editor (18 Nov 2026)
+
+`tools/audio/revoice-engines.json` lists the characters whose **new or changed** lines are re-voiced with ElevenLabs (Admin, Iris, Rook, Eva, Fish, Zen Zephyr). Since build `2026-11-18-editor-voices-1` the owner can also choose one himself in **Developer tools > NPCs > Lines & voice** (or a Mission Editor giver card): he pastes the voice's elevenlabs.io link or ID plus a name. The choice is editor content (`content.voices`, draft / publish, checked by the server) and downloads as a `revoice-engines.json`-format file.
+
+- Nothing is generated from the editor or the server, and no ElevenLabs key is ever in the browser. Queued lines wait until the owner approves the spend; Claude then records them with the ElevenLabs connector into `void-runner/assets/audio/voice/extra/`.
+- `python tools/audio/generate.py --from-queue [--voices revoice-engines.json]` lists those lines as waiting (voice, characters, estimated credits: about 1 credit per character on Multilingual v2 / v3, about half on Flash / Turbo) and records only the Kokoro ones.
+- The registry is never changed by a choice: recorded Kokoro clips keep their voice. The reserved slot, broadcast voices and The Function are refused; Reverie and Lace get ordinary, neutral street voices only.
+
 ## Status and the lock
 
 - **Provisional:** the voice can be changed freely. Every voice starts here.
