@@ -15,20 +15,19 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  const srv=await serve(),base='http://127.0.0.1:'+srv.address().port,log=m=>console.log(new Date().toISOString().slice(11,19),m);
  const b=await chromium.launch({headless:true,...(exe?{executablePath:exe}:{}),args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
  try{
-  const page=await (await b.newContext({viewport:{width:1280,height:720},serviceWorkers:'block'})).newPage();page.setDefaultTimeout(600000);const errs=[];page.on('pageerror',e=>errs.push(e.message));
+  const page=await (await b.newContext({viewport:{width:1280,height:720},serviceWorkers:'block'})).newPage();page.setDefaultTimeout(600000);const errs=[];page.on('pageerror',e=>errs.push(e.message+' @ '+String(e.stack||'').split('\n').slice(1,4).join(' | ')));
   await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/api/**',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));
   await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({renderer:'babylon',quality:q,v:2,chosen:true})),tier);
   await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
   await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:900000,assets:900000,optional:600000,area:900000,total:1800000,module:600000,artwork:300000}));
   const at=(x,z,yaw=0,pitch=0)=>page.evaluate(([x,z,yaw,pitch])=>{Object.assign(walker,{x,z,yaw,pitch});},[x,z,yaw,pitch]);
-  const shot=async(name,wait=2500)=>{await page.waitForTimeout(wait);await page.evaluate(()=>{document.getElementById('pd-notify')?.remove();});await page.screenshot({path:path.join(shots,name+'-'+tier+'.png')});log('shot '+name);};
+  const shot=async(name,wait=2500,bare=false)=>{await page.waitForTimeout(wait);await page.evaluate(b=>{document.getElementById('pd-notify')?.remove();const s=document.getElementById('screen');if(s)s.style.visibility=b?'hidden':'';},bare);await page.screenshot({path:path.join(shots,name+'-'+tier+'.png')});await page.evaluate(()=>{const s=document.getElementById('screen');if(s)s.style.visibility='';});log('shot '+name);};
   const walk=async(x1,z1)=>{const t0=Date.now();for(;;){const r=await page.evaluate(([x1,z1])=>{if(mode!=='walking'||!walker)return 'wait';const dx=x1-walker.x,dz=z1-walker.z,d=Math.hypot(dx,dz);if(d<.05)return 'done';const s=Math.min(.35,d),nx=walker.x+dx/d*s,nz=walker.z+dz/d*s;if(VoidExplorer.blocked(nx,nz,walkingLocation))return 'blocked';walker.x=nx;walker.z=nz;walker.yaw=Math.atan2(dx,dz);return d<=s?'done':'moving';},[x1,z1]);
    if(r==='done')return;assert.ok(Date.now()-t0<300000,'walk to '+x1+','+z1+' stuck ('+r+')');await page.waitForTimeout(r==='moving'?60:250);}};
   const perf=()=>page.evaluate(()=>{const sc=VoidBabylon.scene,e=sc.getEngine(),gl=e._gl,t=[],d=[];for(let i=0;i<12;i++){const d0=e._drawCalls.current,a=performance.now();sc.render();gl.finish();t.push(performance.now()-a);d.push(e._drawCalls.current-d0);}t.sort((a,b)=>a-b);d.sort((a,b)=>a-b);return {drawCalls:d[6],activeMeshes:sc.getActiveMeshes().length,frameMs:+t[6].toFixed(1)};});
-  // A close-up of one monk look: a copy of the figure placed in front of the camera (idle), then removed.
-  const closeUp=async(look,name,x,z,yaw,dist=2.6,clip='idle')=>{await page.evaluate(([look,x,z,yaw,dist,clip])=>{const B=BABYLON,sc=VoidBabylon.scene,id='crowd:'+look,parent=sc.getTransformNodeByName('district-root')||sc.getTransformNodeByName('temple')||null;
-    const n=VoidAssets.instance(id,parent||new B.TransformNode('cu-holder',sc));n.position.set(x+Math.sin(yaw)*dist,0,z+Math.cos(yaw)*dist);n.rotation.y=yaw+Math.PI;VoidCrowd.animate(n,look,clip);window.__cu=n;Object.assign(walker,{x,z,yaw,pitch:-.12});},[look,x,z,yaw,dist,clip]);
-   await shot(name,3000);await page.evaluate(()=>{window.__cu?.dispose();window.__cu=null;});};
+  // Close-ups: the camera 2.5 m in front of a figure that is already in the scene (turned `off` radians round it), looking at its chest.
+  const frontOf=async(name,pos,yaw,off=0,dist=2.5,bare=true)=>{const a=yaw+off,x=pos[0]+Math.sin(a)*dist,z=pos[1]+Math.cos(a)*dist;await at(x,z,Math.atan2(pos[0]-x,pos[1]-z),-.16);await shot(name,2500,bare);};
+  const templeMonk=async id=>(await page.evaluate(i=>VoidBabylon.zone.monks().find(m=>m.id===i),id));
   const street=async(quarter,spawn)=>{await page.evaluate(async([quarter,spawn])=>{const d=C.startDistrictCampaign(C.fresh());d.story.flags.podWakePending=false;d.credits=100;state=d;walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');state.location='earth';
     await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter,spawn});},[quarter,spawn]);
    await page.waitForFunction(q=>mode==='walking'&&walkingLocation?.quarter===q&&VoidAssets.pending===0,quarter);
@@ -44,8 +43,9 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   await at(128,-12.5,-Math.PI/2,-.03);await shot('02-avenue-toward-city-from-east-gate');await at(110,-12.5,Math.PI/2,-.03);await shot('03-avenue-toward-east-gate');
   const withMonks=await perf();await page.evaluate(()=>{for(const p of VoidBabylon.district.nightlife.people)if(p.monkPlan&&p.node)p.node.setEnabled(false);});const withoutMonks=await perf();await page.evaluate(()=>{for(const p of VoidBabylon.district.nightlife.people)if(p.monkPlan&&p.node&&!p.hidden&&!p.away)p.node.setEnabled(true);});
   log('avenue perf with monks '+JSON.stringify(withMonks)+' without '+JSON.stringify(withoutMonks));
-  // 3. close-ups of the three monks (the street's light, on the Avenue)
-  for(const [i,look] of ['npc-monk-elder','npc-monk-tech','npc-monk-grey'].entries())await closeUp(look,'0'+(4+i)+'-close-'+look.slice(4),122,-6.6-0,Math.PI,2.4);
+  // 3. a street monk close up (held still for the picture)
+  const sm=await page.evaluate(()=>{const p=VoidBabylon.district.nightlife.people.find(p=>p.monkPlan&&p.node&&!p.hidden&&!p.away);if(!p)return null;p.state='stop';p.timer=999;p.anim?.play?.('idle');return {look:p.look,pos:[p.node.position.x,p.node.position.z],yaw:p.node.rotation.y};});
+  if(sm)await frontOf('04-street-monk-'+sm.look.slice(4),sm.pos,sm.yaw,.35);
   // 4. through the East Gate on foot, to the Temple
   await at(138,-6.8,Math.PI/2,0);await walk(144,-6.8);await walk(148,-6.8);await page.waitForFunction(()=>walkingLocation?.id==='temple'&&mode==='walking'&&!VoidGateTransit.busy,null,{timeout:600000});
   await page.waitForFunction(()=>VoidAssets.pending===0);
@@ -54,8 +54,10 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   assert.equal(temple.zen.model,true);assert.equal(temple.zen.head,true);assert.equal(temple.primitive,0,'the primitive figure is gone');assert.equal(temple.monks.length,{low:2,medium:5,high:7}[tier]);
   await at(0,-38,0,-.02);await shot('07-temple-arrival');await at(-2,-24,.35,-.03);await shot('08-temple-courtyard-monks');
   await at(0,-3,0,-.02);await shot('09-temple-hall-entrance-zen-from-behind');await at(0,15,0,.02);await shot('10-zen-zephyr-from-the-entrance-side');
-  await at(0,29,Math.PI,-.12);await shot('11-zen-zephyr-front');await at(-1.2,25.4,Math.PI-.25,-.22);await shot('12-zen-zephyr-front-close');
-  await at(-12,9,.7,-.05);await shot('13-temple-monks-at-altars');await at(12,20,-1.9,-.05);await shot('14-temple-monk-aisle');
+  await at(0,29,Math.PI,-.12);await shot('11-zen-zephyr-front',2500,true);await frontOf('12-zen-zephyr-front-close',[0,22],0,-.3,3.6);await frontOf('12b-zen-zephyr-back-close',[0,22],Math.PI,.4,4.2);
+  await at(-12,9,.7,-.05);await shot('13-temple-monks-at-altars',2500,true);await at(12,20,-1.9,-.05);await shot('14-temple-monk-aisle',2500,true);
+  // close-ups of the three monks where they are (praying ones from beside their altar, walkers mid-stride)
+  const seen=new Set();for(const m of (await page.evaluate(()=>VoidBabylon.zone.monks())).sort((a,b)=>(a.kind==='pray'?0:1)-(b.kind==='pray'?0:1))){if(seen.has(m.look))continue;seen.add(m.look);await page.evaluate(i=>VoidBabylon.zone.holdMonk(i,12),m.id);const q=await templeMonk(m.id);await frontOf('0'+(4+seen.size)+'-close-'+m.look.slice(4)+'-temple',[q.x,q.z],q.yaw,m.kind==='pray'?.75:0,2.4);}
   const tperf=await perf();log('temple perf (dais view) '+JSON.stringify(tperf));
   // 5. his gaze: talk to him (the prompt is on the entrance side; he sits facing away, so his head and a little of his body turn toward the player)
   await at(0,16.2,0,.05);await page.evaluate(()=>{try{VoidAudio.unlock?.();}catch{}VoidInteractions.handlers.get('temple-monk')({item:{}});});

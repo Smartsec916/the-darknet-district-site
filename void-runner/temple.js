@@ -12,7 +12,7 @@
 (function(root){
  'use strict';
  const ID='temple',SPACE_FLAG='templeFog',BOUNDS=[50,50],FARE=60;
- const MODEL={id:'zen-zephyr',name:'Zen Zephyr',role:'MONK · SANCTUM OF THE CIRCUIT',asset:'npc-zen-zephyr',file:'assets/models/crowd/npc-zen-zephyr.glb',height:1.3,placeholder:'primitives',seat:[0,22],yaw:0,   /* turned 180 degrees so he faces away from the entrance (the owner, 18 Nov 2026) */ 
+ const MODEL={id:'zen-zephyr',name:'Zen Zephyr',role:'MONK · SANCTUM OF THE CIRCUIT',asset:'npc-zen-zephyr',file:'assets/models/crowd/npc-zen-zephyr.glb',height:1.45,placeholder:'primitives',seat:[0,22],yaw:0,   /* turned 180 degrees so he faces away from the entrance (the owner, 18 Nov 2026) */ 
   look:'Silver head, closed eyes, dark robe with a mustard sash, mechanical details, teal chest lights, calm seated posture (the owner\'s brief; Origins scenes sanctum_discovery and zen_wisdom for mood).',
   note:'REPLACEMENT POINT: Zen Zephyr. `asset` is his model (a different file can be named here); the primitive monk stands in until it loads.'};
  /* The Temple's monks (the owner, 18 Nov 2026: "The closer you get to the Temple the more Monks there are compared to other NPCs"): the three monks' models (crowd.js monks).
