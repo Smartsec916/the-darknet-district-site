@@ -18,7 +18,16 @@ test('unreferenced originals are not shipped: each exists in the repository and 
   const name=f.split('/').pop().toLowerCase(),forms=[name,encodeURIComponent(name).toLowerCase(),name.replace(/ /g,'%20')];
   shipped.forEach((g,i)=>{for(const x of forms)assert.ok(!text[i].includes(x)||(name.startsWith('01_bg_')&&g.startsWith('blackout-protocol/')),g+' names '+f);});}
  assert.ok(!tracked.some(f=>f.startsWith('iris-service/')&&B.publishable(f)),'iris-service/ is not shipped');
- for(const f of ['attached_assets/top.webp','attached_assets/Iris 01.webp','blackout-protocol/assets/01_bg_far.png','blackout-protocol/assets/platform_railing.png'])assert.ok(B.publishable(f),f);
+ for(const f of ['attached_assets/top.webp','attached_assets/Iris 01.webp','blackout-protocol/assets/01_bg_far.webp','blackout-protocol/assets/platform_railing.png'])assert.ok(B.publishable(f),f);
+});
+
+test('Blackout Protocol ships its textures as lossless WebP: each PNG it replaces is kept in the repository, its WebP is published, and no published Blackout file loads the PNG',()=>{
+ const {execFileSync}=require('node:child_process'),R=path.join(__dirname,'..'),tracked=new Set(execFileSync('git',['ls-files','-z'],{cwd:R,encoding:'utf8'}).split('\0').filter(Boolean));
+ assert.ok(B.BLACKOUT_WEBP.size>=70);
+ const src=[...tracked].filter(f=>f.startsWith('blackout-protocol/')&&B.publishable(f)&&/\.(html|js|css)$/.test(f)&&!f.includes('/decoders/')&&!f.endsWith('make_seamless.js')).map(f=>fs.readFileSync(path.join(R,f),'utf8')).join('\n');
+ for(const f of B.BLACKOUT_WEBP){const w=f.replace(/\.png$/,'.webp'),name=f.split('/').pop();assert.ok(tracked.has(f),f+' stays in the repository');assert.ok(!B.publishable(f),f);assert.ok(tracked.has(w)&&B.publishable(w),w+' is published');
+  const b=fs.readFileSync(path.join(R,w));assert.equal(b.toString('latin1',0,4)+b.toString('latin1',8,12),'RIFFWEBP',w);assert.equal(b.toString('latin1',12,16),'VP8L',w+' is lossless');
+  assert.ok(!src.includes('assets/'+name),'a Blackout page or script still loads '+name);}
 });
 
 test('a packed model is encrypted, and the deployed loader decrypts it with the injected key',async()=>{
