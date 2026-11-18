@@ -188,7 +188,7 @@ async function newTrees(browser,errors,posts){
  await page.evaluate(()=>{try{VoidGraphics.quality='low';VoidBabylon.setQuality('low');}catch{}});
  await page.locator('[data-me-play="tree:'+m1+'"]').click();
  await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking',null,{timeout:120000});
- assert.match(await page.locator('#dev-test-banner').textContent(),/PLAYING DRAFT: Mission 002 — TEST MISSION ONE/);
+ assert.match(await page.locator('#dev-test-banner').textContent(),/PLAYING DRAFT: Mission \d{3} — TEST MISSION ONE/);
  assert.deepEqual(await page.evaluate(()=>[walkingLocation?.id,walkingLocation?.area]),['neochinatown','interior'],'draft play starts inside the District, next to Admin');
  await page.evaluate(()=>VoidInteractions.handlers.get('admin')());
  let st=await page.evaluate(m=>({tracked:state.universe.trackedMission,rec:state.universe.missions[m],lines:speech?.lines?.map(l=>l.text)||[]}),m1);

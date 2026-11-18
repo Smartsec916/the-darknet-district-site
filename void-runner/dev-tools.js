@@ -42,7 +42,15 @@ const balanceHelp={
   premiumShieldRechargeRate:['Aegis recharge speed','Shield points regained per second.'],
   premiumShieldRechargeDelay:['Aegis recharge wait','Seconds without being hit before it recharges.']}
 };
-const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values:{...VoidBalance.defaults},preset:'NORMAL',overlay:false,tab:'balance',
+/* Small line icons for Developer Tools (beginner redesign, 18 Nov 2026): inline SVG, no image files, coloured by the text colour. */
+const DEV_ICON_PATHS={mission:'M5 21V4M5 4h11l-2 4 2 4H5',character:'M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5',test:'M8 5v14l11-7z',publish:'M12 16V4M7 9l5-5 5 5M5 20h14',balance:'M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4',jump:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z',trophy:'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8',people:'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.5 2.5-5.5 6-5.5s6 2 6 5.5M16 5.5a3 3 0 0 1 0 5.5M18 14.8c2 .7 3 2.5 3 5.2',home:'M4 11l8-7 8 7M6 9.5V20h12V9.5',parcel:'M4 8l8-4 8 4v9l-8 4-8-4zM4 8l8 4 8-4M12 12v9',meet:'M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.5-5 6-5 1.5 0 2.8.4 4 1.1 1.2-.7 2.5-1.1 4-1.1 3.5 0 6 2 6 5',pin:'M12 21s-6-6.2-6-11a6 6 0 0 1 12 0c0 4.8-6 11-6 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',camera:'M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',talk:'M4 5h16v11H9l-5 4z',undo:'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',redo:'M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3',help:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01',back:'M15 5l-7 7 7 7',next:'M9 5l7 7-7 7',check:'M5 12.5l4.5 4.5L19 7',plus:'M12 5v14M5 12h14',close:'M6 6l12 12M18 6L6 18',list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01'};
+const devIcon=(name,size=20)=>'<svg class="dev-icon" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="'+(DEV_ICON_PATHS[name]||DEV_ICON_PATHS.help)+'"/></svg>';
+/* Basic (the default) or Advanced: Advanced shows every setting, internal names (ids) and technical options. Remembered per browser; a blocked storage means Basic. */
+const DEV_MODE_KEY='editor-mode';
+const devMode=()=>{try{return localStorage.getItem(DEV_MODE_KEY)==='advanced'?'advanced':'basic';}catch{return 'basic';}};
+const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values:{...VoidBalance.defaults},preset:'NORMAL',overlay:false,tab:'home',icon:devIcon,
+ get mode(){return devMode();},
+ setMode(m){m=m==='advanced'?'advanced':'basic';try{localStorage.setItem(DEV_MODE_KEY,m);localStorage.setItem('npc-editor-advanced',m==='advanced'?'1':'0');}catch{}devPanel.classList.toggle('dev-basic',m==='basic');this.render();},
  applyPending(){if(this.pending){VoidBalance.apply(this.pending);this.pending=null;}},
  async identity(request){
   this.authorized=false;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
@@ -51,18 +59,24 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.receive(data);devButton.hidden=false;try{if(sessionStorage.getItem('mission-editor-return'))this.open('missions');else if(sessionStorage.getItem('npc-editor-return'))this.open('npcs');}catch{}}catch{/* Fail closed; ordinary players get no private controls. */}
  },
  receive(data){this.values=VoidBalance.validate(data.values);this.revision=data.revision;this.preset=data.preset||'CUSTOM';this.pending=this.values;},
- open(tab){if(!this.authorized)return;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;this.render();},
+ open(tab){if(!this.authorized)return;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
  // One window, one section at a time. Sections that aren't built yet are listed, not faked.
- sections:[['balance','Combat Balance'],['test','Test & Jump To'],['achievements','Achievement Manager'],['missions','Mission Editor'],['npcs','NPCs']],
+ // Start (the welcome screen with the big task cards) comes first; every other tool is one click away. Plain names; each with an icon.
+ sections:[['home','Start'],['missions','Mission Editor'],['npcs','NPCs'],['test','Test & Jump To'],['balance','Combat Balance'],['achievements','Achievements']],
+ sectionIcons:{home:'home',missions:'mission',npcs:'people',test:'jump',balance:'balance',achievements:'trophy'},
  // The Mission Editor's scripts load only when a confirmed developer opens it (players never download them).
- editorScripts:['admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/mission-editor.js','void-runner/npc-editor.js'],
+ editorScripts:['admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/mission-editor.js','void-runner/npc-editor.js','void-runner/editor-wizard.js','void-runner/editor-home.js'],
  loadEditor(){return this.editorLoad??=this.editorScripts.reduce((p,src)=>p.then(()=>new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>fail(new Error('Could not load '+src));document.head.append(s);})),Promise.resolve());},
  render(){
-  const tabs='<nav class="dev-tabs" aria-label="Developer sections">'+this.sections.map(([id,name])=>`<button data-dev-tab="${id}" class="${this.tab===id?'on':''}" aria-pressed="${this.tab===id}">${name}</button>`).join('')+'</nav>';
-  const head=`<div class="dev-heading"><h2>DEVELOPER TOOLS</h2><span class="dev-head-actions"><button data-dev="close">CLOSE</button><button data-dev="exit-menu">EXIT TO MAIN MENU</button></span></div>`+tabs;
-  if(this.tab==='missions'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidMissionEditor)return VoidMissionEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the Mission Editor…</p>';this.loadEditor().then(()=>{if(this.tab==='missions'&&!devPanel.hidden)VoidMissionEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">'+escapeText(e.message)+'</p>';});return;}
+  const tabs='<nav class="dev-tabs" aria-label="Developer sections">'+this.sections.map(([id,name])=>`<button data-dev-tab="${id}" class="${this.tab===id?'on':''}" aria-pressed="${this.tab===id}">${devIcon(this.sectionIcons[id],16)}<span>${name}</span></button>`).join('')+'</nav>';
+  // UNDO (and REDO) for every edit made in the editors this session; Advanced switch; "?" replays the short tour (editor-home.js).
+  const U=globalThis.VoidEditorHome,adv=devMode()==='advanced';
+  const head=`<div class="dev-heading"><h2>DEVELOPER TOOLS</h2><span class="dev-head-actions"><button data-dev="undo" title="Puts back your last change (Ctrl+Z)" ${U&&U.canUndo?'':'disabled'}>${devIcon('undo',16)} UNDO</button><button data-dev="redo" title="Does the change again (Ctrl+Shift+Z)" ${U&&U.canRedo?'':'disabled'}>${devIcon('redo',16)} REDO</button><label class="dev-mode" title="Basic shows only what you need. Advanced shows every setting, the internal names (ids) and technical options."><input type="checkbox" data-dev-advanced ${adv?'checked':''}> Advanced</label><button data-dev="tour" class="dev-round" aria-label="Show me around (a short tour)" title="Show me around (a short tour)">${devIcon('help',18)}</button><button data-dev="close">CLOSE</button><button data-dev="exit-menu">EXIT TO MAIN MENU</button></span></div>`+tabs;
+  // Start: the welcome screen and the "Make a mission" wizard (editor-home.js, loaded with the editor's scripts)
+  if(this.tab==='home'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidEditorHome)return VoidEditorHome.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading…</p>';this.loadEditor().then(()=>{if(this.tab==='home'&&!devPanel.hidden)VoidEditorHome.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The start page could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
+  if(this.tab==='missions'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidMissionEditor)return VoidMissionEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the Mission Editor…</p>';this.loadEditor().then(()=>{if(this.tab==='missions'&&!devPanel.hidden)VoidMissionEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The Mission Editor could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
   // Developer Tools > NPCs (18 Nov 2026): the same on-demand scripts and the same draft as the Mission Editor (npc-editor.js)
-  if(this.tab==='npcs'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidNPCEditor)return VoidNPCEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the NPCs…</p>';this.loadEditor().then(()=>{if(this.tab==='npcs'&&!devPanel.hidden)VoidNPCEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The NPCs tab could not load: '+escapeText(e.message)+'</p>';});return;}
+  if(this.tab==='npcs'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidNPCEditor)return VoidNPCEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the NPCs…</p>';this.loadEditor().then(()=>{if(this.tab==='npcs'&&!devPanel.hidden)VoidNPCEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The NPCs tab could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
   if(this.tab==='test'){devPanel.innerHTML=head+(globalThis.VoidDevTest?.render()||'<p>Test tools are loading.</p>');return;}
   if(this.tab==='achievements'){const items=globalThis.VoidAchievements?.definitions||[];devPanel.innerHTML=head+'<p>Read-only catalog preview. Publishing, granting, and revoking require a server-authorized manager that is not enabled yet.</p>'+items.map(d=>'<article class="dev-field"><h3>'+escapeText(d.icon+' '+d.name)+'</h3><p>'+escapeText(d.description)+'</p><p>'+escapeText(d.category+' · '+d.condition.event+' · '+d.condition.count)+'</p></article>').join('');return;}
   const known=new Set(Object.values(balanceHelp).flatMap(g=>Object.keys(g))),field=(key,[name,help])=>{const s=VoidBalance.spec[key];return `<label class="dev-field"><span class="dev-name">${name}</span><input data-balance="${key}" type="number" min="${s.min}" max="${s.max}" step="any" value="${this.values[key]}"><span class="dev-help">${help}</span><span class="dev-range">${key} · ${s.min}–${s.max} · default ${VoidBalance.defaults[key]}</span></label>`;};
@@ -83,17 +97,19 @@ const debugInfo=document.createElement('pre');debugInfo.id='combat-debug';debugI
 devPanel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape')devPanel.hidden=true;});
 devPanel.addEventListener('change',event=>{
  if(!VoidDevTools.authorized)return;
+ if(event.target.matches('[data-dev-advanced]')){VoidDevTools.setMode(event.target.checked?'advanced':'basic');return;}
  if(event.target.id==='dev-debug')VoidDevTools.overlay=event.target.checked;
  else if(event.target.id==='dev-preset'){VoidDevTools.preset=event.target.value;if(event.target.value!=='CUSTOM'){VoidDevTools.values=VoidBalance.preset(event.target.value);VoidDevTools.render();}}
  else if(event.target.dataset.balance){VoidDevTools.preset='CUSTOM';devPanel.querySelector('#dev-preset').value='CUSTOM';}
 });
 devPanel.addEventListener('click',async event=>{
- const tab=event.target.closest('[data-dev-tab]')?.dataset.devTab;if(tab&&VoidDevTools.authorized){VoidDevTools.tab=tab;VoidDevTools.render();return;}
+ const tab=event.target.closest('[data-dev-tab]')?.dataset.devTab;if(tab&&VoidDevTools.authorized){if(tab==='home')globalThis.VoidEditorHome?.toStart();VoidDevTools.tab=tab;VoidDevTools.render();return;}
  const action=event.target.closest('[data-dev]')?.dataset.dev;if(!action||!VoidDevTools.authorized)return;
  if(action.startsWith('test-'))return globalThis.VoidDevTest?.action(action,devPanel);
  const tools=VoidDevTools,request=tools.request;
  try{
   if(action==='close'){devPanel.hidden=true;return;}
+  if(action==='undo'||action==='redo'||action==='tour'){const H=globalThis.VoidEditorHome;if(H)H[action]();else if(action==='tour'){tools.tab='home';tools.render();}return;}
   // EXIT TO MAIN MENU (the owner, 17 Nov 2026): the game menu's own path (openGameMenu saves first when a normal save would, then shows the main menu). During a test or
   // PLAY THIS DRAFT session it is LEAVE DRAFT (the page reloads with the real save untouched) without reopening the Mission Editor: the game starts on its main menu.
   if(action==='exit-menu'){devPanel.hidden=true;const T=globalThis.VoidDevTest;if(T?.active){try{sessionStorage.removeItem('mission-editor-return');}catch{}T.exit();return;}
@@ -109,7 +125,7 @@ devPanel.addEventListener('click',async event=>{
    tools.pending=tools.read();devMissileTrial=true;trialGear='missile';devPanel.hidden=true;launch();return;
   }
   devPanel.querySelector('#dev-status').textContent='Ready. Values take effect on the next flight.';
- }catch(error){if(request===tools.request)devPanel.querySelector('#dev-status').textContent=error.message;}
+ }catch(error){if(request===tools.request)devPanel.querySelector('#dev-status').textContent=error.message+(/sign in|401|403/i.test(error.message)?' Sign in again with the developer account, then try once more.':' Check the numbers (each box shows its allowed range) and your connection, then press the button again.');}
 });
 // A public read exposes numbers, never developer access or a write capability.
 VoidNetwork.request('balance').then(data=>{if(!VoidDevTools.authorized)VoidDevTools.pending=VoidBalance.validate(data.values);}).catch(()=>{});

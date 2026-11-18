@@ -65,7 +65,7 @@
  function setPlan(id,p){const d=S().local();d.npcs=d.npcs||{};const c=p?X().clean(p):null;if(c)d.npcs[id]=c;else delete d.npcs[id];S().saveLocal(d);}
  // ---------------------------------------------------------------- render
  function render(panel,head){host=panel;headNode=head;
-  if(!S()?.built){panel.innerHTML='';panel.append(head(),el('p','Loading the NPCs from the game data…','dev-note'));Promise.all([S().ensure(),loadImports()]).then(()=>{restore();draw();}).catch(e=>{panel.append(el('p','The NPCs tab could not load: '+e.message,'me-bad'));});return;}
+  if(!S()?.built){panel.innerHTML='';panel.append(head(),el('p','Loading the NPCs from the game data…','dev-note'));Promise.all([S().ensure(),loadImports()]).then(()=>{restore();draw();}).catch(e=>{panel.append(el('p','The NPCs tab could not load ('+e.message+'). Check your connection, then press CLOSE and open Developer tools again. Your draft is safe in this browser.','me-bad'));});return;}
   if(!importsLoaded){loadImports().then(draw);}
   restore();draw();}
  function restore(){let r=null;try{r=JSON.parse(root.sessionStorage.getItem(RETURN)||'null');root.sessionStorage.removeItem(RETURN);}catch{}if(r&&r.npc){ui.id=r.npc;status='Back from the test session. Your draft is saved.';}

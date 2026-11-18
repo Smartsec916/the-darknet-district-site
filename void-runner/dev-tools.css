@@ -52,3 +52,32 @@
 .npc-start{border:1px solid #2b4a55;background:#0b1c26;padding:8px 12px;margin:8px 0}.npc-start summary{cursor:pointer;color:#f2b33d;font:600 14px Consolas,monospace}.npc-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:8px}.me-root button.npc-card{display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;padding:12px 14px;font-size:14px;min-height:96px;color:#dcece9}.me-root button.npc-card b{color:#58ffe1;font-size:15px}.npc-card-icon{font-size:24px}
 /* the game's canvas rule (game.css: every canvas fixed full screen) must not touch the editor's map and preview */
 #dev-balance canvas.npcmap-canvas{position:static;inset:auto;touch-action:none}#dev-balance canvas.npc-preview-canvas{position:static;inset:auto;width:100%;height:100%}
+/* Beginner redesign (18 Nov 2026, editor-home.js): Start page task cards, the "Make a mission" wizard, the tour, Basic / Advanced, larger click targets. */
+.dev-icon{vertical-align:-3px;flex:none}.eh-ic{display:inline-flex;align-items:center}
+.dev-tabs button{min-height:38px;font-size:12px;display:inline-flex;align-items:center;gap:6px;padding:6px 12px}.dev-heading button{min-height:36px;display:inline-flex;align-items:center;gap:4px}.dev-heading button:disabled{opacity:.4;cursor:not-allowed}
+.dev-round{border-radius:50%;width:36px;justify-content:center;padding:0}.dev-mode{display:inline-flex;align-items:center;gap:6px;font:12px system-ui,sans-serif;color:#b5cbc6;border:1px solid #456270;padding:0 10px;min-height:36px;cursor:pointer}.dev-mode input{width:18px;height:18px}
+.me-root button{min-height:32px;padding:6px 12px;font-size:12px}.me-root select,.me-root input:not([type=checkbox]):not([type=radio]){min-height:32px}.me-root input[type=checkbox]{width:16px;height:16px}
+#dev-balance.dev-basic .adv-only,#dev-balance.dev-basic .dev-range,#dev-balance .eh-dup{display:none!important}
+.eh-title{font:600 20px system-ui,sans-serif;color:#e8f6f2;margin:10px 0 4px}.eh-sub{font:600 12px Consolas,monospace;letter-spacing:.1em;text-transform:uppercase;color:#f2b33d;margin:18px 0 6px}
+.eh-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:14px 0}
+.eh-root button.eh-card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;min-height:170px;padding:18px;background:#0c2430;border:2px solid #2f6f74;color:#dcece9;font-size:13px;line-height:1.4;border-radius:6px}
+.eh-root button.eh-card b{font:600 19px system-ui,sans-serif;color:#58ffe1}.eh-root button.eh-card:hover,.eh-root button.eh-card:focus-visible,.eh-root button.eh-choice:hover,.eh-root button.eh-choice:focus-visible{border-color:#58ffe1;background:#0f3140}
+.eh-big{color:#58ffe1}
+.eh-more{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.eh-root button.eh-tool{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center;text-align:left;min-height:60px;padding:10px 12px;background:#0b1c26;border:1px solid #456270;color:#b5cbc6;font-size:12px}.eh-root button.eh-tool .eh-ic{grid-row:span 2;color:#58ffe1}.eh-root button.eh-tool b{color:#e8f6f2;font-size:13px}
+.eh-root button.eh-link{background:none;border:0;color:#58ffe1;text-decoration:underline;padding:4px 0}
+.eh-wtop{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.eh-progress{flex:1;min-width:160px;height:10px;background:#102331;border:1px solid #2b4a55;border-radius:5px;overflow:hidden}.eh-progress span{display:block;height:100%;background:#58ffe1;transition:width .25s}
+.eh-page{max-width:900px}.eh-choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:10px 0}
+.eh-root button.eh-choice{display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;min-height:84px;padding:12px 14px;background:#0b1c26;border:2px solid #2b4a55;color:#b5cbc6;font-size:12px;border-radius:6px}.eh-root button.eh-choice b{color:#e8f6f2;font-size:15px}.eh-root button.eh-choice .eh-ic{color:#58ffe1}
+.eh-root button.eh-choice.on{border-color:#58ffe1;background:#0f3140;color:#dcece9}.eh-root button.eh-choice.on b{color:#58ffe1}
+.eh-step{border-left:4px solid #b6e11c;background:#0c1d27;padding:8px 12px;margin:10px 0}
+.eh-fields{max-width:640px}.eh-summary{background:#0b1c26;border:1px solid #2b4a55;padding:10px 12px;color:#dcece9}
+.eh-problems{border:1px solid #f2b33d;background:#2a2210;color:#ffdca0;padding:8px 14px;margin:12px 0;max-width:900px}.eh-problems ul{margin:4px 0 0;padding-left:18px}
+.eh-nav{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0}.eh-nav button{min-height:44px;padding:8px 18px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.eh-root button.eh-primary{background:#58ffe1;color:#03121a;border-color:#58ffe1;font-weight:700}
+.eh-tests{display:flex;flex-direction:column;gap:8px;margin:12px 0}.eh-test-row{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;border:1px solid #2b4a55;background:#0b1c26;padding:10px 12px}
+.eh-tour{position:fixed;z-index:80;background:#0d2733;border:2px solid #58ffe1;color:#dcece9;padding:12px 14px;box-shadow:0 10px 40px #000;font:13px/1.45 system-ui,sans-serif;border-radius:6px}.eh-tour b{display:block;color:#58ffe1;font-size:15px;margin:4px 0}.eh-tour p{margin:4px 0 8px}
+.eh-tour button{font-size:12px;min-height:34px;padding:6px 12px;background:#0f2a33;color:#58ffe1;border:1px solid #58ffe1;cursor:pointer}.eh-tour button.eh-primary{background:#58ffe1;color:#03121a}.eh-tour button.eh-link{background:none;border:0;text-decoration:underline}.eh-tour button:disabled{opacity:.4}
+.eh-tour-target{outline:3px solid #f2b33d!important;outline-offset:3px}
+.eh-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:85;background:#0d2733;border:1px solid #58ffe1;color:#dcece9;padding:10px 16px;font:13px system-ui,sans-serif;box-shadow:0 8px 30px #000}.eh-toast[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.eh-progress span{transition:none}}

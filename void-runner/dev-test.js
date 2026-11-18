@@ -40,7 +40,7 @@
  async function start(panel){
   read(panel);const status=panel.querySelector('#dev-status');
   // Re-check with the server before handing out a test campaign.
-  try{await VoidDevTools.request('developer/balance');}catch(e){status.textContent='Developer access could not be confirmed: '+e.message;return;}
+  try{await VoidDevTools.request('developer/balance');}catch(e){status.textContent='Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.';return;}
   if(!VoidDevTools.authorized)return;
   active=true;banner.hidden=false;panel.hidden=true;
   state=build(choice);walkingLocation=walker=null;mode='menu';
@@ -57,7 +57,7 @@
   d.story.flags.deviceModel='v3';d.story.flags.area='district';d.story.flags.districtBadge=true;d.story.flags.profileJobs='merchant';d.credits=10000;
   d.universe.discoveredLocations=[...new Set([...(d.universe.discoveredLocations||[]),...Object.keys(VoidUniverse.locations)])];VoidMissions.sync(d,C);return d;}
  async function playAsAdmin(){
-  try{await VoidDevTools.request('developer/balance');}catch(e){announce('Developer access could not be confirmed: '+e.message);return false;}
+  try{await VoidDevTools.request('developer/balance');}catch(e){announce('Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.');return false;}
   if(!VoidDevTools.authorized)return false;
   active=true;banner.hidden=false;banner.querySelector('span').textContent='PLAYING AS ADMIN · TEST SESSION · NOTHING IS SAVED';
   state=adminBuild();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');
@@ -67,12 +67,12 @@
  /* A throwaway session built by another tool (Mission Editor > PLAY THIS DRAFT). Same rules as a test: re-checked with the server first, nothing saved to this browser
     or the cloud while it runs, and leaving reloads the page, which brings the real save back untouched. opts: {banner, leave, apply(), build()→state, enter(), message}. */
  async function session(opts){
-  try{await VoidDevTools.request('developer/balance');}catch(e){return {error:'Developer access could not be confirmed: '+e.message};}
-  if(!VoidDevTools.authorized)return {error:'Developer access could not be confirmed.'};
+  try{await VoidDevTools.request('developer/balance');}catch(e){return {error:'Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.'};}
+  if(!VoidDevTools.authorized)return {error:'Developer access could not be confirmed. Sign in again with the developer account, then try once more.'};
   active=true;banner.hidden=false;banner.dataset.kind=opts.kind||'test';banner.querySelector('span').textContent=opts.banner||'TEST MODE · NOTHING IS SAVED';banner.querySelector('button').textContent=opts.leave||'EXIT TEST';
   const panel=document.getElementById('dev-balance');if(panel)panel.hidden=true;
   try{opts.apply?.();state=opts.build();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');await opts.enter();if(typeof hud==='function')hud();}
-  catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Use '+(opts.leave||'EXIT TEST')+'.');return {started:true,problem:String(e?.message||e)};}
+  catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Press '+(opts.leave||'EXIT TEST')+' to go back, then try again (if it keeps failing, reload the page).');return {started:true,problem:String(e?.message||e)};}
   const msg=typeof opts.message==='function'?opts.message():opts.message;if(msg)announce(msg);return {started:true};
  }
  function action(name,panel){if(name==='test-start')return start(panel);if(name==='test-exit')return exit();if(name==='test-argument')return argument(panel);}
