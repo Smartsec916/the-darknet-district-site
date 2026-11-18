@@ -46,6 +46,10 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 18 Nov | The three monks: 3D (30), remesh 30k (5), rig (5) each | ids in `Documents/DarknetDistrict_Assets/Meshy/monks/build_status.json` | 120 |
 | 18 Nov | Zen Zephyr seated: 3D (30), remesh 40k (5); not rigged (a static seated figure) | same file | 35 |
 | | **18 Nov, the monks** | | **200** (budget for this job 200 to 300; the account showed 620 afterwards; no retries were needed) |
+| 18 Nov | Zane (second male VR companion) 3D, image-to-3d from the concept `01a1ee4a-e1aa…` (text-to-image, 9 credits, counted in the NPC concept batch) | `01a1ef1d-a7bd-7391-b0ff-a4f716afcca6` | 30 |
+| 18 Nov | Zane remesh 45k | remesh `01a1ef20-c8b0-73d6-9e9f-cc06be77c3ae` | 5 |
+| 18 Nov | Zane rig, 1.82 m | rigging `01a1ef22-d719-762e-8252-756458b85b59` | 5 |
+| | **18 Nov, Zane** | | **40** (budget 40 to 60, stop at 120; the account showed 368 before and 328 after; no retry. Runner `Documents/DarknetDistrict_Assets/Meshy/companions/companion-m2/build_all.py`) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 

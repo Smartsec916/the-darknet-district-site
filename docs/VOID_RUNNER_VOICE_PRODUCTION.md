@@ -73,5 +73,5 @@ The Relay's scripts are in `void-runner/relay-content.json`. Each segment has an
 ## Companion voices and blends (2026-11-01)
 
 - **Rule:** every VR companion has their own Kokoro voice, a woman's voice for the women and a man's voice for the men (the owner). `tests/vr-companion-voices.test.cjs` checks this, along with a description and recorded lines for every companion.
-- **Cast:** Seren af_nicole, Nadia af_aoede, Ava af_alloy, Eva af_sky, Una bf_lily, Yuki bf_alice; Kai am_fenrir, Dex `am_adam:0.5+am_michael:0.5`. All are provisional, and every line is a DRAFT.
+- **Cast:** Seren af_nicole, Nadia af_aoede, Ava af_alloy, Eva af_sky, Una bf_lily, Yuki bf_alice; Kai am_fenrir, Dex `am_adam:0.5+am_michael:0.5`, Zane `am_onyx:0.6+am_echo:0.4` (18 Nov 2026, generic for now at the owner's request). All are provisional, and every line is a DRAFT.
 - **Blends:** Kokoro has only 13 English men's voices, and all of them were already cast. A registry voice can therefore be a weighted blend of 2–3 voices of the same sex, written `am_adam:0.5+am_michael:0.5` (weights add up to 1). A blend counts as its own voice; `voice-registry.cjs` checks it, and `generate.py` mixes the voice styles. The audition page still auditions single voices only.
