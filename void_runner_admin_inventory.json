@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "19c8afb2e09c8e4e",
+  "revision": "95f263f3bd759400",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16185,7 +16185,7 @@
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-device.js": "6011436c5f2163d7c2ce97f5ee014e86e04033740c313490479562bb8d714141",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
-    "void-runner/npc-variants.js": "cceb66f462a8c52194427d8aa9552f248d11e5159b0a16c2af4f6aa0b76a4284",
+    "void-runner/npc-variants.js": "786f09e2a9932d8afdc45cbbcad6644dfb28be020900e10e71bf26059fc3d983",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/personal-device.js": "9a6cb784a1d9419bf9318e5ae741112ee3c10c16050769ca09a3627a44b1e605",
