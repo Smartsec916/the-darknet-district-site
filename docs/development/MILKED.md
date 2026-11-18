@@ -8,7 +8,7 @@
 >
 > **Rebuilt on 16 Nov 2026 (third pass, build `2026-11-16-milked-3`, branch `claude/milked-aaa`)** after the owner's two reference sheets (one exterior picture, one six-panel interior sheet) and his request: "Since Milked is going to have a security vestibule it can have a loading screen that functions like the one at The Darknet District with Milked styling and be more detail inside. Make it AAA standard". The inside of Milked is now **its own environment behind a loading card**, like The Darknet District. The building's place, size and rooms are those of the second pass earlier the same day (PR #326); "What changed in this pass" lists the differences.
 
-A **small adult livestreaming production studio** on a quiet side street off Main Street in NeoChinatown. It makes live broadcasts and nothing else. Members watch from home; whatever else the service involves happens privately at the member's own address. **Nothing is collected and no procedure of any kind happens in this building.** It is not a nightclub, hospital, laboratory or public venue: no bar, no dance floor, no audience.
+A **small livestreaming production studio** on a quiet side street off Main Street in NeoChinatown. It makes live broadcasts and nothing else. Members watch from home; whatever else the service involves happens privately at the member's own address. **Nothing is collected and no procedure of any kind happens in this building.** It is not a nightclub, hospital, laboratory or public venue: no bar, no dance floor, no audience.
 
 Code:
 
@@ -24,7 +24,7 @@ Status: **built, provisional.** All dialogue and on-screen wording is placeholde
 
 ## Content rules (enforced in the build)
 
-Every performer is an adult. Everyone is clothed and nothing shown is explicit. Each studio has exactly one dancer and nobody else; the cameras are on stands and are run remotely from Fish's office, so there are no camera operators. The player watches through soundproof windows from the hallway and never enters a studio. Screens that show a "stream" draw a clothed silhouette, not a camera picture. Posters and pinned photographs are abstract shapes and text: no people, no real brands.
+Each studio has exactly one dancer and nobody else; the cameras are on stands and are run remotely from Fish's office, so there are no camera operators. The player watches through soundproof windows from the hallway and never enters a studio. Screens that show a "stream" draw a clothed silhouette, not a camera picture. Posters and pinned photographs are abstract shapes and text: no people, no real brands.
 
 ## The loading transition (new)
 
