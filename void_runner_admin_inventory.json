@@ -572,7 +572,7 @@
       "follow"
     ]
   },
-  "revision": "f7993d71d7a26e62",
+  "revision": "355d81ac5c6a2711",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14976,25 +14976,25 @@
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 48,
+      "line": 50,
       "text": "setInterval(()=>{if(tip&&!tip.hidden&&(!fps()||conversationOpen()))hint(false);},500);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 51,
+      "line": 53,
       "text": "const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 52,
+      "line": 54,
       "text": "document.addEventListener('click',e=>{if(e.target!==canvas&&e.target.closest?.('button')&&!conversationOpen())reacquire();});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mouse-control.js",
-      "line": 53,
+      "line": 55,
       "text": "addEventListener('keyup',e=>{if(['Enter','Space','Escape'].includes(e.code)&&!conversationOpen())reacquire();});",
       "kind": "source-reference"
     },
@@ -17101,7 +17101,7 @@
   ],
   "warnings": [],
   "sources": {
-    "void-runner/account.js": "ab3f6e8a5e42651cddb4e84975b5341f0fda57b3e0d4a2ce079b1848e89806a4",
+    "void-runner/account.js": "ac5706ee05840b267bd8eeda4119f5b6c2f77250e02831b83d4aef664f82e5b8",
     "void-runner/achievements.js": "c9fcfe10ff0b63159be95d0b2e139ac3dcc3848080d80f40f50589148fddf200",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "bbdb0ddd518b7abf30b85125f2a1aaa7a54331626581a23ea7282f4b4512c47a",
@@ -17216,7 +17216,7 @@
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
     "void-runner/mission-trees.js": "54ec274705020a6996891f4e94b55a4243ece57ca8c02bbc3162145eac2ecc73",
     "void-runner/model-registry.js": "2330947f95ab6a71231f65a0cec1d347f884dcd550c2d8c9b488588febf7b579",
-    "void-runner/mouse-control.js": "719cd797ab34fd42a40c3e8101563b0c7dc91b88c6dd87616e7f56b99f270ce6",
+    "void-runner/mouse-control.js": "9884d5d87fcd359c9b7981a2ca5b2a4ba08d1e38265212a11321870be5b8cb37",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a1fadf186558f7272b9d48e6fc6d265027e47ad1c8fef1d4639dfaf48ca4ffa7",
     "void-runner/music-engine.js": "9a4ee46218d4b7be56ded9763e3ad56c42bfa2eeaa6c59d207b6757ff7d0b8c2",
