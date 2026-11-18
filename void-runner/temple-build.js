@@ -137,7 +137,7 @@
   mistTex.hasAlpha=true;mistTex.wrapU=mistTex.wrapV=B.Texture.WRAP_ADDRESSMODE;const mists=[];for(let i=0;i<(low?2:3);i++){const m=new B.StandardMaterial('tmp-mist',scene);m.diffuseColor=B.Color3.Black();m.emissiveTexture=mistTex;m.opacityTexture=mistTex;m.disableLighting=true;m.backFaceCulling=false;m.alpha=.55-i*.12;m.disableDepthWrite=true;m.alphaMode=B.Engine.ALPHA_COMBINE;own.push(m);
    const p=B.MeshBuilder.CreateGround('tmp-mist',{width:100,height:100},scene);p.material=m;p.parent=node;p.position.y=.35+i*.55;p.isPickable=false;mistTex.uScale=mistTex.vScale=5;mists.push({m,sp:[.004+i*.002,.002-i*.001]});}
   // ---- Zen Zephyr: a seated android monk (primitives; replace through temple.js MODEL) ----
-  const monk=new B.TransformNode('zen-zephyr',scene);monk.parent=node;monk.position.set(T.MODEL.seat[0],.5,T.MODEL.seat[1]);monk.rotation.y=T.MODEL.yaw;
+  const monk=new B.TransformNode('zen-zephyr',scene);monk.parent=node;monk.position.set(T.MODEL.seat[0],.5,T.MODEL.seat[1]);monk.rotation.y=T.MODEL.yaw;monk.metadata={...monk.metadata,character:'zen-zephyr',monk:true};   /* monks never film a street spectacle (npc-device.js) */
   const mp=(mesh,mat,x,y,z)=>{mesh.material=mat;mesh.parent=monk;mesh.position.set(x,y,z);mesh.isPickable=false;return mesh;};
   const robe=M('robe','#151a1f','#07090b',.15),robeL=M('robeL','#1d242a','#0a0d10',.2),sash=M('sash','#b8892a','#3a2a08',.25),steel=M('steel','#8a96a0','#20262b',.8);
   mp(B.MeshBuilder.CreateCylinder('mk-legs',{diameter:1.7,height:.34,tessellation:20},scene),robe,0,.2,0);mp(B.MeshBuilder.CreateCylinder('mk-skirt',{diameterTop:.95,diameterBottom:1.5,height:.5,tessellation:20},scene),robeL,0,.5,.05);

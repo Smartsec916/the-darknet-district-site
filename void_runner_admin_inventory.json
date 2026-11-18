@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "c79ab6814f823167",
+  "revision": "19e59238aaefb5d5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14056,13 +14056,13 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 96,
+      "line": 104,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 161,
+      "line": 199,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -14118,6 +14118,24 @@
       "source": "void-runner/news-feed.js",
       "line": 28,
       "text": "for(const g of GAME_ITEMS)if(g&&g.id&&g.ad&&met(g.requires,src))out.push({id:'game:'+text(g.id,40),kind:'store',sponsor:(g.seller==='iris'?'IRIS':'ADMIN')+' · THE DARKNET DISTRICT',title:text(g.name,60),text:text(g.ad,240)});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-device.js",
+      "line": 15,
+      "text": "(and Dax) now and then idle-check theirs, never while a conversation is open, and Juno Vex's own \"device\" beat uses this panel. Never companions, players or dialogue",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-device.js",
+      "line": 88,
+      "text": "function spectacle(ev,agents,now){const e={id:++serial,x:+ev.x||0,z:+ev.z||0,radius:ev.radius??cfg.radius,kind:ev.kind||'spectacle',t0:now,end:now+(ev.duration??cfg.duration),who:new Map(),y:ev.y??1.25};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-device.js",
+      "line": 124,
+      "text": "const talking=()=>{try{return !!root.VoidConversationUI?.isOpen||(typeof speech!=='undefined'&&!!speech?.lines?.length&&typeof walkingLocation!=='undefined'&&!!walkingLocation);}catch{return false;}};",
       "kind": "source-reference"
     },
     {
@@ -16132,11 +16150,11 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crowd.js": "3a5d8e9c1b83a162d8d0af17085a7a695cea535b081d0905b89fca50d5bcc965",
+    "void-runner/crowd.js": "215a00ee8e33c51ce57caadaed170d3d83768112a34daff6ff37dcc8e71a8a1c",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
-    "void-runner/dev-test.js": "2c1042417e3da3d508ba056adc265a06fb130e152153df6e983cbb77a82e6cbb",
+    "void-runner/dev-test.js": "8b1e26ebe02da9f4fde8e059c62cdddbe6ac69e5fc03164bed399d8766fb9f29",
     "void-runner/dev-tools.js": "28f2d3d80f905f5ebe5abe4934d34e3a45e248510b949b7547bdf85097f9a54a",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "483ac716963115b3ae9adc425912e0d18c36ae5a721e9daf2292c432c152bde6",
@@ -16218,13 +16236,14 @@
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
-    "void-runner/ncz-nightclub.js": "ba0e2bc98e1ec86c2425f486dd5ea0da007cb6f4db7aa4fcac48b5e07bb22be8",
-    "void-runner/ncz-nightlife.js": "62a34cc3f23577a3b882a058e0dbeda5203dbb774d974aab1bd9c6e314f73186",
+    "void-runner/ncz-nightclub.js": "904fd3e94147374118ea2e125e724533f3d774e11b799284879275ab42c62876",
+    "void-runner/ncz-nightlife.js": "0aedae456b074e3acc3d5d84a75cdef6a8e29488617b08668112ec117bffff28",
     "void-runner/ncz-outskirts-life.js": "e4d918db16db1d688cb05fa5bbace2613a3bab7a80ce998a651e7463915ded6a",
     "void-runner/ncz-quarters.js": "05638797b6b66e9bd572ba5dadce60da7d20b6a9c42e9897a23c39d6c960c8b4",
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
+    "void-runner/npc-device.js": "cb36119864d182def07725c3f7dd3b76b6343bb00b05b20fd9df9c8faaf46f3f",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
@@ -16266,7 +16285,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "a5050568c6071a46ec75d5b71fe8f580c06d6f7d8459e1bf4de729fe50220673",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/temple-build.js": "d3dffa174073ca7a72663fbf3eaee0aeccf8f9c9794d2edd7f8a98477232a8d1",
+    "void-runner/temple-build.js": "07487cbd048d5a47c7e7e58605f7eb0e85da74fe90d9af394d38f8a6c0c41ba9",
     "void-runner/temple-integration.js": "c9cab76a250504a965bc6a06782a1b597fa4196b88a18e9fd2a8cdbc004c69cb",
     "void-runner/temple.js": "6b5fb48b9e44eb536700294b35948e2f4b010afac1e278bb68824ae8a3806eb0",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",

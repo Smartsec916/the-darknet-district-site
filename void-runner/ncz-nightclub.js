@@ -231,6 +231,8 @@
     // her device: a small dark slab with a lit screen, held in front of her at lap height (the seated clip keeps her hands there)
     const dev=B.MeshBuilder.CreateBox('ncz-null-juno-device',{width:.075,height:.012,depth:.14},scene),dm=new B.StandardMaterial('ncz-null-juno-device',scene);dm.diffuseColor=new B.Color3(.02,.02,.03);dm.emissiveColor=new B.Color3(.12,.55,.75);dm.disableLighting=true;own.push(dm);
     dev.material=dm;dev.parent=holder;dev.position.set(0,JUNO.device[1],JUNO.device[2]);dev.rotation.x=-.55;dev.isPickable=false;juno.prop=dev;
+    // her device beat uses the same hologram as everyone's V1 (npc-device.js): the old lit slab is then put away
+    if(root.VoidNPCDevice?.tag){for(const f of root.VoidCrowd?.figures?.()||[])if(f.node.isDescendantOf?.(holder))root.VoidNPCDevice.tag(f.node,{kind:'story',tier:'v1',force:()=>juno&&juno.state==='device'?'scroll':null});juno.prop.setEnabled(false);}
     for(const m of api.meshes())m.isPickable=false;
     root.VoidPhotoSubjects?.set?.('juno-vex',holder,{name:'Juno Vex',role:''});
    }).catch(e=>{try{console.warn('[VOID//RUNNER nightclub] Juno Vex could not be built:',e?.message||e);}catch{}});
