@@ -96,6 +96,6 @@ test('"When walked near" starts the mission once, at the distance set, in tree o
 test('the server checks "when walked near" the same way (void_runner_live_content.py) and the browser watches it without allocating per tick',()=>{
  const py=fs.readFileSync(R('void_runner_live_content.py'),'utf8');assert.match(py,/WHEN = \[[^\]]*'near'\]/);assert.match(py,/'npc', 'distance'\]/);assert.match(py,/NEAR_MIN, NEAR_MAX = 1, 30/);
  const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/setInterval\(nearTick,250\)/);
- for(const k of ["mode!=='walking'",'podWakePending===true','VoidCharacterCreator?.isOpen','VoidKeyMapUI?.open'])assert.ok(lc.includes(k),'near waits: '+k);
+ for(const k of ["mode!=='walking'",'VoidConversationUI?.isOpen','podWakePending===true','VoidCharacterCreator?.isOpen','VoidKeyMapUI?.open'])assert.ok(lc.includes(k),'near waits: '+k);
  const ed=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8');assert.match(ed,/data-me-start-distance/);assert.match(ed,/data-me-start-near/);assert.match(ed,/VoidStreetPair\.force=sh\.id/);
 });

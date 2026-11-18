@@ -64,8 +64,15 @@ const log=(...a)=>console.log('[editor-givers]',...a);
   const at=(x,z)=>page.evaluate(([x,z])=>{Object.assign(walker,{x,z,yaw:Math.atan2(100-x,-6.85-z),pitch:.12});},[x,z]);
   const rec=()=>page.evaluate(id=>state.universe.missions[id]||null,m1);
   await at(100,-6.85-12);await page.waitForTimeout(600);assert.equal(await page.evaluate(()=>VoidLiveContent.nearTick()),null,'12 m: nothing');assert.equal(await rec(),null);
-  await at(100,-6.85-3);await page.evaluate(()=>{mode='dialogue';});assert.equal(await page.evaluate(()=>VoidLiveContent.nearTick()),null,'never outside walking (a conversation or a cutscene)');assert.equal(await rec(),null);
-  await page.evaluate(()=>{mode='walking';});await page.waitForFunction(id=>!!state.universe.missions[id]?.acquired,m1,{timeout:20000});
+  // 3 m from her (inside 8 m) but in a conversation with her (her greeting: no mission for her yet): the watch waits. All in one step, so the 250 ms watch never runs in between.
+  await page.evaluate(()=>{Object.assign(walker,{x:100,z:-9.85,yaw:0,pitch:.12});walkTarget=VoidBabylon.district.streetPair.talkItems['grey-reverie'];interactWalking();});
+  assert.equal(await page.evaluate(()=>VoidConversationUI.isOpen),true);assert.deepEqual(await page.evaluate(()=>speech.lines.map(l=>l.who+': '+l.text)),['grey-reverie: Hey.'],'her neutral greeting');
+  await page.evaluate(()=>{const h=VoidBabylon.district.streetPair.her;Object.assign(h.s,{mode:'walk',left:20,sub:null});VoidBabylon.district.streetPair.tick(.1);});
+  s=await sp();assert.equal(s.chat,true);assert.equal(s.her.mode,'stop','she stops walking to talk');assert.equal(s.her.sub,'chat');
+  assert.equal(await page.evaluate(()=>VoidLiveContent.nearTick()),null,'never during a conversation');await page.waitForTimeout(1200);assert.equal(await rec(),null,'still not started');
+  await page.waitForTimeout(1500);await page.screenshot({path:path.join(shots,'game-reverie-greeting.png'),timeout:300000});
+  await page.evaluate(()=>{resumeWalking();const h=VoidBabylon.district.streetPair.her;VoidBabylon.district.streetPair.tick(.1);Object.assign(h.s,{mode:'stop',left:9999,clip:'idle',sub:'test',x:100,z:-6.85,face:null});});
+  await page.waitForFunction(id=>!!state.universe.missions[id]?.acquired,m1,{timeout:20000});
   log('near distances',JSON.stringify(await page.evaluate(()=>VoidLiveContent.nearDistances())));
   assert.equal(await page.evaluate(()=>state.universe.trackedMission),m1,'started and tracked, without talking');assert.equal(await page.evaluate(()=>VoidLiveContent.nearTick()),null,'once');
   await page.waitForTimeout(2500);await page.screenshot({path:path.join(shots,'game-walked-near-started.png'),timeout:300000});
@@ -74,7 +81,9 @@ const log=(...a)=>console.log('[editor-givers]',...a);
   assert.equal(sel.label,'TALK TO REVERIE','her prompt is the one offered');
   await page.waitForTimeout(1500);await page.screenshot({path:path.join(shots,'game-talk-to-reverie.png'),timeout:300000});
   await page.evaluate(()=>{const h=VoidBabylon.district.streetPair.her;Object.assign(h.s,{mode:'walk',left:20,sub:null});interactWalking();});
-  await page.waitForFunction(()=>mode==='dialogue',null,{timeout:20000});await page.evaluate(()=>VoidBabylon.district.streetPair.tick(.1));
+  await page.waitForFunction(()=>VoidConversationUI.isOpen,null,{timeout:20000});await page.evaluate(()=>VoidBabylon.district.streetPair.tick(.1));
+  // the "walked near" watch never runs during a conversation (it floats over walking in the District)
+  assert.equal(await page.evaluate(()=>mode),'walking','a District conversation floats over walking');
   s=await sp();assert.equal(s.chat,true,'she knows she is being talked to');assert.equal(s.her.mode,'stop','she stops walking for the conversation');assert.equal(s.her.sub,'chat');
   const done=await page.evaluate(id=>({rec:state.universe.missions[id],lines:(speech?.lines||[]).map(l=>l.who+': '+l.text)}),m1);log('dialogue',JSON.stringify(done.lines));
   assert.equal(done.rec.completed,true,'TALK TO REVERIE completes the step');assert.ok(done.lines.some(l=>/Reverie answers/.test(l)));

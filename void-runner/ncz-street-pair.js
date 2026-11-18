@@ -197,8 +197,10 @@
    const street=L.id==='neochinatown'&&L.area!=='interior'&&L.area!=='milked';
    for(const p of PAIR){const it=talkItems[p.id],want=street&&shown&&her?.p.id===p.id,k=L.interactions.indexOf(it);if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}}
   function talkOff(){const L=wl();if(!L||!Array.isArray(L.interactions))return;for(const p of PAIR){const k=L.interactions.indexOf(talkItems[p.id]);if(k>=0)L.interactions.splice(k,1);}}
-  // Is the player talking to her? (the conversation opened from her prompt: the game is out of walking with her prompt the last one selected)
-  const chatting=()=>!!her&&typeof mode!=='undefined'&&mode!=='walking'&&typeof walkTarget!=='undefined'&&walkTarget===talkItems[her.p.id];
+  // Is the player talking to her? A conversation is open (in the District it floats over walking: VoidConversationUI.isOpen; else the dialogue mode) and it was opened
+  // from her prompt (her prompt was the one selected when it opened; latched until it closes, so walking about during it changes nothing)
+  const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatHer=null;
+  function chatting(){if(!convo()){chatSeen=false;chatHer=null;return false;}if(!chatSeen){chatSeen=true;chatHer=her&&typeof walkTarget!=='undefined'&&walkTarget===talkItems[her.p.id]?her.p.id:null;}return !!her&&chatHer===her.p.id;}
   const HOLD=new Set(['walk','run','pause','stop','to-step']),SEATED=new Set(['sit','sit-down','settle']);
   function hold(s,me){if(SEATED.has(s.mode)){if(s.mode==='sit'){s.left=Math.max(s.left,2);if(s.sub==='wave')s.sub=null;}return;}
    if(!HOLD.has(s.mode))return;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left,1.2);
