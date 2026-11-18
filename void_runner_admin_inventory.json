@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "bd30264adf457102",
+  "revision": "1708b3e2ee8845e9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -16158,7 +16158,7 @@
     "void-runner/ad-screens.js": "c8e07956069c4ff4a8489f2a2fd38054817c847e9904534d7f612781d2f5208c",
     "void-runner/anim-library.js": "80f7b4684feb97267eb60508861bd64113d35a6bacd156861a9178d522c7486a",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/area-ambience.js": "7bb61fd883c5c3e425883b253f22c4320679963fd21dc0a10ff35e8e52c13d0e",
+    "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "48a73f8e2b689472007725b022bb02c47ca7de9aa6195c88ab97b6f4bb11c066",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
@@ -16277,11 +16277,11 @@
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
-    "void-runner/ncz-gates.js": "a932b125a1da4fab1060c6faf95a042d5e99f5120c1f85cf85634bcdcefc862f",
+    "void-runner/ncz-gates.js": "a0dd124b7b6d40e50f13f3c9d87f038e1f5bc938a34e9cd779b53c379436e9de",
     "void-runner/ncz-nightclub.js": "904fd3e94147374118ea2e125e724533f3d774e11b799284879275ab42c62876",
     "void-runner/ncz-nightlife.js": "9e45f2261301dad69fa4c0eba88be60e8b9c7d6f2472f35a719f2467d2fad969",
     "void-runner/ncz-outskirts-life.js": "e4d918db16db1d688cb05fa5bbace2613a3bab7a80ce998a651e7463915ded6a",
-    "void-runner/ncz-quarters.js": "05638797b6b66e9bd572ba5dadce60da7d20b6a9c42e9897a23c39d6c960c8b4",
+    "void-runner/ncz-quarters.js": "2452dc8d471d63247c98e6f5f5f0e5f9327b5df3a41934abe081d2146393919b",
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
@@ -16327,7 +16327,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "a5050568c6071a46ec75d5b71fe8f580c06d6f7d8459e1bf4de729fe50220673",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/temple-build.js": "07487cbd048d5a47c7e7e58605f7eb0e85da74fe90d9af394d38f8a6c0c41ba9",
+    "void-runner/temple-build.js": "a9ef482f93b02b6ff838162fd383307639ba543b2a3138c3865fa6b0c1d3bf6b",
     "void-runner/temple-integration.js": "c9cab76a250504a965bc6a06782a1b597fa4196b88a18e9fd2a8cdbc004c69cb",
     "void-runner/temple.js": "6b5fb48b9e44eb536700294b35948e2f4b010afac1e278bb68824ae8a3806eb0",
     "void-runner/trade-window.js": "fae1643ad8aeb97be1b29b74eb1fe2f8b630a0c475daf96829abc376a05908b5",

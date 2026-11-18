@@ -44,15 +44,23 @@ test('the V1 map has its own space: arrival, entrance, chamber, dais, altars, an
   const again=A.load(sp,flags);assert.equal(again.explored(),fog.explored());assert.equal(again.isExplored(0,6),true);assert.equal(again.isExplored(40,40),false);assert.equal(A.load(sp,{}).explored(),0,'an older save starts unexplored');
   assert.ok(!A.get('corporate').model().pois.some(p=>/^temple/.test(p.id)),'Corporate\'s map is separate');
 });
-test('lights: the Temple adds no real lights (the scene keeps its two), only emissive accents',()=>{
-  const src=strip(read('temple-build.js'));assert.ok(!/PointLight|SpotLight|DirectionalLight|HemisphericLight/.test(src));assert.ok(/ambient/.test(src));
+test('lights: Low adds none; Medium and up add a few real lights within the budget, each lit only for the hall and disposed with it (graphics pass, 18 Nov 2026)',()=>{
+  const src=strip(read('temple-build.js'));assert.ok(!/DirectionalLight|HemisphericLight/.test(src));assert.ok(/ambient/.test(src));
+  const made=(src.match(/new B\.(PointLight|SpotLight)\(/g)||[]).length;assert.ok(made>=2&&made<=4,'a handful of light sources in the code');
+  assert.match(src,/if\(!low\)\{const lit=/,'no extra light on Low');assert.match(src,/includedOnlyMeshes=lit/,'lit only for the hall\'s own meshes');assert.match(src,/if\(hi\)for\(const s of \[-1,1\]\)add/,'the two aisle fills on High only');
+  assert.match(src,/L\.parent=node/,'lights go with the area when it is disposed');assert.match(src,/own\.push\(L\)/);
+  assert.match(src,/if\(!low\)\{mirror=new B\.MirrorTexture/,'the floor mirror is Medium and up only');
 });
 test('scene lifecycle: it is built when the Temple loads and fully disposed (scene mood restored) when the player leaves',()=>{
   const src=read('temple-build.js');assert.match(src,/dispose\(\)\{/);for(const r of ['scene.clearColor=prev.clear','scene.fogDensity=prev.fogDensity','ip.exposure=prev.exposure','ambient.intensity=lp.amb','node.dispose(false,true)','Area.save(space,fog,flags)'])assert.ok(src.includes(r),r);
   const rend=fs.readFileSync(path.join(__dirname,'../void-runner/babylon-renderer.js'),'utf8');assert.match(rend,/def\.temple&&root\.VoidTemple\?\.build/);assert.match(rend,/zoneHandle\?\.dispose/);assert.match(rend,/def\.corporate\|\|def\.temple\?'area':'scene'/);
 });
 test('nothing is downloaded: no images, models or network in the build; the conversation panel stays local',()=>{
-  const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.glb','.png','.jpg','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
+  const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.glb','.png','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
+  // the only files it reads are the game's own interior texture kit (the same files the District rooms use), never on Low
+  for(const m of b.match(/assets\/textures\/[^'"]+/g)||[])assert.match(m,/^assets\/textures\/district-interior\/$/,m);
+  for(const set of (b.match(/set:'(kit_[a-z]+)'/g)||[]).map(x=>x.slice(5,-1)))for(const k of ['color','normal','orm'])assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/textures/district-interior',set+'_'+k+'.jpg')),set+'_'+k);
+  assert.match(b,/if\(set&&!low\)/,'Low reads no texture files');
   for(const bad of ['fetch(','XMLHttpRequest','WebSocket','sendBeacon','localStorage'])assert.ok(!i.includes(bad),'panel: '+bad);assert.match(i,/Z\.LABEL/);assert.match(read('temple-integration.js'),/registerProvider/,'the future API hook is documented where it plugs in');assert.match(Z.LABEL,/NOT AN AI/);
 });
 test('the typed panel keeps typing away from the game, and Escape closes the panel',()=>{
