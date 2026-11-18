@@ -156,7 +156,8 @@ def template(kind, source, inv):
 # The Mission Editor's whole draft (trees, missions, lines, names), kept on the server so a cleared browser loses nothing (the owner, 17 Nov 2026).
 # One fixed draft id, ordinary revisions, the same byte and revision limits. It is a private backup of editor state, never content: nothing releases or applies it.
 WORKSPACE_ID = 'mission-editor-workspace'
-WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio']
+# npcs / animRequests (Developer Tools > NPCs, 18 Nov 2026) and voices (ElevenLabs voice choices, 18 Nov 2026) travel with the draft too.
+WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio', 'npcs', 'animRequests', 'voices']
 
 
 def validate_workspace(doc):
@@ -170,7 +171,7 @@ def validate_workspace(doc):
     text(d['title'], 160)
     b = d['bundle']
     keys(b, WORKSPACE_KEYS)
-    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list)]:
+    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict)]:
         if k in b and not isinstance(b[k], kind):
             raise DraftError('Invalid workspace field: ' + k)
     if len(b.get('trees', [])) > 30 or any(not isinstance(t, dict) or not isinstance(t.get('id'), str) or not isinstance(t.get('missions', []), list) for t in b.get('trees', [])):
@@ -179,6 +180,11 @@ def validate_workspace(doc):
         raise DraftError('Invalid retired numbers.')
     if b.get('studio') is not None and not isinstance(b['studio'], dict):
         raise DraftError('Invalid studio draft.')
+    if b.get('voices'):
+        from void_runner_live_content import voice_problems
+        problems = voice_problems(b['voices'])
+        if problems:
+            raise DraftError('Invalid voice choice: ' + problems[0], 422)
     size = len(json.dumps(doc).encode('utf-8'))
     if size > MAX_BYTES:
         raise DraftError('Draft exceeds byte limit.', 413, {'code': 'too-big', 'bytes': size, 'limit': MAX_BYTES})
