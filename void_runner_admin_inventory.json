@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "369dc1b4f9d988f1",
+  "revision": "8d772c06bd2a3f08",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14176,13 +14176,13 @@
     },
     {
       "source": "void-runner/npc-device.js",
-      "line": 97,
+      "line": 100,
       "text": "function spectacle(ev,agents,now){const e={id:++serial,x:+ev.x||0,z:+ev.z||0,radius:ev.radius??cfg.radius,kind:ev.kind||'spectacle',t0:now,end:now+(ev.duration??cfg.duration),who:new Map(),y:ev.y??1.25};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-device.js",
-      "line": 145,
+      "line": 148,
       "text": "const talking=()=>{try{return !!root.VoidConversationUI?.isOpen||(typeof speech!=='undefined'&&!!speech?.lines?.length&&typeof walkingLocation!=='undefined'&&!!walkingLocation);}catch{return false;}};",
       "kind": "source-reference"
     },
@@ -16183,7 +16183,7 @@
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-device.js": "a624ee7935e4b57c2ffb87b9fecc1fbeacf7e1cce4637f3ce7e31b8207c31531",
+    "void-runner/npc-device.js": "3b5cf903b8b63f00ccf5d6cad92611a11519065bbd1cf17a94538f87ab9fe8ab",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
