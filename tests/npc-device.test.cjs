@@ -93,3 +93,47 @@ test('other players: the hub\'s device state becomes a pose (V1/V2 panel or came
  assert.equal(D.remotePose(null,'read'),null);assert.equal(D.remotePose('v4','read'),null);assert.equal(D.remotePose(undefined),null);
  assert.equal(D.TIERS.v1.color,'#61eee9');assert.equal(D.TIERS.v2.color,D.V2_PLACEHOLDER_COLOR);assert.equal(D.TIERS.v3.color,'#46ff7a');assert.ok(D.TIERS.v3.eye);
 });
+test('filmers are capped by quality (nearest film, the rest watch); monks and V3 // Shadow never film, whatever the cap',()=>{
+ assert.deepEqual([D.filmCapFor('low'),D.filmCapFor('medium'),D.filmCapFor('high'),D.filmCapFor('ultra'),D.filmCapFor('?')],[3,6,10,10,6]);
+ for(const q of ['low','medium','high'])assert.ok(D.filmCapFor(q)<=D.capFor(q),'filmers fit inside the drawn cap on '+q);
+ const ag=[...Array(80)].map((_,i)=>({id:'n'+i,x:Math.cos(i*2.4)*(1+i*.14),z:Math.sin(i*2.4)*(1+i*.14),tier:i%9===0?'v3':i%5===0?'v2':'v1',monk:i%11===0}));
+ for(const q of ['low','medium','high']){const R=D.createReactor({rnd:seeded(7)}),cap=D.filmCapFor(q),e=R.spectacle({x:0,z:0,radius:12,filmCap:cap},ag,0),rs=[...e.who.values()];
+  const film=rs.filter(r=>r.mode==='film');assert.equal(film.length,cap,q+': exactly the cap film in a big crowd');
+  const watchers=rs.filter(r=>r.mode==='watch');assert.ok(watchers.length>0);assert.ok(Math.max(...film.map(r=>r.d))<=Math.max(...watchers.map(r=>r.d)),'the nearest film');
+  for(const a of ag){const r=e.who.get(a.id);if(!r)continue;if(a.monk)assert.equal(r.mode,'ignore','monk '+a.id);else if(a.tier==='v3')assert.ok(['ignore','leave'].includes(r.mode),'V3 '+a.id);}}
+ const big=D.createReactor({rnd:seeded(8)}).spectacle({x:0,z:0,radius:12,filmCap:999},ag,0);for(const a of ag){const r=big.who.get(a.id);if(r&&(a.monk||a.tier==='v3'))assert.notEqual(r.mode,'film');}
+ const one=D.createReactor({rnd:seeded(8)}).spectacle({x:0,z:0,radius:12,filmCap:0},ag,0);assert.ok(![...one.who.values()].some(r=>r.mode==='film'),'cap 0: nobody films');
+});
+
+test('a crowd gathers loosely: walks in from further out, never on top of it, on spread lines; some step back; the excluded do not move',()=>{
+ const g=D.config.spectacle.gather;
+ for(let d=0;d<=12;d+=.25){const m=D.gatherMove(d,1);assert.ok(m>=0&&m<=g.max+1e-9,'closer '+d+': '+m);assert.ok(d-m>=Math.min(d,g.near)-1e-9,'never nearer than '+g.near+' m: '+d+' -> '+(d-m));
+  const s=D.gatherMove(d,0);assert.ok(s>=0&&(d<=g.far?s===0:s>0),'onlookers far out drift in a little: '+d);assert.equal(D.gatherMove(d,-1),-g.back);}
+ assert.ok(D.gatherMove(11,1)>D.gatherMove(5,1),'more from further out');
+ const ag=[...Array(40)].map((_,i)=>({id:'g'+i,x:2+i*.25,z:(i%5)-2,tier:i%13===0?'v3':'v1',monk:i===7}));
+ const e=D.createReactor({rnd:seeded(11)}).spectacle({x:0,z:0,radius:12,filmCap:6},ag,0),rs=[...e.who.values()];
+ assert.ok(rs.some(r=>r.move>1),'some walk in more than a metre');assert.ok(new Set(rs.map(r=>r.arc.toFixed(3))).size>rs.length*.8,'each on their own line');
+ for(const r of rs)assert.ok(Math.abs(r.arc)<=g.arc/2+1e-9);
+ assert.equal(e.who.get('g7').move,0);assert.equal(e.who.get('g0').move,0,'V3 does not join');
+});
+
+test('street people without a name get a device from their seed, not Admin\'s V3 (the regression that stopped nearly everyone filming)',()=>{
+ const P=require('../void-runner/district-people.js'),ppl=P.npcs();
+ assert.equal(D.deviceOf(ppl,undefined),null);assert.equal(D.deviceOf(ppl,''),null);assert.equal(D.deviceOf(ppl,'night-3'),null);
+ assert.equal(D.deviceOf(ppl,'admin'),'v3');assert.equal(D.deviceOf(ppl,'dax'),'v3');assert.equal(D.deviceOf(null,'admin'),null);
+ const c={v1:0,v2:0,v3:0};for(let i=0;i<300;i++)c[D.tierFor('night-'+i,D.deviceOf(ppl,undefined))]++;assert.ok(c.v3<30,'V3 stays rare on the street: '+JSON.stringify(c));
+ // and so most of a street crowd films a spectacle (up to the cap)
+ const ag=[...Array(30)].map((_,i)=>({id:'night-'+i,x:i*.3,z:0,tier:D.tierFor('night-'+i,D.deviceOf(ppl,undefined)),monk:false}));
+ const e=D.createReactor({rnd:seeded(5)}).spectacle({x:0,z:0,radius:12,filmCap:D.filmCapFor('medium')},ag,0);assert.equal([...e.who.values()].filter(r=>r.mode==='film').length,D.filmCapFor('medium'));
+});
+
+test('diners at the street\'s food shopfronts: placed at a food sign, on the pavement by the window, enlisted to photograph their food',()=>{
+ const N=require('../void-runner/ncz-nightlife.js'),P=require('../void-runner/places.js'),seeded2=s=>()=>((s=(s*1664525+1013904223)>>>0)/4294967296);
+ const fronts=N.foodFronts(N.lanes);assert.ok(fronts.length>=10,'food shopfronts along the lanes: '+fronts.length);for(const f of fronts)assert.ok(N.config.foodSigns.test(f.word),f.word);
+ assert.ok(!fronts.some(f=>/PHARMACY|LAUNDRY|ELECTRONICS|REPAIR|BIO/.test(f.word)));
+ for(const q of ['low','medium','high'])for(let seed=1;seed<6;seed++){const p=N.plan(q,seeded2(seed)),d=p.filter(x=>x.kind==='food');
+  assert.ok(d.length>=1&&d.length<=N.config.diners[q],q+' diners '+d.length);
+  for(const x of d){assert.ok(x.dish&&x.fixed&&x.sign);const s=P.SHOPFRONTS.filter(f=>f[0]===x.sign).map(f=>Math.hypot(f[1]-x.x,f[2]-x.z));assert.ok(Math.min(...s)<3.6,x.id+' at its sign '+Math.min(...s));
+   for(const [kx,kz,r] of N.keepClear)assert.ok(Math.hypot(x.x-kx,x.z-kz)>=r,'clear of doors and taxi stands');}}
+ const k=D.KINDS.food;assert.ok(k.still.some(([p])=>p==='food-photo'),'food spots photograph their food');
+});
