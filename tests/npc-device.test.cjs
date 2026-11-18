@@ -88,3 +88,8 @@ test('Admin and Dax carry a V3 // Shadow; Iris (an android, all internal) never 
  assert.equal(by('admin')?.device,'v3');assert.equal(by('dax')?.device,'v3');
  assert.equal(D.kindOf({character:'admin'}),'story');assert.equal(D.kindOf({character:'iris'}),null);
 });
+test('other players: the hub\'s device state becomes a pose (V1/V2 panel or camera frame, V3 eye only); closed or unknown shows nothing',()=>{
+ assert.equal(D.remotePose('v1','read'),'scroll');assert.equal(D.remotePose('v2','cam'),'photo');assert.equal(D.remotePose('v3','read'),'scroll');assert.equal(D.remotePose('v3','cam'),'photo');
+ assert.equal(D.remotePose(null,'read'),null);assert.equal(D.remotePose('v4','read'),null);assert.equal(D.remotePose(undefined),null);
+ assert.equal(D.TIERS.v1.color,'#61eee9');assert.equal(D.TIERS.v2.color,D.V2_PLACEHOLDER_COLOR);assert.equal(D.TIERS.v3.color,'#46ff7a');assert.ok(D.TIERS.v3.eye);
+});

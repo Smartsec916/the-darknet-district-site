@@ -551,7 +551,7 @@
       "follow"
     ]
   },
-  "revision": "0179e551c24ed663",
+  "revision": "01357a11f4c8809c",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14152,7 +14152,7 @@
     },
     {
       "source": "void-runner/npc-device.js",
-      "line": 124,
+      "line": 130,
       "text": "const talking=()=>{try{return !!root.VoidConversationUI?.isOpen||(typeof speech!=='undefined'&&!!speech?.lines?.length&&typeof walkingLocation!=='undefined'&&!!walkingLocation);}catch{return false;}};",
       "kind": "source-reference"
     },
@@ -14584,13 +14584,19 @@
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 161,
+      "line": 171,
       "text": "sock.onclose=e=>{if(ws===sock){features={trade:false,tradeSimulated:false,chat:false};emitChat({t:'chat-status',on:false});for(const fn of listeners)try{fn({t:'trade',ev:'offline'});}catch{}}trace('close '+e.code+(ws===sock?'':' (stale)'));clearTimeout(giveUp);clearTimeout(wakeTimer);if(ws!==sock)return;   // a socket this client already gave up on says nothing about the current one",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/remote-players.js",
-      "line": 228,
+      "line": 214,
+      "text": "/* The device itself (any model, see myDevice): sent only to a hub that says it knows it (features.dev; an older hub would count the message as a fault), and only",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/remote-players.js",
+      "line": 243,
       "text": "sendChat(text){if(ws?.readyState===1&&status==='in'&&features.chat&&typeof text==='string'){ws.send(JSON.stringify({t:'chat',text:text.slice(0,800)}));return true;}return false;},",
       "kind": "source-reference"
     },
@@ -16261,7 +16267,7 @@
     "void-runner/neochinatown.js": "a1e07fe1386997ea543cb1ca9413bb5f93b6f4ce299f06ef9837683cdb304484",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-device.js": "390baaec2fbd24e2d298734587d987dc5bfec0e269629b32b80a2945a82ca978",
+    "void-runner/npc-device.js": "c2567d337b5406c1917063da99be035a0e2df838584038571753723e8fff0f50",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
@@ -16282,7 +16288,7 @@
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
     "void-runner/relay.js": "9d6ddf78aba19d66545431c4eb87d23e974991792851191548039b80f2097b3f",
-    "void-runner/remote-players.js": "e01cb63b2155cd3f79e7fa9e322422a46f8f7fdc56a1552274904e8e6a9f5d16",
+    "void-runner/remote-players.js": "23e79176a172d7e55add7545f40d4df21fcfb2419d555986d043db1cc77254c0",
     "void-runner/road-taxi-rules.js": "40803f3a813522104e26984aacbe008b2390851c4e4624374d3c75dcc3fa003c",
     "void-runner/road-taxi.js": "f8174bb0bc43dcc74286e8eb93888c52bbedc0a11388fcdceaee12f57ffc73c2",
     "void-runner/scenes.js": "cf1061512432f0329ed03cccf7dd5e15c771f9ef21aa51fb96aaffdbd68c858c",

@@ -108,3 +108,22 @@ test('the V3 eye light: a player says when they are using it, the room is told, 
  const seen=(sent.get(c)||[]).flatMap(m=>m.t==='join'?[m.peer]:m.t==='welcome'||m.t==='snap'?(m.peers||[]):[]).find(p=>p&&p.id===publicId('A'));assert.ok(seen,'the newcomer is told about A');assert.equal(seen.eye,true);
  assert.equal(hub.eye(a,{t:'eye',on:false}),true);assert.deepEqual(sent.get(b).at(-1),{t:'eye',id:publicId('A'),on:false});
 });
+test('the device seen by others: only open/closed, the model and read/cam parse; nothing about the screen; the welcome says the hub knows it',()=>{
+ assert.deepEqual(parse('{"t":"dev","dev":"v1"}'),{t:'dev',dev:'v1'});assert.deepEqual(parse('{"t":"dev","dev":null}'),{t:'dev',dev:null});assert.deepEqual(parse('{"t":"dev","dev":"v3","pose":"cam"}'),{t:'dev',dev:'v3',pose:'cam'});
+ for(const bad of ['{"t":"dev"}','{"t":"dev","dev":"v4"}','{"t":"dev","dev":"V1"}','{"t":"dev","dev":true}','{"t":"dev","dev":null,"pose":"read"}','{"t":"dev","dev":"v1","pose":"selfie"}','{"t":"dev","dev":"v1","app":"messages"}','{"t":"dev","dev":"v1","pose":"read","text":"hi"}','{"t":"dev","dev":"v1","screen":"x"}','{"t":"dev","dev":"v2","id":"aaaaaaaaaaaa"}'])assert.equal(parse(bad),null,bad);
+ const {hub,msgs}=rig(),a={};hub.join(a,hello,who('A'));assert.equal(msgs(a)[0].features.dev,true);
+});
+test('a device change goes to the room once, never to the sender; too-fast changes wait for the next position; latecomers see it',()=>{
+ let now=1e6;const sent=new Map(),hub=new Hub({send:(c,m)=>{(sent.get(c)||sent.set(c,[]).get(c)).push(m);},close:()=>{},now:()=>now});const devs=c=>(sent.get(c)||[]).filter(m=>m.t==='dev');
+ const a={},b={},c={};hub.join(a,hello,who('A'));hub.join(b,hello,who('B'));hub.state(a,st(1,30));hub.state(b,st(2,31));now+=300;
+ assert.equal(hub.dev(a,{t:'dev',dev:'v1'}),true);assert.deepEqual(devs(b).at(-1),{t:'dev',id:publicId('A'),dev:'v1',pose:'read'});assert.equal(devs(a).length,0,'not echoed');
+ assert.equal(hub.dev(a,{t:'dev',dev:'v1',pose:'read'}),false,'the same again sends nothing');assert.equal(devs(b).length,1);
+ now+=50;assert.equal(hub.dev(a,{t:'dev',dev:'v1',pose:'cam'}),false,'too soon: held');assert.equal(devs(b).length,1);
+ now+=100;hub.state(a,st(1,30));assert.equal(devs(b).length,1,'still inside the interval');now+=150;hub.state(a,st(1,30));assert.deepEqual(devs(b).at(-1),{t:'dev',id:publicId('A'),dev:'v1',pose:'cam'},'sent with the next position');
+ now+=300;hub.dev(a,{t:'dev',dev:'v3',pose:'cam'});now+=50;hub.dev(a,{t:'dev',dev:'v3',pose:'cam'});assert.equal(devs(b).length,3,'no repeat');
+ now+=10;hub.dev(a,{t:'dev',dev:'v2'});now+=10;hub.dev(a,{t:'dev',dev:'v3',pose:'cam'});now+=300;hub.state(a,st(1,30));assert.equal(devs(b).length,3,'a change and back before it went out sends nothing more');
+ hub.join(c,hello,who('C'));const seen=(sent.get(c)||[]).find(m=>m.t==='welcome').peers.find(p=>p.id===publicId('A'));assert.equal(seen.dev,'v3');assert.equal(seen.pose,'cam');
+ now+=300;hub.dev(a,{t:'dev',dev:null});assert.deepEqual(devs(b).at(-1),{t:'dev',id:publicId('A'),dev:null});
+ const v=hub.view(hub.byConn.get(a));assert.equal(v.dev,null);assert.ok(!('pose' in v));
+ assert.equal(hub.dev({},{t:'dev',dev:'v1'}),false,'no session, nothing');
+});
