@@ -428,6 +428,91 @@
    "as": "recline",
    "loop": "exact",
    "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "sp-idle-shift": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "idle-f2",
+   "as": "idle-shift",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "sp-idle-stretch": {
+   "file": "Idle_03_HUMANIK_TF1.fbx",
+   "start": 2,
+   "end": 10,
+   "as": "idle-stretch",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED)."
+  },
+  "sp-walk": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "walk-f",
+   "as": "walk",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "sp-run": {
+   "file": "run.glb",
+   "source": "own",
+   "sameRig": true,
+   "as": "run",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). The running clip Meshy's auto-rig bundles with the character's own rig (rigging --all-assets: running_armature_glb.glb), given as --own DIR."
+  },
+  "sp-sit-enter": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-enter",
+   "as": "sit-enter",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "sp-sit-exit": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-exit",
+   "as": "sit-exit",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "sp-sit-wave": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-wave",
+   "as": "sit-wave",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "sp-dance-groove": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance-groove",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "sp-dance-bop": {
+   "file": "HappyDance_mixamo.fbx",
+   "start": 2,
+   "end": 10,
+   "as": "dance-bop",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED)."
+  },
+  "sp-gesture": {
+   "file": "Idle_Conversation_HUMANIK_769.fbx",
+   "start": 20,
+   "end": 28,
+   "as": "gesture",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED)."
+  },
+  "sp-shrug": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "shrug",
+   "as": "shrug",
+   "loop": "exact",
+   "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
   }
  },
  "fps": 15
