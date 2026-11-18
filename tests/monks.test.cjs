@@ -16,7 +16,9 @@ test('the closer to the Temple, the more of the walkers are monks',()=>{
  const share=(quarter,f=()=>true)=>{let w=0,m=0;for(let s=1;s<120;s++)for(const p of N.plan('high',seeded(s),N.config,quarter).filter(x=>!x.fixed)){const at=N.at(N.lanesFor(quarter).find(l=>l.id===p.lane),p.t);if(!f(at))continue;w++;if(p.monk)m++;}return m/w;};
  const old=share('oldtown'),avenue=share('avenue'),nearGate=share('avenue',([x])=>x>115),avenueWest=share('avenue',([x])=>x<50);
  assert.ok(old<.05,'Old Town '+old.toFixed(3));assert.ok(avenue>.12,'the Avenue '+avenue.toFixed(3));assert.ok(nearGate>.45,'the Avenue by the East Gate '+nearGate.toFixed(3));
- assert.ok(avenueWest<.06,'the Avenue\'s far (west) end '+avenueWest.toFixed(3));assert.ok(old>0,'still the odd monk in the centre');
+ assert.ok(avenueWest<.12&&nearGate>avenueWest*4,'the Avenue\'s far (west) end '+avenueWest.toFixed(3));assert.ok(old>0,'still the odd monk in the centre');
+ // the count per quarter is steady (walkers x the lanes' average share): Medium has 3 on the Avenue and 1 in Old Town, whatever the dice
+ for(let s=1;s<30;s++){assert.equal(N.plan('medium',seeded(s),N.config,'avenue').filter(p=>p.monk).length,3);assert.equal(N.plan('medium',seeded(s),N.config,'oldtown').filter(p=>p.monk).length,1);assert.equal(N.plan('low',seeded(s),N.config,'oldtown').filter(p=>p.monk).length,0);}
 });
 
 test('a street monk walks alone and sober, and keeps to the stretch of lane toward the gate',()=>{

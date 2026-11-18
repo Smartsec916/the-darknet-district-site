@@ -86,8 +86,11 @@
    else if(!drunk&&rnd()<cfg.groupShare&&i+1<n){people.push({...p,id:'night-'+(++i),side:p.side+.75,speed:p.speed,pairOf:p.id});}}
   void total;
   // Monks: lone sober walkers, more of them toward the East Gate (config.monkShare). Each keeps to its stretch of lane (monkRange).
-  {const ms=cfg.monkShare||config.monkShare;for(const p of people){if(p.drunk||p.pairOf||p.friendOf||people.some(o=>o.pairOf===p.id||o.friendOf===p.id))continue;const l=lanes.find(x=>x.id===p.lane),pos=at(l,p.t);
-   if(unit('monk:'+p.id+':'+p.lane+':'+Math.round(p.t*10))<monkShareAt(pos[0],pos[1],ms)){p.monk=true;p.range=monkRange(l,p.t,ms);}}}
+  // How many: the walkers times the average share along these lanes, rounded (so a quarter's count never swings with chance: medium has 2 on the Avenue, 1 in Old Town);
+  // who: drawn by the share where each starts (weighted, without repeats), so monks start mostly where the share is high.
+  {const ms=cfg.monkShare||config.monkShare,cand=[];for(const p of people){if(p.drunk||p.pairOf||p.friendOf||people.some(o=>o.pairOf===p.id||o.friendOf===p.id))continue;const l=lanes.find(x=>x.id===p.lane),pos=at(l,p.t),w=monkShareAt(pos[0],pos[1],ms);
+    if(w>0)cand.push({p,l,key:Math.pow(Math.max(1e-9,unit('monk:'+p.id+':'+p.lane+':'+Math.round(p.t*10))),1/w),w});}
+   const walkers=people.filter(p=>!p.fixed).length,k=Math.min(cand.length,Math.round(walkers*monkAverage(lanes,ms)));cand.sort((a,b)=>b.key-a.key);for(const c of cand.slice(0,k)){c.p.monk=true;c.p.range=monkRange(c.l,c.p.t,ms);}}
   // People standing about, on clear stretches of sidewalk (never at doors, taxi stands or the static crew).
   const counts=cfg.standers[quality]??cfg.standers.medium;let k=0;
   const spot=(wallSide)=>{for(let tries=0;tries<40;tries++){const l=pickLane(false),L=len(l),t=5+rnd()*(L-10),side=wallSide?l.half-.25:(rnd()-.5)*.6,p=at(l,t,side);
@@ -111,6 +114,8 @@
  function monkRange(l,t,c=config.monkShare){const L=len(l),s=u=>{const p=at(l,u);return monkShareAt(p[0],p[1],c);},thr=Math.min(s(t),Math.max(c.min,s(t)*.5))-1e-9;
   let a=t,b=t;while(a>1&&s(a-1)>=thr)a-=1;while(b<L-1&&s(b+1)>=thr)b+=1;a=Math.max(1,a);b=Math.min(L-1,b);
   while(b-a<24&&(a>1||b<L-1)){a=Math.max(1,a-1);b=Math.min(L-1,b+1);}return [a,b];}
+ // The average monk share along some lanes (weighted by each lane's weight; sampled every 2 m).
+ function monkAverage(ls,c=config.monkShare){let s=0,w=0;for(const l of ls){if(!l.weight)continue;const L=len(l);let a=0,n=0;for(let t=1;t<L;t+=2){const p=at(l,t);a+=monkShareAt(p[0],p[1],c);n++;}if(n){s+=l.weight*a/n;w+=l.weight;}}return w?s/w:0;}
  // A steady number in [0,1) from a string (who is a monk does not use the shared random sequence, so the rest of a plan is the same as before).
  function unit(str){let h=2166136261;for(const ch of String(str)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>15;h=Math.imul(h,2246822507);h^=h>>>13;return (h>>>0)/4294967296;}
  // Is this figure a monk? Marked in its own or a parent's metadata ({monk:true} or npcDevice:{monk:true}), or tagged VoidNPCDevice.tag(node,{monk:true}).
@@ -285,6 +290,6 @@
    for(const k of [1,.5]){for(const p of all)for(const [m,v]of p.parts)m.visibility=v*k;scene.incrementRenderId();await cap(ready());if(disposed)return;}
    for(const p of all){for(const [m,v]of p.parts)m.visibility=v*(p.fade||0);p.lastFade=p.fade;}}
   return {tick,dispose,prewarm,warm,people,stats,config:cfg};}
- const api={distraction,isMonk,monkSpeed,monkShareAt,monkRange,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
+ const api={distraction,isMonk,monkSpeed,monkShareAt,monkRange,monkAverage,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);
