@@ -428,6 +428,22 @@
    "as": "recline",
    "loop": "exact",
    "note": "Kai's clips as the game already ships them on the old Kai figure (vr-companion-m), for his Meshy model."
+  },
+  "pb-dance": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance",
+   "loop": "exact",
+   "note": "Studio 4's dance and idle as the game already ships them on the VR arcade player two (vr-player-b), for Auburn's Meshy model (Milked studio 4, 18 Nov 2026)."
+  },
+  "pb-idle": {
+   "file": "vr-player-b.glb",
+   "source": "crowd",
+   "action": "idle",
+   "as": "idle",
+   "loop": "exact",
+   "note": "Studio 4's dance and idle as the game already ships them on the VR arcade player two (vr-player-b), for Auburn's Meshy model (Milked studio 4, 18 Nov 2026)."
   }
  },
  "fps": 15

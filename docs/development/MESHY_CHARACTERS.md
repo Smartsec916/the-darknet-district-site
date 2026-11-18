@@ -50,6 +50,11 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 18 Nov | Zane remesh 45k | remesh `01a1ef20-c8b0-73d6-9e9f-cc06be77c3ae` | 5 |
 | 18 Nov | Zane rig, 1.82 m | rigging `01a1ef22-d719-762e-8252-756458b85b59` | 5 |
 | | **18 Nov, Zane** | | **40** (budget 40 to 60, stop at 120; the account showed 368 before and 328 after; no retry. Runner `Documents/DarknetDistrict_Assets/Meshy/companions/companion-m2/build_all.py`) |
+| 18 Nov | Auburn (Milked studio 4's dancer; an adult woman of 21, the owner's statement of 18 Nov 2026) concept: image-to-image (nano-banana-pro, 9:16) from renders of the owner's own Meshy model `Meshy_AI_Auburn_Morning_in_the_1118031722_texture.glb` (his Downloads; bent over, unrigged, 1.38 M triangles), asking for the same woman standing in an A-pose with adult features, the dress over black shorts | `01a1ef75-071c-7298-a5c9-46539b6d6d2f` | 9 |
+| 18 Nov | Auburn 3D | image-to-3d `01a1ef76-c15c-7659-8428-11355fb07fbb` | 30 |
+| 18 Nov | Auburn remesh 40k | remesh `01a1ef7b-82b8-7734-b9dc-5fbba9a9200f` | 5 |
+| 18 Nov | Auburn rig, 1.72 m | rigging `01a1ef7d-f1ee-71cb-b295-8626faed4f05` | 5 |
+| | **18 Nov, Auburn** | | **49** (cap 70; the account showed 323 before and 269 after: 54, five more than the four tasks report, not traced to this job; no retry. Working folder `Documents/DarknetDistrict_Assets/Meshy/studio4/` (`build_all.py`, `build_cfg.json`, renders)) |
 | 18 Nov | Lace ("Ethereal Lace", the owner's own Meshy generation from his Downloads): first rig, of a plain decimation whose textures came out shattered (not used) | rigging `01a1ef5c-5d99…` | 5 |
 | 18 Nov | Lace: rigged again from the welded, decimated and re-baked mesh (`--model-url` local file; used) | rigging `01a1ef88-49b4…` | 5 |
 | 18 Nov | Reverie ("Grey Reverie") and the street cat: decimated and re-encoded locally; Reverie static (sculpted seated), the cat rigged in Blender | none | 0 |
@@ -79,6 +84,9 @@ From the owner's reference picture of three monks (`docs/development/monks/refer
 - **Zen Zephyr** `npc-zen-zephyr`: the A-pose concept lost too much of the reference (the sash became a collar), so the seated concept was used instead and made a static figure (no rig: a robe pooled on the floor cannot be posed seated from an A-pose rig without tearing). `zen_build.py` (Blender, background) cuts the head off at the neck (z 0.405 m, within 0.13 m of the middle) into `zz:HeadMesh` under `zz:Head` under `zz:Neck` (pivot at the neck), so the speaker's gaze (`npc-look.js`) turns his head; maps 2048 JPEG; 41,000 triangles, 3.8 MB.
 - **In the game:** `crowd.js` (`monks`, clips), `ncz-nightlife.js` (`monkShare`: rare in Old Town, more along the Avenue toward the East Gate, up to 70% at the gate), `temple.js` (`MODEL.asset`, `MONKS`), `temple-build.js`. Details and screenshots: `docs/development/TEMPLE.md` ("Monks") and `docs/development/monks/`.
 
+## Auburn, Milked studio 4 (18 Nov 2026)
+
+The owner's own Meshy generation ("Auburn Morning in the Kitchen") was bent over with her hands on her knees and could not be rigged, so a standing A-pose concept of the same woman was made from renders of it (above), then 3D, remesh 40k and rig. The owner: "Go ahead and add her into Studio 4. I think she looks about 21": she is an adult woman of 21 (his statement, 18 Nov 2026). Green long-sleeved high-neck bodycon dress over black shorts, black knee-high stiletto boots, long auburn hair; covered in every view. `npc-milked-auburn.glb`: one skinned mesh, 41,285 triangles, 24 joints, three JPEG maps, 4.58 MB; spec `tools/animation-pipeline/characters/npc-milked-auburn.json`, clips `pb-idle` / `pb-dance` (studio 4's idle and dance as `vr-player-b.glb` ships them; its dance is a 1 s loop). In `milked.js` she is the studio 4 dancer `milked-auburn`, name `Auburn`; no voice, no lines.
 ## The Avenue's street pair and the cat (18 Nov 2026)
 
 The owner's own Meshy generations (he downloaded them from meshy.ai; GLB and .blend in his Downloads), not concepts made here. Working folder on the owner's PC: `Documents/DarknetDistrict_Assets/Meshy/studio1/` (`render.py` content renders, `prep.py` / `prep_cat.py` decimate, scale to metres and (the cat) rig, `shrink.py` re-encodes the maps, `lace_build.py` rigs Lace and runs the two pipeline steps, `lace_status.json`).
