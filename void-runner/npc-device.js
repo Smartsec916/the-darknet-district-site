@@ -74,7 +74,7 @@
      if(p&&p.can&&!a.moving&&!p.moving&&ps&&!ps.session&&k.pair&&a.tier!=='v3'&&c.on+2<=Math.max(hi,2)&&rnd()<k.pair){start(a,'pair-selfie','holder',p.id,out);start(p,'pair-selfie','friend',a.id,out).dur=s.session.dur;c.on+=2;continue;}
      start(a,poseFor(a,rnd()),'solo',null,out);c.on++;}}
    return out;}
-  return {step,session:id=>st.get(id)?.session||null,state:st,forget:id=>st.delete(id)};
+  return {step,session:id=>st.get(id)?.session||null,state:st,forget:id=>st.delete(id),end(id,kind='walker'){const s=st.get(id);if(s?.session){s.session=null;s.cool=coolFor(KINDS[kind]?.group||'street',rnd);}}};
  }
  /* The people who are drawn using it: those in a session, near and in view, nearest first, at most `cap`. Someone already shown keeps their place over a newcomer
     a little nearer (no flicker at the edge). list: [{id, d, visible, shown}] */
@@ -205,6 +205,10 @@
  const sessionOf=node=>{for(const a of agents.values())if(a&&a.node===node)return sched.session(a.id);return null;};
  // A walker the owner's script should keep still (a photo, a selfie, filming, watching).
  function holds(node){const r=reactionOf(node);if(r&&(r.mode==='film'||r.mode==='watch'))return true;const s=sessionOf(node);return !!s&&STILL.has(s.pose);}
+ // Reading while walking (ncz-nightlife.js runs into things): a V1 or V2 reader on the street. Never the V3 // Shadow (streamed into the eye: they stay aware), monks or story people.
+ function distracted(node){for(const a of agents.values())if(a&&a.node===node){if(a.tier==='v3'||a.monk||a.kind!=='walker')return false;const s=sched.session(a.id);return (a.forced||s?.pose)==='scroll'&&a.w>.3;}return false;}
+ /* A startle: a near miss (they look up, the hologram flickers, then back to it) or a bump ({close:true}: the hologram flickers and closes; the look is over). */
+ function startle(node,{close=false}={}){for(const a of agents.values())if(a&&a.node===node){a.flick=clock+.8;if(close){a.hush=clock+3;sched.end(a.id,a.kind);}else a.w=Math.min(a.w,.45);stats.startles=(stats.startles||0)+1;return true;}return false;}
  // Walking pace while reading: slower.
  function pace(node){const s=sessionOf(node);return s&&s.pose==='scroll'?.62:1;}
  // ---- each frame ----
@@ -222,7 +226,7 @@
    let vis=a.node.isEnabled()&&!a.f.culled&&a.f.active!==false&&a.d<config.near;if(vis)for(const pl of planes)if(pl.normal.x*p.x+pl.normal.y*(p.y+1.4)+pl.normal.z*p.z+pl.d<-.6){vis=false;break;}a.visible=vis;}
   sched.step(dt,input);
   // who is drawn using it
-  const want=[];for(const a of list){a.session=sched.session(a.id);a.goal=a.forced?{pose:a.forced,role:'solo'}:a.react&&a.react.mode==='film'?{pose:'film',role:'solo'}:a.react&&a.react.mode==='watch'?{pose:'watch',role:'solo'}:a.session;if(a.goal||a.w>0)want.push({id:a.id,d:a.d,visible:a.visible,shown:a.w>0});}
+  const want=[];for(const a of list){a.session=sched.session(a.id);a.goal=a.hush>clock&&!a.react?null:a.forced?{pose:a.forced,role:'solo'}:a.react&&a.react.mode==='film'?{pose:'film',role:'solo'}:a.react&&a.react.mode==='watch'?{pose:'watch',role:'solo'}:a.session;if(a.goal||a.w>0)want.push({id:a.id,d:a.d,visible:a.visible,shown:a.w>0});}
   const cap=capFor(quality()),posed=choosePosed(want,cap);
   stats.agents=list.length;stats.using=list.filter(a=>a.session||a.forced||a.react?.mode==='film').length;stats.cap=cap;stats.poses={};stats.tiers={};
   let n=0;for(const a of list){stats.tiers[a.tier]=(stats.tiers[a.tier]||0)+1;const on=!!a.goal&&posed.has(a.id);if(on&&a.goal.pose!==a.pose&&a.w>.05){a.ending=true;}else if(on){a.pose=a.goal.pose;a.role=a.goal.role;a.partner=a.goal.partner;a.ending=false;}
@@ -260,15 +264,15 @@
   if(eyeCam){   // V3 // SHADOW: streamed into the eye. One eye glows faintly; no arm moves; at most a slight tilt of the head or a stare at the subject
    for(const k of ['cuff','emitter','cone','panel','camera'])show(a,k,false);
    if(a.pose==='scroll')lookAt(fig,eye0.add(body.fwd.scale(1.2)).add(up.scale(-.35)),w*.45,body);else if(a.pose!=='watch')lookAt(fig,subject(),w*.6,body);
-   refresh(h);const hm=h.getWorldMatrix(),gl=P(h).add(B.Vector3.TransformNormal(up,hm).normalize().scale(.085)).add(B.Vector3.TransformNormal(B.Axis.Z,hm).normalize().scale(.095)).add(side.scale(.031));
+   refresh(h);const hm=h.getWorldMatrix(),gl=P(h).add(B.Vector3.TransformNormal(up,hm).normalize().scale(.085)).add(B.Vector3.TransformNormal(B.Axis.Z,hm).normalize().scale(.11)).add(side.scale(.031));
    if(a.pose==='watch')show(a,'eye',false);else{const g=show(a,'eye',true);g.position.copyFrom(gl);g.scaling.setAll(.022*w+.001);}
    for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)){(a.flashed=a.flashed||[]).push(t);spark(gl,.02,true);}
    if(!a.session)a.flashed=null;return;}
-  let panel=null,cam=false,cuff=true,lift=.12;   // panel: where the hologram stands; cam: the viewfinder rather than the reading panel; lift: how high above the emitter
+  let panel=null,cam=false,cuff=true,lift=.08;   // panel: where the hologram stands; cam: the viewfinder rather than the reading panel; lift: how high above the emitter
   const poleL=left.add(up.scale(-.45)).add(body.fwd.scale(-.15));
   switch(a.pose){
    case 'scroll':{   // the left forearm across the chest, the panel rising from the bracer toward the face, the head down to it; the right hand swipes now and then
-    reach(fig,'Left',chest.add(body.fwd.scale(.33)).add(up.scale(.02)).add(side.scale(.07)),left.add(up.scale(-.25)),w,up.scale(.15));
+    reach(fig,'Left',chest.add(body.fwd.scale(.34)).add(up.scale(-.1)).add(side.scale(.09)),left.add(body.fwd.scale(.6)).add(up.scale(-.6)),w,up.scale(.1));
     panel='read';a.swipe+=1/60;const sw=Math.max(0,Math.sin(a.swipe*.9))**10;
     if(sw>.02&&!a.moving)reach(fig,'Right',chest.add(body.fwd.scale(.36)).add(up.scale(.2)).add(side.scale(.02+sw*.06)),side.add(up.scale(-.6)),w*sw*.85,up.scale(.3));
     break;}
@@ -292,7 +296,7 @@
    const e=show(a,'emitter',true);e.position.copyFrom(em);e.rotationQuaternion=e.rotationQuaternion||new B.Quaternion();basis(B.Vector3.Cross(n,axis).normalize(),n,axis,e.rotationQuaternion);e.scaling.setAll(w);
    // the panel above the emitter, a little toward the eye, square to the line from the eye; it unfolds with the pose
    const toEye=eye.subtract(em);toEye.y=0;const pc=em.add(up.scale(lift+.06)).add(toEye.normalize().scale(cam?0:.04));const z=pc.subtract(eye).normalize();let px=B.Vector3.Cross(up,z);if(px.lengthSquared()<1e-4)px=side.clone();px.normalize();const py=B.Vector3.Cross(z,px);
-   const pw=cam?.15:.2,k=.25+.75*w,pm=show(a,cam?'camera':'panel',true);show(a,cam?'panel':'camera',false);pm.position.copyFrom(pc);pm.rotationQuaternion=pm.rotationQuaternion||new B.Quaternion();basis(px,py,z,pm.rotationQuaternion);pm.scaling.set(pw*k,pw*w,1);
+   const pw=(cam?.15:.2)*(a.flick>clock&&Math.random()<.45?.3:1),k=.25+.75*w,pm=show(a,cam?'camera':'panel',true);show(a,cam?'panel':'camera',false);pm.position.copyFrom(pc);pm.rotationQuaternion=pm.rotationQuaternion||new B.Quaternion();basis(px,py,z,pm.rotationQuaternion);pm.scaling.set(pw*k,pw*w,1);
    // the faint cone of light from the emitter to the panel's lower edge
    const base=pc.subtract(py.scale(pw*.72*w*.5)),dir=base.subtract(em),len=dir.length();if(len>.01){const cy=dir.scale(1/len),cx=px.subtract(cy.scale(B.Vector3.Dot(px,cy))).normalize(),cz=B.Vector3.Cross(cx,cy);
     const cn=show(a,'cone',true);cn.position.copyFrom(em);cn.rotationQuaternion=cn.rotationQuaternion||new B.Quaternion();basis(cx,cy,cz,cn.rotationQuaternion);cn.scaling.set(pw*k*.7,len,.02+.01*w);}
@@ -330,7 +334,7 @@
   staged.obs=scene.onBeforeRenderObservable.add(tick);
   return {x:cx,z:cz,people:made.map(m=>m.look),reactions:ev.reactions};}
  function stopArgument(){if(!staged)return;try{scene.onBeforeRenderObservable.remove(staged.obs);}catch{}for(const m of staged.made){try{m.anim?.dispose?.();m.node.dispose();}catch{}}staged=null;}
- const api={...pure,tag,enlist,spectacle,stageArgument,stopArgument,reactionOf,holds,pace,sessionOf,
+ const api={...pure,tag,enlist,distracted,startle,spectacle,stageArgument,stopArgument,reactionOf,holds,pace,sessionOf,
   stats:()=>({...stats,poses:{...stats.poses},tiers:{...stats.tiers},staged:staged?{x:staged.x,z:staged.z,t:staged.t}:null}),
   agents:()=>[...agents.values()].filter(Boolean).map(a=>({id:a.id,key:a.key,kind:a.kind,tier:a.tier,monk:a.monk,pose:a.pose,w:a.w,visible:a.visible,d:a.d,react:a.react?a.react.mode:null,session:a.session?a.session.pose:null,holo:!!a.m_panel,frame:!!a.m_camera,cuff:!!a.m_cuff,eye:!!a.m_eye,node:a.node})),
   scheduler:sched,reactor,get scene(){return scene;}};

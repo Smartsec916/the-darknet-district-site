@@ -72,3 +72,12 @@ test('who takes part: the places\' own ambient people, never staff at work, drun
  assert.equal(k({character:'admin',companion:true}),null);assert.equal(k({nightlife:'night-1',argument:true}),null);assert.equal(k({character:'crew-hall-talk1',ambient:true,life:true}),null);
  assert.ok(D.excluded({monk:true,tier:'v1'})&&D.excluded({tier:'v3'})&&!D.excluded({tier:'v2'}));
 });
+
+test('reading while walking: rare bumps, deterministic from the walker and the look; near misses notice late and sidestep fast',()=>{
+ const N=require(path.join(__dirname,'..','void-runner','ncz-nightlife.js')),DC=N.config.distracted;
+ let bumps=0,n=0;for(let i=0;i<400;i++)for(let k=1;k<=10;k++){n++;const d=N.distraction('night-'+i,k);if(d){bumps++;assert.equal(d.kind,'bump');assert.ok(d.at>=2&&d.at<=5,'the wall bump comes 2-5 s into the look');}}
+ assert.ok(bumps/n>DC.bump*.75&&bumps/n<DC.bump*1.25,'about '+DC.bump+' of looks end in a bump: '+bumps/n);
+ assert.ok(DC.bump<=.12,'kept rare (charming, not slapstick)');
+ assert.deepEqual(N.distraction('night-3',2),N.distraction('night-3',2),'the same walker and look: the same outcome');
+ assert.ok(DC.notice<N.config.spacing+.6,'readers notice people later than everyone else (near misses)');assert.ok(DC.sidestep>1.5,'and sidestep faster');
+});

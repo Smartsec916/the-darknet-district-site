@@ -26,7 +26,11 @@
   activeRadius:140,        // beyond this from you, walkers pause (cheap)
   showRadius:90,           // beyond this from the camera, figures are switched off entirely
   fps:{low:45,high:56,step:4,recoverStep:2,every:2,warmup:3,minShare:.4,fade:.65},  // frame-rate governor: hide the furthest people below low, restore above high
-  spacing:1.1};            // how close two people get before one steps round
+  spacing:1.1,             // how close two people get before one steps round
+  // Reading while walking (the owner, 18 Nov 2026: "If a NPC uses their V1 or V2 to look at something like the News they might run into things or each other").
+  // Charming, not slapstick: per look at the V1 while walking, `bump` is the chance they walk into something (a person coming the other way if there is one, else the
+  // shopfront at their shoulder); everyone reading notices people late (`notice` m instead of spacing+0.6) and sidesteps quickly: near misses. Never the player.
+  distracted:{bump:.08,notice:.55,sidestep:4.5,stumbleFor:1.3,sorryFor:2.2,drift:1.6}};
  // Sidewalk lanes (NeoChinatown coordinates): a line to walk, the wall side (for leaning) and how lively it is.
  // Nightlife lanes may hold drunks; the avenue's quieter east end has fewer people.
  const NC=typeof module!=='undefined'?require('./ncz-nightclub.js'):root.VoidNightclub,club=!!NC&&NC.enabled();
@@ -81,6 +85,10 @@
     const face=size>1?[cx,cz]:kind==='shop'?[x+s.l.wall[0]*2,z+s.l.wall[1]*2]:[x-s.l.wall[0]*2,z-s.l.wall[1]*2];
     people.push({id:'stand-'+(k++),fixed:true,kind,grp:size>1?kind+'-'+i+'-'+Math.round(cx):null,lane:s.l.id,t:s.t,side:s.side,x,z,face,clip:kind==='lean'?(rnd()<.5?'smoke':'idle'):kind==='shop'?(rnd()<.5?'watch':'idle'):'talk'});}}
   return people;}}
+ /* What one distracted walk brings: 'bump' (they will walk into something) or null, and after how many seconds of reading a wall bump comes (if nobody is met first).
+    Deterministic from the walker's id and how many times they have looked at their V1. */
+ function distraction(id,n,cfg=config.distracted){let h=2166136261;for(const c of String(id)+':'+n){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>13;h=Math.imul(h,3266489909);h^=h>>>16;const r=(h>>>0)/4294967296,r2=((Math.imul(h,2246822507)>>>0)%1000)/1000;
+  return r<cfg.bump?{kind:'bump',at:2+r2*3}:null;}
 
  // Hysteresis uses the main loop's measured frame intervals, never Babylon's unmaintained FPS counter.
  function createBudget(total,cfg=config.fps){let budget=total,warm=0,check=0;
@@ -129,11 +137,19 @@
     if(p.lastFade!==p.fade){for(const [m,v]of p.parts)m.visibility=v*p.fade;p.lastFade=p.fade;}
    }
   }
-  function stats(){return {people:people.length,walkers:people.filter(p=>!p.fixed).length,standing:people.filter(p=>p.fixed).length,spawned:people.filter(p=>p.node).length,
+  function stats(){return {...stats_,people:people.length,walkers:people.filter(p=>!p.fixed).length,standing:people.filter(p=>p.fixed).length,spawned:people.filter(p=>p.node).length,
    shown:people.filter(p=>p.node&&!p.hidden&&!p.away).length,away:people.filter(p=>p.away).length,drunk:people.filter(p=>p.drunk).length,budget:gov.budget,fps:Math.round(gov.fps)};}
   // At a street's end some walkers leave (round the corner, into a doorway) and come back later on another street.
   function leave(p){p.away=cfg.awayFor[0]+rnd()*(cfg.awayFor[1]-cfg.awayFor[0]);p.node.setEnabled(false);}
   function comeBack(p){const pool=lanes.filter(l=>!p.drunk||l.nightlife);p.l=pool[Math.floor(rnd()*pool.length)];const L=len(p.l);p.dir=rnd()<.5?1:-1;p.t=p.dir>0?1.2:L-1.2;p.away=0;p.state='walk';p.timer=stopIn(p);p.node.setEnabled(true);place(p,0);}
+  /* A bump: into a person coming the other way (both stop, turn to each other, a word or a shrug, then carry on) or, with nobody met, the shopfront at their shoulder
+     (a half-step back from the wall, a startled look). The hologram closes. Never the player (the player is never `o`). */
+  const stats_={bumps:0,personBumps:0,misses:0};
+  function bump(p,o){const DC=cfg.distracted;stats_.bumps++;p.plan=null;p.drifting=false;root.VoidNPCDevice?.startle?.(p.node,{close:true});
+   p.state='bump';p.timer=o?DC.sorryFor:DC.stumbleFor;p.backLeft=.22;p.jolt=0;
+   if(o){stats_.personBumps++;p.faceTo=[o.node.position.x,o.node.position.z];o.state='bump';o.timer=DC.sorryFor;o.faceTo=[p.node.position.x,p.node.position.z];o.backLeft=.12;o.jolt=0;
+    if(has(p,'shrug'))p.anim.playOnce('shrug','idle');else play(p,'talk');if(has(o,'shrug')&&rnd()<.5)o.anim.playOnce('shrug','idle');else play(o,'talk');p.bumped=o.id;o.bumped=p.id;}
+   else{p.sideTo=p.l.half-.45;p.faceTo=null;play(p,has(p,'look')?'look':'watch','idle');p.bumped='wall';}}
   const hasCompanion=p=>people.some(o=>o.friendOf===p.id||o.pairOf===p.id);
   function tick(dt){if(disposed)return;const me=player();remarkCool-=dt;density(dt);
    for(const p of people){if(!p.node){if(rnd()<dt)spawn(p);continue;}
@@ -151,10 +167,21 @@
     if(lead?.node){// Friends keep pace beside their friend, stop when they stop.
      p.t=lead.t-lead.dir*.2;p.dir=lead.dir;if(lead.state!=='walk'&&p.state==='walk'){p.state='wait';p.faceTo=[lead.node.position.x,lead.node.position.z];play(p,'talk');}
      if(lead.state==='walk'&&p.state!=='walk'){p.state='walk';p.faceTo=null;play(p,'walk');}place(p,dt);continue;}
+    // after a bump: an eased half-step back (and away from the wall), a little jolt of the body
+    if(p.state==='bump'){if(p.backLeft>0){const k=Math.min(p.backLeft,dt*.5);p.t-=p.dir*k;p.backLeft-=k;}if(p.sideTo!=null){p.side+=(p.sideTo-p.side)*Math.min(1,dt*5);}p.jolt+=dt;p.node.rotation.x=p.jolt<.6?-.07*Math.sin(p.jolt/.6*Math.PI):0;}
+    else if(p.sideTo!=null||p.node.rotation.x){p.sideTo=null;p.node.rotation.x=0;}
     if(p.state==='walk'){
+     // Reading their V1 while walking (npc-device.js): they notice people late and sidestep quickly (a near miss); now and then they walk into someone or the shopfront.
+     const D=root.VoidNPCDevice,reading=!!D?.distracted?.(p.node),DC=cfg.distracted;
+     if(reading&&!p.reading){p.reading=true;p.looks=(p.looks||0)+1;p.plan=distraction(p.id,p.looks,DC);p.readFor=0;}else if(!reading&&p.reading){p.reading=false;p.plan=null;p.drifting=false;}
+     if(reading){p.readFor+=dt;
+      const meet=p.plan&&people.find(o=>o!==p&&o.node&&!o.away&&!o.hidden&&o.l===p.l&&o.state==='walk'&&!o.fixed&&o.dir!==p.dir&&!o.friendOf&&!o.pairOf&&!o.drunk&&Math.abs(sideOf(p.l,o)-p.side)<.7&&(along(p.l,[o.node.position.x,o.node.position.z])-p.t)*p.dir>0&&(along(p.l,[o.node.position.x,o.node.position.z])-p.t)*p.dir<.5);
+      if(meet){bump(p,meet);place(p,dt);continue;}
+      if(p.plan&&p.readFor>p.plan.at){p.drifting=true;p.side+=(p.l.half-.05-p.side)*Math.min(1,dt*DC.drift);if(p.side>p.l.half-.15&&canLean(p.l,p.t)){bump(p,null);place(p,dt);continue;}}}
      // Someone (or you) right ahead: step round, never through.
-     const ahead=[...people.filter(o=>o!==p&&o.node&&o.l===p.l&&!o.friendOf&&!o.pairOf),...(me?[{node:{position:{x:me.x,z:me.z}},player:true}]:[]),...standing.map(([x,z])=>({node:{position:{x,z}}})),...people.filter(o=>o.fixed&&o.node&&o.l===p.l)].find(o=>{const s=along(p.l,[o.node.position.x,o.node.position.z])-p.t;return s*p.dir>0&&s*p.dir<cfg.spacing+.6&&Math.abs(sideOf(p.l,o)-p.side)<.8;});
-     if(ahead)p.side+=(p.side>0?-1:1)*dt*1.5;else p.side+=((p.homeSide??(p.homeSide=p.side))-p.side)*Math.min(1,dt*.5);
+     const ahead=[...people.filter(o=>o!==p&&o.node&&o.l===p.l&&!o.friendOf&&!o.pairOf),...(me?[{node:{position:{x:me.x,z:me.z}},player:true}]:[]),...standing.map(([x,z])=>({node:{position:{x,z}}})),...people.filter(o=>o.fixed&&o.node&&o.l===p.l)].find(o=>{const s=along(p.l,[o.node.position.x,o.node.position.z])-p.t;return s*p.dir>0&&s*p.dir<(reading&&!o.player?DC.notice:cfg.spacing+.6)&&Math.abs(sideOf(p.l,o)-p.side)<.8;});
+     if(ahead&&reading&&!ahead.player&&!p.missed){p.missed=ahead;stats_.misses++;D?.startle?.(p.node,{close:false});}else if(!ahead)p.missed=null;
+     if(ahead)p.side+=(p.side>0?-1:1)*dt*(reading?DC.sidestep:1.5);else if(!p.drifting)p.side+=((p.homeSide??(p.homeSide=p.side))-p.side)*Math.min(1,dt*.5);
      p.side=Math.max(-p.l.half+.1,Math.min(p.l.half-.1,p.side));
      p.t+=p.dir*p.speed*dt*(ahead?.4:1)*(R()?.pace?.(p.node)??1);const L=len(p.l);if(p.t<1||p.t>L-1){p.dir*=-1;p.t=Math.max(1,Math.min(L-1,p.t));
       if(!hasCompanion(p)&&rnd()<cfg.leaveShare){leave(p);continue;}}
@@ -181,6 +208,6 @@
    for(const k of [1,.5]){for(const p of all)for(const [m,v]of p.parts)m.visibility=v*k;scene.incrementRenderId();await cap(ready());if(disposed)return;}
    for(const p of all){for(const [m,v]of p.parts)m.visibility=v*(p.fade||0);p.lastFade=p.fade;}}
   return {tick,dispose,prewarm,warm,people,stats,config:cfg};}
- const api={config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
+ const api={distraction,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

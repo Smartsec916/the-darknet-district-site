@@ -30,6 +30,8 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   await page.waitForFunction(()=>VoidBabylon.district?.nightlife?.stats().spawned>=8,null,{timeout:300000});
   await page.evaluate(()=>{for(const id of ['pd-notify'])document.getElementById(id)?.remove();});
   const S=()=>page.evaluate(()=>VoidNPCDevice.stats());
+  const full=v=>page.waitForFunction(v=>VoidNPCDevice.agents().find(a=>a.node===window[v])?.w>=.97,v,{timeout:120000});   // the pose fully in (the software renderer runs at a frame or two a second)
+  const front=(v,d,side=0)=>page.evaluate(([v,d,side])=>{const n=window[v],p=n.getAbsolutePosition(),m=n.getWorldMatrix(),f=BABYLON.Vector3.TransformNormal(BABYLON.Axis.Z,m);f.y=0;f.normalize();const y=Math.atan2(f.x,f.z)+side;Object.assign(walker,{x:p.x+Math.sin(y)*d,z:p.z+Math.cos(y)*d,pitch:-.06});walker.yaw=Math.atan2(p.x-walker.x,p.z-walker.z);},[v,d,side]);
   // (1) the street on its own: let the scheduler run, then count. Stand mid Main Street looking along it.
   await page.evaluate(()=>Object.assign(walker,{x:61,z:-95,yaw:0,pitch:-.05}));
   await page.waitForTimeout(25000);let st=await S();log('street '+JSON.stringify(st));
@@ -41,12 +43,17 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   if(!only||only.includes('walker')){
    // (2) a walker reading their V1: the nearest walker made to read, the player a few metres in front of them, looking at them
    const at=await page.evaluate(()=>{const a=VoidNPCDevice.agents().filter(a=>a.kind==='walker'&&a.node.isEnabled()&&a.tier==='v1');const t=a[0];VoidNPCDevice.tag(t.node,{force:()=>'scroll'});window.__w=t.node;return t.key;});
-   const follow=async(ms)=>{const end=Date.now()+ms;while(Date.now()<end){await page.evaluate(()=>{const n=window.__w,p=n.getAbsolutePosition(),y=n.rotation.y;Object.assign(walker,{x:p.x+Math.sin(y)*1.7+Math.cos(y)*.35,z:p.z+Math.cos(y)*1.7-Math.sin(y)*.35,pitch:-.12});walker.yaw=Math.atan2(p.x-walker.x,p.z-walker.z);});await page.waitForTimeout(150);}};
-   await follow(5000);const one=await page.evaluate(()=>VoidNPCDevice.agents().find(a=>a.node===window.__w));log('walker '+JSON.stringify({...one,node:undefined}));assert.equal(one.pose,'scroll');assert.ok(one.holo,'the hologram panel is up');
-   await shot('walker-reading');
-   const side=await page.evaluate(()=>{const n=window.__w,p=n.getAbsolutePosition(),y=n.rotation.y+1.2;Object.assign(walker,{x:p.x+Math.sin(y)*1.6,z:p.z+Math.cos(y)*1.6,pitch:-.1});walker.yaw=Math.atan2(p.x-walker.x,p.z-walker.z);return true;});
-   await page.waitForTimeout(600);await shot('walker-reading-side');
+   const follow=async(ms,side=.25)=>{const end=Date.now()+ms;while(Date.now()<end){await front('__w',1.8,side);await page.waitForTimeout(120);}};
+   await follow(3000);await full('__w');await follow(1500);const one=await page.evaluate(()=>{const {node,...a}=VoidNPCDevice.agents().find(a=>a.node===window.__w);return a;});log('walker '+JSON.stringify(one));assert.equal(one.pose,'scroll');assert.ok(one.holo&&one.cuff,'the wrist cuff and its hologram panel are up');
+   await shot('walker-reading');await follow(1500,1.2);await shot('walker-reading-side');
    await page.evaluate(()=>VoidNPCDevice.tag(window.__w,{force:()=>null}));
+  }
+  if(!only||only.includes('shadow')){
+   // (2b) a V3 // Shadow carrier: streamed into the eye. One eye glows; no cuff, no panel, no raised arm. A close-up.
+   await page.evaluate(()=>{const a=VoidNPCDevice.agents().filter(a=>a.kind==='stander'&&a.node.isEnabled()).sort((x,y)=>x.d-y.d)[0];VoidNPCDevice.tag(a.node,{tier:'v3',force:()=>'scroll'});window.__s=a.node;});
+   await front('__s',1.0);await full('__s');await front('__s',1.0);await page.waitForTimeout(800);const sh=await page.evaluate(()=>{const {node,...a}=VoidNPCDevice.agents().find(a=>a.node===window.__s);return a;});log('shadow '+JSON.stringify(sh));
+   assert.equal(sh.tier,'v3');assert.ok(sh.eye,'one eye glows');assert.ok(!sh.cuff&&!sh.holo&&!sh.frame,'no cuff, no panel');await shot('shadow-eye-closeup');
+   await page.evaluate(()=>VoidNPCDevice.tag(window.__s,{force:()=>null,tier:'v1'}));
   }
   if(!only||only.includes('argument')){
    // (3) the staged argument on Main Street: most film it; a V3 // Shadow carrier and a monk do not
@@ -87,7 +94,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    const club=await page.evaluate(()=>VoidNPCDevice.agents().filter(a=>['dancer','bar'].includes(a.kind)).map(({node,...a})=>({...a,p:node.getAbsolutePosition().asArray()})));log('club '+JSON.stringify(club.map(a=>a.key+':'+a.kind+':'+a.tier)));
    const d0=club.find(a=>a.kind==='dancer');await page.evaluate(k=>{const a=VoidNPCDevice.agents().find(a=>a.key===k);VoidNPCDevice.tag(a.node,{force:()=>'selfie',tier:'v1'});window.__d=a.node;},d0.key);
    await page.evaluate(()=>{const n=window.__d,p=n.getAbsolutePosition(),y=n.rotation.y;Object.assign(walker,{x:p.x+Math.sin(y)*2.1,z:p.z+Math.cos(y)*2.1,pitch:-.05});walker.yaw=Math.atan2(p.x-walker.x,p.z-walker.z);});
-   await page.waitForTimeout(3500);const sf=await page.evaluate(()=>VoidNPCDevice.agents().find(a=>a.node===window.__d));assert.equal(sf.pose,'selfie');assert.ok(sf.frame,'the selfie frame is out');await shot('null-selfie');
+   await page.waitForTimeout(3500);const sf=await page.evaluate(()=>{const {node,...a}=VoidNPCDevice.agents().find(a=>a.node===window.__d);return a;});assert.equal(sf.pose,'selfie');assert.ok(sf.frame,'the selfie frame is out');await shot('null-selfie');
    await page.evaluate(()=>VoidNPCDevice.tag(window.__d,{force:()=>null}));
    // pair selfie: the two bar guests (Medium and up) or two dancers, through the scheduler's own pair session
    const pairOk=await page.evaluate(()=>{const all=VoidNPCDevice.agents(),a=all.find(x=>x.key==='bar-guest-a')||all.find(x=>x.key==='dancer-0'),b=all.find(x=>x.key===(a.key==='bar-guest-a'?'bar-guest-b':'dancer-1'));if(!a||!b)return null;
