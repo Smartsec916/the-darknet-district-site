@@ -36,7 +36,12 @@
   // VoidNPCDevice.tag(node,{monk:true}) or marked monk in its metadata. `speed`: their pace against the street's average walker (one steady pace, no hurrying);
   // `anim`: the walk clip's playback to match (no sliding feet); `sense`: how far ahead (m) they foresee anyone on a collision course (others notice at 1.7 m);
   // `clear`: the gap (m, across the sidewalk) they leave; `sidestep`: how fast (m/s) they drift aside; `hold`: seconds they stay aside once the other has passed; `turn`: turn rate.
-  monk:{speed:.65,anim:.65,sense:9,clear:1.05,margin:.1,sidestep:.42,urgent:1.4,hold:1.4,turn:1.8,check:.5}};
+  monk:{speed:.65,anim:.65,sense:9,clear:1.05,margin:.1,sidestep:.42,urgent:1.4,hold:1.4,turn:1.8,check:.5},
+  // Where monks walk (the owner, 18 Nov 2026: "The closer you get to the Temple the more Monks there are compared to other NPCs"). A lone sober walker is a monk with the
+  // chance monkShareAt gives at the spot they start: `min` far from the East Gate (Old Town, the city centre), rising smoothly to `max` within `near` m of `gate` (the East
+  // Gate on the Avenue, the way up to the Temple), `far` m and beyond is `min`. Each monk keeps to the stretch of their lane near the Temple (monkRange): they come and go
+  // through the gate's end of it. At the Temple itself most people are monks (temple-build.js).
+  monkShare:{gate:[148,-12.5],near:14,far:100,min:.03,max:.7}};
  // Sidewalk lanes (NeoChinatown coordinates): a line to walk, the wall side (for leaning) and how lively it is.
  // Nightlife lanes may hold drunks; the avenue's quieter east end has fewer people.
  const NC=typeof module!=='undefined'?require('./ncz-nightclub.js'):root.VoidNightclub,club=!!NC&&NC.enabled();
@@ -80,6 +85,9 @@
    if(drunk&&rnd()<cfg.helpedShare&&i+1<n){people.push({...p,id:'night-'+(++i),drunk:false,friendOf:p.id,side:p.side-.7});}
    else if(!drunk&&rnd()<cfg.groupShare&&i+1<n){people.push({...p,id:'night-'+(++i),side:p.side+.75,speed:p.speed,pairOf:p.id});}}
   void total;
+  // Monks: lone sober walkers, more of them toward the East Gate (config.monkShare). Each keeps to its stretch of lane (monkRange).
+  {const ms=cfg.monkShare||config.monkShare;for(const p of people){if(p.drunk||p.pairOf||p.friendOf||people.some(o=>o.pairOf===p.id||o.friendOf===p.id))continue;const l=lanes.find(x=>x.id===p.lane),pos=at(l,p.t);
+   if(unit('monk:'+p.id+':'+p.lane+':'+Math.round(p.t*10))<monkShareAt(pos[0],pos[1],ms)){p.monk=true;p.range=monkRange(l,p.t,ms);}}}
   // People standing about, on clear stretches of sidewalk (never at doors, taxi stands or the static crew).
   const counts=cfg.standers[quality]??cfg.standers.medium;let k=0;
   const spot=(wallSide)=>{for(let tries=0;tries<40;tries++){const l=pickLane(false),L=len(l),t=5+rnd()*(L-10),side=wallSide?l.half-.25:(rnd()-.5)*.6,p=at(l,t,side);
@@ -95,7 +103,16 @@
     Deterministic from the walker's id and how many times they have looked at their V1. */
  function distraction(id,n,cfg=config.distracted){let h=2166136261;for(const c of String(id)+':'+n){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>13;h=Math.imul(h,3266489909);h^=h>>>16;const r=(h>>>0)/4294967296,r2=((Math.imul(h,2246822507)>>>0)%1000)/1000;
   return r<cfg.bump?{kind:'bump',at:2+r2*3}:null;}
- // ---- Monks (pure; tests/ncz-nightlife.test.cjs) ----
+ // ---- Monks (pure; tests/ncz-nightlife.test.cjs, tests/monks.test.cjs) ----
+ // The share of walkers who are monks at (x,z): config.monkShare (more toward the East Gate and the Temple beyond it).
+ function monkShareAt(x,z,c=config.monkShare){const d=Math.hypot(x-c.gate[0],z-c.gate[1]);let k=Math.max(0,Math.min(1,(c.far-d)/(c.far-c.near)));k=k*k*(3-2*k);return c.min+(c.max-c.min)*k;}
+ // The stretch [from, to] (m along the lane) a monk who starts at t keeps to: around t, where the monk share is at least half of what it is at t (and never less than
+ // 24 m long). Toward the gate it reaches the lane's end, so monks come and go through the gate; toward the city centre they turn back where monks thin out.
+ function monkRange(l,t,c=config.monkShare){const L=len(l),s=u=>{const p=at(l,u);return monkShareAt(p[0],p[1],c);},thr=Math.min(s(t),Math.max(c.min,s(t)*.5))-1e-9;
+  let a=t,b=t;while(a>1&&s(a-1)>=thr)a-=1;while(b<L-1&&s(b+1)>=thr)b+=1;a=Math.max(1,a);b=Math.min(L-1,b);
+  while(b-a<24&&(a>1||b<L-1)){a=Math.max(1,a-1);b=Math.min(L-1,b+1);}return [a,b];}
+ // A steady number in [0,1) from a string (who is a monk does not use the shared random sequence, so the rest of a plan is the same as before).
+ function unit(str){let h=2166136261;for(const ch of String(str)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}h^=h>>>15;h=Math.imul(h,2246822507);h^=h>>>13;return (h>>>0)/4294967296;}
  // Is this figure a monk? Marked in its own or a parent's metadata ({monk:true} or npcDevice:{monk:true}), or tagged VoidNPCDevice.tag(node,{monk:true}).
  function isMonk(node,D=root.VoidNPCDevice){for(let n=node;n;n=n.parent){const m=n.metadata;if(m&&(m.monk||m.npcDevice?.monk))return true;}return !!D?._agent?.(node)?.monk;}
  // A monk's one steady pace (m/s): the street's average walker slowed by cfg.monk.speed. The same for every monk and every step.
@@ -139,17 +156,17 @@
   }};
  }
  // Browser: figures, routines and reactions.
- function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],rnd=Math.random,cfg=config,quarter=null}){
+ function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=['ncz-neon','fixer-01','runner-02','communion-tech','district-resident','hacker-01','outlaw-01','district-smuggler'],drunkCast=['runner-02','ncz-neon'],monkCast=root.VoidCrowd?.monks||['npc-monk-elder','npc-monk-tech','npc-monk-grey'],rnd=Math.random,cfg=config,quarter=null}){
   const lanes=lanesFor(quarter);
   const people=plan(quality,rnd,cfg,quarter).map(p=>({...p,l:lanes.find(l=>l.id===p.lane),state:'walk',timer:stopIn(p),node:null,monkPlan:!!p.monk,monk:false,anim:null,look:null,react:0,sway:rnd()*6,yaw:0}));
   const byId=new Map(people.map(p=>[p.id,p]));let remarkCool=8,dealt=Math.floor(rnd()*8),disposed=false;
   const budget=createBudget(people.length,cfg.fps),gov={budget:people.length,fps:0,check:0},cam=()=>scene?.activeCamera?.globalPosition||null;
   function stopIn(p){const [a,b]=p.drunk?cfg.drunkStopEvery:cfg.stopEvery;return a+rnd()*(b-a);}
   // Figures appear as their looks finish downloading; until then the person is simply not there yet.
-  function spawn(p){if(p.node||disposed)return;const looks=p.drunk?drunkCast:cast;let node=null,look=null;
+  function spawn(p){if(p.node||disposed)return;const looks=p.monkPlan?monkCast:p.drunk?drunkCast:cast;let node=null,look=null;   /* a monk waits for a monk's figure */
    // Try the next look; one still downloading is skipped for one that is ready.
    for(let i=0;i<looks.length&&!node;i++){look=looks[(dealt++)%looks.length];node=instance('crowd:'+look,parent);}if(!node)return;
-   node.metadata={...node.metadata,crowd:look,nightlife:p.id};p.node=node;p.look=look;p.fade=0;p.parts=node.getChildMeshes().map(m=>[m,m.visibility]);for(const [m]of p.parts)m.visibility=0;
+   node.metadata={...node.metadata,crowd:look,nightlife:p.id,...(p.monkPlan?{monk:true}:{})};if(p.monkPlan){root.VoidNPCDevice?.tag?.(node,{monk:true});p.monkIn=0;}p.node=node;p.look=look;p.fade=0;p.parts=node.getChildMeshes().map(m=>[m,m.visibility]);for(const [m]of p.parts)m.visibility=0;
    enlistDevice(p);
    if(p.fixed){p.anim=animate(node,look,p.clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw=Math.atan2(p.face[0]-p.x,p.face[1]-p.z);return;}
    p.anim=animate(node,look,p.drunk?'drunk-walk':'walk');place(p,0);}
@@ -185,7 +202,10 @@
    shown:people.filter(p=>p.node&&!p.hidden&&!p.away).length,away:people.filter(p=>p.away).length,drunk:people.filter(p=>p.drunk).length,monks:people.filter(p=>p.monk).length,budget:gov.budget,fps:Math.round(gov.fps)};}
   // At a street's end some walkers leave (round the corner, into a doorway) and come back later on another street.
   function leave(p){p.away=cfg.awayFor[0]+rnd()*(cfg.awayFor[1]-cfg.awayFor[0]);p.node.setEnabled(false);}
-  function comeBack(p){const pool=lanes.filter(l=>!p.drunk||l.nightlife);p.l=pool[Math.floor(rnd()*pool.length)];const L=len(p.l);p.dir=rnd()<.5?1:-1;p.t=p.dir>0?1.2:L-1.2;p.away=0;p.state='walk';p.timer=stopIn(p);p.node.setEnabled(true);place(p,0);}
+  function comeBack(p){const pool=lanes.filter(l=>!p.drunk||l.nightlife);
+   if(p.monkPlan&&p.range){const L=len(p.l),[a,b]=p.range;if(b>=L-1.5){p.dir=-1;p.t=L-1.2;}else if(a<=1.5){p.dir=1;p.t=1.2;}else{p.dir=rnd()<.5?1:-1;p.t=(a+b)/2;}   /* a monk comes back the way they went: through the gate's end of their stretch */
+    p.away=0;p.state='walk';p.timer=stopIn(p);p.node.setEnabled(true);place(p,0);return;}
+   p.l=pool[Math.floor(rnd()*pool.length)];const L=len(p.l);p.dir=rnd()<.5?1:-1;p.t=p.dir>0?1.2:L-1.2;p.away=0;p.state='walk';p.timer=stopIn(p);p.node.setEnabled(true);place(p,0);}
   /* A bump: into a person coming the other way (both stop, turn to each other, a word or a shrug, then carry on) or, with nobody met, the shopfront at their shoulder
      (a half-step back from the wall, a startled look). The hologram closes. Never the player (the player is never `o`). */
   const stats_={bumps:0,personBumps:0,misses:0,foreseen:0};
@@ -230,7 +250,9 @@
      if(ahead&&reading&&!ahead.player&&!ahead.monk&&!p.missed){p.missed=ahead;stats_.misses++;D?.startle?.(p.node,{close:false});}else if(!ahead)p.missed=null;
      if(p.monk){}else if(ahead)p.side+=(p.side>0?-1:1)*dt*(reading?DC.sidestep:1.5);else if(!p.drifting)p.side+=((p.homeSide??(p.homeSide=p.side))-p.side)*Math.min(1,dt*.5);
      p.side=Math.max(-p.l.half+.1,Math.min(p.l.half-.1,p.side));
-     p.t+=p.dir*p.speed*dt*(p.monk?(ahead?.6:1):(ahead?.4:1)*(R()?.pace?.(p.node)??1));const L=len(p.l);if(p.t<1||p.t>L-1){p.dir*=-1;p.t=Math.max(1,Math.min(L-1,p.t));
+     p.t+=p.dir*p.speed*dt*(p.monk?(ahead?.6:1):(ahead?.4:1)*(R()?.pace?.(p.node)??1));const L=len(p.l);
+     if(p.monk&&p.range){const [a,b]=p.range;if((p.t<a&&p.dir<0&&a>1)||(p.t>b&&p.dir>0&&b<L-1)){p.dir*=-1;p.t=Math.max(a,Math.min(b,p.t));p.avoid=null;}}   /* a monk turns back where monks thin out (monkRange) */
+     if(p.t<1||p.t>L-1){p.dir*=-1;p.t=Math.max(1,Math.min(L-1,p.t));
       if(!hasCompanion(p)&&rnd()<cfg.leaveShare){leave(p);continue;}}
      if(p.timer<=0&&p.monk)p.timer=stopIn(p);   /* a monk walks on with purpose: no loitering */
      if(p.timer<=0){const where=at(p.l,p.t);p.timer=cfg.stopFor[0]+rnd()*(cfg.stopFor[1]-cfg.stopFor[0]);
@@ -263,6 +285,6 @@
    for(const k of [1,.5]){for(const p of all)for(const [m,v]of p.parts)m.visibility=v*k;scene.incrementRenderId();await cap(ready());if(disposed)return;}
    for(const p of all){for(const [m,v]of p.parts)m.visibility=v*(p.fade||0);p.lastFade=p.fade;}}
   return {tick,dispose,prewarm,warm,people,stats,config:cfg};}
- const api={distraction,isMonk,monkSpeed,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
+ const api={distraction,isMonk,monkSpeed,monkShareAt,monkRange,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

@@ -23,6 +23,9 @@
   'npc-nyx':['idle','talk','walk','look','watch','laugh','shrug','wipe'],   // Nyx, the District's bartender: her own model (Meshy, 16 Nov 2026)
   // The named District residents' own models (district-people.js `own`).
   'npc-rin':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-jonah':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-sable':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-kei':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-mags':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-tavi':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],'npc-bishop':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],
+  // The monks (Meshy, 18 Nov 2026, from the owner's reference picture of three monks; docs/development/MESHY_CHARACTERS.md): the elder in saffron, the tech monk, the grey monk.
+  // On the streets more of them toward the East Gate (ncz-nightlife.js monkShare); at the Temple most people are monks (temple-build.js).
+  'npc-monk-elder':['idle','talk','walk','look','watch','sit'],'npc-monk-tech':['idle','talk','walk','look','watch','sit'],'npc-monk-grey':['idle','talk','walk','look','watch','sit'],
   // VR arcade companions (vr-suite.js).
   'studio-warrior':['slow-dance','dance','idle'],   // Milked studio 2's dancer (licensed Female Warrior, private .vrpak; 18 Nov 2026)
   'vr-companion-f':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],'vr-companion-fc1':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],
@@ -40,6 +43,8 @@
   neochinatown:['ncz-neon','fixer-01','runner-02','communion-tech'],               // street crowd
   district:['hacker-01','district-smuggler','district-resident','outlaw-01']       // The Darknet District
  };
+ // The monks' looks (ncz-nightlife.js deals them to the street's monks; temple-build.js to the Temple's).
+ const monks=['npc-monk-elder','npc-monk-tech','npc-monk-grey'];
  // NeoChinatown and The Darknet District share one scene; these crew belong to the District.
  const districtCrew=/^crew-(vr|bar|smoke)/;
  // Behind each bar: Meridian's own bartender; elsewhere a local look (they polish and pour with the reach move).
@@ -72,7 +77,7 @@
  function models(location,quality,area='all'){
   if(!casts[location])return {};
   // area: NeoChinatown's street and the District interior are separate environments; each needs only its own people.
-  const set=new Set(area==='interior'&&location==='neochinatown'?[]:[...casts[location],...(staff[location]||[])]);if(location==='neochinatown'&&area!=='street')casts.district.forEach(l=>set.add(l));
+  const set=new Set(area==='interior'&&location==='neochinatown'?[]:[...casts[location],...(staff[location]||[])]);if(location==='neochinatown'&&area!=='interior')monks.forEach(l=>set.add(l));   /* the street's monks (ncz-nightlife.js) */if(location==='neochinatown'&&area!=='street')casts.district.forEach(l=>set.add(l));
   // Background: a figure that isn't downloaded within the scene's few seconds keeps loading and is
   // swapped in when it arrives (asset-pipeline.js), instead of being dropped for the procedural crew.
   // The named residents' own models are loaded with the District's people, so each is there when their spot is filled; if one fails, a look of the place stands in (babylon-renderer.js).
@@ -149,6 +154,6 @@
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={casts,staff,clips,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
+ const api={casts,staff,clips,monks,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);
