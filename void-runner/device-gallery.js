@@ -87,7 +87,7 @@
  async function post(id,on){const p=photos.find(x=>x.id===id);if(!p)return false;p.postedAt=on?Date.now():0;await tx('readwrite',s=>s.put(p));changed();return true;}
  const tagLine=tags=>tags&&tags.length?'<div class="pd-phototags">'+tags.map(t=>'<span>'+esc(t.name)+(t.role?' <small>'+esc(t.role)+'</small>':'')+'</span>').join('')+'</div>':'<div class="pd-note">Nobody tagged in this picture.</div>';
  /* The Gallery app. sub: undefined (the grid) or a photo id (one photo). */
- /* The places chain for a photo's metadata: "Bar · The Darknet District · Old Town · NeoChinatown · Tessaly System". */
+ /* The places chain for a photo's metadata: "Bar · The Darknet District · Old Town · NeoChinatown · Servo · Tessaly System". */
  const placeLabel=id=>{try{return root.VoidPlaces?.chain?.(id)||'';}catch{return '';}};
  function metaHtml(p){
   const rows=metadata(p,{placeLabel}),v=x=>x?esc(x):'—';
