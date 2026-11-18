@@ -27,6 +27,10 @@ class StorySaveTests(unittest.TestCase):
         state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags']['missionPool']='closed'
         clean=vr.clean_save(state)
         self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['missionPool'],'closed')
+    def test_device_serial_survives_cloud_validation(self):
+        # The V1's device ID (18 Nov 2026: photo metadata) is story.flags.deviceSerial, 8 hex digits; it must survive a cloud save unchanged.
+        state=self.state();state['story']['flags']['deviceSerial']='7f3a91c2'
+        self.assertEqual(vr.clean_save(state)['story']['flags']['deviceSerial'],'7f3a91c2')
     def state(self):
         return {'version':2,'quest':'open','location':'meridian','credits':100,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':0},'cleared':[],'contract':None,'loadout':{},'story':{'flags':{'campaignEpoch':1,'metMara':True,'promise':False},'met':['mara'],'events':['mara_workshop_intro'],'pending':['mara_workshop_intro'],'relationships':{'mara':2},'characters':{'pirate':'dead'},'chapter':'open','unlocked':['rusthaven'],'encounters':['mara_rendezvous']},'savedAt':1750000000000}
     def test_round_trip_preserves_story_without_ownership_claims(self):
