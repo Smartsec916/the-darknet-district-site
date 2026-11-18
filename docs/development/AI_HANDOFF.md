@@ -6,7 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 17 Nov 2026 (newest): COMPANIONS STAY WHOLE UP CLOSE; STEADIER HEAD TRACKING; SMOOTHER, MORE NATURAL MOVEMENT (branch `claude/companion-fixes`, build `2026-11-17-companions-1`, pushed, NO PR, not merged; companion graphics need the owner's approval before going live)
+### 18 Nov 2026 (newest): GALLERY METADATA; DEVICE IDS; EVERY LOCATION NAMED (branch `claude/gallery-metadata`, build `2026-11-18-metadata-1`, pushed, NO PR, not merged)
+
+The owner: "In the Gallery App players can click MetaData on selected pictures, in MetaData it shows who was tagged, the location, the device ID on the person who took it, and maybe more later. This means every location needs a name". Corrections: the photographer stays anonymous ("Not the handle, unless the person or npc posted it online ... Although there will be ways to track it later"); clear out old photos and start fresh. Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Sixth pass".
+
+- **METADATA** in the V1 Gallery: TAGGED (and how identified), LOCATION (places.js chain, most specific first), DEVICE ID, TAKEN (in-game time). No handle or player id stored; a `postedBy` hook is empty. Tracing a device ID to a person is a future gameplay mechanic.
+- **Device ID** `V1-XXXX-XXXX`: `story.flags.deviceSerial`, made once per campaign from a hash with a thrown-away random number (irreversible), survives reloads and `clean_save`; recorded at capture; shown in MY V1.
+- **Fresh start:** the Gallery's IndexedDB goes to version 2 and its photo store is emptied once (photos were never in the cloud save). Nothing else is touched.
+- **Naming pass:** `places.js` now has 168 places (System › Planet › City › Area › Venue › Exact location): 147 existing names (50 of them shopfronts named by their neon signs), 21 PROPOSED working names. Review sheet [`LOCATION_NAMES.md`](LOCATION_NAMES.md) with an "Owner's name" column; map [`location-names-map.png`](location-names-map.png). The planet's name is not settled (PROPOSED, uses "NeoChinatown"). Mission Editor pickers show level, working-name marks and the whole chain.
+- **Tests:** `tests/places-names.test.cjs` (grid-sampled walkable points all resolve to a named exact location; hierarchy; device ID; metadata; fresh start), `tests/gallery-metadata-browser.cjs`, updated `eyes-on-the-street` and `guide-route` tests, `test_story_save.py`.
+- **Not verified:** real hardware; VR; another player in a photo; shopfront positions are a reading of the city as built today.
+
+### 17 Nov 2026: COMPANIONS STAY WHOLE UP CLOSE; STEADIER HEAD TRACKING; SMOOTHER, MORE NATURAL MOVEMENT (branch `claude/companion-fixes`, build `2026-11-17-companions-1`, pushed, NO PR, not merged; companion graphics need the owner's approval before going live)
 
 The owner: "The Companion NPCs when interacting with them sometimes their head, eyes, arms disappear. Sometimes their in odd positions, probably because of head tracking. Try to fix these things, also aim to make them more natural."
 
