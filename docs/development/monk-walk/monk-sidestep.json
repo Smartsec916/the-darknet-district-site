@@ -1,0 +1,276 @@
+[
+ {
+  "file": "monk-sidestep-00.png",
+  "gap": 11.39,
+  "monkSide": 0.1,
+  "readerSide": 0.1,
+  "avoid": null,
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 0,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 9,
+   "away": 2,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ },
+ {
+  "file": "monk-sidestep-01.png",
+  "gap": 8.87,
+  "monkSide": 0.08,
+  "readerSide": 0.1,
+  "avoid": {
+   "side": -0.9,
+   "gap": 9
+  },
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 1,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 6,
+   "away": 2,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ },
+ {
+  "file": "monk-sidestep-02.png",
+  "gap": 6.96,
+  "monkSide": -0.29,
+  "readerSide": 0.1,
+  "avoid": {
+   "side": -0.9,
+   "gap": 7.1
+  },
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 1,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 6,
+   "away": 2,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ },
+ {
+  "file": "monk-sidestep-03.png",
+  "gap": 4.88,
+  "monkSide": -0.69,
+  "readerSide": 0.1,
+  "avoid": {
+   "side": -0.9,
+   "gap": 5
+  },
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 1,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 6,
+   "away": 2,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ },
+ {
+  "file": "monk-sidestep-04.png",
+  "gap": 2.97,
+  "monkSide": -0.88,
+  "readerSide": 0.1,
+  "avoid": {
+   "side": -0.9,
+   "gap": 3.1
+  },
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 1,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 6,
+   "away": 2,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ },
+ {
+  "file": "monk-sidestep-05.png",
+  "gap": 0.88,
+  "monkSide": -0.9,
+  "readerSide": 0.1,
+  "avoid": {
+   "side": -0.9,
+   "gap": 1
+  },
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 1,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 5,
+   "away": 4,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ },
+ {
+  "file": "monk-sidestep-06.png",
+  "gap": -1.55,
+  "monkSide": -0.9,
+  "readerSide": 0.1,
+  "avoid": {
+   "side": -0.9,
+   "gap": 0
+  },
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 1,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 6,
+   "away": 4,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ },
+ {
+  "file": "monk-sidestep-07.png",
+  "gap": -4.15,
+  "monkSide": -0.7,
+  "readerSide": 0.1,
+  "avoid": null,
+  "reading": true,
+  "readerState": "walk",
+  "monkState": "walk",
+  "ratio": [
+   "crowd:runner-02-walk:0.65"
+  ],
+  "missed": false,
+  "bumped": null,
+  "monkBumped": null,
+  "stats": {
+   "bumps": 0,
+   "personBumps": 0,
+   "misses": 0,
+   "foreseen": 1,
+   "people": 14,
+   "walkers": 7,
+   "standing": 7,
+   "spawned": 14,
+   "shown": 6,
+   "away": 4,
+   "drunk": 1,
+   "monks": 1,
+   "budget": 6,
+   "fps": 1
+  }
+ }
+]
