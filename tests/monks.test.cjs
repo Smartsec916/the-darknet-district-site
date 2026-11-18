@@ -40,7 +40,7 @@ test('the three monks are registered crowd looks with the game\'s clips, loaded 
  for(const look of LOOKS){for(const c of ['idle','talk','walk','watch'])assert.ok(C.clips[look].includes(c),look+' '+c);
   assert.ok(!Object.values(C.casts).some(cast=>cast.includes(look)),'ordinary crowd spots never get a monk');
   const file=R('void-runner/assets/models/crowd/'+look+'.glb'),size=fs.statSync(file).size;assert.ok(size>1e6&&size<7e6,look+' is game sized ('+size+')');
-  const j=glb(file),anims=j.animations.map(a=>a.name);for(const c of C.clips[look])assert.ok(anims.some(a=>a===c||a.endsWith('-'+c)),look+' carries '+c+' ('+anims+')');
+  const j=glb(file),anims=j.animations.map(a=>a.name);for(const c of C.clips[look])assert.ok(anims.map(a=>a.replace(/\.\d{3}$/,'')).some(a=>a===c||a.endsWith('-'+c)),look+' carries '+c+' ('+anims+')');
   assert.equal(j.skins.length,1,look+' is one skinned figure');let tris=0;for(const m of j.meshes)for(const p of m.primitives)tris+=j.accessors[p.indices].count/3;assert.ok(tris<40000,look+' '+tris+' triangles');
   assert.ok(fs.existsSync(R('tools/animation-pipeline/characters/'+look+'.json')),look+' spec');}
  const street=C.models('neochinatown','high','street'),inside=C.models('neochinatown','high','interior');

@@ -29,7 +29,7 @@ test('the required features exist: layered walls, server pillars, braziers, data
   assert.match(read('temple-build.js'),/skyline|distant towers/i);
 });
 test('Zen Zephyr sits on the dais, in the middle of the chamber, with one documented replacement point',()=>{
-  const m=T.MODEL;assert.equal(m.id,'zen-zephyr');assert.equal(m.name,'Zen Zephyr');assert.equal(m.asset,null,'no real model yet');assert.match(m.note,/REPLACEMENT POINT/);assert.equal(m.placeholder,'primitives');
+  const m=T.MODEL;assert.equal(m.id,'zen-zephyr');assert.equal(m.name,'Zen Zephyr');assert.equal(m.asset,'npc-zen-zephyr','his own model (tests/monks.test.cjs)');assert.match(m.note,/REPLACEMENT POINT/);assert.equal(m.placeholder,'primitives');
   const [x,z]=m.seat;assert.ok(x>=T.HALL[0]&&x<=T.HALL[1]&&z>=T.HALL[2]&&z<=T.HALL[3],'inside the hall');assert.ok(Math.hypot(x-T.DAIS.x,z-T.DAIS.z)<.5,'on the dais');
   const talk=L.interactions.find(i=>i.action==='temple-monk');assert.ok(talk&&Math.hypot(talk.position[0]-x,talk.position[2]-z)<=talk.range+.5,'speakable from the dais edge');
   const src=read('temple.js');assert.match(src,/WHERE TO CHANGE THINGS/);assert.match(src,/MODEL/);
@@ -55,8 +55,10 @@ test('scene lifecycle: it is built when the Temple loads and fully disposed (sce
   const src=read('temple-build.js');assert.match(src,/dispose\(\)\{/);for(const r of ['scene.clearColor=prev.clear','scene.fogDensity=prev.fogDensity','ip.exposure=prev.exposure','ambient.intensity=lp.amb','node.dispose(false,true)','Area.save(space,fog,flags)'])assert.ok(src.includes(r),r);
   const rend=fs.readFileSync(path.join(__dirname,'../void-runner/babylon-renderer.js'),'utf8');assert.match(rend,/def\.temple&&root\.VoidTemple\?\.build/);assert.match(rend,/zoneHandle\?\.dispose/);assert.match(rend,/def\.corporate\|\|def\.temple\?'area':'scene'/);
 });
-test('nothing is downloaded: no images, models or network in the build; the conversation stays local',()=>{
-  const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.glb','.png','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
+test('nothing else is downloaded: no images or network in the build, models only the monks\' and Zen Zephyr\'s through the shared loader; the conversation stays local',()=>{
+  const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.png','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
+  // models (18 Nov 2026): Zen Zephyr's own and the three monks', from assets/models/crowd, loaded in the background by VoidAssets (tests/monks.test.cjs)
+  assert.deepEqual(b.match(/[^;]*\.glb[^;]*/g).map(x=>x.trim()).length,2);assert.match(b,/'assets\/models\/crowd\/'\+m\.look\+'\.glb'/);assert.match(b,/assets\.load\(id,\{src,background:true\},scene\)/);
   // the only files it reads are the game's own interior texture kit (the same files the District rooms use), never on Low
   for(const m of b.match(/assets\/textures\/[^'"]+/g)||[])assert.match(m,/^assets\/textures\/district-interior\/$/,m);
   for(const set of (b.match(/set:'(kit_[a-z]+)'/g)||[]).map(x=>x.slice(5,-1)))for(const k of ['color','normal','orm'])assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/textures/district-interior',set+'_'+k+'.jpg')),set+'_'+k);
