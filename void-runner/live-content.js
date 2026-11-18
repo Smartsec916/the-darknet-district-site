@@ -18,7 +18,10 @@
    MISSION 003 — CORPORATE CONNECTIONS (17 Nov 2026) added: a line by the V1 translator ('v1-translator') straight after another speaker's line is shown UNDER that line as
    V1 TRANSLATION and its recording plays over it (voice-clips.js `with`), the speaker's gesture on a step's last line (main-story.js GESTURES; Eva toward the staff-only door),
    the V1 contact and the Social follow (a small V1 banner when the conversation closes), and the IN-GAME CLOCK (game-clock.js; story.flags.gameMin) with the
-   follow-ups it makes due (main-story.js FOLLOWUPS: Fish's call is a STUB, only the event 'fish-followup-due' fires: window event 'void-tree-event'). */
+   follow-ups it makes due (main-story.js FOLLOWUPS: Fish's call is a STUB, only the event 'fish-followup-due' fires: window event 'void-tree-event').
+   "WHEN WALKED NEAR" (18 Nov 2026): a mission started by notification with the trigger {kind:'near', npc, distance} starts when the player comes within that many metres
+   of the person's TALK prompt (its position: walkingLocation.interactions, so people who move, Reverie and Lace, are measured where they are). nearTick, four times a
+   second, only while walking: never in a conversation (one floating over walking included: VoidConversationUI.isOpen) or a cutscene (any other mode), the character creator, the KeyMap, the pod card or a draft that has not started. */
 (function(root){
  'use strict';
  const MC=root.VoidMissionContent;if(!MC||!root.VoidBeginner||!root.VoidMissions)return;
@@ -164,5 +167,16 @@
   if(due.length||gcUnsaved>=12){gcUnsaved=0;try{save();}catch{}}return {added,due};}catch{return null;}}
  setInterval(()=>clockTick(),1000);
  const gameClock=()=>{try{return {minutes:GC?GC.minutes(state):0,now:GC?GC.now(state):null,followups:GC?GC.status(state,MSx()?.FOLLOWUPS||[]):[],fired:fired.slice()};}catch{return {minutes:0,now:null,followups:[],fired:[]};}};
- root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ // ---------------------------------------------------------------- "when walked near"
+ // Distances are kept in one object (no allocation per tick); treeEvent runs only when someone on the list is close enough.
+ const nearD={};let nearFor=null,nearWatch=[],nearLast=null;
+ function giverDistance(id,L,px,pz){const g=env.givers.find(x=>x.id===id);if(!g||!g.targets.length||!L||!Array.isArray(L.interactions))return Infinity;let best=Infinity;
+  for(const it of L.interactions){if(!it||!Array.isArray(it.position))continue;for(const t of g.targets)if(it.action===t.action&&(!t.character||it.character===t.character)){const d=Math.hypot(it.position[0]-px,it.position[2]-pz);if(d<best)best=d;}}return best;}
+ function nearBlocked(){try{return typeof mode==='undefined'||mode!=='walking'||!!root.VoidConversationUI?.isOpen||typeof walker==='undefined'||!walker||typeof walkingLocation==='undefined'||!walkingLocation||state?.story?.flags?.podWakePending===true||!!root.VoidCharacterCreator?.isOpen||!!root.VoidKeyMapUI?.open;}catch{return true;}}
+ function nearTick(){try{if(!treesOn()||nearBlocked())return null;if(nearFor!==env.trees){nearFor=env.trees;nearWatch=MC.nearList(env.trees);}if(!nearWatch.length)return null;
+  const recs=state.universe.missions||{};let hit=false;for(const k in nearD)nearD[k]=Infinity;
+  for(const n of nearWatch){const r=recs[n.mission];if(r&&(r.acquired||r.completed))continue;if(!(n.npc in nearD)||nearD[n.npc]===Infinity)nearD[n.npc]=giverDistance(n.npc,walkingLocation,walker.x,walker.z);if(MC.nearHit(nearD[n.npc],n.metres))hit=true;}
+  if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);return r;}catch{return null;}}
+ setInterval(nearTick,250);
+ root.VoidLiveContent={env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

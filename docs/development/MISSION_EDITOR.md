@@ -2,6 +2,28 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Seventh pass (18 Nov 2026): Reverie and Lace as mission givers; the start trigger "When walked near"
+
+Branch `claude/editor-givers-proximity`, build `2026-11-18-editor-givers-1`. Pushed, no PR, not merged. Two separate features (your words: they are separate things).
+
+**1. Reverie and Lace give missions.** They are in the **Giver** list (In the current District game) and in every "who" picker. Under the Giver you see when she can give it: *"Only while Reverie is out on the street: 00:00 to 12:00 UTC every day (the first 1.5 minutes of a shift nobody is out yet) ... She is out now / not out now"*. Lace: 12:00 to 00:00 UTC. That is the street pair's own clock, the same for every player.
+- **In the game:** whoever is out has a **TALK TO REVERIE** / **TALK TO LACE** prompt that follows her as she walks or sits. Talking to her offers her mission (in person, or with ACCEPT / NOT NOW), or completes a step that names her. While you talk she stops walking (or stays seated) and turns to you; afterwards she carries on.
+- **Only while she is out:** her missions are offered only during her shift (talking to her, or walking near her). In the 90-second handover nobody is out.
+- **With no mission for you** she says one neutral placeholder line ("Hey." / "Hi."), text only: no voice, nothing flirtatious; replace it whenever you like.
+- **PLAY THIS DRAFT** puts the one your mission needs on the street at once, whatever the hour (only in that throwaway session).
+- **How to use it:** + NEW MISSION, Giver: *Reverie* (or *Lace*); write what she says when offering it; add steps (e.g. "Talk to someone: Lace"); PLAY THIS DRAFT.
+
+**2. The start trigger "When walked near"** (any mission, any giver). The mission starts when the player comes within a distance of a person, without talking.
+- **How to use it:** Starts: *By Messages*, *By Comms call* or *Notification only* (it arrives the way you choose; *Notification only* is a banner). Trigger: **When walked near**. Then **within [5] metres of [person]**: the person is the giver unless you pick someone else; the distance is 1 to 30 metres (5 if left alone; anything outside is brought back into range).
+- It follows people who move (Reverie and Lace are measured where they are). It is checked four times a second while the player walks, never in a conversation, a cutscene, the character creator, the Sleeping Pod or the KeyMap. It fires once, and only when the missions before it in the tree are done.
+- The person must have a TALK prompt (that is what is measured); someone without one (Juno Vex) is refused with a plain message.
+
+**For Claude and Codex:** `mission-givers.js` (`FACTS['grey-reverie' | 'ethereal-lace']` with `shift`, `onDuty(g, ms)`, `shiftText`, `NEAR`, `nearMetres`, START_WHEN `near`); `ncz-street-pair.js` (`GREETING`, `TALK_ACTION='street-pair'`, `talkId`; per-woman interaction objects whose `position` is mutated each frame and kept in `walkingLocation.interactions` (4 Hz); `chatting()` holds her while a conversation opened from her prompt is open (District conversations float over walking: `VoidConversationUI.isOpen`; latched at the moment it opens); `VoidStreetPair.force` for draft play); `mission-content.js` (WHEN `near` {npc, distance}; `startsNow` gates shift givers with `duty()` (skipped in draft play) and `near` with `nearHit`; `nearList`; `treeStrip` keeps `npc`/`distance`, and now also `mission`/`value` of "after in-game time", which it dropped before); `live-content.js nearTick` (250 ms, reused distance object, distance to the person's interaction position; skipped while `VoidConversationUI.isOpen`, since a District conversation keeps `mode` at 'walking'); `mission-editor.js startPanel` (distance and person fields, the shift note, draft play force); server `void_runner_live_content.py start_problems` (same rules). The editor now also moves a mission's offer lines to a new giver when the Giver is changed (a new mission copies the previous mission's giver into its offer line). Save: their ids (`grey-reverie`, `ethereal-lace`) go into `story.met` and pass `clean_save` (tested); no new save fields.
+
+**Tests:** `tests/editor-givers-near.test.cjs` (roster, availability by UTC hour and handover, in-person gating and draft play, trigger list, default 5, clamp 1..30, check and export, fire once, tree order, Reverie's shift), `tests/test_live_content.py` (server), `tests/test_story_save.py` (ids in a cloud save), `tests/editor-givers-browser.cjs` (the editor and a real draft play on The Avenue). Updated: `tests/ncz-street-pair.test.cjs` (they now have one neutral line and a prompt), `tests/mission-trees.test.cjs`.
+
+**Not verified:** real hardware and VR (software renderer only); a published mission with a live player at the shift change (unit-tested only); Lace in the browser (the same code as Reverie; she was not loaded in the browser run); measuring is from the TALK prompt's point, which for people behind a counter (Admin, Iris) is the customer side of the counter, so "5 m" there is about 5 m from where you would stand to talk.
+
 ## Sixth pass (18 Nov 2026): every place has a name; photo METADATA; device IDs
 
 Branch `claude/gallery-metadata`, build `2026-11-18-metadata-1`. Pushed, no PR, not merged.

@@ -36,6 +36,12 @@
   // Halden Reyes (the owner, 17 Nov 2026, APPROVED): the well-dressed corporate man Juno is talking with at NULL's bar; Mission 002's photo must show them both. No dialogue.
   'halden-reyes':{name:'Halden Reyes',group:D,say:'Halden Reyes',where:'NULL, at the bar talking with Juno Vex (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,
    why:'No TALK prompt: he is someone to photograph (Mission 002), not to talk to.'},
+  // Reverie and Lace (the owner, 18 Nov 2026: mission givers in the editor): the Avenue's street pair (ncz-street-pair.js), one out at a time on one UTC clock
+  // for everyone. `shift`: a mission they give is offered only while that one is actually out (onDuty below; mission-content.js). Ordinary street residents.
+  'grey-reverie':{name:'Reverie',group:D,say:'grey-reverie',where:'The Avenue, the north pavement by the LAUNDRY and REPAIR shopfronts (ncz-street-pair.js: TALK TO REVERIE, while she is out).',targets:[{action:'street-pair',character:'grey-reverie'}],layout:'street-pair-grey-reverie',enter:AREA.street('avenue'),players:true,draft:true,shift:{hours:[0,12],arrive:90},
+   note:'Placeholder name. No voice: her lines are text. Draft play puts her on the street at any hour.'},
+  'ethereal-lace':{name:'Lace',group:D,say:'ethereal-lace',where:'The Avenue, the north pavement by the LAUNDRY and REPAIR shopfronts (ncz-street-pair.js: TALK TO LACE, while she is out).',targets:[{action:'street-pair',character:'ethereal-lace'}],layout:'street-pair-ethereal-lace',enter:AREA.street('avenue'),players:true,draft:true,shift:{hours:[12,24],arrive:90},
+   note:'Placeholder name. No voice: her lines are text. Draft play puts her on the street at any hour.'},
   // ---- earlier characters (not in the District today) ----
   rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,
    reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},
@@ -111,7 +117,19 @@
   {id:'notify',name:'NOTIFICATION ONLY',note:'A banner on the screen, then the Mission Log. Nothing is kept in Messages or Comms.'}];
  const START_WHEN=[{id:'pod-exit',name:'First exit from the Sleeping Pod',note:'Also a character who left the pod before this mission existed: on their next pod exit.'},{id:'after-mission',name:'After a mission is completed'},
   {id:'place',name:'Entering a place'},{id:'leave',name:'Leaving a place'},{id:'flag',name:'A story flag is set'},
+  {id:'near',name:'When walked near',note:'The mission starts when the player comes within this many metres of the person chosen (1 to 30; 5 if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},
   {id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];
+ /* "When walked near": the distance in metres (NEAR.min..NEAR.max, NEAR.def when not set). */
+ const NEAR={min:1,max:30,def:5};
+ const nearMetres=v=>{const n=typeof v==='string'&&v.trim()!==''?Number(v):v;return typeof n==='number'&&Number.isFinite(n)?Math.min(NEAR.max,Math.max(NEAR.min,Math.round(n*10)/10)):NEAR.def;};
+ /* Givers with a shift (Reverie, Lace): are they out on the street at this moment (ms, UTC)? The street pair's own rule (ncz-street-pair.js onStreet: hours, and nobody
+    for the first `arrive` seconds of a shift) when it is loaded; else the same rule from the shift here. Everyone else: always. */
+ const SP=()=>typeof module!=='undefined'&&module.exports?require('./ncz-street-pair.js'):root.VoidStreetPair;
+ function onDuty(g,ms=Date.now()){const sh=g&&g.shift;if(!sh)return true;const S=SP();if(S&&S.onStreet){const w=S.onStreet(ms);return !!w&&w.id===g.id;}
+  const d=new Date(ms),h=d.getUTCHours(),start=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),h<12?0:12);return h>=sh.hours[0]&&h<sh.hours[1]&&ms-start>=(sh.arrive||0)*1000;}
+ const hh=h=>String(h%24).padStart(2,'0')+':00';
+ function shiftText(g,ms=Date.now()){const sh=g&&g.shift;if(!sh)return '';const on=onDuty(g,ms),d=new Date(ms),h=d.getUTCHours(),next=h<sh.hours[0]?sh.hours[0]:sh.hours[0]+24;
+  return 'Only while '+g.name+' is out on the street: '+hh(sh.hours[0])+' to '+hh(sh.hours[1])+' UTC every day (the first '+Math.round((sh.arrive||0)/60*10)/10+' minutes of a shift nobody is out yet). Her missions are offered only then: talking to her, or walking near her. '+(on?'She is out now.':'She is not out now (next shift from '+hh(next)+' UTC).');}
  const FLAG_PREFIX='mf_',FLAG=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const nameOf=(id,reg,people,story,temple)=>reg[id]?.displayName||FACTS[id]?.name||people.get(id)?.name||story[id]?.name||(temple&&temple.id===id?temple.name:'')||id;
  /* Every registered NPC (voice registry, District residents, story characters, the temple's monk) with where they are today. src: {registry, people (district-people NPCS), story (characters), temple (MODEL)} */
@@ -128,7 +146,7 @@
    else e={group:E,where:'Not placed in any scene the editor knows of.',targets:[],players:false,draft:false,why:'No TALK prompt for this character anywhere in the game (needs a code change).'};
    const canTalk=e.targets.length>0;
    out.push({id,name,say:/^[a-zA-Z][\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,
-    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),photo:!!(e.photo||p),place:e.place||null,reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,
+    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),photo:!!(e.photo||p),place:e.place||null,shift:e.shift?{hours:e.shift.hours.slice(),arrive:e.shift.arrive||0}:null,reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,
     sources:[reg[id]&&'npc-voice-registry.json',p&&'district-people.js',story[id]&&'story-content.js',temple&&temple.id===id&&'temple.js'].filter(Boolean)});}
   const rank=g=>g.group===D?0:1;
   return out.sort((a,b)=>rank(a)-rank(b)||(b.id==='admin')-(a.id==='admin')||(b.id==='iris')-(a.id==='iris')||a.name.localeCompare(b.name));
@@ -138,7 +156,7 @@
   if(!g.canTalk)return g.why||'Cannot be talked to in the game today (needs a code change).';
   const at=g.enter&&g.enter.location,play=g.draft?'A draft with them can be played now'+(g.group===E&&at?' (draft play starts at '+((PLACE.get(at)||{}).name||at)+')':'')+'.':'A draft with them cannot be played yet.';
   const pub=g.players?'Players can reach them today.'+(g.group===E&&g.reach?' '+g.reach:''):'Players cannot reach them today. '+(g.reach||'Their place is not open to a District player.');
-  return (g.group===E?'Earlier character: '+g.where+' ':'')+play+' '+pub;}
+  return (g.group===E?'Earlier character: '+g.where+' ':'')+play+' '+pub+(g.shift?' '+shiftText(g):'');}
  /* Which roster ids answer an interaction (action, and the clicked figure's character id for station people). */
  function whoAt(list,action,character){const out=[];for(const g of list)if(g.targets.some(t=>t.action===action&&(!t.character||t.character===character)))out.push(g.id);return out;}
  /* Which places the player is in right now. w: walkingLocation id, quarter: story.flags.quarter, location: state.location, docked: walking or docked at a station. */
@@ -151,6 +169,6 @@
  const FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];
  /* Items a "buy" step can name: modules a store actually sells (progression.js modules: not a reward, not switched off, with a vendor). */
  function buyable(modules){return Object.fromEntries(Object.entries(modules||{}).filter(([,m])=>m&&!m.reward&&m.available!==false&&(m.vendor===undefined||m.vendor)).map(([id,m])=>[id,m.name+' ('+((m.vendor||'outfitter')==='admin'?'Admin’s counter':'ship outfitter')+')']));}
- const api={START_HOW,START_CHANNELS,START_WHEN,FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,FACTIONS,roster,status,whoAt,placesNow,placeIds,photoSubjects,buyable};
+ const api={NEAR,nearMetres,onDuty,shiftText,START_HOW,START_CHANNELS,START_WHEN,FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,FACTIONS,roster,status,whoAt,placesNow,placeIds,photoSubjects,buyable};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionGivers=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

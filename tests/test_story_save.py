@@ -27,6 +27,12 @@ class StorySaveTests(unittest.TestCase):
         state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags']['missionPool']='closed'
         clean=vr.clean_save(state)
         self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['missionPool'],'closed')
+    def test_street_pair_givers_survive_cloud_validation(self):
+        # Reverie and Lace as mission givers (18 Nov 2026): talking to them records their ids in story.met; a 'when walked near' mission is an ordinary record
+        state=self.state();state['story']['met']+=['grey-reverie','ethereal-lace'];state['story']['relationships']['grey-reverie']=5;state['story']['flags']['mt_draft-near-m1']=True
+        clean=vr.clean_save(state);self.assertEqual(clean['story']['met'][-2:],['grey-reverie','ethereal-lace']);self.assertEqual(clean['story']['relationships']['grey-reverie'],5);self.assertTrue(clean['story']['flags']['mt_draft-near-m1'])
+        state=self.state();state['story']['met'].append('grey reverie')
+        with self.assertRaises(vr.ApiError):vr.clean_save(state)
     def test_device_serial_survives_cloud_validation(self):
         # The V1's device ID (18 Nov 2026: photo metadata) is story.flags.deviceSerial, 8 hex digits; it must survive a cloud save unchanged.
         state=self.state();state['story']['flags']['deviceSerial']='7f3a91c2'

@@ -16,11 +16,14 @@ test('nobody is out for the first moments of a shift (the handover), then the on
  assert.equal(S.onStreet(at(0,0,19)+1000),null);assert.equal(S.onStreet(at(6,0)).id,'grey-reverie');
 });
 
-test('names: no spaces, placeholders, the Meshy titles kept; neither has dialogue or a voice; both walk now',()=>{
+test('names: no spaces, placeholders, the Meshy titles kept; no voice; only a one-line neutral greeting (mission givers since 18 Nov 2026); both walk now',()=>{
  assert.deepEqual(S.PAIR.map(p=>p.kind),['walker','walker']);
  assert.deepEqual(S.PAIR.map(p=>p.id),['grey-reverie','ethereal-lace']);assert.deepEqual(S.PAIR.map(p=>p.name),['Reverie','Lace']);
  for(const p of S.PAIR){assert.doesNotMatch(p.name,/\s/);assert.equal(p.placeholder,true);}assert.deepEqual(S.PAIR.map(p=>p.title),['Grey Reverie','Ethereal Lace']);
- const src=fs.readFileSync(path.join(__dirname,'../void-runner/ncz-street-pair.js'),'utf8');assert.doesNotMatch(src,/talkChoice|speech\s*=|announce\(|VoidInteractions|voice-clips/);
+ const src=fs.readFileSync(path.join(__dirname,'../void-runner/ncz-street-pair.js'),'utf8');assert.doesNotMatch(src,/talkChoice|speech\s*=|announce\(|voice-clips|VoidAudio/);
+ // their TALK prompt (mission givers): one short neutral line each, text only; nothing flirtatious
+ assert.deepEqual(Object.keys(S.GREETING),['grey-reverie','ethereal-lace']);for(const ls of Object.values(S.GREETING)){assert.equal(ls.length,1);for(const l of ls){assert.ok(l.length<=20);assert.doesNotMatch(l,/cute|pretty|babe|sweet|honey|kiss|love|flirt|sexy|gorgeous|darling/i);}}
+ assert.equal(S.TALK_ACTION,'street-pair');assert.equal(S.talkId('grey-reverie'),'street-pair-grey-reverie');
  const reg=fs.readFileSync(path.join(__dirname,'../tools/audio/npc-voice-registry.json'),'utf8');assert.doesNotMatch(reg,/reverie|ethereal|"lace"/i);
 });
 
