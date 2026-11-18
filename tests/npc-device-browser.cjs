@@ -11,6 +11,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  const srv=http.createServer((req,res)=>{let f;try{f=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));}catch{res.writeHead(400);return res.end();}if(!f.startsWith(root+path.sep)){res.writeHead(403);return res.end();}
   fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',types[path.extname(f)]||'application/octet-stream');res.end(d);});});
  return new Promise(r=>srv.listen(0,'127.0.0.1',()=>r(srv)));}
+const VoidKinds=['walker','stander','shop','seated'];
 (async()=>{
  const srv=await serve(),base='http://127.0.0.1:'+srv.address().port;
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--no-sandbox'],...(exe?{executablePath:exe}:{})});
@@ -40,7 +41,8 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   const ag=await page.evaluate(()=>VoidNPCDevice.agents().map(({node,...a})=>a));
   const walkers=ag.filter(a=>a.kind==='walker'),using=walkers.filter(a=>a.session).length;log('walkers '+walkers.length+' using '+using);
   assert.ok(st.agents>=8,'street people are taking part');assert.ok(st.posed<=st.cap,'posed within the cap');
-  assert.ok(using<=Math.max(1,Math.floor(walkers.length*.2)),'at most a fifth of the walkers');
+  const street=ag.filter(a=>VoidKinds.includes(a.kind)),streetUsing=street.filter(a=>a.session).length;log('street people '+street.length+' using '+streetUsing);
+  assert.ok(streetUsing<=Math.max(1,Math.floor(street.length*.2)),'at most a fifth of the street\'s people at once');
   const someone=ag.some(a=>a.session);assert.ok(someone,'somebody on the street is using their V1');
   if(!only||only.includes('walker')){
    // (2) a walker reading their V1: the nearest walker made to read, the player a few metres in front of them, looking at them
@@ -76,21 +78,25 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
   }
   if(!only||only.includes('argument')){
    // (3) the staged argument on Main Street: most film it; a V3 // Shadow carrier and a monk do not
-   await page.evaluate(()=>Object.assign(walker,{x:61,z:-80,yaw:Math.PI,pitch:-.08}));await page.waitForTimeout(1500);
-   const tagged=await page.evaluate(()=>{const near=VoidNPCDevice.agents().filter(a=>a.node.isEnabled()&&a.kind!=='story').map(a=>({a,d:Math.hypot(a.node.getAbsolutePosition().x-61,a.node.getAbsolutePosition().z-(-85))})).sort((x,y)=>x.d-y.d);
-    const v3=near[0].a,monk=near[1].a;VoidNPCDevice.tag(v3.node,{tier:'v3'});VoidNPCDevice.tag(monk.node,{monk:true});window.__v3=v3.node;window.__monk=monk.node;return {v3:v3.key,monk:monk.key,d:[near[0].d,near[1].d]};});
+   // on the busiest stretch of pavement: where the most street people are within 10 m
+   const spot=await page.evaluate(()=>{const ps=VoidNPCDevice.agents().filter(a=>a.node.isEnabled()&&a.kind!=='story').map(a=>a.node.getAbsolutePosition());let best=null,n=-1;for(const p of ps){const k=ps.filter(q=>Math.hypot(q.x-p.x,q.z-p.z)<10).length;if(k>n){n=k;best=p;}}return {x:best.x+(best.x<61?2:-2),z:best.z,n};});
+   log('argument spot '+JSON.stringify(spot));await page.evaluate(s=>Object.assign(walker,{x:61,z:s.z+9,yaw:Math.PI,pitch:.08}),spot);await page.waitForTimeout(1500);
+   const tagged=await page.evaluate(s=>{const near=VoidNPCDevice.agents().filter(a=>a.node.isEnabled()&&a.kind!=='story').map(a=>({a,d:Math.hypot(a.node.getAbsolutePosition().x-s.x,a.node.getAbsolutePosition().z-s.z)})).sort((x,y)=>x.d-y.d);
+    const v3=near[0].a,monk=near[1].a;VoidNPCDevice.tag(v3.node,{tier:'v3'});VoidNPCDevice.tag(monk.node,{monk:true});window.__v3=v3.node;window.__monk=monk.node;return {v3:v3.key,monk:monk.key,d:[near[0].d,near[1].d]};},spot);
    log('tagged '+JSON.stringify(tagged));
-   const r=await page.evaluate(()=>VoidCrowdReact.stageArgument({x:61,z:-85,radius:16,duration:20}));log('argument '+JSON.stringify(r));assert.ok(!r.error,r.error);
+   const r=await page.evaluate(s=>VoidCrowdReact.stageArgument({x:s.x,z:s.z,radius:16,duration:20}),spot);log('argument '+JSON.stringify(r));assert.ok(!r.error,r.error);
    const v3r=r.reactions.find(x=>x.id.startsWith(tagged.v3+'#')),mr=r.reactions.find(x=>x.id.startsWith(tagged.monk+'#'));
    assert.ok(v3r&&['ignore','leave'].includes(v3r.mode),'the V3 // Shadow carrier does not film: '+JSON.stringify(v3r));assert.equal(mr?.mode,'ignore','the monk ignores it');
    assert.ok(r.reactions.filter(x=>x.mode==='film').length>=Math.max(2,r.reactions.filter(x=>!['ignore','leave'].includes(x.mode)).length*.5),'most film it');
-   await page.waitForTimeout(6000);
+   await page.waitForFunction(()=>VoidNPCDevice.agents().filter(a=>a.react==='film'&&a.pose==='film'&&a.frame&&a.w>.9).length>=1,null,{timeout:480000});
    const live=await page.evaluate(()=>VoidNPCDevice.agents().filter(a=>a.react).map(a=>({key:a.key,react:a.react,pose:a.pose,frame:a.frame,tier:a.tier})));log('reacting '+JSON.stringify(live));
    assert.ok(live.filter(a=>a.react==='film'&&a.pose==='film'&&a.frame).length>=1,'people are filming it (frames up)');
    assert.ok(!live.some(a=>(a.key===tagged.v3||a.key===tagged.monk)&&a.pose==='film'),'not the V3 carrier or the monk');
-   await page.evaluate(()=>Object.assign(walker,{x:58.5,z:-77,yaw:Math.atan2(61-58.5,-85+77),pitch:.12}));await page.waitForTimeout(2500);await shot('argument-crowd');
-   await page.evaluate(()=>Object.assign(walker,{x:64,z:-91,yaw:Math.atan2(61-64,-85+91),pitch:.12}));await page.waitForTimeout(2500);await shot('argument-crowd-2');
-   await page.waitForFunction(()=>!VoidNPCDevice.stats().staged&&VoidNPCDevice.agents().every(a=>!a.react),null,{timeout:90000});log('the argument and the reactions ended');
+   // behind one of the people filming, looking past them at the argument; then from the argument's side, looking at the crowd
+   await page.evaluate(()=>{const a=VoidNPCDevice.agents().filter(a=>a.react==='film'&&a.frame).sort((x,y)=>y.w-x.w)[0];window.__fm=a.node;});
+   await front('__fm',1.9,Math.PI+.45,-.15);await page.waitForTimeout(2500);await front('__fm',1.9,Math.PI+.45,-.15);await shot('argument-crowd');
+   await front('__fm',2.3,.55,-.25);await page.waitForTimeout(2500);await front('__fm',2.3,.55,-.25);await shot('argument-crowd-2');
+   await page.waitForFunction(()=>!VoidNPCDevice.stats().staged&&VoidNPCDevice.agents().every(a=>!a.react),null,{timeout:900000});   // the event's 20 s and the lingering, in game time (a software renderer runs it slowly)log('the argument and the reactions ended');
   }
   if(!only||only.includes('perf')){
    // (4) performance: a busy view, the feature on (people forced to use it up to the cap) and off
@@ -116,9 +122,9 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await page.evaluate(()=>VoidNPCDevice.tag(window.__d,{force:()=>null}));
    // pair selfie: the two bar guests (Medium and up) or two dancers, through the scheduler's own pair session
    const pairOk=await page.evaluate(()=>{const all=VoidNPCDevice.agents(),a=all.find(x=>x.key==='bar-guest-a')||all.find(x=>x.key==='dancer-0'),b=all.find(x=>x.key===(a.key==='bar-guest-a'?'bar-guest-b':'dancer-1'));if(!a||!b)return null;
-    const s=VoidNPCDevice.scheduler.state;for(const x of [a,b]){VoidNPCDevice.tag(x.node,{tier:'v1'});}const dur=12;s.get(a.id).session={pose:'pair-selfie',role:'holder',partner:b.id,t:0,dur,flash:[4]};s.get(b.id).session={pose:'pair-selfie',role:'friend',partner:a.id,t:0,dur,flash:[]};window.__pa=a.node;return [a.key,b.key];});
+    const s=VoidNPCDevice.scheduler.state;for(const x of [a,b]){VoidNPCDevice.tag(x.node,{tier:'v1'});}const dur=600;s.get(a.id).session={pose:'pair-selfie',role:'holder',partner:b.id,t:0,dur,flash:[4]};s.get(b.id).session={pose:'pair-selfie',role:'friend',partner:a.id,t:0,dur,flash:[]};window.__pa=a.node;return [a.key,b.key];});
    log('pair '+pairOk);
-   if(pairOk){await page.waitForFunction(()=>VoidNPCDevice.agents().filter(a=>a.pose==='pair-selfie'&&a.w>.9).length===2,null,{timeout:120000});await front('__pa',2.0,-.7,-.25);await page.waitForTimeout(1500);
+   if(pairOk){await front('__pa',2.0,-.7,-.25);await page.waitForFunction(()=>VoidNPCDevice.agents().filter(a=>a.pose==='pair-selfie'&&a.w>.9).length===2,null,{timeout:240000});await front('__pa',2.0,-.7,-.25);await page.waitForTimeout(1500);
     const pr=await page.evaluate(()=>VoidNPCDevice.agents().filter(a=>a.pose==='pair-selfie').map(a=>a.key));log('pair posed '+pr);assert.ok(pr.length===2,'both in the pair selfie');await shot('null-pair-selfie');}
    // a drink photographed at the bar (there are no food stalls in the game yet: the bar is the eating and drinking spot)
    const fp=await page.evaluate(()=>{const a=VoidNPCDevice.agents().find(a=>a.kind==='bar'&&a.key!=='bar-guest-b')||VoidNPCDevice.agents().find(a=>a.kind==='bar');if(!a)return null;for(const x of VoidNPCDevice.agents())if(x.kind==='bar')VoidNPCDevice.scheduler.end(x.id,'bar');VoidNPCDevice.tag(a.node,{force:()=>'food-photo',tier:'v1'});window.__f=a.node;return a.key;});

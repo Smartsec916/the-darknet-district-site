@@ -242,7 +242,9 @@
   // the pair-selfie couple face the same way, the friend on the holder's left
   for(const a of list){if(a.pose!=='pair-selfie'||a.role!=='holder'||a.w<=0)continue;const b=list.find(x=>x.id===a.partner);if(!b||b.node.rotationQuaternion||a.node.rotationQuaternion)continue;
    const pa=a.node.getAbsolutePosition(),pb=b.node.getAbsolutePosition(),dx=pb.x-pa.x,dz=pb.z-pa.z;const face=Math.atan2(dx,dz)-Math.PI/2;   // b on a's right when both face `face` (a holds the bracer out to the left)
-   for(const x of [a,b]){if(!xform.some(e=>e[0]===x.node))xform.push([x.node,x.node.position.clone(),x.node.rotation.y]);const cur=x.node.rotation.y,dd=Math.atan2(Math.sin(face-cur),Math.cos(face-cur));x.node.rotation.y=cur+dd*Math.min(1,a.w*1.1);}}
+   for(const x of [a,b]){if(!xform.some(e=>e[0]===x.node))xform.push([x.node,x.node.position.clone(),x.node.rotation.y]);const cur=x.node.rotation.y,dd=Math.atan2(Math.sin(face-cur),Math.cos(face-cur));x.node.rotation.y=cur+dd*Math.min(1,a.w*1.1);}
+   // the friend steps in close (a friend standing further off than 0.6 m comes most of the way, eased with the pose)
+   const gap=Math.hypot(dx,dz),step=Math.max(0,gap-.6)*Math.min(1,a.w);if(step>.01&&!b.node.parent?.rotationQuaternion){b.node.position.x-=dx/gap*step;b.node.position.z-=dz/gap*step;}}
   stats.posed=n;
   // flashes
   for(let i=kit.flashes.length-1;i>=0;i--){const s=kit.flashes[i];s.t+=dt;const k=s.t/.16;if(k>=1){s.f.dispose();kit.flashes.splice(i,1);continue;}s.f.scaling.setAll(s.size*Math.sin(Math.PI*Math.min(1,k))*(s.dim?.4:1)+.001);}
@@ -266,7 +268,7 @@
    for(const k of ['cuff','emitter','cone','panel','camera'])show(a,k,false);
    if(a.pose==='scroll')lookAt(fig,eye0.add(body.fwd.scale(1.2)).add(up.scale(-.35)),w*.45,body);else if(a.pose!=='watch')lookAt(fig,subject(),w*.6,body);
    refresh(h);const hm=h.getWorldMatrix(),gl=P(h).add(B.Vector3.TransformNormal(up,hm).normalize().scale(.085)).add(B.Vector3.TransformNormal(B.Axis.Z,hm).normalize().scale(.11)).add(side.scale(.031));
-   if(a.pose==='watch')show(a,'eye',false);else{const g=show(a,'eye',true);g.position.copyFrom(gl);g.scaling.setAll(.022*w+.001);}
+   if(a.pose==='watch')show(a,'eye',false);else{const g=show(a,'eye',true);g.position.copyFrom(gl);g.scaling.setAll(.028*w+.001);}
    for(const t of s.flash||[])if(a.session&&a.session.t>=t&&!(a.flashed||[]).includes(t)){(a.flashed=a.flashed||[]).push(t);spark(gl,.02,true);}
    if(!a.session)a.flashed=null;return;}
   let panel=null,cam=false,cuff=true,lift=.08;   // panel: where the hologram stands; cam: the viewfinder rather than the reading panel; lift: how high above the emitter
@@ -331,7 +333,7 @@
   const dur=opts.duration??14,ev=spectacle({x:cx,z:cz,radius:opts.radius??14,kind:'argument',duration:dur});
   staged={made,t:0,dur,ev,x:cx,z:cz};
   // the two of them: a jab of the arm toward the other, a lean in, turns of the shoulder (their talk clip underneath)
-  const tick=()=>{if(!staged)return;staged.t+=1/60;if(staged.t>dur+1){stopArgument();return;}for(const [i,m] of staged.made.entries()){const k=Math.sin(staged.t*(i?3.3:2.7)+i*2);m.node.rotation.y=m.yaw+k*.18;m.node.rotation.x=Math.max(0,k)*.05;}};
+  const tick=()=>{if(!staged)return;staged.t+=Math.min(.1,scene.getEngine().getDeltaTime()/1000);if(staged.t>dur+1){stopArgument();return;}for(const [i,m] of staged.made.entries()){const k=Math.sin(staged.t*(i?3.3:2.7)+i*2);m.node.rotation.y=m.yaw+k*.18;m.node.rotation.x=Math.max(0,k)*.05;}};
   staged.obs=scene.onBeforeRenderObservable.add(tick);
   return {x:cx,z:cz,people:made.map(m=>m.look),reactions:ev.reactions};}
  function stopArgument(){if(!staged)return;try{scene.onBeforeRenderObservable.remove(staged.obs);}catch{}for(const m of staged.made){try{m.anim?.dispose?.();m.node.dispose();}catch{}}staged=null;}

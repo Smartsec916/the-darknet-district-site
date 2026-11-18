@@ -1,0 +1,15 @@
+{
+ "quality": "medium",
+ "off": {
+  "drawCalls": 1040,
+  "deviceMs": 0.805,
+  "posed": 1,
+  "draws": 1043
+ },
+ "on": {
+  "drawCalls": 1030,
+  "deviceMs": 3.09,
+  "posed": 7,
+  "draws": 1020
+ }
+}
