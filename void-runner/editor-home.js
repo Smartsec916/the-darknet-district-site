@@ -69,7 +69,7 @@
  function next(){const P=W().PAGES,p=P[ui.page];relabel();const probs=W().problems(ui.a,p.id,ctx());if(probs.length){ui.tried=true;draw();setTimeout(()=>host&&host.querySelector('[data-eh-problems]')?.scrollIntoView({block:'nearest'}),0);return;}
   ui.tried=false;if(ui.page<P.length-1){ui.page++;draw();return;}finish();}
  function finish(){const all=W().allProblems(ui.a,ctx());if(all.length){ui.tried=true;ui.page=W().PAGES.findIndex(p=>W().problems(ui.a,p.id,ctx()).length);draw();return;}
-  const a=ui.a,r=S().addWizardMission((d,{T,number})=>W().build(d,a,{T,number}));ui.made={...r,title:a.title.trim()};ui.view='done';draw();}
+  const a=ui.a,r=S().addWizardMission((d,{T,number})=>W().build(d,a,{T,number}));ui.made={...r,title:a.title.trim()};root.VoidMissionBlocksView?.openBlocks(r.mission);ui.view='done';draw();}   // the new mission opens in the Blocks view (mission-blocks-view.js)
  const choice=(list,cur,attr,on)=>{const g=el('div','','eh-choices',{role:'radiogroup'});for(const x of list){const b=btn('',()=>on(x.id),'eh-choice'+(cur===x.id?' on':''),{role:'radio','aria-checked':String(cur===x.id),[attr]:x.id});if(x.icon)b.append(icon(x.icon,32));b.append(el('b',x.title),el('span',x.line||''));g.append(b);}return g;};
  function pageKind(box,a){box.append(choice(W().TEMPLATES,a.template,'data-eh-template',id=>{W().setTemplate(a,id);relabel();ui.tried=false;ui.page++;draw();}));}
  function pageGiver(box,a){const list=talkers(),now=list.filter(g=>g.players),later=list.filter(g=>!g.players);

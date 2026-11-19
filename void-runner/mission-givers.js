@@ -113,6 +113,8 @@
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
   {id:'pickup',name:'Pick something up in the world',supported:false},
   // mission timers (the owner, 19 Nov 2026: "mission timers. set the amount of time between actions, lines, etc")
+  // ACCEPT / DENY anywhere in a mission (the owner, 19 Nov 2026): the mission waits for the player's answer (mission-content.js ASK_STEP)
+  {id:'ask',name:'Ask the player: ACCEPT or DENY',supported:true,needs:'question',note:'The mission stops and asks the player your question with two buttons (your words; default ACCEPT and DENY). ACCEPT goes on to the next step (it can cost credits, once). DENY does what you choose: end the mission (it goes back to its giver), skip ahead to a later step, go back to an earlier step, or start another tree.'},
   {id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];
  /* What a mission can make available. supported: applied by the game when the mission (or the step named in `when`) is done. */
  const UNLOCK_KINDS=[

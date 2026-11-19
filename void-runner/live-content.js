@@ -131,6 +131,19 @@
    delete timerLeft[id];const r=MC.treeEvent(state,env,x.kind==='wait'?{type:'wait',step:x.key}:{type:'timer'},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);try{save();}catch{}
    if(r.lines&&r.lines.length&&show(r.lines,r))return;}}catch{}}
  setInterval(timerTick,250);
+ /* ACCEPT / DENY IN THE MIDDLE OF A MISSION (mission-content.js ASK_STEP / askNow; the owner, 19 Nov 2026): when an "Ask the player" step is the one in progress and no
+ conversation, menu, pod wake-up, creator or KeyMap is open, the question shows in the choice window with the owner's buttons (a price on ACCEPT shows as a cost card; too few
+ credits: ACCEPT greyed, "YOU NEED N CR"). The mission waits until the player answers; closed without an answer, it asks again a few seconds later. */
+ const askShown={};let askOpen=null;
+ function askTick(){try{if(askOpen&&!(typeof speech!=='undefined'&&speech))askOpen=null;if(!treesOn()||nearBlocked()||askOpen||(typeof speech!=='undefined'&&speech)||typeof root.talkChoice!=='function'||document.querySelector('#screen .choice-menu,[data-talk-choice]'))return;
+  const list=MC.askNow(state,env);if(!list.length)return;const a=list[0],now=Date.now();if(now-(askShown[a.key]||0)<4000)return;askShown[a.key]=now;const M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
+  const pick=yes=>()=>{askOpen=null;let x=null;try{x=MC.treeEvent(state,env,{type:yes?'ask-yes':'ask-no',step:a.key},M,Cp);}catch{}if(!x){try{resumeWalking();}catch{}return;}
+   if(x.ended){try{announce('MISSION ENDED · '+title(x.mission)+(x.refund?'  ·  +'+x.refund+' credits back':''));save();hud();}catch{}}else if(x.back){const o=root.VoidMissions?.definitions?.[x.mission]?.objectives?.find(y=>y.id===x.back);try{announce('MISSION UPDATED · '+title(x.mission)+' · back to: '+(o?o.label:x.back));save();hud();}catch{}}else report(x);
+   deliver(x);if(followUp(x))return;try{resumeWalking();}catch{}};
+  const yes={label:a.ask.accept,run:pick(true)},no={label:a.ask.decline,run:pick(false)},choices=a.afford?[yes,no]:[no,{label:yes.label+' · YOU NEED '+a.need+' CR',disabled:true,run:()=>{}}];
+  const o=a.price&&!a.paid?{mission:a.mission,title:a.title,description:'',cost:a.price,costWhen:'accept',yes:a.ask.accept,need:a.need}:null;askOpen=a.key;
+  if(!root.talkChoice(merge(a.lines.map(l=>MC.mapLine(env,l))),choices,'',o?{offer:o}:{}))askOpen=null;else if(typeof speech!=='undefined'&&speech)speech.askStep=a.key;}catch{askOpen=null;}}
+ setInterval(askTick,250);
  /* After the conversation: the V1 banner for a contact added / a profile followed (the Mission Log notice already said it). */
  function contactBanner(r){try{const n=(r&&r.notes||[]).filter(x=>/ADDED TO CONTACTS|^FOLLOWING /.test(x));if(!n.length)return;const who=n[0].replace(/ ADDED TO CONTACTS$| ON SOCIAL$/,'').replace(/^FOLLOWING /,'');
   const name=who.charAt(0)+who.slice(1).toLowerCase();root.VoidV1?.notify?.({app:'social',key:'contact:'+r.mission+':'+who,from:name,text:name+' added to contacts · following on Social',hint:{text:'open',help:true}});lastContact={text:name+' added to contacts · following on Social',at:Date.now()};}catch{}}
@@ -264,5 +277,5 @@
  const hacks=()=>{try{return treesOn()?MC.hacksNow(state,env):[];}catch{return [];}};
  const aptUse=({mission,apt,object})=>aptRun({type:'apt-use',mission,apt,object});
  const hack=job=>aptRun({type:'hack',ap:job.ap,mission:job.mission,step:job.key});
- root.VoidLiveContent={apartments,hackedDoors,hacks,aptUse,hack,offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ root.VoidLiveContent={askTick,askNow:()=>{try{return treesOn()?MC.askNow(state,env):[];}catch{return [];}},apartments,hackedDoors,hacks,aptUse,hack,offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);
