@@ -97,6 +97,7 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 18 Nov | Lace remesh 45k | remesh `01a1efd5-483e-70ef-b2b9-2a84757528c0` | 5 |
 | 18 Nov | Lace rig, 1.65 m | rigging `01a1efd8-5b8f-778f-8fce-cccb4a51b8d3` | 5 |
 | | **18 Nov, the street pair remade and animated** | | **98** (cap 70, raised to about 100 by the owner for Lace's remake; the account showed 269 before and 171 after; no retries. Folder `Documents/DarknetDistrict_Assets/Meshy/studio1/pairanim/` on the owner's PC) |
+| 19 Nov | Street taxi (the owner's minivan reference, "upgrade the Taxis"): not generated. The Blender bridge on the owner's PC was not connected (get_host_status: Blender false, checked three times) and the cloud session has no Meshy sign-in, so no Meshy task was submitted; the cab was built in code instead (`void-runner/road-taxi-van.js`, see AI_HANDOFF.md 19 Nov "taxi upgrade"). A Meshy van can still replace it later (budget 40 to 60, floor 50). | none | 0 |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 

@@ -219,14 +219,17 @@
   {const paint=picture('stop-paint',tex('stop-paint',256,512,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(226,170,60,.8)';g.lineWidth=10;g.setLineDash([34,20]);g.strokeRect(12,12,W-24,H-24);g.setLineDash([]);g.save();g.translate(W/2,H/2);g.rotate(-Math.PI/2);g.fillStyle='rgba(226,170,60,.82)';g.font='bold 110px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',0,6);g.restore();}),{alpha:true,level:.5}),plateM=signMat('taxi',['TAXI'],{w:192,h:96,color:'#ffcf7a',edge:'#6a4a14'});
    for(const st of Q.STOPS.filter(x=>x.quarter===quarter)){const g=B.MeshBuilder.CreateGround('gate-taxi-stop',{width:2.6,height:5.6},scene);g.material=paint;g.parent=parent;g.position.set(st.position[0],.045,st.position[1]);g.rotation.y=st.heading||0;g.isPickable=false;nodes.push(g);}
    // the posts: one at every stop and one by the District's door. A lit TAXI plate both ways, an amber lamp on top and a lit call panel at hand height (CALL A TAXI: road-taxi.js).
+   // round each plate, both faces: a strip of yellow LEDs with a band chasing round it (road-taxi-van.js ledFrames: one mesh, one small shader; the owner, 19 Nov 2026)
+   const leds=[];
    for(const cp of Q.CALL_POINTS.filter(x=>x.quarter===quarter)){
-    const post=cp.post;if(post){const n=new B.TransformNode('gate-taxi-post',scene);n.parent=parent;n.position.set(post[0],0,post[1]);n.rotation.y=post[2];nodes.push(n);
+    const post=cp.post;if(post){leds.push({x:post[0],y:2.75,z:post[1],turn:post[2],w:.98,h:.53,faces:[-1,1],off:.032});const n=new B.TransformNode('gate-taxi-post',scene);n.parent=parent;n.position.set(post[0],0,post[1]);n.rotation.y=post[2];nodes.push(n);
      const pole=B.MeshBuilder.CreateCylinder('gate-taxi-pole',{diameter:.09,height:2.9,tessellation:8},scene);pole.material=rail;pole.parent=n;pole.position.y=1.45;pole.isPickable=false;
      for(const sgn of [-1,1]){const pl=B.MeshBuilder.CreatePlane('gate-taxi-plate',{width:.9,height:.45},scene);pl.material=plateM;pl.parent=n;pl.position.set(0,2.75,sgn*.03);pl.rotation.y=sgn<0?0:Math.PI;pl.isPickable=false;}
-     const back=B.MeshBuilder.CreateBox('gate-taxi-back',{width:.98,height:.53,depth:.05},scene);back.material=frame;back.parent=n;back.position.y=2.75;back.isPickable=false;
+     const back=B.MeshBuilder.CreateBox('gate-taxi-back',{width:1.06,height:.61,depth:.05},scene);back.material=frame;back.parent=n;back.position.y=2.75;back.isPickable=false;
      const lampP=B.MeshBuilder.CreateBox('gate-taxi-lamp',{width:.22,height:.12,depth:.22},scene);lampP.material=amber;lampP.parent=n;lampP.position.y=3.08;lampP.isPickable=false;
      const panel=B.MeshBuilder.CreateBox('gate-taxi-panel',{width:.26,height:.34,depth:.12},scene);panel.material=frame;panel.parent=n;panel.position.y=1.25;panel.isPickable=false;
-     for(const sgn of [-1,1]){const f=B.MeshBuilder.CreatePlane('gate-taxi-panel-face',{width:.2,height:.12},scene);f.material=amber;f.parent=n;f.position.set(0,1.3,sgn*.062);f.rotation.y=sgn<0?0:Math.PI;f.isPickable=false;}}}}
+     for(const sgn of [-1,1]){const f=B.MeshBuilder.CreatePlane('gate-taxi-panel-face',{width:.2,height:.12},scene);f.material=amber;f.parent=n;f.position.set(0,1.3,sgn*.062);f.rotation.y=sgn<0?0:Math.PI;f.isPickable=false;}}}
+   try{const m=root.VoidTaxiVan?.ledFrames?.(B,scene,leds,{quality,parent});if(m)nodes.push(m);}catch(e){console.warn('[gates] taxi plate LEDs',e);}}
   // merge the fixed pieces by material
   for(const [m,list] of merge){const merged=list.length>1?B.Mesh.MergeMeshes(list,true,true,undefined,false,false):list[0];if(merged){merged.name='gate-static';merged.isPickable=false;if(list.length>1){merged.parent=parent;merged.material=m;}nodes.push(merged);}}
   merge.clear();

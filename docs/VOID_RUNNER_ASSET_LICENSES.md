@@ -229,6 +229,8 @@ muffled 124 BPM thump), nothing recorded or licensed.
 
 **Street taxis (2026-11-12).** The NeoChinatown road cabs are original geometry built in `void-runner/road-taxi.js` (body, glass, wheels, roof sign). No third-party model file is shipped. This is the same approach as the sky cab in `void-runner/city-taxi.js`. `docs/development/TESANA_ASSET_AUDIT.md` lists a generated `flying_taxi.glb` as held and not imported; it was not used. No external licence applies. A later licensed model can replace the mesh without changing `void-runner/road-taxi-rules.js`.
 
+**Street taxis, the minivan upgrade (2026-11-19).** The owner asked to "upgrade the Taxis" from his own reference picture (an autonomous minivan taxi: black body, yellow side panels, check stripe, roof TAXI box with sensors, front light bar, windscreen display, side lettering and badges). The cab is now `void-runner/road-taxi-van.js`: original geometry and canvas-painted textures written in code from that picture; no model file, no Meshy or other generation was used (the Meshy route was not available in that session: no Blender bridge connection and no Meshy sign-in in the cloud container; 0 credits spent). The reference's background sign naming a real company is left out, and no real brand appears anywhere on the cab: the wording is generic ("TAXI", "无人驾驶出租车" = "driverless taxi", "AUTONOMOUS TAXI", "4 PASSENGERS", "LUGGAGE", "FREE WI-FI", "CASHLESS", "AUTONOMOUS ///"). The lettering uses the player's system fonts (Arial / Microsoft YaHei or a Chinese fallback); no font file is shipped. No external licence applies. The taxi stops' LED chase borders (same file, `ledFrames`) are a code shader, also original.
+
 ## Dax (15 Nov 2026)
 
 | Item | Source | Licence | Status |
