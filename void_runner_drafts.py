@@ -185,6 +185,12 @@ def validate_workspace(doc):
         problems = look_problems(b['looks'])
         if problems:
             raise DraftError('Invalid NPC look: ' + problems[0], 422)
+    if b.get('npcs'):
+        from void_runner_live_content import schedule_shape_problems
+        for plan in b['npcs'].values():
+            problems = schedule_shape_problems(plan.get('schedule')) if isinstance(plan, dict) else []
+            if problems:
+                raise DraftError('Invalid daily schedule: ' + problems[0], 422)
     if b.get('voices'):
         from void_runner_live_content import voice_problems
         problems = voice_problems(b['voices'])

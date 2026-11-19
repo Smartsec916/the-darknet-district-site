@@ -602,11 +602,13 @@
    map.el.dataset.meWaitMap=m.id;box.append(map.el);}
   return box;}
  // ---------------- JUMP THERE: a throwaway test session on The Avenue, a few steps from a spot (the draft applied, so placements and waits show)
- async function jumpTo(x,z,npc,label,back){if(!root.VoidDevTest?.session)return;const content=draftContent(),c=MC().check(content,checkCtx());
+ /* opts (NPCs tab): {npcs: {id: plan}} tried in place of the draft's own (a pasted behaviour recipe before it is saved), minute: the in-game time of day to start at (a daily schedule). */
+ async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
   write(back||RETURN,{tree:ui.tree,mission:ui.mission,step:null,npc:npc||null,at:Date.now()},root.sessionStorage);
   const r=await root.VoidDevTest.session({banner:'VIEWING: '+(label||'a spot')+' — not your real save',leave:'LEAVE',kind:'draft',
    apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
-   build:()=>{const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;return st;},
+   build:()=>{const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
+    if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
    enter:async()=>{state.location='earth';delete state.story.flags.area;if(npc&&root.VoidStreetPair)root.VoidStreetPair.force=npc;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'avenue'});try{walker.x=x;walker.z=Math.max(-16,z-3.4);walker.yaw=0;}catch{}},
    message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+c.errors.slice(0,2).join(' · '))+' · nothing is saved'});
   if(r&&r.error){status=r.error;draw();}return r;}

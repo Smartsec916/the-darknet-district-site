@@ -180,10 +180,10 @@
  setInterval(nearTick,250);
  // ---------------------------------------------------------------- NPC placements (Developer Tools > NPCs) and "Giver waits at"
  /* What Reverie and Lace do (ncz-street-pair.js asks every frame; worked out twice a second): a mission's "Giver waits at" while that mission waits to be offered by her,
-    else the placement published or played from Developer Tools > NPCs (content.npcs), else her own routine. */
+    else the placement published or played from Developer Tools > NPCs (content.npcs; its daily schedule follows the in-game clock, game-clock.js), else her own routine. */
  let planCache={},planAt=0;
- function plans(){const t=Date.now();if(t-planAt<500)return planCache;planAt=t;const X=root.VoidNPCPaths,out={};if(!X)return planCache=out;let wait={};try{if(treesOn())wait=MC.waitingAt(state,env);}catch{}
-  for(const id of Object.keys(X.MOVABLE)){const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
+ function plans(){const t=Date.now();if(t-planAt<500)return planCache;planAt=t;const X=root.VoidNPCPaths,out={};if(!X)return planCache=out;let wait={};try{if(treesOn())wait=MC.waitingAt(state,env);}catch{}let minute=null;try{minute=GC?GC.now(state).minuteOfDay:null;}catch{}
+  for(const id of Object.keys(X.MOVABLE)){const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null,minute});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
  if(root.VoidStreetPair){root.VoidStreetPair.planFor=id=>plans()[id]||null;root.VoidStreetPair.animsFor=id=>((env.npcPlans||{})[id]||{}).anims||[];}
  root.VoidLiveContent={plans,env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);
