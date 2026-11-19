@@ -63,6 +63,14 @@
     'start' (denyStart: the first mission of another tree starts instead, or is offered when it asks too). denySay: the owner's own lines after DENY (optional). */
  const MONEY={min:-100000,max:100000,label:20},DENY=['again','never','start'],ASK_KEYS=['yes','no','deny','denyStart','denySay'],YES='ACCEPT',NO='DENY';
  const costFlag=id=>'mc_'+String(id).slice(0,61),denyFlag=id=>'md_'+String(id).slice(0,61);
+ /* ACCEPT / DENY ANYWHERE IN A MISSION (the owner, 19 Nov 2026: "put the Accept/Deny the mission anywhere in the mission timeline"): a step kind 'ask' {question (the owner's
+    words, 300 characters), npc? (who asks; default the giver), yes / no (button labels, 20 characters), deny: 'end' (default: the mission ends and goes back to its giver, who
+    offers it again) | 'skip' (goto: a LATER step; the steps between are skipped and give nothing) | 'back' (goto: an EARLIER step; the steps from there are done again) | 'tree'
+    (denyStart: the first mission of another tree starts, this one ends), denySay (lines after DENY), say (lines after ACCEPT), price (1..100000 credits charged ONCE on ACCEPT:
+    story.flags.ma_<mission>_<step>; the MONEY rules: never below 0, ACCEPT greyed while short)}. The mission waits at it; the game shows the choice window (live-content.js
+    askTick) and answers with {type:'ask-yes'|'ask-no', step:'<mission>/<step>'}. */
+ const ASK_STEP={deny:['end','skip','back','tree'],question:300,keys:['question','yes','no','deny','goto','denyStart','denySay','price']},askPriceFlag=(mid,sid)=>'ma_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
+ const askPrice=o=>o&&Number.isInteger(o.price)&&o.price>0?Math.min(o.price,MONEY.max):0;
  function costOf(m){const c=m&&m.cost;if(!c||!(Number.isInteger(c.amount)&&c.amount>0))return null;const when=c.when||'accept';return {amount:Math.min(c.amount,MONEY.max),when,refund:c.refund===true&&when==='accept'};}
  /* Credits as one signed number for the editor ("Player gets" >= 0, "Player pays" < 0) and back (clamped to -100000..100000). */
  const signed=m=>{const c=costOf(m);return c?-c.amount:(Number.isInteger(m&&m.rewards)?m.rewards:0);};
@@ -92,7 +100,7 @@
  const tagP=t=>{const V=NPV();return V&&V.tagProblems?V.tagProblems(t):[];},shown=t=>{const V=NPV();return V&&V.strip&&typeof t==='string'?V.strip(t):t;};
  const shownLines=ls=>Array.isArray(ls)?ls.map(l=>l&&typeof l.text==='string'?{...l,text:shown(l.text)}:l):ls;
  function shownTree(t){const x=clone(t);for(const m of x.missions||[]){if(!m)continue;m.offer=shownLines(m.offer);if(m.ending&&m.ending.say)m.ending.say=shownLines(m.ending.say);if(m.start&&typeof m.start.text==='string')m.start.text=shown(m.start.text);
-  for(const o of m.objectives||[])if(o)for(const k of ['say','early','wrong'])if(o[k])o[k]=shownLines(o[k]);}return x;}
+  for(const o of m.objectives||[])if(o){for(const k of ['say','early','wrong','denySay'])if(o[k])o[k]=shownLines(o[k]);if(typeof o.question==='string')o.question=shown(o.question);}}return x;}
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
  /* Strict check of a content record. ctx: {speakers:Set of extra speaker names (registry display names), registryIds:Set, interactions:Set (optional)}.
     Returns {ok, errors:[plain text]}; a record with any error is never applied. */
@@ -179,7 +187,7 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack'],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack','ask'],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -216,6 +224,19 @@
   if(st.deny==='start'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===st.denyStart))err(w+': on DENY it must start the first mission of another tree.');}
   else if(st.denyStart!=null)err(w+': only “start another mission” names a mission to start.');
   lines(st.denySay,w+' / on DENY');}
+ /* An "Ask the player" step (ASK_STEP above): the question, the labels, what DENY does and where it goes, an optional price on ACCEPT. Going BACK repeats the steps from the
+    target, so a credits or standing unlock at one of them would be given again: refused (move it after the question or to the end). */
+ function checkAskStep(m,o,w,err,lines,speakerOk,trees,t){const ids=(m.objectives||[]).map(x=>x&&x.id),i=ids.indexOf(o.id),d=o.deny==null?'end':o.deny,j=ids.indexOf(o.goto);
+  if(!plain(o.question,ASK_STEP.question))err(w+': the question needs your words (plain text, 300 characters at most).');else for(const p of tagP(o.question))err(w+': the question: '+p);
+  if(o.npc!=null&&o.npc!==''&&(o.npc==='You'||!speakerOk(o.npc)))err(w+': who asks must be a known NPC.');
+  for(const k of ['yes','no'])if(o[k]!=null&&!plain(o[k],MONEY.label))err(w+': a button label must be plain text, '+MONEY.label+' characters at most.');
+  if(!ASK_STEP.deny.includes(d))err(w+': unknown “what happens on DENY”.');
+  if(d==='skip'){if(!(j>i))err(w+': on DENY it must skip to a LATER step of this mission.');}else if(d==='back'){if(!(j>=0&&j<i))err(w+': on DENY it must go back to an EARLIER step of this mission.');
+   else for(const x of m.objectives.slice(j,i))if((m.unlocks||[]).some(u=>u&&u.when===x.id&&(u.kind==='credits'||u.kind==='reputation')))err(w+': going back repeats step “'+(x.label||x.id)+'”, which gives credits or standing each time: move that to after the question or to the end.');}
+  else if(o.goto!=null)err(w+': only “skip to” or “go back to” names a step.');
+  if(d==='tree'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===o.denyStart))err(w+': on DENY it must start the first mission of another tree.');}else if(o.denyStart!=null)err(w+': only “start another tree” names a mission to start.');
+  if(o.price!=null&&!(Number.isInteger(o.price)&&o.price>=1&&o.price<=MONEY.max))err(w+': what the player pays on ACCEPT must be a whole number from 1 to 100000 credits.');
+  if(o.via!=null||o.early!=null||o.wrong!=null)err(w+': an “Ask the player” step has only the lines after ACCEPT and after DENY.');lines(o.denySay,w+' / after DENY');}
  function checkCost(m,w,err,oids){const c=m.cost;if(c==null)return;if(!keysOk(c,['amount','when','refund'])){err(w+': the cost has unknown fields.');return;}
   if(!(Number.isInteger(c.amount)&&c.amount>=1&&c.amount<=MONEY.max))err(w+': what the player pays must be a whole number from 1 to 100000 credits.');
   const when=c.when==null?'accept':c.when;if(when!=='accept'&&!oids.has(when))err(w+': the cost is charged at a step that is not in this mission.');
@@ -260,7 +281,7 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','object','ap','stay','unlock','needs'])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','object','ap','stay','unlock','needs',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}
      if(!sec(o.delay,0,TIME.delay))err(ow+': the delay before a step is a whole number of seconds from 0 to 600.');
      if(o.kind!=='anim'&&o.clip!=null)err(ow+': only an animation step names an animation.');if(o.kind!=='anim'&&o.kind!=='wait'&&o.kind!=='hack'&&o.hold!=null)err(ow+': only an animation, wait or hack step has a number of seconds.');if(o.kind!=='wait'&&o.near!=null)err(ow+': only a wait step has a distance.');
      if(!ESCORT.includes(o.kind)&&['to','wait','lost','ifLost','stop'].some(k=>o[k]!=null))err(ow+': only a follow / lead / cab step has a spot, distances or a cab stop.');
@@ -284,6 +305,7 @@
      if(o.subject!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step names who must be in the photo.');
      if(o.subjects!=null){const one=o.kind==='photo'?o.npc:o.subject;if(o.kind!=='photo'&&o.kind!=='send-photo')err(ow+': only a photo step or a “send a photo” step names several people.');else if(!Array.isArray(o.subjects)||!o.subjects.length||o.subjects.length>LIMIT.subjects||new Set(o.subjects).size!==o.subjects.length||!o.subjects.every(subjectOk)||o.subjects[0]!==one)err(ow+': the people in the photo must be 1 to '+LIMIT.subjects+' different people the V1 camera can identify, the first one chosen above.');}
      if(o.wrong!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step has a reply for the wrong photo.');
+     if(o.kind!=='ask'&&ASK_STEP.keys.some(k=>o[k]!=null))err(ow+': only an “Ask the player” step has a question, buttons or what happens on DENY.');else if(o.kind==='ask')checkAskStep(m,o,ow,err,lines,speakerOk,trees,t);
      if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}
      lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}
     checkCost(m,w,err,oids);
@@ -411,6 +433,16 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
     if(gated.has(tt.id))s.story.flags[linkFlag(tt.id)]=true;delete s.story.flags[denyFlag(mm.id)];const sm=mm.start||{};
     if(sm.accept===true){if(sm.how==='notification')out.prompt=prompt(tt,mm);else{out.ask=askOf(mm);out.offer=offerOf(s,mm);out.next=mm.id;out.lines.push(...speak(mm.offer));}return;}
     if(Missions.acquire(s,mm.id)){Missions.track(s,mm.id,Camp);out.started=mm.id;out.notes.push('NEW MISSION · '+titleOf(mm));if(sm.how==='notification')notify(tt,mm);else out.lines.push(...speak(mm.offer));}return;}};
+  /* The player answers an "Ask the player" step (ASK_STEP). ACCEPT: the price once (never below 0; short: out.need and nothing else), then the step is done as usual (its
+     lines after ACCEPT, unlocks at it). DENY: the lines after DENY, then skip ahead (the steps between are marked done and give nothing), go back (the steps from the target are
+     to be done again), or the mission ends (it goes back to its giver; a cost paid at ACCEPT comes back only with "refund if abandoned"), with "start another tree" starting that. */
+  const answer=(t,m,o,yes)=>{Object.assign(out,{tree:t.id,mission:m.id,answered:yes?'yes':'no'});const rec=s.universe.missions[m.id],clear=x=>{delete s.story.flags[delayFlag(m.id,x.id)];delete s.story.flags[waitFlag(m.id,x.id)];};
+   if(yes){const p=askPrice(o),fl=askPriceFlag(m.id,o.id);if(p&&!(Number.isSafeInteger(s.story.flags[fl])&&s.story.flags[fl]>0)){const have=Math.max(0,Number(s.credits)||0);if(have<p){out.need=p;out.needStep=o.id;return;}s.credits=have-p;s.story.flags[fl]=p;out.charged=(out.charged||0)+p;out.notes.push('−'+p+' CREDITS');}
+    if(step(t,m,o))auto(t,m);return;}
+   out.lines.push(...speak(o.denySay));const d=ASK_STEP.deny.includes(o.deny)?o.deny:'end',ids=m.objectives.map(x=>x.id),i=ids.indexOf(o.id),j=ids.indexOf(o.goto);out.deny=d;
+   if(d==='skip'&&j>i){for(const x of m.objectives.slice(i,j)){Missions.complete(s,m.id,x.id,Camp);clear(x);}out.objective=o.id;out.skipped=ids.slice(i+1,j);settle(m,null);auto(t,m);return;}
+   if(d==='back'&&j>=0&&j<i){for(const x of m.objectives.slice(j,i+1)){delete rec.objectives[x.id];clear(x);}rec.completed=false;out.back=o.goto;return;}
+   const tracked=s.universe.trackedMission===m.id,back=abandon(s,env,m.id);if(tracked)s.universe.autoTrack=true;delete s.story.flags.npcEsc;clear(o);out.ended=true;out.refund=back;if(d==='tree')startInstead(o.denyStart);};
   for(const t of env.trees){if(!open(t))continue;
    for(const m of t.missions){
     const rec=s.universe.missions&&s.universe.missions[m.id];
@@ -444,6 +476,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
      if(ev.type==='send-photo'&&next.kind==='send-photo'&&ev.to===next.npc&&!photoOk(ev.photo,photoNeed(next),m)){Object.assign(out,{tree:t.id,mission:m.id,reply:{to:next.npc,ok:false,lines:speak(next.wrong)}});return out;}   // the wrong photo: the reply says so; no fail, unlimited tries
      // a follow / lead step whose player got lost with "the mission fails": the mission goes back to waiting to be offered (abandon(): its record is removed)
      if(ev.type==='escort-fail'&&ESCORT.includes(next.kind)&&ev.step===m.id+'/'+next.id){const tracked=s.universe.trackedMission===m.id,back=abandon(s,env,m.id);if(tracked)s.universe.autoTrack=true;delete s.story.flags.npcEsc;Object.assign(out,{tree:t.id,mission:m.id,objective:next.id,failed:true,refund:back});return out;}   // abandon(): a cost paid at ACCEPT comes back only with "refund if abandoned"; never charged twice
+     if((ev.type==='ask-yes'||ev.type==='ask-no')&&next.kind==='ask'&&ev.step===m.id+'/'+next.id){answer(t,m,next,ev.type==='ask-yes');return out;}   // ACCEPT / DENY in the middle of the mission
      if(ev.type==='heard'&&next.kind==='hear'&&(!ev.mission||ev.mission===m.id)){if(step(t,m,next))auto(t,m);return out;}
      if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation
      if(AUTO.includes(next.kind)){auto(t,m);if(out.done.length)return out;}
@@ -504,6 +537,13 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function animNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
    const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&o.kind==='anim'&&!delayed(s,m,o))out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:o.npc,clip:o.clip,hold:Number.isInteger(o.hold)?o.hold:3});break;}}
+  return out;}
+ /* ASK STEPS in progress now (ASK_STEP): [{key, mission, step, npc, title, ask:{mission, title, accept, decline}, lines:[the question], price, afford, need, paid}]. The game shows
+    the choice window once no conversation or menu is open (live-content.js askTick) and sends {type:'ask-yes'|'ask-no', step:key}. */
+ function askNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees),gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&o.kind==='ask'&&!delayed(s,m,o)&&(env.draft||!placeholder(o.question))){const who=o.npc||m.giver,p=askPrice(o),paid=Number.isSafeInteger(s.story.flags[askPriceFlag(m.id,o.id)])&&s.story.flags[askPriceFlag(m.id,o.id)]>0,ok=!p||paid||(Number(s.credits)||0)>=p;
+    out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:who,title:titleOf(m),ask:{mission:m.id,step:o.id,title:titleOf(m),accept:o.yes||YES,decline:o.no||NO},lines:[{who:gv(who).say||who,text:String(o.question||'')}],price:p,afford:ok,need:ok?0:p,paid});}break;}}
   return out;}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
  function treeWants(s,env,npcs){if(!treeLive(s)||!env||!env.trees)return false;const recs=s.universe.missions||{},gated=linked(env.trees);
@@ -574,7 +614,9 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
    if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;}
    if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
-   if(o.kind==='wait'){x.hold=secs(o.hold,1,TIME.wait)||10;const n=secs(o.near,1,TIME.near);if(n&&o.npc){x.near=n;x.npc=o.npc;}else delete x.npc;if(!x.label)x.label='Wait';return x;}   // an animation step: no lines (its label shows in the Mission Log for those seconds)
+   if(o.kind==='ask'){x.question=String(o.question||'').trim();for(const k of ['yes','no'])if(typeof o[k]==='string'&&o[k].trim())x[k]=o[k].trim().slice(0,MONEY.label);if(ASK_STEP.deny.includes(o.deny)&&o.deny!=='end')x.deny=o.deny;if((x.deny==='skip'||x.deny==='back')&&o.goto)x.goto=o.goto;if(x.deny==='tree'&&o.denyStart)x.denyStart=o.denyStart;
+   const p=askPrice(o);if(p)x.price=p;if(!x.label)x.label='Decide';const who=o.npc||m.giver,sy=said(o.say,who),dn=said(o.denySay,who);if(sy.length)x.say=sy;if(dn.length)x.denySay=dn;return x;}   // ACCEPT / DENY in the middle of a mission
+  if(o.kind==='wait'){x.hold=secs(o.hold,1,TIME.wait)||10;const n=secs(o.near,1,TIME.near);if(n&&o.npc){x.near=n;x.npc=o.npc;}else delete x.npc;if(!x.label)x.label='Wait';return x;}   // an animation step: no lines (its label shows in the Mission Log for those seconds)
    const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
   if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}
   const un=(m.unlocks||[]).filter(SUPPORTED_UNLOCK).map(u=>{const x={kind:u.kind};for(const k of ['id','amount','value','when'])if(u[k]!=null&&u[k]!=='')x[k]=u[k];if(x.when==='complete')delete x.when;return x;});if(un.length)r.unlocks=un;
@@ -605,7 +647,9 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue'}):[]))need(w+': '+n.text,n.key,id);}
    if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
    if(o.kind==='wait'){if(o.near&&!o.npc)need(w+': choose who the player must stay near','step-npc',id);continue;}
-   if(o.kind==='anim'){if(!o.npc)need(w+': choose who plays the animation','step-npc',id);else if(!o.clip)need(w+': choose the animation','step-clip',id);continue;}   // which clips are allowed: check() (with her NPCs-tab plan)
+   if(o.kind==='ask'){const d=o.deny||'end',ids=(m.objectives||[]).map(x=>x.id),j=ids.indexOf(o.goto);if(!String(o.question||'').trim())need(w+': write the question the player answers','step-question',id);
+   if(d==='skip'&&!(j>i))need(w+': choose the later step DENY skips to','step-goto',id);if(d==='back'&&!(j>=0&&j<i))need(w+': choose the earlier step DENY goes back to','step-goto',id);if(d==='tree'&&!o.denyStart)need(w+': choose the tree that starts on DENY','step-deny-start',id);continue;}
+  if(o.kind==='anim'){if(!o.npc)need(w+': choose who plays the animation','step-npc',id);else if(!o.clip)need(w+': choose the animation','step-clip',id);continue;}   // which clips are allowed: check() (with her NPCs-tab plan)
    if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
    if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}
   for(const a of m.apartments||[]){if(a&&!a.door)need('apartment “'+(a.id||'?')+'”: choose its street door (on the map or from the list)','apt-door');}
@@ -722,7 +766,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function apartmentsNow(s,env){const X=APT();return X&&aptLive(s,env)?X.openNow(s,env.trees):[];}
  function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
  function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
- const api={apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={askNow,ASK_STEP,askPriceFlag,apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

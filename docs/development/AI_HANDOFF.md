@@ -6,6 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): MISSION EDITOR BLOCKS VIEW AND ACCEPT / DENY ANYWHERE IN A MISSION (branch `claude/mission-blocks`, build `2026-11-19-mission-blocks-1`, pushed, NO PR, not merged)
+
+The owner: ACCEPT / DENY "anywhere in the mission timeline", and the mission editor "in blocks … color coded based on who and what type". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twentieth pass".
+
+- **Blocks view** (`void-runner/mission-blocks.js` pure mapping, `mission-blocks-view.js` + `.css`): a Blocks | Form switch on every mission (Blocks by default in Basic mode; the wizard opens Blocks); a vertical timeline START → steps → END with + ADD A BLOCK (Who, Words, Action, Item, Time, Ask, Apartment, Add another NPC), nested blocks (who = coloured edge + named chip, player blue; type = header colour + icon + word), drag (pointer events) and ↑ ↓, FOLD, copy, delete with UNDO, red outline + plain fix per block, Guide me inside the blocks. The same draft data as the Form view (round trip tested); rewards and apartments take their position (the step above). What it cannot show is a grey block kept as it is.
+- **Ask the player: ACCEPT or DENY** step kind `ask` (question, buttons, DENY: end / skip ahead / go back / start another tree, optional price on ACCEPT): `mission-content.js` (check, strip, needs, `askNow`, `ask-yes` / `ask-no`), `live-content.js askTick`, server `void_runner_live_content.py ask_step_problems`, Form view fields too. No new save fields beyond `story.flags.ma_<mission>_<step>` (a safe integer, already accepted).
+- **Tests:** `tests/mission-blocks.test.cjs`, `tests/test_mission_blocks.py`, browser `tests/mission-blocks-browser.cjs` (passes: Lace → Words + shrug, player reply, Time 2 s, Ask, +50 credits; drag; draft play DENY then ACCEPT). Older Form-view browser tests now start in the Form view.
+- **Not verified:** real hardware; VR; touch; DENY skip / back / another tree and a priced ACCEPT in a browser (unit-tested).
+
 ### 19 Nov 2026 (newest): MISSION EDITOR — PLAY FROM THE START OF THIS TREE; THE APARTMENTS PANEL ALWAYS SHOWS; AN APARTMENT IN "MAKE A MISSION" (branch `claude/play-tree-start`, build `2026-11-19-play-tree-1`, pushed, NO PR, not merged)
 
 The owner: "i also don't see the apartment add in mission editor" and "play draft from the beginning of the tree". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Nineteenth pass".

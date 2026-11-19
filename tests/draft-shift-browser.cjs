@@ -10,7 +10,7 @@ const log=(...a)=>console.log('[draft-shift]',...a);
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'],...(exe?{executablePath:exe}:{})});const errors=[];
  try{
-  const ctx=await browser.newContext({viewport:{width:1366,height:800},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));
+  const ctx=await browser.newContext({viewport:{width:1366,height:800},serviceWorkers:'block'}),page=await ctx.newPage().then(async p=>{await p.addInitScript(()=>{try{if(!localStorage.getItem('mission-editor-view'))localStorage.setItem('mission-editor-view','form');}catch{}});return p;});page.on('pageerror',e=>errors.push(e.message));
   // the real clock of this page reads 06:30 UTC today (Reverie's shift), and keeps running
   await page.addInitScript(()=>{const d=new Date(),t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),6,30),o=Date.now,off=t-o.call(Date);Date.now=()=>o.call(Date)+off;});
   await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));

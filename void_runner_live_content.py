@@ -287,6 +287,9 @@ HOW = ['person', 'notification']
 MONEY_MAX, LABEL_MAX = 100000, 20
 DENY = ['again', 'never', 'start']
 ASK_KEYS = ['yes', 'no', 'deny', 'denyStart', 'denySay']
+# ACCEPT / DENY anywhere in a mission (19 Nov 2026): the step kind 'ask' (mission-content.js ASK_STEP)
+ASK_STEP_KEYS = ['question', 'yes', 'no', 'deny', 'goto', 'denyStart', 'denySay', 'price']
+ASK_STEP_DENY = ['end', 'skip', 'back', 'tree']
 CHANNELS = ['messages', 'comms', 'notify']
 WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time', 'near']
 NEAR_MIN, NEAR_MAX = 1, 30
@@ -1133,6 +1136,51 @@ def ask_problems(st, tree, trees):
     return out
 
 
+def ask_step_problems(o, m, tree, trees, givers):
+    """An "Ask the player" step in the middle of a mission (mission-content.js checkAskStep()). The lines after DENY are checked by the caller."""
+    out = []
+    objs = [x for x in (m.get('objectives') or []) if isinstance(x, dict)]
+    ids = [x.get('id') for x in objs]
+    i = ids.index(o.get('id')) if o.get('id') in ids else -1
+    j = ids.index(o.get('goto')) if o.get('goto') in ids else -1
+    d = 'end' if o.get('deny') is None else o.get('deny')
+    if not _plain(o.get('question'), 300):
+        out.append('the question needs your words (plain text, 300 characters at most).')
+    else:
+        out += ['the question: ' + p for p in voice_tag_problems(o['question'])]
+    if o.get('npc') not in (None, '') and (o.get('npc') == 'You' or o.get('npc') not in givers):
+        out.append('who asks must be a known NPC.')
+    for k in ('yes', 'no'):
+        if o.get(k) is not None and not _plain(o[k], LABEL_MAX):
+            out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+    if d not in ASK_STEP_DENY:
+        out.append('unknown "what happens on DENY".')
+    if d == 'skip':
+        if not j > i:
+            out.append('on DENY it must skip to a later step of this mission.')
+    elif d == 'back':
+        if not 0 <= j < i:
+            out.append('on DENY it must go back to an earlier step of this mission.')
+        else:
+            again = {x.get('id') for x in objs[j:i]}
+            if any(isinstance(u, dict) and u.get('when') in again and u.get('kind') in ('credits', 'reputation') for u in (m.get('unlocks') or [])):
+                out.append('going back repeats a step that gives credits or standing each time.')
+    elif o.get('goto') is not None:
+        out.append('only "skip to" or "go back to" names a step.')
+    if d == 'tree':
+        firsts = {t['missions'][0].get('id') for t in trees if isinstance(t, dict) and t is not tree and isinstance(t.get('missions'), list) and t['missions'] and isinstance(t['missions'][0], dict)}
+        if o.get('denyStart') not in firsts:
+            out.append('on DENY it must start the first mission of another tree.')
+    elif o.get('denyStart') is not None:
+        out.append('only "start another tree" names a mission to start.')
+    pr = o.get('price')
+    if pr is not None and not (type(pr) is int and 1 <= pr <= MONEY_MAX):
+        out.append('what the player pays on ACCEPT must be a whole number from 1 to 100000 credits.')
+    if any(o.get(k) is not None for k in ('via', 'early', 'wrong')):
+        out.append('an "Ask the player" step has only the lines after ACCEPT and after DENY.')
+    return out
+
+
 def cost_problems(m, step_ids):
     """What the player pays (mission-content.js checkCost())."""
     c = m.get('cost')
@@ -1172,6 +1220,20 @@ def workspace_money_problems(trees):
                         out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
                 if st.get('deny') is not None and st['deny'] not in DENY:
                     out.append('unknown "what happens on DENY".')
+            for o in (m.get('objectives') if isinstance(m.get('objectives'), list) else []):
+                if not isinstance(o, dict) or o.get('kind') != 'ask':
+                    continue
+                pr = o.get('price')
+                if pr is not None and not (type(pr) is int and 1 <= pr <= MONEY_MAX):
+                    out.append('what the player pays on ACCEPT must be a whole number from 1 to 100000 credits.')
+                for k in ('yes', 'no'):
+                    if o.get(k) is not None and not (isinstance(o[k], str) and len(o[k]) <= LABEL_MAX and not TAGS.search(o[k])):
+                        out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+                if o.get('deny') is not None and o['deny'] not in ASK_STEP_DENY:
+                    out.append('unknown "what happens on DENY".')
+                q = o.get('question')
+                if q is not None and not (isinstance(q, str) and len(q) <= 300 and not TAGS.search(q)):
+                    out.append('the question must be plain text, 300 characters at most.')
     return out
 
 
@@ -1317,7 +1379,7 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'object', 'ap', 'stay', 'unlock', 'needs', *ESCORT_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'object', 'ap', 'stay', 'unlock', 'needs', *ASK_STEP_KEYS, *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))
@@ -1373,10 +1435,15 @@ def check_trees(trees, inv, err, npcs=None):
                         err(ow + ': a wait step names a person only with a distance.')
                     if any(o.get(k) is not None for k in ('say', 'early', 'via')):
                         err(ow + ': a wait step has no lines.')
+                elif kind == 'ask':
+                    for p in ask_step_problems(o, m, t, trees, givers):
+                        err(ow + ': ' + p)
                 elif kind == 'photo' and o.get('npc') not in subjects:
                     err(ow + ': not someone the V1 camera can identify.')
                 elif kind == 'send-photo' and (o.get('npc') not in givers or o.get('subject') not in subjects):
                     err(ow + ': the photo must go to a known NPC and show someone the camera can identify.')
+                if kind != 'ask' and any(o.get(k) is not None for k in ASK_STEP_KEYS):
+                    err(ow + ': only an "Ask the player" step has a question, buttons or what happens on DENY.')
                 if kind != 'anim' and o.get('clip') is not None:
                     err(ow + ': only an animation step names an animation.')
                 if kind not in ('anim', 'wait', 'hack') and o.get('hold') is not None:
@@ -1410,6 +1477,7 @@ def check_trees(trees, inv, err, npcs=None):
                 lines(o.get('say'), ow)
                 lines(o.get('early'), ow)
                 lines(o.get('wrong'), ow)
+                lines(o.get('denySay'), ow + ' / after DENY')
             for p in cost_problems(m, oids):
                 err(w + ': ' + p)
             e = m.get('ending')

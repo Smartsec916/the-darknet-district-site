@@ -398,6 +398,9 @@
   if(root.VoidNPCPaths?.MOVABLE?.[m.giver])card.append(waitAtPanel(t,m,ed));
   card.append(startPanel(t,m,ed));   // right under Giver: how this mission starts
   const ty=el('select','','',{'aria-label':'Mission type'});for(const x of SM().TYPES)ty.append(new Option(x,x));ty.value=m.type||'side';ty.onchange=()=>ed(x=>{x.type=ty.value;});const tr=el('div','','me-row');tr.append(el('span','Type','me-small'),ty,hint(HELP.type));card.append(tr);
+  // BLOCKS VIEW (mission-blocks-view.js, 19 Nov 2026): the same mission as a timeline of blocks; the Form view's offer, apartments, steps, ending, branches and unlocks are its blocks
+  const MBV=root.VoidMissionBlocksView,bv=!!(MBV&&MBV.on(m.id));if(MBV)head.after(MBV.toggle(m.id,()=>draw()));
+  if(bv)card.append(MBV.view({t,raw,m,ed,issues,kit:blocksKit}));else{
   if(!(m.start&&m.start.how==='notification')){card.append(linesEditor(t,m,m.offer,'offer',m.giver,'What '+(gv?gv.name:'the giver')+' says when offering it'));card.append(hint(HELP.offer));}
   card.append(aptPanel(t,m,ed));   // apartment instances (apartments.js): always shown; "Loading the street doors…" while the door list is not ready (aptReady)
   card.append(el('h4','What needs to be done (steps, in order)'),hint(HELP.steps));
@@ -414,7 +417,7 @@
    const nx=el('select','','',{'aria-label':'Leads to'});nx.append(new Option('leads to: not decided',''));for(const y of raw.missions.filter(y=>y.id!==m.id))nx.append(new Option('leads to: '+(y.title||y.id),y.id));nx.value=c.next||'';nx.onchange=()=>ed(x=>{x.choices[k].next=nx.value;});
    r.append(lab,nx,btn('×',()=>ed(x=>{x.choices.splice(k,1);},true),'me-x'));br.append(r);});
   br.append(btn('+ BRANCH',()=>ed(x=>{x.choices=x.choices||[];let n=x.choices.length+1;while(x.choices.some(c=>c.id==='choice-'+n))n++;x.choices.push({id:'choice-'+n,label:'',next:''});},true)));card.append(br);
-  card.append(treeUnlocks(t,m,ed));const fu=followups(m);if(fu)card.append(fu);
+  card.append(treeUnlocks(t,m,ed));const fu=followups(m);if(fu)card.append(fu);}
   // checks and actions
   const mine=issues.filter(x=>x.where===m.id||x.where===m.title||String(x.where).startsWith(m.id+' /')||String(x.where).startsWith((m.title||'\u0000')+' /'));
   const val=el('section','','me-issues');val.append(el('h4','Checks'));if(!mine.length)val.append(el('p','No problems found.','me-ok'));for(const x of mine)val.append(el('p',x.text,x.level==='error'?'me-bad':'me-warn'));card.append(val);
@@ -588,6 +591,7 @@
   else if(o.kind==='apt-enter'||o.kind==='apt-use'){head.append(el('span','in','me-small'),aptSelect(m,o.apt,v=>eo(x=>{x.apt=v;},true),{'data-me-step-apt':o.id}));
    if(o.kind==='apt-use'){const sel=el('select','','',{'aria-label':'What is used','data-me-step-object':o.id});sel.append(new Option('— choose what is used —',''));for(const ob of root.VoidApartments.OBJECTS)sel.append(new Option(ob.name,ob.id));sel.value=o.object||'';sel.onchange=()=>eo(x=>{if(sel.value)x.object=sel.value;else delete x.object;},true);head.append(el('span','use','me-small'),sel);}}
   else if(o.kind==='hack')head.append(...hackRow(m,o,eo));
+  else if(o.kind==='ask'&&root.VoidMissionBlocksView)head.append(...root.VoidMissionBlocksView.askFields({t,m,o,eo,kit:blocksKit}));   // ACCEPT / DENY in the middle of a mission (the same fields as its block)
   else if(o.kind==='pod-exit')head.append(el('span','Done when the player leaves the Sleeping Pod (EXIT POD).','me-small'));
   else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));
   else head.append(el('span','Needs a code change: the game cannot run this kind of step yet. It stays in your draft.','me-warn'));
@@ -600,11 +604,12 @@
   if(o.kind==='anim')sb.append(hint(ANIM_STEP_HELP,{'data-me-anim-step-help':o.id}));if(o.kind==='wait')sb.append(hint(WAIT_STEP_HELP,{'data-me-wait-step-help':o.id}));
   {const dr=el('div','','me-row',{'data-me-step-delay-row':o.id}),words=el('span',o.delay>0?'This step starts '+secWords(o.delay)+' after the step before it is done.':'Starts as soon as the step before it is done.','me-small');
    dr.append(numBox('Delay before this step starts',o.delay||0,0,600,v=>{eo(x=>{if(v)x.delay=v;else delete x.delay;});words.textContent=v?'This step starts '+secWords(v)+' after the step before it is done.':'Starts as soon as the step before it is done.';},{'data-me-step-delay':o.id}),el('span','s','me-small'),words);sb.append(dr,hint(DELAY_HELP));}
-  if(!['message','pod-exit','hear','send-photo','await-call','anim','wait'].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));
+  if(!['message','pod-exit','hear','send-photo','await-call','anim','wait','ask'].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));
    vs.value=o.via||'talk';vs.onchange=()=>eo(x=>{if(vs.value==='talk')delete x.via;else x.via=vs.value;},true);vr.append(el('b','How it is said'),vs,...optHelp(vs,HELP_VIA,'How it is said'),el('span',o.via&&o.via!=='talk'?'All the lines come from one NPC, who calls or writes as the step is done. Text only until recorded.':'','me-small'));sb.append(vr);}
   const sayWho=o.kind==='photo'?m.giver:o.npc||m.giver;
   const dev=o.via==='comms'||o.via==='messages'||o.kind==='send-photo';
-  if(o.kind!=='message'&&o.kind!=='pod-exit'&&o.kind!=='anim'&&o.kind!=='wait')sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done',dev?{noPlayer:o.kind==='send-photo'?'A reply in Messages comes from one character: no player lines or animations here.':'A Comms call or a message comes from one character: no player lines here (choose “In person” for a back-and-forth).',noAnim:true}:{}));
+  if(o.kind==='ask')sb.append(linesEditor(t,m,o.denySay||[],o.id+'/denySay',sayWho,'What is said after DENY (optional)'));
+  if(o.kind!=='message'&&o.kind!=='pod-exit'&&o.kind!=='anim'&&o.kind!=='wait')sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='ask'?'What is said after ACCEPT (optional)':o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done',dev?{noPlayer:o.kind==='send-photo'?'A reply in Messages comes from one character: no player lines or animations here.':'A Comms call or a message comes from one character: no player lines here (choose “In person” for a back-and-forth).',noAnim:true}:{}));
   if(o.kind==='send-photo')sb.append(linesEditor(t,m,o.wrong||[],o.id+'/wrong',o.npc||m.giver,'Reply to any other photo (the player can try again as often as they like)',{noPlayer:'A reply in Messages comes from one character: no player lines or animations here.',noAnim:true}));
   if(o.kind==='talk'||o.kind==='deliver')sb.append(linesEditor(t,m,o.early||[],o.id+'/early',o.npc||m.giver,'If the player comes too soon'));
   return sb;}
@@ -886,7 +891,7 @@
   'start-mission':m=>'[data-me-start-mission="'+CSS.escape(m.id)+'"]','start-place':m=>'[data-me-start-place="'+CSS.escape(m.id)+'"]','start-flag':m=>'[data-me-start-flag="'+CSS.escape(m.id)+'"]','start-near':m=>'[data-me-start-near="'+CSS.escape(m.id)+'"]','start-ask':m=>'[data-me-ask-on="'+CSS.escape(m.id)+'"]','start-deny':m=>'[data-me-ask-deny-start="'+CSS.escape(m.id)+'"]','cost-when':m=>'[data-me-cost-when="'+CSS.escape(m.id)+'"]',
   'add-step':m=>'[data-me-add-step="'+CSS.escape(m.id)+'"]',kind:(m,o)=>'[data-me-kind="'+CSS.escape(o)+'"]','step-npc':(m,o)=>'[data-me-step-npc="'+CSS.escape(o)+'"]','step-place':(m,o)=>'[data-me-step-place="'+CSS.escape(o)+'"]','step-item':(m,o)=>'[data-me-step-item="'+CSS.escape(o)+'"]','step-clip':(m,o)=>'[data-me-step-clip="'+CSS.escape(o)+'"]',
   'step-subject':(m,o)=>'[data-me-step-subject="'+CSS.escape(o)+'"]',label:(m,o)=>'[data-me-label="'+CSS.escape(o)+'"]',say:(m,o)=>'[data-me-tstep="'+CSS.escape(o)+'"] textarea',ending:m=>'[data-me-ending="'+CSS.escape(m.id)+'"]','wait-at':m=>'[data-me-wait-at="'+CSS.escape(m.id)+'"] canvas','step-spot':(m,o)=>'[data-me-esc-map="'+CSS.escape(o)+'"] canvas','step-stop':(m,o)=>'[data-me-esc-stop="'+CSS.escape(o)+'"]',
-  'step-apt':(m,o)=>'[data-me-step-apt="'+CSS.escape(o)+'"]','step-object':(m,o)=>'[data-me-step-object="'+CSS.escape(o)+'"]','step-ap':(m,o)=>'[data-me-step-ap="'+CSS.escape(o)+'"]','apt-door':m=>'[data-me-apt-panel="'+CSS.escape(m.id)+'"] select[data-me-apt-door]'};
+  'step-apt':(m,o)=>'[data-me-step-apt="'+CSS.escape(o)+'"]','step-object':(m,o)=>'[data-me-step-object="'+CSS.escape(o)+'"]','step-ap':(m,o)=>'[data-me-step-ap="'+CSS.escape(o)+'"]','step-question':(m,o)=>'[data-me-step-question="'+CSS.escape(o)+'"]','step-goto':(m,o)=>'[data-me-step-goto="'+CSS.escape(o)+'"]','step-deny-start':(m,o)=>'[data-me-step-deny-start="'+CSS.escape(o)+'"]','apt-door':m=>'[data-me-apt-panel="'+CSS.escape(m.id)+'"] select[data-me-apt-door]'};
  let guideT=0;function guideSoon(){clearTimeout(guideT);guideT=setTimeout(()=>{guideT=0;guideNow();},350);}
  /* The PLAY buttons of the shown tree follow the saved draft at once, on every keystroke (not after Guide me's pause): filled in since the card was drawn, PLAY works now;
     emptied, it is greyed with the reason (the same check as play and publish: mission-content.js treeNeeds). */
@@ -1047,12 +1052,15 @@
   if(live&&live.enabled&&live.version)vs.append(btn('UNDO: PUT THE PREVIOUS VERSION BACK',async()=>{if(!confirm('Put the previous published version back for every player?'))return;try{const rec=await call('developer/live-content/rollback',{expected:live.version});status='Version '+rec.version+' is live: '+(rec.content?'the content of version '+rec.from:'the shipped missions')+'.';await refreshServer();}catch(e){status='Undo failed: '+e.message;}draw();},'',{'data-me-undo':'1'}));
   root_.append(vs);
  }
+ /* What the Blocks view (mission-blocks-view.js) uses from here: the Form view's own pickers and boxes, so both views edit the same data in the same way. */
+ const blocksKit={el,btn,hint,optHelp,HELP,HELP_STEP,npcSelect,placeSelect,regionSelect,itemSelect,subjectsPicker,animPick,numBox,escortWho,escortPanel,hackRow,aptSelect,doorSelect,importBox,aptReady,aptEnsure,giver,voiceNow,local,editTree,guideSoon,play,jumpApt,numLabel,secWords,lineTimeWords,waitWords,
+  get givers(){return givers;},get items(){return items;},get refs(){return refs;},status:t=>setStatus(t),draw:()=>draw(),G,MC,EX:()=>EX(),NGS,fresh,blockers:m=>MC().treeBlockers(m,givers,items),needs:m=>MC().treeNeeds(m,givers,items)};
  /* What Developer Tools > NPCs uses from here: the same draft, the same lines and voice view, the same play and check, the same help style. */
  const shared={el,btn,hint,optHelp,HELP,local,saveLocal,restoreRaw,KEY,STUDIO,
   // the beginner layer (editor-home.js): jump to a view, add the wizard's mission, play a tree mission, what blocks one
   goto(o){Object.assign(ui,{check:null,newTree:false,...o});},
   addWizardMission(make){const d=local();const r=make(d,{T:T(),number:nextFree(d),givers});saveLocal(d);stale=true;Object.assign(ui,{mode:'trees',tree:r.tree.id,mission:'tree:'+r.mission.id,step:null,scrollTo:true,newTree:false});return {tree:r.tree.id,mission:r.mission.id};},
-  playTree(id,step){return play('tree:'+id,step||null);},playStart,fresh,
+  playTree(id,step){return play('tree:'+id,step||null);},playStart,fresh,blocksKit,
   blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
   addGiverMission(npc,treeId){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);saveLocal(d);stale=true;
