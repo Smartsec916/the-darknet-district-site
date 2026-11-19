@@ -211,7 +211,7 @@ def template(kind, source, inv):
 # One fixed draft id, ordinary revisions, the same byte and revision limits. It is a private backup of editor state, never content: nothing releases or applies it.
 WORKSPACE_ID = 'mission-editor-workspace'
 # npcs / animRequests (Developer Tools > NPCs, 18 Nov 2026) and voices (ElevenLabs voice choices, 18 Nov 2026) travel with the draft too.
-WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio', 'npcs', 'animRequests', 'voices']
+WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio', 'npcs', 'animRequests', 'voices', 'looks']
 
 
 def validate_workspace(doc):
@@ -225,7 +225,7 @@ def validate_workspace(doc):
     text(d['title'], 160)
     b = d['bundle']
     keys(b, WORKSPACE_KEYS)
-    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict)]:
+    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict), ('looks', dict)]:
         if k in b and not isinstance(b[k], kind):
             raise DraftError('Invalid workspace field: ' + k)
     if len(b.get('trees', [])) > 30 or any(not isinstance(t, dict) or not isinstance(t.get('id'), str) or not isinstance(t.get('missions', []), list) for t in b.get('trees', [])):
@@ -234,6 +234,11 @@ def validate_workspace(doc):
         raise DraftError('Invalid retired numbers.')
     if b.get('studio') is not None and not isinstance(b['studio'], dict):
         raise DraftError('Invalid studio draft.')
+    if b.get('looks'):
+        from void_runner_live_content import look_problems
+        problems = look_problems(b['looks'])
+        if problems:
+            raise DraftError('Invalid NPC look: ' + problems[0], 422)
     if b.get('voices'):
         from void_runner_live_content import voice_problems
         problems = voice_problems(b['voices'])
