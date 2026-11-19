@@ -609,10 +609,12 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  /* The draft's made characters that can be sent: cleaned, and nothing in the way (npc-made.js problems with the draft's placements and trees). {id: character} */
  function madeReady(local,givers){const MD=MDE(),ch=(local&&local.characters)||{};if(!MD||!Object.keys(ch).length)return {};const out={},ms=new Map(),offer=new Map();
   for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
-  const reserved=new Set((givers||[]).filter(g=>!g.made).map(g=>g.id));for(const [id,c0] of Object.entries(ch)){const c=MD.clean(c0);if(c&&!MD.problems({[id]:c},{npcs:(local&&local.npcs)||{},missions:ms,reserved,givesOffer:offer}).length)out[id]=c;}return out;}
+  const reserved=new Set((givers||[]).filter(g=>!g.made).map(g=>g.id));for(const [id,c0] of Object.entries(ch)){const c=MD.clean(c0);if(c&&!MD.problems({[id]:c},{npcs:(local&&local.npcs)||{},missions:ms,reserved,givesOffer:offer}).length&&!placeNeeds(id,c,local).length)out[id]=c;}return out;}
  /* Why a made character in the draft is not sent yet (plain words; empty: it is). */
  function madeNeeds(local,givers,id){const MD=MDE(),c=((local&&local.characters)||{})[id];if(!MD||!c)return [];const ms=new Map(),offer=new Map();for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
-  return MD.problems({[id]:MD.clean(c)},{npcs:(local&&local.npcs)||{},missions:ms,reserved:new Set((givers||[]).filter(g=>!g.made).map(g=>g.id)),givesOffer:offer});}
+  const p=MD.problems({[id]:MD.clean(c)},{npcs:(local&&local.npcs)||{},missions:ms,reserved:new Set((givers||[]).filter(g=>!g.made).map(g=>g.id)),givesOffer:offer});return p.length?p:placeNeeds(id,MD.clean(c),local);}
+ /* Their placement's own problems (npc-paths.js planProblems), with this character registered as it is in the draft. */
+ function placeNeeds(id,c,local){const X=NPX(),p=((local&&local.npcs)||{})[id];if(!X||!X.setMade||!p)return [];const had=X.madeNow(),reg=X.MOVABLE[id]&&X.MOVABLE[id].made&&had[id]===c;const before=reg?null:X.setMade({...had,[id]:c});try{return X.planProblems(id,X.clean(p)||p);}finally{if(before)X.setMade(before);}}
  function fromDrafts({studio,local,shippedBeginner,note,givers,items,clipText}={}){
   const out={format:FORMAT,version:VERSION};
   if(studio&&Array.isArray(studio.missions)){const b=studio.missions.map(strip);if(!shippedBeginner||JSON.stringify(b)!==JSON.stringify((shippedBeginner||[]).map(strip)))out.beginner=b;}

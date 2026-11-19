@@ -106,7 +106,7 @@
   const pick=(id,fn)=>()=>{ui.id=id;ui.start=false;status='';if(fn)fn();draw();setTimeout(()=>{const t=host.querySelector(fn&&fn.focus||'[data-npc-facts]');t&&t.scrollIntoView({block:'start'});},50);};
   const first=x=>entries().find(e=>e.group===x)||{};const rev='grey-reverie';
   const card=(icon,title,text,go,attrs)=>{const b=btn('',go,'npc-card',attrs);b.append(el('span',icon,'npc-card-icon',{'aria-hidden':'true'}),el('b',title),el('span',text,'me-small'));grid.append(b);};
-  const stay=()=>{if(!plan(rev)||plan(rev).mode!=='stay')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'stay',x:100,z:-6.4,yaw:Math.PI,actions:X().STAY_DEFAULT.slice()});};stay.focus='[data-npc-place]';
+  const stay=()=>{if(!plan(rev)||plan(rev).mode!=='stay')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'stay',x:100,z:-6.4,yaw:Math.PI,actions:stayDefault(rev)});};stay.focus='[data-npc-place]';
   const route=()=>{if(!plan(rev)||plan(rev).mode!=='path')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'path',points:[]});root.VoidEditorGuide?.focusNext();};route.focus='[data-npc-place]';
   const look=()=>{};look.focus='[data-npc-preview]';const lines=()=>{};lines.focus='[data-npc-lines]';const giv=()=>{};giv.focus='[data-npc-giver]';
   card('📍','Move a character to a spot','Pick where Reverie (or Lace) stands and what she does there.',pick(rev,stay),{'data-npc-start-card':'stay'});
@@ -222,6 +222,8 @@
  // ---------------------------------------------------------------- CREATE A MISSION GIVER (the owner, 19 Nov 2026; npc-made.js): a new character, step by step
  /* The draft's content.characters[id]; where they stand is the ordinary placement (content.npcs[id]) of "Where they are in the game" below. Every change is one UNDO step. */
  const MD=()=>root.VoidMadeNPCs;
+ /* A new stay's things to do: the ordinary standing routine, only what this character can do (a made character's model may lack some clips or a device). */
+ function stayDefault(id){const ok=new Set(X().actionsFor(id,(plan(id)||{}).anims||[]).map(a=>a.id)),l=X().STAY_DEFAULT.filter(a=>ok.has(a));return l.length?l:['idle'].filter(a=>ok.has(a)).concat(ok.has('idle')?[]:['wait']);}
  const madeOf=id=>((S().local().characters)||{})[id]||null;
  function editMade(id,fn,say){const d=S().local();d.characters=d.characters||{};const c=JSON.parse(JSON.stringify(d.characters[id]||{}));fn(c);const x=MD().clean(c);if(x)d.characters[id]=x;S().saveLocal(d);if(say)status=say;draw();}
  const MAKE=[['model','Model'],['name','Name'],['look','Look'],['device','Device'],['ship','Ship'],['items','Items'],['voice','Voice'],['anims','Animations'],['place','Place'],['done','Done']];
@@ -339,7 +341,7 @@
    box.append(sel,hint(bi==null?'You are changing what '+she+' does outside every time block. Pick a time block to change that part of the day instead.':'You are changing the time block '+whole.schedule[bi].from+'–'+whole.schedule[bi].to+'. The map and the buttons below now set what '+she+' does then.'));}
   const modes=el('div','','me-row');for(const [m_,name] of [...(M.made?[]:[['own','Let '+her+' do '+her+' usual thing']]),['stay','Keep '+(M.it?'it':'her')+' at one spot'],['path','Make '+(M.it?'it':'her')+' walk a route']])modes.append(btn(name,()=>{
     if(m_==='own'){const before=whole;put(p&&p.anims?{mode:'original',anims:p.anims}:null);if(before&&before.mode!=='original'){status='She is back to her usual thing.';ui.undo=()=>setPlan(id,before,{keep:false});}}
-    else if(m_==='stay'){const s0=root.VoidStreetPair?.SEAT||{x:104.4,z:-5.9};put({...(p&&p.anims?{anims:p.anims}:{}),mode:'stay',x:p&&p.mode==='stay'?p.x:s0.x,z:p&&p.mode==='stay'?p.z:-6.4,yaw:p&&p.mode==='stay'?p.yaw:Math.PI,actions:p&&p.mode==='stay'?p.actions:X().STAY_DEFAULT.slice()});}
+    else if(m_==='stay'){const s0=root.VoidStreetPair?.SEAT||{x:104.4,z:-5.9};put({...(p&&p.anims?{anims:p.anims}:{}),mode:'stay',x:p&&p.mode==='stay'?p.x:s0.x,z:p&&p.mode==='stay'?p.z:-6.4,yaw:p&&p.mode==='stay'?p.yaw:Math.PI,actions:p&&p.mode==='stay'?p.actions:stayDefault(id)});}
     else{put({...(p&&p.anims?{anims:p.anims}:{}),mode:'path',points:p&&p.mode==='path'?p.points:[]});root.VoidEditorGuide?.focusNext();}
     draw();},mode===m_?'on':'',{'data-npc-mode':m_,'aria-pressed':String(mode===m_)}));
   box.append(modes,hint(mode==='own'&&M.made?'Not in the world yet: press “Keep her at one spot” (then click the map) or “Make her walk a route”. Pick the area on the map first.':mode==='own'?(M.it?'It does what the game has it do now: goes to whichever of Reverie and Lace is out, rubs round her legs, sits by her; with neither out it potters about by the LAUNDRY door.':'She does what the game has her do now: walks her stretch of the Avenue, sits on the ledges, plays with the cat.'):mode==='stay'?HELP.stay:HELP.route));
@@ -389,7 +391,7 @@
    const time=(key,label)=>{const i=el('input','','',{type:'time',step:'900','aria-label':label+' of time block '+(k+1),'data-npc-block-time':key+':'+k});i.value=b[key]||'';i.onchange=()=>{if(!X().HHMM.test(i.value))return;const list=sch.slice();list[k]={...b,[key]:i.value};setSch(list);};return i;};
    const what=el('select','','',{'aria-label':'What '+she+' does in time block '+(k+1),'data-npc-block-mode':String(k)});for(const [v,t] of [['original',M.it?'its usual thing':'her usual thing'],['stay','stay at one spot'],['path','walk a route']])what.append(new Option(t,v));what.value=b.mode;
    what.onchange=()=>{const list=sch.slice(),head={from:b.from,to:b.to,...(b.name?{name:b.name}:{})},s0=root.VoidStreetPair?.SEAT||{x:104.4};
-    list[k]=what.value==='original'?{...head,mode:'original'}:what.value==='stay'?{...head,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():X().STAY_DEFAULT.slice()}:{...head,mode:'path',points:[]};ui.block[id]=what.value==='original'?ui.block[id]:k;setSch(list);};
+    list[k]=what.value==='original'?{...head,mode:'original'}:what.value==='stay'?{...head,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():stayDefault(id)}:{...head,mode:'path',points:[]};ui.block[id]=what.value==='original'?ui.block[id]:k;setSch(list);};
    const nm=el('input','','',{'aria-label':'Name of time block '+(k+1),'data-npc-block-name':String(k),placeholder:'e.g. Morning walk',maxlength:'40',style:'width:10em'});nm.value=b.name||'';
    nm.onchange=()=>{const v=nm.value.trim(),list=sch.slice();if(v&&!X().NAME_OK.test(v)){status='A name may use letters, numbers and simple punctuation only.';draw();return;}const nb={...b};if(v)nb.name=v;else delete nb.name;list[k]=nb;setSch(list);};
    const edit=btn(blockOf(id)===k?'CHANGING ON THE MAP':'EDIT ON THE MAP',()=>{ui.block[id]=k;draw();setTimeout(()=>host.querySelector('[data-npc-place]')?.scrollIntoView({block:'start'}),50);},blockOf(id)===k?'on':'',{'data-npc-block-edit':String(k),title:'Changes this time block with the map and buttons in “Where they are in the game”.',...(b.mode==='original'?{disabled:''}:{})});
@@ -398,7 +400,7 @@
   if(sch.length)box.append(tb);
   for(const pr of X().scheduleProblems(id,sch.length?sch:null,whole&&whole.anims))box.append(el('p','⚠ '+pr.replace(M.name+': ',''),'me-bad',{'data-npc-schedule-problem':'1'}));
   const row=el('div','','me-row');row.append(btn('+ ADD A TIME BLOCK',()=>{const f=freeSlot(sch);if(!f||sch.length>=X().LIMIT.blocks){status=sch.length>=X().LIMIT.blocks?'A schedule has '+X().LIMIT.blocks+' time blocks at most.':'There is no free hour left in the day: shorten a time block first.';draw();return;}
-    const s0=root.VoidStreetPair?.SEAT||{x:104.4};setSch([...sch,{...f,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():X().STAY_DEFAULT.slice()}],'Time block '+f.from+'–'+f.to+' added: change its times, what '+she+' does, and its spot on the map.');ui.block[id]=sch.length;draw();},'',{'data-npc-block-add':id,title:'Adds the next free hour of the day (from 08:00). Change its times and what '+she+' does.'}));
+    const s0=root.VoidStreetPair?.SEAT||{x:104.4};setSch([...sch,{...f,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():stayDefault(id)}],'Time block '+f.from+'–'+f.to+' added: change its times, what '+she+' does, and its spot on the map.');ui.block[id]=sch.length;draw();},'',{'data-npc-block-add':id,title:'Adds the next free hour of the day (from 08:00). Change its times and what '+she+' does.'}));
   if(sch.length)row.append(btn('REMOVE THE SCHEDULE',()=>setSch([],'The daily schedule was removed.',true),'me-x',{'data-npc-schedule-clear':id}));box.append(row);
   // try a time: which block applies, and play the draft at that in-game time
   const tr=el('div','','me-row',{'data-npc-try-time':id}),m0=Number.isFinite(ui.clock[id])?ui.clock[id]:gn?gn.minuteOfDay:480,rg=el('input','','',{type:'range',min:'0',max:'1425',step:'15','aria-label':'Try a time of day','data-npc-try-range':id});rg.value=String(m0);

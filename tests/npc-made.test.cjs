@@ -65,6 +65,7 @@ test('drafts: only finished characters are sent (with their placement); an unfin
  const x=env(),local={trees:tree('kara-voss'),characters:{'kara-voss':KARA,'half-done':{name:'Half',model:'npc-courier'}},npcs:{'kara-voss':OLDTOWN}};x.X.setMade(local.characters);
  const c=x.MC.fromDrafts({local,givers:x.e.givers});assert.deepEqual(Object.keys(c.characters),['kara-voss']);assert.deepEqual(Object.keys(c.npcs),['kara-voss']);
  assert.ok(x.MC.notApplied({local,givers:x.e.givers}).some(t=>/Half/.test(t)&&/put them somewhere/.test(t)));
+ {const l2={...local,npcs:{'kara-voss':{...OLDTOWN,actions:['idle','idle-shift']}}};assert.match(x.MC.madeNeeds(l2,x.e.givers,'kara-voss').join(),/idle-shift/,'a thing her model cannot do keeps her out');assert.deepEqual(Object.keys(x.MC.madeReady(l2,x.e.givers)),[]);}
  assert.equal(x.MD.idFor('Kara Voss!'),'kara-voss');assert.equal(x.MD.idFor('Kara Voss',new Set(['kara-voss'])),'kara-voss-2');assert.equal(x.MD.idFor('  '),'giver');
  assert.ok(x.MD.models().some(m=>m.asset==='npc-courier'&&m.group==='street'));assert.ok(!x.MD.models().some(m=>m.asset==='npc-street-cat'));
  assert.ok(x.MD.items().find(i=>i.id==='ward-pistol').show==='hip');assert.ok(x.MD.ships().some(s=>s.id==='ship2'));});
