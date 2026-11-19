@@ -12,7 +12,7 @@ The owner: "i also don't see the apartment add in mission editor", and "play dra
 
 **The apartments panel.** "Apartments for this mission" (with **+ INSTANCE AN APARTMENT**) is on every mission of your own trees and the Main storyline, in Basic and Advanced, from the main menu, the pod or the street. If the door list is not ready it says "Loading the street doors…" and fills in by itself. Missions of the older game data (the archived trees, the beginner campaign) cannot hold apartments: their page says so and offers **COPY THIS MISSION INTO A NEW TREE**.
 
-**Make a mission.** The steps page ("What must the player do?") has **An apartment for this mission (optional)**: **+ INSTANCE AN APARTMENT** adds one (style and street door, grouped by part of town) and the step **Go into the mission's apartment**; × removes both. More apartments, a later opening step, a lock behind a hack and items: in the Mission Editor afterwards.
+**Make a mission.** The steps page ("What must the player do?") has **An apartment for this mission (optional)**: **+ INSTANCE AN APARTMENT** adds one (style and street door, grouped by part of town; an Outskirts container door takes only the two container styles, a city door the three city styles) and the step **Go into the mission's apartment**; × removes both. More apartments, a later opening step, a lock behind a hack and items: in the Mission Editor afterwards.
 
 **Cause of the hidden panel (for Claude and Codex).** On current `main` the panel was not hidden in any case tried in a browser (main menu, pod, Basic, Advanced): `apartments.js` is loaded with the page and its doors are pure data (street edges, `ncz-quarters.js`, the generated `npc-areas.js` obstacles), not the built scene. What did hide it: the panel was added only `if(root.VoidApartments?.doors)` (so any page where `apartments.js` was missing or late, e.g. a stale cached page from before #424, showed nothing and no message); the "Make a mission" wizard had no apartment at all (the owner works in Basic mode, where the wizard is the main path); and missions of the older trees have no panel, with no word why. Also fixed: `apartments.js doors()` cached its list even when `VoidQuarters` was not loaded yet, which would have frozen an empty list.
 
@@ -21,6 +21,13 @@ For Claude and Codex:
 - Every draft session (`play`) now calls `VoidLiveContent.resetRun()` (animation and step-timer countdowns, started escort steps, offer / need / walked-near memories, the plan cache) and `VoidApartments.resetRun()` (JUMP INSIDE preview, lights / screen switches) in `apply`, so a session started inside another one starts clean.
 - Wizard: `editor-wizard.js` STEPS `apt-enter` (needs `apt`), answer `a.apt {style, door}`, `problems('steps')` checks it (door exists, style fits the door's family), `build()` writes `apartments:[{id:'a1', style, door}]` and the step's `apt`; `editor-home.js aptBox`. No new wizard page (PAGES unchanged).
 - Tests: `tests/play-tree-start.test.cjs`, browser `tests/play-tree-start-browser.cjs`; `tests/play-stale.test.cjs` updated for `play(key,stepId,opt)`.
+## Nineteenth pass (19 Nov 2026): container apartments in The Outskirts
+
+Branch `claude/container-apartments`, build `2026-11-19-container-apartments-1`. Record: [`APARTMENTS.md`](APARTMENTS.md), "Container apartments in The Outskirts".
+
+1. In **Apartments for this mission**, the style list now has **Container — rundown** and **Container — regular** as well as the three city styles.
+2. A container style offers only the container doors in The Outskirts (the list and the map, which opens on The Outskirts); a city style offers only city doors. Changing between them clears a door of the other kind.
+3. Everything else is the same: the number on its hallway door (the container hallway has four doors), open from the start or a step, locked until hacked, Lights start / Screen starts, JUMP TO THE DOOR / JUMP INSIDE, the steps Go into / Use something in / Hack the access point, Items (coming later).
 
 ## Eighteenth pass (19 Nov 2026): instance an apartment, apartment steps, hack an access point
 

@@ -54,9 +54,20 @@ class ApartmentServerTests(unittest.TestCase):
         bad(tree(objectives=[{'id': 'h', 'kind': 'hack', 'ap': 'roof/door', 'label': 'x'}]), 'access point')
         bad(tree(objectives=[{'id': 'h', 'kind': 'talk', 'npc': 'iris', 'ap': 'apt-main-w-96', 'label': 'x'}]), 'only a "hack')
 
+    def test_container_styles(self):
+        door = next(k for k, v in INV['apartments']['doors'].items() if v.get('family') == 'container')
+        ok = tree([{'id': 'box', 'style': 'container-rundown', 'door': door, 'screenOff': True, 'items': [{'type': 'loot', 'label': 'Cash', 'x': 5, 'z': -1}]}],
+                  [{'id': 'in', 'kind': 'apt-enter', 'apt': 'box', 'label': 'Get in'}])
+        self.assertEqual(check(ok), [])
+        for apts, text in (([{'id': 'box', 'style': 'container-regular', 'door': 'apt-main-w-96'}], 'container door in The Outskirts'),
+                           ([{'id': 'box', 'style': 'normal', 'door': door}], 'container door in The Outskirts'),
+                           ([{'id': 'box', 'style': 'container-regular', 'door': door, 'items': [{'type': 'loot', 'label': 'x', 'x': 1, 'z': 3}]}], 'inside the apartment')):
+            p = check(tree(apts, [{'id': 'in', 'kind': 'apt-enter', 'apt': 'box', 'label': 'Get in'}]))
+            self.assertTrue(any(text in x for x in p), (text, p))
+
     def test_inventory_lists(self):
         ap = INV['apartments']
-        self.assertEqual(sorted(ap['styles']), ['luxury', 'normal', 'rundown'])
+        self.assertEqual(sorted(ap['styles']), ['container-regular', 'container-rundown', 'luxury', 'normal', 'rundown'])
         self.assertIn('vending', ap['objects'])
         self.assertNotIn('fridge', ap['objects'])
         self.assertIn('hacking-device', ap['items'])

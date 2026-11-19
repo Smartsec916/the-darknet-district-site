@@ -22,7 +22,7 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   await page.reload();await boot();
   await page.evaluate(()=>VoidDevTools.identity(async p=>{if(p==='developer/balance')return {values:VoidBalance.defaults,revision:1,preset:'NORMAL'};const e=new Error('off');e.status=404;throw e;}));
   await page.waitForTimeout(3000);const before=await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1'));
-  const ID='draft-flat-m1',DOOR='apt-main-w-96';
+  const ID='draft-flat-m1',DOOR=/^container-/.test(style)?'apt-yard-s-10':'apt-main-w-96';   // STYLE=container-rundown|container-regular: a container in The Outskirts
   const r=await page.evaluate(async({ID,DOOR,style})=>{const MC=VoidMissionContent,L=VoidLiveContent;
    const trees=[{id:'draft-flat',name:'The flat',missions:[{id:ID,number:72,title:'Someone’s flat',type:'side',giver:'admin',offer:[{who:'admin',text:'There is a flat on Main Street.'}],
     apartments:[{id:'safehouse',style,door:DOOR,number:13}],
@@ -46,8 +46,8 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   // a locked hallway door
   await page.evaluate(slot=>VoidInteractions.handlers.get('apt-hall-door')({item:{slot:(slot+1)%10}}),hall.open[0].slot);assert.equal(await page.evaluate(()=>walkingLocation.part),'hall');
   // walk to the mission's door: it opens; walk in
-  await page.evaluate(slot=>{const s=VoidApartments.HALL.slots[slot],O=VoidApartments.ORIGIN;walker.x=O[0]+s.x;walker.z=O[1]+(s.z>0?.3:-.3);walker.yaw=s.z>0?0:Math.PI;},hall.open[0].slot);await page.waitForTimeout(1500);
-  await page.evaluate(slot=>{const s=VoidApartments.HALL.slots[slot],O=VoidApartments.ORIGIN;walker.z=O[1]+(s.z>0?.85:-.85);},hall.open[0].slot);
+  await page.evaluate(slot=>{const s=VoidApartments.geo(walkingLocation.style).HALL.slots[slot],O=VoidApartments.ORIGIN;walker.x=O[0]+s.x;walker.z=O[1]+(s.z>0?.3:-.3);walker.yaw=s.z>0?0:Math.PI;},hall.open[0].slot);await page.waitForTimeout(1500);
+  await page.evaluate(slot=>{const s=VoidApartments.geo(walkingLocation.style).HALL.slots[slot],O=VoidApartments.ORIGIN;walker.z=O[1]+(s.z>0?s.z-.4:s.z+.4);},hall.open[0].slot);
   await arrive(()=>walkingLocation?.part==='flat'&&mode==='walking','apartment');log('in the apartment');await page.waitForTimeout(2500);await shot(page,'4-flat');
   const step=()=>page.evaluate(id=>Object.entries(state.universe.missions[id]?.objectives||{}).filter(([,v])=>v===true).map(([k])=>k),ID);
   await page.waitForFunction(id=>state.universe.missions[id]?.objectives?.in===true,ID,{timeout:20000});log('step "go into the apartment" done');
@@ -67,7 +67,7 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   // leave: hallway, then the street at the same door
   await page.evaluate(()=>{try{resumeWalking();}catch{}VoidInteractions.handlers.get('apt-exit')({item:{}});});await arrive(()=>walkingLocation?.part==='hall'&&mode==='walking','back to the hallway');
   await page.evaluate(()=>VoidInteractions.handlers.get('apt-hall-exit')({item:{}}));await arrive(()=>walkingLocation?.area==='street'&&mode==='walking','the street');
-  const back=await page.evaluate(id=>{const d=VoidApartments.door(id);return {q:walkingLocation.quarter,dist:Math.hypot(walker.x-d.front[0],walker.z-d.front[1])};},DOOR);assert.equal(back.q,'oldtown');assert.ok(back.dist<1.5,JSON.stringify(back));
+  const back=await page.evaluate(id=>{const d=VoidApartments.door(id);return {q:walkingLocation.quarter,dist:Math.hypot(walker.x-d.front[0],walker.z-d.front[1])};},DOOR);assert.equal(back.q,await page.evaluate(id=>VoidApartments.door(id).quarter,DOOR));assert.ok(back.dist<1.5,JSON.stringify(back));
   await page.waitForTimeout(1500);assert.match(await label(),/LOCKED/,'locked again once the mission is done');await shot(page,'7-back');
   assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is untouched');
   assert.deepEqual(errors.filter(e=>!/offline|Failed to fetch|NetworkError|ERR_/.test(e)),[]);log('PASS',style);

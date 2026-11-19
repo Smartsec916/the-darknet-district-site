@@ -9,7 +9,7 @@ test('the apartments panel is always added to a tree mission card (no condition 
  // a mission of the older game data says where apartments go and offers the copy
  assert.match(s,/'data-me-apt-other':m\.key/);assert.match(s,/btn\('COPY THIS MISSION INTO A NEW TREE',\(\)=>copyInto\(\[m\],m\.title\)/);});
 test('apartments.js: the door list is pure data and an early call (before ncz-quarters.js) never freezes an empty list',()=>{
- const X=require('../void-runner/apartments.js');assert.ok(X.doors().length>40);assert.match(src('apartments.js'),/if\(Q&&out\.length\)cache=out;return out;\}/);});
+ const X=require('../void-runner/apartments.js');assert.ok(X.doors().length>40);assert.match(src('apartments.js'),/if\(Q&&CT\(\)&&out\.length\)cache=out;return out;\}/);});
 test('PLAY FROM THE START OF THIS TREE: on the tree header and beside every PLAY THIS DRAFT; it plays the first mission with nothing of the tree done and a clean session',()=>{
  assert.match(s,/if\(raw\.missions\.length\)\{const r=el\('div','','me-row me-actions',\{'data-me-tree-start-row':t\.id\}\);r\.append\(startBtn\(raw\),hint\(HELP\.playStart\)\)/);
  assert.match(s,/act\.append\(btn\('PLAY THIS DRAFT',\(\)=>play\('tree:'\+m\.id,null\),'me-play',[^\n]*\),startBtn\(raw\),hint\(HELP\.play\)\);card\.append\(act\);/);

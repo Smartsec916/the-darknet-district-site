@@ -30,23 +30,23 @@
  const note=t=>{try{resumeWalking();}catch{}try{announce(t);}catch{}};
  let busy=false;const screenOff=new Set(),screenSet=new Set(),lightOff=new Set(),lightSet=new Set();   // ad screens switched off, per apartment instance, for this session
  async function go(key,opts){if(busy)return;busy=true;try{await enterWalking(key,opts);}finally{busy=false;}}
- async function enterHall(door,list){const style=(list[0]&&list[0].style)||door.style,slots=A.slotsFor(list);visit={door,list,inst:null,slots};
+ async function enterHall(door,list){const style=(list[0]&&list[0].style)||door.style,slots=A.slotsFor(list,style);visit={door,list,inst:null,slots};
   const def=A.layout('hall',style);def.open=list.map(a=>({slot:slots[a.key],number:a.number,key:a.key,locked:!!a.locked,id:a.id,mission:a.mission}));def.street=door.id;
-  for(const sl of A.HALL.slots){const o=def.open.find(x=>x.slot===sl.i),w=A.world([sl.x-.75,1.4,sl.z>0?.62:-.62]);def.interactions.push({id:'hall-ap-'+sl.i,label:'ACCESS POINT',position:w,action:'apt-ap',ap:o?o.id+'/hall':'hall-slot-'+sl.i,mission:o?o.mission:null,range:1.0});}
+  const GH=A.geo(style);for(const sl of GH.HALL.slots){const o=def.open.find(x=>x.slot===sl.i),w=A.world([sl.x-.75,1.4,sl.z>0?(GH.container?.55:.62):(GH.container?-.55:-.62)]);def.interactions.push({id:'hall-ap-'+sl.i,label:'ACCESS POINT',position:w,action:'apt-ap',ap:o?o.id+'/hall':'hall-slot-'+sl.i,mission:o?o.mission:null,range:1.0});}
   VoidExplorationData.locations[A.keyOf('hall',style)]=def;await go(A.keyOf('hall',style));}
- async function enterFlat(inst){const def=A.layout('flat',inst.style,{items:inst.items});def.inst=inst.key;def.items=inst.items;def.apt={mission:inst.mission,id:inst.id};def.door=inst.door;def.screenOff=screenSet.has(inst.key)?screenOff.has(inst.key):inst.screenOff===true;def.lightsOff=lightSet.has(inst.key)?lightOff.has(inst.key):inst.lightsOff===true;def.interactions.push({id:'apt-ap',label:'ACCESS POINT',position:A.world([-.85,1.4,-4.55]),action:'apt-ap',ap:inst.id+'/entry',mission:inst.mission,range:1.0});VoidExplorationData.locations[A.keyOf('flat',inst.style)]=def;visit={...(visit||{}),inst};await go(A.keyOf('flat',inst.style));}
+ async function enterFlat(inst){const def=A.layout('flat',inst.style,{items:inst.items});def.inst=inst.key;def.items=inst.items;def.apt={mission:inst.mission,id:inst.id};def.door=inst.door;def.screenOff=screenSet.has(inst.key)?screenOff.has(inst.key):inst.screenOff===true;def.lightsOff=lightSet.has(inst.key)?lightOff.has(inst.key):inst.lightsOff===true;def.interactions.push({id:'apt-ap',label:'ACCESS POINT',position:(()=>{const ap=A.geo(inst.style).AP;return A.world([ap.x,1.4,ap.z+.45]);})(),action:'apt-ap',ap:inst.id+'/entry',mission:inst.mission,range:1.0});VoidExplorationData.locations[A.keyOf('flat',inst.style)]=def;visit={...(visit||{}),inst};await go(A.keyOf('flat',inst.style));}
  async function backToHall(){const v=visit;if(!v||!v.door){return backToStreet();}const slot=v.inst?v.slots?.[v.inst.key]:0;const style=(v.list[0]&&v.list[0].style)||v.door.style;await enterHall(v.door,v.list.length?v.list:[]);
-  const f=A.hallFront(slot||0);try{walker.x=f.spawn[0];walker.z=f.spawn[2];walker.yaw=f.yaw;}catch{}}
+  const f=A.hallFront(slot||0,style);try{walker.x=f.spawn[0];walker.z=f.spawn[2];walker.yaw=f.yaw;}catch{}}
  async function backToStreet(){const d=visit?.door;visit=null;if(!d){await go(STREET_KEY(),{});return;}const yaw=Math.atan2(-d.n[0],-d.n[1]);await go(STREET_KEY(),{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw});}
  // ---- street doors: the layout's prompts (two per door: the door, its access point) ----
- const apPos=d=>{const t=d.n[0]?[0,1]:[1,0];return [d.x+t[0]*.85-d.n[0]*.12,d.z+t[1]*.85-d.n[1]*.12];};
- function streetPrompts(q){return A.doorsIn(q).flatMap(d=>{const ap=apPos(d);return [{id:'aptdoor-'+d.id,label:d.name.toUpperCase()+' · LOCKED',position:[d.x-d.n[0]*.55,1.7,d.z-d.n[1]*.55],action:'apt-door',door:d.id,range:1.6},
+ const apPos=d=>{const t=d.n[0]?[0,1]:[1,0];return [d.x+t[0]*.85-d.n[0]*(.12+(d.reach||0)),d.z+t[1]*.85-d.n[1]*(.12+(d.reach||0))];};
+ function streetPrompts(q){return A.doorsIn(q).flatMap(d=>{const ap=apPos(d);return [{id:'aptdoor-'+d.id,label:d.name.toUpperCase()+' · LOCKED',position:[d.x-d.n[0]*(.55+(d.reach||0)),1.7,d.z-d.n[1]*(.55+(d.reach||0))],action:'apt-door',door:d.id,range:1.6},
   {id:'aptap-'+d.id,label:'ACCESS POINT',position:[ap[0]-d.n[0]*.3,1.5,ap[1]-d.n[1]*.3],action:'apt-ap',ap:d.id,range:1.1}];});}
  {const NC=N();if(NC&&NC.layout&&!NC.layout.apartments){const orig=NC.layout;NC.layout=function(area,quarter){const l=orig.apply(this,arguments);if(area==='street'&&l&&l.quarter)l.interactions=[...l.interactions,...streetPrompts(l.quarter)];return l;};NC.layout.apartments=true;}}
  // the labels follow the player's missions (twice a second)
  setInterval(()=>{try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(!wl)return;
    if(wl.area==='street'&&wl.id==='neochinatown'){for(const it of wl.interactions)if(it.action==='apt-door'){const d=A.door(it.door);if(!d)continue;it.label=allowed(d.id)?'ENTER · '+d.name.toUpperCase():d.name.toUpperCase()+' · LOCKED';}}
-   else if(wl.apartment&&wl.part==='hall'){const op=new Map((wl.open||[]).map(o=>[o.slot,o]));for(const it of wl.interactions)if(it.action==='apt-hall-door'){const o=op.get(it.slot),num=o&&o.number||A.slotNumber(it.slot);it.label=o?(o.locked?'APARTMENT '+num+' · LOCKED (ACCESS POINT)':'ENTER APARTMENT '+num):'APARTMENT '+num+' · LOCKED';}}
+   else if(wl.apartment&&wl.part==='hall'){const op=new Map((wl.open||[]).map(o=>[o.slot,o]));for(const it of wl.interactions)if(it.action==='apt-hall-door'){const o=op.get(it.slot),num=o&&o.number||A.slotNumber(it.slot,wl.style);it.label=o?(o.locked?'APARTMENT '+num+' · LOCKED (ACCESS POINT)':'ENTER APARTMENT '+num):'APARTMENT '+num+' · LOCKED';}}
    else if(wl.apartment&&wl.part==='flat'){for(const it of wl.interactions){if(it.object==='lights')it.label='LIGHTS · '+(root.VoidBabylon?.zone?.lightsOn===false?'ON':'OFF');if(it.object==='screen')it.label='TURN SCREEN '+(root.VoidBabylon?.zone?.interactive?.screen?.open===false?'ON':'OFF');}}}catch{}},500);
  // ---- the street doors in 3D (thin instances), their lights and the people who use them ----
  function streetDoors({scene,parent,quality,quarter,instance}){
@@ -58,6 +58,7 @@
   const frame=P('frame','#2a2c30',{r:.5,m:.7}),surround=P('surround','#4a4c50',{t:'ncz/concrete-old-color.jpg',nrm:'ncz/concrete-old-normal.jpg',r:.9,m:0}),dark=G('recess','#030304'),panel=P('ap','#1d2024',{r:.4,m:.8}),screen=G('ap-screen','#2a8fb0',1.0);
   const lamp={locked:G('red','#ff2a2a',1.1),mine:G('amber','#ffb347',1.1),open:G('green','#39ff9c',1.1)};
   const unit=(name,mat,w,h,d)=>{const m=B.MeshBuilder.CreateBox('aptst-'+name,{width:w,height:h,depth:d},scene);m.material=mat;m.parent=parent;m.isPickable=false;m.alwaysSelectAsActiveMesh=true;own.push(m);return m;};
+  const SLAB={rundown:'rundown',normal:'normal',luxury:'luxury','container-rundown':'rundown','container-regular':'normal'};
   const M=B.Matrix,Q=B.Quaternion,V=B.Vector3;const mat=(x,y,z,ry,s=[1,1,1])=>M.Compose(new V(...s),Q.RotationYawPitchRoll(ry,0,0),new V(x,y,z));
   const slab={rundown:unit('slab-r',slabMat.rundown,1,2.15,.05),normal:unit('slab-n',slabMat.normal,1,2.15,.05),luxury:unit('slab-l',slabMat.luxury,1,2.15,.05)},lampM={locked:unit('lamp-red',lamp.locked,.7,.035,.03),mine:unit('lamp-amber',lamp.mine,.7,.035,.03),open:unit('lamp-green',lamp.open,.7,.035,.03)};
   const jamb=unit('jamb',frame,.09,2.27,.16),head=unit('head',frame,1.18,.1,.16),fill=unit('fill',surround,.16,3.1,.1),over=unit('over',surround,1.5,.86,.1),rec=unit('recess',dark,1.05,2.2,.02),apBox=unit('ap',panel,.2,.32,.05),apScr=unit('ap-scr',screen,.13,.09,.01);
@@ -67,13 +68,13 @@
   const doors=[],light={};
   list.forEach((d,i)=>{const ry=d.ry,n=d.n,t=n[0]?[0,1]:[1,0],P0=(a,b,c)=>[d.x+t[0]*a-n[0]*c,b,d.z+t[1]*a-n[1]*c];   // a: along the wall, b: height, c: out into the street
    const add=(mesh,a,b,c,s)=>{const p=P0(a,b,c);return mesh.thinInstanceAdd(mat(p[0],p[1],p[2],ry,s),false);};
-   add(jamb,-.545,1.135,.11);add(jamb,.545,1.135,.11);add(head,0,2.3,.11);add(fill,-.67,1.55,.05);add(fill,.67,1.55,.05);add(over,0,2.78,.05);add(rec,0,1.1,.035);
+   add(jamb,-.545,1.135,.11);add(jamb,.545,1.135,.11);add(head,0,2.3,.11);if(d.family!=='container'){add(fill,-.67,1.55,.05);add(fill,.67,1.55,.05);add(over,0,2.78,.05);}   // a container door is cut into the steel: no shopfront filleradd(rec,0,1.1,.035);
    const ai=add(apBox,.85,1.35,.12),si=add(apScr,.85,1.42,.15);
    const li={};for(const k of Object.keys(lampM))li[k]=add(lampM[k],0,2.37,.2,[1,1,1]);
-   const si2=add(slab[d.style],0,1.075,.08);const ld={};for(const k of Object.keys(lampM))ld[k]=add(lampM[k],.85,1.25,.15,[.08,1,1]);   // the access point's LED
+   const sk=SLAB[d.style]||'normal',si2=add(slab[sk],0,1.075,.08);const ld={};for(const k of Object.keys(lampM))ld[k]=add(lampM[k],.85,1.25,.15,[.08,1,1]);   // the access point's LED
    const pl=B.MeshBuilder.CreatePlane('aptst-plate',{width:.44,height:.15,frontUVs:new B.Vector4(i/list.length,0,(i+1)/list.length,1),backUVs:new B.Vector4(i/list.length,0,(i+1)/list.length,1),sideOrientation:B.Mesh.DOUBLESIDE},scene);
    const pp=P0(-.85,1.62,.11);pl.position.set(pp[0],pp[1],pp[2]);pl.rotation.y=ry;plates.push(pl);
-   const s=A.slider({mesh:{position:new V(0,0,0)},dir:[t[0],t[1]],dist:1.02,locked:true});s.door=d;s.slab=si2;s.style=d.style;s.lamps=li;s.leds=ld;s.P0=P0;doors.push(s);});
+   const s=A.slider({mesh:{position:new V(0,0,0)},dir:[t[0],t[1]],dist:1.02,locked:true});s.door=d;s.slab=si2;s.style=sk;s.lamps=li;s.leds=ld;s.P0=P0;doors.push(s);});
   const plateMesh=B.Mesh.MergeMeshes(plates,true,true);if(plateMesh){plateMesh.material=nm;plateMesh.parent=parent;plateMesh.isPickable=false;own.push(plateMesh);}
   for(const m of [jamb,head,fill,over,rec,apBox,apScr,...Object.values(slab),...Object.values(lampM)]){m.thinInstanceRefreshBoundingInfo?.(false);m.freezeWorldMatrix();}
   const hide=[0,0,0];
@@ -93,11 +94,11 @@
   function tick(dt){clock+=dt;const p=typeof walker!=='undefined'?walker:null;check-=dt;
    if(check<=0){check=.5;const mine=new Set([...open().map(a=>a.door),...hacked().map(h=>h.door)]);for(const s of doors){const ok=mine.has(s.door.id);s.locked=!ok&&!(clock-(s.nearNpc??-9)<1.6);s.mine=ok;}}
    for(const r of residents)try{resTick(r,dt);}catch{}
-   for(const s of doors){const npc=clock-(s.nearNpc??-9)<1.6;if(npc)s.locked=false;let near=npc;if(p&&s.mine){const dx=s.door.x-p.x,dz=s.door.z-p.z;near=near||dx*dx+dz*dz<3.2;}s.near(near);const t0=s.t;s.tick(dt);
+   for(const s of doors){const npc=clock-(s.nearNpc??-9)<1.6;if(npc)s.locked=false;let near=npc;if(p&&s.mine){const dx=s.door.x-p.x,dz=s.door.z-p.z;near=near||dx*dx+dz*dz<3.2+(s.door.reach||0)*2.6;}s.near(near);const t0=s.t;s.tick(dt);
     const state=s.t>.02?'open':s.mine?'mine':'locked';if(state!==s.shown){s.shown=state;show(s,state);}
     if(s.t!==t0){const k=s.t<.5?2*s.t*s.t:1-Math.pow(-2*s.t+2,2)/2,q=s.P0(k*1.02,1.075,.08);slab[s.style].thinInstanceSetMatrixAt(s.slab,mat(q[0],q[1],q[2],s.door.ry),false);dirty=true;}
     // walking into an open door takes the player in
-    if(p&&s.mine&&s.t>.9&&mode==='walking'&&!busy){const dx=s.door.x-p.x,dz=s.door.z-p.z;if(dx*dx+dz*dz<.36)enterDoor(s.door.id);}}
+    if(p&&s.mine&&s.t>.9&&mode==='walking'&&!busy){const dx=s.door.x-p.x,dz=s.door.z-p.z,rr=.6+(s.door.reach||0);if(dx*dx+dz*dz<rr*rr)enterDoor(s.door.id);}}
    if(dirty){dirty=false;for(const m of [...Object.values(slab),...Object.values(lampM)])m.thinInstanceBufferUpdated('matrix');}}
   for(const s of doors){s.shown='locked';show(s,'locked');}
   return {tick,doors,draws:()=>12,dispose(){for(const r of residents)r.node?.dispose?.(false,false);for(const x of own)try{x.dispose();}catch{}},forceOpen(id){const s=doorOf.get(id);if(s){s.locked=false;s.force(1);}},residents};}
@@ -129,7 +130,7 @@
   R('apt-door',({item})=>{try{resumeWalking();}catch{}enterDoor(item.door);});
   R('apt-ap',({item})=>useAP(item));
   R('apt-hall-exit',()=>{try{resumeWalking();}catch{}backToStreet();});
-  R('apt-hall-door',({item})=>{const wl=here(),o=(wl?.open||[]).find(x=>x.slot===item.slot);if(!o){note('APARTMENT '+A.slotNumber(item.slot)+': locked.');return;}if(o.locked){note('APARTMENT '+(o.number||A.slotNumber(item.slot))+': locked. The access point beside it could be bypassed.');return;}
+  R('apt-hall-door',({item})=>{const wl=here(),o=(wl?.open||[]).find(x=>x.slot===item.slot);if(!o){note('APARTMENT '+A.slotNumber(item.slot,wl?.style)+': locked.');return;}if(o.locked){note('APARTMENT '+(o.number||A.slotNumber(item.slot))+': locked. The access point beside it could be bypassed.');return;}
    const inst=(visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key);if(!inst){note('Locked.');return;}try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.slot===item.slot);d?.force?.(1);setTimeout(()=>enterFlat(inst),450);});
   R('apt-exit',()=>{try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;z?.doors?.find(x=>x.id==='entry')?.force?.(1);setTimeout(()=>backToHall(),450);});
   R('apt-item',({item})=>{const wl=here(),it=(wl?.items||[])[item.index];note(it?(it.type==='mission-item'?'MISSION ITEM: ':it.type==='loot'?'LOOT: ':it.type==='note'?'NOTE: ':'')+it.label+' (placed for this mission; picking things up comes later).':'Nothing here.');});
@@ -138,7 +139,7 @@
    safe:{rundown:'SAFE: a cheap floor safe, bolted down. Locked.',normal:'SAFE: a keypad safe. Locked.',luxury:'SAFE: a heavy biometric safe. Locked.'},
    closet:{rundown:'CLOSET: worn jackets, a box of cables, boots by the door.',normal:'CLOSET: work clothes, a rain shell, storage boxes on the shelf.',luxury:'CLOSET: tailored coats, a shoe rack, boxes with designer labels.'},
    panel:'UTILITY PANEL: breakers, a junction block and a data port. Nothing to do here yet.'};
-  R('apt-use',({item})=>{const wl=here(),z=root.VoidBabylon?.zone,st=wl?.style||'normal',obj=item.object;let msg='';
+  R('apt-use',({item})=>{const wl=here(),z=root.VoidBabylon?.zone,st0=wl?.style||'normal',st=st0==='container-rundown'?'rundown':st0==='container-regular'?'normal':st0,obj=item.object;let msg='';
    if(obj==='lights'){const on=!(z?.lightsOn!==false);z?.lights?.(on);const k=visit?.inst?.key;if(k){lightSet.add(k);if(on)lightOff.delete(k);else lightOff.add(k);}msg='Lights '+(on?'on.':'off.');}
    else if(obj==='closet'||obj==='panel'){const v=z?.toggle?.(obj);msg=v===false?(obj==='closet'?'You close the closet.':'You close the utility panel.'):(obj==='panel'?TEXT.panel:TEXT.closet[st]);}
    else if(obj==='screen'){const v=z?.toggle?.('screen');const k=visit?.inst?.key;if(k){screenSet.add(k);if(v===false)screenOff.add(k);else screenOff.delete(k);}msg=v===false?'You switch the screen off.':'You switch the screen on. The city’s adverts, as on every street screen.';}
