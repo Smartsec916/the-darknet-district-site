@@ -21,6 +21,15 @@ How the game's recorded NPC dialogue is cast, approved, recorded and protected. 
 - `python tools/audio/generate.py --from-queue [--voices revoice-engines.json]` lists those lines as waiting (voice, characters, estimated credits: about 1 credit per character on Multilingual v2 / v3, about half on Flash / Turbo) and records only the Kokoro ones.
 - The registry is never changed by a choice: recorded Kokoro clips keep their voice. The reserved slot, broadcast voices and The Function are refused; Reverie and Lace get ordinary, neutral street voices only.
 
+## Voice tags and models (19 Nov 2026)
+
+The owner can type ElevenLabs audio tags in square brackets into any line, e.g. `[whispers] Keep it down.`, and choose each ElevenLabs voice's model in the Voice box (build `2026-11-19-voice-tags-1`). Rules and models live in `void-runner/npc-voices.js` (`tagProblems`, `strip`, `speakText`, `MODELS`); the server repeats them (`void_runner_drafts.py` `voice_tag_problems` / `strip_voice_tags`, `void_runner_live_content.py` `speak_text` / `voice_model`).
+
+- **Tags:** lowercase letters, spaces and hyphens, 30 characters at most each, 6 per line. Players never see them (removed where content is adapted for the game).
+- **Models** (credits per character are estimates on the self-serve plans): `eleven_v4` Eleven v4 (newest; reads tags; Zen Zephyr's model; the default), `eleven_v3` Eleven v3 (reads tags), `eleven_multilingual_v2` (about 1 credit, no tags), `eleven_flash_v2_5` and `eleven_turbo_v2_5` (about 0.5 credit, no tags). A `revoice-engines.json` entry may carry `model`; without one the model in "(model ...)" of `chosen`, else Eleven v4.
+- **Queue:** each queued line stores `text` (what players see; the clip id is `who + sha1(who|text)` as before) and, when it differs, `speak` (what the voice is sent) plus `model` for ElevenLabs lines. Tags are kept only for Eleven v4 / v3; Kokoro and the other models get the line without them (Kokoro would read them aloud). Changing only a tag re-queues an ElevenLabs line; for a Kokoro voice it is not a change (the editor does not mark the clip out of date).
+- `generate.py --from-queue` strips tags from Kokoro lines and lists waiting ElevenLabs lines with the text as sent, the model, and credits at each model's rate. Nothing is sent to ElevenLabs from here.
+
 ## Status and the lock
 
 - **Provisional:** the voice can be changed freely. Every voice starts here.

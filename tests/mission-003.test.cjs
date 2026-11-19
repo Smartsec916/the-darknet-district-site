@@ -28,7 +28,7 @@ test('Mission 003 data: right after Eyes on the Street in the Awakening tree, nu
  const {MS,MC,G,e}=env(),man=JSON.parse(fs.readFileSync(R('void-runner/save-manifest.json'),'utf8'));
  assert.deepEqual(MS.TREE.missions.map(m=>m.id),['m001-awakening',M2,ID]);assert.equal(MS.NUMBERS[3],ID);assert.equal(man.missionNumbers[3],ID);assert.ok(man.storyMissions.includes(ID));
  const m=MS.CORPORATE;assert.equal(m.number,3);assert.equal(m.title,'Corporate Connections');assert.equal(MS.label(3,m.title),'Mission 003 — Corporate Connections');assert.equal(m.giver,'admin');
- assert.deepEqual(m.start,{how:'person',accept:true},'in person with ACCEPT / NOT NOW, as 002');assert.deepEqual(m.offer.map(l=>l.text),BRIEF);assert.ok(m.offer.every(l=>l.who==='admin'));
+ assert.deepEqual(m.start,{how:'person',accept:true,no:'NOT NOW'},'in person with ACCEPT / NOT NOW, as 002');assert.deepEqual(m.offer.map(l=>l.text),BRIEF);assert.ok(m.offer.every(l=>l.who==='admin'));
  assert.deepEqual(m.objectives.map(o=>[o.id,o.kind]),[['travel-milked','enter'],['speak-eva','talk'],['meet-fish','talk'],['await-fish','await-call']]);assert.equal(m.objectives[0].place,'milked');
  const eva=m.objectives[1].say;assert.deepEqual(eva.slice(-2).map(l=>[l.who,l.text]),[['milked-eva','Oh, Admin! Tell him I said hi, too.'],['milked-eva','Fish is through the staff-only door. You\'ll find her in her office.']]);
  const fish=m.objectives[2].say;assert.deepEqual(fish.slice(1).map(l=>[l.who,l.text]),[['milked-fish',ZH],['v1-translator',EN]]);
