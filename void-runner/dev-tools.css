@@ -41,7 +41,7 @@
 .me-flow .fc-said{border:3px solid #ffa3c4;padding:6px 8px;margin-top:8px}.me-flow .fc-todo{border:3px solid #b6e11c;padding:8px 10px;width:520px;align-self:stretch;display:flex;flex-direction:column;gap:6px}.me-flow .fc-row{display:flex;gap:6px;align-items:center}.me-flow .fc-row input{flex:1;min-width:0}
 .me-flow .fc-link{display:block;width:34px;height:6px;background:#e0202a;flex:none}.me-flow .fc-choice{border:3px solid #b6e11c;padding:8px 10px;display:flex;flex-direction:column;gap:6px}.me-flow .fc-unlock{border:3px solid #e0a84a;padding:8px 10px;display:flex;flex-direction:column;gap:6px}
 .me-flow .fc-where{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:11px}.me-flow .fc-tools{position:absolute;left:0;bottom:0;display:flex;gap:8px;align-items:center}.me-flow .issue.error{color:var(--bad)}.me-flow .issue.warn{color:var(--warn)}
-#dev-test-banner[data-kind="draft"]{background:#ff9a6b}
+#dev-test-banner[data-kind="draft"]{background:#ff9a6b}#dev-test-banner [data-dev-clock]{font-weight:400;letter-spacing:.04em;opacity:.85}
 .me-root svg.flow{background:#0b141b;border:1px solid #21454d;max-width:100%}.me-root svg.flow .n{fill:#0c1d27;stroke:#b6e11c;stroke-width:2}.me-root svg.flow .e{fill:none;stroke:#e0202a;stroke-width:2}.me-root svg.flow text{fill:#dcece9;font:11px system-ui,sans-serif}
 .me-check p,.me-issues p{font-size:12px;margin:3px 0}[data-me-owner-tree] .me-mission-panel{border-color:#6b4a7a}[data-me-owner-tree] .me-line{grid-template-columns:240px minmax(0,1fr)}[data-me-owner-tree] .me-who select{width:100%}
 @media(max-width:1100px){.me-cols{grid-template-columns:1fr}.me-side{position:static;max-height:none}.me-line{grid-template-columns:1fr}}
