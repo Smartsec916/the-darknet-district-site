@@ -65,12 +65,15 @@
   if(typeof hud==='function')hud();announce('You are Admin. Iris has the counter. Nothing in this session is saved.');return true;
  }
  /* A throwaway session built by another tool (Mission Editor > PLAY THIS DRAFT). Same rules as a test: re-checked with the server first, nothing saved to this browser
-    or the cloud while it runs, and leaving reloads the page, which brings the real save back untouched. opts: {banner, leave, apply(), build()→state, enter(), message}. */
+    or the cloud while it runs, and leaving reloads the page, which brings the real save back untouched. opts: {banner, leave, apply(), build()→state, enter(), message, clock()→text}.
+    The street clock (ncz-street-pair.js) is reset to the real time at the start of every session; build() may simulate one (a draft test with Reverie or Lace); it ends with the session.
+    clock(): the clocks shown in the banner, refreshed every second (the Mission Editor: street UTC time and the in-game day). */
  async function session(opts){
   try{await VoidDevTools.request('developer/balance');}catch(e){return {error:'Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.'};}
   if(!VoidDevTools.authorized)return {error:'Developer access could not be confirmed. Sign in again with the developer account, then try once more.'};
   active=true;banner.hidden=false;banner.dataset.kind=opts.kind||'test';banner.querySelector('span').textContent=opts.banner||'TEST MODE · NOTHING IS SAVED';banner.querySelector('button').textContent=opts.leave||'EXIT TEST';
-  const panel=document.getElementById('dev-balance');if(panel)panel.hidden=true;
+  const panel=document.getElementById('dev-balance');if(panel)panel.hidden=true;globalThis.VoidStreetPair?.simulate?.(null);
+  const ck=banner.querySelector('[data-dev-clock]');clearInterval(clockT);ck.textContent='';ck.hidden=!opts.clock;if(opts.clock){const f=()=>{try{ck.textContent=opts.clock()||'';}catch{}};clockT=setInterval(f,1000);setTimeout(f,0);}
   try{opts.apply?.();state=opts.build();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');await opts.enter();if(typeof hud==='function')hud();}
   catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Press '+(opts.leave||'EXIT TEST')+' to go back, then try again (if it keeps failing, reload the page).');return {started:true,problem:String(e?.message||e)};}
   const msg=typeof opts.message==='function'?opts.message():opts.message;if(msg)announce(msg);return {started:true};
@@ -79,12 +82,12 @@
  // STAGE A STREET ARGUMENT HERE (npc-device.js): nothing is saved and nobody is hurt; it ends by itself after about 15 seconds.
  function argument(panel){const st=panel.querySelector('#dev-status');if(typeof mode==='undefined'||mode!=='walking'||!globalThis.VoidCrowdReact){if(st)st.textContent='Walk somewhere in NeoChinatown first.';return;}const r=VoidCrowdReact.stageArgument();if(r?.error){if(st)st.textContent=r.error;return;}panel.hidden=true;announce('Two people start arguing in front of you.');}
  // Stays "active" through the reload so nothing can write the throwaway state on the way out.
- function exit(){location.reload();}
+ function exit(){globalThis.VoidStreetPair?.simulate?.(null);location.reload();}
 
  // While testing, the browser save is never written and cloud save/load is off.
  const campaignSave=save;save=function(){if(active)return false;return campaignSave.apply(this,arguments);};
  document.addEventListener('click',e=>{const a=e.target.closest?.('button')?.dataset.action;if(active&&a&&/^cloud-(save|load)/.test(a)){e.preventDefault();e.stopImmediatePropagation();announce('Test mode: cloud saves are off. Exit the test first.');}},{capture:true});
- const banner=document.createElement('div');banner.id='dev-test-banner';banner.hidden=true;banner.innerHTML='<span>TEST MODE · NOTHING IS SAVED</span><button type="button">EXIT TEST</button>';document.body.append(banner);
+ const banner=document.createElement('div');banner.id='dev-test-banner';banner.hidden=true;banner.innerHTML='<span>TEST MODE · NOTHING IS SAVED</span><small data-dev-clock hidden></small><button type="button">EXIT TEST</button>';let clockT=0;document.body.append(banner);
  banner.querySelector('button').onclick=exit;
  globalThis.VoidDevTest={render,action,build,adminBuild,playAsAdmin,session,exit,get active(){return active;}};
 })();

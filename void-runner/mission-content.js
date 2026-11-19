@@ -300,8 +300,9 @@
   const notify=(t,m)=>{const st=m.start,at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,'start')]))s.story.flags[msgFlag(m.id,'start')]=at;
    out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};
   // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
-  // A giver with a shift (Reverie, Lace) offers a mission only while she is out on the street (mission-givers.js onDuty; never refused in draft play: it puts her out)
-  const duty=id=>{const g=gv(id);if(!g.shift||env.draft)return true;const G=GVS();return !G||!G.onDuty||G.onDuty(g,ev.at||Date.now());};
+  // A giver with a shift (Reverie, Lace) offers a mission only while she is out on the street (mission-givers.js onDuty, on the street clock; draft play is not exempt:
+  // it runs on a simulated street clock inside her shift, ncz-street-pair.js testClock)
+  const duty=id=>{const g=gv(id);if(!g.shift)return true;const G=GVS();return !G||!G.onDuty||G.onDuty(g,G.streetTime?G.streetTime(ev.at||Date.now()):ev.at||Date.now());};
   const startsNow=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver)&&duty(m.giver);const w=st.when||{};
    if(w.kind==='near'){const id=w.npc||m.giver;return ev.type==='near'&&!!ev.near&&nearHit(ev.near[id],w.distance)&&duty(id);}
    if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);if(w.kind==='leave')return ev.type==='place'&&(ev.left||[]).includes(w.place);
