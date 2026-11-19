@@ -265,6 +265,11 @@ def check(content, inv=None):
 DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
 STORY_MISSION = re.compile(r'^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$')
 HOW = ['person', 'notification']
+# Costs and ACCEPT / DENY (19 Nov 2026; mission-content.js MONEY): cost {amount 1..100000, when 'accept' | a step id, refund (only at 'accept')};
+# start.accept for every start, with yes / no labels (20 characters at most), deny 'again' | 'never' | 'start' (+ denyStart: the first mission of another tree), denySay.
+MONEY_MAX, LABEL_MAX = 100000, 20
+DENY = ['again', 'never', 'start']
+ASK_KEYS = ['yes', 'no', 'deny', 'denyStart', 'denySay']
 CHANNELS = ['messages', 'comms', 'notify']
 WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time', 'near']
 NEAR_MIN, NEAR_MAX = 1, 30
@@ -482,12 +487,12 @@ def import_package_problems(pkg, inv=None):
 
 def start_problems(st, givers, places, mission_ids):
     """How a mission starts: in person (the giver offers it) or by notification (channel, sender, header, text, trigger). Same rules as mission-content.js checkStart()."""
-    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept']) or st.get('how') not in HOW:
+    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept'] + ASK_KEYS) or st.get('how') not in HOW:
         return ['unknown way of starting.']
-    if st.get('accept') is not None and (type(st['accept']) is not bool or st['how'] != 'person'):
-        return ['only a mission offered in person can be accepted or declined.']
+    if st.get('accept') is not None and type(st['accept']) is not bool:
+        return ['"Ask the player: ACCEPT or DENY" must be yes or no.']
     if st['how'] == 'person':
-        return [] if set(st) <= {'how', 'accept'} else ['a mission given in person has no notification fields.']
+        return [] if set(st) <= {'how', 'accept', *ASK_KEYS} else ['a mission given in person has no notification fields.']
     out = []
     if st.get('channel') not in CHANNELS:
         out.append('unknown notification channel.')
@@ -522,6 +527,69 @@ def start_problems(st, givers, places, mission_ids):
             out.append('the trigger flag must be a story flag name.')
         if not (type(v) is bool or (isinstance(v, str) and len(v) <= 200 and not TAGS.search(v)) or (type(v) is int and abs(v) <= 9007199254740991)):
             out.append('bad trigger flag value.')
+    return out
+
+
+def ask_problems(st, tree, trees):
+    """ACCEPT / DENY settings of a start (any way of starting). Same rules as mission-content.js checkAsk() (the lines are checked by the caller)."""
+    out = []
+    if not isinstance(st, dict):
+        return out
+    if any(st.get(k) is not None for k in ASK_KEYS) and st.get('accept') is not True:
+        out.append('button labels and "what happens on DENY" need "Ask the player: ACCEPT or DENY".')
+    for k in ('yes', 'no'):
+        if st.get(k) is not None and not _plain(st[k], LABEL_MAX):
+            out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+    if st.get('deny') is not None and st['deny'] not in DENY:
+        out.append('unknown "what happens on DENY".')
+    if st.get('deny') == 'start':
+        firsts = {t['missions'][0].get('id') for t in trees if isinstance(t, dict) and t is not tree and isinstance(t.get('missions'), list) and t['missions'] and isinstance(t['missions'][0], dict)}
+        if st.get('denyStart') not in firsts:
+            out.append('on DENY it must start the first mission of another tree.')
+    elif st.get('denyStart') is not None:
+        out.append('only "start another mission" names a mission to start.')
+    return out
+
+
+def cost_problems(m, step_ids):
+    """What the player pays (mission-content.js checkCost())."""
+    c = m.get('cost')
+    if c is None:
+        return []
+    if not _keys(c, ['amount', 'when', 'refund']):
+        return ['the cost has unknown fields.']
+    out = []
+    if not (type(c.get('amount')) is int and 1 <= c['amount'] <= MONEY_MAX):
+        out.append('what the player pays must be a whole number from 1 to 100000 credits.')
+    when = 'accept' if c.get('when') is None else c['when']
+    if when != 'accept' and when not in step_ids:
+        out.append('the cost is charged at a step that is not in this mission.')
+    if c.get('refund') is not None and (type(c['refund']) is not bool or (c['refund'] and when != 'accept')):
+        out.append('"refund if abandoned" is only for a cost charged at ACCEPT.')
+    st = m.get('start')
+    if when == 'accept' and not (isinstance(st, dict) and st.get('accept') is True):
+        out.append('a mission the player pays for when accepting must ask the player ACCEPT or DENY.')
+    return out
+
+
+def workspace_money_problems(trees):
+    """The Mission Editor's server copy (void_runner_drafts.py): only the shapes that would be refused anyway (credits range, label length); everything else is checked at publish."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') if isinstance(t, dict) and isinstance(t.get('missions'), list) else []):
+            if not isinstance(m, dict):
+                continue
+            c, r, st = m.get('cost'), m.get('rewards'), m.get('start')
+            if r is not None and not (type(r) is int and 0 <= r <= MONEY_MAX):
+                out.append('credits paid must be a whole number from 0 to 100000.')
+            if c is not None and not (isinstance(c, dict) and type(c.get('amount')) is int and 1 <= c['amount'] <= MONEY_MAX):
+                out.append('what the player pays must be a whole number from 1 to 100000 credits.')
+            if isinstance(st, dict):
+                for k in ('yes', 'no'):
+                    if st.get(k) is not None and not (isinstance(st[k], str) and len(st[k]) <= LABEL_MAX and not TAGS.search(st[k])):
+                        out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+                if st.get('deny') is not None and st['deny'] not in DENY:
+                    out.append('unknown "what happens on DENY".')
     return out
 
 
@@ -610,7 +678,7 @@ def check_trees(trees, inv, err):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
@@ -625,8 +693,10 @@ def check_trees(trees, inv, err):
             if num is None and t.get('id') in story:
                 err(w + ': every mission in the main storyline needs a mission number.')
             if m.get('start') is not None:
-                for p in start_problems(m['start'], givers, places, every_mission):
+                for p in start_problems(m['start'], givers, places, every_mission) + ask_problems(m['start'], t, trees):
                     err(w + ': ' + p)
+                if isinstance(m['start'], dict):
+                    lines(m['start'].get('denySay'), w + ' / on DENY')
             by_note = isinstance(m.get('start'), dict) and m['start'].get('how') == 'notification'
             if m.get('category') is not None and not _plain(m['category'], 60):
                 err(w + ': the mission type label must be plain text.')
@@ -709,6 +779,8 @@ def check_trees(trees, inv, err):
                 lines(o.get('say'), ow)
                 lines(o.get('early'), ow)
                 lines(o.get('wrong'), ow)
+            for p in cost_problems(m, oids):
+                err(w + ': ' + p)
             e = m.get('ending')
             if e is not None:
                 if not _keys(e, ['npc', 'place', 'label', 'say']):

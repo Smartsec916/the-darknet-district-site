@@ -6,7 +6,17 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 18 Nov 2026 (newest): SITE SLIMMING — SMALLER PUBLISHED SITE, NOTHING VISIBLE OR AUDIBLE CHANGED (branch `claude/site-slim`, build `2026-11-18-site-slim-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 (newest): MISSION EDITOR — MISSIONS THAT COST CREDITS ("PLAYER PAYS"), ACCEPT / DENY ON EVERY OFFER (branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`, pushed, NO PR, not merged)
+
+The owner: "can i do -100 credit option and add an accept or deny". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Eleventh pass".
+
+- **Credits: Player gets / Player pays** (Mission Editor and the "Make a mission" wizard). A cost is charged once (`story.flags.mc_<mission>`), at ACCEPT (default, shown on the offer) or when a chosen step is done; never below 0; too few credits: ACCEPT greyed "YOU NEED N CR", nothing starts (a costed step waits). "Refund if abandoned" (off by default) is a rule only: tree missions have no abandon button yet.
+- **Ask the player: ACCEPT or DENY** for every start that presents an offer (in person, Messages, Comms, banner, walked near): the window shows the name, short description and cost or reward; the owner's button labels (default ACCEPT / DENY; Missions 002 / 003 keep NOT NOW via `no:'NOT NOW'` in `main-story.js`); on DENY: offered again later (default), never again, or start the first mission of another tree; optional DENY lines (his words only). Device offers: banner + choice window, never over a conversation, again after 60 s if closed without a choice; DENY there waits for the next pod exit.
+- **Checked by** `mission-content.js` (client), `void_runner_live_content.py` (publish) and `void_runner_drafts.py` (the editor's server copy). No new save fields: the flags are ordinary story flags; clean_save's credits range (0..100,000,000) is respected.
+- **Tests:** `tests/mission-cost.test.cjs`, `tests/test_mission_cost.py`, browser `tests/mission-cost-browser.cjs` (passes: bundled Chromium, software GL). `tests/eyes-on-the-street-browser.cjs` hangs at Mission 001 because the first-exit KeyMap stays open (the test predates the 18 Nov KeyMap wait; checked: closing it starts 001) — not caused by this branch.
+- **Not verified:** device offers, "start another mission" and DENY lines in a browser (Node only); real hardware; publishing with the server on.
+
+### 18 Nov 2026: SITE SLIMMING — SMALLER PUBLISHED SITE, NOTHING VISIBLE OR AUDIBLE CHANGED (branch `claude/site-slim`, build `2026-11-18-site-slim-1`, pushed, NO PR, not merged)
 
 The owner approved shrinking the GitHub Pages site with no visible or audible change. Published tracked files: 650.5 MB (origin/main) -> 517.6 MB (tools/assets/build-pages.cjs with no licensed files: 2,093 files, 517.6 MB; the licensed models add what they did before) MB.
 

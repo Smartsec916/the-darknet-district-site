@@ -111,7 +111,7 @@
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
  /* How a mission starts (the owner, 17 Nov 2026: "either have Missions start by notification or in person"). */
- const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / NOT NOW: the giver offers it and the player chooses (a player who says NOT NOW can come back)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
+ const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / DENY: the giver offers it and the player chooses (DENY: offered again later unless set otherwise)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
  const START_CHANNELS=[{id:'messages',name:'MESSAGES',note:'A text in the V1 Messages app (INBOX). No reply is needed.'},
   {id:'comms',name:'COMMS CALL',note:'A call in the Comms app: the sender and the words as a transcript. The voice plays only if a recorded clip exists for that exact line (nothing is generated).'},
   {id:'notify',name:'NOTIFICATION ONLY',note:'A banner on the screen, then the Mission Log. Nothing is kept in Messages or Comms.'}];

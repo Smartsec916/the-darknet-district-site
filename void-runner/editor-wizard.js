@@ -37,7 +37,7 @@
   {id:'talk',icon:'talk',title:'Talk to someone',line:'The player finds a person and talks to them.',steps:['talk']}];
  const STARTS=[
   {id:'person',title:'When the player talks to them',line:'The player walks up, presses TALK, and the mission is offered.'},
-  {id:'person-accept',title:'They ask, the player says yes or not now',line:'Like above, but the player can choose ACCEPT or NOT NOW. NOT NOW asks again next time.'},
+  {id:'person-accept',title:'They ask, the player says ACCEPT or DENY',line:'Like above, but the player chooses ACCEPT or DENY. DENY: they are asked again next time.'},
   {id:'near',title:'When the player walks near them',line:'A short banner pops up when the player comes within 5 metres. No talking needed.'},
   {id:'messages',title:'A text message on the V1',line:'Arrives in the V1 Messages app when the player first leaves their Sleeping Pod.'}];
  const PAGES=[
@@ -45,12 +45,12 @@
   {id:'giver',title:'Who gives the mission?',help:'The person who hands it to the player. Only people the player can talk to in the game are listed.'},
   {id:'start',title:'How does it start?',help:'How the player first hears about it.'},
   {id:'steps',title:'What must the player do?',help:'One step at a time, in order. Each step starts when the one before it is done; a yellow arrow shows the way.'},
-  {id:'reward',title:'What does the player get?',help:'Credits paid once, when the mission is done. 0 is fine too.'},
+  {id:'reward',title:'What does the player get, or pay?',help:'Player gets: credits paid once, when the mission is done (0 is fine too). Player pays: credits taken once, when they press ACCEPT (never below 0).'},
   {id:'name',title:'What is it called?',help:'The name the player sees in the V1 Mission Log.'}];
  const REWARDS=[0,50,100,250,500];
  const template=id=>TEMPLATES.find(t=>t.id===id)||null;
  const stepOf=kind=>({kind,npc:'',place:'',label:'',auto:true});
- function fresh(templateId){const t=template(templateId);return {template:t?t.id:'',giver:'',start:'person',message:{header:'',text:''},steps:t?t.steps.map(stepOf):[],rewards:100,title:'',description:'',offer:'',tree:''};}
+ function fresh(templateId){const t=template(templateId);return {template:t?t.id:'',giver:'',start:'person',message:{header:'',text:''},steps:t?t.steps.map(stepOf):[],rewards:100,pays:false,ask:false,title:'',description:'',offer:'',tree:''};}
  /* Choosing a template replaces the steps unless the owner already filled them in. */
  function setTemplate(a,id){const t=template(id);if(!t)return a;const touched=a.steps.some(s=>s.npc||s.place||(s.label&&!s.auto));a.template=t.id;if(!touched)a.steps=t.steps.map(stepOf);return a;}
  /* The Mission Log line for a step, made from its choices (used until the owner types his own). ctx.name(id), ctx.place(id). */
@@ -74,9 +74,12 @@
     if(k.needs==='place'&&!s.place)out.push(n+'choose the place, from the list on that step.');else if(k.needs==='place'&&ctx.places&&!ctx.places.has(s.place))out.push(n+'that place is not in the game. Choose another one from the list.');
     if(k.needs==='subject'&&!s.npc)out.push(n+'choose who must be in the photo, from the list on that step.');else if(k.needs==='subject'&&ctx.subjects&&!ctx.subjects.has(s.npc))out.push(n+nameOf(g,s.npc)+' cannot be recognised by the V1 camera. Choose someone else from the list.');
     if(!String(s.label||'').trim())out.push(n+'write what the Mission Log says, for example “Talk to Iris”.');});}
-  if(page==='reward'){const r=Number(a.rewards);if(!(Number.isInteger(r)&&r>=0&&r<=100000))out.push('Credits must be a whole number from 0 to 100000. Type a number like 100, or press one of the buttons.');}
+  if(page==='reward'){const r=Number(a.rewards);if(!(Number.isInteger(r)&&r>=0&&r<=100000))out.push('Credits must be a whole number from 0 to 100000. Type a number like 100, or press one of the buttons.');
+   else if(a.pays&&r<1)out.push('Type how much the player pays (for example 100), or press “Player gets” if they pay nothing.');}
   if(page==='name'&&!String(a.title||'').trim())out.push('Give the mission a name: type it in the box “Mission name” (for example “A parcel for Iris”).');
   return out;}
+ /* Does the offer ask ACCEPT / DENY? Always when the player pays (the cost is charged at ACCEPT) or the start is "they ask"; otherwise the reward page's yes / no. */
+ const asks=a=>!!(a&&(a.ask===true||a.start==='person-accept'||(a.pays&&Number(a.rewards)>0)));
  const allProblems=(a,ctx)=>PAGES.flatMap(p=>problems(a,p.id,ctx));
  /* The answers -> an ordinary draft mission. draft: the editor's local draft (changed in place); opts: {T (mission-trees.js), number (next free mission number),
     treeName}. The mission goes into a.tree when that is one of the owner's trees, otherwise into "My missions" (made once). Returns {tree, mission}. */
@@ -84,16 +87,19 @@
   draft.trees=draft.trees||[];let tree=a.tree?draft.trees.find(t=>t.id===a.tree&&!t.shipped):null;
   if(!tree){const want='draft-'+T.slug(treeName);tree=draft.trees.find(t=>t.id===want&&!t.shipped);if(!tree){tree=T.newTree(draft.trees,{name:treeName,note:'Missions made with “Make a mission”.'});draft.trees.push(tree);}}
   const m=T.addMission(tree,{giver:a.giver});if(Number.isInteger(number))m.number=number;
-  m.title=String(a.title||'').trim().slice(0,60);m.description=String(a.description||'').trim().slice(0,600);const r=Number(a.rewards);m.rewards=Number.isInteger(r)&&r>=0?Math.min(r,100000):0;
+  m.title=String(a.title||'').trim().slice(0,60);m.description=String(a.description||'').trim().slice(0,600);const r=Number(a.rewards),n=Number.isInteger(r)&&r>=0?Math.min(r,100000):0;
+  // "Player pays" (19 Nov 2026): a cost charged once when the player presses ACCEPT, so the offer always asks ACCEPT / DENY
+  if(a.pays&&n>0){m.rewards=0;m.cost={amount:n,when:'accept'};}else m.rewards=n;const ask=asks(a);
   m.offer=[{who:a.giver,text:String(a.offer||'').trim().slice(0,500)}];
   const text=String(a.message&&a.message.text||'').trim().slice(0,500);
-  if(a.start==='person-accept')m.start={how:'person',accept:true};
+  if(a.start==='person-accept'||(a.start==='person'&&ask))m.start={how:'person',accept:true};
   else if(a.start==='near')m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:5}};
   else if(a.start==='messages')m.start={how:'notification',channel:'messages',from:a.giver,header:String(a.message.header||'').trim().slice(0,80)||'MESSAGE',text,when:{kind:'pod-exit'}};
+  if(ask&&m.start)m.start.accept=true;
   m.objectives=[];m.seq=0;
   for(const s of a.steps){const o=T.addStep(m,{kind:s.kind});o.label=String(s.label||'').trim().slice(0,500);if(s.kind==='go')o.place=s.place;else o.npc=s.npc;}
   return {tree,mission:m};}
  const ICON_IDS=['mission','character','test','publish','balance','jump','trophy','people','parcel','meet','pin','camera','talk','undo','help','back','next','check'];
- const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,template,fresh,setTemplate,labelFor,relabel,canTalk,problems,allProblems,build,ICON_IDS};
+ const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,asks,template,fresh,setTemplate,labelFor,relabel,canTalk,problems,allProblems,build,ICON_IDS};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidEditorWizard=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
