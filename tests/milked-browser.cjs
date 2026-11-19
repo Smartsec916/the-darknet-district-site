@@ -78,6 +78,27 @@ fs.mkdirSync(shots,{recursive:true});
  await at(87.2,-81.8,NORTH);await stops(87.2,-79,'a studio window');await at(88.95,-81.8,NORTH);await stops(88.95,-79,'a studio door');
  for(const [n,x,z,tx,tz] of [[1,87.2,-82.3,87.4,-77.5],[2,91.2,-82.3,91.4,-77.5],[3,87.8,-81.3,87.6,-85.5],[4,91.8,-81.3,91.6,-85.5]]){await at(x,z,Math.atan2(tx-x,tz-z),-.02);await shot('07-studio-'+n,1200);}
  await page.evaluate(()=>VoidInteractions.handlers.get('milked-studio')({item:{studio:2}}));assert.match(await page.evaluate(()=>document.getElementById('notice').textContent),/STUDIO 2 is ON AIR/);
+ // E at each window keeps the ON AIR view and adds a transparent request menu with only real clips.
+ await page.waitForSelector('#milked-animation-panel:not([hidden])');
+ const menu=await page.evaluate(()=>{
+  const p=document.querySelector('#milked-animation-panel'),z=VoidBabylon.zone;
+  return {background:getComputedStyle(p).backgroundColor,heading:p.querySelector('h2').textContent,
+   selected:[...p.querySelector('select').options].map(o=>o.value),valid:z.studioAnimations(2).clips};});
+ assert.match(menu.heading,/STUDIO 2/);assert.equal(menu.background,'rgba(8, 12, 18, 0.64)');
+ assert.deepEqual(menu.selected,menu.valid,'the dropdown matches the model currently loaded in Studio 2');
+ if(menu.selected.length){
+  await page.click('#milked-animation-panel .mk-request');
+  assert.match(await page.locator('#milked-animation-panel .mk-result').textContent(),/REQUEST RECEIVED/);
+  const active=await page.evaluate(()=>VoidBabylon.zone.people.find(p=>p.studio===2).request?.clip);
+  assert.equal(active,menu.selected[0],'the request reaches the active animator');
+ }
+ await page.click('#milked-animation-panel .mk-close');assert.equal(await page.locator('#milked-animation-panel').isHidden(),true);
+ await page.evaluate(()=>VoidInteractions.handlers.get('milked-studio')({item:{studio:1}}));
+ await page.waitForSelector('#milked-animation-panel:not([hidden])');
+ const shift=await page.evaluate(()=>({performer:VoidBabylon.zone.studioAnimations(1).performer,looks:VoidBabylon.zone.studioAnimations(1).clips}));
+ assert.ok(['Lace','Reverie'].includes(shift.performer),'Studio 1 reads the on-shift model');
+ assert.deepEqual(shift.looks,await page.locator('#milked-animation-choice option').evaluateAll(nodes=>nodes.map(n=>n.value)));
+ await page.click('#milked-animation-panel .mk-close');
  // 6. the staff area: Fish in her office, the rear corridor
  // the STAFF ONLY door is locked until Eva lets the player through (Mission 003, 17 Nov 2026: story flag mf_milkedStaff); this walk-through grants it for the rest of the tour
  await at(92.6,-81.8,EAST);await stops(94.75,-81.8,'the locked staff-only door');assert.equal(await page.evaluate(()=>VoidBabylon.zone.state().staffDoor.blocking),true);
