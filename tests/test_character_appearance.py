@@ -20,7 +20,12 @@ class AppearanceValidation(unittest.TestCase):
 
     def test_street_looks(self):
         street = [k for k, l in CAT['looks'].items() if l.get('street')]
-        self.assertEqual(len(street), 18)
+        self.assertEqual(len(street), 36)   # 18 from the NPC upgrade and 18 CYBERPUNK PRESETS (19 Nov 2026)
+        cyber = [k for k in street if CAT['looks'][k].get('group') == 'cyber']
+        self.assertEqual(len(cyber), 18)
+        self.assertEqual({CAT['looks'][k]['model'] for k in cyber}, {'npc-cyber-samurai', 'npc-cyber-exec', 'npc-cyber-respirator', 'npc-cyber-pvc', 'npc-cyber-bouncer', 'npc-cyber-courier'})
+        with self.assertRaises(api.ApiError):
+            api.clean_appearance({'v': 1, 'base': 'male', 'look': 'street-cyber-exec', 'hair': 'native', 'hairColor': None, 'clothingColor': None, 'accessories': []})   # the executive is a female figure
         for look in street:
             l = CAT['looks'][look]
             ok = {'v': 1, 'base': l['base'], 'look': look, 'hair': 'native', 'hairColor': None, 'clothingColor': 'crimson', 'accessories': []}

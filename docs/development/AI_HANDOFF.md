@@ -6,6 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): SIX CYBERPUNK STREET FIGURES AND CREATOR PRESETS (branch `claude/cyber-characters`, build `2026-11-19-cyber-characters-1`, pushed, NO PR, not merged)
+
+The owner: the NPCs and player characters "look very normal for a cyberpunk game"; more options, not blocky. Record: [`NPC_UPGRADE.md`](NPC_UPGRADE.md), "The cyberpunk figures"; credits and task ids: [`MESHY_CHARACTERS.md`](MESHY_CHARACTERS.md).
+
+- **Six Meshy figures** (`npc-cyber-samurai`, `-exec`, `-respirator`, `-pvc`, `-bouncer`, `-courier`; 3 women, 3 men, 25 to 55, six ethnicities, one heavy build): about 31k triangles, 24-joint rig, the 18 street clips, V1 poses; placed by style (the executive by the Function Gate, the bouncer and the PVC courier round NULL, the others mixed, in the District crew, NULL, the alley, the Outskirts). The netrunner was left out (the owner); cyber arms are slim and human-shaped (his note).
+- **Player looks:** 18 `street-cyber-*` catalog looks in a new **CYBERPUNK PRESETS** row of the creator (three colours each, plus the eight clothing colours); the server accepts them from the catalog with no code change; old looks and saves unchanged.
+- **The multiplayer hub needs syncing and redeploying:** copy `tools/district-hub/appearance/character-catalog.json` and `character-appearance.js` to branch `claude/character-creator` and redeploy the Render hub (not done here). Until then the hub relays the new looks unchanged but shows them to other players as the default model.
+- **Credits:** 312 (452 -> 140); two concepts were made and not used after the owner's changes (the netrunner; a first heavy with bulky forearms).
+- **Not verified:** real GPU / ROG Ally frame rates; VR; the hub with the new looks (needs the redeploy); NULL's interior crowd (licensed club model).
+
 ### 19 Nov 2026 (newest): MODULAR INTERIORS — OFFICE FLOOR, SERVER ROOM, ELEVATOR, COMMERCIAL AND OTHER MODULES, CONNECTED LOCATIONS IN THE MISSION EDITOR (branch `claude/modular-interiors`, build `2026-11-19-modular-interiors-1`, pushed, NO PR, not merged)
 
 - **Owner request:** "add locations by type: housing, commercial, other, office and commercial style hallways ... an office building interior ... cubicles, desks, chairs, computers. a server room with server racks ... connect these areas together so make sure they fit ... elevator ... like modules". Full notes: `docs/development/MODULES.md`; editor how-to: `docs/development/MISSION_EDITOR.md` (twenty-first pass).

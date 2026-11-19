@@ -20,7 +20,10 @@
   'npc-fixer':L('orig','wine','navy','olive'),'npc-vendor':L('orig',{id:'teal',h:.25},{id:'amber',h:-.4}),'npc-student':L('orig','wine','olive','slate'),'npc-tourist':L('orig',{id:'red',h:.45},{id:'green',h:-.22},{id:'amber',h:.55}),
   'npc-medic':L('orig',{id:'blue',h:.1},{id:'wine',h:.45},{id:'violet',h:.25}),'npc-enforcer':L('orig','warm','wine','navy'),'npc-lookout':L('orig','olive','navy','wine'),'npc-outskirts-f':L('orig','faded','olive','dusk'),
   'npc-outskirts-m':L('orig','faded','warm','dusk'),'npc-elder-f':L('orig','navy','wine','olive'),'npc-busker':L('orig','olive','wine','navy'),
-  'npc-casual-f':L('orig',{id:'classic',albedo:'npc-casual-f-classic.jpg'},'wine','olive'),'npc-casual-m':L('orig','olive',{id:'classic',albedo:'npc-casual-m-classic.jpg'},'warm')};
+  'npc-casual-f':L('orig',{id:'classic',albedo:'npc-casual-f-classic.jpg'},'wine','olive'),'npc-casual-m':L('orig','olive',{id:'classic',albedo:'npc-casual-m-classic.jpg'},'warm'),
+  // The cyberpunk figures (19 Nov 2026): their chrome and PVC are near grey, so only cool or dark tints (no 'warm': it would turn chrome to brass).
+  'npc-cyber-samurai':L('orig','dusk','navy'),'npc-cyber-exec':L('orig','wine','navy'),'npc-cyber-respirator':L('orig','olive','navy','wine'),'npc-cyber-pvc':L('orig','wine','navy'),
+  'npc-cyber-bouncer':L('orig','olive','dusk'),'npc-cyber-courier':L('orig','navy','wine')};
  // The two casual bases wear a black tee and black jeans (the owner, 18 Nov 2026: "Can you make grey and jeans black?", tools/assets/street/recolor_casual.py); `classic` is the
  // figure as Meshy made it (grey tee, blue jeans), its original map kept beside the model and swapped in (`albedo`), loaded only when someone wears it.
  // The Outskirts' people read as poorer: a worn variant for any figure (ncz-outskirts-life.js).

@@ -9,8 +9,8 @@ const glb=f=>{const b=fs.readFileSync(f),n=b.readUInt32LE(12);return {size:b.len
 const seeded=s=>()=>(s=(s*16807)%2147483647)/2147483647;
 const STREET=Object.keys(C.street);
 
-test('25 street figures: concepts 1-24 without the monk (#18), and the two creator bases 26 and 27',()=>{
- assert.equal(STREET.length,25);assert.deepEqual(STREET.map(l=>C.street[l].n).sort((a,b)=>a-b),[...Array.from({length:24},(_,i)=>i+1).filter(n=>n!==18),26,27]);
+test('31 street figures: concepts 1-24 without the monk (#18), the two creator bases 26 and 27, and the six cyberpunk figures 28-33 (19 Nov 2026)',()=>{
+ assert.equal(STREET.length,31);assert.deepEqual(STREET.map(l=>C.street[l].n).sort((a,b)=>a-b),[...Array.from({length:24},(_,i)=>i+1).filter(n=>n!==18),26,27,28,29,30,31,32,33]);
  for(const l of STREET){assert.match(l,/^npc-[a-z-]+$/);assert.ok(['f','m'].includes(C.street[l].sex),l);assert.ok(C.street[l].roles.length,l);}
 });
 test('every street figure file is rigged on the 24-joint skeleton, about 30k triangles, JPEG maps, under 5 MB, and carries exactly its clips',()=>{
@@ -36,7 +36,7 @@ test('the old anonymous looks map to new figures; their files and ids stay (name
 });
 test('placement: corporate types toward the Function Gate, club-goers round NULL, the Outskirts\' own people only in the Outskirts, cooks, vendor and busker never walk',()=>{
  const share=(x,z,q,ls)=>{let n=0,k=0;for(let i=0;i<400;i++){const l=C.orderAt(x,z,q,'p'+i)[0];if(ls.includes(l))k++;n++;}return k/n;};
- const corp=['npc-security','npc-executive','npc-office-f','npc-office-m'],club=['npc-club-f','npc-club-m'];
+ const corp=['npc-security','npc-executive','npc-office-f','npc-office-m','npc-cyber-exec'],club=['npc-club-f','npc-club-m'];
  assert.ok(share(12,-12.5,'avenue',corp)>.5,'most walkers by the Function Gate are corporate');assert.ok(share(120,-12.5,'avenue',corp)<.25,'few at the far end of the Avenue');
  assert.ok(share(52,-58,'oldtown',club)>.25,'club-goers by NULL');assert.ok(share(61,-110,'oldtown',club)<.05,'none at the south end of Old Town');
  assert.ok(share(60,-240,'outskirts',['npc-outskirts-f','npc-outskirts-m'])>.5,'the Outskirts');assert.equal(share(61,-90,'oldtown',['npc-outskirts-f','npc-outskirts-m']),0,'never in town');
@@ -65,10 +65,11 @@ test('every figure has 2-4 colour variants; a person always gets the same one an
  assert.match(V.GLSL,/skin/);assert.match(V.WGSL,/skin/);
 });
 test('the character creator: six street bases with their colour versions replace the old figures; old saves load as the figure that replaced them',()=>{
- const live=Object.entries(CAT.looks).filter(([,l])=>!l.retired);assert.equal(live.length,18);assert.ok(live.every(([,l])=>l.street));
- assert.deepEqual([...new Set(live.map(([,l])=>l.model))].sort(),['npc-casual-f','npc-casual-m','npc-hacker','npc-merc','npc-office-f','npc-office-m']);
+ const live=Object.entries(CAT.looks).filter(([,l])=>!l.retired);assert.equal(live.length,36);assert.ok(live.every(([,l])=>l.street));
+ assert.deepEqual([...new Set(live.filter(([,l])=>l.group!=='cyber').map(([,l])=>l.model))].sort(),['npc-casual-f','npc-casual-m','npc-hacker','npc-merc','npc-office-f','npc-office-m']);
+ assert.deepEqual([...new Set(live.filter(([,l])=>l.group==='cyber').map(([,l])=>l.model))].sort(),Object.keys(C.street).filter(l=>C.street[l].cyber).sort(),'every cyberpunk figure is a creator preset');
  for(const [id,l] of live){assert.equal(l.base,C.street[l.model].sex==='f'?'female':'male',id);assert.ok(V.find(l.model,l.variant),id+' variant');}
- for(const base of ['male','female']){const o=A.options(A.defaults(A.DEFAULT_LOOK[base]));assert.equal(o.looks.length,9);assert.ok(o.looks.every(x=>!CAT.looks[x.id].retired));assert.equal(o.hairColor,false);
+ for(const base of ['male','female']){const o=A.options(A.defaults(A.DEFAULT_LOOK[base]));assert.equal(o.looks.length,18);assert.equal(o.looks.filter(x=>x.group==='cyber').length,9,'nine cyberpunk presets per body (three figures in three colours)');assert.ok(o.looks.every(x=>!CAT.looks[x.id].retired));assert.equal(o.hairColor,false);
   assert.deepEqual(o.hair.filter(h=>h.enabled).map(h=>h.id),['native']);assert.deepEqual(o.accessories,[]);}
  // every retired look moves to a street look of the same body, keeping the clothing colour; anything else is untouched
  for(const [id,l] of Object.entries(CAT.looks).filter(([,l])=>l.retired)){const old={...A.defaults(id),clothingColor:'teal'},m=A.migrate(old);
@@ -84,7 +85,25 @@ test('the character creator: six street bases with their colour versions replace
  const src=fs.readFileSync(path.join(ROOT,'void-runner/remote-players.js'),'utf8');assert.match(src,/VA\.migrate\?VA\.migrate\(p\.appearance\)/);
 });
 test('the creator figures are real files the hub may render, and the scene keeps their ids',()=>{
- const {RENDERABLE}=require('../tools/district-hub/protocol.cjs');for(const m of ['npc-casual-f','npc-casual-m','npc-hacker','npc-merc','npc-office-f','npc-office-m'])assert.ok(RENDERABLE.includes(m),m);
+ const {RENDERABLE}=require('../tools/district-hub/protocol.cjs');for(const m of ['npc-casual-f','npc-casual-m','npc-hacker','npc-merc','npc-office-f','npc-office-m','npc-cyber-samurai','npc-cyber-exec','npc-cyber-respirator','npc-cyber-pvc','npc-cyber-bouncer','npc-cyber-courier'])assert.ok(RENDERABLE.includes(m),m);
  const src=fs.readFileSync(path.join(ROOT,'void-runner/character-assembler.js'),'utf8');assert.match(src,/look\.street\?look\.topY/);assert.match(src,/VoidNPCVariants/);
  const html=fs.readFileSync(path.join(ROOT,'void-runner.html'),'utf8');assert.ok(html.indexOf('npc-variants.js')>html.indexOf('character-finish.js')&&html.indexOf('npc-variants.js')<html.indexOf('crowd.js'),'variants load before the crowd');
+});
+test('the cyberpunk figures (19 Nov 2026): visible cybernetics, placed by their style, cool tints only, creator presets the hub relays and the server accepts',()=>{
+ const cy=Object.keys(C.street).filter(l=>C.street[l].cyber);assert.deepEqual(cy.sort(),['npc-cyber-bouncer','npc-cyber-courier','npc-cyber-exec','npc-cyber-pvc','npc-cyber-respirator','npc-cyber-samurai']);
+ assert.equal(cy.filter(l=>C.street[l].sex==='f').length,3);assert.ok(!cy.includes('npc-cyber-netrunner'),'the netrunner was left out (the owner, 19 Nov 2026)');
+ for(const l of cy){assert.ok(!V.variantsOf(l).some(v=>v.id==='warm'),l+': no warm tint (chrome would turn brass)');assert.ok(fs.existsSync(path.join(ROOT,'tools/animation-pipeline/characters',l+'.json')),l+' spec');}
+ assert.ok(C.street['npc-cyber-exec'].roles.includes('corporate')&&!C.street['npc-cyber-exec'].roles.includes('mixed'),'the chrome executive keeps to the Function Gate');
+ const share=(x,z,q,ls)=>{let k=0;for(let i=0;i<400;i++)if(ls.includes(C.orderAt(x,z,q,'p'+i)[0]))k++;return k/400;};
+ assert.ok(share(12,-12.5,'avenue',['npc-cyber-exec'])>share(120,-12.5,'avenue',['npc-cyber-exec'])*3,'the executive by the Function Gate');
+ assert.ok(share(52,-58,'oldtown',['npc-cyber-bouncer','npc-cyber-pvc'])>share(61,-110,'oldtown',['npc-cyber-bouncer','npc-cyber-pvc'])*3,'the bouncer and the PVC courier round NULL');
+ for(const [q,ls] of Object.entries({oldtown:['npc-cyber-samurai','npc-cyber-pvc','npc-cyber-bouncer'],avenue:['npc-cyber-exec','npc-cyber-samurai','npc-cyber-respirator','npc-cyber-pvc','npc-cyber-courier'],'far-south':['npc-cyber-samurai','npc-cyber-respirator','npc-cyber-pvc','npc-cyber-courier']}))for(const l of ls)assert.ok(C.streetFigures(q,'medium').includes(l),q+' medium loads '+l);
+ for(const q of ['oldtown','avenue','far-south','outskirts'])assert.ok(C.streetFigures(q,'high').length<=C.STREET_CAP.high,q);
+ for(const l of ['npc-cyber-bouncer','npc-cyber-samurai'])assert.ok(C.casts.district.includes(l),'District crew '+l);
+ for(const f of ['ncz-nightclub.js','ncz-alley.js']){const src=fs.readFileSync(path.join(ROOT,'void-runner',f),'utf8');assert.match(src.match(/CAST=\[([^\]]*)\]/)[1],/npc-cyber-/,f);}
+ for(const [id,l] of Object.entries(CAT.looks).filter(([,l])=>l.group==='cyber')){const a=A.defaults(id);assert.ok(A.validate(a),id);assert.ok(A.validate({...a,clothingColor:'teal'}),id+' recolour');assert.equal(A.validate({...a,hairColor:'jet'}),false);assert.equal(A.migrate(a),a);
+  assert.equal(l.base,C.street[l.model].sex==='f'?'female':'male');assert.ok(V.find(l.model,l.variant),id);assert.ok(HubA.validate(a),'hub accepts '+id);
+  const hub=new Hub({send(){},close(){},now:()=>1e6}),shown=hub.look({uid:'u-'+id,anonymous:false,model:'district-resident',appearance:a});assert.equal(shown.model,l.model);assert.deepEqual(shown.appearance,a);}
+ assert.deepEqual(JSON.parse(fs.readFileSync(path.join(ROOT,'tools/district-hub/appearance/character-catalog.json'),'utf8')),JSON.parse(fs.readFileSync(path.join(ROOT,'void-runner/character-catalog.json'),'utf8')),'the hub carries the same catalog');
+ assert.match(fs.readFileSync(path.join(ROOT,'void-runner/character-creator.js'),'utf8'),/CYBERPUNK PRESETS/);
 });

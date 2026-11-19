@@ -46,7 +46,7 @@
   vigil:['communion-worker','communion-tech','cyborg-01'],nexus:['communion-worker','communion-tech','cyborg-01'],
   holdfast:['order-farmhand','order-militia','order-grower'],'order-homeworld':['order-farmhand','order-grower','order-militia','vesper-mechanic'],
   neochinatown:['npc-casual-f','npc-office-m'],        // street crowd (the street's standing crew; the walkers: ncz-nightlife.js). Before 18 Nov 2026: ncz-neon, fixer-01, runner-02, communion-tech
-  district:['npc-hacker','npc-lookout','npc-fixer','npc-enforcer','npc-merc','npc-student']   // The Darknet District (before 18 Nov 2026: hacker-01, district-smuggler, district-resident, outlaw-01)
+  district:['npc-hacker','npc-lookout','npc-fixer','npc-enforcer','npc-merc','npc-student','npc-cyber-bouncer','npc-cyber-samurai']   // The Darknet District (before 18 Nov 2026: hacker-01, district-smuggler, district-resident, outlaw-01)
  };
  // The monks' looks (ncz-nightlife.js deals them to the street's monks; temple-build.js to the Temple's).
  const monks=['npc-monk-elder','npc-monk-tech','npc-monk-grey'];
@@ -62,7 +62,11 @@
   'npc-merc':{n:11,sex:'f',roles:['mixed','district']},'npc-veteran':{n:12,sex:'m',roles:['mixed','outskirts','drunk']},'npc-fixer':{n:13,sex:'m',roles:['mixed','district']},'npc-vendor':{n:14,sex:'f',roles:['vendor']},
   'npc-student':{n:15,sex:'f',roles:['mixed','club','district']},'npc-tourist':{n:16,sex:'m',roles:['mixed']},'npc-medic':{n:17,sex:'f',roles:['mixed']},'npc-enforcer':{n:19,sex:'m',roles:['mixed','club','district','drunk']},
   'npc-lookout':{n:20,sex:'f',roles:['mixed','club','district']},'npc-outskirts-f':{n:21,sex:'f',roles:['outskirts']},'npc-outskirts-m':{n:22,sex:'m',roles:['outskirts']},'npc-elder-f':{n:23,sex:'f',roles:['mixed','outskirts']},
-  'npc-busker':{n:24,sex:'m',roles:['busker','drunk']},'npc-casual-f':{n:26,sex:'f',roles:['mixed','club','outskirts','creator']},'npc-casual-m':{n:27,sex:'m',roles:['mixed','outskirts','creator']}};
+  'npc-busker':{n:24,sex:'m',roles:['busker','drunk']},'npc-casual-f':{n:26,sex:'f',roles:['mixed','club','outskirts','creator']},'npc-casual-m':{n:27,sex:'m',roles:['mixed','outskirts','creator']},
+  // The cyberpunk figures (19 Nov 2026, docs/development/NPC_UPGRADE.md "The cyberpunk figures"): six more Meshy figures with visible cybernetics and layered techwear, also the creator's CYBERPUNK PRESETS.
+  'npc-cyber-samurai':{n:28,sex:'m',roles:['mixed','district','club','creator'],cyber:true},'npc-cyber-exec':{n:29,sex:'f',roles:['corporate','creator'],cyber:true},
+  'npc-cyber-respirator':{n:30,sex:'m',roles:['mixed','district','outskirts','creator'],cyber:true},'npc-cyber-pvc':{n:31,sex:'f',roles:['club','mixed','creator'],cyber:true},
+  'npc-cyber-bouncer':{n:32,sex:'m',roles:['club','district','creator'],cyber:true},'npc-cyber-courier':{n:33,sex:'f',roles:['mixed','district','creator'],cyber:true}};
  for(const [id,f] of Object.entries(street))clips[id]=[...STREET_CLIPS,...(f.extra||[])];
  const pool=role=>Object.keys(street).filter(id=>street[id].roles.includes(role));
  const pools={mixed:pool('mixed'),corporate:pool('corporate'),club:pool('club'),cook:pool('cook'),outskirts:pool('outskirts'),drunk:pool('drunk'),district:pool('district'),vendor:pool('vendor'),busker:pool('busker')};
@@ -86,11 +90,11 @@
  function orderAt(x,z,quarter,key,looks=Object.keys(street)){return looks.map(l=>({l,w:weightAt(l,x,z,quarter)})).filter(o=>o.w>0).map(o=>({l:o.l,k:Math.pow(unit(key+'|'+o.l),1/o.w)})).sort((a,b)=>b.k-a.k).map(o=>o.l);}
  /* Which street figures a quarter downloads (background, as the monks): the quarter's own kinds first, then the mixed crowd, capped per quality so Low downloads fewer files. */
  const QUARTER_KINDS={oldtown:['club'],'far-south':[],avenue:['corporate'],outskirts:['outskirts'],port:[]},SPOTS={oldtown:['cook','vendor','busker'],'far-south':['cook','vendor'],avenue:['cook','busker'],outskirts:[],port:[]};
- const STREET_CAP={low:8,medium:14,high:25,ultra:25},CORE=['npc-casual-f','npc-office-m','npc-security'];   // CORE: always there (the street's standing crew, casts.neochinatown; the private gates' guards, ncz-gates.js)
+ const STREET_CAP={low:8,medium:14,high:31,ultra:31},CORE=['npc-casual-f','npc-office-m','npc-security'];   // CORE: always there (the street's standing crew, casts.neochinatown; the private gates' guards, ncz-gates.js)
  function streetFigures(quarter,quality='medium'){const cap=STREET_CAP[quality]??STREET_CAP.medium,set=new Set(CORE),add=l=>{if(set.size<cap)set.add(l);};
   for(const k of quarter?SPOTS[quarter]||[]:['cook','vendor','busker'])pools[k].forEach(l=>set.add(l));   // the cooks, the vendor and the busker have fixed spots: always theirs
-  for(const k of quarter?QUARTER_KINDS[quarter]||[]:['corporate','club','outskirts'])[...pools[k]].sort((x,y)=>(street[x].roles.includes('mixed')?1:0)-(street[y].roles.includes('mixed')?1:0)).forEach(add);   // the quarter's own kinds, the specialists first
-  [...pools.mixed].sort((x,y)=>unit('fill|'+x)-unit('fill|'+y)).forEach(add);return [...set];}
+  for(const k of quarter?QUARTER_KINDS[quarter]||[]:['corporate','club','outskirts'])[...pools[k]].sort((x,y)=>(street[x].roles.includes('mixed')?1:0)-(street[y].roles.includes('mixed')?1:0)||(street[y].cyber?1:0)-(street[x].cyber?1:0)).forEach(add);   // the quarter's own kinds, the specialists first, then the cyberpunk figures
+  [...pools.mixed].sort((x,y)=>(street[y].cyber?1:0)-(street[x].cyber?1:0)||unit('fill|'+x)-unit('fill|'+y)).forEach(add);return [...set];}   // the cyberpunk figures (19 Nov 2026) first in the mixed fill
  /* Dresses a placed street figure in its colour variant (npc-variants.js), chosen from `key` so neighbours differ and a person keeps theirs. */
  function dress(node,look,key,variant){const V=typeof module!=='undefined'&&module.exports?null:root.VoidNPCVariants;if(!V||!street[look])return null;return V.apply(node,look,variant||V.pick(look,key));}
  // NeoChinatown and The Darknet District share one scene; these crew belong to the District.
