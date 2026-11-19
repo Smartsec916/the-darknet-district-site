@@ -33,8 +33,8 @@
  const treeCtx=()=>({givers:new Map(env.givers.map(g=>[g.id,g])),places:G?.placeIds?G.placeIds():new Set((G?.PLACES||[]).map(p=>p.id)),subjects:new Set((G?.photoSubjects?.(env.givers)||[]).map(g=>g.id)),items:new Set(Object.keys(G?G.buyable(root.VoidProgression?.modules):{})),locations:new Set(Object.keys(root.VoidUniverse?.locations||{})),ships:new Map(Object.entries(root.VoidShips?.ships||{}))});
  function use(content,source,version){
   const r=MC.apply(content,env,ctx());
-  if(r.refused.length){MC.apply(null,env);current={version:0,source:'shipped',content:null,refused:r.refused};try{console.warn('[VOID//RUNNER] published missions refused; the shipped missions stay in force.',r.refused.slice(0,5));}catch{}return false;}
-  current={version:version||0,source,content,refused:null};env.draft=source==='draft';lastState=null;migrateNow();return true;
+  if(r.refused.length){MC.apply(null,env);try{root.VoidVoiceImports?.use([]);}catch{}current={version:0,source:'shipped',content:null,refused:r.refused};try{console.warn('[VOID//RUNNER] published missions refused; the shipped missions stay in force.',r.refused.slice(0,5));}catch{}return false;}
+  current={version:version||0,source,content,refused:null};env.draft=source==='draft';try{root.VoidVoiceImports?.use(env.clips,{draft:source==='draft',givers:env.givers});}catch{}lastState=null;migrateNow();return true;   // imported voice files (voice-imports.js): this browser's copy in a draft, the published copy otherwise
  }
  function migrateNow(){
   if(typeof state==='undefined'||!state?.universe||state===lastState&&!draft)return;lastState=state;
@@ -196,10 +196,14 @@
  // ---------------------------------------------------------------- NPC placements (Developer Tools > NPCs) and "Giver waits at"
  /* What Reverie and Lace do (ncz-street-pair.js asks every frame; worked out twice a second): a mission's "Giver waits at" while that mission waits to be offered by her,
     else the placement published or played from Developer Tools > NPCs (content.npcs; its daily schedule follows the in-game clock, game-clock.js), else her own routine. */
- let planCache={},planAt=0;
+ let planCache={},planAt=0;const escOn=new Set();   // follow / lead / cab steps that have started (escOn: below)
  function plans(){const t=Date.now();if(t-planAt<500)return planCache;planAt=t;const X=root.VoidNPCPaths,out={};if(!X)return planCache=out;let wait={};try{if(treesOn())wait=MC.waitingAt(state,env);}catch{}let minute=null;try{minute=GC?GC.now(state).minuteOfDay:null;}catch{}
   let esc={};try{if(treesOn())esc=MC.escortNow(state,env);}catch{}const E=root.VoidNPCEscort,saved=E?E.decode(state?.story?.flags?.[E.FLAG]):null;
-  for(const id of Object.keys(X.MOVABLE)){const e=esc[id];if(e&&E){const key=E.keyOf(e),old=planCache[id];out[id]=old&&old.key===key?old:{key,mode:'escort',why:'escort',kind:e.kind,npc:id,name:X.MOVABLE[id].name,step:e.key,mission:e.mission,to:e.to||null,stop:e.stop||null,set:{wait:e.wait,lost:e.lost,ifLost:e.ifLost},resume:saved&&saved.key===e.key?saved:null};continue;}
+  for(const id of Object.keys(X.MOVABLE)){const e=esc[id];
+   // a follow / lead / cab step starts only while she is out on the street clock (mission-givers.js onDuty; a draft test simulates a time she is out); once started she
+   // finishes it even if her shift ends (ncz-street-pair.js keeps her out for it), then leaves. A reload mid-step: the saved flag says it had started.
+   if(e&&E&&!escOn.has(e.key)){const g=env.givers.find(x=>x.id===id);let on=true;try{on=!g||!g.shift||!G?.onDuty||G.onDuty(g);}catch{}if(on||(saved&&saved.key===e.key))escOn.add(e.key);}
+   if(e&&E&&escOn.has(e.key)){const key=E.keyOf(e),old=planCache[id];out[id]=old&&old.key===key?old:{key,mode:'escort',why:'escort',kind:e.kind,npc:id,name:X.MOVABLE[id].name,step:e.key,mission:e.mission,to:e.to||null,stop:e.stop||null,set:{wait:e.wait,lost:e.lost,ifLost:e.ifLost},resume:saved&&saved.key===e.key?saved:null};continue;}
    const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null,minute});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
  /* FOLLOW / LEAD / SHARED-CAB steps (npc-escort.js): ncz-street-pair.js moves the NPC and reports what happens. 'done' completes the step; 'failed' (the player got
     lost with "the mission fails") fails the mission; the rest are short notices. While a step runs, story.flags.npcEsc keeps where she is (a reload puts her back). */
