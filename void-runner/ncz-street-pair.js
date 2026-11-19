@@ -22,7 +22,9 @@
    and only while she is out, on the street, within showRadius). Talking to her: a mission the Mission Editor gives her is offered (live-content.js wraps every
    interaction); otherwise her one neutral GREETING line (text only, no voice; a placeholder). While the player talks to her she stops (or stays seated) and turns to
    them. A mission given by one of them is offered only while she is out (mission-givers.js onDuty; mission-content.js). Ordinary street residents: nothing flirtatious.
-   Draft play (Mission Editor) may put a chosen one on the street at any hour: VoidStreetPair.force = '<id>' (throwaway session only). Names are placeholders awaiting the owner. Pure planning (the shift, the routine, the cat's choice of whom to go to) runs in Node: tests/ncz-street-pair.test.cjs.
+   THE STREET CLOCK has one source, streetTime() below. Draft play (Mission Editor; the owner, 19 Nov 2026: "If I test with REVERIE or LACE make it the time they are
+   actually there") never forces her out: the throwaway session runs on a SIMULATED street clock inside her shift (testClock / simulate), so the pair, the cat, Studio 1
+   at Milked, the editor's shift notes and mission availability all agree. Never saved; it ends with the session. Names are placeholders awaiting the owner. Pure planning (the shift, the routine, the cat's choice of whom to go to) runs in Node: tests/ncz-street-pair.test.cjs.
    The figures run in the browser, started by neochinatown.js with the street (The Avenue, or the whole city). Multiplayer: the street is not shared, but the
    shift is the same for everyone. */
 (function(root){
@@ -78,6 +80,23 @@
  const nextChange=ms=>shiftStart(ms)+12*3600e3;
  // Who is actually out on the street: the one on shift, except in the first `arrive` seconds of a shift (nobody yet).
  function onStreet(ms,cfg=config){return ms-shiftStart(ms)<cfg.arrive*1000?null:onShift(ms);}
+ /* THE STREET CLOCK: every reader of "what time is it on the street" asks streetTime(realMs) (milked.js Studio 1, mission-givers.js onDuty/shiftText, start() below).
+    It is the real time, unless a throwaway test session set a simulated one: simulate(ms) makes the street read ms now and run on from there; simulate(null) ends it.
+    Test sessions only (Mission Editor draft play, dev-test.js): it lives in this page, is never saved or sent, and leaving the session reloads the page. */
+ let skew=null;
+ const streetTime=(ms=Date.now())=>skew===null?ms:ms+skew,simulated=()=>skew!==null;
+ function simulate(ms,real=Date.now()){skew=Number.isFinite(ms)?ms-real:null;return simulated();}
+ const pad2=n=>String(n).padStart(2,'0'),utcLabel=ms=>{const d=new Date(ms);return pad2(d.getUTCHours())+':'+pad2(d.getUTCMinutes());};
+ // TEST: the hour (UTC) a test runs at for each of them, and how long her shift must still run to keep the real time instead (so it cannot end mid-test).
+ const TEST={hour:{'grey-reverie':3,'ethereal-lace':15},keep:30*60e3};
+ /* The moment a test involving `id` runs at: the real time when she is out now (not in the handover) with at least TEST.keep before her shift ends; else today's TEST.hour. */
+ function shiftMoment(id,real=Date.now(),cfg=config){const p=PAIR.find(x=>x.id===id);if(!p)return null;const w=onStreet(real,cfg);if(w&&w.id===id&&nextChange(real)-real>=TEST.keep)return {ms:real,kept:true};
+  const d=new Date(real),h=TEST.hour[id]??p.hours[0]+3;return {ms:Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),h),kept:false};}
+ /* testClock(ids, realMs): for the characters a test involves (in the order used), the street time to test at, or null when neither of them is involved.
+    Both involved: the first one's shift, with a notice that the other is not out then. */
+ function testClock(ids,real=Date.now(),cfg=config){const seen=[...new Set((ids||[]).filter(Boolean))].map(id=>PAIR.find(p=>p.id===id)).filter(Boolean);if(!seen.length)return null;
+  const p=seen[0],m=shiftMoment(p.id,real,cfg),t=utcLabel(m.ms),others=seen.slice(1).map(q=>q.name);
+  return {id:p.id,name:p.name,ms:m.ms,kept:m.kept,time:t,others,note:'Testing at '+t+' UTC'+(m.kept?' (the real time)':'')+', '+p.name+"'s shift."+(others.length?' '+others.join(' and ')+(others.length>1?" aren't":" isn't")+' out then.':'')};}
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
  /* Whom the cat goes to. her: {x, z, sitting, moving} of the one who is out, or null; player: {x, z} or null; cat: {x, z}; clock: seconds; until: the time
     before which the cat will not go to a player again (its cool-down); rnd(): a fresh chance each time a player comes into range (pass 0 to always go).
@@ -185,14 +204,14 @@
  const canLook=s=>!!s&&s.mode!=='run'&&s.sub!=='dance'&&!s.device;
  // Older names (the first version had only Lace walking).
  const laceStart=(rnd=Math.random,cfg=config)=>routineStart(PAIR[1],rnd,cfg),laceStep=routineStep;
- const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,lookAt,canLook,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};
+ const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};
  if(typeof module==='object'&&module.exports){module.exports=api;return;}
 
  /* start({B, scene, parent, quality, player, now}) -> {tick(dt), stats(), dispose()}. The figures and the cat appear when their files have loaded. */
- function start({B=root.BABYLON,scene,parent,quality='medium',player=()=>typeof walker!=='undefined'?walker:null,now:clockFn=()=>Date.now(),rnd=Math.random,cfg=config}){
+ function start({B=root.BABYLON,scene,parent,quality='medium',player=()=>typeof walker!=='undefined'?walker:null,now:clockFn=()=>streetTime(),rnd=Math.random,cfg=config}){
   let now=clockFn;   // setClock(fn): tests force a shift
-  // who is out: the shift, or the one draft play put on the street (VoidStreetPair.force)
-  const out=()=>{const f=root.VoidStreetPair?.force;return (f&&PAIR.find(p=>p.id===f))||onStreet(now(),cfg);};
+  // who is out: the shift on the street clock (a draft test runs it at a time she is out: simulate above)
+  const out=()=>onStreet(now(),cfg);
   const assets=root.VoidAssets,owned=[];let disposed=false,clock=0,asked=-1;
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
   const cam=()=>scene?.activeCamera?.globalPosition||null;
@@ -355,7 +374,7 @@
   // the editor's map shows where she is now (Developer Tools)
   const liveFn=()=>self.stats();if(root.VoidStreetPair)root.VoidStreetPair.live=liveFn;return self;
  }
- root.VoidStreetPair={...api,start,force:null};
+ root.VoidStreetPair={...api,start};
  // TALK TO REVERIE / LACE with no mission waiting: her greeting (live-content.js offers a Mission Editor mission first). Name cards for the dialogue window.
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof talk!=='function')return;clearInterval(wait);
   const chars=root.VoidStoryContent?.characters;if(chars)for(const p of PAIR)if(!chars[p.id])chars[p.id]={id:p.id,name:p.name,role:'',portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['street'],biography:'',relationshipDefault:0};

@@ -709,7 +709,7 @@
   const studioOne=people.find(p=>p.studio===1);
   function syncStudioOne(){
    if(!studioOne)return;
-   const wanted=MK.studioOnePerformer(Date.now());
+   const wanted=MK.studioOnePerformer(root.VoidStreetPair?.streetTime?.()??Date.now());
    if(wanted.look===studioOne.fixedLook)return;
    studioOne.anim?.dispose?.();studioOne.node?.dispose?.();
    studioOne.node=null;studioOne.anim=null;studioOne.rot=null;studioOne.requestUntil=0;studioOne.meshes=[];

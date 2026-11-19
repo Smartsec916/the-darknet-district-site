@@ -1,7 +1,7 @@
 /* Mission Editor, 18 Nov 2026, in a real browser (offline): the two separate features.
    1. EDITOR: a new tree; mission 1 given by Reverie with the start trigger "When walked near" (distance set to 8 m; 99 is clamped to 30; back to 8), its availability note;
       mission 2 given by Lace, in person with ACCEPT / NOT NOW. Screenshots of both.
-   2. GAME (PLAY THIS DRAFT of mission 1): draft play puts Reverie on The Avenue whatever the hour; her TALK TO REVERIE prompt follows her; the trigger waits while the
+   2. GAME (PLAY THIS DRAFT of mission 1): draft play runs at a time Reverie is out (19 Nov 2026: a simulated street clock in her shift, not a forced figure); her TALK TO REVERIE prompt follows her; the trigger waits while the
       game is not in walking mode, does not fire at 12 m, fires once at 3 m (the notification); then TALK TO REVERIE completes the step and she stops for the conversation.
    Usage: node tests/serve-modern.cjs, then node tests/editor-givers-browser.cjs (SITE_TEST_URL, SHOTS=dir, BROWSER_EXECUTABLE; default the bundled Chromium, software GL). */
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
@@ -55,7 +55,7 @@ const log=(...a)=>console.log('[editor-givers]',...a);
   await page.waitForFunction(()=>!document.getElementById('dev-test-banner').hidden&&mode==='walking'&&walkingLocation?.quarter==='avenue',null,{timeout:900000,polling:50});
   await page.evaluate(()=>{Object.assign(walker,{x:100,z:-27});});await page.waitForFunction(()=>VoidAssets.pending===0,null,{timeout:900000});   // out in the road, well beyond 8 m of anywhere she walks (her prompt appears only once her figure is in)
   log('draft play on the Avenue; UTC hour',new Date().getUTCHours(),'tracked',await page.evaluate(()=>state.universe.trackedMission));
-  assert.equal(await page.evaluate(()=>VoidStreetPair.force),'grey-reverie','draft play puts Reverie out');
+  assert.equal(await page.evaluate(()=>VoidStreetPair.onStreet(VoidStreetPair.streetTime())?.id),'grey-reverie','draft play runs at a time Reverie is out (the real time, or a simulated street clock in her shift)');
   await page.waitForFunction(()=>VoidBabylon.district?.streetPair?.stats?.().her?.id==='grey-reverie',null,{timeout:900000,polling:1000});
   const sp=()=>page.evaluate(()=>VoidBabylon.district.streetPair.stats());
   // hold her in one place for the pictures (her routine otherwise walks on)
