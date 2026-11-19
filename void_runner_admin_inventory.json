@@ -32742,7 +32742,7 @@
       }
     }
   },
-  "revision": "b54a2872861c6c52",
+  "revision": "bf9541e42b1e675d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -50869,7 +50869,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
     "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
-    "void-runner/live-content.js": "4384410d0223c19ae46dd1740feeeb3f381731c0a9829a232cfc33953c9c34f3",
+    "void-runner/live-content.js": "974f4404af2b5f3d1f429566d9fa6a4d055f57388f0e8c575d1eb6de4f6a2e3b",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/main-story.js": "4cb1c5aedd713e1e986cbc8645e4f471302a283edac520efa7b1ac0008c5d1ee",
@@ -50885,10 +50885,10 @@
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
     "void-runner/milked.js": "a0600a70dd32b437fd11f7791a03cde58eb5da6ed1a9c0664bd60d5a5875bebc",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-blocks-view.js": "afa6fc282a935f5098e773f9a89a282affd0ca85ab9db98cd5bf0822bcbc981e",
+    "void-runner/mission-blocks-view.js": "a2f3f1e2409abb62e4c8d8a501b709c398465298f43621f2258d89b09630e615",
     "void-runner/mission-blocks.js": "06cbf4a363d43ca62c686b48dc67a5dba078dfe82bb9bc0d163180692a1c9283",
     "void-runner/mission-content.js": "1526c4697d2cbc40959eeff55b608028d51f66989cacfd473c943dd68c37ebbe",
-    "void-runner/mission-editor.js": "28258540f4de996f6844f4d07359819cfd1ab2d5008a367a997ff9087d2bed5b",
+    "void-runner/mission-editor.js": "804ffcbe21d5fdcca1a13da61f33febc0e579c2a3d3ffffae7b1f97441ace393",
     "void-runner/mission-givers.js": "62b85164fedfc8c748201acbedfde7bb67bb33d10c96155b0b7661e90498aae1",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
