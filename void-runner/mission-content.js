@@ -62,7 +62,15 @@
     default ACCEPT / DENY). deny: what DENY does: 'again' (default: offered again later: the next talk for an offer in person, the next time the player leaves the Sleeping Pod
     for an offer on the device: story.flags.md_<mission> = 'later' until then), 'never' (md_<mission> = 'never'; the missions after it in its tree do not come either), or
     'start' (denyStart: the first mission of another tree starts instead, or is offered when it asks too). denySay: the owner's own lines after DENY (optional). */
- const MONEY={min:-100000,max:100000,label:20},DENY=['again','never','start'],ASK_KEYS=['yes','no','deny','denyStart','denySay'],YES='ACCEPT',NO='DENY';
+ /* WHEN A DENIED OFFER COMES BACK (the owner, 19 Nov 2026, of a walked-near offer the player denies: "Maybe set a time for return, or remove after"): deny is also
+    'after' (denyMinutes 1..120, default 10: offered again after that many minutes of PLAY, counted only while the player is in the world, not in menus, conversations or a
+    hidden tab; a walked-near offer also needs the player to have walked out of its distance and come back) or 'pod' (offered again after the next Sleeping Pod exit: what
+    'again' already does for an offer on the device; for an offer in person 'again' stays "the next time they talk"). 'never' is "Never offer again (remove it)".
+    md_<mission> in story.flags: 'never' | 'later' (until the next pod exit) | a safe integer (seconds of play left) | 'away' (the time is up; a walked-near offer waits for the
+    player to be out of its distance once). While it is set the giver's "Giver waits at" spot is not used: she goes about her own routine (waitingAt) and walks back when it
+    is offered again (ncz-street-pair.js / npc-made.js never move her out of sight of the player in view). Existing missions keep what they did ('again'). */
+ const MONEY={min:-100000,max:100000,label:20},DENY=['again','pod','after','never','start'],DENY_MIN={min:1,max:120,def:10},ASK_KEYS=['yes','no','deny','denyMinutes','denyStart','denySay'],YES='ACCEPT',NO='DENY';
+ const denyMinutes=v=>Number.isInteger(v)&&v>=DENY_MIN.min&&v<=DENY_MIN.max?v:DENY_MIN.def;
  const costFlag=id=>'mc_'+String(id).slice(0,61),denyFlag=id=>'md_'+String(id).slice(0,61);
  /* ACCEPT / DENY ANYWHERE IN A MISSION (the owner, 19 Nov 2026: "put the Accept/Deny the mission anywhere in the mission timeline"): a step kind 'ask' {question (the owner's
     words, 300 characters), npc? (who asks; default the giver), yes / no (button labels, 20 characters), deny: 'end' (default: the mission ends and goes back to its giver, who
@@ -224,6 +232,7 @@
   if(st.deny!=null&&!DENY.includes(st.deny))err(w+': unknown “what happens on DENY”.');
   if(st.deny==='start'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===st.denyStart))err(w+': on DENY it must start the first mission of another tree.');}
   else if(st.denyStart!=null)err(w+': only “start another mission” names a mission to start.');
+  if(st.denyMinutes!=null&&(st.deny!=='after'||!(Number.isInteger(st.denyMinutes)&&st.denyMinutes>=DENY_MIN.min&&st.denyMinutes<=DENY_MIN.max)))err(w+': “offer again after N minutes” needs a whole number of minutes from '+DENY_MIN.min+' to '+DENY_MIN.max+'.');
   lines(st.denySay,w+' / on DENY');}
  /* An "Ask the player" step (ASK_STEP above): the question, the labels, what DENY does and where it goes, an optional price on ACCEPT. Going BACK repeats the steps from the
     target, so a credits or standing unlock at one of them would be given again: refused (move it after the question or to the end). */
@@ -465,9 +474,11 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
        if(byNote){notify(t,m);const first=m.objectives[0],w=st.when||{};if(first&&((first.kind==='pod-exit'&&w.kind==='pod-exit')||((first.kind==='go'||first.kind==='enter')&&w.kind==='place'&&first.place===w.place)))step(t,m,first);auto(t,m);}   // its trigger already happened
        return out;}
       if(ev.type==='decline'&&ev.mission===m.id){const d=DENY.includes(st.deny)?st.deny:'again';Object.assign(out,{tree:t.id,mission:m.id,declined:true,deny:d});out.lines.push(...speak(st.denySay));
-       if(d!=='again')s.story.flags[denyFlag(m.id)]='never';else if(byNote)s.story.flags[denyFlag(m.id)]='later';
+       if(d==='never'||d==='start')s.story.flags[denyFlag(m.id)]='never';else if(d==='after')s.story.flags[denyFlag(m.id)]=denyMinutes(st.denyMinutes)*60;else if(d==='pod'||byNote)s.story.flags[denyFlag(m.id)]='later';
+       out.denyWait=d==='after'?denyMinutes(st.denyMinutes):d==='pod'||(d==='again'&&byNote)?'pod':d==='again'?'talk':null;
        if(d==='start')startInstead(st.denyStart);return out;}
-      if(dn==='later')break;   // denied on the device: offered again from the next pod exit
+      if(dn==='later'||Number.isSafeInteger(dn)&&dn>0)break;   // denied: offered again from the next pod exit, or once its minutes of play are over (denyTick)
+      if(dn==='away'){const w=st.when||{};if(ev.type==='near'&&w.kind==='near'&&ev.near&&!nearHit(ev.near[w.npc||m.giver],w.distance))delete s.story.flags[denyFlag(m.id)];break;}   // walked-near: the player must walk out of its distance once
       if(startsNow(m)&&Missions.available(s,m.id)){if(byNote){if(!out.prompt)out.prompt=prompt(t,m);break;}
        Object.assign(out,{tree:t.id,mission:m.id,ask:askOf(m),offer:offerOf(s,m)});out.lines.push(...speak(m.offer));return out;}
       break;}
@@ -508,12 +519,23 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function abandon(s,env,id){if(!s||!s.universe||!s.universe.missions||!env||!Array.isArray(env.trees))return 0;const rec=s.universe.missions[id];if(!rec||!rec.acquired||rec.completed)return 0;
   const m=env.trees.flatMap(t=>t.missions||[]).find(x=>x.id===id);if(!m)return 0;delete s.universe.missions[id];if(s.universe.trackedMission===id)s.universe.trackedMission=null;
   const c=costOf(m),paid=charged(s,id);if(!(c&&c.refund&&paid>0))return 0;s.credits=Math.min(100000000,(Number(s.credits)||0)+paid);s.story.flags[costFlag(id)]=0;return paid;}
+ /* The DENY waits running now (deny 'after'): [{mission, title, left (seconds of play), near (a walked-near offer)}]. */
+ function denyWaits(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;for(const t of env.trees)for(const m of t.missions||[]){const v=s.story.flags[denyFlag(m.id)];
+   if(Number.isSafeInteger(v)&&v>0)out.push({mission:m.id,title:titleOf(m),left:v,near:!!(m.start&&m.start.how==='notification'&&(m.start.when||{}).kind==='near')});}return out;}
+ /* dt seconds of play pass (live-content.js: only while the player is in the world). A wait that runs out: offered again (a walked-near offer: 'away', re-armed once the
+    player is out of its distance, which near events check). Returns the missions whose wait ended. skip: every wait ends now (the draft banner's SKIP THE WAIT). */
+ function denyTick(s,env,dt,skip){const done=[];for(const w of denyWaits(s,env)){const f=denyFlag(w.mission),left=skip?0:Math.max(0,s.story.flags[f]-Math.floor(Math.max(0,Number(dt)||0)));   // whole seconds (the caller keeps the fraction)
+   if(left>0){s.story.flags[f]=left;continue;}if(w.near)s.story.flags[f]='away';else delete s.story.flags[f];done.push(w.mission);}return done;}
+ /* A walked-near offer whose wait is over ('away') comes back once the player is out of its distance (near: {npc id: metres}, live-content.js nearTick). */
+ function denyRearm(s,env,near){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees)||!near)return out;for(const t of env.trees)for(const m of t.missions||[]){const f=denyFlag(m.id),w=m.start&&m.start.when||{};
+   if(s.story.flags[f]!=='away')continue;const id=w.npc||m.giver;if(w.kind!=='near'){delete s.story.flags[f];out.push(m.id);continue;}if(id in near&&!nearHit(near[id],w.distance)){delete s.story.flags[f];out.push(m.id);}}return out;}
  function markRead(s,id){const [mid,sid]=String(id||'').split('/');if(!mid||!sid||!s||!s.story||!s.story.flags)return false;if(s.story.flags[readFlag(mid,sid)]===true)return false;s.story.flags[readFlag(mid,sid)]=true;return true;}
  /* "GIVER WAITS AT" (the owner approved it for Reverie and Lace, 18 Nov 2026): the spots where a giver should wait now, one per giver: the first mission of an open tree
     that is waiting to be offered by her (not taken, not done, every mission before it done), offered in person or "when walked near" her, with a waitAt. */
  function waitingAt(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;
-   if(!rec||!rec.acquired){const st=m.start,w=st&&st.how==='notification'?st.when||{}:null,byHer=!st||st.how!=='notification'||(w&&w.kind==='near'&&(w.npc||m.giver)===m.giver);
+   if(!rec||!rec.acquired){const dn=s.story.flags[denyFlag(m.id)];if(m.start&&m.start.accept===true&&(dn==='never'||dn==='later'||Number.isSafeInteger(dn)&&dn>0))break;   // denied: she goes about her own routine meanwhile (and for good after "never")
+    const st=m.start,w=st&&st.how==='notification'?st.when||{}:null,byHer=!st||st.how!=='notification'||(w&&w.kind==='near'&&(w.npc||m.giver)===m.giver);
     if(m.waitAt&&byHer&&!out[m.giver])out[m.giver]={...m.waitAt,mission:m.id};}
    break;}}
   return out;}
@@ -605,7 +627,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const w=secs(l.wait,1,TIME.lineWait),sh=secs(l.show,1,TIME.lineShow);if(w)x.wait=w;if(sh)x.show=sh;return x;});
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
  const askStrip=(st,who)=>{if(!st||st.accept!==true)return {};const x={accept:true};for(const k of ['yes','no'])if(typeof st[k]==='string'&&st[k].trim())x[k]=st[k].trim().slice(0,MONEY.label);
-  if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
+  if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;if(x.deny==='after')x.denyMinutes=denyMinutes(st.denyMinutes);const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
  function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();
    const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;Object.assign(x,askStrip(st,st.from||m.giver));r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',...askStrip(m.start,m.giver)};
   {const c=m.cost;if(c&&Number.isInteger(c.amount)&&c.amount>0){const x={amount:Math.min(c.amount,MONEY.max)};if(c.when&&c.when!=='accept')x.when=c.when;else if(c.refund===true)x.refund=true;r.cost=x;}}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
@@ -772,7 +794,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function apartmentsNow(s,env){const X=APT();return X&&aptLive(s,env)?X.openNow(s,env.trees):[];}
  function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
  function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
- const api={askNow,ASK_STEP,askPriceFlag,apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={askNow,ASK_STEP,askPriceFlag,apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

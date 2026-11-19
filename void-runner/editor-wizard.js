@@ -40,7 +40,7 @@
   // mission timers: a plain wait (the Mission Editor adds "only while the player stays near someone" and a delay before any step)
   {id:'wait',name:'Wait a number of seconds',needs:'seconds',ask:'How many seconds (1 to 600)?'},
   // mission apartments (apartments.js): the wizard's one apartment (a.apt, "An apartment for this mission" on the steps page); the Mission Editor adds more, items and hacks
-  {id:'apt-enter',name:'Go into the mission’s apartment',needs:'apt',ask:'The apartment'}];
+  {id:'apt-enter',name:'Go into the mission’s apartment or location',needs:'apt',ask:'Which place do they go into?'}];
  const AX=()=>{try{return typeof module!=='undefined'&&module.exports?require('./apartments.js'):root.VoidApartments;}catch{return null;}};
  const NG=()=>typeof module!=='undefined'&&module.exports?require('./npc-gestures.js'):root.VoidNPCGestures;
  const EX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;
@@ -70,7 +70,14 @@
  function setTemplate(a,id){const t=template(id);if(!t)return a;const touched=a.steps.some(s=>s.npc||s.place||(s.label&&!s.auto));a.template=t.id;if(!touched)a.steps=t.steps.map(stepOf);return a;}
  /* The Mission Log line for a step, made from its choices (used until the owner types his own). ctx.name(id), ctx.place(id). */
  function labelFor(s,ctx={}){const who=s.npc?(ctx.name?ctx.name(s.npc):s.npc):'someone',where=s.place?(ctx.place?ctx.place(s.place):s.place):'the place';
-  return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':s.kind==='follow-them'?'Follow '+who:s.kind==='they-follow'?'Bring '+who+' with you':s.kind==='their-cab'||s.kind==='shared-cab'?'Ride a cab with '+who:s.kind==='anim'?'Watch '+who:s.kind==='wait'?'Wait':s.kind==='apt-enter'?'Go into the apartment'+(ctx.door?' at '+ctx.door:''):'';}
+  return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':s.kind==='follow-them'?'Follow '+who:s.kind==='they-follow'?'Bring '+who+' with you':s.kind==='their-cab'||s.kind==='shared-cab'?'Ride a cab with '+who:s.kind==='anim'?'Watch '+who:s.kind==='wait'?'Wait':s.kind==='apt-enter'?(aptWords(s,ctx.apt)||'Go into the apartment'+(ctx.door?' at '+ctx.door:'')):'';}
+ /* The wizard's one location or apartment as the mission will hold it (build), and the words of a "Go into" step from the room chosen in it (mission-blocks.js placeWords:
+    "Go into the office floor"). any: also before its street door is chosen (for the words and the room list). */
+ const MBK=()=>{try{return typeof module!=='undefined'&&module.exports?require('./mission-blocks.js'):root.VoidMissionBlocks;}catch{return null;}};
+ const MXW=()=>{try{return typeof module!=='undefined'&&module.exports?require('./modules.js'):root.VoidModules;}catch{return null;}};
+ function aptRecord(a,any){if(!a||!a.apt||!(a.apt.door||any))return null;const MX=MXW(),door=a.apt.door||'';return a.apt.template&&MX&&MX.template(a.apt.template)?{id:'a1',door,...MX.template(a.apt.template)}:{id:'a1',style:a.apt.style||'normal',door};}
+ function aptWords(s,rec){const B=MBK();return rec&&B?B.placeWords({kind:'apt-enter',apt:rec.id,...(s.mod?{mod:s.mod}:{})},{apartments:[rec]}):'';}
+ function aptChoices(a){const rec=aptRecord(a,true),B=MBK();return rec&&B?B.placeOptions({apartments:[rec]},'apt-enter'):[];}
  function relabel(a,ctx){for(const s of a.steps)if(s.auto||!String(s.label||'').trim()){s.label=labelFor(s,ctx);s.auto=true;}return a;}
  /* Who can give a mission or be talked to: a TALK prompt in the game and playable in a draft (mission-content.js treeNeeds uses the same test). */
  const canTalk=(givers,id)=>{const g=(givers||[]).find(x=>x.id===id);return !!(g&&g.canTalk&&g.draft);};
@@ -120,13 +127,12 @@
   else if(a.start==='near')m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:5}};
   else if(a.start==='messages')m.start={how:'notification',channel:'messages',from:a.giver,header:String(a.message.header||'').trim().slice(0,80)||'MESSAGE',text,when:{kind:'pod-exit'}};
   if(ask&&m.start)m.start.accept=true;
-  const MX=(()=>{try{return typeof module!=='undefined'&&module.exports?require('./modules.js'):root.VoidModules;}catch{return null;}})();   // a location built from modules (modules.js TEMPLATES): an office, a server room, a shop back room ...
-  const apt=a.apt&&a.apt.door?(a.apt.template&&MX&&MX.template(a.apt.template)?{id:'a1',door:a.apt.door,...MX.template(a.apt.template)}:{id:'a1',style:a.apt.style||'normal',door:a.apt.door}):null;if(apt)m.apartments=[apt];   // one apartment (apartments.js); the Mission Editor adds more
+  const apt=aptRecord(a);if(apt)m.apartments=[apt];   // a location built from modules (modules.js TEMPLATES: an office, a server room, a shop back room ...) or an apartment   // one apartment (apartments.js); the Mission Editor adds more
   m.objectives=[];m.seq=0;
   for(const s of a.steps){const o=T.addStep(m,{kind:s.kind});o.label=String(s.label||'').trim().slice(0,500);if(s.kind==='go')o.place=s.place;else o.npc=s.npc;
-   if(s.kind==='follow-them'||s.kind==='they-follow'){const p=(EX()?EX().spots(s.npc):[]).find(x=>x.id===s.spot);if(p)o.to={x:p.x,z:p.z};}if((s.kind==='their-cab'||s.kind==='shared-cab')&&s.stop)o.stop=s.stop;if(s.kind==='anim'){if(s.clip)o.clip=s.clip;o.hold=3;}if(s.kind==='wait'){o.hold=s.secs;delete o.npc;}if(s.kind==='apt-enter'){delete o.npc;if(apt)o.apt=apt.id;}}
+   if(s.kind==='follow-them'||s.kind==='they-follow'){const p=(EX()?EX().spots(s.npc):[]).find(x=>x.id===s.spot);if(p)o.to={x:p.x,z:p.z};}if((s.kind==='their-cab'||s.kind==='shared-cab')&&s.stop)o.stop=s.stop;if(s.kind==='anim'){if(s.clip)o.clip=s.clip;o.hold=3;}if(s.kind==='wait'){o.hold=s.secs;delete o.npc;}if(s.kind==='apt-enter'){delete o.npc;if(apt){o.apt=apt.id;if(s.mod&&Array.isArray(apt.modules)&&apt.modules.some(x=>x&&x.id===s.mod))o.mod=s.mod;}}}
   return {tree,mission:m};}
  const ICON_IDS=['mission','character','test','publish','balance','jump','trophy','people','parcel','meet','pin','camera','talk','undo','help','back','next','check'];
- const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,asks,template,fresh,setTemplate,labelFor,relabel,canTalk,problems,allProblems,build,ICON_IDS};
+ const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,asks,template,fresh,setTemplate,labelFor,relabel,aptRecord,aptWords,aptChoices,canTalk,problems,allProblems,build,ICON_IDS};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidEditorWizard=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

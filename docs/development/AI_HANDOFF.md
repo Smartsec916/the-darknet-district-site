@@ -6,6 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): MISSION EDITOR — PLACES BY NAME IN "GO INTO" / "USE" / "HACK"; DENIED OFFERS COME BACK AFTER N MINUTES, AFTER THE NEXT POD EXIT, OR NEVER (branch `claude/deny-retry-place-words`, build `2026-11-19-deny-retry-1`, pushed, NO PR, not merged)
+
+The owner: "Go into the apartment" on an office step, "Can it be in a drop-down?"; a denied walked-near offer: "Maybe set a time for return, or remove after". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twenty-third pass".
+
+- **Places by name:** one list of the mission's rooms ("Office floor (No. 13, The Avenue, offices)", "Server room", "Rundown apartment 104", "Container apartment, regular") in Form, Blocks and the wizard; the Mission Log words are made from it and follow it while automatic; own words kept, USE THE AUTOMATIC WORDS. Hack lists the doors by name. Data unchanged (`apt`, `mod`, `object`, `ap`).
+- **On DENY:** offer again after N minutes of play (1–120, default 10; walked-near also needs walking away and back), after the next pod exit, never (remove it), or start another mission; existing missions unchanged. `story.flags.md_<mission>` (seconds left as a safe integer, 'later', 'away', 'never'); server checks `denyMinutes`. Draft banner: SKIP THE WAIT.
+- **Givers:** a "Giver waits at" giver follows her own routine while the offer waits (for good after "never") and walks back; Reverie, Lace, the cat and made givers are never moved or removed while in the player's view (held until unseen).
+- **Tests:** `tests/deny-retry.test.cjs`, `tests/test_deny_retry.py`, browser `tests/deny-retry-browser.cjs`. **Not verified:** the giver hold / walk-back in a browser, real hardware, VR.
+
 ### 19 Nov 2026 (newest): THE KESTREL'S EXTERIOR — A MESHY MODEL FROM THE OWNER'S REFERENCE SHEET (branch `claude/kestrel-upgrade`, build `2026-11-19-kestrel-1`, pushed, NO PR)
 
 - **What changed:** wherever the game shows the Kestrel from outside, it is now a Meshy model made from the owner's reference sheet: worn off-white plating with black panels, red stripes, chipped paint and rust, a framed canopy, swept wings with gun and missile rails, twin engines with orange cores, tail fins, landing gear. The cockpit and the cargo hold inside are unchanged.

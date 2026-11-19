@@ -471,7 +471,7 @@
   refund:'“Refund if abandoned” gives the credits back if the player abandons the mission (off unless you tick it; the game has no abandon button for these missions yet).',
   ask:'The player sees the mission’s name, its short description and the cost or reward, then chooses. Nothing is taken until they accept. Works for every way of starting.',
   labels:'The words on the two buttons, 20 letters at most. Empty: ACCEPT and DENY.',
-  deny:{again:'Nothing happens: it is offered again later (the next talk for an offer in person; the next time they leave the Sleeping Pod for a message, call, banner or walk-near).',never:'It is never offered again. Missions after it in this tree will not come either.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},
+  deny:{again:'Today’s behaviour: an offer in person comes again the next time the player talks to them; a message, call, banner or walk-near comes again after the next Sleeping Pod exit.',pod:'It comes again after the player next leaves their Sleeping Pod. Meanwhile a giver who waits at a spot for it goes about her own routine.',after:'It comes again after that many minutes of play (1 to 120; only while the player is in the world, not in menus or conversations; a reload keeps the count). A walk-near offer also needs the player to walk out of its distance and come back. Meanwhile a giver who waits at a spot for it goes about her own routine, then walks back to it (never popping in or out in front of the player). In PLAY THIS DRAFT, SKIP THE WAIT in the banner ends the wait at once.',never:'It is never offered again (removed). Missions after it in this tree will not come either. A giver who waited at a spot for it goes back to her own routine, out of the player’s sight.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},
   denySay:'Optional: what is said after DENY, in your own words. Empty: nothing is said.'};
  // The question that "Player pays … when they press ACCEPT" turned on by itself (this session): turned off again when that cost goes, so a walked-near or device start is automatic again.
  const forcedAsk=new Set();
@@ -498,9 +498,10 @@
   if(!on)return box;
   const lab=(k,ph)=>{const i=el('input','','',{'aria-label':ph+' button label',['data-me-ask-'+k]:m.id,maxlength:'20',size:'10',placeholder:ph});i.value=st[k]||'';i.oninput=()=>set(x=>{const v=i.value.slice(0,20);if(v.trim())x[k]=v;else delete x[k];});return i;};
   const r=el('div','','me-row');r.append(el('span','Buttons','me-small'),lab('yes','ACCEPT'),lab('no','DENY'));box.append(r,hint(HELP_MONEY.labels));
-  const dn=el('select','','',{'aria-label':'What happens on DENY','data-me-ask-deny':m.id});for(const [v,n] of [['again','Nothing: offer it again later'],['never','Never offer it again'],['start','Start another mission']])dn.append(new Option(n,v));dn.value=st.deny||'again';
-  dn.onchange=()=>set(x=>{if(dn.value==='again')delete x.deny;else x.deny=dn.value;if(dn.value!=='start')delete x.denyStart;},true);
+  const dn=el('select','','',{'aria-label':'What happens on DENY','data-me-ask-deny':m.id});const byNote=st.how==='notification';for(const [v,n] of [['after','Offer again after a number of minutes'],['again',byNote?'Offer again after the next pod exit':'Offer again the next time they talk to them'],...(byNote?[]:[['pod','Offer again after the next pod exit']]),['never','Never offer again (remove it)'],['start','Start another mission']])dn.append(new Option(n,v));dn.value=byNote&&st.deny==='pod'?'again':st.deny||'again';
+  dn.onchange=()=>set(x=>{if(dn.value==='again')delete x.deny;else x.deny=dn.value;if(dn.value!=='start')delete x.denyStart;if(dn.value==='after')x.denyMinutes=Number.isInteger(x.denyMinutes)?x.denyMinutes:MC().DENY_MIN.def;else delete x.denyMinutes;},true);
   const r2=el('div','','me-row');r2.append(el('b','On DENY'),dn,...optHelp(dn,HELP_MONEY.deny,'What happens on DENY'));
+  if(st.deny==='after'){const D=MC().DENY_MIN;r2.append(numBox('Minutes of play before it is offered again',MC().denyMinutes(st.denyMinutes),D.min,D.max,v=>set(x=>{x.denyMinutes=Number.isInteger(v)?Math.max(D.min,Math.min(D.max,v)):D.def;}),{'data-me-ask-deny-minutes':m.id}),el('span','minutes of play'+(byNote&&(st.when||{}).kind==='near'?' (and the player walks away and comes back)':''),'me-small'));}
   if(st.deny==='start'){const ms=el('select','','',{'aria-label':'Mission started on DENY','data-me-ask-deny-start':m.id});ms.append(new Option('— choose a mission —',''));
    for(const tt of local().trees)if(tt.id!==t.id&&tt.missions&&tt.missions[0])ms.append(new Option(numLabel(tt.missions[0].number,tt.missions[0].title||tt.missions[0].id)+' (first of '+(tt.name||tt.id)+')',tt.missions[0].id));
    ms.value=st.denyStart||'';ms.onchange=()=>set(x=>{if(ms.value)x.denyStart=ms.value;else delete x.denyStart;},true);r2.append(ms);}
@@ -516,10 +517,24 @@
   // a container style only behind an Outskirts container door, a city style only behind a city door (style null: every door, e.g. for a hack step)
   for(const q of ['avenue','oldtown','far-south','port','outskirts']){const g=document.createElement('optgroup');g.label=QNAME[q];for(const d of X.doorsIn(q)){if(style!=null&&(d.family==='container')!==cont)continue;g.append(new Option(d.name+' ('+((X.STYLES.find(t=>t.id===d.style)||{}).name||d.style)+(d.family==='container'?'':' building')+')',d.id));}if(g.children.length)sel.append(g);}
   sel.value=value||'';sel.onchange=()=>on(sel.value||'');return sel;}
+ /* "Go into" / "Use something" (the owner, 19 Nov 2026: "I won't remember this. Can it be in a drop-down?"): ONE list of this mission's places by their real names and
+    types (mission-blocks.js placeOptions: "Office floor (No. 13, The Avenue, offices)", "Server room (…)", "Rundown apartment 104 (…)"); the step's words are made from the
+    choice ("Go into the office floor", "Use the server rack in the server room") and follow it while they are automatic; the owner's own words are kept. */
+ const BK=()=>root.VoidMissionBlocks;
+ function placeRow(m,o,eo){const B=BK(),k=o.kind,list=B.placeOptions(m,k),cur=B.placeValue(o),out=[];
+  const sel=el('select','','',{'aria-label':k==='apt-use'?'Where it is':'Which place','data-me-step-apt':o.id});sel.append(new Option(list.length?'— choose the place —':'— add a location or an apartment first —',''));
+  for(const p of list)sel.append(new Option(p.label,p.value));if(cur&&!list.some(p=>p.value===cur))sel.append(new Option(cur+' (not in this mission any more)',cur));sel.value=cur;
+  sel.onchange=()=>eo(x=>B.rewordAfter(x,m,y=>B.placeSet(y,sel.value,m)),true);out.push(el('span',k==='apt-use'?'in':'into','me-small'),sel);
+  if(k==='apt-use'){const p=list.find(x=>x.value===cur),ob=el('select','','',{'aria-label':'What is used','data-me-step-object':o.id});ob.append(new Option(p?'— choose what is used —':'— choose the place first —',''));
+   for(const x of (p&&p.objects)||[])ob.append(new Option(x.name,x.id));ob.value=o.object||'';ob.onchange=()=>eo(x=>B.rewordAfter(x,m,y=>{if(ob.value)y.object=ob.value;else delete y.object;}),true);out.push(el('span','use','me-small'),ob);}
+  return out;}
+ /* "Use the automatic words": shown while the step's words are the owner's own and differ from the words its place would give. */
+ function autoWordsBtn(m,o,eo){const B=BK(),w=B.placeWords(o,m);
+  const b=btn('USE THE AUTOMATIC WORDS',()=>eo(x=>{const v=B.placeWords(x,m);if(v)x.label=v;},true),'me-small',{'data-me-auto-words':o.id,title:w?'Replace the words with: '+w:'Choose the place first'});
+  b.refresh=label=>{b.hidden=!w||String(label||'').trim()===w;};b.refresh(o.label);return b;}
  function hackRow(m,o,eo){const X=APX(),out=[],sel=el('select','','',{'aria-label':'Which access point','data-me-step-ap':o.id});sel.append(new Option('— choose the access point —',''));
-  for(const p of (MED()?MED().accessPoints(m):[]))sel.append(new Option(p.label,p.ap));
-  for(const a of m.apartments||[]){if(Array.isArray(a.modules)){if(a.door)sel.append(new Option('Location '+a.id+': its street door ('+((X.door(a.door)||{}).name||a.door)+')',a.door));continue;}sel.append(new Option('Apartment '+a.id+': its door in the hallway',a.id+'/hall'));sel.append(new Option('Apartment '+a.id+': inside, by its entry door',a.id+'/entry'));if(a.door)sel.append(new Option('Apartment '+a.id+': its street door ('+((X.door(a.door)||{}).name||a.door)+')',a.door));}
-  const g=document.createElement('optgroup');g.label='Any street door';for(const d of X.doors())g.append(new Option(d.name+' · '+QNAME[d.quarter],d.id));sel.append(g);sel.value=o.ap||'';sel.onchange=()=>eo(x=>{if(sel.value)x.ap=sel.value;else delete x.ap;},true);
+  for(const p of BK().hackOptions(m))sel.append(new Option(p.label,p.ap));   // this mission's doors by their real names (mission-blocks.js hackOptions)
+  const g=document.createElement('optgroup');g.label='Any street door';for(const d of X.doors())g.append(new Option(d.name+' · '+QNAME[d.quarter],d.id));sel.append(g);sel.value=o.ap||'';sel.onchange=()=>eo(x=>BK().rewordAfter(x,m,y=>{if(sel.value)y.ap=sel.value;else delete y.ap;}),true);
   out.push(el('span','hack','me-small'),sel,numBox('Seconds the hack takes',Number.isInteger(o.hold)?o.hold:X.HACK.def,X.HACK.min,X.HACK.max,v=>eo(x=>{x.hold=v||X.HACK.def;}),{'data-me-step-hold':o.id}),el('span','s','me-small'));
   const cb=(label,key,def,attr)=>{const l=el('label','','me-small');const i=el('input','','',{type:'checkbox',[attr]:o.id});i.checked=o[key]==null?def:o[key]===true;i.onchange=()=>eo(x=>{if(i.checked===def)delete x[key];else x[key]=i.checked;});l.append(i,document.createTextNode(' '+label));return l;};
   out.push(cb('fails if they walk away','stay',true,'data-me-step-stay'),cb('opens that door for them','unlock',!o.feed,'data-me-step-unlock'));
@@ -578,7 +593,7 @@
   if(r&&r.error){status=r.error;draw();}return r;}
  function treeStepRow(t,raw,m,o,k,ed){const sb=el('section','','me-step',{'data-me-tstep':o.id,'data-me-step':o.id}),eo=(fn,redraw)=>ed(x=>{const oo=x.objectives.find(y=>y.id===o.id);if(oo)fn(oo,x);},redraw);
   const head=el('div','','me-row');head.append(el('b','STEP '+(k+1)+' · '+o.id));
-  const kind=el('select','','',{'aria-label':'Kind of step','data-me-kind':o.id});for(const x of G().STEP_KINDS)kind.append(new Option(x.name+(x.supported?'':' — needs a code change'),x.id));kind.value=o.kind||'talk';kind.onchange=()=>eo(x=>{x.kind=kind.value;},true);head.append(kind,...optHelp(kind,HELP_STEP,'Kind of step'));
+  const kind=el('select','','',{'aria-label':'Kind of step','data-me-kind':o.id});for(const x of G().STEP_KINDS)kind.append(new Option(x.name+(x.supported?'':' — needs a code change'),x.id));kind.value=o.kind||'talk';kind.onchange=()=>eo(x=>{const was=BK().wordsAuto(x,m)&&!!BK().placeWords(x,m);x.kind=kind.value;if(was){const w=BK().placeWords(x,m);if(w)x.label=w;}},true);/* words made from the place follow the new kind */head.append(kind,...optHelp(kind,HELP_STEP,'Kind of step'));
   const st=G().STEP_KINDS.find(x=>x.id===o.kind);
   if(o.kind==='talk'||o.kind==='deliver')head.append(npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who it happens with',attrs:{'data-me-step-npc':o.id}}));
   else if(o.kind==='go')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to go to',false,{'data-me-step-place':o.id}));else if(o.kind==='arrive')head.append(placeSelect(o.place,v=>eo(x=>{x.place=v;},true),'Place to fly to',true,{'data-me-step-place':o.id}));else if(o.kind==='buy')head.append(itemSelect(o.item,v=>eo(x=>{x.item=v;},true),{'data-me-step-item':o.id}));
@@ -596,9 +611,7 @@
    const nr=el('input','','',{type:'number',min:'1',max:'50',step:'1',size:'3','aria-label':'Only while the player stays within (metres)',placeholder:'—','data-me-step-near':o.id});nr.value=Number.isInteger(o.near)?String(o.near):'';
    nr.oninput=()=>{const n=parseInt(nr.value,10);eo(x=>{if(Number.isFinite(n)&&n>0)x.near=Math.min(50,n);else delete x.near;words.textContent=waitWords(x);});};
    head.append(el('span','Wait','me-small'),hd,el('span','seconds · only while the player stays within','me-small'),nr,el('span','m of','me-small'),npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who the player stays near',empty:'— anyone / anywhere —',attrs:{'data-me-step-npc':o.id}}),words);}
-  else if(o.kind==='apt-enter'||o.kind==='apt-use'){head.append(el('span','in','me-small'),aptSelect(m,o.apt,v=>eo(x=>{x.apt=v;},true),{'data-me-step-apt':o.id}));
-   if(MED())head.append(...MED().stepMod(m,o,eo,{'data-me-step-mod':o.id}));
-   if(o.kind==='apt-use'){const sel=el('select','','',{'aria-label':'What is used','data-me-step-object':o.id});sel.append(new Option('— choose what is used —',''));for(const ob of (MED()?MED().objects(m,o):root.VoidApartments.OBJECTS))sel.append(new Option(ob.name,ob.id));sel.value=o.object||'';sel.onchange=()=>eo(x=>{if(sel.value)x.object=sel.value;else delete x.object;},true);head.append(el('span','use','me-small'),sel);}}
+  else if(o.kind==='apt-enter'||o.kind==='apt-use')head.append(...placeRow(m,o,eo));   // the place by its real name; the words follow it (placeRow)
   else if(o.kind==='hack')head.append(...hackRow(m,o,eo));
   else if(o.kind==='ask'&&root.VoidMissionBlocksView)head.append(...root.VoidMissionBlocksView.askFields({t,m,o,eo,kit:blocksKit}));   // ACCEPT / DENY in the middle of a mission (the same fields as its block)
   else if(o.kind==='pod-exit')head.append(el('span','Done when the player leaves the Sleeping Pod (EXIT POD).','me-small'));
@@ -608,7 +621,7 @@
   head.append(btn('▲',()=>ed(x=>T().moveStep(x,o.id,-1),true),'',{'aria-label':'Move step up',...(k?{}:{disabled:''})}),btn('▼',()=>ed(x=>T().moveStep(x,o.id,1),true),'',{'aria-label':'Move step down',...(k<m.objectives.length-1?{}:{disabled:''})}),
    btn('×',()=>ed(x=>T().removeStep(x,o.id),true),'me-x',{'aria-label':'Remove step',...(m.objectives.length>1?{}:{disabled:''})}),btn('PLAY THIS DRAFT FROM HERE',()=>play('tree:'+m.id,o.id),'me-play',{'data-me-play':'tree:'+m.id+'#'+o.id,...(blocked?{disabled:''}:{})}));
   sb.append(head);if(st&&st.note)sb.append(el('p',st.note,'me-small'));if(EX()&&EX().IDS.includes(o.kind))sb.append(escortPanel(m,o,eo));
-  const l=el('label','','me-field');l.append(el('span','What the player must do (V1 Mission Log)'));const inp=el('input','','',{placeholder:o.kind==='anim'?'(empty: “Watch”; shown in the Mission Log for those seconds)':o.kind==='wait'?'(empty: “Wait”; shown in the Mission Log while it waits)':'(your words)','data-me-label':o.id,maxlength:'500'});inp.value=o.label||'';inp.oninput=()=>{eo(x=>{x.label=inp.value.slice(0,500);});guideSoon();};l.append(inp,hint(HELP.label));sb.append(l);
+  const l=el('label','','me-field');l.append(el('span','What the player must do (V1 Mission Log)'));const inp=el('input','','',{placeholder:o.kind==='anim'?'(empty: “Watch”; shown in the Mission Log for those seconds)':o.kind==='wait'?'(empty: “Wait”; shown in the Mission Log while it waits)':'(your words)','data-me-label':o.id,maxlength:'500'});inp.value=o.label||'';inp.oninput=()=>{eo(x=>{x.label=inp.value.slice(0,500);});l.querySelector('[data-me-auto-words]')?.refresh?.(inp.value);guideSoon();};l.append(inp);if(['apt-enter','apt-use','hack'].includes(o.kind))l.append(autoWordsBtn(m,o,eo));l.append(hint(HELP.label));sb.append(l);
   // how "what is said" reaches the player: the conversation window, a Comms call, or a message (Mission 002: Admin calls as the player walks into NULL)
   if(o.kind==='anim')sb.append(hint(ANIM_STEP_HELP,{'data-me-anim-step-help':o.id}));if(o.kind==='wait')sb.append(hint(WAIT_STEP_HELP,{'data-me-wait-step-help':o.id}));
   {const dr=el('div','','me-row',{'data-me-step-delay-row':o.id}),words=el('span',o.delay>0?'This step starts '+secWords(o.delay)+' after the step before it is done.':'Starts as soon as the step before it is done.','me-small');
@@ -1067,7 +1080,7 @@
   root_.append(vs);
  }
  /* What the Blocks view (mission-blocks-view.js) uses from here: the Form view's own pickers and boxes, so both views edit the same data in the same way. */
- const blocksKit={el,btn,hint,optHelp,HELP,HELP_STEP,npcSelect,placeSelect,regionSelect,itemSelect,subjectsPicker,animPick,numBox,escortWho,escortPanel,hackRow,aptSelect,doorSelect,importBox,aptReady,aptEnsure,giver,voiceNow,local,editTree,guideSoon,play,jumpApt,numLabel,secWords,lineTimeWords,waitWords,
+ const blocksKit={el,btn,hint,optHelp,HELP,HELP_STEP,npcSelect,placeSelect,regionSelect,itemSelect,subjectsPicker,animPick,numBox,escortWho,escortPanel,hackRow,aptSelect,placeRow,autoWordsBtn,doorSelect,importBox,aptReady,aptEnsure,giver,voiceNow,local,editTree,guideSoon,play,jumpApt,numLabel,secWords,lineTimeWords,waitWords,
   get givers(){return givers;},get items(){return items;},get refs(){return refs;},status:t=>setStatus(t),draw:()=>draw(),G,MC,EX:()=>EX(),NGS,fresh,blockers:m=>MC().treeBlockers(m,givers,items),needs:m=>MC().treeNeeds(m,givers,items)};
  /* What Developer Tools > NPCs uses from here: the same draft, the same lines and voice view, the same play and check, the same help style. */
  const shared={el,btn,hint,optHelp,HELP,local,saveLocal,restoreRaw,KEY,STUDIO,
