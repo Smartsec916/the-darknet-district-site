@@ -115,7 +115,7 @@
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
  /* How a mission starts (the owner, 17 Nov 2026: "either have Missions start by notification or in person"). */
- const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / NOT NOW: the giver offers it and the player chooses (a player who says NOT NOW can come back)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
+ const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / DENY: the giver offers it and the player chooses (DENY: offered again later unless set otherwise)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
  const START_CHANNELS=[{id:'messages',name:'MESSAGES',note:'A text in the V1 Messages app (INBOX). No reply is needed.'},
   {id:'comms',name:'COMMS CALL',note:'A call in the Comms app: the sender and the words as a transcript. The voice plays only if a recorded clip exists for that exact line (nothing is generated).'},
   {id:'notify',name:'NOTIFICATION ONLY',note:'A banner on the screen, then the Mission Log. Nothing is kept in Messages or Comms.'}];
@@ -129,10 +129,12 @@
  /* Givers with a shift (Reverie, Lace): are they out on the street at this moment (ms, UTC)? The street pair's own rule (ncz-street-pair.js onStreet: hours, and nobody
     for the first `arrive` seconds of a shift) when it is loaded; else the same rule from the shift here. Everyone else: always. */
  const SP=()=>typeof module!=='undefined'&&module.exports?require('./ncz-street-pair.js'):root.VoidStreetPair;
- function onDuty(g,ms=Date.now()){const sh=g&&g.shift;if(!sh)return true;const S=SP();if(S&&S.onStreet){const w=S.onStreet(ms);return !!w&&w.id===g.id;}
+ // ms: the STREET clock (ncz-street-pair.js streetTime: the real time, or the simulated one of a draft test). streetTime(realMs) maps a real moment onto it.
+ const streetTime=ms=>{const S=SP();return S&&S.streetTime?S.streetTime(ms??Date.now()):(ms??Date.now());};
+ function onDuty(g,ms=streetTime()){const sh=g&&g.shift;if(!sh)return true;const S=SP();if(S&&S.onStreet){const w=S.onStreet(ms);return !!w&&w.id===g.id;}
   const d=new Date(ms),h=d.getUTCHours(),start=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),h<12?0:12);return h>=sh.hours[0]&&h<sh.hours[1]&&ms-start>=(sh.arrive||0)*1000;}
  const hh=h=>String(h%24).padStart(2,'0')+':00';
- function shiftText(g,ms=Date.now()){const sh=g&&g.shift;if(!sh)return '';const on=onDuty(g,ms),d=new Date(ms),h=d.getUTCHours(),next=h<sh.hours[0]?sh.hours[0]:sh.hours[0]+24;
+ function shiftText(g,ms=streetTime()){const sh=g&&g.shift;if(!sh)return '';const on=onDuty(g,ms),d=new Date(ms),h=d.getUTCHours(),next=h<sh.hours[0]?sh.hours[0]:sh.hours[0]+24;
   return 'Only while '+g.name+' is out on the street: '+hh(sh.hours[0])+' to '+hh(sh.hours[1])+' UTC every day (the first '+Math.round((sh.arrive||0)/60*10)/10+' minutes of a shift nobody is out yet). Her missions are offered only then: talking to her, or walking near her. '+(on?'She is out now.':'She is not out now (next shift from '+hh(next)+' UTC).');}
  const FLAG_PREFIX='mf_',FLAG=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const nameOf=(id,reg,people,story,temple)=>reg[id]?.displayName||FACTS[id]?.name||people.get(id)?.name||story[id]?.name||(temple&&temple.id===id?temple.name:'')||id;
@@ -173,6 +175,6 @@
  const FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];
  /* Items a "buy" step can name: modules a store actually sells (progression.js modules: not a reward, not switched off, with a vendor). */
  function buyable(modules){return Object.fromEntries(Object.entries(modules||{}).filter(([,m])=>m&&!m.reward&&m.available!==false&&(m.vendor===undefined||m.vendor)).map(([id,m])=>[id,m.name+' ('+((m.vendor||'outfitter')==='admin'?'Admin’s counter':'ship outfitter')+')']));}
- const api={NEAR,nearMetres,onDuty,shiftText,START_HOW,START_CHANNELS,START_WHEN,FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,FACTIONS,roster,status,whoAt,placesNow,placeIds,photoSubjects,buyable};
+ const api={NEAR,nearMetres,streetTime,onDuty,shiftText,START_HOW,START_CHANNELS,START_WHEN,FACTS,PLACES,PLACE,STEP_KINDS,UNLOCK_KINDS,FLAG_PREFIX,FLAG,FACTIONS,roster,status,whoAt,placesNow,placeIds,photoSubjects,buyable};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionGivers=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

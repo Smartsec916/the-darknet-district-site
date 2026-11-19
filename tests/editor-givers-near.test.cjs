@@ -38,7 +38,7 @@ test('who is out by UTC hour: Reverie 00-11, Lace 12-23, nobody for the first 90
  assert.match(G.shiftText(rev,at(6)),/She is out now/);assert.match(G.shiftText(rev,at(14)),/not out now \(next shift from 00:00 UTC\)/);assert.match(G.shiftText(lace,at(6)),/next shift from 12:00 UTC/);
 });
 
-test('a mission Reverie gives in person is offered only while she is out; draft play is not refused; Lace the same on her shift',()=>{
+test('a mission Reverie gives in person is offered only while she is out; draft play is not exempt but runs on a simulated street clock in her shift; Lace the same on her shift',()=>{
  const x=env(),{MC}=x;
  const tree={id:'draft-street',name:'Street',missions:[{id:'draft-street-m1',number:41,title:'A favour',type:'side',giver:'grey-reverie',start:{how:'person',accept:true},offer:[{who:'grey-reverie',text:'Got a minute?'}],
   objectives:[{id:'go',kind:'go',place:'port',label:'Go to the Port.'}]}]};
@@ -48,7 +48,9 @@ test('a mission Reverie gives in person is offered only while she is out; draft 
  assert.equal(ev(x,s,{type:'talk',npcs:['grey-reverie'],at:at(0,0,40)}).ask,undefined,'the handover: no offer');
  const r=ev(x,s,{type:'talk',npcs:['grey-reverie'],at:at(6)});assert.equal(r.ask.mission,'draft-street-m1');assert.deepEqual(r.lines,[{who:'grey-reverie',text:'Got a minute?'}]);
  assert.equal(ev(x,s,{type:'accept',mission:'draft-street-m1',at:at(6)}).offered,true);
- x.e.draft=true;const s2=player(x);assert.equal(ev(x,s2,{type:'talk',npcs:['grey-reverie'],at:at(14)}).ask.mission,'draft-street-m1','draft play puts her out');x.e.draft=false;
+ // draft play: no exemption any more (19 Nov 2026); a test session's simulated street clock (ncz-street-pair.js) inside her shift makes her available
+ const SP=require(R('void-runner/ncz-street-pair.js'));x.e.draft=true;const s2=player(x);assert.equal(ev(x,s2,{type:'talk',npcs:['grey-reverie'],at:at(14)}).ask,undefined,'draft play at a real Lace hour, no simulated clock: no offer');
+ SP.simulate(SP.testClock(['grey-reverie'],at(14)).ms,at(14));try{assert.equal(ev(x,s2,{type:'talk',npcs:['grey-reverie'],at:at(14)}).ask.mission,'draft-street-m1','the test clock puts the street at 03:00 UTC');}finally{SP.simulate(null);}x.e.draft=false;
  const t2=JSON.parse(JSON.stringify(tree));t2.missions[0].giver='ethereal-lace';t2.missions[0].offer[0].who='ethereal-lace';MC.apply({format:MC.FORMAT,version:MC.VERSION,trees:[t2]},x.e);
  const s3=player(x);assert.equal(ev(x,s3,{type:'talk',npcs:['ethereal-lace'],at:at(6)}).ask,undefined);assert.equal(ev(x,s3,{type:'talk',npcs:['ethereal-lace'],at:at(20)}).ask.mission,'draft-street-m1');
 });
@@ -97,5 +99,5 @@ test('the server checks "when walked near" the same way (void_runner_live_conten
  const py=fs.readFileSync(R('void_runner_live_content.py'),'utf8');assert.match(py,/WHEN = \[[^\]]*'near'\]/);assert.match(py,/'npc', 'distance'\]/);assert.match(py,/NEAR_MIN, NEAR_MAX = 1, 30/);
  const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/setInterval\(nearTick,250\)/);
  for(const k of ["mode!=='walking'",'VoidConversationUI?.isOpen','podWakePending===true','VoidCharacterCreator?.isOpen','VoidKeyMapUI?.open'])assert.ok(lc.includes(k),'near waits: '+k);
- const ed=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8');assert.match(ed,/data-me-start-distance/);assert.match(ed,/data-me-start-near/);assert.match(ed,/VoidStreetPair\.force=sh\.id/);
+ const ed=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8');assert.match(ed,/data-me-start-distance/);assert.match(ed,/data-me-start-near/);assert.doesNotMatch(ed,/VoidStreetPair\.force/);assert.match(ed,/S\.testClock\(ids\)/);
 });

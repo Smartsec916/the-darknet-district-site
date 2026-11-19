@@ -20,7 +20,7 @@ import re
 import time
 from pathlib import Path
 
-from void_runner_drafts import DraftError, editor_uid
+from void_runner_drafts import DEFAULT_VOICE_MODEL, VOICE_MODELS, DraftError, editor_uid, strip_voice_tags, voice_tag_problems
 
 ROOT = Path(__file__).parent
 MAX_BYTES = 200_000
@@ -94,8 +94,11 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips']):
         return ['The content record has an unknown shape.']
+    if content.get('clips') is not None:
+        for p in clip_problems(content['clips']):
+            err(p)
     if content.get('npcs') is not None:
         for p in npc_problems(content['npcs'], inv or _json('void_runner_admin_inventory.json')):
             err(p)
@@ -185,6 +188,9 @@ def check(content, inv=None):
                                 err(ow + ': a line must be plain text.')
                             elif line.get('who') not in speakers:
                                 err(ow + ': unknown speaker.')
+                            else:
+                                for p in voice_tag_problems(line['text']):
+                                    err(ow + ': ' + p)
                 for o in objs:
                     for r2 in (o.get('requires') or []) if isinstance(o, dict) else []:
                         if r2 not in oids:
@@ -243,6 +249,8 @@ def check(content, inv=None):
                 if not _keys(line, ['who', 'from', 'to']) or not isinstance(line.get('who'), str) or not WHO.match(line['who']) or not _plain(line.get('from'), 500) or not _plain(line.get('to'), 500):
                     err('A changed line must name a speaker and be plain text.')
                     continue
+                for p in voice_tag_problems(line['to']):
+                    err('"%s...": %s' % (line['from'][:40], p))
                 if line['who'] == 'player':
                     err('The player\'s own lines are not changed here.')
                 key = line['who'] + '|' + line['from']
@@ -268,6 +276,11 @@ def check(content, inv=None):
 DRAFT = re.compile(r'^draft-[a-z0-9][a-z0-9-]{0,53}$')
 STORY_MISSION = re.compile(r'^(m\d{3}-[a-z0-9][a-z0-9-]{0,50}|main-storyline-m\d{1,3})$')
 HOW = ['person', 'notification']
+# Costs and ACCEPT / DENY (19 Nov 2026; mission-content.js MONEY): cost {amount 1..100000, when 'accept' | a step id, refund (only at 'accept')};
+# start.accept for every start, with yes / no labels (20 characters at most), deny 'again' | 'never' | 'start' (+ denyStart: the first mission of another tree), denySay.
+MONEY_MAX, LABEL_MAX = 100000, 20
+DENY = ['again', 'never', 'start']
+ASK_KEYS = ['yes', 'no', 'deny', 'denyStart', 'denySay']
 CHANNELS = ['messages', 'comms', 'notify']
 WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time', 'near']
 NEAR_MIN, NEAR_MAX = 1, 30
@@ -609,8 +622,24 @@ def voice_refusal(who, reg=None):
     return None
 
 
+def voice_model(v):
+    """The ElevenLabs model of a choice or a revoice-engines.json entry: its own 'model', else '(model ...)' in 'chosen', else Eleven v4 (npc-voices.js modelOf)."""
+    m = v.get('model') if isinstance(v, dict) else None
+    if isinstance(m, str) and m in VOICE_MODELS:
+        return m
+    hit = re.search(r'\(model ([a-z0-9_]+)\)', str((v or {}).get('chosen') or '')) if isinstance(v, dict) else None
+    return hit.group(1) if hit and hit.group(1) in VOICE_MODELS else DEFAULT_VOICE_MODEL
+
+
+def speak_text(text, e):
+    """The text a voice is sent: with its voice tags for an ElevenLabs model that reads them, without them for Kokoro and every other model."""
+    if e and e.get('engine') == 'elevenlabs' and VOICE_MODELS.get(e.get('model') or DEFAULT_VOICE_MODEL, {}).get('tags'):
+        return re.sub(r'[ \t]{2,}', ' ', text).strip()
+    return strip_voice_tags(text).strip()
+
+
 def voice_ok(v):
-    return _keys(v, ['engine', 'voiceId', 'name', 'chosen']) and v.get('engine') == 'elevenlabs' and isinstance(v.get('voiceId'), str) and bool(VOICE_ID.match(v['voiceId'])) \
+    return _keys(v, ['engine', 'voiceId', 'name', 'chosen', 'model']) and (v.get('model') is None or v.get('model') in VOICE_MODELS) and v.get('engine') == 'elevenlabs' and isinstance(v.get('voiceId'), str) and bool(VOICE_ID.match(v['voiceId'])) \
         and _plain(v.get('name'), 60) and isinstance(v.get('chosen'), str) and bool(VOICE_CHOSEN.match(v['chosen']))
 
 
@@ -626,6 +655,8 @@ def voice_problems(voices, inv=None):
             out.append('%s: %s' % (who, r))
         elif who not in givers:
             out.append('%s: not a character the editor knows.' % who)
+        elif isinstance(v, dict) and v.get('model') is not None and v.get('model') not in VOICE_MODELS:
+            out.append('%s: unknown ElevenLabs model "%s" (choose one from the list).' % (who, str(v.get('model'))[:40]))
         elif not voice_ok(v):
             out.append('%s: a voice choice needs an ElevenLabs voice ID (20 letters and digits), a plain name and the date it was chosen.' % who)
     return out
@@ -742,12 +773,12 @@ def import_package_problems(pkg, inv=None):
 
 def start_problems(st, givers, places, mission_ids):
     """How a mission starts: in person (the giver offers it) or by notification (channel, sender, header, text, trigger). Same rules as mission-content.js checkStart()."""
-    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept']) or st.get('how') not in HOW:
+    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept'] + ASK_KEYS) or st.get('how') not in HOW:
         return ['unknown way of starting.']
-    if st.get('accept') is not None and (type(st['accept']) is not bool or st['how'] != 'person'):
-        return ['only a mission offered in person can be accepted or declined.']
+    if st.get('accept') is not None and type(st['accept']) is not bool:
+        return ['"Ask the player: ACCEPT or DENY" must be yes or no.']
     if st['how'] == 'person':
-        return [] if set(st) <= {'how', 'accept'} else ['a mission given in person has no notification fields.']
+        return [] if set(st) <= {'how', 'accept', *ASK_KEYS} else ['a mission given in person has no notification fields.']
     out = []
     if st.get('channel') not in CHANNELS:
         out.append('unknown notification channel.')
@@ -757,6 +788,8 @@ def start_problems(st, givers, places, mission_ids):
         out.append('the notification needs a header (plain text, 80 characters at most).')
     if not _plain(st.get('text'), 500):
         out.append('the notification needs its text (plain text, 500 characters at most).')
+    else:
+        out += ['the notification text: ' + p for p in voice_tag_problems(st['text'])]
     w = st.get('when')
     if not _keys(w, ['kind', 'mission', 'place', 'flag', 'value', 'npc', 'distance']) or w.get('kind') not in WHEN:
         return out + ['the notification needs a trigger it knows.']
@@ -782,6 +815,69 @@ def start_problems(st, givers, places, mission_ids):
             out.append('the trigger flag must be a story flag name.')
         if not (type(v) is bool or (isinstance(v, str) and len(v) <= 200 and not TAGS.search(v)) or (type(v) is int and abs(v) <= 9007199254740991)):
             out.append('bad trigger flag value.')
+    return out
+
+
+def ask_problems(st, tree, trees):
+    """ACCEPT / DENY settings of a start (any way of starting). Same rules as mission-content.js checkAsk() (the lines are checked by the caller)."""
+    out = []
+    if not isinstance(st, dict):
+        return out
+    if any(st.get(k) is not None for k in ASK_KEYS) and st.get('accept') is not True:
+        out.append('button labels and "what happens on DENY" need "Ask the player: ACCEPT or DENY".')
+    for k in ('yes', 'no'):
+        if st.get(k) is not None and not _plain(st[k], LABEL_MAX):
+            out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+    if st.get('deny') is not None and st['deny'] not in DENY:
+        out.append('unknown "what happens on DENY".')
+    if st.get('deny') == 'start':
+        firsts = {t['missions'][0].get('id') for t in trees if isinstance(t, dict) and t is not tree and isinstance(t.get('missions'), list) and t['missions'] and isinstance(t['missions'][0], dict)}
+        if st.get('denyStart') not in firsts:
+            out.append('on DENY it must start the first mission of another tree.')
+    elif st.get('denyStart') is not None:
+        out.append('only "start another mission" names a mission to start.')
+    return out
+
+
+def cost_problems(m, step_ids):
+    """What the player pays (mission-content.js checkCost())."""
+    c = m.get('cost')
+    if c is None:
+        return []
+    if not _keys(c, ['amount', 'when', 'refund']):
+        return ['the cost has unknown fields.']
+    out = []
+    if not (type(c.get('amount')) is int and 1 <= c['amount'] <= MONEY_MAX):
+        out.append('what the player pays must be a whole number from 1 to 100000 credits.')
+    when = 'accept' if c.get('when') is None else c['when']
+    if when != 'accept' and when not in step_ids:
+        out.append('the cost is charged at a step that is not in this mission.')
+    if c.get('refund') is not None and (type(c['refund']) is not bool or (c['refund'] and when != 'accept')):
+        out.append('"refund if abandoned" is only for a cost charged at ACCEPT.')
+    st = m.get('start')
+    if when == 'accept' and not (isinstance(st, dict) and st.get('accept') is True):
+        out.append('a mission the player pays for when accepting must ask the player ACCEPT or DENY.')
+    return out
+
+
+def workspace_money_problems(trees):
+    """The Mission Editor's server copy (void_runner_drafts.py): only the shapes that would be refused anyway (credits range, label length); everything else is checked at publish."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') if isinstance(t, dict) and isinstance(t.get('missions'), list) else []):
+            if not isinstance(m, dict):
+                continue
+            c, r, st = m.get('cost'), m.get('rewards'), m.get('start')
+            if r is not None and not (type(r) is int and 0 <= r <= MONEY_MAX):
+                out.append('credits paid must be a whole number from 0 to 100000.')
+            if c is not None and not (isinstance(c, dict) and type(c.get('amount')) is int and 1 <= c['amount'] <= MONEY_MAX):
+                out.append('what the player pays must be a whole number from 1 to 100000 credits.')
+            if isinstance(st, dict):
+                for k in ('yes', 'no'):
+                    if st.get(k) is not None and not (isinstance(st[k], str) and len(st[k]) <= LABEL_MAX and not TAGS.search(st[k])):
+                        out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+                if st.get('deny') is not None and st['deny'] not in DENY:
+                    out.append('unknown "what happens on DENY".')
     return out
 
 
@@ -851,6 +947,9 @@ def check_trees(trees, inv, err):
                 err(w + ': a line must be plain text.')
             elif line.get('who') != 'You' and line.get('who') not in givers:
                 err(w + ': unknown speaker.')
+            else:
+                for p in voice_tag_problems(line['text']):
+                    err(w + ': ' + p)
     for t in trees:
         if not _keys(t, ['id', 'name', 'note', 'missions']):
             err('A tree has unknown fields.')
@@ -870,7 +969,7 @@ def check_trees(trees, inv, err):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
@@ -885,8 +984,10 @@ def check_trees(trees, inv, err):
             if num is None and t.get('id') in story:
                 err(w + ': every mission in the main storyline needs a mission number.')
             if m.get('start') is not None:
-                for p in start_problems(m['start'], givers, places, every_mission):
+                for p in start_problems(m['start'], givers, places, every_mission) + ask_problems(m['start'], t, trees):
                     err(w + ': ' + p)
+                if isinstance(m['start'], dict):
+                    lines(m['start'].get('denySay'), w + ' / on DENY')
             by_note = isinstance(m.get('start'), dict) and m['start'].get('how') == 'notification'
             if m.get('category') is not None and not _plain(m['category'], 60):
                 err(w + ': the mission type label must be plain text.')
@@ -969,6 +1070,8 @@ def check_trees(trees, inv, err):
                 lines(o.get('say'), ow)
                 lines(o.get('early'), ow)
                 lines(o.get('wrong'), ow)
+            for p in cost_problems(m, oids):
+                err(w + ': ' + p)
             e = m.get('ending')
             if e is not None:
                 if not _keys(e, ['npc', 'place', 'label', 'say']):
@@ -1105,8 +1208,11 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips')):
         raise DraftError('There is nothing to publish.', 422)
+    missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
+    if missing:
+        raise DraftError('%d imported voice file(s) are not on the server yet. Press PUBLISH again (the editor uploads them first).' % len(missing), 422, {'missing': missing})
     note = (content.get('note') or '')[:200]
     return _commit(db, uid, expected, 'publish', lambda tx, live, history: (content, None), note)
 
@@ -1169,16 +1275,21 @@ def live_voices(db):
 def revoice_engine(who, item, published, eng):
     """Which engine re-voices this character's line: the voice sent with the item (chosen in the owner's editor draft), else the published choice, else
     tools/audio/revoice-engines.json, else the registered Kokoro voice. None: no voice at all (not re-voiceable)."""
-    vid, vname = item.get('voiceId'), item.get('voiceName')
+    vid, vname, vmodel = item.get('voiceId'), item.get('voiceName'), item.get('model')
+    if vmodel is not None and vmodel not in VOICE_MODELS:
+        raise DraftError('Unknown ElevenLabs model: choose one from the list.', 422)
     if vid is not None or vname is not None:
         if not (isinstance(vid, str) and VOICE_ID.match(vid) and _plain(vname, 60)):
             raise DraftError('A chosen ElevenLabs voice needs its 20-character voice ID and a plain name.', 422)
-        return {'engine': 'elevenlabs', 'voice': vname.strip(), 'voiceId': vid, 'from': 'editor'}
+        return {'engine': 'elevenlabs', 'voice': vname.strip(), 'voiceId': vid, 'model': vmodel or DEFAULT_VOICE_MODEL, 'from': 'editor'}
     p = published.get(who)
     if isinstance(p, dict) and voice_ok(p):
-        return {'engine': 'elevenlabs', 'voice': p['name'], 'voiceId': p['voiceId'], 'from': 'published'}
+        return {'engine': 'elevenlabs', 'voice': p['name'], 'voiceId': p['voiceId'], 'model': voice_model(p), 'from': 'published'}
     if who in eng:
-        return eng[who]
+        e = dict(eng[who])
+        if e.get('engine') == 'elevenlabs':
+            e['model'] = voice_model(e)
+        return e
     if who in registry()['npcs']:
         return {'engine': 'kokoro'}
     return None
@@ -1198,20 +1309,27 @@ def queue_add(db, uid, payload):
     published = live_voices(db)
     clean = []
     for it in payload['items']:
-        if not _keys(it, ['ref', 'who', 'text', 'from', 'mission', 'source', 'voiceId', 'voiceName']):
+        if not _keys(it, ['ref', 'who', 'text', 'from', 'mission', 'source', 'voiceId', 'voiceName', 'model']):
             raise DraftError('Unknown fields in a re-voice item.')
         who, text = it.get('who'), it.get('text')
         if voice_refusal(who, reg):
             raise DraftError('This character cannot be re-voiced: ' + voice_refusal(who, reg), 422)
         if not _plain(text, 500):
             raise DraftError('A line must be plain text, 500 characters at most.')
+        tp = voice_tag_problems(text)
+        if tp:
+            raise DraftError(tp[0])
         extra = {k: str(it.get(k) or '')[:200] for k in ['ref', 'from', 'mission', 'source'] if not TAGS.search(str(it.get(k) or ''))}
         e = revoice_engine(who, it, published, eng)
         if e is None:
             raise DraftError('Only characters with a registered voice or a chosen ElevenLabs voice can be re-voiced (broadcast voices and the reserved slot cannot).', 422)
-        rec = {'id': item_id(who, text), 'who': who, 'text': text, 'engine': e['engine'], 'status': 'queued', 'at': int(time.time()), **extra}
+        # text: what players see (the clip is found by it); speak: what the voice is sent (voice tags kept only for an ElevenLabs model that reads them)
+        shown, said = strip_voice_tags(text).strip(), speak_text(text, e)
+        rec = {'id': item_id(who, shown), 'who': who, 'text': shown, 'engine': e['engine'], 'status': 'queued', 'at': int(time.time()), **extra}
+        if said != shown:
+            rec['speak'] = said
         if e['engine'] == 'elevenlabs':
-            rec.update(voice=e.get('voice', ''), voiceId=e.get('voiceId', ''), waiting='waiting for ElevenLabs re-voice (needs approval)')
+            rec.update(voice=e.get('voice', ''), voiceId=e.get('voiceId', ''), model=e.get('model') or DEFAULT_VOICE_MODEL, waiting='waiting for ElevenLabs re-voice (needs approval)')
         else:
             rec['voice'] = (npcs.get(who) or {}).get('voice', '')
         clean.append(rec)
@@ -1224,7 +1342,7 @@ def queue_add(db, uid, payload):
         items = dict(data.get('items', {}))
         for rec in clean:
             old = items.get(rec['id'])
-            if old and old.get('status') == 'done':
+            if old and old.get('status') == 'done' and old.get('speak', old.get('text')) == rec.get('speak', rec['text']):
                 continue
             items[rec['id']] = rec
         if len(items) > MAX_QUEUE:
@@ -1250,3 +1368,274 @@ def queue_done(db, uid, payload):
         tx.set(ref, {'items': items})
         return {'items': sorted(items.values(), key=lambda x: x.get('at', 0))}
     return commit(db.transaction())
+
+
+# ---------------------------------------------------------------- imported voice files (Developer Tools, 19 Nov 2026)
+# The owner imports an audio file for a line (void-runner/voice-imports.js). PUBLISH uploads it here first: one Firestore document per file in CLIPS, keyed by the
+# file's SHA-256 (content-addressed, created once, never changed), base64 audio well under Firestore's 1 MiB document limit. Published content references files by
+# hash (content.clips). Players read them with no sign-in (GET voice-clip/<hash>, cached for a year). Firebase Storage is not used (it needs a paid plan).
+# tools/audio/bake-imported.py copies published files into the repository as ordinary clips.
+CLIPS = 'vr_voice_clips'
+CLIP_TYPES = {'audio/ogg', 'audio/mpeg', 'audio/wav'}
+CLIP_MAX_BYTES = 600_000
+CLIP_MAX_SECONDS = 40.0
+CLIP_SLACK = 0.25  # decoders differ by a frame or two
+CLIP_MAX_CLIPS = 200
+HASH = re.compile(r'^[0-9a-f]{64}$')
+_clip_cache = {}
+_CLIP_CACHE_BYTES = 12_000_000
+
+
+def _clip_shape(c):
+    out = []
+    if not isinstance(c, dict):
+        return ['An imported voice file has an unknown shape.']
+    if not _keys(c, ['who', 'text', 'hash', 'type', 'duration', 'bytes']):
+        out.append('An imported voice file has unknown fields.')
+    if not (isinstance(c.get('who'), str) and WHO.match(c['who']) and c['who'] != 'player'):
+        out.append('An imported voice file must belong to a character (not the player).')
+    if not _plain(c.get('text'), 500):
+        out.append('An imported voice file must belong to a line of plain text (500 characters at most).')
+    if not (isinstance(c.get('hash'), str) and HASH.match(c['hash'])):
+        out.append('An imported voice file has a bad file address.')
+    if c.get('type') not in CLIP_TYPES:
+        out.append('An imported voice file must be MP3, WAV or Ogg.')
+    d = c.get('duration')
+    if type(d) not in (int, float) or not 0 < d <= CLIP_MAX_SECONDS + 0.05:
+        out.append('An imported voice file must be 40 seconds at most.')
+    b = c.get('bytes')
+    if type(b) is not int or not 1 <= b <= CLIP_MAX_BYTES:
+        out.append('An imported voice file must be 600 KB at most.')
+    return out
+
+
+def _clip_key(who, text):
+    w = who.lower().strip()
+    w = {'you': 'player', 'pilot': 'player', 'arcade attendant': 'attendant', 'landing terminal': 'landing-terminal'}.get(w) or re.sub(r'^-|-$', '', re.sub(r'[^a-z0-9]+', '-', w))
+    t = text
+    try:  # voice tags ([whispers]) are not part of what players hear (void_runner_drafts.strip_voice_tags, when present)
+        from void_runner_drafts import strip_voice_tags
+        t = strip_voice_tags(text)
+    except ImportError:
+        pass
+    return w + '|' + t.strip()
+
+
+def clip_problems(clips):
+    """content.clips: the same rules as void-runner/voice-imports.js clipProblems."""
+    if not isinstance(clips, list):
+        return ['The imported voice files have an unknown shape.']
+    if len(clips) > CLIP_MAX_CLIPS:
+        return ['Too many imported voice files (%d; %d at most).' % (len(clips), CLIP_MAX_CLIPS)]
+    out, seen = [], set()
+    for c in clips:
+        for p in _clip_shape(c):
+            if p not in out:
+                out.append(p)
+        if isinstance(c, dict) and isinstance(c.get('who'), str) and isinstance(c.get('text'), str):
+            k = _clip_key(c['who'], c['text'])
+            if k in seen:
+                out.append('Two imported voice files are attached to the same line (%s).' % c['text'][:40])
+            seen.add(k)
+    return out
+
+
+def clip_record_problems(recs):
+    """The editor draft's records (local().clips: line key -> record), kept in the server copy of the draft."""
+    if not isinstance(recs, dict):
+        return ['The imported voice files have an unknown shape.']
+    if len(recs) > CLIP_MAX_CLIPS:
+        return ['Too many imported voice files.']
+    out = []
+    for k, r in recs.items():
+        if not isinstance(k, str) or not 1 <= len(k) <= 700 or TAGS.search(k):
+            out.append('An imported voice file is attached to an unknown line.')
+            continue
+        if not isinstance(r, dict):
+            out.append('An imported voice file has an unknown shape.')
+            continue
+        extra = {x: r[x] for x in ['name', 'at', 'reencoded'] if x in r}
+        for p in _clip_shape({x: v for x, v in r.items() if x not in extra}):
+            if p not in out:
+                out.append(p)
+        if 'name' in extra and not (isinstance(extra['name'], str) and len(extra['name']) <= 120 and not TAGS.search(extra['name'])):
+            out.append('An imported voice file has a bad name.')
+        if 'at' in extra and not (isinstance(extra['at'], str) and len(extra['at']) <= 40):
+            out.append('An imported voice file has a bad date.')
+        if 'reencoded' in extra and extra['reencoded'] is not True:
+            out.append('An imported voice file has a bad note.')
+    return out
+
+
+# ---- what a file really is, and how long it plays (no audio libraries: the headers are read directly)
+def sniff(data):
+    if data[:4] == b'OggS':
+        return 'audio/ogg'
+    if data[:4] == b'RIFF' and data[8:12] == b'WAVE':
+        return 'audio/wav'
+    if data[:3] == b'ID3' or (len(data) > 1 and data[0] == 0xFF and data[1] & 0xE0 == 0xE0):
+        return 'audio/mpeg'
+    return None
+
+
+def wav_seconds(data):
+    o, rate, align = 12, 0, 0
+    while o + 8 <= len(data):
+        cid, size = data[o:o + 4], int.from_bytes(data[o + 4:o + 8], 'little')
+        body = data[o + 8:o + 8 + size]
+        if cid == b'fmt ' and len(body) >= 16:
+            rate, align = int.from_bytes(body[4:8], 'little'), int.from_bytes(body[12:14], 'little')
+        elif cid == b'data':
+            if not rate or not align:
+                return None
+            return min(size, len(data) - o - 8) // align / rate
+        o += 8 + size + (size & 1)
+    return None
+
+
+def ogg_seconds(data):
+    o, first, rate, pre, granule, serial = 0, True, 0, 0, 0, None
+    while o + 27 <= len(data):
+        if data[o:o + 4] != b'OggS':
+            return None
+        nseg = data[o + 26]
+        size = 27 + nseg + sum(data[o + 27:o + 27 + nseg])
+        if o + size > len(data):
+            return None
+        s = int.from_bytes(data[o + 14:o + 18], 'little')
+        if serial is None:
+            serial = s
+        if first:
+            body = data[o + 27 + nseg:o + size]
+            if body[:8] == b'OpusHead' and len(body) >= 19:
+                rate, pre = 48000, int.from_bytes(body[10:12], 'little')
+            elif body[:7] == b'\x01vorbis' and len(body) >= 16:
+                rate = int.from_bytes(body[12:16], 'little')
+            else:
+                return None
+            first = False
+        g = int.from_bytes(data[o + 6:o + 14], 'little', signed=True)
+        if s == serial and g > 0:
+            granule = max(granule, g)
+        o += size
+    if o != len(data) or not rate:
+        return None
+    return max(0, granule - pre) / rate
+
+
+_MP3_BITRATES = {1: [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320], 2: [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160]}
+_MP3_RATES = {3: [44100, 48000, 32000], 2: [22050, 24000, 16000], 0: [11025, 12000, 8000]}
+
+
+def mp3_seconds(data):
+    """Layer III frames counted one by one (an ID3v2 tag at the start and an ID3v1 tag at the end are skipped)."""
+    o = 0
+    if data[:3] == b'ID3' and len(data) >= 10:
+        o = 10 + ((data[6] & 0x7F) << 21 | (data[7] & 0x7F) << 14 | (data[8] & 0x7F) << 7 | (data[9] & 0x7F))
+    samples, frames, rate = 0, 0, 0
+    while o + 4 <= len(data):
+        h = int.from_bytes(data[o:o + 4], 'big')
+        if h >> 21 != 0x7FF:
+            if data[o:o + 3] == b'TAG' or frames:
+                break
+            o += 1  # a little padding before the first frame
+            if o > 4096:
+                return None
+            continue
+        ver, layer, br, sr, pad = (h >> 19) & 3, (h >> 17) & 3, (h >> 12) & 15, (h >> 10) & 3, (h >> 9) & 1
+        if ver == 1 or layer != 1 or br in (0, 15) or sr == 3:
+            if frames:
+                break
+            return None
+        rate = _MP3_RATES[ver][sr]
+        kbps = _MP3_BITRATES[1 if ver == 3 else 2][br]
+        per = 1152 if ver == 3 else 576
+        size = (144 if ver == 3 else 72) * kbps * 1000 // rate + pad
+        samples += per
+        frames += 1
+        o += size
+    return samples / rate if frames >= 2 and rate else None
+
+
+def clip_seconds(kind, data):
+    try:
+        return {'audio/wav': wav_seconds, 'audio/ogg': ogg_seconds, 'audio/mpeg': mp3_seconds}[kind](data)
+    except Exception:  # noqa: BLE001 - a broken header is a refused file, never a server error
+        return None
+
+
+def _clip_ref(db, h):
+    return db.collection(CLIPS).document(h)
+
+
+def clips_missing(db, hashes):
+    return [h for h in hashes if (_clip_ref(db, h).get().to_dict() or None) is None]
+
+
+def clips_check(db, payload):
+    """POST developer/voice-clips {hashes}: which of these files the server does not have yet."""
+    if not _keys(payload, ['hashes']) or not isinstance(payload.get('hashes'), list) or not 1 <= len(payload['hashes']) <= CLIP_MAX_CLIPS \
+            or not all(isinstance(h, str) and HASH.match(h) for h in payload['hashes']):
+        raise DraftError('Send the addresses of 1 to 200 voice files.')
+    return {'missing': clips_missing(db, sorted(set(payload['hashes'])))}
+
+
+def store_clip(db, uid, h, payload):
+    """POST developer/voice-clips/<sha-256> {type, data (base64)}: checked (type from the bytes, size, length, address), then created once."""
+    import base64
+    import binascii
+    if not isinstance(h, str) or not HASH.match(h):
+        raise DraftError('Bad voice file address.', 404)
+    if not _keys(payload, ['type', 'data']) or not isinstance(payload.get('data'), str) or payload.get('type') not in CLIP_TYPES:
+        raise DraftError('Send an MP3, WAV or Ogg voice file.', 415)
+    if len(payload['data']) > (CLIP_MAX_BYTES + 2) // 3 * 4 + 4:
+        raise DraftError('The voice file is larger than 600 KB.', 413)
+    try:
+        data = base64.b64decode(payload['data'], validate=True)
+    except (binascii.Error, ValueError):
+        raise DraftError('The voice file could not be read.') from None
+    if not data or len(data) > CLIP_MAX_BYTES:
+        raise DraftError('The voice file is larger than 600 KB.', 413)
+    if hashlib.sha256(data).hexdigest() != h:
+        raise DraftError('The voice file does not match its address.', 422)
+    kind = sniff(data)
+    if kind != payload['type']:
+        raise DraftError('The voice file is not the kind it says it is (%s).' % (kind or 'unknown'), 415)
+    seconds = clip_seconds(kind, data)
+    if seconds is None or seconds <= 0.05:
+        raise DraftError('The voice file has no readable sound.', 422)
+    if seconds > CLIP_MAX_SECONDS + CLIP_SLACK:
+        raise DraftError('The voice file is %.1f seconds long; the limit is 40 seconds.' % seconds, 422)
+    from firebase_admin import firestore
+    ref = _clip_ref(db, h)
+    record = {'hash': h, 'type': kind, 'bytes': len(data), 'duration': round(seconds, 2), 'data': base64.b64encode(data).decode('ascii'),
+              'at': int(time.time()), 'by': hashlib.sha256(uid.encode()).hexdigest()[:12]}
+
+    @firestore.transactional
+    def commit(tx):
+        if (ref.get(transaction=tx).to_dict() or None) is not None:
+            return False
+        tx.create(ref, record)
+        return True
+    created = commit(db.transaction())
+    return {'hash': h, 'type': kind, 'bytes': len(data), 'duration': record['duration'], 'stored': True, 'existed': not created}
+
+
+def get_clip(db, h):
+    """The published file (public). (bytes, type) or None. A small in-memory copy saves Firestore reads on the free tier."""
+    if not isinstance(h, str) or not HASH.match(h):
+        return None
+    if h in _clip_cache:
+        return _clip_cache[h]
+    rec = _clip_ref(db, h).get().to_dict()
+    if not rec or rec.get('type') not in CLIP_TYPES or not isinstance(rec.get('data'), str):
+        return None
+    import base64
+    data = base64.b64decode(rec['data'])
+    if hashlib.sha256(data).hexdigest() != h:
+        return None
+    while _clip_cache and sum(len(v[0]) for v in _clip_cache.values()) + len(data) > _CLIP_CACHE_BYTES:
+        _clip_cache.pop(next(iter(_clip_cache)))
+    _clip_cache[h] = (data, rec['type'])
+    return _clip_cache[h]
+

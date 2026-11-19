@@ -22,9 +22,13 @@
  // (extra/manifest.json translations[speaker]; `with` may override them); the translation clip's file can be swapped in its own entry. `cast` gives a speaker a live effect.
  fetch(new URL('extra/manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(extraCast,m.cast||{});Object.assign(translations,m.translations||{});for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/[a-z0-9-]+\.ogg$/.test(l.file)){const e={id:'extra:'+id,...l};extraById.set(id,e);lookup.set(l.speaker+'|'+l.text,e);}}).catch(()=>{});
  const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
- function has(who,text){return lookup.has(key(who,text));}
+ // Imported voice files (voice-imports.js, Developer Tools, 19 Nov 2026) override any recorded clip for that exact line text; same playback, same live effects.
+ const imported=(who,text)=>{const I=root.VoidVoiceImports;return I&&I.find?I.find(who,text):null;};
+ const importLine=(im,who)=>({id:'import:'+im.hash,speaker:manifest?.cast?.[im.who]||extraCast[im.who]?im.who:key(who,'').slice(0,-1),imported:im});
+ function has(who,text){return !!imported(who,text)||lookup.has(key(who,text));}
  async function clip(context,line){
   if(cache.has(line.id))return cache.get(line.id);
+  if(line.imported){const data=await context.decodeAudioData(await root.VoidVoiceImports.load(line.imported));cache.set(line.id,data);if(cache.size>40)cache.delete(cache.keys().next().value);return data;}
   const response=await fetch(new URL(line.file,base));if(!response.ok)throw Error('Voice clip '+response.status);
   const data=await context.decodeAudioData(await response.arrayBuffer());
   cache.set(line.id,data);if(cache.size>40)cache.delete(cache.keys().next().value);return data;
@@ -90,7 +94,7 @@
  // seq: a clip still loading when the next line (or a cancel) comes is dropped instead of playing over it.
  function cancel(){seq++;clearTimeout(stopTimer);try{source?.stop();}catch{}try{source2?.stop();}catch{}source=null;source2=null;}
  async function speak({characterId,text,bus}){
-  cancel();const mine=seq,line=lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
+  cancel();const mine=seq,im=imported(characterId,text),line=im?importLine(im,characterId):lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
   // The conversation's line this recording is for (scenes.js speakLine): told when it starts and ends, so a walking conversation moves on when it has been heard.
   const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};
   const ctx=bus.context,data=await clip(ctx,line);if(mine!==seq)return;const cast=manifest?.cast?.[line.speaker]||extraCast[line.speaker]||{};
@@ -107,7 +111,7 @@
   const ends=[new Promise(resolve=>{playing.onended=resolve;})];if(second)ends.push(new Promise(resolve=>{second.onended=resolve;}));
   const t0=ctx.currentTime+.02,wall=performance.now()+20;playing.start(t0);if(second)second.start(t0+offset);
   // what started when (ctx time and page time): the browser test checks the translator's offset from these
-  const rec={primary:{id:line.id,speaker:line.speaker,gain:input.gain.value,at:t0,wall,duration:data.duration}};if(second)rec.secondary={id:pair.line.id,speaker:pair.line.speaker,gain:1,at:t0+offset,wall:wall+offset*1000,offset,duration:pair.data.duration,effect:effect2(pair)||null};
+  const rec={primary:{id:line.id,speaker:line.speaker,...(line.imported?{imported:line.imported.src}:{}),gain:input.gain.value,at:t0,wall,duration:data.duration}};if(second)rec.secondary={id:pair.line.id,speaker:pair.line.speaker,gain:1,at:t0+offset,wall:wall+offset*1000,offset,duration:pair.data.duration,effect:effect2(pair)||null};
   played.push(rec);if(played.length>20)played.shift();
   if(v)Object.assign(v,{play,started:true,ended:false,startedAt:performance.now(),duration:total});
   await Promise.all(ends);

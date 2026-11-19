@@ -35,7 +35,7 @@
   waitAt:'Pick the area on the map (anywhere green in the city or inside the District; never Milked, NULL, the District bar or the VR area). While this mission waits to be offered (and she is out on her shift), she goes to this spot (in another area she is simply there from the start of her shift) and waits there with her normal routine: stands, looks about, checks her V1 (and sits if the spot is just in front of a ledge). Once it is accepted or done she goes back to her usual walk. Not set: she keeps her usual walk.',
   play:'Tries this mission in a throwaway test session. Your real save is never touched; LEAVE DRAFT brings you back here.'};
  const HELP_START={person:'The giver offers it when the player walks up and presses TALK. E.g. Admin offers it as soon as you talk to him at the counter.',
-  'person-accept':'The giver offers it and the player chooses ACCEPT or NOT NOW. NOT NOW changes nothing: the next talk offers it again.',
+  'person-accept':'The giver offers it and the player chooses ACCEPT or DENY (the buttons and what DENY does are set below). By default DENY changes nothing: the next talk offers it again.',
   messages:'It arrives as a text in the V1 Messages app when the trigger below happens. No conversation needed.',comms:'It arrives as a call in the V1 Comms app (the words show as a transcript) when the trigger below happens.',
   notify:'Only a banner on the screen, then it is in the Mission Log. Nothing is kept in Messages or Comms.'};
  const HELP_WHEN={'pod-exit':'When the player first leaves their Sleeping Pod (EXIT POD). E.g. Admin’s first message.','after-mission':'As soon as the mission you pick is finished.',
@@ -91,7 +91,7 @@
   backupNote='A draft in this browser could not be read; it was kept unchanged under '+bk+' (nothing was deleted). EXPORT it from the browser\'s storage or ask Claude/Codex to restore it.';return null;}
  // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; the owner, 17 Nov 2026: a cleared browser must not lose his trees)
  const WS='mission-editor-workspace',ws={state:'unknown',revision:0,savedAt:null,timer:0,conflict:null,note:''};
- const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
+ const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},clips:d.clips||{},retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
  const wsDoc=b=>({schemaVersion:1,kind:'workspace',adapter:'mission-editor',sourceKey:WS,baseRevision:0,data:{id:WS,title:'Mission Editor workspace',bundle:b}});
  const wsOn=()=>!!(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled);
  function scheduleServer(){if(!wsOn()||ws.conflict)return;clearTimeout(ws.timer);ws.state='pending';showServerState();ws.timer=setTimeout(()=>{saveServer();},5000);}
@@ -104,12 +104,12 @@
  async function loadServer(afterConflict){if(!wsOn()){ws.state='off';return;}
   let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}ws.state='off';return;}
   ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
-  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length);
+  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length&&!Object.keys(raw.clips||{}).length);
   const serverAt=Date.parse(b.savedAt||'')||0,localAt=Date.parse((raw&&raw.savedAt)||'')||0;
   if(empty&&!afterConflict){useServer(b,rec.updatedAt);return;}
   if(serverAt>localAt||afterConflict){ws.conflict={server:b,serverAt,local:raw,localAt,revision:rec.revision};ws.state='conflict';return;}
   ws.savedAt=(rec.updatedAt||0)*1000;ws.state='saved';if(localAt>serverAt)scheduleServer();}
- function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
+ function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},clips:b.clips||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
   ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;}
  function serverLine(){if(ws.conflict){const c=ws.conflict;return 'Your drafts on the server and in this browser differ.';}
   return ws.state==='saved'?'Saved on the server · '+new Date(ws.savedAt||Date.now()).toLocaleTimeString():ws.state==='pending'||ws.state==='saving'?'Saving to the server…':ws.state==='too-big'?ws.note:ws.state==='none'?'Saving to the server…':'Server copy not available — drafts are only in this browser';}
@@ -138,6 +138,10 @@
   await refreshServer();await loadServer();if(numberAll())rebuild();else if(stale)rebuild();
  }
  function rebuild(){const d=local();built=T().build({...src,voices:d.voices||{},studioDraft:studio(),serverDrafts:server.drafts,ownerTrees:d.trees,names:d.names});index=T().lineIndex(built);stale=false;}
+ /* Every PLAY / PLAY THIS DRAFT / PLAY FROM HERE / Test my mission / JUMP THERE / publish check starts here (19 Nov 2026 fix: a PLAY pressed straight after typing in a step
+    checked the tree drawn before the typing and said "step 1 needs what the player must do"): the field being typed in hands over its value (its change event),
+    the waiting Guide me pass runs now, and the trees are rebuilt from the saved draft, so the check sees exactly what was typed. */
+ function fresh(){try{const a=root.document&&document.activeElement;if(a&&host&&host.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))a.blur();}catch{}if(src)rebuild();if(guideT){clearTimeout(guideT);guideT=0;guideNow();}}
  async function call(path,body){const r=typeof VoidDevTools!=='undefined'?VoidDevTools.request:null;if(!r)throw new Error('Sign in again.');return r(path,body);}
  async function refreshServer(){
   const tries=[['roles','developer/drafts/schema'],['live','developer/live-content'],['queue','developer/revoice']];
@@ -160,15 +164,24 @@
  const V=()=>root.VoidNPCVoices;
  const voiceNow=id=>V()?V().current(id,{registry:src&&src.registry,engines:src&&src.engines,voices:local().voices}):{kind:'none'};
  const canVoice=l=>!!(l&&l.who!=='player'&&(l.voice||voiceNow(l.who).kind==='elevenlabs'));
- const queueItem=(who,text)=>(server.queue?.items||[]).find(q=>q.who===who&&q.text===text)||null;
- function voiceState(l){const t=shownText(l),edited=t!==l.text,q=queueItem(l.who,t);
+ /* ElevenLabs voice tags (19 Nov 2026): what a voice is sent (npc-voices.js speakText: tags kept only for a model that reads them), so adding or changing a tag is a
+    change only for those voices; players see the line without them (sh). */
+ const sayKey=(who,t)=>V()?V().speakText(t,voiceNow(who)):String(t||''),sh=t=>V()?V().strip(t):t;
+ const queueItem=(who,text)=>{const k=sayKey(who,text);return (server.queue?.items||[]).find(q=>q.who===who&&(q.speak||q.text)===k)||null;};
+ const TAG_HELP='You can add ElevenLabs voice tags like [whispers] or [laughs]. Players never see them; only ElevenLabs voices use them.';
+ function tagNotes(t,who,name){const X=V();if(!X||!t||!String(t).includes('['))return [];const out=X.tagProblems(t);if(!out.length&&who&&who!=='player'&&who!=='You'){const w=X.tagWarning(t,voiceNow(who),name);if(w)out.push(w);}return out;}
+ const tagNoteEl=(t,who,name)=>{const n=tagNotes(t,who,name);return el('p',n.join(' '),'me-small me-warn',{'data-me-tag-note':'1',...(n.length?{}:{hidden:''})});};
+ const tagNoteSet=(node,t,who,name)=>{const n=tagNotes(t,who,name);node.textContent=n.join(' ');node.hidden=!n.length;};
+ function voiceState(l){const t=shownText(l),edited=sayKey(l.who,t)!==sayKey(l.who,l.text),q=queueItem(l.who,t);
   if(l.who==='player')return {text:'the player’s own line (not voiced)',cls:'muted'};
   if(l.needsVoice){if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:{text:'queued for voice',cls:'warn'};return t.trim()?{text:'needs voice (text only until recorded)',cls:'warn',revoice:canVoice(l)}:{text:'empty: a placeholder, not spoken',cls:'muted'};}
-  if(edited&&clipKeys.has(l.who+'|'+t))return {text:'re-voiced',cls:'ok'};
+  if(edited&&clipKeys.has(l.who+'|'+sh(t))&&!(V()&&V().hasTags(t)&&V().readsTags(voiceNow(l.who))))return {text:'re-voiced',cls:'ok'};
   if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:q.engine==='elevenlabs'?{text:'waiting for ElevenLabs re-voice (needs approval)',cls:'warn'}:{text:'queued for re-voice',cls:'warn'};
   if(edited&&l.recorded)return {text:'voice clip out of date: text only until re-voiced',cls:'bad',revoice:true};
   if(edited)return {text:'text only',cls:'muted',revoice:canVoice(l)};
   return l.recorded?{text:'voice clip recorded'+(l.clip?.engine==='elevenlabs'?' (ElevenLabs)':''),cls:'ok'}:{text:'text only (no voice clip)',cls:'muted'};}
+ // Imported voice files (voice-imports.js, 19 Nov 2026): a line's own imported file wins over any recorded clip; words changed since the import are flagged.
+ {const base=voiceState;voiceState=function(l){const r=l&&clipRec(lineKey(l)),x=r&&VI()?VI().status(r,shownText(l)):null;return x?{text:x.text,cls:x.cls,revoice:x.state==='changed'?base(l).revoice:false,imported:x.state}:base(l);};}
  // ---------------------------------------------------------------- rendering
  function render(panel,head){
   host=panel;headNode=head;
@@ -178,7 +191,7 @@
  function restoreReturn(){const r=read(RETURN,null,root.sessionStorage);if(!r)return;try{root.sessionStorage.removeItem(RETURN);}catch{}Object.assign(ui,{mode:'trees',tree:r.tree||ui.tree,mission:r.mission||null,step:r.step||null});status='Back from your draft play. Your draft is saved and waiting'+(r.mission?' on this mission':'')+'.';}
  function draw(){
   if(!host||!built)return;if(stale)rebuild();const keepY=host.scrollTop;host.innerHTML='';host.append(headNode());
-  const root_=el('div','','me-root',{id:'me-root'});host.append(root_);root_.addEventListener('input',()=>guideSoon());root_.addEventListener('change',()=>guideSoon());
+  const root_=el('div','','me-root',{id:'me-root'});host.append(root_);root_.addEventListener('input',()=>{syncPlay(root_);guideSoon();});root_.addEventListener('change',()=>{syncPlay(root_);guideSoon();});
   root_.append(howBox());
   {const sc=el('p','','me-small',{'data-me-server-copy':'1',role:'status'});root_.append(sc);setTimeout(showServerState,0);}
   for(const t of [storageProblem,backupNote])if(t)root_.append(el('p',t,'me-bad',{'data-me-storage-problem':'1'}));
@@ -233,7 +246,8 @@
  }
  /* An archived tree or mission → a new draft tree (the archived one never changes). */
  function copyInto(ms,name){const d=local();const t=T().copyToTree(d.trees,ms,{name:('Copy of '+name).slice(0,60),givers,next:nextFree(d)});d.trees.push(t);saveLocal(d);stale=true;ui.tree=t.id;ui.mission=null;status='Copied into your new tree “'+t.name+'” ('+t.id+'). It is a draft: not in the game until you publish it. Check each step’s NPC.';draw();}
- const setStatus=t=>{status=t;const s_=host&&host.querySelector('#me-status');if(s_)s_.textContent=t;else if(host)draw();};
+ // no status line on screen yet: add one in place (a full redraw here took the typing focus away after the first character typed in a freshly drawn editor)
+ const setStatus=t=>{status=t;const s_=host&&host.querySelector('#me-status');if(s_){s_.textContent=t;return;}const m=host&&host.querySelector('#me-root > .me-modes');if(m)m.after(el('p',t,'me-status',{role:'status',id:'me-status'}));else if(host)draw();};
  // ---------------- the owner's NEW trees
  const treeOf=mid=>(local().trees||[]).find(t=>t.missions.some(m=>m.id===mid))?.id;
  function editTree(id,fn,redraw){const d=local(),t=(d.trees||[]).find(x=>x.id===id);if(!t)return;fn(t,d);saveLocal(d);stale=true;if(redraw)draw();else setStatus('Draft saved.');}
@@ -300,15 +314,17 @@
   // a small map of every new tree and its links
   const edges=all.flatMap(x=>x.missions.flatMap(m=>(m.unlocks||[]).filter(u=>u.kind==='tree').map(u=>[x.id,u.id])));if(edges.length){const map=el('p','','me-small',{'data-me-tree-map':'1'});map.textContent='Map: '+[...new Set(edges.map(([a,b])=>name(a)+' → '+name(b)))].join('   ·   ');box.append(map);}
   return box;}
- function linesEditor(t,m,lines,keyBase,defWho,title){const box=el('div','','me-scene');box.append(el('h5',title));
+ function linesEditor(t,m,lines,keyBase,defWho,title){const box=el('div','','me-scene');box.append(el('h5',title));if(lines.length)box.append(hint(TAG_HELP,{'data-me-tag-help':'1'}));
   lines.forEach((l,k)=>{const row=el('div','','me-line',{'data-me-tline':keyBase+'/'+k});const who=el('div','','me-who');
    const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].who=v;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+((giver(defWho)||{}).name||defWho):'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);
    const g=giver(l.who||defWho),vn=g?voiceNow(g.id):{kind:'none'};who.append(el('span',vn.kind==='elevenlabs'?'ElevenLabs voice '+vn.name:g&&g.voice?'registered voice '+g.voice.voice+' (read-only)':'no voice yet','me-small'));row.append(who);
-   const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';ta.oninput=()=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});body.append(ta);
+   const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';const tn=tagNoteEl(l.text,g&&g.id||(l.who==='You'?'You':''),g&&g.name);ta.oninput=()=>{editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});tagNoteSet(tn,ta.value,g&&g.id||(l.who==='You'?'You':''),g&&g.name);};body.append(ta,tn);
    const tags=el('div','','me-tags');const ph=!!MS()?.isPlaceholder(l.text);if(MS()?.isProposed?.(l.text))tags.append(el('span','PROPOSED: Claude’s draft, waiting for your approval (text only, not recorded). Edit it or keep it.','me-vs me-warn',{'data-me-proposed':'1'}));tags.append(el('span',ph?'PLACEHOLDER for you: shown only here and in draft play; live players never see it':(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+(ph?'bad':(l.text||'').trim()?'warn':'muted'),ph?{'data-me-placeholder':'1'}:{}));
    if(g&&(g.voice||vn.kind==='elevenlabs')&&(l.text||'').trim())tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
-   tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);row.append(body);box.append(row);});
-  const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');if(a==='offer')return mm.offer;if(a==='ending')return (mm.ending.say=mm.ending.say||[]);const oo=mm.objectives.find(o=>o.id===a);if(!oo)return undefined;if(!Array.isArray(oo[b]))oo[b]=[];return oo[b];};
+   tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);
+   if(g&&l.who!=='You'){const key='tree:'+m.id+'/'+keyBase+'/'+k,ib=importBox(key,g.id,()=>ta.value);body.append(ib);ta.addEventListener('input',()=>ib.refresh());}   // IMPORT VOICE FILE (voice-imports.js)
+   row.append(body);box.append(row);});
+  const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');if(a==='offer')return mm.offer;if(a==='deny'){mm.start=mm.start&&mm.start.how?mm.start:{how:'person'};return (mm.start.denySay=mm.start.denySay||[]);}if(a==='ending')return (mm.ending.say=mm.ending.say||[]);const oo=mm.objectives.find(o=>o.id===a);if(!oo)return undefined;if(!Array.isArray(oo[b]))oo[b]=[];return oo[b];};
   box.append(btn('+ LINE',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.push({who:'',text:''});},true)));return box;}
  function treeMissionCard(t,raw,m,i,issues){const card=el('article','','me-mission-panel',{'data-me-tree-mission':m.id}),ed=(fn,redraw)=>editTree(t.id,x=>{const mm=x.missions.find(y=>y.id===m.id);if(mm)fn(mm,x);},redraw);
   const head=el('div','','me-row');head.append(el('b',Number.isInteger(m.number)?numLabel(m.number,m.title||'(no name yet)'):'MISSION '+(i+1)+' · '+(m.title||'(no name yet)'),'',{'data-me-mission-label':m.id}),el('span','id '+m.id+' (never changes)','me-small'),
@@ -322,7 +338,7 @@
     const d2=local();T().setNumber(d2,m.id,n);saveLocal(d2);stale=true;status='Mission '+MS().pad(n)+' — '+(m.title||m.id)+'.';draw();},'',{'data-me-renumber':m.id}),el('span','Shown as “'+numLabel(Number.isInteger(m.number)?m.number:nextFree(),m.title||'Name')+'”. Unique; never reused once used. The id '+m.id+' stays the same.','me-small'));card.append(nr);}
   const field=(label,value,on,area,attrs,help)=>{const l=el('label','','me-field');l.append(el('span',label));const inp=el(area?'textarea':'input','','',attrs||{});inp.value=value??'';inp.oninput=()=>{on(inp.value);guideSoon();};l.append(inp);if(help)l.append(hint(help));return l;};
   card.append(hint(HELP.number));
-  const g=el('div','','me-grid');g.append(field('Mission name',m.title,v=>ed(x=>{x.title=v.slice(0,60);}),false,{'data-me-field':'title',placeholder:'(your words)',maxlength:'60'},HELP.title),field('Credits paid',String(m.rewards||0),v=>ed(x=>{const n=parseInt(v,10);x.rewards=Number.isFinite(n)&&n>=0?Math.min(n,100000):0;}),false,{'data-me-field':'rewards',inputmode:'numeric'},HELP.rewards));card.append(g);
+  const g=el('div','','me-grid');g.append(field('Mission name',m.title,v=>ed(x=>{x.title=v.slice(0,60);}),false,{'data-me-field':'title',placeholder:'(your words)',maxlength:'60'},HELP.title),creditsPanel(t,m,ed));card.append(g);
   card.append(field('Description (the V1 Mission Log shows it)',m.description,v=>ed(x=>{x.description=v.slice(0,600);}),true,{placeholder:'(your words)'},HELP.description));
   {const g2=el('div','','me-grid');g2.append(field('Type (shown in the Mission Log)',m.category||'',v=>ed(x=>{x.category=v.slice(0,60);}),false,{'data-me-field':'category',placeholder:'e.g. Main storyline / Introduction',maxlength:'60'},HELP.category),field('Objective (the Mission Log headline)',m.objective||'',v=>ed(x=>{x.objective=v.slice(0,200);}),false,{'data-me-field':'objective',placeholder:'(empty: the current step)',maxlength:'200'},HELP.objective));card.append(g2);
    const lr=el('div','','me-row');lr.append(el('b','Location'),placeSelect(m.location||'',v=>ed(x=>{x.location=v;}),'Mission location'),hint(HELP.location,{'data-me-help-location':'1'}));card.append(lr);}
@@ -360,9 +376,10 @@
  function startPanel(t,m,ed){const st=m.start||{how:'person'},by=st.how==='notification',box=el('section','','me-end me-start',{'data-me-start':m.id});box.append(el('h4','How this mission starts'));
   const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
   // One plain choice (the owner): Starts: In person / By Messages / By Comms call / Notification only.
-  const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['person-accept','In person, with ACCEPT / NOT NOW'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
-  sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value;x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;},true);
-  how.append(el('b','Starts:'),sel,...optHelp(sel,HELP_START,'Starts'),el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):st.accept===true?'The giver offers it; the player chooses ACCEPT or NOT NOW. NOT NOW changes nothing: the next time they talk, the giver offers it again. Once accepted it is never offered again.':'The giver offers it when the player talks to them.','me-small'));box.append(how);
+  const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['person-accept','In person, asking ACCEPT / DENY'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
+  sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value,prev=x.start||{};x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;if(v!=='person'&&prev.accept===true){x.start.accept=true;for(const k of MC().ASK_KEYS)if(prev[k]!=null)x.start[k]=prev[k];}},true);   // the ACCEPT / DENY settings follow a change of channel
+  how.append(el('b','Starts:'),sel,...optHelp(sel,HELP_START,'Starts'),el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):st.accept===true?'The giver offers it; the player chooses '+(st.yes||'ACCEPT')+' or '+(st.no||'DENY')+'. Once accepted it is never offered again.':'The giver offers it when the player talks to them.','me-small'));box.append(how);
+  box.append(askPanel(t,m,ed));   // "Ask the player: ACCEPT or DENY" for every way of starting (19 Nov 2026)
   if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'));return box;}
   const r2=el('div','','me-row');r2.append(el('b','Sender'),npcSelect(st.from||'',v=>set(x=>{x.from=v;},true),{label:'Sender',attrs:{'data-me-start-from':m.id}}),hint(HELP.sender));box.append(r2);
   const hl=el('label','','me-field');hl.append(el('span','Header'+(st.channel==='notify'?' (optional)':'')));const hi=el('input','','',{'aria-label':'Header',maxlength:'80','data-me-start-header':m.id,placeholder:'e.g. ADMIN // INCOMING MESSAGE'});hi.value=st.header||'';hi.oninput=()=>{set(x=>{x.header=hi.value.slice(0,80);});guideSoon();};hl.append(hi,hint(HELP.header));
@@ -384,6 +401,45 @@
    const ng=giver(who);if(ng&&!ng.canTalk)r3.append(el('span','⚠ '+ng.name+' has no TALK prompt, so there is nothing to measure from.','me-small me-warn'));if(ng&&ng.shift)r3.append(el('span',G().shiftText(ng),'me-small me-warn',{'data-me-near-shift':m.id}));}
   const wn=(G().START_WHEN.find(x=>x.id===w.kind)||{}).note;if(wn)r3.append(el('span',wn,'me-small'));box.append(r3);
   box.append(el('p','When the trigger happens, the notification arrives on the player’s device with the device’s notification sound (and a banner while the V1 is closed), the mission goes into the Mission Log and is tracked. Text only: no voice is generated.','me-small'));
+  return box;}
+ /* CREDITS AND ACCEPT / DENY (the owner, 19 Nov 2026: "can i do -100 credit option and add an accept or deny"). Credits are one signed number shown as
+    "Player gets" / "Player pays" (mission-content.js signed / setSigned: rewards, or cost {amount, when, refund}); the rules are mission-content.js MONEY. */
+ const HELP_MONEY={gets:'Credits paid to the player once, when the mission is done. 0 = nothing. E.g. 100.',
+  pays:'Credits the player PAYS (for example 100 for a pass). Taken once and never below 0: if the player has less, ACCEPT is greyed with “You need 100 CR” and the mission does not start.',
+  when:'When they pay: as they press ACCEPT (the offer shows the cost), or when a step is done (that step waits until they have the credits).',
+  refund:'“Refund if abandoned” gives the credits back if the player abandons the mission (off unless you tick it; the game has no abandon button for these missions yet).',
+  ask:'The player sees the mission’s name, its short description and the cost or reward, then chooses. Nothing is taken until they accept. Works for every way of starting.',
+  labels:'The words on the two buttons, 20 letters at most. Empty: ACCEPT and DENY.',
+  deny:{again:'Nothing happens: it is offered again later (the next talk for an offer in person; the next time they leave the Sleeping Pod for a message, call, banner or walk-near).',never:'It is never offered again. Missions after it in this tree will not come either.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},
+  denySay:'Optional: what is said after DENY, in your own words. Empty: nothing is said.'};
+ function creditsPanel(t,m,ed){const X=MC(),v=X.signed(m),pays=v<0,box=el('div','','me-field me-credits',{'data-me-credits':m.id});box.append(el('span','Credits'));
+  const row=el('div','','me-row'),dir=el('select','','',{'aria-label':'Player gets or pays','data-me-credits-dir':m.id});dir.append(new Option('Player gets','gets'),new Option('Player pays','pays'));dir.value=pays?'pays':'gets';
+  const inp=el('input','','',{'aria-label':'Credits','data-me-field':'rewards',inputmode:'numeric',size:'7',maxlength:'6'});inp.value=String(Math.abs(v));
+  const put=x=>{let n=Math.min(X.MONEY.max,Math.abs(parseInt(inp.value,10)||0));if(dir.value==='pays'&&!n)n=100;X.setSigned(x,dir.value==='pays'?-n:n);
+   if(x.cost&&(x.cost.when||'accept')==='accept'){x.start=x.start&&x.start.how?x.start:{how:'person'};x.start.accept=true;}};   // paying at ACCEPT needs the question
+  dir.onchange=()=>ed(put,true);inp.oninput=()=>{ed(put);guideSoon();};inp.onchange=()=>ed(put,true);
+  row.append(dir,inp,el('span','CR','me-small'));box.append(row,hint(pays?HELP_MONEY.pays:HELP_MONEY.gets));
+  if(pays){const c=m.cost||{},when=c.when||'accept',w=el('select','','',{'aria-label':'When the player pays','data-me-cost-when':m.id});w.append(new Option('when they press '+((m.start&&m.start.yes)||'ACCEPT'),'accept'));m.objectives.forEach((o,k)=>w.append(new Option('when step '+(k+1)+' is done: '+String(o.label||o.id).slice(0,40),o.id)));w.value=when;
+   w.onchange=()=>ed(x=>{x.cost={...(x.cost||{}),when:w.value};if(w.value!=='accept')delete x.cost.refund;else{x.start=x.start&&x.start.how?x.start:{how:'person'};x.start.accept=true;}},true);
+   const r2=el('div','','me-row');r2.append(el('span','Charged','me-small'),w);
+   if(when==='accept'){const cb=el('input','','',{type:'checkbox','data-me-cost-refund':m.id});cb.checked=c.refund===true;cb.onchange=()=>ed(x=>{x.cost={...(x.cost||{})};if(cb.checked)x.cost.refund=true;else delete x.cost.refund;},true);const lb=el('label','','me-small');lb.append(cb,document.createTextNode(' refund if abandoned'));r2.append(lb);}
+   box.append(r2,hint(HELP_MONEY.when+' '+HELP_MONEY.refund));}
+  return box;}
+ function askPanel(t,m,ed){const st=m.start||{how:'person'},on=st.accept===true,box=el('div','','me-ask',{'data-me-ask':m.id}),pay=MC().costOf(m);
+  const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
+  const cb=el('input','','',{type:'checkbox','data-me-ask-on':m.id,'aria-label':'Ask the player: ACCEPT or DENY'});cb.checked=on;if(on&&pay&&pay.when==='accept'){cb.disabled=true;cb.title='The player pays when accepting, so the offer must ask.';}
+  cb.onchange=()=>set(x=>{if(cb.checked)x.accept=true;else{delete x.accept;for(const k of MC().ASK_KEYS)delete x[k];}},true);
+  const lb=el('label','','me-row');lb.append(cb,el('b','Ask the player: ACCEPT or DENY'));box.append(lb,hint(HELP_MONEY.ask+(on&&pay&&pay.when==='accept'?' (Always on here: the player pays when accepting.)':'')));
+  if(!on)return box;
+  const lab=(k,ph)=>{const i=el('input','','',{'aria-label':ph+' button label',['data-me-ask-'+k]:m.id,maxlength:'20',size:'10',placeholder:ph});i.value=st[k]||'';i.oninput=()=>set(x=>{const v=i.value.slice(0,20);if(v.trim())x[k]=v;else delete x[k];});return i;};
+  const r=el('div','','me-row');r.append(el('span','Buttons','me-small'),lab('yes','ACCEPT'),lab('no','DENY'));box.append(r,hint(HELP_MONEY.labels));
+  const dn=el('select','','',{'aria-label':'What happens on DENY','data-me-ask-deny':m.id});for(const [v,n] of [['again','Nothing: offer it again later'],['never','Never offer it again'],['start','Start another mission']])dn.append(new Option(n,v));dn.value=st.deny||'again';
+  dn.onchange=()=>set(x=>{if(dn.value==='again')delete x.deny;else x.deny=dn.value;if(dn.value!=='start')delete x.denyStart;},true);
+  const r2=el('div','','me-row');r2.append(el('b','On DENY'),dn,...optHelp(dn,HELP_MONEY.deny,'What happens on DENY'));
+  if(st.deny==='start'){const ms=el('select','','',{'aria-label':'Mission started on DENY','data-me-ask-deny-start':m.id});ms.append(new Option('— choose a mission —',''));
+   for(const tt of local().trees)if(tt.id!==t.id&&tt.missions&&tt.missions[0])ms.append(new Option(numLabel(tt.missions[0].number,tt.missions[0].title||tt.missions[0].id)+' (first of '+(tt.name||tt.id)+')',tt.missions[0].id));
+   ms.value=st.denyStart||'';ms.onchange=()=>set(x=>{if(ms.value)x.denyStart=ms.value;else delete x.denyStart;},true);r2.append(ms);}
+  box.append(r2,linesEditor(t,m,st.denySay||[],'deny',st.how==='notification'?st.from:m.giver,'What is said after DENY (optional)'),hint(HELP_MONEY.denySay));
   return box;}
  function treeStepRow(t,raw,m,o,k,ed){const sb=el('section','','me-step',{'data-me-tstep':o.id,'data-me-step':o.id}),eo=(fn,redraw)=>ed(x=>{const oo=x.objectives.find(y=>y.id===o.id);if(oo)fn(oo,x);},redraw);
   const head=el('div','','me-row');head.append(el('b','STEP '+(k+1)+' · '+o.id));
@@ -486,7 +542,7 @@
   const row=el('div','','me-line',{'data-me-line':l.ref||l.key});const t=shownText(l),e=lineEdit(l),vs=voiceState(l);
   const who=el('div','','me-who');who.append(el('b',l.name),el('span',l.voice?'voice '+l.voice.voice+' ('+l.voice.status+')':'no registered voice','me-small'));row.append(who);
   const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));
-  const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);
+  const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;const tn=tagNoteEl(t,l.who,l.name);ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}tagNoteSet(tn,ta.value,l.who,l.name);};body.append(ta,tn);
   const tags=el('div','','me-tags');
   if(l.locked)tags.append(el('span',unlocked?'Your script — unlocked for your edit':l.lock,'me-lock'));
   if(l.placeholder)tags.append(el('span','Claude’s placeholder (not your words)','me-warn'));
@@ -496,6 +552,7 @@
   if(l.locked&&!unlocked&&!player)tags.append(btn('UNLOCK TO EDIT MY SCRIPT',()=>{if(!confirm('This is your own script ('+l.lock.replace('Your script — locked ','')+'). Edit it here?'))return;setLine(l,t,true);draw();}));
   if(vs.revoice)tags.append(btn('RE-VOICE',()=>revoice([l]),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
   if(e)tags.append(btn('UNDO EDIT',()=>{const d=local();delete d.lines[l.ref];saveLocal(d);draw();}));
+  if(!player&&lineKey(l)&&l.kind!=='beginner'&&l.kind!=='design'){const ib=importBox(lineKey(l),l.who,()=>ta.value,{onChange:()=>{const s=row.querySelector('.me-vs'),v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}}});ta.addEventListener('input',()=>ib.refresh());body.append(tags,ib);row.append(body);return row;}   // IMPORT VOICE FILE (voice-imports.js)
   body.append(tags);row.append(body);return row;}
  function unlockBlock(m,e,editable){const box=el('section','','me-unlocks');box.append(el('h4','What becomes available'));
   const when=u=>u.when==='complete'?'when the mission is done':u.when==='accept'?'when it is accepted':u.when==='after'?'afterwards':u.when==='offer'?'when it is offered':'at step '+u.when;
@@ -532,6 +589,7 @@
   const n=linesFor(id),g=giver(id),q=String(opt.search||'').trim().toLowerCase(),has=l=>!q||String(shownText(l)).toLowerCase().includes(q)||String(l.missionTitle||l.where||l.group||'').toLowerCase().includes(q);
   const reg=src.registry?.npcs?.[id]||(g&&src.registry?.npcs?.[g.say]);
   root_.append(el('p',(reg?'Registered voice (read-only): '+reg.voice+' · '+reg.status:'Not in the voice registry: their lines are on-screen text only.')+(n&&n.engine?' · Re-voice engine: '+(n.engine.engine==='elevenlabs'?'ElevenLabs, '+n.engine.voice+' ('+n.engine.note+')':'Kokoro on your PC (generate.py --from-queue)'):''),'dev-note',{'data-npc-voice':id}));
+  root_.append(hint(TAG_HELP,{'data-me-tag-help':'1'}));
   root_.append(hint('A registered Kokoro voice is locked and never changed here (an ElevenLabs voice for new lines is chosen in the Voice box). Editing a line here changes what is shown; a recorded line is text only until it is re-voiced (RE-VOICE adds it to the queue you record on your PC).'));
   const inM=(n?n.inMissions:[]).filter(has),out=(n?n.outside:[]).filter(has),total=n?n.inMissions.length+n.outside.length:0;
   const stale=[...inM,...out].filter(l=>voiceState(l).revoice),bar=el('div','','me-row');
@@ -549,11 +607,38 @@
   // the street pair's one neutral line with no mission (ncz-street-pair.js GREETING: in the code, text only)
   const gr=root.VoidStreetPair?.GREETING?.[id];if(gr&&gr.length){const d=el('div','','me-scene',{'data-npc-greeting':id});d.append(el('h5','When there is no mission for the player (placeholder in the game’s code)'));for(const t of gr)d.append(el('p','“'+t+'” · text only, no voice · needs a code change to edit','me-small'));root_.append(d);}
   if(!out.length&&!(gr&&gr.length))root_.append(el('p',q?'No other line matches.':'No lines outside missions.','me-small'));}
+ // ---------------- IMPORT VOICE FILE (the owner, 19 Nov 2026: type the line, make the voice in ElevenLabs, import the file here). voice-imports.js holds the rules.
+ /* The draft keeps a record per line (local().clips[lineKey]: who, text at import, hash, type, duration, bytes, name); the audio stays in this browser (IndexedDB) until
+    PUBLISH uploads it. Changing the words afterwards flags the line ("text changed since the voice was imported") and the file is not used for the new words. */
+ const VI=()=>root.VoidVoiceImports;
+ const lineKey=l=>!l?null:l.kind==='tree'&&l.key?l.key:l.ref||null;
+ const clipRec=k=>k?(local().clips||{})[k]||null:null;
+ function treeLineText(key){const [mid,a,b,c]=key.slice(5).split('/');const m=(local().trees||[]).flatMap(t=>t.missions).find(x=>x.id===mid);if(!m)return undefined;
+  const list=a==='offer'?m.offer:a==='deny'?(m.start||{}).denySay:a==='ending'?(m.ending||{}).say:((m.objectives||[]).find(o=>o.id===a)||{})[b],l=list&&list[Number(a==='offer'||a==='ending'||a==='deny'?b:c)];return l?String(l.text||''):undefined;}
+ function clipTextOf(key){if(String(key).startsWith('tree:'))return treeLineText(key);const l=index&&index.get(key);return l?shownText(l):undefined;}
+ function setClip(key,rec){const d=local();d.clips=d.clips||{};if(rec)d.clips[key]=rec;else delete d.clips[key];saveLocal(d);}
+ const IMPORT_HELP='Made the line in ElevenLabs? Download it (MP3 is best) and press IMPORT VOICE FILE. Players then hear your file for exactly these words. 40 seconds at most; a big file is made smaller for you.';
+ function importBox(key,who,textNow,opt={}){const I=VI(),box=el('div','','me-import',{'data-me-import':key});box.refresh=()=>{};if(!I)return box;
+  const draw_=()=>{box.replaceChildren();const rec=clipRec(key),now=String(textNow()||''),row=el('div','','me-row');
+   const input=el('input','','',{type:'file',accept:'audio/*,.mp3,.wav,.ogg,.opus,.m4a,.webm',hidden:'','data-me-import-file':key,'aria-label':'Voice file'}),msg=el('p','','me-small',{'data-me-import-msg':key,role:'status'});
+   input.onchange=async()=>{const f=input.files&&input.files[0];input.value='';if(!f)return;const words=String(textNow()||'').trim();if(!words){msg.className='me-small me-bad';msg.textContent='Write what they say first, then import the voice file for those words.';return;}
+    msg.className='me-small';const r=await I.prepare(f,t=>{msg.textContent=t;});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}
+    const kept=await I.store(r.hash,r.type,r.data,r.duration);setClip(key,I.record({who,text:words,hash:r.hash,type:r.type,duration:r.duration,bytes:r.bytes,name:r.name,reencoded:r.reencoded}));
+    status='Voice file imported ('+r.duration.toFixed(1)+' s'+(r.reencoded?', made smaller for you: Ogg Opus, '+Math.round(r.bytes/1024)+' KB':'')+'). PLAY THIS DRAFT uses it now; PUBLISH sends it to players. UNDO takes it back.'+(kept?'':' This browser’s site storage is blocked, so the file is only kept until you reload: publish before you close the game.');
+    draw_();if(opt.onChange)opt.onChange();const st=document.querySelector('#me-status,#npc-root .me-status');if(st)st.textContent=status;};
+   if(!rec){row.append(btn('IMPORT VOICE FILE',()=>input.click(),'',{'data-me-import-btn':key,title:'Pick an audio file you made for this line (MP3, WAV or OGG; M4A or WEBM if your browser plays them).'}),input);box.append(row,hint(IMPORT_HELP),msg);box.refresh=()=>{};return;}
+   const st=I.status(rec,now),chip=el('span',st.text,'me-vs me-'+st.cls,{'data-me-import-status':st.state});
+   const info=el('span',rec.name+' · '+rec.duration.toFixed(1)+' s · '+Math.max(1,Math.round(rec.bytes/1024))+' KB'+(rec.reencoded?' · made smaller (Ogg Opus)':''),'me-small',{'data-me-import-info':key});
+   let audio=null;const play=btn('▶ PLAY',async()=>{try{if(audio){audio.pause();audio=null;play.textContent='▶ PLAY';return;}const data=await I.getData(rec.hash);audio=new Audio(URL.createObjectURL(new Blob([data],{type:rec.type})));audio.onended=()=>{play.textContent='▶ PLAY';URL.revokeObjectURL(audio.src);audio=null;};play.textContent='■ STOP';await audio.play();}catch{msg.className='me-small me-bad';msg.textContent='The file could not be played here. Import it again (REPLACE).';}},'',{'data-me-import-play':key});
+   row.append(chip,info,play,btn('REPLACE',()=>input.click(),'',{'data-me-import-replace':key}),btn('REMOVE',()=>{setClip(key,null);status='Imported voice file removed from this line (UNDO puts it back).';draw_();if(opt.onChange)opt.onChange();},'me-x',{'data-me-import-remove':key}),input);
+   box.append(row,msg);I.available(rec.hash).then(a=>{if(!a&&st.state==='ok'){const m2=I.status(rec,now,{available:false});chip.textContent=m2.text;chip.className='me-vs me-'+m2.cls;chip.dataset.meImportStatus=m2.state;}}).catch(()=>{});
+   box.refresh=()=>{const s2=I.status(clipRec(key),String(textNow()||''));if(s2&&s2.state!==chip.dataset.meImportStatus){chip.textContent=s2.text;chip.className='me-vs me-'+s2.cls;chip.dataset.meImportStatus=s2.state;if(opt.onChange)opt.onChange();}};};
+  draw_();return box;}
  // ---------------- VOICE (queue item 0b, approved 18 Nov 2026): the current voice, and an ElevenLabs voice chosen by pasting its link or ID plus a name (npc-voices.js).
  /* Never generates audio, never asks for or keeps an API key, never lists the owner's ElevenLabs library: the choice is draft content (published like missions, checked by the
     server); lines RE-VOICEd for that character wait in the re-voice queue until the owner approves the spend. Registered Kokoro voices stay read-only. */
  function setVoice(id,v){const d=local();d.voices=d.voices||{};if(v)d.voices[id]=v;else delete d.voices[id];saveLocal(d);rebuild();}
- function voiceLines(id){const n=linesFor(id);return n?[...n.inMissions,...n.outside].filter(l=>l.who!=='player').map(l=>shownText(l)):[];}
+ function voiceLines(id){const n=linesFor(id),v=voiceNow(id);return n?[...n.inMissions,...n.outside].filter(l=>l.who!=='player').map(l=>V()?V().speakText(shownText(l),v):shownText(l)):[];}   // as they are sent (voice tags only for a model that reads them)
  function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));
   if(!X){box.append(el('p','The voice tools could not load. Reload the page.','me-bad'));return box;}
   const no=X.refusal(id,src&&src.registry);if(no){box.append(el('p',no,'me-warn',{'data-voice-refused':id}));return box;}
@@ -565,8 +650,11 @@
   else if(cur.kind==='kokoro'){p.append(el('b','Kokoro (free, on your PC): '),document.createTextNode(cur.voice+' · '+cur.status+' · read-only (locked in the voice registry)'));box.append(p);}
   else{p.append(el('b','No voice yet: '),document.createTextNode(name+'’s lines are on-screen text only. Choose an ElevenLabs voice below to have them recorded.'));box.append(p);}
   if(X.note(id))box.append(el('p',X.note(id),'me-small me-warn',{'data-voice-street':id}));
-  const est=X.estimate(voiceLines(id)),queued=(server.queue?.items||[]).filter(q=>q.who===id&&q.status==='queued'),qe=X.estimate(queued.map(q=>q.text));
-  const ep=el('p','Re-voicing all of '+name+'’s lines: '+est.lines+' line(s) · '+est.chars.toLocaleString()+' characters · about '+est.credits.toLocaleString()+' ElevenLabs credits (Flash / Turbo: about '+est.fast.toLocaleString()+').'+(server.queue?' Waiting in the re-voice queue now: '+qe.lines+' line(s), about '+qe.credits.toLocaleString()+' credits.':''),'me-small',{'data-voice-estimate':String(est.chars)});
+  const mdl=cur.kind==='elevenlabs'?cur.model:null,est=X.estimate(voiceLines(id),mdl),queued=(server.queue?.items||[]).filter(q=>q.who===id&&q.status==='queued'),qe=X.estimate(queued.map(q=>q.speak||q.text),mdl);
+  if(mdl){const ms=el('select','','',{'aria-label':'ElevenLabs model','data-voice-model':id});for(const [k,mm] of Object.entries(X.MODELS))ms.append(new Option(mm.label+' · about '+mm.rate+' credit'+(mm.rate===1?'':'s')+' per character (estimate)',k));ms.value=mdl;
+   const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};
+   const w=el('label','','me-field');w.append(el('span','ElevenLabs model'),ms,md);box.append(w);}
+  const ep=el('p','Re-voicing all of '+name+'’s lines: '+est.lines+' line(s) · '+est.chars.toLocaleString()+' characters · about '+est.credits.toLocaleString()+' ElevenLabs credits'+(mdl?' with '+X.MODELS[mdl].label.replace(/ \(.*$/,'')+' (an estimate).':' (Flash / Turbo: about '+est.fast.toLocaleString()+').')+(server.queue?' Waiting in the re-voice queue now: '+qe.lines+' line(s), about '+qe.credits.toLocaleString()+' credits.':''),'me-small',{'data-voice-estimate':String(est.chars)});
   box.append(ep,hint(est.text));
   const d=el('details','','me-voice-pick',{'data-voice-choose':id});d.open=!!opt.open||ui.voiceOpen===id;d.ontoggle=()=>{ui.voiceOpen=d.open?id:(ui.voiceOpen===id?null:ui.voiceOpen);};d.append(el('summary',cur.kind==='elevenlabs'&&cur.from==='editor'?'Change the ElevenLabs voice':'Choose an ElevenLabs voice'));
   const li=el('input','','',{'aria-label':'ElevenLabs voice link or ID',placeholder:'https://elevenlabs.io/voices/… or the 20-character voice ID','data-voice-input':id,maxlength:'300',autocomplete:'off',spellcheck:'false'}),ni=el('input','','',{'aria-label':'Name of the voice',placeholder:'What you call it, e.g. Gravel street vendor','data-voice-name':id,maxlength:String(X.LIMIT.name)});
@@ -574,7 +662,7 @@
   const msg=el('p','','me-small',{'data-voice-check':id,role:'status'});
   const check=()=>{msg.replaceChildren();if(!li.value.trim()){msg.className='me-small';msg.textContent='';return;}const r=X.parse(li.value);msg.className='me-small '+(r.ok?'me-ok':'me-bad');if(r.ok){msg.append('✓ Voice ID '+r.id+' ',el('a','Listen on ElevenLabs ↗','me-link',{href:X.listenUrl(r.id),target:'_blank',rel:'noopener noreferrer','data-voice-listen-new':r.id}));}else msg.textContent=r.why;};
   li.oninput=check;
-  const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});
+  const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});
   d.append(hint('1. In ElevenLabs, open the voice and copy the link of its page (or its voice ID). 2. Paste it here and give it a name. 3. USE THIS VOICE. Your ElevenLabs account and key are never used here, and nothing is recorded or paid: lines you RE-VOICE wait in the queue until you approve the spend; then Claude records them.'),
    fl('ElevenLabs voice link or ID',li,'A link like elevenlabs.io/voices/AbCdEf… or just the ID (20 letters and digits).'),msg,fl('Name',ni,'Your own name for it, shown here and in the voices file (60 characters at most).'));
   const r=el('div','','me-row me-actions');r.append(save);
@@ -603,41 +691,44 @@
   return box;}
  // ---------------- JUMP THERE: a throwaway test session on The Avenue, a few steps from a spot (the draft applied, so placements and waits show)
  /* opts (NPCs tab): {npcs: {id: plan}} tried in place of the draft's own (a pasted behaviour recipe before it is saved), minute: the in-game time of day to start at (a daily schedule). */
- async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
+ async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;fresh();const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
   write(back||RETURN,{tree:ui.tree,mission:ui.mission,step:null,npc:npc||null,at:Date.now()},root.sessionStorage);
   const r=await root.VoidDevTest.session({banner:'VIEWING: '+(label||'a spot')+' — not your real save',leave:'LEAVE',kind:'draft',
    apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
-   build:()=>{const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
+   build:()=>{jumpTo.notes=streetClock([npc]);const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
     if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
-   enter:async()=>{state.location='earth';if(npc&&root.VoidStreetPair)root.VoidStreetPair.force=npc;
+   clock:clockText,enter:async()=>{state.location='earth';
     // the area of the spot (npc-areas.js): a street quarter or the District interior; the player stands a few steps away on ground they can walk, facing it
     const AR=root.VoidNPCAreas,a=AR&&AR.areaOf({x,z})||'avenue',w=AR?AR.enter(a):{walk:'sacramento',quarter:'avenue'};
     if(w.walk==='darknet-district'){state.story.flags.area='district';state.story.flags.districtBadge=true;await enterWalking(VoidDistrictArea.KEY.interior,{silent:true});}
     else{delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
     let at=a==='avenue'?{x,z:Math.max(-16,z-3.4)}:null;if(!at&&AR){for(const r of [3.4,2.4,4.4])for(let k=0;k<12&&!at;k++){const t=k/12*Math.PI*2,q={x:x+Math.sin(t+Math.PI)*r,z:z+Math.cos(t+Math.PI)*r},c=AR.check(q,a);if(c.ok&&c.area===a)at=q;}}
     try{if(at){walker.x=at.x;walker.z=at.z;walker.yaw=Math.atan2(x-at.x,z-at.z);}}catch{}},
-   message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+c.errors.slice(0,2).join(' · '))+' · nothing is saved'});
+   message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+c.errors.slice(0,2).join(' · '))+' · nothing is saved'+((jumpTo.notes||[]).length?' · '+jumpTo.notes.join(' '):'')});
   if(r&&r.error){status=r.error;draw();}return r;}
  // ---------------- "Guide me": the next required box (the same rules as the play / publish check: mission-content.js treeNeeds)
  const NEED_SEL={title:m=>'[data-me-field="title"]',giver:m=>'[data-me-giver="'+CSS.escape(m.id)+'"]','start-from':m=>'[data-me-start-from="'+CSS.escape(m.id)+'"]','start-header':m=>'[data-me-start-header="'+CSS.escape(m.id)+'"]','start-text':m=>'[data-me-start-text="'+CSS.escape(m.id)+'"]',
-  'start-mission':m=>'[data-me-start-mission="'+CSS.escape(m.id)+'"]','start-place':m=>'[data-me-start-place="'+CSS.escape(m.id)+'"]','start-flag':m=>'[data-me-start-flag="'+CSS.escape(m.id)+'"]','start-near':m=>'[data-me-start-near="'+CSS.escape(m.id)+'"]',
+  'start-mission':m=>'[data-me-start-mission="'+CSS.escape(m.id)+'"]','start-place':m=>'[data-me-start-place="'+CSS.escape(m.id)+'"]','start-flag':m=>'[data-me-start-flag="'+CSS.escape(m.id)+'"]','start-near':m=>'[data-me-start-near="'+CSS.escape(m.id)+'"]','start-ask':m=>'[data-me-ask-on="'+CSS.escape(m.id)+'"]','start-deny':m=>'[data-me-ask-deny-start="'+CSS.escape(m.id)+'"]','cost-when':m=>'[data-me-cost-when="'+CSS.escape(m.id)+'"]',
   'add-step':m=>'[data-me-add-step="'+CSS.escape(m.id)+'"]',kind:(m,o)=>'[data-me-kind="'+CSS.escape(o)+'"]','step-npc':(m,o)=>'[data-me-step-npc="'+CSS.escape(o)+'"]','step-place':(m,o)=>'[data-me-step-place="'+CSS.escape(o)+'"]','step-item':(m,o)=>'[data-me-step-item="'+CSS.escape(o)+'"]',
   'step-subject':(m,o)=>'[data-me-step-subject="'+CSS.escape(o)+'"]',label:(m,o)=>'[data-me-label="'+CSS.escape(o)+'"]',say:(m,o)=>'[data-me-tstep="'+CSS.escape(o)+'"] textarea',ending:m=>'[data-me-ending="'+CSS.escape(m.id)+'"]','wait-at':m=>'[data-me-wait-at="'+CSS.escape(m.id)+'"] canvas'};
- let guideT=0;function guideSoon(){clearTimeout(guideT);guideT=setTimeout(guideNow,350);}
+ let guideT=0;function guideSoon(){clearTimeout(guideT);guideT=setTimeout(()=>{guideT=0;guideNow();},350);}
+ /* The PLAY buttons of the shown tree follow the saved draft at once, on every keystroke (not after Guide me's pause): filled in since the card was drawn, PLAY works now;
+    emptied, it is greyed with the reason (the same check as play and publish: mission-content.js treeNeeds). */
+ function syncPlay(sc){if(!sc||ui.mode!=='trees')return;const raw=local().trees.find(x=>x.id===ui.tree);if(!raw)return;
+  for(const m of raw.missions){const b=MC().treeBlockers(m,givers,items);for(const p of sc.querySelectorAll('[data-me-play^="tree:'+CSS.escape(m.id)+'"]')){const k=p.getAttribute('data-me-play');if(k!=='tree:'+m.id&&!k.startsWith('tree:'+m.id+'#'))continue;
+   if(b.length){p.disabled=true;if(k==='tree:'+m.id)p.title='Cannot be played yet: '+b.join('; ');}else if(p.disabled){p.disabled=false;p.removeAttribute('title');}}}}
  function guideNow(){const Gd=root.VoidEditorGuide;if(!Gd||!host||!built)return null;const sc=host.querySelector('#me-root');if(!sc)return null;
   if(ui.mode!=='trees'){Gd.clear(sc);return null;}
   if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}
   const raw=local().trees.find(x=>x.id===ui.tree);if(!raw||!sc.querySelector('[data-me-owner-tree]')){Gd.clear(sc);return null;}
   const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename="'+CSS.escape(raw.id)+'"]',text:'the tree’s name'});
   if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});
-  let doneM=null;for(const m of raw.missions){const list=MC().treeNeeds(m,givers,items);if(!list.length){if(!doneM||'tree:'+m.id===ui.mission)doneM=m;
-    // filled in since the card was drawn: its PLAY THIS DRAFT works now (the same check)
-    for(const b of sc.querySelectorAll('[data-me-play^="tree:'+CSS.escape(m.id)+'"]'))if(b.disabled){b.disabled=false;b.removeAttribute('title');}continue;}
+  syncPlay(sc);let doneM=null;for(const m of raw.missions){const list=MC().treeNeeds(m,givers,items);if(!list.length){if(!doneM||'tree:'+m.id===ui.mission)doneM=m;continue;}
    for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission="'+CSS.escape(m.id)+'"] '+f(m,n.step),text:n.text});}}
   return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play="tree:'+CSS.escape(doneM.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}
  // ---------------- RE-VOICE (owner-only server queue; nothing is generated in the browser or on the server)
  async function revoice(lines,m){
-  const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;}return x;});   // a voice chosen in the editor goes with the line (the server checks it)
+  const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)
   if(!items.length)return;try{server.queue=await call('developer/revoice',{items});status=items.length+' line(s) added to the re-voice queue.';}catch(e){status='Re-voice queue: '+e.message;}draw();}
  async function serverDraft(m){
   const id=('me-'+m.id).slice(0,64);try{const tpl=(await call('developer/drafts/template?kind=mission&source='+encodeURIComponent(m.server))).document,e=editOf(m.key);
@@ -648,14 +739,14 @@
   catch(e){status='Server draft not saved: '+e.message;}draw();}
  function downloadQueue(){const a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({format:'mission-editor-revoice-queue',exportedAt:new Date().toISOString(),items:server.queue?.items||[]},null,1)],{type:'application/json'}));a.download='mission-editor-revoice-queue.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
  function exportEdits(){const data={format:'darknet-district-mission-editor-export',version:1,exportedAt:new Date().toISOString(),note:'Owner draft. Lines marked "needs a code change" are for Claude or Codex to apply in the source.',
-   content:MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,givers,items}),notApplied:MC().notApplied({studio:studio(),local:local(),givers,items}),local:local(),studio:studio()};
+   content:MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,givers,items,clipText:clipTextOf}),notApplied:MC().notApplied({studio:studio(),local:local(),givers,items}),local:local(),studio:studio()};
   const a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download='mission-editor-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
  // ---------------- PLAY THIS DRAFT
  function playable(m,why){if(['beginner','registry'].includes(m.engine)&&!m.draftOnly||m.engine==='beginner')return why?'':true;
   if(m.engine==='tree'){const b=MC().treeBlockers(m.raw,givers,items);return why?(b.length?'Cannot be played yet: '+b.join('; ')+'.':''):!b.length;}
   return why?(m.engine==='contract'?'Not playable as a draft yet: contracts are flown from the contract board and have no draft adapter.':m.engine==='data'?'Not playable: this mission is inactive data; nothing in the game starts it yet.':'Not playable from here.'):false;}
  const STAGE={'ground-training':['inheritance','vesper'],'flight-training':['inheritance','vesper'],'meet-rook':['arrival','meridian'],'first-station':['legal-offer','meridian'],'combat-qualification':['legal-offer','meridian'],'legal-run':['legal-run','meridian'],'return':['return','kepler'],'illegal-run':['illegal-run','meridian'],'meet-admin':['open','earth']};
- function draftContent(){return MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,note:'draft play',givers,items});}
+ function draftContent(){return MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,note:'draft play',givers,items,clipText:clipTextOf});}
  function checkCtx(){return {registry:src.registry,speakers:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName)),registryIds:new Set(Object.keys(shipped().registry).filter(id=>shipped().registry[id]?.beginner!==true)),
   registryObjectives:Object.fromEntries(Object.entries(shipped().registry).map(([id,d])=>[id,new Set((d.objectives||[]).map(o=>o.id))])),lines:new Set(index.keys()),
   givers:new Map(givers.map(g=>[g.id,g])),places:G().placeIds(),subjects:new Set(G().photoSubjects(givers).map(g=>g.id)),items,locations:new Set(Object.keys(refs.locations)),treeIds:new Set(built.trees.map(t=>t.id)),numbers:serverNumbers()};}
@@ -683,11 +774,17 @@
   // Reverie, Lace and the cat may be placed in any area (npc-areas.js): draft play of a mission she gives starts where she waits for it, else where her placement puts her
   {const AR=root.VoidNPCAreas,X=root.VoidNPCPaths,id=m.giver;if(AR&&X&&X.MOVABLE[id]&&where&&where.walk==='sacramento'&&where.quarter==='avenue'){const np=(draftContent().npcs||{})[id],t=m.waitAt||(np&&np.mode==='stay'?np:np&&np.mode==='path'?np.points[0]:null),a=t&&AR.areaOf(t);
    if(a&&a!=='avenue'){where=AR.enter(a);notes.push('Draft play starts in '+AR.get(a).name+', where '+((giver(id)||{}).name||id)+' is placed.');}}}
-  // Reverie and Lace take turns on one UTC clock: draft play puts the one this mission needs on the street now (throwaway session only)
-  {const ids=[m.giver,w&&w.kind==='near'?w.npc:null,...m.objectives.map(o=>o.npc),m.ending&&m.ending.npc].filter(Boolean),sh=ids.map(giver).find(g=>g&&g.shift);
-   if(sh&&root.VoidStreetPair){root.VoidStreetPair.force=sh.id;notes.push('Draft play puts '+sh.name+' on the street now, whatever the hour.');}}
+  // Reverie and Lace take turns on one UTC street clock: the test runs at a time the first one it uses is really out (a simulated street clock; throwaway session only)
+  {const nw=(m.start&&m.start.when)||{};notes.push(...streetClock([m.giver,nw.kind==='near'?nw.npc:null,...m.objectives.flatMap(o=>[o.npc,...(o.subjects||[])]),m.ending&&m.ending.npc]));}
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
   M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes};}
+ /* The street clock of a test (the owner, 19 Nov 2026: "If I test with REVERIE or LACE make it the time they are actually there"): a test that involves Reverie or Lace
+    runs on a simulated street clock inside her shift (ncz-street-pair.js testClock: the first one used; never in the 90 s handover), so the pair, the cat, Milked's
+    Studio 1 and her missions agree. Set in the session's build (dev-test.js clears it at the start of every session; leaving reloads the page). Returns the notice. */
+ function streetClock(ids){const S=root.VoidStreetPair;if(!S||!S.testClock)return [];const tc=S.testClock(ids);S.simulate(tc?tc.ms:null);return tc?[tc.note]:[];}
+ // The draft banner shows both clocks: the street (UTC, the pair's shift) and the in-game day (game-clock.js: schedules).
+ function clockText(){const S=root.VoidStreetPair,GC=root.VoidClock;let t='';if(S&&S.streetTime)t='Street '+S.utcLabel(S.streetTime())+' UTC'+(S.simulated()?' (test)':'');
+  try{if(GC&&state)t+=(t?' · ':'')+'In-game '+GC.now(state).label;}catch{}return t;}
  async function enterTree(w){
   if(w.walk==='darknet-district'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
   else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
@@ -709,14 +806,14 @@
   M.track(s,mid,C);const i=stepId?Math.max(0,(d.objectives||[]).findIndex(o=>o.id===stepId)):0;for(const o of (d.objectives||[]).slice(0,i))M.complete(s,mid,o.id,C);M.sync(s,C);
   return {state:s,where:loc,notes};}
  async function play(key,stepId){
-  const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
+  fresh();const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
   const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first (Guide me highlights each box), then press PLAY again: '+c.errors.slice(0,4).join(' · ');draw();return;}
   const not=MC().notApplied({studio:studio(),local:local(),givers,items});
   const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);if(wsOn())await saveServer();   // the server copy is up to date before the page reloads
   write(RETURN,{tree:f.tree.id,mission:m.key,step:stepId||null,at:Date.now()},root.sessionStorage);
   const env=root.VoidLiveContent?.env;
   const r=await root.VoidDevTest.session({banner:'PLAYING DRAFT: '+m.title+' — not your real save',leave:'LEAVE DRAFT',kind:'draft',
-   apply:()=>{root.VoidLiveContent?.useDraft(content);},
+   apply:()=>{root.VoidLiveContent?.useDraft(content);},clock:clockText,
    build:()=>{const x=m.engine==='tree'?treeState(m.id,stepId):m.engine==='beginner'?beginnerState(m.id,stepId):registryState(m.id,stepId);play.notes=x.notes||[];play.where=x.where;return x.state;},
    enter:async()=>{const w=play.where;if(m.engine==='tree')return enterTree(w);if(w==='interior'||w==='earth'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
     else if(w==='street'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}
@@ -739,6 +836,7 @@
   for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' mission(s) in '+(content.trees||[]).length+' tree(s) (the Main storyline is always sent), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
   const w=MC().warnings(shippedB,nextB);chk.append(el('h5','Players part-way through ('+w.length+')'));if(!w.length)chk.append(el('p','No saved progress is affected.','me-small'));for(const t of w)chk.append(el('p','⚠ '+t,'me-warn'));
   const outOfDate=(content.lines||[]).filter(l=>index.get(l.who+'|'+l.from)?.recorded);if(outOfDate.length)chk.append(el('p','⚠ '+outOfDate.length+' line(s) have a recorded voice clip that no longer matches: voice clip out of date, text only until re-voiced.','me-warn'));
+  {const cl=content.clips||[],stale=Object.keys(local().clips||{}).length-cl.length;if(cl.length)chk.append(el('p','• '+cl.length+' imported voice file(s): players hear your file for those lines (uploaded when you publish; '+Math.round(cl.reduce((n,c)=>n+c.bytes,0)/1024)+' KB in all).','',{'data-me-publish-clips':String(cl.length)}));if(stale>0)chk.append(el('p','⚠ '+stale+' imported voice file(s) are not sent: their line’s words changed since the import (REPLACE the file, or put the words back).','me-warn',{'data-me-publish-clips-stale':String(stale)}));}
   const nt=content.trees||[],nn=nt.flatMap(t=>t.missions.map(m=>({t,m})));
   {const nums=nn.filter(({m})=>Number.isInteger(m.number)).sort((a,b)=>a.m.number-b.m.number),probs=MS().numberProblems(nt,ledger()),box=el('div','',null,{'data-me-numbers':String(nums.length)});box.append(el('h5','Mission numbers ('+nums.length+')'));
    for(const {t,m} of nums)box.append(el('p','• '+numLabel(m.number,m.title)+' · '+t.name+' · id '+m.id+(ledger()[m.number]===m.id?'':' · new number'),'',{'data-me-number-row':m.id}));for(const p of probs)box.append(el('p','⚠ '+p,'me-bad'));
@@ -751,9 +849,11 @@
   if(nn.length)chk.append(el('p','New missions are ordinary mission records in each player’s save (and a story flag mt_<id> when paid); the cloud save already accepts them. Players who are part-way through a new mission when it is changed or removed keep their record; a removed one is untracked.','me-small'));
   if(not.length){chk.append(el('h5','Edits that will NOT reach players (kept in your draft)'));for(const t of not)chk.append(el('p','• '+t,'me-small'));}
   const note=el('input','','',{'aria-label':'Change note',placeholder:'What changed (shown in the version list)',maxlength:'200'});note.value=ui.note||'';note.oninput=()=>{ui.note=note.value;};chk.append(note);
+  // the draft changed since this check screen was drawn (another tab, UNDO, a field still being typed in): show the new check instead of sending what is not on screen
+  const changedSince=()=>{fresh();if(JSON.stringify(draftContent())===JSON.stringify(content))return false;status='Your draft changed since this check screen was drawn. It has been checked again: look it over, then press the button again.';ui.check=null;draw();return true;};
   const blocked=!live||!live.enabled||c.errors.length||(ui.check?.errors||[]).length||MC().empty(content);
-  const row=el('div','','me-row');row.append(btn('ASK THE SERVER TO CHECK',async()=>{try{ui.check=await call('developer/live-content/check',{content});status=ui.check.ok?'The server checked the draft: no problems.':'The server found problems.';}catch(e){status='Server check: '+e.message;}draw();},'',live?{}:{disabled:''}));
-  row.append(btn('PUBLISH TO ALL PLAYERS',async()=>{if(!confirm('Publish your draft to every player now? You can undo it afterwards.'))return;try{const rec=await call('developer/live-content/publish',{expected:live.version||0,content:{...content,note:(ui.note||'').slice(0,200)||undefined}});status='Published version '+rec.version+'. Players get it the next time the game loads.';await refreshServer();}catch(e){status='Not published: '+e.message;}draw();},'me-publish',{'data-me-publish':'1',...(blocked?{disabled:''}:{})}));
+  const row=el('div','','me-row');row.append(btn('ASK THE SERVER TO CHECK',async()=>{if(changedSince())return;try{ui.check=await call('developer/live-content/check',{content});status=ui.check.ok?'The server checked the draft: no problems.':'The server found problems.';}catch(e){status='Server check: '+e.message;}draw();},'',live?{}:{disabled:''}));
+  row.append(btn('PUBLISH TO ALL PLAYERS',async()=>{if(changedSince())return;if(!confirm('Publish your draft to every player now? You can undo it afterwards.'))return;try{if((content.clips||[]).length){const u=await VI().upload(call,content.clips,t=>{status=t;const n=host&&host.querySelector('#me-status');if(n)n.textContent=t;});if(u.uploaded)status=u.uploaded+' voice file(s) uploaded.';}const rec=await call('developer/live-content/publish',{expected:live.version||0,content:{...content,note:(ui.note||'').slice(0,200)||undefined}});status='Published version '+rec.version+'. Players get it the next time the game loads.';await refreshServer();}catch(e){status='Not published: '+e.message;}draw();},'me-publish',{'data-me-publish':'1',...(blocked?{disabled:''}:{})}));
   chk.append(row);root_.append(chk);
   // versions
   const vs=el('section','','me-versions');vs.append(el('h4','Published versions'));const hist=(live&&live.history)||[];if(!hist.length)vs.append(el('p','None yet.','me-small'));
@@ -766,10 +866,10 @@
   // the beginner layer (editor-home.js): jump to a view, add the wizard's mission, play a tree mission, what blocks one
   goto(o){Object.assign(ui,{check:null,newTree:false,...o});},
   addWizardMission(make){const d=local();const r=make(d,{T:T(),number:nextFree(d),givers});saveLocal(d);stale=true;Object.assign(ui,{mode:'trees',tree:r.tree.id,mission:'tree:'+r.mission.id,step:null,scrollTo:true,newTree:false});return {tree:r.tree.id,mission:r.mission.id};},
-  playTree(id,step){if(stale)rebuild();return play('tree:'+id,step||null);},
+  playTree(id,step){return play('tree:'+id,step||null);},fresh,
   blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
   addGiverMission(npc,treeId){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};
- root.VoidMissionEditor={shared,guideNow,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
+ root.VoidMissionEditor={shared,guideNow,fresh,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
 })(globalThis);

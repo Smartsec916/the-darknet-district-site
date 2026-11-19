@@ -58,7 +58,7 @@ test('Mission 002 data: the Awakening tree, the owner\'s words verbatim, number 
  const {MS,MC,G,e}=env(),man=JSON.parse(fs.readFileSync(R('void-runner/save-manifest.json'),'utf8'));
  assert.equal(MS.TREE.name,'Awakening');assert.equal(MS.TREE_ID,'main-storyline','the id never changes');assert.deepEqual(MS.TREE.missions.map(m=>m.id).slice(0,2),['m001-awakening',ID]);   // Mission 003 follows (tests/mission-003.test.cjs)
  assert.deepEqual(man.storyMissions.slice(0,2),['m001-awakening',ID]);assert.equal(man.missionNumbers[1],'m001-awakening');assert.equal(man.missionNumbers[2],ID);assert.equal(MS.label(2,'Eyes on the Street'),'Mission 002 — Eyes on the Street');
- const m=MS.EYES;assert.equal(m.title,'Eyes on the Street');assert.equal(m.giver,'admin');assert.deepEqual(m.start,{how:'person',accept:true});assert.deepEqual(m.offer.map(l=>l.text),OFFER);
+ const m=MS.EYES;assert.equal(m.title,'Eyes on the Street');assert.equal(m.giver,'admin');assert.deepEqual(m.start,{how:'person',accept:true,no:'NOT NOW'});assert.deepEqual(m.offer.map(l=>l.text),OFFER);
  assert.deepEqual(m.objectives.map(o=>o.kind),['enter','photo','send-photo','talk']);assert.deepEqual(m.objectives[0].say.map(l=>l.text),CALL);assert.equal(m.objectives[0].via,'comms');
  assert.equal(m.objectives[2].say[0].text,'Received. That\'s exactly what I needed. Come back when you\'re ready.');assert.equal(m.objectives[2].wrong[0].text,'That\'s not the person I\'m looking for. Check the description and try again.');
  assert.equal(m.objectives[3].say[0].text,'Not bad. You can follow instructions and keep a low profile. I might have more work for you.');assert.equal(m.rewards,100);assert.deepEqual(m.unlocks,[{kind:'reputation',id:'admin',amount:10}]);
@@ -150,7 +150,7 @@ test('new reusable kinds: enter / leave a place (steps and triggers), photo and 
  assert.deepEqual(MC.check(doc(tree),ctx).errors,[]);
  const bad=[t=>{t.missions[0].objectives[0].place='atlantis';},t=>{t.missions[0].objectives[2].npc='admin-x';},t=>{t.missions[0].objectives[3].subject='nobody';},t=>{t.missions[0].objectives[2].subject='rin-takeda';},
   t=>{t.missions[0].objectives[0].wrong=[{who:'iris',text:'x'}];},t=>{t.missions[0].objectives[1].via='fax';},t=>{t.missions[0].objectives[1].say=[];},t=>{t.missions[0].unlocks[0].amount=0;},t=>{t.missions[0].unlocks[0].amount=500;},
-  t=>{t.missions[0].unlocks[0].id='nobody';},t=>{t.missions[0].unlocks[1].id='player';},t=>{t.missions[0].start={how:'person',accept:'yes'};},t=>{t.missions[1].start.accept=true;},t=>{t.missions[1].start.when={kind:'leave',place:'atlantis'};}];
+  t=>{t.missions[0].unlocks[0].id='nobody';},t=>{t.missions[0].unlocks[1].id='player';},t=>{t.missions[0].start={how:'person',accept:'yes'};},t=>{t.missions[1].start.yes='ACCEPT';},/* labels need the ask (any start may ask since 19 Nov 2026) */t=>{t.missions[1].start.when={kind:'leave',place:'atlantis'};}];
  for(const f of bad){const t=MC.clone(tree);f(t);assert.equal(MC.check(doc(t),ctx).ok,false,f.toString());}
  // and they run
  MC.apply(doc(tree),x.e,ctx);const s=district(x.C);s.story.flags.podWakePending=false;ev(x,s,{type:'pod-exit'});talk(x,s,'admin');

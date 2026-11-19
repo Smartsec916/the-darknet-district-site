@@ -709,15 +709,37 @@
   const studioOne=people.find(p=>p.studio===1);
   function syncStudioOne(){
    if(!studioOne)return;
-   const wanted=MK.studioOnePerformer(Date.now());
+   const wanted=MK.studioOnePerformer(root.VoidStreetPair?.streetTime?.()??Date.now());
    if(wanted.look===studioOne.fixedLook)return;
    studioOne.anim?.dispose?.();studioOne.node?.dispose?.();
-   studioOne.node=null;studioOne.anim=null;studioOne.rot=null;studioOne.meshes=[];
+   studioOne.node=null;studioOne.anim=null;studioOne.rot=null;studioOne.requestUntil=0;studioOne.meshes=[];
    studioOne.spawned=false;studioOne.fixedLook=wanted.look;
    studioOne.clips=wanted.clips;studioOne.dances=wanted.dances;studioOne.library=null;
    studioOne.look=null;studioOne.clip=null;
    askLooks([wanted.look]); // first load at shift change, without waiting for the normal 20s retry
    mirAll=null;mirNext=0;
+  }
+  // Requestable only while the named animation group exists on this exact loaded model.
+  // Keep walking, seated/floor, partner and prop-based clips out of a stationary studio.
+  const REQUESTABLE=/^(?:dance(?:-[a-z0-9-]+)?|slow-dance|idle(?:-[a-z0-9-]+)?|look|watch|gesture|shrug|talk|ac-stand-curve-[23])$/;
+  function animationChoices(studio){
+   syncStudioOne();const p=people.find(x=>x.studio===Number(studio));
+   if(!p||!p.node||!p.anim)return {look:p?.fixedLook||null,ready:false,clips:[]};
+   const groups=p.node.metadata?.animationGroups||[];
+   const present=name=>groups.some(g=>g.name===name||g.name.endsWith('-'+name)||g.name.replace(/\.\d{3}$/,'').endsWith('-'+name));
+   const options=[...new Set(root.VoidCrowd?.clips?.[p.look]||[])].filter(c=>REQUESTABLE.test(c)&&p.anim.has?.(c)&&present(c));
+   return {look:p.look,ready:true,clips:options.map(id=>({id,label:id.replace(/^ac-/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}))};
+  }
+  function requestAnimation(studio,clip){
+   const available=animationChoices(studio),p=people.find(x=>x.studio===Number(studio));
+   if(!p||!available.ready)return {ok:false,message:'Performer is loading.'};
+   if(typeof clip!=='string'||!available.clips.some(c=>c.id===clip))return {ok:false,message:'Animation unavailable for this performer.'};
+   if(k.disposed||!p.anim)return {ok:false,message:'Studio is unavailable.'};
+   try{
+    p.anim.play(clip);p.clip=clip;p.requestUntil=k.clock+12;
+    if(p.rot)p.rot.until=Math.max(p.rot.until,p.requestUntil+1);
+    return {ok:true,message:'REQUEST RECEIVED · '+clip.replace(/-/g,' ').toUpperCase()};
+   }catch{return {ok:false,message:'Unable to start the animation.'};}
   }
   function staff(clock,cam=null,dt=0){syncStudioOne();const speaker=cam?speakerNow():null;
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
@@ -744,7 +766,12 @@
      if(p.face===undefined)p.face=p.node.rotation.y;const d=Math.atan2(Math.sin(want-p.face),Math.cos(want-p.face));p.face+=d*Math.min(1,p.turn?.12:dt*5);p.node.rotation.y=p.face;
      if(talking!==!!p.talking){p.talking=talking;if(!p.turn)try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clip);}catch{}}
      if(p.turn&&clock>=p.turn.until&&Math.abs(d)<.02){p.turn=null;try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clips.includes('idle')?'idle':p.clip);}catch{}}}
-    if(p.rot&&clock>=p.rot.until){const t=MK.danceTurn(p.rot.list,++p.rot.n,p.studio);p.rot.until=clock+t.seconds;p.clip=t.clip;try{p.anim?.play?.(t.clip);}catch{}}   // the next dance, cross-faded
+    if(p.role==='dancer'&&p.requestUntil&&clock>=p.requestUntil){
+     p.requestUntil=0;const resume=p.rot?.list?.[0]||p.dances?.[0]||p.clips[0];
+     if(resume){try{p.anim?.play?.(resume);p.clip=resume;}catch{}}
+     if(p.rot)p.rot.until=clock+20;
+    }
+    if(p.rot&&clock>=p.rot.until&&!p.requestUntil){const t=MK.danceTurn(p.rot.list,++p.rot.n,p.studio);p.rot.until=clock+t.seconds;p.clip=t.clip;try{p.anim?.play?.(t.clip);}catch{}}   // the next dance, cross-faded
     // a figure with no dance of its own still moves: a slow sway on the spot
     if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
   }
@@ -778,7 +805,7 @@
   function gesture(who,toward,seconds=4){const p=people.find(x=>x.id===who&&x.node);const at=TOWARD[toward];if(!p||!at)return false;let d=Math.atan2(at[0]-p.x,at[1]-p.z)-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));
    p.turn={yaw:p.yaw+Math.max(-1.22,Math.min(1.22,d)),until:k.clock+Math.max(1,seconds),toward,at:k.clock};try{if(p.clips.includes('talk'))p.anim?.play?.('talk');}catch{}gestures.push({who,toward,at:k.clock});return true;}
   const gestures=[];
-  return {tick,prepare,gesture,get gestures(){return gestures.slice();},inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,staffDoor:(()=>{const sd=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(x=>x.staff);return {granted:!!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null),blocking:!!sd&&!sd.open};})(),prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip,dances:p.rot?.list.slice()||null,next:p.rot?+(p.rot.until-k.clock).toFixed(1):null})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
+  return {tick,prepare,gesture,animationChoices,requestAnimation,get gestures(){return gestures.slice();},inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,staffDoor:(()=>{const sd=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(x=>x.staff);return {granted:!!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null),blocking:!!sd&&!sd.open};})(),prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip,dances:p.rot?.list.slice()||null,next:p.rot?+(p.rot.until-k.clock).toFixed(1):null})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
    dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;for(const p of probes){const i=scene.customRenderTargets.indexOf(p.cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}k.dispose();
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
     if(sun&&lightPrev.sun!=null)sun.intensity=lightPrev.sun;if(ambient){if(lightPrev.amb!=null)ambient.intensity=lightPrev.amb;if(lightPrev.dif)ambient.diffuse=lightPrev.dif;if(lightPrev.gnd&&ambient.groundColor)ambient.groundColor=lightPrev.gnd;}}};

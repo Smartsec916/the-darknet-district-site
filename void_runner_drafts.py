@@ -69,6 +69,60 @@ def text(value, limit=4000):
     return value
 
 
+# ---- ElevenLabs voice tags in what is said (the owner, 19 Nov 2026): the same rules as void-runner/npc-voices.js tagProblems / strip ----
+# "[whispers] Keep it down.": lowercase letters, spaces and hyphens, 30 characters at most each, 6 per line. Players never see them; only ElevenLabs models that read
+# them (VOICE_MODELS[...]['tags']) are sent them. "[Write ... here]" is the owner's placeholder (main-story.js isPlaceholder), not a tag.
+VOICE_TAG_BODY = re.compile(r'^[a-z](?:[a-z -]*[a-z])?$')
+VOICE_TAG_ONE = re.compile(r'[ \t]*\[([a-z](?:[a-z -]{0,28}[a-z])?)\][ \t]*')
+VOICE_TAG_PLACEHOLDER = re.compile(r'^\s*\[(?:[^\]:]{1,20}:\s*)?write\b', re.I)
+MAX_VOICE_TAGS, MAX_VOICE_TAG = 6, 30
+VOICE_MODELS = {'eleven_v4': {'tags': True, 'rate': 1}, 'eleven_v3': {'tags': True, 'rate': 1}, 'eleven_multilingual_v2': {'tags': False, 'rate': 1},
+                'eleven_flash_v2_5': {'tags': False, 'rate': 0.5}, 'eleven_turbo_v2_5': {'tags': False, 'rate': 0.5}}
+DEFAULT_VOICE_MODEL = 'eleven_v4'
+
+
+def strip_voice_tags(value):
+    """What players see: the line without its voice tags (spaces tidied); a line without tags is returned unchanged."""
+    if not isinstance(value, str) or '[' not in value:
+        return value
+    out, n = VOICE_TAG_ONE.subn(' ', value)
+    if not n:
+        return value
+    out = re.sub(r' +([,.!?;:\u2026])', r'\1', re.sub(r'[ \t]{2,}', ' ', out))
+    return re.sub(r'^[ \t]+|[ \t]+$', '', out, flags=re.M).strip()
+
+
+def voice_tag_problems(value):
+    """Problems with a line's voice tags, in plain words (empty: fine)."""
+    if not isinstance(value, str) or ('[' not in value and ']' not in value) or VOICE_TAG_PLACEHOLDER.match(value):
+        return []
+    out, found = [], re.findall(r'\[([^\[\]]*)\]', value)
+    rest = re.sub(r'\[[^\[\]]*\]', '', value)
+    if '[' in rest or ']' in rest:
+        out.append('A square bracket is not closed. Write voice tags like [whispers], with one [ and one ] around each.')
+    for b in found:
+        if not b.strip():
+            out.append('Empty brackets []: write a voice tag inside them, like [whispers], or remove them.')
+        elif len(b) > MAX_VOICE_TAG:
+            out.append('The voice tag [%s] is too long (%d characters at most).' % (b[:40], MAX_VOICE_TAG))
+        elif not VOICE_TAG_BODY.match(b):
+            out.append('The voice tag [%s] may only use lowercase letters, spaces and hyphens, like [whispers] or [sighs].' % b[:40])
+    if len(found) > MAX_VOICE_TAGS:
+        out.append('Too many voice tags in one line (%d; %d at most).' % (len(found), MAX_VOICE_TAGS))
+    if not out and found and not strip_voice_tags(value).strip():
+        out.append('The line needs words besides its voice tags.')
+    return out
+
+
+def spoken(value, limit=4000):
+    """A line an NPC says: bounded plain text whose voice tags are well formed."""
+    text(value, limit)
+    p = voice_tag_problems(value)
+    if p:
+        raise DraftError(p[0])
+    return value
+
+
 def number(value, low, high):
     if type(value) is not int or not low <= value <= high:
         raise DraftError('Integer outside supported range.')
@@ -157,7 +211,7 @@ def template(kind, source, inv):
 # One fixed draft id, ordinary revisions, the same byte and revision limits. It is a private backup of editor state, never content: nothing releases or applies it.
 WORKSPACE_ID = 'mission-editor-workspace'
 # npcs / animRequests (Developer Tools > NPCs, 18 Nov 2026) and voices (ElevenLabs voice choices, 18 Nov 2026) travel with the draft too.
-WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio', 'npcs', 'animRequests', 'voices', 'looks']
+WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio', 'npcs', 'animRequests', 'voices', 'looks', 'clips']  # clips: imported voice file records (19 Nov 2026; the audio is never in the draft)
 
 
 def validate_workspace(doc):
@@ -171,7 +225,7 @@ def validate_workspace(doc):
     text(d['title'], 160)
     b = d['bundle']
     keys(b, WORKSPACE_KEYS)
-    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict), ('looks', dict)]:
+    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict), ('looks', dict), ('clips', dict)]:
         if k in b and not isinstance(b[k], kind):
             raise DraftError('Invalid workspace field: ' + k)
     if len(b.get('trees', [])) > 30 or any(not isinstance(t, dict) or not isinstance(t.get('id'), str) or not isinstance(t.get('missions', []), list) for t in b.get('trees', [])):
@@ -180,11 +234,21 @@ def validate_workspace(doc):
         raise DraftError('Invalid retired numbers.')
     if b.get('studio') is not None and not isinstance(b['studio'], dict):
         raise DraftError('Invalid studio draft.')
+    # Costs and ACCEPT / DENY (19 Nov 2026): the credits range and button labels are refused here already; the rest is checked when publishing.
+    from void_runner_live_content import workspace_money_problems
+    money = workspace_money_problems(b.get('trees', []))
+    if money:
+        raise DraftError('Invalid mission: ' + money[0], 422)
     if b.get('looks'):
         from void_runner_live_content import look_problems
         problems = look_problems(b['looks'])
         if problems:
             raise DraftError('Invalid NPC look: ' + problems[0], 422)
+    if b.get('clips'):
+        from void_runner_live_content import clip_record_problems
+        problems = clip_record_problems(b['clips'])
+        if problems:
+            raise DraftError('Invalid imported voice file: ' + problems[0], 422)
     if b.get('npcs'):
         from void_runner_live_content import schedule_shape_problems
         for plan in b['npcs'].values():
@@ -288,7 +352,7 @@ def validate(doc, inv, graph=None):
         chars={c['id']:c for c in inv['characters'] if c.get('voice',{}).get('status') in ['approved','provisional','unvoiced']};identifier(d['start']);nodes=array(d['nodes'], 80);ids=[]
         for n in nodes:
             keys(n, ['id', 'character', 'text', 'next', 'choices', 'effects', 'voice', 'expression', 'animation'], ['id', 'character', 'text', 'next', 'choices', 'effects', 'voice', 'expression', 'animation'])
-            identifier(n['id']);identifier(n['character']);ids.append(n['id']);text(n['text']);effects(n['effects'], inv)
+            identifier(n['id']);identifier(n['character']);ids.append(n['id']);spoken(n['text']);effects(n['effects'], inv)
             if n['character'] not in chars or n['voice'] != n['character'] or n['expression'] != 'none' or n['animation'] != 'none':
                 raise DraftError('Unsupported character, voice reassignment, expression or animation.')
             for c in array(n['choices'], 12):
