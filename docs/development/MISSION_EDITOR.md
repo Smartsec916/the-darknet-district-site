@@ -2,6 +2,12 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Fix (19 Nov 2026): PLAY straight after typing
+
+PLAY THIS DRAFT (and PLAY THIS DRAFT FROM HERE, Test my mission > PLAY, JUMP THERE) pressed right after typing in a box now plays exactly what was typed. Before, it could say "step 1 needs what the player must do" because it checked the mission as drawn before the typing. The PLAY button also wakes up on the keystroke that completes the mission (no pause), and typing into a freshly opened editor no longer loses the cursor after the first letter. PUBLISH and ASK THE SERVER TO CHECK re-check first if the draft changed since the check screen was drawn.
+
+For Claude / Codex: `mission-editor.js fresh()` (blur the focused field, `rebuild()`, run a pending `guideNow`) is called first by `play` and `jumpTo`; `shared.playTree` goes through `play`; `syncPlay` keeps the PLAY buttons in step with `MC().treeBlockers` on every input; publish uses `changedSince()`; `setStatus` inserts its line instead of redrawing. Tests: `tests/play-stale.test.cjs`, browser `tests/play-stale-browser.cjs`.
+
 ## Thirteenth pass (19 Nov 2026): missions that cost credits, and ACCEPT / DENY on every offer
 
 Branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`. Pushed, no PR, not merged. The owner asked: "can i do -100 credit option and add an accept or deny".
