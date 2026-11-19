@@ -284,43 +284,139 @@ def _movable(inv):
     return ((inv or {}).get('npcPaths') or {}).get('movable') or {}
 
 
+def _areas(inv):
+    return ((inv or {}).get('npcPaths') or {}).get('areas') or {}
+
+
+def _in(r, x, z, m=0.0):
+    return r[0] - m < x < r[1] + m and r[2] - m < z < r[3] + m
+
+
+def _size(r):
+    return (r[1] - r[0]) * (r[3] - r[2])
+
+
+def area_of(p, inv, prefer=None):
+    """The area (npc-areas.js: avenue, oldtown, far-south, outskirts, port, district) whose walkable ground holds p, or None."""
+    al = _areas(inv).get('areas') or []
+    order = sorted(al, key=lambda a: a['id'] != prefer)
+    for a in order:
+        if any(_in(w, p['x'], p['z'], 1e-6) for w in a['walk']):
+            return a['id']
+    return None
+
+
+def area_check(p, inv, prefer=None, m=None):
+    """The same rule as void-runner/npc-areas.js check(): (ok, area, kind, why). Kinds: ok, rule (the owner's content rule: Milked, NULL, the District bar, VR, arcade,
+    Corporate District), blocked, gate, road, obstacle, post, outside."""
+    A = _areas(inv)
+    if m is None:
+        m = A.get('clear', .3)
+    if not isinstance(p, dict) or not _num(p.get('x')) or not _num(p.get('z')) or abs(p['x']) > 400 or abs(p['z']) > 400:
+        return (False, None, 'outside', 'The spot has no position.')
+    x, z = p['x'], p['z']
+    al = A.get('areas') or []
+    by = {a['id']: a for a in al}
+    aid = area_of(p, inv, prefer)
+    if aid:
+        a = by[aid]
+        nos = sorted([n for n in a['no'] if _in(n['rect'], x, z)], key=lambda n: _size(n['rect']))
+        if nos:
+            return (False, aid, 'rule' if nos[0].get('rule') else 'blocked', nos[0]['why'])
+        for g in a.get('gates') or []:
+            if _in(g['rect'], x, z):
+                return (False, aid, 'gate', 'That is inside a gate.')
+        for o in a.get('obstacles') or []:
+            if _in(o, x, z, m):
+                return (False, aid, 'obstacle', 'That is in street furniture or room furniture standing there.')
+        for (px, pz) in a.get('posts') or []:
+            if ((x - px) ** 2 + (z - pz) ** 2) ** .5 < .7:
+                return (False, aid, 'post', 'That is on a taxi post.')
+        return (True, aid, 'ok', '')
+    nos = [(n, a['id']) for a in al for n in a['no'] if _in(n['rect'], x, z)] + [(n, None) for n in A.get('out') or [] if _in(n['rect'], x, z)]
+    nos.sort(key=lambda t: (0 if t[0].get('rule') else 1, _size(t[0]['rect'])))
+    if nos and nos[0][0].get('rule'):
+        return (False, nos[0][1], 'rule', nos[0][0]['why'])
+    for a in al:
+        if any(_in(g['rect'], x, z) for g in a.get('gates') or []):
+            return (False, a['id'], 'gate', 'That is inside a gate.')
+    for a in al:
+        if any(_in(r, x, z) for r in a.get('roads') or []):
+            return (False, a['id'], 'road', 'That is the road (the taxis drive there).')
+    if nos:
+        return (False, nos[0][1], 'blocked', nos[0][0]['why'])
+    for a in al:
+        if any(_in(f, x, z) for f in a.get('floors') or []):
+            return (False, a['id'], 'blocked', 'That is too close to a wall or a kerb.')
+    return (False, None, 'outside', 'That is not somewhere she can walk.')
+
+
+def forbidden_spot_problems(npcs, trees=None, inv=None):
+    """The editor's server copy of a draft (void_runner_drafts.py) may be half made, but the owner's content rule holds there too: no spot or route point of Reverie,
+    Lace or the cat (all day, in a time block, or a mission's "Giver waits at") in Milked, NULL, the District bar, VR or arcade, or the Corporate District."""
+    inv = inv or _json('void_runner_admin_inventory.json')
+    spots = []
+    def plan_spots(p):
+        if not isinstance(p, dict):
+            return
+        if p.get('mode') == 'stay':
+            spots.append(p)
+        elif p.get('mode') == 'path' and isinstance(p.get('points'), list):
+            spots.extend(q for q in p['points'] if isinstance(q, dict))
+        for b in p.get('schedule') or [] if isinstance(p.get('schedule'), list) else []:
+            plan_spots(b)
+    for p in (npcs or {}).values() if isinstance(npcs, dict) else []:
+        plan_spots(p)
+    for t in trees or [] if isinstance(trees, list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if isinstance(m, dict) and isinstance(m.get('waitAt'), dict):
+                spots.append(m['waitAt'])
+    out = []
+    for q in spots:
+        if _num(q.get('x')) and _num(q.get('z')):
+            ok, _a, kind, why = area_check(q, inv)
+            if kind == 'rule':
+                out.append(why)
+    return out
+
+
 def spot_problems(npc, p, inv):
     mv = _movable(inv).get(npc)
     if not mv:
         return ['This NPC cannot be moved by the editor yet.']
-    if not isinstance(p, dict) or not _num(p.get('x')) or not _num(p.get('z')) or abs(p['x']) > 400 or abs(p['z']) > 400:
-        return ['The spot has no position.']
-    out, a = [], mv['area']
-    if not (a['x0'] <= p['x'] <= a['x1'] and a['z0'] <= p['z'] <= a['z1']):
-        out.append('That is off the pavement this NPC can walk on.')
-    for (px, pz) in mv.get('posts') or []:
-        if ((p['x'] - px) ** 2 + (p['z'] - pz) ** 2) ** .5 < mv['post']:
-            out.append('That is on a taxi post.')
-    m = mv.get('clear', .3)
-    for (x0, x1, z0, z1) in mv.get('obstacles') or []:
-        if x0 - m < p['x'] < x1 + m and z0 - m < p['z'] < z1 + m:
-            out.append('That is in street furniture standing on the pavement.')
-            break
-    if p.get('yaw') is not None and not _num(p.get('yaw')):
+    ok, _a, _k, why = area_check(p, inv)
+    out = [] if ok else [why]
+    if isinstance(p, dict) and p.get('yaw') is not None and not _num(p.get('yaw')):
         out.append('The facing is not a number.')
     return out
 
 
-def _leg_problems(mv, a, b):
-    m = mv.get('clear', .3) - .1
-    for (x0, x1, z0, z1) in mv.get('obstacles') or []:
-        for k in range(21):
-            t = k / 20
-            x, z = a['x'] + (b['x'] - a['x']) * t, a['z'] + (b['z'] - a['z']) * t
-            if x0 - m < x < x1 + m and z0 - m < z < z1 + m:
-                return ['the walk to the next point goes through street furniture.']
-    for (sx, sz) in mv.get('posts') or []:
-        dx, dz = b['x'] - a['x'], b['z'] - a['z']
-        L = dx * dx + dz * dz
-        t = max(0.0, min(1.0, ((sx - a['x']) * dx + (sz - a['z']) * dz) / L)) if L else 0.0
-        if ((a['x'] + dx * t - sx) ** 2 + (a['z'] + dz * t - sz) ** 2) ** .5 < mv['post'] - .15:
-            return ['the walk to the next point goes through a taxi post.']
-    return []
+def _leg_problems(mv, a, b, inv=None):
+    A = _areas(inv)
+    m = A.get('clear', .3) - .1
+    oka, aa, _, _ = area_check(a, inv, None, m)
+    okb, ab, _, _ = area_check(b, inv, aa, m)
+    if oka and okb and aa != ab:
+        return ['the walk to the next point goes into another area: a route stays in one area.']
+    area = aa or ab
+    d = ((b['x'] - a['x']) ** 2 + (b['z'] - a['z']) ** 2) ** .5
+    n = max(1, int(-(-d // A.get('step', .2))))
+    pri = {'rule': 0, 'road': 1, 'gate': 2, 'obstacle': 3, 'post': 3, 'blocked': 4, 'outside': 5}
+    worst, left = None, False
+    for k in range(n + 1):
+        t = k / n
+        q = {'x': a['x'] + (b['x'] - a['x']) * t, 'z': a['z'] + (b['z'] - a['z']) * t}
+        ok, qa, kind, _ = area_check(q, inv, area, m)
+        if ok and qa == area:
+            continue
+        if ok:
+            left = True
+            continue
+        if worst is None or pri[kind] < pri[worst]:
+            worst = kind
+    if worst is None:
+        return ['the walk to the next point leaves its area: a route stays in one area.'] if left else []
+    return ['the walk to the next point ' + {'road': 'crosses the road.', 'rule': 'goes through a place never used for her.', 'obstacle': 'goes through furniture.', 'post': 'goes through a taxi post.', 'gate': 'goes into a gate.'}.get(worst, 'goes through a wall or a building.')]
 
 
 def _ledge_at(mv, p):
@@ -403,9 +499,12 @@ def _plan_only(npc, p, mv, inv, ok):
             out.append(pw + 'how long: 1 to 120 seconds.')
         n = pts[(i + 1) % len(pts)]
         if isinstance(n, dict) and all(_num(v) for v in (q.get('x'), q.get('z'), n.get('x'), n.get('z'))):
-            out += [pw + x for x in _leg_problems(mv, q, n)]
+            out += [pw + x for x in _leg_problems(mv, q, n, inv)]
     if all(isinstance(q, dict) and q.get('action') == 'walk-on' for q in pts):
         out.append('at least one point needs something to do.')
+    ids = set(area_of(q, inv) for q in pts if isinstance(q, dict) and _num(q.get('x')) and _num(q.get('z'))) - {None}
+    if len(ids) > 1:
+        out.append('a route stays in one area.')
     return out
 
 

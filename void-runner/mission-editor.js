@@ -32,7 +32,7 @@
   sender:'Who the message, call or banner is from (their name is shown with it).',header:'The top line of the message or banner, e.g. ADMIN // INCOMING MESSAGE.',body:'The words of the message, call or banner.',
   distance:'How close the player must walk to that person, in metres (1 to 30). 5 m is a few steps away.',flag:'A story flag and the value it must have. Another mission sets it with the unlock “Story flag” (e.g. mf_metLace = true).',
   hours:'How long after the chosen mission is done, in IN-GAME time (12 in-game minutes pass for every real minute of play).',afterMission:'The mission that must be finished first.',
-  waitAt:'While this mission waits to be offered (and she is out on her shift), she walks to this spot and waits there with her normal routine: stands, looks about, checks her V1 (and sits if the spot is just in front of a ledge). Once it is accepted or done she goes back to her usual walk. Not set: she keeps her usual walk.',
+  waitAt:'Pick the area on the map (anywhere green in the city or inside the District; never Milked, NULL, the District bar or the VR area). While this mission waits to be offered (and she is out on her shift), she goes to this spot (in another area she is simply there from the start of her shift) and waits there with her normal routine: stands, looks about, checks her V1 (and sits if the spot is just in front of a ledge). Once it is accepted or done she goes back to her usual walk. Not set: she keeps her usual walk.',
   play:'Tries this mission in a throwaway test session. Your real save is never touched; LEAVE DRAFT brings you back here.'};
  const HELP_START={person:'The giver offers it when the player walks up and presses TALK. E.g. Admin offers it as soon as you talk to him at the counter.',
   'person-accept':'The giver offers it and the player chooses ACCEPT or NOT NOW. NOT NOW changes nothing: the next talk offers it again.',
@@ -590,7 +590,7 @@
  function waitAtPanel(t,m,ed){const X=root.VoidNPCPaths,g=giver(m.giver)||{name:m.giver},w=m.waitAt||null,probs=w?X.waitAtProblems(m.giver,w):[],box=el('section','','me-end me-wait',{'data-me-wait-at':m.id});
   box.append(el('h4','Giver waits at'),hint(HELP.waitAt));
   const r=el('div','','me-row');r.append(el('b',w?'Spot: x '+w.x.toFixed(1)+', z '+w.z.toFixed(1)+' · facing '+compass(w.yaw):'Not set: '+g.name+' keeps her usual walk.',w&&!probs.length?'me-ok':'',{'data-me-wait-text':m.id}));
-  if(w){r.append(btn('CLEAR (HER USUAL WALK)',()=>ed(x=>{delete x.waitAt;},true),'me-x',{'data-me-wait-clear':m.id}),btn('JUMP THERE',()=>jumpTo(w.x,w.z,m.giver,g.name+' waits here'),'',{'data-me-wait-jump':m.id,title:'Opens a throwaway test session on The Avenue, standing a few steps from the spot (your real save is never touched).'}));
+  if(w){r.append(btn('CLEAR (HER USUAL WALK)',()=>ed(x=>{delete x.waitAt;},true),'me-x',{'data-me-wait-clear':m.id}),btn('JUMP THERE',()=>jumpTo(w.x,w.z,m.giver,g.name+' waits here'),'',{'data-me-wait-jump':m.id,title:'Opens a throwaway test session in the spot’s area, standing a few steps from the spot (your real save is never touched).'}));
    for(const f of [['N',0],['E',Math.PI/2],['S',Math.PI],['W',-Math.PI/2]])r.append(btn('face '+f[0],()=>ed(x=>{x.waitAt={...x.waitAt,yaw:Math.round(f[1]*100)/100};},true),'',{'aria-label':'Face '+compass(f[1])}));}
   box.append(r);for(const p of probs)box.append(el('p','⚠ '+p,'me-bad'));
   if(root.VoidNPCMap){const live=root.VoidStreetPair?.live?.(),markers=[];
@@ -609,7 +609,13 @@
    apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
    build:()=>{const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
     if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
-   enter:async()=>{state.location='earth';delete state.story.flags.area;if(npc&&root.VoidStreetPair)root.VoidStreetPair.force=npc;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'avenue'});try{walker.x=x;walker.z=Math.max(-16,z-3.4);walker.yaw=0;}catch{}},
+   enter:async()=>{state.location='earth';if(npc&&root.VoidStreetPair)root.VoidStreetPair.force=npc;
+    // the area of the spot (npc-areas.js): a street quarter or the District interior; the player stands a few steps away on ground they can walk, facing it
+    const AR=root.VoidNPCAreas,a=AR&&AR.areaOf({x,z})||'avenue',w=AR?AR.enter(a):{walk:'sacramento',quarter:'avenue'};
+    if(w.walk==='darknet-district'){state.story.flags.area='district';state.story.flags.districtBadge=true;await enterWalking(VoidDistrictArea.KEY.interior,{silent:true});}
+    else{delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
+    let at=a==='avenue'?{x,z:Math.max(-16,z-3.4)}:null;if(!at&&AR){for(const r of [3.4,2.4,4.4])for(let k=0;k<12&&!at;k++){const t=k/12*Math.PI*2,q={x:x+Math.sin(t+Math.PI)*r,z:z+Math.cos(t+Math.PI)*r},c=AR.check(q,a);if(c.ok&&c.area===a)at=q;}}
+    try{if(at){walker.x=at.x;walker.z=at.z;walker.yaw=Math.atan2(x-at.x,z-at.z);}}catch{}},
    message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+c.errors.slice(0,2).join(' · '))+' · nothing is saved'});
   if(r&&r.error){status=r.error;draw();}return r;}
  // ---------------- "Guide me": the next required box (the same rules as the play / publish check: mission-content.js treeNeeds)
@@ -674,6 +680,9 @@
   if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
    where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.kind==='photo'?PLACE_ENTER((giver(o.npc)||{}).place)||where:o.kind==='send-photo'?where:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;
    if(o.kind==='send-photo')notes.push('Sending needs a photo taken during this mission: play from the photo step to take one.');}
+  // Reverie, Lace and the cat may be placed in any area (npc-areas.js): draft play of a mission she gives starts where she waits for it, else where her placement puts her
+  {const AR=root.VoidNPCAreas,X=root.VoidNPCPaths,id=m.giver;if(AR&&X&&X.MOVABLE[id]&&where&&where.walk==='sacramento'&&where.quarter==='avenue'){const np=(draftContent().npcs||{})[id],t=m.waitAt||(np&&np.mode==='stay'?np:np&&np.mode==='path'?np.points[0]:null),a=t&&AR.areaOf(t);
+   if(a&&a!=='avenue'){where=AR.enter(a);notes.push('Draft play starts in '+AR.get(a).name+', where '+((giver(id)||{}).name||id)+' is placed.');}}}
   // Reverie and Lace take turns on one UTC clock: draft play puts the one this mission needs on the street now (throwaway session only)
   {const ids=[m.giver,w&&w.kind==='near'?w.npc:null,...m.objectives.map(o=>o.npc),m.ending&&m.ending.npc].filter(Boolean),sh=ids.map(giver).find(g=>g&&g.shift);
    if(sh&&root.VoidStreetPair){root.VoidStreetPair.force=sh.id;notes.push('Draft play puts '+sh.name+' on the street now, whatever the hour.');}}

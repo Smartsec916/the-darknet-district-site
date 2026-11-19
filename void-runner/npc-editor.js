@@ -15,7 +15,7 @@
  const DTX=()=>typeof VoidDevTools!=='undefined'?VoidDevTools:null;   // dev-tools.js declares it with const (not a window property)
  const S=()=>root.VoidMissionEditor.shared,X=()=>root.VoidNPCPaths,RETURN='npc-editor-return';
  const ADV='npc-editor-advanced';const advanced=()=>{try{return root.localStorage.getItem(ADV)==='1';}catch{return false;}};
- const ui={look:{},block:{},recipe:{},clock:{},id:null,search:'',lineSearch:'',group:null,preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
+ const ui={look:{},block:{},area:{},recipe:{},clock:{},id:null,search:'',lineSearch:'',group:null,preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
  let host=null,headNode=null,status='',imports=[],importsLoaded=false;
  const el=(...a)=>S().el(...a),btn=(...a)=>S().btn(...a),hint=(t,a)=>S().hint(t,a);
  const HELP={
@@ -27,12 +27,12 @@
   preview:'A turntable view of their model with every clip in its file. Drag to turn it, scroll to zoom. Nothing changes in the game.',
   clips:'Plays one of the clips (animations) the model really has.',
   giver:'Starts a new draft mission given by this NPC, in the tree you pick, and opens it in the Mission Editor. Nothing is written for them: you add the lines.',
-  place:'Where they are in the game. “Let her do her usual thing”: what she does now. “Keep her at one spot”: she stands where you put her on the map (drag her; turn her with the round handle) and does the things you tick. “Make her walk a route”: she walks your points in order, does what each point says, then starts again.',
+  place:'Where they are in the game. Pick the AREA on the map first (The Avenue, Old Town, Far South, The Outskirts, The Port or inside The Darknet District): she can be put anywhere green; red places (Milked, NULL, the District bar, the VR area) are never used for her. “Let her do her usual thing”: what she does now (on The Avenue). “Keep her at one spot”: she stands where you put her on the map (drag her; turn her with the round handle) and does the things you tick. “Make her walk a route”: she walks your points in order, does what each point says, then starts again.',
   stay:'The things she does at the spot, one after another (a few seconds each). “Sit on the ledge” needs the spot just in front of a ledge.',
-  route:'Click the green pavement to add a point at the end; drag a numbered point to move it. Each point: what she does there and for how long. After the last point she walks back to the first.',
+  route:'Click the green ground to add a point at the end (a route stays in one area: it cannot go through the gates; give another area its own time block); drag a numbered point to move it. Each point: what she does there and for how long. After the last point she walks back to the first.',
   action:'What she does when she reaches this point. Only clips her own model has; never anything from the clubs.',
   seconds:'How long she does it, 1 to 120 seconds.',
-  play:'Tries the placement in a throwaway test session on The Avenue, with her out whatever the hour. Your real save is never touched; LEAVE brings you back here.',
+  play:'Tries the placement in a throwaway test session in the area of her spot, with her out whatever the hour. Your real save is never touched; LEAVE brings you back here.',
   anim:'Every animation in the game, by kind. The ones she can use are listed (her own rig takes them, and they follow her content rule); tick one to add it to the things she can do in a spot or a route. “Try it” plays it on the 3D preview first. Tick “also show…” to see the rest and why not; “Request it” asks for an offline retarget.',
   request:'Ask for an animation that is not available yet (e.g. “leaning on the wall, arms crossed”). The list is downloaded and sent to Claude or Codex, who retarget it onto her rig on your PC. Licensed No AI models are marked “local retarget only”: never Meshy or any AI tool.',
   lines:'Every line this NPC says, in missions and outside them. Edit a line here or in the Mission Editor; RE-VOICE queues it for recording.',
@@ -50,7 +50,7 @@
   pieces:'Gear and hairstyles from the character creator. They fit only figures built on the creator’s skeleton, so most NPCs cannot take them.',
   schedule:'Give parts of the in-game day something different to do: for example 08:00–12:00 walk a route, 12:00–13:00 sit on the ledge, 20:00–02:00 stay at one spot. Outside every time block the placement above applies. A block may run past midnight; blocks cannot overlap; 8 at most.',
   tryTime:'Slide to a time of day to see what the schedule does then. PLAY THIS DRAFT AT THIS TIME starts a throwaway test session with the game’s clock set to that time.',
-  chatgpt:'Say in your own words what this character should do, and let ChatGPT write it as a “behaviour recipe”: plain data the editor checks (never a program). Only places on their pavement and actions they really have are accepted.',
+  chatgpt:'Say in your own words what this character should do, and let ChatGPT write it as a “behaviour recipe”: plain data the editor checks (never a program). Only places in the city’s walkable areas (never Milked, NULL, the District bar or the VR area) and actions they really have are accepted.',
   paste:'Paste ChatGPT’s answer. The editor finds the recipe in it, checks every field and says in plain words what to fix. Nothing in it is ever run as code.',
   wear:'Which look the game uses for everyone drawn with this model: none (as made), one of your looks, or a mix (each person keeps one of your looks).'};
  // ---------------------------------------------------------------- who is in the list
@@ -243,7 +243,7 @@
   for(const t of S().local().trees||[])for(const m of t.missions)if(m.giver===id&&m.waitAt)markers.push({id:'w-'+m.id,x:m.waitAt.x,z:m.waitAt.z,yaw:m.waitAt.yaw,ghost:true,color:'#c08aff',label:'waits for “'+(m.title||m.id)+'”'});
   if(mode==='stay')markers.push({id:'stay',x:p.x,z:p.z,yaw:p.yaw,color:'#ff8ad8',label:M.name+' stays here',drag:true,facing:true,bad:X().spotProblems(id,p).length>0});
   const route=mode==='path'?p.points.map((q,i)=>({...q,bad:X().spotProblems(id,q).length>0})):[],routeBad=mode==='path'?p.points.map((q,i)=>X().legProblems(id,q,p.points[(i+1)%p.points.length]).length?i:-1).filter(i=>i>=0):[];
-  const map=root.VoidNPCMap.create({npc:id,markers,route,routeBad,selected:'stay',center:mode==='stay'?p.x:mode==='path'&&p.points.length?p.points[0].x:null,
+  const map=root.VoidNPCMap.create({npc:id,markers,route,routeBad,selected:'stay',lock:mode==='path'&&p.points.length&&root.VoidNPCAreas?root.VoidNPCAreas.areaOf(p.points[0]):null,area:ui.area[id]||null,onArea:a=>{ui.area[id]=a;},center:mode==='stay'?p.x:mode==='path'&&p.points.length?p.points[0].x:null,
    onPick:(x,z)=>{if(mode==='stay'){const s_=X().snap(id,{x,z});put({...p,x:s_.x,z:s_.z});draw();}else if(mode==='path'){const s_=X().snap(id,{x,z});put({...p,points:[...p.points,{x:s_.x,z:s_.z,action:'look',seconds:5}]});draw();}},
    onDrag:(mid,x,z)=>{if(mid==='stay'){const s_=X().snap(id,{x,z});put({...p,x:s_.x,z:s_.z});draw();}},onFacing:(mid,yaw)=>{if(mid==='stay'){put({...p,yaw});draw();}},
    onPoint:mode==='path'?(i,x,z)=>{const s_=X().snap(id,{x,z}),pts=p.points.slice();pts[i]={...pts[i],x:s_.x,z:s_.z};put({...p,points:pts});draw();}:null});
@@ -257,7 +257,7 @@
     const sec=el('input','','',{type:'number',min:'1',max:'120',step:'1','aria-label':'Seconds at point '+(i+1),'data-npc-point-seconds':String(i),style:'width:5em'});sec.value=String(q.seconds||5);sec.disabled=q.action==='walk-on';sec.title=HELP.seconds;sec.onchange=()=>{const pts=p.points.slice();pts[i]={...q,seconds:Math.max(1,Math.min(120,Math.round(+sec.value||5)))};put({...p,points:pts});draw();};
     const td=(...n)=>{const c=el('td');c.append(...n);return c;};
     tr.append(td(el('b',String(i+1))),td(el('span','x '+q.x.toFixed(1)+', z '+q.z.toFixed(1),X().spotProblems(id,q).length?'me-bad':'me-small')),td(as),td(sec),td(btn('▲',()=>{if(!i)return;const pts=p.points.slice();[pts[i-1],pts[i]]=[pts[i],pts[i-1]];put({...p,points:pts});draw();},'',{'aria-label':'Move point up',...(i?{}:{disabled:''})}),btn('×',()=>{const before=whole;put({...p,points:p.points.filter((_,k)=>k!==i)});status='Point '+(i+1)+' removed.';ui.undo=()=>setPlan(id,before,{keep:false});draw();},'me-x',{'aria-label':'Remove point '+(i+1)})));tb.append(tr);});
-   box.append(tb,hint(HELP.action));if(!p.points.length)box.append(el('p','No points yet — click a spot on the green pavement to start. Then click again for the next point (at least two).','me-small me-warn',{'data-npc-empty':'1'}));}
+   box.append(tb,hint(HELP.action));if(!p.points.length)box.append(el('p','No points yet — pick the area on the map, then click a spot on the green ground to start. Then click again for the next point (at least two).','me-small me-warn',{'data-npc-empty':'1'}));}
   for(const pr of probs)box.append(el('p','⚠ '+pr,'me-bad',{'data-npc-problem':'1'}));
   const act=el('div','','me-row me-actions');act.append(btn('PLAY THIS DRAFT',()=>playNpc(e),'me-play',{'data-npc-play':id,...(probs.length?{disabled:'',title:'Fix the problems first.'}:{})}),hint(HELP.play));box.append(act);
   main.append(box);}
@@ -429,8 +429,8 @@
  // ---------------------------------------------------------------- "Guide me" for this tab (the same rules as the checks: npc-paths.js)
  function guideNow(){const Gd=root.VoidEditorGuide,sc=host&&host.querySelector('#npc-root');if(!Gd||!sc)return null;const all=entries(),e=all.find(x=>x.id===ui.id);if(!e){Gd.clear(sc);return null;}const needs=[];
   if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=curPlan(e.id),w=plan(e.id);if(w&&Array.isArray(w.schedule))w.schedule.forEach((b,k)=>{if(X().toMin(b.from)==null||X().toMin(b.to)==null)needs.push({sel:'[data-npc-block-time="from:'+k+'"]',text:'give time block '+(k+1)+' its times'});});if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});
-    p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point="'+i+'"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green pavement'});});}
-   if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green pavement'});}
+    p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point="'+i+'"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green ground'});});}
+   if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green ground'});}
    return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play="'+CSS.escape(e.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}
   if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});
    if(r.info&&!X().importCheck(r.info).ok){Gd.clear(sc);return null;}

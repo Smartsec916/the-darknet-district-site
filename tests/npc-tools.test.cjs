@@ -29,14 +29,14 @@ test('only Reverie, Lace and the street cat can be moved; their actions come fro
  assert.match(P.planProblems('grey-reverie',{mode:'path',points:[{x:100,z:-6.5,action:'slow-dance',seconds:4},{x:110,z:-6.5,action:'idle',seconds:4}]}).join(),/not something she can do/);
  assert.match(P.planProblems('grey-reverie',{mode:'original',anims:['ac-sensual-dance-3']}).join(),/cannot be added/);});
 
-test('spots must be on the Avenue’s north pavement, clear of the taxi posts; legs never cross a post; sit only at a ledge',()=>{fresh();const P=X();
+test('spots: anywhere walkable (npc-areas.js), never the road, a gate, a taxi post or furniture; legs never cross them; sit only at a ledge',()=>{fresh();const P=X(),A=require(R('void-runner/npc-areas.js'));
  assert.deepEqual(P.spotProblems('grey-reverie',{x:100,z:-6.5}),[]);
- assert.match(P.spotProblems('grey-reverie',{x:100,z:-12}).join(),/off The Avenue, north pavement/,'the road');
- assert.match(P.spotProblems('grey-reverie',{x:100,z:-18.5}).join(),/off/,'the south pavement');
- assert.match(P.spotProblems('grey-reverie',{x:5,z:-6.5}).join(),/off/,'the Function Gate');assert.match(P.spotProblems('grey-reverie',{x:148,z:-6.5}).join(),/off/,'the East Gate');
- assert.match(P.spotProblems('grey-reverie',{x:40,z:-7.4}).join(),/taxi post/);
- assert.match(P.spotProblems('grey-reverie',{x:96.5,z:-7.4}).join(),/advertising screen/,'street furniture read from the built city');assert.match(P.legProblems('grey-reverie',{x:90,z:-7.4},{x:100,z:-7.4}).join(),/advertising screen/);assert.deepEqual(P.legProblems('grey-reverie',{x:90,z:-6.4},{x:100,z:-6.4}),[]);assert.match(P.spotProblems('grey-reverie',{x:NaN,z:-6}).join(),/no position/);
- assert.match(P.legProblems('grey-reverie',{x:30,z:-7.3},{x:50,z:-7.3}).join(),/taxi post|advertising screen/);assert.deepEqual(P.legProblems('grey-reverie',{x:30,z:-6},{x:50,z:-6}),[]);
+ assert.match(P.spotProblems('grey-reverie',{x:100,z:-12}).join(),/road/,'the road');
+ assert.deepEqual(P.spotProblems('grey-reverie',{x:100,z:-18.3}),[],'the south pavement (19 Nov 2026: anywhere walkable)');
+ assert.match(P.spotProblems('grey-reverie',{x:5,z:-6.5}).join(),/Function Gate/,'the Function Gate');assert.match(P.spotProblems('grey-reverie',{x:148,z:-6.5}).join(),/East Gate/,'the East Gate');
+ assert.match(P.spotProblems('grey-reverie',{x:40,z:-7.4}).join(),/taxi post|in /);
+ const ob=A.get('avenue').obstacles.find(o=>o[1]-o[0]>.4&&A.areaOf({x:(o[0]+o[1])/2,z:(o[2]+o[3])/2})==='avenue');assert.ok(ob,'street furniture read from the built city');const mid={x:(ob[0]+ob[1])/2,z:(ob[2]+ob[3])/2};
+ assert.match(P.spotProblems('grey-reverie',mid).join(),/ in /);assert.match(P.legProblems('grey-reverie',{x:mid.x-4,z:mid.z},{x:mid.x+4,z:mid.z}).join(),/goes through/);assert.match(P.spotProblems('grey-reverie',{x:NaN,z:-6}).join(),/no position/);
  assert.ok(P.ledgeAt({x:104.4,z:-5.9}));assert.equal(P.ledgeAt({x:98,z:-5.9}),null);
  assert.deepEqual(P.planProblems('grey-reverie',{mode:'stay',x:104.4,z:-5.9,yaw:Math.PI,actions:['idle','sit']}),[]);
  assert.match(P.planProblems('grey-reverie',{mode:'stay',x:98,z:-6,yaw:0,actions:['sit']}).join(),/needs a ledge/);
@@ -47,7 +47,7 @@ test('spots must be on the Avenue’s north pavement, clear of the taxi posts; l
  assert.match(P.checkAll({x:{},y:{},z:{}}).join(),/cannot be moved/);assert.deepEqual(P.checkAll(null),[]);
  // "Giver waits at": only a movable giver; unknown fields refused
  assert.deepEqual(P.waitAtProblems('grey-reverie',{x:104.4,z:-5.9,yaw:3.14}),[]);assert.match(P.waitAtProblems('admin',{x:1,z:1}).join(),/Reverie or Lace/);
- assert.match(P.waitAtProblems('ethereal-lace',{x:100,z:-6,speed:3}).join(),/unknown fields/);assert.match(P.waitAtProblems('ethereal-lace',{x:100,z:-14}).join(),/off/);});
+ assert.match(P.waitAtProblems('ethereal-lace',{x:100,z:-6,speed:3}).join(),/unknown fields/);assert.match(P.waitAtProblems('ethereal-lace',{x:100,z:-14}).join(),/road/);});
 
 test('what she does now: a waiting mission wins over a placement, which wins over her own routine',()=>{fresh();const P=X();
  const stay={mode:'stay',x:90,z:-6.2,yaw:0,actions:['look']};
@@ -74,7 +74,7 @@ test('a conversation still stops her while she follows a plan',()=>{fresh();cons
 
 test('content: a mission’s waitAt and content.npcs are checked, kept by the export, refused when wrong',()=>{const x=env(),{MC}=x;
  assert.deepEqual(MC.check(doc(x,{trees:[tree({x:104.4,z:-5.9,yaw:3.14})]}),ctx(x)).errors,[]);
- assert.match(MC.check(doc(x,{trees:[tree({x:104.4,z:-14})]}),ctx(x)).errors.join(),/off/);
+ assert.match(MC.check(doc(x,{trees:[tree({x:104.4,z:-14})]}),ctx(x)).errors.join(),/road/);
  const adminTree=tree({x:104.4,z:-5.9});adminTree.missions[0].giver='admin';adminTree.missions[0].offer=[{who:'admin',text:'Hi'}];assert.match(MC.check(doc(x,{trees:[adminTree]}),ctx(x)).errors.join(),/Reverie or Lace/);
  assert.deepEqual(MC.check(doc(x,{npcs:{'grey-reverie':{mode:'stay',x:100,z:-6.5,yaw:0,actions:['idle','look']}}}),ctx(x)).errors,[]);
  assert.match(MC.check(doc(x,{npcs:{admin:{mode:'stay',x:100,z:-6.5,yaw:0,actions:['idle']}}}),ctx(x)).errors.join(),/cannot be moved/);

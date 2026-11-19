@@ -18,6 +18,8 @@
  const node=typeof module!=='undefined'&&module.exports;
  const SP=()=>node?require('./ncz-street-pair.js'):root.VoidStreetPair;
  const QT=()=>node?require('./ncz-quarters.js'):root.VoidQuarters;
+ // WHERE (the owner, 19 Nov 2026: "Let me place REVERIE or LACE anywhere"): every walkable area of the city and the District interior, with the content rule (npc-areas.js).
+ const AR=()=>node?require('./npc-areas.js'):root.VoidNPCAreas;
  // The Avenue's north pavement (neochinatown.js: the shopfront wall at z -5, a 3 m pavement, the road from z -8): a little clear of the wall and the kerb, and short of the
  // Function Gate (x 10) and the East Gate (x 144). Taxi posts (ncz-quarters.js STOPS post) are kept clear by `post` metres.
  const AVENUE_NORTH={id:'avenue-north',name:'The Avenue, north pavement',quarter:'avenue',x0:12.5,x1:141.5,z0:-7.6,z1:-5.8,post:.7};
@@ -30,10 +32,10 @@
  const posts=()=>((QT()&&QT().STOPS)||[]).filter(s=>s.quarter==='avenue'&&Array.isArray(s.post)).map(s=>({x:s.post[0],z:s.post[1],id:s.id}));
  const ledges=()=>{const S=SP();return ((S&&S.STEPS)||[]).map(st=>({id:st.id,x:st.x,z:st.z,w:st.w,d:st.d,front:S.frontOf(st)}));};
  /* Movable NPCs. asset: the crowd file (crowd.js clips[asset] is the clip list); device: the npc-device.js poses they use. */
- const MOVABLE={'grey-reverie':{name:'Reverie',asset:'npc-grey-reverie',area:'avenue-north',quarter:'avenue',device:true,sit:true,youthful:true},
-  'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'avenue-north',quarter:'avenue',device:true,sit:true,youthful:true},
+ const MOVABLE={'grey-reverie':{name:'Reverie',asset:'npc-grey-reverie',area:'city',quarter:'avenue',device:true,sit:true,youthful:true},
+  'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'city',quarter:'avenue',device:true,sit:true,youthful:true},
   // the street cat (the owner, 18 Nov 2026: "add the cat as an npc and giver"): moved by its own code in ncz-street-pair.js (no clips: a procedural pose), so its actions are its own (CAT_ACTIONS)
-  'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'avenue-north',quarter:'avenue',device:false,sit:false,youthful:false,cat:true,it:true}};
+  'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'city',quarter:'avenue',device:false,sit:false,youthful:false,cat:true,it:true}};
  const AREAS={'avenue-north':AVENUE_NORTH};
  /* Every action a stay or a path point may use, in plain words. clip: the clip played (must be in the NPC's own list); device: an npc-device.js pose; sit: the
     ledge's sit-down, sit and stand-up clips (only at a ledge). */
@@ -113,7 +115,8 @@
  /* The ledge a spot is in front of (to sit on), or null. */
  function ledgeAt(p){if(!p)return null;for(const l of ledges())if(Math.abs(p.x-l.x)<=l.w/2+.3&&p.z>=l.front-1)return l;return null;}
  /* Plain-language problems with one spot for NPC id (empty: fine). An imported model (local test only) uses the same pavement: areaProblems. */
- function spotProblems(id,p){const M=MOVABLE[id];if(!M)return ['This NPC cannot be moved by the editor yet.'];return areaProblems(AREAS[M.area],M.name,p);}
+ function spotProblems(id,p){const M=MOVABLE[id];if(!M)return ['This NPC cannot be moved by the editor yet.'];if(M.area!=='city')return areaProblems(AREAS[M.area],M.name,p);
+  const c=AR().check(p);const out=c.ok?[]:[c.why];if(p&&p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');return out;}
  function areaProblems(A,name,p){
   if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>LIMIT.coord||Math.abs(p.z)>LIMIT.coord)return ['The spot has no position.'];
   const out=[];if(p.x<A.x0||p.x>A.x1||p.z<A.z0||p.z>A.z1)out.push('That is off '+A.name+' ('+name+' can only walk there: across the road it would be in front of the taxis, and the gates are closed).');
@@ -122,7 +125,7 @@
   if(p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');
   return out;}
  /* Can she walk straight from a to b? Both on the pavement (a rectangle, so the line stays on it) and the line clear of the taxi posts. */
- function legProblems(id,a,b){const M=MOVABLE[id],A=M&&AREAS[M.area];if(!A)return ['This NPC cannot be moved by the editor yet.'];
+ function legProblems(id,a,b){const M=MOVABLE[id];if(M&&M.area==='city')return AR().leg(a,b);const A=M&&AREAS[M.area];if(!A)return ['This NPC cannot be moved by the editor yet.'];
   for(const o of OBSTACLES){for(let k=0;k<=20;k++){const t=k/20,q={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};if(inBox(q,o,CLEAR-.1))return ['The walk between these two points goes through '+o[4]+': add a point to go round it (nearer the shops).'];}}
   for(const s of posts()){const dx=b.x-a.x,dz=b.z-a.z,L=dx*dx+dz*dz,t=L?Math.max(0,Math.min(1,((s.x-a.x)*dx+(s.z-a.z)*dz)/L)):0,d=Math.hypot(a.x+dx*t-s.x,a.z+dz*t-s.z);if(d<A.post-.15)return ['The walk between these two points goes through the taxi post at '+s.id+': add a point to go round it.'];}
   return [];}
@@ -149,6 +152,7 @@
    if(q.action!=='walk-on'&&!(Number.isInteger(q.seconds)&&q.seconds>=LIMIT.seconds[0]&&q.seconds<=LIMIT.seconds[1]))out.push(pw+'how long: a whole number of seconds from 1 to 120.');
    const n=p.points[(i+1)%p.points.length];if(num(q.x)&&num(q.z)&&n&&num(n.x)&&num(n.z))for(const x of legProblems(id,q,n))out.push(pw+x);});
   if(p.points.every(q=>q.action==='walk-on'))out.push(w+'at least one point needs something to do (not only “walk on”).');
+  {const ids=[...new Set(p.points.map(q=>AR().areaOf(q)).filter(Boolean))];if(ids.length>1)out.push(w+'a route stays in one area (this one has points in '+ids.map(a=>AR().get(a).name).join(' and ')+'): give each area its own time block.');}
   return out;}
  /* An imported model's placement (Developer Tools > NPCs > Import model; local test only, never published): the same pavement and the same shape, with actions from the
     clips in its own file (plus 'wait' and 'walk-on'). */
@@ -173,23 +177,29 @@
  /* What the game should do with a movable NPC now (ncz-street-pair.js). waiting: a mission's waitAt for her, or null; plan: content.npcs[id] or null.
     Returns {key, mode:'stay'|'path', ...} (key changes when the plan does) or null (her own routine). */
  function planNow(id,{waiting=null,plan=null,minute=null}={}){
-  if(waiting&&num(waiting.x)&&num(waiting.z)){const l=ledgeAt(waiting);return {key:'wait:'+(waiting.mission||'')+':'+waiting.x+':'+waiting.z,mode:'stay',x:waiting.x,z:waiting.z,yaw:num(waiting.yaw)?waiting.yaw:Math.PI,actions:MOVABLE[id]&&MOVABLE[id].cat?CAT_STAY.slice():l?[...STAY_DEFAULT,'sit']:STAY_DEFAULT.slice(),why:'waiting'};}
+  if(waiting&&num(waiting.x)&&num(waiting.z)){const l=ledgeAt(waiting);return {area:AR().areaOf(waiting)||null,key:'wait:'+(waiting.mission||'')+':'+waiting.x+':'+waiting.z,mode:'stay',x:waiting.x,z:waiting.z,yaw:num(waiting.yaw)?waiting.yaw:Math.PI,actions:MOVABLE[id]&&MOVABLE[id].cat?CAT_STAY.slice():l?[...STAY_DEFAULT,'sit']:STAY_DEFAULT.slice(),why:'waiting'};}
   // a daily schedule: the block for this in-game minute of the day (minute: game-clock.js now(state).minuteOfDay); "her usual thing" in a block is her own routine
   if(plan&&Array.isArray(plan.schedule)&&num(minute)){const i=blockAt(plan.schedule,minute);if(i>=0){const b=plan.schedule[i];if(b.mode==='original')return null;const r=planNow(id,{plan:b});if(r){r.key='sched:'+i+':'+b.from+'-'+b.to+':'+r.key;r.why='schedule';r.block=i;}return r;}}
-  if(plan&&plan.mode==='stay')return {key:'stay:'+plan.x+':'+plan.z+':'+plan.yaw+':'+plan.actions.join(','),mode:'stay',x:plan.x,z:plan.z,yaw:plan.yaw,actions:plan.actions.slice(),why:'stay'};
-  if(plan&&plan.mode==='path')return {key:'path:'+plan.points.map(q=>q.x+','+q.z+','+q.action+','+q.seconds).join(';'),mode:'path',points:plan.points.map(q=>({...q})),why:'path'};
+  if(plan&&plan.mode==='stay')return {area:AR().areaOf(plan)||null,key:'stay:'+plan.x+':'+plan.z+':'+plan.yaw+':'+plan.actions.join(','),mode:'stay',x:plan.x,z:plan.z,yaw:plan.yaw,actions:plan.actions.slice(),why:'stay'};
+  if(plan&&plan.mode==='path')return {area:AR().areaOf(plan.points[0]||{})||null,key:'path:'+plan.points.map(q=>q.x+','+q.z+','+q.action+','+q.seconds).join(';'),mode:'path',points:plan.points.map(q=>({...q})),why:'path'};
   return null;}
  /* Map data (the editor's top-down map): the walkable area, the road, the gates, the ledges, the taxi posts, the shopfront names, her usual stretch. */
- function mapData(){const S=SP(),Q=QT(),P=node?require('./places.js'):root.VoidPlaces,shop=((P&&P.SHOPFRONTS)||[]).filter(([,x,z])=>z>-21&&z<-4&&x>0&&x<152).map(([name,x,z,side])=>({name,x,z,side}));
-  const gates=((Q&&Q.GATES)||[]).filter(g=>['function','east','north'].includes(g.id)).map(g=>({id:g.id,name:g.name,rect:g.rect.slice()}));
-  return {view:{x0:0,x1:152,z0:-22,z1:-3},street:{x0:2,x1:152,z0:-20,z1:-5},pavements:[{x0:2,x1:152,z0:-8,z1:-5,name:'north pavement'},{x0:2,x1:152,z0:-20,z1:-17,name:'south pavement'}],
-   road:{x0:2,x1:152,z0:-17,z1:-8},obstacles:OBSTACLES.map(o=>({x0:o[0],x1:o[1],z0:o[2],z1:o[3],name:o[4]})),gap:{x0:51,x1:71,z0:-22,z1:-20,name:'to the North Gate'},walk:{...AVENUE_NORTH},gates,ledges:ledges(),posts:posts(),shops:shop,
-   stretch:S?{x0:S.STRETCH.x0,x1:S.STRETCH.x1,z:S.STRETCH.z}:null,seat:S?{...S.SEAT}:null,catHome:S?{...S.CAT_HOME}:null};}
- /* Snap a clicked spot onto the walkable area (the editor: a click just off the pavement lands on its edge). */
- function snap(id,p){const M=MOVABLE[id],A=M&&AREAS[M.area];if(!A||!p)return p;return {...p,x:r1(Math.max(A.x0,Math.min(A.x1,p.x))),z:r1(Math.max(A.z0,Math.min(A.z1,p.z)))};}
+ function mapData(areaId='avenue'){const S=SP(),Ar=AR(),a=Ar.get(areaId)||Ar.get('avenue'),P=node?require('./places.js'):root.VoidPlaces,v=a.view,inV=(x,z)=>x>=v.x0&&x<=v.x1&&z>=v.z0&&z<=v.z1;
+  const shop=a.scene==='street'?((P&&P.SHOPFRONTS)||[]).filter(([,x,z])=>inV(x,z)).map(([name,x,z,side])=>({name,x,z,side})):[];const av=a.id==='avenue',rc=r=>({x0:r.x0,x1:r.x1,z0:r.z0,z1:r.z1,...(r.name?{name:r.name}:{})});
+  return {area:a.id,name:a.name,scene:a.scene,view:{...v},floors:a.floors.map(rc),walk:a.walk.map(rc),roads:a.roads.map(rc),no:a.no.map(n=>({...rc(n),why:n.why,rule:!!n.rule})),gates:a.gates.map(rc),
+   obstacles:a.obstacles.map(o=>({x0:o[0],x1:o[1],z0:o[2],z1:o[3],name:o[4]})),posts:a.posts.map(([x,z])=>({x,z})),labels:a.labels.map(l=>({...l})),shops:shop,
+   ledges:av?ledges():[],stretch:av&&S?{x0:S.STRETCH.x0,x1:S.STRETCH.x1,z:S.STRETCH.z}:null,seat:av&&S?{...S.SEAT}:null,catHome:av&&S?{...S.CAT_HOME}:null,
+   areas:Ar.list().map(x=>({id:x.id,name:x.name}))};}
+ /* Snap a clicked spot onto ground she may stand on (the editor: a click on the road, a kerb or a piece of furniture lands on the nearest allowed spot, within a few metres;
+    a click in a forbidden place is never moved). pick() -> {spot:{x, z, moved} or null, why}. area: the area shown on the map. */
+ function pick(id,p,area){const M=MOVABLE[id];if(!M||!p)return {spot:null,why:'This NPC cannot be moved by the editor yet.'};
+  if(M.area!=='city'){const A=AREAS[M.area];return {spot:{x:r1(Math.max(A.x0,Math.min(A.x1,p.x))),z:r1(Math.max(A.z0,Math.min(A.z1,p.z))),moved:true},why:''};}
+  const c=AR().check(p,area);if(c.ok&&(!area||c.area===area))return {spot:{x:r1(p.x),z:r1(p.z),moved:false},why:''};
+  const q=c.kind==='rule'?null:AR().nearest(p,area||c.area);if(q)return {spot:q,why:c.why};return {spot:null,why:c.ok?'That is in '+AR().get(c.area).name+', not the area shown: pick it in the area list first.':c.why+(c.kind==='rule'?'':' (nothing she can stand on nearby)')};}
+ function snap(id,p,area){if(!p)return p;const r=pick(id,p,area);return r.spot?{...p,x:r.spot.x,z:r.spot.z}:p;}
  /* For the admin inventory (the server's copy of these rules). */
- function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){const A=AREAS[M.area];out[id]={name:M.name,area:{x0:A.x0,x1:A.x1,z0:A.z0,z1:A.z1},post:A.post,posts:posts().map(p=>[p.x,p.z]),obstacles:OBSTACLES.map(o=>o.slice(0,4)),clear:CLEAR,
-  ledges:ledges().map(l=>({x:l.x,w:l.w,front:Math.round(l.front*1000)/1000})),actions:actionsFor(id).map(a=>a.id),anims:libraryOffer(id).filter(o=>o.ok).map(o=>o.id),pathOnly:ACTIONS.filter(a=>a.path).map(a=>a.id)};}return {movable:out,limits:LIMIT,import:{maxTriangles:IMPORT.maxTriangles,target:IMPORT.target,maxBytes:IMPORT.maxBytes,texWarn:IMPORT.texWarn}};}
+ function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:AR().IDS.slice(),
+  ledges:ledges().map(l=>({x:l.x,w:l.w,front:Math.round(l.front*1000)/1000})),actions:actionsFor(id).map(a=>a.id),anims:libraryOffer(id).filter(o=>o.ok).map(o=>o.id),pathOnly:ACTIONS.filter(a=>a.path).map(a=>a.id)};}return {movable:out,areas:AR().inventory(),limits:LIMIT,import:{maxTriangles:IMPORT.maxTriangles,target:IMPORT.target,maxBytes:IMPORT.maxBytes,texWarn:IMPORT.texWarn}};}
  /* IMPORT MODEL (the owner, 18 Nov 2026: "import new models, then place them in" and "just have a cap on poly counts for each import"): the caps, in ONE place (the
     server reads the same numbers from the admin inventory for the "Add to the game" package). Over maxTriangles (whole model, every mesh) or maxBytes: refused.
     Over target: accepted with an amber note. A texture wider or taller than texWarn: an amber note. Imported models stay in this browser (local test only). */
@@ -234,6 +244,6 @@
    if(b.name!=null&&(typeof b.name!=='string'||!NAME_OK.test(b.name)))out.push(bw+'the name may use letters, numbers and simple punctuation only (40 at most).');
    if(b.mode!=='original'){const {from,to,name,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
   return out;}
- const api={CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,inventory,posts,ledges,wrap};
+ const api={CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

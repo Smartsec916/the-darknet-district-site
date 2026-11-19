@@ -191,6 +191,11 @@ def validate_workspace(doc):
             problems = schedule_shape_problems(plan.get('schedule')) if isinstance(plan, dict) else []
             if problems:
                 raise DraftError('Invalid daily schedule: ' + problems[0], 422)
+    if b.get('npcs') or b.get('trees'):
+        from void_runner_live_content import forbidden_spot_problems
+        problems = forbidden_spot_problems(b.get('npcs') or {}, b.get('trees') or [])
+        if problems:
+            raise DraftError('Invalid NPC placement: ' + problems[0], 422)
     if b.get('voices'):
         from void_runner_live_content import voice_problems
         problems = voice_problems(b['voices'])
