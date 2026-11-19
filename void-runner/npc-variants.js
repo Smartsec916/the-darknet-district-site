@@ -35,7 +35,7 @@
  function colour(c){const lin=x=>Math.pow(parseInt(x,16)/255,2.2),h=String(c?.hex||'#808080'),rgb=[lin(h.slice(1,3)),lin(h.slice(3,5)),lin(h.slice(5,7))],l=Math.max(1e-3,.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2]);
   return {id:'cc-'+(c?.id||'x'),s:0,v:Math.max(.35,Math.min(1.25,.45+.8*Math.sqrt(l/.2))),t:rgb.map(x=>Math.min(4,x/l))};}
  /* The two shader vectors of a variant: [cos, sin, saturation, brightness] and [tint r, g, b, strength]. */
- function uniforms(v){const a=(v?.h||0)*Math.PI*2,t=v?.t||[1,1,1];return [[Math.cos(a),Math.sin(a),v?.s??1,v?.v??1],[t[0],t[1],t[2],v&&v.id!=='orig'?1:0]];}
+ function uniforms(v){const a=(v?.h||0)*Math.PI*2,t=v?.t||[1,1,1];return [[Math.cos(a),Math.sin(a),v?.s??1,v?.v??1],[t[0],t[1],t[2],v&&v.id!=='orig'?(v.all?2:1):0]];}   // strength 2 (v.all): the whole material changes, skin test off (a separate hair or garment material of a multi-part figure: npc-looks.js)
 
  // ---- browser ----
  let Plugin=null;
@@ -43,12 +43,12 @@
   +'if(d>1e-4){if(mx==g.r)h=mod((g.g-g.b)/d,6.0);else if(mx==g.g)h=(g.b-g.r)/d+2.0;else h=(g.r-g.g)/d+4.0;h/=6.0;}float hh=h>0.5?h-1.0:h;'
   +'float skin=smoothstep(-0.07,-0.02,hh)*(1.0-smoothstep(0.09,0.14,hh))*smoothstep(0.04,0.13,sat)*(1.0-smoothstep(0.5,0.66,sat))*smoothstep(0.14,0.28,mx);'
   +'vec3 k=vec3(0.57735);vec3 c=c0*vNpcTintA.x+cross(k,c0)*vNpcTintA.y+k*dot(k,c0)*(1.0-vNpcTintA.x);float l=dot(c,vec3(0.2126,0.7152,0.0722));c=mix(vec3(l),c,vNpcTintA.z)*vNpcTintA.w*vNpcTintB.rgb;'
-  +'surfaceAlbedo.rgb=mix(c0,max(c,vec3(0.0)),(1.0-skin)*vNpcTintB.a);}\n#endif\n';
+  +'surfaceAlbedo.rgb=mix(c0,max(c,vec3(0.0)),(1.0-skin*step(vNpcTintB.a,1.5))*min(vNpcTintB.a,1.0));}\n#endif\n';
  const WGSL='#ifdef NPC_TINT\n{let c0=surfaceAlbedo.rgb;let g=pow(max(c0,vec3f(0.0)),vec3f(0.4545));let mx=max(g.r,max(g.g,g.b));let mn=min(g.r,min(g.g,g.b));let d=mx-mn;let sat=d/max(mx,1e-4);var h=0.0;'
   +'if(d>1e-4){if(mx==g.r){h=(g.g-g.b)/d;if(h<0.0){h+=6.0;}}else if(mx==g.g){h=(g.b-g.r)/d+2.0;}else{h=(g.r-g.g)/d+4.0;}h/=6.0;}var hh=h;if(h>0.5){hh=h-1.0;}'
   +'let skin=smoothstep(-0.07,-0.02,hh)*(1.0-smoothstep(0.09,0.14,hh))*smoothstep(0.04,0.13,sat)*(1.0-smoothstep(0.5,0.66,sat))*smoothstep(0.14,0.28,mx);'
   +'let k=vec3f(0.57735);var c=c0*uniforms.vNpcTintA.x+cross(k,c0)*uniforms.vNpcTintA.y+k*dot(k,c0)*(1.0-uniforms.vNpcTintA.x);let l=dot(c,vec3f(0.2126,0.7152,0.0722));c=mix(vec3f(l),c,uniforms.vNpcTintA.z)*uniforms.vNpcTintA.w*uniforms.vNpcTintB.rgb;'
-  +'surfaceAlbedo=vec3f(mix(c0,max(c,vec3f(0.0)),(1.0-skin)*uniforms.vNpcTintB.a));}\n#endif\n';
+  +'surfaceAlbedo=vec3f(mix(c0,max(c,vec3f(0.0)),(1.0-skin*step(uniforms.vNpcTintB.a,1.5))*min(uniforms.vNpcTintB.a,1.0)));}\n#endif\n';
  function plugin(B){return Plugin??=class NpcTintPlugin extends B.MaterialPluginBase{
   constructor(material,v){super(material,'NpcTint',220,{NPC_TINT:false});this.u=uniforms(v);this._isEnabled=true;this._enable(true);}   /* _isEnabled is the plugin's own flag (the base class does not set it) */
   getClassName(){return 'NpcTintPlugin';}
@@ -77,6 +77,6 @@
    if(v.id==='orig'){m.material=base;continue;}const c=variantMaterial(base,v);c.metadata={...(c.metadata||{}),npcVariantOf:base};m.material=c;}
   node.metadata={...(node.metadata||{}),variant:v.id};return v.id;
  }
- const api={VARIANTS,WORN,variantsOf,pick,find,colour,uniforms,apply,GLSL,WGSL};
+ const api={VARIANTS,WORN,variantsOf,pick,find,colour,uniforms,apply,variantMaterial,GLSL,WGSL};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidNPCVariants=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -15,7 +15,7 @@
  const DTX=()=>typeof VoidDevTools!=='undefined'?VoidDevTools:null;   // dev-tools.js declares it with const (not a window property)
  const S=()=>root.VoidMissionEditor.shared,X=()=>root.VoidNPCPaths,RETURN='npc-editor-return';
  const ADV='npc-editor-advanced';const advanced=()=>{try{return root.localStorage.getItem(ADV)==='1';}catch{return false;}};
- const ui={id:null,search:'',lineSearch:'',group:null,preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
+ const ui={look:{},id:null,search:'',lineSearch:'',group:null,preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
  let host=null,headNode=null,status='',imports=[],importsLoaded=false;
  const el=(...a)=>S().el(...a),btn=(...a)=>S().btn(...a),hint=(t,a)=>S().hint(t,a);
  const HELP={
@@ -41,7 +41,14 @@
   check:'What the game needs from a street NPC. Red: refused (over a hard limit). Amber: allowed, but someone should reduce it before it goes in the game.',
   licence:'Required before it can be sent: where the model is from, its licence, and whether that licence forbids AI tools (No AI). A licensed or unknown model never goes into the public files by itself.',
   addToGame:'Downloads the model file and a small package file (name, placement, clips, licence). Send both to Claude or Codex: they check the licence, reduce it if needed, rig or retarget it and add it to the game.',
-  crowd:'An anonymous street figure: the street picks people from this pool, so there is no single person to move yet.'};
+  crowd:'An anonymous street figure: the street picks people from this pool, so there is no single person to move yet.',
+  looks:'Change how they look without touching the model file: hide an accessory, recolour their clothes, add pieces from the character creator (only on figures built like the creator’s), and save it as a named look. A look belongs to the model: everyone the game draws with this model can wear it. Every change is part of your DRAFT (UNDO works); PLAY THIS DRAFT shows it in the street.',
+  lookPick:'Which saved look you are changing. “As made” is the model exactly as it is in the file (it cannot be changed). + NEW LOOK starts a new one from “as made”.',
+  parts:'Separate pieces of the model you can take off (accessories and hair). Clothing that covers the body, the body and the face always stay.',
+  colour:'Pick a colour and the clothes take it, keeping their own light and dark. A figure made in one piece is recoloured as a whole, but its skin keeps its own tone.',
+  colourAdv:'Hue turns every colour round the colour wheel; saturation makes it duller (left) or stronger (right); brightness makes it darker or lighter. Used when no colour is picked above.',
+  pieces:'Gear and hairstyles from the character creator. They fit only figures built on the creator’s skeleton, so most NPCs cannot take them.',
+  wear:'Which look the game uses for everyone drawn with this model: none (as made), one of your looks, or a mix (each person keeps one of your looks).'};
  // ---------------------------------------------------------------- who is in the list
  const people=()=>root.VoidDistrictPeople?.npcs?.()||root.VoidDistrictPeople?.NPCS||[];
  function lookOf(id){const M=X().MOVABLE[id];if(M)return M.asset;const p=people().find(n=>n.id===id);if(p)return p.model||p.own||p.figure||p.look||null;
@@ -50,6 +57,7 @@
  function entries(){const g=S().givers||[],out=[];
   for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',group:mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
   for(const look of Object.keys(root.VoidCrowd?.street||{}))out.push({id:'crowd:'+look,name:'Street figure '+look.replace(/^npc-/,''),kind:'crowd',group:'crowd',look});
+  {const C=root.VoidCrowd||{},seen=new Set([...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
   for(const r of imports)out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:'import',rec:r});
   return out;}
  const GROUPS=[['move','Can be moved: stay at a spot or walk a route'],['givers','Give missions (have a TALK prompt)'],['district','In the District (no TALK prompt yet)'],['import','Imported models (local test only, not in the live game)'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier characters (not in the District today)']];
@@ -118,7 +126,7 @@
    if(g.shift)facts.append(el('p',S().G().shiftText(g),'me-small me-warn'));}
   main.append(facts);
   previewBox(main,e,asset,clips,pv);
-  if(e.kind!=='import')main.append((()=>{const b=el('section','','me-check',{'data-npc-appearance':e.id});b.append(el('h4','Appearance (coming next)'),hint('Changing their colours, hiding or adding pieces of clothing and saving named looks is planned next (approved). Nothing here changes their look yet.'));return b;})());
+  if(e.kind!=='import')appearanceBox(main,e,asset);
   if(e.kind==='roster'){giverBox(main,e);placeBox(main,e,clips);animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
   else if(e.kind==='crowd')animBox(main,e,asset);
   else requestBox(main,e,asset);}
@@ -130,11 +138,70 @@
   const fill=names=>{cl.replaceChildren();for(const c of names){const short=c.replace(/^.*?-(?=[a-z-]+$)/,'');cl.append(btn(c.replace(/\.\d{3}$/,''),()=>{ui.preview?.play(c);for(const b of cl.children)b.classList.toggle('on',b===event.target);},ui.preview?.current===c?'on':'',{'data-npc-clip':c}));}};
   if(ui.preview&&ui.previewFor===e.id){fill(ui.preview.clips);}
   else{const go=btn('Show me in 3D',async()=>{go.disabled=true;note.textContent='Loading the model…';try{ui.preview?.dispose();ui.preview=root.VoidNPCPreview.mount(stage);ui.previewFor=e.id;
-    const info=await ui.preview.show(file?{file,buffer:file.buffer}:{asset});ui.previewNote=info?'Loaded: '+info.triangles.toLocaleString('en')+' triangles · '+ui.preview.clips.length+' clips in the file.':'';note.textContent=ui.previewNote;fill(ui.preview.clips);go.remove();if(file&&e.onInfo)e.onInfo(info);}
+    const info=await ui.preview.show(file?{file,buffer:file.buffer}:{asset});ui.previewNote=info?'Loaded: '+info.triangles.toLocaleString('en')+' triangles · '+ui.preview.clips.length+' clips in the file.':'';note.textContent=ui.previewNote;fill(ui.preview.clips);go.remove();if(file&&e.onInfo)e.onInfo(info);host.querySelector('[data-npc-appearance]')?.refill?.();}
     catch(err){note.textContent='No preview: '+(/HTTP 404|unavailable/.test(String(err&&err.message))?'this model file is not in the public files here (a licensed model is published with the live site only; the game still shows it there).':err.message);go.disabled=false;}},'',{'data-npc-preview-go':e.id});
    if(asset||file)cl.append(go);else note.textContent='No model file to preview (this person is drawn by their scene’s own code).';
    if(clips.length&&!file)box.append(el('p','Clips in their file (crowd.js): '+clips.join(', '),'me-small'));}
   main.append(box);}
+ // ---- APPEARANCE (queue item 0c, approved 18 Nov 2026): looks per model file, from what the loaded file supports (npc-looks.js). Saved in the DRAFT (content.looks).
+ const NL=()=>root.VoidNPCLooks,caps={};
+ const entryOf=asset=>(S().local().looks||{})[asset]||null;
+ function setEntry(asset,en,say){const d=S().local();d.looks=d.looks||{};if(en&&(en.looks.length||(en.use&&en.use!=='original')))d.looks[asset]=en;else delete d.looks[asset];S().saveLocal(d);if(say)status=say;draw();}
+ const editing=asset=>{const en=entryOf(asset),id=ui.look&&ui.look[asset];return en&&en.looks.find(l=>l.id===id)||null;};
+ function editLook(asset,fn,say){const en=JSON.parse(JSON.stringify(entryOf(asset)||{looks:[],use:'original'})),l=en.looks.find(x=>x.id===(ui.look||{})[asset]);if(!l)return;fn(l,en);
+  for(const k of ['hide','gear'])if(l[k]&&!l[k].length)delete l[k];if(l.colour&&!Object.keys(l.colour).length)delete l.colour;if(!l.hair)delete l.hair;setEntry(asset,en,say);}
+ async function capsOf(asset){if(caps[asset])return caps[asset];const c=ui.preview&&ui.preview.container;if(!c)return null;let data={};try{data=await NL().loadData();}catch{}return caps[asset]=NL().capabilities(asset,NL().metaFromContainer(c),data);}
+ function appearanceBox(main,e,asset){const box=el('section','','me-check',{'data-npc-appearance':e.id});box.append(el('h4','Appearance'),hint(HELP.looks));main.append(box);
+  if(!asset||!NL()){box.append(el('p','No model file to change: this person is drawn by their scene’s own code.','me-small'));return;}
+  if(NL().LICENSED.test(asset))box.append(el('p','A licensed model: you can recolour it and hide its accessories; nothing is added to it, and its file is never sent to any AI tool.','me-small me-warn'));
+  if(NL().STREET.includes(asset))box.append(el('p','Reverie and Lace stay in ordinary street clothing: you can change their colours only.','me-small me-warn'));
+  const users=entries().filter(x=>x.look===asset&&x.id!==e.id).map(x=>x.name);box.append(el('p','A look belongs to the model “'+asset+'”'+(users.length?': '+users.slice(0,4).join(', ')+(users.length>4?' and others':'')+' use it too.':'.'),'me-small'));
+  const body=el('div','','',{'data-npc-look-body':asset});box.append(body);
+  {const sr=el('div','','me-row');sr.append(btn('SEE IT ON THE STREET',()=>S().jumpTo(100,-8,e.id,'your NPC looks',RETURN),'',{'data-npc-look-street':asset,title:'A throwaway test session on The Avenue with your draft applied. Your real save is never touched; LEAVE brings you back.'}),hint('Plays your draft on The Avenue (your real save is never touched; LEAVE brings you back).'));box.append(sr);}
+  box.refill=async()=>{body.replaceChildren();if(!(ui.preview&&ui.previewFor===e.id&&ui.preview.container)){body.append(btn('Show me in 3D to change the look',()=>{const g=host.querySelector('[data-npc-preview-go]');if(g){g.click();g.scrollIntoView({block:'center'});}},'',{'data-npc-look-start':asset}));return;}
+   body.append(el('p','Reading what this model supports…','me-small'));const c=await capsOf(asset);body.replaceChildren();if(!c){body.append(el('p','The model could not be read.','me-bad'));return;}lookUI(body,e,asset,c);};
+  box.refill();}
+ function lookUI(body,e,asset,c){const en=entryOf(asset)||{looks:[],use:'original'},cur=editing(asset),L=NL(),adv=advanced();ui.preview?.look(asset,cur);
+  // which look
+  const r=el('div','','me-row');const sel=el('select','','',{'aria-label':'Which look','data-npc-look-pick':asset});sel.append(new Option('As made (the model file)',''));for(const l of en.looks)sel.append(new Option(l.name,l.id));sel.value=cur?cur.id:'';
+  sel.onchange=()=>{ui.look=ui.look||{};ui.look[asset]=sel.value||null;status='';draw();};r.append(el('b','Look: '),sel);
+  r.append(btn('+ NEW LOOK',()=>{if(en.looks.length>=L.LIMIT.looks){status='A model can have '+L.LIMIT.looks+' looks at most: delete one first.';draw();return;}const n=JSON.parse(JSON.stringify(en));let i=n.looks.length+1;while(n.looks.some(l=>l.id==='look-'+i))i++;n.looks.push({id:'look-'+i,name:'Look '+i});ui.look=ui.look||{};ui.look[asset]='look-'+i;setEntry(asset,n,'New look “Look '+i+'” started from the model as made. Change it below; it is saved in your draft.');},'',{'data-npc-look-new':asset}));
+  if(cur){r.append(btn('RESET TO ORIGINAL',()=>editLook(asset,l=>{delete l.hide;delete l.colour;delete l.gear;delete l.hair;},'“'+cur.name+'” is back to the model as made (UNDO brings your changes back).'),'',{'data-npc-look-reset':asset}),
+   btn('DELETE THIS LOOK',()=>{const n=JSON.parse(JSON.stringify(en));n.looks=n.looks.filter(l=>l.id!==cur.id);if(n.use===cur.id||(n.use==='mix'&&!n.looks.length))n.use='original';ui.look[asset]=null;setEntry(asset,n,'Look “'+cur.name+'” deleted (UNDO brings it back).');},'',{'data-npc-look-delete':asset}));}
+  body.append(r,hint(HELP.lookPick));
+  if(!cur){body.append(el('p',en.looks.length?'Pick one of your looks above to change it, or start a new one.':'Press + NEW LOOK to start. The model as made never changes.','me-small'));}
+  else{const nm=el('input','','',{'aria-label':'Name of the look','data-npc-look-name':asset,maxlength:String(L.LIMIT.name)});nm.value=cur.name;nm.onchange=()=>{const v=nm.value.trim();if(!v||/[<>]/.test(v)){nm.value=cur.name;return;}editLook(asset,l=>{l.name=v;},'Renamed to “'+v+'”.');};
+   const nr=el('div','','me-row');nr.append(el('span','Name','me-small'),nm);body.append(nr);
+   // (a) parts
+   const pa=el('div','','npc-look-sec',{'data-npc-look-parts':asset});pa.append(el('b','Parts you can take off'),hint(HELP.parts));const hid=new Set(cur.hide||[]),open=c.groups.filter(g=>g.hideable),locked=c.groups.filter(g=>!g.hideable);
+   if(!open.length)pa.append(el('p',c.street?'Reverie and Lace keep every part.':'Nothing to take off: this model is made in one piece (or its pieces are all clothing, body or face, which always stay).','me-small'));
+   for(const g of open){const lab=el('label','','me-check-row'),cb=el('input','','',{type:'checkbox','data-npc-look-part':g.id});cb.checked=!g.names.every(n=>hid.has(n));cb.onchange=()=>editLook(asset,l=>{const h=new Set(l.hide||[]);for(const n of g.names)cb.checked?h.delete(n):h.add(n);l.hide=[...h];if(l.hair&&!L.HAIR[l.hair].hatOk&&c.hair.hats.some(x=>!h.has(x)))delete l.hair;},(cb.checked?'Showing ':'Hiding ')+g.label.toLowerCase()+'.');
+    lab.append(cb,document.createTextNode(' Show: '+g.label+(adv?' ('+g.names.join(', ')+')':'')));pa.append(lab);}
+   if(locked.length&&open.length)pa.append(adv?el('p','Always stay: '+locked.map(g=>g.label+' ('+g.why+')').join('; '),'me-small'):el('p','Clothing that covers the body, the body and the face always stay.','me-small'));body.append(pa);
+   // (b) colour
+   const co=el('div','','npc-look-sec',{'data-npc-look-colours':asset});co.append(el('b','Colours'),hint(HELP.colour));const cc=(root.VoidCharacterAppearance?.CATALOG?.clothingColors)||[];
+   for(const t of c.colours){const now=(cur.colour||{})[t.key]||null,row=el('div','','me-row',{'data-npc-look-colour':t.key});row.append(el('span',t.label+(adv&&t.key!=='*'?' ('+t.key+')':''),'me-small'));
+    const set=(v,say)=>editLook(asset,l=>{l.colour=l.colour||{};if(v)l.colour[t.key]=v;else delete l.colour[t.key];},say);
+    for(const sw of cc){const b=btn('',()=>set({tint:sw.hex},t.label+': '+sw.label.toLowerCase()+'.'),'npc-swatch'+(now&&now.tint===sw.hex?' on':''),{title:sw.label,'aria-label':sw.label,'data-npc-look-swatch':sw.id,style:'background:'+sw.hex+';width:22px;height:22px;min-width:22px;padding:0;border-radius:50%'});row.append(b);}
+    const pick=el('input','','npc-look-picker',{type:'color','aria-label':'Pick any colour for '+t.label,'data-npc-look-picker':t.key});pick.value=now&&now.tint||'#808080';pick.onchange=()=>set({...(now&&now.bright!=null?{bright:now.bright}:{}),tint:pick.value},t.label+': '+pick.value+'.');row.append(pick);
+    if(now)row.append(btn('Reset colour',()=>set(null,t.label+': back to the model’s own colour.'),'',{'data-npc-look-colour-reset':t.key}));co.append(row);
+    if(adv){const sl=(k,lab,min,max,step,def)=>{const s=el('input','','',{type:'range',min:String(min),max:String(max),step:String(step),'aria-label':lab+' for '+t.label,'data-npc-look-slider':k});s.value=String(now&&now[k]!=null?now[k]:def);s.onchange=()=>set({...(now||{}),[k]:Number(s.value)},t.label+': '+lab.toLowerCase()+' '+s.value+'.');const w=el('label','','me-small');w.append(document.createTextNode(lab+' '),s);return w;};
+     const ar=el('div','','me-row');ar.append(sl('hue','Hue',-180,180,5,0),sl('sat','Saturation',0,2,.05,1),sl('bright','Brightness',.4,1.6,.05,1));co.append(ar);}}
+   if(adv)co.append(hint(HELP.colourAdv));body.append(co);
+   // (c) pieces
+   const pc=el('div','','npc-look-sec',{'data-npc-look-pieces':asset});pc.append(el('b','Add pieces from the character creator'),hint(HELP.pieces));
+   if(!c.gear.ok)pc.append(el('p','Not possible on this model: '+c.gear.why,'me-small me-warn',{'data-npc-look-pieces-locked':asset}));
+   const gr=el('div','','me-row');for(const [id,g] of Object.entries(L.GEAR)){const lab=el('label','','me-check-row'+(c.gear.ok?'':' me-disabled')),cb=el('input','','',{type:'checkbox','data-npc-look-gear':id});cb.checked=(cur.gear||[]).includes(id);if(!c.gear.ok){cb.disabled=true;lab.title=c.gear.why;}
+    cb.onchange=()=>editLook(asset,l=>{const s=new Set(l.gear||[]);cb.checked?s.add(id):s.delete(id);l.gear=[...s];},(cb.checked?'Added ':'Removed ')+g.label.toLowerCase()+'.');lab.append(cb,document.createTextNode(' '+g.label));gr.append(lab);}pc.append(gr);
+   const hs=el('select','','',{'aria-label':'Hairstyle','data-npc-look-hair':asset});hs.append(new Option('Their own hair',''));const hat=c.hair.hats.some(h=>!(cur.hide||[]).includes(h));
+   for(const [id,h] of Object.entries(L.HAIR)){const o=new Option(h.label+(hat&&!h.hatOk?' (hide the hat first)':''),id);o.disabled=hat&&!h.hatOk;hs.append(o);}hs.value=cur.hair||'';if(!c.hair.ok){hs.disabled=true;hs.title=c.hair.why;}
+   hs.onchange=()=>editLook(asset,l=>{l.hair=hs.value||null;},hs.value?'Hairstyle: '+L.HAIR[hs.value].label.toLowerCase()+'.':'Their own hair again.');const hr=el('div','','me-row');hr.append(el('span','Hairstyle','me-small'),hs);pc.append(hr);body.append(pc);}
+  // (d) who wears it
+  const wr=el('div','','npc-look-sec',{'data-npc-look-wear':asset});wr.append(el('b','Which look the game uses'),hint(HELP.wear));
+  const opt=(v,text,dis)=>{const lab=el('label','','me-check-row'),rb=el('input','','',{type:'radio',name:'npc-look-use-'+asset,value:v,'data-npc-look-use':v});rb.checked=(en.use||'original')===v;rb.disabled=!!dis;rb.onchange=()=>{const n=JSON.parse(JSON.stringify(en));n.use=v;setEntry(asset,n,v==='original'?'The game shows the model as made.':v==='mix'?'Everyone with this model wears one of your looks (each person keeps theirs).':'Everyone with this model wears “'+(en.looks.find(l=>l.id===v)||{}).name+'”.');};lab.append(rb,document.createTextNode(' '+text));wr.append(lab);};
+  opt('original','As made (no look)');for(const l of en.looks)opt(l.id,'Everyone wears “'+l.name+'”');opt('mix','A mix of my looks (each person keeps one)',en.looks.length<1);
+  {const probs=L.problems({[asset]:en});if(probs.length)wr.append(el('p','Problems: '+probs.join(' '),'me-bad'));}
+  wr.append(el('p','SEE IT ON THE STREET (or PLAY THIS DRAFT) shows it in the game; PUBLISH (Mission Editor › Publish & versions) sends it to every player. The model file never changes.','me-small'));body.append(wr);}
  // ---- make giver
  function giverBox(main,e){const g=e.giver,box=el('section','','me-check',{'data-npc-giver':e.id});box.append(el('h4','Give a mission'),hint(HELP.giver));
   const d=S().local(),own=(d.trees||[]).filter(t=>!t.shipped&&/^draft-/.test(t.id)),sel=el('select','','',{'aria-label':'Which tree','data-npc-giver-tree':e.id});

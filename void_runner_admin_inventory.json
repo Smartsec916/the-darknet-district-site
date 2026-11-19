@@ -1037,7 +1037,1106 @@
       "texWarn": 2048
     }
   },
-  "revision": "57195ef8a22bda2a",
+  "npcLooks": {
+    "limits": {
+      "assets": 60,
+      "looks": 8,
+      "name": 40,
+      "hide": 24,
+      "colours": 16,
+      "hue": 180,
+      "sat": [
+        0,
+        2
+      ],
+      "bright": [
+        0.4,
+        1.6
+      ]
+    },
+    "gear": [
+      "gear-visor",
+      "gear-collar",
+      "gear-shoulders",
+      "gear-chest"
+    ],
+    "hair": {
+      "short01": {
+        "hatOk": true
+      },
+      "short02": {
+        "hatOk": true
+      },
+      "short03": {
+        "hatOk": true
+      },
+      "short04": {
+        "hatOk": true
+      },
+      "bob01": {
+        "hatOk": false
+      },
+      "bob02": {
+        "hatOk": false
+      },
+      "braid01": {
+        "hatOk": false
+      },
+      "long01": {
+        "hatOk": false
+      },
+      "ponytail01": {
+        "hatOk": false
+      }
+    },
+    "assets": {
+      "communion-tech": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "communion_tech.shades0",
+          "communion_tech.collar1",
+          "communion_tech.bob02"
+        ],
+        "colours": [
+          "communion_tech.shades0",
+          "communion_tech.collar1",
+          "communion_tech.bob02",
+          "communion_tech.matcreator_mc-scifi-armor_guardian",
+          "communion_tech.matcreator_mc-skinsuit_2022"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "communion-worker": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "communion_worker.visor0",
+          "communion_worker.collar1",
+          "communion_worker.short01"
+        ],
+        "colours": [
+          "communion_worker.visor0",
+          "communion_worker.collar1",
+          "communion_worker.male_worksuit01",
+          "communion_worker.shoes03",
+          "communion_worker.short01"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "cyborg-01": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "cyborg_01.visor0",
+          "cyborg_01.collar1"
+        ],
+        "colours": [
+          "cyborg_01.visor0",
+          "cyborg_01.collar1",
+          "cyborg_01.matcreator_mc-scifi-armor_jupiter7",
+          "cyborg_01.matcreator_mc-skinsuit_2022"
+        ],
+        "gear": "male",
+        "hair": true,
+        "hats": []
+      },
+      "district-resident": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "district_resident.mask0",
+          "district_resident.mask0.slit0",
+          "district_resident.mask0.slit1",
+          "district_resident.braid01"
+        ],
+        "colours": [
+          "district_resident.mask0",
+          "district_resident.braid01",
+          "district_resident.female_sportsuit01",
+          "district_resident.shoes04"
+        ],
+        "gear": "female",
+        "hair": true,
+        "hats": []
+      },
+      "district-smuggler": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "district_smuggler.shades0",
+          "district_smuggler.fedora_cocked",
+          "district_smuggler.short04"
+        ],
+        "colours": [
+          "district_smuggler.shades0",
+          "district_smuggler.fedora_cocked",
+          "district_smuggler.male_casualsuit01",
+          "district_smuggler.shoes03",
+          "district_smuggler.short04"
+        ],
+        "gear": "male",
+        "hair": true,
+        "hats": [
+          "district_smuggler.fedora_cocked"
+        ]
+      },
+      "fixer-01": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "fixer_01.shades0",
+          "fixer_01.bob02"
+        ],
+        "colours": [
+          "fixer_01.shades0",
+          "fixer_01.bob02",
+          "fixer_01.female_elegantsuit01",
+          "fixer_01.shoes03"
+        ],
+        "gear": "female",
+        "hair": true,
+        "hats": []
+      },
+      "hacker-01": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "hacker_01.visor0",
+          "hacker_01.short02"
+        ],
+        "colours": [
+          "hacker_01.visor0",
+          "hacker_01.male_casualsuit05",
+          "hacker_01.shoes03",
+          "hacker_01.short02"
+        ],
+        "gear": "male",
+        "hair": true,
+        "hats": []
+      },
+      "meridian-bartender": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "meridian_bartender.shades0",
+          "meridian_bartender.bob01"
+        ],
+        "colours": [
+          "meridian_bartender.shades0",
+          "meridian_bartender.bob01",
+          "meridian_bartender.female_elegantsuit01",
+          "meridian_bartender.shoes03"
+        ],
+        "gear": "female",
+        "hair": true,
+        "hats": []
+      },
+      "ncz-neon": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "ncz_neon.collar0",
+          "ncz_neon.long01"
+        ],
+        "colours": [
+          "ncz_neon.collar0",
+          "ncz_neon.female_sportsuit01",
+          "ncz_neon.long01",
+          "ncz_neon.shoes05"
+        ],
+        "gear": "female",
+        "hair": true,
+        "hats": []
+      },
+      "npc-admin": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-bishop": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-busker": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-casual-f": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-casual-m": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-club-f": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-club-m": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-cook-f": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-cook-old": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-courier": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-dax": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-elder-f": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-enforcer": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-ethereal-lace": {
+        "licensed": false,
+        "street": true,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-executive": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-fish": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-fixer": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-grey-reverie": {
+        "licensed": false,
+        "street": true,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-hacker": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-iris": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-jonah": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-kai": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-kei": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-lookout": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-mags": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-medic": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-merc": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-milked-auburn": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-monk-elder": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-monk-grey": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-monk-tech": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-nyx": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-office-f": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-office-m": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-outskirts-f": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-outskirts-m": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-rin": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-sable": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-security": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-student": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-tavi": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-tourist": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-vendor": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-veteran": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "npc-zane": {
+        "licensed": false,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "order-farmhand": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "order_farmhand.fedora_cocked",
+          "order_farmhand.short03"
+        ],
+        "colours": [
+          "order_farmhand.fedora_cocked",
+          "order_farmhand.male_worksuit01",
+          "order_farmhand.shoes02",
+          "order_farmhand.short03"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": [
+          "order_farmhand.fedora_cocked"
+        ]
+      },
+      "order-grower": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "order_grower.mask0",
+          "order_grower.braid01"
+        ],
+        "colours": [
+          "order_grower.mask0",
+          "order_grower.braid01",
+          "order_grower.female_sportsuit01",
+          "order_grower.shoes02"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "order-militia": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "order_militia.short01"
+        ],
+        "colours": [
+          "order_militia.matcreator_mc-bodysuit-2021",
+          "order_militia.matcreator_mc-scifi-armor_guardian",
+          "order_militia.short01"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "outlaw-01": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "outlaw_01.mask0",
+          "outlaw_01.short02"
+        ],
+        "colours": [
+          "outlaw_01.mask0",
+          "outlaw_01.male_casualsuit05",
+          "outlaw_01.matcreator_mc-scifi-armor_guardian",
+          "outlaw_01.short02"
+        ],
+        "gear": "male",
+        "hair": true,
+        "hats": []
+      },
+      "regular-01": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "regular_01.mask0",
+          "regular_01.mask0.slit0",
+          "regular_01.mask0.slit1",
+          "regular_01.short03"
+        ],
+        "colours": [
+          "regular_01.mask0",
+          "regular_01.male_worksuit01",
+          "regular_01.shoes03",
+          "regular_01.short03"
+        ],
+        "gear": "male",
+        "hair": true,
+        "hats": []
+      },
+      "runner-02": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "runner_02.shades0",
+          "runner_02.bob01"
+        ],
+        "colours": [
+          "runner_02.shades0",
+          "runner_02.bob01",
+          "runner_02.culturalibre_heroine_suit_2",
+          "runner_02.shoes03"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "studio-warrior": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vesper-mechanic": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "vesper_mechanic.visor0",
+          "vesper_mechanic.short01"
+        ],
+        "colours": [
+          "vesper_mechanic.visor0",
+          "vesper_mechanic.male_worksuit01",
+          "vesper_mechanic.shoes03",
+          "vesper_mechanic.short01"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vesper-pilot": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "vesper_pilot.shades0",
+          "vesper_pilot.ponytail01"
+        ],
+        "colours": [
+          "vesper_pilot.shades0",
+          "vesper_pilot.female_sportsuit01",
+          "vesper_pilot.ponytail01",
+          "vesper_pilot.shoes03"
+        ],
+        "gear": "female",
+        "hair": true,
+        "hats": []
+      },
+      "vesper-trader": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "vesper_trader.mask0",
+          "vesper_trader.fedora01",
+          "vesper_trader.short02"
+        ],
+        "colours": [
+          "vesper_trader.mask0",
+          "vesper_trader.fedora01",
+          "vesper_trader.male_casualsuit03",
+          "vesper_trader.shoes01",
+          "vesper_trader.short02"
+        ],
+        "gear": "male",
+        "hair": true,
+        "hats": [
+          "vesper_trader.fedora01"
+        ]
+      },
+      "vr-companion-ava": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-companion-bf": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-companion-bm": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-companion-f": {
+        "licensed": true,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "vr_companion_f.long01"
+        ],
+        "colours": [
+          "vr_companion_f.female_elegantsuit01",
+          "vr_companion_f.long01",
+          "vr_companion_f.shoes03"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-companion-fc1": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-companion-m": {
+        "licensed": true,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "vr_companion_m.short02"
+        ],
+        "colours": [
+          "vr_companion_m.male_elegantsuit01",
+          "vr_companion_m.shoes01",
+          "vr_companion_m.short02"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-companion-pg": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-companion-una": {
+        "licensed": true,
+        "street": false,
+        "whole": true,
+        "parts": [],
+        "colours": [
+          "*"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-player-a": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "vr_player_a.trackers1.Left",
+          "vr_player_a.headset0",
+          "vr_player_a.headset0.lens",
+          "vr_player_a.headset0.strap",
+          "vr_player_a.trackers1.Right",
+          "vr_player_a.short02"
+        ],
+        "colours": [
+          "vr_player_a.trackers1.Left",
+          "vr_player_a.headset0",
+          "vr_player_a.trackers1.Right",
+          "vr_player_a.male_casualsuit03",
+          "vr_player_a.shoes01",
+          "vr_player_a.short02"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      },
+      "vr-player-b": {
+        "licensed": false,
+        "street": false,
+        "whole": false,
+        "parts": [
+          "vr_player_b.trackers1.Left",
+          "vr_player_b.headset0",
+          "vr_player_b.headset0.lens",
+          "vr_player_b.headset0.strap",
+          "vr_player_b.trackers1.Right",
+          "vr_player_b.ponytail01"
+        ],
+        "colours": [
+          "vr_player_b.trackers1.Left",
+          "vr_player_b.headset0",
+          "vr_player_b.trackers1.Right",
+          "vr_player_b.female_sportsuit01",
+          "vr_player_b.ponytail01",
+          "vr_player_b.shoes05"
+        ],
+        "gear": null,
+        "hair": false,
+        "hats": []
+      }
+    }
+  },
+  "revision": "f252ee578b37a40f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -14535,283 +15634,283 @@
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 54,
+      "line": 55,
       "text": "const LIMIT={lineEdits:600,missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000,subjects:6};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 87,
+      "line": 89,
       "text": "if(!keysOk(o,['id','label','on','requires','interaction','destination','award','say','early'])){err(ow+': unknown fields in a step.');continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 95,
+      "line": 97,
       "text": "for(const k of ['say','early']){const lines=o[k];if(lines==null)continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 195,
+      "line": 197,
       "text": "if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via'])){err(ow+': unknown fields in a step.');continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 212,
+      "line": 214,
       "text": "if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 213,
+      "line": 215,
       "text": "lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 214,
+      "line": 216,
       "text": "if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 216,
+      "line": 218,
       "text": "if(m.ending.place!=null&&typeof m.ending.place!=='string')err(w+': unknown ending place.');if(m.ending.label!=null&&!plain(m.ending.label,LIMIT.text))err(w+': the hand-in label must be plain text.');lines(m.ending.say,w+' / ending');}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 233,
+      "line": 235,
       "text": "/* The VoidMissions record for a tree mission (what the V1 Mission Log shows). env.givers: roster list (say names, layout ids and places). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 265,
+      "line": 267,
       "text": "a 'hear' step after a talk step shows its lines and is done when that conversation closes (ev 'heard'), or at once when it has no lines to show.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 278,
+      "line": 280,
       "text": "const stepMessage=(m,o,gv,at,read)=>{const from=(o.say.find(l=>l&&l.who!=='You')||{}).who,name=gv(from).name||from;return {id:m.id+'/'+o.id,mission:m.id,number:m.number,title:titleOf(m),channel:o.via,from,fromName:name,header:String(name).toUpperCase()+' // '+(o.via==='comms'?'INCOMING CALL':'MESSAGE'),text:o.say.filter(l=>l&&l.who!=='You').map(l=>l.text).join('\\n'),at,...(read==null?{}:{read})};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 284,
+      "line": 286,
       "text": "const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>({who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 292,
+      "line": 294,
       "text": "if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 293,
+      "line": 295,
       "text": "else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else out.lines.push(...speak(o.say));settle(m,o.id);return true;};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 295,
+      "line": 297,
       "text": "const sendLines=(m,o)=>{const ls=speak(o.say);if(!ls.length)return;const at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)]))s.story.flags[msgFlag(m.id,o.id)]=at;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 299,
+      "line": 301,
       "text": "out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 310,
+      "line": 312,
       "text": "const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear')return;const ls=speak(o.say);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 314,
+      "line": 316,
       "text": "tree's next mission is offered in person, with ACCEPT / NOT NOW, by someone in this same conversation, its offer follows in the same window. Nothing is taken until ACCEPT",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 315,
+      "line": 317,
       "text": "(out.ask; out.mission stays the completed one, so its MISSION COMPLETE notice and reward are reported as before). NOT NOW: the next conversation offers it again. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 316,
+      "line": 318,
       "text": "const chain=(t,m)=>{if(ev.type!=='talk'||!out.completed||out.hear||out.ask||!out.lines.length)return;   /* only after a line that closes the mission (Mission 001's unwritten introduction says nothing, so it stays as it was) */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 338,
+      "line": 340,
       "text": "if(ev.type==='send-photo'&&next.kind==='send-photo'&&ev.to===next.npc&&!photoOk(ev.photo,photoNeed(next),m)){Object.assign(out,{tree:t.id,mission:m.id,reply:{to:next.npc,ok:false,lines:speak(next.wrong)}});return out;}   // the wrong photo: the reply says so; no fail, unlimited tries",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 340,
+      "line": 342,
       "text": "if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 346,
+      "line": 348,
       "text": "if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');chain(t,m);return out;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 354,
+      "line": 356,
       "text": "out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 357,
+      "line": 359,
       "text": "for(const o of m.objectives||[]){if((o.via!=='comms'&&o.via!=='messages')||(channel&&o.via!==channel)||rec.objectives[o.id]!==true||!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)])||!(o.say||[]).length)continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 395,
+      "line": 397,
       "text": "if(e.title!=null)d.title=e.title;if(e.description!=null)d.description=e.description;for(const o of d.objectives||[])if(e.objectives&&e.objectives[o.id]!=null)o.label=e.objectives[o.id];out.applied.push('mission log text: '+id);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 409,
+      "line": 412,
       "text": "function mapLine(env,l){if(!l||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 412,
+      "line": 415,
       "text": "r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:o.label,on:o.on};for(const k of ['requires','interaction','destination','award','say','early'])if(o[k]!=null&&!(Array.isArray(o[k])&&!o[k].length))x[k]=clone(o[k]);if(x.requires)x.requires=x.requires.slice();return x;});return r;};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 414,
+      "line": 417,
       "text": "const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>({who:l.who||who||'You',text:l.text.trim()}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 416,
+      "line": 419,
       "text": "function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 421,
+      "line": 424,
       "text": "const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 422,
+      "line": 425,
       "text": "if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 444,
+      "line": 447,
       "text": "if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 462,
+      "line": 465,
       "text": "const lines=Object.entries((local&&local.lines)||{}).filter(([,e])=>e&&e.adapter==='talk'&&typeof e.to==='string'&&e.to!==e.from).map(([ref,e])=>({who:ref.split('|')[0],from:e.from,to:e.to}));if(lines.length)out.lines=lines;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 478,
+      "line": 482,
       "text": "const empty=[...(m.offer||[]),...(m.objectives||[]).flatMap(o=>[...(o.say||[]),...(o.early||[])]),...((m.ending&&m.ending.say)||[])].filter(l=>!l||!String(l.text||'').trim()).length;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 481,
+      "line": 485,
       "text": "if((m.offer||[]).length)out.push('\"'+m.title+'\": what '+(m.giver||'the giver')+' says when handing the mission over. The game does not speak these lines yet (the Studio stores them as a design note).');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 499,
+      "line": 503,
       "text": "for(const m of after||[]){const b=by.get(m.id);if(!b){out.push({kind:'added',mission:m.id,text:'New mission \"'+m.title+'\".'});continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 500,
+      "line": 504,
       "text": "if(b.title!==m.title)out.push({kind:'text',mission:m.id,text:'\"'+b.title+'\" is renamed \"'+m.title+'\".'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 501,
+      "line": 505,
       "text": "if((b.description||'')!==(m.description||''))out.push({kind:'text',mission:m.id,text:'\"'+m.title+'\": new description.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 502,
+      "line": 506,
       "text": "if((Number(b.rewards)||0)!==(Number(m.rewards)||0))out.push({kind:'reward',mission:m.id,text:'\"'+m.title+'\": credits '+(Number(b.rewards)||0)+' → '+(Number(m.rewards)||0)+'.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 503,
+      "line": 507,
       "text": "for(const o of m.objectives){const x=(b.objectives||[]).find(y=>y.id===o.id);if(!x){out.push({kind:'step-added',mission:m.id,step:o.id,text:'\"'+m.title+'\": new step \"'+o.label+'\".'});continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 504,
+      "line": 508,
       "text": "if(x.label!==o.label)out.push({kind:'text',mission:m.id,step:o.id,text:'\"'+m.title+'\": step \"'+x.label+'\" now reads \"'+o.label+'\".'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 505,
+      "line": 509,
       "text": "if(x.on!==o.on)out.push({kind:'event',mission:m.id,step:o.id,text:'\"'+m.title+'\": step \"'+o.label+'\" is now completed by a different action.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 506,
+      "line": 510,
       "text": "if(JSON.stringify(x.requires||[])!==JSON.stringify(o.requires||[]))out.push({kind:'order',mission:m.id,step:o.id,text:'\"'+m.title+'\": the order of steps changed around \"'+o.label+'\".'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 507,
+      "line": 511,
       "text": "for(const k of ['say','early'])if(JSON.stringify(x[k]||[])!==JSON.stringify(o[k]||[]))out.push({kind:'lines',mission:m.id,step:o.id,text:'\"'+m.title+'\": what is said '+(k==='say'?'when':'too early at')+' \"'+o.label+'\" changed.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 508,
+      "line": 512,
       "text": "for(const x of b.objectives||[])if(!m.objectives.some(o=>o.id===x.id))out.push({kind:'step-removed',mission:m.id,step:x.id,text:'\"'+m.title+'\": step \"'+x.label+'\" is removed.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 510,
+      "line": 514,
       "text": "for(const b of before||[])if(!now.has(b.id))out.push({kind:'removed',mission:b.id,text:'Mission \"'+b.title+'\" is removed.'});",
       "kind": "source-reference"
     },
@@ -15927,61 +17026,85 @@
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 99,
+      "line": 107,
       "text": "card('📝','See what a character says','Every line, in missions and outside them, and their voice (choose an ElevenLabs voice there).',pick(ui.id||'admin',lines),{'data-npc-start-card':'lines'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 206,
+      "line": 149,
+      "text": "function setEntry(asset,en,say){const d=S().local();d.looks=d.looks||{};if(en&&(en.looks.length||(en.use&&en.use!=='original')))d.looks[asset]=en;else delete d.looks[asset];S().saveLocal(d);if(say)status=say;draw();}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 151,
+      "text": "function editLook(asset,fn,say){const en=JSON.parse(JSON.stringify(entryOf(asset)||{looks:[],use:'original'})),l=en.looks.find(x=>x.id===(ui.look||{})[asset]);if(!l)return;fn(l,en);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 152,
+      "text": "for(const k of ['hide','gear'])if(l[k]&&!l[k].length)delete l[k];if(l.colour&&!Object.keys(l.colour).length)delete l.colour;if(!l.hair)delete l.hair;setEntry(asset,en,say);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 184,
+      "text": "const set=(v,say)=>editLook(asset,l=>{l.colour=l.colour||{};if(v)l.colour[t.key]=v;else delete l.colour[t.key];},say);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-editor.js",
+      "line": 273,
       "text": "function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 276,
+      "line": 343,
       "text": "if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=plan(e.id);if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 277,
+      "line": 344,
       "text": "p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point=\"'+i+'\"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green pavement'});});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 278,
+      "line": 345,
       "text": "if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green pavement'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 279,
+      "line": 346,
       "text": "return Gd.show(sc,needs,{done:p?{sel:'[data-npc-play=\"'+CSS.escape(e.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 280,
+      "line": 347,
       "text": "if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 282,
+      "line": 349,
       "text": "if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 283,
+      "line": 350,
       "text": "if(!L.source)needs.push({sel:'[data-npc-lic=\"source\"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic=\"type\"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai=\"true\"]',text:'answer “No AI licence?”'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 284,
+      "line": 351,
       "text": "return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}",
       "kind": "source-reference"
     },
@@ -16001,6 +17124,12 @@
       "source": "void-runner/npc-look.js",
       "line": 81,
       "text": "Object.defineProperty(api,'current',{get(){return current?{who:current.who,character:current.node.metadata?.character,...current.debug}:null;}});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-looks.js",
+      "line": 66,
+      "text": "const groups=[];for(const p of parts){const parent=parts.find(q=>q!==p&&p.name.startsWith(q.name+'.')&&q.hideable===p.hideable);const g=parent&&groups.find(x=>x.names.includes(parent.name));if(g){g.names.push(p.name);continue;}groups.push({id:p.name,label:p.label,kind:p.kind,hideable:p.hideable&&!street,names:[p.name],why:street?'Reverie and Lace: colours only.':p.hideable?'':p.kind==='unknown'?'Its name does not say what it is, so it stays (it might be clothing).':p.kind==='garment'||p.kind==='shoes'?'Clothing stays on: nothing below the model’s own outfit can be removed.':'Part of the body or face.'});}",
       "kind": "source-reference"
     },
     {
@@ -18013,8 +19142,8 @@
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
     "void-runner/milked.js": "dfb1cea57d9f898b81c051faac2c65316ecaa7990dad2d7a99856de8c494a068",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-content.js": "ac2c9618504ca55836ddde1af1735aa228511b418c5292099062a5853daec0b5",
-    "void-runner/mission-editor.js": "dcc1d0c400c00df70bae52fd046aa5212ba16e6d0b4d51d7d32d7fd5d6206bfb",
+    "void-runner/mission-content.js": "2ba6587e4df1428ccb1e181edb332e5d65c5791f6620629850d440f3508a5b1e",
+    "void-runner/mission-editor.js": "28f0b056cc0be08a42c0159a120735a539ea9e04cd0a8178939d3ed154db1285",
     "void-runner/mission-givers.js": "48ea30daf96d0367a1607a3d5537966443ed62b1ee6838d2778a1e9fa9ddf50e",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
@@ -18042,12 +19171,13 @@
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-device.js": "6011436c5f2163d7c2ce97f5ee014e86e04033740c313490479562bb8d714141",
-    "void-runner/npc-editor.js": "c2d424101adf9ee5683cc7679b332a02fbfc5820a9013bda61959795a49f4763",
+    "void-runner/npc-editor.js": "0dac8d835ad462b13cf16a732d921325d9d1259ad622ba11fc0875ba8679ccac",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
+    "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-map.js": "e803b583a5c076dcc43c9b3cfbfeff876b4dbac768bbfa83f2fd810f21170bf5",
     "void-runner/npc-paths.js": "0be2b0d1d0f56c19f046fd6d6193c22b8909a3150c5f8c321b08695e86a336c5",
-    "void-runner/npc-preview.js": "43f28a85bbfdca645b44511e8cf695b6f4ed7e8bdca250ccf418fc46815ae476",
-    "void-runner/npc-variants.js": "786f09e2a9932d8afdc45cbbcad6644dfb28be020900e10e71bf26059fc3d983",
+    "void-runner/npc-preview.js": "cd4950fddc09f871b213a4d73db97e862fb9e0e973c4488a0a2d7476ffcec65c",
+    "void-runner/npc-variants.js": "45d7c9a26716a2ad7d430ff4cdf05d5969d071e0b0d9b4bae9b6fba946838df1",
     "void-runner/npc-voices.js": "1d9c0c82c2836b45d452f81261d7c69a64e65ac4730a98cd18e6f912168ae49e",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
@@ -18120,7 +19250,7 @@
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
-    "tools/admin-inventory.cjs": "e992998140742e553f47daa3b09cfed906e9a897a72141d71b46776ccaea012e",
+    "tools/admin-inventory.cjs": "2ad9777ed1bf2f06c967d59e50fb22f2b770904218521e5f114c7360d823c555",
     "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",
     "void-runner/assets/audio/voice/manifest.json": "edcb82b66784d955f92d42544495a083408ef7b588f7bf30eb4b8872f35cc166",
     "void-runner/save-manifest.json": "16cefcb17caf8c00260f657fdec1241fb16a2f3f13eaf56bec5bfe28eff0442c"

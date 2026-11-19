@@ -94,10 +94,13 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks']):
         return ['The content record has an unknown shape.']
     if content.get('npcs') is not None:
         for p in npc_problems(content['npcs'], inv or _json('void_runner_admin_inventory.json')):
+            err(p)
+    if content.get('looks') is not None:
+        for p in look_problems(content['looks'], inv or _json('void_runner_admin_inventory.json')):
             err(p)
     if content.get('voices') is not None:
         for p in voice_problems(content['voices'], inv or _json('void_runner_admin_inventory.json')):
@@ -448,6 +451,86 @@ def voice_problems(voices, inv=None):
             out.append('%s: not a character the editor knows.' % who)
         elif not voice_ok(v):
             out.append('%s: a voice choice needs an ElevenLabs voice ID (20 letters and digits), a plain name and the date it was chosen.' % who)
+    return out
+
+
+# ---- NPC looks (Developer Tools > NPCs > Appearance): the same rules as void-runner/npc-looks.js, against the admin inventory's npcLooks ----
+# What may change on each model is read from the model files by tools/admin-inventory.cjs (npc-looks.js capabilities): only accessories and hair can be hidden
+# (clothing that covers the body never), only the listed materials recoloured, the creator's gear and hair only on figures built on its skeleton, nothing added to a
+# licensed model, colours only for Reverie and Lace. The model files are never changed.
+LOOK_ID = re.compile(r'^[a-z0-9][a-z0-9-]{0,23}$')
+LOOK_PART = re.compile(r'^[A-Za-z0-9 _.:-]{1,80}$')
+LOOK_HEX = re.compile(r'^#[0-9a-fA-F]{6}$')
+
+
+def _look_colour_ok(c):
+    def rng(v, a, b):
+        return v is None or (_num(v) and type(v) is not bool and a <= v <= b)
+    return _keys(c, ['tint', 'hue', 'sat', 'bright']) and (c.get('tint') is None or (isinstance(c['tint'], str) and bool(LOOK_HEX.match(c['tint'])))) \
+        and rng(c.get('hue'), -180, 180) and rng(c.get('sat'), 0, 2) and rng(c.get('bright'), 0.4, 1.6)
+
+
+def look_problems(looks, inv=None):
+    """content.looks {asset: {looks: [{id, name, hide, colour, gear, hair}], use}}: only models the inventory lists, only the changes each model allows."""
+    cfg = (inv or _json('void_runner_admin_inventory.json')).get('npcLooks') or {}
+    lim, assets, gear_ids, hair = cfg.get('limits') or {}, cfg.get('assets') or {}, set(cfg.get('gear') or []), cfg.get('hair') or {}
+    if not isinstance(looks, dict) or len(looks) > lim.get('assets', 60):
+        return ['Looks have an unknown shape.']
+    out = []
+    for asset, e in looks.items():
+        w = '%s: ' % asset
+        a = assets.get(asset) if isinstance(asset, str) else None
+        if a is None:
+            out.append(w + 'not a model the editor knows.')
+            continue
+        if not _keys(e, ['looks', 'use']) or not isinstance(e.get('looks'), list) or len(e['looks']) > lim.get('looks', 8):
+            out.append(w + 'looks have an unknown shape.')
+            continue
+        ids = set()
+        for l in e['looks']:
+            n = w + 'look: '
+            if not _keys(l, ['id', 'name', 'hide', 'colour', 'gear', 'hair']):
+                out.append(n + 'unknown fields.')
+                continue
+            if not isinstance(l.get('id'), str) or not LOOK_ID.match(l['id']) or l['id'] in ids:
+                out.append(n + 'bad or repeated id.')
+            ids.add(l.get('id'))
+            if not _plain(l.get('name'), lim.get('name', 40)):
+                out.append(n + 'a look needs a plain name.')
+            hide = l.get('hide') or []
+            if not isinstance(hide, list) or len(hide) > lim.get('hide', 24) or any(not isinstance(p, str) or not LOOK_PART.match(p) for p in hide):
+                out.append(n + 'the hidden parts have an unknown shape.')
+                hide = []
+            for p in hide:
+                if a.get('street') or p not in (a.get('parts') or []):
+                    out.append(n + '"%s" cannot be hidden (only accessories and hair; clothing that covers the body always stays).' % p)
+            col = l.get('colour') or {}
+            if not isinstance(col, dict) or len(col) > lim.get('colours', 16):
+                out.append(n + 'the colours have an unknown shape.')
+                col = {}
+            for k, c in col.items():
+                if k not in (a.get('colours') or []):
+                    out.append(n + '"%s" is not a colour this model can change.' % k)
+                if not _look_colour_ok(c):
+                    out.append(n + 'a colour needs a #rrggbb tint and/or a hue (-180..180), saturation (0..2) and brightness (0.4..1.6).')
+            g = l.get('gear') or []
+            if not isinstance(g, list) or len(g) > 4 or any(x not in gear_ids for x in g) or len(set(g)) != len(g):
+                out.append(n + 'unknown gear.')
+            elif g and (a.get('licensed') or a.get('street') or not a.get('gear')):
+                out.append(n + 'nothing can be added to this model.')
+            hs = l.get('hair')
+            if hs is not None:
+                if hs not in hair:
+                    out.append(n + 'unknown hairstyle.')
+                elif a.get('licensed') or a.get('street') or not a.get('hair'):
+                    out.append(n + 'nothing can be added to this model.')
+                elif not hair[hs].get('hatOk') and any(h not in hide for h in a.get('hats') or []):
+                    out.append(n + 'that hairstyle does not fit under the hat: hide the hat first.')
+        use = e.get('use')
+        if not (use is None or use in ('original', 'mix') or any(isinstance(l, dict) and l.get('id') == use for l in e['looks'])):
+            out.append(w + '"which look they wear" names a look that does not exist.')
+        if use == 'mix' and not e['looks']:
+            out.append(w + 'a mix needs at least one saved look.')
     return out
 
 
@@ -845,7 +928,7 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks')):
         raise DraftError('There is nothing to publish.', 422)
     note = (content.get('note') or '')[:200]
     return _commit(db, uid, expected, 'publish', lambda tx, live, history: (content, None), note)
