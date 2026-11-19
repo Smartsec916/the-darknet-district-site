@@ -20,7 +20,7 @@
   category:'A short label shown with the mission in the Mission Log, e.g. “Main storyline” or “Side job”. Only a label: it changes nothing else.',
   objective:'The one-line headline in the Mission Log, e.g. “Photograph Juno Vex”. Left empty, the Log shows the current step instead.',
   location:'A label for the Mission Log (where the mission happens). It does NOT move anyone and does not start anything: people stay where the game puts them. To make Reverie or Lace wait somewhere, use “Giver waits at”.',
-  giver:'Who offers the mission (only people with a TALK prompt in the game). Changing the giver also moves the offer lines to the new giver.',
+  giver:'Who the mission belongs to. IN PERSON requires a walking-game TALK prompt. MESSAGES, COMMS and NOTIFICATION starts can use any registered NPC because the device trigger starts the mission. Changing the giver also moves the offer lines to the new giver.',
   type:'What kind of mission it is (main, side, cargo …), for sorting in the Mission Log. It does not change how it plays.',
   offer:'What the giver says when offering it, one line per box. Text only (no voice) until it is recorded.',
   steps:'What the player has to do, in order. Each step starts when the one before it is done; the yellow arrow leads to it.',
@@ -345,7 +345,7 @@
   {const g2=el('div','','me-grid');g2.append(field('Type (shown in the Mission Log)',m.category||'',v=>ed(x=>{x.category=v.slice(0,60);}),false,{'data-me-field':'category',placeholder:'e.g. Main storyline / Introduction',maxlength:'60'},HELP.category),field('Objective (the Mission Log headline)',m.objective||'',v=>ed(x=>{x.objective=v.slice(0,200);}),false,{'data-me-field':'objective',placeholder:'(empty: the current step)',maxlength:'200'},HELP.objective));card.append(g2);
    const lr=el('div','','me-row');lr.append(el('b','Location'),placeSelect(m.location||'',v=>ed(x=>{x.location=v;}),'Mission location'),hint(HELP.location,{'data-me-help-location':'1'}));card.append(lr);}
   const gr=el('div','','me-row');gr.append(el('b','Giver'),npcSelect(m.giver,v=>ed(x=>{const old=x.giver;x.giver=v;for(const l of x.offer||[])if(l&&old&&l.who===old)l.who=v;},true),{label:'Who gives this mission',attrs:{'data-me-giver':m.id}}));const gv=giver(m.giver);
-  gr.append(el('span',gv?G().status(gv):'Choose who gives it.',gv&&gv.draft&&gv.players?'me-ok':'me-warn',{'data-me-giver-status':m.id}),hint(HELP.giver));card.append(gr);
+  {const byNote=!!(m.start&&m.start.how==='notification'),txt=!gv?'Choose who gives it.':byNote&&!gv.canTalk?gv.name+' can own this notification-started mission. They do not have a TALK prompt, so switch to an in-person start only after adding one.':G().status(gv),ok=!!gv&&(byNote?true:gv.draft&&gv.players);gr.append(el('span',txt,ok?'me-ok':'me-warn',{'data-me-giver-status':m.id}),hint(HELP.giver));}card.append(gr);
   if(m.giver&&gv)card.append(voicePanel(m.giver,{compact:true}));   // the giver's voice (queue item 0b)
   if(root.VoidNPCPaths?.MOVABLE?.[m.giver])card.append(waitAtPanel(t,m,ed));
   card.append(startPanel(t,m,ed));   // right under Giver: how this mission starts
@@ -904,7 +904,7 @@
   playTree(id,step){return play('tree:'+id,step||null);},fresh,
   blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
-  addGiverMission(npc,treeId){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);saveLocal(d);stale=true;
+  addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};
  root.VoidMissionEditor={shared,guideNow,fresh,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
 })(globalThis);
