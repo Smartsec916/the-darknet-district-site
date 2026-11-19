@@ -52,11 +52,13 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  get mode(){return devMode();},
  setMode(m){m=m==='advanced'?'advanced':'basic';try{localStorage.setItem(DEV_MODE_KEY,m);localStorage.setItem('npc-editor-advanced',m==='advanced'?'1':'0');}catch{}devPanel.classList.toggle('dev-basic',m==='basic');this.render();},
  applyPending(){if(this.pending){VoidBalance.apply(this.pending);this.pending=null;}},
+ // The owner's developer account starts every session with 1,000 credits for trying purchases (the owner, 18 Nov 2026). Only after the server accepts the developer request; ordinary players are untouched. The cloud save allows any amount up to 100,000,000.
+ testCredits(){if(!this.authorized||typeof state==='undefined'||!state||this.creditsSet)return;this.creditsSet=true;state.credits=1000;try{save();}catch{}try{hud();}catch{}},
  async identity(request){
   this.authorized=false;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
   if(devMissileTrial){devMissileTrial=false;resetMissileFlight();}
   if(!request)return;
-  try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.receive(data);devButton.hidden=false;try{if(sessionStorage.getItem('mission-editor-return'))this.open('missions');else if(sessionStorage.getItem('npc-editor-return'))this.open('npcs');}catch{}}catch{/* Fail closed; ordinary players get no private controls. */}
+  try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.receive(data);devButton.hidden=false;this.testCredits();try{if(sessionStorage.getItem('mission-editor-return'))this.open('missions');else if(sessionStorage.getItem('npc-editor-return'))this.open('npcs');}catch{}}catch{/* Fail closed; ordinary players get no private controls. */}
  },
  receive(data){this.values=VoidBalance.validate(data.values);this.revision=data.revision;this.preset=data.preset||'CUSTOM';this.pending=this.values;},
  open(tab){if(!this.authorized)return;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
