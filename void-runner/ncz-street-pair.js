@@ -135,7 +135,7 @@
     points:[{x, z, action, seconds}]}. She walks there (mode plan-go), does the action (plan-do: a clip, a V1 pose, or the ledge's sit through the usual sit-down / sit /
     stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her
     stretch on foot (never a jump). ACT: an action id -> {clip, device, sit}. */
- const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'walk-on':{clip:'walk',pass:true}};
+ const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'sit-wave':{sit:true},'walk-on':{clip:'walk',pass:true}};
  const actOf=a=>ACT[a]||{clip:a};
  const FREE=new Set(['walk','run','pause','stop']),PLAN=new Set(['plan-go','plan-do','esc']);   // esc: a mission's follow / lead / cab step (npc-escort.js; run in start())
  function planTarget(s,P){if(P.mode==='stay')return P;const n=P.points.length;s.pi=((s.pi||0)%n+n)%n;return P.points[s.pi];}
@@ -187,7 +187,7 @@
    if(s.left<=0){s.z=seatOf(s.step);shift(sh.sit);s.mode='sit';s.left=between(rnd,cfg.sit);s.clip=CLIPS.sit;s.waved=false;s.device=rnd()<.45?'scroll':null;s.devLeft=between(rnd,[8,14]);}return s;}
   if(s.mode==='sit'){ease();s.clip=CLIPS.sit;s.devLeft-=dt;if(s.device&&s.devLeft<=0)s.device=null;
    // a wave from the seat to a player who comes close (once a sit)
-   if(!s.waved&&ctx.player&&dist(ctx.player,s)<4.5){s.waved=true;s.device=null;s.sub='wave';s.waveLeft=3.6;}
+   if(!s.waved&&((s.psit&&s.pact==='sit-wave')||(ctx.player&&dist(ctx.player,s)<4.5))){s.waved=true;s.device=null;s.sub='wave';s.waveLeft=3.6;}
    if(s.sub==='wave'){s.waveLeft-=dt;s.clip=CLIPS.wave;if(s.waveLeft<=0)s.sub=null;}
    if(s.left<=0&&s.sub!=='wave'){s.mode='stand-up';s.device=null;s.zo=0;s.z0=seatOf(s.step)+sh.exitStart;s.z=s.z0;s.left=cfg.len['sit-exit'];s.clip=CLIPS.standUp;s.once=true;}return s;}
   if(s.mode==='stand-up'){// she leans forward and rises over her feet: the figure moves forward with her hips

@@ -147,7 +147,7 @@
   const stage=pv||el('div','','npc-preview');box.append(stage);
   const cl=el('div','','me-row',{'data-npc-clips':e.id});box.append(cl,hint(HELP.clips));
   const note=el('p',ui.previewNote||'','me-small',{'data-npc-preview-note':'1'});box.append(note);
-  const fill=names=>{cl.replaceChildren();for(const c of names){const short=c.replace(/^.*?-(?=[a-z-]+$)/,'');cl.append(btn(c.replace(/\.\d{3}$/,''),()=>{ui.preview?.play(c);for(const b of cl.children)b.classList.toggle('on',b===event.target);},ui.preview?.current===c?'on':'',{'data-npc-clip':c}));}};
+  const fill=names=>{cl.replaceChildren();cl.append(el('b',names.length+' animation clips available in this preview','me-small',{'data-npc-clip-count':String(names.length)}));for(const c of names){const button=btn(c.replace(/\.\d{3}$/,''),()=>{ui.preview?.play(c);for(const b of cl.querySelectorAll('[data-npc-clip]'))b.classList.toggle('on',b===button);},ui.preview?.current===c?'on':'',{'data-npc-clip':c});cl.append(button);}};
   if(ui.preview&&ui.previewFor===e.id){fill(ui.preview.clips);}
   else{const go=btn('Show me in 3D',async()=>{go.disabled=true;note.textContent='Loading the model…';try{ui.preview?.dispose();ui.preview=root.VoidNPCPreview.mount(stage);ui.previewFor=e.id;
     const info=await ui.preview.show(file?{file,buffer:file.buffer}:{asset});ui.previewNote=info?'Loaded: '+info.triangles.toLocaleString('en')+' triangles · '+ui.preview.clips.length+' clips in the file.':'';note.textContent=ui.previewNote;fill(ui.preview.clips);go.remove();if(file&&e.onInfo)e.onInfo(info);host.querySelector('[data-npc-appearance]')?.refill?.();}
@@ -227,6 +227,7 @@
   if(!M){const why=e.giver.group==='earlier'?'Not in the District today.':/district-people|District/.test(e.giver.where||'')?'Placed by the District’s own room code (a fixed spot in a building).':e.giver.where?'Placed by its scene’s own code ('+e.giver.where.replace(/\s*\(.*$/,'')+').':'No figure in the walking game.';
    box.append(el('p','Cannot be moved from here yet: '+why+' Today only Reverie, Lace and the street cat can be moved (their walking code follows a plan).','me-small me-warn',{'data-npc-place-locked':id}));main.append(box);return;}
   const whole=plan(id),bi=blockOf(id),p=curPlan(id),mode=p&&p.mode!=='original'?p.mode:'own',acts=X().actionsFor(id,whole&&whole.anims||[]),probs=whole?X().planProblems(id,whole):[],she=M.it?'it':'she',her=M.it?'its':'her';
+  if(!M.cat)box.append(hint('Model clips and routine actions are different. Walking and running are movement animations; sit-enter, sit and sit-exit are used together at a supported ledge. Added compatible clips become selectable routine actions.'));
   // put: write the all-day plan, or the time block being edited (Daily schedule)
   const put=o=>{if(bi==null)return setPlan(id,o);const w=plan(id),sch=w.schedule.slice(),b=sch[bi],{anims,schedule,...rest}=o||{mode:'original'};sch[bi]={from:b.from,to:b.to,...(b.name?{name:b.name}:{}),...rest};setPlan(id,{...w,schedule:sch});};
   if(whole&&Array.isArray(whole.schedule)&&whole.schedule.length){const sel=el('div','','me-row npc-editing',{role:'group','aria-label':'Which part of the day you are changing','data-npc-editing':id});sel.append(el('b','Changing: '));

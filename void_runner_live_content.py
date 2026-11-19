@@ -574,7 +574,7 @@ def _plan_only(npc, p, mv, inv, ok):
             for a in acts:
                 if not isinstance(a, str) or a not in ok or a in path_only:
                     out.append('an action is not something she can do here.')
-                elif a == 'sit' and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p):
+                elif a in ('sit', 'sit-wave') and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p):
                     out.append('"Sit" needs a ledge.')
         return out
     if not _keys(p, ['mode', 'points', 'anims']):
@@ -590,7 +590,7 @@ def _plan_only(npc, p, mv, inv, ok):
         out += [pw + x for x in spot_problems(npc, q, inv)]
         if not isinstance(q.get('action'), str) or q.get('action') not in ok:
             out.append(pw + 'not something she can do.')
-        elif q['action'] == 'sit' and _num(q.get('x')) and _num(q.get('z')) and not _ledge_at(mv, q):
+        elif q['action'] in ('sit', 'sit-wave') and _num(q.get('x')) and _num(q.get('z')) and not _ledge_at(mv, q):
             out.append(pw + '"Sit" needs a ledge.')
         if q.get('action') != 'walk-on' and not (type(q.get('seconds')) is int and 1 <= q['seconds'] <= 120):
             out.append(pw + 'how long: 1 to 120 seconds.')

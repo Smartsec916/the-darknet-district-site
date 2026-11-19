@@ -627,6 +627,7 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-wave",
           "walk-on"
         ],
         "anims": [
@@ -824,6 +825,7 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-wave",
           "walk-on"
         ],
         "anims": [
