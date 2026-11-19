@@ -178,12 +178,12 @@ test('the NPC roster lists every registered NPC and keeps TALK as a capability r
 test('a notification-started mission can belong to any known NPC without inventing a TALK prompt',()=>{
  const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:G.placeIds(),items,locations:new Set(Object.keys(require(R('void-runner/universe.js')).locations))};
  for(const id of ['rin-takeda','vr-ava']){
-  const {d,m}=sampleTree();m.giver=id;m.start={how:'notification',channel:'notify',from:id,text:'Test notification.',when:{kind:'pod-exit'}};m.offer=[];
+  const {d,m}=sampleTree();m.giver=id;m.start={how:'notification',channel:'notify',from:id,text:'Test notification.',when:{kind:'flag',flag:'capTest',value:true}};m.offer=[];
   assert.deepEqual(MC.treeNeeds(m,givers,items),[],id+' notification mission is runnable');
   const c=MC.fromDrafts({local:d,givers,items});assert.equal(c.trees[0].missions[0].giver,id);assert.deepEqual(MC.check(c,ctx).errors,[]);
   const e=env();e.givers=givers;e.U=require(R('void-runner/universe.js'));MC.snapshot(e);assert.deepEqual(MC.apply(c,e,ctx).refused,[]);
-  const state=e.C.startDistrictCampaign(e.C.fresh()),started=MC.treeEvent(state,e,{type:'pod-exit'},e.Missions,e.C);
-  assert.equal(started.mission,m.id,id+' notification trigger reaches the real mission engine');assert.equal(state.universe.missions[m.id].acquired,true);
+  const state=e.C.startDistrictCampaign(e.C.fresh());state.story.flags.capTest=true;const started=MC.treeEvent(state,e,{type:'place',places:[]},e.Missions,e.C);
+  assert.equal(started.mission,m.id,id+' notification trigger reaches the real mission engine without colliding with Mission 001');assert.equal(state.universe.missions[m.id].acquired,true);
   MC.apply(null,e);
   delete m.start;assert(MC.treeNeeds(m,givers,items).some(x=>/cannot hand over a mission in person/.test(x.text)),id+' still cannot offer in person');
  }
