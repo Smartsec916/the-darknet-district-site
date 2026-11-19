@@ -663,10 +663,10 @@
   write(back||RETURN,{tree:ui.tree,mission:ui.mission,step:null,npc:npc||null,at:Date.now()},root.sessionStorage);
   const r=await root.VoidDevTest.session({banner:'VIEWING: '+(label||'a spot')+' — not your real save',leave:'LEAVE',kind:'draft',
    apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
-   build:()=>{const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
+   build:()=>{jumpTo.notes=streetClock([npc]);const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
     if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
-   enter:async()=>{state.location='earth';delete state.story.flags.area;if(npc&&root.VoidStreetPair)root.VoidStreetPair.force=npc;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'avenue'});try{walker.x=x;walker.z=Math.max(-16,z-3.4);walker.yaw=0;}catch{}},
-   message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+c.errors.slice(0,2).join(' · '))+' · nothing is saved'});
+   clock:clockText,enter:async()=>{state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'avenue'});try{walker.x=x;walker.z=Math.max(-16,z-3.4);walker.yaw=0;}catch{}},
+   message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+c.errors.slice(0,2).join(' · '))+' · nothing is saved'+((jumpTo.notes||[]).length?' · '+jumpTo.notes.join(' '):'')});
   if(r&&r.error){status=r.error;draw();}return r;}
  // ---------------- "Guide me": the next required box (the same rules as the play / publish check: mission-content.js treeNeeds)
  const NEED_SEL={title:m=>'[data-me-field="title"]',giver:m=>'[data-me-giver="'+CSS.escape(m.id)+'"]','start-from':m=>'[data-me-start-from="'+CSS.escape(m.id)+'"]','start-header':m=>'[data-me-start-header="'+CSS.escape(m.id)+'"]','start-text':m=>'[data-me-start-text="'+CSS.escape(m.id)+'"]',
@@ -733,11 +733,17 @@
   if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
    where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.kind==='photo'?PLACE_ENTER((giver(o.npc)||{}).place)||where:o.kind==='send-photo'?where:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;
    if(o.kind==='send-photo')notes.push('Sending needs a photo taken during this mission: play from the photo step to take one.');}
-  // Reverie and Lace take turns on one UTC clock: draft play puts the one this mission needs on the street now (throwaway session only)
-  {const ids=[m.giver,w&&w.kind==='near'?w.npc:null,...m.objectives.map(o=>o.npc),m.ending&&m.ending.npc].filter(Boolean),sh=ids.map(giver).find(g=>g&&g.shift);
-   if(sh&&root.VoidStreetPair){root.VoidStreetPair.force=sh.id;notes.push('Draft play puts '+sh.name+' on the street now, whatever the hour.');}}
+  // Reverie and Lace take turns on one UTC street clock: the test runs at a time the first one it uses is really out (a simulated street clock; throwaway session only)
+  {const nw=(m.start&&m.start.when)||{};notes.push(...streetClock([m.giver,nw.kind==='near'?nw.npc:null,...m.objectives.flatMap(o=>[o.npc,...(o.subjects||[])]),m.ending&&m.ending.npc]));}
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}
   M.sync(s,C);return {state:s,where:where||{walk:'darknet-district'},notes};}
+ /* The street clock of a test (the owner, 19 Nov 2026: "If I test with REVERIE or LACE make it the time they are actually there"): a test that involves Reverie or Lace
+    runs on a simulated street clock inside her shift (ncz-street-pair.js testClock: the first one used; never in the 90 s handover), so the pair, the cat, Milked's
+    Studio 1 and her missions agree. Set in the session's build (dev-test.js clears it at the start of every session; leaving reloads the page). Returns the notice. */
+ function streetClock(ids){const S=root.VoidStreetPair;if(!S||!S.testClock)return [];const tc=S.testClock(ids);S.simulate(tc?tc.ms:null);return tc?[tc.note]:[];}
+ // The draft banner shows both clocks: the street (UTC, the pair's shift) and the in-game day (game-clock.js: schedules).
+ function clockText(){const S=root.VoidStreetPair,GC=root.VoidClock;let t='';if(S&&S.streetTime)t='Street '+S.utcLabel(S.streetTime())+' UTC'+(S.simulated()?' (test)':'');
+  try{if(GC&&state)t+=(t?' · ':'')+'In-game '+GC.now(state).label;}catch{}return t;}
  async function enterTree(w){
   if(w.walk==='darknet-district'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
   else if(w.walk==='sacramento'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
@@ -766,7 +772,7 @@
   write(RETURN,{tree:f.tree.id,mission:m.key,step:stepId||null,at:Date.now()},root.sessionStorage);
   const env=root.VoidLiveContent?.env;
   const r=await root.VoidDevTest.session({banner:'PLAYING DRAFT: '+m.title+' — not your real save',leave:'LEAVE DRAFT',kind:'draft',
-   apply:()=>{root.VoidLiveContent?.useDraft(content);},
+   apply:()=>{root.VoidLiveContent?.useDraft(content);},clock:clockText,
    build:()=>{const x=m.engine==='tree'?treeState(m.id,stepId):m.engine==='beginner'?beginnerState(m.id,stepId):registryState(m.id,stepId);play.notes=x.notes||[];play.where=x.where;return x.state;},
    enter:async()=>{const w=play.where;if(m.engine==='tree')return enterTree(w);if(w==='interior'||w==='earth'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
     else if(w==='street'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}

@@ -15,6 +15,17 @@ Reported: PLAY THIS DRAFT pressed straight after typing in a step said "step 1 n
 - **Tests:** `tests/play-stale.test.cjs` (4), browser `tests/play-stale-browser.cjs` (empty step, OPEN TO FIX, type and press PLAY THIS DRAFT at once: it starts with the typed words; PLAY FROM HERE and Test my mission after an edit; passes, bundled Chromium, software GL; on the old code it fails with the reported message).
 - **Not verified:** publishing with the server switched on; real hardware.
 ### 19 Nov 2026 (newest): MISSION EDITOR — MISSIONS THAT COST CREDITS ("PLAYER PAYS"), ACCEPT / DENY ON EVERY OFFER (branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 (newest): DRAFT TESTS WITH REVERIE OR LACE RUN AT THE TIME SHE IS REALLY OUT (branch `claude/draft-shift-time`, build `2026-11-19-draft-shift-1`, pushed, NO PR, not merged)
+
+The owner: "If I test with REVERIE or LACE make it the time they are actually there". Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourteenth pass".
+
+- **Before:** draft play forced her onto the street at any hour (`VoidStreetPair.force`, and `mission-content.js` skipped the shift check in draft play), so the forced one and the real UTC rotation (the cat, Studio 1 at Milked, the editor's shift notes) disagreed.
+- **Now:** one street clock, `ncz-street-pair.js streetTime()`. A test session that involves Reverie or Lace (giver, step person or photo subject, waits-at, route, near-start person, ending) runs on a simulated street clock inside her shift (Reverie 03:00 UTC, Lace 15:00 UTC, or the real time if she is out with 30+ minutes of shift left; never in the 90 s handover). Both involved: the first one's shift and the notice "Testing at 03:00 UTC, Reverie's shift. Lace isn't out then." The draft banner shows the street and in-game clocks. The in-game day clock (schedules, "Try a time") is unchanged. The force and the draft exemption are removed.
+- **Only in throwaway test sessions:** never saved; reset at the start of every session and on leaving (which reloads the page).
+- **Tests:** `tests/draft-shift-clock.test.cjs`, `tests/editor-givers-near.test.cjs` (updated), `tests/draft-shift-browser.cjs` (a Lace draft at a real Reverie hour shows Lace with the notice), `tests/editor-givers-browser.cjs` (updated, not re-run).
+- **Not verified:** real hardware; VR; JUMP THERE and the NPCs tab's plays in a browser (unit-checked).
+
+### 19 Nov 2026: MISSION EDITOR — MISSIONS THAT COST CREDITS ("PLAYER PAYS"), ACCEPT / DENY ON EVERY OFFER (branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`, pushed, NO PR, not merged)
 
 The owner: "can i do -100 credit option and add an accept or deny". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Thirteenth pass".
 
@@ -23,7 +34,7 @@ The owner: "can i do -100 credit option and add an accept or deny". Full how-to:
 - **Checked by** `mission-content.js` (client), `void_runner_live_content.py` (publish) and `void_runner_drafts.py` (the editor's server copy). No new save fields: the flags are ordinary story flags; clean_save's credits range (0..100,000,000) is respected.
 - **Tests:** `tests/mission-cost.test.cjs`, `tests/test_mission_cost.py`, browser `tests/mission-cost-browser.cjs` (passes: bundled Chromium, software GL). `tests/eyes-on-the-street-browser.cjs` hangs at Mission 001 because the first-exit KeyMap stays open (the test predates the 18 Nov KeyMap wait; checked: closing it starts 001) — not caused by this branch.
 - **Not verified:** device offers, "start another mission" and DENY lines in a browser (Node only); real hardware; publishing with the server on.
-### 19 Nov 2026 (newest): ELEVENLABS VOICE TAGS IN WHAT IS SAID; CHOOSE THE ELEVENLABS MODEL (branch `claude/voice-tags`, build `2026-11-19-voice-tags-1`, pushed, NO PR, not merged)
+### 19 Nov 2026: ELEVENLABS VOICE TAGS IN WHAT IS SAID; CHOOSE THE ELEVENLABS MODEL (branch `claude/voice-tags`, build `2026-11-19-voice-tags-1`, pushed, NO PR, not merged)
 
 The owner asked "so i can put elevenlabs voice tags into the what is said section?", "choose a model?" and "v4?". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twelfth pass"; [`../VOID_RUNNER_VOICE_PRODUCTION.md`](../VOID_RUNNER_VOICE_PRODUCTION.md), "Voice tags and models".
 
@@ -32,7 +43,7 @@ The owner asked "so i can put elevenlabs voice tags into the what is said sectio
 - **Queue:** `text` = what players see (clip id unchanged), `speak` = what the voice is sent (tags only for Eleven v4 / v3), `model`. `generate.py` strips tags for Kokoro and prints the model in the waiting list.
 - **Tests:** `tests/voice-tags.test.cjs` (6), `tests/test_voice_tags.py` (6), browser `tests/voice-tags-browser.cjs`. `tests/npc-voices.test.cjs` now expects `model` on a new choice and in the export.
 - **Not verified:** a real ElevenLabs recording with tags (nothing is generated from the editor); publishing / the queue with the server switched on (fake storage only); real hardware.
-### 18 Nov 2026 (newest): NPC BEHAVIOUR FROM CHATGPT, DAILY SCHEDULES BY IN-GAME HOUR, AND THE STREET CAT AS AN NPC AND GIVER (branch `claude/npc-behaviour`, build `2026-11-18-npc-behaviour-1`, pushed, NO PR, not merged; built on `claude/npc-appearance`)
+### 18 Nov 2026: NPC BEHAVIOUR FROM CHATGPT, DAILY SCHEDULES BY IN-GAME HOUR, AND THE STREET CAT AS AN NPC AND GIVER (branch `claude/npc-behaviour`, build `2026-11-18-npc-behaviour-1`, pushed, NO PR, not merged; built on `claude/npc-appearance`)
 
 Queue item 1 (approved 18 Nov 2026), plus the owner's "add the cat as an npc and giver". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twelfth pass".
 
