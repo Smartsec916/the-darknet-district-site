@@ -576,7 +576,8 @@
       "apt-enter",
       "apt-use",
       "hack",
-      "ask"
+      "ask",
+      "zone"
     ],
     "unlockKinds": [
       "credits",
@@ -38590,7 +38591,64 @@
       ]
     }
   },
-  "revision": "ac1a6089795c8b24",
+  "zones": {
+    "zones": [
+      "friendly",
+      "neutral",
+      "hostile"
+    ],
+    "default": "friendly",
+    "figures": [
+      "security",
+      "merc",
+      "enforcer"
+    ],
+    "roles": [
+      "guard",
+      "patrol"
+    ],
+    "onDeath": [
+      "retry",
+      "fail"
+    ],
+    "limit": {
+      "armed": 12,
+      "route": 6,
+      "areas": 40,
+      "places": 24,
+      "table": 240
+    },
+    "weapons": [
+      "base-pistol"
+    ],
+    "armedKeys": [
+      "id",
+      "at",
+      "x",
+      "z",
+      "figure",
+      "role",
+      "route",
+      "yaw"
+    ],
+    "combatKeys": [
+      "areas",
+      "places",
+      "armed",
+      "onDeath"
+    ],
+    "tableKeys": [
+      "areas",
+      "modules"
+    ],
+    "stepKeys": [
+      "target",
+      "zone",
+      "until",
+      "spawn"
+    ]
+  },
+  "revision": "7b6ffb6ae9e29e48",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -51386,55 +51444,55 @@
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 110,
-      "text": "const lab=el('label','','me-field');lab.append(el('span','What the Mission Log says'));const li=el('input','','',{'data-eh-step-label':String(i),maxlength:'200'});li.value=s.label||'';li.oninput=()=>{s.label=li.value;s.auto=!li.value.trim();};lab.append(li,el('span','Filled in for you; change it to your own words if you like.','me-help'));c.append(lab);box.append(c);});",
+      "line": 113,
+      "text": "const lab=el('label','','me-field');lab.append(el('span','What the Mission Log says'));const li=el('input','','',{'data-eh-step-label':String(i),maxlength:'200'});li.value=s.label||'';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 143,
+      "line": 148,
       "text": "if(a.start==='person'||a.start==='person-accept')f('What '+nameOf(a.giver)+' says when offering it (optional)','data-eh-offer',a.offer,v=>{a.offer=v;},true,'Your own words. Left empty it is a placeholder you can fill in later (text only until recorded). You can add ElevenLabs voice tags like [whispers] or [laughs]. Players never see them; only ElevenLabs voices use them.',500);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 182,
+      "line": 187,
       "text": "{sel:'.dev-tabs',title:'All your tools',text:'These tabs are every tool in Developer tools. Start is this page; you can always come back to it.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 183,
+      "line": 188,
       "text": "{sel:'[data-eh-task=\"make\"]',title:'Make a mission',text:'Start here. It asks one easy question at a time: who gives it, how it starts, what the player does, the reward and a name.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 184,
+      "line": 189,
       "text": "{sel:'[data-eh-task=\"place\"]',title:'Place a character',text:'Put a character at a spot on the map or make them walk a route.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 185,
+      "line": 190,
       "text": "{sel:'[data-eh-task=\"test\"]',title:'Test my mission',text:'Play your mission in a practice game. Your real save is never touched.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 186,
+      "line": 191,
       "text": "{sel:'[data-eh-task=\"publish\"]',title:'Publish',text:'When a mission is ready, check it and send it to every player. Until then everything is a private DRAFT.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 187,
+      "line": 192,
       "text": "{sel:'[data-dev=\"undo\"]',title:'Undo',text:'Made a mistake? UNDO puts back your last change (or press Ctrl+Z). REDO does it again.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-home.js",
-      "line": 188,
+      "line": 193,
       "text": "{sel:'.dev-mode',title:'Basic and Advanced',text:'Basic shows only what you need. Tick Advanced to see every setting and the internal names. Press the round ? button to see this tour again.'}];",
       "kind": "source-reference"
     },
@@ -51459,36 +51517,36 @@
     {
       "source": "void-runner/editor-wizard.js",
       "line": 73,
-      "text": "return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':s.kind==='follow-them'?'Follow '+who:s.kind==='they-follow'?'Bring '+who+' with you':s.kind==='their-cab'||s.kind==='shared-cab'?'Ride a cab with '+who:s.kind==='anim'?'Watch '+who:s.kind==='wait'?'Wait':s.kind==='apt-enter'?'Go into the apartment'+(ctx.door?' at '+ctx.door:''):'';}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/editor-wizard.js",
-      "line": 78,
-      "text": "/* What still stops this page, in plain words, each saying how to fix it. ctx: {givers, places (Set of ids), subjects (Set of ids)}. */",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/editor-wizard.js",
-      "line": 84,
-      "text": "if((a.start==='messages'||a.start==='near')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');",
+      "text": "return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':s.kind==='follow-them'?'Follow '+who:s.kind==='they-follow'?'Bring '+who+' with you':s.kind==='their-cab'||s.kind==='shared-cab'?'Ride a cab with '+who:s.kind==='anim'?'Watch '+who:s.kind==='wait'?'Wait':s.kind==='apt-enter'?(aptWords(s,ctx.apt)||'Go into the apartment'+(ctx.door?' at '+ctx.door:'')):'';}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-wizard.js",
       "line": 85,
+      "text": "/* What still stops this page, in plain words, each saying how to fix it. ctx: {givers, places (Set of ids), subjects (Set of ids)}. */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/editor-wizard.js",
+      "line": 91,
+      "text": "if((a.start==='messages'||a.start==='near')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/editor-wizard.js",
+      "line": 92,
       "text": "{const NV=typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;if((a.start==='messages'||a.start==='near')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.message&&a.message.text||'')))out.push(p);if((a.start==='person'||a.start==='person-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.offer||'')))out.push('What they say when offering it: '+p);}}   // ElevenLabs voice tags: the same rules as a line",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-wizard.js",
-      "line": 97,
+      "line": 104,
       "text": "if(!String(s.label||'').trim())out.push(n+'write what the Mission Log says, for example “Talk to Iris”.');});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-wizard.js",
-      "line": 117,
+      "line": 124,
       "text": "m.offer=[{who:a.giver,text:String(a.offer||'').trim().slice(0,500)}];",
       "kind": "source-reference"
     },
@@ -51596,55 +51654,61 @@
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 150,
+      "line": 120,
+      "text": "items.push('<article data-admin-item=\"'+w.id+'\">'+equipmentIcon('weapon')+'<h2>'+w.name+'</h2><p>'+price+' CR · sidearm · one-time purchase</p><p>A plain 10-round pistol. Draw and holster with '+escapeText(globalThis.VoidControls?.label?.('draw')||'1 / H')+'. In NeoChinatown the corner of your screen says where it may be fired: FRIENDLY (green) never, NEUTRAL (orange) at a price, HOSTILE (red) freely.</p>'",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/faction-scenes.js",
+      "line": 159,
       "text": "talk('',[you('Package from Admin.'),{who:'rook',text:'Seal’s intact. Good.'},{who:'rook',text:'Here’s your cut. And you never carried it.'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 185,
+      "line": 194,
       "text": "if(VoidMissions.closed(state))return talk('',[{who:'Iris',text:'Cameras are clean, the mainframe is happy, and nobody has tried anything stupid today. Yet.'}],resumeWalking,'CONTINUE');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 211,
+      "line": 220,
       "text": "communion:{who:elara,intro:[",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 216,
+      "line": 225,
       "text": "you('Think they’ll cause trouble?'),elara('Hard to say. They’ve been moving ships around near the border. Probably just trying to make a point.'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 220,
+      "line": 229,
       "text": "farewell:'Appreciate the delivery. Tell Admin everything arrived intact.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 221,
+      "line": 230,
       "text": "'natural-order':{who:marcus,intro:[",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 231,
+      "line": 240,
       "text": "farewell:'Appreciate it. Tell Admin the shipment arrived. And watch yourself on the way back.'}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 263,
+      "line": 272,
       "text": "{label:'I’LL LEAVE YOU TO IT',run:()=>leave([you('I’ll leave you to it.'),r.who(r.farewell)],'RETURN TO STATION',update)}];}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/faction-scenes.js",
-      "line": 273,
+      "line": 282,
       "text": "return leave([r.who(r.farewell)],'RETURN TO STATION');",
       "kind": "source-reference"
     },
@@ -51992,37 +52056,43 @@
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 166,
+      "line": 168,
       "text": "Never over a conversation or a menu; an offer closed without a choice comes back after a minute while its trigger still holds. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 169,
+      "line": 171,
       "text": "if(!force&&(now-(promptAt[id]||0)<60000||nearBlocked()||(typeof speech!=='undefined'&&speech)))return false;promptAt[id]=now;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 170,
+      "line": 172,
       "text": "try{root.VoidV1?.notify?.({app:'missions',key:'offer:'+id+':'+now,from:p.fromName,text:'Mission offer · '+p.ask.title,hint:{text:'open',help:true}});}catch{}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 225,
+      "line": 227,
       "text": "/* THE IN-GAME CLOCK (game-clock.js): once a second, while the tab is visible and the player is walking or flying (not a menu, pause, a conversation, the pod card or a",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 270,
+      "line": 253,
+      "text": "world (nearBlocked: not in a conversation, menu, the pod's wake-up, the creator or the KeyMap) and the tab is shown. Whole seconds are kept in story.flags.md_<mission>",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/live-content.js",
+      "line": 286,
       "text": "const say={wait:who+' waits for you to catch up.',paused:who+' has stopped: you are too far away. Go back to them.','caught-up':who+' catches up with you.','wrong-stop':who+' is going to '+(((root.VoidQuarters?.STOPS||[]).find(q=>q.id===planCache[x.npc]?.stop)||{}).name||'another stop')+', not there: they stay out of this cab.','hail-failed':who+' could not get a cab: '+(x.reason||'try again in a moment.'),'in-cab':who+' gets in the cab.'}[x.event];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/live-content.js",
-      "line": 271,
+      "line": 287,
       "text": "if(say)try{announce(say);}catch{}}catch{}}",
       "kind": "source-reference"
     },
@@ -52353,7 +52423,7 @@
     {
       "source": "void-runner/mission-blocks-view.js",
       "line": 60,
-      "text": "for(const t of ['who','words','action','item','time','ask','apartment','other']){const T=B().TYPES[t],li=el(c,'li','','mb-legend-row');const sw=el(c,'span','','mb-typechip mb-t-'+t,{style:'--type:'+T.color});sw.append(icon(T.icon,14),document.createTextNode(' '+T.name.toUpperCase()));li.append(sw,document.createTextNode(' '+({who:'someone does something',words:'what is said',action:'something is done',item:'items, credits and rewards',time:'a wait',ask:'the player chooses ACCEPT or DENY',apartment:'an apartment for this mission',other:'kept, but changed only in the Form view'}[t])));ul.append(li);}",
+      "text": "for(const t of ['who','words','action','item','time','ask','zone','apartment','other']){const T=B().TYPES[t],li=el(c,'li','','mb-legend-row');const sw=el(c,'span','','mb-typechip mb-t-'+t,{style:'--type:'+T.color});sw.append(icon(T.icon,14),document.createTextNode(' '+T.name.toUpperCase()));li.append(sw,document.createTextNode(' '+({who:'someone does something',words:'what is said',action:'something is done',item:'items, credits and rewards',time:'a wait',ask:'the player chooses ACCEPT or DENY',apartment:'an apartment for this mission',other:'kept, but changed only in the Form view'}[t])));ul.append(li);}",
       "kind": "source-reference"
     },
     {
@@ -52424,97 +52494,97 @@
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 156,
+      "line": 157,
       "text": "const a=frame(c,{bid,type:outer,who:outer==='who'||outer==='ask'?who:undefined,title:stepTitle(c,o),attrs:{'data-me-tstep':o.id,'data-me-step':o.id}});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 161,
+      "line": 163,
       "text": "else{const inner=frame(c,{type,who:type==='ask'?undefined:who,title:innerTitle(c,o),nested:true,attrs:{'data-mb-inner':o.id}});inner.body.append(...kindFields(c,o,eo));a.body.append(inner);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 170,
+      "line": 173,
       "text": "r.append(el(c,'span',o.kind==='hear'?'More of the conversation with':o.npc==='street-cat'?'The player pets':'The player walks up to','me-small'),sel,el(c,'span',o.kind==='hear'?'(right after the talk block before it)':o.npc==='street-cat'?'(PET THE CAT)':'and presses TALK','me-small'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 172,
+      "line": 175,
       "text": "vs.onchange=()=>eo(x=>{if(vs.value==='talk')delete x.via;else{x.via=vs.value;for(const l of x.say||[])if(l&&l.who==='You')l.who='';}});r.append(el(c,'span','· said','me-small'),vs);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 223,
+      "line": 226,
       "text": "function mini(c,type,who,text){const f=frame(c,{type,who:who===undefined?undefined:who,title:text,nested:true});return f;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 224,
+      "line": 227,
       "text": "function labelBox(c,value,on,ph,attr,id){const l=el(c,'label','','me-field mb-label');l.append(el(c,'span','What the V1 Mission Log says'));const inp=el(c,'input','','',{placeholder:ph,maxlength:'500',[attr]:id||c.m.id});inp.value=value;inp.oninput=()=>{on(inp.value);c.kit.guideSoon();};l.append(inp);return l;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 226,
+      "line": 229,
       "text": "const linesAt=(x,key)=>{if(key==='offer')return (x.offer=x.offer||[]);if(key==='ending'){x.ending=x.ending||{npc:'',place:'',label:'',say:[]};return (x.ending.say=x.ending.say||[]);}const [sid,set]=key.split('/'),o=(x.objectives||[]).find(y=>y.id===sid);if(!o)return null;if(!Array.isArray(o[set]))o[set]=[];return o[set];};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 230,
+      "line": 233,
       "text": "const holder=own&&!B().isPlayer(speaker)?box:(()=>{const f=frame(c,{type:'who',who:B().isPlayer(speaker)?'You':speaker||null,title:B().isPlayer(speaker)?'The player says':c.short(speaker)+' says',nested:true,attrs:{'data-mb-who-group':key+'/'+g.k0}});box.append(f);return f.body;})();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 232,
+      "line": 235,
       "text": "const full=lines.length>=12,add=(who,what)=>change(c,x=>{const L=linesAt(x,key);if(!L)return 'That part is gone.';if(L.length>=12)return '12 lines at most here.';L.push({who,text:''});return '';},{note:what});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 235,
+      "line": 238,
       "text": "if(opt.player!==false)r.append(btn(c,'+ PLAYER REPLY',()=>add('You','New player line (blue): type what the player says.'),'mb-add-p',{'data-mb-add-player':key,'data-me-add-player-line':key,...(full?{disabled:''}:{})}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 236,
+      "line": 239,
       "text": "if(opt.player!==false){const other=kit.npcSelect('',v=>{if(v)add(v,'New line for '+c.short(v)+'.');},{label:'Another character says',empty:'+ another character says…',attrs:{'data-mb-add-other':key}});if(full)other.disabled=true;r.append(other);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 239,
+      "line": 242,
       "text": "const f=frame(c,{type:'words',who:you?'You':who||null,title:'',nested:true,attrs:{'data-mb-line':ref,'data-me-tline':ref,'data-me-line-who':you?'player':'npc'}});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 240,
+      "line": 243,
       "text": "const ta=el(c,'textarea','','',{rows:'2',maxlength:'500','aria-label':you?'What the player says':'What '+c.short(who)+' says',placeholder:you?'(what the player says back)':'(what '+c.short(who)+' says; empty: a placeholder)'});ta.value=l.text||'';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 243,
+      "line": 246,
       "text": "btn(c,'×',()=>{if(change(c,x=>{const L=linesAt(x,key);if(L)L.splice(k,1);},{redraw:false})){lastNote={mid:m.id,text:'Line deleted.',undo:true};kit.draw();}},'me-x',{'aria-label':'Delete line','data-mb-del-line':ref}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 246,
+      "line": 249,
       "text": "if(!you&&who&&opt.anim!==false&&kit.giver(who)){const act=frame(c,{type:'action',who,title:'While saying this, '+c.short(who)+' does',nested:true,attrs:{'data-mb-line-anim':ref,'data-me-line-anim':ref}});const {sel,r}=kit.animPick(who,l.anim,v=>change(c,x=>{const L=linesAt(x,key);if(!L||!L[k])return;if(v)L[k].anim=v;else{delete L[k].anim;delete L[k].animFor;}}),{'data-me-line-anim-pick':ref});act.body.append(sel);if(!r.ok)act.body.append(el(c,'span',r.why,'me-small me-muted'));f.body.append(act);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks-view.js",
-      "line": 265,
+      "line": 268,
       "text": "const f=frame(c,{bid:b.bid,type:'item',who:npcish?u.id:undefined,title:(UK.name||u.kind)+': '+unlockText(c,u)});const r=el(c,'div','','me-row mb-fields');",
       "kind": "source-reference"
     },
@@ -52568,181 +52638,181 @@
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 108,
+      "line": 109,
       "text": "/* Second level: what exactly. kind: the step kind (or 'unlock:<kind>', 'cost', 'apartment'); who: 'npc' (choose a character) or 'player'; adv: only shown in Advanced. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 110,
+      "line": 111,
       "text": "who:[{id:'talk',kind:'talk',who:'npc',name:'The player talks to them',help:'Done when the player walks up and presses TALK. Their words go inside.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 111,
+      "line": 112,
       "text": "{id:'anim',kind:'anim',who:'npc',name:'They play an animation',help:'A shrug, a laugh, looking about … where they stand.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 112,
+      "line": 113,
       "text": "{id:'follow-them',kind:'follow-them',who:'npc',name:'They lead the way',help:'They walk to a spot you pick on a map; the player follows.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 113,
+      "line": 114,
       "text": "{id:'they-follow',kind:'they-follow',who:'npc',name:'They follow the player',help:'They follow the player to a spot you pick.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 114,
+      "line": 115,
       "text": "{id:'their-cab',kind:'their-cab',who:'npc',name:'They call a cab, you ride together',help:'Only Reverie or Lace.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 115,
+      "line": 116,
       "text": "{id:'shared-cab',kind:'shared-cab',who:'npc',name:'You call a cab, they ride along',help:'Only Reverie or Lace.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 116,
+      "line": 117,
       "text": "{id:'hear',kind:'hear',who:'npc',name:'More of the conversation',help:'Their words right after the talk block before it.',adv:true},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 117,
+      "line": 118,
       "text": "{id:'player',kind:null,who:'player',name:'The player (blue) …',help:'Pick what the player does next (the Action list).'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 118,
+      "line": 119,
       "text": "words:[{id:'person',kind:'talk',who:'npc',via:'talk',name:'In person',help:'The player walks up to them and presses TALK; then the words show.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 119,
+      "line": 120,
       "text": "{id:'comms',kind:'talk',who:'npc',via:'comms',name:'As a Comms call',help:'They call the player’s V1 when the player talks to them … or use “Enter a place” with a call (Form view).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 120,
+      "line": 121,
       "text": "{id:'messages',kind:'talk',who:'npc',via:'messages',name:'As a message',help:'They text the player’s V1 Messages.'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 129,
+      "line": 130,
       "text": "{id:'follow-them',kind:'follow-them',who:'npc',name:'Follow someone',help:'They lead the way to a spot.'},{id:'they-follow',kind:'they-follow',who:'npc',name:'Someone follows the player',help:'To a spot you pick.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 130,
+      "line": 131,
       "text": "{id:'their-cab',kind:'their-cab',who:'npc',name:'Ride a cab with someone (they call it)',help:'Only Reverie or Lace.'},{id:'shared-cab',kind:'shared-cab',who:'npc',name:'Ride a cab with someone (you call it)',help:'Only Reverie or Lace.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 131,
+      "line": 132,
       "text": "{id:'anim',kind:'anim',who:'npc',name:'Someone plays an animation',help:'Between two blocks.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 134,
+      "line": 135,
       "text": "item:[{id:'buy',kind:'buy',name:'Buy an item',help:'At the outfitter or Admin’s counter.'},{id:'deliver',kind:'deliver',who:'npc',name:'Deliver to someone',help:'Done when the player talks to them.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 139,
+      "line": 140,
       "text": "{id:'contact',kind:'unlock:contact',who:'npc',name:'Someone is added to the V1 contacts',help:'Given when the block above is done.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 140,
+      "line": 141,
       "text": "{id:'reputation',kind:'unlock:reputation',who:'npc',name:'Standing with someone changes',help:'A number from −100 to 100.',adv:true},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 142,
+      "line": 143,
       "text": "{id:'follow',kind:'unlock:follow',who:'npc',name:'Follow someone on Social',help:'',adv:true},{id:'tree',kind:'unlock:tree',name:'Start another tree',help:'Its first mission becomes available.',adv:true},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 148,
+      "line": 150,
       "text": "npc:[{id:'talk',kind:'talk',who:'npc',fresh:true,name:'Bring someone in',help:'Choose who; the player talks to them next.'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 151,
+      "line": 153,
       "text": "if(['talk','deliver','hear'].includes(kind)){o.npc=npc;o.place='';o.item='';o.say=[{who:'',text:''}];if(kind!=='hear')o.early=[];if(via&&via!=='talk')o.via=via;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 152,
-      "text": "else if(kind==='anim'){o.npc=npc;o.clip='';o.hold=3;}else if(kind==='wait'){o.hold=10;}else if(kind==='ask'){o.npc='';o.question='';o.say=[];o.denySay=[];}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-blocks.js",
-      "line": 153,
-      "text": "else if(['follow-them','they-follow','their-cab','shared-cab'].includes(kind)){o.npc=npc;o.say=[];}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-blocks.js",
       "line": 154,
-      "text": "else if(kind==='photo'){o.npc=npc;o.say=[];}else if(kind==='send-photo'){o.npc=npc;o.subject='';o.say=[];o.wrong=[];}",
+      "text": "else if(kind==='anim'){o.npc=npc;o.clip='';o.hold=3;}else if(kind==='wait'){o.hold=10;}else if(kind==='zone'){o.target='';o.zone='hostile';}else if(kind==='ask'){o.npc='';o.question='';o.say=[];o.denySay=[];}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
       "line": 155,
-      "text": "else if(kind==='go'||kind==='enter'||kind==='leave'||kind==='arrive'){o.place='';o.say=[];}else if(kind==='buy'){o.item='';o.say=[];}",
+      "text": "else if(['follow-them','they-follow','their-cab','shared-cab'].includes(kind)){o.npc=npc;o.say=[];}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
       "line": 156,
+      "text": "else if(kind==='photo'){o.npc=npc;o.say=[];}else if(kind==='send-photo'){o.npc=npc;o.subject='';o.say=[];o.wrong=[];}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-blocks.js",
+      "line": 157,
+      "text": "else if(kind==='go'||kind==='enter'||kind==='leave'||kind==='arrive'){o.place='';o.say=[];}else if(kind==='buy'){o.item='';o.say=[];}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-blocks.js",
+      "line": 158,
       "text": "else if(kind==='apt-enter'||kind==='apt-use'){o.apt='';o.say=[];}else if(kind==='hack'){o.say=[];}else o.say=[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 167,
+      "line": 169,
       "text": "for(const o of (m&&m.objectives)||[]){if(!o)continue;add(stepWho(o,m));for(const k of ['say','early','wrong','denySay'])for(const l of o[k]||[])add(l&&l.who);if(Array.isArray(o.subjects))o.subjects.forEach(add);add(o.subject);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 168,
+      "line": 170,
       "text": "if(m&&m.ending){add(m.ending.npc);for(const l of m.ending.say||[])add(l&&l.who);}return ids;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 175,
+      "line": 177,
       "text": "(m.unlocks||[]).forEach((u,i)=>{if(u&&u.when&&u.when!=='complete'&&!ids.includes(u.when))add('unlock:'+i,{text:'the step it was given at is gone: drag it below the step it belongs to',field:'unlock'});});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-blocks.js",
-      "line": 176,
+      "line": 178,
       "text": "for(const a of m.apartments||[])if(a&&a.from&&a.from!=='start'&&!ids.includes(a.from))add('apt:'+a.id,{text:'the step it opened from is gone: drag it below the step it opens from',field:'apt-from'});",
       "kind": "source-reference"
     },
@@ -52778,373 +52848,379 @@
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 70,
+      "line": 68,
+      "text": "'after' (denyMinutes 1..120, default 10: offered again after that many minutes of PLAY, counted only while the player is in the world, not in menus, conversations or a",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-content.js",
+      "line": 80,
       "text": "(denyStart: the first mission of another tree starts, this one ends), denySay (lines after DENY), say (lines after ACCEPT), price (1..100000 credits charged ONCE on ACCEPT:",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 94,
+      "line": 104,
       "text": "stays before the conversation goes on by itself (1-60 s), an animation's length on a line (1-30 s), a step's delay before it starts (0-600 s), a wait step (1-600 s). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 96,
+      "line": 106,
       "text": "const LIMIT={lineEdits:600,missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000,subjects:6};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 102,
+      "line": 112,
       "text": "const shownLines=ls=>Array.isArray(ls)?ls.map(l=>l&&typeof l.text==='string'?{...l,text:shown(l.text)}:l):ls;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 103,
+      "line": 113,
       "text": "function shownTree(t){const x=clone(t);for(const m of x.missions||[]){if(!m)continue;m.offer=shownLines(m.offer);if(m.ending&&m.ending.say)m.ending.say=shownLines(m.ending.say);if(m.start&&typeof m.start.text==='string')m.start.text=shown(m.start.text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 104,
+      "line": 114,
       "text": "for(const o of m.objectives||[])if(o){for(const k of ['say','early','wrong','denySay'])if(o[k])o[k]=shownLines(o[k]);if(typeof o.question==='string')o.question=shown(o.question);}}return x;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 146,
+      "line": 157,
       "text": "if(!keysOk(o,['id','label','on','requires','interaction','destination','award','say','early'])){err(ow+': unknown fields in a step.');continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 154,
+      "line": 165,
       "text": "for(const k of ['say','early']){const lines=o[k];if(lines==null)continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 210,
+      "line": 221,
       "text": "if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');else for(const p of tagP(st.text))err(w+': the notification text: '+p);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 286,
-      "text": "if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-content.js",
-      "line": 302,
-      "text": "else if(o.kind==='anim'){if(!speakerOk(o.npc)||o.npc==='You')err(ow+': choose who plays the animation.');else{const p=animP(o.npc,o.clip);if(p)err(ow+': '+p+'.');}const A=NGS();if(A&&!A.holdOk(o.hold))err(ow+': the wait after an animation is a whole number of seconds from 0 to 30.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': an animation step has no lines.');}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-content.js",
-      "line": 304,
-      "text": "if(o.near!=null&&!npcOk(o.npc))err(ow+': choose who the player must stay near (someone with a TALK prompt).');else if(o.npc!=null&&o.npc!==''&&o.near==null)err(ow+': a wait step names a person only with a distance.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': a wait step has no lines.');}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-content.js",
-      "line": 311,
-      "text": "if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-content.js",
-      "line": 312,
-      "text": "lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-content.js",
-      "line": 314,
-      "text": "if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{",
+      "line": 299,
+      "text": "if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed','target','zone','until','spawn',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
       "line": 316,
+      "text": "else if(o.kind==='anim'){if(!speakerOk(o.npc)||o.npc==='You')err(ow+': choose who plays the animation.');else{const p=animP(o.npc,o.clip);if(p)err(ow+': '+p+'.');}const A=NGS();if(A&&!A.holdOk(o.hold))err(ow+': the wait after an animation is a whole number of seconds from 0 to 30.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': an animation step has no lines.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-content.js",
+      "line": 318,
+      "text": "if(o.near!=null&&!npcOk(o.npc))err(ow+': choose who the player must stay near (someone with a TALK prompt).');else if(o.npc!=null&&o.npc!==''&&o.near==null)err(ow+': a wait step names a person only with a distance.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': a wait step has no lines.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-content.js",
+      "line": 325,
+      "text": "if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-content.js",
+      "line": 326,
+      "text": "lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-content.js",
+      "line": 328,
+      "text": "if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-content.js",
+      "line": 330,
       "text": "if(m.ending.place!=null&&typeof m.ending.place!=='string')err(w+': unknown ending place.');if(m.ending.label!=null&&!plain(m.ending.label,LIMIT.text))err(w+': the hand-in label must be plain text.');lines(m.ending.say,w+' / ending');}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 334,
+      "line": 348,
       "text": "/* The VoidMissions record for a tree mission (what the V1 Mission Log shows). env.givers: roster list (say names, layout ids and places). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 368,
+      "line": 382,
       "text": "a 'hear' step after a talk step shows its lines and is done when that conversation closes (ev 'heard'), or at once when it has no lines to show.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 381,
+      "line": 395,
       "text": "const stepMessage=(m,o,gv,at,read)=>{const from=(o.say.find(l=>l&&l.who!=='You')||{}).who,name=gv(from).name||from;return {id:m.id+'/'+o.id,mission:m.id,number:m.number,title:titleOf(m),channel:o.via,from,fromName:name,header:String(name).toUpperCase()+' // '+(o.via==='comms'?'INCOMING CALL':'MESSAGE'),text:o.say.filter(l=>l&&l.who!=='You').map(l=>l.text).join('\\n'),at,...(read==null?{}:{read})};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 388,
+      "line": 402,
       "text": "const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>{const x={who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text};if(l.who==='You')x.player=true;   // the player's own line: never voiced (live-content.js)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 404,
+      "line": 418,
       "text": "if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 405,
+      "line": 419,
       "text": "else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else out.lines.push(...speak(o.say));settle(m,o.id);return true;};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 407,
+      "line": 421,
       "text": "const sendLines=(m,o)=>{const ls=speak(o.say);if(!ls.length)return;const at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)]))s.story.flags[msgFlag(m.id,o.id)]=at;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 411,
+      "line": 425,
       "text": "out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 423,
+      "line": 437,
       "text": "const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear'||held(m,o))return;const ls=speak(o.say);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 427,
+      "line": 441,
       "text": "tree's next mission is offered in person, with ACCEPT / NOT NOW, by someone in this same conversation, its offer follows in the same window. Nothing is taken until ACCEPT",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 428,
+      "line": 442,
       "text": "(out.ask; out.mission stays the completed one, so its MISSION COMPLETE notice and reward are reported as before). NOT NOW: the next conversation offers it again. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 429,
+      "line": 443,
       "text": "const chain=(t,m)=>{if(ev.type!=='talk'||!out.completed||out.hear||out.ask||!out.lines.length)return;   /* only after a line that closes the mission (Mission 001's unwritten introduction says nothing, so it stays as it was) */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 435,
+      "line": 449,
       "text": "stops the other trees (it is asked again on every event while its trigger holds; live-content.js shows it once in a while, never over a conversation). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 436,
+      "line": 450,
       "text": "const prompt=(t,m)=>{const st=m.start;return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',lines:[{who:gv(st.from).say||st.from,text:(st.header?st.header+': ':'')+st.text}].filter(l=>env.draft||!placeholder(l.text))};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 482,
+      "line": 498,
       "text": "if(ev.type==='send-photo'&&next.kind==='send-photo'&&ev.to===next.npc&&!photoOk(ev.photo,photoNeed(next),m)){Object.assign(out,{tree:t.id,mission:m.id,reply:{to:next.npc,ok:false,lines:speak(next.wrong)}});return out;}   // the wrong photo: the reply says so; no fail, unlimited tries",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 487,
+      "line": 503,
       "text": "if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 493,
+      "line": 509,
       "text": "if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');chain(t,m);return out;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 501,
+      "line": 517,
       "text": "out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 504,
+      "line": 520,
       "text": "for(const o of m.objectives||[]){if((o.via!=='comms'&&o.via!=='messages')||(channel&&o.via!==channel)||rec.objectives[o.id]!==true||!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)])||!(o.say||[]).length)continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 548,
+      "line": 575,
       "text": "the choice window once no conversation or menu is open (live-content.js askTick) and sends {type:'ask-yes'|'ask-no', step:key}. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 552,
+      "line": 579,
       "text": "out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:who,title:titleOf(m),ask:{mission:m.id,step:o.id,title:titleOf(m),accept:o.yes||YES,decline:o.no||NO},lines:[{who:gv(who).say||who,text:String(o.question||'')}],price:p,afford:ok,need:ok?0:p,paid});}break;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 572,
+      "line": 599,
       "text": "const list=clone(content&&content.beginner?content.beginner:base.beginner);for(const m of list)for(const o of (m&&m.objectives)||[])if(o)for(const k of ['say','early'])if(o[k])o[k]=shownLines(o[k]);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 580,
+      "line": 607,
       "text": "if(e.title!=null)d.title=e.title;if(e.description!=null)d.description=e.description;for(const o of d.objectives||[])if(e.objectives&&e.objectives[o.id]!=null)o.label=e.objectives[o.id];out.applied.push('mission log text: '+id);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 600,
+      "line": 628,
       "text": "function mapLine(env,l){if(!l||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 603,
+      "line": 631,
       "text": "r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:o.label,on:o.on};for(const k of ['requires','interaction','destination','award','say','early'])if(o[k]!=null&&!(Array.isArray(o[k])&&!o[k].length))x[k]=clone(o[k]);if(x.requires)x.requires=x.requires.slice();return x;});return r;};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 606,
+      "line": 634,
       "text": "const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>{const x={who:l.who||who||'You',text:l.text.trim()};if(l.anim&&typeof l.anim==='string'&&x.who!=='You'){x.anim=l.anim;const a=secs(l.animFor,1,TIME.animFor);if(a)x.animFor=a;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 611,
+      "line": 639,
       "text": "function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 625,
+      "line": 654,
       "text": "const p=askPrice(o);if(p)x.price=p;if(!x.label)x.label='Decide';const who=o.npc||m.giver,sy=said(o.say,who),dn=said(o.denySay,who);if(sy.length)x.say=sy;if(dn.length)x.denySay=dn;return x;}   // ACCEPT / DENY in the middle of a mission",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 627,
+      "line": 657,
       "text": "const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 628,
+      "line": 658,
       "text": "if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 642,
+      "line": 672,
       "text": "if(st.accept===true&&st.deny==='start'&&!st.denyStart)need('choose the mission that starts when the player says DENY','start-deny');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 662,
+      "line": 693,
       "text": "if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 691,
+      "line": 722,
       "text": "const lines=Object.entries((local&&local.lines)||{}).filter(([,e])=>e&&e.adapter==='talk'&&typeof e.to==='string'&&e.to!==e.from).map(([ref,e])=>({who:ref.split('|')[0],from:e.from,to:e.to}));if(lines.length)out.lines=lines;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 712,
+      "line": 744,
       "text": "const empty=[...(m.offer||[]),...(m.objectives||[]).flatMap(o=>[...(o.say||[]),...(o.early||[])]),...((m.ending&&m.ending.say)||[])].filter(l=>!l||!String(l.text||'').trim()).length;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 715,
+      "line": 747,
       "text": "if((m.offer||[]).length)out.push('\"'+m.title+'\": what '+(m.giver||'the giver')+' says when handing the mission over. The game does not speak these lines yet (the Studio stores them as a design note).');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 733,
+      "line": 765,
       "text": "for(const m of after||[]){const b=by.get(m.id);if(!b){out.push({kind:'added',mission:m.id,text:'New mission \"'+m.title+'\".'});continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 734,
+      "line": 766,
       "text": "if(b.title!==m.title)out.push({kind:'text',mission:m.id,text:'\"'+b.title+'\" is renamed \"'+m.title+'\".'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 735,
+      "line": 767,
       "text": "if((b.description||'')!==(m.description||''))out.push({kind:'text',mission:m.id,text:'\"'+m.title+'\": new description.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 736,
+      "line": 768,
       "text": "if((Number(b.rewards)||0)!==(Number(m.rewards)||0))out.push({kind:'reward',mission:m.id,text:'\"'+m.title+'\": credits '+(Number(b.rewards)||0)+' → '+(Number(m.rewards)||0)+'.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 737,
+      "line": 769,
       "text": "for(const o of m.objectives){const x=(b.objectives||[]).find(y=>y.id===o.id);if(!x){out.push({kind:'step-added',mission:m.id,step:o.id,text:'\"'+m.title+'\": new step \"'+o.label+'\".'});continue;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 738,
+      "line": 770,
       "text": "if(x.label!==o.label)out.push({kind:'text',mission:m.id,step:o.id,text:'\"'+m.title+'\": step \"'+x.label+'\" now reads \"'+o.label+'\".'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 739,
+      "line": 771,
       "text": "if(x.on!==o.on)out.push({kind:'event',mission:m.id,step:o.id,text:'\"'+m.title+'\": step \"'+o.label+'\" is now completed by a different action.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 740,
+      "line": 772,
       "text": "if(JSON.stringify(x.requires||[])!==JSON.stringify(o.requires||[]))out.push({kind:'order',mission:m.id,step:o.id,text:'\"'+m.title+'\": the order of steps changed around \"'+o.label+'\".'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 741,
+      "line": 773,
       "text": "for(const k of ['say','early'])if(JSON.stringify(x[k]||[])!==JSON.stringify(o[k]||[]))out.push({kind:'lines',mission:m.id,step:o.id,text:'\"'+m.title+'\": what is said '+(k==='say'?'when':'too early at')+' \"'+o.label+'\" changed.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 742,
+      "line": 774,
       "text": "for(const x of b.objectives||[])if(!m.objectives.some(o=>o.id===x.id))out.push({kind:'step-removed',mission:m.id,step:x.id,text:'\"'+m.title+'\": step \"'+x.label+'\" is removed.'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-content.js",
-      "line": 744,
+      "line": 776,
       "text": "for(const b of before||[])if(!now.has(b.id))out.push({kind:'removed',mission:b.id,text:'Mission \"'+b.title+'\" is removed.'});",
       "kind": "source-reference"
     },
@@ -53360,193 +53436,199 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 434,
+      "line": 435,
       "text": "sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value,prev=x.start||{};x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;if(v!=='person'&&prev.accept===true&&(v==='person-accept'||prev.how==='notification'||askCustom(prev))){x.start.accept=true;for(const k of MC().ASK_KEYS)if(prev[k]!=null)x.start[k]=prev[k];}if(payAtAccept(x))x.start.accept=true;},true);   // the ACCEPT / DENY settings follow a change of channel (19 Nov 2026: not the question implied by \"In person, asking\": a device start without it starts by itself)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 437,
+      "line": 438,
       "text": "if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'));return box;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 530,
+      "line": 475,
+      "text": "deny:{again:'Today’s behaviour: an offer in person comes again the next time the player talks to them; a message, call, banner or walk-near comes again after the next Sleeping Pod exit.',pod:'It comes again after the player next leaves their Sleeping Pod. Meanwhile a giver who waits at a spot for it goes about her own routine.',after:'It comes again after that many minutes of play (1 to 120; only while the player is in the world, not in menus or conversations; a reload keeps the count). A walk-near offer also needs the player to walk out of its distance and come back. Meanwhile a giver who waits at a spot for it goes about her own routine, then walks back to it (never popping in or out in front of the player). In PLAY THIS DRAFT, SKIP THE WAIT in the banner ends the wait at once.',never:'It is never offered again (removed). Missions after it in this tree will not come either. A giver who waited at a spot for it goes back to her own routine, out of the player’s sight.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor.js",
+      "line": 546,
       "text": "missing (an old cached page, a failed load) the panel still shows, says \"Loading the street doors…\", loads what is missing and redraws (the owner, 19 Nov 2026: \"i also",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 557,
+      "line": 573,
       "text": "if(root.VoidNPCMap){const markers=X.doors().filter(dd=>(dd.family==='container')===!!X.isContainer(a.style||'normal')).map(dd=>({id:dd.id,x:dd.x,z:dd.z,color:dd.id===a.door?'#ffb347':'#7fd4ff',label:dd.id===a.door?dd.name:'',ghost:dd.id!==a.door}));const say=el('span',a.door?'Chosen: '+((X.door(a.door)||{}).name):'Click a door (the blue marks) to choose it.','me-small',{'data-me-apt-map-note':a.id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 558,
+      "line": 574,
       "text": "try{const map=root.VoidNPCMap.create({markers,area:d?{avenue:'avenue',oldtown:'oldtown','far-south':'far-south',port:'port',outskirts:'outskirts'}[d.quarter]:X.isContainer(a.style||'normal')?'outskirts':'oldtown',onPick:(x,z)=>{const n=X.nearestDoor(x,z,10,X.isContainer(a.style||'normal')?'container':'city');if(!n){say.textContent='No apartment door within 10 m of that spot. Click nearer a blue mark.';return;}ea(a.id,y=>{y.door=n.id;},true);}});map.el.dataset.meAptMap=a.id;sec.append(map.el,say);}catch(e){sec.append(el('p','The map could not be drawn here; choose the door from the list.','me-small me-warn'));}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 605,
+      "line": 620,
       "text": "else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 616,
+      "line": 631,
       "text": "if(!['message','pod-exit','hear','send-photo','await-call','anim','wait','ask'].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 618,
+      "line": 633,
       "text": "const sayWho=o.kind==='photo'?m.giver:o.npc||m.giver;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 620,
+      "line": 635,
       "text": "if(o.kind==='ask')sb.append(linesEditor(t,m,o.denySay||[],o.id+'/denySay',sayWho,'What is said after DENY (optional)'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 621,
+      "line": 636,
       "text": "if(o.kind!=='message'&&o.kind!=='pod-exit'&&o.kind!=='anim'&&o.kind!=='wait')sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='ask'?'What is said after ACCEPT (optional)':o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done',dev?{noPlayer:o.kind==='send-photo'?'A reply in Messages comes from one character: no player lines or animations here.':'A Comms call or a message comes from one character: no player lines here (choose “In person” for a back-and-forth).',noAnim:true}:{}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 701,
+      "line": 716,
       "text": "const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 702,
+      "line": 717,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;const tn=tagNoteEl(t,l.who,l.name);ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}tagNoteSet(tn,ta.value,l.who,l.name);};body.append(ta,tn);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 733,
+      "line": 748,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 741,
+      "line": 756,
       "text": "\"Lines & voice\"). Every line the NPC says in a mission (grouped by tree and mission, with a button to open that mission) and outside missions; the registered voice",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 743,
+      "line": 758,
       "text": "function linesFor(id){if(!built)return null;const g=giver(id),ids=[id,g&&g.say].filter(Boolean);return (built.npcs||[]).find(x=>ids.includes(x.id))||null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 747,
+      "line": 762,
       "text": "const reg=src.registry?.npcs?.[id]||(g&&src.registry?.npcs?.[g.say]);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 765,
+      "line": 780,
       "text": "const gr=root.VoidStreetPair?.GREETING?.[id];if(gr&&gr.length){const d=el('div','','me-scene',{'data-npc-greeting':id});d.append(el('h5','When there is no mission for the player (placeholder in the game’s code)'));for(const t of gr)d.append(el('p','“'+t+'” · text only, no voice · needs a code change to edit','me-small'));root_.append(d);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 775,
+      "line": 790,
       "text": "const list=a==='offer'?m.offer:a==='deny'?(m.start||{}).denySay:a==='ending'?(m.ending||{}).say:((m.objectives||[]).find(o=>o.id===a)||{})[b],l=list&&list[Number(a==='offer'||a==='ending'||a==='deny'?b:c)];return l?String(l.text||''):undefined;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 782,
+      "line": 797,
       "text": "input.onchange=async()=>{const f=input.files&&input.files[0];input.value='';if(!f)return;const words=String(textNow()||'').trim();if(!words){msg.className='me-small me-bad';msg.textContent='Write what they say first, then import the voice file for those words.';return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 784,
+      "line": 799,
       "text": "const kept=await I.store(r.hash,r.type,r.data,r.duration);setClip(key,I.record({who,text:words,hash:r.hash,type:r.type,duration:r.duration,bytes:r.bytes,name:r.name,reencoded:r.reencoded}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 804,
+      "line": 819,
       "text": "function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 817,
+      "line": 832,
       "text": "const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 827,
+      "line": 842,
       "text": "const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 831,
+      "line": 846,
       "text": "if(cur.kind==='elevenlabs'&&cur.from==='editor')r.append(btn('REMOVE MY CHOICE',()=>{setVoice(id,null);say('Removed your voice choice for '+name+' (UNDO puts it back).');redraw();},'me-x',{'data-voice-remove':id,title:'Back to '+(voiceNow(id).kind==='none'?'no voice':'the voice they had before')+'.'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 858,
+      "line": 873,
       "text": "/* Who: everyone the editor knows, but only people who can walk with the player can be chosen; the rest are greyed with the reason. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 907,
+      "line": 922,
       "text": "'step-subject':(m,o)=>'[data-me-step-subject=\"'+CSS.escape(o)+'\"]',label:(m,o)=>'[data-me-label=\"'+CSS.escape(o)+'\"]',say:(m,o)=>'[data-me-tstep=\"'+CSS.escape(o)+'\"] textarea',ending:m=>'[data-me-ending=\"'+CSS.escape(m.id)+'\"]','wait-at':m=>'[data-me-wait-at=\"'+CSS.escape(m.id)+'\"] canvas','step-spot':(m,o)=>'[data-me-esc-map=\"'+CSS.escape(o)+'\"] canvas','step-stop':(m,o)=>'[data-me-esc-stop=\"'+CSS.escape(o)+'\"]',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 918,
+      "line": 933,
       "text": "if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 920,
+      "line": 935,
       "text": "const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename=\"'+CSS.escape(raw.id)+'\"]',text:'the tree’s name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 921,
+      "line": 936,
       "text": "if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 923,
+      "line": 938,
       "text": "for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission=\"'+CSS.escape(m.id)+'\"] '+f(m,n.step),text:n.text});}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 924,
+      "line": 939,
       "text": "return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play=\"tree:'+CSS.escape(doneM.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 927,
+      "line": 942,
       "text": "const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)",
       "kind": "source-reference"
     },
@@ -53762,25 +53844,25 @@
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 118,
+      "line": 120,
       "text": "{id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 140,
+      "line": 142,
       "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many metres of the person chosen (1 to 30; 5 if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 141,
+      "line": 143,
       "text": "{id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 173,
+      "line": 175,
       "text": "out.push({id,name,say:/^[a-zA-Z][\\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,",
       "kind": "source-reference"
     },
@@ -54332,25 +54414,25 @@
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 275,
+      "line": 289,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatHer=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 293,
+      "line": 308,
       "text": "if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 432,
+      "line": 448,
       "text": "VoidInteractions.register(CAT_ACTION,()=>{talk('',CAT_REACTION.map(text=>({who:CAT_ID,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 433,
+      "line": 449,
       "text": "VoidInteractions.register(TALK_ACTION,({item}={})=>{const p=PAIR.find(x=>x.id===item?.character)||PAIR[0];talk('',(GREETING[p.id]||['Hi.']).map(text=>({who:p.id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -54698,19 +54780,19 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 187,
+      "line": 195,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 207,
+      "line": 215,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 218,
+      "line": 226,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',[{who:id,text:'…'}],()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -55569,12 +55651,12 @@
     {
       "source": "void-runner/ship-loadout.js",
       "line": 23,
-      "text": "+'<p class=\"ord-help\">In flight: '+esc(VoidInput.label(VoidInput.bindings.missile))+' or right-click fires (guided when the box says LOCK, straight ahead without a lock). '+esc(VoidInput.label(VoidInput.bindings.missileSwitch||'KeyZ'))+' or the mouse wheel switches M1 / M2. Your V1’s Ship Loadout app sets the default.</p>');",
+      "text": "return (n?'<p class=\"ord-note\" role=\"status\">'+esc(n)+'</p>':'')+'<p class=\"ord-help\">Ship missiles for your wing rails: lasers never need ammunition, missiles do. M1 is the standard round. M2 is the upgrade: a heavier warhead with a bigger blast, but it turns slowly, so a hard-turning ship can slip it. In flight: '+esc(VoidInput.label(VoidInput.bindings.missile))+' or right-click fires (guided when the box says LOCK, straight ahead without a lock). '+esc(VoidInput.label(VoidInput.bindings.missileSwitch||'KeyZ'))+' or the mouse wheel switches M1 / M2. Your V1’s Ship Loadout app sets the default.</p>';}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ship-loadout.js",
-      "line": 67,
+      "line": 66,
       "text": "if(root.VoidV1?.notify?.({app:'loadout',key:'loadout-app',text:'Ship Loadout app installed: your ship, its slots and missiles'})!==false){f.loadoutAppSeen=true;persist();}},1000);",
       "kind": "source-reference"
     },
@@ -56777,6 +56859,24 @@
       "line": 44,
       "text": "const voiced=()=>[['greeting',SCRIPT.greeting],['followup',SCRIPT.followUp],...SCRIPT.topics.flatMap(t=>t.lines.map((text,i)=>[t.id+'-'+(i+1),text]))];",
       "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zone-integration.js",
+      "line": 2,
+      "text": "fired only where the zone allows it; a small chip at the top left says where the player is: FRIENDLY (green, weapons locked), NEUTRAL (orange, a shot makes the armed",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zone-integration.js",
+      "line": 13,
+      "text": "tried again or fails (abandoned: back to its giver) as its combat.onDeath says. Private: each player's own locations and zones (no PvP anywhere). Nothing is saved but",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/zones.js",
+      "line": 154,
+      "text": "if(o.say!=null||o.early!=null||o.via!=null)out.push(w+': a “Change zone” step has no lines.');return out;}",
+      "kind": "source-reference"
     }
   ],
   "warnings": [],
@@ -56797,7 +56897,7 @@
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "20af6ad3c015d77a0fdf096d87503262b6cd024bee43ad158a7af4a26be958bf",
     "void-runner/babylon-renderer.js": "f22542ef8a23b41ea9d07f7f51668aba708bffaea266814f6e073f63d3adde0e",
-    "void-runner/balance-data.js": "45f85e6c5fee7da811097dc6bb03d8c684ea730148077738813d2ab8a6c2235e",
+    "void-runner/balance-data.js": "f8b3f9b93bf6bf0930b30a408ce777d9ddaa160ff9d1cbfdc892c846a079ad0a",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
@@ -56834,7 +56934,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "ad46f548b287001649c13cc0326cb2d25d284ab74c326ab4ee9a0797787fcf45",
-    "void-runner/dev-tools.js": "69533912805d0425f23990da57529dbd3e634debb82d88f158bd4f63f76bfa58",
+    "void-runner/dev-tools.js": "f07db22a823014d50ba2d2545c88fb23b851acbdd7118249be893015824094c4",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "d0f3e1180ebf13d0b3c312e63978a4bc2320d651584468cda78d099f121fedb3",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -56850,8 +56950,8 @@
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
-    "void-runner/editor-home.js": "e75b03b9ed1cdf8e81036ea5901c701b563c907028419d807e742596ae8cf175",
-    "void-runner/editor-wizard.js": "6cb67a858d21004ab864a07c788fc9ad6d01b9ad1eba88a14fed016f3792d91e",
+    "void-runner/editor-home.js": "c708505bdd1d335e71f9f7f68e982ee7ea2810b7a38dd4fd9d6d48f05089c7da",
+    "void-runner/editor-wizard.js": "f55992f57b73247c2b95d57ab02fd30585add6693e7c196f3fb946dfdef7fc38",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
@@ -56860,7 +56960,7 @@
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
-    "void-runner/faction-scenes.js": "431980e9c74ac1f9ed8ea415ac62816f37b14bdad7cfcc1bc3d407eb0867133c",
+    "void-runner/faction-scenes.js": "5c0e918a47dd60c4297a8f697c5dfa5b91a1b2bb9ed0501612bffb3ce0249079",
     "void-runner/factions.js": "f7328ffb89f28c2579613d502da7c7572491f3b26d3f1511e1cd0781680c568e",
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-fx.js": "0952b2d45ef3cf5cbf1098d7563e77e8b76a9d369416a0884adcfe0375d66da6",
@@ -56887,7 +56987,7 @@
     "void-runner/input.js": "2547e198158f5601799fe1c2a37183f5f8718853ec2e6852afd17752484a6289",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "9c35d012f1d125d6c93bdf4a0eda94d0ccdd6fbd9ebe97b9e04aa32f2a016843",
-    "void-runner/live-content.js": "59c44ff6a94e853de04d1de8fd7e2af04829586eb9d65fc34c2bea7a6b36539f",
+    "void-runner/live-content.js": "cfcef5c82ec360d13840b9b8d4e392f9f9bb2277a996a1b9e9f5b7694c386c8f",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/main-story.js": "4cb1c5aedd713e1e986cbc8645e4f471302a283edac520efa7b1ac0008c5d1ee",
@@ -56903,11 +57003,11 @@
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
     "void-runner/milked.js": "a0600a70dd32b437fd11f7791a03cde58eb5da6ed1a9c0664bd60d5a5875bebc",
     "void-runner/missiles.js": "14b71508e47646f83e1a5953f532eb7717995a4c92f03843cbaa10b1c33b9027",
-    "void-runner/mission-blocks-view.js": "6af9aa5adeb1c3c17d5c58940bfcc2710d2c77862db15c97e14ef324b2569b6a",
-    "void-runner/mission-blocks.js": "80f5790799aea723f9aecdf00e17eca54d91423dba103f6839255c09ac2216d0",
-    "void-runner/mission-content.js": "29675d1e97c09c8defc6b8cc93af9e475ffb1bbcede4b9cf0ea049e31d70b9b9",
-    "void-runner/mission-editor.js": "5377a9d135beb12c9c151914514c959733e506ab0807cfbe7cacfad4535435bf",
-    "void-runner/mission-givers.js": "e95461f4408f161fdf1da232291d8e65e5fc4d73e6746132dda51c296d8873b6",
+    "void-runner/mission-blocks-view.js": "53d76e56f95daa108563eb6e921a6a1c25977e0766ce675ad30215a3cfe65f6d",
+    "void-runner/mission-blocks.js": "96561a9d45a1077afc9a18e40384b658517ae1113c65c66fec25b820c2b1f2ad",
+    "void-runner/mission-content.js": "223a320cef2aa668e29e25f695e0435d525f25c9a95f2a8d8e52e41c45ae9a50",
+    "void-runner/mission-editor.js": "05abcf41b53127f567cb56aefe4e1f8d1e4834e4fc334fafa42bdea7e399801e",
+    "void-runner/mission-givers.js": "35d5d47bb1a68bed2cf810061797e2a691d3aa032073c847bb511f42f95af45e",
     "void-runner/mission-guide.js": "8041f8d51e20ba82e750a677515c959742db452efe5a7477817b9ec97f465443",
     "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
     "void-runner/mission-trees.js": "a77f3156c728fa579c401443f94e5d2bbaad99a6897bb58925edd77a8ab552ae",
@@ -56916,7 +57016,7 @@
     "void-runner/module-editor.js": "2811fe0d10767b53c6f28fe89a4e9431cf5ba9e29ae25c8c0580dfbf9a9e863f",
     "void-runner/module-integration.js": "e806bdfde916bd4e570fbac3245504b62dfccd2713099f626432e2d7ca24e618",
     "void-runner/modules.js": "c7e3f791a45823762459782e4e3ef3d073af8e4456f448c3e1c3bc0c60666d05",
-    "void-runner/mouse-control.js": "9884d5d87fcd359c9b7981a2ca5b2a4ba08d1e38265212a11321870be5b8cb37",
+    "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a1fadf186558f7272b9d48e6fc6d265027e47ad1c8fef1d4639dfaf48ca4ffa7",
     "void-runner/music-engine.js": "9a4ee46218d4b7be56ded9763e3ad56c42bfa2eeaa6c59d207b6757ff7d0b8c2",
@@ -56933,19 +57033,19 @@
     "void-runner/ncz-outskirts-life.js": "499e7eb615081e6575e17d8f357887f2b54f48db480463cd0381ef31a633010b",
     "void-runner/ncz-quarters.js": "2452dc8d471d63247c98e6f5f5f0e5f9327b5df3a41934abe081d2146393919b",
     "void-runner/ncz-street-glow.js": "4aa3f4f80e7648bde8f268a8b48ce1ffbbd9b4fa01f661e13ca0e788a50412b6",
-    "void-runner/ncz-street-pair.js": "c10c63dd80f1c79613e367db62ba5a482c639def74abf1c0605563084750202b",
+    "void-runner/ncz-street-pair.js": "987952e1ea13b9d0b8a1183805bc6507a17db2483017ffd8a57bea2a853dbd37",
     "void-runner/neochinatown.js": "010e6e158bf1beff2fceca01c64c4bf9ec19c37dcf9128163b02e534d3ccfa5e",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-areas.js": "b39b9750db46bbf8c61b90cf8c27f0b7d83e885e057afc5914e09589f41dc40e",
     "void-runner/npc-behaviour.js": "bf15d9a0030b9673812527f67a152d8ce1e185515fa8a2b0eec0af560b200839",
-    "void-runner/npc-device.js": "6011436c5f2163d7c2ce97f5ee014e86e04033740c313490479562bb8d714141",
+    "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort.js": "f38467be8bebeca13bc6cf7c3fdce9212ab714a60713b6a86d73f591d8181135",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
-    "void-runner/npc-made.js": "ed43171de682da5beb5b5526b39ee376d769e116e9ffac724851ce9005feaad8",
+    "void-runner/npc-made.js": "62f0a8522b7475be1e6c396c635d7719c6361343d9f0a220131c62c83606f5bd",
     "void-runner/npc-map.js": "c61a19647855017188361dd42a1f91e5ba2187df0dcddb1df2109648af734eac",
     "void-runner/npc-paths.js": "3ea99998605bdb4072948794b1f75dee97e1ee7af7d192fc5a8a73863200ba0e",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
@@ -56965,7 +57065,7 @@
     "void-runner/police-patrol.js": "97e6f52dfaab4797addd3ed3184ce321b9f314b894d6cf69a8dbf51571b8839b",
     "void-runner/police-patrols.js": "46cc6fb8c4726e80b117f11d4c197778a0c1523a361c2aa34524f8601252f603",
     "void-runner/preparation.js": "488475633495762419719b2875b689feb9d29cf9db45239de74b34d04787c407",
-    "void-runner/progression.js": "37a0a520e7650f212e8398f7d4fc52745106d50fb01664ccf43c74908b5cfe8f",
+    "void-runner/progression.js": "d2817df43e4d94d5e369cd5736e6f385a898a3597d6176dd63e3fbdd9a9341a3",
     "void-runner/prologue-integration.js": "73b6689dec3977c05f5e318d1a24024f2f2d1b70a18cc838d1a5d9640665f800",
     "void-runner/radio.js": "a9d04c53cfb34748f9c30054ffdb28f02a5fb87114883c71149b691e0ff5c313",
     "void-runner/relay-radio.js": "bc9a3967eb832f5d5a4d61927de3d5a88f610d23bb274064e90e98fc0761020d",
@@ -56979,11 +57079,11 @@
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
     "void-runner/ship-audio.js": "8cb0ef9954a8e074a1f036340d3b8bf42459452a8a808a2457f16fcce43df2d5",
-    "void-runner/ship-loadout.js": "6b56ffc7ae6e077c5c87d1607258be4415f07aa16d73a017d6d4ae8e63a3532c",
+    "void-runner/ship-loadout.js": "26715496b42ec3c87c237b88b5a38708be5d08f4f3421913fec9a1325bcf7697",
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "ca98ad645a3799bfe81aac6931a428fa07becd3661b2e5f602a99e00fa1e93eb",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
-    "void-runner/skirmish.js": "fbe7df779c69f09523d26af894db02bfb5a3f18a7d27727841441a2b9bf1b7d1",
+    "void-runner/skirmish.js": "41bbc7cebbef949f9e8522e08f60d0f12026d7bab3d6da5910dddf5acdadfd5d",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",
@@ -57025,8 +57125,11 @@
     "void-runner/world-markers.js": "dfc0e6d708d668e149baf44a6db16c672023b4321a0fa16655180886e77c50fe",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
+    "void-runner/zone-editor.js": "f28cd8fcbacc6784c44e0633718de00b400ce9d06fcdf81e8b5d5166cc7ff7ef",
+    "void-runner/zone-integration.js": "4a85fdea957876fac12d3bba65e6ec977c36f9647ed2c4cd9b70c177f3736d62",
+    "void-runner/zones.js": "d46047b1ea4ed7dec38ce973b3e6834fc82e4101b9e1cd70416cbd31d9de39ad",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
-    "tools/admin-inventory.cjs": "7c75611b108496b5190c37a186401036c3a396b47b35a8e434d2f01a73585a6e",
+    "tools/admin-inventory.cjs": "60c314a739eb00a25a91ad589d6a464aeea00ba4602d1042c08a274ad14a0580",
     "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",
     "void-runner/assets/audio/voice/manifest.json": "edcb82b66784d955f92d42544495a083408ef7b588f7bf30eb4b8872f35cc166",
     "void-runner/save-manifest.json": "16cefcb17caf8c00260f657fdec1241fb16a2f3f13eaf56bec5bfe28eff0442c"

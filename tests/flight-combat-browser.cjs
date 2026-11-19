@@ -52,9 +52,9 @@ const log=m=>console.log(new Date().toISOString().slice(11,19),m);
   await page.evaluate(()=>{state.credits=1000;save();});
   assert.ok(await page.evaluate(()=>VoidNeoChinatown.layout('interior').interactions.some(i=>i.id==='admin-ordnance'&&VoidStory.matches(state,i.when))),'the ordnance counter beside Admin is there for a pilot');
   // Admin offers his mission in person first (Mission 002); the counter beside him is always the shop
-  let tries=0;while(tries++<4){await page.evaluate(()=>{try{VoidInteractions.handlers.get('admin-ordnance')({});}catch(e){console.error(e);}});await page.waitForTimeout(1500);log('admin try '+tries+': '+await page.evaluate(()=>mode+' | '+(document.getElementById('screen')?.innerText||'').slice(0,120).replace(/\s+/g,' ')+' | '+(document.querySelector('.talk-choice,#talk-choice')?.innerText||'').slice(0,80)));if(await page.locator('.ord-grid').count())break;
+  let tries=0;while(tries++<4){await page.evaluate(()=>{try{VoidInteractions.handlers.get('admin-ordnance')({});}catch(e){console.error(e);}});await page.waitForTimeout(1500);log('admin try '+tries+': '+await page.evaluate(()=>mode+' | '+(document.getElementById('screen')?.innerText||'').slice(0,120).replace(/\s+/g,' ')+' | '+(document.querySelector('.talk-choice,#talk-choice')?.innerText||'').slice(0,80)));if(await page.locator('.ord-card').count())break;
    await page.evaluate(()=>{document.querySelectorAll('[data-talk-choice].quiet,[data-action=walk-resume],[data-action=progress-return]').forEach(b=>b.click());try{if(mode!=='walking')resumeWalking();}catch{}});await page.waitForTimeout(800);}
-  await page.waitForSelector('.ord-grid',{timeout:20000});await shot('b1-admin-counter');
+  await page.waitForSelector('.ord-card',{timeout:20000});await shot('b1-admin-counter');
   const m2price=await page.evaluate(()=>VoidOrdnance.price('m2'));
   await page.click('[data-action="ord-buy:m2:1"]');await page.waitForTimeout(300);
   const bought=await page.evaluate(()=>({credits:state.credits,c:VoidOrdnance.counts(state),saved:JSON.parse(localStorage.getItem(SAVE_KEY)).progression.m2}));log('bought '+JSON.stringify(bought));

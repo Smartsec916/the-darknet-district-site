@@ -2,6 +2,46 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twenty-fourth pass (19 Nov 2026): zones (Friendly / Neutral / Hostile), armed people and the "Change zone" block
+
+Branch `claude/pistol-zones`, build `2026-11-19-pistol-zones-1`. The owner: Admin sells a pistol; in NeoChinatown it can be carried but not fired; a green FRIENDLY, orange NEUTRAL, red HOSTILE indicator at the top left; "let me change a room or area from friendly to hostile in the mission timeline". He decides which places are which: **everything starts Friendly**.
+
+### How to use it (plain steps)
+
+1. **Developer Tools > ZONES** (new tab): every NeoChinatown area (Old Town, Main Street, the District, NULL, The Avenue …) and every kind of location (office floor, server room, apartments, hallways …) with a Friendly / Neutral / Hostile list. Change one and it is saved in your draft. Try it with PLAY in the Mission Editor; PUBLISH sends it to players (the server checks it).
+2. **A mission's "Zones and armed people"** (under every tree mission, Blocks and Form view):
+   - *If the player is taken down*: they try again (outside the location, full health) or the mission fails (it goes back to its giver).
+   - *This mission's locations*: the zone of the whole location and of each room (Normal = what the Zones table says).
+   - *City areas while this mission runs*: add an area and choose its zone; it goes back to normal when the mission ends.
+   - *Armed people*: + ARMED PERSON, then the figure (security guard, mercenary, enforcer), the room, guards the spot / patrols (route: `x,z; x,z` in metres inside the room; the room's size is shown), where they stand and which way they face. In a Hostile room they attack on sight; in a Neutral one only after the player fires; never in a Friendly one.
+3. **The Zone block** (Blocks view: + ADD A BLOCK › Zone; Form view: step kind "Change zone"): choose a room or location of this mission or a city area, Friendly / Neutral / Hostile, "until the mission ends" or until a later step, and optionally "Bring in the armed people placed there". It is done the moment the mission reaches it; the chip changes at once if the player is there.
+4. **Combat Balance > On foot** (the same numbers drive Skirmish FPS; its difficulty only scales the enemies): the pistol's price, damage, aimed bonus, time between shots, spread and recoil, the player's health, the safety catch (1 = on), the safety window, how long guards stay angry, how far civilians run, the detection range and cone, the enemies' health, damage, accuracy, reaction time and speed.
+
+What players see: drawing or holstering never provokes anyone and never fails a step. Friendly: the trigger only says "Weapons are locked here." Neutral with the safety catch on: the first press says "NEUTRAL AREA — firing will make people attack you. Press fire again to shoot."; a second press within the safety window fires. No player-versus-player damage anywhere.
+
+### For Claude and Codex
+
+Rules and checks: `void-runner/zones.js` (pure; `tests/zones.test.cjs`); game: `zone-integration.js` (chip, firing gate, enemies with the Skirmish AI, civilians flee through `npc-device.js` spectacle `{flee:true}`, taken down); editor: `zone-editor.js` (tab, mission panel, step fields), `mission-blocks.js` / `mission-blocks-view.js` (Zone block), `mission-editor.js` (Form view). Data: `content.zones` {areas, modules}; `mission.combat` {areas, places, armed, onDeath}; step `{kind:'zone', target ('<loc>', '<loc>/<module>' or 'area:<place>'), zone, until?, spawn?}`; workspace key `zones`. Server: `void_runner_live_content.py` `zone_table_problems`, `combat_problems`, `zone_step_problems`, `zone_shape_problems` (`tests/test_zones.py`). Browser walkthrough: `tests/zones-browser.cjs`.
+## Twenty-third pass (19 Nov 2026): places picked by name in "Go into" / "Use" / "Hack" steps; when a denied offer comes back
+
+Branch `claude/deny-retry-place-words`, build `2026-11-19-deny-retry-1`, pushed, no PR, not merged. The owner: a "Go into" step for an office said "Go into the apartment": "I won't remember this. Can it be in a drop-down?"; and of a walked-near offer the player denies: "Maybe set a time for return, or remove after".
+
+### How to use it (plain steps)
+
+1. **Go into / Use something / Hack:** the step has ONE list of this mission's places by their real names: "Office floor (No. 13, The Avenue, offices)", "Server room (…)", "Elevator cab, floor B1 (…)", "Rundown apartment 104 (…)", "Container apartment, regular (…)", and for Go into "Anywhere inside (…)". Pick one; the Mission Log words are written for you ("Go into the office floor", "Use the server rack in the server room", "Hack the access point at the door between the office hallway and the office floor"). Change the place and the words follow, as long as they are still the automatic ones. Type your own words and they are kept; a small **USE THE AUTOMATIC WORDS** button puts the made words back. The same list is in the Form view, the Blocks view and "Make a mission" (an office template: which room).
+2. **On DENY** (any offer that asks ACCEPT / DENY, in person, by message, call, banner or walked near): **Offer again after a number of minutes** (1 to 120, default 10; minutes of play: they count only while the player is in the world, not in menus, conversations or a hidden tab; a reload keeps the count; a walked-near offer also needs the player to walk out of its distance and come back), **Offer again after the next pod exit** (for a message / call / banner / walk-near this is what DENY always did; an offer in person also has "the next time they talk to them", what it always did), **Never offer again (remove it)**, or **Start another mission**. Missions made before keep what they did.
+3. A giver who **waits at a spot** for that mission goes about her own routine while the offer waits (and for good after "never"), then walks back to her spot when it can be offered again. She is never moved in or out of the player's view: a move she cannot walk is held until she is out of sight (and the new spot is out of sight too).
+4. Testing: in PLAY THIS DRAFT the banner shows **SKIP THE WAIT (m:ss)** while a denied offer is waiting; it ends the wait at once.
+
+### For Claude and Codex
+
+- Places: `mission-blocks.js` `placeOptions(m, kind)`, `placeValue`, `placeSet`, `placeWords(o, m)`, `wordsAuto` (empty, the made words, or the older fixed words `LEGACY_WORDS`), `rewordAfter(o, m, fn)`, `hackOptions(m)`, `apName`. Data unchanged: `o.apt`, `o.mod`, `o.object`, `o.ap`. Editor: `mission-editor.js placeRow`, `autoWordsBtn` (in `blocksKit`), the hack list uses `hackOptions`; a kind change re-words automatic words. Wizard: `editor-wizard.js aptRecord`, `aptWords`, `aptChoices`, step `s.mod` built into `o.mod`.
+- DENY: `mission-content.js` `DENY=['again','pod','after','never','start']`, `DENY_MIN` {1, 120, 10}, `start.denyMinutes` (only with 'after'), `denyWaits`, `denyTick(s, env, wholeSeconds, skip)`, `denyRearm(s, env, near)`. `story.flags.md_<mission>`: 'never' | 'later' (next pod exit) | a safe integer (seconds of play left) | 'away' (walked-near: waiting for the player to leave its distance). `waitingAt` skips a mission while it is denied. `live-content.js denyClock` (4 times a second, `nearBlocked` + hidden tab stop it, saves every 5 s outside test sessions), `skipButton` (draft banner `[data-deny-skip]`), `nearTick` calls `denyRearm`, a "DECLINED · …" notice says when it comes back. Server: `void_runner_live_content.py` `DENY`, `DENY_MIN_MIN/MAX`, `ask_problems` and `workspace_money_problems`.
+- Never popped in or out in view: `ncz-street-pair.js` `held` / `holdCheck` / `inView` (camera frustum + show radius) / `rejoin` (Reverie, Lace, the cat); `npc-made.js` `p.hold` and `p.going` (a made character that should leave stays on its last plan until unseen; its TALK prompt goes meanwhile).
+- Tests: `tests/deny-retry.test.cjs`, `tests/test_deny_retry.py`, browser `tests/deny-retry-browser.cjs` (office words from the list; walked-near DENY -> SKIP THE WAIT -> walk away and back -> offered again; a real minute of play -> offered again; "never" -> not offered).
+- Browser `tests/giver-hold-browser.cjs`: a plan change that would move Reverie or Lace out of the Avenue while the player looks at her is held, and released once the camera turns away; a walkable spot is never held. This also answers the QA pass's open question (a denied walked-near offer could only come back after a pod exit).
+- Not verified: the cat and made givers' hold in a browser (same code shape); the walk back after a real wait with a "Giver waits at" spot; real hardware; VR.
+
 ## Twenty-second pass (19 Nov 2026): camera feeds — the Blackrock Cult Room
 
 The owner's queued room: seen only through a hacked security camera, recorded to the V1 Gallery. Details: `docs/development/BLACKROCK_CULT_ROOM.md`.

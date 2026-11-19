@@ -15,20 +15,19 @@
   const buy=n=>{const why=O.canBuy(s,type,n);return button('BUY '+n+' · '+(price*n).toLocaleString()+' CR','ord-buy:'+type+':'+n,n>1,!!why);};
   return '<article class="ord-card ord-'+type+'"><h2>'+esc(t.title)+'</h2><p>'+esc(t.role)+'</p><dl class="ord-kv"><dt>Warhead</dt><dd>'+one(sp.damage)+'</dd><dt>Turning</dt><dd>'+one(sp.turn)+' rad/s</dd><dt>Speed</dt><dd>'+Math.round(sp.speed)+'</dd><dt>Blast</dt><dd>'+one(sp.blast)+' m</dd><dt>In your rack</dt><dd>'+c+' / '+cap+'</dd>'+(shop?'<dt>Price</dt><dd>'+price.toLocaleString()+' CR each</dd>':'')+'</dl>'
    +(shop?(room>0?buy(1)+(room>1?buy(room):''):'<p class="ord-full">RACK FULL</p>'):'')+'</article>';}
- /* Admin's counter: ship ordnance. Only with a ship (and its launcher). */
- function shop(note){const s=st();if(!s)return;
-  if(!O.hasShip(s)){try{resumeWalking();announce('Admin sells ship ordnance to pilots. You do not have a ship yet.');}catch{}return;}
-  localPanel('Admin’s counter · <em>ship ordnance.</em>','<p>Missiles for your ship’s wing rails. Lasers never need ammunition; missiles do. M1 is the standard round. M2 is the upgrade: a heavier warhead with a bigger blast, but it turns slowly, so a hard-turning ship can slip it.</p>'
-   +(note?'<p class="ord-note" role="status">'+esc(note)+'</p>':'')+'<p>CREDITS '+(s.credits||0).toLocaleString()+'</p><div class="module-grid ord-grid">'+typeCard(s,'m1',true)+typeCard(s,'m2',true)+'</div>'
-   +'<p class="ord-help">In flight: '+esc(VoidInput.label(VoidInput.bindings.missile))+' or right-click fires (guided when the box says LOCK, straight ahead without a lock). '+esc(VoidInput.label(VoidInput.bindings.missileSwitch||'KeyZ'))+' or the mouse wheel switches M1 / M2. Your V1’s Ship Loadout app sets the default.</p>');
- }
+ /* Admin's stock (faction-scenes.js adminStore: the pistol, the scrambler) gains the ship missiles for a pilot: adminItems() adds the two cards, adminNote() the help.
+    One panel, so whatever else Admin sells stays beside the missiles. */
+ let note='';
+ function adminItems(){const s=st();if(!s||!O.hasShip(s)||!O.launcher(s))return [];return [typeCard(s,'m1',true),typeCard(s,'m2',true)];}
+ function adminNote(){const s=st();if(!s||!O.hasShip(s)||!O.launcher(s))return '';const n=note;note='';
+  return (n?'<p class="ord-note" role="status">'+esc(n)+'</p>':'')+'<p class="ord-help">Ship missiles for your wing rails: lasers never need ammunition, missiles do. M1 is the standard round. M2 is the upgrade: a heavier warhead with a bigger blast, but it turns slowly, so a hard-turning ship can slip it. In flight: '+esc(VoidInput.label(VoidInput.bindings.missile))+' or right-click fires (guided when the box says LOCK, straight ahead without a lock). '+esc(VoidInput.label(VoidInput.bindings.missileSwitch||'KeyZ'))+' or the mouse wheel switches M1 / M2. Your V1’s Ship Loadout app sets the default.</p>';}
+ function shop(n){const s=st();if(!s)return;note=n||'';
+  if(typeof root.VoidAdminStore==='function'){root.VoidAdminStore();return;}
+  localPanel('Admin’s <em>stock.</em>','<div class="module-grid ord-grid">'+adminItems().join('')+'</div>'+adminNote());}
  screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(!a?.startsWith('ord-buy:'))return;const [,type,n]=a.split(':'),s=st(),count=Number(n);
   const why=O.canBuy(s,type,count);if(why){shop(why);return;}O.buy(s,type,count);persist();try{VoidAudio.event('confirm');}catch{}shop('Bought '+count+' '+O.TYPES[type].name+(count>1?' missiles':' missile')+'. Loaded on your ship.');});
- // Talking to Admin: a mission conversation comes first (live-content.js wraps every handler); otherwise a pilot can buy ordnance.
- {const h=VoidInteractions.handlers.get('admin');VoidInteractions.register('admin',function(arg){const s=st();
-  if(s&&O.hasShip(s)&&O.launcher(s)&&VoidMissions.closed(s)){shop();return;}
-  return h?.apply(this,arguments);});}
- VoidInteractions.register('admin-ordnance',()=>shop());   // the counter beside Admin (neochinatown.js), always the shop
+ // The counter beside Admin (neochinatown.js, for pilots): his stock, reachable even while he has a mission to offer. Talking to Admin opens it too when he has nothing else (faction-scenes.js).
+ VoidInteractions.register('admin-ordnance',()=>shop());
 
  /* ---- The V1 Ship Loadout app ---- */
  const SLOT_NAMES={weapon:'PRIMARY',shield:'SHIELD',utility:'DRIVE',missile:'MISSILES'},BAYS=['weapon','shield','power','cooling','engine','sensor','thrusters','signal'];
@@ -65,5 +64,5 @@
  // The moment a ship is granted (a mission reward, the test ship) the V1 says the app arrived; once per save (story.flags.loadoutAppSeen).
  setInterval(()=>{const s=st(),f=s?.story?.flags;if(!f||f.loadoutApp!==true||f.loadoutAppSeen===true)return;try{if(typeof mode==='undefined'||!['walking','dock'].includes(mode))return;}catch{return;}
   if(root.VoidV1?.notify?.({app:'loadout',key:'loadout-app',text:'Ship Loadout app installed: your ship, its slots and missiles'})!==false){f.loadoutAppSeen=true;persist();}},1000);
- root.VoidShipLoadout={view,act,shop,SLOT_NAMES,BAY_NAMES};
+ root.VoidShipLoadout={view,act,shop,adminItems,adminNote,SLOT_NAMES,BAY_NAMES};
 })(globalThis);

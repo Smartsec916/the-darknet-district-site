@@ -211,7 +211,7 @@ def template(kind, source, inv):
 # One fixed draft id, ordinary revisions, the same byte and revision limits. It is a private backup of editor state, never content: nothing releases or applies it.
 WORKSPACE_ID = 'mission-editor-workspace'
 # npcs / animRequests (Developer Tools > NPCs, 18 Nov 2026) and voices (ElevenLabs voice choices, 18 Nov 2026) travel with the draft too.
-WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio', 'npcs', 'animRequests', 'voices', 'looks', 'clips', 'characters']  # characters: mission givers made in the editor (19 Nov 2026); clips: imported voice file records (19 Nov 2026; the audio is never in the draft)
+WORKSPACE_KEYS = ['version', 'savedAt', 'missions', 'lines', 'played', 'trees', 'names', 'retiredNumbers', 'studio', 'npcs', 'animRequests', 'voices', 'looks', 'clips', 'characters', 'zones']  # characters: mission givers made in the editor (19 Nov 2026); clips: imported voice file records (19 Nov 2026; the audio is never in the draft)
 
 
 def validate_workspace(doc):
@@ -225,7 +225,7 @@ def validate_workspace(doc):
     text(d['title'], 160)
     b = d['bundle']
     keys(b, WORKSPACE_KEYS)
-    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict), ('looks', dict), ('clips', dict), ('characters', dict)]:
+    for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict), ('looks', dict), ('clips', dict), ('characters', dict), ('zones', dict)]:
         if k in b and not isinstance(b[k], kind):
             raise DraftError('Invalid workspace field: ' + k)
     if len(b.get('trees', [])) > 30 or any(not isinstance(t, dict) or not isinstance(t.get('id'), str) or not isinstance(t.get('missions', []), list) for t in b.get('trees', [])):
@@ -286,6 +286,16 @@ def validate_workspace(doc):
         problems = feed_shape_problems(b['trees'])
         if problems:
             raise DraftError('Invalid camera feed: ' + problems[0], 422)
+    if b.get('trees'):
+        from void_runner_live_content import zone_shape_problems
+        problems = zone_shape_problems(b['trees'])
+        if problems:
+            raise DraftError('Invalid zone: ' + problems[0], 422)
+    if b.get('zones'):
+        from void_runner_live_content import zone_table_problems
+        problems = zone_table_problems(b['zones'], {})
+        if problems:
+            raise DraftError('Invalid Zones table: ' + problems[0], 422)
     if b.get('voices'):
         from void_runner_live_content import voice_problems
         problems = voice_problems(b['voices'])

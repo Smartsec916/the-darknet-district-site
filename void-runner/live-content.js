@@ -156,10 +156,12 @@
     ACCEPT is greyed ("YOU NEED N CR") and DENY is the main button. DENY: mission-content.js MONEY (offered again, never, or another mission instead) and the owner's
     DENY lines if any. Without the choice window (it failed to load) the offer is not shown and nothing is taken. */
  function ask(r){if(typeof root.talkChoice!=='function'||!r.lines.length)return false;const a=r.ask,o=r.offer||null,M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
-  const pick=type=>()=>{let x=null;try{x=MC.treeEvent(state,env,{type,mission:a.mission},M,Cp);report(x);deliver(x);}catch{}if(x&&followUp(x))return;try{resumeWalking();}catch{}};
+  const pick=type=>()=>{let x=null;try{x=MC.treeEvent(state,env,{type,mission:a.mission},M,Cp);report(x);deliver(x);if(x&&x.declined)declined(x);}catch{}if(x&&followUp(x))return;try{resumeWalking();}catch{}};
   const yes={label:a.accept||'ACCEPT',run:pick('accept')},no={label:a.decline||'DENY',run:pick('decline')};
   const choices=o&&o.afford===false?[no,{label:yes.label+' · YOU NEED '+o.need+' CR',disabled:true,run:()=>{}}]:[yes,no];
   return root.talkChoice(merge(r.lines.map(l=>MC.mapLine(env,l))),choices,'',o?{offer:o}:{});}
+ /* DENY said: one short notice of when it comes back (the mission's DENY setting). */
+ function declined(x){try{const w=x.denyWait,t=title(x.mission);announce('DECLINED · '+t+(Number.isInteger(w)?' · offered again after '+w+' min of play':w==='pod'?' · offered again after you next leave your Sleeping Pod':x.deny==='never'?' · it will not be offered again':x.deny==='start'?'':''));save();}catch{}}
  /* After a choice: the DENY lines, another mission offered instead (in person or on the device), or nothing. */
  function followUp(x){if(x.ask&&ask(x))return true;if(x.prompt){const p={...x.prompt,lines:[...(x.lines||[]),...x.prompt.lines]};if(offerPrompt(p,true))return true;}if(x.lines&&x.lines.length&&!x.ask&&show(x.lines,x))return true;return false;}
  /* An offer that arrives on the device and asks ACCEPT / DENY (Messages, Comms, a banner, walked near): a banner, then the choice window with the notification's words.
@@ -244,8 +246,22 @@
  function nearTick(){try{if(!treesOn()||nearBlocked())return null;if(nearFor!==env.trees){nearFor=env.trees;nearWatch=MC.nearList(env.trees);}if(!nearWatch.length)return null;
   const recs=state.universe.missions||{};let hit=false;for(const k in nearD)nearD[k]=Infinity;
   for(const n of nearWatch){const r=recs[n.mission];if(r&&(r.acquired||r.completed))continue;if(!(n.npc in nearD)||nearD[n.npc]===Infinity)nearD[n.npc]=giverDistance(n.npc,walkingLocation,walker.x,walker.z);if(MC.nearHit(nearD[n.npc],n.metres))hit=true;}
+  for(const id of MC.denyRearm(state,env,nearD))delete promptAt[id];   // a denied walked-near offer whose wait is over comes back once the player has been out of its distance
   if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(r.prompt)offerPrompt(r.prompt);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);return r;}catch{return null;}}
  setInterval(nearTick,250);
+ /* DENY WAITS (mission-content.js deny 'after', the owner, 19 Nov 2026: "Maybe set a time for return, or remove after"): the minutes count only while the player is in the
+    world (nearBlocked: not in a conversation, menu, the pod's wake-up, the creator or the KeyMap) and the tab is shown. Whole seconds are kept in story.flags.md_<mission>
+    (a safe integer), so a reload goes on from there; saved every few seconds outside test sessions. In a draft test the banner has SKIP THE WAIT. */
+ let denyT=performance.now(),denyAcc=0,denySaved=0;
+ function denyClock(){const now=performance.now(),dt=Math.min(10,(now-denyT)/1000);denyT=now;try{skipButton();if(!treesOn()||nearBlocked()||(typeof document!=='undefined'&&document.hidden))return;
+  if(!MC.denyWaits(state,env).length){denyAcc=0;return;}denyAcc+=dt;if(denyAcc<1)return;const n=Math.floor(denyAcc);denyAcc-=n;const done=MC.denyTick(state,env,n);for(const id of done)delete promptAt[id];
+  if((done.length||Date.now()-denySaved>5000)&&!root.VoidDevTest?.active){denySaved=Date.now();try{save();}catch{}}}catch{}}
+ function skipButton(){try{const b=typeof document!=='undefined'&&document.getElementById('dev-test-banner');if(!b)return;let k=b.querySelector('[data-deny-skip]');
+  const w=env.draft&&root.VoidDevTest?.active&&treesOn()?MC.denyWaits(state,env):[];if(!w.length){if(k)k.hidden=true;return;}
+  if(!k){k=document.createElement('button');k.type='button';k.dataset.denySkip='1';k.title='Test only: a denied offer that waits a number of minutes can be offered again now.';
+   k.onclick=()=>{try{const d=MC.denyTick(state,env,0,true);for(const id of d)delete promptAt[id];if(d.length)announce('DENY WAIT SKIPPED · '+d.map(title).join(', ')+' can be offered again');}catch{}k.hidden=true;};b.append(k);}   // after LEAVE DRAFT, so dev-test.js still finds its own button first
+  const left=Math.max(...w.map(x=>x.left));k.textContent='SKIP THE WAIT ('+Math.floor(left/60)+':'+String(left%60).padStart(2,'0')+')';k.hidden=false;}catch{}}
+ setInterval(denyClock,250);
  // ---------------------------------------------------------------- NPC placements (Developer Tools > NPCs) and "Giver waits at"
  /* What Reverie and Lace do (ncz-street-pair.js asks every frame; worked out twice a second): a mission's "Giver waits at" while that mission waits to be offered by her,
     else the placement published or played from Developer Tools > NPCs (content.npcs; its daily schedule follows the in-game clock, game-clock.js), else her own routine. */
@@ -278,10 +294,11 @@
  const hacks=()=>{try{return treesOn()?MC.hacksNow(state,env):[];}catch{return [];}};
  const aptUse=({mission,apt,object,mod})=>aptRun({type:'apt-use',mission,apt,object,mod:mod||null});
  const hack=job=>aptRun({type:'hack',ap:job.ap,mission:job.mission,step:job.key});
+ const zoneStep=key=>aptRun({type:'zone',step:key});   // a "Change zone" step completes as soon as it is reached (zone-integration.js)
  /* A hacked camera feed's recording was saved (camera-feed.js): the event that completes a hack step with a camera feed (cult-room.js). */
  const feedSaved=job=>job&&job.feed?aptRun({type:'feed',ap:job.ap,feed:job.feed,mission:job.mission,step:job.key}):null;
  /* A new throwaway draft session (mission-editor.js play, PLAY FROM THE START OF THIS TREE): forget what the running game remembers about the missions played before it
     (animation and step-timer countdowns, follow / lead / cab steps that had started, offers asked, walked-near distances), so the session starts clean. The saved state is the new session's own. */
  function resetRun(){for(const o of [animRun,timerLeft,promptAt,needAt,nearD])for(const k of Object.keys(o))delete o[k];for(const o of [askShown])for(const k of Object.keys(o))delete o[k];escOn.clear();planCache={};planAt=0;escortLog.length=0;nearFor=null;nearWatch=[];nearLast=null;lastContact=null;askOpen=null;}
- root.VoidLiveContent={resetRun,askTick,askNow:()=>{try{return treesOn()?MC.askNow(state,env):[];}catch{return [];}},apartments,hackedDoors,hacks,aptUse,hack,feedSaved,offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ root.VoidLiveContent={zoneStep,treesOn:()=>{try{return treesOn();}catch{return false;}},denyClock,skipButton,denyWaits:()=>{try{return treesOn()?MC.denyWaits(state,env):[];}catch{return [];}},resetRun,askTick,askNow:()=>{try{return treesOn()?MC.askNow(state,env):[];}catch{return [];}},apartments,hackedDoors,hacks,aptUse,hack,feedSaved,offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

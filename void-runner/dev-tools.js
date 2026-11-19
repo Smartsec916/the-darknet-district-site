@@ -50,7 +50,27 @@ const balanceHelp={
   premiumLaserFireRate:['Wraith Cannon fire rate','Shots per second.'],
   premiumShield:['Aegis Shield capacity','Shield points.'],
   premiumShieldRechargeRate:['Aegis recharge speed','Shield points regained per second.'],
-  premiumShieldRechargeDelay:['Aegis recharge wait','Seconds without being hit before it recharges.']}
+  premiumShieldRechargeDelay:['Aegis recharge wait','Seconds without being hit before it recharges.']},
+ 'On foot: the pistol':{
+  pistolPrice:['Pistol price (Admin)','Credits Admin charges for the base pistol. Bought once; it stays the player’s.'],
+  pistolDamage:['Pistol damage','Damage per pistol shot to an armed person (their health is below). The same in the campaign and in Skirmish FPS.'],
+  pistolAimBonus:['Aimed-shot bonus','Damage multiplier when aiming down the sights (1.24: 34 becomes 42).'],
+  pistolCooldown:['Time between shots','Seconds before the pistol can fire again.'],
+  pistolSpread:['Spread','Degrees a hip shot can stray from the crosshair (a third of it when aiming).'],
+  pistolRecoil:['Recoil','Degrees the view kicks up with each shot.'],
+  footPlayerHealth:['Player health on foot','Health the player starts with and comes back to (campaign and Skirmish FPS).']},
+ 'On foot: zones, guards and enemies (Skirmish FPS uses the same enemy values; its difficulty scales them)':{
+  neutralSafety:['Neutral safety catch','1 = ON: in a Neutral area the first trigger press only warns (“firing will make people attack you”); a second press within the safety window fires. 0 = OFF: the first press fires. Drawing or holstering never provokes anyone.'],
+  safetyWindow:['Safety window','Seconds the second press has to come within. Holstering or waiting longer puts the safety back on.'],
+  guardHostileTime:['How long guards stay angry','Seconds the armed people of a Neutral area stay hostile after a shot. Leaving the area calms them at once.'],
+  civilianFleeRadius:['Civilian flee radius','Metres around a shot in a Neutral area within which civilians run (0 = nobody runs).'],
+  detectRange:['Detection range','Metres an enemy can spot the player at (60% of it when the player crouches). Walls and closed doors block sight.'],
+  detectCone:['Detection cone','Degrees of an enemy’s field of view while calm (360 = sees all round). Once alerted they look everywhere.'],
+  footEnemyHealth:['Enemy health','Health of a security guard, mercenary or Skirmish raider (an enforcer and the Skirmish stronghold raiders have 35% more).'],
+  footEnemyDamage:['Enemy damage','Health the player loses per enemy hit.'],
+  footEnemyAccuracy:['Enemy accuracy','Chance an enemy shot hits (lower at long range and against a crouching player).'],
+  footEnemyReaction:['Enemy reaction time','Seconds between an enemy’s shots (plus a little at random).'],
+  footEnemySpeed:['Enemy speed','Metres per second an enemy moves when chasing the player.']}
 };
 /* Small line icons for Developer Tools (beginner redesign, 18 Nov 2026): inline SVG, no image files, coloured by the text colour. */
 const DEV_ICON_PATHS={mission:'M5 21V4M5 4h11l-2 4 2 4H5',character:'M12 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM5 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5',test:'M8 5v14l11-7z',publish:'M12 16V4M7 9l5-5 5 5M5 20h14',balance:'M4 7h10M18 7h2M4 17h4M12 17h8M16 5v4M10 15v4',jump:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z',trophy:'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8',people:'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3.5 2.5-5.5 6-5.5s6 2 6 5.5M16 5.5a3 3 0 0 1 0 5.5M18 14.8c2 .7 3 2.5 3 5.2',home:'M4 11l8-7 8 7M6 9.5V20h12V9.5',parcel:'M4 8l8-4 8 4v9l-8 4-8-4zM4 8l8 4 8-4M12 12v9',meet:'M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM2 20c0-3 2.5-5 6-5 1.5 0 2.8.4 4 1.1 1.2-.7 2.5-1.1 4-1.1 3.5 0 6 2 6 5',pin:'M12 21s-6-6.2-6-11a6 6 0 0 1 12 0c0 4.8-6 11-6 11zM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z',camera:'M4 8h3l2-3h6l2 3h3v11H4zM12 17a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z',talk:'M4 5h16v11H9l-5 4z',undo:'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',redo:'M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3',help:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01',back:'M15 5l-7 7 7 7',next:'M9 5l7 7-7 7',check:'M5 12.5l4.5 4.5L19 7',plus:'M12 5v14M5 12h14',close:'M6 6l12 12M18 6L6 18',list:'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01'};
@@ -74,10 +94,10 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  open(tab){if(!this.authorized)return;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
  // One window, one section at a time. Sections that aren't built yet are listed, not faked.
  // Start (the welcome screen with the big task cards) comes first; every other tool is one click away. Plain names; each with an icon.
- sections:[['home','Start'],['missions','Mission Editor'],['npcs','NPCs'],['test','Test & Jump To'],['balance','Combat Balance'],['achievements','Achievements']],
- sectionIcons:{home:'home',missions:'mission',npcs:'people',test:'jump',balance:'balance',achievements:'trophy'},
+ sections:[['home','Start'],['missions','Mission Editor'],['npcs','NPCs'],['test','Test & Jump To'],['zones','Zones'],['balance','Combat Balance'],['achievements','Achievements']],
+ sectionIcons:{home:'home',missions:'mission',npcs:'people',test:'jump',zones:'balance',balance:'balance',achievements:'trophy'},
  // The Mission Editor's scripts load only when a confirmed developer opens it (players never download them).
- editorScripts:['admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/module-editor.js','void-runner/cult-room-editor.js','void-runner/mission-blocks.js','void-runner/mission-blocks-view.js','void-runner/mission-editor.js','void-runner/npc-behaviour.js','void-runner/npc-editor.js','void-runner/editor-wizard.js','void-runner/editor-home.js'],
+ editorScripts:['admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/module-editor.js','void-runner/cult-room-editor.js','void-runner/mission-blocks.js','void-runner/mission-blocks-view.js','void-runner/zone-editor.js','void-runner/mission-editor.js','void-runner/npc-behaviour.js','void-runner/npc-editor.js','void-runner/editor-wizard.js','void-runner/editor-home.js'],
  loadEditor(){return this.editorLoad??=this.editorScripts.reduce((p,src)=>p.then(()=>new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>fail(new Error('Could not load '+src));document.head.append(s);})),Promise.resolve());},
  render(){
   const tabs='<nav class="dev-tabs" aria-label="Developer sections">'+this.sections.map(([id,name])=>`<button data-dev-tab="${id}" class="${this.tab===id?'on':''}" aria-pressed="${this.tab===id}">${devIcon(this.sectionIcons[id],16)}<span>${name}</span></button>`).join('')+'</nav>';
@@ -89,6 +109,8 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   if(this.tab==='missions'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidMissionEditor)return VoidMissionEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the Mission Editor…</p>';this.loadEditor().then(()=>{if(this.tab==='missions'&&!devPanel.hidden)VoidMissionEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The Mission Editor could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
   // Developer Tools > NPCs (18 Nov 2026): the same on-demand scripts and the same draft as the Mission Editor (npc-editor.js)
   if(this.tab==='npcs'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidNPCEditor)return VoidNPCEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the NPCs…</p>';this.loadEditor().then(()=>{if(this.tab==='npcs'&&!devPanel.hidden)VoidNPCEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The NPCs tab could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
+  // Developer Tools > Zones (19 Nov 2026): the owner's table of Friendly / Neutral / Hostile areas and location types (zone-editor.js; saved in the same draft)
+  if(this.tab==='zones'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};const go=()=>{if(this.tab==='zones'&&!devPanel.hidden)VoidZoneEditor.table(devPanel,heading);};if(globalThis.VoidZoneEditor&&globalThis.VoidMissionEditor)return go();devPanel.innerHTML=head+'<p class="dev-note">Loading the Zones…</p>';this.loadEditor().then(go).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The Zones could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
   if(this.tab==='test'){devPanel.innerHTML=head+(globalThis.VoidDevTest?.render()||'<p>Test tools are loading.</p>');return;}
   if(this.tab==='achievements'){const items=globalThis.VoidAchievements?.definitions||[];devPanel.innerHTML=head+'<p>Read-only catalog preview. Publishing, granting, and revoking require a server-authorized manager that is not enabled yet.</p>'+items.map(d=>'<article class="dev-field"><h3>'+escapeText(d.icon+' '+d.name)+'</h3><p>'+escapeText(d.description)+'</p><p>'+escapeText(d.category+' · '+d.condition.event+' · '+d.condition.count)+'</p></article>').join('');return;}
   const known=new Set(Object.values(balanceHelp).flatMap(g=>Object.keys(g))),field=(key,[name,help])=>{const s=VoidBalance.spec[key];return `<label class="dev-field"><span class="dev-name">${name}</span><input data-balance="${key}" type="number" min="${s.min}" max="${s.max}" step="any" value="${this.values[key]}"><span class="dev-help">${help}</span><span class="dev-range">${key} · ${s.min}–${s.max} · default ${VoidBalance.defaults[key]}</span></label>`;};
