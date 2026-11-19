@@ -169,3 +169,19 @@ test('Studio 1 uses the other Avenue resident on each 12-hour UTC shift',()=>{
  assert.match(bcode,/studioOne\.node\?\.dispose\?\.\(\)/);
  assert.match(bcode,/syncStudioOne\(\);/);
 });
+
+test('the existing studio E action opens a translucent view with validated animation requests',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');
+ assert.match(ui,/R\('milked-studio'/);
+ assert.match(ui,/viewStudio\(item\?\.studio\)/);
+ assert.match(ui,/rgba\(7,11,19,\.65\)/,'panel is translucent');
+ assert.match(ui,/animationChoices/);assert.match(ui,/requestAnimation/);
+ assert.match(ui,/REQUEST ANIMATION/);assert.match(ui,/closeStudio/);
+ assert.match(bcode,/function animationChoices\(studio\)/);
+ assert.match(bcode,/function requestAnimation\(studio,clip\)/);
+ assert.match(bcode,/g\.name\.endsWith\('-'\+name\)/);
+ assert.match(bcode,/!available\.clips\.some\(c=>c\.id===clip\)/);
+ assert.match(bcode,/p\.requestUntil=k\.clock\+12/);
+ assert.match(bcode,/studioOne\.requestUntil=0/);
+ assert.match(bcode,/!p\.requestUntil/);
+});

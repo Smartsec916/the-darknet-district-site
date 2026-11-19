@@ -1,5 +1,8 @@
 # MILKED
 
+> **Studio window animation requests (18 Nov 2026):** The existing E-key "View Studio" interaction now opens a compact near-black **65%-opaque / see-through** panel on the right, with the current performer's name and a dropdown of only the actual loaded model's available in-place animations. REQUEST plays the chosen motion for about 12 seconds, then the normal dance routine resumes. CLOSE or Escape dismisses the panel. Studio 1 automatically updates for Reverie/Lace's UTC rotation, including when the model is still loading. The panel is observation-only (no studio entry or save/network changes); walking, seated, floor and partner motions are excluded because the stage has no corresponding traversal or props.
+
+
 > **Studio 1 rotation (18 Nov 2026):** Reverie and Lace alternate in Milked Studio 1 on the same real-time UTC 12-hour shift as the Avenue but opposite to the street. From 00:00–11:59 UTC the Avenue shows Reverie and Studio 1 shows Lace; from 12:00–23:59 UTC the Avenue shows Lace and Studio 1 shows Reverie. The street has a 90-second arrival gap; Studio 1 switches immediately and keeps exactly one model. Both use their rigged character GLBs and alternate the available `dance-groove` and `dance-bop` clips in Studio 1. The animation, textures and poses for each character elsewhere are unchanged; Studios 2–4 are unaffected. The schedule uses wall-clock UTC, never the per-player game clock. No saved fields change.
 
 
