@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): CONTAINER APARTMENTS IN THE OUTSKIRTS (branch `claude/container-apartments`, build `2026-11-19-container-apartments-1`, pushed, NO PR, not merged)
+
+The owner: a second set of apartments in shipping containers for The Outskirts, two styles (rundown, regular), a four-door hallway, doors evenly along the edge of the yard. Record: [`APARTMENTS.md`](APARTMENTS.md), "Container apartments in The Outskirts"; editor: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Nineteenth pass".
+
+- 15 container doors (`apt-yard-*`), container styles only behind them (game + server), two container interiors and a container hallway (`apartment-build.js buildCFlat` / `buildCHall`), no new save fields, nothing in the city apartments changed.
+- Tests: `tests/apartments.test.cjs`, `tests/test_apartments.py`, `STYLE=container-regular node tests/apartments-browser.cjs`.
+- Not verified: real hardware, VR. No Meshy credits spent.
+
 ### 19 Nov 2026 (newest): STREET TAXI UPGRADE: AUTONOMOUS MINIVAN CABS, LED CHASE ROUND THE TAXI STOP SIGNS (branch `claude/taxi-upgrade`, build `2026-11-19-taxi-upgrade-1`, pushed, NO PR, not merged)
 
 The owner: "upgrade the Taxis" (his reference picture: an autonomous minivan taxi) and "upgrade the Taxi stops ... the taxi yellow lights to go around the sign like string lights on the chase setting", then "no bulbs, like leds".
@@ -20,7 +28,7 @@ The owner: "upgrade the Taxis" (his reference picture: an autonomous minivan tax
 - **Ride view fix (coordinator review):** the front row has low backs and no headrests, darker roof lining and panels, and looking up in the van stops at the window tops (pitch clamp); views from the middle-row seat out of the windscreen and both sides re-shot on the Avenue and in Old Town.
 - **Tests:** `tests/road-taxi-van.test.cjs` (footprint and bays, seats and doors, cab numbers, load order and the LED hooks, the model file's nodes / glass / meshopt / size); npm test passes.
 - **Checked in a browser** (bundled Chromium, software GL, Medium): cabs driving on the Avenue and in Old Town, front / side / rear / three-quarter close-ups at night, the door open at a pickup, a ride from inside, Reverie seated in the cab (inside and through the glass from outside), the LED chase on the Avenue and Old Town stops over several frames. **Not verified:** real hardware and frame rate on the ROG Ally; VR; the Corporate District / Temple signs in a browser; Lace seated (same sit clip numbers as Reverie, measured); a full escort-step ride (`tests/npc-escort-browser.cjs` not re-run).
-### 19 Nov 2026 (newest): MISSION-INSTANCED APARTMENTS, STREET DOORS, ACCESS POINTS AND HACK STEPS (branch `claude/apartments`, build `2026-11-19-apartments-1`, pushed, NO PR, not merged)
+### 19 Nov 2026: MISSION-INSTANCED APARTMENTS, STREET DOORS, ACCESS POINTS AND HACK STEPS (branch `claude/apartments`, build `2026-11-19-apartments-1`, pushed, NO PR, not merged)
 
 The owner: three apartment interiors (rundown, normal, luxury; same size), a hallway for each, doors along the streets that NPCs use and players cannot enter unless a mission places an apartment there, and "instance an apartment" in the Mission Editor (several per mission; items later). Later the same day: automatic sliding doors, an access point at every apartment door with a "Hack the access point" step (reserved, unsold `hacking-device`), a couch, no kitchen and no refrigerator (a vending machine), a switchable ad screen in the rundown and normal apartments, "Lights start" / "Screen starts" settings. Full record: [`APARTMENTS.md`](APARTMENTS.md); editor how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Eighteenth pass".
 
