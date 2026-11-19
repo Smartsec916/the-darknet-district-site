@@ -89,6 +89,14 @@
   try{globalThis.VoidPersonalDevice?.close?.();}catch{}
   return true;
  }
+ /* A cab called by a companion of a mission step (npc-escort.js "They call a cab"): picked up on the road near HER, to the stop the step names; the player boards it as
+    usual (BOARD TAXI, the normal fare; the developer account rides free). at: {x, z} (her kerb point). Returns {ok, reason, fare}. */
+ function hailFor(at,destId,who){
+  if(!ensure())return {ok:false,reason:'Street taxis run in NeoChinatown, on the roads.'};
+  const res=R.hail(world,state,{x:at.x,z:at.z,riding:false},destId,{...context(),onFoot:true,area:'street',player:[at.x,at.z]});
+  if(res.ok)announce?.((who||'They')+' called a street taxi to '+(world.job?.dest?.label||destId)+'. Fare '+res.fare+' CR, paid when you board.');
+  return res;
+ }
  function cancel(){if(!world)return false;const res=R.cancel(world);if(res.ok)announce?.('Taxi cancelled. No charge.');return !!res.ok;}
  function board(){
   if(!world)return;
@@ -212,5 +220,5 @@
   ctx.fillStyle='#ffb347';ctx.font='bold 14px Consolas,monospace';ctx.textAlign='center';ctx.fillText('STREET TAXI · '+job.dest.label.toUpperCase()+' · '+String(text).toUpperCase(),W/2,H-66);
   ctx.fillStyle='#b9c8ce';ctx.font='12px Consolas,monospace';ctx.fillText(job.cab.phase==='arrived'?'E / STEP OUT':'Mouse or arrow keys to look around',W/2,H-48);ctx.restore();};
 
- globalThis.VoidRoadTaxi={hail,cancel,board,exit,status,returnFrom,hudHtml,action,callList,get crossing(){return crossing;},get active(){return !!(world?.job&&!world.job.released);},get world(){return world;}};
+ globalThis.VoidRoadTaxi={hail,hailFor,cancel,board,exit,status,returnFrom,hudHtml,action,callList,get crossing(){return crossing;},get active(){return !!(world?.job&&!world.job.released);},get world(){return world;}};
 })();
