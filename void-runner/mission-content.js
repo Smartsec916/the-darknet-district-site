@@ -40,8 +40,11 @@
  const GVS=()=>typeof module!=='undefined'&&module.exports?require('./mission-givers.js'):root.VoidMissionGivers;
  const NPX=()=>typeof module!=='undefined'&&module.exports?require('./npc-paths.js'):root.VoidNPCPaths;
  const NPV=()=>typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;
+ const NGS=()=>typeof module!=='undefined'&&module.exports?require('./npc-gestures.js'):root.VoidNPCGestures;   // animations on lines and animation steps (npc-gestures.js)
  const NEX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;   // follow / lead / shared-cab steps (npc-escort.js)
+ const APT=()=>typeof module!=='undefined'&&module.exports?require('./apartments.js'):root.VoidApartments;   // mission-instanced apartments, access points and hacks (apartments.js, 19 Nov 2026)
  const NPL=()=>typeof module!=='undefined'&&module.exports?require('./npc-looks.js'):root.VoidNPCLooks;
+ const MDE=()=>typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs;   // mission givers made in the editor (content.characters, npc-made.js)
  const VIM=()=>typeof module!=='undefined'&&module.exports?require('./voice-imports.js'):root.VoidVoiceImports;   // imported voice files (content.clips: [{who, text, hash, type, duration, bytes}], 19 Nov 2026)   // NPC looks (Developer Tools > NPCs > Appearance)   // ElevenLabs voice choices (Developer Tools > NPCs, giver card)   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
  /* "When walked near" (the owner, 18 Nov 2026): when:{kind:'near', npc (default: the giver), distance (metres, 1..30, default 5)}. The game measures the player's distance to that
     person's TALK prompt (live-content.js, four times a second) and sends {type:'near', near:{<npc>: metres}}; the mission starts once, in tree order. */
@@ -78,6 +81,9 @@
  const EVENTS=['v1-open','keymap-seen','talk-admin','talk-iris','visit-bar','visit-shop','use-terminal','board-ship','launch','warp-meridian','dock-meridian'];
  const TYPES=['main','side','cargo','campaign','tutorial','bounty','station'],AWARDS=['ship'],DESTINATIONS=['earth','meridian'];
  const SPEAKERS=['Admin','Iris','Landing terminal','You','Bartender'];   // the beginner campaign's on-screen speakers (studio-model.js SPEAKERS)
+ /* MISSION TIMERS (the owner, 19 Nov 2026: "mission timers. set the amount of time between actions, lines, etc"): a line's wait before it shows (0-60 s) and how long it
+    stays before the conversation goes on by itself (1-60 s), an animation's length on a line (1-30 s), a step's delay before it starts (0-600 s), a wait step (1-600 s). */
+ const TIME={lineWait:60,lineShow:60,animFor:30,delay:600,wait:600,near:50};
  const LIMIT={lineEdits:600,missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000,subjects:6};
  const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
  const plain=(v,max)=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!TAGS.test(v);
@@ -90,9 +96,18 @@
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
  /* Strict check of a content record. ctx: {speakers:Set of extra speaker names (registry display names), registryIds:Set, interactions:Set (optional)}.
     Returns {ok, errors:[plain text]}; a record with any error is never applied. */
- function check(content,ctx={}){
+ /* MADE CHARACTERS (content.characters, npc-made.js): checked first, then for the rest of the check they are MOVABLE (npc-paths.js setMade: their placements, added animations,
+    follow / lead steps) and givers with a TALK prompt (ctx.givers). The editor's or the game's own registration is put back afterwards. */
+ function madeCtx(content,ctx){const MD=MDE(),ch=content&&content.characters;if(ch==null||!MD)return {ctx,errors:[]};const base=ctx.givers?new Map([...ctx.givers].filter(([,g])=>!g.made)):null;
+  const ms=new Map();for(const t of storyTrees(content.trees||[]))for(const m of t.missions||[])ms.set(m.id,(m.objectives||[]).map(o=>o.id));const offer=new Map();for(const t of storyTrees(content.trees||[]))for(const m of t.missions||[])if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);
+  const errors=MD.problems(ch,{npcs:content.npcs||{},missions:ms,reserved:base?new Set(base.keys()):ctx.reserved||null,givesOffer:offer,lookInventory:ctx.lookInventory&&ctx.lookInventory.assets});
+  const facts=MD.giverFacts(ch&&typeof ch==='object'&&!Array.isArray(ch)?ch:{},content.npcs||{}),givers=base?new Map(base):null;if(givers)for(const [id,f] of Object.entries(facts))givers.set(id,{id,name:f.name,canTalk:true,players:true,draft:true,made:true,targets:f.targets,group:'district'});
+  return {ctx:givers?{...ctx,givers}:ctx,errors};}
+ function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters']))return {ok:false,errors:['The content record has an unknown shape.']};
+  const X=NPX(),had=X&&content.characters!=null&&X.setMade?X.setMade(content.characters):null;
+  try{const m=madeCtx(content,ctx),r=check_(content,m.ctx);return m.errors.length?{ok:false,errors:[...m.errors,...r.errors]}:r;}finally{if(had)X.setMade(had);}}
+ function check_(content,ctx={}){
   const errors=[],err=t=>errors.push(t),speakers=new Set([...SPEAKERS,...(ctx.speakers||[])]);
-  if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips']))return {ok:false,errors:['The content record has an unknown shape.']};
   if(content.clips!=null){const I=VIM();if(!I)err('Imported voice files cannot be checked here.');else for(const p of I.clipProblems(content.clips))err(p);}
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
   if(content.npcs!=null){const X=NPX();if(!X)err('NPC placements cannot be checked here.');else for(const p of X.checkAll(content.npcs))err(p);}
@@ -164,7 +179,7 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack'],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -215,7 +230,11 @@
   const npcOk=id=>typeof id==='string'&&(!ctx.givers||(ctx.givers.get(id)||{}).canTalk===true);
   const speakerOk=id=>id==='You'||(typeof id==='string'&&(!ctx.givers||ctx.givers.has(id)));
   const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
-  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else for(const p of tagP(l.text))err(w+': '+p);}};
+  const animP=(who,clip)=>{const A=NGS();return A?A.problem(who,clip,{plan:(ctx.npcs||{})[who]||null}):'';};
+  const sec=(v,lo,hi)=>v==null||(Number.isInteger(v)&&v>=lo&&v<=hi);
+  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(l&&typeof l==='object'){if(!sec(l.wait,0,TIME.lineWait))err(w+': the wait before a line is a whole number of seconds from 0 to 60.');if(!sec(l.show,1,TIME.lineShow))err(w+': “show for” is a whole number of seconds from 1 to 60.');if(!sec(l.animFor,1,TIME.animFor))err(w+': an animation on a line lasts a whole number of seconds from 1 to 30.');else if(l.animFor!=null&&l.anim==null)err(w+': only a line with an animation has an animation time.');}
+   if(!keysOk(l,['who','text','anim','wait','show','animFor'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else{for(const p of tagP(l.text))err(w+': '+p);
+   if(l.anim!=null){if(l.who==='You')err(w+': the player’s own line has no animation.');else{const p=animP(l.who,l.anim);if(p)err(w+': '+p+'.');}}}}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
    if(!keysOk(t,['id','name','note','missions'])){err(tw+': unknown fields in a tree.');continue;}
    if(!treeIdOk(t.id))err(tw+': a new tree id must start with draft-.');if(tids.has(t.id))err(tw+': duplicate tree id.');tids.add(t.id);
@@ -223,7 +242,8 @@
    if(t.note!=null&&!(typeof t.note==='string'&&t.note.length<=300&&!TAGS.test(t.note)))err(tw+': the note must be plain text (300 characters at most).');
    if(!Array.isArray(t.missions)||!t.missions.length||t.missions.length>20){err(tw+': a tree needs 1 to 20 missions.');continue;}
    for(const m of t.missions){total++;const w=tw+' / '+((m&&m.id)||'?');
-    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost'])){err(w+': unknown fields in a mission.');continue;}
+    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost','apartments'])){err(w+': unknown fields in a mission.');continue;}
+    {const X=APT();if(X)for(const p of X.problems(m,ctx.doors||null))err(w+': '+p);else if(m.apartments!=null||(m.objectives||[]).some(o=>o&&APT_KINDS.includes(o.kind)))err(w+': apartments cannot be checked here.');}
     if(m.waitAt!=null){const X=NPX();for(const p of X?X.waitAtProblems(m.giver,m.waitAt):['“Giver waits at” cannot be checked here.'])err(w+': '+p);}
     if(!missionIdOk(m.id))err(w+': a new mission id must start with draft- (60 characters at most).');
     if(m.number!=null&&!(Number.isInteger(m.number)&&m.number>=1&&m.number<=999))err(w+': a mission number must be a whole number from 001 to 999.');
@@ -240,7 +260,9 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop'])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','object','ap','stay','unlock','needs'])){err(ow+': unknown fields in a step.');continue;}
+     if(!sec(o.delay,0,TIME.delay))err(ow+': the delay before a step is a whole number of seconds from 0 to 600.');
+     if(o.kind!=='anim'&&o.clip!=null)err(ow+': only an animation step names an animation.');if(o.kind!=='anim'&&o.kind!=='wait'&&o.kind!=='hack'&&o.hold!=null)err(ow+': only an animation, wait or hack step has a number of seconds.');if(o.kind!=='wait'&&o.near!=null)err(ow+': only a wait step has a distance.');
      if(!ESCORT.includes(o.kind)&&['to','wait','lost','ifLost','stop'].some(k=>o[k]!=null))err(ow+': only a follow / lead / cab step has a spot, distances or a cab stop.');
      if(!ID.test(o.id||'')||o.id==='turn-in')err(ow+': step id must be lowercase letters, digits and hyphens.');if(oids.has(o.id))err(ow+': duplicate step id.');oids.add(o.id);
      if(!plain(o.label,LIMIT.text))err(ow+': the step needs a label (plain text).');
@@ -254,6 +276,9 @@
      else if(o.kind==='await-call'){if(o.npc!=null&&o.npc!==''&&!speakerOk(o.npc))err(ow+': who will call must be a known NPC.');}
      else if(o.kind==='enter'||o.kind==='leave'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
      else if(ESCORT.includes(o.kind)){const E=NEX();if(E)for(const p of E.problems(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null,plan:(ctx.npcs||{})[o.npc]||null}):'avenue'}))err(ow+': '+p);}   // in the area she is placed in for this mission (npc-areas.js)
+     else if(o.kind==='anim'){if(!speakerOk(o.npc)||o.npc==='You')err(ow+': choose who plays the animation.');else{const p=animP(o.npc,o.clip);if(p)err(ow+': '+p+'.');}const A=NGS();if(A&&!A.holdOk(o.hold))err(ow+': the wait after an animation is a whole number of seconds from 0 to 30.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': an animation step has no lines.');}
+     else if(o.kind==='wait'){if(!(Number.isInteger(o.hold)&&o.hold>=1&&o.hold<=TIME.wait))err(ow+': a wait step waits a whole number of seconds from 1 to 600.');if(o.near!=null&&!(Number.isInteger(o.near)&&o.near>=1&&o.near<=TIME.near))err(ow+': “only while the player stays within” is a whole number of metres from 1 to 50.');
+      if(o.near!=null&&!npcOk(o.npc))err(ow+': choose who the player must stay near (someone with a TALK prompt).');else if(o.npc!=null&&o.npc!==''&&o.near==null)err(ow+': a wait step names a person only with a distance.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': a wait step has no lines.');}
      else if(o.kind==='photo'){if(!subjectOk(o.npc))err(ow+': choose someone the V1 camera can identify.');}
      else if(o.kind==='send-photo'){if(typeof o.npc!=='string'||o.npc==='You'||!speakerOk(o.npc))err(ow+': the photo must be sent to a known NPC.');if(!subjectOk(o.subject))err(ow+': choose who must be in the photo (someone the V1 camera can identify).');}
      if(o.subject!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step names who must be in the photo.');
@@ -289,6 +314,7 @@
    // a place step (and a photo step: the arrow and the marker lead to the person in the photo) is guided in NeoChinatown (places.js target; mission-log.js guidance)
    if(o.kind==='enter'||o.kind==='leave'||o.kind==='go'&&PL&&PL.BY.has(o.place)){x.place=o.place;if(PL&&PL.within(o.place,'neochinatown'))x.destination='earth';}
    if(o.kind==='photo'){const sub=g(o.npc);x.target=o.npc;if(sub&&sub.place)x.place=sub.place;x.destination='earth';}
+   if(APT_KINDS.includes(o.kind))x.destination='earth';
    return x;});
   if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;if(at(who))x.destination=at(who);objectives.push(x);}
   const extra={};if(Number.isInteger(m.number))extra.number=m.number;for(const k of ['category','location','objective'])if(m[k])extra[k]=m[k];if(m.start&&m.start.how==='notification')extra.start={how:'notification',channel:m.start.channel,from:m.start.from};
@@ -333,15 +359,20 @@
   if(!treeLive(s)||!env||!Array.isArray(env.trees)||!env.trees.length||!ev)return out;
   const npcs=ev.npcs||[],places=ev.places||[],gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   if(ev.type==='pod-exit')for(const k of Object.keys(s.story.flags))if(k.startsWith('md_')&&s.story.flags[k]==='later')delete s.story.flags[k];   // a DENY on the device: offered again from this pod exit
-  const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>({who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text}));
+  const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>{const x={who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text};if(l.who==='You')x.player=true;   // the player's own line: never voiced (live-content.js)
+if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.animFor;}if(l.wait)x.wait=l.wait;if(l.show)x.show=l.show;return x;});
   const gated=linked(env.trees),open=t=>!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true;
   const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
-   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:false;
+   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:o.kind==='anim'?ev.type==='anim'&&ev.step===m.id+'/'+o.id:o.kind==='wait'?ev.type==='wait'&&ev.step===m.id+'/'+o.id
+   // apartments (apartments.js): inside the apartment (the place event carries the one the player is in), a use of one of its objects, a hack of an access point
+   :o.kind==='apt-enter'?ev.type==='place'&&ev.apt===m.id+'/'+o.apt:o.kind==='apt-use'?ev.type==='apt-use'&&ev.mission===m.id&&ev.apt===o.apt&&ev.object===o.object
+   :o.kind==='hack'?ev.type==='hack'&&ev.ap===o.ap&&(ev.mission==null||ev.mission===m.id)&&(!/\//.test(o.ap||'')||ev.mission===m.id):false;
+  const held=(m,o)=>delayed(s,m,o);
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
    if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(GC)GC.stamp(s,m.id);/* the in-game wait of "after N in-game hours" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
   const step=(t,m,o)=>{const c=costOf(m),pay=c&&c.when===o.id?c:null;if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount,needStep:o.id});return false;}   // a step that costs: not done until the player has the credits
-   if(!Missions.complete(s,m.id,o.id,Camp))return false;if(pay){const n=charge(s,m,pay);if(n){out.charged=(out.charged||0)+n;out.notes.push('−'+n+' CREDITS');}}Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
+   if(held(m,o))return false;if(!Missions.complete(s,m.id,o.id,Camp))return false;delete s.story.flags[delayFlag(m.id,o.id)];delete s.story.flags[waitFlag(m.id,o.id)];if(pay){const n=charge(s,m,pay);if(n){out.charged=(out.charged||0)+n;out.notes.push('−'+n+' CREDITS');}}Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
    if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
    else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else out.lines.push(...speak(o.say));settle(m,o.id);return true;};
   // A step's lines that reach the device instead of the dialogue window (a Comms call or a message from the NPC who says them): kept like a start notification.
@@ -359,9 +390,9 @@
    if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);if(w.kind==='leave')return ev.type==='place'&&(ev.left||[]).includes(w.place);
    if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='game-time')return !!(GC&&GC.due(s,w.mission,w.value));if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
   // After a step: the automatic steps that follow it (messages) complete at once.
-  const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind))break;if(!step(t,m,o))break;}};
+  const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind)||held(m,o))break;if(!step(t,m,o))break;}};
   // After a talk step: a 'hear' step next shows its lines (done when the conversation closes), or is done at once when nothing can be shown.
-  const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear')return;const ls=speak(o.say);
+  const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear'||held(m,o))return;const ls=speak(o.say);
    if(ls.length){out.lines.push(...ls);out.hear={mission:m.id,step:o.id};}else if(out.lines.length)out.hear={mission:m.id,step:o.id};   // the talk step's own lines are the introduction: done when they close
    else if(step(t,m,o))auto(t,m);};
   /* Straight on (the owner, 18 Nov 2026: after Admin's "I might have more work for you" he expected the next mission's offer): when talking to someone completes a mission and the
@@ -408,6 +439,7 @@
       const first=m.objectives[0];if(byNote&&first&&hit(first,m))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
      break;}
     const next=m.objectives.find(o=>rec.objectives[o.id]!==true);
+    if(next&&held(m,next))break;   // its delay is still running (live-content.js timerTick): nothing about this step happens yet
     if(next){
      if(ev.type==='send-photo'&&next.kind==='send-photo'&&ev.to===next.npc&&!photoOk(ev.photo,photoNeed(next),m)){Object.assign(out,{tree:t.id,mission:m.id,reply:{to:next.npc,ok:false,lines:speak(next.wrong)}});return out;}   // the wrong photo: the reply says so; no fail, unlimited tries
      // a follow / lead step whose player got lost with "the mission fails": the mission goes back to waiting to be offered (abandon(): its record is removed)
@@ -452,7 +484,26 @@
     kind, npc, to, wait, lost, ifLost, stop}. The game (live-content.js) gives that NPC an escort plan while it lasts. */
  function escortNow(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
-   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&ESCORT.includes(o.kind)&&o.npc&&!out[o.npc]){const e={key:m.id+'/'+o.id,mission:m.id,step:o.id,kind:o.kind,npc:o.npc};for(const k of ['to','wait','lost','ifLost','stop'])if(o[k]!=null)e[k]=o[k];out[o.npc]=e;}break;}}
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&ESCORT.includes(o.kind)&&o.npc&&!out[o.npc]&&!delayed(s,m,o)){const e={key:m.id+'/'+o.id,mission:m.id,step:o.id,kind:o.kind,npc:o.npc};for(const k of ['to','wait','lost','ifLost','stop'])if(o[k]!=null)e[k]=o[k];out[o.npc]=e;}break;}}
+  return out;}
+ /* MISSION TIMERS: a step's delay and a wait step count down in story.flags (remaining whole seconds, so a reload resumes where it was): td_<mission>_<step> (0 = the delay
+    has run) and tw_<mission>_<step>. Both are removed when the step is done. The game counts only while the player is in the world (live-content.js timerTick). */
+ const delayFlag=(mid,sid)=>'td_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18),waitFlag=(mid,sid)=>'tw_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
+ function delayed(s,m,o){return !!(o&&Number.isInteger(o.delay)&&o.delay>0&&s.story.flags[delayFlag(m.id,o.id)]!==0);}
+ /* The timers running now: [{key, mission, step, kind:'delay'|'wait', flag, left (seconds), total, npc?, near?}]. */
+ function timersNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees),f=s.story.flags;
+  for(const t of env.trees){if(gated.has(t.id)&&f[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o)break;const key=m.id+'/'+o.id,num=(v,d)=>Number.isSafeInteger(v)&&v>=0?Math.min(v,d):d;
+   if(delayed(s,m,o)){const fl=delayFlag(m.id,o.id);out.push({key,mission:m.id,step:o.id,kind:'delay',flag:fl,left:num(f[fl],o.delay),total:o.delay});}
+   else if(o.kind==='wait'){const fl=waitFlag(m.id,o.id),x={key,mission:m.id,step:o.id,kind:'wait',flag:fl,left:num(f[fl],o.hold||1),total:o.hold||1};if(o.near&&o.npc){x.npc=o.npc;x.near=o.near;}out.push(x);}break;}}
+  return out;}
+ /* A timer's countdown (whole seconds left; 0: done). A delay that has run stays 0 until its step is done; the game then sends {type:'timer'} (a delay) or {type:'wait', step}. */
+ function timerSet(s,x,left){s.story.flags[x.flag]=Math.max(0,Math.ceil(left));}
+ /* ANIMATION STEPS (npc-gestures.js) in progress now: [{key ('<mission>/<step>'), mission, step, npc, clip, hold}]. The game plays the clip and sends {type:'anim', step:key}
+    after `hold` seconds (live-content.js animTick). */
+ function animNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&o.kind==='anim'&&!delayed(s,m,o))out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:o.npc,clip:o.clip,hold:Number.isInteger(o.hold)?o.hold:3});break;}}
   return out;}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
  function treeWants(s,env,npcs){if(!treeLive(s)||!env||!env.trees)return false;const recs=s.universe.missions||{},gated=linked(env.trees);
@@ -487,6 +538,10 @@
   env.voices=clone((content&&content.voices)||{});if(content&&content.voices&&Object.keys(content.voices).length)out.applied.push(Object.keys(content.voices).length+' voice choice(s) for re-voicing');
   env.clips=clone((content&&content.clips)||[]);if(content&&content.clips&&content.clips.length)out.applied.push(content.clips.length+' imported voice file(s)');
   env.looks=clone((content&&content.looks)||{});if(content&&content.looks&&Object.keys(content.looks).length)out.applied.push(Object.keys(content.looks).length+' NPC look setting(s)');
+  // mission givers made in the editor: movable (their placements) and in the giver roster for the trees below (env.baseGivers: the roster without them)
+  env.characters=clone((content&&content.characters)||{});{const X=NPX();if(X&&X.setMade)X.setMade(env.characters);const G=GVS();if(Array.isArray(env.givers)){env.baseGivers=env.baseGivers||env.givers.filter(g=>!g.made);
+   env.givers=[...env.baseGivers,...(G&&Object.keys(env.characters).length?G.roster({characters:env.characters,npcs:(content&&content.npcs)||{}}).filter(g=>g.made):[])];}}
+  if(Object.keys(env.characters).length)out.applied.push(Object.keys(env.characters).length+' character(s) made in the editor');
   env.npcPlans=clone((content&&content.npcs)||{});if(content&&content.npcs&&Object.keys(content.npcs).length)out.applied.push(Object.keys(content.npcs).length+' NPC placement(s)');
   env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
   if(env.Missions)for(const t of env.trees)t.missions.forEach((m,i)=>env.Missions.define(m.id,treeDefinition(t,m,i,env.givers)));
@@ -501,7 +556,9 @@
  const strip=m=>{const r={id:m.id,title:m.title,type:m.type};for(const k of ['giver','description','destination','prerequisites'])if(m[k]!=null)r[k]=clone(m[k]);if(m.rewards!=null)r.rewards=Number(m.rewards)||0;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:o.label,on:o.on};for(const k of ['requires','interaction','destination','award','say','early'])if(o[k]!=null&&!(Array.isArray(o[k])&&!o[k].length))x[k]=clone(o[k]);if(x.requires)x.requires=x.requires.slice();return x;});return r;};
  /* ---- new trees in the owner's draft → content. Only what the game can run is sent: in each tree, the missions in order up to the first one that cannot run yet. */
- const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>({who:l.who||who||'You',text:l.text.trim()}));
+ const secs=(v,lo,hi)=>{const n=Number(v);return Number.isFinite(n)&&n>=lo?Math.min(hi,Math.round(n)):null;};
+ const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>{const x={who:l.who||who||'You',text:l.text.trim()};if(l.anim&&typeof l.anim==='string'&&x.who!=='You'){x.anim=l.anim;const a=secs(l.animFor,1,TIME.animFor);if(a)x.animFor=a;}
+  const w=secs(l.wait,1,TIME.lineWait),sh=secs(l.show,1,TIME.lineShow);if(w)x.wait=w;if(sh)x.show=sh;return x;});
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
  const askStrip=(st,who)=>{if(!st||st.accept!==true)return {};const x={accept:true};for(const k of ['yes','no'])if(typeof st[k]==='string'&&st[k].trim())x[k]=st[k].trim().slice(0,MONEY.label);
   if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
@@ -509,9 +566,15 @@
    const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;Object.assign(x,askStrip(st,st.from||m.giver));r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',...askStrip(m.start,m.giver)};
   {const c=m.cost;if(c&&Number.isInteger(c.amount)&&c.amount>0){const x={amount:Math.min(c.amount,MONEY.max)};if(c.when&&c.when!=='accept')x.when=c.when;else if(c.refund===true)x.refund=true;r.cost=x;}}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
   {const X=NPX(),wa=X&&m.waitAt&&X.MOVABLE[m.giver]?X.cleanWait(m.waitAt):null;if(wa)r.waitAt=wa;}   // "Giver waits at" (Reverie, Lace)
+  {const X=APT(),ap=X&&X.strip(m.apartments);if(ap)r.apartments=ap;}   // apartment instances (apartments.js)
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
    if(ESCORT.includes(o.kind)){const F=(NEX()&&NEX().FIELDS[o.kind])||[];for(const k of F)if(o[k]!=null&&o[k]!=='')x[k]=k==='to'?{x:o.to.x,z:o.to.z}:o[k];}
+   {const d=secs(o.delay,1,TIME.delay);if(d)x.delay=d;}   // a delay before the step starts
+   if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
+   if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;}
+   if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
+   if(o.kind==='wait'){x.hold=secs(o.hold,1,TIME.wait)||10;const n=secs(o.near,1,TIME.near);if(n&&o.npc){x.near=n;x.npc=o.npc;}else delete x.npc;if(!x.label)x.label='Wait';return x;}   // an animation step: no lines (its label shows in the Mission Log for those seconds)
    const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
   if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}
   const un=(m.unlocks||[]).filter(SUPPORTED_UNLOCK).map(u=>{const x={kind:u.kind};for(const k of ['id','amount','value','when'])if(u[k]!=null&&u[k]!=='')x[k]=u[k];if(x.when==='complete')delete x.when;return x;});if(un.length)r.unlocks=un;
@@ -536,10 +599,17 @@
    if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))need(w+': “the notification arrives” needs the mission to start by notification','kind',id);
    if((o.kind==='enter'||o.kind==='leave')&&!o.place)need(w+': choose the place','step-place',id);
    if(o.kind==='photo'&&!o.npc)need(w+': choose who is photographed','step-subject',id);
+   if((o.kind==='apt-enter'||o.kind==='apt-use')&&!(m.apartments||[]).some(a=>a&&a.id===o.apt))need(w+': choose one of this mission’s apartments (add one under “Apartments for this mission”)','step-apt',id);
+   if(o.kind==='apt-use'&&!o.object)need(w+': choose what is used in the apartment','step-object',id);
+   if(o.kind==='hack'&&!o.ap)need(w+': choose the access point to hack','step-ap',id);
    if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue'}):[]))need(w+': '+n.text,n.key,id);}
    if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
+   if(o.kind==='wait'){if(o.near&&!o.npc)need(w+': choose who the player must stay near','step-npc',id);continue;}
+   if(o.kind==='anim'){if(!o.npc)need(w+': choose who plays the animation','step-npc',id);else if(!o.clip)need(w+': choose the animation','step-clip',id);continue;}   // which clips are allowed: check() (with her NPCs-tab plan)
    if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
    if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}
+  for(const a of m.apartments||[]){if(a&&!a.door)need('apartment “'+(a.id||'?')+'”: choose its street door (on the map or from the list)','apt-door');}
+  {const X=APT();if(X)for(const p of X.problems(m,null))if(!/choose a street door|choose one of this mission|choose what is used|choose the access point/.test(p))need(p,'apt-door');}
   if(m.ending&&m.ending.npc&&!can(m.ending.npc))need('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today','ending');
   {const X=NPX();if(X&&m.waitAt)for(const p of X.waitAtProblems(m.giver,m.waitAt))need('“Giver waits at”: '+p,'wait-at');}
   return out;}
@@ -550,6 +620,15 @@
   // a link to a tree that is not sent is dropped (and said)
   const sent=new Set(out.map(t=>t.id));for(const t of out)for(const m of t.missions)if(m.unlocks){const keep=m.unlocks.filter(u=>u.kind!=='tree'||(sent.has(u.id)&&u.id!==t.id));if(keep.length<m.unlocks.length)skipped.push({tree:t.id,mission:m.id,title:m.title,why:['its “start tree” link points to a tree that cannot run yet (the link is left out)'],partial:true});if(keep.length)m.unlocks=keep;else delete m.unlocks;}
   return {trees:out,skipped};}
+ /* The draft's made characters that can be sent: cleaned, and nothing in the way (npc-made.js problems with the draft's placements and trees). {id: character} */
+ function madeReady(local,givers){const MD=MDE(),ch=(local&&local.characters)||{};if(!MD||!Object.keys(ch).length)return {};const out={},ms=new Map(),offer=new Map();
+  for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
+  const reserved=new Set((givers||[]).filter(g=>!g.made).map(g=>g.id));for(const [id,c0] of Object.entries(ch)){const c=MD.clean(c0);if(c&&!MD.problems({[id]:c},{npcs:(local&&local.npcs)||{},missions:ms,reserved,givesOffer:offer}).length&&!placeNeeds(id,c,local).length)out[id]=c;}return out;}
+ /* Why a made character in the draft is not sent yet (plain words; empty: it is). */
+ function madeNeeds(local,givers,id){const MD=MDE(),c=((local&&local.characters)||{})[id];if(!MD||!c)return [];const ms=new Map(),offer=new Map();for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
+  const p=MD.problems({[id]:MD.clean(c)},{npcs:(local&&local.npcs)||{},missions:ms,reserved:new Set((givers||[]).filter(g=>!g.made).map(g=>g.id)),givesOffer:offer});return p.length?p:placeNeeds(id,MD.clean(c),local);}
+ /* Their placement's own problems (npc-paths.js planProblems), with this character registered as it is in the draft. */
+ function placeNeeds(id,c,local){const X=NPX(),p=((local&&local.npcs)||{})[id];if(!X||!X.setMade||!p)return [];const had=X.madeNow(),reg=X.MOVABLE[id]&&X.MOVABLE[id].made&&had[id]===c;const before=reg?null:X.setMade({...had,[id]:c});try{return X.planProblems(id,X.clean(p)||p);}finally{if(before)X.setMade(before);}}
  function fromDrafts({studio,local,shippedBeginner,note,givers,items,clipText}={}){
   const out={format:FORMAT,version:VERSION};
   if(studio&&Array.isArray(studio.missions)){const b=studio.missions.map(strip);if(!shippedBeginner||JSON.stringify(b)!==JSON.stringify((shippedBeginner||[]).map(strip)))out.beginner=b;}
@@ -559,7 +638,9 @@
   if(Object.keys(reg).length)out.registry=reg;
   const lines=Object.entries((local&&local.lines)||{}).filter(([,e])=>e&&e.adapter==='talk'&&typeof e.to==='string'&&e.to!==e.from).map(([ref,e])=>({who:ref.split('|')[0],from:e.from,to:e.to}));if(lines.length)out.lines=lines;
   const tc=treesContent((local&&local.trees)||[],{givers,items});if(tc.trees.length)out.trees=tc.trees;
-  {const X=NPX(),np={};for(const [id,p] of Object.entries((local&&local.npcs)||{})){const c=X&&X.MOVABLE[id]?X.clean(p):null;if(c)np[id]=c;}if(Object.keys(np).length)out.npcs=np;}   // Developer Tools > NPCs
+  // mission givers made in the editor: only finished ones are sent (madeReady); their placements with them
+  const ready=madeReady(local,givers);if(Object.keys(ready).length)out.characters=ready;
+  {const X=NPX(),np={};for(const [id,p] of Object.entries((local&&local.npcs)||{})){const M=X&&X.MOVABLE[id];const c=M&&!(M.made&&!ready[id])?X.clean(p):null;if(c)np[id]=c;}if(Object.keys(np).length)out.npcs=np;}   // Developer Tools > NPCs
   {const V=NPV(),vs={};for(const [id,v] of Object.entries((local&&local.voices)||{})){const c=V&&!V.refusal(id)?V.clean(v):null;if(c)vs[id]=c;}if(Object.keys(vs).length)out.voices=vs;}   // ElevenLabs voice choices
   {const L=NPL(),lk={};for(const [a,e] of Object.entries((local&&local.looks)||{})){const c=L?L.clean(a,e):null;if(c)lk[a]=c;}if(Object.keys(lk).length)out.looks=lk;}   // NPC looks
   {const I=VIM(),cl=I&&local&&local.clips?I.contentClips(local.clips,clipText):[];if(cl.length)out.clips=cl;}   // imported voice files (clipText: line key -> its words now; an import whose words changed is left out)
@@ -567,10 +648,11 @@
   if(note)out.note=String(note).slice(0,500);
   return out;
  }
- const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length));
+ const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length)&&!(c.characters&&Object.keys(c.characters).length));
  /* Edits in the drafts that the game cannot apply live (draft play and publishing alike), in plain words. */
  function notApplied({studio,local,givers,items}={}){
   const out=[];
+  for(const id of Object.keys((local&&local.characters)||{})){const n=madeNeeds(local,givers,id);if(n.length)out.push('New character “'+(((local.characters[id]||{}).name)||id)+'”: not in the game yet: '+n.join(' ')+' It stays in your draft (Developer Tools > NPCs).');}
   for(const x of treesContent((local&&local.trees)||[],{givers,items}).skipped)out.push(x.partial?'New mission "'+x.title+'": '+x.why.join('; ')+'.':'New mission "'+x.title+'": cannot be played or published yet: '+x.why.join('; ')+'. It stays in your draft.');
   for(const t of (local&&local.trees)||[])for(const m of t.missions||[]){const n='"'+(m.title||m.id)+'"';
    if((m.choices||[]).length)out.push(n+': the branches (choices). The game does not offer mission choices yet (needs a code change); missions in a tree run in order.');
@@ -635,7 +717,12 @@
   const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
   return acts;
  }
- const api={ESCORT,escortNow,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ /* APARTMENTS (apartments.js): the instances open for this player now, the street doors a hack opened, the hack steps in progress. */
+ const aptLive=(s,env)=>treeLive(s)&&env&&Array.isArray(env.trees);
+ function apartmentsNow(s,env){const X=APT();return X&&aptLive(s,env)?X.openNow(s,env.trees):[];}
+ function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
+ function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
+ const api={apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

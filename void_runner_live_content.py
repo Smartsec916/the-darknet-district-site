@@ -94,8 +94,14 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'characters']):
         return ['The content record has an unknown shape.']
+    if content.get('characters') is not None:
+        # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
+        inv = inv or _json('void_runner_admin_inventory.json')
+        for p in made_problems(content, inv):
+            err(p)
+        inv = with_made(content.get('characters'), inv)
     if content.get('clips') is not None:
         for p in clip_problems(content['clips']):
             err(p)
@@ -319,7 +325,7 @@ def area_of(p, inv, prefer=None):
     return None
 
 
-def area_check(p, inv, prefer=None, m=None):
+def area_check(p, inv, prefer=None, m=None, adult=False):
     """The same rule as void-runner/npc-areas.js check(): (ok, area, kind, why). Kinds: ok, rule (the owner's content rule: Milked, NULL, the District bar, VR, arcade,
     Corporate District), blocked, gate, road, obstacle, post, outside."""
     A = _areas(inv)
@@ -333,7 +339,7 @@ def area_check(p, inv, prefer=None, m=None):
     aid = area_of(p, inv, prefer)
     if aid:
         a = by[aid]
-        nos = sorted([n for n in a['no'] if _in(n['rect'], x, z)], key=lambda n: _size(n['rect']))
+        nos = sorted([n for n in a['no'] if _in(n['rect'], x, z) and not (adult and n.get('adult'))], key=lambda n: _size(n['rect']))
         if nos:
             return (False, aid, 'rule' if nos[0].get('rule') else 'blocked', nos[0]['why'])
         for g in a.get('gates') or []:
@@ -346,7 +352,7 @@ def area_check(p, inv, prefer=None, m=None):
             if ((x - px) ** 2 + (z - pz) ** 2) ** .5 < .7:
                 return (False, aid, 'post', 'That is on a taxi post.')
         return (True, aid, 'ok', '')
-    nos = [(n, a['id']) for a in al for n in a['no'] if _in(n['rect'], x, z)] + [(n, None) for n in A.get('out') or [] if _in(n['rect'], x, z)]
+    nos = [(n, a['id']) for a in al for n in a['no'] if _in(n['rect'], x, z) and not (adult and n.get('adult'))] + [(n, None) for n in A.get('out') or [] if _in(n['rect'], x, z)]
     nos.sort(key=lambda t: (0 if t[0].get('rule') else 1, _size(t[0]['rect'])))
     if nos and nos[0][0].get('rule'):
         return (False, nos[0][1], 'rule', nos[0][0]['why'])
@@ -364,7 +370,7 @@ def area_check(p, inv, prefer=None, m=None):
     return (False, None, 'outside', 'That is not somewhere she can walk.')
 
 
-def forbidden_spot_problems(npcs, trees=None, inv=None):
+def forbidden_spot_problems(npcs, trees=None, inv=None, adults=()):
     """The editor's server copy of a draft (void_runner_drafts.py) may be half made, but the owner's content rule holds there too: no spot or route point of Reverie,
     Lace or the cat (all day, in a time block, or a mission's "Giver waits at") in Milked, NULL, the District bar, VR or arcade, or the Corporate District."""
     inv = inv or _json('void_runner_admin_inventory.json')
@@ -378,8 +384,14 @@ def forbidden_spot_problems(npcs, trees=None, inv=None):
             spots.extend(q for q in p['points'] if isinstance(q, dict))
         for b in p.get('schedule') or [] if isinstance(p.get('schedule'), list) else []:
             plan_spots(b)
-    for p in (npcs or {}).values() if isinstance(npcs, dict) else []:
-        plan_spots(p)
+    adult_spots = []
+    for k, p in (npcs or {}).items() if isinstance(npcs, dict) else []:
+        if k in adults:
+            n0 = len(spots)
+            plan_spots(p)
+            adult_spots.extend(spots[n0:])
+        else:
+            plan_spots(p)
     for t in trees or [] if isinstance(trees, list) else []:
         for m in (t.get('missions') or []) if isinstance(t, dict) else []:
             if isinstance(m, dict) and isinstance(m.get('waitAt'), dict):
@@ -387,7 +399,7 @@ def forbidden_spot_problems(npcs, trees=None, inv=None):
     out = []
     for q in spots:
         if _num(q.get('x')) and _num(q.get('z')):
-            ok, _a, kind, why = area_check(q, inv)
+            ok, _a, kind, why = area_check(q, inv, adult=any(q is x for x in adult_spots))
             if kind == 'rule':
                 out.append(why)
     return out
@@ -397,7 +409,7 @@ def spot_problems(npc, p, inv):
     mv = _movable(inv).get(npc)
     if not mv:
         return ['This NPC cannot be moved by the editor yet.']
-    ok, _a, _k, why = area_check(p, inv)
+    ok, _a, _k, why = area_check(p, inv, adult=bool(mv.get('adult')))
     out = [] if ok else [why]
     if isinstance(p, dict) and p.get('yaw') is not None and not _num(p.get('yaw')):
         out.append('The facing is not a number.')
@@ -407,8 +419,9 @@ def spot_problems(npc, p, inv):
 def _leg_problems(mv, a, b, inv=None):
     A = _areas(inv)
     m = A.get('clear', .3) - .1
-    oka, aa, _, _ = area_check(a, inv, None, m)
-    okb, ab, _, _ = area_check(b, inv, aa, m)
+    ad = bool((mv or {}).get('adult'))
+    oka, aa, _, _ = area_check(a, inv, None, m, ad)
+    okb, ab, _, _ = area_check(b, inv, aa, m, ad)
     if oka and okb and aa != ab:
         return ['the walk to the next point goes into another area: a route stays in one area.']
     area = aa or ab
@@ -419,7 +432,7 @@ def _leg_problems(mv, a, b, inv=None):
     for k in range(n + 1):
         t = k / n
         q = {'x': a['x'] + (b['x'] - a['x']) * t, 'z': a['z'] + (b['z'] - a['z']) * t}
-        ok, qa, kind, _ = area_check(q, inv, area, m)
+        ok, qa, kind, _ = area_check(q, inv, area, m, ad)
         if ok and qa == area:
             continue
         if ok:
@@ -435,6 +448,195 @@ def _leg_problems(mv, a, b, inv=None):
 # ---- Follow / lead / shared-cab steps (void-runner/npc-escort.js): the same rules, from the admin inventory (npcEscort) ----
 ESCORT_KINDS = ('follow-them', 'they-follow', 'their-cab', 'shared-cab')
 ESCORT_FIELDS = ('to', 'wait', 'lost', 'ifLost', 'stop')
+
+# ---- Animations on lines and animation steps (void-runner/npc-gestures.js): the clips each character can play, from the admin inventory ----
+# (missionEditor.gestures: their own model's clips and library clips; a clip added in Developer Tools > NPCs counts when it is in her published plan's anims
+#  and allowed for her, npcPaths.movable[id].anims). The player ('You') has none.
+ANIM_CLIP = re.compile(r'^[a-z0-9][a-z0-9-]{0,40}(/[a-z0-9][a-z0-9-]{0,40})?$')
+ANIM_HOLD = (0, 30)
+# Mission timers (19 Nov 2026, the owner: "mission timers. set the amount of time between actions, lines, etc"): the same ranges as mission-content.js TIME.
+TIME = {'lineWait': 60, 'lineShow': 60, 'animFor': 30, 'delay': 600, 'wait': 600, 'near': 50}
+
+
+def _sec(v, lo, hi):
+    return v is None or (type(v) is int and lo <= v <= hi)
+
+
+def line_time_problems(line):
+    out = []
+    if not isinstance(line, dict):
+        return out
+    if not _sec(line.get('wait'), 0, TIME['lineWait']):
+        out.append('the wait before a line is a whole number of seconds from 0 to 60.')
+    if not _sec(line.get('show'), 1, TIME['lineShow']):
+        out.append('"show for" is a whole number of seconds from 1 to 60.')
+    if not _sec(line.get('animFor'), 1, TIME['animFor']):
+        out.append('an animation on a line lasts a whole number of seconds from 1 to 30.')
+    elif line.get('animFor') is not None and line.get('anim') is None:
+        out.append('only a line with an animation has an animation time.')
+    return out
+
+
+def gesture_problem(who, clip, inv, npcs=None):
+    """Why `clip` cannot be played by NPC `who` ('' when it can)."""
+    if not isinstance(clip, str) or len(clip) > 80 or not ANIM_CLIP.match(clip):
+        return 'the animation has an unknown name'
+    if who == 'You':
+        return 'the player\u2019s own line has no animation'
+    g = ((inv or {}).get('missionEditor') or {}).get('gestures') or {}
+    if clip in ((g.get(who) or {}).get('clips') or []):
+        return ''
+    mv = _movable(inv).get(who) or {}
+    plan = (npcs or {}).get(who) if isinstance(npcs, dict) else None
+    if mv and isinstance(plan, dict) and isinstance(plan.get('anims'), list) and clip in plan['anims'] and clip in (mv.get('anims') or []):
+        return ''
+    return 'not an animation this character can play'
+
+
+APT_ID = re.compile(r'^[a-z][a-z0-9-]{0,23}$')
+APT_AP = re.compile(r'^([a-z][a-z0-9-]{0,23})/(hall|entry)$')
+APT_DOOR = re.compile(r'^apt-[a-z]+-[nsew]-\d{1,3}$')
+
+
+def apartment_problems(m, inv, shape_only=False):
+    """Mission apartments, apartment steps and access-point hacks (void-runner/apartments.js problems(): the same rules, against the admin inventory's
+    `apartments` lists). shape_only: the editor's server copy of the draft (an unfinished draft may have no door yet)."""
+    ap = (inv or {}).get('apartments') or {}
+    styles, objects, item_types = set(ap.get('styles') or []), set(ap.get('objects') or []), set(ap.get('itemTypes') or [])
+    doors, items = set((ap.get('doors') or {}).keys()), set(ap.get('items') or [])
+    lim, hack, bx = ap.get('limit') or {'perMission': 4, 'items': 20, 'label': 60, 'number': 9999}, ap.get('hack') or {'min': 2, 'max': 30}, ap.get('bounds') or {'x': [-4, 4], 'z': [-5, 5]}
+    out = []
+    lst = m.get('apartments')
+    lst = [] if lst is None else lst
+    if not isinstance(lst, list) or len(lst) > lim['perMission']:
+        return ['a mission has at most %d apartments.' % lim['perMission']]
+    ids, seen = set(), set()
+    oids = {o.get('id') for o in (m.get('objectives') or []) if isinstance(o, dict)}
+
+    def num(v):
+        return isinstance(v, (int, float)) and not isinstance(v, bool)
+    for a in lst:
+        if not _keys(a, ['id', 'style', 'door', 'number', 'from', 'items', 'locked', 'screenOff', 'lightsOff']):
+            out.append('an apartment has unknown fields.')
+            continue
+        w = 'apartment "%s"' % a.get('id')
+        if not isinstance(a.get('id'), str) or not APT_ID.match(a['id']) or a['id'] in ids:
+            out.append(w + ': its name must be lowercase letters, digits and hyphens, unique in the mission.')
+        ids.add(a.get('id'))
+        if a.get('style') is not None and a['style'] not in (styles or {'rundown', 'normal', 'luxury'}):
+            out.append(w + ': choose rundown, normal or luxury.')
+        if not shape_only and a.get('style') is None:
+            out.append(w + ': choose rundown, normal or luxury.')
+        door = a.get('door')
+        if shape_only:
+            if door not in (None, '') and not (isinstance(door, str) and APT_DOOR.match(door)):
+                out.append(w + ': unknown street door.')
+        elif not isinstance(door, str) or door not in doors:
+            out.append(w + ': choose a street door.')
+        if isinstance(door, str) and door:
+            if door in seen:
+                out.append('two apartments of one mission use the same street door.')
+            seen.add(door)
+        n = a.get('number')
+        if n is not None and not (type(n) is int and 1 <= n <= lim['number']):
+            out.append(w + ': the number on its door is a whole number from 1 to 9999.')
+        for key in ('screenOff', 'lightsOff'):
+            if a.get(key) is not None and type(a[key]) is not bool:
+                out.append(w + ': "screen / lights start" is on or off.')
+        if a.get('screenOff') is not None and a.get('style') not in ('rundown', 'normal'):
+            out.append(w + ': only the rundown and normal apartments have an ad screen.')
+        if a.get('locked') is not None and type(a['locked']) is not bool:
+            out.append(w + ': "locked until hacked" is yes or no.')
+        f = a.get('from')
+        if f is not None and f != 'start' and f not in oids:
+            out.append(w + ': "available from" must be the start or one of its steps.')
+        its = a.get('items')
+        if its is not None:
+            if not isinstance(its, list) or len(its) > lim['items']:
+                out.append(w + ': at most %d placed items.' % lim['items'])
+            else:
+                for it in its:
+                    if not _keys(it, ['type', 'label', 'x', 'z', 'y']) or (it.get('type') not in (item_types or {'loot', 'mission-item', 'note', 'other'})) or not _plain(it.get('label'), lim['label']):
+                        out.append(w + ': a placed item needs a type and a short plain label.')
+                        continue
+                    if not (num(it.get('x')) and num(it.get('z')) and bx['x'][0] + .2 <= it['x'] <= bx['x'][1] - .2 and bx['z'][0] + .2 <= it['z'] <= bx['z'][1] - .2):
+                        out.append(w + ': a placed item must be inside the apartment.')
+                    if it.get('y') is not None and not (num(it['y']) and 0 <= it['y'] <= 2.4):
+                        out.append(w + ': a placed item\u2019s height is 0 to 2.4 m.')
+    for o in m.get('objectives') or []:
+        if not isinstance(o, dict):
+            continue
+        k, sid = o.get('kind'), str(o.get('id'))
+        if k in ('apt-enter', 'apt-use'):
+            if o.get('apt') not in ids and not (shape_only and o.get('apt') is None):
+                out.append('step ' + sid + ': choose one of this mission\u2019s apartments.')
+            if k == 'apt-use' and not (o.get('object') in (objects or {'computer', 'panel', 'safe', 'vending', 'closet', 'lights'}) or (shape_only and o.get('object') is None)):
+                out.append('step ' + sid + ': choose what is used.')
+            if k == 'apt-enter' and o.get('object') is not None:
+                out.append('step ' + sid + ': only a "use something" step names an object.')
+        elif o.get('apt') is not None or o.get('object') is not None:
+            out.append('step ' + sid + ': only an apartment step names an apartment.')
+        if k == 'hack':
+            a = o.get('ap')
+            mm = APT_AP.match(a) if isinstance(a, str) else None
+            if a is None and shape_only:
+                pass
+            elif mm:
+                if mm.group(1) not in ids:
+                    out.append('step ' + sid + ': choose one of this mission\u2019s apartments.')
+            elif not (isinstance(a, str) and APT_DOOR.match(a) and (shape_only or a in doors)):
+                out.append('step ' + sid + ': choose the access point to hack.')
+            h = o.get('hold')
+            if h is not None and not (type(h) is int and hack['min'] <= h <= hack['max']):
+                out.append('step ' + sid + ': the hack takes a whole number of seconds from %d to %d.' % (hack['min'], hack['max']))
+            for key in ('stay', 'unlock'):
+                if o.get(key) is not None and type(o[key]) is not bool:
+                    out.append('step ' + sid + ': a hack option is yes or no.')
+            if o.get('needs') is not None and o['needs'] not in (items or {'ward-kit', 'hacking-device'}):
+                out.append('step ' + sid + ': the player can only need an item the game has.')
+        elif any(o.get(key) is not None for key in ('ap', 'stay', 'unlock', 'needs')):
+            out.append('step ' + sid + ': only a "hack the access point" step names an access point.')
+    return out
+
+
+def apartment_shape_problems(trees):
+    """The editor's server copy of the draft: apartments and their steps are well formed (doors are checked when publishing)."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if isinstance(m, dict):
+                out += apartment_problems(m, {}, shape_only=True)
+    return out
+
+
+def gesture_shape_problems(trees):
+    """The editor's server copy of the draft: animation names and waits are well formed (who may play them is checked when publishing)."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if not isinstance(m, dict):
+                continue
+            groups = [m.get('offer'), ((m.get('ending') or {}) if isinstance(m.get('ending'), dict) else {}).get('say'), ((m.get('start') or {}) if isinstance(m.get('start'), dict) else {}).get('denySay')]
+            for o in m.get('objectives') or []:
+                if not isinstance(o, dict):
+                    continue
+                groups += [o.get('say'), o.get('early'), o.get('wrong')]
+                if o.get('clip') is not None and not (isinstance(o['clip'], str) and ANIM_CLIP.match(o['clip'])):
+                    out.append('an animation step names an unknown animation.')
+                h = o.get('hold')
+                if h is not None and not (type(h) is int and 0 <= h <= TIME['wait']):
+                    out.append('a step waits a whole number of seconds from 0 to 600.')
+                if not _sec(o.get('delay'), 0, TIME['delay']):
+                    out.append('the delay before a step is a whole number of seconds from 0 to 600.')
+                if not _sec(o.get('near'), 1, TIME['near']):
+                    out.append('a wait step\u2019s distance is a whole number of metres from 1 to 50.')
+            for ls in groups:
+                for line in ls if isinstance(ls, list) else []:
+                    out += line_time_problems(line)
+                    a = line.get('anim') if isinstance(line, dict) else None
+                    if a is not None and not (isinstance(a, str) and len(a) <= 80 and ANIM_CLIP.match(a)):
+                        out.append('a line names an unknown animation.')
+    return out
 
 
 def placed_area(npc, wait_at, plan, inv):
@@ -1027,13 +1229,19 @@ def check_trees(trees, inv, err, npcs=None):
             err(w + ': too many lines.')
             return
         for line in ls:
-            if not _keys(line, ['who', 'text']) or not _plain(line.get('text'), 500):
+            for p in line_time_problems(line):
+                err(w + ': ' + p)
+            if not _keys(line, ['who', 'text', 'anim', 'wait', 'show', 'animFor']) or not _plain(line.get('text'), 500):
                 err(w + ': a line must be plain text.')
             elif line.get('who') != 'You' and line.get('who') not in givers:
                 err(w + ': unknown speaker.')
             else:
                 for p in voice_tag_problems(line['text']):
                     err(w + ': ' + p)
+                if line.get('anim') is not None:
+                    p = gesture_problem(line.get('who'), line['anim'], inv, npcs)
+                    if p:
+                        err(w + ': ' + p + '.')
     for t in trees:
         if not _keys(t, ['id', 'name', 'note', 'missions']):
             err('A tree has unknown fields.')
@@ -1053,10 +1261,12 @@ def check_trees(trees, inv, err, npcs=None):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost', 'apartments']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
+            for p in apartment_problems(m, inv):
+                err(w + ': ' + p)
             if m.get('waitAt') is not None:
                 for p in wait_at_problems(m.get('giver'), m['waitAt'], inv):
                     err(w + ': ' + p)
@@ -1099,7 +1309,7 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', *ESCORT_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'object', 'ap', 'stay', 'unlock', 'needs', *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))
@@ -1131,10 +1341,42 @@ def check_trees(trees, inv, err, npcs=None):
                     area = placed_area(o.get('npc'), m.get('waitAt') if m.get('giver') == o.get('npc') else None, (npcs or {}).get(o.get('npc')), inv)
                     for p in escort_problems(o, inv, area):
                         err(ow + ': ' + p)
+                elif kind == 'anim':
+                    if o.get('npc') not in givers:
+                        err(ow + ': choose who plays the animation.')
+                    else:
+                        p = gesture_problem(o.get('npc'), o.get('clip'), inv, npcs)
+                        if p:
+                            err(ow + ': ' + p + '.')
+                    h = o.get('hold')
+                    if h is not None and not (type(h) is int and ANIM_HOLD[0] <= h <= ANIM_HOLD[1]):
+                        err(ow + ': the wait after an animation is a whole number of seconds from 0 to 30.')
+                    if any(o.get(k) is not None for k in ('say', 'early', 'via')):
+                        err(ow + ': an animation step has no lines.')
+                elif kind == 'wait':
+                    h, near = o.get('hold'), o.get('near')
+                    if not (type(h) is int and 1 <= h <= TIME['wait']):
+                        err(ow + ': a wait step waits a whole number of seconds from 1 to 600.')
+                    if near is not None and not (type(near) is int and 1 <= near <= TIME['near']):
+                        err(ow + ': "only while the player stays within" is a whole number of metres from 1 to 50.')
+                    if near is not None and o.get('npc') not in talk:
+                        err(ow + ': choose who the player must stay near.')
+                    elif o.get('npc') not in (None, '') and near is None:
+                        err(ow + ': a wait step names a person only with a distance.')
+                    if any(o.get(k) is not None for k in ('say', 'early', 'via')):
+                        err(ow + ': a wait step has no lines.')
                 elif kind == 'photo' and o.get('npc') not in subjects:
                     err(ow + ': not someone the V1 camera can identify.')
                 elif kind == 'send-photo' and (o.get('npc') not in givers or o.get('subject') not in subjects):
                     err(ow + ': the photo must go to a known NPC and show someone the camera can identify.')
+                if kind != 'anim' and o.get('clip') is not None:
+                    err(ow + ': only an animation step names an animation.')
+                if kind not in ('anim', 'wait', 'hack') and o.get('hold') is not None:
+                    err(ow + ': only an animation or wait step has a number of seconds.')
+                if kind != 'wait' and o.get('near') is not None:
+                    err(ow + ': only a wait step has a distance.')
+                if not _sec(o.get('delay'), 0, TIME['delay']):
+                    err(ow + ': the delay before a step is a whole number of seconds from 0 to 600.')
                 if kind not in ESCORT_KINDS and any(o.get(f) is not None for f in ESCORT_FIELDS):
                     err(ow + ': only a follow / lead / cab step has a spot, distances or a cab stop.')
                 if o.get('subject') is not None and kind != 'send-photo':
@@ -1729,3 +1971,157 @@ def get_clip(db, h):
     _clip_cache[h] = (data, rec['type'])
     return _clip_cache[h]
 
+
+# ---- Mission givers made in the editor (void-runner/npc-made.js, Developer Tools > NPCs > Create a mission giver): content.characters[id] ----
+# The same rules as npc-made.js problems(), against the admin inventory's madeCharacters (models, items, ships, devices, the ids the game already uses). A made character
+# placed in an adult venue must be marked adult (18+) (npc-areas.js `adult` rectangles; never on Reverie's or Lace's model).
+MADE_ID = re.compile(r'^[a-z][a-z0-9-]{1,39}$')
+MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when']
+
+
+def _made_plain(v, n):
+    return isinstance(v, str) and v.strip() != '' and len(v) <= n and not TAGS.search(v) and not re.search(r'[\x00-\x1f]', v)
+
+
+def _base_plan(p):
+    if not isinstance(p, dict):
+        return None
+    rest = {k: v for k, v in p.items() if k != 'schedule'}
+    return rest if rest.get('mode') in ('stay', 'path') else None
+
+
+def made_problems(content, inv=None):
+    inv = inv or _json('void_runner_admin_inventory.json')
+    mc = inv.get('madeCharacters') or {}
+    chars = content.get('characters')
+    lim = mc.get('limits') or {}
+    if not isinstance(chars, dict) or len(chars) > lim.get('characters', 12):
+        return ['Made characters have an unknown shape.']
+    models, items, ships = mc.get('models') or {}, mc.get('items') or {}, set(mc.get('ships') or [])
+    reserved = set(mc.get('reserved') or [])
+    npcs = content.get('npcs') if isinstance(content.get('npcs'), dict) else {}
+    missions, offers = {}, {}
+    for t in content.get('trees') or [] if isinstance(content.get('trees'), list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if isinstance(m, dict) and isinstance(m.get('id'), str):
+                missions[m['id']] = [o.get('id') for o in m.get('objectives') or [] if isinstance(o, dict)]
+                st = m.get('start') if isinstance(m.get('start'), dict) else {}
+                if st.get('how') != 'notification':
+                    offers[m['id']] = m.get('giver')
+    known_missions = {x.get('id') for x in inv.get('missions') or [] if isinstance(x, dict)}
+    out = []
+    for cid, c in chars.items():
+        w = (c.get('name').strip()[:40] if isinstance(c, dict) and isinstance(c.get('name'), str) and c.get('name').strip() else str(cid)) + ': '
+        if not isinstance(cid, str) or not MADE_ID.match(cid):
+            out.append(w + 'the id must be 2 to 40 lower-case letters, digits or dashes.')
+            continue
+        if cid in reserved:
+            out.append(w + 'the id is already used by a character of the game.')
+            continue
+        if not _keys(c, MADE_KEYS):
+            out.append(w + 'unknown fields.')
+            continue
+        if not _made_plain(c.get('name'), lim.get('name', 40)):
+            out.append(w + 'a name is needed (plain words, 40 characters at most).')
+        if c.get('role') is not None and not _made_plain(c.get('role'), lim.get('role', 80)):
+            out.append(w + 'the role line must be plain words (80 characters at most).')
+        md = models.get(c.get('model')) if isinstance(c.get('model'), str) else None
+        if md is None:
+            out.append(w + 'not a model of the game.')
+            continue
+        if c.get('adult') is not None and c.get('adult') is not True:
+            out.append(w + '"adult" is either true or left out.')
+        elif c.get('adult') is True and not md.get('adultOk'):
+            out.append(w + 'this model reads youthful: it can never be marked adult.')
+        if c.get('look') is not None:
+            if not _keys(c['look'], ['hide', 'colour', 'gear', 'hair']):
+                out.append(w + 'the look has unknown fields.')
+            else:
+                out += [w + x for x in look_problems({c['model']: {'looks': [dict(c['look'], id='own', name='own look')], 'use': 'own'}}, inv)]
+        if c.get('device') is not None and c.get('device') not in (mc.get('devices') or []):
+            out.append(w + 'the device must be V1, V2, V3 or none.')
+        if c.get('ship') is not None and c.get('ship') not in ships:
+            out.append(w + 'not a ship of the game.')
+        its = c.get('items')
+        if its is not None:
+            if not isinstance(its, list) or len(its) > lim.get('items', 6):
+                out.append(w + 'too many items.')
+            else:
+                seen = set()
+                for i in its:
+                    if not _keys(i, ['id', 'show']) or not isinstance(i.get('id'), str) or i['id'] not in items:
+                        out.append(w + 'an item is not one of the game.')
+                        continue
+                    if i.get('show') is not None and (i['show'] is not True or not items[i['id']].get('show')):
+                        out.append(w + 'that item cannot be shown on them.')
+                    if i['id'] in seen:
+                        out.append(w + 'an item is listed twice.')
+                    seen.add(i['id'])
+        wn = c.get('when')
+        if wn is not None:
+            if not _keys(wn, ['mission', 'step']) or not isinstance(wn.get('mission'), str):
+                out.append(w + '"when they are there" has an unknown shape.')
+            elif wn['mission'] not in missions and wn['mission'] not in known_missions:
+                out.append(w + 'they are there only during a mission that does not exist.')
+            elif wn.get('step') is not None and wn['mission'] in missions and wn['step'] not in missions[wn['mission']]:
+                out.append(w + 'the step they appear from is not a step of that mission.')
+            elif offers.get(wn['mission']) == cid:
+                out.append(w + 'they appear only while that mission is active, so they cannot offer it.')
+        p = npcs.get(cid)
+        if not isinstance(p, dict) or not (_base_plan(p) or any(isinstance(b, dict) and b.get('mode') in ('stay', 'path') for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
+            out.append(w + 'put them somewhere in the world.')
+        elif not _base_plan(p):
+            out.append(w + 'outside their time blocks they need a place too.')
+        elif not md.get('walk') and (p.get('mode') == 'path' or any(isinstance(b, dict) and b.get('mode') == 'path' for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
+            out.append(w + 'this model has no walking animation: keep them at one spot.')
+    return out
+
+
+def with_made(chars, inv):
+    """The inventory with the made characters added as movable NPCs, givers with a TALK prompt, their animations and their follow / lead steps (a copy; inv is not changed)."""
+    if not isinstance(chars, dict) or not chars:
+        return inv
+    mc = inv.get('madeCharacters') or {}
+    models = mc.get('models') or {}
+    reserved = set(mc.get('reserved') or [])
+    out = dict(inv)
+    paths = dict(inv.get('npcPaths') or {})
+    paths['movable'] = dict(paths.get('movable') or {})
+    me = dict(inv.get('missionEditor') or {})
+    me['givers'] = dict(me.get('givers') or {})
+    me['gestures'] = dict(me.get('gestures') or {})
+    esc = dict(inv.get('npcEscort') or {})
+    esc['npcs'] = dict(esc.get('npcs') or {})
+    areas = [a.get('id') for a in ((paths.get('areas') or {}).get('areas') or [])]
+    for cid, c in chars.items():
+        if not isinstance(cid, str) or not MADE_ID.match(cid) or cid in reserved or not isinstance(c, dict):
+            continue
+        md = models.get(c.get('model')) if isinstance(c.get('model'), str) else None
+        if not md:
+            continue
+        adult = c.get('adult') is True and bool(md.get('adultOk'))
+        v = md.get('adult') if adult and md.get('adult') else md
+        name = c.get('name') if isinstance(c.get('name'), str) and c.get('name').strip() else cid
+        mv = v.get('movable') or {}
+        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': [], 'actions': mv.get('actions') or [], 'anims': mv.get('anims') or [], 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
+        me['givers'][cid] = {'name': name, 'canTalk': True, 'players': True, 'draft': True, 'group': 'district'}
+        if v.get('gestures'):
+            me['gestures'][cid] = {'look': c.get('model'), 'clips': v['gestures']}
+        if v.get('escort'):
+            esc['npcs'][cid] = v['escort']
+    out['npcPaths'], out['missionEditor'], out['npcEscort'] = paths, me, esc
+    return out
+
+
+def made_shape_problems(chars):
+    """The editor's server copy of a draft (void_runner_drafts.py): a made character may be half done, but its shape is closed."""
+    if not isinstance(chars, dict) or len(chars) > 12:
+        return ['Made characters have an unknown shape.']
+    for cid, c in chars.items():
+        if not isinstance(cid, str) or not MADE_ID.match(cid) or not _keys(c, MADE_KEYS):
+            return ['a made character has an unknown shape.']
+        if c.get('name') is not None and not (isinstance(c['name'], str) and len(c['name']) <= 40 and not TAGS.search(c['name'])):
+            return ['a made character’s name must be plain words.']
+        if c.get('adult') not in (None, True):
+            return ['"adult" is either true or left out.']
+    return []

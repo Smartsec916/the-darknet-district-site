@@ -59,12 +59,12 @@
   const MM=root.VoidMilked?.MODELS||{};for(const k in MM)if(MM[k].id===id)return MM[k].asset||MM[k].look||null;if(root.VoidTemple?.MODEL?.id===id)return root.VoidTemple.MODEL.asset||null;return null;}
  const clipsOf=asset=>(root.VoidCrowd?.clips?.[asset]||[]).slice();
  function entries(){const g=S().givers||[],out=[];
-  for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',group:mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
+  for(const x of g){const mv=!!X().MOVABLE[x.id];out.push({id:x.id,name:x.name,kind:'roster',made:!!x.made,group:x.made?'made':mv?'move':x.canTalk&&x.group==='district'?'givers':x.group==='district'?'district':'earlier',giver:x,look:lookOf(x.id)});}
   for(const look of Object.keys(root.VoidCrowd?.street||{}))out.push({id:'crowd:'+look,name:'Street figure '+look.replace(/^npc-/,''),kind:'crowd',group:'crowd',look});
   {const C=root.VoidCrowd||{},seen=new Set([...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
   for(const r of imports)out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:'import',rec:r});
   return out;}
- const GROUPS=[['move','Can be moved: stay at a spot or walk a route'],['givers','Give missions (have a TALK prompt)'],['district','In the District (no TALK prompt yet)'],['import','Imported models (local test only, not in the live game)'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier characters (not in the District today)']];
+ const GROUPS=[['made','Made by you (mission givers you created)'],['move','Can be moved: stay at a spot or walk a route'],['givers','Give missions (have a TALK prompt)'],['district','In the District (no TALK prompt yet)'],['import','Imported models (local test only, not in the live game)'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier characters (not in the District today)']];
  // ---------------------------------------------------------------- imported models (this browser only: IndexedDB)
  const DB='void-npc-imports',ST='models';
  function db(){return new Promise((ok,fail)=>{try{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{r.result.createObjectStore(ST,{keyPath:'id'});};r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);}catch(e){fail(e);}});}
@@ -87,7 +87,7 @@
   restore();draw();}
  function restore(){let r=null;try{r=JSON.parse(root.sessionStorage.getItem(RETURN)||'null');root.sessionStorage.removeItem(RETURN);}catch{}if(r&&r.npc){ui.id=r.npc;status='Back from the test session. Your draft is saved.';}
   const f=DTX()?.npcFocus;if(f){ui.id=f;DTX().npcFocus=null;}}
- function draw(){if(!host)return;const keep=host.scrollTop;if(ui.preview&&ui.previewFor!==ui.id){ui.preview.dispose();ui.preview=null;ui.previewFor=null;}
+ function draw(){if(!host)return;const keep=host.scrollTop;if(ui.make)ui.id=ui.make.step===0?(ui.make.model?'model:'+ui.make.model:'make:'):(ui.make.id||'make:');if(ui.preview&&ui.previewFor!==ui.id){ui.preview.dispose();ui.preview=null;ui.previewFor=null;}
   const pv=ui.preview?ui.preview.canvas.parentElement:null;
   host.innerHTML='';host.append(headNode());const r=el('div','','me-root npc-root',{id:'npc-root'});host.append(r);
   const top=el('div','','me-row');top.append(el('b','NPCs'),hint('Look at every NPC, preview them, see their lines and voice, give them missions, and move the ones the game lets you move. Every change is part of your Mission Editor DRAFT: PLAY THIS DRAFT to try it, PUBLISH (Mission Editor › Publish & versions) to send it to players.'));
@@ -99,14 +99,14 @@
   side.append(hint(HELP.list));const q=el('input','','',{'aria-label':'Find an NPC',placeholder:'Find (name or id)','data-npc-search':'1'});q.value=ui.search;q.oninput=()=>{ui.search=q.value;listInto(list);};side.append(q,hint(HELP.search));
   side.append(btn('+ IMPORT MODEL',()=>importPick(),'',{'data-npc-import':'1',title:HELP.import}));
   const list=el('div','','npc-list');side.append(list);listInto(list);
-  const all=entries();const e=all.find(x=>x.id===ui.id)||all.find(x=>x.group==='move')||all[0];if(e){ui.id=e.id;detail(main,e,pv);}
+  if(ui.make){makeView(main,pv);}else{const all=entries();const e=all.find(x=>x.id===ui.id)||all.find(x=>x.group==='move')||all[0];if(e){ui.id=e.id;detail(main,e,pv);}}
   host.scrollTop=keep;setTimeout(guideNow,0);}
  /* "What do you want to do?" (the owner: make it for someone who has never done it): big choices that open the right screen. */
  function startCard(){const d=el('details','','npc-start',{'data-npc-start':'1'});d.open=ui.start;d.ontoggle=()=>{ui.start=d.open;};d.append(el('summary','What do you want to do?'));const grid=el('div','','npc-cards');
   const pick=(id,fn)=>()=>{ui.id=id;ui.start=false;status='';if(fn)fn();draw();setTimeout(()=>{const t=host.querySelector(fn&&fn.focus||'[data-npc-facts]');t&&t.scrollIntoView({block:'start'});},50);};
   const first=x=>entries().find(e=>e.group===x)||{};const rev='grey-reverie';
   const card=(icon,title,text,go,attrs)=>{const b=btn('',go,'npc-card',attrs);b.append(el('span',icon,'npc-card-icon',{'aria-hidden':'true'}),el('b',title),el('span',text,'me-small'));grid.append(b);};
-  const stay=()=>{if(!plan(rev)||plan(rev).mode!=='stay')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'stay',x:100,z:-6.4,yaw:Math.PI,actions:X().STAY_DEFAULT.slice()});};stay.focus='[data-npc-place]';
+  const stay=()=>{if(!plan(rev)||plan(rev).mode!=='stay')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'stay',x:100,z:-6.4,yaw:Math.PI,actions:stayDefault(rev)});};stay.focus='[data-npc-place]';
   const route=()=>{if(!plan(rev)||plan(rev).mode!=='path')setPlan(rev,{...(plan(rev)&&plan(rev).anims?{anims:plan(rev).anims}:{}),mode:'path',points:[]});root.VoidEditorGuide?.focusNext();};route.focus='[data-npc-place]';
   const look=()=>{};look.focus='[data-npc-preview]';const lines=()=>{};lines.focus='[data-npc-lines]';const giv=()=>{};giv.focus='[data-npc-giver]';
   card('📍','Move a character to a spot','Pick where Reverie (or Lace) stands and what she does there.',pick(rev,stay),{'data-npc-start-card':'stay'});
@@ -117,6 +117,7 @@
   card('💬','Give a character a mission','Choose who hands it out; the Mission Editor opens with it ready to fill in.',pick((first('givers').id)||'admin',giv),{'data-npc-start-card':'giver'});
   card('👀','Look at a character in 3D','Turn them around and play their animations.',pick(ui.id||rev,look),{'data-npc-start-card':'look'});
   card('📝','See what a character says','Every line, in missions and outside them, and their voice (choose an ElevenLabs voice there).',pick(ui.id||'admin',lines),{'data-npc-start-card':'lines'});
+  card('🧑','Create a mission giver','A new character, step by step: model, name, look, device, ship, items, voice, animations and a place in the world.',()=>{startMake();draw();},{'data-npc-start-card':'make'});
   card('📦','Bring in a new 3D model','Load a model file from your computer and try it on the street (only you see it).',()=>{ui.start=false;importPick();},{'data-npc-start-card':'import'});
   d.append(grid);return d;}
  function listInto(list){list.replaceChildren();const q=ui.search.trim().toLowerCase(),all=entries().filter(x=>!q||x.name.toLowerCase().includes(q)||x.id.toLowerCase().includes(q));
@@ -138,7 +139,7 @@
    if(g.shift)facts.append(el('p',S().G().shiftText(g),'me-small me-warn'));}
   main.append(facts);
   previewBox(main,e,asset,clips,pv);
-  if(e.kind!=='import')appearanceBox(main,e,asset);
+  if(e.made){madeBox(main,e);charLookBox(main,e,asset);}else if(e.kind!=='import')appearanceBox(main,e,asset);
   if(e.kind==='roster'){giverBox(main,e);placeBox(main,e,clips);if(X().MOVABLE[e.id]){scheduleBox(main,e);behaviourBox(main,e);}if(!(X().MOVABLE[e.id]||{}).cat)animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
   else if(e.kind==='crowd')animBox(main,e,asset);
   else requestBox(main,e,asset);}
@@ -184,16 +185,26 @@
   if(!cur){body.append(el('p',en.looks.length?'Pick one of your looks above to change it, or start a new one.':'Press + NEW LOOK to start. The model as made never changes.','me-small'));}
   else{const nm=el('input','','',{'aria-label':'Name of the look','data-npc-look-name':asset,maxlength:String(L.LIMIT.name)});nm.value=cur.name;nm.onchange=()=>{const v=nm.value.trim();if(!v||/[<>]/.test(v)){nm.value=cur.name;return;}editLook(asset,l=>{l.name=v;},'Renamed to “'+v+'”.');};
    const nr=el('div','','me-row');nr.append(el('span','Name','me-small'),nm);body.append(nr);
+   lookSections(body,asset,c,cur,(fn,say)=>editLook(asset,fn,say));}
+  // (d) who wears it
+  const wr=el('div','','npc-look-sec',{'data-npc-look-wear':asset});wr.append(el('b','Which look the game uses'),hint(HELP.wear));
+  const opt=(v,text,dis)=>{const lab=el('label','','me-check-row'),rb=el('input','','',{type:'radio',name:'npc-look-use-'+asset,value:v,'data-npc-look-use':v});rb.checked=(en.use||'original')===v;rb.disabled=!!dis;rb.onchange=()=>{const n=JSON.parse(JSON.stringify(en));n.use=v;setEntry(asset,n,v==='original'?'The game shows the model as made.':v==='mix'?'Everyone with this model wears one of your looks (each person keeps theirs).':'Everyone with this model wears “'+(en.looks.find(l=>l.id===v)||{}).name+'”.');};lab.append(rb,document.createTextNode(' '+text));wr.append(lab);};
+  opt('original','As made (no look)');for(const l of en.looks)opt(l.id,'Everyone wears “'+l.name+'”');opt('mix','A mix of my looks (each person keeps one)',en.looks.length<1);
+  {const probs=L.problems({[asset]:en});if(probs.length)wr.append(el('p','Problems: '+probs.join(' '),'me-bad'));}
+  wr.append(el('p','SEE IT ON THE STREET (or PLAY THIS DRAFT) shows it in the game; PUBLISH (Mission Editor › Publish & versions) sends it to every player. The model file never changes.','me-small'));body.append(wr);}
+
+ /* The parts, colours and creator pieces of one look (shared by a model's looks and a made character's own look). edit(fn(look), say) saves the change. */
+ function lookSections(body,asset,c,cur,edit){const L=NL(),adv=advanced();
    // (a) parts
    const pa=el('div','','npc-look-sec',{'data-npc-look-parts':asset});pa.append(el('b','Parts you can take off'),hint(HELP.parts));const hid=new Set(cur.hide||[]),open=c.groups.filter(g=>g.hideable),locked=c.groups.filter(g=>!g.hideable);
    if(!open.length)pa.append(el('p',c.street?'Reverie and Lace keep every part.':'Nothing to take off: this model is made in one piece (or its pieces are all clothing, body or face, which always stay).','me-small'));
-   for(const g of open){const lab=el('label','','me-check-row'),cb=el('input','','',{type:'checkbox','data-npc-look-part':g.id});cb.checked=!g.names.every(n=>hid.has(n));cb.onchange=()=>editLook(asset,l=>{const h=new Set(l.hide||[]);for(const n of g.names)cb.checked?h.delete(n):h.add(n);l.hide=[...h];if(l.hair&&!L.HAIR[l.hair].hatOk&&c.hair.hats.some(x=>!h.has(x)))delete l.hair;},(cb.checked?'Showing ':'Hiding ')+g.label.toLowerCase()+'.');
+   for(const g of open){const lab=el('label','','me-check-row'),cb=el('input','','',{type:'checkbox','data-npc-look-part':g.id});cb.checked=!g.names.every(n=>hid.has(n));cb.onchange=()=>edit(l=>{const h=new Set(l.hide||[]);for(const n of g.names)cb.checked?h.delete(n):h.add(n);l.hide=[...h];if(l.hair&&!L.HAIR[l.hair].hatOk&&c.hair.hats.some(x=>!h.has(x)))delete l.hair;},(cb.checked?'Showing ':'Hiding ')+g.label.toLowerCase()+'.');
     lab.append(cb,document.createTextNode(' Show: '+g.label+(adv?' ('+g.names.join(', ')+')':'')));pa.append(lab);}
    if(locked.length&&open.length)pa.append(adv?el('p','Always stay: '+locked.map(g=>g.label+' ('+g.why+')').join('; '),'me-small'):el('p','Clothing that covers the body, the body and the face always stay.','me-small'));body.append(pa);
    // (b) colour
    const co=el('div','','npc-look-sec',{'data-npc-look-colours':asset});co.append(el('b','Colours'),hint(HELP.colour));const cc=(root.VoidCharacterAppearance?.CATALOG?.clothingColors)||[];
    for(const t of c.colours){const now=(cur.colour||{})[t.key]||null,row=el('div','','me-row',{'data-npc-look-colour':t.key});row.append(el('span',t.label+(adv&&t.key!=='*'?' ('+t.key+')':''),'me-small'));
-    const set=(v,say)=>editLook(asset,l=>{l.colour=l.colour||{};if(v)l.colour[t.key]=v;else delete l.colour[t.key];},say);
+    const set=(v,say)=>edit(l=>{l.colour=l.colour||{};if(v)l.colour[t.key]=v;else delete l.colour[t.key];},say);
     for(const sw of cc){const b=btn('',()=>set({tint:sw.hex},t.label+': '+sw.label.toLowerCase()+'.'),'npc-swatch'+(now&&now.tint===sw.hex?' on':''),{title:sw.label,'aria-label':sw.label,'data-npc-look-swatch':sw.id,style:'background:'+sw.hex+';width:22px;height:22px;min-width:22px;padding:0;border-radius:50%'});row.append(b);}
     const pick=el('input','','npc-look-picker',{type:'color','aria-label':'Pick any colour for '+t.label,'data-npc-look-picker':t.key});pick.value=now&&now.tint||'#808080';pick.onchange=()=>set({...(now&&now.bright!=null?{bright:now.bright}:{}),tint:pick.value},t.label+': '+pick.value+'.');row.append(pick);
     if(now)row.append(btn('Reset colour',()=>set(null,t.label+': back to the model’s own colour.'),'',{'data-npc-look-colour-reset':t.key}));co.append(row);
@@ -204,16 +215,111 @@
    const pc=el('div','','npc-look-sec',{'data-npc-look-pieces':asset});pc.append(el('b','Add pieces from the character creator'),hint(HELP.pieces));
    if(!c.gear.ok)pc.append(el('p','Not possible on this model: '+c.gear.why,'me-small me-warn',{'data-npc-look-pieces-locked':asset}));
    const gr=el('div','','me-row');for(const [id,g] of Object.entries(L.GEAR)){const lab=el('label','','me-check-row'+(c.gear.ok?'':' me-disabled')),cb=el('input','','',{type:'checkbox','data-npc-look-gear':id});cb.checked=(cur.gear||[]).includes(id);if(!c.gear.ok){cb.disabled=true;lab.title=c.gear.why;}
-    cb.onchange=()=>editLook(asset,l=>{const s=new Set(l.gear||[]);cb.checked?s.add(id):s.delete(id);l.gear=[...s];},(cb.checked?'Added ':'Removed ')+g.label.toLowerCase()+'.');lab.append(cb,document.createTextNode(' '+g.label));gr.append(lab);}pc.append(gr);
+    cb.onchange=()=>edit(l=>{const s=new Set(l.gear||[]);cb.checked?s.add(id):s.delete(id);l.gear=[...s];},(cb.checked?'Added ':'Removed ')+g.label.toLowerCase()+'.');lab.append(cb,document.createTextNode(' '+g.label));gr.append(lab);}pc.append(gr);
    const hs=el('select','','',{'aria-label':'Hairstyle','data-npc-look-hair':asset});hs.append(new Option('Their own hair',''));const hat=c.hair.hats.some(h=>!(cur.hide||[]).includes(h));
    for(const [id,h] of Object.entries(L.HAIR)){const o=new Option(h.label+(hat&&!h.hatOk?' (hide the hat first)':''),id);o.disabled=hat&&!h.hatOk;hs.append(o);}hs.value=cur.hair||'';if(!c.hair.ok){hs.disabled=true;hs.title=c.hair.why;}
-   hs.onchange=()=>editLook(asset,l=>{l.hair=hs.value||null;},hs.value?'Hairstyle: '+L.HAIR[hs.value].label.toLowerCase()+'.':'Their own hair again.');const hr=el('div','','me-row');hr.append(el('span','Hairstyle','me-small'),hs);pc.append(hr);body.append(pc);}
-  // (d) who wears it
-  const wr=el('div','','npc-look-sec',{'data-npc-look-wear':asset});wr.append(el('b','Which look the game uses'),hint(HELP.wear));
-  const opt=(v,text,dis)=>{const lab=el('label','','me-check-row'),rb=el('input','','',{type:'radio',name:'npc-look-use-'+asset,value:v,'data-npc-look-use':v});rb.checked=(en.use||'original')===v;rb.disabled=!!dis;rb.onchange=()=>{const n=JSON.parse(JSON.stringify(en));n.use=v;setEntry(asset,n,v==='original'?'The game shows the model as made.':v==='mix'?'Everyone with this model wears one of your looks (each person keeps theirs).':'Everyone with this model wears “'+(en.looks.find(l=>l.id===v)||{}).name+'”.');};lab.append(rb,document.createTextNode(' '+text));wr.append(lab);};
-  opt('original','As made (no look)');for(const l of en.looks)opt(l.id,'Everyone wears “'+l.name+'”');opt('mix','A mix of my looks (each person keeps one)',en.looks.length<1);
-  {const probs=L.problems({[asset]:en});if(probs.length)wr.append(el('p','Problems: '+probs.join(' '),'me-bad'));}
-  wr.append(el('p','SEE IT ON THE STREET (or PLAY THIS DRAFT) shows it in the game; PUBLISH (Mission Editor › Publish & versions) sends it to every player. The model file never changes.','me-small'));body.append(wr);}
+   hs.onchange=()=>edit(l=>{l.hair=hs.value||null;},hs.value?'Hairstyle: '+L.HAIR[hs.value].label.toLowerCase()+'.':'Their own hair again.');const hr=el('div','','me-row');hr.append(el('span','Hairstyle','me-small'),hs);pc.append(hr);body.append(pc);}
+ // ---------------------------------------------------------------- CREATE A MISSION GIVER (the owner, 19 Nov 2026; npc-made.js): a new character, step by step
+ /* The draft's content.characters[id]; where they stand is the ordinary placement (content.npcs[id]) of "Where they are in the game" below. Every change is one UNDO step. */
+ const MD=()=>root.VoidMadeNPCs;
+ /* A new stay's things to do: the ordinary standing routine, only what this character can do (a made character's model may lack some clips or a device). */
+ function stayDefault(id){const ok=new Set(X().actionsFor(id,(plan(id)||{}).anims||[]).map(a=>a.id)),l=X().STAY_DEFAULT.filter(a=>ok.has(a));return l.length?l:['idle'].filter(a=>ok.has(a)).concat(ok.has('idle')?[]:['wait']);}
+ const madeOf=id=>((S().local().characters)||{})[id]||null;
+ function editMade(id,fn,say){const d=S().local();d.characters=d.characters||{};const c=JSON.parse(JSON.stringify(d.characters[id]||{}));fn(c);const x=MD().clean(c);if(x)d.characters[id]=x;S().saveLocal(d);if(say)status=say;draw();}
+ const MAKE=[['model','Model'],['name','Name'],['look','Look'],['device','Device'],['ship','Ship'],['items','Items'],['voice','Voice'],['anims','Animations'],['place','Place'],['done','Done']];
+ const MHELP={model:'Pick the 3D model your new character is made from: any person the game already has. Street people are the safest choice. A licensed model can only be recoloured and have accessories hidden (its licence), and it is never sent to any AI tool. Press “Show me in 3D” to look at it.',
+  name:'Their name, in your own words (this is what players see). The short role line is optional and only for you and the editor (it is never said in the game). The internal id is made from the name.',
+  adult:'Tick only for a grown-up character. Only characters marked adult (18+) may be placed in the adult places (Milked’s side street, service alley and reception, NULL, the District bar, the VR area, the arcade, the smoking terrace). Reverie’s and Lace’s models can never be marked adult.',
+  look:'Change how this one character looks: hide accessories, recolour clothes, add creator pieces where the model allows. It changes only this character, never other people drawn with the same model.',
+  device:'The device they carry and how they use it in the street: V1 (teal hologram), V2 (another colour), V3 // SHADOW (streamed into the eye: the left eye glows a little while they use it), or none.',
+  ship:'A ship they own, for your missions (for example a mission that needs “their ship”). It is data only: no new ship appears in the world.',
+  items:'What they carry. Tick “visible on them” where the game can show it cheaply (a holstered pistol on the hip, a small lit device in the hand); everything else is data for your missions.',
+  voice:'Their voice for new lines: an ElevenLabs voice (link or ID and model), or none (their lines show as text). You can import a voice file for each line as usual.',
+  anims:'Extra animations they can use at a spot or a route point, from the clips their model can play.',
+  place:'Put them in the world for your mission: pick the area on the map, then keep them at one spot or make them walk a route (a daily schedule is in the NPC list later). Then choose when they are there.',
+  when:'Always: they are in the world all the time. Or only while one of your missions is in progress (optionally from one of its steps), so they appear just for it.',
+  done:'Your character is in your DRAFT now and already listed as a mission giver. Give them a mission, then PLAY THIS DRAFT to talk to them. Nothing reaches players until you PUBLISH.'};
+ function startMake(){ui.make={step:0,id:null,model:null,name:'',role:'',adult:false,tried:false};ui.start=false;status='';ui.id='make:';}
+ function makeView(main,pv){const m=ui.make,id=m.id,c=id?madeOf(id):null,stp=MAKE[m.step][0];
+  const top=el('div','','me-row eh-wtop',{'data-npc-make':stp});top.append(el('b','Create a mission giver'),el('span','Step '+(m.step+1)+' of '+MAKE.length,'me-small'));
+  const bar=el('div','','eh-progress',{role:'progressbar','aria-valuemin':'1','aria-valuemax':String(MAKE.length),'aria-valuenow':String(m.step+1),'aria-label':'Step '+(m.step+1)+' of '+MAKE.length});const fill=el('span');fill.style.width=Math.round((m.step+1)/MAKE.length*100)+'%';bar.append(fill);top.append(bar);
+  top.append(btn('Close',()=>{const was=id;ui.make=null;ui.id=was||null;status=was?'Your character is saved in your draft; find them under “Made by you”.':'';draw();},'me-x',{'data-npc-make-close':'1'}));main.append(top);
+  const chips=el('div','','me-row',{role:'group','aria-label':'Steps'});MAKE.forEach(([k,n],i)=>chips.append(btn((i+1)+'. '+n,()=>{if(!id&&i>1)return;m.step=i;m.tried=false;draw();},i===m.step?'on':'',{'data-npc-make-step':k,'aria-pressed':String(i===m.step),...(!id&&i>1?{disabled:'',title:'Give them a name first.'}:{})})));main.append(chips);
+  const box=el('section','','me-check',{'data-npc-make-page':stp});box.append(el('h4',MAKE[m.step][1]),hint(MHELP[stp]));main.append(box);
+  const e=id?entries().find(x=>x.id===id):null,asset=c?c.model:m.model,clips=clipsOf(asset);
+  const needs=()=>{const out=[],cc=m.id?madeOf(m.id):null;if(stp==='model'&&!m.model)out.push('pick a model');if(stp==='name'&&!String(cc?cc.name:m.name).trim())out.push('type their name');if(stp==='place'&&m.id&&!plan(m.id))out.push('put them somewhere: “Keep her at one spot” or “Make her walk a route”');return out;};
+  if(stp==='model'){pickModel(box,m.model,a=>{m.model=a;ui.id='model:'+a;if(id)editMade(id,x=>{x.model=a;if(!MD().adultAllowed(a))delete x.adult;},'Model: '+a+'.');else draw();setTimeout(()=>host.querySelector('[data-npc-preview-go]')?.click(),30);});
+   if(m.model)previewBox(main,{id:ui.id},m.model,clips,pv);}
+  else if(stp==='name')nameStep(box,m,c);
+  else if(stp==='look'&&e)charLookBox(main,e,asset,true);
+  else if(stp==='device')deviceStep(box,id);else if(stp==='ship')shipStep(box,id);else if(stp==='items')itemsStep(box,id);
+  else if(stp==='voice'&&e)linesBox(main,e);
+  else if(stp==='anims'&&e){previewBox(main,e,asset,clips,pv);animBox(main,e,asset);}
+  else if(stp==='place'&&e){placeBox(main,e,clips);whenStep(main,id);}
+  else if(stp==='done'&&e){const left=root.VoidMissionContent?.madeNeeds?.(S().local(),S().givers,id)||[];
+   box.append(el('p',left.length?'Not finished yet: '+left.map(x=>x.replace(/^[^:]+: /,'')).join(' '):'Ready: '+c.name+' is a mission giver in your draft.',left.length?'me-warn':'me-ok',{'data-npc-make-ready':left.length?'0':'1'}));
+   box.append(summary(c));giverBox(main,e);
+   const r=el('div','','me-row me-actions');r.append(btn('SEE THEM IN THE NPC LIST',()=>{ui.make=null;ui.id=id;draw();},'',{'data-npc-make-finish':'1'}),btn('CREATE ANOTHER',()=>{startMake();draw();},'',{'data-npc-make-again':'1'}));main.append(r);}
+  const need=needs();if(m.tried&&need.length)main.append(el('p','Before you go on: '+need.join('; ')+'.','me-bad',{role:'alert','data-npc-make-need':'1'}));
+  const nav=el('div','','me-row eh-nav');nav.append(btn('BACK',()=>{if(m.step>0){m.step--;m.tried=false;}draw();},'',{'data-npc-make-back':'1',...(m.step?{}:{disabled:''})}));
+  if(stp!=='done')nav.append(btn('NEXT',()=>{const nd=host.querySelector('[data-npc-make-name]');if(nd&&!m.id)m.name=nd.value;if(needs().length){m.tried=true;draw();return;}if(stp==='name'&&!id){if(!makeCreate(m))return;}m.step++;m.tried=false;draw();},'eh-primary me-play',{'data-npc-make-next':'1'}));main.append(nav);}
+ function pickModel(box,cur,on){const sel=el('select','','',{'aria-label':'Model','data-npc-make-model':'1'});sel.append(new Option('— choose a model —',''));const G=MD().GROUPS;
+  for(const g of Object.keys(G)){const og=document.createElement('optgroup');og.label=G[g];for(const x of MD().models().filter(x=>x.group===g))og.append(new Option(x.label+(advanced()?' ('+x.asset+')':'')+(x.walk?'':' — stands only (no walk)'),x.asset));sel.append(og);}
+  sel.value=cur||'';sel.onchange=()=>{if(sel.value)on(sel.value);};const r=el('div','','me-row');r.append(el('b','Made from: '),sel);box.append(r);
+  const md=cur&&MD().modelOf(cur);if(md){box.append(el('p',md.clips.length+' animations in its file'+(md.walk?'':'; it has no walk, so it can only stay at one spot')+'.','me-small'));if(md.licensed)box.append(el('p','A licensed model: recolour and hide accessories only; nothing is added; never any AI tool (its licence).','me-small me-warn'));}}
+ function nameStep(box,m,c){const nm=el('input','','',{'aria-label':'Their name','data-npc-make-name':'1',maxlength:String(MD().LIMIT.name),placeholder:'e.g. the name you give them'});nm.value=c?c.name:m.name;
+  const save=()=>{const v=nm.value.trim();if(c){if(v&&v!==c.name&&!/[<>]/.test(v))editMade(m.id,x=>{x.name=v;},'Renamed to “'+v+'”.');}else m.name=nm.value;};nm.oninput=()=>{if(!c)m.name=nm.value;idl.textContent=advanced()?'id: '+(c?m.id:MD().idFor(nm.value,taken())):'';};nm.onchange=save;
+  const rl=el('input','','',{'aria-label':'Short role line (optional)','data-npc-make-role':'1',maxlength:String(MD().LIMIT.role),placeholder:'optional, e.g. a fixer from Old Town (only for you)'});rl.value=c?c.role||'':m.role;rl.onchange=()=>{if(c)editMade(m.id,x=>{x.role=rl.value.trim();},'Role line saved.');else m.role=rl.value;};
+  const idl=el('span',advanced()?'id: '+(c?m.id:MD().idFor(m.name,taken())):'','me-small',{'data-npc-make-id':'1'});
+  const r1=el('label','','me-field');r1.append(el('span','Name (required)'),nm,idl);const r2=el('label','','me-field');r2.append(el('span','Role line (optional)'),rl);box.append(r1,r2);adultBox(box,m.id,m);}
+ function adultBox(box,id,m){const c=id?madeOf(id):null,model=c?c.model:m&&m.model,ok=model&&MD().adultAllowed(model);const lab=el('label','','me-check-row'+(ok?'':' me-disabled')),cb=el('input','','',{type:'checkbox','data-npc-make-adult':'1'});cb.checked=!!(c?c.adult:m&&m.adult);cb.disabled=!ok;
+  cb.onchange=()=>{if(c)editMade(id,x=>{if(cb.checked)x.adult=true;else delete x.adult;},cb.checked?'Marked adult (18+): the adult places can be used for them.':'Not marked adult: the adult places are closed to them again.');else m.adult=cb.checked;};
+  lab.append(cb,document.createTextNode(' This character is an adult (18+)'));box.append(lab,hint(ok?MHELP.adult:'Reverie’s and Lace’s models read youthful: a character made from them can never be marked adult.'));
+  if(c&&!c.adult&&plan(id)&&X().planProblems(id,plan(id)).some(t=>/adult/.test(t)))box.append(el('p','Their place is in an adult place: tick the box, or move them.','me-bad'));}
+ const taken=()=>new Set([...(S().givers||[]).map(g=>g.id),...Object.keys(S().local().characters||{})]);
+ function makeCreate(m){const name=String(m.name||'').trim();if(!name||/[<>]/.test(name)){m.tried=true;draw();return false;}const id=MD().idFor(name,taken());
+  const d=S().local();d.characters=d.characters||{};const c=MD().clean({name,model:m.model,...(String(m.role||'').trim()?{role:m.role}:{}),...(m.adult&&MD().adultAllowed(m.model)?{adult:true}:{})});d.characters[id]=c;S().saveLocal(d);
+  m.id=id;ui.id=id;status='“'+name+'” is made and saved in your draft. Now their look.';return true;}
+ function radios(box,attr,list,cur,on){const g=el('div','','me-subjects',{role:'radiogroup'});for(const [v,t,h] of list){const l=el('label','','me-check-row',{title:h||''}),r=el('input','','',{type:'radio',name:attr,value:v,[attr]:v});r.checked=(cur||'')===v;r.onchange=()=>on(v);l.append(r,document.createTextNode(' '+t));if(h)l.append(el('span',' — '+h,'me-small'));g.append(l);}box.append(g);}
+ function deviceStep(box,id){const c=madeOf(id)||{};radios(box,'data-npc-make-device',[['','None (no device)'],...Object.entries(MD().DEVICES).map(([k,v])=>[k,v.name,v.help])],c.device,v=>editMade(id,x=>{if(v)x.device=v;else delete x.device;},v?'Device: '+MD().DEVICES[v].name+'.':'No device.'));}
+ function shipStep(box,id){const c=madeOf(id)||{};radios(box,'data-npc-make-ship',[['','None'],...MD().ships().map(s=>[s.id,s.name+(advanced()?' ('+s.id+')':''),s.premium?'a paid hull: fine as their ship, never given to a player by a mission':''])],c.ship,v=>editMade(id,x=>{if(v)x.ship=v;else delete x.ship;},v?'Their ship: '+(MD().ships().find(s=>s.id===v)||{}).name+'.':'No ship.'));}
+ function itemsStep(box,id){const c=madeOf(id)||{},have=new Map((c.items||[]).map(i=>[i.id,i])),all=MD().items(),kinds=[...new Set(all.map(i=>i.kind))];
+  if(!all.some(i=>i.id==='hacking-device'))box.append(el('p','A hacking device is not in the game yet: it appears in this list once it is added (and can then be shown in their hand).','me-small me-warn',{'data-npc-make-no-hacking':'1'}));
+  for(const k of kinds){const d=el('details','','me-npc-group',{'data-npc-make-kind':k});d.open=k==='weapon'||k==='item'||all.filter(i=>i.kind===k).some(i=>have.has(i.id));d.append(el('summary',k.charAt(0).toUpperCase()+k.slice(1)+'s'));
+   for(const i of all.filter(x=>x.kind===k)){const r=el('div','','me-row',{'data-npc-make-item':i.id}),cb=el('input','','',{type:'checkbox','aria-label':'Carries '+i.name,'data-npc-make-item-on':i.id});cb.checked=have.has(i.id);cb.disabled=!have.has(i.id)&&have.size>=MD().LIMIT.items;
+    cb.onchange=()=>editMade(id,x=>{const l=(x.items||[]).filter(y=>y.id!==i.id);if(cb.checked)l.push(i.show?{id:i.id,show:true}:{id:i.id});x.items=l;if(!l.length)delete x.items;},(cb.checked?'Carries ':'No longer carries ')+i.name+'.');
+    r.append(cb,el('span',i.name));if(i.show){const sl=el('label','','me-small'),sc=el('input','','',{type:'checkbox','data-npc-make-item-show':i.id});sc.checked=!!(have.get(i.id)||{}).show;sc.disabled=!have.has(i.id);
+     sc.onchange=()=>editMade(id,x=>{x.items=(x.items||[]).map(y=>y.id===i.id?(sc.checked?{id:i.id,show:true}:{id:i.id}):y);},sc.checked?i.name+' is visible on them ('+MD().SHOW_TEXT[i.show]+').':i.name+' is carried out of sight.');sl.append(sc,' visible on them ('+MD().SHOW_TEXT[i.show]+')');r.append(sl);}
+    else r.append(el('span','data only','me-small'));d.append(r);}box.append(d);}
+  box.append(el('p',have.size+' of '+MD().LIMIT.items+' items at most.','me-small'));}
+ function whenStep(main,id){const c=madeOf(id)||{},box=el('section','','me-check',{'data-npc-make-when':id});box.append(el('h4','When are they there?'),hint(MHELP.when));
+  const ms=[];for(const t of S().local().trees||[])for(const mm of t.missions||[])ms.push({id:mm.id,title:(mm.title||mm.id)+' ('+(t.name||t.id)+')',steps:(mm.objectives||[]).map(o=>({id:o.id,label:o.label||o.id}))});
+  const sel=el('select','','',{'aria-label':'When they are there','data-npc-make-when-mission':id});sel.append(new Option('Always (all the time)',''));for(const x of ms)sel.append(new Option('Only while this mission is in progress: '+x.title,x.id));sel.value=c.when?c.when.mission:'';
+  sel.onchange=()=>editMade(id,x=>{if(sel.value)x.when={mission:sel.value};else delete x.when;},sel.value?'They are there only while that mission is in progress.':'They are always there.');box.append(sel);
+  const cur=c.when&&ms.find(x=>x.id===c.when.mission);if(cur){const st=el('select','','',{'aria-label':'From which step','data-npc-make-when-step':id});st.append(new Option('from the start of the mission',''));for(const o of cur.steps)st.append(new Option('from the step “'+o.label+'”',o.id));st.value=c.when.step||'';
+   st.onchange=()=>editMade(id,x=>{x.when=st.value?{mission:cur.id,step:st.value}:{mission:cur.id};},'Saved.');box.append(st);}
+  adultBox(box,id);main.append(box);}
+ function summary(c){const ul=el('ul','','me-small',{'data-npc-make-summary':'1'}),it=new Map(MD().items().map(i=>[i.id,i.name]));
+  for(const t of ['Name: '+c.name+(c.role?' — '+c.role:''),'Model: '+(MD().modelOf(c.model)||{label:c.model}).label+(c.adult?' · adult (18+)':''),'Look: '+(c.look?'changed':'as made'),'Device: '+(c.device?MD().DEVICES[c.device].name:'none'),'Ship: '+(c.ship?(MD().ships().find(s=>s.id===c.ship)||{}).name:'none'),
+   'Items: '+((c.items||[]).map(i=>it.get(i.id)+(i.show?' (visible)':'')).join(', ')||'none'),'There: '+(c.when?'only during a mission':'always')])ul.append(el('li',t));return ul;}
+ /* The made character's own box in the NPC list: everything the creator set, changed in place. */
+ function madeBox(main,e){const id=e.id,c=madeOf(id);if(!c)return;const box=el('section','','me-check',{'data-npc-made':id});box.append(el('h4','Mission giver made by you'),hint('Everything you chose in the creator. Change it here or step by step.'));
+  box.append(summary(c));const r=el('div','','me-row');
+  r.append(btn('CHANGE STEP BY STEP',()=>{ui.make={step:1,id,model:c.model,name:c.name,role:c.role||'',adult:!!c.adult,tried:false};ui.id=id;draw();},'',{'data-npc-made-edit':id}),
+   btn('DELETE THIS CHARACTER',()=>{if(!confirm('Delete '+c.name+' from your draft? UNDO (top right) brings them back.'))return;const d=S().local();delete d.characters[id];if(d.npcs)delete d.npcs[id];if(d.voices)delete d.voices[id];S().saveLocal(d);ui.id=null;status=c.name+' was deleted from your draft (UNDO brings them back). Missions they gave keep their text.';draw();},'me-x',{'data-npc-made-delete':id}));
+  box.append(r);const left=root.VoidMissionContent?.madeNeeds?.(S().local(),S().givers,id)||[];if(left.length)box.append(el('p','Not in the game yet: '+left.map(x=>x.replace(/^[^:]+: /,'')).join(' '),'me-warn',{'data-npc-made-needs':id}));
+  const dv=el('div');dv.append(el('b','Device'));deviceStep(dv,id);const sh=el('div');sh.append(el('b','Ship'));shipStep(sh,id);const its=el('details','','me-npc-group');its.append(el('summary','Items'));itemsStep(its,id);box.append(dv,sh,its);
+  main.append(box);whenStep(main,id);}
+ /* This character's own look (content.characters[id].look), with the appearance editor's parts, colours and pieces. */
+ function charLookBox(main,e,asset,inWizard){const id=e.id,box=el('section','','me-check',{'data-npc-appearance':id});box.append(el('h4','Their look'),hint(MHELP.look));main.append(box);
+  if(!asset||!NL()){box.append(el('p','No model.','me-small'));return;}if(NL().LICENSED.test(asset))box.append(el('p','A licensed model: recolour and hide accessories only; nothing is added; never any AI tool.','me-small me-warn'));
+  const body=el('div','','',{'data-npc-look-body':asset});box.append(body);if(inWizard)previewBox(main,e,asset,clipsOf(asset),ui.preview&&ui.previewFor===id?ui.preview.canvas.parentElement:null);
+  const edit=(fn,say)=>editMade(id,x=>{const l=JSON.parse(JSON.stringify(x.look||{}));fn(l);for(const k of ['hide','gear'])if(l[k]&&!l[k].length)delete l[k];if(l.colour&&!Object.keys(l.colour).length)delete l.colour;if(!l.hair)delete l.hair;delete l.id;delete l.name;if(Object.keys(l).length)x.look=l;else delete x.look;},say);
+  box.refill=async()=>{body.replaceChildren();if(!(ui.preview&&ui.previewFor===id&&ui.preview.container)){body.append(btn('Show me in 3D to change the look',()=>{const g=host.querySelector('[data-npc-preview-go]');if(g){g.click();g.scrollIntoView({block:'center'});}},'',{'data-npc-look-start':asset}));return;}
+   body.append(el('p','Reading what this model supports…','me-small'));const cp=await capsOf(asset);body.replaceChildren();if(!cp){body.append(el('p','The model could not be read.','me-bad'));return;}
+   const c=madeOf(id)||{},cur={id:'own',name:c.name,...(c.look||{})};ui.preview?.look(asset,cur);lookSections(body,asset,cp,cur,edit);
+   const rr=el('div','','me-row');rr.append(btn('BACK TO THE MODEL AS MADE',()=>edit(l=>{for(const k of Object.keys(l))delete l[k];},'Their look is back to the model as made (UNDO brings it back).'),'',{'data-npc-look-reset':asset}));body.append(rr);};
+  box.refill();}
  // ---- make giver
  function giverBox(main,e){const g=e.giver,box=el('section','','me-check',{'data-npc-giver':e.id});box.append(el('h4','Give a mission'),hint(HELP.giver));
   const d=S().local(),own=(d.trees||[]).filter(t=>!t.shipped&&/^draft-/.test(t.id)),sel=el('select','','',{'aria-label':'Which tree','data-npc-giver-tree':e.id});
@@ -233,12 +339,12 @@
    sel.append(btn('All day (outside the time blocks)',()=>{ui.block[id]=null;draw();},bi==null?'on':'',{'data-npc-edit-block':'all','aria-pressed':String(bi==null)}));
    whole.schedule.forEach((b,k)=>sel.append(btn(b.from+'–'+b.to+(b.name?' '+b.name:''),()=>{ui.block[id]=k;draw();},bi===k?'on':'',{'data-npc-edit-block':String(k),'aria-pressed':String(bi===k)})));
    box.append(sel,hint(bi==null?'You are changing what '+she+' does outside every time block. Pick a time block to change that part of the day instead.':'You are changing the time block '+whole.schedule[bi].from+'–'+whole.schedule[bi].to+'. The map and the buttons below now set what '+she+' does then.'));}
-  const modes=el('div','','me-row');for(const [m_,name] of [['own','Let '+her+' do '+her+' usual thing'],['stay','Keep '+(M.it?'it':'her')+' at one spot'],['path','Make '+(M.it?'it':'her')+' walk a route']])modes.append(btn(name,()=>{
+  const modes=el('div','','me-row');for(const [m_,name] of [...(M.made?[]:[['own','Let '+her+' do '+her+' usual thing']]),['stay','Keep '+(M.it?'it':'her')+' at one spot'],['path','Make '+(M.it?'it':'her')+' walk a route']])modes.append(btn(name,()=>{
     if(m_==='own'){const before=whole;put(p&&p.anims?{mode:'original',anims:p.anims}:null);if(before&&before.mode!=='original'){status='She is back to her usual thing.';ui.undo=()=>setPlan(id,before,{keep:false});}}
-    else if(m_==='stay'){const s0=root.VoidStreetPair?.SEAT||{x:104.4,z:-5.9};put({...(p&&p.anims?{anims:p.anims}:{}),mode:'stay',x:p&&p.mode==='stay'?p.x:s0.x,z:p&&p.mode==='stay'?p.z:-6.4,yaw:p&&p.mode==='stay'?p.yaw:Math.PI,actions:p&&p.mode==='stay'?p.actions:X().STAY_DEFAULT.slice()});}
+    else if(m_==='stay'){const s0=root.VoidStreetPair?.SEAT||{x:104.4,z:-5.9};put({...(p&&p.anims?{anims:p.anims}:{}),mode:'stay',x:p&&p.mode==='stay'?p.x:s0.x,z:p&&p.mode==='stay'?p.z:-6.4,yaw:p&&p.mode==='stay'?p.yaw:Math.PI,actions:p&&p.mode==='stay'?p.actions:stayDefault(id)});}
     else{put({...(p&&p.anims?{anims:p.anims}:{}),mode:'path',points:p&&p.mode==='path'?p.points:[]});root.VoidEditorGuide?.focusNext();}
     draw();},mode===m_?'on':'',{'data-npc-mode':m_,'aria-pressed':String(mode===m_)}));
-  box.append(modes,hint(mode==='own'?(M.it?'It does what the game has it do now: goes to whichever of Reverie and Lace is out, rubs round her legs, sits by her; with neither out it potters about by the LAUNDRY door.':'She does what the game has her do now: walks her stretch of the Avenue, sits on the ledges, plays with the cat.'):mode==='stay'?HELP.stay:HELP.route));
+  box.append(modes,hint(mode==='own'&&M.made?'Not in the world yet: press “Keep her at one spot” (then click the map) or “Make her walk a route”. Pick the area on the map first.':mode==='own'?(M.it?'It does what the game has it do now: goes to whichever of Reverie and Lace is out, rubs round her legs, sits by her; with neither out it potters about by the LAUNDRY door.':'She does what the game has her do now: walks her stretch of the Avenue, sits on the ledges, plays with the cat.'):mode==='stay'?HELP.stay:HELP.route));
   const markers=[],live=root.VoidStreetPair?.live?.();if(live&&live.her&&live.her.id===id)markers.push({id:'live',x:live.her.x,z:live.her.z,ghost:true,color:'#ffd34d',label:M.name+' now'});
   for(const t of S().local().trees||[])for(const m of t.missions)if(m.giver===id&&m.waitAt)markers.push({id:'w-'+m.id,x:m.waitAt.x,z:m.waitAt.z,yaw:m.waitAt.yaw,ghost:true,color:'#c08aff',label:'waits for “'+(m.title||m.id)+'”'});
   if(mode==='stay')markers.push({id:'stay',x:p.x,z:p.z,yaw:p.yaw,color:'#ff8ad8',label:M.name+' stays here',drag:true,facing:true,bad:X().spotProblems(id,p).length>0});
@@ -285,7 +391,7 @@
    const time=(key,label)=>{const i=el('input','','',{type:'time',step:'900','aria-label':label+' of time block '+(k+1),'data-npc-block-time':key+':'+k});i.value=b[key]||'';i.onchange=()=>{if(!X().HHMM.test(i.value))return;const list=sch.slice();list[k]={...b,[key]:i.value};setSch(list);};return i;};
    const what=el('select','','',{'aria-label':'What '+she+' does in time block '+(k+1),'data-npc-block-mode':String(k)});for(const [v,t] of [['original',M.it?'its usual thing':'her usual thing'],['stay','stay at one spot'],['path','walk a route']])what.append(new Option(t,v));what.value=b.mode;
    what.onchange=()=>{const list=sch.slice(),head={from:b.from,to:b.to,...(b.name?{name:b.name}:{})},s0=root.VoidStreetPair?.SEAT||{x:104.4};
-    list[k]=what.value==='original'?{...head,mode:'original'}:what.value==='stay'?{...head,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():X().STAY_DEFAULT.slice()}:{...head,mode:'path',points:[]};ui.block[id]=what.value==='original'?ui.block[id]:k;setSch(list);};
+    list[k]=what.value==='original'?{...head,mode:'original'}:what.value==='stay'?{...head,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():stayDefault(id)}:{...head,mode:'path',points:[]};ui.block[id]=what.value==='original'?ui.block[id]:k;setSch(list);};
    const nm=el('input','','',{'aria-label':'Name of time block '+(k+1),'data-npc-block-name':String(k),placeholder:'e.g. Morning walk',maxlength:'40',style:'width:10em'});nm.value=b.name||'';
    nm.onchange=()=>{const v=nm.value.trim(),list=sch.slice();if(v&&!X().NAME_OK.test(v)){status='A name may use letters, numbers and simple punctuation only.';draw();return;}const nb={...b};if(v)nb.name=v;else delete nb.name;list[k]=nb;setSch(list);};
    const edit=btn(blockOf(id)===k?'CHANGING ON THE MAP':'EDIT ON THE MAP',()=>{ui.block[id]=k;draw();setTimeout(()=>host.querySelector('[data-npc-place]')?.scrollIntoView({block:'start'}),50);},blockOf(id)===k?'on':'',{'data-npc-block-edit':String(k),title:'Changes this time block with the map and buttons in “Where they are in the game”.',...(b.mode==='original'?{disabled:''}:{})});
@@ -294,7 +400,7 @@
   if(sch.length)box.append(tb);
   for(const pr of X().scheduleProblems(id,sch.length?sch:null,whole&&whole.anims))box.append(el('p','⚠ '+pr.replace(M.name+': ',''),'me-bad',{'data-npc-schedule-problem':'1'}));
   const row=el('div','','me-row');row.append(btn('+ ADD A TIME BLOCK',()=>{const f=freeSlot(sch);if(!f||sch.length>=X().LIMIT.blocks){status=sch.length>=X().LIMIT.blocks?'A schedule has '+X().LIMIT.blocks+' time blocks at most.':'There is no free hour left in the day: shorten a time block first.';draw();return;}
-    const s0=root.VoidStreetPair?.SEAT||{x:104.4};setSch([...sch,{...f,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():X().STAY_DEFAULT.slice()}],'Time block '+f.from+'–'+f.to+' added: change its times, what '+she+' does, and its spot on the map.');ui.block[id]=sch.length;draw();},'',{'data-npc-block-add':id,title:'Adds the next free hour of the day (from 08:00). Change its times and what '+she+' does.'}));
+    const s0=root.VoidStreetPair?.SEAT||{x:104.4};setSch([...sch,{...f,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():stayDefault(id)}],'Time block '+f.from+'–'+f.to+' added: change its times, what '+she+' does, and its spot on the map.');ui.block[id]=sch.length;draw();},'',{'data-npc-block-add':id,title:'Adds the next free hour of the day (from 08:00). Change its times and what '+she+' does.'}));
   if(sch.length)row.append(btn('REMOVE THE SCHEDULE',()=>setSch([],'The daily schedule was removed.',true),'me-x',{'data-npc-schedule-clear':id}));box.append(row);
   // try a time: which block applies, and play the draft at that in-game time
   const tr=el('div','','me-row',{'data-npc-try-time':id}),m0=Number.isFinite(ui.clock[id])?ui.clock[id]:gn?gn.minuteOfDay:480,rg=el('input','','',{type:'range',min:'0',max:'1425',step:'15','aria-label':'Try a time of day','data-npc-try-range':id});rg.value=String(m0);
@@ -438,5 +544,5 @@
    if(!L.source)needs.push({sel:'[data-npc-lic="source"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic="type"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai="true"]',text:'answer “No AI licence?”'});
    return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}
   Gd.clear(sc);return null;}
- root.VoidNPCEditor={render,draw,guideNow,importFile,packageOf,spawn,get ui(){return ui;},get imports(){return imports;},lookOf,entries,HELP,spawned:null};
+ root.VoidNPCEditor={startMake:()=>{startMake();if(host&&!host.hidden&&DTX()?.tab==='npcs')draw();},make:()=>ui.make,render,draw,guideNow,importFile,packageOf,spawn,get ui(){return ui;},get imports(){return imports;},lookOf,entries,HELP,spawned:null};
 })(globalThis);

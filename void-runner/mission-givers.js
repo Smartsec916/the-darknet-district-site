@@ -104,8 +104,16 @@
   {id:'they-follow',name:'They follow you',supported:true,needs:'escort',note:'The person follows the player (about 2 metres behind, walking or running to keep up; the cat at its own pace) to the spot you pick on the map. Done when both are there. Only people who can walk with the player.'},
   {id:'their-cab',name:'They call a cab, you ride together',supported:true,needs:'cab',note:'The person walks to the kerb and calls a street taxi to the stop you choose; the player boards with them (BOARD TAXI, normal fare). Both get out at the stop; done then. Only Reverie or Lace (the cat does not ride in cabs), and only the stops in the quarter where she is placed (The Avenue unless placed elsewhere).'},
   {id:'shared-cab',name:'You call a cab, they ride along',supported:true,needs:'cab',note:'The person follows the player; when the player calls a street taxi to the stop you choose, they get in too, and both get out there; done then. A cab to another stop: they stay. Only Reverie or Lace, only the stops in the quarter where she is placed.'},
+  // animation between steps (npc-gestures.js, 19 Nov 2026: the owner "can't add animations anywhere between the steps")
+  {id:'anim',name:'Someone plays an animation',supported:true,needs:'anim',note:'The person you choose does the animation (a shrug, a laugh, looking about …) where they stand, as soon as the step before is done and the conversation is closed; the mission then waits the seconds you set (0 to 30) and goes on to the next step. Only animations that person really has.'},
+  // mission apartments (apartments.js, 19 Nov 2026: "in the mission editor add 'instance an apartment'"): the apartment is added under "Apartments for this mission"
+  {id:'apt-enter',name:'Go into an apartment',supported:true,needs:'apt',note:'Done while the player is inside one of this mission’s apartments (through its street door, then its door in the hallway). A player already inside when the step starts counts.'},
+  {id:'apt-use',name:'Use something in an apartment',supported:true,needs:'apt',note:'Done when the player uses the thing you choose in that apartment: the computer, the utility panel, the safe, the vending machine, the closet or the light switch (E). For now each shows a short description; the gameplay behind them comes later.'},
+  {id:'hack',name:'Hack the access point',supported:true,needs:'ap',note:'Every apartment door has an access point (a card reader with a small screen) beside it. The player presses E at the one you choose and holds on for the seconds you set while a progress bar runs (a stand-in for a hacking minigame later). Options: fail if they walk away, open that door for them for the rest of the mission, and an item they must carry (the hacking device is reserved; it is not sold anywhere yet).'},
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
-  {id:'pickup',name:'Pick something up in the world',supported:false},{id:'wait',name:'Wait / come back later',supported:false}];
+  {id:'pickup',name:'Pick something up in the world',supported:false},
+  // mission timers (the owner, 19 Nov 2026: "mission timers. set the amount of time between actions, lines, etc")
+  {id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];
  /* What a mission can make available. supported: applied by the game when the mission (or the step named in `when`) is done. */
  const UNLOCK_KINDS=[
   {id:'credits',name:'Credits',supported:true},
@@ -146,10 +154,13 @@
  /* Every registered NPC (voice registry, District residents, story characters, the temple's monk) with where they are today. src: {registry, people (district-people NPCS), story (characters), temple (MODEL)} */
  function roster(src={}){
   const reg=(src.registry&&src.registry.npcs)||{},people=new Map((src.people||[]).map(n=>[n.id,n])),story=src.story||{},temple=src.temple||null;
-  const ids=[...new Set([...Object.keys(FACTS),...Object.keys(reg),...people.keys(),...Object.keys(story),...(temple?[temple.id]:[])])];
+  // mission givers made in the editor (npc-made.js: content.characters, placed by content.npcs); an id the game already uses is never taken over (a made name card does not count)
+  const MD=typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs,known=new Set([...Object.keys(FACTS),...Object.keys(reg),...people.keys(),...Object.keys(story).filter(id=>!story[id].made),...(temple?[temple.id]:[])]);
+  const made=MD&&src.characters?MD.giverFacts(Object.fromEntries(Object.entries(src.characters).filter(([id])=>!known.has(id))),src.npcs||{}):{};
+  const ids=[...new Set([...known,...Object.keys(made)])];
   const out=[];
   for(const id of ids){if(['news-anchor','commercial-announcer','the-function'].includes(id)||(reg[id]&&reg[id].broadcast))continue;
-   const f=FACTS[id],p=people.get(id),name=nameOf(id,reg,people,story,temple),voice=reg[id]?{voice:reg[id].voice,status:reg[id].status}:null;
+   const f=FACTS[id]||made[id],p=people.get(id),name=made[id]?made[id].name:nameOf(id,reg,people,story,temple),voice=reg[id]?{voice:reg[id].voice,status:reg[id].status}:null;
    let e;
    if(f)e={...f};
    else if(/^vr-/.test(id))e={group:D,where:'The District’s VR booths (vr-companions.js).',targets:[],players:false,draft:false,why:COMPANION};
@@ -157,8 +168,8 @@
    else e={group:E,where:'Not placed in any scene the editor knows of.',targets:[],players:false,draft:false,why:'No TALK prompt for this character anywhere in the game (needs a code change).'};
    const canTalk=e.targets.length>0;
    out.push({id,name,say:/^[a-zA-Z][\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,
-    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),photo:!!(e.photo||p),place:e.place||null,shift:e.shift?{hours:e.shift.hours.slice(),arrive:e.shift.arrive||0}:null,reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,
-    sources:[reg[id]&&'npc-voice-registry.json',p&&'district-people.js',story[id]&&'story-content.js',temple&&temple.id===id&&'temple.js'].filter(Boolean)});}
+    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),photo:!!(e.photo||p),place:e.place||null,shift:e.shift?{hours:e.shift.hours.slice(),arrive:e.shift.arrive||0}:null,reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,...(e.made?{made:true,role:e.role||'',model:e.model||null}:{}),
+    sources:[e.made&&'content.characters (made in the editor)',reg[id]&&'npc-voice-registry.json',p&&'district-people.js',story[id]&&'story-content.js',temple&&temple.id===id&&'temple.js'].filter(Boolean)});}
   const rank=g=>g.group===D?0:1;
   return out.sort((a,b)=>rank(a)-rank(b)||(b.id==='admin')-(a.id==='admin')||(b.id==='iris')-(a.id==='iris')||a.name.localeCompare(b.name));
  }

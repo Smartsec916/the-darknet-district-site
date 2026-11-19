@@ -1,6 +1,6 @@
 /* DEVELOPER TOOLS > START (the owner, 18 Nov 2026, queue item 0: a beginner-first Developer tools for someone who has never made a game). Browser only; loaded on
    demand with the Mission Editor's scripts (dev-tools.js editorScripts), after editor-wizard.js (the pure rules) and the two editors.
-   - The welcome screen: four big task cards (Make a mission, Place a character, Test my mission, Publish) and every other tool one click away.
+   - The welcome screen: five big task cards (Make a mission, Place a character, Create a mission giver, Test my mission, Publish) and every other tool one click away.
    - "Make a mission": one question per page with BACK / NEXT and a progress bar; it makes an ordinary draft mission (editor-wizard.js build) through the Mission
      Editor's own draft (shared.addWizardMission), so Guide me, help text, PLAY THIS DRAFT, publishing and the server's checks are the same as for a hand-made one.
    - "Test my mission": each of your missions, ready (PLAY) or what is still missing (OPEN TO FIX).
@@ -43,6 +43,7 @@
  const TASKS=[
   ['make','mission','Make a mission','Answer a few easy questions, one at a time. Nothing reaches players until you publish.'],
   ['place','character','Place a character','Put Reverie or Lace at a spot, or make them walk a route on the map.'],
+  ['giver','people','Create a mission giver','Make a new character, step by step: a model, a name, a look, a device, a ship, items and a place in the world.'],
   ['test','test','Test my mission','Play your mission in a practice game. Your real save is never touched.'],
   ['publish','publish','Publish','Check your missions, then send them to every player.']];
  const MORE=[['missions','mission','Mission Editor','Every mission and every setting'],['npcs','people','NPCs','Every character: look, lines, places'],['test','jump','Test & Jump To','Jump to any place to look around'],['balance','balance','Combat Balance','Ship and enemy numbers'],['achievements','trophy','Achievements','The list of achievements']];
@@ -53,7 +54,7 @@
   for(const [tab,ic,title,line] of MORE){const b=btn('',()=>go(tab),'eh-tool',{'data-eh-tab':tab});b.append(icon(ic,22),el('b',title),el('span',line));m.append(b);}r.append(m);
   const tr=el('p','','me-row');tr.append(iconBtn('help','Show me around',()=>tour.start(),'eh-link',{'data-eh-tour':'1'}));r.append(tr);}
  function task(id){if(id==='make'){ui.view='wizard';ui.a=W().fresh('');ui.page=0;ui.tried=false;draw();return;}
-  if(id==='place')return go('npcs');if(id==='publish')return go('missions',()=>S().goto({mode:'publish'}));if(id==='test'){ui.view='test';draw();}}
+  if(id==='place')return go('npcs');if(id==='giver')return go('npcs',()=>{const N=root.VoidNPCEditor;if(N&&N.startMake)N.startMake();});if(id==='publish')return go('missions',()=>S().goto({mode:'publish'}));if(id==='test'){ui.view='test';draw();}}
  // ---------------- "Make a mission"
  function wizard(r){const P=W().PAGES,p=P[ui.page],a=ui.a,probs=W().problems(a,p.id,ctx());
   const top=el('div','','eh-wtop');top.append(btn('',()=>{if(!confirm('Leave “Make a mission”? Nothing has been made yet; your answers will be lost.'))return;ui.view='home';draw();},'eh-link',{'data-eh-cancel':'1'}));top.lastChild.append(icon('close',14),document.createTextNode(' Cancel'));
@@ -94,7 +95,15 @@
     if(kd.needs==='escort-spot'){s2.append(new Option(s.npc?'— choose a spot —':'— choose the person first —',''));for(const p of (E&&s.npc?E.spots(s.npc):[]))s2.append(new Option(p.name,p.id));s2.value=s.spot||'';s2.onchange=()=>{s.spot=s2.value;draw();};}
     else{s2.append(new Option(s.npc?'— choose a stop —':'— choose the person first —',''));for(const p of (E&&s.npc?E.stops(s.npc,E.placedArea(s.npc)):[])){const op=new Option(p.name+(p.ok?'':' — not possible'),p.id);if(!p.ok){op.disabled=true;op.title=p.why;}s2.append(op);}s2.value=s.stop||'';s2.onchange=()=>{s.stop=s2.value;draw();};}
     r2.append(s2,el('span',kd.needs==='escort-spot'?'Only people who can walk with the player are listed (Reverie, Lace, the street cat). You can move the spot anywhere on their pavement later, on the Mission Editor’s map.':'Only the stops in the quarter where she is placed for this mission (The Avenue unless you placed her somewhere else; greyed stops say why). The normal fare is paid.','me-help'));sel=null;c.append(r2);}
-   if(!sel&&!(kd.needs==='escort-spot'||kd.needs==='escort-stop')){const list=kd.needs==='subject'?subjects():talkers();sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));for(const g of list)sel.append(new Option(g.name+(g.players?'':' (practice game only)'),g.id));sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;draw();};}
+   else if(kd.needs==='seconds'){const r2=el('label','','me-field');const n=el('input','','',{type:'number',min:'1',max:'600',step:'1','aria-label':kd.ask,'data-eh-step-secs':String(i)});n.value=String(s.secs??10);n.onchange=()=>{const v=parseInt(n.value,10);s.secs=Number.isFinite(v)?v:null;draw();};
+    r2.append(el('span',kd.ask),n,el('span','The mission waits this long, then goes on to the next step. The clock stops in the pause menu and conversations. In the Mission Editor you can also make it count only while the player stays near someone.','me-help'));c.append(r2);sel=null;}
+   else if(kd.needs==='anim'){const A=root.VoidNPCGestures;sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));
+    for(const g of givers().filter(g=>g.group==='district')){const r=A?A.clipsFor(g.id):{ok:false,why:''},op=new Option(g.name+(r.ok?'':' — no animations yet'),g.id);if(!r.ok){op.disabled=true;op.title=r.why;}sel.append(op);}
+    sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;s.clip='';draw();};row.append(sel);c.append(row);
+    const r2=el('label','','me-field');r2.append(el('span',kd.where));const s2=el('select','','',{'aria-label':kd.where,'data-eh-step-clip':String(i)});s2.append(new Option(s.npc?'— choose an animation —':'— choose the person first —',''));
+    for(const x of (A&&s.npc?A.clipsFor(s.npc).clips:[]))s2.append(new Option(x.name,x.id));s2.value=s.clip||'';s2.onchange=()=>{s.clip=s2.value;draw();};
+    r2.append(s2,el('span','They do it where they stand as soon as the step before is done; the mission then waits 3 seconds (change it in the Mission Editor, 0 to 30) and goes on. Only animations that person really has are listed.','me-help'));sel=null;c.append(r2);}
+   if(!sel&&!(kd.needs==='escort-spot'||kd.needs==='escort-stop'||kd.needs==='anim'||kd.needs==='seconds')){const list=kd.needs==='subject'?subjects():talkers();sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));for(const g of list)sel.append(new Option(g.name+(g.players?'':' (practice game only)'),g.id));sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;draw();};}
    if(sel){row.append(sel);c.append(row);}
    const lab=el('label','','me-field');lab.append(el('span','What the Mission Log says'));const li=el('input','','',{'data-eh-step-label':String(i),maxlength:'200'});li.value=s.label||'';li.oninput=()=>{s.label=li.value;s.auto=!li.value.trim();};lab.append(li,el('span','Filled in for you; change it to your own words if you like.','me-help'));c.append(lab);box.append(c);});
   box.append(iconBtn('plus','ADD A STEP',()=>{a.steps.push({kind:'talk',npc:'',place:'',label:'',auto:true});draw();},'',{'data-eh-add-step':'1'}));}
@@ -106,8 +115,8 @@
   // "Ask ACCEPT / DENY" yes / no (always yes when the player pays, or when the start is "they ask")
   const forced=a.pays||a.start==='person-accept',on=W().asks(a),q=el('div','','me-row',{role:'radiogroup','aria-label':'Ask the player ACCEPT or DENY first?'});q.append(el('b','Ask the player ACCEPT or DENY first?'));
   for(const [v,n] of [[true,'Yes'],[false,'No']])q.append(btn(n,()=>{a.ask=v;draw();},on===v?'on':'',{role:'radio','data-eh-ask':v?'yes':'no','aria-checked':String(on===v),...(forced&&!v?{disabled:'',title:'The player '+(a.pays?'pays when accepting':'is asked (chosen on “How does it start?”)')+', so the offer always asks.'}:{})}));
-  box.append(q,el('p','Yes: the player sees the name, the description and the '+(a.pays?'cost':'reward')+', then chooses ACCEPT or DENY (DENY: asked again later). Change the button words and what DENY does in the Mission Editor afterwards.','me-help'));}
- function summary(a){const st=W().STARTS.find(s=>s.id===a.start);return nameOf(a.giver)+' gives it. Starts: '+(st?st.title.toLowerCase():'')+(W().asks(a)?' (asks ACCEPT / DENY)':'')+'. '+a.steps.map((s,i)=>'Step '+(i+1)+': '+s.label+'.').join(' ')+(a.pays?' The player pays '+(Number(a.rewards)||0)+' credits when accepting.':' Reward: '+(Number(a.rewards)||0)+' credits.');}
+  box.append(q,el('p','Yes: the player sees the name, the description and the '+(a.pays?'cost':'reward')+', then chooses ACCEPT or DENY (DENY: asked again later). Change the button words and what DENY does in the Mission Editor afterwards.'+(a.start==='near'?' No (the normal choice): walking near starts the mission at once, with nothing to press.':''),'me-help'));}
+ function summary(a){const st=W().STARTS.find(s=>s.id===a.start);return nameOf(a.giver)+' gives it. Starts: '+(st?st.title.toLowerCase():'')+(W().asks(a)?' (asks ACCEPT / DENY)':a.start==='near'?' (starts automatically — no click)':'')+'. '+a.steps.map((s,i)=>'Step '+(i+1)+': '+s.label+'.').join(' ')+(a.pays?' The player pays '+(Number(a.rewards)||0)+' credits when accepting.':' Reward: '+(Number(a.rewards)||0)+' credits.');}
  function pageName(box,a){box.append(el('p',summary(a),'eh-summary',{'data-eh-summary':'1'}));
   const f=(label,attr,value,on,area,help,max)=>{const l=el('label','','me-field');l.append(el('span',label));const i=el(area?'textarea':'input','','',{[attr]:'1',maxlength:String(max),...(area?{rows:'2'}:{}),placeholder:'(your words)'});i.value=value||'';i.oninput=()=>on(i.value);l.append(i);if(help)l.append(el('span',help,'me-help'));box.append(l);return i;};
   f('Mission name','data-eh-title',a.title,v=>{a.title=v;},false,'For example “A parcel for Iris”.',60);
@@ -137,7 +146,7 @@
  // ---------------------------------------------------------------- Basic mode: hide what a beginner never needs (Advanced shows everything)
  const basic=()=>!!panel()&&panel().classList.contains('dev-basic');
  function syncNpcMode(){store.set('npc-editor-advanced',DTX()&&DTX().mode==='advanced'?'1':'0');}
- const ADV_SEL=['[data-me-number]','[data-me-number] + .me-help','.me-how','[data-me-followups]','.me-flow','[data-me-flow]','[data-me-tree-mission] .me-grid:has([data-me-field="category"])','.me-row:has(> [data-me-help-location])','.me-row:has(> select[aria-label="Mission type"])'];
+ const ADV_SEL=['[data-me-apt-adv]','[data-me-number]','[data-me-number] + .me-help','.me-how','[data-me-followups]','.me-flow','[data-me-flow]','[data-me-tree-mission] .me-grid:has([data-me-field="category"])','.me-row:has(> [data-me-help-location])','.me-row:has(> select[aria-label="Mission type"])'];
  function mark(){const p=panel();if(!p||p.hidden)return;refreshHead();
   for(const n of p.querySelectorAll('[data-npc-advanced]'))n.closest('label')?.classList.add('eh-dup');   // one Advanced switch for all of Developer tools
   for(const n of p.querySelectorAll(ADV_SEL.join(',')))n.classList.add('adv-only');

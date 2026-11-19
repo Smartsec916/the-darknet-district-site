@@ -155,7 +155,7 @@
   // the figure's prefix (crowd:look-walk), so compare the group itself, never the bare clip name. Comparing
   // names restarted the clip each frame and froze it on one pose while the figure slid along.
   function play(name){
-   if(disposed)return;name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;named=name;
+   if(disposed)return;if(perf){perf.wanted=name;return;}name=clipIn(look,name);const next=groupFor(name)||list[0];if(!next)return;named=name;
    if(current===next&&!walking&&!once)return;walking=false;once=null;
    for(const g of list)if(g!==next)g.stop();
    next.start(true,speed,next.from,next.to);next.goToFrame(next.from+(next.to-next.from)*((hash(node.name+name)%100)/100));current=next;held=false;if(!live())next.pause();
@@ -164,7 +164,7 @@
   // seconds, or 0 if the figure lacks it (the caller then just switches clips).
   let once=null;
   function playOnce(name,after){
-   if(disposed)return 0;
+   if(disposed)return 0;if(perf){if(after)perf.wanted=after;return 0;}
    const g=clipIn(look,name)===name?groupFor(name):null;if(!g){if(after)play(after);return 0;}
    // Claim the figure first: stopping the previous one-shot fires its end handler, which must not start another clip.
    walking=false;current=g;once=g;held=false;for(const o of list)if(o!==g)o.stop();
@@ -174,7 +174,7 @@
   // Walking plays the Quaternius walk loop (CC0). A look without it holds the idle clip's first pose (arms down)
   // and swings its legs and arms from there.
   function walk(time){
-   if(clipIn(look,'walk')==='walk'){play('walk');return;}
+   if(perf){perf.wanted='walk';return;}if(clipIn(look,'walk')==='walk'){play('walk');return;}
    const B=root.BABYLON;
    if(!walking){const idle=list.find(g=>g.name==='idle'||g.name.endsWith('-idle'))||list[0];for(const g of list)if(g!==idle)g.stop();
     if(idle){idle.start(false,1,idle.from,idle.to);idle.goToFrame(idle.from);idle.pause();}current=null;walking=true;held=false;
@@ -183,6 +183,14 @@
    const swing=(b,angle)=>{const k=bones[b];if(k?.base)k.node.rotationQuaternion.copyFrom(k.base.multiply(B.Quaternion.RotationAxis(B.Axis.X,angle)));};
    swing('LeftUpLeg',s*.36);swing('RightUpLeg',-s*.36);swing('LeftLeg',bend(-Math.sin(time*5.2+1.3)));swing('RightLeg',bend(Math.sin(time*5.2+1.3)));swing('LeftArm',-s*.18);swing('RightArm',s*.18);
   }
+  /* A clip asked for by a mission line or an animation step (npc-gestures.js): it plays for `seconds` (a one-movement clip once, at most `seconds`), while the scene's own
+     calls (play / playOnce / walk) wait; then the clip the scene wanted last (or the one playing before) comes back. Returns the seconds it will take, or 0. */
+  let perf=null;
+  function perform(name,{seconds=3,once:one=false}={}){
+   if(disposed||clipIn(look,name)!==name)return 0;const g=groupFor(name);if(!g)return 0;const prev=perf?perf.wanted:named;if(perf)clearTimeout(perf.timer);
+   walking=false;once=null;held=false;for(const o of list)if(o!==g)o.stop();g.start(!one,1,g.from,g.to);current=g;if(!live())g.pause();
+   const len=(g.to-g.from)/(g.targetedAnimations[0]?.animation?.framePerSecond||30),secs=Math.max(.5,Math.min(30,one?Math.min(len,Math.max(seconds,len)):seconds));
+   const me={clip:name,wanted:prev,until:performance.now()+secs*1000};me.timer=setTimeout(()=>{if(perf!==me)return;perf=null;if(disposed||node.isDisposed?.())return;current=null;const w=me.wanted||'idle';if(w==='walk')walk(0);else play(w);},secs*1000);perf=me;return secs;}
   function gate(){held=false;if(!live()){for(const g of list)g.pause();}else if(current)current.play(current.loopAnimation);}
   function setActive(value){if(disposed||active===value)return;const was=live();active=value;if(was!==live())gate();}
   function setCulled(value){value=!!value;if(disposed||culled===value)return;const was=live();culled=value;if(was!==live())gate();}
@@ -190,14 +198,14 @@
   // at the same speed, so the figure costs 1/n of the animation work. One-off moves, the hand-swung walk and paused figures are left alone; lod(1) hands the clip back.
   function lod(n,dt){
    if(disposed)return;
-   if(!(n>1)||!live()||!current||once||walking){if(held){held=false;if(live()&&current)current.play(current.loopAnimation);}return;}
+   if(!(n>1)||!live()||!current||once||walking||perf){if(held){held=false;if(live()&&current)current.play(current.loopAnimation);}return;}
    if(!held){const a=current.animatables?.[0];if(!a)return;held=true;heldAt=a.masterFrame;heldFor=0;heldN=serial%n;current.pause();}
    heldFor+=dt;if(++heldN%n)return;
    const span=current.to-current.from;if(!(span>0))return;const fps=current.targetedAnimations[0]?.animation.framePerSecond||30;
    heldAt=current.from+(((heldAt-current.from+heldFor*fps*speed)%span)+span)%span;heldFor=0;current.goToFrame(heldAt);
   }
-  function dispose(){if(disposed)return;disposed=true;once=null;for(const g of list){groups.delete(g);g.stop();}controllers.delete(api);}
-  const serial=made++,api={play,playOnce,walk,look,node,setActive,setCulled,lod,dispose,has:name=>clipIn(look,name)===name,get busy(){return !!once;},get clip(){return named;},get active(){return active;},get culled(){return culled;},get held(){return held;}};
+  function dispose(){if(disposed)return;disposed=true;once=null;if(perf){clearTimeout(perf.timer);perf=null;}for(const g of list){groups.delete(g);g.stop();}controllers.delete(api);}
+  const serial=made++,api={play,playOnce,walk,look,node,setActive,setCulled,lod,dispose,has:name=>clipIn(look,name)===name,perform,get performing(){return perf?perf.clip:null;},get busy(){return !!once||!!perf;},get clip(){return named;},get active(){return active;},get culled(){return culled;},get held(){return held;}};
   controllers.add(api);node.onDisposeObservable?.addOnce(dispose);play(clip);return api;
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}

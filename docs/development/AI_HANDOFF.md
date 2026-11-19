@@ -20,6 +20,45 @@ The owner: "upgrade the Taxis" (his reference picture: an autonomous minivan tax
 - **Ride view fix (coordinator review):** the front row has low backs and no headrests, darker roof lining and panels, and looking up in the van stops at the window tops (pitch clamp); views from the middle-row seat out of the windscreen and both sides re-shot on the Avenue and in Old Town.
 - **Tests:** `tests/road-taxi-van.test.cjs` (footprint and bays, seats and doors, cab numbers, load order and the LED hooks, the model file's nodes / glass / meshopt / size); npm test passes.
 - **Checked in a browser** (bundled Chromium, software GL, Medium): cabs driving on the Avenue and in Old Town, front / side / rear / three-quarter close-ups at night, the door open at a pickup, a ride from inside, Reverie seated in the cab (inside and through the glass from outside), the LED chase on the Avenue and Old Town stops over several frames. **Not verified:** real hardware and frame rate on the ROG Ally; VR; the Corporate District / Temple signs in a browser; Lace seated (same sit clip numbers as Reverie, measured); a full escort-step ride (`tests/npc-escort-browser.cjs` not re-run).
+### 19 Nov 2026 (newest): MISSION-INSTANCED APARTMENTS, STREET DOORS, ACCESS POINTS AND HACK STEPS (branch `claude/apartments`, build `2026-11-19-apartments-1`, pushed, NO PR, not merged)
+
+The owner: three apartment interiors (rundown, normal, luxury; same size), a hallway for each, doors along the streets that NPCs use and players cannot enter unless a mission places an apartment there, and "instance an apartment" in the Mission Editor (several per mission; items later). Later the same day: automatic sliding doors, an access point at every apartment door with a "Hack the access point" step (reserved, unsold `hacking-device`), a couch, no kitchen and no refrigerator (a vending machine), a switchable ad screen in the rundown and normal apartments, "Lights start" / "Screen starts" settings. Full record: [`APARTMENTS.md`](APARTMENTS.md); editor how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Eighteenth pass".
+
+- **New files:** `void-runner/apartments.js` (pure rules: doors from the street edges, layouts, mission data checks, open / hacked / hack lists, inventory), `apartment-build.js` (the 3D rooms and hallways, merged per material), `apartment-integration.js` (street doors as thin instances with residents walking in and out, prompts, transitions, hack HUD, uses). Wrapped: `VoidNeoChinatown.layout` (street prompts) and `.build` (street doors). Small edits: `babylon-renderer.js` (`def.apartment`), `remote-players.js` (a private location is not shared), `mission-content.js`, `live-content.js`, `mission-givers.js`, `mission-editor.js`, `editor-home.js`, `progression.js` / `void_runner_progression.py` (`personalItems`), `void_runner_live_content.py`, `void_runner_drafts.py`, `tools/admin-inventory.cjs`.
+- **Saves:** nothing new (apartments are not save locations; `save-manifest.json` unchanged); `progression.personal.items` may now hold `hacking-device`.
+- **Tests:** `tests/apartments.test.cjs`, `tests/test_apartments.py`, browser `tests/apartments-browser.cjs`.
+- **Not done:** real hacking minigame, buying from the vending machine, picking up placed items, the wizard page, player sitting; NPC residents are ambient only. Not verified on real hardware, VR or with two real players.
+
+### 19 Nov 2026 (newest): MISSION EDITOR — PLAYER LINES, ANIMATIONS IN LINES AND BETWEEN STEPS, MISSION TIMERS (branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 MISSION GIVER CREATOR (branch `claude/giver-creator`, build `2026-11-19-giver-creator-1`, pushed, NO PR, not merged)
+
+The owner: "a mission giver creator. i can select any npc, create their look based on what's available for that model, give them a device model (ie V1), a ship, other items (gun, hacking device, etc), place them in the world for a mission"; then approved adult (18+) characters in the adult places. Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Seventeenth pass".
+
+- **Editor:** Start page and NPCs tab > **Create a mission giver**: ten steps (model with 3D preview, name / role / "adult (18+)", look, device V1/V2/V3/none, ship, items with "visible on them", voice, animations, place on the area map plus "when are they there", done). Listed under "Made by you" in NPCs; usable as giver, step person, walked-near person, follow / lead person (not cab rides).
+- **Data:** `content.characters[id]` (`void-runner/npc-made.js`), placement `content.npcs[id]`, voice `content.voices[id]`; draft → publish like everything else; checked by the game (`mission-content.js`) and the server (`void_runner_live_content.py made_problems` / `with_made`, admin inventory `madeCharacters`).
+- **Game:** figures start with the street pair in every quarter and the District, and with the inside of Milked (reception); a model loads only in its area and while the character exists; props: holstered pistol (Hips bone), hand device (LeftHand bone; appears once the `hacking-device` item exists in an item registry).
+- **Adult places:** `npc-areas.js` `adult` rules and walkable ground (Milked side street, service alley, reception; NULL inside and door; District bar, VR, arcade; terrace). Never Reverie / Lace / the cat, the pod room, Milked's studios, Corporate, Temple.
+- **Tests:** `tests/npc-made.test.cjs`, `tests/test_npc_made.py`, browser `tests/npc-made-browser.cjs`. `tests/npc-areas.test.cjs` updated for the seventh area.
+- **Not verified:** real hardware; VR; licensed models in a browser; publishing with the server on; figures in reception and the District rooms in a browser.
+
+### 19 Nov 2026: "WHEN WALKED NEAR" STARTS BY ITSELF (branch `claude/near-auto-start`, build `2026-11-19-near-auto-1`, pushed, NO PR, not merged)
+
+The owner: "'When walked near' still needs a click option by the player, even though i want it to start automatically". Details: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fix (19 Nov 2026): When walked near starts by itself".
+
+- **Cause:** the runtime already started walked-near missions with no click when ACCEPT / DENY is off; the editor left the question on without the owner choosing it (changing Starts from "In person, asking" to a device start kept it; "Player pays" then "Player gets" kept it).
+- **Fix:** a line under the trigger, "Starts automatically — no click" / "Asks ACCEPT / DENY", with a switch button; choosing "When walked near" and changing Starts no longer keep a question the owner did not set; removing a cost at ACCEPT turns off the question it forced. Paying at ACCEPT still always asks. Existing missions are not changed (no record of who ticked it): the line shows which ones ask.
+- **Tests:** `tests/near-auto-start.test.cjs`, browser `tests/near-auto-start-browser.cjs` (passes).
+
+### 19 Nov 2026: MISSION EDITOR — PLAYER LINES, ANIMATIONS IN LINES AND BETWEEN STEPS, MISSION TIMERS (branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`, pushed, NO PR, not merged)
+
+The owner: "after I create a voice line, i can not create the line for the player. i also can't add animations anywhere between the steps", then "mission timers". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Sixteenth pass".
+
+- **Cause of the player-line problem:** no code bug blocked it; the player line was only "You (the player)" at the top of the long "Who says it" list behind "+ LINE", with misleading status text ("no voice yet", "empty: a placeholder" that did not update while typing). Now: **+ ADD A LINE FOR <NPC>** / **+ ADD A PLAYER LINE** everywhere an NPC speaks, ▲ ▼, a live status chip; in the game the player's line shows as "You", is never voiced, and stays in the NPC's conversation thread.
+- **Animations:** "While saying this, <NPC> does: …" on any NPC line, and a step kind "Someone plays an animation" (also in the wizard). Only clips that character really has (`npc-gestures.js`; Reverie / Lace casual only; the cat none). `crowd.js` controllers gained `perform`.
+- **Timers:** per line wait before (0–60 s), show for (1–60 s), animation length (1–30 s); per step delay before it starts (0–600 s); a "Wait" step (1–600 s, optionally only while near someone). Paused in menus, conversations, the KeyMap, pod and creator; step timers resume after a reload (`story.flags` `td_` / `tw_`, removed when the step is done).
+- **Checked by** the game (`mission-content.js`) and the server (`void_runner_live_content.py`, admin inventory `missionEditor.gestures`; the editor's server copy refuses bad shapes).
+- **Tests:** `tests/player-lines.test.cjs`, `tests/test_player_lines.py`, browser `tests/player-lines-browser.cjs` (passes).
+- **Not verified:** real hardware; VR; Reverie / Lace and added clips in a browser; publishing with the server on.
 
 ### 19 Nov 2026: PLACE REVERIE, LACE AND THE STREET CAT ANYWHERE WALKABLE (branch `claude/pair-anywhere`, build `2026-11-19-pair-anywhere-1`, pushed, NO PR, not merged)
 

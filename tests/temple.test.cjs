@@ -53,7 +53,7 @@ test('lights: Low adds none; Medium and up add a few real lights within the budg
 });
 test('scene lifecycle: it is built when the Temple loads and fully disposed (scene mood restored) when the player leaves',()=>{
   const src=read('temple-build.js');assert.match(src,/dispose\(\)\{/);for(const r of ['scene.clearColor=prev.clear','scene.fogDensity=prev.fogDensity','ip.exposure=prev.exposure','ambient.intensity=lp.amb','node.dispose(false,true)','Area.save(space,fog,flags)'])assert.ok(src.includes(r),r);
-  const rend=fs.readFileSync(path.join(__dirname,'../void-runner/babylon-renderer.js'),'utf8');assert.match(rend,/def\.temple&&root\.VoidTemple\?\.build/);assert.match(rend,/zoneHandle\?\.dispose/);assert.match(rend,/def\.corporate\|\|def\.temple\?'area':'scene'/);
+  const rend=fs.readFileSync(path.join(__dirname,'../void-runner/babylon-renderer.js'),'utf8');assert.match(rend,/def\.temple&&root\.VoidTemple\?\.build/);assert.match(rend,/zoneHandle\?\.dispose/);assert.match(rend,/def\.corporate\|\|def\.temple(\|\|def\.apartment)?\?'area':'scene'/);
 });
 test('nothing else is downloaded: no images or network in the build, models only the monks\' and Zen Zephyr\'s through the shared loader; the conversation stays local',()=>{
   const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.png','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
