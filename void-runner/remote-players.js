@@ -58,7 +58,7 @@
     keeps its name; the NeoChinatown street (with the alley and NULL nightclub, which are part of it) is one room; every other place is a room named by its own id.
     The hub refuses a name it does not know (tools/district-hub/protocol.cjs ROOMS), and then this place is simply played alone. */
  const PLACES=new Set(['corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld']);
- const roomOf=wl=>!wl||wl.kind==='vr'?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:null;
+ const roomOf=wl=>!wl||wl.kind==='vr'||wl.private?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:null;
  const QZ=root.VoidQuarters||null;
  const roomNow=()=>{try{return typeof walkingLocation!=='undefined'?roomOf(walkingLocation):null;}catch{return null;}};
  let joinedRoom=null,refusedRoom=null;

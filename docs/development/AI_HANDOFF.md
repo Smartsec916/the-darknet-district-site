@@ -6,7 +6,17 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 19 Nov 2026 (newest): MISSION GIVER CREATOR (branch `claude/giver-creator`, build `2026-11-19-giver-creator-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 (newest): MISSION-INSTANCED APARTMENTS, STREET DOORS, ACCESS POINTS AND HACK STEPS (branch `claude/apartments`, build `2026-11-19-apartments-1`, pushed, NO PR, not merged)
+
+The owner: three apartment interiors (rundown, normal, luxury; same size), a hallway for each, doors along the streets that NPCs use and players cannot enter unless a mission places an apartment there, and "instance an apartment" in the Mission Editor (several per mission; items later). Later the same day: automatic sliding doors, an access point at every apartment door with a "Hack the access point" step (reserved, unsold `hacking-device`), a couch, no kitchen and no refrigerator (a vending machine), a switchable ad screen in the rundown and normal apartments, "Lights start" / "Screen starts" settings. Full record: [`APARTMENTS.md`](APARTMENTS.md); editor how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Eighteenth pass".
+
+- **New files:** `void-runner/apartments.js` (pure rules: doors from the street edges, layouts, mission data checks, open / hacked / hack lists, inventory), `apartment-build.js` (the 3D rooms and hallways, merged per material), `apartment-integration.js` (street doors as thin instances with residents walking in and out, prompts, transitions, hack HUD, uses). Wrapped: `VoidNeoChinatown.layout` (street prompts) and `.build` (street doors). Small edits: `babylon-renderer.js` (`def.apartment`), `remote-players.js` (a private location is not shared), `mission-content.js`, `live-content.js`, `mission-givers.js`, `mission-editor.js`, `editor-home.js`, `progression.js` / `void_runner_progression.py` (`personalItems`), `void_runner_live_content.py`, `void_runner_drafts.py`, `tools/admin-inventory.cjs`.
+- **Saves:** nothing new (apartments are not save locations; `save-manifest.json` unchanged); `progression.personal.items` may now hold `hacking-device`.
+- **Tests:** `tests/apartments.test.cjs`, `tests/test_apartments.py`, browser `tests/apartments-browser.cjs`.
+- **Not done:** real hacking minigame, buying from the vending machine, picking up placed items, the wizard page, player sitting; NPC residents are ambient only. Not verified on real hardware, VR or with two real players.
+
+### 19 Nov 2026 (newest): MISSION EDITOR — PLAYER LINES, ANIMATIONS IN LINES AND BETWEEN STEPS, MISSION TIMERS (branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 MISSION GIVER CREATOR (branch `claude/giver-creator`, build `2026-11-19-giver-creator-1`, pushed, NO PR, not merged)
 
 The owner: "a mission giver creator. i can select any npc, create their look based on what's available for that model, give them a device model (ie V1), a ship, other items (gun, hacking device, etc), place them in the world for a mission"; then approved adult (18+) characters in the adult places. Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Seventeenth pass".
 

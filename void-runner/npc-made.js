@@ -64,6 +64,7 @@
  function items(){const out=new Map(),add=(id,name,kind)=>{if(typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&!out.has(id))out.set(id,{id,name:String(name||id),kind,show:SHOW[id]||null});};
   add('ward-pistol','Ward pistol (gun)','weapon');add('red-dot','Red-dot sight (pistol optic)','weapon part');
   const R=ITEMS_REG();if(R){const src=R.items||R.ITEMS||R.catalog||R;const list=Array.isArray(src)?src:Object.entries(src).map(([id,v])=>({id,...(v&&typeof v==='object'?v:{})}));for(const x of list)if(x&&typeof x==='object')add(x.id,x.name||x.label,x.kind||'item');}
+  for(const [id,it] of Object.entries((PROG()&&PROG().personalItems)||{}))add(id,it.name,'carried item');   // progression.js personalItems: the Ward kit and the reserved hacking device (apartments, 19 Nov 2026)
   for(const [id,m] of Object.entries((PROG()&&PROG().modules)||{}))add(id,m.name,'ship module');
   const Ct=CONTENT();for(const [id,g] of Object.entries(Object.assign({},(Ct&&Ct.gear)||{},(Ct&&Ct.creditGear)||{})))add(id,g.name,'ship gear');
   return [...out.values()];}

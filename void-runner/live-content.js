@@ -181,7 +181,8 @@
   const ch=mode==='walking'&&tracker?tracker.update(where()):{entered:[],left:[],inside:tracker?tracker.inside:[]};places=[...new Set([...places,...ch.inside])];lastPlaces=places;
   if(ch.entered.length||ch.left.length)try{root.dispatchEvent?.(new CustomEvent('void-place',{detail:{entered:ch.entered,left:ch.left,inside:ch.inside}}));}catch{}
   // also the moment for missions started by notification "after mission N" or "when a story flag is set" (checked on every event)
-  const r=MC.treeEvent(state,env,{type:'place',places,entered:ch.entered,left:ch.left},root.VoidMissions,root.C||root.VoidCampaign);if(r.need)report(r);if(!(r.objective||r.offered)){if(r.prompt)offerPrompt(r.prompt);return;}report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
+  const apt=root.VoidApartments?.inside?.()||null;   // the mission apartment the player is in ("Go into apartment X" steps)
+  const r=MC.treeEvent(state,env,{type:'place',places,entered:ch.entered,left:ch.left,apt},root.VoidMissions,root.C||root.VoidCampaign);if(r.need)report(r);if(!(r.objective||r.offered)){if(r.prompt)offerPrompt(r.prompt);return;}report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
  /* A photo was taken (device-camera.js). meta: what the camera judged at the moment of capture {subjects:[{id,valid}], during, place}. A valid photo of the person a
     photo step names completes it. */
  function photo(meta){try{if(!treesOn()||!meta)return null;const subjects=(meta.subjects||[]).filter(x=>x&&x.valid===true).map(x=>x.id);const r=MC.treeEvent(state,env,{type:'photo',subjects},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);return r;}catch{return null;}}
@@ -255,5 +256,13 @@
   const say={wait:who+' waits for you to catch up.',paused:who+' has stopped: you are too far away. Go back to them.','caught-up':who+' catches up with you.','wrong-stop':who+' is going to '+(((root.VoidQuarters?.STOPS||[]).find(q=>q.id===planCache[x.npc]?.stop)||{}).name||'another stop')+', not there: they stay out of this cab.','hail-failed':who+' could not get a cab: '+(x.reason||'try again in a moment.'),'in-cab':who+' gets in the cab.'}[x.event];
   if(say)try{announce(say);}catch{}}catch{}}
  if(root.VoidStreetPair){root.VoidStreetPair.onEscort=onEscort;root.VoidStreetPair.planFor=id=>plans()[id]||null;root.VoidStreetPair.animsFor=id=>((env.npcPlans||{})[id]||{}).anims||[];}
- root.VoidLiveContent={offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ /* APARTMENTS (apartments.js, apartment-integration.js): the instances open for this player, the street doors a hack opened, the hack steps in progress; a use of
+    something in an apartment and a finished hack are mission events. */
+ const aptRun=ev=>{try{if(!treesOn())return null;const r=MC.treeEvent(state,env,ev,root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);if((r.objective||r.offered)&&!root.VoidDevTest?.active)try{save();}catch{}if(r.lines&&r.lines.length&&mode==='walking')setTimeout(()=>show(r.lines,r),600);return r;}catch{return null;}};
+ const apartments=()=>{try{return treesOn()?MC.apartmentsNow(state,env):[];}catch{return [];}};
+ const hackedDoors=()=>{try{return treesOn()?MC.hackedNow(state,env):[];}catch{return [];}};
+ const hacks=()=>{try{return treesOn()?MC.hacksNow(state,env):[];}catch{return [];}};
+ const aptUse=({mission,apt,object})=>aptRun({type:'apt-use',mission,apt,object});
+ const hack=job=>aptRun({type:'hack',ap:job.ap,mission:job.mission,step:job.key});
+ root.VoidLiveContent={apartments,hackedDoors,hacks,aptUse,hack,offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);
