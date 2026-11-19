@@ -20,6 +20,15 @@ The owner's queued room: seen only through a hacked security camera, recorded to
 ### For Claude and Codex
 
 `void-runner/cult-room.js` (rules, timeline, choreography maths), `cult-room-build.js` (the 3D room and the seven figures), `camera-feed.js` (the feed, the pause, the recording, the mission hook), `cult-room-editor.js` (this card; loaded with the editor). Wired in `module-editor.js` (Other > the feed room, `create`), `mission-editor.js` (`hackRow` adds the feed choice and the scene editor; `aptPanel` lists the feeds; `treeLineText` reads a feed line for IMPORT VOICE FILE, key `tree:<mission>/feed/<feed>/<beat>`), `mission-content.js` (mission key `feeds`, step key `feed`, the event `feed`), `apartments.js` (`hacksNow` carries the feed; a camera hack opens no door unless `unlock:true`), `live-content.js` (`feedSaved`), `device-gallery.js` (videos). Server: `void_runner_live_content.py feed_problems`, `void_runner_drafts.py`. Tests: `tests/cult-room.test.cjs`, `tests/test_cult_room.py`, `tests/cult-room-browser.cjs`. A voice file is keyed by the beat's place in the list: moving a line with ↑ ↓ after importing its voice shows "text changed" until it is imported again.
+## NPC voice summary (19 Nov 2026, branch `claude/npc-voice-summary`, build `2026-11-19-npc-voice-summary-1`)
+
+The owner: "In the NPC editor when you select an NPC show which Elevenlabs voice was selected for them. Maybe link to it".
+
+- **Top of every NPC's page** (Developer tools > NPCs, the About box, Basic and Advanced): `Voice: ElevenLabs — <name> (<model, e.g. Eleven v4>) · LISTEN ON ELEVENLABS ↗ · your draft choice / saved in the voice file`. The link opens `https://elevenlabs.io/voices/<voiceId>` in a new tab (`rel=noopener noreferrer`). Kokoro: `Voice: free local voice <name> (locked)` (plus the recorded lines' Kokoro voice); nothing: `Voice: none yet — choose one in Lines & voice`.
+- **NPC list:** an **EL** badge after every name with an ElevenLabs voice (hover: the voice and model).
+- **Mission Editor giver card:** its Voice box already named the voice and linked to it; it now names the model too.
+- Lace, Reverie and Dax show the voices chosen for them in `tools/audio/revoice-engines.json`. Code: `npc-voices.js summary()` / `modelLabel()` (pure), `mission-editor.js voiceSummary()` (shared), `npc-editor.js` About and list. No API calls, nothing generated or spent.
+- Tests: `tests/npc-voice-summary.test.cjs`, browser `tests/npc-voice-summary-browser.cjs` (passes, offline, no request to ElevenLabs); `tests/npc-voices-browser.cjs` updated (Reverie now has a voice in the file).
 
 ## Twenty-first pass (19 Nov 2026): locations built from modules (offices, a server room, shops, an elevator)
 
