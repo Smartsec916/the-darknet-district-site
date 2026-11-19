@@ -1,3 +1,11 @@
+## Studio window animation requests (18 Nov 2026)
+
+The original **E / Studio observation window** action remains. It shows the ON AIR notice and opens a compact **MILKED // STUDIO N** panel (near the right side of the game). The menu's charcoal background uses 64% opacity: the performance stays visible through it. Use the **Request Animation** dropdown, **REQUEST**, and **CLOSE** (or Escape).
+
+The dropdown is generated from the current scene performer's actual loaded Babylon animation groups plus the model's registered clips, not a hard-coded library. If a model has not finished loading, the request button is disabled. The player may request a supported stationary animation (dance, idle, look, talk/gesture or similar); requests last about ten seconds, then the dancer's original routine resumes. There is a two-second request cooldown, and the studio's routine timer is restarted upon completion. Studio 1's list refreshes automatically on the UTC Reverie/Lace swap, discarding outstanding requests for the outgoing model.
+
+The panel is visual-only game UI: no cost, mission change, save write, account action, or multiplayer broadcast. The four performers remain in their closed studios and cannot be moved through the window.
+
 # MILKED
 
 > **Studio 1 rotation (18 Nov 2026):** Reverie and Lace alternate in Milked Studio 1 on the same real-time UTC 12-hour shift as the Avenue but opposite to the street. From 00:00–11:59 UTC the Avenue shows Reverie and Studio 1 shows Lace; from 12:00–23:59 UTC the Avenue shows Lace and Studio 1 shows Reverie. The street has a 90-second arrival gap; Studio 1 switches immediately and keeps exactly one model. Both use their rigged character GLBs and alternate the available `dance-groove` and `dance-bop` clips in Studio 1. The animation, textures and poses for each character elsewhere are unchanged; Studios 2–4 are unaffected. The schedule uses wall-clock UTC, never the per-player game clock. No saved fields change.
