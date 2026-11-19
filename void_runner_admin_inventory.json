@@ -2248,7 +2248,7 @@
       }
     }
   },
-  "revision": "5f29bb8ba3907fd2",
+  "revision": "ecb1351fdd113e00",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -19553,7 +19553,7 @@
     "void-runner/mission-givers.js": "5b9c29c8fc8c1199569d7f3e664337dbe8f1ed3d3c8724e62d7219475ce62fd5",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
-    "void-runner/mission-trees.js": "42f295ff4dcb80462fea38aff5d30f1e7d541d4d412f5af1d13d951085ad72ff",
+    "void-runner/mission-trees.js": "e5229983aa1c57a6f75e0beed89c50423e11d152903737fa3255151f232fa0cb",
     "void-runner/model-registry.js": "2330947f95ab6a71231f65a0cec1d347f884dcd550c2d8c9b488588febf7b579",
     "void-runner/mouse-control.js": "9884d5d87fcd359c9b7981a2ca5b2a4ba08d1e38265212a11321870be5b8cb37",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",

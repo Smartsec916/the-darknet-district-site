@@ -36,7 +36,7 @@ test('the current voice: an editor choice, else the re-voice file, else the regi
  assert.deepEqual(X.current('mara',{registry:r,engines:eng,voices:{}}),{kind:'kokoro',voice:'af_bella',status:'approved'});
  const a=X.current('admin',{registry:r,engines:eng,voices:{}});assert.equal(a.kind,'elevenlabs');assert.equal(a.from,'file');assert.equal(a.voiceId,'DMyrgzQFny3JI1Y1paM5');assert.equal(a.kokoro.voice,'am_michael');
  const b=X.current('mara',{registry:r,engines:eng,voices:{mara:ok}});assert.equal(b.from,'editor');assert.equal(b.voiceId,ID);assert.equal(b.kokoro.voice,'af_bella','the registered voice stays as it is');
- assert.deepEqual(X.current('grey-reverie',{registry:r,engines:eng,voices:{}}),{kind:'none'});
+ assert.deepEqual(X.current('street-cat',{registry:r,engines:eng,voices:{}}),{kind:'none'});
  // the editor's lines pick it up (mission-trees.js: the engine of each NPC's lines and of a tree's NPCs)
  fresh();const T=require(R('void-runner/mission-trees.js')),S=require(R('admin/studio-model.js'));
  const src=v=>{fresh();return {missions:require(R('void-runner/mission-log.js')).definitions,beginner:require(R('void-runner/beginner.js')).MISSIONS,content:require(R('void-runner/content.js')),campaign:require(R('void-runner/campaign.js')),story:require(R('void-runner/story-content.js')),registry:r,files:Object.fromEntries(T.FILES.map(f=>[f,fs.readFileSync(R(f),'utf8')])),modules:require(R('void-runner/progression.js')).modules,ships:require(R('void-runner/ships.js')).ships,locations:require(R('void-runner/universe.js')).locations,stores:S.STORES,engines:eng,voices:v};};
@@ -49,9 +49,9 @@ test('the estimate counts spoken characters and states its assumption (about 1 c
  assert.match(e.text,/Estimate only/);assert.match(e.text,/1 credit per character/);assert.deepEqual(X.estimate([]),{lines:0,chars:0,credits:0,fast:0,text:e.text});});
 
 test('the export is revoice-engines.json format: the file\'s own characters kept, editor choices added with engine, voice, voiceId, chosen "by the owner" and a note',()=>{const X=V(),file=JSON.parse(fs.readFileSync(R('tools/audio/revoice-engines.json'),'utf8'));
- const out=X.exportEngines({'grey-reverie':ok,'the-function':ok,junk:{voiceId:'x'}},file);assert.deepEqual(Object.keys(out),['about','characters']);
+ const out=X.exportEngines({'street-cat':ok,'the-function':ok,junk:{voiceId:'x'}},file);assert.deepEqual(Object.keys(out),['about','characters']);
  for(const [id,e] of Object.entries(file.characters))assert.deepEqual(out.characters[id],e,id+' kept as it is');
- const g=out.characters['grey-reverie'];assert.deepEqual(Object.keys(g),['engine','voice','voiceId','model','chosen','note']);assert.equal(g.model,'eleven_v4');assert.equal(g.engine,'elevenlabs');assert.equal(g.voiceId,ID);
+ const g=out.characters['street-cat'];assert.deepEqual(Object.keys(g),['engine','voice','voiceId','model','chosen','note']);assert.equal(g.model,'eleven_v4');assert.equal(g.engine,'elevenlabs');assert.equal(g.voiceId,ID);
  assert.match(g.chosen,/^2026-11-18 by the owner \(https:\/\/elevenlabs\.io\/voices\/AbCdEfGhIjKlMnOpQrSt\)$/);assert.match(g.note,/spend not yet approved/);assert.match(g.voice,/Gravel vendor/);
  assert.equal(out.characters['the-function'],undefined);assert.equal(out.characters.junk,undefined);
  for(const e of Object.values(file.characters))assert.ok(X.ID.test(e.voiceId),'every voice id in the file passes the same format check');

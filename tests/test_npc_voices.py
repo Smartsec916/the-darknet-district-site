@@ -80,7 +80,7 @@ class VoiceQueueTests(unittest.TestCase):
         done = self.post('revoice/done', {'ids': [i['id'] for i in r.json['items']]}).json['items']
         self.assertEqual({i['who']: i['status'] for i in done}, {'mara': 'queued', 'grey-reverie': 'queued', 'zen-zephyr': 'queued', 'nyx': 'done'}, 'ElevenLabs lines wait for approval')
         for bad in [{'who': 'the-function', 'text': 'x', 'voiceId': VID, 'voiceName': 'n'}, {'who': 'special-character', 'text': 'x', 'voiceId': VID, 'voiceName': 'n'},
-                    {'who': 'news-anchor', 'text': 'x'}, {'who': 'grey-reverie', 'text': 'x'}, {'who': 'admin', 'text': 'x', 'voiceId': 'bad', 'voiceName': 'n'},
+                    {'who': 'news-anchor', 'text': 'x'}, {'who': 'street-cat', 'text': 'x'}, {'who': 'admin', 'text': 'x', 'voiceId': 'bad', 'voiceName': 'n'},
                     {'who': 'admin', 'text': 'x', 'voiceId': VID}, {'who': 'admin', 'text': 'x', 'apiKey': 'sk'}]:
             self.assertIn(self.post('revoice', {'items': [bad]}).status_code, (400, 422), bad)
 
