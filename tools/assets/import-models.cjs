@@ -84,7 +84,7 @@ for(const file of files){
  const entry={id,source:rel,status:'imported',notes:[]};
  try{
   const {json,bin,missing}=/\.glb$/i.test(file)?{...readGlb(fs.readFileSync(file)),missing:[]}:pack_gltf(file);
-  if((json.extensionsUsed||[]).some(e=>['KHR_draco_mesh_compression','EXT_meshopt_compression','KHR_texture_basisu'].includes(e)))entry.notes.push('compressed: needs a decoder the game does not ship');
+  if((json.extensionsUsed||[]).some(e=>['KHR_draco_mesh_compression','KHR_meshopt_compression','KHR_texture_basisu'].includes(e)))entry.notes.push('compressed: needs a decoder the game does not ship');
   const glb=writeGlb(json,bin),hash=crypto.createHash('sha256').update(glb).digest('hex').slice(0,16);
   Object.assign(entry,measure(json),{bytes:glb.length,hash,missingTextures:missing});
   if(missing.length)entry.notes.push('missing textures: '+missing.join(', '));
