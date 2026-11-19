@@ -61,9 +61,32 @@ class PlayerLinesServerTests(unittest.TestCase):
         ok = [tree([TALK, {'id': 'a', 'kind': 'anim', 'npc': 'iris', 'clip': 'shrug', 'hold': 3, 'label': ''}])]
         self.assertTrue(drafts.validate_workspace(workspace(ok))['valid'])
         with self.assertRaises(drafts.DraftError):
-            drafts.validate_workspace(workspace([tree([{'id': 'a', 'kind': 'anim', 'npc': 'iris', 'clip': 'shrug', 'hold': 99, 'label': ''}])]))
+            drafts.validate_workspace(workspace([tree([{'id': 'a', 'kind': 'anim', 'npc': 'iris', 'clip': 'shrug', 'hold': 999, 'label': ''}])]))
         with self.assertRaises(drafts.DraftError):
             drafts.validate_workspace(workspace([tree([{**TALK, 'say': [{'who': 'iris', 'text': 'x', 'anim': 'Bad Name!'}]}])]))
+
+
+class MissionTimerServerTests(unittest.TestCase):
+    """Mission timers (the owner, 19 Nov 2026: "mission timers. set the amount of time between actions, lines, etc")."""
+    def test_valid_timers(self):
+        talk = {**TALK, 'delay': 5, 'say': [{'who': 'iris', 'text': 'One.'}, {'who': 'iris', 'text': 'Two.', 'wait': 3, 'show': 4, 'anim': 'shrug', 'animFor': 2}]}
+        wait = {'id': 'w', 'kind': 'wait', 'hold': 30, 'label': 'Wait'}
+        near = {'id': 'n', 'kind': 'wait', 'hold': 600, 'npc': 'iris', 'near': 5, 'label': 'Stay with Iris'}
+        self.assertEqual(live.check(doc([tree([talk, wait, near])]), INV), [])
+
+    def test_refused_timers(self):
+        def errs(objs):
+            return ' | '.join(live.check(doc([tree(objs)]), INV))
+        self.assertIn('0 to 60', errs([{**TALK, 'say': [{'who': 'iris', 'text': 'x', 'wait': 61}]}]))
+        self.assertIn('1 to 60', errs([{**TALK, 'say': [{'who': 'iris', 'text': 'x', 'show': 0}]}]))
+        self.assertIn('only a line with an animation', errs([{**TALK, 'say': [{'who': 'iris', 'text': 'x', 'animFor': 2}]}]))
+        self.assertIn('0 to 600', errs([{**TALK, 'delay': 601}]))
+        self.assertIn('1 to 600', errs([{'id': 'w', 'kind': 'wait', 'hold': 0, 'label': 'x'}]))
+        self.assertIn('1 to 50', errs([{'id': 'w', 'kind': 'wait', 'hold': 5, 'npc': 'iris', 'near': 51, 'label': 'x'}]))
+        self.assertIn('stay near', errs([{'id': 'w', 'kind': 'wait', 'hold': 5, 'near': 5, 'label': 'x'}]))
+        self.assertIn('only a wait step has a distance', errs([{**TALK, 'near': 3}]))
+        with self.assertRaises(drafts.DraftError):
+            drafts.validate_workspace(workspace([tree([{**TALK, 'delay': 9999}])]))
 
 
 if __name__ == '__main__':

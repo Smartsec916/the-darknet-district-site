@@ -49,6 +49,7 @@
    const lab=document.createElement('span');lab.textContent='V1 TRANSLATION';const tx=document.createElement('span');tx.className='v1-translation-text';tx.textContent=t.text;p.append(lab,tx);sp.after(p);
    const sr=document.querySelector('.speech-body .sr-only');if(sr)sr.textContent+=' V1 translation: '+t.text;}}catch{}
   gestureNow();lineAnim();return out;};}
+ if(typeof renderLine==='function'){const r0=renderLine;renderLine=function(){if(lineWaitStart()){const out=r0.apply(this,arguments);try{speech.shown=1;updateSpeech(0);}catch{}return out;}return r0.apply(this,arguments);};}   // a line's wait: render "…" first (LINE TIMERS below)
  try{if(typeof document!=='undefined'&&!document.getElementById('v1-translation-style')){const st=document.createElement('style');st.id='v1-translation-style';
   st.textContent='.v1-translation{margin:.55em 0 0;padding:.45em .7em;border-left:2px solid #39d0ff;background:rgba(10,30,40,.55);color:#cfefff;font-size:.95em;line-height:1.45;animation:v1tr .5s ease .7s both}.v1-translation>span:first-child{display:block;font:700 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.18em;color:#39d0ff;margin-bottom:.2em}@keyframes v1tr{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.v1-translation{animation:none}}';document.head.appendChild(st);}}catch{}
  async function refresh(){
@@ -96,7 +97,20 @@
  /* A line's animation (npc-gestures.js; "While saying this, <NPC> does: ..."): played on the speaker as the line shows, once per line, then she goes back to her own behaviour. */
  const NG=()=>root.VoidNPCGestures;
  function lineAnim(){try{const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(!l||!l.anim||!l.npc||speech.animAt===speech.index)return;speech.animAt=speech.index;
-  NG()?.perform(l.npc,l.anim,NG().lineSeconds(l.text),{plan:(env.npcPlans||{})[l.npc]||null});}catch{}}
+  NG()?.perform(l.npc,l.anim,l.animFor||NG().lineSeconds(l.text),{plan:(env.npcPlans||{})[l.npc]||null});}catch{}}
+ /* LINE TIMERS (mission-content.js TIME): `wait` seconds before a line shows (the conversation shows "…" meanwhile and cannot be skipped past it) and `show` seconds after a
+    line has appeared before the conversation goes on by itself (never past a choice). Both count only while the game runs (not in the pause menu or a hidden tab). */
+ const lineHeld=()=>typeof speech!=='undefined'&&!!speech&&!!speech.waiting;
+ function lineWaitStart(){try{if(typeof speech==='undefined'||!speech||speech.waiting)return false;const i=speech.index,l=speech.lines[i];if(!l||!(l.wait>0)||speech.waitedAt===i)return false;
+  speech.waiting={index:i,left:l.wait*1000,line:l,last:performance.now()};speech.lines[i]={who:l.who,text:'…',silent:true,player:true};return true;}catch{return false;}}
+ if(typeof advanceSpeech==='function'){const adv=advanceSpeech;advanceSpeech=function(){if(lineHeld())return;return adv.apply(this,arguments);};}
+ if(typeof tickSpeech==='function'){const tk=tickSpeech;tickSpeech=function(){if(lineHeld())return;return tk.apply(this,arguments);};}
+ if(typeof speakLine==='function'){const sp=speakLine;speakLine=function(){try{const l=speech&&speech.lines[speech.index];if(l&&(l.player||l.silent)){root.VoidAudio?.cancel?.();speech.readyAt=null;speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}}catch{}return sp.apply(this,arguments);};}   // the player has no voice
+ let lineT=performance.now();
+ setInterval(()=>{const now=performance.now(),dt=Math.min(10000,now-lineT);lineT=now;try{if(typeof speech==='undefined'||!speech)return;const w=speech.waiting;if(w){const d=Math.min(dt,now-w.last);w.last=now;if((typeof mode!=='undefined'&&mode==='pause')||document.hidden)return;
+  if(w.index!==speech.index){speech.waiting=null;return;}w.left-=d;if(w.left>0)return;speech.lines[w.index]=w.line;speech.waitedAt=w.index;speech.waiting=null;renderLine();return;}
+  if((typeof mode!=='undefined'&&mode==='pause')||document.hidden)return;const l=speech.lines[speech.index];if(!l||!(l.show>0)||speech.shown<l.text.length||document.querySelector('#screen .choice-menu,[data-talk-choice]')||document.getElementById('speech-next')?.style.display==='none')return;
+  if(speech.showFor!==speech.index){speech.showFor=speech.index;speech.showLeft=l.show*1000;speech.showLast=now;}speech.showLeft-=Math.min(dt,now-speech.showLast);speech.showLast=now;if(speech.showLeft<=0){speech.showFor=-1;advanceSpeech();}}catch{}},100);
  /* ANIMATION STEPS (mission-content.js animNow): when one is the step in progress and no conversation is open, the NPC plays the clip; `hold` seconds later the step is done. */
  const animRun={};
  function animTick(){try{if(!treesOn()||typeof mode==='undefined'||!['walking','dock','arrival'].includes(mode)||(typeof speech!=='undefined'&&speech)||root.VoidConversationUI?.isOpen)return;
@@ -104,6 +118,19 @@
   for(const a of list){let r=animRun[a.key];if(!r){r=animRun[a.key]={at:now};NG()?.perform(a.npc,a.clip,Math.max(1,a.hold||0)+.5,{plan:(env.npcPlans||{})[a.npc]||null});}
    if(now-r.at<(a.hold||0)*1000)continue;delete animRun[a.key];const x=MC.treeEvent(state,env,{type:'anim',step:a.key},root.VoidMissions,root.C||root.VoidCampaign);report(x);deliver(x);if(x.lines&&x.lines.length)show(x.lines,x);return;}}catch{}}
  setInterval(animTick,250);
+ /* STEP TIMERS (mission-content.js timersNow): a step's "delay before it starts" and a wait step count down only while the player is in the world: never in the pause menu,
+    a conversation, a menu, the Sleeping Pod's wake-up, the character creator or the KeyMap (nearBlocked), nor in a hidden tab. A wait step "only while the player stays
+    within N m of <NPC>" counts only while they are that close. The seconds left are kept in story.flags, so a reload resumes the countdown. */
+ let timerT=performance.now(),timerSaved=0;const timerLeft={};
+ function timerTick(){const now=performance.now(),dt=Math.min(10000,now-timerT)/1000;timerT=now;try{if(!treesOn()||nearBlocked()||(typeof document!=='undefined'&&document.hidden))return;
+  const list=MC.timersNow(state,env);for(const k of Object.keys(timerLeft))if(!list.some(x=>x.key+'|'+x.kind===k))delete timerLeft[k];
+  for(const x of list){const id=x.key+'|'+x.kind;if(!(id in timerLeft))timerLeft[id]=x.left;
+   if(x.near){const d=giverDistance(x.npc,walkingLocation,walker.x,walker.z);if(!(d<=x.near))continue;}
+   timerLeft[id]=Math.max(0,timerLeft[id]-dt);MC.timerSet(state,x,timerLeft[id]);
+   if(timerLeft[id]>0){if(Date.now()-timerSaved>5000&&!root.VoidDevTest?.active){timerSaved=Date.now();try{save();}catch{}}continue;}
+   delete timerLeft[id];const r=MC.treeEvent(state,env,x.kind==='wait'?{type:'wait',step:x.key}:{type:'timer'},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);try{save();}catch{}
+   if(r.lines&&r.lines.length&&show(r.lines,r))return;}}catch{}}
+ setInterval(timerTick,250);
  /* After the conversation: the V1 banner for a contact added / a profile followed (the Mission Log notice already said it). */
  function contactBanner(r){try{const n=(r&&r.notes||[]).filter(x=>/ADDED TO CONTACTS|^FOLLOWING /.test(x));if(!n.length)return;const who=n[0].replace(/ ADDED TO CONTACTS$| ON SOCIAL$/,'').replace(/^FOLLOWING /,'');
   const name=who.charAt(0)+who.slice(1).toLowerCase();root.VoidV1?.notify?.({app:'social',key:'contact:'+r.mission+':'+who,from:name,text:name+' added to contacts · following on Social',hint:{text:'open',help:true}});lastContact={text:name+' added to contacts · following on Social',at:Date.now()};}catch{}}

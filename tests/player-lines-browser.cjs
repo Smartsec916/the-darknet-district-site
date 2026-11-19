@@ -35,7 +35,9 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   assert.match(await box().locator('[data-me-add-npc-line="'+kb+'"]').textContent(),/\+ ADD A LINE FOR IRIS/);
   await box().locator('[data-me-add-player-line="'+kb+'"]').click();const pl=box().locator('[data-me-tline="'+kb+'/1"]');await pl.waitFor();
   assert.equal(await pl.getAttribute('data-me-line-who'),'player');assert.equal(await pl.locator('select').first().inputValue(),'You');assert.equal(await pl.locator('[data-me-import]').count(),0,'no voice import for the player');assert.equal(await pl.locator('[data-me-line-anim]').count(),0,'no animation for the player');
-  await pl.locator('textarea').fill('TEST LINE: Admin sent me.');assert.match(await pl.locator('[data-me-line-state]').textContent(),/player’s line/,'the chip follows the typing');
+  await pl.locator('textarea').fill('TEST LINE: Admin sent me.');
+  // mission timers: the player's reply comes 3 seconds after Iris's first line
+  await pl.locator('[data-me-line-time] summary').click();await pl.locator('[data-me-line-wait="'+kb+'/1"]').fill('3');assert.match(await pl.locator('[data-me-line-time] summary').textContent(),/waits 3 seconds before/);assert.match(await pl.locator('[data-me-line-state]').textContent(),/player’s line/,'the chip follows the typing');
   await box().locator('[data-me-add-npc-line="'+kb+'"]').click();const nl=box().locator('[data-me-tline="'+kb+'/2"]');await nl.waitFor();await nl.locator('textarea').fill('TEST LINE: Of course he did.');
   const pick=nl.locator('[data-me-line-anim-pick]');const opts=await pick.evaluate(s=>[...s.options].map(o=>o.value));log('Iris can do',opts.join(','));assert.ok(opts.includes('shrug')&&!opts.some(o=>/walk|^sit/.test(o)));
   await pick.selectOption('shrug');
@@ -43,8 +45,12 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   await card.locator('[data-me-add-step="'+mid+'"]').click();const st2=card.locator('[data-me-tstep]').nth(1),s2=await st2.getAttribute('data-me-tstep');
   await st2.locator('[data-me-kind="'+s2+'"]').selectOption('anim');await card.locator('[data-me-tstep="'+s2+'"] [data-me-step-npc="'+s2+'"]').selectOption('iris');
   await card.locator('[data-me-step-clip="'+s2+'"]').selectOption('look');await card.locator('[data-me-step-hold="'+s2+'"]').fill('1');
+  // a Wait step of 2 seconds after it
+  await card.locator('[data-me-add-step="'+mid+'"]').click();const st3=card.locator('[data-me-tstep]').nth(2),s3=await st3.getAttribute('data-me-tstep');
+  await st3.locator('[data-me-kind="'+s3+'"]').selectOption('wait');await card.locator('[data-me-step-hold="'+s3+'"]').fill('2');assert.match(await card.locator('[data-me-wait-words="'+s3+'"]').textContent(),/waits 2 seconds/);
   const draft=await page.evaluate(id=>JSON.parse(localStorage.getItem('mission-editor-drafts-v1')).trees.flatMap(t=>t.missions).find(m=>m.id===id),mid);
   assert.deepEqual(draft.objectives[0].say.map(l=>[l.who,l.text,l.anim||null]),[['','TEST LINE: You again.',null],['You','TEST LINE: Admin sent me.',null],['','TEST LINE: Of course he did.','shrug']]);
+  assert.equal(draft.objectives[0].say[1].wait,3);assert.deepEqual({kind:draft.objectives[2].kind,hold:draft.objectives[2].hold},{kind:'wait',hold:2});
   assert.deepEqual({kind:draft.objectives[1].kind,npc:draft.objectives[1].npc,clip:draft.objectives[1].clip,hold:draft.objectives[1].hold},{kind:'anim',npc:'iris',clip:'look',hold:1});
   await box().scrollIntoViewIfNeeded();await shot(page,'01-editor-lines.png');await card.locator('[data-me-tstep="'+s2+'"]').scrollIntoViewIfNeeded();await shot(page,'02-editor-anim-step.png');
   // ---- PLAY THIS DRAFT
@@ -58,7 +64,11 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   await page.evaluate(()=>{SPEECH_TIMING.read=60000;});await page.evaluate(()=>VoidInteractions.handlers.get('district-iris')());await page.waitForFunction(()=>speech&&speech.lines.length===3,null,{timeout:30000});
   const said=await page.evaluate(()=>speech.lines.map(l=>[l.who,l.text,l.anim||null]));log('conversation',JSON.stringify(said));
   assert.deepEqual(said,[['Iris','TEST LINE: You again.',null],['You','TEST LINE: Admin sent me.',null],['Iris','TEST LINE: Of course he did.','shrug']]);
-  await page.evaluate(()=>{speech.shown=speech.lines[0].text.length;advanceSpeech();});await page.waitForTimeout(400);
+  const held=await page.evaluate(()=>{speech.shown=speech.lines[0].text.length;advanceSpeech();window.__t0=performance.now();const iv=setInterval(()=>{if(speech&&!speech.waiting&&speech.lines[1]?.text==='TEST LINE: Admin sent me.'){window.__t1=performance.now();clearInterval(iv);}},20);const a={idx:speech.index,text:document.getElementById('spoken-text').textContent};advanceSpeech();a.after=speech.index;return a;});
+  log('during the wait',JSON.stringify(held));assert.deepEqual(held,{idx:1,text:'…',after:1},'"…" shows and CONTINUE cannot skip the wait');await shot(page,'03a-waiting.png');
+  // the 3-second wait (page time): then the player's line appears
+  await page.waitForFunction(()=>{return !!window.__t1;},null,{timeout:30000,polling:20});
+  const waited=await page.evaluate(()=>Math.round(window.__t1-window.__t0));log('waited',waited,'ms');assert.ok(waited>=2800&&waited<12000,'3 seconds (software GL runs its timers only every second or so while a screenshot renders): '+waited);await page.waitForTimeout(400);
   assert.equal(await page.evaluate(()=>document.querySelector('.speaker h2')?.textContent),'You','the player speaks the second line');await shot(page,'03-player-line.png');
   await page.evaluate(()=>{if(speech.index===1){speech.shown=speech.lines[1].text.length;advanceSpeech();}});await page.waitForFunction(()=>VoidNPCGestures.log.some(x=>x.id==='iris'&&x.clip==='shrug'),null,{timeout:15000,polling:50});
   await page.waitForTimeout(700);await shot(page,'04-iris-shrugs.png');
@@ -67,7 +77,10 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   await toEnd();
   // ---- the animation step: Iris looks about, then (1 s later) the mission is done
   await page.waitForFunction(()=>VoidNPCGestures.log.some(x=>x.id==='iris'&&x.clip==='look'),null,{timeout:15000,polling:50});await page.waitForTimeout(300);await shot(page,'05-anim-step.png');
-  await page.waitForFunction(id=>state.universe.missions[id]?.completed===true,mid,{timeout:15000,polling:100});log('mission completed after the animation step');
+  // then the Wait step (2 s) and the mission is done
+  await page.waitForFunction(id=>state.universe.missions[id]?.objectives?.[Object.keys(state.universe.missions[id].objectives||{})[1]]===true||false,mid,{timeout:15000,polling:100}).catch(()=>{});
+  const tw=Date.now();await page.waitForFunction(id=>state.universe.missions[id]?.completed===true,mid,{timeout:20000,polling:100});const ws=Date.now()-tw;log('wait step took about',ws,'ms');
+  assert.ok(ws>=1200,'the Wait step held the mission: '+ws);log('mission completed after the animation and wait steps');
   await page.waitForTimeout(3500);assert.equal(await page.evaluate(()=>VoidNPCGestures.figure('iris').performing),null,'back to her own behaviour');
   assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is untouched');
   assert.deepEqual(errors,[],'no page errors');log('OK');
