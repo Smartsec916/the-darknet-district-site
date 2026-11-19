@@ -105,7 +105,7 @@
   const L=[];
   const spot=(name,pos,dir,angle,col,int,range)=>{const l=new B.SpotLight('cult-'+name,new B.Vector3(...pos),new B.Vector3(...dir).normalize(),angle,2,scene);l.diffuse=B.Color3.FromHexString(col);l.specular=l.diffuse.scale(.4);l.intensity=int;l.range=range;L.push(l);return l;};
   const pt=(name,pos,col,int,range)=>{const l=new B.PointLight('cult-'+name,new B.Vector3(...pos),scene);l.diffuse=B.Color3.FromHexString(col);l.specular=l.diffuse.scale(.3);l.intensity=int;l.range=range;L.push(l);return l;};
-  spot('owl-wash',[0,H-.35,S-3.4],[0,-.18,1],1.25,'#d8d0c4',5.2,14);
+  for(const x of [-2.4,2.4]){const l=spot('owl-wash'+x,[x,H-.25,S-1.1],[0,-1,.38],2.4,'#d8d0c4',8.5,12);l.exponent=14;}   // two grazing wall-washers: a soft fall-off down the concrete, no pool of light with an edge
   const circleL=spot('circle',[0,H-.2,-.4],[0,-1,.06],1.25,'#aebdd6',3.4,12);circleL.exponent=7;
   const candles=pt('candles',[A.x,A.h+.45,A.z-.2],'#ff9a40',1.5,6.5);
   pt('door-lamp',[0,dz.h+.85,-S+.35],'#9fb6ff',.9,5);

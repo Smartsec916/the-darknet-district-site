@@ -38589,7 +38589,7 @@
       ]
     }
   },
-  "revision": "5e8f284b18c660ac",
+  "revision": "7b95a99fad05e929",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -50953,7 +50953,7 @@
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 23,
+      "line": 22,
       "text": "+'#cam-feed .cf-say{position:absolute;left:50%;bottom:11vh;transform:translateX(-50%);max-width:70vw;text-align:center;font:15px/1.4 ui-monospace,Consolas,monospace;background:rgba(0,0,0,.55);padding:6px 12px;border-radius:3px}#cam-feed .cf-say:empty{display:none}'",
       "kind": "source-reference"
     },
@@ -50965,25 +50965,25 @@
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 53,
+      "line": 62,
       "text": "el.hidden=false;$('zoom').textContent='1x';$('msg').textContent='CONNECTING TO CAM B2-07…';$('say').textContent='';$('rec').style.visibility=o.record===false?'hidden':'visible';document.body.classList.add('cam-feed-on');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 66,
+      "line": 75,
       "text": "const say=CR().lineAt(F.cs,F.t);if(say.length){g.font='15px ui-monospace,Consolas,monospace';const txt=say.map(l=>l.name.toUpperCase()+': '+l.text).join('   ');const w=Math.min(W-40,g.measureText(txt).width+24);g.fillStyle='rgba(0,0,0,.6)';g.fillRect((W-w)/2,H-58,w,28);g.fillStyle='#e8eee8';g.textAlign='center';g.fillText(txt,W/2,H-52,W-60);g.textAlign='left';}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 74,
+      "line": 83,
       "text": "for(const e of F.cs.events){if(e.type!=='line'||!e.text||F.spoken.has(e)||F.t<e.t)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,e.text))V.speak({characterId:e.who,text:e.text});}catch{}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 75,
+      "line": 84,
       "text": "if(!F.date||now-F.lastHud>400){F.date=dateLine();F.lastHud=now;$('date').textContent=F.date;$('rect').textContent=hms(F.t);$('fps').textContent=String(Math.round(F.engine.getFps()));const say=CR().lineAt(F.cs,F.t);$('say').textContent=say.map(l=>l.name+': '+l.text).join('  ·  ');}",
       "kind": "source-reference"
     },
@@ -56772,7 +56772,7 @@
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "d6416f8737d431551942027cbe45a3f20fe5bdab20f39255364bc99fa41d6c25",
-    "void-runner/camera-feed.js": "f230eaff56b7aa73488bb1a0f969b4ce69633eefda5a7fd9db7d5a97745f5544",
+    "void-runner/camera-feed.js": "0f3faa3a75fba9af89c26aff69a2a52b20c7a3a8e36b6e50da0aab0b6e16a72e",
     "void-runner/campaign.js": "77c72e73cddf5290b3552654169966df6d5e8c55098761b77c6c8e8808324e2c",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
@@ -56796,7 +56796,7 @@
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
     "void-runner/crowd.js": "1c7587f2aaac0397610df0fa2f8a798bcbcf00eda25c50de5b1ee08ad825d67e",
-    "void-runner/cult-room-build.js": "06c35275f2a13b2670dd18ad2fd0fb1fc9b1918a18dc36c05b10c2908727a513",
+    "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "ee1fcc752a36ace292f55b57531da64a4430fd61f6e84bceb1801480585f2ecd",
     "void-runner/cult-room.js": "18a84339ee706f630a581b2db459eac21458ac3b488026931b48dd8d54b9b4ed",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",

@@ -1,6 +1,6 @@
 /* HACKED CAMERA FEEDS (the Blackrock Cult Room, the owner, 19 Nov 2026). A "Hack the access point" step with a camera feed (feed: '<id>', the mission's feeds list) does
    not open a door: when the hack finishes the screen switches to that camera, a security camera in a top corner of the room, looking down. The view works like the V1's
-   Camera App (corner brackets, timecode, battery, signal, zoom on the mouse wheel) with a REC light: RECORDING IS AUTOMATIC. It starts as the feed comes up (the
+   Camera App (its frame, corner brackets and centre reticle, timecode, zoom on the mouse wheel; no battery: a wired security camera) with a REC light: RECORDING IS AUTOMATIC. It starts as the feed comes up (the
    initiate already kneeling, just before the six enter) and stops by itself when the scene has ended (everyone gone, the door shut). The recording is saved in the V1
    Gallery as a video (WebM in this browser only, never uploaded: device-gallery.js addVideo) and the view returns to the player at once, where they stood.
    THE PLAYER IS SAFE: while the feed shows, the game's own update is not run (time stands still for the player and the world they are in; nothing can reach them) and
@@ -17,8 +17,7 @@
  const OUT={w:960,h:540,fps:24},MIN_BPS=450000,MAX_BPS=1600000;
  let F=null,hooked=false,speed=1;
  const css=document.createElement('style');css.textContent='#cam-feed{position:fixed;inset:0;z-index:90;pointer-events:none;font:13px/1.35 ui-monospace,Consolas,monospace;color:#d8e6dc;text-shadow:0 0 3px #000}#cam-feed[hidden]{display:none}'
-  +'#cam-feed .cf-c{position:absolute;width:42px;height:42px;border:2px solid rgba(220,235,225,.7)}#cam-feed .tl{left:24px;top:24px;border-right:0;border-bottom:0}#cam-feed .tr{right:24px;top:24px;border-left:0;border-bottom:0}#cam-feed .bl{left:24px;bottom:24px;border-right:0;border-top:0}#cam-feed .br{right:24px;bottom:24px;border-left:0;border-top:0}'
-  +'#cam-feed .cf-tl{position:absolute;left:44px;top:40px}#cam-feed .cf-tr{position:absolute;right:44px;top:40px;text-align:right}#cam-feed .cf-bl{position:absolute;left:44px;bottom:40px}#cam-feed .cf-br{position:absolute;right:44px;bottom:40px;text-align:right}'
+  +'#cam-feed .cf-tl{position:absolute;left:5.6vmin;top:4.6vmin}#cam-feed .cf-tr{position:absolute;right:5.6vmin;top:4.6vmin;text-align:right}#cam-feed .cf-bl{position:absolute;left:5.6vmin;bottom:4.6vmin}#cam-feed .cf-br{position:absolute;right:5.6vmin;bottom:4.6vmin;text-align:right}'
   +'#cam-feed .cf-rec{color:#ff4040;font-weight:700}#cam-feed .cf-rec i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#ff3030;margin-right:6px;animation:cfblink 1s steps(2) infinite}@keyframes cfblink{50%{opacity:.15}}'
   +'#cam-feed .cf-say{position:absolute;left:50%;bottom:11vh;transform:translateX(-50%);max-width:70vw;text-align:center;font:15px/1.4 ui-monospace,Consolas,monospace;background:rgba(0,0,0,.55);padding:6px 12px;border-radius:3px}#cam-feed .cf-say:empty{display:none}'
   +'#cam-feed .cf-msg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font:700 18px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.14em;background:rgba(0,0,0,.7);padding:10px 18px;border:1px solid rgba(220,235,225,.5)}#cam-feed .cf-msg:empty{display:none}'
@@ -26,12 +25,22 @@
  document.head.append(css);
  let el=null;const $=k=>el.querySelector('[data-cf='+k+']');
  function build(){el=document.createElement('div');el.id='cam-feed';el.hidden=true;el.setAttribute('role','img');el.setAttribute('aria-label','Hacked security camera feed');
-  el.innerHTML='<div class="cf-scan"></div><i class="cf-c tl"></i><i class="cf-c tr"></i><i class="cf-c bl"></i><i class="cf-c br"></i>'
+  const corner=c=>'<i class="pc-corner '+c+'"></i>';reticleCss();
+  el.innerHTML='<div class="cf-scan"></div><div class="pc-frame">'+corner('tl')+corner('tr')+corner('bl')+corner('br')+'<i class="pc-edge t"></i><i class="pc-edge b"></i></div><div class="pc-aperture">'+corner('tl')+corner('tr')+corner('bl')+corner('br')+'<i class="pc-cross"></i></div>'   // the V1 Camera App's own frame and reticle (device-camera.js build)
    +'<div class="cf-tl"><div data-cf="cam">CAM B2-07 · SUB-LEVEL 2</div><div data-cf="date"></div></div>'
    +'<div class="cf-tr"><div class="cf-rec" data-cf="rec"><i></i>REC <b data-cf="rect">00:00:00</b></div><div>SIGNAL <b>HIJACKED</b></div></div>'
    +'<div class="cf-bl"><div>Zoom <b data-cf="zoom">1x</b></div><div>WHEEL · ZOOM &nbsp; RECORDING STOPS BY ITSELF</div></div>'
    +'<div class="cf-br"><div data-cf="tc">00:00:00:00</div><div>FPS : <b data-cf="fps">0</b></div></div><div class="cf-say" data-cf="say"></div><div class="cf-msg" data-cf="msg"></div>';
   document.body.append(el);}
+ /* THE RETICLE (the owner, 19 Nov 2026: "put the reticle on the camera view just like the camera"): the V1 Camera App's frame (corner brackets, edge ticks) and centre
+    aperture with its crosshair, the same markup as device-camera.js, styled by the Camera App's own rules in device-v1.css, copied here at run time from '#pd-camera'
+    to '#cam-feed' (so a change to the Camera App's look changes this too). On screen only: like the Camera App's photos, the saved recording does not carry it. */
+ function reticleCss(){if(document.getElementById('cam-feed-reticle'))return;const out=[];
+  for(const sh of document.styleSheets){let rules;try{rules=sh.cssRules;}catch{continue;}for(const r of rules||[]){const sel=r.selectorText;if(!sel||!sel.includes('#pd-camera'))continue;
+   const parts=sel.split(',').map(x=>x.trim()).filter(x=>x.startsWith('#pd-camera')&&!x.includes('[data-device'));if(!parts.length)continue;const vars=r.style.getPropertyValue('--pd-edge-hi');
+   if(/pc-(frame|corner|edge|aperture|cross)/.test(sel))out.push(parts.join(',').replace(/#pd-camera/g,'#cam-feed')+'{'+r.style.cssText+'}');
+   else if(vars&&parts.includes('#pd-camera'))out.push('#cam-feed{'+[...r.style].filter(k=>k.startsWith('--')).map(k=>k+':'+r.style.getPropertyValue(k)).join(';')+'}');}}
+  const st=document.createElement('style');st.id='cam-feed-reticle';st.textContent=out.join('\n')+'\n@keyframes pc-pulse{50%{opacity:.6}}';document.head.append(st);}
  const two=n=>String(Math.floor(n)).padStart(2,'0'),hms=s=>two(s/3600)+':'+two(s/60%60)+':'+two(s%60);
  // ---- the game loop: while a feed shows, the player's world does not update and is not drawn (draw / update are game.js functions, wrapped once) ----
  function hook(){if(hooked)return true;if(typeof draw!=='function'||typeof update!=='function')return false;const od=draw,ou=update;
