@@ -6,7 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 19 Nov 2026 (newest): MISSION EDITOR — PLAYER LINES, ANIMATIONS IN LINES AND BETWEEN STEPS, MISSION TIMERS (branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 (newest): MISSION GIVER CREATOR (branch `claude/giver-creator`, build `2026-11-19-giver-creator-1`, pushed, NO PR, not merged)
+
+The owner: "a mission giver creator. i can select any npc, create their look based on what's available for that model, give them a device model (ie V1), a ship, other items (gun, hacking device, etc), place them in the world for a mission"; then approved adult (18+) characters in the adult places. Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Seventeenth pass".
+
+- **Editor:** Start page and NPCs tab > **Create a mission giver**: ten steps (model with 3D preview, name / role / "adult (18+)", look, device V1/V2/V3/none, ship, items with "visible on them", voice, animations, place on the area map plus "when are they there", done). Listed under "Made by you" in NPCs; usable as giver, step person, walked-near person, follow / lead person (not cab rides).
+- **Data:** `content.characters[id]` (`void-runner/npc-made.js`), placement `content.npcs[id]`, voice `content.voices[id]`; draft → publish like everything else; checked by the game (`mission-content.js`) and the server (`void_runner_live_content.py made_problems` / `with_made`, admin inventory `madeCharacters`).
+- **Game:** figures start with the street pair in every quarter and the District, and with the inside of Milked (reception); a model loads only in its area and while the character exists; props: holstered pistol (Hips bone), hand device (LeftHand bone; appears once the `hacking-device` item exists in an item registry).
+- **Adult places:** `npc-areas.js` `adult` rules and walkable ground (Milked side street, service alley, reception; NULL inside and door; District bar, VR, arcade; terrace). Never Reverie / Lace / the cat, the pod room, Milked's studios, Corporate, Temple.
+- **Tests:** `tests/npc-made.test.cjs`, `tests/test_npc_made.py`, browser `tests/npc-made-browser.cjs`. `tests/npc-areas.test.cjs` updated for the seventh area.
+- **Not verified:** real hardware; VR; licensed models in a browser; publishing with the server on; figures in reception and the District rooms in a browser.
+
+### 19 Nov 2026: MISSION EDITOR — PLAYER LINES, ANIMATIONS IN LINES AND BETWEEN STEPS, MISSION TIMERS (branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`, pushed, NO PR, not merged)
 
 The owner: "after I create a voice line, i can not create the line for the player. i also can't add animations anywhere between the steps", then "mission timers". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Sixteenth pass".
 

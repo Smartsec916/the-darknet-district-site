@@ -17,7 +17,7 @@
   const first=()=>{const p=(o.markers||[]).find(m=>m.drag)||(o.route||[])[0]||(o.markers||[])[0];return p&&AR()?AR().areaOf(p):null;};
   if(!o.area)o.area=o.lock||first()||'avenue';
   if(typeof o.center==='number'){const m=(o.markers||[]).find(q=>q.drag)||(o.route||[])[0];o.center={x:o.center,z:m?m.z:null};}if(!o.zoom)o.zoom=o.area==='avenue'?'pair':'all';
-  let data=X().mapData(o.area);
+  let data=X().mapData(o.area,o.npc);
   const wrap=document.createElement('div');wrap.className='npcmap';wrap.dataset.npcMap='1';
   const bar=document.createElement('div');bar.className='npcmap-bar';
   const areaSel=document.createElement('select');areaSel.setAttribute('aria-label','Which area the map shows');areaSel.dataset.npcMapArea='1';for(const a of data.areas)areaSel.append(new Option(a.name,a.id));areaSel.value=data.area;
@@ -91,13 +91,13 @@
    const lockWas=o.lock;if(d.kind==='point'&&(o.route||[]).length<=1)o.lock=null;   // the only point of a route may go anywhere
    const src=d.kind==='marker'?d.m:o.route[d.i],q=place(src.x,src.z);o.lock=lockWas;
    if(!q){src.x=d.x0;src.z=d.z0;draw();return;}src.x=q.x;src.z=q.z;if(d.kind==='marker')o.onDrag?.(d.m.id,q.x,q.z);else o.onPoint?.(d.i,q.x,q.z);};
-  areaSel.onchange=()=>{o.area=areaSel.value;o.center=null;data=X().mapData(o.area);if(o.zoom==='pair'&&o.area!=='avenue')o.zoom='all';zooms();say('');draw();o.onArea?.(o.area);};
+  areaSel.onchange=()=>{o.area=areaSel.value;o.center=null;data=X().mapData(o.area,o.npc);if(o.zoom==='pair'&&o.area!=='avenue')o.zoom='all';zooms();say('');draw();o.onArea?.(o.area);};
   zoomSel.onchange=()=>{o.zoom=zoomSel.value;if(o.zoom!=='all'&&!o.center){const m=(o.markers||[]).find(q=>AR()&&AR().areaOf(q)===data.area)||(o.route||[])[0];o.center=m?{x:m.x,z:m.z}:null;}draw();};
   pan.oninput=()=>{o.center={...(o.center||{}),x:Number(pan.value),z:o.center&&Number.isFinite(o.center.z)?o.center.z:Number(panZ.value)};draw();};
   panZ.oninput=()=>{o.center={...(o.center||{}),z:Number(panZ.value),x:o.center&&Number.isFinite(o.center.x)?o.center.x:Number(pan.value)};draw();};
   const ro=root.ResizeObserver?new ResizeObserver(()=>draw()):null;ro?.observe(wrap);
   setTimeout(draw,0);
-  const api={el:wrap,draw,set(n){o={...o,...n};if(typeof o.center==='number')o.center={x:o.center,z:null};if(n.area&&n.area!==data.area){data=X().mapData(o.area);areaSel.value=data.area;zooms();}draw();},get opts(){return o;},get area(){return data.area;},toWorld:(a,b)=>({x:wx(a),z:wz(b)}),toScreen:(x,z)=>({x:px(x),y:py(z)}),canvas:cv,say};cv.npcMap=api;   // tests and the guide reach the map from its canvas
+  const api={el:wrap,draw,set(n){o={...o,...n};if(typeof o.center==='number')o.center={x:o.center,z:null};if(n.area&&n.area!==data.area){data=X().mapData(o.area,o.npc);areaSel.value=data.area;zooms();}draw();},get opts(){return o;},get area(){return data.area;},toWorld:(a,b)=>({x:wx(a),z:wz(b)}),toScreen:(x,z)=>({x:px(x),y:py(z)}),canvas:cv,say};cv.npcMap=api;   // tests and the guide reach the map from its canvas
   return api;
  }
  root.VoidNPCMap={create,ZOOMS};

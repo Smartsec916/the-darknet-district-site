@@ -43,6 +43,7 @@
  const NGS=()=>typeof module!=='undefined'&&module.exports?require('./npc-gestures.js'):root.VoidNPCGestures;   // animations on lines and animation steps (npc-gestures.js)
  const NEX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;   // follow / lead / shared-cab steps (npc-escort.js)
  const NPL=()=>typeof module!=='undefined'&&module.exports?require('./npc-looks.js'):root.VoidNPCLooks;
+ const MDE=()=>typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs;   // mission givers made in the editor (content.characters, npc-made.js)
  const VIM=()=>typeof module!=='undefined'&&module.exports?require('./voice-imports.js'):root.VoidVoiceImports;   // imported voice files (content.clips: [{who, text, hash, type, duration, bytes}], 19 Nov 2026)   // NPC looks (Developer Tools > NPCs > Appearance)   // ElevenLabs voice choices (Developer Tools > NPCs, giver card)   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
  /* "When walked near" (the owner, 18 Nov 2026): when:{kind:'near', npc (default: the giver), distance (metres, 1..30, default 5)}. The game measures the player's distance to that
     person's TALK prompt (live-content.js, four times a second) and sends {type:'near', near:{<npc>: metres}}; the mission starts once, in tree order. */
@@ -94,9 +95,18 @@
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
  /* Strict check of a content record. ctx: {speakers:Set of extra speaker names (registry display names), registryIds:Set, interactions:Set (optional)}.
     Returns {ok, errors:[plain text]}; a record with any error is never applied. */
- function check(content,ctx={}){
+ /* MADE CHARACTERS (content.characters, npc-made.js): checked first, then for the rest of the check they are MOVABLE (npc-paths.js setMade: their placements, added animations,
+    follow / lead steps) and givers with a TALK prompt (ctx.givers). The editor's or the game's own registration is put back afterwards. */
+ function madeCtx(content,ctx){const MD=MDE(),ch=content&&content.characters;if(ch==null||!MD)return {ctx,errors:[]};const base=ctx.givers?new Map([...ctx.givers].filter(([,g])=>!g.made)):null;
+  const ms=new Map();for(const t of storyTrees(content.trees||[]))for(const m of t.missions||[])ms.set(m.id,(m.objectives||[]).map(o=>o.id));const offer=new Map();for(const t of storyTrees(content.trees||[]))for(const m of t.missions||[])if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);
+  const errors=MD.problems(ch,{npcs:content.npcs||{},missions:ms,reserved:base?new Set(base.keys()):ctx.reserved||null,givesOffer:offer,lookInventory:ctx.lookInventory&&ctx.lookInventory.assets});
+  const facts=MD.giverFacts(ch&&typeof ch==='object'&&!Array.isArray(ch)?ch:{},content.npcs||{}),givers=base?new Map(base):null;if(givers)for(const [id,f] of Object.entries(facts))givers.set(id,{id,name:f.name,canTalk:true,players:true,draft:true,made:true,targets:f.targets,group:'district'});
+  return {ctx:givers?{...ctx,givers}:ctx,errors};}
+ function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters']))return {ok:false,errors:['The content record has an unknown shape.']};
+  const X=NPX(),had=X&&content.characters!=null&&X.setMade?X.setMade(content.characters):null;
+  try{const m=madeCtx(content,ctx),r=check_(content,m.ctx);return m.errors.length?{ok:false,errors:[...m.errors,...r.errors]}:r;}finally{if(had)X.setMade(had);}}
+ function check_(content,ctx={}){
   const errors=[],err=t=>errors.push(t),speakers=new Set([...SPEAKERS,...(ctx.speakers||[])]);
-  if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips']))return {ok:false,errors:['The content record has an unknown shape.']};
   if(content.clips!=null){const I=VIM();if(!I)err('Imported voice files cannot be checked here.');else for(const p of I.clipProblems(content.clips))err(p);}
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
   if(content.npcs!=null){const X=NPX();if(!X)err('NPC placements cannot be checked here.');else for(const p of X.checkAll(content.npcs))err(p);}
@@ -522,6 +532,10 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   env.voices=clone((content&&content.voices)||{});if(content&&content.voices&&Object.keys(content.voices).length)out.applied.push(Object.keys(content.voices).length+' voice choice(s) for re-voicing');
   env.clips=clone((content&&content.clips)||[]);if(content&&content.clips&&content.clips.length)out.applied.push(content.clips.length+' imported voice file(s)');
   env.looks=clone((content&&content.looks)||{});if(content&&content.looks&&Object.keys(content.looks).length)out.applied.push(Object.keys(content.looks).length+' NPC look setting(s)');
+  // mission givers made in the editor: movable (their placements) and in the giver roster for the trees below (env.baseGivers: the roster without them)
+  env.characters=clone((content&&content.characters)||{});{const X=NPX();if(X&&X.setMade)X.setMade(env.characters);const G=GVS();if(Array.isArray(env.givers)){env.baseGivers=env.baseGivers||env.givers.filter(g=>!g.made);
+   env.givers=[...env.baseGivers,...(G&&Object.keys(env.characters).length?G.roster({characters:env.characters,npcs:(content&&content.npcs)||{}}).filter(g=>g.made):[])];}}
+  if(Object.keys(env.characters).length)out.applied.push(Object.keys(env.characters).length+' character(s) made in the editor');
   env.npcPlans=clone((content&&content.npcs)||{});if(content&&content.npcs&&Object.keys(content.npcs).length)out.applied.push(Object.keys(content.npcs).length+' NPC placement(s)');
   env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
   if(env.Missions)for(const t of env.trees)t.missions.forEach((m,i)=>env.Missions.define(m.id,treeDefinition(t,m,i,env.givers)));
@@ -592,6 +606,13 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   // a link to a tree that is not sent is dropped (and said)
   const sent=new Set(out.map(t=>t.id));for(const t of out)for(const m of t.missions)if(m.unlocks){const keep=m.unlocks.filter(u=>u.kind!=='tree'||(sent.has(u.id)&&u.id!==t.id));if(keep.length<m.unlocks.length)skipped.push({tree:t.id,mission:m.id,title:m.title,why:['its “start tree” link points to a tree that cannot run yet (the link is left out)'],partial:true});if(keep.length)m.unlocks=keep;else delete m.unlocks;}
   return {trees:out,skipped};}
+ /* The draft's made characters that can be sent: cleaned, and nothing in the way (npc-made.js problems with the draft's placements and trees). {id: character} */
+ function madeReady(local,givers){const MD=MDE(),ch=(local&&local.characters)||{};if(!MD||!Object.keys(ch).length)return {};const out={},ms=new Map(),offer=new Map();
+  for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
+  const reserved=new Set((givers||[]).filter(g=>!g.made).map(g=>g.id));for(const [id,c0] of Object.entries(ch)){const c=MD.clean(c0);if(c&&!MD.problems({[id]:c},{npcs:(local&&local.npcs)||{},missions:ms,reserved,givesOffer:offer}).length)out[id]=c;}return out;}
+ /* Why a made character in the draft is not sent yet (plain words; empty: it is). */
+ function madeNeeds(local,givers,id){const MD=MDE(),c=((local&&local.characters)||{})[id];if(!MD||!c)return [];const ms=new Map(),offer=new Map();for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
+  return MD.problems({[id]:MD.clean(c)},{npcs:(local&&local.npcs)||{},missions:ms,reserved:new Set((givers||[]).filter(g=>!g.made).map(g=>g.id)),givesOffer:offer});}
  function fromDrafts({studio,local,shippedBeginner,note,givers,items,clipText}={}){
   const out={format:FORMAT,version:VERSION};
   if(studio&&Array.isArray(studio.missions)){const b=studio.missions.map(strip);if(!shippedBeginner||JSON.stringify(b)!==JSON.stringify((shippedBeginner||[]).map(strip)))out.beginner=b;}
@@ -601,7 +622,9 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   if(Object.keys(reg).length)out.registry=reg;
   const lines=Object.entries((local&&local.lines)||{}).filter(([,e])=>e&&e.adapter==='talk'&&typeof e.to==='string'&&e.to!==e.from).map(([ref,e])=>({who:ref.split('|')[0],from:e.from,to:e.to}));if(lines.length)out.lines=lines;
   const tc=treesContent((local&&local.trees)||[],{givers,items});if(tc.trees.length)out.trees=tc.trees;
-  {const X=NPX(),np={};for(const [id,p] of Object.entries((local&&local.npcs)||{})){const c=X&&X.MOVABLE[id]?X.clean(p):null;if(c)np[id]=c;}if(Object.keys(np).length)out.npcs=np;}   // Developer Tools > NPCs
+  // mission givers made in the editor: only finished ones are sent (madeReady); their placements with them
+  const ready=madeReady(local,givers);if(Object.keys(ready).length)out.characters=ready;
+  {const X=NPX(),np={};for(const [id,p] of Object.entries((local&&local.npcs)||{})){const M=X&&X.MOVABLE[id];const c=M&&!(M.made&&!ready[id])?X.clean(p):null;if(c)np[id]=c;}if(Object.keys(np).length)out.npcs=np;}   // Developer Tools > NPCs
   {const V=NPV(),vs={};for(const [id,v] of Object.entries((local&&local.voices)||{})){const c=V&&!V.refusal(id)?V.clean(v):null;if(c)vs[id]=c;}if(Object.keys(vs).length)out.voices=vs;}   // ElevenLabs voice choices
   {const L=NPL(),lk={};for(const [a,e] of Object.entries((local&&local.looks)||{})){const c=L?L.clean(a,e):null;if(c)lk[a]=c;}if(Object.keys(lk).length)out.looks=lk;}   // NPC looks
   {const I=VIM(),cl=I&&local&&local.clips?I.contentClips(local.clips,clipText):[];if(cl.length)out.clips=cl;}   // imported voice files (clipText: line key -> its words now; an import whose words changed is left out)
@@ -609,10 +632,11 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   if(note)out.note=String(note).slice(0,500);
   return out;
  }
- const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length));
+ const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length)&&!(c.characters&&Object.keys(c.characters).length));
  /* Edits in the drafts that the game cannot apply live (draft play and publishing alike), in plain words. */
  function notApplied({studio,local,givers,items}={}){
   const out=[];
+  for(const id of Object.keys((local&&local.characters)||{})){const n=madeNeeds(local,givers,id);if(n.length)out.push('New character “'+(((local.characters[id]||{}).name)||id)+'”: not in the game yet: '+n.join(' ')+' It stays in your draft (Developer Tools > NPCs).');}
   for(const x of treesContent((local&&local.trees)||[],{givers,items}).skipped)out.push(x.partial?'New mission "'+x.title+'": '+x.why.join('; ')+'.':'New mission "'+x.title+'": cannot be played or published yet: '+x.why.join('; ')+'. It stays in your draft.');
   for(const t of (local&&local.trees)||[])for(const m of t.missions||[]){const n='"'+(m.title||m.id)+'"';
    if((m.choices||[]).length)out.push(n+': the branches (choices). The game does not offer mission choices yet (needs a code change); missions in a tree run in order.');
@@ -677,7 +701,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
   return acts;
  }
- const api={ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
