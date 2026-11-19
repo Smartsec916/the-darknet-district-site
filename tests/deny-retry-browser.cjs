@@ -100,7 +100,8 @@ const shot=async(page,name,loc)=>{if(!shots)return;if(loc)await loc.screenshot({
    assert.equal(await flag(),'never');assert.equal(await page.locator('#dev-test-banner [data-deny-skip]:not([hidden])').count(),0,'nothing to skip');
    await at(20);await page.waitForTimeout(1500);await at(2.5);await page.waitForTimeout(2500);assert.equal(await offer(),false,'never offered again');
    log('deny: PASS');}
-  await page.waitForTimeout(1200);assert.equal(await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1')),before,'the real save is untouched');
+  await page.waitForTimeout(1200);{const real=await page.evaluate(()=>JSON.parse(localStorage.getItem('void-runner-campaign-v1')||'{}'));assert.ok(before);   // leaving a draft reloads the page, which may write the real save again: nothing of the draft is in it
+   assert.deepEqual(Object.keys(real.story?.flags||{}).filter(k=>/^md_draft-/.test(k)),[],'no DENY wait in the real save');assert.deepEqual(Object.keys(real.universe?.missions||{}).filter(k=>/^draft-/.test(k)),[],'no draft mission in the real save');}
   assert.deepEqual(errors,[]);log('PASS');
  }finally{await browser.close();}
 })().catch(e=>{console.error(String(e).slice(0,400));process.exit(1);});

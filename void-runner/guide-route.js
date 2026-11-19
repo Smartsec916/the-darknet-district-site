@@ -101,6 +101,11 @@
   return graph([{id:'st-hangar',test:band(-1e9,3)},{id:'st-corridor',test:band(3,19)},{id:'st-concourse',test:band(19,1e9)}],
    [{id:'st-door-3',a:'st-hangar',b:'st-corridor',x:0,z:3,nx:0,nz:1,half:2},{id:'st-door-19',a:'st-corridor',b:'st-concourse',x:0,z:19,nx:0,nz:1,half:2}],null);}
 
+ // A location built from modules (modules.js layout: the cluster the player walks in, one floor): every module is a region, every doorway between two of them a
+ // portal, so the arrow goes from room to room through the doors (an office floor's hallway, the server room's door) instead of through a wall (QA, 19 Nov 2026).
+ function modular(cl){if(!cl||!Array.isArray(cl.mods))return null;const half=1.04/2,regions=cl.mods.map(m=>{const hw=m.w*2/2,hd=m.d*2/2;return {id:'mod:'+m.id,rects:[[m.cx-hw,m.cx+hw,m.cz-hd,m.cz+hd]]};}),portals=[],ids=new Set(cl.mods.map(m=>m.id)),modOf=r=>String(r||'').split('.')[0];
+  for(const d of cl.doors||[]){if(d.kind!=='snap'||!d.n)continue;const a=modOf(d.side),b=modOf(d.side===d.a?d.b:d.a);if(!ids.has(a)||!ids.has(b)||a===b)continue;portals.push({id:'door:'+d.id,a:'mod:'+a,b:'mod:'+b,x:d.x,z:d.z,nx:d.n[0],nz:d.n[1],half});}
+  return graph(regions,portals,null,null);}
  /* The route from `from` {x,z,quarter?} to `goal` {x,y?,z}: waypoints [{id, kind:'door'|'apron'|'goal', x, y, z, nx, nz, half, r, door?}], the goal last.
     opt.prefer: a Set of waypoint ids already in use (they win ties). */
  function plan(G,from,goal,opt={}){const end={id:'goal',kind:'goal',x:goal.x,y:Number.isFinite(goal.y)?goal.y:1.7,z:goal.z};if(!G)return [end];
@@ -155,8 +160,10 @@
  // The graph for a walking scene (cached; the gate list can grow: ncz-quarters.js define()). kind: 'station' for the older stations' corridor; null: straight to the goal.
  const cache=new Map();
  function deps(){if(node)return {N:require('./neochinatown.js'),QT:require('./ncz-quarters.js'),NC:require('./ncz-nightclub.js'),MK:require('./milked.js')};return {N:root.VoidNeoChinatown,QT:root.VoidQuarters,NC:root.VoidNightclub,MK:root.VoidMilked};}
- function graphFor(scene,kind){if(kind==='station'){if(!cache.has('station'))cache.set('station',station());return cache.get('station');}
+ function graphFor(scene,kind,loc){if(loc&&loc.modular&&loc.cluster){const k='mod:'+(loc.inst||'')+':'+loc.cluster.id+':'+JSON.stringify(loc.cluster.mods.map(m=>[m.id,m.cx,m.cz,m.w,m.d]));if(!cache.has(k))cache.set(k,modular(loc.cluster));return cache.get(k);}
+  if(loc&&loc.apartment)return null;   // an apartment's hallway or rooms (one room or a straight corridor): straight to the goal (their id is 'neochinatown' too)
+  if(kind==='station'){if(!cache.has('station'))cache.set('station',station());return cache.get('station');}
   if(scene!=='neochinatown'&&scene!=='milked')return null;const D=deps(),n=(D.QT&&D.QT.LANES||[]).length,c=cache.get('ncz');if(c&&c.lanes===n)return c.g;const g=neochinatown(D);cache.set('ncz',{g,lanes:n});return g;}
- const api={TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,graphFor,plan,passed,behind,advance,nearAlpha,follower};
+ const api={TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,modular,graphFor,plan,passed,behind,advance,nearAlpha,follower};
  if(node)module.exports=api;else root.VoidGuideRoute=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

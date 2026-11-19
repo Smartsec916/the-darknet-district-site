@@ -266,7 +266,7 @@ function drawMissionWaypoint(){
  const now=performance.now(),dt=guideClock?Math.min(.1,(now-guideClock)/1000):0;guideClock=now;
  if(mode!=='walking'||!trackedWalkWaypoint||!walker){guideFollower.reset();globalThis.VoidGuideRoute.live=null;return;}
  const goal=trackedWalkWaypoint,p=goal.position,scene=walkingLocation?.id||'';
- const o=guideFollower.update({graph:VoidGuideRoute.graphFor(scene,goal.station?'station':null),scene,area:walkingLocation?.area||'',quarter:walkingLocation?.quarter||'',player:{x:walker.x,z:walker.z},goal:{x:p[0],y:p[1],z:p[2]},key:goal.key||goal.id||goal.label||'goal',dt});
+ const o=guideFollower.update({graph:VoidGuideRoute.graphFor(scene,goal.station?'station':null,walkingLocation),scene,area:walkingLocation?.area||'',quarter:walkingLocation?.quarter||'',player:{x:walker.x,z:walker.z},goal:{x:p[0],y:p[1],z:p[2]},key:goal.key||goal.id||goal.label||'goal',dt});
  globalThis.VoidGuideRoute.live=o?{bearing:o.bearing,raw:o.raw,alpha:o.alpha,waypoint:o.waypoint.id,index:o.index,route:o.route.map(w=>w.id),length:o.length,snapped:o.snapped,key:o.key,player:{x:walker.x,z:walker.z,yaw:walker.yaw},t:now}:null;
  if(!o||o.alpha<=.01)return;
  const label=Math.round(o.length)+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4),angle=o.bearing-walker.yaw,r=Math.min(W,H)*.15;
