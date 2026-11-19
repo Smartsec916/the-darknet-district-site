@@ -79,6 +79,12 @@
  const LIMIT={lineEdits:600,missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000,subjects:6};
  const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
  const plain=(v,max)=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!TAGS.test(v);
+ /* ELEVENLABS VOICE TAGS (the owner, 19 Nov 2026) in what is said: checked here (npc-voices.js tagProblems) and removed for players in ONE place, where content is adapted
+    (apply: changed lines, every tree's lines and notification texts; mapLine). Only the re-voice queue keeps them, for ElevenLabs models that read them. */
+ const tagP=t=>{const V=NPV();return V&&V.tagProblems?V.tagProblems(t):[];},shown=t=>{const V=NPV();return V&&V.strip&&typeof t==='string'?V.strip(t):t;};
+ const shownLines=ls=>Array.isArray(ls)?ls.map(l=>l&&typeof l.text==='string'?{...l,text:shown(l.text)}:l):ls;
+ function shownTree(t){const x=clone(t);for(const m of x.missions||[]){if(!m)continue;m.offer=shownLines(m.offer);if(m.ending&&m.ending.say)m.ending.say=shownLines(m.ending.say);if(m.start&&typeof m.start.text==='string')m.start.text=shown(m.start.text);
+  for(const o of m.objectives||[])if(o)for(const k of ['say','early','wrong'])if(o[k])o[k]=shownLines(o[k]);}return x;}
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
  /* Strict check of a content record. ctx: {speakers:Set of extra speaker names (registry display names), registryIds:Set, interactions:Set (optional)}.
     Returns {ok, errors:[plain text]}; a record with any error is never applied. */
@@ -120,7 +126,7 @@
       if(o.award!=null&&!AWARDS.includes(o.award))err(ow+': the only award the game can give at a step is the ship.');
       for(const k of ['say','early']){const lines=o[k];if(lines==null)continue;
        if(!Array.isArray(lines)||lines.length>LIMIT.lines){err(ow+': too many lines.');continue;}
-       for(const l of lines){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(ow+': a line must be plain text (500 characters at most).');else if(!speakers.has(l.who))err(ow+': speaker "'+l.who+'" is not a known NPC or speaker.');}}
+       for(const l of lines){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(ow+': a line must be plain text (500 characters at most).');else if(!speakers.has(l.who))err(ow+': speaker "'+l.who+'" is not a known NPC or speaker.');else for(const p of tagP(l.text))err(ow+': '+p);}}
      }
      for(const o of m.objectives)for(const r of (o&&o.requires)||[])if(!oids.has(r))err(w+' / '+o.id+': requires "'+r+'", which is not a step of this mission.');
      const loop=(id,seen)=>{if(seen.has(id))return true;const o=m.objectives.find(x=>x.id===id);return !!o&&(o.requires||[]).some(r=>loop(r,new Set([...seen,id])));};
@@ -146,7 +152,7 @@
   }
   if(content.lines!=null){
    if(!Array.isArray(content.lines)||content.lines.length>LIMIT.lineEdits)err('Line edits have an unknown shape (at most '+LIMIT.lineEdits+').');
-   else{const seen=new Set();for(const l of content.lines){if(!keysOk(l,['who','from','to'])||!/^[a-z][a-z0-9-]{0,40}$/.test(l.who||'')||!plain(l.from,LIMIT.text)||!plain(l.to,LIMIT.text)){err('A changed line must name a speaker and be plain text (500 characters at most).');continue;}
+   else{const seen=new Set();for(const l of content.lines){if(!keysOk(l,['who','from','to'])||!/^[a-z][a-z0-9-]{0,40}$/.test(l.who||'')||!plain(l.from,LIMIT.text)||!plain(l.to,LIMIT.text)){err('A changed line must name a speaker and be plain text (500 characters at most).');continue;}for(const p of tagP(l.to))err('“'+l.from.slice(0,40)+'…”: '+p);
     if(l.who==='player')err('The player’s own lines are not changed here.');const k=l.who+'|'+l.from;if(seen.has(k))err('The same line is changed twice.');seen.add(k);if(ctx.lines&&!ctx.lines.has(k))err('“'+l.from.slice(0,40)+'…” is not a line in the game.');}}
   }
   if(content.names!=null){const n=content.names;if(!n||typeof n!=='object'||Array.isArray(n)||Object.keys(n).length>60)err('Tree names have an unknown shape.');
@@ -174,7 +180,7 @@
   if(!CHANNELS.includes(st.channel))err(w+': unknown notification channel.');
   if(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from))err(w+': the notification must come from a known NPC.');
   if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
-  if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');
+  if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');else for(const p of tagP(st.text))err(w+': the notification text: '+p);
   const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value','npc','distance'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
   // "after N in-game hours / minutes" (Mission 003, 17 Nov 2026): value = IN-GAME minutes (1..10080, a week) after the mission named here was completed (game-clock.js)
   if(x.kind==='game-time'&&!(Number.isInteger(x.value)&&x.value>=1&&x.value<=10080))err(w+': “after in-game time” needs a whole number of in-game minutes from 1 to 10080 (a week).');
@@ -206,7 +212,7 @@
   const npcOk=id=>typeof id==='string'&&(!ctx.givers||(ctx.givers.get(id)||{}).canTalk===true);
   const speakerOk=id=>id==='You'||(typeof id==='string'&&(!ctx.givers||ctx.givers.has(id)));
   const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
-  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');}};
+  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else for(const p of tagP(l.text))err(w+': '+p);}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
    if(!keysOk(t,['id','name','note','missions'])){err(tw+': unknown fields in a tree.');continue;}
    if(!treeIdOk(t.id))err(tw+': a new tree id must start with draft-.');if(tids.has(t.id))err(tw+': duplicate tree id.');tids.add(t.id);
@@ -452,7 +458,7 @@
   const out={applied:[],refused:[]};const base=snapshot(env);
   if(content!=null){const c=check(content,ctx);if(!c.ok){out.refused=c.errors;return out;}}
   if(env.B){
-   const list=clone(content&&content.beginner?content.beginner:base.beginner);
+   const list=clone(content&&content.beginner?content.beginner:base.beginner);for(const m of list)for(const o of (m&&m.objectives)||[])if(o)for(const k of ['say','early'])if(o[k])o[k]=shownLines(o[k]);
    env.B.MISSIONS.splice(0,env.B.MISSIONS.length,...list);for(const k of Object.keys(env.B.byId))delete env.B.byId[k];for(const m of env.B.MISSIONS)env.B.byId[m.id]=m;
    if(env.Missions){for(const id of Object.keys(env.Missions.definitions))if(env.Missions.definitions[id]&&env.Missions.definitions[id].beginner===true&&!env.B.byId[id])delete env.Missions.definitions[id];env.B.register(env.Missions);}
    if(content&&content.beginner)out.applied.push('beginner campaign: '+list.length+' missions');
@@ -462,7 +468,7 @@
    for(const [id,e] of Object.entries((content&&content.registry)||{})){const d=env.Missions.definitions[id];if(!d||d.beginner===true)continue;
     if(e.title!=null)d.title=e.title;if(e.description!=null)d.description=e.description;for(const o of d.objectives||[])if(e.objectives&&e.objectives[o.id]!=null)o.label=e.objectives[o.id];out.applied.push('mission log text: '+id);}
   }
-  env.lineMap=new Map();for(const l of (content&&content.lines)||[])env.lineMap.set(l.who+'|'+l.from,l.to);if(content&&content.lines&&content.lines.length)out.applied.push(content.lines.length+' changed line(s)');
+  env.lineMap=new Map();for(const l of (content&&content.lines)||[])env.lineMap.set(l.who+'|'+l.from,shown(l.to));if(content&&content.lines&&content.lines.length)out.applied.push(content.lines.length+' changed line(s)');
   if(env.Missions){for(const id of Object.keys(env.Missions.definitions))if(env.Missions.definitions[id]&&env.Missions.definitions[id].ownerTree)delete env.Missions.definitions[id];}
   env.voices=clone((content&&content.voices)||{});if(content&&content.voices&&Object.keys(content.voices).length)out.applied.push(Object.keys(content.voices).length+' voice choice(s) for re-voicing');
   env.looks=clone((content&&content.looks)||{});if(content&&content.looks&&Object.keys(content.looks).length)out.applied.push(Object.keys(content.looks).length+' NPC look setting(s)');
@@ -473,7 +479,7 @@
   return out;
  }
  /* The trees that run: the shipped story trees (an edited copy in the content replaces the one with the same id), then the content's other trees. */
- function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x={...t};delete x.status;delete x.shipped;delete x.seq;return x;});}
+ function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x=shownTree(t);delete x.status;delete x.shipped;delete x.seq;return x;});}
  /* A line about to be shown ({who,text}) → the edited line, or the same object when nothing applies. */
  function mapLine(env,l){if(!l||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}
  /* Builds content from the owner's drafts. studio: the Developer Studio's local draft {missions:[...]} (beginner campaign); local: Mission Editor edits {missions:{key:edit}}. */
