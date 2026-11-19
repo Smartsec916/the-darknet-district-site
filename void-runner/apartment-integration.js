@@ -30,7 +30,7 @@
  const note=t=>{try{resumeWalking();}catch{}try{announce(t);}catch{}};
  let busy=false;const screenOff=new Set(),screenSet=new Set(),lightOff=new Set(),lightSet=new Set();   // ad screens switched off, per apartment instance, for this session
  async function go(key,opts){if(busy)return;busy=true;try{await enterWalking(key,opts);}finally{busy=false;}}
- async function enterHall(door,list){const style=(list[0]&&list[0].style)||door.style,slots=A.slotsFor(list,style);visit={door,list,inst:null,slots};
+ async function enterHall(door,list){list=(list||[]).filter(a=>!a.modular);const style=(list[0]&&list[0].style)||door.style,slots=A.slotsFor(list,style);visit={door,list,inst:null,slots};
   const def=A.layout('hall',style);def.open=list.map(a=>({slot:slots[a.key],number:a.number,key:a.key,locked:!!a.locked,id:a.id,mission:a.mission}));def.street=door.id;
   const GH=A.geo(style);for(const sl of GH.HALL.slots){const o=def.open.find(x=>x.slot===sl.i),w=A.world([sl.x-.75,1.4,sl.z>0?(GH.container?.55:.62):(GH.container?-.55:-.62)]);def.interactions.push({id:'hall-ap-'+sl.i,label:'ACCESS POINT',position:w,action:'apt-ap',ap:o?o.id+'/hall':'hall-slot-'+sl.i,mission:o?o.mission:null,range:1.0});}
   VoidExplorationData.locations[A.keyOf('hall',style)]=def;await go(A.keyOf('hall',style));}
@@ -54,13 +54,13 @@
   const tex=f=>{const t=new B.Texture(url('assets/textures/'+f),scene,false,true);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;own.push(t);return t;};
   const P=(n,c,o={})=>{const m=new B.PBRMaterial('aptst-'+n,scene);m.albedoColor=B.Color3.FromHexString(c);m.roughness=o.r??.6;m.metallic=o.m??.4;m.usePhysicalLightFalloff=false;if(o.t)m.albedoTexture=tex(o.t);if(o.nrm&&!low)m.bumpTexture=tex(o.nrm);m.maxSimultaneousLights=8;own.push(m);return m;};
   const G=(n,c,k=1)=>{const m=new B.StandardMaterial('aptst-'+n,scene);m.disableLighting=true;m.emissiveColor=B.Color3.FromHexString(c).scale(k);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();own.push(m);return m;};
-  const slabMat={rundown:P('slab-r','#6a5e52',{t:'ncz/metal-leaks-color.jpg',nrm:'ncz/metal-leaks-normal.jpg',r:.55,m:.6}),normal:P('slab-n','#434951',{t:'district-interior/kit_gunmetal_color.jpg',r:.45,m:.7}),luxury:P('slab-l','#2a211a',{r:.35,m:.2})};
+  const slabMat={office:P('slab-o','#1a2026',{t:'district-interior/kit_glass_color.jpg',r:.12,m:.6}),commercial:P('slab-c','#4a4c4e',{t:'district-interior/kit_metal_color.jpg',nrm:'district-interior/kit_metal_normal.jpg',r:.5,m:.75}),rundown:P('slab-r','#6a5e52',{t:'ncz/metal-leaks-color.jpg',nrm:'ncz/metal-leaks-normal.jpg',r:.55,m:.6}),normal:P('slab-n','#434951',{t:'district-interior/kit_gunmetal_color.jpg',r:.45,m:.7}),luxury:P('slab-l','#2a211a',{r:.35,m:.2})};
   const frame=P('frame','#2a2c30',{r:.5,m:.7}),surround=P('surround','#4a4c50',{t:'ncz/concrete-old-color.jpg',nrm:'ncz/concrete-old-normal.jpg',r:.9,m:0}),dark=G('recess','#030304'),panel=P('ap','#1d2024',{r:.4,m:.8}),screen=G('ap-screen','#2a8fb0',1.0);
   const lamp={locked:G('red','#ff2a2a',1.1),mine:G('amber','#ffb347',1.1),open:G('green','#39ff9c',1.1)};
   const unit=(name,mat,w,h,d)=>{const m=B.MeshBuilder.CreateBox('aptst-'+name,{width:w,height:h,depth:d},scene);m.material=mat;m.parent=parent;m.isPickable=false;m.alwaysSelectAsActiveMesh=true;own.push(m);return m;};
-  const SLAB={rundown:'rundown',normal:'normal',luxury:'luxury','container-rundown':'rundown','container-regular':'normal'};
+  const SLAB={rundown:'rundown',normal:'normal',luxury:'luxury','container-rundown':'rundown','container-regular':'normal',office:'office',commercial:'commercial'};
   const M=B.Matrix,Q=B.Quaternion,V=B.Vector3;const mat=(x,y,z,ry,s=[1,1,1])=>M.Compose(new V(...s),Q.RotationYawPitchRoll(ry,0,0),new V(x,y,z));
-  const slab={rundown:unit('slab-r',slabMat.rundown,1,2.15,.05),normal:unit('slab-n',slabMat.normal,1,2.15,.05),luxury:unit('slab-l',slabMat.luxury,1,2.15,.05)},lampM={locked:unit('lamp-red',lamp.locked,.7,.035,.03),mine:unit('lamp-amber',lamp.mine,.7,.035,.03),open:unit('lamp-green',lamp.open,.7,.035,.03)};
+  const slab={rundown:unit('slab-r',slabMat.rundown,1,2.15,.05),normal:unit('slab-n',slabMat.normal,1,2.15,.05),luxury:unit('slab-l',slabMat.luxury,1,2.15,.05),office:unit('slab-o',slabMat.office,1,2.15,.05),commercial:unit('slab-c',slabMat.commercial,1,2.15,.05)},lampM={locked:unit('lamp-red',lamp.locked,.7,.035,.03),mine:unit('lamp-amber',lamp.mine,.7,.035,.03),open:unit('lamp-green',lamp.open,.7,.035,.03)};
   const jamb=unit('jamb',frame,.09,2.27,.16),head=unit('head',frame,1.18,.1,.16),fill=unit('fill',surround,.16,3.1,.1),over=unit('over',surround,1.5,.86,.1),rec=unit('recess',dark,1.05,2.2,.02),apBox=unit('ap',panel,.2,.32,.05),apScr=unit('ap-scr',screen,.13,.09,.01);
   // number plates: one atlas, one merged mesh
   const nt=new B.DynamicTexture('aptst-numbers',{width:2048,height:64},scene,true);own.push(nt);const g=nt.getContext(),cw=2048/Math.max(1,list.length);g.fillStyle='#0d0d0f';g.fillRect(0,0,2048,64);g.fillStyle='#e7e1d4';g.font='bold 52px monospace';g.textAlign='center';g.textBaseline='middle';list.forEach((d,i)=>g.fillText(String(d.number),i*cw+cw/2,34));nt.update();
@@ -68,7 +68,7 @@
   const doors=[],light={};
   list.forEach((d,i)=>{const ry=d.ry,n=d.n,t=n[0]?[0,1]:[1,0],P0=(a,b,c)=>[d.x+t[0]*a-n[0]*c,b,d.z+t[1]*a-n[1]*c];   // a: along the wall, b: height, c: out into the street
    const add=(mesh,a,b,c,s)=>{const p=P0(a,b,c);return mesh.thinInstanceAdd(mat(p[0],p[1],p[2],ry,s),false);};
-   add(jamb,-.545,1.135,.11);add(jamb,.545,1.135,.11);add(head,0,2.3,.11);if(d.family!=='container'){add(fill,-.67,1.55,.05);add(fill,.67,1.55,.05);add(over,0,2.78,.05);}   // a container door is cut into the steel: no shopfront filleradd(rec,0,1.1,.035);
+   add(jamb,-.545,1.135,.11);add(jamb,.545,1.135,.11);add(head,0,2.3,.11);if(d.family!=='container'&&d.family!=='office'&&d.family!=='commercial'){add(fill,-.67,1.55,.05);add(fill,.67,1.55,.05);add(over,0,2.78,.05);}   // a container door is cut into the steel: no shopfront filleradd(rec,0,1.1,.035);
    const ai=add(apBox,.85,1.35,.12),si=add(apScr,.85,1.42,.15);
    const li={};for(const k of Object.keys(lampM))li[k]=add(lampM[k],0,2.37,.2,[1,1,1]);
    const sk=SLAB[d.style]||'normal',si2=add(slab[sk],0,1.075,.08);const ld={};for(const k of Object.keys(lampM))ld[k]=add(lampM[k],.85,1.25,.15,[.08,1,1]);   // the access point's LED
@@ -106,7 +106,9 @@
    h.tick=function(time){const r=t.apply(this,arguments);const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;try{sd.tick(dt);}catch(e){console.warn('[apartments]',e);}return r;};h.dispose=function(){try{sd.dispose();}catch{}return d.apply(this,arguments);};}}}catch(e){console.warn('[apartments] street doors',e);}return h;};NC.build.apartments=true;}}
  // ---- going in and out ----
  async function enterDoor(id){const d=A.door(id);if(!d||busy)return;const list=onDoor(id);if(!list.length&&!hacked().some(h=>h.door===id)){note(d.name.toUpperCase()+': locked. A keypad and an intercom; nobody answers.');return;}
-  try{root.VoidBabylon?.district?.aptDoors?.forceOpen(id);}catch{}await new Promise(r=>setTimeout(r,450));await enterHall(d,list);}
+  try{root.VoidBabylon?.district?.aptDoors?.forceOpen(id);}catch{}await new Promise(r=>setTimeout(r,450));
+  const loc=list.find(a=>a.modular);if(loc&&root.VoidModules?.enter){await root.VoidModules.enter(d,loc);return;}   // a location built from modules (modules.js, module-integration.js)
+  await enterHall(d,list);}
  // ---- the hack (a stand-in for a later minigame): a progress bar over a scrolling screen ----
  let hacking=null;
  const css=document.createElement('style');css.textContent='#apt-hack{position:fixed;left:50%;bottom:16vh;transform:translateX(-50%);z-index:55;width:min(440px,86vw);padding:12px 16px;background:rgba(4,10,12,.86);border:1px solid #39ff9c;border-radius:8px;font:12px/1.4 ui-monospace,Consolas,monospace;color:#9af5c8;pointer-events:none}#apt-hack[hidden]{display:none}#apt-hack pre{margin:0 0 8px;height:72px;overflow:hidden;color:#59ff8a;opacity:.85}#apt-hack .bar{height:8px;background:#0c2a1c;border-radius:4px;overflow:hidden}#apt-hack .bar i{display:block;height:100%;width:0;background:#39ff9c}#apt-hack b{color:#e8fff3;letter-spacing:.12em}';document.head.append(css);
@@ -145,9 +147,9 @@
    else if(obj==='screen'){const v=z?.toggle?.('screen');const k=visit?.inst?.key;if(k){screenSet.add(k);if(v===false)screenOff.add(k);else screenOff.delete(k);}msg=v===false?'You switch the screen off.':'You switch the screen on. The city’s adverts, as on every street screen.';}
    else if(obj==='safe'){z?.toggle?.('safe');msg=TEXT.safe[st];}else if(obj==='computer')msg=TEXT.computer[st];
    else if(obj==='vending'){const g=(root.VoidPodVending?.products||[]).filter((d,i)=>(i+({rundown:0,normal:3,luxury:6}[st]||0))%3===0).slice(0,5);msg=({rundown:'VENDING (old, scuffed, half the lights dead): ',normal:'VENDING: ',luxury:'PANTRY DISPENSER: '}[st])+(g.length?g.map(d=>d.name+' '+Number(d.price).toFixed(2)).join(' · '):'food and drinks')+'. (Buying here comes later.)';}
-   note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj});}catch{}});}
+   note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod:wl.modId||null});}catch{}});}
  // walking through an open door inside: hallway door -> apartment, the apartment's door -> hallway, the hallway's street door -> street
- setInterval(()=>{try{const wl=here(),z=root.VoidBabylon?.zone;if(!wl||!z||busy||mode!=='walking'||typeof walker==='undefined'||!walker)return;
+ setInterval(()=>{try{const wl=here(),z=root.VoidBabylon?.zone;if(!wl||wl.modular||!z||busy||mode!=='walking'||typeof walker==='undefined'||!walker)return;
   for(const d of z.doors||[]){if(!(d.t>.9))continue;const dx=A.ORIGIN[0]+d.at[0]-walker.x,dz=A.ORIGIN[1]+d.at[1]-walker.z;if(dx*dx+dz*dz>.36)continue;
    if(d.id==='street'){backToStreet();return;}if(d.id==='entry'){backToHall();return;}
    if(d.slot!=null){const o=(wl.open||[]).find(x=>x.slot===d.slot);const inst=o&&((visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key));if(inst&&!o.locked){enterFlat(inst);return;}}}}catch{}},120);

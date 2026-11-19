@@ -69,3 +69,7 @@ The street doors of a quarter add about 12 draw calls in all (thin instances: fr
 - NPCs entering their own apartments are ambient walkers only (no schedules); only on the main streets with doors on the same side within 40 m.
 - Procedural furniture is still simple boxes in places (bed, couch, vending body): upgrade candidates under the art direction. No Meshy credits were spent.
 - Not verified: real hardware, VR, multiplayer with two real players.
+
+## Now also modules (19 Nov 2026, `claude/modular-interiors`)
+
+The five apartments and their hallways are also **modules** of the modular interior system (`docs/development/MODULES.md`): Housing (`apt-<style>`) and Hallways (`hall-<style>`) are portal modules, joined to other modules by a connection (a door that leads elsewhere). Everything on this page still works as written: an older `apartments` entry `{id, style, door, ...}` is valid as it is, and the Mission Editor's CONVERT THESE APARTMENTS TO MODULES button (optional) turns it into a location (`modules.js migrateMission`: `<id>/hall` becomes `<id>/hall.d<slot>`, `<id>/entry` becomes `<id>/flat.entry`). Office and shop entrances (`biz-...` doors, families `office` and `commercial`) now stand in plain shopfronts; an apartment of the older shape never goes behind one.
