@@ -44,6 +44,7 @@
  const NEX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;   // follow / lead / shared-cab steps (npc-escort.js)
  const APT=()=>typeof module!=='undefined'&&module.exports?require('./apartments.js'):root.VoidApartments;   // mission-instanced apartments, access points and hacks (apartments.js, 19 Nov 2026)
  const NPL=()=>typeof module!=='undefined'&&module.exports?require('./npc-looks.js'):root.VoidNPCLooks;
+ const CRM=()=>typeof module!=='undefined'&&module.exports?require('./cult-room.js'):root.VoidCultRoom;   // camera-feed-only rooms (the Blackrock Cult Room, cult-room.js, 19 Nov 2026): mission.feeds, hack steps with a feed
  const MDE=()=>typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs;   // mission givers made in the editor (content.characters, npc-made.js)
  const VIM=()=>typeof module!=='undefined'&&module.exports?require('./voice-imports.js'):root.VoidVoiceImports;   // imported voice files (content.clips: [{who, text, hash, type, duration, bytes}], 19 Nov 2026)   // NPC looks (Developer Tools > NPCs > Appearance)   // ElevenLabs voice choices (Developer Tools > NPCs, giver card)   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
  /* "When walked near" (the owner, 18 Nov 2026): when:{kind:'near', npc (default: the giver), distance (metres, 1..30, default 5)}. The game measures the player's distance to that
@@ -263,7 +264,8 @@
    if(t.note!=null&&!(typeof t.note==='string'&&t.note.length<=300&&!TAGS.test(t.note)))err(tw+': the note must be plain text (300 characters at most).');
    if(!Array.isArray(t.missions)||!t.missions.length||t.missions.length>20){err(tw+': a tree needs 1 to 20 missions.');continue;}
    for(const m of t.missions){total++;const w=tw+' / '+((m&&m.id)||'?');
-    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost','apartments'])){err(w+': unknown fields in a mission.');continue;}
+    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost','apartments','feeds'])){err(w+': unknown fields in a mission.');continue;}
+    {const X=CRM();if(X)for(const p of X.feedProblems(m))err(w+': '+p);else if(m.feeds!=null||(m.objectives||[]).some(o=>o&&o.feed!=null))err(w+': camera feeds cannot be checked here.');}
     {const X=APT();if(X)for(const p of X.problems(m,ctx.doors||null))err(w+': '+p);else if(m.apartments!=null||(m.objectives||[]).some(o=>o&&APT_KINDS.includes(o.kind)))err(w+': apartments cannot be checked here.');}
     if(m.waitAt!=null){const X=NPX();for(const p of X?X.waitAtProblems(m.giver,m.waitAt):['“Giver waits at” cannot be checked here.'])err(w+': '+p);}
     if(!missionIdOk(m.id))err(w+': a new mission id must start with draft- (60 characters at most).');
@@ -281,7 +283,7 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}
      if(!sec(o.delay,0,TIME.delay))err(ow+': the delay before a step is a whole number of seconds from 0 to 600.');
      if(o.kind!=='anim'&&o.clip!=null)err(ow+': only an animation step names an animation.');if(o.kind!=='anim'&&o.kind!=='wait'&&o.kind!=='hack'&&o.hold!=null)err(ow+': only an animation, wait or hack step has a number of seconds.');if(o.kind!=='wait'&&o.near!=null)err(ow+': only a wait step has a distance.');
      if(!ESCORT.includes(o.kind)&&['to','wait','lost','ifLost','stop'].some(k=>o[k]!=null))err(ow+': only a follow / lead / cab step has a spot, distances or a cab stop.');
@@ -388,6 +390,8 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:o.kind==='anim'?ev.type==='anim'&&ev.step===m.id+'/'+o.id:o.kind==='wait'?ev.type==='wait'&&ev.step===m.id+'/'+o.id
    // apartments (apartments.js): inside the apartment (the place event carries the one the player is in), a use of one of its objects, a hack of an access point
    :o.kind==='apt-enter'?ev.type==='place'&&ev.apt===m.id+'/'+o.apt&&(o.mod==null||ev.mod===o.mod):o.kind==='apt-use'?ev.type==='apt-use'&&ev.mission===m.id&&ev.apt===o.apt&&ev.object===o.object&&(o.mod==null||ev.mod===o.mod)
+   // a hack with a camera feed (cult-room.js): done when the feed's recording is saved (camera-feed.js), not when the access point opens
+   :o.kind==='hack'&&o.feed?ev.type==='feed'&&ev.feed===o.feed&&ev.ap===o.ap&&ev.mission===m.id
    :o.kind==='hack'?ev.type==='hack'&&ev.ap===o.ap&&(ev.mission==null||ev.mission===m.id)&&(!/\//.test(o.ap||'')||ev.mission===m.id):false;
   const held=(m,o)=>delayed(s,m,o);
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
@@ -606,13 +610,14 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;Object.assign(x,askStrip(st,st.from||m.giver));r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',...askStrip(m.start,m.giver)};
   {const c=m.cost;if(c&&Number.isInteger(c.amount)&&c.amount>0){const x={amount:Math.min(c.amount,MONEY.max)};if(c.when&&c.when!=='accept')x.when=c.when;else if(c.refund===true)x.refund=true;r.cost=x;}}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
   {const X=NPX(),wa=X&&m.waitAt&&X.MOVABLE[m.giver]?X.cleanWait(m.waitAt):null;if(wa)r.waitAt=wa;}   // "Giver waits at" (Reverie, Lace)
-  {const X=APT(),ap=X&&X.strip(m.apartments);if(ap)r.apartments=ap;}   // apartment instances (apartments.js)
+  {const X=APT(),ap=X&&X.strip(m.apartments);if(ap)r.apartments=ap;}
+  {const X=CRM(),fs=X&&X.strip(m.feeds);if(fs)r.feeds=fs;}   // camera feeds (cult-room.js)   // apartment instances (apartments.js)
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
    if(ESCORT.includes(o.kind)){const F=(NEX()&&NEX().FIELDS[o.kind])||[];for(const k of F)if(o[k]!=null&&o[k]!=='')x[k]=k==='to'?{x:o.to.x,z:o.to.z}:o[k];}
    {const d=secs(o.delay,1,TIME.delay);if(d)x.delay=d;}   // a delay before the step starts
    if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(typeof o.mod==='string'&&o.mod)x.mod=o.mod;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
-   if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;}
+   if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;if(typeof o.feed==='string'&&o.feed){x.feed=o.feed;if(o.unlock===true)x.unlock=true;}}
    if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
    if(o.kind==='ask'){x.question=String(o.question||'').trim();for(const k of ['yes','no'])if(typeof o[k]==='string'&&o[k].trim())x[k]=o[k].trim().slice(0,MONEY.label);if(ASK_STEP.deny.includes(o.deny)&&o.deny!=='end')x.deny=o.deny;if((x.deny==='skip'||x.deny==='back')&&o.goto)x.goto=o.goto;if(x.deny==='tree'&&o.denyStart)x.denyStart=o.denyStart;
    const p=askPrice(o);if(p)x.price=p;if(!x.label)x.label='Decide';const who=o.npc||m.giver,sy=said(o.say,who),dn=said(o.denySay,who);if(sy.length)x.say=sy;if(dn.length)x.denySay=dn;return x;}   // ACCEPT / DENY in the middle of a mission

@@ -110,6 +110,9 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 19 Nov | `npc-cyber-bouncer`: concept (text-to-image, nano-banana-pro) `01a1f49e-4da2…` (9), 3D `01a1f49f-ffa9…` (30), remesh 30k `01a1f4a3-0ed3…` (5), rig `01a1f4a5-4d95…` (5); no retry | `.../cyber_chars/build3d_status.json`, `build3d_b_status.json`, `status/npc-cyber-bouncer.json` | 49 |
 | | **19 Nov, the six cyberpunk figures** | | **312** (budget about 300, floor 50; 12 over the estimate for the two concepts the owner's changes made unusable; the account showed 452 before and 140 after, exactly this job's tasks; no retries) |
 
+| 19 Nov | Blackrock Cult Room robed figure `npc-blackrock-robe`: concept (text-to-image, nano-banana-pro) `01a1f522-253d-769f…` (9), 3D `01a1f524-6c53-7226…` (30), remesh 30k `01a1f525-a76a-70af…` (5); Meshy's rig `01a1f527-9c8b-7630…` FAILED ("could not be rigged": the robe hides the legs), 0 credits; rigged locally in Blender instead (`BLACKROCK_CULT_ROOM.md`) | `Documents/DarknetDistrict_Assets/Meshy/blackrock/status.json` on the owner's PC | 44 |
+| | **19 Nov, the robed figure** | | **44** (cap about 50, floor 50; the account showed 140 before and 96 after; no retry) |
+
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 
 ## The cyberpunk figures (19 Nov 2026)
