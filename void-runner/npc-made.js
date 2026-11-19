@@ -179,7 +179,15 @@
    const inp={area:P.area||'avenue',me:mp,to:P.to||null,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
    if(ev)try{root.VoidStreetPair?.onEscort?.({npc:p.id,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z});}catch{}return e.st.clip||'idle';}
-  function step(p,dt,cam){const n=p.node,P=planOf(p.id),talk=chatting()===p.id,w=me();
+  /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026; as ncz-street-pair.js): a new plan she cannot walk to straight is held while she is in view
+     (p.hold: the plan she keeps), and a figure that should go (its mission is over, its plan left this area) stays on its last plan until it is out of view (p.going). */
+  function seenAt(x,y,z,cam){if(!cam||!Number.isFinite(x+z))return false;if(Math.hypot(cam.x-x,cam.z-z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius)return false;
+   try{const v=new B.Vector3(x,(Number.isFinite(y)?y:0)+1,z);for(const pl of B.Frustum.GetPlanes(scene.getTransformMatrix()))if(pl.dotCoordinate(v)<-1.2)return false;return true;}catch{return true;}}
+  const inView=(n,cam)=>!!cam&&n.isEnabled()&&seenAt(n.position.x,n.position.y,n.position.z,cam);
+  const camNow=()=>scene.activeCamera?.globalPosition||null;
+  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:planOf(p.id),talk=chatting()===p.id,w=me();
+   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'&&!(p.plan&&p.plan.mode==='escort')){const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
+   const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
    if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length){p.s.x=t.x;p.s.z=t.z;p.y=yAt(t.x,t.z,p.y);}}   // a new spot she cannot walk to straight: she is put there
    let clip;
@@ -193,12 +201,12 @@
    if(p.anim&&clip!==p.clip){p.clip=clip;p.anim.play(clip);}
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
-   for(const id of [...people.keys()])if(!cs[id]||!present(id))leave(id);
+   const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)){if(cs[id]&&inView(p.node,cam))p.going=true;else leave(id);}else p.going=false;
    for(const [id,c] of Object.entries(cs)){if(!present(id))continue;const P=planOf(id),a=areaOfPlan(P);
-    if(!a||!HERE.has(a)){if(people.has(id))leave(id);continue;}
+    if(!a||!HERE.has(a)){const p=people.get(id);if(p&&inView(p.node,cam))p.going=true;else if(p)leave(id);continue;}
     if(people.has(id)&&people.get(id).c!==c){leave(id);}   // changed in a new version of the content: made again
     if(!people.has(id)){if(has(c.model))arrive(id,c,P);else ask(c.model);}}
-   if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled();if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
+   if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled()&&!p.going;if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
    nameCards();}
   function tick(dt){if(disposed)return;clock+=dt;if((scan-=dt)<=0){scan=.25;try{sync();}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}}const cam=scene.activeCamera?.globalPosition||null;for(const p of people.values())try{step(p,dt,cam);}catch{}}
   const self={tick,stats:()=>({here:[...HERE],people:[...people.values()].map(p=>({id:p.id,name:p.c.name,model:p.c.model,x:+p.node.position.x.toFixed(2),z:+p.node.position.z.toFixed(2),mode:p.s.mode,clip:p.clip,device:p.c.device||null,props:p.props.map(m=>m.name),talk:!!wl()?.interactions?.includes(items.get(p.id)),look:p.node.metadata?.npcLook||null,enabled:p.node.isEnabled()}))}),

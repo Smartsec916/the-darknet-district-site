@@ -133,7 +133,7 @@
   if(!by)a.body.append(words(c,'offer',m.offer||[],m.giver,{title:'What '+c.short(m.giver)+' says when offering it',player:true,anim:true}));
   const pay=MC(c).costOf(m);if(pay&&pay.when==='accept')a.body.append(mini(c,'item',null,'The player pays '+pay.amount+' CR when they press '+(st.yes||'ACCEPT')+' (Credits, at the top).'));
   if(st.accept===true){const ask=frame(c,{type:'ask',who:by?st.from||m.giver:m.giver,title:'The player chooses '+(st.yes||'ACCEPT')+' or '+(st.no||'DENY'),nested:true});
-   ask.body.append(el(c,'p','On DENY: '+({again:'nothing, it is offered again later',never:'it is never offered again',start:'another mission starts instead'}[st.deny||'again'])+'. Buttons and DENY are set in “How this mission starts” above.','me-small'));a.body.append(ask);}
+   ask.body.append(el(c,'p','On DENY: '+({again:by?'offered again after the next pod exit':'offered again the next time they talk',pod:'offered again after the next pod exit',after:'offered again after '+MC(c).denyMinutes(st.denyMinutes)+' minutes of play',never:'never offered again (removed)',start:'another mission starts instead'}[st.deny||'again'])+'. Buttons and DENY are set in “How this mission starts” above.','me-small'));a.body.append(ask);}
   else a.body.append(hint(c,'No question at the offer: tick “Ask the player: ACCEPT or DENY” above, or add an Ask block anywhere below.'));
   return a;}
  // ---- END
@@ -144,10 +144,11 @@
   a.body.append(hint(c,'Rewards below this block are given when the mission is done.'));return a;}
  // ---- a STEP
  const STEP_TITLE={talk:'talks',hear:'says more',deliver:'Deliver',buy:'Buy',go:'Go to',arrive:'Fly to',enter:'Go into',leave:'Leave',photo:'Photograph','send-photo':'Send a photo','pod-exit':'Leave the Sleeping Pod',
-  'follow-them':'leads the way','they-follow':'follows the player','their-cab':'calls a cab','shared-cab':'rides in your cab',anim:'plays an animation','apt-enter':'Go into an apartment','apt-use':'Use something in an apartment',hack:'Hack an access point',
+  'follow-them':'leads the way','they-follow':'follows the player','their-cab':'calls a cab','shared-cab':'rides in your cab',anim:'plays an animation','apt-enter':'Go into a place','apt-use':'Use something',hack:'Hack an access point',
   message:'The notification arrives','await-call':'Wait for their call',wait:'Wait',ask:'asks the player'};
  function stepTitle(c,o){const who=B().stepWho(o,c.m),t=STEP_TITLE[o.kind]||'';if(['talk','hear','follow-them','they-follow','their-cab','shared-cab','anim','ask'].includes(o.kind))return (who?c.short(who):'Someone')+' '+t;
   if(o.kind==='go'||o.kind==='enter'||o.kind==='leave'||o.kind==='arrive')return t+' '+(o.place?c.place(o.place):'…');if(o.kind==='photo')return t+' '+(o.npc?c.short(o.npc):'…');if(o.kind==='deliver')return t+' to '+(o.npc?c.short(o.npc):'…');
+  if(['apt-enter','apt-use','hack'].includes(o.kind)){const w=B().placeWords(o,c.m);if(w)return w;}
   if(o.kind==='wait')return 'Wait '+(Number.isInteger(o.hold)?o.hold:10)+' s'+(o.near&&o.npc?' near '+c.short(o.npc):'');return t||('“'+(o.kind||'?')+'” (Form view only)');}
  function stepBlock(c,b,i){const {m,kit}=c,o=b.raw,MB=B(),type=MB.typeOf(o),who=MB.stepWho(o,m),bid=b.bid;
   const eo=(fn,redraw=true)=>c.ed(x=>{const oo=(x.objectives||[]).find(y=>y.id===o.id);if(oo)fn(oo,x);},redraw);
@@ -159,11 +160,12 @@
   const cost=MC(c).costOf(m);if(cost&&cost.when===o.id)a.body.append(mini(c,'item','You','The player pays '+cost.amount+' CR to finish this block (it waits until they have them). Amount: Credits, at the top.'));
   if(type==='who'){a.body.append(talkFields(c,o,eo));}
   else{const inner=frame(c,{type,who:type==='ask'?undefined:who,title:innerTitle(c,o),nested:true,attrs:{'data-mb-inner':o.id}});inner.body.append(...kindFields(c,o,eo));a.body.append(inner);}
-  if(o.kind!=='anim'&&o.kind!=='wait')a.body.append(labelBox(c,o.label||'',v=>eo(x=>{x.label=v.slice(0,500);},false),'(your words)','data-me-label',o.id));
+  if(o.kind!=='anim'&&o.kind!=='wait'){const lb=labelBox(c,o.label||'',v=>eo(x=>{x.label=v.slice(0,500);},false),'(your words)','data-me-label',o.id);
+   if(['apt-enter','apt-use','hack'].includes(o.kind)&&c.kit.autoWordsBtn){const ab=c.kit.autoWordsBtn(m,o,eo);lb.append(ab);lb.querySelector('input').addEventListener('input',e=>ab.refresh(e.target.value));}a.body.append(lb);}
   for(const s of MB.lineSets(o,m)){const box=words(c,o.id+'/'+s.key,o[s.key]||[],s.who,{...s,via:o.via});if(s.more){const d=el(c,'details','','mb-more');d.open=(o[s.key]||[]).length>0;d.append(el(c,'summary','More: '+s.title.toLowerCase()),box);a.body.append(d);}else a.body.append(box);}
   return a;}
  const innerTitle=(c,o)=>({go:'Go to an area',arrive:'Fly to',enter:'Go into a place',leave:'Leave a place',photo:'Take a photo','send-photo':'Send a photo','pod-exit':'Leave the Sleeping Pod','follow-them':'Lead the way','they-follow':'Follow the player','their-cab':'Their cab','shared-cab':'Your cab',
-  anim:'Animation','apt-enter':'Go into an apartment','apt-use':'Use something',hack:'Hack',buy:'Buy an item',deliver:'Deliver',message:'Notification','await-call':'Their call',wait:'Wait',ask:'ACCEPT or DENY'}[o.kind]||o.kind);
+  anim:'Animation','apt-enter':'Go into a place','apt-use':'Use something',hack:'Hack',buy:'Buy an item',deliver:'Deliver',message:'Notification','await-call':'Their call',wait:'Wait',ask:'ACCEPT or DENY'}[o.kind]||o.kind);
  /* "Who" steps: the player talks to someone (or hears more from them). */
  function talkFields(c,o,eo){const {kit}=c,r=el(c,'div','','me-row mb-fields');
   const sel=kit.npcSelect(o.npc||'',v=>eo(x=>{const was=B().autoLabel(x,{name:c.short});x.npc=v;if(!x.label||x.label===was)x.label=B().autoLabel(x,{name:c.short});}),{label:o.kind==='hear'?'Who is heard':'Who the player talks to',empty:o.kind==='hear'?'(the giver)':'— choose who —',attrs:{'data-me-step-npc':o.id}});
@@ -189,9 +191,8 @@
    r.append(kit.numBox('Wait',Number.isInteger(o.hold)?o.hold:10,1,600,v=>eo(x=>{x.hold=v||10;words_.textContent=kit.waitWords(x);},false),{'data-me-step-hold':o.id}),el(c,'span','seconds','me-small'));
    const r2=row();r2.append(kit.numBox('only while the player stays within',Number.isInteger(o.near)?o.near:'',1,50,v=>eo(x=>{if(v)x.near=v;else delete x.near;words_.textContent=kit.waitWords(x);},false),{'data-me-step-near':o.id},'—'),el(c,'span','m of','me-small'),
     kit.npcSelect(o.npc,v=>eo(x=>{x.npc=v;}),{label:'Who the player stays near',empty:'— anyone / anywhere —',attrs:{'data-me-step-npc':o.id}}));out.push(words_);}
-  else if(k==='apt-enter'||k==='apt-use'){const r=row(),ME=root.VoidModuleEditor;r.append(el(c,'span','In','me-small'),kit.aptSelect(m,o.apt,v=>eo(x=>{x.apt=v;delete x.mod;},true),{'data-me-step-apt':o.id}));if(ME)r.append(...ME.stepMod(m,o,(fn,rd)=>eo(fn,rd),{'data-me-step-mod':o.id}));
-   if(k==='apt-use'){const sel=el(c,'select','','',{'aria-label':'What is used','data-me-step-object':o.id});sel.append(new Option('— choose what is used —',''));for(const ob of (ME?ME.objects(m,o):root.VoidApartments.OBJECTS))sel.append(new Option(ob.name,ob.id));sel.value=o.object||'';sel.onchange=()=>eo(x=>{if(sel.value)x.object=sel.value;else delete x.object;});r.append(el(c,'span','use','me-small'),sel);}
-   if(!(m.apartments||[]).length)out.push(hint(c,'Add an Apartment block above this one first (+ ADD A BLOCK › Apartment).'));}
+  else if(k==='apt-enter'||k==='apt-use'){row().append(...kit.placeRow(m,o,eo));   // the place by its real name; the words follow it (mission-editor.js placeRow)
+   if(!(m.apartments||[]).length)out.push(hint(c,'Add a Location block above this one first (+ ADD A BLOCK › Location).'));}
   else if(k==='hack')row().append(...kit.hackRow(m,o,eo));
   else if(k==='ask')out.push(...askFields({t:c.t,m,o,eo,kit}));
   else if(k==='pod-exit')out.push(el(c,'p','Done when the player leaves their Sleeping Pod (EXIT POD).','me-small'));
