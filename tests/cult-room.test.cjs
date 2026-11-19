@@ -57,7 +57,7 @@ test('scene problems in plain words; the server repeats the rules',()=>{
  bad([{act:'enter'},{act:'enter'}],/already in the room/);bad([{act:'line',who:'initiate',text:'<b>x</b>'}],/plain text/);bad([{act:'pause'}],/how long/);bad([{act:'dance'}],/unknown kind/);
  bad([{act:'pause',secs:2,extra:1}],/unknown fields/);bad([{act:'line',who:'initiate',anim:'shock'}],/kneeling/);bad([{act:'enter'},{act:'rise'},{act:'exit'},{act:'line',who:'initiate'}],/everyone has left/);
  assert.deepEqual(C.sceneProblems({radius:9,beats:[{act:'pause',secs:1}]}),['the circle radius is 2 to 3.4 m.']);
- const py=read('void_runner_live_content.py');assert.match(py,/def feed_scene_problems/);assert.match(py,/def feed_problems/);assert.match(py,/'apartments', 'feeds'\]/);assert.match(py,/'needs', 'feed', \*ASK_STEP_KEYS/);
+ const py=read('void_runner_live_content.py');assert.match(py,/def feed_scene_problems/);assert.match(py,/def feed_problems/);assert.match(py,/'apartments', 'feeds'(, 'combat')?\]/);assert.match(py,/'needs', 'feed', ('target', 'zone', 'until', 'spawn', )?\*ASK_STEP_KEYS/);
  assert.match(read('void_runner_drafts.py'),/feed_shape_problems/);
  const inv=JSON.parse(read('void_runner_admin_inventory.json'));assert.deepEqual(inv.feeds,C.inventory(),'the admin inventory is current');
 });
@@ -99,5 +99,5 @@ test('the page loads the scripts in order; the editor loads the scene editor; th
  for(const c of CR().CLIPS)assert.ok(J.animations.some(a=>a.name===c),c);
  assert.ok(fs.statSync(R('void-runner/art/blackrock/owl-stencil.webp')).size<400000);
  const cf=read('void-runner/camera-feed.js');assert.match(cf,/MediaRecorder/);assert.match(cf,/addVideo/);assert.doesNotMatch(cf,/fetch\(|XMLHttpRequest|sendBeacon/,'the recording is never uploaded');
- assert.match(read('void-runner/live-content.js'),/type:'feed'/);assert.match(read('void-runner-sw.js'),/const BUILD='20\d\d-\d\d-\d\d-[a-z0-9-]+'/);
+ assert.match(read('void-runner/live-content.js'),/type:'feed'/);assert.match(read('void-runner-sw.js'),/const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+'/);   // bumped by later work (the Kestrel: 2026-11-19-kestrel-1)
 });

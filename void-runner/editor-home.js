@@ -29,7 +29,7 @@
  const subjects=()=>G().photoSubjects(givers());
  const ctx=()=>({givers:givers(),places:G().placeIds(),subjects:new Set(subjects().map(g=>g.id))});
  const AX=()=>root.VoidApartments,aptDoor=id=>{try{return id&&AX()&&AX().door?AX().door(id):null;}catch{return null;}};
- const relabel=()=>W().relabel(ui.a,{name:nameOf,place:placeName,door:ui.a&&ui.a.apt&&(aptDoor(ui.a.apt.door)||{}).name});
+ const relabel=()=>W().relabel(ui.a,{name:nameOf,place:placeName,door:ui.a&&ui.a.apt&&(aptDoor(ui.a.apt.door)||{}).name,apt:W().aptRecord(ui.a,true)});
  function go(tab,after){const D=DTX();if(!D)return;if(after)after();D.tab=tab;D.render();}
  // ---------------------------------------------------------------- render
  function render(p,head){host=p;headNode=head;syncNpcMode();observe();
@@ -91,7 +91,7 @@
    if(kd.needs==='place'){sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-place':String(i)});sel.append(new Option('— choose a place —',''));for(const p of walkPlaces())sel.append(new Option(p.name+(p.players?'':' (not open to players yet)'),p.id));sel.value=s.place||'';sel.onchange=()=>{s.place=sel.value;draw();};}
    else if(kd.needs==='escort-spot'||kd.needs==='escort-stop'){const E=root.VoidNPCEscort;sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));
     for(const g of givers().filter(g=>g.group==='district')){const c=E?E.can(g.id,s.kind):{ok:false,why:''},op=new Option(g.name+(c.ok?'':' — cannot walk with the player yet'),g.id);if(!c.ok){op.disabled=true;op.title=c.why;}sel.append(op);}
-    sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;s.spot='';s.stop='';draw();};row.append(sel);c.append(row);
+    sel.value=s.npc||'';sel.onchange=e=>{s.npc=e.target.value;s.spot='';s.stop='';draw();};row.append(sel);c.append(row);
     const r2=el('label','','me-field');r2.append(el('span',kd.where));const s2=el('select','','',{'aria-label':kd.where,[kd.needs==='escort-spot'?'data-eh-step-spot':'data-eh-step-stop']:String(i)});
     if(kd.needs==='escort-spot'){s2.append(new Option(s.npc?'— choose a spot —':'— choose the person first —',''));for(const p of (E&&s.npc?E.spots(s.npc):[]))s2.append(new Option(p.name,p.id));s2.value=s.spot||'';s2.onchange=()=>{s.spot=s2.value;draw();};}
     else{s2.append(new Option(s.npc?'— choose a stop —':'— choose the person first —',''));for(const p of (E&&s.npc?E.stops(s.npc,E.placedArea(s.npc)):[])){const op=new Option(p.name+(p.ok?'':' — not possible'),p.id);if(!p.ok){op.disabled=true;op.title=p.why;}s2.append(op);}s2.value=s.stop||'';s2.onchange=()=>{s.stop=s2.value;draw();};}
@@ -100,14 +100,19 @@
     r2.append(el('span',kd.ask),n,el('span','The mission waits this long, then goes on to the next step. The clock stops in the pause menu and conversations. In the Mission Editor you can also make it count only while the player stays near someone.','me-help'));c.append(r2);sel=null;}
    else if(kd.needs==='anim'){const A=root.VoidNPCGestures;sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));
     for(const g of givers().filter(g=>g.group==='district')){const r=A?A.clipsFor(g.id):{ok:false,why:''},op=new Option(g.name+(r.ok?'':' — no animations yet'),g.id);if(!r.ok){op.disabled=true;op.title=r.why;}sel.append(op);}
-    sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;s.clip='';draw();};row.append(sel);c.append(row);
+    sel.value=s.npc||'';sel.onchange=e=>{s.npc=e.target.value;s.clip='';draw();};row.append(sel);c.append(row);
     const r2=el('label','','me-field');r2.append(el('span',kd.where));const s2=el('select','','',{'aria-label':kd.where,'data-eh-step-clip':String(i)});s2.append(new Option(s.npc?'— choose an animation —':'— choose the person first —',''));
     for(const x of (A&&s.npc?A.clipsFor(s.npc).clips:[]))s2.append(new Option(x.name,x.id));s2.value=s.clip||'';s2.onchange=()=>{s.clip=s2.value;draw();};
     r2.append(s2,el('span','They do it where they stand as soon as the step before is done; the mission then waits 3 seconds (change it in the Mission Editor, 0 to 30) and goes on. Only animations that person really has are listed.','me-help'));sel=null;c.append(r2);}
-   else if(kd.needs==='apt'){const d=a.apt&&aptDoor(a.apt.door);c.append(el('p',d?'The player goes in through '+d.name+' (the apartment chosen below the steps).':'Choose the apartment below the steps: “+ INSTANCE AN APARTMENT”.','me-help',{'data-eh-step-apt':String(i)}));sel=null;}
+   else if(kd.needs==='apt'){const d=a.apt&&aptDoor(a.apt.door),list=W().aptChoices(a);   // the place by its real name (an office: the office floor, the server room …); the words follow it
+    if(list.length){const ps=el('select','','',{'aria-label':'Which place','data-eh-step-apt':String(i)});for(const p of list)ps.append(new Option(p.label,p.value));ps.value=s.mod?'a1/'+s.mod:'a1';
+     ps.onchange=()=>{const v=ps.value,j=v.indexOf('/');if(j<0)delete s.mod;else s.mod=v.slice(j+1);relabel();draw();};row.append(ps);c.append(row);}
+    c.append(el('p',d?'The player goes in through '+d.name+' (chosen below the steps).':'Choose the apartment or location below the steps: “+ INSTANCE AN APARTMENT”.','me-help'));sel=null;}
    if(!sel&&!(kd.needs==='escort-spot'||kd.needs==='escort-stop'||kd.needs==='anim'||kd.needs==='seconds'||kd.needs==='apt')){const list=kd.needs==='subject'?subjects():talkers();sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));for(const g of list)sel.append(new Option(g.name+(g.players?'':' (practice game only)'),g.id));sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;draw();};}
    if(sel){row.append(sel);c.append(row);}
-   const lab=el('label','','me-field');lab.append(el('span','What the Mission Log says'));const li=el('input','','',{'data-eh-step-label':String(i),maxlength:'200'});li.value=s.label||'';li.oninput=()=>{s.label=li.value;s.auto=!li.value.trim();};lab.append(li,el('span','Filled in for you; change it to your own words if you like.','me-help'));c.append(lab);box.append(c);});
+   const lab=el('label','','me-field');lab.append(el('span','What the Mission Log says'));const li=el('input','','',{'data-eh-step-label':String(i),maxlength:'200'});li.value=s.label||'';
+   const aw=kd.needs==='apt'?W().aptWords(s,W().aptRecord(a,true)):'',ab=aw?btn('USE THE AUTOMATIC WORDS',()=>{s.label=aw;s.auto=true;draw();},'me-small',{'data-eh-auto-words':String(i),title:'Replace the words with: '+aw}):null;if(ab)ab.hidden=String(s.label||'').trim()===aw;
+   li.oninput=()=>{s.label=li.value;s.auto=!li.value.trim();if(ab)ab.hidden=li.value.trim()===aw;};lab.append(li,...(ab?[ab]:[]),el('span','Filled in for you; change it to your own words if you like.','me-help'));c.append(lab);box.append(c);});
   box.append(iconBtn('plus','ADD A STEP',()=>{a.steps.push({kind:'talk',npc:'',place:'',label:'',auto:true});draw();},'',{'data-eh-add-step':'1'}));
   box.append(aptBox(a));}
  /* "An apartment for this mission" (apartments.js; the owner, 19 Nov 2026): one apartment behind a street door, open only for the player who has the mission, and the step
@@ -118,7 +123,7 @@
   if(!ready){box.append(el('p','Loading the street doors…','me-small',{'data-eh-apt-loading':'1'}));setTimeout(()=>{try{if(AX()&&AX().doors().length&&host&&host.querySelector('[data-eh-apt-loading]'))draw();}catch{}},1500);return box;}
   if(!a.apt){box.append(iconBtn('plus','INSTANCE AN APARTMENT',()=>{a.apt={style:'normal',door:''};if(!a.steps.some(s=>s.kind==='apt-enter'))a.steps.push({kind:'apt-enter',npc:'',place:'',label:'',auto:true});ui.note='Apartment added, with the step “Go into the mission’s apartment”. Choose its street door.';draw();},'',{'data-eh-apt-add':'1'}));return box;}
   const d=aptDoor(a.apt.door),fam=d&&d.family==='container'?'container':'city',row=el('div','','me-row');
-  const MX=root.VoidModules,tp=el('select','','',{'aria-label':'What it is','data-eh-apt-kind':'1'});tp.append(new Option('An apartment',''));for(const t of (MX&&MX.TEMPLATES)||[])tp.append(new Option(t.name,t.id));tp.value=a.apt.template||'';tp.onchange=()=>{if(tp.value)a.apt.template=tp.value;else delete a.apt.template;draw();};
+  const MX=root.VoidModules,tp=el('select','','',{'aria-label':'What it is','data-eh-apt-kind':'1'});tp.append(new Option('An apartment',''));for(const t of (MX&&MX.TEMPLATES)||[])tp.append(new Option(t.name,t.id));tp.value=a.apt.template||'';tp.onchange=()=>{if(tp.value)a.apt.template=tp.value;else delete a.apt.template;for(const x of a.steps)delete x.mod;relabel();draw();};
   const st=el('select','','',{'aria-label':'Apartment style','data-eh-apt-style':'1'});for(const x of X.STYLES)if(!!x.container===(fam==='container'))st.append(new Option(x.name,x.id));st.value=a.apt.style;if(st.value!==a.apt.style){a.apt.style=st.options[0].value;st.value=a.apt.style;}st.onchange=()=>{a.apt.style=st.value;draw();};
   const ds=el('select','','',{'aria-label':'Street door','data-eh-apt-door':'1'});ds.append(new Option('— choose a street door —',''));
   const QN={avenue:'The Avenue',oldtown:'Old Town','far-south':'Far South',port:'The Port',outskirts:'The Outskirts'};

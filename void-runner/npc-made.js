@@ -175,11 +175,6 @@
   // (fix 19 Nov 2026) else the made character whose lines the conversation has: walkTarget is picked again every frame while a conversation floats over walking
   const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};
   function chatting(){if(!convo()){chatSeen=false;chatWho=null;return null;}if(!chatSeen){chatSeen=true;const t=typeof walkTarget!=='undefined'?walkTarget:null;chatWho=t&&t.action===ACTION?t.character:speaker();}return chatWho;}
-  /* NEVER GONE OR MOVED ON SCREEN (fix 19 Nov 2026): a figure that must go (a plan in another area) or be put at a spot she cannot walk to stands where she is while the
-     player can see her, and goes (or is put there) once unseen. */
-  let frustum=null,frustumAt=-1;
-  function unseen(p,cam){const n=p.node;if(!n.isEnabled())return true;if(cam&&Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius)return true;
-   const c=scene.activeCamera,B=root.BABYLON;if(!c)return false;try{if(frustumAt!==clock){frustumAt=clock;frustum=B.Frustum.GetPlanes(c.getTransformationMatrix());}return !B.Frustum.IsPointInFrustum(new B.Vector3(n.position.x,p.y+.9,n.position.z),frustum);}catch{return false;}}
   // a follow / lead step (npc-escort.js; cab rides are only Reverie's and Lace's)
   function escTick(p,P,dt){const E=root.VoidNPCEscort;if(!E)return 'idle';let e=p.esc;
    if(!e||e.key!==P.key){e=p.esc={key:P.key,st:{x:p.s.x,z:p.s.z,yaw:p.s.yaw||0,phase:null},trail:{pts:[],shifted:0}};const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;}
@@ -187,10 +182,17 @@
    const inp={area:P.area||'avenue',me:mp,to:P.to||null,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
    if(ev)try{root.VoidStreetPair?.onEscort?.({npc:p.id,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z});}catch{}return e.st.clip||'idle';}
-  function step(p,dt,cam){const n=p.node,P=p.away?null:planOf(p.id),talk=chatting()===p.id,w=me();
+  /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026; as ncz-street-pair.js): a new plan she cannot walk to straight is held while she is in view
+     (p.hold: the plan she keeps), and a figure that should go (its mission is over, its plan left this area) stays on its last plan until it is out of view (p.going). */
+  function seenAt(x,y,z,cam){if(!cam||!Number.isFinite(x+z))return false;if(Math.hypot(cam.x-x,cam.z-z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius)return false;
+   try{const v=new B.Vector3(x,(Number.isFinite(y)?y:0)+1,z);for(const pl of B.Frustum.GetPlanes(scene.getTransformMatrix()))if(pl.dotCoordinate(v)<-1.2)return false;return true;}catch{return true;}}
+  const inView=(n,cam)=>!!cam&&n.isEnabled()&&seenAt(n.position.x,n.position.y,n.position.z,cam);
+  const camNow=()=>scene.activeCamera?.globalPosition||null;
+  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:planOf(p.id),talk=chatting()===p.id,w=me();
+   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'&&!(p.plan&&p.plan.mode==='escort')){const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
+   const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
-   if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;p.put=t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length?{x:t.x,z:t.z}:null;}   // a new spot she cannot walk to straight: she is put there (once unseen)
-   if(p.put){if(unseen(p,cam)){p.s.x=p.put.x;p.s.z=p.put.z;p.y=yAt(p.put.x,p.put.z,p.y);p.put=null;}else{n.position.set(p.s.x,p.y,p.s.z);if(p.anim&&p.clip!=='idle'){p.clip='idle';p.anim.play('idle');}return;}}
+   if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length){p.s.x=t.x;p.s.z=t.z;p.y=yAt(t.x,t.z,p.y);}}   // a new spot she cannot walk to straight: she is put there
    let clip;
    if(P&&P.mode==='escort'&&!talk&&(P.kind==='follow-them'||P.kind==='they-follow')){clip=escTick(p,P,dt);p.s.mode='esc';p.s.device=null;}
    else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}
@@ -201,17 +203,16 @@
    p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);n.position.set(p.s.x,p.y,p.s.z);n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
    if(p.anim&&clip!==p.clip){p.clip=clip;p.anim.play(clip);}
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
-  function sync(){const L=wl(),cs=chars(),cam=scene.activeCamera?.globalPosition||null;
-   for(const id of [...people.keys()])if(!cs[id]||!present(id))leave(id);
+  function sync(){const L=wl(),cs=chars();
+   const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)){if(cs[id]&&inView(p.node,cam))p.going=true;else leave(id);}else p.going=false;
    for(const [id,c] of Object.entries(cs)){if(!present(id))continue;const P=planOf(id),a=areaOfPlan(P);
-    if(!a||!HERE.has(a)){const p=people.get(id);if(p){if(unseen(p,cam))leave(id);else p.away=true;}continue;}   // in sight: she stands until unseen (step())
-    if(people.has(id))people.get(id).away=false;
+    if(!a||!HERE.has(a)){const p=people.get(id);if(p&&inView(p.node,cam))p.going=true;else if(p)leave(id);continue;}
     if(people.has(id)&&people.get(id).c!==c){leave(id);}   // changed in a new version of the content: made again
     if(!people.has(id)){if(has(c.model))arrive(id,c,P);else ask(c.model);}}
-   if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled();if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
+   if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled()&&!p.going;if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
    nameCards();}
   function tick(dt){if(disposed)return;clock+=dt;if((scan-=dt)<=0){scan=.25;try{sync();}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}}const cam=scene.activeCamera?.globalPosition||null;for(const p of people.values())try{step(p,dt,cam);}catch{}}
-  const self={tick,stats:()=>({here:[...HERE],people:[...people.values()].map(p=>({id:p.id,name:p.c.name,model:p.c.model,x:+p.node.position.x.toFixed(2),z:+p.node.position.z.toFixed(2),yaw:+(p.node.rotation.y||0).toFixed(2),away:!!(p.away||p.put),mode:p.s.mode,clip:p.clip,device:p.c.device||null,props:p.props.map(m=>m.name),talk:!!wl()?.interactions?.includes(items.get(p.id)),look:p.node.metadata?.npcLook||null,enabled:p.node.isEnabled()}))}),
+  const self={tick,stats:()=>({here:[...HERE],people:[...people.values()].map(p=>({id:p.id,name:p.c.name,model:p.c.model,x:+p.node.position.x.toFixed(2),z:+p.node.position.z.toFixed(2),yaw:+(p.node.rotation.y||0).toFixed(2),mode:p.s.mode,clip:p.clip,device:p.c.device||null,props:p.props.map(m=>m.name),talk:!!wl()?.interactions?.includes(items.get(p.id)),look:p.node.metadata?.npcLook||null,enabled:p.node.isEnabled()}))}),
    get people(){return people;},dispose(){disposed=true;for(const id of [...people.keys()])leave(id);if(root.VoidMadeNPCs&&root.VoidMadeNPCs.live===liveFn)root.VoidMadeNPCs.live=null;}};
   const liveFn=()=>self.stats();root.VoidMadeNPCs.live=liveFn;return self;}
  /* Name cards for the dialogue window (as mission-givers do for their speakers). */

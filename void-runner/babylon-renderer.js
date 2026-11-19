@@ -461,7 +461,8 @@
   }
   function shipModel(name, allegiance, parent, opts = {}) {
     const model = VoidAssets.instance('ship:' + name, parent);
-    if (model) return model;
+    // The Kestrel ('starter'): the Meshy model (kestrel-model.js) with its gear, engine glow and gun hooks; the code ship below stays the stand-in.
+    if (model) return name==='starter'&&root.VoidKestrel?VoidKestrel.dress(model,{scene,landed:!!opts.landed,allegiance}):model;
     if (/^(communion|order)-/.test(name)) return factionShipModel(name, parent);
     if (name === 'police-cutter') return policeShipModel(parent);
     const b = B(),
@@ -533,7 +534,8 @@
       // Ship space: the hull's side is at x .72 and the deck at y -1 (the ship stands 1 unit up); the cockpit runs z 0 to 1.3,
       // clear of the wing and guns (they end at z .6). Steps climb from the deck to the hull's side by the cockpit, on the
       // left (sd -1): the right side is where the hangar's maintenance terminal stands, and the two must not share a spot.
-      const k=ship.scaling.y||1,ground=-ship.position.y/k,top=-.12,sd=-1,x0=sd*.8,x1=sd*1.9,z0=1.05,steps=6,steel=material('kestrel-steps','#7c858a'),lamp=material('kestrel-boarding-lamp','#ffcf80',true);
+      const k=ship.scaling.y||1,ground=-ship.position.y/k,top=-.12,sd=-1,x0=sd*(ship.metadata.kestrel?.62:.8),x1=sd*1.9,z0=1.05,steps=6,steel=material('kestrel-steps','#7c858a'),lamp=material('kestrel-boarding-lamp','#ffcf80',true);
+      ship.metadata.kestrel?.fitGround(ground);   // the Meshy Kestrel's legs stand on this floor (kestrel-model.js)
       for(let i=0;i<steps;i++){const f=(i+1)/steps,h=ground+(top-ground)*f;const s=box('kestrel-boarding-step',[Math.abs(x1-x0)/steps+.04,.035,.5],[x1-(x1-x0)*(i+.5)/steps,h-.018,z0],steel,ship);s.isPickable=false;}
       for(const dz of [-.26,.26]){const len=Math.hypot(x1-x0,top-ground),r=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:len},scene);r.parent=ship;r.position.set((x0+x1)/2,(ground+top)/2+.3,z0+dz);r.rotation.z=Math.atan2(x1-x0,top-ground);r.material=steel;r.isPickable=false;
         const post=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:.3},scene);post.parent=ship;post.position.set(x1,ground+.15+.035,z0+dz);post.material=steel;post.isPickable=false;}
@@ -675,6 +677,7 @@
     parent.metadata={...parent.metadata,propGroups:Object.fromEntries(Object.entries(groups).map(([k,g])=>[k,g.ok]))};
   }
   async function prepareStation(def,task){
+    root.VoidKestrel?.register(VoidAssets,quality);
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
     crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.rooms&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
@@ -1162,6 +1165,7 @@
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
     if(def.kind==='station')return prepareStation(def,task);
+    const kestrel=root.VoidKestrel?(VoidKestrel.register(VoidAssets,quality),VoidKestrel.definitions(quality)):{};
     await initialize(task);
     release();
     const b = B();
@@ -1185,13 +1189,13 @@
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){
-      crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all',def.quarter||null)||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{})},task),'district models');
+      crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all',def.quarter||null)||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{}),...((typeof state!=='undefined'?state:{})?.story?.flags?.shipAccess!=='none'&&(def.area!=='street'||!def.quarter||def.quarter==='port')?kestrel:{})},task),'district models');
       districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},area:def.area||'all',quarter:def.quarter||null,instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
       await districtHandle.prepare?.();   // NULL and the street's light slots, behind the loading screen (neochinatown.js prepare; bounded, never throws)
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,root.VoidCrowd?.models(def.planet,quality)||{},task),'crowd models');
+    if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models(def.planet,quality)||{}),...kestrel},task),'crowd models');
       planetHandle=VoidPlanets.build(def.planet,{scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'homeworld');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
@@ -1200,6 +1204,7 @@
     if(def.vr&&root.VoidVR){vrHandle=await root.VoidVR.buildWorld(def,{scene,parent:roomRoot,quality,task,camera,characterModel,assets:VoidAssets});
       await task.wait('scene',()=>scene.whenReadyAsync(),'vr');diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;}
     if(def.kind==='derelict'){
+      await task.wait('assets',()=>VoidAssets.prepare(scene,kestrel,task),'derelict models');
       derelictHandle=VoidDerelictStation.build({scene,parent:roomRoot,quality,shipModel});
       await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;

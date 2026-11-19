@@ -4,7 +4,7 @@
    - mission-content.js waitingAt / holdOf: once taken, her mission holds her (her "Giver waits at" spot, the spot of her last finished follow step, else where she stood),
      until it is done; before, she went back to her routine (walked off, or vanished when the spot was in another quarter);
    - live-content.js plans(): the hold (why:'mission'), the remembered spot, the follow plan's `from`;
-   - ncz-street-pair.js / npc-made.js: never gone or moved while seen; held during a conversation that has her lines; she appears at `from`, never at her routine's spot;
+   - ncz-street-pair.js / npc-made.js: never popped in or out while seen (main's hold); held during a conversation that has her lines; she appears at `from`, never at her routine's spot;
    - npc-escort.js walkRoute: along the pavements (a road crossed straight over only where it must be), and lead() at walking pace, waiting for the player. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=p=>path.join(__dirname,'..',p);
@@ -43,14 +43,15 @@ test('with no "Giver waits at" she stays where she stood when it started (here:t
  assert.match(lc,/if\(w&&w\.here\)\{const h=holdAt\[id\];/);assert.match(lc,/if\(w&&w\.during\)p\.why='mission';const old=planCache\[id\];if\(old&&old\.key===p\.key\)old\.why=p\.why;/);assert.match(lc,/resume:saved&&saved\.key===e\.key\?saved:null,from\}/);
  assert.match(lc,/escOn\.clear\(\);for\(const k of Object\.keys\(holdAt\)\)delete holdAt\[k\];/,'a new draft session forgets the spots');});
 
-test('the figures: kept out for her mission, held while the conversation has her lines, never gone or moved while seen, and appear where the step started',()=>{
+test('the figures: kept out for her mission, held while the conversation has her lines, never popped in or out while seen (the hold from main), and appear where the step started',()=>{
  const sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8'),md=fs.readFileSync(R('void-runner/npc-made.js'),'utf8');
  assert.match(sp,/if\(P&&\(P\.mode==='escort'\|\|P\.why==='mission'\)\)return her\.p;/);
  assert.match(sp,/speech\.lines\.some\(l=>l&&l\.who===id\)/);assert.match(sp,/walkTarget===talkItems\[her\.p\.id\]\)\|\|speaks\(her\.p\.id\)/);
- assert.match(sp,/if\(her&&her\.away\)\{if\(unseen\(c\)\)leave\(\);else\{/);assert.doesNotMatch(sp,/if\(jump\)\{leave\(\);\}/,'no leave on a new spot while seen');
- assert.match(sp,/P\.mode==='escort'\?ok\(P\.resume\)\|\|ok\(P\.from\)/);assert.match(sp,/if\(cat&&cat\.away\)\{if\(catUnseen\(c0\)\)/);
- assert.match(md,/ok\(P\.resume\)\|\|ok\(P\.from\)\|\|ok\(P\.to\)/);assert.match(md,/if\(unseen\(p,cam\)\)leave\(id\);else p\.away=true;/);assert.match(md,/chatWho=t&&t\.action===ACTION\?t\.character:speaker\(\);/);
- assert.match(md,/if\(p\.put\)\{if\(unseen\(p,cam\)\)/);assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8'),/const BUILD='20\d\d-\d\d-\d\d-[a-z0-9-]+'/);});
+ // never popped in or out in front of the player: main's hold (holdCheck / p.going, 19 Nov 2026) is kept; a follow step is never held
+ assert.match(sp,/function holdCheck\(/);assert.match(sp,/\(R&&R\.mode==='escort'\)/);
+ assert.match(sp,/P\.mode==='escort'\?ok\(P\.resume\)\|\|ok\(P\.from\):planSpot\(P\)/);assert.match(sp,/t=appearAt\(P\);if\(t\)\{her\.s\.x=t\.x/);assert.match(sp,/const P=planOf\(CAT_ID\),t=appearAt\(P\)/);
+ assert.match(md,/ok\(P\.resume\)\|\|ok\(P\.from\)\|\|ok\(P\.to\)/);assert.match(md,/chatWho=t&&t\.action===ACTION\?t\.character:speaker\(\);/);
+ assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8'),/const BUILD='20\d\d-\d\d-\d\d-[a-z0-9-]+'/);});
 
 test('walkRoute: along the pavements, in her area, the road crossed only where it must be, never through a building',()=>{fresh();const E=require(R('void-runner/npc-escort.js')),A=require(R('void-runner/npc-areas.js'));
  const cases=[[{x:52.5,z:-113.5},{x:69.5,z:-64.5},'oldtown'],[{x:104,z:-6.4},{x:96.5,z:-18.3},'avenue'],[{x:30,z:-18.3},{x:90,z:-18.3},'avenue'],[{x:69.5,z:-85.5},{x:69.5,z:-50.5},'oldtown']];

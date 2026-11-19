@@ -66,7 +66,7 @@ test('the ChatGPT prompt lists the allowed areas with their bounds and the never
 test('the game: the pair is started in every street quarter and inside the District, and only loads her where she is',()=>{
  const nc=fs.readFileSync(R('void-runner/neochinatown.js'),'utf8'),sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8');
  assert.match(nc,/VoidStreetPair\.start\(\{B,scene,parent,quality,where:\{scene:'street',quarter:QK\}\}\)/);assert.match(nc,/where:\{scene:'interior'\}/);assert.doesNotMatch(nc,/VoidStreetPair&&\(!QK\|\|QK==='avenue'\)/);
- assert.match(sp,/HERE=new Set\(AR\?AR\.here\(/);assert.match(sp,/want=w0&&HERE\.has\(herArea\(w0\.id\)\)/);assert.match(sp,/if\(cat\)\{if\(!HERE\.has\(area\)\)\{if\(!cat\.away\)cat\.away='gone';\}/);assert.match(sp,/else if\(!HERE\.has\(area\)\)return;/);
+ assert.match(sp,/HERE=new Set\(AR\?AR\.here\(/);assert.match(sp,/want=w0&&HERE\.has\(herArea\(w0\.id\)\)/);assert.match(sp,/if\(!HERE\.has\(area\)\)\{catLeave\(\);return;\}/);
  const html=fs.readFileSync(R('void-runner.html'),'utf8');assert.ok(html.indexOf('void-runner/npc-areas.js')>0&&html.indexOf('void-runner/npc-areas.js')<html.indexOf('void-runner/npc-paths.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);});
 

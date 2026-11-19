@@ -165,5 +165,23 @@ globalThis.VoidBalanceSpec = {
     "value": 4,
     "min": 0,
     "max": 60
-  }
+  },
+  "pistolPrice": {"value":350,"min":0,"max":100000},
+  "pistolDamage": {"value":34,"min":1,"max":500},
+  "pistolAimBonus": {"value":1.24,"min":1,"max":3},
+  "pistolCooldown": {"value":0.25,"min":0.05,"max":3},
+  "pistolSpread": {"value":1.2,"min":0,"max":15},
+  "pistolRecoil": {"value":0.6,"min":0,"max":10},
+  "footPlayerHealth": {"value":100,"min":1,"max":1000},
+  "footEnemyHealth": {"value":60,"min":1,"max":1000},
+  "footEnemyDamage": {"value":11,"min":0,"max":100},
+  "footEnemyAccuracy": {"value":0.66,"min":0,"max":1},
+  "footEnemyReaction": {"value":1.1,"min":0.2,"max":10},
+  "footEnemySpeed": {"value":1.05,"min":0.2,"max":6},
+  "detectRange": {"value":26,"min":2,"max":80},
+  "detectCone": {"value":110,"min":20,"max":360},
+  "guardHostileTime": {"value":45,"min":5,"max":600},
+  "civilianFleeRadius": {"value":25,"min":0,"max":120},
+  "neutralSafety": {"value":1,"min":0,"max":1},
+  "safetyWindow": {"value":2,"min":0.5,"max":10}
 };

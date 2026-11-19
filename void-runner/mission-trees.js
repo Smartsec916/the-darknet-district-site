@@ -304,7 +304,7 @@
   const out=[],add=(level,where,text)=>out.push({level,where,text}),MC=MC_(),G=G_(),givers=ctx.givers||[],g=id=>givers.find(x=>x.id===id);
   if(!String(tree.name||'').trim())add('error',tree.id,'The tree needs a name.');if(!tree.missions.length)add('warn',tree.id,'No missions yet: press + NEW MISSION.');
   if(ctx.studio){const proj=tree.missions.map((m,i)=>({id:m.id,title:m.title,type:m.type,giver:(g(m.giver)||{}).name||m.giver,description:m.description,rewards:m.rewards,prerequisites:i?[tree.missions[i-1].id]:[],choices:m.choices,
-    objectives:m.objectives.map((o,k)=>({id:o.id,label:o.label,on:'talk-admin',requires:k?[m.objectives[k-1].id]:[]}))}));
+    objectives:m.objectives.map((o,k)=>({id:o.id,label:o.label||(['ask','wait','anim'].includes(o.kind)?o.kind:''),on:'talk-admin',requires:k?[m.objectives[k-1].id]:[]}))}));
    for(const i of ctx.studio.validate(proj,{npcs:new Set(givers.map(x=>x.name))}))if(!/store items|completion event/.test(i.text))add(i.level,i.where,i.text);}
   for(const m of tree.missions){const w=m.title||m.id;
    if(!m.giver)add('error',w,'Choose who gives this mission.');else{const x=g(m.giver);if(!x)add('error',w,'"'+m.giver+'" is not a known NPC.');else if(!x.players)add('warn',w,x.name+': '+G.status(x));}
