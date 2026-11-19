@@ -66,7 +66,8 @@
   if(page==='giver'){if(!a.giver)out.push('Choose who gives the mission: pick a name from the list.');
    else if(!canTalk(g,a.giver))out.push(nameOf(g,a.giver)+' cannot give missions in the game yet ('+(((g.find(x=>x.id===a.giver)||{}).why)||'no TALK prompt')+'). Pick someone else from the list.');}
   if(page==='start'){if(!STARTS.some(s=>s.id===a.start))out.push('Choose how it starts: click one of the choices.');
-   if((a.start==='messages'||a.start==='near')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');}
+   if((a.start==='messages'||a.start==='near')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');
+   {const NV=typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;if((a.start==='messages'||a.start==='near')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.message&&a.message.text||'')))out.push(p);if((a.start==='person'||a.start==='person-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.offer||'')))out.push('What they say when offering it: '+p);}}   // ElevenLabs voice tags: the same rules as a line
   if(page==='steps'){if(!a.steps.length)out.push('Add at least one step: press “+ ADD A STEP”.');
    a.steps.forEach((s,i)=>{const n='Step '+(i+1)+': ',k=STEPS.find(x=>x.id===s.kind);
     if(!k){out.push(n+'choose what the player does, from the first list on that step.');return;}

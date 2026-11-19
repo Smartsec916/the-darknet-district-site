@@ -2,6 +2,16 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twelfth pass (19 Nov 2026): ElevenLabs voice tags in what is said; choose the ElevenLabs model
+
+The owner asked "so i can put elevenlabs voice tags into the what is said section?", then "choose a model?" and "v4?". Build `2026-11-19-voice-tags-1`, branch `claude/voice-tags`.
+
+- **Voice tags:** any line's text ("What is said...", the lines of an NPC in NPCs > Lines & voice, the wizard's offer line, a notification's text) may carry ElevenLabs audio tags in square brackets, e.g. `[whispers] Keep it down.` Rules: lowercase letters, spaces and hyphens, 30 characters at most each, 6 per line. A malformed bracket (`[whispers Keep it down.`, `[Whispers]`, `[]`) is refused in plain words by the editor, the game's check and the server. `[Write ... here]` placeholders are not tags.
+- **Players never see them:** removed in one place, where content is adapted for the game (`mission-content.js` `apply` for every tree line, notification text and changed line, and `mapLine`), so the conversation window, V1 messages and notifications and the Mission Log show the line without them. A line without tags is untouched (voice clips are found by their text).
+- **Help and warning in the editor:** one help line under the line fields ("You can add ElevenLabs voice tags like [whispers] or [laughs]. Players never see them; only ElevenLabs voices use them.") and a small warning under a line whose tags will not be used: a Kokoro-voiced character, a character with no voice, or an ElevenLabs model that does not read tags.
+- **Model choice (Voice box):** for a character with an ElevenLabs voice, a list of models, each with a one-line description and an estimated credit rate: **Eleven v4** (newest; supports voice tags, used for Zen Zephyr; the default for a new choice), Eleven v3 (tags), Multilingual v2, Flash v2.5 and Turbo v2.5 (about half the credits; no tags). Stored with the choice (`content.voices[who].model`), exported to `revoice-engines.json` as `model`, checked against the same allow-list in the browser (`npc-voices.js MODELS`) and on the server. A character in `revoice-engines.json` keeps the model recorded there (Zen Zephyr: `eleven_v4`); changing it makes an editor choice with the same voice. The credit estimate counts the text as it is sent, at that model's rate.
+- **Re-voice queue:** see `../VOID_RUNNER_VOICE_PRODUCTION.md`, "Voice tags and models".
+- **Tests:** `tests/voice-tags.test.cjs`, `tests/test_voice_tags.py`, browser `tests/voice-tags-browser.cjs` (editor help, warning and model; PLAY THIS DRAFT shows "[whispers] Keep it down, runner." as "Keep it down, runner." in the conversation window).
 ## Twelfth pass (18 Nov 2026): describe a behaviour to ChatGPT, daily schedules, and the street cat as an NPC and giver
 
 Branch `claude/npc-behaviour`, build `2026-11-18-npc-behaviour-1`. Pushed, no PR, not merged. Queue item 1, plus "add the cat as an npc and giver".

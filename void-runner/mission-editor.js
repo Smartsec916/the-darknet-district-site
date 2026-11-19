@@ -160,11 +160,18 @@
  const V=()=>root.VoidNPCVoices;
  const voiceNow=id=>V()?V().current(id,{registry:src&&src.registry,engines:src&&src.engines,voices:local().voices}):{kind:'none'};
  const canVoice=l=>!!(l&&l.who!=='player'&&(l.voice||voiceNow(l.who).kind==='elevenlabs'));
- const queueItem=(who,text)=>(server.queue?.items||[]).find(q=>q.who===who&&q.text===text)||null;
- function voiceState(l){const t=shownText(l),edited=t!==l.text,q=queueItem(l.who,t);
+ /* ElevenLabs voice tags (19 Nov 2026): what a voice is sent (npc-voices.js speakText: tags kept only for a model that reads them), so adding or changing a tag is a
+    change only for those voices; players see the line without them (sh). */
+ const sayKey=(who,t)=>V()?V().speakText(t,voiceNow(who)):String(t||''),sh=t=>V()?V().strip(t):t;
+ const queueItem=(who,text)=>{const k=sayKey(who,text);return (server.queue?.items||[]).find(q=>q.who===who&&(q.speak||q.text)===k)||null;};
+ const TAG_HELP='You can add ElevenLabs voice tags like [whispers] or [laughs]. Players never see them; only ElevenLabs voices use them.';
+ function tagNotes(t,who,name){const X=V();if(!X||!t||!String(t).includes('['))return [];const out=X.tagProblems(t);if(!out.length&&who&&who!=='player'&&who!=='You'){const w=X.tagWarning(t,voiceNow(who),name);if(w)out.push(w);}return out;}
+ const tagNoteEl=(t,who,name)=>{const n=tagNotes(t,who,name);return el('p',n.join(' '),'me-small me-warn',{'data-me-tag-note':'1',...(n.length?{}:{hidden:''})});};
+ const tagNoteSet=(node,t,who,name)=>{const n=tagNotes(t,who,name);node.textContent=n.join(' ');node.hidden=!n.length;};
+ function voiceState(l){const t=shownText(l),edited=sayKey(l.who,t)!==sayKey(l.who,l.text),q=queueItem(l.who,t);
   if(l.who==='player')return {text:'the player’s own line (not voiced)',cls:'muted'};
   if(l.needsVoice){if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:{text:'queued for voice',cls:'warn'};return t.trim()?{text:'needs voice (text only until recorded)',cls:'warn',revoice:canVoice(l)}:{text:'empty: a placeholder, not spoken',cls:'muted'};}
-  if(edited&&clipKeys.has(l.who+'|'+t))return {text:'re-voiced',cls:'ok'};
+  if(edited&&clipKeys.has(l.who+'|'+sh(t))&&!(V()&&V().hasTags(t)&&V().readsTags(voiceNow(l.who))))return {text:'re-voiced',cls:'ok'};
   if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:q.engine==='elevenlabs'?{text:'waiting for ElevenLabs re-voice (needs approval)',cls:'warn'}:{text:'queued for re-voice',cls:'warn'};
   if(edited&&l.recorded)return {text:'voice clip out of date: text only until re-voiced',cls:'bad',revoice:true};
   if(edited)return {text:'text only',cls:'muted',revoice:canVoice(l)};
@@ -300,11 +307,11 @@
   // a small map of every new tree and its links
   const edges=all.flatMap(x=>x.missions.flatMap(m=>(m.unlocks||[]).filter(u=>u.kind==='tree').map(u=>[x.id,u.id])));if(edges.length){const map=el('p','','me-small',{'data-me-tree-map':'1'});map.textContent='Map: '+[...new Set(edges.map(([a,b])=>name(a)+' → '+name(b)))].join('   ·   ');box.append(map);}
   return box;}
- function linesEditor(t,m,lines,keyBase,defWho,title){const box=el('div','','me-scene');box.append(el('h5',title));
+ function linesEditor(t,m,lines,keyBase,defWho,title){const box=el('div','','me-scene');box.append(el('h5',title));if(lines.length)box.append(hint(TAG_HELP,{'data-me-tag-help':'1'}));
   lines.forEach((l,k)=>{const row=el('div','','me-line',{'data-me-tline':keyBase+'/'+k});const who=el('div','','me-who');
    const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].who=v;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+((giver(defWho)||{}).name||defWho):'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);
    const g=giver(l.who||defWho),vn=g?voiceNow(g.id):{kind:'none'};who.append(el('span',vn.kind==='elevenlabs'?'ElevenLabs voice '+vn.name:g&&g.voice?'registered voice '+g.voice.voice+' (read-only)':'no voice yet','me-small'));row.append(who);
-   const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';ta.oninput=()=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});body.append(ta);
+   const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';const tn=tagNoteEl(l.text,g&&g.id||(l.who==='You'?'You':''),g&&g.name);ta.oninput=()=>{editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});tagNoteSet(tn,ta.value,g&&g.id||(l.who==='You'?'You':''),g&&g.name);};body.append(ta,tn);
    const tags=el('div','','me-tags');const ph=!!MS()?.isPlaceholder(l.text);if(MS()?.isProposed?.(l.text))tags.append(el('span','PROPOSED: Claude’s draft, waiting for your approval (text only, not recorded). Edit it or keep it.','me-vs me-warn',{'data-me-proposed':'1'}));tags.append(el('span',ph?'PLACEHOLDER for you: shown only here and in draft play; live players never see it':(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+(ph?'bad':(l.text||'').trim()?'warn':'muted'),ph?{'data-me-placeholder':'1'}:{}));
    if(g&&(g.voice||vn.kind==='elevenlabs')&&(l.text||'').trim())tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
    tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);row.append(body);box.append(row);});
@@ -486,7 +493,7 @@
   const row=el('div','','me-line',{'data-me-line':l.ref||l.key});const t=shownText(l),e=lineEdit(l),vs=voiceState(l);
   const who=el('div','','me-who');who.append(el('b',l.name),el('span',l.voice?'voice '+l.voice.voice+' ('+l.voice.status+')':'no registered voice','me-small'));row.append(who);
   const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));
-  const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);
+  const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;const tn=tagNoteEl(t,l.who,l.name);ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}tagNoteSet(tn,ta.value,l.who,l.name);};body.append(ta,tn);
   const tags=el('div','','me-tags');
   if(l.locked)tags.append(el('span',unlocked?'Your script — unlocked for your edit':l.lock,'me-lock'));
   if(l.placeholder)tags.append(el('span','Claude’s placeholder (not your words)','me-warn'));
@@ -532,6 +539,7 @@
   const n=linesFor(id),g=giver(id),q=String(opt.search||'').trim().toLowerCase(),has=l=>!q||String(shownText(l)).toLowerCase().includes(q)||String(l.missionTitle||l.where||l.group||'').toLowerCase().includes(q);
   const reg=src.registry?.npcs?.[id]||(g&&src.registry?.npcs?.[g.say]);
   root_.append(el('p',(reg?'Registered voice (read-only): '+reg.voice+' · '+reg.status:'Not in the voice registry: their lines are on-screen text only.')+(n&&n.engine?' · Re-voice engine: '+(n.engine.engine==='elevenlabs'?'ElevenLabs, '+n.engine.voice+' ('+n.engine.note+')':'Kokoro on your PC (generate.py --from-queue)'):''),'dev-note',{'data-npc-voice':id}));
+  root_.append(hint(TAG_HELP,{'data-me-tag-help':'1'}));
   root_.append(hint('A registered Kokoro voice is locked and never changed here (an ElevenLabs voice for new lines is chosen in the Voice box). Editing a line here changes what is shown; a recorded line is text only until it is re-voiced (RE-VOICE adds it to the queue you record on your PC).'));
   const inM=(n?n.inMissions:[]).filter(has),out=(n?n.outside:[]).filter(has),total=n?n.inMissions.length+n.outside.length:0;
   const stale=[...inM,...out].filter(l=>voiceState(l).revoice),bar=el('div','','me-row');
@@ -553,7 +561,7 @@
  /* Never generates audio, never asks for or keeps an API key, never lists the owner's ElevenLabs library: the choice is draft content (published like missions, checked by the
     server); lines RE-VOICEd for that character wait in the re-voice queue until the owner approves the spend. Registered Kokoro voices stay read-only. */
  function setVoice(id,v){const d=local();d.voices=d.voices||{};if(v)d.voices[id]=v;else delete d.voices[id];saveLocal(d);rebuild();}
- function voiceLines(id){const n=linesFor(id);return n?[...n.inMissions,...n.outside].filter(l=>l.who!=='player').map(l=>shownText(l)):[];}
+ function voiceLines(id){const n=linesFor(id),v=voiceNow(id);return n?[...n.inMissions,...n.outside].filter(l=>l.who!=='player').map(l=>V()?V().speakText(shownText(l),v):shownText(l)):[];}   // as they are sent (voice tags only for a model that reads them)
  function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));
   if(!X){box.append(el('p','The voice tools could not load. Reload the page.','me-bad'));return box;}
   const no=X.refusal(id,src&&src.registry);if(no){box.append(el('p',no,'me-warn',{'data-voice-refused':id}));return box;}
@@ -565,8 +573,11 @@
   else if(cur.kind==='kokoro'){p.append(el('b','Kokoro (free, on your PC): '),document.createTextNode(cur.voice+' · '+cur.status+' · read-only (locked in the voice registry)'));box.append(p);}
   else{p.append(el('b','No voice yet: '),document.createTextNode(name+'’s lines are on-screen text only. Choose an ElevenLabs voice below to have them recorded.'));box.append(p);}
   if(X.note(id))box.append(el('p',X.note(id),'me-small me-warn',{'data-voice-street':id}));
-  const est=X.estimate(voiceLines(id)),queued=(server.queue?.items||[]).filter(q=>q.who===id&&q.status==='queued'),qe=X.estimate(queued.map(q=>q.text));
-  const ep=el('p','Re-voicing all of '+name+'’s lines: '+est.lines+' line(s) · '+est.chars.toLocaleString()+' characters · about '+est.credits.toLocaleString()+' ElevenLabs credits (Flash / Turbo: about '+est.fast.toLocaleString()+').'+(server.queue?' Waiting in the re-voice queue now: '+qe.lines+' line(s), about '+qe.credits.toLocaleString()+' credits.':''),'me-small',{'data-voice-estimate':String(est.chars)});
+  const mdl=cur.kind==='elevenlabs'?cur.model:null,est=X.estimate(voiceLines(id),mdl),queued=(server.queue?.items||[]).filter(q=>q.who===id&&q.status==='queued'),qe=X.estimate(queued.map(q=>q.speak||q.text),mdl);
+  if(mdl){const ms=el('select','','',{'aria-label':'ElevenLabs model','data-voice-model':id});for(const [k,mm] of Object.entries(X.MODELS))ms.append(new Option(mm.label+' · about '+mm.rate+' credit'+(mm.rate===1?'':'s')+' per character (estimate)',k));ms.value=mdl;
+   const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};
+   const w=el('label','','me-field');w.append(el('span','ElevenLabs model'),ms,md);box.append(w);}
+  const ep=el('p','Re-voicing all of '+name+'’s lines: '+est.lines+' line(s) · '+est.chars.toLocaleString()+' characters · about '+est.credits.toLocaleString()+' ElevenLabs credits'+(mdl?' with '+X.MODELS[mdl].label.replace(/ \(.*$/,'')+' (an estimate).':' (Flash / Turbo: about '+est.fast.toLocaleString()+').')+(server.queue?' Waiting in the re-voice queue now: '+qe.lines+' line(s), about '+qe.credits.toLocaleString()+' credits.':''),'me-small',{'data-voice-estimate':String(est.chars)});
   box.append(ep,hint(est.text));
   const d=el('details','','me-voice-pick',{'data-voice-choose':id});d.open=!!opt.open||ui.voiceOpen===id;d.ontoggle=()=>{ui.voiceOpen=d.open?id:(ui.voiceOpen===id?null:ui.voiceOpen);};d.append(el('summary',cur.kind==='elevenlabs'&&cur.from==='editor'?'Change the ElevenLabs voice':'Choose an ElevenLabs voice'));
   const li=el('input','','',{'aria-label':'ElevenLabs voice link or ID',placeholder:'https://elevenlabs.io/voices/… or the 20-character voice ID','data-voice-input':id,maxlength:'300',autocomplete:'off',spellcheck:'false'}),ni=el('input','','',{'aria-label':'Name of the voice',placeholder:'What you call it, e.g. Gravel street vendor','data-voice-name':id,maxlength:String(X.LIMIT.name)});
@@ -574,7 +585,7 @@
   const msg=el('p','','me-small',{'data-voice-check':id,role:'status'});
   const check=()=>{msg.replaceChildren();if(!li.value.trim()){msg.className='me-small';msg.textContent='';return;}const r=X.parse(li.value);msg.className='me-small '+(r.ok?'me-ok':'me-bad');if(r.ok){msg.append('✓ Voice ID '+r.id+' ',el('a','Listen on ElevenLabs ↗','me-link',{href:X.listenUrl(r.id),target:'_blank',rel:'noopener noreferrer','data-voice-listen-new':r.id}));}else msg.textContent=r.why;};
   li.oninput=check;
-  const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});
+  const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});
   d.append(hint('1. In ElevenLabs, open the voice and copy the link of its page (or its voice ID). 2. Paste it here and give it a name. 3. USE THIS VOICE. Your ElevenLabs account and key are never used here, and nothing is recorded or paid: lines you RE-VOICE wait in the queue until you approve the spend; then Claude records them.'),
    fl('ElevenLabs voice link or ID',li,'A link like elevenlabs.io/voices/AbCdEf… or just the ID (20 letters and digits).'),msg,fl('Name',ni,'Your own name for it, shown here and in the voices file (60 characters at most).'));
   const r=el('div','','me-row me-actions');r.append(save);
@@ -631,7 +642,7 @@
   return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play="tree:'+CSS.escape(doneM.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}
  // ---------------- RE-VOICE (owner-only server queue; nothing is generated in the browser or on the server)
  async function revoice(lines,m){
-  const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;}return x;});   // a voice chosen in the editor goes with the line (the server checks it)
+  const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)
   if(!items.length)return;try{server.queue=await call('developer/revoice',{items});status=items.length+' line(s) added to the re-voice queue.';}catch(e){status='Re-voice queue: '+e.message;}draw();}
  async function serverDraft(m){
   const id=('me-'+m.id).slice(0,64);try{const tpl=(await call('developer/drafts/template?kind=mission&source='+encodeURIComponent(m.server))).document,e=editOf(m.key);
