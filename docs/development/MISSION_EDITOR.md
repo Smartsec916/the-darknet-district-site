@@ -2,6 +2,32 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Thirteenth pass (19 Nov 2026): follow / lead / shared-cab steps
+
+Branch `claude/follow-steps`, build `2026-11-19-follow-steps-1`. Pushed, no PR, not merged. Queue item 3, the "Follow / lead steps" part (the rest of item 3 is still to build).
+
+### How to use it (plain steps)
+
+Four new kinds of step, in a step's "Kind of step" list and in "Make a mission" (step page). They work with anyone who can walk with the player: today **Reverie, Lace and the street cat**. Everyone else is greyed in the list with the reason (their walking is fixed by other code; more people are added as the path system grows).
+
+- **Follow them (they lead the way):** choose who, then click the map to pick the spot (drag the pink marker to move it). They wait until the player comes near, then walk there; if the player falls behind more than **"Waits when the player is more than … metres behind"** (default 8) they stop, turn and wait, and walk on when the player catches up. If the player goes further than **"The player is lost beyond … metres"** (default 40) you choose: **they stop and wait** for the player, or **the mission fails** (the player is told "MISSION FAILED"; the mission goes back to the giver, who offers it again). Done when both are at the spot.
+- **They follow you:** choose who and the spot. They follow the player about 2 metres behind, walking or running to keep up (the cat at its own pace: it trots and dashes but lags behind a walking player). If they are far behind and off-screen they are put a few metres behind the player. Done when both are at the spot.
+- **They call a cab, you ride together:** choose who and the cab stop. When the player comes near, they walk to the kerb and call a street taxi; when it waits they get in; the player presses BOARD TAXI (the normal fare; your developer account rides free); both get out at the stop. If the cab gives up waiting, they get out and call another.
+- **You call a cab, they ride along:** choose who and the stop. They follow the player; when the player calls a taxi to that stop (CALL A TAXI or G) they get in as it waits (or as the player boards, if close by), and both get out there. A taxi to another stop: they stay out (a short notice says so).
+- **Cab stops:** only The Avenue's three stops (The Avenue, Function Gate, East Gate): Reverie, Lace and the cat exist only on The Avenue for now, so Old Town, The Port, Far South, the Corporate District and the Temple are greyed with the reason (Reverie and Lace stay in the city). The cat does not ride in cabs.
+- JUMP THERE (on a spot) opens a throwaway test session on The Avenue with that person out. PLAY THIS DRAFT works as usual. UNDO works on every change.
+- Multiplayer: only the player doing the mission is followed or led; other players see the person as usual (each player has their own copy of the street).
+
+### For Claude and Codex
+
+- `void-runner/npc-escort.js` (pure, Node-tested): `KINDS` / `IDS` (`follow-them`, `they-follow`, `their-cab`, `shared-cab`), `can(id, kind)` (npc-paths.js `MOVABLE`; the cat: no cabs), `stops(id)` (ok only for stops in the NPC's quarter; far places greyed), `settings` (wait 3..30 default 8, lost 15..150 default 40, ifLost `pause`|`fail`), `problems` / `needs` (the editor's check and Guide me keys `step-npc`, `step-spot`, `step-stop`), `spots(id)` (named spots for the wizard), the state machines `lead`, `follow` (+ `trailPush`, `behind`: the player's own trail, catch-up only off-screen and 20 m+), `cab` (`kerb`, phases ready / kerb / hail / to-cab / in-cab / out / done; `st.want='hail'`), `encode` / `decode` of `story.flags.npcEsc` (`'<mission>/<step>|<phase>|<x>|<z>'`, removed when the step ends), `inventory()` (admin inventory `npcEscort`).
+- Step fields: `to:{x,z}` (follow-them, they-follow), `wait`, `lost`, `ifLost` (follow-them), `stop` (cab kinds). `mission-content.js`: `STEP_KINDS`/`ESCORT`, check, `treeNeeds`, `treeStrip`, events `{type:'escort', step}` (done) and `{type:'escort-fail', step}` (removes the mission record: offered again; `out.failed`), `escortNow(s, env)`. `mission-givers.js` STEP_KINDS (supported). Server: `void_runner_live_content.py escort_problems` (from `npcEscort` + `npcPaths`), `escort_shape_problems` (the workspace copy, `void_runner_drafts.py`). Run `node tools/admin-inventory.cjs` after changing the rules.
+- Game: `live-content.js plans()` gives the NPC `{mode:'escort', kind, to, stop, set, resume}` (above "Giver waits at"); `onEscort` takes the street pair's reports (`done`, `failed`, notices) and keeps `npcEsc`. `ncz-street-pair.js escTick` runs the rules for her and the cat (frustum test, `VoidRoadTaxi.hailFor`, `VoidRoadTaxiRules.companionSeat`, out of the cab beside it away from the player); an escort step brings her out whatever the shift (this player's street only); talking to her during the step stops her as usual; `stats().escort`. `road-taxi.js hailFor(at, dest, who)`.
+- Editor: `mission-editor.js escortWho`, `escortPanel` (map, distances, lost choice, stops); `editor-wizard.js STEPS` (needs `escort-spot` / `escort-stop`), `editor-home.js` step page.
+- Tests: `tests/npc-escort.test.cjs`, `tests/test_npc_escort.py`, browser `tests/npc-escort-browser.cjs` (`PART=editor`).
+
+**Not verified:** real hardware; VR; Lace and the cat in a browser (same code as Reverie; the cat's rules are unit-tested); a reload in the middle of a step on a real save (the flag is unit-tested); the "mission fails" path in a browser (unit-tested); her seated pose in the cab seen only in software GL stills; walking her through other players' sessions (the street is not shared).
+
 ## Twelfth pass (18 Nov 2026): describe a behaviour to ChatGPT, daily schedules, and the street cat as an NPC and giver
 
 Branch `claude/npc-behaviour`, build `2026-11-18-npc-behaviour-1`. Pushed, no PR, not merged. Queue item 1, plus "add the cat as an npc and giver".

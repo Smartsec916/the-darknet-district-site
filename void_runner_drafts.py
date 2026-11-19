@@ -191,6 +191,11 @@ def validate_workspace(doc):
             problems = schedule_shape_problems(plan.get('schedule')) if isinstance(plan, dict) else []
             if problems:
                 raise DraftError('Invalid daily schedule: ' + problems[0], 422)
+    if b.get('trees'):
+        from void_runner_live_content import escort_shape_problems
+        problems = escort_shape_problems(b['trees'])
+        if problems:
+            raise DraftError('Invalid follow / cab step: ' + problems[0], 422)
     if b.get('voices'):
         from void_runner_live_content import voice_problems
         problems = voice_problems(b['voices'])

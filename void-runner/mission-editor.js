@@ -47,7 +47,9 @@
   buy:'Done when the player buys that item at the outfitter or Admin’s counter.','pod-exit':'Done when the player leaves their Sleeping Pod (EXIT POD).',enter:'Done while the player is inside that place (already being inside counts).',
   leave:'Done when the player is outside that place.',photo:'Done when the player takes a V1 photo that clearly shows that person (in frame, within 15 m, nothing in the way).',
   'send-photo':'Done when the player sends the right photo to that person in V1 Messages (unlimited tries).',message:'Done by itself as the mission’s notification arrives (only for a mission that starts by notification).',
-  'await-call':'Done by itself right after the step before it; the call itself comes from a later mission.',hear:'Shows the giver’s lines right after the talk step before it; done when the player closes the conversation.'};
+  'await-call':'Done by itself right after the step before it; the call itself comes from a later mission.',hear:'Shows the giver’s lines right after the talk step before it; done when the player closes the conversation.',
+  'follow-them':'The person walks to the spot you pick on the map and the player follows; they wait when the player falls behind. Done when both are at the spot.','they-follow':'The person follows the player to the spot you pick on the map. Done when both are there.',
+  'their-cab':'The person calls a street taxi to the stop you choose; the player boards with them. Done when both get out at the stop.','shared-cab':'The person gets into the player’s taxi to the stop you choose. Done when both get out at the stop.'};
  const HELP_VIA={talk:'The lines show in the conversation window when the step is done (the player is with them).',comms:'The NPC calls the player’s V1 (Comms app) as the step is done: the words as a transcript.',messages:'The NPC texts the player’s V1 Messages as the step is done.'};
  const hint=(text,attrs)=>el('span',text,'me-help',attrs);
  /* The chosen option's help under a select, and a "?" that lists every option's help. */
@@ -395,13 +397,14 @@
   else if(o.kind==='enter'||o.kind==='leave')head.append(regionSelect(o.place,v=>eo(x=>{x.place=v;},true),o.kind==='enter'?'Place to enter':'Place to leave',{'data-me-step-place':o.id}));
   else if(o.kind==='photo')head.append(el('span','showing','me-small'),subjectsPicker(photoPeople(o),v=>eo(x=>setPhotoPeople(x,v,'npc'),true),'Who is photographed',{'data-me-step-subject':o.id}));
   else if(o.kind==='send-photo')head.append(el('span','to','me-small'),npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who the photo is sent to',attrs:{'data-me-step-npc':o.id}}),el('span','showing','me-small'),subjectsPicker(photoPeople(o),v=>eo(x=>setPhotoPeople(x,v,'subject'),true),'Who must be in the photo',{'data-me-step-subject':o.id}));
+  else if(EX()&&EX().IDS.includes(o.kind))head.append(el('span','with','me-small'),escortWho(o,eo));
   else if(o.kind==='pod-exit')head.append(el('span','Done when the player leaves the Sleeping Pod (EXIT POD).','me-small'));
   else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));
   else head.append(el('span','Needs a code change: the game cannot run this kind of step yet. It stays in your draft.','me-warn'));
   const blocked=MC().treeBlockers(m,givers,items).length>0;
   head.append(btn('▲',()=>ed(x=>T().moveStep(x,o.id,-1),true),'',{'aria-label':'Move step up',...(k?{}:{disabled:''})}),btn('▼',()=>ed(x=>T().moveStep(x,o.id,1),true),'',{'aria-label':'Move step down',...(k<m.objectives.length-1?{}:{disabled:''})}),
    btn('×',()=>ed(x=>T().removeStep(x,o.id),true),'me-x',{'aria-label':'Remove step',...(m.objectives.length>1?{}:{disabled:''})}),btn('PLAY THIS DRAFT FROM HERE',()=>play('tree:'+m.id,o.id),'me-play',{'data-me-play':'tree:'+m.id+'#'+o.id,...(blocked?{disabled:''}:{})}));
-  sb.append(head);if(st&&st.note)sb.append(el('p',st.note,'me-small'));
+  sb.append(head);if(st&&st.note)sb.append(el('p',st.note,'me-small'));if(EX()&&EX().IDS.includes(o.kind))sb.append(escortPanel(m,o,eo));
   const l=el('label','','me-field');l.append(el('span','What the player must do (V1 Mission Log)'));const inp=el('input','','',{placeholder:'(your words)','data-me-label':o.id,maxlength:'500'});inp.value=o.label||'';inp.oninput=()=>{eo(x=>{x.label=inp.value.slice(0,500);});guideSoon();};l.append(inp,hint(HELP.label));sb.append(l);
   // how "what is said" reaches the player: the conversation window, a Comms call, or a message (Mission 002: Admin calls as the player walks into NULL)
   if(!['message','pod-exit','hear','send-photo','await-call'].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));
@@ -601,6 +604,35 @@
    const map=root.VoidNPCMap.create({npc:m.giver,markers,center:w?w.x:null,selected:'wait',onPick:put,onDrag:(id,x,z)=>{if(id==='wait')put(x,z);},onFacing:(id,yaw)=>{if(id==='wait')ed(mm=>{mm.waitAt={...mm.waitAt,yaw};},true);}});
    map.el.dataset.meWaitMap=m.id;box.append(map.el);}
   return box;}
+ // ---------------- FOLLOW / LEAD / SHARED-CAB steps (npc-escort.js, queue item 3): who walks with the player, the spot on the map or the cab stop, and the distances
+ const EX=()=>root.VoidNPCEscort;
+ /* Who: everyone the editor knows, but only people who can walk with the player can be chosen; the rest are greyed with the reason. */
+ function escortWho(o,eo){const E=EX(),sel=el('select','','',{'aria-label':'Who walks with the player','data-me-step-npc':o.id});sel.append(new Option('— choose who —',''));
+  const ok=givers.filter(g=>E.can(g.id,o.kind).ok),no=givers.filter(g=>!E.can(g.id,o.kind).ok&&g.group==='district');for(const g of ok)sel.append(new Option(g.name,g.id));
+  if(no.length){const og=el('optgroup','',null,{label:'Cannot walk with the player yet'});for(const g of no){const op=new Option(g.name+' — '+E.can(g.id,o.kind).why.split(':')[0],g.id);op.disabled=true;op.title=E.can(g.id,o.kind).why;og.append(op);}sel.append(og);}
+  sel.value=o.npc&&E.can(o.npc,o.kind).ok?o.npc:'';if(o.npc&&!sel.value){const op=new Option((giver(o.npc)||{name:o.npc}).name+' (cannot do this step)',o.npc);op.disabled=true;sel.append(op);sel.value=o.npc;}
+  sel.title='Only people whose walking the game controls (Reverie, Lace, the street cat) can walk with the player. Others are greyed with the reason.';sel.onchange=()=>eo(x=>{x.npc=sel.value;if(E.CAB.has(x.kind)&&x.stop&&!E.stopOk(x.npc,x.stop))delete x.stop;},true);return sel;}
+ function escortPanel(m,o,eo){const E=EX(),X=root.VoidNPCPaths,box=el('section','','me-end me-esc',{'data-me-esc':o.id}),who=giver(o.npc)||{name:o.npc||'they'},c=o.npc?E.can(o.npc,o.kind):{ok:false,why:'Choose who walks with the player first.'};
+  box.append(el('h4',E.SPOT.has(o.kind)?'Where they go':'The cab ride'));if(!c.ok){box.append(el('p','⚠ '+c.why,'me-warn',{'data-me-esc-why':o.id}));return box;}
+  for(const p of E.problems(o).filter(p=>!/Pick the spot|Choose the cab/.test(p)))box.append(el('p','⚠ '+p,'me-bad'));
+  if(E.SPOT.has(o.kind)){const t=o.to;box.append(el('p',t?'Spot: x '+t.x.toFixed(1)+', z '+t.z.toFixed(1)+'. Click the map to move it, or drag the pink marker.':'Click the map to pick the spot '+(o.kind==='follow-them'?who.name+' walks to (the player follows).':'the player leads '+who.name+' to.'),t?'me-ok me-small':'me-small',{'data-me-esc-text':o.id}));
+   if(t&&X)box.append(btn('JUMP THERE',()=>jumpTo(t.x,t.z,o.npc,who.name+': the spot of “'+(o.label||o.id)+'”'),'',{'data-me-esc-jump':o.id,title:'Opens a throwaway test session on The Avenue a few steps from the spot (your real save is never touched).'}));
+   if(root.VoidNPCMap&&X){const live=root.VoidStreetPair?.live?.(),markers=[];if(live&&live.her&&live.her.id===o.npc)markers.push({id:'live',x:live.her.x,z:live.her.z,ghost:true,color:'#ffd34d',label:who.name+' now'});
+    if(t)markers.push({id:'to',x:t.x,z:t.z,color:'#ff8ad8',label:o.kind==='follow-them'?who.name+' leads the player here':'the player leads '+who.name+' here',drag:true,bad:E.problems(o).length>0});
+    const put=(x,z)=>{const p=X.snap(o.npc,{x,z});eo(oo=>{oo.to={x:p.x,z:p.z};},true);guideSoon();};
+    const map=root.VoidNPCMap.create({npc:o.npc,markers,center:t?t.x:null,selected:'to',onPick:put,onDrag:(id,x,z)=>{if(id==='to')put(x,z);}});map.el.dataset.meEscMap=o.id;box.append(map.el);}
+   if(o.kind==='follow-them'){const S=E.settings(o),L=E.LIMIT,r=el('div','','me-row'),num=(key,lim,label,help)=>{const i=el('input','','',{type:'number',min:String(lim[0]),max:String(lim[1]),step:'1','aria-label':label,['data-me-esc-'+key]:o.id,style:'width:5em',title:help});i.value=String(S[key]);
+      i.onchange=()=>{const v=Math.round(Math.max(lim[0],Math.min(lim[1],Number(i.value)||S[key])));i.value=String(v);eo(oo=>{oo[key]=v;},true);};return i;};
+    r.append(el('b','Waits when the player is more than'),num('wait',L.wait,'Waits when the player is this many metres behind','If the player falls this far behind, '+who.name+' stops, turns and waits; they walk on when the player catches up. '+L.wait[0]+' to '+L.wait[1]+' m, usually 8.'),el('span','metres behind','me-small'));box.append(r);
+    const r2=el('div','','me-row');r2.append(el('b','The player is lost beyond'),num('lost',L.lost,'The player is lost beyond this many metres','Further than this from '+who.name+' counts as lost. '+L.lost[0]+' to '+L.lost[1]+' m, usually 40.'),el('span','metres. Then:','me-small'));
+    const fl=el('select','','',{'aria-label':'If the player gets lost','data-me-esc-iflost':o.id});for(const x of E.IF_LOST)fl.append(new Option(x.name,x.id));fl.value=S.ifLost;fl.onchange=()=>eo(oo=>{oo.ifLost=fl.value;},true);r2.append(fl);box.append(r2);
+    box.append(hint('“They stop and wait”: '+who.name+' waits where they are until the player comes back. “The mission fails”: the player is told, and the mission goes back to '+((giver(m.giver)||{}).name||'the giver')+', who offers it again.'));}
+   box.append(el('p','Multiplayer: only the player doing this mission is followed or led; other players see '+who.name+' as usual.','me-small'));}
+  else{const r=el('div','','me-row'),sel=el('select','','',{'aria-label':'Cab stop','data-me-esc-stop':o.id});sel.append(new Option('— choose the stop —',''));
+   for(const s of E.stops(o.npc)){const op=new Option(s.name+(s.ok?'':' — not possible'),s.id);if(!s.ok){op.disabled=true;op.title=s.why;}sel.append(op);}sel.value=o.stop||'';sel.onchange=()=>{eo(oo=>{oo.stop=sel.value||undefined;if(!oo.stop)delete oo.stop;},true);guideSoon();};
+   r.append(el('b','To'),sel);box.append(r);const bad=E.stops(o.npc).filter(s=>!s.ok);if(bad.length)box.append(el('p','Greyed: '+bad[0].why.replace(/ to [^.]*\./,' there.'),'me-small',{'data-me-esc-greyed':o.id}));
+   box.append(el('p',o.kind==='their-cab'?who.name+' waits until the player is near, walks to the kerb and calls the cab. The player boards with BOARD TAXI and pays the normal fare (your developer account rides free).':'The player calls the taxi (CALL A TAXI or G) to this stop; '+who.name+' gets in as it waits, and both get out there. The normal fare.','me-small'));}
+  return box;}
  // ---------------- JUMP THERE: a throwaway test session on The Avenue, a few steps from a spot (the draft applied, so placements and waits show)
  /* opts (NPCs tab): {npcs: {id: plan}} tried in place of the draft's own (a pasted behaviour recipe before it is saved), minute: the in-game time of day to start at (a daily schedule). */
  async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
@@ -616,7 +648,7 @@
  const NEED_SEL={title:m=>'[data-me-field="title"]',giver:m=>'[data-me-giver="'+CSS.escape(m.id)+'"]','start-from':m=>'[data-me-start-from="'+CSS.escape(m.id)+'"]','start-header':m=>'[data-me-start-header="'+CSS.escape(m.id)+'"]','start-text':m=>'[data-me-start-text="'+CSS.escape(m.id)+'"]',
   'start-mission':m=>'[data-me-start-mission="'+CSS.escape(m.id)+'"]','start-place':m=>'[data-me-start-place="'+CSS.escape(m.id)+'"]','start-flag':m=>'[data-me-start-flag="'+CSS.escape(m.id)+'"]','start-near':m=>'[data-me-start-near="'+CSS.escape(m.id)+'"]',
   'add-step':m=>'[data-me-add-step="'+CSS.escape(m.id)+'"]',kind:(m,o)=>'[data-me-kind="'+CSS.escape(o)+'"]','step-npc':(m,o)=>'[data-me-step-npc="'+CSS.escape(o)+'"]','step-place':(m,o)=>'[data-me-step-place="'+CSS.escape(o)+'"]','step-item':(m,o)=>'[data-me-step-item="'+CSS.escape(o)+'"]',
-  'step-subject':(m,o)=>'[data-me-step-subject="'+CSS.escape(o)+'"]',label:(m,o)=>'[data-me-label="'+CSS.escape(o)+'"]',say:(m,o)=>'[data-me-tstep="'+CSS.escape(o)+'"] textarea',ending:m=>'[data-me-ending="'+CSS.escape(m.id)+'"]','wait-at':m=>'[data-me-wait-at="'+CSS.escape(m.id)+'"] canvas'};
+  'step-subject':(m,o)=>'[data-me-step-subject="'+CSS.escape(o)+'"]',label:(m,o)=>'[data-me-label="'+CSS.escape(o)+'"]',say:(m,o)=>'[data-me-tstep="'+CSS.escape(o)+'"] textarea',ending:m=>'[data-me-ending="'+CSS.escape(m.id)+'"]','wait-at':m=>'[data-me-wait-at="'+CSS.escape(m.id)+'"] canvas','step-spot':(m,o)=>'[data-me-esc-map="'+CSS.escape(o)+'"] canvas','step-stop':(m,o)=>'[data-me-esc-stop="'+CSS.escape(o)+'"]'};
  let guideT=0;function guideSoon(){clearTimeout(guideT);guideT=setTimeout(guideNow,350);}
  function guideNow(){const Gd=root.VoidEditorGuide;if(!Gd||!host||!built)return null;const sc=host.querySelector('#me-root');if(!sc)return null;
   if(ui.mode!=='trees'){Gd.clear(sc);return null;}

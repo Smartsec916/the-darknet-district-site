@@ -115,7 +115,7 @@
     stretch on foot (never a jump). ACT: an action id -> {clip, device, sit}. */
  const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'walk-on':{clip:'walk',pass:true}};
  const actOf=a=>ACT[a]||{clip:a};
- const FREE=new Set(['walk','run','pause','stop']),PLAN=new Set(['plan-go','plan-do']);
+ const FREE=new Set(['walk','run','pause','stop']),PLAN=new Set(['plan-go','plan-do','esc']);   // esc: a mission's follow / lead / cab step (npc-escort.js; run in start())
  function planTarget(s,P){if(P.mode==='stay')return P;const n=P.points.length;s.pi=((s.pi||0)%n+n)%n;return P.points[s.pi];}
  function ledgeNear(t){for(const st of STEPS)if(Math.abs(t.x-st.x)<=st.w/2+.3&&t.z>=frontOf(st)-1)return st;return null;}
  function planNext(s,P){if(P.mode==='path')s.pi=((s.pi||0)+1)%P.points.length;}
@@ -192,7 +192,7 @@
  function start({B=root.BABYLON,scene,parent,quality='medium',player=()=>typeof walker!=='undefined'?walker:null,now:clockFn=()=>Date.now(),rnd=Math.random,cfg=config}){
   let now=clockFn;   // setClock(fn): tests force a shift
   // who is out: the shift, or the one draft play put on the street (VoidStreetPair.force)
-  const out=()=>{const f=root.VoidStreetPair?.force;return (f&&PAIR.find(p=>p.id===f))||onStreet(now(),cfg);};
+  const out=()=>{const f=root.VoidStreetPair?.force;return (f&&PAIR.find(p=>p.id===f))||PAIR.find(p=>planOf(p.id)?.mode==='escort')||onStreet(now(),cfg);};   // a mission's follow / lead / cab step with her brings her out (this player's street only)
   const assets=root.VoidAssets,owned=[];let disposed=false,clock=0,asked=-1;
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
   const cam=()=>scene?.activeCamera?.globalPosition||null;
@@ -213,7 +213,7 @@
   function arrive(p){const node=assets?.instance?.('crowd:'+p.asset,parent);if(!node)return;node.metadata={...node.metadata,character:p.id,streetPair:p.id,displayName:p.name};
    for(const m of node.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
    her={p,node,anim:null,s:routineStart(p,rnd,cfg),clip:null};lit(node);
-   {const P=planOf(p.id),t=P&&(P.mode==='stay'?P:P.points[0]);if(t){her.s.x=t.x;her.s.z=t.z;}}   // the editor's plan: she is already at its spot when she comes out
+   {const P=planOf(p.id),t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'&&P.resume&&Number.isFinite(P.resume.x)?P.resume:null);if(t){her.s.x=t.x;her.s.z=t.z;}}   // the editor's plan: she is already at its spot when she comes out
    // animations added in the editor (Developer Tools > NPCs > Add animation; the shared library, anim-library.js; only clips allowed for her)
    {const an=root.VoidStreetPair?.animsFor?.(p.id)||[];if(an.length&&root.VoidNPCPaths?.applyAnims)root.VoidNPCPaths.applyAnims(node,p.asset,an).catch(()=>{});}
    her.anim=root.VoidCrowd?.animate?.(node,p.asset,'walk')||null;her.clip='walk';node.position.set(her.s.x,PAVE,her.s.z);
@@ -244,17 +244,44 @@
   // from her prompt (her prompt was the one selected when it opened; latched until it closes, so walking about during it changes nothing)
   const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatHer=null;
   function chatting(){if(!convo()){chatSeen=false;chatHer=null;return false;}if(!chatSeen){chatSeen=true;chatHer=her&&typeof walkTarget!=='undefined'&&walkTarget===talkItems[her.p.id]?her.p.id:null;}return !!her&&chatHer===her.p.id;}
-  const HOLD=new Set(['walk','run','pause','stop','to-step','plan-go','plan-do']),SEATED=new Set(['sit','sit-down','settle']);
+  const HOLD=new Set(['walk','run','pause','stop','to-step','plan-go','plan-do','esc']),SEATED=new Set(['sit','sit-down','settle']);
   function hold(s,me){if(SEATED.has(s.mode)){if(s.mode==='sit'){s.left=Math.max(s.left,2);if(s.sub==='wave')s.sub=null;}return;}
    if(!HOLD.has(s.mode))return;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left,1.2);
    if(me){if(!s.face)s.face={x:me.x,z:me.z};else{s.face.x=me.x;s.face.z=me.z;}}}
   function tickHer(dt,c){const want=out();if(her&&(!want||want.id!==her.p.id))leave();if(!her&&want&&has(want.asset))arrive(want);if(!her)return;
    const n=her.node,d=c?Math.hypot(c.x-n.position.x,c.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
    const me=player(),talking=chatting(),ctx={cat:cat&&!talking?{x:cat.x,z:cat.z}:null,player:me?{x:me.x,z:me.z}:null,plan:planOf(her.p.id)};
+   if(ctx.plan&&ctx.plan.mode==='escort'){if(!talking&&Number.isFinite(her.s.x+her.s.z)){const r=escTick('her',her.p.id,ctx.plan,her.s,dt,false);her.s.mode='esc';her.s.sub=null;her.s.device=null;her.s.face=null;her.s.once=false;her.s.zo=0;her.cz=0;
+     const at=r.seat||her.s;n.position.set(at.x,r.seat?r.seat.y:PAVE,at.z);n.rotation.y=r.seat?r.seat.yaw:her.s.yaw;her.anim?.setActive?.(!far&&d<animRadius);if(her.anim&&r.clip!==her.clip){her.clip=r.clip;her.anim.play(r.clip);}return;}
+    ctx.plan=null;}   // talked to during the step: she stops and turns to the player (the ordinary hold), then the step goes on
    if(!Number.isFinite(her.s.x+her.s.z+her.s.yaw+(her.s.zo||0))){dbg.nan.her++;her.s=routineStart(her.p,rnd,cfg);}
    if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way
    const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);n.position.set(s.x,PAVE,s.z+(s.zo||0)+her.cz);n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
    if(her.anim&&s.clip!==her.clip){her.clip=s.clip;if(s.once&&her.anim.playOnce)her.anim.playOnce(s.clip,s.clip===CLIPS.sitDown?CLIPS.sit:'idle');else her.anim.play(s.clip);}}
+  // ---- a mission's follow / lead / cab step (npc-escort.js; the plan comes from live-content.js plans(): {key, mode:'escort', kind, npc, to, set, stop, resume}) ----
+  /* One step for her or the cat: the pure rules move `body` ({x, z, yaw}); here only the frustum test, the cab (road-taxi.js) and getting in and out. Only the local
+     player (walker) is followed or led: other players never move this player's NPC. Returns {clip, speed, seat: {x, y, z, yaw} while she sits in the cab}. */
+  const escorts={};let frustum=null,frustumAt=-1;
+  function seen(x,z){const cam=scene.activeCamera;if(!cam)return true;try{if(frustumAt!==clock){frustumAt=clock;frustum=B.Frustum.GetPlanes(cam.getTransformationMatrix());}return B.Frustum.IsPointInFrustum(new B.Vector3(x,PAVE+.8,z),frustum);}catch{return true;}}
+  function taxiJob(){const T=root.VoidRoadTaxi,R=root.VoidRoadTaxiRules,w=T&&T.world,j=w&&w.job;if(!j||j.released||!j.cab)return null;return {id:j.cab.id+':'+(j.dest&&j.dest.id),phase:j.cab.phase,dest:j.dest&&j.dest.id,released:false,cab:{x:j.cab.x,z:j.cab.z,yaw:j.cab.yaw},doors:R?R.doorPoints(j.cab):[]};}
+  const tell=(npc,P,ev,e,extra)=>{try{root.VoidStreetPair?.onEscort?.({npc,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z,...(extra||{})});}catch{}};
+  function escTick(who,npc,P,body,dt,isCat){const E=root.VoidNPCEscort;if(!E)return {clip:'idle',speed:0,seat:null};let e=escorts[who];
+   if(!e||e.key!==P.key){e=escorts[who]={key:P.key,st:{x:body.x,z:body.z,yaw:body.yaw||0,phase:null},trail:{pts:[],shifted:0},cab:null,told:null};
+    const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;}
+   const st=e.st,me=player(),meP=me&&Number.isFinite(me.x+me.z)?{x:me.x,z:me.z}:null,md=typeof mode!=='undefined'?mode:'',walking=md==='walking',riding=md==='road-taxi',job=P.kind==='their-cab'||P.kind==='shared-cab'?taxiJob():null;
+   if(walking&&meP)E.trailPush(e.trail,meP);
+   const inp={me:riding?null:meP,to:P.to||null,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job};
+   if(P.kind==='their-cab'||P.kind==='shared-cab')inp.me=meP;
+   const ev=P.kind==='follow-them'?E.lead(st,inp):P.kind==='they-follow'?E.follow(st,inp):E.cab(st,inp);
+   if(st.want==='hail'){const T=root.VoidRoadTaxi,k=E.kerb(st);const res=T&&T.hailFor?T.hailFor({x:k.x,z:k.z-.8},P.stop,P.name):{ok:false,reason:'Street taxis are not running.'};if(!res.ok&&e.told!==res.reason){e.told=res.reason;tell(npc,P,'hail-failed',e,{reason:res.reason});}}
+   if(job&&st.phase==='in-cab')e.cab=job.cab;
+   let seat=null;if(st.phase==='in-cab'&&e.cab){const R=root.VoidRoadTaxiRules,sp=R&&R.companionSeat?R.companionSeat(e.cab):{x:e.cab.x,y:0,z:e.cab.z,yaw:e.cab.yaw};seat=sp;st.x=sp.x;st.z=sp.z;st.yaw=sp.yaw;}
+   if(ev==='out'||(ev==='kerb'||ev==='follow')&&st.out){// out of the cab: beside it, the side away from the player
+    const R=root.VoidRoadTaxiRules,c=e.cab;st.out=false;if(c&&R){const ds=R.doorPoints(c),blocked=p=>{try{return !!root.VoidExplorer?.blocked?.(p.x,p.z,typeof walkingLocation!=='undefined'?walkingLocation:null);}catch{return false;}};
+     const pick=ds.filter(p=>!blocked(p)).sort((a,b)=>(meP?Math.hypot(b.x-meP.x,b.z-meP.z)-Math.hypot(a.x-meP.x,a.z-meP.z):0))[0]||ds[2];if(pick){st.x=pick.x;st.z=pick.z;st.yaw=c.yaw||0;}}e.cab=null;}
+   body.x=st.x;body.z=st.z;body.yaw=st.yaw;
+   if(ev)tell(npc,P,ev,e);
+   return {clip:seat?'sit':st.clip||'idle',speed:st.speed||0,seat};}
   // ---- the cat ----
   let cat=null;   // {node, bones, x, z, yaw, gait, sit, mode, ...}
   const BONES=['Body','Neck','Head','Tail1','Tail2','Tail3','LegFL','LegFR','LegBL','LegBR'];
@@ -291,7 +318,7 @@
    return {speed,sit};}
   function sitTo(c,v,dt){c.sit+=(v-c.sit)*Math.min(1,dt*(v>c.sit?2.2:4));}
   function tickCat(dt,c0){if(!cat){if(has(CAT))catArrive();if(!cat)return;}const c=cat,n=c.node;if(!Number.isFinite(c.x+c.z+c.yaw+c.sit+c.gait)){dbg.nan.cat++;Object.assign(c,{x:CAT_HOME.x,z:CAT_HOME.z,yaw:Math.PI,sit:0,gait:0,ang:0,mode:'home'});}
-   const far=c0?Math.hypot(c0.x-c.x,c0.z-c.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius:false;if(n.isEnabled()===far)n.setEnabled(!far);if(far)return;
+   const far=c0?Math.hypot(c0.x-c.x,c0.z-c.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius:false;if(n.isEnabled()===far)n.setEnabled(!far);if(far&&planOf(CAT_ID)?.mode!=='escort')return;   // far away: still, unless a mission step has it following the player
    const me=player(),h=herNow(),meP=me?{x:me.x,z:me.z}:null,near=!!meP&&dist(meP,c)<cfg.cat.playerRadius;
    let chance=1;if(near&&!c.lastNear)chance=rnd();c.lastNear=near;
    if(meP&&petNow()&&c.mode!=='player'){c.mode='player';c.playerLeft=4;}else if(c.mode==='player'&&petting)c.playerLeft=Math.max(c.playerLeft,2);   // petted: it comes and sits looking up
@@ -299,7 +326,8 @@
    if(c.mode!=='player'&&c.mode!=='plan'){const t=catTarget({her:h,player:meP,cat:c,clock,until:c.until,chance},cfg.cat);
     if(t.kind==='player'){c.mode='player';c.playerLeft=between(rnd,cfg.cat.playerFor);}else if(t.kind==='her'&&c.mode!=='her'){c.mode='her';c.circleLeft=between(rnd,cfg.cat.circleFor);c.rubbed=false;}else if(t.kind==='home')c.mode='home';}
    let speed=0,sit=0;c.rub=false;
-   if(c.mode==='plan'&&P){const r=catPlan(c,P,dt);speed=r.speed;sit=r.sit;}
+   if(c.mode==='plan'&&P&&P.mode==='escort'){const x0=c.x,z0=c.z,r=escTick('cat',CAT_ID,P,c,dt,true),mv=Math.hypot(c.x-x0,c.z-z0);c.gait+=mv/(r.speed>1?.3:.22)*Math.PI*2;speed=dt>0?mv/dt:0;sit=r.speed>0||speed>.05?0:1;c.look=0;}   // a mission's follow / lead step: at its own pace; it sits while it waits
+   else if(c.mode==='plan'&&P){const r=catPlan(c,P,dt);speed=r.speed;sit=r.sit;}
    else if(c.mode==='player'){if(!meP){c.mode='home';}else{const d=dist(meP,c);c.look=0;
      if(d>.75){speed=catGo(c,meP.x,meP.z,dt,d>1.6);}else{const want=Math.atan2(meP.x-c.x,meP.z-c.z);c.yaw+=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw))*Math.min(1,dt*3);sit=1;c.playerLeft-=dt;}
      if(c.playerLeft<=0||d>cfg.cat.playerRadius*2.5){c.mode='home';c.until=clock+between(rnd,cfg.cat.playerCool);}}}
@@ -349,7 +377,7 @@
   function lit(n){if(!lamp||!n)return;for(const m of n.getChildMeshes(false))if(!lamp.includedOnlyMeshes.includes(m))lamp.includedOnlyMeshes.push(m);lamp.includedOnlyMeshes=lamp.includedOnlyMeshes;}
   function lampTo(){if(!lamp)return;const h=herNow(),c=cat;const x=h?h.x:c?c.x:SEAT.x,z=Math.min(WALL-1.05,(h?h.z:c?c.z:SEAT.z)-1.05);lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
   function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&mode==='walking')ask();const c=cam();tickHer(dt,c);talkSync(dt,!!her&&her.node.isEnabled());tickCat(dt,c);lampTo();}
-  const self={tick,stats:()=>({pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{id:her.p.id,plan:her.s.planKey||null,act:her.s.pact||null,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z}:null,cat:cat?{mode:cat.mode,plan:cat.planKey||null,act:cat.pact||null,pet:!!wl()?.interactions?.includes(catItem),x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null}),
+  const self={tick,stats:()=>({pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{id:her.p.id,plan:her.s.planKey||null,act:her.s.pact||null,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z}:null,cat:cat?{mode:cat.mode,plan:cat.planKey||null,act:cat.pact||null,pet:!!wl()?.interactions?.includes(catItem),x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null,escort:Object.fromEntries(Object.entries(escorts).map(([w,e])=>[w,{key:e.key,phase:e.st.phase,x:+e.st.x.toFixed(2),z:+e.st.z.toFixed(2),trail:e.trail.pts.length}]))}),
    get her(){return her;},get cat(){return cat;},catItem,setClock(fn){now=fn||clockFn;asked=-1;},talkItems,
    dispose(){disposed=true;talkOff();scene.onBeforeAnimationsObservable.remove(lookBefore);scene.onAfterAnimationsObservable.remove(lookAfter);lookUndo();leave();cat?.node?.dispose?.();cat=null;for(const o of owned)o.dispose?.();if(root.VoidStreetPair&&root.VoidStreetPair.live===liveFn)root.VoidStreetPair.live=null;}};
   // the editor's map shows where she is now (Developer Tools)

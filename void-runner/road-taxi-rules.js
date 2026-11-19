@@ -283,11 +283,17 @@
   const yaw=taxi.yaw||0,fx=Math.sin(yaw),fz=Math.cos(yaw),rx=fz,rz=-fx;
   return {x:taxi.x+rx*0.42+fx*0.35,y:1.08,z:taxi.z+rz*0.42+fz*0.35,yaw};
  }
+ /* A companion's seat (a mission's follow / shared-cab step, npc-escort.js): beside the passenger, on the other side of the cab. y is where her figure stands (the seated clip
+    puts her hips about half a metre up, so she sits low in the cab like the passenger). */
+ function companionSeat(taxi){
+  const yaw=taxi.yaw||0,fx=Math.sin(yaw),fz=Math.cos(yaw),rx=fz,rz=-fx;
+  return {x:taxi.x-rx*0.42+fx*0.05,y:-0.12,z:taxi.z-rz*0.42+fz*0.05,yaw};
+ }
  function onRoad(x,z,margin){
   const m=margin||0,S=Q.S;
   return DRIVE.some(id=>{const r=S[id];return r&&x>=r[0]-m&&x<=r[1]+m&&z>=r[2]-m&&z<=r[3]+m;});
  }
 
- const api={fare,REGISTRY,FLAG,SPEC,PICKUP_REACH,DRIVE,drive,carry,resume,returnTrip,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,doorPoints,seatPoint,onRoad,snap};
+ const api={fare,REGISTRY,FLAG,SPEC,PICKUP_REACH,DRIVE,drive,carry,resume,returnTrip,stops,availability,destinations,cost,charge,arrive,recover,network,route,pathLength,pointAlong,projectPath,targetSpeed,follow,createTraffic,stepWorld,hail,board,exitRide,cancel,doorPoints,seatPoint,companionSeat,onRoad,snap};
  if(node)module.exports=api;else root.VoidRoadTaxiRules=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
