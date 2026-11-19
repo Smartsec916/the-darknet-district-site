@@ -62,6 +62,6 @@ def clean_progression(raw, locations):
     opening_done=opening['version']==1 or flags.get('board') is True or opening['hologram'] and opening['pistol'] and flags.get('shootingTutorialComplete') is True
     weapon='ward-pistol' if opening['version']==1 or opening['pistol'] else None
     return {'opening':opening,'version':1,'flags':dict(flags),'completed':raw.get('completed') is True and opening_done and all(flags.get(f) for f in required),'migrated':raw.get('migrated') is True,
-            'personal':{'weapon':weapon,'ammo':count(p.get('ammo'),10,10),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit']),'attachments':attachments,'optic':optic},
+            'personal':{'weapon':weapon,'ammo':count(p.get('ammo'),10,10),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit','hacking-device']),'attachments':attachments,'optic':optic},
             'equipment':{'owned':owned,'installed':installed},'missiles':None if raw.get('missiles') is None else count(raw['missiles'],30),
             'checkpoint':{'location':location},'reputation':reputation,'cargo':clean_cargo,'data':data,'relays':relays}

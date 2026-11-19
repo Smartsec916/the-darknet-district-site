@@ -480,6 +480,122 @@ def gesture_problem(who, clip, inv, npcs=None):
     return 'not an animation this character can play'
 
 
+APT_ID = re.compile(r'^[a-z][a-z0-9-]{0,23}$')
+APT_AP = re.compile(r'^([a-z][a-z0-9-]{0,23})/(hall|entry)$')
+APT_DOOR = re.compile(r'^apt-[a-z]+-[nsew]-\d{1,3}$')
+
+
+def apartment_problems(m, inv, shape_only=False):
+    """Mission apartments, apartment steps and access-point hacks (void-runner/apartments.js problems(): the same rules, against the admin inventory's
+    `apartments` lists). shape_only: the editor's server copy of the draft (an unfinished draft may have no door yet)."""
+    ap = (inv or {}).get('apartments') or {}
+    styles, objects, item_types = set(ap.get('styles') or []), set(ap.get('objects') or []), set(ap.get('itemTypes') or [])
+    doors, items = set((ap.get('doors') or {}).keys()), set(ap.get('items') or [])
+    lim, hack, bx = ap.get('limit') or {'perMission': 4, 'items': 20, 'label': 60, 'number': 9999}, ap.get('hack') or {'min': 2, 'max': 30}, ap.get('bounds') or {'x': [-4, 4], 'z': [-5, 5]}
+    out = []
+    lst = m.get('apartments')
+    lst = [] if lst is None else lst
+    if not isinstance(lst, list) or len(lst) > lim['perMission']:
+        return ['a mission has at most %d apartments.' % lim['perMission']]
+    ids, seen = set(), set()
+    oids = {o.get('id') for o in (m.get('objectives') or []) if isinstance(o, dict)}
+
+    def num(v):
+        return isinstance(v, (int, float)) and not isinstance(v, bool)
+    for a in lst:
+        if not _keys(a, ['id', 'style', 'door', 'number', 'from', 'items', 'locked', 'screenOff', 'lightsOff']):
+            out.append('an apartment has unknown fields.')
+            continue
+        w = 'apartment "%s"' % a.get('id')
+        if not isinstance(a.get('id'), str) or not APT_ID.match(a['id']) or a['id'] in ids:
+            out.append(w + ': its name must be lowercase letters, digits and hyphens, unique in the mission.')
+        ids.add(a.get('id'))
+        if a.get('style') is not None and a['style'] not in (styles or {'rundown', 'normal', 'luxury'}):
+            out.append(w + ': choose rundown, normal or luxury.')
+        if not shape_only and a.get('style') is None:
+            out.append(w + ': choose rundown, normal or luxury.')
+        door = a.get('door')
+        if shape_only:
+            if door not in (None, '') and not (isinstance(door, str) and APT_DOOR.match(door)):
+                out.append(w + ': unknown street door.')
+        elif not isinstance(door, str) or door not in doors:
+            out.append(w + ': choose a street door.')
+        if isinstance(door, str) and door:
+            if door in seen:
+                out.append('two apartments of one mission use the same street door.')
+            seen.add(door)
+        n = a.get('number')
+        if n is not None and not (type(n) is int and 1 <= n <= lim['number']):
+            out.append(w + ': the number on its door is a whole number from 1 to 9999.')
+        for key in ('screenOff', 'lightsOff'):
+            if a.get(key) is not None and type(a[key]) is not bool:
+                out.append(w + ': "screen / lights start" is on or off.')
+        if a.get('screenOff') is not None and a.get('style') not in ('rundown', 'normal'):
+            out.append(w + ': only the rundown and normal apartments have an ad screen.')
+        if a.get('locked') is not None and type(a['locked']) is not bool:
+            out.append(w + ': "locked until hacked" is yes or no.')
+        f = a.get('from')
+        if f is not None and f != 'start' and f not in oids:
+            out.append(w + ': "available from" must be the start or one of its steps.')
+        its = a.get('items')
+        if its is not None:
+            if not isinstance(its, list) or len(its) > lim['items']:
+                out.append(w + ': at most %d placed items.' % lim['items'])
+            else:
+                for it in its:
+                    if not _keys(it, ['type', 'label', 'x', 'z', 'y']) or (it.get('type') not in (item_types or {'loot', 'mission-item', 'note', 'other'})) or not _plain(it.get('label'), lim['label']):
+                        out.append(w + ': a placed item needs a type and a short plain label.')
+                        continue
+                    if not (num(it.get('x')) and num(it.get('z')) and bx['x'][0] + .2 <= it['x'] <= bx['x'][1] - .2 and bx['z'][0] + .2 <= it['z'] <= bx['z'][1] - .2):
+                        out.append(w + ': a placed item must be inside the apartment.')
+                    if it.get('y') is not None and not (num(it['y']) and 0 <= it['y'] <= 2.4):
+                        out.append(w + ': a placed item\u2019s height is 0 to 2.4 m.')
+    for o in m.get('objectives') or []:
+        if not isinstance(o, dict):
+            continue
+        k, sid = o.get('kind'), str(o.get('id'))
+        if k in ('apt-enter', 'apt-use'):
+            if o.get('apt') not in ids and not (shape_only and o.get('apt') is None):
+                out.append('step ' + sid + ': choose one of this mission\u2019s apartments.')
+            if k == 'apt-use' and not (o.get('object') in (objects or {'computer', 'panel', 'safe', 'vending', 'closet', 'lights'}) or (shape_only and o.get('object') is None)):
+                out.append('step ' + sid + ': choose what is used.')
+            if k == 'apt-enter' and o.get('object') is not None:
+                out.append('step ' + sid + ': only a "use something" step names an object.')
+        elif o.get('apt') is not None or o.get('object') is not None:
+            out.append('step ' + sid + ': only an apartment step names an apartment.')
+        if k == 'hack':
+            a = o.get('ap')
+            mm = APT_AP.match(a) if isinstance(a, str) else None
+            if a is None and shape_only:
+                pass
+            elif mm:
+                if mm.group(1) not in ids:
+                    out.append('step ' + sid + ': choose one of this mission\u2019s apartments.')
+            elif not (isinstance(a, str) and APT_DOOR.match(a) and (shape_only or a in doors)):
+                out.append('step ' + sid + ': choose the access point to hack.')
+            h = o.get('hold')
+            if h is not None and not (type(h) is int and hack['min'] <= h <= hack['max']):
+                out.append('step ' + sid + ': the hack takes a whole number of seconds from %d to %d.' % (hack['min'], hack['max']))
+            for key in ('stay', 'unlock'):
+                if o.get(key) is not None and type(o[key]) is not bool:
+                    out.append('step ' + sid + ': a hack option is yes or no.')
+            if o.get('needs') is not None and o['needs'] not in (items or {'ward-kit', 'hacking-device'}):
+                out.append('step ' + sid + ': the player can only need an item the game has.')
+        elif any(o.get(key) is not None for key in ('ap', 'stay', 'unlock', 'needs')):
+            out.append('step ' + sid + ': only a "hack the access point" step names an access point.')
+    return out
+
+
+def apartment_shape_problems(trees):
+    """The editor's server copy of the draft: apartments and their steps are well formed (doors are checked when publishing)."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if isinstance(m, dict):
+                out += apartment_problems(m, {}, shape_only=True)
+    return out
+
+
 def gesture_shape_problems(trees):
     """The editor's server copy of the draft: animation names and waits are well formed (who may play them is checked when publishing)."""
     out = []
@@ -1132,10 +1248,12 @@ def check_trees(trees, inv, err, npcs=None):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost', 'apartments']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
+            for p in apartment_problems(m, inv):
+                err(w + ': ' + p)
             if m.get('waitAt') is not None:
                 for p in wait_at_problems(m.get('giver'), m['waitAt'], inv):
                     err(w + ': ' + p)
@@ -1178,7 +1296,7 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', *ESCORT_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'object', 'ap', 'stay', 'unlock', 'needs', *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))
@@ -1240,7 +1358,7 @@ def check_trees(trees, inv, err, npcs=None):
                     err(ow + ': the photo must go to a known NPC and show someone the camera can identify.')
                 if kind != 'anim' and o.get('clip') is not None:
                     err(ow + ': only an animation step names an animation.')
-                if kind not in ('anim', 'wait') and o.get('hold') is not None:
+                if kind not in ('anim', 'wait', 'hack') and o.get('hold') is not None:
                     err(ow + ': only an animation or wait step has a number of seconds.')
                 if kind != 'wait' and o.get('near') is not None:
                     err(ow + ': only a wait step has a distance.')

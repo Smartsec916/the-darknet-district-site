@@ -2,6 +2,26 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Seventeenth pass (19 Nov 2026): instance an apartment, apartment steps, hack an access point
+
+The owner: "in the mission editor add 'instance an apartment' then I will assign it to a specific door along the street. I can add more than one apartment per mission." Branch `claude/apartments`, build `2026-11-19-apartments-1`. Full record: [`APARTMENTS.md`](APARTMENTS.md).
+
+### How to use it (plain steps)
+
+1. Open a mission. Above the steps there is **Apartments for this mission**. Press **+ INSTANCE AN APARTMENT**.
+2. Choose its **style** (Rundown, Normal or Luxury apartment), then its **street door**: click a door on the map (the blue marks; the area list above the map picks the part of town) or choose it from the list (grouped by area, "No. 96, Main Street (normal building)"). Any style may go behind any door; the note says when the street is a different kind of neighbourhood.
+3. Optional: **Number on its door in the hallway** (empty: the building's own), **open from** the mission's start or from a step (until the mission ends), **its hallway door is locked until the player hacks its access point**, **Lights start: On / Off** and **Screen starts: On / Off** (the ad screen; rundown and normal only). The player can still switch both in the game.
+4. **JUMP TO THE DOOR** / **JUMP INSIDE** open a throwaway test session at the door or inside (the door is open for the test; nothing is saved).
+5. Steps: **Go into an apartment** (done while the player is inside it), **Use something in an apartment** (the computer, the utility panel, the safe, the vending machine, the closet, the light switch or the ad screen), **Hack the access point** (pick the apartment's hallway door, its entry, its street door or any street door; the seconds it takes, 2 to 30; "fails if they walk away"; "opens that door for them"; **Player needs:** nothing or an item, for example the **Hacking device**, which is reserved and not sold anywhere yet).
+6. **Items (coming later)** (Advanced mode): a placed item (loot, mission item, note, other) with a short label. The game shows it as a small marked case on the desk with its label; picking things up comes later.
+7. A mission can have up to 4 apartments. **PLAY THIS DRAFT**: the mission's door is open (amber) for you from the moment you choose; walk in.
+
+### For Claude and Codex
+
+- Data: mission `apartments`, steps `apt-enter` / `apt-use` / `hack` (fields `apt`, `object`, `ap`, `hold`, `stay`, `unlock`, `needs`): `apartments.js problems()`; the same rules in `void_runner_live_content.py apartment_problems` (admin inventory `apartments`); the editor's server copy `apartment_shape_problems`.
+- Editor: `mission-editor.js aptPanel`, `aptSelect`, `doorSelect`, `hackRow`, `jumpApt`; `HELP_APT`; Guide me keys `step-apt`, `step-object`, `step-ap`, `apt-door`; Basic mode hides `[data-me-apt-adv]` (the apartment's internal name and the items). Not in the wizard yet.
+- Tests: `tests/apartments.test.cjs`, `tests/test_apartments.py`, browser `tests/apartments-browser.cjs`.
+
 ## Sixteenth pass (19 Nov 2026): player lines, animations in lines and between steps, mission timers
 
 The owner: "after I create a voice line, i can not create the line for the player. i also can't add animations anywhere between the steps", then "mission timers. set the amount of time between actions, lines, etc". Branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`.

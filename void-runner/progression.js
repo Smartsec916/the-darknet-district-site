@@ -18,6 +18,9 @@
   'warflying-scrambler':{name:'WarFlying Scrambler',slot:'signal',price:900,icon:'sensor',stats:{},vendor:'admin',compatible:['starter','ship2','ship3']},
   'signal-tracker':{name:'Signal Tracker',slot:'signal',price:0,icon:'sensor',stats:{},vendor:null,available:false,compatible:['starter','ship2','ship3']}
  };
+ // Things a player carries (progression.personal.items). 'hacking-device' is RESERVED (19 Nov 2026) for the Mission Editor's "Hack the access point" step
+ // ("Player needs: a hacking device"): it is not sold anywhere yet (no price, no shop listing); the owner decides with Admin how it is sold.
+ const personalItems={'ward-kit':{name:'Ward kit'},'hacking-device':{name:'Hacking device',sold:false}};
  // Player-facing slot names where they differ from the internal id. The booster/drone slot
  // (content.js 'utility') is shown as DRIVE; the WarFlying slot ('signal') is the UTILITY slot.
  const slotLabels={signal:'UTILITY',utility:'DRIVE'};
@@ -39,7 +42,7 @@
   for(const id of flags)if(raw.flags?.[id]===true)p.flags[id]=true;
   repairOpening({progression:p,quest:s.quest});
   p.completed=raw.completed===true&&groundDone({progression:p})&&flight.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
-  const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>x==='ward-kit');p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
+  const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>Object.prototype.hasOwnProperty.call(personalItems,x));p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
   p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)&&modules[id].available!==false))];
   for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot)p.equipment.installed[ship][slot]=id;}
   p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};
@@ -83,5 +86,5 @@
  function consume(bank,s,t=systems(s)){if(bank.overheated||bank.energy<t.cost)return false;bank.energy-=t.cost;bank.heat=Math.min(t.heatLimit,bank.heat+t.heat);if(bank.heat>=t.heatLimit)bank.overheated=true;return true;}
  function checkpoint(s,location){s.progression.checkpoint={location};s.travel=null;}
  function respawn(s){s.story.cursor=null;s.location=s.progression.checkpoint.location;s.travel=null;s.destination=null;s.universe.station={location:s.location};s.progression.personal.ammo=tuning.ground.magazine;s.progression.personal.reserve=Math.max(24,s.progression.personal.reserve);}
- const api={tuning,modules,ground,flight,flags,fresh,restore,repairOpening,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn,slotLabels,slotLabel,utility};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
+ const api={tuning,modules,ground,flight,flags,fresh,restore,repairOpening,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn,slotLabels,slotLabel,utility,personalItems};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
 })(globalThis);

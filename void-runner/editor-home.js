@@ -145,7 +145,7 @@
  // ---------------------------------------------------------------- Basic mode: hide what a beginner never needs (Advanced shows everything)
  const basic=()=>!!panel()&&panel().classList.contains('dev-basic');
  function syncNpcMode(){store.set('npc-editor-advanced',DTX()&&DTX().mode==='advanced'?'1':'0');}
- const ADV_SEL=['[data-me-number]','[data-me-number] + .me-help','.me-how','[data-me-followups]','.me-flow','[data-me-flow]','[data-me-tree-mission] .me-grid:has([data-me-field="category"])','.me-row:has(> [data-me-help-location])','.me-row:has(> select[aria-label="Mission type"])'];
+ const ADV_SEL=['[data-me-apt-adv]','[data-me-number]','[data-me-number] + .me-help','.me-how','[data-me-followups]','.me-flow','[data-me-flow]','[data-me-tree-mission] .me-grid:has([data-me-field="category"])','.me-row:has(> [data-me-help-location])','.me-row:has(> select[aria-label="Mission type"])'];
  function mark(){const p=panel();if(!p||p.hidden)return;refreshHead();
   for(const n of p.querySelectorAll('[data-npc-advanced]'))n.closest('label')?.classList.add('eh-dup');   // one Advanced switch for all of Developer tools
   for(const n of p.querySelectorAll(ADV_SEL.join(',')))n.classList.add('adv-only');
