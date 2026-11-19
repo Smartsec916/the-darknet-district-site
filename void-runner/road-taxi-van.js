@@ -17,8 +17,8 @@
  const WIN=[{a:()=>-1.6,b:()=>-.98},{a:()=>-.9,b:()=>.28,left:true},{a:()=>.42,b:y=>1.36-(y-1.14)*(.5/.58)}],WY=[1.14,1.72];
  const PATCH={black:[1600,620,40,40],trim:[1660,620,40,40],rubber:[1720,620,40,40]};
  // the cabin's surfaces: [x, y, w, h, albedo, glow] (the glow lights the cabin evenly: it is seen from outside through the glass and from the seat)
- const CAB={seat:[400,880,40,40,'#2c2724','#2a1f17'],seatTop:[450,880,40,40,'#3a332d','#3d2c1d'],panel:[500,880,40,40,'#1d1b1a','#1a140f'],floor:[550,880,40,40,'#121110','#0c0907'],
-  liner:[600,880,40,40,'#2b2825','#3a2d20'],strip:[650,880,40,40,'#ffe2b0','#ffcf8a'],screen:[700,880,40,40,'#0d2a33','#1f8aa6'],dash:[750,880,40,40,'#141312','#0d0a08']};
+ const CAB={seat:[400,880,40,40,'#2c2724','#2a1f17'],seatTop:[450,880,40,40,'#3a332d','#3d2c1d'],panel:[500,880,40,40,'#1d1b1a','#100c09'],floor:[550,880,40,40,'#121110','#0c0907'],
+  liner:[600,880,40,40,'#1c1a18','#120e0a'],strip:[650,880,40,40,'#ffe2b0','#ffcf8a'],screen:[700,880,40,40,'#0d2a33','#1f8aa6'],dash:[750,880,40,40,'#141312','#0d0a08']};
  const LP={signFront:[0,0,320,112],signSide:[330,0,120,112],black:[460,0,40,40],bar:[0,120,128,16],head:[130,120,64,32],amber:[200,120,32,16],blue:[240,120,32,16],ring:[280,120,48,48],rail:[0,180,320,40]};
  const DP={display:[0,256,256,112],number:[0,372,256,44],tail:[0,420,256,40],amber:[0,464,256,40]};   // the per-cab picture is 512 x 512: the lights above, these below
 
@@ -198,7 +198,8 @@
     for(const [z0,z1] of [[.3,.42],[-.98,-.88],[-2.0,-1.62]])g.box([s*.84,1.43,(z0+z1)/2],[.06,.66,z1-z0],C('panel'));}
    g.box([0,.72,1.4],[1.76,.64,.24],C('dash'));g.poly([[.42,.92,1.275],[-.42,.92,1.275],[-.42,1.0,1.275],[.42,1.0,1.275]],C('screen'),[0,0,-1]);
    // three rows; the passenger rides the middle row's right seat, a companion its left (road-taxi-rules.js seatPoint / companionSeat)
-   for(const [zc,back] of [[.78,.5],[-.35,-.66],[-1.5,-1.81]])for(const s of [1,-1]){const x=s*.42;g.box([x,.62,zc],[.5,.44,.5],C('seatTop'));g.box([x,1.13,back],[.5,.62,.12],C('seat'));g.box([x,1.52,back+.01],[.26,.18,.1],C('seat'));}
+   // the front row (nobody drives) has low backs and no headrests, so the windscreen is clear from the middle row
+   for(const [zc,back,row] of [[.78,.5,0],[-.35,-.66,1],[-1.5,-1.81,2]])for(const s of [1,-1]){const x=s*.42;g.box([x,.62,zc],[.5,.44,.5],C('seatTop'));if(!row)g.box([x,1.0,back],[.5,.36,.12],C('seat'));else{g.box([x,1.13,back],[.5,.62,.12],C('seat'));g.box([x,1.52,back+.01],[.26,.18,.1],C('seat'));}}
    g.box([0,1.06,1.0],[1.7,.06,.06],C('panel'));}
   const bodyMesh=g.mesh(B,'road-taxi-body',scene,AW,AH);bodyMesh.material=body;own.push(bodyMesh);
   const glassMesh=gl.mesh(B,'road-taxi-glass',scene,AW,AH);glassMesh.material=glassM;own.push(glassMesh);

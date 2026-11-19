@@ -81,6 +81,7 @@
  function placeRider(){
   const job=world?.job;if(!job||job.released||mode!=='road-taxi')return;
   const s=R.seatPoint(job.cab);
+  look.yaw=Math.max(-1.5,Math.min(1.5,look.yaw));look.pitch=Math.max(van?-.3:-.6,Math.min(.45,look.pitch));   // in the van the roof lining is close above: looking up stops at the window tops
   walker.x=s.x;walker.y=s.y;walker.z=s.z;walker.yaw=s.yaw+look.yaw;walker.pitch=look.pitch;
  }
  function hail(destId){
