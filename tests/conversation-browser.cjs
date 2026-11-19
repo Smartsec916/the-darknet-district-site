@@ -14,7 +14,7 @@ const tier=process.argv[2]==='high'?'high':'low';
   await page.click('[data-action=menu-campaign]');await page.click('[data-action=menu-new]');
   const confirm=page.locator('[data-action=menu-new-confirm]');if(await confirm.count())await confirm.click();
   await page.waitForFunction(()=>mode==='pod-waking'&&walker,null,{timeout:120000});
-  await page.locator('#pod-wake button').click();
+  await page.evaluate(()=>{state.story.flags.appearanceOffered=true;});await page.locator('#pod-wake button').click();
   await page.waitForFunction(()=>mode==='walking'&&walker,null,{timeout:30000});
   await page.evaluate(()=>talk('',[{who:'admin',text:'Test conversation.'}],()=>{},'CONTINUE'));
   const before=await page.evaluate(()=>({mode,x:walker.x,z:walker.z,yaw:walker.yaw,open:!document.querySelector('#screen').classList.contains('hidden')}));

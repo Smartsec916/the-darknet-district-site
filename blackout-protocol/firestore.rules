@@ -11,5 +11,9 @@ service cloud.firestore {
     match /bp_leaderboard/{document=**} { allow read, write: if false; }
     match /bp_runs/{document=**} { allow read, write: if false; }
     match /bp_submissions/{document=**} { allow read, write: if false; }
+    match /bp_tesana_stats/{document=**} { allow read, write: if false; }
+    match /bp_tesana_leaderboard/{document=**} { allow read, write: if false; }
+    match /bp_tesana_runs/{document=**} { allow read, write: if false; }
+    match /bp_tesana_events/{document=**} { allow read, write: if false; }
   }
 }

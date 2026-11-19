@@ -57,7 +57,7 @@ function createVerifier({projectId=DEFAULT_PROJECT,fetchJwks=defaultFetchJwks(),
     if(typeof payload.iat!=='number'||payload.iat>t+SKEW)return null;
     if(typeof payload.auth_time!=='number'||payload.auth_time>t+SKEW)return null;
     const provider=typeof payload.firebase?.sign_in_provider==='string'?payload.firebase.sign_in_provider:'unknown';
-    return {uid:payload.sub,provider,anonymous:provider==='anonymous',expiresAt:payload.exp};
+    return {uid:payload.sub,provider,anonymous:provider==='anonymous',emailVerified:payload.email_verified===true,expiresAt:payload.exp};
   }
   return {verify,reset(){cache=null;inflight=null;}};
 }

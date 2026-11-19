@@ -83,13 +83,13 @@ const GOOGLE_ACCOUNT = { uid: 'uid-real', displayName: 'Real Person', email: 're
     await page.locator('#vr-handle').fill('Taken_One');
     await page.locator('[data-action="register-handle"]').click();
     await page.waitForFunction(() => /taken/.test(document.body.innerText));
-    await page.locator('#vr-handle').fill('Void_Pilot');
+    await page.locator('#vr-handle').fill('IriS02');
     await page.locator('[data-action="register-handle"]').click();
-    await page.waitForFunction(() => /Signed in as\s+Void_Pilot/.test(document.body.innerText));
-    assert.deepEqual(seen.posts.at(-1), { handle: 'Void_Pilot' });
+    await page.waitForFunction(() => /Signed in as\s+IriS02/.test(document.body.innerText));
+    assert.deepEqual(seen.posts.at(-1), { handle: 'IriS02' });
     assert.ok(!/Real Person|real\.person@example/.test(await page.locator('body').innerText()));
     await page.locator('[data-action="account-main-menu"]').click();
-    assert.match(await page.locator('.menu-account').innerText(), /SIGNED IN · Void_Pilot/);
+    assert.match(await page.locator('.menu-account').innerText(), /SIGNED IN · IriS02/);
     assert.deepEqual(seen.errors, []);
     await context.close();
   });

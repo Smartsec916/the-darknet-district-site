@@ -1,5 +1,7 @@
 # VOID//RUNNER: Graphics Roadmap
 
+> **2026-11-12:** Phase H below (Ultra, shadows outside the opening scene, ambient occlusion, a better HDRI) is still not started. A separate four-win branch (sharpness, High default plus Ultra, stronger glow, remove fake shopfront/graffiti/puddle glow) is in flight. See `docs/development/AI_HANDOFF.md`. Do not download a Poly Haven HDRI without David's OK. Leave the Sleeping Pod room and the music player alone.
+
 **As of 2026-10-16.** "Done" means it's in the game and was checked on screen; everything else is planned.
 
 ## Done

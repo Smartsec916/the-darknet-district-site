@@ -149,5 +149,25 @@ class CharacterEmulatorTests(unittest.TestCase):
         # a guest session on the same browser is a different identity and sees nothing
         self.assertIsNone(self.get(self.guest()['token']).json()['character'])
 
+    def test_appearance_uses_existing_account_document_and_stays_off_by_default(self):
+        a, other, guest = self.register(), self.register(), self.guest()
+        look = {'v': 1, 'base': 'female', 'look': 'district-resident', 'hair': 'native',
+                'hairColor': None, 'clothingColor': None, 'accessories': ['mask']}
+        def set_look(token, value):
+            return self.requests.post(self.base + '/character/appearance', headers=self.H(token), json=value, timeout=20)
+        self.assertEqual(self.post(a['token'], self.FEMALE).status_code, 201)
+        with patch.dict(os.environ, {'VOID_APPEARANCE_ENABLED': 'false'}):
+            self.assertEqual(set_look(a['token'], look).status_code, 404)
+        with patch.dict(os.environ, {'VOID_APPEARANCE_ENABLED': 'true'}):
+            self.assertEqual(set_look(other['token'], look).status_code, 409, 'a character is required first')
+            self.assertEqual(set_look(guest['token'], look).status_code, 403)
+            self.assertEqual(set_look(a['token'], {**look, 'look': '../../admin'}).status_code, 400)
+            self.assertEqual(set_look(a['token'], look).status_code, 200)
+            self.assertEqual(self.get(a['token']).json()['appearance'], look)
+            self.assertEqual(self.requests.get(self.base + '/account', headers=self.H(a['token']), timeout=20).json()['appearance'], look)
+            self.assertIsNone(self.get(other['token']).json().get('appearance'), 'one account cannot see another look')
+            self.assertEqual(self.get(self.login(a)).json()['appearance'], look, 'a new sign-in reads the stored look')
+            self.assertEqual(self.get(a['token']).json()['character']['model'], 'district-resident', 'appearance never changes the one character')
+
 
 if __name__ == '__main__': unittest.main()

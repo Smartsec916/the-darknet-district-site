@@ -19,7 +19,7 @@ try{
   }
  }
  // Every opted-in secondary page and static mirror uses the same usable header.
- for(const file of pages){for(const prefix of ['', 'static/']){const response=await desktop.goto(base+'/'+prefix+file);if(prefix&&response.status()===404)continue;assert.equal(response.status(),200);const nav=desktop.locator('.district-nav');assert.equal(await nav.count(),1,file);assert.equal(await nav.locator('a').count(),linksFor(file).length,file);assert.equal(await desktop.locator('.top-nav,.osint-nav,.anti-osint-nav').count(),0);}}
+ for(const file of pages){for(const prefix of ['', 'static/']){if(prefix&&!fs.existsSync(path.resolve(__dirname,'..',prefix,file)))continue;const response=await desktop.goto(base+'/'+prefix+file);assert.equal(response.status(),200);const nav=desktop.locator('.district-nav');assert.equal(await nav.count(),1,file);assert.equal(await nav.locator('a').count(),linksFor(file).length,file);assert.equal(await desktop.locator('.top-nav,.osint-nav,.anti-osint-nav').count(),0);}}
  result.checks.push('All generated root/static headers match; legacy header variants removed');
  await desktop.goto(base+'/index.html');const nav=desktop.locator('.district-nav');
  const contrast=await nav.locator('a').first().evaluate(a=>{const lum=c=>{const v=c.match(/[\d.]+/g).slice(0,3).map(Number).map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4;});return v[0]*.2126+v[1]*.7152+v[2]*.0722;};const text=lum(getComputedStyle(a).color),panel=lum(getComputedStyle(a.querySelector('.district-nav__panel')).fill);return (Math.max(text,panel)+.05)/(Math.min(text,panel)+.05);});assert(contrast>=4.5);result.checks.push('Computed navigation text contrast meets WCAG AA (4.5:1)');

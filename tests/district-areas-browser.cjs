@@ -17,7 +17,7 @@ const BASE=process.env.BASE||'http://127.0.0.1:5187/void-runner.html',tiers=proc
    await pg.evaluate(async a=>{VoidExplorationData.locations['t-'+a]=VoidNeoChinatown.layout(a);walkingLocation=walker=null;mode='menu';await enterWalking('t-'+a);},area);
    await pg.waitForFunction(()=>mode==='walking'&&walker,null,{timeout:240000});await pg.waitForTimeout(3000);r[area]=await snap();}
   console.log(q,JSON.stringify(r));
-  assert.equal(r.all.solids,73);assert.equal(r.street.solids,35);assert.equal(r.interior.solids,44);assert.equal(r.street.ints,4);assert.equal(r.interior.ints,12,'the District interior has 12 interaction points, including the pod music screen');
+  assert.equal(r.all.solids,73);assert.equal(r.street.solids,35);assert.equal(r.interior.solids,44);assert.equal(r.street.ints,4);assert.equal(r.interior.ints,13,'the District interior has 13 interaction points, including the pod music screen and the wardrobe');
   assert(r.street.meshes<r.all.meshes*.9&&r.interior.meshes<r.all.meshes*.5,'each separate environment is smaller than the combined build ('+q+')');
   assert.deepEqual(warns,[],'the random-number seams still match');assert.deepEqual(errs,[],'no page errors');
   await pg.context().close();}

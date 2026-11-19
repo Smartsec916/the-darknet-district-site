@@ -41,7 +41,7 @@
  const zoneOf=id=>R.zone(state,id);
  function playerPos(){return [walker.x,walker.z];}
  function request(destId){
-  if(trip||!inCity())return false;const a=status();if(!a.ok){announce(a.reason);return false;}
+  if(trip||!inCity())return false;if(globalThis.VoidRoadTaxi?.active){announce('A street taxi is already booked.');return false;}const a=status();if(!a.ok){announce(a.reason);return false;}
   const dest=R.destinations(state,{player:playerPos(),layout:walkingLocation}).find(d=>d.id===destId);if(!dest||!dest.ok){announce(dest?.reason||'That destination isn’t available.');return false;}
   const pickup=R.nearestZone(state,playerPos(),dest.zone);
   // From out of view: behind the player, far off and high above the roofs.

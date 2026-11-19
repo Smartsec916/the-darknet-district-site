@@ -116,6 +116,8 @@
     for(const file of Object.keys(loaded))if(!inUse.has(file)){const p=loaded[file];delete loaded[file];p.then(t=>t.dispose(),()=>{});}
     return C.chosen(who,picked);}
    await wear();
+   // The organic finish (vr-companions.js finish): translucent skin, crease shading, the rim light; by quality tier.
+   try{self.finish=C.finish(B,node,who,{quality:globalThis.VoidBabylon?.quality});}catch(e){console.warn('[VR companion finish]',e);}
    const has=n=>VoidCrowd.clipIn(look,n)===n,clip=role=>C.clipFor(who,role,has);
    // A gesture for a role, picked at random from the companion's own list (their personality).
    const gestureFor=role=>{const own=(who.clips[role]||[]).filter(has);return own.length?own[Math.floor(Math.random()*own.length)]:clip(role);};
@@ -176,6 +178,19 @@
      const fp=B.Vector3.TransformNormal(now,M1).normalize(),wp=B.Vector3.TransformNormal(want,M1).normalize(),Q=new B.Quaternion();B.Quaternion.FromUnitVectorsToRef(fp,wp,Q);
      B.Quaternion.Slerp(ID,Q,frac).multiplyToRef(b.rotationQuaternion,qW);b.rotationQuaternion.copyFrom(qW);b.computeWorldMatrix(true);(att.last[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);}
     if(att.debug){const f2=forward();att.post={want:want.asArray().map(v=>+v.toFixed(3)),before:f.asArray().map(v=>+v.toFixed(3)),after:f2.asArray().map(v=>+v.toFixed(3)),w:+att.weight.toFixed(2)};}}
+   // ---- Breath and sway: a small rotation of the spine and shoulders about the body's own axes on top of whatever
+   // the clip is doing, so nobody ever stands perfectly still. Taken off again before the next frame's animation, so
+   // it never accumulates, and applied before the attention pass so the face still finds your eyes. ----
+   const lifeBones={};for(const t of node.getDescendants(false))for(const b of ['Spine','Spine1','LeftShoulder','RightShoulder'])if(t.name.endsWith('mixamorig:'+b)&&t.rotationQuaternion)lifeBones[b]=t;
+   const life={phase:Math.random()*Math.PI*2,t:Math.random()*20,w:0,applied:new Map()},qD=new B.Quaternion(),qR=new B.Quaternion(),M2=new B.Matrix(),axP=new B.Vector3();
+   function lifeAdd(b,axis,angle){if(!b||!angle)return;b.parent.getWorldMatrix().invertToRef(M2);B.Vector3.TransformNormalToRef(axis,M2,axP);if(axP.lengthSquared()<1e-12)return;axP.normalize();
+    const d=B.Quaternion.RotationAxis(axP,angle),prev=life.applied.get(b);d.multiplyToRef(b.rotationQuaternion,qR);b.rotationQuaternion.copyFrom(qR);life.applied.set(b,prev?d.multiply(prev):d);}
+   const lifeUndo=k.scene.onBeforeAnimationsObservable.add(()=>{for(const [b,d] of life.applied){d.conjugateToRef(qD);qD.multiplyToRef(b.rotationQuaternion,qR);b.rotationQuaternion.copyFrom(qR);}life.applied.clear();});
+   let lastLifeTime=performance.now();
+   const lifeObserver=k.scene.onAfterAnimationsObservable.add(()=>{const now=performance.now(),dt=Math.min(.1,(now-lastLifeTime)/1000);lastLifeTime=now;life.t+=dt;life.w=C.ease(life.w,C.breathWeight(c),2,dt);
+    const s=C.breath(life.t,life.phase),w=life.w,y=node.rotation.y,right=new B.Vector3(Math.cos(y),0,-Math.sin(y)),fwd=new B.Vector3(Math.sin(y),0,Math.cos(y));
+    try{lifeAdd(lifeBones.Spine,right,s.spine*w);lifeAdd(lifeBones.Spine,fwd,s.roll*w);lifeAdd(lifeBones.Spine,B.Axis.Y,s.yaw*w);lifeAdd(lifeBones.Spine1,right,-s.chest*w);
+     lifeAdd(lifeBones.LeftShoulder,fwd,s.shoulders*w);lifeAdd(lifeBones.RightShoulder,fwd,-s.shoulders*w);}catch(e){console.warn('[VR companion breath]',e);}},undefined,true);
    let lastAnimTime=performance.now();const lookObserver=k.scene.onAfterAnimationsObservable.add(()=>{const now=performance.now(),dt=Math.min(.1,(now-lastAnimTime)/1000);lastAnimTime=now;try{applyLook(dt);}catch(e){console.warn('[VR companion look]',e);}});
    // ---- Remarks they make on their own: a subtitle, never a blocking panel ----
    function remark(pool){const text=C.pick(L[pool],mem,pool);if(text)showLine(who.name,text);}
@@ -280,13 +295,13 @@
     const [fx,fz]=from.at();if(Math.hypot(fx-node.position.x,fz-node.position.z)>4.5||Math.random()>.35)return;reactAt=now;
     const h=from.bones.Head?.getAbsolutePosition?.();if(h)att.glance={t:1.6,x:h.x,y:h.y,z:h.z};
     k.after(()=>{if(api.session&&c.state==='idle'&&!(c.busy>0)){self.smile(1.5+Math.random());const r=Math.random();if(r<.5)gesture(has('laugh')?'laugh':'shy');else if(r<.8)gesture('shy');}},600+Math.random()*600);};
-   Object.assign(self,{node,anim,c,brain,att,bones,act,at,dest,talks,menu,gesture,wear,idle,
+   Object.assign(self,{node,anim,c,brain,att,bones,life,act,at,dest,talks,menu,gesture,wear,idle,
     talking(){anim.play(c.sitting?'sit-talk':c.dancing?c.danceClip:c.reclining?'recline':'talk');},
     greet(){c.greeted=true;gesture('greet');if(talks)say(self,C.pick(L.greet,mem,'greet'));},
     onStand(){c.withYou=false;if(c.sitting||c.reclining){stand();c.state='idle';if(c.mode==='free')walkTo(...home);}},
     open(){if(c.sitting&&mode!=='vr-seated'&&!c.withYou){stand();}menu();},
     follow:followMe,stay:stayHere,goBack,
-    dispose(){k.scene.onAfterAnimationsObservable.remove(lookObserver);node.dispose(false,false);for(const t of Object.values(loaded))t.then(x=>x.dispose(),()=>{});}});
+    dispose(){k.scene.onAfterAnimationsObservable.remove(lookObserver);k.scene.onAfterAnimationsObservable.remove(lifeObserver);k.scene.onBeforeAnimationsObservable.remove(lifeUndo);node.dispose(false,false);for(const t of Object.values(loaded))t.then(x=>x.dispose(),()=>{});}});
    return self;}
   for(const [slot,who] of party.entries())comps.push(await companion(who,slots[slot],slot));
   const first=comps[0];
@@ -305,7 +320,9 @@
    setOption(key,val){if(key==='mood')mood(val);if(key==='music'){api.setPad(val);room.music(val);}
     const m=/^look-(.+)-([^-]+)$/.exec(key),x=m&&comps.find(o=>o.who.id===m[1]);if(x){x.wear(m[2],val);C.saveLook(x.who,m[2],val);}}};
  }
- const registered={id:'suite',title:'Play in a Bedroom',status:'ready',station:1,tint:'linear-gradient(135deg,#1a0820,#ff2d96)',preview:'void-runner/assets/vr/preview-suite.jpg',
+ // Offered in the VR arcade and shareable as a public or private session (owner's decision, 2026-11-12). What is shared is which companions are in the room and
+ // where each player stands; every player's game runs the companions itself, so what a companion is doing at a given moment can differ between players.
+ const registered={id:'suite',shared:true,title:'Play in a Bedroom',status:'ready',station:1,tint:'linear-gradient(135deg,#1a0820,#ff2d96)',preview:'void-runner/assets/vr/preview-suite.jpg',
   description:'A private apartment high above NeoChinatown at night, with an adult companion of your choice. Talk, sit together, dance, or simply enjoy the room. Romance is optional and never explicit.',
   picker:{
    // Model files are checked when the picker opens; a missing one is shown but can't be chosen. Only companions
@@ -329,6 +346,9 @@
      initial([sex]){const ids=lastParty(),id=C.pairs.find(p=>p.companions.join()===ids.join())?.id||(ids.length===1?ids[0]:null);
       return id&&this.choices([sex]).some(c=>c.id===id&&c.usable!==false)?id:null;}}],
    options:([,sel])=>{const p=C.pairs.find(x=>x.id===sel),ids=p?p.companions:[sel];rememberParty(ids);return ids.length>1?{companions:ids}:{companion:ids[0]};}},
+  // The session's options as the hub carries them (plain short text): the companions' ids joined with ':'. fromShare turns that back into the picker's own options.
+  shareOpts:opts=>({party:C.party(opts).map(e=>e.id).join(':').slice(0,40)}),
+  fromShare:o=>{const ids=String(o?.party||'').split(':').filter(id=>/^[a-z0-9-]{1,24}$/.test(id)).slice(0,2);return ids.length>1?{companions:ids}:{companion:ids[0]||''};},
   validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>all.find(x=>x.id===e.id)?.usable);},
   defaults:{mood:'rose',music:'lounge'},
   // The VR menu's settings: mood and music, then each companion's looks (outfit, hairstyle, glasses, colours) that

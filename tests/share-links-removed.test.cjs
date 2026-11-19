@@ -19,7 +19,7 @@ test('the District area rules no longer know about guest links',()=>{
 });
 test('the rest is untouched: the new campaign start, the transition and local play still wire up',()=>{
  const html=read('void-runner.html');for(const f of ['district-area.js','district-transition.js','district-transition.css','prologue-integration.js','menu.js','game.js'])assert(html.includes('void-runner/'+f),f);
-  const {execFileSync}=require('node:child_process'),os=require('node:os'),path=require('node:path'),dir=fs.mkdtempSync(path.join(os.tmpdir(),'tdd-home-'));for(const f of['index.html','accents.css'])fs.copyFileSync(f,path.join(dir,f));execFileSync('git',['init','-q','.'],{cwd:dir});execFileSync('git',['apply',path.resolve('docs/development/homepage-entry/activate-homepage-entry.patch')],{cwd:dir});const home=fs.readFileSync(path.join(dir,'index.html'),'utf8');
- assert(home.includes('class="tdd-title-link"'),'the homepage patch makes the existing title clickable');
- assert(home.includes('href="void-runner.html"'),'the title is a plain link');
+ // The homepage entrance is live on main now (the ENTER logo links to the game), so the old unapplied patch is no longer checked here.
+ const home=read('index.html');
+ assert(home.includes('href="void-runner.html"'),'the homepage links to the game');
 });

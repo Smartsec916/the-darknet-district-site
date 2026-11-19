@@ -78,7 +78,7 @@
   playfulDance:['dance'],sitAlt:['sit-relax','sit'],sitGreet:['sit-wave','sit-talk'],decline:['shrug','head-tilt'],recline:['recline'],glance:['glance-back','head-tilt'],confident:['hips','head-tilt']};
 
  // Seren and Kai (original adult characters; MakeHuman CC0, Mixamo and Rokoko mocap). DRAFT lines throughout.
- register({id:'seren',name:'Seren',sex:'female',model:'vr-companion-f',preview:'void-runner/assets/vr/companions/seren.jpg',
+ register({id:'seren',name:'Seren',sex:'female',model:'vr-companion-f',skin:['vr_companion_f.body'],preview:'void-runner/assets/vr/companions/seren.jpg',
   about:'Warm, quick-witted and a little teasing. She notices everything.',voice:{characterId:'vr-seren',voiceId:null},
   personality:{initiative:.68,flirtatiousness:.7,approachFrequency:.6,personalSpace:.95},
   clips:{greet:['wave'],flirt:['blow-kiss','coy','head-tilt','hips'],shy:['coy'],idleAlt:['idle-f2','hips','head-tilt'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips']},
@@ -107,7 +107,7 @@
    welcomeBack:['Missed me? Don\'t answer that, I can tell.','Back already? I knew you would be.'],
    aside:['You\'re staring. I like it.','Careful. I could get used to this.','You have no idea how good you look in this light.'],
    comeHere:['On my way.','Mm, you called?'],recline:['This is my favourite view. The ceiling glow, and you.']}});
- register({id:'kai',name:'Kai',sex:'male',model:'vr-companion-m',preview:'void-runner/assets/vr/companions/kai.jpg',
+ register({id:'kai',name:'Kai',sex:'male',model:'vr-companion-m',skin:['vr_companion_m.body'],preview:'void-runner/assets/vr/companions/kai.jpg',
   about:'Calm, wry and attentive. He listens more than he talks.',voice:{characterId:'vr-kai',voiceId:null},
   personality:{initiative:.45,flirtatiousness:.5,approachFrequency:.42,attention:.92,personalSpace:1.15,walkSpeed:1.05},
   clips:{greet:['head-tilt'],flirt:['blow-kiss','head-tilt','laugh'],shy:['head-tilt'],idleAlt:['idle-m2','head-tilt'],dance:['slow-dance'],playfulDance:['dance-samba']},
@@ -140,7 +140,7 @@
  // teases you for being an outsider. Model: "Realistic Contemporary Woman FC1" by Ludovisions (CGTrader, free,
  // Royalty Free License - no AI), converted by build_imported_character.py. Her licence asks that the file not be
  // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for David's review.
- register({id:'nadia',name:'Nadia',sex:'female',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',preview:'void-runner/assets/vr/companions/nadia.jpg',
+ register({id:'nadia',name:'Nadia',sex:'female',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',skin:['ludovisions_FC1_mat_23','ludovisions_FC1_mat_24','ludovisions_FC1_mat_25','ludovisions_FC1_mat_26','ludovisions_FC1_mat_27'],preview:'void-runner/assets/vr/companions/nadia.jpg',
   about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:{characterId:'vr-nadia',voiceId:null},
   personality:{initiative:.56,flirtatiousness:.5,approachFrequency:.7,attention:.88,personalSpace:.9,remarkCooldown:18},
   clips:{greet:['wave'],flirt:['head-tilt','laugh','coy'],shy:['head-tilt'],idleAlt:['idle-f2','hips'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly'],confident:['hips'],laugh:['laugh']},
@@ -179,7 +179,7 @@
  // Default looks are David's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
  // worn under the skirt, so nothing shows when she sits); Eva in the white slip dress with her natural
  // orange-and-white hair.
- register({id:'ava',name:'Ava',sex:'female',model:'vr-companion-ava',file:'vr-companion-ava.vrpak',preview:'void-runner/assets/vr/companions/ava.jpg',
+ register({id:'ava',name:'Ava',sex:'female',model:'vr-companion-ava',file:'vr-companion-ava.vrpak',skin:['head','body','arm','leg','genital','lips'],preview:'void-runner/assets/vr/companions/ava.jpg',
   about:'Quick, stylish and sure of herself. She designs holo-fashion and has an opinion about everything, including you.',
   licensed:true,pairable:true,personality:{initiative:0.66,flirtatiousness:0.62,approachFrequency:0.6,personalSpace:0.95},
   dialogue:{
@@ -217,7 +217,7 @@
  // Colour and make-up variants are separate textures (assets/models/crowd/<model>/*.vrtex), loaded only when chosen;
  // `textures` maps a material to its variant file.
  const variant=(id,label,dflt,map)=>({id,label,...(id===dflt?{}:{textures:map(id)})});
- register({id:'eva',name:'Eva',sex:'female',model:'vr-companion-pg',file:'vr-companion-pg.vrpak',preview:'void-runner/assets/vr/companions/eva.jpg',
+ register({id:'eva',name:'Eva',sex:'female',model:'vr-companion-pg',file:'vr-companion-pg.vrpak',skin:['body3','head5'],orm:['body3','head5','teeth3','cloth'],preview:'void-runner/assets/vr/companions/eva.jpg',
   about:'Gentle and dreamy, a little shy at first. She paints the skyline at night and notices the small things.',
   licensed:true,pairable:true,personality:{initiative:0.4,flirtatiousness:0.45,approachFrequency:0.45,attention:0.9,personalSpace:1.1,walkSpeed:1.05},
   dialogue:{
@@ -298,7 +298,7 @@
     {id:'nightlife',label:'Nightlife (violet shorts, jacket)',parts:['jacket','shorts','piping_shorts'],textures:{outfit_pants:'pants-violet'},materials:{outfit_jacket:{roughness:.55},outfit_top:{roughness:.35},outfit_pants:{roughness:.3}}},
     {id:'elegant',label:'Elegant (violet jacket)',parts:['jacket','jacket_item','leggings','piping_jacket'],textures:{outfit_jacket:'jacket-violet'}},
     {id:'original',label:'Original (black leather)',parts:['jacket','jacket_item','leggings']}]}]});
- register({id:'base-f',name:'Yuki',sex:'female',model:'vr-companion-bf',file:'vr-companion-bf.vrpak',preview:'void-runner/assets/vr/companions/base-f.jpg',
+ register({id:'base-f',name:'Yuki',sex:'female',model:'vr-companion-bf',file:'vr-companion-bf.vrpak',skin:['Skin_M'],preview:'void-runner/assets/vr/companions/base-f.jpg',
   about:'Bright, sporty and upbeat. She runs the rooftops at dawn, laughs easily and never sits still for long.',
   licensed:true,pairable:true,personality:{initiative:0.7,flirtatiousness:0.52,approachFrequency:0.72,personalSpace:0.9,walkSpeed:1.25,remarkCooldown:18},
   dialogue:{
@@ -327,7 +327,7 @@
    aside:['You\'ve got a great smile.','I like hanging out with you.','You\'re fun. Has anyone told you that?'],
    comeHere:['Coming!','Right here!'],
    recline:['See? I can relax. Sometimes.']},voice:{characterId:'vr-base-f',voiceId:null},clips:{greet:['wave'],flirt:['blow-kiss','laugh','head-tilt'],shy:['coy'],laugh:['laugh'],playfulDance:['dance-belly'],idleAlt:['idle-f2'],walk:['walk-f']}});
- register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',preview:'void-runner/assets/vr/companions/base-m.jpg',
+ register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',skin:['Skin_M'],preview:'void-runner/assets/vr/companions/base-m.jpg',
   about:'Easy-going and funny. He works the cargo docks, loves old music and always has a story ready.',
   licensed:true,pairable:false,personality:{initiative:0.5,flirtatiousness:0.5,approachFrequency:0.5,attention:0.9,personalSpace:1.1,walkSpeed:1.05},
   dialogue:{
@@ -453,6 +453,77 @@
   const out=[];let at=from;for(let i=1;i<cells.length;i++)if(!clear(at,cells[i])){out.push(cells[i-1]);at=cells[i-1];}
   out.push(cells[cells.length-1]);return out;}
 
- const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks};
+ // ---- Organic finish (David, 2026-11-12): skin that lets a little light through at thin, backlit edges (PBR
+ // sub-surface translucency), shading in the creases (the model's own AO map where it has one, else a cavity term
+ // worked out once from the mesh), a breath and a slight sway so nobody stands perfectly still (vr-suite.js), and a
+ // soft rim light that follows the camera. Desktop and VR only; the per-pixel translucency is left out on Low quality.
+ // `skin` lists a companion's skin materials; `orm` the materials whose metallic-roughness map is an Unreal-style ORM
+ // (red = ambient occlusion), which the glTF loader otherwise reads only for roughness and metalness.
+ const notSurface=/eye|cornea|cornia|pupil|iris|teeth|tooth|tongue|toung|lash|brow|glass|hair|nail|button|jewel|lacrimal|low-poly/i;
+ const isSkin=(entry,name)=>entry?.skin?entry.skin.includes(name):/skin|body/i.test(name||'')&&!notSurface.test(name||'');
+ const hasOrm=(entry,name)=>!!entry?.orm?.includes(name);
+ const tiers={low:{translucency:false,anisotropy:4,rim:.7},medium:{translucency:true,anisotropy:8,rim:1},high:{translucency:true,anisotropy:16,rim:1},ultra:{translucency:true,anisotropy:16,rim:1}};
+ const tier=q=>tiers[q]||tiers.medium;
+ // Crease shading from geometry: for each vertex, how far its neighbours rise above its tangent plane (concave
+ // creases score high, flat and convex surfaces zero), smoothed twice and mapped to a gentle darkening. Vertices at
+ // the same position (UV seams, split primitives) are welded first so seams don't read as creases. parts: [{positions,
+ // normals, indices}] in one space. Returns one Float32Array of 0..1 occlusion per part (1 = open).
+ function cavity(parts,{strength=.38,floor=.6,from=.02,to=.22}={}){
+  let n=0;for(const p of parts)n+=p.positions.length/3;if(!n)return parts.map(()=>new Float32Array(0));
+  const lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];for(const p of parts)for(let i=0;i<p.positions.length;i+=3)for(let k=0;k<3;k++){lo[k]=Math.min(lo[k],p.positions[i+k]);hi[k]=Math.max(hi[k],p.positions[i+k]);}
+  const q=Math.hypot(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2])*2e-5||1e-6,ids=new Map(),weld=new Int32Array(n),pos=[],nor=[];let w=0,o=0;
+  for(const p of parts)for(let i=0;i<p.positions.length;i+=3,o++){const key=Math.round(p.positions[i]/q)+','+Math.round(p.positions[i+1]/q)+','+Math.round(p.positions[i+2]/q);let id=ids.get(key);
+   if(id===undefined){id=w++;ids.set(key,id);pos.push(p.positions[i],p.positions[i+1],p.positions[i+2]);nor.push(0,0,0);}weld[o]=id;const nm=p.normals;if(nm){nor[id*3]+=nm[i];nor[id*3+1]+=nm[i+1];nor[id*3+2]+=nm[i+2];}}
+  for(let v=0;v<w;v++){const l=Math.hypot(nor[v*3],nor[v*3+1],nor[v*3+2])||1;nor[v*3]/=l;nor[v*3+1]/=l;nor[v*3+2]/=l;}
+  const sum=new Float32Array(w),cnt=new Float32Array(w),edges=[];let base=0;
+  const edge=(a,b)=>{const dx=pos[b*3]-pos[a*3],dy=pos[b*3+1]-pos[a*3+1],dz=pos[b*3+2]-pos[a*3+2],l=Math.hypot(dx,dy,dz);if(!l)return;sum[a]+=(nor[a*3]*dx+nor[a*3+1]*dy+nor[a*3+2]*dz)/l;cnt[a]++;edges.push(a,b);};
+  for(const p of parts){const ix=p.indices||Array.from({length:p.positions.length/3},(_,i)=>i);for(let t=0;t+2<ix.length;t+=3){const a=weld[base+ix[t]],b=weld[base+ix[t+1]],c=weld[base+ix[t+2]];edge(a,b);edge(b,a);edge(b,c);edge(c,b);edge(c,a);edge(a,c);}base+=p.positions.length/3;}
+  // Open borders (a hem, a neckline) have neighbours on one side only, which would read as a crease: they count as open.
+  const uses=new Map(),border=new Uint8Array(w);for(let e=0;e<edges.length;e+=2){const a=edges[e],b=edges[e+1];if(a<b){const k=a*w+b;uses.set(k,(uses.get(k)||0)+1);}}
+  for(const [k,u] of uses)if(u===1){border[Math.floor(k/w)]=1;border[k%w]=1;}
+  let cav=new Float32Array(w);for(let v=0;v<w;v++)cav[v]=cnt[v]&&!border[v]?sum[v]/cnt[v]:0;
+  for(let pass=0;pass<2;pass++){const acc=cav.slice(),num=new Float32Array(w).fill(1);for(let e=0;e<edges.length;e+=2){acc[edges[e]]+=cav[edges[e+1]];num[edges[e]]++;}for(let v=0;v<w;v++)acc[v]/=num[v];cav=acc;}
+  const out=[];o=0;for(const p of parts){const a=new Float32Array(p.positions.length/3);for(let i=0;i<a.length;i++,o++){const x=Math.max(0,Math.min(1,(cav[weld[o]]-from)/(to-from))),s=x*x*(3-2*x);a[i]=Math.max(floor,1-strength*s);}out.push(a);}
+  return out;}
+ // The breath (about 14 a minute) and a slower sway, in radians, for time t (s) and a companion's own phase.
+ function breath(t,phase=0){const b=Math.sin(t*2*Math.PI*.235+phase),up=(b+1)/2;
+  return {chest:.02*b,spine:.008*b,shoulders:.012*up,roll:.009*Math.sin(t*2*Math.PI*.09+phase*1.7),yaw:.007*Math.sin(t*2*Math.PI*.061+phase*.6)};}
+ // How much of the breath and sway shows in each state (clips that already move a lot get less on top).
+ const breathWeight=c=>c?.kissing?.4:c?.state==='walk'?.25:c?.dancing?.35:1;
+ // The soft rim: a Fresnel term from the surface normal and the view direction, added as a little emitted light
+ // (lavender, like the city glow through the glass), so it slides round the figure as the camera moves.
+ let RimPlugin=null;
+ function rimPlugin(B){return RimPlugin??=class CompanionRimPlugin extends B.MaterialPluginBase{
+  constructor(material){super(material,'CompanionRim',210,{COMPANION_RIM:false});this.color=new B.Color3(.62,.52,1);this.strength=.2;this.power=3.2;this._enable(true);}
+  getClassName(){return 'CompanionRimPlugin';}
+  isCompatible(){return true;}
+  prepareDefines(defines){defines.COMPANION_RIM=this._isEnabled;}
+  getUniforms(){return {ubo:[{name:'vCompanionRim',size:4,type:'vec4'}],fragment:'#ifdef COMPANION_RIM\nuniform vec4 vCompanionRim;\n#endif\n'};}
+  bindForSubMesh(ubo){if(this._isEnabled){const s=this.strength;ubo.updateFloat4('vCompanionRim',this.color.r*s,this.color.g*s,this.color.b*s,this.power);}}
+  getCustomCode(type,language){if(type!=='fragment')return null;
+   return language===B.ShaderLanguage?.WGSL
+    ?{CUSTOM_FRAGMENT_BEFORE_FINALCOLORCOMPOSITION:'#ifdef COMPANION_RIM\nfinalEmissive+=uniforms.vCompanionRim.rgb*pow(1.0-saturate(dot(normalW,viewDirectionW)),uniforms.vCompanionRim.a)*(vec3f(0.4)+0.6*surfaceAlbedo.rgb);\n#endif\n'}
+    :{CUSTOM_FRAGMENT_BEFORE_FINALCOLORCOMPOSITION:'#ifdef COMPANION_RIM\nfinalEmissive+=vCompanionRim.rgb*pow(1.0-clamp(dot(normalW,viewDirectionW),0.0,1.0),vCompanionRim.a)*(vec3(0.4)+0.6*surfaceAlbedo.rgb);\n#endif\n'};}};}
+ // Applies the finish to one loaded companion (browser). Materials and geometry belong to the companion's own
+ // container, so nothing else in the scene changes. Returns what it did (for tests and diagnostics).
+ const cavityDone=new WeakSet();
+ function finish(B,node,entry,{quality='medium'}={}){
+  const t=tier(quality),meshes=node.getChildMeshes().filter(m=>m.material&&m.getTotalVertices?.()>0),mats=[...new Set(meshes.map(m=>m.material))],report={translucent:[],orm:[],cavity:0,rim:0,anisotropy:t.anisotropy};
+  const Rim=B.MaterialPluginBase?rimPlugin(B):null;
+  for(const mat of mats){if(!(mat instanceof B.PBRMaterial))continue;const name=mat.name;
+   for(const tex of mat.getActiveTextures?.()||[])if(tex&&(tex.anisotropicFilteringLevel||0)<t.anisotropy)tex.anisotropicFilteringLevel=t.anisotropy;
+   if(hasOrm(entry,name)&&mat.metallicTexture){mat.useAmbientOcclusionFromMetallicTextureRed=true;report.orm.push(name);}
+   if(t.translucency&&isSkin(entry,name)&&mat.subSurface){const ss=mat.subSurface;ss.isTranslucencyEnabled=true;ss.translucencyIntensity=.55;ss.minimumThickness=0;ss.maximumThickness=.5;
+    ss.diffusionDistance=new B.Color3(1,.36,.2);ss.tintColor=new B.Color3(1,.62,.5);report.translucent.push(name);}
+   if(Rim&&!notSurface.test(name)&&!mat.pluginManager?.getPlugin?.('CompanionRim')){const r=new Rim(mat);r.strength*=t.rim;report.rim++;}}
+  // Crease shading where there's no AO map: one glTF mesh's primitives together, in their shared bind space.
+  const groups=new Map();for(const m of meshes){const name=m.material.name;if(notSurface.test(name)||hasOrm(entry,name)||!m.geometry||cavityDone.has(m.geometry))continue;const key=m.name.replace(/_primitive\d+$/,'');(groups.get(key)||groups.set(key,[]).get(key)).push(m);}
+  for(const list of groups.values()){const parts=list.map(m=>({positions:m.getVerticesData(B.VertexBuffer.PositionKind),normals:m.getVerticesData(B.VertexBuffer.NormalKind),indices:m.getIndices()}));if(parts.some(p=>!p.positions))continue;
+   const ao=cavity(parts);list.forEach((m,i)=>{const old=m.getVerticesData(B.VertexBuffer.ColorKind),stride=old&&old.length===ao[i].length*3?3:4,rgba=new Float32Array(ao[i].length*4);
+    for(let v=0;v<ao[i].length;v++){for(let k=0;k<3;k++)rgba[v*4+k]=ao[i][v]*(old?old[v*stride+k]:1);rgba[v*4+3]=1;}
+    m.setVerticesData(B.VertexBuffer.ColorKind,rgba,false,4);m.hasVertexAlpha=false;cavityDone.add(m.geometry);report.cavity++;});}
+  return report;}
+
+ const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);

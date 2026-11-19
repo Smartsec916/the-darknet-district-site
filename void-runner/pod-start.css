@@ -6,11 +6,13 @@
   align-items: end;
   justify-content: center;
   padding: 2rem;
-  background: linear-gradient(transparent 45%, rgba(4, 7, 19, .9));
+  background: linear-gradient(transparent 72%, rgba(4, 7, 19, .82));
+  cursor: grab;
   color: #e9faff;
   font-family: inherit;
 }
 #pod-wake[hidden] { display: none; }
+#pod-wake.preparing { background: #02060c; }
 .pod-wake-card {
   width: min(30rem, 100%);
   padding: 1.25rem;
@@ -21,5 +23,22 @@
 }
 .pod-wake-card p { margin: 0 0 .6rem; color: #67e8e9; font-size: .75rem; letter-spacing: .15em; }
 .pod-wake-card h2 { margin: 0 0 1.2rem; font-size: 1.2rem; font-weight: 600; }
-.pod-wake-card button { padding: .7rem 1.5rem; border: 1px solid #67e8e9; background: #073543; color: #fff; font: inherit; letter-spacing: .1em; cursor: pointer; }
-.pod-wake-card button:hover, .pod-wake-card button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; background: #126478; }
+.pod-wake-card button, .pod-wake-card a[role="button"] { display:inline-block; padding: .7rem 1.5rem; border: 1px solid #67e8e9; background: #073543; color: #fff; font: inherit; letter-spacing: .1em; cursor: pointer; text-decoration:none; }
+.pod-wake-card button:hover, .pod-wake-card button:focus-visible, .pod-wake-card a[role="button"]:hover, .pod-wake-card a[role="button"]:focus-visible { outline: 2px solid #fff; outline-offset: 3px; background: #126478; }
+.pod-wake-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }
+.pod-vend[hidden], .pod-wake-actions[hidden], .pod-wake-card h2[hidden] { display: none; }
+.pod-vend-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: .3rem; margin-bottom: .7rem; }
+.pod-wake-card .pod-vend-grid a[role="button"] { padding: .4rem .2rem; font-size: .62rem; letter-spacing: .02em; line-height: 1.2; }
+.pod-wake-card .pod-vend-grid a[aria-pressed="true"] { background: #0d6a7c; border-color: #fff; }
+.pod-wake-card .pod-vend-info { min-height: 3.2em; margin: 0 0 .8rem; color: #e9faff; font-size: .8rem; letter-spacing: .02em; line-height: 1.4; }
+.pod-wake-card a[aria-disabled="true"] { opacity: .45; cursor: default; }
+#pod-wake.vending { justify-content: flex-end; background: none; }
+#pod-wake.vending .pod-wake-card { width: min(26rem, 46%); }
+/* free look in the pod: the card stays small and out of the way; while the mouse is captured it fades back */
+.pod-wake-card { cursor: default; }
+.pod-wake-card h2 { margin-bottom: .7rem; font-size: 1rem; }
+.pod-wake-card button, .pod-wake-card a[role="button"] { padding: .5rem 1rem; font-size: .8rem; }
+.pod-wake-hint { margin-top: .7rem; color: #9fd0d6; font-size: .68rem; letter-spacing: .04em; }
+#pod-wake.looking { cursor: none; background: none; }
+#pod-wake.looking .pod-wake-card { opacity: .45; }
+#pod-wake.vending { cursor: default; }

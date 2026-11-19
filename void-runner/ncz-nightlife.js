@@ -50,6 +50,7 @@
  const canLean=(l,t)=>{const p=at(l,t);const s=l.id.startsWith('main')?p[1]:p[0];return clearAt(p)&&!(l.noLean||[]).some(([a,b])=>s>a&&s<b);};
  // Who walks where: lanes weighted by liveliness, drunks only on nightlife lanes, some pairs.
  function plan(quality='medium',rnd=Math.random,cfg=config){
+  if(quality==='ultra')quality='high';
   const n=cfg.walkers[quality]??cfg.walkers.medium,people=[];if(!n)return people;
   const total=lanes.reduce((s,l)=>s+l.weight,0),drunks=Math.max(n>=8?1:0,Math.round(n*cfg.drunkShare));
   const pickLane=(night)=>{const pool=lanes.filter(l=>!night||l.nightlife),w=pool.reduce((s,l)=>s+l.weight,0);let r=rnd()*w;for(const l of pool){r-=l.weight;if(r<=0)return l;}return pool[0];};

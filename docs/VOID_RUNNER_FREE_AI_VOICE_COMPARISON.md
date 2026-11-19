@@ -1,5 +1,7 @@
 # VOID//RUNNER: Free AI Voice Comparison
 
+> **Line counts below are stale (2026-11-12).** The shipped set is **736** manifest lines and **738** ogg clips, Kokoro-82M, not 136 lines. Engine choice in this file (Kokoro, Piper as backup) still matches `main`. Paid re-record notes (ElevenLabs, Google Chirp 3 HD) are in `docs/development/AI_HANDOFF.md`. Do not change an approved voice without David.
+
 **As of:** 2026-10-15 · Hardware tested: ASUS ROG Ally Extreme (AMD Ryzen Z1 Extreme, 11.7 GB RAM, AMD Radeon graphics, so **no NVIDIA CUDA**), Windows 11, Python 3.12.
 
 ## 1. What already exists in the game (inspected before choosing anything)

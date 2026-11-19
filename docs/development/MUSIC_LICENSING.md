@@ -1,6 +1,12 @@
 # The 27-song playlist: where the songs came from and what is and is not verified
 
-Written 2026-11-04. **Status: NOT VERIFIED.** The songs are not declared cleared for commercial use. David's current direction is to keep the existing playlist available in both Sleeping Pod players during the first test; the rights questions below remain open.
+Written 2026-11-04. **Status: SETTLED for the game's use (updated 2026-11-08; see the update below).** David held a paid Riffusion subscription when the songs were created in 2025, so the free tier's non-commercial limitation does not apply. On `main` as of 12 Nov 2026, `WEBSITE_PLAYLIST` in `void-runner/pod-music.js` is **`true`** (the 4 Nov "off by default" lines in section 7 are the older state). The website's own Sleeping Pod page is unchanged.
+
+## Update 2026-11-08: rights settled for the game (David's statement)
+- David confirms he held a **paid Riffusion subscription in 2025, when the 27 songs were created**. That is also why their quality is better than the free plan's output.
+- The free tier's non-commercial limitation therefore **does not apply** to these songs. The March to April 2026 Starter receipt is a later paid period, not the one the songs were made under.
+- **The music rights are considered settled for the game's use.** The analysis below is kept as the earlier record; where it calls the rights unverified or asks for 2025 evidence, this update supersedes it.
+- Settlement here means David may use the songs in the game. It is not a finding that the files may be redistributed, sublicensed, or used for AI training. `CLAUDE.md` already says the same.
 
 ## 1. What David told us
 - All 27 songs on the website's Sleeping Pod playlist were created by David with **Riffusion.org / Producer.ai**.
@@ -66,9 +72,9 @@ Sources consulted (secondary, unofficial; **not** the terms themselves):
 |---|---|
 | David made the songs with Riffusion/Producer.ai | **David's statement.** Consistent with the file names; not independently provable from the files. |
 | David paid for a Starter plan 17 March to 17 April 2026 | **David's statement of a receipt** (not seen by Claude Code). |
-| The songs were made while that plan was active | **Contradicted by the repository for all 27**: each was added in May to August 2025. Unless David also held a paid plan in 2025 (a different receipt), the receipt does not cover the creation period. |
-| Which plan David was on in 2025 | **Unknown. Needs David's account history.** |
-| Commercial rights under the Starter plan, and whether they apply to songs made under a different plan | **Unverified**; official terms not read. |
+| The songs were made under a paid plan | **Settled (David, 2026-11-08):** he held a paid Riffusion subscription in 2025 when all 27 were created. The 2026 receipt is a later period. |
+| Which plan David was on in 2025 | **A paid Riffusion subscription** (David's statement, 2026-11-08). The plan name on that 2025 receipt is not copied into this file. |
+| Commercial rights for the songs | **Settled for the game's use**: made during a paid subscription, so the free-tier non-commercial limit does not apply. |
 | The terms in force in 2025 (before the Google-era rebrand) | **Unverified**; the current terms page is gated. |
 | "(Cover)" files are David's own remixes | **David's statement.** Treat as such. Keep the source files. |
 | Ownership versus licence | Sources say licence. A licence to use may be all David holds, which is enough to *play* the songs but not to *sell or sublicense* them. |
@@ -82,15 +88,15 @@ A general caveat (secondary guidance, not legal advice): several legal guides sa
 3. The **terms of service and the commercial-rights page as they stand today, saved with the date** (a PDF or screenshot), and, if possible, the version that applied in May to August 2025 (the site's own history, an archived copy, or an email from support).
 4. A short **email to Riffusion/Producer.ai support**: "Do songs I generated in 2025 on [plan], and later remixed on [plan], carry commercial-use rights now that I have a paid Starter plan? Can I use them in a game I publish?" Keep the reply.
 5. His **original source recordings** for the "(Cover)" songs (to show they are his own).
-Until items 1 to 3 exist, treat the commercial rights as **unverified**.
+These items are optional records now. David has confirmed the rights are settled for the game's use (update, 2026-11-08).
 
 ## 6. Age policy (separate from rights)
 Explicit language is **not** a reason to remove a song. It matters for the age policy David has not yet decided (PR #191). Titles that signal it: `Fuck the System (2.0)` (strong language), `Это всё дерьмо 3.0` (Russian profanity), `SexBot (Cover)` (sexual theme). Lyrics were **not** transcribed or reviewed. Record the decision with the age policy, not here.
 
 ## 7. How the game handles them
 - **The audio files are the website's own files** in `attached_assets/`; nothing is copied or renamed, filenames and titles are unchanged, and the website's player keeps playing them exactly as before.
-- **In the 3D game the website playlist is available by default** (`WEBSITE_PLAYLIST=true` at the top of `void-runner/pod-music.js`), as David requested. The pod player also offers **My music**. This does not resolve the rights question or change which audio files the website serves.
-- **To enable them once David is satisfied:** change that one line to `true`. For testing in your own browser only, set `localStorage['darknet-pod-music-site']='1'` or open the game with `?sitemusic=1`.
-- The 27 names and paths are listed in `void-runner/pod-music.js` (`SITE`) and in the table above, so they are ready to switch on.
-- Unchanged and out of scope here: the files are **already publicly downloadable** from the live site at `/attached_assets/<name>.mp3` because they are tracked in the public repository. If David decides they must not be public until cleared, that is a separate change to the repository (not made).
+- **On 4 Nov 2026 the 3D game kept the website playlist OFF** (`WEBSITE_PLAYLIST=false`). **On `main` as of 12 Nov 2026 that flag is `true`**, so the pod player includes the 27 songs. "My music" is still available. This file does not change the flag.
+- For a browser-only override while testing, `localStorage['darknet-pod-music-site']='1'` or `?sitemusic=1` still forces the site list on when the flag is off. With the flag already true, those overrides are unused.
+- The 27 names and paths are listed in `void-runner/pod-music.js` (`SITE`) and in the table above.
+- Unchanged and out of scope here: the files are **already publicly downloadable** from the live site at `/attached_assets/<name>.mp3` because they are tracked in the public repository. Taking them off the public site would be a separate repository change (not made).
 - A copyright-free alternative that needs no licence decision exists: the three generative synth tracks in the Tesana Sleeping Pod ZIP (`TESANA_ASSET_AUDIT.md`, item H6); not imported.

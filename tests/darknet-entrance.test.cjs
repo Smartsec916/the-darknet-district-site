@@ -1,13 +1,33 @@
-/* The homepage is the way into the 3D District, and the game is no longer one Arcade listing among others. */
+/* Entrypoint contract for the *current* homepage and separate District game.
+   The older deferred homepage patch was superseded by the live homepage design. */
+'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
-const read=file=>fs.readFileSync(file,'utf8');
-const {execFileSync}=require('node:child_process'),os=require('node:os'),path=require('node:path');
-/* The homepage ENTER THE DARKNET DISTRICT button is NOT on the live homepage: it is an isolated patch (docs/development/homepage-entry/). This returns the homepage files as they would be once the patch is applied. */
-const patchedHomepage=()=>{const dir=fs.mkdtempSync(path.join(os.tmpdir(),'tdd-home-'));for(const f of['index.html','accents.css'])fs.copyFileSync(f,path.join(dir,f));
- execFileSync('git',['init','-q','.'],{cwd:dir});execFileSync('git',['apply',path.resolve('docs/development/homepage-entry/activate-homepage-entry.patch')],{cwd:dir});
- return {index:fs.readFileSync(path.join(dir,'index.html'),'utf8'),accents:fs.readFileSync(path.join(dir,'accents.css'),'utf8')};};
-test('the homepage is unchanged for the first test: the entrance button is only in the isolated patch',()=>{const home=read('index.html');assert(home.includes('tdd-vr'),'the Void Runner teaser is still on the live homepage');assert(!home.includes('tdd-enter-button'),'the ENTER button is not published');assert(fs.existsSync('docs/development/homepage-entry/activate-homepage-entry.patch'));});
-test('the prepared patch makes the existing title the accessible game link',()=>{const home=patchedHomepage().index,css=patchedHomepage().accents;assert.match(home,/<a class="tdd-title-link" href="void-runner\.html"/);assert.match(home,/<span class="tdd-title-enter"[^>]*>ENTER<\/span><h1 class="cyberpunk-title"/);assert(home.includes('games-list.html'), 'phones keep a website route');assert(css.includes('.tdd-title-link:focus-visible'));assert(fs.existsSync('void-runner.html'));});
-test('the entrance (with the patch) promises no multiplayer',()=>{assert(!/multiplayer|other players/i.test(patchedHomepage().index));});
-test('the Arcade no longer lists the game; the others and the game files remain',()=>{for(const file of['games-list.html','static/games-list.html']){const s=read(file);assert(!/void.?runner/i.test(s),file);for(const game of['/origins/index.html','blackout-protocol/','raven.html'])assert(s.includes('href="'+game+'"'),game);}for(const kept of['void-runner.html','static/void-runner.html','void-runner-sw.js','void-runner-backdrop.js','void-runner/game.js','void-runner/save-manifest.json'])assert(fs.existsSync(kept),kept);});
-test('players see The Darknet District name; internal ids and file names stay',()=>{const shown=['void-runner.html','void-runner/menu.js','void-runner/skirmish.js','void-runner/flight-skirmish.js','void-runner/unified-controls.js','store-first-page.html'];const screens=read('void-runner.html').split('<noscript>')[0]+read('void-runner/menu.js');assert(screens.includes('THE DARKNET<br>DISTRICT'));for(const file of shown){const s=read(file).replace(/\/\*[\s\S]*?\*\//g,'').replace(/console\.\w+\([^\n]*/g,'');assert(!/VOID\/\/RUNNER|VOID<(span|b)>|CARGO &/.test(s),file);}assert(read('void-runner/game.js').includes('SAVE_KEY'));assert(read('void-runner.html').includes('void-runner/game.js'));});
+const read=f=>fs.readFileSync(f,'utf8');
+test('the existing homepage uses the readable green ENTER link and does not replace other navigation',()=>{
+ const home=read('index.html');
+ assert.match(home,/<a class="tdd-enter-logo" href="void-runner\.html" aria-label="Enter The Darknet District">/);
+ assert.match(home,/<span class="tdd-enter-corner" aria-hidden="true">ENTER<\/span>/);
+ assert.match(home,/<h1 class="cyberpunk-title"[^>]*>The Darknet District<\/h1>/);
+ assert.match(home,/\.tdd-enter-logo:focus-visible/);
+ assert.ok(home.includes('games-list.html'),'other games remain reachable');
+ assert.ok(fs.existsSync('void-runner.html'));
+});
+test('the homepage does not promise working multiplayer',()=>{
+ assert.doesNotMatch(read('index.html'),/\bmultiplayer\b|\bother players\b/i);
+});
+test('the Arcade no longer presents the old Void Runner card',()=>{
+ for(const f of ['games-list.html','static/games-list.html']){
+  const page=read(f);
+  assert.doesNotMatch(page,/href="void-runner\.html"/);
+  for(const game of ['/origins/index.html','blackout-protocol/','raven.html'])assert.ok(page.includes('href="'+game+'"'),f+' '+game);
+ }
+ for(const f of ['void-runner.html','static/void-runner.html','void-runner-sw.js','void-runner-backdrop.js','void-runner/game.js','void-runner/save-manifest.json'])assert.ok(fs.existsSync(f),f);
+});
+test('game entrypoint displays The Darknet District, while internal filenames remain stable',()=>{
+ const html=read('void-runner.html'),menu=read('void-runner/menu.js');
+ assert.ok(html.includes('THE DARKNET<br>DISTRICT'));
+ assert.ok(html.includes('void-runner/game.js'));
+ assert.ok(read('void-runner/game.js').includes('SAVE_KEY'));
+ assert.equal(html,read('static/void-runner.html'));
+ assert.doesNotMatch(menu,/VOID\/\/RUNNER/);
+});

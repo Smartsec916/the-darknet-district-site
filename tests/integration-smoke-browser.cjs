@@ -31,7 +31,7 @@ const OLD_SAVE=JSON.stringify(old);
   const r=await pg.evaluate(()=>({area:walkingLocation.area,flags:{area:state.story.flags.area,pool:state.story.flags.missionPool,ship:state.story.flags.shipAccess,pod:state.story.flags.podWakePending},hasShip:VoidShips.hasShip(state),missions:VoidMissions.all(state,C).length,weapon:state.progression.personal.weapon,local:VoidNeoChinatown.toWorld(walker.x,walker.z)}));
   console.log(tier,'new campaign',JSON.stringify(r));
   assert.equal(r.area,'interior');assert.deepEqual(r.flags,{area:'district',pool:'closed',ship:'none',pod:true});assert.equal(r.hasShip,false);assert.equal(r.missions,0);assert.equal(r.weapon,null);assert(Math.abs(r.local[0]+15.4)<.1&&Math.abs(r.local[1]-57)<.1,'inside pod 01');
-  await pg.click('#pod-wake button');await walking(pg);
+  await pg.evaluate(()=>{state.story.flags.appearanceOffered=true;});await pg.click('#pod-wake button');await walking(pg);
   const exited=await pg.evaluate(()=>({local:VoidNeoChinatown.toWorld(walker.x,walker.z),pending:state.story.flags.podWakePending,saved:JSON.parse(localStorage.getItem('void-runner-campaign-v1')).story.flags}));
   assert(Math.abs(exited.local[0]+12.5)<.1&&Math.abs(exited.local[1]-57)<.1,'Exit Pod leads to the room floor');assert.equal(exited.pending,undefined);assert.equal(exited.saved.area,'district');
   const adminNotice=await pg.evaluate(async()=>{VoidInteractions.handlers.get('admin')();await new Promise(r=>setTimeout(r,500));return {speech:!!speech,notice:document.getElementById('notice').textContent};});

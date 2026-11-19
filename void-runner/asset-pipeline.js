@@ -125,6 +125,8 @@
     // (12 on ANGLE/D3D11): shaders fail to compile and models and walls silently stop drawing. Put them back
     // within eight lights, the most any scene here is built for (Meridian).
     for(const m of [...container.materials,...scene.materials])if(m.maxSimultaneousLights>8)m.maxSimultaneousLights=8;
+    // Character models get their edge light now, before any of their materials is prepared (character-finish.js): a material's plugins must be in place first.
+    try{globalThis.VoidCharacterFinish?.applyContainer?.(id,container);}catch(error){console.warn('[VOID//RUNNER character finish]',error);}
     return container;
   }
 

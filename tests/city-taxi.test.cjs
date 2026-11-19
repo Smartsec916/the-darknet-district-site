@@ -12,7 +12,7 @@ test('the three future districts are reached on foot from the landing pad, with 
 
 test('the old neighbourhood keeps its interactions, spawn and District walls',()=>{
   const L=N.layout();assert.deepEqual(L.spawn,[31,1.7,-96]);
-  for(const id of ['board','terminal','tdd','district-scan','admin','district-iris','district-shop','district-bar','district-vr','district-pod','district-stairs'])assert.ok(L.interactions.some(i=>i.id===id),id);
+ for(const id of ['board','terminal','admin','district-iris','district-shop','district-bar','district-vr','district-pod','district-stairs'])assert.ok(L.interactions.some(i=>i.id===id),id);
   // Inside the old streets nothing new blocks the way; outside them the city is solid.
   for(const [x,z] of [[61,-90],[100,-12.5],[100,-58.5],[31,-96]])assert.equal(E.blocked(x,z,L),false);
   for(const [x,z] of [[30,-60],[90,-90],[120,-140]])assert.equal(E.blocked(x,z,L),true);

@@ -1,64 +1,449 @@
-# Claude Code ↔ Codex handoff
+# The Darknet District — current AI handoff
 
-**Active integration branch:** `codex/conversations-character-foundation`. GitHub HEAD was verified as `837affa17ab980e2a1884173efe220d4d39ef4fe` on 2026-11-05, before this documentation update. The branch's **current** head is always the result of `git ls-remote origin refs/heads/codex/conversations-character-foundation`; do not treat this snapshot hash as a permanent tip. This branch is unmerged and unpublished. No draft PR exists because `api.github.com/graphql` returned `Forbidden`.
+**Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions. David's reference pictures from 12 Nov 2026 are written out in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) so later work can use them without the files. The images are not in the repo yet ([`references/README.md`](references/README.md)).
 
-## Start every session
+**Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
 
-1. Read `AGENTS.md`, `CLAUDE.md`, this file, and `AI_ROADMAP.md`. For canon and older decisions, follow `VOID_RUNNER_HANDOFF.md` and `CODEX_HANDOFF.md`; their older branch/start descriptions are historical.
-2. `git fetch origin --prune`; check `git status --short --branch`, `git rev-parse HEAD`, and `git ls-remote origin refs/heads/codex/conversations-character-foundation`. Confirm the local checkout contains the remote tip before editing. If the branch has moved, fetch and inspect its commits; if work is dirty or histories diverge, preserve both and reconcile explicitly. Never silently use `main`, force-push, reset, or overwrite the other AI's unmerged commits.
-3. Keep this as the sole active integration branch until the owner directs a change. Use a separate feature branch from its verified tip when isolation helps; integrate it back only after review. Do not merge to `main`, deploy, alter production systems, delete saves, or buy services without the owner's approval.
-4. Before ending: run tests relevant to the edit, update this handoff with exact completed/pending work and the next task, commit, push the development branch, and verify its remote head. Report any push or draft-PR failure plainly. Record the last **feature** commit here; use the remote-head command for the latest documentation commit, avoiding a self-referential hash.
+## 12–13 Nov 2026: District interior rebuild under way
 
-## Current development state
+- David ordered the whole interior rebuilt with Blender-made assets. Plan, method and state per area: `docs/development/DISTRICT_INTERIOR.md`. First versions are live for the security vestibule, main hallway, Sleeping Pod hatches, the Admin & Iris shop, the arcade and the VR area (PRs #249 to #254).
+- Pieces are built by `tools/assets/kit/build_kit.py --interior` into `void-runner/assets/models/district-interior/` (bare GLBs) and placed in `neochinatown.js` with `kitPiece()` / `kitAt()`, sharing one material per name (`kitMat()`); most join the per-material mesh merge. Old plain geometry stays as the fallback.
+- Not judged on real hardware: brightness. The interior is at the 12-light limit, so the new surfaces rely on glow and a faint self-light.
+- Still to do: hallway shop-front dressing and clutter, pod room walls/ceiling/interiors, shop display cases, bar and meeting room, ambient people, Admin and Iris looks (reference pictures supplied; needs David's go).
 
-- **Playable foundation:** New and returning desktop campaigns wake in Sleeping Pod 01; Exit Pod enters the District. Old tutorial/cargo/story mission triggers are closed while definitions, editor content, saves, credits, ships, and historical progress remain. The earlier Tesana-inspired pod 01 panels, CC0 texture maps, hosted playlist, browser-local personal music, spectrum, and lights remain. Other nine pods and protected world geometry are untouched.
-- **Site/test gate:** The unlisted desktop route and phone gate remain; phones load the regular site, not the game. Website Sleeping Pod Iris was removed, in-game Iris remains separate from the site chatbot, obsolete Share Links are removed, and the homepage ENTER patch remains unpublished.
-- **Social:** Player/NPC cards share one visible design. The common walking `talk()` path, including VR companion calls, uses a floating, minimizable message panel; movement and camera continue. Local NPC history is scoped by account UID or guest browser and filtered in Social. It is not player messaging or cross-device history.
-- **Character and achievements:** A server-authorized create-once endpoint stores one character choice in the existing account record without changing saves. Two existing District crowd looks have baked hair/clothing; the player model is not rendered in-world. Admin can reserve the Admin look in that same slot, but cannot yet play as Admin. Achievement categories, public-display ordering, progress previews, and an administrator-only **read-only** catalog exist; no authoritative unlock/edit/grant service exists.
+## 12 Nov 2026 (late): building kit finished; haze and dimness fixed
 
-Latest feature commits on this branch: `dbab0e5` (archived mission guards), `a1d1e10` (conversations and characters), `837affa` (NPC read state), `f84fda3` (previous handoff), and the commit that adds `floatChoices` to `void-runner/prologue-integration.js` (find it with `git log --oneline -3 -- void-runner/prologue-integration.js`; build `2026-11-05-conversations-character-2`). That commit moves Mara's two archived Vesper tutorial choices ("A last gift" pistol and "Before you go") from full-screen `panel()` into the floating, non-blocking conversation window; handlers and save effects are unchanged. See `CONVERSATION_CHARACTER_MILESTONE.md`, `SOCIAL_FOUNDATION.md`, and `TESANA_ASSET_AUDIT.md` for detail; do not duplicate their audits here.
+- **Modular building kit** for NeoChinatown: 47 pieces in `void-runner/assets/models/kit/` with `kit-manifest.json`, built by code (`tools/assets/kit/`). Not used by the game yet. Next step and all rules: `docs/development/BUILDING_KIT_HANDOVER.md`. Shop-sign wording is a placeholder awaiting David.
+- **Graphics:** #241 (sharpness / Ultra) had also doubled bloom and glow and lowered exposure; #246 and #247 put bloom, glow, exposure and the street's faint self-light back. Sharpness and Ultra are kept. High is still the default quality on every device.
+- **CI:** the browser smoke job is green again (#244). Its Blackout account-save section reports 'not run': the client half of that feature is only on `codex/blackout-district-production-integration` and needs David's decision before merging.
+- **Next (David's order):** rebuild the District interior area by area with Blender-made assets, starting at the security vestibule; references are described in `VISUAL_REFERENCES.md`.
 
-## Verification and limits
+## How the handoff works
 
-Last development run (2026-11-05, after the panel conversion): Node **609 passed, 1 skipped** (admin inventory regenerated); Python save tests passed; Python API/save **36 passed**; local Chromium low/high conversation checks passed movement, mouse look, minimize/restore, Social filters and no page errors; device gate **9/9** passed with emulated devices. Browser graphics used software GL. No physical GPU/ROG Ally, real account API, full VR companion playthrough, long-distance conversation, or two-client multiplayer test has passed.
+There is no generator script. The next model follows this reading order:
 
-Conversation verification (2026-11-05, local Chromium, software GL, no real GPU): **`tests/vr-conversation-browser.cjs`** enters the real VR bedroom through the VR menu and talks to a companion through the world interaction (not a helper). It passed at **Low and High**: the dialogue floats and the mode stays `walking`; walking away (about 8 m from the companion) neither closes the conversation nor locks movement; the choice menu is still there afterwards; "Never mind" closes it and returns to free walking; the companion model keeps its mesh count and a playing animation and its position is unchanged, with no page errors. Only the companion's model was observed, not VR assets in general; no VR asset, animation, companion movement or environment code was changed (this session changed tests and docs only; no game file, so no `BUILD` bump). **Ava and Eva's models are licensed and absent from the open repository**, so the test uses the first installed companion (Kai here); Ava/Eva conversations were not run.
+1. **This file, Start here** — what is true now, what is in flight, and what is waiting on David.
+2. [`AI_ROADMAP.md`](AI_ROADMAP.md) — the current work sequence. October campaign milestones in other files are history.
+3. [`CLAUDE.md`](../../CLAUDE.md) and [`AGENTS.md`](../../AGENTS.md) — how to work in the repo, saves, voices, tests, and line endings.
+4. [`VOID_RUNNER_HANDOFF.md`](../../VOID_RUNNER_HANDOFF.md) — decision log and older canon. Its October 2026 "what the game does today" (start on Vesper, tutorial, starter ship) is **not** the live game. Do not restore that opening.
+5. [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) — David's 12 Nov 2026 reference pictures, as written descriptions. The image files are still pending. Follow the entry when that character, place, or lighting job is in scope. The file does not authorise a Sleeping Pod room change, or a change to the VR play area's two divided areas.
 
-High mouse-look timeout: **a test problem, not a gameplay problem.** A probe showed headless Chromium reports pointer-lock movement from the absolute cursor position and re-centres with a matching negative event (+640, -640, then +675, -675). The old check compared the yaw with its value before the click, so it passed or failed depending on which of those events had landed, and a frame takes about a second at High under software GL. `tests/conversation-browser.cjs` now (1) requires real mouse input to reach the canvas under pointer lock and (2) dispatches a locked `pointermove` of known size with the conversation open and asserts the yaw changes by exactly `movementX x sensitivity`, which is stricter than before. Results: Low 1/1, High 3/3 (plus the VR run at both). The VR test also holds the movement key until a real distance is covered rather than for a fixed time, since distance depends on frame rate. Remaining untested: a real mouse on a physical PC, real GPU frame rates, Ava/Eva, and the moving-away case with two companions.
+The documents in this table are snapshots. Do not treat them as the place to start:
 
-Account/character and avatar milestone (2026-11-05): **`docs/development/LOCAL_API_TEST.md`** describes a free, isolated test environment: the real Firebase Auth and Firestore **emulators** (project `demo-darknet-local`, localhost only) plus the real `void_runner_api.py` over HTTP. `tests/test_character_emulator.py` (skipped when no emulator runs; refuses to run with real credentials or non-local addresses) passed 5 of 5 consecutive runs and proves: one character per registered account (12 simultaneous creates give exactly one 201); guests (anonymous accounts) get 403 and cannot adopt another uid; invalid, extra-field, wrong-type and injection-style bodies are 400, other verbs 405, and a valid campaign save cannot create or change a character; only a uid in `VOID_ADMIN_UIDS` can choose Admin; the character persists across a fresh sign-in. **One real bug found and fixed in `void_runner_api.py`:** under heavy contention the loser of simultaneous creates got a generic 500 after Firestore gave up; it now returns 409 (already created) or 503 (busy, retry); a unit test pins it. The data was always safe (still one character). **Not verifiable here:** the deployed Firestore security rules (the repository holds only deny-all merge fragments, not the complete ruleset), so whether a logged-in browser could write `vr_players` directly is unknown; recorded as a pending administrator action, not requested now. The in-browser account panel was not driven against the emulator.
+| Document | Why it is not the start |
+|---|---|
+| Historical log in this file | Dated snapshots. Headings that used to say "newest; read first" are renamed. |
+| [`CODEX_HANDOFF.md`](CODEX_HANDOFF.md) | 4 Nov 2026. Told Codex to start on `claude/first-test-readiness` and said nothing was on `main`. That work has since shipped. |
+| [`CODEX_TO_CLAUDE_HANDOFF_2026-11-06.md`](CODEX_TO_CLAUDE_HANDOFF_2026-11-06.md) | 6 Nov 2026 hub notes. `main` was still `7f2e8b1`. |
+| [`FIRST_LIVE_TEST_RUNBOOK.md`](FIRST_LIVE_TEST_RUNBOOK.md) | Written before the first live test. The District game is on the public site now. |
+| `docs/VOID_RUNNER_FREE_AI_VOICE_COMPARISON.md` | 15 Oct 2026. Still useful on engine choice (Kokoro). Line count "136" is stale. |
+| `tools/animation-pipeline/README.md` opening | Says the game ships no rigged humanoid. Companions and the crowd do. |
 
-Avatar rendering: **`void-runner/avatar-preview.js`** (localhost and `?avatar-preview=1` only; absent otherwise, pinned by tests) places the chosen District look in front of the player using the existing crowd loader and animation; it adds one copy, touches no NPC (existing crowd node count unchanged), and matches the same-look NPC's measured height. It works inside The Darknet District (the street does not load the district looks; the interior does). Admin has no animated model (it is a built-in procedural figure), so it is reported as unavailable. Verified at Low and High with software GL; screenshot reviewed. Observation not investigated: the "SLEEP PODS" hall sign looked mirrored from the pod doorway angle in that screenshot.
+## Start-here checklist
 
-Multiplayer assessment: **`docs/development/TWO_CLIENT_SOCIAL_TEST_PLAN.md`**. No realtime transport exists; the 2026-11-04 plan recommends a small hub modelled on the Iris service. The plan lists what can be tested locally for free (dev hub on localhost, emulator tokens, two Playwright browser contexts) and what needs approval (any hosting, real Firebase auth for the hub, publishing, stored data, Firestore rules, real hardware).
+1. `git fetch origin main` and branch from current `main`. Do not branch from the old Codex or #196–#199 stack.
+2. Read this Start here section, then `AI_ROADMAP.md`, then `CLAUDE.md`.
+3. **Merge only when David says "push", "pull it", or "go ahead and pull."** That means merge the finished pull request into `main`. Opening a pull request is not merging. Silence is not approval.
+4. **Desktop and VR headsets only.** Phones stay on the normal site and must not download the 3D game (`void-runner/device-gate.js`). Do not lift that block. The four VR areas are in-engine first-person scenes, not WebXR. No `WebXR` / `createDefaultXR` usage is in `void-runner/*.js`.
+5. **Leave the Sleeping Pod room and the music player alone** unless David asks, or a change cannot be made without them. If a game-wide graphics change would alter the pod, leave the pod meshes out and say so. Pod code is in `void-runner/neochinatown.js` (pod interior, `drawPodPlayer`, `drawPodLights`, `drawPodVending`) and `void-runner/pod-music.js` / `void-runner/world-integration.js`.
+6. **Licensed models stay private.** Repo: `Smartsec916/void-runner-licensed-assets`. `tools/assets/pack-model.cjs` scrambles a GLB into `.vrpak` (magic `VRPK`). That scramble is not encryption. `tools/assets/build-pages.cjs` seals `.vrpak` / `.vrtex` as **VRPE** (AES-256-GCM) at the GitHub Pages build. Never commit source models, pack keys, or `VOID_ASSET_KEY` material to this public repo. Some marketplace licences are **No AI**: do not use those files for AI training. Ordinary rendering and the authorized convert/seal path are separate.
+7. Story, canon, factions, and mission arcs: propose 3–5 options and wait. Graphics, bug fixes, and features David already asked for: implement on a branch. Plain language when writing to David. He is not reading code.
+8. `void-runner.html` and `static/void-runner.html` stay byte-identical. Bump `BUILD` in `void-runner-sw.js` when any game file changes. Current stamp on this commit: `2026-11-12-null-club-1`.
+9. `npm test` before a pull request. Do not put secrets, tokens, or device codes in docs, commits, or chat.
+10. Do not start a second copy of the four visual wins. Dolphins already merged as #240. Check GitHub before starting a visuals branch; if that agent has since opened a pull request, use it.
+11. When a job named in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) is in scope, follow that entry. Each image is still pending. That file does not allow a Sleeping Pod room change, or a change to the VR play area's layout.
 
-Test environment note: `tests.test_void_runner_api::test_actual_stripe_signature_verification` fails in this sandbox because it has `stripe` 16.1 while `requirements-void-runner.txt` pins `<15`; it fails identically before this work (checked by stashing) and is unrelated. `npm test`: 611 passed, 1 skipped (admin inventory regenerated, `BUILD` is `2026-11-05-conversations-character-3`); other Python API/save tests pass.
+## What is on main (code, 12 Nov 2026)
 
-Local two-player prototype and Firebase audit (2026-11-05, build `2026-11-05-conversations-character-4`): **`docs/development/MULTIPLAYER_PROTOTYPE.md`** and **`docs/development/FIREBASE_MULTIPLAYER_AUDIT.md`**. A local dev hub (`tools/district-hub/`: pure rules in `protocol.cjs`, `ws` transport, emulator-only providers) and a localhost-gated client (`void-runner/remote-players.js`, needs `?multiplayer=1`) let two independent browsers, signed in as emulator accounts, see each other in the District interior wearing the character the server stored, with position, facing and walk/idle in sync. Tests: `tests/district-hub-protocol.test.cjs` (9) and `tests/remote-players.test.cjs` (3) in `npm test` (623 passed, 1 skipped); `tests/district-hub-ws.cjs` (4, real sockets and emulators); `tests/multiplayer-browser.cjs` passed at **Low** (other player exact, facing within 0.03 rad, settled in about 0.5 s) and **High** (settled in about 8.6 s at roughly 1 frame per second under software GL; models 1.96 m, same as NPCs). Regression re-run after the change: conversation browser (Low), VR conversation (Low), device gate 9/9, pod music 21/21 (Low); NPC count, story state, credits and location unchanged. Bugs found and fixed by the tests: duplicate simultaneous client connections, a hello deadline too short for a starved client, walking judged by real-time speed (a slow machine never reached it; now by distance moved with a 450 ms hold). Dependency: `ws` as a root devDependency (already used by the Iris service); CI unit tests need no install because the pure rules do not import it. VR models, animations, movement and environment were not touched. **Not done and not claimed:** public multiplayer, hosting, chat, trading, street rooms, name tags, real GPU or latency testing, or more than two real clients.
+The live game is **The Darknet District** in NeoChinatown, Tessaly System. A new campaign has **no active missions and no starting ship**. Every login should wake in that player's own Sleeping Pod. First-time appearance customization happens **before EXIT POD**. The homepage ENTER control is the way in. It is not the spawn point.
 
-The Firebase audit corrects an earlier note: the repository holds deny-all Firestore rule **fragments** for every private collection but not the deployed, complete ruleset. **Pending administrator action (recorded, not requested):** review the deployed rules, Firebase plan, Auth providers, App Check and the Render API settings. Key audit findings: Firebase is suitable for identity and durable data, not for position streaming (would exhaust the 20,000 free writes in about 5.5 player-hours); no real-time code existed before this prototype (Iris lists `ws` but has no socket server); credits and gear in the cloud save are browser-reported, so trading needs a server-owned vault first.
+Shipped on `main` by 12 Nov 2026 (newest first):
 
-Secure hub, prepared not deployed (2026-11-05, build `2026-11-05-conversations-character-6`): **`docs/development/HUB_DEPLOYMENT.md`** (what is ready, what needs configuration, the minimum steps for a real two-person test, security notes, rollback) and the hub security review in `FIREBASE_MULTIPLAYER_AUDIT.md` section 8b. The hub moved to `tools/district-hub/` and has two modes: `emulator` (local) and `production` (`HUB_MODE=production`): Firebase ID-token verification with Google's public keys (`google-auth.cjs`, a port of the Iris method), character and handle read from the existing game API using the player's own token (`api-providers.cjs`, no Firebase credential and no database in the hub), a required `HUB_ALLOWED_UIDS` allow-list plus `HUB_DENY_UIDS`, exact-origin check, connection and rate limits (`limits.cjs`, `config.cjs`), a `/health` page, 1012 on restart, a free-plan Render Blueprint draft with `autoDeploy: false` (`render.yaml`) and its own `package.json` and lock (one dependency, `ws`). Client (`void-runner/remote-players.js`): name tags from registered handles (`Guest-xxxx` fallback), interior-only connection, backoff and restart handling, and live-site gating that only a tester's own stored flags can enable. Tests: `npm test` 636 passed, 1 skipped (new: `district-hub-production`, `district-hub-render`, `remote-players`); `tests/district-hub-prod-ws.cjs` 5 and `tests/district-hub-ws.cjs` 4 over real sockets; `tests/multiplayer-prod-browser.cjs` (two accounts through the production path with signed test tokens and an in-process fake of the game API) passed at **Low** (position exact, reconnect after a hub restart about 5 s) and **High** (about 30 to 55 s at roughly 1 frame per second); the emulator-path `multiplayer-browser.cjs` passed at Low; regression re-run: conversation (Low), VR conversation (Low), device gate 9/9, pod music 21/21. Not tested: a real Render host, real Google tokens, a real game API, a real GPU, more than two real clients. Bugs found and fixed on the way: the hello deadline was too short for a busy page (now 45 s and the client waits for the room to finish loading), the avatar height check counted the tag, and the NPC-count check counted the remote avatar's bones. **Nothing was deployed or merged; no Render, Firebase, Firestore or Neon setting was touched; no paid service was added.**
+| PR | What landed |
+|---|---|
+| #240 | Tropical Escape dolphins. Quaternius Animated Fish Pack dolphin (CC0), swim clip, surface leaps and splashes offshore of the beach and pier. Model `void-runner/assets/vr/models/dolphin.glb`. No crabs. Credit in `docs/VOID_RUNNER_ASSET_LICENSES.md`. Merge `4fc1a70`. |
+| #238 | **NULL** nightclub is on for everyone. Interior is code-built in `void-runner/ncz-nightclub.js` (`buildOwn()`): dance floor, DJ, bar, VIP, people. A purchased `nightclub.vrpak` is used automatically if it is published later. See `NIGHTCLUB_NULL.md`. Street players are still not shared, so the club is solo. |
+| #237 | Small arcade, five cabinets, off the hallway. The middle cabinet opens the real Blackout Protocol page. `district-arcade.js`, `ARCADE.md`. Four other titles are working names waiting on David. |
+| #236 | Sleeping Pod free look and E/M/V shortcuts. `SLEEPING_PODS.md`. |
+| #235 | Pods moved to the rear (hallway ends in the pod room). Stairs to the terrace moved to the east end. Wardrobe on the entrance wall. Old west room is the arcade. Use `VoidDistrictArea.podBed` / `podExit` / `POD_VIEW`. |
+| #234 | Alley life: people, props, steam. No new alley sound. `ncz-alley.js`, `ALLEY_LIFE.md`. |
+| #233 | Fishing from the Tropical Escape pier. "Catch 100 Fish" is progress on the player's own profile until server-verified unlocks exist. `ACHIEVEMENTS.md`. |
+| #232 | VR-exit checkpoint fix (appearing in the vestibule no longer throws the player outside). Bedroom simulation is back and shareable. Companions are simulated per player, not synchronised. |
+| #231 | V1 map is a real city map with zoom, pan, and a direction waypoint. No pathfinding. `district-map.js`. |
+| #230 | Vestibule exchange only after both doors report shut. `VESTIBULE_CHECKPOINT.md`. |
+| #229–#228 | Character-creator stage lighting; menu city backdrop. |
+| #227 | Shared VR sessions (public list, or private 8-character code). `VR_SESSIONS.md`. |
+| #226 | Multiplayer presence: stay online in pod screens; on-screen ONLINE / SOLO chip. |
+| #225–#223 | Pod wall: vending (flavour only, no credits), light panel, music-player face. |
+| #222 | Pod surfaces follow the Tesana design. |
+| #220 | V1 holographic device (L). Mission Log empty. Camera and Gallery are placeholders. |
+| #217 | District runtime, ten personal pods, creator first. |
+| #214, #212 | Favicon, then the District entry integration. **#212 merged 11 Nov 2026.** It is not an open draft to hold. |
 
-Pending administrator action (recorded, not requested): review of the deployed Firestore rules, Firebase plan, Auth providers, App Check and the Render API settings (`FIREBASE_MULTIPLAYER_AUDIT.md` section 10).
+`WEBSITE_PLAYLIST` in `void-runner/pod-music.js` is **`true`** on this `main`. The 4 Nov note that the 27 songs are off in the game is stale. The website Sleeping Pod page has its own player either way.
 
-Playable-test preparation, tester experience and trading foundation (2026-11-05, build `2026-11-05-conversations-character-10`; the commit that adds `trade-window.js`, `trade.cjs` and `ledger.cjs` is the feature commit):
+Render (hub and game API) was last described in the 11–12 Nov diary as deployed from `main` with registered-account hub access. This checkout cannot see Render. Re-check the live services before changing them. Do not deploy, buy, or change secrets without David.
 
-- **Inspection first.** Open draft PRs: #196 (this branch), #195 (Codex, stage 3C publication adapters, based on `integration/codex-start`), #194 (first-test readiness), #192 (pod personal music) and the stacked District PRs #183 to #190 (all verified **contained** in this branch's history), and two documentation-only branches that are **not** contained: #193 `claude/codex-handoff` (3 newer commits: later edits to `CODEX_HANDOFF.md`, `FIRST_LIVE_TEST_RUNBOOK.md`, `MUSIC_LICENSING.md`, `TESANA_ASSET_AUDIT.md`, the homepage-entry patch notes, and the District map folder; expect documentation merge conflicts in those files) and #191 `claude/social-universe-plan` (one new plan document, no overlap). **Conflict to review:** merging #195 into this branch conflicts in `void-runner.html`, `static/void-runner.html`, `void-runner-sw.js` (BUILD), `void_runner_admin_inventory.json` and `tests/test_spectre_cors.py`, with automatic merges in `void-runner/story.js` and `void_runner_api.py`. The conflicts are mechanical (script tags, build stamp, generated inventory) but they are another agent's unmerged work, so nothing was resolved or touched. Whoever merges second should regenerate the inventory (`node tools/admin-inventory.cjs`) and re-sync `static/void-runner.html`.
-- **Status check of earlier decisions** (pinned by `tests/unlisted-test-readiness.test.cjs`): the game page is `noindex`, absent from the sitemap and from the shop; the homepage (`index.html`, `static/index.html`) is byte-identical to `main` and has no entrance (the button stays the unapplied patch); the website Sleeping Pod page and the game page carry no Iris chatbot; Share Links stay retired (`share-links-removed.test.cjs`); phones never download any game script (device gate, 9/9). **Music:** the shared 27-song playlist is **on** in the 3D pod (`WEBSITE_PLAYLIST=true`, the owner's request), personal songs stay browser-only; this differs from the readiness PR #194, which had it off pending rights. The licensing record (`MUSIC_LICENSING.md`) still lists the 2025 Riffusion/Producer.ai terms as unverified, so this is an owner decision to confirm before a live test. **Music Manager:** still only a proposal (`MUSIC_MANAGER_DECISION.md`); no code exists, it needs an upload endpoint on the Render API and storage, so it is left unbuilt.
-- **Tester experience without browser tools.** Settings now has **Multiplayer test > JOIN / LEAVE** (`remote-players.js`), shown on the live site only when `LIVE_HUB` (a constant in that file, **empty**) names a `wss://<name>.onrender.com` hub, so today nothing is shown or connected there. The server's allow-list is unchanged and remains the real gate; the Settings line explains each state in words ("Waking the test server...", "Your account is not on the test list"). Also: a paused or in-menu player stays connected and visible (standing still); name tags are smaller, hidden beyond 30 m. `tests/multiplayer-menu-browser.cjs` covers the button, and the leave and re-join path.
-- **Pods.** `POD_ENVIRONMENT_REVIEW.md`: pod 01's Tesana detail uses only shared materials and two shared textures, and static meshes merge per material, so giving pods 02 to 10 the same detail would add about 8,000 vertices and no textures, materials, lights or draw calls; recommended as a refactor into one function, **not done** (the other nine pods are an owner decision, and the floor plan and allocation are open).
-- **Character presentation and movement:** no change was necessary; saved appearance and existing animations are preserved (hub-assigned model, idle and walk only).
-- **Player-to-player trading (foundation, real transfer disabled).** `TRADING_ARCHITECTURE.md`. Built: the trade state machine (`tools/district-hub/trade.cjs`), the trade catalog and offer validation (`trade-items.cjs`), a ledger interface with a disabled production ledger and a **simulated** test ledger (`ledger.cjs`), hub integration (`protocol.cjs`, `hub-server.cjs`, `config.cjs`), and the client prompt, request and cyberpunk two-column trade window (`void-runner/trade-window.js`, shown only if the hub reports trading, with a permanent SIMULATED INVENTORY banner). Rules proven by tests: start only within 3 m in the same room, one session per player, accept or decline, cancel at any time, walking beyond 4.5 m, leaving, replacing or a location change cancels, offer changes clear both confirmations and confirmations are bound to the offer version, final settlement is one all-or-nothing, replay-safe ledger call. **Production cannot enable it:** the hub refuses `HUB_TRADING` and any injected ledger in production mode, the default ledger refuses everything, and the Render blueprint has no trading setting. Tests (`npm test` 670 passed, 1 skipped, with or without `npm install`; Low and High browser runs on software rendering, High about 1 frame per second): `trade-ledger` (11, a contract any future ledger must pass, including concurrency, injected failures and randomized conservation), `trade-session` (14 including a 3,000-step fuzz), `district-hub-trade-ws.cjs` (7 over real sockets), `trade-browser.cjs` (two browsers: prompt, request, decline, accept, edit, confirm, exchange, walk-away cancel, and a hub with no ledger shows nothing). **Not functional and not claimed:** any real item or credit movement, a persistent ledger, server-owned inventory, merchants, or the admin dispute viewer. What a persistent server-owned ledger needs, and what remains before safe real-player trading, is in `TRADING_ARCHITECTURE.md` sections 4 and 7: the owner must first decide what is tradable, what players start with and how local and vault credits relate.
-- **Bugs found by the new tests and fixed:** the trade window's draft could be wiped by an update from the other player, a redraw on blur swallowed the next click, a window stayed stale if the credits field was focused when a trade ended, and the hub client stayed disconnected while a menu was open.
+**Still open on GitHub, and not a base to branch from.** Drafts #196, #197, #198, #199, #195, #207, #208, and the older unmerged stack #176–#191. Much of that work already arrived on `main` by later pull requests. Do not merge those stacks wholesale. Closing them is David's decision.
 
-Character model and customization audit (2026-11-05, documentation and an analysis tool only; **no game file, model or server code changed**, so no `BUILD` bump): `CHARACTER_MODEL_AUDIT.md` (what is really present, measured) and `CHARACTER_CUSTOMIZATION_PLAN.md` (staged plan), with the raw measurements in `docs/development/character-audit/*.json` and the read-only tool `tools/assets/analyze-character-models.cjs` (reads GLB files and ZIP members without extracting). Findings in one place:
-- **Present:** 22 MakeHuman/MPFB CC0 character files (72.8 MB, 29k to 55k triangles each, 7 to 12 draw calls, 512 px textures, 5 to 24 embedded clips) plus a rig test. They are finished characters, not a creator kit, but each is built from **separate meshes** (body, hair, outfit, shoes, face parts, accessories) on **one identical 52-joint `mixamorig:` skeleton** (verified by `tests/character-assets.test.cjs`). The current player looks are `district-smuggler` (male, about 1.96 m) and `district-resident` (female, about 1.33 m).
-- **In the repository:** 9 hairstyles, 12 outfits (5 male and 2 female are licence-clear CC0 items), 5 shoes, a fedora and 5 accessory types, 13 skin textures, but only inside those files, each **fitted to its own body**. The MakeHuman, MPFB and "Suits 02" libraries, the 113-clip FBX archive, the Quaternius animation pack, Mixamo and Rokoko downloads are **not in the repository** (they are on the owner's machine). The paid companion models (Ava, Eva, Una, Yuki, Dex) are absent; only Nadia's scrambled `.vrpak` is present.
-- **Not possible with these models:** facial sliders and expressions (no morph targets, no face bones). **No built file has run, jog, hug, turn, jump or crouch clips.**
-- **Licence gaps:** Suits 02 outfits, the `culturalibre_heroine_suit_2` outfit (no source recorded anywhere), Rokoko and Mixamo redistribution inside a public web game, every CGTrader model, and every Tesana character (11 AI-generated, VRM-style skeleton, no clips; **do not import**).
-- **Recommended direction:** two new standard base bodies, parts exported as separate fitted `.glb` files, a runtime assembler, tintable neutral textures, one shared animation library per base, and a data catalog of ids; the server stores and validates **ids only** next to the existing character record, and the hub forwards ids (the multiplayer sign-in checks and the trading rules are unchanged). Budgets: 20k triangles and 8 draw calls per character at High, 6k to 8k and 4 at Low. **Nothing is implemented; the plan needs the owner's approval, starting with Stage 0 spikes and the owner's MPFB library and licence inventory.**
+A local packet (not on `origin`) also named branches `up196`–`up199` and `docs/cyberpunk-kit-reference` (`0f0dd7d`). They were not on `origin` at this check. Do not recreate them from memory.
 
-Known gaps: the selected character is not yet shown in the player's own world except through the dev-only preview; online player messaging and moderation are absent; the selected character has no in-world body or verified swappable hair/clothes; playable Admin/Iris handoff and shared-room synchronization do not exist; Achievement Manager is read-only; the Tesana pod reconstruction is partial. No new Tesana models were imported because animation compatibility and/or rights are unresolved. The current branch is **not deployment-ready**.
+## In flight — do not duplicate
 
-**Next recommended task:** the owner reads `CHARACTER_CUSTOMIZATION_PLAN.md` section 11 and decides the open questions (heights, verified-only first release, where players change clothes, colours, appearance-change rules); on approval start **Stage 0 spikes** and the licence inventory of the owner's MPFB library, with no change to the game. In parallel, the earlier next step is unchanged: keep the playable, stable Darknet District test the goal (music rights, the two-person hub test via `HUB_DEPLOYMENT.md`, a real-PC frame-rate review) and do not start the persistent trading ledger or the character creator until the owner approves.
+**Street taxis** are on branch `cursor/neochinatown-road-taxis-5abd` (pull request #243). Cabs drive the existing NeoChinatown roads and are hailed from the V1 map. Stops are only the four built taxi zones. Add another later by appending its zone id to `REGISTRY` in `void-runner/road-taxi-rules.js`. See `docs/development/ROAD_TAXIS.md`. Do not start a second taxi branch.
+
+Checked again 12 Nov 2026 after this note was first written. **Dolphins merged** as [#240](https://github.com/Smartsec916/the-darknet-district-site/pull/240) (`cursor/tropical-leaping-dolphins-0365`, agent [bc-14ad5818-751b-5273-b62f-879dd9560365](https://cursor.com/agents/bc-14ad5818-751b-5273-b62f-879dd9560365)). Do not open a second dolphin change. **Do not add crabs.**
+
+**No visuals / Ultra / bloom branch or pull request existed yet.**
+
+### Four visual wins — own branch, not authorized to merge
+
+- Cloud agent: [bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f](https://cursor.com/agents/bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f).
+- David asked for these four only, game-wide, on their own branch. **Do not merge until he says so.** Do not start the medium or larger jobs (real night reflections, shadows, new buildings, NPC models, WebXR).
+- Verified on `7939256`. #240 only added Tropical Escape dolphins, so these renderer facts still apply:
+  1. **Sharpness.** `babylon-renderer.js` builds the engine without `adaptToDeviceRatio`. `resize()` caps at 2560×1600 CSS pixels (`width / scale`), so device pixel ratio is unused.
+  2. **Quality.** Presets are only `low` / `medium` / `high` (scale 1.5 / 1 / 0.8). No Ultra. Default in `babylon-integration.js` is `low` when the pointer is coarse or cores ≤ 4, otherwise `medium`. `device-gate.js` `recommendQuality` can also store `low`. **Remove those quality auto-low checks for this task. Leave the phone block in place.** Settings `<select>` is built from `Object.keys(VoidBabylon.presets)`.
+  3. **Glow.** Look pipeline exposure is `1.55`. Bloom and FXAA run on medium and high (`bloomWeight .32`). `GlowLayer` runs only on `high` (intensity `.45`). No sharpening pass. Engine antialias is the boolean `true`, not MSAA/SMAA.
+  4. **Fake glow to remove:** shopfront emissive in `neochinatown.js` (road texture plus a small emissive color), puddle emissive, graffiti decal emissive. Facade `facade-*-glow` textures were not in the four-win list; leave them unless the branch must touch them. **Do not strip pod emissive** (`pod-inner`, `tesana-pod-led`, pod paint/fabric/rib) as fake glow.
+
+Other facts from the same review, for later, not for this branch: the environment probe is a 128 px code-built grey room (`ReflectionProbe` in `babylon-renderer.js`). NeoChinatown has two street `PointLight`s, and only when quality is not low. The only `ShadowGenerator` in `void-runner/*.js` is the Vesper workshop. `docs/VOID_RUNNER_GRAPHICS_ROADMAP.md` Phase H (shadows outside the opening, Ultra, ambient occlusion, a better HDRI) was not started. A Poly Haven HDRI needs David's OK before download.
+
+## Companions (metadata only)
+
+Selection is a full-screen menu inside **Play in a Bedroom** at the VR arcade terminal, not the spawn. New players still wake in a Sleeping Pod. Eight companions: Seren, Kai, Nadia, Ava, Eva, Yuki (`base-f`), Dex (`base-m`), and Una (`listed:'dev'`, local server only until her product page and licence are identified). Dialogue is scripted. There is no live language model. They do not leave the simulation.
+
+Public code can show Seren, Kai, and Nadia. Ava, Eva, Yuki, and Dex come from the private repo at Pages build time. A local build can list them and then report a missing model. Do not delete a companion or swap in a different model to hide that.
+
+| Name | Game id | Pack | Notes recorded on main |
+|---|---|---|---|
+| Ava | `ava` | `vr-companion-ava` | Default: red top and skirt, bob, no glasses. Looks: outfit `red` (parts `top_red`, `skirt_red`, `bikini_bottom`) and `bikini` (`bikini_top`, `bikini_bottom`, `skin_under`); hair bob/long/pixie; glasses; make-up swaps `head`/`lips` to `face-makeup`. |
+| Eva | `eva` | `vr-companion-pg` | Pretty Girl 01. Default: white slip, natural hair. Looks: cloth white/blue/pink/grey, hair colours, eye colours, face looks `1`–`6` (default `5`). |
+| Yuki | `base-f` | `vr-companion-bf` | CGTrader base rig with Dex. **No `looks` array.** Underwear material is part of the prepared mesh. |
+| Dex | `base-m` | `vr-companion-bm` | CGTrader Male Female Base Rig **#4027823**, Royalty Free, no AI. **No `looks` array.** Source comment: briefs only until David adds clothing. |
+| Una | `una` | `vr-companion-una` | Style A/B/C looks. Not on the live site. |
+
+The 12 Nov review's size notes (pack bytes from the private repo listing, not from decrypting models): Ava about 60 MB, Eva about 29 MB, Yuki about 24 MB, Dex about 17 MB, against a few MB for the public companions. `docs/VOID_RUNNER_VR_ARCADE.md` already records Ava at about 150 MB of graphics memory. Those numbers were not re-measured for this doc.
+
+**Top 10 from the 12 Nov companion review** (not started; do not build until David asks). Smallest first:
+
+1. Unprompted lines only subtitle. `remark()` in `vr-suite.js` calls `showLine` and does not play the clip. Recordings already exist.
+2. Dex has no `confident` clip list. `clipFor` falls through to the shared fallback `hips` / `head-tilt` (the same hip-sway name Seren's confident gesture uses).
+3. Affection starts at zero each visit, only rises, and is not saved. Three compliments unlock a kiss.
+4. Short line pools. Every companion's kiss line is "Come here." Nothing reacts to music, light, outfit, or a return visit.
+5. Ava's pack is heavy for headsets. A lighter private-repo variant was suggested. Not made.
+6. Bedroom lighting: companions take many lights and a floor reflection. Pod room and music player were out of scope.
+7. No lip sync. Seren, Kai, and Una do not blink or smile from this review's reading.
+8. "Lie back" is a held pose, the dance loop is about a second, the kiss is a fade, holding hands is a generic reach, turning slides the feet, and there is no hug.
+9. The same clips are baked into each model. One shared animation file would make new mocap cheaper. The player-creator plan already calls this a spike, not a promise.
+10. Companion behaviour has no tests. The game is Babylon 8.26. An upgrade to a newer Babylon is a separate branch if David wants it.
+
+A looks menu already exists in the bedroom Esc menu for Ava, Eva, and Una. A later idea (each option asked as a spoken yes/no, applied while she asks) was **not coded**.
+
+**Player creator** (separate from companions): a creator is already live (before EXIT POD; hair and outfit presets). `docs/development/CHARACTER_CUSTOMIZATION_PLAN.md` (5 Nov 2026) is the unfinished part-assembler design. Its "nothing is built" line is stale. The six owner decisions before its Stage 1 are still unanswered: base heights, CC0-only versus waiting on Suits 02, where clothes change, how many colours, whether to buy anything, and whether looks can change freely later. Tesana, CGTrader companion models, and DAZ files stay off the player creator.
+
+**Noodle stand:** not built. Street signs already say `DRAGON NOODLES` / `NOODLES`. A 8 Nov research note recommended YANGGA's Japanese Ramen Stall (Sketchfab, CC-BY, about 35k triangles) or a CC0 Quaternius stall plus a ramen prop. A placement east of the District door was sketched and then **not implemented**. The exact choice David was asked to make was not saved. Ask again. Do not invent a menu of options.
+
+## Animation clips (what a new mocap file must satisfy)
+
+- Skeleton: **52-bone Mixamo**, names `mixamorig:…`, contract `VR_Humanoid_v1`, `rig:'mixamo-52'`. Same contract for companions and crowd. `tools/animation-pipeline/characters/vr-companion-bf.json` has 52 bones.
+- Build: `tools/animation-pipeline/build_imported_character.py` (character FBX or prepared `.blend`) and `build_mpfb_character.py`.
+- Library rate is **15 fps** (`clips.json`). The game interpolates. Rest reference: `Laughs_mixamo.fbx`. The character rest pose is bent to the clips' T-pose for mapping only.
+- Horizontal hip travel is stripped (in-place). Finger bones are in the 52. Review finger deformation before production use.
+- Clip import accepts `.glb` / `.gltf` / `.fbx`. There is **no `.bvh` importer**. `mathutils.bvhtree` in that file is a spatial tree, not a motion-capture format.
+- Retarget names that are recognised: Mixamo, HumanIK `Character1_`, and Unreal / Universal Animation Library names.
+- `clips.json` "about": Rokoko free mocap in `VOID_RUNNER_KEEP` ("never modified"); Quaternius Universal Animation Library, CC0; Mixamo FBX David downloaded, baked onto characters, **never redistributed as raw files**. `CHARACTER_CUSTOMIZATION_PLAN.md` still holds Rokoko and Mixamo redistribution in a public web game until verified. Keep both: the pipeline's recorded licence, and the plan's verification gate.
+- Production blending: `void-runner/crowd.js` sets `enableBlending = true` and `blendingSpeed = .06` ("clips cross-fade instead of snapping"). The weighted **300 ms** blend is only in `void-runner/animation-library.js`, loaded by the dev lab `tests/animation-poc.html`, not by the game.
+
+**Mocap sources reviewed 12 Nov (nothing downloaded).** Closest ready fit: two CGTrader "Tomasi" packs on a Mixamo skeleton (flirting set, and a suggestive dance set). Also noted: Truebones Romance Pak (not Mixamo; credit required), MocapDancer couple dances (Unreal skeleton; Sketchfab licence has extra use limits worth reading before a cyberpunk game), Unity Asset Store couple packs (standard Unity licence allows a non-Unity game if players cannot extract the files; AI training banned), DeepMotion video-to-FBX/GLB (needs rights to the source video), and Cascadeur / Plask / Move.ai as cleanup tools (confirm Plask commercial terms before relying on them). Ruled out for commercial use: Smutbase-style non-commercial libraries, and the Bandai Namco / AMASS research sets. Paid clips would go through the private repo and the VRPE seal, same as the companion models. A few live prices could not be re-checked. Confirm before buying.
+
+**Blender batch pass:** not a complete fix, and not started. Most of what the player sees in the District and on the street is still Babylon `MeshBuilder` geometry. NeoChinatown was described in that review as on the order of 1,100 pieces, mostly code-built. There is no Blender connection for Claude in the repo. Blender steps are one-model scripts on David's PC (Blender 5.2 or newer). Source `.blend` / `.fbx` files are not in either git repo. Rounding edges would break skinned companions and crowd. Higher-impact work that Blender cannot do: lighting and post (the four wins above), and replacing more code-built blocks with the city pack through the existing `pack_to_glb.py` path.
+
+## Voices
+
+- Engine on `main`: **Kokoro-82M** (`manifest.json`: `kokoro-v1.0.onnx`, Apache-2.0). Format: ogg/opus, 24 kHz mono.
+- **736** lines in `void-runner/assets/audio/voice/manifest.json`. **439** are companions: `vr-ava`, `vr-eva`, `vr-una`, `vr-base-f`, `vr-base-m`, `vr-nadia`, `vr-seren` at 55 each, `vr-kai` at 54. Folder: **738** `.ogg` files and **741** files total (oggs, manifest, a second JSON, `LICENSES.md`). Use these counts. "741 lines" was loose.
+- Playback: `void-runner/voice-clips.js`. A line with no clip falls back to browser speech synthesis. If the console shows the browser-voice path, fix missing clips before paying for a new recording.
+- Companion cast entries in the manifest are `provisional`. Many story NPCs are `approved`. **Do not change an approved voice** without David. Registry: `tools/audio/npc-voice-registry.json`. Iris's android colour and Elias's hologram tone are applied at playback so the files stay clean.
+- Regenerate with `node tools/audio/extract-lines.cjs`, then `python tools/audio/generate.py --models <folder>` (`--dry-run` first). Ask before bulk-generating. `LICENSES.md` still mentions `tools/voice/generate.py`; that folder is not on `main`. Use `tools/audio/`.
+
+**Re-record research (12 Nov, nothing purchased).** The synthetic sound is Kokoro, not live browser speech. A one-off re-record of the 439 companion lines (about 17,000 characters) was priced roughly as:
+
+| Provider | What the review reported |
+|---|---|
+| ElevenLabs | Most natural. Usage about $1.30. Commercial use needs the starter plan, listed as $6 a month and $1 the first month. |
+| Google Chirp 3 HD, Amazon Polly, or Azure | A job this size fits the free monthly allowance, so likely $0. |
+| OpenAI | Well under a dollar. The review said to skip it because those speech models shut down on 6 January. |
+| Retune Kokoro | Free, with the existing audition tool. Modest change. |
+| All 736 lines | Still free on Google or Amazon, or about $3 on ElevenLabs. |
+
+Players must not call a TTS API. GitHub Pages cannot hold a provider key. Keep stable line ids, replace the ogg files, update `engine` / cast metadata, and run `extract-lines.cjs --check` and `npm test`. Suggestion recorded for David: try a few lines on ElevenLabs and on Google Chirp, then re-record with whichever he prefers, and leave Iris's android voice as it is. Unprompted remarks could be voiced by playing the existing clip inside `remark()` (top 10 item 1). Not done.
+
+## VR areas and the Forest sky
+
+`tests/vr-arcade.test.cjs` expects exactly `combat`, `forest`, `suite`, `tropical`.
+
+| id | Title | File | Notes |
+|---|---|---|---|
+| `forest` | Relax in a Forest | `vr-forest.js` | `shared:true`, station 1 |
+| `tropical` | Tropical Escape | `vr-tropical.js` | `shared:true`. Fishing (#233) and surface dolphins (#240) are on `main`. Gulls toggle. No crabs. |
+| `suite` | Play in a Bedroom | `vr-suite.js` | `shared:true` again after #232. The 12 Nov map note that removed it from the menu is superseded by #232. |
+| `combat` | Combat Simulator | `vr-combat.js` | `listed:false`. Code kept. |
+
+New area: `VoidVR.register` in `vr-<id>.js`, script tags in **both** HTML files, and an update to `tests/vr-arcade.test.cjs`. Kit: `vr-kit.js`. Sessions: `VR_SESSIONS.md` (#227).
+
+**Forest sky (nothing changed; cause unconfirmed).** `vr-forest.js` uses `k.sky('forest', 1.2)` → `void-runner/assets/vr/sky/forest.jpg`. The file inspected that day was a 2048×1024 RGB JPEG, 656,513 bytes, exact 2:1, with no obvious seam in a 1600×800 preview. `vr-kit.js` `sky()` builds a `PhotoDome` at **resolution 48**, size 1800. More likely than a bad texture, and not proven in a headset:
+
+1. Horizontal leaf cards on oak/birch crowns (`vr-forest.js`, top card with `rotation.x = Math.PI/2`).
+2. Seven sunbeam planes (settings key `beams`, default on).
+3. Less likely: the coarse dome, fog, or waterfall mist. The dome has fog off.
+
+Do not "fix" this on a docs branch. A later debug pass can hide the top cards and the beams and look again.
+
+`docs/VOID_RUNNER_VR_ARCADE.md` still has an older "needs David's review" note about three companion lines that mention the sea. Those lines were left as written.
+
+## Music rights and the Tesana audit (from the unpushed notes)
+
+Folded in from local commits `bb7c045` and `3df6adb` (they were not on `origin/claude/codex-handoff`, which stops at `d6cfc67`):
+
+- **Music (David, 8 Nov 2026):** the 27 songs were made during a **paid Riffusion subscription in 2025**, which is also why they are higher quality than the free plan. The free tier's non-commercial limit does not apply. The March–April 2026 Starter receipt is a later paid period. Rights are treated as **settled for use in the game**. That does not by itself grant redistribution, sublicensing, or AI-training rights. Explicit titles are an age-policy question, not a reason this note removes the files. `MUSIC_LICENSING.md` carries the update. `CLAUDE.md` already said to keep paid-plan Riffusion music available.
+- **Tesana shared library:** the 10 `library:` models (`iris`, `kai`, `mara`, `marcus`, `nadia`, `pedestrian_a`, `pedestrian_b`, `rook`, `seren`, `satellite`) are still **to confirm, per asset**, before import. The 7 models generated in David's own Tesana project are covered at plan level by his Max Plan statement and remain unimported. Wording in the audit now says "not recommended" / "to confirm" instead of "reject" / "blocked". See `TESANA_ASSET_AUDIT.md`.
+
+## Standing rules (short)
+
+- David (`Smartsec916`) is the creative authority. Record story decisions in `VOID_RUNNER_HANDOFF.md` §11 only after he approves them.
+- Desktop and VR headsets only. Not phones.
+- Do not modify the Sleeping Pod room or the music player as part of unrelated visual work.
+- Do not merge, deploy, buy services, or change production data or secrets unless he asks.
+- Licensed companions and other paid models: private repo, VRPK scramble, VRPE seal at Pages build. Never in this public repo.
+- In-game Iris stays separate from the website chatbot (`chatbot.html`, `iris-*.html`, `identity_api.py`).
+- Unfinished **in-game** shop items may be removed if a task needs that. Real storefront, Shopify, and purchased entitlements stay.
+- `git config core.autocrlf false` in this repo. Many files are CRLF. Do not reformat a file to fix line endings.
+
+## Open questions for David
+
+1. **Companion review:** start any of the top 10, or leave them? The suggestion on the day was silent lines, the Dex clip, and saved affection. Not started.
+2. **Player creator plan:** the six Stage-1 decisions in `CHARACTER_CUSTOMIZATION_PLAN.md` §11 are still open. The live creator is the preset one, not that part assembler.
+3. **Companion looks for Yuki and Dex,** and whether the bedroom Esc looks should be asked out loud. Not decided in a saved list.
+4. **Noodle stand:** which stall, if any (YANGGA CC-BY, Quaternius CC0, or none). Nothing was built.
+5. **Voices:** try ElevenLabs and Google Chirp on a few lines, or keep Kokoro? Iris's approved android voice stays either way.
+6. **Forest sky:** where the odd patch sits (overhead, horizon, or over the clearing), and whether it vanishes with Sunbeams off.
+7. **Crabs** stay out unless he asks again. Dolphins are already on `main` (#240).
+8. **Four visual wins:** review that pull request when it exists. Merge is not authorized yet. Pod room and music player stay visually as they are.
+9. **Age policy** for strong-language songs and any vending flavour. Still open. Playlist files are already public on the site.
+10. **Tesana:** per-asset confirmation for the 10 shared-library models before any import.
+11. **Old pull requests** #176–#199, #207, #208: leave open, or close as superseded? Do not close them without him.
+12. **Blender / bigger visuals** (reflections, shadows, more city-pack buildings, NPC models): not started. Phase H in the October graphics roadmap still needs his OK for an HDRI download.
+
+## handoff-soft.patch — what was folded in
+
+Eight documentation commits existed only as a local branch `handoff-soft` (merge-base `7f2e8b1`, tip `3df6adb`). `origin/main` is 147 commits later. Do not diff that branch against `main`; the diff looks like it deletes later game work.
+
+| Commit | Subject | This update |
+|---|---|---|
+| `301c2f8` | Codex handoff and Tesana audit | **Skipped.** Already on `main` (via `origin/claude/codex-handoff`). |
+| `30135e6` | Tesana Max Plan verification; 10 shared-library models pending | **Skipped.** Already on `main`. |
+| `ca0fc16` | Final test results and starting commit | **Skipped.** Already on `main`. |
+| `122b2aa` | Second-session handoff, music licensing, runbook, homepage patch | **Skipped.** Already on `main`. The runbook's "nothing has been done" line is now marked historical. |
+| `c53ac7e` | District floor plan PNG/SVG/`make_map.py` | **Skipped.** Already on `main`. |
+| `d6cfc67` | Map: 10 pods, 2×5, terrace by the stairs; walkthrough photo | **Skipped.** Already on `main`. Pods have since moved to the rear (#235); the picture is a map of an older layout. |
+| `bb7c045` | Neutral wording (licensing, approvals, readiness) | **Folded** into `CODEX_HANDOFF.md` and `TESANA_ASSET_AUDIT.md`. |
+| `3df6adb` | Music rights settled (paid 2025 Riffusion subscription) | **Folded** into `CODEX_HANDOFF.md` and `MUSIC_LICENSING.md`, and corrected for `WEBSITE_PLAYLIST=true` on current `main`. |
+
+Also skipped, because they were a different local branch and not in those two commits: `docs/CYBERPUNK_GAME_KIT_REFERENCE.md` on `docs/cyberpunk-kit-reference`. The verdict is recorded above (the kit would not improve this game's look). The file was not on `origin`.
+
+---
+
+## Historical log
+
+Snapshots from 10–12 Nov 2026, newest first, then the 10 Nov integration note. **Do not follow "read first", "next task", or deploy instructions in this log.** Later snapshots corrected earlier ones (the game API deploy, the Bedroom VR listing, the nightclub being off, draft PR #212). Start here wins.
+
+A correction that is easy to miss: the alley note below says the nightclub module is switched off until its licence is cleared. That was true only until #238. NULL is open.
+
+## 2026-11-12: street taxis in NeoChinatown
+
+- Self-driving cabs drive the avenue and Main Street. Rules: `void-runner/road-taxi-rules.js`. The cab is drawn in code (`void-runner/road-taxi.js`); no model file. The older sky cabs are unchanged.
+- Hail one from the V1 map (STREET TAXIS). Stops are the four taxi zones that are already built: Main Street, the avenue, Main Street by the alley, and the passage by the landing pad. Add another later by appending its existing zone id to `REGISTRY` in `road-taxi-rules.js`. See `docs/development/ROAD_TAXIS.md`.
+- A person in front of a cab stops it. The fare is the same formula as the sky cabs, stored separately as `story.flags.roadTaxiTrip`.
+
+
+## 2026-11-12: NULL, the nightclub, is open
+
+- `docs/development/NIGHTCLUB_NULL.md`. The existing club module is now ON for everyone in the game; because the purchased interior model is not published anywhere I can reach, the interior is built in code (`buildOwn()` in `void-runner/ncz-nightclub.js`) with a dance floor, DJ, bar, VIP corner and people. If `nightclub.vrpak` is later published the purchased model is used automatically.
+- Street players are still not shared in multiplayer, so the club is solo for now.
+
+
+## 2026-11-12: the arcade (small, five cabinets) with a playable Blackout Protocol cabinet; free look in the pod
+
+- `docs/development/ARCADE.md`. Five cabinets in a small room off the hallway; the middle one opens the real Blackout Protocol page in a frame (`void-runner/district-arcade.js`). Four placeholder titles are Claude's working names for David to approve.
+- Sleeping Pod: free look (mouse capture, drag, arrows) and E/M/V shortcuts (`SLEEPING_PODS.md`).
+- David (2026-11-12): for the NULL nightclub, 'use all available assets' (so the purchased club model in `ncz-nightclub.js` and existing nightlife are to be used).
+- Gotcha seen three times now: the game page has global styles for `canvas`, `iframe`, `header` and `main`. New overlays must set position/size explicitly and avoid those tag names.
+
+
+## 2026-11-12: Sleeping Pods moved to the rear of the District
+
+- See `docs/development/SLEEPING_PODS.md`. The hallway now ends in the pod room (z 70.5..78.3, full width); stairs to the terrace moved to its east end; the wardrobe is on its entrance wall; the character creator's stage is in the hallway with the pods behind. The old west room is empty (`arc-*` walls) for the arcade.
+- Use `VoidDistrictArea.podBed/podExit/POD_VIEW` for pod positions and view directions; several tests had the old numbers hard-coded and were updated.
+- Next for this brief: Tesana fidelity pass on the pod interior, then the 1980s arcade in the old room.
+
+
+## 2026-11-12: the alley is inhabited
+
+- `void-runner/ncz-alley.js` + alley props and steam in `neochinatown.js`; see `docs/development/ALLEY_LIFE.md`. No sound added.
+- NOTE for the nightclub task: a nightclub module ALREADY EXISTS (`void-runner/ncz-nightclub.js`): a purchased 'Cyberpunk Cyber Club' model set into the west side of Main Street where David's map marks 'Nightclub', switched off until its licence is cleared (`?nightclub=1` on a local server with the pack). **Superseded the same day by #238: NULL is open. See Start here.** David has since named the club **NULL** and asked for it across the street and to the right of the alley. Reconcile with him before building a second one.
+
+
+## 2026-11-12: fishing in Tropical Escape; achievements (browser-kept for now)
+
+- Fishing from the pier in `void-runner/vr-tropical.js`. 'Catch 100 Fish' was added to the EXISTING achievement catalogue (`void-runner/achievements.js`, which unlocks only on server-verified events). Progress is counted in the browser by the new `void-runner/local-progress.js` and shown on the player's own V1 profile as progress, not as an unlock. See `docs/development/ACHIEVEMENTS.md`. (Note for future sessions: `void-runner/achievements.js` and `tests/achievements.test.cjs` already exist; do not create files with those names.)
+- Server-side verified events (which actually unlock achievements) are approved and should be built together with the Blackout Protocol leaderboard.
+
+
+## 2026-11-12: checkpoint fix after VR; Bedroom simulation back and shareable; David's decisions
+
+- BUG FIXED (was live for a few hours): returning from a VR simulation placed the player for a moment at the interior's default spot, the middle of the vestibule, and the new checkpoint sent them out to the street. The checkpoint now ignores a player who APPEARS in the vestibule (any frame not spent walking in that environment disarms it until they step out). `tests/vr-sessions-browser.cjs` caught it.
+- 'Play in a Bedroom' is back in the VR arcade and can be a public or private shared session (`shared:true`, `shareOpts`/`fromShare` in `void-runner/vr-suite.js`). Companions are simulated per player, not synchronised.
+- David's decisions (2026-11-12): leaderboard/achievement records in the production database are APPROVED (new records only); the nightclub is named **NULL**; the rear stairs are to be RELOCATED (terrace stays reachable) when the Sleeping Pods move there; add a fishing mechanic to Tropical Escape and an achievement 'catch 100 fish in Tropical Escape'.
+
+
+## 2026-11-12: city map with waypoints; Bedroom simulation removed from the VR menu
+
+- V1 Map app is now a real city map generated from the layout (`void-runner/district-map.js`, `docs/development/DISTRICT_MAP.md`): zoom, pan, places, layers, waypoint with a HUD pointer. Direction only: there is no pathfinding data.
+- 'Play in a Bedroom' is no longer offered in the VR arcade (`listed:false` in `void-runner/vr-suite.js`). Its code and companion models are KEPT pending David's decision on deleting them.
+- Vestibule scan: the picture behind the scan is the player's own view captured when the doors sealed (so it always matches the direction they face); it is now only lightly dimmed and the status panel sits in a corner.
+- QUEUED from David (2026-11-12, large; not started): alley NPCs and atmosphere; Sleeping Pod relocation to the rear stairs + Tesana rebuild (new ZIP supplied); 1980s arcade in the old pod room with a playable Blackout Protocol cabinet; Blackout Protocol level 3 NPC changes, levels 4+ graphics, leaderboard and profile achievements; a nightclub across from the alley; Blender-assisted asset work. See the chat report for the proposed order and the open questions.
+
+
+## 2026-11-12: security vestibule checkpoint rebuilt
+
+- The exchange between street and interior now happens in the middle of the vestibule, only after the door sensors report BOTH doors shut, in both directions; the player keeps position and facing; the far door opens afterwards. Full description: `docs/development/VESTIBULE_CHECKPOINT.md`.
+- Behaviour change: leaving the District no longer drops the player in the alley; they stay in the vestibule and walk out through the outer door. In the interior the outer door cannot open; in the street the inner door cannot open.
+- Master specification Phase 1 (vestibule loading only when both doors are closed) is therefore done.
+
+
+## 2026-11-12: shared VR sessions (game side live after this PR; hub redeployed separately)
+
+- Full description, rules and message list: `docs/development/VR_SESSIONS.md`. Hub rules in `tools/district-hub/protocol.cjs` (a session is its own room `vr:<id>`), menu in `void-runner/vr-core.js`, connection in `void-runner/remote-players.js`.
+- Public sessions are listed and joinable (JOIN, QUICK JOIN); private sessions are never listed, cannot be joined by id and need an 8-character code checked by the hub. Host leaving passes ownership on; empty sessions end. Playing alone is a private session of one.
+- Shared: Relax in a Forest, Tropical Escape. Solo only: Play in a Bedroom, Combat Simulator (not synchronised). Only position, facing and walk/idle are shared.
+- The game sends session messages only to a hub that announces `features.vr` (the older hub counts unknown messages as faults). Either side can be deployed first.
+- Also fixed: the player list is kept while a place loads (returning from VR used to show nobody); a keep-alive timer stops slow loads being taken for dead connections.
+- Tests: `tests/district-hub-vr-sessions.test.cjs` (rules), `tests/vr-sessions-browser.cjs` (one browser + two wire-level players, SIMULATED identities; this cloud machine cannot render two simulations at once). Not verified: two real players in one simulation on real hardware.
+- The hub on Render follows branch `claude/character-creator`, not `main`: after merging hub changes, add a commit there with the same files and trigger a deploy of `district-hub`.
+
+
+## 2026-11-12: multiplayer presence repair (live after this PR)
+
+**Report:** two real players in the Sleeping Pod area could not see each other. **Evidence (Render hub logs, 10–12 Nov):** only ONE player id and one address ever joined; no second account reached the hub.
+**Causes found in the client (`void-runner/remote-players.js`):** (1) the client was online only in `walking`/`menu` mode, so lying in a pod (`pod-waking`), the pod music screen or the wardrobe silently disconnected the player: two players in their pods were never online together; (2) nothing on screen said whether a session was online or solo, so an unsigned-in player could not tell.
+**Fixed:** stays connected in every District-interior screen (`ROOM_MODES`); a player in a pod is reported at the pod door (pods stay private); on-screen indicator `#mp-chip` (ONLINE · N players / PLAYING SOLO · reason / CONNECTING / RECONNECTING); a plain glowing fallback figure if a player's model cannot load; `VoidRemotePlayers.diagnostics`; main menu says solo play when not signed in. The earlier-campaign backup download was removed from the menu (retired copies stay untouched in browser storage; `C.retiredKeys` kept).
+**Test:** `tests/multiplayer-presence-browser.cjs` (two to three browser sessions + in-process hub, SIMULATED identities). Not verified: real Firebase sign-in for a second real account, and two real players on the live site.
+**Not changed:** the hub (Render `district-hub`, still commit 298533b) and the game API. **Still required of each player:** a registered account, a District handle (Menu › Settings) and a saved character.
+**Next:** shared VR sessions (public/private) need hub protocol work and a hub redeploy; then resume graphics from branch `claude/aaa-first-view` (menu city backdrop, unfinished WIP commit).
+
+
+## 2026-11-12: pod wall displays and vending (live)
+
+- Each sleeping pod now has, built into its walls: a music player face (PR 223), an ambient-light panel (PR 224) and a vending unit (this PR). Code: `void-runner/neochinatown.js` (`drawPodPlayer`, `drawPodLights`, `drawPodVending`, `podScreen.tick`) and the pod menu in `void-runner/world-integration.js` (`podVend`).
+- The two displays are status only: they follow `VoidPodMusic`; the controls stay in MUSIC & LIGHTS. They refresh on real time because the game clock stands still in `pod-waking`.
+- Vending stock (20 items, names/prices/descriptions) is copied from David's Tesana pod source. It is flavour only: DISPENSE charges no credits and adds nothing to the inventory. Making it a real shop is an economy decision for David.
+- Tests rely on `#pod-wake` having exactly one `<button>` (EXIT) and one `<p>`; new pod-menu controls must be `a[role=button]` / `div`.
+
+
+## Snapshot 2026-11-12 (later): V1 device, hub and game API reported live
+
+- **V1 holographic device is live** (PR #220, squash `8bb8923`; live `BUILD` `2026-11-12-v1-device-1+8bb8923640`). Verified on the live site: L opens it without pausing the world, nine apps listed, empty Mission Log, Esc goes back without opening the game menu, a portrait is rendered from the real character, no page errors. Files: `void-runner/device-v1.js` (rules, registry, saved state, map exploration, profile view-model, portrait keys), `personal-device.js` (screen), `device-portraits.js` (offscreen portraits), tests `tests/device-v1.test.cjs`, `tests/personal-device-browser.cjs`. Camera and Gallery are placeholders. NPC portraits need `NPC_MODELS` in `device-v1.js` filled with real npc-to-model pairs (empty on purpose: none is defined by the game yet). Private messages, friends and discovery are not built.
+- **Render, done with David's approval:** game API deployed from `main` (`eeb6989`), `VOID_APPEARANCE_ENABLED=true`; hub `district-hub` runs `main`'s code with `HUB_ACCESS=registered`, `HUB_ALLOWED_UIDS` empty, `HUB_ALLOW_ANY_SIGNED_IN=false` (hub log: "registered accounts, complete District profile required"). The hub service follows branch `claude/character-creator`, which now carries a commit whose tree equals `main`; to update the hub later, either change the service's branch to `main` in the dashboard or repeat that. Pre-reset cloud saves are reported as retired (David accepted the reset).
+- **Handle registry** (`blackout_api.py`) synced to the runtime's version (PR #219).
+- **Trading stays off:** only the window and a test-only practice ledger exist; real trading needs server-kept inventory and credits (propose a design first).
+- **Never verified by anyone yet:** a real sign-in, two real players meeting, chat, and looks syncing online. The sandbox cannot reach Firebase or onrender.com; ask David what he saw.
+
+**Next:** fix whatever David reports from the first real two-player test; pod exit faces a dark wall; master specification Phase 1 (vestibule loading only with both doors closed); Sleeping Pod visual audit against the Tesana ZIP.
+
+## Snapshot 2026-11-12: District runtime update (historical)
+
+PR #217 (squash `56a9a7e`) brought the game runtime, hub and tests from `codex/first-player-experience-repair` (`086f7b2`) onto `main` as one unit; website pages, the homepage ENTER entrance and the favicon were kept from `main`. Verified on https://thedarknetdistrict.com in a real browser: phone gate (2 requests, no game files), ENTER, creator first, **ten personal pods** (pod card: EXIT POD / MUSIC & LIGHTS / LOOK INSIDE), walking, no page errors, no missing files. Live `BUILD` = `2026-11-12-district-runtime-1+56a9a7efc4`.
+
+So the 2026-11-11 list below is partly done: the ten pods and entrance fix are live. District chat code (`void-runner/district-chat.js`) is live too, but only shows when connected to the hub, and the hub on Render still runs `4c60781` with a one-account allow-list and no chat support: **chat does not work online until the hub is redeployed from `main` and `HUB_ACCESS=registered` is set** (David's Render action; see `HUB_RENDER_SETTINGS.md`). Share Links are retired on `main` (files removed).
+
+**Server:** `void_runner_api.py` on `main` now contains `/character`, `/character/appearance` (flag `VOID_APPEARANCE_ENABLED`, off) and the campaign-epoch handling of old cloud saves (`is_current_save`: pre-reset cloud saves are reported as retired, not deleted). **The Render game API has NOT been redeployed** and still runs the 2026-11-01 code. A Render deploy from `main` would now switch that behaviour on: review it with David first.
+
+**Not tested live:** sign-in, cloud saves and purchases (the sandbox cannot reach Firebase). Tests adjusted in #217: older assertions that the homepage has no game entrance were removed or updated; the website Sleeping Pod page still has its own song list (`tests/music-catalog.test.cjs` notes this).
+
+**Next:** (1) V1 device (`claude/v1-device`): fix Esc opening the game menu, port its new files onto `main`, publish. (2) Hub redeploy + registered access for chat. (3) Game API deploy decision. (4) Master specification Phase 1 (vestibule).
+
+## Snapshot 2026-11-11: live state that day (historical)
+
+**Policy from David (2026-11-11):** the live site is the test environment; there is no staging site. Verified, production-compatible work may be merged and deployed. Do not blindly merge large PRs, overwrite newer work with older, break sign-in/saves/purchases, change production databases or secrets, or buy services.
+
+**Live now (verified in a real browser against https://thedarknetdistrict.com):** `main` = the squash of PR #214 on top of #215 and #212. Homepage ENTER logo opens `void-runner.html`; phones get the "desktop experience" page and download no game files (2 requests); desktop: menu, New Campaign, character creator first (hairstyle re-fit confirmed), Sleeping Pod 01, walking in the District interior, no missions, no ship, no page errors. Favicon files and links are live (PR #214). The two missing pod textures are live (PR #215).
+
+**Deploy facts:** merging to `main` triggers "Deploy site" (GitHub Pages). The deploy of `fd626f7` had timed out on GitHub's side and the site was one commit behind until it was re-run; **always confirm the live `BUILD` stamp** (`void-runner-sw.js` shows `...+<commit>`), never assume. The CI job "Babylon stabilization smoke" can fail at `playwright install` (apt exit 100): that is infrastructure, not a test failure. Render: game API `the-darknet-district-site` deploys from `main` with auto-deploy OFF (so it is still the older API: no `/character`, no `/character/appearance`); hub `district-hub` runs commit `4c60781` from `claude/character-creator` with a one-account allow-list.
+
+**What PR #212 did NOT include (still on branches, newer than what is live):**
+- `codex/first-player-experience-repair` (`086f7b2`): ten personal Sleeping Pods with their own music and lighting controls, the entrance collision fix. Live has ONE pod and the music screen on the public wall. This is the highest-value port.
+- `claude/public-multiplayer` (PR #199): hub `HUB_ACCESS=registered`, District text chat, mute/block/report. Live has the multiplayer client with `LIVE_HUB` set but it is opt-in from Settings and the hub admits one account; no chat.
+- `claude/v1-device` (work in progress, pushed): V1 holographic device (`void-runner/device-v1.js`, `personal-device.js`, `device-portraits.js`, tests). Known open bug: Esc inside the device also opens the game menu (mode becomes `menu`); the browser test `tests/personal-device-browser.cjs` passes up to that step. It is based on the first-player-repair branch, not on `main`: port the new files onto `main` rather than merging the branch.
+- Server: appearance persistence and the `/character` endpoints exist only on branches; needs a Render API deploy decision (ask David: it changes the production API).
+
+**Known live issues:** the player leaves the pod facing a dark wall (first view is nearly black); `tests.test_void_runner_api` Stripe webhook test fails with the installed Stripe version (pre-existing); characters exceed polygon targets; outfits and shoes are presets.
+
+**Not started (planning only):** David's master specification of 2026-11-10 (living NPC tiers, Dax, shared social network, photography, bounties, device manufacturers, neural interface, Android companion app, vestibule door-locked loading sequence). It is a long-term specification, not authorisation to build everything; start with its Phase 1 (vestibule sequence audit) after the pod port.
+
+**Recommended order:** (1) port the ten-pod and entrance repairs onto `main`, test, publish; (2) finish and publish the V1 device; (3) chat and registered-account hub (needs the hub redeploy and David's Render change); (4) spec Phase 1.
+
+
+**Updated:** November 10, 2026  
+**Repository:** `Smartsec916/the-darknet-district-site`  
+**Current integration PR:** [#212](https://github.com/Smartsec916/the-darknet-district-site/pull/212) — draft; branch `integration/district-entry-safe-rollout-20261110`.  
+**Authoritative workflow:** Read `CLAUDE.md`, `AGENTS.md`, `VOID_RUNNER_HANDOFF.md`, and `docs/development/AI_ROADMAP.md`. This document supersedes the October-era campaign *status* sections of the legacy handoff, not its historical canon records.
+
+## Verified status at handoff
+
+- PR #212 head checked: `e3e0ba1db9b9ff73e3929e4e65f4898ed5815ae8`.
+- GitHub Actions **Tests** run [42893600023](https://github.com/Smartsec916/the-darknet-district-site/actions/runs/42893600023) completed **success**: Node unit tests, Python API tests, and Babylon stabilization smoke all passed.
+- GitHub Actions **Deploy site** run [42893600016](https://github.com/Smartsec916/the-darknet-district-site/actions/runs/42893600016) completed **success for build**; the **deploy job was skipped** because this was a PR run.
+- **Passing CI is not a production release or proof of all manual gameplay flows.** PR #212 remained **draft and unmerged** at this check. No claim that its contents are live.
+- The new District game source, gated desktop entry, nine binary hairstyle GLBs, appearance registry/fit metadata, guest-mode guards, social/share protection code, and associated tests have been integrated on the draft branch.
+- The read-only admin inventory was regenerated from the source and validated. Do not confuse that **game content registry** with real Shopify/store merchandise.
+- The first-time character prompt was moved before EXIT POD; verify in a real browser after login. The browser stabilization smoke passed, but it does not independently prove every player-facing path.
+
+## Current approved design / non-negotiables
+
+1. The game is **The Darknet District**, set in **NeoChinatown, Tessaly System**. No Earth/Sacramento/Sol setting. Keep stable historical internal IDs only where save compatibility depends on them.
+2. Desktop/capable Windows handheld users enter from the current homepage's subtle green logo / **ENTER** control. Keep the top navigation. **Phones remain on the normal mobile site and must not download the full 3D game**; preserve the device gate.
+3. New/returning players enter **their own Sleeping Pod** on login/reconnect. New players create/customize their appearance **before exiting the pod**, not after. Validate clothing color, hairstyle, saved appearance, music controls, pod reentry, and collision/doors.
+4. **No active new-campaign missions** and **no starting ship**; preserve mission NPCs for future local NeoChinatown missions. Existing legacy save backups are retained, but pre-reset saves are intentionally rejected by the new campaign epoch; do not silently undo this reset. Independently review cloud save/API compatibility before rollout.
+5. Admin-only jump/teleport features remain restricted. No public share-link privilege or guest-account save bypass.
+6. Indoor District and exterior street are separate load/scene areas via vestibule. Iris and Admin remain in-game NPCs; do **not** inject the separate website Iris chatbot into the 3D game. Sleeping Pod music belongs inside individual pods, not room-wall public players.
+7. Multiplayer is designed for automatic instance joining and compatible Firebase identity; do not enable server-side character synchronization, trade or public messaging before validating backend authorization/security.
+8. User permits **removing unfinished in-game store items** if necessary. This does **not** authorize removing actual website store products, Shopify workflows, paid entitlements, licensing or payment systems. No inventory deletion was required for the CI fixes.
+
+## What was completed on draft PR #212
+
+- Reconciled the updated game entrypoint and many runtime scripts selectively (do not wholesale merge `claude/character-creator`).
+- Imported nine 3D hair GLBs **as binary Git blobs**. Keep private licensed models out of public Git and respect licensing.
+- Restored guest guards and developer-only Share Links controls; synchronized `void-runner.html` and `static/void-runner.html`.
+- Updated Arcade to remove the retired Void Runner listing; preserved the live-approved homepage look.
+- Restored standalone Sleeping Pod website Iris widget and adjusted regression tests so homepage styling is not mistaken for a chat UI change.
+- Reconciled tests with the November campaign reset and refreshed the read-only `void_runner_admin_inventory.json` projection, without removing website merchandise.
+- First-time creator now opens before leaving the Sleeping Pod; stabilization browser test was updated to recognize the creator/pod-wake stages.
+
+## Remaining before any production merge
+
+- Perform human/browser acceptance on actual Windows desktop / ROG Ally and phone: entry device gate, sign-in/guest/new account, server permissions, creator selection/preview, changing hair/clothing colors, first pod wake, saved appearance, reconnect to own pod, transitions, inventory preservation, kiosk/VR/media behavior, and regressions.
+- Confirm that server-side saves, Firebase rules, multiplayer endpoint and Render service configuration are release compatible. Avoid running write tests against production.
+- Check service-worker `BUILD` and cache-busting; ensure `static/void-runner.html` remains byte-identical to root page, and validate asset manifests / licensed assets.
+- Review exact PR diff vs current `main` for changes arriving after this handoff; old PRs (#176, #177, #178, #180 and others) may be superseded. No blind merges.
+- User has said **"push anything ready to live"**; this grants interest in a vetted partial release, **not** a mandate to merge unfinished PR #212 wholesale. Isolate independently tested changes if possible. Do not declare deployment without checking the actual live deployment result; otherwise report the blocker and keep draft.
+- Do not modify production databases, buy services, expose secrets, or replace commercial asset files without explicit authorization.
+
+## Next agent: recommended sequence
+
+1. Fetch latest `main`, PR #212 and current GitHub Actions results; do not assume the above commit is still the head.
+2. Check `docs/development/AI_ROADMAP.md` and the outstanding acceptance cases.
+3. Test priority journeys against a **nonproduction** origin or local server. Fix verified issues in the integration branch and run the same CI.
+4. Identify small independently releasable work. Only merge/deploy a specifically verified, safe scope when authorized; keep the larger PR draft until acceptance.
+5. Update this handoff with commit SHA, run IDs, outcomes, new blockers and release status after each meaningful milestone.
+
+**For historical story decisions and older implementation notes:** `VOID_RUNNER_HANDOFF.md` remains reference material, but its October 15 `main` SHA, tutorial-first start and old mission roadmap are **not current**.

@@ -9,13 +9,13 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 
 // Every public page that should have Iris: the arcade directory, the whole store, every resource page, About, the Sleeping Pod
 const WITH_IRIS = [
-  'games-list.html', 'about.html',
+  'games-list.html', 'about.html', 'sleeping_pod.html',
   'resources.html', 'legal_resources.html', 'curious.html', 'osint.html', 'anti-osint.html', 'leaks.html', 'opsec.html', 'borderless.html', 'neurodivergent.html', 'biohacking.html',
   'store-first-page.html', 'store-apparel.html', 'store-apps.html', 'store-books.html', 'store-electronics.html', 'store-neurohackers.html', 'store-survival.html',
 ];
 // Games, their interfaces, standalone sites and the in-world Iris pages: never
 const WITHOUT_IRIS = [
-  'sleeping_pod.html', 'void-runner.html', 'game.html', 'raven.html', 'obs.html', 'chatbot.html', '404.html',
+  'void-runner.html', 'game.html', 'raven.html', 'chatbot.html', '404.html',
   'iris-controls.html', 'iris-loadout.html', 'iris-protocols.html', 'iris-redacted.html', 'iris-surveillance.html', 'iris-terminal.html', 'iris-thoughts.html',
   'The Darknet District – Origins.html', 'The-Darknet-District-Book.html',
   'origins/index.html', 'function/index.html', 'admin/void-runner.html', ...fs.readdirSync(path.join(root, 'blackout-protocol')).filter(f => f.endsWith('.html')).map(f => 'blackout-protocol/' + f),

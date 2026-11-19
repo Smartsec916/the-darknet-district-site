@@ -12,7 +12,7 @@ export function authReady(){
   authPromise = new Promise(async resolve => {
     const timer = setTimeout(()=>resolve(null), 4000);
     try {
-      firebase = await import('../firebase-auth.js');
+      firebase = await import('./firebase-auth.js');
       firebase.onAuthStateChanged(firebase.auth, value => {
         user = value;
         dispatchEvent(new CustomEvent('blackout-auth', {detail:{signedIn:!!value}}));
@@ -43,7 +43,7 @@ export function authReady(){
 
 // Handles, email links and Google linking are shared with every District game.
 let identityModule = null;
-const identity = () => identityModule ??= import('../district-identity.js');
+const identity = () => identityModule ??= import('./district-identity.js');
 
 function changed(){
   user = firebase?.auth.currentUser || null;
@@ -110,6 +110,11 @@ async function request(path, {method='GET', body, requireUser=false, timeout=500
 }
 
 export function leaderboard(){ return request('/leaderboard', {timeout:8000}); }
+export function tesanaLeaderboard(){ return request('/v2/leaderboard', {timeout:8000}); }
+export function tesanaStartRun(){ return request('/v2/runs', {method:'POST', body:{}, requireUser:true}); }
+export function tesanaCompleteLevel(runId, level, score, seconds, events){
+  return request(`/v2/runs/${runId}/level`, {method:'POST', body:{level, score, seconds, events}, requireUser:true, timeout:8000});
+}
 export function checkHandle(handle){ return request(`/handles/${encodeURIComponent(handle)}/available`); }
 export function claimHandle(handle){ return request('/handle', {method:'POST', body:{handle}, requireUser:true}); }
 
