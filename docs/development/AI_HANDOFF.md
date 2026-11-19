@@ -6,7 +6,17 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 18 Nov 2026 (newest): SITE SLIMMING — SMALLER PUBLISHED SITE, NOTHING VISIBLE OR AUDIBLE CHANGED (branch `claude/site-slim`, build `2026-11-18-site-slim-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 (newest): ELEVENLABS VOICE TAGS IN WHAT IS SAID; CHOOSE THE ELEVENLABS MODEL (branch `claude/voice-tags`, build `2026-11-19-voice-tags-1`, pushed, NO PR, not merged)
+
+The owner asked "so i can put elevenlabs voice tags into the what is said section?", "choose a model?" and "v4?". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Eleventh pass"; [`../VOID_RUNNER_VOICE_PRODUCTION.md`](../VOID_RUNNER_VOICE_PRODUCTION.md), "Voice tags and models".
+
+- **Tags** like `[whispers]` in any line (lowercase / spaces / hyphens, 30 characters each, 6 per line; malformed brackets refused in plain words by the editor, the game's check and the server). Players never see them: stripped once, in `mission-content.js` `apply` / `mapLine`. Editor: one help line under the line fields and a warning when the speaker's voice cannot use them (Kokoro, no voice, a model without tags).
+- **Model** in the Voice box (Eleven v4 default and Zen Zephyr's model; v3; Multilingual v2; Flash / Turbo), stored as `content.voices[who].model`, exported as `model` in `revoice-engines.json` (Zen Zephyr's entry now records `eleven_v4`), allow-listed in the browser and on the server. Estimates count the text as sent at the model's rate.
+- **Queue:** `text` = what players see (clip id unchanged), `speak` = what the voice is sent (tags only for Eleven v4 / v3), `model`. `generate.py` strips tags for Kokoro and prints the model in the waiting list.
+- **Tests:** `tests/voice-tags.test.cjs` (6), `tests/test_voice_tags.py` (6), browser `tests/voice-tags-browser.cjs`. `tests/npc-voices.test.cjs` now expects `model` on a new choice and in the export.
+- **Not verified:** a real ElevenLabs recording with tags (nothing is generated from the editor); publishing / the queue with the server switched on (fake storage only); real hardware.
+
+### 18 Nov 2026: SITE SLIMMING — SMALLER PUBLISHED SITE, NOTHING VISIBLE OR AUDIBLE CHANGED (branch `claude/site-slim`, build `2026-11-18-site-slim-1`, pushed, NO PR, not merged)
 
 The owner approved shrinking the GitHub Pages site with no visible or audible change. Published tracked files: 650.5 MB (origin/main) -> 517.6 MB (tools/assets/build-pages.cjs with no licensed files: 2,093 files, 517.6 MB; the licensed models add what they did before) MB.
 

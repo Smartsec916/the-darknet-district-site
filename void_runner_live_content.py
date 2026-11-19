@@ -20,7 +20,7 @@ import re
 import time
 from pathlib import Path
 
-from void_runner_drafts import DraftError, editor_uid
+from void_runner_drafts import DEFAULT_VOICE_MODEL, VOICE_MODELS, DraftError, editor_uid, strip_voice_tags, voice_tag_problems
 
 ROOT = Path(__file__).parent
 MAX_BYTES = 200_000
@@ -182,6 +182,9 @@ def check(content, inv=None):
                                 err(ow + ': a line must be plain text.')
                             elif line.get('who') not in speakers:
                                 err(ow + ': unknown speaker.')
+                            else:
+                                for p in voice_tag_problems(line['text']):
+                                    err(ow + ': ' + p)
                 for o in objs:
                     for r2 in (o.get('requires') or []) if isinstance(o, dict) else []:
                         if r2 not in oids:
@@ -240,6 +243,8 @@ def check(content, inv=None):
                 if not _keys(line, ['who', 'from', 'to']) or not isinstance(line.get('who'), str) or not WHO.match(line['who']) or not _plain(line.get('from'), 500) or not _plain(line.get('to'), 500):
                     err('A changed line must name a speaker and be plain text.')
                     continue
+                for p in voice_tag_problems(line['to']):
+                    err('"%s...": %s' % (line['from'][:40], p))
                 if line['who'] == 'player':
                     err('The player\'s own lines are not changed here.')
                 key = line['who'] + '|' + line['from']
@@ -429,8 +434,24 @@ def voice_refusal(who, reg=None):
     return None
 
 
+def voice_model(v):
+    """The ElevenLabs model of a choice or a revoice-engines.json entry: its own 'model', else '(model ...)' in 'chosen', else Eleven v4 (npc-voices.js modelOf)."""
+    m = v.get('model') if isinstance(v, dict) else None
+    if isinstance(m, str) and m in VOICE_MODELS:
+        return m
+    hit = re.search(r'\(model ([a-z0-9_]+)\)', str((v or {}).get('chosen') or '')) if isinstance(v, dict) else None
+    return hit.group(1) if hit and hit.group(1) in VOICE_MODELS else DEFAULT_VOICE_MODEL
+
+
+def speak_text(text, e):
+    """The text a voice is sent: with its voice tags for an ElevenLabs model that reads them, without them for Kokoro and every other model."""
+    if e and e.get('engine') == 'elevenlabs' and VOICE_MODELS.get(e.get('model') or DEFAULT_VOICE_MODEL, {}).get('tags'):
+        return re.sub(r'[ \t]{2,}', ' ', text).strip()
+    return strip_voice_tags(text).strip()
+
+
 def voice_ok(v):
-    return _keys(v, ['engine', 'voiceId', 'name', 'chosen']) and v.get('engine') == 'elevenlabs' and isinstance(v.get('voiceId'), str) and bool(VOICE_ID.match(v['voiceId'])) \
+    return _keys(v, ['engine', 'voiceId', 'name', 'chosen', 'model']) and (v.get('model') is None or v.get('model') in VOICE_MODELS) and v.get('engine') == 'elevenlabs' and isinstance(v.get('voiceId'), str) and bool(VOICE_ID.match(v['voiceId'])) \
         and _plain(v.get('name'), 60) and isinstance(v.get('chosen'), str) and bool(VOICE_CHOSEN.match(v['chosen']))
 
 
@@ -446,6 +467,8 @@ def voice_problems(voices, inv=None):
             out.append('%s: %s' % (who, r))
         elif who not in givers:
             out.append('%s: not a character the editor knows.' % who)
+        elif isinstance(v, dict) and v.get('model') is not None and v.get('model') not in VOICE_MODELS:
+            out.append('%s: unknown ElevenLabs model "%s" (choose one from the list).' % (who, str(v.get('model'))[:40]))
         elif not voice_ok(v):
             out.append('%s: a voice choice needs an ElevenLabs voice ID (20 letters and digits), a plain name and the date it was chosen.' % who)
     return out
@@ -497,6 +520,8 @@ def start_problems(st, givers, places, mission_ids):
         out.append('the notification needs a header (plain text, 80 characters at most).')
     if not _plain(st.get('text'), 500):
         out.append('the notification needs its text (plain text, 500 characters at most).')
+    else:
+        out += ['the notification text: ' + p for p in voice_tag_problems(st['text'])]
     w = st.get('when')
     if not _keys(w, ['kind', 'mission', 'place', 'flag', 'value', 'npc', 'distance']) or w.get('kind') not in WHEN:
         return out + ['the notification needs a trigger it knows.']
@@ -591,6 +616,9 @@ def check_trees(trees, inv, err):
                 err(w + ': a line must be plain text.')
             elif line.get('who') != 'You' and line.get('who') not in givers:
                 err(w + ': unknown speaker.')
+            else:
+                for p in voice_tag_problems(line['text']):
+                    err(w + ': ' + p)
     for t in trees:
         if not _keys(t, ['id', 'name', 'note', 'missions']):
             err('A tree has unknown fields.')
@@ -909,16 +937,21 @@ def live_voices(db):
 def revoice_engine(who, item, published, eng):
     """Which engine re-voices this character's line: the voice sent with the item (chosen in the owner's editor draft), else the published choice, else
     tools/audio/revoice-engines.json, else the registered Kokoro voice. None: no voice at all (not re-voiceable)."""
-    vid, vname = item.get('voiceId'), item.get('voiceName')
+    vid, vname, vmodel = item.get('voiceId'), item.get('voiceName'), item.get('model')
+    if vmodel is not None and vmodel not in VOICE_MODELS:
+        raise DraftError('Unknown ElevenLabs model: choose one from the list.', 422)
     if vid is not None or vname is not None:
         if not (isinstance(vid, str) and VOICE_ID.match(vid) and _plain(vname, 60)):
             raise DraftError('A chosen ElevenLabs voice needs its 20-character voice ID and a plain name.', 422)
-        return {'engine': 'elevenlabs', 'voice': vname.strip(), 'voiceId': vid, 'from': 'editor'}
+        return {'engine': 'elevenlabs', 'voice': vname.strip(), 'voiceId': vid, 'model': vmodel or DEFAULT_VOICE_MODEL, 'from': 'editor'}
     p = published.get(who)
     if isinstance(p, dict) and voice_ok(p):
-        return {'engine': 'elevenlabs', 'voice': p['name'], 'voiceId': p['voiceId'], 'from': 'published'}
+        return {'engine': 'elevenlabs', 'voice': p['name'], 'voiceId': p['voiceId'], 'model': voice_model(p), 'from': 'published'}
     if who in eng:
-        return eng[who]
+        e = dict(eng[who])
+        if e.get('engine') == 'elevenlabs':
+            e['model'] = voice_model(e)
+        return e
     if who in registry()['npcs']:
         return {'engine': 'kokoro'}
     return None
@@ -938,20 +971,27 @@ def queue_add(db, uid, payload):
     published = live_voices(db)
     clean = []
     for it in payload['items']:
-        if not _keys(it, ['ref', 'who', 'text', 'from', 'mission', 'source', 'voiceId', 'voiceName']):
+        if not _keys(it, ['ref', 'who', 'text', 'from', 'mission', 'source', 'voiceId', 'voiceName', 'model']):
             raise DraftError('Unknown fields in a re-voice item.')
         who, text = it.get('who'), it.get('text')
         if voice_refusal(who, reg):
             raise DraftError('This character cannot be re-voiced: ' + voice_refusal(who, reg), 422)
         if not _plain(text, 500):
             raise DraftError('A line must be plain text, 500 characters at most.')
+        tp = voice_tag_problems(text)
+        if tp:
+            raise DraftError(tp[0])
         extra = {k: str(it.get(k) or '')[:200] for k in ['ref', 'from', 'mission', 'source'] if not TAGS.search(str(it.get(k) or ''))}
         e = revoice_engine(who, it, published, eng)
         if e is None:
             raise DraftError('Only characters with a registered voice or a chosen ElevenLabs voice can be re-voiced (broadcast voices and the reserved slot cannot).', 422)
-        rec = {'id': item_id(who, text), 'who': who, 'text': text, 'engine': e['engine'], 'status': 'queued', 'at': int(time.time()), **extra}
+        # text: what players see (the clip is found by it); speak: what the voice is sent (voice tags kept only for an ElevenLabs model that reads them)
+        shown, said = strip_voice_tags(text).strip(), speak_text(text, e)
+        rec = {'id': item_id(who, shown), 'who': who, 'text': shown, 'engine': e['engine'], 'status': 'queued', 'at': int(time.time()), **extra}
+        if said != shown:
+            rec['speak'] = said
         if e['engine'] == 'elevenlabs':
-            rec.update(voice=e.get('voice', ''), voiceId=e.get('voiceId', ''), waiting='waiting for ElevenLabs re-voice (needs approval)')
+            rec.update(voice=e.get('voice', ''), voiceId=e.get('voiceId', ''), model=e.get('model') or DEFAULT_VOICE_MODEL, waiting='waiting for ElevenLabs re-voice (needs approval)')
         else:
             rec['voice'] = (npcs.get(who) or {}).get('voice', '')
         clean.append(rec)
@@ -964,7 +1004,7 @@ def queue_add(db, uid, payload):
         items = dict(data.get('items', {}))
         for rec in clean:
             old = items.get(rec['id'])
-            if old and old.get('status') == 'done':
+            if old and old.get('status') == 'done' and old.get('speak', old.get('text')) == rec.get('speak', rec['text']):
                 continue
             items[rec['id']] = rec
         if len(items) > MAX_QUEUE:
