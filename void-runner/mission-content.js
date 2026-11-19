@@ -208,12 +208,14 @@
   if(when==='accept'&&!(m.start&&m.start.accept===true))err(w+': a mission the player pays for when accepting must ask the player ACCEPT or DENY.');}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
  const linked=trees=>new Set((trees||[]).flatMap(t=>(t.missions||[]).flatMap(m=>(m.unlocks||[]).filter(u=>u&&u.kind==='tree').map(u=>u.id))));
- /* ctx: givers (Map id → {canTalk}), places (Set), items (Set: buyable module ids), locations (Set), ships (Map id → {premium}), registryIds (Set: ids a draft id may not take). */
+ /* ctx: givers (Map id → roster entry), places, items, locations, ships and registryIds. TALK is required only for mechanics that execute through a walking interaction. */
  function checkTrees(trees,ctx,err){
   if(!Array.isArray(trees)||trees.length>10){err('New trees have an unknown shape (10 at most).');return;}
   const tids=new Set(),mids=new Set(),all=new Set(trees.map(t=>t&&t.id));let total=0;
   const npcOk=id=>typeof id==='string'&&(!ctx.givers||(ctx.givers.get(id)||{}).canTalk===true);
-  const speakerOk=id=>id==='You'||(typeof id==='string'&&(!ctx.givers||ctx.givers.has(id)));
+  const knownNpc=id=>typeof id==='string'&&id!=='You'&&(!ctx.givers||ctx.givers.has(id));
+  const speakerOk=id=>id==='You'||knownNpc(id);
+  const giverOk=m=>m&&m.start&&m.start.how==='notification'?knownNpc(m.giver):npcOk(m&&m.giver);
   const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
   const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else for(const p of tagP(l.text))err(w+': '+p);}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
