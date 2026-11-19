@@ -1,5 +1,16 @@
 # Mission Editor (Developer Tools > Mission Editor)
 
+## Dev Tools NPC capability audit (19 Nov 2026)
+
+Full matrix: [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md).
+
+**Rule to preserve:** a walking TALK prompt is a capability, not a definition of whether an NPC may participate in missions. An **in-person** offer, talk/deliver step, hand-in, and **walked near** trigger still require a real walking-game interaction. A mission that starts through **Messages, Comms or notification** may belong to any registered NPC because the V1 trigger already runs without a world TALK prompt. The NPC tab's **Give them a mission** action therefore creates a notification-started draft for a no-TALK NPC.
+
+Do not infer route/follow support from a `walk` clip. Generic placement, schedules and mission escort state are consumed today only by `npc-paths.js MOVABLE` / `ncz-street-pair.js` (Reverie, Lace, street cat). All other scene-specific movement restrictions remain until their runtime explicitly consumes Dev Tools plans.
+
+Animation compatibility remains based on the real `npc-clip-index.json` skeleton/rest-pose metadata and loaded animation groups, not on clip names alone.
+
+
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
 ## Fifteenth pass (19 Nov 2026): place Reverie, Lace and the street cat anywhere walkable
