@@ -9627,7 +9627,7 @@
       }
     }
   },
-  "revision": "2a03a789dc2562d1",
+  "revision": "80e87d40c4c0ddc6",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -22375,31 +22375,31 @@
     },
     {
       "source": "void-runner/editor-wizard.js",
-      "line": 70,
+      "line": 71,
       "text": "/* What still stops this page, in plain words, each saying how to fix it. ctx: {givers, places (Set of ids), subjects (Set of ids)}. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-wizard.js",
-      "line": 76,
+      "line": 79,
       "text": "if((a.start==='messages'||a.start==='near')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-wizard.js",
-      "line": 77,
+      "line": 80,
       "text": "{const NV=typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;if((a.start==='messages'||a.start==='near')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.message&&a.message.text||'')))out.push(p);if((a.start==='person'||a.start==='person-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.offer||'')))out.push('What they say when offering it: '+p);}}   // ElevenLabs voice tags: the same rules as a line",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-wizard.js",
-      "line": 86,
+      "line": 89,
       "text": "if(!String(s.label||'').trim())out.push(n+'write what the Mission Log says, for example “Talk to Iris”.');});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/editor-wizard.js",
-      "line": 103,
+      "line": 106,
       "text": "m.offer=[{who:a.giver,text:String(a.offer||'').trim().slice(0,500)}];",
       "kind": "source-reference"
     },
@@ -23814,6 +23814,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/mission-editor.js",
+      "line": 907,
+      "text": "addGiverMission(npc,treeId,opt={}){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);if(opt.notification===true)m.start={how:'notification',channel:'notify',from:npc,text:'',when:{kind:'pod-exit'}};saveLocal(d);stale=true;",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/mission-givers.js",
       "line": 4,
       "text": "District is the owner's story decision: this file only says where each character is today.",
@@ -23821,217 +23827,217 @@
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 12,
+      "line": 13,
       "text": "/* id: the voice registry id (tools/audio/npc-voice-registry.json) or, for people only listed elsewhere, that list's id. say: the speaker name the dialogue window shows. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 14,
+      "line": 15,
       "text": "admin:{name:'Admin',group:D,say:'Admin',where:'The Darknet District, at the store counter (neochinatown.js: SPEAK WITH ADMIN).',targets:[{action:'admin'}],layout:'admin',enter:AREA.district,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 16,
+      "line": 17,
       "text": "iris:{name:'Iris',group:D,say:'Iris',where:'The Darknet District, at the store counter beside Admin (neochinatown.js: SPEAK WITH IRIS).',targets:[{action:'district-iris'}],layout:'district-iris',enter:AREA.district,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 18,
+      "line": 19,
       "text": "bartender:{name:'District bartender',group:D,say:'Bartender',where:'The Darknet District bar and oxygen lounge (neochinatown.js: TALK TO THE BARTENDER). The figure behind the bar is Nyx (district-people.js).',targets:[{action:'district-bar'}],layout:'district-bar',enter:AREA.district,players:true,draft:true},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 19,
+      "line": 20,
       "text": "'nyx-district':{name:'Nyx',group:D,say:'Bartender',where:'Behind the District bar (district-people.js). The same TALK TO THE BARTENDER prompt as the District bartender in the voice list.',targets:[{action:'district-bar'}],layout:'district-bar',enter:AREA.district,players:true,draft:true},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 20,
+      "line": 21,
       "text": "attendant:{name:'Arcade attendant',group:D,say:'Arcade attendant',where:'The Darknet District VR booths. Today the ACCESS VR EXPERIENCES prompt opens the VR menu (vr-core.js); the attendant only speaks if that menu is missing (prologue-integration.js).',targets:[],players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 21,
+      "line": 22,
       "text": "why:'The VR prompt opens the VR menu, not a conversation (needs a code change to talk to the attendant).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 22,
+      "line": 23,
       "text": "'landing-terminal':{name:'Landing terminal',group:D,kind:'machine',say:'Landing terminal',where:'The Landing Terminal on the street by Pad 01, The Port (neochinatown.js: terminal).',targets:[{action:'terminal'}],layout:'terminal',enter:AREA.street('port'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 24,
+      "line": 25,
       "text": "'milked-eva':{name:'Eva',group:D,say:'milked-eva',where:'Milked reception, Far South (milked-integration.js: Eva). Main Street south through the South Gate.',targets:[{action:'milked-eva'}],layout:'milked-eva',enter:AREA.milked,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 26,
+      "line": 27,
       "text": "'milked-fish':{name:'Fish',group:D,say:'milked-fish',where:'Milked, Far South (milked-integration.js: Fish).',targets:[{action:'milked-fish'}],layout:'milked-fish',enter:AREA.milked,players:true,draft:true,note:'Draft play starts on Far South’s street; walk into Milked. Provisional voice.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 27,
+      "line": 28,
       "text": "'zen-zephyr':{name:'Zen Zephyr',group:D,say:'zen-zephyr',where:'Zen Zephyr’s Temple, past the East Gate (temple.js: SPEAK WITH ZEN ZEPHYR).',targets:[{action:'temple-monk'}],enter:AREA.temple,players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 31,
+      "line": 32,
       "text": "'v1-translator':{name:'V1 translation',group:D,kind:'device',say:'v1-translator',where:'The player\\u2019s V1 device: translates what is said in another language, in the speaker\\u2019s own voice.',targets:[],players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 34,
+      "line": 35,
       "text": "'juno-vex':{name:'Juno Vex',group:D,say:'Juno Vex',where:'NULL, at the bar talking with Halden Reyes, checking her device (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 37,
+      "line": 38,
       "text": "'halden-reyes':{name:'Halden Reyes',group:D,say:'Halden Reyes',where:'NULL, at the bar talking with Juno Vex (ncz-nightclub.js).',targets:[],photo:true,place:'null',players:false,draft:false,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 41,
+      "line": 42,
       "text": "'grey-reverie':{name:'Reverie',group:D,say:'grey-reverie',where:'The Avenue (or wherever Developer Tools > NPCs places her), the north pavement by the LAUNDRY and REPAIR shopfronts (ncz-street-pair.js: TALK TO REVERIE, while she is out).',targets:[{action:'street-pair',character:'grey-reverie'}],layout:'street-pair-grey-reverie',enter:AREA.street('avenue'),players:true,draft:true,shift:{hours:[0,12],arrive:90},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 43,
+      "line": 44,
       "text": "'ethereal-lace':{name:'Lace',group:D,say:'ethereal-lace',where:'The Avenue (or wherever Developer Tools > NPCs places her), the north pavement by the LAUNDRY and REPAIR shopfronts (ncz-street-pair.js: TALK TO LACE, while she is out).',targets:[{action:'street-pair',character:'ethereal-lace'}],layout:'street-pair-ethereal-lace',enter:AREA.street('avenue'),players:true,draft:true,shift:{hours:[12,24],arrive:90},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 47,
+      "line": 48,
       "text": "'street-cat':{name:'Street cat',group:D,say:'street-cat',where:'The Avenue (or wherever Developer Tools > NPCs places it), the north pavement by the LAUNDRY door (ncz-street-pair.js: PET THE CAT; it goes to whichever of Reverie and Lace is out).',targets:[{action:'street-cat',character:'street-cat'}],layout:'street-cat',enter:AREA.street('avenue'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 50,
+      "line": 51,
       "text": "rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 51,
+      "line": 52,
       "text": "reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 52,
+      "line": 53,
       "text": "nyx:{name:'Nyx',group:E,say:'nyx',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / NYX).',targets:[{action:'talk',character:'nyx'}],layout:'nyx',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 54,
+      "line": 55,
       "text": "mara:{name:'Mara',group:E,say:'mara',where:'Vesper, the Ward Freight workshop of the old opening (opening-data.js, station-layouts.js).',targets:[{action:'talk',character:'mara'},{action:'opening-mara'}],enter:AREA.station('vesper'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 55,
+      "line": 56,
       "text": "reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship (once a mission grants one) can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 56,
+      "line": 57,
       "text": "elias:{name:'Elias Ward',group:E,kind:'recording',say:'elias',where:'Vesper: an archived recording (PLAY ARCHIVE), not a person.',targets:[],players:false,draft:false,why:'A recording cannot hand over a mission (needs a code change).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 57,
+      "line": 58,
       "text": "elara:{name:'Dr. Elara Voss',group:E,say:'Dr. Elara Voss',where:'The Vigil, Cantor System (station-layouts.js: TALK / DR. ELARA VOSS).',targets:[{action:'talk',character:'elara'}],layout:'elara',enter:AREA.station('vigil'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 59,
+      "line": 60,
       "text": "marcus:{name:'Marcus Vale',group:E,say:'Marcus Vale',where:'Holdfast, Garrow System (station-layouts.js: TALK / MARCUS VALE).',targets:[{action:'talk',character:'marcus'}],layout:'marcus',enter:AREA.station('holdfast'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 61,
+      "line": 62,
       "text": "kess:{name:'Dr. Adrian Kess',group:E,say:'Dr. Adrian Kess',where:'The Nexus, the Communion homeworld (planets.js: TALK / DR. ADRIAN KESS).',targets:[{action:'homeworld-talk',character:'kess'}],layout:'kess',enter:AREA.station('nexus'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 63,
+      "line": 64,
       "text": "mercer:{name:'Daniel Mercer',group:E,say:'Daniel Mercer',where:'The Natural Order homeworld, Garrow (planets.js: TALK / DANIEL MERCER).',targets:[{action:'homeworld-talk',character:'mercer'}],layout:'mercer',enter:AREA.station('order-homeworld'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 65,
+      "line": 66,
       "text": "iona:{name:'Iona Vale',group:E,say:'iona',where:'Rusthaven Port (station-layouts.js: TALK / IONA).',targets:[{action:'talk',character:'iona'}],layout:'iona',enter:AREA.station('rusthaven'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 67,
+      "line": 68,
       "text": "sol:{name:'Dr. Sol',group:E,say:'sol',where:'Kepler, the clinic network’s station (station-layouts.js: TALK / DR. SOL).',targets:[{action:'talk',character:'sol'}],layout:'sol',enter:AREA.station('kepler'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 87,
+      "line": 88,
       "text": "/* What a step can ask for. supported: the game can run it today (draft play and publish). The others are listed so the owner can plan them; they say \"needs a code change\". */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 95,
+      "line": 96,
       "text": "{id:'enter',name:'Enter a place',supported:true,needs:'region',note:'Done while the player is inside the place (places.js; a player already inside when the step starts counts). Use “say it as a Comms call” for a call that arrives as they walk in.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 98,
+      "line": 99,
       "text": "{id:'send-photo',name:'Send a photo to someone',supported:true,needs:'recipient',note:'In Messages: the player opens the recipient’s conversation, ATTACH, picks the photo, SEND. Only a photo of the chosen person taken during this mission counts. “What is said” is the reply to the right photo; the second set of lines is the reply to any other photo (unlimited tries, no fail). Photos stay on the player’s computer; only what was checked when the photo was taken is used.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 101,
+      "line": 102,
       "text": "{id:'hear',name:'Hear what they say',supported:true,note:'The lines below are shown right after the talk step before it; the step is done when the player closes that conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 129,
+      "line": 130,
       "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many metres of the person chosen (1 to 30; 5 if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 130,
+      "line": 131,
       "text": "{id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 159,
+      "line": 160,
       "text": "out.push({id,name,say:/^[a-zA-Z][\\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,",
       "kind": "source-reference"
     },
@@ -26969,7 +26975,7 @@
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
     "void-runner/editor-home.js": "6b68992a4e759bf55da45a856288f2763ba699dc87000fbde9fc0fa620bc1dbc",
-    "void-runner/editor-wizard.js": "9cf54af6a2b8d53747690afcf4a659e916bb943b21ee5b425aeff5ee7537dfe9",
+    "void-runner/editor-wizard.js": "557223beea8e19c2d29685d9d2912b59f8adade6799d9b3c367c3e379a845071",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
@@ -27017,9 +27023,9 @@
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
     "void-runner/milked.js": "a0600a70dd32b437fd11f7791a03cde58eb5da6ed1a9c0664bd60d5a5875bebc",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
-    "void-runner/mission-content.js": "83c58f649fec5eadc1b077df514f3d701a52f8deaf9bdd04acd7007c1e72b127",
-    "void-runner/mission-editor.js": "4452913c1e2c5e271a708e11eedaaef9710d283624d02bd43d86f001d3fbbe6d",
-    "void-runner/mission-givers.js": "bd8748280aabcb2a721429b9b9848928426443b6b4d6c9f1dd6b8425a7680e19",
+    "void-runner/mission-content.js": "a35090c2634df511f9874e636e123b926092043cebc4a42f069914f468d7bdf0",
+    "void-runner/mission-editor.js": "583169dbbf7259036a023e71b1aca5069d4bcfdccb32a89f404a02d3ecea351c",
+    "void-runner/mission-givers.js": "fb0ef912ad86fee764baa074cde3c45ee3be9cc1189d4081917b15c0cbf2b0c7",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
     "void-runner/mission-trees.js": "e5229983aa1c57a6f75e0beed89c50423e11d152903737fa3255151f232fa0cb",
@@ -27048,7 +27054,7 @@
     "void-runner/npc-areas.js": "b9d1e1cc79df286d6c25461b4683455682c2a6445d309fc9af6a120b3bba9dd6",
     "void-runner/npc-behaviour.js": "bf15d9a0030b9673812527f67a152d8ce1e185515fa8a2b0eec0af560b200839",
     "void-runner/npc-device.js": "6011436c5f2163d7c2ce97f5ee014e86e04033740c313490479562bb8d714141",
-    "void-runner/npc-editor.js": "a582f998ebe78d30b00bf013128c6b87c38c5ae0b78730b57e832fcfbe03b5a4",
+    "void-runner/npc-editor.js": "c0384fccfc84be6a7abf90c686426a691931aba153b515a13f14531509dbc3e4",
     "void-runner/npc-escort.js": "9183a3a8c66b6a827ad81ec71bb3d44e20fc2ea360ccbce5cb1396f7e08773ce",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
