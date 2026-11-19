@@ -2,6 +2,16 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## NPC voice summary (19 Nov 2026, branch `claude/npc-voice-summary`, build `2026-11-19-npc-voice-summary-1`)
+
+The owner: "In the NPC editor when you select an NPC show which Elevenlabs voice was selected for them. Maybe link to it".
+
+- **Top of every NPC's page** (Developer tools > NPCs, the About box, Basic and Advanced): `Voice: ElevenLabs — <name> (<model, e.g. Eleven v4>) · LISTEN ON ELEVENLABS ↗ · your draft choice / saved in the voice file`. The link opens `https://elevenlabs.io/voices/<voiceId>` in a new tab (`rel=noopener noreferrer`). Kokoro: `Voice: free local voice <name> (locked)` (plus the recorded lines' Kokoro voice); nothing: `Voice: none yet — choose one in Lines & voice`.
+- **NPC list:** an **EL** badge after every name with an ElevenLabs voice (hover: the voice and model).
+- **Mission Editor giver card:** its Voice box already named the voice and linked to it; it now names the model too.
+- Lace, Reverie and Dax show the voices chosen for them in `tools/audio/revoice-engines.json`. Code: `npc-voices.js summary()` / `modelLabel()` (pure), `mission-editor.js voiceSummary()` (shared), `npc-editor.js` About and list. No API calls, nothing generated or spent.
+- Tests: `tests/npc-voice-summary.test.cjs`, browser `tests/npc-voice-summary-browser.cjs` (passes, offline, no request to ElevenLabs); `tests/npc-voices-browser.cjs` updated (Reverie now has a voice in the file).
+
 ## Twenty-first pass (19 Nov 2026): locations built from modules (offices, a server room, shops, an elevator)
 
 The owner: "in the mission editor i need to be able to add locations by type: housing, commercial, other, office and commercial style hallways ... an office building interior ... a server room with server racks ... connect these areas together so make sure they fit ... elevator ... like modules". Details: `docs/development/MODULES.md`.

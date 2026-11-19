@@ -38465,7 +38465,7 @@
       }
     }
   },
-  "revision": "1a9f3ff6cde34db1",
+  "revision": "9565f4512e209a74",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -53241,73 +53241,73 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 797,
+      "line": 801,
       "text": "function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 810,
+      "line": 814,
       "text": "const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 820,
+      "line": 824,
       "text": "const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 824,
+      "line": 828,
       "text": "if(cur.kind==='elevenlabs'&&cur.from==='editor')r.append(btn('REMOVE MY CHOICE',()=>{setVoice(id,null);say('Removed your voice choice for '+name+' (UNDO puts it back).');redraw();},'me-x',{'data-voice-remove':id,title:'Back to '+(voiceNow(id).kind==='none'?'no voice':'the voice they had before')+'.'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 851,
+      "line": 855,
       "text": "/* Who: everyone the editor knows, but only people who can walk with the player can be chosen; the rest are greyed with the reason. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 900,
+      "line": 904,
       "text": "'step-subject':(m,o)=>'[data-me-step-subject=\"'+CSS.escape(o)+'\"]',label:(m,o)=>'[data-me-label=\"'+CSS.escape(o)+'\"]',say:(m,o)=>'[data-me-tstep=\"'+CSS.escape(o)+'\"] textarea',ending:m=>'[data-me-ending=\"'+CSS.escape(m.id)+'\"]','wait-at':m=>'[data-me-wait-at=\"'+CSS.escape(m.id)+'\"] canvas','step-spot':(m,o)=>'[data-me-esc-map=\"'+CSS.escape(o)+'\"] canvas','step-stop':(m,o)=>'[data-me-esc-stop=\"'+CSS.escape(o)+'\"]',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 911,
+      "line": 915,
       "text": "if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 913,
+      "line": 917,
       "text": "const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename=\"'+CSS.escape(raw.id)+'\"]',text:'the tree’s name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 914,
+      "line": 918,
       "text": "if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 916,
+      "line": 920,
       "text": "for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission=\"'+CSS.escape(m.id)+'\"] '+f(m,n.step),text:n.text});}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 917,
+      "line": 921,
       "text": "return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play=\"tree:'+CSS.escape(doneM.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 920,
+      "line": 924,
       "text": "const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)",
       "kind": "source-reference"
     },
@@ -54579,7 +54579,25 @@
     },
     {
       "source": "void-runner/npc-voices.js",
-      "line": 108,
+      "line": 111,
+      "text": "return {kind:'elevenlabs',text:'ElevenLabs — '+nm+' ('+ml+')',name:nm,model:m,modelLabel:ml,from:c.from,fromText:c.from==='editor'?'your draft choice (PUBLISH keeps it)':'saved in the voice file (revoice-engines.json)',url:listenUrl(c.voiceId),voiceId:c.voiceId,badge:'EL'};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-voices.js",
+      "line": 112,
+      "text": "if(c.kind==='kokoro')return {kind:'kokoro',text:'free local voice '+(c.voice||'?')+' (locked)',badge:'K'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-voices.js",
+      "line": 113,
+      "text": "return {kind:'none',text:'none yet — choose one in Lines & voice',badge:''};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-voices.js",
+      "line": 117,
       "text": "return {lines:t.length,chars,credits:Math.ceil(chars*rate),fast:Math.ceil(chars*CREDITS.fast),text:CREDITS.text,...(model?{model}:{})};}",
       "kind": "source-reference"
     },
@@ -56629,7 +56647,7 @@
     "void-runner/mission-blocks-view.js": "415a8bb520be67b6968c63098668877640ece26cf3d0cc1361b8e5758bb68ccf",
     "void-runner/mission-blocks.js": "0a6726a8ac3a3ee60a1bf5781db5a6b7d29a2e254e75be19a9d11f15541e1c5a",
     "void-runner/mission-content.js": "6af2e2118aea7b9769585bd3465d7f52b8e51acfe0733652a85627785c4710ce",
-    "void-runner/mission-editor.js": "4aba71bf828d268c22313a58a84cd26b5c3c4a42b83138cbf7cd0c7a8ba39fde",
+    "void-runner/mission-editor.js": "9146c6d8bc60c3a4053a664ac82d0e60541c4936ffe6511120725e9aa373106f",
     "void-runner/mission-givers.js": "62b85164fedfc8c748201acbedfde7bb67bb33d10c96155b0b7661e90498aae1",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
@@ -56663,7 +56681,7 @@
     "void-runner/npc-areas.js": "b39b9750db46bbf8c61b90cf8c27f0b7d83e885e057afc5914e09589f41dc40e",
     "void-runner/npc-behaviour.js": "bf15d9a0030b9673812527f67a152d8ce1e185515fa8a2b0eec0af560b200839",
     "void-runner/npc-device.js": "6011436c5f2163d7c2ce97f5ee014e86e04033740c313490479562bb8d714141",
-    "void-runner/npc-editor.js": "2df9c0e59c990e235eec6f4fe144733a81053d2b5c1badd2299ec189321291c6",
+    "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort.js": "f38467be8bebeca13bc6cf7c3fdce9212ab714a60713b6a86d73f591d8181135",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
@@ -56673,7 +56691,7 @@
     "void-runner/npc-paths.js": "3ea99998605bdb4072948794b1f75dee97e1ee7af7d192fc5a8a73863200ba0e",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
-    "void-runner/npc-voices.js": "8461d452f090b7d709c1d3b7eee95cfc45935539b9f629584023dc42dd1350c2",
+    "void-runner/npc-voices.js": "c7bd363661ce3aaa939cc9c2c3b09a9f1f5fb813a63bb5fb1e8b88676f47c5c7",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/personal-device.js": "9a6cb784a1d9419bf9318e5ae741112ee3c10c16050769ca09a3627a44b1e605",

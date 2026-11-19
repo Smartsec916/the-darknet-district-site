@@ -794,11 +794,15 @@
     server); lines RE-VOICEd for that character wait in the re-voice queue until the owner approves the spend. Registered Kokoro voices stay read-only. */
  function setVoice(id,v){const d=local();d.voices=d.voices||{};if(v)d.voices[id]=v;else delete d.voices[id];saveLocal(d);rebuild();}
  function voiceLines(id){const n=linesFor(id),v=voiceNow(id);return n?[...n.inMissions,...n.outside].filter(l=>l.who!=='player').map(l=>V()?V().speakText(shownText(l),v):shownText(l)):[];}   // as they are sent (voice tags only for a model that reads them)
+ /* One line at the top of an NPC's page: "Voice: ElevenLabs — name (model) · LISTEN ON ELEVENLABS ↗" and where it comes from (npc-voices.js summary). No network. */
+ function voiceSummary(id){const X=V(),p=el('p','','me-voice-sum',{'data-voice-summary':id});p.append(el('b','Voice: '));if(!X){p.append('—');return p;}const s=X.summary(voiceNow(id));p.dataset.voiceKind=s.kind;p.append(document.createTextNode(s.text));
+  if(s.kind==='elevenlabs'){p.append(' · ',el('a','LISTEN ON ELEVENLABS ↗','me-link',{href:s.url,target:'_blank',rel:'noopener noreferrer','data-voice-summary-listen':s.voiceId,title:'Opens the voice’s page on elevenlabs.io. Listening there costs nothing.'}),el('span',' · '+s.fromText,'me-small',{'data-voice-summary-from':s.from}));}
+  return p;}
  function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));
   if(!X){box.append(el('p','The voice tools could not load. Reload the page.','me-bad'));return box;}
   const no=X.refusal(id,src&&src.registry);if(no){box.append(el('p',no,'me-warn',{'data-voice-refused':id}));return box;}
   const cur=voiceNow(id),name=(giver(id)||{}).name||id,p=el('p','','',{'data-voice-current':cur.kind});
-  if(cur.kind==='elevenlabs'){p.append(el('b','ElevenLabs: '),document.createTextNode(cur.name+(cur.chosen?' · chosen '+cur.chosen.replace(/ \(.*$/,''):'')+(cur.from==='editor'?' · your choice in this draft (PUBLISH keeps it)':' · set in the re-voice file')),document.createTextNode(' '));
+  if(cur.kind==='elevenlabs'){p.append(el('b','ElevenLabs: '),document.createTextNode(cur.name+' ('+X.modelLabel(cur.model)+')'+(cur.chosen?' · chosen '+cur.chosen.replace(/ \(.*$/,''):'')+(cur.from==='editor'?' · your choice in this draft (PUBLISH keeps it)':' · set in the re-voice file')),document.createTextNode(' '));
    const a=el('a','Listen on ElevenLabs ↗','me-link',{href:X.listenUrl(cur.voiceId),target:'_blank',rel:'noopener noreferrer','data-voice-listen':cur.voiceId,title:'Opens the voice’s page on elevenlabs.io. Listening there costs nothing.'});p.append(a);box.append(p);
    if(DTX()?.mode==='advanced')box.append(el('p','Voice ID '+cur.voiceId,'me-small'));
    box.append(hint(cur.kokoro?'Lines already recorded keep their Kokoro voice ('+cur.kokoro.voice+', locked). New or changed lines you RE-VOICE are recorded with this ElevenLabs voice once you approve the spend.':'Lines you RE-VOICE are recorded with this voice once you approve the spend.'));}
@@ -1068,7 +1072,7 @@
   goto(o){Object.assign(ui,{check:null,newTree:false,...o});},
   addWizardMission(make){const d=local();const r=make(d,{T:T(),number:nextFree(d),givers});saveLocal(d);stale=true;Object.assign(ui,{mode:'trees',tree:r.tree.id,mission:'tree:'+r.mission.id,step:null,scrollTo:true,newTree:false});return {tree:r.tree.id,mission:r.mission.id};},
   playTree(id,step){return play('tree:'+id,step||null);},playStart,fresh,blocksKit,
-  blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,
+  blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,voiceSummary,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
   addGiverMission(npc,treeId){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};
