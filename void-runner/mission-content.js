@@ -40,6 +40,7 @@
  const GVS=()=>typeof module!=='undefined'&&module.exports?require('./mission-givers.js'):root.VoidMissionGivers;
  const NPX=()=>typeof module!=='undefined'&&module.exports?require('./npc-paths.js'):root.VoidNPCPaths;
  const NPV=()=>typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;
+ const NGS=()=>typeof module!=='undefined'&&module.exports?require('./npc-gestures.js'):root.VoidNPCGestures;   // animations on lines and animation steps (npc-gestures.js)
  const NEX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;   // follow / lead / shared-cab steps (npc-escort.js)
  const NPL=()=>typeof module!=='undefined'&&module.exports?require('./npc-looks.js'):root.VoidNPCLooks;
  const VIM=()=>typeof module!=='undefined'&&module.exports?require('./voice-imports.js'):root.VoidVoiceImports;   // imported voice files (content.clips: [{who, text, hash, type, duration, bytes}], 19 Nov 2026)   // NPC looks (Developer Tools > NPCs > Appearance)   // ElevenLabs voice choices (Developer Tools > NPCs, giver card)   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
@@ -164,7 +165,7 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -215,7 +216,9 @@
   const npcOk=id=>typeof id==='string'&&(!ctx.givers||(ctx.givers.get(id)||{}).canTalk===true);
   const speakerOk=id=>id==='You'||(typeof id==='string'&&(!ctx.givers||ctx.givers.has(id)));
   const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
-  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else for(const p of tagP(l.text))err(w+': '+p);}};
+  const animP=(who,clip)=>{const A=NGS();return A?A.problem(who,clip,{plan:(ctx.npcs||{})[who]||null}):'';};
+  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text','anim'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else{for(const p of tagP(l.text))err(w+': '+p);
+   if(l.anim!=null){if(l.who==='You')err(w+': the player’s own line has no animation.');else{const p=animP(l.who,l.anim);if(p)err(w+': '+p+'.');}}}}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
    if(!keysOk(t,['id','name','note','missions'])){err(tw+': unknown fields in a tree.');continue;}
    if(!treeIdOk(t.id))err(tw+': a new tree id must start with draft-.');if(tids.has(t.id))err(tw+': duplicate tree id.');tids.add(t.id);
@@ -240,7 +243,8 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop'])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold'])){err(ow+': unknown fields in a step.');continue;}
+     if(o.kind!=='anim'&&(o.clip!=null||o.hold!=null))err(ow+': only an animation step names an animation and a wait.');
      if(!ESCORT.includes(o.kind)&&['to','wait','lost','ifLost','stop'].some(k=>o[k]!=null))err(ow+': only a follow / lead / cab step has a spot, distances or a cab stop.');
      if(!ID.test(o.id||'')||o.id==='turn-in')err(ow+': step id must be lowercase letters, digits and hyphens.');if(oids.has(o.id))err(ow+': duplicate step id.');oids.add(o.id);
      if(!plain(o.label,LIMIT.text))err(ow+': the step needs a label (plain text).');
@@ -254,6 +258,7 @@
      else if(o.kind==='await-call'){if(o.npc!=null&&o.npc!==''&&!speakerOk(o.npc))err(ow+': who will call must be a known NPC.');}
      else if(o.kind==='enter'||o.kind==='leave'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
      else if(ESCORT.includes(o.kind)){const E=NEX();if(E)for(const p of E.problems(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null,plan:(ctx.npcs||{})[o.npc]||null}):'avenue'}))err(ow+': '+p);}   // in the area she is placed in for this mission (npc-areas.js)
+     else if(o.kind==='anim'){if(!speakerOk(o.npc)||o.npc==='You')err(ow+': choose who plays the animation.');else{const p=animP(o.npc,o.clip);if(p)err(ow+': '+p+'.');}const A=NGS();if(A&&!A.holdOk(o.hold))err(ow+': the wait after an animation is a whole number of seconds from 0 to 30.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': an animation step has no lines.');}
      else if(o.kind==='photo'){if(!subjectOk(o.npc))err(ow+': choose someone the V1 camera can identify.');}
      else if(o.kind==='send-photo'){if(typeof o.npc!=='string'||o.npc==='You'||!speakerOk(o.npc))err(ow+': the photo must be sent to a known NPC.');if(!subjectOk(o.subject))err(ow+': choose who must be in the photo (someone the V1 camera can identify).');}
      if(o.subject!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step names who must be in the photo.');
@@ -333,10 +338,10 @@
   if(!treeLive(s)||!env||!Array.isArray(env.trees)||!env.trees.length||!ev)return out;
   const npcs=ev.npcs||[],places=ev.places||[],gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   if(ev.type==='pod-exit')for(const k of Object.keys(s.story.flags))if(k.startsWith('md_')&&s.story.flags[k]==='later')delete s.story.flags[k];   // a DENY on the device: offered again from this pod exit
-  const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>({who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text}));
+  const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>{const x={who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text};if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;}return x;});
   const gated=linked(env.trees),open=t=>!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true;
   const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
-   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:false;
+   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:o.kind==='anim'?ev.type==='anim'&&ev.step===m.id+'/'+o.id:false;
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
    if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(GC)GC.stamp(s,m.id);/* the in-game wait of "after N in-game hours" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
@@ -454,6 +459,12 @@
   for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
    const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&ESCORT.includes(o.kind)&&o.npc&&!out[o.npc]){const e={key:m.id+'/'+o.id,mission:m.id,step:o.id,kind:o.kind,npc:o.npc};for(const k of ['to','wait','lost','ifLost','stop'])if(o[k]!=null)e[k]=o[k];out[o.npc]=e;}break;}}
   return out;}
+ /* ANIMATION STEPS (npc-gestures.js) in progress now: [{key ('<mission>/<step>'), mission, step, npc, clip, hold}]. The game plays the clip and sends {type:'anim', step:key}
+    after `hold` seconds (live-content.js animTick). */
+ function animNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&o.kind==='anim')out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:o.npc,clip:o.clip,hold:Number.isInteger(o.hold)?o.hold:3});break;}}
+  return out;}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
  function treeWants(s,env,npcs){if(!treeLive(s)||!env||!env.trees)return false;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees)if(!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true)for(const m of t.missions){const rec=recs[m.id];if(rec&&rec.completed)continue;
@@ -501,7 +512,7 @@
  const strip=m=>{const r={id:m.id,title:m.title,type:m.type};for(const k of ['giver','description','destination','prerequisites'])if(m[k]!=null)r[k]=clone(m[k]);if(m.rewards!=null)r.rewards=Number(m.rewards)||0;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:o.label,on:o.on};for(const k of ['requires','interaction','destination','award','say','early'])if(o[k]!=null&&!(Array.isArray(o[k])&&!o[k].length))x[k]=clone(o[k]);if(x.requires)x.requires=x.requires.slice();return x;});return r;};
  /* ---- new trees in the owner's draft → content. Only what the game can run is sent: in each tree, the missions in order up to the first one that cannot run yet. */
- const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>({who:l.who||who||'You',text:l.text.trim()}));
+ const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>{const x={who:l.who||who||'You',text:l.text.trim()};if(l.anim&&typeof l.anim==='string'&&x.who!=='You')x.anim=l.anim;return x;});
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
  const askStrip=(st,who)=>{if(!st||st.accept!==true)return {};const x={accept:true};for(const k of ['yes','no'])if(typeof st[k]==='string'&&st[k].trim())x[k]=st[k].trim().slice(0,MONEY.label);
   if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
@@ -512,6 +523,7 @@
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
    if(ESCORT.includes(o.kind)){const F=(NEX()&&NEX().FIELDS[o.kind])||[];for(const k of F)if(o[k]!=null&&o[k]!=='')x[k]=k==='to'?{x:o.to.x,z:o.to.z}:o[k];}
+   if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}   // an animation step: no lines (its label shows in the Mission Log for those seconds)
    const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
   if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}
   const un=(m.unlocks||[]).filter(SUPPORTED_UNLOCK).map(u=>{const x={kind:u.kind};for(const k of ['id','amount','value','when'])if(u[k]!=null&&u[k]!=='')x[k]=u[k];if(x.when==='complete')delete x.when;return x;});if(un.length)r.unlocks=un;
@@ -538,6 +550,7 @@
    if(o.kind==='photo'&&!o.npc)need(w+': choose who is photographed','step-subject',id);
    if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue'}):[]))need(w+': '+n.text,n.key,id);}
    if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
+   if(o.kind==='anim'){if(!o.npc)need(w+': choose who plays the animation','step-npc',id);else if(!o.clip)need(w+': choose the animation','step-clip',id);continue;}   // which clips are allowed: check() (with her NPCs-tab plan)
    if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
    if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}
   if(m.ending&&m.ending.npc&&!can(m.ending.npc))need('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today','ending');
@@ -635,7 +648,7 @@
   const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
   return acts;
  }
- const api={ESCORT,escortNow,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={ESCORT,escortNow,animNow,MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

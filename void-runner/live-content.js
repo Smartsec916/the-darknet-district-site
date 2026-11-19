@@ -48,7 +48,7 @@
   try{const l=speech&&speech.lines[speech.index],t=l&&l.translation,sp=typeof document!=='undefined'?document.getElementById('spoken-text'):null;if(t&&sp&&!document.querySelector('[data-v1-translation]')){const p=document.createElement('p');p.className='v1-translation';p.dataset.v1Translation='1';
    const lab=document.createElement('span');lab.textContent='V1 TRANSLATION';const tx=document.createElement('span');tx.className='v1-translation-text';tx.textContent=t.text;p.append(lab,tx);sp.after(p);
    const sr=document.querySelector('.speech-body .sr-only');if(sr)sr.textContent+=' V1 translation: '+t.text;}}catch{}
-  gestureNow();return out;};}
+  gestureNow();lineAnim();return out;};}
  try{if(typeof document!=='undefined'&&!document.getElementById('v1-translation-style')){const st=document.createElement('style');st.id='v1-translation-style';
   st.textContent='.v1-translation{margin:.55em 0 0;padding:.45em .7em;border-left:2px solid #39d0ff;background:rgba(10,30,40,.55);color:#cfefff;font-size:.95em;line-height:1.45;animation:v1tr .5s ease .7s both}.v1-translation>span:first-child{display:block;font:700 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.18em;color:#39d0ff;margin-bottom:.2em}@keyframes v1tr{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){.v1-translation{animation:none}}';document.head.appendChild(st);}}catch{}
  async function refresh(){
@@ -93,6 +93,17 @@
  const MSx=()=>root.VoidMainStory;
  // the speaker's gesture on the last line of a step (main-story.js GESTURES): Eva turns toward the staff-only door as she says where Fish is
  function gestureNow(){try{const g=typeof speech!=='undefined'&&speech?speech.gesture:null;if(!g||speech.gestured||speech.index!==speech.lines.length-1)return;speech.gestured=true;root.VoidBabylon?.zone?.gesture?.(g.who,g.toward,g.seconds);}catch{}}
+ /* A line's animation (npc-gestures.js; "While saying this, <NPC> does: ..."): played on the speaker as the line shows, once per line, then she goes back to her own behaviour. */
+ const NG=()=>root.VoidNPCGestures;
+ function lineAnim(){try{const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(!l||!l.anim||!l.npc||speech.animAt===speech.index)return;speech.animAt=speech.index;
+  NG()?.perform(l.npc,l.anim,NG().lineSeconds(l.text),{plan:(env.npcPlans||{})[l.npc]||null});}catch{}}
+ /* ANIMATION STEPS (mission-content.js animNow): when one is the step in progress and no conversation is open, the NPC plays the clip; `hold` seconds later the step is done. */
+ const animRun={};
+ function animTick(){try{if(!treesOn()||typeof mode==='undefined'||!['walking','dock','arrival'].includes(mode)||(typeof speech!=='undefined'&&speech)||root.VoidConversationUI?.isOpen)return;
+  const now=Date.now(),list=MC.animNow(state,env);for(const k of Object.keys(animRun))if(!list.some(a=>a.key===k))delete animRun[k];
+  for(const a of list){let r=animRun[a.key];if(!r){r=animRun[a.key]={at:now};NG()?.perform(a.npc,a.clip,Math.max(1,a.hold||0)+.5,{plan:(env.npcPlans||{})[a.npc]||null});}
+   if(now-r.at<(a.hold||0)*1000)continue;delete animRun[a.key];const x=MC.treeEvent(state,env,{type:'anim',step:a.key},root.VoidMissions,root.C||root.VoidCampaign);report(x);deliver(x);if(x.lines&&x.lines.length)show(x.lines,x);return;}}catch{}}
+ setInterval(animTick,250);
  /* After the conversation: the V1 banner for a contact added / a profile followed (the Mission Log notice already said it). */
  function contactBanner(r){try{const n=(r&&r.notes||[]).filter(x=>/ADDED TO CONTACTS|^FOLLOWING /.test(x));if(!n.length)return;const who=n[0].replace(/ ADDED TO CONTACTS$| ON SOCIAL$/,'').replace(/^FOLLOWING /,'');
   const name=who.charAt(0)+who.slice(1).toLowerCase();root.VoidV1?.notify?.({app:'social',key:'contact:'+r.mission+':'+who,from:name,text:name+' added to contacts · following on Social',hint:{text:'open',help:true}});lastContact={text:name+' added to contacts · following on Social',at:Date.now()};}catch{}}

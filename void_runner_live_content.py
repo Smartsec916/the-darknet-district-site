@@ -436,6 +436,53 @@ def _leg_problems(mv, a, b, inv=None):
 ESCORT_KINDS = ('follow-them', 'they-follow', 'their-cab', 'shared-cab')
 ESCORT_FIELDS = ('to', 'wait', 'lost', 'ifLost', 'stop')
 
+# ---- Animations on lines and animation steps (void-runner/npc-gestures.js): the clips each character can play, from the admin inventory ----
+# (missionEditor.gestures: their own model's clips and library clips; a clip added in Developer Tools > NPCs counts when it is in her published plan's anims
+#  and allowed for her, npcPaths.movable[id].anims). The player ('You') has none.
+ANIM_CLIP = re.compile(r'^[a-z0-9][a-z0-9-]{0,40}(/[a-z0-9][a-z0-9-]{0,40})?$')
+ANIM_HOLD = (0, 30)
+
+
+def gesture_problem(who, clip, inv, npcs=None):
+    """Why `clip` cannot be played by NPC `who` ('' when it can)."""
+    if not isinstance(clip, str) or len(clip) > 80 or not ANIM_CLIP.match(clip):
+        return 'the animation has an unknown name'
+    if who == 'You':
+        return 'the player\u2019s own line has no animation'
+    g = ((inv or {}).get('missionEditor') or {}).get('gestures') or {}
+    if clip in ((g.get(who) or {}).get('clips') or []):
+        return ''
+    mv = _movable(inv).get(who) or {}
+    plan = (npcs or {}).get(who) if isinstance(npcs, dict) else None
+    if mv and isinstance(plan, dict) and isinstance(plan.get('anims'), list) and clip in plan['anims'] and clip in (mv.get('anims') or []):
+        return ''
+    return 'not an animation this character can play'
+
+
+def gesture_shape_problems(trees):
+    """The editor's server copy of the draft: animation names and waits are well formed (who may play them is checked when publishing)."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if not isinstance(m, dict):
+                continue
+            groups = [m.get('offer'), ((m.get('ending') or {}) if isinstance(m.get('ending'), dict) else {}).get('say'), ((m.get('start') or {}) if isinstance(m.get('start'), dict) else {}).get('denySay')]
+            for o in m.get('objectives') or []:
+                if not isinstance(o, dict):
+                    continue
+                groups += [o.get('say'), o.get('early'), o.get('wrong')]
+                if o.get('clip') is not None and not (isinstance(o['clip'], str) and ANIM_CLIP.match(o['clip'])):
+                    out.append('an animation step names an unknown animation.')
+                h = o.get('hold')
+                if h is not None and not (type(h) is int and ANIM_HOLD[0] <= h <= ANIM_HOLD[1]):
+                    out.append('the wait after an animation is a whole number of seconds from 0 to 30.')
+            for ls in groups:
+                for line in ls if isinstance(ls, list) else []:
+                    a = line.get('anim') if isinstance(line, dict) else None
+                    if a is not None and not (isinstance(a, str) and len(a) <= 80 and ANIM_CLIP.match(a)):
+                        out.append('a line names an unknown animation.')
+    return out
+
 
 def placed_area(npc, wait_at, plan, inv):
     """The area Reverie, Lace or the cat is placed in for a mission (void-runner/npc-escort.js placedArea): where she waits for it, else her all-day placement, else The Avenue."""
@@ -1027,13 +1074,17 @@ def check_trees(trees, inv, err, npcs=None):
             err(w + ': too many lines.')
             return
         for line in ls:
-            if not _keys(line, ['who', 'text']) or not _plain(line.get('text'), 500):
+            if not _keys(line, ['who', 'text', 'anim']) or not _plain(line.get('text'), 500):
                 err(w + ': a line must be plain text.')
             elif line.get('who') != 'You' and line.get('who') not in givers:
                 err(w + ': unknown speaker.')
             else:
                 for p in voice_tag_problems(line['text']):
                     err(w + ': ' + p)
+                if line.get('anim') is not None:
+                    p = gesture_problem(line.get('who'), line['anim'], inv, npcs)
+                    if p:
+                        err(w + ': ' + p + '.')
     for t in trees:
         if not _keys(t, ['id', 'name', 'note', 'missions']):
             err('A tree has unknown fields.')
@@ -1099,7 +1150,7 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', *ESCORT_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))
@@ -1131,10 +1182,24 @@ def check_trees(trees, inv, err, npcs=None):
                     area = placed_area(o.get('npc'), m.get('waitAt') if m.get('giver') == o.get('npc') else None, (npcs or {}).get(o.get('npc')), inv)
                     for p in escort_problems(o, inv, area):
                         err(ow + ': ' + p)
+                elif kind == 'anim':
+                    if o.get('npc') not in givers:
+                        err(ow + ': choose who plays the animation.')
+                    else:
+                        p = gesture_problem(o.get('npc'), o.get('clip'), inv, npcs)
+                        if p:
+                            err(ow + ': ' + p + '.')
+                    h = o.get('hold')
+                    if h is not None and not (type(h) is int and ANIM_HOLD[0] <= h <= ANIM_HOLD[1]):
+                        err(ow + ': the wait after an animation is a whole number of seconds from 0 to 30.')
+                    if any(o.get(k) is not None for k in ('say', 'early', 'via')):
+                        err(ow + ': an animation step has no lines.')
                 elif kind == 'photo' and o.get('npc') not in subjects:
                     err(ow + ': not someone the V1 camera can identify.')
                 elif kind == 'send-photo' and (o.get('npc') not in givers or o.get('subject') not in subjects):
                     err(ow + ': the photo must go to a known NPC and show someone the camera can identify.')
+                if kind != 'anim' and (o.get('clip') is not None or o.get('hold') is not None):
+                    err(ow + ': only an animation step names an animation and a wait.')
                 if kind not in ESCORT_KINDS and any(o.get(f) is not None for f in ESCORT_FIELDS):
                     err(ow + ': only a follow / lead / cab step has a spot, distances or a cab stop.')
                 if o.get('subject') is not None and kind != 'send-photo':
