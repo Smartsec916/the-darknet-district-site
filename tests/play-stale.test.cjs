@@ -14,5 +14,5 @@ test('publish and the server check never send a draft that changed since the che
  assert.match(s,/const changedSince=\(\)=>\{fresh\(\);if\(JSON\.stringify\(draftContent\(\)\)===JSON\.stringify\(content\)\)return false;/);
  assert.match(s,/btn\('ASK THE SERVER TO CHECK',async\(\)=>\{if\(changedSince\(\)\)return;/);assert.match(s,/btn\('PUBLISH TO ALL PLAYERS',async\(\)=>\{if\(changedSince\(\)\)return;/);});
 test('the PLAY buttons follow every keystroke (not only after Guide me pauses), and a status line never redraws the editor under the cursor',()=>{
- assert.match(s,/root_\.addEventListener\('input',\(\)=>\{syncPlay\(root_\);guideSoon\(\);\}\)/);assert.match(body(' function syncPlay(sc){'),/MC\(\)\.treeBlockers\(m,givers,items\)/);
+ assert.match(s,/root_\.addEventListener\('input',\(\)=>\{syncPlay\(root_\);guideSoon\(\);\}\)/);assert.match(s.slice(s.indexOf(' function syncPlay(sc){'),s.indexOf(' function syncPlay(sc){')+600),/MC\(\)\.treeBlockers\(m,givers,items\)/);
  assert.match(body(' const setStatus=t=>{'),/if\(s_\)\{s_\.textContent=t;return;\}const m=host&&host\.querySelector\('#me-root > \.me-modes'\);if\(m\)m\.after\(/);});
