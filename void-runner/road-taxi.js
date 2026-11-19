@@ -12,13 +12,18 @@
  const SPEC=R.SPEC,Q=globalThis.VoidQuarters;
  let crossing=false,exitDoor=null;
  const gates=()=>globalThis.VoidBabylon?.district?.gates||null,quarterNow=()=>walkingLocation?.quarter||null;
- let world=null,own=[],signTex=null,mats=null,van=null,look={yaw:0,pitch:.08},visual={};
+ let world=null,own=[],signTex=null,mats=null,van=null,look={yaw:0,pitch:.08},visual={},upgrade=false;
+ let modelLoading=false,modelFailed=false;   // the Meshy van's file: one load at a time (a quarter change releases the scene's models), none after a failure
  const B=()=>globalThis.BABYLON,scene=()=>globalThis.VoidBabylon?.scene;
  const inCity=()=>!!walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area!=='interior'&&walkingLocation.area!=='milked'&&!!walker&&state?.location==='earth';
  const yawDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 
  function makeMats(sc){
-  van=null;try{if(globalThis.VoidTaxiVan){van=globalThis.VoidTaxiVan.parts(B(),sc,globalThis.VoidGraphics?.quality||'medium');return {own:van.own};}}catch(e){console.warn('[road taxi] van',e);van=null;}
+  van=null;const V=globalThis.VoidTaxiVan,A=globalThis.VoidAssets,q=globalThis.VoidGraphics?.quality||'medium';
+  // the Meshy van when its file has loaded (the code van meanwhile, and for good if the file is missing: road-taxi-van.js)
+  if(V&&A?.container){const c=A.container(V.MODEL.id(q));if(c){try{van=V.modelParts(B(),sc,q,c);return {own:van.own};}catch(e){console.warn('[road taxi] model',e);van=null;}}
+   else if(A.load&&!modelLoading&&!modelFailed){modelLoading=true;Promise.resolve(A.load(V.MODEL.id(q),{src:V.MODEL.src(q),background:true},sc)).then(()=>{modelLoading=false;if(scene()===sc)upgrade=true;}).catch(e=>{modelLoading=false;if(/releas|abort/i.test(String(e?.message||e)))return;modelFailed=true;console.warn('[road taxi] the taxi model did not load; the built van stays',e?.message||e);});}}
+  try{if(V){van=V.parts(B(),sc,q);return {own:van.own};}}catch(e){console.warn('[road taxi] van',e);van=null;}
   const b=B(),ownM=[];
   const mat=(n,f)=>{const m=new b.StandardMaterial('road-taxi-'+n,sc);f(m);ownM.push(m);return m;};
   const body=mat('body',m=>{m.diffuseColor=b.Color3.FromHexString('#14181e');m.specularColor=new b.Color3(.04,.05,.06);});
@@ -31,7 +36,7 @@
   ownM.push(t);signTex=t;return {own:ownM,body,glass,skirt,head,tail,lamp,sign};
  }
  function buildCab(sc,id){
-  if(van)return globalThis.VoidTaxiVan.build(B(),sc,van,id);
+  if(van)return van.model?globalThis.VoidTaxiVan.buildModel(B(),sc,van,id):globalThis.VoidTaxiVan.build(B(),sc,van,id);
   const b=B(),root=new b.TransformNode('road-taxi-'+id,sc),parts=[],box=(n,s,m,p)=>{const mesh=b.MeshBuilder.CreateBox(n,{width:s[0],height:s[1],depth:s[2]},sc);mesh.material=m;mesh.position.set(p[0],p[1],p[2]);mesh.parent=root;mesh.isPickable=false;parts.push(mesh);return mesh;};
   box('body',[1.85,.5,4.2],mats.body,[0,.62,0]);
   box('nose',[1.5,.28,1.1],mats.body,[0,.5,1.7]);
@@ -211,6 +216,7 @@
   if(!inCity()){if(world?.job?.charged&&world.job.cab?.phase!=='arrived'){const back=R.recover(state);if(back){try{save();hud();}catch{}announce?.('The taxi trip was refunded: '+back+' CR.');}}if(world)teardown();return;}
   if(!scene()||scene().isDisposed)return;
   ensure();if(!world)return;
+  if(upgrade){upgrade=false;if(!van?.model){for(const t of world.taxis){disposeCab(t.mesh);t.mesh=null;}}}   // the model has loaded: rebuild the cabs with it (below)
   if(world.taxis.some(t=>!t.mesh?.root||t.mesh.root.isDisposed())){for(const t of world.taxis)disposeCab(t.mesh);for(const m of own){try{m.dispose();}catch{}}own=[];mats=null;signTex=null;mats=makeMats(scene());own=mats.own;for(const t of world.taxis)t.mesh=buildCab(scene(),t.id);}
   const riding=mode==='road-taxi';
   const player={x:walker.x,z:walker.z,riding};

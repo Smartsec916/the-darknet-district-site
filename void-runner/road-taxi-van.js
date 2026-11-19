@@ -19,7 +19,7 @@
  // the cabin's surfaces: [x, y, w, h, albedo, glow] (the glow lights the cabin evenly: it is seen from outside through the glass and from the seat)
  const CAB={seat:[400,880,40,40,'#2c2724','#2a1f17'],seatTop:[450,880,40,40,'#3a332d','#3d2c1d'],panel:[500,880,40,40,'#1d1b1a','#100c09'],floor:[550,880,40,40,'#121110','#0c0907'],
   liner:[600,880,40,40,'#1c1a18','#120e0a'],strip:[650,880,40,40,'#ffe2b0','#ffcf8a'],screen:[700,880,40,40,'#0d2a33','#1f8aa6'],dash:[750,880,40,40,'#141312','#0d0a08']};
- const LP={signFront:[0,0,320,112],signSide:[330,0,120,112],black:[460,0,40,40],bar:[0,120,128,16],head:[130,120,64,32],amber:[200,120,32,16],blue:[240,120,32,16],ring:[280,120,48,48],rail:[0,180,320,40]};
+ const LP={signFront:[0,0,320,112],signSide:[330,0,120,112],black:[460,0,40,40],bar:[0,120,128,16],head:[130,120,64,32],amber:[200,120,32,16],blue:[240,120,32,16],ring:[280,120,48,48],rail:[0,180,320,40],signLong:[0,222,204,34]};
  const DP={display:[0,256,256,112],number:[0,372,256,44],tail:[0,420,256,40],amber:[0,464,256,40]};   // the per-cab picture is 512 x 512: the lights above, these below
 
  // ---- geometry ----
@@ -151,6 +151,8 @@
   {const [x,y,w,h]=LP.head;g.fillStyle='#2a3440';g.fillRect(x,y,w,h);g.fillStyle='#f4f9ff';g.fillRect(x+4,y+h*.3,w-8,h*.4);g.fillStyle='#bfe6ff';g.fillRect(x+4,y+h*.75,w-8,3);}
   g.fillStyle='#ffa21a';g.fillRect(...LP.amber);g.fillStyle='#29cfff';g.fillRect(...LP.blue);
   {const [x,y,w]=LP.ring;g.fillStyle='#000';g.fillRect(x,y,w,w);g.strokeStyle='#29cfff';g.lineWidth=7;g.strokeRect(x+8,y+8,w-16,w-16);}
+  {const [x,y,w,h]=LP.signLong,gr=g.createLinearGradient(0,y,0,y+h);gr.addColorStop(0,'#ffe066');gr.addColorStop(1,'#ffb000');g.fillStyle=gr;g.fillRect(x,y,w,h);g.fillStyle='#0b0900';
+   for(const cx of [x+6,x+w-22])for(let i=0;i<2;i++)for(let j=0;j<2;j++)if((i+j)%2===0)g.fillRect(cx+i*8,y+h/2-8+j*8,8,8);g.save();g.translate(x+w/2,y+h-5);g.transform(1,0,-.18,1,0,0);g.font='900 28px "Arial Black",Impact,Arial,sans-serif';g.textAlign='center';g.fillText('TAXI',0,0);g.restore();}
   {const [x,y,w,h]=LP.rail;g.fillStyle='#050505';g.fillRect(x,y,w,h);g.fillStyle='#e9eef2';g.font='700 22px Arial,Helvetica,sans-serif';g.textBaseline='middle';g.textAlign='center';g.fillText('AUTONOMOUS ///',x+w/2,y+h/2+1);}
  }
  // the cab's own picture: windscreen display (available / on trip / arrived), number, tail lights (dim or braking), amber flashers
@@ -285,7 +287,57 @@
   mesh.onDisposeObservable.addOnce(()=>{scene.onBeforeRenderObservable.remove(obs);mat.dispose();});
   return mesh;
  }
- const api={LEN,PROFILE,DOOR,WHEEL,halfW,span,parts,build,number,ledFrames};
+ /* ---- the Meshy model (19 Nov 2026) ----
+    vehicles/taxi-van.glb (taxi-van-low.glb on Low: 1024 maps): the owner's minivan made with Meshy from his reference picture, cut and re-baked in Blender
+    (docs/development/MESHY_CHARACTERS.md): nodes body (two materials: the painted body with its baked lights as emission, and the tinted glass), axle_front
+    and axle_rear (each a pair of wheels turning about the node). 4.4 m long, 1.72 m across the body. The cabin inside was cut out, so the glass shows the
+    seats below (and anyone riding); from the seat the body's inner faces are drawn (two-sided), the glass is not. When the file is missing or fails to
+    load the code van above stays. Per cab: body, glass, two axles, the seats, and the cab's own lit picture (windscreen display, numbers, tail lights,
+    flashers, placed on the model's surfaces as measured in Blender) = 6 draw calls. */
+ const MODEL={id:q=>'vehicle:taxi-van'+(q==='low'?'-low':''),src:q=>'assets/models/vehicles/'+(q==='low'?'taxi-van-low':'taxi-van')+'.glb'};
+ const MWS={lo:[1.622,1.056],hi:[.679,1.843],x:[.02,.62]},MNUM={x:.745,z:[-1.86,-1.4],y:[1.1,1.28]};
+ function modelParts(B,scene,quality,container){
+  const low=quality==='low',own=[];
+  for(const m of container.materials||[]){m.maxSimultaneousLights=8;
+   if(/glass/i.test(m.name)){m.backFaceCulling=true;if('environmentIntensity' in m)m.environmentIntensity=.55;}
+   else{m.backFaceCulling=false;if('twoSidedLighting' in m)m.twoSidedLighting=true;if(!low&&m.clearCoat&&!m.clearCoat.isEnabled){m.clearCoat.isEnabled=true;m.clearCoat.intensity=.6;m.clearCoat.roughness=.08;}}}
+  // the seats (the model's own cabin was cut out): floor, dash with its screen, three rows; unlit vertex colours, a warm wash from the roof light
+  const cabM=new B.StandardMaterial('road-taxi-seats',scene);cabM.diffuseColor=B.Color3.White();cabM.specularColor=B.Color3.Black();cabM.disableLighting=true;own.push(cabM);
+  const cg=new Geo(),Z=[[0,0],[1,0],[1,1],[0,1]],seat=[.2,.17,.15],dark=[.07,.065,.06];
+  cg.poly([[-.7,.4,-1.9],[.7,.4,-1.9],[.7,.4,1.3],[-.7,.4,1.3]],Z,[0,1,0],[.05,.045,.04]);
+  // a roof lining with its warm light strip and a warm line along each side at the window sill, as in the built van (the model's own inside is black paint)
+  cg.poly([[-.55,1.7,.7],[.55,1.7,.7],[.55,1.7,-1.85],[-.55,1.7,-1.85]],Z,[0,-1,0],[.15,.13,.12]);cg.poly([[-.06,1.695,.62],[.06,1.695,.62],[.06,1.695,-1.75],[-.06,1.695,-1.75]],Z,[0,-1,0],[1,.8,.55]);
+  for(const s2 of [1,-1]){const x=s2*.8;cg.poly([[x,1.06,-1.85],[x,1.06,1.0],[x,1.09,1.0],[x,1.09,-1.85]],Z,[-s2,0,0],[.95,.62,.3]);}
+  cg.box([0,.75,1.3],[1.4,.6,.3],Z,dark,true);cg.poly([[.38,.95,1.148],[-.38,.95,1.148],[-.38,1.03,1.148],[.38,1.03,1.148]],Z,[0,0,-1],[.15,.55,.65]);
+  for(const [zc,back,row] of [[.62,.36,0],[-.35,-.66,1],[-1.4,-1.7,2]])for(const s2 of [1,-1]){const x=s2*.42;cg.box([x,.62,zc],[.48,.44,.5],Z,[.26,.22,.19],true);if(!row)cg.box([x,1.0,back],[.48,.36,.12],Z,seat,true);else{cg.box([x,1.13,back],[.48,.62,.12],Z,seat,true);cg.box([x,1.52,back+.01],[.26,.18,.1],Z,seat,true);}}
+  const cabin=cg.mesh(B,'road-taxi-seats',scene,1,1);cabin.material=cabM;cabin.setEnabled(false);own.push(cabin);
+  // the cab's own lit picture on the model (the windscreen display, numbers, tail lights, flashers; the 512 x 512 picture's lower half)
+  const lg=new Geo(),D=r=>{const [x,y,w,h]=r;return [[x,y+h],[x+w,y+h],[x+w,y],[x,y]];};
+  {const a=MWS.lo,b=MWS.hi,P=t=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],[z0,y0]=P(.14),[z1,y1]=P(.42),N=norm([0,a[0]-b[0],b[1]-a[1]]),o=.012;
+   const q=[[MWS.x[1],y0,z0],[MWS.x[0],y0,z0],[MWS.x[0],y1,z1],[MWS.x[1],y1,z1]].map(([x,y,z])=>[x,y+N[1]*o,z+N[2]*o]);lg.poly(q,D(DP.display),[0,N[1],N[2]]);}
+  for(const s2 of [1,-1]){const [zB,zA]=MNUM.z,[y0,y1]=MNUM.y,x=s2*(MNUM.x+.008),q=s2>0?[[zB,y0],[zA,y0],[zA,y1],[zB,y1]]:[[zA,y0],[zB,y0],[zB,y1],[zA,y1]];lg.poly(q.map(([z,y])=>[x,y,z]),D(DP.number),[s2,0,0]);}
+  {const zr=-2.105;lg.poly([[-.17,1.05,zr],[.17,1.05,zr],[.17,1.15,zr],[-.17,1.15,zr]],D(DP.number),[0,0,-1]);
+   for(const s2 of [1,-1]){lg.poly([[s2*.62,.86,zr],[s2*.8,.86,zr],[s2*.8,.99,zr],[s2*.62,.99,zr]],D(DP.tail),[0,0,-1]);lg.poly([[s2*.62,.57,zr],[s2*.8,.57,zr],[s2*.8,.66,zr],[s2*.62,.66,zr]],D(DP.tail),[0,0,-1]);lg.poly([[s2*.44,.6,zr],[s2*.58,.6,zr],[s2*.58,.66,zr],[s2*.44,.66,zr]],D(DP.amber),[0,0,-1]);}}
+  // the roof box's left face: the model's texture has TAXI mirrored there (painted from one side); a lit TAXI covers it
+  {const x=-.172,y0=1.8,y1=2.01,zf=.5,zb=-.66;lg.poly([[x,y0,zf],[x,y0,zb],[x,y1,zb],[x,y1,zf]],D(LP.signLong),[-1,0,0]);}
+  const lit=lg.mesh(B,'road-taxi-lit',scene,512,512);lit.setEnabled(false);own.push(lit);
+  return {own,low,model:true,container,cabin,lit,tris:(container.meshes||[]).reduce((n,m)=>n+(m.getTotalIndices?.()||0)/3,0)};
+ }
+ function buildModel(B,scene,set,id){
+  const root=new B.TransformNode('road-taxi-'+id,scene),own=[],inst=set.container.instantiateModelsToScene(n=>'road-taxi-'+id+'-'+n,false,{doNotInstantiate:true});
+  for(const r of inst.rootNodes)r.parent=root;
+  const meshes=root.getChildMeshes(false);for(const m of meshes){m.isPickable=false;m.receiveShadows=false;}
+  const axle=k=>{const n=root.getDescendants(false).find(d=>new RegExp('axle_'+k+'$').test(d.name));if(n&&n.rotationQuaternion){n.rotation=n.rotationQuaternion.toEulerAngles();n.rotationQuaternion=null;}return n;};
+  const wheels=[axle('front'),axle('rear')].filter(Boolean);
+  const clone=(m,name)=>{const c=m.clone('road-taxi-'+name+'-'+id,root);c.setEnabled(true);c.isPickable=false;return c;};
+  const cabin=clone(set.cabin,'seats'),lit=clone(set.lit,'lit');
+  const size=set.low?256:512,t=new B.DynamicTexture('road-taxi-lit-'+id,{width:size,height:size},scene,true),m=new B.StandardMaterial('road-taxi-lit-'+id,scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;own.push(t,m);lit.material=m;
+  const g=t.getContext(),num=number(id);let key='';
+  const state=st=>{const k=st.show+'|'+(st.brake?1:0)+'|'+(st.flash?1:0);if(k===key)return;key=k;g.setTransform(size/512,0,0,size/512,0,0);paintCab(g,{...st,number:num});t.update();};
+  state({show:'free',brake:false,flash:false});
+  return {root,parts:[...meshes,cabin,lit],door:new B.TransformNode('road-taxi-door-'+id,scene),wheels,own,state,number:num,doorOpen:0,model:true};
+ }
+ const api={LEN,PROFILE,DOOR,WHEEL,MODEL,halfW,span,parts,build,modelParts,buildModel,number,ledFrames};
  if(typeof module==='object'&&module.exports)module.exports=api;
  root.VoidTaxiVan=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

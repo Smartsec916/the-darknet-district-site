@@ -34,3 +34,13 @@ test('the page loads the van before the cab; the stops, the Corporate District a
  const src=read('void-runner/road-taxi-van.js');assert.doesNotMatch(src,/neuralink|waymo|tesla|uber|zoox/i);
  assert.match(read('void-runner/road-taxi.js'),/globalThis\.VoidTaxiVan\.build/);   // the box cab stays as the stand-in
 });
+test('the Meshy van file: body, glass and two axles, lossless meshopt geometry, small enough; a Low copy with 1024 maps; the code van stays as the stand-in',()=>{
+ for(const [f,max] of [['taxi-van.glb',2048],['taxi-van-low.glb',1024]]){const b=fs.readFileSync(path.join(__dirname,'..','void-runner/assets/models/vehicles',f));
+  assert.ok(b.length<2.5e6,f+' size '+b.length);assert.equal(b.readUInt32LE(0),0x46546c67);const n=b.readUInt32LE(12),j=JSON.parse(b.slice(20,20+n).toString());
+  const names=j.nodes.map(x=>x.name);for(const k of ['body','axle_front','axle_rear'])assert.ok(names.includes(k),f+' '+k);
+  assert.ok(j.materials.some(m=>m.name==='glass'&&m.alphaMode==='BLEND'));assert.ok((j.extensionsUsed||[]).includes('EXT_meshopt_compression'));
+  for(const k of ['axle_front','axle_rear']){const t=j.nodes.find(x=>x.name===k).translation;assert.ok(Math.abs(t[0])<1e-6&&t[1]>.25&&t[1]<.4&&Math.abs(Math.abs(t[2])-1.5)<.2,k+' '+t);}
+ }
+ const V=require('../void-runner/road-taxi-van.js');assert.equal(V.MODEL.src('low'),'assets/models/vehicles/taxi-van-low.glb');assert.equal(V.MODEL.src('high'),'assets/models/vehicles/taxi-van.glb');
+ assert.match(read('void-runner/road-taxi.js'),/the built van stays/);
+});

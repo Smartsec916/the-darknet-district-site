@@ -9627,7 +9627,7 @@
       }
     }
   },
-  "revision": "df834822ee0f0286",
+  "revision": "85db7c1c44acd8c9",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -25405,7 +25405,7 @@
     },
     {
       "source": "void-runner/road-taxi.js",
-      "line": 196,
+      "line": 201,
       "text": "if(globalThis.VoidPersonalDevice?.isOpen||globalThis.VoidCharacterCreator?.isOpen||globalThis.VoidVR?.active||document.querySelector('#screen.conversation-live'))return;e.preventDefault();callList();});",
       "kind": "source-reference"
     },
@@ -27078,8 +27078,8 @@
     "void-runner/relay.js": "9d6ddf78aba19d66545431c4eb87d23e974991792851191548039b80f2097b3f",
     "void-runner/remote-players.js": "b640e821605e5f3d39eeece0fda32e029508ba18e5cf23bcfcb13f1715e60fad",
     "void-runner/road-taxi-rules.js": "2e6f7de854e64de3c68747e2a87a82ffcd3e05ab354564de579fc5267dd11aa2",
-    "void-runner/road-taxi-van.js": "0464553941b54b2c371128a80b702fc81b1a6fe475fd559a25e77508821db10a",
-    "void-runner/road-taxi.js": "bdf288b9724816fa97a17426b5f379b139ad89706619815b63610334cc0d9c13",
+    "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
+    "void-runner/road-taxi.js": "03f5073b5bae5b78e676c2ed4e7bfc6ec0da84e8dc375234b8e051332cdccf4c",
     "void-runner/scenes.js": "cf1061512432f0329ed03cccf7dd5e15c771f9ef21aa51fb96aaffdbd68c858c",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
