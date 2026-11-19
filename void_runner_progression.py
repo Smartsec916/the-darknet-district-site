@@ -3,6 +3,7 @@ import json
 
 FLAGS = 'move look sprint jump interact pickup draw aim fire reload holster groundCombat inventory sightOwned sightEquipped sightAim board throttle steer roll navigation jumpTravel dock shipInventory hangar moduleInstalled vendor modulePurchased purchasedInstalled laserCombat missileSelected targetSelected missileLocked missileFired shootingTutorialComplete maraShipHandoff'.split()
 FLIGHT_FLAGS = FLAGS[16:35]
+WEAPONS = ['base-pistol']  # on-foot weapons bought from a vendor (void-runner/zones.js PISTOL, progression.js WEAPONS); the opening's Ward pistol is derived below
 MODULES = {'capacitor':'power','cooling':'cooling','pulse':'weapon','shield':'shield','engine':'engine','communion-scanner':'sensor','order-thrusters':'thrusters','warflying-module':'signal','warflying-scrambler':'signal'}  # the Signal Tracker can't be owned yet
 
 def clean_progression(raw, locations):
@@ -60,8 +61,9 @@ def clean_progression(raw, locations):
         required=FLIGHT_FLAGS
     else: opening={'version':1}
     opening_done=opening['version']==1 or flags.get('board') is True or opening['hologram'] and opening['pistol'] and flags.get('shootingTutorialComplete') is True
-    weapon='ward-pistol' if opening['version']==1 or opening['pistol'] else None
+    weapons=entries(p.get('weapons',[]),WEAPONS)
+    weapon='ward-pistol' if opening['version']==1 or opening['pistol'] else ('base-pistol' if 'base-pistol' in weapons else None)
     return {'opening':opening,'version':1,'flags':dict(flags),'completed':raw.get('completed') is True and opening_done and all(flags.get(f) for f in required),'migrated':raw.get('migrated') is True,
-            'personal':{'weapon':weapon,'ammo':count(p.get('ammo'),10,10),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit','hacking-device']),'attachments':attachments,'optic':optic},
+            'personal':{'weapon':weapon,'weapons':weapons,'ammo':count(p.get('ammo'),10,10),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit','hacking-device']),'attachments':attachments,'optic':optic},
             'equipment':{'owned':owned,'installed':installed},'missiles':None if raw.get('missiles') is None else count(raw['missiles'],30),
             'checkpoint':{'location':location},'reputation':reputation,'cargo':clean_cargo,'data':data,'relays':relays}

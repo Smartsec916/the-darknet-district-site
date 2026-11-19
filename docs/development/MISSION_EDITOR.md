@@ -2,6 +2,27 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twenty-third pass (19 Nov 2026): zones (Friendly / Neutral / Hostile), armed people and the "Change zone" block
+
+Branch `claude/pistol-zones`, build `2026-11-19-pistol-zones-1`. The owner: Admin sells a pistol; in NeoChinatown it can be carried but not fired; a green FRIENDLY, orange NEUTRAL, red HOSTILE indicator at the top left; "let me change a room or area from friendly to hostile in the mission timeline". He decides which places are which: **everything starts Friendly**.
+
+### How to use it (plain steps)
+
+1. **Developer Tools > ZONES** (new tab): every NeoChinatown area (Old Town, Main Street, the District, NULL, The Avenue …) and every kind of location (office floor, server room, apartments, hallways …) with a Friendly / Neutral / Hostile list. Change one and it is saved in your draft. Try it with PLAY in the Mission Editor; PUBLISH sends it to players (the server checks it).
+2. **A mission's "Zones and armed people"** (under every tree mission, Blocks and Form view):
+   - *If the player is taken down*: they try again (outside the location, full health) or the mission fails (it goes back to its giver).
+   - *This mission's locations*: the zone of the whole location and of each room (Normal = what the Zones table says).
+   - *City areas while this mission runs*: add an area and choose its zone; it goes back to normal when the mission ends.
+   - *Armed people*: + ARMED PERSON, then the figure (security guard, mercenary, enforcer), the room, guards the spot / patrols (route: `x,z; x,z` in metres inside the room; the room's size is shown), where they stand and which way they face. In a Hostile room they attack on sight; in a Neutral one only after the player fires; never in a Friendly one.
+3. **The Zone block** (Blocks view: + ADD A BLOCK › Zone; Form view: step kind "Change zone"): choose a room or location of this mission or a city area, Friendly / Neutral / Hostile, "until the mission ends" or until a later step, and optionally "Bring in the armed people placed there". It is done the moment the mission reaches it; the chip changes at once if the player is there.
+4. **Combat Balance > On foot**: the pistol's price and damage, the safety catch (1 = on), the safety window, how long guards stay angry, how far civilians run, the detection range and cone, the enemies' health, damage, accuracy, reaction time and speed.
+
+What players see: drawing or holstering never provokes anyone and never fails a step. Friendly: the trigger only says "Weapons are locked here." Neutral with the safety catch on: the first press says "NEUTRAL AREA — firing will make people attack you. Press fire again to shoot."; a second press within the safety window fires. No player-versus-player damage anywhere.
+
+### For Claude and Codex
+
+Rules and checks: `void-runner/zones.js` (pure; `tests/zones.test.cjs`); game: `zone-integration.js` (chip, firing gate, enemies with the Skirmish AI, civilians flee through `npc-device.js` spectacle `{flee:true}`, taken down); editor: `zone-editor.js` (tab, mission panel, step fields), `mission-blocks.js` / `mission-blocks-view.js` (Zone block), `mission-editor.js` (Form view). Data: `content.zones` {areas, modules}; `mission.combat` {areas, places, armed, onDeath}; step `{kind:'zone', target ('<loc>', '<loc>/<module>' or 'area:<place>'), zone, until?, spawn?}`; workspace key `zones`. Server: `void_runner_live_content.py` `zone_table_problems`, `combat_problems`, `zone_step_problems`, `zone_shape_problems` (`tests/test_zones.py`). Browser walkthrough: `tests/zones-browser.cjs`.
+
 ## Twenty-second pass (19 Nov 2026): camera feeds — the Blackrock Cult Room
 
 The owner's queued room: seen only through a hacked security camera, recorded to the V1 Gallery. Details: `docs/development/BLACKROCK_CULT_ROOM.md`.

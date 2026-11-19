@@ -21,7 +21,7 @@
  // ---------------------------------------------------------------- small helpers
  const ICON={start:'M5 21V4h11l-2 4 2 4H5',who:'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6',words:'M4 5h16v11H9l-5 4z',action:'M6 4l13 8-13 8z',
   item:'M12 3l8 4v10l-8 4-8-4V7zM4 7l8 4 8-4M12 11v10',time:'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 3',ask:'M9 9a3 3 0 1 1 4.5 2.6c-1 .6-1.5 1.2-1.5 2.4M12 18h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z',
-  apartment:'M4 21V8l8-5 8 5v13M10 21v-6h4v6',end:'M5 13l4 4L19 7',other:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-2.5z',
+  apartment:'M4 21V8l8-5 8 5v13M10 21v-6h4v6',zone:'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM12 8v5M12 16h.01',end:'M5 13l4 4L19 7',other:'M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-2.5z',
   npc:'M10 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21c0-4 4-6 8-6M18 14v6M15 17h6',drag:'M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01'};
  const svg=(name,size=16)=>'<svg class="mb-ic" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="'+(ICON[name]||ICON.other)+'"/></svg>';
  function icon(name,size){const s=document.createElement('span');s.className='mb-icw';s.innerHTML=svg(name,size);return s;}
@@ -57,7 +57,7 @@
   for(const id of ['You',...c.ids.filter(x=>!B().isPlayer(x))]){const ch=chip(c,id);bar.append(ch);}
   const lg=el(c,'details','','mb-legend');lg.append(el(c,'summary','What the colours mean'));const ul=el(c,'ul');
   ul.append(el(c,'li','The coloured edge and the name chip: WHO (the player is always blue; every character has their own colour).'));
-  for(const t of ['who','words','action','item','time','ask','apartment','other']){const T=B().TYPES[t],li=el(c,'li','','mb-legend-row');const sw=el(c,'span','','mb-typechip mb-t-'+t,{style:'--type:'+T.color});sw.append(icon(T.icon,14),document.createTextNode(' '+T.name.toUpperCase()));li.append(sw,document.createTextNode(' '+({who:'someone does something',words:'what is said',action:'something is done',item:'items, credits and rewards',time:'a wait',ask:'the player chooses ACCEPT or DENY',apartment:'an apartment for this mission',other:'kept, but changed only in the Form view'}[t])));ul.append(li);}
+  for(const t of ['who','words','action','item','time','ask','zone','apartment','other']){const T=B().TYPES[t],li=el(c,'li','','mb-legend-row');const sw=el(c,'span','','mb-typechip mb-t-'+t,{style:'--type:'+T.color});sw.append(icon(T.icon,14),document.createTextNode(' '+T.name.toUpperCase()));li.append(sw,document.createTextNode(' '+({who:'someone does something',words:'what is said',action:'something is done',item:'items, credits and rewards',time:'a wait',ask:'the player chooses ACCEPT or DENY',apartment:'an apartment for this mission',other:'kept, but changed only in the Form view'}[t])));ul.append(li);}
   lg.append(ul);bar.append(lg);return bar;}
  function chip(c,id,small){const s=el(c,'span','','mb-chip'+(small?' small':''),{style:'--who:'+c.color(id),'data-mb-who':B().isPlayer(id)?'player':id||'none',title:c.name(id)});
   const dot=el(c,'span',(c.short(id)||'?').slice(0,1).toUpperCase(),'mb-dot');s.append(dot,document.createTextNode(c.short(id)));return s;}
@@ -145,19 +145,20 @@
  // ---- a STEP
  const STEP_TITLE={talk:'talks',hear:'says more',deliver:'Deliver',buy:'Buy',go:'Go to',arrive:'Fly to',enter:'Go into',leave:'Leave',photo:'Photograph','send-photo':'Send a photo','pod-exit':'Leave the Sleeping Pod',
   'follow-them':'leads the way','they-follow':'follows the player','their-cab':'calls a cab','shared-cab':'rides in your cab',anim:'plays an animation','apt-enter':'Go into an apartment','apt-use':'Use something in an apartment',hack:'Hack an access point',
-  message:'The notification arrives','await-call':'Wait for their call',wait:'Wait',ask:'asks the player'};
+  message:'The notification arrives','await-call':'Wait for their call',wait:'Wait',ask:'asks the player',zone:'Change zone'};
  function stepTitle(c,o){const who=B().stepWho(o,c.m),t=STEP_TITLE[o.kind]||'';if(['talk','hear','follow-them','they-follow','their-cab','shared-cab','anim','ask'].includes(o.kind))return (who?c.short(who):'Someone')+' '+t;
   if(o.kind==='go'||o.kind==='enter'||o.kind==='leave'||o.kind==='arrive')return t+' '+(o.place?c.place(o.place):'…');if(o.kind==='photo')return t+' '+(o.npc?c.short(o.npc):'…');if(o.kind==='deliver')return t+' to '+(o.npc?c.short(o.npc):'…');
-  if(o.kind==='wait')return 'Wait '+(Number.isInteger(o.hold)?o.hold:10)+' s'+(o.near&&o.npc?' near '+c.short(o.npc):'');return t||('“'+(o.kind||'?')+'” (Form view only)');}
+  if(o.kind==='wait')return 'Wait '+(Number.isInteger(o.hold)?o.hold:10)+' s'+(o.near&&o.npc?' near '+c.short(o.npc):'');if(o.kind==='zone')return root.VoidZoneEditor?root.VoidZoneEditor.title(c.m,o):'Change zone';return t||('“'+(o.kind||'?')+'” (Form view only)');}
  function stepBlock(c,b,i){const {m,kit}=c,o=b.raw,MB=B(),type=MB.typeOf(o),who=MB.stepWho(o,m),bid=b.bid;
   const eo=(fn,redraw=true)=>c.ed(x=>{const oo=(x.objectives||[]).find(y=>y.id===o.id);if(oo)fn(oo,x);},redraw);
   // a timeline step is a WHO block (its person's colour) holding a TYPE block (Action, Item, Words, Time, Ask); a talk step holds the conversation itself
-  const outer=type==='time'||type==='other'?type:type==='ask'?'ask':'who';
+  const outer=type==='time'||type==='other'||type==='zone'?type:type==='ask'?'ask':'who';
   const a=frame(c,{bid,type:outer,who:outer==='who'||outer==='ask'?who:undefined,title:stepTitle(c,o),attrs:{'data-me-tstep':o.id,'data-me-step':o.id}});
   if(type==='other'){a.body.append(el(c,'p','This block is a “'+(o.kind||'?')+'” step. The Blocks view does not show its settings yet; it is kept exactly as it is.','me-small'),btn(c,'EDIT IN FORM VIEW',()=>formAt(c,o.id),'',{'data-me-kind':o.id,'data-mb-form':o.id}));return a;}
   if(o.delay>0||opened.has(bid)||!basic())a.body.append(delayRow(c,o,eo));
   const cost=MC(c).costOf(m);if(cost&&cost.when===o.id)a.body.append(mini(c,'item','You','The player pays '+cost.amount+' CR to finish this block (it waits until they have them). Amount: Credits, at the top.'));
   if(type==='who'){a.body.append(talkFields(c,o,eo));}
+  else if(type==='zone'){a.body.append(...kindFields(c,o,eo));}
   else{const inner=frame(c,{type,who:type==='ask'?undefined:who,title:innerTitle(c,o),nested:true,attrs:{'data-mb-inner':o.id}});inner.body.append(...kindFields(c,o,eo));a.body.append(inner);}
   if(o.kind!=='anim'&&o.kind!=='wait')a.body.append(labelBox(c,o.label||'',v=>eo(x=>{x.label=v.slice(0,500);},false),'(your words)','data-me-label',o.id));
   for(const s of MB.lineSets(o,m)){const box=words(c,o.id+'/'+s.key,o[s.key]||[],s.who,{...s,via:o.via});if(s.more){const d=el(c,'details','','mb-more');d.open=(o[s.key]||[]).length>0;d.append(el(c,'summary','More: '+s.title.toLowerCase()),box);a.body.append(d);}else a.body.append(box);}
@@ -193,6 +194,7 @@
    if(k==='apt-use'){const sel=el(c,'select','','',{'aria-label':'What is used','data-me-step-object':o.id});sel.append(new Option('— choose what is used —',''));for(const ob of (ME?ME.objects(m,o):root.VoidApartments.OBJECTS))sel.append(new Option(ob.name,ob.id));sel.value=o.object||'';sel.onchange=()=>eo(x=>{if(sel.value)x.object=sel.value;else delete x.object;});r.append(el(c,'span','use','me-small'),sel);}
    if(!(m.apartments||[]).length)out.push(hint(c,'Add an Apartment block above this one first (+ ADD A BLOCK › Apartment).'));}
   else if(k==='hack')row().append(...kit.hackRow(m,o,eo));
+  else if(k==='zone'&&root.VoidZoneEditor)out.push(...root.VoidZoneEditor.stepFields(m,o,eo));
   else if(k==='ask')out.push(...askFields({t:c.t,m,o,eo,kit}));
   else if(k==='pod-exit')out.push(el(c,'p','Done when the player leaves their Sleeping Pod (EXIT POD).','me-small'));
   else if(k==='message')out.push(el(c,'p',m.start&&m.start.how==='notification'?'Done as the mission’s notification reaches the device.':'Needs the mission to start by notification (How this mission starts, above).',m.start&&m.start.how==='notification'?'me-small':'me-warn'));
