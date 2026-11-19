@@ -6,7 +6,18 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 19 Nov 2026 (newest): PLACE REVERIE, LACE AND THE STREET CAT ANYWHERE WALKABLE (branch `claude/pair-anywhere`, build `2026-11-19-pair-anywhere-1`, pushed, NO PR, not merged)
+### 19 Nov 2026 (newest): MISSION EDITOR — PLAYER LINES, ANIMATIONS IN LINES AND BETWEEN STEPS, MISSION TIMERS (branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`, pushed, NO PR, not merged)
+
+The owner: "after I create a voice line, i can not create the line for the player. i also can't add animations anywhere between the steps", then "mission timers". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Sixteenth pass".
+
+- **Cause of the player-line problem:** no code bug blocked it; the player line was only "You (the player)" at the top of the long "Who says it" list behind "+ LINE", with misleading status text ("no voice yet", "empty: a placeholder" that did not update while typing). Now: **+ ADD A LINE FOR <NPC>** / **+ ADD A PLAYER LINE** everywhere an NPC speaks, ▲ ▼, a live status chip; in the game the player's line shows as "You", is never voiced, and stays in the NPC's conversation thread.
+- **Animations:** "While saying this, <NPC> does: …" on any NPC line, and a step kind "Someone plays an animation" (also in the wizard). Only clips that character really has (`npc-gestures.js`; Reverie / Lace casual only; the cat none). `crowd.js` controllers gained `perform`.
+- **Timers:** per line wait before (0–60 s), show for (1–60 s), animation length (1–30 s); per step delay before it starts (0–600 s); a "Wait" step (1–600 s, optionally only while near someone). Paused in menus, conversations, the KeyMap, pod and creator; step timers resume after a reload (`story.flags` `td_` / `tw_`, removed when the step is done).
+- **Checked by** the game (`mission-content.js`) and the server (`void_runner_live_content.py`, admin inventory `missionEditor.gestures`; the editor's server copy refuses bad shapes).
+- **Tests:** `tests/player-lines.test.cjs`, `tests/test_player_lines.py`, browser `tests/player-lines-browser.cjs` (passes).
+- **Not verified:** real hardware; VR; Reverie / Lace and added clips in a browser; publishing with the server on.
+
+### 19 Nov 2026: PLACE REVERIE, LACE AND THE STREET CAT ANYWHERE WALKABLE (branch `claude/pair-anywhere`, build `2026-11-19-pair-anywhere-1`, pushed, NO PR, not merged)
 
 The owner: "Let me place REVERIE or LACE anywhere". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fifteenth pass".
 

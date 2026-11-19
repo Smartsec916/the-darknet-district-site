@@ -104,8 +104,12 @@
   {id:'they-follow',name:'They follow you',supported:true,needs:'escort',note:'The person follows the player (about 2 metres behind, walking or running to keep up; the cat at its own pace) to the spot you pick on the map. Done when both are there. Only people who can walk with the player.'},
   {id:'their-cab',name:'They call a cab, you ride together',supported:true,needs:'cab',note:'The person walks to the kerb and calls a street taxi to the stop you choose; the player boards with them (BOARD TAXI, normal fare). Both get out at the stop; done then. Only Reverie or Lace (the cat does not ride in cabs), and only The Avenue’s stops (they exist only there for now).'},
   {id:'shared-cab',name:'You call a cab, they ride along',supported:true,needs:'cab',note:'The person follows the player; when the player calls a street taxi to the stop you choose, they get in too, and both get out there; done then. A cab to another stop: they stay. Only Reverie or Lace, only The Avenue’s stops.'},
+  // animation between steps (npc-gestures.js, 19 Nov 2026: the owner "can't add animations anywhere between the steps")
+  {id:'anim',name:'Someone plays an animation',supported:true,needs:'anim',note:'The person you choose does the animation (a shrug, a laugh, looking about …) where they stand, as soon as the step before is done and the conversation is closed; the mission then waits the seconds you set (0 to 30) and goes on to the next step. Only animations that person really has.'},
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
-  {id:'pickup',name:'Pick something up in the world',supported:false},{id:'wait',name:'Wait / come back later',supported:false}];
+  {id:'pickup',name:'Pick something up in the world',supported:false},
+  // mission timers (the owner, 19 Nov 2026: "mission timers. set the amount of time between actions, lines, etc")
+  {id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];
  /* What a mission can make available. supported: applied by the game when the mission (or the step named in `when`) is done. */
  const UNLOCK_KINDS=[
   {id:'credits',name:'Credits',supported:true},
