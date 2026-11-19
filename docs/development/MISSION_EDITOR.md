@@ -2,6 +2,25 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Nineteenth pass (19 Nov 2026): PLAY FROM THE START OF THIS TREE; the apartments panel always shows; an apartment in "Make a mission"
+
+Branch `claude/play-tree-start`, build `2026-11-19-play-tree-1`. Pushed, no PR, not merged.
+
+The owner: "i also don't see the apartment add in mission editor", and "play draft from the beginning of the tree".
+
+**Play from the start of a tree.** Every tree of yours (and the Main storyline) has **PLAY FROM THE START OF THIS TREE** under its name, and the same button sits beside every mission's **PLAY THIS DRAFT**. It starts a practice game with the whole tree reset: no mission of the tree started, none of its story flags, follow / lead / cab steps, step timers, apartment hacks or switched-off lights and screens left over. It begins with the tree's first mission the way a player meets it: talk to its giver, or wait for its message, banner, walked-near start or EXIT POD. Finish it and the next mission comes as it would for a player. The banner says PLAYING DRAFT TREE FROM THE START; LEAVE DRAFT brings you back; your real save is never touched. (PLAY THIS DRAFT on a later mission still starts with the missions before it done.)
+
+**The apartments panel.** "Apartments for this mission" (with **+ INSTANCE AN APARTMENT**) is on every mission of your own trees and the Main storyline, in Basic and Advanced, from the main menu, the pod or the street. If the door list is not ready it says "Loading the street doors…" and fills in by itself. Missions of the older game data (the archived trees, the beginner campaign) cannot hold apartments: their page says so and offers **COPY THIS MISSION INTO A NEW TREE**.
+
+**Make a mission.** The steps page ("What must the player do?") has **An apartment for this mission (optional)**: **+ INSTANCE AN APARTMENT** adds one (style and street door, grouped by part of town; an Outskirts container door takes only the two container styles, a city door the three city styles) and the step **Go into the mission's apartment**; × removes both. More apartments, a later opening step, a lock behind a hack and items: in the Mission Editor afterwards.
+
+**Cause of the hidden panel (for Claude and Codex).** On current `main` the panel was not hidden in any case tried in a browser (main menu, pod, Basic, Advanced): `apartments.js` is loaded with the page and its doors are pure data (street edges, `ncz-quarters.js`, the generated `npc-areas.js` obstacles), not the built scene. What did hide it: the panel was added only `if(root.VoidApartments?.doors)` (so any page where `apartments.js` was missing or late, e.g. a stale cached page from before #424, showed nothing and no message); the "Make a mission" wizard had no apartment at all (the owner works in Basic mode, where the wizard is the main path); and missions of the older trees have no panel, with no word why. Also fixed: `apartments.js doors()` cached its list even when `VoidQuarters` was not loaded yet, which would have frozen an empty list.
+
+For Claude and Codex:
+- `mission-editor.js`: `aptReady` / `aptEnsure` (loads `ncz-quarters.js`, `ncz-containers.js`, `npc-areas.js`, `apartments.js` if missing, then redraws), `aptPanel` always added (`data-me-apt-loading` while waiting); `data-me-apt-other` on non-tree missions. `startOf`, `startBtn(raw)` (`data-me-play-start=<tree>`, greyed by the first mission's blockers; `syncPlay` keeps it live), `playStart(treeId)` = `play('tree:'+first, null, {tree})` (banner / message name the tree); `shared.playStart`, `VoidMissionEditor.playStart`; `HELP.playStart`. `treeState` already builds a brand-new campaign with nothing of the tree done when no step is given.
+- Every draft session (`play`) now calls `VoidLiveContent.resetRun()` (animation and step-timer countdowns, started escort steps, offer / need / walked-near memories, the plan cache) and `VoidApartments.resetRun()` (JUMP INSIDE preview, lights / screen switches) in `apply`, so a session started inside another one starts clean.
+- Wizard: `editor-wizard.js` STEPS `apt-enter` (needs `apt`), answer `a.apt {style, door}`, `problems('steps')` checks it (door exists, style fits the door's family), `build()` writes `apartments:[{id:'a1', style, door}]` and the step's `apt`; `editor-home.js aptBox`. No new wizard page (PAGES unchanged).
+- Tests: `tests/play-tree-start.test.cjs`, browser `tests/play-tree-start-browser.cjs`; `tests/play-stale.test.cjs` updated for `play(key,stepId,opt)`.
 ## Nineteenth pass (19 Nov 2026): container apartments in The Outskirts
 
 Branch `claude/container-apartments`, build `2026-11-19-container-apartments-1`. Record: [`APARTMENTS.md`](APARTMENTS.md), "Container apartments in The Outskirts".

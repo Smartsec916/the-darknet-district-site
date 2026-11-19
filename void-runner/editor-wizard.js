@@ -38,7 +38,10 @@
   // an animation between steps (npc-gestures.js): only someone with animations; the mission waits 3 seconds (the Mission Editor can change it, 0 to 30)
   {id:'anim',name:'Someone does an animation (a pause in the story)',needs:'anim',ask:'Who does it?',where:'Which animation?'},
   // mission timers: a plain wait (the Mission Editor adds "only while the player stays near someone" and a delay before any step)
-  {id:'wait',name:'Wait a number of seconds',needs:'seconds',ask:'How many seconds (1 to 600)?'}];
+  {id:'wait',name:'Wait a number of seconds',needs:'seconds',ask:'How many seconds (1 to 600)?'},
+  // mission apartments (apartments.js): the wizard's one apartment (a.apt, "An apartment for this mission" on the steps page); the Mission Editor adds more, items and hacks
+  {id:'apt-enter',name:'Go into the mission’s apartment',needs:'apt',ask:'The apartment'}];
+ const AX=()=>{try{return typeof module!=='undefined'&&module.exports?require('./apartments.js'):root.VoidApartments;}catch{return null;}};
  const NG=()=>typeof module!=='undefined'&&module.exports?require('./npc-gestures.js'):root.VoidNPCGestures;
  const EX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;
  const TEMPLATES=[
@@ -62,12 +65,12 @@
  const REWARDS=[0,50,100,250,500];
  const template=id=>TEMPLATES.find(t=>t.id===id)||null;
  const stepOf=kind=>({kind,npc:'',place:'',spot:'',stop:'',clip:'',secs:10,label:'',auto:true});
- function fresh(templateId){const t=template(templateId);return {template:t?t.id:'',giver:'',start:'person',message:{header:'',text:''},steps:t?t.steps.map(stepOf):[],rewards:100,pays:false,ask:false,title:'',description:'',offer:'',tree:''};}
+ function fresh(templateId){const t=template(templateId);return {template:t?t.id:'',giver:'',start:'person',message:{header:'',text:''},steps:t?t.steps.map(stepOf):[],rewards:100,pays:false,ask:false,title:'',description:'',offer:'',tree:'',apt:null};}
  /* Choosing a template replaces the steps unless the owner already filled them in. */
  function setTemplate(a,id){const t=template(id);if(!t)return a;const touched=a.steps.some(s=>s.npc||s.place||(s.label&&!s.auto));a.template=t.id;if(!touched)a.steps=t.steps.map(stepOf);return a;}
  /* The Mission Log line for a step, made from its choices (used until the owner types his own). ctx.name(id), ctx.place(id). */
  function labelFor(s,ctx={}){const who=s.npc?(ctx.name?ctx.name(s.npc):s.npc):'someone',where=s.place?(ctx.place?ctx.place(s.place):s.place):'the place';
-  return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':s.kind==='follow-them'?'Follow '+who:s.kind==='they-follow'?'Bring '+who+' with you':s.kind==='their-cab'||s.kind==='shared-cab'?'Ride a cab with '+who:s.kind==='anim'?'Watch '+who:s.kind==='wait'?'Wait':'';}
+  return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':s.kind==='follow-them'?'Follow '+who:s.kind==='they-follow'?'Bring '+who+' with you':s.kind==='their-cab'||s.kind==='shared-cab'?'Ride a cab with '+who:s.kind==='anim'?'Watch '+who:s.kind==='wait'?'Wait':s.kind==='apt-enter'?'Go into the apartment'+(ctx.door?' at '+ctx.door:''):'';}
  function relabel(a,ctx){for(const s of a.steps)if(s.auto||!String(s.label||'').trim()){s.label=labelFor(s,ctx);s.auto=true;}return a;}
  /* Who can give a mission or be talked to: a TALK prompt in the game and playable in a draft (mission-content.js treeNeeds uses the same test). */
  const canTalk=(givers,id)=>{const g=(givers||[]).find(x=>x.id===id);return !!(g&&g.canTalk&&g.draft);};
@@ -90,7 +93,11 @@
     if(k.needs==='anim'){const A=NG(),r=A&&s.npc?A.clipsFor(s.npc):null;if(!s.npc)out.push(n+'choose who, from the list on that step.');else if(r&&!r.ok)out.push(n+r.why+' Choose someone else from the list.');else if(!s.clip)out.push(n+'choose the animation, from the second list on that step.');else if(A&&A.problem(s.npc,s.clip))out.push(n+A.problem(s.npc,s.clip)+'. Choose another one.');}
     if(k.needs==='escort-spot'||k.needs==='escort-stop'){const E=EX(),c=E?E.can(s.npc,s.kind):{ok:false,why:''};if(!s.npc)out.push(n+'choose who, from the list on that step.');else if(!c.ok)out.push(n+c.why+' Choose someone else from the list.');
      else if(k.needs==='escort-spot'&&!(E.spots(s.npc).some(p=>p.id===s.spot)))out.push(n+'choose the spot, from the second list on that step.');else if(k.needs==='escort-stop'&&!E.stopOk(s.npc,s.stop,E.placedArea(s.npc)))out.push(n+'choose the cab stop, from the second list on that step (greyed stops are not possible).');}
-    if(!String(s.label||'').trim())out.push(n+'write what the Mission Log says, for example “Talk to Iris”.');});}
+    if(k.needs==='apt'&&!(a.apt&&a.apt.door))out.push(n+'the mission has no apartment yet: press “+ INSTANCE AN APARTMENT” below the steps and choose its street door.');
+    if(!String(s.label||'').trim())out.push(n+'write what the Mission Log says, for example “Talk to Iris”.');});
+   if(a.apt){const X=AX(),d=X&&a.apt.door?X.door(a.apt.door):null;if(!a.apt.door)out.push('The apartment: choose its street door, from the list under “An apartment for this mission” (or press × to have none).');
+    else if(X&&!d)out.push('The apartment: that street door is not in the game. Choose another one from the list.');
+    else if(X&&d&&X.STYLES&&!X.STYLES.some(st=>st.id===a.apt.style&&!!st.container===(d.family==='container')))out.push('The apartment: that style cannot go behind that door. Choose another style from the list.');}}
   if(page==='reward'){const r=Number(a.rewards);if(!(Number.isInteger(r)&&r>=0&&r<=100000))out.push('Credits must be a whole number from 0 to 100000. Type a number like 100, or press one of the buttons.');
    else if(a.pays&&r<1)out.push('Type how much the player pays (for example 100), or press “Player gets” if they pay nothing.');}
   if(page==='name'&&!String(a.title||'').trim())out.push('Give the mission a name: type it in the box “Mission name” (for example “A parcel for Iris”).');
@@ -113,9 +120,10 @@
   else if(a.start==='near')m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:5}};
   else if(a.start==='messages')m.start={how:'notification',channel:'messages',from:a.giver,header:String(a.message.header||'').trim().slice(0,80)||'MESSAGE',text,when:{kind:'pod-exit'}};
   if(ask&&m.start)m.start.accept=true;
+  const apt=a.apt&&a.apt.door?{id:'a1',style:a.apt.style||'normal',door:a.apt.door}:null;if(apt)m.apartments=[apt];   // one apartment (apartments.js); the Mission Editor adds more
   m.objectives=[];m.seq=0;
   for(const s of a.steps){const o=T.addStep(m,{kind:s.kind});o.label=String(s.label||'').trim().slice(0,500);if(s.kind==='go')o.place=s.place;else o.npc=s.npc;
-   if(s.kind==='follow-them'||s.kind==='they-follow'){const p=(EX()?EX().spots(s.npc):[]).find(x=>x.id===s.spot);if(p)o.to={x:p.x,z:p.z};}if((s.kind==='their-cab'||s.kind==='shared-cab')&&s.stop)o.stop=s.stop;if(s.kind==='anim'){if(s.clip)o.clip=s.clip;o.hold=3;}if(s.kind==='wait'){o.hold=s.secs;delete o.npc;}}
+   if(s.kind==='follow-them'||s.kind==='they-follow'){const p=(EX()?EX().spots(s.npc):[]).find(x=>x.id===s.spot);if(p)o.to={x:p.x,z:p.z};}if((s.kind==='their-cab'||s.kind==='shared-cab')&&s.stop)o.stop=s.stop;if(s.kind==='anim'){if(s.clip)o.clip=s.clip;o.hold=3;}if(s.kind==='wait'){o.hold=s.secs;delete o.npc;}if(s.kind==='apt-enter'){delete o.npc;if(apt)o.apt=apt.id;}}
   return {tree,mission:m};}
  const ICON_IDS=['mission','character','test','publish','balance','jump','trophy','people','parcel','meet','pin','camera','talk','undo','help','back','next','check'];
  const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,asks,template,fresh,setTemplate,labelFor,relabel,canTalk,problems,allProblems,build,ICON_IDS};

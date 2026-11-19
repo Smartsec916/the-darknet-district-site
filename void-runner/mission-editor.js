@@ -33,7 +33,8 @@
   distance:'How close the player must walk to that person, in metres (1 to 30). 5 m is a few steps away.',flag:'A story flag and the value it must have. Another mission sets it with the unlock “Story flag” (e.g. mf_metLace = true).',
   hours:'How long after the chosen mission is done, in IN-GAME time (12 in-game minutes pass for every real minute of play).',afterMission:'The mission that must be finished first.',
   waitAt:'Pick the area on the map (anywhere green in the city or inside the District; never Milked, NULL, the District bar or the VR area). While this mission waits to be offered (and she is out on her shift), she goes to this spot (in another area she is simply there from the start of her shift) and waits there with her normal routine: stands, looks about, checks her V1 (and sits if the spot is just in front of a ledge). Once it is accepted or done she goes back to her usual walk. Not set: she keeps her usual walk.',
-  play:'Tries this mission in a throwaway test session. Your real save is never touched; LEAVE DRAFT brings you back here.'};
+  play:'Tries this mission in a throwaway test session. Your real save is never touched; LEAVE DRAFT brings you back here.',
+  playStart:'PLAY FROM THE START OF THIS TREE: a throwaway test session with the whole tree reset (no mission of it started, its story flags, follow / lead / cab steps, timers and apartments cleared), beginning with the first mission exactly as a player meets it: its giver to talk to, its message, banner or walked-near start. Finish it and the next mission comes as it would for a player. Your real save is never touched; LEAVE DRAFT brings you back here.'};
  const HELP_START={person:'The giver offers it when the player walks up and presses TALK. E.g. Admin offers it as soon as you talk to him at the counter.',
   'person-accept':'The giver offers it and the player chooses ACCEPT or DENY (the buttons and what DENY does are set below). By default DENY changes nothing: the next talk offers it again.',
   messages:'It arrives as a text in the V1 Messages app when the trigger below happens. No conversation needed.',comms:'It arrives as a call in the V1 Comms app (the words show as a transcript) when the trigger below happens.',
@@ -305,6 +306,7 @@
  function ownerTreePanel(t){const d=local(),raw=d.trees.find(x=>x.id===t.id),box=el('div','','',{'data-me-owner-tree':t.id});
   box.append(el('h3',t.title),el('p',t.story?t.statusText+' · the main storyline':t.statusText+' · your new tree','me-badge me-'+(t.story?'active':'draft')),el('p','Id '+t.id+' (never changes). Missions run in the order listed: finishing one opens the next, given by its own giver (or started by its own trigger).','me-small'));
   if(t.story)box.append(el('p','This tree is in the game for every player. Your edits here are a DRAFT (this browser) until you publish them; PLAY THIS DRAFT tries them first.','dev-note'));
+  if(raw.missions.length){const r=el('div','','me-row me-actions',{'data-me-tree-start-row':t.id});r.append(startBtn(raw),hint(HELP.playStart));box.append(r);}
   const g=el('div','','me-grid'),nm=el('input','','',{'aria-label':'Tree name','data-me-rename':t.id,maxlength:'60'});nm.value=raw.name;nm.oninput=()=>editTree(t.id,x=>{x.name=nm.value;});
   const f1=el('label','','me-field');f1.append(el('span','Tree name'),nm);const st=el('label','','me-field');st.append(el('span','Status'),el('b',t.story?'ACTIVE (in the game)':'DRAFT'));g.append(f1,st);box.append(g);
   const note=el('textarea','','',{'aria-label':'Short note',rows:'2',placeholder:'Short note (optional)'});note.value=raw.note||'';note.oninput=()=>editTree(t.id,x=>{x.note=note.value.slice(0,300);});const f2=el('label','','me-field');f2.append(el('span','Short note'),note);box.append(f2);
@@ -397,7 +399,7 @@
   card.append(startPanel(t,m,ed));   // right under Giver: how this mission starts
   const ty=el('select','','',{'aria-label':'Mission type'});for(const x of SM().TYPES)ty.append(new Option(x,x));ty.value=m.type||'side';ty.onchange=()=>ed(x=>{x.type=ty.value;});const tr=el('div','','me-row');tr.append(el('span','Type','me-small'),ty,hint(HELP.type));card.append(tr);
   if(!(m.start&&m.start.how==='notification')){card.append(linesEditor(t,m,m.offer,'offer',m.giver,'What '+(gv?gv.name:'the giver')+' says when offering it'));card.append(hint(HELP.offer));}
-  if(root.VoidApartments?.doors)card.append(aptPanel(t,m,ed));   // apartment instances (apartments.js)
+  card.append(aptPanel(t,m,ed));   // apartment instances (apartments.js): always shown; "Loading the street doors…" while the door list is not ready (aptReady)
   card.append(el('h4','What needs to be done (steps, in order)'),hint(HELP.steps));
   m.objectives.forEach((o,k)=>card.append(treeStepRow(t,raw,m,o,k,ed)));
   card.append(btn('+ STEP',()=>{root.VoidEditorGuide?.focusNext();ed(x=>T().addStep(x),true);},'',{'data-me-add-step':m.id}));
@@ -417,7 +419,7 @@
   const mine=issues.filter(x=>x.where===m.id||x.where===m.title||String(x.where).startsWith(m.id+' /')||String(x.where).startsWith((m.title||'\u0000')+' /'));
   const val=el('section','','me-issues');val.append(el('h4','Checks'));if(!mine.length)val.append(el('p','No problems found.','me-ok'));for(const x of mine)val.append(el('p',x.text,x.level==='error'?'me-bad':'me-warn'));card.append(val);
   const block=MC().treeBlockers(m,givers,items),act=el('div','','me-row me-actions');
-  act.append(btn('PLAY THIS DRAFT',()=>play('tree:'+m.id,null),'me-play',{'data-me-play':'tree:'+m.id,...(block.length?{disabled:'',title:'Cannot be played yet: '+block.join('; ')}:{})}),hint(HELP.play));card.append(act);
+  act.append(btn('PLAY THIS DRAFT',()=>play('tree:'+m.id,null),'me-play',{'data-me-play':'tree:'+m.id,...(block.length?{disabled:'',title:'Cannot be played yet: '+block.join('; ')}:{})}),startBtn(raw),hint(HELP.play));card.append(act);
   if(block.length)card.append(el('p','Cannot be played or published yet: '+block.join('; ')+'.','me-small me-warn'));
   return card;}
  /* HOW THIS MISSION STARTS (the owner, 17 Nov 2026: "either have Missions start by notification or in person"): in person (the giver offers it), or by notification:
@@ -518,7 +520,18 @@
   out.push(cb('fails if they walk away','stay',true,'data-me-step-stay'),cb('opens that door for them','unlock',true,'data-me-step-unlock'));
   const ns=el('select','','',{'aria-label':'Player needs','data-me-step-needs':o.id});ns.append(new Option('Player needs: nothing',''));for(const [id,it] of Object.entries(root.VoidProgression?.personalItems||{}))ns.append(new Option('Player needs: '+it.name+(it.sold===false?' (not sold anywhere yet)':''),id));ns.value=o.needs||'';ns.onchange=()=>eo(x=>{if(ns.value)x.needs=ns.value;else delete x.needs;});out.push(ns);
   return out;}
+ /* The street doors come from apartments.js, pure data (the street edges, ncz-quarters.js gates and stops, npc-areas.js obstacles): no scene is needed. If a script is
+    missing (an old cached page, a failed load) the panel still shows, says "Loading the street doors…", loads what is missing and redraws (the owner, 19 Nov 2026: "i also
+    don't see the apartment add in mission editor"). */
+ const aptReady=()=>{const X=APX();if(!X||typeof X.doors!=='function'||!X.STYLES||!X.LIMIT)return false;try{return X.doors().length>0;}catch{return false;}};
+ let aptLoad=null,aptFail='';
+ function aptEnsure(){if(aptReady())return Promise.resolve(true);
+  return aptLoad??=[['VoidQuarters','void-runner/ncz-quarters.js'],['VoidContainers','void-runner/ncz-containers.js'],['VoidNPCAreas','void-runner/npc-areas.js'],['VoidApartments','void-runner/apartments.js']].reduce((p,[g,src])=>p.then(()=>root[g]&&(g!=='VoidApartments'||typeof root[g].doors==='function')?null:new Promise(ok=>{const sc=document.createElement('script');sc.src=src;sc.onload=ok;sc.onerror=()=>{aptFail=src;ok();};document.head.append(sc);})),Promise.resolve())
+   .then(()=>{const r=aptReady();if(!r)aptLoad=null;return r;});}
  function aptPanel(t,m,ed){const X=APX(),box=el('section','','me-end',{'data-me-apt-panel':m.id});box.append(el('h4','Apartments for this mission'),hint(HELP_APT));
+  if(!aptReady()){box.append(el('p',aptFail?'The street doors could not load ('+aptFail+'). Check your connection, then press CLOSE and open Developer tools again. Your apartments are kept in the draft.':'Loading the street doors…','me-small'+(aptFail?' me-warn':''),{'data-me-apt-loading':m.id}),
+    btn('+ INSTANCE AN APARTMENT',()=>{},'',{'data-me-apt-add':m.id,disabled:'',title:'Wait a moment: the street doors are loading.'}));
+   if(!aptFail)aptEnsure().then(ok=>{if(ok&&host&&host.querySelector('[data-me-apt-loading]'))draw();else if(!ok&&host&&!aptFail){aptFail='the door list is empty';draw();}});return box;}
   const ea=(id,fn,redraw)=>ed(x=>{const a=(x.apartments||[]).find(y=>y.id===id);if(a)fn(a,x);},redraw);
   (m.apartments||[]).forEach((a,k)=>{const sec=el('div','','me-step',{'data-me-apt':a.id}),r1=el('div','','me-row');
    const nm=el('input','','',{'aria-label':'Apartment name (used by its steps)',size:'10',maxlength:'24','data-me-apt-name':a.id,'data-me-apt-adv':'1'});nm.value=a.id;nm.onchange=()=>{const v=nm.value.trim().toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^[^a-z]+/,'').slice(0,24);if(!v||v===a.id||(m.apartments||[]).some(y=>y.id===v)){nm.value=a.id;return;}ed(x=>{const y=x.apartments.find(z=>z.id===a.id);if(y)y.id=v;for(const o of x.objectives||[]){if(o.apt===a.id)o.apt=v;if(typeof o.ap==='string'&&o.ap.startsWith(a.id+'/'))o.ap=v+o.ap.slice(a.id.length);}},true);};
@@ -657,6 +670,8 @@
   const issues=missionIssues(m);const val=el('section','','me-issues');val.append(el('h4','Checks'));if(!issues.length)val.append(el('p','No problems found.','me-ok'));for(const i of issues)val.append(el('p',i.text,i.level==='error'?'me-bad':'me-warn'));box.append(val);
   const act=el('div','','me-row me-actions');
   act.append(btn('PLAY THIS DRAFT',()=>play(m.key,null),'me-play',{'data-me-play':m.key,...(playable(m)?{}:{disabled:'',title:playable(m,true)})}));
+  {const ap=el('section','','me-end',{'data-me-apt-other':m.key});ap.append(el('h4','Apartments for this mission'),el('p','This mission is from the older game data, which cannot hold apartments. Apartments go into the missions of your own trees and the Main storyline (“Apartments for this mission”, above each mission’s steps). To give this one an apartment, copy it into a new tree of yours:','me-small'),
+    btn('COPY THIS MISSION INTO A NEW TREE',()=>copyInto([m],m.title),'',{'data-me-apt-copy':m.key}));box.append(ap);}
   const out=T().allLines(m).filter(l=>voiceState(l).revoice);act.append(btn('RE-VOICE ALL OUT-OF-DATE LINES IN THIS MISSION ('+out.length+')',()=>revoice(out,m),'',out.length&&server.queue?{}:{disabled:''}));
   if(m.server&&server.roles?.roles?.editor&&server.roles.roles.draftsEnabled)act.append(btn('SAVE AS PRIVATE SERVER DRAFT',()=>serverDraft(m)));
   act.append(btn('EXPORT MY EDITS',exportEdits),btn('REVERT THIS MISSION',()=>{if(!confirm('Throw away your edits to "'+m.title+'"?'))return;revertMission(m);draw();}));
@@ -877,7 +892,8 @@
     emptied, it is greyed with the reason (the same check as play and publish: mission-content.js treeNeeds). */
  function syncPlay(sc){if(!sc||ui.mode!=='trees')return;const raw=local().trees.find(x=>x.id===ui.tree);if(!raw)return;
   for(const m of raw.missions){const b=MC().treeBlockers(m,givers,items);for(const p of sc.querySelectorAll('[data-me-play^="tree:'+CSS.escape(m.id)+'"]')){const k=p.getAttribute('data-me-play');if(k!=='tree:'+m.id&&!k.startsWith('tree:'+m.id+'#'))continue;
-   if(b.length){p.disabled=true;if(k==='tree:'+m.id)p.title='Cannot be played yet: '+b.join('; ');}else if(p.disabled){p.disabled=false;p.removeAttribute('title');}}}}
+   if(b.length){p.disabled=true;if(k==='tree:'+m.id)p.title='Cannot be played yet: '+b.join('; ');}else if(p.disabled){p.disabled=false;p.removeAttribute('title');}}}
+  {const f=startOf(raw),b=f?MC().treeBlockers(f,givers,items):['no mission yet'];for(const p of sc.querySelectorAll('[data-me-play-start="'+CSS.escape(raw.id)+'"]'))p.disabled=b.length>0;}}
  function guideNow(){const Gd=root.VoidEditorGuide;if(!Gd||!host||!built)return null;const sc=host.querySelector('#me-root');if(!sc)return null;
   if(ui.mode!=='trees'){Gd.clear(sc);return null;}
   if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}
@@ -966,20 +982,29 @@
   if(!M.acquire(s,mid))notes.push('The game could not start "'+d.title+'" directly at this point; you are at its place and story stage.');
   M.track(s,mid,C);const i=stepId?Math.max(0,(d.objectives||[]).findIndex(o=>o.id===stepId)):0;for(const o of (d.objectives||[]).slice(0,i))M.complete(s,mid,o.id,C);M.sync(s,C);
   return {state:s,where:loc,notes};}
- async function play(key,stepId){
-  fresh();const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
+ /* PLAY FROM THE START OF THIS TREE (the owner, 19 Nov 2026: "play draft from the beginning of the tree"): the tree's first mission played with nothing of the tree done.
+    treeState() builds a brand-new campaign (C.fresh()), so no mission of the tree is started and none of its story flags, follow / lead / cab flags, step timers or
+    apartment hacks exist; play() also clears what the running game keeps in memory (live-content.js / apartment-integration.js resetRun). The first mission then starts
+    the way a player meets it (its giver, its message / banner / walked-near / pod-exit trigger) and the tree engine offers the next missions as each is finished. */
+ const startOf=raw=>raw&&raw.missions&&raw.missions[0]||null;
+ function startBtn(raw){const f=startOf(raw),b=f?MC().treeBlockers(f,givers,items):['the tree has no mission yet'];
+  return btn('PLAY FROM THE START OF THIS TREE',()=>playStart(raw.id),'me-play',{'data-me-play-start':raw.id,...(b.length?{disabled:'',title:'Cannot be played yet: '+(f?'its first mission, '+(f.title||f.id)+', ':'')+b.join('; ')}:{title:'Starts a practice game with the whole tree reset, at the first mission ('+(f.title||f.id)+').'})});}
+ function playStart(treeId){fresh();const raw=(local().trees||[]).find(x=>x.id===treeId),f=startOf(raw);if(!f){status='This tree has no mission yet: press + NEW MISSION first.';draw();return null;}
+  return play('tree:'+f.id,null,{tree:raw});}
+ async function play(key,stepId,opt={}){
+  fresh();const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}const whole=opt.tree||null,tname=whole?(whole.name||whole.id):'';
   const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first (Guide me highlights each box), then press PLAY again: '+c.errors.slice(0,4).join(' · ');draw();return;}
   const not=MC().notApplied({studio:studio(),local:local(),givers,items});
   const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);if(wsOn())await saveServer();   // the server copy is up to date before the page reloads
   write(RETURN,{tree:f.tree.id,mission:m.key,step:stepId||null,at:Date.now()},root.sessionStorage);
   const env=root.VoidLiveContent?.env;
-  const r=await root.VoidDevTest.session({banner:'PLAYING DRAFT: '+m.title+' — not your real save',leave:'LEAVE DRAFT',kind:'draft',
-   apply:()=>{root.VoidLiveContent?.useDraft(content);},clock:clockText,
+  const r=await root.VoidDevTest.session({banner:(whole?'PLAYING DRAFT TREE FROM THE START: '+tname:'PLAYING DRAFT: '+m.title)+' — not your real save',leave:'LEAVE DRAFT',kind:'draft',
+   apply:()=>{root.VoidLiveContent?.useDraft(content);try{root.VoidLiveContent?.resetRun?.();root.VoidApartments?.resetRun?.();}catch{}},clock:clockText,
    build:()=>{const x=m.engine==='tree'?treeState(m.id,stepId):m.engine==='beginner'?beginnerState(m.id,stepId):registryState(m.id,stepId);play.notes=x.notes||[];play.where=x.where;return x.state;},
    enter:async()=>{const w=play.where;if(m.engine==='tree')return enterTree(w);if(w==='interior'||w==='earth'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}
     else if(w==='street'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}
     else if(w==='vesper')await worldEnterWalking('vesper');else{state.location=w;await dock();}},
-   message:()=>'DRAFT · '+m.title+(stepId?' · from step '+stepId:'')+(m.engine==='tree'&&!stepId?(m.raw&&m.raw.start&&m.raw.start.how==='notification'?' · it starts by notification: '+((G().START_WHEN.find(x=>x.id===(m.raw.start.when||{}).kind)||{}).name||'its trigger').toLowerCase():' · talk to '+(giver(m.giver)||{}).name+' to get it'):'')+' · nothing is saved'+(not.length?' · '+not.length+' edit(s) cannot show (listed in the Mission Editor)':'')+((play.notes||[]).length?' · '+play.notes.join(' '):'')});
+   message:()=>'DRAFT · '+(whole?'tree '+tname+' from the start (every mission of it reset) · first: '+m.title:m.title)+(stepId?' · from step '+stepId:'')+(m.engine==='tree'&&!stepId?(m.raw&&m.raw.start&&m.raw.start.how==='notification'?' · it starts by notification: '+((G().START_WHEN.find(x=>x.id===(m.raw.start.when||{}).kind)||{}).name||'its trigger').toLowerCase():' · talk to '+(giver(m.giver)||{}).name+' to get it'):'')+' · nothing is saved'+(not.length?' · '+not.length+' edit(s) cannot show (listed in the Mission Editor)':'')+((play.notes||[]).length?' · '+play.notes.join(' '):'')});
   if(r&&r.error){status=r.error;try{root.sessionStorage.removeItem(RETURN);}catch{}draw();}
  }
  // ---------------- PUBLISH TO ALL PLAYERS (server-verified owner only; the server keeps every version)
@@ -1027,10 +1052,10 @@
   // the beginner layer (editor-home.js): jump to a view, add the wizard's mission, play a tree mission, what blocks one
   goto(o){Object.assign(ui,{check:null,newTree:false,...o});},
   addWizardMission(make){const d=local();const r=make(d,{T:T(),number:nextFree(d),givers});saveLocal(d);stale=true;Object.assign(ui,{mode:'trees',tree:r.tree.id,mission:'tree:'+r.mission.id,step:null,scrollTo:true,newTree:false});return {tree:r.tree.id,mission:r.mission.id};},
-  playTree(id,step){return play('tree:'+id,step||null);},fresh,
+  playTree(id,step){return play('tree:'+id,step||null);},playStart,fresh,
   blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
   addGiverMission(npc,treeId){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};
- root.VoidMissionEditor={shared,guideNow,fresh,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
+ root.VoidMissionEditor={shared,guideNow,fresh,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,playStart,refreshServer,get status(){return status;},get server(){return server;}};
 })(globalThis);
