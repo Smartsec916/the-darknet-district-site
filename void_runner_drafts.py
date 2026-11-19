@@ -260,6 +260,11 @@ def validate_workspace(doc):
         problems = forbidden_spot_problems(b.get('npcs') or {}, b.get('trees') or [])
         if problems:
             raise DraftError('Invalid NPC placement: ' + problems[0], 422)
+    if b.get('trees'):
+        from void_runner_live_content import escort_shape_problems
+        problems = escort_shape_problems(b['trees'])
+        if problems:
+            raise DraftError('Invalid follow / cab step: ' + problems[0], 422)
     if b.get('voices'):
         from void_runner_live_content import voice_problems
         problems = voice_problems(b['voices'])

@@ -269,7 +269,7 @@ def check(content, inv=None):
                     err('A tree name must be plain text (60 characters at most).')
     trees = content.get('trees')
     if trees is not None:
-        check_trees(trees, inv or _json('void_runner_admin_inventory.json'), err)
+        check_trees(trees, inv or _json('void_runner_admin_inventory.json'), err, content.get('npcs') if isinstance(content.get('npcs'), dict) else None)
     return errors
 
 
@@ -430,6 +430,90 @@ def _leg_problems(mv, a, b, inv=None):
     if worst is None:
         return ['the walk to the next point leaves its area: a route stays in one area.'] if left else []
     return ['the walk to the next point ' + {'road': 'crosses the road.', 'rule': 'goes through a place never used for her.', 'obstacle': 'goes through furniture.', 'post': 'goes through a taxi post.', 'gate': 'goes into a gate.'}.get(worst, 'goes through a wall or a building.')]
+
+
+# ---- Follow / lead / shared-cab steps (void-runner/npc-escort.js): the same rules, from the admin inventory (npcEscort) ----
+ESCORT_KINDS = ('follow-them', 'they-follow', 'their-cab', 'shared-cab')
+ESCORT_FIELDS = ('to', 'wait', 'lost', 'ifLost', 'stop')
+
+
+def placed_area(npc, wait_at, plan, inv):
+    """The area Reverie, Lace or the cat is placed in for a mission (void-runner/npc-escort.js placedArea): where she waits for it, else her all-day placement, else The Avenue."""
+    if isinstance(wait_at, dict) and _num(wait_at.get('x')) and _num(wait_at.get('z')):
+        a = area_of(wait_at, inv)
+        if a:
+            return a
+    t = None
+    if isinstance(plan, dict):
+        if plan.get('mode') == 'stay':
+            t = plan
+        elif plan.get('mode') == 'path' and isinstance(plan.get('points'), list) and plan['points']:
+            t = plan['points'][0]
+    if isinstance(t, dict) and _num(t.get('x')) and _num(t.get('z')):
+        return area_of(t, inv) or 'avenue'
+    return 'avenue'
+
+
+def escort_problems(o, inv, area='avenue'):
+    """One follow / lead / cab step: a person who can walk with the player, a spot on their pavement or a cab stop they can reach, distances in range."""
+    esc = (inv or {}).get('npcEscort') or {}
+    kind, npc = o.get('kind'), o.get('npc')
+    who = (esc.get('npcs') or {}).get(npc)
+    if not who or not _movable(inv).get(npc):
+        return ['only someone who can walk with the player (Reverie, Lace, the street cat) can do this step.']
+    out = []
+    allowed = (esc.get('fields') or {}).get(kind) or []
+    for f in ESCORT_FIELDS:
+        if o.get(f) is not None and f not in allowed:
+            out.append('this kind of step has no ' + f + ' setting.')
+    if kind in ('follow-them', 'they-follow'):
+        t = o.get('to')
+        if not _keys(t, ['x', 'z']):
+            out.append('pick the spot on the map.')
+        else:
+            sp = spot_problems(npc, t, inv)
+            out += sp
+            if not sp and _num(t.get('x')) and _num(t.get('z')) and area_of(t, inv) not in (None, area):
+                out.append('that spot is not in the area she is placed in for this mission.')
+    if kind == 'follow-them':
+        lim = esc.get('limits') or {}
+        w, l = lim.get('wait') or [3, 30], lim.get('lost') or [15, 150]
+        if o.get('wait') is not None and not (_num(o['wait']) and w[0] <= o['wait'] <= w[1]):
+            out.append('the waiting distance must be %d to %d metres.' % (w[0], w[1]))
+        if o.get('lost') is not None and not (_num(o['lost']) and l[0] <= o['lost'] <= l[1]):
+            out.append('the lost distance must be %d to %d metres.' % (l[0], l[1]))
+        if _num(o.get('wait')) and _num(o.get('lost')) and o['lost'] <= o['wait']:
+            out.append('the lost distance must be further than the waiting distance.')
+        if o.get('ifLost') is not None and o['ifLost'] not in (esc.get('ifLost') or ['pause', 'fail']):
+            out.append('if the player gets lost: stop and wait, or the mission fails.')
+    if kind in ('their-cab', 'shared-cab'):
+        if not who.get('cab'):
+            out.append('this one does not ride in cabs.')
+        elif o.get('stop') not in ((who.get('stopsByArea') or {}).get(area, who.get('stops') or []) if who.get('stopsByArea') else (who.get('stops') or [])):
+            out.append('choose a cab stop they can get to (a stop in the area she is placed in for this mission).')
+    return out
+
+
+def escort_shape_problems(trees):
+    """The editor's draft copy on the server (void_runner_drafts.py): a follow / lead / cab step's settings have the right shape (a work in progress may still lack them)."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') if isinstance(t, dict) and isinstance(t.get('missions'), list) else []):
+            for o in (m.get('objectives') if isinstance(m, dict) and isinstance(m.get('objectives'), list) else []):
+                if not isinstance(o, dict):
+                    continue
+                t_ = o.get('to')
+                if t_ is not None and not (_keys(t_, ['x', 'z']) and _num(t_.get('x')) and _num(t_.get('z')) and abs(t_['x']) <= 400 and abs(t_['z']) <= 400):
+                    out.append('a follow step\'s spot has an unknown shape.')
+                if o.get('wait') is not None and not (_num(o['wait']) and 3 <= o['wait'] <= 30):
+                    out.append('a follow step\'s waiting distance must be 3 to 30 metres.')
+                if o.get('lost') is not None and not (_num(o['lost']) and 15 <= o['lost'] <= 150):
+                    out.append('a follow step\'s lost distance must be 15 to 150 metres.')
+                if o.get('ifLost') is not None and o['ifLost'] not in ('pause', 'fail'):
+                    out.append('a follow step\'s "if the player gets lost" must be pause or fail.')
+                if o.get('stop') is not None and not (isinstance(o['stop'], str) and ID.match(o['stop'])):
+                    out.append('a cab step\'s stop has an unknown shape.')
+    return out
 
 
 def _ledge_at(mv, p):
@@ -919,7 +1003,7 @@ def content_numbers(content):
 FLAGNAME = re.compile(r'^[a-zA-Z][a-zA-Z0-9_-]{0,47}$')
 
 
-def check_trees(trees, inv, err):
+def check_trees(trees, inv, err, npcs=None):
     """The owner's new mission trees: the same closed rules as void-runner/mission-content.js checkTrees(), against the lists in the admin inventory
     (NPCs with a TALK prompt, places, items a store sells, travel places). New mission ids start with draft- and become ordinary save records."""
     me = inv.get('missionEditor') or {}
@@ -1015,7 +1099,7 @@ def check_trees(trees, inv, err):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via']):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))
@@ -1043,10 +1127,16 @@ def check_trees(trees, inv, err):
                     err(ow + ': unknown NPC.')
                 elif kind in ('enter', 'leave') and o.get('place') not in places:
                     err(ow + ': unknown place.')
+                elif kind in ESCORT_KINDS:
+                    area = placed_area(o.get('npc'), m.get('waitAt') if m.get('giver') == o.get('npc') else None, (npcs or {}).get(o.get('npc')), inv)
+                    for p in escort_problems(o, inv, area):
+                        err(ow + ': ' + p)
                 elif kind == 'photo' and o.get('npc') not in subjects:
                     err(ow + ': not someone the V1 camera can identify.')
                 elif kind == 'send-photo' and (o.get('npc') not in givers or o.get('subject') not in subjects):
                     err(ow + ': the photo must go to a known NPC and show someone the camera can identify.')
+                if kind not in ESCORT_KINDS and any(o.get(f) is not None for f in ESCORT_FIELDS):
+                    err(ow + ': only a follow / lead / cab step has a spot, distances or a cab stop.')
                 if o.get('subject') is not None and kind != 'send-photo':
                     err(ow + ': only a send-a-photo step names who must be in the photo.')
                 many = o.get('subjects')

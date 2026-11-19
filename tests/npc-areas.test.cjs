@@ -72,3 +72,13 @@ test('the game: the pair is started in every street quarter and inside the Distr
 
 test('the server’s copy of the areas (admin inventory) matches npc-areas.js',()=>{const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths;
  assert.deepEqual(inv.areas,JSON.parse(JSON.stringify(A.inventory())));for(const id of Object.keys(P.MOVABLE))assert.deepEqual(inv.movable[id].areas,A.IDS);});
+
+test('follow / lead / cab steps (npc-escort.js) happen in the area she is placed in for the mission: spots there, cab stops in its quarter',()=>{
+ const E=require(R('void-runner/npc-escort.js')),alley=place('oldtown-alley-mouth'),ot=E.placedArea(REV,{waitAt:alley});assert.equal(ot,'oldtown');assert.equal(E.placedArea(REV,{plan:{mode:'stay',...place('outskirts-yard')}}),'outskirts');assert.equal(E.placedArea(REV,{}),'avenue');
+ assert.deepEqual(E.stops(REV,'oldtown').filter(s=>s.ok).map(s=>s.id).sort(),['alley-mouth','main']);assert.match(E.stops(REV,'oldtown').find(s=>s.id==='avenue').why,/placed in Old Town/);
+ assert.ok(E.stops(REV,'district').every(s=>!s.ok));assert.match(E.stops(REV,'district')[0].why,/no taxis/);assert.ok(E.stops(REV,'outskirts').every(s=>!s.ok),'no taxi beyond the Far South Gate');
+ assert.deepEqual(E.problems({kind:'follow-them',npc:REV,to:{x:alley.x+5,z:alley.z}},{area:'oldtown'}),[]);
+ assert.match(E.problems({kind:'follow-them',npc:REV,to:place('laundry')},{area:'oldtown'}).join(),/placed in Old Town/);
+ assert.match(E.problems({kind:'shared-cab',npc:REV,stop:'avenue'},{area:'oldtown'}).join(),/placed in Old Town/);assert.deepEqual(E.problems({kind:'shared-cab',npc:REV,stop:'main'},{area:'oldtown'}),[]);
+ assert.ok(E.spots(REV,'oldtown').every(p=>A.areaOf(p)==='oldtown'));const k=E.kerb({x:77,z:-58.5},'oldtown');assert.ok(A.check(k).ok&&k.call,'she calls the cab from beside a taxi pole in Old Town');
+ const r=E.route({x:alley.x,z:alley.z},{x:alley.x+20,z:alley.z},'oldtown');assert.equal(r.length,1);});

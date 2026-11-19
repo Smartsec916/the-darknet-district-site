@@ -47,7 +47,7 @@ test('everything that reads the street clock agrees under a simulated one: who i
 
 test('the draft exemption is gone; the editor sets the clock for every draft test; dev-test resets it per session and on leaving; the banner shows both clocks',()=>{
  const sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8'),ed=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8'),dt=fs.readFileSync(R('void-runner/dev-test.js'),'utf8'),mc=fs.readFileSync(R('void-runner/mission-content.js'),'utf8');
- assert.doesNotMatch(sp,/VoidStreetPair\?\.force|force:null/);assert.match(sp,/const out=\(\)=>onStreet\(now\(\),cfg\);/);assert.match(sp,/now:clockFn=\(\)=>streetTime\(\)/);
+ assert.doesNotMatch(sp,/VoidStreetPair\?\.force|force:null/);assert.match(sp,/const out=\(\)=>\{const o=onStreet\(now\(\),cfg\);/);   /* the street clock decides; a started follow / lead / cab step only keeps the one already out (npc-escort.test.cjs) */assert.match(sp,/now:clockFn=\(\)=>streetTime\(\)/);
  assert.doesNotMatch(mc,/env\.draft\)return true/);assert.doesNotMatch(ed,/VoidStreetPair\.force/);
  assert.match(ed,/build:\(\)=>\{jumpTo\.notes=streetClock\(\[npc\]\)/,'Jump there / See it on the street / NPC-tab plays');
  assert.match(ed,/notes\.push\(\.\.\.streetClock\(\[m\.giver,nw\.kind==='near'\?nw\.npc:null,\.\.\.m\.objectives\.flatMap\(o=>\[o\.npc,\.\.\.\(o\.subjects\|\|\[\]\)\]\),m\.ending&&m\.ending\.npc\]\)\)/,'PLAY THIS DRAFT / PLAY IT NOW');

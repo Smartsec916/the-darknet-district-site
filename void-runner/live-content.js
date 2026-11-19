@@ -196,9 +196,26 @@
  // ---------------------------------------------------------------- NPC placements (Developer Tools > NPCs) and "Giver waits at"
  /* What Reverie and Lace do (ncz-street-pair.js asks every frame; worked out twice a second): a mission's "Giver waits at" while that mission waits to be offered by her,
     else the placement published or played from Developer Tools > NPCs (content.npcs; its daily schedule follows the in-game clock, game-clock.js), else her own routine. */
- let planCache={},planAt=0;
+ let planCache={},planAt=0;const escOn=new Set();   // follow / lead / cab steps that have started (escOn: below)
  function plans(){const t=Date.now();if(t-planAt<500)return planCache;planAt=t;const X=root.VoidNPCPaths,out={};if(!X)return planCache=out;let wait={};try{if(treesOn())wait=MC.waitingAt(state,env);}catch{}let minute=null;try{minute=GC?GC.now(state).minuteOfDay:null;}catch{}
-  for(const id of Object.keys(X.MOVABLE)){const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null,minute});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
- if(root.VoidStreetPair){root.VoidStreetPair.planFor=id=>plans()[id]||null;root.VoidStreetPair.animsFor=id=>((env.npcPlans||{})[id]||{}).anims||[];}
- root.VoidLiveContent={offerPrompt,plans,env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+  let esc={};try{if(treesOn())esc=MC.escortNow(state,env);}catch{}const E=root.VoidNPCEscort,saved=E?E.decode(state?.story?.flags?.[E.FLAG]):null;
+  for(const id of Object.keys(X.MOVABLE)){const e=esc[id];
+   // a follow / lead / cab step starts only while she is out on the street clock (mission-givers.js onDuty; a draft test simulates a time she is out); once started she
+   // finishes it even if her shift ends (ncz-street-pair.js keeps her out for it), then leaves. A reload mid-step: the saved flag says it had started.
+   if(e&&E&&!escOn.has(e.key)){const g=env.givers.find(x=>x.id===id);let on=true;try{on=!g||!g.shift||!G?.onDuty||G.onDuty(g);}catch{}if(on||(saved&&saved.key===e.key))escOn.add(e.key);}
+   if(e&&E&&escOn.has(e.key)){const key=E.keyOf(e),old=planCache[id];const AR=root.VoidNPCAreas,sq=e.stop&&(root.VoidQuarters?.STOPS||[]).find(q=>q.id===e.stop),area=(e.to&&AR?AR.areaOf(e.to):null)||(sq&&AR?(AR.list().find(a=>a.quarter===sq.quarter)||{}).id:null)||'avenue';   // the area the step happens in (npc-areas.js): its spot's, or its cab stop's quarter
+    out[id]=old&&old.key===key?old:{key,area,mode:'escort',why:'escort',kind:e.kind,npc:id,name:X.MOVABLE[id].name,step:e.key,mission:e.mission,to:e.to||null,stop:e.stop||null,set:{wait:e.wait,lost:e.lost,ifLost:e.ifLost},resume:saved&&saved.key===e.key?saved:null};continue;}
+   const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null,minute});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
+ /* FOLLOW / LEAD / SHARED-CAB steps (npc-escort.js): ncz-street-pair.js moves the NPC and reports what happens. 'done' completes the step; 'failed' (the player got
+    lost with "the mission fails") fails the mission; the rest are short notices. While a step runs, story.flags.npcEsc keeps where she is (a reload puts her back). */
+ const escortLog=[];let escSavedAt=0;
+ function onEscort(x){try{if(!x||!treesOn())return;escortLog.push({event:x.event,phase:x.phase,npc:x.npc,step:x.step,at:Date.now()});if(escortLog.length>40)escortLog.shift();
+  const E=root.VoidNPCEscort,who=x.npc===root.VoidStreetPair?.CAT_ID?'The cat':giverName(x.npc),f=state.story.flags;
+  if(x.event==='done'){delete f[E.FLAG];const r=MC.treeEvent(state,env,{type:'escort',step:x.step},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);return;}
+  if(x.event==='failed'){const r=MC.treeEvent(state,env,{type:'escort-fail',step:x.step},root.VoidMissions,root.C||root.VoidCampaign);if(r.failed){try{save();hud();}catch{}const g=(env.trees.flatMap(t=>t.missions).find(m=>m.id===r.mission)||{}).giver;try{announce('MISSION FAILED · '+title(r.mission)+' · you lost '+(x.npc===root.VoidStreetPair?.CAT_ID?'the cat':who)+'. Talk to '+(g?giverName(g):'them')+' to try again.');}catch{}}return;}
+  const v=E&&E.encode({key:x.step,phase:x.phase,x:x.x,z:x.z});if(v&&f[E.FLAG]!==v){f[E.FLAG]=v;if(Date.now()-escSavedAt>4000){escSavedAt=Date.now();try{save();}catch{}}}
+  const say={wait:who+' waits for you to catch up.',paused:who+' has stopped: you are too far away. Go back to them.','caught-up':who+' catches up with you.','wrong-stop':who+' is going to '+(((root.VoidQuarters?.STOPS||[]).find(q=>q.id===planCache[x.npc]?.stop)||{}).name||'another stop')+', not there: they stay out of this cab.','hail-failed':who+' could not get a cab: '+(x.reason||'try again in a moment.'),'in-cab':who+' gets in the cab.'}[x.event];
+  if(say)try{announce(say);}catch{}}catch{}}
+ if(root.VoidStreetPair){root.VoidStreetPair.onEscort=onEscort;root.VoidStreetPair.planFor=id=>plans()[id]||null;root.VoidStreetPair.animsFor=id=>((env.npcPlans||{})[id]||{}).anims||[];}
+ root.VoidLiveContent={offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

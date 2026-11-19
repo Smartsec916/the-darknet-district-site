@@ -59,6 +59,15 @@ class NpcAreasServerTests(unittest.TestCase):
             with self.assertRaises(drafts.DraftError):
                 drafts.validate_workspace(ws(b))
 
+    def test_escort_steps_in_her_placed_area(self):
+        alley = {'x': 77, 'z': -58.5}
+        self.assertEqual(live.placed_area('grey-reverie', alley, None, INV), 'oldtown')
+        self.assertEqual(live.placed_area('grey-reverie', None, {'mode': 'stay', 'x': 64, 'z': -242}, INV), 'outskirts')
+        self.assertEqual(live.escort_problems({'kind': 'shared-cab', 'npc': 'grey-reverie', 'stop': 'main'}, INV, 'oldtown'), [])
+        self.assertTrue(live.escort_problems({'kind': 'shared-cab', 'npc': 'grey-reverie', 'stop': 'avenue'}, INV, 'oldtown'))
+        self.assertEqual(live.escort_problems({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 82, 'z': -58.5}}, INV, 'oldtown'), [])
+        self.assertTrue(any('area' in p for p in live.escort_problems({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 82, 'z': -58.5}}, INV, 'avenue')))
+
     @unittest.skipUnless(shutil.which('node'), 'Node is not installed')
     def test_same_decisions_as_the_browser(self):
         pts = [{'x': x, 'z': z} for x in range(10, 145, 7) for z in range(-262, 0, 3)] + [W(x, z) for x in range(-17, 18, 2) for z in range(20, 79, 2)]

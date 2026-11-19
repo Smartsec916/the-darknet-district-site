@@ -28,7 +28,14 @@
   {id:'talk',name:'Talk to someone',needs:'npc',ask:'Who do they talk to?'},
   {id:'deliver',name:'Deliver something to someone',needs:'npc',ask:'Who gets the delivery?'},
   {id:'go',name:'Go to a place',needs:'place',ask:'Where do they go?'},
-  {id:'photo',name:'Take a photo of someone with the V1',needs:'subject',ask:'Who must be in the photo?'}];
+  {id:'photo',name:'Take a photo of someone with the V1',needs:'subject',ask:'Who must be in the photo?'},
+  // follow / lead / shared-cab (npc-escort.js): only with someone who can walk with the player (Reverie, Lace, the street cat); the spot is one of the named spots on their pavement
+  // (the Mission Editor's map can move it anywhere on it afterwards), the cab stop one they can get to
+  {id:'follow-them',name:'Follow someone (they lead the way)',needs:'escort-spot',ask:'Who leads the way?',where:'Where do they take the player?'},
+  {id:'they-follow',name:'Someone follows the player',needs:'escort-spot',ask:'Who follows the player?',where:'Where must the player bring them?'},
+  {id:'their-cab',name:'Ride a cab together (they call it)',needs:'escort-stop',ask:'Who calls the cab?',where:'Which stop does the cab go to?'},
+  {id:'shared-cab',name:'Ride a cab together (the player calls it)',needs:'escort-stop',ask:'Who rides along?',where:'Which stop must the player take them to?'}];
+ const EX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;
  const TEMPLATES=[
   {id:'deliver',icon:'parcel',title:'Deliver something',line:'The player takes a package to someone.',steps:['deliver']},
   {id:'meet',icon:'meet',title:'Meet someone',line:'The player goes to a place and meets a person there.',steps:['go','talk']},
@@ -49,13 +56,13 @@
   {id:'name',title:'What is it called?',help:'The name the player sees in the V1 Mission Log.'}];
  const REWARDS=[0,50,100,250,500];
  const template=id=>TEMPLATES.find(t=>t.id===id)||null;
- const stepOf=kind=>({kind,npc:'',place:'',label:'',auto:true});
+ const stepOf=kind=>({kind,npc:'',place:'',spot:'',stop:'',label:'',auto:true});
  function fresh(templateId){const t=template(templateId);return {template:t?t.id:'',giver:'',start:'person',message:{header:'',text:''},steps:t?t.steps.map(stepOf):[],rewards:100,pays:false,ask:false,title:'',description:'',offer:'',tree:''};}
  /* Choosing a template replaces the steps unless the owner already filled them in. */
  function setTemplate(a,id){const t=template(id);if(!t)return a;const touched=a.steps.some(s=>s.npc||s.place||(s.label&&!s.auto));a.template=t.id;if(!touched)a.steps=t.steps.map(stepOf);return a;}
  /* The Mission Log line for a step, made from its choices (used until the owner types his own). ctx.name(id), ctx.place(id). */
  function labelFor(s,ctx={}){const who=s.npc?(ctx.name?ctx.name(s.npc):s.npc):'someone',where=s.place?(ctx.place?ctx.place(s.place):s.place):'the place';
-  return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':'';}
+  return s.kind==='talk'?'Talk to '+who:s.kind==='deliver'?'Take the package to '+who:s.kind==='go'?'Go to '+where:s.kind==='photo'?'Take a photo of '+who+' with your V1':s.kind==='follow-them'?'Follow '+who:s.kind==='they-follow'?'Bring '+who+' with you':s.kind==='their-cab'||s.kind==='shared-cab'?'Ride a cab with '+who:'';}
  function relabel(a,ctx){for(const s of a.steps)if(s.auto||!String(s.label||'').trim()){s.label=labelFor(s,ctx);s.auto=true;}return a;}
  /* Who can give a mission or be talked to: a TALK prompt in the game and playable in a draft (mission-content.js treeNeeds uses the same test). */
  const canTalk=(givers,id)=>{const g=(givers||[]).find(x=>x.id===id);return !!(g&&g.canTalk&&g.draft);};
@@ -74,6 +81,8 @@
     if(k.needs==='npc'){if(!s.npc)out.push(n+'choose who, from the list on that step.');else if(!canTalk(g,s.npc))out.push(n+nameOf(g,s.npc)+' cannot be talked to in the game yet. Choose someone else from the list.');}
     if(k.needs==='place'&&!s.place)out.push(n+'choose the place, from the list on that step.');else if(k.needs==='place'&&ctx.places&&!ctx.places.has(s.place))out.push(n+'that place is not in the game. Choose another one from the list.');
     if(k.needs==='subject'&&!s.npc)out.push(n+'choose who must be in the photo, from the list on that step.');else if(k.needs==='subject'&&ctx.subjects&&!ctx.subjects.has(s.npc))out.push(n+nameOf(g,s.npc)+' cannot be recognised by the V1 camera. Choose someone else from the list.');
+    if(k.needs==='escort-spot'||k.needs==='escort-stop'){const E=EX(),c=E?E.can(s.npc,s.kind):{ok:false,why:''};if(!s.npc)out.push(n+'choose who, from the list on that step.');else if(!c.ok)out.push(n+c.why+' Choose someone else from the list.');
+     else if(k.needs==='escort-spot'&&!(E.spots(s.npc).some(p=>p.id===s.spot)))out.push(n+'choose the spot, from the second list on that step.');else if(k.needs==='escort-stop'&&!E.stopOk(s.npc,s.stop,E.placedArea(s.npc)))out.push(n+'choose the cab stop, from the second list on that step (greyed stops are not possible).');}
     if(!String(s.label||'').trim())out.push(n+'write what the Mission Log says, for example “Talk to Iris”.');});}
   if(page==='reward'){const r=Number(a.rewards);if(!(Number.isInteger(r)&&r>=0&&r<=100000))out.push('Credits must be a whole number from 0 to 100000. Type a number like 100, or press one of the buttons.');
    else if(a.pays&&r<1)out.push('Type how much the player pays (for example 100), or press “Player gets” if they pay nothing.');}
@@ -98,7 +107,8 @@
   else if(a.start==='messages')m.start={how:'notification',channel:'messages',from:a.giver,header:String(a.message.header||'').trim().slice(0,80)||'MESSAGE',text,when:{kind:'pod-exit'}};
   if(ask&&m.start)m.start.accept=true;
   m.objectives=[];m.seq=0;
-  for(const s of a.steps){const o=T.addStep(m,{kind:s.kind});o.label=String(s.label||'').trim().slice(0,500);if(s.kind==='go')o.place=s.place;else o.npc=s.npc;}
+  for(const s of a.steps){const o=T.addStep(m,{kind:s.kind});o.label=String(s.label||'').trim().slice(0,500);if(s.kind==='go')o.place=s.place;else o.npc=s.npc;
+   if(s.kind==='follow-them'||s.kind==='they-follow'){const p=(EX()?EX().spots(s.npc):[]).find(x=>x.id===s.spot);if(p)o.to={x:p.x,z:p.z};}if((s.kind==='their-cab'||s.kind==='shared-cab')&&s.stop)o.stop=s.stop;}
   return {tree,mission:m};}
  const ICON_IDS=['mission','character','test','publish','balance','jump','trophy','people','parcel','meet','pin','camera','talk','undo','help','back','next','check'];
  const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,asks,template,fresh,setTemplate,labelFor,relabel,canTalk,problems,allProblems,build,ICON_IDS};
