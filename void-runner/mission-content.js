@@ -233,7 +233,7 @@
     if(m.objective!=null&&!plain(m.objective,200))err(w+': the objective must be plain text (200 characters at most).');
     if(m.location!=null&&(typeof m.location!=='string'||(ctx.places&&!ctx.places.has(m.location))))err(w+': unknown location "'+m.location+'".');if(mids.has(m.id)||(ctx.registryIds&&ctx.registryIds.has(m.id)))err(w+': duplicate mission id.');mids.add(m.id);
     if(!plain(m.title,LIMIT.title))err(w+': a title is required (60 characters at most, no HTML).');if(!TYPES.includes(m.type))err(w+': unknown mission type.');
-    if(!npcOk(m.giver))err(w+': the giver must be an NPC the game has a TALK prompt for.');
+    if(!giverOk(m))err(w+': '+(m.start&&m.start.how==='notification'?'the giver must be a known NPC.':'the giver must be an NPC the game has a TALK prompt for.'));
     if(m.description!=null&&!(typeof m.description==='string'&&m.description.length<=LIMIT.description&&!TAGS.test(m.description)))err(w+': the description must be plain text (600 characters at most).');
     if(m.rewards!=null&&!(Number.isInteger(m.rewards)&&m.rewards>=0&&m.rewards<=LIMIT.credits))err(w+': credits must be a whole number between 0 and 100000.');
     lines(m.offer,w);
@@ -519,9 +519,9 @@
  /* Why a draft mission cannot run in the game yet (plain words; empty = it can). givers: roster list; items: buyable ids (Set). */
  /* What a draft mission still needs before it can run, as {text (plain words), field (which input: the editor's "next required input" guide highlights it), step (the step id)}.
     treeBlockers is the same list as plain words, so the guide and the play / publish check never disagree. */
- function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
+ function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},known=id=>!!g(id),nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
   if(!String(m.title||'').trim())need('it needs a name','title');
-  if(!m.giver)need('nobody gives it yet','giver');else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')','giver');
+  if(!m.giver)need('nobody gives it yet','giver');else if(m.start&&m.start.how==='notification'){if(!known(m.giver))need(nm(m.giver)+' is not a known NPC','giver');}else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in person today ('+((g(m.giver)||{}).why||'no TALK prompt')+'). Start it by notification to use this NPC without adding a TALK interaction.','giver');
   if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!st.from)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!String(st.text||'').trim())need('the notification needs its text','start-text');
    if(w.kind==='after-mission'&&!w.mission)need('choose the mission it follows','start-mission');if((w.kind==='place'||w.kind==='leave')&&!w.place)need('choose the place that starts it','start-place');if(w.kind==='flag'&&!w.flag)need('name the story flag that starts it','start-flag');
    if(w.kind==='near'){const who=w.npc||m.giver;if(!who)need('choose who the player walks near','start-near');else if(!can(who))need(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)','start-near');}}
