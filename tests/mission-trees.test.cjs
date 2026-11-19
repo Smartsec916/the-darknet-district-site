@@ -157,23 +157,32 @@ test('new trees are validated with the Studio model and the real registries; wha
  assert.equal(T.validateTree(t,{givers,items,refs:r,studio:S}).filter(i=>i.level==='error').length,0);
  m.objectives[0].kind='fight';m.unlocks.push({kind:'item',id:'warflying-module',store:'district-store'},{kind:'ship',id:'ship2'},{kind:'location',id:'atlantis'});m.giver='rin-takeda';m.title='';
  const all=T.validateTree(t,{givers,items,refs:r,studio:S}),txt=all.map(i=>i.text).join('\n');
- for(const s of ['needs a code change','Unknown place "atlantis"','Cannot be played or published yet','cannot hand over a mission','Title is required'])assert(txt.includes(s),s);
+ for(const s of ['needs a code change','Unknown place "atlantis"','Cannot be played or published yet','cannot hand over a mission in person','Title is required'])assert(txt.includes(s),s);
  const cap=T.capability(t,{givers,items});assert.equal(cap.play,0);assert.equal(cap.draft,true);assert.equal(cap.export,true);assert(cap.skipped[0].why.some(w=>/step 1 \(fight\) needs a code change/.test(w)));
 });
-test('the giver roster lists every registered NPC, grouped, with where they are today; only NPCs with a TALK prompt can give missions',()=>{
+test('the NPC roster lists every registered NPC and keeps TALK as a capability rather than a category-wide mission ban',()=>{
  const g=roster(),by=id=>g.find(x=>x.id===id),reg=sources().registry.npcs;
  for(const id of Object.keys(reg))if(!reg[id].broadcast)assert(by(id),'registry NPC listed: '+id);
  for(const n of require(R('void-runner/district-people.js')).npcs())assert(by(n.id),'District resident listed: '+n.id);
  for(const id of ['admin','iris','bartender','milked-eva','milked-fish','zen-zephyr'])assert.equal(by(id).group,'district',id);
  for(const id of ['rook','mara','elias','elara','marcus','kess','mercer','iona','sol','nyx'])assert.equal(by(id).group,'earlier',id);
  assert(by('admin').players&&by('admin').draft);assert(by('rook').draft&&!by('rook').players,'nobody reaches Meridian until a mission grants a ship (the beginner campaign is retired)');assert(!by('elara').players&&by('elara').draft);
- assert(!by('rin-takeda').canTalk&&!by('vr-ava').canTalk&&!by('elias').canTalk,'figures, companions and a recording cannot give missions');
+ assert(!by('rin-takeda').canTalk&&!by('vr-ava').canTalk&&!by('elias').canTalk,'figures, companions and a recording still correctly report no walking TALK prompt');
  assert(!g.some(x=>['news-anchor','commercial-announcer'].includes(x.id)),'broadcast voices are not givers');
  // every TALK target named here exists in the game's own layouts and handlers
  const files=['neochinatown.js','meridian-interior.js','station-layouts.js','planets.js','milked-integration.js','temple.js','opening-data.js','ncz-street-pair.js'].map(f=>fs.readFileSync(R('void-runner/'+f),'utf8')).join('\n');
  for(const x of g)for(const t of x.targets){assert(files.includes("'"+t.action+"'")||files.includes('action:\''+t.action),x.id+' action '+t.action);if(t.character&&!['elara','marcus'].includes(t.character))assert(files.includes("'"+t.character+"'"),x.id+' character '+t.character);}
  assert.deepEqual(G.placesNow({walk:'neochinatown',area:'street',quarter:'far-south'}),['far-south']);assert.deepEqual(G.placesNow({walk:'neochinatown',area:'interior'}),['district']);assert.deepEqual(G.placesNow({location:'meridian',docked:true}),['meridian']);
  assert.deepEqual(G.whoAt(g,'talk','rook'),['rook']);assert.deepEqual(G.whoAt(g,'district-bar'),['bartender','nyx-district']);
+});
+test('a notification-started mission can belong to any known NPC without inventing a TALK prompt',()=>{
+ const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:G.placeIds(),items,locations:new Set(Object.keys(require(R('void-runner/universe.js')).locations))};
+ for(const id of ['rin-takeda','vr-ava']){
+  const {d,m}=sampleTree();m.giver=id;m.start={how:'notification',channel:'notify',from:id,text:'Test notification.',when:{kind:'pod-exit'}};m.offer=[];
+  assert.deepEqual(MC.treeNeeds(m,givers,items),[],id+' notification mission is runnable');
+  const c=MC.fromDrafts({local:d,givers,items});assert.equal(c.trees[0].missions[0].giver,id);assert.deepEqual(MC.check(c,ctx).errors,[]);
+  delete m.start;assert(MC.treeNeeds(m,givers,items).some(x=>/cannot hand over a mission in person/.test(x.text)),id+' still cannot offer in person');
+ }
 });
 test('adapter: a new tree is checked, applied, run step by step (talk, go, buy, deliver, hand-in), pays once, and rolls back',()=>{
  const e=env(),givers=roster(),items=buyable(),U=require(R('void-runner/universe.js'));e.U=U;e.givers=givers;MC.snapshot(e);
@@ -199,7 +208,7 @@ test('adapter: a new tree is checked, applied, run step by step (talk, go, buy, 
  const old=e.C.fresh();assert.equal(MC.treeEvent(old,e,{type:'talk',npcs:['admin']},e.Missions,e.C).mission,null);
  MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees.map(t=>t.id),['main-storyline'],'only the shipped main storyline stays');
 });
-test('adapter refuses unknown kinds, givers without a TALK prompt, non-draft ids, unknown places and items; only runnable missions are sent',()=>{
+test('adapter refuses unsupported mechanics and in-person givers without a TALK prompt; only runnable missions are sent',()=>{
  const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(require(R('void-runner/universe.js')).locations))};
  const base=()=>MC.clone(MC.fromDrafts({local:sampleTree().d,givers,items}));
  const bad=[c=>{c.trees[0].missions[0].objectives[0].kind='fight';},c=>{c.trees[0].missions[0].giver='rin-takeda';},c=>{c.trees[0].id='my-tree';},c=>{c.trees[0].missions[0].id='first';},c=>{c.trees[0].missions[0].objectives[0]={id:'s',label:'x',kind:'go',place:'atlantis'};},
