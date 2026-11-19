@@ -35,7 +35,7 @@
   waitAt:'While this mission waits to be offered (and she is out on her shift), she walks to this spot and waits there with her normal routine: stands, looks about, checks her V1 (and sits if the spot is just in front of a ledge). Once it is accepted or done she goes back to her usual walk. Not set: she keeps her usual walk.',
   play:'Tries this mission in a throwaway test session. Your real save is never touched; LEAVE DRAFT brings you back here.'};
  const HELP_START={person:'The giver offers it when the player walks up and presses TALK. E.g. Admin offers it as soon as you talk to him at the counter.',
-  'person-accept':'The giver offers it and the player chooses ACCEPT or NOT NOW. NOT NOW changes nothing: the next talk offers it again.',
+  'person-accept':'The giver offers it and the player chooses ACCEPT or DENY (the buttons and what DENY does are set below). By default DENY changes nothing: the next talk offers it again.',
   messages:'It arrives as a text in the V1 Messages app when the trigger below happens. No conversation needed.',comms:'It arrives as a call in the V1 Comms app (the words show as a transcript) when the trigger below happens.',
   notify:'Only a banner on the screen, then it is in the Mission Log. Nothing is kept in Messages or Comms.'};
  const HELP_WHEN={'pod-exit':'When the player first leaves their Sleeping Pod (EXIT POD). E.g. Admin’s first message.','after-mission':'As soon as the mission you pick is finished.',
@@ -162,11 +162,18 @@
  const V=()=>root.VoidNPCVoices;
  const voiceNow=id=>V()?V().current(id,{registry:src&&src.registry,engines:src&&src.engines,voices:local().voices}):{kind:'none'};
  const canVoice=l=>!!(l&&l.who!=='player'&&(l.voice||voiceNow(l.who).kind==='elevenlabs'));
- const queueItem=(who,text)=>(server.queue?.items||[]).find(q=>q.who===who&&q.text===text)||null;
- function voiceState(l){const t=shownText(l),edited=t!==l.text,q=queueItem(l.who,t);
+ /* ElevenLabs voice tags (19 Nov 2026): what a voice is sent (npc-voices.js speakText: tags kept only for a model that reads them), so adding or changing a tag is a
+    change only for those voices; players see the line without them (sh). */
+ const sayKey=(who,t)=>V()?V().speakText(t,voiceNow(who)):String(t||''),sh=t=>V()?V().strip(t):t;
+ const queueItem=(who,text)=>{const k=sayKey(who,text);return (server.queue?.items||[]).find(q=>q.who===who&&(q.speak||q.text)===k)||null;};
+ const TAG_HELP='You can add ElevenLabs voice tags like [whispers] or [laughs]. Players never see them; only ElevenLabs voices use them.';
+ function tagNotes(t,who,name){const X=V();if(!X||!t||!String(t).includes('['))return [];const out=X.tagProblems(t);if(!out.length&&who&&who!=='player'&&who!=='You'){const w=X.tagWarning(t,voiceNow(who),name);if(w)out.push(w);}return out;}
+ const tagNoteEl=(t,who,name)=>{const n=tagNotes(t,who,name);return el('p',n.join(' '),'me-small me-warn',{'data-me-tag-note':'1',...(n.length?{}:{hidden:''})});};
+ const tagNoteSet=(node,t,who,name)=>{const n=tagNotes(t,who,name);node.textContent=n.join(' ');node.hidden=!n.length;};
+ function voiceState(l){const t=shownText(l),edited=sayKey(l.who,t)!==sayKey(l.who,l.text),q=queueItem(l.who,t);
   if(l.who==='player')return {text:'the player’s own line (not voiced)',cls:'muted'};
   if(l.needsVoice){if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:{text:'queued for voice',cls:'warn'};return t.trim()?{text:'needs voice (text only until recorded)',cls:'warn',revoice:canVoice(l)}:{text:'empty: a placeholder, not spoken',cls:'muted'};}
-  if(edited&&clipKeys.has(l.who+'|'+t))return {text:'re-voiced',cls:'ok'};
+  if(edited&&clipKeys.has(l.who+'|'+sh(t))&&!(V()&&V().hasTags(t)&&V().readsTags(voiceNow(l.who))))return {text:'re-voiced',cls:'ok'};
   if(q)return q.status==='done'?{text:'re-voiced',cls:'ok'}:q.engine==='elevenlabs'?{text:'waiting for ElevenLabs re-voice (needs approval)',cls:'warn'}:{text:'queued for re-voice',cls:'warn'};
   if(edited&&l.recorded)return {text:'voice clip out of date: text only until re-voiced',cls:'bad',revoice:true};
   if(edited)return {text:'text only',cls:'muted',revoice:canVoice(l)};
@@ -302,15 +309,15 @@
   // a small map of every new tree and its links
   const edges=all.flatMap(x=>x.missions.flatMap(m=>(m.unlocks||[]).filter(u=>u.kind==='tree').map(u=>[x.id,u.id])));if(edges.length){const map=el('p','','me-small',{'data-me-tree-map':'1'});map.textContent='Map: '+[...new Set(edges.map(([a,b])=>name(a)+' → '+name(b)))].join('   ·   ');box.append(map);}
   return box;}
- function linesEditor(t,m,lines,keyBase,defWho,title){const box=el('div','','me-scene');box.append(el('h5',title));
+ function linesEditor(t,m,lines,keyBase,defWho,title){const box=el('div','','me-scene');box.append(el('h5',title));if(lines.length)box.append(hint(TAG_HELP,{'data-me-tag-help':'1'}));
   lines.forEach((l,k)=>{const row=el('div','','me-line',{'data-me-tline':keyBase+'/'+k});const who=el('div','','me-who');
    const ws=npcSelect(l.who||defWho||'',v=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].who=v;},true),{label:'Who says it',empty:'(the '+(defWho?'NPC of this part: '+((giver(defWho)||{}).name||defWho):'giver')+')'});ws.prepend(new Option('You (the player)','You'));ws.value=l.who||'';who.append(ws);
    const g=giver(l.who||defWho),vn=g?voiceNow(g.id):{kind:'none'};who.append(el('span',vn.kind==='elevenlabs'?'ElevenLabs voice '+vn.name:g&&g.voice?'registered voice '+g.voice.voice+' (read-only)':'no voice yet','me-small'));row.append(who);
-   const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';ta.oninput=()=>editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});body.append(ta);
+   const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';const tn=tagNoteEl(l.text,g&&g.id||(l.who==='You'?'You':''),g&&g.name);ta.oninput=()=>{editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});tagNoteSet(tn,ta.value,g&&g.id||(l.who==='You'?'You':''),g&&g.name);};body.append(ta,tn);
    const tags=el('div','','me-tags');const ph=!!MS()?.isPlaceholder(l.text);if(MS()?.isProposed?.(l.text))tags.append(el('span','PROPOSED: Claude’s draft, waiting for your approval (text only, not recorded). Edit it or keep it.','me-vs me-warn',{'data-me-proposed':'1'}));tags.append(el('span',ph?'PLACEHOLDER for you: shown only here and in draft play; live players never see it':(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+(ph?'bad':(l.text||'').trim()?'warn':'muted'),ph?{'data-me-placeholder':'1'}:{}));
    if(g&&(g.voice||vn.kind==='elevenlabs')&&(l.text||'').trim())tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
    tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);row.append(body);box.append(row);});
-  const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');if(a==='offer')return mm.offer;if(a==='ending')return (mm.ending.say=mm.ending.say||[]);const oo=mm.objectives.find(o=>o.id===a);if(!oo)return undefined;if(!Array.isArray(oo[b]))oo[b]=[];return oo[b];};
+  const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');if(a==='offer')return mm.offer;if(a==='deny'){mm.start=mm.start&&mm.start.how?mm.start:{how:'person'};return (mm.start.denySay=mm.start.denySay||[]);}if(a==='ending')return (mm.ending.say=mm.ending.say||[]);const oo=mm.objectives.find(o=>o.id===a);if(!oo)return undefined;if(!Array.isArray(oo[b]))oo[b]=[];return oo[b];};
   box.append(btn('+ LINE',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.push({who:'',text:''});},true)));return box;}
  function treeMissionCard(t,raw,m,i,issues){const card=el('article','','me-mission-panel',{'data-me-tree-mission':m.id}),ed=(fn,redraw)=>editTree(t.id,x=>{const mm=x.missions.find(y=>y.id===m.id);if(mm)fn(mm,x);},redraw);
   const head=el('div','','me-row');head.append(el('b',Number.isInteger(m.number)?numLabel(m.number,m.title||'(no name yet)'):'MISSION '+(i+1)+' · '+(m.title||'(no name yet)'),'',{'data-me-mission-label':m.id}),el('span','id '+m.id+' (never changes)','me-small'),
@@ -324,7 +331,7 @@
     const d2=local();T().setNumber(d2,m.id,n);saveLocal(d2);stale=true;status='Mission '+MS().pad(n)+' — '+(m.title||m.id)+'.';draw();},'',{'data-me-renumber':m.id}),el('span','Shown as “'+numLabel(Number.isInteger(m.number)?m.number:nextFree(),m.title||'Name')+'”. Unique; never reused once used. The id '+m.id+' stays the same.','me-small'));card.append(nr);}
   const field=(label,value,on,area,attrs,help)=>{const l=el('label','','me-field');l.append(el('span',label));const inp=el(area?'textarea':'input','','',attrs||{});inp.value=value??'';inp.oninput=()=>{on(inp.value);guideSoon();};l.append(inp);if(help)l.append(hint(help));return l;};
   card.append(hint(HELP.number));
-  const g=el('div','','me-grid');g.append(field('Mission name',m.title,v=>ed(x=>{x.title=v.slice(0,60);}),false,{'data-me-field':'title',placeholder:'(your words)',maxlength:'60'},HELP.title),field('Credits paid',String(m.rewards||0),v=>ed(x=>{const n=parseInt(v,10);x.rewards=Number.isFinite(n)&&n>=0?Math.min(n,100000):0;}),false,{'data-me-field':'rewards',inputmode:'numeric'},HELP.rewards));card.append(g);
+  const g=el('div','','me-grid');g.append(field('Mission name',m.title,v=>ed(x=>{x.title=v.slice(0,60);}),false,{'data-me-field':'title',placeholder:'(your words)',maxlength:'60'},HELP.title),creditsPanel(t,m,ed));card.append(g);
   card.append(field('Description (the V1 Mission Log shows it)',m.description,v=>ed(x=>{x.description=v.slice(0,600);}),true,{placeholder:'(your words)'},HELP.description));
   {const g2=el('div','','me-grid');g2.append(field('Type (shown in the Mission Log)',m.category||'',v=>ed(x=>{x.category=v.slice(0,60);}),false,{'data-me-field':'category',placeholder:'e.g. Main storyline / Introduction',maxlength:'60'},HELP.category),field('Objective (the Mission Log headline)',m.objective||'',v=>ed(x=>{x.objective=v.slice(0,200);}),false,{'data-me-field':'objective',placeholder:'(empty: the current step)',maxlength:'200'},HELP.objective));card.append(g2);
    const lr=el('div','','me-row');lr.append(el('b','Location'),placeSelect(m.location||'',v=>ed(x=>{x.location=v;}),'Mission location'),hint(HELP.location,{'data-me-help-location':'1'}));card.append(lr);}
@@ -362,9 +369,10 @@
  function startPanel(t,m,ed){const st=m.start||{how:'person'},by=st.how==='notification',box=el('section','','me-end me-start',{'data-me-start':m.id});box.append(el('h4','How this mission starts'));
   const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
   // One plain choice (the owner): Starts: In person / By Messages / By Comms call / Notification only.
-  const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['person-accept','In person, with ACCEPT / NOT NOW'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
-  sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value;x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;},true);
-  how.append(el('b','Starts:'),sel,...optHelp(sel,HELP_START,'Starts'),el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):st.accept===true?'The giver offers it; the player chooses ACCEPT or NOT NOW. NOT NOW changes nothing: the next time they talk, the giver offers it again. Once accepted it is never offered again.':'The giver offers it when the player talks to them.','me-small'));box.append(how);
+  const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['person-accept','In person, asking ACCEPT / DENY'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
+  sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value,prev=x.start||{};x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;if(v!=='person'&&prev.accept===true){x.start.accept=true;for(const k of MC().ASK_KEYS)if(prev[k]!=null)x.start[k]=prev[k];}},true);   // the ACCEPT / DENY settings follow a change of channel
+  how.append(el('b','Starts:'),sel,...optHelp(sel,HELP_START,'Starts'),el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):st.accept===true?'The giver offers it; the player chooses '+(st.yes||'ACCEPT')+' or '+(st.no||'DENY')+'. Once accepted it is never offered again.':'The giver offers it when the player talks to them.','me-small'));box.append(how);
+  box.append(askPanel(t,m,ed));   // "Ask the player: ACCEPT or DENY" for every way of starting (19 Nov 2026)
   if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'));return box;}
   const r2=el('div','','me-row');r2.append(el('b','Sender'),npcSelect(st.from||'',v=>set(x=>{x.from=v;},true),{label:'Sender',attrs:{'data-me-start-from':m.id}}),hint(HELP.sender));box.append(r2);
   const hl=el('label','','me-field');hl.append(el('span','Header'+(st.channel==='notify'?' (optional)':'')));const hi=el('input','','',{'aria-label':'Header',maxlength:'80','data-me-start-header':m.id,placeholder:'e.g. ADMIN // INCOMING MESSAGE'});hi.value=st.header||'';hi.oninput=()=>{set(x=>{x.header=hi.value.slice(0,80);});guideSoon();};hl.append(hi,hint(HELP.header));
@@ -386,6 +394,45 @@
    const ng=giver(who);if(ng&&!ng.canTalk)r3.append(el('span','⚠ '+ng.name+' has no TALK prompt, so there is nothing to measure from.','me-small me-warn'));if(ng&&ng.shift)r3.append(el('span',G().shiftText(ng),'me-small me-warn',{'data-me-near-shift':m.id}));}
   const wn=(G().START_WHEN.find(x=>x.id===w.kind)||{}).note;if(wn)r3.append(el('span',wn,'me-small'));box.append(r3);
   box.append(el('p','When the trigger happens, the notification arrives on the player’s device with the device’s notification sound (and a banner while the V1 is closed), the mission goes into the Mission Log and is tracked. Text only: no voice is generated.','me-small'));
+  return box;}
+ /* CREDITS AND ACCEPT / DENY (the owner, 19 Nov 2026: "can i do -100 credit option and add an accept or deny"). Credits are one signed number shown as
+    "Player gets" / "Player pays" (mission-content.js signed / setSigned: rewards, or cost {amount, when, refund}); the rules are mission-content.js MONEY. */
+ const HELP_MONEY={gets:'Credits paid to the player once, when the mission is done. 0 = nothing. E.g. 100.',
+  pays:'Credits the player PAYS (for example 100 for a pass). Taken once and never below 0: if the player has less, ACCEPT is greyed with “You need 100 CR” and the mission does not start.',
+  when:'When they pay: as they press ACCEPT (the offer shows the cost), or when a step is done (that step waits until they have the credits).',
+  refund:'“Refund if abandoned” gives the credits back if the player abandons the mission (off unless you tick it; the game has no abandon button for these missions yet).',
+  ask:'The player sees the mission’s name, its short description and the cost or reward, then chooses. Nothing is taken until they accept. Works for every way of starting.',
+  labels:'The words on the two buttons, 20 letters at most. Empty: ACCEPT and DENY.',
+  deny:{again:'Nothing happens: it is offered again later (the next talk for an offer in person; the next time they leave the Sleeping Pod for a message, call, banner or walk-near).',never:'It is never offered again. Missions after it in this tree will not come either.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},
+  denySay:'Optional: what is said after DENY, in your own words. Empty: nothing is said.'};
+ function creditsPanel(t,m,ed){const X=MC(),v=X.signed(m),pays=v<0,box=el('div','','me-field me-credits',{'data-me-credits':m.id});box.append(el('span','Credits'));
+  const row=el('div','','me-row'),dir=el('select','','',{'aria-label':'Player gets or pays','data-me-credits-dir':m.id});dir.append(new Option('Player gets','gets'),new Option('Player pays','pays'));dir.value=pays?'pays':'gets';
+  const inp=el('input','','',{'aria-label':'Credits','data-me-field':'rewards',inputmode:'numeric',size:'7',maxlength:'6'});inp.value=String(Math.abs(v));
+  const put=x=>{let n=Math.min(X.MONEY.max,Math.abs(parseInt(inp.value,10)||0));if(dir.value==='pays'&&!n)n=100;X.setSigned(x,dir.value==='pays'?-n:n);
+   if(x.cost&&(x.cost.when||'accept')==='accept'){x.start=x.start&&x.start.how?x.start:{how:'person'};x.start.accept=true;}};   // paying at ACCEPT needs the question
+  dir.onchange=()=>ed(put,true);inp.oninput=()=>{ed(put);guideSoon();};inp.onchange=()=>ed(put,true);
+  row.append(dir,inp,el('span','CR','me-small'));box.append(row,hint(pays?HELP_MONEY.pays:HELP_MONEY.gets));
+  if(pays){const c=m.cost||{},when=c.when||'accept',w=el('select','','',{'aria-label':'When the player pays','data-me-cost-when':m.id});w.append(new Option('when they press '+((m.start&&m.start.yes)||'ACCEPT'),'accept'));m.objectives.forEach((o,k)=>w.append(new Option('when step '+(k+1)+' is done: '+String(o.label||o.id).slice(0,40),o.id)));w.value=when;
+   w.onchange=()=>ed(x=>{x.cost={...(x.cost||{}),when:w.value};if(w.value!=='accept')delete x.cost.refund;else{x.start=x.start&&x.start.how?x.start:{how:'person'};x.start.accept=true;}},true);
+   const r2=el('div','','me-row');r2.append(el('span','Charged','me-small'),w);
+   if(when==='accept'){const cb=el('input','','',{type:'checkbox','data-me-cost-refund':m.id});cb.checked=c.refund===true;cb.onchange=()=>ed(x=>{x.cost={...(x.cost||{})};if(cb.checked)x.cost.refund=true;else delete x.cost.refund;},true);const lb=el('label','','me-small');lb.append(cb,document.createTextNode(' refund if abandoned'));r2.append(lb);}
+   box.append(r2,hint(HELP_MONEY.when+' '+HELP_MONEY.refund));}
+  return box;}
+ function askPanel(t,m,ed){const st=m.start||{how:'person'},on=st.accept===true,box=el('div','','me-ask',{'data-me-ask':m.id}),pay=MC().costOf(m);
+  const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
+  const cb=el('input','','',{type:'checkbox','data-me-ask-on':m.id,'aria-label':'Ask the player: ACCEPT or DENY'});cb.checked=on;if(on&&pay&&pay.when==='accept'){cb.disabled=true;cb.title='The player pays when accepting, so the offer must ask.';}
+  cb.onchange=()=>set(x=>{if(cb.checked)x.accept=true;else{delete x.accept;for(const k of MC().ASK_KEYS)delete x[k];}},true);
+  const lb=el('label','','me-row');lb.append(cb,el('b','Ask the player: ACCEPT or DENY'));box.append(lb,hint(HELP_MONEY.ask+(on&&pay&&pay.when==='accept'?' (Always on here: the player pays when accepting.)':'')));
+  if(!on)return box;
+  const lab=(k,ph)=>{const i=el('input','','',{'aria-label':ph+' button label',['data-me-ask-'+k]:m.id,maxlength:'20',size:'10',placeholder:ph});i.value=st[k]||'';i.oninput=()=>set(x=>{const v=i.value.slice(0,20);if(v.trim())x[k]=v;else delete x[k];});return i;};
+  const r=el('div','','me-row');r.append(el('span','Buttons','me-small'),lab('yes','ACCEPT'),lab('no','DENY'));box.append(r,hint(HELP_MONEY.labels));
+  const dn=el('select','','',{'aria-label':'What happens on DENY','data-me-ask-deny':m.id});for(const [v,n] of [['again','Nothing: offer it again later'],['never','Never offer it again'],['start','Start another mission']])dn.append(new Option(n,v));dn.value=st.deny||'again';
+  dn.onchange=()=>set(x=>{if(dn.value==='again')delete x.deny;else x.deny=dn.value;if(dn.value!=='start')delete x.denyStart;},true);
+  const r2=el('div','','me-row');r2.append(el('b','On DENY'),dn,...optHelp(dn,HELP_MONEY.deny,'What happens on DENY'));
+  if(st.deny==='start'){const ms=el('select','','',{'aria-label':'Mission started on DENY','data-me-ask-deny-start':m.id});ms.append(new Option('— choose a mission —',''));
+   for(const tt of local().trees)if(tt.id!==t.id&&tt.missions&&tt.missions[0])ms.append(new Option(numLabel(tt.missions[0].number,tt.missions[0].title||tt.missions[0].id)+' (first of '+(tt.name||tt.id)+')',tt.missions[0].id));
+   ms.value=st.denyStart||'';ms.onchange=()=>set(x=>{if(ms.value)x.denyStart=ms.value;else delete x.denyStart;},true);r2.append(ms);}
+  box.append(r2,linesEditor(t,m,st.denySay||[],'deny',st.how==='notification'?st.from:m.giver,'What is said after DENY (optional)'),hint(HELP_MONEY.denySay));
   return box;}
  function treeStepRow(t,raw,m,o,k,ed){const sb=el('section','','me-step',{'data-me-tstep':o.id,'data-me-step':o.id}),eo=(fn,redraw)=>ed(x=>{const oo=x.objectives.find(y=>y.id===o.id);if(oo)fn(oo,x);},redraw);
   const head=el('div','','me-row');head.append(el('b','STEP '+(k+1)+' · '+o.id));
@@ -489,7 +536,7 @@
   const row=el('div','','me-line',{'data-me-line':l.ref||l.key});const t=shownText(l),e=lineEdit(l),vs=voiceState(l);
   const who=el('div','','me-who');who.append(el('b',l.name),el('span',l.voice?'voice '+l.voice.voice+' ('+l.voice.status+')':'no registered voice','me-small'));row.append(who);
   const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));
-  const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}};body.append(ta);
+  const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;const tn=tagNoteEl(t,l.who,l.name);ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}tagNoteSet(tn,ta.value,l.who,l.name);};body.append(ta,tn);
   const tags=el('div','','me-tags');
   if(l.locked)tags.append(el('span',unlocked?'Your script — unlocked for your edit':l.lock,'me-lock'));
   if(l.placeholder)tags.append(el('span','Claude’s placeholder (not your words)','me-warn'));
@@ -535,6 +582,7 @@
   const n=linesFor(id),g=giver(id),q=String(opt.search||'').trim().toLowerCase(),has=l=>!q||String(shownText(l)).toLowerCase().includes(q)||String(l.missionTitle||l.where||l.group||'').toLowerCase().includes(q);
   const reg=src.registry?.npcs?.[id]||(g&&src.registry?.npcs?.[g.say]);
   root_.append(el('p',(reg?'Registered voice (read-only): '+reg.voice+' · '+reg.status:'Not in the voice registry: their lines are on-screen text only.')+(n&&n.engine?' · Re-voice engine: '+(n.engine.engine==='elevenlabs'?'ElevenLabs, '+n.engine.voice+' ('+n.engine.note+')':'Kokoro on your PC (generate.py --from-queue)'):''),'dev-note',{'data-npc-voice':id}));
+  root_.append(hint(TAG_HELP,{'data-me-tag-help':'1'}));
   root_.append(hint('A registered Kokoro voice is locked and never changed here (an ElevenLabs voice for new lines is chosen in the Voice box). Editing a line here changes what is shown; a recorded line is text only until it is re-voiced (RE-VOICE adds it to the queue you record on your PC).'));
   const inM=(n?n.inMissions:[]).filter(has),out=(n?n.outside:[]).filter(has),total=n?n.inMissions.length+n.outside.length:0;
   const stale=[...inM,...out].filter(l=>voiceState(l).revoice),bar=el('div','','me-row');
@@ -556,7 +604,7 @@
  /* Never generates audio, never asks for or keeps an API key, never lists the owner's ElevenLabs library: the choice is draft content (published like missions, checked by the
     server); lines RE-VOICEd for that character wait in the re-voice queue until the owner approves the spend. Registered Kokoro voices stay read-only. */
  function setVoice(id,v){const d=local();d.voices=d.voices||{};if(v)d.voices[id]=v;else delete d.voices[id];saveLocal(d);rebuild();}
- function voiceLines(id){const n=linesFor(id);return n?[...n.inMissions,...n.outside].filter(l=>l.who!=='player').map(l=>shownText(l)):[];}
+ function voiceLines(id){const n=linesFor(id),v=voiceNow(id);return n?[...n.inMissions,...n.outside].filter(l=>l.who!=='player').map(l=>V()?V().speakText(shownText(l),v):shownText(l)):[];}   // as they are sent (voice tags only for a model that reads them)
  function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));
   if(!X){box.append(el('p','The voice tools could not load. Reload the page.','me-bad'));return box;}
   const no=X.refusal(id,src&&src.registry);if(no){box.append(el('p',no,'me-warn',{'data-voice-refused':id}));return box;}
@@ -568,8 +616,11 @@
   else if(cur.kind==='kokoro'){p.append(el('b','Kokoro (free, on your PC): '),document.createTextNode(cur.voice+' · '+cur.status+' · read-only (locked in the voice registry)'));box.append(p);}
   else{p.append(el('b','No voice yet: '),document.createTextNode(name+'’s lines are on-screen text only. Choose an ElevenLabs voice below to have them recorded.'));box.append(p);}
   if(X.note(id))box.append(el('p',X.note(id),'me-small me-warn',{'data-voice-street':id}));
-  const est=X.estimate(voiceLines(id)),queued=(server.queue?.items||[]).filter(q=>q.who===id&&q.status==='queued'),qe=X.estimate(queued.map(q=>q.text));
-  const ep=el('p','Re-voicing all of '+name+'’s lines: '+est.lines+' line(s) · '+est.chars.toLocaleString()+' characters · about '+est.credits.toLocaleString()+' ElevenLabs credits (Flash / Turbo: about '+est.fast.toLocaleString()+').'+(server.queue?' Waiting in the re-voice queue now: '+qe.lines+' line(s), about '+qe.credits.toLocaleString()+' credits.':''),'me-small',{'data-voice-estimate':String(est.chars)});
+  const mdl=cur.kind==='elevenlabs'?cur.model:null,est=X.estimate(voiceLines(id),mdl),queued=(server.queue?.items||[]).filter(q=>q.who===id&&q.status==='queued'),qe=X.estimate(queued.map(q=>q.speak||q.text),mdl);
+  if(mdl){const ms=el('select','','',{'aria-label':'ElevenLabs model','data-voice-model':id});for(const [k,mm] of Object.entries(X.MODELS))ms.append(new Option(mm.label+' · about '+mm.rate+' credit'+(mm.rate===1?'':'s')+' per character (estimate)',k));ms.value=mdl;
+   const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};
+   const w=el('label','','me-field');w.append(el('span','ElevenLabs model'),ms,md);box.append(w);}
+  const ep=el('p','Re-voicing all of '+name+'’s lines: '+est.lines+' line(s) · '+est.chars.toLocaleString()+' characters · about '+est.credits.toLocaleString()+' ElevenLabs credits'+(mdl?' with '+X.MODELS[mdl].label.replace(/ \(.*$/,'')+' (an estimate).':' (Flash / Turbo: about '+est.fast.toLocaleString()+').')+(server.queue?' Waiting in the re-voice queue now: '+qe.lines+' line(s), about '+qe.credits.toLocaleString()+' credits.':''),'me-small',{'data-voice-estimate':String(est.chars)});
   box.append(ep,hint(est.text));
   const d=el('details','','me-voice-pick',{'data-voice-choose':id});d.open=!!opt.open||ui.voiceOpen===id;d.ontoggle=()=>{ui.voiceOpen=d.open?id:(ui.voiceOpen===id?null:ui.voiceOpen);};d.append(el('summary',cur.kind==='elevenlabs'&&cur.from==='editor'?'Change the ElevenLabs voice':'Choose an ElevenLabs voice'));
   const li=el('input','','',{'aria-label':'ElevenLabs voice link or ID',placeholder:'https://elevenlabs.io/voices/… or the 20-character voice ID','data-voice-input':id,maxlength:'300',autocomplete:'off',spellcheck:'false'}),ni=el('input','','',{'aria-label':'Name of the voice',placeholder:'What you call it, e.g. Gravel street vendor','data-voice-name':id,maxlength:String(X.LIMIT.name)});
@@ -577,7 +628,7 @@
   const msg=el('p','','me-small',{'data-voice-check':id,role:'status'});
   const check=()=>{msg.replaceChildren();if(!li.value.trim()){msg.className='me-small';msg.textContent='';return;}const r=X.parse(li.value);msg.className='me-small '+(r.ok?'me-ok':'me-bad');if(r.ok){msg.append('✓ Voice ID '+r.id+' ',el('a','Listen on ElevenLabs ↗','me-link',{href:X.listenUrl(r.id),target:'_blank',rel:'noopener noreferrer','data-voice-listen-new':r.id}));}else msg.textContent=r.why;};
   li.oninput=check;
-  const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});
+  const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});
   d.append(hint('1. In ElevenLabs, open the voice and copy the link of its page (or its voice ID). 2. Paste it here and give it a name. 3. USE THIS VOICE. Your ElevenLabs account and key are never used here, and nothing is recorded or paid: lines you RE-VOICE wait in the queue until you approve the spend; then Claude records them.'),
    fl('ElevenLabs voice link or ID',li,'A link like elevenlabs.io/voices/AbCdEf… or just the ID (20 letters and digits).'),msg,fl('Name',ni,'Your own name for it, shown here and in the voices file (60 characters at most).'));
   const r=el('div','','me-row me-actions');r.append(save);
@@ -646,7 +697,7 @@
   if(r&&r.error){status=r.error;draw();}return r;}
  // ---------------- "Guide me": the next required box (the same rules as the play / publish check: mission-content.js treeNeeds)
  const NEED_SEL={title:m=>'[data-me-field="title"]',giver:m=>'[data-me-giver="'+CSS.escape(m.id)+'"]','start-from':m=>'[data-me-start-from="'+CSS.escape(m.id)+'"]','start-header':m=>'[data-me-start-header="'+CSS.escape(m.id)+'"]','start-text':m=>'[data-me-start-text="'+CSS.escape(m.id)+'"]',
-  'start-mission':m=>'[data-me-start-mission="'+CSS.escape(m.id)+'"]','start-place':m=>'[data-me-start-place="'+CSS.escape(m.id)+'"]','start-flag':m=>'[data-me-start-flag="'+CSS.escape(m.id)+'"]','start-near':m=>'[data-me-start-near="'+CSS.escape(m.id)+'"]',
+  'start-mission':m=>'[data-me-start-mission="'+CSS.escape(m.id)+'"]','start-place':m=>'[data-me-start-place="'+CSS.escape(m.id)+'"]','start-flag':m=>'[data-me-start-flag="'+CSS.escape(m.id)+'"]','start-near':m=>'[data-me-start-near="'+CSS.escape(m.id)+'"]','start-ask':m=>'[data-me-ask-on="'+CSS.escape(m.id)+'"]','start-deny':m=>'[data-me-ask-deny-start="'+CSS.escape(m.id)+'"]','cost-when':m=>'[data-me-cost-when="'+CSS.escape(m.id)+'"]',
   'add-step':m=>'[data-me-add-step="'+CSS.escape(m.id)+'"]',kind:(m,o)=>'[data-me-kind="'+CSS.escape(o)+'"]','step-npc':(m,o)=>'[data-me-step-npc="'+CSS.escape(o)+'"]','step-place':(m,o)=>'[data-me-step-place="'+CSS.escape(o)+'"]','step-item':(m,o)=>'[data-me-step-item="'+CSS.escape(o)+'"]',
   'step-subject':(m,o)=>'[data-me-step-subject="'+CSS.escape(o)+'"]',label:(m,o)=>'[data-me-label="'+CSS.escape(o)+'"]',say:(m,o)=>'[data-me-tstep="'+CSS.escape(o)+'"] textarea',ending:m=>'[data-me-ending="'+CSS.escape(m.id)+'"]','wait-at':m=>'[data-me-wait-at="'+CSS.escape(m.id)+'"] canvas','step-spot':(m,o)=>'[data-me-esc-map="'+CSS.escape(o)+'"] canvas','step-stop':(m,o)=>'[data-me-esc-stop="'+CSS.escape(o)+'"]'};
  let guideT=0;function guideSoon(){clearTimeout(guideT);guideT=setTimeout(guideNow,350);}
@@ -663,7 +714,7 @@
   return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play="tree:'+CSS.escape(doneM.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}
  // ---------------- RE-VOICE (owner-only server queue; nothing is generated in the browser or on the server)
  async function revoice(lines,m){
-  const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;}return x;});   // a voice chosen in the editor goes with the line (the server checks it)
+  const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)
   if(!items.length)return;try{server.queue=await call('developer/revoice',{items});status=items.length+' line(s) added to the re-voice queue.';}catch(e){status='Re-voice queue: '+e.message;}draw();}
  async function serverDraft(m){
   const id=('me-'+m.id).slice(0,64);try{const tpl=(await call('developer/drafts/template?kind=mission&source='+encodeURIComponent(m.server))).document,e=editOf(m.key);

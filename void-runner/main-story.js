@@ -41,7 +41,7 @@
  // MISSION 002 (the owner's words, verbatim; text only until recorded). Players see the name only.
  const A=t=>({who:'admin',text:t});
  const EYES={id:'m002-eyes-on-the-street',number:2,title:'Eyes on the Street',type:'main',category:'Intelligence gathering / Reconnaissance',giver:'admin',description:'',
-  start:{how:'person',accept:true},   // in person: Admin offers it, the player can ACCEPT or say NOT NOW (and come back later)
+  start:{how:'person',accept:true,no:'NOT NOW'},   // in person: Admin offers it, the player can ACCEPT or say NOT NOW (and come back later); NOT NOW kept as its label (the default is DENY since 19 Nov 2026)
   offer:[A('I heard you\'re looking for work.'),A('Before I trust you with anything important, I need you to do a little reconnaissance.'),
    A('Head outside. Across the street, you\'ll find a nightclub called NULL. There\'s someone hanging out in there I need you to take their picture so I can scrape it for more data'),A('I\'ll mark their location')],
   objectives:[
@@ -69,7 +69,7 @@
  const isProposed=t=>typeof t==='string'&&PROPOSED.includes(t);
  const ZH='给我一点时间调查一下。如果有什么消息，我会给你打电话。',EN='Give me some time to work on it. I\'ll call you if anything comes up.';
  const CORPORATE={id:'m003-corporate-connections',number:3,title:'Corporate Connections',type:'main',category:'Intelligence gathering',giver:'admin',location:'milked',description:'',
-  start:{how:'person',accept:true},   // in person, as 002: Admin's briefing, then ACCEPT / NOT NOW
+  start:{how:'person',accept:true,no:'NOT NOW'},   // in person, as 002: Admin's briefing, then ACCEPT / NOT NOW
   offer:[A('I did some digging. Halden Reyes has ties to an arms dealer who works closely with The Function.'),A('I know an intel broker named Fish. She\'s a close friend of mine and works over at Milked. She might be able to tell us more.'),
    A('Head over there and let the receptionist, Eva, know you\'re there to see Fish.'),A('And tell Eva I said hi.')],
   objectives:[

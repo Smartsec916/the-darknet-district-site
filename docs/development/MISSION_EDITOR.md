@@ -2,7 +2,7 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
-## Thirteenth pass (19 Nov 2026): follow / lead / shared-cab steps
+## Fourteenth pass (19 Nov 2026): follow / lead / shared-cab steps
 
 Branch `claude/follow-steps`, build `2026-11-19-follow-steps-1`. Pushed, no PR, not merged. Queue item 3, the "Follow / lead steps" part (the rest of item 3 is still to build).
 
@@ -28,6 +28,47 @@ Four new kinds of step, in a step's "Kind of step" list and in "Make a mission" 
 
 **Not verified:** real hardware; VR; Lace and the cat in a browser (same code as Reverie; the cat's rules are unit-tested); a reload in the middle of a step on a real save (the flag is unit-tested); the "mission fails" path in a browser (unit-tested); her seated pose in the cab seen only in software GL stills; walking her through other players' sessions (the street is not shared).
 
+## Thirteenth pass (19 Nov 2026): missions that cost credits, and ACCEPT / DENY on every offer
+
+Branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`. Pushed, no PR, not merged. The owner asked: "can i do -100 credit option and add an accept or deny".
+
+### How to use it (plain steps)
+
+**A mission the player pays for.**
+1. In a mission, under **Credits**, choose **Player pays** (instead of **Player gets**) and type how much, for example 100.
+2. **Charged** says when: **when they press ACCEPT** (normal; the offer shows the cost) or **when step N is done** (that step waits until the player has the credits).
+3. **Refund if abandoned** (only for "when they press ACCEPT", off unless you tick it) gives the credits back if the player abandons the mission. The game has no abandon button for these missions yet; the setting is ready for one.
+4. The player is charged **once**: a reload, a replay or a second ACCEPT never charges again. Credits never go below 0. With too few credits the ACCEPT button is greyed and says **YOU NEED 100 CR**, DENY becomes the main button, and the mission does not start.
+
+**Ask the player: ACCEPT or DENY** (under *How this mission starts*; works for in person, Messages, Comms call, notification only and "when walked near").
+1. Tick **Ask the player: ACCEPT or DENY**. The player sees the mission's name, its short description and the cost or reward, then chooses. Nothing is taken until they accept. (A mission the player pays for at ACCEPT always asks: the box stays ticked.)
+2. **Buttons**: your own words for the two buttons (20 letters at most). Empty: ACCEPT and DENY. (Missions 002 and 003 keep their NOT NOW.)
+3. **On DENY**: *Nothing: offer it again later* (normal: the next talk for an offer in person; the next time the player leaves the Sleeping Pod for a message, call, banner or walk-near), *Never offer it again* (the missions after it in that tree do not come either), or *Start another mission* (pick the first mission of another of your trees: it starts straight away, or is offered straight away if it asks too).
+4. **What is said after DENY** (optional): your own lines. Empty: nothing is said.
+5. An offer that arrives on the device shows a banner, then the same ACCEPT / DENY window with the notification's words. It never opens over a conversation or a menu; closed without a choice, it comes back after a minute while its trigger still holds.
+
+**Make a mission** (the wizard): the reward page is now *What does the player get, or pay?* with **Player gets** / **Player pays**, and **Ask the player ACCEPT or DENY first?** Yes / No (always Yes when the player pays). Change the button words and what DENY does in the Mission Editor afterwards.
+
+### For Claude and Codex
+
+- Data (tree missions): `cost {amount 1..100000, when:'accept' (default) | <step id>, refund:true (only at 'accept')}`; `start.accept` for **any** `how`, plus `yes` / `no` (labels, 20 characters, plain), `deny` ('again' default | 'never' | 'start'), `denyStart` (the first mission of another tree), `denySay` (lines). `rewards` stays 0..100000. The editor shows one signed number (`mission-content.js signed` / `setSigned`, -100000..100000).
+- Rules: `mission-content.js` MONEY block (`costOf`, `affords`, `charge`, `offerOf`, `abandon`, `costFlag` / `denyFlag`). Charged once via `story.flags.mc_<mission>` (the amount, a safe integer; 0 after a refund). DENY flags `story.flags.md_<mission>`: `'later'` (cleared by the next `pod-exit` event) or `'never'`. Both are ordinary story flags clean_save already accepts; credits never go below 0 (clean_save keeps 0..100,000,000; a refund is clamped to it).
+- `treeEvent`: in-person asks return `out.ask` + `out.offer` (as before, the shape of `ask` is unchanged); device asks return `out.prompt {ask, offer, lines, channel, from, tree}` without taking the event or stopping other trees; ACCEPT of a device ask files the notification (`notify`) and completes a first step that is its own trigger; `out.need` when a cost cannot be paid (ACCEPT or a costed step); `out.charged` and a `−N CREDITS` note when paid; DENY returns `declined`, `deny`, the DENY lines, and `started` / `ask` / `prompt` for "start another mission". Default labels: ACCEPT / DENY (`main-story.js` 002 and 003 carry `no:'NOT NOW'`).
+- Game: `live-content.js ask` (offer card, greyed ACCEPT when short), `followUp` (DENY lines, a follow-on offer), `offerPrompt` (device offers: banner + choice; 60 s between repeats; never over a conversation), "YOU NEED N CR" at most every 30 s. `talk-choice.js` takes `disabled` choices and `opts.offer` (the card); styles in `play-ui.css`.
+- Editor: `mission-editor.js creditsPanel` / `askPanel` (+ Guide me fields `start-ask`, `start-deny`, `cost-when`); `treeNeeds` asks for the question when the player pays at ACCEPT. Wizard: `editor-wizard.js` `pays` / `ask` answers, `asks()`; `editor-home.js pageReward`.
+- Server: `void_runner_live_content.py` (`ask_problems`, `cost_problems`, `workspace_money_problems`, `start_problems` takes the new keys for every start); `void_runner_drafts.py validate_workspace` refuses out-of-range credits and over-long labels in the server copy.
+- Tests: `tests/mission-cost.test.cjs` (9), `tests/test_mission_cost.py` (3), browser `tests/mission-cost-browser.cjs` (wizard "Player pays 100" + ask, editor, draft play: DENY then ACCEPT, credits 150 -> 50 once; 40 credits: greyed ACCEPT, nothing starts).
+- Not verified: a device offer (Messages / Comms / banner / walked near) in a browser (Node-checked only); "start another mission" and the DENY lines in a browser; real hardware; publishing with the server switched on. No abandon button exists for tree missions, so the refund is unit-tested only.
+## Twelfth pass (19 Nov 2026): ElevenLabs voice tags in what is said; choose the ElevenLabs model
+
+The owner asked "so i can put elevenlabs voice tags into the what is said section?", then "choose a model?" and "v4?". Build `2026-11-19-voice-tags-1`, branch `claude/voice-tags`.
+
+- **Voice tags:** any line's text ("What is said...", the lines of an NPC in NPCs > Lines & voice, the wizard's offer line, a notification's text) may carry ElevenLabs audio tags in square brackets, e.g. `[whispers] Keep it down.` Rules: lowercase letters, spaces and hyphens, 30 characters at most each, 6 per line. A malformed bracket (`[whispers Keep it down.`, `[Whispers]`, `[]`) is refused in plain words by the editor, the game's check and the server. `[Write ... here]` placeholders are not tags.
+- **Players never see them:** removed in one place, where content is adapted for the game (`mission-content.js` `apply` for every tree line, notification text and changed line, and `mapLine`), so the conversation window, V1 messages and notifications and the Mission Log show the line without them. A line without tags is untouched (voice clips are found by their text).
+- **Help and warning in the editor:** one help line under the line fields ("You can add ElevenLabs voice tags like [whispers] or [laughs]. Players never see them; only ElevenLabs voices use them.") and a small warning under a line whose tags will not be used: a Kokoro-voiced character, a character with no voice, or an ElevenLabs model that does not read tags.
+- **Model choice (Voice box):** for a character with an ElevenLabs voice, a list of models, each with a one-line description and an estimated credit rate: **Eleven v4** (newest; supports voice tags, used for Zen Zephyr; the default for a new choice), Eleven v3 (tags), Multilingual v2, Flash v2.5 and Turbo v2.5 (about half the credits; no tags). Stored with the choice (`content.voices[who].model`), exported to `revoice-engines.json` as `model`, checked against the same allow-list in the browser (`npc-voices.js MODELS`) and on the server. A character in `revoice-engines.json` keeps the model recorded there (Zen Zephyr: `eleven_v4`); changing it makes an editor choice with the same voice. The credit estimate counts the text as it is sent, at that model's rate.
+- **Re-voice queue:** see `../VOID_RUNNER_VOICE_PRODUCTION.md`, "Voice tags and models".
+- **Tests:** `tests/voice-tags.test.cjs`, `tests/test_voice_tags.py`, browser `tests/voice-tags-browser.cjs` (editor help, warning and model; PLAY THIS DRAFT shows "[whispers] Keep it down, runner." as "Keep it down, runner." in the conversation window).
 ## Twelfth pass (18 Nov 2026): describe a behaviour to ChatGPT, daily schedules, and the street cat as an NPC and giver
 
 Branch `claude/npc-behaviour`, build `2026-11-18-npc-behaviour-1`. Pushed, no PR, not merged. Queue item 1, plus "add the cat as an npc and giver".
