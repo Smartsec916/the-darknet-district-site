@@ -627,6 +627,7 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-wave",
           "walk-on"
         ],
         "anims": [
@@ -824,6 +825,7 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-wave",
           "walk-on"
         ],
         "anims": [
@@ -7386,6 +7388,24 @@
               133.5,
               -94,
               -88.8
+            ],
+            [
+              110.5,
+              123.30000000000001,
+              -83.3,
+              -70.5
+            ],
+            [
+              130.5,
+              143.3,
+              -85.3,
+              -70.5
+            ],
+            [
+              130.5,
+              137,
+              -107.9,
+              -99.9
             ]
           ],
           "floors": [
@@ -7449,36 +7469,6 @@
                 -112.4
               ],
               "why": "That is the Sleeping Pod room (the players’ own pods: never used for her).",
-              "rule": true
-            },
-            {
-              "rect": [
-                109.9,
-                123.9,
-                -83.9,
-                -69.9
-              ],
-              "why": "That is the District bar (never used for her).",
-              "rule": true
-            },
-            {
-              "rect": [
-                129.9,
-                143.9,
-                -85.9,
-                -69.9
-              ],
-              "why": "That is the District’s VR play area (never used for her).",
-              "rule": true
-            },
-            {
-              "rect": [
-                129.9,
-                137.4,
-                -108.4,
-                -99.4
-              ],
-              "why": "That is the District’s arcade room (left out: only the hallway, the store and the vending alcove are used).",
               "rule": true
             },
             {

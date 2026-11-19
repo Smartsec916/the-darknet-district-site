@@ -69,12 +69,17 @@
     floors:[R(W([-3,3,20,70.5]),{name:'hallway'}),R(W([-17,17,70.5,78.3]),{name:'Sleeping Pod room'}),R(W([3,17,43,53]),{name:'store'}),R(W([-7,-3,46.5,52.5]),{name:'vending'}),
      R(W([3,17,28,42]),{name:'bar'}),R(W([-17,-3,28,44]),{name:'VR'}),R(W([-10.5,-3,57.5,66.5]),{name:'arcade'}),R(W([3,15,56,69]),{name:'meeting room'})],
     walk:[R(W([-2.6,2.6,26.6,70.3]),{name:'the hallway',y:0}),R(W([-2.6,2.6,26.6,31]),{name:'the entry (inside the inner door)',y:0}),R(W([3.4,16.6,43.4,46.4]),{name:'the store (customers’ side)',y:0}),
-     R(W([14.3,16.6,46.4,51.2]),{name:'the store (by the racks)',y:0}),R(W([2.4,3.6,44.8,49.2]),{name:'the store’s doorway',y:0}),R(W([-6.6,-2.4,46.9,52.1]),{name:'the vending alcove',y:0})],
+     R(W([14.3,16.6,46.4,51.2]),{name:'the store (by the racks)',y:0}),R(W([2.4,3.6,44.8,49.2]),{name:'the store’s doorway',y:0}),R(W([-6.6,-2.4,46.9,52.1]),{name:'the vending alcove',y:0}),
+      // Interior NPC placements are opt-in, and the existing furniture collision list still applies.
+      R(W([3.6,16.4,28.6,41.4]),{name:'the District bar, customer floor',y:0}),
+      R(W([-16.4,-3.6,28.6,43.4]),{name:'the VR play area, open floor',y:0}),
+      R(W([-10.1,-3.6,58,66]),{name:'the arcade room, open floor',y:0})],
     roads:[],
-    no:[R(W([-17,17,70.5,78.3]),{why:RULE.pods,rule:true,name:'the Sleeping Pod room'}),R(W([3,17,28,42]),{why:RULE.bar,rule:true,name:'the bar'}),R(W([-17,-3,28,44]),{why:RULE.vr,rule:true,name:'the VR play area'}),R(W([-10.5,-3,57.5,66.5]),{why:RULE.arcade,rule:true,name:'the arcade room'}),
+    no:[R(W([-17,17,70.5,78.3]),{why:RULE.pods,rule:true,name:'the Sleeping Pod room'}),
      R(W([3,15,56,69]),{why:'That is the meeting room (private: its door stays shut).',name:'the meeting room'}),R(W([-3,3,20,26]),{why:'That is the security vestibule (the checkpoint between the doors).',name:'the security vestibule'}),
      R(W([3,14.3,46.4,53]),{why:'That is behind the shop counter (staff only).',name:'behind the counter'}),R(W([3,17,51.2,53]),{why:'That is the store’s stock cage (staff only).',name:'the stock cage'})],
-    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]}]}];
+    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]},
+      {name:'District bar',x:WP(10,35)[0],z:WP(10,35)[1]},{name:'VR play area',x:WP(-9,35)[0],z:WP(-9,35)[1]},{name:'arcade',x:WP(-6.5,61)[0],z:WP(-6.5,61)[1]}]}];
   for(const a of A){a.gates=a.scene==='street'?gates(a.quarter):[];const g=GEN&&GEN.areas&&GEN.areas[a.id];
    a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):[];
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
@@ -140,7 +145,10 @@
    ['outskirts','outskirts-gate','just inside the Far South Gate',61,-225.5],['outskirts','outskirts-yard','the middle of the container yard',64,-242],['outskirts','outskirts-west-lane','the west lane',28,-245],['outskirts','outskirts-east-lane','the east lane',100,-244],
    ['port','port-pad','the landing pad',16,-89],['port','port-terminal','by the landing terminal',33.5,-102],['port','port-passage','the passage',39.2,-100],
    ['district','district-entry','the entry, inside the inner door',...WP(0,28.5)],['district','district-hall','the hallway',...WP(0,40)],['district','district-hall-back','the hallway by the pod room',...WP(0,64)],
-   ['district','district-store','the store, in front of the counter',...WP(10,45)],['district','district-vending','the vending alcove',...WP(-5,49.5)]];
+   ['district','district-store','the store, in front of the counter',...WP(10,45)],['district','district-vending','the vending alcove',...WP(-5,49.5)],
+    ['district','district-bar','the District bar, customer floor',...WP(10,35)],
+    ['district','district-vr','the District VR play area',...WP(-9,35)],
+    ['district','district-arcade','the District arcade',...WP(-6.5,61)]];
   for(const [area,id,name,x,z] of L)add(id,name,area,x,z);
   return out;}
  /* For the admin inventory (the server's copy of these rules): every area's rectangles, obstacles and posts, as plain numbers. */

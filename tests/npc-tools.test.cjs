@@ -69,6 +69,12 @@ test('the street pair follows a stay and a route with real clips, sits at a ledg
  const seen=new Set();for(let i=0;i<60*150;i++){S.routineStep(s,1/60,rnd,S.config,{plan:route});seen.add(s.mode+':'+(s.pact||''));if(s.device)assert.ok(S.DEVICE.includes(s.device));assert.ok(clips.has(s.clip),s.clip);assert.ok(Number.isFinite(s.x+s.z+s.yaw));}
  for(const k of ['plan-do:look','sit:sit','plan-do:scroll','plan-go:look'])assert.ok(seen.has(k),k+' in '+[...seen].join(' '));});
 
+test('both street models expose all sixteen native clips and can explicitly sit and wave at a ledge',()=>{fresh();const P=X(),S=SP(),C=CR();
+ for(const id of ['grey-reverie','ethereal-lace']){const who=S.PAIR.find(p=>p.id===id);assert.equal(C.clips[P.MOVABLE[id].asset].length,16);assert.ok(P.actionsFor(id).some(a=>a.id==='sit-wave'));
+  const t={mode:'stay',x:104.4,z:-5.9,yaw:Math.PI,actions:['sit-wave']};assert.deepEqual(P.planProblems(id,t),[]);assert.match(P.planProblems(id,{...t,x:30,z:-6.5}).join(),/ledge/);
+  const plan=P.planNow(id,{plan:t}),s=S.routineStart(who,()=>.5),seen=new Set();for(let i=0;i<60*100;i++){S.routineStep(s,1/60,()=>.5,S.config,{plan});seen.add(s.clip);}for(const clip of ['sit-enter','sit-wave','sit-exit'])assert.ok(seen.has(clip),id+' '+clip);}
+});
+
 test('a conversation still stops her while she follows a plan',()=>{fresh();const P=X(),S=SP();const s=S.routineStart(S.PAIR[1],()=>.5);const plan=P.planNow('ethereal-lace',{plan:{mode:'stay',x:100,z:-6.5,yaw:Math.PI,actions:['look']}});
  for(let i=0;i<60*30;i++)S.routineStep(s,1/60,Math.random,S.config,{plan});s.mode='stop';s.sub='chat';s.left=2;const x0=s.x;for(let i=0;i<30;i++)S.routineStep(s,1/60,Math.random,S.config,{plan});assert.equal(s.mode,'stop');assert.equal(s.x,x0);});
 

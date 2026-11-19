@@ -54,6 +54,7 @@
   {id:'dance-groove',name:'Dance a little (groove)',clip:'dance-groove',help:'A casual groove on the spot (her everyday dance; nothing from the clubs).'},
   {id:'dance-bop',name:'Dance a little (happy bop)',clip:'dance-bop',help:'A happy little bop on the spot.'},
   {id:'sit',name:'Sit on the ledge',clip:'sit',needs:['sit-enter','sit','sit-exit'],sit:true,help:'Sits down on the ledge here, stays seated (a wave to a player who comes close), then stands up. Only at a ledge.'},
+  {id:'sit-wave',name:'Sit and wave on the ledge',clip:'sit-wave',needs:['sit-enter','sit','sit-exit'],sit:true,help:'Sits down at a supported ledge, waves even without a nearby player, then stands up.'},
   {id:'walk-on',name:'Walk on (no stop)',clip:'walk',path:true,help:'Walks through this point without stopping (to make her go round a corner of your route).'},
   // the cat's own (ncz-street-pair.js catPlan: its procedural pose, no clips)
   {id:'cat-sit',name:'Sit',cat:true,help:'The cat sits down, facing the way you set, and looks about.'},
@@ -142,13 +143,13 @@
   if(p.mode==='original'){if(!keysOk(p,['mode','anims']))out.push(w+'“her own routine” has unknown fields.');return out;}
   if(p.mode==='stay'){if(!keysOk(p,['mode','x','z','yaw','actions','anims']))return [w+'the stay has unknown fields.'];for(const x of spotProblems(id,p))out.push(w+x);
    if(!Array.isArray(p.actions)||p.actions.length<LIMIT.actions[0]||p.actions.length>LIMIT.actions[1])out.push(w+'a stay needs 1 to 6 actions.');
-   else for(const a of p.actions){if(!ok.has(a)||(ACTION.get(a)||{}).path)out.push(w+'“'+a+'” is not something she can do here.');else if(a==='sit'&&!ledgeAt(p))out.push(w+'“Sit” needs a ledge: put the spot just in front of one.');}
+   else for(const a of p.actions){if(!ok.has(a)||(ACTION.get(a)||{}).path)out.push(w+'“'+a+'” is not something she can do here.');else if((ACTION.get(a)||{}).sit&&!ledgeAt(p))out.push(w+'“Sit” needs a ledge: put the spot just in front of one.');}
    return out;}
   if(!keysOk(p,['mode','points','anims']))return [w+'the path has unknown fields.'];
   if(!Array.isArray(p.points)||p.points.length<LIMIT.points[0]||p.points.length>LIMIT.points[1])return [w+'a path needs 2 to 12 points.'];
   p.points.forEach((q,i)=>{const pw=w+'point '+(i+1)+': ';if(!keysOk(q,['x','z','action','seconds'])){out.push(pw+'unknown fields.');return;}
    for(const x of spotProblems(id,q))out.push(pw+x);
-   if(!ok.has(q.action))out.push(pw+'“'+q.action+'” is not something she can do.');else if(q.action==='sit'&&!ledgeAt(q))out.push(pw+'“Sit” needs a ledge: put the point just in front of one.');
+   if(!ok.has(q.action))out.push(pw+'“'+q.action+'” is not something she can do.');else if((ACTION.get(q.action)||{}).sit&&!ledgeAt(q))out.push(pw+'“Sit” needs a ledge: put the point just in front of one.');
    if(q.action!=='walk-on'&&!(Number.isInteger(q.seconds)&&q.seconds>=LIMIT.seconds[0]&&q.seconds<=LIMIT.seconds[1]))out.push(pw+'how long: a whole number of seconds from 1 to 120.');
    const n=p.points[(i+1)%p.points.length];if(num(q.x)&&num(q.z)&&n&&num(n.x)&&num(n.z))for(const x of legProblems(id,q,n))out.push(pw+x);});
   if(p.points.every(q=>q.action==='walk-on'))out.push(w+'at least one point needs something to do (not only “walk on”).');
