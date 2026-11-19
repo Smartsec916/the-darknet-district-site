@@ -55,13 +55,17 @@ def service_error(error):
 
 @api.before_request
 def limit_body():
-    request.max_content_length = 256_000
-    if request.content_length and request.content_length > 256_000:
+    # An imported voice file (600 KB as base64) is the one larger body: only its upload route takes up to 900 KB.
+    limit = 900_000 if request.endpoint == 'void_runner.voice_clip_upload' else 256_000
+    request.max_content_length = limit
+    if request.content_length and request.content_length > limit:
         raise ApiError('Request is too large.', 413)
 
 
 @api.after_request
 def no_cache(response):
+    if request.endpoint == 'void_runner.voice_clip_public' and response.status_code == 200:
+        return response  # an imported voice file: its address is its content, cached for a year
     response.headers['Cache-Control'] = 'no-store'
     return response
 
@@ -1005,3 +1009,34 @@ def revoice_queue(db, uid):
 def revoice_done(db, uid):
     live_content.owner(uid, balance_admin, need='queue')
     return jsonify(live_content.queue_done(db, uid, request.get_json(silent=True)))
+
+
+# Imported voice files (Developer Tools, 19 Nov 2026; void_runner_live_content.py). Uploading is for the content editor, with publishing switched on; reading a file is
+# public (players need no sign-in) and cached for a year: the address is the file's SHA-256, so it never changes.
+@api.post('/developer/voice-clips')
+@signed_in
+def voice_clip_check(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.clips_check(db, request.get_json(silent=True)))
+
+
+@api.post('/developer/voice-clips/<clip_hash>')
+@signed_in
+def voice_clip_upload(db, uid, clip_hash):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.store_clip(db, uid, clip_hash, request.get_json(silent=True)))
+
+
+@api.get('/voice-clip/<clip_hash>')
+def voice_clip_public(clip_hash):
+    if not live_content.enabled():
+        return jsonify(error='Published mission content is switched off.'), 404
+    db, _, _ = services()
+    found = live_content.get_clip(db, clip_hash)
+    if not found:
+        return jsonify(error='No such voice file.'), 404
+    data, kind = found
+    response = current_app.response_class(data, mimetype=kind)
+    response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    response.headers['ETag'] = '"' + clip_hash + '"'
+    return response

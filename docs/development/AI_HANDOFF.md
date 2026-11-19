@@ -6,6 +6,19 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): IMPORT A VOICE FILE FOR ANY LINE IN DEVELOPER TOOLS (branch `claude/voice-import`, build `2026-11-19-voice-import-1`, pushed, NO PR, not merged)
+
+The owner: type the line, make it in ElevenLabs, import the file in the editor. Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourteenth pass"; [`../VOID_RUNNER_VOICE_PRODUCTION.md`](../VOID_RUNNER_VOICE_PRODUCTION.md), "Imported voice files".
+
+- **IMPORT VOICE FILE** next to every authored line (Mission Editor and NPCs > Lines & voice): MP3 / WAV / Ogg (M4A / WebM if the browser plays them), checked by decoding, 40 s and 600 KB at most (bigger files re-encoded in the browser to Ogg Opus 24 kHz mono with WebCodecs, or refused in plain words), PLAY / REPLACE / REMOVE, UNDO. Status "Voice: imported file"; "text changed since the voice was imported" after the words change (then not used or sent).
+- **Storage:** draft audio in IndexedDB (PLAY THIS DRAFT uses it); PUBLISH uploads first (owner-only `POST developer/voice-clips[/<sha256>]`, server re-checks type from bytes, size and length) into Firestore `vr_voice_clips` (one document per file, content-addressed); content references `content.clips`. Players: public `GET voice-clip/<sha256>`, cached a year and in Cache Storage; played through voice-clips.js (live effects kept). No Firebase Storage, no new services.
+- **Render:** the new routes need the API redeployed from `main` after merging (the service redeploys when `main` changes if auto-deploy is on; nothing was deployed or changed on Render). Publishing must be switched on (`VOID_CONTENT_PUBLISH_ENABLED`) for uploads and the public read, as for publishing itself.
+- **Maintainer:** `tools/audio/bake-imported.py` copies published files into `void-runner/assets/audio/voice/extra/` (Opus 24 kHz mono + manifest entries).
+- **Tests:** `tests/voice-imports.test.cjs`, `tests/test_voice_imports.py`, browser `tests/voice-imports-browser.cjs` (refused 41 s file, re-encode of a 2 MB WAV, kept short WAV, text changed, UNDO, draft play hears the import, publish with a fake server, a signed-out player hears the published file).
+- **Not verified:** real Render / Firestore; Firefox / Safari; a real ElevenLabs file.
+
+### 18 Nov 2026 (newest): NPC APPEARANCE EDITOR IN THE NPCs TAB (branch `claude/npc-appearance`, build `2026-11-18-npc-appearance-1`, pushed, NO PR, not merged; built on `main` after #400)
+### 19 Nov 2026 (newest): MISSION EDITOR — MISSIONS THAT COST CREDITS ("PLAYER PAYS"), ACCEPT / DENY ON EVERY OFFER (branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`, pushed, NO PR, not merged)
 ### 19 Nov 2026 (newest): DRAFT TESTS WITH REVERIE OR LACE RUN AT THE TIME SHE IS REALLY OUT (branch `claude/draft-shift-time`, build `2026-11-19-draft-shift-1`, pushed, NO PR, not merged)
 
 The owner: "If I test with REVERIE or LACE make it the time they are actually there". Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourteenth pass".
