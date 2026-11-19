@@ -92,7 +92,7 @@
     let num=along;if((side==='e'||side==='n')!==(num%2===1))num+=1;   // west and south sides even, east and north sides odd
     out.push({id:'apt-'+e.street+'-'+side+'-'+along,street:e.street,side,x:r2(p[0]),z:r2(p[1]),n:e.n.slice(),ry:faceInto(e.n),front,quarter:q,style:styleAt(q,p[0]),number:num,
      name:'No. '+num+', '+(STREET_NAMES[e.street]||e.street)});}}
-  out.push(...containerDoors());cache=out;return out;}
+  out.push(...containerDoors());if(Q&&CT()&&out.length)cache=out;return out;}   // kept only once the quarters and the containers are known (ncz-quarters.js, ncz-containers.js): an early call never freezes a short list
  /* The Outskirts' doors: one in the yard-facing front of every container on the edge of the yard (the west and east rows, the south row, the two lane ends): evenly one per
     container, at the other end of the front from its own side door (ncz-containers.js), never Kai Kryptos' home, never a container with a deck and stairs on that front, never
     in the yard's middle or a lane. family 'container'; styles alternate rundown / regular; reach: how far the collision of a stacked container stands out (its upper levels). */

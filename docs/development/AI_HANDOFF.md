@@ -15,6 +15,16 @@ The owner: ACCEPT / DENY "anywhere in the mission timeline", and the mission edi
 - **Tests:** `tests/mission-blocks.test.cjs`, `tests/test_mission_blocks.py`, browser `tests/mission-blocks-browser.cjs` (passes: Lace → Words + shrug, player reply, Time 2 s, Ask, +50 credits; drag; draft play DENY then ACCEPT). Older Form-view browser tests now start in the Form view.
 - **Not verified:** real hardware; VR; touch; DENY skip / back / another tree and a priced ACCEPT in a browser (unit-tested).
 
+### 19 Nov 2026 (newest): MISSION EDITOR — PLAY FROM THE START OF THIS TREE; THE APARTMENTS PANEL ALWAYS SHOWS; AN APARTMENT IN "MAKE A MISSION" (branch `claude/play-tree-start`, build `2026-11-19-play-tree-1`, pushed, NO PR, not merged)
+
+The owner: "i also don't see the apartment add in mission editor" and "play draft from the beginning of the tree". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Nineteenth pass".
+
+- **Cause:** on current `main` the panel showed in every case tried in a browser (main menu, pod, Basic, Advanced); the street doors are pure data, not the built scene. It was hidden where `apartments.js` was missing or late (`if(root.VoidApartments?.doors)`: nothing shown, no message, e.g. a stale cached page), the "Make a mission" wizard had no apartment, and older-data missions had no panel and no word why. `apartments.js doors()` could also freeze an empty list if called before `ncz-quarters.js`.
+- **Fix:** the panel is always on every tree mission ("Loading the street doors…" while it loads what is missing, then redraws); older-data missions say where apartments go, with COPY THIS MISSION INTO A NEW TREE; the wizard's steps page has "An apartment for this mission (optional)" and the step "Go into the mission's apartment".
+- **PLAY FROM THE START OF THIS TREE:** under the tree's name and beside every PLAY THIS DRAFT: a throwaway session with nothing of the tree started (a brand-new campaign) and the running game's in-memory mission state cleared (`VoidLiveContent.resetRun`, `VoidApartments.resetRun`, now done for every draft session), starting with the first mission as a player meets it.
+- **Tests:** `tests/play-tree-start.test.cjs`, browser `tests/play-tree-start-browser.cjs` (passes); `tests/play-stale.test.cjs` updated.
+- **Merged with `main` after #426 (container apartments):** the wizard lists The Outskirts' container doors too and offers only the two container styles behind them (checked in Node; the browser walkthrough uses an Old Town door).
+- **Not verified:** real hardware; VR; a container door picked in the wizard in a browser; publishing with the server on.
 ### 19 Nov 2026 (newest): CONTAINER APARTMENTS IN THE OUTSKIRTS (branch `claude/container-apartments`, build `2026-11-19-container-apartments-1`, pushed, NO PR, not merged)
 
 The owner: a second set of apartments in shipping containers for The Outskirts, two styles (rundown, regular), a four-door hallway, doors evenly along the edge of the yard. Record: [`APARTMENTS.md`](APARTMENTS.md), "Container apartments in The Outskirts"; editor: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Nineteenth pass".

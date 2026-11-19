@@ -250,7 +250,7 @@
   return f;}
  // ---- APARTMENT and ITEM (reward) blocks
  function aptBlock(c,b){const {m,kit}=c,a=b.raw||{},X=root.VoidApartments,ea=(fn,redraw=true)=>c.ed(x=>{const y=(x.apartments||[]).find(z=>z.id===a.id);if(y)fn(y,x);},redraw);
-  const f=frame(c,{bid:b.bid,type:'apartment',title:'Apartment '+a.id+(a.door&&X?' · '+((X.door(a.door)||{}).name||a.door):''),attrs:{'data-me-apt-panel':m.id,'data-me-apt':a.id}});if(!X){f.body.append(el(c,'p','Apartments could not load.','me-warn'));return f;}
+  const f=frame(c,{bid:b.bid,type:'apartment',title:'Apartment '+a.id+(a.door&&X?' · '+((X.door(a.door)||{}).name||a.door):''),attrs:{'data-me-apt-panel':m.id,'data-me-apt':a.id}});if(!X||(kit.aptReady&&!kit.aptReady())){f.body.append(el(c,'p','Loading the street doors…','me-small',{'data-me-apt-loading':m.id}));if(kit.aptEnsure)kit.aptEnsure().then(ok=>{if(ok)kit.draw();});return f;}
   const r=el(c,'div','','me-row mb-fields'),st=el(c,'select','','',{'aria-label':'Apartment style','data-me-apt-style':a.id});for(const s of X.STYLES)st.append(new Option(s.name,s.id));st.value=a.style||'normal';
   st.onchange=()=>ea(y=>{y.style=st.value;if(!X.AD_SCREEN.styles.includes(y.style))delete y.screenOff;const dd=X.door(y.door);if(dd&&(dd.family==='container')!==!!X.isContainer(y.style))y.door='';});
   r.append(el(c,'span','A','me-small'),st,el(c,'span','behind','me-small'),kit.doorSelect(a.door,v=>ea(y=>{y.door=v;}),{'data-me-apt-door':a.id},null,a.style||'normal'));f.body.append(r);
