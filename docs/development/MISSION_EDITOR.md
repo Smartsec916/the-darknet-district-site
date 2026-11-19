@@ -2,7 +2,7 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
-## Eleventh pass (19 Nov 2026): missions that cost credits, and ACCEPT / DENY on every offer
+## Thirteenth pass (19 Nov 2026): missions that cost credits, and ACCEPT / DENY on every offer
 
 Branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`. Pushed, no PR, not merged. The owner asked: "can i do -100 credit option and add an accept or deny".
 
@@ -33,6 +33,62 @@ Branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`. Pushed, no PR, 
 - Server: `void_runner_live_content.py` (`ask_problems`, `cost_problems`, `workspace_money_problems`, `start_problems` takes the new keys for every start); `void_runner_drafts.py validate_workspace` refuses out-of-range credits and over-long labels in the server copy.
 - Tests: `tests/mission-cost.test.cjs` (9), `tests/test_mission_cost.py` (3), browser `tests/mission-cost-browser.cjs` (wizard "Player pays 100" + ask, editor, draft play: DENY then ACCEPT, credits 150 -> 50 once; 40 credits: greyed ACCEPT, nothing starts).
 - Not verified: a device offer (Messages / Comms / banner / walked near) in a browser (Node-checked only); "start another mission" and the DENY lines in a browser; real hardware; publishing with the server switched on. No abandon button exists for tree missions, so the refund is unit-tested only.
+## Twelfth pass (18 Nov 2026): describe a behaviour to ChatGPT, daily schedules, and the street cat as an NPC and giver
+
+Branch `claude/npc-behaviour`, build `2026-11-18-npc-behaviour-1`. Pushed, no PR, not merged. Queue item 1, plus "add the cat as an npc and giver".
+
+### How to use it (plain steps)
+
+**Describe it to ChatGPT** (Developer tools > NPCs, pick Reverie, Lace or the Street cat; or the start card "Describe it to ChatGPT").
+1. Press **COPY CHATGPT PROMPT**. (If your browser will not copy, the prompt appears selected: press Ctrl+C.)
+2. Open ChatGPT, paste it, and at the end write what you want in your own words, for example "mornings she walks from the tea house to the laundry and back; at lunch she sits on her ledge; at night she watches the street by the chai shop".
+3. Copy ChatGPT's whole answer and paste it into **Paste behaviour**, then press **CHECK IT**. The editor finds the recipe in the answer (the chat around it is fine).
+4. If something is wrong you get a list in plain words ("there is no place called ...", "she cannot do ...", "time block 2 overlaps time block 1"). Fix it, or paste the list back to ChatGPT and ask it to fix the recipe.
+5. If it is fine you see the **Preview**: what she does in each part of the day in words, and the map (press a time block to see its spot or route). **PLAY IT (DRAFT, NOT SAVED)** tries it on The Avenue in a throwaway session.
+6. **USE THIS BEHAVIOUR** puts it into your draft (her placement and daily schedule). UNDO puts the old one back. PLAY THIS DRAFT and PUBLISH work as for any placement.
+Nothing you paste is ever run as a program: a recipe is only names, numbers and times, and anything that looks like code is refused.
+
+**Daily schedule** (under "Where they are in the game").
+1. **+ ADD A TIME BLOCK** adds the next free hour (from 08:00). Set its **From** and **To** times, **What she does** (her usual thing, stay at one spot, walk a route) and an optional name.
+2. **EDIT ON THE MAP** (or click its coloured bar on the timeline): the map and buttons above now change that time block. "All day" changes what she does outside every block.
+3. A block may run past midnight (20:00 to 02:00). Blocks cannot overlap; 8 at most; each at least 15 minutes. Problems show in red with what to change.
+4. **Try a time**: slide to a time of day to read what she does then; **PLAY THIS DRAFT AT THIS TIME** starts the test session with the game clock at that time (an in-game day passes in 2 hours of play).
+5. The times are the **game's own clock** (each player's). Reverie and Lace still keep their real-time street shift (Reverie 00:00–12:00 UTC, Lace 12:00–24:00 UTC): the schedule says what she does while she is out. The cat is out day and night.
+
+**The street cat** is now in the NPCs list ("Street cat"). It can stay at a spot or walk a route (sit, look about, potter about, wait), take a daily schedule and a ChatGPT recipe; it has no animation clips (its pose is made by code), so "Add animation" is not offered. It **gives missions**: pick "Street cat" as the Giver; players see **PET THE CAT** on it. With no mission waiting it only looks up at them ("The cat looks up at you.", text only, no voice). "When walked near" and "Giver waits at" work with it.
+
+### For Claude and Codex
+
+- `void-runner/npc-behaviour.js` (pure, Node-tested; loaded with the editor only): `extract` (fence / first balanced `{...}`, `JSON.parse`; `CODE` regex refuses code-like pastes; 20,000 characters max), `validate(json, id, {anims})` (recipe v1: `recipe`, `version`, `npc`, `allDay`, `schedule`; activities `usual` / `stay {at, face, actions}` / `route {points:[{at, action, seconds}]}`; places from `places(id)` or `{x, z}`), then `npc-paths.js clean` + `planProblems`; `read`, `describe`, `summary`, `examples`, `prompt`.
+- `npc-paths.js`: `scheduleProblems`, `blockAt`, `toMin` / `hhmm`, `cleanBlock`, `planNow({minute})` (a waiting mission > the schedule block for the minute > the all-day plan; key `sched:<i>:...`), `LIMIT.blocks` / `blockMin` (admin inventory `npcPaths.limits`). `MOVABLE['street-cat']` (`cat:true`; `CAT_ACTIONS`, `CAT_STAY`; no library clips).
+- Server: `void_runner_live_content.py` `npc_problems` -> `_plan_only` + `schedule_problems`; `schedule_shape_problems` for the workspace copy (`void_runner_drafts.py`).
+- Game: `live-content.js plans()` passes `VoidClock.now(state).minuteOfDay`; `ncz-street-pair.js` the cat (`CAT_ID`, `CAT_ACTION`, `CAT_REACTION`, `catPlan`, the PET THE CAT item `catItem`, `stats().cat.plan/act/pet`). `mission-givers.js` roster entry `street-cat` (no shift). `mission-editor.js jumpTo(x, z, npc, label, back, {npcs, minute})`.
+- Editor: `npc-editor.js` `scheduleBox`, `behaviourBox`, `blockOf` / `curPlan` (the block being edited), `setPlan(id, p, {keep})` keeps the schedule unless told not to; start cards "Give a character a daily schedule" and "Describe it to ChatGPT".
+- Tests: `tests/npc-behaviour.test.cjs`, `tests/test_npc_behaviour.py`, browser `tests/npc-behaviour-browser.cjs` (`PART=editor`).
+
+## Eleventh pass (18 Nov 2026): the NPC appearance editor (NPCs > Appearance)
+
+Branch `claude/npc-appearance`, build `2026-11-18-npc-appearance-1`. Pushed, no PR, not merged. Queue item 0c.
+
+### How to use it (plain steps)
+
+1. Open **Developer tools > NPCs** and pick anyone (a named character, a **Street figure**, or a **Figure ... (other places)**: the older multi-part figures are listed there too). Go down to **Appearance** and press **Show me in 3D to change the look**: the editor reads the model file and offers only what that model can do.
+2. Press **+ NEW LOOK**. A look starts as the model "as made" (which never changes). Give it a name.
+3. **Parts you can take off**: tick off an accessory or hair (hat, sunglasses, visor, face mask, collar, VR headset, hand trackers ...). Clothing that covers the body, the shoes, the body and the face always stay, and a part whose name does not say what it is stays too. Most street figures are made in one piece, so they have nothing to take off.
+4. **Colours**: click a colour dot or pick any colour; the clothes take it and keep their own light and dark. A one-piece figure is recoloured as a whole and its skin keeps its own tone; a multi-part figure has one row per piece (suit, shoes, hair, headset ...). **Reset colour** puts one back. In **Advanced** mode you also get hue, saturation and brightness sliders.
+5. **Add pieces from the character creator** (visor, tech collar, shoulder plates, chest light, and the creator's hairstyles): only on figures built on the creator's skeleton (the District resident / smuggler bodies and figures made like them). Everywhere else they are greyed with the reason. A long hairstyle needs the hat hidden first.
+6. **Which look the game uses**: as made, one of your looks, or **a mix of my looks** (each person keeps one). A look belongs to the model, so everyone the game draws with that model wears it.
+7. The 3D preview changes as you go; UNDO / REDO (or Ctrl+Z) work on every change; **RESET TO ORIGINAL** clears a look; **DELETE THIS LOOK** removes it.
+8. **SEE IT ON THE STREET** plays your draft on The Avenue (your real save is never touched). PLAY THIS DRAFT carries the looks too, and PUBLISH sends them to every player (the server checks them first), so every player sees the same looks.
+9. Rules kept for you: licensed models (the VR companions, the studio dancer, Dax) can only be recoloured and have accessories hidden, nothing is added and their files never go to any AI tool; Reverie and Lace stay in ordinary street clothing (colours only); the model files are never edited.
+
+### For Claude and Codex
+
+- `void-runner/npc-looks.js` (pure + browser): `classify` (mesh / material names -> body, face, garment, shoes, hair, accessory, unknown; only hair and accessory are hideable), `capabilities(asset, meta, data)` (meta from `metaFromContainer` in the editor or `metaFromGlb` in Node), `problems` / `clean` / `pick` / `variant`, `inventory` (the admin inventory's `npcLooks`). Browser: `applyLook(node, asset, look)` / `reset` / `dressIn`; `install()` wraps `VoidCrowd.animate` and `VoidCrowd.dress` so every NPC figure is dressed when it loads; player figures (under `character:`, `remote-player:`, `avatar-preview`) never are.
+- Content: `content.looks[asset] = {looks:[{id, name, hide, colour:{material|'*': {tint, hue, sat, bright}}, gear, hair}], use:'original'|id|'mix'}`; draft key `looks`; checked by `mission-content.js check` (name rules) and `void_runner_live_content.py look_problems` (against `void_runner_admin_inventory.json` `npcLooks`, built from the model files by `tools/admin-inventory.cjs`: run it after adding a model). The editor's server copy (`void_runner_drafts.py`) carries and checks `looks`.
+- Colour uses the street-variant shader (`npc-variants.js`; `variantMaterial` is exported; a variant with `all` recolours a separate material whole, no skin test): one material per source material and colour, shared by every figure, disposed with its source. Gear and hair are fitted once per model and scene (`gear-fit.json`, `bind-data.json`, `character-fit.js`) and copied with shared geometry.
+- Not done: a texture-mask region for partial recolours (no model has a mask yet); figures already on screen keep their look until they are placed again (draft play and publishing start a fresh scene).
+- Tests: `tests/npc-looks.test.cjs`, `tests/test_npc_looks.py`, browser `tests/npc-looks-browser.cjs` (`PART=editor` for the editor only).
 
 ## Tenth pass (18 Nov 2026): choose an ElevenLabs voice for any NPC or giver
 
