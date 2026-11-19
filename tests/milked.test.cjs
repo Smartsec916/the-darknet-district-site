@@ -169,3 +169,20 @@ test('Studio 1 uses the other Avenue resident on each 12-hour UTC shift',()=>{
  assert.match(bcode,/studioOne\.node\?\.dispose\?\.\(\)/);
  assert.match(bcode,/syncStudioOne\(\);/);
 });
+
+test('each E studio window opens the existing view plus a see-through clip-verified request menu',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');
+ assert.match(ui,/R\('milked-studio'/,'the existing E action is retained');
+ assert.match(ui,/openPanel\(n\)/,'it opens the request panel at the selected studio');
+ assert.match(ui,/rgba\(8,12,18,\.64\)/,'panel is see-through, not opaque');
+ assert.match(ui,/REQUEST ANIMATION/);assert.match(ui,/requestStudioAnimation\?\.\(openedStudio,selected\)/);
+ assert.match(ui,/request\.disabled=!model\.ready\|\|!model\.clips\.length/);
+ assert.match(ui,/refreshTimer=setInterval/,'Studio 1 changes are reflected in the open dropdown');
+ assert.match(ui,/closePanel\(\)/,'Escape and Close dispose of the panel session');
+ assert.match(bsrc,/function studioAnimations\(studio\)/);assert.match(bsrc,/metadata\?\.animationGroups/,'actual animation groups gate choices');
+ assert.match(bsrc,/function requestStudioAnimation\(studio,clip\)/);
+ assert.match(bsrc,/studioAnimations\(studio\)\.clips\.includes\(clip\)/,'requests are validated again at activation');
+ assert.match(bsrc,/if\(clock<p\.request\.until\)continue/,'request is not overridden by automatic dance scheduling');
+ assert.match(bsrc,/p\.request=null/,'automatic routine resumes');
+ assert.match(bsrc,/studioOne\.request=null/,'Studio 1 shift clears the old performer request');
+});
