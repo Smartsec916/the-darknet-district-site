@@ -85,9 +85,34 @@
   return A.places().filter(p=>p.area===area&&!X.spotProblems(id,p).length).map(p=>({id:p.id,name:p.name.replace(/^in front of /,'Outside ').replace(/\s*\([^)]*\)$/,''),x:p.x,z:p.z}));}
  /* Her walk on the pavement from a to b: onto the walking line, along it, then to the spot (straight lines, clear of the kerb's furniture). */
  function route(a,b,area='avenue'){const L=LIMIT.lane,pts=[],A=AR();
-  // away from the Avenue's north pavement: a straight walk when it stays on walkable ground, else round one corner (npc-areas.js leg)
-  if(A&&(area!=='avenue'||a.z<-8||b.z<-8)){if(!A.leg(a,b).length)return [{x:b.x,z:b.z}];for(const c of [{x:b.x,z:a.z},{x:a.x,z:b.z}])if(!A.leg(a,c).length&&!A.leg(c,b).length)return [c,{x:b.x,z:b.z}];return [{x:b.x,z:b.z}];}
+  // away from the Avenue's north pavement: a straight walk when it stays on walkable ground, else round one corner (npc-areas.js leg), else along the pavements (walkRoute)
+  if(A&&(area!=='avenue'||a.z<-8||b.z<-8)){if(!A.leg(a,b).length)return [{x:b.x,z:b.z}];for(const c of [{x:b.x,z:a.z},{x:a.x,z:b.z}])if(!A.leg(a,c).length&&!A.leg(c,b).length)return [c,{x:b.x,z:b.z}];return walkRoute(a,b,area)||[{x:b.x,z:b.z}];}
   if(Math.abs(a.x-b.x)<1.2)return [{x:b.x,z:b.z}];if(Math.abs(a.z-L)>.05)pts.push({x:a.x,z:L});pts.push({x:b.x,z:L});if(Math.abs(b.z-L)>.05)pts.push({x:b.x,z:b.z});return pts;}
+ /* ALONG THE PAVEMENTS (fix 19 Nov 2026: a spot she could not reach in a straight line or round one corner was walked to in a straight line, through shopfronts and across
+    the road at a slant): a search over a half-metre grid of the area's walkable ground (npc-areas.js check), the road allowed only where it must be crossed (each metre of road
+    costs ROAD metres, so she crosses where it is narrowest, straight over), then shortened to straight legs that add no road. Returns the points after a, ending at b, or
+    null (no way within the search box). */
+ const ROAD=8,GRID=.5,MAXN=30000;
+ function walkRoute(a,b,area){const A=AR();if(!A||!a||!b)return null;const G=GRID,memo=new Map(),c2=v=>Math.floor(v/G);
+  const ar=A.get(area),inn=(r,x,z)=>x>r.x0&&x<r.x1&&z>r.z0&&z<r.z1;   // the kerb (the street's floor between the pavement and the road, not a forbidden place) counts as road
+  const cost=(i,j)=>{const k=i*100003+j;let v=memo.get(k);if(v===undefined){const x=(i+.5)*G,z=(j+.5)*G,c=A.check({x,z},area);v=c.ok&&c.area===area?1:(c.kind==='road'&&c.area===area)||(c.kind==='blocked'&&ar&&ar.floors.some(f=>inn(f,x,z))&&!ar.no.some(f=>inn(f,x,z))&&!(ar.obstacles||[]).some(o=>x>o[0]&&x<o[1]&&z>o[2]&&z<o[3]))?ROAD:0;memo.set(k,v);}return v;};
+  const pad=30/G,i0=Math.min(c2(a.x),c2(b.x))-pad,i1=Math.max(c2(a.x),c2(b.x))+pad,j0=Math.min(c2(a.z),c2(b.z))-pad,j1=Math.max(c2(a.z),c2(b.z))+pad;
+  const near=p=>{const ci=c2(p.x),cj=c2(p.z);let best=null,bd=Infinity;for(let di=-4;di<=4;di++)for(let dj=-4;dj<=4;dj++){const i=ci+di,j=cj+dj;if(cost(i,j)!==1)continue;const d=Math.hypot((i+.5)*G-p.x,(j+.5)*G-p.z);if(d<bd){bd=d;best=[i,j];}}return best;};
+  const s0=near(a),s1=near(b);if(!s0||!s1)return null;const key=(i,j)=>(i-i0)*((j1-j0)+1)+(j-j0),goal=key(s1[0],s1[1]);
+  const g=new Map(),from=new Map(),heap=[];const h=(i,j)=>Math.hypot(i-s1[0],j-s1[1]);
+  const push=(f,k,i,j)=>{heap.push([f,k,i,j]);let n=heap.length-1;while(n>0){const p=(n-1)>>1;if(heap[p][0]<=heap[n][0])break;[heap[p],heap[n]]=[heap[n],heap[p]];n=p;}};
+  const pop=()=>{const top=heap[0],last=heap.pop();if(heap.length){heap[0]=last;let n=0;for(;;){const l=2*n+1,r=l+1;let m=n;if(l<heap.length&&heap[l][0]<heap[m][0])m=l;if(r<heap.length&&heap[r][0]<heap[m][0])m=r;if(m===n)break;[heap[m],heap[n]]=[heap[n],heap[m]];n=m;}}return top;};
+  const k0=key(s0[0],s0[1]);g.set(k0,0);push(h(s0[0],s0[1]),k0,s0[0],s0[1]);let n=0,found=false;
+  while(heap.length&&n++<MAXN){const [,k,i,j]=pop();if(k===goal){found=true;break;}const gk=g.get(k);
+   for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]){const ni=i+di,nj=j+dj;if(ni<i0||ni>i1||nj<j0||nj>j1)continue;const c=cost(ni,nj);if(!c)continue;if(di&&dj&&(!cost(i+di,j)||!cost(i,j+dj)))continue;
+    const nk=key(ni,nj),ng=gk+Math.hypot(di,dj)*(c+cost(i,j))/2;if(ng<(g.has(nk)?g.get(nk):Infinity)){g.set(nk,ng);from.set(nk,[k,i,j]);push(ng+h(ni,nj),nk,ni,nj);}}}
+  if(!found)return null;const cells=[];for(let k=goal,i=s1[0],j=s1[1];;){cells.unshift({x:(i+.5)*G,z:(j+.5)*G});const f=from.get(k);if(!f)break;[k,i,j]=f;}
+  const P=[{x:a.x,z:a.z},...cells,{x:b.x,z:b.z}];
+  // road metres up to each point of the grid path; a straight leg may replace a stretch of it when every step is walkable (or road) and it adds no road
+  const roadAt=p=>{const c=cost(c2(p.x),c2(p.z)),k=A.check(p,area);return k.ok&&k.area===area?0:c===ROAD?1:-1;},acc=[0];for(let k=1;k<P.length;k++){const d=dist(P[k],P[k-1]);acc.push(acc[k-1]+(roadAt(P[k])===1||roadAt(P[k-1])===1?d:0));}
+  const clear=(u,v)=>{const p=P[u],q=P[v],d=dist(p,q),m=Math.max(1,Math.ceil(d/.2));let road=0;for(let t=0;t<=m;t++){const r=roadAt({x:p.x+(q.x-p.x)*t/m,z:p.z+(q.z-p.z)*t/m});if(r<0)return false;if(r)road+=d/m;}return road<=acc[v]-acc[u]+.3;};
+  const out=[];for(let u=0;u<P.length-1;){let v=P.length-1;while(v>u+1&&!clear(u,v))v--;out.push({x:+P[v].x.toFixed(2),z:+P[v].z.toFixed(2)});u=v;}
+  out[out.length-1]={x:b.x,z:b.z};return out;}
  const turnTo=(st,want,dt,rate=4)=>{const dy=Math.atan2(Math.sin(want-st.yaw),Math.cos(want-st.yaw));st.yaw+=dy*Math.min(1,dt*rate);};
  const face=(st,p,dt)=>{if(p&&dist(p,st)>.05)turnTo(st,Math.atan2(p.x-st.x,p.z-st.z),dt);};
  /* Moves st toward p at speed v for dt; returns true on arrival. */
@@ -168,6 +193,6 @@
  /* For the admin inventory (the server's copy of these rules: void_runner_live_content.py escort_problems). */
  function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok};
   return {kinds:IDS.slice(),fields:FIELDS,limits:{wait:LIMIT.wait,lost:LIMIT.lost,def:LIMIT.def},ifLost:IF_LOST.map(x=>x.id),npcs:out};}
- const api={placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,keyOf,encode,decode,inventory};
+ const api={placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
  if(node)module.exports=api;else root.VoidNPCEscort=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -2,6 +2,36 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Fix (19 Nov 2026): a giver who leads the way ("Follow them") no longer walks off or vanishes
+
+Branch `claude/follow-giver-fix`, build `2026-11-19-follow-fix-1`. Pushed, no PR, not merged. The owner: "add a mission that starts when you walk near the giver, have them say a line, then set it to follow them to another location ... the giver is either not at the mission giving location to start with, or after saying their first line they shoot off in the direction of where they're supposed to lead you and disappear ... I can never find them after the first line".
+
+### What was wrong (found by playing exactly that mission in a browser, every frame recorded)
+
+1. **Once the mission started, nothing kept her there.** "Giver waits at" only held her while the mission was *waiting to be offered*. The moment walking near her started it, she went back to her own routine: on The Avenue she walked off along her stretch; when her spot was in another quarter (Old Town, Far South …) she **vanished on the spot** (her routine is on The Avenue, so that quarter no longer had her).
+2. **Then the "Follow them" step put her in the wrong place.** The step started from wherever her routine had left her; when she had vanished, she reappeared at her routine's spot on **The Avenue's coordinates** while the player was in Old Town, i.e. far outside the quarter: nowhere to be found, and the arrow pointed off into the buildings. A made character with no all-day placement was put at the map's 0, 0.
+3. **She could walk off while still saying her line.** The game decided "the player is talking to her" from the prompt under the player's crosshair, which is picked again every frame while a conversation floats over walking. If that first frame had lost her prompt, the follow step (which starts the moment her line completes the talk step) walked her away during the conversation.
+4. **She disappeared in front of the player** when she had to go (her shift, a spot she could not walk to, the end of the mission in another quarter): she was removed at once, even on screen. A made character was moved (teleported) on screen in the same case.
+5. **A spot she could not reach in a straight line or round one corner** was walked to in a straight line: through shopfronts and diagonally across the road.
+
+Not a cause (checked): the walked-near distance is measured from her TALK prompt, which follows her figure every frame; her walking pace while leading is 1.2 m/s with no catch-up teleport ("they follow you" only puts her behind the player when she is 20 m+ behind *and* off-screen); the draft's street clock puts her on shift.
+
+### What it does now
+
+- **Before and during her mission she stays put:** at "Giver waits at" if set, else where she stood when the mission started (or her all-day placement until then); after a "Follow them" step, at its spot until the mission is done; then her own routine again. Reverie and Lace are kept out for a mission in progress even if the shift changes (as for a running follow step).
+- **Her line first, then she walks:** she stands still for the whole conversation (also recognised from her lines in it), then leads at walking pace, stops and waits when the player is more than "Waits when …" metres behind, and the step completes at the spot. The yellow arrow and marker stay on her.
+- **She appears where the step started** (entering the quarter, a reload), never at her Avenue routine.
+- **Never gone or moved on screen:** if she must go, she stands where she is until the player looks away or is out of sight range.
+- **Along the pavements:** a route that is not straight or round one corner follows the pavements; the road is crossed only where it must be, straight over.
+
+### For Claude and Codex
+
+- `mission-content.js waitingAt` / `holdOf`: acquired, unfinished missions hold their giver (`{x, z, mission, during:true}` = last done escort step's `to`, else `waitAt`; or `{mission, during:true, here:true}`).
+- `live-content.js plans()`: `here` -> `holdAt[id]` (her live position when the mission started, `livePos`: street pair / cat / made); the plan gets `why:'mission'`; escort plans carry `from`; a step starts if she is out for that mission (`escOn`); `resetRun` clears `holdAt`.
+- `ncz-street-pair.js`: `out()` keeps her for `why:'mission'`; `planSpot` (resume, else `from`); `chatting()` also checks `speech.lines`; `her.away` / `cat.away` (stand until `unseen`); `stats().her.yaw/away`. `npc-made.js`: `from`, `speaker()`, `unseen`, `p.away`, `p.put`.
+- `npc-escort.js walkRoute` (half-metre grid A*, road and kerb cost 8x, shortened to legs that add no road; used by `route` when straight / one corner fail).
+- Tests: `tests/follow-giver.test.cjs`; browser `tests/follow-giver-browser.cjs` (WHO=grey-reverie|ethereal-lace|street-cat|made, WHERE=avenue|oldtown, WAIT=0): built with the wizard's builder, PLAY THIS DRAFT, walk near, TALK, the line, follow; asserts the spot at the start, no movement during the line, no per-frame jump above her speed x the frame time, never gone, never out of her area, within 2 m of her route, done at the spot. **Checked in a browser** (bundled Chromium, software GL, all PASS: no frame-to-frame jump over her speed, never gone, never out of her area, within 2 m of her route, done at the spot): Reverie on The Avenue and in Old Town with "Giver waits at", Lace on The Avenue without it (held where she stood when it started), the street cat on The Avenue, a made character (giver creator data, placed in Old Town). Not verified: real hardware / frame rate, VR, a shift change in the middle of a real (non-draft) mission (unit-checked), the deferred "leave once unseen" seen in a browser (unit/source-checked only). Older source-text tests updated (`npc-areas`, `npc-behaviour`, `npc-escort`, `npc-tools`: "once accepted she goes back" is now "she stays until it is done"; `cult-room`: any BUILD).
+
 ## Twenty-second pass (19 Nov 2026): camera feeds — the Blackrock Cult Room
 
 The owner's queued room: seen only through a hacked security camera, recorded to the V1 Gallery. Details: `docs/development/BLACKROCK_CULT_ROOM.md`.
