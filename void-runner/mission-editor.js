@@ -138,6 +138,10 @@
   await refreshServer();await loadServer();if(numberAll())rebuild();else if(stale)rebuild();
  }
  function rebuild(){const d=local();built=T().build({...src,voices:d.voices||{},studioDraft:studio(),serverDrafts:server.drafts,ownerTrees:d.trees,names:d.names});index=T().lineIndex(built);stale=false;}
+ /* Every PLAY / PLAY THIS DRAFT / PLAY FROM HERE / Test my mission / JUMP THERE / publish check starts here (19 Nov 2026 fix: a PLAY pressed straight after typing in a step
+    checked the tree drawn before the typing and said "step 1 needs what the player must do"): the field being typed in hands over its value (its change event),
+    the waiting Guide me pass runs now, and the trees are rebuilt from the saved draft, so the check sees exactly what was typed. */
+ function fresh(){try{const a=root.document&&document.activeElement;if(a&&host&&host.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))a.blur();}catch{}if(src)rebuild();if(guideT){clearTimeout(guideT);guideT=0;guideNow();}}
  async function call(path,body){const r=typeof VoidDevTools!=='undefined'?VoidDevTools.request:null;if(!r)throw new Error('Sign in again.');return r(path,body);}
  async function refreshServer(){
   const tries=[['roles','developer/drafts/schema'],['live','developer/live-content'],['queue','developer/revoice']];
@@ -187,7 +191,7 @@
  function restoreReturn(){const r=read(RETURN,null,root.sessionStorage);if(!r)return;try{root.sessionStorage.removeItem(RETURN);}catch{}Object.assign(ui,{mode:'trees',tree:r.tree||ui.tree,mission:r.mission||null,step:r.step||null});status='Back from your draft play. Your draft is saved and waiting'+(r.mission?' on this mission':'')+'.';}
  function draw(){
   if(!host||!built)return;if(stale)rebuild();const keepY=host.scrollTop;host.innerHTML='';host.append(headNode());
-  const root_=el('div','','me-root',{id:'me-root'});host.append(root_);root_.addEventListener('input',()=>guideSoon());root_.addEventListener('change',()=>guideSoon());
+  const root_=el('div','','me-root',{id:'me-root'});host.append(root_);root_.addEventListener('input',()=>{syncPlay(root_);guideSoon();});root_.addEventListener('change',()=>{syncPlay(root_);guideSoon();});
   root_.append(howBox());
   {const sc=el('p','','me-small',{'data-me-server-copy':'1',role:'status'});root_.append(sc);setTimeout(showServerState,0);}
   for(const t of [storageProblem,backupNote])if(t)root_.append(el('p',t,'me-bad',{'data-me-storage-problem':'1'}));
@@ -242,7 +246,8 @@
  }
  /* An archived tree or mission → a new draft tree (the archived one never changes). */
  function copyInto(ms,name){const d=local();const t=T().copyToTree(d.trees,ms,{name:('Copy of '+name).slice(0,60),givers,next:nextFree(d)});d.trees.push(t);saveLocal(d);stale=true;ui.tree=t.id;ui.mission=null;status='Copied into your new tree “'+t.name+'” ('+t.id+'). It is a draft: not in the game until you publish it. Check each step’s NPC.';draw();}
- const setStatus=t=>{status=t;const s_=host&&host.querySelector('#me-status');if(s_)s_.textContent=t;else if(host)draw();};
+ // no status line on screen yet: add one in place (a full redraw here took the typing focus away after the first character typed in a freshly drawn editor)
+ const setStatus=t=>{status=t;const s_=host&&host.querySelector('#me-status');if(s_){s_.textContent=t;return;}const m=host&&host.querySelector('#me-root > .me-modes');if(m)m.after(el('p',t,'me-status',{role:'status',id:'me-status'}));else if(host)draw();};
  // ---------------- the owner's NEW trees
  const treeOf=mid=>(local().trees||[]).find(t=>t.missions.some(m=>m.id===mid))?.id;
  function editTree(id,fn,redraw){const d=local(),t=(d.trees||[]).find(x=>x.id===id);if(!t)return;fn(t,d);saveLocal(d);stale=true;if(redraw)draw();else setStatus('Draft saved.');}
@@ -686,7 +691,7 @@
   return box;}
  // ---------------- JUMP THERE: a throwaway test session on The Avenue, a few steps from a spot (the draft applied, so placements and waits show)
  /* opts (NPCs tab): {npcs: {id: plan}} tried in place of the draft's own (a pasted behaviour recipe before it is saved), minute: the in-game time of day to start at (a daily schedule). */
- async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
+ async function jumpTo(x,z,npc,label,back,opts={}){if(!root.VoidDevTest?.session)return;fresh();const content=draftContent();if(opts.npcs)content.npcs={...(content.npcs||{}),...opts.npcs};const c=MC().check(content,checkCtx());
   write(back||RETURN,{tree:ui.tree,mission:ui.mission,step:null,npc:npc||null,at:Date.now()},root.sessionStorage);
   const r=await root.VoidDevTest.session({banner:'VIEWING: '+(label||'a spot')+' — not your real save',leave:'LEAVE',kind:'draft',
    apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
@@ -700,16 +705,19 @@
   'start-mission':m=>'[data-me-start-mission="'+CSS.escape(m.id)+'"]','start-place':m=>'[data-me-start-place="'+CSS.escape(m.id)+'"]','start-flag':m=>'[data-me-start-flag="'+CSS.escape(m.id)+'"]','start-near':m=>'[data-me-start-near="'+CSS.escape(m.id)+'"]','start-ask':m=>'[data-me-ask-on="'+CSS.escape(m.id)+'"]','start-deny':m=>'[data-me-ask-deny-start="'+CSS.escape(m.id)+'"]','cost-when':m=>'[data-me-cost-when="'+CSS.escape(m.id)+'"]',
   'add-step':m=>'[data-me-add-step="'+CSS.escape(m.id)+'"]',kind:(m,o)=>'[data-me-kind="'+CSS.escape(o)+'"]','step-npc':(m,o)=>'[data-me-step-npc="'+CSS.escape(o)+'"]','step-place':(m,o)=>'[data-me-step-place="'+CSS.escape(o)+'"]','step-item':(m,o)=>'[data-me-step-item="'+CSS.escape(o)+'"]',
   'step-subject':(m,o)=>'[data-me-step-subject="'+CSS.escape(o)+'"]',label:(m,o)=>'[data-me-label="'+CSS.escape(o)+'"]',say:(m,o)=>'[data-me-tstep="'+CSS.escape(o)+'"] textarea',ending:m=>'[data-me-ending="'+CSS.escape(m.id)+'"]','wait-at':m=>'[data-me-wait-at="'+CSS.escape(m.id)+'"] canvas'};
- let guideT=0;function guideSoon(){clearTimeout(guideT);guideT=setTimeout(guideNow,350);}
+ let guideT=0;function guideSoon(){clearTimeout(guideT);guideT=setTimeout(()=>{guideT=0;guideNow();},350);}
+ /* The PLAY buttons of the shown tree follow the saved draft at once, on every keystroke (not after Guide me's pause): filled in since the card was drawn, PLAY works now;
+    emptied, it is greyed with the reason (the same check as play and publish: mission-content.js treeNeeds). */
+ function syncPlay(sc){if(!sc||ui.mode!=='trees')return;const raw=local().trees.find(x=>x.id===ui.tree);if(!raw)return;
+  for(const m of raw.missions){const b=MC().treeBlockers(m,givers,items);for(const p of sc.querySelectorAll('[data-me-play^="tree:'+CSS.escape(m.id)+'"]')){const k=p.getAttribute('data-me-play');if(k!=='tree:'+m.id&&!k.startsWith('tree:'+m.id+'#'))continue;
+   if(b.length){p.disabled=true;if(k==='tree:'+m.id)p.title='Cannot be played yet: '+b.join('; ');}else if(p.disabled){p.disabled=false;p.removeAttribute('title');}}}}
  function guideNow(){const Gd=root.VoidEditorGuide;if(!Gd||!host||!built)return null;const sc=host.querySelector('#me-root');if(!sc)return null;
   if(ui.mode!=='trees'){Gd.clear(sc);return null;}
   if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}
   const raw=local().trees.find(x=>x.id===ui.tree);if(!raw||!sc.querySelector('[data-me-owner-tree]')){Gd.clear(sc);return null;}
   const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename="'+CSS.escape(raw.id)+'"]',text:'the tree’s name'});
   if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});
-  let doneM=null;for(const m of raw.missions){const list=MC().treeNeeds(m,givers,items);if(!list.length){if(!doneM||'tree:'+m.id===ui.mission)doneM=m;
-    // filled in since the card was drawn: its PLAY THIS DRAFT works now (the same check)
-    for(const b of sc.querySelectorAll('[data-me-play^="tree:'+CSS.escape(m.id)+'"]'))if(b.disabled){b.disabled=false;b.removeAttribute('title');}continue;}
+  syncPlay(sc);let doneM=null;for(const m of raw.missions){const list=MC().treeNeeds(m,givers,items);if(!list.length){if(!doneM||'tree:'+m.id===ui.mission)doneM=m;continue;}
    for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission="'+CSS.escape(m.id)+'"] '+f(m,n.step),text:n.text});}}
   return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play="tree:'+CSS.escape(doneM.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}
  // ---------------- RE-VOICE (owner-only server queue; nothing is generated in the browser or on the server)
@@ -789,7 +797,7 @@
   M.track(s,mid,C);const i=stepId?Math.max(0,(d.objectives||[]).findIndex(o=>o.id===stepId)):0;for(const o of (d.objectives||[]).slice(0,i))M.complete(s,mid,o.id,C);M.sync(s,C);
   return {state:s,where:loc,notes};}
  async function play(key,stepId){
-  const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
+  fresh();const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}
   const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first (Guide me highlights each box), then press PLAY again: '+c.errors.slice(0,4).join(' · ');draw();return;}
   const not=MC().notApplied({studio:studio(),local:local(),givers,items});
   const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);if(wsOn())await saveServer();   // the server copy is up to date before the page reloads
@@ -832,9 +840,11 @@
   if(nn.length)chk.append(el('p','New missions are ordinary mission records in each player’s save (and a story flag mt_<id> when paid); the cloud save already accepts them. Players who are part-way through a new mission when it is changed or removed keep their record; a removed one is untracked.','me-small'));
   if(not.length){chk.append(el('h5','Edits that will NOT reach players (kept in your draft)'));for(const t of not)chk.append(el('p','• '+t,'me-small'));}
   const note=el('input','','',{'aria-label':'Change note',placeholder:'What changed (shown in the version list)',maxlength:'200'});note.value=ui.note||'';note.oninput=()=>{ui.note=note.value;};chk.append(note);
+  // the draft changed since this check screen was drawn (another tab, UNDO, a field still being typed in): show the new check instead of sending what is not on screen
+  const changedSince=()=>{fresh();if(JSON.stringify(draftContent())===JSON.stringify(content))return false;status='Your draft changed since this check screen was drawn. It has been checked again: look it over, then press the button again.';ui.check=null;draw();return true;};
   const blocked=!live||!live.enabled||c.errors.length||(ui.check?.errors||[]).length||MC().empty(content);
-  const row=el('div','','me-row');row.append(btn('ASK THE SERVER TO CHECK',async()=>{try{ui.check=await call('developer/live-content/check',{content});status=ui.check.ok?'The server checked the draft: no problems.':'The server found problems.';}catch(e){status='Server check: '+e.message;}draw();},'',live?{}:{disabled:''}));
-  row.append(btn('PUBLISH TO ALL PLAYERS',async()=>{if(!confirm('Publish your draft to every player now? You can undo it afterwards.'))return;try{if((content.clips||[]).length){const u=await VI().upload(call,content.clips,t=>{status=t;const n=host&&host.querySelector('#me-status');if(n)n.textContent=t;});if(u.uploaded)status=u.uploaded+' voice file(s) uploaded.';}const rec=await call('developer/live-content/publish',{expected:live.version||0,content:{...content,note:(ui.note||'').slice(0,200)||undefined}});status='Published version '+rec.version+'. Players get it the next time the game loads.';await refreshServer();}catch(e){status='Not published: '+e.message;}draw();},'me-publish',{'data-me-publish':'1',...(blocked?{disabled:''}:{})}));
+  const row=el('div','','me-row');row.append(btn('ASK THE SERVER TO CHECK',async()=>{if(changedSince())return;try{ui.check=await call('developer/live-content/check',{content});status=ui.check.ok?'The server checked the draft: no problems.':'The server found problems.';}catch(e){status='Server check: '+e.message;}draw();},'',live?{}:{disabled:''}));
+  row.append(btn('PUBLISH TO ALL PLAYERS',async()=>{if(changedSince())return;if(!confirm('Publish your draft to every player now? You can undo it afterwards.'))return;try{if((content.clips||[]).length){const u=await VI().upload(call,content.clips,t=>{status=t;const n=host&&host.querySelector('#me-status');if(n)n.textContent=t;});if(u.uploaded)status=u.uploaded+' voice file(s) uploaded.';}const rec=await call('developer/live-content/publish',{expected:live.version||0,content:{...content,note:(ui.note||'').slice(0,200)||undefined}});status='Published version '+rec.version+'. Players get it the next time the game loads.';await refreshServer();}catch(e){status='Not published: '+e.message;}draw();},'me-publish',{'data-me-publish':'1',...(blocked?{disabled:''}:{})}));
   chk.append(row);root_.append(chk);
   // versions
   const vs=el('section','','me-versions');vs.append(el('h4','Published versions'));const hist=(live&&live.history)||[];if(!hist.length)vs.append(el('p','None yet.','me-small'));
@@ -847,10 +857,10 @@
   // the beginner layer (editor-home.js): jump to a view, add the wizard's mission, play a tree mission, what blocks one
   goto(o){Object.assign(ui,{check:null,newTree:false,...o});},
   addWizardMission(make){const d=local();const r=make(d,{T:T(),number:nextFree(d),givers});saveLocal(d);stale=true;Object.assign(ui,{mode:'trees',tree:r.tree.id,mission:'tree:'+r.mission.id,step:null,scrollTo:true,newTree:false});return {tree:r.tree.id,mission:r.mission.id};},
-  playTree(id,step){if(stale)rebuild();return play('tree:'+id,step||null);},
+  playTree(id,step){return play('tree:'+id,step||null);},fresh,
   blockers:m=>MC().treeBlockers(m,givers,items),get items(){return items;},giver,get givers(){return givers;},get built(){return built;},get src(){return src;},get server(){return server;},linesFor,linesView,lineRow,revoice,downloadQueue,voicePanel,setVoice,downloadVoices,voiceNow,
   ensure:()=>built?Promise.resolve():(loading=loading||load()),draftContent,checkCtx,jumpTo,openNpcTab,compass,exportEdits,saveServer,wsOn:()=>wsOn(),T,MC,G,nextFree,
   addGiverMission(npc,treeId){const d=local();let t=d.trees.find(x=>x.id===treeId);if(!t){t=T().newTree(d.trees,{name:'Missions from '+((giver(npc)||{}).name||npc),note:''});d.trees.push(t);}const m=T().addMission(t,{giver:npc});m.number=nextFree(d);saveLocal(d);stale=true;
    Object.assign(ui,{mode:'trees',tree:t.id,mission:'tree:'+m.id,step:null,scrollTo:true,newTree:false});root.VoidEditorGuide?.focusNext();return {tree:t.id,mission:m.id};}};
- root.VoidMissionEditor={shared,guideNow,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
+ root.VoidMissionEditor={shared,guideNow,fresh,get serverCopy(){return {...ws,timer:undefined};},saveServer,loadServer,render,get built(){return built;},reload:async()=>{built=null;loading=null;},draftContent,local,studio,play,refreshServer,get status(){return status;},get server(){return server;}};
 })(globalThis);

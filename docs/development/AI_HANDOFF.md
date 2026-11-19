@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): MISSION EDITOR BUG FIX — PLAY STRAIGHT AFTER TYPING (branch `claude/play-stale-fix`, build `2026-11-19-play-fix-1`, pushed, NO PR, not merged)
+
+Reported: PLAY THIS DRAFT pressed straight after typing in a step said "step 1 needs what the player must do" although the saved draft was complete (the wizard's PLAY IT NOW worked).
+
+- **Cause:** `mission-editor.js play()` found the mission in `built` (the trees drawn before the typing); typing saves the draft and only marks `built` stale, so the play check read the old step. The PLAY button was also greyed until Guide me's 350 ms pause, and a status line that was not on screen yet made `setStatus` redraw the whole editor on the first keystroke (the typing focus was lost after one character).
+- **Fix:** one helper, `fresh()` (the field being typed in hands over its value, the trees are rebuilt from the saved draft, a waiting Guide me pass runs now), called first by `play` (PLAY THIS DRAFT, PLAY THIS DRAFT FROM HERE, Test my mission / PLAY IT NOW via `shared.playTree`) and `jumpTo` (JUMP THERE, SEE IT ON THE STREET, NPC draft plays); PUBLISH and ASK THE SERVER TO CHECK refuse and re-check if the draft changed since the check screen was drawn; `syncPlay` greys / un-greys the PLAY buttons on every keystroke (same `treeBlockers` rule); `setStatus` adds its line in place instead of redrawing.
+- **Tests:** `tests/play-stale.test.cjs` (4), browser `tests/play-stale-browser.cjs` (empty step, OPEN TO FIX, type and press PLAY THIS DRAFT at once: it starts with the typed words; PLAY FROM HERE and Test my mission after an edit; passes, bundled Chromium, software GL; on the old code it fails with the reported message).
+- **Not verified:** publishing with the server switched on; real hardware.
 ### 19 Nov 2026 (newest): IMPORT A VOICE FILE FOR ANY LINE IN DEVELOPER TOOLS (branch `claude/voice-import`, build `2026-11-19-voice-import-1`, pushed, NO PR, not merged)
 
 The owner: type the line, make it in ElevenLabs, import the file in the editor. Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourteenth pass"; [`../VOID_RUNNER_VOICE_PRODUCTION.md`](../VOID_RUNNER_VOICE_PRODUCTION.md), "Imported voice files".
