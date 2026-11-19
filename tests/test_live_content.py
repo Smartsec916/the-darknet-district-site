@@ -115,17 +115,6 @@ class LiveContentTests(unittest.TestCase):
     def test_published_ids_pass_cloud_save_validation(self):
         """A beginner mission's records and reward flag are still accepted by clean_save (old saves load). Since 17 Nov 2026 the beginner campaign is removed
         from the game, so a tracked beginner mission in a District campaign is untracked; the records are kept."""
-        # A known NPC without a walking TALK prompt can own a notification-started mission; the device trigger is the execution path.
-        by_note = copy.deepcopy(good)
-        mn = by_note['trees'][0]['missions'][0]
-        mn['giver'] = 'rin-takeda'
-        mn['start'] = {'how': 'notification', 'channel': 'notify', 'from': 'rin-takeda', 'text': 'Test.', 'when': {'kind': 'pod-exit'}}
-        mn['offer'] = []
-        self.assertEqual(live.check(by_note), [])
-        # The same NPC still cannot be an in-person giver without a TALK interaction.
-        in_person = copy.deepcopy(by_note)
-        in_person['trees'][0]['missions'][0].pop('start', None)
-        self.assertTrue(live.check(in_person))
         state = test_story_save.StorySaveTests.state(None)
         state['story']['flags'].update({'missionPool': 'closed', 'br_new-errand': True})
         state['universe'] = {'trackingInitialized': True, 'trackedMission': 'new-errand', 'freeTravel': False,
@@ -157,6 +146,17 @@ class LiveContentTests(unittest.TestCase):
             c = copy.deepcopy(good)
             change(c['trees'][0]['missions'][0])
             self.assertTrue(live.check(c), c)
+        # A known NPC without a walking TALK prompt can own a notification-started mission; the device trigger is the execution path.
+        by_note = copy.deepcopy(good)
+        mn = by_note['trees'][0]['missions'][0]
+        mn['giver'] = 'rin-takeda'
+        mn['start'] = {'how': 'notification', 'channel': 'notify', 'from': 'rin-takeda', 'text': 'Test.', 'when': {'kind': 'pod-exit'}}
+        mn['offer'] = []
+        self.assertEqual(live.check(by_note), [])
+        # The same NPC still cannot be an in-person giver without a TALK interaction.
+        in_person = copy.deepcopy(by_note)
+        in_person['trees'][0]['missions'][0].pop('start', None)
+        self.assertTrue(live.check(in_person))
         state = test_story_save.StorySaveTests.state(None)
         state['story']['flags'].update({'missionPool': 'closed', 'mt_draft-test-tree-m1': True, 'mf_testFlag': True, 'ts_draft-test-tree': True, 'starterShipAwarded': True, 'shipAccess': 'granted'})
         state['ownedShips'] = ['starter', 'ship2']
