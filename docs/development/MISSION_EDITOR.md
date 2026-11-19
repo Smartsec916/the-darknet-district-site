@@ -7,6 +7,32 @@ Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission
 PLAY THIS DRAFT (and PLAY THIS DRAFT FROM HERE, Test my mission > PLAY, JUMP THERE) pressed right after typing in a box now plays exactly what was typed. Before, it could say "step 1 needs what the player must do" because it checked the mission as drawn before the typing. The PLAY button also wakes up on the keystroke that completes the mission (no pause), and typing into a freshly opened editor no longer loses the cursor after the first letter. PUBLISH and ASK THE SERVER TO CHECK re-check first if the draft changed since the check screen was drawn.
 
 For Claude / Codex: `mission-editor.js fresh()` (blur the focused field, `rebuild()`, run a pending `guideNow`) is called first by `play` and `jumpTo`; `shared.playTree` goes through `play`; `syncPlay` keeps the PLAY buttons in step with `MC().treeBlockers` on every input; publish uses `changedSince()`; `setStatus` inserts its line instead of redrawing. Tests: `tests/play-stale.test.cjs`, browser `tests/play-stale-browser.cjs`.
+## Fourteenth pass (19 Nov 2026): import a voice file for a line
+
+Branch `claude/voice-import`, build `2026-11-19-voice-import-1`. Pushed, no PR, not merged.
+
+### How to use it (plain steps)
+
+1. In the **Mission Editor**, type the line in the **What they say** box (voice tags like `[whispers]` are fine). The same works for any line in **Developer tools > NPCs > Lines & voice**.
+2. Go to ElevenLabs, make that line in the voice you want, and **download it** (MP3 is best).
+3. Back in the editor, press **IMPORT VOICE FILE** under the line and pick the file. The editor checks that it plays, then shows **Voice: imported file**, the file name, how long it is and its size. **▶ PLAY** lets you hear it.
+4. Limits: **40 seconds** at most. A file bigger than 600 KB (or an M4A / WebM) is made smaller for you automatically; it says "made smaller (Ogg Opus)". If your browser cannot do that, it tells you to download a lower-quality MP3 from ElevenLabs instead.
+5. **REPLACE** picks a new file; **REMOVE** takes it off the line (UNDO puts it back).
+6. If you change the words after importing, the line says **text changed since the voice was imported**: the game does not use the file for the new words. Import a new recording (REPLACE), or put the words back.
+7. **PLAY THIS DRAFT** uses your file straight away (it is kept in this browser). **PUBLISH TO ALL PLAYERS** uploads the file first, then publishes; players hear it with no sign-in. The check screen lists "N imported voice file(s)".
+8. The file is used exactly as it is: the character's sound effect still applies in the game (for example Zen Zephyr's monk filter or Iris's android tone).
+
+Good to know: the file stays in the browser you imported it in until you publish. On another computer the line says the file is not in this browser: import it there again, or publish from the first computer.
+
+### For Claude and Codex
+
+- `void-runner/voice-imports.js` (pure + browser): `LIMIT` (40 s, 600 KB, 200 files), `sniff`, `plan`, `caps`, `record`, `recordProblems`, `clipProblems`, `status`, `contentClips`, `keyOf` (speaker normalised like mission-content.js `who`, words with voice tags removed), `sha256` (crypto.subtle, pure fallback), `oggOpus` / `oggInfo` (Ogg muxer and reader). Browser: `prepare(file)` (decode with WebAudio, re-encode with WebCodecs AudioEncoder to Ogg Opus 24 kHz mono when needed), `store` / `getData` (IndexedDB, memory fallback, then the published copy), `use(clips, {draft, givers})` / `find` / `load` (the game; called from live-content.js `use`), `upload(request, clips)` (publish).
+- Draft: `local().clips[lineKey]` (tree lines: `tree:<mission>/<offer|ending|step/say|wrong|early>/<n>`; other lines: their `who|text` ref) `{who, text, hash, type, duration, bytes, name, at, reencoded?}`; carried by the server copy (`void_runner_drafts.py` WORKSPACE_KEYS `clips`, `clip_record_problems`). `mission-editor.js`: `importBox`, `clipTextOf`, a `voiceState` wrapper ("Voice: imported file"), `draftContent` passes `clipText` to `fromDrafts`, PUBLISH calls `VoidVoiceImports.upload` first.
+- Content: `content.clips` (mission-content.js `check` / `fromDrafts` / `apply` -> `env.clips`; server `clip_problems`; `publish` refuses files not stored). Game: `voice-clips.js` consults `VoidVoiceImports.find` before the manifests (`has`, `speak`; `played[].primary.imported` is `draft` or `live`).
+- Server (`void_runner_api.py`, `void_runner_live_content.py`): `POST developer/voice-clips` (which hashes are missing), `POST developer/voice-clips/<sha256>` (store; up to 900 KB body on this route only), `GET voice-clip/<sha256>` (public, year-long cache). Firestore collection `vr_voice_clips`. **The Render API needs a redeploy for these routes.**
+- `tools/audio/bake-imported.py`: published files -> `void-runner/assets/audio/voice/extra/` (see `docs/VOID_RUNNER_VOICE_PRODUCTION.md`).
+- Tests: `tests/voice-imports.test.cjs`, `tests/test_voice_imports.py`, browser `tests/voice-imports-browser.cjs`.
+- Not verified: the real Render server and Firestore (fake storage only); Firefox / Safari (the re-encode needs WebCodecs; Chromium tested); a real ElevenLabs download (generated WAV files in the test).
 ## Fourteenth pass (19 Nov 2026): tests with Reverie or Lace run at the time she is really out
 
 Branch `claude/draft-shift-time`, build `2026-11-19-draft-shift-1`. Pushed, no PR, not merged. The owner: "If I test with REVERIE or LACE make it the time they are actually there".

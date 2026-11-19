@@ -91,7 +91,7 @@
   backupNote='A draft in this browser could not be read; it was kept unchanged under '+bk+' (nothing was deleted). EXPORT it from the browser\'s storage or ask Claude/Codex to restore it.';return null;}
  // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; the owner, 17 Nov 2026: a cleared browser must not lose his trees)
  const WS='mission-editor-workspace',ws={state:'unknown',revision:0,savedAt:null,timer:0,conflict:null,note:''};
- const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
+ const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},clips:d.clips||{},retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
  const wsDoc=b=>({schemaVersion:1,kind:'workspace',adapter:'mission-editor',sourceKey:WS,baseRevision:0,data:{id:WS,title:'Mission Editor workspace',bundle:b}});
  const wsOn=()=>!!(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled);
  function scheduleServer(){if(!wsOn()||ws.conflict)return;clearTimeout(ws.timer);ws.state='pending';showServerState();ws.timer=setTimeout(()=>{saveServer();},5000);}
@@ -104,12 +104,12 @@
  async function loadServer(afterConflict){if(!wsOn()){ws.state='off';return;}
   let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}ws.state='off';return;}
   ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
-  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length);
+  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length&&!Object.keys(raw.clips||{}).length);
   const serverAt=Date.parse(b.savedAt||'')||0,localAt=Date.parse((raw&&raw.savedAt)||'')||0;
   if(empty&&!afterConflict){useServer(b,rec.updatedAt);return;}
   if(serverAt>localAt||afterConflict){ws.conflict={server:b,serverAt,local:raw,localAt,revision:rec.revision};ws.state='conflict';return;}
   ws.savedAt=(rec.updatedAt||0)*1000;ws.state='saved';if(localAt>serverAt)scheduleServer();}
- function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
+ function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},clips:b.clips||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
   ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;}
  function serverLine(){if(ws.conflict){const c=ws.conflict;return 'Your drafts on the server and in this browser differ.';}
   return ws.state==='saved'?'Saved on the server · '+new Date(ws.savedAt||Date.now()).toLocaleTimeString():ws.state==='pending'||ws.state==='saving'?'Saving to the server…':ws.state==='too-big'?ws.note:ws.state==='none'?'Saving to the server…':'Server copy not available — drafts are only in this browser';}
@@ -180,6 +180,8 @@
   if(edited&&l.recorded)return {text:'voice clip out of date: text only until re-voiced',cls:'bad',revoice:true};
   if(edited)return {text:'text only',cls:'muted',revoice:canVoice(l)};
   return l.recorded?{text:'voice clip recorded'+(l.clip?.engine==='elevenlabs'?' (ElevenLabs)':''),cls:'ok'}:{text:'text only (no voice clip)',cls:'muted'};}
+ // Imported voice files (voice-imports.js, 19 Nov 2026): a line's own imported file wins over any recorded clip; words changed since the import are flagged.
+ {const base=voiceState;voiceState=function(l){const r=l&&clipRec(lineKey(l)),x=r&&VI()?VI().status(r,shownText(l)):null;return x?{text:x.text,cls:x.cls,revoice:x.state==='changed'?base(l).revoice:false,imported:x.state}:base(l);};}
  // ---------------------------------------------------------------- rendering
  function render(panel,head){
   host=panel;headNode=head;
@@ -319,7 +321,9 @@
    const body=el('div','','me-say'),ta=el('textarea','','',{'aria-label':'Line',rows:'2',placeholder:'(empty: a placeholder; write the line yourself)'});ta.value=l.text||'';const tn=tagNoteEl(l.text,g&&g.id||(l.who==='You'?'You':''),g&&g.name);ta.oninput=()=>{editTree(t.id,x=>{const L=pick(x);if(L&&L[k])L[k].text=ta.value.slice(0,500);});tagNoteSet(tn,ta.value,g&&g.id||(l.who==='You'?'You':''),g&&g.name);};body.append(ta,tn);
    const tags=el('div','','me-tags');const ph=!!MS()?.isPlaceholder(l.text);if(MS()?.isProposed?.(l.text))tags.append(el('span','PROPOSED: Claude’s draft, waiting for your approval (text only, not recorded). Edit it or keep it.','me-vs me-warn',{'data-me-proposed':'1'}));tags.append(el('span',ph?'PLACEHOLDER for you: shown only here and in draft play; live players never see it':(l.text||'').trim()?'needs voice (text only until recorded)':'empty: a placeholder, not spoken','me-vs me-'+(ph?'bad':(l.text||'').trim()?'warn':'muted'),ph?{'data-me-placeholder':'1'}:{}));
    if(g&&(g.voice||vn.kind==='elevenlabs')&&(l.text||'').trim())tags.append(btn('RE-VOICE',()=>revoice([{who:g.id,ref:'tree:'+m.id+'/'+keyBase+'/'+k,key:'tree:'+m.id+'/'+keyBase+'/'+k,kind:'tree',text:l.text,voice:g.voice,source:'mission editor new tree',mission:'tree:'+m.id}],{key:'tree:'+m.id}),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
-   tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);row.append(body);box.append(row);});
+   tags.append(btn('×',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.splice(k,1);},true),'me-x',{'aria-label':'Remove line'}));body.append(tags);
+   if(g&&l.who!=='You'){const key='tree:'+m.id+'/'+keyBase+'/'+k,ib=importBox(key,g.id,()=>ta.value);body.append(ib);ta.addEventListener('input',()=>ib.refresh());}   // IMPORT VOICE FILE (voice-imports.js)
+   row.append(body);box.append(row);});
   const pick=x=>{const mm=x.missions.find(y=>y.id===m.id);if(!mm)return null;const [a,b]=keyBase.split('/');if(a==='offer')return mm.offer;if(a==='deny'){mm.start=mm.start&&mm.start.how?mm.start:{how:'person'};return (mm.start.denySay=mm.start.denySay||[]);}if(a==='ending')return (mm.ending.say=mm.ending.say||[]);const oo=mm.objectives.find(o=>o.id===a);if(!oo)return undefined;if(!Array.isArray(oo[b]))oo[b]=[];return oo[b];};
   box.append(btn('+ LINE',()=>editTree(t.id,x=>{const L=pick(x);if(L)L.push({who:'',text:''});},true)));return box;}
  function treeMissionCard(t,raw,m,i,issues){const card=el('article','','me-mission-panel',{'data-me-tree-mission':m.id}),ed=(fn,redraw)=>editTree(t.id,x=>{const mm=x.missions.find(y=>y.id===m.id);if(mm)fn(mm,x);},redraw);
@@ -548,6 +552,7 @@
   if(l.locked&&!unlocked&&!player)tags.append(btn('UNLOCK TO EDIT MY SCRIPT',()=>{if(!confirm('This is your own script ('+l.lock.replace('Your script — locked ','')+'). Edit it here?'))return;setLine(l,t,true);draw();}));
   if(vs.revoice)tags.append(btn('RE-VOICE',()=>revoice([l]),'',server.queue?{}:{disabled:'',title:'The re-voice queue is switched off on the server.'}));
   if(e)tags.append(btn('UNDO EDIT',()=>{const d=local();delete d.lines[l.ref];saveLocal(d);draw();}));
+  if(!player&&lineKey(l)&&l.kind!=='beginner'&&l.kind!=='design'){const ib=importBox(lineKey(l),l.who,()=>ta.value,{onChange:()=>{const s=row.querySelector('.me-vs'),v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}}});ta.addEventListener('input',()=>ib.refresh());body.append(tags,ib);row.append(body);return row;}   // IMPORT VOICE FILE (voice-imports.js)
   body.append(tags);row.append(body);return row;}
  function unlockBlock(m,e,editable){const box=el('section','','me-unlocks');box.append(el('h4','What becomes available'));
   const when=u=>u.when==='complete'?'when the mission is done':u.when==='accept'?'when it is accepted':u.when==='after'?'afterwards':u.when==='offer'?'when it is offered':'at step '+u.when;
@@ -602,6 +607,33 @@
   // the street pair's one neutral line with no mission (ncz-street-pair.js GREETING: in the code, text only)
   const gr=root.VoidStreetPair?.GREETING?.[id];if(gr&&gr.length){const d=el('div','','me-scene',{'data-npc-greeting':id});d.append(el('h5','When there is no mission for the player (placeholder in the game’s code)'));for(const t of gr)d.append(el('p','“'+t+'” · text only, no voice · needs a code change to edit','me-small'));root_.append(d);}
   if(!out.length&&!(gr&&gr.length))root_.append(el('p',q?'No other line matches.':'No lines outside missions.','me-small'));}
+ // ---------------- IMPORT VOICE FILE (the owner, 19 Nov 2026: type the line, make the voice in ElevenLabs, import the file here). voice-imports.js holds the rules.
+ /* The draft keeps a record per line (local().clips[lineKey]: who, text at import, hash, type, duration, bytes, name); the audio stays in this browser (IndexedDB) until
+    PUBLISH uploads it. Changing the words afterwards flags the line ("text changed since the voice was imported") and the file is not used for the new words. */
+ const VI=()=>root.VoidVoiceImports;
+ const lineKey=l=>!l?null:l.kind==='tree'&&l.key?l.key:l.ref||null;
+ const clipRec=k=>k?(local().clips||{})[k]||null:null;
+ function treeLineText(key){const [mid,a,b,c]=key.slice(5).split('/');const m=(local().trees||[]).flatMap(t=>t.missions).find(x=>x.id===mid);if(!m)return undefined;
+  const list=a==='offer'?m.offer:a==='deny'?(m.start||{}).denySay:a==='ending'?(m.ending||{}).say:((m.objectives||[]).find(o=>o.id===a)||{})[b],l=list&&list[Number(a==='offer'||a==='ending'||a==='deny'?b:c)];return l?String(l.text||''):undefined;}
+ function clipTextOf(key){if(String(key).startsWith('tree:'))return treeLineText(key);const l=index&&index.get(key);return l?shownText(l):undefined;}
+ function setClip(key,rec){const d=local();d.clips=d.clips||{};if(rec)d.clips[key]=rec;else delete d.clips[key];saveLocal(d);}
+ const IMPORT_HELP='Made the line in ElevenLabs? Download it (MP3 is best) and press IMPORT VOICE FILE. Players then hear your file for exactly these words. 40 seconds at most; a big file is made smaller for you.';
+ function importBox(key,who,textNow,opt={}){const I=VI(),box=el('div','','me-import',{'data-me-import':key});box.refresh=()=>{};if(!I)return box;
+  const draw_=()=>{box.replaceChildren();const rec=clipRec(key),now=String(textNow()||''),row=el('div','','me-row');
+   const input=el('input','','',{type:'file',accept:'audio/*,.mp3,.wav,.ogg,.opus,.m4a,.webm',hidden:'','data-me-import-file':key,'aria-label':'Voice file'}),msg=el('p','','me-small',{'data-me-import-msg':key,role:'status'});
+   input.onchange=async()=>{const f=input.files&&input.files[0];input.value='';if(!f)return;const words=String(textNow()||'').trim();if(!words){msg.className='me-small me-bad';msg.textContent='Write what they say first, then import the voice file for those words.';return;}
+    msg.className='me-small';const r=await I.prepare(f,t=>{msg.textContent=t;});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}
+    const kept=await I.store(r.hash,r.type,r.data,r.duration);setClip(key,I.record({who,text:words,hash:r.hash,type:r.type,duration:r.duration,bytes:r.bytes,name:r.name,reencoded:r.reencoded}));
+    status='Voice file imported ('+r.duration.toFixed(1)+' s'+(r.reencoded?', made smaller for you: Ogg Opus, '+Math.round(r.bytes/1024)+' KB':'')+'). PLAY THIS DRAFT uses it now; PUBLISH sends it to players. UNDO takes it back.'+(kept?'':' This browser’s site storage is blocked, so the file is only kept until you reload: publish before you close the game.');
+    draw_();if(opt.onChange)opt.onChange();const st=document.querySelector('#me-status,#npc-root .me-status');if(st)st.textContent=status;};
+   if(!rec){row.append(btn('IMPORT VOICE FILE',()=>input.click(),'',{'data-me-import-btn':key,title:'Pick an audio file you made for this line (MP3, WAV or OGG; M4A or WEBM if your browser plays them).'}),input);box.append(row,hint(IMPORT_HELP),msg);box.refresh=()=>{};return;}
+   const st=I.status(rec,now),chip=el('span',st.text,'me-vs me-'+st.cls,{'data-me-import-status':st.state});
+   const info=el('span',rec.name+' · '+rec.duration.toFixed(1)+' s · '+Math.max(1,Math.round(rec.bytes/1024))+' KB'+(rec.reencoded?' · made smaller (Ogg Opus)':''),'me-small',{'data-me-import-info':key});
+   let audio=null;const play=btn('▶ PLAY',async()=>{try{if(audio){audio.pause();audio=null;play.textContent='▶ PLAY';return;}const data=await I.getData(rec.hash);audio=new Audio(URL.createObjectURL(new Blob([data],{type:rec.type})));audio.onended=()=>{play.textContent='▶ PLAY';URL.revokeObjectURL(audio.src);audio=null;};play.textContent='■ STOP';await audio.play();}catch{msg.className='me-small me-bad';msg.textContent='The file could not be played here. Import it again (REPLACE).';}},'',{'data-me-import-play':key});
+   row.append(chip,info,play,btn('REPLACE',()=>input.click(),'',{'data-me-import-replace':key}),btn('REMOVE',()=>{setClip(key,null);status='Imported voice file removed from this line (UNDO puts it back).';draw_();if(opt.onChange)opt.onChange();},'me-x',{'data-me-import-remove':key}),input);
+   box.append(row,msg);I.available(rec.hash).then(a=>{if(!a&&st.state==='ok'){const m2=I.status(rec,now,{available:false});chip.textContent=m2.text;chip.className='me-vs me-'+m2.cls;chip.dataset.meImportStatus=m2.state;}}).catch(()=>{});
+   box.refresh=()=>{const s2=I.status(clipRec(key),String(textNow()||''));if(s2&&s2.state!==chip.dataset.meImportStatus){chip.textContent=s2.text;chip.className='me-vs me-'+s2.cls;chip.dataset.meImportStatus=s2.state;if(opt.onChange)opt.onChange();}};};
+  draw_();return box;}
  // ---------------- VOICE (queue item 0b, approved 18 Nov 2026): the current voice, and an ElevenLabs voice chosen by pasting its link or ID plus a name (npc-voices.js).
  /* Never generates audio, never asks for or keeps an API key, never lists the owner's ElevenLabs library: the choice is draft content (published like missions, checked by the
     server); lines RE-VOICEd for that character wait in the re-voice queue until the owner approves the spend. Registered Kokoro voices stay read-only. */
@@ -701,14 +733,14 @@
   catch(e){status='Server draft not saved: '+e.message;}draw();}
  function downloadQueue(){const a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify({format:'mission-editor-revoice-queue',exportedAt:new Date().toISOString(),items:server.queue?.items||[]},null,1)],{type:'application/json'}));a.download='mission-editor-revoice-queue.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
  function exportEdits(){const data={format:'darknet-district-mission-editor-export',version:1,exportedAt:new Date().toISOString(),note:'Owner draft. Lines marked "needs a code change" are for Claude or Codex to apply in the source.',
-   content:MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,givers,items}),notApplied:MC().notApplied({studio:studio(),local:local(),givers,items}),local:local(),studio:studio()};
+   content:MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,givers,items,clipText:clipTextOf}),notApplied:MC().notApplied({studio:studio(),local:local(),givers,items}),local:local(),studio:studio()};
   const a=el('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download='mission-editor-draft.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
  // ---------------- PLAY THIS DRAFT
  function playable(m,why){if(['beginner','registry'].includes(m.engine)&&!m.draftOnly||m.engine==='beginner')return why?'':true;
   if(m.engine==='tree'){const b=MC().treeBlockers(m.raw,givers,items);return why?(b.length?'Cannot be played yet: '+b.join('; ')+'.':''):!b.length;}
   return why?(m.engine==='contract'?'Not playable as a draft yet: contracts are flown from the contract board and have no draft adapter.':m.engine==='data'?'Not playable: this mission is inactive data; nothing in the game starts it yet.':'Not playable from here.'):false;}
  const STAGE={'ground-training':['inheritance','vesper'],'flight-training':['inheritance','vesper'],'meet-rook':['arrival','meridian'],'first-station':['legal-offer','meridian'],'combat-qualification':['legal-offer','meridian'],'legal-run':['legal-run','meridian'],'return':['return','kepler'],'illegal-run':['illegal-run','meridian'],'meet-admin':['open','earth']};
- function draftContent(){return MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,note:'draft play',givers,items});}
+ function draftContent(){return MC().fromDrafts({studio:studio(),local:local(),shippedBeginner:shipped().beginner,note:'draft play',givers,items,clipText:clipTextOf});}
  function checkCtx(){return {registry:src.registry,speakers:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName)),registryIds:new Set(Object.keys(shipped().registry).filter(id=>shipped().registry[id]?.beginner!==true)),
   registryObjectives:Object.fromEntries(Object.entries(shipped().registry).map(([id,d])=>[id,new Set((d.objectives||[]).map(o=>o.id))])),lines:new Set(index.keys()),
   givers:new Map(givers.map(g=>[g.id,g])),places:G().placeIds(),subjects:new Set(G().photoSubjects(givers).map(g=>g.id)),items,locations:new Set(Object.keys(refs.locations)),treeIds:new Set(built.trees.map(t=>t.id)),numbers:serverNumbers()};}
@@ -795,6 +827,7 @@
   for(const x of ch)chk.append(el('p','• '+x.text));if(regN)chk.append(el('p','• Mission Log text of '+regN+' older mission(s): '+Object.keys(content.registry).join(', ')+'.'));if(linesN)chk.append(el('p','• '+linesN+' changed NPC line(s), shown as text until re-voiced.'));{const tn=(content.trees||[]).reduce((n,t)=>n+t.missions.length,0),nn=Object.keys(content.names||{}).length;if(tn)chk.append(el('p','• '+tn+' mission(s) in '+(content.trees||[]).length+' tree(s) (the Main storyline is always sent), listed below.'));if(nn)chk.append(el('p','• '+nn+' tree name(s).'));}
   const w=MC().warnings(shippedB,nextB);chk.append(el('h5','Players part-way through ('+w.length+')'));if(!w.length)chk.append(el('p','No saved progress is affected.','me-small'));for(const t of w)chk.append(el('p','⚠ '+t,'me-warn'));
   const outOfDate=(content.lines||[]).filter(l=>index.get(l.who+'|'+l.from)?.recorded);if(outOfDate.length)chk.append(el('p','⚠ '+outOfDate.length+' line(s) have a recorded voice clip that no longer matches: voice clip out of date, text only until re-voiced.','me-warn'));
+  {const cl=content.clips||[],stale=Object.keys(local().clips||{}).length-cl.length;if(cl.length)chk.append(el('p','• '+cl.length+' imported voice file(s): players hear your file for those lines (uploaded when you publish; '+Math.round(cl.reduce((n,c)=>n+c.bytes,0)/1024)+' KB in all).','',{'data-me-publish-clips':String(cl.length)}));if(stale>0)chk.append(el('p','⚠ '+stale+' imported voice file(s) are not sent: their line’s words changed since the import (REPLACE the file, or put the words back).','me-warn',{'data-me-publish-clips-stale':String(stale)}));}
   const nt=content.trees||[],nn=nt.flatMap(t=>t.missions.map(m=>({t,m})));
   {const nums=nn.filter(({m})=>Number.isInteger(m.number)).sort((a,b)=>a.m.number-b.m.number),probs=MS().numberProblems(nt,ledger()),box=el('div','',null,{'data-me-numbers':String(nums.length)});box.append(el('h5','Mission numbers ('+nums.length+')'));
    for(const {t,m} of nums)box.append(el('p','• '+numLabel(m.number,m.title)+' · '+t.name+' · id '+m.id+(ledger()[m.number]===m.id?'':' · new number'),'',{'data-me-number-row':m.id}));for(const p of probs)box.append(el('p','⚠ '+p,'me-bad'));
@@ -811,7 +844,7 @@
   const changedSince=()=>{fresh();if(JSON.stringify(draftContent())===JSON.stringify(content))return false;status='Your draft changed since this check screen was drawn. It has been checked again: look it over, then press the button again.';ui.check=null;draw();return true;};
   const blocked=!live||!live.enabled||c.errors.length||(ui.check?.errors||[]).length||MC().empty(content);
   const row=el('div','','me-row');row.append(btn('ASK THE SERVER TO CHECK',async()=>{if(changedSince())return;try{ui.check=await call('developer/live-content/check',{content});status=ui.check.ok?'The server checked the draft: no problems.':'The server found problems.';}catch(e){status='Server check: '+e.message;}draw();},'',live?{}:{disabled:''}));
-  row.append(btn('PUBLISH TO ALL PLAYERS',async()=>{if(changedSince())return;if(!confirm('Publish your draft to every player now? You can undo it afterwards.'))return;try{const rec=await call('developer/live-content/publish',{expected:live.version||0,content:{...content,note:(ui.note||'').slice(0,200)||undefined}});status='Published version '+rec.version+'. Players get it the next time the game loads.';await refreshServer();}catch(e){status='Not published: '+e.message;}draw();},'me-publish',{'data-me-publish':'1',...(blocked?{disabled:''}:{})}));
+  row.append(btn('PUBLISH TO ALL PLAYERS',async()=>{if(changedSince())return;if(!confirm('Publish your draft to every player now? You can undo it afterwards.'))return;try{if((content.clips||[]).length){const u=await VI().upload(call,content.clips,t=>{status=t;const n=host&&host.querySelector('#me-status');if(n)n.textContent=t;});if(u.uploaded)status=u.uploaded+' voice file(s) uploaded.';}const rec=await call('developer/live-content/publish',{expected:live.version||0,content:{...content,note:(ui.note||'').slice(0,200)||undefined}});status='Published version '+rec.version+'. Players get it the next time the game loads.';await refreshServer();}catch(e){status='Not published: '+e.message;}draw();},'me-publish',{'data-me-publish':'1',...(blocked?{disabled:''}:{})}));
   chk.append(row);root_.append(chk);
   // versions
   const vs=el('section','','me-versions');vs.append(el('h4','Published versions'));const hist=(live&&live.history)||[];if(!hist.length)vs.append(el('p','None yet.','me-small'));

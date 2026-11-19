@@ -33,8 +33,8 @@
  const treeCtx=()=>({givers:new Map(env.givers.map(g=>[g.id,g])),places:G?.placeIds?G.placeIds():new Set((G?.PLACES||[]).map(p=>p.id)),subjects:new Set((G?.photoSubjects?.(env.givers)||[]).map(g=>g.id)),items:new Set(Object.keys(G?G.buyable(root.VoidProgression?.modules):{})),locations:new Set(Object.keys(root.VoidUniverse?.locations||{})),ships:new Map(Object.entries(root.VoidShips?.ships||{}))});
  function use(content,source,version){
   const r=MC.apply(content,env,ctx());
-  if(r.refused.length){MC.apply(null,env);current={version:0,source:'shipped',content:null,refused:r.refused};try{console.warn('[VOID//RUNNER] published missions refused; the shipped missions stay in force.',r.refused.slice(0,5));}catch{}return false;}
-  current={version:version||0,source,content,refused:null};env.draft=source==='draft';lastState=null;migrateNow();return true;
+  if(r.refused.length){MC.apply(null,env);try{root.VoidVoiceImports?.use([]);}catch{}current={version:0,source:'shipped',content:null,refused:r.refused};try{console.warn('[VOID//RUNNER] published missions refused; the shipped missions stay in force.',r.refused.slice(0,5));}catch{}return false;}
+  current={version:version||0,source,content,refused:null};env.draft=source==='draft';try{root.VoidVoiceImports?.use(env.clips,{draft:source==='draft',givers:env.givers});}catch{}lastState=null;migrateNow();return true;   // imported voice files (voice-imports.js): this browser's copy in a draft, the published copy otherwise
  }
  function migrateNow(){
   if(typeof state==='undefined'||!state?.universe||state===lastState&&!draft)return;lastState=state;
