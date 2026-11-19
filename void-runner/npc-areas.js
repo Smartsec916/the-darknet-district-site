@@ -6,7 +6,7 @@
      far-south  Far South                      Main Street's second stretch (pavements), the Far South Gate's walkers' door
      outskirts  The Outskirts                  the gravel walkways between the container homes
      port       The Port                       the landing pad and the walkers' side of the passage
-     district   The Darknet District (inside)  the hallway (the entry inside the inner door), the store's customer side, the vending alcove, the Sleeping Pod room
+     district   The Darknet District (inside)  the hallway (the entry inside the inner door), the store's customer side, the vending alcove (never the Sleeping Pod room: the player's own pod)
    THE CONTENT RULE (the owner's, never relaxed): never Milked (the building, its side street, its service alley, the pavement at their mouths), never NULL (the club and the
    pavement at its door), never the District bar, the VR play area or the arcade room, never the Corporate District or the Temple (not city). Also blocked: roads (the
    taxis' lanes), the gates' insides, building interiors players cannot walk, walls and furniture.
@@ -26,8 +26,8 @@
  // the ad screens' stands and the taxi poles on the Avenue's north pavement, read 18 Nov 2026 (kept when no newer reading exists)
  const AVENUE_OLD=[[19.63,20.13,-7.9,-7.5,'the taxi pole'],[32.38,34.38,-7.9,-7.3,'an advertising screen'],[39.38,41.38,-7.9,-7.5,'an advertising screen and the taxi pole'],[46.63,48.38,-7.9,-7.5,'an advertising screen'],[53.63,55.38,-7.9,-7.5,'an advertising screen'],[95.63,97.38,-7.9,-7.5,'an advertising screen'],[123.38,125.38,-7.9,-7.3,'an advertising screen'],[133.63,134.13,-7.9,-7.5,'the taxi pole']];
  const RULE={milked:'That is Milked (the studio building, its side street and its service alley are never used for her).',null:'That is NULL, the nightclub, or the pavement at its door (never used for her).',
-  bar:'That is the District bar (never used for her).',vr:'That is the District’s VR play area (never used for her).',arcade:'That is the District’s arcade room (left out: only the hallway, the store, the vending alcove and the pod room are used).',
-  corporate:'That is the Corporate District (not part of the city: never used for her).',terrace:'That is the smoking terrace (never used for her).'};
+  bar:'That is the District bar (never used for her).',vr:'That is the District’s VR play area (never used for her).',arcade:'That is the District’s arcade room (left out: only the hallway, the store and the vending alcove are used).',
+  pods:'That is the Sleeping Pod room (the players’ own pods: never used for her).',corporate:'That is the Corporate District (not part of the city: never used for her).',terrace:'That is the smoking terrace (never used for her).'};
  let CACHE=null;
  function defs(){if(CACHE)return CACHE;const Q=QT(),M=MK(),gates=id=>((Q&&Q.GATES)||[]).filter(g=>g.ends.lo?.quarter===id||g.ends.hi?.quarter===id).map(g=>R(g.rect,{name:g.name,id:g.id}));
   const lane=(M&&M.LANE)||[71,101,-174,-168.5],alley=(M&&M.ALLEY)||[71,98.5,-193.5,-190],foot=(M&&M.FOOTPRINT)||[78,98,-190,-174];
@@ -69,13 +69,12 @@
     floors:[R(W([-3,3,20,70.5]),{name:'hallway'}),R(W([-17,17,70.5,78.3]),{name:'Sleeping Pod room'}),R(W([3,17,43,53]),{name:'store'}),R(W([-7,-3,46.5,52.5]),{name:'vending'}),
      R(W([3,17,28,42]),{name:'bar'}),R(W([-17,-3,28,44]),{name:'VR'}),R(W([-10.5,-3,57.5,66.5]),{name:'arcade'}),R(W([3,15,56,69]),{name:'meeting room'})],
     walk:[R(W([-2.6,2.6,26.6,70.3]),{name:'the hallway',y:0}),R(W([-2.6,2.6,26.6,31]),{name:'the entry (inside the inner door)',y:0}),R(W([3.4,16.6,43.4,46.4]),{name:'the store (customers’ side)',y:0}),
-     R(W([14.3,16.6,46.4,51.2]),{name:'the store (by the racks)',y:0}),R(W([2.4,3.6,44.8,49.2]),{name:'the store’s doorway',y:0}),R(W([-6.6,-2.4,46.9,52.1]),{name:'the vending alcove',y:0}),
-     R(W([-16.6,16.6,70.9,75.4]),{name:'the Sleeping Pod room',y:0})],
+     R(W([14.3,16.6,46.4,51.2]),{name:'the store (by the racks)',y:0}),R(W([2.4,3.6,44.8,49.2]),{name:'the store’s doorway',y:0}),R(W([-6.6,-2.4,46.9,52.1]),{name:'the vending alcove',y:0})],
     roads:[],
-    no:[R(W([3,17,28,42]),{why:RULE.bar,rule:true,name:'the bar'}),R(W([-17,-3,28,44]),{why:RULE.vr,rule:true,name:'the VR play area'}),R(W([-10.5,-3,57.5,66.5]),{why:RULE.arcade,rule:true,name:'the arcade room'}),
+    no:[R(W([-17,17,70.5,78.3]),{why:RULE.pods,rule:true,name:'the Sleeping Pod room'}),R(W([3,17,28,42]),{why:RULE.bar,rule:true,name:'the bar'}),R(W([-17,-3,28,44]),{why:RULE.vr,rule:true,name:'the VR play area'}),R(W([-10.5,-3,57.5,66.5]),{why:RULE.arcade,rule:true,name:'the arcade room'}),
      R(W([3,15,56,69]),{why:'That is the meeting room (private: its door stays shut).',name:'the meeting room'}),R(W([-3,3,20,26]),{why:'That is the security vestibule (the checkpoint between the doors).',name:'the security vestibule'}),
      R(W([3,14.3,46.4,53]),{why:'That is behind the shop counter (staff only).',name:'behind the counter'}),R(W([3,17,51.2,53]),{why:'That is the store’s stock cage (staff only).',name:'the stock cage'})],
-    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]},{name:'pod room',x:WP(-10,73)[0],z:WP(-10,73)[1]}]}];
+    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]}]}];
   for(const a of A){a.gates=a.scene==='street'?gates(a.quarter):[];const g=GEN&&GEN.areas&&GEN.areas[a.id];
    a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):[];
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
@@ -141,7 +140,7 @@
    ['outskirts','outskirts-gate','just inside the Far South Gate',61,-225.5],['outskirts','outskirts-yard','the middle of the container yard',64,-242],['outskirts','outskirts-west-lane','the west lane',28,-245],['outskirts','outskirts-east-lane','the east lane',100,-244],
    ['port','port-pad','the landing pad',16,-89],['port','port-terminal','by the landing terminal',33.5,-102],['port','port-passage','the passage',39.2,-100],
    ['district','district-entry','the entry, inside the inner door',...WP(0,28.5)],['district','district-hall','the hallway',...WP(0,40)],['district','district-hall-back','the hallway by the pod room',...WP(0,64)],
-   ['district','district-store','the store, in front of the counter',...WP(10,45)],['district','district-vending','the vending alcove',...WP(-5,49.5)],['district','district-pods','the Sleeping Pod room',...WP(-12,72.5)]];
+   ['district','district-store','the store, in front of the counter',...WP(10,45)],['district','district-vending','the vending alcove',...WP(-5,49.5)]];
   for(const [area,id,name,x,z] of L)add(id,name,area,x,z);
   return out;}
  /* For the admin inventory (the server's copy of these rules): every area's rectangles, obstacles and posts, as plain numbers. */

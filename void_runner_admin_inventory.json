@@ -7382,12 +7382,6 @@
               133.5,
               -94,
               -88.8
-            ],
-            [
-              110.30000000000001,
-              143.5,
-              -117.30000000000001,
-              -112.80000000000001
             ]
           ],
           "floors": [
@@ -7446,6 +7440,16 @@
             {
               "rect": [
                 109.9,
+                143.9,
+                -120.19999999999999,
+                -112.4
+              ],
+              "why": "That is the Sleeping Pod room (the players’ own pods: never used for her).",
+              "rule": true
+            },
+            {
+              "rect": [
+                109.9,
                 123.9,
                 -83.9,
                 -69.9
@@ -7470,7 +7474,7 @@
                 -108.4,
                 -99.4
               ],
-              "why": "That is the District’s arcade room (left out: only the hallway, the store, the vending alcove and the pod room are used).",
+              "why": "That is the District’s arcade room (left out: only the hallway, the store and the vending alcove are used).",
               "rule": true
             },
             {
@@ -9507,7 +9511,7 @@
       }
     }
   },
-  "revision": "992d889646e6e266",
+  "revision": "f7c06d435aa1d929",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -26877,8 +26881,8 @@
     "void-runner/neochinatown.js": "277339a765e4fe52bd51409c56f98e0c53c1f4e93a2a0038571dd70d2a823a94",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "e3cbe7fb76f8282d55da9d85c754097c8f6b017cf0d473c4f24488302b96b4d7",
-    "void-runner/npc-behaviour.js": "3a7c0cee133ba1742b722532cbba81cebd39677968aa24be89c4fee2e7a3a1ff",
+    "void-runner/npc-areas.js": "b9d1e1cc79df286d6c25461b4683455682c2a6445d309fc9af6a120b3bba9dd6",
+    "void-runner/npc-behaviour.js": "bf15d9a0030b9673812527f67a152d8ce1e185515fa8a2b0eec0af560b200839",
     "void-runner/npc-device.js": "6011436c5f2163d7c2ce97f5ee014e86e04033740c313490479562bb8d714141",
     "void-runner/npc-editor.js": "a582f998ebe78d30b00bf013128c6b87c38c5ae0b78730b57e832fcfbe03b5a4",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",

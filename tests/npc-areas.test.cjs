@@ -18,7 +18,7 @@ test('six areas, each with ground she may stand on and named places; the Distric
 test('the content rule: never Milked, NULL, the District bar, VR or arcade room, the terrace, the Corporate District',()=>{
  const rule=[[52.5,-58,/NULL/],[30,-58,/NULL/],[88,-182,/Milked/],[85,-171,/Milked/],[85,-192,/Milked/],[69.5,-171,/Milked/],[69.5,-191.5,/Milked/],[-90,0,/Corporate/],[88,-105,/terrace/],[-30,-12,/Function Gate|Corporate/],[170,-12,/Temple/]];
  for(const [x,z,re] of rule){const c=A.check({x,z});assert.equal(c.ok,false,x+','+z);assert.equal(c.kind,'rule',x+','+z+' '+c.why);assert.match(c.why,re);assert.deepEqual(P.pick(REV,{x,z},c.area).spot,null,'never moved out of a forbidden place');}
- for(const [lx,lz,re] of [[10,34,/bar/],[-10,36,/VR/],[-7,62,/arcade/]]){const c=A.check(W(lx,lz));assert.equal(c.kind,'rule',re.source);assert.match(c.why,re);}
+ for(const [lx,lz,re] of [[10,34,/bar/],[-10,36,/VR/],[-7,62,/arcade/],[-5,73,/Sleeping Pod/],[10,72,/Sleeping Pod/]]){const c=A.check(W(lx,lz));assert.equal(c.kind,'rule',re.source);assert.match(c.why,re);}
  for(const id of [REV,'ethereal-lace',CAT])for(const [x,z] of [[52.5,-58],[88,-182]])assert.ok(P.spotProblems(id,{x,z}).length,id);
  assert.match(P.planProblems(REV,{mode:'stay',...W(10,34),yaw:0,actions:['idle']}).join(),/bar/);
  assert.match(P.planProblems(REV,{mode:'original',schedule:[{from:'08:00',to:'09:00',mode:'stay',x:69.5,z:-171,yaw:0,actions:['idle']}]}).join(),/Milked/,'a time block too');
@@ -31,8 +31,8 @@ test('roads, gates, buildings, walls and private rooms are blocked with a plain 
  assert.match(A.check(W(9,62)).why,/meeting room/);assert.match(A.check(W(0,23)).why,/vestibule/);assert.match(A.check(W(10,49)).why,/counter|staff/);
  const ob=A.get('outskirts').obstacles[0];assert.ok(ob,'the container homes stand in the yard');assert.equal(A.check({x:(ob[0]+ob[1])/2,z:(ob[2]+ob[3])/2},'outskirts').kind,'obstacle');});
 
-test('allowed: both Avenue pavements, Old Town, Far South, the Outskirts, the Port, the District hallway, store, vending and pod room',()=>{
- for(const id of ['laundry','south-laundry','oldtown-alley-mouth','oldtown-district-door','oldtown-access-road','far-south-middle','far-south-gate','outskirts-yard','outskirts-west-lane','port-pad','port-passage','district-entry','district-hall','district-store','district-vending','district-pods']){
+test('allowed: both Avenue pavements, Old Town, Far South, the Outskirts, the Port, the District hallway, store and vending',()=>{
+ for(const id of ['laundry','south-laundry','oldtown-alley-mouth','oldtown-district-door','oldtown-access-road','far-south-middle','far-south-gate','outskirts-yard','outskirts-west-lane','port-pad','port-passage','district-entry','district-hall','district-store','district-vending']){
   const p=place(id);assert.deepEqual(P.spotProblems(REV,p),[],id);assert.deepEqual(P.spotProblems(CAT,p),[],'the cat too: '+id);}
  assert.deepEqual(P.planProblems(REV,{mode:'stay',...place('outskirts-yard'),yaw:0,actions:['idle','look']}),[]);
  assert.deepEqual(P.planProblems(REV,{mode:'stay',...place('oldtown-alley-mouth'),yaw:0,actions:['scroll']}),[]);
@@ -57,7 +57,7 @@ test('routes stay in one area and on walkable ground; schedules may use a differ
  assert.equal(P.planNow(REV,{waiting:{...place('port-pad'),mission:'m'}}).area,'port');});
 
 test('the ChatGPT prompt lists the allowed areas with their bounds and the never-used places; recipes in other areas are accepted, forbidden ones refused',()=>{
- const pr=B.prompt(REV);for(const a of A.list())assert.ok(pr.includes(a.name),a.name);assert.match(pr,/NEVER/);assert.match(pr,/Milked/);assert.match(pr,/NULL/);assert.match(pr,/x 51\.4 to 53\.6/);assert.match(pr,/oldtown-alley-mouth/);assert.match(pr,/in ONE area/);
+ const pr=B.prompt(REV);for(const a of A.list())assert.ok(pr.includes(a.name),a.name);assert.match(pr,/NEVER/);assert.match(pr,/Sleeping Pod/);assert.doesNotMatch(pr,/district-pods/);assert.match(pr,/Milked/);assert.match(pr,/NULL/);assert.match(pr,/x 51\.4 to 53\.6/);assert.match(pr,/oldtown-alley-mouth/);assert.match(pr,/in ONE area/);
  const ok=B.read(JSON.stringify({recipe:B.KIND,version:1,npc:REV,schedule:[{from:'08:00',to:'12:00',do:'stay',at:'outskirts-yard',actions:['idle']},{from:'20:00',to:'22:00',do:'stay',at:'district-store',actions:['look']}]}),REV);assert.ok(ok.ok,ok.problems.join(' | '));
  const no=B.read(JSON.stringify({recipe:B.KIND,version:1,npc:REV,allDay:{do:'stay',at:{x:88,z:-182},actions:['idle']}}),REV);assert.equal(no.ok,false);assert.match(no.problems.join(),/Milked/);
  const two=B.read(JSON.stringify({recipe:B.KIND,version:1,npc:REV,allDay:{do:'route',points:[{at:'laundry',action:'look',seconds:3},{at:'oldtown-alley-mouth',action:'look',seconds:3}]}}),REV);assert.equal(two.ok,false);assert.match(two.problems.join(),/one area/);
