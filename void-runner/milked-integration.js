@@ -59,7 +59,7 @@
   actions.append(request);panel.append(header,detail,info,label,select,result,actions);document.body.append(panel);
   let openedStudio=0,lastSignature='',refreshTimer=null;
   const zone=()=>root.VoidBabylon?.zone;
-  const pretty=clip=>clip.replace(/^ac-/,'ActorCore · ').replace(/-/g,' ').replace(/\\b\\w/g,x=>x.toUpperCase());
+  const pretty=clip=>clip.replace(/^ac-/,'ActorCore · ').replace(/-/g,' ').replace(/\b\w/g,x=>x.toUpperCase());
   function closePanel(){panel.hidden=true;openedStudio=0;lastSignature='';if(refreshTimer!==null)clearInterval(refreshTimer);refreshTimer=null;}
   function refreshPanel(){
    if(!openedStudio)return;
