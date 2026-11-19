@@ -11,6 +11,25 @@ test('the site publishes what the branch deployment did, without dot or undersco
  for(const f of ['.github/workflows/pages.yml','.gitignore','.agents/memory/MEMORY.md','_licensed/void-runner/x.vrpak','exports/blackout-protocol-primary.zip','docs/VOID_RUNNER_VR_ARCADE.md','docs/development/mission-001/notification-1920.png','tests/smoke.cjs','tools/assets/build-pages.cjs','tools/animation-pipeline/clips.json','static/void-runner.html','static/attached_assets/x.png'])assert.ok(!B.publishable(f),f);
 });
 
+test('unreferenced originals are not shipped: each exists in the repository and no shipped page, script, stylesheet or manifest names it',()=>{
+ const {execFileSync}=require('node:child_process'),R=path.join(__dirname,'..'),tracked=execFileSync('git',['ls-files','-z'],{cwd:R,encoding:'utf8'}).split('\0').filter(Boolean);
+ const shipped=tracked.filter(f=>B.publishable(f)&&/\.(html?|js|cjs|mjs|css|json|xml|webmanifest|svg)$/i.test(f)),text=shipped.map(f=>{try{return fs.readFileSync(path.join(R,f),'utf8').toLowerCase();}catch{return '';}});
+ for(const f of B.UNSHIPPED){assert.ok(tracked.includes(f),f+' is still in the repository');assert.ok(!B.publishable(f),f);
+  const name=f.split('/').pop().toLowerCase(),forms=[name,encodeURIComponent(name).toLowerCase(),name.replace(/ /g,'%20')];
+  shipped.forEach((g,i)=>{for(const x of forms)assert.ok(!text[i].includes(x)||(name.startsWith('01_bg_')&&g.startsWith('blackout-protocol/')),g+' names '+f);});}
+ assert.ok(!tracked.some(f=>f.startsWith('iris-service/')&&B.publishable(f)),'iris-service/ is not shipped');
+ for(const f of ['attached_assets/top.webp','attached_assets/Iris 01.webp','blackout-protocol/assets/01_bg_far.webp','blackout-protocol/assets/platform_railing.png'])assert.ok(B.publishable(f),f);
+});
+
+test('Blackout Protocol ships its textures as lossless WebP: each PNG it replaces is kept in the repository, its WebP is published, and no published Blackout file loads the PNG',()=>{
+ const {execFileSync}=require('node:child_process'),R=path.join(__dirname,'..'),tracked=new Set(execFileSync('git',['ls-files','-z'],{cwd:R,encoding:'utf8'}).split('\0').filter(Boolean));
+ assert.ok(B.BLACKOUT_WEBP.size>=70);
+ const src=[...tracked].filter(f=>f.startsWith('blackout-protocol/')&&B.publishable(f)&&/\.(html|js|css)$/.test(f)&&!f.includes('/decoders/')&&!f.endsWith('make_seamless.js')).map(f=>fs.readFileSync(path.join(R,f),'utf8')).join('\n');
+ for(const f of B.BLACKOUT_WEBP){const w=f.replace(/\.png$/,'.webp'),name=f.split('/').pop();assert.ok(tracked.has(f),f+' stays in the repository');assert.ok(!B.publishable(f),f);assert.ok(tracked.has(w)&&B.publishable(w),w+' is published');
+  const b=fs.readFileSync(path.join(R,w));assert.equal(b.toString('latin1',0,4)+b.toString('latin1',8,12),'RIFFWEBP',w);assert.equal(b.toString('latin1',12,16),'VP8L',w+' is lossless');
+  assert.ok(!src.includes('assets/'+name),'a Blackout page or script still loads '+name);}
+});
+
 test('a packed model is encrypted, and the deployed loader decrypts it with the injected key',async()=>{
  const glb=Buffer.from('glTF stand-in model bytes, long enough to span several cipher blocks and keystream words.');
  const key=B.keyFrom(Buffer.alloc(32,7).toString('base64'));

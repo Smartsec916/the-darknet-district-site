@@ -75,4 +75,6 @@ function main(){
  for(const [s,r] of Object.entries(data.fit))console.log(s.padEnd(10),BODIES.map(f=>(r[f].ok?'+':'-')).join(''),' ',Object.entries(r).map(([f,x])=>f.slice(0,6)+':'+x.mismatch).join(' '));
 }
 module.exports={build,HAIR,BODIES};
-if(require.main===module)main();
+// The crowd bodies are meshopt-compressed since 18 Nov 2026: wait for the decoder. The shipped hair parts are meshopt-compressed too, so --check
+// reports them as changed bytes even when the geometry is the same (re-pack them as the site-slim branch did before shipping a rebuild).
+if(require.main===module)require('./glb-lib.cjs').ready.then(main);

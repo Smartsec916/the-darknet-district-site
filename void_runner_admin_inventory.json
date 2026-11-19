@@ -2248,7 +2248,7 @@
       }
     }
   },
-  "revision": "a4529c2e8883c6c8",
+  "revision": "4aecabb2750490fc",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -19248,7 +19248,7 @@
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
-    "void-runner/asset-pipeline.js": "90851d8ed9cef4b0787a957d235c4ae69d7dad33285d0809e3e04892b7c449f2",
+    "void-runner/asset-pipeline.js": "d8a25d2e44dcc6c4ff1143e996b2a2c6a7ddbb7f808b12d386925ca285f89836",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "b54e3fb4ef253d1fc544d255acc85a128457aee078cd9d0f13843f0f18c7670e",
     "void-runner/babylon-renderer.js": "081d3e1d23dde15b35ab286ae94810204464291a0f4126782bd077f53ca23a31",
@@ -19257,7 +19257,7 @@
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
-    "void-runner/cache.js": "f8804d408ef228599f93e43f7407ef5970b806e88ec0b90d6b315901043d2be0",
+    "void-runner/cache.js": "d6416f8737d431551942027cbe45a3f20fe5bdab20f39255364bc99fa41d6c25",
     "void-runner/campaign.js": "77c72e73cddf5290b3552654169966df6d5e8c55098761b77c6c8e8808324e2c",
     "void-runner/character-appearance.js": "9ac08aff11167e6cf99c2014154bff31847e49cb60dd575c268b47556312afce",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
