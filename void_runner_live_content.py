@@ -293,8 +293,65 @@ DENY = ['again', 'pod', 'after', 'never', 'start']
 DENY_MIN_MIN, DENY_MIN_MAX = 1, 120
 ASK_KEYS = ['yes', 'no', 'deny', 'denyMinutes', 'denyStart', 'denySay']
 # ACCEPT / DENY anywhere in a mission (19 Nov 2026): the step kind 'ask' (mission-content.js ASK_STEP)
-ASK_STEP_KEYS = ['question', 'yes', 'no', 'deny', 'goto', 'denyStart', 'denySay', 'price']
-ASK_STEP_DENY = ['end', 'skip', 'back', 'tree']
+ASK_STEP_KEYS = ['question', 'yes', 'no', 'deny', 'goto', 'denyStart', 'denySay', 'price', 'gain']
+ASK_STEP_DENY = ['end', 'skip', 'back', 'tree', 'continue']
+# A player reply that is a choice (19 Nov 2026; mission-content.js CHOICE): a player line {who: 'You', text (may be empty), choice: {...}}
+CHOICE_KEYS = ['yes', 'no', 'noText', 'credits', 'deny', 'goto', 'denyStart', 'yesSay', 'noSay']
+CHOICE_DENY = ['end', 'skip', 'back', 'tree', 'continue']
+
+
+def choice_ok(m, o=None):
+    """Where a player reply may be a choice (mission-content.js choiceOk): what is said when a step is done (not a Comms call, a message, a photo reply or an "Ask"
+    step), or the offer of a mission that does not ask ACCEPT / DENY itself and is given in person or walked near."""
+    if o is not None:
+        return o.get('kind') not in ('ask', 'send-photo', 'anim', 'wait', 'zone') and o.get('via') not in ('comms', 'messages')
+    st = m.get('start') if isinstance(m.get('start'), dict) else {}
+    if st.get('accept') is True:
+        return False
+    return st.get('how') != 'notification' or (isinstance(st.get('when'), dict) and st['when'].get('kind') == 'near')
+
+
+def choice_problems(c, m, i, tree, trees):
+    """A player reply's choice (mission-content.js checkChoice; the follow-up lines are checked by the caller). i: the index of its step (-1: the offer)."""
+    if not _keys(c, CHOICE_KEYS):
+        return ['the player\'s choice has unknown fields.']
+    out = []
+    for k in ('yes', 'no'):
+        if c.get(k) is not None and not _plain(c[k], LABEL_MAX):
+            out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+    if c.get('noText') is not None:
+        if not _plain(c['noText'], 500):
+            out.append('the reply on DENY must be plain text (500 characters at most).')
+        else:
+            out += voice_tag_problems(c['noText'])
+    cr = c.get('credits')
+    if cr is not None and not (type(cr) is int and cr != 0 and abs(cr) <= MONEY_MAX):
+        out.append('the credits on ACCEPT must be a whole number from 1 to 100000 (the player gets them or pays them).')
+    objs = [x for x in (m.get('objectives') or []) if isinstance(x, dict)]
+    ids = [x.get('id') for x in objs]
+    j = ids.index(c.get('goto')) if c.get('goto') in ids else -1
+    d = 'end' if c.get('deny') is None else c.get('deny')
+    if d not in CHOICE_DENY:
+        out.append('unknown "what happens on DENY".')
+    if d == 'skip':
+        if not j > i:
+            out.append('on DENY it must skip to a later step of this mission.')
+    elif d == 'back':
+        if not 0 <= j <= i:
+            out.append('on DENY it must go back to this step or an earlier one.')
+        else:
+            again = {x.get('id') for x in objs[j:i + 1]}
+            if any(isinstance(u, dict) and u.get('when') in again and u.get('kind') in ('credits', 'reputation') for u in (m.get('unlocks') or [])):
+                out.append('going back repeats a step that gives credits or standing each time.')
+    elif c.get('goto') is not None:
+        out.append('only "skip to" or "go back to" names a step.')
+    if d == 'tree':
+        firsts = {t['missions'][0].get('id') for t in trees if isinstance(t, dict) and t is not tree and isinstance(t.get('missions'), list) and t['missions'] and isinstance(t['missions'][0], dict)}
+        if c.get('denyStart') not in firsts:
+            out.append('on DENY it must start the first mission of another tree.')
+    elif c.get('denyStart') is not None:
+        out.append('only "start another tree" names a mission to start.')
+    return out
 CHANNELS = ['messages', 'comms', 'notify']
 WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time', 'near']
 NEAR_MIN, NEAR_MAX = 1, 30
@@ -1786,6 +1843,11 @@ def ask_step_problems(o, m, tree, trees, givers):
     pr = o.get('price')
     if pr is not None and not (type(pr) is int and 1 <= pr <= MONEY_MAX):
         out.append('what the player pays on ACCEPT must be a whole number from 1 to 100000 credits.')
+    gn = o.get('gain')
+    if gn is not None and not (type(gn) is int and 1 <= gn <= MONEY_MAX):
+        out.append('what the player gets on ACCEPT must be a whole number from 1 to 100000 credits.')
+    elif gn is not None and pr is not None:
+        out.append('on ACCEPT the player either gets credits or pays them, not both.')
     if any(o.get(k) is not None for k in ('via', 'early', 'wrong')):
         out.append('an "Ask the player" step has only the lines after ACCEPT and after DENY.')
     return out
@@ -1847,6 +1909,27 @@ def workspace_money_problems(trees):
                 q = o.get('question')
                 if q is not None and not (isinstance(q, str) and len(q) <= 300 and not TAGS.search(q)):
                     out.append('the question must be plain text, 300 characters at most.')
+                gn = o.get('gain')
+                if gn is not None and not (type(gn) is int and 1 <= gn <= MONEY_MAX):
+                    out.append('what the player gets on ACCEPT must be a whole number from 1 to 100000 credits.')
+            # a player reply that is a choice: its credits, button words and DENY (the rest is checked at publish)
+            sets = [m.get('offer')] + [o.get('say') for o in (m.get('objectives') if isinstance(m.get('objectives'), list) else []) if isinstance(o, dict)]
+            for ls in sets:
+                for line in (ls if isinstance(ls, list) else []):
+                    c = line.get('choice') if isinstance(line, dict) else None
+                    if c is None:
+                        continue
+                    if not isinstance(c, dict):
+                        out.append('the player\'s choice has an unknown shape.')
+                        continue
+                    cr = c.get('credits')
+                    if cr is not None and not (type(cr) is int and cr != 0 and abs(cr) <= MONEY_MAX):
+                        out.append('the credits on ACCEPT must be a whole number from 1 to 100000 (the player gets them or pays them).')
+                    for k in ('yes', 'no'):
+                        if c.get(k) is not None and not (isinstance(c[k], str) and len(c[k]) <= LABEL_MAX and not TAGS.search(c[k])):
+                            out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
+                    if c.get('deny') is not None and c['deny'] not in CHOICE_DENY:
+                        out.append('unknown "what happens on DENY".')
     return out
 
 
@@ -1905,7 +1988,7 @@ def check_trees(trees, inv, err, npcs=None):
     tids, mids, total = set(), set(), 0
     every = {t.get('id') for t in trees if isinstance(t, dict)}
 
-    def lines(ls, w):
+    def lines(ls, w, ch=None):
         if ls is None:
             return
         if not isinstance(ls, list) or len(ls) > 12:
@@ -1914,7 +1997,20 @@ def check_trees(trees, inv, err, npcs=None):
         for line in ls:
             for p in line_time_problems(line):
                 err(w + ': ' + p)
-            if not _keys(line, ['who', 'text', 'anim', 'wait', 'show', 'animFor']) or not _plain(line.get('text'), 500):
+            is_choice = isinstance(line, dict) and line.get('choice') is not None
+            if is_choice:
+                # a player reply that is a choice (mission-content.js CHOICE)
+                if ch is None:
+                    err(w + ': a player reply can be a choice only in what is said when a step is done, or in the offer of a mission that does not ask ACCEPT / DENY itself.')
+                elif line.get('who') != 'You':
+                    err(w + ': only the player\'s reply can be a choice.')
+                else:
+                    for p in choice_problems(line['choice'], ch[0], ch[1], t, trees):
+                        err(w + ': ' + p)
+                    if isinstance(line['choice'], dict):
+                        for k in ('yesSay', 'noSay'):
+                            lines(line['choice'].get(k), w + ' / the player\'s choice')
+            if not _keys(line, ['who', 'text', 'anim', 'wait', 'show', 'animFor', 'choice']) or not (_plain(line.get('text'), 500) or (is_choice and line.get('text') == '')):
                 err(w + ': a line must be plain text.')
             elif line.get('who') != 'You' and line.get('who') not in givers:
                 err(w + ': unknown speaker.')
@@ -1993,7 +2089,7 @@ def check_trees(trees, inv, err, npcs=None):
             r = m.get('rewards')
             if r is not None and not (type(r) is int and 0 <= r <= 100000):
                 err(w + ': credits must be a whole number between 0 and 100000.')
-            lines(m.get('offer'), w)
+            lines(m.get('offer'), w, (m, -1) if choice_ok(m) else None)
             objs = m.get('objectives')
             if not isinstance(objs, list) or not 1 <= len(objs) <= 20:
                 err(w + ': a mission needs 1 to 20 steps.')
@@ -2095,7 +2191,7 @@ def check_trees(trees, inv, err, npcs=None):
                         err(ow + ': unknown way of saying the lines.')
                     elif via != 'talk' and not (say and all(isinstance(x, dict) and x.get('who') not in (None, 'You') and x.get('who') == say[0].get('who') for x in say)):
                         err(ow + ': a Comms call or a message needs its lines, all from one NPC.')
-                lines(o.get('say'), ow)
+                lines(o.get('say'), ow, (m, objs.index(o)) if choice_ok(m, o) else None)
                 lines(o.get('early'), ow)
                 lines(o.get('wrong'), ow)
                 lines(o.get('denySay'), ow + ' / after DENY')

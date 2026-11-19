@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): MISSION EDITOR — A PLAYER REPLY CAN BE ACCEPT / DENY (WITH CREDITS); "WALK NEAR THE GIVER" IS ITS OWN WAY OF STARTING (branch `claude/reply-choice-near-start`, build `2026-11-19-reply-choice-1`, pushed, NO PR, not merged)
+
+The owner: "in player reply add the accept or deny option, credit changes if accepted. also i don't see the when the player walks closer to the giver option". How-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twenty-fifth pass".
+
+- **Walk near was hidden:** it was only the trigger "When walked near", in a list that appears after choosing a device start (Messages / Comms / Notification only); "In person" never showed it and the Blocks view's Start block had no control. Now one list everywhere (`mission-blocks.js START_MODES`): the Blocks Start block's **How it starts** (with the distance and the banner), the Form's **Starts**, the wizard (with a distance), Basic and Advanced. Same stored data (notify + near trigger). With a walk-near start the giver's offer words are now said as it starts.
+- **Reply choice:** a blue player reply → "Make this a choice: ACCEPT / DENY": button words, replies per button, Credits if accepted (gets / pays, MONEY rules, once), On DENY (end / skip / back / another tree / just continue), lines after each. Built on the "Ask the player" runtime: `mission-content.js expandChoices` turns it into an inline ask step after its step when the trees load; `live-content.js` shows its buttons on the line before it. Ask blocks also get "ACCEPT gives N CR" and DENY "Just go on". Client and server checks (`checkChoice` / `choice_problems`).
+- **Tests:** `tests/reply-choice.test.cjs`, `tests/test_reply_choice.py`, browser `tests/reply-choice-browser.cjs` (passes). **Not verified:** real hardware, VR, non-offer reply choices and every DENY path in a browser (unit-tested), publishing with the server on.
+
 ### 19 Nov 2026 (newest): THE BASE PISTOL AT ADMIN'S COUNTER, ZONES (FRIENDLY / NEUTRAL / HOSTILE), ARMED PEOPLE AND THE "CHANGE ZONE" BLOCK (branch `claude/pistol-zones`, build `2026-11-19-pistol-zones-1`, pushed, NO PR, not merged)
 
 The owner: "Admin will also sell a pistol, the base pistol. You can walk around freely in NeoChinatown. But you can't fire it there. Add a small Green 'Friendly' indicator in the top left ... Orange in 'Neutral' areas ... if you fire it you will be attacked ... red 'Hostile' area the enemy will try to kill you if you're seen and you can shoot back"; then "I'll let you know which areas are which", "let me change a room or area from friendly to hostile in the mission timeline", and a worry about players drawing by accident. Editor how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twenty-third pass".
