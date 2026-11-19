@@ -109,6 +109,11 @@
     for(let y=20;y<h;y+=46){g.fillStyle='#1c1e22';g.fillRect(20,y,w-40,16);for(let x=30;x<w-30;x+=14){g.fillStyle=rand()<.5?'#2cff7a':'#333';g.fillRect(x,y+5,4,4);}}},'mod-rack-back');
    return TX._rk={alb,led,back};}
   function signTex(text,fg='#d8d2c4',bg='#16171a',w=512,h=128,font='bold 54px Arial'){return canvas(w,h,(g)=>{g.fillStyle=bg;g.fillRect(0,0,w,h);g.fillStyle=fg;g.font=font;const tw=g.measureText(text).width;if(tw>w*.9){const px=parseFloat(/(\d+)px/.exec(font)[1]);g.font=font.replace(/\d+px/,Math.floor(px*w*.9/tw)+'px');}g.textAlign='center';g.textBaseline='middle';g.fillText(text,w/2,h/2+3);},'mod-sign');}
+  /* CORPORATE MOTIVATIONAL POSTERS (the owner's own lines, 19 Nov 2026): plain black text on a plain white sheet, clean sans-serif, nothing else (the owner: no graphics,
+     icons, logos or gradients). One DynamicTexture per poster (owned, disposed with the room). */
+  function posterTex(text){return canvas(384,512,(g,w,h)=>{g.fillStyle='#f2f2ef';g.fillRect(0,0,w,h);g.fillStyle='#111111';g.textAlign='center';g.textBaseline='alphabetic';let fs=44;const words=text.split(' ');let lines=[];
+    for(;fs>=20;fs-=2){g.font='bold '+fs+'px Arial, Helvetica, sans-serif';lines=[];let ln='';for(const wd of words){const t=ln?ln+' '+wd:wd;if(g.measureText(t).width>w*.8&&ln){lines.push(ln);ln=wd;}else ln=t;}lines.push(ln);if(lines.length*fs*1.25<h*.7)break;}
+    const top=(h-lines.length*fs*1.25)/2+fs*.95;lines.forEach((t,i)=>g.fillText(t,w/2,top+i*fs*1.25));},'mod-poster');}
   function artTex(hue){return canvas(256,320,(g,w,h)=>{const gr=g.createLinearGradient(0,0,w,h);gr.addColorStop(0,'hsl('+hue+',30%,20%)');gr.addColorStop(1,'hsl('+(hue+40)+',25%,8%)');g.fillStyle=gr;g.fillRect(0,0,w,h);for(let i=0;i<5;i++){g.fillStyle='hsla('+(hue+i*25)+',35%,'+(30+rand()*30)+'%,.5)';g.fillRect(rand()*w*.7,rand()*h*.7,40+rand()*90,6+rand()*60);}g.strokeStyle='rgba(230,220,200,.5)';g.lineWidth=2;g.beginPath();g.arc(w*.6,h*.4,50,0,5);g.stroke();},'mod-art');}
   function floorDisplay(){const t=new B.DynamicTexture('mod-floordisp',{width:256,height:96},scene,true);own.push(t);return t;}
   const drawFloor=(t,f)=>{const g=t.getContext();g.fillStyle='#050302';g.fillRect(0,0,256,96);g.fillStyle='#ff9a3a';g.font='bold 60px monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(M.floorName(f).replace('GROUND','G'),128,52);t.update();};
@@ -223,7 +228,14 @@
     const [cx0,cx1,cz0,cz1]=g.cred;box2(S.wood,cx0,cx1,0,.8,cz0,cz1);for(let i=0;i<9;i++){const bw=.04+rand()*.05,c=P('book'+(i%4),{c:['#4a2a24','#2a3a4a','#3a3a2a','#5a4a3a'][i%4],rough:.8});box2(c,cx0+.1+i*.1,cx0+.1+i*.1+bw,.8,.8+.2+rand()*.08,cz0+.08,cz1-.08);}
     cyl(S.alu,.12,.35,[5.2,.98,4.68]);cyl(P('shade',{c:'#d8cbb0',rough:.9,em:'#3a3020'}),.28,.18,[5.2,1.2,4.68],14,0,0,.22);
     const [sx0,sx1,sz0,sz1]=g.safe;box2(S.gun,sx0,sx1,0,.7,sz0,sz1);cyl(S.steel,.1,.03,[sx0-.01,.45,(sz0+sz1)/2],14,0,HALF);box2(S.steel,sx0-.03,sx0,.25,.3,sz0+.15,sz1-.15);
-    plant(3.28,4.62,1.35,'milked/milked-bamboo.glb');{const art=P('art-mgr',{dyn:artTex(30),rough:.6});plane(art,1.2,.9,[5.885,1.6,2.6],HALF);box2(S.dark,5.87,5.9,1.13,2.07,1.98,3.22);}
+    plant(3.28,4.62,1.35,'milked/milked-bamboo.glb');
+    // four framed motivational posters (the owner's lines): two over the west cubicles and one by the meeting nook in the open office, the surveillance one in the manager's glass office
+    {const PW=.6,PH=.8,frame=P('poster-frame',{c:'#0c0c0c',rough:.4,metal:.2});const poster=(key,text,x,z,ry)=>{const tx=posterTex(text),m=P('poster-'+key,{c:'#ffffff',dyn:tx,tile:1,rough:.3,metal:0,emTex:tx});m.emissiveColor=new B.Color3(.08,.08,.08);
+      const n=ry===PI?[0,1]:ry===-HALF?[1,0]:[-1,0];bx(frame,[n[0]?.02:PW+.03,PH+.03,n[0]?PW+.03:.02],[x,1.95,z],0);plane(m,PW,PH,[x+n[0]*.016,1.95,z+n[1]*.016],ry);};
+     poster('think','Think outside the box. Stay inside your cubicle',-5.885,3.85,-HALF);
+     poster('watch','The corporation believes in you. Surveillance confirms it.',5.885,2.6,HALF);
+     poster('individual','Individuality is encouraged within approved parameters',-5.885,-3.85,-HALF);
+     poster('team','Teamwork makes the shareholders\' dreams work',2.5,-4.885,PI);}
     // the meeting nook
     const [tx0,tx1,tz0,tz1]=pl.meet.table;box2(S.wood,tx0,tx1,.72,.76,tz0,tz1);for(const x of [tx0+.35,tx1-.35])box2(S.steel,x-.05,x+.05,0,.72,(tz0+tz1)/2-.2,(tz0+tz1)/2+.2);
     for(const x of [tx0+.4,tx1-.4]){chair(x,tz0-.45,0);chair(x,tz1+.45,PI);}chair(tx0-.5,(tz0+tz1)/2,HALF);
