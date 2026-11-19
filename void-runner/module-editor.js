@@ -15,13 +15,15 @@
  const catName=id=>(M().CATS.find(c=>c.id===id)||{}).name||id;
  /* The module picker: category, then module, then (optional) the free door it joins. on(type, to) */
  function picker(loc,on,attrs){const box=el('div','','me-row mod-pick',attrs||{}),cat=el('select','','',{'aria-label':'Category','data-mod-cat':'1'}),typ=el('select','','',{'aria-label':'Module','data-mod-type':'1'}),to=el('select','','',{'aria-label':'Joins at','data-mod-to':'1'});
-  for(const c of M().CATS)cat.append(new Option(c.name,c.id));const fill=()=>{typ.innerHTML='';for(const id of M().TYPE_IDS){const t=M().TYPES[id];if(t.cat===cat.value)typ.append(new Option(t.name,id));}note.textContent=(M().TYPES[typ.value]||{}).note||'';fillTo();};
+  for(const c of M().CATS)cat.append(new Option(c.name,c.id));const feedNote=v=>v&&v.startsWith('feed:')?((root.VoidCultRoom?.FEED_ROOMS||[]).find(r=>'feed:'+r.id===v)||{}).note||'':'';
+  const fill=()=>{typ.innerHTML='';for(const id of M().TYPE_IDS){const t=M().TYPES[id];if(t.cat===cat.value)typ.append(new Option(t.name,id));}if(!loc)for(const r of root.VoidCultRoom?.FEED_ROOMS||[])if(r.cat===cat.value)typ.append(new Option(r.name,'feed:'+r.id));note.textContent=(M().TYPES[typ.value]||{}).note||feedNote(typ.value);fillTo();};   // camera-feed-only rooms (cult-room.js) only for a new location
   const fillTo=()=>{to.innerHTML='';const t=M().TYPES[typ.value];to.append(new Option(loc&&loc.modules&&loc.modules.length?'joins at: the first free door that fits':'(the first module)',''));
    if(loc&&loc.modules)for(const f of M().freeSockets(loc)){if(t&&t.portal!==f.portal&&!(t&&t.portal&&!f.portal))continue;const B=loc.modules.find(x=>x.id===f.mod);to.append(new Option('joins at: '+f.mod+' · door '+f.sock+' ('+((M().TYPES[B&&B.type]||{}).name||'')+')',f.ref));}};
-  const note=el('span','','me-help');cat.onchange=fill;typ.onchange=()=>{note.textContent=(M().TYPES[typ.value]||{}).note||'';fillTo();};fill();
+  const note=el('span','','me-help');cat.onchange=fill;typ.onchange=()=>{note.textContent=(M().TYPES[typ.value]||{}).note||feedNote(typ.value);fillTo();};fill();
   box.append(el('b','Add'),cat,typ,to,btn('+ ADD',()=>on(typ.value,to.value||null),'',{'data-mod-add':'1'}),note);return box;}
  /* A new location in a mission (Add a location > category > module). Housing: the apartment with its hallway, linked. */
- function create(m,type,ed,note){const ids=new Set((m.apartments||[]).map(a=>a.id));let n=1;while(ids.has('l'+n))n++;const id='l'+n;const t=M().TYPES[type];
+ function create(m,type,ed,note){if(String(type).startsWith('feed:')){const CR=root.VoidCultRoom;if(!CR)return;const r=CR.addFeed(m,type.slice(5));ed(x=>{x.feeds=r.feeds;},true);note&&note('Camera feed “'+r.id+'” added: the Blackrock cult room, camera feed only (not walkable). Add a “Hack the access point” step and choose this camera feed there; its scene is below.');return;}   // a camera-feed-only room
+  const ids=new Set((m.apartments||[]).map(a=>a.id));let n=1;while(ids.has('l'+n))n++;const id='l'+n;const t=M().TYPES[type];
   let loc={id,door:'',modules:[]};if(t.legacy&&t.legacy.part==='flat'){loc=M().addModule(loc,'hall-'+t.legacy.style).loc;}const r=M().addModule(loc,type);if(!r.ok){note&&note(r.why);return;}
   ed(x=>{x.apartments=[...(x.apartments||[]),r.loc];},true);note&&note('Location “'+id+'” added: '+t.name+'. Choose its street door, then add more modules (they join at a free door).');}
  // the plan: one floor, top-down (north up), modules as rectangles, doors as marks

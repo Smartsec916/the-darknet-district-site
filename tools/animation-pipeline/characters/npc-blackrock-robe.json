@@ -1,0 +1,47 @@
+{
+ "name": "npc-blackrock-robe",
+ "source": "The Blackrock Cult Room robed figure (19 Nov 2026): a full-length black hooded robe, a deep hood that hides the face completely, long sleeves over the hands, a dark cord belt. Meshy text-to-image nano-banana-pro concept, image-to-3d, remesh 30k and auto-rig (1.78 m) on the owner's Meshy account; prepared by prepare_meshy.py. Instanced seven times in the cult room (blackrock-cult.js).",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "output_unwrapped": {
+   "name": "body",
+   "maxTris": 32000
+  }
+ },
+ "clips": [
+  "idle",
+  "talk",
+  "walk-game",
+  "laugh",
+  "br-kneel",
+  "br-rise",
+  "br-stand",
+  "br-read",
+  "br-shock"
+ ]
+}

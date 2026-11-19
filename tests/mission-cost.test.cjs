@@ -109,7 +109,7 @@ test('the wizard: "Player pays" makes a cost at ACCEPT and always asks; "Ask ACC
 
 test('server parity: void_runner_live_content.py / void_runner_drafts.py know the same fields; clean_save keeps credits 0..100,000,000 and the flags',()=>{
  const py=fs.readFileSync(R('void_runner_live_content.py'),'utf8'),dr=fs.readFileSync(R('void_runner_drafts.py'),'utf8'),api=fs.readFileSync(R('void_runner_api.py'),'utf8');
- assert.match(py,/MONEY_MAX, LABEL_MAX = 100000, 20/);assert.match(py,/ASK_KEYS = \['yes', 'no', 'deny', 'denyStart', 'denySay'\]/);assert.match(py,/'waitAt', 'cost'(, 'apartments')?\]/);assert.match(dr,/workspace_money_problems/);
+ assert.match(py,/MONEY_MAX, LABEL_MAX = 100000, 20/);assert.match(py,/ASK_KEYS = \['yes', 'no', 'deny', 'denyStart', 'denySay'\]/);assert.match(py,/'waitAt', 'cost'(, 'apartments')?(, 'feeds')?\]/);assert.match(dr,/workspace_money_problems/);
  assert.match(api,/not 0 <= v <= 100_000_000/);
  const MC=require(R('void-runner/mission-content.js'));assert.equal(MC.MONEY.max,100000);assert.equal(MC.MONEY.label,20);assert.deepEqual(MC.ASK_KEYS,['yes','no','deny','denyStart','denySay']);
 });

@@ -2,6 +2,24 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twenty-second pass (19 Nov 2026): camera feeds — the Blackrock Cult Room
+
+The owner's queued room: seen only through a hacked security camera, recorded to the V1 Gallery. Details: `docs/development/BLACKROCK_CULT_ROOM.md`.
+
+### How to use it (plain steps)
+
+1. Open the mission. Under **Add a location**, choose the category **Other**, then **Blackrock cult room (camera feed only)**, then **+ ADD**. A **CAMERA FEED “cam1”** card appears. (It is not a place the player walks into and it joins no other module.)
+2. Add a step **Hack the access point** (in the Blocks view: + ADD A BLOCK › Action › Hack the access point). Choose the access point where the player hacks the camera (any street door, or a door of one of the mission's apartments or locations), then **Camera feed: shows camera feed “cam1”**. (No feed yet? Press **+ ADD THE BLACKROCK CULT ROOM FEED** right there.) "Opens that door for them" is off for a camera hack; tick it if the hack should also open the door.
+3. Open **EDIT THE SCENE** under the step (or use the feed's card under the locations). The scene is already your choreography of 19 Nov 2026. Each beat plays after the one above it, after its own **pause before**:
+   - **A line:** choose who speaks (the initiate, robed figure 1 to 6, or all six together), write the words, and press **IMPORT VOICE FILE** for them (as for every other line). An empty line is silence and nothing is shown on the recording. "lasts (s)" can be left on auto. An animation on a line: talk, laugh, read, shock, stand, idle (the initiate cannot play one while he is kneeling).
+   - **Timing and movement:** the pause before each beat, the scene's **walking speed** (0.5 m/s, about half a normal walk) and the **circle radius**, a speed on the entry, a walk or the exit, the **gap in the exit line**, how long a turn takes and what they turn to face.
+   - **+ ADD A BEAT** (choose the kind first), **↑ ↓** to move one, **×** to remove one, **RESET TO THE OWNER'S CHOREOGRAPHY** to start again (UNDO brings your version back).
+   - The card says how long the scene lasts and how many lines are still empty, or what to fix in plain words (for example "the initiate must rise first").
+4. **▶ PREVIEW THE SCENE** plays it in the game through the camera, without recording. **PLAY THIS DRAFT** plays the whole mission: hack the camera, watch, the video lands in the V1 Gallery and the step is done.
+
+### For Claude and Codex
+
+`void-runner/cult-room.js` (rules, timeline, choreography maths), `cult-room-build.js` (the 3D room and the seven figures), `camera-feed.js` (the feed, the pause, the recording, the mission hook), `cult-room-editor.js` (this card; loaded with the editor). Wired in `module-editor.js` (Other > the feed room, `create`), `mission-editor.js` (`hackRow` adds the feed choice and the scene editor; `aptPanel` lists the feeds; `treeLineText` reads a feed line for IMPORT VOICE FILE, key `tree:<mission>/feed/<feed>/<beat>`), `mission-content.js` (mission key `feeds`, step key `feed`, the event `feed`), `apartments.js` (`hacksNow` carries the feed; a camera hack opens no door unless `unlock:true`), `live-content.js` (`feedSaved`), `device-gallery.js` (videos). Server: `void_runner_live_content.py feed_problems`, `void_runner_drafts.py`. Tests: `tests/cult-room.test.cjs`, `tests/test_cult_room.py`, `tests/cult-room-browser.cjs`. A voice file is keyed by the beat's place in the list: moving a line with ↑ ↓ after importing its voice shows "text changed" until it is imported again.
 ## NPC voice summary (19 Nov 2026, branch `claude/npc-voice-summary`, build `2026-11-19-npc-voice-summary-1`)
 
 The owner: "In the NPC editor when you select an NPC show which Elevenlabs voice was selected for them. Maybe link to it".
