@@ -69,7 +69,22 @@ Steps: `apt-enter {apt, mod?}`, `apt-use {apt, mod, object}`, `hack {ap:'<locati
 
 ## Performance (software GL in a Linux container, 960 x 540; the counts are what matters)
 
-See the table in the handoff entry (`docs/development/AI_HANDOFF.md`).
+Draw calls for one rendered frame (everything the scene draws, the glow pass included), `SceneInstrumentation.drawCallsCounter`, each module built on its own (a hallway with the module it serves), two or three views; the larger number is the view that looks back at the entrance:
+
+| | Medium | Low |
+|---|---|---|
+| Office floor | 78–148 (2 real lights, 19 chair / plant instances) | 33–61 (1 light, no props) |
+| Server room | 62–102 | 25–45 |
+| Office hallway (with the office floor) | 98–120 | 38–52 |
+| Elevator cab (office floor + hallway + cab) | 42–118 | 15–51 |
+| Elevator lobby | 64–66 | — |
+| Commercial hallway | 98–100 | — |
+| Shop back room / bar back room / clinic | 52–150 | — |
+| Storage room / maintenance corridor | 46–122 | — |
+| The walk: hallway + office + cab (floor 0) | 130 | — |
+| The walk: cab + server room (B1) | 94 | — |
+
+The apartments measured 94–108 on Medium. Every static piece is merged per material and the materials are shared by all the modules of a cluster, so adding a module adds only its own new materials (its lamps and screens).
 
 ## Not done / weak
 
