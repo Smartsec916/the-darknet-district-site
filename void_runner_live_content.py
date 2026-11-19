@@ -94,7 +94,7 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'characters']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'characters', 'zones']):
         return ['The content record has an unknown shape.']
     if content.get('characters') is not None:
         # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
@@ -102,6 +102,9 @@ def check(content, inv=None):
         for p in made_problems(content, inv):
             err(p)
         inv = with_made(content.get('characters'), inv)
+    if content.get('zones') is not None:
+        for p in zone_table_problems(content['zones'], inv or _json('void_runner_admin_inventory.json')):
+            err(p)
     if content.get('clips') is not None:
         for p in clip_problems(content['clips']):
             err(p)
@@ -1039,6 +1042,181 @@ def feed_shape_problems(trees):
     return out
 
 
+# ZONES (void-runner/zones.js: the same rules, against the admin inventory's `zones`): the owner's Zones table (content.zones), a mission's `combat`
+# (zones of its locations, rooms and city areas, its armed people, what happens when the player is taken down) and the "Change zone" step.
+ZONE_DEFAULT = {'zones': ['friendly', 'neutral', 'hostile'], 'figures': ['security', 'merc', 'enforcer'], 'roles': ['guard', 'patrol'], 'onDeath': ['retry', 'fail'],
+                'limit': {'armed': 12, 'route': 6, 'areas': 40, 'places': 24, 'table': 240}, 'stepKeys': ['target', 'zone', 'until', 'spawn']}
+ZONE_ID = re.compile(r'^[a-z][a-z0-9-]{0,23}$')
+ZONE_REF = re.compile(r'^([a-z][a-z0-9-]{0,23})(?:/([a-z][a-z0-9-]{0,11}))?$')
+
+
+def _zone_inv(inv):
+    return dict(ZONE_DEFAULT, **((inv or {}).get('zones') or {}))
+
+
+def _num(v):
+    return type(v) in (int, float) and v == v and abs(v) != float('inf')
+
+
+def zone_ref(m, ref):
+    """The room a reference names in a mission's apartments: (location, module id or None, module type or None), or None (zones.js refOf)."""
+    r = ZONE_REF.match(ref) if isinstance(ref, str) else None
+    if not r:
+        return None
+    a = next((x for x in (m.get('apartments') or []) if isinstance(x, dict) and x.get('id') == r.group(1)), None)
+    if a is None:
+        return None
+    if not r.group(2):
+        return (a, None, None)
+    if isinstance(a.get('modules'), list):
+        mm = next((x for x in a['modules'] if isinstance(x, dict) and x.get('id') == r.group(2)), None)
+        return (a, mm['id'], mm.get('type')) if mm else None
+    if r.group(2) in ('flat', 'hall'):
+        return (a, r.group(2), ('apt-' if r.group(2) == 'flat' else 'hall-') + str(a.get('style')))
+    return None
+
+
+def zone_table_problems(z, inv=None):
+    """The owner's Zones table (zones.js tableProblems)."""
+    zi, out = _zone_inv(inv), []
+    if z is None:
+        return out
+    if not _keys(z, ['areas', 'modules']):
+        return ['Zones table: unknown fields.']
+    places = set(((inv or {}).get('missionEditor') or {}).get('places') or [])
+    types = set((((inv or {}).get('modules') or {}).get('types') or {}).keys())
+    n = 0
+    for k, label, known in (('areas', 'area', places), ('modules', 'location type', types)):
+        v = z.get(k)
+        if v is None:
+            continue
+        if not isinstance(v, dict):
+            out.append('Zones table: ' + k + ' is a list of ' + label + 's and zones.')
+            continue
+        for i, zz in v.items():
+            n += 1
+            if zz not in zi['zones']:
+                out.append('Zones table: ' + label + ' "' + str(i) + '" must be Friendly, Neutral or Hostile.')
+            if known and i not in known:
+                out.append('Zones table: there is no ' + label + ' "' + str(i) + '".')
+    if n > zi['limit']['table']:
+        out.append('Zones table: at most %d entries.' % zi['limit']['table'])
+    return out
+
+
+def combat_problems(m, inv=None, shape_only=False):
+    """A mission's zones and armed people (zones.js combatProblems)."""
+    zi, out, c = _zone_inv(inv), [], m.get('combat')
+    if c is None:
+        return out
+    if not _keys(c, ['areas', 'places', 'armed', 'onDeath']):
+        return ['zones and enemies: unknown fields.']
+    lim = zi['limit']
+    places = None if shape_only else set(((inv or {}).get('missionEditor') or {}).get('places') or [])
+    types = (((inv or {}).get('modules') or {}).get('types') or {})
+    if c.get('areas') is not None:
+        if not isinstance(c['areas'], dict) or len(c['areas']) > lim['areas']:
+            out.append('zones: at most %d areas, each Friendly, Neutral or Hostile.' % lim['areas'])
+        else:
+            for i, z in c['areas'].items():
+                if z not in zi['zones']:
+                    out.append('zones: area "' + str(i) + '" must be Friendly, Neutral or Hostile.')
+                if places and i not in places:
+                    out.append('zones: there is no area "' + str(i) + '".')
+    if c.get('places') is not None:
+        if not isinstance(c['places'], dict) or len(c['places']) > lim['places']:
+            out.append('zones: at most %d locations or rooms, each Friendly, Neutral or Hostile.' % lim['places'])
+        else:
+            for ref, z in c['places'].items():
+                if z not in zi['zones']:
+                    out.append('zones: "' + str(ref) + '" must be Friendly, Neutral or Hostile.')
+                if not zone_ref(m, ref):
+                    out.append('zones: "' + str(ref) + '" is not one of this mission\u2019s locations or rooms.')
+    if c.get('onDeath') is not None and c['onDeath'] not in zi['onDeath']:
+        out.append('if the player is taken down: try again or fail the mission.')
+    armed = c.get('armed')
+    if armed is not None:
+        if not isinstance(armed, list) or len(armed) > lim['armed']:
+            return out + ['a mission has at most %d armed people.' % lim['armed']]
+        ids = set()
+        for a in armed:
+            w = 'armed person "' + str(a.get('id') if isinstance(a, dict) else '?') + '"'
+            if not _keys(a, ['id', 'at', 'x', 'z', 'figure', 'role', 'route', 'yaw']):
+                out.append(w + ' has unknown fields.')
+                continue
+            if not isinstance(a.get('id'), str) or not ZONE_ID.match(a['id']):
+                out.append(w + ': its name is lowercase letters, digits and hyphens (24 at most).')
+            elif a['id'] in ids:
+                out.append(w + ': two armed people have the same name.')
+            ids.add(a.get('id'))
+            if a.get('figure') not in zi['figures']:
+                out.append(w + ': choose a figure.')
+            if a.get('role') is not None and a['role'] not in zi['roles']:
+                out.append(w + ': guard or patrol.')
+            if a.get('yaw') is not None and not _num(a['yaw']):
+                out.append(w + ': the way they face is a number.')
+            r = zone_ref(m, a.get('at'))
+            if not r or not r[1]:
+                out.append(w + ': choose the room (module) they stand in.')
+                continue
+            b = (types.get(r[2]) or {}).get('bounds')
+
+            def inside(x, z):
+                return _num(x) and _num(z) and (not b or (b[0] <= x <= b[1] and b[2] <= z <= b[3]))
+            if not inside(a.get('x'), a.get('z')):
+                out.append(w + ': they must stand inside the room.')
+            rt = a.get('route')
+            if rt is not None and (not isinstance(rt, list) or len(rt) > lim['route'] or any(not isinstance(p, list) or len(p) != 2 or not inside(p[0], p[1]) for p in rt)):
+                out.append(w + ': a patrol route is up to %d points inside the room.' % lim['route'])
+            if a.get('role') == 'patrol' and not (isinstance(rt, list) and len(rt) >= 1):
+                out.append(w + ': a patrol needs at least one route point.')
+    return out
+
+
+def zone_step_problems(m, o, inv=None, shape_only=False):
+    """The "Change zone" step (zones.js stepProblems)."""
+    zi, out, w = _zone_inv(inv), [], 'step ' + str(o.get('id'))
+    if o.get('kind') != 'zone':
+        if any(o.get(k) is not None for k in zi['stepKeys']):
+            out.append(w + ': only a "Change zone" step names a zone.')
+        return out
+    if o.get('zone') not in zi['zones']:
+        out.append(w + ': choose Friendly, Neutral or Hostile.')
+    t = o.get('target')
+    places = None if shape_only else set(((inv or {}).get('missionEditor') or {}).get('places') or [])
+    if not isinstance(t, str) or not t:
+        out.append(w + ': choose the room, location or area that changes.')
+    elif t.startswith('area:'):
+        if places and t[5:] not in places:
+            out.append(w + ': there is no area "' + t[5:] + '".')
+    elif not zone_ref(m, t):
+        out.append(w + ': "' + t + '" is not one of this mission\u2019s locations or rooms.')
+    if o.get('until') is not None:
+        steps = [x.get('id') if isinstance(x, dict) else None for x in (m.get('objectives') or [])]
+        i = steps.index(o.get('id')) if o.get('id') in steps else -1
+        j = steps.index(o['until']) if o['until'] in steps else -1
+        if j < 0 or j <= i:
+            out.append(w + ': "until" must be a later step of this mission (or leave it empty: until the mission ends).')
+    if o.get('spawn') is not None and type(o['spawn']) is not bool:
+        out.append(w + ': "bring in the armed people placed there" is yes or no.')
+    if o.get('say') is not None or o.get('early') is not None or o.get('via') is not None:
+        out.append(w + ': a "Change zone" step has no lines.')
+    return out
+
+
+def zone_shape_problems(trees):
+    """The editor's server copy of the draft: zones, armed people and "Change zone" steps are well formed (areas are checked when publishing)."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if isinstance(m, dict):
+                out += combat_problems(m, {}, shape_only=True)
+                for o in m.get('objectives') or []:
+                    if isinstance(o, dict):
+                        out += zone_step_problems(m, o, {}, shape_only=True)
+    return out
+
+
 def apartment_shape_problems(trees):
     """The editor's server copy of the draft: apartments and their steps are well formed (doors are checked when publishing)."""
     out = []
@@ -1766,7 +1944,7 @@ def check_trees(trees, inv, err, npcs=None):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost', 'apartments', 'feeds']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost', 'apartments', 'feeds', 'combat']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
@@ -1774,6 +1952,12 @@ def check_trees(trees, inv, err, npcs=None):
                 err(w + ': ' + p)
             for p in feed_problems(m, inv):
                 err(w + ': ' + p)
+            for p in combat_problems(m, inv):
+                err(w + ': ' + p)
+            for o in m.get('objectives') or []:
+                if isinstance(o, dict):
+                    for p in zone_step_problems(m, o, inv):
+                        err(w + ': ' + p)
             if m.get('waitAt') is not None:
                 for p in wait_at_problems(m.get('giver'), m['waitAt'], inv):
                     err(w + ': ' + p)
@@ -1816,7 +2000,7 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'mod', 'object', 'ap', 'stay', 'unlock', 'needs', 'feed', *ASK_STEP_KEYS, *ESCORT_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'mod', 'object', 'ap', 'stay', 'unlock', 'needs', 'feed', 'target', 'zone', 'until', 'spawn', *ASK_STEP_KEYS, *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))

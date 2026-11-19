@@ -418,6 +418,7 @@
    r.append(lab,nx,btn('×',()=>ed(x=>{x.choices.splice(k,1);},true),'me-x'));br.append(r);});
   br.append(btn('+ BRANCH',()=>ed(x=>{x.choices=x.choices||[];let n=x.choices.length+1;while(x.choices.some(c=>c.id==='choice-'+n))n++;x.choices.push({id:'choice-'+n,label:'',next:''});},true)));card.append(br);
   card.append(treeUnlocks(t,m,ed));const fu=followups(m);if(fu)card.append(fu);}
+  if(root.VoidZoneEditor)card.append(root.VoidZoneEditor.missionPanel(m,ed));   // zones and armed people (zone-editor.js): in both the Blocks and the Form view
   // checks and actions
   const mine=issues.filter(x=>x.where===m.id||x.where===m.title||String(x.where).startsWith(m.id+' /')||String(x.where).startsWith((m.title||'\u0000')+' /'));
   const val=el('section','','me-issues');val.append(el('h4','Checks'));if(!mine.length)val.append(el('p','No problems found.','me-ok'));for(const x of mine)val.append(el('p',x.text,x.level==='error'?'me-bad':'me-warn'));card.append(val);
@@ -611,6 +612,7 @@
    const nr=el('input','','',{type:'number',min:'1',max:'50',step:'1',size:'3','aria-label':'Only while the player stays within (metres)',placeholder:'—','data-me-step-near':o.id});nr.value=Number.isInteger(o.near)?String(o.near):'';
    nr.oninput=()=>{const n=parseInt(nr.value,10);eo(x=>{if(Number.isFinite(n)&&n>0)x.near=Math.min(50,n);else delete x.near;words.textContent=waitWords(x);});};
    head.append(el('span','Wait','me-small'),hd,el('span','seconds · only while the player stays within','me-small'),nr,el('span','m of','me-small'),npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label:'Who the player stays near',empty:'— anyone / anywhere —',attrs:{'data-me-step-npc':o.id}}),words);}
+  else if(o.kind==='zone'&&root.VoidZoneEditor)head.append(...root.VoidZoneEditor.stepFields(m,o,eo));   // "Change zone" (zone-editor.js)
   else if(o.kind==='apt-enter'||o.kind==='apt-use')head.append(...placeRow(m,o,eo));   // the place by its real name; the words follow it (placeRow)
   else if(o.kind==='hack')head.append(...hackRow(m,o,eo));
   else if(o.kind==='ask'&&root.VoidMissionBlocksView)head.append(...root.VoidMissionBlocksView.askFields({t,m,o,eo:(fn,redraw=true)=>eo(fn,redraw),kit:blocksKit}));   // ACCEPT / DENY in the middle of a mission (the same fields as its block)

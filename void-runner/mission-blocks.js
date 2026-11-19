@@ -15,7 +15,7 @@
  const TYPES={
   start:{name:'Start',color:'#9fb4c8',icon:'start'},who:{name:'Who',color:'#4da3ff',icon:'who'},words:{name:'Words',color:'#d4dae2',icon:'words'},
   action:{name:'Action',color:'#ff8a3d',icon:'action'},item:{name:'Item',color:'#3fd17a',icon:'item'},time:{name:'Time',color:'#b08cff',icon:'time'},
-  ask:{name:'Ask',color:'#ffd23f',icon:'ask'},apartment:{name:'Location',color:'#22c5b8',icon:'apartment'},end:{name:'End',color:'#9fb4c8',icon:'end'},other:{name:'Form view only',color:'#8b949e',icon:'other'}};
+  ask:{name:'Ask',color:'#ffd23f',icon:'ask'},zone:{name:'Zone',color:'#e5484d',icon:'zone'},apartment:{name:'Location',color:'#22c5b8',icon:'apartment'},end:{name:'End',color:'#9fb4c8',icon:'end'},other:{name:'Form view only',color:'#8b949e',icon:'other'}};
  /* WHO colours: the player is always blue; every NPC gets a stable colour from its id (the same everywhere), and inside one mission no two people share one (the next free
     colour is taken in the order they appear). None of them is the player's blue. */
  const PLAYER='#4da3ff',PALETTE=['#ff5fa2','#e07bff','#ff6b5e','#b9e65a','#e8c27a','#5ef2c2','#ff9ec7','#f2e85a'];
@@ -27,14 +27,14 @@
    for(let n=0;n<PALETTE.length&&used.has(PALETTE[k]);n++)k=(k+1)%PALETTE.length;out.set(id,PALETTE[k]);used.add(PALETTE[k]);}return out;}
  /* What a step is, as a block: its type (header tint), its WHO (border) and the line groups it carries (with the speaker lines default to). */
  const KIND_TYPE={talk:'who',hear:'who',deliver:'item',buy:'item',go:'action',arrive:'action',enter:'action',leave:'action',photo:'action','send-photo':'action','pod-exit':'action',
-  'follow-them':'action','they-follow':'action','their-cab':'action','shared-cab':'action',anim:'action','apt-enter':'action','apt-use':'action',hack:'action',message:'words','await-call':'words',wait:'time',ask:'ask'};
+  'follow-them':'action','they-follow':'action','their-cab':'action','shared-cab':'action',anim:'action','apt-enter':'action','apt-use':'action',hack:'action',message:'words','await-call':'words',wait:'time',ask:'ask',zone:'zone'};
  const typeOf=o=>(o&&KIND_TYPE[o.kind])||'other';
  const NPC_DOES=['talk','hear','anim','follow-them','they-follow','their-cab','shared-cab','ask'];
- function stepWho(o,m){if(!o)return null;if(o.kind==='wait')return o.near&&o.npc?o.npc:null;if(o.kind==='hear'||o.kind==='ask')return o.npc||(m&&m.giver)||null;
+ function stepWho(o,m){if(!o)return null;if(o.kind==='zone')return null;if(o.kind==='wait')return o.near&&o.npc?o.npc:null;if(o.kind==='hear'||o.kind==='ask')return o.npc||(m&&m.giver)||null;
   if(o.kind==='message'||o.kind==='await-call')return o.npc||(m&&m.start&&m.start.from)||(m&&m.giver)||null;if(NPC_DOES.includes(o.kind))return o.npc||null;if(!KIND_TYPE[o.kind])return o.npc||null;return 'You';}
  /* The line groups of a step (the Form view shows the same ones): [{key, title, who (default speaker), player (may the player speak here?), anim (may a line carry an animation?)}]. */
  function lineSets(o,m){if(!o)return [];const k=o.kind,dev=o.via==='comms'||o.via==='messages',who=k==='photo'?(m&&m.giver):o.npc||(m&&m.giver);
-  if(['message','pod-exit','anim','wait'].includes(k))return [];
+  if(['message','pod-exit','anim','wait','zone'].includes(k))return [];
   if(k==='ask')return [{key:'say',title:'After ACCEPT',who,player:true,anim:true},{key:'denySay',title:'After DENY',who,player:true,anim:true}];
   if(k==='send-photo')return [{key:'say',title:'Reply to the right photo',who,player:false,anim:false},{key:'wrong',title:'Reply to any other photo',who,player:false,anim:false}];
   const out=[{key:'say',title:k==='talk'||k==='deliver'||k==='hear'?'What is said':'What is said when this is done',who,player:!dev,anim:!dev}];
@@ -104,6 +104,7 @@
   {id:'time',type:'time',name:'Time',help:'Wait a number of seconds before the mission goes on.'},
   {id:'ask',type:'ask',name:'Ask ACCEPT / DENY',help:'The mission stops and asks the player. You choose what DENY does.'},
   {id:'apartment',type:'apartment',name:'Location',help:'An apartment, or a place built from modules (an office, a server room, a shop back room …) behind a street door for this mission (open from the block above).'},
+  {id:'zone',type:'zone',name:'Zone',help:'Change a room, a location or a city area to Friendly, Neutral or Hostile from here on (until a later block or the end of the mission).'},
   {id:'npc',type:'who',name:'Add another NPC',help:'Bring another character into the mission: the player talks to them next.'}];
  /* Second level: what exactly. kind: the step kind (or 'unlock:<kind>', 'cost', 'apartment'); who: 'npc' (choose a character) or 'player'; adv: only shown in Advanced. */
  const CHOICES={
@@ -142,13 +143,14 @@
    {id:'take',kind:null,name:'Take an item from the player',help:'Not in the game yet (the game has no inventory for that).',off:true}],
   time:[{id:'wait',kind:'wait',name:'Wait a number of seconds',help:'1 to 600 seconds; optionally only while the player stays near someone.'},
    {id:'clock',kind:null,name:'Only at a time of the in-game day',help:'Not for single blocks yet: use a mission that starts “after in-game time” (Form view).',off:true}],
+  zone:[{id:'zone',kind:'zone',name:'Change zone (Friendly / Neutral / Hostile)',help:'A room or location of this mission, or a city area; the corner chip changes at once. Optionally brings in the armed people placed there.'}],
   ask:[{id:'ask',kind:'ask',name:'Ask the player: ACCEPT or DENY',help:'Your question and buttons; ACCEPT goes on, DENY does what you choose.'}],
   apartment:[{id:'location',kind:'location',name:'Build a location from modules',help:'Housing, commercial, office, server room, hallways, elevator, other: modules that join at their doors.'},{id:'apartment',kind:'apartment',name:'Instance an apartment',help:'Pick its style and its street door.'}],
   npc:[{id:'talk',kind:'talk',who:'npc',fresh:true,name:'Bring someone in',help:'Choose who; the player talks to them next.'}]};
  /* A new step of a kind, in the editor's draft shape (what + STEP in the Form view makes), with a Mission Log label filled in from the names. */
  function stepFor(kind,{npc='',via=null,name=id=>id,giver=''}={}){const o={id:'',label:'',kind};const nm=npc?name(npc):'';
   if(['talk','deliver','hear'].includes(kind)){o.npc=npc;o.place='';o.item='';o.say=[{who:'',text:''}];if(kind!=='hear')o.early=[];if(via&&via!=='talk')o.via=via;}
-  else if(kind==='anim'){o.npc=npc;o.clip='';o.hold=3;}else if(kind==='wait'){o.hold=10;}else if(kind==='ask'){o.npc='';o.question='';o.say=[];o.denySay=[];}
+  else if(kind==='anim'){o.npc=npc;o.clip='';o.hold=3;}else if(kind==='wait'){o.hold=10;}else if(kind==='zone'){o.target='';o.zone='hostile';}else if(kind==='ask'){o.npc='';o.question='';o.say=[];o.denySay=[];}
   else if(['follow-them','they-follow','their-cab','shared-cab'].includes(kind)){o.npc=npc;o.say=[];}
   else if(kind==='photo'){o.npc=npc;o.say=[];}else if(kind==='send-photo'){o.npc=npc;o.subject='';o.say=[];o.wrong=[];}
   else if(kind==='go'||kind==='enter'||kind==='leave'||kind==='arrive'){o.place='';o.say=[];}else if(kind==='buy'){o.item='';o.say=[];}
@@ -160,7 +162,7 @@
    case 'go':return p?'Go to '+p:'';case 'enter':return p?'Go into '+p:'';case 'leave':return p?'Leave '+p:'';case 'arrive':return p?'Fly to '+p:'';
    case 'photo':return n?'Photograph '+n:'';case 'send-photo':return n?'Send the photo to '+n:'';case 'buy':return 'Buy the item';case 'follow-them':return n?'Follow '+n:'';
    case 'they-follow':return n?'Take '+n+' along':'';case 'their-cab':case 'shared-cab':return n?'Ride with '+n:'';case 'apt-enter':return 'Go into the apartment';case 'apt-use':return 'Use it';
-   case 'hack':return 'Hack the access point';case 'pod-exit':return 'Leave the Sleeping Pod';case 'await-call':return 'Await their call';case 'ask':return 'Decide';case 'anim':case 'wait':return '';default:return '';}}
+   case 'hack':return 'Hack the access point';case 'pod-exit':return 'Leave the Sleeping Pod';case 'await-call':return 'Await their call';case 'ask':return 'Decide';case 'zone':return 'Change zone';case 'anim':case 'wait':return '';default:return '';}}
  /* Everyone in the mission, in the order they appear (for the colours and the cast bar): the giver, the steps' people, the speakers of lines, the hand-in. */
  function cast(m){const ids=[];const add=id=>{if(id&&!ids.includes(id))ids.push(id);};add(m&&m.giver);for(const l of (m&&m.offer)||[])add(l&&l.who);
   for(const o of (m&&m.objectives)||[]){if(!o)continue;add(stepWho(o,m));for(const k of ['say','early','wrong','denySay'])for(const l of o[k]||[])add(l&&l.who);if(Array.isArray(o.subjects))o.subjects.forEach(add);add(o.subject);}

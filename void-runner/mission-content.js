@@ -44,6 +44,8 @@
  const NEX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;   // follow / lead / shared-cab steps (npc-escort.js)
  const APT=()=>typeof module!=='undefined'&&module.exports?require('./apartments.js'):root.VoidApartments;   // mission-instanced apartments, access points and hacks (apartments.js, 19 Nov 2026)
  const NPL=()=>typeof module!=='undefined'&&module.exports?require('./npc-looks.js'):root.VoidNPCLooks;
+ const ZN=()=>typeof module!=='undefined'&&module.exports?require('./zones.js'):root.VoidZones;   // zones (Friendly / Neutral / Hostile) and armed people (zones.js, 19 Nov 2026): content.zones, mission.combat
+ const MODTYPES=(()=>{let t=null;return ()=>{if(t)return t;const M=typeof module!=='undefined'&&module.exports?require('./modules.js'):root.VoidModules;if(!M||!M.inventory)return null;t=M.inventory().types;return t;};})();
  const CRM=()=>typeof module!=='undefined'&&module.exports?require('./cult-room.js'):root.VoidCultRoom;   // camera-feed-only rooms (the Blackrock Cult Room, cult-room.js, 19 Nov 2026): mission.feeds, hack steps with a feed
  const MDE=()=>typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs;   // mission givers made in the editor (content.characters, npc-made.js)
  const VIM=()=>typeof module!=='undefined'&&module.exports?require('./voice-imports.js'):root.VoidVoiceImports;   // imported voice files (content.clips: [{who, text, hash, type, duration, bytes}], 19 Nov 2026)   // NPC looks (Developer Tools > NPCs > Appearance)   // ElevenLabs voice choices (Developer Tools > NPCs, giver card)   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
@@ -120,13 +122,14 @@
   const errors=MD.problems(ch,{npcs:content.npcs||{},missions:ms,reserved:base?new Set(base.keys()):ctx.reserved||null,givesOffer:offer,lookInventory:ctx.lookInventory&&ctx.lookInventory.assets});
   const facts=MD.giverFacts(ch&&typeof ch==='object'&&!Array.isArray(ch)?ch:{},content.npcs||{}),givers=base?new Map(base):null;if(givers)for(const [id,f] of Object.entries(facts))givers.set(id,{id,name:f.name,canTalk:true,players:true,draft:true,made:true,targets:f.targets,group:'district'});
   return {ctx:givers?{...ctx,givers}:ctx,errors};}
- function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters']))return {ok:false,errors:['The content record has an unknown shape.']};
+ function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters','zones']))return {ok:false,errors:['The content record has an unknown shape.']};
   const X=NPX(),had=X&&content.characters!=null&&X.setMade?X.setMade(content.characters):null;
   try{const m=madeCtx(content,ctx),r=check_(content,m.ctx);return m.errors.length?{ok:false,errors:[...m.errors,...r.errors]}:r;}finally{if(had)X.setMade(had);}}
  function check_(content,ctx={}){
   const errors=[],err=t=>errors.push(t),speakers=new Set([...SPEAKERS,...(ctx.speakers||[])]);
   if(content.clips!=null){const I=VIM();if(!I)err('Imported voice files cannot be checked here.');else for(const p of I.clipProblems(content.clips))err(p);}
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
+  if(content.zones!=null){const X=ZN();if(!X)err('The Zones table cannot be checked here.');else for(const p of X.tableProblems(content.zones,{places:ctx.places,types:MODTYPES()}))err(p);}
   if(content.npcs!=null){const X=NPX();if(!X)err('NPC placements cannot be checked here.');else for(const p of X.checkAll(content.npcs))err(p);}
   if(content.looks!=null){const L=NPL();if(!L)err('NPC looks cannot be checked here.');else for(const p of L.problems(content.looks,{inventory:ctx.lookInventory}))err(p);}
   if(content.voices!=null){const V=NPV();if(!V)err('Voice choices cannot be checked here.');else for(const p of V.problems(content.voices,{registry:ctx.registry}))err(p);}
@@ -196,7 +199,7 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack','ask'],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack','ask','zone'],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -273,7 +276,8 @@
    if(t.note!=null&&!(typeof t.note==='string'&&t.note.length<=300&&!TAGS.test(t.note)))err(tw+': the note must be plain text (300 characters at most).');
    if(!Array.isArray(t.missions)||!t.missions.length||t.missions.length>20){err(tw+': a tree needs 1 to 20 missions.');continue;}
    for(const m of t.missions){total++;const w=tw+' / '+((m&&m.id)||'?');
-    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost','apartments','feeds'])){err(w+': unknown fields in a mission.');continue;}
+    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost','apartments','feeds','combat'])){err(w+': unknown fields in a mission.');continue;}
+    if(m.combat!=null){const X=ZN();if(!X)err(w+': zones and enemies cannot be checked here.');else for(const p of X.combatProblems(m,{places:ctx.places,types:MODTYPES()}))err(w+': '+p);}
     {const X=CRM();if(X)for(const p of X.feedProblems(m))err(w+': '+p);else if(m.feeds!=null||(m.objectives||[]).some(o=>o&&o.feed!=null))err(w+': camera feeds cannot be checked here.');}
     {const X=APT();if(X)for(const p of X.problems(m,ctx.doors||null))err(w+': '+p);else if(m.apartments!=null||(m.objectives||[]).some(o=>o&&APT_KINDS.includes(o.kind)))err(w+': apartments cannot be checked here.');}
     if(m.waitAt!=null){const X=NPX();for(const p of X?X.waitAtProblems(m.giver,m.waitAt):['“Giver waits at” cannot be checked here.'])err(w+': '+p);}
@@ -292,7 +296,8 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed','target','zone','until','spawn',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}
+     {const X=ZN();if(X)for(const p of X.stepProblems(m,o,{places:ctx.places}))err(w+' / '+p);else if(o.kind==='zone')err(ow+': zones cannot be checked here.');}
      if(!sec(o.delay,0,TIME.delay))err(ow+': the delay before a step is a whole number of seconds from 0 to 600.');
      if(o.kind!=='anim'&&o.clip!=null)err(ow+': only an animation step names an animation.');if(o.kind!=='anim'&&o.kind!=='wait'&&o.kind!=='hack'&&o.hold!=null)err(ow+': only an animation, wait or hack step has a number of seconds.');if(o.kind!=='wait'&&o.near!=null)err(ow+': only a wait step has a distance.');
      if(!ESCORT.includes(o.kind)&&['to','wait','lost','ifLost','stop'].some(k=>o[k]!=null))err(ow+': only a follow / lead / cab step has a spot, distances or a cab stop.');
@@ -396,7 +401,7 @@
 if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.animFor;}if(l.wait)x.wait=l.wait;if(l.show)x.show=l.show;return x;});
   const gated=linked(env.trees),open=t=>!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true;
   const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
-   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:o.kind==='anim'?ev.type==='anim'&&ev.step===m.id+'/'+o.id:o.kind==='wait'?ev.type==='wait'&&ev.step===m.id+'/'+o.id
+   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:o.kind==='anim'?ev.type==='anim'&&ev.step===m.id+'/'+o.id:o.kind==='wait'?ev.type==='wait'&&ev.step===m.id+'/'+o.id:o.kind==='zone'?ev.type==='zone'&&ev.step===m.id+'/'+o.id
    // apartments (apartments.js): inside the apartment (the place event carries the one the player is in), a use of one of its objects, a hack of an access point
    :o.kind==='apt-enter'?ev.type==='place'&&ev.apt===m.id+'/'+o.apt&&(o.mod==null||ev.mod===o.mod):o.kind==='apt-use'?ev.type==='apt-use'&&ev.mission===m.id&&ev.apt===o.apt&&ev.object===o.object&&(o.mod==null||ev.mod===o.mod)
    // a hack with a camera feed (cult-room.js): done when the feed's recording is saved (camera-feed.js), not when the access point opens
@@ -609,6 +614,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    env.givers=[...env.baseGivers,...(G&&Object.keys(env.characters).length?G.roster({characters:env.characters,npcs:(content&&content.npcs)||{}}).filter(g=>g.made):[])];}}
   if(Object.keys(env.characters).length)out.applied.push(Object.keys(env.characters).length+' character(s) made in the editor');
   env.npcPlans=clone((content&&content.npcs)||{});if(content&&content.npcs&&Object.keys(content.npcs).length)out.applied.push(Object.keys(content.npcs).length+' NPC placement(s)');
+  env.zones=clone((content&&content.zones)||{});if(content&&content.zones)out.applied.push('the Zones table');   // zones.js
   env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
   if(env.Missions)for(const t of env.trees)t.missions.forEach((m,i)=>env.Missions.define(m.id,treeDefinition(t,m,i,env.givers)));
   if(env.trees.length)out.applied.push('new trees: '+env.trees.map(t=>t.name+' ('+t.missions.length+')').join(', '));if(Object.keys(env.names).length)out.applied.push(Object.keys(env.names).length+' tree name(s)');
@@ -633,6 +639,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   {const c=m.cost;if(c&&Number.isInteger(c.amount)&&c.amount>0){const x={amount:Math.min(c.amount,MONEY.max)};if(c.when&&c.when!=='accept')x.when=c.when;else if(c.refund===true)x.refund=true;r.cost=x;}}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
   {const X=NPX(),wa=X&&m.waitAt&&X.MOVABLE[m.giver]?X.cleanWait(m.waitAt):null;if(wa)r.waitAt=wa;}   // "Giver waits at" (Reverie, Lace)
   {const X=APT(),ap=X&&X.strip(m.apartments);if(ap)r.apartments=ap;}
+  {const X=ZN(),cb=X&&X.stripCombat(m.combat);if(cb)r.combat=cb;}   // zones and armed people (zones.js)
   {const X=CRM(),fs=X&&X.strip(m.feeds);if(fs)r.feeds=fs;}   // camera feeds (cult-room.js)   // apartment instances (apartments.js)
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
@@ -643,6 +650,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
    if(o.kind==='ask'){x.question=String(o.question||'').trim();for(const k of ['yes','no'])if(typeof o[k]==='string'&&o[k].trim())x[k]=o[k].trim().slice(0,MONEY.label);if(ASK_STEP.deny.includes(o.deny)&&o.deny!=='end')x.deny=o.deny;if((x.deny==='skip'||x.deny==='back')&&o.goto)x.goto=o.goto;if(x.deny==='tree'&&o.denyStart)x.denyStart=o.denyStart;
    const p=askPrice(o);if(p)x.price=p;if(!x.label)x.label='Decide';const who=o.npc||m.giver,sy=said(o.say,who),dn=said(o.denySay,who);if(sy.length)x.say=sy;if(dn.length)x.denySay=dn;return x;}   // ACCEPT / DENY in the middle of a mission
+  if(o.kind==='zone'){const X=ZN();return X?X.stripStep(o,x):x;}   // "Change zone" (zones.js)
   if(o.kind==='wait'){x.hold=secs(o.hold,1,TIME.wait)||10;const n=secs(o.near,1,TIME.near);if(n&&o.npc){x.near=n;x.npc=o.npc;}else delete x.npc;if(!x.label)x.label='Wait';return x;}   // an animation step: no lines (its label shows in the Mission Log for those seconds)
    const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
   if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}
@@ -675,6 +683,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue'}):[]))need(w+': '+n.text,n.key,id);}
    if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
    if(o.kind==='wait'){if(o.near&&!o.npc)need(w+': choose who the player must stay near','step-npc',id);continue;}
+   if(o.kind==='zone'){if(!o.target)need(w+': choose the room, location or area that changes','step-zone-target',id);if(!o.zone)need(w+': choose Friendly, Neutral or Hostile','step-zone',id);continue;}
    if(o.kind==='ask'){const d=o.deny||'end',ids=(m.objectives||[]).map(x=>x.id),j=ids.indexOf(o.goto);if(!String(o.question||'').trim())need(w+': write the question the player answers','step-question',id);
    if(d==='skip'&&!(j>i))need(w+': choose the later step DENY skips to','step-goto',id);if(d==='back'&&!(j>=0&&j<i))need(w+': choose the earlier step DENY goes back to','step-goto',id);if(d==='tree'&&!o.denyStart)need(w+': choose the tree that starts on DENY','step-deny-start',id);continue;}
   if(o.kind==='anim'){if(!o.npc)need(w+': choose who plays the animation','step-npc',id);else if(!o.clip)need(w+': choose the animation','step-clip',id);continue;}   // which clips are allowed: check() (with her NPCs-tab plan)
@@ -717,10 +726,11 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   {const L=NPL(),lk={};for(const [a,e] of Object.entries((local&&local.looks)||{})){const c=L?L.clean(a,e):null;if(c)lk[a]=c;}if(Object.keys(lk).length)out.looks=lk;}   // NPC looks
   {const I=VIM(),cl=I&&local&&local.clips?I.contentClips(local.clips,clipText):[];if(cl.length)out.clips=cl;}   // imported voice files (clipText: line key -> its words now; an import whose words changed is left out)
   const names=Object.fromEntries(Object.entries((local&&local.names)||{}).filter(([id,n])=>ID.test(id)&&typeof n==='string'&&n.trim()).map(([id,n])=>[id,n.trim().slice(0,60)]));if(Object.keys(names).length)out.names=names;
+  {const X=ZN(),z=X&&local?X.cleanTable(local.zones):null;if(z)out.zones=z;}   // the owner's Zones table (Developer Tools > Zones)
   if(note)out.note=String(note).slice(0,500);
   return out;
  }
- const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length)&&!(c.characters&&Object.keys(c.characters).length));
+ const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length)&&!(c.characters&&Object.keys(c.characters).length)&&!c.zones);
  /* Edits in the drafts that the game cannot apply live (draft play and publishing alike), in plain words. */
  function notApplied({studio,local,givers,items}={}){
   const out=[];

@@ -100,7 +100,7 @@
   function spectacle(ev,agents,now){const e={id:++serial,x:+ev.x||0,z:+ev.z||0,radius:ev.radius??cfg.radius,kind:ev.kind||'spectacle',t0:now,end:now+(ev.duration??cfg.duration),who:new Map(),y:ev.y??1.25};
    const films=[],cap=ev.filmCap??cfg.filmCap??Infinity,g=cfg.gather||config.spectacle.gather;
    for(const a of agents){const d=Math.hypot(a.x-e.x,a.z-e.z);if(d>e.radius||(ev.skip&&ev.skip.has(a.id)))continue;
-    const ex=excluded(a),mode=ex?(a.monk?'ignore':(rnd()<.5?'leave':'ignore')):(rnd()<cfg.film?'film':'watch');
+    const ex=excluded(a)||ev.flee===true,mode=ev.flee===true?'leave':ex?(a.monk?'ignore':(rnd()<.5?'leave':'ignore')):(rnd()<cfg.film?'film':'watch');   // flee: a shot in a Neutral area (zone-integration.js): everyone turns and walks away
     const r=rnd(),step=ex?0:r<cfg.closer?1:r<cfg.closer+cfg.back?-1:0;
     const x={id:a.id,event:e.id,mode,step,move:ex?0:gatherMove(d,step,g),arc:ex?0:(rnd()-.5)*g.arc,d,x:e.x,z:e.z,y:e.y,from:now+cfg.delay[0]+rnd()*(cfg.delay[1]-cfg.delay[0]),until:e.end+cfg.linger[0]+rnd()*(cfg.linger[1]-cfg.linger[0])};
     e.who.set(a.id,x);if(mode==='film')films.push(x);}
