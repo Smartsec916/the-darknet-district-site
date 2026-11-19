@@ -6,6 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): MISSION EDITOR — PLAY FROM THE START OF THIS TREE; THE APARTMENTS PANEL ALWAYS SHOWS; AN APARTMENT IN "MAKE A MISSION" (branch `claude/play-tree-start`, build `2026-11-19-play-tree-1`, pushed, NO PR, not merged)
+
+The owner: "i also don't see the apartment add in mission editor" and "play draft from the beginning of the tree". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Nineteenth pass".
+
+- **Cause:** on current `main` the panel showed in every case tried in a browser (main menu, pod, Basic, Advanced); the street doors are pure data, not the built scene. It was hidden where `apartments.js` was missing or late (`if(root.VoidApartments?.doors)`: nothing shown, no message, e.g. a stale cached page), the "Make a mission" wizard had no apartment, and older-data missions had no panel and no word why. `apartments.js doors()` could also freeze an empty list if called before `ncz-quarters.js`.
+- **Fix:** the panel is always on every tree mission ("Loading the street doors…" while it loads what is missing, then redraws); older-data missions say where apartments go, with COPY THIS MISSION INTO A NEW TREE; the wizard's steps page has "An apartment for this mission (optional)" and the step "Go into the mission's apartment".
+- **PLAY FROM THE START OF THIS TREE:** under the tree's name and beside every PLAY THIS DRAFT: a throwaway session with nothing of the tree started (a brand-new campaign) and the running game's in-memory mission state cleared (`VoidLiveContent.resetRun`, `VoidApartments.resetRun`, now done for every draft session), starting with the first mission as a player meets it.
+- **Tests:** `tests/play-tree-start.test.cjs`, browser `tests/play-tree-start-browser.cjs` (passes); `tests/play-stale.test.cjs` updated.
+- **Not verified:** real hardware; VR; the Outskirts container doors in the wizard (merged from `claude/container-apartments` if it has landed); publishing with the server on.
+
 ### 19 Nov 2026 (newest): STREET TAXI UPGRADE: AUTONOMOUS MINIVAN CABS, LED CHASE ROUND THE TAXI STOP SIGNS (branch `claude/taxi-upgrade`, build `2026-11-19-taxi-upgrade-1`, pushed, NO PR, not merged)
 
 The owner: "upgrade the Taxis" (his reference picture: an autonomous minivan taxi) and "upgrade the Taxi stops ... the taxi yellow lights to go around the sign like string lights on the chase setting", then "no bulbs, like leds".

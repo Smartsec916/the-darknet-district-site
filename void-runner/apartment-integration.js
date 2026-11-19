@@ -152,6 +152,6 @@
    if(d.slot!=null){const o=(wl.open||[]).find(x=>x.slot===d.slot);const inst=o&&((visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key));if(inst&&!o.locked){enterFlat(inst);return;}}}}catch{}},120);
  // the apartment the player is inside now ('<mission>/<id>'), for the mission engine's place events
  function inside(){const wl=here();return wl&&wl.part==='flat'&&wl.apt?wl.apt.mission+'/'+wl.apt.id:null;}
- Object.assign(root.VoidApartments,{open,allowed,inside,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,setPreview(p){preview=p||null;},streetDoorsBuild:streetDoors});
+ Object.assign(root.VoidApartments,{open,allowed,inside,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,setPreview(p){preview=p||null;},resetRun(){preview=null;for(const x of [screenOff,screenSet,lightOff,lightSet])x.clear();},streetDoorsBuild:streetDoors});
  Object.defineProperties(root.VoidApartments,{visit:{get:()=>visit,configurable:true},hacking:{get:()=>hacking,configurable:true}});   // live values (Object.assign would copy them once)
 })(globalThis);

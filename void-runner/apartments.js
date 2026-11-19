@@ -85,7 +85,7 @@
     let num=along;if((side==='e'||side==='n')!==(num%2===1))num+=1;   // west and south sides even, east and north sides odd
     out.push({id:'apt-'+e.street+'-'+side+'-'+along,street:e.street,side,x:r2(p[0]),z:r2(p[1]),n:e.n.slice(),ry:faceInto(e.n),front,quarter:q,style:styleAt(q,p[0]),number:num,
      name:'No. '+num+', '+(STREET_NAMES[e.street]||e.street)});}}
-  cache=out;return out;}
+  if(Q&&out.length)cache=out;return out;}   // kept only once the quarters are known (ncz-quarters.js): a call before they load never freezes an empty list
  const door=id=>doors().find(d=>d.id===id)||null;
  const doorsIn=q=>doors().filter(d=>d.quarter===q);
  // The door nearest a map click (within `max` metres), for the editor's map picker.

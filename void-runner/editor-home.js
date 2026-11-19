@@ -28,7 +28,8 @@
  const walkPlaces=()=>G().PLACES.filter(p=>!p.location);
  const subjects=()=>G().photoSubjects(givers());
  const ctx=()=>({givers:givers(),places:G().placeIds(),subjects:new Set(subjects().map(g=>g.id))});
- const relabel=()=>W().relabel(ui.a,{name:nameOf,place:placeName});
+ const AX=()=>root.VoidApartments,aptDoor=id=>{try{return id&&AX()&&AX().door?AX().door(id):null;}catch{return null;}};
+ const relabel=()=>W().relabel(ui.a,{name:nameOf,place:placeName,door:ui.a&&ui.a.apt&&(aptDoor(ui.a.apt.door)||{}).name});
  function go(tab,after){const D=DTX();if(!D)return;if(after)after();D.tab=tab;D.render();}
  // ---------------------------------------------------------------- render
  function render(p,head){host=p;headNode=head;syncNpcMode();observe();
@@ -103,10 +104,27 @@
     const r2=el('label','','me-field');r2.append(el('span',kd.where));const s2=el('select','','',{'aria-label':kd.where,'data-eh-step-clip':String(i)});s2.append(new Option(s.npc?'— choose an animation —':'— choose the person first —',''));
     for(const x of (A&&s.npc?A.clipsFor(s.npc).clips:[]))s2.append(new Option(x.name,x.id));s2.value=s.clip||'';s2.onchange=()=>{s.clip=s2.value;draw();};
     r2.append(s2,el('span','They do it where they stand as soon as the step before is done; the mission then waits 3 seconds (change it in the Mission Editor, 0 to 30) and goes on. Only animations that person really has are listed.','me-help'));sel=null;c.append(r2);}
-   if(!sel&&!(kd.needs==='escort-spot'||kd.needs==='escort-stop'||kd.needs==='anim'||kd.needs==='seconds')){const list=kd.needs==='subject'?subjects():talkers();sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));for(const g of list)sel.append(new Option(g.name+(g.players?'':' (practice game only)'),g.id));sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;draw();};}
+   else if(kd.needs==='apt'){const d=a.apt&&aptDoor(a.apt.door);c.append(el('p',d?'The player goes in through '+d.name+' (the apartment chosen below the steps).':'Choose the apartment below the steps: “+ INSTANCE AN APARTMENT”.','me-help',{'data-eh-step-apt':String(i)}));sel=null;}
+   if(!sel&&!(kd.needs==='escort-spot'||kd.needs==='escort-stop'||kd.needs==='anim'||kd.needs==='seconds'||kd.needs==='apt')){const list=kd.needs==='subject'?subjects():talkers();sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));for(const g of list)sel.append(new Option(g.name+(g.players?'':' (practice game only)'),g.id));sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;draw();};}
    if(sel){row.append(sel);c.append(row);}
    const lab=el('label','','me-field');lab.append(el('span','What the Mission Log says'));const li=el('input','','',{'data-eh-step-label':String(i),maxlength:'200'});li.value=s.label||'';li.oninput=()=>{s.label=li.value;s.auto=!li.value.trim();};lab.append(li,el('span','Filled in for you; change it to your own words if you like.','me-help'));c.append(lab);box.append(c);});
-  box.append(iconBtn('plus','ADD A STEP',()=>{a.steps.push({kind:'talk',npc:'',place:'',label:'',auto:true});draw();},'',{'data-eh-add-step':'1'}));}
+  box.append(iconBtn('plus','ADD A STEP',()=>{a.steps.push({kind:'talk',npc:'',place:'',label:'',auto:true});draw();},'',{'data-eh-add-step':'1'}));
+  box.append(aptBox(a));}
+ /* "An apartment for this mission" (apartments.js; the owner, 19 Nov 2026): one apartment behind a street door, open only for the player who has the mission, and the step
+    "Go into the mission’s apartment". More apartments, a later opening step, locks, hacks and items: the Mission Editor's "Apartments for this mission". */
+ function aptBox(a){const X=AX(),box=el('section','','eh-step',{'data-eh-apt':'1'});box.append(el('h4','An apartment for this mission (optional)','eh-sub'),
+   el('p','Put an apartment behind a street door for this mission only: the player who has the mission finds the door open (a hallway, then the apartment); everyone else finds it locked. Add more, lock it behind a hack or place items later in the Mission Editor.','me-help'));
+  let ready=false;try{ready=!!(X&&X.doors&&X.doors().length);}catch{}
+  if(!ready){box.append(el('p','Loading the street doors…','me-small',{'data-eh-apt-loading':'1'}));setTimeout(()=>{try{if(AX()&&AX().doors().length&&host&&host.querySelector('[data-eh-apt-loading]'))draw();}catch{}},1500);return box;}
+  if(!a.apt){box.append(iconBtn('plus','INSTANCE AN APARTMENT',()=>{a.apt={style:'normal',door:''};if(!a.steps.some(s=>s.kind==='apt-enter'))a.steps.push({kind:'apt-enter',npc:'',place:'',label:'',auto:true});ui.note='Apartment added, with the step “Go into the mission’s apartment”. Choose its street door.';draw();},'',{'data-eh-apt-add':'1'}));return box;}
+  const d=aptDoor(a.apt.door),fam=d&&d.family==='container'?'container':'city',row=el('div','','me-row');
+  const st=el('select','','',{'aria-label':'Apartment style','data-eh-apt-style':'1'});for(const x of X.STYLES)if(!!x.container===(fam==='container'))st.append(new Option(x.name,x.id));st.value=a.apt.style;if(st.value!==a.apt.style){a.apt.style=st.options[0].value;st.value=a.apt.style;}st.onchange=()=>{a.apt.style=st.value;draw();};
+  const ds=el('select','','',{'aria-label':'Street door','data-eh-apt-door':'1'});ds.append(new Option('— choose a street door —',''));
+  const QN={avenue:'The Avenue',oldtown:'Old Town','far-south':'Far South',port:'The Port',outskirts:'The Outskirts'};
+  for(const q of Object.keys(QN)){const g=document.createElement('optgroup');g.label=QN[q];for(const x of X.doorsIn(q))g.append(new Option(x.name+' ('+x.style+' building)',x.id));if(g.children.length)ds.append(g);}
+  ds.value=a.apt.door||'';ds.onchange=()=>{const n=aptDoor(ds.value),was=d&&d.family==='container';a.apt.door=ds.value;if(n&&(!a.apt.picked||(n.family==='container')!==!!was)){a.apt.style=n.style;}relabel();draw();};st.addEventListener('change',()=>{a.apt.picked=true;});
+  row.append(el('b','Style'),st,el('span','behind','me-small'),ds,btn('×',()=>{a.apt=null;a.steps=a.steps.filter(s=>s.kind!=='apt-enter');ui.note='Apartment removed (and its “Go into the apartment” step).';draw();},'me-x',{'aria-label':'Remove the apartment','data-eh-apt-remove':'1'}));box.append(row);
+  box.append(el('p',d?'Open for this mission from its start until it ends. The step “Go into the mission’s apartment” is done once the player is inside.':'Pick the door from the list: it is grouped by part of town, each with its building’s own style. Any style may go behind any city door.','me-help'));return box;}
  function pageReward(box,a){const dir=el('div','','me-row',{role:'radiogroup','aria-label':'Player gets or pays'});
   for(const [v,n] of [[false,'Player gets'],[true,'Player pays']])dir.append(btn(n,()=>{a.pays=v;if(v&&!(Number(a.rewards)>0))a.rewards=100;draw();},!!a.pays===v?'on':'',{role:'radio','data-eh-dir':v?'pays':'gets','aria-checked':String(!!a.pays===v)}));
   box.append(dir,el('p',a.pays?'The player pays this once, when they press ACCEPT. If they have less, ACCEPT is greyed with “You need … CR” and the mission does not start. Credits never go below 0.':'Paid once, when the mission is done.','me-help'));
