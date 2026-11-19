@@ -124,8 +124,8 @@
    {id:'photo',kind:'photo',name:'Take a photo of someone',help:'With the V1 camera; it must really show them.'},
    {id:'send-photo',kind:'send-photo',name:'Send a photo to someone',help:'In V1 Messages.'},
    {id:'pet-cat',kind:'talk',npc:'street-cat',name:'Pet the street cat',help:'PET THE CAT on The Avenue (where the cat is placed).'},
-   {id:'apt-enter',kind:'apt-enter',name:'Go into an apartment',help:'One of this mission’s apartments (add an Apartment block first).'},
-   {id:'apt-use',kind:'apt-use',name:'Use something in an apartment',help:'The computer, the safe, the light switch …'},
+   {id:'apt-enter',kind:'apt-enter',name:'Go into a place',help:'A room of one of this mission’s locations or apartments, picked by its name (add a Location block first).'},
+   {id:'apt-use',kind:'apt-use',name:'Use something',help:'In one of this mission’s rooms: a computer, a server rack, the safe, the light switch …'},
    {id:'hack',kind:'hack',name:'Hack an access point',help:'E at a door’s card reader, then a progress bar.'},
    {id:'follow-them',kind:'follow-them',who:'npc',name:'Follow someone',help:'They lead the way to a spot.'},{id:'they-follow',kind:'they-follow',who:'npc',name:'Someone follows the player',help:'To a spot you pick.'},
    {id:'their-cab',kind:'their-cab',who:'npc',name:'Ride a cab with someone (they call it)',help:'Only Reverie or Lace.'},{id:'shared-cab',kind:'shared-cab',who:'npc',name:'Ride a cab with someone (you call it)',help:'Only Reverie or Lace.'},
@@ -176,6 +176,56 @@
   (m.unlocks||[]).forEach((u,i)=>{if(u&&u.when&&u.when!=='complete'&&!ids.includes(u.when))add('unlock:'+i,{text:'the step it was given at is gone: drag it below the step it belongs to',field:'unlock'});});
   for(const a of m.apartments||[])if(a&&a.from&&a.from!=='start'&&!ids.includes(a.from))add('apt:'+a.id,{text:'the step it opened from is gone: drag it below the step it opens from',field:'apt-from'});
   return out;}
- const api={TYPES,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone};
+ /* PLACES OF THIS MISSION BY THEIR REAL NAMES (the owner, 19 Nov 2026, of a "Go into" step for an office that said "Go into the apartment": "I won't remember this. Can it be
+    in a drop-down?"). placeOptions(m, kind): this mission's locations and apartments as one list, each room by its type's name and its street door ("Office floor (No. 13,
+    The Avenue, offices)", "Server room (…)", "Rundown apartment 104 (…)", "Container apartment, rundown (…)"); value '<apt>' (any room of it, Go into only) or '<apt>/<module>'.
+    placeWords(o, m): the step's Mission Log words made from the chosen place ("Go into the office floor", "Use the server rack in the server room", "Hack the access point at
+    the door between the office hallway and the office floor"). wordsAuto(o, m): the step still has words made for it (empty, these words, or the older fixed words), so a
+    change of place may replace them; the owner's own words are kept (the editor offers "Use the automatic words"). hackOptions(m): the access points by the same names. */
+ const reqP=f=>{try{return require(f);}catch{return null;}};
+ const APL=()=>typeof module!=='undefined'&&module.exports?reqP('./apartments.js'):root.VoidApartments;
+ const MDL=()=>typeof module!=='undefined'&&module.exports?reqP('./modules.js'):root.VoidModules;
+ const LEGACY_WORDS=/^(Go into the apartment( at .*)?|Use it|Hack the access point|Go into the place)$/;
+ const lc=s=>String(s||'').charAt(0).toLowerCase()+String(s||'').slice(1),uc=s=>String(s||'').charAt(0).toUpperCase()+String(s||'').slice(1);
+ const the=n=>/^(apartment |no\. |the )/i.test(n)?n:'the '+n;
+ function doorText(id){const X=APL();let d=null;try{d=X&&id?X.door(id):null;}catch{}return d?d.name.replace(/\s*\(([^)]*)\)\s*$/,', $1'):'';}
+ function styleName(st){const X=APL(),s=X&&(X.STYLES||[]).find(x=>x.id===st);if(!s)return 'Apartment';return s.container?'Container apartment, '+lc(s.name.replace(/^Container\s*[—-]\s*/,'')):s.name;}
+ /* One room's name and noun: {name ("Office floor"), noun ("office floor"), type}. Two of a kind in one location: their floor ("Elevator cab, floor B1") or their id. */
+ function rooms(a){const M=MDL();if(!a||!Array.isArray(a.modules)||!M)return [];const list=a.modules.filter(x=>x&&M.TYPES[x.type]),out=[];
+  for(const x of list){const t=M.TYPES[x.type],twins=list.filter(y=>y.type===x.type);let extra='';if(twins.length>1){const fl=Number.isInteger(x.floor)?x.floor:0,same=twins.filter(y=>(Number.isInteger(y.floor)?y.floor:0)===fl).length>1;extra=same?' '+x.id:fl===0?', ground floor':', floor '+M.floorName(fl);}
+   out.push({id:x.id,type:x.type,name:t.name+extra,noun:lc(t.name)+extra,objects:M.objectsOf(x.type)||[],hall:t.cat==='hallway',cab:!!t.cab});}return out;}
+ const aptNoun=a=>{if(Number.isInteger(a.number))return 'apartment '+a.number;const X=APL(),s=X&&(X.STYLES||[]).find(x=>x.id===(a.style||'normal'));return s&&s.container?lc(s.name.replace(/^Container\s*[—-]\s*/,''))+' container apartment':lc(styleName(a.style||'normal'));};
+ function placeOptions(m,kind){const out=[];for(const a of (m&&m.apartments)||[]){if(!a||!a.id)continue;const door=doorText(a.door),at=door?' ('+door+')':' (no street door yet)';
+   if(Array.isArray(a.modules)){const rs=rooms(a);if(kind!=='apt-use'){const main=rs.find(r=>!r.hall&&!r.cab)||rs[0];out.push({value:a.id,apt:a.id,mod:null,label:'Anywhere inside'+at,noun:door?'the building at '+door:'the '+(main?main.noun:'location'),any:true});}
+    for(const r of rs){if(kind==='apt-use'&&!r.objects.length)continue;out.push({value:a.id+'/'+r.id,apt:a.id,mod:r.id,label:r.name+at,noun:r.noun,objects:r.objects});}continue;}
+   const X=APL();out.push({value:a.id,apt:a.id,mod:null,label:styleName(a.style||'normal')+(Number.isInteger(a.number)?' '+a.number:'')+at,noun:aptNoun(a),objects:((X&&X.OBJECTS)||[]).filter(o=>!o.styles||o.styles.includes(a.style||'normal'))});}
+  return out;}
+ const placeValue=o=>o&&o.apt?o.apt+(o.mod?'/'+o.mod:''):'';
+ /* The step's place from a list value: o.apt, o.mod; a used object the new room does not have is cleared. */
+ function placeSet(o,value,m){const v=String(value||''),i=v.indexOf('/');if(!v){delete o.apt;delete o.mod;}else{o.apt=i<0?v:v.slice(0,i);if(i<0)delete o.mod;else o.mod=v.slice(i+1);}
+  if(o.kind==='apt-use'&&o.object){const p=placeOptions(m,'apt-use').find(x=>x.value===placeValue(o));if(!p||!(p.objects||[]).some(x=>x.id===o.object))delete o.object;}return o;}
+ const objName=n=>String(n||'').replace(/\s*\([^)]*\)\s*$/,'').replace(/^an? /,'the ');
+ /* An access point (hack step o.ap) by its real name: a module door ('<loc>/<module>.<socket>'), an apartment's hallway or entry door ('<apt>/hall', '<apt>/entry') or a street door id. */
+ function apName(m,ap){if(!ap)return '';const v=String(ap),i=v.indexOf('/');if(i<0){const d=doorText(v);return d?'the street door of '+d:'';}
+  const a=((m&&m.apartments)||[]).find(x=>x&&x.id===v.slice(0,i)),ref=v.slice(i+1);if(!a)return '';
+  if(!Array.isArray(a.modules)){const n=aptNoun(a);return ref==='hall'?'the hallway door of '+(the(n))+'':ref==='entry'?'the door inside '+the(n):'';}
+  const M=MDL(),rs=rooms(a),nm=r=>{const x=rs.find(y=>y.id===String(r).split('.')[0]);return x?x.noun:String(r);};let an=null;try{an=M&&M.analyse(a);}catch{}
+  const d=an&&an.doors.find(x=>x.a===ref||x.b===ref);if(!d)return 'the door '+ref+' of the '+nm(ref);
+  if(d.kind==='entry')return 'the entrance door of the '+nm(d.a);if(d.kind==='portal'||!d.b)return 'the door of the '+nm(ref)+' that leads elsewhere';return 'the door between the '+nm(d.a)+' and the '+nm(d.b);}
+ function hackOptions(m){const out=[],M=MDL();for(const a of (m&&m.apartments)||[]){if(!a||!a.id)continue;const door=doorText(a.door);
+   if(Array.isArray(a.modules)){let an=null;try{an=M&&M.analyse(a);}catch{}const seen=new Set();for(const d of (an&&an.doors)||[])for(const r of [d.a,d.b]){if(!r||seen.has(r))continue;seen.add(r);const ap=a.id+'/'+r,rs=rooms(a),here=(rs.find(y=>y.id===r.split('.')[0])||{}).name||r;
+     const d2=d.a===r?d.b:d.a,other=d2?(rs.find(y=>y.id===d2.split('.')[0])||{}).noun:null;out.push({ap,label:here+': '+(d.kind==='entry'?'its entrance door':other?'its door to the '+other:'its door that leads elsewhere')+(door?' ('+door+')':'')});}
+    if(a.door)out.push({ap:a.door,label:'Street door'+(door?' ('+door+')':'')});continue;}
+   const n=uc(aptNoun(a));out.push({ap:a.id+'/hall',label:n+': its door in the hallway'+(door?' ('+door+')':'')},{ap:a.id+'/entry',label:n+': inside, by its entry door'});if(a.door)out.push({ap:a.door,label:n+': its street door ('+door+')'});}
+  return out;}
+ function placeWords(o,m){if(!o)return '';const k=o.kind;
+  if(k==='hack'){const n=apName(m,o.ap);return n?'Hack the access point at '+n:'';}
+  if(k!=='apt-enter'&&k!=='apt-use')return '';const p=placeOptions(m,k==='apt-use'?'apt-use':'apt-enter').find(x=>x.value===placeValue(o))||(k==='apt-use'&&o.apt&&!o.mod?null:null);
+  if(k==='apt-enter')return p?'Go into '+(p.any?p.noun:the(p.noun)):'';
+  const ob=p?(p.objects||[]).find(x=>x.id===o.object):null;if(!p)return '';const room=the(p.noun),prep=/floor$/.test(p.noun)?'on':'in';return ob?'Use '+objName(ob.name)+' '+prep+' '+room:'Use something '+prep+' '+room;}
+ const wordsAuto=(o,m)=>{const l=String((o&&o.label)||'').trim();return !l||l===placeWords(o,m)||LEGACY_WORDS.test(l);};
+ /* After a change of place (fn changes the step): the words follow when they were automatic. */
+ function rewordAfter(o,m,fn){const was=wordsAuto(o,m);fn(o);if(was){const w=placeWords(o,m);if(w)o.label=w;}return o;}
+ const api={TYPES,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionBlocks=api;
 })(globalThis);

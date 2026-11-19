@@ -288,8 +288,10 @@ HOW = ['person', 'notification']
 # Costs and ACCEPT / DENY (19 Nov 2026; mission-content.js MONEY): cost {amount 1..100000, when 'accept' | a step id, refund (only at 'accept')};
 # start.accept for every start, with yes / no labels (20 characters at most), deny 'again' | 'never' | 'start' (+ denyStart: the first mission of another tree), denySay.
 MONEY_MAX, LABEL_MAX = 100000, 20
-DENY = ['again', 'never', 'start']
-ASK_KEYS = ['yes', 'no', 'deny', 'denyStart', 'denySay']
+# deny 'after' (denyMinutes 1..120 minutes of play) and 'pod' (after the next Sleeping Pod exit) were added 19 Nov 2026 (mission-content.js DENY_MIN)
+DENY = ['again', 'pod', 'after', 'never', 'start']
+DENY_MIN_MIN, DENY_MIN_MAX = 1, 120
+ASK_KEYS = ['yes', 'no', 'deny', 'denyMinutes', 'denyStart', 'denySay']
 # ACCEPT / DENY anywhere in a mission (19 Nov 2026): the step kind 'ask' (mission-content.js ASK_STEP)
 ASK_STEP_KEYS = ['question', 'yes', 'no', 'deny', 'goto', 'denyStart', 'denySay', 'price']
 ASK_STEP_DENY = ['end', 'skip', 'back', 'tree']
@@ -1738,6 +1740,9 @@ def ask_problems(st, tree, trees):
             out.append('on DENY it must start the first mission of another tree.')
     elif st.get('denyStart') is not None:
         out.append('only "start another mission" names a mission to start.')
+    dm = st.get('denyMinutes')
+    if dm is not None and (st.get('deny') != 'after' or not (type(dm) is int and DENY_MIN_MIN <= dm <= DENY_MIN_MAX)):
+        out.append('"offer again after N minutes" needs a whole number of minutes from %d to %d.' % (DENY_MIN_MIN, DENY_MIN_MAX))
     return out
 
 
@@ -1825,6 +1830,9 @@ def workspace_money_problems(trees):
                         out.append('a button label must be plain text, %d characters at most.' % LABEL_MAX)
                 if st.get('deny') is not None and st['deny'] not in DENY:
                     out.append('unknown "what happens on DENY".')
+                dm = st.get('denyMinutes')
+                if dm is not None and (st.get('deny') != 'after' or not (type(dm) is int and DENY_MIN_MIN <= dm <= DENY_MIN_MAX)):
+                    out.append('"offer again after N minutes" needs a whole number of minutes from %d to %d.' % (DENY_MIN_MIN, DENY_MIN_MAX))
             for o in (m.get('objectives') if isinstance(m.get('objectives'), list) else []):
                 if not isinstance(o, dict) or o.get('kind') != 'ask':
                     continue
