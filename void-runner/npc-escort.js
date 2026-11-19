@@ -10,9 +10,9 @@
                   boards with her (BOARD TAXI, fare as normal; the developer account rides free). Both get out at the stop; done then.
      shared-cab   "You call a cab, they ride along": she follows the player; when the player's cab to the chosen stop is waiting she gets in too (or as the player
                   boards, if she is close); both get out at the stop; done then. A cab to another stop: she does not get in (a short notice says where she goes).
-   WHERE: the spot must be on the NPC's own walkable area (npc-paths.js spotProblems: The Avenue's north pavement for the street pair and the cat). A cab stop must be one
-   the NPC can exist at: the street pair is built only in The Avenue's quarter (neochinatown.js), so only The Avenue's stops are offered; Old Town, The Port, Far South,
-   the Corporate District and the Temple are greyed with the reason (Reverie / Lace: city only, The Avenue only). The cat walks but does not ride in cabs.
+   WHERE: the spot must be walkable in the area where she is placed (placedArea; npc-areas.js, since 19 Nov 2026 anywhere walkable in the city). A cab stop must be in
+   that area's quarter (stops(id, area)); the other stops, the Corporate District and the Temple are greyed with the reason (Reverie / Lace: city only). The cat walks but
+   does not ride in cabs.
    MULTIPLAYER: the street is not shared (each player's own copy of the street pair): only the mission player's NPC follows them; other players see her as usual.
    SAVE: nothing new in the save shape. While a step runs, story.flags.npcEsc holds '<mission>/<step>|<phase>|<x>|<z>' (a string under 200 characters, which clean_save()
    accepts) so a reload puts her back where she was; it is removed when the step ends. */

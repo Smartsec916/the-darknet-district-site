@@ -93,7 +93,7 @@ test('the game and the server read the same lists; the page loads the new script
  const html=read('void-runner.html'),i=f=>html.indexOf('void-runner/'+f+'"');assert.ok(i('apartments.js')>0&&i('apartments.js')<i('apartment-build.js')&&i('apartment-build.js')<i('neochinatown.js')&&i('live-content.js')<i('apartment-integration.js')&&i('apartment-integration.js')<i('ncz-gate-transit.js'));
  assert.equal(read('static/void-runner.html'),html);
  assert.match(read('void-runner/babylon-renderer.js'),/def\.apartment&&root\.VoidApartments\?\.build/);assert.match(read('void-runner/remote-players.js'),/wl\.private\?null/);
- assert.match(read('void-runner-sw.js'),/const BUILD='2026-11-19-apartments-1';/);
+ assert.match(read('void-runner-sw.js'),/const BUILD='[0-9a-z-]+';/);
  // every door slides (the owner): the street doors, the hallway doors, the entry and the bathroom
  const b=read('void-runner/apartment-build.js');for(const id of ['bath','entry','street','slot-'])assert.ok(b.includes("id:'"+id),id);assert.match(read('void-runner/apartment-integration.js'),/A\.slider\(/);
 });

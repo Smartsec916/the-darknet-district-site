@@ -281,13 +281,13 @@
  }
  function seatPoint(taxi){
   const yaw=taxi.yaw||0,fx=Math.sin(yaw),fz=Math.cos(yaw),rx=fz,rz=-fx;
-  return {x:taxi.x+rx*0.42+fx*0.35,y:1.08,z:taxi.z+rz*0.42+fz*0.35,yaw};
+  return {x:taxi.x+rx*0.42-fx*0.35,y:1.56,z:taxi.z+rz*0.42-fz*0.35,yaw};   // the eye of a passenger on the minivan's middle row, right seat (road-taxi-van.js)
  }
  /* A companion's seat (a mission's follow / shared-cab step, npc-escort.js): beside the passenger, on the other side of the cab. y is where her figure stands (the seated clip
     puts her hips about half a metre up, so she sits low in the cab like the passenger). */
  function companionSeat(taxi){
   const yaw=taxi.yaw||0,fx=Math.sin(yaw),fz=Math.cos(yaw),rx=fz,rz=-fx;
-  return {x:taxi.x-rx*0.42+fx*0.05,y:-0.12,z:taxi.z-rz*0.42+fz*0.05,yaw};
+  return {x:taxi.x-rx*0.42-fx*0.1,y:0.3,z:taxi.z-rz*0.42-fz*0.1,yaw};   // her root on the middle row's left seat: the sit clip puts the hips 0.54 m up and 0.35 m back of it; the cushion is 0.84 m up
  }
  function onRoad(x,z,margin){
   const m=margin||0,S=Q.S;

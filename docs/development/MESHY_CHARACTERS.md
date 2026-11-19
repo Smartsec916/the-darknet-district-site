@@ -97,8 +97,16 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 | 18 Nov | Lace remesh 45k | remesh `01a1efd5-483e-70ef-b2b9-2a84757528c0` | 5 |
 | 18 Nov | Lace rig, 1.65 m | rigging `01a1efd8-5b8f-778f-8fce-cccb4a51b8d3` | 5 |
 | | **18 Nov, the street pair remade and animated** | | **98** (cap 70, raised to about 100 by the owner for Lace's remake; the account showed 269 before and 171 after; no retries. Folder `Documents/DarknetDistrict_Assets/Meshy/studio1/pairanim/` on the owner's PC) |
+| 19 Nov | Street taxi concept: image-to-image (nano-banana-pro) from the owner's reference picture cropped to the cab, the background sign naming a real company blurred out (`docs/development/taxi/reference-taxi.jpg`), asking for the same van on a plain grey background | `01a1f2c9-d203-720d-8f3f-c4a5d274bcf9` | 9 |
+| 19 Nov | Street taxi 3D | image-to-3d `01a1f2cd-078f-73a8-8994-a26161a3af53` | 30 |
+| 19 Nov | Street taxi remesh 20k | remesh (id in `Documents/DarknetDistrict_Assets/Meshy/ncz_taxi_van/status.json` on the owner's PC) | 5 |
+| | **19 Nov, the street taxi** | | **44** (budget 40 to 60, floor 50; the account showed 496 before and 452 after; no retry. Earlier the same day the bridge was not connected and the cab was built in code; that van stays as the stand-in) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
+
+## The street taxi (19 Nov 2026)
+
+Working folder `Documents/DarknetDistrict_Assets/Meshy/ncz_taxi_van/` on the owner's PC: `run.py` (concept, 3D, remesh), `build1.py` (Blender, background: the model turned to face -Y, scaled to 4.4 m, on the ground; the cabin's inside cut out; the side windows replaced by a tinted glass band and the windscreen and tailgate window made glass; the wheels cut into `axle_front` / `axle_rear` with the node at each axle's centre; the lit parts (roof box, light bar, lamps, sensors) flagged), `build2.py` (the flagged faces baked to an emission map with Cycles; maps 2048 base colour, 1024 others; GLB export), `measure3.py` (where the windscreen, numbers and tail lights sit, for the game's overlays). In the cloud session the GLB was compressed with gltf-transform (lossless `EXT_meshopt_compression`, `reorder`, no quantisation) and a Low copy made with 1024 maps: `void-runner/assets/models/vehicles/taxi-van.glb` (1.59 MB) and `taxi-van-low.glb` (1.54 MB); 15,163 triangles (body and glass about 9,300, wheels 5,864).
 
 ## Rights
 
