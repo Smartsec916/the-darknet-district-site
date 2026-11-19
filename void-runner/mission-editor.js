@@ -64,7 +64,7 @@
  const server={roles:null,live:null,queue:null,drafts:null,note:{}};
  // ---------------------------------------------------------------- drafts (saved on every edit)
  /* The draft. The main storyline is always in it: until the owner edits it, the shipped tree (main-story.js) is shown; his first edit saves his copy. */
- function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{}};
+ function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},characters:{},...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},characters:{}};
   const S=MS();if(S){const own=d.trees.find(t=>t.id===S.TREE_ID);if(!own)d.trees.unshift(S.trees()[0]);
    // A copy saved before a shipped mission existed (Mission 002, 17 Nov 2026) gets that mission, where it stands in the shipped tree, unless its number was removed in the draft.
    // The tree's old default name "Main storyline" becomes "Awakening" (the owner calls it the Awakening Tree; the id never changes). Saved with the next edit.
@@ -82,9 +82,9 @@
  /* Every save is one step of the session's UNDO (editor-home.js; Developer Tools > UNDO / Ctrl+Z): the stored text before and after. */
  const rawOf=k=>{try{return root.localStorage.getItem(k);}catch{return null;}};
  const undoRecord=(k,before)=>{try{root.VoidEditorHome?.record(k,before,rawOf(k));}catch{}};
- function saveLocal(d){const before=rawOf(KEY);d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now to keep a file, then free some space (or allow site storage) and edit again.';else{storageProblem='';undoRecord(KEY,before);}scheduleServer();}
+ function saveLocal(d){syncMade(d);const before=rawOf(KEY);d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now to keep a file, then free some space (or allow site storage) and edit again.';else{storageProblem='';undoRecord(KEY,before);}scheduleServer();}
  /* UNDO / REDO put a stored draft back (editor-home.js): never recorded again, saved to the server copy like any edit. */
- function restoreRaw(k,raw){if(k!==KEY&&k!==STUDIO)return false;try{if(raw==null)root.localStorage.removeItem(k);else root.localStorage.setItem(k,raw);}catch{return false;}stale=true;if(k===KEY)scheduleServer();return true;}
+ function restoreRaw(k,raw){if(k!==KEY&&k!==STUDIO)return false;try{if(raw==null)root.localStorage.removeItem(k);else root.localStorage.setItem(k,raw);}catch{return false;}stale=true;if(k===KEY)syncMade();if(k===KEY)scheduleServer();return true;}
  /* Drafts are never discarded silently: a draft this version cannot read is copied to a backup key first, and the editor says so. */
  let storageProblem='',backupNote='';
  function readDraft(){let raw=null;try{raw=root.localStorage.getItem(KEY);}catch{return null;}if(raw==null)return null;
@@ -93,7 +93,7 @@
   backupNote='A draft in this browser could not be read; it was kept unchanged under '+bk+' (nothing was deleted). EXPORT it from the browser\'s storage or ask Claude/Codex to restore it.';return null;}
  // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; the owner, 17 Nov 2026: a cleared browser must not lose his trees)
  const WS='mission-editor-workspace',ws={state:'unknown',revision:0,savedAt:null,timer:0,conflict:null,note:''};
- const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},clips:d.clips||{},retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
+ const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},clips:d.clips||{},...(d.characters&&Object.keys(d.characters).length?{characters:d.characters}:{}),retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
  const wsDoc=b=>({schemaVersion:1,kind:'workspace',adapter:'mission-editor',sourceKey:WS,baseRevision:0,data:{id:WS,title:'Mission Editor workspace',bundle:b}});
  const wsOn=()=>!!(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled);
  function scheduleServer(){if(!wsOn()||ws.conflict)return;clearTimeout(ws.timer);ws.state='pending';showServerState();ws.timer=setTimeout(()=>{saveServer();},5000);}
@@ -106,13 +106,13 @@
  async function loadServer(afterConflict){if(!wsOn()){ws.state='off';return;}
   let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}ws.state='off';return;}
   ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
-  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length&&!Object.keys(raw.clips||{}).length);
+  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length&&!Object.keys(raw.clips||{}).length&&!Object.keys(raw.characters||{}).length);
   const serverAt=Date.parse(b.savedAt||'')||0,localAt=Date.parse((raw&&raw.savedAt)||'')||0;
   if(empty&&!afterConflict){useServer(b,rec.updatedAt);return;}
   if(serverAt>localAt||afterConflict){ws.conflict={server:b,serverAt,local:raw,localAt,revision:rec.revision};ws.state='conflict';return;}
   ws.savedAt=(rec.updatedAt||0)*1000;ws.state='saved';if(localAt>serverAt)scheduleServer();}
- function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},clips:b.clips||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
-  ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;}
+ function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},clips:b.clips||{},characters:b.characters||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
+  ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;syncMade();}
  function serverLine(){if(ws.conflict){const c=ws.conflict;return 'Your drafts on the server and in this browser differ.';}
   return ws.state==='saved'?'Saved on the server · '+new Date(ws.savedAt||Date.now()).toLocaleTimeString():ws.state==='pending'||ws.state==='saving'?'Saving to the server…':ws.state==='too-big'?ws.note:ws.state==='none'?'Saving to the server…':'Server copy not available — drafts are only in this browser';}
  function showServerState(){const n=host&&host.querySelector('[data-me-server-copy]');if(n){n.textContent=serverLine();n.className='me-small '+(ws.state==='saved'?'me-ok':'me-warn');}}
@@ -126,6 +126,13 @@
  function editOf(key){return local().missions[key]||{};}
  function setEdit(key,fn,name){const d=local(),e=d.missions[key]||{};fn(e);e.name=name||e.name;for(const k of Object.keys(e))if(e[k]==null||(typeof e[k]==='object'&&!Array.isArray(e[k])&&!Object.keys(e[k]).length)||(Array.isArray(e[k])&&!e[k].length))delete e[k];
   if(Object.keys(e).filter(k=>k!=='name').length)d.missions[key]=e;else delete d.missions[key];saveLocal(d);}
+ /* MISSION GIVERS MADE IN THE EDITOR (npc-made.js, Developer Tools > NPCs > Create a mission giver): the draft's characters join the giver roster at once (a draft giver)
+    and are movable (npc-paths.js setMade: their placement uses the NPCs tab's map). One that is not finished yet (no name, no place ...) is listed but cannot give a
+    mission yet, with the plain reason (mission-content.js madeNeeds). Run on every save, UNDO and load. */
+ function syncMade(d){if(!src)return;d=d||local();const X=root.VoidNPCPaths;try{X?.setMade?.(d.characters||{});}catch{}
+  const list=G().roster({registry:src.registry,people:src.people,story:root.VoidStoryContent?.characters||{},temple:src.temple,characters:d.characters||{},npcs:d.npcs||{}});
+  for(const g of list)if(g.made){const n=MC().madeNeeds?MC().madeNeeds(d,list,g.id):[];if(n.length){g.canTalk=false;g.draft=false;g.players=false;g.why='not finished yet: '+n[0].replace(/^[^:]+: /,'');}}
+  givers=list;src.givers=givers;stale=true;}
  // ---------------------------------------------------------------- loading the game data
  const getJSON=async(url)=>{try{const r=await fetch(url,{cache:'no-cache'});return r.ok?await r.json():null;}catch{return null;}};
  const getText=async(url)=>{try{const r=await fetch(url,{cache:'no-cache'});return r.ok?await r.text():null;}catch{return null;}};
@@ -134,7 +141,7 @@
   const [registry,manifest,extraManifest,enginesFile]=await Promise.all([getJSON('tools/audio/npc-voice-registry.json'),getJSON('void-runner/assets/audio/voice/manifest.json'),getJSON('void-runner/assets/audio/voice/extra/manifest.json'),getJSON('tools/audio/revoice-engines.json')]);
   const sh=shipped();src={missions:sh.registry,beginner:sh.beginner,content:root.VoidContent,campaign:root.VoidCampaign||root.C,story:root.VoidStoryContent,registry,manifest,extraManifest,enginesFile,engines:enginesFile&&enginesFile.characters||null,files,milked:root.VoidMilked,
    modules:root.VoidProgression?.modules,ships:root.VoidShips?.ships,locations:root.VoidUniverse?.locations,stores:SM().STORES,people:root.VoidDistrictPeople?.npcs?.()||[],temple:root.VoidTemple?.MODEL||{id:'zen-zephyr',name:'Zen Zephyr'}};
-  givers=G().roster({registry,people:src.people,story:root.VoidStoryContent?.characters||{},temple:src.temple});src.givers=givers;items=new Set(Object.keys(G().buyable(src.modules)));
+  syncMade();items=new Set(Object.keys(G().buyable(src.modules)));
   clipKeys=new Set([...Object.values(manifest?.lines||{}),...Object.values(extraManifest?.lines||{})].map(l=>l.speaker+'|'+l.text));
   rebuild();refs=T().refs(src);
   await refreshServer();await loadServer();if(numberAll())rebuild();else if(stale)rebuild();

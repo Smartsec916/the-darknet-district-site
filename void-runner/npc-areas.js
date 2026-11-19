@@ -13,10 +13,16 @@
    WHERE THE DATA COMES FROM: the walkable rectangles below are the game's own street and room geometry (neochinatown.js streets and pavements, ncz-quarters.js gates
    and taxi posts, milked.js, ncz-nightclub.js, the District's local plan); OBSTACLES and the ground height (GEN) were read from the built scenes by
    tests/npc-obstacles-browser.cjs (street furniture by rays, plus the game's own collision solids from neochinatown.js layout()): rerun it when a street or room changes.
-   check(p, prefer) -> {ok, area, kind, why}; leg(a, b) -> problems; nearest(p, area) -> a spot she may stand on; areaOf(p); placeOf(...). */
+   ADULT VENUES (the owner, 19 Nov 2026: characters made with the Mission giver creator and marked "adult (18+)" may also stand in Milked's side street, service alley and
+   reception, NULL (inside and at its door), the District bar, the VR play area, the arcade room and the smoking terrace): those forbidden rectangles carry `adult:true` and
+   walkable ground for them is listed with `adult:true` (only an adult made character ever uses it; check(p, prefer, m, {adult:true}) skips the adult rules). Never relaxed for
+   anyone: Reverie, Lace and the cat, the Milked studios and staff rooms, the Sleeping Pod room, the Corporate District, the Temple. The inside of Milked is its own scene
+   (area `milked`: its reception only). NULL's floor keeps clear of its furniture (ncz-nightclub.js solids); the District's rooms are open floor with their furniture unmapped.
+   check(p, prefer, m, opts) -> {ok, area, kind, why}; leg(a, b, opts) -> problems; nearest(p, area, limit, opts) -> a spot she may stand on; areaOf(p); placeOf(...). */
 (function(root){
  'use strict';
  const node=typeof module!=='undefined'&&module.exports;
+ const NC=()=>{try{return node?require('./ncz-nightclub.js'):root.VoidNightclub||null;}catch{return null;}};
  const QT=()=>node?require('./ncz-quarters.js'):root.VoidQuarters,MK=()=>node?require('./milked.js'):root.VoidMilked,PL=()=>{try{return node?require('./places.js'):root.VoidPlaces;}catch{return null;}};
  // The District's plan (local metres: x across, z inward from the street door at 20) -> world metres (neochinatown.js toWorld: a half turn about its door).
  const DOOR={x:126.9,z:-61.9},W=([x0,x1,z0,z1])=>[DOOR.x-x1,DOOR.x-x0,DOOR.z+20-z1,DOOR.z+20-z0],WP=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
@@ -27,7 +33,7 @@
  const AVENUE_OLD=[[19.63,20.13,-7.9,-7.5,'the taxi pole'],[32.38,34.38,-7.9,-7.3,'an advertising screen'],[39.38,41.38,-7.9,-7.5,'an advertising screen and the taxi pole'],[46.63,48.38,-7.9,-7.5,'an advertising screen'],[53.63,55.38,-7.9,-7.5,'an advertising screen'],[95.63,97.38,-7.9,-7.5,'an advertising screen'],[123.38,125.38,-7.9,-7.3,'an advertising screen'],[133.63,134.13,-7.9,-7.5,'the taxi pole']];
  const RULE={milked:'That is Milked (the studio building, its side street and its service alley are never used for her).',null:'That is NULL, the nightclub, or the pavement at its door (never used for her).',
   bar:'That is the District bar (never used for her).',vr:'That is the District’s VR play area (never used for her).',arcade:'That is the District’s arcade room (left out: only the hallway, the store and the vending alcove are used).',
-  pods:'That is the Sleeping Pod room (the players’ own pods: never used for her).',corporate:'That is the Corporate District (not part of the city: never used for her).',terrace:'That is the smoking terrace (never used for her).'};
+  pods:'That is the Sleeping Pod room (the players’ own pods: never used for her).',studios:'That is inside Milked beyond reception (the studios, the hallway and the staff rooms are never used: only reception, for a character marked adult).',corporate:'That is the Corporate District (not part of the city: never used for her).',terrace:'That is the smoking terrace (never used for her).'};
  let CACHE=null;
  function defs(){if(CACHE)return CACHE;const Q=QT(),M=MK(),gates=id=>((Q&&Q.GATES)||[]).filter(g=>g.ends.lo?.quarter===id||g.ends.hi?.quarter===id).map(g=>R(g.rect,{name:g.name,id:g.id}));
   const lane=(M&&M.LANE)||[71,101,-174,-168.5],alley=(M&&M.ALLEY)||[71,98.5,-193.5,-190],foot=(M&&M.FOOTPRINT)||[78,98,-190,-174];
@@ -45,16 +51,18 @@
      R([70.6,135.6,-61.2,-55.9],{name:'the District alley',y:0}),R([13.4,40.4,-117.3,-116.3],{name:'access road, north pavement',y:pave}),R([45.5,51.4,-117.3,-116.3],{name:'access road, north pavement (east)',y:pave}),
      R([13.4,53.6,-120.8,-119.7],{name:'access road, south pavement',y:pave}),R([37.9,40.4,-117.3,-113.4],{name:'by Port Customs’ walkers’ door',y:0})],
     roads:[R([54,68,-124,-26]),R([13,54,-119.6,-117.4]),R([40.5,44,-117.4,-113])],
-    no:[R([18,51,-68.5,-48.5],{why:RULE.null,rule:true,name:'NULL'}),R([50.5,55,-69.5,-47.5],{why:RULE.null,rule:true,name:'NULL’s door'}),
+    no:[R([18,51,-68.5,-48.5],{why:RULE.null,rule:true,adult:true,name:'NULL'}),R([50.5,55,-69.5,-47.5],{why:RULE.null,rule:true,adult:true,name:'NULL’s door'}),
      R([109.4,144.4,-120.4,-61.6],{why:'That is inside The Darknet District’s building: pick “The Darknet District (inside)” in the area list to place her indoors.',name:'The Darknet District'}),
-     R([78.4,99.4,-116.4,-95.4],{why:RULE.terrace,rule:true,name:'smoking terrace'})],
+     R([78.4,99.4,-116.4,-95.4],{why:RULE.terrace,rule:true,adult:true,name:'smoking terrace'})],
+    adult:[R([18.6,45.6,-67.9,-49.1],{name:'NULL (inside: the club floor)',y:0}),R([45.6,50.4,-59.5,-57.5],{name:'NULL’s entry',y:0}),R([78.8,99,-116,-95.8],{name:'the smoking terrace',y:0})],
     labels:[{name:'Main Street',x:61,z:-90},{name:'the District alley',x:100,z:-58.5},{name:'access road',x:28,z:-118.5}]},
    {id:'far-south',name:'Far South',scene:'street',quarter:'far-south',view:R([45,110,-227,-121]),
     floors:[R([51,71,-218,-130],{name:'Main Street (Far South)'})],
     walk:[R([51.4,53.6,-217.6,-130.4],{name:'Main Street, west pavement',y:pave}),R([68.4,70.6,-217.6,-130.4],{name:'Main Street, east pavement',y:pave}),R([57,65,-217.8,-215],{name:'by the Far South Gate’s walkers’ door',y:0})],
     roads:[R([54,68,-215,-130])],
-    no:[R(foot,{why:RULE.milked,rule:true,name:'Milked'}),R(lane,{why:RULE.milked,rule:true,name:'Milked side street'}),R(alley,{why:RULE.milked,rule:true,name:'Milked service alley'}),
-     R([66.5,72,lane[2]-2,lane[3]+2],{why:RULE.milked,rule:true,name:'Milked side street (mouth)'}),R([66.5,72,alley[2]-2,alley[3]+2],{why:RULE.milked,rule:true,name:'Milked service alley (mouth)'})],
+    no:[R(foot,{why:RULE.milked,rule:true,name:'Milked'}),R(lane,{why:RULE.milked,rule:true,adult:true,name:'Milked side street'}),R(alley,{why:RULE.milked,rule:true,adult:true,name:'Milked service alley'}),
+     R([66.5,72,lane[2]-2,lane[3]+2],{why:RULE.milked,rule:true,adult:true,name:'Milked side street (mouth)'}),R([66.5,72,alley[2]-2,alley[3]+2],{why:RULE.milked,rule:true,adult:true,name:'Milked service alley (mouth)'})],
+    adult:[R([lane[0]+.4,lane[1]-3.4,lane[2]+.4,lane[3]-.4],{name:'Milked side street',y:0}),R([alley[0]+.4,alley[1]-.4,alley[2]+.4,alley[3]-.4],{name:'Milked service alley',y:0}),R([70.6,71.4,lane[2]+.4,lane[3]-.4],{name:'Milked side street (mouth)',y:pave}),R([70.6,71.4,alley[2]+.4,alley[3]-.4],{name:'Milked service alley (mouth)',y:pave})],
     labels:[{name:'Main Street (Far South)',x:61,z:-150},{name:'Milked (not used)',x:88,z:-182}]},
    {id:'outskirts',name:'The Outskirts',scene:'street',quarter:'outskirts',view:R([16,112,-264,-216]),
     floors:[R([36,92,-260,-224],{name:'container yard'}),R([20,36,-250,-240],{name:'west lane'}),R([92,108,-248,-240],{name:'east lane'})],
@@ -71,34 +79,41 @@
     walk:[R(W([-2.6,2.6,26.6,70.3]),{name:'the hallway',y:0}),R(W([-2.6,2.6,26.6,31]),{name:'the entry (inside the inner door)',y:0}),R(W([3.4,16.6,43.4,46.4]),{name:'the store (customers’ side)',y:0}),
      R(W([14.3,16.6,46.4,51.2]),{name:'the store (by the racks)',y:0}),R(W([2.4,3.6,44.8,49.2]),{name:'the store’s doorway',y:0}),R(W([-6.6,-2.4,46.9,52.1]),{name:'the vending alcove',y:0})],
     roads:[],
-    no:[R(W([-17,17,70.5,78.3]),{why:RULE.pods,rule:true,name:'the Sleeping Pod room'}),R(W([3,17,28,42]),{why:RULE.bar,rule:true,name:'the bar'}),R(W([-17,-3,28,44]),{why:RULE.vr,rule:true,name:'the VR play area'}),R(W([-10.5,-3,57.5,66.5]),{why:RULE.arcade,rule:true,name:'the arcade room'}),
+    no:[R(W([-17,17,70.5,78.3]),{why:RULE.pods,rule:true,name:'the Sleeping Pod room'}),R(W([3,17,28,42]),{why:RULE.bar,rule:true,adult:true,name:'the bar'}),R(W([-17,-3,28,44]),{why:RULE.vr,rule:true,adult:true,name:'the VR play area'}),R(W([-10.5,-3,57.5,66.5]),{why:RULE.arcade,rule:true,adult:true,name:'the arcade room'}),
      R(W([3,15,56,69]),{why:'That is the meeting room (private: its door stays shut).',name:'the meeting room'}),R(W([-3,3,20,26]),{why:'That is the security vestibule (the checkpoint between the doors).',name:'the security vestibule'}),
      R(W([3,14.3,46.4,53]),{why:'That is behind the shop counter (staff only).',name:'behind the counter'}),R(W([3,17,51.2,53]),{why:'That is the store’s stock cage (staff only).',name:'the stock cage'})],
-    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]}]}];
+    adult:[R(W([3.4,16.6,28.4,41.6]),{name:'the bar',y:0}),R(W([-16.6,-3.4,28.4,43.6]),{name:'the VR play area',y:0}),R(W([-10.1,-3.4,57.9,66.1]),{name:'the arcade room',y:0})],
+    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]}]},
+   // the inside of Milked (its own scene, milked-build.js): reception only, and only for a made character marked adult (milked.js ROOMS, world metres)
+   {id:'milked',name:'Inside Milked (reception)',scene:'milked',quarter:null,view:R([foot[0]-2,foot[1]+2,foot[2]-2,foot[3]+2]),floors:[R(foot,{name:'Milked'})],walk:[],roads:[],
+    no:[R([85.5,foot[1],foot[2],foot[3]],{why:RULE.studios,rule:true,name:'Milked (studios and staff rooms)'}),R([foot[0],85.5,foot[2],foot[3]-8.8],{why:RULE.studios,rule:true,name:'Milked (dressing rooms and the rear corridor)'}),R([78,85.5,foot[3]-8.8,foot[3]],{why:RULE.milked,rule:true,adult:true,name:'reception'}),R([79.75,83.75,foot[3]-3,foot[3]],{why:'That is Milked’s security vestibule (between the doors).',name:'the vestibule'})],
+    adult:[R([78.4,85.1,foot[3]-8.4,foot[3]-3.2],{name:'reception',y:0})],labels:[{name:'reception',x:81.7,z:foot[3]-6}]}];
   for(const a of A){a.gates=a.scene==='street'?gates(a.quarter):[];const g=GEN&&GEN.areas&&GEN.areas[a.id];
    a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):[];
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
+   for(const w of a.adult||[])a.walk.push({...w,adult:true});delete a.adult;   // ground only an adult made character uses (always inside an adult rule above)
+   if(a.id==='oldtown'){const N=NC();try{for(const s of (N&&N.solids?N.solids():[]))if(!/^club-(north|south|west|front|entry|shutter)/.test(s.id||'')){const [x,,z]=s.position,[w,,d]=s.size;if(x>18&&x<50&&z>-68.5&&z<-48.5)a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,'NULL’s furniture']);}}catch{}}
    a.posts=((Q&&Q.CALL_POINTS)||[]).filter(c=>c.quarter===a.quarter&&Array.isArray(c.post)).map(c=>[c.post[0],c.post[1]]);}
   // Places beyond the city (never used): reasons for a spot there
   const OUT=[R([-120,-60,-40,15],{why:RULE.corporate,rule:true,name:'the Corporate District'}),R([-60,2,-20,-5],{why:'That is beyond the Function Gate (the way to the Corporate District: never used for her).',rule:true}),R([152,200,-20,-5],{why:'That is beyond the East Gate (the way to the Temple: never used for her).',rule:true})];
   return CACHE={list:A,by:new Map(A.map(a=>[a.id,a])),out:OUT};}
- const IDS=['avenue','oldtown','far-south','outskirts','port','district'];
+ const IDS=['avenue','oldtown','far-south','outskirts','port','district','milked'];
  const inR=(r,x,z,m=0)=>x>r.x0-m&&x<r.x1+m&&z>r.z0-m&&z<r.z1+m,inO=(o,x,z,m)=>x>o[0]-m&&x<o[1]+m&&z>o[2]-m&&z<o[3]+m,size=r=>(r.x1-r.x0)*(r.z1-r.z0);
  const num=v=>typeof v==='number'&&Number.isFinite(v);
  const list=()=>defs().list,get=id=>defs().by.get(id)||null;
  /* The area a point is in (its walkable part), or null. prefer: an area id to try first. */
  function areaOf(p,prefer){if(!p||!num(p.x)||!num(p.z))return null;const L=list(),order=prefer&&get(prefer)?[get(prefer),...L.filter(a=>a.id!==prefer)]:L;for(const a of order)if(a.walk.some(w=>inR(w,p.x,p.z,1e-6)))return a.id;return null;}
  /* Is p a spot she may stand on? {ok, area, kind:'ok'|'rule'|'blocked'|'road'|'gate'|'obstacle'|'post'|'outside', why}. m: the clearance from furniture (CLEAR). */
- function check(p,prefer,m=CLEAR){if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>400||Math.abs(p.z)>400)return {ok:false,area:null,kind:'outside',why:'The spot has no position.'};
+ function check(p,prefer,m=CLEAR,opts={}){const ad=!!(opts&&opts.adult),skip=n=>ad&&n.adult;if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>400||Math.abs(p.z)>400)return {ok:false,area:null,kind:'outside',why:'The spot has no position.'};
   const {x,z}=p,id=areaOf(p,prefer);
-  if(id){const a=get(id);const no=a.no.filter(n=>inR(n,x,z)).sort((u,v)=>size(u)-size(v))[0];if(no)return {ok:false,area:id,kind:no.rule?'rule':'blocked',why:no.why};
+  if(id){const a=get(id);const no=a.no.filter(n=>inR(n,x,z)&&!skip(n)).sort((u,v)=>size(u)-size(v))[0];if(no)return {ok:false,area:id,kind:no.rule?'rule':'blocked',why:no.why+(no.adult&&opts&&opts.made?' Only characters made in the editor and marked “adult (18+)” may stand here.':'')};
    for(const g of a.gates)if(inR(g,x,z))return {ok:false,area:id,kind:'gate',why:'That is inside the '+g.name+' (a checkpoint building): she stays on one side of it.'};
    for(const o of a.obstacles)if(inO(o,x,z,m))return {ok:false,area:id,kind:'obstacle',why:'That is in '+(o[4]||'something standing there')+': move the spot a little away from it.'};
    for(const [px,pz] of a.posts)if(Math.hypot(x-px,z-pz)<.7)return {ok:false,area:id,kind:'post',why:'That is on a taxi post.'};
    return {ok:true,area:id,kind:'ok',why:''};}
   // not on anything walkable: say what it is (the most specific thing first)
   const L=list(),order=prefer&&get(prefer)?[get(prefer),...L.filter(a=>a.id!==prefer)]:L;
-  const nos=[];for(const a of L)for(const n of a.no)if(inR(n,x,z))nos.push({n,a});for(const n of defs().out)if(inR(n,x,z))nos.push({n,a:null});nos.sort((u,v)=>(v.n.rule?1:0)-(u.n.rule?1:0)||size(u.n)-size(v.n));
+  const nos=[];for(const a of L)for(const n of a.no)if(inR(n,x,z)&&!skip(n))nos.push({n,a});for(const n of defs().out)if(inR(n,x,z))nos.push({n,a:null});nos.sort((u,v)=>(v.n.rule?1:0)-(u.n.rule?1:0)||size(u.n)-size(v.n));
   if(nos.length&&nos[0].n.rule)return {ok:false,area:nos[0].a?nos[0].a.id:null,kind:'rule',why:nos[0].n.why};
   for(const a of order)for(const g of a.gates)if(inR(g,x,z))return {ok:false,area:a.id,kind:'gate',why:'That is inside the '+g.name+' (a checkpoint building): a spot is on one side of a gate.'};
   for(const a of order)for(const r of a.roads)if(inR(r,x,z))return {ok:false,area:a.id,kind:'road',why:'That is the road (the taxis drive there): put her on a pavement.'};
@@ -106,16 +121,16 @@
   for(const a of order)if(a.floors.some(f=>inR(f,x,z)))return {ok:false,area:a.id,kind:'blocked',why:'That is too close to a wall or a kerb: put the spot a little further in.'};
   return {ok:false,area:null,kind:'outside',why:'That is inside a building or a wall, not somewhere she can walk.'};}
  /* Can she walk straight from a to b? Every step on walkable ground of ONE area, clear of furniture (a little closer than a spot), not across a road or into a forbidden place. */
- function leg(a,b){if(!a||!b||!num(a.x)||!num(a.z)||!num(b.x)||!num(b.z))return ['a point has no position.'];const ca=check(a,null,CLEAR-.1),cb=check(b,ca.area,CLEAR-.1);
+ function leg(a,b,opts={}){if(!a||!b||!num(a.x)||!num(a.z)||!num(b.x)||!num(b.z))return ['a point has no position.'];const ca=check(a,null,CLEAR-.1,opts),cb=check(b,ca.area,CLEAR-.1,opts);
   if(ca.ok&&cb.ok&&ca.area!==cb.area)return ['the walk between these two points goes from '+get(ca.area).name+' to '+get(cb.area).name+': a route stays in one area (she cannot walk through the gates). Make a time block for each area instead.'];
   const area=ca.area||cb.area,d=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(1,Math.ceil(d/STEP));
   const PRI={rule:0,road:1,gate:2,obstacle:3,post:3,blocked:4,outside:5};let worst=null,left=false;
-  for(let k=0;k<=n;k++){const t=k/n,q={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t},c=check(q,area,CLEAR-.1);if(c.ok&&c.area===area)continue;if(c.ok){left=true;continue;}if(!worst||PRI[c.kind]<PRI[worst.kind])worst=c;}
+  for(let k=0;k<=n;k++){const t=k/n,q={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t},c=check(q,area,CLEAR-.1,opts);if(c.ok&&c.area===area)continue;if(c.ok){left=true;continue;}if(!worst||PRI[c.kind]<PRI[worst.kind])worst=c;}
   if(!worst&&left)return ['the walk between these two points leaves '+get(area).name+': a route stays in one area.'];if(!worst)return [];const c=worst;
   return ['the walk between these two points '+(c.kind==='road'?'crosses the road (the taxis drive there): add a point so she stays on the pavement, or keep the route on one side.':c.kind==='rule'?'goes through a place never used for her: '+c.why.replace(/^That is /,'it is '):c.kind==='obstacle'?'goes through '+(c.why.replace(/^That is in /,'').replace(/:.*$/,''))+': add a point to go round it.':c.kind==='post'?'goes through a taxi post: add a point to go round it.':c.kind==='gate'?'goes into a gate: a route stays on one side.':'goes through a wall or a building: add a point to go round the corner.')];}
  /* The nearest spot she may stand on to p, in area id (or p's own area): {x, z, moved} or null. A click inside a forbidden place is never moved out of it (the reason is shown instead). */
- function nearest(p,id,limit=SNAP){if(!p||!num(p.x)||!num(p.z))return null;const c0=check(p,id);if(c0.ok&&(!id||c0.area===id))return {x:p.x,z:p.z,moved:false};if(c0.kind==='rule')return null;
-  const a=get(id||c0.area||areaOf(p));if(!a)return null;const r2=v=>Math.round(v*10)/10,ok=q=>{const c=check(q,a.id);return c.ok&&c.area===a.id;};let best=null;
+ function nearest(p,id,limit=SNAP,opts={}){if(!p||!num(p.x)||!num(p.z))return null;const c0=check(p,id,CLEAR,opts);if(c0.ok&&(!id||c0.area===id))return {x:p.x,z:p.z,moved:false};if(c0.kind==='rule')return null;
+  const a=get(id||c0.area||areaOf(p));if(!a)return null;const r2=v=>Math.round(v*10)/10,ok=q=>{const c=check(q,a.id,CLEAR,opts);return c.ok&&c.area===a.id;};let best=null;
   const consider=q=>{q={x:r2(q.x),z:r2(q.z)};const d=Math.hypot(q.x-p.x,q.z-p.z);if(d<=limit&&(!best||d<best.d)&&ok(q))best={...q,d};};
   for(const w of a.walk){const q={x:Math.max(w.x0+.05,Math.min(w.x1-.05,p.x)),z:Math.max(w.z0+.05,Math.min(w.z1-.05,p.z))};consider(q);
    if(!best||best.d>.05)for(let r=.2;r<=2.4;r+=.2)for(let k=0;k<16;k++){const t=k/16*Math.PI*2;consider({x:q.x+Math.cos(t)*r,z:q.z+Math.sin(t)*r});}}
@@ -123,9 +138,9 @@
  /* The ground height (m) under a walkable spot (pavement slabs stand 0.18 m above the road), or null. */
  function groundY(p,id){const a=get(id||areaOf(p));if(!a)return null;const w=a.walk.find(v=>inR(v,p.x,p.z,1e-6));return w&&num(w.y)?w.y:null;}
  /* Which areas are built in a scene: the street (one quarter, or every street area when quarter is null) or the District interior. */
- function here(scene,quarter){return list().filter(a=>scene==='interior'?a.scene==='interior':a.scene==='street'&&(!quarter||a.quarter===quarter)).map(a=>a.id);}
+ function here(scene,quarter){return list().filter(a=>scene==='interior'||scene==='milked'?a.scene===scene:a.scene==='street'&&(!quarter||a.quarter===quarter)).map(a=>a.id);}
  /* Where draft play enters for an area: {walk:'sacramento', quarter} or {walk:'darknet-district'}. */
- function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:{walk:'sacramento',quarter:a.quarter};}
+ function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:a.scene==='milked'?{walk:'sacramento',quarter:'far-south'}:{walk:'sacramento',quarter:a.quarter};}
  const r1=v=>Math.round(v*10)/10,slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
  /* Named places in every area (for the ChatGPT prompt and the editor): shopfronts (places.js SHOPFRONTS: the spot on the pavement in front), and landmarks. [{id, name, area, x, z}]
     The Avenue's north pavement keeps its first names (laundry, repair, ...); every other id starts with its area. Only spots she may stand on are listed. */
@@ -145,9 +160,9 @@
   return out;}
  /* For the admin inventory (the server's copy of these rules): every area's rectangles, obstacles and posts, as plain numbers. */
  function inventory(){const rr=r=>[r.x0,r.x1,r.z0,r.z1];return {clear:CLEAR,step:STEP,out:defs().out.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule})),areas:list().map(a=>({id:a.id,name:a.name,scene:a.scene,quarter:a.quarter,
-  walk:a.walk.map(rr),floors:a.floors.map(rr),roads:a.roads.map(rr),gates:a.gates.map(g=>({rect:rr(g),name:g.name})),no:a.no.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule})),obstacles:a.obstacles.map(o=>o.slice(0,4)),posts:a.posts.map(p=>p.slice())}))};}
+  walk:a.walk.map(rr),adultWalk:a.walk.map((w,i)=>w.adult?i:-1).filter(i=>i>=0),floors:a.floors.map(rr),roads:a.roads.map(rr),gates:a.gates.map(g=>({rect:rr(g),name:g.name})),no:a.no.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule,...(n.adult?{adult:true}:{})})),obstacles:a.obstacles.map(o=>o.slice(0,4)),posts:a.posts.map(p=>p.slice())}))};}
  /* For the ChatGPT prompt: each area in plain words with its walkable rectangles. */
- function describe(){return list().map(a=>({id:a.id,name:a.name,inside:a.scene==='interior',walk:a.walk.map(w=>({name:w.name,x0:w.x0,x1:w.x1,z0:w.z0,z1:w.z1})),never:a.no.filter(n=>n.rule).map(n=>n.name)}));}
+ function describe(){return list().map(a=>({id:a.id,name:a.name,inside:a.scene==='interior',walk:a.walk.filter(w=>!w.adult).map(w=>({name:w.name,x0:w.x0,x1:w.x1,z0:w.z0,z1:w.z1})),never:a.no.filter(n=>n.rule).map(n=>n.name)})).filter(a=>a.walk.length);}
  const api={IDS,CLEAR,STEP,RULE,DOOR,toWorld:WP,local:W,list,get,areaOf,check,leg,nearest,groundY,here,enter,places,inventory,describe,get GEN(){return GEN;},reset(){CACHE=null;}};
  if(node)module.exports=api;else root.VoidNPCAreas=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
