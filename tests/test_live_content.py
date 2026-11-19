@@ -128,7 +128,7 @@ class LiveContentTests(unittest.TestCase):
 
 
     def test_new_trees_publish_and_their_records_pass_cloud_save(self):
-        """The owner's new trees (draft- ids, givers with a TALK prompt, supported steps and unlocks) publish; anything the game cannot run is refused;
+        """The owner's new trees publish with capability-aware NPC rules: in-person givers need TALK, notification-started missions may use any known NPC; unsupported mechanics are refused;
         their mission records and flags (mt_<id> when paid, mf_<name> from a flag unlock) are accepted by clean_save as they are."""
         tree = {'id': 'draft-test-tree', 'name': 'Test tree', 'missions': [{'id': 'draft-test-tree-m1', 'title': 'FIRST', 'type': 'side', 'giver': 'admin', 'rewards': 10,
                 'offer': [{'who': 'admin', 'text': 'Test line.'}],
@@ -146,6 +146,17 @@ class LiveContentTests(unittest.TestCase):
             c = copy.deepcopy(good)
             change(c['trees'][0]['missions'][0])
             self.assertTrue(live.check(c), c)
+        # A known NPC without a walking TALK prompt can own a notification-started mission; the device trigger is the execution path.
+        by_note = copy.deepcopy(good)
+        mn = by_note['trees'][0]['missions'][0]
+        mn['giver'] = 'rin-takeda'
+        mn['start'] = {'how': 'notification', 'channel': 'notify', 'from': 'rin-takeda', 'text': 'Test.', 'when': {'kind': 'pod-exit'}}
+        mn['offer'] = []
+        self.assertEqual(live.check(by_note), [])
+        # The same NPC still cannot be an in-person giver without a TALK interaction.
+        in_person = copy.deepcopy(by_note)
+        in_person['trees'][0]['missions'][0].pop('start', None)
+        self.assertTrue(live.check(in_person))
         state = test_story_save.StorySaveTests.state(None)
         state['story']['flags'].update({'missionPool': 'closed', 'mt_draft-test-tree-m1': True, 'mf_testFlag': True, 'ts_draft-test-tree': True, 'starterShipAwarded': True, 'shipAccess': 'granted'})
         state['ownedShips'] = ['starter', 'ship2']
