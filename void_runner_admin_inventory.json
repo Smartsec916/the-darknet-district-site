@@ -38647,7 +38647,7 @@
       "spawn"
     ]
   },
-  "revision": "52ed714a5cc4b48e",
+  "revision": "b7f89741f720fcfa",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -56861,7 +56861,7 @@
     },
     {
       "source": "void-runner/zones.js",
-      "line": 143,
+      "line": 154,
       "text": "if(o.say!=null||o.early!=null||o.via!=null)out.push(w+': a “Change zone” step has no lines.');return out;}",
       "kind": "source-reference"
     }
@@ -56884,7 +56884,7 @@
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "b54e3fb4ef253d1fc544d255acc85a128457aee078cd9d0f13843f0f18c7670e",
     "void-runner/babylon-renderer.js": "9c97ed5fdfa84597332293ca63d639c49c1dd180f4d1483c859e2931116883df",
-    "void-runner/balance-data.js": "5c9f930f6e75e467a65f782d3a76a072432e1cf7b0f54c410752adac68040cb7",
+    "void-runner/balance-data.js": "fd0a02119edc36ade54174112c2059ea8e40bc8a036d225dfcf652267202705a",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
@@ -56921,7 +56921,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "ad46f548b287001649c13cc0326cb2d25d284ab74c326ab4ee9a0797787fcf45",
-    "void-runner/dev-tools.js": "e8ab27aae6b209feb973bfd8f8b6540bff56a5de5c628120c8d231547403a631",
+    "void-runner/dev-tools.js": "0e2cd12b6701a3e45c6d4861f3df3f9da82391bcdb2f9987772c4ad9831ef331",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "d0f3e1180ebf13d0b3c312e63978a4bc2320d651584468cda78d099f121fedb3",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -57065,7 +57065,7 @@
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "ca98ad645a3799bfe81aac6931a428fa07becd3661b2e5f602a99e00fa1e93eb",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
-    "void-runner/skirmish.js": "fbe7df779c69f09523d26af894db02bfb5a3f18a7d27727841441a2b9bf1b7d1",
+    "void-runner/skirmish.js": "41bbc7cebbef949f9e8522e08f60d0f12026d7bab3d6da5910dddf5acdadfd5d",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",
@@ -57108,8 +57108,8 @@
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
     "void-runner/zone-editor.js": "f28cd8fcbacc6784c44e0633718de00b400ce9d06fcdf81e8b5d5166cc7ff7ef",
-    "void-runner/zone-integration.js": "9f32131a1e6454d91a4aba75394478d19a99304abb0275056ff77039ceaedeb4",
-    "void-runner/zones.js": "afb7398ef75e48908f631b2311312f1710f87362b935b892c128896cfa95153e",
+    "void-runner/zone-integration.js": "4a85fdea957876fac12d3bba65e6ec977c36f9647ed2c4cd9b70c177f3736d62",
+    "void-runner/zones.js": "d46047b1ea4ed7dec38ce973b3e6834fc82e4101b9e1cd70416cbd31d9de39ad",
     "void-runner/zoom-detail.js": "6510598c4633a95bb673d68d16707784fe394fdff50a5842561ffb5e4675b0b3",
     "tools/admin-inventory.cjs": "60c314a739eb00a25a91ad589d6a464aeea00ba4602d1042c08a274ad14a0580",
     "tools/audio/npc-voice-registry.json": "8f0a8641d70af25a63feebfb149399580d4c1d36827d7bdc30867b9cf30b99cc",

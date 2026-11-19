@@ -43,16 +43,21 @@ const balanceHelp={
   premiumShieldRechargeDelay:['Aegis recharge wait','Seconds without being hit before it recharges.']},
  'On foot: the pistol':{
   pistolPrice:['Pistol price (Admin)','Credits Admin charges for the base pistol. Bought once; it stays the player’s.'],
-  pistolDamage:['Pistol damage','Damage per pistol shot to an armed person (their health is below).']},
- 'On foot: zones, guards and enemies':{
+  pistolDamage:['Pistol damage','Damage per pistol shot to an armed person (their health is below). The same in the campaign and in Skirmish FPS.'],
+  pistolAimBonus:['Aimed-shot bonus','Damage multiplier when aiming down the sights (1.24: 34 becomes 42).'],
+  pistolCooldown:['Time between shots','Seconds before the pistol can fire again.'],
+  pistolSpread:['Spread','Degrees a hip shot can stray from the crosshair (a third of it when aiming).'],
+  pistolRecoil:['Recoil','Degrees the view kicks up with each shot.'],
+  footPlayerHealth:['Player health on foot','Health the player starts with and comes back to (campaign and Skirmish FPS).']},
+ 'On foot: zones, guards and enemies (Skirmish FPS uses the same enemy values; its difficulty scales them)':{
   neutralSafety:['Neutral safety catch','1 = ON: in a Neutral area the first trigger press only warns (“firing will make people attack you”); a second press within the safety window fires. 0 = OFF: the first press fires. Drawing or holstering never provokes anyone.'],
   safetyWindow:['Safety window','Seconds the second press has to come within. Holstering or waiting longer puts the safety back on.'],
   guardHostileTime:['How long guards stay angry','Seconds the armed people of a Neutral area stay hostile after a shot. Leaving the area calms them at once.'],
   civilianFleeRadius:['Civilian flee radius','Metres around a shot in a Neutral area within which civilians run (0 = nobody runs).'],
   detectRange:['Detection range','Metres an enemy can spot the player at (60% of it when the player crouches). Walls and closed doors block sight.'],
   detectCone:['Detection cone','Degrees of an enemy’s field of view while calm (360 = sees all round). Once alerted they look everywhere.'],
-  footEnemyHealth:['Enemy health','Health of a security guard or mercenary (an enforcer has 35% more).'],
-  footEnemyDamage:['Enemy damage','Health the player loses per enemy hit (the player has 100).'],
+  footEnemyHealth:['Enemy health','Health of a security guard, mercenary or Skirmish raider (an enforcer and the Skirmish stronghold raiders have 35% more).'],
+  footEnemyDamage:['Enemy damage','Health the player loses per enemy hit.'],
   footEnemyAccuracy:['Enemy accuracy','Chance an enemy shot hits (lower at long range and against a crouching player).'],
   footEnemyReaction:['Enemy reaction time','Seconds between an enemy’s shots (plus a little at random).'],
   footEnemySpeed:['Enemy speed','Metres per second an enemy moves when chasing the player.']}

@@ -129,3 +129,21 @@ test('server parity: the Python checks know the same fields and lists',()=>{
  const html=read('void-runner.html');assert.ok(html.indexOf('void-runner/zones.js')<html.indexOf('void-runner/mission-content.js'));assert.ok(html.indexOf('void-runner/zone-integration.js')>html.indexOf('void-runner/module-integration.js'));
  assert.match(read('void-runner/dev-tools.js'),/\['zones','Zones'\]/);assert.match(read('void-runner/dev-tools.js'),/void-runner\/zone-editor\.js/);
 });
+
+test('ONE combat balance for on-foot combat: the campaign and Skirmish FPS read the same gun, health, enemies and detection',()=>{
+ const values={...require('../void-runner/balance.js').defaults,pistolDamage:50,pistolAimBonus:1.5,pistolCooldown:.4,pistolSpread:2,pistolRecoil:1,footPlayerHealth:150,footEnemyDamage:20,footEnemyAccuracy:.5,footEnemyReaction:2,footEnemySpeed:2,footEnemyHealth:90,detectRange:30,detectCone:180};
+ const g=Z.gun(values,P.tuning.ground);assert.deepEqual(g,{damage:50,aimDamage:75,cooldown:.4,spread:2,recoil:1,health:150,magazine:P.tuning.ground.magazine,reserve:P.tuning.ground.reserve,reload:P.tuning.ground.reload});
+ const n=Z.skirmish(values,'normal'),c=Z.tune(values);assert.deepEqual(n,{damage:c.footEnemyDamage,accuracy:c.footEnemyAccuracy,reaction:c.footEnemyReaction,speed:c.footEnemySpeed,health:c.footEnemyHealth,detectRange:c.detectRange,detectCone:c.detectCone});
+ assert.ok(Z.skirmish(values,'hard').damage>n.damage&&Z.skirmish(values,'easy').damage<n.damage,'difficulty only scales the shared values');
+ // the defaults keep Skirmish's old Normal enemies and aimed / hip damage
+ const d=Z.skirmish(null,'normal');assert.equal(d.damage,11);assert.equal(d.accuracy,.66);assert.equal(d.reaction,1.1);assert.equal(d.speed,1.05);const g0=Z.gun(null);assert.equal(Math.round(g0.aimDamage),42);assert.equal(g0.damage,34);
+ // both modes read them, and no copy of the old numbers is left in Skirmish
+ const sk=read('void-runner/skirmish.js'),zi=read('void-runner/zone-integration.js');
+ for(const re of [/Z\.gun\(bal\(\)/,/Z\.skirmish\(bal\(\),d\)/,/g\.aimDamage:g\.damage/,/Z\.sees\(/,/Z\.shotDir\(/,/c\.detectRange\*1\.2/])assert.match(sk,re);
+ for(const old of ['s.aim?42:34','s.cooldown=.27','distance<29','ammo:12,reserve:96','12-s.ammo','reload=1.35','damage:7,accuracy:.46'])assert.ok(!sk.includes(old),'skirmish still has '+old);
+ for(const re of [/Z\.gun\(root\.VOID_BALANCE/,/gg\.aimDamage:gg\.damage/,/footPlayerHealth/,/Z\.shotDir\(/])assert.match(zi,re);
+ const spec=require('../void-runner/balance.js').spec;for(const k of ['pistolAimBonus','pistolCooldown','pistolSpread','pistolRecoil','footPlayerHealth'])assert.equal(spec[k].value,Z.TUNE[k],k+' default matches');
+ for(const [k,v] of Object.entries(Z.TUNE))assert.equal(spec[k].value,v,'Combat Balance default '+k);
+ // spread: none at 0, inside the cone otherwise
+ assert.deepEqual(Z.shotDir(0,0,0,false,()=>.5).map(x=>Math.round(x*1e6)/1e6+0),[0,0,1]);const dv=Z.shotDir(0,0,2,false,()=>1);assert.ok(Math.acos(dv[2])<=2*Math.PI/180+1e-9);
+});

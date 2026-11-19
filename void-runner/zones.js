@@ -31,8 +31,19 @@
  // The base pistol Admin sells (price: Combat Balance pistolPrice). One-time purchase; progression.personal.weapons.
  const PISTOL={id:'base-pistol',name:'PISTOL',vendor:'admin',note:'A plain 10-round sidearm. Admin sells it once; it stays yours.'},WEAPONS=['base-pistol'];
  // Combat Balance keys (balance-data.js) and their defaults, so Node tests and the rules run without the balance file.
- const TUNE={pistolPrice:350,pistolDamage:34,footEnemyHealth:60,footEnemyDamage:11,footEnemyAccuracy:.6,footEnemyReaction:1.1,footEnemySpeed:1.7,detectRange:22,detectCone:110,
-  guardHostileTime:45,civilianFleeRadius:25,neutralSafety:1,safetyWindow:2};
+ // ONE SOURCE FOR ON-FOOT COMBAT (the owner: "if something is changed in ground combat like how much damage guns do also change it in the Skirmish FPS mode"): the campaign
+ // (zone-integration.js) and Skirmish FPS (skirmish.js) both read these through tune() / gun() / skirmish(); the magazine, reserve and reload time are progression.js
+ // tuning.ground (the save server checks the magazine). Skirmish difficulty only scales the enemies' Normal values (SKIRMISH_DIFFICULTY).
+ const TUNE={pistolPrice:350,pistolDamage:34,pistolAimBonus:1.24,pistolCooldown:.25,pistolSpread:1.2,pistolRecoil:.6,footPlayerHealth:100,footEnemyHealth:60,footEnemyDamage:11,footEnemyAccuracy:.66,
+  footEnemyReaction:1.1,footEnemySpeed:1.05,detectRange:26,detectCone:110,guardHostileTime:45,civilianFleeRadius:25,neutralSafety:1,safetyWindow:2};
+ const SKIRMISH_DIFFICULTY={easy:{damage:.64,accuracy:.7,reaction:1.36,speed:.76},normal:{damage:1,accuracy:1,reaction:1,speed:1},hard:{damage:1.36,accuracy:1.24,reaction:.64,speed:1.24}};
+ const GROUND={magazine:10,reserve:48,reload:1.1};   // progression.js tuning.ground (Node tests without it)
+ /* The player's gun, the same in both modes. ground: progression.js tuning.ground. */
+ function gun(values,ground){const c=tune(values),g=ground||GROUND;return {damage:c.pistolDamage,aimDamage:c.pistolDamage*c.pistolAimBonus,cooldown:c.pistolCooldown,spread:c.pistolSpread,recoil:c.pistolRecoil,health:c.footPlayerHealth,magazine:g.magazine,reserve:g.reserve,reload:g.reload};}
+ /* Skirmish FPS enemies for a difficulty: the shared Normal values scaled. */
+ function skirmish(values,difficulty){const c=tune(values),k=SKIRMISH_DIFFICULTY[difficulty]||SKIRMISH_DIFFICULTY.normal;return {damage:c.footEnemyDamage*k.damage,accuracy:Math.min(1,c.footEnemyAccuracy*k.accuracy),reaction:c.footEnemyReaction*k.reaction,speed:c.footEnemySpeed*k.speed,health:c.footEnemyHealth,detectRange:c.detectRange,detectCone:c.detectCone};}
+ /* A shot's direction with the gun's spread (degrees from the aim; a third of it aiming down the sights). rnd: () -> 0..1. -> [x,y,z] */
+ function shotDir(yaw,pitch,spreadDeg,aim,rnd=Math.random){const s=(spreadDeg||0)*(aim?1/3:1)*Math.PI/180,a=rnd()*Math.PI*2,r=Math.sqrt(rnd())*s,y=yaw+Math.cos(a)*r,p=pitch+Math.sin(a)*r;return [Math.sin(y)*Math.cos(p),-Math.sin(p),Math.cos(y)*Math.cos(p)];}
  function tune(values){const v=values||{},out={};for(const [k,d] of Object.entries(TUNE))out[k]=Number.isFinite(v[k])?v[k]:d;return out;}
  const isZone=z=>ZONES.includes(z);
  const plainObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
@@ -151,6 +162,6 @@
  function dueNow(m,rec){if(!m||!rec||!rec.acquired||rec.completed)return null;const done=rec.objectives||{};const o=(m.objectives||[]).find(x=>x&&done[x.id]!==true);return o&&o.kind==='zone'?{mission:m.id,step:o.id}:null;}
  // The admin inventory's `zones` (the server checks with the same lists).
  function inventory(){return {zones:ZONES.slice(),default:DEFAULT,figures:Object.keys(FIGURES),roles:ROLES.slice(),onDeath:ON_DEATH.slice(),limit:{...LIMIT},weapons:WEAPONS.slice(),armedKeys:ARMED_KEYS.slice(),combatKeys:COMBAT_KEYS.slice(),tableKeys:TABLE_KEYS.slice(),stepKeys:STEP_KEYS.slice()};}
- const api={STEP_KEYS,stepProblems,stripStep,changesNow,waiting,dueNow,ZONES,DEFAULT,INFO,FIGURES,ROLES,ON_DEATH,LIMIT,PISTOL,WEAPONS,TUNE,REF,tune,rules,zoneAt,press,rearm,provoke,hostileNow,lineClear,sees,enemy,step,hurt,tableProblems,cleanTable,refOf,combatProblems,stripCombat,inventory,isZone};
+ const api={SKIRMISH_DIFFICULTY,GROUND,gun,skirmish,shotDir,STEP_KEYS,stepProblems,stripStep,changesNow,waiting,dueNow,ZONES,DEFAULT,INFO,FIGURES,ROLES,ON_DEATH,LIMIT,PISTOL,WEAPONS,TUNE,REF,tune,rules,zoneAt,press,rearm,provoke,hostileNow,lineClear,sees,enemy,step,hurt,tableProblems,cleanTable,refOf,combatProblems,stripCombat,inventory,isZone};
  if(node)module.exports=api;else root.VoidZones=api;
 })(globalThis);

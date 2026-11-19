@@ -75,12 +75,12 @@
     if(p==='warn'){toast('NEUTRAL AREA — firing will make people attack you. Press fire again to shoot.',Z.INFO.neutral.colour,Math.round(c.safetyWindow*1000));return;}}
    const before=Number(state?.progression?.personal?.ammo);const A=root.VoidAudio,ev=A&&A.event;if(A&&r)A.event=function(name){if(name==='laser')return;return ev.apply(this,arguments);};   // a gun, not a laser, in the city
    try{real.apply(this,arguments);}finally{if(A&&r)A.event=ev;}
-   if(r&&Number(state?.progression?.personal?.ammo)<before)shot(r);};}
- function aimRay(){const B=root.BABYLON;const dir=new B.Vector3(Math.sin(walker.yaw)*Math.cos(walker.pitch),-Math.sin(walker.pitch),Math.cos(walker.yaw)*Math.cos(walker.pitch));return new B.Ray(new B.Vector3(walker.x,walker.y,walker.z),dir,60);}
+   if(Number(state?.progression?.personal?.ammo)<before){const g=Z.gun(root.VOID_BALANCE,root.VoidProgression?.tuning?.ground);try{groundState.cooldown=g.cooldown;walker.pitch=Math.max(-1.4,walker.pitch-g.recoil*Math.PI/180);}catch{}if(r)shot(r);}};}   // the shared gun (zones.js gun(), Skirmish FPS reads the same): time between shots, recoil
+ function aimRay(spread=0){const B=root.BABYLON;const dir=new B.Vector3(...Z.shotDir(walker.yaw,walker.pitch,spread,!!groundState.aim));return new B.Ray(new B.Vector3(walker.x,walker.y,walker.z),dir,60);}
  function shot(r){muzzle();bang(0);const c=cfg(),t=now();stats.shots++;
   // what the bullet meets: an armed person in this part of the location, not behind a wall
-  let hitE=null;try{const S=root.VoidBabylon.scene,hit=S.pickWithRay(aimRay(),m=>m.isPickable&&m.metadata&&m.metadata.zoneEnemy!=null);if(hit&&hit.hit){const e=enemies.find(x=>x.e.id===hit.pickedMesh.metadata.zoneEnemy);if(e&&!e.e.dead&&Z.lineClear({x:walker.x,z:walker.z},{x:e.e.x,z:e.e.z},walkingLocation.solids))hitE=e;}}catch{}
-  if(hitE){const g=(groundState.aim?1.2:1)*c.pistolDamage;const killed=Z.hurt(hitE.e,g);stats.hits++;hitE.flash=performance.now()+120;if(killed){deadSet.add(hitE.key);stats.kills++;toast(Z.FIGURES[hitE.e.figure].name.toUpperCase()+' DOWN',Z.INFO.hostile.colour,1100);}}
+  let hitE=null;try{const S=root.VoidBabylon.scene,hit=S.pickWithRay(aimRay(Z.gun(root.VOID_BALANCE).spread),m=>m.isPickable&&m.metadata&&m.metadata.zoneEnemy!=null);if(hit&&hit.hit){const e=enemies.find(x=>x.e.id===hit.pickedMesh.metadata.zoneEnemy);if(e&&!e.e.dead&&Z.lineClear({x:walker.x,z:walker.z},{x:e.e.x,z:e.e.z},walkingLocation.solids))hitE=e;}}catch{}
+  if(hitE){const gg=Z.gun(root.VOID_BALANCE),g=groundState.aim?gg.aimDamage:gg.damage;const killed=Z.hurt(hitE.e,g);stats.hits++;hitE.flash=performance.now()+120;if(killed){deadSet.add(hitE.key);stats.kills++;toast(Z.FIGURES[hitE.e.figure].name.toUpperCase()+' DOWN',Z.INFO.hostile.colour,1100);}}
   if(r.zone==='neutral'){const already=Z.hostileNow(esc,r.key,t);Z.provoke(esc,r.key,t,c);stats.provoked++;if(!already)setTimeout(()=>{try{announce('SHOTS FIRED · The armed people here are after you. Leave the area to calm things down.');}catch{}},50);
    try{if(c.civilianFleeRadius>0)root.VoidNPCDevice?.spectacle?.({x:walker.x,z:walker.z,radius:c.civilianFleeRadius,kind:'gunfire',duration:14,flee:true});}catch{}}
   else if(r.zone==='hostile'){for(const x of enemies)if(!x.e.dead&&Math.hypot(x.e.x-walker.x,x.e.z-walker.z)<14){x.e.alert=true;x.e.last={x:walker.x,z:walker.z};}}}   // the noise brings the near ones
@@ -116,6 +116,7 @@
   if(!live()){if(enemies.length&&(typeof walkingLocation==='undefined'||walkingLocation!==builtFor))clearEnemies();return;}
   if(walkingLocation!==builtFor)build();else if(t-lastBuildCheck>1000){lastBuildCheck=t;const t0=taken().find(x=>x.m.id===walkingLocation.apt?.mission);if(t0&&(t0.m.combat?.armed||[]).some(a=>!deadSet.has(t0.m.id+'/'+a.id)&&!Z.waiting(t0.m,t0.rec,a)&&!enemies.some(x=>x.key===t0.m.id+'/'+a.id)&&Z.REF.exec(a.at||'')?.[1]===walkingLocation.apt.id))build();}
   if(down){try{walkingKeys.clear();}catch{}return;}
+  {const mx=cfg().footPlayerHealth;try{if(groundState.healthMax!==mx){groundState.health=Math.max(1,Math.round(groundState.health*mx/(groundState.healthMax||100)));groundState.healthMax=mx;}}catch{}}   // Combat Balance footPlayerHealth (shared with Skirmish FPS)
   const c=cfg(),tt=now(),r=last,player={x:walker.x,z:walker.z,crouch:(()=>{try{return walkingKeys.has('KeyC')||walkingKeys.has('ControlLeft');}catch{return false;}})(),dead:down};
   if(r&&r.key!==esc.at)Z.hostileNow(esc,r?r.key:null,tt);   // leaving the area or location calms everyone
   for(const x of enemies){const e=x.e,v=x.view;if(e.dead){if(v.node.rotation.x>-1.45)v.node.rotation.x=Math.max(-1.5,v.node.rotation.x-dt*5);v.node.position.y=Math.max(-.05,v.node.position.y);continue;}
@@ -125,7 +126,7 @@
    if(o.shot){stats.enemyShots++;v.flash.setEnabled(true);x.flash=t+70;bang(Math.hypot(e.x-walker.x,e.z-walker.z));if(o.hit){stats.enemyHits++;hurtPlayer(o.damage,x);}}
    if(x.flash&&t>x.flash){v.flash.setEnabled(false);x.flash=0;}}
   // health comes back slowly after 8 s without a hit
-  try{if(groundState.health<100&&t-calmSince>8000){groundState.regen=(groundState.regen||0)+dt*4;if(groundState.regen>=1){const n=Math.floor(groundState.regen);groundState.regen-=n;groundState.health=Math.min(100,groundState.health+n);}}}catch{}}
+  try{const mx=c.footPlayerHealth;if(groundState.health<mx&&t-calmSince>8000){groundState.regen=(groundState.regen||0)+dt*4;if(groundState.regen>=1){const n=Math.floor(groundState.regen);groundState.regen-=n;groundState.health=Math.min(mx,groundState.health+n);}}}catch{}}
  requestAnimationFrame(frame);
  // "Change zone" steps complete the moment they are reached
  function dueSteps(){if(stepBusy||!LC()?.zoneStep)return;for(const {m,rec} of taken()){const d=Z.dueNow(m,rec);if(d){stepBusy=true;try{LC().zoneStep(d.mission+'/'+d.step);}finally{stepBusy=false;}}}}
@@ -138,7 +139,7 @@
  async function getUp(){if(!down)return;const fail=downEl.dataset.fail==='1',mission=downEl.dataset.mission,wl=walkingLocation;downEl.hidden=true;
   for(const k of [...deadSet])if(!mission||k.startsWith(mission+'/'))deadSet.delete(k);esc.at=null;esc.until=0;Z.rearm(safety);clearEnemies();
   try{if(fail&&mission){MC().abandon(state,LC().env,mission);announce('MISSION FAILED · '+(root.VoidMissions?.definitions?.[mission]?.title||mission));}save();}catch{}
-  try{groundState.health=100;const pp=state.progression.personal,T=root.VoidProgression?.tuning?.ground;if(T){pp.ammo=T.magazine;pp.reserve=Math.max(24,pp.reserve);}}catch{}   // as the old checkpoint respawn: a full magazine, at least 24 in reserve
+  try{groundState.health=cfg().footPlayerHealth;const pp=state.progression.personal,T=root.VoidProgression?.tuning?.ground;if(T){pp.ammo=T.magazine;pp.reserve=Math.max(24,pp.reserve);}}catch{}   // as the old checkpoint respawn: a full magazine, at least 24 in reserve
   try{if(wl&&wl.apt&&wl.modular&&MOD()?.backToStreet)await MOD().backToStreet();else if(wl&&wl.apt&&APT()?.door){const d=APT().door(wl.door||'');if(d)await enterWalking(root.VoidDistrictArea.KEY.street,{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw:Math.atan2(-d.n[0],-d.n[1])});else await enterWalking(root.VoidDistrictArea.KEY.interior,{silent:true});}
    else await enterWalking(root.VoidDistrictArea.KEY.interior,{silent:true,spawn:(()=>{try{const [x,z]=root.VoidNeoChinatown.toWorld(0,28.5);return [x,1.7,z];}catch{return undefined;}})(),yaw:Math.PI});}catch(e){stats.error=e.message;}
   down=false;}
