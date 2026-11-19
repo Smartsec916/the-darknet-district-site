@@ -1,5 +1,16 @@
 # The Darknet District — current AI handoff
 
+## 19 Nov 2026 — DEV TOOLS NPC CAPABILITY AUDIT (CURRENT RULE)
+
+Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Mission Editor eligibility.
+
+- **TALK is a capability, not a global mission permission.** Any registered NPC may own/send a mission started by Messages, Comms or notification. Only in-person offers, talk/deliver/hand-in and walked-near triggers require a real walking TALK interaction.
+- Developer Tools > NPCs keeps the existing layout. The category labels describe capabilities; a no-TALK NPC's **Give them a mission** action creates a notification-started draft instead of being disabled.
+- Do **not** expose generic movement merely because a model has `walk`. Only Reverie, Lace and the street cat currently have runtime code that consumes generic placement/schedule/escort plans.
+- The animation compatibility source of truth is `npc-clip-index.json` plus `npc-paths.js` skeleton/rest-pose checks and the loaded model's actual animation groups. Never infer compatibility from names.
+- No model, animation, voice, default behavior/location, existing mission, save format, multiplayer protocol or developer-auth rule is changed by this audit.
+
+
 **Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions. The owner's reference pictures from 12 Nov 2026 are written out in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) so later work can use them without the files. The images are not in the repo yet ([`references/README.md`](references/README.md)).
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
