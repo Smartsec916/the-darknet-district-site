@@ -100,6 +100,7 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   // ---- 4. taken down, then GET UP outside
   await page.evaluate(()=>{groundState.health=5;VoidZoneRun.hurtPlayer(20);});await page.waitForSelector('#zone-down:not([hidden])',{timeout:5000});await shot(page,'8-taken-down');
   await page.click('[data-zone-up]');await arrive(()=>mode==='walking'&&walkingLocation?.area==='street'&&!VoidZoneRun.down,'the street after GET UP');
+  await page.waitForFunction(()=>!document.getElementById('zone-chip').hidden&&document.getElementById('zone-chip').dataset.zone==='friendly',null,{timeout:10000}).catch(()=>{});   // the chip repaints four times a second
   const after=await page.evaluate(id=>({health:groundState.health,taken:!!state.universe.missions[id]?.acquired,chip:document.getElementById('zone-chip').dataset.zone}),ID);log('after GET UP',after);
   assert.equal(after.health,100);assert.equal(after.taken,true,'retry: the mission is still taken');assert.equal(after.chip,'friendly');await page.waitForTimeout(1200);await shot(page,'9-street-after');
   await page.evaluate(()=>VoidDevTest.end?.());
