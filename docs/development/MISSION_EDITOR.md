@@ -2,6 +2,39 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twelfth pass (18 Nov 2026): describe a behaviour to ChatGPT, daily schedules, and the street cat as an NPC and giver
+
+Branch `claude/npc-behaviour`, build `2026-11-18-npc-behaviour-1`. Pushed, no PR, not merged. Queue item 1, plus "add the cat as an npc and giver".
+
+### How to use it (plain steps)
+
+**Describe it to ChatGPT** (Developer tools > NPCs, pick Reverie, Lace or the Street cat; or the start card "Describe it to ChatGPT").
+1. Press **COPY CHATGPT PROMPT**. (If your browser will not copy, the prompt appears selected: press Ctrl+C.)
+2. Open ChatGPT, paste it, and at the end write what you want in your own words, for example "mornings she walks from the tea house to the laundry and back; at lunch she sits on her ledge; at night she watches the street by the chai shop".
+3. Copy ChatGPT's whole answer and paste it into **Paste behaviour**, then press **CHECK IT**. The editor finds the recipe in the answer (the chat around it is fine).
+4. If something is wrong you get a list in plain words ("there is no place called ...", "she cannot do ...", "time block 2 overlaps time block 1"). Fix it, or paste the list back to ChatGPT and ask it to fix the recipe.
+5. If it is fine you see the **Preview**: what she does in each part of the day in words, and the map (press a time block to see its spot or route). **PLAY IT (DRAFT, NOT SAVED)** tries it on The Avenue in a throwaway session.
+6. **USE THIS BEHAVIOUR** puts it into your draft (her placement and daily schedule). UNDO puts the old one back. PLAY THIS DRAFT and PUBLISH work as for any placement.
+Nothing you paste is ever run as a program: a recipe is only names, numbers and times, and anything that looks like code is refused.
+
+**Daily schedule** (under "Where they are in the game").
+1. **+ ADD A TIME BLOCK** adds the next free hour (from 08:00). Set its **From** and **To** times, **What she does** (her usual thing, stay at one spot, walk a route) and an optional name.
+2. **EDIT ON THE MAP** (or click its coloured bar on the timeline): the map and buttons above now change that time block. "All day" changes what she does outside every block.
+3. A block may run past midnight (20:00 to 02:00). Blocks cannot overlap; 8 at most; each at least 15 minutes. Problems show in red with what to change.
+4. **Try a time**: slide to a time of day to read what she does then; **PLAY THIS DRAFT AT THIS TIME** starts the test session with the game clock at that time (an in-game day passes in 2 hours of play).
+5. The times are the **game's own clock** (each player's). Reverie and Lace still keep their real-time street shift (Reverie 00:00–12:00 UTC, Lace 12:00–24:00 UTC): the schedule says what she does while she is out. The cat is out day and night.
+
+**The street cat** is now in the NPCs list ("Street cat"). It can stay at a spot or walk a route (sit, look about, potter about, wait), take a daily schedule and a ChatGPT recipe; it has no animation clips (its pose is made by code), so "Add animation" is not offered. It **gives missions**: pick "Street cat" as the Giver; players see **PET THE CAT** on it. With no mission waiting it only looks up at them ("The cat looks up at you.", text only, no voice). "When walked near" and "Giver waits at" work with it.
+
+### For Claude and Codex
+
+- `void-runner/npc-behaviour.js` (pure, Node-tested; loaded with the editor only): `extract` (fence / first balanced `{...}`, `JSON.parse`; `CODE` regex refuses code-like pastes; 20,000 characters max), `validate(json, id, {anims})` (recipe v1: `recipe`, `version`, `npc`, `allDay`, `schedule`; activities `usual` / `stay {at, face, actions}` / `route {points:[{at, action, seconds}]}`; places from `places(id)` or `{x, z}`), then `npc-paths.js clean` + `planProblems`; `read`, `describe`, `summary`, `examples`, `prompt`.
+- `npc-paths.js`: `scheduleProblems`, `blockAt`, `toMin` / `hhmm`, `cleanBlock`, `planNow({minute})` (a waiting mission > the schedule block for the minute > the all-day plan; key `sched:<i>:...`), `LIMIT.blocks` / `blockMin` (admin inventory `npcPaths.limits`). `MOVABLE['street-cat']` (`cat:true`; `CAT_ACTIONS`, `CAT_STAY`; no library clips).
+- Server: `void_runner_live_content.py` `npc_problems` -> `_plan_only` + `schedule_problems`; `schedule_shape_problems` for the workspace copy (`void_runner_drafts.py`).
+- Game: `live-content.js plans()` passes `VoidClock.now(state).minuteOfDay`; `ncz-street-pair.js` the cat (`CAT_ID`, `CAT_ACTION`, `CAT_REACTION`, `catPlan`, the PET THE CAT item `catItem`, `stats().cat.plan/act/pet`). `mission-givers.js` roster entry `street-cat` (no shift). `mission-editor.js jumpTo(x, z, npc, label, back, {npcs, minute})`.
+- Editor: `npc-editor.js` `scheduleBox`, `behaviourBox`, `blockOf` / `curPlan` (the block being edited), `setPlan(id, p, {keep})` keeps the schedule unless told not to; start cards "Give a character a daily schedule" and "Describe it to ChatGPT".
+- Tests: `tests/npc-behaviour.test.cjs`, `tests/test_npc_behaviour.py`, browser `tests/npc-behaviour-browser.cjs` (`PART=editor`).
+
 ## Eleventh pass (18 Nov 2026): the NPC appearance editor (NPCs > Appearance)
 
 Branch `claude/npc-appearance`, build `2026-11-18-npc-appearance-1`. Pushed, no PR, not merged. Queue item 0c.

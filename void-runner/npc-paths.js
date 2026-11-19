@@ -31,7 +31,9 @@
  const ledges=()=>{const S=SP();return ((S&&S.STEPS)||[]).map(st=>({id:st.id,x:st.x,z:st.z,w:st.w,d:st.d,front:S.frontOf(st)}));};
  /* Movable NPCs. asset: the crowd file (crowd.js clips[asset] is the clip list); device: the npc-device.js poses they use. */
  const MOVABLE={'grey-reverie':{name:'Reverie',asset:'npc-grey-reverie',area:'avenue-north',quarter:'avenue',device:true,sit:true,youthful:true},
-  'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'avenue-north',quarter:'avenue',device:true,sit:true,youthful:true}};
+  'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'avenue-north',quarter:'avenue',device:true,sit:true,youthful:true},
+  // the street cat (the owner, 18 Nov 2026: "add the cat as an npc and giver"): moved by its own code in ncz-street-pair.js (no clips: a procedural pose), so its actions are its own (CAT_ACTIONS)
+  'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'avenue-north',quarter:'avenue',device:false,sit:false,youthful:false,cat:true,it:true}};
  const AREAS={'avenue-north':AVENUE_NORTH};
  /* Every action a stay or a path point may use, in plain words. clip: the clip played (must be in the NPC's own list); device: an npc-device.js pose; sit: the
     ledge's sit-down, sit and stand-up clips (only at a ledge). */
@@ -50,9 +52,14 @@
   {id:'dance-groove',name:'Dance a little (groove)',clip:'dance-groove',help:'A casual groove on the spot (her everyday dance; nothing from the clubs).'},
   {id:'dance-bop',name:'Dance a little (happy bop)',clip:'dance-bop',help:'A happy little bop on the spot.'},
   {id:'sit',name:'Sit on the ledge',clip:'sit',needs:['sit-enter','sit','sit-exit'],sit:true,help:'Sits down on the ledge here, stays seated (a wave to a player who comes close), then stands up. Only at a ledge.'},
-  {id:'walk-on',name:'Walk on (no stop)',clip:'walk',path:true,help:'Walks through this point without stopping (to make her go round a corner of your route).'}];
+  {id:'walk-on',name:'Walk on (no stop)',clip:'walk',path:true,help:'Walks through this point without stopping (to make her go round a corner of your route).'},
+  // the cat's own (ncz-street-pair.js catPlan: its procedural pose, no clips)
+  {id:'cat-sit',name:'Sit',cat:true,help:'The cat sits down, facing the way you set, and looks about.'},
+  {id:'cat-look',name:'Look about',cat:true,help:'The cat stands and looks left and right.'},
+  {id:'cat-wander',name:'Potter about',cat:true,help:'The cat potters about within a metre of the spot.'}];
+ const CAT_ACTIONS=['wait','cat-sit','cat-look','cat-wander','walk-on'],CAT_STAY=['cat-sit','cat-look','cat-wander'];
  const ACTION=new Map(ACTIONS.map(a=>[a.id,a]));
- const LIMIT={points:[2,12],seconds:[1,120],actions:[1,6],coord:400};
+ const LIMIT={points:[2,12],seconds:[1,120],actions:[1,6],coord:400,blocks:8,blockMin:15};
  const STAY_DEFAULT=['idle','look','scroll','idle-shift'];   // "Giver waits at" and a new stay: her ordinary standing routine
  /* ADD ANIMATION (the owner, 18 Nov 2026: "be able to add animations to them"): clips of the shared animation library (anim-library.js) that the runtime can put on her
     figure. Offered only when allowed: never a banned clip for her (by id or title), only standing clips that loop in place (a seat, the floor or a partner is not
@@ -69,7 +76,7 @@
   ['V1 / device',/phone|device|selfie|scroll|menu/],['work',/work|wipe|pickup|interact|cook|smoke|drink|repair/],['combat / action',/aim|shoot|hit|duck|punch|fight|vr-/],['other',/./]];
  const category=c=>(CATS.find(([,re])=>re.test(c))||CATS[CATS.length-1])[0];
  /* Every clip the game has, for NPC id, with whether she can use it: {id, title, source, category, status ('own' | 'shared' | 'library' | 'no'), ok, why}. */
- function libraryOffer(id,idx=INDEX()){const M=MOVABLE[id],S=SP(),banned=(S&&S.BANNED)||/$^/,L=AL(),young=!!(M&&M.youthful),out=[];
+ function libraryOffer(id,idx=INDEX()){if(MOVABLE[id]&&MOVABLE[id].cat)return [];const M=MOVABLE[id],S=SP(),banned=(S&&S.BANNED)||/$^/,L=AL(),young=!!(M&&M.youthful),out=[];
   const rule=(clipId,title,src)=>!M?'Only for NPCs the editor can move.':banned.test(clipId)||banned.test(title||'')?'Not allowed for '+M.name+' (her content rule: casual street clips only).':young&&src&&ADULT.test(src)?'Not for '+M.name+': it comes from an adult-only model (companions, studios, clubs).':young&&YOUNG_NO.test(clipId)?'Not for '+M.name+' (no smoking, drinking or drunk clips for her).':MOVE_CLIP.test(String(clipId).split('/').pop())?'A walking or sit-down/stand-up clip: the game plays her own for that.':/^sit/.test(String(clipId).split('/').pop())?'A seated clip: she sits only through her own sit-down on a ledge (use “Sit on the ledge”).':young&&/^vr-|aim|shoot|punch|fight/.test(String(clipId).split('/').pop())?'Not for '+M.name+' (casual street clips only).':'';
   if(L&&L.all)for(const c of L.all()){if(c.library!=='actorcore')continue;let why=rule(c.id,(c.title||'')+' '+(c.category||''),'');if(!why){if(c.needs)why='Needs a '+c.needs+' to play on (not a standing action yet).';else if(c.group||c.partner)why='A clip for two or more people together.';else if(c.root!=='inplace')why='Moves her about the room (not a standing action).';}
    out.push({id:c.id,title:c.title,library:'actorcore',source:'animation library (ActorCore)',category:category(c.category+' '+c.id),status:why?'no':'library',ok:!why,why});}
@@ -82,7 +89,7 @@
     out.push({id:cid,title:clip+' (from '+asset.replace(/^npc-/,'')+')',library:'crowd:'+asset,source:asset,clip,category:category(clip),status:why?'no':status,ok:!why,why});}}
   return out;}
  /* Is an added clip id allowed without the index (the game's own check)? Its rules only: a library clip offered as above, or '<asset>/<clip>' of a known file and clip. */
- function animAllowed(id,a){const off=libraryOffer(id,INDEX());const o=off.find(x=>x.id===a);if(o)return o.ok?'':o.why||'not allowed';if(INDEX())return 'unknown animation';
+ function animAllowed(id,a){if(MOVABLE[id]&&MOVABLE[id].cat)return 'the cat is moved by its own code and plays no animation clips';const off=libraryOffer(id,INDEX());const o=off.find(x=>x.id===a);if(o)return o.ok?'':o.why||'not allowed';if(INDEX())return 'unknown animation';
   const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a||'');const M=MOVABLE[id],S=SP(),C=node?require('./crowd.js'):root.VoidCrowd;if(!m||!M)return 'unknown animation';
   if((S&&S.BANNED||/$^/).test(a))return 'not allowed for her';if(M.youthful&&(ADULT.test(m[1])||YOUNG_NO.test(m[2])))return 'not for her';if(MOVE_CLIP.test(m[2])||/^sit/.test(m[2]))return 'a walking, seated or transition clip';if(M.youthful&&/^vr-|aim|shoot|punch|fight/.test(m[2]))return 'not for her';if(!(C&&C.clips&&(C.clips[m[1]]||[]).includes(m[2])))return 'unknown animation';return '';}
  /* Put added clips on a figure (the game): library clips, and clips of other public crowd files through the same runtime retarget. */
@@ -97,7 +104,7 @@
   route:local?'local-retarget-only':'retarget-or-library',note:local?'Licensed No AI model: retarget it on your PC with Blender / tools/animation-pipeline (retarget_world.py). Never send it to Meshy or any AI tool.':'Retarget onto this rig with tools/animation-pipeline (retarget_world.py) or add the clip to the animation library.'};}
  const crowdClips=asset=>{const C=node?require('./crowd.js'):root.VoidCrowd;return (C&&C.clips&&C.clips[asset])||[];};
  /* The actions an NPC may use: only clips its own file has (crowd.js), never a banned one, device poses only for NPCs that carry a V1, sit only with the sit clips. */
- function actionsFor(id,anims){const M=MOVABLE[id];if(!M)return [];const have=new Set(crowdClips(M.asset)),S=SP(),banned=(S&&S.BANNED)||/$^/;
+ function actionsFor(id,anims){const M=MOVABLE[id];if(!M)return [];if(M.cat)return CAT_ACTIONS.map(a=>ACTION.get(a));const have=new Set(crowdClips(M.asset)),S=SP(),banned=(S&&S.BANNED)||/$^/;
   const extra=(anims||[]).filter(a=>!animAllowed(id,a)).map(a=>({id:a,name:a.replace(/^.*\//,'')+' (added animation)',clip:a,library:true,help:'An animation you added in Add animation.'}));
   return [...ACTIONS.filter(a=>!banned.test(a.id)&&!banned.test(a.clip)&&have.has(a.clip)&&(a.needs||[]).every(c=>have.has(c)&&!banned.test(c))&&(!a.device||M.device&&((S&&S.DEVICE)||[]).includes(a.device))&&(!a.sit||M.sit)),...extra];}
  const num=v=>typeof v==='number'&&Number.isFinite(v);
@@ -123,8 +130,9 @@
  /* A mission's "Giver waits at": only Reverie and Lace (the movable givers); a spot on her pavement. Returns problems. */
  function waitAtProblems(giver,w){if(w==null)return [];if(!MOVABLE[giver])return ['“Giver waits at” works only for a giver the editor can move (Reverie or Lace).'];
   if(!keysOk(w,['x','z','yaw']))return ['“Giver waits at” has unknown fields.'];return spotProblems(giver,w);}
- /* A plan (content.npcs[id]). Returns problems (empty: fine). */
- function planProblems(id,p){const M=MOVABLE[id];if(!M)return [(id||'?')+': this NPC cannot be moved by the editor yet.'];const w=M.name+': ',out=[];
+ /* A plan (content.npcs[id]). Returns problems (empty: fine). A daily schedule (p.schedule) is checked block by block with the same rules (scheduleProblems). */
+ function planProblems(id,p){if(p&&typeof p==='object'&&!Array.isArray(p)&&'schedule' in p){const {schedule,...rest}=p,M=MOVABLE[id];const out=planOnly(id,rest);if(M)out.push(...scheduleProblems(id,schedule,rest.anims));return out;}return planOnly(id,p);}
+ function planOnly(id,p){const M=MOVABLE[id];if(!M)return [(id||'?')+': this NPC cannot be moved by the editor yet.'];const w=M.name+': ',out=[];
   if(!p||typeof p!=='object'||!['stay','path','original'].includes(p.mode))return [w+'unknown kind of placement (stay, path or her own routine).'];
   if(p.anims!=null){if(!Array.isArray(p.anims)||p.anims.length>8)out.push(w+'too many added animations (8 at most).');else for(const a of p.anims){const why=animAllowed(id,a);if(why)out.push(w+'the animation “'+a+'” cannot be added: '+why);}}
   const ok=new Set(actionsFor(id,Array.isArray(p.anims)?p.anims:[]).map(a=>a.id));
@@ -153,15 +161,21 @@
   const out=[];for(const [id,p] of Object.entries(npcs))out.push(...planProblems(id,p));return out;}
  /* Tidy a plan from the editor before it is checked or sent: rounded numbers, only known fields. */
  function clean(p){if(!p||typeof p!=='object')return null;const an=Array.isArray(p.anims)&&p.anims.length?{anims:p.anims.filter(a=>typeof a==='string').slice(0,8)}:{};
-  if(p.mode==='original')return an.anims?{mode:'original',...an}:null;
-  if(p.mode==='stay')return {...an,mode:'stay',x:r1(+p.x),z:r1(+p.z),yaw:wrap(+p.yaw||0),actions:(Array.isArray(p.actions)?p.actions:[]).filter(a=>typeof a==='string').slice(0,LIMIT.actions[1])};
-  if(p.mode==='path')return {...an,mode:'path',points:(Array.isArray(p.points)?p.points:[]).slice(0,LIMIT.points[1]).map(q=>({x:r1(+q.x),z:r1(+q.z),action:String(q.action||'wait'),seconds:Math.round(+q.seconds||0)}))};
+  const sc=Array.isArray(p.schedule)&&p.schedule.length?{schedule:p.schedule.slice(0,LIMIT.blocks).map(cleanBlock).filter(Boolean)}:{};
+  if(p.mode==='original')return an.anims||sc.schedule?{mode:'original',...an,...sc}:null;
+  if(p.mode==='stay')return {...an,...sc,mode:'stay',x:r1(+p.x),z:r1(+p.z),yaw:wrap(+p.yaw||0),actions:(Array.isArray(p.actions)?p.actions:[]).filter(a=>typeof a==='string').slice(0,LIMIT.actions[1])};
+  if(p.mode==='path')return {...an,...sc,mode:'path',points:(Array.isArray(p.points)?p.points:[]).slice(0,LIMIT.points[1]).map(q=>({x:r1(+q.x),z:r1(+q.z),action:String(q.action||'wait'),seconds:Math.round(+q.seconds||0)}))};
   return null;}
+ /* One schedule block, tidied: {from, to, name?, mode, ...that mode's fields}. */
+ function cleanBlock(b){if(!b||typeof b!=='object')return null;const head={from:String(b.from||''),to:String(b.to||''),...(typeof b.name==='string'&&b.name.trim()?{name:b.name.trim().slice(0,40)}:{})};
+  if(b.mode==='original')return {...head,mode:'original'};const {from,to,name,schedule,anims,...rest}=b,c=clean(rest);return c?{...head,...c}:{...head,mode:String(b.mode||'')};}
  const cleanWait=w=>w&&num(+w.x)&&num(+w.z)?{x:r1(+w.x),z:r1(+w.z),yaw:wrap(+w.yaw||0)}:null;
  /* What the game should do with a movable NPC now (ncz-street-pair.js). waiting: a mission's waitAt for her, or null; plan: content.npcs[id] or null.
     Returns {key, mode:'stay'|'path', ...} (key changes when the plan does) or null (her own routine). */
- function planNow(id,{waiting=null,plan=null}={}){
-  if(waiting&&num(waiting.x)&&num(waiting.z)){const l=ledgeAt(waiting);return {key:'wait:'+(waiting.mission||'')+':'+waiting.x+':'+waiting.z,mode:'stay',x:waiting.x,z:waiting.z,yaw:num(waiting.yaw)?waiting.yaw:Math.PI,actions:l?[...STAY_DEFAULT,'sit']:STAY_DEFAULT.slice(),why:'waiting'};}
+ function planNow(id,{waiting=null,plan=null,minute=null}={}){
+  if(waiting&&num(waiting.x)&&num(waiting.z)){const l=ledgeAt(waiting);return {key:'wait:'+(waiting.mission||'')+':'+waiting.x+':'+waiting.z,mode:'stay',x:waiting.x,z:waiting.z,yaw:num(waiting.yaw)?waiting.yaw:Math.PI,actions:MOVABLE[id]&&MOVABLE[id].cat?CAT_STAY.slice():l?[...STAY_DEFAULT,'sit']:STAY_DEFAULT.slice(),why:'waiting'};}
+  // a daily schedule: the block for this in-game minute of the day (minute: game-clock.js now(state).minuteOfDay); "her usual thing" in a block is her own routine
+  if(plan&&Array.isArray(plan.schedule)&&num(minute)){const i=blockAt(plan.schedule,minute);if(i>=0){const b=plan.schedule[i];if(b.mode==='original')return null;const r=planNow(id,{plan:b});if(r){r.key='sched:'+i+':'+b.from+'-'+b.to+':'+r.key;r.why='schedule';r.block=i;}return r;}}
   if(plan&&plan.mode==='stay')return {key:'stay:'+plan.x+':'+plan.z+':'+plan.yaw+':'+plan.actions.join(','),mode:'stay',x:plan.x,z:plan.z,yaw:plan.yaw,actions:plan.actions.slice(),why:'stay'};
   if(plan&&plan.mode==='path')return {key:'path:'+plan.points.map(q=>q.x+','+q.z+','+q.action+','+q.seconds).join(';'),mode:'path',points:plan.points.map(q=>({...q})),why:'path'};
   return null;}
@@ -193,6 +207,33 @@
   add((info.clips||[]).length?'ok':'warn',(info.clips||[]).length?'Clips in the file: '+info.clips.join(', ')+'.':'No clips in the file.');
   if(Number.isFinite(info.height))add(info.height>1.3&&info.height<2.3?'ok':'warn','Height '+info.height.toFixed(2)+' m'+(info.height>1.3&&info.height<2.3?'.':' (a person is about 1.6 to 1.9 m: it will be scaled to 1.75 m in the test).'));
   return {ok:!out.some(x=>x.level==='bad'),items:out};}
- const api={OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,inventory,posts,ledges,wrap};
+ /* DAILY SCHEDULES (the owner, 18 Nov 2026, queue item 1: "daily NPC schedules by in-game hour"). plan.schedule = [{from:'HH:MM', to:'HH:MM', name?, mode:'stay'|'path'|
+    'original', ...that mode's fields}]: from `from` until `to` on the game's own clock (game-clock.js; an in-game day is 2 hours of play) she does that block; outside every
+    block, the plan itself. A block may run past midnight (20:00 to 02:00). Blocks never overlap; at most LIMIT.blocks; each at least LIMIT.blockMin minutes. Reverie and Lace
+    keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */
+ const HHMM=/^([01]\d|2[0-3]):([0-5]\d)$/;
+ const toMin=t=>{const m=HHMM.exec(typeof t==='string'?t:'');return m?(+m[1])*60+(+m[2]):null;};
+ const hhmm=n=>{n=((Math.round(n)%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');};
+ const span=b=>{const f=toMin(b&&b.from),t=toMin(b&&b.to);return f==null||t==null?0:(t-f+1440)%1440;};
+ const inBlock=(b,m)=>{const f=toMin(b.from),t=toMin(b.to);if(f==null||t==null||f===t)return false;return f<t?m>=f&&m<t:m>=f||m<t;};
+ /* The index of the block that covers in-game minute-of-day m (-1: none). */
+ function blockAt(sched,m){if(!Array.isArray(sched)||!num(m))return -1;m=((Math.floor(m)%1440)+1440)%1440;return sched.findIndex(b=>b&&typeof b==='object'&&inBlock(b,m));}
+ const NAME_OK=/^[A-Za-z0-9 .,'’()&!?\-\/]{1,40}$/;   // a block's name: plain words only (shown as text)
+ const BLOCK_KEYS={original:['from','to','name','mode'],stay:['from','to','name','mode','x','z','yaw','actions'],path:['from','to','name','mode','points']};
+ const blockLabel=(b,i)=>'Time block '+(i+1)+(b&&typeof b==='object'&&toMin(b.from)!=null&&toMin(b.to)!=null?' ('+b.from+'–'+b.to+')':'')+': ';
+ function scheduleProblems(id,sched,anims){const M=MOVABLE[id];if(!M)return [];const w=M.name+': ';if(sched==null)return [];
+  if(!Array.isArray(sched))return [w+'the daily schedule has an unknown shape.'];if(!sched.length)return [w+'the daily schedule is empty (remove it, or add a time block).'];
+  if(sched.length>LIMIT.blocks)return [w+'a daily schedule has '+LIMIT.blocks+' time blocks at most (this one has '+sched.length+').'];
+  const out=[],used=new Array(1440).fill(-1);
+  sched.forEach((b,i)=>{const bw=w+blockLabel(b,i);if(!b||typeof b!=='object'||Array.isArray(b)){out.push(bw+'not a time block.');return;}
+   if(!BLOCK_KEYS[b.mode]){out.push(bw+'what she does must be her usual thing, staying at a spot, or walking a route.');return;}
+   if(!keysOk(b,BLOCK_KEYS[b.mode])){out.push(bw+'unknown fields ('+Object.keys(b).filter(k=>!BLOCK_KEYS[b.mode].includes(k)).join(', ')+').');return;}
+   const f=toMin(b.from),t=toMin(b.to);if(f==null)out.push(bw+'the start time must look like 08:00 (24-hour clock).');if(t==null)out.push(bw+'the end time must look like 12:00 (24-hour clock).');
+   if(f!=null&&t!=null){if(f===t)out.push(bw+'it starts and ends at the same time.');else if(span(b)<LIMIT.blockMin)out.push(bw+'a time block lasts at least '+LIMIT.blockMin+' minutes.');
+    else{let clash=-1;for(let m=f,k=0;k<span(b);k++,m=(m+1)%1440){if(used[m]>=0&&clash<0)clash=used[m];used[m]=i;}if(clash>=0)out.push(bw+'it overlaps time block '+(clash+1)+': change one of their times.');}}
+   if(b.name!=null&&(typeof b.name!=='string'||!NAME_OK.test(b.name)))out.push(bw+'the name may use letters, numbers and simple punctuation only (40 at most).');
+   if(b.mode!=='original'){const {from,to,name,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
+  return out;}
+ const api={CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
