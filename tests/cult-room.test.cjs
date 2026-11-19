@@ -99,5 +99,5 @@ test('the page loads the scripts in order; the editor loads the scene editor; th
  for(const c of CR().CLIPS)assert.ok(J.animations.some(a=>a.name===c),c);
  assert.ok(fs.statSync(R('void-runner/art/blackrock/owl-stencil.webp')).size<400000);
  const cf=read('void-runner/camera-feed.js');assert.match(cf,/MediaRecorder/);assert.match(cf,/addVideo/);assert.doesNotMatch(cf,/fetch\(|XMLHttpRequest|sendBeacon/,'the recording is never uploaded');
- assert.match(read('void-runner/live-content.js'),/type:'feed'/);assert.match(read('void-runner-sw.js'),/const BUILD='2026-11-19-blackrock-cult-1'/);
+ assert.match(read('void-runner/live-content.js'),/type:'feed'/);assert.match(read('void-runner-sw.js'),/const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+'/);   // bumped by later work (the Kestrel: 2026-11-19-kestrel-1)
 });

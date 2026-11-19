@@ -38589,7 +38589,7 @@
       ]
     }
   },
-  "revision": "8b89c48ee748e4f2",
+  "revision": "46af0b21495c61a4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -56783,7 +56783,7 @@
     "void-runner/asset-pipeline.js": "d8a25d2e44dcc6c4ff1143e996b2a2c6a7ddbb7f808b12d386925ca285f89836",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "b54e3fb4ef253d1fc544d255acc85a128457aee078cd9d0f13843f0f18c7670e",
-    "void-runner/babylon-renderer.js": "4279abb239c486c605599dab672cadec419d3bdf6fe55ef4416fcfcb52bd202d",
+    "void-runner/babylon-renderer.js": "9c97ed5fdfa84597332293ca63d639c49c1dd180f4d1483c859e2931116883df",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -56869,6 +56869,7 @@
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
+    "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
     "void-runner/live-content.js": "4abbd354f9101a66c4bb3056a26c8390af6c78f2ab05ec4debaa9a874f19721c",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
@@ -56894,7 +56895,7 @@
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
     "void-runner/mission-trees.js": "e5229983aa1c57a6f75e0beed89c50423e11d152903737fa3255151f232fa0cb",
-    "void-runner/model-registry.js": "2330947f95ab6a71231f65a0cec1d347f884dcd550c2d8c9b488588febf7b579",
+    "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "08cba5e83350ab93210e62a328a04213715dbcc39d19a788e97d612e28709cf3",
     "void-runner/module-editor.js": "2811fe0d10767b53c6f28fe89a4e9431cf5ba9e29ae25c8c0580dfbf9a9e863f",
     "void-runner/module-integration.js": "e806bdfde916bd4e570fbac3245504b62dfccd2713099f626432e2d7ca24e618",
