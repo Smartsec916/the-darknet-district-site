@@ -7,7 +7,7 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',shots=process.env.SHOTS||null;if(shots)fs.mkdirSync(shots,{recursive:true});
 const bundled=fs.existsSync('/opt/pw-browsers/chromium')?'/opt/pw-browsers/chromium':'/opt/pw-browsers/chromium-1243/chrome-linux64/chrome',exe=process.env.BROWSER_EXECUTABLE||(fs.existsSync(bundled)?bundled:null);
-const log=(...a)=>console.log('[voice-imports]',...a),shot=async(t,name)=>{if(shots)await t.screenshot({path:path.join(shots,name)});};
+const log=(...a)=>console.log('[voice-imports]',...a),shot=async(t,name)=>{if(shots)try{await t.screenshot({path:path.join(shots,name),timeout:15000});}catch(e){log('no screenshot '+name+': '+e.message.split('\n')[0]);}};
 const TEXT='[whispers] Keep your voice down in here, pilot.';
 function wav(seconds,rate=16000,channels=1,freq=220){const n=Math.round(seconds*rate),b=Buffer.alloc(44+n*2*channels);b.write('RIFF',0);b.writeUInt32LE(36+n*2*channels,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(channels,22);b.writeUInt32LE(rate,24);b.writeUInt32LE(rate*2*channels,28);b.writeUInt16LE(2*channels,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(n*2*channels,40);
  for(let i=0;i<n;i++){const v=Math.round(Math.sin(2*Math.PI*freq*i/rate)*12000*(1-i/n));for(let c=0;c<channels;c++)b.writeInt16LE(v,44+(i*channels+c)*2);}return b;}
@@ -66,7 +66,8 @@ function wav(seconds,rate=16000,channels=1,freq=220){const n=Math.round(seconds*
   await box().locator('[data-me-import-remove]').click();assert.equal(await page.evaluate(k=>!!(VoidMissionEditor.local().clips||{})[k],KEY),false);
   await page.locator('[data-dev="undo"]').click();await page.waitForTimeout(300);assert.equal(await page.evaluate(k=>VoidMissionEditor.local().clips[k].hash,KEY),rec.hash,'UNDO puts the import back');
   // ---- NPCs > Lines & voice shows the same import on the same line, and IMPORT VOICE FILE on Admin's other lines
-  await page.evaluate(()=>{VoidDevTools.npcFocus='admin';VoidDevTools.open('npcs');});const nb=page.locator('#npc-root [data-me-import="'+KEY+'"]');await nb.waitFor({state:'attached',timeout:90000});await nb.evaluate(n=>{const d=n.closest('details');if(d)d.open=true;});await nb.scrollIntoViewIfNeeded();
+  await page.evaluate(()=>{VoidDevTools.npcFocus='admin';VoidDevTools.open('npcs');});const nb=page.locator('#npc-root [data-me-import="'+KEY+'"]');await nb.waitFor({state:'attached',timeout:90000});await nb.evaluate(n=>{for(let d=n.parentElement;d;d=d.parentElement)if(d.tagName==='DETAILS')d.open=true;});await nb.scrollIntoViewIfNeeded({timeout:15000}).catch(()=>{});   // the NPCs tab may still be settling (its 3D preview loads); the checks below do not need it on screen
+  
   assert.equal(await nb.locator('[data-me-import-status]').getAttribute('data-me-import-status'),'ok');assert.match(await nb.locator('xpath=ancestor::*[contains(@class,"me-line")][1]').locator('.me-vs').first().textContent(),/Voice: imported file/);
   assert.ok(await page.locator('#npc-root [data-me-import-btn]').count()>3,'every other line of Admin can take a file');await shot(nb.locator('xpath=ancestor::*[contains(@class,"me-line")][1]'),'03b-npcs-tab.png');
   await page.evaluate(()=>VoidDevTools.open('missions'));await box().waitFor({timeout:90000});

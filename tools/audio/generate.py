@@ -192,12 +192,12 @@ def queue_lines(a, registry, manifest, engine):
     for item in data.get('items', []):
         if item.get('status') != 'queued':
             continue
-        who, text = item.get('who'), item.get('text', '')
+        who, text = item.get('who'), strip_tags(item.get('text', ''))   # Kokoro would read voice tags aloud: never sent to it (the queue already stores the shown text)
         if item.get('engine') == 'elevenlabs':
             waiting.append(item)
             continue
         if who in chosen and who not in registry.get('reserved', {}):
-            waiting.append({**item, 'engine': 'elevenlabs', **chosen[who], 'moved': True})
+            waiting.append({**item, 'engine': 'elevenlabs', **chosen[who], 'moved': True, 'speak': speak_for(item.get('speak') or item.get('text', ''), chosen[who].get('model'))})
             continue
         if who not in npcs or who in registry.get('reserved', {}):
             print('skipped (not a registered character):', who, text[:50])
@@ -206,13 +206,44 @@ def queue_lines(a, registry, manifest, engine):
         manifest['lines'][clip] = {'speaker': who, 'text': text, 'file': clip + '.ogg', 'source': 'mission-editor-queue', 'configHash': config_hash(npcs[who], engine)}
         out.append({'id': item.get('id', clip), 'clip': clip})
     if waiting:
-        chars = sum(len(w.get('text', '').strip()) for w in waiting)
+        said = lambda w: (w.get('speak') or w.get('text', '')).strip()   # the text as it is sent (voice tags kept only for a model that reads them)
+        chars = sum(len(said(w)) for w in waiting)
+        credits = sum(len(said(w)) * MODEL_RATE.get(w.get('model') or DEFAULT_MODEL, 1) for w in waiting)
         print('Waiting for ElevenLabs re-voice (needs approval), not recorded here:', len(waiting), 'line(s),', chars, 'characters,',
-              'about', chars, 'credits (estimate: ~1 credit per character on Multilingual v2 / v3; Flash / Turbo about half)')
+              'about', int(credits + 0.999), 'credits (estimate: ~1 credit per character on Eleven v4 / v3 / Multilingual v2; Flash / Turbo about half)')
         for w in waiting:
-            print('  %-10s %s%s' % (w.get('who'), w.get('text', '')[:70], ('  [voice %s %s%s]' % (w.get('voice', ''), w.get('voiceId', ''), ', chosen in the editor' if w.get('moved') else '')) if w.get('voiceId') else ''))
+            print('  %-10s %s%s' % (w.get('who'), said(w)[:70], ('  [voice %s %s, model %s%s]' % (w.get('voice', ''), w.get('voiceId', ''), w.get('model') or DEFAULT_MODEL, ', chosen in the editor' if w.get('moved') else '')) if w.get('voiceId') else ''))
     print('Queued for Kokoro:', len(out), 'line(s)')
     return out
+
+# ElevenLabs voice tags ("[whispers] Keep it down.", the owner 19 Nov 2026): the same rules as void-runner/npc-voices.js strip / speakText. Credits per character are estimates.
+MODEL_RATE = {'eleven_v4': 1, 'eleven_v3': 1, 'eleven_multilingual_v2': 1, 'eleven_flash_v2_5': 0.5, 'eleven_turbo_v2_5': 0.5}
+TAG_MODELS, DEFAULT_MODEL = {'eleven_v4', 'eleven_v3'}, 'eleven_v4'
+
+
+def strip_tags(text):
+    import re
+    if not isinstance(text, str) or '[' not in text:
+        return text
+    out, n = re.subn(r'[ \t]*\[([a-z](?:[a-z -]{0,28}[a-z])?)\][ \t]*', ' ', text)
+    if not n:
+        return text
+    out = re.sub(r' +([,.!?;:\u2026])', r'\1', re.sub(r'[ \t]{2,}', ' ', out))
+    return re.sub(r'^[ \t]+|[ \t]+$', '', out, flags=re.M).strip()
+
+
+def speak_for(text, model):
+    return text.strip() if (model or DEFAULT_MODEL) in TAG_MODELS else strip_tags(text).strip()
+
+
+def model_of(e):
+    import re
+    m = e.get('model')
+    if m in MODEL_RATE:
+        return m
+    hit = re.search(r'\(model ([a-z0-9_]+)\)', str(e.get('chosen') or ''))
+    return hit.group(1) if hit and hit.group(1) in MODEL_RATE else DEFAULT_MODEL
+
 
 VOICE_ID_CHARS = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789')
 
@@ -229,13 +260,13 @@ def chosen_voices(a):
                 content = (json.loads(r.read().decode('utf-8')) or {}).get('content') or {}
             for who, v in (content.get('voices') or {}).items():
                 if isinstance(v, dict) and v.get('engine') == 'elevenlabs' and ok(v.get('voiceId')):
-                    out[who] = {'voice': str(v.get('name', ''))[:60], 'voiceId': v['voiceId']}
+                    out[who] = {'voice': str(v.get('name', ''))[:60], 'voiceId': v['voiceId'], 'model': model_of(v)}
         except Exception as e:  # noqa: BLE001 - the published content is optional here
             print('(published voice choices not read: %s)' % e)
     if getattr(a, 'voices', None):
         for who, e in (load(a.voices).get('characters') or {}).items():
             if isinstance(e, dict) and e.get('engine') == 'elevenlabs' and ok(e.get('voiceId')):
-                out[who] = {'voice': str(e.get('voice', ''))[:120], 'voiceId': e['voiceId']}
+                out[who] = {'voice': str(e.get('voice', ''))[:120], 'voiceId': e['voiceId'], 'model': model_of(e)}
     return {k: v for k, v in out.items() if k not in refused}
 
 

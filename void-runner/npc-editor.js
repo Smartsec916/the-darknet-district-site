@@ -15,7 +15,7 @@
  const DTX=()=>typeof VoidDevTools!=='undefined'?VoidDevTools:null;   // dev-tools.js declares it with const (not a window property)
  const S=()=>root.VoidMissionEditor.shared,X=()=>root.VoidNPCPaths,RETURN='npc-editor-return';
  const ADV='npc-editor-advanced';const advanced=()=>{try{return root.localStorage.getItem(ADV)==='1';}catch{return false;}};
- const ui={look:{},id:null,search:'',lineSearch:'',group:null,preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
+ const ui={look:{},block:{},recipe:{},clock:{},id:null,search:'',lineSearch:'',group:null,preview:null,previewFor:null,previewNote:'',importing:false,start:true,undo:null};
  let host=null,headNode=null,status='',imports=[],importsLoaded=false;
  const el=(...a)=>S().el(...a),btn=(...a)=>S().btn(...a),hint=(t,a)=>S().hint(t,a);
  const HELP={
@@ -48,6 +48,10 @@
   colour:'Pick a colour and the clothes take it, keeping their own light and dark. A figure made in one piece is recoloured as a whole, but its skin keeps its own tone.',
   colourAdv:'Hue turns every colour round the colour wheel; saturation makes it duller (left) or stronger (right); brightness makes it darker or lighter. Used when no colour is picked above.',
   pieces:'Gear and hairstyles from the character creator. They fit only figures built on the creator’s skeleton, so most NPCs cannot take them.',
+  schedule:'Give parts of the in-game day something different to do: for example 08:00–12:00 walk a route, 12:00–13:00 sit on the ledge, 20:00–02:00 stay at one spot. Outside every time block the placement above applies. A block may run past midnight; blocks cannot overlap; 8 at most.',
+  tryTime:'Slide to a time of day to see what the schedule does then. PLAY THIS DRAFT AT THIS TIME starts a throwaway test session with the game’s clock set to that time.',
+  chatgpt:'Say in your own words what this character should do, and let ChatGPT write it as a “behaviour recipe”: plain data the editor checks (never a program). Only places on their pavement and actions they really have are accepted.',
+  paste:'Paste ChatGPT’s answer. The editor finds the recipe in it, checks every field and says in plain words what to fix. Nothing in it is ever run as code.',
   wear:'Which look the game uses for everyone drawn with this model: none (as made), one of your looks, or a mix (each person keeps one of your looks).'};
  // ---------------------------------------------------------------- who is in the list
  const people=()=>root.VoidDistrictPeople?.npcs?.()||root.VoidDistrictPeople?.NPCS||[];
@@ -70,7 +74,12 @@
  async function loadImports(){imports=(await dbAll()).sort((a,b)=>(a.createdAt||'').localeCompare(b.createdAt||''));importsLoaded=true;}
  // ---------------------------------------------------------------- the draft (shared with the Mission Editor)
  const plan=id=>(S().local().npcs||{})[id]||null;
- function setPlan(id,p){const d=S().local();d.npcs=d.npcs||{};const c=p?X().clean(p):null;if(c)d.npcs[id]=c;else delete d.npcs[id];S().saveLocal(d);}
+ /* keep: a new plan without a `schedule` field keeps the daily schedule already there (the mode buttons, the map and the animation ticks never drop it); keep:false writes p exactly. */
+ function setPlan(id,p,{keep=true}={}){const d=S().local();d.npcs=d.npcs||{};const old=d.npcs[id];if(keep&&old&&Array.isArray(old.schedule)&&old.schedule.length&&!(p&&'schedule' in p))p=p?{...p,schedule:old.schedule}:{mode:'original',...(old.anims?{anims:old.anims}:{}),schedule:old.schedule};
+  const c=p?X().clean(p):null;if(c)d.npcs[id]=c;else delete d.npcs[id];S().saveLocal(d);}
+ /* The time block being edited on the map (Daily schedule: EDIT ON THE MAP), or null for the all-day plan. */
+ const blockOf=id=>{const p=plan(id),i=ui.block[id];return p&&Array.isArray(p.schedule)&&Number.isInteger(i)&&p.schedule[i]?i:null;};
+ const curPlan=id=>{const p=plan(id),i=blockOf(id);if(i==null)return p;const {from,to,name,...b}=p.schedule[i];return b.mode==='original'?null:b;};
  // ---------------------------------------------------------------- render
  function render(panel,head){host=panel;headNode=head;
   if(!S()?.built){panel.innerHTML='';panel.append(head(),el('p','Loading the NPCs from the game data…','dev-note'));Promise.all([S().ensure(),loadImports()]).then(()=>{restore();draw();}).catch(e=>{panel.append(el('p','The NPCs tab could not load ('+e.message+'). Check your connection, then press CLOSE and open Developer tools again. Your draft is safe in this browser.','me-bad'));});return;}
@@ -102,6 +111,9 @@
   const look=()=>{};look.focus='[data-npc-preview]';const lines=()=>{};lines.focus='[data-npc-lines]';const giv=()=>{};giv.focus='[data-npc-giver]';
   card('📍','Move a character to a spot','Pick where Reverie (or Lace) stands and what she does there.',pick(rev,stay),{'data-npc-start-card':'stay'});
   card('🚶','Make a character walk a route','Click points on the street; she walks them in order.',pick(rev,route),{'data-npc-start-card':'route'});
+  const beh=()=>{};beh.focus='[data-npc-behaviour]';const sched=()=>{};sched.focus='[data-npc-schedule]';
+  card('🕒','Give a character a daily schedule','Different things at different hours of the in-game day (a walk in the morning, a seat at lunch …).',pick(rev,sched),{'data-npc-start-card':'schedule'});
+  card('🤖','Describe it to ChatGPT','Copy a ready-made prompt, say what you want in words, paste ChatGPT’s answer back: the editor checks it and shows it on the map.',pick(rev,beh),{'data-npc-start-card':'chatgpt'});
   card('💬','Give a character a mission','Choose who hands it out; the Mission Editor opens with it ready to fill in.',pick((first('givers').id)||'admin',giv),{'data-npc-start-card':'giver'});
   card('👀','Look at a character in 3D','Turn them around and play their animations.',pick(ui.id||rev,look),{'data-npc-start-card':'look'});
   card('📝','See what a character says','Every line, in missions and outside them, and their voice (choose an ElevenLabs voice there).',pick(ui.id||'admin',lines),{'data-npc-start-card':'lines'});
@@ -127,7 +139,7 @@
   main.append(facts);
   previewBox(main,e,asset,clips,pv);
   if(e.kind!=='import')appearanceBox(main,e,asset);
-  if(e.kind==='roster'){giverBox(main,e);placeBox(main,e,clips);animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
+  if(e.kind==='roster'){giverBox(main,e);placeBox(main,e,clips);if(X().MOVABLE[e.id]){scheduleBox(main,e);behaviourBox(main,e);}if(!(X().MOVABLE[e.id]||{}).cat)animBox(main,e,asset);requestBox(main,e,asset);linesBox(main,e);}
   else if(e.kind==='crowd')animBox(main,e,asset);
   else requestBox(main,e,asset);}
  // ---- the 3D preview
@@ -213,35 +225,106 @@
  // ---- placement (stay / route / own routine)
  function placeBox(main,e,clips){const id=e.id,M=X().MOVABLE[id],box=el('section','','me-check',{'data-npc-place':id});box.append(el('h4','Where they are in the game'),hint(HELP.place));
   if(!M){const why=e.giver.group==='earlier'?'Not in the District today.':/district-people|District/.test(e.giver.where||'')?'Placed by the District’s own room code (a fixed spot in a building).':e.giver.where?'Placed by its scene’s own code ('+e.giver.where.replace(/\s*\(.*$/,'')+').':'No figure in the walking game.';
-   box.append(el('p','Cannot be moved from here yet: '+why+' Today only Reverie and Lace can be moved (their walking code follows a plan).','me-small me-warn',{'data-npc-place-locked':id}));main.append(box);return;}
-  const p=plan(id),mode=p&&p.mode!=='original'?p.mode:'own',acts=X().actionsFor(id,p&&p.anims||[]),probs=p?X().planProblems(id,p):[];
-  const modes=el('div','','me-row');for(const [m_,name] of [['own','Let her do her usual thing'],['stay','Keep her at one spot'],['path','Make her walk a route']])modes.append(btn(name,()=>{
-    if(m_==='own'){const before=p;setPlan(id,p&&p.anims?{mode:'original',anims:p.anims}:null);if(before&&before.mode!=='original'){status='She is back to her usual thing.';ui.undo=()=>setPlan(id,before);}}
-    else if(m_==='stay'){const s0=root.VoidStreetPair?.SEAT||{x:104.4,z:-5.9};setPlan(id,{...(p&&p.anims?{anims:p.anims}:{}),mode:'stay',x:p&&p.mode==='stay'?p.x:s0.x,z:p&&p.mode==='stay'?p.z:-6.4,yaw:p&&p.mode==='stay'?p.yaw:Math.PI,actions:p&&p.mode==='stay'?p.actions:X().STAY_DEFAULT.slice()});}
-    else{setPlan(id,{...(p&&p.anims?{anims:p.anims}:{}),mode:'path',points:p&&p.mode==='path'?p.points:[]});root.VoidEditorGuide?.focusNext();}
+   box.append(el('p','Cannot be moved from here yet: '+why+' Today only Reverie, Lace and the street cat can be moved (their walking code follows a plan).','me-small me-warn',{'data-npc-place-locked':id}));main.append(box);return;}
+  const whole=plan(id),bi=blockOf(id),p=curPlan(id),mode=p&&p.mode!=='original'?p.mode:'own',acts=X().actionsFor(id,whole&&whole.anims||[]),probs=whole?X().planProblems(id,whole):[],she=M.it?'it':'she',her=M.it?'its':'her';
+  // put: write the all-day plan, or the time block being edited (Daily schedule)
+  const put=o=>{if(bi==null)return setPlan(id,o);const w=plan(id),sch=w.schedule.slice(),b=sch[bi],{anims,schedule,...rest}=o||{mode:'original'};sch[bi]={from:b.from,to:b.to,...(b.name?{name:b.name}:{}),...rest};setPlan(id,{...w,schedule:sch});};
+  if(whole&&Array.isArray(whole.schedule)&&whole.schedule.length){const sel=el('div','','me-row npc-editing',{role:'group','aria-label':'Which part of the day you are changing','data-npc-editing':id});sel.append(el('b','Changing: '));
+   sel.append(btn('All day (outside the time blocks)',()=>{ui.block[id]=null;draw();},bi==null?'on':'',{'data-npc-edit-block':'all','aria-pressed':String(bi==null)}));
+   whole.schedule.forEach((b,k)=>sel.append(btn(b.from+'–'+b.to+(b.name?' '+b.name:''),()=>{ui.block[id]=k;draw();},bi===k?'on':'',{'data-npc-edit-block':String(k),'aria-pressed':String(bi===k)})));
+   box.append(sel,hint(bi==null?'You are changing what '+she+' does outside every time block. Pick a time block to change that part of the day instead.':'You are changing the time block '+whole.schedule[bi].from+'–'+whole.schedule[bi].to+'. The map and the buttons below now set what '+she+' does then.'));}
+  const modes=el('div','','me-row');for(const [m_,name] of [['own','Let '+her+' do '+her+' usual thing'],['stay','Keep '+(M.it?'it':'her')+' at one spot'],['path','Make '+(M.it?'it':'her')+' walk a route']])modes.append(btn(name,()=>{
+    if(m_==='own'){const before=whole;put(p&&p.anims?{mode:'original',anims:p.anims}:null);if(before&&before.mode!=='original'){status='She is back to her usual thing.';ui.undo=()=>setPlan(id,before,{keep:false});}}
+    else if(m_==='stay'){const s0=root.VoidStreetPair?.SEAT||{x:104.4,z:-5.9};put({...(p&&p.anims?{anims:p.anims}:{}),mode:'stay',x:p&&p.mode==='stay'?p.x:s0.x,z:p&&p.mode==='stay'?p.z:-6.4,yaw:p&&p.mode==='stay'?p.yaw:Math.PI,actions:p&&p.mode==='stay'?p.actions:X().STAY_DEFAULT.slice()});}
+    else{put({...(p&&p.anims?{anims:p.anims}:{}),mode:'path',points:p&&p.mode==='path'?p.points:[]});root.VoidEditorGuide?.focusNext();}
     draw();},mode===m_?'on':'',{'data-npc-mode':m_,'aria-pressed':String(mode===m_)}));
-  box.append(modes,hint(mode==='own'?'She does what the game has her do now: walks her stretch of the Avenue, sits on the ledges, plays with the cat.':mode==='stay'?HELP.stay:HELP.route));
+  box.append(modes,hint(mode==='own'?(M.it?'It does what the game has it do now: goes to whichever of Reverie and Lace is out, rubs round her legs, sits by her; with neither out it potters about by the LAUNDRY door.':'She does what the game has her do now: walks her stretch of the Avenue, sits on the ledges, plays with the cat.'):mode==='stay'?HELP.stay:HELP.route));
   const markers=[],live=root.VoidStreetPair?.live?.();if(live&&live.her&&live.her.id===id)markers.push({id:'live',x:live.her.x,z:live.her.z,ghost:true,color:'#ffd34d',label:M.name+' now'});
   for(const t of S().local().trees||[])for(const m of t.missions)if(m.giver===id&&m.waitAt)markers.push({id:'w-'+m.id,x:m.waitAt.x,z:m.waitAt.z,yaw:m.waitAt.yaw,ghost:true,color:'#c08aff',label:'waits for “'+(m.title||m.id)+'”'});
   if(mode==='stay')markers.push({id:'stay',x:p.x,z:p.z,yaw:p.yaw,color:'#ff8ad8',label:M.name+' stays here',drag:true,facing:true,bad:X().spotProblems(id,p).length>0});
   const route=mode==='path'?p.points.map((q,i)=>({...q,bad:X().spotProblems(id,q).length>0})):[],routeBad=mode==='path'?p.points.map((q,i)=>X().legProblems(id,q,p.points[(i+1)%p.points.length]).length?i:-1).filter(i=>i>=0):[];
   const map=root.VoidNPCMap.create({npc:id,markers,route,routeBad,selected:'stay',center:mode==='stay'?p.x:mode==='path'&&p.points.length?p.points[0].x:null,
-   onPick:(x,z)=>{if(mode==='stay'){const s_=X().snap(id,{x,z});setPlan(id,{...p,x:s_.x,z:s_.z});draw();}else if(mode==='path'){const s_=X().snap(id,{x,z});setPlan(id,{...p,points:[...p.points,{x:s_.x,z:s_.z,action:'look',seconds:5}]});draw();}},
-   onDrag:(mid,x,z)=>{if(mid==='stay'){const s_=X().snap(id,{x,z});setPlan(id,{...p,x:s_.x,z:s_.z});draw();}},onFacing:(mid,yaw)=>{if(mid==='stay'){setPlan(id,{...p,yaw});draw();}},
-   onPoint:mode==='path'?(i,x,z)=>{const s_=X().snap(id,{x,z}),pts=p.points.slice();pts[i]={...pts[i],x:s_.x,z:s_.z};setPlan(id,{...p,points:pts});draw();}:null});
+   onPick:(x,z)=>{if(mode==='stay'){const s_=X().snap(id,{x,z});put({...p,x:s_.x,z:s_.z});draw();}else if(mode==='path'){const s_=X().snap(id,{x,z});put({...p,points:[...p.points,{x:s_.x,z:s_.z,action:'look',seconds:5}]});draw();}},
+   onDrag:(mid,x,z)=>{if(mid==='stay'){const s_=X().snap(id,{x,z});put({...p,x:s_.x,z:s_.z});draw();}},onFacing:(mid,yaw)=>{if(mid==='stay'){put({...p,yaw});draw();}},
+   onPoint:mode==='path'?(i,x,z)=>{const s_=X().snap(id,{x,z}),pts=p.points.slice();pts[i]={...pts[i],x:s_.x,z:s_.z};put({...p,points:pts});draw();}:null});
   map.el.dataset.npcMap=id;box.append(map.el);
-  if(mode==='stay'){const r=el('div','','me-row');r.append(el('b','Spot: x '+p.x.toFixed(1)+', z '+p.z.toFixed(1)+' · facing '+S().compass(p.yaw)));for(const f of [['N',0],['E',Math.PI/2],['S',Math.PI],['W',-Math.PI/2]])r.append(btn('face '+f[0],()=>{setPlan(id,{...p,yaw:Math.round(f[1]*100)/100});draw();}));box.append(r);
+  if(mode==='stay'){const r=el('div','','me-row');r.append(el('b','Spot: x '+p.x.toFixed(1)+', z '+p.z.toFixed(1)+' · facing '+S().compass(p.yaw)));for(const f of [['N',0],['E',Math.PI/2],['S',Math.PI],['W',-Math.PI/2]])r.append(btn('face '+f[0],()=>{put({...p,yaw:Math.round(f[1]*100)/100});draw();}));box.append(r);
    const ab=el('div','','me-subjects',{role:'group','aria-label':'What she does there','data-npc-stay-actions':id});for(const a of acts.filter(a=>!a.path)){const l=el('label','','me-small',{title:a.help}),c=el('input','','',{type:'checkbox',value:a.id,'data-npc-act':a.id});c.checked=p.actions.includes(a.id);
-    c.onchange=()=>{const list=c.checked?[...p.actions,a.id]:p.actions.filter(x=>x!==a.id);setPlan(id,{...p,actions:list});draw();};l.append(c,' '+a.name);ab.append(l);}box.append(el('b','What she does there'),ab,hint(HELP.stay));}
+    c.onchange=()=>{const list=c.checked?[...p.actions,a.id]:p.actions.filter(x=>x!==a.id);put({...p,actions:list});draw();};l.append(c,' '+a.name);ab.append(l);}box.append(el('b','What '+she+' does there'),ab,hint(HELP.stay));}
   if(mode==='path'){const tb=el('table','','me-table',{'data-npc-route':id});tb.innerHTML='<tr><th>#</th><th>Where</th><th>Does</th><th>Seconds</th><th></th></tr>';
    p.points.forEach((q,i)=>{const tr=el('tr','','',{'data-npc-point':String(i)}),as=el('select','','',{'aria-label':'Action at point '+(i+1),'data-npc-point-action':String(i)});for(const a of acts)as.append(new Option(a.name,a.id));as.value=q.action;as.title=(acts.find(a=>a.id===q.action)||{}).help||'';
-    as.onchange=()=>{const pts=p.points.slice();pts[i]={...q,action:as.value};setPlan(id,{...p,points:pts});draw();};
-    const sec=el('input','','',{type:'number',min:'1',max:'120',step:'1','aria-label':'Seconds at point '+(i+1),'data-npc-point-seconds':String(i),style:'width:5em'});sec.value=String(q.seconds||5);sec.disabled=q.action==='walk-on';sec.title=HELP.seconds;sec.onchange=()=>{const pts=p.points.slice();pts[i]={...q,seconds:Math.max(1,Math.min(120,Math.round(+sec.value||5)))};setPlan(id,{...p,points:pts});draw();};
+    as.onchange=()=>{const pts=p.points.slice();pts[i]={...q,action:as.value};put({...p,points:pts});draw();};
+    const sec=el('input','','',{type:'number',min:'1',max:'120',step:'1','aria-label':'Seconds at point '+(i+1),'data-npc-point-seconds':String(i),style:'width:5em'});sec.value=String(q.seconds||5);sec.disabled=q.action==='walk-on';sec.title=HELP.seconds;sec.onchange=()=>{const pts=p.points.slice();pts[i]={...q,seconds:Math.max(1,Math.min(120,Math.round(+sec.value||5)))};put({...p,points:pts});draw();};
     const td=(...n)=>{const c=el('td');c.append(...n);return c;};
-    tr.append(td(el('b',String(i+1))),td(el('span','x '+q.x.toFixed(1)+', z '+q.z.toFixed(1),X().spotProblems(id,q).length?'me-bad':'me-small')),td(as),td(sec),td(btn('▲',()=>{if(!i)return;const pts=p.points.slice();[pts[i-1],pts[i]]=[pts[i],pts[i-1]];setPlan(id,{...p,points:pts});draw();},'',{'aria-label':'Move point up',...(i?{}:{disabled:''})}),btn('×',()=>{const before=p;setPlan(id,{...p,points:p.points.filter((_,k)=>k!==i)});status='Point '+(i+1)+' removed.';ui.undo=()=>setPlan(id,before);draw();},'me-x',{'aria-label':'Remove point '+(i+1)})));tb.append(tr);});
+    tr.append(td(el('b',String(i+1))),td(el('span','x '+q.x.toFixed(1)+', z '+q.z.toFixed(1),X().spotProblems(id,q).length?'me-bad':'me-small')),td(as),td(sec),td(btn('▲',()=>{if(!i)return;const pts=p.points.slice();[pts[i-1],pts[i]]=[pts[i],pts[i-1]];put({...p,points:pts});draw();},'',{'aria-label':'Move point up',...(i?{}:{disabled:''})}),btn('×',()=>{const before=whole;put({...p,points:p.points.filter((_,k)=>k!==i)});status='Point '+(i+1)+' removed.';ui.undo=()=>setPlan(id,before,{keep:false});draw();},'me-x',{'aria-label':'Remove point '+(i+1)})));tb.append(tr);});
    box.append(tb,hint(HELP.action));if(!p.points.length)box.append(el('p','No points yet — click a spot on the green pavement to start. Then click again for the next point (at least two).','me-small me-warn',{'data-npc-empty':'1'}));}
   for(const pr of probs)box.append(el('p','⚠ '+pr,'me-bad',{'data-npc-problem':'1'}));
   const act=el('div','','me-row me-actions');act.append(btn('PLAY THIS DRAFT',()=>playNpc(e),'me-play',{'data-npc-play':id,...(probs.length?{disabled:'',title:'Fix the problems first.'}:{})}),hint(HELP.play));box.append(act);
+  main.append(box);}
+ // ---- DAILY SCHEDULE (queue item 1): time blocks on the in-game clock (npc-paths.js scheduleProblems / blockAt); each block is a stay, a route or "the usual thing",
+ // changed on the map above with EDIT ON THE MAP. Reverie and Lace keep their real-time street shift: a schedule says what she does while she is out.
+ const BLOCK_COLOURS=['#ff8ad8','#58ffe1','#f2b33d','#9d8cff','#7dff8a','#ff9a5c','#5cb8ff','#e0e070'];
+ function gameNow(){try{return typeof state!=='undefined'&&state&&root.VoidClock?root.VoidClock.now(state):null;}catch{return null;}}
+ function freeSlot(sch){for(let h=8;h<32;h++){const f=(h%24)*60,ok=[...Array(60).keys()].every(k=>X().blockAt(sch,(f+k)%1440)<0);if(ok)return {from:X().hhmm(f),to:X().hhmm(f+60)};}return null;}
+ function scheduleBox(main,e){const id=e.id,M=X().MOVABLE[id];if(!M)return;const box=el('section','','me-check',{'data-npc-schedule':id});box.append(el('h4','Daily schedule'),hint(HELP.schedule));
+  const whole=plan(id),sch=whole&&Array.isArray(whole.schedule)?whole.schedule:[],she=M.it?'it':'she',adv=advanced();
+  const setSch=(list,say,undoable)=>{const before=plan(id);const w=plan(id)||{mode:'original'};setPlan(id,{...w,schedule:list},{keep:false});if(say)status=say;if(undoable)ui.undo=()=>setPlan(id,before,{keep:false});if(!list.length)ui.block[id]=null;draw();};
+  if(M.cat)box.append(el('p','The cat is out whenever the street is (day and night). The game’s own clock decides which time block it follows.','me-small'));
+  else box.append(el('p',S().G().shiftText((S().givers||[]).find(g=>g.id===id)||{})+' While she is out, the game’s own clock (an in-game day passes in 2 hours of play) decides which time block she follows.','me-small me-warn'));
+  const gn=gameNow();if(gn){const k=X().blockAt(sch,gn.minuteOfDay);box.append(el('p','In your game now: '+gn.time+' (in-game) — '+(k>=0?'time block '+sch[k].from+'–'+sch[k].to+(sch[k].name?' “'+sch[k].name+'”':''):'outside every time block (all day)')+'.','me-small',{'data-npc-clock-now':'1'}));}
+  // the timeline: 24 hours, each block a coloured bar (a block past midnight is drawn in two parts); click a bar to change that block on the map
+  const tl=el('div','','npc-timeline',{'data-npc-timeline':id,role:'group','aria-label':'The day from 00:00 to 24:00'});for(let h=0;h<=24;h+=3){const t=el('span',String(h).padStart(2,'0')+':00','npc-tick');t.style.left=(h/24*100)+'%';tl.append(t);}
+  sch.forEach((b,k)=>{const f=X().toMin(b.from),t=X().toMin(b.to);if(f==null||t==null||f===t)return;const parts=f<t?[[f,t]]:[[f,1440],[0,t]];
+   for(const [a,z] of parts){const bar=btn(b.name||b.from+'–'+b.to,()=>{ui.block[id]=k;draw();setTimeout(()=>host.querySelector('[data-npc-place]')?.scrollIntoView({block:'start'}),50);},'npc-bar'+(blockOf(id)===k?' on':''),{'data-npc-bar':String(k),title:b.from+'–'+b.to+(b.name?' '+b.name:'')+': click to change it on the map'});
+    bar.style.left=(a/1440*100)+'%';bar.style.width=Math.max(.8,(z-a)/1440*100)+'%';bar.style.background=BLOCK_COLOURS[k%BLOCK_COLOURS.length];tl.append(bar);}});
+  box.append(tl);
+  if(!sch.length)box.append(el('p','No time blocks: '+she+' does the same all day (the placement above). + ADD A TIME BLOCK to give part of the day something else.','me-small',{'data-npc-no-schedule':'1'}));
+  const tb=el('table','','me-table',{'data-npc-blocks':id});if(sch.length){tb.innerHTML='<tr><th></th><th>From</th><th>To</th><th>What '+she+' does</th><th>Name</th><th></th></tr>';}
+  sch.forEach((b,k)=>{const tr=el('tr','','',{'data-npc-block':String(k)}),td=(...n)=>{const c=el('td');c.append(...n);return c;};
+   const sw=el('span','','npc-swatch-dot');sw.style.background=BLOCK_COLOURS[k%BLOCK_COLOURS.length];
+   const time=(key,label)=>{const i=el('input','','',{type:'time',step:'900','aria-label':label+' of time block '+(k+1),'data-npc-block-time':key+':'+k});i.value=b[key]||'';i.onchange=()=>{if(!X().HHMM.test(i.value))return;const list=sch.slice();list[k]={...b,[key]:i.value};setSch(list);};return i;};
+   const what=el('select','','',{'aria-label':'What '+she+' does in time block '+(k+1),'data-npc-block-mode':String(k)});for(const [v,t] of [['original',M.it?'its usual thing':'her usual thing'],['stay','stay at one spot'],['path','walk a route']])what.append(new Option(t,v));what.value=b.mode;
+   what.onchange=()=>{const list=sch.slice(),head={from:b.from,to:b.to,...(b.name?{name:b.name}:{})},s0=root.VoidStreetPair?.SEAT||{x:104.4};
+    list[k]=what.value==='original'?{...head,mode:'original'}:what.value==='stay'?{...head,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():X().STAY_DEFAULT.slice()}:{...head,mode:'path',points:[]};ui.block[id]=what.value==='original'?ui.block[id]:k;setSch(list);};
+   const nm=el('input','','',{'aria-label':'Name of time block '+(k+1),'data-npc-block-name':String(k),placeholder:'e.g. Morning walk',maxlength:'40',style:'width:10em'});nm.value=b.name||'';
+   nm.onchange=()=>{const v=nm.value.trim(),list=sch.slice();if(v&&!X().NAME_OK.test(v)){status='A name may use letters, numbers and simple punctuation only.';draw();return;}const nb={...b};if(v)nb.name=v;else delete nb.name;list[k]=nb;setSch(list);};
+   const edit=btn(blockOf(id)===k?'CHANGING ON THE MAP':'EDIT ON THE MAP',()=>{ui.block[id]=k;draw();setTimeout(()=>host.querySelector('[data-npc-place]')?.scrollIntoView({block:'start'}),50);},blockOf(id)===k?'on':'',{'data-npc-block-edit':String(k),title:'Changes this time block with the map and buttons in “Where they are in the game”.',...(b.mode==='original'?{disabled:''}:{})});
+   const rm=btn('×',()=>{ui.block[id]=null;setSch(sch.filter((_,q)=>q!==k),'Time block '+b.from+'–'+b.to+' removed.',true);},'me-x',{'aria-label':'Remove time block '+(k+1),'data-npc-block-remove':String(k)});
+   tr.append(td(sw),td(time('from','Start')),td(time('to','End')),td(what),td(nm),td(edit,rm));tb.append(tr);});
+  if(sch.length)box.append(tb);
+  for(const pr of X().scheduleProblems(id,sch.length?sch:null,whole&&whole.anims))box.append(el('p','⚠ '+pr.replace(M.name+': ',''),'me-bad',{'data-npc-schedule-problem':'1'}));
+  const row=el('div','','me-row');row.append(btn('+ ADD A TIME BLOCK',()=>{const f=freeSlot(sch);if(!f||sch.length>=X().LIMIT.blocks){status=sch.length>=X().LIMIT.blocks?'A schedule has '+X().LIMIT.blocks+' time blocks at most.':'There is no free hour left in the day: shorten a time block first.';draw();return;}
+    const s0=root.VoidStreetPair?.SEAT||{x:104.4};setSch([...sch,{...f,mode:'stay',x:s0.x,z:-6.1,yaw:Math.PI,actions:M.cat?X().CAT_STAY.slice():X().STAY_DEFAULT.slice()}],'Time block '+f.from+'–'+f.to+' added: change its times, what '+she+' does, and its spot on the map.');ui.block[id]=sch.length;draw();},'',{'data-npc-block-add':id,title:'Adds the next free hour of the day (from 08:00). Change its times and what '+she+' does.'}));
+  if(sch.length)row.append(btn('REMOVE THE SCHEDULE',()=>setSch([],'The daily schedule was removed.',true),'me-x',{'data-npc-schedule-clear':id}));box.append(row);
+  // try a time: which block applies, and play the draft at that in-game time
+  const tr=el('div','','me-row',{'data-npc-try-time':id}),m0=Number.isFinite(ui.clock[id])?ui.clock[id]:gn?gn.minuteOfDay:480,rg=el('input','','',{type:'range',min:'0',max:'1425',step:'15','aria-label':'Try a time of day','data-npc-try-range':id});rg.value=String(m0);
+  const say=el('span','','me-small',{'aria-live':'polite','data-npc-try-say':id});const upd=()=>{const m=+rg.value,k=X().blockAt(sch,m),b=k>=0?sch[k]:null;ui.clock[id]=m;say.textContent='At '+X().hhmm(m)+' '+she+(b?' follows time block '+(k+1)+' ('+b.from+'–'+b.to+(b.name?' “'+b.name+'”':'')+')':' does the all-day plan')+(root.VoidNPCBehaviour?': '+root.VoidNPCBehaviour.describe(id,b||whole):'')+'.';};rg.oninput=upd;upd();
+  const probs=whole?X().planProblems(id,whole):[];
+  tr.append(el('b','Try a time:'),rg,say,btn('PLAY THIS DRAFT AT THIS TIME',()=>playNpc(e,{minute:+rg.value}),'me-play',{'data-npc-play-at':id,...(probs.length?{disabled:'',title:'Fix the problems first.'}:{})}));box.append(tr,hint(HELP.tryTime));
+  main.append(box);}
+ // ---- DESCRIBE IT TO CHATGPT (queue item 1): copy a self-contained prompt; paste ChatGPT's JSON recipe; checked, previewed on the map and in a draft play, then saved
+ // into the same placement as the route editor. The paste is only ever read with JSON.parse and compared with fixed lists (npc-behaviour.js): nothing in it runs.
+ function behaviourBox(main,e){const id=e.id,M=X().MOVABLE[id],NB=root.VoidNPCBehaviour;if(!M||!NB)return;const box=el('section','','me-check',{'data-npc-behaviour':id});box.append(el('h4','Describe it to ChatGPT'),hint(HELP.chatgpt));
+  const st=ui.recipe[id]=ui.recipe[id]||{text:'',res:null,show:'all'},whole=plan(id),anims=whole&&whole.anims||[];
+  const steps=el('ol','','me-small');for(const t of ['Press COPY CHATGPT PROMPT.','Open ChatGPT, paste it, and write at the end what you want (for example: “mornings she walks from the tea house to the laundry and back; at lunch she sits on her ledge; at night she watches the street by the chai shop”).','Copy ChatGPT’s whole answer, paste it in the box below and press CHECK IT.','Look at the preview (the map and PLAY IT), then press USE THIS BEHAVIOUR.'])steps.append(el('li',t));box.append(steps);
+  const pr=NB.prompt(id,{anims});const row=el('div','','me-row');const shown=el('textarea','','',{readonly:'','aria-label':'The ChatGPT prompt','data-npc-prompt-text':id,rows:'6',style:'width:100%;display:none'});shown.value=pr;
+  row.append(btn('COPY CHATGPT PROMPT',async()=>{let ok=false;try{await root.navigator.clipboard.writeText(pr);ok=true;}catch{}if(!ok){shown.style.display='block';shown.focus();shown.select();try{ok=document.execCommand('copy');}catch{}}status=ok?'The prompt is copied. Paste it into ChatGPT and add what you want at the end.':'Your browser did not let the editor copy it: the prompt is shown below, selected. Press Ctrl+C to copy it.';draw();},'me-play',{'data-npc-copy-prompt':id}),
+   btn('SHOW THE PROMPT',()=>{shown.style.display=shown.style.display==='none'?'block':'none';},'',{'data-npc-show-prompt':id}));box.append(row,shown);
+  const ta=el('textarea','','',{'aria-label':'Paste ChatGPT’s answer here','data-npc-paste':id,rows:'7',placeholder:'Paste ChatGPT’s answer here (the whole answer is fine: the editor finds the JSON in it).',style:'width:100%',spellcheck:'false'});ta.value=st.text;ta.oninput=()=>{st.text=ta.value;};
+  box.append(el('b','Paste behaviour'),ta,hint(HELP.paste));
+  const go=el('div','','me-row');go.append(btn('CHECK IT',()=>{st.text=ta.value;st.res=NB.read(st.text,id,{anims});st.show='all';status=st.res.ok?'The recipe is fine: look at the preview below.':'The recipe has problems: see the list below.';draw();},'',{'data-npc-check':id}),
+   btn('CLEAR',()=>{st.text='';st.res=null;draw();},'me-x',{'data-npc-paste-clear':id}));box.append(go);
+  const r=st.res;if(r){if(!r.ok){const ul=el('ul','','',{'data-npc-recipe-problems':id});for(const t of r.problems)ul.append(el('li','⚠ '+t,'me-bad'));box.append(el('p','Not used: fix these (or ask ChatGPT to fix them: paste this list back to it).','me-warn'),ul);}
+   else{const pv=el('div','','',{'data-npc-recipe-preview':id});pv.append(el('b','Preview'));const ul=el('ul','','me-small');for(const t of r.summary)ul.append(el('li',t));pv.append(ul);
+    const sch=r.plan.schedule||[],sel=el('div','','me-row');sel.append(el('span','Show on the map: ','me-small'));
+    for(const [k,label] of [['all','All day'],...sch.map((b,i)=>[String(i),b.from+'–'+b.to+(b.name?' '+b.name:'')])])sel.append(btn(label,()=>{st.show=k;draw();},st.show===k?'on':'',{'data-npc-recipe-show':k,'aria-pressed':String(st.show===k)}));pv.append(sel);
+    const a=st.show==='all'?r.plan:sch[+st.show]||r.plan,markers=[],route=[];if(a.mode==='stay')markers.push({id:'r',x:a.x,z:a.z,yaw:a.yaw,color:'#7dff8a',label:M.name+' (pasted)'});if(a.mode==='path')route.push(...a.points.map(q=>({...q})));
+    const map=root.VoidNPCMap.create({npc:id,markers,route,center:a.mode==='stay'?a.x:a.mode==='path'?a.points[0].x:null});map.el.dataset.npcRecipeMap=id;pv.append(map.el);
+    if(a.mode==='original')pv.append(el('p','In this part of the day '+(M.it?'it does its':'she does her')+' usual thing (nothing to show on the map).','me-small'));
+    const minute=st.show==='all'?null:X().toMin(sch[+st.show].from);
+    const act=el('div','','me-row me-actions');act.append(btn('PLAY IT (DRAFT, NOT SAVED)',()=>playNpc(e,{plan:r.plan,...(minute!=null?{minute}:{})}),'',{'data-npc-recipe-play':id,title:'A throwaway test session with this behaviour'+(minute!=null?' at '+X().hhmm(minute)+' in-game':'')+'. Nothing is saved.'}),
+     btn('USE THIS BEHAVIOUR',()=>{const before=plan(id);setPlan(id,{...r.plan,...(anims.length?{anims}:{}),schedule:r.plan.schedule||[]},{keep:false});ui.block[id]=null;st.res=null;st.text='';status='Saved into your draft: '+M.name+' now follows the pasted behaviour. PLAY THIS DRAFT to try it; PUBLISH sends it to players.';ui.undo=()=>setPlan(id,before,{keep:false});draw();},'me-play',{'data-npc-recipe-use':id}));
+    pv.append(act,hint('USE THIS BEHAVIOUR replaces '+(M.it?'its':'her')+' placement and daily schedule in your draft (UNDO puts the old one back).'));box.append(pv);}}
   main.append(box);}
  // ---- add animation: every clip in the game, grouped, searchable; usable ones can be tried and added, the rest say why (npc-paths.js libraryOffer, npc-clip-index.json)
  function animBox(main,e,asset){const id=e.id,mv=!!X().MOVABLE[id],box=el('section','','me-check',{'data-npc-anims':id});box.append(el('h4','Add animation'),hint(HELP.anim));
@@ -324,8 +407,13 @@
   placement:rec.placement||null,licence:{source:rec.licence?.source||'',type:rec.licence?.type||'',noAI:rec.licence?.noAI},
   note:'Local test import from Developer Tools > NPCs. Not in the live game. Check the licence before committing; a licensed or unknown-licence model never goes into the public repository; a No AI model is processed locally only (never Meshy or any AI tool).'};}
  // ---------------------------------------------------------------- PLAY THIS DRAFT for a placement (and the local test of an imported model)
- async function playNpc(e){const Sx=S();try{root.sessionStorage.setItem(RETURN,JSON.stringify({npc:e.id,at:Date.now()}));}catch{}
-  if(e.kind!=='import'){const p=plan(e.id),t=p&&p.mode==='stay'?p:p&&p.mode==='path'&&p.points[0]?p.points[0]:root.VoidStreetPair?.SEAT||{x:104,z:-6};return Sx.jumpTo(t.x,t.z,e.id,(X().MOVABLE[e.id]||{}).name+(p&&p.mode==='path'?' walks your route':p&&p.mode==='stay'?' stays at your spot':''),RETURN);}
+ /* opts: {plan} a placement to try instead of the draft's (a pasted recipe, not saved yet); {minute} the in-game time of day to start at (default: the block being edited). */
+ async function playNpc(e,opts={}){const Sx=S();try{root.sessionStorage.setItem(RETURN,JSON.stringify({npc:e.id,at:Date.now()}));}catch{}
+  if(e.kind!=='import'){const whole=opts.plan||plan(e.id),bi=opts.plan?null:blockOf(e.id),minute=Number.isFinite(opts.minute)?opts.minute:bi!=null?X().toMin(whole.schedule[bi].from):null;
+   let p=whole;if(whole&&Array.isArray(whole.schedule)&&Number.isFinite(minute)){const k=X().blockAt(whole.schedule,minute);if(k>=0)p=whole.schedule[k];}
+   const t=p&&p.mode==='stay'?p:p&&p.mode==='path'&&p.points[0]?p.points[0]:root.VoidStreetPair?.SEAT||{x:104,z:-6},M=X().MOVABLE[e.id]||{};
+   const pet=e.id===root.VoidStreetPair?.CAT_ID;
+   return Sx.jumpTo(t.x,t.z,pet?null:e.id,M.name+(p&&p.mode==='path'?' walks your route':p&&p.mode==='stay'?' stays at your spot':'')+(Number.isFinite(minute)?' · in-game '+X().hhmm(minute):''),RETURN,{...(opts.plan?{npcs:{[e.id]:opts.plan}}:{}),...(Number.isFinite(minute)?{minute}:{})});}
   const rec=e.rec,p=rec.placement,t=p.mode==='stay'?p:p.points[0];const r=await Sx.jumpTo(t.x,t.z,null,rec.name+' (local test only)',RETURN);if(r&&r.started)setTimeout(()=>spawn(rec).catch(err=>{try{announce('The imported model could not be shown: '+err.message);}catch{}}),400);}
  /* The imported model in the test session: loaded from this browser into the game's scene, scaled to a person's height if it is far off, and moved by a small loop. */
  async function spawn(rec){const B=root.BABYLON,scene=root.VoidBabylon?.scene;if(!scene)throw new Error('no scene');await root.VoidNPCPreview.loaders();const buf=await rec.blob.arrayBuffer(),ext=/\.gltf$/i.test(rec.fileName)?'.gltf':'.glb';
@@ -340,10 +428,10 @@
   if(walk)play(walk.name);return n;}
  // ---------------------------------------------------------------- "Guide me" for this tab (the same rules as the checks: npc-paths.js)
  function guideNow(){const Gd=root.VoidEditorGuide,sc=host&&host.querySelector('#npc-root');if(!Gd||!sc)return null;const all=entries(),e=all.find(x=>x.id===ui.id);if(!e){Gd.clear(sc);return null;}const needs=[];
-  if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=plan(e.id);if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});
+  if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=curPlan(e.id),w=plan(e.id);if(w&&Array.isArray(w.schedule))w.schedule.forEach((b,k)=>{if(X().toMin(b.from)==null||X().toMin(b.to)==null)needs.push({sel:'[data-npc-block-time="from:'+k+'"]',text:'give time block '+(k+1)+' its times'});});if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});
     p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point="'+i+'"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green pavement'});});}
    if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green pavement'});}
-   return Gd.show(sc,needs,{done:p?{sel:'[data-npc-play="'+CSS.escape(e.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}
+   return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play="'+CSS.escape(e.id)+'"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}
   if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});
    if(r.info&&!X().importCheck(r.info).ok){Gd.clear(sc);return null;}
    if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});

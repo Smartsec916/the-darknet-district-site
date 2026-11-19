@@ -42,6 +42,10 @@
    note:'Placeholder name. No voice: her lines are text. Draft play puts her on the street at any hour.'},
   'ethereal-lace':{name:'Lace',group:D,say:'ethereal-lace',where:'The Avenue, the north pavement by the LAUNDRY and REPAIR shopfronts (ncz-street-pair.js: TALK TO LACE, while she is out).',targets:[{action:'street-pair',character:'ethereal-lace'}],layout:'street-pair-ethereal-lace',enter:AREA.street('avenue'),players:true,draft:true,shift:{hours:[12,24],arrive:90},
    note:'Placeholder name. No voice: her lines are text. Draft play puts her on the street at any hour.'},
+  // The street cat (the owner, 18 Nov 2026: "add the cat as an npc and giver"): out whenever the Avenue is (no shift; it lives there). PET THE CAT (ncz-street-pair.js) offers
+  // its missions; with none it only looks up at the player (text only, no voice, no lore).
+  'street-cat':{name:'Street cat',group:D,say:'street-cat',where:'The Avenue, the north pavement by the LAUNDRY door (ncz-street-pair.js: PET THE CAT; it goes to whichever of Reverie and Lace is out).',targets:[{action:'street-cat',character:'street-cat'}],layout:'street-cat',enter:AREA.street('avenue'),players:true,draft:true,
+   note:'No voice and no lines of its own: with no mission it only looks up at the player (“The cat looks up at you.”, text only).'},
   // ---- earlier characters (not in the District today) ----
   rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,
    reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},
@@ -111,7 +115,7 @@
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];
  /* How a mission starts (the owner, 17 Nov 2026: "either have Missions start by notification or in person"). */
- const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / NOT NOW: the giver offers it and the player chooses (a player who says NOT NOW can come back)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
+ const START_HOW=[{id:'person',name:'IN PERSON: the giver offers it when the player talks to them'},{id:'person-accept',name:'IN PERSON, ACCEPT / DENY: the giver offers it and the player chooses (DENY: offered again later unless set otherwise)'},{id:'notification',name:'BY NOTIFICATION: it arrives on the player’s device'}];
  const START_CHANNELS=[{id:'messages',name:'MESSAGES',note:'A text in the V1 Messages app (INBOX). No reply is needed.'},
   {id:'comms',name:'COMMS CALL',note:'A call in the Comms app: the sender and the words as a transcript. The voice plays only if a recorded clip exists for that exact line (nothing is generated).'},
   {id:'notify',name:'NOTIFICATION ONLY',note:'A banner on the screen, then the Mission Log. Nothing is kept in Messages or Comms.'}];

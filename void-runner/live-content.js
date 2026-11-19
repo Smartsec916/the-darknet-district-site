@@ -65,12 +65,14 @@
  const title=id=>root.VoidMissions?.definitions?.[id]?.title||id;
  // Names for the dialogue window: a tree's speaker who is not a story character yet gets a name card (as milked-integration.js does for Eva and Fish).
  try{const chars=root.VoidStoryContent?.characters;if(chars)for(const g of env.givers)if(g.canTalk&&/^[a-z]/.test(g.say)&&!chars[g.say])chars[g.say]={id:g.say,name:g.name,role:'',portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['mission-tree'],biography:''};}catch{}
+ const needAt={};
  function report(r){
-  if(!r||!(r.offered||r.objective||r.completed))return;const m=root.VoidMissions?.definitions?.[r.mission],parts=[];
+  if(!r)return;if(r.need&&!(r.offered||r.objective||r.completed)){const k=r.mission+'/'+r.need,t=Date.now();if(t-(needAt[k]||0)<30000)return;needAt[k]=t;try{announce('YOU NEED '+r.need+' CR'+(r.mission?' · '+title(r.mission):''));}catch{}return;}   // a cost the player cannot pay yet (said at most every 30 s)
+  if(!(r.offered||r.objective||r.completed||r.started))return;const m=root.VoidMissions?.definitions?.[r.mission],parts=[];
   const key=(()=>{try{return VoidInput.label(VoidInput.bindings.missionLog||'KeyL');}catch{return 'L';}})(),def=root.VoidMissions?.definitions?.[r.mission];
   if(r.offered)parts.push('NEW MISSION · '+title(r.mission)+(def?.objective?' · OBJECTIVE: '+def.objective:'')+' (tracked in your V1, '+key+')');
   else if(r.completed){parts.push('MISSION COMPLETE · '+title(r.mission));if(r.reward)parts.push('+'+r.reward+' credits');}
-  else{const o=m?.objectives?.find(x=>x.id===r.objective);parts.push('MISSION UPDATED · '+title(r.mission)+(o?' · '+o.label+' ✓':''));}
+  else if(r.objective){const o=m?.objectives?.find(x=>x.id===r.objective);parts.push('MISSION UPDATED · '+title(r.mission)+(o?' · '+o.label+' ✓':''));}
   parts.push(...r.notes);
   try{save();hud();}catch{}try{announce(parts.join('  ·  '));}catch{}
  }
@@ -98,11 +100,24 @@
  const heard=r=>()=>{try{const x=MC.treeEvent(state,env,{type:'heard',mission:r.hear.mission},root.VoidMissions,root.C||root.VoidCampaign);report(x);deliver(x);}catch{}try{resumeWalking();}catch{}};
  const show=(lines,r)=>{try{const after=r&&r.hear?heard(r):()=>{try{resumeWalking();}catch{}};talk('',merge(lines.map(l=>MC.mapLine(env,l))),()=>{after();contactBanner(r);},'CONTINUE');
   const g=r&&r.mission&&MSx()?.GESTURES?.[r.mission+'/'+r.objective];if(g&&typeof speech!=='undefined'&&speech){speech.gesture=g;gestureNow();}return true;}catch{return false;}};
- /* An in-person offer with ACCEPT / NOT NOW (talk-choice.js). ACCEPT takes the mission (Mission Log, tracked, the arrow); NOT NOW changes nothing: the next
-    conversation with the giver offers it again. Without the choice window (it failed to load) the offer is not shown and nothing is taken. */
- function ask(r){if(typeof root.talkChoice!=='function'||!r.lines.length)return false;const a=r.ask,M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
-  const pick=type=>()=>{let x=null;try{x=MC.treeEvent(state,env,{type,mission:a.mission},M,Cp);report(x);deliver(x);}catch{}try{resumeWalking();}catch{}};
-  return root.talkChoice(merge(r.lines.map(l=>MC.mapLine(env,l))),[{label:a.accept||'ACCEPT',run:pick('accept')},{label:a.decline||'NOT NOW',run:pick('decline')}]);}
+ /* An offer with ACCEPT / DENY (talk-choice.js; the owner's labels, default ACCEPT / DENY): the window shows the mission's name, short description and its cost or reward
+    (r.offer, mission-content.js offerOf). ACCEPT takes the mission (Mission Log, tracked, the arrow) and charges a cost at ACCEPT once; when the player has too few credits
+    ACCEPT is greyed ("YOU NEED N CR") and DENY is the main button. DENY: mission-content.js MONEY (offered again, never, or another mission instead) and the owner's
+    DENY lines if any. Without the choice window (it failed to load) the offer is not shown and nothing is taken. */
+ function ask(r){if(typeof root.talkChoice!=='function'||!r.lines.length)return false;const a=r.ask,o=r.offer||null,M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
+  const pick=type=>()=>{let x=null;try{x=MC.treeEvent(state,env,{type,mission:a.mission},M,Cp);report(x);deliver(x);}catch{}if(x&&followUp(x))return;try{resumeWalking();}catch{}};
+  const yes={label:a.accept||'ACCEPT',run:pick('accept')},no={label:a.decline||'DENY',run:pick('decline')};
+  const choices=o&&o.afford===false?[no,{label:yes.label+' · YOU NEED '+o.need+' CR',disabled:true,run:()=>{}}]:[yes,no];
+  return root.talkChoice(merge(r.lines.map(l=>MC.mapLine(env,l))),choices,'',o?{offer:o}:{});}
+ /* After a choice: the DENY lines, another mission offered instead (in person or on the device), or nothing. */
+ function followUp(x){if(x.ask&&ask(x))return true;if(x.prompt){const p={...x.prompt,lines:[...(x.lines||[]),...x.prompt.lines]};if(offerPrompt(p,true))return true;}if(x.lines&&x.lines.length&&!x.ask&&show(x.lines,x))return true;return false;}
+ /* An offer that arrives on the device and asks ACCEPT / DENY (Messages, Comms, a banner, walked near): a banner, then the choice window with the notification's words.
+    Never over a conversation or a menu; an offer closed without a choice comes back after a minute while its trigger still holds. */
+ const promptAt={};
+ function offerPrompt(p,force){try{if(!p||!p.ask||typeof root.talkChoice!=='function'||!(p.lines||[]).length)return false;const id=p.ask.mission,now=Date.now();
+  if(!force&&(now-(promptAt[id]||0)<60000||nearBlocked()||(typeof speech!=='undefined'&&speech)))return false;promptAt[id]=now;
+  try{root.VoidV1?.notify?.({app:'missions',key:'offer:'+id+':'+now,from:p.fromName,text:'Mission offer · '+p.ask.title,hint:{text:'open',help:true}});}catch{}
+  return ask({ask:p.ask,offer:p.offer,lines:p.lines});}catch{return false;}}
  // The beginner campaign keeps its turn with the NPCs it uses.
  const BEGIN={admin:'talk-admin','district-iris':'talk-iris','district-bar':'visit-bar','district-shop':'visit-shop',terminal:'use-terminal'};
  function beginnerWants(action){const B=root.VoidBeginner,ev=BEGIN[action];if(!B||!ev||!B.applies(state))return false;const m=B.current(state),rec=m&&state.universe.missions?.[m.id];return !!(m&&m.objectives.some(o=>o.on===ev&&rec?.objectives?.[o.id]!==true));}
@@ -110,7 +125,7 @@
   const npcs=G?G.whoAt(env.givers,action,arg?.item?.character):[];
   if(!npcs.length||beginnerWants(action)||!MC.treeWants(state,env,npcs))return handler.apply(self,args);
   const r=MC.treeEvent(state,env,{type:'talk',npcs},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);
-  if(r.ask&&ask(r))return;
+  if(r.ask&&ask(r))return;if(r.need&&r.mission){try{resumeWalking();}catch{}return;}   // a step that costs: "YOU NEED N CR" (report) and nothing else happens
   const lines=r.lines.length?r.lines:(r.early||[]);if(lines.length&&show(lines,r))return;
   if(r.mission){try{resumeWalking();}catch{}return;}
   return handler.apply(self,args);
@@ -128,7 +143,7 @@
   const ch=mode==='walking'&&tracker?tracker.update(where()):{entered:[],left:[],inside:tracker?tracker.inside:[]};places=[...new Set([...places,...ch.inside])];lastPlaces=places;
   if(ch.entered.length||ch.left.length)try{root.dispatchEvent?.(new CustomEvent('void-place',{detail:{entered:ch.entered,left:ch.left,inside:ch.inside}}));}catch{}
   // also the moment for missions started by notification "after mission N" or "when a story flag is set" (checked on every event)
-  const r=MC.treeEvent(state,env,{type:'place',places,entered:ch.entered,left:ch.left},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.objective||r.offered))return;report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
+  const r=MC.treeEvent(state,env,{type:'place',places,entered:ch.entered,left:ch.left},root.VoidMissions,root.C||root.VoidCampaign);if(r.need)report(r);if(!(r.objective||r.offered)){if(r.prompt)offerPrompt(r.prompt);return;}report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
  /* A photo was taken (device-camera.js). meta: what the camera judged at the moment of capture {subjects:[{id,valid}], during, place}. A valid photo of the person a
     photo step names completes it. */
  function photo(meta){try{if(!treesOn()||!meta)return null;const subjects=(meta.subjects||[]).filter(x=>x&&x.valid===true).map(x=>x.id);const r=MC.treeEvent(state,env,{type:'photo',subjects},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);return r;}catch{return null;}}
@@ -144,7 +159,7 @@
  if(root.VoidProgression?.buy){const P=root.VoidProgression,buy=P.buy;P.buy=function(s,id){const ok=buy.apply(this,arguments);try{if(ok&&typeof state!=='undefined'&&s===state&&treesOn())report(MC.treeEvent(state,env,{type:'buy',item:id},root.VoidMissions,root.C||root.VoidCampaign));}catch{}return ok;};}
  // Leaving the Sleeping Pod (EXIT POD): the one hook into the pod (world-integration.js podAct.exit is wrapped; the room and the music player are untouched).
  // Mission 001 starts on the first exit, or on the next exit for a character who left the pod before it existed. It never starts twice (its record stays in the save).
- function podExit(){try{if(!treesOn())return null;const r=MC.treeEvent(state,env,{type:'pod-exit'},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.offered||r.objective))return r;report(r);deliver(r);return r;}catch{return null;}}
+ function podExit(){try{if(!treesOn())return null;const r=MC.treeEvent(state,env,{type:'pod-exit'},root.VoidMissions,root.C||root.VoidCampaign);if(r.prompt)setTimeout(()=>offerPrompt(r.prompt),r.offered||r.objective?4000:0);if(!(r.offered||r.objective))return r;report(r);deliver(r);return r;}catch{return null;}}
  // The first exit opens the KeyMap (keymap.js); Admin's call waits until the player closes it (the owner, 18 Nov 2026: "Wait to send Admin's first mission until players press K to close the keymap").
  // If the KeyMap was seen before, or does not open within 3 s of walking, the call comes at once.
  function afterKeyMap(seen,fn){const K=root.VoidKeyMapUI;if(seen||!K)return fn();let t=0,opened=false;const id=setInterval(()=>{if(K.open)opened=true;else if((typeof mode!=='undefined'?mode:'')==='walking'&&!root.VoidCharacterCreator?.isOpen)t+=250;if((opened&&!K.open)||(!opened&&t>=3000)){clearInterval(id);fn();}},250);}
@@ -176,14 +191,14 @@
  function nearTick(){try{if(!treesOn()||nearBlocked())return null;if(nearFor!==env.trees){nearFor=env.trees;nearWatch=MC.nearList(env.trees);}if(!nearWatch.length)return null;
   const recs=state.universe.missions||{};let hit=false;for(const k in nearD)nearD[k]=Infinity;
   for(const n of nearWatch){const r=recs[n.mission];if(r&&(r.acquired||r.completed))continue;if(!(n.npc in nearD)||nearD[n.npc]===Infinity)nearD[n.npc]=giverDistance(n.npc,walkingLocation,walker.x,walker.z);if(MC.nearHit(nearD[n.npc],n.metres))hit=true;}
-  if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);return r;}catch{return null;}}
+  if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(r.prompt)offerPrompt(r.prompt);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);return r;}catch{return null;}}
  setInterval(nearTick,250);
  // ---------------------------------------------------------------- NPC placements (Developer Tools > NPCs) and "Giver waits at"
  /* What Reverie and Lace do (ncz-street-pair.js asks every frame; worked out twice a second): a mission's "Giver waits at" while that mission waits to be offered by her,
-    else the placement published or played from Developer Tools > NPCs (content.npcs), else her own routine. */
+    else the placement published or played from Developer Tools > NPCs (content.npcs; its daily schedule follows the in-game clock, game-clock.js), else her own routine. */
  let planCache={},planAt=0;
- function plans(){const t=Date.now();if(t-planAt<500)return planCache;planAt=t;const X=root.VoidNPCPaths,out={};if(!X)return planCache=out;let wait={};try{if(treesOn())wait=MC.waitingAt(state,env);}catch{}
-  for(const id of Object.keys(X.MOVABLE)){const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
+ function plans(){const t=Date.now();if(t-planAt<500)return planCache;planAt=t;const X=root.VoidNPCPaths,out={};if(!X)return planCache=out;let wait={};try{if(treesOn())wait=MC.waitingAt(state,env);}catch{}let minute=null;try{minute=GC?GC.now(state).minuteOfDay:null;}catch{}
+  for(const id of Object.keys(X.MOVABLE)){const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null,minute});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
  if(root.VoidStreetPair){root.VoidStreetPair.planFor=id=>plans()[id]||null;root.VoidStreetPair.animsFor=id=>((env.npcPlans||{})[id]||{}).anims||[];}
- root.VoidLiveContent={plans,env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
+ root.VoidLiveContent={offerPrompt,plans,env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);
