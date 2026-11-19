@@ -36,7 +36,7 @@
         .map(node=>new URL(node.src||node.href,location.href).pathname)
         .filter(path=>path.startsWith(new URL('./',sw).pathname));
       urls.unshift(location.pathname);
-      urls.push(new URL('vendor/babylon-8.26.0.js',new URL('./',sw)).pathname);
+      for(const f of ['vendor/babylon-8.26.0.js','vendor/meshopt_decoder-1.3.0.js'])urls.push(new URL(f,new URL('./',sw)).pathname);   // the meshopt decoder: the game's models are meshopt-compressed (asset-pipeline.js)
       worker.postMessage({type:'WARM_CORE',urls:[...new Set(urls)]});
     }catch(error){console.warn('[VOID//RUNNER cache] warm unavailable',error?.message||error);}
   };

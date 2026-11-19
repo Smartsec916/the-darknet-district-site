@@ -5,8 +5,9 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const A=require('../void-runner/asset-pipeline.js');
 // The rotation keys of one bone in one clip of a GLB, as {frame (15 fps, as Babylon's glTF loader counts), value}.
-function keysOf(file,clip,bone){const b=fs.readFileSync(file),jl=b.readUInt32LE(12),j=JSON.parse(b.slice(20,20+jl).toString()),bin=b.slice(20+jl+8);
- const acc=i=>{const a=j.accessors[i],v=j.bufferViews[a.bufferView],n={SCALAR:1,VEC4:4}[a.type],off=(v.byteOffset||0)+(a.byteOffset||0),st=v.byteStride||n*4,out=[];for(let k=0;k<a.count;k++){const r=[];for(let c=0;c<n;c++)r.push(bin.readFloatLE(off+k*st+c*4));out.push(n===1?r[0]:r);}return out;};
+const G=require('./glb-data.cjs');   // decodes meshopt-compressed views (18 Nov 2026)
+function keysOf(file,clip,bone){const {json:j,view}=G.read(fs.readFileSync(file));
+ const acc=i=>{const a=j.accessors[i],v=j.bufferViews[a.bufferView],bin=view(a.bufferView),n={SCALAR:1,VEC4:4}[a.type],off=a.byteOffset||0,st=v.byteStride||n*4,out=[];for(let k=0;k<a.count;k++){const r=[];for(let c=0;c<n;c++)r.push(bin.readFloatLE(off+k*st+c*4));out.push(n===1?r[0]:r);}return out;};
  const a=(j.animations||[]).find(x=>x.name===clip);if(!a)return null;const c=a.channels.find(c=>c.target.path==='rotation'&&j.nodes[c.target.node].name.endsWith(bone));if(!c)return null;
  const s=a.samplers[c.sampler],t=acc(s.input),v=acc(s.output);return t.map((x,i)=>({frame:Math.round(x*15),value:v[i]}));}
 const crowd=path.join(__dirname,'../void-runner/assets/models/crowd');
@@ -17,13 +18,13 @@ test('a first key far from the second (the bind pose) is skipped; an ordinary st
  assert.equal(A.leadInEnd([{frame:0,value:T},{frame:4,value:T},{frame:8,value:down},{frame:12,value:down},{frame:484,value:down}]),8,'the stray key copied to frame 0 (as Babylon loads it)');
  assert.equal(A.leadInEnd([{frame:1,value:T},{frame:2,value:down}]),null,'too short to judge');assert.equal(A.leadInEnd(null),null);
 });
-test('the shipped clips that carry it are found (Fish\'s talk and watch, a crowd look\'s talk), and her idle is left alone',()=>{
+test('the shipped clips that carry it are found (Fish\'s talk and watch, a crowd look\'s talk), and her idle is left alone',async()=>{await G.ready;
  const fish=path.join(crowd,'npc-fish.glb');
  for(const clip of ['talk','watch','drink'])for(const bone of ['mixamorig:LeftArm','mixamorig:RightArm'])assert.equal(A.leadInEnd(keysOf(fish,clip,bone)),2,'npc-fish '+clip+' '+bone);
  assert.equal(A.leadInEnd(keysOf(fish,'idle','mixamorig:LeftArm')),null);
  assert.equal(A.leadInEnd(keysOf(path.join(crowd,'district-resident.glb'),'talk','mixamorig:LeftArm')),2);
 });
-test('the closing ease back into the bind pose is found too, from where it starts',()=>{
+test('the closing ease back into the bind pose is found too, from where it starts',async()=>{await G.ready;
  const fish=path.join(crowd,'npc-fish.glb');
  for(const clip of ['talk','watch','drink'])for(const bone of ['mixamorig:LeftArm','mixamorig:RightArm']){const k=keysOf(fish,clip,bone),e=A.leadOutStart(k);assert.equal(e,k[k.length-10].frame,'npc-fish '+clip+' '+bone+' ends before its last nine keys');}
  assert.equal(A.leadOutStart(keysOf(fish,'idle','mixamorig:LeftArm')),null,'a clip without the bind-pose opening keeps its end');
