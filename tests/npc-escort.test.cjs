@@ -23,7 +23,7 @@ test('who can do these steps: path-capable NPCs only; the cat walks but does not
  for(const k of X.IDS){assert.equal(X.can('grey-reverie',k).ok,true);assert.equal(X.can('ethereal-lace',k).ok,true);assert.equal(X.can('admin',k).ok,false);assert.match(X.can('admin',k).why,/cannot walk with the player yet/);}
  assert.equal(X.can('street-cat','follow-them').ok,true);assert.equal(X.can('street-cat','they-follow').ok,true);assert.equal(X.can('street-cat','their-cab').ok,false);assert.match(X.can('street-cat','shared-cab').why,/does not ride in cabs/);
  const st=X.stops('grey-reverie');assert.deepEqual(st.filter(s=>s.ok).map(s=>s.id),['avenue','function-gate','east-gate']);
- for(const s of st.filter(s=>!s.ok))assert.ok(s.why&&s.why.length>10,s.id);assert.match(st.find(s=>s.id==='corporate').why,/stays in the city/);assert.match(st.find(s=>s.id==='main').why,/only on The Avenue/);
+ for(const s of st.filter(s=>!s.ok))assert.ok(s.why&&s.why.length>10,s.id);assert.match(st.find(s=>s.id==='corporate').why,/stays in the city/);assert.match(st.find(s=>s.id==='main').why,/placed in The Avenue/);
  assert.deepEqual(X.stops('street-cat').filter(s=>s.ok),[]);
  // settings: defaults 8 / 40 / pause, clamped, lost always beyond wait
  assert.deepEqual(X.settings({}),{wait:8,lost:40,ifLost:'pause'});assert.deepEqual(X.settings({wait:99,lost:1,ifLost:'fail'}),{wait:30,lost:40,ifLost:'fail'});
@@ -100,9 +100,9 @@ test('mission content: the four step kinds are checked (who, spot, distances, st
  const x=env(),{MC}=x;
  const good=[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail'},{kind:'they-follow',npc:'street-cat',to:{x:60,z:-6.4}},{kind:'their-cab',npc:'ethereal-lace',stop:'east-gate'},{kind:'shared-cab',npc:'grey-reverie',stop:'avenue'}];
  for(const o of good)assert.deepEqual(MC.check(doc(x,tree(o)),ctx(x)).errors,[],o.kind);
- const bad=[[{kind:'follow-them',npc:'admin',to:{x:110,z:-6.4}},/cannot walk with the player/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-14}},/off The Avenue/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:50},/3 to 30/],
+ const bad=[[{kind:'follow-them',npc:'admin',to:{x:110,z:-6.4}},/cannot walk with the player/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-14}},/the road/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:50},/3 to 30/],
   [{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:20,lost:15},/further than/],[{kind:'they-follow',npc:'grey-reverie',to:{x:110,z:-6.4},stop:'avenue'},/no stop setting/],[{kind:'their-cab',npc:'street-cat',stop:'avenue'},/does not ride in cabs/],
-  [{kind:'their-cab',npc:'grey-reverie',stop:'corporate'},/stays in the city/],[{kind:'shared-cab',npc:'grey-reverie',stop:'main'},/only on The Avenue/],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
+  [{kind:'their-cab',npc:'grey-reverie',stop:'corporate'},/stays in the city/],[{kind:'shared-cab',npc:'grey-reverie',stop:'main'},/placed in The Avenue/],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
  for(const [o,re] of bad){const errs=MC.check(doc(x,tree(o)),ctx(x)).errors;assert.ok(errs.some(e=>re.test(e)),o.kind+': '+errs.join(' | '));}
  // what is still missing (Guide me / the play check)
  const need=o=>MC.treeNeeds({...tree(o).missions[0]},x.e.givers).filter(n=>n.step==='walk').map(n=>n.field);

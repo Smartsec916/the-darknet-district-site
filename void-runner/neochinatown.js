@@ -453,8 +453,8 @@
     const nightlife=root.VoidNightlife&&modelInstance?root.VoidNightlife.start({B,scene,parent,quality,instance:modelInstance,quarter:QK}):null;
     // The people who stay in the alley by the District (ncz-alley.js): talking, smoking, sitting, watching the door.
     const alleyLife=root.VoidAlley&&modelInstance&&(!QK||QK==='oldtown')?root.VoidAlley.start({scene,parent,quality,instance:modelInstance}):(QK==='outskirts'&&root.VoidOutskirtsLife&&modelInstance?root.VoidOutskirtsLife.start({scene,parent,quality,instance:modelInstance}):null);   // The Outskirts' own residents take the alley people's slot (this quarter only)
-    // The Avenue's street pair (ncz-street-pair.js): Reverie and Lace take turns on the north pavement, twelve hours each (UTC), and a street cat looks for whichever is out.
-    const streetPair=root.VoidStreetPair&&(!QK||QK==='avenue')?root.VoidStreetPair.start({B,scene,parent,quality}):null;
+    // The street pair (ncz-street-pair.js): Reverie and Lace take turns on the Avenue's north pavement (or wherever the editor places them), twelve hours each (UTC), and a street cat looks for whichever is out.
+    const streetPair=root.VoidStreetPair?root.VoidStreetPair.start({B,scene,parent,quality,where:{scene:'street',quarter:QK}}):null;   // every quarter (19 Nov 2026: she may be placed anywhere walkable; it loads her only where she is)
     // Two street lights (the District's own lights are added with its rooms).
     const streetLights=[];if(!low)for(const [p,c,i,r] of [[[61,7,-40],'#ff5bd0',.9,34],[[61,7,-12],'#38e8ff',.8,30],[[61,7,-150],'#ff5bd0',.9,34],[[61,7,-196],'#38e8ff',.8,30]]){if(QK&&!QT.inQuarter(QK,p[0],p[2]))continue;const l=new B.PointLight('ncz-street-light',v(...p),scene);l.diffuse=B.Color3.FromHexString(c);l.intensity=i;l.range=r;l.parent=parent;streetLights.push(l);owned.push(l);}
 
@@ -1365,7 +1365,9 @@
      box('camera-arm-2',[.06,.06,.6],[3.4,3.95,19.6],frame);box('camera-body-2',[.25,.2,.45],[3.4,3.85,19.28],frame);box('camera-led-2',[.05,.05,.02],[3.4,3.85,19.04],red);
      target=saved;}
 
-    const {batches=new Map(),screens=[],skyShells=[],nightlife=null,alleyLife=null,streetPair=null,alleySteam=[],drones=[]}=sc;
+    const {batches=new Map(),screens=[],skyShells=[],nightlife=null,alleyLife=null,streetPair:streetPair0=null,alleySteam=[],drones=[]}=sc;
+    // inside the District: Reverie, Lace or the cat when a placement puts them there (ncz-street-pair.js: nothing is loaded otherwise)
+    const streetPair=streetPair0||(area==='interior'&&root.VoidStreetPair?root.VoidStreetPair.start({B,scene,parent,quality,where:{scene:'interior'}}):null);
     for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
     for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;

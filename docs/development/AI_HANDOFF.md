@@ -6,7 +6,19 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 19 Nov 2026 (newest): FOLLOW / LEAD / SHARED-CAB MISSION STEPS (branch `claude/follow-steps`, build `2026-11-19-follow-steps-1`, pushed, NO PR, not merged; built on `claude/npc-behaviour`)
+### 19 Nov 2026 (newest): PLACE REVERIE, LACE AND THE STREET CAT ANYWHERE WALKABLE (branch `claude/pair-anywhere`, build `2026-11-19-pair-anywhere-1`, pushed, NO PR, not merged)
+
+The owner: "Let me place REVERIE or LACE anywhere". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fifteenth pass".
+
+- **Where:** every placement ("Keep her at one spot", routes, daily-schedule blocks, "Giver waits at", ChatGPT recipes, the street cat) may now be anywhere walkable in six areas: The Avenue (both pavements, the North Gate's walkers' doors), Old Town (Main Street's pavements, the District alley, the access road, the way to Port Customs), Far South (Main Street's pavements, the Far South Gate's door), The Outskirts (the container yard and lanes), The Port (the pad, the passage's walkers' side) and inside The Darknet District (hallway / entry, the store's customer side, the vending alcove; never the Sleeping Pod room, the players' own pods). Data: `void-runner/npc-areas.js` (the game's own street, pavement and room geometry; furniture and ground height read from the built scenes by `tests/npc-obstacles-browser.cjs`, plus the `layout()` collision solids).
+- **Never (the owner's content rule):** Milked (building, side street, service alley, the pavement at their mouths), NULL (club and the pavement at its door), the District bar, VR play area and arcade room (left out to be safe), the Sleeping Pod room (the players' own pods), the smoking terrace, the Corporate District, the Temple. Also blocked: roads (taxi lanes), gate insides, the meeting room, the security vestibule, behind the shop counter, walls and furniture. Checked in the editor, by `mission-content.js` / `npc-paths.js` (play, publish), by the server (`void_runner_live_content.py area_check`, same decisions: a parity test) and in the editor's server copy of the draft (`forbidden_spot_problems`, `void_runner_drafts.py`).
+- **Editor:** an area list on the map (plain names); each area drawn with its walkable ground, roads, buildings / rooms, gates, furniture, posts and labels; a click on blocked ground snaps to the nearest allowed spot (8 m at most) or shows the plain reason (a forbidden place is never snapped out of). A route stays in one area (the path system has no NPC gate crossing): a point in another area is refused with the reason; use a time block per area. PLAY THIS DRAFT / JUMP THERE open the test session in the spot's area. The ChatGPT prompt lists every area with its rectangles, the never-used places and named places in every area.
+- **Game:** `neochinatown.js` starts the pair in every street quarter and inside the District; `ncz-street-pair.js` loads and moves her (and the cat) only in the area where her plan puts her (her usual routine stays on the Avenue). A spot or time block in another area: she is there from the start of her shift / that block (no walk across town); a new spot she cannot walk to straight is a re-placement, not a walk through a wall. The cat follows its own plan, else whichever of them is out, wherever she is.
+- **Follow / lead / cab steps (#414):** `npc-escort.js placedArea` (where she waits for the mission, else her all-day placement, else The Avenue); the step's spot must be in that area and cab stops in its quarter (`stops(id, area)`, greyed with the reason; admin inventory `npcEscort.npcs[id].stopsByArea`; server `placed_area` / `escort_problems(o, inv, area)`); away from the Avenue she walks straight or round one corner (`route`) and calls the cab from beside the nearest taxi pole (`kerb`).
+- **Tests:** `tests/npc-areas.test.cjs`, `tests/test_npc_areas.py`, browser `tests/npc-areas-browser.cjs`; older npc and escort tests updated for the wider ground.
+
+### 19 Nov 2026: MISSION EDITOR BUG FIX — PLAY STRAIGHT AFTER TYPING (branch `claude/play-stale-fix`, build `2026-11-19-play-fix-1`, pushed, NO PR, not merged)
+### 19 Nov 2026: FOLLOW / LEAD / SHARED-CAB MISSION STEPS (branch `claude/follow-steps`, build `2026-11-19-follow-steps-1`, pushed, NO PR, not merged; built on `claude/npc-behaviour`)
 
 Queue item 3, the "Follow / lead steps" part (approved 18 Nov 2026; the owner asked for it next). Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fifteenth pass".
 
@@ -19,7 +31,7 @@ Queue item 3, the "Follow / lead steps" part (approved 18 Nov 2026; the owner as
 - **Tests:** `tests/npc-escort.test.cjs` (8: wait / resume / lost-pause / lost-fail, completion, trail following and catch-up, the cat's pace, cab boarding and the cab leaving, shared-cab stop rules, content checks, export, wizard, inventory, the save flag), `tests/test_npc_escort.py` (4), browser `tests/npc-escort-browser.cjs` (the editor panels; then a wizard-made draft given by Reverie: follow her to a spot with a stop-and-wait, she follows the player to a spot, she calls a cab and both ride and get out, the player calls a cab and she rides along; `PART=editor`).
 - **Not verified:** real hardware; VR; Lace and the cat in a browser (same code as Reverie; unit-tested); the "mission fails" path and a mid-step reload in a browser (unit-tested); her seated pose in the cab only in software GL stills.
 
-### 19 Nov 2026 (newest): MISSION EDITOR BUG FIX — PLAY STRAIGHT AFTER TYPING (branch `claude/play-stale-fix`, build `2026-11-19-play-fix-1`, pushed, NO PR, not merged)
+### 19 Nov 2026: MISSION EDITOR BUG FIX — PLAY STRAIGHT AFTER TYPING (branch `claude/play-stale-fix`, build `2026-11-19-play-fix-1`, pushed, NO PR, not merged)
 
 Reported: PLAY THIS DRAFT pressed straight after typing in a step said "step 1 needs what the player must do" although the saved draft was complete (the wizard's PLAY IT NOW worked).
 
@@ -27,7 +39,7 @@ Reported: PLAY THIS DRAFT pressed straight after typing in a step said "step 1 n
 - **Fix:** one helper, `fresh()` (the field being typed in hands over its value, the trees are rebuilt from the saved draft, a waiting Guide me pass runs now), called first by `play` (PLAY THIS DRAFT, PLAY THIS DRAFT FROM HERE, Test my mission / PLAY IT NOW via `shared.playTree`) and `jumpTo` (JUMP THERE, SEE IT ON THE STREET, NPC draft plays); PUBLISH and ASK THE SERVER TO CHECK refuse and re-check if the draft changed since the check screen was drawn; `syncPlay` greys / un-greys the PLAY buttons on every keystroke (same `treeBlockers` rule); `setStatus` adds its line in place instead of redrawing.
 - **Tests:** `tests/play-stale.test.cjs` (4), browser `tests/play-stale-browser.cjs` (empty step, OPEN TO FIX, type and press PLAY THIS DRAFT at once: it starts with the typed words; PLAY FROM HERE and Test my mission after an edit; passes, bundled Chromium, software GL; on the old code it fails with the reported message).
 - **Not verified:** publishing with the server switched on; real hardware.
-### 19 Nov 2026 (newest): IMPORT A VOICE FILE FOR ANY LINE IN DEVELOPER TOOLS (branch `claude/voice-import`, build `2026-11-19-voice-import-1`, pushed, NO PR, not merged)
+### 19 Nov 2026: IMPORT A VOICE FILE FOR ANY LINE IN DEVELOPER TOOLS (branch `claude/voice-import`, build `2026-11-19-voice-import-1`, pushed, NO PR, not merged)
 
 The owner: type the line, make it in ElevenLabs, import the file in the editor. Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourteenth pass"; [`../VOID_RUNNER_VOICE_PRODUCTION.md`](../VOID_RUNNER_VOICE_PRODUCTION.md), "Imported voice files".
 
@@ -38,9 +50,9 @@ The owner: type the line, make it in ElevenLabs, import the file in the editor. 
 - **Tests:** `tests/voice-imports.test.cjs`, `tests/test_voice_imports.py`, browser `tests/voice-imports-browser.cjs` (refused 41 s file, re-encode of a 2 MB WAV, kept short WAV, text changed, UNDO, draft play hears the import, publish with a fake server, a signed-out player hears the published file).
 - **Not verified:** real Render / Firestore; Firefox / Safari; a real ElevenLabs file.
 
-### 18 Nov 2026 (newest): NPC APPEARANCE EDITOR IN THE NPCs TAB (branch `claude/npc-appearance`, build `2026-11-18-npc-appearance-1`, pushed, NO PR, not merged; built on `main` after #400)
-### 19 Nov 2026 (newest): MISSION EDITOR — MISSIONS THAT COST CREDITS ("PLAYER PAYS"), ACCEPT / DENY ON EVERY OFFER (branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`, pushed, NO PR, not merged)
-### 19 Nov 2026 (newest): DRAFT TESTS WITH REVERIE OR LACE RUN AT THE TIME SHE IS REALLY OUT (branch `claude/draft-shift-time`, build `2026-11-19-draft-shift-1`, pushed, NO PR, not merged)
+### 18 Nov 2026: NPC APPEARANCE EDITOR IN THE NPCs TAB (branch `claude/npc-appearance`, build `2026-11-18-npc-appearance-1`, pushed, NO PR, not merged; built on `main` after #400)
+### 19 Nov 2026: MISSION EDITOR — MISSIONS THAT COST CREDITS ("PLAYER PAYS"), ACCEPT / DENY ON EVERY OFFER (branch `claude/mission-cost`, build `2026-11-19-mission-cost-1`, pushed, NO PR, not merged)
+### 19 Nov 2026: DRAFT TESTS WITH REVERIE OR LACE RUN AT THE TIME SHE IS REALLY OUT (branch `claude/draft-shift-time`, build `2026-11-19-draft-shift-1`, pushed, NO PR, not merged)
 
 The owner: "If I test with REVERIE or LACE make it the time they are actually there". Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fourteenth pass".
 

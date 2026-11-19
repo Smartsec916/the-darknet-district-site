@@ -39,7 +39,7 @@ class NpcEscortServerTests(unittest.TestCase):
             p = problems(step)
             self.assertTrue(any(text in x for x in p), (text, p))
         bad({'kind': 'follow-them', 'npc': 'admin', 'to': {'x': 110, 'z': -6.4}}, 'can walk with the player')
-        bad({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 110, 'z': -14}}, 'off the pavement')
+        bad({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 110, 'z': -14}}, 'the road')
         bad({'kind': 'follow-them', 'npc': 'grey-reverie'}, 'pick the spot')
         bad({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 110, 'z': -6.4}, 'wait': 50}, 'waiting distance')
         bad({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 110, 'z': -6.4}, 'wait': 20, 'lost': 15}, 'further than')

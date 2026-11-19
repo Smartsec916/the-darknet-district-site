@@ -36,8 +36,8 @@ test('the schema is strict: unknown keys, wrong NPC, places off her pavement, di
  bad(base({allDay:{do:'dance'}}),/"do" must be "usual", "stay" or "route"/);
  bad(base({allDay:{do:'stay',at:'laundry',actions:['idle'],speed:3}}),/unknown field “speed”/);
  bad(base({allDay:{do:'stay',at:'the moon',actions:['idle']}}),/no place called “the moon”/);
- bad(base({allDay:{do:'stay',at:{x:100,z:-12},actions:['idle']}}),/not on her pavement/);   // the road
- bad(base({allDay:{do:'stay',at:{x:300,z:-6.5},actions:['idle']}}),/not on her pavement/);
+ bad(base({allDay:{do:'stay',at:{x:100,z:-12},actions:['idle']}}),/not somewhere she can be: it is the road/);   // the road
+ bad(base({allDay:{do:'stay',at:{x:300,z:-6.5},actions:['idle']}}),/not somewhere she can be/);
  bad(base({allDay:{do:'stay',at:{x:'100',z:-6.5},actions:['idle']}}),/must be numbers/);
  bad(base({allDay:{do:'stay',at:{x:100,z:-6.5,y:2},actions:['idle']}}),/only "x" and "z"/);
  bad(base({allDay:{do:'stay',at:'laundry',actions:['pole-dance']}}),/cannot do “pole-dance”/);

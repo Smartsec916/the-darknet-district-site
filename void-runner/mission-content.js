@@ -160,7 +160,7 @@
   }
   if(content.names!=null){const n=content.names;if(!n||typeof n!=='object'||Array.isArray(n)||Object.keys(n).length>60)err('Tree names have an unknown shape.');
    else for(const [id,name] of Object.entries(n)){if(!ID.test(id)||(ctx.treeIds&&!ctx.treeIds.has(id)&&!(content.trees||[]).some(t=>t&&t.id===id)))err('"'+id+'" is not a mission tree.');if(!plain(name,LIMIT.title))err('A tree name must be plain text (60 characters at most).');}}
-  if(content.trees!=null)checkTrees(content.trees,ctx,err);
+  if(content.trees!=null)checkTrees(content.trees,{...ctx,npcs:content.npcs||null},err);
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
@@ -253,7 +253,7 @@
      else if(o.kind==='hear'){if(o.npc!=null&&o.npc!==''&&!npcOk(o.npc))err(ow+': who is heard must be an NPC the game has a TALK prompt for.');}
      else if(o.kind==='await-call'){if(o.npc!=null&&o.npc!==''&&!speakerOk(o.npc))err(ow+': who will call must be a known NPC.');}
      else if(o.kind==='enter'||o.kind==='leave'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
-     else if(ESCORT.includes(o.kind)){const E=NEX();if(E)for(const p of E.problems(o))err(ow+': '+p);}
+     else if(ESCORT.includes(o.kind)){const E=NEX();if(E)for(const p of E.problems(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null,plan:(ctx.npcs||{})[o.npc]||null}):'avenue'}))err(ow+': '+p);}   // in the area she is placed in for this mission (npc-areas.js)
      else if(o.kind==='photo'){if(!subjectOk(o.npc))err(ow+': choose someone the V1 camera can identify.');}
      else if(o.kind==='send-photo'){if(typeof o.npc!=='string'||o.npc==='You'||!speakerOk(o.npc))err(ow+': the photo must be sent to a known NPC.');if(!subjectOk(o.subject))err(ow+': choose who must be in the photo (someone the V1 camera can identify).');}
      if(o.subject!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step names who must be in the photo.');
@@ -536,7 +536,7 @@
    if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))need(w+': “the notification arrives” needs the mission to start by notification','kind',id);
    if((o.kind==='enter'||o.kind==='leave')&&!o.place)need(w+': choose the place','step-place',id);
    if(o.kind==='photo'&&!o.npc)need(w+': choose who is photographed','step-subject',id);
-   if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o):[]))need(w+': '+n.text,n.key,id);}
+   if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue'}):[]))need(w+': '+n.text,n.key,id);}
    if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
    if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
    if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}

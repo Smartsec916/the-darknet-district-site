@@ -32,7 +32,7 @@
   sender:'Who the message, call or banner is from (their name is shown with it).',header:'The top line of the message or banner, e.g. ADMIN // INCOMING MESSAGE.',body:'The words of the message, call or banner.',
   distance:'How close the player must walk to that person, in metres (1 to 30). 5 m is a few steps away.',flag:'A story flag and the value it must have. Another mission sets it with the unlock “Story flag” (e.g. mf_metLace = true).',
   hours:'How long after the chosen mission is done, in IN-GAME time (12 in-game minutes pass for every real minute of play).',afterMission:'The mission that must be finished first.',
-  waitAt:'While this mission waits to be offered (and she is out on her shift), she walks to this spot and waits there with her normal routine: stands, looks about, checks her V1 (and sits if the spot is just in front of a ledge). Once it is accepted or done she goes back to her usual walk. Not set: she keeps her usual walk.',
+  waitAt:'Pick the area on the map (anywhere green in the city or inside the District; never Milked, NULL, the District bar or the VR area). While this mission waits to be offered (and she is out on her shift), she goes to this spot (in another area she is simply there from the start of her shift) and waits there with her normal routine: stands, looks about, checks her V1 (and sits if the spot is just in front of a ledge). Once it is accepted or done she goes back to her usual walk. Not set: she keeps her usual walk.',
   play:'Tries this mission in a throwaway test session. Your real save is never touched; LEAVE DRAFT brings you back here.'};
  const HELP_START={person:'The giver offers it when the player walks up and presses TALK. E.g. Admin offers it as soon as you talk to him at the counter.',
   'person-accept':'The giver offers it and the player chooses ACCEPT or DENY (the buttons and what DENY does are set below). By default DENY changes nothing: the next talk offers it again.',
@@ -681,7 +681,7 @@
  function waitAtPanel(t,m,ed){const X=root.VoidNPCPaths,g=giver(m.giver)||{name:m.giver},w=m.waitAt||null,probs=w?X.waitAtProblems(m.giver,w):[],box=el('section','','me-end me-wait',{'data-me-wait-at':m.id});
   box.append(el('h4','Giver waits at'),hint(HELP.waitAt));
   const r=el('div','','me-row');r.append(el('b',w?'Spot: x '+w.x.toFixed(1)+', z '+w.z.toFixed(1)+' · facing '+compass(w.yaw):'Not set: '+g.name+' keeps her usual walk.',w&&!probs.length?'me-ok':'',{'data-me-wait-text':m.id}));
-  if(w){r.append(btn('CLEAR (HER USUAL WALK)',()=>ed(x=>{delete x.waitAt;},true),'me-x',{'data-me-wait-clear':m.id}),btn('JUMP THERE',()=>jumpTo(w.x,w.z,m.giver,g.name+' waits here'),'',{'data-me-wait-jump':m.id,title:'Opens a throwaway test session on The Avenue, standing a few steps from the spot (your real save is never touched).'}));
+  if(w){r.append(btn('CLEAR (HER USUAL WALK)',()=>ed(x=>{delete x.waitAt;},true),'me-x',{'data-me-wait-clear':m.id}),btn('JUMP THERE',()=>jumpTo(w.x,w.z,m.giver,g.name+' waits here'),'',{'data-me-wait-jump':m.id,title:'Opens a throwaway test session in the spot’s area, standing a few steps from the spot (your real save is never touched).'}));
    for(const f of [['N',0],['E',Math.PI/2],['S',Math.PI],['W',-Math.PI/2]])r.append(btn('face '+f[0],()=>ed(x=>{x.waitAt={...x.waitAt,yaw:Math.round(f[1]*100)/100};},true),'',{'aria-label':'Face '+compass(f[1])}));}
   box.append(r);for(const p of probs)box.append(el('p','⚠ '+p,'me-bad'));
   if(root.VoidNPCMap){const live=root.VoidStreetPair?.live?.(),markers=[];
@@ -694,21 +694,24 @@
   return box;}
  // ---------------- FOLLOW / LEAD / SHARED-CAB steps (npc-escort.js, queue item 3): who walks with the player, the spot on the map or the cab stop, and the distances
  const EX=()=>root.VoidNPCEscort;
+ // where she is placed for a mission (npc-escort.js placedArea: where she waits for it, else her all-day placement in this draft, else The Avenue)
+ const escArea=(m,id)=>{const E=EX();if(!E||!E.placedArea)return 'avenue';E.draftPlans=()=>local().npcs||{};return E.placedArea(id,{waitAt:m&&m.giver===id?m.waitAt:null});};
  /* Who: everyone the editor knows, but only people who can walk with the player can be chosen; the rest are greyed with the reason. */
  function escortWho(o,eo){const E=EX(),sel=el('select','','',{'aria-label':'Who walks with the player','data-me-step-npc':o.id});sel.append(new Option('— choose who —',''));
   const ok=givers.filter(g=>E.can(g.id,o.kind).ok),no=givers.filter(g=>!E.can(g.id,o.kind).ok&&g.group==='district');for(const g of ok)sel.append(new Option(g.name,g.id));
   if(no.length){const og=el('optgroup','',null,{label:'Cannot walk with the player yet'});for(const g of no){const op=new Option(g.name+' — '+E.can(g.id,o.kind).why.split(':')[0],g.id);op.disabled=true;op.title=E.can(g.id,o.kind).why;og.append(op);}sel.append(og);}
   sel.value=o.npc&&E.can(o.npc,o.kind).ok?o.npc:'';if(o.npc&&!sel.value){const op=new Option((giver(o.npc)||{name:o.npc}).name+' (cannot do this step)',o.npc);op.disabled=true;sel.append(op);sel.value=o.npc;}
-  sel.title='Only people whose walking the game controls (Reverie, Lace, the street cat) can walk with the player. Others are greyed with the reason.';sel.onchange=()=>eo(x=>{x.npc=sel.value;if(E.CAB.has(x.kind)&&x.stop&&!E.stopOk(x.npc,x.stop))delete x.stop;},true);return sel;}
+  sel.title='Only people whose walking the game controls (Reverie, Lace, the street cat) can walk with the player. Others are greyed with the reason.';sel.onchange=()=>eo(x=>{x.npc=sel.value;if(E.CAB.has(x.kind)&&x.stop&&!E.stopOk(x.npc,x.stop,escArea(null,x.npc)))delete x.stop;},true);return sel;}
  function escortPanel(m,o,eo){const E=EX(),X=root.VoidNPCPaths,box=el('section','','me-end me-esc',{'data-me-esc':o.id}),who=giver(o.npc)||{name:o.npc||'they'},c=o.npc?E.can(o.npc,o.kind):{ok:false,why:'Choose who walks with the player first.'};
   box.append(el('h4',E.SPOT.has(o.kind)?'Where they go':'The cab ride'));if(!c.ok){box.append(el('p','⚠ '+c.why,'me-warn',{'data-me-esc-why':o.id}));return box;}
-  for(const p of E.problems(o).filter(p=>!/Pick the spot|Choose the cab/.test(p)))box.append(el('p','⚠ '+p,'me-bad'));
+  const area=escArea(m,o.npc),AN=(root.VoidNPCAreas?.get(area)||{name:'The Avenue'}).name;box.append(el('p',who.name+' is placed in '+AN+' for this mission (where she waits for it, else her placement in Developer Tools > NPCs): the step happens there.','me-small',{'data-me-esc-area':o.id}));
+  for(const p of E.problems(o,{area}).filter(p=>!/Pick the spot|Choose the cab/.test(p)))box.append(el('p','⚠ '+p,'me-bad'));
   if(E.SPOT.has(o.kind)){const t=o.to;box.append(el('p',t?'Spot: x '+t.x.toFixed(1)+', z '+t.z.toFixed(1)+'. Click the map to move it, or drag the pink marker.':'Click the map to pick the spot '+(o.kind==='follow-them'?who.name+' walks to (the player follows).':'the player leads '+who.name+' to.'),t?'me-ok me-small':'me-small',{'data-me-esc-text':o.id}));
-   if(t&&X)box.append(btn('JUMP THERE',()=>jumpTo(t.x,t.z,o.npc,who.name+': the spot of “'+(o.label||o.id)+'”'),'',{'data-me-esc-jump':o.id,title:'Opens a throwaway test session on The Avenue a few steps from the spot (your real save is never touched).'}));
+   if(t&&X)box.append(btn('JUMP THERE',()=>jumpTo(t.x,t.z,o.npc,who.name+': the spot of “'+(o.label||o.id)+'”'),'',{'data-me-esc-jump':o.id,title:'Opens a throwaway test session in the spot’s area, a few steps from the spot (your real save is never touched).'}));
    if(root.VoidNPCMap&&X){const live=root.VoidStreetPair?.live?.(),markers=[];if(live&&live.her&&live.her.id===o.npc)markers.push({id:'live',x:live.her.x,z:live.her.z,ghost:true,color:'#ffd34d',label:who.name+' now'});
-    if(t)markers.push({id:'to',x:t.x,z:t.z,color:'#ff8ad8',label:o.kind==='follow-them'?who.name+' leads the player here':'the player leads '+who.name+' here',drag:true,bad:E.problems(o).length>0});
+    if(t)markers.push({id:'to',x:t.x,z:t.z,color:'#ff8ad8',label:o.kind==='follow-them'?who.name+' leads the player here':'the player leads '+who.name+' here',drag:true,bad:E.problems(o,{area}).length>0});
     const put=(x,z)=>{const p=X.snap(o.npc,{x,z});eo(oo=>{oo.to={x:p.x,z:p.z};},true);guideSoon();};
-    const map=root.VoidNPCMap.create({npc:o.npc,markers,center:t?t.x:null,selected:'to',onPick:put,onDrag:(id,x,z)=>{if(id==='to')put(x,z);}});map.el.dataset.meEscMap=o.id;box.append(map.el);}
+    const map=root.VoidNPCMap.create({npc:o.npc,markers,center:t?t.x:null,selected:'to',area,lock:area,onPick:put,onDrag:(id,x,z)=>{if(id==='to')put(x,z);}});map.el.dataset.meEscMap=o.id;box.append(map.el);}
    if(o.kind==='follow-them'){const S=E.settings(o),L=E.LIMIT,r=el('div','','me-row'),num=(key,lim,label,help)=>{const i=el('input','','',{type:'number',min:String(lim[0]),max:String(lim[1]),step:'1','aria-label':label,['data-me-esc-'+key]:o.id,style:'width:5em',title:help});i.value=String(S[key]);
       i.onchange=()=>{const v=Math.round(Math.max(lim[0],Math.min(lim[1],Number(i.value)||S[key])));i.value=String(v);eo(oo=>{oo[key]=v;},true);};return i;};
     r.append(el('b','Waits when the player is more than'),num('wait',L.wait,'Waits when the player is this many metres behind','If the player falls this far behind, '+who.name+' stops, turns and waits; they walk on when the player catches up. '+L.wait[0]+' to '+L.wait[1]+' m, usually 8.'),el('span','metres behind','me-small'));box.append(r);
@@ -717,8 +720,8 @@
     box.append(hint('“They stop and wait”: '+who.name+' waits where they are until the player comes back. “The mission fails”: the player is told, and the mission goes back to '+((giver(m.giver)||{}).name||'the giver')+', who offers it again.'));}
    box.append(el('p','Multiplayer: only the player doing this mission is followed or led; other players see '+who.name+' as usual.','me-small'));}
   else{const r=el('div','','me-row'),sel=el('select','','',{'aria-label':'Cab stop','data-me-esc-stop':o.id});sel.append(new Option('— choose the stop —',''));
-   for(const s of E.stops(o.npc)){const op=new Option(s.name+(s.ok?'':' — not possible'),s.id);if(!s.ok){op.disabled=true;op.title=s.why;}sel.append(op);}sel.value=o.stop||'';sel.onchange=()=>{eo(oo=>{oo.stop=sel.value||undefined;if(!oo.stop)delete oo.stop;},true);guideSoon();};
-   r.append(el('b','To'),sel);box.append(r);const bad=E.stops(o.npc).filter(s=>!s.ok);if(bad.length)box.append(el('p','Greyed: '+bad[0].why.replace(/ to [^.]*\./,' there.'),'me-small',{'data-me-esc-greyed':o.id}));
+   for(const s of E.stops(o.npc,area)){const op=new Option(s.name+(s.ok?'':' — not possible'),s.id);if(!s.ok){op.disabled=true;op.title=s.why;}sel.append(op);}sel.value=o.stop||'';sel.onchange=()=>{eo(oo=>{oo.stop=sel.value||undefined;if(!oo.stop)delete oo.stop;},true);guideSoon();};
+   r.append(el('b','To'),sel);box.append(r);const bad=E.stops(o.npc,area).filter(s=>!s.ok&&!s.far);if(bad.length)box.append(el('p','Greyed: '+bad[0].why.replace(/ to [^.]*\./,' there.'),'me-small',{'data-me-esc-greyed':o.id}));
    box.append(el('p',o.kind==='their-cab'?who.name+' waits until the player is near, walks to the kerb and calls the cab. The player boards with BOARD TAXI and pays the normal fare (your developer account rides free).':'The player calls the taxi (CALL A TAXI or G) to this stop; '+who.name+' gets in as it waits, and both get out there. The normal fare.','me-small'));}
   return box;}
  // ---------------- JUMP THERE: a throwaway test session on The Avenue, a few steps from a spot (the draft applied, so placements and waits show)
@@ -729,7 +732,13 @@
    apply:()=>{if(c.ok)root.VoidLiveContent?.useDraft(content);},
    build:()=>{jumpTo.notes=streetClock([npc]);const C=root.C||root.VoidCampaign,st=C.startDistrictCampaign(C.fresh());st.story.flags.podWakePending=false;st.story.flags.appearanceOffered=true;st.universe.trackedMission=null;
     if(Number.isFinite(opts.minute)){const GC=root.VoidClock;if(GC){const m=((Math.floor(opts.minute)%1440)+1440)%1440,t=(m-GC.START_MIN%1440+1440)%1440;if(t>0)st.story.flags[GC.FLAG]=t;}}return st;},
-   clock:clockText,enter:async()=>{state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'avenue'});try{walker.x=x;walker.z=Math.max(-16,z-3.4);walker.yaw=0;}catch{}},
+   clock:clockText,enter:async()=>{state.location='earth';
+    // the area of the spot (npc-areas.js): a street quarter or the District interior; the player stands a few steps away on ground they can walk, facing it
+    const AR=root.VoidNPCAreas,a=AR&&AR.areaOf({x,z})||'avenue',w=AR?AR.enter(a):{walk:'sacramento',quarter:'avenue'};
+    if(w.walk==='darknet-district'){state.story.flags.area='district';state.story.flags.districtBadge=true;await enterWalking(VoidDistrictArea.KEY.interior,{silent:true});}
+    else{delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:w.quarter});}
+    let at=a==='avenue'?{x,z:Math.max(-16,z-3.4)}:null;if(!at&&AR){for(const r of [3.4,2.4,4.4])for(let k=0;k<12&&!at;k++){const t=k/12*Math.PI*2,q={x:x+Math.sin(t+Math.PI)*r,z:z+Math.cos(t+Math.PI)*r},c=AR.check(q,a);if(c.ok&&c.area===a)at=q;}}
+    try{if(at){walker.x=at.x;walker.z=at.z;walker.yaw=Math.atan2(x-at.x,z-at.z);}}catch{}},
    message:()=>'VIEWING · '+(label||'the spot')+(c.ok?'':' · your draft has problems, so it is not applied: '+c.errors.slice(0,2).join(' · '))+' · nothing is saved'+((jumpTo.notes||[]).length?' · '+jumpTo.notes.join(' '):'')});
   if(r&&r.error){status=r.error;draw();}return r;}
  // ---------------- "Guide me": the next required box (the same rules as the play / publish check: mission-content.js treeNeeds)
@@ -797,6 +806,9 @@
   if(stepId){M.acquire(s,m.id);M.track(s,m.id,C);const k=Math.max(0,m.objectives.findIndex(o=>o.id===stepId));for(const o of m.objectives.slice(0,k))M.complete(s,m.id,o.id,C);done(m,m.objectives.slice(0,k).map(o=>o.id));const o=m.objectives[k];
    where=o.kind==='arrive'?{walk:'sacramento',quarter:'port'}:o.kind==='photo'?PLACE_ENTER((giver(o.npc)||{}).place)||where:o.kind==='send-photo'?where:o.npc?(giver(o.npc)||{}).enter:o.place?PLACE_ENTER(o.place):where;
    if(o.kind==='send-photo')notes.push('Sending needs a photo taken during this mission: play from the photo step to take one.');}
+  // Reverie, Lace and the cat may be placed in any area (npc-areas.js): draft play of a mission she gives starts where she waits for it, else where her placement puts her
+  {const AR=root.VoidNPCAreas,X=root.VoidNPCPaths,id=m.giver;if(AR&&X&&X.MOVABLE[id]&&where&&where.walk==='sacramento'&&where.quarter==='avenue'){const np=(draftContent().npcs||{})[id],t=m.waitAt||(np&&np.mode==='stay'?np:np&&np.mode==='path'?np.points[0]:null),a=t&&AR.areaOf(t);
+   if(a&&a!=='avenue'){where=AR.enter(a);notes.push('Draft play starts in '+AR.get(a).name+', where '+((giver(id)||{}).name||id)+' is placed.');}}}
   // Reverie and Lace take turns on one UTC street clock: the test runs at a time the first one it uses is really out (a simulated street clock; throwaway session only)
   {const nw=(m.start&&m.start.when)||{};notes.push(...streetClock([m.giver,nw.kind==='near'?nw.npc:null,...m.objectives.flatMap(o=>[o.npc,...(o.subjects||[])]),m.ending&&m.ending.npc]));}
   if(where&&where.location){C.awardStarterShip(s);U.discover(s,where.location);s.location=where.location;notes.push('Draft play starts at '+((G().PLACE.get(where.location)||{}).name||where.location)+' with a test ship.');}

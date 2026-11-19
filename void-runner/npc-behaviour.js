@@ -11,7 +11,8 @@
      ACTIVITY: {"do":"usual"}                                         her own routine
                {"do":"stay", "at":PLACE, "face":"road", "actions":["idle","look"]}   stand at one spot, doing the actions in turn
                {"do":"route", "points":[{"at":PLACE, "action":"look", "seconds":5}, ...]}   walk the points in order, round and round
-     PLACE: a named place ("laundry", "ledge-reverie", ...) or {"x":104.5, "z":-6.4} on her pavement.
+     PLACE: a named place ("laundry", "ledge-reverie", "oldtown-alley-mouth", ...) or {"x":104.5, "z":-6.4} anywhere walkable in the city's areas (npc-areas.js, 19 Nov 2026:
+     the Avenue, Old Town, Far South, the Outskirts, the Port, inside the District; never Milked, NULL, the District bar or the VR area). A route stays in one area.
    Reverie and Lace keep their 12-hour real-time street shift: a schedule only says what she does while she is out. */
 (function(root){
  'use strict';
@@ -29,13 +30,15 @@
  const isObj=o=>!!o&&typeof o==='object'&&!Array.isArray(o);
  const r1=v=>Math.round(v*10)/10;
  const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
- /* Named places for NPC id: the shopfronts on her pavement and the ledges (to sit on), each a checked spot. [{id, name, x, z, ledge}] */
- function places(id){const P=X(),M=P.MOVABLE[id];if(!M)return [];const d=P.mapData(),A=P.AREAS[M.area],out=[],seen=new Set();
-  const add=(pid,name,x,z,ledge)=>{if(!pid||seen.has(pid))return;const p={x:r1(Math.max(A.x0,Math.min(A.x1,x))),z:r1(z)};if(P.spotProblems(id,p).length)return;seen.add(pid);out.push({id:pid,name,x:p.x,z:p.z,ledge:!!ledge});};
-  for(const l of d.ledges)add(l.id,'the ledge '+(l.id==='ledge-reverie'?'by the laundry (her usual seat)':l.id==='ledge-laundry'?'east of the laundry':l.id==='ledge-repair'?'west of the laundry':'at x '+l.x),l.x,l.front-.4,true);
-  for(const s of d.shops)if(s.side==='n'&&s.x>=A.x0-1&&s.x<=A.x1+1){let pid=slug(s.name.replace(/[·]/g,' ').replace(/\b24H\b/i,'')).replace(/-+$/,'');for(const z of [-6.4,-6.0,-6.8])if(!seen.has(pid)){add(pid,'in front of '+s.name.replace(/\s*·.*$/,'').trim(),s.x,z,false);}}
-  add('west-end','the west end of the pavement (by the Function Gate)',A.x0+1,-6.6,false);add('east-end','the east end of the pavement (by the East Gate)',A.x1-1,-6.6,false);
-  if(d.stretch)add('her-stretch','the middle of her usual stretch',(d.stretch.x0+d.stretch.x1)/2,-6.6,false);
+ /* Named places for NPC id: the ledges on the Avenue (to sit on), and the named spots of every area she may be placed in (npc-areas.js places: shopfronts and landmarks;
+    the Avenue's north pavement keeps its first names). [{id, name, area, x, z, ledge}] */
+ const AR=()=>node?require('./npc-areas.js'):root.VoidNPCAreas;
+ function places(id){const P=X(),M=P.MOVABLE[id];if(!M)return [];const d=P.mapData('avenue'),out=[],seen=new Set();
+  const add=(pid,name,area,x,z,ledge)=>{if(!pid||seen.has(pid))return;const p={x:r1(x),z:r1(z)};if(P.spotProblems(id,p).length)return;seen.add(pid);out.push({id:pid,name,area,x:p.x,z:p.z,ledge:!!ledge});};
+  for(const l of d.ledges)add(l.id,'the ledge '+(l.id==='ledge-reverie'?'by the laundry (her usual seat)':l.id==='ledge-laundry'?'east of the laundry':l.id==='ledge-repair'?'west of the laundry':'at x '+l.x)+' (The Avenue)','avenue',l.x,l.front-.4,true);
+  for(const q of AR().places())add(q.id,q.name,q.area,q.x,q.z,false);
+  add('west-end','the west end of the north pavement (by the Function Gate, The Avenue)','avenue',13.5,-6.6,false);add('east-end','the east end of the north pavement (by the East Gate, The Avenue)','avenue',140.5,-6.6,false);
+  if(d.stretch)add('her-stretch','the middle of her usual stretch (The Avenue)','avenue',(d.stretch.x0+d.stretch.x1)/2,-6.6,false);
   return out;}
  /* Find the JSON in a paste: a ```json fence if there is one, else the first {...} (strings and escapes respected). {ok, json, error} */
  function extract(text){if(typeof text!=='string'||!text.trim())return {ok:false,error:'The box is empty. Paste ChatGPT’s whole answer (or just its JSON) into it.'};
@@ -67,7 +70,7 @@
   const spot=(at,where)=>{if(typeof at==='string'){const p=byId.get(at.trim().toLowerCase());if(!p){add(where+'there is no place called “'+at.slice(0,40)+'”. Use one of: '+pl.map(q=>q.id).join(', ')+', or {"x": …, "z": …}.');return null;}return {x:p.x,z:p.z};}
    if(isObj(at)){const k=Object.keys(at).filter(q=>q!=='x'&&q!=='z');if(k.length){add(where+'a place has only "x" and "z" (remove '+k.map(q=>'“'+q+'”').join(', ')+').');return null;}
     if(typeof at.x!=='number'||typeof at.z!=='number'||!Number.isFinite(at.x)||!Number.isFinite(at.z)){add(where+'"x" and "z" must be numbers (metres).');return null;}
-    const p={x:r1(at.x),z:r1(at.z)},why=P.spotProblems(id,p);if(why.length){const A=P.AREAS[M.area];add(where+'x '+p.x+', z '+p.z+' is not on her pavement: x must be '+A.x0+' to '+A.x1+' and z '+A.z0+' to '+A.z1+', clear of the taxi posts and screens ('+why[0]+')');return null;}return p;}
+    const p={x:r1(at.x),z:r1(at.z)},why=P.spotProblems(id,p);if(why.length){add(where+'x '+p.x+', z '+p.z+' is not somewhere she can be: '+why[0].replace(/^That is /,'it is ')+' Use a place from the list, or a spot inside one of the areas’ rectangles.');return null;}return p;}
    add(where+'"at" must be a place name or {"x": …, "z": …}.');return null;};
   const act=(o,where)=>{if(!isObj(o)){add(where+'must be an object like {"do":"stay", …}.');return null;}
    const kind=o.do;if(!own(ACT_KEYS,kind)||typeof kind!=='string'){add(where+'"do" must be "usual", "stay" or "route".');return null;}
@@ -84,6 +87,7 @@
     const p=spot(q.at,pw);if(typeof q.action!=='string'||!actIds.has(q.action)){add(pw+'she cannot do “'+String(q.action).slice(0,40)+'”. Allowed: '+actList+'.');return;}
     let sec=q.seconds;if(q.action==='walk-on')sec=Number.isInteger(sec)?sec:1;else if(!Number.isInteger(sec)||sec<P.LIMIT.seconds[0]||sec>P.LIMIT.seconds[1]){add(pw+'"seconds" must be a whole number from '+P.LIMIT.seconds[0]+' to '+P.LIMIT.seconds[1]+'.');return;}
     if(p)pts.push({x:p.x,z:p.z,action:q.action,seconds:Math.max(1,Math.min(120,sec))});});
+   if(pts.length===o.points.length){const ids=[...new Set(pts.map(q=>AR().areaOf(q)).filter(Boolean))];if(ids.length>1){add(where+'a route stays in one area, but this one has points in '+ids.map(a=>AR().get(a).name).join(' and ')+'. Use a time block for each area.');return null;}}
    return pts.length===o.points.length?{mode:'path',points:pts}:null;};
   let base={mode:'original'};if(own(json,'allDay')){const b=act(json.allDay,'All day: ');if(b)base=b;}
   let sched=null;
@@ -113,16 +117,16 @@
  function examples(id){const pl=places(id),pick=k=>(pl.find(p=>p.id===k)||pl[0]).id,led=(pl.find(p=>p.ledge)||pl[0]).id,ids=X().actionsFor(id).map(a=>a.id),A=(want,alt)=>ids.includes(want)?want:alt;
   return [{recipe:KIND,version:VERSION,npc:id,allDay:{do:'usual'},schedule:[{from:'08:00',to:'12:00',name:'Morning walk',do:'route',points:[{at:pick('repair'),action:A('look','cat-look'),seconds:6},{at:pick('laundry'),action:A('scroll','cat-wander'),seconds:10},{at:pick('bio-clinic'),action:A('idle-shift','cat-sit'),seconds:5}]},
     {from:'12:00',to:'13:00',name:'Lunch on the ledge',do:'stay',at:led,face:'road',actions:[A('sit','cat-sit')]},{from:'20:00',to:'02:00',name:'Night watch',do:'stay',at:{x:118.5,z:-6.6},face:'road',actions:[A('idle','cat-sit'),A('look','cat-look'),A('scroll','cat-wander')]}]},
-   {recipe:KIND,version:VERSION,npc:id,allDay:{do:'stay',at:pick('tea-house'),face:'road',actions:[A('idle','cat-sit'),A('look','cat-look'),A('selfie','cat-wander')]}}];}
- function prompt(id,ctx={}){const P=X(),M=P.MOVABLE[id];if(!M)return '';const A=P.AREAS[M.area],acts=P.actionsFor(id,ctx.anims||[]),pl=places(id),L=P.LIMIT;
+   {recipe:KIND,version:VERSION,npc:id,allDay:{do:'stay',at:pick('oldtown-alley-mouth'),face:'west',actions:[A('idle','cat-sit'),A('look','cat-look'),A('selfie','cat-wander')]}}];}
+ function prompt(id,ctx={}){const P=X(),M=P.MOVABLE[id];if(!M)return '';const acts=P.actionsFor(id,ctx.anims||[]),pl=places(id),L=P.LIMIT,areas=AR().describe(),she=M.cat?'it':'she';
   const lines=[
    'You are helping me write a BEHAVIOUR RECIPE for '+M.name+', a character in my game. A behaviour recipe is DATA in JSON. It is never code.',
    '',
    'REPLY WITH ONLY ONE JSON OBJECT inside a ```json block. Do not write JavaScript, functions, HTML, comments or any other code. Do not add fields that are not listed below: the game refuses the whole recipe if it has unknown fields.',
    '',
-   ...(M.cat?['WHO: the street cat (id "'+id+'") lives on the north pavement of The Avenue (a city street). It is out day and night. It can only stand, sit, look about, potter about and walk (no other animations).']:
-    ['WHO: '+M.name+' (id "'+id+'") is an ordinary street resident of NeoChinatown. She stays on the north pavement of The Avenue (a city street). She only does casual, everyday things: nothing flirtatious, nothing from clubs, no smoking or drinking.',
-     'HER SHIFT: she is out on the street for 12 real hours a day (the game decides that). Your recipe only says what she does WHILE she is out.']),
+   ...(M.cat?['WHO: the street cat (id "'+id+'") lives in NeoChinatown (a city). Its usual home is the north pavement of The Avenue. It is out day and night. It can only stand, sit, look about, potter about and walk (no other animations).']:
+    ['WHO: '+M.name+' (id "'+id+'") is an ordinary street resident of NeoChinatown. Her usual routine is on the north pavement of The Avenue, but she can be placed anywhere listed under AREAS. She only does casual, everyday things: nothing flirtatious, nothing from clubs, no smoking or drinking.',
+     'HER SHIFT: she is out for 12 real hours a day (the game decides that). Your recipe only says what she does WHILE she is out.']),
    'THE CLOCK: the game has its own 24-hour clock (an in-game day passes in 2 hours of play). Times are written "HH:MM", e.g. "08:00", "13:30", "00:00".',
    '',
    'THE RECIPE (version 1):',
@@ -130,22 +134,27 @@
    '  "recipe": "'+KIND+'",',
    '  "version": 1,',
    '  "npc": "'+id+'",',
-   '  "allDay": ACTIVITY,        (optional) what she does at every time NOT covered by a time block. Leave it out for her usual routine.',
+   '  "allDay": ACTIVITY,        (optional) what '+she+' does at every time NOT covered by a time block. Leave it out for the usual routine.',
    '  "schedule": [ BLOCK, ... ]  (optional) up to '+L.blocks+' time blocks',
    '}',
    'BLOCK = ACTIVITY plus "from": "HH:MM", "to": "HH:MM" and an optional "name" (letters, numbers and simple punctuation, 40 characters at most).',
    '  A block may run past midnight ("from": "20:00", "to": "02:00"). Blocks must not overlap. Each block lasts at least '+L.blockMin+' minutes.',
    'ACTIVITY is one of:',
-   '  {"do": "usual"}   her own routine (walks her stretch, sits on the ledges, plays with the cat)',
-   '  {"do": "stay", "at": PLACE, "face": "road" | "shops" | "east" | "west", "actions": [ACTION, ...]}   she stands at one spot and does the actions in turn (a few seconds each); '+L.actions[0]+' to '+L.actions[1]+' actions; "face" is optional (default "road")',
-   '  {"do": "route", "points": [ {"at": PLACE, "action": ACTION, "seconds": N}, ... ]}   she walks the points in order, does each point\'s action for N seconds (a whole number from '+L.seconds[0]+' to '+L.seconds[1]+'), then starts again at the first point; '+L.points[0]+' to '+L.points[1]+' points',
-   'PLACE is a place name from the list below, or {"x": number, "z": number} in metres on her pavement: x from '+A.x0+' (west) to '+A.x1+' (east), z from '+A.z0+' (kerb side) to '+A.z1+' (shop side). x grows to the east.',
-   '  Keep away from the taxi posts (x '+P.posts().map(p=>p.x).join(', ')+', at the kerb) and the advertising screens at the kerb (x '+P.OBSTACLES.map(o=>Math.round(o[0])+'–'+Math.round(o[1])).join(', ')+'): a spot nearer the shops (z about -6.2) is always safer. A straight walk between two points must not cross them either.',
+   '  {"do": "usual"}   the usual routine ('+(M.cat?'goes to whichever of Reverie and Lace is out':'walks her stretch of The Avenue, sits on the ledges, plays with the cat')+')',
+   '  {"do": "stay", "at": PLACE, "face": "road" | "shops" | "north" | "south" | "east" | "west", "actions": [ACTION, ...]}   '+she+' stands at one spot and does the actions in turn (a few seconds each); '+L.actions[0]+' to '+L.actions[1]+' actions; "face" is optional (default "road", which is south)',
+   '  {"do": "route", "points": [ {"at": PLACE, "action": ACTION, "seconds": N}, ... ]}   '+she+' walks the points in order, does each point\'s action for N seconds (a whole number from '+L.seconds[0]+' to '+L.seconds[1]+'), then starts again at the first point; '+L.points[0]+' to '+L.points[1]+' points',
+   'PLACE is a place name from the PLACES list below, or {"x": number, "z": number} in metres (x grows to the east, z grows to the north) inside one of the AREAS rectangles.',
+   'A STAY or a ROUTE is in ONE area: all points of a route must be in the same area (there is no walking through the gates). To be in another area at another time of day, use another time block: '+she+' appears there when that block starts.',
+   'A straight walk between two route points must stay on walkable ground: it must not cross a road, a wall, a gate, or furniture. Points close together along one pavement are safest; a route round a corner needs a point at the corner.',
+   '',
+   'AREAS (where '+she+' may be; each is a list of walkable rectangles x0..x1, z0..z1 in metres):',
+   ...areas.flatMap(a=>['  '+a.name+(a.inside?' (indoors)':'')+':',...a.walk.map(w=>'    '+w.name+': x '+w.x0+' to '+w.x1+', z '+w.z0+' to '+w.z1),...(a.never.length?['    never: '+a.never.join(', ')]:[])]),
+   'NEVER (the owner\'s rule): Milked (the building, its side street, its service alley), NULL (the nightclub and the pavement at its door), the District bar, the District VR area and arcade room, the District’s Sleeping Pod room (the players’ own pods), the Corporate District and the Temple. Roads (where taxis drive), the gates\' insides, walls and furniture are blocked too.',
    '',
    'PLACES (name: what it is, x, z):',
    ...pl.map(p=>'  '+p.id+': '+p.name+' (x '+p.x+', z '+p.z+')'+(p.ledge&&!M.cat?' — a ledge: she can "sit" here':'')),
    '',
-   'ACTIONS '+(M.cat?'it':'she')+' can do (use the id exactly):',
+   'ACTIONS '+she+' can do (use the id exactly):',
    ...acts.map(a=>'  '+a.id+': '+a.name+' — '+a.help+(a.id==='sit'?' Only at a ledge place.':'')+(a.id==='walk-on'?' Only in a route, not in a stay.':'')),
    '',
    'EXAMPLE 1 (a day with a schedule):',

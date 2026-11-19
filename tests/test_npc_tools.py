@@ -30,8 +30,8 @@ class NpcToolsServerTests(unittest.TestCase):
         self.assertEqual(live.check(doc(npcs=ok), INV), [])
         self.assertEqual(live.npc_problems({'grey-reverie': {'mode': 'original'}}, INV), [])
         bad = [({'admin': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['idle']}}, 'cannot be moved'),
-               ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -12, 'yaw': 0, 'actions': ['idle']}}, 'off the pavement'),
-               ({'grey-reverie': {'mode': 'stay', 'x': 40, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, 'taxi post'),
+               ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -12, 'yaw': 0, 'actions': ['idle']}}, 'the road'),
+               ({'grey-reverie': {'mode': 'stay', 'x': 40, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, 'standing there'),
                ({'grey-reverie': {'mode': 'stay', 'x': 98, 'z': -6, 'yaw': 0, 'actions': ['sit']}}, 'needs a ledge'),
                ({'grey-reverie': {'mode': 'stay', 'x': 96.5, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, 'street furniture'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['dance-belly']}}, 'not something'),
@@ -62,7 +62,7 @@ class NpcToolsServerTests(unittest.TestCase):
 
     def test_wait_at(self):
         self.assertEqual(live.check(doc(trees=[tree({'x': 104.4, 'z': -5.9, 'yaw': 3.14})]), INV), [])
-        self.assertTrue(any('off the pavement' in p for p in live.check(doc(trees=[tree({'x': 104.4, 'z': -14})]), INV)))
+        self.assertTrue(any('the road' in p for p in live.check(doc(trees=[tree({'x': 104.4, 'z': -14})]), INV)))
         self.assertTrue(any('unknown fields' in p for p in live.check(doc(trees=[tree({'x': 104.4, 'z': -5.9, 'run': 1})]), INV)))
         t = tree({'x': 104.4, 'z': -5.9}, giver='admin')
         self.assertTrue(any('Reverie or Lace' in p for p in live.check(doc(trees=[t]), INV)))
