@@ -281,7 +281,7 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','object','ap','stay','unlock','needs',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs',...ASK_STEP.keys])){err(ow+': unknown fields in a step.');continue;}
      if(!sec(o.delay,0,TIME.delay))err(ow+': the delay before a step is a whole number of seconds from 0 to 600.');
      if(o.kind!=='anim'&&o.clip!=null)err(ow+': only an animation step names an animation.');if(o.kind!=='anim'&&o.kind!=='wait'&&o.kind!=='hack'&&o.hold!=null)err(ow+': only an animation, wait or hack step has a number of seconds.');if(o.kind!=='wait'&&o.near!=null)err(ow+': only a wait step has a distance.');
      if(!ESCORT.includes(o.kind)&&['to','wait','lost','ifLost','stop'].some(k=>o[k]!=null))err(ow+': only a follow / lead / cab step has a spot, distances or a cab stop.');
@@ -387,7 +387,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
    :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:o.kind==='anim'?ev.type==='anim'&&ev.step===m.id+'/'+o.id:o.kind==='wait'?ev.type==='wait'&&ev.step===m.id+'/'+o.id
    // apartments (apartments.js): inside the apartment (the place event carries the one the player is in), a use of one of its objects, a hack of an access point
-   :o.kind==='apt-enter'?ev.type==='place'&&ev.apt===m.id+'/'+o.apt:o.kind==='apt-use'?ev.type==='apt-use'&&ev.mission===m.id&&ev.apt===o.apt&&ev.object===o.object
+   :o.kind==='apt-enter'?ev.type==='place'&&ev.apt===m.id+'/'+o.apt&&(o.mod==null||ev.mod===o.mod):o.kind==='apt-use'?ev.type==='apt-use'&&ev.mission===m.id&&ev.apt===o.apt&&ev.object===o.object&&(o.mod==null||ev.mod===o.mod)
    :o.kind==='hack'?ev.type==='hack'&&ev.ap===o.ap&&(ev.mission==null||ev.mission===m.id)&&(!/\//.test(o.ap||'')||ev.mission===m.id):false;
   const held=(m,o)=>delayed(s,m,o);
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
@@ -611,7 +611,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
    if(ESCORT.includes(o.kind)){const F=(NEX()&&NEX().FIELDS[o.kind])||[];for(const k of F)if(o[k]!=null&&o[k]!=='')x[k]=k==='to'?{x:o.to.x,z:o.to.z}:o[k];}
    {const d=secs(o.delay,1,TIME.delay);if(d)x.delay=d;}   // a delay before the step starts
-   if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
+   if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(typeof o.mod==='string'&&o.mod)x.mod=o.mod;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
    if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;}
    if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
    if(o.kind==='ask'){x.question=String(o.question||'').trim();for(const k of ['yes','no'])if(typeof o[k]==='string'&&o[k].trim())x[k]=o[k].trim().slice(0,MONEY.label);if(ASK_STEP.deny.includes(o.deny)&&o.deny!=='end')x.deny=o.deny;if((x.deny==='skip'||x.deny==='back')&&o.goto)x.goto=o.goto;if(x.deny==='tree'&&o.denyStart)x.denyStart=o.denyStart;
@@ -643,6 +643,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(o.kind==='photo'&&!o.npc)need(w+': choose who is photographed','step-subject',id);
    if((o.kind==='apt-enter'||o.kind==='apt-use')&&!(m.apartments||[]).some(a=>a&&a.id===o.apt))need(w+': choose one of this mission’s apartments (add one under “Apartments for this mission”)','step-apt',id);
    if(o.kind==='apt-use'&&!o.object)need(w+': choose what is used in the apartment','step-object',id);
+   if(o.kind==='apt-use'&&(m.apartments||[]).some(a=>a&&a.id===o.apt&&Array.isArray(a.modules))&&!o.mod)need(w+': choose the room (module) where it is used','step-mod',id);
    if(o.kind==='hack'&&!o.ap)need(w+': choose the access point to hack','step-ap',id);
    if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue'}):[]))need(w+': '+n.text,n.key,id);}
    if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
@@ -653,7 +654,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
    if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}
   for(const a of m.apartments||[]){if(a&&!a.door)need('apartment “'+(a.id||'?')+'”: choose its street door (on the map or from the list)','apt-door');}
-  {const X=APT();if(X)for(const p of X.problems(m,null))if(!/choose a street door|choose one of this mission|choose what is used|choose the access point/.test(p))need(p,'apt-door');}
+  {const X=APT();if(X)for(const p of X.problems(m,null))if(!/choose a street door|choose one of this mission|choose what is used|choose the access point|choose the room \(module\)/.test(p))need(p,'apt-door');}
   if(m.ending&&m.ending.npc&&!can(m.ending.npc))need('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today','ending');
   {const X=NPX();if(X&&m.waitAt)for(const p of X.waitAtProblems(m.giver,m.waitAt))need('“Giver waits at”: '+p,'wait-at');}
   return out;}

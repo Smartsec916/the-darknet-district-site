@@ -97,7 +97,7 @@
     if(!String(s.label||'').trim())out.push(n+'write what the Mission Log says, for example “Talk to Iris”.');});
    if(a.apt){const X=AX(),d=X&&a.apt.door?X.door(a.apt.door):null;if(!a.apt.door)out.push('The apartment: choose its street door, from the list under “An apartment for this mission” (or press × to have none).');
     else if(X&&!d)out.push('The apartment: that street door is not in the game. Choose another one from the list.');
-    else if(X&&d&&X.STYLES&&!X.STYLES.some(st=>st.id===a.apt.style&&!!st.container===(d.family==='container')))out.push('The apartment: that style cannot go behind that door. Choose another style from the list.');}}
+    else if(X&&d&&!a.apt.template&&X.STYLES&&!X.STYLES.some(st=>st.id===a.apt.style&&!!st.container===(d.family==='container')&&(d.family==='city'||d.family==='container'||!d.family)))out.push('The apartment: that style cannot go behind that door. Choose another style from the list.');}}
   if(page==='reward'){const r=Number(a.rewards);if(!(Number.isInteger(r)&&r>=0&&r<=100000))out.push('Credits must be a whole number from 0 to 100000. Type a number like 100, or press one of the buttons.');
    else if(a.pays&&r<1)out.push('Type how much the player pays (for example 100), or press “Player gets” if they pay nothing.');}
   if(page==='name'&&!String(a.title||'').trim())out.push('Give the mission a name: type it in the box “Mission name” (for example “A parcel for Iris”).');
@@ -120,7 +120,8 @@
   else if(a.start==='near')m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:5}};
   else if(a.start==='messages')m.start={how:'notification',channel:'messages',from:a.giver,header:String(a.message.header||'').trim().slice(0,80)||'MESSAGE',text,when:{kind:'pod-exit'}};
   if(ask&&m.start)m.start.accept=true;
-  const apt=a.apt&&a.apt.door?{id:'a1',style:a.apt.style||'normal',door:a.apt.door}:null;if(apt)m.apartments=[apt];   // one apartment (apartments.js); the Mission Editor adds more
+  const MX=(()=>{try{return typeof module!=='undefined'&&module.exports?require('./modules.js'):root.VoidModules;}catch{return null;}})();   // a location built from modules (modules.js TEMPLATES): an office, a server room, a shop back room ...
+  const apt=a.apt&&a.apt.door?(a.apt.template&&MX&&MX.template(a.apt.template)?{id:'a1',door:a.apt.door,...MX.template(a.apt.template)}:{id:'a1',style:a.apt.style||'normal',door:a.apt.door}):null;if(apt)m.apartments=[apt];   // one apartment (apartments.js); the Mission Editor adds more
   m.objectives=[];m.seq=0;
   for(const s of a.steps){const o=T.addStep(m,{kind:s.kind});o.label=String(s.label||'').trim().slice(0,500);if(s.kind==='go')o.place=s.place;else o.npc=s.npc;
    if(s.kind==='follow-them'||s.kind==='they-follow'){const p=(EX()?EX().spots(s.npc):[]).find(x=>x.id===s.spot);if(p)o.to={x:p.x,z:p.z};}if((s.kind==='their-cab'||s.kind==='shared-cab')&&s.stop)o.stop=s.stop;if(s.kind==='anim'){if(s.clip)o.clip=s.clip;o.hold=3;}if(s.kind==='wait'){o.hold=s.secs;delete o.npc;}if(s.kind==='apt-enter'){delete o.npc;if(apt)o.apt=apt.id;}}

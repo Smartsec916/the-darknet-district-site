@@ -498,7 +498,243 @@ def gesture_problem(who, clip, inv, npcs=None):
 
 APT_ID = re.compile(r'^[a-z][a-z0-9-]{0,23}$')
 APT_AP = re.compile(r'^([a-z][a-z0-9-]{0,23})/(hall|entry)$')
-APT_DOOR = re.compile(r'^apt-[a-z]+-[nsew]-\d{1,3}$')
+APT_DOOR = re.compile(r'^(apt|biz)-[a-z]+-[nsew]-\d{1,3}$')
+# LOCATIONS BUILT FROM MODULES (void-runner/modules.js problems() / analyse(): the same rules, against the admin inventory's `modules`): a mission's apartments entry
+# with `modules` is a location; its doors are '<module>.<socket>', a hack names '<location>/<module>.<socket>'.
+MOD_ID = re.compile(r'^[a-z][a-z0-9-]{0,11}$')
+MOD_REF = re.compile(r'^([a-z][a-z0-9-]{0,11})\.([a-z0-9-]{1,10})$')
+MOD_AP = re.compile(r'^([a-z][a-z0-9-]{0,23})/([a-z][a-z0-9-]{0,11})\.([a-z0-9-]{1,10})$')
+_NORMAL = {'n': (0, 1), 's': (0, -1), 'e': (1, 0), 'w': (-1, 0)}
+_TURN = {'n': 'e', 'e': 's', 's': 'w', 'w': 'n'}
+_OPP = {'n': 's', 's': 'n', 'e': 'w', 'w': 'e'}
+LOC_KEYS = ['id', 'door', 'from', 'entry', 'modules', 'links', 'locks']
+MOD_KEYS = ['id', 'type', 'x', 'z', 'rot', 'floor', 'lightsOff', 'screenOff', 'number', 'items']
+
+
+def _r2(v):
+    import math
+    return math.floor(v * 100 + .5) / 100
+
+
+def _int(v):
+    return type(v) is int
+
+
+def _module_analyse(loc, mi):
+    """modules.js analyse(): placed grid modules, snaps (doors two modules share), links, the elevator shaft, the entrance, reachability. Returns (info, problems)."""
+    types, grid = mi.get('types') or {}, mi.get('grid') or 2
+    out, by, placed, cabs, use, world = [], {}, [], [], {}, {}
+    for m in loc.get('modules') or []:
+        if not isinstance(m, dict) or m.get('type') not in types or not isinstance(m.get('id'), str) or m['id'] in by:
+            continue
+        t = types[m['type']]
+        b = {'m': m, 't': t, 'p': None}
+        by[m['id']] = b
+        if not t.get('portal'):
+            rot = (round(m.get('rot') or 0) % 4 + 4) % 4 if isinstance(m.get('rot'), (int, float)) else 0
+            w, d = (t['d'], t['w']) if rot % 2 else (t['w'], t['d'])
+            x, z = (m.get('x') if _int(m.get('x')) else 0), (m.get('z') if _int(m.get('z')) else 0)
+            p = {'id': m['id'], 't': t, 'rot': rot, 'x': x, 'z': z, 'w': w, 'd': d, 'floor': m.get('floor') if _int(m.get('floor')) else 0, 'cx': (x + w / 2) * grid, 'cz': (z + d / 2) * grid}
+            b['p'] = p
+            placed.append(p)
+            if t.get('cab'):
+                cabs.append(p)
+
+    def name(i):
+        return '"%s" (%s)' % (i, (by.get(i, {}).get('t') or {}).get('name', '?'))
+
+    def sock_world(p, s):
+        t, W, D, o = p['t'], p['t']['w'] * grid, p['t']['d'] * grid, grid * (s['cell'] + .5)
+        e = s['edge']
+        lx, lz = (-W / 2 + o, -D / 2) if e == 's' else (-W / 2 + o, D / 2) if e == 'n' else (-W / 2, -D / 2 + o) if e == 'w' else (W / 2, -D / 2 + o)
+        c, sn = [1, 0, -1, 0][p['rot']], [0, 1, 0, -1][p['rot']]
+        rx, rz = _r2(lx * c + lz * sn), _r2(-lx * sn + lz * c)
+        for _ in range(p['rot']):
+            e = _TURN[e]
+        return _r2(p['cx'] + rx), _r2(p['cz'] + rz), e
+
+    def in_foot(o, x, z):
+        return o['x'] * grid + 1e-6 < x < (o['x'] + o['w']) * grid - 1e-6 and o['z'] * grid + 1e-6 < z < (o['z'] + o['d']) * grid - 1e-6
+
+    for i, a in enumerate(placed):
+        for b in placed[i + 1:]:
+            if a['floor'] == b['floor'] and a['x'] < b['x'] + b['w'] and b['x'] < a['x'] + a['w'] and a['z'] < b['z'] + b['d'] and b['z'] < a['z'] + a['d']:
+                out.append('modules %s and %s overlap.' % (name(a['id']), name(b['id'])))
+    at = {}
+    for p in placed:
+        for s in p['t']['sockets']:
+            x, z, e = sock_world(p, s)
+            ref = p['id'] + '.' + s['id']
+            world[ref] = (x, z, e, p['floor'])
+            at.setdefault((p['floor'], round(x * 10), round(z * 10)), []).append((p, s, ref, e))
+    doors = []
+    for lst in at.values():
+        for i, a in enumerate(lst):
+            for b in lst[i + 1:]:
+                if a[0]['id'] != b[0]['id'] and _OPP[a[3]] == b[3] and a[2] not in use and b[2] not in use:
+                    use[a[2]], use[b[2]] = b[2], a[2]
+                    doors.append(('snap', a[2], b[2]))
+
+    def faces_other(ref, own):
+        x, z, e, f = world[ref]
+        n = _NORMAL[e]
+        return any(o is not own and o['floor'] == own['floor'] and in_foot(o, x + n[0] * .5, z + n[1] * .5) for o in placed)
+    for p in placed:
+        for s in p['t']['sockets']:
+            ref = p['id'] + '.' + s['id']
+            if ref not in use and faces_other(ref, p):
+                out.append('door %s of %s opens into a wall of another module.' % (s['id'], name(p['id'])))
+    links = loc.get('links') or []
+    for l in links if isinstance(links, list) else []:
+        a, b = MOD_REF.match(str((l or {}).get('a'))), MOD_REF.match(str((l or {}).get('b')))
+        ok = a and b and a.group(1) in by and b.group(1) in by and any(s['id'] == a.group(2) for s in by[a.group(1)]['t']['sockets']) and any(s['id'] == b.group(2) for s in by[b.group(1)]['t']['sockets'])
+        if not ok or a.group(1) == b.group(1):
+            out.append('a connection names a door that does not exist.')
+            continue
+        if not by[a.group(1)]['t'].get('portal') and not by[b.group(1)]['t'].get('portal'):
+            out.append('connect two grid modules by placing them side by side, not with a connection.')
+            continue
+        if l['a'] in use or l['b'] in use:
+            out.append('a door is used twice.')
+            continue
+        for r, mm in ((l['a'], a), (l['b'], b)):
+            p = by[mm.group(1)]['p']
+            if p and faces_other(r, p):
+                out.append('door %s leads elsewhere but another module stands in front of it.' % r)
+        use[l['a']], use[l['b']] = l['b'], l['a']
+        doors.append(('portal', l['a'], l['b']))
+    floors = {}
+    for c in cabs:
+        if c['floor'] in floors:
+            out.append('two elevator cabs on one floor.')
+        floors[c['floor']] = c
+    if len(cabs) == 1:
+        out.append('the elevator needs a second cab on another floor.')
+    for c in cabs:
+        if c['id'] + '.s0' not in use:
+            out.append('the elevator cab %s has to open onto a lobby, a hallway or a room (its door meets nothing).' % name(c['id']))
+    e = MOD_REF.match(str(loc.get('entry') or ''))
+    if loc.get('modules'):
+        if not e or e.group(1) not in by or not any(s['id'] == e.group(2) for s in by[e.group(1)]['t']['sockets']):
+            out.append('choose the entrance: the door of a module the street door leads to.')
+        elif loc['entry'] in use:
+            out.append('the entrance is already a door between two modules.')
+        elif by[e.group(1)]['t'].get('cab'):
+            out.append('the street door cannot lead straight into an elevator cab.')
+        elif by[e.group(1)]['p'] and faces_other(loc['entry'], by[e.group(1)]['p']):
+            out.append('the entrance faces another module: choose an outside door.')
+        else:
+            doors.append(('entry', loc['entry'], None))
+            adj = {}
+            for _, a1, b1 in doors:
+                if b1:
+                    adj.setdefault(a1.split('.')[0], set()).add(b1.split('.')[0])
+                    adj.setdefault(b1.split('.')[0], set()).add(a1.split('.')[0])
+            for a1 in cabs:
+                for b1 in cabs:
+                    if a1 is not b1 and a1['floor'] != b1['floor']:
+                        adj.setdefault(a1['id'], set()).add(b1['id'])
+            seen, q = {e.group(1)}, [e.group(1)]
+            while q:
+                for y in adj.get(q.pop(), ()):
+                    if y not in seen:
+                        seen.add(y)
+                        q.append(y)
+            for i in by:
+                if i not in seen:
+                    out.append('module %s cannot be reached from the entrance.' % name(i))
+    return {'by': by, 'doors': doors, 'use': use}, out
+
+
+def module_location_problems(a, inv, family=None, shape_only=False):
+    """One location (a mission's apartments entry with `modules`): modules.js problems()."""
+    mi = (inv or {}).get('modules') or {}
+    types, lim, span, fl = mi.get('types') or {}, mi.get('limit') or {'modules': 12, 'items': 20, 'links': 12, 'locks': 12, 'label': 60}, mi.get('span') or 24, mi.get('floors') or [-3, 9]
+    item_types = set(mi.get('itemTypes') or ['loot', 'mission-item', 'note', 'other'])
+    if not _keys(a, LOC_KEYS):
+        return ['it has unknown fields.']
+    mods = a.get('modules')
+    if not isinstance(mods, list) or not (1 <= len(mods) <= lim['modules']):
+        return ['a location has 1 to %d modules.' % lim['modules']]
+    if not types:
+        return [] if shape_only else ['locations cannot be checked (no module list).']
+    out, ids, items = [], set(), 0
+    for m in mods:
+        w = 'module "%s"' % ((m or {}).get('id') if isinstance(m, dict) else '?')
+        if not _keys(m, MOD_KEYS):
+            out.append(w + ' has unknown fields.')
+            continue
+        if not isinstance(m.get('id'), str) or not MOD_ID.match(m['id']) or m['id'] in ids:
+            out.append(w + ': its name is lowercase letters, digits and hyphens, unique in the location.')
+        ids.add(m.get('id'))
+        t = types.get(m.get('type'))
+        if not t:
+            out.append(w + ': choose a module type.')
+            continue
+        if t.get('portal'):
+            if any(m.get(k) is not None for k in ('x', 'z', 'rot', 'floor')):
+                out.append(w + ': it is reached through a connection, it has no place on the grid.')
+        else:
+            for k in ('x', 'z'):
+                if not (_int(m.get(k)) and 0 <= m[k] <= span):
+                    out.append(w + ': its place on the grid is a whole number of cells.')
+            if m.get('rot') is not None and not (_int(m['rot']) and 0 <= m['rot'] <= 3):
+                out.append(w + ': its turn is 0 to 3 quarter turns.')
+            if m.get('floor') is not None and not (_int(m['floor']) and fl[0] <= m['floor'] <= fl[1]):
+                out.append(w + ': its floor is out of range.')
+            if _int(m.get('x')) and _int(m.get('z')):
+                ww, dd = (t['d'], t['w']) if (m.get('rot') or 0) % 2 else (t['w'], t['d'])
+                if m['x'] + ww > span or m['z'] + dd > span:
+                    out.append(w + ': it does not fit on the grid.')
+        for k in ('lightsOff', 'screenOff'):
+            if m.get(k) is not None and type(m[k]) is not bool:
+                out.append(w + ': "lights / screens start" is on or off.')
+        if m.get('screenOff') is not None and not t.get('screen'):
+            out.append(w + ': it has no screen to switch.')
+        if m.get('number') is not None and not (_int(m['number']) and 1 <= m['number'] <= 9999 and (t.get('legacy') or {}).get('part') == 'flat'):
+            out.append(w + ': only an apartment has a number on its door (1 to 9999).')
+        its = m.get('items')
+        if its is not None:
+            if not isinstance(its, list):
+                out.append(w + ': placed items are a list.')
+                continue
+            bx = t.get('bounds') or [-4, 4, -5, 5]
+            for it in its:
+                items += 1
+                if not _keys(it, ['type', 'label', 'x', 'z', 'y']) or it.get('type') not in item_types or not _plain(it.get('label'), lim.get('label', 60)):
+                    out.append(w + ': a placed item needs a type and a short plain label.')
+                    continue
+                num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+                if not (num(it.get('x')) and num(it.get('z')) and bx[0] + .1 <= it['x'] <= bx[1] - .1 and bx[2] + .1 <= it['z'] <= bx[3] - .1):
+                    out.append(w + ': a placed item must be inside the module.')
+                if it.get('y') is not None and not (num(it['y']) and 0 <= it['y'] <= 2.6):
+                    out.append(w + ': a placed item\u2019s height is 0 to 2.6 m.')
+    if items > lim['items']:
+        out.append('a location has at most %d placed items.' % lim['items'])
+    if a.get('links') is not None and (not isinstance(a['links'], list) or len(a['links']) > lim['links'] or any(not _keys(l, ['a', 'b']) for l in a['links'])):
+        out.append('connections are a list of door pairs.')
+    if a.get('locks') is not None and (not isinstance(a['locks'], list) or len(a['locks']) > lim['locks'] or any(not isinstance(r, str) for r in a['locks'])):
+        out.append('locked doors are a list.')
+    if out:
+        return out
+    info, probs = _module_analyse(a, mi)
+    out += [p for p in probs if not shape_only or not re.search(r'entrance|cannot be reached|second cab|meets nothing', p)]
+    for r in a.get('locks') or []:
+        d = next((x for x in info['doors'] if r in (x[1], x[2])), None)
+        if not d or d[0] == 'entry':
+            out.append('locked door %s: choose a door between two modules (or a connection).' % r)
+    if not shape_only and family:
+        e = MOD_REF.match(str(a.get('entry') or ''))
+        t = e and (info['by'].get(e.group(1)) or {}).get('t')
+        if t and t.get('family') and t['family'] != family:
+            out.append('an older housing hallway or apartment as the entrance goes behind its own kind of street door.')
+    return out
+
+
+def module_door_refs(a, inv):
+    """Every door reference of a location (either side), for hack steps."""
+    info, _ = _module_analyse(a, (inv or {}).get('modules') or {})
+    return {r for d in info['doors'] for r in d[1:] if r}
 
 
 def apartment_problems(m, inv, shape_only=False):
@@ -520,7 +756,30 @@ def apartment_problems(m, inv, shape_only=False):
 
     def num(v):
         return isinstance(v, (int, float)) and not isinstance(v, bool)
+    locs = {}
     for a in lst:
+        if isinstance(a, dict) and isinstance(a.get('modules'), list):
+            w = 'location "%s"' % a.get('id')
+            if not isinstance(a.get('id'), str) or not APT_ID.match(a['id']) or a['id'] in ids:
+                out.append(w + ': its name must be lowercase letters, digits and hyphens, unique in the mission.')
+            ids.add(a.get('id'))
+            locs[a.get('id')] = a
+            door = a.get('door')
+            if shape_only:
+                if door not in (None, '') and not (isinstance(door, str) and APT_DOOR.match(door)):
+                    out.append(w + ': unknown street door.')
+            elif not isinstance(door, str) or door not in doors:
+                out.append(w + ': choose a street door.')
+            if isinstance(door, str) and door:
+                if door in seen:
+                    out.append('two apartments of one mission use the same street door.')
+                seen.add(door)
+            f = a.get('from')
+            if f is not None and f != 'start' and f not in oids:
+                out.append(w + ': "available from" must be the start or one of its steps.')
+            fam = ((ap.get('doors') or {}).get(door) or {}).get('family') if isinstance(door, str) else None
+            out += [w + ': ' + p for p in module_location_problems(a, inv, fam or ('city' if door in doors else None), shape_only)]
+            continue
         if not _keys(a, ['id', 'style', 'door', 'number', 'from', 'items', 'locked', 'screenOff', 'lightsOff']):
             out.append('an apartment has unknown fields.')
             continue
@@ -543,6 +802,8 @@ def apartment_problems(m, inv, shape_only=False):
             fam = ((ap.get('doors') or {}).get(door) or {}).get('family') or 'city'
             if (fam == 'container') != (a['style'] in containers):
                 out.append(w + ': a container apartment goes behind a container door in The Outskirts, a city apartment behind a city door.')
+            elif fam in ('office', 'commercial'):
+                out.append(w + ': an apartment goes behind an apartment-building door, not an office or shop entrance.')
         if isinstance(door, str) and door:
             if door in seen:
                 out.append('two apartments of one mission use the same street door.')
@@ -581,17 +842,40 @@ def apartment_problems(m, inv, shape_only=False):
         if k in ('apt-enter', 'apt-use'):
             if o.get('apt') not in ids and not (shape_only and o.get('apt') is None):
                 out.append('step ' + sid + ': choose one of this mission\u2019s apartments.')
+            loc = locs.get(o.get('apt'))
+            if loc is not None:
+                mods = {m.get('id'): m for m in loc.get('modules') or [] if isinstance(m, dict)}
+                if o.get('mod') is not None and o['mod'] not in mods:
+                    out.append('step ' + sid + ': choose one of the location\u2019s rooms (modules).')
+                if k == 'apt-use':
+                    t = ((inv or {}).get('modules') or {}).get('types', {}).get((mods.get(o.get('mod')) or {}).get('type'))
+                    if o.get('mod') is None and not shape_only:
+                        out.append('step ' + sid + ': choose the room (module) where something is used.')
+                    elif t is not None and not (o.get('object') in (t.get('objects') or []) or (shape_only and o.get('object') is None)):
+                        out.append('step ' + sid + ': choose what is used.')
+                if k == 'apt-enter' and o.get('object') is not None:
+                    out.append('step ' + sid + ': only a "use something" step names an object.')
+                continue
+            if o.get('mod') is not None:
+                out.append('step ' + sid + ': only a location built from modules has rooms to choose.')
             if k == 'apt-use' and not (o.get('object') in (objects or {'computer', 'panel', 'safe', 'vending', 'closet', 'lights'}) or (shape_only and o.get('object') is None)):
                 out.append('step ' + sid + ': choose what is used.')
             if k == 'apt-enter' and o.get('object') is not None:
                 out.append('step ' + sid + ': only a "use something" step names an object.')
-        elif o.get('apt') is not None or o.get('object') is not None:
+        elif o.get('apt') is not None or o.get('object') is not None or o.get('mod') is not None:
             out.append('step ' + sid + ': only an apartment step names an apartment.')
         if k == 'hack':
             a = o.get('ap')
             mm = APT_AP.match(a) if isinstance(a, str) else None
+            ml = MOD_AP.match(a) if isinstance(a, str) else None
             if a is None and shape_only:
                 pass
+            elif ml:
+                loc = locs.get(ml.group(1))
+                if loc is None:
+                    out.append('step ' + sid + ': choose one of this mission\u2019s apartments.')
+                elif ((inv or {}).get('modules') or {}).get('types') and (ml.group(2) + '.' + ml.group(3)) not in module_door_refs(loc, inv):
+                    out.append('step ' + sid + ': choose a door of that location.')
             elif mm:
                 if mm.group(1) not in ids:
                     out.append('step ' + sid + ': choose one of this mission\u2019s apartments.')
@@ -1379,7 +1663,7 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'object', 'ap', 'stay', 'unlock', 'needs', *ASK_STEP_KEYS, *ESCORT_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'mod', 'object', 'ap', 'stay', 'unlock', 'needs', *ASK_STEP_KEYS, *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))

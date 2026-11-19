@@ -195,7 +195,8 @@
   if(ch.entered.length||ch.left.length)try{root.dispatchEvent?.(new CustomEvent('void-place',{detail:{entered:ch.entered,left:ch.left,inside:ch.inside}}));}catch{}
   // also the moment for missions started by notification "after mission N" or "when a story flag is set" (checked on every event)
   const apt=root.VoidApartments?.inside?.()||null;   // the mission apartment the player is in ("Go into apartment X" steps)
-  const r=MC.treeEvent(state,env,{type:'place',places,entered:ch.entered,left:ch.left,apt},root.VoidMissions,root.C||root.VoidCampaign);if(r.need)report(r);if(!(r.objective||r.offered)){if(r.prompt)offerPrompt(r.prompt);return;}report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
+  const mod=apt?(root.VoidApartments?.insideMod?.()||null):null;   // the room of a modular location (modules.js) the player is in ("Go into <module>")
+  const r=MC.treeEvent(state,env,{type:'place',places,entered:ch.entered,left:ch.left,apt,mod},root.VoidMissions,root.C||root.VoidCampaign);if(r.need)report(r);if(!(r.objective||r.offered)){if(r.prompt)offerPrompt(r.prompt);return;}report(r);deliver(r);if(r.lines.length&&mode==='walking')show(r.lines,r);}catch{}},500);
  /* A photo was taken (device-camera.js). meta: what the camera judged at the moment of capture {subjects:[{id,valid}], during, place}. A valid photo of the person a
     photo step names completes it. */
  function photo(meta){try{if(!treesOn()||!meta)return null;const subjects=(meta.subjects||[]).filter(x=>x&&x.valid===true).map(x=>x.id);const r=MC.treeEvent(state,env,{type:'photo',subjects},root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);return r;}catch{return null;}}
@@ -275,7 +276,7 @@
  const apartments=()=>{try{return treesOn()?MC.apartmentsNow(state,env):[];}catch{return [];}};
  const hackedDoors=()=>{try{return treesOn()?MC.hackedNow(state,env):[];}catch{return [];}};
  const hacks=()=>{try{return treesOn()?MC.hacksNow(state,env):[];}catch{return [];}};
- const aptUse=({mission,apt,object})=>aptRun({type:'apt-use',mission,apt,object});
+ const aptUse=({mission,apt,object,mod})=>aptRun({type:'apt-use',mission,apt,object,mod:mod||null});
  const hack=job=>aptRun({type:'hack',ap:job.ap,mission:job.mission,step:job.key});
  /* A new throwaway draft session (mission-editor.js play, PLAY FROM THE START OF THIS TREE): forget what the running game remembers about the missions played before it
     (animation and step-timer countdowns, follow / lead / cab steps that had started, offers asked, walked-near distances), so the session starts clean. The saved state is the new session's own. */
