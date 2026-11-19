@@ -19,7 +19,7 @@ const tree=(objectives,apartments)=>[{id:'draft-flat',name:'The flat',missions:[
 const flat={id:'safehouse',style:'rundown',door:'apt-main-w-96',number:13};
 
 test('street doors: derived from the street edges, stable ids, only where nothing else is, a style by quarter',()=>{
- fresh();const X=A(),d=X.doors();assert.ok(d.length>=50,'doors along the main streets: '+d.length);assert.equal(new Set(d.map(x=>x.id)).size,d.length,'unique ids');
+ fresh();const X=A(),d=X.doors().filter(x=>x.family!=='container');assert.ok(d.length>=50,'doors along the main streets: '+d.length);assert.equal(new Set(d.map(x=>x.id)).size,d.length,'unique ids');
  for(const x of d){assert.match(x.id,/^apt-(avenue|main|road|passage)-[nsew]-\d{1,3}$/);assert.ok(['avenue','oldtown','far-south','port'].includes(x.quarter),x.id);assert.ok(X.STYLE_IDS.includes(x.style));
   for(const k of X.KEEP_OUT)assert.ok(!(x.x>=k.rect[0]-1.5&&x.x<=k.rect[1]+1.5&&x.z>=k.rect[2]-1.5&&x.z<=k.rect[3]+1.5),x.id+' is clear of '+k.why);
   for(const g of require(R('void-runner/ncz-quarters.js')).GATES)assert.ok(!(x.x>=g.rect[0]-2&&x.x<=g.rect[1]+2&&x.z>=g.rect[2]-2&&x.z<=g.rect[3]+2),x.id+' is clear of '+g.name);
@@ -33,8 +33,8 @@ test('street doors: derived from the street edges, stable ids, only where nothin
 });
 
 test('three apartments with the same footprint; every object can be used; the hallway has numbered doors and a street door',()=>{
- fresh();const X=A(),L=s=>X.layout('flat',s);const sol=s=>JSON.stringify(L(s).solids);assert.equal(sol('rundown'),sol('normal'));assert.equal(sol('normal'),sol('luxury'));
- for(const s of X.STYLE_IDS){const l=L(s);assert.equal(l.id,'neochinatown');assert.equal(l.private,true);assert.equal(l.apartment,true);assert.equal(l.part,'flat');
+ fresh();const X=A(),L=s=>X.layout('flat',s),CITY=['rundown','normal','luxury'];const sol=s=>JSON.stringify(L(s).solids);assert.equal(sol('rundown'),sol('normal'));assert.equal(sol('normal'),sol('luxury'));
+ for(const s of CITY){const l=L(s);assert.equal(l.id,'neochinatown');assert.equal(l.private,true);assert.equal(l.apartment,true);assert.equal(l.part,'flat');
   const objs=l.interactions.filter(i=>i.action==='apt-use').map(i=>i.object).sort();assert.deepEqual(objs,X.OBJECT_IDS.filter(o=>s!=='luxury'||o!=='screen').sort(),s);
   assert.ok(l.interactions.some(i=>i.action==='apt-exit'));for(const i of l.interactions)assert.ok(Math.abs(i.position[0]-X.ORIGIN[0])<4&&Math.abs(i.position[2]-X.ORIGIN[1])<5,'inside the room: '+i.id);
   const h=X.layout('hall',s);assert.equal(h.part,'hall');assert.equal(h.interactions.filter(i=>i.action==='apt-hall-door').length,10);assert.ok(h.interactions.some(i=>i.action==='apt-hall-exit'));}
@@ -48,7 +48,7 @@ test('mission data: apartments and their steps are checked (style, door, number,
  fresh();const X=A(),P=m=>X.problems(m).join(' | ');
  const ok={id:'m',apartments:[{...flat,locked:true,lightsOff:true,screenOff:true,items:[{type:'mission-item',label:'Data shard',x:-2.4,z:-1.2}]}],objectives:[{id:'a',kind:'apt-enter',apt:'safehouse'},{id:'b',kind:'apt-use',apt:'safehouse',object:'safe'},{id:'c',kind:'hack',ap:'safehouse/hall',hold:6,needs:'hacking-device',unlock:true,stay:false},{id:'d',kind:'hack',ap:'apt-main-w-96'}]};
  assert.equal(P(ok),'');
- assert.match(P({...ok,apartments:[{...flat,style:'penthouse'}]}),/rundown, normal or luxury/);assert.match(P({...ok,apartments:[{...flat,door:'apt-main-w-999'}]}),/street door/);
+ assert.match(P({...ok,apartments:[{...flat,style:'penthouse'}]}),/choose a style/);assert.match(P({...ok,apartments:[{...flat,door:'apt-main-w-999'}]}),/street door/);
  assert.match(P({...ok,apartments:[flat,{...flat,id:'other'}]}),/same street door/);assert.match(P({...ok,apartments:[{...flat,number:0}]}),/1 to 9999/);
  assert.match(P({...ok,apartments:[{...flat,from:'zzz'}]}),/available from/);assert.match(P({...ok,apartments:[{...flat,items:[{type:'loot',label:'x',x:9,z:0}]}]}),/inside the apartment/);
  assert.match(P({...ok,apartments:[{...flat,style:'luxury',screenOff:true}]}),/ad screen/);assert.match(P({...ok,apartments:[{...flat,color:'red'}]}),/unknown fields/);
@@ -96,4 +96,25 @@ test('the game and the server read the same lists; the page loads the new script
  assert.match(read('void-runner-sw.js'),/const BUILD='[0-9a-z-]+';/);
  // every door slides (the owner): the street doors, the hallway doors, the entry and the bathroom
  const b=read('void-runner/apartment-build.js');for(const id of ['bath','entry','street','slot-'])assert.ok(b.includes("id:'"+id),id);assert.match(read('void-runner/apartment-integration.js'),/A\.slider\(/);
+});
+
+test('The Outskirts: container apartments (two styles), a four-door container hallway, doors evenly along the edge of the yard; container styles only behind those doors',()=>{
+ fresh();const X=A(),C=require(R('void-runner/ncz-containers.js')),N=require(R('void-runner/npc-areas.js')),d=X.doors().filter(x=>x.family==='container');
+ assert.ok(d.length>=12,'a door in (nearly) every container on the edge: '+d.length);assert.equal(new Set(d.map(x=>x.id)).size,d.length);
+ for(const x of d){assert.match(x.id,/^apt-yard-[nsew]-\d{1,2}$/);assert.equal(x.quarter,'outskirts');assert.ok(X.CONTAINER_STYLES.includes(x.style));const c=C.PLAN.find(p=>p.id===x.container);
+  assert.ok(c&&c.flag!=='kai'&&c.flag!=='deck','never Kai’s home, never behind a deck');assert.ok(N.check({x:x.front[0],z:x.front[1]},'outskirts').ok,x.id+': the ground in front of it is walkable');
+  assert.ok(Math.hypot(x.front[0]-61,x.front[1]+242)<Math.hypot(x.x-61,x.z+242)+.01,'it faces into the yard');}
+ assert.ok(d.some(x=>x.style==='container-rundown')&&d.some(x=>x.style==='container-regular'),'mixed styles');assert.ok(!d.some(x=>x.container===C.KAI_HOME.id));
+ const south=d.filter(x=>x.side==='s').map(x=>x.x).sort((a,b)=>a-b);assert.ok(south.length>=8);for(let i=1;i<south.length;i++)assert.ok(south[i]-south[i-1]>2&&south[i]-south[i-1]<8,'evenly spaced along the south row');
+ const sol=s=>JSON.stringify(X.layout('flat',s).solids);assert.equal(sol('container-rundown'),sol('container-regular'),'the same footprint');
+ for(const s of X.CONTAINER_STYLES){const l=X.layout('flat',s),h=X.layout('hall',s);assert.equal(l.container,true);assert.deepEqual(l.interactions.filter(i=>i.action==='apt-use').map(i=>i.object).sort(),X.OBJECT_IDS.slice().sort(),s);
+  assert.equal(h.interactions.filter(i=>i.action==='apt-hall-door').length,4,'four doors');for(const i of l.interactions)assert.ok(Math.abs(i.position[0]-X.ORIGIN[0])<6.1&&Math.abs(i.position[2]-X.ORIGIN[1])<2.35,i.id);}
+ assert.equal(X.slotNumber(3,'container-regular'),4);assert.ok(Object.values(X.slotsFor([{key:'m/a'},{key:'m/b'}],'container-rundown')).every(i=>i<4));
+ const P=m=>X.problems(m).join(' | '),door=d[0].id;
+ assert.equal(P({apartments:[{id:'a',style:'container-regular',door,screenOff:true,lightsOff:true,items:[{type:'loot',label:'Cash',x:5,z:-1}]}],objectives:[{id:'u',kind:'apt-use',apt:'a',object:'screen'}]}),'');
+ assert.match(P({apartments:[{id:'a',style:'container-rundown',door:'apt-main-w-96'}],objectives:[]}),/container apartment goes behind a door in The Outskirts/);
+ assert.match(P({apartments:[{id:'a',style:'normal',door}],objectives:[]}),/city apartment goes behind a city street door/);
+ assert.match(P({apartments:[{id:'a',style:'container-rundown',door,items:[{type:'loot',label:'x',x:1,z:3}]}],objectives:[]}),/inside the apartment/);
+ const inv=JSON.parse(read('void_runner_admin_inventory.json')).apartments;assert.equal(inv.doors[door].family,'container');assert.deepEqual(inv.containerStyles,X.CONTAINER_STYLES);
+ assert.match(read('void-runner/apartment-build.js'),/function buildCFlat\(/);assert.match(read('void-runner/apartment-build.js'),/function buildCHall\(/);
 });

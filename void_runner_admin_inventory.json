@@ -32009,7 +32009,9 @@
     "styles": [
       "rundown",
       "normal",
-      "luxury"
+      "luxury",
+      "container-rundown",
+      "container-regular"
     ],
     "objects": [
       "computer",
@@ -32042,458 +32044,704 @@
         5
       ]
     },
+    "boundsByStyle": {
+      "rundown": {
+        "x": [
+          -4,
+          4
+        ],
+        "z": [
+          -5,
+          5
+        ]
+      },
+      "normal": {
+        "x": [
+          -4,
+          4
+        ],
+        "z": [
+          -5,
+          5
+        ]
+      },
+      "luxury": {
+        "x": [
+          -4,
+          4
+        ],
+        "z": [
+          -5,
+          5
+        ]
+      },
+      "container-rundown": {
+        "x": [
+          -6.1,
+          6.1
+        ],
+        "z": [
+          -2.35,
+          2.35
+        ]
+      },
+      "container-regular": {
+        "x": [
+          -6.1,
+          6.1
+        ],
+        "z": [
+          -2.35,
+          2.35
+        ]
+      }
+    },
+    "containerStyles": [
+      "container-rundown",
+      "container-regular"
+    ],
+    "screenStyles": [
+      "rundown",
+      "normal",
+      "container-rundown",
+      "container-regular"
+    ],
     "doors": {
       "apt-avenue-n-16": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 17,
         "x": 16,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-23": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 23,
         "x": 23,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-30": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 31,
         "x": 30,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-37": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 37,
         "x": 37,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-44": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 45,
         "x": 44,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-51": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 51,
         "x": 51,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-58": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 59,
         "x": 58,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-65": {
         "quarter": "avenue",
         "style": "normal",
         "number": 65,
         "x": 65,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-72": {
         "quarter": "avenue",
         "style": "normal",
         "number": 73,
         "x": 72,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-79": {
         "quarter": "avenue",
         "style": "normal",
         "number": 79,
         "x": 79,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-86": {
         "quarter": "avenue",
         "style": "normal",
         "number": 87,
         "x": 86,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-93": {
         "quarter": "avenue",
         "style": "normal",
         "number": 93,
         "x": 93,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-100": {
         "quarter": "avenue",
         "style": "normal",
         "number": 101,
         "x": 100,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-107": {
         "quarter": "avenue",
         "style": "normal",
         "number": 107,
         "x": 107,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-114": {
         "quarter": "avenue",
         "style": "normal",
         "number": 115,
         "x": 114,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-121": {
         "quarter": "avenue",
         "style": "normal",
         "number": 121,
         "x": 121,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-128": {
         "quarter": "avenue",
         "style": "normal",
         "number": 129,
         "x": 128,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-n-135": {
         "quarter": "avenue",
         "style": "normal",
         "number": 135,
         "x": 135,
-        "z": -5
+        "z": -5,
+        "family": "city"
       },
       "apt-avenue-s-16": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 16,
         "x": 16,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-23": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 24,
         "x": 23,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-30": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 30,
         "x": 30,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-37": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 38,
         "x": 37,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-44": {
         "quarter": "avenue",
         "style": "luxury",
         "number": 44,
         "x": 44,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-79": {
         "quarter": "avenue",
         "style": "normal",
         "number": 80,
         "x": 79,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-86": {
         "quarter": "avenue",
         "style": "normal",
         "number": 86,
         "x": 86,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-93": {
         "quarter": "avenue",
         "style": "normal",
         "number": 94,
         "x": 93,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-100": {
         "quarter": "avenue",
         "style": "normal",
         "number": 100,
         "x": 100,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-107": {
         "quarter": "avenue",
         "style": "normal",
         "number": 108,
         "x": 107,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-114": {
         "quarter": "avenue",
         "style": "normal",
         "number": 114,
         "x": 114,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-121": {
         "quarter": "avenue",
         "style": "normal",
         "number": 122,
         "x": 121,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-128": {
         "quarter": "avenue",
         "style": "normal",
         "number": 128,
         "x": 128,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-avenue-s-135": {
         "quarter": "avenue",
         "style": "normal",
         "number": 136,
         "x": 135,
-        "z": -20
+        "z": -20,
+        "family": "city"
       },
       "apt-main-w-103": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 104,
         "x": 51,
-        "z": -103
+        "z": -103,
+        "family": "city"
       },
       "apt-main-w-96": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 96,
         "x": 51,
-        "z": -96
+        "z": -96,
+        "family": "city"
       },
       "apt-main-w-89": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 90,
         "x": 51,
-        "z": -89
+        "z": -89,
+        "family": "city"
       },
       "apt-main-w-82": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 82,
         "x": 51,
-        "z": -82
+        "z": -82,
+        "family": "city"
       },
       "apt-main-w-40": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 40,
         "x": 51,
-        "z": -40
+        "z": -40,
+        "family": "city"
       },
       "apt-main-w-33": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 34,
         "x": 51,
-        "z": -33
+        "z": -33,
+        "family": "city"
       },
       "apt-main-e-82": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 83,
         "x": 71,
-        "z": -82
+        "z": -82,
+        "family": "city"
       },
       "apt-main-e-68": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 69,
         "x": 71,
-        "z": -68
+        "z": -68,
+        "family": "city"
       },
       "apt-main-e-40": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 41,
         "x": 71,
-        "z": -40
+        "z": -40,
+        "family": "city"
       },
       "apt-main-e-33": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 33,
         "x": 71,
-        "z": -33
+        "z": -33,
+        "family": "city"
       },
       "apt-road-n-20": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 21,
         "x": 20,
-        "z": -116
+        "z": -116,
+        "family": "city"
       },
       "apt-road-n-27": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 27,
         "x": 27,
-        "z": -116
+        "z": -116,
+        "family": "city"
       },
       "apt-road-n-34": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 35,
         "x": 34,
-        "z": -116
+        "z": -116,
+        "family": "city"
       },
       "apt-road-n-48": {
         "quarter": "oldtown",
         "style": "normal",
         "number": 49,
         "x": 48,
-        "z": -116
+        "z": -116,
+        "family": "city"
       },
       "apt-passage-e-102": {
         "quarter": "port",
         "style": "rundown",
         "number": 103,
         "x": 44,
-        "z": -102
+        "z": -102,
+        "family": "city"
       },
       "apt-passage-e-95": {
         "quarter": "port",
         "style": "rundown",
         "number": 95,
         "x": 44,
-        "z": -95
+        "z": -95,
+        "family": "city"
       },
       "apt-main-w-211": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 212,
         "x": 51,
-        "z": -211
+        "z": -211,
+        "family": "city"
       },
       "apt-main-w-204": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 204,
         "x": 51,
-        "z": -204
+        "z": -204,
+        "family": "city"
       },
       "apt-main-w-197": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 198,
         "x": 51,
-        "z": -197
+        "z": -197,
+        "family": "city"
       },
       "apt-main-w-190": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 190,
         "x": 51,
-        "z": -190
+        "z": -190,
+        "family": "city"
       },
       "apt-main-w-183": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 184,
         "x": 51,
-        "z": -183
+        "z": -183,
+        "family": "city"
       },
       "apt-main-w-176": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 176,
         "x": 51,
-        "z": -176
+        "z": -176,
+        "family": "city"
       },
       "apt-main-w-169": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 170,
         "x": 51,
-        "z": -169
+        "z": -169,
+        "family": "city"
       },
       "apt-main-w-162": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 162,
         "x": 51,
-        "z": -162
+        "z": -162,
+        "family": "city"
       },
       "apt-main-w-155": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 156,
         "x": 51,
-        "z": -155
+        "z": -155,
+        "family": "city"
       },
       "apt-main-w-148": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 148,
         "x": 51,
-        "z": -148
+        "z": -148,
+        "family": "city"
       },
       "apt-main-w-141": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 142,
         "x": 51,
-        "z": -141
+        "z": -141,
+        "family": "city"
       },
       "apt-main-w-134": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 134,
         "x": 51,
-        "z": -134
+        "z": -134,
+        "family": "city"
       },
       "apt-main-e-204": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 205,
         "x": 71,
-        "z": -204
+        "z": -204,
+        "family": "city"
       },
       "apt-main-e-148": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 149,
         "x": 71,
-        "z": -148
+        "z": -148,
+        "family": "city"
       },
       "apt-main-e-141": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 141,
         "x": 71,
-        "z": -141
+        "z": -141,
+        "family": "city"
       },
       "apt-main-e-134": {
         "quarter": "far-south",
         "style": "rundown",
         "number": 135,
         "x": 71,
-        "z": -134
+        "z": -134,
+        "family": "city"
+      },
+      "apt-yard-w-2": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 2,
+        "x": 39.42,
+        "z": -233.9,
+        "family": "container"
+      },
+      "apt-yard-w-3": {
+        "quarter": "outskirts",
+        "style": "container-rundown",
+        "number": 3,
+        "x": 39.42,
+        "z": -252.5,
+        "family": "container"
+      },
+      "apt-yard-e-4": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 4,
+        "x": 88.58,
+        "z": -228.6,
+        "family": "container"
+      },
+      "apt-yard-e-6": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 6,
+        "x": 88.58,
+        "z": -253.4,
+        "family": "container"
+      },
+      "apt-yard-s-7": {
+        "quarter": "outskirts",
+        "style": "container-rundown",
+        "number": 7,
+        "x": 41.1,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-8": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 8,
+        "x": 47.3,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-9": {
+        "quarter": "outskirts",
+        "style": "container-rundown",
+        "number": 9,
+        "x": 52.8,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-10": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 10,
+        "x": 59,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-11": {
+        "quarter": "outskirts",
+        "style": "container-rundown",
+        "number": 11,
+        "x": 65.2,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-12": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 12,
+        "x": 71.4,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-13": {
+        "quarter": "outskirts",
+        "style": "container-rundown",
+        "number": 13,
+        "x": 77.6,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-14": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 14,
+        "x": 80,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-s-15": {
+        "quarter": "outskirts",
+        "style": "container-rundown",
+        "number": 15,
+        "x": 86.7,
+        "z": -256.78,
+        "family": "container"
+      },
+      "apt-yard-w-21": {
+        "quarter": "outskirts",
+        "style": "container-rundown",
+        "number": 21,
+        "x": 23.72,
+        "z": -243.7,
+        "family": "container"
+      },
+      "apt-yard-e-22": {
+        "quarter": "outskirts",
+        "style": "container-regular",
+        "number": 22,
+        "x": 104.28,
+        "z": -242.7,
+        "family": "container"
       }
     }
   },
-  "revision": "5465bb04cd3a8629",
+  "revision": "04e04d5291b8295e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -46705,169 +46953,169 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 536,
-      "text": "if(root.VoidNPCMap){const markers=X.doors().map(dd=>({id:dd.id,x:dd.x,z:dd.z,color:dd.id===a.door?'#ffb347':'#7fd4ff',label:dd.id===a.door?dd.name:'',ghost:dd.id!==a.door}));const say=el('span',a.door?'Chosen: '+((X.door(a.door)||{}).name):'Click a door (the blue marks) to choose it.','me-small',{'data-me-apt-map-note':a.id});",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-editor.js",
       "line": 537,
-      "text": "try{const map=root.VoidNPCMap.create({markers,area:d?{avenue:'avenue',oldtown:'oldtown','far-south':'far-south',port:'port'}[d.quarter]:'oldtown',onPick:(x,z)=>{const n=X.nearestDoor(x,z,10);if(!n){say.textContent='No apartment door within 10 m of that spot. Click nearer a blue mark.';return;}ea(a.id,y=>{y.door=n.id;},true);}});map.el.dataset.meAptMap=a.id;sec.append(map.el,say);}catch(e){sec.append(el('p','The map could not be drawn here; choose the door from the list.','me-small me-warn'));}}",
+      "text": "if(root.VoidNPCMap){const markers=X.doors().filter(dd=>(dd.family==='container')===!!X.isContainer(a.style||'normal')).map(dd=>({id:dd.id,x:dd.x,z:dd.z,color:dd.id===a.door?'#ffb347':'#7fd4ff',label:dd.id===a.door?dd.name:'',ghost:dd.id!==a.door}));const say=el('span',a.door?'Chosen: '+((X.door(a.door)||{}).name):'Click a door (the blue marks) to choose it.','me-small',{'data-me-apt-map-note':a.id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 578,
+      "line": 538,
+      "text": "try{const map=root.VoidNPCMap.create({markers,area:d?{avenue:'avenue',oldtown:'oldtown','far-south':'far-south',port:'port',outskirts:'outskirts'}[d.quarter]:X.isContainer(a.style||'normal')?'outskirts':'oldtown',onPick:(x,z)=>{const n=X.nearestDoor(x,z,10,X.isContainer(a.style||'normal')?'container':'city');if(!n){say.textContent='No apartment door within 10 m of that spot. Click nearer a blue mark.';return;}ea(a.id,y=>{y.door=n.id;},true);}});map.el.dataset.meAptMap=a.id;sec.append(map.el,say);}catch(e){sec.append(el('p','The map could not be drawn here; choose the door from the list.','me-small me-warn'));}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor.js",
+      "line": 579,
       "text": "else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 589,
+      "line": 590,
       "text": "if(!['message','pod-exit','hear','send-photo','await-call','anim','wait'].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 591,
+      "line": 592,
       "text": "const sayWho=o.kind==='photo'?m.giver:o.npc||m.giver;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 593,
+      "line": 594,
       "text": "if(o.kind!=='message'&&o.kind!=='pod-exit'&&o.kind!=='anim'&&o.kind!=='wait')sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done',dev?{noPlayer:o.kind==='send-photo'?'A reply in Messages comes from one character: no player lines or animations here.':'A Comms call or a message comes from one character: no player lines here (choose “In person” for a back-and-forth).',noAnim:true}:{}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 671,
+      "line": 672,
       "text": "const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 672,
+      "line": 673,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;const tn=tagNoteEl(t,l.who,l.name);ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}tagNoteSet(tn,ta.value,l.who,l.name);};body.append(ta,tn);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 703,
+      "line": 704,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 711,
+      "line": 712,
       "text": "\"Lines & voice\"). Every line the NPC says in a mission (grouped by tree and mission, with a button to open that mission) and outside missions; the registered voice",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 713,
+      "line": 714,
       "text": "function linesFor(id){if(!built)return null;const g=giver(id),ids=[id,g&&g.say].filter(Boolean);return (built.npcs||[]).find(x=>ids.includes(x.id))||null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 717,
+      "line": 718,
       "text": "const reg=src.registry?.npcs?.[id]||(g&&src.registry?.npcs?.[g.say]);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 735,
+      "line": 736,
       "text": "const gr=root.VoidStreetPair?.GREETING?.[id];if(gr&&gr.length){const d=el('div','','me-scene',{'data-npc-greeting':id});d.append(el('h5','When there is no mission for the player (placeholder in the game’s code)'));for(const t of gr)d.append(el('p','“'+t+'” · text only, no voice · needs a code change to edit','me-small'));root_.append(d);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 744,
+      "line": 745,
       "text": "const list=a==='offer'?m.offer:a==='deny'?(m.start||{}).denySay:a==='ending'?(m.ending||{}).say:((m.objectives||[]).find(o=>o.id===a)||{})[b],l=list&&list[Number(a==='offer'||a==='ending'||a==='deny'?b:c)];return l?String(l.text||''):undefined;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 751,
+      "line": 752,
       "text": "input.onchange=async()=>{const f=input.files&&input.files[0];input.value='';if(!f)return;const words=String(textNow()||'').trim();if(!words){msg.className='me-small me-bad';msg.textContent='Write what they say first, then import the voice file for those words.';return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 753,
+      "line": 754,
       "text": "const kept=await I.store(r.hash,r.type,r.data,r.duration);setClip(key,I.record({who,text:words,hash:r.hash,type:r.type,duration:r.duration,bytes:r.bytes,name:r.name,reencoded:r.reencoded}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 769,
+      "line": 770,
       "text": "function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 782,
+      "line": 783,
       "text": "const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 792,
+      "line": 793,
       "text": "const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 796,
+      "line": 797,
       "text": "if(cur.kind==='elevenlabs'&&cur.from==='editor')r.append(btn('REMOVE MY CHOICE',()=>{setVoice(id,null);say('Removed your voice choice for '+name+' (UNDO puts it back).');redraw();},'me-x',{'data-voice-remove':id,title:'Back to '+(voiceNow(id).kind==='none'?'no voice':'the voice they had before')+'.'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 823,
+      "line": 824,
       "text": "/* Who: everyone the editor knows, but only people who can walk with the player can be chosen; the rest are greyed with the reason. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 872,
+      "line": 873,
       "text": "'step-subject':(m,o)=>'[data-me-step-subject=\"'+CSS.escape(o)+'\"]',label:(m,o)=>'[data-me-label=\"'+CSS.escape(o)+'\"]',say:(m,o)=>'[data-me-tstep=\"'+CSS.escape(o)+'\"] textarea',ending:m=>'[data-me-ending=\"'+CSS.escape(m.id)+'\"]','wait-at':m=>'[data-me-wait-at=\"'+CSS.escape(m.id)+'\"] canvas','step-spot':(m,o)=>'[data-me-esc-map=\"'+CSS.escape(o)+'\"] canvas','step-stop':(m,o)=>'[data-me-esc-stop=\"'+CSS.escape(o)+'\"]',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 882,
+      "line": 883,
       "text": "if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 884,
+      "line": 885,
       "text": "const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename=\"'+CSS.escape(raw.id)+'\"]',text:'the tree’s name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 885,
+      "line": 886,
       "text": "if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 887,
+      "line": 888,
       "text": "for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission=\"'+CSS.escape(m.id)+'\"] '+f(m,n.step),text:n.text});}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 888,
+      "line": 889,
       "text": "return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play=\"tree:'+CSS.escape(doneM.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 891,
+      "line": 892,
       "text": "const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)",
       "kind": "source-reference"
     },
@@ -50061,9 +50309,9 @@
     "void-runner/ad-screens.js": "c8e07956069c4ff4a8489f2a2fd38054817c847e9904534d7f612781d2f5208c",
     "void-runner/anim-library.js": "17580f80c1293f158dd0afbe0d543d6a02035971b38468fc49d7af0eb8728f3d",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/apartment-build.js": "bc960ba05b5f5141521068385393e9dc90dcde393411614ed3e047f4f4176880",
-    "void-runner/apartment-integration.js": "c37cddd33be6a8520c822c3dcc55005c0bbe84e8d83d9ab57b0167c3878db216",
-    "void-runner/apartments.js": "f2c37addbf7d8d6170e8c0e3b9f22a0714f201738228865f67a2a6bd232478ae",
+    "void-runner/apartment-build.js": "9e36df0efe1cd9681c27494e25a8c5e60196a3447d570c7a01267a6d81aaf848",
+    "void-runner/apartment-integration.js": "09de7cc4d8f423c92792924bf6f3185b11f71e9f711ee61a680538c482e8ea9a",
+    "void-runner/apartments.js": "66b615f671e74d38ce0f0c16940c257a5473b11f4375fa9047cd6b73a819c95c",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "d8a25d2e44dcc6c4ff1143e996b2a2c6a7ddbb7f808b12d386925ca285f89836",
@@ -50169,7 +50417,7 @@
     "void-runner/milked.js": "a0600a70dd32b437fd11f7791a03cde58eb5da6ed1a9c0664bd60d5a5875bebc",
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-content.js": "ad01040e772916fee4fc09fcb7709e8e8765b855ecac56429ee627be5b3598b0",
-    "void-runner/mission-editor.js": "39668c9da46d79e04c84adb363f5163ae58efba36fe820d963847b7dfdcf89eb",
+    "void-runner/mission-editor.js": "c006c511df65faf5b6c953c4c22b7933c9937b0b0bf08a2e8b809d332b958119",
     "void-runner/mission-givers.js": "fbd481de39801f4f647cf104abdc5eede7d15f9e86f0880300c7489b2ef8cbe2",
     "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
     "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",

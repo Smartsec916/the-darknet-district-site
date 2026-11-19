@@ -2,6 +2,14 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Nineteenth pass (19 Nov 2026): container apartments in The Outskirts
+
+Branch `claude/container-apartments`, build `2026-11-19-container-apartments-1`. Record: [`APARTMENTS.md`](APARTMENTS.md), "Container apartments in The Outskirts".
+
+1. In **Apartments for this mission**, the style list now has **Container — rundown** and **Container — regular** as well as the three city styles.
+2. A container style offers only the container doors in The Outskirts (the list and the map, which opens on The Outskirts); a city style offers only city doors. Changing between them clears a door of the other kind.
+3. Everything else is the same: the number on its hallway door (the container hallway has four doors), open from the start or a step, locked until hacked, Lights start / Screen starts, JUMP TO THE DOOR / JUMP INSIDE, the steps Go into / Use something in / Hack the access point, Items (coming later).
+
 ## Eighteenth pass (19 Nov 2026): instance an apartment, apartment steps, hack an access point
 
 The owner: "in the mission editor add 'instance an apartment' then I will assign it to a specific door along the street. I can add more than one apartment per mission." Branch `claude/apartments`, build `2026-11-19-apartments-1`. Full record: [`APARTMENTS.md`](APARTMENTS.md).

@@ -505,6 +505,8 @@ def apartment_problems(m, inv, shape_only=False):
     styles, objects, item_types = set(ap.get('styles') or []), set(ap.get('objects') or []), set(ap.get('itemTypes') or [])
     doors, items = set((ap.get('doors') or {}).keys()), set(ap.get('items') or [])
     lim, hack, bx = ap.get('limit') or {'perMission': 4, 'items': 20, 'label': 60, 'number': 9999}, ap.get('hack') or {'min': 2, 'max': 30}, ap.get('bounds') or {'x': [-4, 4], 'z': [-5, 5]}
+    containers = set(ap.get('containerStyles') or ['container-rundown', 'container-regular'])
+    screens = set(ap.get('screenStyles') or ['rundown', 'normal', 'container-rundown', 'container-regular'])
     out = []
     lst = m.get('apartments')
     lst = [] if lst is None else lst
@@ -523,7 +525,7 @@ def apartment_problems(m, inv, shape_only=False):
         if not isinstance(a.get('id'), str) or not APT_ID.match(a['id']) or a['id'] in ids:
             out.append(w + ': its name must be lowercase letters, digits and hyphens, unique in the mission.')
         ids.add(a.get('id'))
-        if a.get('style') is not None and a['style'] not in (styles or {'rundown', 'normal', 'luxury'}):
+        if a.get('style') is not None and a['style'] not in (styles or {'rundown', 'normal', 'luxury', 'container-rundown', 'container-regular'}):
             out.append(w + ': choose rundown, normal or luxury.')
         if not shape_only and a.get('style') is None:
             out.append(w + ': choose rundown, normal or luxury.')
@@ -533,6 +535,11 @@ def apartment_problems(m, inv, shape_only=False):
                 out.append(w + ': unknown street door.')
         elif not isinstance(door, str) or door not in doors:
             out.append(w + ': choose a street door.')
+        elif isinstance(a.get('style'), str):
+            # a container style only behind a container door in The Outskirts, a city style only behind a city door (apartments.js problems())
+            fam = ((ap.get('doors') or {}).get(door) or {}).get('family') or 'city'
+            if (fam == 'container') != (a['style'] in containers):
+                out.append(w + ': a container apartment goes behind a container door in The Outskirts, a city apartment behind a city door.')
         if isinstance(door, str) and door:
             if door in seen:
                 out.append('two apartments of one mission use the same street door.')
@@ -543,7 +550,7 @@ def apartment_problems(m, inv, shape_only=False):
         for key in ('screenOff', 'lightsOff'):
             if a.get(key) is not None and type(a[key]) is not bool:
                 out.append(w + ': "screen / lights start" is on or off.')
-        if a.get('screenOff') is not None and a.get('style') not in ('rundown', 'normal'):
+        if a.get('screenOff') is not None and a.get('style') not in screens:
             out.append(w + ': only the rundown and normal apartments have an ad screen.')
         if a.get('locked') is not None and type(a['locked']) is not bool:
             out.append(w + ': "locked until hacked" is yes or no.')
@@ -559,7 +566,8 @@ def apartment_problems(m, inv, shape_only=False):
                     if not _keys(it, ['type', 'label', 'x', 'z', 'y']) or (it.get('type') not in (item_types or {'loot', 'mission-item', 'note', 'other'})) or not _plain(it.get('label'), lim['label']):
                         out.append(w + ': a placed item needs a type and a short plain label.')
                         continue
-                    if not (num(it.get('x')) and num(it.get('z')) and bx['x'][0] + .2 <= it['x'] <= bx['x'][1] - .2 and bx['z'][0] + .2 <= it['z'] <= bx['z'][1] - .2):
+                    b = (ap.get('boundsByStyle') or {}).get(a.get('style')) or bx
+                    if not (num(it.get('x')) and num(it.get('z')) and b['x'][0] + .2 <= it['x'] <= b['x'][1] - .2 and b['z'][0] + .2 <= it['z'] <= b['z'][1] - .2):
                         out.append(w + ': a placed item must be inside the apartment.')
                     if it.get('y') is not None and not (num(it['y']) and 0 <= it['y'] <= 2.4):
                         out.append(w + ': a placed item\u2019s height is 0 to 2.4 m.')
