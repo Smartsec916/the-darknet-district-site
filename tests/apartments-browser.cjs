@@ -19,8 +19,9 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   const boot=()=>page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:180000});
   await page.goto(base+'/void-runner.html');await boot();
   await page.evaluate(()=>{const s=C.startDistrictCampaign(C.fresh());s.story.flags.podWakePending=false;s.story.flags.appearanceOffered=true;localStorage.setItem('void-runner-campaign-v1',JSON.stringify({...s,savedAt:1700000000000}));localStorage.setItem('editor-tour-done','1');});
-  await page.reload();await boot();const before=await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1'));
+  await page.reload();await boot();
   await page.evaluate(()=>VoidDevTools.identity(async p=>{if(p==='developer/balance')return {values:VoidBalance.defaults,revision:1,preset:'NORMAL'};const e=new Error('off');e.status=404;throw e;}));
+  await page.waitForTimeout(3000);const before=await page.evaluate(()=>localStorage.getItem('void-runner-campaign-v1'));
   const ID='draft-flat-m1',DOOR='apt-main-w-96';
   const r=await page.evaluate(async({ID,DOOR,style})=>{const MC=VoidMissionContent,L=VoidLiveContent;
    const trees=[{id:'draft-flat',name:'The flat',missions:[{id:ID,number:72,title:'Someone’s flat',type:'side',giver:'admin',offer:[{who:'admin',text:'There is a flat on Main Street.'}],
