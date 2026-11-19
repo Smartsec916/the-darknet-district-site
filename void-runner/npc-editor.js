@@ -64,7 +64,7 @@
   {const C=root.VoidCrowd||{},seen=new Set([...Object.keys(C.street||{}),...out.map(x=>x.look).filter(Boolean)]);for(const look of Object.keys(C.clips||{}))if(!seen.has(look)){seen.add(look);out.push({id:'crowd:'+look,name:'Figure '+look+(/^vr-companion|^studio-/.test(look)?' (licensed)':' (other places)'),kind:'crowd',group:'crowd',look});}}   // every other crowd model (the older multi-part figures: their accessories can be hidden; some take the creator's pieces)
   for(const r of imports)out.push({id:'import:'+r.id,name:r.name||r.fileName,kind:'import',group:'import',rec:r});
   return out;}
- const GROUPS=[['move','Can be moved: stay at a spot or walk a route'],['givers','Give missions (have a TALK prompt)'],['district','In the District (no TALK prompt yet)'],['import','Imported models (local test only, not in the live game)'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier characters (not in the District today)']];
+ const GROUPS=[['move','Movement-controlled: stay, route and supported follow actions'],['givers','Walking TALK available (in-person missions)'],['district','District NPCs (device-started missions; no walking TALK yet)'],['import','Imported models (local test only, not in the live game)'],['crowd','Street crowd (anonymous figures)'],['earlier','Earlier / travel-location characters']];
  // ---------------------------------------------------------------- imported models (this browser only: IndexedDB)
  const DB='void-npc-imports',ST='models';
  function db(){return new Promise((ok,fail)=>{try{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>{r.result.createObjectStore(ST,{keyPath:'id'});};r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);}catch(e){fail(e);}});}
@@ -134,7 +134,7 @@
   if(e.kind==='crowd'){row('Where','The street picks figures from this pool (crowd.js, ncz-nightlife.js).',HELP.crowd);}
   else{const live=root.VoidStreetPair?.live?.(),lh=live&&live.her&&live.her.id===e.id?' · in this game now at x '+live.her.x.toFixed(1)+', z '+live.her.z.toFixed(1)+' ('+(live.her.mode||'')+')':'';row('Where',(g.where||'')+lh,HELP.where);
    const reg=S().src?.registry?.npcs?.[e.id],vn=S().voiceNow?S().voiceNow(e.id):{kind:'none'};row('Voice',vn.kind==='elevenlabs'?'ElevenLabs: '+vn.name+(reg?' (recorded lines: Kokoro '+reg.voice+', locked)':''):reg?reg.voice+' · '+reg.status+' (Kokoro, locked)':'no voice yet (their lines are text)',HELP.voice);
-   row('Missions',g.canTalk?(g.players?'Can give missions; players can reach them today.':'Can give missions in a draft; players cannot reach them today.'):'Cannot give missions yet: '+(g.why||'no TALK prompt')+'.');
+   row('Missions',g.canTalk?(g.players?'In-person or device-started missions; players can reach them today.':'In-person or device-started missions in a draft; players cannot reach them today.'):'Device-started missions (Messages / Comms / notification) are supported. In-person offers still need a TALK prompt: '+(g.why||'none exists')+'.');
    if(g.shift)facts.append(el('p',S().G().shiftText(g),'me-small me-warn'));}
   main.append(facts);
   previewBox(main,e,asset,clips,pv);
@@ -219,8 +219,8 @@
   const d=S().local(),own=(d.trees||[]).filter(t=>!t.shipped&&/^draft-/.test(t.id)),sel=el('select','','',{'aria-label':'Which tree','data-npc-giver-tree':e.id});
   for(const t of own)sel.append(new Option(t.name||t.id,t.id));sel.append(new Option('a new tree “Missions from '+g.name+'”',''));
   const mine=[];for(const t of d.trees||[])for(const m of t.missions)if(m.giver===e.id)mine.push(m.title||m.id);
-  const r=el('div','','me-row');r.append(el('span','in','me-small'),sel,btn('Give them a mission',()=>{const x=S().addGiverMission(e.id,sel.value);status='';DTX().tab='missions';DTX().render();},'',{'data-npc-make-giver':e.id,...(g.canTalk&&g.draft?{}:{disabled:'',title:g.why||'No TALK prompt in the game yet.'})}));box.append(r);
-  if(!(g.canTalk&&g.draft))box.append(el('p','Not possible yet: '+(g.why||'they have no TALK prompt in the game')+'.','me-small me-warn'));
+  const r=el('div','','me-row');r.append(el('span','in','me-small'),sel,btn('Give them a mission',()=>{S().addGiverMission(e.id,sel.value,{notification:!g.canTalk});status='';DTX().tab='missions';DTX().render();},'',{'data-npc-make-giver':e.id,title:g.canTalk?'Creates an in-person mission. You can change its start mode in the Mission Editor.':'Creates a notification-started mission because this NPC has no walking TALK prompt.'}));box.append(r);
+  if(!g.canTalk)box.append(el('p','No walking TALK prompt: the new mission starts as a device notification. You can use this NPC for Messages, Comms, notifications, lines and other supported mission roles without changing their default scene behavior.','me-small me-warn'));
   box.append(el('p',mine.length?'Already gives in your draft: '+mine.join(', ')+'.':'Gives no mission in your draft yet.','me-small'));main.append(box);}
  // ---- placement (stay / route / own routine)
  function placeBox(main,e,clips){const id=e.id,M=X().MOVABLE[id],box=el('section','','me-check',{'data-npc-place':id});box.append(el('h4','Where they are in the game'),hint(HELP.place));

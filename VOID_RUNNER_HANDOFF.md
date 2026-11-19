@@ -1,5 +1,8 @@
 # VOID//RUNNER: Development Handoff
 
+> **DEV TOOLS NPC CAPABILITY AUDIT (19 Nov 2026):** Current rules and the complete named-NPC/model matrix are in [`docs/development/NPC_CAPABILITY_AUDIT.md`](docs/development/NPC_CAPABILITY_AUDIT.md). In particular: no-TALK NPCs may own notification/device-started missions; TALK remains required for in-person mechanics; generic route/follow controls remain limited to runtime-plan NPCs (Reverie, Lace, street cat). Do not restore category-wide "cannot give missions" gates.
+
+
 > **HISTORICAL CANON — read [`docs/development/AI_HANDOFF.md`](docs/development/AI_HANDOFF.md) (Start here) and [`docs/development/AI_ROADMAP.md`](docs/development/AI_ROADMAP.md) first.** Updated 2026-11-12. PR [#212](https://github.com/Smartsec916/the-darknet-district-site/pull/212) **merged on 11 Nov 2026**. This file's October 15 `main`, starting-on-Vesper, mission, ship and CI figures are **historical**, not current release instructions. Preserve canon and the decision log. Do not restore the old tutorial, the old Arcade link, or the old homepage graphics.
 
 **As of:** 2026-10-15 · **`main` at:** PR #47 merged (`24a7071`) plus this handoff PR · **Owner and creative authority:** The owner (GitHub `Smartsec916`)

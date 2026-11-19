@@ -1084,7 +1084,10 @@ def check_trees(trees, inv, err, npcs=None):
                 err(w + ': a title is required.')
             if m.get('type') not in TYPES:
                 err(w + ': unknown mission type.')
-            if m.get('giver') not in talk:
+            if by_note:
+                if m.get('giver') not in givers:
+                    err(w + ': the giver must be a known NPC.')
+            elif m.get('giver') not in talk:
                 err(w + ': the giver must be an NPC the game has a TALK prompt for.')
             d = m.get('description')
             if d is not None and not (isinstance(d, str) and len(d) <= 600 and not TAGS.search(d)):
