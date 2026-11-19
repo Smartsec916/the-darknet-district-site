@@ -2,7 +2,7 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
-## Seventeenth pass (19 Nov 2026): instance an apartment, apartment steps, hack an access point
+## Eighteenth pass (19 Nov 2026): instance an apartment, apartment steps, hack an access point
 
 The owner: "in the mission editor add 'instance an apartment' then I will assign it to a specific door along the street. I can add more than one apartment per mission." Branch `claude/apartments`, build `2026-11-19-apartments-1`. Full record: [`APARTMENTS.md`](APARTMENTS.md).
 
@@ -21,6 +21,55 @@ The owner: "in the mission editor add 'instance an apartment' then I will assign
 - Data: mission `apartments`, steps `apt-enter` / `apt-use` / `hack` (fields `apt`, `object`, `ap`, `hold`, `stay`, `unlock`, `needs`): `apartments.js problems()`; the same rules in `void_runner_live_content.py apartment_problems` (admin inventory `apartments`); the editor's server copy `apartment_shape_problems`.
 - Editor: `mission-editor.js aptPanel`, `aptSelect`, `doorSelect`, `hackRow`, `jumpApt`; `HELP_APT`; Guide me keys `step-apt`, `step-object`, `step-ap`, `apt-door`; Basic mode hides `[data-me-apt-adv]` (the apartment's internal name and the items). Not in the wizard yet.
 - Tests: `tests/apartments.test.cjs`, `tests/test_apartments.py`, browser `tests/apartments-browser.cjs`.
+## Seventeenth pass (19 Nov 2026): the Mission giver creator
+
+The owner: "also in the editor, a mission giver creator. i can select any npc, create their look based on what's available for that model, give them a device model (ie V1), a ship, other items (gun, hacking device, etc), place them in the world for a mission". Then (approved the same day): characters made with the creator may be marked adult (18+) and placed in the adult places. Branch `claude/giver-creator`, build `2026-11-19-giver-creator-1`.
+
+### How to use it (plain steps)
+
+1. Open **Developer tools**. On the **Start** page press **Create a mission giver** (or in **NPCs**, open "What do you want to do?" and press the same card).
+2. **Model**: choose who your character is made from (street people first; every person the game has is listed). The 3D preview shows it; drag to turn it. A licensed model can only be recoloured and have accessories hidden, and is never sent to any AI tool.
+3. **Name**: type their name (required: this is what players see). The role line is optional and only for you. Tick **This character is an adult (18+)** only for a grown-up (it is off by default; Reverie's and Lace's models can never be ticked).
+4. **Look**: press "Show me in 3D to change the look", then hide accessories, pick colours, add creator pieces where the model allows. It changes only this character.
+5. **Device**: none, V1, V2 or V3 // SHADOW (the V3's eye glows a little while they use it).
+6. **Ship**: none or one of the game's ships (data for your missions; no ship appears in the world).
+7. **Items**: tick what they carry. "visible on them" shows a holstered pistol on the right hip, or a hacking device in the left hand (once the game has the hacking device; until then the list says so). Everything else is data for your missions.
+8. **Voice** and **Animations**: the usual Voice box (ElevenLabs or none; IMPORT VOICE FILE per line) and Add animation.
+9. **Place**: pick the area on the map, then "Keep her at one spot" (click the map, turn her with the round handle) or "Make her walk a route". Then **When are they there?**: always, or only while one of your missions is in progress (optionally from one of its steps).
+10. **Done**: if it says "Ready", press **Give them a mission** (the Mission Editor opens with a new mission given by them) or make one with **Make a mission**. **PLAY THIS DRAFT** and walk up to them: **TALK TO <NAME>**.
+
+Everything is part of your DRAFT (UNDO works; Close keeps what you made). Your characters are listed in **NPCs** under **Made by you**, with a box to change device, ship, items and "when", **CHANGE STEP BY STEP** and **DELETE THIS CHARACTER**. **PUBLISH** sends them to every player with your missions.
+
+**Places.** The same map rules as Reverie and Lace: never Milked's studios and staff rooms, the Sleeping Pod room, the Corporate District or the Temple. A character marked **adult (18+)** may also stand in Milked's side street, service alley and reception, inside NULL and at its door, the District bar, the VR area, the arcade room and the smoking terrace. Reverie, Lace and the street cat never.
+
+### For Claude and Codex
+
+- Data: `content.characters[id] = {name, role?, model, adult?, look?, device?, ship?, items?:[{id, show?}], when?:{mission, step?}}` (`void-runner/npc-made.js`); the placement is `content.npcs[id]` (the same plan as Reverie's: stay / path / schedule, added `anims`); the voice `content.voices[id]`. Drafts carry `characters` (local draft and the server workspace).
+- `npc-paths.js setMade(chars)` makes them MOVABLE (`made:true`, `adult`, `youthful:!adult`, no ledge sit). `mission-givers.js roster({characters, npcs})` lists them (target `{action:'made-npc', character:id}`, `enter` from the placement's area). `mission-content.js check` checks them first (`madeCtx`), registers them for the rest of the check and puts the registry back; `apply` sets `env.characters` and adds them to `env.givers`; `fromDrafts` sends only finished ones (`madeReady`; `madeNeeds` says why not, also in "not applied"). Cab steps stay Reverie's and Lace's (`npc-escort.js can`); follow / lead work.
+- Game: `npc-made.js` wraps `VoidStreetPair.start` (every street quarter and the District interior) and `VoidMilked.build` (reception). A figure loads only while the player is in its area and while it exists (`when`); its own look (`npc-looks.js applyLook`), its device (`npc-device.js enlist` with the tier), props built from boxes on its Hips / LeftHand bones, the plan moved by `ncz-street-pair.js routineStep`. With no mission the TALK prompt shows "…" (no words invented).
+- Adult places: `npc-areas.js` rules with `adult:true` and walkable rectangles marked `adult` (NULL's floor keeps clear of its furniture from `ncz-nightclub.js solids`; the District rooms' furniture is not mapped); a new area `milked` (scene `milked`, reception only). `check(p, prefer, m, {adult, made})`, `leg(a, b, opts)`, `nearest(p, id, limit, opts)`.
+- Server: `void_runner_live_content.py made_problems` / `with_made` (admin inventory `madeCharacters`: per model the actions, added animations, gestures and escort for a non-adult and an adult character, the items, ships, devices and the ids the game uses), `area_check(..., adult)`, `made_shape_problems`; `void_runner_drafts.py` keeps `characters` and allows adult characters' adult spots.
+- Tests: `tests/npc-made.test.cjs`, `tests/test_npc_made.py`, browser `tests/npc-made-browser.cjs`.
+- Not verified: real hardware; VR; a licensed model in a browser; publishing with the server on; the reception and the District rooms with a figure in a browser (rules unit-tested).
+
+## Fix (19 Nov 2026): "When walked near" starts by itself
+
+Branch `claude/near-auto-start`, build `2026-11-19-near-auto-1`. Pushed, no PR, not merged. The owner: "I noticed 'When walked near' still needs a click option by the player, even though i want it to start automatically".
+
+**Cause.** The game itself was right: with **Ask the player: ACCEPT or DENY** off, walking near starts the mission at once (checked again in a browser for Messages, Comms call and Notification only). The click came from the question being **on** without the owner choosing it, in two editor paths: (1) changing **Starts** from "In person, asking ACCEPT / DENY" to By Messages / By Comms call / Notification only silently kept the question; (2) **Player pays** turns the question on (paying at ACCEPT needs it) and going back to **Player gets** left it on. The tick box sits above Sender / Header / Body, far from the trigger, so it was easy to miss.
+
+**Now.**
+1. Under **When walked near** one plain line says either **Starts automatically — no click** (walking near starts it at once: a notification shows and it goes into the Mission Log; nothing to press) or **Asks ACCEPT / DENY** (the mission starts only when the player presses ACCEPT), with a button **START AUTOMATICALLY INSTEAD** / **ASK ACCEPT / DENY INSTEAD**. When the player pays at ACCEPT it says so and has no button (it must ask).
+2. Choosing the trigger **When walked near** makes it automatic unless the question has your own button words / DENY settings, or the player pays at ACCEPT.
+3. Changing **Starts** to a device start keeps the question only when you had it on a device start already (or had set button words / DENY settings, or the player pays at ACCEPT). "In person, asking" no longer carries it over.
+4. **Player gets** after **Player pays** turns the question off again if paying had turned it on (in this editing session).
+5. **Make a mission**: "When the player walks near them" was already automatic unless you answer Yes to ACCEPT / DENY or the player pays; the summary now says "(starts automatically — no click)".
+6. In person (with or without ACCEPT / DENY) is unchanged.
+
+**Existing missions.** A mission keeps the question only as `start.accept: true`; nothing records whether it was ticked by you or left over from a default, so existing drafts and published missions are **not** changed. Open the mission: the line under the trigger shows "Asks ACCEPT / DENY"; press **START AUTOMATICALLY INSTEAD** and publish again.
+
+- Code: `mission-editor.js` (`nearMode`, `payAtAccept`, `askCustom`, `forceAsk` / `unforceAsk`, the Starts and Trigger selects), `editor-home.js` (wizard summary / help). No rule or server change.
+- Tests: `tests/near-auto-start.test.cjs` (7: automatic for each channel, the question, a cost at ACCEPT, in person, the wizard); browser `tests/near-auto-start-browser.cjs` (the editor paths above, then PLAY THIS DRAFT: walking within 5 m of Admin starts it with no click, no conversation, no offer window; passes).
 
 ## Sixteenth pass (19 Nov 2026): player lines, animations in lines and between steps, mission timers
 

@@ -154,10 +154,13 @@
  /* Every registered NPC (voice registry, District residents, story characters, the temple's monk) with where they are today. src: {registry, people (district-people NPCS), story (characters), temple (MODEL)} */
  function roster(src={}){
   const reg=(src.registry&&src.registry.npcs)||{},people=new Map((src.people||[]).map(n=>[n.id,n])),story=src.story||{},temple=src.temple||null;
-  const ids=[...new Set([...Object.keys(FACTS),...Object.keys(reg),...people.keys(),...Object.keys(story),...(temple?[temple.id]:[])])];
+  // mission givers made in the editor (npc-made.js: content.characters, placed by content.npcs); an id the game already uses is never taken over (a made name card does not count)
+  const MD=typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs,known=new Set([...Object.keys(FACTS),...Object.keys(reg),...people.keys(),...Object.keys(story).filter(id=>!story[id].made),...(temple?[temple.id]:[])]);
+  const made=MD&&src.characters?MD.giverFacts(Object.fromEntries(Object.entries(src.characters).filter(([id])=>!known.has(id))),src.npcs||{}):{};
+  const ids=[...new Set([...known,...Object.keys(made)])];
   const out=[];
   for(const id of ids){if(['news-anchor','commercial-announcer','the-function'].includes(id)||(reg[id]&&reg[id].broadcast))continue;
-   const f=FACTS[id],p=people.get(id),name=nameOf(id,reg,people,story,temple),voice=reg[id]?{voice:reg[id].voice,status:reg[id].status}:null;
+   const f=FACTS[id]||made[id],p=people.get(id),name=made[id]?made[id].name:nameOf(id,reg,people,story,temple),voice=reg[id]?{voice:reg[id].voice,status:reg[id].status}:null;
    let e;
    if(f)e={...f};
    else if(/^vr-/.test(id))e={group:D,where:'The District’s VR booths (vr-companions.js).',targets:[],players:false,draft:false,why:COMPANION};
@@ -165,8 +168,8 @@
    else e={group:E,where:'Not placed in any scene the editor knows of.',targets:[],players:false,draft:false,why:'No TALK prompt for this character anywhere in the game (needs a code change).'};
    const canTalk=e.targets.length>0;
    out.push({id,name,say:/^[a-zA-Z][\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,
-    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),photo:!!(e.photo||p),place:e.place||null,shift:e.shift?{hours:e.shift.hours.slice(),arrive:e.shift.arrive||0}:null,reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,
-    sources:[reg[id]&&'npc-voice-registry.json',p&&'district-people.js',story[id]&&'story-content.js',temple&&temple.id===id&&'temple.js'].filter(Boolean)});}
+    canTalk,players:!!(canTalk&&e.players),draft:!!(canTalk&&e.draft),photo:!!(e.photo||p),place:e.place||null,shift:e.shift?{hours:e.shift.hours.slice(),arrive:e.shift.arrive||0}:null,reach:e.reach||(e.group===D&&canTalk?'In the current District game.':''),why:e.why||'',note:e.note||'',voice,...(e.made?{made:true,role:e.role||'',model:e.model||null}:{}),
+    sources:[e.made&&'content.characters (made in the editor)',reg[id]&&'npc-voice-registry.json',p&&'district-people.js',story[id]&&'story-content.js',temple&&temple.id===id&&'temple.js'].filter(Boolean)});}
   const rank=g=>g.group===D?0:1;
   return out.sort((a,b)=>rank(a)-rank(b)||(b.id==='admin')-(a.id==='admin')||(b.id==='iris')-(a.id==='iris')||a.name.localeCompare(b.name));
  }

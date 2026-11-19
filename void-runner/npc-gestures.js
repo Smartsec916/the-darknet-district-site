@@ -55,6 +55,7 @@
  /* The figure of NPC id: the crowd controller of her model nearest to the player (a model is one person, so normally there is exactly one). */
  function figure(id){const look=lookOf(id),C=root.VoidCrowd;if(!look||!C||!C.figures)return null;let best=null,bd=Infinity;
   const px=typeof walker!=='undefined'&&walker?walker.x:0,pz=typeof walker!=='undefined'&&walker?walker.z:0;
+  for(const c of C.figures()){if(c.node&&!c.node.isDisposed?.()&&c.node.metadata?.made===id)return c;}if(NPX()?.MOVABLE?.[id]?.made)return null;   // a mission giver made in the editor: her own figure (her model may be a street figure's)
   for(const c of C.figures()){if(c.look!==look||!c.node||c.node.isDisposed?.())continue;let d=0;try{const p=c.node.getAbsolutePosition();d=Math.hypot(p.x-px,p.z-pz);}catch{}if(d<bd){bd=d;best=c;}}return best;}
  const log=[];
  /* Play clip on NPC id for `seconds` (a one-movement clip plays once), then back to her own behaviour. A clip she does not carry yet (a library or added one) is put

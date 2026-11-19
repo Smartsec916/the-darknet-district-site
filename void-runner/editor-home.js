@@ -1,6 +1,6 @@
 /* DEVELOPER TOOLS > START (the owner, 18 Nov 2026, queue item 0: a beginner-first Developer tools for someone who has never made a game). Browser only; loaded on
    demand with the Mission Editor's scripts (dev-tools.js editorScripts), after editor-wizard.js (the pure rules) and the two editors.
-   - The welcome screen: four big task cards (Make a mission, Place a character, Test my mission, Publish) and every other tool one click away.
+   - The welcome screen: five big task cards (Make a mission, Place a character, Create a mission giver, Test my mission, Publish) and every other tool one click away.
    - "Make a mission": one question per page with BACK / NEXT and a progress bar; it makes an ordinary draft mission (editor-wizard.js build) through the Mission
      Editor's own draft (shared.addWizardMission), so Guide me, help text, PLAY THIS DRAFT, publishing and the server's checks are the same as for a hand-made one.
    - "Test my mission": each of your missions, ready (PLAY) or what is still missing (OPEN TO FIX).
@@ -43,6 +43,7 @@
  const TASKS=[
   ['make','mission','Make a mission','Answer a few easy questions, one at a time. Nothing reaches players until you publish.'],
   ['place','character','Place a character','Put Reverie or Lace at a spot, or make them walk a route on the map.'],
+  ['giver','people','Create a mission giver','Make a new character, step by step: a model, a name, a look, a device, a ship, items and a place in the world.'],
   ['test','test','Test my mission','Play your mission in a practice game. Your real save is never touched.'],
   ['publish','publish','Publish','Check your missions, then send them to every player.']];
  const MORE=[['missions','mission','Mission Editor','Every mission and every setting'],['npcs','people','NPCs','Every character: look, lines, places'],['test','jump','Test & Jump To','Jump to any place to look around'],['balance','balance','Combat Balance','Ship and enemy numbers'],['achievements','trophy','Achievements','The list of achievements']];
@@ -53,7 +54,7 @@
   for(const [tab,ic,title,line] of MORE){const b=btn('',()=>go(tab),'eh-tool',{'data-eh-tab':tab});b.append(icon(ic,22),el('b',title),el('span',line));m.append(b);}r.append(m);
   const tr=el('p','','me-row');tr.append(iconBtn('help','Show me around',()=>tour.start(),'eh-link',{'data-eh-tour':'1'}));r.append(tr);}
  function task(id){if(id==='make'){ui.view='wizard';ui.a=W().fresh('');ui.page=0;ui.tried=false;draw();return;}
-  if(id==='place')return go('npcs');if(id==='publish')return go('missions',()=>S().goto({mode:'publish'}));if(id==='test'){ui.view='test';draw();}}
+  if(id==='place')return go('npcs');if(id==='giver')return go('npcs',()=>{const N=root.VoidNPCEditor;if(N&&N.startMake)N.startMake();});if(id==='publish')return go('missions',()=>S().goto({mode:'publish'}));if(id==='test'){ui.view='test';draw();}}
  // ---------------- "Make a mission"
  function wizard(r){const P=W().PAGES,p=P[ui.page],a=ui.a,probs=W().problems(a,p.id,ctx());
   const top=el('div','','eh-wtop');top.append(btn('',()=>{if(!confirm('Leave “Make a mission”? Nothing has been made yet; your answers will be lost.'))return;ui.view='home';draw();},'eh-link',{'data-eh-cancel':'1'}));top.lastChild.append(icon('close',14),document.createTextNode(' Cancel'));
@@ -114,8 +115,8 @@
   // "Ask ACCEPT / DENY" yes / no (always yes when the player pays, or when the start is "they ask")
   const forced=a.pays||a.start==='person-accept',on=W().asks(a),q=el('div','','me-row',{role:'radiogroup','aria-label':'Ask the player ACCEPT or DENY first?'});q.append(el('b','Ask the player ACCEPT or DENY first?'));
   for(const [v,n] of [[true,'Yes'],[false,'No']])q.append(btn(n,()=>{a.ask=v;draw();},on===v?'on':'',{role:'radio','data-eh-ask':v?'yes':'no','aria-checked':String(on===v),...(forced&&!v?{disabled:'',title:'The player '+(a.pays?'pays when accepting':'is asked (chosen on “How does it start?”)')+', so the offer always asks.'}:{})}));
-  box.append(q,el('p','Yes: the player sees the name, the description and the '+(a.pays?'cost':'reward')+', then chooses ACCEPT or DENY (DENY: asked again later). Change the button words and what DENY does in the Mission Editor afterwards.','me-help'));}
- function summary(a){const st=W().STARTS.find(s=>s.id===a.start);return nameOf(a.giver)+' gives it. Starts: '+(st?st.title.toLowerCase():'')+(W().asks(a)?' (asks ACCEPT / DENY)':'')+'. '+a.steps.map((s,i)=>'Step '+(i+1)+': '+s.label+'.').join(' ')+(a.pays?' The player pays '+(Number(a.rewards)||0)+' credits when accepting.':' Reward: '+(Number(a.rewards)||0)+' credits.');}
+  box.append(q,el('p','Yes: the player sees the name, the description and the '+(a.pays?'cost':'reward')+', then chooses ACCEPT or DENY (DENY: asked again later). Change the button words and what DENY does in the Mission Editor afterwards.'+(a.start==='near'?' No (the normal choice): walking near starts the mission at once, with nothing to press.':''),'me-help'));}
+ function summary(a){const st=W().STARTS.find(s=>s.id===a.start);return nameOf(a.giver)+' gives it. Starts: '+(st?st.title.toLowerCase():'')+(W().asks(a)?' (asks ACCEPT / DENY)':a.start==='near'?' (starts automatically — no click)':'')+'. '+a.steps.map((s,i)=>'Step '+(i+1)+': '+s.label+'.').join(' ')+(a.pays?' The player pays '+(Number(a.rewards)||0)+' credits when accepting.':' Reward: '+(Number(a.rewards)||0)+' credits.');}
  function pageName(box,a){box.append(el('p',summary(a),'eh-summary',{'data-eh-summary':'1'}));
   const f=(label,attr,value,on,area,help,max)=>{const l=el('label','','me-field');l.append(el('span',label));const i=el(area?'textarea':'input','','',{[attr]:'1',maxlength:String(max),...(area?{rows:'2'}:{}),placeholder:'(your words)'});i.value=value||'';i.oninput=()=>on(i.value);l.append(i);if(help)l.append(el('span',help,'me-help'));box.append(l);return i;};
   f('Mission name','data-eh-title',a.title,v=>{a.title=v;},false,'For example “A parcel for Iris”.',60);

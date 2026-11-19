@@ -94,8 +94,14 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'characters']):
         return ['The content record has an unknown shape.']
+    if content.get('characters') is not None:
+        # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
+        inv = inv or _json('void_runner_admin_inventory.json')
+        for p in made_problems(content, inv):
+            err(p)
+        inv = with_made(content.get('characters'), inv)
     if content.get('clips') is not None:
         for p in clip_problems(content['clips']):
             err(p)
@@ -319,7 +325,7 @@ def area_of(p, inv, prefer=None):
     return None
 
 
-def area_check(p, inv, prefer=None, m=None):
+def area_check(p, inv, prefer=None, m=None, adult=False):
     """The same rule as void-runner/npc-areas.js check(): (ok, area, kind, why). Kinds: ok, rule (the owner's content rule: Milked, NULL, the District bar, VR, arcade,
     Corporate District), blocked, gate, road, obstacle, post, outside."""
     A = _areas(inv)
@@ -333,7 +339,7 @@ def area_check(p, inv, prefer=None, m=None):
     aid = area_of(p, inv, prefer)
     if aid:
         a = by[aid]
-        nos = sorted([n for n in a['no'] if _in(n['rect'], x, z)], key=lambda n: _size(n['rect']))
+        nos = sorted([n for n in a['no'] if _in(n['rect'], x, z) and not (adult and n.get('adult'))], key=lambda n: _size(n['rect']))
         if nos:
             return (False, aid, 'rule' if nos[0].get('rule') else 'blocked', nos[0]['why'])
         for g in a.get('gates') or []:
@@ -346,7 +352,7 @@ def area_check(p, inv, prefer=None, m=None):
             if ((x - px) ** 2 + (z - pz) ** 2) ** .5 < .7:
                 return (False, aid, 'post', 'That is on a taxi post.')
         return (True, aid, 'ok', '')
-    nos = [(n, a['id']) for a in al for n in a['no'] if _in(n['rect'], x, z)] + [(n, None) for n in A.get('out') or [] if _in(n['rect'], x, z)]
+    nos = [(n, a['id']) for a in al for n in a['no'] if _in(n['rect'], x, z) and not (adult and n.get('adult'))] + [(n, None) for n in A.get('out') or [] if _in(n['rect'], x, z)]
     nos.sort(key=lambda t: (0 if t[0].get('rule') else 1, _size(t[0]['rect'])))
     if nos and nos[0][0].get('rule'):
         return (False, nos[0][1], 'rule', nos[0][0]['why'])
@@ -364,7 +370,7 @@ def area_check(p, inv, prefer=None, m=None):
     return (False, None, 'outside', 'That is not somewhere she can walk.')
 
 
-def forbidden_spot_problems(npcs, trees=None, inv=None):
+def forbidden_spot_problems(npcs, trees=None, inv=None, adults=()):
     """The editor's server copy of a draft (void_runner_drafts.py) may be half made, but the owner's content rule holds there too: no spot or route point of Reverie,
     Lace or the cat (all day, in a time block, or a mission's "Giver waits at") in Milked, NULL, the District bar, VR or arcade, or the Corporate District."""
     inv = inv or _json('void_runner_admin_inventory.json')
@@ -378,8 +384,14 @@ def forbidden_spot_problems(npcs, trees=None, inv=None):
             spots.extend(q for q in p['points'] if isinstance(q, dict))
         for b in p.get('schedule') or [] if isinstance(p.get('schedule'), list) else []:
             plan_spots(b)
-    for p in (npcs or {}).values() if isinstance(npcs, dict) else []:
-        plan_spots(p)
+    adult_spots = []
+    for k, p in (npcs or {}).items() if isinstance(npcs, dict) else []:
+        if k in adults:
+            n0 = len(spots)
+            plan_spots(p)
+            adult_spots.extend(spots[n0:])
+        else:
+            plan_spots(p)
     for t in trees or [] if isinstance(trees, list) else []:
         for m in (t.get('missions') or []) if isinstance(t, dict) else []:
             if isinstance(m, dict) and isinstance(m.get('waitAt'), dict):
@@ -387,7 +399,7 @@ def forbidden_spot_problems(npcs, trees=None, inv=None):
     out = []
     for q in spots:
         if _num(q.get('x')) and _num(q.get('z')):
-            ok, _a, kind, why = area_check(q, inv)
+            ok, _a, kind, why = area_check(q, inv, adult=any(q is x for x in adult_spots))
             if kind == 'rule':
                 out.append(why)
     return out
@@ -397,7 +409,7 @@ def spot_problems(npc, p, inv):
     mv = _movable(inv).get(npc)
     if not mv:
         return ['This NPC cannot be moved by the editor yet.']
-    ok, _a, _k, why = area_check(p, inv)
+    ok, _a, _k, why = area_check(p, inv, adult=bool(mv.get('adult')))
     out = [] if ok else [why]
     if isinstance(p, dict) and p.get('yaw') is not None and not _num(p.get('yaw')):
         out.append('The facing is not a number.')
@@ -407,8 +419,9 @@ def spot_problems(npc, p, inv):
 def _leg_problems(mv, a, b, inv=None):
     A = _areas(inv)
     m = A.get('clear', .3) - .1
-    oka, aa, _, _ = area_check(a, inv, None, m)
-    okb, ab, _, _ = area_check(b, inv, aa, m)
+    ad = bool((mv or {}).get('adult'))
+    oka, aa, _, _ = area_check(a, inv, None, m, ad)
+    okb, ab, _, _ = area_check(b, inv, aa, m, ad)
     if oka and okb and aa != ab:
         return ['the walk to the next point goes into another area: a route stays in one area.']
     area = aa or ab
@@ -419,7 +432,7 @@ def _leg_problems(mv, a, b, inv=None):
     for k in range(n + 1):
         t = k / n
         q = {'x': a['x'] + (b['x'] - a['x']) * t, 'z': a['z'] + (b['z'] - a['z']) * t}
-        ok, qa, kind, _ = area_check(q, inv, area, m)
+        ok, qa, kind, _ = area_check(q, inv, area, m, ad)
         if ok and qa == area:
             continue
         if ok:
@@ -1958,3 +1971,157 @@ def get_clip(db, h):
     _clip_cache[h] = (data, rec['type'])
     return _clip_cache[h]
 
+
+# ---- Mission givers made in the editor (void-runner/npc-made.js, Developer Tools > NPCs > Create a mission giver): content.characters[id] ----
+# The same rules as npc-made.js problems(), against the admin inventory's madeCharacters (models, items, ships, devices, the ids the game already uses). A made character
+# placed in an adult venue must be marked adult (18+) (npc-areas.js `adult` rectangles; never on Reverie's or Lace's model).
+MADE_ID = re.compile(r'^[a-z][a-z0-9-]{1,39}$')
+MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when']
+
+
+def _made_plain(v, n):
+    return isinstance(v, str) and v.strip() != '' and len(v) <= n and not TAGS.search(v) and not re.search(r'[\x00-\x1f]', v)
+
+
+def _base_plan(p):
+    if not isinstance(p, dict):
+        return None
+    rest = {k: v for k, v in p.items() if k != 'schedule'}
+    return rest if rest.get('mode') in ('stay', 'path') else None
+
+
+def made_problems(content, inv=None):
+    inv = inv or _json('void_runner_admin_inventory.json')
+    mc = inv.get('madeCharacters') or {}
+    chars = content.get('characters')
+    lim = mc.get('limits') or {}
+    if not isinstance(chars, dict) or len(chars) > lim.get('characters', 12):
+        return ['Made characters have an unknown shape.']
+    models, items, ships = mc.get('models') or {}, mc.get('items') or {}, set(mc.get('ships') or [])
+    reserved = set(mc.get('reserved') or [])
+    npcs = content.get('npcs') if isinstance(content.get('npcs'), dict) else {}
+    missions, offers = {}, {}
+    for t in content.get('trees') or [] if isinstance(content.get('trees'), list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if isinstance(m, dict) and isinstance(m.get('id'), str):
+                missions[m['id']] = [o.get('id') for o in m.get('objectives') or [] if isinstance(o, dict)]
+                st = m.get('start') if isinstance(m.get('start'), dict) else {}
+                if st.get('how') != 'notification':
+                    offers[m['id']] = m.get('giver')
+    known_missions = {x.get('id') for x in inv.get('missions') or [] if isinstance(x, dict)}
+    out = []
+    for cid, c in chars.items():
+        w = (c.get('name').strip()[:40] if isinstance(c, dict) and isinstance(c.get('name'), str) and c.get('name').strip() else str(cid)) + ': '
+        if not isinstance(cid, str) or not MADE_ID.match(cid):
+            out.append(w + 'the id must be 2 to 40 lower-case letters, digits or dashes.')
+            continue
+        if cid in reserved:
+            out.append(w + 'the id is already used by a character of the game.')
+            continue
+        if not _keys(c, MADE_KEYS):
+            out.append(w + 'unknown fields.')
+            continue
+        if not _made_plain(c.get('name'), lim.get('name', 40)):
+            out.append(w + 'a name is needed (plain words, 40 characters at most).')
+        if c.get('role') is not None and not _made_plain(c.get('role'), lim.get('role', 80)):
+            out.append(w + 'the role line must be plain words (80 characters at most).')
+        md = models.get(c.get('model')) if isinstance(c.get('model'), str) else None
+        if md is None:
+            out.append(w + 'not a model of the game.')
+            continue
+        if c.get('adult') is not None and c.get('adult') is not True:
+            out.append(w + '"adult" is either true or left out.')
+        elif c.get('adult') is True and not md.get('adultOk'):
+            out.append(w + 'this model reads youthful: it can never be marked adult.')
+        if c.get('look') is not None:
+            if not _keys(c['look'], ['hide', 'colour', 'gear', 'hair']):
+                out.append(w + 'the look has unknown fields.')
+            else:
+                out += [w + x for x in look_problems({c['model']: {'looks': [dict(c['look'], id='own', name='own look')], 'use': 'own'}}, inv)]
+        if c.get('device') is not None and c.get('device') not in (mc.get('devices') or []):
+            out.append(w + 'the device must be V1, V2, V3 or none.')
+        if c.get('ship') is not None and c.get('ship') not in ships:
+            out.append(w + 'not a ship of the game.')
+        its = c.get('items')
+        if its is not None:
+            if not isinstance(its, list) or len(its) > lim.get('items', 6):
+                out.append(w + 'too many items.')
+            else:
+                seen = set()
+                for i in its:
+                    if not _keys(i, ['id', 'show']) or not isinstance(i.get('id'), str) or i['id'] not in items:
+                        out.append(w + 'an item is not one of the game.')
+                        continue
+                    if i.get('show') is not None and (i['show'] is not True or not items[i['id']].get('show')):
+                        out.append(w + 'that item cannot be shown on them.')
+                    if i['id'] in seen:
+                        out.append(w + 'an item is listed twice.')
+                    seen.add(i['id'])
+        wn = c.get('when')
+        if wn is not None:
+            if not _keys(wn, ['mission', 'step']) or not isinstance(wn.get('mission'), str):
+                out.append(w + '"when they are there" has an unknown shape.')
+            elif wn['mission'] not in missions and wn['mission'] not in known_missions:
+                out.append(w + 'they are there only during a mission that does not exist.')
+            elif wn.get('step') is not None and wn['mission'] in missions and wn['step'] not in missions[wn['mission']]:
+                out.append(w + 'the step they appear from is not a step of that mission.')
+            elif offers.get(wn['mission']) == cid:
+                out.append(w + 'they appear only while that mission is active, so they cannot offer it.')
+        p = npcs.get(cid)
+        if not isinstance(p, dict) or not (_base_plan(p) or any(isinstance(b, dict) and b.get('mode') in ('stay', 'path') for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
+            out.append(w + 'put them somewhere in the world.')
+        elif not _base_plan(p):
+            out.append(w + 'outside their time blocks they need a place too.')
+        elif not md.get('walk') and (p.get('mode') == 'path' or any(isinstance(b, dict) and b.get('mode') == 'path' for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
+            out.append(w + 'this model has no walking animation: keep them at one spot.')
+    return out
+
+
+def with_made(chars, inv):
+    """The inventory with the made characters added as movable NPCs, givers with a TALK prompt, their animations and their follow / lead steps (a copy; inv is not changed)."""
+    if not isinstance(chars, dict) or not chars:
+        return inv
+    mc = inv.get('madeCharacters') or {}
+    models = mc.get('models') or {}
+    reserved = set(mc.get('reserved') or [])
+    out = dict(inv)
+    paths = dict(inv.get('npcPaths') or {})
+    paths['movable'] = dict(paths.get('movable') or {})
+    me = dict(inv.get('missionEditor') or {})
+    me['givers'] = dict(me.get('givers') or {})
+    me['gestures'] = dict(me.get('gestures') or {})
+    esc = dict(inv.get('npcEscort') or {})
+    esc['npcs'] = dict(esc.get('npcs') or {})
+    areas = [a.get('id') for a in ((paths.get('areas') or {}).get('areas') or [])]
+    for cid, c in chars.items():
+        if not isinstance(cid, str) or not MADE_ID.match(cid) or cid in reserved or not isinstance(c, dict):
+            continue
+        md = models.get(c.get('model')) if isinstance(c.get('model'), str) else None
+        if not md:
+            continue
+        adult = c.get('adult') is True and bool(md.get('adultOk'))
+        v = md.get('adult') if adult and md.get('adult') else md
+        name = c.get('name') if isinstance(c.get('name'), str) and c.get('name').strip() else cid
+        mv = v.get('movable') or {}
+        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': [], 'actions': mv.get('actions') or [], 'anims': mv.get('anims') or [], 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
+        me['givers'][cid] = {'name': name, 'canTalk': True, 'players': True, 'draft': True, 'group': 'district'}
+        if v.get('gestures'):
+            me['gestures'][cid] = {'look': c.get('model'), 'clips': v['gestures']}
+        if v.get('escort'):
+            esc['npcs'][cid] = v['escort']
+    out['npcPaths'], out['missionEditor'], out['npcEscort'] = paths, me, esc
+    return out
+
+
+def made_shape_problems(chars):
+    """The editor's server copy of a draft (void_runner_drafts.py): a made character may be half done, but its shape is closed."""
+    if not isinstance(chars, dict) or len(chars) > 12:
+        return ['Made characters have an unknown shape.']
+    for cid, c in chars.items():
+        if not isinstance(cid, str) or not MADE_ID.match(cid) or not _keys(c, MADE_KEYS):
+            return ['a made character has an unknown shape.']
+        if c.get('name') is not None and not (isinstance(c['name'], str) and len(c['name']) <= 40 and not TAGS.search(c['name'])):
+            return ['a made character’s name must be plain words.']
+        if c.get('adult') not in (None, True):
+            return ['"adult" is either true or left out.']
+    return []

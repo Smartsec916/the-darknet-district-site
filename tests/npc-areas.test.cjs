@@ -8,12 +8,12 @@ const REV='grey-reverie',CAT='street-cat',W=(x,z)=>{const [a,b]=A.toWorld(x,z);r
 const place=id=>{const p=A.places().find(q=>q.id===id);assert.ok(p,'place '+id);return {x:p.x,z:p.z};};
 
 test('six areas, each with ground she may stand on and named places; the District interior is its own scene',()=>{
- assert.deepEqual(A.list().map(a=>a.id),['avenue','oldtown','far-south','outskirts','port','district']);
- for(const a of A.list()){assert.ok(a.walk.length,a.id);const named=A.places().filter(p=>p.area===a.id);assert.ok(named.length>=2,a.id+' has named places');
+ assert.deepEqual(A.list().map(a=>a.id),['avenue','oldtown','far-south','outskirts','port','district','milked']);   // milked: reception, for adult made characters only (npc-made.js)
+ for(const a of A.list().filter(a=>a.id!=='milked')){assert.ok(a.walk.length,a.id);const named=A.places().filter(p=>p.area===a.id);assert.ok(named.length>=2,a.id+' has named places');
   for(const p of named){const c=A.check(p);assert.ok(c.ok,p.id+': '+c.why);assert.equal(c.area,a.id,p.id);}}
  assert.equal(A.get('district').scene,'interior');assert.deepEqual(A.here('interior'),['district']);assert.deepEqual(A.here('street','oldtown'),['oldtown']);assert.equal(A.here('street',null).length,5);
  assert.deepEqual(A.enter('outskirts'),{walk:'sacramento',quarter:'outskirts'});assert.deepEqual(A.enter('district'),{walk:'darknet-district'});
- assert.ok(A.GEN&&A.GEN.areas,'the obstacle reading from the built scenes is committed');for(const id of A.IDS)assert.ok(A.GEN.areas[id],'read: '+id);});
+ assert.ok(A.GEN&&A.GEN.areas,'the obstacle reading from the built scenes is committed');for(const id of A.IDS.filter(x=>x!=='milked'))assert.ok(A.GEN.areas[id],'read: '+id);});
 
 test('the content rule: never Milked, NULL, the District bar, VR or arcade room, the terrace, the Corporate District',()=>{
  const rule=[[52.5,-58,/NULL/],[30,-58,/NULL/],[88,-182,/Milked/],[85,-171,/Milked/],[85,-192,/Milked/],[69.5,-171,/Milked/],[69.5,-191.5,/Milked/],[-90,0,/Corporate/],[88,-105,/terrace/],[-30,-12,/Function Gate|Corporate/],[170,-12,/Temple/]];
@@ -57,7 +57,7 @@ test('routes stay in one area and on walkable ground; schedules may use a differ
  assert.equal(P.planNow(REV,{waiting:{...place('port-pad'),mission:'m'}}).area,'port');});
 
 test('the ChatGPT prompt lists the allowed areas with their bounds and the never-used places; recipes in other areas are accepted, forbidden ones refused',()=>{
- const pr=B.prompt(REV);for(const a of A.list())assert.ok(pr.includes(a.name),a.name);assert.match(pr,/NEVER/);assert.match(pr,/Sleeping Pod/);assert.doesNotMatch(pr,/district-pods/);assert.match(pr,/Milked/);assert.match(pr,/NULL/);assert.match(pr,/x 51\.4 to 53\.6/);assert.match(pr,/oldtown-alley-mouth/);assert.match(pr,/in ONE area/);
+ const pr=B.prompt(REV);for(const a of A.list().filter(a=>a.id!=='milked'))assert.ok(pr.includes(a.name),a.name);assert.match(pr,/NEVER/);assert.match(pr,/Sleeping Pod/);assert.doesNotMatch(pr,/district-pods/);assert.match(pr,/Milked/);assert.match(pr,/NULL/);assert.match(pr,/x 51\.4 to 53\.6/);assert.match(pr,/oldtown-alley-mouth/);assert.match(pr,/in ONE area/);
  const ok=B.read(JSON.stringify({recipe:B.KIND,version:1,npc:REV,schedule:[{from:'08:00',to:'12:00',do:'stay',at:'outskirts-yard',actions:['idle']},{from:'20:00',to:'22:00',do:'stay',at:'district-store',actions:['look']}]}),REV);assert.ok(ok.ok,ok.problems.join(' | '));
  const no=B.read(JSON.stringify({recipe:B.KIND,version:1,npc:REV,allDay:{do:'stay',at:{x:88,z:-182},actions:['idle']}}),REV);assert.equal(no.ok,false);assert.match(no.problems.join(),/Milked/);
  const two=B.read(JSON.stringify({recipe:B.KIND,version:1,npc:REV,allDay:{do:'route',points:[{at:'laundry',action:'look',seconds:3},{at:'oldtown-alley-mouth',action:'look',seconds:3}]}}),REV);assert.equal(two.ok,false);assert.match(two.problems.join(),/one area/);

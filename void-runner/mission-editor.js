@@ -67,7 +67,7 @@
  const server={roles:null,live:null,queue:null,drafts:null,note:{}};
  // ---------------------------------------------------------------- drafts (saved on every edit)
  /* The draft. The main storyline is always in it: until the owner edits it, the shipped tree (main-story.js) is shown; his first edit saves his copy. */
- function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{}};
+ function local(){const raw=readDraft(),d=raw&&raw.version===1?{missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},characters:{},...raw}:{version:1,missions:{},lines:{},played:{},trees:[],names:{},retiredNumbers:[],npcs:{},animRequests:[],voices:{},looks:{},characters:{}};
   const S=MS();if(S){const own=d.trees.find(t=>t.id===S.TREE_ID);if(!own)d.trees.unshift(S.trees()[0]);
    // A copy saved before a shipped mission existed (Mission 002, 17 Nov 2026) gets that mission, where it stands in the shipped tree, unless its number was removed in the draft.
    // The tree's old default name "Main storyline" becomes "Awakening" (the owner calls it the Awakening Tree; the id never changes). Saved with the next edit.
@@ -85,9 +85,9 @@
  /* Every save is one step of the session's UNDO (editor-home.js; Developer Tools > UNDO / Ctrl+Z): the stored text before and after. */
  const rawOf=k=>{try{return root.localStorage.getItem(k);}catch{return null;}};
  const undoRecord=(k,before)=>{try{root.VoidEditorHome?.record(k,before,rawOf(k));}catch{}};
- function saveLocal(d){const before=rawOf(KEY);d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now to keep a file, then free some space (or allow site storage) and edit again.';else{storageProblem='';undoRecord(KEY,before);}scheduleServer();}
+ function saveLocal(d){syncMade(d);const before=rawOf(KEY);d.version=1;d.savedAt=new Date().toISOString();if(!write(KEY,d))storageProblem='Your draft could NOT be saved in this browser (storage full or blocked). Press EXPORT MY EDITS now to keep a file, then free some space (or allow site storage) and edit again.';else{storageProblem='';undoRecord(KEY,before);}scheduleServer();}
  /* UNDO / REDO put a stored draft back (editor-home.js): never recorded again, saved to the server copy like any edit. */
- function restoreRaw(k,raw){if(k!==KEY&&k!==STUDIO)return false;try{if(raw==null)root.localStorage.removeItem(k);else root.localStorage.setItem(k,raw);}catch{return false;}stale=true;if(k===KEY)scheduleServer();return true;}
+ function restoreRaw(k,raw){if(k!==KEY&&k!==STUDIO)return false;try{if(raw==null)root.localStorage.removeItem(k);else root.localStorage.setItem(k,raw);}catch{return false;}stale=true;if(k===KEY)syncMade();if(k===KEY)scheduleServer();return true;}
  /* Drafts are never discarded silently: a draft this version cannot read is copied to a backup key first, and the editor says so. */
  let storageProblem='',backupNote='';
  function readDraft(){let raw=null;try{raw=root.localStorage.getItem(KEY);}catch{return null;}if(raw==null)return null;
@@ -96,7 +96,7 @@
   backupNote='A draft in this browser could not be read; it was kept unchanged under '+bk+' (nothing was deleted). EXPORT it from the browser\'s storage or ask Claude/Codex to restore it.';return null;}
  // ---- the server copy of the whole draft (Stage 3B private draft "mission-editor-workspace"; the owner, 17 Nov 2026: a cleared browser must not lose his trees)
  const WS='mission-editor-workspace',ws={state:'unknown',revision:0,savedAt:null,timer:0,conflict:null,note:''};
- const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},clips:d.clips||{},retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
+ const bundle=()=>{const d=local(),x={version:1,savedAt:d.savedAt||new Date().toISOString(),missions:d.missions,lines:d.lines,played:d.played,names:d.names,npcs:d.npcs||{},animRequests:d.animRequests||[],voices:d.voices||{},looks:d.looks||{},clips:d.clips||{},...(d.characters&&Object.keys(d.characters).length?{characters:d.characters}:{}),retiredNumbers:d.retiredNumbers||[],trees:d.trees.filter(t=>!(t.shipped&&t.id===MS()?.TREE_ID&&JSON.stringify(t)===JSON.stringify(MS().trees()[0])))};const st=studio();if(st)x.studio=st;return x;};
  const wsDoc=b=>({schemaVersion:1,kind:'workspace',adapter:'mission-editor',sourceKey:WS,baseRevision:0,data:{id:WS,title:'Mission Editor workspace',bundle:b}});
  const wsOn=()=>!!(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled);
  function scheduleServer(){if(!wsOn()||ws.conflict)return;clearTimeout(ws.timer);ws.state='pending';showServerState();ws.timer=setTimeout(()=>{saveServer();},5000);}
@@ -109,13 +109,13 @@
  async function loadServer(afterConflict){if(!wsOn()){ws.state='off';return;}
   let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}ws.state='off';return;}
   ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
-  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length&&!Object.keys(raw.clips||{}).length);
+  const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length&&!Object.keys(raw.clips||{}).length&&!Object.keys(raw.characters||{}).length);
   const serverAt=Date.parse(b.savedAt||'')||0,localAt=Date.parse((raw&&raw.savedAt)||'')||0;
   if(empty&&!afterConflict){useServer(b,rec.updatedAt);return;}
   if(serverAt>localAt||afterConflict){ws.conflict={server:b,serverAt,local:raw,localAt,revision:rec.revision};ws.state='conflict';return;}
   ws.savedAt=(rec.updatedAt||0)*1000;ws.state='saved';if(localAt>serverAt)scheduleServer();}
- function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},clips:b.clips||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
-  ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;}
+ function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},clips:b.clips||{},characters:b.characters||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
+  ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;syncMade();}
  function serverLine(){if(ws.conflict){const c=ws.conflict;return 'Your drafts on the server and in this browser differ.';}
   return ws.state==='saved'?'Saved on the server · '+new Date(ws.savedAt||Date.now()).toLocaleTimeString():ws.state==='pending'||ws.state==='saving'?'Saving to the server…':ws.state==='too-big'?ws.note:ws.state==='none'?'Saving to the server…':'Server copy not available — drafts are only in this browser';}
  function showServerState(){const n=host&&host.querySelector('[data-me-server-copy]');if(n){n.textContent=serverLine();n.className='me-small '+(ws.state==='saved'?'me-ok':'me-warn');}}
@@ -129,6 +129,13 @@
  function editOf(key){return local().missions[key]||{};}
  function setEdit(key,fn,name){const d=local(),e=d.missions[key]||{};fn(e);e.name=name||e.name;for(const k of Object.keys(e))if(e[k]==null||(typeof e[k]==='object'&&!Array.isArray(e[k])&&!Object.keys(e[k]).length)||(Array.isArray(e[k])&&!e[k].length))delete e[k];
   if(Object.keys(e).filter(k=>k!=='name').length)d.missions[key]=e;else delete d.missions[key];saveLocal(d);}
+ /* MISSION GIVERS MADE IN THE EDITOR (npc-made.js, Developer Tools > NPCs > Create a mission giver): the draft's characters join the giver roster at once (a draft giver)
+    and are movable (npc-paths.js setMade: their placement uses the NPCs tab's map). One that is not finished yet (no name, no place ...) is listed but cannot give a
+    mission yet, with the plain reason (mission-content.js madeNeeds). Run on every save, UNDO and load. */
+ function syncMade(d){if(!src)return;d=d||local();const X=root.VoidNPCPaths;try{X?.setMade?.(d.characters||{});}catch{}
+  const list=G().roster({registry:src.registry,people:src.people,story:root.VoidStoryContent?.characters||{},temple:src.temple,characters:d.characters||{},npcs:d.npcs||{}});
+  for(const g of list)if(g.made){const n=MC().madeNeeds?MC().madeNeeds(d,list,g.id):[];if(n.length){g.canTalk=false;g.draft=false;g.players=false;g.why='not finished yet: '+n[0].replace(/^[^:]+: /,'');}}
+  givers=list;src.givers=givers;stale=true;}
  // ---------------------------------------------------------------- loading the game data
  const getJSON=async(url)=>{try{const r=await fetch(url,{cache:'no-cache'});return r.ok?await r.json():null;}catch{return null;}};
  const getText=async(url)=>{try{const r=await fetch(url,{cache:'no-cache'});return r.ok?await r.text():null;}catch{return null;}};
@@ -137,7 +144,7 @@
   const [registry,manifest,extraManifest,enginesFile]=await Promise.all([getJSON('tools/audio/npc-voice-registry.json'),getJSON('void-runner/assets/audio/voice/manifest.json'),getJSON('void-runner/assets/audio/voice/extra/manifest.json'),getJSON('tools/audio/revoice-engines.json')]);
   const sh=shipped();src={missions:sh.registry,beginner:sh.beginner,content:root.VoidContent,campaign:root.VoidCampaign||root.C,story:root.VoidStoryContent,registry,manifest,extraManifest,enginesFile,engines:enginesFile&&enginesFile.characters||null,files,milked:root.VoidMilked,
    modules:root.VoidProgression?.modules,ships:root.VoidShips?.ships,locations:root.VoidUniverse?.locations,stores:SM().STORES,people:root.VoidDistrictPeople?.npcs?.()||[],temple:root.VoidTemple?.MODEL||{id:'zen-zephyr',name:'Zen Zephyr'}};
-  givers=G().roster({registry,people:src.people,story:root.VoidStoryContent?.characters||{},temple:src.temple});src.givers=givers;items=new Set(Object.keys(G().buyable(src.modules)));
+  syncMade();items=new Set(Object.keys(G().buyable(src.modules)));
   clipKeys=new Set([...Object.values(manifest?.lines||{}),...Object.values(extraManifest?.lines||{})].map(l=>l.speaker+'|'+l.text));
   rebuild();refs=T().refs(src);
   await refreshServer();await loadServer();if(numberAll())rebuild();else if(stale)rebuild();
@@ -419,14 +426,14 @@
   const set=(fn,redraw)=>ed(x=>{x.start=x.start&&x.start.how?x.start:{how:'person'};fn(x.start,x);},redraw);
   // One plain choice (the owner): Starts: In person / By Messages / By Comms call / Notification only.
   const how=el('div','','me-row'),sel=el('select','','',{'aria-label':'Starts','data-me-starts':m.id});for(const [v,n] of [['person','In person'],['person-accept','In person, asking ACCEPT / DENY'],['messages','By Messages'],['comms','By Comms call'],['notify','Notification only']])sel.append(new Option(n,v));
-  sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value,prev=x.start||{};x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;if(v!=='person'&&prev.accept===true){x.start.accept=true;for(const k of MC().ASK_KEYS)if(prev[k]!=null)x.start[k]=prev[k];}},true);   // the ACCEPT / DENY settings follow a change of channel
+  sel.value=by?(st.channel||'messages'):st.accept===true?'person-accept':'person';sel.onchange=()=>ed(x=>{const v=sel.value,prev=x.start||{};x.start=v==='person'?{how:'person'}:v==='person-accept'?{how:'person',accept:true}:{how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(x.start&&x.start.how==='notification'?x.start:{}),channel:v};delete x.start.accept;if(v==='person-accept')x.start.accept=true;if(v!=='person'&&prev.accept===true&&(v==='person-accept'||prev.how==='notification'||askCustom(prev))){x.start.accept=true;for(const k of MC().ASK_KEYS)if(prev[k]!=null)x.start[k]=prev[k];}if(payAtAccept(x))x.start.accept=true;},true);   // the ACCEPT / DENY settings follow a change of channel (19 Nov 2026: not the question implied by "In person, asking": a device start without it starts by itself)
   how.append(el('b','Starts:'),sel,...optHelp(sel,HELP_START,'Starts'),el('span',by?((G().START_CHANNELS.find(c=>c.id===st.channel)||{}).note||''):st.accept===true?'The giver offers it; the player chooses '+(st.yes||'ACCEPT')+' or '+(st.no||'DENY')+'. Once accepted it is never offered again.':'The giver offers it when the player talks to them.','me-small'));box.append(how);
   box.append(askPanel(t,m,ed));   // "Ask the player: ACCEPT or DENY" for every way of starting (19 Nov 2026)
   if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'));return box;}
   const r2=el('div','','me-row');r2.append(el('b','Sender'),npcSelect(st.from||'',v=>set(x=>{x.from=v;},true),{label:'Sender',attrs:{'data-me-start-from':m.id}}),hint(HELP.sender));box.append(r2);
   const hl=el('label','','me-field');hl.append(el('span','Header'+(st.channel==='notify'?' (optional)':'')));const hi=el('input','','',{'aria-label':'Header',maxlength:'80','data-me-start-header':m.id,placeholder:'e.g. ADMIN // INCOMING MESSAGE'});hi.value=st.header||'';hi.oninput=()=>{set(x=>{x.header=hi.value.slice(0,80);});guideSoon();};hl.append(hi,hint(HELP.header));
   const tl=el('label','','me-field');tl.append(el('span','Body'));const ta=el('textarea','','',{'aria-label':'Body',rows:'3',maxlength:'500','data-me-start-text':m.id,placeholder:'(your words)'});ta.value=st.text||'';ta.oninput=()=>{set(x=>{x.text=ta.value.slice(0,500);});guideSoon();};tl.append(ta,hint(HELP.body));box.append(hl,tl);
-  const w=st.when||{kind:'pod-exit'},wk=el('select','','',{'aria-label':'Trigger','data-me-start-when':m.id});for(const x of G().START_WHEN)wk.append(new Option(x.name,x.id));wk.value=w.kind||'pod-exit';wk.onchange=()=>set((x,mm)=>{x.when={kind:wk.value,...(wk.value==='flag'?{flag:'',value:true}:{}),...(wk.value==='game-time'?{value:360}:{}),...(wk.value==='near'?{npc:mm.giver||'',distance:G().NEAR.def}:{})};},true);
+  const w=st.when||{kind:'pod-exit'},wk=el('select','','',{'aria-label':'Trigger','data-me-start-when':m.id});for(const x of G().START_WHEN)wk.append(new Option(x.name,x.id));wk.value=w.kind||'pod-exit';wk.onchange=()=>set((x,mm)=>{x.when={kind:wk.value,...(wk.value==='flag'?{flag:'',value:true}:{}),...(wk.value==='game-time'?{value:360}:{}),...(wk.value==='near'?{npc:mm.giver||'',distance:G().NEAR.def}:{})};if(wk.value==='near'&&w.kind!=='near'&&x.accept===true&&!askCustom(x)&&!payAtAccept(mm))delete x.accept;},true);   // walked near: automatic by default (the owner, 19 Nov 2026)
   const r3=el('div','','me-row');r3.append(el('b','Trigger'),wk,...optHelp(wk,HELP_WHEN,'Trigger'));
   if(w.kind==='after-mission'||w.kind==='game-time'){const ms=el('select','','',{'aria-label':'After which mission','data-me-start-mission':m.id});ms.append(new Option('— choose a mission —',''));for(const tt of local().trees)for(const mm of tt.missions)if(mm.id!==m.id)ms.append(new Option(numLabel(mm.number,mm.title||mm.id)+' ('+(tt.name||tt.id)+')',mm.id));ms.value=w.mission||'';ms.onchange=()=>set(x=>{x.when={...x.when,kind:w.kind,mission:ms.value};},true);r3.append(ms);}
   // "After in-game time": N in-game hours and minutes after that mission is done (game-clock.js; stored as in-game minutes)
@@ -440,9 +447,16 @@
   if(w.kind==='near'){const who=w.npc||m.giver||'',N=G().NEAR,di=el('input','','',{type:'number',min:String(N.min),max:String(N.max),step:'0.5','aria-label':'Distance in metres','data-me-start-distance':m.id,style:'width:5em'});
    di.value=String(G().nearMetres(w.distance));di.onchange=()=>{const v=G().nearMetres(di.value);di.value=String(v);set(x=>{x.when={...x.when,kind:'near',distance:v};});};
    di.title=HELP.distance;r3.append(el('span','within','me-small'),di,el('span','metres of','me-small'),npcSelect(who,v=>set(x=>{x.when={...x.when,kind:'near',npc:v};},true),{label:'Who the player walks near',attrs:{'data-me-start-near':m.id}}));
-   const ng=giver(who);if(ng&&!ng.canTalk)r3.append(el('span','⚠ '+ng.name+' has no TALK prompt, so there is nothing to measure from.','me-small me-warn'));if(ng&&ng.shift)r3.append(el('span',G().shiftText(ng),'me-small me-warn',{'data-me-near-shift':m.id}));}
+   const ng=giver(who);if(ng&&!ng.canTalk)r3.append(el('span','⚠ '+ng.name+' has no TALK prompt, so there is nothing to measure from.','me-small me-warn'));if(ng&&ng.shift)r3.append(el('span',G().shiftText(ng),'me-small me-warn',{'data-me-near-shift':m.id}));r3.append(nearMode(m,set));}
   const wn=(G().START_WHEN.find(x=>x.id===w.kind)||{}).note;if(wn)r3.append(el('span',wn,'me-small'));box.append(r3);
   box.append(el('p','When the trigger happens, the notification arrives on the player’s device with the device’s notification sound (and a banner while the V1 is closed), the mission goes into the Mission Log and is tracked. Text only: no voice is generated.','me-small'));
+  return box;}
+ /* "When walked near" starts by itself unless it asks (the owner, 19 Nov 2026: "'When walked near' still needs a click option by the player, even though i want it to start
+    automatically"): one plain line under the trigger, with a button to switch. A cost at ACCEPT always asks. */
+ const payAtAccept=m=>{const c=MC().costOf(m);return !!(c&&c.when==='accept');},askCustom=st=>!!st&&MC().ASK_KEYS.some(k=>st[k]!=null);
+ function nearMode(m,set){const st=m.start||{},on=st.accept===true,pay=payAtAccept(m),box=el('div','','me-row me-near-mode',{'data-me-near-mode':m.id,'data-me-near-auto':String(!on)});
+  box.append(el('b',on?'Asks '+(st.yes||'ACCEPT')+' / '+(st.no||'DENY'):'Starts automatically — no click',on?'me-warn':'me-ok'),el('span',on?(pay?'The player pays '+MC().costOf(m).amount+' CR when accepting, so the offer must ask.':'Walking near shows the offer; the mission starts only when the player presses '+(st.yes||'ACCEPT')+'.'):'Walking near starts the mission at once: a notification shows and it goes into the Mission Log. Nothing to press.','me-small'));
+  if(!pay)box.append(btn(on?'START AUTOMATICALLY INSTEAD':'ASK ACCEPT / DENY INSTEAD',()=>set(x=>{if(on){delete x.accept;for(const k of MC().ASK_KEYS)delete x[k];}else x.accept=true;},true),'',{'data-me-near-switch':m.id}));
   return box;}
  /* CREDITS AND ACCEPT / DENY (the owner, 19 Nov 2026: "can i do -100 credit option and add an accept or deny"). Credits are one signed number shown as
     "Player gets" / "Player pays" (mission-content.js signed / setSigned: rewards, or cost {amount, when, refund}); the rules are mission-content.js MONEY. */
@@ -454,15 +468,19 @@
   labels:'The words on the two buttons, 20 letters at most. Empty: ACCEPT and DENY.',
   deny:{again:'Nothing happens: it is offered again later (the next talk for an offer in person; the next time they leave the Sleeping Pod for a message, call, banner or walk-near).',never:'It is never offered again. Missions after it in this tree will not come either.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},
   denySay:'Optional: what is said after DENY, in your own words. Empty: nothing is said.'};
+ // The question that "Player pays … when they press ACCEPT" turned on by itself (this session): turned off again when that cost goes, so a walked-near or device start is automatic again.
+ const forcedAsk=new Set();
+ function forceAsk(x){x.start=x.start&&x.start.how?x.start:{how:'person'};if(x.start.accept!==true)forcedAsk.add(x.id);x.start.accept=true;}
+ function unforceAsk(x){if(!forcedAsk.has(x.id))return;forcedAsk.delete(x.id);if(x.start&&!askCustom(x.start)){delete x.start.accept;}}
  function creditsPanel(t,m,ed){const X=MC(),v=X.signed(m),pays=v<0,box=el('div','','me-field me-credits',{'data-me-credits':m.id});box.append(el('span','Credits'));
   const row=el('div','','me-row'),dir=el('select','','',{'aria-label':'Player gets or pays','data-me-credits-dir':m.id});dir.append(new Option('Player gets','gets'),new Option('Player pays','pays'));dir.value=pays?'pays':'gets';
   const inp=el('input','','',{'aria-label':'Credits','data-me-field':'rewards',inputmode:'numeric',size:'7',maxlength:'6'});inp.value=String(Math.abs(v));
   const put=x=>{let n=Math.min(X.MONEY.max,Math.abs(parseInt(inp.value,10)||0));if(dir.value==='pays'&&!n)n=100;X.setSigned(x,dir.value==='pays'?-n:n);
-   if(x.cost&&(x.cost.when||'accept')==='accept'){x.start=x.start&&x.start.how?x.start:{how:'person'};x.start.accept=true;}};   // paying at ACCEPT needs the question
+   if(x.cost&&(x.cost.when||'accept')==='accept')forceAsk(x);else unforceAsk(x);};   // paying at ACCEPT needs the question
   dir.onchange=()=>ed(put,true);inp.oninput=()=>{ed(put);guideSoon();};inp.onchange=()=>ed(put,true);
   row.append(dir,inp,el('span','CR','me-small'));box.append(row,hint(pays?HELP_MONEY.pays:HELP_MONEY.gets));
   if(pays){const c=m.cost||{},when=c.when||'accept',w=el('select','','',{'aria-label':'When the player pays','data-me-cost-when':m.id});w.append(new Option('when they press '+((m.start&&m.start.yes)||'ACCEPT'),'accept'));m.objectives.forEach((o,k)=>w.append(new Option('when step '+(k+1)+' is done: '+String(o.label||o.id).slice(0,40),o.id)));w.value=when;
-   w.onchange=()=>ed(x=>{x.cost={...(x.cost||{}),when:w.value};if(w.value!=='accept')delete x.cost.refund;else{x.start=x.start&&x.start.how?x.start:{how:'person'};x.start.accept=true;}},true);
+   w.onchange=()=>ed(x=>{x.cost={...(x.cost||{}),when:w.value};if(w.value!=='accept'){delete x.cost.refund;unforceAsk(x);}else forceAsk(x);},true);
    const r2=el('div','','me-row');r2.append(el('span','Charged','me-small'),w);
    if(when==='accept'){const cb=el('input','','',{type:'checkbox','data-me-cost-refund':m.id});cb.checked=c.refund===true;cb.onchange=()=>ed(x=>{x.cost={...(x.cost||{})};if(cb.checked)x.cost.refund=true;else delete x.cost.refund;},true);const lb=el('label','','me-small');lb.append(cb,document.createTextNode(' refund if abandoned'));r2.append(lb);}
    box.append(r2,hint(HELP_MONEY.when+' '+HELP_MONEY.refund));}

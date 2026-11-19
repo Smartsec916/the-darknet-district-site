@@ -18,7 +18,7 @@
   const floor=B.MeshBuilder.CreateDisc('npc-preview-floor',{radius:1.1,tessellation:48},scene);floor.rotation.x=Math.PI/2;const fm=new B.StandardMaterial('npc-preview-floor-m',scene);fm.diffuseColor=new B.Color3(.16,.17,.22);fm.specularColor=new B.Color3(0,0,0);floor.material=fm;
   let container=null,rootNode=null,groups=[],current=null,spin=true,disposed=false,info=null;
   cv.addEventListener('pointerdown',()=>{spin=false;});
-  engine.runRenderLoop(()=>{if(disposed)return;if(spin&&rootNode)rootNode.rotation.y+=.006;scene.render();});
+  engine.runRenderLoop(()=>{if(disposed||!cv.isConnected||cv.offsetParent===null)return;   /* nothing drawn while the preview is not on screen (another tab, the panel closed, a test session) */if(spin&&rootNode)rootNode.rotation.y+=.006;scene.render();});
   function clear(){current=null;for(const g of groups)g.stop();container?.removeAllFromScene?.();container?.dispose?.();container=null;rootNode=null;groups=[];info=null;}
   function measure(bytes){const meshes=container.meshes.filter(m=>m.getTotalVertices&&m.getTotalVertices()>0);let tri=0;for(const m of meshes){const n=m.getTotalIndices?m.getTotalIndices():0;tri+=n?n/3:m.getTotalVertices()/3;}
    let min=new B.Vector3(Infinity,Infinity,Infinity),max=new B.Vector3(-Infinity,-Infinity,-Infinity);for(const m of meshes){m.computeWorldMatrix(true);const bb=m.getBoundingInfo().boundingBox;min=B.Vector3.Minimize(min,bb.minimumWorld);max=B.Vector3.Maximize(max,bb.maximumWorld);}
