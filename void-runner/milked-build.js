@@ -726,9 +726,9 @@
    syncStudioOne();const p=people.find(x=>x.studio===Number(studio));
    if(!p||!p.node||!p.anim)return {look:p?.fixedLook||null,ready:false,clips:[]};
    const groups=p.node.metadata?.animationGroups||[];
-   const present=name=>groups.some(g=>g.name===name||g.name.endsWith('-'+name)||g.name.replace(/\\.\\d{3}$/,'').endsWith('-'+name));
+   const present=name=>groups.some(g=>g.name===name||g.name.endsWith('-'+name)||g.name.replace(/\.\d{3}$/,'').endsWith('-'+name));
    const options=[...new Set(root.VoidCrowd?.clips?.[p.look]||[])].filter(c=>REQUESTABLE.test(c)&&p.anim.has?.(c)&&present(c));
-   return {look:p.look,ready:true,clips:options.map(id=>({id,label:id.replace(/^ac-/,'').replace(/-/g,' ').replace(/\\b\\w/g,c=>c.toUpperCase())}))};
+   return {look:p.look,ready:true,clips:options.map(id=>({id,label:id.replace(/^ac-/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}))};
   }
   function requestAnimation(studio,clip){
    const available=animationChoices(studio),p=people.find(x=>x.studio===Number(studio));
