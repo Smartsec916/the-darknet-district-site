@@ -38647,7 +38647,7 @@
       "spawn"
     ]
   },
-  "revision": "d81eb07d079e4bdc",
+  "revision": "a7edd8c0566e4752",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57035,7 +57035,7 @@
     "void-runner/ncz-outskirts-life.js": "499e7eb615081e6575e17d8f357887f2b54f48db480463cd0381ef31a633010b",
     "void-runner/ncz-quarters.js": "2452dc8d471d63247c98e6f5f5f0e5f9327b5df3a41934abe081d2146393919b",
     "void-runner/ncz-street-glow.js": "4aa3f4f80e7648bde8f268a8b48ce1ffbbd9b4fa01f661e13ca0e788a50412b6",
-    "void-runner/ncz-street-pair.js": "7f51b3f9e1c8d8c08c927e1b32c56826584ecc6323f412b0fc46d20cfc954fbe",
+    "void-runner/ncz-street-pair.js": "2585445127bf60ee658aea83a1a72ee429446399c817775f24eff29196db4716",
     "void-runner/neochinatown.js": "277339a765e4fe52bd51409c56f98e0c53c1f4e93a2a0038571dd70d2a823a94",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
@@ -57047,7 +57047,7 @@
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
-    "void-runner/npc-made.js": "d74cd0f2b45560ccf05dd9b3acd9a2cd187dfc90debeb431eec8881129b87c0b",
+    "void-runner/npc-made.js": "f96b4b5467f22b6081ff5566111a2addb0ff93429193abf830c7ca27e334bda8",
     "void-runner/npc-map.js": "c61a19647855017188361dd42a1f91e5ba2187df0dcddb1df2109648af734eac",
     "void-runner/npc-paths.js": "3ea99998605bdb4072948794b1f75dee97e1ee7af7d192fc5a8a73863200ba0e",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",

@@ -266,7 +266,7 @@
   /* Hold or release a plan change for one figure: body {x, z, key, plan, enabled}; leg(from, to): the straight walk is blocked. Returns true while held. */
   function holdCheck(id,body,c,leg){const R=planRaw(id),k=R?R.key:null,seen=body.enabled&&inView(body.x,body.y,body.z,c);
    if(held[id]){if(!seen||k===held[id].key){const moved=k!==held[id].key;delete held[id];if(moved)rejoin[id]=true;return false;}return true;}
-   if(k===body.key||(R&&R.mode==='escort')||(body.plan&&body.plan.mode==='escort')||!seen)return false;
+   if(k===body.key||(R&&R.mode==='escort')||!seen)return false;   /* (follow fix, 19 Nov 2026) a finished follow step is held too: a mission that ends with one sent her back to her Avenue routine and she vanished at the spot, on screen */
    const t=planSpot(R),jump=R?!!(t&&leg(t)):!!leg(null),gone=!HERE.has(areaOfPlan(R));if(jump||gone){held[id]={plan:body.plan||null,key:body.key};return true;}return false;}
   // where she appears: as planSpot, and for a follow / lead / cab step where it had got to (a reload) or where she stood when it started (P.from, live-content.js;
   // fix 19 Nov 2026: she appeared at her routine's spot on The Avenue, outside the quarter the step happens in)
