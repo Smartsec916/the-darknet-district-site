@@ -119,8 +119,8 @@
  // to Meshy or any AI tool: CGTrader "No AI" licence). Studio 4: Auburn's own Meshy rig, club dances from the Meshy library. Clip names are in crowd.js.
  const DANCES={dex:['dance-hiphop','dance-hiphop-2','dance-hiphop-3','dance-groove','dance-bass','dance-samba','dance'],auburn:['dance-allnight','dance-shake','dance-lovepop','dance-denim','dance-omg']};
  // Always show in Milked Studio 1 the OTHER resident from the Avenue's real-time UTC shift.
- // Keep the same 00:00 and 12:00 boundaries as ncz-street-pair.js, independent of save/game time.
- function studioOnePerformer(ms=Date.now()){
+ // Keep the same 00:00 and 12:00 boundaries as ncz-street-pair.js, independent of save/game time. ms: the STREET clock (VoidStreetPair.streetTime: a draft test may simulate it).
+ function studioOnePerformer(ms=root.VoidStreetPair?.streetTime?.()??Date.now()){
   const street=root.VoidStreetPair?.onShift?.(ms)?.id||(new Date(ms).getUTCHours()<12?'grey-reverie':'ethereal-lace');
   return {look:street==='grey-reverie'?'npc-ethereal-lace':'npc-grey-reverie',clips:['dance-groove','dance-bop','idle'],dances:['dance-groove','dance-bop'],library:null};
  }
