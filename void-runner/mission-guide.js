@@ -14,8 +14,39 @@
  // interaction point (milked.js, world metres); the route through the front doors, the vestibule, the door beside the desk and the STAFF ONLY door is guide-route.js's.
  function milkedPerson(g){try{if(!g||!g.interaction||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown')return null;
   const it=(root.VoidMilked?.INTERACTIONS||[]).find(i=>i.id===g.interaction);return it?{position:it.position.slice(),route:true,label:it.label||g.label||''}:null;}catch{return null;}}
+ // An apartment / location step (Go into, Use something in, Hack the access point; apartments.js, modules.js), QA 19 Nov 2026: these steps had no arrow at all.
+ // On the street: the street door (or the street door's access point). In the hallway: the apartment's door (or its access point), or the exit when it is another
+ // building's hallway. In the apartment or location: the thing to use or the access point; in another part of a location: the elevator button for its floor or the
+ // door that leads there; in the wrong one: the way out. The route between rooms of a location is guide-route.js's (modular).
+ function aptGoal(g){try{const x=g&&g.apt;if(!x||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown')return null;
+  const A=root.VoidApartments,M=root.VoidModules,wl=walkingLocation;if(!A)return null;
+  const ap=x.ap?A.apOf(x.ap):null,aid=x.a||(ap&&ap.apt)||null,mis=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===x.m),rec=mis&&(mis.apartments||[]).find(a=>a&&a.id===aid);
+  const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:g.label||i.label||''}:null;};
+  const front=id=>{const d=A.door(id);return d&&d.front?{position:[d.front[0],1.7,d.front[1]],route:true,label:g.label||''}:null;};
+  const door=ap&&ap.door?ap.door:rec&&rec.door;
+  if(!wl.apartment){if(!door)return null;return ap&&ap.door?here(i=>i.id==='aptap-'+door)||front(door):here(i=>i.id==='aptdoor-'+door)||front(door);}
+  const mine=!!(wl.apt&&wl.apt.mission===x.m&&wl.apt.id===aid);
+  if(wl.modular){const out=()=>here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(!mine)return out();
+   const mod=x.mod||(ap&&ap.mod)||null,cl=wl.cluster||{},inCl=!mod||(cl.mods||[]).some(m=>m.id===mod);
+   if(inCl){if(x.kind==='hack'&&ap&&ap.mod)return here(i=>i.action==='apt-ap'&&i.ap===aid+'/'+ap.mod+'.'+ap.sock);
+    if(x.kind==='apt-use')return here(i=>i.action==='mod-use'&&i.object===x.object&&(!mod||i.mod===mod));
+    const mm=mod&&(cl.mods||[]).find(m=>m.id===mod);return mm?{position:[mm.cx,1.7,mm.cz],route:true,label:g.label||''}:null;}
+   // another part of the location: its floor by elevator, or a door that leads to it
+   const an=M&&rec&&M.analyse?M.analyse(rec):null,tp=an&&an.byId[mod]&&an.byId[mod].p;if(!tp)return out();
+   if(tp.floor!==cl.floor){const e=here(i=>i.action==='mod-elev'&&i.floor===tp.floor);if(e)return e;}
+   const want=new Set(((an.clusterOf&&an.clusterOf(mod))||{mods:[]}).mods);const link=(cl.doors||[]).find(d=>d.kind==='portal'&&d.leads&&want.has(String(d.leads).split('.')[0]));
+   return (link&&here(i=>i.action==='mod-portal'&&i.door===link.id))||here(i=>i.action==='mod-elev')||here(i=>i.action==='mod-portal')||out();}
+  if(wl.part==='hall'){const o=(wl.open||[]).find(o=>o.mission===x.m&&o.id===aid);if(!o||(rec&&wl.street!==rec.door))return here(i=>i.action==='apt-hall-exit');
+   if(x.kind==='hack'&&ap&&ap.part==='hall')return here(i=>i.action==='apt-ap'&&i.ap===aid+'/hall'&&i.mission===x.m);return here(i=>i.action==='apt-hall-door'&&i.slot===o.slot);}
+  if(!mine)return here(i=>i.action==='apt-exit');
+  if(x.kind==='apt-use')return here(i=>i.action==='apt-use'&&i.object===x.object);if(x.kind==='hack')return here(i=>i.action==='apt-ap');return null;}catch{return null;}}
+ // A giver made in the editor (npc-made.js; QA 19 Nov 2026: no arrow led to them): where the figure stands now, or, before it is built (another quarter), the
+ // spot of their plan; the route through gates and doors is guide-route.js's.
+ function madePerson(g){try{const id=g&&g.made;if(!id||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.apartment)return null;const M=root.VoidMadeNPCs;if(!M)return null;
+  const p=(M.live&&M.live()?.people||[]).find(x=>x.id===id);if(p&&Number.isFinite(p.x))return {position:[p.x,1.7,p.z],route:true,label:g.label||''};
+  const pl=M.planOf&&M.planOf(id),pt=pl&&(Number.isFinite(pl.x)?pl:Array.isArray(pl.points)&&pl.points[0]);return pt&&Number.isFinite(pt.x)?{position:[pt.x,1.7,pt.z],route:true,label:g.label||''}:null;}catch{return null;}}
  function missionPlaceRoute(g){
-  try{const mp=milkedPerson(g);if(mp)return mp;if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
+  try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
    const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
    if(node&&node.scene&&!node.whole&&node.scene!==wl.id)return null;
    const pt=(g.target&&subjectPoint(g.target))||(g.place&&P()?.target(g.place));if(!pt)return null;
@@ -59,5 +90,5 @@
   const s=typeof state!=='undefined'&&state?state:null,off=s?.story?.flags?.helpOff===true,D=root.VoidPersonalDevice,on=typeof mode!=='undefined'&&(mode==='walking'||D?.isOpen);
   const cur=!off&&on?LC()?.step?.():null,h=cur?hintFor({step:cur.step,deviceOpen:!!D?.isOpen,app:D?.app||null,thread:D?.thread||null,attach:D?.attach||{},camera:!!root.VoidDeviceCamera?.active,key:key(),name}):null;
   const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);
- root.VoidMissionGuide={missionPlaceRoute,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
+ root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
 })(globalThis);

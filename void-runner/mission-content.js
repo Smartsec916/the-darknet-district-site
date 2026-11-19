@@ -334,13 +334,13 @@
  function treeDefinition(t,m,i,givers){const g=id=>(givers||[]).find(x=>x.id===id)||null,name=id=>(g(id)||{}).name||id;
   // An NPC who stands in NeoChinatown (the District, the street) is at 'earth', so the Mission Log's guidance and waypoint lead to them (as the beginner campaign's did).
   const at=who=>who&&who.enter?(who.enter.location||(who.enter.walk?'earth':null)):null;
-  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&o.kind!=='photo'&&o.kind!=='send-photo'&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;const loc=at(who);if(loc)x.destination=loc;
+  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&o.kind!=='photo'&&o.kind!=='send-photo'&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;else if(who&&who.made)x.made=o.npc;const loc=at(who);if(loc)x.destination=loc;   // made: a giver made in the editor (no fixed TALK spot; mission-guide.js madePerson)
    // a place step (and a photo step: the arrow and the marker lead to the person in the photo) is guided in NeoChinatown (places.js target; mission-log.js guidance)
    if(o.kind==='enter'||o.kind==='leave'||o.kind==='go'&&PL&&PL.BY.has(o.place)){x.place=o.place;if(PL&&PL.within(o.place,'neochinatown'))x.destination='earth';}
    if(o.kind==='photo'){const sub=g(o.npc);x.target=o.npc;if(sub&&sub.place)x.place=sub.place;x.destination='earth';}
-   if(APT_KINDS.includes(o.kind))x.destination='earth';
+   if(APT_KINDS.includes(o.kind)){x.destination='earth';x.apt={m:m.id,a:o.apt||null,kind:o.kind};for(const k of ['object','mod','ap'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}   // the arrow to an apartment / location step (mission-guide.js aptGoal)
    return x;});
-  if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;if(at(who))x.destination=at(who);objectives.push(x);}
+  if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;else if(who&&who.made)x.made=m.ending.npc;if(at(who))x.destination=at(who);objectives.push(x);}
   const extra={};if(Number.isInteger(m.number))extra.number=m.number;for(const k of ['category','location','objective'])if(m[k])extra[k]=m[k];if(m.start&&m.start.how==='notification')extra.start={how:'notification',channel:m.start.channel,from:m.start.from};
   return {title:titleOf(m),name:m.title,devLabel:devLabel(m),type:m.type,description:m.description||'',giver:name(m.giver),source:STORY.has(t.id)?'main-story':'owner-tree',ownerTree:t.id,rewards:m.rewards||null,prerequisites:i?[t.missions[i-1].id]:[],objectives,...extra};}
  /* Applies one unlock to a campaign state. Returns a plain description, or null when nothing changed. */

@@ -166,7 +166,7 @@
    const stage=Object.entries(def.after||{}).filter(([key])=>entry.objectives?.[key]===true).map(([,next])=>next).pop();const pendingStep=def.objectives.find(o=>o.required!==false&&entry.objectives?.[o.id]!==true);
    const complete=entry.completed===true||!tutorials.includes(id)&&objectives.filter(objective=>objective.required!==false).every(objective=>objective.complete);
    const destination=stage?.destination?stage.destination:pendingStep?.destination?pendingStep.destination:id==='flight-training'&&pastWorkshop(s)?C?.missionFlight?.({...s,destination:null})?.destination||def.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
-   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,...(pendingStep?.place?{place:pendingStep.place}:{}),...(pendingStep?.target?{target:pendingStep.target}:{}),objectives,objective:complete?'Complete':def.objective||objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id,...(Number.isInteger(def.number)?{number:def.number,name:def.name||def.title}:{}),...(def.category?{category:def.category}:{}),...(def.location?{location:def.location}:{})};
+   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,...(pendingStep?.place?{place:pendingStep.place}:{}),...(pendingStep?.target?{target:pendingStep.target}:{}),...(pendingStep?.apt?{apt:pendingStep.apt}:{}),...(pendingStep?.made?{made:pendingStep.made}:{}),objectives,objective:complete?'Complete':def.objective||objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id,...(Number.isInteger(def.number)?{number:def.number,name:def.name||def.title}:{}),...(def.category?{category:def.category}:{}),...(def.location?{location:def.location}:{})};
   });
  }
  function active(s,C){sync(s,C);return all(s,C).filter(mission=>!mission.completed);}
@@ -195,7 +195,7 @@
   if(!mission.destination)return {kind:'instruction',label:mission.objective};
   if(inside){if(s.location!==mission.destination)return {kind:'ship',label:'YOUR SHIP / HANGAR',interaction:'board'};
    // a place step or a photo step (tree missions): the arrow leads to the place (places.js) or to the person to photograph (world-integration.js, mission-world.js)
-   if(!mission.interaction&&(mission.place||mission.target))return {kind:'local',label:mission.objective,...(mission.place?{place:mission.place}:{}),...(mission.target?{target:mission.target}:{})};
+   if(!mission.interaction&&(mission.place||mission.target||mission.apt||mission.made))return {kind:'local',label:mission.objective,...(mission.place?{place:mission.place}:{}),...(mission.target?{target:mission.target}:{}),...(mission.apt?{apt:mission.apt}:{}),...(mission.made?{made:mission.made}:{})};
    return {kind:'local',label:mission.objective,interaction:mission.interaction||'rook'};}
   const hop=U.nextHop(s.location,mission.destination);
   return {kind:U.route(s.location,hop).kind,label:(U.system(s.location)!==U.system(hop)?'INTERSTELLAR / ':'LOCAL / ')+(U.locations[hop]?.name||hop).toUpperCase(),destination:hop};
