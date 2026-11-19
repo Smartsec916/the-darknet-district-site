@@ -52,7 +52,8 @@
   const btn=(k,v,label,sel,en=true,why='')=>`<button data-cc="${k}" data-v="${v}" aria-pressed="${sel}"${en?'':' disabled'}${why?` title="${why}"`:''}>${label}</button>`;
   ui.innerHTML=`<div class="cc-panel"><h1>${ctx.context==='first'||ctx.context==='multiplayer-setup'?'CREATE YOUR CHARACTER':'WARDROBE'}</h1><p class="cc-sub">${ctx.context==='first'||ctx.context==='multiplayer-setup'?'You can change all of this later, free, in the Sleeping Pod wardrobe.':'Free and unlimited. Your location, inventory, credits and missions are not affected.'}</p>
   <h2>BODY</h2><div class="cc-row">${Object.entries(CAT.bases).map(([id,b])=>btn('base',id,b.label,draft.base===id)).join('')}</div>
-  <h2>OUTFIT</h2><div class="cc-row">${o.looks.map(l=>btn('look',l.id,l.label,draft.look===l.id)).join('')}</div>
+  <h2>OUTFIT</h2><div class="cc-row">${o.looks.filter(l=>l.group!=='cyber').map(l=>btn('look',l.id,l.label,draft.look===l.id)).join('')}</div>
+  ${o.looks.some(l=>l.group==='cyber')?`<h2>CYBERPUNK PRESETS</h2><div class="cc-row cc-cyber">${o.looks.filter(l=>l.group==='cyber').map(l=>btn('look',l.id,l.label,draft.look===l.id)).join('')}</div>`:''}
   <p class="cc-note">${look.street?'Each outfit is a whole figure with its own hair, shoes and details; the colour versions are listed beside it.':'Each outfit comes with its own shoes. Swapping outfits and shoes separately needs extra character files that are not made yet.'}</p>
   <h2>CLOTHING COLOUR</h2><div class="cc-row">${btn('clothingColor','','ORIGINAL',draft.clothingColor===null)}${CAT.clothingColors.map(c=>swatch('clothingColor',c,draft.clothingColor===c.id)).join('')}</div>
   <h2>HAIRSTYLE</h2><div class="cc-row">${o.hair.map(h=>btn('hair',h.id,h.label,draft.hair===h.id,h.enabled,h.reason||'')).join('')}</div>

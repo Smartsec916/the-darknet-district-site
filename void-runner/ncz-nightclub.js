@@ -263,7 +263,7 @@
   const pairBuild=()=>{if(clock>2){junoBuild();haldenBuild();}};
   // (FIXER is left out of the crowd since 17 Nov 2026: Juno Vex is built on it, and a second figure with her bob and shades at the bar would not let her read as alone)
   // (the TRADER look is Halden Reyes's and is not in the crowd; the bartender and the bar guests also never wear the other men's suit, SUITED, so nobody near the pair looks like him)
-  const CAST=['npc-club-f','npc-club-m','npc-lookout','npc-student','npc-hacker','npc-enforcer','npc-casual-f','npc-fixer'],SUITED=['npc-fixer','npc-office-m','district-smuggler','vesper-trader'],   /* club-goers (NPC upgrade, 18 Nov 2026: #8, #9; crowd.js street). Before: district-resident, ncz-neon, outlaw-01, hacker-01, runner-02, district-smuggler, communion-tech */clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
+  const CAST=['npc-club-f','npc-club-m','npc-cyber-pvc','npc-lookout','npc-cyber-samurai','npc-student','npc-hacker','npc-enforcer','npc-casual-f','npc-fixer','npc-cyber-bouncer'],SUITED=['npc-fixer','npc-office-m','district-smuggler','vesper-trader'],   /* club-goers (NPC upgrade, 18 Nov 2026: #8, #9; crowd.js street). Before: district-resident, ncz-neon, outlaw-01, hacker-01, runner-02, district-smuggler, communion-tech */clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
   function staff(dt,near){
    if(!people.length&&!built){pairBuild();pairTick(dt,near);return;}   // the purchased model has no crowd of its own: Juno and Halden are still at the bar
    if(!people.length)return;

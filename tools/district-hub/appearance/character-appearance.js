@@ -75,7 +75,7 @@
  function options(a){
   const look=CAT.looks[a.look],hat=a.accessories.includes('hat'),street=!!look.street;
   return {
-   looks:Object.entries(CAT.looks).filter(([,l])=>l.base===a.base&&!l.retired).map(([id,l])=>({id,label:l.label})),   // retired looks are never offered (they still load)
+   looks:Object.entries(CAT.looks).filter(([,l])=>l.base===a.base&&!l.retired).map(([id,l])=>({id,label:l.label,group:l.group||'street'})),   // retired looks are never offered (they still load); group 'cyber': the CYBERPUNK PRESETS row (19 Nov 2026)
    hair:[{id:'native',label:'ORIGINAL',enabled:true},{id:'none',label:'NONE',enabled:!street,reason:street?'part of this body':''},...Object.entries(CAT.hair).map(([id,h])=>({id,label:h.label,enabled:look.hairOk.includes(id)&&(!hat||h.hatOk),reason:!look.hairOk.includes(id)?(street?'part of this body':'does not fit this body'):(hat&&!h.hatOk?'not with a hat':'')}))],
    hairColor:!street,hairColors:CAT.hairColors,clothingColors:CAT.clothingColors,
    accessories:Object.keys(look.accessories).map(id=>({id,label:CAT.accessories[id].label,enabled:true,gear:!!CAT.accessories[id].gear}))
