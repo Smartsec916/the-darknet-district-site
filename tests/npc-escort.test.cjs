@@ -96,7 +96,7 @@ test('shared cab: she follows; she gets in only a cab to her stop (another stop:
  const s3={x:100,z:-6.6,yaw:0};run(X.cab,s3,{...base,job:null},.3);s3.x=s3.f.x=20;evs=run(X.cab,s3,{...base,job:{...right,phase:'to-dest'},riding:true},.2);assert.notEqual(s3.phase,'in-cab','too far away: she does not ride');
 });
 
-test('mission content: the four step kinds are checked (who, spot, distances, stop), run by events, and a lost player with "fails" sends the mission back',()=>{
+test('mission content: the four step kinds are checked (who, spot, distances, stop), run by events, and a lost player with "fails" sends the mission back',t=>{const realNow=Date.now;Date.now=()=>Date.UTC(2026,10,19,3,0);t.after(()=>{Date.now=realNow;});   // Reverie's shift (00-12 UTC): the result must not depend on the hour the test runs
  const x=env(),{MC}=x;
  const good=[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail'},{kind:'they-follow',npc:'street-cat',to:{x:60,z:-6.4}},{kind:'their-cab',npc:'ethereal-lace',stop:'east-gate'},{kind:'shared-cab',npc:'grey-reverie',stop:'avenue'}];
  for(const o of good)assert.deepEqual(MC.check(doc(x,tree(o)),ctx(x)).errors,[],o.kind);
