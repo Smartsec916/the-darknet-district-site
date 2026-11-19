@@ -258,7 +258,7 @@
  if(root.VoidStreetPair){root.VoidStreetPair.onEscort=onEscort;root.VoidStreetPair.planFor=id=>plans()[id]||null;root.VoidStreetPair.animsFor=id=>((env.npcPlans||{})[id]||{}).anims||[];}
  /* APARTMENTS (apartments.js, apartment-integration.js): the instances open for this player, the street doors a hack opened, the hack steps in progress; a use of
     something in an apartment and a finished hack are mission events. */
- const aptRun=ev=>{try{if(!treesOn())return null;const r=MC.treeEvent(state,env,ev,root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);if(r.objective||r.offered)try{save();}catch{}if(r.lines&&r.lines.length&&mode==='walking')setTimeout(()=>show(r.lines,r),600);return r;}catch{return null;}};
+ const aptRun=ev=>{try{if(!treesOn())return null;const r=MC.treeEvent(state,env,ev,root.VoidMissions,root.C||root.VoidCampaign);report(r);deliver(r);if((r.objective||r.offered)&&!root.VoidDevTest?.active)try{save();}catch{}if(r.lines&&r.lines.length&&mode==='walking')setTimeout(()=>show(r.lines,r),600);return r;}catch{return null;}};
  const apartments=()=>{try{return treesOn()?MC.apartmentsNow(state,env):[];}catch{return [];}};
  const hackedDoors=()=>{try{return treesOn()?MC.hackedNow(state,env):[];}catch{return [];}};
  const hacks=()=>{try{return treesOn()?MC.hacksNow(state,env):[];}catch{return [];}};

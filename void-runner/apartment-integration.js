@@ -55,7 +55,7 @@
   const P=(n,c,o={})=>{const m=new B.PBRMaterial('aptst-'+n,scene);m.albedoColor=B.Color3.FromHexString(c);m.roughness=o.r??.6;m.metallic=o.m??.4;m.usePhysicalLightFalloff=false;if(o.t)m.albedoTexture=tex(o.t);if(o.nrm&&!low)m.bumpTexture=tex(o.nrm);m.maxSimultaneousLights=8;own.push(m);return m;};
   const G=(n,c,k=1)=>{const m=new B.StandardMaterial('aptst-'+n,scene);m.disableLighting=true;m.emissiveColor=B.Color3.FromHexString(c).scale(k);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();own.push(m);return m;};
   const slabMat={rundown:P('slab-r','#6a5e52',{t:'ncz/metal-leaks-color.jpg',nrm:'ncz/metal-leaks-normal.jpg',r:.55,m:.6}),normal:P('slab-n','#434951',{t:'district-interior/kit_gunmetal_color.jpg',r:.45,m:.7}),luxury:P('slab-l','#2a211a',{r:.35,m:.2})};
-  const frame=P('frame','#2a2c30',{r:.5,m:.7}),surround=P('surround','#4a4c50',{t:'ncz/concrete-old-color.jpg',nrm:'ncz/concrete-old-normal.jpg',r:.9,m:0}),dark=G('recess','#030304'),panel=P('ap','#1d2024',{r:.4,m:.8}),screen=G('ap-screen','#1f6f8a',.55);
+  const frame=P('frame','#2a2c30',{r:.5,m:.7}),surround=P('surround','#4a4c50',{t:'ncz/concrete-old-color.jpg',nrm:'ncz/concrete-old-normal.jpg',r:.9,m:0}),dark=G('recess','#030304'),panel=P('ap','#1d2024',{r:.4,m:.8}),screen=G('ap-screen','#2a8fb0',1.0);
   const lamp={locked:G('red','#ff2a2a',1.1),mine:G('amber','#ffb347',1.1),open:G('green','#39ff9c',1.1)};
   const unit=(name,mat,w,h,d)=>{const m=B.MeshBuilder.CreateBox('aptst-'+name,{width:w,height:h,depth:d},scene);m.material=mat;m.parent=parent;m.isPickable=false;m.alwaysSelectAsActiveMesh=true;own.push(m);return m;};
   const M=B.Matrix,Q=B.Quaternion,V=B.Vector3;const mat=(x,y,z,ry,s=[1,1,1])=>M.Compose(new V(...s),Q.RotationYawPitchRoll(ry,0,0),new V(x,y,z));
@@ -143,7 +143,7 @@
    else if(obj==='closet'||obj==='panel'){const v=z?.toggle?.(obj);msg=v===false?(obj==='closet'?'You close the closet.':'You close the utility panel.'):(obj==='panel'?TEXT.panel:TEXT.closet[st]);}
    else if(obj==='screen'){const v=z?.toggle?.('screen');const k=visit?.inst?.key;if(k){screenSet.add(k);if(v===false)screenOff.add(k);else screenOff.delete(k);}msg=v===false?'You switch the screen off.':'You switch the screen on. The city’s adverts, as on every street screen.';}
    else if(obj==='safe'){z?.toggle?.('safe');msg=TEXT.safe[st];}else if(obj==='computer')msg=TEXT.computer[st];
-   else if(obj==='vending'){const g=(root.VoidPodVending?.products||[]).filter((d,i)=>(i+({rundown:0,normal:3,luxury:6}[st]||0))%3===0).slice(0,5);msg=({rundown:'VENDING (old, scuffed, half the lights dead): ',normal:'VENDING: ',luxury:'PANTRY DISPENSER: '}[st])+(g.length?g.map(d=>d[0]+' '+Number(d[2]).toFixed(2)).join(' · '):'food and drinks')+'. (Buying here comes later.)';}
+   else if(obj==='vending'){const g=(root.VoidPodVending?.products||[]).filter((d,i)=>(i+({rundown:0,normal:3,luxury:6}[st]||0))%3===0).slice(0,5);msg=({rundown:'VENDING (old, scuffed, half the lights dead): ',normal:'VENDING: ',luxury:'PANTRY DISPENSER: '}[st])+(g.length?g.map(d=>d.name+' '+Number(d.price).toFixed(2)).join(' · '):'food and drinks')+'. (Buying here comes later.)';}
    note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj});}catch{}});}
  // walking through an open door inside: hallway door -> apartment, the apartment's door -> hallway, the hallway's street door -> street
  setInterval(()=>{try{const wl=here(),z=root.VoidBabylon?.zone;if(!wl||!z||busy||mode!=='walking'||typeof walker==='undefined'||!walker)return;
@@ -152,6 +152,6 @@
    if(d.slot!=null){const o=(wl.open||[]).find(x=>x.slot===d.slot);const inst=o&&((visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key));if(inst&&!o.locked){enterFlat(inst);return;}}}}catch{}},120);
  // the apartment the player is inside now ('<mission>/<id>'), for the mission engine's place events
  function inside(){const wl=here();return wl&&wl.part==='flat'&&wl.apt?wl.apt.mission+'/'+wl.apt.id:null;}
- Object.assign(root.VoidApartments,{open,allowed,inside,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,get visit(){return visit;},get hacking(){return hacking;},
-  setPreview(p){preview=p||null;},streetDoorsBuild:streetDoors});
+ Object.assign(root.VoidApartments,{open,allowed,inside,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,setPreview(p){preview=p||null;},streetDoorsBuild:streetDoors});
+ Object.defineProperties(root.VoidApartments,{visit:{get:()=>visit,configurable:true},hacking:{get:()=>hacking,configurable:true}});   // live values (Object.assign would copy them once)
 })(globalThis);

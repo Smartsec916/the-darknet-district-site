@@ -36,6 +36,20 @@ Later the same day: every door is an automatic sliding door; an access point bes
 - Wiring: `void-runner/apartment-integration.js` (street doors as thin instances: about a dozen draw calls a quarter; their prompts are added by wrapping `VoidNeoChinatown.layout`; `VoidNeoChinatown.build` is wrapped to add the doors and residents; prompts, transitions, hack HUD, uses). `babylon-renderer.js` builds `def.apartment` like Milked / the Temple.
 - Saves: nothing new. An apartment is not a save location (like Milked): every login wakes in the Sleeping Pod. `save-manifest.json` is unchanged. The ad screen / lights state is kept per apartment instance for the session only.
 
+## Performance (software GL in a Linux container, 1280x720; real GPUs are faster, the counts are what matters)
+
+Draw calls for one rendered frame (everything the scene draws, including the glow pass on Medium), measured with `engine._drawCalls` after `scene.render()`:
+
+| | Medium | Low |
+|---|---|---|
+| Rundown apartment | 104 (47 active meshes, 2 real lights) | — |
+| Normal apartment | ~100 | 42 (1 real light, no props) |
+| Luxury apartment | 94 (42 active meshes) | — |
+| Hallways | 102–108 | 45 |
+| A street quarter (all of it, doors included) | 118–126 | — |
+
+The street doors of a quarter add about 12 draw calls in all (thin instances: frames, slabs, lights, plates, access points).
+
 ## Not done / weak
 
 - No real hacking minigame (a progress bar stands in: replace `run()` in `apartment-integration.js`). No buying at the vending machine, nothing inside the safe, the computer or the panel yet; items are shown and described, not picked up.

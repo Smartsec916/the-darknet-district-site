@@ -1181,7 +1181,7 @@
       crowdLocation=def.id;root.VoidCrowd?.begin();
       zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:def.apartment?root.VoidApartments:root.VoidMilked).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
       await zoneHandle?.prepare?.();   // Milked: its people and their shaders, behind the check-in card (milked-build.js prepare; bounded, never throws)
-      await task.wait(def.corporate||def.temple?'area':'scene',()=>scene.whenReadyAsync(),def.id);
+      await task.wait(def.corporate||def.temple||def.apartment?'area':'scene',()=>scene.whenReadyAsync(),def.id);
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){

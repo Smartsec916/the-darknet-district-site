@@ -58,9 +58,10 @@
    for(let i=0;i<10*k;i++){const x=rand()*w,gr=g.createLinearGradient(0,0,0,h);gr.addColorStop(0,'rgba(20,14,6,'+(.12*k)+')');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x,0,1+rand()*4,h*(.3+rand()*.7));}};
   const planks=(base,dark,gap,k)=>canvas(512,512,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);const rows=8,rh=h/rows;for(let r=0;r<rows;r++){let x=-rand()*200;while(x<w){const len=140+rand()*200,v=rand();g.fillStyle='rgba('+(v<.5?'0,0,0,':'255,255,255,')+(.03+rand()*.06)+')';g.fillRect(x,r*rh,len,rh);
     for(let i=0;i<14;i++){g.fillStyle=dark;g.globalAlpha=.08+rand()*.08;g.fillRect(x,r*rh+rand()*rh,len,1);}g.globalAlpha=1;g.fillStyle=gap;g.fillRect(x,r*rh,2,rh);x+=len;}g.fillStyle=gap;g.fillRect(0,r*rh,w,2);}grime(g,w,h,k);});
+  const plaster=base=>canvas(256,256,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);for(let i=0;i<3000;i++){const v=rand();g.fillStyle='rgba('+(v<.5?'0,0,0,':'255,255,255,')+(.02+rand()*.04)+')';g.fillRect(rand()*w,rand()*h,1+rand()*3,1+rand()*3);}grime(g,w,h,.25);});
   const marble=(base,vein)=>canvas(512,512,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);for(let i=0;i<26;i++){g.strokeStyle=vein;g.globalAlpha=.06+rand()*.16;g.lineWidth=.6+rand()*2.2;g.beginPath();let x=rand()*w,y=rand()*h;g.moveTo(x,y);for(let k=0;k<9;k++){x+=(rand()-.5)*120;y+=(rand()-.2)*90;g.lineTo(x,y);}g.stroke();}g.globalAlpha=1;
     g.strokeStyle='rgba(0,0,0,.55)';g.lineWidth=2;for(let i=0;i<=2;i++){g.beginPath();g.moveTo(0,i*256);g.lineTo(w,i*256);g.stroke();g.beginPath();g.moveTo(i*256,0);g.lineTo(i*256,h);g.stroke();}});
-  const numberTex=(nums,lit)=>canvas(1024,128,(g,w,h)=>{g.fillStyle='#0b0b0d';g.fillRect(0,0,w,h);const cw=w/nums.length;nums.forEach((n,i)=>{g.fillStyle=style==='luxury'?'#c9a46a':style==='rundown'?'#b9b2a0':'#e9edf2';g.font='bold 70px '+(style==='luxury'?'Georgia,serif':'monospace');g.textAlign='center';g.textBaseline='middle';g.fillText(String(n),i*cw+cw/2,h/2+4);if(lit&&lit[i]){g.strokeStyle='#ffb347';g.lineWidth=3;g.strokeRect(i*cw+6,6,cw-12,h-12);}});},'apt-numbers');
+  const numberTex=(nums,lit)=>canvas(2048,128,(g,w,h)=>{g.fillStyle='#0b0b0d';g.fillRect(0,0,w,h);const cw=w/nums.length;nums.forEach((n,i)=>{g.fillStyle=style==='luxury'?'#c9a46a':style==='rundown'?'#b9b2a0':'#e9edf2';g.font='bold 66px '+(style==='luxury'?'Georgia,serif':'monospace');g.textAlign='center';g.textBaseline='middle';g.fillText(String(n),i*cw+cw/2,h/2+4);if(lit&&lit[i]){g.strokeStyle='#ffb347';g.lineWidth=3;g.strokeRect(i*cw+6,6,cw-12,h-12);}});},'apt-numbers');
   function skyline(){return canvas(1024,512,(g,w,h)=>{const sky=g.createLinearGradient(0,0,0,h);sky.addColorStop(0,'#03050a');sky.addColorStop(.55,'#0c1222');sky.addColorStop(1,'#26182c');g.fillStyle=sky;g.fillRect(0,0,w,h);
     for(let layer=0;layer<3;layer++){const shade=[18,12,7][layer],y0=[.35,.45,.58][layer]*h;let x=0;while(x<w){const bw=30+rand()*90,bh=y0+rand()*h*.3;g.fillStyle='rgb('+shade+','+(shade+3)+','+(shade+10)+')';g.fillRect(x,h-bh,bw,bh);
       for(let yy=h-bh+6;yy<h;yy+=7)for(let xx=x+4;xx<x+bw-4;xx+=6)if(rand()<[.08,.14,.22][layer]){g.fillStyle=rand()<.7?'rgba(255,190,120,'+(.3+rand()*.5)+')':'rgba(120,210,255,'+(.3+rand()*.5)+')';g.fillRect(xx,yy,3,3);}
@@ -76,22 +77,22 @@
     for(let i=0;i<6;i++){g.fillStyle='hsla('+(hue+i*30)+',80%,55%,.35)';g.beginPath();g.arc(rand()*w,rand()*h*.7,20+rand()*60,0,7);g.fill();}g.fillStyle='#f2efe8';g.font='bold 30px Arial';g.fillText(seedText,16,h-40);g.font='14px monospace';g.fillText('NEOCHINATOWN · 2077',16,h-16);grime(g,w,h,.6);},'apt-poster');}
 
   // ---- palette per style ----
-  const S={
-   rundown:{wall:P('wall',{c:'#97a093',tex:'ncz/concrete-mold-color.jpg',nrm:'ncz/concrete-mold-normal.jpg',tile:2.4,rough:.95}),wain:P('wain',{c:'#6d6455',tex:'ncz/metal-leaks-color.jpg',nrm:'ncz/metal-leaks-normal.jpg',tile:1.6,rough:.7,metal:.4}),
+  const S={   // one function per style: only the chosen style's materials are made (P caches by name)
+   rundown:()=>({wall:P('wall',{c:'#97a093',tex:'ncz/concrete-mold-color.jpg',nrm:'ncz/concrete-mold-normal.jpg',tile:2.4,rough:.95}),wain:P('wain',{c:'#6d6455',tex:'ncz/metal-leaks-color.jpg',nrm:'ncz/metal-leaks-normal.jpg',tile:1.6,rough:.7,metal:.4}),
     floor:P('floor',{c:'#8b8478',dyn:planks('#3b3a35','#141310','#0c0b09',1.6),tile:3,rough:.9}),ceil:P('ceil',{c:'#585b57',tex:'ncz/concrete-old-color.jpg',nrm:'ncz/concrete-old-normal.jpg',tile:2.5,rough:.95}),
     trim:P('trim',{c:'#2d2b27',rough:.7,metal:.3}),door:P('door',{c:'#5a5048',tex:'ncz/metal-leaks-color.jpg',nrm:'ncz/metal-leaks-normal.jpg',tile:1.2,rough:.55,metal:.6}),
-    lamp:P('lamp',{em:'#cfe8d8',unlit:true}),fabric:P('fabric',{c:'#5d5a4c',tex:'district-interior/kit_canvas_color.jpg',nrm:'district-interior/kit_canvas_normal.jpg',tile:1,rough:1}),wood:P('wood',{c:'#5b4632',rough:.85}),accent:P('accent',{em:'#ff3fb4',unlit:true})},
-   normal:{wall:P('wall',{c:'#c9c0b2',tex:'district-interior/kit_paint_color.jpg',nrm:'district-interior/kit_paint_normal.jpg',tile:2,rough:.85}),wain:P('wain',{c:'#3d4248',tex:'district-interior/kit_steel_color.jpg',nrm:'district-interior/kit_steel_normal.jpg',tile:1.4,rough:.5,metal:.5}),
+    lamp:P('lamp',{em:'#cfe8d8',unlit:true}),fabric:P('fabric',{c:'#5d5a4c',tex:'district-interior/kit_canvas_color.jpg',nrm:'district-interior/kit_canvas_normal.jpg',tile:1,rough:1}),wood:P('wood',{c:'#5b4632',rough:.85}),accent:P('accent',{em:'#ff3fb4',unlit:true})}),
+   normal:()=>({wall:P('wall',{c:'#d8d0c4',dyn:plaster('#5e5a55'),tile:2,rough:.85}),wain:P('wain',{c:'#3d4248',tex:'district-interior/kit_steel_color.jpg',nrm:'district-interior/kit_steel_normal.jpg',tile:1.4,rough:.5,metal:.5}),
     floor:P('floor',{c:'#9a8f80',dyn:planks('#5a4c3e','#2a2018','#1a140f',.25),tile:3,rough:.55}),ceil:P('ceil',{c:'#8e8c88',tex:'district-interior/kit_paint_color.jpg',tile:2,rough:.9}),
     trim:P('trim',{c:'#26292d',rough:.5,metal:.5}),door:P('door',{c:'#3a3f45',tex:'district-interior/kit_gunmetal_color.jpg',nrm:'district-interior/kit_gunmetal_normal.jpg',tile:1.2,rough:.45,metal:.7}),
-    lamp:P('lamp',{em:'#ffe2b8',unlit:true}),fabric:P('fabric',{c:'#5a6470',tex:'district-interior/kit_canvas_color.jpg',nrm:'district-interior/kit_canvas_normal.jpg',tile:1,rough:1}),wood:P('wood',{c:'#6b5038',rough:.6}),accent:P('accent',{em:'#38e8ff',unlit:true})},
-   luxury:{wall:P('wall',{c:'#8a8680',dyn:marble('#2b2a2c','#cfc6b8'),tile:2.4,rough:.35,metal:.05}),wain:P('wain',{c:'#a07a52',dyn:planks('#3a2618','#120a05','#0a0603',.1),tile:1.6,rough:.4}),
+    lamp:P('lamp',{em:'#ffe2b8',unlit:true}),fabric:P('fabric',{c:'#5a6470',tex:'district-interior/kit_canvas_color.jpg',nrm:'district-interior/kit_canvas_normal.jpg',tile:1,rough:1}),wood:P('wood',{c:'#6b5038',rough:.6}),accent:P('accent',{em:'#38e8ff',unlit:true})}),
+   luxury:()=>({wall:P('wall',{c:'#8a8680',dyn:marble('#2b2a2c','#cfc6b8'),tile:2.4,rough:.35,metal:.05}),wain:P('wain',{c:'#a07a52',dyn:planks('#3a2618','#120a05','#0a0603',.1),tile:1.6,rough:.4}),
     floor:P('floor',{c:'#9a9690',dyn:marble('#1c1b1d','#8f8679'),tile:2,rough:.18,metal:.1}),ceil:P('ceil',{c:'#3a3836',tex:'district-interior/kit_paint_color.jpg',tile:2,rough:.8}),
     trim:P('trim',{c:'#b08a52',rough:.3,metal:.9}),door:P('door',{c:'#2b2622',dyn:planks('#2d1d12','#0d0805','#070403',.05),tile:1.2,rough:.35}),
-    lamp:P('lamp',{em:'#ffd9a0',unlit:true}),fabric:P('fabric',{c:'#4a4240',tex:'district-interior/kit_canvas_color.jpg',nrm:'district-interior/kit_canvas_normal.jpg',tile:1,rough:1}),wood:P('wood',{c:'#3a2618',rough:.45}),accent:P('accent',{em:'#38e8ff',unlit:true})}}[style];
+    lamp:P('lamp',{em:'#ffd9a0',unlit:true}),fabric:P('fabric',{c:'#4a4240',tex:'district-interior/kit_canvas_color.jpg',nrm:'district-interior/kit_canvas_normal.jpg',tile:1,rough:1}),wood:P('wood',{c:'#3a2618',rough:.45}),accent:P('accent',{em:'#ffb070',unlit:true})})}[style]();
   const metal=P('metal',{c:'#6c7076',tex:'district-interior/kit_steel_color.jpg',nrm:'district-interior/kit_steel_normal.jpg',tile:1,rough:.4,metal:.8}),dark=P('dark',{c:'#141518',rough:.6,metal:.3}),black=P('black',{c:'#060607',rough:.35,metal:.2}),
    white=P('white',{c:'#d8d8d2',rough:.25}),tile=P('tile',{c:style==='luxury'?'#4b4a4e':style==='normal'?'#c9ccc8':'#9a9a88',tex:'district-interior/kit_tile_color.jpg',nrm:'district-interior/kit_tile_normal.jpg',tile:.8,rough:.3}),
-   glass=P('glass',{c:'#a8c4d0',rough:.05,metal:.1,alpha:.18}),red=P('red-led',{em:'#ff2a2a',unlit:true}),green=P('green-led',{em:'#39ff9c',unlit:true}),amber=P('amber-led',{em:'#ffb347',unlit:true}),cardboard=P('cardboard',{c:'#7a5c3a',rough:.95});
+   glass=P('glass',{c:'#a8c4d0',rough:.05,metal:.1,alpha:.18}),red=P('red-led',{em:'#ff2a2a',unlit:true}),green=P('green-led',{em:'#39ff9c',unlit:true}),amber=P('amber-led',{em:'#ffb347',unlit:true}),cardboard=P('cardboard',{c:'#5a4430',rough:.95});
   const lamps={open:green,locked:red,mine:amber};
   const doors=[];const sound=()=>{try{root.VoidAudio?.event?.('door');}catch{}};
   // A door in a wall: the frame (merged), the slab (moving), the frame lights (moving visibility). axis: 'x' = the wall runs along x (door faces ±z); 'z' along z.
@@ -190,7 +191,7 @@
    // the closet: carcass, a rail, hanging clothes, boxes on the shelf; two doors that swing
    {const [x0,x1,z0,z1,h]=F.closet,cm=style==='rundown'?S.door:S.trim;box2(cm,x0,x0+.03,0,h,z0,z1);box2(cm,x0,x1,0,.04,z0,z1);box2(cm,x0,x1,h-.04,h,z0,z1);box2(cm,x0,x1,0,h,z0,z0+.03);box2(cm,x0,x1,0,h,z1-.03,z1);box2(cm,x0,x1,1.75,1.78,z0,z1);
     cyl(metal,.025,z1-z0-.1,[(x0+x1)/2,1.62,(z0+z1)/2],6,Math.PI/2);const cols=['#2b2f36','#5a2a22','#3a4a3a','#1a1a1e','#6b6658','#283848'];
-    for(let i=0;i<6;i++){const zz=z0+.2+i*.27;bx(P('cloth-'+i,{c:cols[(i+(style==='luxury'?2:0))%6],tex:'district-interior/kit_canvas_color.jpg',tile:.6,rough:1}),[.5,.85+rand()*.25,.06],[(x0+x1)/2,1.15,zz],(rand()-.5)*.2);}
+    for(let i=0;i<6;i++){const zz=z0+.2+i*.27;bx(P('cloth-'+(i%2),{c:cols[(i%2+(style==='luxury'?2:0))%6],tex:'district-interior/kit_canvas_color.jpg',tile:.6,rough:1}),[.5,.85+rand()*.25,.06],[(x0+x1)/2,1.15,zz],(rand()-.5)*.2);}
     for(let i=0;i<3;i++)box2(cardboard,x0+.06,x0+.5,1.78,1.78+.22+i*.03,z0+.1+i*.55,z0+.55+i*.55);box2(dark,x0+.05,x0+.4,0,.1,z0+.15,z0+.45);box2(dark,x0+.05,x0+.4,0,.1,z0+.5,z0+.8);
     const half=(z1-z0)/2,dm=style==='luxury'?S.wain:S.door,mk=(za,zb,piv,ang)=>{const m=box2(dm,x1-.03,x1,.02,h-.02,za,zb,true);return swinging('closet-'+ang,hinge(m,[x1,0,piv]),ang);};
     const a=mk(z0,z0+half-.005,z0,-1.6),b=mk(z0+half+.005,z1,z1,1.6);interactive.closet={get open(){return a.open;},toggle(){const v=a.toggle();b.set(v);return v;},tick(dt){a.tick(dt);b.tick(dt);}};delete interactive['closet--1.6'];delete interactive['closet-1.6'];
@@ -207,8 +208,8 @@
    // no kitchen (the owner, 19 Nov 2026): a food and drinks vending machine, in the room's style (rundown: an old scuffed unit; normal: a standard one; luxury: a sleek dispenser)
    {const [x0,x1,z0,z1,h]=F.vending,fx=x1;const body=style==='luxury'?P('vend',{c:'#141418',rough:.25,metal:.8}):style==='normal'?P('vend',{c:'#2c3440',tex:'district-interior/kit_gunmetal_color.jpg',tile:.8,rough:.45,metal:.7}):P('vend',{c:'#5a3a32',tex:'ncz/metal-leaks-color.jpg',nrm:'ncz/metal-leaks-normal.jpg',tile:.8,rough:.6,metal:.5});
     box2(body,x0,x1-.02,0,h,z0,z1);const goods=(root.VoidPodVending&&root.VoidPodVending.products)||[];
-    const shelf=P('vend-goods',{dyn:canvas(256,512,(g,w,hh)=>{g.fillStyle='#05070b';g.fillRect(0,0,w,hh);const rows=6,cols=4;for(let r=0;r<rows;r++){g.fillStyle='rgba(120,150,170,.25)';g.fillRect(0,(r+1)*hh/rows-6,w,3);for(let c=0;c<cols;c++){const d=goods[(r*cols+c)%Math.max(1,goods.length)]||[];const col=d[5]||['#c03030','#3070c0','#d0a020','#40a050'][(r+c)%4];
-       const tall=/bottle|can/.test(d[3]||'can');g.fillStyle=col;const bw=tall?18:34,bh=tall?44:26;g.fillRect(c*w/cols+(w/cols-bw)/2,(r+1)*hh/rows-8-bh,bw,bh);g.fillStyle='rgba(255,255,255,.35)';g.fillRect(c*w/cols+(w/cols-bw)/2+3,(r+1)*hh/rows-8-bh+3,3,bh-6);}}
+    const shelf=P('vend-goods',{dyn:canvas(256,512,(g,w,hh)=>{g.fillStyle='#05070b';g.fillRect(0,0,w,hh);const rows=6,cols=4;for(let r=0;r<rows;r++){g.fillStyle='rgba(120,150,170,.25)';g.fillRect(0,(r+1)*hh/rows-6,w,3);for(let c=0;c<cols;c++){const d=goods[(r*cols+c)%Math.max(1,goods.length)]||[];const col=(d.art&&d.art[0])||['#c03030','#3070c0','#d0a020','#40a050'][(r+c)%4];
+       const tall=/bottle|can/.test(d.kind||'can');g.fillStyle=col;const bw=tall?18:34,bh=tall?44:26;g.fillRect(c*w/cols+(w/cols-bw)/2,(r+1)*hh/rows-8-bh,bw,bh);g.fillStyle='rgba(255,255,255,.35)';g.fillRect(c*w/cols+(w/cols-bw)/2+3,(r+1)*hh/rows-8-bh+3,3,bh-6);}}
       const gr=g.createLinearGradient(0,0,w,0);gr.addColorStop(0,'rgba(255,255,255,.08)');gr.addColorStop(.5,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,w,hh);if(style==='rundown'){g.strokeStyle='rgba(220,220,220,.35)';g.beginPath();g.moveTo(40,90);g.lineTo(120,180);g.lineTo(90,260);g.stroke();}},'apt-vend'),unlit:true});
     plane(shelf,.7,1.25,[fx+.005,1.15,z0+.42],-Math.PI/2);fixtureMats.push(shelf);box2(black,fx-.02,fx+.01,.15,.45,z0+.1,z0+.75);   // the window and the pickup tray
     const pad=P('vend-pad',{em:style==='luxury'?'#e8c890':style==='normal'?'#7fd4ff':'#59ff8a',unlit:true});box2(pad,fx-.02,fx+.012,1.3,1.45,z1-.3,z1-.1);box2(dark,fx-.02,fx+.01,.9,1.2,z1-.3,z1-.1);fixtureMats.push(pad);
@@ -218,14 +219,14 @@
     // the space either side: a small shelf with a plant (normal, luxury) or stacked boxes (rundown)
     if(style==='rundown'){box2(cardboard,x0+.05,x0+.6,0,.5,.55,1.15);box2(cardboard,x0+.05,x0+.55,.5,.85,.6,1.05);prop('district-props/district-radio.glb',[x0+.3,.85,.85],Math.PI/2,.18);}
     else{box2(S.wood,x0,x0+.4,.95,.98,2.5,3.5);box2(S.wood,x0,x0+.4,1.45,1.48,2.5,3.5);prop('milked/milked-pothos.glb',[x0+.2,1.48,3.0],Math.PI/2,.45,()=>cyl(P('leaf',{c:'#2a5a3a',rough:.9}),.3,.3,[x0+.2,1.63,3],8));
-     for(let i=0;i<6;i++)box2(P('book-'+(i%4),{c:['#6a2a22','#22406a','#3a5a32','#8a7a52'][i%4],rough:.8}),x0+.04,x0+.3,.98,.98+.2+rand()*.05,2.6+i*.1,2.68+i*.1);
+     for(let i=0;i<6;i++)box2(P('book-'+(i%2),{c:['#6a2a22','#22406a'][i%2],rough:.8}),x0+.04,x0+.3,.98,.98+.2+rand()*.05,2.6+i*.1,2.68+i*.1);
      if(style==='normal')prop('milked/milked-lucky-cat.glb',[x0+.2,.98,3.35],Math.PI/2,.2);}}
    // storage in the north-west corner (no refrigerator: the owner, 19 Nov 2026): open shelving in the room's style, with boxes, bags and things people keep
    {const [x0,x1,z0,z1,h]=F.storage,sm=style==='luxury'?S.wood:style==='normal'?S.trim:P('shelf-rust',{c:'#5a4a3a',tex:'ncz/metal-leaks-color.jpg',tile:.8,rough:.6,metal:.5});
     box2(sm,x0,x0+.03,0,h,z0,z1);for(const z of [z0,z1-.03])box2(sm,x0,x1,0,h,z,z+.03);for(const y of [.05,.5,.95,1.4,h-.03])box2(sm,x0,x1,y,y+.03,z0,z1);
     const things=style==='luxury'?['#c9a46a','#2a2a30','#e8e0d0','#5a2a22']:style==='normal'?['#3a5a7a','#d8d0c0','#6a2a22','#4a6a4a']:['#7a5c3a','#3a3a30','#5a4030','#2a2a2a'];
     for(let r=0;r<4;r++)for(let k=0;k<3;k++){if(rand()<.25)continue;const y=.08+r*.45,zz=z0+.12+k*.38,hh=.15+rand()*.22,c=things[(r+k)%4];
-     if(style!=='luxury'&&rand()<.45)box2(cardboard,x0+.05,x1-.04,y,y+hh,zz,zz+.32);else if(rand()<.5)cyl(P('jar-'+((r+k)%4),{c,rough:.4,metal:.2}),.12,hh,[(x0+x1)/2,y+hh/2,zz+.15],10);else box2(P('bin-'+((r+k)%4),{c,rough:.6}),x0+.06,x1-.06,y,y+hh*.8,zz,zz+.3);}
+     if(style!=='luxury'&&rand()<.45)box2(cardboard,x0+.05,x1-.04,y,y+hh,zz,zz+.32);else if(rand()<.5)cyl(P('jar',{c:things[0],rough:.4,metal:.2}),.12,hh,[(x0+x1)/2,y+hh/2,zz+.15],10);else box2(P('bin',{c:things[1],rough:.6}),x0+.06,x1-.06,y,y+hh*.8,zz,zz+.3);}
     if(style==='rundown'){const m=B.MeshBuilder.CreateSphere('bag',{diameter:.5,segments:6},scene);m.scaling.y=.7;m.position.set(x1+.1,.18,z0+.3);add(m,P('bag',{c:'#101012',rough:.25,metal:.1}));}}
    // the utility panel (south wall): a steel box with a hinged hatch over breakers, a junction block and a data port
    {const {x,y}=A.PANEL,zw=Z0;box2(metal,x-.27,x+.27,y-.37,y+.37,zw,zw+.05);box2(black,x-.24,x+.24,y-.34,y+.34,zw+.05,zw+.055);for(let i=0;i<6;i++)box2(i%3===1?red:dark,x-.2+i*.07,x-.15+i*.07,y+.05,y+.2,zw+.055,zw+.08);
@@ -281,7 +282,7 @@
    const tag=P('tag',{dyn:canvas(512,256,(g,w,h)=>{g.clearRect(0,0,w,h);g.font='bold 120px Arial';g.lineWidth=8;g.strokeStyle='rgba(20,200,170,.75)';g.strokeText('R0T',40,170);g.fillStyle='rgba(255,60,160,.5)';g.fillText('R0T',48,176);},'apt-tag'),rough:.9});tag.albedoTexture.hasAlpha=true;tag.useAlphaFromAlbedoTexture=true;tag.transparencyMode=1;tag.alphaCutOff=.2;plane(tag,1.6,.8,[X1-.03,1.7,-.75],-Math.PI/2);
    // clutter: pizza boxes, cans, trash bags, wires, an armchair, a TV on crates
    const bag=P('bag',{c:'#101012',rough:.25,metal:.1});for(const [x,z,s] of [[-2.6,4.4,.45],[-2.2,4.6,.38],[.9,-4.5,.4]]){const m=B.MeshBuilder.CreateSphere('bag',{diameter:s*1.4,segments:6},scene);m.scaling.y=.8;m.position.set(x,s*.5,z);add(m,bag);}
-for(let i=0;i<7;i++)cyl(P('can',{c:['#c03030','#3070c0','#d0a020'][i%3],rough:.4,metal:.6}),.07,.12,[-1.5+rand()*2.5,.06,-1.5+rand()*3.5],8,rand()<.5?Math.PI/2:0);
+for(let i=0;i<7;i++)cyl(P('can',{c:'#b03a30',rough:.4,metal:.6}),.07,.12,[-1.5+rand()*2.5,.06,-1.5+rand()*3.5],8,rand()<.5?Math.PI/2:0);
    prop('props/crate.glb',[-1.6,0,1.4],.3,.55,()=>box2(cardboard,-1.9,-1.3,0,.55,1.15,1.65));prop('district-interior/district_prop_crates_1m.glb',[-1.1,0,4.4],0,.7,()=>box2(cardboard,-1.5,-.7,0,.7,4.1,4.7));
    for(const [x0,z0,x1,z1] of [[-1.2,-4.9,-1.6,1.4],[X1-.05,-3,X1-.05,1]])cyl(black,.015,Math.hypot(x1-x0,z1-z0),[(x0+x1)/2,.01,(z0+z1)/2],4,Math.PI/2,0).rotation.y=Math.atan2(x1-x0,z1-z0);
    box2(P('stain',{c:'#2a2418',rough:1}),1.6,3.2,.001,.004,-3.4,-2.4);
@@ -293,7 +294,7 @@ for(let i=0;i<7;i++)cyl(P('can',{c:['#c03030','#3070c0','#d0a020'][i%3],rough:.4
    bx(P('print',{dyn:poster('TESSALY',200),rough:.9}),[.7,1,.02],[X1-.02,1.6,-3.3],Math.PI/2);
    // plants, a shelf with books, a small dining table and two stools
    prop('milked/milked-pothos.glb',[3.7,.55,.5],0,.4,()=>cyl(P('leaf',{c:'#2a5a3a',rough:.9}),.3,.35,[3.7,.73,.5],8));prop('milked/milked-bamboo.glb',[-3.0,0,-4.5],0,1.5,()=>cyl(P('leaf',{c:'#2a5a3a',rough:.9}),.35,1.2,[-3,.6,-4.5],8));
-   box2(S.wood,X1-.3,X1,1.55,1.58,-4.4,-2.6);for(let i=0;i<10;i++)box2(P('book-'+(i%4),{c:['#6a2a22','#22406a','#3a5a32','#8a7a52'][i%4],rough:.8}),X1-.26,X1-.04,1.58,1.58+.2+rand()*.06,-4.35+i*.12,-4.26+i*.12);
+   box2(S.wood,X1-.3,X1,1.55,1.58,-4.4,-2.6);for(let i=0;i<10;i++)box2(P('book-'+(i%2),{c:['#6a2a22','#22406a'][i%2],rough:.8}),X1-.26,X1-.04,1.58,1.58+.2+rand()*.06,-4.35+i*.12,-4.26+i*.12);
    box2(S.wood,-1.9,-1.1,.74,.78,3.1,3.9);cyl(metal,.06,.74,[-1.5,.37,3.5],8);for(const z of [2.8,4.2])cyl(dark,.36,.6,[-1.5,.3,z],10);}
   function luxuryDecor(){const [X0,X1,Z0,Z1]=[...A.APT.x,...A.APT.z];
    // a wood slat feature wall behind the sofa, art, a bar island with stools, a lounge sofa and a low table, a sculpture
@@ -302,7 +303,7 @@ for(let i=0;i<7;i++)cyl(P('can',{c:['#c03030','#3070c0','#d0a020'][i%3],rough:.4
    box2(S.trim,-3.25,-1.75,1.12,2.08,Z0,Z0+.04);plane(art,1.42,.88,[-2.5,1.6,Z0+.045],Math.PI);box2(S.accent,-3.25,-1.75,2.1,2.12,Z0+.02,Z0+.06);
    box2(S.floor,-2.5,-.6,0,1.02,2.55,3.2);box2(S.trim,-2.55,-.55,1.02,1.06,2.5,3.25);box2(S.accent,-2.45,-.65,.08,.1,2.53,2.55);
    for(const x of [-2.1,-1.0])prop('district-props/district-bar-stool.glb',[x,0,2.15],0,.78,()=>{cyl(S.trim,.36,.06,[x,.76,2.15],12);cyl(metal,.05,.74,[x,.37,2.15],8);});
-   for(let i=0;i<5;i++)cyl(P('bottle-'+(i%3),{c:['#5a2a10','#20402a','#c8c8d8'][i%3],rough:.1,metal:.2}),.08,.3,[-2.3+i*.35,1.21,2.9],8);
+   for(let i=0;i<5;i++)cyl(P('bottle',{c:'#3a2a18',rough:.1,metal:.2}),.08,.3,[-2.3+i*.35,1.21,2.9],8);
    prop('milked/milked-bamboo.glb',[X0+.4,0,Z1-.9],0,1.9,()=>cyl(P('leaf',{c:'#2a5a3a',rough:.9}),.4,1.6,[X0+.4,.8,Z1-.9],8));
    cyl(S.trim,.05,.9,[-3.2,.45,-1.95],8);const orb=B.MeshBuilder.CreateTorusKnot('sculpt',{radius:.12,tube:.035,radialSegments:48,tubularSegments:8},scene);orb.position.set(3.7,.85,.5);add(orb,S.trim);}
 

@@ -10307,7 +10307,7 @@
       }
     }
   },
-  "revision": "7e3973fc950dba0f",
+  "revision": "5e4548856e85ed43",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -27809,15 +27809,15 @@
     "void-runner/ad-screens.js": "c8e07956069c4ff4a8489f2a2fd38054817c847e9904534d7f612781d2f5208c",
     "void-runner/anim-library.js": "17580f80c1293f158dd0afbe0d543d6a02035971b38468fc49d7af0eb8728f3d",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/apartment-build.js": "f618aaacfa9e2d606ae5673c8a553869846f91e062c3c5af59394ea4a3466a78",
-    "void-runner/apartment-integration.js": "83d394fb265b93bb4ac5a7d62c1bea6e13460a62c47afb234cb232993cc8d016",
+    "void-runner/apartment-build.js": "bc960ba05b5f5141521068385393e9dc90dcde393411614ed3e047f4f4176880",
+    "void-runner/apartment-integration.js": "c37cddd33be6a8520c822c3dcc55005c0bbe84e8d83d9ab57b0167c3878db216",
     "void-runner/apartments.js": "f2c37addbf7d8d6170e8c0e3b9f22a0714f201738228865f67a2a6bd232478ae",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "d8a25d2e44dcc6c4ff1143e996b2a2c6a7ddbb7f808b12d386925ca285f89836",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "b54e3fb4ef253d1fc544d255acc85a128457aee078cd9d0f13843f0f18c7670e",
-    "void-runner/babylon-renderer.js": "f0759d186038c9f9646c8f8304a88d00a86348f6ddcc776be9477f51d5bfe8aa",
+    "void-runner/babylon-renderer.js": "4279abb239c486c605599dab672cadec419d3bdf6fe55ef4416fcfcb52bd202d",
     "void-runner/balance-data.js": "ebc76bb374885f015ae60a86864e8701bba194e5d3ce09fb321dd52cedabe16c",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
@@ -27900,7 +27900,7 @@
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
     "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
-    "void-runner/live-content.js": "e28c428a52dddc315d2acf183b16ae8f2d24ef1572574660440183305f198184",
+    "void-runner/live-content.js": "d978225b8854ff6c63f5aa9cb55761e41cdea109f060bd75180b3205cf6a29e1",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/main-story.js": "4cb1c5aedd713e1e986cbc8645e4f471302a283edac520efa7b1ac0008c5d1ee",
