@@ -281,6 +281,11 @@ def validate_workspace(doc):
         problems = apartment_shape_problems(b['trees'])
         if problems:
             raise DraftError('Invalid apartment: ' + problems[0], 422)
+    if b.get('trees'):
+        from void_runner_live_content import feed_shape_problems
+        problems = feed_shape_problems(b['trees'])
+        if problems:
+            raise DraftError('Invalid camera feed: ' + problems[0], 422)
     if b.get('voices'):
         from void_runner_live_content import voice_problems
         problems = voice_problems(b['voices'])

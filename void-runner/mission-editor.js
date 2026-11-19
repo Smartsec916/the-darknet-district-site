@@ -522,7 +522,8 @@
   const g=document.createElement('optgroup');g.label='Any street door';for(const d of X.doors())g.append(new Option(d.name+' · '+QNAME[d.quarter],d.id));sel.append(g);sel.value=o.ap||'';sel.onchange=()=>eo(x=>{if(sel.value)x.ap=sel.value;else delete x.ap;},true);
   out.push(el('span','hack','me-small'),sel,numBox('Seconds the hack takes',Number.isInteger(o.hold)?o.hold:X.HACK.def,X.HACK.min,X.HACK.max,v=>eo(x=>{x.hold=v||X.HACK.def;}),{'data-me-step-hold':o.id}),el('span','s','me-small'));
   const cb=(label,key,def,attr)=>{const l=el('label','','me-small');const i=el('input','','',{type:'checkbox',[attr]:o.id});i.checked=o[key]==null?def:o[key]===true;i.onchange=()=>eo(x=>{if(i.checked===def)delete x[key];else x[key]=i.checked;});l.append(i,document.createTextNode(' '+label));return l;};
-  out.push(cb('fails if they walk away','stay',true,'data-me-step-stay'),cb('opens that door for them','unlock',true,'data-me-step-unlock'));
+  out.push(cb('fails if they walk away','stay',true,'data-me-step-stay'),cb('opens that door for them','unlock',!o.feed,'data-me-step-unlock'));
+  if(root.VoidCultRoomEditor)out.push(...root.VoidCultRoomEditor.stepFeed(m,o,eo,blocksKit));   // a hacked camera feed (cult-room-editor.js)
   const ns=el('select','','',{'aria-label':'Player needs','data-me-step-needs':o.id});ns.append(new Option('Player needs: nothing',''));for(const [id,it] of Object.entries(root.VoidProgression?.personalItems||{}))ns.append(new Option('Player needs: '+it.name+(it.sold===false?' (not sold anywhere yet)':''),id));ns.value=o.needs||'';ns.onchange=()=>eo(x=>{if(ns.value)x.needs=ns.value;else delete x.needs;});out.push(ns);
   return out;}
  /* The street doors come from apartments.js, pure data (the street edges, ncz-quarters.js gates and stops, npc-areas.js obstacles): no scene is needed. If a script is
@@ -561,6 +562,7 @@
    it.append(ty,lb,btn('+ ITEM (on the desk)',()=>{const v=lb.value.trim().slice(0,60);if(!v)return;ea(a.id,y=>{y.items=[...(y.items||[]),{type:ty.value,label:v,x:-2.6+((y.items||[]).length%4)*.25,z:-.9}].slice(0,X.LIMIT.items);},true);}),btn('CLEAR ITEMS',()=>ea(a.id,y=>{delete y.items;},true),'me-x'));sec.append(it);
    box.append(sec);});
   if((m.apartments||[]).some(a=>a&&a.style&&!Array.isArray(a.modules))&&root.VoidModules)box.append(btn('CONVERT THESE APARTMENTS TO MODULES',()=>{if(!confirm('Turn this mission’s apartments into locations built from modules (a hallway module and the apartment, connected)? Its steps keep working: their access points are renamed to the new doors.'))return;ed(x=>{const y=root.VoidModules.migrateMission(x);for(const k of Object.keys(x))delete x[k];Object.assign(x,y);},true);},'',{'data-me-apt-convert':m.id}),hint('Optional: the older apartments keep working as they are.'));
+  if(root.VoidCultRoomEditor)for(const f of m.feeds||[])box.append(root.VoidCultRoomEditor.card({m,f,ed,kit:blocksKit}));   // camera-feed-only rooms (Other: the Blackrock cult room)
   if((m.apartments||[]).length<X.LIMIT.perMission&&MED()){box.append(el('h5','Add a location (housing, commercial, office, server room, hallways, elevator, other)'));box.append(MED().picker(null,type=>MED().create(m,type,ed,t=>{status=t;}),{'data-me-loc-add':m.id}));}
   if((m.apartments||[]).length<X.LIMIT.perMission)box.append(btn('+ INSTANCE AN APARTMENT',()=>ed(x=>{const ids=new Set((x.apartments||[]).map(a=>a.id));let n=1;while(ids.has('a'+n))n++;x.apartments=[...(x.apartments||[]),{id:'a'+n,style:'normal',door:''}];},true),'',{'data-me-apt-add':m.id}));
   return box;}
@@ -769,6 +771,7 @@
  const lineKey=l=>!l?null:l.kind==='tree'&&l.key?l.key:l.ref||null;
  const clipRec=k=>k?(local().clips||{})[k]||null:null;
  function treeLineText(key){const [mid,a,b,c]=key.slice(5).split('/');const m=(local().trees||[]).flatMap(t=>t.missions).find(x=>x.id===mid);if(!m)return undefined;
+  if(a==='feed'){const f=(m.feeds||[]).find(x=>x.id===b),bt=f&&f.scene&&Array.isArray(f.scene.beats)?f.scene.beats[Number(c)]:null;return bt&&bt.act==='line'?String(bt.text||''):undefined;}   // a camera feed's line (cult-room-editor.js)
   const list=a==='offer'?m.offer:a==='deny'?(m.start||{}).denySay:a==='ending'?(m.ending||{}).say:((m.objectives||[]).find(o=>o.id===a)||{})[b],l=list&&list[Number(a==='offer'||a==='ending'||a==='deny'?b:c)];return l?String(l.text||''):undefined;}
  function clipTextOf(key){if(String(key).startsWith('tree:'))return treeLineText(key);const l=index&&index.get(key);return l?shownText(l):undefined;}
  function setClip(key,rec){const d=local();d.clips=d.clips||{};if(rec)d.clips[key]=rec;else delete d.clips[key];saveLocal(d);}

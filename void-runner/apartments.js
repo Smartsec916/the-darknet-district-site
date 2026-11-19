@@ -256,19 +256,19 @@
   for(const t of trees)for(const m of (t&&t.missions)||[]){if(!Array.isArray(m.apartments)||!m.apartments.length)continue;const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;
    const done=(rec.objectives)||{};for(const a of m.apartments){if(!a||!a.door)continue;const M=MOD();
     if(a.from&&a.from!=='start'){const k=(m.objectives||[]).findIndex(o=>o.id===a.from);if(k<0)continue;if(!(m.objectives||[]).slice(0,k).every(o=>done[o.id]===true))continue;}
-    if(isLoc(a)){if(!M)continue;const hk=(m.objectives||[]).filter(o=>o.kind==='hack'&&o.unlock!==false&&done[o.id]===true&&typeof o.ap==='string'&&o.ap.startsWith(a.id+'/')&&o.ap.includes('.')).map(o=>o.ap.slice(a.id.length+1));
+    if(isLoc(a)){if(!M)continue;const hk=(m.objectives||[]).filter(o=>o.kind==='hack'&&(o.feed?o.unlock===true:o.unlock!==false)&&done[o.id]===true&&typeof o.ap==='string'&&o.ap.startsWith(a.id+'/')&&o.ap.includes('.')).map(o=>o.ap.slice(a.id.length+1));
      out.push({key:m.id+'/'+a.id,mission:m.id,id:a.id,door:a.door,modular:true,loc:M.strip(a),hacked:hk,title:m.title||m.id});continue;}
-    const hacked=(m.objectives||[]).some(o=>o.kind==='hack'&&o.unlock!==false&&o.ap===a.id+'/hall'&&done[o.id]===true);
+    const hacked=(m.objectives||[]).some(o=>o.kind==='hack'&&(o.feed?o.unlock===true:o.unlock!==false)&&o.ap===a.id+'/hall'&&done[o.id]===true);
     out.push({key:m.id+'/'+a.id,mission:m.id,id:a.id,style:a.style,door:a.door,number:Number.isInteger(a.number)?a.number:null,locked:a.locked===true&&!hacked,screenOff:a.screenOff===true,lightsOff:a.lightsOff===true,items:Array.isArray(a.items)?a.items.map(i=>({...i})):[],title:m.title||m.id});}}
   return out;}
  /* Street doors a hack opened for this player (a taken, unfinished mission whose hack step on that door is done, with unlock not switched off): [{door, mission}]. */
  function hackedDoors(s,trees){const out=[];if(!s||!s.universe||!Array.isArray(trees))return out;const recs=s.universe.missions||{};
-  for(const t of trees)for(const m of (t&&t.missions)||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;for(const o of m.objectives||[]){const p=o.kind==='hack'&&o.unlock!==false&&(rec.objectives||{})[o.id]===true?apOf(o.ap):null;if(p&&p.door)out.push({door:p.door,mission:m.id});}}
+  for(const t of trees)for(const m of (t&&t.missions)||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;for(const o of m.objectives||[]){const p=o.kind==='hack'&&(o.feed?o.unlock===true:o.unlock!==false)&&(rec.objectives||{})[o.id]===true?apOf(o.ap):null;if(p&&p.door)out.push({door:p.door,mission:m.id});}}
   return out;}
  /* The hack steps in progress now: [{key, mission, step, ap, hold, stay, unlock, needs}]: the access point the player may hack (live-content.js / apartment-integration.js). */
  function hacksNow(s,trees){const out=[];if(!s||!s.universe||!Array.isArray(trees))return out;const recs=s.universe.missions||{};
   for(const t of trees)for(const m of (t&&t.missions)||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;const o=(m.objectives||[]).find(x=>(rec.objectives||{})[x.id]!==true);
-   if(o&&o.kind==='hack'&&o.ap){const x={key:m.id+'/'+o.id,mission:m.id,step:o.id,ap:o.ap,hold:Number.isInteger(o.hold)?o.hold:HACK.def,stay:o.stay!==false,unlock:o.unlock!==false};if(o.needs)x.needs=o.needs;out.push(x);}}
+   if(o&&o.kind==='hack'&&o.ap){const x={key:m.id+'/'+o.id,mission:m.id,step:o.id,ap:o.ap,hold:Number.isInteger(o.hold)?o.hold:HACK.def,stay:o.stay!==false,unlock:(o.feed?o.unlock===true:o.unlock!==false)};if(o.needs)x.needs=o.needs;if(o.feed)x.feed=o.feed;out.push(x);}}
   return out;}
  const onDoor=(list,doorId)=>(list||[]).filter(a=>a.door===doorId);
  // The content export (mission-content.js treeStrip): only the known fields, numbers rounded.

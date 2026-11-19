@@ -894,6 +894,149 @@ def apartment_problems(m, inv, shape_only=False):
     return out
 
 
+# CAMERA FEEDS (void-runner/cult-room.js feedProblems / sceneProblems: the same rules, against the admin inventory's `feeds`): mission.feeds and hack steps with a feed.
+FEED_ID = re.compile(r'^[a-z][a-z0-9-]{0,23}$')
+FEED_DEFAULT = {'rooms': ['blackrock-cult'], 'speakers': ['initiate', 'robed-1', 'robed-2', 'robed-3', 'robed-4', 'robed-5', 'robed-6', 'robed-all'],
+                'actors': ['initiate', 'robed-1', 'robed-2', 'robed-3', 'robed-4', 'robed-5', 'robed-6'], 'acts': ['pause', 'door', 'enter', 'turn', 'line', 'rise', 'walk', 'card', 'anim', 'exit'],
+                'beatKeys': {'pause': ['secs'], 'door': ['open'], 'enter': ['speed'], 'turn': ['who', 'to', 'secs'], 'line': ['who', 'text', 'anim', 'secs'], 'rise': [], 'walk': ['who', 'to', 'speed'], 'card': [],
+                             'anim': ['who', 'clip', 'secs'], 'exit': ['speed', 'gap']},
+                'anims': ['talk', 'laugh', 'read', 'shock', 'stand', 'idle'], 'turnWho': ['six', 'initiate', 'robed-1', 'robed-2', 'robed-3', 'robed-4', 'robed-5', 'robed-6'],
+                'turnTo': ['initiate', 'owl', 'door', 'centre'], 'walkTo': ['altar', 'centre', 'spot'],
+                'limit': {'beats': 80, 'text': 500, 'feeds': 4, 'secs': [0, 60], 'speed': [0.2, 1], 'radius': [2, 3.4], 'gap': [1.2, 3]}}
+
+
+def feed_scene_problems(sc, inv=None):
+    """One camera feed's scene: cult-room.js sceneProblems (shape and order)."""
+    fi = dict(FEED_DEFAULT, **((inv or {}).get('feeds') or {}))
+    lim = fi['limit']
+
+    def num(v, a, b):
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and a <= v <= b
+    if not _keys(sc, ['radius', 'speed', 'beats']):
+        return ['the scene has unknown fields.']
+    out = []
+    if sc.get('radius') is not None and not num(sc['radius'], *lim['radius']):
+        out.append('the circle radius is out of range.')
+    if sc.get('speed') is not None and not num(sc['speed'], *lim['speed']):
+        out.append('the walking speed is out of range.')
+    bs = sc.get('beats')
+    if not isinstance(bs, list) or not 1 <= len(bs) <= lim['beats']:
+        return out + ['a scene has 1 to %d beats.' % lim['beats']]
+    six = [a for a in fi['actors'] if a != 'initiate']
+    st = {'six': 'out', 'init': 'kneel', 'at': 'centre', 'card': False, 'done': False}
+
+    def here(who):
+        if who == 'initiate':
+            return st['init'] != 'out'
+        return st['six'] == 'circle' if who in ('six', 'robed-all') or who in six else False
+    for i, b in enumerate(bs):
+        w = 'beat %d' % (i + 1)
+        act = b.get('act') if isinstance(b, dict) else None
+        if act not in fi['acts']:
+            out.append(w + ': unknown kind of beat.')
+            continue
+        if not _keys(b, ['act', 'wait'] + list(fi['beatKeys'].get(act, []))):
+            out.append(w + ': unknown fields.')
+            continue
+        if b.get('wait') is not None and not num(b['wait'], *lim['secs']):
+            out.append(w + ': the pause before it is 0 to 60 seconds.')
+        if b.get('secs') is not None and not num(b['secs'], 0.5, 60):
+            out.append(w + ': it lasts 0.5 to 60 seconds.')
+        if b.get('speed') is not None and not num(b['speed'], *lim['speed']):
+            out.append(w + ': the walking speed is out of range.')
+        if st['done'] and act not in ('pause', 'door'):
+            out.append(w + ': everyone has left; only a pause or the door can follow.')
+            continue
+        who = b.get('who')
+        if act == 'pause' and b.get('secs') is None:
+            out.append(w + ': say how long the pause lasts.')
+        elif act == 'door' and type(b.get('open')) is not bool:
+            out.append(w + ': the door opens or closes.')
+        elif act == 'enter':
+            if st['six'] != 'out':
+                out.append(w + ': the six are already in the room.')
+            st['six'] = 'circle'
+        elif act == 'turn':
+            if who not in fi['turnWho'] or b.get('to') not in fi['turnTo'] or not here(who) or (who == 'initiate' and b.get('to') == 'initiate'):
+                out.append(w + ': choose who turns, to face what, while they are in the room.')
+        elif act == 'line':
+            if who not in fi['speakers'] or not here(who):
+                out.append(w + ': choose who speaks, while they are in the room.')
+            t = b.get('text')
+            if t is not None and not (isinstance(t, str) and len(t) <= lim['text'] and not TAGS.search(t)):
+                out.append(w + ': a line is plain text, %d characters at most.' % lim['text'])
+            if b.get('anim') is not None and (b['anim'] not in fi['anims'] or (who == 'initiate' and st['init'] == 'kneel')):
+                out.append(w + ': unknown animation, or the initiate is kneeling.')
+        elif act == 'rise':
+            if st['init'] != 'kneel':
+                out.append(w + ': the initiate is not kneeling.')
+            st['init'] = 'stand'
+        elif act == 'walk':
+            if who not in fi['actors'] or b.get('to') not in fi['walkTo']:
+                out.append(w + ': choose who walks and where to.')
+            elif who == 'initiate':
+                if st['init'] != 'stand':
+                    out.append(w + ': the initiate must rise first.')
+                else:
+                    st['at'] = 'centre' if b['to'] == 'spot' else b['to']
+            elif st['six'] != 'circle':
+                out.append(w + ': the six are not in the room yet.')
+        elif act == 'card':
+            if st['at'] != 'altar' or st['card']:
+                out.append(w + ': the initiate must be at the altar, and the card is taken once.')
+            st['card'] = True
+        elif act == 'anim':
+            if who not in ['six'] + fi['actors'] or b.get('clip') not in fi['anims'] or not here(who) or (who == 'initiate' and st['init'] == 'kneel'):
+                out.append(w + ': choose who plays which animation, while they are in the room and standing.')
+        elif act == 'exit':
+            if st['six'] != 'circle' or st['init'] != 'stand':
+                out.append(w + ': the six must enter and the initiate rise first.')
+            else:
+                st['six'] = st['init'] = 'out'
+                st['done'] = True
+            if b.get('gap') is not None and not num(b['gap'], *lim['gap']):
+                out.append(w + ': the gap in the line is out of range.')
+    return out
+
+
+def feed_problems(m, inv=None):
+    """A mission's camera feeds and the hack steps that show them (cult-room.js feedProblems)."""
+    fi = dict(FEED_DEFAULT, **((inv or {}).get('feeds') or {}))
+    out, ids, fs = [], set(), m.get('feeds')
+    if fs is not None:
+        if not isinstance(fs, list) or len(fs) > fi['limit']['feeds']:
+            return ['a mission has at most %d camera feeds.' % fi['limit']['feeds']]
+        for f in fs:
+            if not _keys(f, ['id', 'room', 'scene']) or not (isinstance(f.get('id'), str) and FEED_ID.match(f['id'])):
+                out.append('a camera feed needs a short name.')
+                continue
+            if f['id'] in ids:
+                out.append('two camera feeds have the same name.')
+            ids.add(f['id'])
+            if f.get('room') not in fi['rooms']:
+                out.append('camera feed ' + f['id'] + ': choose the room it shows.')
+            if f.get('scene') is not None:
+                out += ['camera feed ' + f['id'] + ': ' + p for p in feed_scene_problems(f['scene'], inv)]
+    for o in m.get('objectives') or []:
+        if not isinstance(o, dict) or o.get('feed') is None:
+            continue
+        if o.get('kind') != 'hack':
+            out.append('step ' + str(o.get('id')) + ': only a "hack the access point" step shows a camera feed.')
+        elif o['feed'] not in ids:
+            out.append('step ' + str(o.get('id')) + ': choose one of this mission\u2019s camera feeds.')
+    return out
+
+
+def feed_shape_problems(trees):
+    """The editor's server copy of the draft: camera feeds and their scenes are well formed."""
+    out = []
+    for t in trees if isinstance(trees, list) else []:
+        for m in (t.get('missions') or []) if isinstance(t, dict) else []:
+            if isinstance(m, dict):
+                out += feed_problems(m, {})
+    return out
+
+
 def apartment_shape_problems(trees):
     """The editor's server copy of the draft: apartments and their steps are well formed (doors are checked when publishing)."""
     out = []
@@ -1615,11 +1758,13 @@ def check_trees(trees, inv, err, npcs=None):
             continue
         for m in ms:
             total += 1
-            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost', 'apartments']):
+            if not _keys(m, ['id', 'number', 'title', 'type', 'category', 'giver', 'location', 'start', 'objective', 'description', 'rewards', 'offer', 'objectives', 'ending', 'unlocks', 'waitAt', 'cost', 'apartments', 'feeds']):
                 err(tw + ': unknown fields in a mission.')
                 continue
             w = tw + ' / ' + str(m.get('id'))
             for p in apartment_problems(m, inv):
+                err(w + ': ' + p)
+            for p in feed_problems(m, inv):
                 err(w + ': ' + p)
             if m.get('waitAt') is not None:
                 for p in wait_at_problems(m.get('giver'), m['waitAt'], inv):
@@ -1663,7 +1808,7 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'mod', 'object', 'ap', 'stay', 'unlock', 'needs', *ASK_STEP_KEYS, *ESCORT_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'mod', 'object', 'ap', 'stay', 'unlock', 'needs', 'feed', *ASK_STEP_KEYS, *ESCORT_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
                 ow = w + ' / ' + str(o.get('id'))

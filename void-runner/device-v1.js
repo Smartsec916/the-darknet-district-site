@@ -85,7 +85,7 @@
  function storage(device){
   const def=DEVICES[device.model]||DEVICES.v1,optional=device.apps.filter(a=>!def.apps.includes(a)),
    extra=optional.reduce((t,a)=>t+(Number((STORE_EXTRA.find(x=>x.id===a)||{}).storagePct)||0),0),
-   photos=Math.max(0,Number(arguments[1]??(typeof globalThis!=='undefined'&&globalThis.VoidGallery?globalThis.VoidGallery.count:0))||0),   // each photo in the Gallery takes 1% (device-gallery.js)
+   photos=Math.max(0,Number(arguments[1]??(typeof globalThis!=='undefined'&&globalThis.VoidGallery?(globalThis.VoidGallery.units??globalThis.VoidGallery.count):0))||0),   // each photo in the Gallery takes 1% (device-gallery.js)
    used=clampPct(def.storage.baseUsedPct+extra+photos);
   return {model:def.name,systemApps:def.apps.length,optionalApps:optional.length,usedPct:used,availablePct:100-used,baselinePct:def.storage.baseUsedPct};
  }

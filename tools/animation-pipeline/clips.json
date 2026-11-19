@@ -673,6 +673,43 @@
    "as": "shrug",
    "loop": "exact",
    "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "br-kneel": {
+   "file": "Rise_01_mixamo.fbx",
+   "start": 2,
+   "end": 9,
+   "as": "kneel",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s)."
+  },
+  "br-rise": {
+   "file": "Rise_01_mixamo.fbx",
+   "start": 10.3,
+   "end": 13.3,
+   "as": "rise",
+   "loop": "exact",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). One-shot: kneeling to standing, played once and held on its last pose."
+  },
+  "br-stand": {
+   "file": "Rise_01_mixamo.fbx",
+   "start": 15,
+   "end": 21,
+   "as": "stand",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). Standing still with the arms down: no idle variation (the owner: no fidgeting)."
+  },
+  "br-read": {
+   "file": "StarWars_TrooperCheckingPapers_HUMANIK_769.fbx",
+   "start": 2,
+   "end": 8,
+   "as": "read",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). Holding a paper at chest height and looking down at it."
+  },
+  "br-shock": {
+   "file": "DoubleTakes_mixamo.fbx",
+   "start": 25.5,
+   "end": 30.5,
+   "as": "shock",
+   "loop": "exact",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). One-shot: a start, a hand raised, then back."
   }
  },
  "fps": 15
