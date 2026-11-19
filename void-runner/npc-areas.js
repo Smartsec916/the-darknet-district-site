@@ -78,7 +78,8 @@
     no:[R(W([-17,17,70.5,78.3]),{why:RULE.pods,rule:true,name:'the Sleeping Pod room'}),
      R(W([3,15,56,69]),{why:'That is the meeting room (private: its door stays shut).',name:'the meeting room'}),R(W([-3,3,20,26]),{why:'That is the security vestibule (the checkpoint between the doors).',name:'the security vestibule'}),
      R(W([3,14.3,46.4,53]),{why:'That is behind the shop counter (staff only).',name:'behind the counter'}),R(W([3,17,51.2,53]),{why:'That is the store’s stock cage (staff only).',name:'the stock cage'})],
-    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]}]}];
+    labels:[{name:'hallway',x:WP(0,40)[0],z:WP(0,40)[1]},{name:'store',x:WP(10,45)[0],z:WP(10,45)[1]},{name:'vending',x:WP(-5,49.5)[0],z:WP(-5,49.5)[1]},
+      {name:'District bar',x:WP(10,35)[0],z:WP(10,35)[1]},{name:'VR play area',x:WP(-9,35)[0],z:WP(-9,35)[1]},{name:'arcade',x:WP(-6.5,61)[0],z:WP(-6.5,61)[1]}]}];
   for(const a of A){a.gates=a.scene==='street'?gates(a.quarter):[];const g=GEN&&GEN.areas&&GEN.areas[a.id];
    a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):[];
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
