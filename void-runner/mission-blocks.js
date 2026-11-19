@@ -15,7 +15,7 @@
  const TYPES={
   start:{name:'Start',color:'#9fb4c8',icon:'start'},who:{name:'Who',color:'#4da3ff',icon:'who'},words:{name:'Words',color:'#d4dae2',icon:'words'},
   action:{name:'Action',color:'#ff8a3d',icon:'action'},item:{name:'Item',color:'#3fd17a',icon:'item'},time:{name:'Time',color:'#b08cff',icon:'time'},
-  ask:{name:'Ask',color:'#ffd23f',icon:'ask'},apartment:{name:'Apartment',color:'#22c5b8',icon:'apartment'},end:{name:'End',color:'#9fb4c8',icon:'end'},other:{name:'Form view only',color:'#8b949e',icon:'other'}};
+  ask:{name:'Ask',color:'#ffd23f',icon:'ask'},apartment:{name:'Location',color:'#22c5b8',icon:'apartment'},end:{name:'End',color:'#9fb4c8',icon:'end'},other:{name:'Form view only',color:'#8b949e',icon:'other'}};
  /* WHO colours: the player is always blue; every NPC gets a stable colour from its id (the same everywhere), and inside one mission no two people share one (the next free
     colour is taken in the order they appear). None of them is the player's blue. */
  const PLAYER='#4da3ff',PALETTE=['#ff5fa2','#e07bff','#ff6b5e','#b9e65a','#e8c27a','#5ef2c2','#ff9ec7','#f2e85a'];
@@ -103,7 +103,7 @@
   {id:'item',type:'item',name:'Item',help:'Buy or deliver something, or the player gets credits, a ship or a contact here.'},
   {id:'time',type:'time',name:'Time',help:'Wait a number of seconds before the mission goes on.'},
   {id:'ask',type:'ask',name:'Ask ACCEPT / DENY',help:'The mission stops and asks the player. You choose what DENY does.'},
-  {id:'apartment',type:'apartment',name:'Apartment',help:'Put an apartment behind a street door for this mission (open from the block above).'},
+  {id:'apartment',type:'apartment',name:'Location',help:'An apartment, or a place built from modules (an office, a server room, a shop back room …) behind a street door for this mission (open from the block above).'},
   {id:'npc',type:'who',name:'Add another NPC',help:'Bring another character into the mission: the player talks to them next.'}];
  /* Second level: what exactly. kind: the step kind (or 'unlock:<kind>', 'cost', 'apartment'); who: 'npc' (choose a character) or 'player'; adv: only shown in Advanced. */
  const CHOICES={
@@ -143,7 +143,7 @@
   time:[{id:'wait',kind:'wait',name:'Wait a number of seconds',help:'1 to 600 seconds; optionally only while the player stays near someone.'},
    {id:'clock',kind:null,name:'Only at a time of the in-game day',help:'Not for single blocks yet: use a mission that starts “after in-game time” (Form view).',off:true}],
   ask:[{id:'ask',kind:'ask',name:'Ask the player: ACCEPT or DENY',help:'Your question and buttons; ACCEPT goes on, DENY does what you choose.'}],
-  apartment:[{id:'apartment',kind:'apartment',name:'Instance an apartment',help:'Pick its style and its street door.'}],
+  apartment:[{id:'location',kind:'location',name:'Build a location from modules',help:'Housing, commercial, office, server room, hallways, elevator, other: modules that join at their doors.'},{id:'apartment',kind:'apartment',name:'Instance an apartment',help:'Pick its style and its street door.'}],
   npc:[{id:'talk',kind:'talk',who:'npc',fresh:true,name:'Bring someone in',help:'Choose who; the player talks to them next.'}]};
  /* A new step of a kind, in the editor's draft shape (what + STEP in the Form view makes), with a Mission Log label filled in from the names. */
  function stepFor(kind,{npc='',via=null,name=id=>id,giver=''}={}){const o={id:'',label:'',kind};const nm=npc?name(npc):'';

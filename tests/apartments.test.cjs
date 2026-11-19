@@ -19,7 +19,7 @@ const tree=(objectives,apartments)=>[{id:'draft-flat',name:'The flat',missions:[
 const flat={id:'safehouse',style:'rundown',door:'apt-main-w-96',number:13};
 
 test('street doors: derived from the street edges, stable ids, only where nothing else is, a style by quarter',()=>{
- fresh();const X=A(),d=X.doors().filter(x=>x.family!=='container');assert.ok(d.length>=50,'doors along the main streets: '+d.length);assert.equal(new Set(d.map(x=>x.id)).size,d.length,'unique ids');
+ fresh();const X=A(),d=X.doors().filter(x=>(x.family||'city')==='city');assert.ok(d.length>=50,'doors along the main streets: '+d.length);assert.equal(new Set(d.map(x=>x.id)).size,d.length,'unique ids');
  for(const x of d){assert.match(x.id,/^apt-(avenue|main|road|passage)-[nsew]-\d{1,3}$/);assert.ok(['avenue','oldtown','far-south','port'].includes(x.quarter),x.id);assert.ok(X.STYLE_IDS.includes(x.style));
   for(const k of X.KEEP_OUT)assert.ok(!(x.x>=k.rect[0]-1.5&&x.x<=k.rect[1]+1.5&&x.z>=k.rect[2]-1.5&&x.z<=k.rect[3]+1.5),x.id+' is clear of '+k.why);
   for(const g of require(R('void-runner/ncz-quarters.js')).GATES)assert.ok(!(x.x>=g.rect[0]-2&&x.x<=g.rect[1]+2&&x.z>=g.rect[2]-2&&x.z<=g.rect[3]+2),x.id+' is clear of '+g.name);

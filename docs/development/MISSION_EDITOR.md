@@ -2,6 +2,31 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twenty-first pass (19 Nov 2026): locations built from modules (offices, a server room, shops, an elevator)
+
+The owner: "in the mission editor i need to be able to add locations by type: housing, commercial, other, office and commercial style hallways ... an office building interior ... a server room with server racks ... connect these areas together so make sure they fit ... elevator ... like modules". Details: `docs/development/MODULES.md`.
+
+### How to use it (plain steps)
+
+1. Open a mission. Under "Apartments for this mission", find **Add a location**: choose a category (Housing, Commercial, Office, Server room, Hallways, Elevator, Other), then the module, then press **+ ADD**. A new location card opens.
+2. Choose its **street door** from the list (office entrances are on The Avenue's west end, shop back entrances in Old Town and Far South; any apartment-building door works too).
+3. Add more modules with **Add** on the card. "joins at" picks the free door the new module goes against (or leave it on "the first free door that fits"). Modules always fit: their doors meet.
+4. The **plan** shows the floor from above. Click a module to select it: the arrows move it, **TURN** turns it, **REMOVE** takes it out. Green marks are doors between modules, amber the entrance, red a locked door.
+5. For more floors: add an **Elevator cab** where the lift should be, then **+ FLOOR BELOW** or **+ FLOOR ABOVE**; the new floor has the same cab; add modules at its door. The floor buttons above the plan switch floors.
+6. In the selected module: **Lights start On / Off**, **Screens start On / Off** (where it has screens), **MAKE ENTRANCE** on a free door, **locked until hacked** on a door, **+ ITEM** (placed items, for later).
+7. **Connections** join a door to a door that is not next to it (a short fade in the game): a housing hallway's door to an apartment, or an outside door to an apartment.
+8. Steps: **Go into an apartment** (choose the location, then "any room" or one room), **Use something** (choose the location, the room, then the thing), **Hack the access point** (every door of the location is in the list, from either side).
+9. The card says "Everything fits" or lists what to fix. **JUMP INSIDE** walks in at once (a test, nothing saved); PLAY THIS DRAFT plays the mission.
+10. Quicker: "start again from a template" on the card (office; office with a server room downstairs; shop, bar, clinic; storage). In the **Blocks view**: + ADD A BLOCK › Location › Build a location from modules. In **Make a mission**: "An apartment for this mission" › what it is.
+11. Older apartments keep working. **CONVERT THESE APARTMENTS TO MODULES** (optional) turns them into locations.
+
+### For Claude and Codex
+
+- `void-runner/module-editor.js` (loaded with the editor scripts, before the Blocks view): `card`, `picker`, `create`, `stepMod`, `objects`, `accessPoints`. The rules are `void-runner/modules.js` (`addModule`, `attach`, `freeSockets`, `problems`, `template`, `migrateMission`).
+- `mission-editor.js aptPanel` shows a location card for an entry with `modules`; `jumpApt` enters a location through `VoidModules.enter`. Guide me key `step-mod` (`[data-me-step-mod]`).
+- Blocks: `mission-blocks.js` second level `location`; `mission-blocks-view.js aptBlock` shows the card; the step fields add the room picker.
+- Make a mission: `a.apt.template` (editor-home.js, editor-wizard.js build: `VoidModules.template`).
+
 ## Twentieth pass (19 Nov 2026): the Blocks view, and ACCEPT / DENY anywhere in a mission
 
 The owner: "also to put the Accept/Deny the mission anywhere in the mission timeline. it would also be nice if in the mission editor were in blocks. i create the next block by selecting what kind it is. an action, words, who, an item, a time, etc, adding another npc. color coded based on who and what type. so the player would get a blue block within that block i selected an action, actions get an orange block so within the blue block there would be a orange block, etc". Branch `claude/mission-blocks`, build `2026-11-19-mission-blocks-1`. Pushed, no PR, not merged.

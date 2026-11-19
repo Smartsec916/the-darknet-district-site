@@ -45,11 +45,19 @@
  const HACK={min:2,max:30,def:5};
  const P_=()=>{try{return node?require('./progression.js'):root.VoidProgression;}catch{return null;}};
  const itemIds=()=>Object.keys((P_()&&P_().personalItems)||{'ward-kit':1,'hacking-device':1});
- function apOf(id){if(typeof id!=='string'||!id)return null;const m=/^([a-z][a-z0-9-]{0,23})\/(hall|entry)$/.exec(id);if(m)return {apt:m[1],part:m[2]};return /^apt-[a-z]+-[nsew]-\d{1,3}$/.test(id)?{door:id}:null;}
+ // (modules.js: a location's door is '<location>/<module>.<socket>', either side of it; a street door may also be an office or shop entrance 'biz-...')
+ function apOf(id){if(typeof id!=='string'||!id)return null;const m=/^([a-z][a-z0-9-]{0,23})\/(hall|entry)$/.exec(id);if(m)return {apt:m[1],part:m[2]};const k=/^([a-z][a-z0-9-]{0,23})\/([a-z][a-z0-9-]{0,11})\.([a-z0-9-]{1,10})$/.exec(id);if(k)return {apt:k[1],mod:k[2],sock:k[3]};return /^(apt|biz)-[a-z]+-[nsew]-\d{1,3}$/.test(id)?{door:id}:null;}
+ const MOD=()=>{try{return node?require('./modules.js'):root.VoidModules;}catch{return null;}};
+ const isLoc=a=>!!a&&typeof a==='object'&&Array.isArray(a.modules);
  const ITEM_TYPES=[{id:'loot',name:'Loot'},{id:'mission-item',name:'Mission item'},{id:'note',name:'Note / data'},{id:'other',name:'Other'}];
  const LIMIT={perMission:4,items:20,label:60,number:9999};
  const INST_ID=/^[a-z][a-z0-9-]{0,23}$/;
  const STREET_NAMES={avenue:'The Avenue',main:'Main Street',road:'the access road',passage:'the Port passage',yard:'The Outskirts'};
+ /* OFFICE AND SHOP ENTRANCES (modules.js locations; the owner, 19 Nov 2026: "office building interior ... commercial"): a door in the middle of a plain shopfront, half way
+    between two apartment doors, where nothing else is. Offices on the Avenue's corporate west end toward the Function Gate (family 'office'), shops' back entrances in Old Town
+    and Far South (family 'commercial'). Ids 'biz-<street>-<side>-<metres along>'. A location may go behind any street door; the older apartments only behind 'city' or
+    'container' doors. */
+ const BIZ_EVERY={office:2,commercial:3};
  const CT=()=>{try{return node?require('./ncz-containers.js'):root.VoidContainers;}catch{return null;}};
 
  // ---------------------------------------------------------------- the street doors
@@ -92,7 +100,15 @@
     let num=along;if((side==='e'||side==='n')!==(num%2===1))num+=1;   // west and south sides even, east and north sides odd
     out.push({id:'apt-'+e.street+'-'+side+'-'+along,street:e.street,side,x:r2(p[0]),z:r2(p[1]),n:e.n.slice(),ry:faceInto(e.n),front,quarter:q,style:styleAt(q,p[0]),number:num,
      name:'No. '+num+', '+(STREET_NAMES[e.street]||e.street)});}}
-  out.push(...containerDoors());if(Q&&CT()&&out.length)cache=out;return out;}   // kept only once the quarters and the containers are known (ncz-quarters.js, ncz-containers.js): an early call never freezes a short list
+  out.push(...containerDoors(),...bizDoors(Q));if(Q&&CT()&&out.length)cache=out;return out;}
+ function bizDoors(Q){const out=[];if(!Q)return out;const n={office:0,commercial:0};
+  for(const e of EDGES){const len=Math.hypot(e.b[0]-e.a[0],e.b[1]-e.a[1]);
+   for(let s=SEG/2;s<len-1.5;s+=SEG){const t=s/len,p=[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t];if(blockedWhy(e,p))continue;const front=[r2(p[0]-e.n[0]*1.25),r2(p[1]-e.n[1]*1.25)],q=Q.quarterAt(front[0],front[1]);
+    const fam=q==='avenue'&&p[0]<60&&e.street==='avenue'?'office':(q==='oldtown'||q==='far-south')&&e.street==='main'?'commercial':null;if(!fam)continue;if((n[fam]++)%BIZ_EVERY[fam])continue;
+    const side=sideOf(e.n),along=Math.round(Math.abs(e.n[0]?p[1]:p[0]));let num=along;if((side==='e'||side==='n')!==(num%2===1))num+=1;
+    out.push({id:'biz-'+e.street+'-'+side+'-'+along,street:e.street,side,x:r2(p[0]),z:r2(p[1]),n:e.n.slice(),ry:faceInto(e.n),front,quarter:q,style:fam,number:num,family:fam,
+     name:'No. '+num+', '+(STREET_NAMES[e.street]||e.street)+(fam==='office'?' (offices)':' (shop, back entrance)')});}}
+  return out;}   // kept only once the quarters and the containers are known (ncz-quarters.js, ncz-containers.js): an early call never freezes a short list
  /* The Outskirts' doors: one in the yard-facing front of every container on the edge of the yard (the west and east rows, the south row, the two lane ends): evenly one per
     container, at the other end of the front from its own side door (ncz-containers.js), never Kai Kryptos' home, never a container with a deck and stairs on that front, never
     in the yard's middle or a lane. family 'container'; styles alternate rundown / regular; reach: how far the collision of a stacked container stands out (its upper levels). */
@@ -198,10 +214,14 @@
   if(!Array.isArray(list)||list.length>LIMIT.perMission){out.push('a mission has at most '+LIMIT.perMission+' apartments.');return out;}
   const ids=new Set(),oids=new Set((m.objectives||[]).map(o=>o&&o.id)),known=doorIds||new Set(doors().map(d=>d.id));
   for(const a of list){const w='apartment “'+((a&&a.id)||'?')+'”';
+   if(isLoc(a)){const wl='location “'+(a.id||'?')+'”';if(typeof a.id!=='string'||!INST_ID.test(a.id))out.push(wl+': its name must be lowercase letters, digits and hyphens (24 at most), starting with a letter.');else if(ids.has(a.id))out.push(wl+': two apartments of one mission have the same name.');ids.add(a.id);
+    if(typeof a.door!=='string'||!known.has(a.door))out.push(wl+': choose a street door (on the map or from the list).');if(a.from!=null&&a.from!=='start'&&!oids.has(a.from))out.push(wl+': “available from” must be the mission’s start or one of its steps.');
+    const M=MOD(),dd=typeof a.door==='string'&&known.has(a.door)?door(a.door):null;if(M)for(const p of M.problems(a,dd?(dd.family||'city'):null))out.push(wl+': '+p);else out.push(wl+': locations cannot be checked here.');continue;}
    if(!keysOk(a,['id','style','door','number','from','items','locked','screenOff','lightsOff'])){out.push(w+' has unknown fields.');continue;}
    if(typeof a.id!=='string'||!INST_ID.test(a.id))out.push(w+': its name must be lowercase letters, digits and hyphens (24 at most), starting with a letter.');else if(ids.has(a.id))out.push(w+': two apartments of one mission have the same name.');ids.add(a.id);
    if(!STYLE_IDS.includes(a.style))out.push(w+': choose a style (rundown, normal, luxury, or a container style for The Outskirts).');
-   else if(typeof a.door==='string'&&known.has(a.door)){const dd=door(a.door);if(dd&&(dd.family==='container')!==isContainer(a.style))out.push(w+': '+(isContainer(a.style)?'a container apartment goes behind a door in The Outskirts.':'a city apartment goes behind a city street door, not a container in The Outskirts.'));}
+   else if(typeof a.door==='string'&&known.has(a.door)){const dd=door(a.door);if(dd&&(dd.family==='container')!==isContainer(a.style))out.push(w+': '+(isContainer(a.style)?'a container apartment goes behind a door in The Outskirts.':'a city apartment goes behind a city street door, not a container in The Outskirts.'));
+    else if(dd&&(dd.family==='office'||dd.family==='commercial'))out.push(w+': an apartment goes behind an apartment-building door, not an office or shop entrance (build a location there instead).');}
    if(typeof a.door!=='string'||!known.has(a.door))out.push(w+': choose a street door (on the map or from the list).');
    if(a.number!=null&&!(Number.isInteger(a.number)&&a.number>=1&&a.number<=LIMIT.number))out.push(w+': the number on its door is a whole number from 1 to 9999.');
    for(const k of ['screenOff','lightsOff'])if(a[k]!=null&&typeof a[k]!=='boolean')out.push(w+': “'+(k==='screenOff'?'screen starts':'lights start')+'” is on or off.');
@@ -214,13 +234,18 @@
      if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.4))out.push(w+': a placed item’s height is 0 to 2.4 m.');}}}
   const seen=new Set();for(const a of list){if(a&&typeof a.door==='string'){if(seen.has(a.door))out.push('two apartments of one mission use the same street door ('+a.door+').');seen.add(a.door);}}
   for(const o of m.objectives||[]){if(!o||(o.kind!=='apt-enter'&&o.kind!=='apt-use'))continue;if(!ids.has(o.apt))out.push('step '+o.id+': choose one of this mission’s apartments.');
+   const la=list.find(x=>x&&x.id===o.apt);if(isLoc(la)){const mm=o.mod!=null?la.modules.find(x=>x&&x.id===o.mod):null;if(o.mod!=null&&!mm)out.push('step '+o.id+': choose one of the location’s rooms (modules).');
+    if(o.kind==='apt-use'){if(o.mod==null)out.push('step '+o.id+': choose the room (module) where something is used.');else if(mm){const M=MOD(),objs=M?M.objectsOf(mm.type):[];if(!objs.some(x=>x.id===o.object))out.push('step '+o.id+': choose what is used ('+(objs.map(x=>x.name).join(', ')||'nothing can be used there')+').');}}
+    if(o.kind==='apt-enter'&&o.object!=null)out.push('step '+o.id+': only a “use something” step names an object.');continue;}
+   if(o.mod!=null)out.push('step '+o.id+': only a location built from modules has rooms to choose.');
    if(o.kind==='apt-use'&&!OBJECT_IDS.includes(o.object))out.push('step '+o.id+': choose what is used (computer, utility panel, safe, vending machine, closet or light switch).');
    if(o.kind==='apt-use'&&o.object==='screen'){const a=list.find(x=>x&&x.id===o.apt);if(a&&!SCREEN_STYLES.includes(a.style))out.push('step '+o.id+': the '+a.style+' apartment has no ad screen.');}
    if(o.kind==='apt-enter'&&o.object!=null)out.push('step '+o.id+': only a “use something” step names an object.');}
-  for(const o of m.objectives||[])if(o&&o.kind!=='apt-enter'&&o.kind!=='apt-use'&&(o.apt!=null||o.object!=null))out.push('step '+o.id+': only an apartment step names an apartment.');
+  for(const o of m.objectives||[])if(o&&o.kind!=='apt-enter'&&o.kind!=='apt-use'&&(o.apt!=null||o.object!=null||o.mod!=null))out.push('step '+o.id+': only an apartment step names an apartment.');
   const items=new Set(itemIds());
   for(const o of m.objectives||[]){if(!o)continue;if(o.kind!=='hack'){if(['ap','stay','unlock','needs'].some(k=>o[k]!=null))out.push('step '+o.id+': only a “hack the access point” step names an access point.');continue;}
    const p=apOf(o.ap);if(!p)out.push('step '+o.id+': choose the access point to hack (a street door, or an apartment’s hallway door or entry).');else if(p.door&&!known.has(p.door))out.push('step '+o.id+': that street door does not exist.');else if(p.apt&&!ids.has(p.apt))out.push('step '+o.id+': choose one of this mission’s apartments.');
+   else if(p.apt){const la=list.find(x=>x&&x.id===p.apt);if(p.mod&&!(isLoc(la)&&MOD()&&MOD().hackable(la,p.mod+'.'+p.sock)))out.push('step '+o.id+': choose a door of that location (a door between two rooms, a connection or its entrance).');else if(p.part&&isLoc(la))out.push('step '+o.id+': choose one of the location’s doors.');}
    if(o.hold!=null&&!(Number.isInteger(o.hold)&&o.hold>=HACK.min&&o.hold<=HACK.max))out.push('step '+o.id+': the hack takes a whole number of seconds from '+HACK.min+' to '+HACK.max+'.');
    for(const k of ['stay','unlock'])if(o[k]!=null&&typeof o[k]!=='boolean')out.push('step '+o.id+': “'+(k==='stay'?'fails if the player walks away':'opens the door')+'” is yes or no.');
    if(o.needs!=null&&!items.has(o.needs))out.push('step '+o.id+': the player can only need an item the game has ('+[...items].join(', ')+').');}
@@ -229,8 +254,10 @@
     done; from 'start' (default) or from the moment the step named in `from` is reached (every step before it done) until the mission ends. Draft play uses the same rule. */
  function openNow(s,trees){const out=[];if(!s||!s.universe||!Array.isArray(trees))return out;const recs=s.universe.missions||{};
   for(const t of trees)for(const m of (t&&t.missions)||[]){if(!Array.isArray(m.apartments)||!m.apartments.length)continue;const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;
-   const done=(rec.objectives)||{};for(const a of m.apartments){if(!a||!a.door)continue;
+   const done=(rec.objectives)||{};for(const a of m.apartments){if(!a||!a.door)continue;const M=MOD();
     if(a.from&&a.from!=='start'){const k=(m.objectives||[]).findIndex(o=>o.id===a.from);if(k<0)continue;if(!(m.objectives||[]).slice(0,k).every(o=>done[o.id]===true))continue;}
+    if(isLoc(a)){if(!M)continue;const hk=(m.objectives||[]).filter(o=>o.kind==='hack'&&o.unlock!==false&&done[o.id]===true&&typeof o.ap==='string'&&o.ap.startsWith(a.id+'/')&&o.ap.includes('.')).map(o=>o.ap.slice(a.id.length+1));
+     out.push({key:m.id+'/'+a.id,mission:m.id,id:a.id,door:a.door,modular:true,loc:M.strip(a),hacked:hk,title:m.title||m.id});continue;}
     const hacked=(m.objectives||[]).some(o=>o.kind==='hack'&&o.unlock!==false&&o.ap===a.id+'/hall'&&done[o.id]===true);
     out.push({key:m.id+'/'+a.id,mission:m.id,id:a.id,style:a.style,door:a.door,number:Number.isInteger(a.number)?a.number:null,locked:a.locked===true&&!hacked,screenOff:a.screenOff===true,lightsOff:a.lightsOff===true,items:Array.isArray(a.items)?a.items.map(i=>({...i})):[],title:m.title||m.id});}}
   return out;}
@@ -245,7 +272,7 @@
   return out;}
  const onDoor=(list,doorId)=>(list||[]).filter(a=>a.door===doorId);
  // The content export (mission-content.js treeStrip): only the known fields, numbers rounded.
- function strip(list){if(!Array.isArray(list))return null;const out=[];for(const a of list.slice(0,LIMIT.perMission)){if(!a||!INST_ID.test(a.id||'')||!STYLE_IDS.includes(a.style)||!a.door)continue;const x={id:a.id,style:a.style,door:a.door};
+ function strip(list){if(!Array.isArray(list))return null;const out=[];for(const a of list.slice(0,LIMIT.perMission)){if(isLoc(a)){if(a.door&&INST_ID.test(a.id||'')&&MOD())out.push(MOD().strip(a));continue;}if(!a||!INST_ID.test(a.id||'')||!STYLE_IDS.includes(a.style)||!a.door)continue;const x={id:a.id,style:a.style,door:a.door};
   if(Number.isInteger(a.number)&&a.number>=1&&a.number<=LIMIT.number)x.number=a.number;if(a.locked===true)x.locked=true;if(a.screenOff===true&&SCREEN_STYLES.includes(a.style))x.screenOff=true;if(a.lightsOff===true)x.lightsOff=true;if(a.from&&a.from!=='start')x.from=a.from;
   const its=(a.items||[]).filter(i=>i&&ITEM_TYPES.some(t=>t.id===i.type)&&plain(i.label,LIMIT.label)).slice(0,LIMIT.items).map(i=>{const y={type:i.type,label:i.label.trim(),x:r2(Number(i.x)||0),z:r2(Number(i.z)||0)};if(Number.isFinite(i.y))y.y=r2(i.y);return y;});if(its.length)x.items=its;out.push(x);}
   return out.length?out:null;}
