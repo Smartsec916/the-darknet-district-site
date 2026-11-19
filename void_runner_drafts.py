@@ -234,6 +234,11 @@ def validate_workspace(doc):
         raise DraftError('Invalid retired numbers.')
     if b.get('studio') is not None and not isinstance(b['studio'], dict):
         raise DraftError('Invalid studio draft.')
+    # Costs and ACCEPT / DENY (19 Nov 2026): the credits range and button labels are refused here already; the rest is checked when publishing.
+    from void_runner_live_content import workspace_money_problems
+    money = workspace_money_problems(b.get('trees', []))
+    if money:
+        raise DraftError('Invalid mission: ' + money[0], 422)
     if b.get('looks'):
         from void_runner_live_content import look_problems
         problems = look_problems(b['looks'])

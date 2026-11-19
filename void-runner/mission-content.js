@@ -28,6 +28,8 @@
    judges it at the moment of capture) and 'send-photo' (a photo of `subject`, taken during this mission, sent in Messages to `npc`; `say` is the reply to the right photo,
    `wrong` to any other; unlimited tries), a step's lines delivered `via` 'comms' or 'messages' instead of the dialogue window, a 'leave' trigger, and the unlock
    'reputation' (id: an NPC → story.relationships[id], or a faction → progression.reputation[id]; amount -100..100; both are kept by clean_save()).
+   COSTS AND ACCEPT / DENY (19 Nov 2026): a mission may cost the player credits (cost) and any offer may ask ACCEPT / DENY (start.accept, for every way of starting);
+   see MONEY below.
    Content shape: {format:'darknet-district-mission-content',version:1,beginner?:[...],registry?:{...},lines?:[...],trees?:[...],names?:{...}}. Unknown fields are refused, never ignored. */
 (function(root){
  'use strict';
@@ -46,6 +48,28 @@
  function nearList(trees){const out=[];for(const t of trees||[])for(const m of (t&&t.missions)||[]){const st=m&&m.start,w=st&&st.how==='notification'&&st.when;if(w&&w.kind==='near'&&(w.npc||m.giver))out.push({tree:t.id,mission:m.id,npc:w.npc||m.giver,metres:nearMetres(w.distance)});}return out;}
  /* Is the player near enough? d: metres to that person (Infinity / undefined: not in this scene). */
  const nearHit=(d,metres)=>typeof d==='number'&&Number.isFinite(d)&&d<=nearMetres(metres);
+ /* COSTS AND ACCEPT / DENY (the owner, 19 Nov 2026: "can i do -100 credit option and add an accept or deny").
+    cost {amount 1..100000, when:'accept' (default: charged as the player presses ACCEPT; the offer shows it) | a step id (charged as that step is done), refund:true (only for
+    'accept': given back if the mission is abandoned)}. Credits never go below 0: ACCEPT is refused (greyed, "You need N CR") while the player has less, and a step that costs is
+    not done until they have it. Charged ONCE: story.flags.mc_<mission> keeps the amount charged (a safe integer), so a replay, a reload or a second ACCEPT never charges again.
+    start.accept:true works for every start that presents an offer (in person, Messages, Comms, a banner, walked near). yes / no: the button labels (20 characters at most;
+    default ACCEPT / DENY). deny: what DENY does: 'again' (default: offered again later: the next talk for an offer in person, the next time the player leaves the Sleeping Pod
+    for an offer on the device: story.flags.md_<mission> = 'later' until then), 'never' (md_<mission> = 'never'; the missions after it in its tree do not come either), or
+    'start' (denyStart: the first mission of another tree starts instead, or is offered when it asks too). denySay: the owner's own lines after DENY (optional). */
+ const MONEY={min:-100000,max:100000,label:20},DENY=['again','never','start'],ASK_KEYS=['yes','no','deny','denyStart','denySay'],YES='ACCEPT',NO='DENY';
+ const costFlag=id=>'mc_'+String(id).slice(0,61),denyFlag=id=>'md_'+String(id).slice(0,61);
+ function costOf(m){const c=m&&m.cost;if(!c||!(Number.isInteger(c.amount)&&c.amount>0))return null;const when=c.when||'accept';return {amount:Math.min(c.amount,MONEY.max),when,refund:c.refund===true&&when==='accept'};}
+ /* Credits as one signed number for the editor ("Player gets" >= 0, "Player pays" < 0) and back (clamped to -100000..100000). */
+ const signed=m=>{const c=costOf(m);return c?-c.amount:(Number.isInteger(m&&m.rewards)?m.rewards:0);};
+ function setSigned(m,n){n=Math.trunc(Number(n))||0;n=Math.max(MONEY.min,Math.min(MONEY.max,n));if(n<0){m.cost={...(m.cost||{}),amount:-n};if(!m.cost.when)m.cost.when='accept';m.rewards=0;}else{m.rewards=n;delete m.cost;}return m;}
+ const charged=(s,id)=>{const v=s&&s.story&&s.story.flags&&s.story.flags[costFlag(id)];return Number.isSafeInteger(v)&&v>0?v:0;};
+ /* Can the player pay this cost now (or has it been paid already)? */
+ const affords=(s,m,c=costOf(m))=>!c||charged(s,m.id)>0||(Number(s&&s.credits)||0)>=c.amount;
+ /* Takes the cost once; never below 0 (nothing is taken when the player has less). Returns the amount taken. */
+ function charge(s,m,c=costOf(m)){if(!c||charged(s,m.id)>0)return 0;const have=Math.max(0,Number(s.credits)||0);if(have<c.amount)return 0;s.credits=have-c.amount;s.story.flags[costFlag(m.id)]=c.amount;return c.amount;}
+ /* What the offer window shows: the name, a short description, the cost (and when it is charged) or the reward, and whether ACCEPT can be pressed. */
+ function offerOf(s,m){const c=costOf(m),st=m.start||{},d=String(m.description||'').replace(/\s+/g,' ').trim(),atAccept=!!(c&&c.when==='accept'),ok=!atAccept||affords(s,m,c);
+  return {mission:m.id,title:m.title,description:d.length>160?d.slice(0,157)+'…':d,cost:c?c.amount:0,costWhen:c?c.when:null,reward:Number.isInteger(m.rewards)&&m.rewards>0?m.rewards:0,afford:ok,need:ok?0:c.amount,yes:st.yes||YES,no:st.no||NO};}
  const FORMAT='darknet-district-mission-content',VERSION=1;
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TAGS=/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/;
  // The events the beginner runner fires (beginner-integration.js); the same list as the Developer Studio (admin/studio-model.js EVENTS, checked by a test).
@@ -150,9 +174,9 @@
  const devLabel=m=>MS?MS.label(m.number,m.title):m.title;
  /* How a mission starts (closed shape). In person needs nothing else; by notification needs a channel, a sender, the text (a header for Messages and Comms) and a trigger. */
  function checkStart(st,w,ctx,err,speakerOk,trees){
-  if(!keysOk(st,['how','channel','from','header','text','when','accept'])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
-  if(st.accept!=null&&(typeof st.accept!=='boolean'||st.how!=='person'))err(w+': only a mission offered in person can be accepted or declined.');
-  if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'))err(w+': a mission given in person has no notification fields.');return;}
+  if(!keysOk(st,['how','channel','from','header','text','when','accept',...ASK_KEYS])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
+  if(st.accept!=null&&typeof st.accept!=='boolean')err(w+': “Ask the player: ACCEPT or DENY” must be yes or no.');
+  if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'&&!ASK_KEYS.includes(k)))err(w+': a mission given in person has no notification fields.');return;}
   if(!CHANNELS.includes(st.channel))err(w+': unknown notification channel.');
   if(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from))err(w+': the notification must come from a known NPC.');
   if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
@@ -166,6 +190,19 @@
    if(x.distance!=null&&!(typeof x.distance==='number'&&Number.isFinite(x.distance)&&x.distance>=NEAR.min&&x.distance<=NEAR.max))err(w+': “when walked near” needs a distance from 1 to 30 metres.');}
   if((x.kind==='place'||x.kind==='leave')&&(typeof x.place!=='string'||(ctx.places&&!ctx.places.has(x.place))))err(w+': unknown trigger place "'+x.place+'".');
   if(x.kind==='flag'){if(!STORY_FLAG.test(x.flag||''))err(w+': the trigger flag must be a story flag name (letters, digits, - or _).');if(!(typeof x.value==='boolean'||(typeof x.value==='string'&&x.value.length<=200&&!TAGS.test(x.value))||Number.isSafeInteger(x.value)))err(w+': the trigger flag value must be true/false, a number or short text.');}}
+ /* ACCEPT / DENY settings (any start) and the cost (MONEY above). */
+ function checkAsk(st,w,err,lines,trees,t){if(!st||typeof st!=='object')return;
+  if(ASK_KEYS.some(k=>st[k]!=null)&&st.accept!==true)err(w+': button labels and “what happens on DENY” need “Ask the player: ACCEPT or DENY”.');
+  for(const k of ['yes','no'])if(st[k]!=null&&!plain(st[k],MONEY.label))err(w+': a button label must be plain text, '+MONEY.label+' characters at most.');
+  if(st.deny!=null&&!DENY.includes(st.deny))err(w+': unknown “what happens on DENY”.');
+  if(st.deny==='start'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===st.denyStart))err(w+': on DENY it must start the first mission of another tree.');}
+  else if(st.denyStart!=null)err(w+': only “start another mission” names a mission to start.');
+  lines(st.denySay,w+' / on DENY');}
+ function checkCost(m,w,err,oids){const c=m.cost;if(c==null)return;if(!keysOk(c,['amount','when','refund'])){err(w+': the cost has unknown fields.');return;}
+  if(!(Number.isInteger(c.amount)&&c.amount>=1&&c.amount<=MONEY.max))err(w+': what the player pays must be a whole number from 1 to 100000 credits.');
+  const when=c.when==null?'accept':c.when;if(when!=='accept'&&!oids.has(when))err(w+': the cost is charged at a step that is not in this mission.');
+  if(c.refund!=null&&(typeof c.refund!=='boolean'||(c.refund&&when!=='accept')))err(w+': “refund if abandoned” is only for a cost charged at ACCEPT.');
+  if(when==='accept'&&!(m.start&&m.start.accept===true))err(w+': a mission the player pays for when accepting must ask the player ACCEPT or DENY.');}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
  const linked=trees=>new Set((trees||[]).flatMap(t=>(t.missions||[]).flatMap(m=>(m.unlocks||[]).filter(u=>u&&u.kind==='tree').map(u=>u.id))));
  /* ctx: givers (Map id → {canTalk}), places (Set), items (Set: buyable module ids), locations (Set), ships (Map id → {premium}), registryIds (Set: ids a draft id may not take). */
@@ -183,12 +220,12 @@
    if(t.note!=null&&!(typeof t.note==='string'&&t.note.length<=300&&!TAGS.test(t.note)))err(tw+': the note must be plain text (300 characters at most).');
    if(!Array.isArray(t.missions)||!t.missions.length||t.missions.length>20){err(tw+': a tree needs 1 to 20 missions.');continue;}
    for(const m of t.missions){total++;const w=tw+' / '+((m&&m.id)||'?');
-    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt'])){err(w+': unknown fields in a mission.');continue;}
+    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost'])){err(w+': unknown fields in a mission.');continue;}
     if(m.waitAt!=null){const X=NPX();for(const p of X?X.waitAtProblems(m.giver,m.waitAt):['“Giver waits at” cannot be checked here.'])err(w+': '+p);}
     if(!missionIdOk(m.id))err(w+': a new mission id must start with draft- (60 characters at most).');
     if(m.number!=null&&!(Number.isInteger(m.number)&&m.number>=1&&m.number<=999))err(w+': a mission number must be a whole number from 001 to 999.');
     if(m.number==null&&STORY.has(t.id))err(w+': every mission in the main storyline needs a mission number.');
-    if(m.start!=null)checkStart(m.start,w,ctx,err,speakerOk,trees);
+    if(m.start!=null){checkStart(m.start,w,ctx,err,speakerOk,trees);checkAsk(m.start,w,err,lines,trees,t);}
     if(m.category!=null&&!plain(m.category,LIMIT.title))err(w+': the mission type label must be plain text (60 characters at most).');
     if(m.objective!=null&&!plain(m.objective,200))err(w+': the objective must be plain text (200 characters at most).');
     if(m.location!=null&&(typeof m.location!=='string'||(ctx.places&&!ctx.places.has(m.location))))err(w+': unknown location "'+m.location+'".');if(mids.has(m.id)||(ctx.registryIds&&ctx.registryIds.has(m.id)))err(w+': duplicate mission id.');mids.add(m.id);
@@ -219,6 +256,7 @@
      if(o.wrong!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step has a reply for the wrong photo.');
      if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}
      lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}
+    checkCost(m,w,err,oids);
     if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{
      if(m.ending.npc!=null&&!npcOk(m.ending.npc))err(w+': the hand-in NPC must be an NPC the game has a TALK prompt for.');
      if(m.ending.place!=null&&typeof m.ending.place!=='string')err(w+': unknown ending place.');if(m.ending.label!=null&&!plain(m.ending.label,LIMIT.text))err(w+': the hand-in label must be plain text.');lines(m.ending.say,w+' / ending');}}
@@ -289,6 +327,7 @@
   const out={tree:null,mission:null,offered:false,objective:null,done:[],lines:[],early:null,completed:false,reward:0,notes:[],messages:[],hear:null};
   if(!treeLive(s)||!env||!Array.isArray(env.trees)||!env.trees.length||!ev)return out;
   const npcs=ev.npcs||[],places=ev.places||[],gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
+  if(ev.type==='pod-exit')for(const k of Object.keys(s.story.flags))if(k.startsWith('md_')&&s.story.flags[k]==='later')delete s.story.flags[k];   // a DENY on the device: offered again from this pod exit
   const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>({who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text}));
   const gated=linked(env.trees),open=t=>!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true;
   const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
@@ -296,7 +335,8 @@
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
    if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(GC)GC.stamp(s,m.id);/* the in-game wait of "after N in-game hours" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
-  const step=(t,m,o)=>{if(!Missions.complete(s,m.id,o.id,Camp))return false;Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
+  const step=(t,m,o)=>{const c=costOf(m),pay=c&&c.when===o.id?c:null;if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount,needStep:o.id});return false;}   // a step that costs: not done until the player has the credits
+   if(!Missions.complete(s,m.id,o.id,Camp))return false;if(pay){const n=charge(s,m,pay);if(n){out.charged=(out.charged||0)+n;out.notes.push('−'+n+' CREDITS');}}Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
    if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
    else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else out.lines.push(...speak(o.say));settle(m,o.id);return true;};
   // A step's lines that reach the device instead of the dialogue window (a Comms call or a message from the NPC who says them): kept like a start notification.
@@ -322,21 +362,41 @@
      tree's next mission is offered in person, with ACCEPT / NOT NOW, by someone in this same conversation, its offer follows in the same window. Nothing is taken until ACCEPT
      (out.ask; out.mission stays the completed one, so its MISSION COMPLETE notice and reward are reported as before). NOT NOW: the next conversation offers it again. */
   const chain=(t,m)=>{if(ev.type!=='talk'||!out.completed||out.hear||out.ask||!out.lines.length)return;   /* only after a line that closes the mission (Mission 001's unwritten introduction says nothing, so it stays as it was) */
-   const n=t.missions[t.missions.indexOf(m)+1];if(!n||!(n.start&&n.start.how!=='notification'&&n.start.accept===true))return;
+   const n=t.missions[t.missions.indexOf(m)+1];if(!n||!(n.start&&n.start.how!=='notification'&&n.start.accept===true)||s.story.flags[denyFlag(n.id)]==='never')return;
    const r=s.universe.missions&&s.universe.missions[n.id];if(r&&(r.acquired||r.completed))return;if(!startsNow(n)||!Missions.available(s,n.id))return;const ls=speak(n.offer);if(!ls.length)return;
-   out.ask={mission:n.id,title:titleOf(n),accept:'ACCEPT',decline:'NOT NOW'};out.next=n.id;out.lines.push(...ls);};
+   out.ask=askOf(n);out.offer=offerOf(s,n);out.next=n.id;out.lines.push(...ls);};
+  const askOf=m=>({mission:m.id,title:titleOf(m),accept:(m.start&&m.start.yes)||YES,decline:(m.start&&m.start.no)||NO});
+  /* An offer that arrives on the device and asks (Messages, Comms, a banner, walked near): out.prompt {ask, offer, lines (the notification's words), channel, tree}. It never
+     stops the other trees (it is asked again on every event while its trigger holds; live-content.js shows it once in a while, never over a conversation). */
+  const prompt=(t,m)=>{const st=m.start;return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',lines:[{who:gv(st.from).say||st.from,text:(st.header?st.header+': ':'')+st.text}].filter(l=>env.draft||!placeholder(l.text))};};
+  /* DENY with "start another mission": that tree's first mission starts now (or is offered now when it asks too). */
+  const startInstead=id=>{for(const tt of env.trees){const mm=(tt.missions||[])[0];if(!mm||mm.id!==id)continue;const r=s.universe.missions&&s.universe.missions[mm.id];if(r&&(r.acquired||r.completed))return;
+    if(gated.has(tt.id))s.story.flags[linkFlag(tt.id)]=true;delete s.story.flags[denyFlag(mm.id)];const sm=mm.start||{};
+    if(sm.accept===true){if(sm.how==='notification')out.prompt=prompt(tt,mm);else{out.ask=askOf(mm);out.offer=offerOf(s,mm);out.next=mm.id;out.lines.push(...speak(mm.offer));}return;}
+    if(Missions.acquire(s,mm.id)){Missions.track(s,mm.id,Camp);out.started=mm.id;out.notes.push('NEW MISSION · '+titleOf(mm));if(sm.how==='notification')notify(tt,mm);else out.lines.push(...speak(mm.offer));}return;}};
   for(const t of env.trees){if(!open(t))continue;
    for(const m of t.missions){
     const rec=s.universe.missions&&s.universe.missions[m.id];
     if(rec&&rec.completed)continue;
     if(!rec||!rec.acquired){
-     const byNote=!!(m.start&&m.start.how==='notification'),asks=!byNote&&!!(m.start&&m.start.accept===true);
-     // In person with ACCEPT / NOT NOW: talking to the giver shows the offer and asks; nothing is taken until ACCEPT ('accept' event). NOT NOW changes nothing, so the
-     // next conversation offers it again. Once accepted the mission has a record and is never offered again.
-     if(asks){
-      if(ev.type==='accept'&&ev.mission===m.id&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:'person'});return out;}
-      if(ev.type==='decline'&&ev.mission===m.id){Object.assign(out,{tree:t.id,mission:m.id,declined:true});return out;}
-      if(startsNow(m)&&Missions.available(s,m.id)){Object.assign(out,{tree:t.id,mission:m.id,ask:{mission:m.id,title:titleOf(m),accept:'ACCEPT',decline:'NOT NOW'}});out.lines.push(...speak(m.offer));return out;}
+     const byNote=!!(m.start&&m.start.how==='notification'),asks=!!(m.start&&m.start.accept===true),st=m.start||{};
+     // ACCEPT / DENY (in person, or on the device): the offer is shown and asks; nothing is taken until ACCEPT ('accept' event), and a cost at ACCEPT is charged then, once.
+     // DENY ('decline'): MONEY above. Once accepted the mission has a record and is never offered again.
+     if(asks){const dn=s.story.flags[denyFlag(m.id)];
+      if(dn==='never')break;   // denied for good: nothing more from this tree
+      if(ev.type==='accept'&&ev.mission===m.id){const c=costOf(m),pay=c&&c.when==='accept'?c:null;
+       if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount});return out;}   // ACCEPT is greyed in the window; refused here too
+       if(!Missions.acquire(s,m.id))break;Missions.track(s,m.id,Camp);delete s.story.flags[denyFlag(m.id)];
+       if(pay){const n=charge(s,m,pay);if(n){out.charged=n;out.notes.push('−'+n+' CREDITS');}}
+       Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});
+       if(byNote){notify(t,m);const first=m.objectives[0],w=st.when||{};if(first&&((first.kind==='pod-exit'&&w.kind==='pod-exit')||((first.kind==='go'||first.kind==='enter')&&w.kind==='place'&&first.place===w.place)))step(t,m,first);auto(t,m);}   // its trigger already happened
+       return out;}
+      if(ev.type==='decline'&&ev.mission===m.id){const d=DENY.includes(st.deny)?st.deny:'again';Object.assign(out,{tree:t.id,mission:m.id,declined:true,deny:d});out.lines.push(...speak(st.denySay));
+       if(d!=='again')s.story.flags[denyFlag(m.id)]='never';else if(byNote)s.story.flags[denyFlag(m.id)]='later';
+       if(d==='start')startInstead(st.denyStart);return out;}
+      if(dn==='later')break;   // denied on the device: offered again from the next pod exit
+      if(startsNow(m)&&Missions.available(s,m.id)){if(byNote){if(!out.prompt)out.prompt=prompt(t,m);break;}
+       Object.assign(out,{tree:t.id,mission:m.id,ask:askOf(m),offer:offerOf(s,m)});out.lines.push(...speak(m.offer));return out;}
       break;}
      if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote)notify(t,m);else out.lines.push(...speak(m.offer));
       const first=m.objectives[0];if(byNote&&first&&hit(first,m))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
@@ -365,6 +425,12 @@
    for(const o of m.objectives||[]){if((o.via!=='comms'&&o.via!=='messages')||(channel&&o.via!==channel)||rec.objectives[o.id]!==true||!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)])||!(o.say||[]).length)continue;
     out.push(stepMessage(m,o,gv,Number(s.story.flags[msgFlag(m.id,o.id)])||0,s.story.flags[readFlag(m.id,o.id)]===true));}}
   return out.sort((a,b)=>b.at-a.at);}
+ /* Abandoning a tree mission (the game has no abandon button for these yet: the rule is ready for one). The record is removed, so it can be offered again; a cost
+    charged at ACCEPT is given back only when the owner ticked "refund if abandoned" (once: the flag goes to 0, so accepting again charges again). Without the refund
+    the flag stays, so accepting again never charges twice. Returns the credits given back. */
+ function abandon(s,env,id){if(!s||!s.universe||!s.universe.missions||!env||!Array.isArray(env.trees))return 0;const rec=s.universe.missions[id];if(!rec||!rec.acquired||rec.completed)return 0;
+  const m=env.trees.flatMap(t=>t.missions||[]).find(x=>x.id===id);if(!m)return 0;delete s.universe.missions[id];if(s.universe.trackedMission===id)s.universe.trackedMission=null;
+  const c=costOf(m),paid=charged(s,id);if(!(c&&c.refund&&paid>0))return 0;s.credits=Math.min(100000000,(Number(s.credits)||0)+paid);s.story.flags[costFlag(id)]=0;return paid;}
  function markRead(s,id){const [mid,sid]=String(id||'').split('/');if(!mid||!sid||!s||!s.story||!s.story.flags)return false;if(s.story.flags[readFlag(mid,sid)]===true)return false;s.story.flags[readFlag(mid,sid)]=true;return true;}
  /* "GIVER WAITS AT" (the owner approved it for Reverie and Lace, 18 Nov 2026): the spots where a giver should wait now, one per giver: the first mission of an open tree
     that is waiting to be offered by her (not taken, not done, every mission before it done), offered in person or "when walked near" her, with a waitAt. */
@@ -422,8 +488,11 @@
  /* ---- new trees in the owner's draft → content. Only what the game can run is sent: in each tree, the missions in order up to the first one that cannot run yet. */
  const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>({who:l.who||who||'You',text:l.text.trim()}));
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
+ const askStrip=(st,who)=>{if(!st||st.accept!==true)return {};const x={accept:true};for(const k of ['yes','no'])if(typeof st[k]==='string'&&st[k].trim())x[k]=st[k].trim().slice(0,MONEY.label);
+  if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
  function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();
-   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',accept:true};if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
+   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;Object.assign(x,askStrip(st,st.from||m.giver));r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',...askStrip(m.start,m.giver)};
+  {const c=m.cost;if(c&&Number.isInteger(c.amount)&&c.amount>0){const x={amount:Math.min(c.amount,MONEY.max)};if(c.when&&c.when!=='accept')x.when=c.when;else if(c.refund===true)x.refund=true;r.cost=x;}}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
   {const X=NPX(),wa=X&&m.waitAt&&X.MOVABLE[m.giver]?X.cleanWait(m.waitAt):null;if(wa)r.waitAt=wa;}   // "Giver waits at" (Reverie, Lace)
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
@@ -440,6 +509,9 @@
   if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!st.from)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!String(st.text||'').trim())need('the notification needs its text','start-text');
    if(w.kind==='after-mission'&&!w.mission)need('choose the mission it follows','start-mission');if((w.kind==='place'||w.kind==='leave')&&!w.place)need('choose the place that starts it','start-place');if(w.kind==='flag'&&!w.flag)need('name the story flag that starts it','start-flag');
    if(w.kind==='near'){const who=w.npc||m.giver;if(!who)need('choose who the player walks near','start-near');else if(!can(who))need(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)','start-near');}}
+  {const st=m.start||{},c=m.cost;if(c&&Number(c.amount)>0&&(c.when||'accept')==='accept'&&st.accept!==true)need('the player pays when accepting, so it must ask: tick “Ask the player: ACCEPT or DENY”','start-ask');
+   if(c&&c.when&&c.when!=='accept'&&!(m.objectives||[]).some(o=>o.id===c.when))need('the step the player pays at is gone: choose when they pay','cost-when');
+   if(st.accept===true&&st.deny==='start'&&!st.denyStart)need('choose the mission that starts when the player says DENY','start-deny');}
   if(!(m.objectives||[]).length)need('it has no steps','add-step');
   for(const [i,o] of (m.objectives||[]).entries()){const w='step '+(i+1),id=o.id;
    if(!STEP_KINDS.includes(o.kind)){need(w+' ('+(o.kind||'no kind')+') needs a code change','kind',id);continue;}
@@ -545,7 +617,7 @@
   const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
   return acts;
  }
- const api={NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={MONEY,DENY,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
