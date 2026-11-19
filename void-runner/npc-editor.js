@@ -122,7 +122,7 @@
   d.append(grid);return d;}
  function listInto(list){list.replaceChildren();const q=ui.search.trim().toLowerCase(),all=entries().filter(x=>!q||x.name.toLowerCase().includes(q)||x.id.toLowerCase().includes(q));
   for(const [g,name] of GROUPS){const xs=all.filter(x=>x.group===g);if(!xs.length)continue;const d=el('details','','npc-group',{'data-npc-group':g});d.open=g!=='crowd'&&g!=='earlier'||!!q||xs.some(x=>x.id===ui.id);d.append(el('summary',name+' ('+xs.length+')','me-group'));
-   for(const x of xs){const plan_=x.kind==='roster'&&plan(x.id);d.append(btn(x.name+(plan_?' ✎':''),()=>{ui.id=x.id;ui.start=false;status='';draw();},'me-mission'+(ui.id===x.id?' on':''),{'data-npc':x.id,...(advanced()?{title:x.id}:{})}));}list.append(d);}
+   for(const x of xs){const plan_=x.kind==='roster'&&plan(x.id),vb=x.kind==='roster'&&S().voiceNow&&root.VoidNPCVoices?root.VoidNPCVoices.summary(S().voiceNow(x.id)):null,b=btn(x.name+(plan_?' ✎':''),()=>{ui.id=x.id;ui.start=false;status='';draw();},'me-mission'+(ui.id===x.id?' on':''),{'data-npc':x.id,...(advanced()?{title:x.id}:{})});if(vb&&vb.badge==='EL')b.append(el('span','EL','npc-vbadge',{'data-npc-voice-badge':x.id,title:'ElevenLabs voice: '+vb.name+' ('+vb.modelLabel+')'}));d.append(b);}list.append(d);}
   if(!all.length)list.append(el('p','Nobody has that name. Try fewer letters, or clear the box to see everyone.','me-small'));}
  // ---------------------------------------------------------------- one NPC
  function detail(main,e,pv){
@@ -134,7 +134,7 @@
   row('Look (model)',asset?asset+(clips.length?' · '+clips.length+' clips':''):'no crowd model (drawn by its own scene code)',HELP.look);
   if(e.kind==='crowd'){row('Where','The street picks figures from this pool (crowd.js, ncz-nightlife.js).',HELP.crowd);}
   else{const live=root.VoidStreetPair?.live?.(),lh=live&&live.her&&live.her.id===e.id?' · in this game now at x '+live.her.x.toFixed(1)+', z '+live.her.z.toFixed(1)+' ('+(live.her.mode||'')+')':'';row('Where',(g.where||'')+lh,HELP.where);
-   const reg=S().src?.registry?.npcs?.[e.id],vn=S().voiceNow?S().voiceNow(e.id):{kind:'none'};row('Voice',vn.kind==='elevenlabs'?'ElevenLabs: '+vn.name+(reg?' (recorded lines: Kokoro '+reg.voice+', locked)':''):reg?reg.voice+' · '+reg.status+' (Kokoro, locked)':'no voice yet (their lines are text)',HELP.voice);
+   const reg=S().src?.registry?.npcs?.[e.id];if(S().voiceSummary){facts.append(S().voiceSummary(e.id));if(reg)facts.append(el('p','Recorded lines: Kokoro '+reg.voice+' · '+reg.status+' (locked)','me-small'));facts.append(hint(HELP.voice));}else row('Voice',reg?reg.voice+' (Kokoro, locked)':'—',HELP.voice);
    row('Missions',g.canTalk?(g.players?'Can give missions; players can reach them today.':'Can give missions in a draft; players cannot reach them today.'):'Cannot give missions yet: '+(g.why||'no TALK prompt')+'.');
    if(g.shift)facts.append(el('p',S().G().shiftText(g),'me-small me-warn'));}
   main.append(facts);

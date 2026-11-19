@@ -24,14 +24,15 @@ const shot=async(t,name)=>{if(shots)await t.screenshot({path:path.join(shots,nam
   const open=async id=>{await page.evaluate(id=>{VoidDevTools.npcFocus=id;VoidDevTools.open('npcs');},id);await page.waitForSelector('[data-voice-panel="'+id+'"]',{timeout:90000});};
   // ---- a Kokoro character: read-only registered voice; an ElevenLabs one from the re-voice file
   await open('nyx');let cur=page.locator('[data-voice-panel="nyx"] [data-voice-current]');assert.equal(await cur.getAttribute('data-voice-current'),'kokoro');assert.match(await cur.textContent(),/af_river · approved · read-only/);
-  assert.match(await page.locator('[data-npc-facts="nyx"]').textContent(),/af_river · approved \(Kokoro, locked\)/);
+  assert.match(await page.locator('[data-npc-facts="nyx"]').textContent(),/Voice: free local voice af_river \(locked\)/);
   await open('admin');cur=page.locator('[data-voice-panel="admin"] [data-voice-current]');assert.equal(await cur.getAttribute('data-voice-current'),'elevenlabs');assert.match(await cur.textContent(),/set in the re-voice file/);
   assert.equal(await page.locator('[data-voice-panel="admin"] [data-voice-listen]').getAttribute('href'),'https://elevenlabs.io/voices/DMyrgzQFny3JI1Y1paM5');
   const est=await page.locator('[data-voice-panel="admin"] [data-voice-estimate]').textContent();log('admin estimate:',est);assert.match(est,/Re-voicing all of Admin’s lines: \d+ line\(s\) · [\d,]+ characters · about [\d,]+ ElevenLabs credits/);
   assert.match(await page.locator('[data-voice-panel="admin"]').textContent(),/Estimate only: about 1 credit per character/);
   // ---- Reverie: no voice yet; a bad link is refused in plain words; a pasted link plus a name is saved in the draft
   await open('grey-reverie');const P=()=>page.locator('[data-voice-panel="grey-reverie"]');
-  assert.equal(await P().locator('[data-voice-current]').getAttribute('data-voice-current'),'none');assert.match(await P().locator('[data-voice-street]').textContent(),/ordinary, neutral street voice/);
+  assert.equal(await P().locator('[data-voice-current]').getAttribute('data-voice-current'),'elevenlabs');   // her voice in revoice-engines.json (19 Nov 2026)
+  assert.match(await P().locator('[data-voice-street]').textContent(),/ordinary, neutral street voice/);
   await P().locator('[data-voice-choose] summary').click();
   await P().locator('[data-voice-input]').fill('https://example.com/voices/'+ID);assert.match(await P().locator('[data-voice-check]').textContent(),/Only an elevenlabs\.io link/);
   await P().locator('[data-voice-input]').fill('AbCdEf123');assert.match(await P().locator('[data-voice-check]').textContent(),/exactly 20 letters and digits/);
@@ -41,7 +42,7 @@ const shot=async(t,name)=>{if(shots)await t.screenshot({path:path.join(shots,nam
   await P().locator('[data-voice-name]').fill('Gravel street vendor');await shot(P(),'01-choose-voice.png');await P().locator('[data-voice-save]').click();await page.waitForTimeout(200);
   const v=await draft();log('draft voices:',v);assert.equal(v['grey-reverie'].voiceId,ID);assert.equal(v['grey-reverie'].name,'Gravel street vendor');assert.match(v['grey-reverie'].chosen,/^\d{4}-\d{2}-\d{2} by the owner$/);
   cur=P().locator('[data-voice-current]');assert.equal(await cur.getAttribute('data-voice-current'),'elevenlabs');assert.match(await cur.textContent(),/Gravel street vendor .* your choice in this draft/);
-  assert.equal(await P().locator('[data-voice-listen]').getAttribute('href'),'https://elevenlabs.io/voices/'+ID);assert.match(await page.locator('[data-npc-facts="grey-reverie"]').textContent(),/ElevenLabs: Gravel street vendor/);
+  assert.equal(await P().locator('[data-voice-listen]').getAttribute('href'),'https://elevenlabs.io/voices/'+ID);assert.match(await page.locator('[data-npc-facts="grey-reverie"]').textContent(),/Voice: ElevenLabs — Gravel street vendor \(Eleven v4\) · LISTEN ON ELEVENLABS ↗ · your draft choice/);
   assert.match(await page.locator('#npc-root .me-status').textContent(),/Nothing was generated or paid/);await shot(P(),'02-voice-chosen.png');
   // ---- UNDO takes it back, REDO puts it back
   await page.locator('[data-dev="undo"]').click();await page.waitForTimeout(200);assert.deepEqual(await draft(),{},'UNDO removes the choice');
@@ -49,7 +50,7 @@ const shot=async(t,name)=>{if(shots)await t.screenshot({path:path.join(shots,nam
   // ---- the voices file: revoice-engines.json format, the file's own voices kept
   await open('grey-reverie');const [dl]=await Promise.all([page.waitForEvent('download'),P().locator('[data-voice-export]').click()]);assert.equal(dl.suggestedFilename(),'revoice-engines.json');
   const file=JSON.parse(fs.readFileSync(await dl.path(),'utf8')),repo=JSON.parse(fs.readFileSync(path.join(__dirname,'..','tools/audio/revoice-engines.json'),'utf8'));
-  assert.deepEqual(Object.keys(file),['about','characters']);for(const k of Object.keys(repo.characters))assert.deepEqual(file.characters[k],repo.characters[k],k);
+  assert.deepEqual(Object.keys(file),['about','characters']);for(const k of Object.keys(repo.characters))if(k!=='grey-reverie')assert.deepEqual(file.characters[k],repo.characters[k],k);
   assert.equal(file.characters['grey-reverie'].engine,'elevenlabs');assert.equal(file.characters['grey-reverie'].voiceId,ID);assert.match(file.characters['grey-reverie'].chosen,/by the owner \(https:\/\/elevenlabs\.io\/voices\//);
   // ---- the draft content carries it and passes the same check as publishing; the editor's lines for her use it
   const c=await page.evaluate(()=>VoidMissionEditor.draftContent());assert.equal(c.voices['grey-reverie'].voiceId,ID);
