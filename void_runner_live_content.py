@@ -94,8 +94,11 @@ def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips']):
         return ['The content record has an unknown shape.']
+    if content.get('clips') is not None:
+        for p in clip_problems(content['clips']):
+            err(p)
     if content.get('npcs') is not None:
         for p in npc_problems(content['npcs'], inv or _json('void_runner_admin_inventory.json')):
             err(p)
@@ -928,8 +931,11 @@ def publish(db, uid, payload):
     problems = check(content)
     if problems:
         raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks')):
+    if not (content.get('beginner') or content.get('registry') or content.get('lines') or content.get('trees') or content.get('names') or content.get('npcs') or content.get('voices') or content.get('looks') or content.get('clips')):
         raise DraftError('There is nothing to publish.', 422)
+    missing = clips_missing(db, sorted({c['hash'] for c in content.get('clips') or []}))
+    if missing:
+        raise DraftError('%d imported voice file(s) are not on the server yet. Press PUBLISH again (the editor uploads them first).' % len(missing), 422, {'missing': missing})
     note = (content.get('note') or '')[:200]
     return _commit(db, uid, expected, 'publish', lambda tx, live, history: (content, None), note)
 
@@ -1073,3 +1079,274 @@ def queue_done(db, uid, payload):
         tx.set(ref, {'items': items})
         return {'items': sorted(items.values(), key=lambda x: x.get('at', 0))}
     return commit(db.transaction())
+
+
+# ---------------------------------------------------------------- imported voice files (Developer Tools, 19 Nov 2026)
+# The owner imports an audio file for a line (void-runner/voice-imports.js). PUBLISH uploads it here first: one Firestore document per file in CLIPS, keyed by the
+# file's SHA-256 (content-addressed, created once, never changed), base64 audio well under Firestore's 1 MiB document limit. Published content references files by
+# hash (content.clips). Players read them with no sign-in (GET voice-clip/<hash>, cached for a year). Firebase Storage is not used (it needs a paid plan).
+# tools/audio/bake-imported.py copies published files into the repository as ordinary clips.
+CLIPS = 'vr_voice_clips'
+CLIP_TYPES = {'audio/ogg', 'audio/mpeg', 'audio/wav'}
+CLIP_MAX_BYTES = 600_000
+CLIP_MAX_SECONDS = 40.0
+CLIP_SLACK = 0.25  # decoders differ by a frame or two
+CLIP_MAX_CLIPS = 200
+HASH = re.compile(r'^[0-9a-f]{64}$')
+_clip_cache = {}
+_CLIP_CACHE_BYTES = 12_000_000
+
+
+def _clip_shape(c):
+    out = []
+    if not isinstance(c, dict):
+        return ['An imported voice file has an unknown shape.']
+    if not _keys(c, ['who', 'text', 'hash', 'type', 'duration', 'bytes']):
+        out.append('An imported voice file has unknown fields.')
+    if not (isinstance(c.get('who'), str) and WHO.match(c['who']) and c['who'] != 'player'):
+        out.append('An imported voice file must belong to a character (not the player).')
+    if not _plain(c.get('text'), 500):
+        out.append('An imported voice file must belong to a line of plain text (500 characters at most).')
+    if not (isinstance(c.get('hash'), str) and HASH.match(c['hash'])):
+        out.append('An imported voice file has a bad file address.')
+    if c.get('type') not in CLIP_TYPES:
+        out.append('An imported voice file must be MP3, WAV or Ogg.')
+    d = c.get('duration')
+    if type(d) not in (int, float) or not 0 < d <= CLIP_MAX_SECONDS + 0.05:
+        out.append('An imported voice file must be 40 seconds at most.')
+    b = c.get('bytes')
+    if type(b) is not int or not 1 <= b <= CLIP_MAX_BYTES:
+        out.append('An imported voice file must be 600 KB at most.')
+    return out
+
+
+def _clip_key(who, text):
+    w = who.lower().strip()
+    w = {'you': 'player', 'pilot': 'player', 'arcade attendant': 'attendant', 'landing terminal': 'landing-terminal'}.get(w) or re.sub(r'^-|-$', '', re.sub(r'[^a-z0-9]+', '-', w))
+    t = text
+    try:  # voice tags ([whispers]) are not part of what players hear (void_runner_drafts.strip_voice_tags, when present)
+        from void_runner_drafts import strip_voice_tags
+        t = strip_voice_tags(text)
+    except ImportError:
+        pass
+    return w + '|' + t.strip()
+
+
+def clip_problems(clips):
+    """content.clips: the same rules as void-runner/voice-imports.js clipProblems."""
+    if not isinstance(clips, list):
+        return ['The imported voice files have an unknown shape.']
+    if len(clips) > CLIP_MAX_CLIPS:
+        return ['Too many imported voice files (%d; %d at most).' % (len(clips), CLIP_MAX_CLIPS)]
+    out, seen = [], set()
+    for c in clips:
+        for p in _clip_shape(c):
+            if p not in out:
+                out.append(p)
+        if isinstance(c, dict) and isinstance(c.get('who'), str) and isinstance(c.get('text'), str):
+            k = _clip_key(c['who'], c['text'])
+            if k in seen:
+                out.append('Two imported voice files are attached to the same line (%s).' % c['text'][:40])
+            seen.add(k)
+    return out
+
+
+def clip_record_problems(recs):
+    """The editor draft's records (local().clips: line key -> record), kept in the server copy of the draft."""
+    if not isinstance(recs, dict):
+        return ['The imported voice files have an unknown shape.']
+    if len(recs) > CLIP_MAX_CLIPS:
+        return ['Too many imported voice files.']
+    out = []
+    for k, r in recs.items():
+        if not isinstance(k, str) or not 1 <= len(k) <= 700 or TAGS.search(k):
+            out.append('An imported voice file is attached to an unknown line.')
+            continue
+        if not isinstance(r, dict):
+            out.append('An imported voice file has an unknown shape.')
+            continue
+        extra = {x: r[x] for x in ['name', 'at', 'reencoded'] if x in r}
+        for p in _clip_shape({x: v for x, v in r.items() if x not in extra}):
+            if p not in out:
+                out.append(p)
+        if 'name' in extra and not (isinstance(extra['name'], str) and len(extra['name']) <= 120 and not TAGS.search(extra['name'])):
+            out.append('An imported voice file has a bad name.')
+        if 'at' in extra and not (isinstance(extra['at'], str) and len(extra['at']) <= 40):
+            out.append('An imported voice file has a bad date.')
+        if 'reencoded' in extra and extra['reencoded'] is not True:
+            out.append('An imported voice file has a bad note.')
+    return out
+
+
+# ---- what a file really is, and how long it plays (no audio libraries: the headers are read directly)
+def sniff(data):
+    if data[:4] == b'OggS':
+        return 'audio/ogg'
+    if data[:4] == b'RIFF' and data[8:12] == b'WAVE':
+        return 'audio/wav'
+    if data[:3] == b'ID3' or (len(data) > 1 and data[0] == 0xFF and data[1] & 0xE0 == 0xE0):
+        return 'audio/mpeg'
+    return None
+
+
+def wav_seconds(data):
+    o, rate, align = 12, 0, 0
+    while o + 8 <= len(data):
+        cid, size = data[o:o + 4], int.from_bytes(data[o + 4:o + 8], 'little')
+        body = data[o + 8:o + 8 + size]
+        if cid == b'fmt ' and len(body) >= 16:
+            rate, align = int.from_bytes(body[4:8], 'little'), int.from_bytes(body[12:14], 'little')
+        elif cid == b'data':
+            if not rate or not align:
+                return None
+            return min(size, len(data) - o - 8) // align / rate
+        o += 8 + size + (size & 1)
+    return None
+
+
+def ogg_seconds(data):
+    o, first, rate, pre, granule, serial = 0, True, 0, 0, 0, None
+    while o + 27 <= len(data):
+        if data[o:o + 4] != b'OggS':
+            return None
+        nseg = data[o + 26]
+        size = 27 + nseg + sum(data[o + 27:o + 27 + nseg])
+        if o + size > len(data):
+            return None
+        s = int.from_bytes(data[o + 14:o + 18], 'little')
+        if serial is None:
+            serial = s
+        if first:
+            body = data[o + 27 + nseg:o + size]
+            if body[:8] == b'OpusHead' and len(body) >= 19:
+                rate, pre = 48000, int.from_bytes(body[10:12], 'little')
+            elif body[:7] == b'\x01vorbis' and len(body) >= 16:
+                rate = int.from_bytes(body[12:16], 'little')
+            else:
+                return None
+            first = False
+        g = int.from_bytes(data[o + 6:o + 14], 'little', signed=True)
+        if s == serial and g > 0:
+            granule = max(granule, g)
+        o += size
+    if o != len(data) or not rate:
+        return None
+    return max(0, granule - pre) / rate
+
+
+_MP3_BITRATES = {1: [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320], 2: [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160]}
+_MP3_RATES = {3: [44100, 48000, 32000], 2: [22050, 24000, 16000], 0: [11025, 12000, 8000]}
+
+
+def mp3_seconds(data):
+    """Layer III frames counted one by one (an ID3v2 tag at the start and an ID3v1 tag at the end are skipped)."""
+    o = 0
+    if data[:3] == b'ID3' and len(data) >= 10:
+        o = 10 + ((data[6] & 0x7F) << 21 | (data[7] & 0x7F) << 14 | (data[8] & 0x7F) << 7 | (data[9] & 0x7F))
+    samples, frames, rate = 0, 0, 0
+    while o + 4 <= len(data):
+        h = int.from_bytes(data[o:o + 4], 'big')
+        if h >> 21 != 0x7FF:
+            if data[o:o + 3] == b'TAG' or frames:
+                break
+            o += 1  # a little padding before the first frame
+            if o > 4096:
+                return None
+            continue
+        ver, layer, br, sr, pad = (h >> 19) & 3, (h >> 17) & 3, (h >> 12) & 15, (h >> 10) & 3, (h >> 9) & 1
+        if ver == 1 or layer != 1 or br in (0, 15) or sr == 3:
+            if frames:
+                break
+            return None
+        rate = _MP3_RATES[ver][sr]
+        kbps = _MP3_BITRATES[1 if ver == 3 else 2][br]
+        per = 1152 if ver == 3 else 576
+        size = (144 if ver == 3 else 72) * kbps * 1000 // rate + pad
+        samples += per
+        frames += 1
+        o += size
+    return samples / rate if frames >= 2 and rate else None
+
+
+def clip_seconds(kind, data):
+    try:
+        return {'audio/wav': wav_seconds, 'audio/ogg': ogg_seconds, 'audio/mpeg': mp3_seconds}[kind](data)
+    except Exception:  # noqa: BLE001 - a broken header is a refused file, never a server error
+        return None
+
+
+def _clip_ref(db, h):
+    return db.collection(CLIPS).document(h)
+
+
+def clips_missing(db, hashes):
+    return [h for h in hashes if (_clip_ref(db, h).get().to_dict() or None) is None]
+
+
+def clips_check(db, payload):
+    """POST developer/voice-clips {hashes}: which of these files the server does not have yet."""
+    if not _keys(payload, ['hashes']) or not isinstance(payload.get('hashes'), list) or not 1 <= len(payload['hashes']) <= CLIP_MAX_CLIPS \
+            or not all(isinstance(h, str) and HASH.match(h) for h in payload['hashes']):
+        raise DraftError('Send the addresses of 1 to 200 voice files.')
+    return {'missing': clips_missing(db, sorted(set(payload['hashes'])))}
+
+
+def store_clip(db, uid, h, payload):
+    """POST developer/voice-clips/<sha-256> {type, data (base64)}: checked (type from the bytes, size, length, address), then created once."""
+    import base64
+    import binascii
+    if not isinstance(h, str) or not HASH.match(h):
+        raise DraftError('Bad voice file address.', 404)
+    if not _keys(payload, ['type', 'data']) or not isinstance(payload.get('data'), str) or payload.get('type') not in CLIP_TYPES:
+        raise DraftError('Send an MP3, WAV or Ogg voice file.', 415)
+    if len(payload['data']) > (CLIP_MAX_BYTES + 2) // 3 * 4 + 4:
+        raise DraftError('The voice file is larger than 600 KB.', 413)
+    try:
+        data = base64.b64decode(payload['data'], validate=True)
+    except (binascii.Error, ValueError):
+        raise DraftError('The voice file could not be read.') from None
+    if not data or len(data) > CLIP_MAX_BYTES:
+        raise DraftError('The voice file is larger than 600 KB.', 413)
+    if hashlib.sha256(data).hexdigest() != h:
+        raise DraftError('The voice file does not match its address.', 422)
+    kind = sniff(data)
+    if kind != payload['type']:
+        raise DraftError('The voice file is not the kind it says it is (%s).' % (kind or 'unknown'), 415)
+    seconds = clip_seconds(kind, data)
+    if seconds is None or seconds <= 0.05:
+        raise DraftError('The voice file has no readable sound.', 422)
+    if seconds > CLIP_MAX_SECONDS + CLIP_SLACK:
+        raise DraftError('The voice file is %.1f seconds long; the limit is 40 seconds.' % seconds, 422)
+    from firebase_admin import firestore
+    ref = _clip_ref(db, h)
+    record = {'hash': h, 'type': kind, 'bytes': len(data), 'duration': round(seconds, 2), 'data': base64.b64encode(data).decode('ascii'),
+              'at': int(time.time()), 'by': hashlib.sha256(uid.encode()).hexdigest()[:12]}
+
+    @firestore.transactional
+    def commit(tx):
+        if (ref.get(transaction=tx).to_dict() or None) is not None:
+            return False
+        tx.create(ref, record)
+        return True
+    created = commit(db.transaction())
+    return {'hash': h, 'type': kind, 'bytes': len(data), 'duration': record['duration'], 'stored': True, 'existed': not created}
+
+
+def get_clip(db, h):
+    """The published file (public). (bytes, type) or None. A small in-memory copy saves Firestore reads on the free tier."""
+    if not isinstance(h, str) or not HASH.match(h):
+        return None
+    if h in _clip_cache:
+        return _clip_cache[h]
+    rec = _clip_ref(db, h).get().to_dict()
+    if not rec or rec.get('type') not in CLIP_TYPES or not isinstance(rec.get('data'), str):
+        return None
+    import base64
+    data = base64.b64decode(rec['data'])
+    if hashlib.sha256(data).hexdigest() != h:
+        return None
+    while _clip_cache and sum(len(v[0]) for v in _clip_cache.values()) + len(data) > _CLIP_CACHE_BYTES:
+        _clip_cache.pop(next(iter(_clip_cache)))
+    _clip_cache[h] = (data, rec['type'])
+    return _clip_cache[h]
+
