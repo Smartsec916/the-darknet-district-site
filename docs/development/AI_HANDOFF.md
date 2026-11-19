@@ -17,6 +17,14 @@ The owner: "a mission giver creator. i can select any npc, create their look bas
 - **Tests:** `tests/npc-made.test.cjs`, `tests/test_npc_made.py`, browser `tests/npc-made-browser.cjs`. `tests/npc-areas.test.cjs` updated for the seventh area.
 - **Not verified:** real hardware; VR; licensed models in a browser; publishing with the server on; figures in reception and the District rooms in a browser.
 
+### 19 Nov 2026: "WHEN WALKED NEAR" STARTS BY ITSELF (branch `claude/near-auto-start`, build `2026-11-19-near-auto-1`, pushed, NO PR, not merged)
+
+The owner: "'When walked near' still needs a click option by the player, even though i want it to start automatically". Details: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fix (19 Nov 2026): When walked near starts by itself".
+
+- **Cause:** the runtime already started walked-near missions with no click when ACCEPT / DENY is off; the editor left the question on without the owner choosing it (changing Starts from "In person, asking" to a device start kept it; "Player pays" then "Player gets" kept it).
+- **Fix:** a line under the trigger, "Starts automatically — no click" / "Asks ACCEPT / DENY", with a switch button; choosing "When walked near" and changing Starts no longer keep a question the owner did not set; removing a cost at ACCEPT turns off the question it forced. Paying at ACCEPT still always asks. Existing missions are not changed (no record of who ticked it): the line shows which ones ask.
+- **Tests:** `tests/near-auto-start.test.cjs`, browser `tests/near-auto-start-browser.cjs` (passes).
+
 ### 19 Nov 2026: MISSION EDITOR — PLAYER LINES, ANIMATIONS IN LINES AND BETWEEN STEPS, MISSION TIMERS (branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`, pushed, NO PR, not merged)
 
 The owner: "after I create a voice line, i can not create the line for the player. i also can't add animations anywhere between the steps", then "mission timers". Full how-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Sixteenth pass".
