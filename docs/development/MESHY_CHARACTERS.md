@@ -112,6 +112,10 @@ The CLI on the owner's PC is 0.8.6: `--async` on create, then `meshy <resource> 
 
 | 19 Nov | Blackrock Cult Room robed figure `npc-blackrock-robe`: concept (text-to-image, nano-banana-pro) `01a1f522-253d-769f…` (9), 3D `01a1f524-6c53-7226…` (30), remesh 30k `01a1f525-a76a-70af…` (5); Meshy's rig `01a1f527-9c8b-7630…` FAILED ("could not be rigged": the robe hides the legs), 0 credits; rigged locally in Blender instead (`BLACKROCK_CULT_ROOM.md`) | `Documents/DarknetDistrict_Assets/Meshy/blackrock/status.json` on the owner's PC | 44 |
 | | **19 Nov, the robed figure** | | **44** (cap about 50, floor 50; the account showed 140 before and 96 after; no retry) |
+| 19 Nov | Kestrel concept: image-to-image (nano-banana-pro, multi-view) from five crops of the owner's Kestrel reference sheet (`docs/development/kestrel/reference-*.jpg`), asking for clean views of exactly that ship on a plain background: three views back (side, front, rear) | `01a1f558-d3c1-73a0-a6d2-957883c63bdf` | 9 |
+| 19 Nov | Kestrel 3D: multi-image-to-3D from the concept's three views (meshy-7.1 + meshy-7, PBR, 2k, a texture prompt for the worn paint) | `01a1f55b-d5e4-7148-bb0f-ca3fb385bbd7` | 30 |
+| 19 Nov | Kestrel remesh 36k triangles | remesh `01a1f55e-0029-739a-b012-80cd00878471` | 5 |
+| | **19 Nov, the Kestrel exterior** | | **44** (the owner allowed going past 50 and down toward zero for the Kestrel; the account showed 96 before and 52 after; no retry. Working folder `Documents/DarknetDistrict_Assets/Meshy/kestrel/` on the owner's PC) |
 
 A full character costs about 49 credits, so the month's 1,100 is roughly 22 characters, or fewer characters plus props (a prop from a picture is about 30).
 
@@ -122,6 +126,12 @@ The owner: the NPCs and player characters "look very normal for a cyberpunk game
 ## The street taxi (19 Nov 2026)
 
 Working folder `Documents/DarknetDistrict_Assets/Meshy/ncz_taxi_van/` on the owner's PC: `run.py` (concept, 3D, remesh), `build1.py` (Blender, background: the model turned to face -Y, scaled to 4.4 m, on the ground; the cabin's inside cut out; the side windows replaced by a tinted glass band and the windscreen and tailgate window made glass; the wheels cut into `axle_front` / `axle_rear` with the node at each axle's centre; the lit parts (roof box, light bar, lamps, sensors) flagged), `build2.py` (the flagged faces baked to an emission map with Cycles; maps 2048 base colour, 1024 others; GLB export), `measure3.py` (where the windscreen, numbers and tail lights sit, for the game's overlays). In the cloud session the GLB was compressed with gltf-transform (lossless `EXT_meshopt_compression`, `reorder`, no quantisation) and a Low copy made with 1024 maps: `void-runner/assets/models/vehicles/taxi-van.glb` (1.59 MB) and `taxi-van-low.glb` (1.54 MB); 15,163 triangles (body and glass about 9,300, wheels 5,864).
+
+## The Kestrel (19 Nov 2026)
+
+The owner's reference sheet (`docs/development/kestrel/reference-sheet.jpg`; the views cropped as `reference-v34/side/top/rear/front.jpg`) went to an image-to-image multi-view concept (`concept-views.jpg`: side, front, rear on a clean background), then multi-image-to-3D (`meshy-3d-views.jpg`: 1.78 million triangles, nose along -X, 1.9 long) and a 36k remesh. `tools/assets/kestrel/build.py` (Blender, background, run on the owner's PC with `build_cfg.json` beside it) does the rest: the leg faces under the belly cut out into `gear_nose` / `gear_left` / `gear_right` (pivot where each leg meets the hull), the dark canopy panes split into `canopy` (material `canopy_glass`), a lit disc set just inside each nozzle (`exhaust_left` / `exhaust_right`, material `exhaust`), empty nodes measured from the hull for the muzzles (wing rails and chin guns), the missile rails and the engine centres; then the whole turned nose to glTF +z, scaled to the code Kestrel's 4.4 length (x2.31) with the wheels at y -0.9, and exported with JPEG maps. In the cloud session the GLB was packed with gltf-transform (dedup, prune keeping the hook nodes, `reorder`, lossless `EXT_meshopt_compression` without quantisation; a Low copy with every map at 1024): `void-runner/assets/models/ships/kestrel.glb` (3.47 MB: colour and normal 2048, metal/roughness 1024) and `kestrel-low.glb` (2.61 MB). 36,604 triangles (hull 34,549, legs 1,923, canopy 96, engine cores 36), seven meshes, three materials.
+
+In the game: `kestrel-model.js` (see its header) and `babylon-renderer.js shipModel('starter')`; the code Kestrel is the stand-in when the file is missing. Screenshots: `docs/development/kestrel/shot-*.jpg`.
 
 ## Rights
 

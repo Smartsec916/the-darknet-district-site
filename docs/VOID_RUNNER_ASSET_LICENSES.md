@@ -233,6 +233,8 @@ muffled 124 BPM thump), nothing recorded or licensed.
 
 **Street taxis, the Meshy model (2026-11-19, later the same day).** `void-runner/assets/models/vehicles/taxi-van.glb` and `taxi-van-low.glb`: generated with Meshy on the owner's paid plan (concept image-to-image from his own reference picture, image-to-3D, remesh; 44 credits; ledger in `docs/development/MESHY_CHARACTERS.md`), then cut, re-baked and compressed for the game. The reference's background sign naming a real company was blurred out before generation; the van carries only generic wording (TAXI, 无人驾驶出租车, AUTONOMOUS TAXI, the service badges, AUTONOMOUS ///, the number 0724). Meshy's terms for paid plans: the customer owns the outputs. **The owner to confirm** his plan's wording, as for the other Meshy assets. Stored in this repository on that basis. The code-built van stays as the stand-in if the file does not load.
 
+**The Kestrel's exterior, the Meshy model (2026-11-19).** `void-runner/assets/models/ships/kestrel.glb` and `kestrel-low.glb`: generated with Meshy on the owner's paid plan from his own Kestrel reference sheet (`docs/development/kestrel/`; multi-view concept image-to-image, multi-image-to-3D, remesh; 44 credits; ledger in `docs/development/MESHY_CHARACTERS.md`), then cut, set up and compressed for the game (`tools/assets/kestrel/build.py`). No real brand or third-party design is copied; no lettering. Meshy's terms for paid plans: the customer owns the outputs. **The owner to confirm** his plan's wording, as for the other Meshy assets. Stored in this repository on that basis. The code-built Kestrel stays as the stand-in if the file does not load.
+
 ## Dax (15 Nov 2026)
 
 | Item | Source | Licence | Status |

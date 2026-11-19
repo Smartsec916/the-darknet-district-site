@@ -6,7 +6,7 @@
 (function(root){
  const quaternius='Quaternius (CC0 1.0)';
  const registry={
-  // Pirates and traffic (approved 2026-10-16). The Kestrel and faction ships stay procedural.
+  // Pirates and traffic (approved 2026-10-16). Faction ships stay procedural; the Kestrel ('starter') is the Meshy model of kestrel-model.js (19 Nov 2026).
   ships:{
    raider:{src:'assets/models/ships/striker.glb',scale:.55,yaw:0,model:'Striker',pack:'Ultimate Spaceships',license:quaternius},
    interceptor:{src:'assets/models/ships/challenger.glb',scale:.45,yaw:0,model:'Challenger',pack:'Ultimate Spaceships',license:quaternius},
