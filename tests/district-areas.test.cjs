@@ -7,7 +7,7 @@ const ids=l=>l.map(i=>i.id),at=item=>N.zone({x:item.position[0],z:item.position[
 const ENTRANCE_SOLIDS=['district-door','district-front-east','district-front-west','district-inner-door','vestibule-east','vestibule-west'];
 
 test('the default layout is still the whole combined layout, unchanged',()=>{
- assert.equal(all.solids.length,85+61,'85 original solids (the District\'s 82 and the shop\'s stock-cage partition, plus two city blocks (30 became 32 on 16 Nov 2026: Far South\'s street replaced the Main Street South and Container Settlement placeholders, and Milked\'s old side street and alley closed, and The Outskirts\' ground opened, so the blocks are cut differently)) + Milked\'s 61 (walls, furniture, its five doors, and the city blocks that its footprint, side street and service alley open)');assert.equal(all.interactions.length,26+1,'26 original interactions + Milked\'s check-in reader (the rest are inside, in its own environment)');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,146);
+ assert.equal(all.solids.length,85+61,'85 original solids (the District\'s 82 and the shop\'s stock-cage partition, plus two city blocks (30 became 32 on 16 Nov 2026: Far South\'s street replaced the Main Street South and Container Settlement placeholders, and Milked\'s old side street and alley closed, and The Outskirts\' ground opened, so the blocks are cut differently)) + Milked\'s 61 (walls, furniture, its five doors, and the city blocks that its footprint, side street and service alley open)');assert.equal(all.interactions.length,27+1,'27 original interactions (Admin’s ordnance counter added 19 Nov 2026) + Milked\'s check-in reader (the rest are inside, in its own environment)');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,146);
 });
 test('the street environment is the outdoors plus the entrance, and nothing of the District behind the inner door',()=>{
  assert.equal(street.area,'street');assert.equal(street.solids.length,37+61);
@@ -17,7 +17,7 @@ test('the street environment is the outdoors plus the entrance, and nothing of t
  assert.deepEqual(street.spawn,all.spawn);assert.equal(street.yaw,all.yaw);assert.equal(street.name,all.name);
 });
 test('the interior environment is exactly the District and terrace part of the original layout',()=>{
- assert.equal(interior.area,'interior');assert.equal(interior.solids.length,54);assert.equal(interior.interactions.length,24);
+ assert.equal(interior.area,'interior');assert.equal(interior.solids.length,54);assert.equal(interior.interactions.length,25);   // +1: Admin's ordnance counter (19 Nov 2026)
  assert.equal(interior.interactions.filter(i=>i.action==='district-pod').length,10,'every pod has a hatch interaction');
  const original=all.solids.filter(s=>['district','terrace'].includes(at(s)));
  assert.deepEqual(interior.solids,original,'solids are identical, in the same order');

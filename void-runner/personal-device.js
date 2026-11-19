@@ -25,7 +25,7 @@
  const ICON={missions:'<path d="M6 4h12v16H6z"/><path d="M9 9h6M9 13h6M9 17h3"/>',messages:'<path d="M4 5h16v11h-9l-4 4v-4H4z"/><path d="M8 9.5h8M8 12.5h5"/>',social:'<circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2.2"/><path d="M3.5 19c.6-3.6 3-5 5.5-5s4.900 1.400 5.500 5"/><path d="M15 14.300c2.600-.4 4.600.9 5.200 4.200"/>',
   news:'<path d="M4 5h12v14H6a2 2 0 0 1-2-2z"/><path d="M16 9h4v8a2 2 0 0 1-2 2"/><path d="M7 8.500h6M7 12h6M7 15.500h3"/>',map:'<path d="M12 21s6.500-5.700 6.500-10.500a6.500 6.500 0 0 0-13 0C5.500 15.300 12 21 12 21z"/><circle cx="12" cy="10.500" r="2.300"/>',
   camera:'<path d="M4 8h3.500l1.500-2h6l1.500 2H20v11H4z"/><circle cx="12" cy="13.500" r="3.500"/>',gallery:'<path d="M4 5h16v14H4z"/><circle cx="9" cy="10" r="1.600"/><path d="M4 17l5-4.500 3.500 3 3-2.500L20 16"/>',
-  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',device:'<path d="M7 3h10v18H7z"/><path d="M10 6h4M11 18h2"/>',comms:'<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3z"/><path d="M6 11.500a6 6 0 0 0 12 0M12 17.500V21M9 21h6"/>',warflying:'<path d="M12 20v-8"/><circle cx="12" cy="10" r="1.6"/><path d="M8.500 13.500a5 5 0 0 1 0-7M15.500 6.500a5 5 0 0 1 0 7M6 16a8.500 8.500 0 0 1 0-12M18 4a8.500 8.500 0 0 1 0 12"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
+  store:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',loadout:'<path d="M12 3l2.500 6.500 6.500 3-6.500 1.500L12 21l-2.500-7L3 12.500 9.500 9.500z"/><path d="M12 9.500v5"/>',device:'<path d="M7 3h10v18H7z"/><path d="M10 6h4M11 18h2"/>',comms:'<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3z"/><path d="M6 11.500a6 6 0 0 0 12 0M12 17.500V21M9 21h6"/>',warflying:'<path d="M12 20v-8"/><circle cx="12" cy="10" r="1.6"/><path d="M8.500 13.500a5 5 0 0 1 0-7M15.500 6.500a5 5 0 0 1 0 7M6 16a8.500 8.500 0 0 1 0-12M18 4a8.500 8.500 0 0 1 0 12"/>',settings:'<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>'};
  const icon=id=>'<svg class="pd-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(ICON[id]||'')+'</svg>';
  // The homepage navigation button frame (home-navigation.css): panel, rail and one small accent tick, stretched to the tile.
  const FRAME='<svg class="pd-frame" viewBox="0 0 180 48" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path class="pd-panel" d="M10 .5H179.5V37.5L169.5 47.5H.5V10Z"/><path class="pd-rail" d="M16 4H47M1 19V33M133 44H161"/><path class="pd-accent" d="M171 5H175V14"/></svg>';
@@ -34,7 +34,8 @@
  const sources=new Map();   // portrait key -> source, filled while rendering a profile
 
  const state_=()=>typeof state!=='undefined'?state:null;
- const onFootOrDock=()=>typeof mode!=='undefined'&&(mode==='walking'||mode==='dock');
+ const flying=()=>typeof mode!=='undefined'&&mode==='play'&&!root.VoidFlightSkirmish?.active&&!!root.VoidFlightNav;   // in flight the V1 opens too (its Map app shows flight navigation: flight-nav.js)
+ const onFootOrDock=()=>typeof mode!=='undefined'&&(mode==='walking'||mode==='dock'||flying());
  const commit=()=>{try{const s=state_();if(s?.story?.flags){D.write(s.story.flags,dev);if(typeof save==='function')save();}}catch{}};
 
  // ---- Shared profile component (NPCs and players are drawn by the same code) ----
@@ -262,6 +263,7 @@
    return html?head+html:'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>';
   },
   map(){
+   if(flying())return root.VoidFlightNav.view();   // flying: this system's stations, planets and warp markers (flight-nav.js)
    const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;
    if(!wl||(wl.id!=='neochinatown'&&!wl.mapSpace)||!wl.solids)return '<div class="pd-empty">No map is available for this place yet.<br>Maps exist for The Darknet District, NeoChinatown, the Corporate District and the Zen Zephyr Temple.</div>';
    const area=wl.area==='interior'?'interior':'street';
@@ -432,6 +434,8 @@
   if(t.dataset.voiceMute){const V=root.VoidVoice,id=t.dataset.voiceMute;if(V)V.setPlayer(id,{muted:!(V.settings.players[id]?.muted)});render({keepScroll:true});return;}
   if(t.dataset.install||t.dataset.uninstall){const id=t.dataset.install||t.dataset.uninstall,apps=t.dataset.install?D.install(dev,id):D.uninstall(dev,id);if(apps){dev.apps=apps;if(t.dataset.uninstall&&id==='warflying')root.VoidWarFlyingScanner?.setActive(false);commit();}render({keepScroll:true});return;}
   if(t.dataset.openApp){go([t.dataset.openApp],'open');return;}
+  if(t.dataset.nav!==undefined){root.VoidFlightNav?.act(t.dataset.nav);render({keepScroll:true});return;}   // the Map app in flight: navigation target
+  if(t.dataset.loadout){root.VoidShipLoadout?.act(t.dataset.loadout);render({keepScroll:true});return;}   // the Ship Loadout app (ship-loadout.js)
   if(t.dataset.wf){const X=root.VoidWarFlyingScanner;if(X){if(t.dataset.wf==='send')X.upload(true);else X.setActive(t.dataset.wf==='on');}render({keepScroll:true});setTimeout(()=>{if(open&&stack[0]==='warflying')render({keepScroll:true});},1500);return;}
   if(t.dataset.follow){const P=DP(),f=flags_();if(P&&f){const [kind,id]=t.dataset.follow.split(':');P.toggleFollow(f,kind==='n'?{kind:'npc',id}:{kind:'player',id,name:t.dataset.name});try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
   if(t.dataset.hangup){endCall();return;}
@@ -543,7 +547,7 @@
  // Esc is also the game's Pause key and the controls layer hears it first: while the device is open, Pause (and losing focus) must not open the game menu.
  if(typeof openGameMenu==='function'){const gameMenu=openGameMenu;openGameMenu=function(){if(open)return;return gameMenu.apply(this,arguments);};}
  // The L key now opens the V1 on foot and in stations; in flight the older Mission Log keeps working unchanged.
- if(typeof openMissionLog==='function'){const legacy=openMissionLog;openMissionLog=function(){if(open||onFootOrDock()){toggle();return;}return legacy.apply(this,arguments);};}
+ if(typeof openMissionLog==='function'){const legacy=openMissionLog;openMissionLog=function(){if(!open&&flying()){openApp('map');return;}if(open||onFootOrDock()){toggle();return;}return legacy.apply(this,arguments);};}
  try{chat()?.onChange(onChatChange);}catch{}
  // ---- Notifications while the V1 is closed (the owner, 17 Nov 2026: "There should be a notification system when people have their V1 closed") ----
  function keyLabel(){try{return root.VoidInput?.label?root.VoidInput.label(root.VoidInput.bindings?.missionLog||'KeyL'):'L';}catch{return 'L';}}

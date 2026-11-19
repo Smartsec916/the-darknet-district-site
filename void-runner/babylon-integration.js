@@ -488,7 +488,7 @@ function migrationSnapshot() {
     departureStation,
     bullets,
     hostile,
-    missiles: [...missiles, ...enemyMissiles],
+    missiles: [...missiles, ...enemyMissiles], trails: globalThis.VoidFlightCombat?.trail || [], dt: Math.min(.1, Math.max(0, time - (migrationSnapshot.last ?? time))),
     effects: VoidCombatEffects.clouds,
     time,
     approach: approachTime,
@@ -532,7 +532,7 @@ draw = function() {
     return;
   }
   if (activeRenderer === 'babylon' && ['play', 'pause'].includes(mode) && VoidBabylon.diagnostics.exteriorReady) {
-    const snapshot = migrationSnapshot();
+    const snapshot = migrationSnapshot(); migrationSnapshot.last = time;
     const image = VoidBabylon.renderFlight(snapshot, W, H);
     if (!image) {
       throw Error('Babylon graphics context unavailable. Retry the route.');

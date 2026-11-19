@@ -45,7 +45,9 @@
   device:{id:'device',title:'MY DEVICE',glyph:'D',state:'ready',note:'This device: its model, storage and built-in apps.'},   // shown as MY V1, MY V2... (appTitle)
   settings:{id:'settings',title:'SETTINGS',glyph:'*',state:'ready',note:'Device preferences.'},
   // optional apps (installed from the App Store; listed in STORE_EXTRA)
-  warflying:{id:'warflying',title:'WARFLYING',glyph:'W',state:'ready',note:'Listens for nearby frequencies and logs them for the WarFlying leaderboard.'}
+  warflying:{id:'warflying',title:'WARFLYING',glyph:'W',state:'ready',note:'Listens for nearby frequencies and logs them for the WarFlying leaderboard.'},
+  // granted, not bought: the Ship Loadout app arrives with a ship (ordnance.js grant sets story.flags.loadoutApp; ship-loadout.js draws it). Takes no storage.
+  loadout:{id:'loadout',title:'SHIP LOADOUT',glyph:'L',state:'ready',note:'Your ship: its slots, lasers, missiles and upgrades.'}
  };
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
  // Apps a player can install: {id,title,generation,note,storagePct}. An app runs on every model of its generation or later (V1, V2, V3 // Shadow...).
@@ -66,12 +68,14 @@
   return out;
  }
  const settingsText=s=>Object.keys(SETTING_VALUES).map(k=>k+'='+(SETTING_VALUES[k].includes(s[k])?s[k]:DEFAULT_SETTINGS[k])).join(';');
+ // Apps a game event puts on the device (never from the App Store, never from the saved app list): the Ship Loadout app with a ship.
+ const GRANTED={loadout:f=>f.loadoutApp===true};
  function restore(flags){
   flags=flags&&typeof flags==='object'?flags:{};
   const model=DEVICES[flags[KEY.model]]?flags[KEY.model]:'v1',def=DEVICES[model];
   const optional=a=>STORE_EXTRA.some(x=>x.id===a&&x.generation<=def.generation);   // an optional app that really exists is kept; anything else is dropped
   const asked=typeof flags[KEY.apps]==='string'?flags[KEY.apps].split(',').filter(a=>(def.apps.includes(a)||optional(a))&&APPS[a]):[];
-  const apps=[...new Set([...def.apps,...asked])];   // the built-in apps are always installed; an unknown name is ignored, never trusted
+  const apps=[...new Set([...def.apps,...asked.filter(a=>!GRANTED[a]),...Object.keys(GRANTED).filter(a=>GRANTED[a](flags))])];   // the built-in apps are always installed; an unknown name is ignored, never trusted
   return {model,version:1,apps,settings:parseSettings(flags[KEY.settings]),map:{interior:String(flags[KEY.map+'Interior']||'').replace(/[^0-9a-f]/g,'').slice(0,60),street:String(flags[KEY.map+'Street']||'').replace(/[^0-9a-f]/g,'').slice(0,60)}};
  }
  function write(flags,device){

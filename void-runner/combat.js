@@ -20,53 +20,92 @@ function missileStatus(){
  return missileLock.available||e?'TARGET AVAILABLE · ALIGN':'NO VALID TARGET';
 }
 const missileHud=document.createElement('div');missileHud.className='missile-status';missileHud.id='missile-status';document.body.append(missileHud);
-function updateMissileHud(){missileHud.innerHTML='<strong>MISSILES '+missileState.missilesLoaded+' / '+missileState.missileCapacity+' · '+VoidInput.label(VoidInput.bindings.missile)+'</strong>'+missileStatus()+(selectedTarget?'<br>TARGET '+escapeText(VoidStoryContent.ships[selectedTarget.contentId]?.displayName||selectedTarget.className||'HOSTILE')+' · '+Math.round(FM.length(selectedTarget))+'u':'');}
+// Two missile types (ordnance.js): M1 (agile, standard) and M2 (heavy). The selected type fires; the Switch key / mouse wheel changes it.
+const missileTypeName=t=>(globalThis.VoidOrdnance?.TYPES?.[t]?.name)||'M1';
+function rackText(){const r=missileState.rack;if(!r)return 'MISSILES '+missileState.missilesLoaded+' / '+missileState.missileCapacity;return ['m1','m2'].filter(t=>r[t]?.capacity>0).map(t=>(t===missileState.type?'▶ ':'')+missileTypeName(t)+' '+r[t].loaded+'/'+r[t].capacity).join(' · ');}
+function updateMissileHud(){missileHud.innerHTML='<strong>'+rackText()+' · '+VoidInput.label(VoidInput.bindings.missile)+(missileState.rack?' · SWITCH '+VoidInput.label(VoidInput.bindings.missileSwitch||'KeyZ'):'')+'</strong>'+missileStatus()+(selectedTarget?'<br>TARGET '+escapeText(VoidStoryContent.ships[selectedTarget.contentId]?.displayName||selectedTarget.className||'HOSTILE')+' · '+Math.round(FM.length(selectedTarget))+'u':'');}
 function resetMissileFlight(){
  selectedTarget=null;targetSelection=false;lockEnabled=true;
- missiles=[];enemyMissiles=[];warningClock=0;warningStage='none';missileCooldown=0;missileLock=VoidTargeting.fresh();
- missileButton.classList.add('hidden');
+ missiles=[];enemyMissiles=[];missileTrail=[];railSide=1;warningClock=0;warningStage='none';missileCooldown=0;missileLock=VoidTargeting.fresh();
+ missileButton.classList.add('hidden');globalThis.VoidFlightFx?.reset();
  Object.assign(missileState,VoidFlightCraft.missiles());
+ if(missileState.rack)missileState.rack=JSON.parse(JSON.stringify(missileState.rack));
  updateMissileHud();
 }
+// The selected type: missilesLoaded / missileCapacity follow it; the rack keeps both counts.
+function switchMissile(to){
+ const r=missileState.rack;if(mode!=='play'||!r)return false;const next=to||(missileState.type==='m2'?'m1':'m2');if(!r[next]?.capacity||next===missileState.type&&!to){VoidAudio.event('dry');return false;}
+ r[missileState.type||'m1'].loaded=missileState.missilesLoaded;missileState.type=next;missileState.missilesLoaded=missileState.equipped?r[next].loaded:0;missileState.missileCapacity=r[next].capacity;
+ if(!devMissileTrial&&!globalThis.VoidFlightSkirmish?.active&&globalThis.VoidOrdnance?.select(state,next))save();
+ VoidAudio.event('cycle');updateMissileHud();return true;
+}
 const campaignMissileFireConsequences=C.missileFireConsequences(()=>state,()=>save());
+let missileTrail=[],railSide=1;
+const flightCombatLog=[];function combatLog(kind,detail){flightCombatLog.push({kind,t:typeof time!=='undefined'?time:0,...detail});if(flightCombatLog.length>80)flightCombatLog.shift();}
+globalThis.VoidFlightCombat={get log(){return flightCombatLog;},get missiles(){return missiles;},get lock(){return missileLock;},get state(){return missileState;},switchMissile:(...a)=>switchMissile(...a),get trail(){return missileTrail;}};
 function fireMissile(consequences=campaignMissileFireConsequences){
  if(mode!=='play')return;
  if(globalThis.VoidFlightSkirmish?.active)consequences=null;
  // Recheck the current geometry on input, not just the previous animation frame.
  VoidTargeting.step(missileLock,lockCandidates(),flightPoint,W,H,0,missileBalance(),VoidMissiles.ready(missileState));
- const missile=VoidMissiles.launch(missileState,missileLock,flightBasis(),missileBalance(),missileCooldown);
- if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missiles.push(missile);
+ // Locked: a guided round. No lock: it is fired straight ahead (dumb-fire), unguided.
+ const type=missileState.type||'m1',locked=missileLock.progress>=1&&!!missileLock.target,O=globalThis.VoidOrdnance,ship=(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state));
+ const spec=O&&missileState.rack?O.spec(type,VOID_BALANCE,ship):{};if(spec.damage!=null)spec.damage*=missileBalance().missileDamage/Math.max(.01,VOID_BALANCE.missileDamage*(ship.missile?.damage||1));   // a developer balance multiplier carried over
+ railSide=-railSide;const origin={right:1.55*railSide,up:-.55,forward:1.2};   // the Kestrel's wing rails, left and right in turn (kestrel-model.js missile_left / missile_right)
+ const missile=VoidMissiles.launch(missileState,locked?missileLock:VoidTargeting.fresh(),flightBasis(),missileBalance(),missileCooldown,{...spec,origin,dumb:!locked});
+ if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missile.side=railSide;missiles.push(missile);if(missileState.rack)missileState.rack[type].loaded=missileState.missilesLoaded;
+ combatLog('launch',{type,guided:!!missile.target,target:missile.target?.className||null});
  // Preserve trial isolation and persist before cooldown, lock reset, audio and HUD.
- if(!devMissileTrial)consequences?.fired?.(missileState.missilesLoaded);
- missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));updateMissileHud();
+ if(!devMissileTrial)consequences?.fired?.(missileState.missilesLoaded,type);
+ missileCooldown=missileBalance().missileCooldown;missileLock=VoidTargeting.fresh();VoidAudio.event('missile',ship,missile,flightBasis());globalThis.VoidFlightFx?.launch(missile);updateMissileHud();
 }
 canvas.addEventListener('contextmenu',event=>{if(mode==='play')event.preventDefault();});
 canvas.addEventListener('pointerdown',event=>{if(mode==='play'&&event.button===2){event.preventDefault();fireMissile();}});
-const missileButton=document.createElement('button');missileButton.id='missile-fire';missileButton.textContent='MISSILE';missileButton.className='hidden';missileButton.setAttribute('aria-label','Fire locked missile');document.getElementById('touch-controls').append(missileButton);
+canvas.addEventListener('wheel',event=>{if(mode==='play'&&missileState.rack){event.preventDefault();switchMissile();}},{passive:false});
+const missileButton=document.createElement('button');missileButton.id='missile-fire';missileButton.textContent='MISSILE';missileButton.className='hidden';missileButton.setAttribute('aria-label','Fire missile (guided when locked)');document.getElementById('touch-controls').append(missileButton);
 missileButton.addEventListener('pointerdown',event=>{event.preventDefault();fireMissile();});
 function stepMissileCombat(dt,velocity){
  const wasLocked=missileLock.progress>=1;
  missileCooldown=Math.max(0,missileCooldown-dt);
  VoidTargeting.step(missileLock,lockCandidates(),flightPoint,W,H,dt,missileBalance(),VoidMissiles.ready(missileState));
- if(!wasLocked&&missileLock.progress>=1)VoidAudio.event('lock',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));
+ if(!wasLocked&&missileLock.progress>=1){VoidAudio.event('lock',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)));combatLog('lock',{target:missileLock.target?.className||null});}
+ globalThis.VoidFlightSfx?.lockTone(!VoidMissiles.ready(missileState)||missileCooldown>0?'off':missileLock.progress>=1?'locked':missileLock.target?'seeking':'off',missileLock.progress);
  stepEnemyMissiles(dt,velocity);
- for(const m of missiles){const from={x:m.x,y:m.y,z:m.z};VoidMissiles.step(m,dt,velocity,missileBalance(),enemies,(e,damage)=>{burst(m,'#ffcd83','missile');hitEnemy(e,damage);});if(!m.dead&&globalThis.VoidFlightSkirmish?.blocksSegment(from,m,1)){m.dead=true;VoidCombatEffects.explode(m,'impact');}}
+ for(const m of missiles){const from={x:m.x,y:m.y,z:m.z},wasLost=m.lost;
+  VoidMissiles.step(m,dt,velocity,missileBalance(),enemies,(e,damage,direct)=>{if(direct)combatLog('hit',{type:m.type||'m1',target:e.className,damage:Math.round(damage*10)/10,age:Math.round(m.age*100)/100});hitEnemy(e,damage);});
+  if(!wasLost&&m.lost)combatLog('lost',{type:m.type||'m1',target:m.target?.className||null,age:Math.round(m.age*100)/100});
+  if(!m.dead&&globalThis.VoidFlightSkirmish?.blocksSegment(from,m,1)){m.dead=true;m.detonated={x:m.x,y:m.y,z:m.z,hit:false};}
+  if(m.dead&&m.detonated){const big=m.type==='m2';VoidCombatEffects.explode(m.detonated,big?'large':'missile');VoidAudio.event('explosion',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)),m.detonated,flightBasis());if(!m.detonated.hit)combatLog('miss',{type:m.type||'m1',lost:!!m.lost,age:Math.round(m.age*100)/100});}
+  // exhaust trail: a puff every 25 ms where the motor was (moves with the world like everything else in flight)
+  if(!m.dead){m.puff=(m.puff||0)-dt;if(m.puff<=0){m.puff=.025;missileTrail.push({x:m.x-m.direction.x*.6,y:m.y-m.direction.y*.6,z:m.z-m.direction.z*.6,age:0,life:m.type==='m2'?2.2:1.6,size:m.type==='m2'?.55:.4,heavy:m.type==='m2'});}}}
+ for(const p of missileTrail){p.age+=dt;p.x-=velocity.x*dt;p.y-=velocity.y*dt;p.z-=velocity.z*dt;}
+ missileTrail=missileTrail.filter(p=>p.age<p.life);if(missileTrail.length>320)missileTrail.splice(0,missileTrail.length-320);
  missiles=missiles.filter(m=>!m.dead);
- missileButton.classList.toggle('hidden',!missileState.ownsMissileLauncher);missileButton.disabled=(missileBalance().missileRequiresLock!==false&&missileLock.progress<1)||missileCooldown>0||!VoidMissiles.ready(missileState);
+ missileButton.classList.toggle('hidden',!missileState.ownsMissileLauncher);missileButton.disabled=missileCooldown>0||!VoidMissiles.ready(missileState);
  updateMissileHud();
 }
-function drawMissiles(){for(const m of missiles){const p=flightPoint(m),q=flightPoint({x:m.x-m.direction.x*5,y:m.y-m.direction.y*5,z:m.z-m.direction.z*5});if(p.z>1&&q.z>1){ctx.strokeStyle='#ffcf83';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.fillStyle='#fff3d6';ctx.fillRect(p.x-2,p.y-2,4,4);}}}
+// The Babylon view draws missiles in 3D (flight-fx.js); this is the 2D fallback only.
+function drawMissiles(){for(const m of missiles){const p=flightPoint(m),q=flightPoint({x:m.x-m.direction.x*5,y:m.y-m.direction.y*5,z:m.z-m.direction.z*5});if(p.z>1&&q.z>1){ctx.strokeStyle='#d9d2c4';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(q.x,q.y);ctx.lineTo(p.x,p.y);ctx.stroke();ctx.fillStyle='#fff3d6';ctx.fillRect(p.x-2,p.y-2,4,4);}}}
+/* Lock-on HUD: the seeker circle in front; a target inside it is acquired over the lock time: four brackets close in and turn onto it (with the seeking tone),
+   then a solid box and LOCK (the locked tone). The selected target (Next / Previous / Nearest) is marked even outside the circle. */
 function drawMissileReticle(){
  if(!missileState.ownsMissileLauncher||!missileState.equipped)return;
- const target=missileLock.target,locked=missileLock.progress>=1,radius=Math.min(W,H)*missileBalance().missileLockRadius,x=W*.5,y=H*.44;
- ctx.save();ctx.strokeStyle=locked?'#ffd084':'#87dcc6';ctx.fillStyle=ctx.strokeStyle;ctx.lineWidth=1;ctx.globalAlpha=.65;ctx.setLineDash([3,12]);ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+ const target=missileLock.target,locked=missileLock.progress>=1,radius=Math.min(W,H)*missileBalance().missileLockRadius,x=W*.5,y=H*.44,seek='#d8c9a3',hot='#ff6a55';
+ ctx.save();ctx.lineWidth=1;ctx.strokeStyle=seek;ctx.fillStyle=seek;ctx.globalAlpha=.45;ctx.setLineDash([2,10]);ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
+ for(const a of [0,1,2,3]){const t=a*Math.PI/2;ctx.beginPath();ctx.moveTo(x+Math.cos(t)*(radius-6),y+Math.sin(t)*(radius-6));ctx.lineTo(x+Math.cos(t)*(radius+4),y+Math.sin(t)*(radius+4));ctx.stroke();}
+ const sel=selectedTarget&&!selectedTarget.dead&&selectedTarget!==target?selectedTarget:null;
+ if(sel){const p=flightPoint(sel),r=Math.max(14,Math.min(60,p.s*sel.size*2.6));if(p.z>1){ctx.globalAlpha=.8;ctx.setLineDash([4,4]);ctx.strokeRect(p.x-r,p.y-r,2*r,2*r);ctx.setLineDash([]);ctx.font='10px Consolas';ctx.textAlign='center';ctx.fillText('TGT · '+Math.round(FM.length(sel))+'u',p.x,p.y+r+12);ctx.globalAlpha=1;}}
  if(target&&!target.dead){const p=flightPoint(target),r=Math.max(16,Math.min(65,p.s*target.size*2.8));
-  if(p.z>1){if(locked)ctx.strokeRect(p.x-r,p.y-r,2*r,2*r);else for(const sx of [-1,1])for(const sy of [-1,1]){ctx.beginPath();ctx.moveTo(p.x+sx*(r-7),p.y+sy*r);ctx.lineTo(p.x+sx*r,p.y+sy*r);ctx.lineTo(p.x+sx*r,p.y+sy*(r-7));ctx.stroke();}
-   ctx.font='10px Consolas';ctx.textAlign='center';ctx.fillText(locked?'LOCK':Math.round(missileLock.progress*100)+'%',p.x,p.y-r-7);
-   ctx.beginPath();ctx.arc(x,y,radius,-Math.PI/2,-Math.PI/2+Math.PI*2*missileLock.progress);ctx.stroke();
+  if(p.z>1){const k=missileLock.progress,c=locked?hot:seek;ctx.strokeStyle=c;ctx.fillStyle=c;ctx.lineWidth=locked?2:1.5;
+   if(locked){const pulse=1+.06*Math.sin(time*18);ctx.strokeRect(p.x-r*pulse,p.y-r*pulse,2*r*pulse,2*r*pulse);ctx.beginPath();ctx.moveTo(p.x,p.y-r*.45);ctx.lineTo(p.x+r*.45,p.y);ctx.lineTo(p.x,p.y+r*.45);ctx.lineTo(p.x-r*.45,p.y);ctx.closePath();ctx.stroke();}
+   else{const rr=r*(2.3-1.3*k),turn=(1-k)*Math.PI/2,arm=Math.max(6,rr*.35);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(turn);for(const sx of [-1,1])for(const sy of [-1,1]){ctx.beginPath();ctx.moveTo(sx*(rr-arm),sy*rr);ctx.lineTo(sx*rr,sy*rr);ctx.lineTo(sx*rr,sy*(rr-arm));ctx.stroke();}ctx.restore();}
+   ctx.font=(locked?'bold 12px':'10px')+' Consolas';ctx.textAlign='center';ctx.fillText(locked?'LOCK':'SEEK '+Math.round(k*100)+'%',p.x,p.y-r-8);ctx.font='10px Consolas';ctx.fillText(Math.round(FM.length(target))+'u',p.x,p.y+r+14);
+   ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,radius+5,-Math.PI/2,-Math.PI/2+Math.PI*2*k);ctx.stroke();ctx.lineWidth=1;
   }
  }
- ctx.font='10px Consolas';ctx.textAlign='center';ctx.fillText(!missileState.missilesLoaded?'EMPTY':missileCooldown>0?'COOLDOWN':locked?'LOCK / FIRE':'',x,y+radius+14);ctx.restore();
+ ctx.strokeStyle=seek;ctx.fillStyle=locked?hot:seek;ctx.font='10px Consolas';ctx.textAlign='center';
+ const type=missileTypeName(missileState.type),label=!missileState.missilesLoaded?type+' EMPTY':missileCooldown>0?type+' RELOADING':locked?type+' · LOCK · FIRE':type+' · '+(target?'ACQUIRING':'NO LOCK · DUMB-FIRE');
+ ctx.fillText(label,x,y+radius+16);ctx.restore();
 }
 
 const missileDifficulty={easy:{time:.75,radius:1.25},normal:{time:1,radius:1},hard:{time:1.2,radius:.85}};

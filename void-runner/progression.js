@@ -32,7 +32,7 @@
  const flight=['board','throttle','steer','roll','navigation','jumpTravel','dock','shipInventory','hangar','moduleInstalled','vendor','modulePurchased','purchasedInstalled','laserCombat','missileSelected','targetSelected','missileLocked','missileFired'];
  const flags=[...ground,...flight,'shootingTutorialComplete','maraShipHandoff'];
  const openingGround=['move','look','interact','draw','aim','fire','reload','groundCombat'];
- const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,ammo:tuning.ground.magazine,reserve:tuning.ground.reserve,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
+ const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,ammo:tuning.ground.magazine,reserve:tuning.ground.reserve,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,m2:0,missileType:'m1',checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
  const number=(x,f=0,max=1e8)=>Number.isFinite(x)?Math.max(0,Math.min(max,x)):f;
  function restore(raw,s){const p=fresh();
   if(!raw){if(s.quest!=='inheritance'){p.opening={version:1};p.personal.weapon='ward-pistol';}if(s.quest!=='inheritance'){for(const id of ground)p.flags[id]=true;p.migrated=true;p.checkpoint={location:s.location};}if(s.universe?.freeTravel||s.missileOfferSeen){for(const id of flags)p.flags[id]=true;p.completed=true;}return p;}
@@ -45,7 +45,7 @@
   const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>Object.prototype.hasOwnProperty.call(personalItems,x));p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
   p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)&&modules[id].available!==false))];
   for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot)p.equipment.installed[ship][slot]=id;}
-  p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};
+  p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.m2=Math.floor(number(raw.m2,0,30));p.missileType=raw.missileType==='m2'?'m2':'m1';   /* M2 rounds and the selected missile type (ordnance.js) */p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};
   for(const [id,v]of Object.entries(raw.reputation||{}))if(/^[a-z][a-z-]{0,39}$/.test(id)&&Number.isFinite(v))p.reputation[id]=Math.max(-100,Math.min(100,v));
   p.cargo=(raw.cargo||[]).filter(x=>x&&typeof x.id==='string'&&Number.isInteger(x.units)&&x.units>0&&x.units<=3).slice(0,3);p.data=(raw.data||[]).filter(x=>typeof x==='string'&&x.length<80).slice(0,16);
   for(const [id,v]of Object.entries(raw.relays||{}))if(['erebus','sol'].includes(id)&&['online','offline','damaged'].includes(v))p.relays[id]=v;

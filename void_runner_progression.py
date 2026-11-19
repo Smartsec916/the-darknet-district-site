@@ -15,6 +15,10 @@ def clean_progression(raw, locations):
     def entries(value, allowed, limit=64):
         if not isinstance(value,list) or len(value)>limit or any(type(x) is not str or x not in allowed for x in value): raise ValueError('Invalid inventory.')
         return list(dict.fromkeys(value))
+    def missile_type(value):  # the selected missile type (void-runner/ordnance.js); old saves have none
+        if value is None: return 'm1'
+        if value not in ('m1','m2'): raise ValueError('Invalid missile type.')
+        return value
     flags=raw.get('flags',{})
     if not isinstance(flags,dict) or any(k not in FLAGS or type(v) is not bool for k,v in flags.items()): raise ValueError('Invalid tutorial flags.')
     p=raw.get('personal',{}); e=raw.get('equipment',{})
@@ -63,5 +67,5 @@ def clean_progression(raw, locations):
     weapon='ward-pistol' if opening['version']==1 or opening['pistol'] else None
     return {'opening':opening,'version':1,'flags':dict(flags),'completed':raw.get('completed') is True and opening_done and all(flags.get(f) for f in required),'migrated':raw.get('migrated') is True,
             'personal':{'weapon':weapon,'ammo':count(p.get('ammo'),10,10),'reserve':count(p.get('reserve'),999,48),'items':entries(p.get('items',[]),['ward-kit','hacking-device']),'attachments':attachments,'optic':optic},
-            'equipment':{'owned':owned,'installed':installed},'missiles':None if raw.get('missiles') is None else count(raw['missiles'],30),
+            'equipment':{'owned':owned,'installed':installed},'missiles':None if raw.get('missiles') is None else count(raw['missiles'],30),'m2':count(raw.get('m2'),30),'missileType':missile_type(raw.get('missileType')),
             'checkpoint':{'location':location},'reputation':reputation,'cargo':clean_cargo,'data':data,'relays':relays}

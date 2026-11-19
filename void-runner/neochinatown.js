@@ -97,6 +97,8 @@
     // Admin and Iris are both at the counter, except while the first faction payment waits and Admin is 'occupied' (doc 06).
     {id:'admin',label:'SPEAK WITH ADMIN',position:[8,1.7,46.2],action:'admin',range:3,when:{notFlags:{adminOccupied:true}}},
     {id:'district-iris',label:'SPEAK WITH IRIS',position:[12.5,1.7,46.2],action:'district-iris',range:3},
+    // Admin's ordnance counter (ship-loadout.js): for pilots (a ship granted: story.flags.loadoutApp), so it is reachable even while Admin has a mission to offer.
+    {id:'admin-ordnance',label:'ADMIN’S COUNTER · SHIP ORDNANCE',position:[10.2,1.7,46.2],action:'admin-ordnance',range:1.6,when:{flags:{loadoutApp:true},notFlags:{adminOccupied:true}}},
     {id:'district-shop',label:'BROWSE THE SHOP',position:[14.8,1.7,50.5],action:'district-shop',range:2.8},
     {id:'district-bar',label:'TALK TO THE BARTENDER',position:[10,1.7,37.2],action:'district-bar',range:3},
     {id:'district-vr',label:'ACCESS VR EXPERIENCES',position:[-6.2,1.7,36],action:'district-vr',range:3},

@@ -6,6 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): FLIGHT COMBAT — MISSILES M1 / M2 WITH LOCK-ON, NEW LASERS, FLIGHT SOUND, ADMIN'S ORDNANCE, THE SHIP LOADOUT APP (branch `claude/flight-combat`, build `2026-11-19-flight-combat-1`, pushed, NO PR, not merged)
+
+The owner: never fired a missile; wants an Ace Combat-like lock-on, a missile animation, better laser graphics, flight sound, unlimited weak lasers, M1 (turns faster, less damage) and M2 (upgraded, more damage, turns slower) sold by Admin, and a ship Loadout app added when a ship is granted. Full record: [`FLIGHT_COMBAT.md`](FLIGHT_COMBAT.md).
+
+- **Why missiles never fired:** nothing in a District campaign gave a launcher. It needed `creditGear 'launcher'` plus `loadout.missile 'launcher'`, which only Rook's retired Vesper-campaign offer granted; the ship grant (`awardStarterShip`, the Mission Editor's ship reward, the developer test ship) gave the hull alone.
+- **Now:** a granted ship comes with the launcher fitted, a full M1 rack (Kestrel 6) and the **Ship Loadout** V1 app (`void-runner/ordnance.js grant`); District saves that already own a ship get it once on load. Lock-on (seeker circle, brackets closing in, seeking beep, LOCK box and steady tone), Next / Previous / Nearest, guided fire or dumb-fire, Z / mouse wheel switch M1 / M2. Guidance with per-type turn limits, lead, a 66° seeker cone (a hard-turning target slips an M2), proximity fuse and blast. 3D missiles with flame and smoke trail, new laser bolts and muzzle flashes (`flight-fx.js`), procedural flight sound through the effects channel (`flight-sfx.js`). Admin's counter sells M1 (60 CR) and M2 (180 CR) to pilots (`ship-loadout.js`); prices, damage, turning, speed and blast are Combat Balance values. Mission Editor: new reward "Missiles (M1 or M2)"; the ship reward is now called "Give the player a ship".
+- **Server:** `void_runner_progression.py` accepts `progression.m2` (0 to 30) and `missileType`; `void_runner_live_content.py` checks the missile reward; admin inventory regenerated. Combat Balance SAVE needs the Render API deployed from the same commit (it requires every balance key).
+- **Tests:** `tests/flight-combat.test.cjs`, `tests/test_flight_combat.py`, `tests/missile-fire-consequences.test.cjs` updated (no lock now dumb-fires), browser `tests/flight-combat-browser.cjs` (screenshots `docs/development/flight-combat/`).
+- **Not verified:** real GPU / ROG Ally frame rate, VR, gamepad switch button (none yet), the sound mix by ear.
+
 ### 19 Nov 2026 (newest): MISSION SYSTEM QA PASS — BUGS FOUND BY BUILDING AND PLAYING MISSIONS, AND THE ARROW TO APARTMENTS AND LOCATIONS (branch `claude/mission-qa-fixes`, build `2026-11-19-mission-qa-1`, pushed, NO PR, not merged)
 
 The owner: "Maybe try to make different missions and look for bugs", then "Also look for arrow problems, specially near corners or doors". Missions were built through the real editor UI (wizard, Form and Blocks views, Basic and Advanced) and played with PLAY THIS DRAFT / PLAY FROM THE START OF THIS TREE in Chromium (software GL, offline), with the game's and the server's checks run on each draft.

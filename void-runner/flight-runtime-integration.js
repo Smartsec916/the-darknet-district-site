@@ -15,7 +15,11 @@
  function missileSource(ship){
   const testing=devMissileTrial&&VoidDevTools.authorized&&trialGear==='missile';
   const owns=state.creditGear.includes('launcher'),equipped=owns&&state.loadout.missile==='launcher',capacity=ship.missile.capacity;
-  return {ownsMissileLauncher:testing||owns,equipped:testing||equipped,missilesLoaded:testing?12:equipped?Math.min(capacity,state.progression.missiles??capacity):0,missileCapacity:testing?12:owns?capacity:0,type:'standard'};
+  // Two missile types (ordnance.js): both racks travel with the flight; missilesLoaded / missileCapacity are the selected type's (M1 keeps the old fields' meaning).
+  const O=root.VoidOrdnance,r=O?O.rack(state,ship):{type:'m1',rack:{m1:{loaded:Math.min(capacity,state.progression.missiles??capacity),capacity},m2:{loaded:0,capacity:0}}};
+  if(testing){r.rack.m1={loaded:12,capacity:12};r.rack.m2={loaded:4,capacity:4};}else if(!equipped){r.rack.m1.loaded=0;r.rack.m2.loaded=0;}
+  const sel=r.rack[r.type];
+  return {ownsMissileLauncher:testing||owns,equipped:testing||equipped,missilesLoaded:testing?sel.loaded:equipped?Math.min(sel.capacity,sel.loaded):0,missileCapacity:testing?sel.capacity:owns?sel.capacity:0,type:r.type,rack:r.rack};
  }
  const api=root.VoidFlightCraft={
   active,

@@ -1949,6 +1949,8 @@ def check_trees(trees, inv, err, npcs=None):
                         err(w + ': a start-tree link must name another of the new trees being sent.')
                     if k in ('contact', 'follow') and (not isinstance(u.get('id'), str) or not re.match(r'^[a-z][a-z0-9-]{0,39}$', u['id']) or u['id'] not in givers):
                         err(w + ': a contact or a follow must name a known NPC.')
+                    if k == 'missiles' and (u.get('id') not in ('m1', 'm2') or not (type(u.get('amount')) is int and 1 <= u['amount'] <= 30)):
+                        err(w + ': missiles must be M1 or M2, 1 to 30 of them.')
                     if k == 'reputation':
                         if u.get('id') not in givers and u.get('id') not in factions:
                             err(w + ': reputation must name an NPC or a faction.')
