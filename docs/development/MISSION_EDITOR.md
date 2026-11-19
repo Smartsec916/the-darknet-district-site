@@ -2,6 +2,25 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Fix (19 Nov 2026): "When walked near" starts by itself
+
+Branch `claude/near-auto-start`, build `2026-11-19-near-auto-1`. Pushed, no PR, not merged. The owner: "I noticed 'When walked near' still needs a click option by the player, even though i want it to start automatically".
+
+**Cause.** The game itself was right: with **Ask the player: ACCEPT or DENY** off, walking near starts the mission at once (checked again in a browser for Messages, Comms call and Notification only). The click came from the question being **on** without the owner choosing it, in two editor paths: (1) changing **Starts** from "In person, asking ACCEPT / DENY" to By Messages / By Comms call / Notification only silently kept the question; (2) **Player pays** turns the question on (paying at ACCEPT needs it) and going back to **Player gets** left it on. The tick box sits above Sender / Header / Body, far from the trigger, so it was easy to miss.
+
+**Now.**
+1. Under **When walked near** one plain line says either **Starts automatically — no click** (walking near starts it at once: a notification shows and it goes into the Mission Log; nothing to press) or **Asks ACCEPT / DENY** (the mission starts only when the player presses ACCEPT), with a button **START AUTOMATICALLY INSTEAD** / **ASK ACCEPT / DENY INSTEAD**. When the player pays at ACCEPT it says so and has no button (it must ask).
+2. Choosing the trigger **When walked near** makes it automatic unless the question has your own button words / DENY settings, or the player pays at ACCEPT.
+3. Changing **Starts** to a device start keeps the question only when you had it on a device start already (or had set button words / DENY settings, or the player pays at ACCEPT). "In person, asking" no longer carries it over.
+4. **Player gets** after **Player pays** turns the question off again if paying had turned it on (in this editing session).
+5. **Make a mission**: "When the player walks near them" was already automatic unless you answer Yes to ACCEPT / DENY or the player pays; the summary now says "(starts automatically — no click)".
+6. In person (with or without ACCEPT / DENY) is unchanged.
+
+**Existing missions.** A mission keeps the question only as `start.accept: true`; nothing records whether it was ticked by you or left over from a default, so existing drafts and published missions are **not** changed. Open the mission: the line under the trigger shows "Asks ACCEPT / DENY"; press **START AUTOMATICALLY INSTEAD** and publish again.
+
+- Code: `mission-editor.js` (`nearMode`, `payAtAccept`, `askCustom`, `forceAsk` / `unforceAsk`, the Starts and Trigger selects), `editor-home.js` (wizard summary / help). No rule or server change.
+- Tests: `tests/near-auto-start.test.cjs` (7: automatic for each channel, the question, a cost at ACCEPT, in person, the wizard); browser `tests/near-auto-start-browser.cjs` (the editor paths above, then PLAY THIS DRAFT: walking within 5 m of Admin starts it with no click, no conversation, no offer window; passes).
+
 ## Sixteenth pass (19 Nov 2026): player lines, animations in lines and between steps, mission timers
 
 The owner: "after I create a voice line, i can not create the line for the player. i also can't add animations anywhere between the steps", then "mission timers. set the amount of time between actions, lines, etc". Branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`.
