@@ -91,7 +91,7 @@
    if(kd.needs==='place'){sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-place':String(i)});sel.append(new Option('— choose a place —',''));for(const p of walkPlaces())sel.append(new Option(p.name+(p.players?'':' (not open to players yet)'),p.id));sel.value=s.place||'';sel.onchange=()=>{s.place=sel.value;draw();};}
    else if(kd.needs==='escort-spot'||kd.needs==='escort-stop'){const E=root.VoidNPCEscort;sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));
     for(const g of givers().filter(g=>g.group==='district')){const c=E?E.can(g.id,s.kind):{ok:false,why:''},op=new Option(g.name+(c.ok?'':' — cannot walk with the player yet'),g.id);if(!c.ok){op.disabled=true;op.title=c.why;}sel.append(op);}
-    sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;s.spot='';s.stop='';draw();};row.append(sel);c.append(row);
+    sel.value=s.npc||'';sel.onchange=e=>{s.npc=e.target.value;s.spot='';s.stop='';draw();};row.append(sel);c.append(row);
     const r2=el('label','','me-field');r2.append(el('span',kd.where));const s2=el('select','','',{'aria-label':kd.where,[kd.needs==='escort-spot'?'data-eh-step-spot':'data-eh-step-stop']:String(i)});
     if(kd.needs==='escort-spot'){s2.append(new Option(s.npc?'— choose a spot —':'— choose the person first —',''));for(const p of (E&&s.npc?E.spots(s.npc):[]))s2.append(new Option(p.name,p.id));s2.value=s.spot||'';s2.onchange=()=>{s.spot=s2.value;draw();};}
     else{s2.append(new Option(s.npc?'— choose a stop —':'— choose the person first —',''));for(const p of (E&&s.npc?E.stops(s.npc,E.placedArea(s.npc)):[])){const op=new Option(p.name+(p.ok?'':' — not possible'),p.id);if(!p.ok){op.disabled=true;op.title=p.why;}s2.append(op);}s2.value=s.stop||'';s2.onchange=()=>{s.stop=s2.value;draw();};}
@@ -100,7 +100,7 @@
     r2.append(el('span',kd.ask),n,el('span','The mission waits this long, then goes on to the next step. The clock stops in the pause menu and conversations. In the Mission Editor you can also make it count only while the player stays near someone.','me-help'));c.append(r2);sel=null;}
    else if(kd.needs==='anim'){const A=root.VoidNPCGestures;sel=el('select','','',{'aria-label':kd.ask,'data-eh-step-npc':String(i)});sel.append(new Option('— choose a person —',''));
     for(const g of givers().filter(g=>g.group==='district')){const r=A?A.clipsFor(g.id):{ok:false,why:''},op=new Option(g.name+(r.ok?'':' — no animations yet'),g.id);if(!r.ok){op.disabled=true;op.title=r.why;}sel.append(op);}
-    sel.value=s.npc||'';sel.onchange=()=>{s.npc=sel.value;s.clip='';draw();};row.append(sel);c.append(row);
+    sel.value=s.npc||'';sel.onchange=e=>{s.npc=e.target.value;s.clip='';draw();};row.append(sel);c.append(row);
     const r2=el('label','','me-field');r2.append(el('span',kd.where));const s2=el('select','','',{'aria-label':kd.where,'data-eh-step-clip':String(i)});s2.append(new Option(s.npc?'— choose an animation —':'— choose the person first —',''));
     for(const x of (A&&s.npc?A.clipsFor(s.npc).clips:[]))s2.append(new Option(x.name,x.id));s2.value=s.clip||'';s2.onchange=()=>{s.clip=s2.value;draw();};
     r2.append(s2,el('span','They do it where they stand as soon as the step before is done; the mission then waits 3 seconds (change it in the Mission Editor, 0 to 30) and goes on. Only animations that person really has are listed.','me-help'));sel=null;c.append(r2);}

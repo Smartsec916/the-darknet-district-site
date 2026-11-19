@@ -576,7 +576,7 @@
     if(inside&&modular){await root.VoidModules.enter(d,inst);}else if(inside){await X.enterHall(d,[inst]);await X.enterFlat(inst);}},
    message:()=>'VIEWING · '+(inside?'inside apartment '+a.id:d.name)+' (the door is open for this test) · nothing is saved'});
   if(r&&r.error){status=r.error;draw();}return r;}
- function treeStepRow(t,raw,m,o,k,ed){const sb=el('section','','me-step',{'data-me-tstep':o.id,'data-me-step':o.id}),eo=(fn,redraw)=>ed(x=>{const oo=x.objectives.find(y=>y.id===o.id);if(oo)fn(oo,x);},redraw);
+ function treeStepRow(t,raw,m,o,k,ed){const sb=el('section','','me-step',{'data-me-tstep':o.id,'data-me-step':o.id}),eo=(fn,redraw)=>ed(x=>{const oo=x.objectives.find(y=>y.id===o.id);if(!oo)return;const MB=root.VoidMissionBlocks,lab=y=>MB?MB.autoLabel(y,{name:id=>(giver(id)||{}).name||id,place:id=>((G().PLACE.get(id)||{}).name)||root.VoidPlaces?.node?.(id)?.name||id}):'',was=redraw?lab(oo):null;fn(oo,x);if(redraw&&(!String(oo.label||'').trim()||oo.label===was)){const l=lab(oo);if(l)oo.label=l;}},redraw);   // a new kind, person or place fills in “what the player must do” as the Blocks view does (the owner's own words are kept)
   const head=el('div','','me-row');head.append(el('b','STEP '+(k+1)+' · '+o.id));
   const kind=el('select','','',{'aria-label':'Kind of step','data-me-kind':o.id});for(const x of G().STEP_KINDS)kind.append(new Option(x.name+(x.supported?'':' — needs a code change'),x.id));kind.value=o.kind||'talk';kind.onchange=()=>eo(x=>{x.kind=kind.value;},true);head.append(kind,...optHelp(kind,HELP_STEP,'Kind of step'));
   const st=G().STEP_KINDS.find(x=>x.id===o.kind);
@@ -600,7 +600,7 @@
    if(MED())head.append(...MED().stepMod(m,o,eo,{'data-me-step-mod':o.id}));
    if(o.kind==='apt-use'){const sel=el('select','','',{'aria-label':'What is used','data-me-step-object':o.id});sel.append(new Option('— choose what is used —',''));for(const ob of (MED()?MED().objects(m,o):root.VoidApartments.OBJECTS))sel.append(new Option(ob.name,ob.id));sel.value=o.object||'';sel.onchange=()=>eo(x=>{if(sel.value)x.object=sel.value;else delete x.object;},true);head.append(el('span','use','me-small'),sel);}}
   else if(o.kind==='hack')head.append(...hackRow(m,o,eo));
-  else if(o.kind==='ask'&&root.VoidMissionBlocksView)head.append(...root.VoidMissionBlocksView.askFields({t,m,o,eo,kit:blocksKit}));   // ACCEPT / DENY in the middle of a mission (the same fields as its block)
+  else if(o.kind==='ask'&&root.VoidMissionBlocksView)head.append(...root.VoidMissionBlocksView.askFields({t,m,o,eo:(fn,redraw=true)=>eo(fn,redraw),kit:blocksKit}));   // ACCEPT / DENY in the middle of a mission (the same fields as its block)
   else if(o.kind==='pod-exit')head.append(el('span','Done when the player leaves the Sleeping Pod (EXIT POD).','me-small'));
   else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));
   else head.append(el('span','Needs a code change: the game cannot run this kind of step yet. It stays in your draft.','me-warn'));

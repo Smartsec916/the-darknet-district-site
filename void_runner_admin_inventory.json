@@ -38589,7 +38589,7 @@
       ]
     }
   },
-  "revision": "46af0b21495c61a4",
+  "revision": "f2e94844889685c0",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -51962,7 +51962,7 @@
     {
       "source": "void-runner/live-content.js",
       "line": 138,
-      "text": "function askTick(){try{if(askOpen&&!(typeof speech!=='undefined'&&speech))askOpen=null;if(!treesOn()||nearBlocked()||askOpen||(typeof speech!=='undefined'&&speech)||typeof root.talkChoice!=='function'||document.querySelector('#screen .choice-menu,[data-talk-choice]'))return;",
+      "text": "function askTick(){try{if(askOpen&&!(typeof speech!=='undefined'&&speech))askOpen=null;if(!treesOn()||nearBlocked()||askOpen||(typeof speech!=='undefined'&&speech)||typeof root.talkChoice!=='function'||[...document.querySelectorAll('#screen .choice-menu,[data-talk-choice]')].some(n=>n.getClientRects().length))return;   // only a choice on screen (a window closed without an answer leaves its hidden buttons)",
       "kind": "source-reference"
     },
     {
@@ -53791,50 +53791,50 @@
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 49,
+      "line": 80,
       "text": "/* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 51,
+      "line": 82,
       "text": "if(st.kind==='photo'){if(v.camera)return {id:'shoot',text:'Put the target in the frame · <b>LEFT CLICK</b> takes a picture'};if(v.deviceOpen)return v.app?{id:'camera',text:'Go back (<b>Esc</b>) and select the <b>Camera</b> app'}:{id:'camera',text:'Select the <b>Camera</b> app'};return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 52,
+      "line": 83,
       "text": "if(st.kind==='send-photo'){const who=v.name(st.npc);if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 53,
+      "line": 84,
       "text": "if(v.app!=='messages')return v.app?{id:'messages',text:'Go back (<b>Esc</b>) and open <b>Messages</b>'}:{id:'messages',text:'Open <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 54,
+      "line": 85,
       "text": "if(v.thread!==st.npc)return {id:'thread',text:'Select <b>'+who+'</b>’s conversation (INBOX)'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 55,
+      "line": 86,
       "text": "if(v.attach&&v.attach.picking)return {id:'attach',text:'Choose the photo of the target'};if(!(v.attach&&v.attach.photo))return {id:'attach',text:'Press <b>ATTACH</b>'};return {id:'send',text:'Press <b>SEND</b>'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 61,
+      "line": 92,
       "text": "const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 62,
-      "text": "root.VoidMissionGuide={missionPlaceRoute,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};",
+      "line": 93,
+      "text": "root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};",
       "kind": "source-reference"
     },
     {
@@ -55795,19 +55795,19 @@
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 31,
+      "line": 34,
       "text": "if(typeof speech!=='undefined'&&speech){speech.choices=list;speech.menu=menu;speech.offer=opts.offer||null;decorate();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 35,
+      "line": 38,
       "text": "screen.addEventListener('click',e=>{const b=e.target.closest?.('[data-talk-choice]');if(!b||typeof speech==='undefined'||!speech||!Array.isArray(speech.choices))return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/talk-choice.js",
-      "line": 36,
+      "line": 39,
       "text": "const c=speech.choices[Number(b.dataset.talkChoice)];if(!c||c.disabled||b.disabled)return;e.stopPropagation();speech=null;try{root.VoidAudio?.cancel();}catch{}c.run();},true);",
       "kind": "source-reference"
     },
@@ -56837,7 +56837,7 @@
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
-    "void-runner/editor-home.js": "ed5a7bf2eab06f90a5675a084cadc4530328c440d836ed42b5ccf0785ceee44d",
+    "void-runner/editor-home.js": "e75b03b9ed1cdf8e81036ea5901c701b563c907028419d807e742596ae8cf175",
     "void-runner/editor-wizard.js": "6cb67a858d21004ab864a07c788fc9ad6d01b9ad1eba88a14fed016f3792d91e",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
@@ -56863,7 +56863,7 @@
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
-    "void-runner/guide-route.js": "6b4a239286230724187c938153c4802032b7a3f847ea1af07ef33e34555adc6b",
+    "void-runner/guide-route.js": "c3d6a5718055e69f317158041ca4494783890928a39a181efdc6b15294ce3bdc",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
@@ -56871,7 +56871,7 @@
     "void-runner/input.js": "9ad5819c0941824bb6d28ad566377557de06538650bb442ebd20356a2e223a72",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "1a0ba91236b09bae9e3342ed53560f30bbed2dd5d165acfb8b88146139a1e5d0",
-    "void-runner/live-content.js": "4abbd354f9101a66c4bb3056a26c8390af6c78f2ab05ec4debaa9a874f19721c",
+    "void-runner/live-content.js": "59c44ff6a94e853de04d1de8fd7e2af04829586eb9d65fc34c2bea7a6b36539f",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/main-story.js": "4cb1c5aedd713e1e986cbc8645e4f471302a283edac520efa7b1ac0008c5d1ee",
@@ -56889,12 +56889,12 @@
     "void-runner/missiles.js": "e244007e375028b86ff3ae271dbed78973a2788e79ae80725a105ca574f304ce",
     "void-runner/mission-blocks-view.js": "415a8bb520be67b6968c63098668877640ece26cf3d0cc1361b8e5758bb68ccf",
     "void-runner/mission-blocks.js": "0a6726a8ac3a3ee60a1bf5781db5a6b7d29a2e254e75be19a9d11f15541e1c5a",
-    "void-runner/mission-content.js": "c855c562b5965c56d3252d627cb52d02debade3c3077ea8542a09be836de3d72",
-    "void-runner/mission-editor.js": "80d40755901dddb9e844ed6f070fe1ff13cff152e9cdeb86d9bf71ba8b065dcd",
+    "void-runner/mission-content.js": "be81b74c9a60442531add993f1b763a61dbc0e570369d8107334f7cf62b5a571",
+    "void-runner/mission-editor.js": "a6254ac1598fd5939e2936e823fb21071fcf1f6dae257c6cf8a2a62385ae3792",
     "void-runner/mission-givers.js": "62b85164fedfc8c748201acbedfde7bb67bb33d10c96155b0b7661e90498aae1",
-    "void-runner/mission-guide.js": "0fc841fd95d5d7fc5d0ce8e5b4291ed4577f7f658fbad37f9053705be2d3391e",
-    "void-runner/mission-log.js": "05c5b3823e73c0200dbdc90665787ec0d26c2ed9853aed7a0cb0a6ae6ebc543b",
-    "void-runner/mission-trees.js": "e5229983aa1c57a6f75e0beed89c50423e11d152903737fa3255151f232fa0cb",
+    "void-runner/mission-guide.js": "8041f8d51e20ba82e750a677515c959742db452efe5a7477817b9ec97f465443",
+    "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
+    "void-runner/mission-trees.js": "a77f3156c728fa579c401443f94e5d2bbaad99a6897bb58925edd77a8ab552ae",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "08cba5e83350ab93210e62a328a04213715dbcc39d19a788e97d612e28709cf3",
     "void-runner/module-editor.js": "2811fe0d10767b53c6f28fe89a4e9431cf5ba9e29ae25c8c0580dfbf9a9e863f",
@@ -56974,7 +56974,7 @@
     "void-runner/story.js": "74501dca85057c374b5181b440f93059fd6658641624b10e3a159d11493fe272",
     "void-runner/street-gear.js": "2be48f25f050c110c6f1297168d446acd839ad5fe074b0d2a8f7804b11717921",
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
-    "void-runner/talk-choice.js": "b133cabe51f9e90450ee01095744c98c119e2249e490be951948dc20c72d5d1a",
+    "void-runner/talk-choice.js": "0300ba20419243ec49b277beb742285fdcce4e7f0b00ffc259115147039f00c1",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
     "void-runner/temple-build.js": "2a45c415c6dcdfc037fbda2b6653924c18e80d1a26bc378b5671594b584d43c2",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
@@ -57003,7 +57003,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "96c4fa9c4e293eac13ff9ebd56066cf7d31e8fcc62d4c0b91db06683d30f8989",
+    "void-runner/world-integration.js": "69361b22b8ff62446056606ac3407791a91031aee0566dbb786a1cdb3dac0183",
     "void-runner/world-markers.js": "dfc0e6d708d668e149baf44a6db16c672023b4321a0fa16655180886e77c50fe",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
