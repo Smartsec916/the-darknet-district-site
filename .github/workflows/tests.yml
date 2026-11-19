@@ -63,6 +63,7 @@ jobs:
           node tests/serve-modern.cjs > /tmp/void-test-host.log 2>&1 &
           node tests/stabilization-browser.cjs
           node tests/blackout-tesana-browser.cjs
+          node tests/npc-capability-browser.cjs
         env:
           BROWSER_CHANNEL: chromium
           STABILIZATION_SMOKE: '1'
