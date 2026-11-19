@@ -15,9 +15,10 @@ const player=x=>{const s=x.C.startDistrictCampaign(x.C.fresh());s.story.flags.ap
 const tree=(waitAt,extra={})=>({id:'draft-street',name:'Street',missions:[{id:'draft-street-m1',number:41,title:'A favour',type:'side',giver:'grey-reverie',start:{how:'person',accept:true},offer:[{who:'grey-reverie',text:'Got a minute?'}],
  objectives:[{id:'go',kind:'go',place:'port',label:'Go to the Port.'}],...(waitAt?{waitAt}:{}),...extra}]});
 
-test('only Reverie and Lace can be moved; their actions come from their own clip list (crowd.js) and never a banned clip',()=>{fresh();const P=X(),S=SP(),C=CR();
- assert.deepEqual(Object.keys(P.MOVABLE).sort(),['ethereal-lace','grey-reverie']);
- for(const id of Object.keys(P.MOVABLE)){const have=new Set(C.clips[P.MOVABLE[id].asset]);assert.ok(have.size>10,id);
+test('only Reverie, Lace and the street cat can be moved; their actions come from their own clip list (crowd.js) and never a banned clip',()=>{fresh();const P=X(),S=SP(),C=CR();
+ assert.deepEqual(Object.keys(P.MOVABLE).sort(),['ethereal-lace','grey-reverie','street-cat']);
+ assert.deepEqual(P.actionsFor('street-cat').map(a=>a.id),P.CAT_ACTIONS);assert.deepEqual(P.libraryOffer('street-cat'),[]);   // the cat: its own procedural actions, no clips
+ for(const id of Object.keys(P.MOVABLE).filter(k=>!P.MOVABLE[k].cat)){const have=new Set(C.clips[P.MOVABLE[id].asset]);assert.ok(have.size>10,id);
   for(const a of P.actionsFor(id)){assert.ok(have.has(a.clip),id+' '+a.id+' plays '+a.clip+' which is in the file');assert.doesNotMatch(a.id+' '+a.clip,S.BANNED,'not banned: '+a.id);for(const c of a.needs||[])assert.ok(have.has(c));}
   for(const want of ['wait','idle','look','scroll','selfie','sit','dance-groove','walk-on'])assert.ok(P.actionsFor(id).some(a=>a.id===want),want);}
  assert.deepEqual(P.actionsFor('admin'),[]);
@@ -133,7 +134,7 @@ test('the editor files load in order and the NPCs tab is a Developer Tools secti
 test('every animation in the game is indexed from the real files; Reverie and Lace get only casual clips that her rig takes (no smoking, drinking, adult or club sources)',()=>{fresh();const P=X(),I=require(R('void-runner/npc-clip-index.json')),idx=require(R('tools/npc-clip-index.cjs'));
  assert.equal(JSON.stringify(idx.build())+'\n',fs.readFileSync(R('void-runner/npc-clip-index.json'),'utf8'),'npc-clip-index.json is current (node tools/npc-clip-index.cjs)');
  assert.equal(I.files['npc-grey-reverie'].joints,24);assert.ok(Object.keys(I.files).length>50);
- for(const id of Object.keys(P.MOVABLE)){const o=P.libraryOffer(id),ok=o.filter(x=>x.ok);assert.ok(ok.length>20,id+' has shared clips');
+ for(const id of Object.keys(P.MOVABLE).filter(k=>!P.MOVABLE[k].cat)){const o=P.libraryOffer(id),ok=o.filter(x=>x.ok);assert.ok(ok.length>20,id+' has shared clips');
   for(const x of ok){assert.doesNotMatch(x.id+' '+x.title,SP().BANNED);assert.doesNotMatch(x.id,/smoke|drink|drunk|vr-|shoot/);assert.doesNotMatch(x.source,P.ADULT);assert.equal(P.animAllowed(id,x.id),'');}
   assert.notEqual(P.animAllowed(id,'npc-kai/idle'),'','an adult-only source');assert.notEqual(P.animAllowed(id,'npc-rin/smoke'),'');assert.notEqual(P.animAllowed(id,'npc-rin/walk'),'','her own walk is used');}
  // a different rig or rest pose is refused with the reason (offline retarget)

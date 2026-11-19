@@ -343,7 +343,8 @@ def wait_at_problems(giver, w, inv):
 
 
 def npc_problems(npcs, inv):
-    """content.npcs {id: {mode: 'stay'|'path'|'original', ...}}: only movable NPCs, spots on their pavement, actions from their own allowed list (no banned clip)."""
+    """content.npcs {id: {mode: 'stay'|'path'|'original', ..., schedule?}}: only movable NPCs, spots on their pavement, actions from their own allowed list (no banned clip),
+    and a daily schedule of in-game time blocks checked with the same rules (void-runner/npc-paths.js scheduleProblems)."""
     if not isinstance(npcs, dict) or len(npcs) > 20:
         return ['NPC placements have an unknown shape.']
     out = []
@@ -359,51 +360,128 @@ def npc_problems(npcs, inv):
         anims = p.get('anims')
         if anims is not None and (not isinstance(anims, list) or len(anims) > 8 or any(a not in (mv.get('anims') or []) for a in anims)):
             out.append(w + 'an added animation is not allowed for this NPC.')
-        ok = set(mv.get('actions') or []) | set(anims if isinstance(anims, list) else [])
-        path_only = set(mv.get('pathOnly') or [])
-        if p['mode'] == 'original':
-            if not _keys(p, ['mode', 'anims']):
-                out.append(w + 'unknown fields.')
+        ok = set(mv.get('actions') or []) | set(a for a in (anims if isinstance(anims, list) else []) if isinstance(a, str))
+        rest = {k: v for k, v in p.items() if k != 'schedule'}
+        out += [w + x for x in _plan_only(npc, rest, mv, inv, ok)]
+        if 'schedule' in p:
+            out += [w + x for x in schedule_problems(npc, p['schedule'], mv, inv, ok, (inv or {}).get('npcPaths', {}).get('limits') or {})]
+    return out
+
+
+def _plan_only(npc, p, mv, inv, ok):
+    out = []
+    path_only = set(mv.get('pathOnly') or [])
+    if p['mode'] == 'original':
+        if not _keys(p, ['mode', 'anims']):
+            out.append('unknown fields.')
+        return out
+    if p['mode'] == 'stay':
+        if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims']):
+            return ['the stay has unknown fields.']
+        out += spot_problems(npc, p, inv)
+        acts = p.get('actions')
+        if not isinstance(acts, list) or not 1 <= len(acts) <= 6:
+            out.append('a stay needs 1 to 6 actions.')
+        else:
+            for a in acts:
+                if not isinstance(a, str) or a not in ok or a in path_only:
+                    out.append('an action is not something she can do here.')
+                elif a == 'sit' and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p):
+                    out.append('"Sit" needs a ledge.')
+        return out
+    if not _keys(p, ['mode', 'points', 'anims']):
+        return ['the path has unknown fields.']
+    pts = p.get('points')
+    if not isinstance(pts, list) or not 2 <= len(pts) <= 12:
+        return ['a path needs 2 to 12 points.']
+    for i, q in enumerate(pts):
+        pw = 'point %d: ' % (i + 1)
+        if not _keys(q, ['x', 'z', 'action', 'seconds']):
+            out.append(pw + 'unknown fields.')
             continue
-        if p['mode'] == 'stay':
-            if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims']):
-                out.append(w + 'the stay has unknown fields.')
-                continue
-            out += [w + x for x in spot_problems(npc, p, inv)]
-            acts = p.get('actions')
-            if not isinstance(acts, list) or not 1 <= len(acts) <= 6:
-                out.append(w + 'a stay needs 1 to 6 actions.')
-            else:
-                for a in acts:
-                    if a not in ok or a in path_only:
-                        out.append(w + 'an action is not something she can do here.')
-                    elif a == 'sit' and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p):
-                        out.append(w + '"Sit" needs a ledge.')
+        out += [pw + x for x in spot_problems(npc, q, inv)]
+        if not isinstance(q.get('action'), str) or q.get('action') not in ok:
+            out.append(pw + 'not something she can do.')
+        elif q['action'] == 'sit' and _num(q.get('x')) and _num(q.get('z')) and not _ledge_at(mv, q):
+            out.append(pw + '"Sit" needs a ledge.')
+        if q.get('action') != 'walk-on' and not (type(q.get('seconds')) is int and 1 <= q['seconds'] <= 120):
+            out.append(pw + 'how long: 1 to 120 seconds.')
+        n = pts[(i + 1) % len(pts)]
+        if isinstance(n, dict) and all(_num(v) for v in (q.get('x'), q.get('z'), n.get('x'), n.get('z'))):
+            out += [pw + x for x in _leg_problems(mv, q, n)]
+    if all(isinstance(q, dict) and q.get('action') == 'walk-on' for q in pts):
+        out.append('at least one point needs something to do.')
+    return out
+
+
+# ---- Daily schedules (Developer Tools > NPCs, 18 Nov 2026): in-game time blocks, the same rules as void-runner/npc-paths.js scheduleProblems ----
+# [{from: 'HH:MM', to: 'HH:MM', name?, mode: 'stay'|'path'|'original', ...}]: no overlaps (a block may run past midnight), at most `blocks`, each at least `blockMin`
+# minutes, a plain-words name; each block's stay or route is checked like a placement. Nothing in it is code: times, numbers and action ids only.
+HHMM = re.compile(r'^([01]\d|2[0-3]):([0-5]\d)$')
+BLOCK_NAME = re.compile(r"^[A-Za-z0-9 .,'\u2019()&!?\-/]{1,40}$")
+BLOCK_KEYS = {'original': ['from', 'to', 'name', 'mode'], 'stay': ['from', 'to', 'name', 'mode', 'x', 'z', 'yaw', 'actions'], 'path': ['from', 'to', 'name', 'mode', 'points']}
+
+
+def _hhmm(t):
+    m = HHMM.match(t) if isinstance(t, str) else None
+    return int(m.group(1)) * 60 + int(m.group(2)) if m else None
+
+
+def schedule_shape_problems(sched):
+    """The editor's server copy (void_runner_drafts.py): a schedule may be half made there, but it is still only times, a plain name, a known kind and known fields."""
+    if sched is None:
+        return []
+    if not isinstance(sched, list) or len(sched) > 8:
+        return ['the daily schedule has an unknown shape.']
+    for i, b in enumerate(sched):
+        if not isinstance(b, dict) or b.get('mode') not in BLOCK_KEYS or not _keys(b, BLOCK_KEYS[b['mode']]):
+            return ['time block %d has an unknown shape.' % (i + 1)]
+        if _hhmm(b.get('from')) is None or _hhmm(b.get('to')) is None:
+            return ['time block %d: times must look like 08:00.' % (i + 1)]
+        if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.match(b['name'])):
+            return ['time block %d: the name may use letters, numbers and simple punctuation only.' % (i + 1)]
+    return []
+
+
+def schedule_problems(npc, sched, mv, inv, ok, limits=None):
+    limits = limits or {}
+    most, least = limits.get('blocks', 8), limits.get('blockMin', 15)
+    if not isinstance(sched, list):
+        return ['the daily schedule has an unknown shape.']
+    if not sched:
+        return ['the daily schedule is empty.']
+    if len(sched) > most:
+        return ['a daily schedule has %d time blocks at most.' % most]
+    out, used = [], [-1] * 1440
+    for i, b in enumerate(sched):
+        bw = 'time block %d: ' % (i + 1)
+        if not isinstance(b, dict) or b.get('mode') not in BLOCK_KEYS:
+            out.append(bw + 'unknown kind of time block.')
             continue
-        if not _keys(p, ['mode', 'points', 'anims']):
-            out.append(w + 'the path has unknown fields.')
+        if not _keys(b, BLOCK_KEYS[b['mode']]):
+            out.append(bw + 'unknown fields.')
             continue
-        pts = p.get('points')
-        if not isinstance(pts, list) or not 2 <= len(pts) <= 12:
-            out.append(w + 'a path needs 2 to 12 points.')
-            continue
-        for i, q in enumerate(pts):
-            pw = w + 'point %d: ' % (i + 1)
-            if not _keys(q, ['x', 'z', 'action', 'seconds']):
-                out.append(pw + 'unknown fields.')
-                continue
-            out += [pw + x for x in spot_problems(npc, q, inv)]
-            if q.get('action') not in ok:
-                out.append(pw + 'not something she can do.')
-            elif q['action'] == 'sit' and _num(q.get('x')) and _num(q.get('z')) and not _ledge_at(mv, q):
-                out.append(pw + '"Sit" needs a ledge.')
-            if q.get('action') != 'walk-on' and not (type(q.get('seconds')) is int and 1 <= q['seconds'] <= 120):
-                out.append(pw + 'how long: 1 to 120 seconds.')
-            n = pts[(i + 1) % len(pts)]
-            if isinstance(n, dict) and all(_num(v) for v in (q.get('x'), q.get('z'), n.get('x'), n.get('z'))):
-                out += [pw + x for x in _leg_problems(mv, q, n)]
-        if all(isinstance(q, dict) and q.get('action') == 'walk-on' for q in pts):
-            out.append(w + 'at least one point needs something to do.')
+        f, t = _hhmm(b.get('from')), _hhmm(b.get('to'))
+        if f is None or t is None:
+            out.append(bw + 'times must look like 08:00 (24-hour clock).')
+        elif f == t:
+            out.append(bw + 'it starts and ends at the same time.')
+        elif (t - f) % 1440 < least:
+            out.append(bw + 'a time block lasts at least %d minutes.' % least)
+        else:
+            clash = -1
+            for k in range((t - f) % 1440):
+                m = (f + k) % 1440
+                if used[m] >= 0 and clash < 0:
+                    clash = used[m]
+                used[m] = i
+            if clash >= 0:
+                out.append(bw + 'it overlaps time block %d.' % (clash + 1))
+        if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.match(b['name'])):
+            out.append(bw + 'the name may use letters, numbers and simple punctuation only.')
+        if b['mode'] != 'original':
+            rest = {k: v for k, v in b.items() if k not in ('from', 'to', 'name')}
+            out += [bw + x for x in _plan_only(npc, rest, mv, inv, ok)]
     return out
 
 
