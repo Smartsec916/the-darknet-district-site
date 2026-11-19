@@ -713,11 +713,31 @@
    if(wanted.look===studioOne.fixedLook)return;
    studioOne.anim?.dispose?.();studioOne.node?.dispose?.();
    studioOne.node=null;studioOne.anim=null;studioOne.rot=null;studioOne.meshes=[];
-   studioOne.spawned=false;studioOne.fixedLook=wanted.look;
+   studioOne.spawned=false;studioOne.request=null;studioOne.fixedLook=wanted.look;
    studioOne.clips=wanted.clips;studioOne.dances=wanted.dances;studioOne.library=null;
    studioOne.look=null;studioOne.clip=null;
    askLooks([wanted.look]); // first load at shift change, without waiting for the normal 20s retry
    mirAll=null;mirNext=0;
+  }
+  // Requests are local to this rendered Milked scene; they never change missions, saves or other players.
+  // The actual loaded animation groups are authoritative, not the broader look's clip registry.
+  const REQUESTABLE=/^(?:dance(?:-|$)|slow-dance$|ac-|idle(?:-|$)|look$|watch$|talk$|gesture$|shrug$)/;
+  function studioAnimations(studio){
+   const p=people.find(x=>x.studio===Number(studio)&&x.node&&!x.node.isDisposed?.());
+   if(!p)return {ready:false,studio:Number(studio),performer:null,look:null,clips:[]};
+   const catalogue=[...(root.VoidCrowd?.clips?.[p.look]||[]),...(p.library?[p.library]:[])];
+   const groups=p.node.metadata?.animationGroups||[];
+   const available=[...new Set(catalogue)].filter(c=>REQUESTABLE.test(c)&&groups.some(g=>{
+    const n=g.name.replace(/\.\d{3}$/,'');return n===c||n.endsWith('-'+c);
+   })&&p.anim?.has?.(c));
+   return {ready:true,studio:p.studio,performer:p.studio===1?(p.look==='npc-ethereal-lace'?'Lace':'Reverie'):p.studio===2?'Female Warrior':p.studio===3?'Dex':'Auburn',look:p.look,clips:available};
+  }
+  function requestStudioAnimation(studio,clip){
+   const p=people.find(x=>x.studio===Number(studio));
+   if(!p?.node||!studioAnimations(studio).clips.includes(clip))return {ok:false,reason:'Animation unavailable for the current performer.'};
+   if(p.request&&k.clock<p.request.cooldown)return {ok:false,reason:'Please allow a moment between requests.'};
+   try{p.anim?.play?.(clip);p.clip=clip;p.request={clip,until:k.clock+10,cooldown:k.clock+2};return {ok:true,clip,performer:studioAnimations(studio).performer};}
+   catch{return {ok:false,reason:'The animation could not start.'};}
   }
   function staff(clock,cam=null,dt=0){syncStudioOne();const speaker=cam?speakerNow():null;
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
@@ -744,6 +764,13 @@
      if(p.face===undefined)p.face=p.node.rotation.y;const d=Math.atan2(Math.sin(want-p.face),Math.cos(want-p.face));p.face+=d*Math.min(1,p.turn?.12:dt*5);p.node.rotation.y=p.face;
      if(talking!==!!p.talking){p.talking=talking;if(!p.turn)try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clip);}catch{}}
      if(p.turn&&clock>=p.turn.until&&Math.abs(d)<.02){p.turn=null;try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clips.includes('idle')?'idle':p.clip);}catch{}}}
+    if(p.request){
+     if(clock<p.request.until)continue; // keep the requested pose running before returning to the studio's own set
+     p.request=null;
+     const fallback=p.rot?MK.danceTurn(p.rot.list,p.rot.n,p.studio)?.clip:p.clips[0];
+     if(fallback){p.clip=fallback;try{p.anim?.play?.(fallback);}catch{}}
+     if(p.rot)p.rot.until=clock+25;
+    }
     if(p.rot&&clock>=p.rot.until){const t=MK.danceTurn(p.rot.list,++p.rot.n,p.studio);p.rot.until=clock+t.seconds;p.clip=t.clip;try{p.anim?.play?.(t.clip);}catch{}}   // the next dance, cross-faded
     // a figure with no dance of its own still moves: a slow sway on the spot
     if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
@@ -778,7 +805,7 @@
   function gesture(who,toward,seconds=4){const p=people.find(x=>x.id===who&&x.node);const at=TOWARD[toward];if(!p||!at)return false;let d=Math.atan2(at[0]-p.x,at[1]-p.z)-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));
    p.turn={yaw:p.yaw+Math.max(-1.22,Math.min(1.22,d)),until:k.clock+Math.max(1,seconds),toward,at:k.clock};try{if(p.clips.includes('talk'))p.anim?.play?.('talk');}catch{}gestures.push({who,toward,at:k.clock});return true;}
   const gestures=[];
-  return {tick,prepare,gesture,get gestures(){return gestures.slice();},inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,staffDoor:(()=>{const sd=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(x=>x.staff);return {granted:!!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null),blocking:!!sd&&!sd.open};})(),prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip,dances:p.rot?.list.slice()||null,next:p.rot?+(p.rot.until-k.clock).toFixed(1):null})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
+  return {tick,prepare,gesture,studioAnimations,requestStudioAnimation,get gestures(){return gestures.slice();},inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,staffDoor:(()=>{const sd=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(x=>x.staff);return {granted:!!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null),blocking:!!sd&&!sd.open};})(),prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip,dances:p.rot?.list.slice()||null,next:p.rot?+(p.rot.until-k.clock).toFixed(1):null})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
    dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;for(const p of probes){const i=scene.customRenderTargets.indexOf(p.cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}k.dispose();
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
     if(sun&&lightPrev.sun!=null)sun.intensity=lightPrev.sun;if(ambient){if(lightPrev.amb!=null)ambient.intensity=lightPrev.amb;if(lightPrev.dif)ambient.diffuse=lightPrev.dif;if(lightPrev.gnd&&ambient.groundColor)ambient.groundColor=lightPrev.gnd;}}};
