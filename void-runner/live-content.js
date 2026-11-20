@@ -277,10 +277,21 @@
   for(const id of Object.keys(X.MOVABLE)){const e=esc[id];
    // a follow / lead / cab step starts only while she is out on the street clock (mission-givers.js onDuty; a draft test simulates a time she is out); once started she
    // finishes it even if her shift ends (ncz-street-pair.js keeps her out for it), then leaves. A reload mid-step: the saved flag says it had started.
-   if(e&&E&&!escOn.has(e.key)){const g=env.givers.find(x=>x.id===id);let on=true;try{on=!g||!g.shift||!G?.onDuty||G.onDuty(g);}catch{}if(on||(saved&&saved.key===e.key))escOn.add(e.key);}
+   // (also when she is out already for this mission: kept out past her shift while it runs, ncz-street-pair.js out())
+   if(e&&E&&!escOn.has(e.key)){const g=env.givers.find(x=>x.id===id);let on=true;try{on=!g||!g.shift||!G?.onDuty||G.onDuty(g);}catch{}if(on||(saved&&saved.key===e.key)||(planCache[id]&&planCache[id].why==='mission'&&livePos(id)))escOn.add(e.key);}
    if(e&&E&&escOn.has(e.key)){const key=E.keyOf(e),old=planCache[id];const AR=root.VoidNPCAreas,sq=e.stop&&(root.VoidQuarters?.STOPS||[]).find(q=>q.id===e.stop),area=(e.to&&AR?AR.areaOf(e.to):null)||(sq&&AR?(AR.list().find(a=>a.quarter===sq.quarter)||{}).id:null)||'avenue';   // the area the step happens in (npc-areas.js): its spot's, or its cab stop's quarter
-    out[id]=old&&old.key===key?old:{key,area,mode:'escort',why:'escort',kind:e.kind,npc:id,name:X.MOVABLE[id].name,step:e.key,mission:e.mission,to:e.to||null,stop:e.stop||null,set:{wait:e.wait,lost:e.lost,ifLost:e.ifLost},resume:saved&&saved.key===e.key?saved:null};continue;}
-   const p=X.planNow(id,{waiting:wait[id]||null,plan:(env.npcPlans||{})[id]||null,minute});if(p){const old=planCache[id];out[id]=old&&old.key===p.key?old:p;}}planCache=out;return out;}
+    // from: where she stands when the step starts (the spot she held for the mission), so a figure that appears for it (entering the area, a reload) appears there,
+    // never at her routine's spot on The Avenue (ncz-street-pair.js / npc-made.js arrive)
+    const from=old&&old.mode==='stay'&&Number.isFinite(old.x)?{x:old.x,z:old.z}:holdAt[id]&&holdAt[id].mission===e.mission?{x:holdAt[id].x,z:holdAt[id].z}:null;
+    out[id]=old&&old.key===key?old:{key,area,mode:'escort',why:'escort',kind:e.kind,npc:id,name:X.MOVABLE[id].name,step:e.key,mission:e.mission,to:e.to||null,stop:e.stop||null,set:{wait:e.wait,lost:e.lost,ifLost:e.ifLost},resume:saved&&saved.key===e.key?saved:null,from};continue;}
+   let w=wait[id]||null;
+   // her mission is running and she has no spot for it (no "Giver waits at"): she stays where she stood when it started (mission-content.js holdOf; remembered per mission)
+   if(w&&w.here){const h=holdAt[id];if(h&&h.mission===w.mission)w={x:h.x,z:h.z,yaw:h.yaw,mission:w.mission,during:true};else{const q=livePos(id);if(q){holdAt[id]={mission:w.mission,x:+q.x.toFixed(2),z:+q.z.toFixed(2),yaw:Number.isFinite(q.yaw)?+q.yaw.toFixed(2):undefined};w={...holdAt[id],during:true};}else w=null;}}
+   const p=X.planNow(id,{waiting:w,plan:(env.npcPlans||{})[id]||null,minute});if(p){if(w&&w.during)p.why='mission';const old=planCache[id];if(old&&old.key===p.key)old.why=p.why;out[id]=old&&old.key===p.key?old:p;}}/* the same spot before and after the mission starts: the same plan, now why:'mission' */planCache=out;return out;}
+ const holdAt={};   // id -> {mission, x, z, yaw}: where she stood when her mission started (above)
+ /* Where an NPC the editor can move stands now (the street pair's figure, the cat, a made character), or null when she is not in this scene. */
+ function livePos(id){try{const SP=root.VoidStreetPair,st=SP&&SP.live?SP.live():null;if(st){if(id===SP.CAT_ID&&st.cat)return {x:st.cat.x,z:st.cat.z};if(st.her&&st.her.id===id)return {x:st.her.x,z:st.her.z,yaw:st.her.yaw};}
+  const M=root.VoidMadeNPCs,ms=M&&M.live?M.live():null,p=ms&&Array.isArray(ms.people)?ms.people.find(q=>q.id===id):null;if(p)return {x:p.x,z:p.z,yaw:p.yaw};}catch{}return null;}
  /* FOLLOW / LEAD / SHARED-CAB steps (npc-escort.js): ncz-street-pair.js moves the NPC and reports what happens. 'done' completes the step; 'failed' (the player got
     lost with "the mission fails") fails the mission; the rest are short notices. While a step runs, story.flags.npcEsc keeps where she is (a reload puts her back). */
  const escortLog=[];let escSavedAt=0;
@@ -305,6 +316,6 @@
  const feedSaved=job=>job&&job.feed?aptRun({type:'feed',ap:job.ap,feed:job.feed,mission:job.mission,step:job.key}):null;
  /* A new throwaway draft session (mission-editor.js play, PLAY FROM THE START OF THIS TREE): forget what the running game remembers about the missions played before it
     (animation and step-timer countdowns, follow / lead / cab steps that had started, offers asked, walked-near distances), so the session starts clean. The saved state is the new session's own. */
- function resetRun(){for(const o of [animRun,timerLeft,promptAt,needAt,nearD])for(const k of Object.keys(o))delete o[k];for(const o of [askShown])for(const k of Object.keys(o))delete o[k];escOn.clear();planCache={};planAt=0;escortLog.length=0;nearFor=null;nearWatch=[];nearLast=null;lastContact=null;askOpen=null;}
+ function resetRun(){for(const o of [animRun,timerLeft,promptAt,needAt,nearD])for(const k of Object.keys(o))delete o[k];for(const o of [askShown])for(const k of Object.keys(o))delete o[k];escOn.clear();for(const k of Object.keys(holdAt))delete holdAt[k];planCache={};planAt=0;escortLog.length=0;nearFor=null;nearWatch=[];nearLast=null;lastContact=null;askOpen=null;}
  root.VoidLiveContent={zoneStep,treesOn:()=>{try{return treesOn();}catch{return false;}},denyClock,skipButton,denyWaits:()=>{try{return treesOn()?MC.denyWaits(state,env):[];}catch{return [];}},resetRun,askTick,askNow:()=>{try{return treesOn()?MC.askNow(state,env):[];}catch{return [];}},apartments,hackedDoors,hacks,aptUse,hack,feedSaved,offerPrompt,plans,onEscort,escortLog:()=>escortLog.slice(),escortNow:()=>{try{return treesOn()?MC.escortNow(state,env):{};}catch{return {};}},env,use,useDraft,refresh,podExit,inbox,markRead,photo,sendPhoto,step:stepNow,contacts,during,giverName,merge,gameClock,clockTick,nearTick,nearDistances:()=>({...nearD}),get nearLast(){return nearLast;},get lastContact(){return lastContact;},places:()=>lastPlaces.slice(),get tracker(){return tracker;},get current(){return current;},get draft(){return draft;}};
 })(globalThis);

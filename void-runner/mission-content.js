@@ -576,8 +576,18 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(!rec||!rec.acquired){const dn=s.story.flags[denyFlag(m.id)];if(m.start&&m.start.accept===true&&(dn==='never'||dn==='later'||Number.isSafeInteger(dn)&&dn>0))break;   // denied: she goes about her own routine meanwhile (and for good after "never")
     const st=m.start,w=st&&st.how==='notification'?st.when||{}:null,byHer=!st||st.how!=='notification'||(w&&w.kind==='near'&&(w.npc||m.giver)===m.giver);
     if(m.waitAt&&byHer&&!out[m.giver])out[m.giver]={...m.waitAt,mission:m.id};}
+   else if(m.giver&&!out[m.giver])out[m.giver]=holdOf(m,rec);
    break;}}
   return out;}
+ /* WHILE HER MISSION RUNS (fix, 19 Nov 2026; the owner: "the giver is either not at the mission giving location to start with, or after saying their first line they
+    shoot off ... I can never find them"): once taken, the giver no longer went back to her routine between steps (she walked off, or vanished when "Giver waits at" was in
+    another quarter, and a follow step then started from her routine's spot on The Avenue). Until the mission is done she stays: where its last follow / lead step with her
+    took the player (its spot), else her "Giver waits at" spot, else where she stood when it started (here:true: live-content.js plans() remembers that spot). A follow /
+    lead / cab step with her (escortNow) takes over while it runs. during:true marks these (ncz-street-pair.js keeps her out for them, as for a running step). */
+ function holdOf(m,rec){const done=(m.objectives||[]).filter(o=>rec.objectives&&rec.objectives[o.id]===true&&ESCORT.includes(o.kind)&&o.npc===m.giver),last=done[done.length-1];
+  if(last&&last.to&&Number.isFinite(last.to.x)&&Number.isFinite(last.to.z))return {x:last.to.x,z:last.to.z,mission:m.id,during:true};
+  if(!last&&m.waitAt&&Number.isFinite(m.waitAt.x)&&Number.isFinite(m.waitAt.z))return {...m.waitAt,mission:m.id,during:true};
+  return {mission:m.id,during:true,here:true};}
  /* FOLLOW / LEAD / SHARED-CAB (npc-escort.js): the follow / lead / cab steps in progress now, one per NPC (the first in tree order): {key ('<mission>/<step>'), mission, step,
     kind, npc, to, wait, lost, ifLost, stop}. The game (live-content.js) gives that NPC an escort plan while it lasts. */
  function escortNow(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);

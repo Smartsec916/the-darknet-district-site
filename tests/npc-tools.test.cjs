@@ -87,10 +87,11 @@ test('content: a mission’s waitAt and content.npcs are checked, kept by the ex
  // apply puts placements where the game reads them
  MC.apply(doc(x,{npcs:{'grey-reverie':{mode:'stay',x:100,z:-6.5,yaw:0,actions:['look']}}}),x.e,ctx(x));assert.equal(x.e.npcPlans['grey-reverie'].x,100);MC.apply(null,x.e);assert.deepEqual(x.e.npcPlans,{});});
 
-test('“Giver waits at” applies only while that mission waits to be offered by her; once accepted she goes back',()=>{const x=env(),{MC}=x;
+test('“Giver waits at” holds her while that mission waits to be offered by her and while it runs (fix 19 Nov 2026: she no longer walks off once it is taken); once done she goes back',()=>{const x=env(),{MC}=x;
  MC.apply(doc(x,{trees:[tree({x:104.4,z:-5.9,yaw:3.14})]}),x.e,ctx(x));const s=player(x);
  assert.deepEqual(MC.waitingAt(s,x.e)['grey-reverie'],{x:104.4,z:-5.9,yaw:3.14,mission:'draft-street-m1'});
- assert.equal(MC.treeEvent(s,x.e,{type:'accept',mission:'draft-street-m1'},x.M,x.C).offered,true);assert.deepEqual(MC.waitingAt(s,x.e),{});
+ assert.equal(MC.treeEvent(s,x.e,{type:'accept',mission:'draft-street-m1'},x.M,x.C).offered,true);assert.deepEqual(MC.waitingAt(s,x.e),{'grey-reverie':{x:104.4,z:-5.9,yaw:3.14,mission:'draft-street-m1',during:true}});
+ s.universe.missions['draft-street-m1'].completed=true;assert.deepEqual(MC.waitingAt(s,x.e),{},'done: back to her own routine');
  // a later mission in the same tree waits until the earlier one is done
  const t2=tree(null);t2.missions.unshift({id:'draft-street-m0',number:40,title:'First',type:'side',giver:'admin',offer:[{who:'admin',text:'Hi'}],objectives:[{id:'go',kind:'go',place:'port',label:'Go.'}]});t2.missions[1].waitAt={x:100,z:-6.5,yaw:0};
  MC.apply(doc(x,{trees:[t2]}),x.e,ctx(x));assert.deepEqual(MC.waitingAt(player(x),x.e),{},'the earlier mission is not done');
