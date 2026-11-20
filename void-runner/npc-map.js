@@ -57,7 +57,10 @@
    for(const ob of data.obstacles){c.fillStyle='rgba(255,170,60,.55)';c.fillRect(px(ob.x0),py(ob.z1),Math.max(2,(ob.x1-ob.x0)*k),Math.max(2,(ob.z1-ob.z0)*k));}   // furniture read from the built scene
    for(const p of data.posts){c.fillStyle='#ffd34d';c.beginPath();c.arc(px(p.x),py(p.z),Math.max(3,.25*k),0,7);c.fill();if(k>4){c.font='10px ui-monospace,monospace';c.fillText('taxi',px(p.x)+5,py(p.z)+4);}}
    if(k>3)for(const s of data.shops){const x=px(s.x),y=py(s.z);if(x<-40||x>W+40||y<-10||y>H+10)continue;const off=s.side==='n'?-4:s.side==='s'?12:0;text(c,s.name,s.side==='w'?x-6-c.measureText(s.name).width/2:s.side==='e'?x+6+c.measureText(s.name).width/2:x,y+off,'#9fb4ff',k>8?12:10);}
-   for(const l of data.labels)text(c,l.name,px(l.x),py(l.z),'#c9cede',11);
+   // the back alleys' fire escapes (ncz-backalleys.js): the landing against the wall, a tick for its drop ladder, FE beside it
+   for(const e of data.escapes||[]){const a=[e.x-e.t[0]*1.2,e.z-e.t[1]*1.2],b=[e.x+e.t[0]*1.2+e.u[0]*1.2,e.z+e.t[1]*1.2+e.u[1]*1.2];c.fillStyle='rgba(150,190,255,.55)';c.strokeStyle='#9cc4ff';c.beginPath();c.rect(px(Math.min(a[0],b[0])),py(Math.max(a[1],b[1])),Math.abs(b[0]-a[0])*k,Math.abs(b[1]-a[1])*k);c.fill();c.stroke();
+    c.fillStyle='#d6e6ff';c.beginPath();c.arc(px(e.foot[0]),py(e.foot[1]),Math.max(2,.2*k),0,7);c.fill();if(k>3){c.font='10px ui-monospace,monospace';c.fillText('fire escape',px(e.x+e.u[0]*1.6)+4,py(e.z+e.u[1]*1.6)+4);}}
+   for(const l of data.labels)text(c,l.name,px(l.x),py(l.z),l.back?'#a8d8b8':'#c9cede',l.back?10:11);
    c.fillStyle='#6c7280';c.font='11px ui-monospace,monospace';c.fillText('N ↑',W-30,14);
    // the route
    const R=o.route||[];if(R.length){c.lineWidth=2;for(let i=0;i<R.length;i++){const a=R[i],b=R[(i+1)%R.length];if(R.length<2)break;c.strokeStyle=(o.routeBad||[]).includes(i)?'#ff4d5e':'rgba(120,210,255,.9)';c.setLineDash(i===R.length-1?[6,5]:[]);c.beginPath();c.moveTo(px(a.x),py(a.z));c.lineTo(px(b.x),py(b.z));c.stroke();}c.setLineDash([]);c.lineWidth=1;

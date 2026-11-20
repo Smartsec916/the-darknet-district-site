@@ -23,6 +23,10 @@
  function hacked(){try{return LC()?.hackedDoors?.()||[];}catch{return [];}}
  const onDoor=id=>open().filter(a=>a.door===id);
  const allowed=id=>onDoor(id).length>0||hacked().some(h=>h.door===id);
+ /* Street doors IN USE for this player (the owner, 20 Nov 2026: "doors on the streets without anything placed on them shouldn't show the option to open it when walking by"):
+    only these show their prompts (the door and its access point; apartments.js doorsInUse: a taken mission's apartment or location on it, from-step reached or not, a hack
+    step aimed at it) or one a hack opened, or the Mission Editor's test apartment. Every other street door shows nothing: the door itself is still drawn, locked. */
+ function inUse(){const u=new Set();try{for(const id of LC()?.doorsInUse?.()||[])u.add(id);}catch{}for(const a of open())u.add(a.door);for(const h of hacked())u.add(h.door);return u;}
  let visit=null;   // {door (street door record), list (instances on it), inst (the one inside), slots}
  const here=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.apartment?walkingLocation:null;}catch{return null;}};
  // ---- the locations ----
@@ -37,15 +41,17 @@
  async function enterFlat(inst){const def=A.layout('flat',inst.style,{items:inst.items});def.inst=inst.key;def.items=inst.items;def.apt={mission:inst.mission,id:inst.id};def.door=inst.door;def.screenOff=screenSet.has(inst.key)?screenOff.has(inst.key):inst.screenOff===true;def.lightsOff=lightSet.has(inst.key)?lightOff.has(inst.key):inst.lightsOff===true;def.interactions.push({id:'apt-ap',label:'ACCESS POINT',position:(()=>{const ap=A.geo(inst.style).AP;return A.world([ap.x,1.4,ap.z+.45]);})(),action:'apt-ap',ap:inst.id+'/entry',mission:inst.mission,range:1.0});VoidExplorationData.locations[A.keyOf('flat',inst.style)]=def;visit={...(visit||{}),inst};await go(A.keyOf('flat',inst.style));}
  async function backToHall(){const v=visit;if(!v||!v.door){return backToStreet();}const slot=v.inst?v.slots?.[v.inst.key]:0;const style=(v.list[0]&&v.list[0].style)||v.door.style;await enterHall(v.door,v.list.length?v.list:[]);
   const f=A.hallFront(slot||0,style);try{walker.x=f.spawn[0];walker.z=f.spawn[2];walker.yaw=f.yaw;}catch{}}
- async function backToStreet(){const d=visit?.door;visit=null;if(!d){await go(STREET_KEY(),{});return;}const yaw=Math.atan2(-d.n[0],-d.n[1]);await go(STREET_KEY(),{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw});}
+ // at: {spawn, yaw} to come out somewhere else than the street door (the hallway's window: the foot of the building's fire escape, ncz-backalleys-integration.js)
+ async function backToStreet(at){const d=visit?.door;visit=null;if(!d){await go(STREET_KEY(),{});return;}if(at&&Array.isArray(at.spawn)){await go(STREET_KEY(),{quarter:at.quarter||d.quarter,spawn:at.spawn.slice(),yaw:at.yaw});return;}const yaw=Math.atan2(-d.n[0],-d.n[1]);await go(STREET_KEY(),{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw});}
  // ---- street doors: the layout's prompts (two per door: the door, its access point) ----
  const apPos=d=>{const t=d.n[0]?[0,1]:[1,0];return [d.x+t[0]*.85-d.n[0]*(.12+(d.reach||0)),d.z+t[1]*.85-d.n[1]*(.12+(d.reach||0))];};
- function streetPrompts(q){return A.doorsIn(q).flatMap(d=>{const ap=apPos(d);return [{id:'aptdoor-'+d.id,label:d.name.toUpperCase()+' · LOCKED',position:[d.x-d.n[0]*(.55+(d.reach||0)),1.7,d.z-d.n[1]*(.55+(d.reach||0))],action:'apt-door',door:d.id,range:1.6},
-  {id:'aptap-'+d.id,label:'ACCESS POINT',position:[ap[0]-d.n[0]*.3,1.5,ap[1]-d.n[1]*.3],action:'apt-ap',ap:d.id,range:1.1}];});}
+ function streetPrompts(q){const used=inUse();return A.doorsIn(q).flatMap(d=>{const ap=apPos(d);return [{id:'aptdoor-'+d.id,label:d.name.toUpperCase()+' · LOCKED',position:[d.x-d.n[0]*(.55+(d.reach||0)),1.7,d.z-d.n[1]*(.55+(d.reach||0))],action:'apt-door',door:d.id,range:1.6},
+  {id:'aptap-'+d.id,label:'ACCESS POINT',position:[ap[0]-d.n[0]*.3,1.5,ap[1]-d.n[1]*.3],action:'apt-ap',ap:d.id,range:1.1}].map(it=>({...it,hidden:!used.has(d.id)}));});}
  {const NC=N();if(NC&&NC.layout&&!NC.layout.apartments){const orig=NC.layout;NC.layout=function(area,quarter){const l=orig.apply(this,arguments);if(area==='street'&&l&&l.quarter)l.interactions=[...l.interactions,...streetPrompts(l.quarter)];return l;};NC.layout.apartments=true;}}
  // the labels follow the player's missions (twice a second)
  setInterval(()=>{try{const wl=typeof walkingLocation!=='undefined'?walkingLocation:null;if(!wl)return;
-   if(wl.area==='street'&&wl.id==='neochinatown'){for(const it of wl.interactions)if(it.action==='apt-door'){const d=A.door(it.door);if(!d)continue;it.label=allowed(d.id)?'ENTER · '+d.name.toUpperCase():d.name.toUpperCase()+' · LOCKED';}}
+   if(wl.area==='street'&&wl.id==='neochinatown'){const used=inUse();for(const it of wl.interactions){if(it.action==='apt-door'){const d=A.door(it.door);if(!d)continue;it.label=allowed(d.id)?'ENTER · '+d.name.toUpperCase():d.name.toUpperCase()+' · LOCKED';it.hidden=!used.has(d.id);}
+    else if(it.action==='apt-ap'&&/^aptap-/.test(it.id||''))it.hidden=!used.has(it.ap);}}
    else if(wl.apartment&&wl.part==='hall'){const op=new Map((wl.open||[]).map(o=>[o.slot,o]));for(const it of wl.interactions)if(it.action==='apt-hall-door'){const o=op.get(it.slot),num=o&&o.number||A.slotNumber(it.slot,wl.style);it.label=o?(o.locked?'APARTMENT '+num+' · LOCKED (ACCESS POINT)':'ENTER APARTMENT '+num):'APARTMENT '+num+' · LOCKED';}}
    else if(wl.apartment&&wl.part==='flat'){for(const it of wl.interactions){if(it.object==='lights')it.label='LIGHTS · '+(root.VoidBabylon?.zone?.lightsOn===false?'ON':'OFF');if(it.object==='screen')it.label='TURN SCREEN '+(root.VoidBabylon?.zone?.interactive?.screen?.open===false?'ON':'OFF');}}}catch{}},500);
  // ---- the street doors in 3D (thin instances), their lights and the people who use them ----
@@ -155,6 +161,6 @@
    if(d.slot!=null){const o=(wl.open||[]).find(x=>x.slot===d.slot);const inst=o&&((visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key));if(inst&&!o.locked){enterFlat(inst);return;}}}}catch{}},120);
  // the apartment the player is inside now ('<mission>/<id>'), for the mission engine's place events
  function inside(){const wl=here();return wl&&wl.part==='flat'&&wl.apt?wl.apt.mission+'/'+wl.apt.id:null;}
- Object.assign(root.VoidApartments,{open,allowed,inside,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,setPreview(p){preview=p||null;},resetRun(){preview=null;for(const x of [screenOff,screenSet,lightOff,lightSet])x.clear();},streetDoorsBuild:streetDoors});
+ Object.assign(root.VoidApartments,{open,allowed,inUse,inside,enterDoor,enterHall,enterFlat,backToStreet,backToHall,useAP,setPreview(p){preview=p||null;},resetRun(){preview=null;for(const x of [screenOff,screenSet,lightOff,lightSet])x.clear();},streetDoorsBuild:streetDoors});
  Object.defineProperties(root.VoidApartments,{visit:{get:()=>visit,configurable:true},hacking:{get:()=>hacking,configurable:true}});   // live values (Object.assign would copy them once)
 })(globalThis);

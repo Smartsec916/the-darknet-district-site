@@ -11,11 +11,13 @@ test('expected walls: every street edge that is not another street, a gate or a 
  // an opening in the middle of an edge (a doorway) splits the face
  assert.deepEqual(G.wallFaces([[0,10,0,4]],[{id:'door',rect:[4,5,-1,0]}]).filter(x=>x.side==='s').map(x=>[x.from,x.to]),[[0,4],[5,10]]);
 });
+// (20 Nov 2026) the back alleys behind the housing (ncz-backalleys.js) are open ground of their quarter too, but the gap check is about the street faces: they are left out here.
+const BACK=new Set(require('../void-runner/ncz-backalleys.js').PIECES.flatMap(p=>p.rects.map(r=>r.join(','))));const own=q=>Q.QUARTERS[q].streets.filter(r=>!BACK.has(r.join(',')));
 test('Old Town and the Avenue: the faces follow the quarters\' own streets, the gates are openings, and nothing is expected across a street mouth',()=>{
- for(const q of ['oldtown','avenue']){const streets=Q.QUARTERS[q].streets.filter(r=>r!==NC.RECT),faces=G.wallFaces(streets,Q.gatesOf(q).map(g=>({id:g.id,rect:g.rect})));assert.ok(faces.length>=3,q);
+ for(const q of ['oldtown','avenue']){const streets=own(q).filter(r=>r!==NC.RECT),faces=G.wallFaces(streets,Q.gatesOf(q).map(g=>({id:g.id,rect:g.rect})));assert.ok(faces.length>=3,q);
   for(const f of faces){assert.ok(f.to-f.from>.5);const mid=(f.from+f.to)/2,[x,z]=f.axis==='z'?[f.fixed+f.n[0]*.6,mid]:[mid,f.fixed+f.n[1]*.6];
    assert.ok(!streets.some(r=>x>r[0]&&x<r[1]&&z>r[2]&&z<r[3]),q+': a wall is never expected inside a street');for(const g of Q.gatesOf(q))assert.ok(!(x>g.rect[0]&&x<g.rect[1]&&z>g.rect[2]&&z<g.rect[3]),q+': nor inside a gate');}}
- const av=G.wallFaces(Q.QUARTERS.avenue.streets,Q.gatesOf('avenue').map(g=>({id:g.id,rect:g.rect})));assert.deepEqual(av.filter(f=>f.side==='s').map(f=>[f.from,f.to]),[[10,51],[71,144]],'the North Gate stands in the Avenue\'s south side');
+ const av=G.wallFaces(own('avenue'),Q.gatesOf('avenue').map(g=>({id:g.id,rect:g.rect})));assert.deepEqual(av.filter(f=>f.side==='s').map(f=>[f.from,f.to]),[[10,51],[71,144]],'the North Gate stands in the Avenue\'s south side');
 });
 test('the ray grid: level rays from inside the street, a close grid, each long enough to pass the expected wall depth and no longer',()=>{
  const face={axis:'z',fixed:71,from:-55.5,to:-26,n:[1,0],side:'e'},rays=G.rayGrid(face,{step:.5,heights:[1,3],standoff:3,depth:1,margin:.4});
@@ -38,7 +40,7 @@ test('flagged columns are reported as runs with a width',()=>{
 });
 test('the plots that should stand behind a face are found from the layout\'s city blocks, cut the way the builder cuts them',()=>{
  const N=require('../void-runner/neochinatown.js'),blocks=N.layout('all').solids.filter(s=>/^city-block-/.test(s.id));
- const face={axis:'z',fixed:71,from:-55.5,to:-26,n:[1,0]},plots=G.plotsBehind(face,blocks);assert.ok(plots.length>=2,'Main Street\'s east side north of the alley has plots');
+ const face={axis:'z',fixed:71,from:-45,to:-26,n:[1,0]},plots=G.plotsBehind(face,blocks);   // (20 Nov 2026: north of the back alley's mouth at -50..-45)assert.ok(plots.length>=2,'Main Street\'s east side north of the alley has plots');
  for(const p of plots){assert.ok(Math.abs(p.rect[0]-71)<.01,'each starts at the street line');assert.ok(p.rect[1]-p.rect[0]<=12.01&&p.rect[3]-p.rect[2]<=12.01,'no plot is wider than 12 m');assert.ok(p.from>=face.from&&p.to<=face.to);}
  assert.ok(Math.abs(plots[0].from-face.from)<.01&&Math.abs(plots[plots.length-1].to-face.to)<.01,'together they cover the face');for(let i=1;i<plots.length;i++)assert.ok(Math.abs(plots[i].from-plots[i-1].to)<.01,'with no space between them');
  assert.deepEqual(G.plotsBehind({axis:'z',fixed:61,from:-100,to:-90,n:[1,0]},blocks),[],'nothing stands in the middle of the road');

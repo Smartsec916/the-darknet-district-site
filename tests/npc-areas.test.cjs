@@ -27,7 +27,7 @@ test('the content rule: never Milked, NULL, the District bar, VR or arcade room,
 test('roads, gates, buildings, walls and private rooms are blocked with a plain reason',()=>{
  for(const [x,z] of [[100,-12],[61,-90],[61,-180],[42,-100]])assert.equal(A.check({x,z}).kind,'road',x+','+z);
  for(const [x,z] of [[61,-23],[61,-127],[5,-12],[148,-12],[61,-221]])assert.equal(A.check({x,z}).kind,'gate',x+','+z);
- assert.equal(A.check({x:100,z:-35}).kind,'outside','a city block');assert.match(A.check({x:140,z:-100}).why,/District/,'the District building seen from the street');
+ assert.equal(A.check({x:100,z:-44}).kind,'outside','a city block');   // (20 Nov 2026: 100,-35 is the Avenue's south-east loading bay now)assert.match(A.check({x:140,z:-100}).why,/District/,'the District building seen from the street');
  assert.match(A.check(W(9,62)).why,/meeting room/);assert.match(A.check(W(0,23)).why,/vestibule/);assert.match(A.check(W(10,49)).why,/counter|staff/);
  const ob=A.get('outskirts').obstacles[0];assert.ok(ob,'the container homes stand in the yard');assert.equal(A.check({x:(ob[0]+ob[1])/2,z:(ob[2]+ob[3])/2},'outskirts').kind,'obstacle');});
 
@@ -43,8 +43,8 @@ test('snapping a click: onto the nearest spot she may stand on, in the area show
  const k=P.pick(REV,{x:55.5,z:-90},'oldtown');assert.ok(k.spot&&A.check(k.spot).area==='oldtown','off the kerb onto Main Street’s pavement');
  const ok=place('oldtown-alley-mouth'),same=P.pick(REV,ok,'oldtown');assert.equal(same.spot.moved,false);
  assert.match(P.pick(REV,ok,'avenue').why,/Old Town, not the area shown/);
- const far=P.pick(REV,{x:100,z:-40},'avenue');assert.equal(far.spot,null);assert.ok(far.why.length);
- assert.deepEqual(P.snap(REV,{x:100,z:-40},'avenue'),{x:100,z:-40},'nothing within reach: unchanged (the map shows the reason)');});
+ const far=P.pick(REV,{x:132,z:-40},'avenue');assert.equal(far.spot,null);assert.ok(far.why.length);
+ assert.deepEqual(P.snap(REV,{x:132,z:-40},'avenue'),{x:132,z:-40},'nothing within reach: unchanged (the map shows the reason)');});
 
 test('routes stay in one area and on walkable ground; schedules may use a different area in each time block',()=>{
  const a=place('oldtown-alley-mouth'),b={x:a.x+6,z:a.z};assert.deepEqual(A.leg(a,b),[],'along the alley');
