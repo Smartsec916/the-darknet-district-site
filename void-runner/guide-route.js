@@ -25,6 +25,7 @@
  'use strict';
  const TUNE={
   passRadius:1.6,     // m: a doorway counts as passed this close to its centre
+  doorRadius:.5,      // m: ... a narrow room door of a location built from modules (1.04 m clear)
   planeMargin:.15,    // m: ... or this far through its plane, in the travel direction
   planeSlack:.8,      // m: beyond a doorway's half width, crossing its plane still counts
   apron:1.8,          // m: how far beyond a door its apron is
@@ -109,9 +110,23 @@
 
  // A location built from modules (modules.js layout: the cluster the player walks in, one floor): every module is a region, every doorway between two of them a
  // portal, so the arrow goes from room to room through the doors (an office floor's hallway, the server room's door) instead of through a wall (QA, 19 Nov 2026).
- function modular(cl){if(!cl||!Array.isArray(cl.mods))return null;const half=1.04/2,regions=cl.mods.map(m=>{const hw=m.w*2/2,hd=m.d*2/2;return {id:'mod:'+m.id,rects:[[m.cx-hw,m.cx+hw,m.cz-hd,m.cz+hd]]};}),portals=[],ids=new Set(cl.mods.map(m=>m.id)),modOf=r=>String(r||'').split('.')[0];
-  for(const d of cl.doors||[]){if(d.kind!=='snap'||!d.n)continue;const a=modOf(d.side),b=modOf(d.side===d.a?d.b:d.a);if(!ids.has(a)||!ids.has(b)||a===b)continue;portals.push({id:'door:'+d.id,a:'mod:'+a,b:'mod:'+b,x:d.x,z:d.z,nx:d.n[0],nz:d.n[1],half});}
-  return graph(regions,portals,null,null);}
+ function modular(cl,solids){if(!cl||!Array.isArray(cl.mods))return null;const half=1.04/2,regions=cl.mods.map(m=>{const hw=m.w*2/2,hd=m.d*2/2;return {id:'mod:'+m.id,rects:[[m.cx-hw,m.cx+hw,m.cz-hd,m.cz+hd]]};}),portals=[],ids=new Set(cl.mods.map(m=>m.id)),modOf=r=>String(r||'').split('.')[0];
+  // A room door is 1.04 m wide: it counts as passed within `doorRadius` of its middle (or through its plane), not 1.6 m away beside the jamb (night QA 20 Nov 2026: in the
+  // gang checkpoint the arrow turned to the far door while the player still stood beside the near one, and pointed into the wall). A seam between two tunnel tubes
+  // has no door: the whole 2 m tube is the opening.
+  for(const d of cl.doors||[]){if(d.kind!=='snap'||!d.n)continue;const a=modOf(d.side),b=modOf(d.side===d.a?d.b:d.a);if(!ids.has(a)||!ids.has(b)||a===b)continue;portals.push({id:'door:'+d.id,a:'mod:'+a,b:'mod:'+b,x:d.x,z:d.z,nx:d.n[0],nz:d.n[1],half:d.seam?1:half,r:d.seam?TUNE.passRadius:TUNE.doorRadius});}
+  const G=graph(regions,portals,null,null);
+  // Round the furniture (night QA 20 Nov 2026: in an office floor the arrow pointed from one door to the next straight through the desks; in the gang checkpoint into
+  // its fence): a leg that runs into something solid gets the corners of a short walk round it (npc-escort.js gridRoute, the room's own solids) as waypoints.
+  const S=(solids||[]).filter(s=>s&&!s.door&&!s.open&&Array.isArray(s.position)&&Array.isArray(s.size)),R=.34;
+  if(S.length){const hit=(x,z)=>S.some(s=>Math.abs(x-s.position[0])<s.size[0]/2+R&&Math.abs(z-s.position[2])<s.size[2]/2+R);
+   const blocked=(a,b)=>{const m=Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.2);for(let t=1;t<m;t++)if(hit(a.x+(b.x-a.x)*t/m,a.z+(b.z-a.z)*t/m))return true;return false;};
+   const memo=new Map(),E=()=>{try{return typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;}catch{return null;}};
+   G.cross=(a,b)=>{if(!blocked(a,b))return null;const k=Math.round(a.x*2)+','+Math.round(a.z*2)+'>'+b.x.toFixed(2)+','+b.z.toFixed(2);if(memo.has(k))return memo.get(k);
+    const e=E(),pts=e&&e.gridRoute?e.gridRoute({x:a.x,z:a.z},{x:b.x,z:b.z},S,{grid:.25,radius:R,pad:3}):null;let prev=a;
+    const out=pts&&pts.length>1?pts.slice(0,-1).map(q=>{const dx=q.x-prev.x,dz=q.z-prev.z,l=Math.hypot(dx,dz)||1;prev=q;return {id:'via:'+q.x.toFixed(2)+','+q.z.toFixed(2),kind:'apron',x:q.x,y:1.7,z:q.z,nx:dx/l,nz:dz/l,half:.3,r:.6};}):null;
+    if(memo.size>500)memo.clear();memo.set(k,out);return out;};}
+  return G;}
  /* The route from `from` {x,z,quarter?} to `goal` {x,y?,z}: waypoints [{id, kind:'door'|'apron'|'goal', x, y, z, nx, nz, half, r, door?}], the goal last.
     opt.prefer: a Set of waypoint ids already in use (they win ties). */
  function plan(G,from,goal,opt={}){const out=planDoors(G,from,goal,opt);if(!G||!G.cross)return out;
@@ -126,7 +141,7 @@
     let cost=c.cost+Math.hypot(p.x-c.x,p.z-c.z)+(p.penalty||0);if(prefer&&prefer.has(id))cost=Math.max(c.cost,cost-TUNE.preferBonus);
     if(best.has(id)&&best.get(id)<=cost)continue;best.set(id,cost);open.push({region:dir>0?p.b:p.a,x:p.x,z:p.z,cost,path:[...c.path,{p,dir,id,into:dir>0?p.b:p.a}]});}}
   if(!found)return [end];
-  const doors=found.path.map(s=>{const p=s.p;return {id:s.id,kind:'door',x:p.x,y:1.7,z:p.z,nx:p.nx*s.dir,nz:p.nz*s.dir,half:p.half,r:TUNE.passRadius};}),out=[];
+  const doors=found.path.map(s=>{const p=s.p;return {id:s.id,kind:'door',x:p.x,y:1.7,z:p.z,nx:p.nx*s.dir,nz:p.nz*s.dir,half:p.half,r:p.r||TUNE.passRadius};}),out=[];
   // Two streets that OVERLAP (a T or a cross: the back alleys' bays, yards and lanes; night QA 20 Nov 2026) meet in an AREA, not through a wall: such a junction is
   // passed once the player is inside the overlap (passed()), it has no apron, and going back is measured against the next leg (behind()). Before, its normal was
   // the axis the rects happened to overlap less on: the route could be "north into the alley, then south", so an apron sent the player back the way they came
@@ -180,7 +195,7 @@
  // The graph for a walking scene (cached; the gate list can grow: ncz-quarters.js define()). kind: 'station' for the older stations' corridor; null: straight to the goal.
  const cache=new Map();
  function deps(){if(node)return {N:require('./neochinatown.js'),QT:require('./ncz-quarters.js'),NC:require('./ncz-nightclub.js'),MK:require('./milked.js'),XW:require('./crosswalks.js')};return {N:root.VoidNeoChinatown,QT:root.VoidQuarters,NC:root.VoidNightclub,MK:root.VoidMilked,XW:root.VoidCrosswalks};}
- function graphFor(scene,kind,loc){if(loc&&loc.modular&&loc.cluster){const k='mod:'+(loc.inst||'')+':'+loc.cluster.id+':'+JSON.stringify(loc.cluster.mods.map(m=>[m.id,m.cx,m.cz,m.w,m.d]));if(!cache.has(k))cache.set(k,modular(loc.cluster));return cache.get(k);}
+ function graphFor(scene,kind,loc){if(loc&&loc.modular&&loc.cluster){const k='mod:'+(loc.inst||'')+':'+loc.cluster.id+':'+JSON.stringify(loc.cluster.mods.map(m=>[m.id,m.cx,m.cz,m.w,m.d]));if(!cache.has(k))cache.set(k,modular(loc.cluster,loc.solids));return cache.get(k);}
   if(loc&&loc.apartment)return null;   // an apartment's hallway or rooms (one room or a straight corridor): straight to the goal (their id is 'neochinatown' too)
   if(kind==='station'){if(!cache.has('station'))cache.set('station',station());return cache.get('station');}
   if(scene!=='neochinatown'&&scene!=='milked')return null;const D=deps(),n=(D.QT&&D.QT.LANES||[]).length,c=cache.get('ncz');if(c&&c.lanes===n)return c.g;const g=neochinatown(D);cache.set('ncz',{g,lanes:n});return g;}
