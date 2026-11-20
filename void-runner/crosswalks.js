@@ -33,7 +33,7 @@
   ['av-mid','avenue',107,3,'mid',false,-1],               // mid-block on the long eastern stretch
   ['av-east','avenue',140,3,'gate',true,-1],              // the East Gate (A4)
   ['fs-south-gate','main-fs',-133,3,'gate',true,-1],      // Far South by the South Gate (A5)
-  ['fs-milked','main-fs',-161,3,'junction',true,-1],      // just north of Milked's side street (the pavement across its mouth is public; the side street itself is never used by Reverie and Lace)
+  ['fs-milked','main-fs',-161,3,'junction',true,-1],      // just north of Milked's side street (the pavement across its mouth and the side street itself are public; only Milked's doorways are never stood in)
   ['fs-alley','main-fs',-199,3,'mid',false,-1],           // south of Milked's service alley
   ['fs-far-gate','main-fs',-213.5,3,'gate',true,-1]];     // the end of the road, in front of the Far South Gate's (A6) walkers' door
  const STEP_ON=.6,POST_IN=.3,POST_OUT=.4,STOP_GAP=1.1,STOP_W=.3;

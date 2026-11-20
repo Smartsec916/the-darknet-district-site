@@ -6,7 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 20 Nov 2026 (newest): PUBLIC PAVEMENTS IN FRONT OF NULL AND MILKED ARE WALKED AND CROSSED; ONLY NULL'S DOORWAY IS NEVER STOOD IN (branch `claude/sidewalk-rule`, built on `claude/crosswalks`, build `2026-11-20-sidewalk-rule-1`, pushed, NO PR, not merged)
+### 20 Nov 2026 (newest): MILKED'S SIDE STREET AND SERVICE ALLEY OPEN FOR EVERYONE; ONLY ITS TWO DOORWAYS ARE NEVER STOOD IN (branch `claude/milked-lanes-open`, build `2026-11-20-milked-lanes-1`, pushed, NO PR, not merged)
+
+The owner's decision on the question left by the pavement rule below: unblock Milked's side street and service alley ("I might add gameplay there or add areas").
+
+- **Now (`void-runner/npc-areas.js`):** both lanes are ordinary walkable ground in Far South for Reverie, Lace, the street cat and made characters not marked adult: spots, routes, "Giver waits at", follow / lead steps (an escort from the west pavement reaches the service alley over the Far South crosswalk). New named places `far-south-milked-lane` and `far-south-milked-alley`. The lanes' walls, the planter, the dumpster and the crates (milked.js solids) are furniture.
+- **Still refused:** a spot, route point or wait within about 1.5 m of Milked's **front door** (in the side street) and **rear door** (in the service alley): `doorway:true` rectangles, walked past freely, as NULL's doorway; Milked's interior (vestibule, reception, studios, staff rooms). Adult made characters keep their rules (reception, doorways).
+- **Same on the server** (`void_runner_live_content.py` reads the regenerated admin inventory; no code change needed); editor map: the lanes are green with two amber "no standing" boxes at the doors; ChatGPT prompt's NEVER list updated.
+- **Tests:** `tests/npc-areas.test.cjs` (new test), `tests/npc-made.test.cjs`, `tests/test_npc_areas.py`, browser `tests/npc-areas-browser.cjs` re-run (PASS: a click in the front doorway refused with the doorway reason). **Not verified:** a follow / lead step into the lanes in a browser (unit-tested), real hardware, VR.
+### 20 Nov 2026: PUBLIC PAVEMENTS IN FRONT OF NULL AND MILKED ARE WALKED AND CROSSED; ONLY NULL'S DOORWAY IS NEVER STOOD IN (branch `claude/sidewalk-rule`, built on `claude/crosswalks`, build `2026-11-20-sidewalk-rule-1`, pushed, NO PR, not merged)
 
 The owner: Reverie and Lace avoided the alley crosswalk because its west kerb was NULL's door pavement (a never-used place); "but the sidewalk isn't inside the location. can you change this rule for places on sidewalks".
 
