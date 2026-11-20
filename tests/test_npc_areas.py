@@ -27,7 +27,7 @@ class NpcAreasServerTests(unittest.TestCase):
     def test_areas_and_the_content_rule(self):
         for p, area in [({'x': 64, 'z': -242}, 'outskirts'), ({'x': 100, 'z': -58.5}, 'oldtown'), (W(0, 40), 'district'), ({'x': 25, 'z': -95}, 'port'), ({'x': 52.5, 'z': -160}, 'far-south')]:
             self.assertEqual(live.area_of(p, INV), area)
-        for p in [{'x': 52.5, 'z': -58}, {'x': 88, 'z': -182}, {'x': 69.5, 'z': -171}, W(10, 34), W(-10, 36), W(-7, 62), W(-5, 73), {'x': -90, 'z': 0}]:
+        for p in [{'x': 52, 'z': -58}, {'x': 88, 'z': -182}, {'x': 71.5, 'z': -171}, W(10, 34), W(-10, 36), W(-7, 62), W(-5, 73), {'x': -90, 'z': 0}]:
             ok, _a, kind, why = live.area_check(p, INV)
             self.assertFalse(ok, p)
             self.assertEqual(kind, 'rule', (p, why))
@@ -40,18 +40,18 @@ class NpcAreasServerTests(unittest.TestCase):
         ok_here = live.area_check(stay, INV)[0]
         if ok_here:
             self.assertEqual(good, [])
-        self.assertTrue(live.npc_problems({'grey-reverie': {**stay, 'x': 52.5, 'z': -58}}, INV))
+        self.assertTrue(live.npc_problems({'grey-reverie': {**stay, 'x': 52, 'z': -58}}, INV))
         self.assertTrue(live.npc_problems({'street-cat': {**stay, 'x': 88, 'z': -182, 'actions': ['cat-sit']}}, INV))
         cross = {'mode': 'path', 'points': [{'x': 100, 'z': -6.4, 'action': 'look', 'seconds': 3}, {'x': 100, 'z': -58.5, 'action': 'look', 'seconds': 3}]}
         self.assertTrue(any('one area' in p for p in live.npc_problems({'grey-reverie': cross}, INV)))
         road = {'mode': 'path', 'points': [{'x': 100, 'z': -6.4, 'action': 'look', 'seconds': 3}, {'x': 100, 'z': -18.3, 'action': 'look', 'seconds': 3}]}
         self.assertTrue(any('road' in p for p in live.npc_problems({'grey-reverie': road}, INV)))
-        self.assertTrue(live.wait_at_problems('grey-reverie', {'x': 52.5, 'z': -58, 'yaw': 0}, INV))
+        self.assertTrue(live.wait_at_problems('grey-reverie', {'x': 52, 'z': -58, 'yaw': 0}, INV))
 
     def test_the_draft_copy_refuses_forbidden_spots(self):
         base = {'version': 1, 'missions': {}, 'lines': {}, 'trees': [], 'npcs': {}, 'animRequests': []}
         self.assertTrue(drafts.validate_workspace(ws({**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 64, 'z': -242, 'yaw': 0, 'actions': ['idle']}}}))['valid'])
-        bad = [{**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 52.5, 'z': -58, 'yaw': 0, 'actions': ['idle']}}},
+        bad = [{**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 52, 'z': -58, 'yaw': 0, 'actions': ['idle']}}},
                {**base, 'npcs': {'ethereal-lace': {'mode': 'original', 'schedule': [{'from': '08:00', 'to': '09:00', 'mode': 'path', 'points': [{'x': 85, 'z': -171, 'action': 'idle', 'seconds': 3}]}]}}},
                {**base, 'trees': [{'id': 'draft-t', 'missions': [{'id': 'm', 'waitAt': {**W(10, 34), 'yaw': 0}}]}]},
                {**base, 'npcs': {'street-cat': {'mode': 'stay', **W(-5, 73), 'yaw': 0, 'actions': ['cat-sit']}}}]
@@ -76,6 +76,37 @@ class NpcAreasServerTests(unittest.TestCase):
         want = json.loads(js.stdout)
         for p, (ok, area, kind) in zip(pts, want):
             got = live.area_check(p, INV)
+            self.assertEqual((got[0], got[1], got[2]), (ok, area, kind), p)
+
+    def test_public_pavements_in_front_of_venues(self):
+        # the owner, 20 Nov 2026: the pavement at NULL's door and across Milked's side street / service alley is public; only NULL's doorway is never a spot
+        for p in [{'x': 53, 'z': -58.5}, {'x': 52.6, 'z': -62}, {'x': 69.5, 'z': -171}, {'x': 69.5, 'z': -191.5}]:
+            self.assertEqual(live.area_check(p, INV)[0], True, p)
+        door = {'x': 52, 'z': -58.5}
+        ok, _a, kind, why = live.area_check(door, INV)
+        self.assertEqual((ok, kind), (False, 'rule'))
+        self.assertIn('doorway', why)
+        self.assertTrue(live.area_check(door, INV, passing=True)[0])
+        self.assertTrue(live.area_check(door, INV, adult=True)[0])
+        for p in [{'x': 48, 'z': -58.5}, {'x': 71.5, 'z': -171}, {'x': 85, 'z': -171}, {'x': 71.5, 'z': -191.5}]:
+            self.assertEqual(live.area_check(p, INV, passing=True)[2], 'rule', p)
+        mv = live._movable(INV)['grey-reverie']
+        self.assertEqual(live._leg_problems(mv, {'x': 52.5, 'z': -40}, {'x': 52.5, 'z': -90}, INV), [])
+        self.assertEqual(live._leg_problems(mv, {'x': 69.5, 'z': -163}, {'x': 69.5, 'z': -196}, INV), [])
+        self.assertTrue(live._leg_problems(mv, {'x': 52.6, 'z': -58.5}, {'x': 40, 'z': -58.5}, INV))
+        self.assertTrue(live.wait_at_problems('ethereal-lace', {**door, 'yaw': 0}, INV))
+        path = {'mode': 'path', 'points': [{'x': 52.6, 'z': -75, 'action': 'look', 'seconds': 3}, {'x': 52.6, 'z': -45, 'action': 'look', 'seconds': 3}]}
+        self.assertEqual(live.npc_problems({'grey-reverie': path}, INV), [])
+        self.assertEqual(live.forbidden_spot_problems({'street-cat': {'mode': 'stay', 'x': 52.6, 'z': -62}}, inv=INV), [])
+        self.assertTrue(live.forbidden_spot_problems({'street-cat': {'mode': 'stay', **door}}, inv=INV))
+
+    @unittest.skipUnless(shutil.which('node'), 'Node is not installed')
+    def test_same_walking_decisions_as_the_browser(self):
+        pts = [{'x': x / 2, 'z': z / 2} for x in range(100, 146) for z in range(-130, -104)] + [{'x': x / 2, 'z': z / 2} for x in range(130, 150) for z in range(-400, -320, 2)]
+        js = subprocess.run(['node', '-e', "const A=require('./void-runner/npc-areas.js');const p=JSON.parse(require('fs').readFileSync(0,'utf8'));console.log(JSON.stringify(p.map(q=>{const c=A.check(q,null,undefined,{passing:true});return [c.ok,c.area,c.kind];})))"],
+                            cwd=ROOT, input=json.dumps(pts), capture_output=True, text=True, check=True)
+        for p, (ok, area, kind) in zip(pts, json.loads(js.stdout)):
+            got = live.area_check(p, INV, passing=True)
             self.assertEqual((got[0], got[1], got[2]), (ok, area, kind), p)
 
 

@@ -390,9 +390,12 @@ def area_of(p, inv, prefer=None):
     return None
 
 
-def area_check(p, inv, prefer=None, m=None, adult=False):
+def area_check(p, inv, prefer=None, m=None, adult=False, passing=False):
     """The same rule as void-runner/npc-areas.js check(): (ok, area, kind, why). Kinds: ok, rule (the owner's content rule: Milked, NULL, the District bar, VR, arcade,
-    Corporate District), blocked, gate, road, obstacle, post, outside."""
+    Corporate District, and standing in NULL's doorway), blocked, gate, road, obstacle, post, outside. passing: a walk over a venue's doorway on a public pavement
+    (`doorway` rectangles: walked past, never a spot to stand or wait in; the owner, 20 Nov 2026)."""
+    def skip(n):
+        return (adult and n.get('adult')) or (passing and n.get('doorway'))
     A = _areas(inv)
     if m is None:
         m = A.get('clear', .3)
@@ -404,7 +407,7 @@ def area_check(p, inv, prefer=None, m=None, adult=False):
     aid = area_of(p, inv, prefer)
     if aid:
         a = by[aid]
-        nos = sorted([n for n in a['no'] if _in(n['rect'], x, z) and not (adult and n.get('adult'))], key=lambda n: _size(n['rect']))
+        nos = sorted([n for n in a['no'] if _in(n['rect'], x, z) and not skip(n)], key=lambda n: _size(n['rect']))
         if nos:
             return (False, aid, 'rule' if nos[0].get('rule') else 'blocked', nos[0]['why'])
         for g in a.get('gates') or []:
@@ -417,7 +420,7 @@ def area_check(p, inv, prefer=None, m=None, adult=False):
             if ((x - px) ** 2 + (z - pz) ** 2) ** .5 < .7:
                 return (False, aid, 'post', 'That is on a taxi post.')
         return (True, aid, 'ok', '')
-    nos = [(n, a['id']) for a in al for n in a['no'] if _in(n['rect'], x, z) and not (adult and n.get('adult'))] + [(n, None) for n in A.get('out') or [] if _in(n['rect'], x, z)]
+    nos = [(n, a['id']) for a in al for n in a['no'] if _in(n['rect'], x, z) and not skip(n)] + [(n, None) for n in A.get('out') or [] if _in(n['rect'], x, z)]
     nos.sort(key=lambda t: (0 if t[0].get('rule') else 1, _size(t[0]['rect'])))
     if nos and nos[0][0].get('rule'):
         return (False, nos[0][1], 'rule', nos[0][0]['why'])
@@ -485,8 +488,8 @@ def _leg_problems(mv, a, b, inv=None):
     A = _areas(inv)
     m = A.get('clear', .3) - .1
     ad = bool((mv or {}).get('adult'))
-    oka, aa, _, _ = area_check(a, inv, None, m, ad)
-    okb, ab, _, _ = area_check(b, inv, aa, m, ad)
+    oka, aa, _, _ = area_check(a, inv, None, m, ad, True)
+    okb, ab, _, _ = area_check(b, inv, aa, m, ad, True)
     if oka and okb and aa != ab:
         return ['the walk to the next point goes into another area: a route stays in one area.']
     area = aa or ab
@@ -497,7 +500,7 @@ def _leg_problems(mv, a, b, inv=None):
     for k in range(n + 1):
         t = k / n
         q = {'x': a['x'] + (b['x'] - a['x']) * t, 'z': a['z'] + (b['z'] - a['z']) * t}
-        ok, qa, kind, _ = area_check(q, inv, area, m, ad)
+        ok, qa, kind, _ = area_check(q, inv, area, m, ad, True)
         if ok and qa == area:
             continue
         if ok:

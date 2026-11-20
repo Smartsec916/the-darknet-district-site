@@ -6,7 +6,15 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 20 Nov 2026 (newest): CROSSWALKS IN NEOCHINATOWN (branch `claude/crosswalks`, build `2026-11-20-crosswalks-1`, pushed, NO PR, not merged)
+### 20 Nov 2026 (newest): PUBLIC PAVEMENTS IN FRONT OF NULL AND MILKED ARE WALKED AND CROSSED; ONLY NULL'S DOORWAY IS NEVER STOOD IN (branch `claude/sidewalk-rule`, built on `claude/crosswalks`, build `2026-11-20-sidewalk-rule-1`, pushed, NO PR, not merged)
+
+The owner: Reverie and Lace avoided the alley crosswalk because its west kerb was NULL's door pavement (a never-used place); "but the sidewalk isn't inside the location. can you change this rule for places on sidewalks".
+
+- **Now (`void-runner/npc-areas.js`):** for Reverie, Lace, the street cat and made characters not marked adult, Main Street's pavement at NULL's door and across the mouths of Milked's side street and service alley is ordinary public pavement: spots, routes, escorts (`npc-escort.js walkRoute` / `route`) and the crosswalks there (`ot-alley`, Far South's `fs-milked` / `fs-alley`) are used. A follow / lead step from north of NULL to the alley's side now crosses on the alley crosswalk.
+- **Still refused:** standing, a spot, a route point or "Giver waits at" in **NULL's doorway** (a `doorway:true` rule rectangle, x 50.5 to 52.5, z -61.2 to -55.8: within about 1.5 m of its street door; walking past it is allowed: `check(p, prefer, m, {passing:true})`, `leg()`); inside NULL; Milked (the building, its vestibule and reception); **Milked's side street and service alley themselves** (private lanes that only lead to Milked: its front door is in the side street, its rear door in the service alley; the owner may decide whether to open them); the District bar, VR play area, arcade room, smoking terrace and the Sleeping Pod room. Adult made characters are unchanged (they may still stand in NULL's doorway).
+- **Same rules on the server:** `void_runner_live_content.py area_check(..., passing)` (route legs pass the doorway; spots and the draft copy's `forbidden_spot_problems` do not), from the admin inventory (`npcPaths.areas[].no[].doorway`, regenerated). Editor map: the doorway is drawn amber ("no standing"), the red boxes no longer cover the pavement. ChatGPT prompt's NEVER list updated.
+- **Tests:** `tests/npc-areas.test.cjs` (new test: doorway refused for every character and route point, pavement and crossing walked, inside still refused, escort over `ot-alley`, map and prompt), `tests/test_npc_areas.py` (server and walking parity), browser `tests/npc-areas-browser.cjs` re-run (PASS: the click in NULL's doorway refused with the doorway reason, amber on the map). **Not verified:** the follow / lead browser runs over the alley crosswalk (unit-tested), real hardware, VR.
+### 20 Nov 2026: CROSSWALKS IN NEOCHINATOWN (branch `claude/crosswalks`, build `2026-11-20-crosswalks-1`, pushed, NO PR, not merged)
 
 The owner: "Another thing NeoChinaTown needs are crosswalks". One file holds where they are and the rules: `void-runner/crosswalks.js` (`VoidCrosswalks`, pure part tested in Node).
 

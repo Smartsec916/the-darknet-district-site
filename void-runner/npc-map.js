@@ -48,8 +48,8 @@
    if(data.area==='avenue'){c.strokeStyle='#8a7b3a';c.setLineDash([10,10]);c.beginPath();c.moveTo(px(2),py(-12.5));c.lineTo(px(152),py(-12.5));c.stroke();c.setLineDash([]);}
    // where the chosen NPC can walk
    if(o.npc&&X().MOVABLE[o.npc])for(const w of data.walk)rect(c,w,'rgba(70,200,120,.22)','rgba(90,230,140,.8)');
-   // places never used for her (the content rule) and rooms she may not enter
-   for(const n of data.no){rect(c,n,n.rule?'rgba(200,40,60,.33)':'rgba(120,120,140,.3)',n.rule?'#e0485c':'#777b88');if(n.name&&(n.x1-n.x0)*k>40){text(c,(n.rule?'✕ ':'')+n.name,px((n.x0+n.x1)/2),py((n.z0+n.z1)/2)+4,n.rule?'#ffb3bd':'#c3c6d0',10);}}
+   // places never used for her (the content rule, red), rooms she may not enter (grey), a venue's doorway on a public pavement (amber: walked past, never stood in)
+   for(const n of data.no){const dw=!!n.doorway;rect(c,n,dw?'rgba(230,150,40,.35)':n.rule?'rgba(200,40,60,.33)':'rgba(120,120,140,.3)',dw?'#f0a040':n.rule?'#e0485c':'#777b88');if(n.name&&(n.x1-n.x0)*k>40){text(c,(dw?'no standing: ':n.rule?'✕ ':'')+n.name,px((n.x0+n.x1)/2),py((n.z0+n.z1)/2)+4,dw?'#ffd9a0':n.rule?'#ffb3bd':'#c3c6d0',10);}}
    for(const g of data.gates){rect(c,g,'rgba(200,60,70,.35)','#d04a55');c.fillStyle='#ffb3b9';c.font='11px ui-monospace,monospace';c.fillText(g.name,px(g.x0)+2,py((g.z0+g.z1)/2));}
    if(data.stretch){c.strokeStyle='rgba(255,190,120,.7)';c.setLineDash([4,4]);c.beginPath();c.moveTo(px(data.stretch.x0),py(data.stretch.z));c.lineTo(px(data.stretch.x1),py(data.stretch.z));c.stroke();c.setLineDash([]);
     if(k>4){c.fillStyle='rgba(255,190,120,.9)';c.font='10px ui-monospace,monospace';c.fillText('their usual walk',px(data.stretch.x0)+2,py(data.stretch.z)+11);}}

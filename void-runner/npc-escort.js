@@ -100,7 +100,7 @@
  const ROAD=8,GRID=.5,MAXN=30000,XWALK=1.2,XW=()=>node?require('./crosswalks.js'):root.VoidCrosswalks;   // a crosswalk (crosswalks.js, 20 Nov 2026) costs little more than pavement: she crosses there
  function walkRoute(a,b,area){const A=AR();if(!A||!a||!b)return null;const G=GRID,memo=new Map(),c2=v=>Math.floor(v/G);
   const ar=A.get(area),inn=(r,x,z)=>x>r.x0&&x<r.x1&&z>r.z0&&z<r.z1;   // the kerb (the street's floor between the pavement and the road, not a forbidden place) counts as road
-  const cost=(i,j)=>{const k=i*100003+j;let v=memo.get(k);if(v===undefined){const x=(i+.5)*G,z=(j+.5)*G,c=A.check({x,z},area);v=c.ok&&c.area===area?1:XW()?.at?.(x,z,null,-.25)?XWALK:(c.kind==='road'&&c.area===area)||(c.kind==='blocked'&&ar&&ar.floors.some(f=>inn(f,x,z))&&!ar.no.some(f=>inn(f,x,z))&&!(ar.obstacles||[]).some(o=>x>o[0]&&x<o[1]&&z>o[2]&&z<o[3]))?ROAD:0;memo.set(k,v);}return v;};
+  const cost=(i,j)=>{const k=i*100003+j;let v=memo.get(k);if(v===undefined){const x=(i+.5)*G,z=(j+.5)*G,c=A.check({x,z},area,undefined,{passing:true});v=c.ok&&c.area===area?1:XW()?.at?.(x,z,null,-.25)?XWALK:(c.kind==='road'&&c.area===area)||(c.kind==='blocked'&&ar&&ar.floors.some(f=>inn(f,x,z))&&!ar.no.some(f=>inn(f,x,z))&&!(ar.obstacles||[]).some(o=>x>o[0]&&x<o[1]&&z>o[2]&&z<o[3]))?ROAD:0;memo.set(k,v);}return v;};
   const pad=30/G,i0=Math.min(c2(a.x),c2(b.x))-pad,i1=Math.max(c2(a.x),c2(b.x))+pad,j0=Math.min(c2(a.z),c2(b.z))-pad,j1=Math.max(c2(a.z),c2(b.z))+pad;
   const near=p=>{const ci=c2(p.x),cj=c2(p.z);let best=null,bd=Infinity;for(let di=-4;di<=4;di++)for(let dj=-4;dj<=4;dj++){const i=ci+di,j=cj+dj;if(cost(i,j)!==1)continue;const d=Math.hypot((i+.5)*G-p.x,(j+.5)*G-p.z);if(d<bd){bd=d;best=[i,j];}}return best;};
   const s0=near(a),s1=near(b);if(!s0||!s1)return null;const key=(i,j)=>(i-i0)*((j1-j0)+1)+(j-j0),goal=key(s1[0],s1[1]);
@@ -114,7 +114,7 @@
   if(!found)return null;const cells=[];for(let k=goal,i=s1[0],j=s1[1];;){cells.unshift({x:(i+.5)*G,z:(j+.5)*G});const f=from.get(k);if(!f)break;[k,i,j]=f;}
   const P=[{x:a.x,z:a.z},...cells,{x:b.x,z:b.z}];
   // road metres up to each point of the grid path; a straight leg may replace a stretch of it when every step is walkable (or road) and it adds no road
-  const roadAt=p=>{const c=cost(c2(p.x),c2(p.z)),k=A.check(p,area);return k.ok&&k.area===area?0:c===ROAD?1:c===XWALK?0:-1;},acc=[0];for(let k=1;k<P.length;k++){const d=dist(P[k],P[k-1]);acc.push(acc[k-1]+(roadAt(P[k])===1||roadAt(P[k-1])===1?d:0));}
+  const roadAt=p=>{const c=cost(c2(p.x),c2(p.z)),k=A.check(p,area,undefined,{passing:true});return k.ok&&k.area===area?0:c===ROAD?1:c===XWALK?0:-1;},acc=[0];for(let k=1;k<P.length;k++){const d=dist(P[k],P[k-1]);acc.push(acc[k-1]+(roadAt(P[k])===1||roadAt(P[k-1])===1?d:0));}
   const clear=(u,v)=>{const p=P[u],q=P[v],d=dist(p,q),m=Math.max(1,Math.ceil(d/.2));let road=0;for(let t=0;t<=m;t++){const r=roadAt({x:p.x+(q.x-p.x)*t/m,z:p.z+(q.z-p.z)*t/m});if(r<0)return false;if(r)road+=d/m;}return road<=acc[v]-acc[u]+.3;};
   const out=[];for(let u=0;u<P.length-1;){let v=P.length-1;while(v>u+1&&!clear(u,v))v--;out.push({x:+P[v].x.toFixed(2),z:+P[v].z.toFixed(2)});u=v;}
   out[out.length-1]={x:b.x,z:b.z};return out;}
