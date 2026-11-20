@@ -51,8 +51,13 @@
  function madePerson(g){try{const id=g&&g.made;if(!id||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.apartment)return null;const M=root.VoidMadeNPCs;if(!M)return null;
   const p=(M.live&&M.live()?.people||[]).find(x=>x.id===id);if(p&&Number.isFinite(p.x))return {position:[p.x,1.7,p.z],route:true,label:g.label||''};
   const pl=M.planOf&&M.planOf(id),pt=pl&&(Number.isFinite(pl.x)?pl:Array.isArray(pl.points)&&pl.points[0]);return pt&&Number.isFinite(pt.x)?{position:[pt.x,1.7,pt.z],route:true,label:g.label||''}:null;}catch{return null;}}
+ // Inside an apartment or a location while the step is out on the street (a talk, a follow, a place; night QA 20 Nov 2026: a mission's location can be entered before
+ // its step, and inside there was no arrow at all): the way out.
+ function wayOut(){try{const wl=walkingLocation;if(!wl||!wl.apartment)return null;const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:i.label||''}:null;};
+  if(wl.modular){const e=here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(e)return e;const g=aptGoal({apt:{m:wl.apt&&wl.apt.mission,a:'\u0000none'},label:''});return g||here(i=>i.action==='mod-elev');}
+  return wl.part==='hall'?here(i=>i.action==='apt-hall-exit'):here(i=>i.action==='apt-exit');}catch{return null;}}
  function missionPlaceRoute(g){
-  try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
+  try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!(g&&g.apt)){const wo=wayOut();if(wo)return wo;}if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
    const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
    if(node&&node.scene&&!node.whole&&node.scene!==wl.id)return null;
    const pt=(g.target&&subjectPoint(g.target))||(g.place&&P()?.target(g.place));if(!pt)return null;
