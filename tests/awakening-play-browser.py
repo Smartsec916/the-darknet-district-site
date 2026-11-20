@@ -211,8 +211,13 @@ def main():
         cont(); st2 = page.evaluate("()=>({credits:state.credits,ships:state.ownedShips})"); assert st2['credits'] == st['credits'] and st2['ships'] == st['ships'], st2
         v1('missions'); page.wait_for_timeout(800); t = page.inner_text('#personal-device'); assert 'FIRST CARGO DELIVERY' in t.upper(), t[:500]; shot('08-mission-log-cargo'); v1_close()
         # ---- 012 (driven)
-        place('oldtown', 'customs-approach'); place('port', 'landing-pad')
-        for s in ['board', 'launch']: ev({'type': 'flight', 'stage': s})
+        # the Ship Loadout app tutorial: really opened on the V1 (its tile glows in mission yellow)
+        v1(); page.wait_for_timeout(800); shot('09-v1-loadout-glow'); v1('loadout'); page.wait_for_function("()=>state.universe.missions['m012-first-cargo-delivery'].objectives.loadout===true", timeout=30000)
+        page.wait_for_timeout(1200); shot('10-ship-loadout-app'); log('loadout step done by opening the app'); v1_close()
+        place('port'); place('port', 'landing-pad'); ev({'type': 'flight', 'stage': 'board'})
+        for k in range(4):
+            page.evaluate("()=>{for(const t of VoidMissionContent.timersNow(state,VoidLiveContent.env))VoidMissionContent.timerSet(state,t,0);}"); ev({'type': 'timer'})
+        ev({'type': 'flight', 'stage': 'launch'})
         ev({'type': 'flight', 'stage': 'jump', 'place': 'meridian'}); place('meridian'); c1 = page.evaluate("()=>state.credits")
         ev({'type': 'talk', 'npcs': ['rook']}); ev({'type': 'heard', 'mission': 'm012-first-cargo-delivery'})
         assert done('m012-first-cargo-delivery') and page.evaluate("()=>state.credits") == c1 + 500

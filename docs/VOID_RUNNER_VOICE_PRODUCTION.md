@@ -53,6 +53,7 @@ Missions 004–012 (`void-runner/main-story.js`, branch `claude/awakening-tree`)
 | Blackrock associate | 2 | 165 | none |
 | The six (in unison) / Halden (the initiate) | 7 / 4 | 635 / 33 | the six: **voices APPROVED by the owner 20 Nov 2026** (revoice-engines.json `robed-1`..`robed-6`: Blackrock Member 1 (Jacob L.), 2 (Edward Sterling), 3 (Cole), 4 (Alex), 5 (Dean), 6 (Gareth); eleven_v4, tag [slow, solemn, ceremonial]); every `robed-all` line and the laugh follow the owner's "half in sync" chorus recipe stored as data in `cult-room.js CHORUS` (1-3 together at 0 / 20 / 10 ms, 4 about 230 ms late, 6 about 160 ms late, 5 about 6% faster, the drifting three at 80-85%, light room echo). The lines themselves are NOT recorded. Halden: no voice yet. Each line also has an IMPORT VOICE FILE slot |
 | Rook (PROPOSED placeholders) | 2 | 117 | his approved voice; the lines themselves are not approved |
+| Iris, First Cargo Delivery tutorial (Mission 012) | 6 approved + 11 new | about 1,200 | her established ElevenLabs voice (`CvD6hF1BJzAFN428j1cO`, revoice-engines.json); the 11 new lines (`main-story.js IRIS_NEW`) need owner approval before recording |
 
 The First Cargo Delivery's Admin / Iris / Rook lines are PROPOSED placeholders (`PROPOSED_CARGO`): never record them before the owner approves the words.
 

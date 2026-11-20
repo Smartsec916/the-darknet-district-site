@@ -28,6 +28,7 @@
                 route; the player keeps between `close` and `near`. Lost or noticed: they go back to the start of the route and the step starts again.
      apt-leave  {apt}   done while the player is outside that location (the street).
      flight     {stage:'board'|'launch'|'jump'|'dock', place?}   the existing flight: boarding the ship at the pad, take-off, the jump toward `place`, docking.
+     v1-app     {app}   done when the player opens that app on the V1 (its tile glows in mission yellow: the step's `app`, device-v1.js). A tutorial step.
    NEW MISSION FIELDS
      cast       [{id, name?, model, place, x?, z?, y?, yaw?, clip?, from?, until?, route?, speed?}]   people placed for this mission only, in a named place (places.js
                 id, e.g. under-tea-room) at its middle or at x / z (world metres): `model` a crowd model (crowd.js), `clip` what they do (idle, talk, sit ...), shown
@@ -36,7 +37,8 @@
      evidence   [{id, title, text, kind?}]   the documents / recordings a mission's steps hand out (the owner's text shown in the V1 when read). */
 (function(root){
  'use strict';
- const KINDS=['observe','overhear','sneak','collect','report','feed','call','wait-game','tail','apt-leave','flight'];
+ const KINDS=['observe','overhear','sneak','collect','report','feed','call','wait-game','tail','apt-leave','flight','v1-app'];
+ const V1_APPS=['camera','gallery','messages','map','missions','comms','social','news','store','warflying','loadout'];   // mission-content.js STEP_APPS (device-v1.js)
  const AUTO=['call'];
  const UNSEEN_KINDS=['apt-enter','apt-use','collect','apt-leave','sneak','hack'];
  const FEED_STAGES=['open','watched','recorded','saved'],FLIGHT_STAGES=['board','launch','jump','dock'];
@@ -110,6 +112,7 @@
   else if(k==='call'){const say=o.say||[];if(!say.length||say.some(l=>!l||l.who==='You'||l.who!==say[0].who))out.push('a call needs its lines, all from one NPC.');if(o.via!=='comms'&&o.via!=='messages')out.push('a call comes as a Comms call or a message.');}
   else if(k==='wait-game'){if(!(Number.isInteger(o.minutes)&&o.minutes>=1&&o.minutes<=LIMIT.minutes))out.push('an in-game wait is a whole number of in-game minutes from 1 to 10080 (a week).');if(o.say!=null||o.via!=null)out.push('an in-game wait has no lines (add a call after it).');}
   else if(k==='feed'){if(!((m.feeds)||[]).some(f=>f&&f.id===o.feed))out.push('choose a camera feed of this mission.');if(!FEED_STAGES.includes(o.stage))out.push('choose the stage: opened, watched to the end, recorded or saved.');}
+  else if(k==='v1-app'){if(!V1_APPS.includes(o.app))out.push('choose the V1 app the player opens.');}
   else if(k==='flight'){if(!FLIGHT_STAGES.includes(o.stage))out.push('choose the stage: board, take off, jump or dock.');if(o.place!=null&&(typeof o.place!=='string'||(ctx.locations&&!ctx.locations.has(o.place))))out.push('"'+o.place+'" is not a place a ship can fly to.');}
   return out;}
  // ---------------------------------------------------------------- what the engine asks
@@ -120,6 +123,7 @@
   if(k==='apt-leave')return ev.type==='place'&&ev.apt!==m.id+'/'+o.apt;
   if(k==='feed')return ev.type==='feed-stage'&&ev.mission===m.id&&ev.feed===o.feed&&rank(ev.stage)>=rank(o.stage);
   if(k==='wait-game')return ev.type==='game-wait'&&ev.step===key;
+  if(k==='v1-app')return ev.type==='v1-app'&&ev.app===o.app;
   if(k==='flight')return ev.type==='flight'&&ev.stage===o.stage&&(o.place==null||ev.place==null||ev.place===o.place);
   return false;}
  const waitFlag=(mid,sid)=>'tg_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
@@ -145,7 +149,7 @@
   let left=inp.speed*inp.dt;while(left>0&&st.seg<r.length-1){const a=r[st.seg],b=r[st.seg+1],len=Math.hypot(b[0]-a[0],b[1]-a[1])||.001,rem=(1-st.u)*len;if(left<rem){st.u+=left/len;left=0;}else{left-=rem;st.seg++;st.u=0;}}
   const a=r[Math.min(st.seg,r.length-1)],b=r[Math.min(st.seg+1,r.length-1)],pos={x:a[0]+(b[0]-a[0])*st.u,z:a[1]+(b[1]-a[1])*st.u,yaw:Math.atan2(b[0]-a[0],b[1]-a[1])};
   return {st,pos,done:st.seg>=r.length-1};}
- const api={KINDS,AUTO,UNSEEN_KINDS,FEED_STAGES,FLIGHT_STAGES,STEP_FIELDS,CAST_KEYS,EVIDENCE_KEYS,EV_KINDS,LIMIT,RANGE,DEF,CLIPS,FLAG,EV_ID,
+ const api={V1_APPS,KINDS,AUTO,UNSEEN_KINDS,FEED_STAGES,FLIGHT_STAGES,STEP_FIELDS,CAST_KEYS,EVIDENCE_KEYS,EV_KINDS,LIMIT,RANGE,DEF,CLIPS,FLAG,EV_ID,
   evidenceList,hasEvidence,addEvidence,evidenceDefs,castProblems,evidenceProblems,stepProblems,hit,rank,waitFlag,gameWait,castVisible,overhearStep,observeStep,tailStep,lineSecs,near,close,hold};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionMechanics=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -81,8 +81,11 @@ function play(x,s0){let s=s0;const id=n=>x.MS['M0'+String(n).padStart(2,'0')].id
  // nothing pays twice: more talks, events and reloads
  const c1=s.credits;for(let i=0;i<3;i++){talk(x,s,'admin');ev(x,s,{type:'heard',mission:id(11)});}s=reload(x,s);assert.equal(s.credits,c1);assert.equal(s.ownedShips.filter(v=>v==='starter').length,1);
  // 012: the first cargo delivery
- place(x,s,['district']);assert.equal(s.universe.missions[x.MS.M012.id].acquired,true,'012 arrives (Admin\'s notification) once 011 is done');place(x,s,['oldtown','customs-approach']);place(x,s,['port','landing-pad']);
- ev(x,s,{type:'flight',stage:'board'});ev(x,s,{type:'flight',stage:'launch'});ev(x,s,{type:'flight',stage:'jump',place:'meridian'});place(x,s,['meridian']);
+ place(x,s,['district']);assert.equal(s.universe.missions[x.MS.M012.id].acquired,true,'012 arrives (Iris\'s call) once 011 is done');assert.equal(step(x,s,'M012'),'loadout');
+ assert.equal(place(x,s,['port','landing-pad']).objective,null,'the Port waits until the Ship Loadout app has been opened');const lo=ev(x,s,{type:'v1-app',app:'loadout'});assert.equal(lo.objective,'loadout');assert.match(lo.messages[0].text,/review your ship's equipment/);
+ place(x,s,['port']);const pad=place(x,s,['port','landing-pad']);assert.equal(pad.messages[0].text.split('\n')[0],x.MS.IRIS_OK.there);ev(x,s,{type:'flight',stage:'board'});
+ for(let i=0;i<4;i++){for(const t of x.MC.timersNow(s,x.e))x.MC.timerSet(s,t,0);ev(x,s,{type:'timer'});}assert.equal(step(x,s,'M012'),'set-course','the cockpit walkthrough: four short calls, then the course');
+ ev(x,s,{type:'flight',stage:'launch'});ev(x,s,{type:'flight',stage:'jump',place:'meridian'});const dk=place(x,s,['meridian']);assert.equal(dk.messages[0].text,x.MS.IRIS_OK.nicely+'\n'+x.MS.IRIS_OK.rook);
  assert.equal(step(x,s,'M012'),'meet-rook');const c2=s.credits;talk(x,s,'rook');ev(x,s,{type:'heard',mission:x.MS.M012.id});assert.ok(done(s,x.MS.M012.id));assert.equal(s.credits,c2+500,'Rook pays once');
  return s;}
 test('from a character who has just finished Mission 003: 004 to 012 in order, with reloads; rewards and the Kestrel once',()=>{const x=env(),s=through003(x,newChar(x));const out=play(x,s);
@@ -100,7 +103,8 @@ test('the owner\'s words verbatim (a sample of every mission), PROPOSED placehol
  assert.deepEqual([MS.M004,MS.M005,MS.M006,MS.M007,MS.M008,MS.M009,MS.M010,MS.M011].map(m=>m.title),['A Promising Investment','Behind Closed Doors','Hostile Takeover','The House Always Wins','Private Network','Ghost in the Network','The Price of Admission','Leverage']);
  const all=JSON.stringify([MS.M004,MS.M005,MS.M006,MS.M007,MS.M008,MS.M009,MS.M010,MS.M011]);
  for(const t of ['Has he agreed to the percentage?','Status: Pending admission','Induction documentation: Mandatory audiovisual recording','We don\'t want a repeat of the last induction.','Scheduled activation: Next approved induction','Get somewhere safe. When that camera comes online, I want you to record everything.','It isn\'t stupidity. It\'s the price of membership.','Congratulations. You\'re a runner now.'])assert.ok(all.includes(JSON.stringify(t).slice(1,-1)),t);
- assert.ok(!/PROPOSED/.test(all),'no placeholders in the owner\'s missions');for(const o of MS.M012.objectives)for(const l of o.say||[])assert.ok(MS.isProposedCargo(l.text),'cargo lines are PROPOSED: '+l.text);
+ assert.ok(!/PROPOSED/.test(all),'no placeholders in the owner\'s missions');for(const o of MS.M012.objectives)for(const l of o.say||[])assert.ok(MS.isProposedCargo(l.text)||MS.isApprovedCargo(l.text),'cargo lines: the owner\'s or marked for approval: '+l.text);
+ assert.ok(MS.M012.start.text.startsWith(MS.IRIS_OK.congrats));assert.deepEqual(MS.M012.objectives.map(o=>o.kind),['message','v1-app','enter','enter','flight','call','call','call','call','flight','flight','arrive','talk','hear']);assert.equal(MS.M012.objectives[1].app,'loadout','the Ship Loadout tile glows');
  // the ritual: the existing choreography (the same beats, in the same order); only line slots carry words
  const C=require(R('void-runner/cult-room.js')),def=C.defaultScene().beats.filter(b=>b.act!=='line'),rit=MS.RITUAL.beats.filter(b=>b.act!=='line');assert.deepEqual(rit,def,'the movements are the existing sequence');
  assert.deepEqual(MS.RITUAL.beats.filter(b=>b.act==='line'&&b.text).map(b=>b.who).join(','),'robed-all,initiate,robed-all,initiate,robed-all,robed-all,robed-all,robed-all,initiate,robed-all,initiate');

@@ -137,6 +137,7 @@
   {id:'tail',name:'Follow someone at a distance',supported:true,needs:'observe',note:'Someone placed for this mission walks their route; the player keeps between “too close” and “lost beyond”. Lost or noticed: they go back to the start and the step starts again.'},
   {id:'apt-leave',name:'Leave a place of this mission',supported:true,needs:'apt',note:'Done once the player is out of that place (back on the street).'},
   {id:'flight',name:'Flight: board, take off, jump, dock',supported:true,needs:'stage',note:'The game’s own flight: board the ship at the pad, take off, make the jump (toward the place you choose), dock.'},
+  {id:'v1-app',name:'Open an app on the V1',supported:true,needs:'app',note:'Done when the player opens the app you choose on the V1 (its tile glows in mission yellow). For tutorials: “Open your V1 and select the Ship Loadout app.”'},
   {id:'fight',name:'Win a fight',supported:false},{id:'scan',name:'Scan with WarFlying',supported:false},{id:'escort',name:'Escort someone',supported:false},
   {id:'pickup',name:'Pick something up in the world',supported:false},
   // mission timers (the owner, 19 Nov 2026: "mission timers. set the amount of time between actions, lines, etc")

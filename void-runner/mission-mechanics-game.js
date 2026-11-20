@@ -116,6 +116,8 @@
   const ev=Object.values(MM.evidenceDefs(LC().env.trees)).find(d=>d.mission===x.mission&&d.kind==='recording'),saved=ev?String(ev.title).replace(/^RECORDING\s*[—-]\s*/,'RECORDING SAVED — '):'';
   setTimeout(()=>{F.start({scene:f.scene,room:f.room,label:x.m.title||'',cam:String(f.id),savedText:saved||undefined,onStage:stage=>fire({type:'feed-stage',mission:x.mission,feed:f.id,stage}),onSaved:()=>fire({type:'feed-stage',mission:x.mission,feed:f.id,stage:'saved'})})
    .then(r=>{if(!r.saved&&r.why)say('REMOTE FEED: '+String(r.why).toLowerCase()+'. Open the feed again from your Mission Log.');});},300);}
+ // ---------------------------------------------------------------- a V1 app opened (tutorial steps): the step's app is open on the device
+ setInterval(()=>{try{if(!on())return;const D=root.VoidPersonalDevice;if(!D||!D.isOpen||!D.app)return;const x=nowList().find(y=>y.kind==='v1-app'&&!y.delayed&&y.o.app===D.app);if(x)fire({type:'v1-app',app:D.app});}catch{}},400);
  // ---------------------------------------------------------------- flight stages (the existing flight: board, take off, jump, dock)
  setInterval(()=>{try{const s=st_();if(!on()||!s)return;const fl=nowList().filter(x=>x.kind==='flight'&&!x.delayed);if(!fl.length)return;const o=fl[0].o,f=s.story.flags,m=md(),r=(()=>{try{return flight.route;}catch{return null;}})();
   if(o.stage==='board'&&m==='play'&&s.location==='earth'&&f.shipAccess!=='none')fire({type:'flight',stage:'board'});

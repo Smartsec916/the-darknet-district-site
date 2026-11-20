@@ -27,7 +27,7 @@ const m8='m008-private-network';pl(['far-south']);pl(['far-south']);ev({type:'ob
 const m9='m009-ghost-in-the-network';pl(['corporate']);ev({type:'observe',step:k(m9,'locate')});ev({type:'hack',ap:'biz-corp-s-40',mission:m9});pl(['x'],{apt:m9+'/facility',mod:'servers'});pl(['x'],{apt:m9+'/facility',mod:'servers'});for(const o of ['core']){ev({type:'apt-use',mission:m9,apt:'facility',object:o,mod:'servers'});}ev({type:'hack',ap:'facility/servers.s1',mission:m9});ev({type:'apt-use',mission:m9,apt:'facility',object:'terminal',mod:'servers'});ev({type:'apt-use',mission:m9,apt:'facility',object:'core',mod:'servers'});pl(['corporate']);
 const m10='m010-the-price-of-admission';t(61);pl(['x']);ev({type:'feed-stage',mission:m10,feed:'br-04',stage:'saved'});T();pl(['district']);
 const m11='m011-leverage';pl(['district-meeting']);ev({type:'report',step:k(m11,'deliver')});MC.mechanicsNow(s,e);t(121);ev({type:'game-wait',step:k(m11,'await-sale')});ev({type:'talk',npcs:['admin']});for(let i=0;i<3;i++)ev({type:'heard',mission:m11});
-pl(['x']);pl(['customs-approach']);pl(['landing-pad']);ev({type:'flight',stage:'board'});ev({type:'flight',stage:'launch'});ev({type:'flight',stage:'jump',place:'meridian'});pl(['meridian']);ev({type:'talk',npcs:['rook']});ev({type:'heard',mission:'m012-first-cargo-delivery'});
+pl(['x']);ev({type:'v1-app',app:'loadout'});pl(['port']);pl(['landing-pad']);ev({type:'flight',stage:'board'});for(let i=0;i<4;i++)T();ev({type:'flight',stage:'launch'});ev({type:'flight',stage:'jump',place:'meridian'});pl(['meridian']);ev({type:'talk',npcs:['rook']});ev({type:'heard',mission:'m012-first-cargo-delivery'});
 process.stdout.write(JSON.stringify({...s,savedAt:1700000000000}));
 """
 

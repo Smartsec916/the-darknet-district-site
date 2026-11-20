@@ -2035,7 +2035,7 @@ FLAGNAME = re.compile(r'^[a-zA-Z][a-zA-Z0-9_-]{0,47}$')
 
 
 # ---- the reusable mechanics of the Awakening continuation (20 Nov 2026): the same rules as void-runner/mission-mechanics.js ----
-MECH_KINDS = ('observe', 'overhear', 'sneak', 'collect', 'report', 'feed', 'call', 'wait-game', 'tail', 'apt-leave', 'flight')
+MECH_KINDS = ('observe', 'overhear', 'sneak', 'collect', 'report', 'feed', 'call', 'wait-game', 'tail', 'apt-leave', 'flight', 'v1-app')
 MECH_UNSEEN = ('apt-enter', 'apt-use', 'collect', 'apt-leave', 'sneak', 'hack')
 MECH_FIELDS = ['minutes', 'stage', 'evidence', 'unseen', 'close']
 FEED_STAGES = ('open', 'watched', 'recorded', 'saved')
@@ -2207,6 +2207,9 @@ def mechanics_step_problems(m, o, givers, subjects, places, locations, every_evi
             out.append('choose a camera feed of this mission.')
         if o.get('stage') not in FEED_STAGES:
             out.append('choose the stage of the feed.')
+    elif k == 'v1-app':
+        if o.get('app') not in STEP_APPS:
+            out.append('choose the V1 app the player opens.')
     elif k == 'flight':
         if o.get('stage') not in FLIGHT_STAGES:
             out.append('choose the flight stage.')

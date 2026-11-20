@@ -712,7 +712,8 @@
       "wait-game",
       "tail",
       "apt-leave",
-      "flight"
+      "flight",
+      "v1-app"
     ],
     "models": [
       "communion-tech",
@@ -43599,7 +43600,7 @@
       "spawn"
     ]
   },
-  "revision": "1371f82b72caee39",
+  "revision": "5a00fd3ad5c9c473",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57685,97 +57686,127 @@
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 297,
-      "text": "start:{how:'notification',channel:'notify',from:'admin',text:'Cargo for Rook at Meridian Station. The Kestrel is on Pad 01 at the Port.',when:{kind:'after-mission',mission:'m011-leverage'}},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 300,
-      "text": "{id:'notice',kind:'message',label:'Receive Admin\\'s delivery instructions.',npc:'',place:'',item:'',say:[],early:[]},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 301,
-      "text": "{id:'customs',kind:'enter',place:'customs-approach',via:'comms',label:'Travel to the Port and go through Port Customs.',npc:'',item:'',early:[],say:[IRIS(PROPOSED_CARGO.customs)]},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 302,
-      "text": "{id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[A(PROPOSED_CARGO.pad)]},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 304,
-      "text": "{id:'takeoff',kind:'flight',stage:'launch',via:'comms',label:'Start up and take off (Left Shift: thrust; W / S / A / D / Q / R: steer; X: brake).',say:[IRIS(PROPOSED_CARGO.startup)]},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 305,
-      "text": "{id:'navigate',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Fly through the Tessaly System: line up on Meridian Station\\'s marker and jump.',say:[IRIS(PROPOSED_CARGO.nav)]},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 306,
-      "text": "{id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Dock at Meridian Station.',npc:'',item:'',early:[],say:[A(PROPOSED_CARGO.dock)]},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 307,
-      "text": "{id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 308,
-      "text": "{id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and get paid.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/main-story.js",
-      "line": 309,
-      "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'}]};",
+      "line": 310,
+      "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:IRIS_OK.congrats+'\\n'+IRIS_OK.walk,when:{kind:'after-mission',mission:'m011-leverage'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
       "line": 313,
+      "text": "{id:'notice',kind:'message',label:'Take Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 316,
+      "text": "say:[IRIS(IRIS_NEW.review),IRIS(IRIS_NEW.slots),IRIS(IRIS_NEW.manage),IRIS(IRIS_NEW.admin),IRIS(IRIS_NEW.port)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 317,
+      "text": "{id:'port',kind:'enter',place:'port',label:'Travel to the Port.',npc:'',item:'',say:[],early:[]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 318,
+      "text": "{id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.there),IRIS(IRIS_OK.boardHer)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 321,
+      "text": "{id:'cockpit-display',kind:'call',via:'comms',delay:3,label:'Listen to Iris: the cockpit display.',say:[IRIS(IRIS_NEW.display)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 322,
+      "text": "{id:'cockpit-controls',kind:'call',via:'comms',delay:10,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 323,
+      "text": "{id:'cockpit-weapons',kind:'call',via:'comms',delay:12,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 324,
+      "text": "{id:'cockpit-nav',kind:'call',via:'comms',delay:10,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 325,
+      "text": "{id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 326,
+      "text": "{id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 327,
+      "text": "{id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 328,
+      "text": "{id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 329,
+      "text": "{id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 330,
+      "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'}]};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 335,
       "text": "/* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 314,
+      "line": 336,
       "text": "const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 337,
+      "line": 359,
       "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 339,
+      "line": 361,
       "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 341,
+      "line": 363,
       "text": "const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 342,
+      "line": 364,
       "text": "const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}",
       "kind": "source-reference"
     },
@@ -59545,25 +59576,25 @@
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 145,
+      "line": 146,
       "text": "{id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 168,
+      "line": 169,
       "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many metres of the person chosen (1 to 30; 5 if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 169,
+      "line": 170,
       "text": "{id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 201,
+      "line": 202,
       "text": "out.push({id,name,say:/^[a-zA-Z][\\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,",
       "kind": "source-reference"
     },
@@ -59635,7 +59666,7 @@
     },
     {
       "source": "void-runner/mission-mechanics-editor.js",
-      "line": 64,
+      "line": 65,
       "text": "box.append(btn('+ EVIDENCE',()=>ed(x=>{const ids=new Set((x.evidence||[]).map(e=>e.id));let n=1;while(ids.has('item-'+n))n++;(x.evidence=x.evidence||[]).push({id:'item-'+n,title:'Evidence '+n,text:'(your text)',kind:'document'});},true),'',{'data-me-evidence-add':m.id}));",
       "kind": "source-reference"
     },
@@ -59731,37 +59762,37 @@
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 46,
+      "line": 48,
       "text": "const LIMIT={cast:8,evidence:12,title:60,text:1500,route:12,minutes:10080,store:200};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 101,
+      "line": 103,
       "text": "if(k==='overhear'){if(!Array.isArray(o.say)||!o.say.length)out.push('write the conversation the player overhears.');else if(o.say.some(l=>l&&l.who==='You'))out.push('the player says nothing while eavesdropping.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 103,
+      "line": 105,
       "text": "if(k!=='overhear'&&o.say!=null&&k!=='observe')out.push('this step has no lines.');if(o.via!=null)out.push('this step has no Comms call or message.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 110,
+      "line": 112,
       "text": "else if(k==='call'){const say=o.say||[];if(!say.length||say.some(l=>!l||l.who==='You'||l.who!==say[0].who))out.push('a call needs its lines, all from one NPC.');if(o.via!=='comms'&&o.via!=='messages')out.push('a call comes as a Comms call or a message.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 111,
+      "line": 113,
       "text": "else if(k==='wait-game'){if(!(Number.isInteger(o.minutes)&&o.minutes>=1&&o.minutes<=LIMIT.minutes))out.push('an in-game wait is a whole number of in-game minutes from 1 to 10080 (a week).');if(o.say!=null||o.via!=null)out.push('an in-game wait has no lines (add a call after it).');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 130,
+      "line": 134,
       "text": "/* One overheard conversation's progress (the game keeps it per step; pure so it is tested): st {line, at, noticed}; inp {d (metres to the speaker), dt (s), near, close,",
       "kind": "source-reference"
     },
@@ -63022,7 +63053,7 @@
     "void-runner/live-content.js": "e4c4ee5dd6123eb3f7653b92f8bb5be13b91fa698492fd5d823dc0feea9e8e9e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
-    "void-runner/main-story.js": "2d4f379b970b197d066e2191ec9ed85717962a666a1ea054330ad6d6a1dc7052",
+    "void-runner/main-story.js": "24dd8c5faa055971eedb689fe0bd63da7b2ff7db70efc2d3b6d4d69341a84f19",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -63039,12 +63070,12 @@
     "void-runner/mission-blocks.js": "0e96db6cc90fb02de85a5c491a9c71a3afe1cbb9134ae65d278b6b29cbba3785",
     "void-runner/mission-content.js": "95c5c6baa1ad488f0518e91de3ff0980238cdb6453c395cf99beadf657f33ecc",
     "void-runner/mission-editor.js": "c7aba62ae2dc1dcc495b43ce79cbcd784d37bb7698ac85897646f523db52cdd7",
-    "void-runner/mission-givers.js": "777563b770dec1955dbdc7e8a86070d8f8f377078e3855ccf840f88c8cf47307",
+    "void-runner/mission-givers.js": "b098445b6e8cda942d1e38b79293a66d9fac5ea0dc1c626eabee2b164d103cd8",
     "void-runner/mission-guide.js": "a867336b548d4fea54a774a14585051f7607f58d7de170f8288ec4ee77cfdf43",
     "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
-    "void-runner/mission-mechanics-editor.js": "a31d380054451a26dc6982d43c3ef31add4b5be25a12bf9b9dde02d5aa1c34fb",
-    "void-runner/mission-mechanics-game.js": "75dd2030d284be872f7046cc5e27acef9557ae5f65608ce6d2a2125fa4b5236e",
-    "void-runner/mission-mechanics.js": "a5dab25e2db143a89f4c96bc71680aa9cc00a8f1ae4066f012b24b47fb3475ff",
+    "void-runner/mission-mechanics-editor.js": "8e2ad0434f65efbd0c31e3f0ea462e96677818d0b509ad0c8dd9b9ab75d9f90c",
+    "void-runner/mission-mechanics-game.js": "d526617ca8802e0d3e37545eb91b591bfe71a06067956c5d3e460b210e04032e",
+    "void-runner/mission-mechanics.js": "c96242d2208ffe17200f81774f608bb9b5217bd8ccab930cfbec0939b97d25d4",
     "void-runner/mission-trees.js": "67dea1e9656bf6edae8bffeba4d9a6478ba101cf39f931228eed400c64b7fe9e",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "86c5c4faf999278f8f3ee6bd2c867d9bcc0f8c6359db3e7a19310595f4ce4d16",

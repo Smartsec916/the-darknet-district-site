@@ -281,35 +281,57 @@
   // paid ONCE (unlocks at a step are applied when that step is done, never again); the Kestrel is the existing ship ('starter' = Kestrel / 01): campaign.js awardStarterShip
   // is idempotent and never resets owned ships; the cargo tree's link fires once (ts_first-cargo-delivery)
   unlocks:[{kind:'credits',amount:REWARD,when:'reward'},{kind:'ship',id:'starter',when:'kestrel'},{kind:'flag',id:'kestrelCargo',value:'aboard',when:'instructions'},{kind:'tree',id:'first-cargo-delivery',when:'instructions'}]};
- /* THE FIRST CARGO DELIVERY TREE (Mission 012). Unlocked by Mission 011. The game's existing systems: the Port and Port Customs (places.js), the Kestrel at Pad 01,
-    boarding, take-off and the jump (flight; flight-nav.js), Meridian docking, Rook at the Dead Channel bar (meridian-interior.js). Admin and Iris guide by Comms; every line
-    of theirs and Rook's here is a PROPOSED placeholder (Claude's wording, 20 Nov 2026) for the owner to approve, rewrite or remove: text only, never recorded until approved.
-    The control names are the game's defaults (input.js; the KeyMap, K, shows the player's own). Payment: 500 CR, the existing Rook freight run's pay (campaign.js rookRunBase). */
- const PROPOSED_CARGO={
-  customs:'PROPOSED: Port Customs is the checkpoint at the top of the access road. Walk through; the Kestrel\'s papers are in your name now.',
-  pad:'PROPOSED: She\'s on Pad 01, past the landing terminal. Walk up to her and board.',
-  startup:'PROPOSED: Left Shift adds thrust, X brakes. W and S pitch, A and D turn, Q and R roll. Take her up slowly.',
-  nav:'PROPOSED: Meridian Station is on your navigation list. Line up on its marker and hold steady; the jump starts by itself.',
-  dock:'PROPOSED: Meridian traffic will bring you in. Ease off the thrust when you reach the station.',
-  rookMeet:'PROPOSED: You\'re Admin\'s new runner. Cargo intact?',
-  rookPay:'PROPOSED: Good. Here\'s your fee. Come back when you want more work.'};
- const M012={id:'m012-first-cargo-delivery',number:12,title:'First Cargo Delivery',type:'cargo',category:'Off-world cargo delivery',giver:'admin',location:'port',description:'',
-  start:{how:'notification',channel:'notify',from:'admin',text:'Cargo for Rook at Meridian Station. The Kestrel is on Pad 01 at the Port.',when:{kind:'after-mission',mission:'m011-leverage'}},
+ /* THE FIRST CARGO DELIVERY TREE (Mission 012): the owner's "Kestrel First Flight and Ship Loadout Tutorial" spec (20 Nov 2026). Unlocked by Mission 011. Iris guides
+    the player by Comms from the Kestrel's handover to Rook's payment, on the game's existing systems only: the Ship Loadout app (ship-loadout.js), the Port and Pad 01,
+    boarding, the cockpit and flight controls (input.js / keymap.js defaults; the KeyMap, K, shows the player's own), the V1 Map app's navigation (flight-nav.js), the
+    jump (Tessaly to Meridian has no interdiction: a peaceful flight, no combat), Meridian docking, Rook at the Dead Channel bar. Each instruction waits for the player to
+    do it (the next step only completes when they have); the cockpit is explained in short timed calls once aboard. A missed call never blocks anything: the steps
+    complete on what the player does, and every call stays in RECENT CALLS.
+    Lines: IRIS_OK are the owner's own (spec sections 2, 4 and 7, APPROVED, verbatim). IRIS_NEW are Claude's wording (spec section 3's examples adapted to what the Ship
+    Loadout app really shows, and the short tutorial lines the spec asks for): NEEDS OWNER APPROVAL BEFORE RECORDING. Rook's two lines stay PROPOSED placeholders.
+    Payment: 500 CR, the existing Rook freight run's pay (campaign.js rookRunBase). */
+ const IRIS_OK={congrats:'Congratulations on your new ship. Admin asked me to help you get familiar with her before your first assignment.',walk:'I\'ll walk you through everything you need to know. Let\'s start with your ship\'s loadout.',
+  there:'There she is. The Kestrel. Not the newest ship in the Tessaly System, but she\'s reliable.',boardHer:'Go ahead and board her. Let\'s get you acquainted with the controls.',
+  nicely:'Nicely done. You\'ve officially completed your first flight.',rook:'Admin\'s contact, Rook, is expecting you. Get that shipment delivered and collect your payment.'};
+ const IRIS_NEW={
+  review:'This is where you can review your ship\'s equipment and configuration.',
+  slots:'Each slot shows what\'s fitted: primary lasers, shield, drive, missiles, utility and the module bays.',
+  manage:'You can manage your loadout from here as you acquire additional equipment. Your default missile is set here too.',
+  admin:'If you\'re looking for something with a little more firepower, speak to Admin. He can help you with ship ordnance.',
+  port:'When you\'re ready, head to the Port. She\'s waiting on Pad 01.',
+  display:'You\'re in. Your speed, hull and shields are on the display. Keep an eye on them.',
+  controls:'Mouse to aim. W and S pitch, A and D turn, Q and R roll. Left Shift for thrust, X to brake.',
+  weapons:'Space fires the lasers, F a missile. You won\'t need either today. This run should be quiet.',
+  nav:'Navigation is on your V1. Open the Map app, select Meridian Station, then fly into its marker.',
+  course:'That\'s the one. Hold her steady and the jump starts by itself.',
+  jump:'Smooth. Meridian\'s ahead. Docking is automatic once you arrive.'};
+ const PROPOSED_CARGO={...IRIS_NEW,rookMeet:'PROPOSED: You\'re Admin\'s new runner. Cargo intact?',rookPay:'PROPOSED: Good. Here\'s your fee. Come back when you want more work.'};
+ const M012={id:'m012-first-cargo-delivery',number:12,title:'First Cargo Delivery',type:'cargo',category:'First flight / Off-world cargo delivery',giver:'iris',location:'port',description:'',
+  start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:IRIS_OK.congrats+'\n'+IRIS_OK.walk,when:{kind:'after-mission',mission:'m011-leverage'}},
   offer:[],rewards:500,
   objectives:[
-   {id:'notice',kind:'message',label:'Receive Admin\'s delivery instructions.',npc:'',place:'',item:'',say:[],early:[]},
-   {id:'customs',kind:'enter',place:'customs-approach',via:'comms',label:'Travel to the Port and go through Port Customs.',npc:'',item:'',early:[],say:[IRIS(PROPOSED_CARGO.customs)]},
-   {id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[A(PROPOSED_CARGO.pad)]},
+   {id:'notice',kind:'message',label:'Take Iris\'s call.',npc:'',place:'',item:'',say:[],early:[]},
+   // the Ship Loadout app (installed with the ship: ordnance.js grant); its tile glows in mission yellow (step app)
+   {id:'loadout',kind:'v1-app',app:'loadout',via:'comms',label:'Open your V1 (L) and select the Ship Loadout app.',
+    say:[IRIS(IRIS_NEW.review),IRIS(IRIS_NEW.slots),IRIS(IRIS_NEW.manage),IRIS(IRIS_NEW.admin),IRIS(IRIS_NEW.port)]},
+   {id:'port',kind:'enter',place:'port',label:'Travel to the Port.',npc:'',item:'',say:[],early:[]},
+   {id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.there),IRIS(IRIS_OK.boardHer)]},
    {id:'board',kind:'flight',stage:'board',label:'Board the Kestrel (E at the ship).'},
-   {id:'takeoff',kind:'flight',stage:'launch',via:'comms',label:'Start up and take off (Left Shift: thrust; W / S / A / D / Q / R: steer; X: brake).',say:[IRIS(PROPOSED_CARGO.startup)]},
-   {id:'navigate',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Fly through the Tessaly System: line up on Meridian Station\'s marker and jump.',say:[IRIS(PROPOSED_CARGO.nav)]},
-   {id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Dock at Meridian Station.',npc:'',item:'',early:[],say:[A(PROPOSED_CARGO.dock)]},
+   // the cockpit in small sections: short timed calls once aboard (nothing to fail; each stays in RECENT CALLS)
+   {id:'cockpit-display',kind:'call',via:'comms',delay:3,label:'Listen to Iris: the cockpit display.',say:[IRIS(IRIS_NEW.display)]},
+   {id:'cockpit-controls',kind:'call',via:'comms',delay:10,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},
+   {id:'cockpit-weapons',kind:'call',via:'comms',delay:12,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},
+   {id:'cockpit-nav',kind:'call',via:'comms',delay:10,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},
+   {id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},
+   {id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},
+   {id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},
    {id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},
-   {id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and get paid.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],
+   {id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'}]};
  const CARGO_TREE_ID='first-cargo-delivery';
- const CARGO_TREE={id:CARGO_TREE_ID,name:'First Cargo Delivery',note:'Unlocked by Mission 011 (Leverage): the Kestrel\'s first run, to Rook at Meridian Station. Lines marked PROPOSED await the owner.',status:'active',shipped:true,seq:2,missions:[M012]};
+ const CARGO_TREE={id:CARGO_TREE_ID,name:'First Cargo Delivery',note:'Unlocked by Mission 011 (Leverage): Iris\'s Kestrel first flight and Ship Loadout tutorial and the first run, to Rook at Meridian Station. New lines need the owner\'s approval before recording.',status:'active',shipped:true,seq:2,missions:[M012]};
  const isProposedCargo=t=>typeof t==='string'&&Object.values(PROPOSED_CARGO).includes(t);
+ const isApprovedCargo=t=>typeof t==='string'&&Object.values(IRIS_OK).includes(t);
  /* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */
  const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};
  const TREE={id:TREE_ID,name:'Awakening',note:'Your Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Missions 002 to 011 follow it (the owner\'s continuation, 20 Nov 2026); Mission 011 starts the First Cargo Delivery tree.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES,CORPORATE,M004,M005,M006,M007,M008,M009,M010,M011]};
@@ -341,6 +363,6 @@
    const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;
    const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}
   return changed;}
- const api={M004,M005,M006,M007,M008,M009,M010,M011,M012,CARGO_TREE,CARGO_TREE_ID,PROPOSED_CARGO,isProposedCargo,REWARD,ALL_EVIDENCE,RITUAL,FISH_CALL,CORPORATE,APPROVED,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
+ const api={M004,M005,M006,M007,M008,M009,M010,M011,M012,CARGO_TREE,CARGO_TREE_ID,PROPOSED_CARGO,IRIS_OK,IRIS_NEW,isProposedCargo,isApprovedCargo,REWARD,ALL_EVIDENCE,RITUAL,FISH_CALL,CORPORATE,APPROVED,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMainStory=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -13,7 +13,7 @@
  const small=t=>el('span',t,'me-small');
  const placeName=id=>{try{return (root.VoidPlaces?.node?.(id)||{}).name||id;}catch{return id;}};
  const placeIds=()=>{try{return [...root.VoidMissionGivers.placeIds()];}catch{return [];}};
- const KINDS=['observe','overhear','sneak','collect','report','feed','call','wait-game','tail','apt-leave','flight'];
+ const KINDS=['observe','overhear','sneak','collect','report','feed','call','wait-game','tail','apt-leave','flight','v1-app'];
  const NO_VIA=['observe','overhear','tail','wait-game','feed','sneak','apt-leave','collect'],NO_LINES=['wait-game','tail','observe','sneak','apt-leave','feed'];
  /* Who: someone placed for this mission (cast), else any person the editor's own picker offers (npcSelect). */
  function whoSelect(m,o,eo,npcSelect,label){const cast=(m.cast||[]).map(c=>[c.id,(c.name||c.id)+' (placed for this mission)']);const s=sel(label,[['','— choose —'],...cast],cast.some(c=>c[0]===o.npc)?o.npc:'',v=>eo(x=>{if(v)x.npc=v;},true),{'data-me-step-npc':o.id});
@@ -36,6 +36,7 @@
    out.push(pick,small('handed over in'),sel('Only inside this place',[['','— anywhere (sent from the V1) —'],...placeIds().map(id=>[id,placeName(id)])],o.place||'',v=>eo(x=>{if(v)x.place=v;else delete x.place;},true),{'data-me-step-place':o.id}));}
   else if(K==='feed'){out.push(sel('Camera feed',[['','— a camera feed of this mission —'],...((m.feeds||[]).map(f=>[f.id,'Camera feed “'+f.id+'”']))],o.feed||'',v=>eo(x=>{x.feed=v;},true),{'data-me-step-feed':o.id}),
    sel('Stage',[['open','opened'],['watched','watched to the end'],['recorded','recorded'],['saved','saved in the V1 Gallery']],o.stage||'open',v=>eo(x=>{x.stage=v;},true),{'data-me-step-stage':o.id}));}
+  else if(K==='v1-app')out.push(small('opens'),sel('V1 app',(MM()?MM().V1_APPS:[]).map(a=>[a,a.toUpperCase()]),o.app||'loadout',v=>eo(x=>{x.app=v;},true),{'data-me-step-v1app':o.id}),small('(the same app glows in mission yellow)'));
   else if(K==='call')out.push(small('done by itself after the step before (and its delay); the lines below arrive as a call from one NPC'));
   else if(K==='wait-game')out.push(small('wait'),num('In-game minutes',o.minutes||60,1,10080,1,v=>eo(x=>{x.minutes=Math.round(v||60);}),{'data-me-step-minutes':o.id}),small('in-game minutes (about '+Math.max(1,Math.round((o.minutes||60)/12))+' min of play)'));
   else if(K==='flight'){out.push(sel('Stage',[['board','board the ship'],['launch','take off'],['jump','make the jump'],['dock','dock']],o.stage||'board',v=>eo(x=>{x.stage=v;},true),{'data-me-step-stage':o.id}));
