@@ -1363,11 +1363,11 @@ def into_problems(o, inv, area='avenue', m=None):
         elif mods[o['mod']].get('type') == 'elevator':
             out.append('an elevator cab is the way between floors, not a place to stop.')
     if mods is not None and who.get('youthful'):
-        adult = set(into.get('adultRooms') or ['bar-back'])
+        adult = set(into.get('adultRooms') or ['fight-pit'])
         entry = str(a.get('entry') or '').split('.')[0]
         for r in (o.get('mod'), entry):
             if r in mods and mods[r].get('type') in adult:
-                out.append('she never goes into a bar\u2019s back room (her content rule).')
+                out.append('she never goes into the fight pit (her content rule).')
                 break
     door = a.get('door')
     if not isinstance(door, str) or not door:

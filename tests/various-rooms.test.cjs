@@ -61,5 +61,5 @@ test('the pawn shop: an empty list the owner fills in; selling takes the item an
  const r=W.sell(s,'ward-kit',list);assert.ok(r.ok);assert.equal(s.credits,140);assert.deepEqual(s.progression.personal.items,[]);assert.equal(W.sell(s,'ward-kit',list).ok,false,'not carried any more');
  assert.equal(M.TYPES['pawn-back'].opens.counter,'pawn');assert.match(read('void-runner/module-integration.js'),/VoidPanels/);assert.match(read('void-runner/pawn-shop.js'),/VoidPanels=root\.VoidPanels\|\|\{\}\)\.pawn=open/);
  const html=read('void-runner.html');assert.ok(html.indexOf('void-runner/pawn-shop.js"')>html.indexOf('void-runner/module-integration.js"'));
- const E=require(R('void-runner/npc-escort.js'));for(const id of ['bar-back','card-room','fight-pit','gang-vestibule'])assert.ok(E.ADULT_ROOMS.includes(id),id);
+ const E=require(R('void-runner/npc-escort.js'));assert.deepEqual(E.ADULT_ROOMS,['fight-pit']);
 });
