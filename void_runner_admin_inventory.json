@@ -43599,7 +43599,7 @@
       "spawn"
     ]
   },
-  "revision": "3218ce62c56348c5",
+  "revision": "8c864714eb54a053",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -62998,7 +62998,7 @@
     "void-runner/live-content.js": "e4c4ee5dd6123eb3f7653b92f8bb5be13b91fa698492fd5d823dc0feea9e8e9e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
-    "void-runner/main-story.js": "ed487c62ae3a128b6533f1c0d36aba4b990d1a410bbeb579fe24a1b53a9ce30f",
+    "void-runner/main-story.js": "2d4f379b970b197d066e2191ec9ed85717962a666a1ea054330ad6d6a1dc7052",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -63019,7 +63019,7 @@
     "void-runner/mission-guide.js": "29d789425e4071fe6fd79c45b8cc2f78ac7e58bd5c9417315c7501886656aefb",
     "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
     "void-runner/mission-mechanics-editor.js": "a31d380054451a26dc6982d43c3ef31add4b5be25a12bf9b9dde02d5aa1c34fb",
-    "void-runner/mission-mechanics-game.js": "572b493116264fa8a53ffc2d9c29808b995032374be6d0e2170dc91d61e17705",
+    "void-runner/mission-mechanics-game.js": "75dd2030d284be872f7046cc5e27acef9557ae5f65608ce6d2a2125fa4b5236e",
     "void-runner/mission-mechanics.js": "a5dab25e2db143a89f4c96bc71680aa9cc00a8f1ae4066f012b24b47fb3475ff",
     "void-runner/mission-trees.js": "67dea1e9656bf6edae8bffeba4d9a6478ba101cf39f931228eed400c64b7fe9e",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
