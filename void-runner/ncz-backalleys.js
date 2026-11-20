@@ -73,6 +73,15 @@
  function mouthAt(x,z,m=1,depth=4){for(const o of MOUTHS){const al=o.axis==='z'?x:z,ac=(o.axis==='z'?z:x)-o.at,out=-ac*(o.axis==='z'?o.into[1]:o.into[0]);if(al>o.from-m&&al<o.to+m&&out>-.5&&out<depth)return o;}return null;}
  // The parts of a run [lo, hi] along a shopfront line (axis, at) that are not an alley mouth (with a margin): neochinatown.js draws its shopfront panels only there.
  function cutRun(axis,at,lo,hi,m=.05){let parts=[[lo,hi]];for(const o of MOUTHS){if(o.axis!==axis||Math.abs(o.at-at)>.01)continue;const a=o.from-m,b=o.to+m;parts=parts.flatMap(([p,q])=>b<=p||a>=q?[[p,q]]:[[p,Math.min(q,a)],[Math.max(p,b),q]]).filter(([u,v])=>v-u>.05);}return parts;}
+ /* Things hung on a street's building face (wall lamps, blade signs, light strips, washes, wall screens, cable ends) must stand on WALL: where an alley mouth cuts the
+    face there is nothing behind them (tunnel entrances QA, 20 Nov 2026: teal light bars floated in the air at Far South's east alley mouth by door 135). A point counts as
+    on a face when it is within 0.6 m of a mouth's shopfront line (either side). */
+ const faceMouths=(x,z,half=0,m=0)=>MOUTHS.filter(o=>{const off=(o.axis==='z'?z:x)-o.at,al=o.axis==='z'?x:z;return Math.abs(off)<.6&&al+half>o.from-m&&al-half<o.to+m;});
+ // clearFace(x, z, half, m): a thing `half` m wide each way along the face, moved the least along it so it keeps m clear of every mouth there -> [x, z] (as given when clear).
+ function clearFace(x,z,half=0,m=.15){for(let k=0;k<4;k++){const o=faceMouths(x,z,half,m)[0];if(!o)break;const al=o.axis==='z'?x:z,a=o.from-m-half,b=o.to+m+half,n=Math.abs(al-a)<=Math.abs(b-al)?a:b;if(o.axis==='z')x=n;else z=n;}return [x,z];}
+ // facePart(x, z, half, m): the part of a flat thing on the face (a wash, a panel; middle x, z) that is on wall -> {x, z, half} (moved and narrowed), or null if its middle is in a mouth.
+ function facePart(x,z,half,m=.05){let lo=-half,hi=half,ax=null;for(const o of faceMouths(x,z,half,m)){const al=o.axis==='z'?x:z,a=o.from-m-al,b=o.to+m-al;if(a<=0&&b>=0)return null;ax=o.axis;if(a>0)hi=Math.min(hi,a);else lo=Math.max(lo,b);}
+  if(hi-lo<.1)return null;const c=(lo+hi)/2;return {x:ax==='z'?x+c:x,z:ax==='x'?z+c:z,half:(hi-lo)/2};}
  /* ---- the ground: disjoint rectangles covering a quarter's pieces (no overlaps, so no z-fighting) ---- */
  function floors(q){const R=rectsOf(q),xs=[...new Set(R.flatMap(r=>[r[0],r[1]]))].sort((a,b)=>a-b),out=[];
   for(let i=0;i+1<xs.length;i++){const a=xs[i],b=xs[i+1];if(b-a<1e-6)continue;let iv=R.filter(r=>r[0]<=a+1e-6&&r[1]>=b-1e-6).map(r=>[r[2],r[3]]).sort((u,v)=>u[0]-v[0]);const m=[];for(const v of iv){const l=m[m.length-1];if(l&&v[0]<=l[1]+1e-6)l[1]=Math.max(l[1],v[1]);else m.push(v.slice());}
@@ -124,7 +133,13 @@
     floor, DEPTH below the street); down: the direction the stairs go down; facing / yaw: the way the bottom door faces (back up the stairs; yaw = atan2(fx, fz));
     rect: the whole stairwell with its walls (world metres) and inner: its open floor. ---- */
  const UNDER={W:2.4,WALL:.25,STAIR:5,LAND:1.6,DEPTH:3,RAIL:1.05};
- const UNDER_RAW=[];   // none placed yet (the owner, 20 Nov 2026: "then I'll let you know where the tunnels start"). An entry: [id, piece, top [x, z], down [dx, dz]], e.g. ['under-avenue','avenue-north-yard',[21,10.55],[1,0]].
+ // The owner's three spots (20 Nov 2026, circled on the v3 maps). An entry: [id, piece, top [x, z], down [dx, dz]]. Each stairwell lies against its yard's back wall(s), 2 cm in,
+ // its open top facing the way in from the alley; it goes down WEST, so the door at the bottom faces east (back up the stairs) and a tunnel beyond it runs west, under the
+ // buildings behind the yard and away from the street. Room to walk round it on the alley side and along the yard (tests/back-alleys.test.cjs).
+ const UNDER_RAW=[
+  ['under-avenue','avenue-north-yard',[23.97,10.53],[-1,0]],      // the yard's north-west corner (circled about x 20, z 11): x 17.12..23.97, z 9.08..11.98
+  ['under-oldtown','oldtown-null-yard',[12.87,-73],[-1,0]],       // the yard's west side (circled about x 8, z -73): x 6.02..12.87, z -74.45..-71.55; the top step at the N-S alley
+  ['under-farsouth','far-south-west-yard',[34.87,-187.5],[-1,0]]]; // the yard's west side (circled about x 30, z -187): x 28.02..34.87, z -188.95..-186.05; the top step at the N-S alley
  const UNDERGROUND_ENTRANCES=UNDER_RAW.map(([id,piece,top,d])=>{const p=PIECES.find(q=>q.id===piece),U=UNDER,L=U.STAIR+U.LAND,t=[-d[1],d[0]],P=(a,o)=>[top[0]+d[0]*a+t[0]*o,top[1]+d[1]*a+t[1]*o];
   const box=(a0,a1,o0,o1)=>{const A=P(a0,o0),B=P(a1,o1);return [Math.min(A[0],B[0]),Math.max(A[0],B[0]),Math.min(A[1],B[1]),Math.max(A[1],B[1])];};
   const b=P(L,0);return {id,quarter:p.quarter,piece,top:[top[0],0,top[1]],bottom:[b[0],-U.DEPTH,b[1]],down:d.slice(),across:t,facing:[-d[0],-d[1]],yaw:Math.atan2(-d[0],-d[1]),
@@ -144,7 +159,7 @@
   generator:{w:1.8,d:1.0,h:1.4,name:'a generator'},drums:{w:1.3,d:.7,h:.95,name:'oil drums'},dock:{w:6,d:1.8,h:.95,name:'the loading dock'}};
  let FURN=null;const BACK={n:[0,1],s:[0,-1],e:[1,0],w:[-1,0]};   // a bay open toward n has its back wall on the south, facing north
  function furniture(q){if(!FURN){FURN=[];for(const qq of QUARTERS)FURN.push(...furnish(qq));}return q?FURN.filter(f=>f.quarter===q):FURN.slice();}
- const underZone=u=>{const r=u.rect,d=u.down;return [Math.min(r[0],r[0]-d[0]*2.2)-.5,Math.max(r[1],r[1]-d[0]*2.2)+.5,Math.min(r[2],r[2]-d[1]*2.2)-.5,Math.max(r[3],r[3]-d[1]*2.2)+.5];};   // the stairwell and the way onto its top step
+ const underZone=u=>{const r=u.rect,d=u.down;return [Math.min(r[0],r[0]-d[0]*2.2)-1.1,Math.max(r[1],r[1]-d[0]*2.2)+1.1,Math.min(r[2],r[2]-d[1]*2.2)-1.1,Math.max(r[3],r[3]-d[1]*2.2)+1.1];};   // the stairwell, the way onto its top step and a way round it
  // Where two pieces meet through a narrow opening (an alley running into a bay or a yard), the way through is kept clear like a mouth (night QA 20 Nov 2026: a dumpster stood in the 1.9 m
  // gap where the Avenue's north alley enters its loading bay, leaving 0.75 m, and the mission arrow pointed into it).
  const joinZones=q=>{const P=list(q),out=[];for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++)for(const a of P[i].rects)for(const b of P[j].rects){const x0=Math.max(a[0],b[0]),x1=Math.min(a[1],b[1]),z0=Math.max(a[2],b[2]),z1=Math.min(a[3],b[3]);
@@ -235,7 +250,8 @@
   const box=(w,h,d,x,y,z,mat,ry=0,rx=0,rz=0)=>{const t=(mat===steel||mat===rust||mat===concrete||mat===wood||shutters.includes(mat))?1.2:0;const m=t?B.MeshBuilder.CreateBox('back-part',{width:w,height:h,depth:d,faceUV:[[w,h],[w,h],[d,h],[d,h],[w,d],[w,d]].map(([a,b])=>new B.Vector4(0,0,Math.max(.1,a/t),Math.max(.1,b/t))),wrap:true},scene):B.MeshBuilder.CreateBox('back-part',{width:w,height:h,depth:d},scene);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);return put(m,mat);};
   const cyl=(r,h,x,y,z,mat,rx=0,rz=0,t=8,ry=0)=>{const m=B.MeshBuilder.CreateCylinder('back-cyl',{diameter:r*2,height:h,tessellation:t},scene);m.position.set(x,y,z);m.rotation.set(rx,ry,rz);return put(m,mat);};
   const plane=(w,h,x,y,z,n,mat)=>{const m=B.MeshBuilder.CreatePlane('back-plane',{width:w,height:h},scene);m.position.set(x,y,z);m.rotation.y=Math.atan2(-n[0],-n[1]);return put(m,mat);};
-  const pool=(c,x,z,w,d,k)=>{const m=tint(B.MeshBuilder.CreateGround('back-pool',{width:w,height:d},scene),c,k*(low?.75:1));m.position.set(x,.03,z);return put(m,poolM);};
+  // (a light pool lies on the ground at 3 cm: none over a stairwell's open hole, where it would glow in mid-air; `deep` pools are the stairwells' own, on their landings)
+  const pool=(c,x,z,w,d,k,deep=false)=>{if(!deep&&UNDERGROUND_ENTRANCES.some(u=>overlap([x-w/2,x+w/2,z-d/2,z+d/2],u.inner)))return null;const m=tint(B.MeshBuilder.CreateGround('back-pool',{width:w,height:d},scene),c,k*(low?.75:1));m.position.set(x,.03,z);return put(m,poolM);};
   const wash=(c,x,y,z,n,w,h,k)=>{if(low)return;const m=tint(B.MeshBuilder.CreatePlane('back-wash',{width:w,height:h},scene),c,k);m.position.set(x+n[0]*.1,y,z+n[1]*.1);m.rotation.y=Math.atan2(-n[0],-n[1]);put(m,poolM);};
   const tube=(pts,r,mat)=>put(B.MeshBuilder.CreateTube('back-cable',{path:pts.map(p=>new B.Vector3(...p)),radius:r,tessellation:4},scene),mat);
   const sag=(a,b,n,drop)=>{const pts=[];for(let i=0;i<=n;i++){const t=i/n;pts.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*drop,a[2]+(b[2]-a[2])*t]);}return pts;};
@@ -311,7 +327,7 @@
    const F=L-.02;piece(F-.06,F,-.65,.65,-U.DEPTH,-U.DEPTH+2.25,rust);piece(F-.09,F,-.78,-.66,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,.66,.78,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,-.78,.78,-U.DEPTH+2.25,-U.DEPTH+2.37,black);
    for(const y of [.5,1.1,1.7])piece(F-.1,F-.06,-.6,.6,-U.DEPTH+y,-U.DEPTH+y+.08,steel);piece(F-.14,F-.06,.38,.46,-U.DEPTH+.95,-U.DEPTH+1.25,black);
    // the lamp over it: a caged housing, its dim sodium lens, a pool on the landing and a wash on the door; a sign scraped on the wall beside it
-   piece(F-.3,F,-.18,.18,-U.DEPTH+2.55,-U.DEPTH+2.7,black);piece(F-.28,F-.04,-.14,.14,-U.DEPTH+2.52,-U.DEPTH+2.55,lens.sodium);{const [px,pz]=P(L-1,0),m=pool('sodium',px,pz,2.6,2.6,.8);m.position.y=-U.DEPTH+.02;const [wx,wz]=P(F,0);wash('sodium',wx,-U.DEPTH+1.5,wz,u.facing,2.4,2.6,.32);}
+   piece(F-.3,F,-.18,.18,-U.DEPTH+2.55,-U.DEPTH+2.7,black);piece(F-.28,F-.04,-.14,.14,-U.DEPTH+2.52,-U.DEPTH+2.55,lens.sodium);{const [px,pz]=P(L-1,0),m=pool('sodium',px,pz,2.6,2.6,.8,true);m.position.y=-U.DEPTH+.02;const [wx,wz]=P(F,0);wash('sodium',wx,-U.DEPTH+1.5,wz,u.facing,2.4,2.6,.32);}
    {const [lx,lz]=P(-.05,U.W/2+U.WALL/2);box(.16,.16,.16,lx,U.RAIL+.12,lz,black);box(.1,.03,.1,lx,U.RAIL+.04,lz,lens.sodium);}   // a small lamp on the top railing
    if(!low){const [sx,sz]=P(U.STAIR+.4,-U.W/2+.02),m=B.MeshBuilder.CreatePlane('back-under-sign',{width:.55,height:.72,frontUVs:new B.Vector4(.75,.5,1,1)},scene);m.position.set(sx,-U.DEPTH+1.5,sz);m.rotation.y=Math.atan2(-t[0],-t[1]);put(m,poster);}
    made.underground=(made.underground||0)+1;}
@@ -320,6 +336,6 @@
   for(const g of (scene.effectLayers||[]).filter(l=>l.addExcludedMesh&&/glow/i.test(l.getClassName?.()||'')))for(const o of own)if(o.getTotalVertices&&!/back-glow/.test(o.material?.name||''))g.addExcludedMesh(o);
   return {stats:()=>({...made}),dispose(){for(const o of own.reverse())try{o.dispose();}catch{}own.length=0;groups.clear();}};}
 
- const api={PIECES,QUARTERS,STREETS,MOUTHS,ESC,ESCAPES,CLIMB,KINDS,UNDER,UNDERGROUND_ENTRANCES,groundAt,minus,list,get,rectsOf,inPieces,pieceAt,open,streetRects,mouthAt,cutRun,floors,walls,escapesIn,escapeFor,escapeRule,grab,perch,climbPose,windowOpen,furniture,solids,obstacles,walk,places,extent,build};
+ const api={PIECES,QUARTERS,STREETS,MOUTHS,faceMouths,clearFace,facePart,ESC,ESCAPES,CLIMB,KINDS,UNDER,UNDERGROUND_ENTRANCES,groundAt,minus,list,get,rectsOf,inPieces,pieceAt,open,streetRects,mouthAt,cutRun,floors,walls,escapesIn,escapeFor,escapeRule,grab,perch,climbPose,windowOpen,furniture,solids,obstacles,walk,places,extent,build};
  if(node)module.exports=api;else root.VoidBackAlleys=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

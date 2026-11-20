@@ -112,6 +112,7 @@
    {const X=BA();if(X&&a.scene==='street'&&X.QUARTERS.includes(a.quarter)){const P=X.list(a.quarter),hit=o=>P.some(p=>p.rects.some(r=>o[0]<r[1]+.15&&o[1]>r[0]-.15&&o[2]<r[3]+.15&&o[3]>r[2]-.15));a.legacy=a.obstacles.filter(hit);a.obstacles=a.obstacles.filter(o=>!hit(o));   // legacy: kept for apartments.js, so every street door keeps the place (and id) it had
     for(const w of X.walk(a.quarter))a.walk.push(R([w.x0,w.x1,w.z0,w.z1],{name:w.name,y:w.y,back:w.piece}));for(const p of P)for(const r of p.rects)a.floors.push(R(r,{name:p.name}));
     a.obstacles.push(...X.obstacles(a.quarter).map(o=>o.slice()));a.escapes=X.escapesIn(a.quarter).map(e=>({id:e.id,door:e.door,x:e.x,z:e.z,u:e.u.slice(),t:e.t.slice(),foot:e.foot.slice()}));
+    a.tunnels=(X.UNDERGROUND_ENTRANCES||[]).filter(u=>u.quarter===a.quarter).map(u=>({id:u.id,rect:u.rect.slice(),top:[u.top[0],u.top[2]],down:u.down.slice()}));   // the stairs down to the tunnels (20 Nov 2026): an obstacle above, drawn on the editor map
     for(const p of P)a.labels.push({name:p.name,x:p.at[0],z:p.at[1],back:true});}}
     for(const w of a.adult||[])a.walk.push({...w,adult:true});delete a.adult;   // ground only an adult made character uses (always inside an adult rule above)
    if(a.id==='oldtown'){const N=NC();try{for(const s of (N&&N.solids?N.solids():[]))if(!/^club-(north|south|west|front|entry|shutter)/.test(s.id||'')){const [x,,z]=s.position,[w,,d]=s.size;if(x>18&&x<50&&z>-68.5&&z<-48.5)a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,'NULL’s furniture']);}}catch{}}

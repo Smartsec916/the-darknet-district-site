@@ -324,7 +324,7 @@
       for(const [a0,a1] of cut(run,.05)){const r=a1-a0,c=(a0+a1)/2,fc=r===run?face:new B.Vector4(0,0,r/3,1);add(B.MeshBuilder.CreateBox('storefront',{width:e.n[0]?.1:r,height:3,depth:e.n[0]?r:.1,faceUV:e.n[0]?[edge,edge,fc,fc,edge,edge]:[fc,fc,edge,edge,edge,edge],wrap:true},scene),shopfront,e.n[0]?[wall[0],1.6,c]:[c,1.6,wall[1]]);}
       awnings.push({e,ei,p,into,up,parts:cut(seg-1.2,.3)});discard=false;let signed=false;
       if(wide&&rand()<.55&&!(club&&up)&&!mo){signed=true;const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.12,z:p[1]+e.n[1]*.12,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
-      if(wide&&rand()<.35&&!(discard=up||mo)){const bw=5.5+rand()*2,bp=[p[0]+into[0]*.3,10+rand()*2.5,p[1]+into[1]*.3],id=nextAd();if(id==='function')billboard(bw,bp,ry,id);else walls.push({kind:'wall',id,w:bw,p:bp,ry,side:ei});}
+      if(wide&&rand()<.35&&!(discard=up||mo)){const bw=5.5+rand()*2,bp=[p[0]+into[0]*.3,10+rand()*2.5,p[1]+into[1]*.3],id=nextAd();if(BA){const [x,z]=BA.clearFace(bp[0],bp[2],bw/2,.2);bp[0]=x;bp[2]=z;}/* the whole board on wall, none over an alley mouth (20 Nov 2026) */if(id==='function')billboard(bw,bp,ry,id);else walls.push({kind:'wall',id,w:bw,p:bp,ry,side:ei});}
       if(wide&&!mo&&!(club&&up))shops.push({ei,p,signed,seg,k:Math.round(s/7)});
       discard=false;if(wide&&rand()<.4&&!(club&&up)&&!mo)kiosks.push({kind:'kiosk',id:nextAd(),e,ei,p,into,ry,signed,seg,k:Math.round(s/7)});}
     }
@@ -336,7 +336,8 @@
      // its own shopfront first; where nothing fits there, the next shopfront along either way that has no screen yet (the nearest suitable wall)
      const taken=new Set(),hang=(k,sh)=>{const {e,into}=k,p=sh.p,A0=e.n[0]?p[1]:p[0],doors=doorList.filter(d=>d.n&&d.n[0]===e.n[0]&&d.n[1]===e.n[1]&&Math.abs(e.n[0]?d.x-p[0]:d.z-p[1])<.5).map(d=>(e.n[0]?d.z:d.x)-A0);
       const o=M?AD.mountOffset({sign:sh.signed,doors,half:sh.seg/2-.2}):0;if(o===null||o===undefined)return null;const w=M?M.w:1.2,h=M?M.h:1.8,out=M?M.out:.3,y=(M?M.bottom:2.8)+h/2;
-      return {...k,p,o,w,h,a:A0+o,at:[p[0]+(e.n[0]?0:o)+into[0]*out,y,p[1]+(e.n[0]?o:0)+into[1]*out]};};
+      const at=[p[0]+(e.n[0]?0:o)+into[0]*out,y,p[1]+(e.n[0]?o:0)+into[1]*out];if(BA&&BA.faceMouths(at[0],at[2],w/2,.2).length)return null;   // never over an alley mouth (20 Nov 2026): the next shopfront along
+      return {...k,p,o,w,h,a:A0+o,at};};
      for(const k of kiosks){const near=[0,-1,1,-2,2].map(d=>shops.find(sh=>sh.ei===k.ei&&sh.k===k.k+d)).filter(Boolean);
       for(const sh of near){const key=sh.ei+':'+sh.k;if(taken.has(key))continue;const m=hang(k,sh);if(!m)continue;taken.add(key);mounts.push(m);break;}}
      // each quarter keeps two thirds of the screens it had (counted before any could not be hung), thinned on its own so no quarter is left bare
@@ -1364,7 +1365,7 @@
      // (the scene already has more lights than its shaders use).
      const washMats={};function washMat(c,k){const key=c+k;if(washMats[key])return washMats[key];const t=texture('wash-'+c,128,128,(g,W,H)=>{g.fillStyle='#000';g.fillRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,1,W/2,H/2,W/2);r.addColorStop(0,c);r.addColorStop(.35,c+'88');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
       const m=new B.StandardMaterial('ncz-wash',scene);m.diffuseColor=B.Color3.Black();m.specularColor=B.Color3.Black();m.emissiveTexture=t;m.disableLighting=true;m.alphaMode=B.Engine.ALPHA_ADD;m.alpha=k;m.disableDepthWrite=true;owned.push(m);washMats[key]=m;return m;}
-     const wallWash=(c,f,s,y,w,h,k)=>{const p=add(B.MeshBuilder.CreatePlane('wall-wash',{width:w,height:h},scene),washMat(c,k),onFace(f,s,y,.09));p.rotation.y=faceRot(f.nx,f.nz);return p;};
+     const wallWash=(c,f,s,y,w,h,k)=>{const q=onFace(f,s,y,.09),fp=BA?BA.facePart(q[0],q[2],w/2):{x:q[0],z:q[2],half:w/2};if(!fp)return null;const p=add(B.MeshBuilder.CreatePlane('wall-wash',{width:fp.half*2,height:h},scene),washMat(c,k),[fp.x,y,fp.z]);p.rotation.y=faceRot(f.nx,f.nz);return p;};   // only the part on wall: none spills into an alley mouth's air (20 Nov 2026)
      const floorWash=(c,x,z,w,d,y,k)=>(litSpots.push([x,z]),add(B.MeshBuilder.CreateGround('floor-wash',{width:w,height:d},scene),washMat(c,k),[x,y,z]));
      // Shop-sign spill: each storefront neon lights its patch of wall and the sidewalk under it.
      // (20 Nov 2026) each wall screen's picture lights a little patch of the pavement under it
@@ -1374,6 +1375,8 @@
      const fronts=[[{x:2,z:-20.12,tx:1,tz:0,len:150,nx:0,nz:1},[[51,71]]],[{x:2,z:-4.88,tx:1,tz:0,len:150,nx:0,nz:-1},[]],[{x:50.88,z:-124,tx:0,tz:1,len:104,nx:1,nz:0},[[-121,-116]]],[{x:71.12,z:-124,tx:0,tz:1,len:104,nx:-1,nz:0},[[-61.6,-55.5]]],
       // Far South (after the others, so their sequence of random numbers is as it was)
       [{x:50.88,z:-218,tx:0,tz:1,len:88,nx:1,nz:0},[]],[{x:71.12,z:-218,tx:0,tz:1,len:88,nx:-1,nz:0},[[MK.LANE[2],MK.LANE[3]],[MK.ALLEY[2],MK.ALLEY[3]]]]];
+     // (20 Nov 2026) a back alley's mouth cuts these fronts: a thing hung at s (half m wide) is moved along the wall just clear of it (the random numbers run as before)
+     const onWallF=(f,s,half)=>{if(!BA)return s;const q=onFace(f,s,0,0),[x,z]=BA.clearFace(q[0],q[2],half,.15);return s+(f.tx?x-q[0]:z-q[2]);};
      const inGapF=(f,s,gaps)=>{const c=f.tx?f.x+s:f.z+s;return gaps.some(([g0,g1])=>c>g0-2&&c<g1+2);};
      /* Blade signs: vertical neon sticking out from the wall, readable from both directions (two single-sided faces). (20 Nov 2026, the owner) English, Mandarin
         (Simplified Chinese, one character per cell, top to bottom) and Russian, mixed, each quarter its own list: Old Town the most Chinese. Real words only:
@@ -1393,7 +1396,7 @@
       return list[1];}
      const flickers=[],bladeMats={},bladeWords=[];
      const CJK='"Noto Sans SC","Microsoft YaHei","PingFang SC","Noto Sans CJK SC","WenQuanYi Zen Hei","Arial","DejaVu Sans",sans-serif';
-     function blade(f,s,y,fi){const [word,c]=bladeWord(f,s,fi),chars=[...word],turn=/[Ѐ-ӿ]/.test(word)&&chars.length>5,hh=turn?Math.max(2.8,chars.length*.52+.9):chars.length*.9+.5;bladeWords.push(word);
+     function blade(f,s,y,fi){s=onWallF(f,s,.3);const [word,c]=bladeWord(f,s,fi),chars=[...word],turn=/[Ѐ-ӿ]/.test(word)&&chars.length>5,hh=turn?Math.max(2.8,chars.length*.52+.9):chars.length*.9+.5;bladeWords.push(word);
       // a long Russian word runs down the sign turned on its side (read with the head tilted right); everything else is stacked, one letter or character per cell
       const m=bladeMats[word]??=texMat('blade-'+word,texture('blade-'+word,128,Math.round(128*hh/1.1),(g,W,H)=>{g.fillStyle='rgba(6,6,10,.94)';g.fillRect(0,0,W,H);g.strokeStyle=c;g.lineWidth=5;g.shadowColor=c;g.shadowBlur=10;g.strokeRect(6,6,W-12,H-12);const n=chars.length;g.textAlign='center';g.textBaseline='middle';
        if(turn){const size=Math.min(W*.6,(H-36)/(n*.66));g.font='bold '+size+'px '+CJK;g.save();g.translate(W/2,H/2);g.rotate(Math.PI/2);g.shadowBlur=16;g.fillStyle=c;g.fillText(word,0,0);g.shadowBlur=0;g.fillStyle='rgba(255,255,255,.8)';g.fillText(word,0,0);g.restore();return;}
@@ -1405,13 +1408,15 @@
       wallWash(c,f,s,y,4.5,hh+3,.42);if(rand()<.25)flickers.push({meshes:parts,next:2+rand()*6,off:0});}
      // Wall lamps over the sidewalks: amber sodium or cold white, each with its pool on the wet paving.
      function lamp(f,s){{const c=f.tx?f.x+s:f.z+s,m=wallScreens.find(m=>m.e.n[0]===-f.nx&&m.e.n[1]===-f.nz&&Math.abs(m.a-c)<1.45);if(m)s+=(c>=m.a?1:-1)*1.45-(c-m.a);}   // never on a wall screen (20 Nov 2026): moved just clear of it
+      s=onWallF(f,s,.35);   // nor in an alley mouth (20 Nov 2026)
       const warm=rand()<.6,c=warm?'#ffb35c':'#bfe9ff';bbox('wall-lamp',f.tx?[.6,.14,.35]:[.35,.14,.6],onFace(f,s,4.4,.35),warm?amber:white);bbox('wall-lamp-arm',f.tx?[.06,.06,.4]:[.4,.06,.06],onFace(f,s,4.5,.15),frame);
       wallWash(c,f,s,3.4,6,5,.32);const g=onFace(f,s,0,1.5);floorWash(c,g[0],g[2],f.tx?5:3,f.tx?3:5,.2,.3);}
      for(const [fi,[f,gaps]] of fronts.entries())for(let s=4;s<f.len-3;s+=3.5){if(inGapF(f,s,gaps))continue;const r=rand();if(r<.2)blade(f,s,7.2+rand()*2.5,fi);else if(r<.33)lamp(f,s);}
      // Overhead cables: sagging bundles strung between facing buildings, 7-11 m up, each end on a junction box.
      const cableMat=mat('cable','#0a0a0c',{rough:.6,metal:.3});
      function cable(a,b,sag,r){const pts=[];for(let i=0;i<=12;i++){const t=i/12;pts.push(v(a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t-Math.sin(Math.PI*t)*sag,a[2]+(b[2]-a[2])*t));}add(B.MeshBuilder.CreateTube('cable',{path:pts,radius:r,tessellation:4},scene),cableMat,[0,0,0]);}
-     function span(a,b,n){if(LEGACY_ZONES.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
+     function span(a,b,n){if(BA){a=BA.clearFace(a[0],a[1],.25,.15);b=BA.clearFace(b[0],b[1],.25,.15);}   // a cable's end (its junction box) on wall, not in an alley mouth (20 Nov 2026)
+      if(LEGACY_ZONES.some(z=>Math.hypot((a[0]+b[0])/2-z.position[0],(a[1]+b[1])/2-z.position[1])<8))return;for(let i=0;i<n;i++){const A=[a[0],7+rand()*4,a[1]],Bp=[b[0],7+rand()*4,b[1]];cable(A,Bp,.6+rand()*1.2,.025+rand()*.02);bbox('junction-box',[.35,.45,.35],A,frame);bbox('junction-box',[.35,.45,.35],Bp,frame);}}
      for(let z=-118;z<-24;z+=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));
      for(let z=-136;z>-212;z-=8+rand()*5)span([51.05,z],[70.95,z+(rand()-.5)*6],2+Math.floor(rand()*2));   // Far South
      for(let x=6;x<150;x+=9+rand()*6){if(x>49&&x<73)continue;span([x,-19.95],[x+(rand()-.5)*6,-5.05],1+Math.floor(rand()*2));}
