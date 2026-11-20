@@ -126,11 +126,21 @@
  const MC=c=>c.kit.MC();
  function blockEl(c,b,i){if(b.type==='start')return startBlock(c);if(b.type==='end')return endBlock(c);if(b.type==='apt')return aptBlock(c,b);if(b.type==='unlock')return unlockBlock(c,b);return stepBlock(c,b,i);}
  // ---- START
- function startBlock(c){const {m}=c,st=m.start||{how:'person'},by=st.how==='notification',w=st.when||{},G=c.kit.G();
+ /* The Start block (19 Nov 2026: the owner could not find "when the player walks near the giver"): an editable "How it starts" (mission-blocks.js START_MODES, the same
+    list as the Form view's Starts), with the distance and the banner words right here when it is walk near. */
+ function startBlock(c){const {m,kit}=c,st=m.start||{how:'person'},by=st.how==='notification',w=st.when||{},G=kit.G(),MB=B(),mode=MB.startMode(m),near=mode==='near'||mode==='near-accept';
   const a=frame(c,{bid:'start',type:'start',who:m.giver||null,title:'The mission starts',dragOk:false});
-  const how=by?((G.START_CHANNELS.find(x=>x.id===st.channel)||{}).name||st.channel)+' from '+c.short(st.from||m.giver)+' · '+(((G.START_WHEN.find(x=>x.id===w.kind)||{}).name)||'its trigger').toLowerCase():c.short(m.giver)+' offers it when the player talks to them';
-  a.body.append(el(c,'p',how+'.','mb-line'),hint(c,'Who gives it and how it starts are set in “How this mission starts” above.'));
-  if(!by)a.body.append(words(c,'offer',m.offer||[],m.giver,{title:'What '+c.short(m.giver)+' says when offering it',player:true,anim:true}));
+  const r=el(c,'div','','me-row mb-fields'),sel=el(c,'select','','',{'aria-label':'How it starts','data-mb-start-mode':m.id});for(const x of MB.START_MODES)sel.append(new Option(x.name,x.id));sel.value=mode;
+  sel.onchange=()=>change(c,x=>{MB.setStartMode(x,sel.value);return '';},{note:'Starts: '+((MB.START_MODES.find(x=>x.id===sel.value)||{}).name||sel.value)+'.'});r.append(el(c,'b','How it starts'),sel);a.body.append(r);
+  a.body.append(hint(c,(MB.START_MODES.find(x=>x.id===mode)||{}).help||''));
+  if(near){const N=G.NEAR,who=w.npc||m.giver||'',r2=el(c,'div','','me-row mb-fields'),di=el(c,'input','','',{type:'number',min:String(N.min),max:String(N.max),step:'0.5','aria-label':'Distance in metres','data-mb-start-distance':m.id,style:'width:5em'});
+   di.value=String(G.nearMetres(w.distance));di.onchange=()=>{const v=G.nearMetres(di.value);di.value=String(v);change(c,x=>{x.start.when={...(x.start.when||{}),kind:'near',distance:v};return '';},{redraw:false});};
+   r2.append(el(c,'span','Starts when the player comes within','me-small'),di,el(c,'span','metres of '+c.short(who),'me-small'));a.body.append(r2);
+   const pay=MC(c).costOf(m);a.body.append(el(c,'p',mode==='near'?'Starts automatically — no click: walking near starts it at once.':pay&&pay.when==='accept'?'Asks '+(st.yes||'ACCEPT')+' / '+(st.no||'DENY')+': the player pays '+pay.amount+' CR when accepting, so it must ask.':'Asks '+(st.yes||'ACCEPT')+' / '+(st.no||'DENY')+': it starts only when the player presses '+(st.yes||'ACCEPT')+'.',mode==='near'?'me-ok':'me-small',{'data-mb-near-auto':String(mode==='near')}));
+   const tl=el(c,'label','','me-field');tl.append(el(c,'span','The banner (a short notification when it starts)'));const ta=el(c,'textarea','','',{rows:'2',maxlength:'500','aria-label':'Banner text','data-mb-start-text':m.id,placeholder:'(your words, e.g. who wants a word)'});ta.value=st.text||'';
+   ta.oninput=()=>{change(c,x=>{if(x.start)x.start.text=ta.value.slice(0,500);return '';},{redraw:false});kit.guideSoon();};tl.append(ta);a.body.append(tl);}
+  else if(by)a.body.append(el(c,'p',((G.START_CHANNELS.find(x=>x.id===st.channel)||{}).name||st.channel)+' from '+c.short(st.from||m.giver)+' · '+(((G.START_WHEN.find(x=>x.id===w.kind)||{}).name)||'its trigger').toLowerCase()+'.','mb-line'),hint(c,'The sender, the words and when it arrives are set in “How this mission starts” above.'));
+  if(!by||near)a.body.append(words(c,'offer',m.offer||[],m.giver,{title:near?'What '+c.short(m.giver)+' says when the player walks near':'What '+c.short(m.giver)+' says when offering it',player:true,anim:true,choice:MC(c).choiceOk(m,null)}));
   const pay=MC(c).costOf(m);if(pay&&pay.when==='accept')a.body.append(mini(c,'item',null,'The player pays '+pay.amount+' CR when they press '+(st.yes||'ACCEPT')+' (Credits, at the top).'));
   if(st.accept===true){const ask=frame(c,{type:'ask',who:by?st.from||m.giver:m.giver,title:'The player chooses '+(st.yes||'ACCEPT')+' or '+(st.no||'DENY'),nested:true});
    ask.body.append(el(c,'p','On DENY: '+({again:by?'offered again after the next pod exit':'offered again the next time they talk',pod:'offered again after the next pod exit',after:'offered again after '+MC(c).denyMinutes(st.denyMinutes)+' minutes of play',never:'never offered again (removed)',start:'another mission starts instead'}[st.deny||'again'])+'. Buttons and DENY are set in “How this mission starts” above.','me-small'));a.body.append(ask);}
@@ -202,14 +212,14 @@
   else if(k==='await-call')out.push(el(c,'p','Done by itself right after the block above; the call itself comes from a later mission.','me-small'));
   const note=(kit.G().STEP_KINDS.find(x=>x.id===k)||{}).note||kit.HELP_STEP[k];if(note&&k!=='ask')out.push(hint(c,note));return out;}
  /* ACCEPT / DENY in the middle of a mission (mission-content.js ASK_STEP): the same fields in its block and in the Form view's step. */
- const ASK_HELP={end:'The mission ends now and goes back to its giver, who can offer it again.',skip:'The mission jumps ahead to the block you choose; the blocks in between are skipped (they give nothing).',back:'The mission goes back to the block you choose; the player does those blocks again.',tree:'This mission ends and the first mission of the tree you choose starts.'};
+ const ASK_HELP={end:'The mission ends now and goes back to its giver, who can offer it again.',skip:'The mission jumps ahead to the block you choose; the blocks in between are skipped (they give nothing).',back:'The mission goes back to the block you choose; the player does those blocks again.',tree:'This mission ends and the first mission of the tree you choose starts.',continue:'Nothing else: the mission just goes on to the next block (no credits, and not the lines after ACCEPT).'};
  function askFields({t,m,o,eo,kit}){const el_=kit.el,out=[],d=o.deny||'end',ids=(m.objectives||[]).map(x=>x.id),i=ids.indexOf(o.id);
   const q=el_('label','','me-field mb-question');q.append(el_('span','The question (your words)'));const ta=el_('textarea','','',{rows:'2',maxlength:'300','aria-label':'The question the player answers','data-me-step-question':o.id,placeholder:'e.g. Will you take the package across town?'});ta.value=o.question||'';
   ta.oninput=()=>{eo(x=>{x.question=ta.value.slice(0,300);},false);kit.guideSoon();};q.append(ta,kit.hint('The window shows it with two buttons; the mission waits until the player answers. Voice tags like [whispers] are allowed (only ElevenLabs voices use them).'));out.push(q);
   const r1=el_('div','','me-row');r1.append(el_('span','Asked by','me-small'),kit.npcSelect(o.npc||'',v=>eo(x=>{if(v)x.npc=v;else x.npc='';}),{label:'Who asks',empty:'(the giver)',attrs:{'data-mb-ask-npc':o.id}}));
   const lab=(k,ph)=>{const inp=el_('input','','',{'aria-label':ph+' button label',['data-mb-ask-'+k]:o.id,maxlength:'20',size:'10',placeholder:ph});inp.value=o[k]||'';inp.oninput=()=>eo(x=>{const v=inp.value.slice(0,20);if(v.trim())x[k]=v;else delete x[k];},false);return inp;};
   r1.append(el_('span','· buttons','me-small'),lab('yes','ACCEPT'),lab('no','DENY'));out.push(r1);
-  const r2=el_('div','','me-row'),dn=el_('select','','',{'aria-label':'What happens on DENY','data-mb-ask-deny':o.id});for(const [v,n] of [['end','End the mission'],['skip','Skip ahead to a later block'],['back','Go back to an earlier block'],['tree','Start another tree']])dn.append(new Option(n,v));dn.value=d;
+  const r2=el_('div','','me-row'),dn=el_('select','','',{'aria-label':'What happens on DENY','data-mb-ask-deny':o.id});for(const [v,n] of [['end','End the mission'],['skip','Skip ahead to a later block'],['back','Go back to an earlier block'],['tree','Start another tree'],['continue','Just go on']])dn.append(new Option(n,v));dn.value=d;
   dn.onchange=()=>eo(x=>{x.deny=dn.value;if(dn.value==='end')delete x.deny;if(dn.value!=='skip'&&dn.value!=='back')delete x.goto;else if(x.goto&&!((dn.value==='skip'&&ids.indexOf(x.goto)>i)||(dn.value==='back'&&ids.indexOf(x.goto)>=0&&ids.indexOf(x.goto)<i)))delete x.goto;if(dn.value!=='tree')delete x.denyStart;});
   r2.append(el_('b','On DENY'),dn);
   if(d==='skip'||d==='back'){const gs=el_('select','','',{'aria-label':d==='skip'?'Skip to':'Go back to','data-me-step-goto':o.id});gs.append(new Option(d==='skip'?'— skip to which block? —':'— back to which block? —',''));
@@ -218,15 +228,49 @@
   if(d==='tree'){const ms=el_('select','','',{'aria-label':'Tree started on DENY','data-me-step-deny-start':o.id});ms.append(new Option('— choose a tree —',''));for(const tt of kit.local().trees||[])if(tt.id!==(t&&t.id)&&tt.missions&&tt.missions[0])ms.append(new Option(kit.numLabel(tt.missions[0].number,tt.missions[0].title||tt.missions[0].id)+' (first of '+(tt.name||tt.id)+')',tt.missions[0].id));
    ms.value=o.denyStart||'';ms.onchange=()=>eo(x=>{if(ms.value)x.denyStart=ms.value;else delete x.denyStart;});r2.append(ms);}
   out.push(r2,kit.hint(ASK_HELP[d]));
-  const r3=el_('div','','me-row');r3.append(kit.numBox('ACCEPT costs',Number.isInteger(o.price)?o.price:'',1,100000,v=>eo(x=>{if(v)x.price=v;else delete x.price;},false),{'data-mb-ask-price':o.id},'free'),el_('span','CR (optional; charged once, never below 0: with too few credits ACCEPT is greyed)','me-small'));out.push(r3);
+  const r3=el_('div','','me-row');r3.append(kit.numBox('ACCEPT costs',Number.isInteger(o.price)?o.price:'',1,100000,v=>eo(x=>{if(v){x.price=v;delete x.gain;}else delete x.price;},false),{'data-mb-ask-price':o.id},'free'),el_('span','CR (optional; charged once, never below 0: with too few credits ACCEPT is greyed)','me-small'));out.push(r3);
+  const r4=el_('div','','me-row');r4.append(kit.numBox('or ACCEPT gives',Number.isInteger(o.gain)?o.gain:'',1,100000,v=>eo(x=>{if(v){x.gain=v;delete x.price;}else delete x.gain;},false),{'data-mb-ask-gain':o.id},'nothing'),el_('span','CR to the player (optional; given once)','me-small'));out.push(r4);
   return out;}
+ /* A PLAYER REPLY AS A CHOICE (mission-content.js CHOICE; the owner, 19 Nov 2026: "in player reply add the accept or deny option, credit changes if accepted"): the same
+    fields in the Blocks view (a blue Player reply block) and the Form view (a player line). set(fn, redraw): one change of this line; ref: the line's key; i: the index of its
+    step (-1: the offer); after(branch): the editor of the lines said next ('yesSay' / 'noSay'). Guide me: data-me-line-choice-goto / -tree. */
+ const CHOICE_HELP={end:'The mission ends now and goes back to its giver, who can offer it again.',skip:'The mission jumps ahead to the block you choose; the blocks in between give nothing.',back:'The mission goes back to the block you choose (it can be this one): the player does them again.',tree:'This mission ends and the first mission of the tree you choose starts.',continue:'The conversation just goes on with the lines after this reply (no credits).'};
+ function choiceFields({t,m,line,ref,i,set,kit,after}){const el_=kit.el,out=el_('div','','mb-choice',{'data-mb-choice':ref}),c=line.choice&&typeof line.choice==='object'?line.choice:null;
+  const on=el_('label','','mb-choice-on'),cb=el_('input','','',{type:'checkbox','data-mb-choice-on':ref});cb.checked=!!c;cb.onchange=()=>set(l=>{if(cb.checked)l.choice=l.choice&&typeof l.choice==='object'?l.choice:{};else delete l.choice;});
+  on.append(cb,el_('b',' Make this a choice: '+((c&&c.yes)||'ACCEPT')+' / '+((c&&c.no)||'DENY')));out.append(on);
+  if(!c){out.append(kit.hint('Tick it and this reply becomes two buttons for the player (your words, default ACCEPT / DENY). The conversation waits until they press one, then goes on. You can give or take credits on ACCEPT and choose what DENY does.'));return out;}
+  const lab=(k,ph)=>{const inp=el_('input','','',{'aria-label':ph+' button words',['data-mb-choice-'+k]:ref,maxlength:'20',size:'10',placeholder:ph});inp.value=c[k]||'';inp.oninput=()=>set(l=>{const v=inp.value.slice(0,20);if(v.trim())l.choice[k]=v;else delete l.choice[k];},false);return inp;};
+  const r1=el_('div','','me-row');r1.append(el_('span','Buttons','me-small'),lab('yes','ACCEPT'),lab('no','DENY'),el_('span','(empty: ACCEPT / DENY)','me-small'));out.append(r1);
+  const nl=el_('label','','me-field');nl.append(el_('span','Your reply when they press '+(c.no||'DENY')+' (optional)'));const nt=el_('textarea','','',{rows:'2',maxlength:'500','aria-label':'The player’s reply on DENY','data-mb-choice-notext':ref,placeholder:'(optional: what the player says when they press '+(c.no||'DENY')+')'});nt.value=c.noText||'';
+  nt.oninput=()=>set(l=>{const v=nt.value.slice(0,500);if(v.trim())l.choice.noText=v;else delete l.choice.noText;},false);nl.append(nt);out.append(nl);
+  // Credits if accepted: one signed number (+ gets, - pays), the MONEY rules
+  const cr=Number.isInteger(c.credits)?c.credits:0,way=cr>0?'gets':cr<0?'pays':'none',r2=el_('div','','me-row mb-choice-credits');const ws=el_('select','','',{'aria-label':'Credits if accepted','data-mb-choice-way':ref});
+  for(const [v,n] of [['none','No credits'],['gets','Player gets'],['pays','Player pays']])ws.append(new Option(n,v));ws.value=way;
+  ws.onchange=()=>set(l=>{const a=Math.abs(Number(l.choice.credits)||0)||100;if(ws.value==='none')delete l.choice.credits;else l.choice.credits=ws.value==='pays'?-a:a;});
+  r2.append(el_('b','Credits if accepted'),ws);if(way!=='none')r2.append(kit.numBox('Amount',Math.abs(cr),1,100000,v=>set(l=>{const a=v||1;l.choice.credits=(Number(l.choice.credits)<0?-1:1)*a;},false),{'data-mb-choice-credits':ref}),el_('span','CR','me-small'));out.append(r2);
+  out.append(kit.hint(way==='pays'?'Taken once when the player presses '+(c.yes||'ACCEPT')+', never below 0: with too few credits the button is greyed (“YOU NEED N CR”).':way==='gets'?'Given once when the player presses '+(c.yes||'ACCEPT')+' (never twice, even after a reload).':'Nothing is given or taken. Choose Player gets or Player pays to change the player’s credits on '+(c.yes||'ACCEPT')+'.'));
+  // What DENY does
+  const d=c.deny||'end',r3=el_('div','','me-row'),dn=el_('select','','',{'aria-label':'What happens on DENY','data-mb-choice-deny':ref});
+  for(const [v,n] of [['end','End the mission'],['skip','Skip ahead to a later block'],['back','Go back to a block'],['tree','Start another tree'],['continue','Just continue the conversation']])dn.append(new Option(n,v));dn.value=d;
+  dn.onchange=()=>set(l=>{const v=dn.value;if(v==='end')delete l.choice.deny;else l.choice.deny=v;delete l.choice.goto;if(v!=='tree')delete l.choice.denyStart;});
+  r3.append(el_('b','On '+(c.no||'DENY')),dn);
+  if(d==='skip'||d==='back'){const gs=el_('select','','',{'aria-label':d==='skip'?'Skip to':'Go back to','data-mb-choice-goto':ref,'data-me-line-choice-goto':ref});gs.append(new Option(d==='skip'?'— skip to which block? —':'— back to which block? —',''));
+   (m.objectives||[]).forEach((x,k)=>{if(x&&(d==='skip'?k>i:k<=i))gs.append(new Option('step '+(k+1)+': '+String(x.label||x.kind).slice(0,40),x.id));});gs.value=c.goto||'';gs.onchange=()=>set(l=>{if(gs.value)l.choice.goto=gs.value;else delete l.choice.goto;});r3.append(gs);
+   if(d==='skip'&&!(m.objectives||[]).some((x,k)=>k>i))r3.append(el_('span','Add the block to skip to below this one first.','me-small me-warn'));if(d==='back'&&i<0)r3.append(el_('span','The offer has no block above it to go back to.','me-small me-warn'));}
+  if(d==='tree'){const ms=el_('select','','',{'aria-label':'Tree started on DENY','data-mb-choice-tree':ref,'data-me-line-choice-tree':ref});ms.append(new Option('— choose a tree —',''));for(const tt of kit.local().trees||[])if(tt.id!==(t&&t.id)&&tt.missions&&tt.missions[0])ms.append(new Option(kit.numLabel(tt.missions[0].number,tt.missions[0].title||tt.missions[0].id)+' (first of '+(tt.name||tt.id)+')',tt.missions[0].id));
+   ms.value=c.denyStart||'';ms.onchange=()=>set(l=>{if(ms.value)l.choice.denyStart=ms.value;else delete l.choice.denyStart;});r3.append(ms);}
+  out.append(r3,kit.hint(CHOICE_HELP[d]+' The lines after this reply are said after '+(c.yes||'ACCEPT')+(d==='continue'?' and after '+(c.no||'DENY'):'')+'.'));
+  if(after)out.append(after('yesSay'),after('noSay'));return out;}
  function delayRow(c,o,eo){const {kit}=c,box=mini(c,'time',undefined,'');const words_=el(c,'span',o.delay>0?'Starts '+kit.secWords(o.delay)+' after the block above is done.':'Starts as soon as the block above is done.','me-small');
   const r=el(c,'div','','me-row');r.append(kit.numBox('Wait before this block',o.delay||0,0,600,v=>{eo(x=>{if(v)x.delay=v;else delete x.delay;},false);words_.textContent=v?'Starts '+kit.secWords(v)+' after the block above is done.':'Starts as soon as the block above is done.';},{'data-me-step-delay':o.id}),el(c,'span','s ·','me-small'),words_);box.body.append(r);return box;}
  /* A small nested block (Time / Item notes inside a block). */
  function mini(c,type,who,text){const f=frame(c,{type,who:who===undefined?undefined:who,title:text,nested:true});return f;}
  function labelBox(c,value,on,ph,attr,id){const l=el(c,'label','','me-field mb-label');l.append(el(c,'span','What the V1 Mission Log says'));const inp=el(c,'input','','',{placeholder:ph,maxlength:'500',[attr]:id||c.m.id});inp.value=value;inp.oninput=()=>{on(inp.value);c.kit.guideSoon();};l.append(inp);return l;}
  // ---- WORDS: a line set, nested by who says each line (a player line is a blue block inside; another character's lines are their own colour)
- const linesAt=(x,key)=>{if(key==='offer')return (x.offer=x.offer||[]);if(key==='ending'){x.ending=x.ending||{npc:'',place:'',label:'',say:[]};return (x.ending.say=x.ending.say||[]);}const [sid,set]=key.split('/'),o=(x.objectives||[]).find(y=>y.id===sid);if(!o)return null;if(!Array.isArray(o[set]))o[set]=[];return o[set];};
+ /* key: 'offer', 'ending', '<step>/<set>', and for the lines after a player's choice '<…>/<line index>/yesSay' or '…/noSay' (mission-content.js CHOICE). */
+ const linesAt=(x,key)=>{const p=String(key).split('/');let L;if(p[0]==='offer'){L=(x.offer=x.offer||[]);p.splice(0,1);}else if(p[0]==='ending'){x.ending=x.ending||{npc:'',place:'',label:'',say:[]};L=(x.ending.say=x.ending.say||[]);p.splice(0,1);}
+  else{const o=(x.objectives||[]).find(y=>y.id===p[0]);if(!o)return null;if(!Array.isArray(o[p[1]]))o[p[1]]=[];L=o[p[1]];p.splice(0,2);}
+  if(p.length===2){const l=L[Number(p[0])];if(!l||!l.choice||typeof l.choice!=='object'||!['yesSay','noSay'].includes(p[1]))return null;if(!Array.isArray(l.choice[p[1]]))l.choice[p[1]]=[];return l.choice[p[1]];}return L;};
  function words(c,key,lines,defWho,opt={}){const {kit}=c,box=el(c,'div','','mb-words',{'data-mb-lines':key,'data-me-lines':key});box.append(el(c,'h5',opt.title||'What is said','mb-words-title'));
   const groups=B().lineGroups(lines,defWho||'');
   for(const g of groups){const speaker=g.who||defWho||'',own=!g.lines[0].line.who||g.who===defWho;
@@ -238,14 +282,18 @@
   if(opt.player!==false)r.append(btn(c,'+ PLAYER REPLY',()=>add('You','New player line (blue): type what the player says.'),'mb-add-p',{'data-mb-add-player':key,'data-me-add-player-line':key,...(full?{disabled:''}:{})}));
   if(opt.player!==false){const other=kit.npcSelect('',v=>{if(v)add(v,'New line for '+c.short(v)+'.');},{label:'Another character says',empty:'+ another character says…',attrs:{'data-mb-add-other':key}});if(full)other.disabled=true;r.append(other);}
   box.append(r);if(opt.player===false)box.append(hint(c,'A message or a call comes from one character: no player lines here.'));return box;}
- function wordsBlock(c,key,l,k,n,defWho,opt){const {kit,m}=c,you=B().isPlayer(l.who),who=you?'You':l.who||defWho||'',ref=key+'/'+k;
-  const f=frame(c,{type:'words',who:you?'You':who||null,title:'',nested:true,attrs:{'data-mb-line':ref,'data-me-tline':ref,'data-me-line-who':you?'player':'npc'}});
-  const ta=el(c,'textarea','','',{rows:'2',maxlength:'500','aria-label':you?'What the player says':'What '+c.short(who)+' says',placeholder:you?'(what the player says back)':'(what '+c.short(who)+' says; empty: a placeholder)'});ta.value=l.text||'';
+ function wordsBlock(c,key,l,k,n,defWho,opt){const {kit,m}=c,you=B().isPlayer(l.who),who=you?'You':l.who||defWho||'',ref=key+'/'+k,ch=you&&opt.choice&&l.choice&&typeof l.choice==='object'?l.choice:null;
+  const f=frame(c,{type:ch?'ask':'words',who:you?'You':who||null,title:ch?'The player chooses '+(ch.yes||'ACCEPT')+' or '+(ch.no||'DENY'):'',nested:true,attrs:{'data-mb-line':ref,'data-me-tline':ref,'data-me-line-who':you?'player':'npc'}});
+  const ta=el(c,'textarea','','',{rows:'2',maxlength:'500','aria-label':ch?'The player’s reply when they press '+(ch.yes||'ACCEPT'):you?'What the player says':'What '+c.short(who)+' says',placeholder:ch?'(optional: what the player says when they press '+(ch.yes||'ACCEPT')+')':you?'(what the player says back)':'(what '+c.short(who)+' says; empty: a placeholder)'});ta.value=l.text||'';
   ta.oninput=()=>{change(c,x=>{const L=linesAt(x,key);if(L&&L[k])L[k].text=ta.value.slice(0,500);return '';},{redraw:false});};
   f.titleEl.append(btn(c,'↑',()=>change(c,x=>{const L=linesAt(x,key);if(L&&k>0)[L[k-1],L[k]]=[L[k],L[k-1]];}),'',{'aria-label':'Move line up',...(k?{}:{disabled:''})}),btn(c,'↓',()=>change(c,x=>{const L=linesAt(x,key);if(L&&k<L.length-1)[L[k+1],L[k]]=[L[k],L[k+1]];}),'',{'aria-label':'Move line down',...(k<n-1?{}:{disabled:''})}),
    btn(c,'×',()=>{if(change(c,x=>{const L=linesAt(x,key);if(L)L.splice(k,1);},{redraw:false})){lastNote={mid:m.id,text:'Line deleted.',undo:true};kit.draw();}},'me-x',{'aria-label':'Delete line','data-mb-del-line':ref}));
-  f.body.append(ta);
-  // While saying this, <NPC> does: … (an orange Action block inside the Words block)
+  if(ch)f.body.append(el(c,'span','Your reply when they press '+(ch.yes||'ACCEPT')+' (optional):','me-small'));f.body.append(ta);
+  // A player reply as a choice: ACCEPT / DENY buttons, credits if accepted, what DENY does, what is said after each (choiceFields; not inside those follow-up lines)
+  if(you&&opt.choice&&!opt.nested){const ys=(l.choice&&l.choice.yes)||'ACCEPT',ns=(l.choice&&l.choice.no)||'DENY';
+   f.body.append(choiceFields({t:c.t,m,line:l,ref,i:key==='offer'?-1:(m.objectives||[]).findIndex(o=>o&&o.id===key.split('/')[0]),kit,
+    set:(fn,redraw=true)=>change(c,x=>{const L=linesAt(x,key);if(L&&L[k])fn(L[k]);return '';},{redraw}),
+    after:b=>words(c,ref+'/'+b,(l.choice&&l.choice[b])||[],defWho,{title:b==='yesSay'?'After '+ys+', said next (optional)':'After '+ns+', said next (optional)',player:true,anim:true,nested:true})}));}
   if(!you&&who&&opt.anim!==false&&kit.giver(who)){const act=frame(c,{type:'action',who,title:'While saying this, '+c.short(who)+' does',nested:true,attrs:{'data-mb-line-anim':ref,'data-me-line-anim':ref}});const {sel,r}=kit.animPick(who,l.anim,v=>change(c,x=>{const L=linesAt(x,key);if(!L||!L[k])return;if(v)L[k].anim=v;else{delete L[k].anim;delete L[k].animFor;}}),{'data-me-line-anim-pick':ref});act.body.append(sel);if(!r.ok)act.body.append(el(c,'span',r.why,'me-small me-muted'));f.body.append(act);}
   {const d=el(c,'details','','mb-time',{'data-me-line-time':ref}),sm=el(c,'summary',kit.lineTimeWords(l));d.open=!!(l.wait||l.show);d.append(sm);const cur={...l};
    const put=(fld,v)=>{if(v==null||(!v&&fld!=='wait'))delete cur[fld];else cur[fld]=v;if(fld==='wait'&&!v)delete cur.wait;sm.textContent=kit.lineTimeWords(cur);change(c,x=>{const L=linesAt(x,key);if(!L||!L[k])return;if(cur[fld]==null)delete L[k][fld];else L[k][fld]=cur[fld];},{redraw:false});};
@@ -277,5 +325,5 @@
  function unlockText(c,u){return u.kind==='credits'?'+'+(u.amount||0)+' credits':u.kind==='ship'?((root.VoidShips?.ships?.[u.id]||{}).name||u.id||'…'):u.kind==='reputation'?c.short(u.id)+' '+(u.amount>0?'+':'')+(u.amount||0):u.kind==='contact'?c.short(u.id)+' added to contacts':u.kind==='follow'?'follow '+c.short(u.id):u.kind==='flag'?'mf_'+(u.id||'…'):u.kind==='location'?c.place(u.id)||'…':u.kind==='tree'?(((c.kit.local().trees||[]).find(x=>x.id===u.id)||{}).name||u.id||'…'):u.id||'';}
  /* "Edit in Form view": switches this mission to the Form view and scrolls to that step. */
  function formAt(c,stepId){over[c.m.id]='form';c.kit.draw();setTimeout(()=>{const n=document.querySelector('[data-me-tree-mission="'+CSS.escape(c.m.id)+'"] [data-me-tstep="'+CSS.escape(stepId)+'"]');try{n?.scrollIntoView({block:'center'});}catch{}},0);}
- root.VoidMissionBlocksView={on,set,openBlocks,toggle,view,askFields,VIEW_KEY,get picking(){return pick;},collapsed,opened};
+ root.VoidMissionBlocksView={on,set,openBlocks,toggle,view,askFields,choiceFields,VIEW_KEY,get picking(){return pick;},collapsed,opened};
 })(globalThis);

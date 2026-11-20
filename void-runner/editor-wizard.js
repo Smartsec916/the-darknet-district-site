@@ -53,7 +53,8 @@
  const STARTS=[
   {id:'person',title:'When the player talks to them',line:'The player walks up, presses TALK, and the mission is offered.'},
   {id:'person-accept',title:'They ask, the player says ACCEPT or DENY',line:'Like above, but the player chooses ACCEPT or DENY. DENY: they are asked again next time.'},
-  {id:'near',title:'When the player walks near them',line:'A short banner pops up when the player comes within 5 metres. No talking needed.'},
+  {id:'near',title:'When the player walks near them (starts automatically)',line:'No talking and nothing to press: when the player comes within the distance below (5 metres if you leave it), the mission starts by itself, a short banner pops up and they say what you write on the last page.'},
+  {id:'near-accept',title:'When the player walks near them, they ask ACCEPT or DENY',line:'When the player comes within the distance, they offer it and the player chooses ACCEPT or DENY. Nothing starts until ACCEPT.'},
   {id:'messages',title:'A text message on the V1',line:'Arrives in the V1 Messages app when the player first leaves their Sleeping Pod.'}];
  const PAGES=[
   {id:'kind',title:'What kind of mission?',help:'Pick the one closest to your idea. You can change everything later.'},
@@ -88,8 +89,8 @@
   if(page==='giver'){if(!a.giver)out.push('Choose who gives the mission: pick a name from the list.');
    else if(!canTalk(g,a.giver))out.push(nameOf(g,a.giver)+' cannot give missions in the game yet ('+(((g.find(x=>x.id===a.giver)||{}).why)||'no TALK prompt')+'). Pick someone else from the list.');}
   if(page==='start'){if(!STARTS.some(s=>s.id===a.start))out.push('Choose how it starts: click one of the choices.');
-   if((a.start==='messages'||a.start==='near')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');
-   {const NV=typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;if((a.start==='messages'||a.start==='near')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.message&&a.message.text||'')))out.push(p);if((a.start==='person'||a.start==='person-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.offer||'')))out.push('What they say when offering it: '+p);}}   // ElevenLabs voice tags: the same rules as a line
+   if((a.start==='messages'||a.start==='near'||a.start==='near-accept')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');
+   {const NV=typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;if((a.start==='messages'||a.start==='near'||a.start==='near-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.message&&a.message.text||'')))out.push(p);if((a.start==='person'||a.start==='person-accept'||a.start==='near'||a.start==='near-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.offer||'')))out.push('What they say when offering it: '+p);}}   // ElevenLabs voice tags: the same rules as a line
   if(page==='steps'){if(!a.steps.length)out.push('Add at least one step: press “+ ADD A STEP”.');
    a.steps.forEach((s,i)=>{const n='Step '+(i+1)+': ',k=STEPS.find(x=>x.id===s.kind);
     if(!k){out.push(n+'choose what the player does, from the first list on that step.');return;}
@@ -110,7 +111,7 @@
   if(page==='name'&&!String(a.title||'').trim())out.push('Give the mission a name: type it in the box “Mission name” (for example “A parcel for Iris”).');
   return out;}
  /* Does the offer ask ACCEPT / DENY? Always when the player pays (the cost is charged at ACCEPT) or the start is "they ask"; otherwise the reward page's yes / no. */
- const asks=a=>!!(a&&(a.ask===true||a.start==='person-accept'||(a.pays&&Number(a.rewards)>0)));
+ const asks=a=>!!(a&&(a.ask===true||a.start==='person-accept'||a.start==='near-accept'||(a.pays&&Number(a.rewards)>0)));
  const allProblems=(a,ctx)=>PAGES.flatMap(p=>problems(a,p.id,ctx));
  /* The answers -> an ordinary draft mission. draft: the editor's local draft (changed in place); opts: {T (mission-trees.js), number (next free mission number),
     treeName}. The mission goes into a.tree when that is one of the owner's trees, otherwise into "My missions" (made once). Returns {tree, mission}. */
@@ -124,7 +125,7 @@
   m.offer=[{who:a.giver,text:String(a.offer||'').trim().slice(0,500)}];
   const text=String(a.message&&a.message.text||'').trim().slice(0,500);
   if(a.start==='person-accept'||(a.start==='person'&&ask))m.start={how:'person',accept:true};
-  else if(a.start==='near')m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:5}};
+  else if(a.start==='near'||a.start==='near-accept'){const d=Number(a.distance),dist=Number.isFinite(d)&&d>=1?Math.min(30,Math.round(d*10)/10):5;m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:dist}};}
   else if(a.start==='messages')m.start={how:'notification',channel:'messages',from:a.giver,header:String(a.message.header||'').trim().slice(0,80)||'MESSAGE',text,when:{kind:'pod-exit'}};
   if(ask&&m.start)m.start.accept=true;
   const apt=aptRecord(a);if(apt)m.apartments=[apt];   // a location built from modules (modules.js TEMPLATES: an office, a server room, a shop back room ...) or an apartment   // one apartment (apartments.js); the Mission Editor adds more
