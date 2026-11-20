@@ -2,6 +2,33 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twenty-sixth pass (20 Nov 2026): "Follow them" / "They follow you" INTO a place of the mission
+
+Branch `claude/follow-into-locations`, build `2026-11-20-follow-into-1`. Pushed, no PR, not merged. The owner: "For the follow options if I add an apartment there should be an option to follow into the apartment".
+
+### How to use it (plain steps)
+
+1. Add the place to the mission first (an apartment, or a location built from modules), with its street door.
+2. On a **Follow them** or **They follow you** step, the new list **Where to** has "A spot on the street (pick it on the map)" and, under it, every place of this mission by the same names as the **Go into** step: "Follow Reverie into: Rundown apartment 104 (…)", "… Server room (…)", "… Anywhere inside (…)". Pick one. The map goes away (the place's street door is the spot on the street), the Mission Log words become "Follow Reverie into apartment 104" / "Bring Lace into the server room" while they are the automatic ones, and the distances ("waits when the player is more than …", "lost beyond …") stay.
+3. The same list is in the **Blocks** view (it uses the same panel) and in **Make a mission** (the step's second list shows "Follow them into: …" once the mission has its place). **Guide me** points at the list when the place is missing or not allowed.
+4. Greyed with the reason: the street cat ("it does not go into buildings"). Shown as a problem: a place whose street door is in another area than where she is placed for this mission, a bar's back room for Reverie, Lace or a made character not marked adult, an elevator cab as the end, a place that opens later in the mission ("available from" a later step), a spot and a place together.
+
+### What the player sees
+
+- **Follow them:** she walks along the pavement to the place's street door. When the player is close she goes in first (the door slides open; she walks into the dark doorway). When the player comes in she is waiting a couple of metres inside the hallway; she leads room to room, through doorways, through doors that lead elsewhere (she goes through first when the player is near and is waiting on the other side) and into the elevator cab (she rides with the player when they are in the cab together). Done when both are inside the chosen room.
+- **They follow you:** the player walks to the door and goes in; she comes in through the same door a moment later (about her walk to it, 0.8 to 6 seconds), the door sliding open for her, and follows the player room to room, rides the elevator with them when she is in the cab, and comes through the next door behind them. Done when both are inside the chosen room.
+- **Leaving during the step:** she comes back out behind the player (out of the same street door) and carries on from the street; a "Follow them" player who went further than "lost" first: she waits where she is, or the mission fails, as on the street. A reload during the step (every login wakes in the Sleeping Pod) starts it again at the street door, she waiting there.
+- **After the step** she stays in that room (TALK TO her works there) until the mission is over, then goes back to her routine where the player does not see her come back.
+- **Multiplayer:** the place is private to the player doing the mission; other players see her on the street as usual.
+
+### For Claude and Codex
+
+- Step fields: `apt` (a `mission.apartments` id) and `mod` (a module of a location; none = anywhere inside) on `follow-them` / `they-follow`, instead of `to`. `npc-escort.js`: `FIELDS`, `intoProblems`, `canInto`, `doorAt` / `doorArea`, `roomGraph` / `roomPath` / `destOf`, `crossing` (the state machine for a change of place: with / ride / stay / fail and the delay), `insideDone`, `resumeInto`, `gridRoute` (A* around the walking area's solids, door slabs left out unless locked), `freeSpot`, `lead()` (`inp.door`: phases `enter` -> `in`; `inp.route`, `noDone`, `unarmed` after coming back out), `follow()` (`inp.door` / `noDone`: not done at the door), `encode` / `decode` (a fifth field `in` in `story.flags.npcEsc`), inventory `into` (door areas, adult rooms) and `npcs[id].into` / `youthful`.
+- `mission-content.js`: `escortNow` carries `apt`, `mod`, `door`, `place`, `loc`; `insideNow` (who stays inside after the step); `holdOf` returns `inside` for the giver; the check passes the mission's places and steps. `apartments.js problems` lets a follow step name a place.
+- `live-content.js plans()`: a step into a place has the door's front as its spot and `door` (just inside it); while she is inside (`VoidEscortIndoors.away`) and after the step (`insideNow`) her plan is `{mode:'stay', area:'indoors', indoors:true, why:'mission'}` (no street figure); `replan()`. `ncz-street-pair.js` / `npc-made.js`: `door:P.door` to the rules; back from indoors only out of view (`rejoin` / `away`).
+- `npc-escort-indoors.js` (new, loaded after `module-integration.js`): wraps `VoidApartments.build` (both the older apartments and module locations), preloads her model behind the loading screen (zone `prepare`), builds her figure (same model, look, added animations, made characters' props), leads / follows inside, opens doors near her, the TALK prompt, done / failed through the street pair's `onEscort`. `VoidEscortIndoors.live()` for tests.
+- Server: `void_runner_live_content.py into_problems` (from `escort_problems`), `ESCORT_FIELDS`, `apartment_problems` (a follow step may name a place), `escort_shape_problems` (shapes of `apt` / `mod`). Admin inventory regenerated.
+- Tests: `tests/follow-into.test.cjs`, `tests/test_follow_into.py`, browser `tests/follow-into-browser.cjs` (KIND=lead: Reverie into a rundown apartment; KIND=bring: Lace into the server room by the elevator).
 ## Fix (20 Nov 2026): the Location plan was empty for a hallway + apartment; a street map of numbered doors; any city apartment style behind any city door
 
 Branch `claude/location-plan-fix`, build `2026-11-20-location-plan-1`. Pushed, no PR, not merged.

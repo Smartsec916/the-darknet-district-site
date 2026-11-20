@@ -241,7 +241,7 @@
    if(o.kind==='apt-use'&&!OBJECT_IDS.includes(o.object))out.push('step '+o.id+': choose what is used (computer, utility panel, safe, vending machine, closet or light switch).');
    if(o.kind==='apt-use'&&o.object==='screen'){const a=list.find(x=>x&&x.id===o.apt);if(a&&!SCREEN_STYLES.includes(a.style))out.push('step '+o.id+': the '+a.style+' apartment has no ad screen.');}
    if(o.kind==='apt-enter'&&o.object!=null)out.push('step '+o.id+': only a “use something” step names an object.');}
-  for(const o of m.objectives||[])if(o&&o.kind!=='apt-enter'&&o.kind!=='apt-use'&&(o.apt!=null||o.object!=null||o.mod!=null))out.push('step '+o.id+': only an apartment step names an apartment.');
+  for(const o of m.objectives||[])if(o&&o.kind!=='apt-enter'&&o.kind!=='apt-use'&&(o.apt!=null||o.object!=null||o.mod!=null)&&!((o.kind==='follow-them'||o.kind==='they-follow')&&o.object==null))out.push('step '+o.id+': only an apartment step names an apartment.');   // a follow step may go into a place (npc-escort.js intoProblems checks it)
   const items=new Set(itemIds());
   for(const o of m.objectives||[]){if(!o)continue;if(o.kind!=='hack'){if(['ap','stay','unlock','needs'].some(k=>o[k]!=null))out.push('step '+o.id+': only a “hack the access point” step names an access point.');continue;}
    const p=apOf(o.ap);if(!p)out.push('step '+o.id+': choose the access point to hack (a street door, or an apartment’s hallway door or entry).');else if(p.door&&!known.has(p.door))out.push('step '+o.id+': that street door does not exist.');else if(p.apt&&!ids.has(p.apt))out.push('step '+o.id+': choose one of this mission’s apartments.');
