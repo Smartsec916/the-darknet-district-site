@@ -41,6 +41,7 @@
   moveSnap:6,         // m: a goal that jumps further than this is snapped to
   preferBonus:4,      // m: a portal on the route already in use costs this much less
   bayPenalty:40,      // m: walkers use a gate's vehicle bay only if they are standing in it
+  throughPenalty:30,  // m: each street door of a building with two (Milked's front and rear doors): a walk from street to street never cuts through it
   keep:8              // m: a waypoint in use stays in use across a region edge until passed, or this far away
  };
  const TAU=Math.PI*2;
@@ -78,8 +79,8 @@
    regions.push({id:'milked-vestibule',rects:[MK.VESTIBULE]},{id:'milked-lobby',rects:[MK.LOBBY]},...rooms.map(([id,r])=>({id,rects:[room(r)]})),{id:'milked',rects:[MK.FOOTPRINT]});
    const north=(MK.DOORS||[]).find(x=>x.id==='milked-lobby-north')||{x:MK.REAR.x,z:MK.REAR.z+2.6,half:.7},inside=rooms.length===4;
    const hz=MK.HALL?(MK.HALL[2]+MK.HALL[3])/2:0,office=room('office');
-   portals.push({id:'milked-door',a:'q:'+(front||'far-south'),b:'milked-vestibule',x:MK.DOOR.x,z:MK.DOOR.z,nx:0,nz:-1,half:MK.DOOR.half||1},{id:'milked-inner-door',a:'milked-vestibule',b:inside?'milked-reception':'milked',x:MK.INNER.x,z:MK.INNER.z,nx:0,nz:-1,half:MK.INNER.half||1},
-    {id:'milked-rear-door',a:'q:'+(rear||'far-south'),b:'milked-lobby',x:MK.REAR.x,z:MK.REAR.z,nx:0,nz:1,half:MK.REAR.half||.7},{id:'milked-lobby-door',a:'milked-lobby',b:inside?'milked-staff':'milked',x:north.x,z:north.z,nx:0,nz:1,half:north.half||.7});
+   portals.push({id:'milked-door',a:'q:'+(front||'far-south'),b:'milked-vestibule',x:MK.DOOR.x,z:MK.DOOR.z,nx:0,nz:-1,half:MK.DOOR.half||1,penalty:TUNE.throughPenalty},{id:'milked-inner-door',a:'milked-vestibule',b:inside?'milked-reception':'milked',x:MK.INNER.x,z:MK.INNER.z,nx:0,nz:-1,half:MK.INNER.half||1},
+    {id:'milked-rear-door',a:'q:'+(rear||'far-south'),b:'milked-lobby',x:MK.REAR.x,z:MK.REAR.z,nx:0,nz:1,half:MK.REAR.half||.7,penalty:TUNE.throughPenalty},{id:'milked-lobby-door',a:'milked-lobby',b:inside?'milked-staff':'milked',x:north.x,z:north.z,nx:0,nz:1,half:north.half||.7});
    if(inside)portals.push({id:'milked-side-door',a:'milked-reception',b:'milked-hall',x:MK.HALL[0],z:hz,nx:1,nz:0,half:.65},{id:'milked-staff-door',a:'milked-hall',b:'milked-staff',x:MK.HALL[1],z:hz,nx:1,nz:0,half:.65},
     {id:'milked-office-door',a:'milked-staff',b:'milked-office',x:office[0]+1.25,z:office[2],nx:0,nz:1,half:.65},{id:'milked-lobby-west',a:'milked-lobby',b:'milked',x:(MK.LOBBY_W||{}).x||MK.LOBBY[0],z:(MK.LOBBY_W||{}).z||MK.LOBBY[2]+1,nx:-1,nz:0,half:.65});}
   if(QT&&QT.LANES){for(const l of QT.LANES){const g=QT.gate(l.gate);if(!g)continue;regions.push({id:'lane:'+l.key,rects:[l.rect]});
@@ -91,7 +92,7 @@
    for(const q of QT.IDS||Object.keys(QT.QUARTERS))(QT.QUARTERS[q].streets||[]).forEach((r,i)=>{if(!(NC&&(same(r,NC.RECT)||same(r,NC.HALL))))streets.push({id:'s:'+q+':'+i,rects:[r],quarter:q});});
    for(let i=0;i<streets.length;i++)for(let j=i+1;j<streets.length;j++){const A=streets[i],B=streets[j];if(A.quarter!==B.quarter)continue;const a=A.rects[0],c=B.rects[0],x0=Math.max(a[0],c[0]),x1=Math.min(a[1],c[1]),z0=Math.max(a[2],c[2]),z1=Math.min(a[3],c[3]);
     if(x1<x0-.05||z1<z0-.05)continue;const w=Math.max(0,x1-x0),h=Math.max(0,z1-z0),alongX=w<h,ca=[(a[0]+a[1])/2,(a[2]+a[3])/2],cb=[(c[0]+c[1])/2,(c[2]+c[3])/2],sx=Math.sign(cb[0]-ca[0])||1,sz=Math.sign(cb[1]-ca[1])||1;
-    portals.push({id:'junction:'+A.id+':'+B.id,a:A.id,b:B.id,x:(x0+x1)/2,z:(z0+z1)/2,nx:alongX?sx:0,nz:alongX?0:sz,half:(alongX?h:w)/2});}
+    portals.push({id:'junction:'+A.id+':'+B.id,a:A.id,b:B.id,x:(x0+x1)/2,z:(z0+z1)/2,nx:alongX?sx:0,nz:alongX?0:sz,half:(alongX?h:w)/2,area:w>.05&&h>.05?[x0,x1,z0,z1]:null});}
    const street=(x,z)=>(streets.find(r=>inRect(r.rects[0],x,z))||{}).id;
    for(const p of portals)for(const [k,dir] of [['a',-1],['b',1]]){const id=p[k];if(typeof id!=='string'||!id.startsWith('q:'))continue;const hit=street(p.x+p.nx*dir,p.z+p.nz*dir);if(hit)p[k]=hit;}}
   const near=(x,z,hint)=>{let best=null;for(const r of streets){const q=r.rects[0],d=Math.hypot(Math.max(q[0]-x,0,x-q[1]),Math.max(q[2]-z,0,z-q[3]))+(hint&&r.quarter!==hint?.5:0);if(d<=3&&(!best||d<best.d))best={d,id:r.id};}return best&&best.id;};
@@ -126,16 +127,24 @@
     if(best.has(id)&&best.get(id)<=cost)continue;best.set(id,cost);open.push({region:dir>0?p.b:p.a,x:p.x,z:p.z,cost,path:[...c.path,{p,dir,id,into:dir>0?p.b:p.a}]});}}
   if(!found)return [end];
   const doors=found.path.map(s=>{const p=s.p;return {id:s.id,kind:'door',x:p.x,y:1.7,z:p.z,nx:p.nx*s.dir,nz:p.nz*s.dir,half:p.half,r:TUNE.passRadius};}),out=[];
+  // Two streets that OVERLAP (a T or a cross: the back alleys' bays, yards and lanes; night QA 20 Nov 2026) meet in an AREA, not through a wall: such a junction is
+  // passed once the player is inside the overlap (passed()), it has no apron, and going back is measured against the next leg (behind()). Before, its normal was
+  // the axis the rects happened to overlap less on: the route could be "north into the alley, then south", so an apron sent the player back the way they came
+  // and the arrow swung back and forth, or the junction counted as passed from the far side at once and the arrow cut through a building.
+  doors.forEach((d,i)=>{const a=found.path[i].p.area;if(!a)return;const n=doors[i+1]||end,dx=n.x-d.x,dz=n.z-d.z,l=Math.hypot(dx,dz)||1;d.area=a;d.ahead=[dx/l,dz/l];});
   // An APRON a little beyond a door wherever the next leg turns away from straight through it (out onto a street, from a room into a corridor), so the arrow
   // first points out through the door, never along the wall beside it.
   doors.forEach((d,i)=>{out.push(d);const n=doors[i+1]||end,dx=n.x-d.x,dz=n.z-d.z,l=Math.hypot(dx,dz)||1;
-   if((dx*d.nx+dz*d.nz)/l<Math.cos(TUNE.apronTurn))out.push({id:d.id+'+',kind:'apron',x:d.x+d.nx*TUNE.apron,y:1.7,z:d.z+d.nz*TUNE.apron,nx:d.nx,nz:d.nz,half:d.half,r:TUNE.apronRadius,door:d});});
+   if(!d.area&&(dx*d.nx+dz*d.nz)/l<Math.cos(TUNE.apronTurn))out.push({id:d.id+'+',kind:'apron',x:d.x+d.nx*TUNE.apron,y:1.7,z:d.z+d.nz*TUNE.apron,nx:d.nx,nz:d.nz,half:d.half,r:TUNE.apronRadius,door:d});});
   out.push(end);return out;}
  // Signed distance through a waypoint's plane (travel direction positive) and the distance along it.
  // An apron is reached at its own point; going back is measured from its door (the route returns only when the player is back through the DOOR).
  function side(w,p,ref=w){const dx=p.x-ref.x,dz=p.z-ref.z;return {s:dx*w.nx+dz*w.nz,lat:Math.abs(-dx*w.nz+dz*w.nx)};}
- function passed(w,p){if(!w||w.kind==='goal')return false;if(Math.hypot(p.x-w.x,p.z-w.z)<w.r)return true;const {s,lat}=side(w,p);return s>TUNE.planeMargin&&lat<=w.half+TUNE.planeSlack;}
- function behind(w,p){if(!w||w.kind==='goal')return false;const {s,lat}=side(w,p,w.door||w);return s<-TUNE.backtrack&&lat<=w.half+TUNE.planeSlack+TUNE.backtrack;}
+ // An overlap junction (w.area): passed once well inside the overlap (up to 1 m in from its edges), never by its plane; behind once more than `backtrack` outside
+ // it on the side away from the next leg.
+ const inArea=(a,p,m)=>p.x>=a[0]+m[0]&&p.x<=a[1]-m[0]&&p.z>=a[2]+m[1]&&p.z<=a[3]-m[1],areaIn=a=>[Math.min(1,Math.max(0,(a[1]-a[0])/2-.3)),Math.min(1,Math.max(0,(a[3]-a[2])/2-.3))];
+ function passed(w,p){if(!w||w.kind==='goal')return false;if(Math.hypot(p.x-w.x,p.z-w.z)<w.r)return true;if(w.area)return inArea(w.area,p,areaIn(w.area));const {s,lat}=side(w,p);return s>TUNE.planeMargin&&lat<=w.half+TUNE.planeSlack;}
+ function behind(w,p){if(!w||w.kind==='goal')return false;const d=w.door||w;if(d.area)return !inArea(d.area,p,[-TUNE.backtrack,-TUNE.backtrack])&&((p.x-d.x)*d.ahead[0]+(p.z-d.z)*d.ahead[1])<0;const {s,lat}=side(w,p,w.door||w);return s<-TUNE.backtrack&&lat<=w.half+TUNE.planeSlack+TUNE.backtrack;}
  // Which waypoint of `route` to head for, given the one in use (`cur`, an id) and the player `p`.
  function advance(route,cur,p){let i=cur?route.findIndex(w=>w.id===cur):-1;if(i<0)i=0;while(i>0&&behind(route[i-1],p))i--;while(i<route.length-1&&passed(route[i],p))i++;return i;}
  // How visible the arrow is for a horizontal distance to the goal (1: fully).
