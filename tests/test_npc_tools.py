@@ -29,11 +29,12 @@ class NpcToolsServerTests(unittest.TestCase):
         self.assertEqual(live.npc_problems(ok, INV), [])
         self.assertEqual(live.check(doc(npcs=ok), INV), [])
         self.assertEqual(live.npc_problems({'grey-reverie': {'mode': 'original'}}, INV), [])
+        # (20 Nov 2026) the ad screen that stood at the kerb here hangs on the wall now: the pavement there is free
+        self.assertEqual(live.npc_problems({'grey-reverie': {'mode': 'stay', 'x': 96.5, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, INV), [])
         bad = [({'admin': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['idle']}}, 'cannot be moved'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -12, 'yaw': 0, 'actions': ['idle']}}, 'the road'),
                ({'grey-reverie': {'mode': 'stay', 'x': 40, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, 'standing there'),
                ({'grey-reverie': {'mode': 'stay', 'x': 98, 'z': -6, 'yaw': 0, 'actions': ['sit']}}, 'needs a ledge'),
-               ({'grey-reverie': {'mode': 'stay', 'x': 96.5, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, 'street furniture'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['dance-belly']}}, 'not something'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['slow-dance']}}, 'not something'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['idle'], 'speed': 3}}, 'unknown fields'),

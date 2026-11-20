@@ -93,3 +93,24 @@ test('the page loads the board and the screens before the scripts that use them,
   assert.ok(at('warflying-board.js')<at('warflying-scan.js'));assert.ok(at('ad-screens-data.js')<at('ad-screens.js')&&at('ad-screens.js')<at('neochinatown.js')&&at('ad-screens.js')<at('relay-screens.js'));
   assert.ok(fs.readFileSync(path.join(__dirname,'../void-runner/personal-device.js'),'utf8').includes('X.standings()'));
 });
+
+test('street-level screens hang on the walls, a little smaller, beside the sign and clear of the doors (the owner, 20 Nov 2026)',()=>{
+  const M=D.MOUNT;assert.ok(M.w/1.6>=.74&&M.w/1.6<=.8&&M.h/2.4>=.74&&M.h/2.4<=.8,'about 75-80% of the old 1.6 x 2.4 m picture');assert.ok(Math.abs(M.w/M.h-2/3)<1e-9,'the feeds’ 2:3 picture');
+  assert.ok(M.bottom>=2.6&&M.bottom<=3,'bottom edge about 2.6-3 m up');assert.ok(M.out<.5,'flat on the wall');
+  assert.equal(D.mountOffset({}),0,'the middle of a plain shopfront');
+  const o=D.mountOffset({sign:true});assert.ok(Math.abs(o)-M.half>=M.sign-1e-9,'never over the shop sign');
+  assert.ok(Math.abs(D.mountOffset({sign:true,doors:[-3.5,3.5]}))<=3.5-M.door-M.half+1e-9,'clear of the flats’ doors at both ends');
+  assert.notEqual(D.mountOffset({doors:[0]}),0,'not over a shop door in the middle');assert.equal(D.mountOffset({sign:true,doors:[-2,2]}),null,'nowhere to hang: none');
+  // the source: the kerb stands are gone from neochinatown.js and the screens are built by mount()
+  const src=fs.readFileSync(path.join(__dirname,'../void-runner/neochinatown.js'),'utf8');assert.ok(!/kiosk-frame/.test(src));assert.match(src,/adScreens\.mount\(m\.at,m\.ry\)/);assert.match(src,/AD\.thin\(idx\.map\(i=>list\[i\]\),AD\.KEEP_SHARE/);
+});
+test('thinning keeps two thirds, takes the bunched-up ones first and is the same every time',()=>{
+  const list=[];for(let i=0;i<30;i++)list.push({x:i*7,y:3.7,z:0,side:0,kind:'kiosk'});list.push({x:3.5,y:3.7,z:0,side:0,kind:'kiosk'},{x:4.5,y:3.7,z:0,side:0,kind:'kiosk'});
+  const k=D.thin(list);assert.equal(k.filter(Boolean).length,Math.round(list.length*D.KEEP_SHARE));assert.deepEqual(D.thin(list),k);
+  assert.ok(!k[30]||!k[31],'of the two squeezed in, at least one goes');
+  const xs=list.filter((c,i)=>k[i]).map(c=>c.x).sort((a,b)=>a-b),gaps=xs.slice(1).map((x,i)=>x-xs[i]);assert.ok(Math.max(...gaps)<=21+1e-9,'no long empty stretch');
+  // sides of the street are thinned on their own reckoning: across the road is not "close"
+  const two=[{x:0,y:3,z:0,side:0,kind:'kiosk'},{x:0,y:3,z:15,side:1,kind:'kiosk'},{x:2,y:3,z:0,side:0,kind:'kiosk'}];assert.deepEqual(D.thin(two),[true,true,false]);
+  assert.ok(D.allowed('oldtown',61,-80,Q.GATES));assert.ok(!D.allowed('outskirts',30,-240,Q.GATES));assert.ok(!D.allowed('avenue',130,-12,Q.GATES),'the Temple end');
+  for(const g of Q.GATES){const c=[(g.rect[0]+g.rect[1])/2,(g.rect[2]+g.rect[3])/2];for(const q of Q.IDS)assert.ok(!D.allowed(q,c[0],c[1],Q.GATES),g.name);}
+});
