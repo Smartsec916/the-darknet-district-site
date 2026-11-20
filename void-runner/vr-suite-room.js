@@ -204,7 +204,7 @@
   const city=await buildCity(k,ctx,b,tick);
   // ---- Holo screen at the desk: the music preset and a live equaliser ----
   const screenTex=k.paint('suite-screen',512,256,()=>{});const sg=screenTex.getContext();let track='LOUNGE';
-  const drawScreen=t=>{sg.fillStyle='#000';sg.fillRect(0,0,512,256);sg.strokeStyle='rgba(80,220,255,.75)';sg.lineWidth=3;sg.strokeRect(6,6,500,244);sg.fillStyle='#5ad8ff';sg.font='600 22px monospace';sg.fillText('SUITE AUDIO · 音樂',24,42);
+  const drawScreen=t=>{sg.fillStyle='#000';sg.fillRect(0,0,512,256);sg.strokeStyle='rgba(80,220,255,.75)';sg.lineWidth=3;sg.strokeRect(6,6,500,244);sg.fillStyle='#5ad8ff';sg.font='600 22px monospace';sg.fillText('SUITE AUDIO · 音乐',24,42);
    sg.fillStyle='#ff4fb0';sg.font='700 38px monospace';sg.fillText(track,24,92);for(let i=0;i<24;i++){const h=track==='OFF'?4:10+Math.abs(Math.sin(t*2.1+i*.7)*Math.sin(t*.9+i*.31))*112;sg.fillStyle=i%3?'rgba(255,79,176,.9)':'rgba(90,216,255,.9)';sg.fillRect(24+i*19.5,238-h,12,h);}
    sg.fillStyle='rgba(90,216,255,.65)';sg.font='16px monospace';sg.fillText('E · MUSIC',400,42);screenTex.update();};
   const holo=k.own(new B.StandardMaterial('vr-suite-holo',scene));holo.diffuseColor=B.Color3.Black();holo.emissiveTexture=screenTex;holo.disableLighting=true;holo.alphaMode=B.Engine.ALPHA_ADD;holo.alpha=.92;holo.backFaceCulling=false;
@@ -275,7 +275,7 @@
   // The apartment's own tower around the window, so the balcony sits in a wall of other homes.
   for(const [s,p] of [[[.3,60,90],[6.35,33.4,0]],[[.3,100,90],[6.35,-50,0]],[[.3,3.4,40],[6.35,1.7,-25.2]],[[.3,3.4,40],[6.35,1.7,25.2]]])b.add(towerMats[0],scaleUV(box(s),1/12),p);
   // Vertical neon signs on the faces that look toward the window.
-  const words=['夜市','旅館','龍麵館','網吧','電子','茶','藥房','麻將','新天地','當鋪','拉麵','診所','電器','酒吧','夜','修理'],cols=['#ff3fa4','#3fe0ff','#ffb347','#ff4a5a','#b07aff','#7dffb0'];
+  const words=['夜市','旅馆','龙面馆','网吧','电子','茶','药房','麻将','新天地','当铺','拉面','诊所','电器','酒吧','夜','修理'],cols=['#ff3fa4','#3fe0ff','#ffb347','#ff4a5a','#b07aff','#7dffb0'];
   const neonTex=k.paint('suite-neon',2048,512,g=>{g.textAlign='center';g.textBaseline='middle';words.forEach((w,i)=>{const x=i*128,c=cols[i%cols.length],chars=[...w],fs=Math.min(104,430/chars.length);
     g.fillStyle='#0b0811';g.fillRect(x+6,6,116,500);g.strokeStyle=c;g.lineWidth=4;g.shadowColor=c;g.shadowBlur=14;g.strokeRect(x+12,12,104,488);
     g.font='900 '+fs+'px "Microsoft JhengHei","Microsoft YaHei","PingFang TC","Noto Sans CJK TC",sans-serif';chars.forEach((ch,j)=>{const y=256+(j-(chars.length-1)/2)*fs*1.08;g.shadowBlur=22;g.fillStyle=c;g.fillText(ch,x+64,y);g.shadowBlur=0;g.globalAlpha=.55;g.fillStyle='#fff';g.fillText(ch,x+64,y);g.globalAlpha=1;});g.shadowBlur=0;});});

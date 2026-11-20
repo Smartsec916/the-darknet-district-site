@@ -262,7 +262,7 @@
     const faceInto=n=>n[1]>0?0:n[1]<0?Math.PI:n[0]>0?Math.PI/2:-Math.PI/2;
     const along=(e,t)=>[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t];
     const inGap=(e,p)=>e.gaps.some(([g0,g1])=>{const c=e.n[0]?p[1]:p[0];return c>g0-1.5&&c<g1+1.5;});
-    const shopSigns=[[['夜市','NIGHT MARKET'],['#ff5bd0','#7ff0ff']],[['龍麵館','DRAGON NOODLES'],['#ffcf5a','#ff5b5b']],[['電子','ELECTRONICS'],['#7ff0ff','#9b7bff']],[['藥房','PHARMACY 24H'],['#6cff9e','#e8f0ff']],[['茶','TEA HOUSE'],['#ffb347','#ffe9c4']],[['TACOS · 24H'],['#ffb347','#ff5b5b']],[['RAMEN · BAR'],['#ff5bd0','#ffe9c4']],[['REPAIR · 修理'],['#7ff0ff','#ffcf5a']],[['LAUNDRY'],['#e8f0ff','#9b7bff']],[['BIO-CLINIC'],['#6cff9e','#e8f0ff']],[['CHAI · 茶'],['#ffb347','#ff8ad8']],[['NOODLES'],['#ffcf5a','#7ff0ff']]];
+    const shopSigns=[[['夜市','NIGHT MARKET'],['#ff5bd0','#7ff0ff']],[['龙面馆','DRAGON NOODLES'],['#ffcf5a','#ff5b5b']],[['电子','ELECTRONICS'],['#7ff0ff','#9b7bff']],[['药房','PHARMACY 24H'],['#6cff9e','#e8f0ff']],[['茶','TEA HOUSE'],['#ffb347','#ffe9c4']],[['TACOS · 24H'],['#ffb347','#ff5b5b']],[['RAMEN · BAR'],['#ff5bd0','#ffe9c4']],[['REPAIR · 修理'],['#7ff0ff','#ffcf5a']],[['LAUNDRY'],['#e8f0ff','#9b7bff']],[['BIO-CLINIC'],['#6cff9e','#e8f0ff']],[['CHAI · 茶'],['#ffb347','#ff8ad8']],[['NOODLES'],['#ffcf5a','#7ff0ff']]];
     const signSpots=[];let signIndex=0;
     // ---- Upgraded blocks: the purchased Cyberpunk City pack (CGTrader; licensed, kept out of the repository, see
     // docs/VOID_RUNNER_ASSET_LICENSES.md) ----
@@ -371,7 +371,7 @@
     const puddle=new B.StandardMaterial('ncz-puddle',scene);puddle.diffuseColor=new B.Color3(.02,.03,.04);puddle.specularColor=new B.Color3(.7,.8,.9);puddle.specularPower=180;puddle.emissiveColor=new B.Color3(.05,.1,.115);puddle.alpha=.82;owned.push(puddle);
     for(let i=0;i<14;i++){const r=Object.values(S)[i%5],x=r[0]+rand()*(r[1]-r[0]),z=r[2]+rand()*(r[3]-r[2]);const p=add(B.MeshBuilder.CreateDisc('puddle',{radius:.8+rand()*1.4,tessellation:18},scene),puddle,[x,.025,z]);p.rotation.x=Math.PI/2;p.scaling.y=.55;}
     // The Function's banner over the avenue where the main street meets it.
-    neon('function-banner',['THE FUNCTION WATCHES OVER YOU','功能 · 秩序 · 利潤'],['#e8f0ff','#ff4a4a'],16,2.6,[61,16,-4.6],0);
+    neon('function-banner',['THE FUNCTION WATCHES OVER YOU','功能 · 秩序 · 利润'],['#e8f0ff','#ff4a4a'],16,2.6,[61,16,-4.6],0);
     // Batched geometry: thousands of windows, AC units, parapets and roof parts written straight into one mesh per
     // material instead of one mesh each, so entering NeoChinatown stays quick. Same convention as a Babylon plane:
     // a quad turned by r about y faces (-sin r, 0, -cos r).
