@@ -27,7 +27,7 @@ class NpcAreasServerTests(unittest.TestCase):
     def test_areas_and_the_content_rule(self):
         for p, area in [({'x': 64, 'z': -242}, 'outskirts'), ({'x': 100, 'z': -58.5}, 'oldtown'), (W(0, 40), 'district'), ({'x': 25, 'z': -95}, 'port'), ({'x': 52.5, 'z': -160}, 'far-south')]:
             self.assertEqual(live.area_of(p, INV), area)
-        for p in [{'x': 52, 'z': -58}, {'x': 88, 'z': -182}, {'x': 71.5, 'z': -171}, W(10, 34), W(-10, 36), W(-7, 62), W(-5, 73), {'x': -90, 'z': 0}]:
+        for p in [{'x': 52, 'z': -58}, {'x': 88, 'z': -182}, {'x': 81.75, 'z': -173}, {'x': 94.75, 'z': -190.8}, W(10, 34), W(-10, 36), W(-7, 62), W(-5, 73), {'x': -90, 'z': 0}]:
             ok, _a, kind, why = live.area_check(p, INV)
             self.assertFalse(ok, p)
             self.assertEqual(kind, 'rule', (p, why))
@@ -52,7 +52,7 @@ class NpcAreasServerTests(unittest.TestCase):
         base = {'version': 1, 'missions': {}, 'lines': {}, 'trees': [], 'npcs': {}, 'animRequests': []}
         self.assertTrue(drafts.validate_workspace(ws({**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 64, 'z': -242, 'yaw': 0, 'actions': ['idle']}}}))['valid'])
         bad = [{**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 52, 'z': -58, 'yaw': 0, 'actions': ['idle']}}},
-               {**base, 'npcs': {'ethereal-lace': {'mode': 'original', 'schedule': [{'from': '08:00', 'to': '09:00', 'mode': 'path', 'points': [{'x': 85, 'z': -171, 'action': 'idle', 'seconds': 3}]}]}}},
+               {**base, 'npcs': {'ethereal-lace': {'mode': 'original', 'schedule': [{'from': '08:00', 'to': '09:00', 'mode': 'path', 'points': [{'x': 81.75, 'z': -173, 'action': 'idle', 'seconds': 3}]}]}}},
                {**base, 'trees': [{'id': 'draft-t', 'missions': [{'id': 'm', 'waitAt': {**W(10, 34), 'yaw': 0}}]}]},
                {**base, 'npcs': {'street-cat': {'mode': 'stay', **W(-5, 73), 'yaw': 0, 'actions': ['cat-sit']}}}]
         for b in bad:
@@ -88,7 +88,7 @@ class NpcAreasServerTests(unittest.TestCase):
         self.assertIn('doorway', why)
         self.assertTrue(live.area_check(door, INV, passing=True)[0])
         self.assertTrue(live.area_check(door, INV, adult=True)[0])
-        for p in [{'x': 48, 'z': -58.5}, {'x': 71.5, 'z': -171}, {'x': 85, 'z': -171}, {'x': 71.5, 'z': -191.5}]:
+        for p in [{'x': 48, 'z': -58.5}, {'x': 88, 'z': -182}, {'x': 81.75, 'z': -176}]:
             self.assertEqual(live.area_check(p, INV, passing=True)[2], 'rule', p)
         mv = live._movable(INV)['grey-reverie']
         self.assertEqual(live._leg_problems(mv, {'x': 52.5, 'z': -40}, {'x': 52.5, 'z': -90}, INV), [])

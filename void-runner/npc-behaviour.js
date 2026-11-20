@@ -149,7 +149,7 @@
    '',
    'AREAS (where '+she+' may be; each is a list of walkable rectangles x0..x1, z0..z1 in metres):',
    ...areas.flatMap(a=>['  '+a.name+(a.inside?' (indoors)':'')+':',...a.walk.map(w=>'    '+w.name+': x '+w.x0+' to '+w.x1+', z '+w.z0+' to '+w.z1),...(a.never.length?['    never: '+a.never.join(', ')]:[])]),
-   'NEVER (the owner\'s rule): Milked (the building, its side street, its service alley), NULL (the nightclub), standing or waiting in NULL\'s doorway (within 1.5 m of its door; walking past it on Main Street\'s pavement and using the crosswalk there is fine: the pavements in front of NULL and Milked are public), the District bar, the District VR area and arcade room, the District’s Sleeping Pod room (the players’ own pods), the Corporate District and the Temple. Roads (where taxis drive), the gates\' insides, walls and furniture are blocked too.',
+   'NEVER (the owner\'s rule): Milked (the building), NULL (the nightclub), standing or waiting in NULL\'s doorway or Milked\'s front or rear doorway (within 1.5 m of each door; walking past is fine: the pavements in front of NULL and Milked, Milked\'s side street and its service alley are public, and so is the crosswalk by NULL), the District bar, the District VR area and arcade room, the District’s Sleeping Pod room (the players’ own pods), the Corporate District and the Temple. Roads (where taxis drive), the gates\' insides, walls and furniture are blocked too.',
    '',
    'PLACES (name: what it is, x, z):',
    ...pl.map(p=>'  '+p.id+': '+p.name+' (x '+p.x+', z '+p.z+')'+(p.ledge&&!M.cat?' — a ledge: she can "sit" here':'')),

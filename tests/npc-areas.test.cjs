@@ -16,12 +16,12 @@ test('six areas, each with ground she may stand on and named places; the Distric
  assert.ok(A.GEN&&A.GEN.areas,'the obstacle reading from the built scenes is committed');for(const id of A.IDS.filter(x=>x!=='milked'))assert.ok(A.GEN.areas[id],'read: '+id);});
 
 test('the content rule: never Milked, NULL, the District bar, VR or arcade room, the terrace, the Corporate District',()=>{
- const rule=[[52,-58,/NULL/],[30,-58,/NULL/],[88,-182,/Milked/],[85,-171,/Milked/],[85,-192,/Milked/],[71.5,-171,/Milked/],[71.5,-191.5,/Milked/],[-90,0,/Corporate/],[88,-105,/terrace/],[-30,-12,/Function Gate|Corporate/],[170,-12,/Temple/]];
+ const rule=[[52,-58,/NULL/],[30,-58,/NULL/],[88,-182,/Milked/],[81.75,-173,/Milked’s front doorway/],[94.75,-190.8,/Milked’s rear doorway/],[81.75,-176,/Milked/],[-90,0,/Corporate/],[88,-105,/terrace/],[-30,-12,/Function Gate|Corporate/],[170,-12,/Temple/]];
  for(const [x,z,re] of rule){const c=A.check({x,z});assert.equal(c.ok,false,x+','+z);assert.equal(c.kind,'rule',x+','+z+' '+c.why);assert.match(c.why,re);assert.deepEqual(P.pick(REV,{x,z},c.area).spot,null,'never moved out of a forbidden place');}
  for(const [lx,lz,re] of [[10,34,/bar/],[-10,36,/VR/],[-7,62,/arcade/],[-5,73,/Sleeping Pod/],[10,72,/Sleeping Pod/]]){const c=A.check(W(lx,lz));assert.equal(c.kind,'rule',re.source);assert.match(c.why,re);}
  for(const id of [REV,'ethereal-lace',CAT])for(const [x,z] of [[52,-58],[88,-182]])assert.ok(P.spotProblems(id,{x,z}).length,id);
  assert.match(P.planProblems(REV,{mode:'stay',...W(10,34),yaw:0,actions:['idle']}).join(),/bar/);
- assert.match(P.planProblems(REV,{mode:'original',schedule:[{from:'08:00',to:'09:00',mode:'stay',x:71.5,z:-171,yaw:0,actions:['idle']}]}).join(),/Milked/,'a time block too');
+ assert.match(P.planProblems(REV,{mode:'original',schedule:[{from:'08:00',to:'09:00',mode:'stay',x:81.75,z:-173,yaw:0,actions:['idle']}]}).join(),/Milked/,'a time block too');
  assert.match(P.waitAtProblems(REV,{x:52,z:-58,yaw:0}).join(),/NULL/,'"Giver waits at" too');});
 
 test('roads, gates, buildings, walls and private rooms are blocked with a plain reason',()=>{
@@ -94,8 +94,8 @@ test('the owner, 20 Nov 2026: public pavements in front of NULL and Milked are w
  for(const [x,z] of [[53,-58.5],[52.6,-62],[52.6,-55]])assert.deepEqual(P.spotProblems(REV,{x,z}),[],x+','+z);
  assert.deepEqual(P.planProblems(REV,{mode:'path',points:[{x:52.6,z:-70,action:'look',seconds:4},{x:52.6,z:-47,action:'look',seconds:4}]}),[]);
  // inside NULL, Milked, its side street and service alley stay closed (for walking too)
- for(const [x,z] of [[48,-58.5],[30,-58],[85,-171],[71.5,-171],[71.5,-191.5],[88,-182]])assert.equal(A.check({x,z},null,undefined,{passing:true}).kind,'rule',x+','+z);
- assert.match(A.leg({x:69.5,z:-171},{x:80,z:-171}).join(),/never used for her/,'into Milked’s side street');
+ for(const [x,z] of [[48,-58.5],[30,-58],[81.75,-176],[88,-182]])assert.equal(A.check({x,z},null,undefined,{passing:true}).kind,'rule',x+','+z);
+ assert.match(A.leg({x:81.75,z:-171},{x:81.75,z:-178}).join(),/never used for her/,'into Milked through its front door');
  // Milked's frontage on Main Street (the pavement across its side street's and service alley's mouths)
  for(const [x,z] of [[69.5,-171],[69.5,-191.5]])assert.deepEqual(P.spotProblems(REV,{x,z}),[],x+','+z);
  assert.deepEqual(A.leg({x:69.5,z:-163},{x:69.5,z:-196}),[],'past Milked on the public pavement');
@@ -109,3 +109,23 @@ test('the owner, 20 Nov 2026: public pavements in front of NULL and Milked are w
  const m=P.mapData('oldtown',REV),d=m.no.find(n=>n.doorway);assert.ok(d&&d.rule);assert.ok(!m.no.some(n=>/NULL’s door$/.test(n.name||'')));
  const pr=B.prompt(REV);assert.match(pr,/NULL's doorway/);assert.doesNotMatch(pr,/pavement at its door/);
  const inv=A.inventory().areas.find(a=>a.id==='oldtown').no.find(n=>n.doorway);assert.deepEqual(inv.rect,[50.5,52.5,-61.2,-55.8]);});
+
+test('the owner, 20 Nov 2026: Milked\'s side street and service alley are ordinary walkable ground; only its two doorways are never stood in; inside stays closed',()=>{
+ const E=require(R('void-runner/npc-escort.js')),X=require(R('void-runner/crosswalks.js'));
+ for(const id of [REV,'ethereal-lace',CAT])for(const [x,z] of [[85,-171],[90,-171.5],[76,-171.2],[85,-192],[76,-191.8],[71,-171]])assert.deepEqual(P.spotProblems(id,{x,z}),[],id+' '+x+','+z);
+ assert.deepEqual(P.waitAtProblems(REV,{x:88,z:-171,yaw:0}),[]);assert.equal(A.check({x:88,z:-171},null,undefined,{made:true}).ok,true,'a made character not marked adult');
+ assert.deepEqual(P.planProblems(REV,{mode:'path',points:[{x:69.5,z:-171,action:'look',seconds:4},{x:96,z:-171,action:'idle',seconds:4}]}),[],'a route into the side street, past the front door');
+ assert.deepEqual(A.leg({x:69.5,z:-191.8},{x:97,z:-191.8}),[],'along the service alley, past the rear door');
+ // the doorways (within about 1.5 m of each door): never a spot or a wait, not snapped out of; an adult made character may
+ for(const [x,z,re] of [[81.75,-173,/front doorway/],[80.4,-172.7,/front doorway/],[94.75,-190.8,/rear doorway/],[93.4,-191.3,/rear doorway/]]){const c=A.check({x,z});assert.equal(c.kind,'rule',x+','+z);assert.match(c.why,re);assert.equal(P.pick(REV,{x,z},'far-south').spot,null);
+  for(const id of [REV,'ethereal-lace',CAT])assert.ok(P.spotProblems(id,{x,z}).length);assert.ok(P.waitAtProblems(REV,{x,z,yaw:0}).length);assert.equal(A.check({x,z},null,undefined,{adult:true}).ok,true);assert.equal(A.check({x,z},null,undefined,{passing:true}).ok,true);}
+ // inside Milked (vestibule, reception, studios, staff rooms) stays closed
+ for(const [x,z] of [[81.75,-175],[81.75,-176],[81,-180],[88,-182],[95,-187]])assert.equal(A.check({x,z},null,undefined,{passing:true}).ok,false,x+','+z);
+ // her lanes' walls, planter, dumpster and crates are furniture
+ for(const [x,z] of [[87,-190.6],[84.2,-173.2],[97.5,-192.8]])assert.equal(A.check({x,z},null,undefined,{passing:true}).kind,'obstacle',x+','+z);
+ // named places, an escort over the Far South crosswalk into the service alley, the map and the prompt
+ for(const id of ['far-south-milked-lane','far-south-milked-alley'])assert.equal(place(id).x,76);
+ const r=E.route({x:52.6,z:-191},{x:90,z:-192},'far-south');assert.ok(r.some((p,i)=>i&&X.at((p.x+r[i-1].x)/2,(p.z+r[i-1].z)/2,'far-south')),'over a crosswalk: '+JSON.stringify(r));assert.deepEqual(r[r.length-1],{x:90,z:-192});
+ assert.equal(E.route({x:69.5,z:-150},{x:90,z:-171},'far-south').length,2,'round the corner into the side street');
+ const m=P.mapData('far-south',REV);assert.equal(m.no.filter(n=>n.doorway).length,2);assert.ok(!m.no.some(n=>/side street|service alley/.test(n.name||'')));assert.ok(m.walk.some(w=>w.name==='Milked side street'));
+ const pr=B.prompt(REV);assert.match(pr,/Milked's front or rear doorway/);assert.match(pr,/Milked side street: x/);assert.doesNotMatch(pr,/Milked \(the building, its side street/);});
