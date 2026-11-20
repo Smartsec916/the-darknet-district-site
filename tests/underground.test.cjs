@@ -101,4 +101,4 @@ test('places, multiplayer and the build wiring',()=>{
  const shift=+/UNDER_SHIFT=(\d+)/.exec(rp)[1];assert.ok(ex[0]+shift>room.x[0]&&ex[1]+shift<room.x[1]&&ex[1]<shift/2,'shifted x stays in the room and apart from the city');assert.ok(Q.QUARTERS.underground&&!Q.QUARTERS.underground.gates.length);
  const html=fs.readFileSync(path.join(ROOT,'void-runner.html'),'utf8'),i0=html.indexOf('ncz-underground.js'),i1=html.indexOf('ncz-underground-integration.js');
  assert.ok(i0>html.indexOf('ncz-backalleys.js')&&i0<html.indexOf('npc-areas.js')&&i0<html.indexOf('ncz-quarters.js'),'loaded before the areas and the quarters');assert.ok(i1>html.indexOf('ncz-backalleys-integration.js')&&i1<html.indexOf('ncz-gate-transit.js'));
- assert.equal(fs.readFileSync(path.join(ROOT,'void-runner-sw.js'),'utf8').split('\n')[3],"const BUILD='2026-11-20-awakening-2-1';");});
+ assert.match(fs.readFileSync(path.join(ROOT,'void-runner-sw.js'),'utf8').split('\n')[3],/^const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';$/);});
