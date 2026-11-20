@@ -34,6 +34,7 @@
  const NC=()=>{try{return node?require('./ncz-nightclub.js'):root.VoidNightclub||null;}catch{return null;}};
  const XW=()=>{try{return node?require('./crosswalks.js'):root.VoidCrosswalks||null;}catch{return null;}};
  const BA=()=>{try{return node?require('./ncz-backalleys.js'):root.VoidBackAlleys||null;}catch{return null;}};
+ const UG=()=>{try{return node?require('./ncz-underground.js'):root.VoidUnderground||null;}catch{return null;}};
  const QT=()=>node?require('./ncz-quarters.js'):root.VoidQuarters,MK=()=>node?require('./milked.js'):root.VoidMilked,PL=()=>{try{return node?require('./places.js'):root.VoidPlaces;}catch{return null;}};
  // The District's plan (local metres: x across, z inward from the street door at 20) -> world metres (neochinatown.js toWorld: a half turn about its door).
  const DOOR={x:126.9,z:-61.9},W=([x0,x1,z0,z1])=>[DOOR.x-x1,DOOR.x-x0,DOOR.z+20-z1,DOOR.z+20-z0],WP=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
@@ -47,9 +48,9 @@
    milkedFront:'That is right in Milked’s front doorway: she may walk past it along the side street, but is never put or kept waiting in its door (stand at least 1.5 m from it).',
    milkedRear:'That is right in Milked’s rear doorway: she may walk past it along the service alley, but is never put or kept waiting in its door (stand at least 1.5 m from it).',
   bar:'That is the District bar (never used for her).',vr:'That is the District’s VR play area (never used for her).',arcade:'That is the District’s arcade room (left out: only the hallway, the store and the vending alcove are used).',
-  pods:'That is the Sleeping Pod room (the players’ own pods: never used for her).',studios:'That is inside Milked beyond reception (the studios, the hallway and the staff rooms are never used: only reception, for a character marked adult).',corporate:'That is the Corporate District (not part of the city: never used for her).',terrace:'That is the smoking terrace (never used for her).'};
+  pods:'That is the Sleeping Pod room (the players’ own pods: never used for her).',studios:'That is inside Milked beyond reception (the studios, the hallway and the staff rooms are never used: only reception, for a character marked adult).',corporate:'That is the Corporate District (not part of the city: never used for her).',terrace:'That is the smoking terrace (never used for her).',pit:'That is the underground fight pit (never used for her: the tunnels, the tea room, the sleeping room, mahjong, the food stall and the alcoves are fine).'};
  let CACHE=null;
- function defs(){if(CACHE)return CACHE;const Q=QT(),M=MK(),gates=id=>((Q&&Q.GATES)||[]).filter(g=>g.ends.lo?.quarter===id||g.ends.hi?.quarter===id).map(g=>R(g.rect,{name:g.name,id:g.id}));
+ function defs(){if(CACHE)return CACHE;const U=UG(),uOk=!!(U&&U.ready&&U.ready());const Q=QT(),M=MK(),gates=id=>((Q&&Q.GATES)||[]).filter(g=>g.ends.lo?.quarter===id||g.ends.hi?.quarter===id).map(g=>R(g.rect,{name:g.name,id:g.id}));
   const lane=(M&&M.LANE)||[71,101,-174,-168.5],alley=(M&&M.ALLEY)||[71,98.5,-193.5,-190],foot=(M&&M.FOOTPRINT)||[78,98,-190,-174],fd=(M&&M.DOOR)||{x:81.75,z:-174,half:1},rd=(M&&M.REAR)||{x:94.75,z:-190,half:.7};
   const pave=.18;
   const A=[
@@ -103,8 +104,16 @@
    {id:'milked',name:'Inside Milked (reception)',scene:'milked',quarter:null,view:R([foot[0]-2,foot[1]+2,foot[2]-2,foot[3]+2]),floors:[R(foot,{name:'Milked'})],walk:[],roads:[],
     no:[R([85.5,foot[1],foot[2],foot[3]],{why:RULE.studios,rule:true,name:'Milked (studios and staff rooms)'}),R([foot[0],85.5,foot[2],foot[3]-8.8],{why:RULE.studios,rule:true,name:'Milked (dressing rooms and the rear corridor)'}),R([78,85.5,foot[3]-8.8,foot[3]],{why:RULE.milked,rule:true,adult:true,name:'reception'}),R([79.75,83.75,foot[3]-3,foot[3]],{why:'That is Milked’s security vestibule (between the doors).',name:'the vestibule'})],
     adult:[R([78.4,85.1,foot[3]-8.4,foot[3]-3.2],{name:'reception',y:0})],labels:[{name:'reception',x:81.7,z:foot[3]-6}]}];
+  /* THE UNDERGROUND (ncz-underground.js, the owner 20 Nov 2026): the tunnel network under the city, its own quarter of the street. Walkable for everyone placed or routed there
+     (the tunnels, the checkpoints, the tea room, the sleeping room, mahjong, the food stall, the alcoves); the fight pit only for a made character marked adult (like NULL).
+     The floor is 3 m below the street (y). No street crowd ever goes down. */
+  if(uOk){const wk=U.walk(),ex=U.extent(),pit=U.pit();A.push({id:'underground',name:'The Underground (tunnels)',scene:'street',quarter:'underground',view:R([ex[0]-3,ex[1]+3,ex[2]-3,ex[3]+3]),
+    floors:U.MODS.map(m=>R(U.footprint(m),{name:U.placeById(U.PLACE_OF[m.id]).name})),walk:wk.filter(w=>!w.adult).map(w=>R([w.x0,w.x1,w.z0,w.z1],{name:w.name,y:w.y,under:w.place})),roads:[],
+    no:[R(pit,{why:RULE.pit,rule:true,adult:true,name:'the fight pit'})],adult:wk.filter(w=>w.adult).map(w=>R([w.x0,w.x1,w.z0,w.z1],{name:w.name,y:w.y,under:w.place})),
+    labels:U.PLACES.map(p=>({name:p.name,x:p.at[0],z:p.at[1],under:true})),under:true});}
   for(const a of A){a.gates=a.scene==='street'?gates(a.quarter):[];const g=GEN&&GEN.areas&&GEN.areas[a.id];
-   a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):[];
+   a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):a.id==='underground'?U.obstacles().map(o=>o.slice()):[];
+   if(a.id==='underground'){a.tunnelDoors=U.doors();a.seats=U.SEATS.map(x=>({...x}));}   // the stair doors (city and checkpoint side) and the alcoves' seats, for the editor map
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
    for(const w of a.more||[])a.walk.push({...w});delete a.more;   // Milked's lanes (20 Nov 2026): after the read heights (GEN y), as the adult ground
    // The back alleys, bays and yards (ncz-backalleys.js, 20 Nov 2026): their ground (and a step onto the pavement at each mouth), floors, furniture and fire escapes. A reading of
@@ -121,8 +130,8 @@
    a.posts=((Q&&Q.CALL_POINTS)||[]).filter(c=>c.quarter===a.quarter&&Array.isArray(c.post)).map(c=>[c.post[0],c.post[1]]);}
   // Places beyond the city (never used): reasons for a spot there
   const OUT=[R([-120,-60,-40,15],{why:RULE.corporate,rule:true,name:'the Corporate District'}),R([-60,2,-20,-5],{why:'That is beyond the Function Gate (the way to the Corporate District: never used for her).',rule:true}),R([152,200,-20,-5],{why:'That is beyond the East Gate (the way to the Temple: never used for her).',rule:true})];
-  return CACHE={list:A,by:new Map(A.map(a=>[a.id,a])),out:OUT};}
- const IDS=['avenue','oldtown','far-south','outskirts','port','district','milked'];
+  const res={list:A,by:new Map(A.map(a=>[a.id,a])),out:OUT};if(U&&!uOk)return res;return CACHE=res;}   // (the underground is added once modules.js has loaded)
+ const IDS=['avenue','oldtown','far-south','outskirts','port','district','milked','underground'];
  const inR=(r,x,z,m=0)=>x>r.x0-m&&x<r.x1+m&&z>r.z0-m&&z<r.z1+m,inO=(o,x,z,m)=>x>o[0]-m&&x<o[1]+m&&z>o[2]-m&&z<o[3]+m,size=r=>(r.x1-r.x0)*(r.z1-r.z0);
  const num=v=>typeof v==='number'&&Number.isFinite(v);
  const list=()=>defs().list,get=id=>defs().by.get(id)||null;
@@ -183,7 +192,8 @@
    ['district','district-entry','the entry, inside the inner door',...WP(0,28.5)],['district','district-hall','the hallway',...WP(0,40)],['district','district-hall-back','the hallway by the pod room',...WP(0,64)],
    ['district','district-store','the store, in front of the counter',...WP(10,45)],['district','district-vending','the vending alcove',...WP(-5,49.5)]];
   for(const [area,id,name,x,z] of L)add(id,name,area,x,z);
-  {const X=BA();for(const b of (X?X.places():[]))add(b.id,b.name,b.area,b.x,b.z);}   // the back alleys, bays and yards (ncz-backalleys.js): their own ids and names
+  {const X=BA();for(const b of (X?X.places():[]))add(b.id,b.name,b.area,b.x,b.z);}
+  {const U=UG();if(U&&get('underground'))for(const b of U.places())add(b.id,b.name,b.area,b.x,b.z);}   // the tunnels' places (ncz-underground.js): their own ids and names   // the back alleys, bays and yards (ncz-backalleys.js): their own ids and names
   return out;}
  /* For the admin inventory (the server's copy of these rules): every area's rectangles, obstacles and posts, as plain numbers. */
  function inventory(){const rr=r=>[r.x0,r.x1,r.z0,r.z1];return {clear:CLEAR,step:STEP,out:defs().out.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule})),areas:list().map(a=>({id:a.id,name:a.name,scene:a.scene,quarter:a.quarter,

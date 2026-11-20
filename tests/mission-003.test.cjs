@@ -140,7 +140,7 @@ test('the reusable trigger "after in-game time": a mission started by Comms call
  MC.apply({format:MC.FORMAT,version:MC.VERSION,trees:[tree]},x.e);const s=after002(x);talk(x,s,'admin');ev(x,s,{type:'accept',mission:ID});place(x,s,'milked');talk(x,s,'milked-eva');talk(x,s,'milked-fish');
  assert.equal(s.universe.missions[ID].completed,true);assert.equal(Number.isSafeInteger(s.story.flags['gc_'+ID]),true,'stamped at completion');
  assert.equal(place(x,s,'milked').offered,false);s.story.flags.gameMin=(s.story.flags['gc_'+ID]||0)+359;assert.equal(place(x,s,'milked').offered,false);
- s.story.flags.gameMin++;const r=place(x,s,'milked');assert.equal(r.offered,true);assert.equal(r.messages[0].channel,'comms');assert.equal(r.messages[0].from,'milked-fish');assert.equal(place(x,s,'milked').offered,false,'once');
+ s.story.flags.gameMin++;const r=place(x,s,'milked');assert.equal(r.offered,true);assert.equal(r.messages[0].channel,'comms');assert.equal(r.messages[0].from,'milked-fish');place(x,s,'milked');assert.ok(s.universe.missions['draft-fish-m1'].acquired,'the draft call came too (Mission 004, shipped since 20 Nov 2026, is due at the same moment)');assert.equal(place(x,s,'milked').offered,false,'once');
 });
 
 test('the Milked staff-only door, the guide route to Eva and Fish, and the place target',()=>{

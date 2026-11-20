@@ -74,7 +74,7 @@
  function buildNetwork(quarter){
   const q=Q.valid(quarter)||'oldtown',bay=key=>{const l=Q.lane(key);return {x:l.mid[0],z:l.mid[1]};},poly=(...pts)=>{const out=[];pts.forEach((p,i)=>{if(i){const seg=line(pts[i-1],p);for(let k=out.length?1:0;k<seg.length;k++)out.push(seg[k]);}});return out;};
   let P,edges,loopIds=[],rank=null;const bays={};
-  if(q==='outskirts')return {quarter:q,nodes:{},edges:[],loop:[],bays,rank:null,drive:DRIVE,none:true};   // no road and no taxi beyond the Far South Gate (walkers only)
+  if(q==='outskirts'||q==='underground')return {quarter:q,nodes:{},edges:[],loop:[],bays,rank:null,drive:DRIVE,none:true};   // the tunnels under the city (ncz-underground.js): no road either   // no road and no taxi beyond the Far South Gate (walkers only)
   if(q==='port'){const b=bay('customs:bay'),x=b.x,top={x,z:-95.5};bays['customs:bay']=b;P={bay:b,top};rank={x,z:-95.5,yaw:Math.PI};
    edges=[{id:'from-customs',a:'bay',b:'top',pts:line(b,top)},{id:'to-customs',a:'top',b:'bay',pts:line(top,b)}];}
   else if(q==='oldtown'){const xc=61,off=2.2,sbX=xc-off,nbX=xc+off,zTop=-31.5,zRoad=-118.5,zSouth=-119.6,c=bay('customs:bay'),bn=bay('north:bay-n'),bs=bay('north:bay-s'),sn=bay('south:bay-n'),ss=bay('south:bay-s');

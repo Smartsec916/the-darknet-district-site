@@ -87,6 +87,9 @@
   if(QT&&QT.LANES){for(const l of QT.LANES){const g=QT.gate(l.gate);if(!g)continue;regions.push({id:'lane:'+l.key,rects:[l.rect]});
     for(const end of ['lo','hi']){const e=g.ends[end],door=l.doors&&l.doors[end];if(!e||!door)continue;const into=end==='lo'?1:-1;   // from the quarter at this end, into the lane
      portals.push({id:l.key+':'+end,a:e.quarter?'q:'+e.quarter:'scene:'+e.scene,b:'lane:'+l.key,x:door.x,z:door.z,nx:g.axis==='x'?into:0,nz:g.axis==='z'?into:0,half:door.half||1,penalty:l.kind==='bay'?TUNE.bayPenalty:0});}}}
+  // The tunnels under the city (ncz-underground.js, 20 Nov 2026): one region per module, a portal at every door and tunnel seam, and the steel door at the foot of each alley
+  // stairwell joining the yard above (its street region) to the checkpoint below, so the arrow leads down the stairs and through the network room by room.
+  if(d.UG&&d.UG.ready&&d.UG.ready()){regions.push(...d.UG.regions());portals.push(...d.UG.portals());}
   // The streets of each quarter (ncz-quarters.js) are regions too, joined where they meet (a junction is a gate across the shared edge), so a route turns at
   // street corners instead of cutting across buildings or back through a gate. A door onto a street joins the street just outside it.
   const streets=[];if(QT&&QT.QUARTERS){const same=(r,q)=>!!q&&r.every((v,i)=>Math.abs(v-q[i])<.01);
@@ -194,7 +197,7 @@
  const node=typeof module!=='undefined'&&module.exports;
  // The graph for a walking scene (cached; the gate list can grow: ncz-quarters.js define()). kind: 'station' for the older stations' corridor; null: straight to the goal.
  const cache=new Map();
- function deps(){if(node)return {N:require('./neochinatown.js'),QT:require('./ncz-quarters.js'),NC:require('./ncz-nightclub.js'),MK:require('./milked.js'),XW:require('./crosswalks.js')};return {N:root.VoidNeoChinatown,QT:root.VoidQuarters,NC:root.VoidNightclub,MK:root.VoidMilked,XW:root.VoidCrosswalks};}
+ function deps(){if(node)return {N:require('./neochinatown.js'),QT:require('./ncz-quarters.js'),NC:require('./ncz-nightclub.js'),MK:require('./milked.js'),XW:require('./crosswalks.js'),UG:require('./ncz-underground.js')};return {N:root.VoidNeoChinatown,QT:root.VoidQuarters,NC:root.VoidNightclub,MK:root.VoidMilked,XW:root.VoidCrosswalks,UG:root.VoidUnderground};}
  function graphFor(scene,kind,loc){if(loc&&loc.modular&&loc.cluster){const k='mod:'+(loc.inst||'')+':'+loc.cluster.id+':'+JSON.stringify(loc.cluster.mods.map(m=>[m.id,m.cx,m.cz,m.w,m.d]));if(!cache.has(k))cache.set(k,modular(loc.cluster,loc.solids));return cache.get(k);}
   if(loc&&loc.apartment)return null;   // an apartment's hallway or rooms (one room or a straight corridor): straight to the goal (their id is 'neochinatown' too)
   if(kind==='station'){if(!cache.has('station'))cache.set('station',station());return cache.get('station');}
