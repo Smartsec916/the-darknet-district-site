@@ -136,20 +136,26 @@
  credits: ACCEPT greyed, "YOU NEED N CR"). The mission waits until the player answers; closed without an answer, it asks again a few seconds later. */
  const askShown={};let askOpen=null;
  function askTick(){try{if(askOpen&&!(typeof speech!=='undefined'&&speech))askOpen=null;if(!treesOn()||nearBlocked()||askOpen||(typeof speech!=='undefined'&&speech)||typeof root.talkChoice!=='function'||[...document.querySelectorAll('#screen .choice-menu,[data-talk-choice]')].some(n=>n.getClientRects().length))return;   // only a choice on screen (a window closed without an answer leaves its hidden buttons)
-  const list=MC.askNow(state,env);if(!list.length)return;const a=list[0],now=Date.now();if(now-(askShown[a.key]||0)<4000)return;askShown[a.key]=now;const M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
+  const list=MC.askNow(state,env);if(!list.length)return;const a=list[0],now=Date.now();if(now-(askShown[a.key]||0)<4000)return;openAsk(a);}catch{askOpen=null;}}
+ /* The choice window of an ask (a.lines: its question; lead: the lines just said that lead into it, for a player reply that is a choice: the buttons then sit on the last of
+    them, in the same window). A price shows as a cost card, credits the player gets as a reward card. */
+ function openAsk(a,lead){try{askShown[a.key]=Date.now();const M=root.VoidMissions,Cp=root.C||root.VoidCampaign;
   const pick=yes=>()=>{askOpen=null;let x=null;try{x=MC.treeEvent(state,env,{type:yes?'ask-yes':'ask-no',step:a.key},M,Cp);}catch{}if(!x){try{resumeWalking();}catch{}return;}
    if(x.ended){try{announce('MISSION ENDED · '+title(x.mission)+(x.refund?'  ·  +'+x.refund+' credits back':''));save();hud();}catch{}}else if(x.back){const o=root.VoidMissions?.definitions?.[x.mission]?.objectives?.find(y=>y.id===x.back);try{announce('MISSION UPDATED · '+title(x.mission)+' · back to: '+(o?o.label:x.back));save();hud();}catch{}}else report(x);
    deliver(x);if(followUp(x))return;try{resumeWalking();}catch{}};
   const yes={label:a.ask.accept,run:pick(true)},no={label:a.ask.decline,run:pick(false)},choices=a.afford?[yes,no]:[no,{label:yes.label+' · YOU NEED '+a.need+' CR',disabled:true,run:()=>{}}];
-  const o=a.price&&!a.paid?{mission:a.mission,title:a.title,description:'',cost:a.price,costWhen:'accept',yes:a.ask.accept,need:a.need}:null;askOpen=a.key;
-  if(!root.talkChoice(merge(a.lines.map(l=>MC.mapLine(env,l))),choices,'',o?{offer:o}:{}))askOpen=null;else if(typeof speech!=='undefined'&&speech)speech.askStep=a.key;}catch{askOpen=null;}}
+  const o=a.price&&!a.paid?{mission:a.mission,title:a.title,description:'',cost:a.price,costWhen:'accept',yes:a.ask.accept,need:a.need}:a.gain?{mission:a.mission,title:a.title,description:'',reward:a.gain,yes:a.ask.accept}:null;askOpen=a.key;
+  const ls=lead&&lead.length?lead:a.lines;if(!root.talkChoice(merge(ls.map(l=>MC.mapLine(env,l))),choices,'',o?{offer:o}:{})){askOpen=null;return false;}if(typeof speech!=='undefined'&&speech)speech.askStep=a.key;return true;}catch{askOpen=null;return false;}}
+ /* A player reply that is a choice (mission-content.js CHOICE: an inline ask right after the step whose lines were just said). */
+ function inlineAsk(r){try{if(!r||!r.mission||!treesOn())return null;return MC.askNow(state,env).find(a=>a.inline&&a.mission===r.mission)||null;}catch{return null;}}
  setInterval(askTick,250);
  /* After the conversation: the V1 banner for a contact added / a profile followed (the Mission Log notice already said it). */
  function contactBanner(r){try{const n=(r&&r.notes||[]).filter(x=>/ADDED TO CONTACTS|^FOLLOWING /.test(x));if(!n.length)return;const who=n[0].replace(/ ADDED TO CONTACTS$| ON SOCIAL$/,'').replace(/^FOLLOWING /,'');
   const name=who.charAt(0)+who.slice(1).toLowerCase();root.VoidV1?.notify?.({app:'social',key:'contact:'+r.mission+':'+who,from:name,text:name+' added to contacts · following on Social',hint:{text:'open',help:true}});lastContact={text:name+' added to contacts · following on Social',at:Date.now()};}catch{}}
  let lastContact=null;
  const heard=r=>()=>{try{const x=MC.treeEvent(state,env,{type:'heard',mission:r.hear.mission},root.VoidMissions,root.C||root.VoidCampaign);report(x);deliver(x);}catch{}try{resumeWalking();}catch{}};
- const show=(lines,r)=>{try{const after=r&&r.hear?heard(r):()=>{try{resumeWalking();}catch{}};talk('',merge(lines.map(l=>MC.mapLine(env,l))),()=>{after();contactBanner(r);},'CONTINUE');
+ const show=(lines,r)=>{try{{const a=inlineAsk(r);if(a&&openAsk(a,lines))return true;}   // the lines lead into the player's choice: its buttons on the last line
+  const after=r&&r.hear?heard(r):()=>{try{resumeWalking();}catch{}};talk('',merge(lines.map(l=>MC.mapLine(env,l))),()=>{after();contactBanner(r);},'CONTINUE');
   const g=r&&r.mission&&MSx()?.GESTURES?.[r.mission+'/'+r.objective];if(g&&typeof speech!=='undefined'&&speech){speech.gesture=g;gestureNow();}return true;}catch{return false;}};
  /* An offer with ACCEPT / DENY (talk-choice.js; the owner's labels, default ACCEPT / DENY): the window shows the mission's name, short description and its cost or reward
     (r.offer, mission-content.js offerOf). ACCEPT takes the mission (Mission Log, tracked, the arrow) and charges a cost at ACCEPT once; when the player has too few credits
@@ -247,7 +253,7 @@
   const recs=state.universe.missions||{};let hit=false;for(const k in nearD)nearD[k]=Infinity;
   for(const n of nearWatch){const r=recs[n.mission];if(r&&(r.acquired||r.completed))continue;if(!(n.npc in nearD)||nearD[n.npc]===Infinity)nearD[n.npc]=giverDistance(n.npc,walkingLocation,walker.x,walker.z);if(MC.nearHit(nearD[n.npc],n.metres))hit=true;}
   for(const id of MC.denyRearm(state,env,nearD))delete promptAt[id];   // a denied walked-near offer whose wait is over comes back once the player has been out of its distance
-  if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(r.prompt)offerPrompt(r.prompt);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);return r;}catch{return null;}}
+  if(!hit)return null;const r=MC.treeEvent(state,env,{type:'near',near:nearD},root.VoidMissions,root.C||root.VoidCampaign);if(r.prompt)offerPrompt(r.prompt);if(!(r.offered||r.objective))return r;nearLast={mission:r.mission,at:Date.now()};report(r);deliver(r);if(r.lines&&r.lines.length)show(r.lines,r);else{const a=inlineAsk(r);if(a)openAsk(a);}return r;}catch{return null;}}   // walked near: the giver says her offer lines (and a choice in them shows its buttons)
  setInterval(nearTick,250);
  /* DENY WAITS (mission-content.js deny 'after', the owner, 19 Nov 2026: "Maybe set a time for return, or remove after"): the minutes count only while the player is in the
     world (nearBlocked: not in a conversation, menu, the pod's wake-up, the creator or the KeyMap) and the tab is shown. Whole seconds are kept in story.flags.md_<mission>
