@@ -16,13 +16,13 @@ test('six areas, each with ground she may stand on and named places; the Distric
  assert.ok(A.GEN&&A.GEN.areas,'the obstacle reading from the built scenes is committed');for(const id of A.IDS.filter(x=>x!=='milked'))assert.ok(A.GEN.areas[id],'read: '+id);});
 
 test('the content rule: never Milked, NULL, the District bar, VR or arcade room, the terrace, the Corporate District',()=>{
- const rule=[[52.5,-58,/NULL/],[30,-58,/NULL/],[88,-182,/Milked/],[85,-171,/Milked/],[85,-192,/Milked/],[69.5,-171,/Milked/],[69.5,-191.5,/Milked/],[-90,0,/Corporate/],[88,-105,/terrace/],[-30,-12,/Function Gate|Corporate/],[170,-12,/Temple/]];
+ const rule=[[52,-58,/NULL/],[30,-58,/NULL/],[88,-182,/Milked/],[85,-171,/Milked/],[85,-192,/Milked/],[71.5,-171,/Milked/],[71.5,-191.5,/Milked/],[-90,0,/Corporate/],[88,-105,/terrace/],[-30,-12,/Function Gate|Corporate/],[170,-12,/Temple/]];
  for(const [x,z,re] of rule){const c=A.check({x,z});assert.equal(c.ok,false,x+','+z);assert.equal(c.kind,'rule',x+','+z+' '+c.why);assert.match(c.why,re);assert.deepEqual(P.pick(REV,{x,z},c.area).spot,null,'never moved out of a forbidden place');}
  for(const [lx,lz,re] of [[10,34,/bar/],[-10,36,/VR/],[-7,62,/arcade/],[-5,73,/Sleeping Pod/],[10,72,/Sleeping Pod/]]){const c=A.check(W(lx,lz));assert.equal(c.kind,'rule',re.source);assert.match(c.why,re);}
- for(const id of [REV,'ethereal-lace',CAT])for(const [x,z] of [[52.5,-58],[88,-182]])assert.ok(P.spotProblems(id,{x,z}).length,id);
+ for(const id of [REV,'ethereal-lace',CAT])for(const [x,z] of [[52,-58],[88,-182]])assert.ok(P.spotProblems(id,{x,z}).length,id);
  assert.match(P.planProblems(REV,{mode:'stay',...W(10,34),yaw:0,actions:['idle']}).join(),/bar/);
- assert.match(P.planProblems(REV,{mode:'original',schedule:[{from:'08:00',to:'09:00',mode:'stay',x:69.5,z:-171,yaw:0,actions:['idle']}]}).join(),/Milked/,'a time block too');
- assert.match(P.waitAtProblems(REV,{x:52.5,z:-58,yaw:0}).join(),/NULL/,'"Giver waits at" too');});
+ assert.match(P.planProblems(REV,{mode:'original',schedule:[{from:'08:00',to:'09:00',mode:'stay',x:71.5,z:-171,yaw:0,actions:['idle']}]}).join(),/Milked/,'a time block too');
+ assert.match(P.waitAtProblems(REV,{x:52,z:-58,yaw:0}).join(),/NULL/,'"Giver waits at" too');});
 
 test('roads, gates, buildings, walls and private rooms are blocked with a plain reason',()=>{
  for(const [x,z] of [[100,-12],[61,-90],[61,-180],[42,-100]])assert.equal(A.check({x,z}).kind,'road',x+','+z);
@@ -48,7 +48,7 @@ test('snapping a click: onto the nearest spot she may stand on, in the area show
 
 test('routes stay in one area and on walkable ground; schedules may use a different area in each time block',()=>{
  const a=place('oldtown-alley-mouth'),b={x:a.x+6,z:a.z};assert.deepEqual(A.leg(a,b),[],'along the alley');
- assert.match(A.leg({x:100,z:-6.4},{x:100,z:-18.3}).join(),/road/);assert.match(A.leg({x:52.5,z:-40},{x:52.5,z:-90}).join(),/never used for her/);
+ assert.match(A.leg({x:100,z:-6.4},{x:100,z:-18.3}).join(),/road/);assert.deepEqual(A.leg({x:52.5,z:-40},{x:52.5,z:-90}),[],'past NULL’s door on the public pavement');assert.match(A.leg({x:52.6,z:-58.5},{x:40,z:-58.5}).join(),/never used for her/,'into NULL');
  assert.match(A.leg(place('laundry'),a).join(),/one area/);
  const cross={mode:'path',points:[{...place('laundry'),action:'look',seconds:4},{...a,action:'look',seconds:4}]};assert.match(P.planProblems(REV,cross).join(),/stays in one area/);
  const day={mode:'original',schedule:[{from:'08:00',to:'12:00',mode:'stay',...place('outskirts-yard'),yaw:0,actions:['idle']},{from:'12:00',to:'14:00',mode:'path',points:[{...a,action:'look',seconds:4},{...b,action:'idle',seconds:4}]},{from:'20:00',to:'23:00',mode:'stay',...place('district-hall'),yaw:0,actions:['look']}]};
@@ -82,3 +82,30 @@ test('follow / lead / cab steps (npc-escort.js) happen in the area she is placed
  assert.match(E.problems({kind:'shared-cab',npc:REV,stop:'avenue'},{area:'oldtown'}).join(),/placed in Old Town/);assert.deepEqual(E.problems({kind:'shared-cab',npc:REV,stop:'main'},{area:'oldtown'}),[]);
  assert.ok(E.spots(REV,'oldtown').every(p=>A.areaOf(p)==='oldtown'));const k=E.kerb({x:77,z:-58.5},'oldtown');assert.ok(A.check(k).ok&&k.call,'she calls the cab from beside a taxi pole in Old Town');
  const r=E.route({x:alley.x,z:alley.z},{x:alley.x+20,z:alley.z},'oldtown');assert.equal(r.length,1);});
+
+test('the owner, 20 Nov 2026: public pavements in front of NULL and Milked are walked past and crossed; NULL\'s doorway is never stood in; inside stays closed',()=>{
+ const E=require(R('void-runner/npc-escort.js')),X=require(R('void-runner/crosswalks.js'));
+ // NULL's doorway (within 1.5 m of its street door): no spot, no waiting, never snapped out of, for Reverie, Lace, the cat and a made character not marked adult
+ for(const [x,z] of [[52,-58.5],[51.6,-60],[52.3,-56.2]]){const c=A.check({x,z});assert.equal(c.kind,'rule',x+','+z);assert.match(c.why,/doorway/);assert.equal(P.pick(REV,{x,z},'oldtown').spot,null);
+  for(const id of [REV,'ethereal-lace',CAT])assert.match(P.spotProblems(id,{x,z}).join(),/doorway/,id);assert.match(P.waitAtProblems(REV,{x,z,yaw:0}).join(),/doorway/);
+  assert.equal(A.check({x,z},null,undefined,{made:true}).ok,false,'a made character not marked adult');assert.equal(A.check({x,z},null,undefined,{adult:true}).ok,true,'an adult made character may');}
+ assert.match(P.planProblems(REV,{mode:'path',points:[{x:52.6,z:-70,action:'look',seconds:4},{x:52,z:-58.5,action:'look',seconds:4}]}).join(),/doorway/,'a route point in the doorway');
+ // the pavement round it is ordinary: spots a little away, a route along it, a route past it
+ for(const [x,z] of [[53,-58.5],[52.6,-62],[52.6,-55]])assert.deepEqual(P.spotProblems(REV,{x,z}),[],x+','+z);
+ assert.deepEqual(P.planProblems(REV,{mode:'path',points:[{x:52.6,z:-70,action:'look',seconds:4},{x:52.6,z:-47,action:'look',seconds:4}]}),[]);
+ // inside NULL, Milked, its side street and service alley stay closed (for walking too)
+ for(const [x,z] of [[48,-58.5],[30,-58],[85,-171],[71.5,-171],[71.5,-191.5],[88,-182]])assert.equal(A.check({x,z},null,undefined,{passing:true}).kind,'rule',x+','+z);
+ assert.match(A.leg({x:69.5,z:-171},{x:80,z:-171}).join(),/never used for her/,'into Milked’s side street');
+ // Milked's frontage on Main Street (the pavement across its side street's and service alley's mouths)
+ for(const [x,z] of [[69.5,-171],[69.5,-191.5]])assert.deepEqual(P.spotProblems(REV,{x,z}),[],x+','+z);
+ assert.deepEqual(A.leg({x:69.5,z:-163},{x:69.5,z:-196}),[],'past Milked on the public pavement');
+ // escorts: from the pavement north of NULL to the east pavement by the alley crosswalk (over its stripes)
+ const r=E.route({x:52.6,z:-50},{x:69.4,z:-64},'oldtown');assert.ok(r.length>1);assert.ok(r.some(p=>X.at(p.x,p.z,'oldtown',.6)?.id==='ot-alley')||r.slice(0,-1).some((p,i)=>{const q=r[i+1];for(let t=0;t<=1;t+=.05)if(X.at(p.x+(q.x-p.x)*t,p.z+(q.z-p.z)*t,'oldtown')?.id==='ot-alley')return true;return false;}),'over the alley crosswalk: '+JSON.stringify(r));
+ assert.equal(E.route({x:52.6,z:-75},{x:52.6,z:-45},'oldtown').length,1,'straight along the pavement past NULL’s door');
+ assert.equal(E.route({x:69.5,z:-160},{x:69.5,z:-200},'far-south').length,1,'straight along the pavement past Milked');
+ // the arrow: from NULL's side to the alley's mouth across Main Street, over the alley crosswalk
+ assert.equal(X.crossing({x:52.6,z:-58.5},{x:69.4,z:-58.5}).c.id,'ot-alley');
+ // the editor map and the ChatGPT prompt
+ const m=P.mapData('oldtown',REV),d=m.no.find(n=>n.doorway);assert.ok(d&&d.rule);assert.ok(!m.no.some(n=>/NULL’s door$/.test(n.name||'')));
+ const pr=B.prompt(REV);assert.match(pr,/NULL's doorway/);assert.doesNotMatch(pr,/pavement at its door/);
+ const inv=A.inventory().areas.find(a=>a.id==='oldtown').no.find(n=>n.doorway);assert.deepEqual(inv.rect,[50.5,52.5,-61.2,-55.8]);});

@@ -199,7 +199,7 @@
  /* Map data (the editor's top-down map): the walkable area, the road, the gates, the ledges, the taxi posts, the shopfront names, her usual stretch. */
  function mapData(areaId='avenue',npc=null){const ad=!!(npc&&MOVABLE[npc]&&MOVABLE[npc].adult);const S=SP(),Ar=AR(),a=Ar.get(areaId)||Ar.get('avenue'),P=node?require('./places.js'):root.VoidPlaces,v=a.view,inV=(x,z)=>x>=v.x0&&x<=v.x1&&z>=v.z0&&z<=v.z1;
   const shop=a.scene==='street'?((P&&P.SHOPFRONTS)||[]).filter(([,x,z])=>inV(x,z)).map(([name,x,z,side])=>({name,x,z,side})):[];const av=a.id==='avenue',rc=r=>({x0:r.x0,x1:r.x1,z0:r.z0,z1:r.z1,...(r.name?{name:r.name}:{})});
-  return {area:a.id,name:a.name,scene:a.scene,view:{...v},floors:a.floors.map(rc),walk:a.walk.filter(w=>!w.adult||ad).map(rc),roads:a.roads.map(rc),no:a.no.filter(n=>!(ad&&n.adult)).map(n=>({...rc(n),why:n.why,rule:!!n.rule})),gates:a.gates.map(rc),
+  return {area:a.id,name:a.name,scene:a.scene,view:{...v},floors:a.floors.map(rc),walk:a.walk.filter(w=>!w.adult||ad).map(rc),roads:a.roads.map(rc),no:a.no.filter(n=>!(ad&&n.adult)).map(n=>({...rc(n),why:n.why,rule:!!n.rule,...(n.doorway?{doorway:true}:{})})),gates:a.gates.map(rc),
    obstacles:a.obstacles.map(o=>({x0:o[0],x1:o[1],z0:o[2],z1:o[3],name:o[4]})),posts:a.posts.map(([x,z])=>({x,z})),labels:a.labels.map(l=>({...l})),shops:shop,
    ledges:av?ledges():[],stretch:av&&S?{x0:S.STRETCH.x0,x1:S.STRETCH.x1,z:S.STRETCH.z}:null,seat:av&&S?{...S.SEAT}:null,catHome:av&&S?{...S.CAT_HOME}:null,
    areas:Ar.list().filter(x=>ad||x.walk.some(w=>!w.adult)).map(x=>({id:x.id,name:x.name}))};}

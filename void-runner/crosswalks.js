@@ -22,7 +22,7 @@
     crossing and the hi kerb's on the - side; -1 the other way round)]. Placed clear of the kerb's furniture (ad screens, kiosks, taxi poles: npc-areas.js obstacles). */
  const DATA=[
   ['ot-north-gate','main-ot',-29.5,3,'gate',true,-1],     // Main Street by the North Gate (A2): its two walkers' doors open onto the pavements just north
-  ['ot-alley','main-ot',-58.5,3,'junction',true,-1],      // the District alley's mouth, NULL's door opposite
+  ['ot-alley','main-ot',-58.5,3,'junction',true,-1],      // the District alley's mouth, NULL's door opposite (its pavement is walked past by everyone; only its doorway is never stood in)
   ['ot-mid','main-ot',-88,3,'mid',false,-1],              // mid-block, between the two taxi stops (NULL / the alley at -66, Main Street at -100)
   ['ot-south','main-ot',-116.5,3,'junction',true,1],      // the access road's corner and the South Gate (A5) beyond
   ['ar-main','access',52.5,2.6,'junction',false,1],       // across the access road's mouth, on Main Street's west pavement line
@@ -33,7 +33,7 @@
   ['av-mid','avenue',107,3,'mid',false,-1],               // mid-block on the long eastern stretch
   ['av-east','avenue',140,3,'gate',true,-1],              // the East Gate (A4)
   ['fs-south-gate','main-fs',-133,3,'gate',true,-1],      // Far South by the South Gate (A5)
-  ['fs-milked','main-fs',-161,3,'junction',true,-1],      // just north of Milked's side street (its mouth is never walked to by Reverie and Lace)
+  ['fs-milked','main-fs',-161,3,'junction',true,-1],      // just north of Milked's side street (the pavement across its mouth is public; the side street itself is never used by Reverie and Lace)
   ['fs-alley','main-fs',-199,3,'mid',false,-1],           // south of Milked's service alley
   ['fs-far-gate','main-fs',-213.5,3,'gate',true,-1]];     // the end of the road, in front of the Far South Gate's (A6) walkers' door
  const STEP_ON=.6,POST_IN=.3,POST_OUT=.4,STOP_GAP=1.1,STOP_W=.3;

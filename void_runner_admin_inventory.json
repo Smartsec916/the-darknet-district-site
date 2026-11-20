@@ -1870,20 +1870,21 @@
                 -68.5,
                 -48.5
               ],
-              "why": "That is NULL, the nightclub, or the pavement at its door (never used for her).",
+              "why": "That is NULL, the nightclub (never used for her).",
               "rule": true,
               "adult": true
             },
             {
               "rect": [
                 50.5,
-                55,
-                -69.5,
-                -47.5
+                52.5,
+                -61.2,
+                -55.8
               ],
-              "why": "That is NULL, the nightclub, or the pavement at its door (never used for her).",
+              "why": "That is right in NULL’s doorway: she may walk past it on the pavement, but is never put or kept waiting in the club’s door (stand at least 1.5 m from it).",
               "rule": true,
-              "adult": true
+              "adult": true,
+              "doorway": true
             },
             {
               "rect": [
@@ -3172,7 +3173,7 @@
             },
             {
               "rect": [
-                66.5,
+                70.7,
                 72,
                 -176,
                 -166.5
@@ -3183,7 +3184,7 @@
             },
             {
               "rect": [
-                66.5,
+                70.7,
                 72,
                 -195.5,
                 -188
@@ -39203,7 +39204,7 @@
       "spawn"
     ]
   },
-  "revision": "74ff1e3301f712f8",
+  "revision": "6376b1e1d854ad83",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57643,7 +57644,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crosswalks.js": "63416fe0d214ad48030d51f1751d90962ce8958075950413b817cb5e3fecc05c",
+    "void-runner/crosswalks.js": "cb8e2e5729e15313902b515dd8a36901749e09fe99260c4e8e63ed6e61e81106",
     "void-runner/crowd.js": "1c7587f2aaac0397610df0fa2f8a798bcbcf00eda25c50de5b1ee08ad825d67e",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "ee1fcc752a36ace292f55b57531da64a4430fd61f6e84bceb1801480585f2ecd",
@@ -57755,18 +57756,18 @@
     "void-runner/neochinatown.js": "15d3b41c41043f878dda7a368684797c9aa881329c695dcf7b9d8f98fc838ca1",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "90b693e36c48fa163b78f89b8b1ad22a5154ffffb47cdf352b0575b86ae90ce1",
-    "void-runner/npc-behaviour.js": "bf15d9a0030b9673812527f67a152d8ce1e185515fa8a2b0eec0af560b200839",
+    "void-runner/npc-areas.js": "e8356d04a349fee8bb3697901c5b94850332a39a182db6e771af7e558153b333",
+    "void-runner/npc-behaviour.js": "dc6884e024ed7c936e17d778392b63064f23c02d17a178e574ba79473d84dc88",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort-indoors.js": "aefd4fde6d052f35a0d2a3170251f1264c8cb5193db325949799c2b9dd5a8ad0",
-    "void-runner/npc-escort.js": "b6a71bd886cbc7a183abcd1050d1fe1aed9b4378bf3d4ed00d1001a000f61fcb",
+    "void-runner/npc-escort.js": "6d7ca53c77f6bdfacb31153f91e5e19c7fb5f898c13d9452b821f8e91ca1ea43",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-made.js": "914db3617694de581c1648e817b3d747ec8eac27c3507ca9ca0954686657719c",
-    "void-runner/npc-map.js": "c61a19647855017188361dd42a1f91e5ba2187df0dcddb1df2109648af734eac",
-    "void-runner/npc-paths.js": "3ea99998605bdb4072948794b1f75dee97e1ee7af7d192fc5a8a73863200ba0e",
+    "void-runner/npc-map.js": "10cffe74567b217ac0e26b2613ee1888986bd9ffdcc85a50b4d29302360ff68c",
+    "void-runner/npc-paths.js": "2c20d5acac54603d7e6491e1f91daa609a890976c410399683f973616823444d",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "c7bd363661ce3aaa939cc9c2c3b09a9f1f5fb813a63bb5fb1e8b88676f47c5c7",
