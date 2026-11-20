@@ -1385,7 +1385,8 @@
     const streetPair=streetPair0||(area==='interior'&&root.VoidStreetPair?root.VoidStreetPair.start({B,scene,parent,quality,where:{scene:'interior'}}):null);
     for(const [m,b] of batches){const mesh=new B.Mesh('ncz-batch',scene),vd=new B.VertexData();vd.positions=b.p;vd.normals=b.n;vd.uvs=b.u;vd.indices=b.i;vd.applyToMesh(mesh);mesh.material=m;mesh.parent=parent;mesh.isPickable=false;}
     // Merge static meshes by material to keep draw calls low.
-    for(const [m,list] of staticMeshes)if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;
+    // (by side orientation too: Babylon refuses to merge a model file's meshes with built ones, and the whole material stayed unmerged; night QA 20 Nov 2026)
+    for(const [m,all] of staticMeshes)for(const list of Object.values(all.reduce((o,x)=>{(o[x.sideOrientation]=o[x.sideOrientation]||[]).push(x);return o;},{})))if(list.length>1){const merged=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(merged){merged.parent=parent;merged.material=m;merged.isPickable=false;
      // The wall modules' own metals are used only in the hallway:
      // take the room lamps (which stand behind walls) off those meshes.
      if(/^ncz-kit_(gunmetal|steel|paint)$/.test(m.name))for(const l of lights.slice(3))if(l!==lights[5])l.excludedMeshes.push(merged);   /* the shop lamp (sixth) may light the shop's walls */}}

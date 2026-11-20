@@ -2079,20 +2079,14 @@
             [
               45.85,
               46.949999999999996,
-              6.25,
-              8.25
+              10.75,
+              12.75
             ],
             [
               33.126,
               34.326,
               12.75,
               13.95
-            ],
-            [
-              45.75,
-              46.95,
-              12.049999999999999,
-              13.249999999999998
             ],
             [
               33.05,
@@ -42337,7 +42331,7 @@
       "spawn"
     ]
   },
-  "revision": "f5abc29081c5a1a2",
+  "revision": "70a1297d96ee2757",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57689,49 +57683,49 @@
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 80,
+      "line": 91,
       "text": "/* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 82,
+      "line": 93,
       "text": "if(st.kind==='photo'){if(v.camera)return {id:'shoot',text:'Put the target in the frame · <b>LEFT CLICK</b> takes a picture'};if(v.deviceOpen)return v.app?{id:'camera',text:'Go back (<b>Esc</b>) and select the <b>Camera</b> app'}:{id:'camera',text:'Select the <b>Camera</b> app'};return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 83,
+      "line": 94,
       "text": "if(st.kind==='send-photo'){const who=v.name(st.npc);if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 84,
+      "line": 95,
       "text": "if(v.app!=='messages')return v.app?{id:'messages',text:'Go back (<b>Esc</b>) and open <b>Messages</b>'}:{id:'messages',text:'Open <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 85,
+      "line": 96,
       "text": "if(v.thread!==st.npc)return {id:'thread',text:'Select <b>'+who+'</b>’s conversation (INBOX)'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 86,
+      "line": 97,
       "text": "if(v.attach&&v.attach.picking)return {id:'attach',text:'Choose the photo of the target'};if(!(v.attach&&v.attach.photo))return {id:'attach',text:'Press <b>ATTACH</b>'};return {id:'send',text:'Press <b>SEND</b>'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 92,
+      "line": 103,
       "text": "const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 93,
+      "line": 104,
       "text": "root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};",
       "kind": "source-reference"
     },
@@ -58685,7 +58679,7 @@
     },
     {
       "source": "void-runner/npc-escort.js",
-      "line": 215,
+      "line": 216,
       "text": "WHO: the people a step can walk with (MOVABLE), except the cat (canInto). Reverie, Lace and made characters not marked adult never go into the fight pit (ADULT_ROOMS),",
       "kind": "source-reference"
     },
@@ -60885,14 +60879,14 @@
     "void-runner/beginner-integration.js": "e09d690634d7d6ca30c5364b6e2e2f65c0db4899467f20ec4e50a94f8545900a",
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
-    "void-runner/cache.js": "d6416f8737d431551942027cbe45a3f20fe5bdab20f39255364bc99fa41d6c25",
+    "void-runner/cache.js": "6b7f21b585f5ba585f333793cee48ded30388c10142ed0909bf8e7be3b2988c8",
     "void-runner/camera-feed.js": "0f3faa3a75fba9af89c26aff69a2a52b20c7a3a8e36b6e50da0aab0b6e16a72e",
     "void-runner/campaign.js": "4677c8b0a8bad7cc3d528a12cd92bb176702aaa920a5658eff143e45bd7a72a0",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
     "void-runner/character-creator.js": "cfd0082b0171c612f0881f485a9879e677a1af7e5d84d66d5a14d39c97c39d86",
-    "void-runner/character-finish.js": "7bc48060d478a439234e2ce69b31c83ef998c8069e3ed688e02e858c9dc3b676",
+    "void-runner/character-finish.js": "4fc7c0c8dd611061b6664284fe9dbee2708169cf01147e4db9afc0cb6a40908d",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -60963,7 +60957,7 @@
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
-    "void-runner/guide-route.js": "4acbc82466da351067a18c07785e50ade8517554f65e0a8f8995f9834dc389af",
+    "void-runner/guide-route.js": "cf616c8d12ec9eed06e1472093525470ab2fd21406c47babe9b9ec9363d86590",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
@@ -60992,7 +60986,7 @@
     "void-runner/mission-content.js": "2202b111cc4533c37645fb8b68d7683ed5a005e5f1c34cc6eaccdc4dde1d2055",
     "void-runner/mission-editor.js": "ab251a496db36894eff85fa0030434f6249764cf9c9c8c274dfeddd6a3a8b6aa",
     "void-runner/mission-givers.js": "35d5d47bb1a68bed2cf810061797e2a691d3aa032073c847bb511f42f95af45e",
-    "void-runner/mission-guide.js": "8041f8d51e20ba82e750a677515c959742db452efe5a7477817b9ec97f465443",
+    "void-runner/mission-guide.js": "29d789425e4071fe6fd79c45b8cc2f78ac7e58bd5c9417315c7501886656aefb",
     "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
     "void-runner/mission-trees.js": "a77f3156c728fa579c401443f94e5d2bbaad99a6897bb58925edd77a8ab552ae",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
@@ -61009,7 +61003,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "61627565da17cf7e0dd9a72d8d159b0e3a50125674dd0055dddf8ee0f2fbef68",
+    "void-runner/ncz-backalleys.js": "1ea7fef4c199a5db40c6f0c187d5196e6e8785d1618d11a764b55b698de6cb43",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
@@ -61020,7 +61014,7 @@
     "void-runner/ncz-quarters.js": "97c10642792d8bb359c96894b8e9d7e90504395b3ac838a4021f3468111ae149",
     "void-runner/ncz-street-glow.js": "4aa3f4f80e7648bde8f268a8b48ce1ffbbd9b4fa01f661e13ca0e788a50412b6",
     "void-runner/ncz-street-pair.js": "432388decd1ac1b956d3d03adad43cac908cc5f9a4643d2bc1ffa8c492d3cbc4",
-    "void-runner/neochinatown.js": "8d608b477a1beb1eaee3301c2732dcc998a6b819ce99a3cd3ee6b430d0db859e",
+    "void-runner/neochinatown.js": "cf632cb991b68dfa838449ec0f9b434323330f80a1fbfe8d16edaa767d6e9a4b",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-areas.js": "d1235d60ebb8a1ac2477a847fd6ad88175906e1c49ef49322b65ee462624d2ec",
@@ -61028,7 +61022,7 @@
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort-indoors.js": "aefd4fde6d052f35a0d2a3170251f1264c8cb5193db325949799c2b9dd5a8ad0",
-    "void-runner/npc-escort.js": "d85973643f502ad51b8bb32ec7f3fe6af8bf72ead1f8e9a3370f17f8cbb1781f",
+    "void-runner/npc-escort.js": "09b7b9d14d27b10b4e5ed25883ac175f7f41f5a0b8f2f125c58e42d4ee978216",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",

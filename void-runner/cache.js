@@ -21,6 +21,7 @@
   });
   navigator.serviceWorker.register(sw,{scope:new URL('../',sw).pathname,updateViaCache:'none'})
     .then(async registration=>{
+      if(!registration)return;   // no registration (a browser that blocks service workers, e.g. automated tests): nothing to update
       api.worker=registration;
       try{await registration.update();}catch{}
       setInterval(()=>{registration.update().catch(()=>{});},15*60*1000);   // a deploy during a long session is noticed too

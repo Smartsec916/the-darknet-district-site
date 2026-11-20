@@ -12,7 +12,10 @@
  // Eyes, lashes, teeth and the like are not given an edge light: it makes them glow.
  const notSurface=/eye|cornea|pupil|iris|teeth|tooth|tongue|lash|brow|glass|nail|lacrimal/i,skip=id=>/^crowd:vr-companion/.test(id);
  let Plugin=null;
- function plugin(B){return Plugin??=class CharacterRimPlugin extends B.MaterialPluginBase{
+ // Registered with Babylon (night QA 20 Nov 2026): a material cloned from a finished one (a person's own tint) re-creates its plugins by class name; unregistered,
+ // the clone lost the edge light and Babylon warned "BABYLON.CharacterRimPlugin not found" for every clone.
+ function plugin(B){if(Plugin)return Plugin;Plugin=klass(B);try{B.RegisterClass?.('BABYLON.CharacterRimPlugin',Plugin);}catch{}return Plugin;}
+ function klass(B){return class CharacterRimPlugin extends B.MaterialPluginBase{
   // MaterialPluginBase has no enabled flag of its own (Babylon 8): the subclass keeps _isEnabled and marks the defines dirty when it changes. Before 18 Nov 2026
   // only _enable(true) was called, _isEnabled stayed undefined and the rim was never compiled in.
   constructor(material){super(material,'CharacterRim',212,{CHARACTER_RIM:false});this._isEnabled=false;this.isEnabled=true;}
