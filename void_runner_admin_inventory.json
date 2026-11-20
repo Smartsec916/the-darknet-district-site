@@ -40475,7 +40475,7 @@
       "spawn"
     ]
   },
-  "revision": "c419330835d12baa",
+  "revision": "50f4e27b51d1c4d3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -59134,7 +59134,7 @@
     "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
     "void-runner/mission-trees.js": "a77f3156c728fa579c401443f94e5d2bbaad99a6897bb58925edd77a8ab552ae",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "24f9ba08c31fdc34df8305118996a0e49833b0e06e17eca9a34a9eb87f55e586",
+    "void-runner/module-build.js": "ea41de421c36be712bdf8069a75fbf133c88c19d0cf2c50c6887b3860257b036",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
     "void-runner/module-integration.js": "4d82f11e048a105d5aea4df655c3ce7b4aa393aea16e4ed4f8ed7f5e1d840652",
     "void-runner/modules.js": "3819726a1aab56bc3849ec913ffd9e80b303484207c2cd673e8ccfcb36f95aca",
