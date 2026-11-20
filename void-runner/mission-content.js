@@ -80,8 +80,20 @@
     (denyStart: the first mission of another tree starts, this one ends), denySay (lines after DENY), say (lines after ACCEPT), price (1..100000 credits charged ONCE on ACCEPT:
     story.flags.ma_<mission>_<step>; the MONEY rules: never below 0, ACCEPT greyed while short)}. The mission waits at it; the game shows the choice window (live-content.js
     askTick) and answers with {type:'ask-yes'|'ask-no', step:'<mission>/<step>'}. */
- const ASK_STEP={deny:['end','skip','back','tree'],question:300,keys:['question','yes','no','deny','goto','denyStart','denySay','price']},askPriceFlag=(mid,sid)=>'ma_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
- const askPrice=o=>o&&Number.isInteger(o.price)&&o.price>0?Math.min(o.price,MONEY.max):0;
+ /* Also (19 Nov 2026, with the player reply choice below): gain (1..100000 credits the player GETS on ACCEPT, once: story.flags.mg_<mission>_<step>; never with a price) and
+    deny 'continue' (DENY: the lines after DENY, then the mission just goes on, like ACCEPT without its credits or its lines). */
+ const ASK_STEP={deny:['end','skip','back','tree','continue'],question:300,keys:['question','yes','no','deny','goto','denyStart','denySay','price','gain']},askPriceFlag=(mid,sid)=>'ma_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18),askGainFlag=(mid,sid)=>'mg_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
+ const askPrice=o=>o&&Number.isInteger(o.price)&&o.price>0?Math.min(o.price,MONEY.max):0,askGain=o=>o&&Number.isInteger(o.gain)&&o.gain>0&&!askPrice(o)?Math.min(o.gain,MONEY.max):0;
+ /* A PLAYER REPLY THAT IS A CHOICE (the owner, 19 Nov 2026: "in player reply add the accept or deny option, credit changes if accepted"): a player line in what is said
+    {who:'You', text (the reply said when ACCEPT is pressed; may be empty), choice:{yes? / no? (button words, 20 characters; default ACCEPT / DENY), noText? (the reply said
+    when DENY is pressed), credits? (signed, -100000..100000, not 0: + the player GETS them on ACCEPT, - the player PAYS them on ACCEPT; once; the MONEY rules: never below 0,
+    ACCEPT greyed while short), deny? 'end' (default) | 'skip' | 'back' | 'tree' | 'continue' (just go on with the conversation), goto? (skip: a LATER step; back: this step or an
+    earlier one), denyStart? (tree), yesSay? / noSay? (what is said next after each button)}}. Allowed in what is said when a step is done (not a Comms call, a message, a photo
+    reply or an "Ask the player" step) and in the offer of a mission that does not ask ACCEPT / DENY itself (in person, or walked near). NOT a second system: expandChoices()
+    turns each one, when the trees are loaded (storyTrees), into an "Ask the player" step (ASK_STEP, marked inline, with the line before it as its question) placed right after
+    its step; the lines after the choice become that step's lines after ACCEPT (and after DENY with 'continue'). The game shows it in the same conversation window. */
+ const CHOICE={deny:['end','skip','back','tree','continue'],keys:['yes','no','noText','credits','deny','goto','denyStart','yesSay','noSay']};
+ const choiceOk=(m,o)=>o?!['ask','send-photo','anim','wait','zone'].includes(o.kind)&&o.via!=='comms'&&o.via!=='messages':!(m&&m.start&&m.start.accept===true)&&(!(m&&m.start&&m.start.how==='notification')||((m.start.when||{}).kind==='near'));
  function costOf(m){const c=m&&m.cost;if(!c||!(Number.isInteger(c.amount)&&c.amount>0))return null;const when=c.when||'accept';return {amount:Math.min(c.amount,MONEY.max),when,refund:c.refund===true&&when==='accept'};}
  /* Credits as one signed number for the editor ("Player gets" >= 0, "Player pays" < 0) and back (clamped to -100000..100000). */
  const signed=m=>{const c=costOf(m);return c?-c.amount:(Number.isInteger(m&&m.rewards)?m.rewards:0);};
@@ -109,7 +121,8 @@
  /* ELEVENLABS VOICE TAGS (the owner, 19 Nov 2026) in what is said: checked here (npc-voices.js tagProblems) and removed for players in ONE place, where content is adapted
     (apply: changed lines, every tree's lines and notification texts; mapLine). Only the re-voice queue keeps them, for ElevenLabs models that read them. */
  const tagP=t=>{const V=NPV();return V&&V.tagProblems?V.tagProblems(t):[];},shown=t=>{const V=NPV();return V&&V.strip&&typeof t==='string'?V.strip(t):t;};
- const shownLines=ls=>Array.isArray(ls)?ls.map(l=>l&&typeof l.text==='string'?{...l,text:shown(l.text)}:l):ls;
+ const shownLines=ls=>Array.isArray(ls)?ls.map(l=>l&&typeof l.text==='string'?{...l,text:shown(l.text),...(l.choice&&typeof l.choice==='object'?{choice:shownChoice(l.choice)}:{})}:l):ls;
+ const shownChoice=c=>({...c,...(typeof c.noText==='string'?{noText:shown(c.noText)}:{}),...(c.yesSay?{yesSay:shownLines(c.yesSay)}:{}),...(c.noSay?{noSay:shownLines(c.noSay)}:{})});
  function shownTree(t){const x=clone(t);for(const m of x.missions||[]){if(!m)continue;m.offer=shownLines(m.offer);if(m.ending&&m.ending.say)m.ending.say=shownLines(m.ending.say);if(m.start&&typeof m.start.text==='string')m.start.text=shown(m.start.text);
   for(const o of m.objectives||[])if(o){for(const k of ['say','early','wrong','denySay'])if(o[k])o[k]=shownLines(o[k]);if(typeof o.question==='string')o.question=shown(o.question);}}return x;}
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
@@ -249,7 +262,20 @@
   else if(o.goto!=null)err(w+': only “skip to” or “go back to” names a step.');
   if(d==='tree'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===o.denyStart))err(w+': on DENY it must start the first mission of another tree.');}else if(o.denyStart!=null)err(w+': only “start another tree” names a mission to start.');
   if(o.price!=null&&!(Number.isInteger(o.price)&&o.price>=1&&o.price<=MONEY.max))err(w+': what the player pays on ACCEPT must be a whole number from 1 to 100000 credits.');
+  if(o.gain!=null&&!(Number.isInteger(o.gain)&&o.gain>=1&&o.gain<=MONEY.max))err(w+': what the player gets on ACCEPT must be a whole number from 1 to 100000 credits.');else if(o.gain!=null&&o.price!=null)err(w+': on ACCEPT the player either gets credits or pays them, not both.');
   if(o.via!=null||o.early!=null||o.wrong!=null)err(w+': an “Ask the player” step has only the lines after ACCEPT and after DENY.');lines(o.denySay,w+' / after DENY');}
+ /* A player reply that is a choice (CHOICE). ch: {m, i (the index of its step; -1 for the offer), t}. Going back repeats the steps from the target to this one: a credits or
+    standing unlock at one of them is refused, as for an "Ask the player" step. */
+ function checkChoice(c,w,err,lines,ch,trees){const {m,i,t}=ch,w2=w+' / the player’s choice';if(!keysOk(c,CHOICE.keys)){err(w2+': unknown fields.');return;}
+  for(const k of ['yes','no'])if(c[k]!=null&&!plain(c[k],MONEY.label))err(w2+': a button label must be plain text, '+MONEY.label+' characters at most.');
+  if(c.noText!=null){if(!plain(c.noText,LIMIT.text))err(w2+': the reply on DENY must be plain text (500 characters at most).');else for(const p of tagP(c.noText))err(w2+': '+p);}
+  if(c.credits!=null&&!(Number.isInteger(c.credits)&&c.credits!==0&&Math.abs(c.credits)<=MONEY.max))err(w2+': the credits on ACCEPT must be a whole number from 1 to 100000 (the player gets them or pays them).');
+  const d=c.deny==null?'end':c.deny,ids=(m.objectives||[]).map(x=>x&&x.id),j=ids.indexOf(c.goto);if(!CHOICE.deny.includes(d))err(w2+': unknown “what happens on DENY”.');
+  if(d==='skip'){if(!(j>i))err(w2+': on DENY it must skip to a LATER step of this mission.');}else if(d==='back'){if(!(j>=0&&j<=i))err(w2+': on DENY it must go back to this step or an EARLIER one.');
+   else for(const x of m.objectives.slice(j,i+1))if((m.unlocks||[]).some(u=>u&&u.when===x.id&&(u.kind==='credits'||u.kind==='reputation')))err(w2+': going back repeats step “'+(x.label||x.id)+'”, which gives credits or standing each time: move that to after the choice or to the end.');}
+  else if(c.goto!=null)err(w2+': only “skip to” or “go back to” names a step.');
+  if(d==='tree'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===c.denyStart))err(w2+': on DENY it must start the first mission of another tree.');}else if(c.denyStart!=null)err(w2+': only “start another tree” names a mission to start.');
+  lines(c.yesSay,w2+' / after '+(c.yes||YES));lines(c.noSay,w2+' / after '+(c.no||NO));}
  function checkCost(m,w,err,oids){const c=m.cost;if(c==null)return;if(!keysOk(c,['amount','when','refund'])){err(w+': the cost has unknown fields.');return;}
   if(!(Number.isInteger(c.amount)&&c.amount>=1&&c.amount<=MONEY.max))err(w+': what the player pays must be a whole number from 1 to 100000 credits.');
   const when=c.when==null?'accept':c.when;if(when!=='accept'&&!oids.has(when))err(w+': the cost is charged at a step that is not in this mission.');
@@ -266,9 +292,10 @@
   const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
   const animP=(who,clip)=>{const A=NGS();return A?A.problem(who,clip,{plan:(ctx.npcs||{})[who]||null}):'';};
   const sec=(v,lo,hi)=>v==null||(Number.isInteger(v)&&v>=lo&&v<=hi);
-  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(l&&typeof l==='object'){if(!sec(l.wait,0,TIME.lineWait))err(w+': the wait before a line is a whole number of seconds from 0 to 60.');if(!sec(l.show,1,TIME.lineShow))err(w+': “show for” is a whole number of seconds from 1 to 60.');if(!sec(l.animFor,1,TIME.animFor))err(w+': an animation on a line lasts a whole number of seconds from 1 to 30.');else if(l.animFor!=null&&l.anim==null)err(w+': only a line with an animation has an animation time.');}
-   if(!keysOk(l,['who','text','anim','wait','show','animFor'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else{for(const p of tagP(l.text))err(w+': '+p);
-   if(l.anim!=null){if(l.who==='You')err(w+': the player’s own line has no animation.');else{const p=animP(l.who,l.anim);if(p)err(w+': '+p+'.');}}}}};
+  const lines=(ls,w,ch)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(l&&typeof l==='object'){if(!sec(l.wait,0,TIME.lineWait))err(w+': the wait before a line is a whole number of seconds from 0 to 60.');if(!sec(l.show,1,TIME.lineShow))err(w+': “show for” is a whole number of seconds from 1 to 60.');if(!sec(l.animFor,1,TIME.animFor))err(w+': an animation on a line lasts a whole number of seconds from 1 to 30.');else if(l.animFor!=null&&l.anim==null)err(w+': only a line with an animation has an animation time.');}
+   if(!keysOk(l,['who','text','anim','wait','show','animFor','choice'])||!(plain(l.text,LIMIT.text)||(l.choice!=null&&l.text==='')))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else{for(const p of tagP(l.text))err(w+': '+p);
+   if(l.anim!=null){if(l.who==='You')err(w+': the player’s own line has no animation.');else{const p=animP(l.who,l.anim);if(p)err(w+': '+p+'.');}}}
+   if(l&&typeof l==='object'&&l.choice!=null){if(!ch)err(w+': a player reply can be a choice only in what is said when a step is done, or in the offer of a mission that does not ask ACCEPT / DENY itself.');else if(l.who!=='You')err(w+': only the player’s reply can be a choice.');else checkChoice(l.choice,w,err,lines,ch,trees);}}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
    if(!keysOk(t,['id','name','note','missions'])){err(tw+': unknown fields in a tree.');continue;}
    if(!treeIdOk(t.id))err(tw+': a new tree id must start with draft-.');if(tids.has(t.id))err(tw+': duplicate tree id.');tids.add(t.id);
@@ -292,7 +319,7 @@
     if(!npcOk(m.giver))err(w+': the giver must be an NPC the game has a TALK prompt for.');
     if(m.description!=null&&!(typeof m.description==='string'&&m.description.length<=LIMIT.description&&!TAGS.test(m.description)))err(w+': the description must be plain text (600 characters at most).');
     if(m.rewards!=null&&!(Number.isInteger(m.rewards)&&m.rewards>=0&&m.rewards<=LIMIT.credits))err(w+': credits must be a whole number between 0 and 100000.');
-    lines(m.offer,w);
+    lines(m.offer,w,choiceOk(m,null)?{m,i:-1,t}:null);
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
@@ -323,7 +350,7 @@
      if(o.wrong!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step has a reply for the wrong photo.');
      if(o.kind!=='ask'&&ASK_STEP.keys.some(k=>o[k]!=null))err(ow+': only an “Ask the player” step has a question, buttons or what happens on DENY.');else if(o.kind==='ask')checkAskStep(m,o,ow,err,lines,speakerOk,trees,t);
      if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}
-     lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}
+     lines(o.say,ow,choiceOk(m,o)?{m,i:m.objectives.indexOf(o),t}:null);lines(o.early,ow);lines(o.wrong,ow);}
     checkCost(m,w,err,oids);
     if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{
      if(m.ending.npc!=null&&!npcOk(m.ending.npc))err(w+': the hand-in NPC must be an NPC the game has a TALK prompt for.');
@@ -413,10 +440,10 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
    if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(GC)GC.stamp(s,m.id);/* the in-game wait of "after N in-game hours" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
-  const step=(t,m,o)=>{const c=costOf(m),pay=c&&c.when===o.id?c:null;if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount,needStep:o.id});return false;}   // a step that costs: not done until the player has the credits
+  const step=(t,m,o,quiet)=>{const c=costOf(m),pay=c&&c.when===o.id?c:null;if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount,needStep:o.id});return false;}   // a step that costs: not done until the player has the credits
    if(held(m,o))return false;if(!Missions.complete(s,m.id,o.id,Camp))return false;delete s.story.flags[delayFlag(m.id,o.id)];delete s.story.flags[waitFlag(m.id,o.id)];if(pay){const n=charge(s,m,pay);if(n){out.charged=(out.charged||0)+n;out.notes.push('−'+n+' CREDITS');}}Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
    if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
-   else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else out.lines.push(...speak(o.say));settle(m,o.id);return true;};
+   else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else if(!quiet)out.lines.push(...speak(o.say));settle(m,o.id);return true;};
   // A step's lines that reach the device instead of the dialogue window (a Comms call or a message from the NPC who says them): kept like a start notification.
   const sendLines=(m,o)=>{const ls=speak(o.say);if(!ls.length)return;const at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)]))s.story.flags[msgFlag(m.id,o.id)]=at;
    out.messages.push(stepMessage(m,o,gv,at));};
@@ -447,7 +474,9 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const askOf=m=>({mission:m.id,title:titleOf(m),accept:(m.start&&m.start.yes)||YES,decline:(m.start&&m.start.no)||NO});
   /* An offer that arrives on the device and asks (Messages, Comms, a banner, walked near): out.prompt {ask, offer, lines (the notification's words), channel, tree}. It never
      stops the other trees (it is asked again on every event while its trigger holds; live-content.js shows it once in a while, never over a conversation). */
-  const prompt=(t,m)=>{const st=m.start;return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',lines:[{who:gv(st.from).say||st.from,text:(st.header?st.header+': ':'')+st.text}].filter(l=>env.draft||!placeholder(l.text))};};
+  const prompt=(t,m)=>{const st=m.start;return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',lines:[{who:gv(st.from).say||st.from,text:(st.header?st.header+': ':'')+st.text}].filter(l=>env.draft||!placeholder(l.text)).concat(nearStart(m)?speak(m.offer):[])};};
+  /* Walked near (19 Nov 2026): what the giver says when offering it is said as the player comes near (after the banner), as in person. */
+  const nearStart=m=>!!(m.start&&m.start.how==='notification'&&m.start.when&&m.start.when.kind==='near');
   /* DENY with "start another mission": that tree's first mission starts now (or is offered now when it asks too). */
   const startInstead=id=>{for(const tt of env.trees){const mm=(tt.missions||[])[0];if(!mm||mm.id!==id)continue;const r=s.universe.missions&&s.universe.missions[mm.id];if(r&&(r.acquired||r.completed))return;
     if(gated.has(tt.id))s.story.flags[linkFlag(tt.id)]=true;delete s.story.flags[denyFlag(mm.id)];const sm=mm.start||{};
@@ -458,8 +487,11 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
      to be done again), or the mission ends (it goes back to its giver; a cost paid at ACCEPT comes back only with "refund if abandoned"), with "start another tree" starting that. */
   const answer=(t,m,o,yes)=>{Object.assign(out,{tree:t.id,mission:m.id,answered:yes?'yes':'no'});const rec=s.universe.missions[m.id],clear=x=>{delete s.story.flags[delayFlag(m.id,x.id)];delete s.story.flags[waitFlag(m.id,x.id)];};
    if(yes){const p=askPrice(o),fl=askPriceFlag(m.id,o.id);if(p&&!(Number.isSafeInteger(s.story.flags[fl])&&s.story.flags[fl]>0)){const have=Math.max(0,Number(s.credits)||0);if(have<p){out.need=p;out.needStep=o.id;return;}s.credits=have-p;s.story.flags[fl]=p;out.charged=(out.charged||0)+p;out.notes.push('−'+p+' CREDITS');}
-    if(step(t,m,o))auto(t,m);return;}
-   out.lines.push(...speak(o.denySay));const d=ASK_STEP.deny.includes(o.deny)?o.deny:'end',ids=m.objectives.map(x=>x.id),i=ids.indexOf(o.id),j=ids.indexOf(o.goto);out.deny=d;
+    const g=askGain(o),gf=askGainFlag(m.id,o.id);if(g&&!(Number.isSafeInteger(s.story.flags[gf])&&s.story.flags[gf]>0)){s.credits=Math.min(1e8,Math.max(0,Number(s.credits)||0)+g);s.story.flags[gf]=g;out.gained=g;out.notes.push('+'+g+' CREDITS');}   // credits the player gets on ACCEPT, once
+    if(step(t,m,o)){auto(t,m);if(o.inline)hearNext(t,m);}return;}
+   out.lines.push(...speak(o.denySay));
+   if(o.deny==='continue'){out.deny='continue';if(step(t,m,o,true)){auto(t,m);if(o.inline)hearNext(t,m);}return;}   // DENY, then the mission just goes on (no credits, not the ACCEPT lines)
+   const d=ASK_STEP.deny.includes(o.deny)?o.deny:'end',ids=m.objectives.map(x=>x.id),i=ids.indexOf(o.id),j=ids.indexOf(o.goto);out.deny=d;
    if(d==='skip'&&j>i){for(const x of m.objectives.slice(i,j)){Missions.complete(s,m.id,x.id,Camp);clear(x);}out.objective=o.id;out.skipped=ids.slice(i+1,j);settle(m,null);auto(t,m);return;}
    if(d==='back'&&j>=0&&j<i){for(const x of m.objectives.slice(j,i+1)){delete rec.objectives[x.id];clear(x);}rec.completed=false;out.back=o.goto;return;}
    const tracked=s.universe.trackedMission===m.id,back=abandon(s,env,m.id);if(tracked)s.universe.autoTrack=true;delete s.story.flags.npcEsc;clear(o);out.ended=true;out.refund=back;if(d==='tree')startInstead(o.denyStart);};
@@ -489,7 +521,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
       if(startsNow(m)&&Missions.available(s,m.id)){if(byNote){if(!out.prompt)out.prompt=prompt(t,m);break;}
        Object.assign(out,{tree:t.id,mission:m.id,ask:askOf(m),offer:offerOf(s,m)});out.lines.push(...speak(m.offer));return out;}
       break;}
-     if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote)notify(t,m);else out.lines.push(...speak(m.offer));
+     if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote){notify(t,m);if(nearStart(m))out.lines.push(...speak(m.offer));}else out.lines.push(...speak(m.offer));
       const first=m.objectives[0];if(byNote&&first&&hit(first,m))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
      break;}
     const next=m.objectives.find(o=>rec.objectives[o.id]!==true);
@@ -576,7 +608,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function askNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees),gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
    const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&o.kind==='ask'&&!delayed(s,m,o)&&(env.draft||!placeholder(o.question))){const who=o.npc||m.giver,p=askPrice(o),paid=Number.isSafeInteger(s.story.flags[askPriceFlag(m.id,o.id)])&&s.story.flags[askPriceFlag(m.id,o.id)]>0,ok=!p||paid||(Number(s.credits)||0)>=p;
-    out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:who,title:titleOf(m),ask:{mission:m.id,step:o.id,title:titleOf(m),accept:o.yes||YES,decline:o.no||NO},lines:[{who:gv(who).say||who,text:String(o.question||'')}],price:p,afford:ok,need:ok?0:p,paid});}break;}}
+    out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:who,title:titleOf(m),inline:o.inline===true,gain:askGain(o),ask:{mission:m.id,step:o.id,title:titleOf(m),accept:o.yes||YES,decline:o.no||NO},lines:[{who:gv(who).say||who,text:String(o.question||'')}],price:p,afford:ok,need:ok?0:p,paid});}break;}}
   return out;}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
  function treeWants(s,env,npcs){if(!treeLive(s)||!env||!env.trees)return false;const recs=s.universe.missions||{},gated=linked(env.trees);
@@ -623,7 +655,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   return out;
  }
  /* The trees that run: the shipped story trees (an edited copy in the content replaces the one with the same id), then the content's other trees. */
- function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x=shownTree(t);delete x.status;delete x.shipped;delete x.seq;return x;});}
+ function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x=shownTree(t);delete x.status;delete x.shipped;delete x.seq;if(Array.isArray(x.missions))x.missions=x.missions.map(expandChoices);return x;});}   // player reply choices: inline "Ask the player" steps (CHOICE)
  /* A line about to be shown ({who,text}) → the edited line, or the same object when nothing applies. */
  function mapLine(env,l){if(!l||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}
  /* Builds content from the owner's drafts. studio: the Developer Studio's local draft {missions:[...]} (beginner campaign); local: Mission Editor edits {missions:{key:edit}}. */
@@ -631,8 +663,24 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:o.label,on:o.on};for(const k of ['requires','interaction','destination','award','say','early'])if(o[k]!=null&&!(Array.isArray(o[k])&&!o[k].length))x[k]=clone(o[k]);if(x.requires)x.requires=x.requires.slice();return x;});return r;};
  /* ---- new trees in the owner's draft → content. Only what the game can run is sent: in each tree, the missions in order up to the first one that cannot run yet. */
  const secs=(v,lo,hi)=>{const n=Number(v);return Number.isFinite(n)&&n>=lo?Math.min(hi,Math.round(n)):null;};
- const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>{const x={who:l.who||who||'You',text:l.text.trim()};if(l.anim&&typeof l.anim==='string'&&x.who!=='You'){x.anim=l.anim;const a=secs(l.animFor,1,TIME.animFor);if(a)x.animFor=a;}
-  const w=secs(l.wait,1,TIME.lineWait),sh=secs(l.show,1,TIME.lineShow);if(w)x.wait=w;if(sh)x.show=sh;return x;});
+ const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&(l.text.trim()||(l.who==='You'&&l.choice))).map(l=>{const x={who:l.who||who||'You',text:l.text.trim()};if(l.anim&&typeof l.anim==='string'&&x.who!=='You'){x.anim=l.anim;const a=secs(l.animFor,1,TIME.animFor);if(a)x.animFor=a;}
+  const w=secs(l.wait,1,TIME.lineWait),sh=secs(l.show,1,TIME.lineShow);if(w)x.wait=w;if(sh)x.show=sh;if(x.who==='You'&&l.choice){const c=choiceStrip(l.choice,who);if(c)x.choice=c;}return x;});
+ /* A player reply's choice (CHOICE) as it is published: only the known fields, the follow-up lines cleaned like any line. */
+ function choiceStrip(c,who){if(!c||typeof c!=='object')return null;const x={};for(const k of ['yes','no'])if(typeof c[k]==='string'&&c[k].trim())x[k]=c[k].trim().slice(0,MONEY.label);if(typeof c.noText==='string'&&c.noText.trim())x.noText=c.noText.trim().slice(0,LIMIT.text);
+  if(Number.isInteger(c.credits)&&c.credits!==0)x.credits=Math.max(MONEY.min,Math.min(MONEY.max,c.credits));if(CHOICE.deny.includes(c.deny)&&c.deny!=='end')x.deny=c.deny;if((x.deny==='skip'||x.deny==='back')&&c.goto)x.goto=c.goto;if(x.deny==='tree'&&c.denyStart)x.denyStart=c.denyStart;
+  const ys=said(c.yesSay,who).map(l=>{delete l.choice;return l;}),ns=said(c.noSay,who).map(l=>{delete l.choice;return l;});if(ys.length)x.yesSay=ys;if(ns.length)x.noSay=ns;return x;}
+ /* The trees as the game runs them: every player reply choice becomes an inline "Ask the player" step right after its step (or before the first step, for the offer).
+    Ids: '<step>-c<n>' (never one the mission already has). The lines before the choice stay where they were; the step's question is the last line someone else said. */
+ function expandChoices(m){if(!m||!Array.isArray(m.objectives))return m;const has=ls=>Array.isArray(ls)&&ls.some(l=>l&&l.choice&&l.who==='You');
+  const offer=choiceOk(m,null)&&has(m.offer);if(!offer&&!m.objectives.some(o=>o&&choiceOk(m,o)&&has(o.say)))return m;
+  const ids=new Set(m.objectives.map(o=>o&&o.id)),fresh=base=>{let n=1,id;do id=String(base).slice(0,70)+'-c'+(n++);while(ids.has(id));ids.add(id);return id;};
+  const split=(L,who,host)=>{const k=L.findIndex(l=>l&&l.choice&&l.who==='You');if(k<0)return {lines:L,asks:[]};const id=fresh(host),before=L.slice(0,k),{lines:after,asks:more}=split(L.slice(k+1),who,host),c=L[k].choice||{};
+   const lead=[...before].reverse().find(l=>l&&l.who!=='You'),a={id,kind:'ask',label:(c.yes||YES)+' or '+(c.no||NO),inline:true,question:lead?lead.text:'…',npc:lead?lead.who:who};
+   for(const f of ['yes','no','deny','goto','denyStart'])if(c[f]!=null)a[f]=c[f];if(c.credits>0)a.gain=c.credits;else if(c.credits<0)a.price=-c.credits;
+   a.say=[...(L[k].text?[{who:'You',text:L[k].text}]:[]),...(c.yesSay||[]),...after];a.denySay=[...(c.noText?[{who:'You',text:c.noText}]:[]),...(c.noSay||[]),...(c.deny==='continue'?after:[])];return {lines:before,asks:[a,...more]};};
+  const x={...m},objs=[];if(offer){const r=split(m.offer,m.giver,'offer');x.offer=r.lines;objs.push(...r.asks);}
+  for(const o of m.objectives){if(!o||!choiceOk(m,o)||!has(o.say)){objs.push(o);continue;}const r=split(o.say,o.npc||m.giver,o.id),y={...o,say:r.lines};if(!y.say.length)delete y.say;objs.push(y,...r.asks);}
+  x.objectives=objs;return x;}
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
  const askStrip=(st,who)=>{if(!st||st.accept!==true)return {};const x={accept:true};for(const k of ['yes','no'])if(typeof st[k]==='string'&&st[k].trim())x[k]=st[k].trim().slice(0,MONEY.label);
   if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;if(x.deny==='after')x.denyMinutes=denyMinutes(st.denyMinutes);const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
@@ -651,7 +699,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;if(typeof o.feed==='string'&&o.feed){x.feed=o.feed;if(o.unlock===true)x.unlock=true;}}
    if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
    if(o.kind==='ask'){x.question=String(o.question||'').trim();for(const k of ['yes','no'])if(typeof o[k]==='string'&&o[k].trim())x[k]=o[k].trim().slice(0,MONEY.label);if(ASK_STEP.deny.includes(o.deny)&&o.deny!=='end')x.deny=o.deny;if((x.deny==='skip'||x.deny==='back')&&o.goto)x.goto=o.goto;if(x.deny==='tree'&&o.denyStart)x.denyStart=o.denyStart;
-   const p=askPrice(o);if(p)x.price=p;if(!x.label)x.label='Decide';const who=o.npc||m.giver,sy=said(o.say,who),dn=said(o.denySay,who);if(sy.length)x.say=sy;if(dn.length)x.denySay=dn;return x;}   // ACCEPT / DENY in the middle of a mission
+   const p=askPrice(o),g=askGain(o);if(p)x.price=p;else if(g)x.gain=g;if(!x.label)x.label='Decide';const who=o.npc||m.giver,sy=said(o.say,who),dn=said(o.denySay,who);if(sy.length)x.say=sy;if(dn.length)x.denySay=dn;return x;}   // ACCEPT / DENY in the middle of a mission
   if(o.kind==='zone'){const X=ZN();return X?X.stripStep(o,x):x;}   // "Change zone" (zones.js)
   if(o.kind==='wait'){x.hold=secs(o.hold,1,TIME.wait)||10;const n=secs(o.near,1,TIME.near);if(n&&o.npc){x.near=n;x.npc=o.npc;}else delete x.npc;if(!x.label)x.label='Wait';return x;}   // an animation step: no lines (its label shows in the Mission Log for those seconds)
    const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
@@ -691,6 +739,10 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   if(o.kind==='anim'){if(!o.npc)need(w+': choose who plays the animation','step-npc',id);else if(!o.clip)need(w+': choose the animation','step-clip',id);continue;}   // which clips are allowed: check() (with her NPCs-tab plan)
    if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
    if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}
+  // a player reply that is a choice (CHOICE): where DENY goes
+  {const objs=m.objectives||[],ids=objs.map(x=>x&&x.id),chk=(ls,i,w,id)=>{for(const l of ls||[]){const c=l&&l.who==='You'&&l.choice;if(!c||typeof c!=='object')continue;const d=c.deny||'end',j=ids.indexOf(c.goto);
+    if(d==='skip'&&!(j>i))need(w+': the player’s choice: choose the later step DENY skips to','line-choice-goto',id);if(d==='back'&&!(j>=0&&j<=i))need(w+': the player’s choice: choose the step DENY goes back to','line-choice-goto',id);if(d==='tree'&&!c.denyStart)need(w+': the player’s choice: choose the tree that starts on DENY','line-choice-tree',id);}};
+   if(choiceOk(m,null))chk(m.offer,-1,'the offer');objs.forEach((o,i)=>{if(o&&choiceOk(m,o))chk(o.say,i,'step '+(i+1),o.id);});}
   for(const a of m.apartments||[]){if(a&&!a.door)need('apartment “'+(a.id||'?')+'”: choose its street door (on the map or from the list)','apt-door');}
   {const X=APT();if(X)for(const p of X.problems(m,null))if(!/choose a street door|choose one of this mission|choose what is used|choose the access point|choose the room \(module\)/.test(p))need(p,'apt-door');}
   if(m.ending&&m.ending.npc&&!can(m.ending.npc))need('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today','ending');
@@ -806,7 +858,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function apartmentsNow(s,env){const X=APT();return X&&aptLive(s,env)?X.openNow(s,env.trees):[];}
  function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
  function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
- const api={askNow,ASK_STEP,askPriceFlag,apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

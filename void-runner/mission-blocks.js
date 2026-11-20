@@ -37,7 +37,7 @@
   if(['message','pod-exit','anim','wait','zone'].includes(k))return [];
   if(k==='ask')return [{key:'say',title:'After ACCEPT',who,player:true,anim:true},{key:'denySay',title:'After DENY',who,player:true,anim:true}];
   if(k==='send-photo')return [{key:'say',title:'Reply to the right photo',who,player:false,anim:false},{key:'wrong',title:'Reply to any other photo',who,player:false,anim:false}];
-  const out=[{key:'say',title:k==='talk'||k==='deliver'||k==='hear'?'What is said':'What is said when this is done',who,player:!dev,anim:!dev}];
+  const out=[{key:'say',title:k==='talk'||k==='deliver'||k==='hear'?'What is said':'What is said when this is done',who,player:!dev,anim:!dev,choice:!dev}];   // choice: a player reply here may be ACCEPT / DENY (mission-content.js CHOICE)
   if(k==='talk'||k==='deliver')out.push({key:'early',title:'If the player comes too soon',who,player:true,anim:true,more:true});return out;}
  /* Consecutive lines by the same speaker, for the view: [{who (the speaker id, '' = the part's own person), k0 (index of the first), lines:[{line, k}]}]. */
  function lineGroups(lines,defWho){const out=[];(lines||[]).forEach((l,k)=>{const w=l&&l.who?l.who:(defWho||'');const last=out[out.length-1];if(last&&last.who===w)last.lines.push({line:l,k});else out.push({who:w,k0:k,lines:[{line:l,k}]});});return out;}
@@ -227,6 +227,33 @@
  const wordsAuto=(o,m)=>{const l=String((o&&o.label)||'').trim();return !l||l===placeWords(o,m)||LEGACY_WORDS.test(l);};
  /* After a change of place (fn changes the step): the words follow when they were automatic. */
  function rewordAfter(o,m,fn){const was=wordsAuto(o,m);fn(o);if(was){const w=placeWords(o,m);if(w)o.label=w;}return o;}
- const api={TYPES,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS};
+ /* HOW IT STARTS, AS ONE PLAIN CHOICE (the owner, 19 Nov 2026: "i don't see the when the player walks closer to the giver option": it was the trigger "When walked near",
+    shown only after choosing a device start such as Notification only). The same list in the Form view's "Starts", the Blocks view's Start block and the wizard. No new data:
+    walk near is the start {how:'notification', channel:'notify', when:{kind:'near', npc (the giver), distance}} it always was (accept:true when they ask); startMode reads
+    it back, setStartMode writes it (keeping the ACCEPT / DENY settings as the Form view always did). */
+ const NEAR_DEF=5,MCX=()=>typeof module!=='undefined'&&module.exports?reqP('./mission-content.js'):root.VoidMissionContent;
+ const START_MODES=[
+  {id:'person',name:'In person: the player talks to them',help:'The player walks up to the giver and presses TALK; the giver offers it (what they say is in the Start block).'},
+  {id:'person-accept',name:'In person: they ask ACCEPT / DENY',help:'The player presses TALK; the giver offers it and the player chooses ACCEPT or DENY.'},
+  {id:'near',name:'Walk near them (starts automatically)',help:'No talking needed: when the player comes within the distance you set (5 m if not set), the mission starts by itself, a short banner shows and the giver says what you write for the offer. Nothing to press.'},
+  {id:'near-accept',name:'Walk near them and they ask ACCEPT / DENY',help:'When the player comes within the distance, the giver offers it and the player chooses ACCEPT or DENY. Nothing starts until ACCEPT.'},
+  {id:'messages',name:'By Messages (a text on the V1)',help:'A text arrives in the V1 Messages app when its trigger happens (first pod exit, a place, after a mission …).'},
+  {id:'comms',name:'By Comms call',help:'A call in the V1 Comms app when its trigger happens.'},
+  {id:'notify',name:'Notification only (a banner)',help:'A banner on the screen when its trigger happens, then the Mission Log.'}];
+ const nearOf=st=>!!(st&&st.how==='notification'&&st.when&&st.when.kind==='near'&&(st.channel||'messages')==='notify');
+ function startMode(m){const st=(m&&m.start)||{how:'person'};if(st.how!=='notification')return st.accept===true?'person-accept':'person';if(nearOf(st))return st.accept===true?'near-accept':'near';return st.channel||'messages';}
+ const payAtAccept=m=>{const X=MCX(),c=X&&X.costOf?X.costOf(m):null;return !!(c&&c.when==='accept');},askKeys=()=>((MCX()||{}).ASK_KEYS)||['yes','no','deny','denyMinutes','denyStart','denySay'];
+ const askCustom=st=>!!st&&askKeys().some(k=>st[k]!=null);
+ /* x: the draft mission (changed in place). The Form view's own rules for the device channels (19 Nov 2026: a device start keeps the question only when it already had it on
+    a device start, or had its own button words / DENY settings; a cost at ACCEPT always asks). Walk near: automatic unless 'near-accept' or the player pays at ACCEPT. */
+ function setStartMode(x,mode){const prev=x.start||{how:'person'},wasNear=nearOf(prev),near=mode==='near'||mode==='near-accept';
+  if(mode==='person')x.start={how:'person'};else if(mode==='person-accept')x.start={how:'person',accept:true};
+  else if(near){const w=wasNear?prev.when:{kind:'near',npc:x.giver||'',distance:NEAR_DEF};x.start={how:'notification',from:x.giver||'',header:'',text:'',...(prev.how==='notification'?prev:{}),channel:'notify',when:{...w,kind:'near'}};
+   delete x.start.accept;for(const k of askKeys())delete x.start[k];if(mode==='near-accept'){x.start.accept=true;if(prev.accept===true)for(const k of askKeys())if(prev[k]!=null)x.start[k]=prev[k];}}
+  else{x.start={how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(prev.how==='notification'?prev:{}),channel:mode};if(wasNear&&mode==='notify')x.start.when={kind:'pod-exit'};delete x.start.accept;
+   if(prev.accept===true&&(prev.how==='notification'||askCustom(prev))){x.start.accept=true;for(const k of askKeys())if(prev[k]!=null)x.start[k]=prev[k];}}
+  if(mode==='person-accept'&&prev.accept===true)for(const k of askKeys())if(prev[k]!=null)x.start[k]=prev[k];
+  if(payAtAccept(x))x.start.accept=true;return x;}
+ const api={TYPES,START_MODES,startMode,setStartMode,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionBlocks=api;
 })(globalThis);
