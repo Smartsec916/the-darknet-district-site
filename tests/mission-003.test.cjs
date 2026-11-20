@@ -26,7 +26,7 @@ const ZH='给我一点时间调查一下。如果有什么消息，我会给你�
 
 test('Mission 003 data: right after Eyes on the Street in the Awakening tree, number 3, the owner\'s words verbatim, ledger and manifest, no reward',()=>{
  const {MS,MC,G,e}=env(),man=JSON.parse(fs.readFileSync(R('void-runner/save-manifest.json'),'utf8'));
- assert.deepEqual(MS.TREE.missions.map(m=>m.id),['m001-awakening',M2,ID]);assert.equal(MS.NUMBERS[3],ID);assert.equal(man.missionNumbers[3],ID);assert.ok(man.storyMissions.includes(ID));
+ assert.deepEqual(MS.TREE.missions.map(m=>m.id).slice(0,3),['m001-awakening',M2,ID],'001-003 first; the owner\'s continuation follows (20 Nov 2026)');assert.equal(MS.NUMBERS[3],ID);assert.equal(man.missionNumbers[3],ID);assert.ok(man.storyMissions.includes(ID));
  const m=MS.CORPORATE;assert.equal(m.number,3);assert.equal(m.title,'Corporate Connections');assert.equal(MS.label(3,m.title),'Mission 003 — Corporate Connections');assert.equal(m.giver,'admin');
  assert.deepEqual(m.start,{how:'person',accept:true,no:'NOT NOW'},'in person with ACCEPT / NOT NOW, as 002');assert.deepEqual(m.offer.map(l=>l.text),BRIEF);assert.ok(m.offer.every(l=>l.who==='admin'));
  assert.deepEqual(m.objectives.map(o=>[o.id,o.kind]),[['travel-milked','enter'],['speak-eva','talk'],['meet-fish','talk'],['await-fish','await-call']]);assert.equal(m.objectives[0].place,'milked');
@@ -109,7 +109,7 @@ test('THE IN-GAME CLOCK: 12 in-game minutes a real minute of walking or flight; 
  for(let i=0;i<600;i++)clock.add(s,1,false);assert.equal(f.gameMin,12,'paused: ten minutes in a menu changed nothing');
  clock.add(s,3600,true);assert.equal(f.gameMin,13,'a gap (offline, asleep) counts 5 real seconds at most: 1 in-game minute');assert.ok(Number.isSafeInteger(f.gameMin));
  // the follow-up: 6 in-game hours (about 30 minutes of play; the owner, 17 Nov 2026), one value in the mission data; it fires once
- const F=MS.FOLLOWUPS;assert.deepEqual(F.map(x=>[x.event,x.after,x.gameMinutes,x.from,x.status]),[['fish-followup-due',ID,360,'milked-fish','stub']]);
+ const F=MS.FOLLOWUPS;assert.deepEqual(F.map(x=>[x.event,x.after,x.gameMinutes,x.from,x.status]),[['fish-followup-due',ID,360,'milked-fish','live']]);
  assert.deepEqual(GC.fire(s,F),[],'not before the mission is done');assert.equal(GC.status(s,F)[0].started,false);
  s.universe.missions[ID]={acquired:true,completed:true,objectives:{}};GC.stamp(s,ID);assert.equal(f['gc_'+ID],13);assert.equal(GC.status(s,F)[0].dueAt,GC.at(13+360).label);
  for(let i=0;i<29*60;i++)clock.add(s,1,true);assert.deepEqual(GC.fire(s,F),[]);assert.equal(GC.status(s,F)[0].remaining,12,'29 minutes of play: 12 in-game minutes to go');
@@ -129,7 +129,7 @@ test('THE IN-GAME CLOCK: 12 in-game minutes a real minute of walking or flight; 
 
 test('the reusable trigger "after in-game time": a mission started by Comms call N in-game hours after another; checked in the game and on the server',()=>{
  const x=env(),{MC,MS,G}=x;
- const tree={id:'draft-fish',name:'Fish',missions:[{id:'draft-fish-m1',number:9,title:'Fish calls',type:'side',giver:'milked-fish',start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL',text:'Test call.',when:{kind:'game-time',mission:ID,value:360}},
+ const tree={id:'draft-fish',name:'Fish',missions:[{id:'draft-fish-m1',number:49,title:'Fish calls',type:'side',giver:'milked-fish',start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL',text:'Test call.',when:{kind:'game-time',mission:ID,value:360}},
   objectives:[{id:'call',kind:'message',label:'Fish calls.'},{id:'meet',kind:'talk',npc:'milked-fish',label:'See Fish.'}]}]};
  const ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:G.placeIds()},doc=t=>({format:MC.FORMAT,version:MC.VERSION,trees:[...MC.treesContent(MS.trees(),{givers:x.e.givers}).trees,t]});
  assert.deepEqual(MC.check(doc(tree),ctx).errors,[]);

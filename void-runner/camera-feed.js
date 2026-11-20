@@ -59,10 +59,11 @@
   return new Promise(done=>{const room=Bd.create(engine,{scene:o.scene,quality:root.VoidBabylon?.quality});const cv=engine.getRenderingCanvas();
    F={o,room,engine,cv,t:0,last:performance.now(),zi:0,wacc:0,wlast:0,done,rec:null,chunks:[],poster:null,ending:false,cs:room.compiled,spoken:new Set(),hidden:hideOthers(document.getElementById('space')||cv),startedAt:0,lastHud:0};
    try{document.exitPointerLock?.();}catch{}
-   el.hidden=false;$('zoom').textContent='1x';$('msg').textContent='CONNECTING TO CAM B2-07…';$('say').textContent='';$('rec').style.visibility=o.record===false?'hidden':'visible';document.body.classList.add('cam-feed-on');
+   F.cam=o.cam?String(o.cam).toUpperCase():'CAM B2-07';const stage=st=>{try{o.onStage&&o.onStage(st);}catch{}};F.stage=stage;   // a remote feed opened from the V1 (mission-mechanics-game.js) names its camera and reports its stages
+   $('cam').textContent=F.cam+' · SUB-LEVEL 2';el.hidden=false;$('zoom').textContent='1x';$('msg').textContent='CONNECTING TO '+F.cam+'…';$('say').textContent='';$('rec').style.visibility=o.record===false?'hidden':'visible';document.body.classList.add('cam-feed-on');
    addEventListener('keydown',keyBlock,{capture:true});addEventListener('keyup',keyBlock,{capture:true});addEventListener('wheel',onWheel,{passive:false,capture:true});
    F.comp=document.createElement('canvas');F.comp.width=OUT.w;F.comp.height=OUT.h;F.g=F.comp.getContext('2d');
-   const go=()=>{if(!F)return;$('msg').textContent='';F.last=performance.now();F.live=true;if(o.record!==false)F.rec=recorder();};
+   const go=()=>{if(!F)return;$('msg').textContent='';F.last=performance.now();F.live=true;if(o.record!==false)F.rec=recorder();F.stage('open');};
    room.loaded.then(()=>{if(room.failed){$('msg').textContent='NO SIGNAL';setTimeout(()=>end(null,'the figures could not load'),1500);return;}setTimeout(go,600);});});}
  function recorder(){const s=F.comp.captureStream?F.comp.captureStream(OUT.fps):null;if(!s||typeof MediaRecorder==='undefined')return null;
   const type=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'].find(t=>MediaRecorder.isTypeSupported?.(t))||'';const dur=Math.max(10,F.cs.dur/speed),cap=(G()?.VIDEO?.maxBytes||48e6)*8*.82/dur;
@@ -70,7 +71,7 @@
   r.ondataavailable=e=>{if(e.data&&e.data.size)F&&F.chunks.push(e.data);};r.start(1000);F.startedAt=performance.now();F.bps=bps;return r;}
  // the burn-in the recording carries (the on-screen overlay is the DOM above)
  function burn(g,t){const W=OUT.w,H=OUT.h;g.fillStyle='rgba(0,0,0,.09)';for(let y=0;y<H;y+=3)g.fillRect(0,y,W,1);
-  g.font='bold 15px ui-monospace,Consolas,monospace';g.textBaseline='top';g.fillStyle='rgba(0,0,0,.5)';g.fillRect(14,12,300,40);g.fillStyle='#dfe9e2';g.fillText('CAM B2-07  SUB-LEVEL 2',22,16);g.font='13px ui-monospace,Consolas,monospace';g.fillText(F.date,22,34);
+  g.font='bold 15px ui-monospace,Consolas,monospace';g.textBaseline='top';g.fillStyle='rgba(0,0,0,.5)';g.fillRect(14,12,300,40);g.fillStyle='#dfe9e2';g.fillText(F.cam+'  SUB-LEVEL 2',22,16);g.font='13px ui-monospace,Consolas,monospace';g.fillText(F.date,22,34);
   g.fillStyle='rgba(0,0,0,.5)';g.fillRect(W-150,12,136,22);g.fillStyle=(t*2|0)%2?'#ff4040':'#7a2020';g.beginPath();g.arc(W-138,23,5,0,7);g.fill();g.fillStyle='#ff6a6a';g.font='bold 14px ui-monospace,Consolas,monospace';g.fillText('REC '+hms(t),W-126,16);
   const say=CR().lineAt(F.cs,F.t);if(say.length){g.font='15px ui-monospace,Consolas,monospace';const txt=say.map(l=>l.name.toUpperCase()+': '+l.text).join('   ');const w=Math.min(W-40,g.measureText(txt).width+24);g.fillStyle='rgba(0,0,0,.6)';g.fillRect((W-w)/2,H-58,w,28);g.fillStyle='#e8eee8';g.textAlign='center';g.fillText(txt,W/2,H-52,W-60);g.textAlign='left';}
   g.globalAlpha=.06;for(let i=0;i<60;i++){g.fillStyle=Math.random()<.5?'#fff':'#000';g.fillRect(Math.random()*W,Math.random()*H,2,2);}g.globalAlpha=1;}
@@ -85,13 +86,13 @@
   $('tc').textContent=hms(F.t)+':'+two((F.t%1)*24);
   if(F.rec||F.o.record!==false){const g=F.g;g.drawImage(F.cv,0,0,OUT.w,OUT.h);burn(g,F.t);if(!F.poster&&F.t>=Math.min(F.cs.dur*.3,(F.cs.events.find(e=>e.type==='line')||{t:F.cs.dur*.3}).t+.5))F.comp.toBlob(b=>{if(F)F.poster=b;},'image/jpeg',.8);}
   if(F.t>=F.cs.dur&&!F.ending){F.ending=true;finish();}}
- async function finish(){const f=F;let saved=null,why='';
-  if(f.rec){const stopped=new Promise(r=>{f.rec.onstop=r;});try{f.rec.stop();}catch{}await stopped;const blob=new Blob(f.chunks,{type:(f.rec.mimeType||'video/webm').split(';')[0]});
+ async function finish(){const f=F;let saved=null,why='';f.stage('watched');
+  if(f.rec){const stopped=new Promise(r=>{f.rec.onstop=r;});try{f.rec.stop();}catch{}await stopped;const blob=new Blob(f.chunks,{type:(f.rec.mimeType||'video/webm').split(';')[0]});if(blob.size)f.stage('recorded');
    const secs=f.cs.dur/speed,dev=(()=>{try{return root.VoidDeviceV1.restore((typeof state!=='undefined'&&state)?.story?.flags||{});}catch{return null;}})();
    let meta=null;try{meta={subjects:[],place:null,during:root.VoidLiveContent?.during?.()||[],at:Date.now(),device:root.VoidDeviceId?.now?.()||''};const c=root.VoidClock;if(c&&typeof state!=='undefined'&&state){meta.gameMin=c.minutes(state);meta.gameTime=c.now(state).label;}}catch{}
-   try{saved=await G()?.addVideo?.(dev,{blob,poster:f.poster,duration:Math.max(1,secs),place:'Security camera · CAM B2-07',label:f.o.label||'',meta});}catch{saved=null;}
+   try{saved=await G()?.addVideo?.(dev,{blob,poster:f.poster,duration:Math.max(1,secs),place:'Security camera · '+f.cam,label:f.o.label||'',meta});}catch{saved=null;}
    why=saved?'':G()&&G().room&&G().room(dev)<(G().VIDEO_PCT||5)?'V1 STORAGE FULL':blob.size>(G()?.VIDEO?.maxBytes||48e6)?'THE RECORDING IS TOO LARGE':'THE RECORDING COULD NOT BE SAVED';
-   $('rec').style.visibility='hidden';$('msg').textContent=saved?'RECORDING SAVED · V1 GALLERY':why;await new Promise(r=>setTimeout(r,saved?1600:2600));}
+   $('rec').style.visibility='hidden';$('msg').textContent=saved?(f.o.savedText||'RECORDING SAVED · V1 GALLERY'):why;await new Promise(r=>setTimeout(r,saved?1600:2600));}
   else if(f.o.record!==false){why='THIS BROWSER CANNOT RECORD VIDEO';$('msg').textContent=why;await new Promise(r=>setTimeout(r,2000));}
   end(saved,why);}
  function end(saved,why){const f=F;if(!f)return;F=null;try{f.rec&&f.rec.state!=='inactive'&&f.rec.stop();}catch{}try{f.room.dispose();}catch{}

@@ -172,7 +172,7 @@
   if(fs!=null){if(!Array.isArray(fs)||fs.length>LIMIT_FEEDS)return ['a mission has at most '+LIMIT_FEEDS+' camera feeds.'];
    for(const f of fs){if(!keysOk(f,['id','room','scene'])||!FEED_ID.test(f.id||'')){out.push('a camera feed needs a short name (letters, digits, hyphens).');continue;}if(ids.has(f.id))out.push('two camera feeds are both called “'+f.id+'”.');ids.add(f.id);
     if(!FEED_ROOMS.some(r=>r.id===f.room))out.push('camera feed “'+f.id+'”: choose the room it shows.');if(f.scene!=null)for(const p of sceneProblems(f.scene))out.push('camera feed “'+f.id+'”: '+p);}}
-  for(const o of (m&&m.objectives)||[]){if(!o||o.feed==null)continue;if(o.kind!=='hack')out.push('step '+o.id+': only a “hack the access point” step shows a camera feed.');else if(!ids.has(o.feed))out.push('step '+o.id+': choose one of this mission’s camera feeds.');}
+  for(const o of (m&&m.objectives)||[]){if(!o||o.feed==null)continue;if(o.kind!=='hack'&&o.kind!=='feed')out.push('step '+o.id+': only a “hack the access point” or a “watch a remote camera feed” step shows a camera feed.');else if(!ids.has(o.feed))out.push('step '+o.id+': choose one of this mission’s camera feeds.');}
   return out;}
  const strip=fs=>Array.isArray(fs)&&fs.length?JSON.parse(JSON.stringify(fs)).map(f=>({id:f.id,room:f.room,...(f.scene?{scene:f.scene}:{})})):null;
  function addFeed(m,room=ROOM.id){const ids=new Set((m.feeds||[]).map(f=>f.id));let n=1;while(ids.has('cam'+n))n++;const f={id:'cam'+n,room,scene:defaultScene()};return {feeds:[...(m.feeds||[]),f],id:f.id};}
