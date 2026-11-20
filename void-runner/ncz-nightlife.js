@@ -83,7 +83,9 @@
  // The crosswalks (crosswalks.js): their kerbs are kept clear too (nobody stands or stops where people step off), and they join facing pavement lanes.
  const XW=()=>typeof module!=='undefined'?require('./crosswalks.js'):root.VoidCrosswalks;
  const xwEnds=()=>{const X=XW();return X?X.list().flatMap(c=>c.ends):[];};
- const clearAt=p=>!keepClear.some(([x,z,r])=>Math.hypot(p[0]-x,p[1]-z)<r)&&!xwEnds().some(([x,z])=>Math.hypot(p[0]-x,p[1]-z)<1.8);
+ // The back alleys' mouths (ncz-backalleys.js, 20 Nov 2026): nobody of the crowd stands or stops in front of one (they walk past; nobody ever goes in: the alleys are not lanes).
+ const BAL=()=>typeof module!=='undefined'?require('./ncz-backalleys.js'):root.VoidBackAlleys;
+ const clearAt=p=>!keepClear.some(([x,z,r])=>Math.hypot(p[0]-x,p[1]-z)<r)&&!xwEnds().some(([x,z])=>Math.hypot(p[0]-x,p[1]-z)<1.8)&&!(BAL()&&BAL().mouthAt(p[0],p[1],1,4));
  /* Where a walker of these lanes can cross: [{c, a, ta, b, tb}] for every crosswalk whose two kerbs are on two of the lanes (a: the lo side's lane, ta: the crossing's place along it). */
  function crossingsFor(ls,quarter){const X=XW();if(!X)return [];const out=[];
   for(const c of X.list(quarter)){if(!c.lanes)continue;const a=ls.find(l=>l.id===c.lanes[0]),b=ls.find(l=>l.id===c.lanes[1]);if(!a||!b)continue;

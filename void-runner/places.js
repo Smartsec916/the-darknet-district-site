@@ -21,6 +21,7 @@
  'use strict';
  const node=typeof module!=='undefined'&&module.exports;
  const QT=node?require('./ncz-quarters.js'):root.VoidQuarters,NC=node?require('./ncz-nightclub.js'):root.VoidNightclub,MK=node?require('./milked.js'):root.VoidMilked;
+ const BAL=node?require('./ncz-backalleys.js'):root.VoidBackAlleys;   // the back alleys, bays and yards (20 Nov 2026)
  const CT=node?require('./ncz-containers.js'):root.VoidContainers,CO=node?require('./corporate.js'):root.VoidCorporate,TP=node?require('./temple.js'):root.VoidTemple;
  // neochinatown.js DOOR: the District door in world metres; local (x,z) -> world (DOOR.x-x, DOOR.z+20-z), a half turn (its own inverse).
  const DISTRICT_DOOR={x:126.9,z:-61.9};
@@ -105,6 +106,8 @@
   P({id:'fs-south',name:'Far South Main Street — south end',parent:'far-south',scene:'neochinatown',rects:[[51,71,-218,-195]],enter:S('far-south'),proposed:true,where:'Main Street down to the Far South Gate.'}),
   P({id:'milked-lane',name:'Milked side street',parent:'far-south',scene:'neochinatown',rects:[(MK&&MK.LANE)||[71,101,-174,-168.5]],enter:S('far-south'),proposed:true,where:'The quiet dead-end side street to Milked\'s front door.'}),
   P({id:'milked-alley',name:'Milked service alley',parent:'far-south',scene:'neochinatown',rects:[(MK&&MK.ALLEY)||[71,98.5,-193.5,-190]],enter:S('far-south'),src:'milked.js "rear door (service alley)"',where:'The alley behind Milked, at its rear door.'}),
+  // The back alleys, lanes, bays and yards behind the housing (ncz-backalleys.js, the owner 20 Nov 2026): each an exact location of its quarter, named as in the Mission Editor's place list.
+  ...((BAL&&BAL.PIECES)||[]).map(b=>P({id:b.id,name:b.name,parent:b.quarter,scene:'neochinatown',rects:b.rects.map(r=>r.slice()),enter:S(b.quarter),proposed:true,src:'ncz-backalleys.js',where:'A '+(b.kind==='bay'?'loading bay off a back alley':b.kind==='yard'?'yard where back alleys meet':b.kind==='lane'?'narrow lane':'narrow back alley')+' behind the housing.'})),
   // Milked (a venue): its rooms (milked.js ROOMS, the game's own names)
   {id:'milked',name:'Milked',level:'venue',parent:'far-south',scene:'neochinatown',rects:[(MK&&MK.FOOTPRINT)||[78,98,-190,-174]],enter:S('far-south'),target:MK&&MK.VESTIBULE?[(MK.VESTIBULE[0]+MK.VESTIBULE[1])/2,(MK.VESTIBULE[2]+MK.VESTIBULE[3])/2]:undefined,note:'The arrow leads to the front vestibule (Mission 003: walking in completes “Travel to Milked”).',src:'sign "MILKED"',where:'The studio building off Far South\'s Main Street.'},
   ...[['vestibule','Security vestibule','Inside the front door.'],['reception','Reception','Eva\'s desk and the waiting area.'],['hallway','Studio hallway','Between the four studios; the STAFF ONLY door at its far end.'],

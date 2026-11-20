@@ -69,7 +69,7 @@ test('an entry to the street lands in the quarter asked for, else where its spaw
  {const St=Q.settle;assert.deepEqual(St([81.75,1.7,-71],'oldtown'),{quarter:'far-south',spawn:[81.75,1.7,-171],moved:true},'the old side street: 100 m south with the building');
   const inside=St([84,1.7,-78],'oldtown');assert.equal(inside.quarter,'far-south');assert.deepEqual(inside.spawn,[81.75,1.7,-172.6],'a player who was INSIDE Milked is put outside its front door, on the side street');
   assert.deepEqual(St([61,1.7,-60],'oldtown'),{quarter:'oldtown',spawn:[61,1.7,-60],moved:false},'a point in a street is left alone');
-  const gone=St([90,1.7,-91],'oldtown');assert.equal(gone.quarter,'far-south','the old service alley follows Milked too');
+  const gone=St([95,1.7,-93.5],'oldtown');assert.equal(St([90,1.7,-91],'oldtown').quarter,'oldtown','(20 Nov 2026) the old service alley\'s place by the terrace is Old Town\'s new back alley');assert.equal(gone.quarter,'far-south','the old service alley follows Milked too');
   const off=St([-90,1.7,-12.5],'oldtown');assert.equal(off.quarter,'oldtown');assert.equal(Q.quarterAt(off.spawn[0],off.spawn[2]),'oldtown','a point on a retired street goes to the nearest street of the saved quarter');
   const lost=St([200,1.7,-100],'oldtown');assert.equal(Q.quarterAt(lost.spawn[0],lost.spawn[2]),'oldtown','a point in solid block is brought to the nearest open ground');
   assert.equal(St(null,'oldtown'),null);}

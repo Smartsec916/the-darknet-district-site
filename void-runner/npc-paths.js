@@ -200,7 +200,8 @@
  function mapData(areaId='avenue',npc=null){const ad=!!(npc&&MOVABLE[npc]&&MOVABLE[npc].adult);const S=SP(),Ar=AR(),a=Ar.get(areaId)||Ar.get('avenue'),P=node?require('./places.js'):root.VoidPlaces,v=a.view,inV=(x,z)=>x>=v.x0&&x<=v.x1&&z>=v.z0&&z<=v.z1;
   const shop=a.scene==='street'?((P&&P.SHOPFRONTS)||[]).filter(([,x,z])=>inV(x,z)).map(([name,x,z,side])=>({name,x,z,side})):[];const av=a.id==='avenue',rc=r=>({x0:r.x0,x1:r.x1,z0:r.z0,z1:r.z1,...(r.name?{name:r.name}:{})});
   return {area:a.id,name:a.name,scene:a.scene,view:{...v},floors:a.floors.map(rc),walk:a.walk.filter(w=>!w.adult||ad).map(rc),roads:a.roads.map(rc),no:a.no.filter(n=>!(ad&&n.adult)).map(n=>({...rc(n),why:n.why,rule:!!n.rule,...(n.doorway?{doorway:true}:{})})),gates:a.gates.map(rc),
-   obstacles:a.obstacles.map(o=>({x0:o[0],x1:o[1],z0:o[2],z1:o[3],name:o[4]})),posts:a.posts.map(([x,z])=>({x,z})),labels:a.labels.map(l=>({...l})),shops:shop,
+   obstacles:a.obstacles.map(o=>({x0:o[0],x1:o[1],z0:o[2],z1:o[3],name:o[4]})),posts:a.posts.map(([x,z])=>({x,z})),labels:a.labels.map(l=>({...l})),shops:shop,escapes:(a.escapes||[]).map(e=>({...e,u:e.u.slice(),t:e.t.slice(),foot:e.foot.slice()})),   // the back alleys' fire escapes (ncz-backalleys.js)
+   
    ledges:av?ledges():[],stretch:av&&S?{x0:S.STRETCH.x0,x1:S.STRETCH.x1,z:S.STRETCH.z}:null,seat:av&&S?{...S.SEAT}:null,catHome:av&&S?{...S.CAT_HOME}:null,
    areas:Ar.list().filter(x=>ad||x.walk.some(w=>!w.adult)).map(x=>({id:x.id,name:x.name}))};}
  /* Snap a clicked spot onto ground she may stand on (the editor: a click on the road, a kerb or a piece of furniture lands on the nearest allowed spot, within a few metres;
