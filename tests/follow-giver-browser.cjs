@@ -21,7 +21,7 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'],...(exe?{executablePath:exe}:{})});const errors=[];
  try{
-  const ctx=await browser.newContext({viewport:{width:960,height:540},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));
+  const ctx=await browser.newContext({viewport:{width:960,height:540},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('pageerror',e=>console.log('[follow-giver] page error stack:',String(e.stack||e).slice(0,700)));
   await page.addInitScript(()=>{try{localStorage.setItem('mission-editor-view','form');}catch{}});
   await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
   await page.route('**/api/**',r=>{const p=new URL(r.request().url()).pathname.replace('/api/void-runner/','');if(p==='live-content')return r.fulfill({status:404,contentType:'application/json',body:'{"error":"off"}'});return r.fulfill({status:503,contentType:'application/json',body:'{"error":"offline test"}'});});
@@ -92,6 +92,7 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
    if(d>lim)log('JUMP',i,d.toFixed(2),'>',lim.toFixed(2),JSON.stringify(q.h),'->',JSON.stringify(r.h),JSON.stringify(r.P));if(A.areaOf(r.h,WHERE)&&A.areaOf(r.h,WHERE)!==WHERE)off++;if(r.phase&&toRoute(r.h)>2)far++;}
   log('frames',rec.length,'worst over the limit (m)',worst.toFixed(3),'gone',gone,'off-area',off,'off-route',far);
   assert.ok(worst<=0,'no jump bigger than her speed x the frame time');assert.equal(gone,0,'never gone');assert.equal(off,0,'never out of her area');assert.equal(far,0,'within 2 m of her route');
-  assert.deepEqual(errors,[]);log('PASS');
+  // cache.js re-checks the service worker every 15 minutes; with service workers blocked in this test the stub registration has no update() (a test-only error, not the game's)
+  assert.deepEqual(errors.filter(e=>!/reading 'update'/.test(e)),[]);log('PASS');
  }catch(e){console.log('[follow-giver] page errors:',errors.slice(0,6));try{const pg=browser.contexts()[0].pages()[0];console.log(JSON.stringify(await pg.evaluate(id=>({mode,q:walkingLocation?.quarter,me:[walker?.x,walker?.z],chars:Object.keys(VoidLiveContent.env.characters||{}),plan:VoidLiveContent.plans()[id]||null,made:VoidBabylon.district?.streetPair?.made?.stats?.()||null,pair:(({here,onStreet,her,cat})=>({here,onStreet,her,cat}))(VoidBabylon.district?.streetPair?.stats?.()||{}),last:(globalThis.__rec||[]).slice(-2)}),id)).slice(0,3000));if(shots)await pg.screenshot({path:path.join(shots,WHO+'-'+WHERE+'-failure.png')});}catch(x){console.log('no diagnostics',x.message);}throw e;}finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1);});
