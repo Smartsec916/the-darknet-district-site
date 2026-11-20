@@ -1069,13 +1069,15 @@
         node.dispose();
         ships.delete(e);
       }
-    setPool('laser', snapshot.bullets, '#75ffe0', .16);
-    setPool('hostile', snapshot.hostile, '#ff715f', .2);
+    // Weapon visuals (flight-fx.js): glowing bolts, missiles with motor flame and smoke, muzzle flashes. Without it, the old simple shapes.
+    const fx = !!root.VoidFlightFx?.render({B: B(), scene, root: spaceRoot, vector, quality}, snapshot);
+    setPool('laser', fx ? [] : snapshot.bullets, '#75ffe0', .16);
+    setPool('hostile', fx ? [] : snapshot.hostile, '#ff715f', .2);
     // Faction battle bolts: precise cyan Communion fire, heavier amber Natural Order bursts.
     const factionShots = snapshot.factionShots || [];
     setPool('communion-bolt', factionShots.filter(q => q.side === 'communion'), '#8ff0ff', .12);
     setPool('order-bolt', factionShots.filter(q => q.side !== 'communion'), '#ffae4a', .19);
-    setPool('missile', snapshot.missiles, '#ffca7d', .35);
+    setPool('missile', fx ? [] : snapshot.missiles, '#ffca7d', .35);
     let count = 0;
     const activeEffects = new Set(snapshot.effects.slice(-12));
     for (const [cloud, visual] of effects)

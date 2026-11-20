@@ -9,6 +9,7 @@
   const P=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
   const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
   const Missions=typeof module!=='undefined'?require('./mission-log.js'):root.VoidMissions;
+  const Ord=()=>typeof module!=='undefined'?require('./ordnance.js'):root.VoidOrdnance;   // missiles M1 / M2, the launcher and the Ship Loadout app that come with a ship
   const WarFlying=typeof module!=='undefined'?require('./warflying.js'):root.VoidWarFlying;const Relay=typeof module!=='undefined'?require('./relay.js'):root.VoidRelay;
   const stations=Story.content.locations;for(const [id,def] of Object.entries(U.locations))stations[id]={...stations[id],...def};
   const contracts = [
@@ -420,7 +421,7 @@
     {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
-    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Missions.sync(out,{missionFlight,contracts});return out;
+    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Ord()?.migrate(out);Missions.sync(out,{missionFlight,contracts});return out;
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
   /* Missions removed from the game (the owner, 17 Nov 2026): in a District campaign only the main storyline (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run.
@@ -436,10 +437,10 @@
    if(f.starterShipAwarded===true)return S.hasShip(s);
    grantShip(s);if(!s.ownedShips.includes('starter'))s.ownedShips.unshift('starter');s.activeShip=s.ownedShips.includes(s.activeShip)?s.activeShip:'starter';
    if(!s.loadout||!Object.keys(s.loadout).length)s.loadout={...S.defaults[s.activeShip]};
-   s.quest='open';s.universe=U.restore({...s.universe,missionLogUnlocked:true,freeTravel:true},s);f.starterShipAwarded=true;return S.hasShip(s);
+   s.quest='open';s.universe=U.restore({...s.universe,missionLogUnlocked:true,freeTravel:true},s);f.starterShipAwarded=true;Ord()?.grant(s);return S.hasShip(s);
   }
   /* A hull becomes the player's (ownership, its loadout and its standard gear): buying it, or a mission reward (Mission Editor GRANT SHIP). Never a premium hull. */
-  function giveShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id))return false;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Story.emit(s,'ownShip',id);return true;}
+  function giveShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id))return false;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Ord()?.grant(s,id);Story.emit(s,'ownShip',id);return true;}
   function buyShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id)||s.credits<ship.price)return false;s.credits-=ship.price;return giveShip(s,id);}
   function switchShip(s,id){if(!S.owns(s,id)||!S.ships[id])return false;s.shipLoadouts[s.activeShip]={...s.loadout};s.activeShip=id;s.loadout={...(s.shipLoadouts[id]||S.defaults[id])};return true;}
   function ownsEquipment(s,id,verified=[]){return Object.hasOwn(content.gear,id)?verified.includes(id):Object.hasOwn(content.creditGear,id)?s.creditGear.includes(id):Object.hasOwn(S.equipment,id)&&(S.equipment[id].ship==='ship3'?S.owns(s,'ship3'):s.standardGear.includes(id));}
@@ -463,9 +464,9 @@
   }
   function missileFireConsequences(getState, persist) {
     return {
-      fired(remaining) {
+      fired(remaining, type) {
         const s = getState();
-        s.progression.missiles = remaining;
+        if (type === 'm2') s.progression.m2 = remaining; else s.progression.missiles = remaining;
         P.mark(s, 'missileLocked');
         P.mark(s, 'missileFired');
         persist();

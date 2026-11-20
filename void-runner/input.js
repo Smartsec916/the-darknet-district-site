@@ -11,7 +11,8 @@
     throttleDown: ['Decrease thrust / brake', 'KeyX'],
     boost: ['Equipment drive', 'KeyE'],
     fire: ['Primary fire', 'Space'],
-    missile: ['Fire missile (requires lock)', 'KeyF'],
+    missile: ['Fire missile (guided when locked)', 'KeyF'],
+    missileSwitch: ['Switch missile (M1 / M2)', 'KeyZ'],
     nearest: ['Target nearest hostile', 'KeyT'],
     next: ['Next hostile', 'Tab'],
     previous: ['Previous hostile', 'KeyG'],
@@ -43,6 +44,11 @@
     if (raw && typeof raw.keymap !== 'string') {
       const used = code => Object.values(raw).includes(code);
       raw.keymap = ['KeyK', 'KeyJ', 'KeyN', 'KeyM', 'KeyU', 'KeyY', 'KeyZ', 'KeyV', 'KeyH', 'KeyO', 'KeyI'].find(code => !used(code)) || 'KeyK';
+    }
+    // Saves from before the missile switch (M1 / M2, 19 Nov 2026): Z, or the first free key.
+    if (raw && typeof raw.missileSwitch !== 'string') {
+      const used = code => Object.values(raw).includes(code);
+      raw.missileSwitch = ['KeyZ', 'KeyV', 'KeyH', 'KeyY', 'KeyU', 'KeyO', 'KeyI', 'KeyN', 'KeyM', 'KeyJ'].find(code => !used(code)) || 'KeyZ';
     }
     // Saves from before the Personal HUD: give it P, or the first free key.
     if (raw && typeof raw.personalHud !== 'string') {

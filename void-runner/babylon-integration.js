@@ -488,11 +488,11 @@ function migrationSnapshot() {
     departureStation,
     bullets,
     hostile,
-    missiles: [...missiles, ...enemyMissiles],
+    missiles: [...missiles, ...enemyMissiles], trails: globalThis.VoidFlightCombat?.trail || [], dt: Math.min(.1, Math.max(0, time - (migrationSnapshot.last ?? time))),
     effects: VoidCombatEffects.clouds,
     time,
     approach: approachTime,
-    instruments:{hull:hp/Math.max(1,VoidFlightCraft.stats().hull)*100,shield:shieldHP/Math.max(1,VoidFlightCraft.stats().shield)*100,heat:weaponBank.heat/Math.max(1,VoidFlightCraft.systems().heatLimit)*100,power:weaponBank.energy/Math.max(1,VoidFlightCraft.systems().capacity)*100,speed:FM.length(flight.velocity||{x:0,y:0,z:0}),throttle:flight.throttle,route:current?.destination?C.stations[current.destination]?.name:'LOCAL',missiles:state.progression?.missiles??0,target:selectedTarget?.className||'NONE'}
+    instruments:{hull:hp/Math.max(1,VoidFlightCraft.stats().hull)*100,shield:shieldHP/Math.max(1,VoidFlightCraft.stats().shield)*100,heat:weaponBank.heat/Math.max(1,VoidFlightCraft.systems().heatLimit)*100,power:weaponBank.energy/Math.max(1,VoidFlightCraft.systems().capacity)*100,speed:FM.length(flight.velocity||{x:0,y:0,z:0}),throttle:flight.throttle,route:current?.destination?C.stations[current.destination]?.name:'LOCAL',missiles:missileState.ownsMissileLauncher?(missileState.type==='m2'?'M2 ':'M1 ')+missileState.missilesLoaded:0,target:(selectedTarget||missileLock.target)?.className||'NONE'}
   };
 }
 
@@ -532,7 +532,7 @@ draw = function() {
     return;
   }
   if (activeRenderer === 'babylon' && ['play', 'pause'].includes(mode) && VoidBabylon.diagnostics.exteriorReady) {
-    const snapshot = migrationSnapshot();
+    const snapshot = migrationSnapshot(); migrationSnapshot.last = time;
     const image = VoidBabylon.renderFlight(snapshot, W, H);
     if (!image) {
       throw Error('Babylon graphics context unavailable. Retry the route.');

@@ -62,7 +62,7 @@ globalThis.VoidBalanceSpec = {
     "max": 10
   },
   "missileLockRadius": {
-    "value": 0.085,
+    "value": 0.13,
     "min": 0.01,
     "max": 0.3
   },
@@ -80,6 +80,56 @@ globalThis.VoidBalanceSpec = {
     "value": 540,
     "min": 1,
     "max": 5000
+  },
+  "missileM1Damage": {
+    "value": 12,
+    "min": 0.01,
+    "max": 1000
+  },
+  "missileM1TurnRate": {
+    "value": 2.6,
+    "min": 0.01,
+    "max": 10
+  },
+  "missileM1Speed": {
+    "value": 100,
+    "min": 1,
+    "max": 1000
+  },
+  "missileM1Blast": {
+    "value": 4,
+    "min": 0,
+    "max": 60
+  },
+  "missileM1Price": {
+    "value": 60,
+    "min": 0,
+    "max": 100000
+  },
+  "missileM2Damage": {
+    "value": 40,
+    "min": 0.01,
+    "max": 1000
+  },
+  "missileM2TurnRate": {
+    "value": 0.9,
+    "min": 0.01,
+    "max": 10
+  },
+  "missileM2Speed": {
+    "value": 82,
+    "min": 1,
+    "max": 1000
+  },
+  "missileM2Blast": {
+    "value": 10,
+    "min": 0,
+    "max": 60
+  },
+  "missileM2Price": {
+    "value": 180,
+    "min": 0,
+    "max": 100000
   },
   "enemyHull": {
     "value": 2,

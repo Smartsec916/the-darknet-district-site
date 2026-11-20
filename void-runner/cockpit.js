@@ -28,7 +28,7 @@ function hitEnemy(e,damage,consequences=campaignEnemyHitConsequences){
  consequences?.beforeDamage?.();
  if(!e.generator&&enemies.some(q=>q.generator&&!q.dead))return;
  const absorbed=Math.min(e.shield||0,damage);e.shield=(e.shield||0)-absorbed;e.armor-=damage-absorbed;
- VoidCombatEffects.explode(e,'impact');
+ VoidCombatEffects.explode(e,'impact');globalThis.VoidFlightFx?.impact(e,absorbed>0);globalThis.VoidFlightSfx&&globalThis.VoidAudio?.event(absorbed>0?'shieldHit':'hit',globalThis.VoidFlightCraft?.ship(),e,flightBasis());
  if(e.armor<=0){e.dead=true;resolved++;burst(e,e.boss?'#ff795f':'#ffbd69',e.boss?'large':'ship');consequences?.destroyed?.(e);}
 }
 function cockpitEquipment(dt){
@@ -64,7 +64,7 @@ update=function(dt){
  if(route){const changed=VoidWarp.step(route,dt,typeof navigationReveal!=='undefined'&&route.phase==='align'&&VoidNavigationReveal.opacity(navigationReveal)<=0?{x:0,y:0,z:0}:b.f,routeClear()&&(current.kind!=='hazard'||elapsed>=current.duration));if(changed){state.travel=route;save();VoidAudio.event(route.phase==='warp'?'warp':route.phase==='encounter'||route.phase==='arrived'?'exit':'charge',stats.ship);if(route.phase==='encounter'){VoidStory.emit(state,'enterCombat',current.id||state.quest);elapsed=0;interdictionWave();announce('INTERDICTION · Clear the encounter to resume your route.');}if(route.phase==='align')announce('Route clear. Align with destination to resume warp.');}}
  if(!combat){VoidAudio.update(stats.ship,flight.throttle,Math.abs(flight.yawRate),route.phase,true);updateWarpHud();if(route.phase==='arrived'){elapsed=current.duration;alignDockingFlight(dt);approachTime+=dt;if(approachTime>=VoidWarp.config.approachSeconds)arrive();}return;}
  cockpitMission(dt,velocity);if(mode!=='play')return;
- shot-=dt;if((VoidInput.down('fire')||firing||touchFiring)&&shot<=0&&VoidProgression.consume(weaponBank,state,VoidFlightCraft.systems())){shot=stats.cooldown;for(const offset of [-.65,.65])bullets.push({x:b.r.x*offset,y:b.r.y*offset,z:b.r.z*offset,vx:b.f.x*VOID_BALANCE.laserProjectileSpeed,vy:b.f.y*VOID_BALANCE.laserProjectileSpeed,vz:b.f.z*VOID_BALANCE.laserProjectileSpeed,damage:stats.damage,life:VOID_BALANCE.laserRange/VOID_BALANCE.laserProjectileSpeed});VoidAudio.event('laser',stats.ship);}
+ shot-=dt;if((VoidInput.down('fire')||firing||touchFiring)&&shot<=0&&VoidProgression.consume(weaponBank,state,VoidFlightCraft.systems())){shot=stats.cooldown;for(const offset of [-.65,.65])bullets.push({x:b.r.x*offset,y:b.r.y*offset,z:b.r.z*offset,vx:b.f.x*VOID_BALANCE.laserProjectileSpeed,vy:b.f.y*VOID_BALANCE.laserProjectileSpeed,vz:b.f.z*VOID_BALANCE.laserProjectileSpeed,damage:stats.damage,life:VOID_BALANCE.laserRange/VOID_BALANCE.laserProjectileSpeed});VoidAudio.event('laser',stats.ship);globalThis.VoidFlightFx?.muzzle(b);}
  if(route?.phase==='encounter')interdictionWave();spawnClock-=dt;if(spawned<current.enemies&&spawnClock<=0&&enemies.filter(VoidStory.hostile).length<4+Math.floor(current.tier)){spawnEnemy();spawnClock=Math.max(1.4,(current.duration-10)/Math.max(1,current.enemies));}
  for(const e of enemies){
   if(!VoidStory.hostile(e)){moveRelative(e,velocity,dt);continue;}e.age+=dt;const distance=FM.length(e);

@@ -123,13 +123,15 @@
   if(f.warflyingIntro===true||owned)items.push('<article data-admin-item="'+id+'">'+equipmentIcon(m.icon)+'<h2>'+m.name+'</h2><p>'+m.price+' CR · '+P.slotLabel(m.slot)+' slot · all current hulls</p>'
    +'<p>Interferes with the electronic signatures WarFlying scanners use to identify ships, so new sightings of your ship can’t be tied together. It doesn’t hide you from radar, stop a visual check or an inspection, or remove sightings already uploaded. It can’t be fitted with a WarFlying Module. WarFlying Modules are sold at station outfitters; fit either at a hangar maintenance terminal (they share the one Utility slot).</p>'
    +button(owned?'OWNED':'BUY · '+m.price+' CR','admin-buy:'+id,false,owned||state.credits<m.price)+'</article>');
-  localPanel('Admin’s <em>stock.</em>','<p>What Admin sells over the counter. You have '+state.credits+' CR.</p><div class="module-grid">'+items.join('')+'</div>');
+  for(const x of globalThis.VoidShipLoadout?.adminItems?.()||[])items.push(x);   // ship missiles M1 / M2 for a pilot (ship-loadout.js, 19 Nov 2026)
+  localPanel('Admin’s <em>stock.</em>','<p>What Admin sells over the counter. You have '+state.credits+' CR.</p><div class="module-grid">'+items.join('')+'</div>'+(globalThis.VoidShipLoadout?.adminNote?.()||''));
  }
  screen.addEventListener('click',e=>{
   const a=e.target.closest('button')?.dataset.action;if(!a)return;
   if(a.startsWith('admin-buy:')){if(P.buy(state,a.slice(10),'admin'))save();adminStore();return;}
   if(a.startsWith('admin-buy-weapon:')){const id=a.slice(17),price=Math.round(Number(globalThis.VOID_BALANCE?.pistolPrice??globalThis.VoidZones?.TUNE.pistolPrice??350));if(P.buyWeapon(state,id,price)){save();announce('PISTOL BOUGHT · Draw / holster: 1 or H. Mind the zone at the top left.');}adminStore();}
  });
+ globalThis.VoidAdminStore=adminStore;   // the ordnance counter beside Admin opens the same stock (ship-loadout.js)
  const storeOptions=()=>[{label:'SHOW ME THE SCRAMBLER',run:adminStore},{label:'NOT RIGHT NOW',quiet:true,run:resumeWalking}];
  VoidInteractions.register('admin',()=>{
   // No missions in a new campaign yet, so nothing here may start the faction story. (An on-screen notice, so no new voice clip is needed.)
