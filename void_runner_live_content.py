@@ -2035,6 +2035,7 @@ FLAGNAME = re.compile(r'^[a-zA-Z][a-zA-Z0-9_-]{0,47}$')
 
 
 # ---- the reusable mechanics of the Awakening continuation (20 Nov 2026): the same rules as void-runner/mission-mechanics.js ----
+CONTRACT_FLAGS = ('rook-first-delivery-done',)  # mission-content.js CONTRACT_FLAGS: story flags other systems read by their exact name
 MECH_KINDS = ('observe', 'overhear', 'sneak', 'collect', 'report', 'feed', 'call', 'wait-game', 'tail', 'apt-leave', 'flight', 'v1-app')
 MECH_UNSEEN = ('apt-enter', 'apt-use', 'collect', 'apt-leave', 'sneak', 'hack')
 MECH_FIELDS = ['minutes', 'stage', 'evidence', 'unseen', 'close']
@@ -2498,6 +2499,8 @@ def check_trees(trees, inv, err, npcs=None):
                         err(w + ': a start-tree link must name another of the new trees being sent.')
                     if k in ('contact', 'follow') and (not isinstance(u.get('id'), str) or not re.match(r'^[a-z][a-z0-9-]{0,39}$', u['id']) or u['id'] not in givers):
                         err(w + ': a contact or a follow must name a known NPC.')
+                    if k == 'contract-flag' and (u.get('id') not in CONTRACT_FLAGS or u.get('value') is not True):
+                        err(w + ': a shared game flag must be one the game knows, set to true.')
                     if k == 'evidence' and u.get('id') not in every_evidence:
                         err(w + ': unknown evidence item.')
                     if k == 'missiles' and (u.get('id') not in ('m1', 'm2') or not (type(u.get('amount')) is int and 1 <= u['amount'] <= 30)):

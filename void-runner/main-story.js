@@ -327,7 +327,7 @@
    {id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},
    {id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},
    {id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],
-  ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'}]};
+  ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'},{kind:'contract-flag',id:'rook-first-delivery-done',value:true,when:'deliver'}]};   // the contract with the flight Map / Rook's cargo board (branch claude/flight-map-coords)
  const CARGO_TREE_ID='first-cargo-delivery';
  const CARGO_TREE={id:CARGO_TREE_ID,name:'First Cargo Delivery',note:'Unlocked by Mission 011 (Leverage): Iris\'s Kestrel first flight and Ship Loadout tutorial and the first run, to Rook at Meridian Station. New lines need the owner\'s approval before recording.',status:'active',shipped:true,seq:2,missions:[M012]};
  const isProposedCargo=t=>typeof t==='string'&&Object.values(PROPOSED_CARGO).includes(t);

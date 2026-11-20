@@ -156,6 +156,7 @@
   {id:'reputation',name:'Reputation with an NPC or a faction',supported:true,note:'An NPC: their standing with the player (story.relationships, -100 to 100). A faction: the faction standing (progression.reputation). Paid once with the mission.'},
   {id:'contact',name:'Add to the V1 contacts',supported:true,note:'The NPC is listed in the V1 (Social, PEOPLE YOU KNOW) from then on: story.flags.v1Contacts. Once only.'},
   {id:'follow',name:'Follow their Social profile',supported:true,note:'The player follows the NPC on Social (FOLLOWING), as if they had pressed FOLLOW: story.flags.socialFollowing. Only NPCs with a Social profile (district-people.js). Once only.'},
+  {id:'contract-flag',name:'Shared game flag',supported:true,note:'A flag other parts of the game read by its exact name (only the ones the game knows: rook-first-delivery-done, set when the first delivery to Rook is done). Once.'},
   {id:'evidence',name:'Evidence item',supported:true,note:'One of the missions’ evidence items (a document or recording) is added to the player’s V1, once.'},
   {id:'tree',name:'Start tree',supported:true,note:'Another of your trees starts: its first mission becomes available (its giver offers it). A tree that some link starts waits for that link.'},
   {id:'mission',name:'Another mission opens',supported:true,note:'Missions in a tree run in order: finishing one opens the next.'}];

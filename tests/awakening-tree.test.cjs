@@ -86,7 +86,7 @@ function play(x,s0){let s=s0;const id=n=>x.MS['M0'+String(n).padStart(2,'0')].id
  place(x,s,['port']);const pad=place(x,s,['port','landing-pad']);assert.equal(pad.messages[0].text.split('\n')[0],x.MS.IRIS_OK.there);ev(x,s,{type:'flight',stage:'board'});
  for(let i=0;i<4;i++){for(const t of x.MC.timersNow(s,x.e))x.MC.timerSet(s,t,0);ev(x,s,{type:'timer'});}assert.equal(step(x,s,'M012'),'set-course','the cockpit walkthrough: four short calls, then the course');
  ev(x,s,{type:'flight',stage:'launch'});ev(x,s,{type:'flight',stage:'jump',place:'meridian'});const dk=place(x,s,['meridian']);assert.equal(dk.messages[0].text,x.MS.IRIS_OK.nicely+'\n'+x.MS.IRIS_OK.rook);
- assert.equal(step(x,s,'M012'),'meet-rook');const c2=s.credits;talk(x,s,'rook');ev(x,s,{type:'heard',mission:x.MS.M012.id});assert.ok(done(s,x.MS.M012.id));assert.equal(s.credits,c2+500,'Rook pays once');
+ assert.equal(step(x,s,'M012'),'meet-rook');const c2=s.credits;talk(x,s,'rook');ev(x,s,{type:'heard',mission:x.MS.M012.id});assert.ok(done(s,x.MS.M012.id));assert.equal(s.credits,c2+500,'Rook pays once');assert.equal(s.story.flags['rook-first-delivery-done'],true,'the shared flag for the flight Map and Rook\'s cargo board');assert.equal(x.M.definitions[x.MS.M012.id].destination,'meridian','the first delivery keeps Meridian as its destination');
  return s;}
 test('from a character who has just finished Mission 003: 004 to 012 in order, with reloads; rewards and the Kestrel once',()=>{const x=env(),s=through003(x,newChar(x));const out=play(x,s);
  assert.deepEqual(['m004-a-promising-investment','m011-leverage','m012-first-cargo-delivery'].map(id=>done(out,id)),[true,true,true]);});
