@@ -19,6 +19,17 @@
  const FEED_ROOMS=[{id:ROOM.id,name:'Blackrock cult room (camera feed only)',cat:'other',note:'A large square basement room in a corporate building: the owl on the far wall, an altar and a box. Seen only through a hacked security camera (a “Hack the access point” step with this camera feed). Not walkable and not joined to other modules.'}];
  const SIX=['robed-1','robed-2','robed-3','robed-4','robed-5','robed-6'],ACTORS=['initiate',...SIX],SPEAKERS=[...ACTORS,'robed-all'];
  const NAMES={initiate:'The initiate','robed-all':'All six (together)'};SIX.forEach((id,i)=>{NAMES[id]='Robed figure '+(i+1);});
+ /* THE SIX MEMBERS' VOICES AND THE CHORUS (APPROVED by the owner 20 Nov 2026; voice choices only: no line is recorded). Each robed figure's ElevenLabs voice is in
+    tools/audio/revoice-engines.json ('robed-1'..'robed-6', labelled "Blackrock Member N (name)"): ordinary, slightly nerdy corporate men, not dramatic. A line by
+    'robed-all' (the unison lines and the laugh) is ONE mix of the six, the owner's "half in sync" recipe below, so every future chorus line and the laugh sound the
+    same: members 1-3 together (time-aligned to a common length, offsets 0 / 20 / 10 ms), member 4 about 230 ms late, member 6 about 160 ms late, member 5 rushing
+    (about 6% faster), the drifting three (4, 5, 6) at 80-85% volume, a light room echo. Model eleven_v4 with the delivery tag [slow, solemn, ceremonial]. Data
+    only here: whoever renders the take (the owner's own files, or an approved generation) follows it. */
+ const CHORUS={'robed-all':{members:SIX.slice(),model:'eleven_v4',tag:'[slow, solemn, ceremonial]',mix:'half in sync',approved:'2026-11-20 by the owner',
+  voices:{'robed-1':{label:'Blackrock Member 1 (Jacob L.)',voiceId:'SO9JediIwzugrikv7xw0',offsetMs:0,align:true,gain:1,speed:1},'robed-2':{label:'Blackrock Member 2 (Edward Sterling)',voiceId:'VsQmyFHffusQDewmHB5v',offsetMs:20,align:true,gain:1,speed:1},
+   'robed-3':{label:'Blackrock Member 3 (Cole)',voiceId:'oXuGG4PpSq1U1YAFxeEO',offsetMs:10,align:true,gain:1,speed:1},'robed-4':{label:'Blackrock Member 4 (Alex)',voiceId:'wqcUglz7RaiukTjAKIvu',offsetMs:230,align:false,gain:.82,speed:1},
+   'robed-5':{label:'Blackrock Member 5 (Dean)',voiceId:'hqsADTrqjrr0sI9LFcYV',offsetMs:0,align:false,gain:.85,speed:1.06},'robed-6':{label:'Blackrock Member 6 (Gareth)',voiceId:'ctbfMo4IDq5ExcIEim2K',offsetMs:160,align:false,gain:.8,speed:1}},
+  alignTo:'common length (members 1-3)',room:{echo:'light'},appliesTo:['every robed-all line','the laugh']}};
  const WHO_TURN=['six',...ACTORS],TO_TURN=['initiate','owl','door','centre'],TO_WALK=['altar','centre','spot'];
  const ACTS=[
   {id:'pause',name:'Pause',note:'Nobody moves.'},
@@ -172,12 +183,12 @@
   if(fs!=null){if(!Array.isArray(fs)||fs.length>LIMIT_FEEDS)return ['a mission has at most '+LIMIT_FEEDS+' camera feeds.'];
    for(const f of fs){if(!keysOk(f,['id','room','scene'])||!FEED_ID.test(f.id||'')){out.push('a camera feed needs a short name (letters, digits, hyphens).');continue;}if(ids.has(f.id))out.push('two camera feeds are both called “'+f.id+'”.');ids.add(f.id);
     if(!FEED_ROOMS.some(r=>r.id===f.room))out.push('camera feed “'+f.id+'”: choose the room it shows.');if(f.scene!=null)for(const p of sceneProblems(f.scene))out.push('camera feed “'+f.id+'”: '+p);}}
-  for(const o of (m&&m.objectives)||[]){if(!o||o.feed==null)continue;if(o.kind!=='hack')out.push('step '+o.id+': only a “hack the access point” step shows a camera feed.');else if(!ids.has(o.feed))out.push('step '+o.id+': choose one of this mission’s camera feeds.');}
+  for(const o of (m&&m.objectives)||[]){if(!o||o.feed==null)continue;if(o.kind!=='hack'&&o.kind!=='feed')out.push('step '+o.id+': only a “hack the access point” or a “watch a remote camera feed” step shows a camera feed.');else if(!ids.has(o.feed))out.push('step '+o.id+': choose one of this mission’s camera feeds.');}
   return out;}
  const strip=fs=>Array.isArray(fs)&&fs.length?JSON.parse(JSON.stringify(fs)).map(f=>({id:f.id,room:f.room,...(f.scene?{scene:f.scene}:{})})):null;
  function addFeed(m,room=ROOM.id){const ids=new Set((m.feeds||[]).map(f=>f.id));let n=1;while(ids.has('cam'+n))n++;const f={id:'cam'+n,room,scene:defaultScene()};return {feeds:[...(m.feeds||[]),f],id:f.id};}
  function inventory(){return {rooms:FEED_ROOMS.map(r=>r.id),speakers:SPEAKERS.slice(),actors:ACTORS.slice(),acts:ACT_IDS.slice(),beatKeys:JSON.parse(JSON.stringify(BEAT_KEYS)),anims:ANIMS.slice(),turnWho:WHO_TURN.slice(),turnTo:TO_TURN.slice(),walkTo:TO_WALK.slice(),limit:{beats:LIMIT.beats,text:LIMIT.text,feeds:LIMIT_FEEDS,secs:LIMIT.secs.slice(),speed:LIMIT.speed.slice(),radius:LIMIT.radius.slice(),gap:LIMIT.gap.slice()}};}
- const api={GONE,DOOR_IN,ROOM,FEED_ROOMS,SIX,ACTORS,SPEAKERS,NAMES,ACTS,ACT_IDS,CLIPS,ANIMS,ONCE,STRIDE,LIMIT,DEF,WHO_TURN,TO_TURN,TO_WALK,BEAT_KEYS,LIMIT_FEEDS,
+ const api={CHORUS,GONE,DOOR_IN,ROOM,FEED_ROOMS,SIX,ACTORS,SPEAKERS,NAMES,ACTS,ACT_IDS,CLIPS,ANIMS,ONCE,STRIDE,LIMIT,DEF,WHO_TURN,TO_TURN,TO_WALK,BEAT_KEYS,LIMIT_FEEDS,
   circleSpots,lineGap,enterPlan,exitPlan,defaultScene,sceneProblems,compile,poseAt,lineAt,doorAt,lineSecs,feedProblems,strip,addFeed,inventory,poly,along,wrap,nameOf};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidCultRoom=api;

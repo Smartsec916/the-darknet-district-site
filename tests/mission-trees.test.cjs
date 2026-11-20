@@ -197,7 +197,7 @@ test('adapter: a new tree is checked, applied, run step by step (talk, go, buy, 
  const after=s.credits;assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C).completed,false);assert.equal(s.credits,after,'never paid twice');
  // a campaign that is not a District campaign is never touched
  const old=e.C.fresh();assert.equal(MC.treeEvent(old,e,{type:'talk',npcs:['admin']},e.Missions,e.C).mission,null);
- MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees.map(t=>t.id),['main-storyline'],'only the shipped main storyline stays');
+ MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees.map(t=>t.id),['main-storyline','first-cargo-delivery'],'only the shipped story trees stay (the main storyline and, since 20 Nov 2026, the First Cargo Delivery)');
 });
 test('adapter refuses unknown kinds, givers without a TALK prompt, non-draft ids, unknown places and items; only runnable missions are sent',()=>{
  const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(require(R('void-runner/universe.js')).locations))};
