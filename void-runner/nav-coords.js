@@ -16,8 +16,8 @@
  const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
  const FLAG='navCoords',ROOK_DONE='rook-first-delivery-done',OPEN_SYSTEMS=['erebus','sol'],HOME='earth',UNLOCK='nav-coords';
  const has=s=>s?.story?.flags?.[FLAG]===true;
- /* The first delivery to Rook is done (the Awakening agent's flag; a Mission Editor flag unlock writes it as mf_rook-first-delivery-done). */
- const rookDone=s=>{const f=s?.story?.flags||{};return f[ROOK_DONE]===true||f['mf_'+ROOK_DONE]===true;};
+ /* The first delivery to Rook is done: Mission 012 (First Cargo Delivery) sets it with its "Shared game flag" unlock (mission-content.js contract-flag). The one switch. */
+ const rookDone=s=>s?.story?.flags?.[ROOK_DONE]===true;
  /* The places the coordinates cover: every place in the open systems. */
  const coordinatePlaces=()=>Object.keys(U.locations).filter(id=>OPEN_SYSTEMS.includes(U.system(id)));
  const known=s=>s?.universe?.discoveredLocations||[];

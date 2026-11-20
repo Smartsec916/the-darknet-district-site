@@ -53,7 +53,7 @@
  const ITEM_TYPES=[{id:'loot',name:'Loot'},{id:'mission-item',name:'Mission item'},{id:'note',name:'Note / data'},{id:'other',name:'Other'}];
  const LIMIT={perMission:4,items:20,label:60,number:9999};
  const INST_ID=/^[a-z][a-z0-9-]{0,23}$/;
- const STREET_NAMES={avenue:'The Avenue',main:'Main Street',road:'the access road',passage:'the Port passage',yard:'The Outskirts'};
+ const STREET_NAMES={avenue:'The Avenue',main:'Main Street',road:'the access road',passage:'the Port passage',yard:'The Outskirts',corp:'the Corporate District back alley'};
  /* OFFICE AND SHOP ENTRANCES (modules.js locations; the owner, 19 Nov 2026: "office building interior ... commercial"): a door in the middle of a plain shopfront, half way
     between two apartment doors, where nothing else is. Offices on the Avenue's corporate west end toward the Function Gate (family 'office'), shops' back entrances in Old Town
     and Far South (family 'commercial'). Ids 'biz-<street>-<side>-<metres along>'. A location may go behind any street door; the older apartments only behind 'city' or
@@ -102,7 +102,11 @@
     let num=along;if((side==='e'||side==='n')!==(num%2===1))num+=1;   // west and south sides even, east and north sides odd
     out.push({id:'apt-'+e.street+'-'+side+'-'+along,street:e.street,side,x:r2(p[0]),z:r2(p[1]),n:e.n.slice(),ry:faceInto(e.n),front,quarter:q,style:styleAt(q,p[0]),number:num,
      name:'No. '+num+', '+(STREET_NAMES[e.street]||e.street)});}}
-  out.push(...containerDoors(),...bizDoors(Q));if(Q&&CT()&&out.length)cache=out;return out;}
+  out.push(...containerDoors(),...bizDoors(Q),...CORP_DOORS.map(d=>({...d,n:d.n.slice(),front:d.front.slice()})));if(Q&&CT()&&out.length)cache=out;return out;}
+ /* THE CORPORATE DISTRICT'S MAINTENANCE DOOR (20 Nov 2026, the owner's Mission 009: "use an existing available mission entrance in the Corporate District"): the locked
+    MAINTENANCE DOOR on the back alley (corporate.js corp-back-door, its keypad and camera) as a mission entrance: a location may stand behind it like behind any office door.
+    scene 'corporate': the Corporate District's own scene builds the door (corporate-integration.js routes its prompt to the hack and to the location); never a street door. */
+ const CORP_DOORS=[{id:'biz-corp-s-40',street:'corp',side:'s',x:-40,z:-88,n:[0,1],ry:0,front:[-40,-89.25],quarter:'corporate',scene:'corporate',style:'office',number:40,family:'office',name:'Maintenance door, back alley (Corporate District)'}];
  function bizDoors(Q){const out=[];if(!Q)return out;const n={office:0,commercial:0};
   for(const e of EDGES){const len=Math.hypot(e.b[0]-e.a[0],e.b[1]-e.a[1]);
    for(let s=SEG/2;s<len-1.5;s+=SEG){const t=s/len,p=[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t],why=blockedWhy(e,p,true);if(why)continue;const mouth=!!blockedWhy(e,p);const front=[r2(p[0]-e.n[0]*1.25),r2(p[1]-e.n[1]*1.25)],q=Q.quarterAt(front[0],front[1]);
@@ -243,7 +247,7 @@
    if(o.kind==='apt-use'&&!OBJECT_IDS.includes(o.object))out.push('step '+o.id+': choose what is used (computer, utility panel, safe, vending machine, closet or light switch).');
    if(o.kind==='apt-use'&&o.object==='screen'){const a=list.find(x=>x&&x.id===o.apt);if(a&&!SCREEN_STYLES.includes(a.style))out.push('step '+o.id+': the '+a.style+' apartment has no ad screen.');}
    if(o.kind==='apt-enter'&&o.object!=null)out.push('step '+o.id+': only a “use something” step names an object.');}
-  for(const o of m.objectives||[])if(o&&o.kind!=='apt-enter'&&o.kind!=='apt-use'&&(o.apt!=null||o.object!=null||o.mod!=null)&&!((o.kind==='follow-them'||o.kind==='they-follow')&&o.object==null))out.push('step '+o.id+': only an apartment step names an apartment.');   // a follow step may go into a place (npc-escort.js intoProblems checks it)
+  for(const o of m.objectives||[])if(o&&o.kind!=='apt-enter'&&o.kind!=='apt-use'&&(o.apt!=null||o.object!=null||o.mod!=null)&&!((o.kind==='follow-them'||o.kind==='they-follow')&&o.object==null)&&!['sneak','collect','apt-leave'].includes(o.kind))out.push('step '+o.id+': only an apartment step names an apartment.');   // sneak / collect / leave name a place too (mission-mechanics.js checks them)   // a follow step may go into a place (npc-escort.js intoProblems checks it)
   const items=new Set(itemIds());
   for(const o of m.objectives||[]){if(!o)continue;if(o.kind!=='hack'){if(['ap','stay','unlock','needs'].some(k=>o[k]!=null))out.push('step '+o.id+': only a “hack the access point” step names an access point.');continue;}
    const p=apOf(o.ap);if(!p)out.push('step '+o.id+': choose the access point to hack (a street door, or an apartment’s hallway door or entry).');else if(p.door&&!known.has(p.door))out.push('step '+o.id+': that street door does not exist.');else if(p.apt&&!ids.has(p.apt))out.push('step '+o.id+': choose one of this mission’s apartments.');

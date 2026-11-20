@@ -71,7 +71,7 @@
  // A District campaign (closed pool) runs only tree missions: the main storyline (main-story.js) and the owner's published trees. Every older mission, the beginner
  // campaign included, is retired there (the owner, 17 Nov 2026: "Go ahead and remove all missions in the game"): never offered, tracked or shown; old records stay in the save.
  // Rook's side missions (rook-run-N) also run there once the first delivery to Rook is done (story flag rook-first-delivery-done; campaign.js rookOpen, nav-coords.js).
- const rookSide=s=>{const f=s?.story?.flags||{};return f['rook-first-delivery-done']===true||f['mf_rook-first-delivery-done']===true;};
+ const rookSide=s=>{const f=s?.story?.flags||{};return f['rook-first-delivery-done']===true;};
  const live=(s,id)=>!closed(s)||!!definitions[id]?.ownerTree||rookSide(s)&&/^rook-run-\d+$/.test(id);
  function acquire(s,id){if(!live(s,id)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
  function finish(s,id,entry){

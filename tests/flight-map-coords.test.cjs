@@ -82,7 +82,9 @@ test('Rook’s side-mission board appears only after rook-first-delivery-done',(
  const board=C.rookBoard(s);assert.deepEqual(board.map(j=>j.kind),RC.districtBoard.filter(k=>RC.jobs[k]));
  assert.equal(new Set(board.map(j=>j.destination)).size,board.length,'each job to a different place');
  assert.deepEqual(C.rookBoard(reload(s)),board,'a reload never rerolls the board');
- const flag=newPilot();flag.location='meridian';flag.story.flags['mf_rook-first-delivery-done']=true;assert.ok(C.rookBoard(flag).length,'a Mission Editor flag unlock (mf_) opens it too');
+ const flag=newPilot();flag.location='meridian';flag.story.flags['mf_rook-first-delivery-done']=true;assert.deepEqual(C.rookBoard(flag),[],'only the one shared flag opens it (not an mf_ story flag)');
+ // Mission 012's "Shared game flag" unlock sets exactly that flag
+ const m=newPilot();m.location='meridian';MC.unlockNow(m,{kind:'contract-flag',id:'rook-first-delivery-done',value:true},{U},C);assert.equal(m.story.flags['rook-first-delivery-done'],true);assert.ok(C.rookBoard(m).length);
 });
 
 test('jobs only target reachable places, never Vesper, a homeworld or Meridian',()=>{

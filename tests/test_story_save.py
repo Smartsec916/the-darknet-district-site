@@ -111,7 +111,7 @@ class StorySaveTests(unittest.TestCase):
             if flag:state['story']['flags'][flag]=True
             state['universe']={'trackingInitialized':True,'trackedMission':'rook-run-1','freeTravel':True,'discoveredLocations':['vesper','meridian','kepler','rusthaven','foundry','sol-belt','earth','mars'],'missions':{'rook-run-1':{'acquired':True,'completed':False,'objectives':{'pickup':True}}}}
             return vr.clean_save(state)
-        for flag in ('rook-first-delivery-done','mf_rook-first-delivery-done'):
+        for flag in ('rook-first-delivery-done',):
             clean=side(flag);self.assertEqual(clean['universe']['trackedMission'],'rook-run-1');self.assertEqual(clean['contract'],'rook-run');self.assertIs(clean['story']['flags']['navCoords'],True)
             self.assertIn('kepler',clean['universe']['discoveredLocations'])
-        self.assertIsNone(side(None)['universe']['trackedMission'])
+        self.assertIsNone(side(None)['universe']['trackedMission']);self.assertIsNone(side('mf_rook-first-delivery-done')['universe']['trackedMission'])
