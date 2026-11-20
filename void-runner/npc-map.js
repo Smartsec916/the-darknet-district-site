@@ -60,6 +60,10 @@
    // the back alleys' fire escapes (ncz-backalleys.js): the landing against the wall, a tick for its drop ladder, FE beside it
    for(const e of data.escapes||[]){const a=[e.x-e.t[0]*1.2,e.z-e.t[1]*1.2],b=[e.x+e.t[0]*1.2+e.u[0]*1.2,e.z+e.t[1]*1.2+e.u[1]*1.2];c.fillStyle='rgba(150,190,255,.55)';c.strokeStyle='#9cc4ff';c.beginPath();c.rect(px(Math.min(a[0],b[0])),py(Math.max(a[1],b[1])),Math.abs(b[0]-a[0])*k,Math.abs(b[1]-a[1])*k);c.fill();c.stroke();
     c.fillStyle='#d6e6ff';c.beginPath();c.arc(px(e.foot[0]),py(e.foot[1]),Math.max(2,.2*k),0,7);c.fill();if(k>3){c.font='10px ui-monospace,monospace';c.fillText('fire escape',px(e.x+e.u[0]*1.6)+4,py(e.z+e.u[1]*1.6)+4);}}
+   // the stairs down to the tunnels (ncz-backalleys.js UNDERGROUND_ENTRANCES): the stairwell, its steps, an arrow down them, "stairs down"
+   for(const u of data.tunnels||[]){const r=u.rect;c.fillStyle='rgba(120,110,160,.6)';c.strokeStyle='#b8a8ff';c.beginPath();c.rect(px(r[0]),py(r[3]),(r[1]-r[0])*k,(r[3]-r[2])*k);c.fill();c.stroke();
+    c.strokeStyle='rgba(230,220,255,.55)';for(let a=.4;a<5;a+=.6){const x=u.top[0]+u.down[0]*a,z=u.top[1]+u.down[1]*a,t=[-u.down[1]*1.2,u.down[0]*1.2];c.beginPath();c.moveTo(px(x-t[0]),py(z-t[1]));c.lineTo(px(x+t[0]),py(z+t[1]));c.stroke();}
+    if(k>3){c.fillStyle='#e6dcff';c.font='10px ui-monospace,monospace';c.fillText('stairs down (tunnels)',px(r[0]),py(r[3])-3);}}
    for(const l of data.labels)text(c,l.name,px(l.x),py(l.z),l.back?'#a8d8b8':'#c9cede',l.back?10:11);
    c.fillStyle='#6c7280';c.font='11px ui-monospace,monospace';c.fillText('N ↑',W-30,14);
    // the route

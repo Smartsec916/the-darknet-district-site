@@ -113,3 +113,49 @@ test('a follow / lead walk between the Avenue back alleys and its pavement goes 
  assert.deepEqual(E.route({x:60,z:-6.4},{x:30,z:-6.6},'avenue'),[{x:60,z:-6.6},{x:30,z:-6.6}]);});   // the north pavement keeps its walking line
 test('a quarter with no back alleys builds nothing (no empty floor mesh, no materials) (night QA)',()=>{const BA=require('../void-runner/ncz-backalleys.js');
  for(const q of ['port','outskirts']){const r=BA.build({B:{},scene:{},quarter:q});assert.equal(r.stats().meshes,0);}});
+
+/* ---- the underground entrances the owner marked (20 Nov 2026) and the fixtures at the alley mouths ---- */
+test('the three stairs down to the tunnels: in the yards the owner circled, against the back wall, clear of the mouths, the openings and the fire escapes, room to walk round',()=>{
+ const U=BA.UNDERGROUND_ENTRANCES,circled={'under-avenue':['avenue-north-yard',20,11],'under-oldtown':['oldtown-null-yard',8,-73],'under-farsouth':['far-south-west-yard',30,-187]};
+ assert.deepEqual(U.map(u=>u.id),Object.keys(circled));assert.deepEqual(BA.QUARTERS.map(q=>U.filter(u=>u.quarter===q).length),[1,1,1]);
+ const mouthZone=o=>o.axis==='z'?[o.from-.6,o.to+.6,Math.min(o.at,o.at+o.into[1]*6),Math.max(o.at,o.at+o.into[1]*6)]:[Math.min(o.at,o.at+o.into[0]*6),Math.max(o.at,o.at+o.into[0]*6),o.from-.6,o.to+.6];
+ for(const u of U){const [piece,cx,cz]=circled[u.id],p=BA.get(piece),r=u.rect;assert.equal(u.piece,piece);
+  assert.ok(p.rects.some(R=>r[0]>=R[0]&&r[1]<=R[1]&&r[2]>=R[2]&&r[3]<=R[3]),u.id+': the whole stairwell, walls included, inside its yard');
+  assert.ok(inR(u.rect,cx,cz),u.id+': on the circled spot');assert.ok(r[1]-r[0]>6.8&&r[3]-r[2]>2.85,u.id+': 5 m of stairs, a 1.6 m landing, 2.4 m wide, walls');
+  // against the back wall: solid city right behind the far end; the door at the bottom faces back up the stairs; a tunnel beyond it runs under the building, away from the street
+  const end=[u.bottom[0]+u.down[0]*.6,u.bottom[2]+u.down[1]*.6];assert.equal(BA.open(end[0],end[1]),false,u.id+': the building is behind the door');assert.deepEqual(u.facing.map(v=>v+0),u.down.map(v=>0-v));assert.deepEqual(u.down,[-1,0],'down to the west, away from Main Street / the Avenue mouth');
+  assert.ok(u.bottom[0]<u.top[0]&&inR(u.inner,u.bottom[0]+.1,u.bottom[2]),u.id+': the door at the foot of the stairs');assert.equal(u.closed,true);
+  // the way onto the top step: open ground 2.2 m long in front of it, the full width
+  for(const o of [-1.1,0,1.1])for(const a of [.3,1.2,2.2])assert.ok(BA.inPieces(u.top[0]-u.down[0]*a+u.across[0]*o,u.top[2]-u.down[1]*a+u.across[1]*o),u.id+': the way in');
+  // a walk round it: open ground along at least one long side (1.2 m clear of furniture), and every furniture item at least 0.9 m off it
+  const side=s=>{for(let a=.2;a<6.3;a+=.5){const x=u.top[0]+u.down[0]*a+u.across[0]*s*2.1,z=u.top[2]+u.down[1]*a+u.across[1]*s*2.1;if(!BA.inPieces(x,z,u.quarter,-.3)||BA.furniture(u.quarter).some(f=>inR(f.rect,x,z,.6)))return false;}return true;};
+  assert.ok(side(1)||side(-1),u.id+': a way round one long side');for(const f of BA.furniture(u.quarter))assert.ok(!over(f.rect,u.rect,.9),u.id+' clear of '+f.id);
+  // clear of every mouth, the narrow openings between pieces and every fire escape (its foot, the ground under its landing)
+  for(const o of BA.MOUTHS)assert.ok(!over(mouthZone(o),u.rect,1),u.id+' clear of the mouth of '+o.piece);
+  for(const e of BA.ESCAPES){assert.ok(Math.hypot(e.foot[0]-Math.max(r[0],Math.min(r[1],e.foot[0])),e.foot[1]-Math.max(r[2],Math.min(r[3],e.foot[1])))>2,u.id+' clear of the foot of '+e.id);const land=[Math.min(e.x+e.t[0]*-1.5,e.x+e.t[0]*1.5+e.u[0]*1.5),Math.max(e.x+e.t[0]*-1.5,e.x+e.t[0]*1.5+e.u[0]*1.5),Math.min(e.z+e.t[1]*-1.5,e.z+e.t[1]*1.5+e.u[1]*1.5),Math.max(e.z+e.t[1]*-1.5,e.z+e.t[1]*1.5+e.u[1]*1.5)];assert.ok(!over(land,u.rect,.5),u.id+' clear of '+e.id);}
+  for(const q of BA.PIECES.filter(q=>q.quarter===u.quarter))for(const a of q.rects)for(const b of BA.PIECES.filter(o=>o.quarter===u.quarter&&o!==q).flatMap(o=>o.rects)){const x0=Math.max(a[0],b[0]),x1=Math.min(a[1],b[1]),z0=Math.max(a[2],b[2]),z1=Math.min(a[3],b[3]);   // a narrow opening between two pieces
+   if(x1<x0-.01||z1<z0-.01||(x1-x0>.05&&z1-z0>.05))continue;assert.ok(!over([x0,x1,z0,z1],u.rect,2),u.id+' not in the opening of '+q.id);}
+  // the walk follows the stairs; the walls and railings are solid for the player; NPC placement keeps out of the whole stairwell
+  assert.equal(BA.groundAt(u.top[0]-u.down[0]*.5,u.top[2]),0);assert.ok(Math.abs(BA.groundAt(u.top[0]+u.down[0]*2.5,u.top[2])+1.5)<1e-9);assert.equal(BA.groundAt(u.bottom[0]+.5,u.bottom[2]),-3);
+  assert.equal(BA.solids().filter(s=>s.id.startsWith('back-'+u.id+'-wall-')).length,3);assert.ok(BA.obstacles(u.quarter).some(o=>o[0]===r[0]&&o[3]===r[3]&&/stairs down/.test(o[4])));
+  for(const a of [.5,2.5,4.5,6])assert.equal(AR.check({x:u.top[0]+u.down[0]*a,z:u.top[2]}).ok,false,u.id+': no NPC stands on the stairs');
+  assert.ok(AR.check({x:u.top[0]-u.down[0]*1.8,z:u.top[2]}).ok,u.id+': the ground in front of the top step is walkable');
+  const m=AR.mapData?AR.mapData(u.quarter):require(R('void-runner/npc-paths.js')).mapData(u.quarter);assert.ok((m.tunnels||[]).some(t=>t.id===u.id),'the editor map draws '+u.id);}});
+
+test('nothing hung on a building face stands in an alley mouth: the street-glow fixtures and lantern strings, and the face rules neochinatown.js uses (tunnel entrances QA)',()=>{
+ const G=require(R('void-runner/ncz-street-glow.js')),HALF={strip:2.4,lanterns:2,vending:.5,tube:.8};
+ for(const quality of ['low','medium','high'])for(const f of G.plan({quality})){
+  if(f.ends){for(const [x,z] of f.ends)assert.equal(BA.faceMouths(x,z,.2,0).length,0,'a lantern string ends on wall: '+JSON.stringify(f.ends));continue;}
+  if(!f.front)continue;assert.equal(BA.faceMouths(f.x,f.z,HALF[f.kind],.1).length,0,f.kind+' at '+f.x+','+f.z+' is on wall');}
+ // the far-south-east-alley mouth by door 135 (the owner's screenshot): a teal vending machine stood there before
+ assert.ok(!G.plan({quality:'high'}).some(f=>f.front==='farsouth-e'&&f.z>-141&&f.z<-134),'nothing hung in the mouth by door 135');
+ // the rules: moved just clear, kept when clear, a wash cut back to the wall
+ for(const o of BA.MOUTHS){const c=(o.from+o.to)/2,P=a=>o.axis==='z'?[a,o.at+o.into[1]*-.1]:[o.at+o.into[0]*-.1,a];
+  const [x,z]=BA.clearFace(...P(c),.4);assert.equal(BA.faceMouths(x,z,.4,.1).length,0,o.piece);const at=o.axis==='z'?x:z;assert.ok(at<=o.from-.5||at>=o.to+.5);
+  assert.deepEqual(BA.clearFace(...P(o.to+3),.4),P(o.to+3));assert.equal(BA.facePart(...P(c),2),null);
+  const w=BA.facePart(...P(o.to+1),3),wa=o.axis==='z'?w.x:w.z;assert.ok(wa-w.half>=o.to-1e-9&&w.half<3,o.piece+': the wash is cut back to the wall');}
+ // away from a shopfront line nothing moves
+ assert.deepEqual(BA.clearFace(61,-137.5,1),[61,-137.5]);
+ const s=src('void-runner/neochinatown.js');
+ assert.match(s,/function blade\(f,s,y,fi\)\{s=onWallF\(f,s,\.3\);/);assert.match(s,/s=onWallF\(f,s,\.35\);/);assert.match(s,/const wallWash=[^\n]*BA\.facePart\(/);assert.match(s,/function span\(a,b,n\)\{if\(BA\)\{a=BA\.clearFace\(/);
+ assert.match(s,/BA\.faceMouths\(at\[0\],at\[2\],w\/2,\.2\)\.length\)return null;/);assert.match(s,/BA\.clearFace\(bp\[0\],bp\[2\],bw\/2,\.2\)/);});

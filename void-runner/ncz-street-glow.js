@@ -39,16 +39,24 @@
  const hash=(...a)=>{let h=2166136261;for(const v of a){h^=Math.round(v*100);h=Math.imul(h,16777619)>>>0;}h^=h>>>15;h=Math.imul(h,2246822507)>>>0;h^=h>>>13;return h>>>0;};
  const onWall=(f,s)=>[f.x+f.tx*s,f.z+f.tz*s];
  const isOpen=(f,c)=>f.open.some(([a,b])=>c>a-1&&c<b+1);
+ /* The back alleys' mouths cut these fronts too (ncz-backalleys.js MOUTHS, 20 Nov 2026): a fixture whose wall was cut away there floated in the air (the owner saw teal
+    light bars at Far South's east alley mouth by door 135). Each fixture (and its wall wash) is moved along the wall just clear of the mouth, or left out if that is more
+    than half a step away; a string of lanterns across the street is moved so both its ends are on wall. HALF: how far each kind reaches along the wall, its wash included. */
+ const BAL=()=>{try{return typeof module!=='undefined'&&module.exports?require('./ncz-backalleys.js'):root.VoidBackAlleys||null;}catch{return null;}};
+ const HALF={strip:2.6,lanterns:2.5,vending:1.3,tube:1.8},ACROSS_END=.3;
  /* plan({quarter, lit, quality}) -> fixtures. quarter null = the whole city. lit: [[x, z], ...] the city's own light pools (neochinatown.js). */
  function plan({quarter=null,lit=[],quality='medium'}={}){
   const low=quality==='low',out=[],mine=[],near=(x,z,r,list=lit)=>list.some(([a,b])=>Math.hypot(a-x,b-z)<r),want=q=>!quarter||quarter===q;
   for(const f of FRONTS){if(!want(f.quarter))continue;
    for(let s=STEP/2;s<f.len-1;s+=STEP){const w=onWall(f,s),c=f.tx?w[0]:w[1];if(isOpen(f,c))continue;
-    const p=[w[0]+f.nx*PAVE/2,w[1]+f.nz*PAVE/2];if(near(p[0],p[1],DARK)||near(p[0],p[1],DARK,mine))continue;
-    const h=hash(p[0],p[1]),kind=KINDS[h%KINDS.length],color=kind==='lanterns'?(h>>>4)%2?'paper':'amber':['magenta','cyan','amber','teal'][(h>>>3)%4];
-    out.push({kind,front:f.id,quarter:f.quarter,x:w[0],z:w[1],nx:f.nx,nz:f.nz,tx:f.tx,tz:f.tz,color});mine.push(p);}}
+    const p0=[w[0]+f.nx*PAVE/2,w[1]+f.nz*PAVE/2],h=hash(p0[0],p0[1]),kind=KINDS[h%KINDS.length],color=kind==='lanterns'?(h>>>4)%2?'paper':'amber':['magenta','cyan','amber','teal'][(h>>>3)%4];   // kind and colour: those of its place
+    const BA=BAL(),[x,z]=BA?BA.clearFace(w[0],w[1],HALF[kind]||1,.35):w;if(Math.abs(x-w[0])+Math.abs(z-w[1])>STEP/2)continue;
+    const p=[x+f.nx*PAVE/2,z+f.nz*PAVE/2];if(near(p[0],p[1],DARK)||near(p[0],p[1],DARK,mine))continue;
+    out.push({kind,front:f.id,quarter:f.quarter,x,z,nx:f.nx,nz:f.nz,tx:f.tx,tz:f.tz,color});mine.push(p);}}
   if(!low)for(const a of ACROSS){if(!want(a.quarter))continue;for(let c=a.from;c<=a.to;c+=a.step){const mid=a.axis==='z'?[(a.a+a.b)/2,c]:[c,(a.a+a.b)/2];if(near(mid[0],mid[1],7))continue;
-   const ends=a.axis==='z'?[[a.a,c],[a.b,c]]:[[c,a.a],[c,a.b]];out.push({kind:'across',quarter:a.quarter,ends,color:hash(c)%3?'paper':'amber'});}}
+   let ends=a.axis==='z'?[[a.a,c],[a.b,c]]:[[c,a.a],[c,a.b]];const BA=BAL();
+   if(BA){let k=0;for(;k<4;k++){const moved=ends.map(([x,z])=>BA.clearFace(x,z,ACROSS_END,.15)).find(([x,z],i)=>x!==ends[i][0]||z!==ends[i][1]);if(!moved)break;const nc=a.axis==='z'?moved[1]:moved[0];ends=a.axis==='z'?[[a.a,nc],[a.b,nc]]:[[nc,a.a],[nc,a.b]];}if(k>=4)continue;}
+   out.push({kind:'across',quarter:a.quarter,ends,color:hash(c)%3?'paper':'amber'});}}
   if(want('outskirts')){for(const [x,y,z,size,mount] of OUTSKIRTS.lamps)out.push({kind:'worklamp',quarter:'outskirts',x,y,z,size,mount,color:'sodium'});
    for(const [a,b,color] of OUTSKIRTS.strings)out.push({kind:'string',quarter:'outskirts',a,b,color});
    for(const [x,z] of OUTSKIRTS.fires)out.push({kind:'fire',quarter:'outskirts',x,z,color:'sodium'});

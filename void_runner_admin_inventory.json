@@ -1831,33 +1831,15 @@
               6.199999999999999
             ],
             [
-              17.150000000000002,
-              18.250000000000004,
-              6.75,
-              8.75
-            ],
-            [
-              17.15,
-              18.35,
-              10.040000000000001,
-              11.24
-            ],
-            [
-              21.875999999999998,
-              23.076,
-              10.95,
-              11.95
-            ],
-            [
-              28.05,
+              27.95,
               29.05,
-              7.6,
-              9.4
+              6.1,
+              8.1
             ],
             [
-              24.130000000000003,
-              25.43,
-              11.25,
+              27.636,
+              28.836000000000002,
+              10.75,
               11.95
             ],
             [
@@ -2051,6 +2033,12 @@
               111.43,
               -37.95,
               -37.25
+            ],
+            [
+              17.119999999999997,
+              23.97,
+              9.08,
+              11.979999999999999
             ],
             [
               21.8,
@@ -3637,34 +3625,22 @@
               -77
             ],
             [
-              6.05,
-              7.1499999999999995,
-              -75.39999999999999,
-              -73.39999999999999
+              7.1,
+              9.1,
+              -81.55,
+              -80.45
             ],
             [
-              6.05,
-              7.05,
-              -81.24,
-              -80.04
-            ],
-            [
-              6.050000000000001,
-              7.25,
-              -71.15999999999998,
-              -69.96
+              11.840000000000002,
+              13.040000000000001,
+              -81.54999999999998,
+              -80.35
             ],
             [
               14.6,
               16.4,
               -81.55,
               -80.55
-            ],
-            [
-              8.15,
-              9.450000000000001,
-              -81.54999999999998,
-              -80.85
             ],
             [
               89.45929176915371,
@@ -3869,6 +3845,12 @@
               94.75,
               -82.7,
               -81.39999999999999
+            ],
+            [
+              6.02,
+              12.87,
+              -74.45,
+              -71.55
             ],
             [
               80,
@@ -4844,22 +4826,16 @@
               -191.4
             ],
             [
-              28.05,
-              29.150000000000002,
-              -189.8,
-              -187.8
+              29.1,
+              31.1,
+              -195.95000000000002,
+              -194.85
             ],
             [
-              28.049999999999997,
-              29.25,
-              -195.64,
-              -194.44
-            ],
-            [
-              28.05,
-              29.05,
-              -185.56,
-              -184.36
+              33.839999999999996,
+              35.04,
+              -195.95,
+              -194.75
             ],
             [
               36.6,
@@ -4870,8 +4846,14 @@
             [
               30.150000000000002,
               31.45,
-              -195.95,
-              -195.25
+              -184.75,
+              -184.05
+            ],
+            [
+              28.019999999999996,
+              34.87,
+              -188.95,
+              -186.05
             ],
             [
               38.8,
@@ -41893,7 +41875,7 @@
       "spawn"
     ]
   },
-  "revision": "dcf12abf2beb550b",
+  "revision": "e4941ac163de9eae",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57941,19 +57923,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 969,
+      "line": 970,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1133,
+      "line": 1134,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1254,
+      "line": 1255,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -58331,43 +58313,43 @@
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 69,
+      "line": 73,
       "text": "for(const m of o.markers||[]){const x=px(m.x),y=py(m.z),r=Math.max(7,.32*k);if(x<-30||x>W+30||y<-30||y>H+30)continue;   // in another area (the line at the bottom says so)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 77,
+      "line": 81,
       "text": "const say=t=>{note.textContent=t||'';root.VoidNPCMap.lastNote={text:t||'',at:Date.now(),npc:o.npc||null};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 80,
+      "line": 84,
       "text": "function place(x,z){const P=X();if(!o.npc||!P.pick)return {x,z};const r=P.pick(o.npc,{x,z},data.area);if(!r.spot){say('Not placed: '+r.why);return null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 81,
+      "line": 85,
       "text": "if(o.lock&&AR()&&AR().areaOf(r.spot)!==o.lock){say('Not placed: a route stays in one area, and this one is in '+AR().get(o.lock).name+'. Remove its points first, or give this area its own time block.');return null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 82,
+      "line": 86,
       "text": "say(r.spot.moved?'Moved to the nearest spot she can stand on ('+r.why.replace(/^That is /,'that was ').replace(/:.*$/,'').replace(/\\.$/,'')+').':'');return {x:r.spot.x,z:r.spot.z};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 97,
+      "line": 101,
       "text": "areaSel.onchange=()=>{o.area=areaSel.value;o.center=null;data=X().mapData(o.area,o.npc);if(o.zoom==='pair'&&o.area!=='avenue')o.zoom='all';zooms();say('');draw();o.onArea?.(o.area);};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-map.js",
-      "line": 103,
+      "line": 107,
       "text": "const api={el:wrap,draw,set(n){o={...o,...n};if(typeof o.center==='number')o.center={x:o.center,z:null};if(n.area&&n.area!==data.area){data=X().mapData(o.area,o.npc);areaSel.value=data.area;zooms();}draw();},get opts(){return o;},get area(){return data.area;},toWorld:(a,b)=>({x:wx(a),z:wz(b)}),toScreen:(x,z)=>({x:px(x),y:py(z)}),canvas:cv,say};cv.npcMap=api;   // tests and the guide reach the map from its canvas",
       "kind": "source-reference"
     },
@@ -60565,7 +60547,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "1ea7fef4c199a5db40c6f0c187d5196e6e8785d1618d11a764b55b698de6cb43",
+    "void-runner/ncz-backalleys.js": "0dde00ceda271f76fa19ee69a89ddc0b9cf136d43229d900e3c1d4f130c060a1",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
@@ -60575,12 +60557,12 @@
     "void-runner/ncz-outskirts-life.js": "499e7eb615081e6575e17d8f357887f2b54f48db480463cd0381ef31a633010b",
     "void-runner/ncz-quarters.js": "97c10642792d8bb359c96894b8e9d7e90504395b3ac838a4021f3468111ae149",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
-    "void-runner/ncz-street-glow.js": "4aa3f4f80e7648bde8f268a8b48ce1ffbbd9b4fa01f661e13ca0e788a50412b6",
+    "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
     "void-runner/ncz-street-pair.js": "432388decd1ac1b956d3d03adad43cac908cc5f9a4643d2bc1ffa8c492d3cbc4",
-    "void-runner/neochinatown.js": "8592f3e4f4b83e50c6d15718cc00b8e5a9df10bbc7e856a010c8fc65fe0a980c",
+    "void-runner/neochinatown.js": "26b08013ba1d8f793d92e8d81b606a0fb4e0530f0abeb73a121cef508e64c582",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "1796a525bbfe5b9b3641d5756868071d81bbf37943e1edd842eeb46fc24ff423",
+    "void-runner/npc-areas.js": "e8867c0ba993900749c8942223bf373daf5d48e03f6a8a6a27de0f337f663d26",
     "void-runner/npc-behaviour.js": "f255456efbfbece9875e29c675b2818be0fa96c20efb9b6f4909320facfe0bc4",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
@@ -60590,8 +60572,8 @@
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-made.js": "914db3617694de581c1648e817b3d747ec8eac27c3507ca9ca0954686657719c",
-    "void-runner/npc-map.js": "e0215b44a72d0bde74daacfec05d812a6c7eff730158e76934af185dfcbc6aa8",
-    "void-runner/npc-paths.js": "73c14a3f68c2d4ca7bc5f38a2c28d45cb23725d26f6f1394a0f44ba6f10ee1cd",
+    "void-runner/npc-map.js": "1841bce89e8fc20adf8c373fcbc475169b332881e9482c496aa8f756dce6e308",
+    "void-runner/npc-paths.js": "b6a6890011a1be9773f142ae032bcab3d969f96a5e554be638b72697cbb5160c",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "c7bd363661ce3aaa939cc9c2c3b09a9f1f5fb813a63bb5fb1e8b88676f47c5c7",
