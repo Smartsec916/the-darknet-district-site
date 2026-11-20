@@ -301,7 +301,8 @@
    if(me){if(!s.face)s.face={x:me.x,z:me.z};else{s.face.x=me.x;s.face.z=me.z;}}}
   /* Is she in this scene? Out on her shift, and her plan (or her usual routine, on The Avenue) is in an area this scene has. A plan that moves her to another area, or a
      new spot she could not walk to in a straight line (across a road, through a wall), takes her away and puts her at the new spot (never a walk across town). */
-  function tickHer(dt,c){if(her){const n=her.node.position;holdCheck(her.p.id,{x:n.x,y:n.y,z:n.z,key:her.key,plan:her.plan,enabled:her.node.isEnabled()},c,t=>{if(!AR)return false;if(!t)return AR.areaOf({x:n.x,z:n.z})!=='avenue'||n.z<-8.2;const from=AR.nearest({x:n.x,z:n.z},null,1.2)||{x:n.x,z:n.z};return !!AR.leg(from,t).length;});}
+  function tickHer(dt,c){{const w=out(),R=w?planRaw(w.id):null;if(R&&R.indoors)rejoin[w.id]=true;}   // inside a place with the player (npc-escort-indoors.js): when she is back on the street, never in front of the player
+   if(her){const n=her.node.position;holdCheck(her.p.id,{x:n.x,y:n.y,z:n.z,key:her.key,plan:her.plan,enabled:her.node.isEnabled()},c,t=>{if(!AR)return false;if(!t)return AR.areaOf({x:n.x,z:n.z})!=='avenue'||n.z<-8.2;const from=AR.nearest({x:n.x,z:n.z},null,1.2)||{x:n.x,z:n.z};return !!AR.leg(from,t).length;});}
    const w0=out(),want=w0&&HERE.has(herArea(w0.id))?w0:null;if(her&&(!want||want.id!==her.p.id))leave();
    if(her){const P=planOf(her.p.id),k=P?P.key:null;if(k!==her.key){const n=her.node.position,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'&&P.resume&&Number.isFinite(P.resume.x)?P.resume:null);
      const from=AR&&(AR.nearest({x:n.x,z:n.z},null,1.2)||{x:n.x,z:n.z}),jump=P?!!(AR&&t&&AR.leg(from,t).length):!!(AR&&(AR.areaOf({x:n.x,z:n.z})!=='avenue'||n.z<-8.2));her.key=k;if(jump){leave();}}}
@@ -324,10 +325,10 @@
   const tell=(npc,P,ev,e,extra)=>{try{root.VoidStreetPair?.onEscort?.({npc,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z,...(extra||{})});}catch{}};
   function escTick(who,npc,P,body,dt,isCat){const E=root.VoidNPCEscort;if(!E)return {clip:'idle',speed:0,seat:null};let e=escorts[who];
    if(!e||e.key!==P.key){e=escorts[who]={key:P.key,st:{x:body.x,z:body.z,yaw:body.yaw||0,phase:null},trail:{pts:[],shifted:0},cab:null,told:null};
-    const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;}
+    const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;if(r&&r.unarmed)e.st.unarmed=true;}
    const st=e.st,me=player(),meP=me&&Number.isFinite(me.x+me.z)?{x:me.x,z:me.z}:null,md=typeof mode!=='undefined'?mode:'',walking=md==='walking',riding=md==='road-taxi',job=P.kind==='their-cab'||P.kind==='shared-cab'?taxiJob():null;
    if(walking&&meP)E.trailPush(e.trail,meP);
-   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job};
+   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,door:P.door||null,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job};
    if(P.kind==='their-cab'||P.kind==='shared-cab')inp.me=meP;
    const ev=P.kind==='follow-them'?E.lead(st,inp):P.kind==='they-follow'?E.follow(st,inp):E.cab(st,inp);
    if(st.want==='hail'){const T=root.VoidRoadTaxi,k=E.kerb(st,P.area);const res=T&&T.hailFor?T.hailFor(k.call||{x:k.x,z:k.z-.8},P.stop,P.name):{ok:false,reason:'Street taxis are not running.'};if(!res.ok&&e.told!==res.reason){e.told=res.reason;tell(npc,P,'hail-failed',e,{reason:res.reason});}}
