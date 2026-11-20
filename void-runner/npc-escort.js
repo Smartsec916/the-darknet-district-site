@@ -91,7 +91,8 @@
  /* Her walk on the pavement from a to b: onto the walking line, along it, then to the spot (straight lines, clear of the kerb's furniture). */
  function route(a,b,area='avenue'){const L=LIMIT.lane,pts=[],A=AR();
   // away from the Avenue's north pavement: a straight walk when it stays on walkable ground, else round one corner (npc-areas.js leg), else along the pavements (walkRoute)
-  if(A&&(area!=='avenue'||a.z<-8||b.z<-8)){if(!A.leg(a,b).length)return [{x:b.x,z:b.z}];for(const c of [{x:b.x,z:a.z},{x:a.x,z:b.z}])if(!A.leg(a,c).length&&!A.leg(c,b).length)return [c,{x:b.x,z:b.z}];return walkRoute(a,b,area)||[{x:b.x,z:b.z}];}
+  // (night QA 20 Nov 2026: the back alleys behind the Avenue's north side are north of z -5 too; a walk from or to one went straight through the buildings to the lane)
+  if(A&&(area!=='avenue'||a.z<-8||b.z<-8||a.z>-4.9||b.z>-4.9)){if(!A.leg(a,b).length)return [{x:b.x,z:b.z}];for(const c of [{x:b.x,z:a.z},{x:a.x,z:b.z}])if(!A.leg(a,c).length&&!A.leg(c,b).length)return [c,{x:b.x,z:b.z}];return walkRoute(a,b,area)||[{x:b.x,z:b.z}];}
   if(Math.abs(a.x-b.x)<1.2)return [{x:b.x,z:b.z}];if(Math.abs(a.z-L)>.05)pts.push({x:a.x,z:L});pts.push({x:b.x,z:L});if(Math.abs(b.z-L)>.05)pts.push({x:b.x,z:b.z});return pts;}
  /* ALONG THE PAVEMENTS (fix 19 Nov 2026: a spot she could not reach in a straight line or round one corner was walked to in a straight line, through shopfronts and across
     the road at a slant): a search over a half-metre grid of the area's walkable ground (npc-areas.js check), the road allowed only where it must be crossed (each metre of road
