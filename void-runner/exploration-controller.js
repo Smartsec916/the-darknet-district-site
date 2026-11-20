@@ -36,7 +36,7 @@
   function select(player, location, allowed = () => true) {
     let object = null, objectDistance = Infinity, person = null, personScore = null;
     const fx = Math.sin(player.yaw), fz = Math.cos(player.yaw);
-    for (const item of location.interactions) {
+    for (const item of location.interactions) { if (item.hidden) continue;   // a prompt switched off for now (a street door no mission of the player's uses: apartment-integration.js)
       const dx = item.position[0] - player.x,
         dz = item.position[2] - player.z,
         distance = Math.hypot(dx, dz), talk = isTalk(item);

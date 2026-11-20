@@ -14,7 +14,7 @@ test('the interior owns the District interactions, plus the terrace stairs',()=>
  assert.deepEqual(g.terrace,['district-stairs-down']);
 });
 test('solids split 51 district, 3 terrace, 31 street (+61 Milked; the city blocks are cut differently since Far South and The Outskirts opened)',()=>{
- const g=group(L.solids);assert.equal(g.district.length,51);assert.equal(g.terrace.length,3);assert.equal(g.street.length,31+61);
+ const g=group(L.solids);assert.equal(g.district.length,51);assert.equal(g.terrace.length,3);assert.equal(g.street.filter(id=>!/^back-/.test(id)).length,31+61+52,'+52 city blocks cut round the back alleys (20 Nov 2026)');
 });
 test('the security vestibule is two doors six metres apart, both on the District side of the seam',()=>{
  const outer=L.solids.find(s=>s.id==='district-door'),inner=L.solids.find(s=>s.id==='district-inner-door');

@@ -24,12 +24,16 @@
    walkable ground for them is listed with `adult:true` (only an adult made character ever uses it; check(p, prefer, m, {adult:true}) skips the adult rules). Never relaxed for
    anyone: Reverie, Lace and the cat, the Milked studios and staff rooms, the Sleeping Pod room, the Corporate District, the Temple. The inside of Milked is its own scene
    (area `milked`: its reception only). NULL's floor keeps clear of its furniture (ncz-nightclub.js solids); the District's rooms are open floor with their furniture unmapped.
+   BACK ALLEYS, BAYS AND YARDS (the owner, 20 Nov 2026; ncz-backalleys.js): the narrow alleys behind the housing in The Avenue, Old Town and Far South, their loading bays and
+   yards are ordinary walkable ground for everyone placed or routed here (spots, routes, waits, escorts); their furniture (dumpsters, crates, docks) and the ground under each
+   fire escape are obstacles. The street crowd never goes in (it keeps to its pavement lanes, ncz-nightlife.js).
    check(p, prefer, m, opts {adult, made, passing}) -> {ok, area, kind, why}; leg(a, b, opts) -> problems; nearest(p, area, limit, opts) -> a spot she may stand on; areaOf(p); placeOf(...). */
 (function(root){
  'use strict';
  const node=typeof module!=='undefined'&&module.exports;
  const NC=()=>{try{return node?require('./ncz-nightclub.js'):root.VoidNightclub||null;}catch{return null;}};
  const XW=()=>{try{return node?require('./crosswalks.js'):root.VoidCrosswalks||null;}catch{return null;}};
+ const BA=()=>{try{return node?require('./ncz-backalleys.js'):root.VoidBackAlleys||null;}catch{return null;}};
  const QT=()=>node?require('./ncz-quarters.js'):root.VoidQuarters,MK=()=>node?require('./milked.js'):root.VoidMilked,PL=()=>{try{return node?require('./places.js'):root.VoidPlaces;}catch{return null;}};
  // The District's plan (local metres: x across, z inward from the street door at 20) -> world metres (neochinatown.js toWorld: a half turn about its door).
  const DOOR={x:126.9,z:-61.9},W=([x0,x1,z0,z1])=>[DOOR.x-x1,DOOR.x-x0,DOOR.z+20-z1,DOOR.z+20-z0],WP=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
@@ -49,13 +53,13 @@
   const lane=(M&&M.LANE)||[71,101,-174,-168.5],alley=(M&&M.ALLEY)||[71,98.5,-193.5,-190],foot=(M&&M.FOOTPRINT)||[78,98,-190,-174],fd=(M&&M.DOOR)||{x:81.75,z:-174,half:1},rd=(M&&M.REAR)||{x:94.75,z:-190,half:.7};
   const pave=.18;
   const A=[
-   {id:'avenue',name:'The Avenue',scene:'street',quarter:'avenue',view:R([2,152,-27,-2]),
+   {id:'avenue',name:'The Avenue',scene:'street',quarter:'avenue',view:R([2,152,-42,15]),
     floors:[R([2,152,-20,-5],{name:'The Avenue'}),R([51,71,-26,-20],{name:'North Gate'})],
     walk:[R([12.5,141.5,-7.6,-5.8],{name:'north pavement',y:pave}),R([12.5,49.4,-19.2,-17.4],{name:'south pavement (west)',y:pave}),R([72.6,141.5,-19.2,-17.4],{name:'south pavement (east)',y:pave}),
      R([49.4,54.3,-19.8,-17.4],{name:'by the North Gate’s west walkers’ door',y:0}),R([67.7,72.6,-19.8,-17.4],{name:'by the North Gate’s east walkers’ door',y:0})],
     roads:[R([2,152,-17,-8]),R([54.3,67.7,-20,-17])],no:[],
     labels:[{name:'The Avenue (road)',x:30,z:-12.5}]},
-   {id:'oldtown',name:'Old Town',scene:'street',quarter:'oldtown',view:R([10,140,-127,-20]),
+   {id:'oldtown',name:'Old Town',scene:'street',quarter:'oldtown',view:R([2,140,-127,-20]),
     floors:[R([51,71,-124,-26],{name:'Main Street'}),R([71,136,-61.6,-55.5],{name:'the District alley'}),R([13,51,-121,-116],{name:'access road'}),R([37.5,44,-116,-113],{name:'to Port Customs'})],
     walk:[R([51.4,53.6,-117.3,-26.4],{name:'Main Street, west pavement',y:pave}),R([51.4,53.6,-123.6,-119.7],{name:'Main Street, west pavement (south end)',y:pave}),R([68.4,70.6,-123.6,-26.4],{name:'Main Street, east pavement',y:pave}),
      R([70.6,135.6,-61.2,-55.9],{name:'the District alley',y:0}),R([13.4,40.4,-117.3,-116.3],{name:'access road, north pavement',y:pave}),R([45.5,51.4,-117.3,-116.3],{name:'access road, north pavement (east)',y:pave}),
@@ -66,7 +70,7 @@
      R([78.4,99.4,-116.4,-95.4],{why:RULE.terrace,rule:true,adult:true,name:'smoking terrace'})],
     adult:[R([18.6,45.6,-67.9,-49.1],{name:'NULL (inside: the club floor)',y:0}),R([45.6,50.4,-59.5,-57.5],{name:'NULL’s entry',y:0}),R([78.8,99,-116,-95.8],{name:'the smoking terrace',y:0})],
     labels:[{name:'Main Street',x:61,z:-90},{name:'the District alley',x:100,z:-58.5},{name:'access road',x:28,z:-118.5}]},
-   {id:'far-south',name:'Far South',scene:'street',quarter:'far-south',view:R([45,110,-227,-121]),
+   {id:'far-south',name:'Far South',scene:'street',quarter:'far-south',view:R([24,115,-227,-121]),
     floors:[R([51,71,-218,-130],{name:'Main Street (Far South)'})],
     walk:[R([51.4,53.6,-217.6,-130.4],{name:'Main Street, west pavement',y:pave}),R([68.4,70.6,-217.6,-130.4],{name:'Main Street, east pavement',y:pave}),R([57,65,-217.8,-215],{name:'by the Far South Gate’s walkers’ door',y:0})],
     roads:[R([54,68,-215,-130])],
@@ -103,6 +107,12 @@
    a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):[];
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
    for(const w of a.more||[])a.walk.push({...w});delete a.more;   // Milked's lanes (20 Nov 2026): after the read heights (GEN y), as the adult ground
+   // The back alleys, bays and yards (ncz-backalleys.js, 20 Nov 2026): their ground (and a step onto the pavement at each mouth), floors, furniture and fire escapes. A reading of
+   // the street from before they were cut (GEN) may hold bits of the shopfront row or wall that stood where an alley now opens: those are dropped.
+   {const X=BA();if(X&&a.scene==='street'&&X.QUARTERS.includes(a.quarter)){const P=X.list(a.quarter),hit=o=>P.some(p=>p.rects.some(r=>o[0]<r[1]+.15&&o[1]>r[0]-.15&&o[2]<r[3]+.15&&o[3]>r[2]-.15));a.legacy=a.obstacles.filter(hit);a.obstacles=a.obstacles.filter(o=>!hit(o));   // legacy: kept for apartments.js, so every street door keeps the place (and id) it had
+    for(const w of X.walk(a.quarter))a.walk.push(R([w.x0,w.x1,w.z0,w.z1],{name:w.name,y:w.y,back:w.piece}));for(const p of P)for(const r of p.rects)a.floors.push(R(r,{name:p.name}));
+    a.obstacles.push(...X.obstacles(a.quarter).map(o=>o.slice()));a.escapes=X.escapesIn(a.quarter).map(e=>({id:e.id,door:e.door,x:e.x,z:e.z,u:e.u.slice(),t:e.t.slice(),foot:e.foot.slice()}));
+    for(const p of P)a.labels.push({name:p.name,x:p.at[0],z:p.at[1],back:true});}}
     for(const w of a.adult||[])a.walk.push({...w,adult:true});delete a.adult;   // ground only an adult made character uses (always inside an adult rule above)
    if(a.id==='oldtown'){const N=NC();try{for(const s of (N&&N.solids?N.solids():[]))if(!/^club-(north|south|west|front|entry|shutter)/.test(s.id||'')){const [x,,z]=s.position,[w,,d]=s.size;if(x>18&&x<50&&z>-68.5&&z<-48.5)a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,'NULL’s furniture']);}}catch{}}
    if(a.id==='far-south'){const M=MK();try{for(const o of (M&&M.solids?M.solids():[]))if(!/door|shutter/.test(o.id||'')){const [x,,z]=o.position,[w,,d]=o.size;if(x>71&&x<101&&((z>lane[2]-.2&&z<lane[3])||(z>alley[2]&&z<alley[3]+.2)))a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,/clad|wall/.test(o.id)?'Milked’s wall':'Milked’s '+String(o.id).replace(/^milked-(alley-|front-)?/,'')]);}}catch{}}   // its lanes' walls, planter, dumpster and crates (milked.js solids)
@@ -172,6 +182,7 @@
    ['district','district-entry','the entry, inside the inner door',...WP(0,28.5)],['district','district-hall','the hallway',...WP(0,40)],['district','district-hall-back','the hallway by the pod room',...WP(0,64)],
    ['district','district-store','the store, in front of the counter',...WP(10,45)],['district','district-vending','the vending alcove',...WP(-5,49.5)]];
   for(const [area,id,name,x,z] of L)add(id,name,area,x,z);
+  {const X=BA();for(const b of (X?X.places():[]))add(b.id,b.name,b.area,b.x,b.z);}   // the back alleys, bays and yards (ncz-backalleys.js): their own ids and names
   return out;}
  /* For the admin inventory (the server's copy of these rules): every area's rectangles, obstacles and posts, as plain numbers. */
  function inventory(){const rr=r=>[r.x0,r.x1,r.z0,r.z1];return {clear:CLEAR,step:STEP,out:defs().out.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule})),areas:list().map(a=>({id:a.id,name:a.name,scene:a.scene,quarter:a.quarter,

@@ -32,6 +32,9 @@
     outskirts:[36,92,-260,-224],outskirtsWest:[20,36,-250,-240],outskirtsEast:[92,108,-248,-240],
     // Milked (the owner's brief, 2026-11-16): a quiet dead-end side street off Main Street's east side and the service alley behind the building (milked.js).
     milkedLane:MK.LANE,milkedAlley:MK.ALLEY};
+  // The back alleys, bays and yards behind the housing (ncz-backalleys.js, the owner 20 Nov 2026): open ground like the streets (keys 'back-<piece>-<i>'), so the city blocks and their
+  // plot buildings are carved round them (the plots' back facades face them). Their own ground and dressing are drawn by ncz-backalleys.js build().
+  const BA=typeof module!=='undefined'?require('./ncz-backalleys.js'):root.VoidBackAlleys;if(BA)Object.assign(streets,BA.streetRects());
   // Future districts: placeholders until the owner supplies their designs. Each streams its own detail as you approach.
   const districts=[
     {id:'corporate',name:'Corporate District',lines:['CORPORATE DISTRICT','FUNCTION GATE'],rect:streets.corporate,center:[-90,-12.5],taxi:[-90,-12.5],heading:Math.PI/2,placeholder:false,built:true,scene:'corporate',retired:true},
@@ -137,7 +140,7 @@
     const placed=solids.map(s=>{const [x,z]=toWorld(s.position[0],s.position[2]);return {...s,position:[x,s.position[1],z],size:s.size.slice()};});
     const items=interactions.map(i=>{const [x,z]=toWorld(i.position[0],i.position[2]);return {...i,position:[x,i.position[1],z]};});
     return {id:'neochinatown',name:'NEOCHINATOWN / TESSALY',kind:'city',district:true,bounds:[260,270],spawn:[31,1.7,-96],yaw:2.44,color:'#3a2f4a',music:'earth',ship:'starter',
-    solids:[...placed,...(club?club.solids():[]),...MK.solids(),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
+    solids:[...placed,...(club?club.solids():[]),...MK.solids(),...(BA?BA.solids():[]),...cityBlocks.map(s=>({...s,position:s.position.slice(),size:s.size.slice()})),{id:'ship',shipHull:true,position:[22,2,-96],size:[3.6,4,10.5]}],
     interactions:[{id:'board',label:'BOARD YOUR SHIP',position:[27,1.7,-98],action:'board',range:3.5,when:{notFlags:{shipAccess:'none'}}},{id:'terminal',label:'LANDING TERMINAL',position:[34.5,1.7,-103],action:'terminal',range:3},
      // The club's bar (ncz-nightclub.js), when the club is there.
      ...(club?[{id:'club-bar',label:'ORDER A DRINK',position:[club.BUILT.bar.x,1.7,club.BUILT.bar.z],action:'club-bar',range:2.4}]:[]),...MK.interactions('street'),...items],signs:[]};}
@@ -245,7 +248,7 @@
     const windowMats=[['office',[28,34]],['apartment',[40,52]],['glass',[30,36]]].map(([n,tile])=>{const m=new B.StandardMaterial('ncz-facade-'+n,scene);m.diffuseTexture=acg('facade-'+n+'-color');m.emissiveTexture=acg('facade-'+n+'-glow');m.diffuseColor=new B.Color3(.3,.3,.36);m.specularColor=new B.Color3(.08,.08,.1);m.metadata={tile};owned.push(m);return m;});
     function tower(x,z,w,d,h,k){const m=windowMats[k%3],[tw,th]=m.metadata.tile,side=a=>new B.Vector4(0,0,a/tw,h/th),cap=new B.Vector4(0,0,.01,.01);const b=add(B.MeshBuilder.CreateBox('tower',{width:w,height:h,depth:d,faceUV:[side(w),side(w),side(d),side(d),cap,cap],wrap:true},scene),m,[x,h/2,z]);const roofY=h+.5;box('tower-crown',[w*.6,1.2,d*.6],[x,roofY,z],frame);if(rand()<.7){cyl('tower-mast',.15,6+rand()*8,[x,roofY+4,z],pipe);add(B.MeshBuilder.CreateSphere('tower-beacon',{diameter:.7,segments:6},scene),red,[x,roofY+9,z]);}if(rand()<.6)box('tower-neon-strip',[.25,h*.7,.25],[x+(w/2+.13)*(x<0?1:-1),h*.45,z-d/2+.6],[cyan,magenta,violet][k%3]);return b;}
     const gravel=mat('gravel','#ffffff',{rough:.95,metal:0});gravel.albedoTexture=acg('road-cracked-color');gravel.albedoColor=new B.Color3(.55,.42,.3);   // The Outskirts: packed gravel, no paved road
-    for(const [name,r] of Object.entries(S))if(name!=='alley')ground('ncz-'+name,r,/^outskirts/.test(name)?gravel:asphalt,0,4);
+    for(const [name,r] of Object.entries(S))if(name!=='alley'&&!/^back-/.test(name))ground('ncz-'+name,r,/^outskirts/.test(name)?gravel:asphalt,0,4);
     // Street edges, outward normal pointing into the buildings, with gaps where another street joins.
     const edges=[
      {street:'avenue',a:[2,-5],b:[152,-5],n:[0,1],gaps:[]},{street:'avenue',a:[2,-20],b:[152,-20],n:[0,-1],gaps:[[51,71]]},
@@ -311,11 +314,13 @@
       if(e.street==='pad')continue;
       // Ground-floor shopfronts: plain dark grey, lightly textured, for now (the owner, 2026-10-26). rand() still runs so the signs stay put.
       rand();const run=seg-1.5,face=new B.Vector4(0,0,run/3,1),edge=new B.Vector4(0,0,.05,1),up=upgradedAt(wall[0]+e.n[0]*.5,wall[1]+e.n[1]*.5);discard=up;
-      add(B.MeshBuilder.CreateBox('storefront',{width:e.n[0]?.1:run,height:3,depth:e.n[0]?run:.1,faceUV:e.n[0]?[edge,edge,face,face,edge,edge]:[face,face,edge,edge,edge,edge],wrap:true},scene),shopfront,[wall[0],1.6,wall[1]]);
-      box('awning',e.n[0]?[1.2,.12,seg-1.2]:[seg-1.2,.12,1.2],[p[0]+into[0]*.6,3.4,p[1]+into[1]*.6],frame);discard=false;
-      if(wide&&rand()<.55&&!(club&&up)){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.12,z:p[1]+e.n[1]*.12,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
-      if(wide&&rand()<.35&&!(discard=up)){const bw=5.5+rand()*2,bp=[p[0]+into[0]*.3,10+rand()*2.5,p[1]+into[1]*.3];streetAd('wall',bw,bp,ry,id=>billboard(bw,bp,ry,id));}
-      discard=false;if(wide&&rand()<.4&&!(club&&up)){const k=[p[0]+into[0]*(sw-.4),p[1]+into[1]*(sw-.4)];streetAd('kiosk',1.6,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],ry,id=>{box('kiosk-frame',e.n[0]?[.3,2.9,1.9]:[1.9,2.9,.3],[k[0],1.45,k[1]],frame);plane('kiosk-ad',1.6,2.4,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],adMat(id),ry);});}}
+      // A back alley's mouth (ncz-backalleys.js) cuts the row: the panel and the awning are drawn either side of it; no sign, wall advert or kiosk in front of it (the random numbers run as before).
+      const mo=!!BA&&!!BA.mouthAt(p[0],p[1],1.4,1),A0=e.n[0]?p[1]:p[0],cut=(h,m)=>BA?BA.cutRun(e.n[0]?'x':'z',e.n[0]?e.a[0]:e.a[1],A0-h/2,A0+h/2,m):[[A0-h/2,A0+h/2]];
+      for(const [a0,a1] of cut(run,.05)){const r=a1-a0,c=(a0+a1)/2,fc=r===run?face:new B.Vector4(0,0,r/3,1);add(B.MeshBuilder.CreateBox('storefront',{width:e.n[0]?.1:r,height:3,depth:e.n[0]?r:.1,faceUV:e.n[0]?[edge,edge,fc,fc,edge,edge]:[fc,fc,edge,edge,edge,edge],wrap:true},scene),shopfront,e.n[0]?[wall[0],1.6,c]:[c,1.6,wall[1]]);}
+      for(const [a0,a1] of cut(seg-1.2,.3)){const c=(a0+a1)/2;box('awning',e.n[0]?[1.2,.12,a1-a0]:[a1-a0,.12,1.2],e.n[0]?[p[0]+into[0]*.6,3.4,c]:[c,3.4,p[1]+into[1]*.6],frame);}discard=false;
+      if(wide&&rand()<.55&&!(club&&up)&&!mo){const [lines,colors]=shopSigns[signIndex++%shopSigns.length];neon('shop-sign-'+signIndex,lines,colors,2.4,4.4,[p[0]+into[0]*.25,5.2,p[1]+into[1]*.25],ry);signSpots.push({c:colors[0],f:{x:p[0]+e.n[0]*.12,z:p[1]+e.n[1]*.12,tx:e.n[0]?0:1,tz:e.n[0]?1:0,nx:-e.n[0],nz:-e.n[1]}});}
+      if(wide&&rand()<.35&&!(discard=up||mo)){const bw=5.5+rand()*2,bp=[p[0]+into[0]*.3,10+rand()*2.5,p[1]+into[1]*.3];streetAd('wall',bw,bp,ry,id=>billboard(bw,bp,ry,id));}
+      discard=false;if(wide&&rand()<.4&&!(club&&up)&&!mo){const k=[p[0]+into[0]*(sw-.4),p[1]+into[1]*(sw-.4)];streetAd('kiosk',1.6,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],ry,id=>{box('kiosk-frame',e.n[0]?[.3,2.9,1.9]:[1.9,2.9,.3],[k[0],1.45,k[1]],frame);plane('kiosk-ad',1.6,2.4,[k[0]+into[0]*.17,1.55,k[1]+into[1]*.17],adMat(id),ry);});}}
     }
     adScreens?.extras();
     // The centre dashes stop at the crosswalks and their stop lines (crosswalks.js, 20 Nov 2026).
@@ -365,9 +370,10 @@
     function facadeDetail(f,h,first=5.6){
      const cols=Math.floor((f.len-1.2)/2.6),floors=Math.floor((h-first-.6)/3.2)+1;if(cols<1||floors<1)return;const pad=(f.len-cols*2.6)/2,ry=faceRot(f.nx,f.nz),along=f.tx!==0;
      for(let fl=0;fl<floors;fl++)for(let c=0;c<cols;c++){const s=pad+1.3+c*2.6,y=first+fl*3.2;if(rand()<.1)continue;
-      const lit=rand()<.34;quad(lit?windowLit[Math.floor(rand()*windowLit.length)]:windowDark,onFace(f,s,y),1.1,1.4,ry);
-      if(rand()<.14)bbox('wall-ac',along?[.85,.6,.5]:[.5,.6,.85],onFace(f,s,y-1.1,.28),pipe);
-      else if(rand()<.05&&fl>0){bbox('balcony',along?[2.2,.12,1]:[1,.12,2.2],onFace(f,s,y-.85,.5),frame);bbox('balcony-rail',along?[2.2,.9,.05]:[.05,.9,2.2],onFace(f,s,y-.4,.98),frame);}}
+      const fe=!!BA&&(()=>{const q=onFace(f,s,y);return BA.ESCAPES.some(e=>Math.abs(q[0]-e.x)<2.2&&Math.abs(q[2]-e.z)<2.2&&y<BA.ESC.H*2+2.6);})();   // a fire escape's landings and windows stand here (ncz-backalleys.js): no window, AC unit or balcony of the plot's own
+      const lit=rand()<.34,wm=lit?windowLit[Math.floor(rand()*windowLit.length)]:windowDark;if(!fe)quad(wm,onFace(f,s,y),1.1,1.4,ry);
+      if(rand()<.14){if(!fe)bbox('wall-ac',along?[.85,.6,.5]:[.5,.6,.85],onFace(f,s,y-1.1,.28),pipe);}
+      else if(rand()<.05&&fl>0&&!fe){bbox('balcony',along?[2.2,.12,1]:[1,.12,2.2],onFace(f,s,y-.85,.5),frame);bbox('balcony-rail',along?[2.2,.9,.05]:[.05,.9,2.2],onFace(f,s,y-.4,.98),frame);}}
      if(f.len>6){bbox('downpipe',[.14,h,.14],onFace(f,f.len*(.1+rand()*.8),h/2,.12),rust);if(rand()<.6)bbox('conduit',along?[f.len*.6,.08,.08]:[.08,.08,f.len*.6],onFace(f,f.len/2,first-1.6,.1),frame);}
     }
     function roofClutter(x0,x1,z0,z1,h){const w=x1-x0,d=z1-z0,at=()=>[x0+w*(.2+rand()*.6),z0+d*(.2+rand()*.6)];
@@ -383,7 +389,8 @@
     // Ground under the whole city out to the horizon, just below the streets. Without it, every gap between buildings, the
     // strip at the foot of each wall and the land past the outer ring showed straight through to the sky (the owner, 2026-10-27).
     {const c=[(cityBox[0]+cityBox[1])/2,(cityBox[2]+cityBox[3])/2],ground0=mat('city-ground','#1c1d22',{rough:.92,metal:.05});ground0.albedoTexture=acg('road-cracked-color');
-     ground('city-ground',[c[0]-1400,c[0]+1400,c[1]-1400,c[1]+1400],ground0,-.03,12);}
+     // (20 Nov 2026) cut open where the back alleys' stairwells go down to the tunnels (ncz-backalleys.js UNDERGROUND_ENTRANCES): the alleys' own floor covers every seam.
+     for(const r of (BA&&BA.minus?BA.minus([c[0]-1400,c[0]+1400,c[1]-1400,c[1]+1400],BA.UNDERGROUND_ENTRANCES.map(u=>u.inner)):[[c[0]-1400,c[0]+1400,c[1]-1400,c[1]+1400]]))ground('city-ground',r,ground0,-.03,12);}
     // Every city block between the streets is built up in plots of up to 12 m, set back 0.35 m from the street so the
     // storefronts stay in front. Plots on the avenue and the main street are taller; nothing you can't walk into looks open.
     const openNear=(x0,x1,z0,z1)=>[...Object.values(S),...Object.values(footprints)].some(([a,b,c,d])=>x0<b&&x1>a&&z0<d&&z1>c);
@@ -473,9 +480,13 @@
     const A=S.alley,alleySteam=[];
     {const alleyRoad=mat('alley-asphalt','#b4b4bc',{rough:.22,metal:.35});alleyRoad.albedoTexture=acg('road-cracked-color');alleyRoad.bumpTexture=acg('road-cracked-normal');ground('alley-floor',A,alleyRoad,.012,4);}
     // North side: a row of old brick buildings; south side: brick up to the District's front.
-    for(let x=A[0];x<A[1];){const w=10+rand()*12,x1=Math.min(A[1],x+w),h=11+rand()*9;brickWall('alley-building',x,A[3]+.2,x1,A[3]+.2,h);brickWall('alley-building-side',x,A[3]+.2,x,A[3]+8,h);box('alley-roof',[x1-x,.4,8],[(x+x1)/2,h,A[3]+4.2],concrete);x=x1;}
+    // (20 Nov 2026: Old Town's back alley runs behind these buildings from z -50, and joins the District alley between x 109.2 and 114 (ncz-backalleys.js): they are 5.2 m deep
+    // there and stop either side of the join; the random numbers run as before.)
+    const joinN=BA?BA.MOUTHS&&BA.get('oldtown-north-alley')?.rects[1]:null,deep=BA?5.2:8,gapsN=joinN?[[joinN[0],joinN[1]]]:[],runs=(a,b,G)=>{let r=[[a,b]];for(const [g0,g1] of G)r=r.flatMap(([u,v])=>g1<=u||g0>=v?[[u,v]]:[[u,Math.min(v,g0)],[Math.max(u,g1),v]]).filter(([u,v])=>v-u>.05);return r;};
+    for(let x=A[0];x<A[1];){const w=10+rand()*12,x1=Math.min(A[1],x+w),h=11+rand()*9;for(const [a,b] of runs(x,x1,gapsN)){brickWall('alley-building',a,A[3]+.2,b,A[3]+.2,h);box('alley-roof',[b-a,.4,deep],[(a+b)/2,h,A[3]+.2+deep/2],concrete);}if(!gapsN.some(([g0,g1])=>x>g0-.01&&x<g1+.01))brickWall('alley-building-side',x,A[3]+.2,x,A[3]+.2+deep,h);
+     for(const [g0,g1] of gapsN)if(g0>x&&g0<x1){brickWall('alley-building-side',g0,A[3]+.2,g0,A[3]+.2+deep,h);brickWall('alley-building-side',g1,A[3]+.2,g1,A[3]+.2+deep,h);}x=x1;}
     const doorX=[DOOR.x-3,DOOR.x+3];
-    brickWall('alley-south',A[0],A[2]-.2,footprints.district[0],A[2]-.2,13);
+    {const lane=BA?BA.get('oldtown-terrace-lane')?.rects[0]:null;if(lane){brickWall('alley-south',A[0],A[2]-.2,lane[0],A[2]-.2,13);brickWall('alley-south',lane[1],A[2]-.2,footprints.district[0],A[2]-.2,13);}else brickWall('alley-south',A[0],A[2]-.2,footprints.district[0],A[2]-.2,13);}   // the lane to the back alleys opens off its south side (ncz-backalleys.js)
     brickWall('district-facade',footprints.district[0],A[2]-.2,doorX[0],A[2]-.2,13);brickWall('district-facade',doorX[1],A[2]-.2,footprints.district[1],A[2]-.2,13);brickWall('district-facade-over-door',doorX[0],A[2]-.2,doorX[1],A[2]-.2,9.4,3.6);
     brickWall('alley-end',A[1]+.2,A[2],A[1]+.2,A[3],14);
     box('district-roofline',[footprints.district[1]-footprints.district[0],.5,58.8],[(footprints.district[0]+footprints.district[1])/2,13,-91],concrete);
@@ -496,7 +507,7 @@
      for(const [x,z,sx] of [[84.2,-56.4,1],[84.6,-57.1,.8],[87.9,-56.2,.9],[108.6,-56.2,1.1],[116.4,-61.1,.9],[101.2,-61.1,1]]){const b=add(B.MeshBuilder.CreateSphere('alley-bag',{diameter:.7,segments:8},scene),bag,[x,.24*sx,z],true);b.scaling.set(sx,.7*sx,sx*.9);}
      for(const [x,z] of [[107.4,-56.1],[115.2,-56.05],[115.9,-56.2]])cyl('alley-drum',.58,.9,[x,.45,z],drum,true,12);
      for(let k=0;k<4;k++)box('alley-pallet',[1.2,.13,1],[119.2,.07+k*.14,-56.2],pallet);box('alley-seat',[1.7,.46,.7],[93.6,.23,-61.15],rust);box('alley-seat',[.8,.4,.6],[95.1,.2,-61.2],rust);
-     box('alley-tube',[1.9,.06,.06],[113,3.15,A[3]-.32],magenta);box('alley-tube',[1.5,.06,.06],[92.4,3.4,A[3]-.32],cyan);box('alley-tube-back',[2.1,.2,.05],[113,3.15,A[3]-.27],frame);box('alley-tube-back',[1.7,.2,.05],[92.4,3.4,A[3]-.27],frame);
+     box('alley-tube',[1.9,.06,.06],[BA?121.5:113,3.15,A[3]-.32],magenta);box('alley-tube',[1.5,.06,.06],[92.4,3.4,A[3]-.32],cyan);box('alley-tube-back',[2.1,.2,.05],[BA?121.5:113,3.15,A[3]-.27],frame);box('alley-tube-back',[1.7,.2,.05],[92.4,3.4,A[3]-.27],frame);
      if(!low&&B.ParticleSystem&&(!QK||QK==='oldtown')){const puff=texture('alley-steam',64,64,(g,W,H)=>{g.clearRect(0,0,W,H);const r=g.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);r.addColorStop(0,'rgba(210,220,230,.5)');r.addColorStop(1,'rgba(210,220,230,0)');g.fillStyle=r;g.fillRect(0,0,W,H);});
       for(const x of [99,121]){const ps=new B.ParticleSystem('alley-steam',quality==='high'||quality==='ultra'?70:40,scene);ps.particleTexture=puff;ps.emitter=v(x,.05,(A[2]+A[3])/2);ps.minEmitBox=new B.Vector3(-.4,0,-.2);ps.maxEmitBox=new B.Vector3(.4,0,.2);
        ps.direction1=new B.Vector3(-.15,1,-.1);ps.direction2=new B.Vector3(.2,1.4,.1);ps.minEmitPower=.35;ps.maxEmitPower=.7;ps.minLifeTime=2.2;ps.maxLifeTime=4;ps.minSize=.5;ps.maxSize=1.5;ps.emitRate=quality==='high'||quality==='ultra'?14:9;
@@ -1388,6 +1399,8 @@
     const streetGlow=area==='street'&&wantStreet&&root.VoidStreetGlow?root.VoidStreetGlow.start({B,scene,parent,quality,quarter:QK,lit:litSpots}):null;
     // Crosswalks (crosswalks.js, the owner 20 Nov 2026): one merged mesh of worn zebra paint and stop lines per quarter, plus signal posts and their icons at junctions and gates.
     const crosswalks=QK&&wantStreet&&root.VoidCrosswalks?root.VoidCrosswalks.build({B,scene,parent,quality,quarter:QK,road:mats.asphalt}):null;
+    // The back alleys, bays, yards and fire escapes behind the housing (ncz-backalleys.js, the owner 20 Nov 2026): one merged mesh per material for the quarter.
+    const backAlleys=QK&&wantStreet&&BA&&BA.build?BA.build({B,scene,parent,quality,quarter:QK,base}):null;
     function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&(zone({x:cam.x,z:cam.z}).area==='district'||MK.inside(cam));applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
      // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
@@ -1404,7 +1417,7 @@
        middle of the walk from the District's door: the club's build, then a few seconds later every shader in view compiled again. Nothing drawn changes. */
     let lightCheck=null;   // keepLights' per-frame check once the street is prepared
     async function prepare(){if(!wantStreet)return;try{if(clubCtl)await clubCtl.prepare();if(disposed)return;nightlife?.prewarm?.();alleyLife?.prewarm?.();lightCheck=root.VoidAssets?.keepLights?.(scene)||null;if(clubCtl)await clubCtl.warm(()=>scene.whenReadyAsync());if(!disposed)await nightlife?.warm?.(()=>scene.whenReadyAsync());}catch(e){console.warn('[NeoChinatown] street not prepared early',e);}}
-    return {tick,prepare,city,nightlife,alleyLife,streetPair,streetGlow,crosswalks,sight,doors,etiquette,gates,quarter:QK,adScreens,dispose(){disposed=true;pointers?.dispose();adScreens?.dispose();sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();streetPair?.dispose();streetGlow?.dispose();crosswalks?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
+    return {tick,prepare,city,nightlife,alleyLife,streetPair,streetGlow,crosswalks,backAlleys,sight,doors,etiquette,gates,quarter:QK,adScreens,dispose(){disposed=true;pointers?.dispose();adScreens?.dispose();sight?.dispose();gates?.dispose();clubCtl?.dispose();nightlife?.dispose();alleyLife?.dispose();streetPair?.dispose();streetGlow?.dispose();crosswalks?.dispose();backAlleys?.dispose();for(const ps of alleySteam)ps.dispose();for(const live of city.live.values())live.dispose();city.live.clear();districtRoot.dispose();for(const l of lights)l.dispose();for(const t of textures)t.dispose();for(const m of owned)m.dispose(false,true);scene.clearColor=previous.clear;scene.fogMode=previous.fogMode;scene.fogDensity=previous.fogDensity;scene.fogColor=previous.fogColor;if(sun&&lightState.sun!=null)sun.intensity=lightState.sun;if(ambient&&lightState.ambient!=null)ambient.intensity=lightState.ambient;weather?.rain?.dispose();ip.exposure=previous.exposure;ip.contrast=previous.contrast;if(previous.env!=null)scene.environmentIntensity=previous.env;if(ambient){if(lightState.diffuse)ambient.diffuse=lightState.diffuse;if(lightState.ground&&ambient.groundColor)ambient.groundColor=lightState.ground;}}};
   }
   // Licensed models (docs/VOID_RUNNER_ASSET_LICENSES.md) dressing the District; loaded before build().
   // The security vestibule's pieces (made in Blender by tools/assets/kit/build_kit.py --interior; docs/development/DISTRICT_INTERIOR.md). 'entry:' models belong to BOTH areas, like the vestibule itself.

@@ -22,6 +22,7 @@
  const node=typeof module!=='undefined'&&module.exports;
  const QT=()=>node?require('./ncz-quarters.js'):root.VoidQuarters;
  const NA=()=>{try{return node?require('./npc-areas.js'):root.VoidNPCAreas;}catch{return null;}};
+ const BAL=()=>{try{return node?require('./ncz-backalleys.js'):root.VoidBackAlleys;}catch{return null;}};
  const STYLES=[
   {id:'rundown',name:'Rundown apartment',hall:'Rundown hallway',note:'Grime, peeling panels, a flickering tube, a mattress on pallets, clutter, cheap neon.'},
   {id:'normal',name:'Normal apartment',hall:'Ordinary hallway',note:'A tidy, compact flat: holo-frame, plants, standard fixtures.'},
@@ -80,12 +81,13 @@
  const faceInto=n=>n[1]>0?0:n[1]<0?Math.PI:n[0]>0?Math.PI/2:-Math.PI/2;   // a plane's front is -z: this turns it to face back into the street
  const r2=v=>Math.round(v*100)/100;
  // Why a candidate door spot is refused ('' = it is free). p: the point on the building line; e: its edge.
- function blockedWhy(e,p){
+ function blockedWhy(e,p,noMouth){
   const c=e.n[0]?p[1]:p[0];if(e.gaps.some(([g0,g1])=>c>g0-GAP_MARGIN&&c<g1+GAP_MARGIN))return 'a street joins here';
   for(const k of KEEP_OUT){if(inRect(k.rect,p[0],p[1],1.6))return k.why;for(const d of [3,6,9])if(inRect(k.rect,p[0]+e.n[0]*d,p[1]+e.n[1]*d))return k.why+' (behind it)';}
-  const Q=QT();for(const g of (Q&&Q.GATES)||[])if(inRect(g.rect,p[0],p[1],2.2))return g.name;
+  if(!noMouth){const X=BAL();if(X&&X.mouthAt&&X.mouthAt(p[0],p[1],.7,1))return 'a back alley opens here';}   // the back alleys' mouths (ncz-backalleys.js, 20 Nov 2026)
+ const Q=QT();for(const g of (Q&&Q.GATES)||[])if(inRect(g.rect,p[0],p[1],2.2))return g.name;
   for(const cp of (Q&&Q.CALL_POINTS)||[])if(cp.post&&Math.hypot(cp.post[0]-p[0],cp.post[1]-p[1])<2.6)return 'a taxi post';
-  const A=NA();if(A){for(const id of A.IDS||[]){const ar=A.get(id);for(const o of (ar&&ar.obstacles)||[]){if(o[4]==='a wall')continue;
+  const A=NA();if(A){for(const id of A.IDS||[]){const ar=A.get(id);for(const o of [...((ar&&ar.obstacles)||[]),...((ar&&ar.legacy)||[])]){if(o[4]==='a wall')continue;
    const cx=Math.max(o[0],Math.min(p[0],o[1])),cz=Math.max(o[2],Math.min(p[1],o[3])),across=e.n[0]?Math.abs(cx-p[0]):Math.abs(cz-p[1]),along=e.n[0]?Math.abs(cz-p[1]):Math.abs(cx-p[0]);
    if(across<1.3&&along<.9)return o[4];}}}
   return '';}
@@ -103,8 +105,8 @@
   out.push(...containerDoors(),...bizDoors(Q));if(Q&&CT()&&out.length)cache=out;return out;}
  function bizDoors(Q){const out=[];if(!Q)return out;const n={office:0,commercial:0};
   for(const e of EDGES){const len=Math.hypot(e.b[0]-e.a[0],e.b[1]-e.a[1]);
-   for(let s=SEG/2;s<len-1.5;s+=SEG){const t=s/len,p=[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t];if(blockedWhy(e,p))continue;const front=[r2(p[0]-e.n[0]*1.25),r2(p[1]-e.n[1]*1.25)],q=Q.quarterAt(front[0],front[1]);
-    const fam=q==='avenue'&&p[0]<60&&e.street==='avenue'?'office':(q==='oldtown'||q==='far-south')&&e.street==='main'?'commercial':null;if(!fam)continue;if((n[fam]++)%BIZ_EVERY[fam])continue;
+   for(let s=SEG/2;s<len-1.5;s+=SEG){const t=s/len,p=[e.a[0]+(e.b[0]-e.a[0])*t,e.a[1]+(e.b[1]-e.a[1])*t],why=blockedWhy(e,p,true);if(why)continue;const mouth=!!blockedWhy(e,p);const front=[r2(p[0]-e.n[0]*1.25),r2(p[1]-e.n[1]*1.25)],q=Q.quarterAt(front[0],front[1]);
+    const fam=q==='avenue'&&p[0]<60&&e.street==='avenue'?'office':(q==='oldtown'||q==='far-south')&&e.street==='main'?'commercial':null;if(!fam)continue;if((n[fam]++)%BIZ_EVERY[fam])continue;if(mouth)continue;   // a back alley's mouth still counts as a place in the row (20 Nov 2026), so every office and shop door keeps its id
     const side=sideOf(e.n),along=Math.round(Math.abs(e.n[0]?p[1]:p[0]));let num=along;if((side==='e'||side==='n')!==(num%2===1))num+=1;
     out.push({id:'biz-'+e.street+'-'+side+'-'+along,street:e.street,side,x:r2(p[0]),z:r2(p[1]),n:e.n.slice(),ry:faceInto(e.n),front,quarter:q,style:fam,number:num,family:fam,
      name:'No. '+num+', '+(STREET_NAMES[e.street]||e.street)+(fam==='office'?' (offices)':' (shop, back entrance)')});}}
@@ -266,6 +268,13 @@
   for(const t of trees)for(const m of (t&&t.missions)||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;for(const o of m.objectives||[]){const p=o.kind==='hack'&&(o.feed?o.unlock===true:o.unlock!==false)&&(rec.objectives||{})[o.id]===true?apOf(o.ap):null;if(p&&p.door)out.push({door:p.door,mission:m.id});}}
   return out;}
  /* The hack steps in progress now: [{key, mission, step, ap, hold, stay, unlock, needs}]: the access point the player may hack (live-content.js / apartment-integration.js). */
+ /* The street doors IN USE for this player (the owner, 20 Nov 2026: "doors on the streets without anything placed on them shouldn't show the option to open it when walking by"):
+    a mission that is taken and not done has an apartment or a location on it (whether its "available from" step is reached or not), a hack step aims at it (its access point),
+    or a hack opened it. Only these show their prompts (the door, its access point) and their fire escape window. -> Set of street door ids. */
+ function doorsInUse(s,trees){const out=new Set();if(!s||!s.universe||!Array.isArray(trees))return out;const recs=s.universe.missions||{};
+  for(const t of trees)for(const m of (t&&t.missions)||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;for(const a of m.apartments||[])if(a&&typeof a.door==='string')out.add(a.door);
+   for(const o of m.objectives||[]){const p=o&&o.kind==='hack'?apOf(o.ap):null;if(p&&p.door)out.add(p.door);}}
+  return out;}
  function hacksNow(s,trees){const out=[];if(!s||!s.universe||!Array.isArray(trees))return out;const recs=s.universe.missions||{};
   for(const t of trees)for(const m of (t&&t.missions)||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;const o=(m.objectives||[]).find(x=>(rec.objectives||{})[x.id]!==true);
    if(o&&o.kind==='hack'&&o.ap){const x={key:m.id+'/'+o.id,mission:m.id,step:o.id,ap:o.ap,hold:Number.isInteger(o.hold)?o.hold:HACK.def,stay:o.stay!==false,unlock:(o.feed?o.unlock===true:o.unlock!==false)};if(o.needs)x.needs=o.needs;if(o.feed)x.feed=o.feed;out.push(x);}}
@@ -280,7 +289,7 @@
  function inventory(){return {hack:{...HACK},items:itemIds(),styles:STYLE_IDS.slice(),objects:OBJECT_IDS.slice(),itemTypes:ITEM_TYPES.map(t=>t.id),limit:{...LIMIT},bounds:{x:AX.slice(),z:AZ.slice()},boundsByStyle:Object.fromEntries(STYLE_IDS.map(st=>[st,{x:geo(st).APT.x.slice(),z:geo(st).APT.z.slice()}])),containerStyles:CONTAINER_STYLES.slice(),screenStyles:SCREEN_STYLES.slice(),
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
  const api={CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
-  HACK,apOf,hackedDoors,hacksNow,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,problems,openNow,onDoor,strip,inventory,world:W,
+  HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,problems,openNow,onDoor,strip,inventory,world:W,
   reset(){cache=null;}};
  if(node){module.exports=api;return;}
  root.VoidApartments=Object.assign(root.VoidApartments||{},api);

@@ -54,6 +54,9 @@
   'far-south':{id:'far-south',name:'Far South',spawn:[61,1.7,-140],yaw:Math.PI,streets:[[51,71,-218,-130],MK.LANE,MK.ALLEY],places:[MK.FOOTPRINT],gates:['south','far-south-gate']},
   // The Outskirts (the owner, 16 Nov 2026): gravel walkways and container homes. A compact hub with two lanes that end at containers; walkers only.
   outskirts:{id:'outskirts',name:'The Outskirts',spawn:[61,1.7,-229],yaw:Math.PI,streets:[S.outskirts,S.outskirtsWest,S.outskirtsEast],gates:['far-south-gate']}};
+ // The back alleys, bays and yards behind the housing (ncz-backalleys.js, the owner 20 Nov 2026) are part of their quarter's open ground, after its streets (the mission arrow
+ // routes through them; quarterAt finds them). Only placed / routed NPCs walk them: the street crowd keeps to its pavement lanes.
+ {const BA=node?require('./ncz-backalleys.js'):root.VoidBackAlleys;if(BA)for(const p of BA.PIECES)if(QUARTERS[p.quarter])QUARTERS[p.quarter].streets.push(...p.rects.map(r=>r.slice()));}
  const IDS=Object.keys(QUARTERS),DEFAULT='port';
  const valid=q=>IDS.includes(q)?q:null;
  const inRect=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
