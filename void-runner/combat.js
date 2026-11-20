@@ -53,7 +53,7 @@ function fireMissile(consequences=campaignMissileFireConsequences){
  const spec=O&&missileState.rack?O.spec(type,VOID_BALANCE,ship):{};if(spec.damage!=null)spec.damage*=missileBalance().missileDamage/Math.max(.01,VOID_BALANCE.missileDamage*(ship.missile?.damage||1));   // a developer balance multiplier carried over
  railSide=-railSide;const origin={right:1.55*railSide,up:-.55,forward:1.2};   // the Kestrel's wing rails, left and right in turn (kestrel-model.js missile_left / missile_right)
  const missile=VoidMissiles.launch(missileState,locked?missileLock:VoidTargeting.fresh(),flightBasis(),missileBalance(),missileCooldown,{...spec,origin,dumb:!locked});
- if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missile.side=railSide;missiles.push(missile);if(missileState.rack)missileState.rack[type].loaded=missileState.missilesLoaded;
+ if(!missile){updateMissileHud();VoidAudio.event('dry');return;}missile.side=railSide;if(missile.target){const b=flightBasis(),k=(x,y,z)=>{const n=Math.hypot(x,y,z)||1;return {x:x/n,y:y/n,z:z/n};};missile.direction=k(b.f.x+b.r.x*.09*railSide-b.u.x*.07,b.f.y+b.r.y*.09*railSide-b.u.y*.07,b.f.z+b.r.z*.09*railSide-b.u.z*.07);}missiles.push(missile);   // a guided round leaves the rail outward and down, then turns onto its targetif(missileState.rack)missileState.rack[type].loaded=missileState.missilesLoaded;
  combatLog('launch',{type,guided:!!missile.target,target:missile.target?.className||null});
  // Preserve trial isolation and persist before cooldown, lock reset, audio and HUD.
  if(!devMissileTrial)consequences?.fired?.(missileState.missilesLoaded,type);
@@ -77,7 +77,7 @@ function stepMissileCombat(dt,velocity){
   if(!m.dead&&globalThis.VoidFlightSkirmish?.blocksSegment(from,m,1)){m.dead=true;m.detonated={x:m.x,y:m.y,z:m.z,hit:false};}
   if(m.dead&&m.detonated){const big=m.type==='m2';VoidCombatEffects.explode(m.detonated,big?'large':'missile');VoidAudio.event('explosion',(globalThis.VoidFlightCraft?.ship()||VoidShips.get(state)),m.detonated,flightBasis());if(!m.detonated.hit)combatLog('miss',{type:m.type||'m1',lost:!!m.lost,age:Math.round(m.age*100)/100});}
   // exhaust trail: a puff every 25 ms where the motor was (moves with the world like everything else in flight)
-  if(!m.dead){m.puff=(m.puff||0)-dt;if(m.puff<=0){m.puff=.025;missileTrail.push({x:m.x-m.direction.x*.6,y:m.y-m.direction.y*.6,z:m.z-m.direction.z*.6,age:0,life:m.type==='m2'?2.2:1.6,size:m.type==='m2'?.55:.4,heavy:m.type==='m2'});}}}
+  if(!m.dead){m.puff=(m.puff||0)-dt;if(m.puff<=0){m.puff=.025;missileTrail.push({x:m.x-m.direction.x*.6,y:m.y-m.direction.y*.6,z:m.z-m.direction.z*.6,age:0,life:m.type==='m2'?2.4:1.8,size:m.type==='m2'?1.3:.95,heavy:m.type==='m2'});}}}
  for(const p of missileTrail){p.age+=dt;p.x-=velocity.x*dt;p.y-=velocity.y*dt;p.z-=velocity.z*dt;}
  missileTrail=missileTrail.filter(p=>p.age<p.life);if(missileTrail.length>320)missileTrail.splice(0,missileTrail.length-320);
  missiles=missiles.filter(m=>!m.dead);
@@ -90,6 +90,7 @@ function drawMissiles(){for(const m of missiles){const p=flightPoint(m),q=flight
    then a solid box and LOCK (the locked tone). The selected target (Next / Previous / Nearest) is marked even outside the circle. */
 function drawMissileReticle(){
  if(!missileState.ownsMissileLauncher||!missileState.equipped)return;
+ if(!enemies.some(VoidStory.hostile))return;   // a quiet route: no seeker circle cluttering the view
  const target=missileLock.target,locked=missileLock.progress>=1,radius=Math.min(W,H)*missileBalance().missileLockRadius,x=W*.5,y=H*.44,seek='#d8c9a3',hot='#ff6a55';
  ctx.save();ctx.lineWidth=1;ctx.strokeStyle=seek;ctx.fillStyle=seek;ctx.globalAlpha=.45;ctx.setLineDash([2,10]);ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;
  for(const a of [0,1,2,3]){const t=a*Math.PI/2;ctx.beginPath();ctx.moveTo(x+Math.cos(t)*(radius-6),y+Math.sin(t)*(radius-6));ctx.lineTo(x+Math.cos(t)*(radius+4),y+Math.sin(t)*(radius+4));ctx.stroke();}
@@ -105,7 +106,7 @@ function drawMissileReticle(){
  }
  ctx.strokeStyle=seek;ctx.fillStyle=locked?hot:seek;ctx.font='10px Consolas';ctx.textAlign='center';
  const type=missileTypeName(missileState.type),label=!missileState.missilesLoaded?type+' EMPTY':missileCooldown>0?type+' RELOADING':locked?type+' · LOCK · FIRE':type+' · '+(target?'ACQUIRING':'NO LOCK · DUMB-FIRE');
- ctx.fillText(label,x,y+radius+16);ctx.restore();
+ ctx.fillText(label,x,y-radius-12);ctx.restore();   // above the circle: the objective line sits below it
 }
 
 const missileDifficulty={easy:{time:.75,radius:1.25},normal:{time:1,radius:1},hard:{time:1.2,radius:.85}};

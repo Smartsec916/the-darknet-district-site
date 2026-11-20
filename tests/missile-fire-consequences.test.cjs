@@ -43,7 +43,8 @@ function run(code,o={}){
 }
 // The missile objects now carry more (age, launch rail, type values): compare the fields the frozen oracle produced.
 const oldKeys=['x','y','z','direction','target','life','distance','damage'];
-const keep=list=>list.map(m=>Object.fromEntries(oldKeys.filter(k=>!'xyz'.includes(k)).map(k=>[k,m[k]])));const trim=r=>({...r,missiles:keep(r.missiles),trace:r.trace.map(t=>({...t,missiles:keep(t.missiles||[])}))});
+// The launch point is a wing rail and a guided round leaves it outward and down (19 Nov 2026), so position and first heading differ from the oracle.
+const keep=list=>list.map(m=>Object.fromEntries(oldKeys.filter(k=>!'xyz'.includes(k)&&k!=='direction').map(k=>[k,m[k]])));const trim=r=>({...r,missiles:keep(r.missiles),trace:r.trace.map(t=>({...t,missiles:keep(t.missiles||[])}))});
 // The launch point moved to the wing rails (left / right in turn), so positions differ from the oracle's single offset.
 const same=(a,b)=>assert.deepEqual(trim(a),trim(b));
 const failures=[

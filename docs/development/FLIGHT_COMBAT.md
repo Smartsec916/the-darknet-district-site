@@ -53,9 +53,24 @@ All synthesized with WebAudio, nothing recorded or bought. Plays through the gam
 
 Engine (a filtered-noise rumble, a turbine whine and a low tone, all following the throttle; louder and brighter on the drive / boost and in warp), lasers, enemy fire, missile ignition and motor whoosh, lock acquired, the seeking beep, the locked tone, target cycling, dry click, laser hits on a hull and on a shield, explosions, the player's own shield crackle and hull crunch, lock warning and missile-incoming beeps, boost, warp in / out. Outside flight the game's own small tones are unchanged. `VoidFlightSfx.counts` / `log` record what was played (for tests).
 
-## Admin's counter (`ship-loadout.js`)
+## Admin's stock (`ship-loadout.js` + `faction-scenes.js adminStore`)
 
-Talking to Admin in a District campaign: a mission conversation comes first as before (`live-content.js`); otherwise a pilot with a ship gets **Admin's counter · ship ordnance**: both missile types with their warhead, turning, speed, blast, the rack count and price, BUY 1 and BUY (fill the rack). Without a ship: "Admin sells ship ordnance to pilots. You do not have a ship yet." (an on-screen notice, no new voiced line). There is no M2 launcher upgrade: the launcher fires both types.
+One panel, "Admin's stock": whatever Admin sells (the base pistol from `claude/pistol-zones`, the WarFlying Scrambler once he has introduced it) plus, for a pilot with a ship, both missile types with their warhead, turning, speed, blast, the rack count and price, BUY 1 and BUY (fill the rack). `adminStore()` asks `VoidShipLoadout.adminItems()` / `adminNote()` for the missile cards.
+
+Ways in: talking to Admin when he has no mission to offer (`faction-scenes.js`), and a new **ADMIN'S COUNTER · SHIP ORDNANCE** prompt just to his left at the counter (`neochinatown.js` interaction `admin-ordnance`, shown only to a pilot: `story.flags.loadoutApp`), which always opens the stock, even while Admin is offering a mission in person (Mission 002 is offered on every talk until accepted, which otherwise hid the shop). There is no M2 launcher upgrade: the launcher fires both types.
+
+## Flight Skirmish shares everything (`flight-skirmish.js`)
+
+The owner: "If something is changed in the in-game flight model or combat also change it in the Flight Skirmish as well." The skirmish already ran the Campaign's own `launch`, `update`, `fireMissile` and `hurt` (wrapped, never copied). Now: the missile rails are always offered (it is a simulation), and every match starts with **full M1 and M2 racks** on its throwaway copy of the save (the Campaign's rounds are never used or changed). Its difficulty only changes how hard a lock is (lock time and circle size). Weapons, damage, turning, visuals and sounds come from the same files and the same Combat Balance values. `tests/flight-combat.test.cjs` checks this (no balance key or weapon code in `flight-skirmish.js`, no skirmish branch in `ordnance.js`, `flight-fx.js`, `flight-sfx.js`).
+
+## The V1 Map app in flight (`flight-nav.js`)
+
+The owner: "While flying have the Map App show locations in that system they can fly to such as space stations, planets, warp markers to other systems. If they click a space station set a blue square around the warp marker to that station. If they have a mission that is in another system mark that warp marker with a yellow square."
+
+- The V1 now opens in Campaign flight (not in a skirmish): L opens it straight on the Map app, which shows FLIGHT NAVIGATION for the current system: IN THIS SYSTEM (stations, planets), WARP MARKERS TO OTHER SYSTEMS (each known system's hub, as `VoidUniverse.destinations` already offers), KNOWN PLACES IN OTHER SYSTEMS (reached through that system's warp marker, `VoidUniverse.nextHop`). Only discovered places.
+- Clicking one sets the navigation target (`story.flags.navTarget`, kept through warps, cleared on arrival): a **blue dashed square** with `■ NAV · NAME` on its marker in flight, or on the warp marker toward it (`(WARP)`). Off screen, an edge arrow.
+- An active mission whose destination is in another system puts a **yellow square** with `◆ MISSION · SYSTEM` on the warp marker toward it (the mission's own station in this system already had its yellow hexagon). Both can show at once: different sizes, solid / dashed, and the labels, so they do not rely on colour.
+- Flying into a marker still sets the course (`world-integration.js`, unchanged). The markers are the free-travel route markers that were already in the game.
 
 ## The Ship Loadout app (V1)
 
@@ -84,11 +99,12 @@ Granted (never from the App Store, takes no storage), shown when `story.flags.lo
 - `tests/flight-combat.test.cjs` (grant, migration, prices and racks, M1 vs M2 guidance and the hard-break miss, fuse and blast, dumb-fire, saves, Mission Editor reward, page order).
 - `tests/missile-fire-consequences.test.cjs` updated: no lock now dumb-fires; the launch point is the wing rail.
 - `tests/test_flight_combat.py` (server progression and the missile reward).
-- Browser: `tests/flight-combat-browser.cjs` (new character, ship grant, V1 banner and app, Admin's counter purchase, Flight Skirmish: target cycling, seeking and locked tones, M1 hit, M2 miss and M1 hit on the same break, dumb-fire, Z switch, lasers, sound events). Screenshots: `docs/development/flight-combat/`.
+- Browser: `tests/flight-combat-browser.cjs` (new character, ship grant, V1 banner and app, Admin's counter purchase, Flight Skirmish: target cycling, seeking and locked tones, M1 hit, M2 miss and M1 hit on the same break, dumb-fire, Z switch, lasers, sound events). Passed in full (software GL, about 25 minutes). Screenshots: `docs/development/flight-combat/` (`a3-loadout-app`, `b2-admin-bought`, `c2-seeking`, `c3-locked`, `c6-m2-break`, `c7-lasers`, `d2-map-app-selected`, `d3-warp-marker-squares`).
 
 ## Not done / weak
 
 - No chase camera exists, so the missile leaving the rail is seen from the cockpit (flash low to the side, then the missile and its trail ahead), not from outside the Kestrel.
 - Gamepad: no button for the missile switch yet (the mouse wheel and Z work).
+- The Map app in flight is a list; it has no drawn system map. The V1 does not pause flight while it is open.
 - Not checked on real hardware or the ROG Ally (frame rate with many trails), in VR, or by ear (headless browsers cannot listen: the sounds were checked as events and by reading the synthesis code). The volume balance of the new sounds against the music is a guess.
 - The missile does not show on the Kestrel's exterior model on the landing pad (the model's rails are empty).

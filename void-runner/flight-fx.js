@@ -33,7 +33,7 @@
   p.src.shield=mk(B.MeshBuilder.CreateSphere('fx-shield',{diameter:1,segments:10},scene),glowMat(B,scene,'fx-shield-m','#6fc6ee',.22));
   // smoke: four fading greys and one hot bucket, all soft round puffs
   const smokeTex=radial(B,scene,'fx-smoke',[[0,'#c9c6c2b0'],[.5,'#8d8a8760'],[1,'#5a585600']]),hotTex=radial(B,scene,'fx-hot',[[0,'#fff1d8ff'],[.35,'#ffb46acc'],[1,'#ff7a3000']]);
-  [.42,.3,.18,.08].forEach((a,i)=>{const m=new B.StandardMaterial('fx-smoke-'+i,scene);m.diffuseTexture=smokeTex;m.opacityTexture=smokeTex;m.emissiveColor=B.Color3.FromHexString('#7d7a77');m.disableLighting=true;m.alpha=a;m.backFaceCulling=false;const s=mk(B.MeshBuilder.CreatePlane('fx-puff-'+i,{size:1},scene),m);s.billboardMode=B.Mesh.BILLBOARDMODE_ALL;p.src.puff.push(s);});
+  [.6,.42,.26,.12].forEach((a,i)=>{const m=new B.StandardMaterial('fx-smoke-'+i,scene);m.diffuseTexture=smokeTex;m.opacityTexture=smokeTex;m.emissiveColor=B.Color3.FromHexString('#a6a29c');m.disableLighting=true;m.alpha=a;m.backFaceCulling=false;const s=mk(B.MeshBuilder.CreatePlane('fx-puff-'+i,{size:1},scene),m);s.billboardMode=B.Mesh.BILLBOARDMODE_ALL;p.src.puff.push(s);});
   {const s=mk(B.MeshBuilder.CreatePlane('fx-puff-hot',{size:1},scene),glowMat(B,scene,'fx-puff-hot-m','#ffffff',.9,hotTex));s.billboardMode=B.Mesh.BILLBOARDMODE_ALL;p.src.hot=s;}
   return p;}
  function pool(name,src,i){const list=parts.pools[name]??=[];if(!list[i]){const m=src.createInstance(name+'-'+i);m.parent=kit.root;m.isPickable=false;if(src.billboardMode)m.billboardMode=src.billboardMode;list.push(m);}const m=list[i];m.setEnabled(true);return m;}
@@ -53,8 +53,8 @@
   bolts('hb',snap.hostile||[],parts.src.hcore,parts.src.hglow,2.6,.05,.36);
   // missiles (the player's and the enemies')
   let n=0;for(const m of snap.missiles||[]){const d=m.direction||{x:0,y:0,z:1},body=pool('mb',parts.src.body,n),fl=pool('mf',parts.src.flame,n);
-   body.position.copyFrom(k.vector(m));orient(body,d);const heavy=m.type==='m2';body.scaling.setAll(heavy?1.35:1);
-   const flick=.8+.25*Math.sin(t*61+n*2.3)+.12*Math.sin(t*137+n);fl.position.copyFrom(k.vector({x:m.x-d.x*(heavy?.85:.65),y:m.y-d.y*(heavy?.85:.65),z:m.z-d.z*(heavy?.85:.65)}));fl.scaling.setAll((heavy?1.05:.8)*flick);n++;}
+   body.position.copyFrom(k.vector(m));orient(body,d);const heavy=m.type==='m2';body.scaling.setAll(heavy?2.1:1.6);
+   const flick=.8+.25*Math.sin(t*61+n*2.3)+.12*Math.sin(t*137+n);fl.position.copyFrom(k.vector({x:m.x-d.x*(heavy?1.3:1),y:m.y-d.y*(heavy?1.3:1),z:m.z-d.z*(heavy?1.3:1)}));fl.scaling.setAll((heavy?2:1.5)*flick);n++;}
   hideFrom('mb',n);hideFrom('mf',n);
   // smoke trail
   const cap=CAP[k.quality]||200,trail=(snap.trails||[]).slice(-cap),counts=[0,0,0,0,0];

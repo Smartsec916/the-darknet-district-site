@@ -58,5 +58,5 @@
    +(far.length?'<h2>KNOWN PLACES IN OTHER SYSTEMS</h2>'+far.map(row).join(''):'')
    +(t?'<div class="pd-tabs" style="margin-top:10px"><button type="button" data-nav="">CLEAR NAV TARGET</button></div>':'');}
  function act(id){const s=st();if(!s)return false;const ok=select(s,id||null);if(ok){try{save();}catch{}try{VoidAudio.event('confirm');}catch{}}return ok;}
- Object.assign(api,{view,act,BLUE,YELLOW,get shown(){return {nav:shown.nav,mission:[...shown.mission]};}});
+ Object.assign(api,{view,act,BLUE,YELLOW});Object.defineProperty(api,'shown',{get(){return {nav:shown.nav,mission:[...shown.mission]};}});   // what the last frame drew (tests)
 })(globalThis);
