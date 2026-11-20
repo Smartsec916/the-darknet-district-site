@@ -11147,10 +11147,7 @@
         "they-follow"
       ],
       "adultRooms": [
-        "bar-back",
-        "card-room",
-        "fight-pit",
-        "gang-vestibule"
+        "fight-pit"
       ],
       "doorAreas": {
         "apt-avenue-n-16": "avenue",
@@ -42340,7 +42337,7 @@
       "spawn"
     ]
   },
-  "revision": "0ebac2f1a701573d",
+  "revision": "f5abc29081c5a1a2",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -58689,7 +58686,7 @@
     {
       "source": "void-runner/npc-escort.js",
       "line": 215,
-      "text": "WHO: the people a step can walk with (MOVABLE), except the cat (canInto). Reverie, Lace and made characters not marked adult never go into a bar's back room (ADULT_ROOMS),",
+      "text": "WHO: the people a step can walk with (MOVABLE), except the cat (canInto). Reverie, Lace and made characters not marked adult never go into the fight pit (ADULT_ROOMS),",
       "kind": "source-reference"
     },
     {
@@ -61031,7 +61028,7 @@
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort-indoors.js": "aefd4fde6d052f35a0d2a3170251f1264c8cb5193db325949799c2b9dd5a8ad0",
-    "void-runner/npc-escort.js": "6d093b5caca72445c95bc902c96fa7da251311372a5694622649f38253f36b44",
+    "void-runner/npc-escort.js": "d85973643f502ad51b8bb32ec7f3fe6af8bf72ead1f8e9a3370f17f8cbb1781f",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
