@@ -214,6 +214,7 @@
  }
  // ---------------------------------------------------------------- the owner's new trees
  const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack','ask','zone',...((MM&&MM.KINDS)||[])],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call','call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow','missiles','evidence'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const STEP_APPS=['camera','gallery','messages','map','missions','comms','social','news','store','warflying','loadout'];   // a step's optional V1 app hint (device-v1.js STEP_APPS; void_runner_live_content.py STEP_APPS): the tile that glows when the V1 opens
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -325,7 +326,8 @@
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed','target','zone','until','spawn',...ASK_STEP.keys,...((MM&&MM.STEP_FIELDS)||[])])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed','target','zone','until','spawn','app',...ASK_STEP.keys,...((MM&&MM.STEP_FIELDS)||[])])){err(ow+': unknown fields in a step.');continue;}
+     if(o.app!=null&&!STEP_APPS.includes(o.app))err(ow+': unknown V1 app to highlight.');
      if(MM)for(const p of MM.stepProblems(m,o,{places:ctx.places,subjects:ctx.subjects,locations:ctx.locations,evidence:evAll},speakerOk))err(ow+': '+p);
      {const X=ZN();if(X)for(const p of X.stepProblems(m,o,{places:ctx.places}))err(w+' / '+p);else if(o.kind==='zone')err(ow+': zones cannot be checked here.');}
      if(!sec(o.delay,0,TIME.delay))err(ow+': the delay before a step is a whole number of seconds from 0 to 600.');
@@ -743,6 +745,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    {const d=secs(o.delay,1,TIME.delay);if(d)x.delay=d;}   // a delay before the step starts
    if(o.unseen===true&&MM&&MM.UNSEEN_KINDS.includes(o.kind))x.unseen=true;
    if(MM&&MM.KINDS.includes(o.kind)){for(const k of ['near','close','minutes','stage','feed','apt','mod','object','evidence'])if(o[k]!=null&&o[k]!=='')x[k]=clone(o[k]);if(o.kind==='observe'&&Number.isInteger(o.hold))x.hold=o.hold;if(o.kind==='wait-game'||o.kind==='feed'||o.kind==='flight'||o.kind==='apt-leave'||o.kind==='sneak'||o.kind==='tail'||o.kind==='observe'){delete x.item;if(o.kind!=='flight')delete x.place;}}   // the reusable mechanics' own fields
+   if(typeof o.app==='string'&&STEP_APPS.includes(o.app))x.app=o.app;   // the V1 app to highlight (optional; a photo step implies the Camera anyway)
    if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(typeof o.mod==='string'&&o.mod)x.mod=o.mod;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
    if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;if(typeof o.feed==='string'&&o.feed){x.feed=o.feed;if(o.unlock===true)x.unlock=true;}}
    if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
@@ -907,7 +910,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
  function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
  function doorsInUseNow(s,env){const X=APT();return X&&X.doorsInUse&&aptLive(s,env)?[...X.doorsInUse(s,env.trees)]:[];}   // the street doors a taken mission uses (their prompts show)
- const api={mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

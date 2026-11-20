@@ -356,6 +356,8 @@ CHANNELS = ['messages', 'comms', 'notify']
 WHEN = ['pod-exit', 'after-mission', 'place', 'leave', 'flag', 'game-time', 'near']
 NEAR_MIN, NEAR_MAX = 1, 30
 VIA = ['talk', 'comms', 'messages']
+# A step's optional V1 app hint (mission-content.js STEP_APPS, device-v1.js STEP_APPS): the app whose tile glows when the V1 opens during that step.
+STEP_APPS = ['camera', 'gallery', 'messages', 'map', 'missions', 'comms', 'social', 'news', 'store', 'warflying', 'loadout']
 STORY_FLAG = re.compile(r'^[a-zA-Z][\w-]{0,63}$')
 
 
@@ -2348,9 +2350,11 @@ def check_trees(trees, inv, err, npcs=None):
                 continue
             oids = set()
             for o in objs:
-                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'clip', 'hold', 'delay', 'near', 'apt', 'mod', 'object', 'ap', 'stay', 'unlock', 'needs', 'feed', 'target', 'zone', 'until', 'spawn', *ASK_STEP_KEYS, *ESCORT_FIELDS, *MECH_FIELDS]):
+                if not _keys(o, ['id', 'label', 'kind', 'npc', 'place', 'item', 'say', 'early', 'subject', 'subjects', 'wrong', 'via', 'app', 'clip', 'hold', 'delay', 'near', 'apt', 'mod', 'object', 'ap', 'stay', 'unlock', 'needs', 'feed', 'target', 'zone', 'until', 'spawn', *ASK_STEP_KEYS, *ESCORT_FIELDS, *MECH_FIELDS]):
                     err(w + ': unknown fields in a step.')
                     continue
+                if o.get('app') is not None and o.get('app') not in STEP_APPS:
+                    err(w + ' / ' + str(o.get('id')) + ': unknown V1 app to highlight.')
                 ow = w + ' / ' + str(o.get('id'))
                 for p in mechanics_step_problems(m, o, givers, subjects, places, locations, every_evidence):
                     err(ow + ': ' + p)

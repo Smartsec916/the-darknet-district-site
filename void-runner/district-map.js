@@ -51,7 +51,7 @@
  if(typeof document==='undefined')return;
 
  // ---------------------------------------------------------------- browser ----------------------------------------------------------------
- const FLAG='deviceWaypoint',COLOR={entrance:'#58ffe1',service:'#9fd0ff',vr:'#c79bff',shop:'#ff3fb4',transit:'#ffb347',dev:'#7a8794',mission:'#ffe066',guard:'#ff5a6a'};
+ const FLAG='deviceWaypoint',COLOR={entrance:'#58ffe1',service:'#9fd0ff',vr:'#c79bff',shop:'#ff3fb4',transit:'#ffb347',dev:'#7a8794',mission:(root.VoidGuideRoute&&root.VoidGuideRoute.COLOR||{hex:'#ffd678'}).hex,guard:'#ff5a6a'};   // mission places: the mission yellow of the arrow (guide-route.js COLOR; the owner, 20 Nov 2026)
  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let M=null,view=null,selected=null,layers=Object.fromEntries(LAYERS.map(l=>[l[0],l[2]])),host=null,cv=null,drag=null,pulse=0;
  // Separate areas (Corporate District, later the Temple) register a map space in area-map.js; the map shows the one the player is in.
