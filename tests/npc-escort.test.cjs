@@ -143,6 +143,6 @@ test('save flag, wizard steps, the editor and the server copy of the rules',()=>
  // the street pair runs the plan, and only for the local player (walker)
  const sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8');
  // her shift (one street clock): never brought out off-shift; a started step keeps the one who is out until it ends; the step starts only while she is on duty
- assert.match(sp,/const out=\(\)=>\{const o=onStreet\(now\(\),cfg\);if\(her&&\(!o\|\|o\.id!==her\.p\.id\)&&planOf\(her\.p\.id\)\?\.mode==='escort'\)return her\.p;return o;\};/);assert.doesNotMatch(sp,/VoidStreetPair\?\.force/);
- assert.match(fs.readFileSync(R('void-runner/live-content.js'),'utf8'),/G\.onDuty\(g\);\}catch\{\}if\(on\|\|\(saved&&saved\.key===e\.key\)\)escOn\.add/);assert.match(sp,/function escTick/);assert.match(sp,/P\.mode==='escort'/);assert.doesNotMatch(sp.slice(sp.indexOf('function escTick'),sp.indexOf('// ---- the cat ----')),/remote-player/);
+ assert.match(sp,/const out=\(\)=>\{const o=onStreet\(now\(\),cfg\);if\(her&&\(!o\|\|o\.id!==her\.p\.id\)\)\{const P=planOf\(her\.p\.id\);if\(P&&\(P\.mode==='escort'\|\|P\.why==='mission'\)\)return her\.p;\}return o;\};/);assert.doesNotMatch(sp,/VoidStreetPair\?\.force/);
+ assert.match(fs.readFileSync(R('void-runner/live-content.js'),'utf8'),/G\.onDuty\(g\);\}catch\{\}if\(on\|\|\(saved&&saved\.key===e\.key\)\|\|\(planCache\[id\]&&planCache\[id\]\.why==='mission'&&livePos\(id\)\)\)escOn\.add/);assert.match(sp,/function escTick/);assert.match(sp,/P\.mode==='escort'/);assert.doesNotMatch(sp.slice(sp.indexOf('function escTick'),sp.indexOf('// ---- the cat ----')),/remote-player/);
 });

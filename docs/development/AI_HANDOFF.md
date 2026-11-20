@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 19 Nov 2026 (newest): FIX — A GIVER WHO LEADS THE WAY NO LONGER WALKS OFF OR VANISHES (branch `claude/follow-giver-fix`, build `2026-11-19-follow-fix-1`, pushed, NO PR, not merged)
+
+The owner: a mission that starts when you walk near the giver, she says a line, then "Follow them": "the giver is either not at the mission giving location to start with, or after saying their first line they shoot off ... and disappear". Reproduced in a browser with every frame recorded. Full causes and fixes: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fix (19 Nov 2026): a giver who leads the way".
+
+- **Causes:** (1) "Giver waits at" held her only until the mission was taken: then she went back to her routine (walked off; in another quarter she vanished on the spot); (2) the follow step then started from her routine, i.e. The Avenue's coordinates while the player was in Old Town (a made character with no placement: 0, 0); (3) "talking to her" was read from the crosshair prompt, re-picked every frame, so she could start leading during her own line; (4) she was removed on screen when she had to go; (5) unreachable-by-straight-line spots were walked to through shopfronts and across the road at a slant.
+- **Fixes:** her mission holds her (waits-at spot, else where she stood, after a follow step its spot) until it is done (`mission-content.js holdOf`, `live-content.js plans()` `holdAt` / `why:'mission'` / `from`); held for the whole conversation (her lines); appears where the step started; never popped out while seen (main's `holdCheck` / `p.going`, merged); pavement routes with straight road crossings (`npc-escort.js walkRoute`).
+- **Tests:** `tests/follow-giver.test.cjs`, browser `tests/follow-giver-browser.cjs` (passes for Reverie Avenue / Old Town, Lace, the cat, a made character); source-text tests updated. No save shape change. **Not verified:** real hardware, VR, a shift change mid-mission in the live game.
 ### 19 Nov 2026 (newest): MISSION EDITOR — A PLAYER REPLY CAN BE ACCEPT / DENY (WITH CREDITS); "WALK NEAR THE GIVER" IS ITS OWN WAY OF STARTING (branch `claude/reply-choice-near-start`, build `2026-11-19-reply-choice-1`, pushed, NO PR, not merged)
 
 The owner: "in player reply add the accept or deny option, credit changes if accepted. also i don't see the when the player walks closer to the giver option". How-to: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twenty-fifth pass".

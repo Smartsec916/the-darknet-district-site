@@ -161,7 +161,8 @@
   function leave(id){const p=people.get(id);if(!p)return;people.delete(id);const L=wl(),it=items.get(id);if(L&&Array.isArray(L.interactions)&&it){const k=L.interactions.indexOf(it);if(k>=0)L.interactions.splice(k,1);}try{p.anim?.dispose?.();}catch{}for(const x of p.props)try{x.dispose();}catch{}try{p.node.dispose();}catch{}}
   function arrive(id,c,P){const n=A.instance?.('crowd:'+c.model,parent);if(!n)return;n.metadata={...n.metadata,character:id,made:id,displayName:c.name};
    for(const m of n.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
-   const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'&&P.resume&&Number.isFinite(P.resume.x)?P.resume:null)||{x:0,z:0};
+   // a follow / lead step: where it had got to (a reload), else where she stood when it started (P.from, live-content.js; fix 19 Nov 2026: she appeared at 0, 0)
+   const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null)||{x:0,z:0};
    const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null};
    const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
    p.anim=root.VoidCrowd?.animate?.(n,c.model,'idle')||null;p.clip='idle';for(const g of n.metadata?.animationGroups||[])g.blendingSpeed=cfg.blend;
@@ -171,7 +172,9 @@
    setTimeout(()=>{if(!n.isDisposed())p.props=props(n,c);},0);}
   // talking to her: a conversation opened from her prompt (latched until it closes)
   const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatWho=null;
-  function chatting(){if(!convo()){chatSeen=false;chatWho=null;return null;}if(!chatSeen){chatSeen=true;const t=typeof walkTarget!=='undefined'?walkTarget:null;chatWho=t&&t.action===ACTION?t.character:null;}return chatWho;}
+  // (fix 19 Nov 2026) else the made character whose lines the conversation has: walkTarget is picked again every frame while a conversation floats over walking
+  const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};
+  function chatting(){if(!convo()){chatSeen=false;chatWho=null;return null;}if(!chatSeen){chatSeen=true;const t=typeof walkTarget!=='undefined'?walkTarget:null;chatWho=t&&t.action===ACTION?t.character:speaker();}return chatWho;}
   // a follow / lead step (npc-escort.js; cab rides are only Reverie's and Lace's)
   function escTick(p,P,dt){const E=root.VoidNPCEscort;if(!E)return 'idle';let e=p.esc;
    if(!e||e.key!==P.key){e=p.esc={key:P.key,st:{x:p.s.x,z:p.s.z,yaw:p.s.yaw||0,phase:null},trail:{pts:[],shifted:0}};const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;}
@@ -186,7 +189,7 @@
   const inView=(n,cam)=>!!cam&&n.isEnabled()&&seenAt(n.position.x,n.position.y,n.position.z,cam);
   const camNow=()=>scene.activeCamera?.globalPosition||null;
   function step(p,dt,cam){const n=p.node,R=p.going?p.plan:planOf(p.id),talk=chatting()===p.id,w=me();
-   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'&&!(p.plan&&p.plan.mode==='escort')){const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
+   if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
    const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
    if(P&&P.key!==p.key){p.key=P.key;const t=P.mode==='stay'?P:P.mode==='path'?P.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length){p.s.x=t.x;p.s.z=t.z;p.y=yAt(t.x,t.z,p.y);}}   // a new spot she cannot walk to straight: she is put there
@@ -209,7 +212,7 @@
    if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled()&&!p.going;if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
    nameCards();}
   function tick(dt){if(disposed)return;clock+=dt;if((scan-=dt)<=0){scan=.25;try{sync();}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}}const cam=scene.activeCamera?.globalPosition||null;for(const p of people.values())try{step(p,dt,cam);}catch{}}
-  const self={tick,stats:()=>({here:[...HERE],people:[...people.values()].map(p=>({id:p.id,name:p.c.name,model:p.c.model,x:+p.node.position.x.toFixed(2),z:+p.node.position.z.toFixed(2),mode:p.s.mode,clip:p.clip,device:p.c.device||null,props:p.props.map(m=>m.name),talk:!!wl()?.interactions?.includes(items.get(p.id)),look:p.node.metadata?.npcLook||null,enabled:p.node.isEnabled()}))}),
+  const self={tick,stats:()=>({here:[...HERE],people:[...people.values()].map(p=>({id:p.id,name:p.c.name,model:p.c.model,x:+p.node.position.x.toFixed(2),z:+p.node.position.z.toFixed(2),yaw:+(p.node.rotation.y||0).toFixed(2),mode:p.s.mode,clip:p.clip,device:p.c.device||null,props:p.props.map(m=>m.name),talk:!!wl()?.interactions?.includes(items.get(p.id)),look:p.node.metadata?.npcLook||null,enabled:p.node.isEnabled()}))}),
    get people(){return people;},dispose(){disposed=true;for(const id of [...people.keys()])leave(id);if(root.VoidMadeNPCs&&root.VoidMadeNPCs.live===liveFn)root.VoidMadeNPCs.live=null;}};
   const liveFn=()=>self.stats();root.VoidMadeNPCs.live=liveFn;return self;}
  /* Name cards for the dialogue window (as mission-givers do for their speakers). */
