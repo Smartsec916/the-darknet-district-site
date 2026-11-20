@@ -27,6 +27,7 @@
    den:{amb:'#b09a84',gnd:'#4a3e34',ai:1.2,exp:1.45,env:.4,clear:[.012,.01,.008]},kitchen:{amb:'#b0aa9c',gnd:'#4a4038',ai:1.1,exp:1.35,env:.42,clear:[.012,.011,.01]},garage:{amb:'#9aa0a4',gnd:'#3a3a38',ai:1.05,exp:1.4,env:.4,clear:[.01,.011,.012]},
    tunnel:{amb:'#9c9a90',gnd:'#3a3832',ai:1.05,exp:1.45,env:.35,clear:[.008,.008,.008]},pit:{amb:'#9a9688',gnd:'#38342e',ai:1.05,exp:1.45,env:.3,clear:[.008,.007,.006]},gang:{amb:'#a49a8c',gnd:'#3a3630',ai:1.05,exp:1.45,env:.3,clear:[.009,.008,.007]}}[def.style]||{amb:'#9aa0a8',gnd:'#222',ai:.75,exp:1.25,env:.3,clear:[.01,.01,.012]};
   scene.clearColor=new B.Color4(...MOOD.clear,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.01;scene.fogColor=new B.Color3(...MOOD.clear);ip.exposure=MOOD.exp;ip.contrast=1.18;scene.environmentIntensity=MOOD.env;
+  if(def.network)scene.fogDensity=.02;   // the tunnel network: the far end of a long tunnel sinks into the dark
   if(sun)sun.intensity=0;if(amb){amb.intensity=MOOD.ai;amb.diffuse=B.Color3.FromHexString(MOOD.amb);if(amb.groundColor)amb.groundColor=B.Color3.FromHexString(MOOD.gnd);}
   let seed=7;for(const m of C.mods)for(const ch of m.id+m.type)seed=(seed*31+ch.charCodeAt(0))%2147483646+1;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
   // ---- materials (shared by every module of the cluster) ----
@@ -40,14 +41,17 @@
   const canvas=(w,h,draw,name='mod-tex')=>{const t=new B.DynamicTexture(name,{width:w,height:h},scene,true);own.push(t);draw(t.getContext(),w,h);t.update();t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;return t;};
   // ---- geometry: static pieces are collected per material and merged at the end ----
   let cur=rootN;   // the node new pieces belong to (a module's own node: local metres, turned with it)
-  const add=(m,mat,dynamic)=>{m.material=mat;m.isPickable=false;m.parent=cur;if(dynamic)return m;if(!parts.has(mat))parts.set(mat,[]);parts.get(mat).push(m);return m;};
+  /* A NETWORK (def.network: the shared tunnel network under the city, ncz-underground.js): hundreds of metres of modules, so static pieces merge per material AND per 40 m
+     chunk (frustum culling keeps working), the lamps share one material per style, and a small pool of real lights follows the player to the nearest fixtures. */
+  const NET=!!def.network,chunkKey=m=>{if(cur!==rootN&&cur.metadata&&cur.metadata.chunk)return cur.metadata.chunk;return Math.floor(m.position.x/40)+','+Math.floor(m.position.z/40);},partMat=new Map();
+  const add=(m,mat,dynamic)=>{m.material=mat;m.isPickable=false;m.parent=cur;if(dynamic)return m;const k=NET?mat.uniqueId+'|'+chunkKey(m):mat;if(NET)partMat.set(k,mat);if(!parts.has(k))parts.set(k,[]);parts.get(k).push(m);return m;};
   function bx(mat,[w,h,d],[x,y,z],ry=0,dynamic=false){const t=(mat.metadata&&mat.metadata.tile)||1,fu=[[w,h],[w,h],[d,h],[d,h],[w,d],[w,d]].map(([a,b])=>new B.Vector4(0,0,Math.max(.05,a/t),Math.max(.05,b/t)));
    const m=B.MeshBuilder.CreateBox('mod-box',{width:w,height:h,depth:d,faceUV:fu,wrap:true},scene);m.position.set(x,y,z);m.rotation.y=ry;return add(m,mat,dynamic);}
   const box2=(mat,x0,x1,y0,y1,z0,z1,dyn)=>bx(mat,[Math.max(.001,x1-x0),Math.max(.001,y1-y0),Math.max(.001,z1-z0)],[(x0+x1)/2,(y0+y1)/2,(z0+z1)/2],0,dyn);
   function cyl(mat,d,h,[x,y,z],tess=12,rx=0,rz=0,top=null,dyn=false){const m=B.MeshBuilder.CreateCylinder('mod-cyl',{diameterBottom:d,diameterTop:top??d,height:h,tessellation:tess},scene);m.position.set(x,y,z);m.rotation.x=rx;m.rotation.z=rz;return add(m,mat,dyn);}
   function plane(mat,w,h,[x,y,z],ry=0,dynamic=false,rx=0,uv=null){const o={width:w,height:h};if(uv){o.frontUVs=uv;o.backUVs=uv;o.sideOrientation=B.Mesh.DOUBLESIDE;}const m=B.MeshBuilder.CreatePlane('mod-plane',o,scene);m.position.set(x,y,z);m.rotation.y=ry;m.rotation.x=rx;return add(m,mat,dynamic);}
   function torus(mat,d,th,[x,y,z],rx=0,ry=0){const m=B.MeshBuilder.CreateTorus('mod-torus',{diameter:d,thickness:th,tessellation:16},scene);m.position.set(x,y,z);m.rotation.x=rx;m.rotation.y=ry;return add(m,mat);}
-  function merge(){let n=0;for(const [mat,list] of parts){if(!list.length)continue;const mm=list.length>1?B.Mesh.MergeMeshes(list,true,true,undefined,false,false):list[0];if(!mm)continue;mm.name='mod-merged-'+mat.name;mm.material=mat;mm.parent=list.length>1?null:mm.parent;mm.isPickable=false;if(mm.parent===null&&parent)mm.parent=null;mm.freezeWorldMatrix();own.push(mm);n++;}parts.clear();return n;}
+  function merge(){let n=0;for(const [key,list] of parts){const mat=partMat.get(key)||key;if(!list.length)continue;const mm=list.length>1?B.Mesh.MergeMeshes(list,true,true,undefined,false,false):list[0];if(!mm)continue;mm.name='mod-merged-'+mat.name;mm.material=mat;mm.parent=list.length>1?null:mm.parent;mm.isPickable=false;if(mm.parent===null&&parent)mm.parent=null;mm.freezeWorldMatrix();if(NET)mm.addLODLevel(low?60:75,null);own.push(mm);n++;}parts.clear();return n;}
   // ---- textures drawn here ----
   const grime=(g,w,h,k=1)=>{for(let i=0;i<60*k;i++){const x=rand()*w,y=rand()*h,r=4+rand()*40;const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,'rgba(10,8,4,'+(.04+rand()*.1)*k+')');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(x-r,y-r,r*2,r*2);}};
   const speck=(g,w,h,n,a=.05)=>{for(let i=0;i<n;i++){const v=rand();g.fillStyle='rgba('+(v<.5?'0,0,0,':'255,255,255,')+(a*.4+rand()*a)+')';g.fillRect(rand()*w,rand()*h,1+rand()*2,1+rand()*2);}};
@@ -218,13 +222,14 @@
   const styleOf=type=>type==='elevator'?'cab':type==='elevator-lobby'?'lobby':type==='maint-corridor'?'maint':type==='clinic'?'clinic':(M.TYPES[type]&&M.TYPES[type].style)||'corp';
   // per module: its own fixture material (lights on / off per module) and screen material (screens on / off)
   const modState={};
-  const lampOf=id=>{const st=modState[id];return st.lamp??=P('lamp-'+id,{em:STY[st.sty].lamp||'#eef',unlit:true});};
+  const lampOf=id=>{const st=modState[id];return st.lamp??=P(NET?'lamp-net-'+st.sty:'lamp-'+id,{em:STY[st.sty].lamp||'#eef',unlit:true});};
   // warm paper lanterns (amber, not white): their own material per module, dimmed by the light switch with the module's lamps
-  const paperOf=id=>{const st=modState[id];if(st.paper)return st.paper;const m=P('paper-lamp-'+id,{em:'#b8642a',unlit:true});(st.extra??=[]).push(m);return st.paper=m;};
+  const paperOf=id=>{const st=modState[id];if(st.paper)return st.paper;const m=P(NET?'paper-lamp-net':'paper-lamp-'+id,{em:'#b8642a',unlit:true});if(!NET)(st.extra??=[]).push(m);return st.paper=m;};
   const screenMat=(id,key,tex)=>{const st=modState[id];const m=P('scr-'+id+'-'+key,{dyn:tex,unlit:true});(st.screens??=[]).push(m);return m;};
   // ---- real lights ----
-  const realLights=[],cap=low?1:Math.min(6,C.mods.length*2);
-  function pointLight(modId,[x,y,z],hex,intensity,range){if(realLights.length>=cap)return null;const mn=modState[modId].node;mn.computeWorldMatrix(true);const p=B.Vector3.TransformCoordinates(new B.Vector3(x,y,z),mn.getWorldMatrix());
+  const realLights=[],cap=low?1:Math.min(6,C.mods.length*2),anchors=[];
+  function pointLight(modId,[x,y,z],hex,intensity,range){if(NET){const mn=modState[modId].node;mn.computeWorldMatrix(true);anchors.push({p:B.Vector3.TransformCoordinates(new B.Vector3(x,y,z),mn.getWorldMatrix()),c:B.Color3.FromHexString(hex),i:intensity,r:range,mod:modId});return null;}
+   if(realLights.length>=cap)return null;const mn=modState[modId].node;mn.computeWorldMatrix(true);const p=B.Vector3.TransformCoordinates(new B.Vector3(x,y,z),mn.getWorldMatrix());
    const l=new B.PointLight('mod-light-'+modId,p,scene);l.diffuse=B.Color3.FromHexString(hex);l.specular=l.diffuse.scale(.35);l.intensity=intensity;l.range=range;l.metadata={on:intensity,mod:modId};own.push(l);realLights.push(l);return l;}
   // ---- props: repository models as instances (one draw call per source mesh) ----
   const propCache=new Map();
@@ -541,11 +546,11 @@
     // the tatami dais (west) with two low tables and cushions; the east table on mats
     box2(dw,-2.9,-1.1,0,.15,-2.5,1.3);box2(lq,-1.12,-1.08,0,.16,-2.5,1.3);tatamiMats(-2.85,-1.15,-2.45,1.25,.15);lowTable(-2.4,-1.6,-1.95,-1.05,.18);lowTable(-2.4,-1.6,-.15,.75,.18);tatamiMats(1.05,2.35,-2.75,-.45);lowTable(1.2,2.2,-2.2,-1,.03);
     // the service partition (hides the back door), the tea station against it, the folding screen at the end of the passage
-    box2(dw,-2.9,1.3,0,2.3,1.5,1.6);shojiWall('n',-2.6,-.1,3,1.42,.6,2.0);box2(dw,1.25,1.33,0,2.3,1.48,1.62);
+    box2(dw,-2.9,1.15,0,2.3,1.5,1.6);shojiWall('n',-2.6,-.1,3,1.42,.6,2.0);box2(dw,1.1,1.18,0,2.3,1.48,1.62);
     box2(dw,-.8,1,0,.85,1,1.5);box2(lq,-.82,1.02,.85,.88,.98,1.5);kettleSet(-.45,1.25,.88);const ce=celadon();for(let i=0;i<6;i++)cyl(ce,.07,.06,[.05+(i%3)*.17,.915,1.12+Math.floor(i/3)*.2],10);for(let i=0;i<3;i++)cyl(P('tin'+(i%2),{c:['#5a4a2a','#2a3a3a'][i%2],rough:.4,metal:.6}),.11,.15,[.75,.955,1.1+i*.15],12);
-    {const sp=P('byobu',{c:'#6a5a40',dyn:inkTex(),rough:.8});for(let i=0;i<3;i++){const x=2.15+i*.3,m=bx(sp,[.3,1.7,.03],[x,.85,.9],(i%2?.25:-.25));}box2(dw,2.0,2.9,1.69,1.72,.86,.94);}
+    {const sp=P('byobu',{c:'#6a5a40',dyn:inkTex(),rough:.8});for(let i=0;i<3;i++){const x=2.34+i*.22,m=bx(sp,[.23,1.7,.03],[x,.85,.9],(i%2?.25:-.25));}box2(dw,2.2,2.9,1.69,1.72,.86,.94);}
     // the nook behind the partition: shelves of supplies and the strongbox, a service sink, crates
-    bulb(-.3,2.25,2.15,Ch,lamp);shelving(-2.9,-2.4,1.7,2.9,'z');box2(P('lacquer-red',{c:'#4a1410',rough:.22}),-2.38,-2.2,.95,1.15,2.2,2.45);box2(S.steel,1.8,2.9,0,.88,2.4,2.9);box2(S.dark,2,2.6,.84,.881,2.5,2.8);cyl(S.steel,.03,.3,[2.3,1.03,2.85],8);crate(1.1,2.6,.3,.45);
+    bulb(-.3,2.25,2.15,Ch,lamp);shelving(-2.9,-2.4,1.7,2.9,'z');box2(P('lacquer-red',{c:'#4a1410',rough:.22}),-2.38,-2.2,.95,1.15,2.2,2.45);box2(S.steel,2.2,2.9,0,.88,2.5,2.9);box2(S.dark,2.3,2.8,.84,.881,2.58,2.82);cyl(S.steel,.03,.3,[2.55,1.03,2.86],8);crate(-1.65,2.6,.3,.45);
     // the bonsai on its stand, lanterns (the room's light), a scroll; the floor of the aisle stays raw, wet concrete
     box2(dw,2.4,2.9,0,.9,-2.9,-2.4);bonsai(2.65,-2.65,.9);inkScroll(2.885,-.95,1.5,HALF,.4,.8);lantern(-2,-1.5,2,Ch,lamp,.4);lantern(-2,.3,2,Ch,lamp,.4);lantern(1.7,-1.6,2,Ch,lamp,.36);lantern(.1,.9,2.05,Ch,lamp,.3);
     decal(puddleMat(),.9,.6,.2,-2.3);},
@@ -786,12 +791,14 @@
   function safe(x0,x1,z0,z1){box2(S.gun,x0,x1,0,.72,z0,z1);cyl(S.steel,.1,.03,[x0-.01,.45,(z0+z1)/2],14,0,HALF);box2(S.steel,x0-.03,x0,.22,.27,z0+.12,z1-.12);}
 
   // ---- build every module of the cluster ----
-  for(const mod of C.mods){const t=M.TYPES[mod.type],sty=styleOf(mod.type);const node=new B.TransformNode('module-'+mod.id,scene);node.parent=rootN;node.position.set(mod.cx,0,mod.cz);node.rotation.y=mod.rot*HALF;
+  for(const mod of C.mods){const t=M.TYPES[mod.type],sty=styleOf(mod.type);const node=new B.TransformNode('module-'+mod.id,scene);node.parent=rootN;node.position.set(mod.cx,0,mod.cz);node.rotation.y=mod.rot*HALF;if(NET)node.metadata={chunk:Math.floor(mod.cx/40)+','+Math.floor(mod.cz/40)};
    modState[mod.id]={node,sty,t,mod,lightsOff:false};cur=node;lightsOn[mod.id]=true;
    shell(mod,t,sty);try{(BUILD[mod.type]||(()=>{}))(mod,t,sty);}catch(e){console.warn('[modules] build '+mod.type,e);}
    for(const l of t.lights.slice(0,low?1:2))pointLight(mod.id,[l[0],l[1],l[2]],l[3],l[4]*1.4,l[5]*1.25);
    (mod.items||[]).forEach(it=>{const y=Number.isFinite(it.y)?it.y:0;const k=P('item-'+it.type,{c:it.type==='loot'?'#6a5a2a':it.type==='mission-item'?'#2a4a6a':it.type==='note'?'#d8d4c8':'#4a4a4a',rough:.5,metal:.4});box2(k,it.x-.16,it.x+.16,y,y+.12,it.z-.11,it.z+.11);box2(S.ledA,it.x-.03,it.x+.03,y+.12,y+.125,it.z-.11,it.z-.1);});}
   // ================================================================ the doors (world metres): frame, sliding slab, lamps, access points, the vestibule beyond an exit
+  // extra dressing from the caller (def.dress: the tunnel network's alcoves and signs, ncz-underground.js), with the same materials, helpers and merging; `at(modId)` puts new pieces in a module's own frame
+  if(typeof def.dress==='function')try{def.dress({B,P,S,STY,VM,box2,bx,cyl,plane,decal,graffiti,crate,stool,bulb,lantern,signTex,stainMat,puddleMat,pipeM,darkWood,lampOf,paperOf,low,hi,at:id=>{cur=modState[id]?modState[id].node:rootN;return cur;}});}catch(e){console.warn('[modules] dress',e);}
   cur=rootN;const doors=[],sound=()=>{try{root.VoidAudio?.event?.('door');}catch{}};
   for(const d of C.doors){if(d.seam)continue;   // a seam between two tunnel tubes: open tunnel, no door
    const ax=d.tg[0]!==0,x=d.x,z=d.z,Wd=M.DOOR.w,H=M.DOOR.h,fw=M.DOOR.frame;const sideMod=C.mods.find(m=>m.id===M.parseRef(d.side).mod),otherMod=d.kind==='snap'?C.mods.find(m=>m.id===M.parseRef(d.side===d.a?d.b:d.a).mod):null;
@@ -827,10 +834,15 @@
    const offN=C.mods.filter(m=>lightsOn[m.id]===false).length;if(amb)amb.intensity=MOOD.ai*(1-.62*offN/Math.max(1,C.mods.length));}
   const screenOn={};function setScreen(mod,on){screenOn[mod]=!!on;for(const m of modState[mod]?.screens||[]){if(!m.metadata.tex)m.metadata.tex=m.emissiveTexture;m.emissiveTexture=on?m.metadata.tex:null;m.emissiveColor=on?B.Color3.Black():new B.Color3(.004,.005,.006);}}
   for(const m of C.mods){if(m.lightsOff)setLights(false,m.id);if(m.screenOff)setScreen(m.id,false);else screenOn[m.id]=true;}
+  // the network's light pool (NET): a few real lights, moved to the fixtures nearest the player a few times a second (the rest of the tunnel is lit by its emissive lamps)
+  const pool=[];if(NET&&anchors.length){const n=low?1:hi?4:3;for(let i=0;i<n;i++){const l=new B.PointLight('net-light-'+i,new B.Vector3(0,-50,0),scene);l.intensity=0;l.range=8;l.metadata={on:0,mod:null,pool:true};own.push(l);pool.push(l);realLights.push(l);}}
+  let poolT=1;function placePool(p){if(!pool.length||!p)return;const px=p.x,pz=p.z,best=anchors.map(a=>({a,d:(a.p.x-px)**2+(a.p.z-pz)**2})).filter(o=>lightsOn[o.a.mod]!==false).sort((u,v)=>u.d-v.d).slice(0,pool.length);
+   pool.forEach((l,i)=>{const o=best[i];if(!o){l.intensity=0;return;}l.position.copyFrom(o.a.p);l.diffuse=o.a.c;l.specular=o.a.c.scale(.35);l.intensity=o.a.i*1.4;l.range=o.a.r*1.25;l.metadata.mod=o.a.mod;});}
   // ---- tick: doors (and their collision), LED blink ----
   let clock=0,blinkT=0;
   function tick(time,player){const dt=Math.min(.1,Math.max(0,clock?time-clock:0));clock=time;const p=player||(typeof walker!=='undefined'?walker:null);
-   for(const d of doors){if(p){const dx=d.rec.x-p.x,dz=d.rec.z-p.z;d.near(dx*dx+dz*dz<d.range*d.range);}d.tick(dt);const so=doorSolids.get(d.id);if(so)so.open=d.t>.62;}
+   for(const d of doors){if(p){const dx=d.rec.x-p.x,dz=d.rec.z-p.z;d.near(!d.rec.shut&&dx*dx+dz*dz<d.range*d.range);}d.tick(dt);const so=doorSolids.get(d.id);if(so)so.open=d.t>.62;}
+   if(pool.length){poolT+=dt;if(poolT>.3){poolT=0;placePool(p);}}
    blinkT+=dt;if(blinkT>.45){blinkT=0;for(const st of Object.values(modState))if(st.blink&&screenOn[st.mod.id]!==false)st.blink.uOffset=st.blink.uOffset?0:.5;}}
   function disposeAll(){disposed=true;for(const d of doors)try{d.dispose?.();}catch{}for(const c of containers)try{c.dispose();}catch{}for(const n of props)try{n.dispose(false,false);}catch{}rootN.dispose(false,true);for(const x of own)try{x.dispose();}catch{}
    scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
@@ -838,6 +850,6 @@
   return {area:'module',modular:true,cluster:C.id,tick,dispose:disposeAll,doors,lights:setLights,lightsOf:id=>lightsOn[id]!==false,get lightsOn(){return C.mods.every(m=>lightsOn[m.id]!==false);},screen:setScreen,screenOf:id=>screenOn[id]!==false,
    door:id=>doors.find(d=>d.id===id)||null,unlock(id){const d=doors.find(x=>x.id===id);if(d){d.set({locked:false});for(const ref of [d.rec.a,d.rec.b])if(apLeds[ref]){apLeds[ref].r.isVisible=false;apLeds[ref].g.isVisible=true;}}},
    accessPoint(ap,st){const ref=String(ap||'').split('/').pop(),l=apLeds[ref];if(l){l.r.isVisible=st!=='open';l.g.isVisible=st==='open';}},
-   prepare:()=>Promise.race([Promise.allSettled(late),new Promise(r=>setTimeout(r,8000))]),stats:()=>({merged,doors:doors.length,lights:realLights.length,meshes:rootN.getChildMeshes().length+own.filter(x=>x.getClassName&&x.getClassName()==='Mesh').length,props:props.length})};}
+   prepare:()=>Promise.race([Promise.allSettled(late),new Promise(r=>setTimeout(r,8000))]),stats:()=>({merged,doors:doors.length,lights:realLights.length,anchors:anchors.length,meshes:rootN.getChildMeshes().length+own.filter(x=>x.getClassName&&x.getClassName()==='Mesh').length,props:props.length})};}
  root.VoidModules=Object.assign(root.VoidModules||{},{build});
 })(globalThis);

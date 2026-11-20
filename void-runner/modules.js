@@ -191,7 +191,7 @@
     folding screen (an L-shaped passage), so no seat looks at it. */
  T('tea-under',{cat:'various',style:'tunnel',underground:true,ownLamps:true,w:3,d:3,ceil:3.2,sockets:'s1 n1',sw:[-.95,'s'],name:'Underground tea room',note:'UNDERGROUND. A tea room in a converted tunnel chamber: a raw concrete vault and pipes over a warm dark-wood interior, backlit paper screens, a tatami dais with low tables and cushions, a tea station, lanterns. Front door (south) and back door (north) join tunnel pieces; the back door is hidden in a service nook behind a partition and a folding screen.',
   objects:[O('tea','TEA STATION','the tea station'),O('table','LOW TABLE','the low table'),O('safe','STRONGBOX','the strongbox'),LIGHTS],
-  furn:[[-2.9,-1.1,-2.5,1.3,.15,'dais'],[-2.9,1.3,1.5,1.6,2.3,'partition'],[-.8,1,1,1.5,.85,'tea'],[2,2.9,.85,.95,1.7,'screen'],[1.2,2.2,-2.2,-1,.4,'table-e'],[2.4,2.9,-2.9,-2.4,.9,'bonsai'],[-2.9,-2.4,1.7,2.9,1.8,'shelves'],[1.8,2.9,2.4,2.9,.9,'sink']],
+  furn:[[-2.9,-1.1,-2.5,1.3,.15,'dais'],[-2.9,1.15,1.5,1.6,2.3,'partition'],[-.8,1,1,1.5,.85,'tea'],[2.2,2.9,.85,.95,1.7,'screen'],[1.2,2.2,-2.2,-1,.4,'table-e'],[2.4,2.9,-2.9,-2.4,.9,'bonsai'],[-2.9,-2.4,1.7,2.9,1.8,'shelves'],[2.2,2.9,2.5,2.9,.9,'sink']],
   inter:[{id:'tea',label:'TEA STATION',pos:[.1,1,.75],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-1,.6,-.3],object:'table',range:1.3},{id:'safe',label:'STRONGBOX',pos:[-2.2,1,2.3],object:'safe',range:1.2}],
   say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},
   plan:{seats:[[-2,-1.5],[-2,.4],[1.7,-1.6]],passage:[[0,2.3],[1.7,2],[1.6,1.2],[1.4,.4]]},
@@ -294,6 +294,8 @@
   for(const s of out.snaps)out.doors.push({id:canon(s.a,s.b),kind:'snap',a:s.a,b:s.b,floor:s.floor,x:s.x,z:s.z,edge:s.edge});
   for(const l of out.links)out.doors.push({id:canon(l.a,l.b),kind:'portal',a:l.a,b:l.b});
   if(e&&out.byId[e.mod]&&!out.sockUse[loc.entry])out.doors.push({id:'street|'+loc.entry,kind:'entry',a:loc.entry,b:null});
+  // more ways out to the street (only the shared tunnel network under the city has them, ncz-underground.js: one per stairwell; never in a mission's location)
+  for(const x of Array.isArray(loc&&loc.exits)?loc.exits:[]){const r=parseRef(x);if(r&&out.byId[r.mod]&&!out.sockUse[x]&&x!==loc.entry){out.sockUse[x]='street';out.doors.push({id:'street|'+x,kind:'entry',a:x,b:null});}}
   out.world=world;
   // clusters: modules built together (snapped, same floor); a portal module is a cluster of its own
   const parent={};const find=x=>parent[x]===x?x:(parent[x]=find(parent[x]));for(const id of Object.keys(out.byId))parent[id]=id;for(const s of out.snaps){const a=find(parseRef(s.a).mod),b=find(parseRef(s.b).mod);if(a!==b)parent[b]=a;}
@@ -433,7 +435,7 @@
  function layout(inst,cid,opts={}){const loc=inst.loc,an=analyse(loc),cl=an.clusters.find(c=>c.id===cid)||an.clusterOf(parseRef(loc.entry)?.mod)||an.clusters[0];if(!cl)return null;
   if(cl.portal)return legacyLayout(inst,an,cl,opts);
   const ps=cl.mods.map(id=>an.byId[id].p);let x0=1e9,x1=-1e9,z0=1e9,z1=-1e9;for(const p of ps){x0=Math.min(x0,p.x*GRID);x1=Math.max(x1,(p.x+p.w)*GRID);z0=Math.min(z0,p.z*GRID);z1=Math.max(z1,(p.z+p.d)*GRID);}
-  const off=[r2(ORIGIN[0]-(x0+x1)/2),r2(ORIGIN[1]-(z0+z1)/2)],W=(x,z)=>[r2(x+off[0]),r2(z+off[1])];
+  const off=Array.isArray(opts.offset)?[opts.offset[0],opts.offset[1]]:[r2(ORIGIN[0]-(x0+x1)/2),r2(ORIGIN[1]-(z0+z1)/2)],W=(x,z)=>[r2(x+off[0]),r2(z+off[1])];
   const solids=[],interactions=[],doors=[],mods=[];const mine=new Set(cl.mods);
   for(const p of ps){const t=p.t,mm=p.m,id=p.id;const open=[];   // the door gaps in this module's walls: every socket that is a door
    for(const s of t.sockets){const ref=id+'.'+s.id;const d=doorOf(an,ref);if(d)open.push({s,d,ref});}

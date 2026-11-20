@@ -57,6 +57,10 @@
  // The back alleys, bays and yards behind the housing (ncz-backalleys.js, the owner 20 Nov 2026) are part of their quarter's open ground, after its streets (the mission arrow
  // routes through them; quarterAt finds them). Only placed / routed NPCs walk them: the street crowd keeps to its pavement lanes.
  {const BA=node?require('./ncz-backalleys.js'):root.VoidBackAlleys;if(BA)for(const p of BA.PIECES)if(QUARTERS[p.quarter])QUARTERS[p.quarter].streets.push(...p.rects.map(r=>r.slice()));}
+ // THE UNDERGROUND (ncz-underground.js, the owner 20 Nov 2026): the one tunnel network under the city, a quarter of its own entered by the stairwells' doors (no gate). Its ground is
+ // `places` (not streets: the arrow routes it room by room, guide-route.js), its checkpoints 0.3 m short of the yards above (it never meets a street rectangle); the floor is 3 m down (`y`).
+ {const UG=node?require('./ncz-underground.js'):root.VoidUnderground;if(UG){let a=null;try{a=UG.arrive(UG.ENTRANCES[0].id);}catch{}
+   QUARTERS[UG.ID]={id:UG.ID,name:UG.NAME,spawn:a?a.spawn:[15.02,1.7,10.5],yaw:a?a.yaw:-Math.PI/2,streets:[],places:UG.MODS.map(UG.ground),gates:[],under:true,y:UG.Y};}}
  const IDS=Object.keys(QUARTERS),DEFAULT='port';
  const valid=q=>IDS.includes(q)?q:null;
  const inRect=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;

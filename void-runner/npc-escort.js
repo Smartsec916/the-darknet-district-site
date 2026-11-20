@@ -99,9 +99,9 @@
     costs ROAD metres, so she crosses where it is narrowest, straight over), then shortened to straight legs that add no road. Returns the points after a, ending at b, or
     null (no way within the search box). */
  const ROAD=8,GRID=.5,MAXN=30000,XWALK=1.2,XW=()=>node?require('./crosswalks.js'):root.VoidCrosswalks;   // a crosswalk (crosswalks.js, 20 Nov 2026) costs little more than pavement: she crosses there
- function walkRoute(a,b,area){const A=AR();if(!A||!a||!b)return null;const G=GRID,memo=new Map(),c2=v=>Math.floor(v/G);
+ function walkRoute(a,b,area){const A=AR();if(!A||!a||!b)return null;const G=(A.get(area)||{}).under?.25:GRID,memo=new Map(),c2=v=>Math.floor(v/G);
   const ar=A.get(area),inn=(r,x,z)=>x>r.x0&&x<r.x1&&z>r.z0&&z<r.z1;   // the kerb (the street's floor between the pavement and the road, not a forbidden place) counts as road
-  const cost=(i,j)=>{const k=i*100003+j;let v=memo.get(k);if(v===undefined){const x=(i+.5)*G,z=(j+.5)*G,c=A.check({x,z},area,undefined,{passing:true});v=c.ok&&c.area===area?1:XW()?.at?.(x,z,null,-.25)?XWALK:(c.kind==='road'&&c.area===area)||(c.kind==='blocked'&&ar&&ar.floors.some(f=>inn(f,x,z))&&!ar.no.some(f=>inn(f,x,z))&&!(ar.obstacles||[]).some(o=>x>o[0]&&x<o[1]&&z>o[2]&&z<o[3]))?ROAD:0;memo.set(k,v);}return v;};
+  const cost=(i,j)=>{const k=i*100003+j;let v=memo.get(k);if(v===undefined){const x=(i+.5)*G,z=(j+.5)*G,c=A.check({x,z},area,undefined,{passing:true});v=c.ok&&c.area===area?1:XW()?.at?.(x,z,null,-.25)?XWALK:(c.kind==='road'&&c.area===area)||(c.kind==='blocked'&&ar&&!ar.under&&ar.floors.some(f=>inn(f,x,z))&&!ar.no.some(f=>inn(f,x,z))&&!(ar.obstacles||[]).some(o=>x>o[0]&&x<o[1]&&z>o[2]&&z<o[3]))?ROAD:0;memo.set(k,v);}return v;};
   const pad=30/G,i0=Math.min(c2(a.x),c2(b.x))-pad,i1=Math.max(c2(a.x),c2(b.x))+pad,j0=Math.min(c2(a.z),c2(b.z))-pad,j1=Math.max(c2(a.z),c2(b.z))+pad;
   const near=p=>{const ci=c2(p.x),cj=c2(p.z);let best=null,bd=Infinity;for(let di=-4;di<=4;di++)for(let dj=-4;dj<=4;dj++){const i=ci+di,j=cj+dj;if(cost(i,j)!==1)continue;const d=Math.hypot((i+.5)*G-p.x,(j+.5)*G-p.z);if(d<bd){bd=d;best=[i,j];}}return best;};
   const s0=near(a),s1=near(b);if(!s0||!s1)return null;const key=(i,j)=>(i-i0)*((j1-j0)+1)+(j-j0),goal=key(s1[0],s1[1]);

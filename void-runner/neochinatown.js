@@ -18,6 +18,7 @@
   const MK=typeof module!=='undefined'?require('./milked.js'):root.VoidMilked;
   // The three quarters and the checkpoints between them (ncz-quarters.js): which quarter a build makes, and the gates' collision.
   const QT=typeof module!=='undefined'?require('./ncz-quarters.js'):root.VoidQuarters;
+  const UGM=()=>{try{return typeof module!=='undefined'?require('./ncz-underground.js'):root.VoidUnderground||null;}catch{return null;}};   // the tunnels under the city (ncz-underground.js)
   const CT=typeof module!=='undefined'?require('./ncz-containers.js'):root.VoidContainers;   // The Outskirts' container homes (the owner, 16 Nov 2026)
   const DOOR={x:126.9,z:-61.9};
   const toWorld=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
@@ -152,6 +153,8 @@
   function layout(area='all',quarter=null){
     const l=fullLayout();if(area==='all')return l;
     const keep=area==='interior'?insideSide:i=>!insideSide(i)||ENTRANCE.has(i.id),base={...l,area,solids:l.solids.filter(keep),interactions:l.interactions.filter(keep)};
+    // The underground (ncz-underground.js, 20 Nov 2026): its own walls, doors and prompts only; none of the city's.
+    if(area==='street'&&quarter==='underground'&&UGM()){const U=UGM(),w=U.walking(),Q=QT.QUARTERS.underground;if(w&&Q)return {...base,quarter:'underground',quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:w.solids,interactions:w.interactions.slice(),underground:true};}
     if(area==='street'){const q=QT.valid(quarter),Q=q&&QT.QUARTERS[q];return Q?{...base,quarter:q,quarterName:Q.name,spawn:Q.spawn.slice(),yaw:Q.yaw,solids:[...base.solids,...QT.solids(q),...(q==='outskirts'&&CT?CT.solids():[])],interactions:[...base.interactions,...QT.callPrompts(q)]}:base;}   // callPrompts: CALL A TAXI at every stop's post and by the District's door
     const [x,z]=toWorld(0,22.5);delete base.ship;
     return {...base,name:'THE DARKNET DISTRICT',spawn:[x,1.7,z],yaw:Math.PI};
@@ -161,7 +164,12 @@
   const ads=()=>(root.VoidAds?.brands||[]).map(b=>b.id);
   function build({scene,parent,quality,characterModel,shipModel,state,instance:modelInstance,area='all',quarter=null}){
     // QK: the one quarter this street build makes (null: the whole city, as before the quarters). `free` lifts the test for pieces placed by a parent.
-    const QK=area==='street'?QT.valid(quarter):null;let free=false;const inCore=(x,z)=>x>=-6&&x<=160&&z>=-270&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (the owner, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
+    const QK=area==='street'?QT.valid(quarter):null;let free=false;
+    // The underground (ncz-underground.js): only the tunnel network is built in its quarter (no city above, no crowd, no weather); the handle has the street's shape.
+    if(QK==='underground'&&UGM()){if(root.VoidNeoChinatown)for(const k of ['city','nightclub','booths','podPick','podHover'])root.VoidNeoChinatown[k]=undefined;const h=UGM().build({scene,parent,quality,instance:modelInstance,state});
+      if(h){let last=null;const pair=root.VoidStreetPair&&modelInstance?root.VoidStreetPair.start({B:root.BABYLON,scene,parent,quality,where:{scene:'street',quarter:QK}}):null;
+        return {bladeWords:[],rooftop:null,wallScreens:[],city:null,nightlife:null,alleyLife:null,streetPair:pair,streetGlow:null,crosswalks:null,backAlleys:null,sight:null,doors:null,etiquette:null,gates:null,adScreens:null,quarter:QK,underground:h,
+          prepare:()=>h.prepare?.(),tick(time){const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;try{h.tick(time,typeof walker!=='undefined'?walker:null);}catch{}try{pair?.tick?.(dt);}catch{}},dispose(){try{pair?.dispose();}catch{}h.dispose();}};}}const inCore=(x,z)=>x>=-6&&x<=160&&z>=-270&&z<=2,roofPiece=/^(water-tank|dish|old-building)$/;   // pieces kept as far as a BUILDING is kept (45 m), not as street detail (2.6 m). 'old-building' is the body of every plot that faces a street: it was missing from this list, so in every quarter those bodies were thrown away and only their roofs, windows and shopfront strips were left standing (the owner, 16 Nov 2026: "Much of NeoChinaTown has gaps in the buildings")
     const dropped=(name,p)=>!!QK&&!free&&target===parent&&inCore(p[0],p[2])&&!(roofPiece.test(name)?QT.keepBuilding(QK,p[0],p[2]):QT.keepDetail(QK,p[0],p[2]));
     const B=root.BABYLON,low=quality==='low',owned=[],districtRoot=new root.BABYLON.TransformNode('district-root',scene);let target=parent,disposed=false;districtRoot.parent=parent;districtRoot.position.set(DOOR.x,0,DOOR.z+20);districtRoot.rotation.y=Math.PI;const textures=[],staticMeshes=new Map(),dynamic=[],v=(x,y,z)=>new B.Vector3(x,y,z);
     // A previous build's handles (club, streaming city, booths) belong to a released environment; clear them so nothing reads them.

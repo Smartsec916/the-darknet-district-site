@@ -107,3 +107,11 @@ The owner: "can you make me more and place all of them in Various filter?"; then
 - **Adults-only rooms** for youthful characters (npc-escort.js `ADULT_ROOMS`): only the fight pit (the owner, 20 Nov 2026; the bar back room, card room and gang checkpoint are open).
 - **Pawn shop selling:** `void-runner/pawn-shop.js` `BUYS` (empty on purpose; one line per item: `{item:'<progression.js personalItems id>', price}`). Selling removes the carried item and adds the credits, then saves; the cloud save already accepts any whole credits (0..100 000 000) and validated carried items, so no server change was needed.
 - **Not done:** linking tunnels of different locations into one network across street doors (see AI_HANDOFF.md); a placement tool for the `spots`; how the player reaches the underground (the owner's choice).
+
+## The tunnel network under the city (20 Nov 2026, branch `claude/tunnel-network`, build `2026-11-20-tunnel-network-1`)
+
+The three stair doors now lead into ONE shared network built from these modules (`void-runner/ncz-underground.js`; place ids and door links in AI_HANDOFF.md, newest note). For it:
+
+- `modules.js layout(inst, cluster, {offset:[x, z]})` puts grid metres at a fixed world offset (instead of round ORIGIN), and a location may list `exits` (more sockets that lead to the street, besides `entry`). Mission locations do not use either.
+- `module-build.js` with `def.network`: static pieces merge per material AND per 40 m chunk, and a chunk further than 75 m (60 m on Low) is not drawn (the network's fog is denser); one lamp material per style; a pool of real lights (1 Low, 3 Medium, 4 High) moves to the fixtures nearest the player; `def.dress(kit)` adds dressing with the same materials (the alcoves). A door rec with `shut` never opens by itself (the network's stair doors open only on their prompt).
+- **Tea room fix:** the hidden passage behind the partition was 0.67 m wide (the player could not reach the back door): the partition now ends at x 1.15 (was 1.3), the folding screen starts at 2.2 (was 2.0), the nook's sink sits in the corner behind the screen line and its crate at the west end.
