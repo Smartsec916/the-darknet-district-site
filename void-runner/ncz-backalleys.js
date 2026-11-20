@@ -196,7 +196,7 @@
  /* ---------------- browser: the build ---------------- */
  function build({B=root.BABYLON,scene,parent,quality='medium',quarter=null,base=null}){
   const low=quality==='low',hi=quality==='high'||quality==='ultra',own=[],groups=new Map(),qs=quarter?[quarter]:QUARTERS,made={meshes:0,escapes:0,furniture:0,lamps:0};
-  if(!B||!scene)return {stats:()=>made,dispose(){}};
+  if(!B||!scene||!qs.some(q=>QUARTERS.includes(q)))return {stats:()=>made,dispose(){}};   // a quarter with no back alleys (the Port, the Outskirts): nothing to build (night QA: an empty floor mesh and its materials were made)
   const url=f=>{const p='assets/textures/ncz/'+f+'.jpg';try{return base?new URL(p,base).href:root.document?.currentScript?new URL(p,root.document.currentScript.src).href:'void-runner/'+p;}catch{return 'void-runner/'+p;}};
   const tex=(f,u=1,v=1)=>{const t=new B.Texture(url(f),scene,false,true);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;t.uScale=u;t.vScale=v;own.push(t);return t;};
   const pbr=(name,c,{rough=.7,metal=.2,alb=null,nrm=null,alpha=1}={})=>{const m=new B.PBRMaterial('back-'+name,scene);m.albedoColor=B.Color3.FromHexString(c);m.roughness=rough;m.metallic=metal;if(alb)m.albedoTexture=alb;if(nrm&&!low){m.bumpTexture=nrm;m.bumpTexture.level=.7;}if(alpha<1){m.alpha=alpha;m.transparencyMode=2;}m.maxSimultaneousLights=4;own.push(m);return m;};

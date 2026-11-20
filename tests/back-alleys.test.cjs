@@ -111,3 +111,5 @@ test('a follow / lead walk between the Avenue back alleys and its pavement goes 
   const pts=[a,...E.route(a,b,'avenue')],rects=QT.QUARTERS.avenue.streets;for(let i=1;i<pts.length;i++)for(let t=0;t<=1;t+=.02){const x=pts[i-1].x+(pts[i].x-pts[i-1].x)*t,z=pts[i-1].z+(pts[i].z-pts[i-1].z)*t;
    assert.ok(rects.some(r=>x>=r[0]-.05&&x<=r[1]+.05&&z>=r[2]-.05&&z<=r[3]+.05),'off the streets at '+x.toFixed(1)+','+z.toFixed(1)+' '+JSON.stringify(pts));}}
  assert.deepEqual(E.route({x:60,z:-6.4},{x:30,z:-6.6},'avenue'),[{x:60,z:-6.6},{x:30,z:-6.6}]);});   // the north pavement keeps its walking line
+test('a quarter with no back alleys builds nothing (no empty floor mesh, no materials) (night QA)',()=>{const BA=require('../void-runner/ncz-backalleys.js');
+ for(const q of ['port','outskirts']){const r=BA.build({B:{},scene:{},quarter:q});assert.equal(r.stats().meshes,0);}});
