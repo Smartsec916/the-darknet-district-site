@@ -103,3 +103,15 @@ class StorySaveTests(unittest.TestCase):
             state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',quarter=quarter)
             clean=vr.clean_save(state)
             self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['quarter'],quarter)
+    def test_rook_side_missions_and_nav_coordinates_pass_cloud_validation(self):
+        # Flight-map coordinates (nav-coords.js): story.flags.navCoords is a plain boolean. Rook's side missions (rook-run-N, contract rook-run) stay tracked
+        # in a District campaign once story flag rook-first-delivery-done is set (campaign.js retireMissions does the same); before it they are untracked.
+        def side(flag):
+            state=self.state();state.update(quest='open',location='meridian',contract='rook-run');state['story']['flags'].update(missionPool='closed',shipAccess='granted',navCoords=True,rookNavSent=True,rookJob='routine',rookRunTo='kepler')
+            if flag:state['story']['flags'][flag]=True
+            state['universe']={'trackingInitialized':True,'trackedMission':'rook-run-1','freeTravel':True,'discoveredLocations':['vesper','meridian','kepler','rusthaven','foundry','sol-belt','earth','mars'],'missions':{'rook-run-1':{'acquired':True,'completed':False,'objectives':{'pickup':True}}}}
+            return vr.clean_save(state)
+        for flag in ('rook-first-delivery-done','mf_rook-first-delivery-done'):
+            clean=side(flag);self.assertEqual(clean['universe']['trackedMission'],'rook-run-1');self.assertEqual(clean['contract'],'rook-run');self.assertIs(clean['story']['flags']['navCoords'],True)
+            self.assertIn('kepler',clean['universe']['discoveredLocations'])
+        self.assertIsNone(side(None)['universe']['trackedMission'])

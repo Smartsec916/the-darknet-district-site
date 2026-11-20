@@ -9,6 +9,8 @@
   const P=typeof module!=='undefined'?require('./progression.js'):root.VoidProgression;
   const U=typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
   const Missions=typeof module!=='undefined'?require('./mission-log.js'):root.VoidMissions;
+  const Nav=()=>typeof module!=='undefined'?require('./nav-coords.js'):root.VoidNav;   // flight-map coordinates: route-only until Rook sends them (nav-coords.js)
+  const RC=typeof module!=='undefined'?require('./rook-cargo-jobs.js'):root.VoidRookCargoJobs;   // Rook's cargo jobs: data the owner can edit (rook-cargo-jobs.js)
   const Ord=()=>typeof module!=='undefined'?require('./ordnance.js'):root.VoidOrdnance;   // missiles M1 / M2, the launcher and the Ship Loadout app that come with a ship
   const WarFlying=typeof module!=='undefined'?require('./warflying.js'):root.VoidWarFlying;const Relay=typeof module!=='undefined'?require('./relay.js'):root.VoidRelay;
   const stations=Story.content.locations;for(const [id,def] of Object.entries(U.locations))stations[id]={...stations[id],...def};
@@ -170,17 +172,16 @@
   // State (story.flags, which cloud saves accept): rookRuns (runs finished), rookJob (the job aboard),
   // rookRunTo (its destination), rookOwed ('run:credits' waiting with Rook), rookLog (recent history).
   const rookCargo=['Sealed reactor couplings','Med-gel canisters','Unmarked data cores','Hydroponic seed stock','Salvaged drive coils','Encrypted ledger drives','Coolant cells','Surplus targeting optics'];
-  const rookJobs={
-    routine:{label:'Routine freight',legal:true,units:1,payAt:'delivery',bonus:0,danger:0,cargo:['Med-gel canisters','Hydroponic seed stock','Coolant cells','Salvaged drive coils']},
-    'long-haul':{label:'Long-haul freight',legal:true,units:1,payAt:'delivery',bonus:300,danger:1,far:true,cargo:['Hydroponic seed stock','Coolant cells','Med-gel canisters']},
-    valuable:{label:'High-value freight',legal:true,units:2,payAt:'rook',bonus:500,danger:2,cargo:['Sealed reactor couplings','Encrypted ledger drives','Surplus targeting optics']},
-    hazard:{label:'Dangerous lane',legal:true,units:1,payAt:'delivery',bonus:600,danger:4,cargo:['Salvaged drive coils','Coolant cells','Surplus targeting optics']},
-    restricted:{label:'Restricted cargo',legal:false,units:1,payAt:'rook',bonus:500,danger:2,cargo:['Unmarked data cores','Unregistered memory wafers']}
-  };
+  // The kinds of job, their pay and Rook's District board are data the owner can edit: rook-cargo-jobs.js.
+  const rookJobs=RC.jobs;
+  /* Rook's side missions in a District campaign (the owner, 20 Nov 2026): closed until the first delivery to Rook is done (story flag rook-first-delivery-done,
+     set by the Awakening / First Cargo Delivery tree). An older campaign (open mission pool) keeps its board as before. */
+  const rookOpen=s=>!Missions.closed(s)||!!Nav()?.rookDone(s);
+  const rookShut=s=>!rookOpen(s);
   const rookRunBase={ id: 'rook-run', name: 'Rook freight run', cargo: 'Rook freight', legal: true, destination: 'meridian', reward: 500, enemies: 4, tier: 1, duration: 36, contact: 'Rook', briefing: 'Rook always has another crate that needs to be somewhere else.' };
   function rookRunNumber(s){return (Number.isSafeInteger(s.story?.flags?.rookRuns)?s.story.flags.rookRuns:0)+1;}
   // Rook runs no freight to Vesper or the faction homeworlds, nor into a system Admin's delivery hasn't opened.
-  function rookPool(s){const u=s.universe||U.fresh();return Object.keys(U.locations).filter(id=>id!=='vesper'&&id!=='nexus'&&id!=='order-homeworld'&&id!=='meridian'&&Object.hasOwn(stations,id)&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));}
+  function rookPool(s){const u=s.universe||U.fresh();return Object.keys(U.locations).filter(id=>!RC.never.includes(id)&&Object.hasOwn(stations,id)&&(u.discoveredLocations||[]).includes(id)&&!heldForAdmin(s,U.system(id)));}
   function rookRunTarget(s){
     const u=s.universe||U.fresh(),served=String(s.story?.flags?.rookSystems||'erebus').split(',');
     const fresh=(u.discoveredSystems||[]).find(id=>U.systems[id]&&!served.includes(id)&&U.systems[id].hub!==s.location&&!heldForAdmin(s,id));
@@ -191,7 +192,7 @@
   // The board for the next run: one routine job at first, two from the second run, three from the fourth.
   // It depends only on the save (run count and known places), so reloading never rerolls it.
   function rookBoard(s){
-    if(Missions.closed(s))return [];
+    if(Missions.closed(s))return rookOpen(s)?districtBoard(s):[];
     const n=rookRunNumber(s),pool=rookPool(s),far=pool.filter(id=>U.system(id)!=='erebus'),extra=['long-haul','valuable','hazard','restricted'];
     const kinds=['routine',...(n>=2?[extra[(n-2)%4]]:[]),...(n>=4?[extra[(n-1)%4]]:[])].filter(k=>k!=='long-haul'||far.length);
     return kinds.map((kind,i)=>{
@@ -199,9 +200,18 @@
       return rookJobOffer(n,kind,destination);
     });
   }
+  /* Rook's side-mission board in a District campaign: the kinds in rook-cargo-jobs.js districtBoard, each to a different reachable place (a known place in a known system,
+     never Vesper, a homeworld or Meridian, nor a system Admin's delivery holds). It depends only on the save, so a reload never rerolls it; each finished run moves it on. */
+  function districtBoard(s){
+    const n=rookRunNumber(s),u=s.universe||U.fresh(),pool=rookPool(s).filter(id=>(u.discoveredSystems||[]).includes(U.system(id))),used=new Set(),out=[];
+    for(const [i,kind] of [...new Set(RC.districtBoard)].entries()){const j=rookJobs[kind],list=j?(j.far?pool.filter(id=>U.system(id)!=='erebus'):pool):[];if(!list.length)continue;
+      let destination=null;for(let k=0;k<list.length&&!destination;k++){const c=list[(n-1+i+k)%list.length];if(!used.has(c))destination=c;}
+      destination=destination||list[(n-1+i)%list.length];used.add(destination);out.push({...rookJobOffer(n,kind,destination),side:true});}
+    return out;
+  }
   function rookJobOffer(n,kind,destination){
-    const j=rookJobs[kind],step=Math.min(n-1,8);
-    return {...rookRunBase,id:'rook-run-'+n,number:n,kind,label:j.label,name:'Rook freight run #'+n,cargo:j.cargo[(n-1)%j.cargo.length],units:j.units,legal:j.legal,payAt:j.payAt,destination,payment:Math.min(2000,500+150*step)+j.bonus,enemies:4+step+j.danger,tier:1+step*.3+j.danger*.2,duration:36+step*2};
+    const j=rookJobs[kind],step=Math.min(n-1,RC.pay.steps);
+    return {...rookRunBase,id:'rook-run-'+n,number:n,kind,label:j.label,name:'Rook freight run #'+n,cargo:j.cargo[(n-1)%j.cargo.length],units:j.units,legal:j.legal,payAt:j.payAt,destination,destinationName:stations[destination]?.name||destination,payment:Math.min(RC.pay.cap,RC.pay.base+RC.pay.perRun*step)+j.bonus,enemies:4+step+j.danger,tier:1+step*.3+j.danger*.2,duration:36+step*2};
   }
   // Free hold space (salvage aboard takes room; contract cargo is not yet aboard).
   function holdFree(s){return P.systems(s).cargo-(s.progression?.cargo||[]).reduce((n,x)=>n+x.units,0);}
@@ -214,7 +224,7 @@
     return {...rookRunBase,id:'rook-run-'+n,number:n,kind:'legacy',payAt:'delivery',units:1,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),payment:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
   }
   function acceptRook(s,kind='routine'){
-    if(Missions.closed(s)||s.quest!=='open'||s.contract||rookOwed(s))return false;
+    if(rookShut(s)||s.quest!=='open'||s.contract||rookOwed(s))return false;
     const job=rookBoard(s).find(j=>j.kind===kind);if(!job||holdFree(s)<job.units)return false;
     s.destination=null;s.contract='rook-run';s.story.flags.rookJob=kind;s.story.flags.rookRunTo=job.destination;
     U.discover(s,job.destination);Missions.acquire(s,job.id);Missions.complete(s,job.id,'pickup',api);Story.emit(s,'missionAccepted','rook-run');return true;
@@ -223,13 +233,13 @@
   function rookOwed(s){const m=/^(\d{1,6}):(\d{1,6})$/.exec(String(s.story?.flags?.rookOwed||''));return m?{number:Number(m[1]),amount:Number(m[2])}:null;}
   // Rook pays in person at Meridian. The debt is cleared in the same step, so it is paid exactly once.
   function collectRook(s){
-    const o=rookOwed(s);if(Missions.closed(s)||!o||s.location!=='meridian')return 0;
+    const o=rookOwed(s);if(rookShut(s)||!o||s.location!=='meridian')return 0;
     delete s.story.flags.rookOwed;s.credits+=o.amount;s.completed++;
     Missions.complete(s,'rook-run-'+o.number,'payment',api);rookHistory(s,o.number,'paid');return o.amount;
   }
   // Handing the freight back to Rook's crew ends the job: no pay, no penalty, the same run number stays open.
   function cancelRook(s){
-    if(Missions.closed(s))return false;
+    if(rookShut(s))return false;
     if(s.contract!=='rook-run'||s.location!=='meridian')return false;
     const id=rookRun(s).id;s.contract=null;delete s.story.flags.rookJob;delete s.story.flags.rookRunTo;
     if(s.universe?.missions)delete s.universe.missions[id];if(s.universe?.trackedMission===id)s.universe.trackedMission=null;return true;
@@ -246,9 +256,9 @@
   function rookLog(s){return String(s.story?.flags?.rookLog||'').split(',').filter(Boolean).map(x=>{const [number,kind,destination,payment,status]=x.split('.');return {number:Number(number),kind,label:rookJobs[kind]?.label||'Freight',destination,payment:Number(payment),status};});}
   // Details for a run's Mission Log entry, whether it is aboard, waiting on pay, or finished.
   function rookRunInfo(s,number){
-    if(s.contract==='rook-run'&&rookRunNumber(s)===number)return {...rookRun(s),stage:'carrying'};
+    if(s.contract==='rook-run'&&rookRunNumber(s)===number)return {...rookRun(s),stage:'carrying',side:Missions.closed(s)};
     const o=rookOwed(s),h=rookLog(s).find(x=>x.number===number);
-    if(h)return {...rookRunBase,...h,payAt:h.kind&&rookJobs[h.kind]?rookJobs[h.kind].payAt:'delivery',id:'rook-run-'+number,name:'Rook freight run #'+number,stage:o?.number===number?'owed':'done'};
+    if(h)return {...rookRunBase,...h,payAt:h.kind&&rookJobs[h.kind]?rookJobs[h.kind].payAt:'delivery',id:'rook-run-'+number,name:'Rook freight run #'+number,stage:o?.number===number?'owed':'done',side:Missions.closed(s),destinationName:stations[h.destination]?.name||h.destination};
     return null;
   }
   const allContracts = [...contracts, rookRunBase, ...factionList, ...supplyList, ...homeContracts, sealedCargo, ...content.missions];
@@ -338,7 +348,7 @@
     return {name:'Free transit',destination:s.destination,duration:policy.seconds,enemies:policy.interdiction?3:0,tier:1,reward:0,legal:true,cargo:'Empty hold',kind:'transit'};
   }
   function accept(s, id) {
-    if(Missions.closed(s))return false;
+    if(Missions.closed(s)&&!(rookOpen(s)&&(id==='rook-run'||String(id).startsWith('rook-job:'))))return false;   // a District campaign: only Rook's side missions, once his board is open
     if (s.quest === 'legal-offer') { s.quest = 'legal-run';Missions.acquire(s,'legal-run'); return true; }
     if (s.quest === 'illegal-offer') { s.quest = 'illegal-run';Missions.acquire(s,'illegal-run'); return true; }
     const c = allContracts.find(c => c.id === id);
@@ -353,7 +363,7 @@
   function complete(s) {
     // A District campaign has no old missions to complete, but a pilot who owns a ship (the beginner campaign's award, or a developer test ship) must still be able to ARRIVE
     // from a free transit: without this the flight never ended and the ship could never reach another place.
-    if(Missions.closed(s)&&!(s.story?.flags?.shipAccess!=='none'&&flight(s)?.kind==='transit'))return null;
+    if(Missions.closed(s)&&!(s.story?.flags?.shipAccess!=='none'&&(flight(s)?.kind==='transit'||s.contract==='rook-run'&&rookOpen(s))))return null;   // ... and Rook's side missions deliver
     const f = flight(s); if (!f) return null;
     const previous = s.quest;
     if(f.enemies>0){s.combatRuns=(s.combatRuns||0)+1;if(s.combatRuns>=2)s.missileUnlocked=true;}
@@ -421,13 +431,13 @@
     {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
-    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Ord()?.migrate(out);Missions.sync(out,{missionFlight,contracts});return out;
+    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Ord()?.migrate(out);Nav()?.migrate(out);Missions.sync(out,{missionFlight,contracts});return out;
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
   /* Missions removed from the game (the owner, 17 Nov 2026): in a District campaign only the main storyline (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run.
      A tracked removed mission (the beginner campaign, anything older) is untracked; its record, credits, items and ships are kept, and nothing is rejected. void_runner_api.py clean_save does the same. */
   const storyMission=id=>typeof id==='string'&&/^(draft-|main-storyline-m\d|m\d{3}-)/.test(id);
-  function retireMissions(s){if(!Missions.closed(s)||!s.universe)return false;const t=s.universe.trackedMission;if(t==null||storyMission(t))return false;s.universe.trackedMission=null;s.universe.autoTrack=true;return true;}
+  function retireMissions(s){if(!Missions.closed(s)||!s.universe)return false;const t=s.universe.trackedMission;if(t==null||storyMission(t)||rookOpen(s)&&/^rook-run-\d+$/.test(t))return false;/* Rook's side missions stay tracked once his board is open */s.universe.trackedMission=null;s.universe.autoTrack=true;return true;}
   function grantShip(s){if(s.story?.flags?.shipAccess==='none')s.story.flags.shipAccess='granted';return S.hasShip(s);}
   /* The beginner campaign's reward (and the developer test ship): a REAL starter ship plus the travel the ship system needs. Idempotent: the flag makes a second call change nothing.
      What it opens: the pad ship and BOARD (shipAccess), boarding past the old Vesper opening gate (quest 'open'; a closed-pool campaign has no Vesper lessons, see progression.groundDone),
@@ -437,7 +447,8 @@
    if(f.starterShipAwarded===true)return S.hasShip(s);
    grantShip(s);if(!s.ownedShips.includes('starter'))s.ownedShips.unshift('starter');s.activeShip=s.ownedShips.includes(s.activeShip)?s.activeShip:'starter';
    if(!s.loadout||!Object.keys(s.loadout).length)s.loadout={...S.defaults[s.activeShip]};
-   s.quest='open';s.universe=U.restore({...s.universe,missionLogUnlocked:true,freeTravel:true},s);f.starterShipAwarded=true;Ord()?.grant(s);return S.hasShip(s);
+   s.quest='open';s.universe=U.restore({...s.universe,missionLogUnlocked:true,freeTravel:true},s);f.starterShipAwarded=true;if(f.navCoords===undefined&&Missions.closed(s))f.navCoords=false;   // a new pilot's Map shows only the route until Rook sends the coordinates (nav-coords.js)
+   Ord()?.grant(s);return S.hasShip(s);
   }
   /* A hull becomes the player's (ownership, its loadout and its standard gear): buying it, or a mission reward (Mission Editor GRANT SHIP). Never a premium hull. */
   function giveShip(s,id){const ship=S.ships[id];if(!S.hasShip(s)||!ship||ship.premium||s.ownedShips.includes(id))return false;s.ownedShips.push(id);s.shipLoadouts[id]={...S.defaults[id]};for(const [key,item]of Object.entries(S.equipment))if(item.ship===id&&!s.standardGear.includes(key))s.standardGear.push(key);Ord()?.grant(s,id);Story.emit(s,'ownShip',id);return true;}
@@ -499,7 +510,7 @@
       }
     };
   }
-  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, rookOpen, districtBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
