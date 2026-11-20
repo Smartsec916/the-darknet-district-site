@@ -51,7 +51,7 @@ Missions 004–012 (`void-runner/main-story.js`, branch `claude/awakening-tree`)
 | Associate 1 / Associate 2 | 3 / 3 | 215 / 120 | none (new characters): the owner chooses |
 | Juno Vex | 3 | 170 | none yet |
 | Blackrock associate | 2 | 165 | none |
-| The six (in unison) / Halden (the initiate) | 7 / 4 | 635 / 33 | none: the cult-room scene has an IMPORT VOICE FILE slot per line (the six should be one synchronised take); the laugh beat is silent until a laugh file is imported |
+| The six (in unison) / Halden (the initiate) | 7 / 4 | 635 / 33 | the six: **voices APPROVED by the owner 20 Nov 2026** (revoice-engines.json `robed-1`..`robed-6`: Blackrock Member 1 (Jacob L.), 2 (Edward Sterling), 3 (Cole), 4 (Alex), 5 (Dean), 6 (Gareth); eleven_v4, tag [slow, solemn, ceremonial]); every `robed-all` line and the laugh follow the owner's "half in sync" chorus recipe stored as data in `cult-room.js CHORUS` (1-3 together at 0 / 20 / 10 ms, 4 about 230 ms late, 6 about 160 ms late, 5 about 6% faster, the drifting three at 80-85%, light room echo). The lines themselves are NOT recorded. Halden: no voice yet. Each line also has an IMPORT VOICE FILE slot |
 | Rook (PROPOSED placeholders) | 2 | 117 | his approved voice; the lines themselves are not approved |
 
 The First Cargo Delivery's Admin / Iris / Rook lines are PROPOSED placeholders (`PROPOSED_CARGO`): never record them before the owner approves the words.
