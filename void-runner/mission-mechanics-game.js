@@ -38,8 +38,8 @@
  function build(c){const B=root.BABYLON,S=root.VoidBabylon?.scene,A=root.VoidAssets;if(!B||!S)return null;const sp=spotOf(c,c.idx),y=yOf(c);let node=null,anim=null;
   if(c.model==='marker'){node=new B.TransformNode('mission-cast-'+c.id,S);node.position.set(sp.x,y,sp.z);}
   else{if(!A||!A.instance)return null;if(!A.container?.('crowd:'+c.model)){if(!asked.has(c.model)){asked.add(c.model);Promise.resolve(A.load('crowd:'+c.model,{src:root.VoidMadeNPCs?.fileOf?.(c.model)||'assets/models/crowd/'+c.model+'.glb',background:true},S)).catch(()=>{});}return null;}
-   node=A.instance('crowd:'+c.model,null);if(!node)return null;node.metadata={...node.metadata,character:c.id,displayName:c.name||c.id,missionCast:true};for(const m of node.getChildMeshes(false))m.isPickable=false;
-   node.position.set(sp.x,y,sp.z);node.rotation.y=Number.isFinite(c.yaw)?c.yaw:0;try{anim=root.VoidCrowd?.animate?.(node,c.model,c.clip||'idle')||null;}catch{}}
+   const holder=new B.TransformNode('mission-cast-'+c.id,S),fig=A.instance('crowd:'+c.model,holder);if(!fig){holder.dispose();return null;}node=holder;fig.metadata={...fig.metadata,character:c.id,displayName:c.name||c.id,missionCast:true};for(const m of fig.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}   // the asset pipeline instances into a parent node (asset-pipeline.js instance)
+   node.position.set(sp.x,y,sp.z);node.rotation.y=Number.isFinite(c.yaw)?c.yaw:0;try{anim=root.VoidCrowd?.animate?.(fig,c.model,c.clip||'idle')||null;}catch{}}
   try{root.VoidPhotoSubjects?.set(c.id,node,{name:c.name||c.id,role:'mission'});}catch{}
   return {c,node,anim,pos:{x:sp.x,z:sp.z,yaw:node.rotation?node.rotation.y:0},model:c.model,tail:null};}
  function drop(k){const x=cast.get(k);if(!x)return;cast.delete(k);try{root.VoidPhotoSubjects?.remove(x.c.id,x.node);}catch{}try{x.anim?.dispose?.();}catch{}try{x.node.dispose();}catch{}}
