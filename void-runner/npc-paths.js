@@ -23,11 +23,9 @@
  // The Avenue's north pavement (neochinatown.js: the shopfront wall at z -5, a 3 m pavement, the road from z -8): a little clear of the wall and the kerb, and short of the
  // Function Gate (x 10) and the East Gate (x 144). Taxi posts (ncz-quarters.js STOPS post) are kept clear by `post` metres.
  const AVENUE_NORTH={id:'avenue-north',name:'The Avenue, north pavement',quarter:'avenue',x0:12.5,x1:141.5,z0:-7.6,z1:-5.8,post:.7};
- /* Street furniture on that pavement, read from the built city on 18 Nov 2026 (tests/npc-obstacles-browser.cjs: rays at knee, waist and head height): the ad screens'
-    stands and the taxi poles along the kerb, [x0, x1, z0, z1] in metres. Kept clear by `clear` metres (her body). The city's furniture follows its fixed random sequence:
-    rerun the reading when the street changes. */
- const OBSTACLES=[[19.63,20.13,-7.9,-7.5,'the taxi pole'],[32.38,34.38,-7.9,-7.3,'an advertising screen'],[39.38,41.38,-7.9,-7.5,'an advertising screen and the taxi pole'],[46.63,48.38,-7.9,-7.5,'an advertising screen'],[53.63,55.38,-7.9,-7.5,'an advertising screen'],
-  [95.63,97.38,-7.9,-7.5,'an advertising screen'],[123.38,125.38,-7.9,-7.3,'an advertising screen'],[133.63,134.13,-7.9,-7.5,'the taxi pole']],CLEAR=.3;
+ /* Street furniture on that pavement: the taxi poles along the kerb, [x0, x1, z0, z1] in metres (read from the built city, tests/npc-obstacles-browser.cjs). Kept clear by
+    `clear` metres (her body). (20 Nov 2026) The ad screens' kerb stands are gone: the screens hang on the walls now (ad-screens-data.js MOUNT). */
+ const OBSTACLES=[[19.63,20.13,-7.9,-7.5,'the taxi pole'],[39.88,40.13,-7.9,-7.5,'the taxi pole'],[133.63,134.13,-7.9,-7.5,'the taxi pole']],CLEAR=.3;
  const inBox=(p,o,m=CLEAR)=>p.x>o[0]-m&&p.x<o[1]+m&&p.z>o[2]-m&&p.z<o[3]+m;
  const posts=()=>((QT()&&QT().STOPS)||[]).filter(s=>s.quarter==='avenue'&&Array.isArray(s.post)).map(s=>({x:s.post[0],z:s.post[1],id:s.id}));
  const ledges=()=>{const S=SP();return ((S&&S.STEPS)||[]).map(st=>({id:st.id,x:st.x,z:st.z,w:st.w,d:st.d,front:S.frontOf(st)}));};

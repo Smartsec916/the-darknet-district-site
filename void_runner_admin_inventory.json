@@ -1693,22 +1693,10 @@
           "no": [],
           "obstacles": [
             [
-              18.375,
-              20.375,
-              -17.625,
-              -17.125
-            ],
-            [
               19.625,
               20.125,
               -7.875,
               -7.625
-            ],
-            [
-              20.375,
-              20.625,
-              -17.625,
-              -17.375
             ],
             [
               25.375,
@@ -1723,110 +1711,8 @@
               -17.375
             ],
             [
-              25.625,
-              27.375,
-              -17.375,
-              -17.125
-            ],
-            [
-              32.375,
-              32.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              32.375,
-              32.625,
-              -7.875,
-              -7.375
-            ],
-            [
-              32.625,
-              34.375,
-              -17.625,
-              -17.125
-            ],
-            [
-              32.625,
-              32.875,
-              -7.875,
-              -7.625
-            ],
-            [
-              32.875,
-              34.125,
-              -7.875,
-              -7.375
-            ],
-            [
-              34.125,
-              34.625,
-              -7.875,
-              -7.625
-            ],
-            [
-              34.375,
-              34.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              39.375,
-              41.375,
-              -17.625,
-              -17.125
-            ],
-            [
-              39.375,
-              39.875,
-              -7.875,
-              -7.625
-            ],
-            [
               39.875,
               40.125,
-              -7.875,
-              -7.625
-            ],
-            [
-              39.875,
-              40.125,
-              -7.625,
-              -7.375
-            ],
-            [
-              40.125,
-              41.125,
-              -7.875,
-              -7.375
-            ],
-            [
-              41.125,
-              41.625,
-              -7.875,
-              -7.625
-            ],
-            [
-              41.375,
-              41.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              46.375,
-              46.875,
-              -7.875,
-              -7.625
-            ],
-            [
-              46.875,
-              48.125,
-              -7.875,
-              -7.375
-            ],
-            [
-              48.125,
-              48.625,
               -7.875,
               -7.625
             ],
@@ -1855,18 +1741,6 @@
               -19.625
             ],
             [
-              53.375,
-              53.875,
-              -7.875,
-              -7.625
-            ],
-            [
-              53.875,
-              55.125,
-              -7.875,
-              -7.375
-            ],
-            [
               54.125,
               54.375,
               -20.375,
@@ -1883,12 +1757,6 @@
               54.875,
               -19.875,
               -19.625
-            ],
-            [
-              55.125,
-              55.625,
-              -7.875,
-              -7.625
             ],
             [
               67.125,
@@ -1927,72 +1795,6 @@
               -19.875
             ],
             [
-              74.375,
-              76.375,
-              -17.625,
-              -17.125
-            ],
-            [
-              76.375,
-              76.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              81.375,
-              81.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              81.625,
-              83.375,
-              -17.625,
-              -17.125
-            ],
-            [
-              83.375,
-              83.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              88.375,
-              88.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              88.625,
-              90.375,
-              -17.625,
-              -17.125
-            ],
-            [
-              90.375,
-              90.625,
-              -17.625,
-              -17.375
-            ],
-            [
-              95.375,
-              95.875,
-              -7.875,
-              -7.625
-            ],
-            [
-              95.875,
-              97.125,
-              -7.875,
-              -7.375
-            ],
-            [
-              97.125,
-              97.625,
-              -7.875,
-              -7.625
-            ],
-            [
               123.375,
               123.625,
               -7.875,
@@ -2001,12 +1803,6 @@
             [
               123.625,
               123.875,
-              -7.875,
-              -7.625
-            ],
-            [
-              123.875,
-              125.375,
               -7.875,
               -7.625
             ],
@@ -3267,12 +3063,6 @@
             [
               50.875,
               51.125,
-              -104.875,
-              -104.625
-            ],
-            [
-              50.875,
-              51.125,
               -66.875,
               -66.625
             ],
@@ -3281,12 +3071,6 @@
               51.125,
               -59.875,
               -59.625
-            ],
-            [
-              50.875,
-              51.125,
-              -34.625,
-              -34.375
             ],
             [
               50.875,
@@ -3313,28 +3097,10 @@
               -26.125
             ],
             [
-              53.375,
-              53.625,
-              -79.625,
-              -77.375
-            ],
-            [
-              53.625,
-              53.875,
-              -79.625,
-              -77.625
-            ],
-            [
               53.875,
               54.125,
               -26.375,
               -26.125
-            ],
-            [
-              68.125,
-              68.375,
-              -121.625,
-              -119.375
             ],
             [
               68.125,
@@ -3351,26 +3117,8 @@
             [
               68.125,
               68.375,
-              -93.125,
-              -91.625
-            ],
-            [
-              68.125,
-              68.375,
               -91.625,
               -91.375
-            ],
-            [
-              68.125,
-              68.375,
-              -79.625,
-              -77.375
-            ],
-            [
-              68.125,
-              68.375,
-              -72.625,
-              -70.375
             ],
             [
               68.125,
@@ -3379,58 +3127,10 @@
               -65.875
             ],
             [
-              68.125,
-              68.375,
-              -44.625,
-              -42.375
-            ],
-            [
-              68.125,
-              68.375,
-              -37.625,
-              -35.375
-            ],
-            [
-              68.375,
-              68.625,
-              -121.625,
-              -121.375
-            ],
-            [
-              68.375,
-              68.625,
-              -121.125,
-              -119.875
-            ],
-            [
               68.375,
               68.625,
               -93.625,
               -93.375
-            ],
-            [
-              68.375,
-              68.625,
-              -79.125,
-              -77.875
-            ],
-            [
-              68.375,
-              68.625,
-              -72.125,
-              -70.875
-            ],
-            [
-              68.375,
-              68.625,
-              -44.125,
-              -42.875
-            ],
-            [
-              68.375,
-              68.625,
-              -37.125,
-              -35.875
             ],
             [
               70.625,
@@ -3449,12 +3149,6 @@
               71.125,
               -112.875,
               -112.625
-            ],
-            [
-              70.875,
-              71.125,
-              -109.125,
-              -108.625
             ],
             [
               70.875,
@@ -3495,20 +3189,8 @@
             [
               70.875,
               71.125,
-              -52.875,
-              -52.375
-            ],
-            [
-              70.875,
-              71.125,
               -34.625,
               -34.375
-            ],
-            [
-              70.875,
-              71.125,
-              -31.875,
-              -31.375
             ],
             [
               70.875,
@@ -4840,12 +4522,6 @@
             [
               50.875,
               51.125,
-              -198.375,
-              -198.125
-            ],
-            [
-              50.875,
-              51.125,
               -130.125,
               -129.875
             ],
@@ -4866,54 +4542,6 @@
               51.875,
               -130.375,
               -130.125
-            ],
-            [
-              53.375,
-              53.625,
-              -208.625,
-              -206.375
-            ],
-            [
-              53.375,
-              53.625,
-              -194.625,
-              -192.375
-            ],
-            [
-              53.375,
-              53.625,
-              -173.625,
-              -171.375
-            ],
-            [
-              53.375,
-              53.625,
-              -166.625,
-              -164.375
-            ],
-            [
-              53.625,
-              53.875,
-              -208.625,
-              -206.625
-            ],
-            [
-              53.625,
-              53.875,
-              -194.375,
-              -192.625
-            ],
-            [
-              53.625,
-              53.875,
-              -173.375,
-              -171.625
-            ],
-            [
-              53.625,
-              53.875,
-              -166.375,
-              -164.625
             ],
             [
               53.875,
@@ -4984,74 +4612,8 @@
             [
               68.125,
               68.375,
-              -208.625,
-              -206.375
-            ],
-            [
-              68.125,
-              68.375,
               -182.375,
               -181.875
-            ],
-            [
-              68.125,
-              68.375,
-              -180.625,
-              -178.375
-            ],
-            [
-              68.125,
-              68.375,
-              -166.625,
-              -164.375
-            ],
-            [
-              68.125,
-              68.375,
-              -159.625,
-              -157.375
-            ],
-            [
-              68.125,
-              68.375,
-              -152.625,
-              -150.375
-            ],
-            [
-              68.375,
-              68.625,
-              -208.625,
-              -208.375
-            ],
-            [
-              68.375,
-              68.625,
-              -208.125,
-              -206.875
-            ],
-            [
-              68.375,
-              68.625,
-              -180.125,
-              -178.875
-            ],
-            [
-              68.375,
-              68.625,
-              -166.125,
-              -164.875
-            ],
-            [
-              68.375,
-              68.625,
-              -159.125,
-              -157.875
-            ],
-            [
-              68.375,
-              68.625,
-              -152.125,
-              -150.875
             ],
             [
               70.125,
@@ -41104,7 +40666,7 @@
       "spawn"
     ]
   },
-  "revision": "fd3253ab481d1c23",
+  "revision": "d3dffa933f7c7077",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -53252,49 +52814,49 @@
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 182,
+      "line": 208,
       "text": "/* One slot as something a screen can show and say. Each slide: {kind, cat, look, speaker, label, title, lines:[{text, say, hold}]}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 188,
+      "line": 214,
       "text": "say: the exact text a recording is looked up by (null: nothing is ever said for it). hold: seconds on screen without a recording. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 190,
+      "line": 216,
       "text": "if(slot.type==='board'){const c=CATEGORIES.board;return {kind:'board',cat:'board',look:c.look,speaker:c.speaker,label:standings?.header||'WARFLYING LEADERSHIP BOARD',title:'',standings,lines:[{text:standings?.spoken||'',say:standings?.spoken||null,hold:TIMING.board}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 191,
+      "line": 217,
       "text": "if(slot.type==='news'){const s=slot.segment,c=CATEGORIES.news;return {kind:'news',cat:'news',look:c.look,speaker:s.speaker||'news-anchor',label:c.label,title:s.headline||'',id:s.id,lines:[{text:s.headline||'',say:null,hold:TIMING.headline,headline:true},...s.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 193,
+      "line": 219,
       "text": "if(ad.brand){const full=ad.brand+' — '+ad.line;return {...base,kind:'brand',title:ad.brand,lines:[{text:ad.line,say:full,hold:TIMING.brand}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 194,
+      "line": 220,
       "text": "if(ad.lines)return {...base,kind:'script',title:ad.title,lines:[...(ad.relay||!ad.title?[]:[{text:ad.title,say:ad.title,hold:TIMING.title,title:true}]),...ad.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 195,
+      "line": 221,
       "text": "return {...base,kind:'notice',title:'',lines:[{text:ad.line,say:ad.line,hold:TIMING.notice}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 198,
+      "line": 224,
       "text": "function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}",
       "kind": "source-reference"
     },
@@ -53306,31 +52868,31 @@
     },
     {
       "source": "void-runner/ad-screens.js",
-      "line": 251,
+      "line": 259,
       "text": "/* Is this a moment to keep quiet? No player position (sound off, a pod, VR), not out on the street, standing in a checkpoint lane, a conversation, a menu,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens.js",
-      "line": 256,
+      "line": 264,
       "text": "if(typeof speech!=='undefined'&&speech)return 0;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens.js",
-      "line": 284,
+      "line": 292,
       "text": "if(speak&&line.say&&!audio.busy&&audio.voice){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens.js",
-      "line": 285,
+      "line": 293,
       "text": "const clip=root.VoidVoiceClips?.broadcast?.(f.slide.speaker,line.say,audio.voice.gain);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens.js",
-      "line": 286,
+      "line": 294,
       "text": "if(clip){f.clip=clip;audio.busy=f;f.dur=40;f.spoken++;f.lastSpoken={speaker:f.slide.speaker,text:line.say};",
       "kind": "source-reference"
     },
@@ -57026,19 +56588,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 928,
+      "line": 969,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1092,
+      "line": 1133,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1213,
+      "line": 1254,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -57458,13 +57020,13 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 114,
+      "line": 112,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 237,
+      "line": 235,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
@@ -59502,8 +59064,8 @@
     "void-runner/account.js": "ac5706ee05840b267bd8eeda4119f5b6c2f77250e02831b83d4aef664f82e5b8",
     "void-runner/achievements.js": "c9fcfe10ff0b63159be95d0b2e139ac3dcc3848080d80f40f50589148fddf200",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
-    "void-runner/ad-screens-data.js": "bbdb0ddd518b7abf30b85125f2a1aaa7a54331626581a23ea7282f4b4512c47a",
-    "void-runner/ad-screens.js": "c8e07956069c4ff4a8489f2a2fd38054817c847e9904534d7f612781d2f5208c",
+    "void-runner/ad-screens-data.js": "cb606f2d602c753f2b5b32bb943af27ecdc2f48172a4f32fc7db2e1fcc4ab301",
+    "void-runner/ad-screens.js": "d8634ec993098c1970f550d47343414714b497ac3e0b3ef1f9ec45eb7669ec38",
     "void-runner/anim-library.js": "17580f80c1293f158dd0afbe0d543d6a02035971b38468fc49d7af0eb8728f3d",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "9e36df0efe1cd9681c27494e25a8c5e60196a3447d570c7a01267a6d81aaf848",
@@ -59653,12 +59215,13 @@
     "void-runner/ncz-nightlife.js": "979fb9db4d46f87e785aee99e67dcdf1018d32052c3d7d571431c5d7a1cf930f",
     "void-runner/ncz-outskirts-life.js": "499e7eb615081e6575e17d8f357887f2b54f48db480463cd0381ef31a633010b",
     "void-runner/ncz-quarters.js": "97c10642792d8bb359c96894b8e9d7e90504395b3ac838a4021f3468111ae149",
+    "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "4aa3f4f80e7648bde8f268a8b48ce1ffbbd9b4fa01f661e13ca0e788a50412b6",
     "void-runner/ncz-street-pair.js": "432388decd1ac1b956d3d03adad43cac908cc5f9a4643d2bc1ffa8c492d3cbc4",
-    "void-runner/neochinatown.js": "8d608b477a1beb1eaee3301c2732dcc998a6b819ce99a3cd3ee6b430d0db859e",
+    "void-runner/neochinatown.js": "8ea2ed6b01accc09688ed8dcf5251c3537b7fa96e3e02bf631d5052f148239f7",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "d1235d60ebb8a1ac2477a847fd6ad88175906e1c49ef49322b65ee462624d2ec",
+    "void-runner/npc-areas.js": "1796a525bbfe5b9b3641d5756868071d81bbf37943e1edd842eeb46fc24ff423",
     "void-runner/npc-behaviour.js": "f255456efbfbece9875e29c675b2818be0fa96c20efb9b6f4909320facfe0bc4",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
@@ -59669,7 +59232,7 @@
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-made.js": "914db3617694de581c1648e817b3d747ec8eac27c3507ca9ca0954686657719c",
     "void-runner/npc-map.js": "e0215b44a72d0bde74daacfec05d812a6c7eff730158e76934af185dfcbc6aa8",
-    "void-runner/npc-paths.js": "277bd77ba0672f14cfda9f4fadf861b42018547e419e4774ad3a57c5f67b8660",
+    "void-runner/npc-paths.js": "73c14a3f68c2d4ca7bc5f38a2c28d45cb23725d26f6f1394a0f44ba6f10ee1cd",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "c7bd363661ce3aaa939cc9c2c3b09a9f1f5fb813a63bb5fb1e8b88676f47c5c7",

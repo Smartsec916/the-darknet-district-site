@@ -203,6 +203,14 @@
     ['hood',[w+.5,.09,.5],[0,h/2+.24,.02],'trim'],['hood-lamp',[w*.86,.025,.05],[0,h/2+.19,-.17],'lamp'],['lip-top',[w+.14,.07,.07],[0,h/2+.035,-.03],'case'],['lip-bottom',[w+.14,.07,.07],[0,-h/2-.035,-.03],'case'],
     ['lip-left',[.07,h,.07],[-w/2-.035,0,-.03],'case'],['lip-right',[.07,h,.07],[w/2+.035,0,-.03],'case'],['fin-left',[.035,h*.82,.05],[-w/2-.15,0,-.005],'glow'],['fin-right',[.035,h*.82,.05],[w/2+.15,0,-.005],'glow'],
     ['vent',[w*.6,.42,.05],[0,h*.22,.29],'trim'],['service',[w*.34,.5,.05],[0,-h*.24,.29],'trim'],['led',[.04,.04,.03],[w/2-.08,-h/2-.14,.005],'led']);
+  }else if(kind==='mount'){
+   // a street-level screen hung flat on a building wall (20 Nov 2026): a slim case that reaches back to the wall, a hood with its downlight, the zone's two
+   // accent bars, two brackets into the wall and the power conduit running up the wall into the building
+   const d=.36,lip=.06;
+   p.push(['casing',[w+lip*4,h+lip*4,d],[0,0,d/2+.03],'case'],['lip-top',[w+lip*2,lip,lip*1.4],[0,h/2+lip/2,-lip*.2],'case'],['lip-bottom',[w+lip*2,lip*1.6,lip*1.4],[0,-h/2-lip*.8,-lip*.2],'trim'],
+    ['lip-left',[lip,h,lip*1.4],[-w/2-lip/2,0,-lip*.2],'case'],['lip-right',[lip,h,lip*1.4],[w/2+lip/2,0,-lip*.2],'case'],['hood',[w+lip*5,.05,.3],[0,h/2+lip*2.4,-.08],'trim'],
+    ['hood-lamp',[w*.8,.02,.04],[0,h/2+lip*1.9,-.2],'lamp'],['bar-left',[.025,h*.86,.03],[-w/2-lip*1.45,0,-.03],'glow'],['bar-right',[.025,h*.86,.03],[w/2+lip*1.45,0,-.03],'glow'],
+    ['conduit',[.07,.9,.07],[w*.32,h/2+lip*2.4+.45,.16],'trim'],['led',[.03,.03,.02],[w/2-.06,-h/2-lip*.8,-.06],'led']);
   }else if(kind==='wall'){
    const d=Math.max(.3,w*.06),lip=Math.max(.12,w*.035);
    p.push(['casing',[w+lip*4,h+lip*4,d],[0,0,d/2+.05],'case'],['lip-top',[w+lip*2,lip,lip*1.2],[0,h/2+lip/2,-lip*.2],'case'],['lip-bottom',[w+lip*2,lip*1.6,lip*1.2],[0,-h/2-lip*.8,-lip*.2],'trim'],
@@ -228,7 +236,7 @@
  const CHIMES={food:['triangle',[523,0,.12],[659,.09,.12],[784,.18,.22]],dating:['sine',[440,0,.35,880]],corporate:['sine',[392,0,.3],[587,.02,.4]],health:['sine',[880,0,.5]],housing:['triangle',[659,0,.28],[523,.26,.42]],
   transport:['square',[311,0,.14],[311,.2,.26]],tech:['square',[1200,0,.04],[700,.06,.04],[1500,.12,.05]],government:['sine',[330,0,.42],[247,.4,.6]],shipgear:['sine',[1320,0,.6]],police:['square',[660,0,.16],[495,.16,.16],[660,.32,.16]],
   district:['sawtooth',[82,0,.4]],warflying:['sawtooth',[392,0,.1],[523,.1,.1],[659,.2,.1],[784,.3,.3]],cyber:['triangle',[990,0,.07],[1480,.07,.2]],news:['triangle',[740,0,.07],[740,.11,.07],[740,.22,.07],[988,.33,.3]],board:['sawtooth',[523,0,.09],[523,.11,.09],[784,.22,.35]]};
- const VOICE_RANGE={wall:38,kiosk:20,panel:12},HUM_RANGE={wall:16,kiosk:8,panel:5};
+ const VOICE_RANGE={wall:38,kiosk:20,mount:20,panel:12},HUM_RANGE={wall:16,kiosk:8,mount:8,panel:5};
  const audio={ctx:null,voice:null,hums:[],busy:null,level:0};
  function ensureAudio(){
   const A=root.VoidAudio,vb=A?.bus?.('voice'),ab=A?.bus?.('ambient');if(!vb||!ab||!A.settings?.enabled)return null;
@@ -261,7 +269,7 @@
 
  // ---------------------------------------------------------------- feeds
  const TIER={low:{feeds:1,fps:6,res:[384,576]},medium:{feeds:2,fps:10,res:[512,768]},high:{feeds:2,fps:12,res:[512,768]},ultra:{feeds:2,fps:12,res:[512,768]}};
- const DRAW_RANGE={wall:110,kiosk:48,panel:26};
+ const DRAW_RANGE={wall:110,kiosk:48,mount:60,panel:26};
  const relayContent=()=>root.VoidRelayRadio?.content||{segments:[]};
  const standings=()=>{try{return root.VoidWarFlyingScanner?.standings?.()||root.VoidWarFlyingBoard.standings(0,'YOU');}catch{return root.VoidWarFlyingBoard.standings(0,'YOU');}};
  const newsNow=()=>{try{return D.newsFor(relayContent(),typeof state!=='undefined'?state?.relay?.occurred:null);}catch{return [];}};
@@ -290,7 +298,7 @@
 
  // ---------------------------------------------------------------- the street's screens
  /* street(env): called by neochinatown.js while it builds a quarter. env: {B, scene, quality, quarter, box(name,size,pos,mat), add(mesh,mat,pos,merge),
-    dropped(name,pos), mat(key,hex,opts), glowMat(key,hex,level), textures, owned}. Returns {wall(w,p,ry), kiosk(p,ry), extras(), tick(dt), dispose(), ...}.
+    dropped(name,pos), mat(key,hex,opts), glowMat(key,hex,level), textures, owned}. Returns {wall(w,p,ry), kiosk(p,ry), mount(p,ry) (a street-level screen flat on a wall), extras(), tick(dt), dispose(), ...}.
     wall() and kiosk() return false where no screen may stand (the location table), so the caller leaves the wall bare. */
  function street(env){
   const {B,scene,quality,quarter}=env,tier=TIER[quality]||TIER.medium,feeds=new Map(),counts={},spots=[];let drawTimer=0,audioTimer=0,turn=0,clock=0,disposed=false,lead=null;
@@ -306,15 +314,14 @@
   function paintFeed(f){if(!f.slide||f.i<0)return;const line=f.slide.lines[f.i],p=f.clip?f.clip.progress||0:f.said?1:f.lineT/Math.max(.5,line.hold*.82);
    paint(f.texture.getContext(),f.res[0],f.res[1],f.slide,{t:clock+f.offset,slideT:f.slideT,i:f.i,p:clamp(p),lineT:f.lineT});f.texture.update();f.frames=(f.frames||0)+1;}
   function make(kind,w,h,p,ry){
-   const zone=D.zoneAt(quarter,p[0],p[2]);if(!zone||env.dropped('adscreen',p))return false;
-   // no screen in or against a checkpoint: the gatehouses stand where some old posters were, and a checkpoint is a quiet place
-   if((root.VoidQuarters?.GATES||[]).some(g=>p[0]>=g.rect[0]-D.GATE_MARGIN&&p[0]<=g.rect[1]+D.GATE_MARGIN&&p[2]>=g.rect[2]-D.GATE_MARGIN&&p[2]<=g.rect[3]+D.GATE_MARGIN))return false;
+   // no screen where the location table allows none, nor in or against a checkpoint (the gatehouses stand where some old posters were; a checkpoint is a quiet place)
+   const zone=D.zoneAt(quarter,p[0],p[2]);if(!D.allowed(quarter,p[0],p[2],root.VoidQuarters?.GATES||[])||env.dropped('adscreen',p))return false;
    const f=feedFor(zone);
    for(const [name,size,off,s] of housing(kind,w,h)){const m=env.box('adscreen-'+name,size,place(p,ry,off),surface(s,zone));m.rotation.y=ry;}
    const pic=B.MeshBuilder.CreatePlane('adscreen',{width:w,height:h,sideOrientation:B.Mesh.FRONTSIDE},scene);env.add(pic,f.material,p,true);pic.rotation.y=ry;
    const {bk}=axes(ry),spot={feed:f,kind,zone,x:p[0],y:p[1],z:p[2],nx:-bk[0],nz:-bk[1],w,h,ry};f.spots.push(spot);spots.push(spot);return true;
   }
-  const wall=(w,p,ry)=>make('wall',w,w*1.5,p,ry),kiosk=(p,ry)=>make('kiosk',1.6,2.4,p,ry);
+  const wall=(w,p,ry)=>make('wall',w,w*1.5,p,ry),kiosk=(p,ry)=>make('kiosk',1.6,2.4,p,ry),mount=(p,ry)=>make('mount',D.MOUNT.w,D.MOUNT.h,p,ry);
   // the hand-placed screens of this quarter (ad-screens-data.js PLACES)
   function extras(){for(const e of D.PLACES){if(e.quarter!==quarter)continue;const ry=FACES[e.faces]??0;if(e.kind==='kiosk'){kiosk(e.at,ry);continue;}const w=e.w||6,h=w*1.5;if(!wall(w,e.at,ry))continue;
    // posts: true stands the screen on two steel legs with a brace and a footing each (where there is no wall behind it to carry it)
@@ -352,7 +359,7 @@
    if(f.spots.some(s=>seen(s,cp,fw.x,fw.z)))paintFeed(f);
   }
   function dispose(){disposed=true;for(const f of feeds.values())stopClip(f);for(const h of audio.hums){if(!h)continue;try{h.gain.gain.value=0;for(const o of h.nodes)o.stop();h.gain.disconnect();h.pan?.disconnect();}catch{}}audio.hums=[];if(audio.voice)try{audio.voice.gain.gain.value=0;}catch{}feeds.clear();spots.length=0;lead=null;if(api.current===handle)api.current=null;}
-  const handle={wall,kiosk,extras,tick,dispose,quarter,get feeds(){return [...feeds.values()];},get spots(){return spots;},get lead(){return lead;},
+  const handle={wall,kiosk,mount,extras,tick,dispose,quarter,get feeds(){return [...feeds.values()];},get spots(){return spots;},get lead(){return lead;},
    // for tests: move a feed on by one slide, or to the first slide of a kind / id
    skip(id,want){const f=feeds.get(id);if(!f)return null;for(let n=0;n<400;n++){stopClip(f);nextSlide(f);if(!f.slide)return null;if(!want||f.slide.kind===want||f.slide.cat===want||f.slide.id===want)break;}f.i=-1;f.lineT=0;f.dur=0;return f.slide;},
    paintAll(){for(const f of feeds.values())paintFeed(f);}};
