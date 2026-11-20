@@ -64,7 +64,10 @@
    for(const u of data.tunnels||[]){const r=u.rect;c.fillStyle='rgba(120,110,160,.6)';c.strokeStyle='#b8a8ff';c.beginPath();c.rect(px(r[0]),py(r[3]),(r[1]-r[0])*k,(r[3]-r[2])*k);c.fill();c.stroke();
     c.strokeStyle='rgba(230,220,255,.55)';for(let a=.4;a<5;a+=.6){const x=u.top[0]+u.down[0]*a,z=u.top[1]+u.down[1]*a,t=[-u.down[1]*1.2,u.down[0]*1.2];c.beginPath();c.moveTo(px(x-t[0]),py(z-t[1]));c.lineTo(px(x+t[0]),py(z+t[1]));c.stroke();}
     if(k>3){c.fillStyle='#e6dcff';c.font='10px ui-monospace,monospace';c.fillText('stairs down (tunnels)',px(r[0]),py(r[3])-3);}}
-   for(const l of data.labels)text(c,l.name,px(l.x),py(l.z),l.back?'#a8d8b8':'#c9cede',l.back?10:11);
+   // the tunnels (ncz-underground.js): the door up to each alley stairwell (purple, "stairs up to ..."), the alcoves' seats (brown); place names in sand colour
+   for(const d of data.stairDoors||[]){if(!d.inside)continue;const x=px(d.inside.x),y=py(d.inside.z);c.fillStyle='#b8a8ff';c.fillRect(x-3,y-Math.max(4,.6*k),6,Math.max(8,1.2*k));c.fillStyle='#e6dcff';c.font='10px ui-monospace,monospace';c.fillText('stairs up: '+d.name,x+6,y+4);}
+   for(const s of data.seats||[]){c.fillStyle='#a07850';c.beginPath();c.arc(px(s.x),py(s.z),Math.max(2.5,.22*k),0,7);c.fill();}
+   for(const l of data.labels)text(c,l.name,px(l.x),py(l.z),l.back?'#a8d8b8':l.under?'#e0cc98':'#c9cede',l.back||l.under?10:11);
    c.fillStyle='#6c7280';c.font='11px ui-monospace,monospace';c.fillText('N ↑',W-30,14);
    // the route
    const R=o.route||[];if(R.length){c.lineWidth=2;for(let i=0;i<R.length;i++){const a=R[i],b=R[(i+1)%R.length];if(R.length<2)break;c.strokeStyle=(o.routeBad||[]).includes(i)?'#ff4d5e':'rgba(120,210,255,.9)';c.setLineDash(i===R.length-1?[6,5]:[]);c.beginPath();c.moveTo(px(a.x),py(a.z));c.lineTo(px(b.x),py(b.z));c.stroke();}c.setLineDash([]);c.lineWidth=1;

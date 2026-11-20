@@ -42,6 +42,7 @@
   // Places reached from NeoChinatown that are their own walking location.
   if(c.place==='corporate')return 'corporate';
   if(c.place==='temple')return 'temple';
+  if(c.under)return 'alley';   // the tunnels under the city (ncz-underground.js, 20 Nov 2026) sound like the alley: dripping water, the city far off
   if(c.location==='earth'&&c.walker){const N=typeof module!=='undefined'?require('./neochinatown.js'):root.VoidNeoChinatown,p=N?N.zone(c.walker):{area:'district',...c.walker};return p.area==='street'?streetStyle(p):p.area==='terrace'?'district-terrace':districtZones.find(z=>z.test(p)).style;}
   return locations[c.location]||'meridian';
  }
