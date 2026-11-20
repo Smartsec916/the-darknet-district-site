@@ -125,20 +125,20 @@
   furn:[[-2.3,-1.1,1.1,2.3,.4,'table-n'],[-2.3,-1.1,-2.3,-1.1,.4,'table-s'],[2.35,2.9,.9,2.6,.85,'tea'],[2.35,2.9,-2.6,-1.1,.5,'alcove']],
   inter:[{id:'tea',label:'TEA STATION',pos:[2.15,1,1.75],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-.9,.6,1.7],object:'table',range:1.3},{id:'alcove',label:'ALCOVE',pos:[2.15,1.2,-1.4],object:'alcove',range:1.2},{id:'safe',label:'STRONGBOX',pos:[2.2,.7,-2.2],object:'safe',range:1.1}],
   say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},
-  lights:[[-1.7,2.2,1.7,'#ffc890',1.1,8],[1.2,2.2,-1.2,'#ffb878',.8,7]]});
+  lights:[[-1.7,2.2,1.7,'#ffc890',1.4,9],[1.2,2.2,-1.2,'#ffb878',1.1,8]]});
  VAR('card-room',{style:'den',ceil:2.7,name:'Card room',note:'A gambling den: a felt card table under a low lamp with chips and cards, chairs, a worn sofa, a bar cart, the lookout monitor on a desk, a cash safe.',screen:true,
   objects:[O('table','CARD TABLE','the card table'),O('cart','BAR CART','the bar cart'),O('screen','LOOKOUT MONITOR','the lookout monitor (on / off)'),O('safe','CASH SAFE','the cash safe'),LIGHTS],
   furn:[[-.9,.9,-.55,.55,.78,'table'],[-2.9,-2.1,1,2.6,.85,'sofa'],[2.1,2.8,1.8,2.6,.95,'cart'],[1,2.6,-2.9,-2.3,.76,'desk'],[-2.9,-2.35,-2.9,-2.35,.72,'safe']],
   inter:[{id:'table',label:'CARD TABLE',pos:[0,.95,-.75],object:'table',range:1.3},{id:'cart',label:'BAR CART',pos:[1.9,1,2],object:'cart',range:1.2},{id:'screen',label:'TURN SCREEN OFF',pos:[1.8,1.15,-2.2],object:'screen',range:1.4},{id:'safe',label:'CASH SAFE',pos:[-2.2,.9,-2.2],object:'safe',range:1.2}],
   say:{table:'CARD TABLE: a hand left face down, chips stacked by colour, an ashtray. Nobody is collecting the pot.',cart:'BAR CART: cheap spirits poured into expensive bottles.',safe:'CASH SAFE: a keypad, a smear of fingerprints on four of the keys. Locked.'},
-  spots:[['dealer',0,.95,PI],['lookout',1.8,-1.7,PI]],lights:[[0,1.6,0,'#ffd090',1.3,8],[-2,2.3,2,'#ff9a60',.6,6]]});
+  spots:[['dealer',0,.95,PI],['lookout',1.8,-1.7,PI]],lights:[[0,1.6,0,'#ffd090',1.8,9],[-2,2.3,2,'#ff9a60',1,7]]});
  VAR('tattoo',{style:'den',ceil:2.7,name:'Tattoo parlour',note:'A tattoo chair under an articulated lamp, the ink station with its rows of bottles, flash boards of original designs, a waiting bench, the booking terminal and a safe.',
   objects:[O('chair','TATTOO CHAIR','the tattoo chair'),O('ink','INK STATION','the ink station'),O('flash','FLASH BOARDS','the flash boards'),O('computer','BOOKING TERMINAL','the booking terminal'),O('safe','SAFE','the safe'),LIGHTS],
   furn:[[-2.4,-1,1.1,2.5,.9,'chair'],[1,2.4,2.4,2.9,.95,'ink'],[2.4,2.9,.9,2.1,.45,'bench'],[-2.9,-2.3,-2.6,-1,.9,'counter'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.72,'safe']],
   inter:[{id:'chair',label:'TATTOO CHAIR',pos:[-.95,.9,1.6],object:'chair',range:1.3},{id:'ink',label:'INK STATION',pos:[1.7,1.05,2.2],object:'ink',range:1.2},{id:'flash',label:'FLASH BOARDS',pos:[2.2,1.6,1.5],object:'flash',range:1.4},
    {id:'computer',label:'BOOKING TERMINAL',pos:[1.8,1.15,-2.2],object:'computer',range:1.4},{id:'safe',label:'SAFE',pos:[2.2,.9,-1.9],object:'safe',range:1.3}],
   say:{chair:'TATTOO CHAIR: fresh film on the padding, the lamp still angled where the last client lay.',ink:'INK STATION: rows of bottles, a machine on its cradle, gloves, a roll of film.',flash:'FLASH BOARDS: sheets of designs, pinned and re-pinned: stars, waves, flowers, knives, a lot of eyes.',computer:'BOOKING TERMINAL: appointments under nicknames, deposits paid in cash, one booking marked “cover-up, urgent”.'},
-  lights:[[-1.6,2.45,1.7,'#fff2dc',1.2,8],[1.4,2.45,-1.3,'#ffc890',.8,7]]});
+  lights:[[-1.6,2.45,1.7,'#fff2dc',1.6,9],[1.4,2.45,-1.3,'#ffc890',1.2,8]]});
  VAR('radio-booth',{style:'back',ceil:2.6,name:'Pirate radio booth',note:'Egg-crate foam on the walls, a mixing desk with a microphone on its boom, the ON AIR light, transmitter racks, a worn couch, record shelves and the playout computer.',screen:true,
   objects:[O('desk','MIXING DESK','the mixing desk'),O('mic','MICROPHONE','the microphone'),O('racks','TRANSMITTER RACK','the transmitter rack'),O('computer','PLAYOUT COMPUTER','the playout computer'),O('screen','BROADCAST MONITOR','the broadcast monitor (on / off)'),LIGHTS],
   furn:[[-2.7,-.9,2,2.9,.8,'desk'],[1.7,2.9,2.1,2.9,1.9,'racks'],[-2.9,-2.2,-2.6,-1,.8,'couch'],[2.45,2.9,-2.6,-1,1.6,'records'],[.9,1.9,-2.9,-2.4,.76,'table']],
@@ -166,7 +166,7 @@
   furn:[[-1.95,-1.85,-1.95,1.95,2.1,'fence-w'],[1.85,1.95,-1.95,1.95,2.1,'fence-e'],[-1.95,1.95,1.85,1.95,2.1,'fence-n'],[-1.95,-.6,-1.95,-1.85,2.1,'fence-s1'],[.6,1.95,-1.95,-1.85,2.1,'fence-s2'],[-3.9,-3.1,.2,3.6,.9,'steps'],[2.9,3.9,1.4,3.9,2.2,'betting'],[2.5,3.9,-3.9,-2.9,.9,'barrels']],
   inter:[{id:'ring',label:'RING',pos:[0,1.1,-2.3],object:'ring',range:1.4},{id:'betting',label:'BETTING COUNTER',pos:[2.6,1.1,2.4],object:'betting',range:1.3},{id:'board',label:'ODDS BOARD',pos:[2.6,1.9,1.4],object:'board',range:1.6}],
   say:{ring:'RING: chain-link on scaffold poles, the mat patched with tape, dark stains scrubbed half away.',betting:'BETTING COUNTER: a grille, a slot for chips and cash, a ledger chained to the counter. Closed between fights.',board:'ODDS BOARD: chalked names wiped out and rewritten. Tonight’s card is blank.'},
-  spots:[['host',0,-2.4,PI],['corner-a',-2.6,0,PI/2],['corner-b',2.6,0,-PI/2]],lights:[[0,2.9,0,'#ffe6c0',1.6,12],[2.8,2.6,2.6,'#ffb070',.8,6]]});
+  spots:[['host',0,-2.4,PI],['corner-a',-2.6,0,PI/2],['corner-b',2.6,0,-PI/2]],lights:[[0,2.9,0,'#ffe6c0',2.2,13],[2.8,2.6,2.6,'#ffb070',1.1,7]]});
  T('gang-vestibule',{underground:true,cat:'hallway',style:'gang',w:2,d:3,ceil:2.6,sockets:'s0 n0 e2',sw:[-1.95,'w'],name:'Gang checkpoint (vestibule)',note:'UNDERGROUND. The first room past the steel door at the foot of an alley stairwell, run by a gang: heavy steel doors with eye slots, a chain-link pass-through, a battered table with a cash box and a scanner wand, stools, a CCTV monitor on a crate, graffiti and bare bulbs. Room for two or three doormen.',screen:true,
   objects:[O('table','CHECKPOINT TABLE','the checkpoint table'),O('cashbox','CASH BOX','the cash box'),O('wand','SCANNER WAND','the scanner wand'),O('screen','CCTV MONITOR','the CCTV monitor (on / off)'),LIGHTS],
   furn:[[-.06,.06,-1.6,1.6,2.2,'fence'],[.25,1.25,-.6,.6,.75,'table'],[1.2,1.9,-2.9,-2.2,.9,'crate']],
@@ -208,19 +208,19 @@
   furn:[[-2.5,-1.3,-2.4,-1.2,.76,'table-sw'],[-2.5,-1.3,1,2.2,.76,'table-nw'],[1.2,2.4,-.6,.6,.76,'table-e'],[1.6,2.9,1.6,2.9,1.05,'cashier'],[2.2,2.9,-2.9,-2.2,1.2,'shelf']],
   inter:[{id:'table',label:'GAME TABLE',pos:[-1,.9,1.6],object:'table',range:1.3},{id:'table2',label:'GAME TABLE',pos:[.9,.9,0],object:'table',range:1.2},{id:'cashier',label:'CASHIER',pos:[1.4,1.1,2.2],object:'cashier',range:1.2},{id:'safe',label:'CASH DRAWER',pos:[2.2,1.1,1.4],object:'safe',range:1}],
   say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},
-  spots:[['cashier',2.25,2.3,-PI*3/4],['dealer',-1.9,-.9,PI],['door',.9,-2.3,0]],lights:[[-1.9,2.2,-.6,'#ffc890',1.2,8],[1.4,2.2,.6,'#ffb878',1,7]]});
+  spots:[['cashier',2.25,2.3,-PI*3/4],['dealer',-1.9,-.9,PI],['door',.9,-2.3,0]],lights:[[-1.9,2.2,-.6,'#ffc890',1.7,9],[1.4,2.2,.6,'#ffb878',1.4,8]]});
  UG('flophouse',{ceil:2.8,name:'Underground sleeping room',note:'UNDERGROUND. A cheap flophouse in a tunnel chamber: four cots, each in its own nook behind cloth curtains on rails, worn blankets, a locker and a dim bulb per nook, pipes overhead. Front and back doors join tunnel pieces.',
   objects:[O('cot','COT','a cot'),O('locker','LOCKER','a locker'),O('curtain','CURTAIN','a curtain'),LIGHTS],
   furn:[[-2.9,-1.05,-2.6,-.35,.6,'nook-sw'],[-2.9,-1.05,.35,2.6,.6,'nook-nw'],[1.05,2.9,-2.6,-.35,.6,'nook-se'],[1.05,2.9,.35,2.6,.6,'nook-ne']],
   inter:[{id:'cot',label:'COT',pos:[-.85,.8,1.4],object:'cot',range:1.2},{id:'locker',label:'LOCKER',pos:[.85,1,-1.2],object:'locker',range:1.2},{id:'curtain',label:'CURTAIN',pos:[.85,1.3,1.6],object:'curtain',range:1.1}],
   say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},
-  spots:[['keeper',0,-2.2,0]],lights:[[0,2.4,0,'#ffc890',.9,8]]});
+  spots:[['keeper',0,-2.2,0]],lights:[[0,2.4,-1.2,'#ffc890',1.4,8],[0,2.4,1.4,'#ffb878',1.2,8]]});
  UG('food-stall',{w:2,d:2,ceil:2.8,sockets:'s0 n0',sw:[-1.6,'s'],name:'Underground food stall',note:'UNDERGROUND. A small food counter in a tunnel nook: a steaming wok and stock pot, a menu board of pictures (no writing), three stools at the counter, a cooler, hanging lanterns, a cook’s spot behind the counter. The aisle runs between its two doors.',
   objects:[O('counter','FOOD COUNTER','the food counter'),O('stove','WOK STATION','the wok station'),O('cooler','COOLER','the cooler'),O('menu','MENU BOARD','the menu board'),LIGHTS],
   furn:[[.1,.7,-1.5,1.5,1,'counter'],[1.3,1.9,-1.4,.6,.9,'stove'],[1.3,1.9,1,1.9,1.8,'cooler']],
   inter:[{id:'counter',label:'FOOD COUNTER',pos:[-.25,1.05,.2],object:'counter',range:1.2},{id:'stove',label:'WOK STATION',pos:[.85,1.1,-.8],object:'stove',range:1.4},{id:'cooler',label:'COOLER',pos:[.9,1.2,1.45],object:'cooler',range:1.3},{id:'menu',label:'MENU BOARD',pos:[1.7,1.85,-.4],object:'menu',range:2.2}],
   say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},
-  spots:[['cook',1,0,-PI/2]],lights:[[.6,2.3,0,'#ffc890',1.2,7]]});
+  spots:[['cook',1,0,-PI/2]],lights:[[.6,2.3,0,'#ffc890',1.6,8]]});
  T('tunnel-chamber',{underground:true,ownLamps:true,cat:'hallway',style:'tunnel',w:2,d:2,ceil:3,sockets:'s0 s1 n0 n1 w0 w1 e0 e1',name:'Tunnel chamber',note:'UNDERGROUND. A wider 4 m x 4 m tunnel chamber: a sump with a pump, a valve wheel, pipe runs, cable trays, two openings on each side.',
   objects:[O('valve','VALVE','the valve'),O('pump','SUMP PUMP','the sump pump'),LIGHTS],furn:[[-.35,.35,-.35,.35,.9,'pump']],inter:[{id:'pump',label:'SUMP PUMP',pos:[0,1,-.6],object:'pump',range:1.2},{id:'valve',label:'VALVE',pos:[1.7,1.2,1.7],object:'valve',range:1.2}],
   say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});

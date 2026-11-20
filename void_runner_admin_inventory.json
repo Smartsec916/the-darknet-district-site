@@ -40475,7 +40475,7 @@
       "spawn"
     ]
   },
-  "revision": "a80324c140ea1b83",
+  "revision": "c419330835d12baa",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -59128,16 +59128,16 @@
     "void-runner/mission-blocks-view.js": "9c329153087ef4e014664661a96a5e4b82551583dcec4c14445448931f8fffd9",
     "void-runner/mission-blocks.js": "0e96db6cc90fb02de85a5c491a9c71a3afe1cbb9134ae65d278b6b29cbba3785",
     "void-runner/mission-content.js": "abdb443c653fc1cfc6de8931c797a620966e9f7896f926c4f969ba3aba1340ce",
-    "void-runner/mission-editor.js": "e5c025982e5b6f3593fcf9da301641efad0378a9a97509921fbc60e1a024a990",
+    "void-runner/mission-editor.js": "ab251a496db36894eff85fa0030434f6249764cf9c9c8c274dfeddd6a3a8b6aa",
     "void-runner/mission-givers.js": "35d5d47bb1a68bed2cf810061797e2a691d3aa032073c847bb511f42f95af45e",
     "void-runner/mission-guide.js": "8041f8d51e20ba82e750a677515c959742db452efe5a7477817b9ec97f465443",
     "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
     "void-runner/mission-trees.js": "a77f3156c728fa579c401443f94e5d2bbaad99a6897bb58925edd77a8ab552ae",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "6d96952dcbce936809679143a02f53fc5868673335588d62a925a07cfd6b0439",
+    "void-runner/module-build.js": "24f9ba08c31fdc34df8305118996a0e49833b0e06e17eca9a34a9eb87f55e586",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
     "void-runner/module-integration.js": "4d82f11e048a105d5aea4df655c3ce7b4aa393aea16e4ed4f8ed7f5e1d840652",
-    "void-runner/modules.js": "9bfef77b47efc52aea661a62429969f0df0d614ca9bc41cffb48108ea0b9b9e0",
+    "void-runner/modules.js": "3819726a1aab56bc3849ec913ffd9e80b303484207c2cd673e8ccfcb36f95aca",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a1fadf186558f7272b9d48e6fc6d265027e47ad1c8fef1d4639dfaf48ca4ffa7",

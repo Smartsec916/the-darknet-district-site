@@ -24,8 +24,8 @@
   const sun=scene.getLightByName('sun'),amb=scene.getLightByName('ambient'),lp={sun:sun?.intensity,amb:amb?.intensity,dif:amb?.diffuse?.clone(),gnd:amb?.groundColor?.clone()};
   const MOOD={corp:{amb:'#a4acb8',gnd:'#5a5650',ai:1.15,exp:1.4,env:.45,clear:[.01,.012,.016]},tech:{amb:'#8aa0bc',gnd:'#3a4250',ai:1,exp:1.5,env:.4,clear:[.008,.01,.014]},
    back:{amb:'#aaa898',gnd:'#4a4640',ai:1.1,exp:1.35,env:.4,clear:[.012,.012,.011]},clinic:{amb:'#b8c4c8',gnd:'#343838',ai:1.05,exp:1.3,env:.45,clear:[.012,.014,.015]},
-   den:{amb:'#a08a74',gnd:'#3a3028',ai:.95,exp:1.3,env:.35,clear:[.012,.01,.008]},kitchen:{amb:'#b0aa9c',gnd:'#4a4038',ai:1.1,exp:1.35,env:.42,clear:[.012,.011,.01]},garage:{amb:'#9aa0a4',gnd:'#3a3a38',ai:1.05,exp:1.4,env:.4,clear:[.01,.011,.012]},
-   tunnel:{amb:'#8c8a80',gnd:'#2e2c28',ai:.85,exp:1.35,env:.35,clear:[.008,.008,.008]},pit:{amb:'#8a8678',gnd:'#2a2824',ai:.8,exp:1.35,env:.3,clear:[.008,.007,.006]},gang:{amb:'#948a7c',gnd:'#2e2a26',ai:.9,exp:1.35,env:.3,clear:[.009,.008,.007]}}[def.style]||{amb:'#9aa0a8',gnd:'#222',ai:.75,exp:1.25,env:.3,clear:[.01,.01,.012]};
+   den:{amb:'#b09a84',gnd:'#4a3e34',ai:1.2,exp:1.45,env:.4,clear:[.012,.01,.008]},kitchen:{amb:'#b0aa9c',gnd:'#4a4038',ai:1.1,exp:1.35,env:.42,clear:[.012,.011,.01]},garage:{amb:'#9aa0a4',gnd:'#3a3a38',ai:1.05,exp:1.4,env:.4,clear:[.01,.011,.012]},
+   tunnel:{amb:'#9c9a90',gnd:'#3a3832',ai:1.05,exp:1.45,env:.35,clear:[.008,.008,.008]},pit:{amb:'#9a9688',gnd:'#38342e',ai:1.05,exp:1.45,env:.3,clear:[.008,.007,.006]},gang:{amb:'#a49a8c',gnd:'#3a3630',ai:1.05,exp:1.45,env:.3,clear:[.009,.008,.007]}}[def.style]||{amb:'#9aa0a8',gnd:'#222',ai:.75,exp:1.25,env:.3,clear:[.01,.01,.012]};
   scene.clearColor=new B.Color4(...MOOD.clear,1);scene.fogMode=B.Scene.FOGMODE_EXP2;scene.fogDensity=.01;scene.fogColor=new B.Color3(...MOOD.clear);ip.exposure=MOOD.exp;ip.contrast=1.18;scene.environmentIntensity=MOOD.env;
   if(sun)sun.intensity=0;if(amb){amb.intensity=MOOD.ai;amb.diffuse=B.Color3.FromHexString(MOOD.amb);if(amb.groundColor)amb.groundColor=B.Color3.FromHexString(MOOD.gnd);}
   let seed=7;for(const m of C.mods)for(const ch of m.id+m.type)seed=(seed*31+ch.charCodeAt(0))%2147483646+1;const rand=()=>((seed=seed*16807%2147483647)-1)/2147483646;
@@ -530,8 +530,7 @@
     lantern(-1.7,1.7,1.7,t.ceil,lamp);lantern(-1.7,-1.7,1.7,t.ceil,lamp);plane(stainMat(),.9,.7,[1.1,t.ceil-.005,.4],0,false,-HALF);},
    'tea-under'(mod,t){const lamp=lampOf(mod.id),dw=darkWood(),lq=lacquer(),Ch=t.ceil,conc=STY.tunnel.wall;
     // the converted chamber: a raw concrete barrel vault over everything (springing at 2.3 m), concrete ribs, pipes along the springing line, a valve, water stains
-    {const v=B.MeshBuilder.CreateCylinder('mod-vault',{diameter:5.8,height:5.8,arc:.5,tessellation:28,enclose:false,sideOrientation:B.Mesh.DOUBLESIDE},scene);v.rotation.set(-HALF,0,0);v.scaling.set(1,1,.31);v.position.set(0,2.3,0);add(v,conc);
-     for(const z of [-2.2,0,2.2]){const r=B.MeshBuilder.CreateCylinder('mod-rib',{diameter:5.6,height:.22,arc:.5,tessellation:28,enclose:true,sideOrientation:B.Mesh.DOUBLESIDE},scene);r.rotation.set(-HALF,0,0);r.scaling.set(1,1,.31);r.position.set(0,2.3,z);add(r,S.concrete);}}
+    vaultOver(2.9,2.9,2.3,.9,[-2.2,0,2.2]);
     for(const x of [-2.75,2.75]){cyl(pipeM('#5a5e5a'),.14,5.8,[x,2.25,0],10,HALF);cyl(pipeM('#7a3a2a'),.07,5.8,[x+(x<0?.14:-.14),2.12,0],8,HALF);}torus(S.red,.26,.03,[2.62,1.95,-1.9],0,0);cyl(pipeM('#5a5e5a'),.08,.3,[2.75,2.08,-1.9],8);
     plane(stainMat(),1.2,1.4,[-2.89,2.5,.8],-HALF);plane(stainMat(),1,1.2,[2.89,2.6,-.6],HALF);
     // a dark-wood lining to 2.1 m: wainscot all round, backlit paper screens on the long walls
@@ -698,7 +697,76 @@
    for(let k=0;k<t.d;k++){const z=-hd+1+k*2;if(rand()<.6)decal(puddleMat(),.6+rand()*.6,.4+rand()*.4,(rand()-.5)*1.1,z+(rand()-.5)*1.2,.004+k*.0005);}
    for(const sd of ['w','e'])if(!j||!open.has(sd)){const x=sd==='w'?-.895:.895;if(rand()<.7)plane(stainMat(),.6+rand()*.5,1.4,[x,1.6,(rand()-.5)*(hd*2-1)],sd==='w'?-HALF:HALF);}
    if(!j&&t.d>=2&&rand()<.8){const sd=rand()<.5?'w':'e';graffiti(Math.floor(rand()*4),1.4,.7,sd==='w'?-.893:.893,1.25,(rand()-.5)*(hd*2-2),sd==='w'?-HALF:HALF);}
+   if(t.dress==='lantern')lanternDress(mod,t,hd,Ch,j,open);
    if(mod.type==='tunnel'){box2(P('junction',{c:'#5a6058',rough:.5,metal:.6}),-.9,-.72,.6,1.6,.4,1.3);box2(S.ledA,-.721,-.719,1.4,1.45,.6,.65);box2(S.ledG,-.721,-.719,1.4,1.45,.75,.8);}}
+  // THE UNDERGROUND, EAST ASIAN SET: a concrete vault over a converted chamber, cloth (curtains, banners), a lantern string, a wall shrine; then the rooms
+  function vaultOver(hw,hd,spring,rise,ribs){const conc=STY.tunnel.wall,v=B.MeshBuilder.CreateCylinder('mod-vault',{diameter:hw*2,height:hd*2,arc:.5,tessellation:28,enclose:false,sideOrientation:B.Mesh.DOUBLESIDE},scene);v.rotation.set(-HALF,0,0);v.scaling.set(1,1,rise/hw);v.position.set(0,spring,0);add(v,conc);
+   for(const z of ribs){const r=B.MeshBuilder.CreateCylinder('mod-rib',{diameter:hw*2-.2,height:.22,arc:.5,tessellation:28,enclose:true,sideOrientation:B.Mesh.DOUBLESIDE},scene);r.rotation.set(-HALF,0,0);r.scaling.set(1,1,rise/hw);r.position.set(0,spring,z);add(r,S.concrete);}}
+  const clothMat=(key,c,tex)=>{const m=P(key,{c,dyn:tex,tile:1,rough:1});if(!m.metadata.ds){m.metadata.ds=1;m.backFaceCulling=false;}return m;};
+  TX.fold=base=>canvas(256,256,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);for(let x=0;x<w;x+=2){const v=Math.sin(x*.12)*.16+Math.sin(x*.31)*.06;g.fillStyle=v>0?'rgba(255,255,255,'+v*.5+')':'rgba(0,0,0,'+(-v)+')';g.fillRect(x,0,2,h);}speck(g,w,h,2000,.05);grime(g,w,h,.5);},'mod-fold');
+  function bannerTex(k){return canvas(128,384,(g,w,h)=>{g.fillStyle=['#5a1612','#14283a','#2a2a14'][k%3];g.fillRect(0,0,w,h);g.strokeStyle='#b88a3a';g.fillStyle='#b88a3a';g.lineWidth=4;g.strokeRect(10,10,w-20,h-30);
+    for(let i=0;i<3;i++){const y=70+i*100;if((i+k)%3===0){g.beginPath();g.arc(w/2,y,26,0,7);g.stroke();g.beginPath();g.arc(w/2,y,12,0,7);g.fill();}else if((i+k)%3===1){g.beginPath();g.moveTo(w/2,y-30);g.lineTo(w/2+26,y);g.lineTo(w/2,y+30);g.lineTo(w/2-26,y);g.closePath();g.stroke();}else{for(let r=0;r<3;r++){g.beginPath();g.arc(w/2,y+14,30-r*9,Math.PI,0);g.stroke();}}}
+    g.fillStyle='rgba(0,0,0,.6)';for(let x=0;x<w;x+=8)g.fillRect(x,h-14+((x/8)%2)*4,4,14);grime(g,w,h,.5);},'mod-banner');}
+  function tilesTex(){return TX._ti??=canvas(256,64,(g,w,h)=>{g.fillStyle='#1e4a32';g.fillRect(0,0,w,h);g.fillStyle='#d8d0b8';g.fillRect(0,0,w,h*.55);for(let x=0;x<w;x+=16){g.fillStyle='rgba(0,0,0,.45)';g.fillRect(x,0,1.5,h);}},'mod-tiles-mj');}
+  function faceTex(){return TX._tf??=canvas(256,256,(g,w,h)=>{g.fillStyle='#e0d8c0';g.fillRect(0,0,w,h);for(let i=0;i<16;i++){const x=(i%4)*64,y=Math.floor(i/4)*64;g.strokeStyle='rgba(0,0,0,.35)';g.strokeRect(x+1,y+1,62,62);const n=1+i%6;for(let k=0;k<n;k++){g.fillStyle=['#2a5a3a','#8a1a14','#1a3a6a'][(i+k)%3];g.beginPath();g.arc(x+14+(k%3)*18,y+16+Math.floor(k/3)*28,7,0,7);g.fill();}}},'mod-tile-face');}
+  function menuTex(){return canvas(512,256,(g,w,h)=>{g.fillStyle='#16201a';g.fillRect(0,0,w,h);g.fillStyle='rgba(220,220,210,.06)';for(let i=0;i<6;i++)g.fillRect(rand()*w,rand()*h,120,20);
+    for(let i=0;i<6;i++){const x=20+(i%3)*165,y=20+Math.floor(i/3)*118;g.strokeStyle='rgba(235,230,215,.8)';g.lineWidth=3;g.beginPath();g.ellipse(x+45,y+55,38,16,0,0,Math.PI);g.stroke();g.beginPath();g.moveTo(x+7,y+55);g.lineTo(x+83,y+55);g.stroke();
+     g.strokeStyle=['#e8b040','#e86a3a','#8ad06a'][i%3];for(let k=0;k<3;k++){g.beginPath();g.moveTo(x+25+k*15,y+50);g.quadraticCurveTo(x+30+k*15,y+30,x+22+k*15,y+15);g.stroke();}g.fillStyle='rgba(235,230,215,.85)';for(let k=0;k<3+i%3;k++)g.fillRect(x+100+k*12,y+50,7,7);}},'mod-menu');}
+  function lanternString(x0,z0,x1,z1,y,n,mod){const L=Math.hypot(x1-x0,z1-z0),c=cyl(S.black,.008,L,[(x0+x1)/2,y,(z0+z1)/2],4,0,HALF);c.rotation.y=-Math.atan2(z1-z0,x1-x0);const pm=paperOf(mod.id),red=P('lantern-red',{c:'#8a1a14',rough:.7,em:'#2a0604'});
+   for(let i=1;i<=n;i++){const f=i/(n+1),x=x0+(x1-x0)*f,z=z0+(z1-z0)*f,m=i%2?pm:red;cyl(S.black,.006,.08,[x,y-.04,z],4);cyl(m,.16,.2,[x,y-.18,z],10);cyl(S.dark,.1,.02,[x,y-.075,z],8);cyl(S.dark,.1,.02,[x,y-.285,z],8);}}
+  function wallShrine(x,z,face,mod){const dw=darkWood(),o=face==='e'?1:-1,wx=x,flm=P('candle-flame',{em:'#ffb050',unlit:true});box2(dw,Math.min(wx,wx+o*.14),Math.max(wx,wx+o*.14),1.05,1.07,z-.22,z+.22);box2(dw,Math.min(wx,wx+o*.02),Math.max(wx,wx+o*.02),1.05,1.5,z-.22,z+.22);
+   box2(dw,Math.min(wx,wx+o*.17),Math.max(wx,wx+o*.17),1.5,1.53,z-.27,z+.27);box2(P('shrine-red',{c:'#5a1a14',rough:.45}),Math.min(wx+o*.02,wx+o*.12),Math.max(wx+o*.02,wx+o*.12),1.07,1.08,z-.2,z+.2);cyl(P('wax',{c:'#d8ccb0',rough:.6}),.04,.08,[wx+o*.08,1.12,z-.1],6);cyl(flm,.002,.035,[wx+o*.08,1.177,z-.1],5,0,0,.018);
+   cyl(S.white,.06,.04,[wx+o*.08,1.1,z+.08],8);plane(P('charm0',{dyn:charmTex(0),rough:.9}),.06,.24,[wx+o*.021,1.3,z+.05],o>0?-HALF:HALF);}
+  function lanternDress(mod,t,hd,Ch,j,open){
+   if(j){lanternString(-.85,0,.85,0,Ch-.5,3,mod);lanternString(0,-.85,0,.85,Ch-.55,2,mod);return;}
+   for(let k=0;k<t.d;k++){const z=-hd+1+k*2;lanternString(-.86,z-.75,.86,z+.25,Ch-.5,3,mod);}
+   const bn=k=>P('banner'+k,{dyn:bannerTex(k),rough:.95});plane(bn(0),.34,1,[-.885,1.75,1.6],-HALF);plane(bn(1),.34,1,[.885,1.75,.4],HALF);if(t.d>=3)plane(bn(2),.34,1,[-.885,1.75,-.4],-HALF);
+   for(const [x,y] of [[-.885,2.27],[.885,2.27]])for(const z of [1.6,.4,-.4])box2(darkWood(),x-.012,x+.012,y,y+.03,z-.2,z+.2);wallShrine(.9,-1,'w',mod);if(t.d>=3)wallShrine(-.9,2,'e',mod);}
+  Object.assign(BUILD,{
+   'mahjong'(mod,t){const lamp=lampOf(mod.id),dw=darkWood(),Ch=t.ceil,felt=P('felt',{c:'#2a5a3a',dyn:TX.felt(),tile:1.8,rough:.95}),tw=P('mj-wall',{c:'#ffffff',dyn:tilesTex(),tile:1,rough:.35}),tf=P('mj-face',{c:'#ffffff',dyn:faceTex(),tile:1,rough:.35});
+    vaultOver(3,3,2.4,.6,[-2,0,2]);for(const x of [-2.82,2.82])cyl(pipeM('#5a5e5a'),.14,5.8,[x,2.3,0],10,HALF);
+    for(const e of ['w','e']){const x=e==='w'?-2.9:2.9,o=e==='w'?1:-1;box2(dw,Math.min(x,x+o*.06),Math.max(x,x+o*.06),0,1.1,-2.9,2.9);box2(dw,Math.min(x,x+o*.09),Math.max(x,x+o*.09),1.1,1.15,-2.9,2.9);}
+    // three square game tables with walls of tiles, a few tiles face up, dishes of chips; four stools each; a low shade over each (the room's light)
+    const table=(x0,x1,z0,z1)=>{const xc=(x0+x1)/2,zc=(z0+z1)/2,hs=(x1-x0)/2;box2(dw,x0,x1,.72,.76,z0,z1);box2(felt,x0+.06,x1-.06,.76,.765,z0+.06,z1-.06);for(const sx of [-1,1])for(const sz of [-1,1])box2(dw,xc+sx*(hs-.08)-.03,xc+sx*(hs-.08)+.03,0,.72,zc+sz*(hs-.08)-.03,zc+sz*(hs-.08)+.03);
+     for(const s2 of [-1,1]){box2(tw,xc-.3,xc+.3,.765,.795,zc+s2*.32-.02,zc+s2*.32+.02);box2(tw,xc+s2*.32-.02,xc+s2*.32+.02,.765,.795,zc-.3,zc+.3);}for(let i=0;i<5;i++)plane(tf,.06,.08,[xc-.15+i*.07,.767,zc-.05+(i%2)*.06],rand()*.3,false,HALF,new B.Vector4((i%4)*.25,.75,(i%4)*.25+.25,1));
+     cyl(S.white,.18,.03,[xc+.18,.78,zc+.18],12);for(let i=0;i<5;i++)cyl(P('chip'+(i%5),{c:['#8a1a1a','#1a1a1a','#d8d4c8','#1a5a3a','#2a3a7a'][i%5],rough:.4}),.04,.01,[xc+.15+(i%2)*.05,.8+i*.006,zc+.16],8);
+     for(const [dx,dz] of [[0,-hs-.3],[0,hs+.3],[-hs-.3,0],[hs+.3,0]])stool(xc+dx,zc+dz,.48);const sh=P('shade-green',{c:'#1e3a2a',rough:.45,metal:.3});cyl(S.black,.01,Ch-2.1,[xc,2.1+(Ch-2.1)/2,zc],6);cyl(sh,.6,.18,[xc,2.0,zc],14,0,0,.16);cyl(lamp,.52,.01,[xc,1.905,zc],14);};
+    table(-2.5,-1.3,-2.4,-1.2);table(-2.5,-1.3,1,2.2);table(1.2,2.4,-.6,.6);
+    // the cashier nook (north-east): an L counter with a hatch, a register, a calculator, the ledger; shelves behind; a red lantern
+    box2(dw,1.6,1.7,0,1.05,1.6,2.9);box2(dw,1.6,2.9,0,1.05,1.6,1.7);box2(lacquer(),1.55,2.9,1.05,1.09,1.55,1.72);box2(lacquer(),1.55,1.72,1.05,1.09,1.55,2.9);box2(S.dark,1.85,2.2,1.09,1.25,2.2,2.45);box2(S.ledG,1.85,1.86,1.2,1.22,2.25,2.4);box2(S.plastic,1.75,1.95,1.09,1.11,1.8,1.95);box2(P('ledger',{c:'#3a1a14',rough:.7}),2.2,2.5,1.09,1.12,1.75,1.95);
+    box2(dw,2.6,2.9,1.3,1.33,1.8,2.85);for(let i=0;i<4;i++)cyl(P('tin'+(i%2),{c:['#5a4a2a','#2a3a3a'][i%2],rough:.4,metal:.6}),.1,.14,[2.75,1.4,1.9+i*.24],10);cyl(P('lantern-red',{c:'#8a1a14',rough:.7,em:'#2a0604'}),.26,.3,[2.25,2.1,2.25],12);
+    // a shelf of thermos flasks and tea tins (south-east), the curtain inside the front door, smoke haze, a clock, stains
+    box2(dw,2.2,2.9,0,1.2,-2.9,-2.2);for(let i=0;i<4;i++)cyl(P('flask'+(i%2),{c:['#8a2a22','#2a5a6a'][i%2],rough:.35,metal:.3}),.11,.32,[2.35+(i%2)*.3,1.36,-2.75+Math.floor(i/2)*.3],10);
+    {const nm=clothMat('noren','#1a2a3a',TX.fold('#1e2e44'));box2(dw,-.75,.75,2.24,2.27,-2.78,-2.74);for(const x of [-.47,0,.47])plane(nm,.44,.8,[x,1.84,-2.76],0);}
+    for(const y of [1.95,2.3])plane(smokeMat('haze','#c8c0b0',.22),5.6,5.6,[0,y,0],0,false,HALF);cyl(S.white,.32,.04,[0,2.0,2.86],18,HALF);cyl(S.dark,.34,.03,[0,2.0,2.875],18,HALF);decal(stainMat(),1.2,1,.2,1.6);decal(puddleMat(),.8,.6,.4,-2.4);},
+   'flophouse'(mod,t){const lamp=lampOf(mod.id),Ch=t.ceil,pm=pipeM('#5a5e5a');
+    // pipes and a cable tray overhead, along the room
+    for(const x of [-.6,.6])cyl(pm,.14,5.8,[x,Ch-.2,0],10,HALF);cyl(pipeM('#7a3a2a'),.08,5.8,[0,Ch-.35,0],8,HALF);box2(S.steel,-.25,.25,Ch-.5,Ch-.48,-2.9,2.9);
+    // four nooks: a cot with a worn blanket and a pillow, a locker, a shelf, a dim bulb; cloth curtains on rails (one drawn open) and between the nooks
+    const blanket=[clothMat('blanket0','#5a4a3a',TX.fold('#4a3e30')),clothMat('blanket1','#3a4652',TX.fold('#323c46')),clothMat('blanket2','#5a3030',TX.fold('#4a2a2a'))],cur2=clothMat('curtain-cloth','#a89070',TX.fold('#8a7456')),lk=P('locker',{c:'#4a5a5a',tex:'district-interior/kit_steel_color.jpg',tile:.8,rough:.45,metal:.7});
+    [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz],k)=>{const xw=sx*2.85,xi=sx*1.05,za=sz>0?.35:-2.6,zb=sz>0?2.6:-.35,zc=(za+zb)/2,cx=sx*2.42;
+     box2(S.steel,cx-.4,cx+.4,.3,.34,za+.1,zb-.1);for(const x of [cx-.38,cx+.38])for(const z of [za+.12,zb-.12])box2(S.steel,x-.02,x+.02,0,.3,z-.02,z+.02);box2(P('mattress-w',{c:'#6a6a5e',rough:.9}),cx-.38,cx+.38,.34,.44,za+.12,zb-.12);
+     box2(blanket[k%3],cx-.4,cx+.4,.44,.48,(sz>0?za+.12:zc-.3),(sz>0?zc+.3:zb-.12));box2(P('pillow',{c:'#b8b4a4',rough:1}),cx-.25,cx+.25,.44,.54,sz>0?zb-.45:za+.15,sz>0?zb-.15:za+.45);
+     const lz=sz>0?za+.05:zb-.45;box2(lk,Math.min(sx*1.6,sx*1.15),Math.max(sx*1.6,sx*1.15),0,1.2,lz,lz+.4);box2(S.black,Math.min(sx*1.6,sx*1.15),Math.max(sx*1.6,sx*1.15),1.0,1.02,lz+.02,lz+.38);
+     box2(darkWood(),Math.min(xw,xw-sx*.25),Math.max(xw,xw-sx*.25),1.3,1.33,za+.3,zb-.3);for(let i=0;i<3;i++)box2(P('stuff'+(i%3),{c:['#6a3a2a','#3a4a5a','#8a8a7a'][i%3],rough:.7}),Math.min(xw,xw-sx*.2),Math.max(xw,xw-sx*.2),1.33,1.43+i*.04,za+.5+i*.4,za+.75+i*.4);
+     bulb(sx*2.1,zc,1.95,Ch,lamp);box2(S.steel,xi-.015,xi+.015,2.12,2.15,za,zb);const open=k===1;
+     if(open){plane(cur2,.5,2.0,[xi,1.1,sz>0?zb-.25:za+.25],sx>0?HALF:-HALF);}else{plane(cur2,zb-za-.05,2.0,[xi,1.1,zc],sx>0?HALF:-HALF);}
+     box2(S.rubber,cx-.1,cx+.1,0,.08,sz>0?za-.1+.2:zb-.25,sz>0?za+.3:zb-.05);});
+    for(const sx of [-1,1]){const xi=sx*1.05;box2(S.steel,Math.min(sx*2.9,xi),Math.max(sx*2.9,xi),2.12,2.15,-.015,.015);plane(cur2,1.8,2.0,[sx*1.97,1.1,0],0);}
+    // the aisle: a worn runner, a mop bucket, a sign of house rules in pictures, stains
+    box2(rug(),-.6,.6,.001,.012,-2.5,2.5);cyl(P('bucket',{c:'#c8a020',rough:.5}),.3,.3,[.7,.15,-2.6],12);decal(stainMat(),1,.8,0,1.2);decal(puddleMat(),.7,.5,-.3,-1.4);graffiti(3,1,.5,-1.5,2.4,-2.885,PI);},
+   'food-stall'(mod,t){const lamp=lampOf(mod.id),Ch=t.ceil,ss=P('stainless',{c:'#b8bcbc',tex:'district-interior/kit_steel_color.jpg',nrm:'district-interior/kit_steel_normal.jpg',tile:.8,rough:.3,metal:.85}),dw=darkWood(),flame=P('flame',{em:'#ff6a1a',unlit:true}),wok=P('wok',{c:'#1a1816',rough:.35,metal:.8});
+    // the counter: a wood front, a worn steel top, condiments; three stools on the aisle side; an awning over it
+    box2(dw,.1,.7,0,.95,-1.5,1.5);box2(ss,.05,.75,.95,1,-1.55,1.55);for(const z of [-.9,0,.9])stool(-.3,z,.7);cyl(S.steel,.1,.14,[.3,1.07,-1.2],10);cyl(P('chilli',{c:'#8a1a0a',rough:.2}),.08,.1,[.3,1.05,-.95],10);cyl(S.steel,.06,.04,[.3,1.02,1.2],10);
+    {const aw=P('awning',{c:'#7a2a1e',dyn:TX.weave('#6a2418'),tile:.6,rough:.9});const a=bx(aw,[.9,.03,3.3],[.3,2.25,0],0);a.rotation.z=.25;for(const z of [-1.6,1.6])box2(S.steel,.02,.06,1,2.2,z-.02,z+.02);}
+    // the cook's side: the wok and a stock pot on their burners with steam, a hood duct, ladles; the cooler with drinks; the menu board of pictures
+    box2(ss,1.3,1.9,0,.86,-1.4,.6);box2(S.black,1.3,1.9,.86,.9,-1.4,.6);torus(flame,.2,.025,[1.6,.91,-.9]);cyl(wok,.14,.12,[1.6,.98,-.9],18,0,0,.46);torus(flame,.2,.025,[1.6,.91,.1]);cyl(ss,.34,.36,[1.6,1.08,.1],16);cyl(P('broth',{c:'#5a3a1a',rough:.15}),.31,.005,[1.6,1.262,.1],16);
+    const st=smokeMat('steam');for(const z of [-.9,.1]){plane(st,.6,.9,[1.6,1.6,z],0);plane(st,.6,.9,[1.6,1.6,z],HALF);}box2(ss,1.3,1.9,2.0,2.2,-1.4,.6);box2(ss,1.5,1.8,2.2,Ch,-.6,-.2);for(let i=0;i<3;i++)cyl(S.steel,.02,.4,[1.85,1.55,-1.2+i*.12],6);
+    box2(S.white,1.3,1.9,0,1.8,1,1.9);box2(S.glass,1.28,1.29,.1,1.7,1.05,1.85);box2(S.dark,1.27,1.3,.02,.1,1,1.9);box2(P('fridge-light',{em:'#d8ecff',unlit:true}),1.4,1.85,1.65,1.67,1.1,1.8);for(const y of [.4,.8,1.2])for(let i=0;i<5;i++)cyl(P('can'+(i%3),{c:['#c83a2a','#2a7ac8','#e8c040'][i%3],rough:.3,metal:.6}),.07,.14,[1.45,y+.08,1.1+i*.15],8);
+    bx(dw,[.05,.7,1.2],[1.88,1.85,-.4],0);plane(P('menu',{dyn:menuTex(),rough:.9}),1.1,.55,[1.852,1.85,-.4],HALF);
+    // paper lanterns over the counter (the stall's light), a crate of vegetables, pipes, a puddle
+    for(const z of [-1,0,1])lantern(.4,z,2.0,Ch,lamp,.3);crate(-1.6,1.6,.2,.4);box2(P('greens',{c:'#4a7a3a',rough:.8}),-1.75,-1.45,.4,.48,1.45,1.75);cyl(pipeM('#5a5e5a'),.14,3.8,[-1.82,Ch-.25,0],10,HALF);decal(puddleMat(),.9,.6,-1.2,-1.2);decal(oilMat(),.8,.6,1,-.4);}
+  });
   for(const id of ['tunnel','tunnel-short','tunnel-mid','tunnel-junction','tunnel-lantern','tunnel-lantern-junction'])BUILD[id]=tube;
   BUILD['tunnel-chamber']=function(mod,t){const hw=t.w*M.GRID/2,hd=t.d*M.GRID/2,Ch=t.ceil,lamp=lampOf(mod.id),pm=pipeM('#5a5e5a');
    // the sump in the middle (a grated pit, the pump, its riser and a pipe across the ceiling), the valve wheel on a corner riser, pipe runs and a tray round the ceiling

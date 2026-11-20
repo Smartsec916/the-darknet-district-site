@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 20 Nov 2026 (newest): VARIOUS ROOMS, THE UNDERGROUND (STAIRS, GANG CHECKPOINT, SEAMLESS TUNNELS, FIGHT PIT, TEA ROOMS, LANTERN TUNNEL, MAHJONG, SLEEPING ROOM, FOOD STALL), PAWN-SHOP SELLING (branch `claude/various-rooms`, build `2026-11-20-various-rooms-1`, pushed, NO PR, not merged)
+
+- **Owner requests:** "can you make me more and place all of them in Various filter?" and the underground set (his words are in `docs/development/MODULES.md`, last section, which also lists every module, template and rule).
+- **Done:** category Commercial -> **Various** (type ids `shop-back`, `bar-back`, `clinic` unchanged; old missions load); 11 new street rooms with templates; underground modules (stairwell as a floor-linking "cab", gang checkpoint, tunnel tubes of 2/4/6 m, a junction for corner/T/cross, lantern versions, a chamber, fight pit, underground tea room with a hidden back door, mahjong parlour, sleeping room, food stall); `spots` data for people to stand; the pawn shop's SELL ITEMS panel (`void-runner/pawn-shop.js`, buy list `BUYS` empty until the owner fills it in); youthful characters kept out of the card room, fight pit and gang checkpoint. Admin inventory regenerated (server data only; **no server Python code changed**, but Render needs the new `void_runner_admin_inventory.json` to accept the new module types).
+- **Tunnels later (the owner: "the underground tunnels will be linked together"):** today a tunnel network lives inside ONE location (one street door, up to 12 modules, a 24 x 24 cell grid per floor). Linking tunnels of different locations into one network needs: a shared underground map (a world-level grid or a "network" record the server validates) instead of per-location grids; tunnel ends that name another location's tunnel end (a cross-location `link`, like a portal but between instances); streaming of the neighbour cluster when the player nears a link (the 90 m / 140 m hysteresis); a module cap per network rather than per location; mission steps that name a place in the network; and how saves record where the player is underground. Not built.
+- **Not verified:** real-GPU frame rates with many tunnel pieces; VR; the pawn panel in a full play session (unit-tested; the panel is the game's own panel); the owner has not yet chosen what the pawn shop buys.
+
 ### 20 Nov 2026 (newest): MILKED'S SIDE STREET AND SERVICE ALLEY OPEN FOR EVERYONE; ONLY ITS TWO DOORWAYS ARE NEVER STOOD IN (branch `claude/milked-lanes-open`, build `2026-11-20-milked-lanes-1`, pushed, NO PR, not merged)
 
 The owner's decision on the question left by the pavement rule below: unblock Milked's side street and service alley ("I might add gameplay there or add areas").
