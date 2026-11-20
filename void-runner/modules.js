@@ -198,7 +198,7 @@
   const an=analyse(loc);if(!shapeOnly)out.push(...an.problems);else out.push(...an.problems.filter(p=>!/entrance|cannot be reached|needs a second cab|meets nothing/.test(p)));
   for(const r of loc.locks||[]){const d=doorOf(an,r);if(!d)out.push('locked door '+r+': choose a door between two modules (or a connection).');else if(d.kind==='entry')out.push('locked door '+r+': the street door is locked by its own access point (a hack step on the street door).');}
   // the street door: an older housing hallway or apartment as the entrance keeps its own kind of door (a container behind a container door)
-  if(!shapeOnly&&doorFamily){const e=parseRef(loc.entry),B=e&&an.byId[e.mod];if(B&&B.t.family&&B.t.family!==doorFamily)out.push(B.t.family==='container'?'a container hallway or apartment goes behind a container door in The Outskirts.':'a city hallway or apartment goes behind a city apartment door, not '+(doorFamily==='container'?'a container in The Outskirts.':'an office or shop entrance.'));}
+  if(!shapeOnly&&doorFamily){const e=parseRef(loc.entry),B=e&&an.byId[e.mod];if(B&&B.t.family&&(B.t.family==='container')!==(doorFamily==='container'))out.push(B.t.family==='container'?'a container hallway or apartment goes behind a container door in The Outskirts.':'a city hallway or apartment goes behind a city street door (any part of town, an office or shop entrance too), not a container in The Outskirts.');}   // any city style behind any city door (the owner, 20 Nov 2026); The Outskirts: the containers only
   return out;}
  const ITEM_TYPES=['loot','mission-item','note','other'];
  // A door reference a hack may name: any door of the location (either side), the entrance included.
