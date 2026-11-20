@@ -84,7 +84,7 @@ class MissionTimerServerTests(unittest.TestCase):
         self.assertIn('1 to 600', errs([{'id': 'w', 'kind': 'wait', 'hold': 0, 'label': 'x'}]))
         self.assertIn('1 to 50', errs([{'id': 'w', 'kind': 'wait', 'hold': 5, 'npc': 'iris', 'near': 51, 'label': 'x'}]))
         self.assertIn('stay near', errs([{'id': 'w', 'kind': 'wait', 'hold': 5, 'near': 5, 'label': 'x'}]))
-        self.assertIn('only a wait step has a distance', errs([{**TALK, 'near': 3}]))
+        self.assertIn('only a wait, observe, overhear or follow step has a distance', errs([{**TALK, 'near': 3}]))
         with self.assertRaises(drafts.DraftError):
             drafts.validate_workspace(workspace([tree([{**TALK, 'delay': 9999}])]))
 

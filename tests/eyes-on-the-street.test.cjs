@@ -142,11 +142,11 @@ test('a reload part-way keeps the step; the Comms call and records survive resto
 test('new reusable kinds: enter / leave a place (steps and triggers), photo and send-photo steps, reputation with an NPC or a faction, in-person accept',()=>{
  const x=env(),{MC,G}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:G.placeIds(),subjects:new Set(G.photoSubjects(x.e.givers).map(g=>g.id))};
  const story=MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,doc=t=>({format:MC.FORMAT,version:MC.VERSION,trees:[...story,t]});
- const tree={id:'draft-kinds',name:'Kinds',missions:[{id:'draft-kinds-m1',number:7,title:'K',type:'side',giver:'iris',start:{how:'person',accept:true},objectives:[
+ const tree={id:'draft-kinds',name:'Kinds',missions:[{id:'draft-kinds-m1',number:47,title:'K',type:'side',giver:'iris',start:{how:'person',accept:true},objectives:[
   {id:'a',label:'Leave the bar',kind:'leave',place:'district-bar'},{id:'b',label:'Go into the arcade',kind:'enter',place:'district-arcade',via:'messages',say:[{who:'iris',text:'TEST message.'}]},
   {id:'c',label:'Photograph Rin',kind:'photo',npc:'rin-takeda'},{id:'d',label:'Send it to Iris',kind:'send-photo',npc:'iris',subject:'rin-takeda',say:[{who:'iris',text:'TEST ok.'}],wrong:[{who:'iris',text:'TEST no.'}]}],
   unlocks:[{kind:'reputation',id:'iris',amount:5},{kind:'reputation',id:'communion',amount:-3,when:'c'}]},
-  {id:'draft-kinds-m2',number:8,title:'L',type:'side',giver:'admin',start:{how:'notification',channel:'notify',from:'admin',text:'TEST left.',when:{kind:'leave',place:'district'}},objectives:[{id:'a',label:'x',kind:'talk',npc:'admin'}]}]};
+  {id:'draft-kinds-m2',number:48,title:'L',type:'side',giver:'admin',start:{how:'notification',channel:'notify',from:'admin',text:'TEST left.',when:{kind:'leave',place:'district'}},objectives:[{id:'a',label:'x',kind:'talk',npc:'admin'}]}]};
  assert.deepEqual(MC.check(doc(tree),ctx).errors,[]);
  const bad=[t=>{t.missions[0].objectives[0].place='atlantis';},t=>{t.missions[0].objectives[2].npc='admin-x';},t=>{t.missions[0].objectives[3].subject='nobody';},t=>{t.missions[0].objectives[2].subject='rin-takeda';},
   t=>{t.missions[0].objectives[0].wrong=[{who:'iris',text:'x'}];},t=>{t.missions[0].objectives[1].via='fax';},t=>{t.missions[0].objectives[1].say=[];},t=>{t.missions[0].unlocks[0].amount=0;},t=>{t.missions[0].unlocks[0].amount=500;},
@@ -191,7 +191,7 @@ test('several people in one photo: the editor keeps them in `subjects`, the chec
  const story=MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,doc=t=>({format:MC.FORMAT,version:MC.VERSION,trees:t?[...story,t]:story});
  const eyes=story[0].missions.find(m=>m.id===ID);assert.deepEqual(eyes.objectives[1].subjects,['juno-vex','halden-reyes'],'published with both');assert.deepEqual(eyes.objectives[2].subjects,['juno-vex','halden-reyes']);
  assert.equal(MC.check(doc(),ctx).ok,true,'the shipped tree passes');
- const tree={id:'draft-pair',name:'Pair',missions:[{id:'draft-pair-m1',number:9,title:'P',type:'side',giver:'iris',objectives:[{id:'p',label:'Photograph them',kind:'photo',npc:'rin-takeda',subjects:['rin-takeda','juno-vex']},{id:'s',label:'Send it',kind:'send-photo',npc:'iris',subject:'rin-takeda',subjects:['rin-takeda','juno-vex'],say:[{who:'iris',text:'TEST ok.'}]}]}]};
+ const tree={id:'draft-pair',name:'Pair',missions:[{id:'draft-pair-m1',number:49,title:'P',type:'side',giver:'iris',objectives:[{id:'p',label:'Photograph them',kind:'photo',npc:'rin-takeda',subjects:['rin-takeda','juno-vex']},{id:'s',label:'Send it',kind:'send-photo',npc:'iris',subject:'rin-takeda',subjects:['rin-takeda','juno-vex'],say:[{who:'iris',text:'TEST ok.'}]}]}]};
  assert.equal(MC.check(doc(tree),ctx).ok,true,JSON.stringify(MC.check(doc(tree),ctx).errors||''));
  for(const f of [o=>{o.subjects=['juno-vex','rin-takeda'];},o=>{o.subjects=['rin-takeda','nobody'];},o=>{o.subjects=['rin-takeda','rin-takeda'];},o=>{o.subjects=[];},o=>{o.subjects='rin-takeda';},o=>{o.subjects=Array(7).fill(0).map((_,i)=>'rin-takeda'+i);}]){const t=MC.clone(tree);f(t.missions[0].objectives[0]);assert.equal(MC.check(doc(t),ctx).ok,false,f.toString());}
  {const t=MC.clone(tree);t.missions[0].objectives.push({id:'t',label:'x',kind:'talk',npc:'iris',subjects:['iris']});assert.equal(MC.check(doc(t),ctx).ok,false,'only photo steps name several people');}

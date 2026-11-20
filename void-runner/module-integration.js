@@ -29,7 +29,8 @@
  /* In from the street: the location's entrance. */
  async function enter(door,inst){if(!inst||!inst.loc)return;visit={door,inst,cluster:null};const an=M.analyse(inst.loc),e=M.parseRef(inst.loc.entry),c=e&&an.clusterOf(e.mod);if(!c){note('Locked.');return;}
   return goCluster(inst,c.id,{ref:inst.loc.entry},{silent:false});}
- async function backToStreet(){const d=visit?.door;visit=null;if(!d){await go(STREET_KEY(),{});return;}const yaw=Math.atan2(-d.n[0],-d.n[1]);await go(STREET_KEY(),{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw});}
+ async function backToStreet(){const d=visit?.door;visit=null;if(!d){await go(STREET_KEY(),{});return;}const yaw=Math.atan2(-d.n[0],-d.n[1]);if(d.scene==='corporate'){await go('corporate',{spawn:[d.front[0],1.7,d.front[1]],yaw});return;}   // the Corporate District's maintenance door (apartments.js CORP_DOORS)
+ await go(STREET_KEY(),{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw});}
  /* Through a door that leads elsewhere (a connection) or out to the street. */
  async function cross(doorId){const wl=here();const inst=visit&&now(visit.inst.key);if(!wl||!inst)return;const an=M.analyse(inst.loc),d=an.doors.find(x=>x.id===doorId);if(!d)return;
   if(d.kind==='entry'){await backToStreet();return;}if(M.lockedNow(inst,an,d)){note('DOOR · LOCKED. The access point beside it could be bypassed.');return;}
