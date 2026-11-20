@@ -84,6 +84,19 @@ class ModuleServerTests(unittest.TestCase):
         self.assertEqual(check({'id': 'draft-hq', 'name': 'HQ', 'missions': [y]}), [])
         bad(self, tree(dict(flat, door='biz-avenue-n-13'), objs), 'not an office or shop entrance')
 
+    def test_any_city_housing_behind_any_city_door(self):
+        # the owner, 20 Nov 2026: "all apartment types anywhere. All but The Outskirts. Those only get the shipping container houses."
+        objs = [{'id': 'in', 'kind': 'apt-enter', 'apt': 'home', 'label': 'Get in'}]
+        for style in ('rundown', 'normal', 'luxury'):
+            for door in ('apt-main-w-103', 'apt-avenue-n-16', 'biz-avenue-n-13'):
+                loc = {'id': 'home', 'door': door, 'entry': 'hall.street', 'modules': [{'id': 'hall', 'type': 'hall-' + style}, {'id': 'flat', 'type': 'apt-' + style}], 'links': [{'a': 'hall.d0', 'b': 'flat.entry'}]}
+                self.assertEqual(check(tree(loc, objs)), [], (style, door))
+        yard = next(d for d in INV['apartments']['doors'] if d.startswith('apt-yard-'))
+        loc = {'id': 'home', 'door': yard, 'entry': 'hall.street', 'modules': [{'id': 'hall', 'type': 'hall-rundown'}, {'id': 'flat', 'type': 'apt-rundown'}], 'links': [{'a': 'hall.d0', 'b': 'flat.entry'}]}
+        bad(self, tree(loc, objs), 'its own kind of street door')
+        loc = {'id': 'home', 'door': 'apt-main-w-103', 'entry': 'hall.street', 'modules': [{'id': 'hall', 'type': 'hall-container-rundown'}, {'id': 'flat', 'type': 'apt-container-rundown'}], 'links': [{'a': 'hall.d0', 'b': 'flat.entry'}]}
+        bad(self, tree(loc, objs), 'its own kind of street door')
+
     def test_editor_copy_shape_only(self):
         draft = copy.deepcopy(tree())
         draft['missions'][0]['apartments'][0]['door'] = ''
