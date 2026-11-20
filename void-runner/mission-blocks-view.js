@@ -105,7 +105,7 @@
    const o=MB.stepFor(k,{npc,via:ch.via,name});if(ch.id==='pet-cat')o.label='Pet the street cat';const r=MB.insert(x,at,{step:o});if(!r.ok)return r.why;bid=r.bid;note='Added: '+ch.name+(npc?' ('+name(npc)+')':'')+'. Fill in the box that glows.';return '';},{redraw:false});
   if(!ok)return;pick=null;if(bid){opened.add(bid);collapsed.delete(bid);}lastNote={mid:c.m.id,text:note};root.VoidEditorGuide?.focusNext();c.kit.draw();}
  function unlockFor(c,kind,npc){const ships=Object.entries(root.VoidShips?.ships||{}).filter(([,s])=>!s.premium).map(([id])=>id);
-  return kind==='credits'?{kind,amount:100}:kind==='ship'?{kind,id:ships[0]||'starter'}:kind==='reputation'?{kind,id:npc,amount:10}:kind==='flag'?{kind,id:'',value:true}:kind==='missiles'?{kind,id:'m1',amount:6}:{kind,id:npc||''};}
+  return kind==='credits'?{kind,amount:100}:kind==='ship'?{kind,id:ships[0]||'starter'}:kind==='reputation'?{kind,id:npc,amount:10}:kind==='flag'?{kind,id:'',value:true}:kind==='contract-flag'?{kind,id:(MC(c).CONTRACT_FLAGS||[])[0]||'',value:true}:kind==='missiles'?{kind,id:'m1',amount:6}:{kind,id:npc||''};}
  // ---------------------------------------------------------------- one block
  /* The frame every block shares: the WHO edge and chip, the TYPE header (icon + word + tint), the title, the tools (▲ ▼ ⧉ × ▾), its problems with their plain fix. */
  function frame(c,{bid,type,who,title,tools=true,dragOk=true,nested=false,attrs={}}){const MB=B(),T0=MB.TYPES[type]||MB.TYPES.other,T=type==='who'&&who?{...T0,color:c.color(who)}:T0,bad=!nested&&c.probs.get(bid);   // a WHO block's header is its person's colour
@@ -140,6 +140,7 @@
    const tl=el(c,'label','','me-field');tl.append(el(c,'span','The banner (a short notification when it starts)'));const ta=el(c,'textarea','','',{rows:'2',maxlength:'500','aria-label':'Banner text','data-mb-start-text':m.id,placeholder:'(your words, e.g. who wants a word)'});ta.value=st.text||'';
    ta.oninput=()=>{change(c,x=>{if(x.start)x.start.text=ta.value.slice(0,500);return '';},{redraw:false});kit.guideSoon();};tl.append(ta);a.body.append(tl);}
   else if(by)a.body.append(el(c,'p',((G.START_CHANNELS.find(x=>x.id===st.channel)||{}).name||st.channel)+' from '+c.short(st.from||m.giver)+' · '+(((G.START_WHEN.find(x=>x.id===w.kind)||{}).name)||'its trigger').toLowerCase()+'.','mb-line'),hint(c,'The sender, the words and when it arrives are set in “How this mission starts” above.'));
+  if(kit.onlyPanel)a.body.append(kit.onlyPanel(m,(fn,redraw)=>c.ed(fn,redraw!==false)));   // "…and only when (optional)": extra start conditions (start-conditions.js, 20 Nov 2026)
   if(!by||near)a.body.append(words(c,'offer',m.offer||[],m.giver,{title:near?'What '+c.short(m.giver)+' says when the player walks near':'What '+c.short(m.giver)+' says when offering it',player:true,anim:true,choice:MC(c).choiceOk(m,null)}));
   const pay=MC(c).costOf(m);if(pay&&pay.when==='accept')a.body.append(mini(c,'item',null,'The player pays '+pay.amount+' CR when they press '+(st.yes||'ACCEPT')+' (Credits, at the top).'));
   if(st.accept===true){const ask=frame(c,{type:'ask',who:by?st.from||m.giver:m.giver,title:'The player chooses '+(st.yes||'ACCEPT')+' or '+(st.no||'DENY'),nested:true});

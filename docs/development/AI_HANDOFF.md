@@ -6,6 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 20 Nov 2026 (newest): "…AND ONLY WHEN": EXTRA START CONDITIONS (A SECONDARY TRIGGER) FOR MISSIONS (branch `claude/second-trigger`, build `2026-11-20-second-trigger-1`, pushed, NO PR, not merged)
+
+The owner: "can you add a secondary trigger … if a secondary isn't set it will just go off the first trigger." Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twenty-eighth pass".
+
+- **Data:** `start.only` (any way of starting), up to 6 conditions: no other people near someone (crowd counted or only placed people), no other players near someone, time of day on the street clock, the player in a place, another mission finished / not finished, a story flag set / not set, at least N credits, has a ship / none, on foot, weapon holstered, the zone. Rules in `void-runner/start-conditions.js` (new, loaded before `mission-content.js`). No list: the old behaviour exactly.
+- **Not met at the moment of the trigger:** walk near keeps checking while in range; a talk waits for the next talk; state triggers (after a mission, in-game time, a flag) are re-checked on every event; one-moment triggers (pod exit, enter / leave a place) are remembered in `story.flags.mq_<mission>` and start once the conditions hold. Nothing to migrate (tolerant `story.flags`).
+- **Editor:** "…and only when (optional)" with + ADD CONDITION in the Form view's "How this mission starts" and the Blocks view's Start block, a plain-words summary, problems in plain words; the wizard only points to it. Start only (no step kind uses it). "The giver is idle" was not built (no clean signal).
+- **Server changed** (`void_runner_live_content.py only_problems`): **Render needs a redeploy** before a mission using `only` is published.
+- **Also fixed:** the Form view's + ADD for a "Shared game flag" reward saved it without `value: true` (and with no flag to pick), so the checks refused it.
+- **Tests:** `tests/start-conditions.test.cjs`, `tests/test_start_conditions.py`; checked in Chromium (software GL) with `tests/start-conditions-browser.py`: walk-near Reverie + "no other placed people within 6 m": no start while a placed figure stands 2 m from her, starts once it moves 12 m away. **Not verified:** two real players for "no other players near"; a real GPU; VR.
 ### 20 Nov 2026 (newest): THE AWAKENING CONTINUATION — MISSIONS 004–011 AND THE FIRST CARGO DELIVERY TREE (012); REUSABLE MISSION MECHANICS (branch `claude/awakening-tree`, build `2026-11-20-awakening-2-1`, pushed, NO PR, not merged)
 
 The owner's spec (his dialogue verbatim, APPROVED in `VOID_RUNNER_HANDOFF.md` §11). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twenty-seventh pass".
