@@ -214,7 +214,7 @@
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack','ask','zone',...((MM&&MM.KINDS)||[])],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call','call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow','missiles','evidence','contract-flag'],CONTRACT_FLAGS=['rook-first-delivery-done'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack','ask','zone',...((MM&&MM.KINDS)||[])],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call','call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow','missiles','evidence','contract-flag','nav-coords'],CONTRACT_FLAGS=['rook-first-delivery-done'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
  const STEP_APPS=['camera','gallery','messages','map','missions','comms','social','news','store','warflying','loadout'];   // a step's optional V1 app hint (device-v1.js STEP_APPS; void_runner_live_content.py STEP_APPS): the tile that glows when the V1 opens
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
@@ -402,6 +402,7 @@
  function unlockNow(s,u,env,Camp){
   if(u.kind==='credits'){s.credits=(s.credits||0)+u.amount;return '+'+u.amount+' credits';}
   if(u.kind==='flag'){s.story.flags['mf_'+u.id]=u.value;return null;}
+  if(u.kind==='nav-coords'){const N=typeof module!=='undefined'?require('./nav-coords.js'):root.VoidNav;if(!N)return null;return N.grant(s,'mission')?'NAV DATA RECEIVED · every Erebus and Tessaly System location added to your Map':null;}   // "Unlock all nav coordinates": the full flight Map (nav-coords.js; the V1 banner follows the flag)
   if(u.kind==='location'){const U=env.U;if(U&&U.discover){const known=(s.universe.discoveredLocations||[]).includes(u.id);U.discover(s,u.id);return known?null:'NEW PLACE · '+((U.locations&&U.locations[u.id]&&U.locations[u.id].name)||u.id);}return null;}
   if(u.kind==='ship'&&Camp&&Camp.awardStarterShip){const had=(s.ownedShips||[]).includes(u.id)&&s.story.flags.starterShipAwarded===true;Camp.awardStarterShip(s);if(u.id!=='starter'&&Camp.giveShip)Camp.giveShip(s,u.id);return had?null:'SHIP ACQUIRED';}
   if(u.kind==='missiles'){const O=typeof module!=='undefined'?require('./ordnance.js'):root.VoidOrdnance;if(!O)return null;const got=O.award(s,u.id,u.amount);return got>0?'+'+got+' '+O.TYPES[u.id].name+' MISSILE'+(got>1?'S':''):null;}   // Mission Editor: missiles for the ship (ordnance.js)
@@ -916,7 +917,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
     s.story=s.story||{};s.story.flags=s.story.flags||{};if(s.story.flags[flagOf(m.id)]!==true){s.story.flags[flagOf(m.id)]=true;if(Number(m.rewards)>0){s.credits=(s.credits||0)+Number(m.rewards);acts.push('paid '+m.rewards+' for '+m.id);}}
     if(s.universe.trackedMission===m.id)s.universe.trackedMission=null;}}
   // In a District campaign (closed mission pool) only beginner missions can be held, so a tracked id that is not in the list now is a removed beginner mission.
-  const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
+  const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&!/^rook-run-\d+$/.test(t)&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}   // Rook's side missions (campaign.js rookBoard) are not tree missions
   return acts;
  }
  /* APARTMENTS (apartments.js): the instances open for this player now, the street doors a hack opened, the hack steps in progress. */

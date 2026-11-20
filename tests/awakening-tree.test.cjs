@@ -115,3 +115,10 @@ test('every new mission round-trips through the Mission Editor\'s export (treesC
  const sent=x.MC.treesContent(x.MS.trees(),{givers:x.e.givers}),ids=sent.trees.flatMap(t=>t.missions.map(m=>m.id));assert.deepEqual(sent.skipped,[]);
  assert.equal(ids.length,12);const m4=sent.trees[0].missions[3];assert.deepEqual(m4.cast,x.MS.M004.cast);assert.deepEqual(m4.evidence,x.MS.M004.evidence);assert.deepEqual(m4.objectives.find(o=>o.id==='overhear').near,6);
  const m11=sent.trees[0].missions[10];assert.equal(m11.objectives.find(o=>o.id==='await-sale').minutes,120);assert.deepEqual(m11.unlocks.find(u=>u.kind==='credits'),{kind:'credits',amount:25000,when:'reward'});});
+test('the flight Map and Rook after the real Mission 012: route-only to Meridian during the delivery, then Rook\'s coordinates and his side-mission board (nav-coords.js)',()=>{
+ const x=env(),N=require(R('void-runner/nav-coords.js')),s=play(x,through003(x,newChar(x)));
+ assert.equal(s.story.flags.navCoords,false,'the Kestrel came with a route-only Map');
+ const r=reload(x,s);assert.equal(r.story.flags.navCoords,false,'reloading after the trip to Meridian does not upgrade it');
+ r.location='earth';assert.deepEqual(N.markers(r,[{id:'m',destination:'meridian'}]),['meridian'],'a mission to Meridian from NeoChinatown: only its warp marker');
+ r.location='meridian';assert.equal(x.C.rookOpen(r),true,'Mission 012 opened Rook\'s side missions');const board=x.C.rookBoard(r);assert.ok(board.length>=3);
+ assert.equal(N.grant(r,'rook'),true);assert.equal(N.mode(r,[]),'full');assert.ok(x.C.accept(r,'rook-job:routine'));assert.ok(x.M.track(r,x.C.rookRun(r).id,x.C));assert.equal(x.M.tracked(r,x.C).type,'side');});

@@ -131,7 +131,7 @@ test('the Form view’s + ADD for a “Shared game flag” makes a reward the ch
  t.missions[0].unlocks=[u];assert.deepEqual(x.MC.check(doc(x,t),ctx(x)).errors,[]);
  t.missions[0].unlocks=[{kind:'contract-flag',id:'rook-first-delivery-done'}];assert.ok(x.MC.check(doc(x,t),ctx(x)).errors.some(e=>/shared game flag/.test(e)),'the old shape (no value) was refused');
  assert.deepEqual(MB.newUnlock('flag',{value:' metRook '}),{kind:'flag',id:'metRook',value:true});assert.deepEqual(MB.newUnlock('credits',{value:'250'}),{kind:'credits',amount:250});
- assert.deepEqual(MB.newUnlock('item',{id:'x',store:'s'}),{kind:'item',id:'x',store:'s'});assert.deepEqual(MB.newUnlock('missiles',{id:'m1',value:'6'}),{kind:'missiles',id:'m1',amount:6});
+ assert.deepEqual(MB.newUnlock('item',{id:'x',store:'s'}),{kind:'item',id:'x',store:'s'});assert.deepEqual(MB.newUnlock('nav-coords',{id:'x'}),{kind:'nav-coords'});assert.deepEqual(MB.newUnlock('missiles',{id:'m1',value:'6'}),{kind:'missiles',id:'m1',amount:6});
  const src=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8');assert.match(src,/VoidMissionBlocks\.newUnlock\(k,/,'the Form view uses it');assert.match(src,/k==='contract-flag'\?Object\.fromEntries\(\(MC\(\)\.CONTRACT_FLAGS/,'and lists the flags');
 });
 

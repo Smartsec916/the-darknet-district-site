@@ -258,7 +258,7 @@
  /* A new reward from the Form view's "+ ADD" (and the Blocks palette), in the shape mission-content.js and the server check (20 Nov 2026 fix: a "Shared game flag" was saved
     without value:true and with no flag chosen, so the check refused it). o: {id, value (the typed text), store}. A story flag and a shared game flag are set to true. */
  function newUnlock(k,o={}){const n=parseInt(o.value,10),num=Number.isFinite(n)?n:0;if(k==='credits')return {kind:k,amount:num};if(k==='flag')return {kind:k,id:String(o.value||'').trim(),value:true};
-  if(k==='contract-flag')return {kind:k,id:o.id||'',value:true};if(k==='reputation'||k==='missiles')return {kind:k,id:o.id||'',amount:num};return {kind:k,id:o.id||'',...(k==='item'?{store:o.store||''}:{})};}
+  if(k==='nav-coords')return {kind:k};if(k==='contract-flag')return {kind:k,id:o.id||'',value:true};if(k==='reputation'||k==='missiles')return {kind:k,id:o.id||'',amount:num};return {kind:k,id:o.id||'',...(k==='item'?{store:o.store||''}:{})};}
  const api={TYPES,START_MODES,startMode,setStartMode,newUnlock,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionBlocks=api;
 })(globalThis);
