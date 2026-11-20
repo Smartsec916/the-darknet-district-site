@@ -14,6 +14,7 @@ REV, DOOR = 'grey-reverie', 'apt-avenue-n-16'
 OFFICE = {'id': 'a1', 'door': DOOR, 'entry': 'hall.s0', 'modules': [{'id': 'hall', 'type': 'hall-office', 'x': 5, 'z': 0}, {'id': 'office', 'type': 'office-floor', 'x': 4, 'z': 4},
           {'id': 'lift', 'type': 'elevator', 'x': 10, 'z': 6, 'rot': 1}, {'id': 'lift2', 'type': 'elevator', 'x': 10, 'z': 6, 'rot': 1, 'floor': -1},
           {'id': 'servers', 'type': 'server-room', 'x': 6, 'z': 5, 'floor': -1}]}
+PIT = {'id': 'a4', 'door': 'apt-avenue-n-23', 'entry': 'tunnel.n0', 'modules': [{'id': 'tunnel', 'type': 'tunnel', 'x': 5, 'z': 4, 'floor': -1}, {'id': 'pit', 'type': 'fight-pit', 'x': 4, 'z': 0, 'floor': -1}]}
 BAR = {'id': 'a3', 'door': 'apt-avenue-n-23', 'entry': 'hall.s0', 'modules': [{'id': 'hall', 'type': 'hall-commercial', 'x': 5, 'z': 0}, {'id': 'bar', 'type': 'bar-back', 'x': 4, 'z': 4}]}
 FLAT = {'id': 'a2', 'style': 'rundown', 'door': 'apt-avenue-n-30', 'number': 104}
 
@@ -39,7 +40,7 @@ class FollowIntoServerTests(unittest.TestCase):
     def test_refused(self):
         cases = [({'apt': 'zz'}, None, 'places to go into'), ({'apt': 'a2', 'mod': 'office'}, None, 'built from modules'), ({'apt': 'a1', 'mod': 'lift2'}, None, 'elevator'),
                  ({'apt': 'a1', 'mod': 'nope'}, None, 'rooms'), ({'apt': 'a2', 'to': {'x': 60, 'z': -6.4}}, None, 'not both'),
-                 ({'apt': 'a3', 'mod': 'bar'}, [BAR], 'back room'), ({'apt': 'a2'}, [dict(FLAT, door='apt-main-w-96')], 'area she is placed in'),
+                 ({'apt': 'a4', 'mod': 'pit'}, [PIT], 'fight pit'), ({'apt': 'a2'}, [dict(FLAT, door='apt-main-w-96')], 'area she is placed in'),
                  ({'apt': 'a2', 'npc': 'street-cat'}, None, 'cat stays outside'), ({'apt': 'a2'}, [dict(FLAT, **{'from': 's3'})], 'opens later')]
         for st, places, words in cases:
             errs = check(tree(st, places))

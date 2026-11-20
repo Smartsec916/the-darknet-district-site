@@ -146,7 +146,7 @@
    {id:'clock',kind:null,name:'Only at a time of the in-game day',help:'Not for single blocks yet: use a mission that starts “after in-game time” (Form view).',off:true}],
   zone:[{id:'zone',kind:'zone',name:'Change zone (Friendly / Neutral / Hostile)',help:'A room or location of this mission, or a city area; the corner chip changes at once. Optionally brings in the armed people placed there.'}],
   ask:[{id:'ask',kind:'ask',name:'Ask the player: ACCEPT or DENY',help:'Your question and buttons; ACCEPT goes on, DENY does what you choose.'}],
-  apartment:[{id:'location',kind:'location',name:'Build a location from modules',help:'Housing, commercial, office, server room, hallways, elevator, other: modules that join at their doors.'},{id:'apartment',kind:'apartment',name:'Instance an apartment',help:'Pick its style and its street door.'}],
+  apartment:[{id:'location',kind:'location',name:'Build a location from modules',help:'Housing, various (shops, back rooms, small businesses), office, server room, hallways (and underground pieces), elevator, other: modules that join at their doors.'},{id:'apartment',kind:'apartment',name:'Instance an apartment',help:'Pick its style and its street door.'}],
   npc:[{id:'talk',kind:'talk',who:'npc',fresh:true,name:'Bring someone in',help:'Choose who; the player talks to them next.'}]};
  /* A new step of a kind, in the editor's draft shape (what + STEP in the Form view makes), with a Mission Log label filled in from the names. */
  function stepFor(kind,{npc='',via=null,name=id=>id,giver=''}={}){const o={id:'',label:'',kind};const nm=npc?name(npc):'';

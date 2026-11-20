@@ -24,9 +24,15 @@
   const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:g.label||i.label||''}:null;};
   const front=id=>{const d=A.door(id);return d&&d.front?{position:[d.front[0],1.7,d.front[1]],route:true,label:g.label||''}:null;};
   const door=ap&&ap.door?ap.door:rec&&rec.door;
+  // on a fire escape's landing beside this apartment's window (ncz-backalleys.js; night QA 20 Nov 2026: the arrow pointed round the block to the street door): the window
+  if(!wl.apartment&&door&&!(ap&&ap.door)){const fe=root.VoidBackAlleys?.live?.();if(fe&&fe.phase==='perch'&&fe.door===door){const w=here(i=>i.action==='fe-window'&&i.door===door);if(w)return w;}}
   if(!wl.apartment){if(!door)return null;return ap&&ap.door?here(i=>i.id==='aptap-'+door)||front(door):here(i=>i.id==='aptdoor-'+door)||front(door);}
   const mine=!!(wl.apt&&wl.apt.mission===x.m&&wl.apt.id===aid);
-  if(wl.modular){const out=()=>here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(!mine)return out();
+  // the way out of a location: its exit, a door that leads elsewhere, or (on a floor with neither: underground, upstairs; night QA 20 Nov 2026, there was no arrow at all)
+  // the stairs / elevator to the floor its street door is on
+  if(wl.modular){const up=()=>{let f=0;try{const cm=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===wl.apt?.mission),cr=cm&&(cm.apartments||[]).find(a=>a&&a.id===wl.apt?.id),ca=cr&&M&&M.analyse?M.analyse(cr):null,em=cr&&String(cr.entry||'').split('.')[0];if(ca&&ca.byId[em]&&ca.byId[em].p)f=ca.byId[em].p.floor||0;}catch{}
+    return here(i=>i.action==='mod-elev'&&i.floor===f)||here(i=>i.action==='mod-elev');};
+   const out=()=>here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal')||up();if(!mine)return out();
    const mod=x.mod||(ap&&ap.mod)||null,cl=wl.cluster||{},inCl=!mod||(cl.mods||[]).some(m=>m.id===mod);
    if(inCl){if(x.kind==='hack'&&ap&&ap.mod)return here(i=>i.action==='apt-ap'&&i.ap===aid+'/'+ap.mod+'.'+ap.sock);
     if(x.kind==='apt-use')return here(i=>i.action==='mod-use'&&i.object===x.object&&(!mod||i.mod===mod));
@@ -45,8 +51,13 @@
  function madePerson(g){try{const id=g&&g.made;if(!id||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.apartment)return null;const M=root.VoidMadeNPCs;if(!M)return null;
   const p=(M.live&&M.live()?.people||[]).find(x=>x.id===id);if(p&&Number.isFinite(p.x))return {position:[p.x,1.7,p.z],route:true,label:g.label||''};
   const pl=M.planOf&&M.planOf(id),pt=pl&&(Number.isFinite(pl.x)?pl:Array.isArray(pl.points)&&pl.points[0]);return pt&&Number.isFinite(pt.x)?{position:[pt.x,1.7,pt.z],route:true,label:g.label||''}:null;}catch{return null;}}
+ // Inside an apartment or a location while the step is out on the street (a talk, a follow, a place; night QA 20 Nov 2026: a mission's location can be entered before
+ // its step, and inside there was no arrow at all): the way out.
+ function wayOut(){try{const wl=walkingLocation;if(!wl||!wl.apartment)return null;const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:i.label||''}:null;};
+  if(wl.modular){const e=here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(e)return e;const g=aptGoal({apt:{m:wl.apt&&wl.apt.mission,a:'\u0000none'},label:''});return g||here(i=>i.action==='mod-elev');}
+  return wl.part==='hall'?here(i=>i.action==='apt-hall-exit'):here(i=>i.action==='apt-exit');}catch{return null;}}
  function missionPlaceRoute(g){
-  try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
+  try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!(g&&g.apt)){const wo=wayOut();if(wo)return wo;}if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
    const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
    if(node&&node.scene&&!node.whole&&node.scene!==wl.id)return null;
    const pt=(g.target&&subjectPoint(g.target))||(g.place&&P()?.target(g.place));if(!pt)return null;

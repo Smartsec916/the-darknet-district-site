@@ -42,7 +42,7 @@ class ModuleServerTests(unittest.TestCase):
         self.assertEqual(mi['grid'], 2)
         for t in ('office-floor', 'server-room', 'elevator', 'elevator-lobby', 'hall-office', 'hall-commercial', 'shop-back', 'bar-back', 'clinic', 'storage', 'maint-corridor', 'apt-rundown', 'hall-container-regular'):
             self.assertIn(t, mi['types'])
-        self.assertTrue(set(mi['categories']) >= {'housing', 'commercial', 'office', 'server', 'hallway', 'elevator', 'other'})
+        self.assertTrue(set(mi['categories']) >= {'housing', 'various', 'office', 'server', 'hallway', 'elevator', 'other'})
         self.assertIn('rack', mi['types']['server-room']['objects'])
         self.assertTrue(any(v.get('family') == 'office' for v in INV['apartments']['doors'].values()))
 

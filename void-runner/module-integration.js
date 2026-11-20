@@ -67,8 +67,9 @@
   R('mod-use',({item})=>{const wl=here(),z=zone(),inst=visit&&now(visit.inst.key),obj=item.object,mod=item.mod;let msg='';const type=(wl?.cluster?.mods||[]).find(m=>m.id===mod)?.type||'';
    if(obj==='lights'){const on=z?.lightsOf?.(mod)===false;z?.lights?.(on,mod);if(inst)memo.lights.set(inst.key+'|'+mod,on);msg='Lights '+(on?'on.':'off.');}
    else if(obj==='screen'){const on=z?.screenOf?.(mod)===false;z?.screen?.(mod,on);if(inst)memo.screens.set(inst.key+'|'+mod,on);msg=on?'You switch the screen on.':'You switch the screen off.';}
-   else msg=(obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.';
-   note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod});}catch{}});
+   else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)
+    msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}
+   if(msg)note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod});}catch{}});
   R('mod-item',({item})=>{const wl=here(),m=(wl?.cluster?.mods||[]).find(x=>x.id===item.mod),it=m&&(m.items||[])[item.index];note(it?(it.type==='mission-item'?'MISSION ITEM: ':it.type==='loot'?'LOOT: ':it.type==='note'?'NOTE: ':'')+it.label+' (placed for this mission; picking things up comes later).':'Nothing here.');});
   R('mod-exit',()=>{try{resumeWalking();}catch{}const z=zone();for(const d of z?.doors||[])if(d.rec?.kind==='entry'||d.id==='street')d.force?.(1);setTimeout(()=>backToStreet(),450);});
   R('mod-portal',({item})=>{try{resumeWalking();}catch{}if(!item.door){note('Locked.');return;}const z=zone(),d=(z?.doors||[]).find(x=>x.id===item.door||x.rec?.id===item.door);const inst=visit&&now(visit.inst.key),an=inst&&M.analyse(inst.loc),dd=an&&an.doors.find(x=>x.id===item.door);

@@ -18,7 +18,7 @@
 @media(pointer:fine){#ground-controls{display:none!important}}
 @media(max-width:600px){#tutorial-prompt{top:65px;bottom:auto;font-size:11px}#systems-hud{font-size:10px}#ground-controls{max-width:65vw;flex-wrap:wrap}}
 
-@media(pointer:fine){body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:85px;width:auto}#walking-ui{bottom:28px}#walking-caption{background:transparent;font-size:11px}#systems-hud{bottom:18px}}
+@media(pointer:fine){body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:85px;width:auto}#walking-ui{bottom:28px}#walking-caption{background:transparent;font-size:11px}#systems-hud{bottom:66px}}
 
 @media(pointer:fine){#walking-caption{display:none}body:has(#ground-controls:not([hidden])) #tutorial-prompt{bottom:106px}#walking-interact:disabled{border:0;background:transparent;font-size:11px;color:#a7b2af}}
 

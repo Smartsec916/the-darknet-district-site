@@ -100,4 +100,16 @@ test('wired in: scripts in order, the editor map draws them and the fire escapes
  const P=require(R('void-runner/npc-paths.js'));for(const q of BA.QUARTERS){const m=P.mapData(q);assert.equal(m.escapes.length,BA.escapesIn(q).length);const [x0,x1,z0,z1]=BA.extent(q);assert.ok(m.view.x0<=x0&&m.view.x1>=x1&&m.view.z0<=z0&&m.view.z1>=z1,q+' map shows them');}
  assert.match(src('void-runner/npc-map.js'),/fire escape/);assert.match(src('void-runner/neochinatown.js'),/BA\.build\(\{B,scene,parent,quality,quarter:QK,base\}\)/);
  assert.match(require(R('void-runner/npc-behaviour.js')).prompt('grey-reverie'),/back alleys/);
- assert.match(src('void-runner-sw.js'),/const BUILD='2026-11-20-city-polish-1';/);});
+ assert.match(src('void-runner-sw.js'),/const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';/);});
+test('a narrow opening between two pieces (the Avenue north alley into its loading bay) is kept clear of furniture (night QA)',()=>{const BA=require('../void-runner/ncz-backalleys.js');
+ // the alley's east leg [45.1,49.9] meets the bay [33,47] over x 45.1..47 at z 5: a player (0.76 m wide) must fit through
+ const inGap=BA.furniture('avenue').filter(f=>f.rect[0]<47&&f.rect[1]>45.1&&f.rect[2]<6.6&&f.rect[3]>3.4);assert.deepEqual(inGap.map(f=>f.id),[]);
+ for(const q of BA.QUARTERS)for(const f of BA.furniture(q))assert.ok(!(f.piece==='avenue-north-bay'&&f.z<9&&f.x>45),f.id);});
+test('a follow / lead walk between the Avenue back alleys and its pavement goes through the alley mouths, never through the buildings (night QA)',()=>{
+ globalThis.VoidNPCAreas=require('../void-runner/npc-areas.js');const E=require('../void-runner/npc-escort.js');
+ for(const [a,b] of [[{x:40,z:10},{x:24,z:7}],[{x:24,z:7},{x:47.5,z:-2}],[{x:40,z:10},{x:38,z:-6.6}],[{x:38,z:-6.6},{x:23,z:6}]]){
+  const pts=[a,...E.route(a,b,'avenue')],rects=QT.QUARTERS.avenue.streets;for(let i=1;i<pts.length;i++)for(let t=0;t<=1;t+=.02){const x=pts[i-1].x+(pts[i].x-pts[i-1].x)*t,z=pts[i-1].z+(pts[i].z-pts[i-1].z)*t;
+   assert.ok(rects.some(r=>x>=r[0]-.05&&x<=r[1]+.05&&z>=r[2]-.05&&z<=r[3]+.05),'off the streets at '+x.toFixed(1)+','+z.toFixed(1)+' '+JSON.stringify(pts));}}
+ assert.deepEqual(E.route({x:60,z:-6.4},{x:30,z:-6.6},'avenue'),[{x:60,z:-6.6},{x:30,z:-6.6}]);});   // the north pavement keeps its walking line
+test('a quarter with no back alleys builds nothing (no empty floor mesh, no materials) (night QA)',()=>{const BA=require('../void-runner/ncz-backalleys.js');
+ for(const q of ['port','outskirts']){const r=BA.build({B:{},scene:{},quarter:q});assert.equal(r.stats().meshes,0);}});

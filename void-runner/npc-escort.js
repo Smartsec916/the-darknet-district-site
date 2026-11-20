@@ -91,7 +91,8 @@
  /* Her walk on the pavement from a to b: onto the walking line, along it, then to the spot (straight lines, clear of the kerb's furniture). */
  function route(a,b,area='avenue'){const L=LIMIT.lane,pts=[],A=AR();
   // away from the Avenue's north pavement: a straight walk when it stays on walkable ground, else round one corner (npc-areas.js leg), else along the pavements (walkRoute)
-  if(A&&(area!=='avenue'||a.z<-8||b.z<-8)){if(!A.leg(a,b).length)return [{x:b.x,z:b.z}];for(const c of [{x:b.x,z:a.z},{x:a.x,z:b.z}])if(!A.leg(a,c).length&&!A.leg(c,b).length)return [c,{x:b.x,z:b.z}];return walkRoute(a,b,area)||[{x:b.x,z:b.z}];}
+  // (night QA 20 Nov 2026: the back alleys behind the Avenue's north side are north of z -5 too; a walk from or to one went straight through the buildings to the lane)
+  if(A&&(area!=='avenue'||a.z<-8||b.z<-8||a.z>-4.9||b.z>-4.9)){if(!A.leg(a,b).length)return [{x:b.x,z:b.z}];for(const c of [{x:b.x,z:a.z},{x:a.x,z:b.z}])if(!A.leg(a,c).length&&!A.leg(c,b).length)return [c,{x:b.x,z:b.z}];return walkRoute(a,b,area)||[{x:b.x,z:b.z}];}
   if(Math.abs(a.x-b.x)<1.2)return [{x:b.x,z:b.z}];if(Math.abs(a.z-L)>.05)pts.push({x:a.x,z:L});pts.push({x:b.x,z:L});if(Math.abs(b.z-L)>.05)pts.push({x:b.x,z:b.z});return pts;}
  /* ALONG THE PAVEMENTS (fix 19 Nov 2026: a spot she could not reach in a straight line or round one corner was walked to in a straight line, through shopfronts and across
     the road at a slant): a search over a half-metre grid of the area's walkable ground (npc-areas.js check), the road allowed only where it must be crossed (each metre of road
@@ -212,11 +213,11 @@
     Inside (npc-escort-indoors.js) she leads or follows room to room, through doorways, through doors that lead elsewhere and in the elevator (she rides with the player when
     she is in the cab with them); the step is done when both are inside the chosen room. Leaving the place: she comes out behind the player (a follow-them step whose player
     went further than "lost": she waits where she is, or the mission fails, as on the street). After the step she stays in that room until the mission ends.
-    WHO: the people a step can walk with (MOVABLE), except the cat (canInto). Reverie, Lace and made characters not marked adult never go into a bar's back room (ADULT_ROOMS),
+    WHO: the people a step can walk with (MOVABLE), except the cat (canInto). Reverie, Lace and made characters not marked adult never go into the fight pit (ADULT_ROOMS),
     as they never go into the adult venues on the street (npc-areas.js). The place's street door must be in the area she is placed in for this mission. */
  const reqI=f=>{try{return require(f);}catch{return null;}};
  const APX=()=>node?reqI('./apartments.js'):root.VoidApartments,MDX=()=>node?reqI('./modules.js'):root.VoidModules;
- const ADULT_ROOMS=['bar-back'];
+ const ADULT_ROOMS=['fight-pit'];   // only the fight pit (the owner, 20 Nov 2026: the gang are friendly; bar back room, card room and gang checkpoint are open)
  const INTO={pace:2.4,minDelay:.8,maxDelay:6,ride:2.6,ahead:2,through:.75,approach:.7};
  function canInto(id){const M=movable(id);if(!M)return {ok:false,why:'This character cannot walk with the player yet.'};if(M.cat)return {ok:false,why:'The cat stays outside: it does not go into buildings with the player. Pick a spot on the street for it.'};return {ok:true,why:null};}
  const isLoc=a=>!!a&&Array.isArray(a.modules);
@@ -253,7 +254,7 @@
   else if(o.mod!=null&&g.cabs.includes(o.mod))out.push('An elevator cab is the way between floors, not a place to stop: choose the room on the floor where the step should end.');
   else if(o.mod!=null&&g.entry&&!roomPath(g,g.entry,o.mod))out.push('That room cannot be reached from the street door.');
   if(M&&M.youthful&&!g.legacy&&g.entry){const dest=o.mod&&g.rooms.includes(o.mod)?o.mod:g.entry,path=roomPath(g,g.entry,dest)||[],rooms=[g.entry,...path.map(p=>p.room)];
-   if(rooms.some(r=>ADULT_ROOMS.includes(g.types[r])))out.push(who+' never goes into a bar’s back room (her content rule, as for the adult places on the street): choose another room or place, or someone marked as an adult.');}
+   if(rooms.some(r=>ADULT_ROOMS.includes(g.types[r])))out.push(who+' never goes into the fight pit (her content rule, as for the adult places on the street): choose another room or place, or someone marked as an adult.');}
   if(!a.door){out.push('That place has no street door yet: choose its street door first.');return out;}
   const d=doorAt(a.door);if(!d){out.push('That place’s street door is not in the game.');return out;}
   const A=AR(),da=doorArea(d),area=ctx.area||'avenue';if(A&&!da)out.push(who+' cannot walk to that street door (it is not on ground the people of the city walk on): choose another place.');
