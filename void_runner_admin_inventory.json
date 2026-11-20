@@ -3096,12 +3096,7 @@
               -190.4
             ]
           ],
-          "adultWalk": [
-            3,
-            4,
-            5,
-            6
-          ],
+          "adultWalk": [],
           "floors": [
             [
               51,
@@ -3146,52 +3141,32 @@
                 -190,
                 -174
               ],
-              "why": "That is Milked (the studio building, its side street and its service alley are never used for her).",
+              "why": "That is Milked, the studio building (never used for her: its side street and service alley are fine).",
               "rule": true
             },
             {
               "rect": [
-                71,
-                101,
-                -174,
-                -168.5
+                79.25,
+                84.25,
+                -174.5,
+                -172.5
               ],
-              "why": "That is Milked (the studio building, its side street and its service alley are never used for her).",
+              "why": "That is right in Milked’s front doorway: she may walk past it along the side street, but is never put or kept waiting in its door (stand at least 1.5 m from it).",
               "rule": true,
-              "adult": true
+              "adult": true,
+              "doorway": true
             },
             {
               "rect": [
-                71,
-                98.5,
-                -193.5,
-                -190
+                92.55,
+                96.95,
+                -191.5,
+                -189.5
               ],
-              "why": "That is Milked (the studio building, its side street and its service alley are never used for her).",
+              "why": "That is right in Milked’s rear doorway: she may walk past it along the service alley, but is never put or kept waiting in its door (stand at least 1.5 m from it).",
               "rule": true,
-              "adult": true
-            },
-            {
-              "rect": [
-                70.7,
-                72,
-                -176,
-                -166.5
-              ],
-              "why": "That is Milked (the studio building, its side street and its service alley are never used for her).",
-              "rule": true,
-              "adult": true
-            },
-            {
-              "rect": [
-                70.7,
-                72,
-                -195.5,
-                -188
-              ],
-              "why": "That is Milked (the studio building, its side street and its service alley are never used for her).",
-              "rule": true,
-              "adult": true
+              "adult": true,
+              "doorway": true
             }
           ],
           "obstacles": [
@@ -3494,6 +3469,66 @@
               71.125,
               -135.875,
               -135.625
+            ],
+            [
+              78,
+              80.75,
+              -174.12,
+              -173.88
+            ],
+            [
+              82.75,
+              98,
+              -174.12,
+              -173.88
+            ],
+            [
+              78,
+              94.05000000000001,
+              -190.12,
+              -189.88
+            ],
+            [
+              95.44999999999999,
+              98,
+              -190.12,
+              -189.88
+            ],
+            [
+              93.38,
+              93.62,
+              -190,
+              -189.64999999999998
+            ],
+            [
+              78,
+              80.55000000000001,
+              -173.89999999999998,
+              -173.5
+            ],
+            [
+              82.94999999999999,
+              98,
+              -173.89999999999998,
+              -173.5
+            ],
+            [
+              83.85,
+              84.54999999999998,
+              -173.5,
+              -172.95
+            ],
+            [
+              86,
+              88,
+              -191.15,
+              -190.15
+            ],
+            [
+              96.7,
+              98.3,
+              -193.35,
+              -192.20000000000002
             ],
             [
               53.580000000000005,
@@ -9073,7 +9108,7 @@
                 -182.8,
                 -174
               ],
-              "why": "That is Milked (the studio building, its side street and its service alley are never used for her).",
+              "why": "That is Milked, the studio building (never used for her: its side street and service alley are fine).",
               "rule": true,
               "adult": true
             },
@@ -39204,7 +39239,7 @@
       "spawn"
     ]
   },
-  "revision": "6376b1e1d854ad83",
+  "revision": "af6a6615908a4de5",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57644,7 +57679,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crosswalks.js": "cb8e2e5729e15313902b515dd8a36901749e09fe99260c4e8e63ed6e61e81106",
+    "void-runner/crosswalks.js": "2e08c52b51e0788a4023e0396b5c3bfde54d8c535ae5809be3a011b2aa5805c2",
     "void-runner/crowd.js": "1c7587f2aaac0397610df0fa2f8a798bcbcf00eda25c50de5b1ee08ad825d67e",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "ee1fcc752a36ace292f55b57531da64a4430fd61f6e84bceb1801480585f2ecd",
@@ -57756,8 +57791,8 @@
     "void-runner/neochinatown.js": "15d3b41c41043f878dda7a368684797c9aa881329c695dcf7b9d8f98fc838ca1",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "e8356d04a349fee8bb3697901c5b94850332a39a182db6e771af7e558153b333",
-    "void-runner/npc-behaviour.js": "dc6884e024ed7c936e17d778392b63064f23c02d17a178e574ba79473d84dc88",
+    "void-runner/npc-areas.js": "8aba7226a3b7fa6b0b057b2374df2056c8a61f12b1fc354f7da978bd5fe27a7e",
+    "void-runner/npc-behaviour.js": "e25bdc163973863833b7658e79019824c8b29b267babf9f82887b5806e1998d1",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort-indoors.js": "aefd4fde6d052f35a0d2a3170251f1264c8cb5193db325949799c2b9dd5a8ad0",

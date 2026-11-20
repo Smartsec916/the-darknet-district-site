@@ -57,7 +57,7 @@ test('adult (18+): only then the adult venues; never on Reverie’s or Lace’s 
  const A=x.A,ad={adult:true,made:true};assert.equal(A.check({x:81,z:-180},null,undefined,ad).ok,true,'Milked reception');assert.equal(A.check({x:87,z:-178},null,undefined,ad).ok,false,'a Milked studio');
  const pods=A.get('district').no.find(n=>/Pod/.test(n.name));assert.equal(A.check({x:(pods.x0+pods.x1)/2,z:(pods.z0+pods.z1)/2},null,undefined,ad).ok,false,'the pod room');
  for(const n of ['the bar','the VR play area','the arcade room']){const w=A.get('district').walk.find(v=>v.adult&&v.name===n);const p={x:(w.x0+w.x1)/2,z:(w.z0+w.z1)/2};assert.equal(A.check(p,null,undefined,ad).ok,true,n);assert.equal(A.check(p).ok,false,n);}
- assert.equal(A.check({x:85,z:-171}).ok,false);assert.equal(A.check({x:85,z:-171},null,undefined,ad).ok,true,'Milked side street');
+ assert.equal(A.check({x:81.75,z:-173}).ok,false);assert.equal(A.check({x:81.75,z:-173},null,undefined,ad).ok,true,'Milked’s front doorway');
  const X=x.X;X.setMade({rev:{name:'R',model:'npc-ethereal-lace',adult:true}});assert.equal(X.MOVABLE.rev.adult,false);assert.equal(X.planProblems('rev',NULLFLOOR).length>0,true);X.setMade({});
  assert.equal(A.here('milked').join(),'milked');assert.deepEqual(A.enter('milked'),{walk:'sacramento',quarter:'far-south'});});
 

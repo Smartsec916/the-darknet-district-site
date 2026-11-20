@@ -37,7 +37,7 @@ const log=(...a)=>console.log('[npc-areas]',...a),REV='grey-reverie';
   const alley=await page.evaluate(()=>VoidNPCAreas.places().find(q=>q.id==='oldtown-alley-mouth'));await clickMap(alley.x+4,alley.z);p=await plan();log('Old Town spot',JSON.stringify(p));
   assert.equal(await page.evaluate(q=>VoidNPCAreas.areaOf(q),p),'oldtown');assert.equal(await page.locator('[data-npc-problem]').count(),0);
   // Far South: Milked refused
-  await area('far-south');await clickMap(88,-182);assert.match(await note(),/Milked/);await clickMap(72,-171);assert.match(await note(),/Milked/);await page.locator(sel).screenshot({path:path.join(shots,'02-far-south-milked-refused.png')});
+  await area('far-south');await clickMap(88,-182);assert.match(await note(),/Milked/);await clickMap(81.75,-173);assert.match(await note(),/Milked’s front doorway/);await page.locator(sel).screenshot({path:path.join(shots,'02-far-south-milked-refused.png')});
   assert.equal(await page.evaluate(q=>VoidNPCAreas.areaOf(q),await plan()),'oldtown','still in Old Town');
   await area('district');await page.locator(sel).screenshot({path:path.join(shots,'03-district-map.png')});
   // ---- play the draft: she is in Old Town
