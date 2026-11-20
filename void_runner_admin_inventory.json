@@ -43599,7 +43599,7 @@
       "spawn"
     ]
   },
-  "revision": "fb76bb05b9468180",
+  "revision": "1371f82b72caee39",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -63047,7 +63047,7 @@
     "void-runner/mission-mechanics.js": "a5dab25e2db143a89f4c96bc71680aa9cc00a8f1ae4066f012b24b47fb3475ff",
     "void-runner/mission-trees.js": "67dea1e9656bf6edae8bffeba4d9a6478ba101cf39f931228eed400c64b7fe9e",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "55e06cd69edfa596c2a1c351b955f42b2229470af50e226fa713f9da4f241bc9",
+    "void-runner/module-build.js": "86c5c4faf999278f8f3ee6bd2c867d9bcc0f8c6359db3e7a19310595f4ce4d16",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
     "void-runner/module-integration.js": "f6b5c955d19d7b31bb44e21b8504272f9123c5877feebfeb1b378218716af52e",
     "void-runner/modules.js": "38f05b0cb1befff4aaa44310fa8c0ed789efaeb51fa31673a1fb0b9b0cc10f9c",
@@ -63073,7 +63073,7 @@
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
     "void-runner/ncz-street-pair.js": "432388decd1ac1b956d3d03adad43cac908cc5f9a4643d2bc1ffa8c492d3cbc4",
     "void-runner/ncz-underground-integration.js": "3d79c892c28fbc4ec5ed3350f308d5257f8fed44853e77192c9a249b4be75fd5",
-    "void-runner/ncz-underground.js": "f707a6289ff569986a3109740f393e39d4718f641f7cb65a0b2d9e03097b7717",
+    "void-runner/ncz-underground.js": "8bcd58947d2a720d001347c01a1831bd2a7be1dca36a59df93e2651c843d5cd1",
     "void-runner/neochinatown.js": "b0467951b7f204ec190a3853f7d88c41886ecca30272cfa46f8aef9c1c96d633",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",

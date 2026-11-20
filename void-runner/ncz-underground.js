@@ -159,13 +159,13 @@
     for(const it of a.kit){const f=KIT[it].furn;
      if(it==='bench'){box2(k.darkWood(),f[0]+.02,f[1]-.02,.42,.47,f[2]+.05,f[3]-.05);for(const z of [f[2]+.12,f[3]-.12])box2(S.dark,f[0]+.06,f[1]-.06,0,.42,z-.03,z+.03);box2(k.darkWood(),f[1]-.06,f[1]-.02,.6,.95,f[2]+.05,f[3]-.05);}
      else if(it==='crates'){if(low)box2(S.cardboard,f[0],f[1],0,f[4],f[2],f[3]);else{crate((f[0]+f[1])/2,f[2]+.2,.1,.5);crate((f[0]+f[1])/2,f[3]-.22,-.08,.5);}box2(P('cushion',{c:'#5a2a22',rough:1}),f[0]+.05,f[1]-.05,f[4],f[4]+.05,f[2]+.05,f[3]-.05);}
-     else if(it==='vending'){box2(S.dark,f[0],f[1],0,f[4],f[2],f[3]);box2(P('vend-glow',{em:'#3a8aa0',unlit:true}),f[0]+.08,f[1]-.25,.75,1.75,f[3],f[3]+.01);box2(P('vend-panel',{em:'#c8a050',unlit:true}),f[1]-.2,f[1]-.06,1.1,1.5,f[3],f[3]+.01);box2(S.black,f[0]+.08,f[1]-.25,.2,.45,f[3],f[3]+.02);}
-     else if(it==='cooler'){box2(S.white,f[0],f[1],0,f[4],f[2],f[3]);box2(P('cooler-glow',{em:'#7ab0b8',unlit:true}),f[0]+.06,f[1]-.06,.15,f[4]-.18,f[3],f[3]+.01);for(let y=.35;y<f[4]-.2;y+=.32)box2(S.steel,f[0]+.08,f[1]-.08,y,y+.02,f[3]+.01,f[3]+.02);}
-     else if(it==='tv'){box2(S.cardboard,f[0],f[1],0,.5,f[2],f[3]);box2(S.plastic,f[0]+.05,f[1]-.05,.5,.9,f[2]+.03,f[3]-.05);box2(P('tv-glow',{em:'#4a6a8a',unlit:true}),f[0]+.1,f[1]-.1,.56,.84,f[3]-.05,f[3]-.04);cyl(S.black,.01,.25,[(f[0]+f[1])/2,1.02,(f[2]+f[3])/2],5,0,.4);}
+     else if(it==='vending'){box2(S.dark,f[0],f[1],0,f[4],f[2],f[3]);box2(P('vend-glow',{em:'#3a8aa0',unlit:true}),f[0]+.08,f[1]-.25,.75,1.75,f[3],f[3]+.01);box2(P('vend-panel',{em:'#c8a050',unlit:true}),f[1]-.2,f[1]-.06,1.1,1.5,f[3],f[3]+.01);box2(S.black,f[0]+.08,f[1]-.25,.2,.45,f[3],f[3]+.02);for(let y=.95;y<1.7;y+=.2)box2(S.dark,f[0]+.08,f[1]-.25,y,y+.03,f[3]+.01,f[3]+.02);for(let x=f[0]+.16;x<f[1]-.3;x+=.12)box2(S.dark,x,x+.015,.75,1.75,f[3]+.01,f[3]+.02);}
+     else if(it==='cooler'){box2(S.gun,f[0],f[1],0,f[4],f[2],f[3]);box2(P('cooler-glow',{em:'#3e6670',unlit:true}),f[0]+.06,f[1]-.06,.15,f[4]-.18,f[3],f[3]+.01);for(let y=.35;y<f[4]-.2;y+=.32)box2(S.steel,f[0]+.08,f[1]-.08,y,y+.02,f[3]+.01,f[3]+.02);}
+     else if(it==='tv'){box2(S.rust,f[0],f[1],0,.5,f[2],f[3]);box2(S.plastic,f[0]+.05,f[1]-.05,.5,.9,f[2]+.03,f[3]-.05);box2(P('tv-glow',{em:'#4a6a8a',unlit:true}),f[0]+.1,f[1]-.1,.56,.84,f[3]-.05,f[3]-.04);cyl(S.black,.01,.25,[(f[0]+f[1])/2,1.02,(f[2]+f[3])/2],5,0,.4);}
      else if(it==='noodles'){for(let i=0;i<7;i++){const x=f[0]+.08+(i%3)*.14,z=f[2]+.08+Math.floor(i/3)%2*.14,y=Math.floor(i/6)*.11;cyl(P('cup',{c:'#d8cdb8',rough:.6}),.1,.11,[x,.055+y,z],8,0,0,.08);}box2(S.cardboard,f[0],f[1],0,.04,f[2],f[3]);}
      else if(it==='valve'){box2(pipeM('#4a4e4a'),f[0],f[1],.1,f[4],f[2],f[2]+.12);cyl(S.red,.4,.04,[(f[0]+f[1])/2,1.15,f[2]+.2],16,H);cyl(pipeM('#5a5e5a'),.12,1.3,[(f[0]+f[1])/2,.65,f[2]+.1],10);}
      else if(it==='shrine'){box2(S.wood,-.35,.35,1.18,1.22,-.98,-.78);box2(S.red,-.12,.12,1.22,1.45,-.97,-.92);for(const x of [-.25,.22])cyl(P('candle',{em:'#ffb050',unlit:true}),.04,.07,[x,1.26,-.86],6);cyl(S.white,.08,.05,[0,1.245,-.85],10);}
-     else if(it==='graffiti')graffiti(a.n%4,1.2,.8,-.88,1.5,0,H);
+     else if(it==='graffiti')graffiti(a.n%4,1.2,.8,-.88,1.5,0,-H);
      else if(it==='lamp'){box2(S.black,-.12,.12,2.05,2.25,-.97,-.85);box2(lamp,-.07,.07,2.07,2.12,-.9,-.84);}
      else if(it==='lantern')lantern(-.3,-.35,1.85,Ch,paperOf(a.mod),.32);
      else if(it==='pipes'){for(const y of [1.6,1.75])cyl(pipeM('#5a5246'),.09,1.9,[-.86,y,0],10,H);}}
