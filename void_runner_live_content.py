@@ -788,7 +788,8 @@ def module_location_problems(a, inv, family=None, shape_only=False):
     if not shape_only and family:
         e = MOD_REF.match(str(a.get('entry') or ''))
         t = e and (info['by'].get(e.group(1)) or {}).get('t')
-        if t and t.get('family') and t['family'] != family:
+        # any city housing style behind any city street door (an office or shop entrance too); The Outskirts' container doors take the container styles only
+        if t and t.get('family') and (t['family'] == 'container') != (family == 'container'):
             out.append('an older housing hallway or apartment as the entrance goes behind its own kind of street door.')
     return out
 

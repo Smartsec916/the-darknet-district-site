@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 20 Nov 2026 (newest): MISSION EDITOR — THE LOCATION PLAN DRAWS HALLWAY + APARTMENT; A STREET MAP OF NUMBERED DOORS; ANY CITY APARTMENT STYLE BEHIND ANY CITY DOOR (branch `claude/location-plan-fix`, build `2026-11-20-location-plan-1`, pushed, NO PR, not merged)
+
+The owner's Location block (a Rundown hallway joined to a Rundown apartment) showed an empty plan: the plan drew only grid modules, and housing hallways / apartments are portal modules joined by a connection. Now every module is drawn (portal ones as tiles beside the others, a dashed connector labelled "hallway door 101 → apartment entry", amber street entrance, red locks), with a one-line summary above ("Street door … → Rundown hallway → Rundown apartment 101") and plain-word Joins at / Connections. Every street-door list has SHOW ON MAP: a top-down map of the part of town with numbered doors coloured by building style, offices / shops / containers distinguished, used doors grey, click to choose. Any rundown / normal / luxury housing may go behind any city door (client and server checks); the Outskirts keep the container styles only. Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md). Tests: `tests/location-plan.test.cjs`, `tests/test_modules.py`, browser `tests/location-plan-browser.cjs`.
+
 ### 19 Nov 2026 (newest): FLIGHT COMBAT — MISSILES M1 / M2 WITH LOCK-ON, NEW LASERS, FLIGHT SOUND, ADMIN'S ORDNANCE, THE SHIP LOADOUT APP (branch `claude/flight-combat`, build `2026-11-19-flight-combat-1`, pushed, NO PR, not merged)
 
 The owner: never fired a missile; wants an Ace Combat-like lock-on, a missile animation, better laser graphics, flight sound, unlimited weak lasers, M1 (turns faster, less damage) and M2 (upgraded, more damage, turns slower) sold by Admin, and a ship Loadout app added when a ship is granted. Full record: [`FLIGHT_COMBAT.md`](FLIGHT_COMBAT.md).
