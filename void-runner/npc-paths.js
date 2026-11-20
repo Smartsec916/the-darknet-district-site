@@ -228,7 +228,7 @@
   else{const rig=bones.length===24&&!missing.length?'the 24-joint Mixamo-named rig of the Meshy street people':bones.length>=50&&!missing.length?'the larger crowd rig (about 52 joints)':!missing.length?'a Mixamo-named rig ('+bones.length+' joints)':null;
    add(rig?'ok':'warn',bones.length+' joints'+(rig?': matches '+rig+', so library clips can be tried on it (the rest pose is checked when a clip is tried).':': not the game’s rig (missing '+missing.slice(0,6).join(', ')+(missing.length>6?'…':'')+'), so only its own clips can play.'));}
   add((info.clips||[]).length?'ok':'warn',(info.clips||[]).length?'Clips in the file: '+info.clips.join(', ')+'.':'No clips in the file.');
-  if(Number.isFinite(info.height))add(info.height>1.3&&info.height<2.3?'ok':'warn','Height '+info.height.toFixed(2)+' m'+(info.height>1.3&&info.height<2.3?'.':' (a person is about 1.6 to 1.9 m: it will be scaled to 1.75 m in the test).'));
+  if(Number.isFinite(info.height))add(info.height>1.3&&info.height<2.3?'ok':'warn','Height '+(info.height*3.28084).toFixed(1)+' ft'+(info.height>1.3&&info.height<2.3?'.':' (a person is about 5.2 to 6.2 ft: it will be scaled to 5.7 ft in the test).'));
   return {ok:!out.some(x=>x.level==='bad'),items:out};}
  /* DAILY SCHEDULES (the owner, 18 Nov 2026, queue item 1: "daily NPC schedules by in-game hour"). plan.schedule = [{from:'HH:MM', to:'HH:MM', name?, mode:'stay'|'path'|
     'original', ...that mode's fields}]: from `from` until `to` on the game's own clock (game-clock.js; an in-game day is 2 hours of play) she does that block; outside every

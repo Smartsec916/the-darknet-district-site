@@ -35,7 +35,7 @@
   const t=plan&&(plan.mode==='stay'?plan:plan.mode==='path'&&Array.isArray(plan.points)?plan.points[0]:null);return (t&&num(t.x)&&num(t.z)&&A.areaOf(t))||'avenue';}
  const KINDS=[
   {id:'follow-them',name:'Follow them (they lead the way)',needs:'spot',help:'The person walks to the spot you pick on the map (or into one of this mission’s places: an apartment, a room of a location) and the player follows. They wait if the player falls behind and walk on when the player catches up. Done when both are at the spot (or both inside the room).'},
-  {id:'they-follow',name:'They follow you',needs:'spot',help:'The person follows the player (about 2 metres behind, walking or running to keep up) to the spot you pick on the map (or into one of this mission’s places). Done when both are there.'},
+  {id:'they-follow',name:'They follow you',needs:'spot',help:'The person follows the player (about 6 ft behind, walking or running to keep up) to the spot you pick on the map (or into one of this mission’s places). Done when both are there.'},
   {id:'their-cab',name:'They call a cab, you ride together',needs:'stop',cab:true,help:'The person walks to the kerb and calls a street taxi to the stop you choose. The player boards with them (normal fare). Both get out at the stop; done then.'},
   {id:'shared-cab',name:'You call a cab, they ride along',needs:'stop',cab:true,help:'The person follows the player. When the player calls a taxi to the stop you choose, they get in too, and both get out at the stop; done then.'}];
  const IDS=KINDS.map(k=>k.id),CAB=new Set(['their-cab','shared-cab']),SPOT=new Set(['follow-them','they-follow']);

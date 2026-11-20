@@ -235,7 +235,7 @@
  const START_MODES=[
   {id:'person',name:'In person: the player talks to them',help:'The player walks up to the giver and presses TALK; the giver offers it (what they say is in the Start block).'},
   {id:'person-accept',name:'In person: they ask ACCEPT / DENY',help:'The player presses TALK; the giver offers it and the player chooses ACCEPT or DENY.'},
-  {id:'near',name:'Walk near them (starts automatically)',help:'No talking needed: when the player comes within the distance you set (5 m if not set), the mission starts by itself, a short banner shows and the giver says what you write for the offer. Nothing to press.'},
+  {id:'near',name:'Walk near them (starts automatically)',help:'No talking needed: when the player comes within the distance you set (16 ft if not set), the mission starts by itself, a short banner shows and the giver says what you write for the offer. Nothing to press.'},
   {id:'near-accept',name:'Walk near them and they ask ACCEPT / DENY',help:'When the player comes within the distance, the giver offers it and the player chooses ACCEPT or DENY. Nothing starts until ACCEPT.'},
   {id:'messages',name:'By Messages (a text on the V1)',help:'A text arrives in the V1 Messages app when its trigger happens (first pod exit, a place, after a mission …).'},
   {id:'comms',name:'By Comms call',help:'A call in the V1 Comms app when its trigger happens.'},
