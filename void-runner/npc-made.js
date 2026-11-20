@@ -151,7 +151,7 @@
  // ---- one scene's figures (every street quarter and the District interior)
  function start({B=root.BABYLON,scene,parent,quality='medium',where={scene:'street',quarter:'avenue'}}={}){
   const A=root.VoidAssets,SP=root.VoidStreetPair,Ar=AR(),HERE=new Set(Ar?Ar.here(where.scene||'street',where.quarter||null):[]),cfg=SP&&SP.config;if(!A||!SP||!cfg||!scene)return null;
-  const people=new Map(),asked=new Map(),items=new Map(),rnd=Math.random;let clock=0,scan=0,disposed=false;
+  const people=new Map(),asked=new Map(),items=new Map(),away=new Set(),rnd=Math.random;let clock=0,scan=0,disposed=false;
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null,me=()=>typeof walker!=='undefined'?walker:null;
   const yAt=(x,z,last)=>{const g=Ar?Ar.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:.18;};
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
@@ -177,9 +177,9 @@
   function chatting(){if(!convo()){chatSeen=false;chatWho=null;return null;}if(!chatSeen){chatSeen=true;const t=typeof walkTarget!=='undefined'?walkTarget:null;chatWho=t&&t.action===ACTION?t.character:speaker();}return chatWho;}
   // a follow / lead step (npc-escort.js; cab rides are only Reverie's and Lace's)
   function escTick(p,P,dt){const E=root.VoidNPCEscort;if(!E)return 'idle';let e=p.esc;
-   if(!e||e.key!==P.key){e=p.esc={key:P.key,st:{x:p.s.x,z:p.s.z,yaw:p.s.yaw||0,phase:null},trail:{pts:[],shifted:0}};const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;}
+   if(!e||e.key!==P.key){e=p.esc={key:P.key,st:{x:p.s.x,z:p.s.z,yaw:p.s.yaw||0,phase:null},trail:{pts:[],shifted:0}};const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;if(r&&r.unarmed)e.st.unarmed=true;}
    const w=me(),mp=w&&Number.isFinite(w.x+w.z)?{x:w.x,z:w.z}:null,walking=typeof mode!=='undefined'&&mode==='walking';if(walking&&mp)E.trailPush(e.trail,mp);
-   const inp={area:P.area||'avenue',me:mp,to:P.to||null,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
+   const inp={area:P.area||'avenue',me:mp,to:P.to||null,door:P.door||null,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
    if(ev)try{root.VoidStreetPair?.onEscort?.({npc:p.id,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z});}catch{}return e.st.clip||'idle';}
   /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026; as ncz-street-pair.js): a new plan she cannot walk to straight is held while she is in view
@@ -205,10 +205,11 @@
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
    const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)){if(cs[id]&&inView(p.node,cam))p.going=true;else leave(id);}else p.going=false;
-   for(const [id,c] of Object.entries(cs)){if(!present(id))continue;const P=planOf(id),a=areaOfPlan(P);
+   for(const [id,c] of Object.entries(cs)){if(!present(id))continue;const P=planOf(id),a=areaOfPlan(P);if(P&&P.indoors)away.add(id);   // inside a place (npc-escort-indoors.js)
     if(!a||!HERE.has(a)){const p=people.get(id);if(p&&inView(p.node,cam))p.going=true;else if(p)leave(id);continue;}
     if(people.has(id)&&people.get(id).c!==c){leave(id);}   // changed in a new version of the content: made again
-    if(!people.has(id)){if(has(c.model))arrive(id,c,P);else ask(c.model);}}
+    if(!people.has(id)){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(away.has(id)&&t&&seenAt(t.x,0,t.z,cam))continue;   // back from inside a place: never in front of the player
+     if(has(c.model)){away.delete(id);arrive(id,c,P);}else ask(c.model);}}
    if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled()&&!p.going;if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
    nameCards();}
   function tick(dt){if(disposed)return;clock+=dt;if((scan-=dt)<=0){scan=.25;try{sync();}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}}const cam=scene.activeCamera?.globalPosition||null;for(const p of people.values())try{step(p,dt,cam);}catch{}}

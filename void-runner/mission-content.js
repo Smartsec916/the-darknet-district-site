@@ -339,7 +339,7 @@
      else if(o.kind==='hear'){if(o.npc!=null&&o.npc!==''&&!npcOk(o.npc))err(ow+': who is heard must be an NPC the game has a TALK prompt for.');}
      else if(o.kind==='await-call'){if(o.npc!=null&&o.npc!==''&&!speakerOk(o.npc))err(ow+': who will call must be a known NPC.');}
      else if(o.kind==='enter'||o.kind==='leave'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
-     else if(ESCORT.includes(o.kind)){const E=NEX();if(E)for(const p of E.problems(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null,plan:(ctx.npcs||{})[o.npc]||null}):'avenue'}))err(ow+': '+p);}   // in the area she is placed in for this mission (npc-areas.js)
+     else if(ESCORT.includes(o.kind)){const E=NEX();if(E)for(const p of E.problems(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null,plan:(ctx.npcs||{})[o.npc]||null}):'avenue',apartments:m.apartments||[],steps:m.objectives}))err(ow+': '+p);}   // in the area she is placed in for this mission (npc-areas.js)
      else if(o.kind==='anim'){if(!speakerOk(o.npc)||o.npc==='You')err(ow+': choose who plays the animation.');else{const p=animP(o.npc,o.clip);if(p)err(ow+': '+p+'.');}const A=NGS();if(A&&!A.holdOk(o.hold))err(ow+': the wait after an animation is a whole number of seconds from 0 to 30.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': an animation step has no lines.');}
      else if(o.kind==='wait'){if(!(Number.isInteger(o.hold)&&o.hold>=1&&o.hold<=TIME.wait))err(ow+': a wait step waits a whole number of seconds from 1 to 600.');if(o.near!=null&&!(Number.isInteger(o.near)&&o.near>=1&&o.near<=TIME.near))err(ow+': “only while the player stays within” is a whole number of metres from 1 to 50.');
       if(o.near!=null&&!npcOk(o.npc))err(ow+': choose who the player must stay near (someone with a TALK prompt).');else if(o.npc!=null&&o.npc!==''&&o.near==null)err(ow+': a wait step names a person only with a distance.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': a wait step has no lines.');}
@@ -585,6 +585,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
     took the player (its spot), else her "Giver waits at" spot, else where she stood when it started (here:true: live-content.js plans() remembers that spot). A follow /
     lead / cab step with her (escortNow) takes over while it runs. during:true marks these (ncz-street-pair.js keeps her out for them, as for a running step). */
  function holdOf(m,rec){const done=(m.objectives||[]).filter(o=>rec.objectives&&rec.objectives[o.id]===true&&ESCORT.includes(o.kind)&&o.npc===m.giver),last=done[done.length-1];
+  if(last&&last.apt!=null)return {mission:m.id,during:true,inside:{apt:last.apt,mod:last.mod||null,step:m.id+'/'+last.id}};   // (20 Nov 2026) into a place: she stays in that room (npc-escort-indoors.js) until the mission is done
   if(last&&last.to&&Number.isFinite(last.to.x)&&Number.isFinite(last.to.z))return {x:last.to.x,z:last.to.z,mission:m.id,during:true};
   if(!last&&m.waitAt&&Number.isFinite(m.waitAt.x)&&Number.isFinite(m.waitAt.z))return {...m.waitAt,mission:m.id,during:true};
   return {mission:m.id,during:true,here:true};}
@@ -592,7 +593,17 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
     kind, npc, to, wait, lost, ifLost, stop}. The game (live-content.js) gives that NPC an escort plan while it lasts. */
  function escortNow(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
-   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&ESCORT.includes(o.kind)&&o.npc&&!out[o.npc]&&!delayed(s,m,o)){const e={key:m.id+'/'+o.id,mission:m.id,step:o.id,kind:o.kind,npc:o.npc};for(const k of ['to','wait','lost','ifLost','stop'])if(o[k]!=null)e[k]=o[k];out[o.npc]=e;}break;}}
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&ESCORT.includes(o.kind)&&o.npc&&!out[o.npc]&&!delayed(s,m,o)){const e={key:m.id+'/'+o.id,mission:m.id,step:o.id,kind:o.kind,npc:o.npc};for(const k of ['to','wait','lost','ifLost','stop','apt','mod'])if(o[k]!=null)e[k]=o[k];
+    if(o.apt!=null){const a=(m.apartments||[]).find(x=>x&&x.id===o.apt);if(a){e.door=a.door||null;e.place=a;e.loc=m.id+'/'+a.id;}}   // into a place (npc-escort.js intoProblems): its street door and record, its instance key
+    out[o.npc]=e;}break;}}
+  return out;}
+ /* INTO A PLACE, AFTER THE STEP (20 Nov 2026): who stays inside a place of a running mission now: an NPC whose last finished follow-them / they-follow step with her went
+    into a place (apt, mod) stays in that room until the mission is done (as a giver stays at the spot of her last follow step: holdOf), unless a later step of hers is
+    running. {npc: {mission, apt, mod, step, loc}}. npc-escort-indoors.js keeps her figure there; live-content.js plans() keeps her off the street meanwhile. */
+ function insideNow(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},run=escortNow(s,env);
+  for(const t of env.trees)for(const m of t.missions||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;const last={};
+   for(const o of m.objectives||[]){if(!ESCORT.includes(o.kind)||!o.npc)continue;if(rec.objectives&&rec.objectives[o.id]===true)last[o.npc]=o;}
+   for(const [npc,o] of Object.entries(last)){if(o.apt==null||out[npc]||run[npc])continue;const a=(m.apartments||[]).find(x=>x&&x.id===o.apt);if(!a)continue;out[npc]={mission:m.id,apt:o.apt,mod:o.mod||null,step:m.id+'/'+o.id,loc:m.id+'/'+a.id,door:a.door||null,place:a,kind:o.kind};}}
   return out;}
  /* MISSION TIMERS: a step's delay and a wait step count down in story.flags (remaining whole seconds, so a reload resumes where it was): td_<mission>_<step> (0 = the delay
     has run) and tw_<mission>_<step>. Both are removed when the step is done. The game counts only while the player is in the world (live-content.js timerTick). */
@@ -740,7 +751,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    if(o.kind==='apt-use'&&!o.object)need(w+': choose what is used in the apartment','step-object',id);
    if(o.kind==='apt-use'&&(m.apartments||[]).some(a=>a&&a.id===o.apt&&Array.isArray(a.modules))&&!o.mod)need(w+': choose the room (module) where it is used','step-mod',id);
    if(o.kind==='hack'&&!o.ap)need(w+': choose the access point to hack','step-ap',id);
-   if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue'}):[]))need(w+': '+n.text,n.key,id);}
+   if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue',apartments:m.apartments||[],steps:m.objectives}):[]))need(w+': '+n.text,n.key,id);}
    if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
    if(o.kind==='wait'){if(o.near&&!o.npc)need(w+': choose who the player must stay near','step-npc',id);continue;}
    if(o.kind==='zone'){if(!o.target)need(w+': choose the room, location or area that changes','step-zone-target',id);if(!o.zone)need(w+': choose Friendly, Neutral or Hostile','step-zone',id);continue;}
@@ -868,7 +879,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function apartmentsNow(s,env){const X=APT();return X&&aptLive(s,env)?X.openNow(s,env.trees):[];}
  function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
  function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
- const api={askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

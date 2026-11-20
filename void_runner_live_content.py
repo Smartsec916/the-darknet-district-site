@@ -512,7 +512,7 @@ def _leg_problems(mv, a, b, inv=None):
 
 # ---- Follow / lead / shared-cab steps (void-runner/npc-escort.js): the same rules, from the admin inventory (npcEscort) ----
 ESCORT_KINDS = ('follow-them', 'they-follow', 'their-cab', 'shared-cab')
-ESCORT_FIELDS = ('to', 'wait', 'lost', 'ifLost', 'stop')
+ESCORT_FIELDS = ('to', 'apt', 'mod', 'wait', 'lost', 'ifLost', 'stop')
 
 # ---- Animations on lines and animation steps (void-runner/npc-gestures.js): the clips each character can play, from the admin inventory ----
 # (missionEditor.gestures: their own model's clips and library clips; a clip added in Developer Tools > NPCs counts when it is in her published plan's anims
@@ -924,7 +924,7 @@ def apartment_problems(m, inv, shape_only=False):
                 out.append('step ' + sid + ': choose what is used.')
             if k == 'apt-enter' and o.get('object') is not None:
                 out.append('step ' + sid + ': only a "use something" step names an object.')
-        elif o.get('apt') is not None or o.get('object') is not None or o.get('mod') is not None:
+        elif (o.get('apt') is not None or o.get('object') is not None or o.get('mod') is not None) and not (k in ('follow-them', 'they-follow') and o.get('object') is None):
             out.append('step ' + sid + ': only an apartment step names an apartment.')
         if k == 'hack':
             a = o.get('ap')
@@ -1331,8 +1331,59 @@ def placed_area(npc, wait_at, plan, inv):
     return 'avenue'
 
 
-def escort_problems(o, inv, area='avenue'):
-    """One follow / lead / cab step: a person who can walk with the player, a spot on their pavement or a cab stop they can reach, distances in range."""
+def into_problems(o, inv, area='avenue', m=None):
+    """A follow-them / they-follow step INTO one of the mission's places (void-runner/npc-escort.js intoProblems, 20 Nov 2026): never the cat, a place of this mission,
+    a room of a location (not an elevator cab), its street door in the area she is placed in, never a bar's back room for a youthful character, open by then."""
+    esc = (inv or {}).get('npcEscort') or {}
+    who = (esc.get('npcs') or {}).get(o.get('npc')) or {}
+    if who.get('into') is False:
+        return ['the cat stays outside: it does not go into buildings.']
+    out = []
+    if o.get('to') is not None:
+        out.append('choose either a spot on the street or a place of this mission, not both.')
+    if m is None:
+        return out
+    lst = m.get('apartments') if isinstance(m.get('apartments'), list) else []
+    a = next((x for x in lst if isinstance(x, dict) and x.get('id') == o.get('apt')), None)
+    if a is None:
+        out.append('choose one of this mission\u2019s places to go into.')
+        return out
+    into = esc.get('into') or {}
+    mods = {x.get('id'): x for x in (a.get('modules') or []) if isinstance(x, dict)} if isinstance(a.get('modules'), list) else None
+    if mods is None:
+        if o.get('mod') is not None:
+            out.append('only a location built from modules has rooms to choose.')
+    elif o.get('mod') is not None:
+        if o['mod'] not in mods:
+            out.append('choose one of the location\u2019s rooms.')
+        elif mods[o['mod']].get('type') == 'elevator':
+            out.append('an elevator cab is the way between floors, not a place to stop.')
+    if mods is not None and who.get('youthful'):
+        adult = set(into.get('adultRooms') or ['bar-back'])
+        entry = str(a.get('entry') or '').split('.')[0]
+        for r in (o.get('mod'), entry):
+            if r in mods and mods[r].get('type') in adult:
+                out.append('she never goes into a bar\u2019s back room (her content rule).')
+                break
+    door = a.get('door')
+    if not isinstance(door, str) or not door:
+        out.append('that place has no street door yet.')
+    else:
+        areas = into.get('doorAreas') or {}
+        if door in areas:
+            if areas[door] is None:
+                out.append('she cannot walk to that street door.')
+            elif areas[door] != area:
+                out.append('the street door of that place is not in the area she is placed in for this mission.')
+    f = a.get('from')
+    steps = [x.get('id') for x in (m.get('objectives') or []) if isinstance(x, dict)]
+    if f not in (None, 'start') and f in steps and o.get('id') in steps and steps.index(f) > steps.index(o.get('id')):
+        out.append('that place opens later in the mission: its door is still locked during this step.')
+    return out
+
+
+def escort_problems(o, inv, area='avenue', m=None):
+    """One follow / lead / cab step: a person who can walk with the player, a spot on their pavement (or a place of the mission) or a cab stop they can reach, distances in range."""
     esc = (inv or {}).get('npcEscort') or {}
     kind, npc = o.get('kind'), o.get('npc')
     who = (esc.get('npcs') or {}).get(npc)
@@ -1343,7 +1394,9 @@ def escort_problems(o, inv, area='avenue'):
     for f in ESCORT_FIELDS:
         if o.get(f) is not None and f not in allowed:
             out.append('this kind of step has no ' + f + ' setting.')
-    if kind in ('follow-them', 'they-follow'):
+    if kind in ('follow-them', 'they-follow') and (o.get('apt') is not None or o.get('mod') is not None):
+        out += into_problems(o, inv, area, m)
+    elif kind in ('follow-them', 'they-follow'):
         t = o.get('to')
         if not _keys(t, ['x', 'z']):
             out.append('pick the spot on the map.')
@@ -1390,6 +1443,9 @@ def escort_shape_problems(trees):
                     out.append('a follow step\'s "if the player gets lost" must be pause or fail.')
                 if o.get('stop') is not None and not (isinstance(o['stop'], str) and ID.match(o['stop'])):
                     out.append('a cab step\'s stop has an unknown shape.')
+                for key in ('apt', 'mod'):
+                    if o.get(key) is not None and o.get('kind') in ('follow-them', 'they-follow') and not (isinstance(o[key], str) and ID.match(o[key])):
+                        out.append('a follow step\'s place has an unknown shape.')
     return out
 
 
@@ -2126,7 +2182,7 @@ def check_trees(trees, inv, err, npcs=None):
                     err(ow + ': unknown place.')
                 elif kind in ESCORT_KINDS:
                     area = placed_area(o.get('npc'), m.get('waitAt') if m.get('giver') == o.get('npc') else None, (npcs or {}).get(o.get('npc')), inv)
-                    for p in escort_problems(o, inv, area):
+                    for p in escort_problems(o, inv, area, m):
                         err(ow + ': ' + p)
                 elif kind == 'anim':
                     if o.get('npc') not in givers:
@@ -2169,7 +2225,7 @@ def check_trees(trees, inv, err, npcs=None):
                     err(ow + ': only a wait step has a distance.')
                 if not _sec(o.get('delay'), 0, TIME['delay']):
                     err(ow + ': the delay before a step is a whole number of seconds from 0 to 600.')
-                if kind not in ESCORT_KINDS and any(o.get(f) is not None for f in ESCORT_FIELDS):
+                if kind not in ESCORT_KINDS and any(o.get(f) is not None for f in ESCORT_FIELDS if f not in ('apt', 'mod')):
                     err(ow + ': only a follow / lead / cab step has a spot, distances or a cab stop.')
                 if o.get('subject') is not None and kind != 'send-photo':
                     err(ow + ': only a send-a-photo step names who must be in the photo.')
