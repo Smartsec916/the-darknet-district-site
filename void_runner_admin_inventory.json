@@ -1644,6 +1644,54 @@
               134.125,
               -7.875,
               -7.625
+            ],
+            [
+              11.98,
+              12.219999999999999,
+              -17.42,
+              -17.18
+            ],
+            [
+              15.780000000000001,
+              16.02,
+              -7.82,
+              -7.58
+            ],
+            [
+              48.480000000000004,
+              48.72,
+              -17.42,
+              -17.18
+            ],
+            [
+              52.28,
+              52.519999999999996,
+              -7.82,
+              -7.58
+            ],
+            [
+              69.47999999999999,
+              69.72,
+              -17.42,
+              -17.18
+            ],
+            [
+              73.28,
+              73.52000000000001,
+              -7.82,
+              -7.58
+            ],
+            [
+              137.98,
+              138.22,
+              -17.42,
+              -17.18
+            ],
+            [
+              141.78,
+              142.02,
+              -7.82,
+              -7.58
             ]
           ],
           "posts": [
@@ -2945,6 +2993,42 @@
               38.6,
               -66.6,
               -65.79999999999998
+            ],
+            [
+              53.580000000000005,
+              53.82,
+              -31.52,
+              -31.279999999999998
+            ],
+            [
+              68.17999999999999,
+              68.42,
+              -27.720000000000002,
+              -27.48
+            ],
+            [
+              53.580000000000005,
+              53.82,
+              -60.519999999999996,
+              -60.28
+            ],
+            [
+              68.17999999999999,
+              68.42,
+              -56.72,
+              -56.480000000000004
+            ],
+            [
+              53.580000000000005,
+              53.82,
+              -114.72,
+              -114.47999999999999
+            ],
+            [
+              68.17999999999999,
+              68.42,
+              -118.52000000000001,
+              -118.28
             ]
           ],
           "posts": [
@@ -3409,6 +3493,42 @@
               71.125,
               -135.875,
               -135.625
+            ],
+            [
+              53.580000000000005,
+              53.82,
+              -135.02,
+              -134.78
+            ],
+            [
+              68.17999999999999,
+              68.42,
+              -131.22,
+              -130.98
+            ],
+            [
+              53.580000000000005,
+              53.82,
+              -163.02,
+              -162.78
+            ],
+            [
+              68.17999999999999,
+              68.42,
+              -159.22,
+              -158.98
+            ],
+            [
+              53.580000000000005,
+              53.82,
+              -215.52,
+              -215.28
+            ],
+            [
+              68.17999999999999,
+              68.42,
+              -211.72,
+              -211.48
             ]
           ],
           "posts": [
@@ -39083,7 +39203,7 @@
       "spawn"
     ]
   },
-  "revision": "d8e6ef402eca125f",
+  "revision": "74ff1e3301f712f8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -54897,31 +55017,31 @@
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 162,
+      "line": 173,
       "text": "if(me.avoid&&me.avoid.who===first.id&&Math.abs(me.avoid.side-first.side)>=.8)return {who:first.id,gap,eta,side:me.avoid.side};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 168,
+      "line": 179,
       "text": "return {who:first.id,gap,eta,side};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 171,
+      "line": 182,
       "text": "if(seen){if(me.avoid?.who!==seen.who)me.sensed=(me.sensed||0)+1;me.avoid={side:seen.side,who:seen.who,hold:cfg.hold,gap:seen.gap,eta:seen.eta};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 189,
+      "line": 200,
       "text": "function start({B,scene,parent,quality,instance,animate=root.VoidCrowd?.animate,player=()=>typeof walker!=='undefined'?walker:null,say=t=>root.announce?.(t),cast=null,drunkCast=null,monkCast=root.VoidCrowd?.monks||['npc-monk-elder','npc-monk-tech','npc-monk-grey'],rnd=Math.random,cfg=config,quarter=null}){",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-nightlife.js",
-      "line": 304,
+      "line": 330,
       "text": "if(p.drunk&&me&&remarkCool<=0&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)<cfg.remarkRadius){remarkCool=cfg.remarkCooldown;say('A drunk passer-by: \"'+remarks[Math.floor(rnd()*remarks.length)]+'\"');}",
       "kind": "source-reference"
     },
@@ -55005,19 +55125,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 915,
+      "line": 917,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1079,
+      "line": 1081,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1200,
+      "line": 1202,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -57523,6 +57643,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
+    "void-runner/crosswalks.js": "63416fe0d214ad48030d51f1751d90962ce8958075950413b817cb5e3fecc05c",
     "void-runner/crowd.js": "1c7587f2aaac0397610df0fa2f8a798bcbcf00eda25c50de5b1ee08ad825d67e",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "ee1fcc752a36ace292f55b57531da64a4430fd61f6e84bceb1801480585f2ecd",
@@ -57576,7 +57697,7 @@
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
-    "void-runner/guide-route.js": "c3d6a5718055e69f317158041ca4494783890928a39a181efdc6b15294ce3bdc",
+    "void-runner/guide-route.js": "4acbc82466da351067a18c07785e50ade8517554f65e0a8f8995f9834dc389af",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
@@ -57626,20 +57747,20 @@
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "b18462d37472b9b02d0761d15f5efca0073c7abab8f95378bb8636338a9d1598",
     "void-runner/ncz-nightclub.js": "361ceae200383217c9ca48e0ad61ac4d650527973f6efecf9dc387949e97b421",
-    "void-runner/ncz-nightlife.js": "afcae706444f329c99fdd46a0ac93131928630463bf36861c830ba0b8cda7d76",
+    "void-runner/ncz-nightlife.js": "b67d2211398653fd423b0a2ff81d2b34f5c23c4b7bd248f4b99ed563cb6b4c96",
     "void-runner/ncz-outskirts-life.js": "499e7eb615081e6575e17d8f357887f2b54f48db480463cd0381ef31a633010b",
     "void-runner/ncz-quarters.js": "2452dc8d471d63247c98e6f5f5f0e5f9327b5df3a41934abe081d2146393919b",
     "void-runner/ncz-street-glow.js": "4aa3f4f80e7648bde8f268a8b48ce1ffbbd9b4fa01f661e13ca0e788a50412b6",
     "void-runner/ncz-street-pair.js": "432388decd1ac1b956d3d03adad43cac908cc5f9a4643d2bc1ffa8c492d3cbc4",
-    "void-runner/neochinatown.js": "010e6e158bf1beff2fceca01c64c4bf9ec19c37dcf9128163b02e534d3ccfa5e",
+    "void-runner/neochinatown.js": "15d3b41c41043f878dda7a368684797c9aa881329c695dcf7b9d8f98fc838ca1",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "b39b9750db46bbf8c61b90cf8c27f0b7d83e885e057afc5914e09589f41dc40e",
+    "void-runner/npc-areas.js": "90b693e36c48fa163b78f89b8b1ad22a5154ffffb47cdf352b0575b86ae90ce1",
     "void-runner/npc-behaviour.js": "bf15d9a0030b9673812527f67a152d8ce1e185515fa8a2b0eec0af560b200839",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort-indoors.js": "aefd4fde6d052f35a0d2a3170251f1264c8cb5193db325949799c2b9dd5a8ad0",
-    "void-runner/npc-escort.js": "6ff100afa86f8554ce5b888aa639ae4323586dcc91ef09b854888b0e05691fa4",
+    "void-runner/npc-escort.js": "b6a71bd886cbc7a183abcd1050d1fe1aed9b4378bf3d4ed00d1001a000f61fcb",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
@@ -57670,9 +57791,9 @@
     "void-runner/relay-screens.js": "64da1a6937cd486085d4d3297d3fbb9c32bb68bba1dc7ce34c3e6c079f3e6aff",
     "void-runner/relay.js": "9d6ddf78aba19d66545431c4eb87d23e974991792851191548039b80f2097b3f",
     "void-runner/remote-players.js": "087e2108cef85341387fc0d8bf709984c450b8acb6712353acda0441e2cc6e9c",
-    "void-runner/road-taxi-rules.js": "2e6f7de854e64de3c68747e2a87a82ffcd3e05ab354564de579fc5267dd11aa2",
+    "void-runner/road-taxi-rules.js": "6957e3c18131e2ba3ec8ba2a938016341fe7e9a8d9a25bd09621175a8afdb129",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
-    "void-runner/road-taxi.js": "03f5073b5bae5b78e676c2ed4e7bfc6ec0da84e8dc375234b8e051332cdccf4c",
+    "void-runner/road-taxi.js": "29c1fc5a737d80e92524648d5651ed63066eb595213208ac41510b829c75212f",
     "void-runner/scenes.js": "cf1061512432f0329ed03cccf7dd5e15c771f9ef21aa51fb96aaffdbd68c858c",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",

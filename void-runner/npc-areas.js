@@ -23,6 +23,7 @@
  'use strict';
  const node=typeof module!=='undefined'&&module.exports;
  const NC=()=>{try{return node?require('./ncz-nightclub.js'):root.VoidNightclub||null;}catch{return null;}};
+ const XW=()=>{try{return node?require('./crosswalks.js'):root.VoidCrosswalks||null;}catch{return null;}};
  const QT=()=>node?require('./ncz-quarters.js'):root.VoidQuarters,MK=()=>node?require('./milked.js'):root.VoidMilked,PL=()=>{try{return node?require('./places.js'):root.VoidPlaces;}catch{return null;}};
  // The District's plan (local metres: x across, z inward from the street door at 20) -> world metres (neochinatown.js toWorld: a half turn about its door).
  const DOOR={x:126.9,z:-61.9},W=([x0,x1,z0,z1])=>[DOOR.x-x1,DOOR.x-x0,DOOR.z+20-z1,DOOR.z+20-z0],WP=(x,z)=>[DOOR.x-x,DOOR.z+20-z];
@@ -93,6 +94,7 @@
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
    for(const w of a.adult||[])a.walk.push({...w,adult:true});delete a.adult;   // ground only an adult made character uses (always inside an adult rule above)
    if(a.id==='oldtown'){const N=NC();try{for(const s of (N&&N.solids?N.solids():[]))if(!/^club-(north|south|west|front|entry|shutter)/.test(s.id||'')){const [x,,z]=s.position,[w,,d]=s.size;if(x>18&&x<50&&z>-68.5&&z<-48.5)a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,'NULL’s furniture']);}}catch{}}
+   if(a.scene==='street'){const X=XW();for(const c of (X?X.list(a.quarter):[]))for(const p of c.posts)a.obstacles.push([p.p[0]-.12,p.p[0]+.12,p.p[1]-.12,p.p[1]+.12,'a crosswalk signal post']);}   // crosswalks.js (20 Nov 2026): the crossings themselves are road
    a.posts=((Q&&Q.CALL_POINTS)||[]).filter(c=>c.quarter===a.quarter&&Array.isArray(c.post)).map(c=>[c.post[0],c.post[1]]);}
   // Places beyond the city (never used): reasons for a spot there
   const OUT=[R([-120,-60,-40,15],{why:RULE.corporate,rule:true,name:'the Corporate District'}),R([-60,2,-20,-5],{why:'That is beyond the Function Gate (the way to the Corporate District: never used for her).',rule:true}),R([152,200,-20,-5],{why:'That is beyond the East Gate (the way to the Temple: never used for her).',rule:true})];

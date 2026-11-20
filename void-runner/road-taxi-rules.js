@@ -207,9 +207,12 @@
   if(back.d>4)assignPath(cab,route(world.net,cab,{x:back.x,z:back.z}),'rejoin');
   else enterCruise(world,cab,back.s);
  }
- function stepWorld(world,dt,player){
-  dt=Math.max(0,Math.min(.1,dt||0));const riding=!!player?.riding;
-  for(const t of world.taxis){const obs=[];if(player&&!riding)obs.push({x:player.x,z:player.z,r:SPEC.playerR});
+ /* Crosswalks (crosswalks.js, 20 Nov 2026): a cab slows and stops short of a crossing ahead with somebody on it: the player on foot, or anyone in `peds` ({x, z}: the street's
+    walkers and mission characters, crosswalks.js peds()). */
+ const XW=()=>node?require('./crosswalks.js'):root.VoidCrosswalks;
+ function stepWorld(world,dt,player,peds){
+  dt=Math.max(0,Math.min(.1,dt||0));const riding=!!player?.riding,X=XW(),walkers=[...(player&&!riding?[{x:player.x,z:player.z}]:[]),...(peds||[])];
+  for(const t of world.taxis){const obs=[];if(player&&!riding)obs.push({x:player.x,z:player.z,r:SPEC.playerR});if(X&&walkers.length&&t.phase!=='waiting')obs.push(...X.yieldTo(t,walkers,world.quarter,SPEC));
    for(const o of world.taxis)if(o!==t)obs.push({x:o.x,z:o.z,r:SPEC.taxiR});follow(t,dt,obs);}
   for(const t of world.taxis)if(t.phase==='rejoin'&&t.pathLen-t.s<=0.45){if(!world.net.loop.length)park(world,t);else{const back=projectPath(world.net.loop,t);enterCruise(world,t,back.s);}}
   const job=world.job;if(!job||job.released)return world;const cab=job.cab;

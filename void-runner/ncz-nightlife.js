@@ -33,6 +33,9 @@
   activeRadius:140,        // beyond this from you, walkers pause (cheap)
   showRadius:90,           // beyond this from the camera, figures are switched off entirely
   fps:{low:45,high:56,step:4,recoverStep:2,every:2,warmup:3,minShare:.4,fade:.65},  // frame-rate governor: hide the furthest people below low, restore above high
+  // Crossing the road (the owner, 20 Nov 2026: crosswalks): a lone sober walker reaching a crosswalk on their pavement crosses to the other side with this chance
+  // (crosswalks.js), looks for cabs first (waits up to crossWait s at the kerb), then not again for crossCool s. Nobody crosses anywhere else.
+  crossShare:.3,crossCool:30,crossWait:8,
   spacing:1.1,             // how close two people get before one steps round
   // Reading while walking (the owner, 18 Nov 2026: "If a NPC uses their V1 or V2 to look at something like the News they might run into things or each other").
   // Charming, not slapstick: per look at the V1 while walking, `bump` is the chance they walk into something (a person coming the other way if there is one, else the
@@ -77,7 +80,15 @@
  // A point along a lane at distance t, pushed sideways by `side` metres (positive = toward the wall).
  function at(l,t,side=0){const L=len(l),k=Math.max(0,Math.min(1,t/L)),x=l.a[0]+(l.b[0]-l.a[0])*k,z=l.a[1]+(l.b[1]-l.a[1])*k;return [x+l.wall[0]*side,z+l.wall[1]*side];}
  const along=(l,p)=>{const L=len(l),ux=(l.b[0]-l.a[0])/L,uz=(l.b[1]-l.a[1])/L;return (p[0]-l.a[0])*ux+(p[1]-l.a[1])*uz;};
- const clearAt=p=>!keepClear.some(([x,z,r])=>Math.hypot(p[0]-x,p[1]-z)<r);
+ // The crosswalks (crosswalks.js): their kerbs are kept clear too (nobody stands or stops where people step off), and they join facing pavement lanes.
+ const XW=()=>typeof module!=='undefined'?require('./crosswalks.js'):root.VoidCrosswalks;
+ const xwEnds=()=>{const X=XW();return X?X.list().flatMap(c=>c.ends):[];};
+ const clearAt=p=>!keepClear.some(([x,z,r])=>Math.hypot(p[0]-x,p[1]-z)<r)&&!xwEnds().some(([x,z])=>Math.hypot(p[0]-x,p[1]-z)<1.8);
+ /* Where a walker of these lanes can cross: [{c, a, ta, b, tb}] for every crosswalk whose two kerbs are on two of the lanes (a: the lo side's lane, ta: the crossing's place along it). */
+ function crossingsFor(ls,quarter){const X=XW();if(!X)return [];const out=[];
+  for(const c of X.list(quarter)){if(!c.lanes)continue;const a=ls.find(l=>l.id===c.lanes[0]),b=ls.find(l=>l.id===c.lanes[1]);if(!a||!b)continue;
+   const ta=along(a,c.ends[0]),tb=along(b,c.ends[1]);if(ta<1.2||tb<1.2||ta>len(a)-1.2||tb>len(b)-1.2)continue;out.push({c,a,ta,b,tb});}
+  return out;}
  const canLean=(l,t)=>{const p=at(l,t);const s=l.id.startsWith('main')?p[1]:p[0];return clearAt(p)&&!(l.noLean||[]).some(([a,b])=>s>a&&s<b);};
  // Who walks where: lanes weighted by liveliness, drunks only on nightlife lanes, some pairs.
  function plan(quality='medium',rnd=Math.random,cfg=config,quarter=null){
@@ -243,7 +254,18 @@
    p.l=pool[Math.floor(rnd()*pool.length)];const L=len(p.l);p.dir=rnd()<.5?1:-1;p.t=p.dir>0?1.2:L-1.2;p.away=0;p.state='walk';p.timer=stopIn(p);p.node.setEnabled(true);place(p,0);}
   /* A bump: into a person coming the other way (both stop, turn to each other, a word or a shrug, then carry on) or, with nobody met, the shopfront at their shoulder
      (a half-step back from the wall, a startled look). The hologram closes. Never the player (the player is never `o`). */
-  const stats_={bumps:0,personBumps:0,misses:0,foreseen:0};
+  const stats_={bumps:0,personBumps:0,misses:0,foreseen:0,crossings:0};
+  /* Crossing at a crosswalk: at the kerb they look for cabs (xwait), then walk straight over the stripes (cross) and carry on along the far pavement either way. While on the
+     road they are marked for the cabs (crosswalks.js mark: a cab ahead stops for them). */
+  const xings=crossingsFor(lanes,quarter);
+  function crossStart(p,x,fromA){const from=fromA?at(x.a,x.ta):at(x.b,x.tb),to=fromA?at(x.b,x.tb):at(x.a,x.ta);p.cross={x,from,to,k:0,len:Math.hypot(to[0]-from[0],to[1]-from[1]),lane:fromA?x.b:x.a,t:fromA?x.tb:x.ta,wait:0};
+   p.state='xwait';p.faceTo=to;p.side=0;play(p,'idle');stats_.crossings++;}
+  function crossStep(p,dt){const X=p.cross,P=X.from;
+   if(p.state==='xwait'){X.wait+=dt;if(X.wait>.6&&(X.wait>cfg.crossWait||XW()?.clearToCross?.(X.x.c,root.VoidRoadTaxi?.world?.taxis||[])!==false)){p.state='cross';play(p,'walk');}}
+   else{X.k=Math.min(X.len,X.k+p.speed*dt*(R()?.pace?.(p.node)??1));}
+   const k=X.len?X.k/X.len:1,x=P[0]+(X.to[0]-P[0])*k,z=P[1]+(X.to[1]-P[1])*k;p.node.position.set(x,0,z);
+   const want=Math.atan2(X.to[0]-P[0],X.to[1]-P[1]),d=((want-p.yaw+Math.PI*3)%(Math.PI*2))-Math.PI;p.yaw+=d*Math.min(1,dt*5);p.node.rotation.y=p.yaw;
+   if(p.state==='cross'){XW()?.mark?.('night:'+p.id,x,z);if(X.k>=X.len){p.l=X.lane;p.t=X.t;p.dir=rnd()<.5?1:-1;p.side=p.homeSide=(rnd()-.5)*.8;p.cross=null;p.faceTo=null;p.state='walk';p.crossCool=cfg.crossCool;p.timer=stopIn(p);}}}
   function bump(p,o){const DC=cfg.distracted;stats_.bumps++;p.plan=null;p.drifting=false;root.VoidNPCDevice?.startle?.(p.node,{close:true});
    p.state='bump';p.timer=o?DC.sorryFor:DC.stumbleFor;p.backLeft=.22;p.jolt=0;
    if(o){stats_.personBumps++;p.faceTo=[o.node.position.x,o.node.position.z];o.state='bump';o.timer=DC.sorryFor;o.faceTo=[p.node.position.x,p.node.position.z];o.backLeft=.12;o.jolt=0;
@@ -255,6 +277,7 @@
     if(p.fixed)continue;
     if(p.away){p.away-=dt;if(p.away<=0)comeBack(p);continue;}
     if(p.hidden)continue;
+    if(p.cross){crossStep(p,dt);continue;}
     monkCheck(p,dt);
     const far=me&&Math.hypot(p.node.position.x-me.x,p.node.position.z-me.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.activeRadius;if(far)continue;
     p.timer-=dt;p.react=Math.max(0,p.react-dt);p.sway+=dt*(p.drunk?1.6:0);
@@ -285,7 +308,10 @@
      if(ahead&&reading&&!ahead.player&&!ahead.monk&&!p.missed){p.missed=ahead;stats_.misses++;D?.startle?.(p.node,{close:false});}else if(!ahead)p.missed=null;
      if(p.monk){}else if(ahead)p.side+=(p.side>0?-1:1)*dt*(reading?DC.sidestep:1.5);else if(!p.drifting)p.side+=((p.homeSide??(p.homeSide=p.side))-p.side)*Math.min(1,dt*.5);
      p.side=Math.max(-p.l.half+.1,Math.min(p.l.half-.1,p.side));
-     p.t+=p.dir*p.speed*dt*(p.monk?(ahead?.6:1):(ahead?.4:1)*(R()?.pace?.(p.node)??1));const L=len(p.l);
+     const was=p.t;p.t+=p.dir*p.speed*dt*(p.monk?(ahead?.6:1):(ahead?.4:1)*(R()?.pace?.(p.node)??1));const L=len(p.l);
+     // at a crosswalk on their pavement a lone sober walker may cross to the other side (only there: config.crossShare)
+     p.crossCool=Math.max(0,(p.crossCool||0)-dt);if(!p.crossCool&&!p.monk&&!p.drunk&&!p.reading&&!p.pairOf&&!p.friendOf&&!hasCompanion(p)){const x=xings.find(x=>(x.a===p.l&&(was-x.ta)*(p.t-x.ta)<=0)||(x.b===p.l&&(was-x.tb)*(p.t-x.tb)<=0));
+      if(x){p.crossCool=cfg.crossCool*.3;if(rnd()<cfg.crossShare){crossStart(p,x,x.a===p.l);continue;}}}
      if(p.monk&&p.range){const [a,b]=p.range;if((p.t<a&&p.dir<0&&a>1)||(p.t>b&&p.dir>0&&b<L-1)){p.dir*=-1;p.t=Math.max(a,Math.min(b,p.t));p.avoid=null;}}   /* a monk turns back where monks thin out (monkRange) */
      if(p.t<1||p.t>L-1){p.dir*=-1;p.t=Math.max(1,Math.min(L-1,p.t));
       if(!hasCompanion(p)&&rnd()<cfg.leaveShare){leave(p);continue;}}
@@ -321,6 +347,6 @@
    for(const k of [1,.5]){for(const p of all)for(const [m,v]of p.parts)m.visibility=v*k;scene.incrementRenderId();await cap(ready());if(disposed)return;}
    for(const p of all){for(const [m,v]of p.parts)m.visibility=v*(p.fade||0);p.lastFade=p.fade;}}
   return {tick,dispose,prewarm,warm,people,stats,config:cfg};}
- const api={foodFronts,distraction,isMonk,monkSpeed,monkShareAt,monkRange,monkAverage,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
+ const api={crossingsFor,clearAt,foodFronts,distraction,isMonk,monkSpeed,monkShareAt,monkRange,monkAverage,bumpable,foresee,monkStep,config,lanes,farLanes,lanesFor,share,keepClear,standing,remarks,plan,at,canLean,start,createBudget};
  if(typeof module!=='undefined')module.exports=api;else root.VoidNightlife=api;
 })(globalThis);

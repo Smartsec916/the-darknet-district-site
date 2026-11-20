@@ -220,7 +220,7 @@
   if(world.taxis.some(t=>!t.mesh?.root||t.mesh.root.isDisposed())){for(const t of world.taxis)disposeCab(t.mesh);for(const m of own){try{m.dispose();}catch{}}own=[];mats=null;signTex=null;mats=makeMats(scene());own=mats.own;for(const t of world.taxis)t.mesh=buildCab(scene(),t.id);}
   const riding=mode==='road-taxi';
   const player={x:walker.x,z:walker.z,riding};
-  R.stepWorld(world,dt,player);
+  R.stepWorld(world,dt,player,globalThis.VoidCrosswalks?.peds?.()||[]);   // anyone on a crosswalk ahead stops the cabs (crosswalks.js)
   shutters();if(world.job&&!world.job.released&&world.job.cab.phase==='in-bay'&&riding){cross();return;}
   if(riding){if(!world.job||world.job.released||world.job.cab.phase==='rejoin'){mode='walking';}else placeRider();}
   if(mode==='road-taxi'){let pad=null;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected!==false);}catch{}const a=!!pad?.buttons?.[0]?.pressed;if(a&&!prevA&&world?.job?.cab?.phase==='arrived')exit();prevA=a;if(pad)look.yaw=Math.max(-1.5,Math.min(1.5,look.yaw+(pad.axes?.[2]||0)*dt*1.6));}
