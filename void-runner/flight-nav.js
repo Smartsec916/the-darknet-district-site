@@ -8,17 +8,20 @@
 (function(root){
  'use strict';
  const Uof=()=>typeof module!=='undefined'?require('./universe.js'):root.VoidUniverse;
+ const Nav=()=>typeof module!=='undefined'?require('./nav-coords.js'):root.VoidNav;
+ /* The markers flight shows now (nav-coords.js: every location with Rook's coordinates, else the route to the mission and the way home, else the known places). act: active missions. */
+ const shownList=(s,U,act)=>{const N=Nav();return N?N.markers(s,act||[]):U.destinations(s);};
  const nameOf=(U,id)=>(U.locations[id]?.name)||(root.C?.stations?.[id]?.name)||id.replace(/(^|-)./g,m=>m.toUpperCase().replace('-',' '));
  /* The marker (a route id from destinations()) that leads toward place id from where the player is; null when there is none (unknown system, the place itself). */
- function markerFor(s,id,U=Uof()){if(!id||!U.locations[id]||id===s.location)return null;const hop=U.nextHop(s.location,id),list=U.destinations(s);return list.includes(hop)?hop:null;}
+ function markerFor(s,id,U=Uof(),act){if(!id||!U.locations[id]||id===s.location)return null;const hop=U.nextHop(s.location,id),list=shownList(s,U,act);return list.includes(hop)?hop:null;}
  /* What the Map app lists in flight. kind: 'station' | 'planet' | 'warp' (the jump to another system's hub). */
- function entries(s,U=Uof()){const here=U.system(s.location),known=s.universe?.discoveredLocations||[],out=[];
-  for(const id of U.destinations(s)){const other=U.system(id)!==here,l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:other?'warp':(l.surface||l.planet)?'planet':'station',marker:id,direct:true});}
+ function entries(s,U=Uof(),act){const here=U.system(s.location),N=Nav(),routeOnly=!!N&&N.mode(s,act||[])==='route',known=routeOnly?[]:s.universe?.discoveredLocations||[],out=[];
+  for(const id of shownList(s,U,act)){const other=U.system(id)!==here,l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:other?'warp':(l.surface||l.planet)?'planet':'station',marker:id,direct:true});}
   // known places in other systems that are not their hub: reached through that system's warp marker
-  for(const id of known)if(id!==s.location&&U.system(id)!==here&&!out.some(e=>e.id===id)){const m=markerFor(s,id,U);if(!m)continue;const l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:(l.surface||l.planet)?'planet':'station',marker:m,direct:false});}
+  for(const id of known)if(id!==s.location&&U.system(id)!==here&&!out.some(e=>e.id===id)){const m=markerFor(s,id,U,act);if(!m)continue;const l=U.locations[id]||{};out.push({id,name:nameOf(U,id),system:U.system(id),systemName:U.systems[U.system(id)]?.name||'',kind:(l.surface||l.planet)?'planet':'station',marker:m,direct:false});}
   return out;}
  /* Active missions whose destination is in another system: the warp marker toward it, with the mission's title. */
- function missionMarkers(s,active,U=Uof()){const here=U.system(s.location),out=new Map();for(const m of active||[]){if(!m||m.completed||!m.destination||!U.locations[m.destination]||U.system(m.destination)===here)continue;const mk=markerFor(s,m.destination,U);if(mk&&!out.has(mk))out.set(mk,{marker:mk,mission:m.title||m.id,destination:m.destination});}return [...out.values()];}
+ function missionMarkers(s,active,U=Uof()){const here=U.system(s.location),out=new Map();for(const m of active||[]){if(!m||m.completed||!m.destination||!U.locations[m.destination]||U.system(m.destination)===here)continue;const mk=markerFor(s,m.destination,U,active);if(mk&&!out.has(mk))out.set(mk,{marker:mk,mission:m.title||m.id,destination:m.destination});}return [...out.values()];}
  const target=s=>{const t=s?.story?.flags?.navTarget;return typeof t==='string'&&Uof().locations[t]?t:null;};
  function select(s,id,U=Uof()){if(!s?.story?.flags)return false;if(id==null||id===''){delete s.story.flags.navTarget;return true;}if(!U.locations[id]||!(s.universe?.discoveredLocations||[]).includes(id)||id===s.location)return false;s.story.flags.navTarget=id;return true;}
  /* Arriving where the target is ends it. */
@@ -40,12 +43,12 @@
  if(typeof drawWarpMarker==='function'){const base=drawWarpMarker;drawWarpMarker=function(){base.apply(this,arguments);shown.nav=null;shown.mission=[];
   try{const s=st();if(!s||mode!=='play'||root.VoidFlightSkirmish?.active||!flight.route||!['align','departure'].includes(flight.route.phase))return;if(typeof navigationReveal!=='undefined'&&VoidNavigationReveal.opacity(navigationReveal)<=0)return;
    for(const m of missionMarkers(s,active())){const v=vectorFor(m.marker);if(v){square(v,YELLOW,38,'◆ MISSION · '+(Uof().systems[Uof().system(m.destination)]?.name||'').toUpperCase(),null,true);shown.mission.push(m.marker);}}
-   const t=target(s),mk=t&&markerFor(s,t);if(mk){const v=vectorFor(mk);if(v){square(v,BLUE,32,'■ NAV · '+nameOf(Uof(),t).toUpperCase()+(mk!==t?' (WARP)':''),[6,3],false);shown.nav=mk;}}}catch{}};}
+   const t=target(s),mk=t&&markerFor(s,t,Uof(),active());if(mk){const v=vectorFor(mk);if(v){square(v,BLUE,32,'■ NAV · '+nameOf(Uof(),t).toUpperCase()+(mk!==t?' (WARP)':''),[6,3],false);shown.nav=mk;}}}catch{}};}
  // arriving at the target clears it
  setInterval(()=>{const s=st();if(s&&arrived(s)){try{save();}catch{}}},1000);
  // ---- browser: the Map app's page in flight (personal-device.js map() asks for it while flying) ----
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- function view(){const s=st(),U=Uof();if(!s)return '<div class="pd-empty">Not available.</div>';const t=target(s),miss=missionMarkers(s,active()),list=entries(s),here=U.systems[U.system(s.location)]?.name||'';
+ function view(){const s=st(),U=Uof();if(!s)return '<div class="pd-empty">Not available.</div>';const t=target(s),miss=missionMarkers(s,active()),list=entries(s,U,active()),navMode=Nav()?Nav().mode(s,active()):'full',here=U.systems[U.system(s.location)]?.name||'';
   const missOn=id=>miss.find(m=>m.marker===id);
   const row=e=>{const sel=t===e.id,m=missOn(e.marker),hereMission=active().find(x=>!x.completed&&x.destination===e.id);
    return '<button type="button" class="fn-row'+(sel?' fn-sel':'')+'" data-nav="'+esc(e.id)+'" aria-pressed="'+sel+'"><span class="fn-kind">'+({station:'STATION',planet:'PLANET',warp:'WARP'}[e.kind])+'</span><b>'+esc(e.name)+'</b>'
@@ -53,7 +56,8 @@
     +(sel?'<em class="fn-tag fn-blue">■ NAV TARGET</em>':'')+((m&&e.kind==='warp')||hereMission?'<em class="fn-tag fn-yellow">◆ MISSION'+(hereMission?' · '+esc(hereMission.title):m?' · '+esc(m.mission):'')+'</em>':'')+'</button>';};
   const inSys=list.filter(e=>e.kind!=='warp'&&e.direct),warps=list.filter(e=>e.kind==='warp'),far=list.filter(e=>!e.direct);
   return '<div class="pd-note">FLIGHT NAVIGATION · '+esc(here.toUpperCase())+' · choose a place: its marker gets a <b style="color:'+BLUE+'">blue ■ square</b>. A mission in another system marks its warp marker with a <b style="color:'+YELLOW+'">yellow ◆ square</b>. Fly into a marker to set course.</div>'
-   +'<h2>IN THIS SYSTEM</h2>'+(inSys.length?inSys.map(row).join(''):'<div class="pd-empty">No other known places in this system.</div>')
+   +(navMode==='route'?'<div class="pd-note" data-nav-mode="route">ROUTE ONLY · the markers on the way to your mission, and the way home. Other locations are added when you receive their nav data.</div>':navMode==='known'?'<div class="pd-note" data-nav-mode="known">KNOWN PLACES · the places you have already found. Other locations are added when you receive their nav data.</div>':'<div class="pd-note" data-nav-mode="full">ALL LOCATIONS · nav data received.</div>')
+   +'<h2>IN THIS SYSTEM</h2>'+(inSys.length?inSys.map(row).join(''):'<div class="pd-empty">'+(navMode==='route'?'None on your route.':'No other known places in this system.')+'</div>')
    +'<h2>WARP MARKERS TO OTHER SYSTEMS</h2>'+(warps.length?warps.map(row).join(''):'<div class="pd-empty">No other system known yet.</div>')
    +(far.length?'<h2>KNOWN PLACES IN OTHER SYSTEMS</h2>'+far.map(row).join(''):'')
    +(t?'<div class="pd-tabs" style="margin-top:10px"><button type="button" data-nav="">CLEAR NAV TARGET</button></div>':'');}

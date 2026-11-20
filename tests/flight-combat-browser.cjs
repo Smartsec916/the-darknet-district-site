@@ -114,7 +114,7 @@ const log=m=>console.log(new Date().toISOString().slice(11,19),m);
   }
   // ---- D: Campaign flight, the V1 Map app's flight navigation and the squares on the markers
   await page.evaluate(async()=>{if(window.__pilot)VoidPilotFlight.step=window.__pilot;if(VoidFlightSkirmish.active)await VoidFlightSkirmish.end();});
-  await page.evaluate(()=>{state.universe.discoveredLocations=[...new Set([...state.universe.discoveredLocations,'sol-belt','mars','meridian','kepler'])];state.location='earth';save();
+  await page.evaluate(()=>{state.universe.discoveredLocations=[...new Set([...state.universe.discoveredLocations,'sol-belt','mars','meridian','kepler'])];state.location='earth';VoidNav.grant(state,'test');save();   // the full Map (Rook's coordinates: nav-coords.js); route-only mode is tests/flight-map-browser.py
    window.__active=VoidMissions.active;VoidMissions.active=(s,c)=>[...window.__active(s,c),{id:'test-far',title:'Test job at Kepler',destination:'kepler'}];});   // a mission in another system (test only)
   await page.evaluate(async()=>{await launch();});await page.waitForFunction(()=>mode==='play'&&flight.route&&flight.route.phase==='align',null,{timeout:300000});log('campaign flight '+await page.evaluate(()=>flight.route.origin+'→'+flight.route.destination));
   await page.keyboard.press('KeyL');await page.waitForFunction(()=>!!document.querySelector('#personal-device [data-nav]'),null,{timeout:30000});await page.waitForTimeout(500);await shot('d1-map-app-flight');

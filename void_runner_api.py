@@ -522,7 +522,9 @@ def clean_save(value):
     # and the save is never rejected for it (campaign.js retireMissions does the same).
     if cleaned.get('flags', {}).get('missionPool') == 'closed':
         tracked_id = result['universe'].get('trackedMission')
-        if tracked_id is not None and not re.match(r'^(draft-|main-storyline-m\d|m\d{3}-)', tracked_id):
+        # Rook's side missions (rook-run-N) stay tracked once the first delivery to Rook is done (campaign.js rookOpen / retireMissions).
+        rook_open = cleaned['flags'].get('rook-first-delivery-done') is True
+        if tracked_id is not None and not re.match(r'^(draft-|main-storyline-m\d|m\d{3}-)', tracked_id) and not (rook_open and re.fullmatch(r'rook-run-\d+', tracked_id)):
             result['universe']['trackedMission'] = None
             result['universe']['autoTrack'] = True
     if 'story' in value:

@@ -2,6 +2,19 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## 20 Nov 2026: "Unlock all nav coordinates" and where Rook's cargo jobs live (branch `claude/flight-map-coords`)
+
+### How to use it (plain steps)
+
+1. Open a mission in one of your trees and go to **What becomes available**.
+2. In the kind list choose **Unlock all nav coordinates** (there is nothing else to pick), then choose **when**: "when the mission is done" or "at step: ...". Press **+ ADD**.
+3. When the player reaches that point, the flight Map app gets every location: a warp marker to every place in the system they fly in and to every other system they can reach. Their V1 shows "NAV DATA RECEIVED". Before that, a new pilot sees only the markers on the way to the mission (and the way home).
+
+Rook gives the coordinates himself the first time he offers his cargo side missions (after the story flag `rook-first-delivery-done`), so a tree only needs this unlock to give them earlier. **Rook's cargo jobs are not in the editor:** they are the data file `void-runner/rook-cargo-jobs.js` (kinds of job, cargo, hold space, pay, which jobs are on his board, places he never sends freight to, and his two PROPOSED lines). Change the values there.
+
+### For Claude and Codex
+
+Unlock kind `nav-coords` (`{kind:'nav-coords'}`, optional `when`): `mission-givers.js UNLOCK_KINDS`, `mission-content.js UNLOCKS` and `unlockNow` (calls `nav-coords.js grant`), the editor's unlock row (no id), the server via `unlockKinds` in `void_runner_admin_inventory.json`. Details: `AI_HANDOFF.md` (20 Nov 2026, flight map).
 ## Twenty-seventh pass (20 Nov 2026): the Awakening continuation (Missions 004–012) and reusable mechanics
 
 Branch `claude/awakening-tree`, build `2026-11-20-awakening-2-1`. Pushed, no PR, not merged. The owner's spec (Missions 004–011 with his dialogue, and a First Cargo Delivery tree after 011) built as mission DATA in `void-runner/main-story.js`, run by the same tree engine, every piece editable here.
