@@ -191,6 +191,20 @@
  /* "V1-7F3A-91C2" for a serial and model; null when the serial is missing or malformed. */
  const deviceId=(serial,model)=>SERIAL.test(serial||'')?prefixOf(model)+'-'+serial.slice(0,4).toUpperCase()+'-'+serial.slice(4).toUpperCase():null;
  const DEVICE_ID=/^V\d-[0-9A-F]{4}-[0-9A-F]{4}$/;
- const api={NOTIFY,notifyTier,SERIAL,DEVICE_ID,makeSerial,ensureSerial,deviceId,prefixOf,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ /* MISSION APP HINTS (the owner, 20 Nov 2026: Admin's call says "Press L to open your device, then select the Camera app", and L opened Comms). The V1 app a mission
+    step wants the player to open: the step's own `app` (set in the Mission Editor, optional), or what its kind implies (a photo step: Camera; sending a photo:
+    Messages). null: none. The home screen highlights that tile (personal-device.js) in the mission yellow. Future steps (a camera feed, a hacking tool) name theirs. */
+ const STEP_APPS=['camera','gallery','messages','map','missions','comms','social','news','store','warflying','loadout'];
+ const STEP_APP_BY_KIND={photo:'camera','send-photo':'messages'};
+ const stepApp=step=>!step||typeof step!=='object'?null:STEP_APPS.includes(step.app)?step.app:STEP_APP_BY_KIND[step.kind]||null;
+ /* The hint over the highlighted tile: "ADMIN: OPEN CAMERA" (who: the mission giver's name, optional). */
+ function appGoal(step,who,device){const app=stepApp(step);if(!app||!APPS[app])return null;const t=appTitle(app,device);return {app,title:t,text:(who?String(who).toUpperCase().slice(0,40)+': ':'')+'OPEN '+t};}
+ /* Where the V1 opens when a notification is waiting: on that notification's app, EXCEPT a Comms call: the call carries on in the call bar at the top of the V1 and the
+    V1 opens on its home (the apps), so "open your device, then select the Camera app" works as said. null: the home screen. */
+ const openTarget=note=>!note||!note.app||note.app==='comms'?null:{app:note.app,sub:note.sub||null};
+ /* The line of a call on screen now (its live subtitle in the call bar): lines appear 2.2 s apart from 0.4 s, as in the Comms transcript. -1: still connecting. */
+ const CALL_LINE={first:400,every:2200};
+ const callLine=(count,elapsedMs)=>count>0&&elapsedMs>=CALL_LINE.first?Math.min(count-1,Math.floor((elapsedMs-CALL_LINE.first)/CALL_LINE.every)):-1;
+ const api={STEP_APPS,stepApp,appGoal,openTarget,CALL_LINE,callLine,NOTIFY,notifyTier,SERIAL,DEVICE_ID,makeSerial,ensureSerial,deviceId,prefixOf,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
