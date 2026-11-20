@@ -24,6 +24,8 @@
   const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:g.label||i.label||''}:null;};
   const front=id=>{const d=A.door(id);return d&&d.front?{position:[d.front[0],1.7,d.front[1]],route:true,label:g.label||''}:null;};
   const door=ap&&ap.door?ap.door:rec&&rec.door;
+  // on a fire escape's landing beside this apartment's window (ncz-backalleys.js; night QA 20 Nov 2026: the arrow pointed round the block to the street door): the window
+  if(!wl.apartment&&door&&!(ap&&ap.door)){const fe=root.VoidBackAlleys?.live?.();if(fe&&fe.phase==='perch'&&fe.door===door){const w=here(i=>i.action==='fe-window'&&i.door===door);if(w)return w;}}
   if(!wl.apartment){if(!door)return null;return ap&&ap.door?here(i=>i.id==='aptap-'+door)||front(door):here(i=>i.id==='aptdoor-'+door)||front(door);}
   const mine=!!(wl.apt&&wl.apt.mission===x.m&&wl.apt.id===aid);
   if(wl.modular){const out=()=>here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(!mine)return out();
