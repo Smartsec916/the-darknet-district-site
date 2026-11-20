@@ -29,7 +29,7 @@ test('who: never the cat (greyed with the reason); Reverie and Lace never into a
  const steps=[{id:'s1',kind:'talk'},{id:'s2',kind:'follow-them'},{id:'s3',kind:'apt-enter'}];
  assert.match(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s3'}],steps)).join(' '),/opens later/);assert.deepEqual(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s2'}],steps)),[]);
  assert.deepEqual(E.needs(step({}),ctx([flat()])).map(n=>n.key),['step-spot']);assert.deepEqual(E.needs(step({apt:'zz'}),ctx([flat()])).map(n=>n.key),['step-into']);
- const inv=E.inventory();assert.equal(inv.into.doorAreas[DOOR],'avenue');assert.deepEqual(inv.into.adultRooms,['bar-back']);assert.equal(inv.npcs['street-cat'].into,false);assert.equal(inv.npcs[REV].youthful,true);});
+ const inv=E.inventory();assert.equal(inv.into.doorAreas[DOOR],'avenue');assert.deepEqual(inv.into.adultRooms,['bar-back','card-room','fight-pit','gang-vestibule']);assert.equal(inv.npcs['street-cat'].into,false);assert.equal(inv.npcs[REV].youthful,true);});
 test('rooms: the way from the street door to the server room (doorways, then the elevator); an older apartment is hallway then apartment',()=>{
  const g=E.roomGraph(office());assert.equal(g.entry,'hall');assert.deepEqual(E.roomPath(g,'hall','servers').map(p=>p.room+':'+p.edge.kind),['office:snap','lift:snap','lift2:lift','servers:snap']);
  assert.equal(g.clusters.hall,g.clusters.lift);assert.notEqual(g.clusters.lift,g.clusters.servers);assert.deepEqual(E.roomPath(g,'servers','servers'),[]);

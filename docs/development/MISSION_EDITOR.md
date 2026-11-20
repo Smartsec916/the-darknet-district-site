@@ -184,7 +184,7 @@ The owner: "in the mission editor i need to be able to add locations by type: ho
 
 ### How to use it (plain steps)
 
-1. Open a mission. Under "Apartments for this mission", find **Add a location**: choose a category (Housing, Commercial, Office, Server room, Hallways, Elevator, Other), then the module, then press **+ ADD**. A new location card opens.
+1. Open a mission. Under "Apartments for this mission", find **Add a location**: choose a category (Housing, Various, Office, Server room, Hallways, Elevator, Other; underground pieces under an Underground heading), then the module, then press **+ ADD**. A new location card opens.
 2. Choose its **street door** from the list (office entrances are on The Avenue's west end, shop back entrances in Old Town and Far South; any apartment-building door works too).
 3. Add more modules with **Add** on the card. "joins at" picks the free door the new module goes against (or leave it on "the first free door that fits"). Modules always fit: their doors meet.
 4. The **plan** shows the floor from above. Click a module to select it: the arrows move it, **TURN** turns it, **REMOVE** takes it out. Green marks are doors between modules, amber the entrance, red a locked door.
@@ -193,7 +193,7 @@ The owner: "in the mission editor i need to be able to add locations by type: ho
 7. **Connections** join a door to a door that is not next to it (a short fade in the game): a housing hallway's door to an apartment, or an outside door to an apartment.
 8. Steps: **Go into an apartment** (choose the location, then "any room" or one room), **Use something** (choose the location, the room, then the thing), **Hack the access point** (every door of the location is in the list, from either side).
 9. The card says "Everything fits" or lists what to fix. **JUMP INSIDE** walks in at once (a test, nothing saved); PLAY THIS DRAFT plays the mission.
-10. Quicker: "start again from a template" on the card (office; office with a server room downstairs; shop, bar, clinic; storage). In the **Blocks view**: + ADD A BLOCK › Location › Build a location from modules. In **Make a mission**: "An apartment for this mission" › what it is.
+10. Quicker: "start again from a template" on the card (office; office with a server room downstairs; shop, bar, clinic and the other Various rooms; the underground previews; storage). In the **Blocks view**: + ADD A BLOCK › Location › Build a location from modules. In **Make a mission**: "An apartment for this mission" › what it is.
 11. Older apartments keep working. **CONVERT THESE APARTMENTS TO MODULES** (optional) turns them into locations.
 
 ### For Claude and Codex

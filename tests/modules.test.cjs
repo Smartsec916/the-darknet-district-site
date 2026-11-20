@@ -11,8 +11,9 @@ const hit=([a0,a1,b0,b1],[c0,c1,d0,d1])=>a0<c1-1e-6&&c0<a1-1e-6&&b0<d1-1e-6&&d0<
 
 test('the standard: 2 m grid, one door size; every socket is on its module’s edge, every door can be walked through (nothing stands in front of it), everything inside the walls',()=>{
  fresh();const M=Mo();assert.equal(M.GRID,2);assert.equal(M.DOOR.w,1.2);assert.equal(M.DOOR.h,2.2);assert.ok(M.DOOR.clear>2*.38+.2,'wide enough for the player');
- const cats=new Set(Object.values(M.TYPES).map(t=>t.cat));for(const c of ['housing','commercial','office','server','hallway','elevator','other'])assert.ok(cats.has(c),c);
- assert.ok(Object.values(M.TYPES).filter(t=>t.cat==='commercial').length>=2&&Object.values(M.TYPES).filter(t=>t.cat==='other').length>=2);
+ const cats=new Set(Object.values(M.TYPES).map(t=>t.cat));for(const c of ['housing','various','office','server','hallway','elevator','other'])assert.ok(cats.has(c),c);
+ assert.ok(!cats.has('commercial')&&!M.CATS.some(c=>c.id==='commercial'),'Commercial is now Various');for(const id of ['shop-back','bar-back','clinic'])assert.equal(M.TYPES[id].cat,'various',id);
+ assert.ok(Object.values(M.TYPES).filter(t=>t.cat==='various').length>=12&&Object.values(M.TYPES).filter(t=>t.cat==='other').length>=2);
  for(const id of M.TYPE_IDS){const t=M.TYPES[id];if(t.portal)continue;const b=M.bounds(id);assert.ok(t.sockets.length,id);
   for(const s of t.sockets){assert.ok(['n','s','e','w'].includes(s.edge)&&s.cell>=0&&s.cell<((s.edge==='n'||s.edge==='s')?t.w:t.d),id+' '+s.id);
    const [x,z]=M.sockLocal(t,s),n=M.NORMAL[s.edge],tg=M.TANGENT[s.edge],in_=[x-n[0]*.1,z-n[1]*.1],far=[x-n[0]*1.3,z-n[1]*1.3];   // the door's approach: 1.2 m in from the wall face, the door's width

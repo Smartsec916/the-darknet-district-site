@@ -11147,7 +11147,10 @@
         "they-follow"
       ],
       "adultRooms": [
-        "bar-back"
+        "bar-back",
+        "card-room",
+        "fight-pit",
+        "gang-vestibule"
       ],
       "doorAreas": {
         "apt-avenue-n-16": "avenue",
@@ -39891,7 +39894,7 @@
     },
     "categories": [
       "housing",
-      "commercial",
+      "various",
       "office",
       "server",
       "hallway",
@@ -39916,6 +39919,9 @@
         "screen": true,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s1",
@@ -39964,6 +39970,9 @@
         "screen": true,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s1",
@@ -40006,6 +40015,9 @@
         "screen": false,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s0",
@@ -40032,6 +40044,9 @@
         "screen": false,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "n1",
@@ -40076,6 +40091,9 @@
         "screen": false,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s0",
@@ -40129,6 +40147,9 @@
         "screen": false,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s0",
@@ -40173,7 +40194,7 @@
         ]
       },
       "shop-back": {
-        "cat": "commercial",
+        "cat": "various",
         "name": "Shop back room",
         "w": 3,
         "d": 3,
@@ -40183,6 +40204,9 @@
         "screen": false,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s1",
@@ -40219,7 +40243,7 @@
         ]
       },
       "bar-back": {
-        "cat": "commercial",
+        "cat": "various",
         "name": "Bar back room",
         "w": 3,
         "d": 3,
@@ -40229,6 +40253,9 @@
         "screen": true,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s1",
@@ -40266,7 +40293,7 @@
         ]
       },
       "clinic": {
-        "cat": "commercial",
+        "cat": "various",
         "name": "Street clinic",
         "w": 3,
         "d": 3,
@@ -40276,6 +40303,9 @@
         "screen": true,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s1",
@@ -40312,6 +40342,1176 @@
           2.9
         ]
       },
+      "pawn-back": {
+        "cat": "various",
+        "name": "Pawn shop back room",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.8,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "counter",
+          "scanner",
+          "cage",
+          "computer",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "noodle-kitchen": {
+        "cat": "various",
+        "name": "Noodle kitchen",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.7,
+        "portal": false,
+        "cab": false,
+        "screen": true,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "stove",
+          "cooler",
+          "prep",
+          "computer",
+          "screen",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "repair-shop": {
+        "cat": "various",
+        "name": "Electronics repair workshop",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.8,
+        "portal": false,
+        "cab": false,
+        "screen": true,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "bench",
+          "drawers",
+          "computer",
+          "screen",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "implant-shop": {
+        "cat": "various",
+        "name": "Cyberware workshop",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.7,
+        "portal": false,
+        "cab": false,
+        "screen": true,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "chair",
+          "bench",
+          "fridge",
+          "terminal",
+          "screen",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "laundry-back": {
+        "cat": "various",
+        "name": "Laundromat back room",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.8,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "washers",
+          "dryers",
+          "table",
+          "computer",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "tea-room": {
+        "cat": "various",
+        "name": "Tea house private room",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "tea",
+          "table",
+          "alcove",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "card-room": {
+        "cat": "various",
+        "name": "Card room",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.7,
+        "portal": false,
+        "cab": false,
+        "screen": true,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [
+          "dealer",
+          "lookout"
+        ],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "table",
+          "cart",
+          "screen",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "tattoo": {
+        "cat": "various",
+        "name": "Tattoo parlour",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.7,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "chair",
+          "ink",
+          "flash",
+          "computer",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "radio-booth": {
+        "cat": "various",
+        "name": "Pirate radio booth",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": true,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "desk",
+          "mic",
+          "racks",
+          "computer",
+          "screen",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "scooter-bay": {
+        "cat": "various",
+        "name": "Scooter garage",
+        "w": 3,
+        "d": 3,
+        "ceil": 3,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "lift",
+          "chest",
+          "drums",
+          "computer",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "shrine-room": {
+        "cat": "various",
+        "name": "Shrine room",
+        "w": 2,
+        "d": 2,
+        "ceil": 2.5,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "w0",
+            "edge": "w",
+            "cell": 0
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "altar",
+          "incense",
+          "candles",
+          "charms",
+          "lights"
+        ],
+        "bounds": [
+          -1.9,
+          1.9,
+          -1.9,
+          1.9
+        ]
+      },
+      "fight-pit": {
+        "cat": "various",
+        "name": "Underground fight pit",
+        "w": 4,
+        "d": 4,
+        "ceil": 3.4,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [
+          "host",
+          "corner-a",
+          "corner-b"
+        ],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "ring",
+          "betting",
+          "board",
+          "lights"
+        ],
+        "bounds": [
+          -3.9,
+          3.9,
+          -3.9,
+          3.9
+        ]
+      },
+      "gang-vestibule": {
+        "cat": "hallway",
+        "name": "Gang checkpoint (vestibule)",
+        "w": 2,
+        "d": 3,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": true,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [
+          "door-1",
+          "door-2",
+          "door-3"
+        ],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          },
+          {
+            "id": "e2",
+            "edge": "e",
+            "cell": 2
+          }
+        ],
+        "objects": [
+          "table",
+          "cashbox",
+          "wand",
+          "screen",
+          "lights"
+        ],
+        "bounds": [
+          -1.9,
+          1.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "stairwell": {
+        "cat": "hallway",
+        "name": "Stairwell (between floors)",
+        "w": 2,
+        "d": 3,
+        "ceil": 3,
+        "portal": false,
+        "cab": true,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": true,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "w0",
+            "edge": "w",
+            "cell": 0
+          },
+          {
+            "id": "e0",
+            "edge": "e",
+            "cell": 0
+          }
+        ],
+        "objects": [
+          "lights"
+        ],
+        "bounds": [
+          -1.9,
+          1.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "tunnel-short": {
+        "cat": "hallway",
+        "name": "Service tunnel, 2 m",
+        "w": 1,
+        "d": 1,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          }
+        ],
+        "objects": [
+          "lights"
+        ],
+        "bounds": [
+          -0.9,
+          0.9,
+          -0.9,
+          0.9
+        ]
+      },
+      "tunnel-mid": {
+        "cat": "hallway",
+        "name": "Service tunnel, 4 m",
+        "w": 1,
+        "d": 2,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          }
+        ],
+        "objects": [
+          "lights"
+        ],
+        "bounds": [
+          -0.9,
+          0.9,
+          -1.9,
+          1.9
+        ]
+      },
+      "tunnel": {
+        "cat": "hallway",
+        "name": "Service tunnel, 6 m",
+        "w": 1,
+        "d": 3,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          }
+        ],
+        "objects": [
+          "panel",
+          "lights"
+        ],
+        "bounds": [
+          -0.9,
+          0.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "tunnel-junction": {
+        "cat": "hallway",
+        "name": "Service tunnel junction (corner / T / cross)",
+        "w": 1,
+        "d": 1,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          },
+          {
+            "id": "w0",
+            "edge": "w",
+            "cell": 0
+          },
+          {
+            "id": "e0",
+            "edge": "e",
+            "cell": 0
+          }
+        ],
+        "objects": [],
+        "bounds": [
+          -0.9,
+          0.9,
+          -0.9,
+          0.9
+        ]
+      },
+      "tea-under": {
+        "cat": "various",
+        "name": "Underground tea room",
+        "w": 3,
+        "d": 3,
+        "ceil": 3.2,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [
+          "host",
+          "front-door",
+          "back-door"
+        ],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "tea",
+          "table",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "tunnel-lantern": {
+        "cat": "hallway",
+        "name": "Lantern tunnel, 6 m",
+        "w": 1,
+        "d": 3,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          }
+        ],
+        "objects": [
+          "shrine",
+          "lights"
+        ],
+        "bounds": [
+          -0.9,
+          0.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "tunnel-lantern-junction": {
+        "cat": "hallway",
+        "name": "Lantern tunnel junction (corner / T / cross)",
+        "w": 1,
+        "d": 1,
+        "ceil": 2.6,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          },
+          {
+            "id": "w0",
+            "edge": "w",
+            "cell": 0
+          },
+          {
+            "id": "e0",
+            "edge": "e",
+            "cell": 0
+          }
+        ],
+        "objects": [],
+        "bounds": [
+          -0.9,
+          0.9,
+          -0.9,
+          0.9
+        ]
+      },
+      "mahjong": {
+        "cat": "various",
+        "name": "Mahjong parlour",
+        "w": 3,
+        "d": 3,
+        "ceil": 3,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [
+          "cashier",
+          "dealer",
+          "door"
+        ],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "table",
+          "cashier",
+          "safe",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "flophouse": {
+        "cat": "various",
+        "name": "Underground sleeping room",
+        "w": 3,
+        "d": 3,
+        "ceil": 2.8,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [
+          "keeper"
+        ],
+        "sockets": [
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "cot",
+          "locker",
+          "curtain",
+          "lights"
+        ],
+        "bounds": [
+          -2.9,
+          2.9,
+          -2.9,
+          2.9
+        ]
+      },
+      "food-stall": {
+        "cat": "various",
+        "name": "Underground food stall",
+        "w": 2,
+        "d": 2,
+        "ceil": 2.8,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [
+          "cook"
+        ],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          }
+        ],
+        "objects": [
+          "counter",
+          "stove",
+          "cooler",
+          "menu",
+          "lights"
+        ],
+        "bounds": [
+          -1.9,
+          1.9,
+          -1.9,
+          1.9
+        ]
+      },
+      "tunnel-chamber": {
+        "cat": "hallway",
+        "name": "Tunnel chamber",
+        "w": 2,
+        "d": 2,
+        "ceil": 3,
+        "portal": false,
+        "cab": false,
+        "screen": false,
+        "family": null,
+        "legacy": null,
+        "stairs": false,
+        "underground": true,
+        "spots": [],
+        "sockets": [
+          {
+            "id": "s0",
+            "edge": "s",
+            "cell": 0
+          },
+          {
+            "id": "s1",
+            "edge": "s",
+            "cell": 1
+          },
+          {
+            "id": "n0",
+            "edge": "n",
+            "cell": 0
+          },
+          {
+            "id": "n1",
+            "edge": "n",
+            "cell": 1
+          },
+          {
+            "id": "w0",
+            "edge": "w",
+            "cell": 0
+          },
+          {
+            "id": "w1",
+            "edge": "w",
+            "cell": 1
+          },
+          {
+            "id": "e0",
+            "edge": "e",
+            "cell": 0
+          },
+          {
+            "id": "e1",
+            "edge": "e",
+            "cell": 1
+          }
+        ],
+        "objects": [
+          "valve",
+          "pump",
+          "lights"
+        ],
+        "bounds": [
+          -1.9,
+          1.9,
+          -1.9,
+          1.9
+        ]
+      },
       "storage": {
         "cat": "other",
         "name": "Storage room",
@@ -40323,6 +41523,9 @@
         "screen": false,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s0",
@@ -40368,6 +41571,9 @@
         "screen": false,
         "family": null,
         "legacy": null,
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "s0",
@@ -40416,6 +41622,9 @@
           "part": "flat",
           "style": "rundown"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "entry",
@@ -40453,6 +41662,9 @@
           "part": "hall",
           "style": "rundown"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "street",
@@ -40532,6 +41744,9 @@
           "part": "flat",
           "style": "normal"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "entry",
@@ -40569,6 +41784,9 @@
           "part": "hall",
           "style": "normal"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "street",
@@ -40648,6 +41866,9 @@
           "part": "flat",
           "style": "luxury"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "entry",
@@ -40684,6 +41905,9 @@
           "part": "hall",
           "style": "luxury"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "street",
@@ -40763,6 +41987,9 @@
           "part": "flat",
           "style": "container-rundown"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "entry",
@@ -40800,6 +42027,9 @@
           "part": "hall",
           "style": "container-rundown"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "street",
@@ -40849,6 +42079,9 @@
           "part": "flat",
           "style": "container-regular"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "entry",
@@ -40886,6 +42119,9 @@
           "part": "hall",
           "style": "container-regular"
         },
+        "stairs": false,
+        "underground": false,
+        "spots": [],
         "sockets": [
           {
             "id": "street",
@@ -41104,7 +42340,7 @@
       "spawn"
     ]
   },
-  "revision": "fd3253ab481d1c23",
+  "revision": "0ebac2f1a701573d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -56787,7 +58023,133 @@
     {
       "source": "void-runner/module-integration.js",
       "line": 70,
-      "text": "else msg=(obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.';",
+      "text": "else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/module-integration.js",
+      "line": 71,
+      "text": "msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 85,
+      "text": "fight pit, 4 m x 4 m for the shrine) with a door in the middle of each wall (the pit: second cell); corners furnished, the middle clear. `say`: what using a thing says",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 93,
+      "text": "say:{scanner:'ITEM SCANNER: a flatbed reader for serials and ownership chips. The last scan reads “REGISTERED OWNER: —”.',cage:'STORAGE CAGE: padlocked mesh. Tagged goods on the shelves, each with a date and a number.',computer:'APPRAISAL TERMINAL: tickets, loan dates, and a column headed “do not sell back”.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 100,
+      "text": "say:{stove:'WOK RANGE: three burners, one still ticking warm. Oil on everything.',cooler:'WALK-IN COOLER: a heavy latch, frost round the seal. Inside: noodles, broth in buckets, crates with no labels.',prep:'PREP TABLE: a cleaver, a board worn into a dip, scallions, a tub of dough.',computer:'ORDER TERMINAL: tonight’s tickets, a delivery list, and one order paid three times over.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 107,
+      "text": "say:{bench:'SOLDERING STATION: the iron is still warm. A phone board in the clamp, half its chips lifted.',drawers:'PARTS DRAWERS: hundreds of small drawers, hand-labelled. Resistors, screws, salvaged camera modules.',computer:'DIAGNOSTIC TERMINAL: a queue of repair jobs, and a folder of device unlock tools.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 114,
+      "text": "say:{chair:'IMPLANT CHAIR: worn padding, wrist straps, a tool arm folded overhead. Clean, for this street.',bench:'PARTS BENCH: a prosthetic forearm on its stand, its cover off. Trays of connectors and tiny screws.',fridge:'PARTS FRIDGE: sealed implant boxes and gel packs, serial numbers scratched off.',terminal:'IMPLANT TERMINAL: fitting records under first names only, and a firmware folder called “unofficial”.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 121,
+      "text": "say:{washers:'WASHERS: one mid-cycle, one with an OUT OF ORDER card taped on, one locked with a bag still inside.',dryers:'DRYERS: warm, lint everywhere. One drum holds something that is not laundry.',table:'FOLDING TABLE: stacks of folded work clothes with tickets pinned on, and a pile of uniforms from a company that is not on any ticket.',computer:'OFFICE COMPUTER: the books, the machine takings, and a spreadsheet of “pickups” with no laundry on it.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 127,
+      "text": "say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 133,
+      "text": "say:{table:'CARD TABLE: a hand left face down, chips stacked by colour, an ashtray. Nobody is collecting the pot.',cart:'BAR CART: cheap spirits poured into expensive bottles.',safe:'CASH SAFE: a keypad, a smear of fingerprints on four of the keys. Locked.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 140,
+      "text": "say:{chair:'TATTOO CHAIR: fresh film on the padding, the lamp still angled where the last client lay.',ink:'INK STATION: rows of bottles, a machine on its cradle, gloves, a roll of film.',flash:'FLASH BOARDS: sheets of designs, pinned and re-pinned: stars, waves, flowers, knives, a lot of eyes.',computer:'BOOKING TERMINAL: appointments under nicknames, deposits paid in cash, one booking marked “cover-up, urgent”.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 147,
+      "text": "say:{desk:'MIXING DESK: faders taped with handwritten labels, a cue sheet with the times crossed out.',mic:'MICROPHONE: the pop filter is split, the boom arm held with tape. The ON AIR light is off.',racks:'TRANSMITTER RACK: a homemade exciter, an amplifier with a fan that rattles, coax going up through the ceiling.',computer:'PLAYOUT COMPUTER: a playlist, a folder of station idents, and a list of frequencies that keep moving.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 153,
+      "text": "say:{lift:'SCOOTER LIFT: a delivery scooter up on the lift, side panel off, its ID plate unscrewed.',chest:'TOOL CHEST: sockets in the wrong drawers, a torque wrench, a tin of mismatched bolts.',drums:'OIL DRUMS: two full, one empty, one that sloshes too lightly for its weight.',computer:'DIAGNOSTIC LAPTOP: a scooter’s fault log, and a tool for rewriting its owner record.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 159,
+      "text": "say:{altar:'ALTAR: fruit, a bowl of rice, a cup of tea gone cold, coins, a folded note nobody should read.',incense:'INCENSE: three sticks burning down in a bowl of ash. The smoke hangs under the ceiling.',candles:'CANDLES: a rack of small candles, most lit, wax over everything.',charms:'CHARM STRIPS: paper strips, brush marks faded past reading, tied with red thread.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 168,
+      "text": "say:{ring:'RING: chain-link on scaffold poles, the mat patched with tape, dark stains scrubbed half away.',betting:'BETTING COUNTER: a grille, a slot for chips and cash, a ledger chained to the counter. Closed between fights.',board:'ODDS BOARD: chalked names wiped out and rewritten. Tonight’s card is blank.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 174,
+      "text": "say:{table:'CHECKPOINT TABLE: a pass-through in the fence, a scarred table, a list of names with half of them crossed out.',cashbox:'CASH BOX: a dented tin with a padlock. The door fee goes in here.',wand:'SCANNER WAND: a cheap metal-detector wand, the grip wrapped in tape.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 196,
+      "text": "say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 203,
+      "text": "objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 210,
+      "text": "say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 216,
+      "text": "say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 222,
+      "text": "say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/modules.js",
+      "line": 226,
+      "text": "say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});",
       "kind": "source-reference"
     },
     {
@@ -57544,6 +58906,12 @@
       "source": "void-runner/opening-scene.js",
       "line": 210,
       "text": "const maraCue=B.MeshBuilder.CreateTorus('mara-conversation-locus',{diameter:1.8,thickness:.017,tessellation:24},scene);add(maraCue,blue,[0,.05,0],mara,false);maraCue.isPickable=false;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/pawn-shop.js",
+      "line": 15,
+      "text": "It starts EMPTY on purpose: the owner decides what the pawn shop buys and for how much. While it is empty the panel says EMPTY below. */",
       "kind": "source-reference"
     },
     {
@@ -59623,18 +60991,18 @@
     "void-runner/milked.js": "a0600a70dd32b437fd11f7791a03cde58eb5da6ed1a9c0664bd60d5a5875bebc",
     "void-runner/missiles.js": "14b71508e47646f83e1a5953f532eb7717995a4c92f03843cbaa10b1c33b9027",
     "void-runner/mission-blocks-view.js": "9c329153087ef4e014664661a96a5e4b82551583dcec4c14445448931f8fffd9",
-    "void-runner/mission-blocks.js": "50574ca2a67c7839fe5b59e7094d32cc9b85f91290c445414920744f0a18d93e",
+    "void-runner/mission-blocks.js": "0e96db6cc90fb02de85a5c491a9c71a3afe1cbb9134ae65d278b6b29cbba3785",
     "void-runner/mission-content.js": "2202b111cc4533c37645fb8b68d7683ed5a005e5f1c34cc6eaccdc4dde1d2055",
-    "void-runner/mission-editor.js": "e5c025982e5b6f3593fcf9da301641efad0378a9a97509921fbc60e1a024a990",
+    "void-runner/mission-editor.js": "ab251a496db36894eff85fa0030434f6249764cf9c9c8c274dfeddd6a3a8b6aa",
     "void-runner/mission-givers.js": "35d5d47bb1a68bed2cf810061797e2a691d3aa032073c847bb511f42f95af45e",
     "void-runner/mission-guide.js": "8041f8d51e20ba82e750a677515c959742db452efe5a7477817b9ec97f465443",
     "void-runner/mission-log.js": "465d344580d582b0b3e90a49d250c27802aa483fb4786ee177e2b547d96c3f3a",
     "void-runner/mission-trees.js": "a77f3156c728fa579c401443f94e5d2bbaad99a6897bb58925edd77a8ab552ae",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "08cba5e83350ab93210e62a328a04213715dbcc39d19a788e97d612e28709cf3",
-    "void-runner/module-editor.js": "60e31e44e7167c193efa29570531eeb09a70c8df067e35ee53a73edc33c0e091",
-    "void-runner/module-integration.js": "e806bdfde916bd4e570fbac3245504b62dfccd2713099f626432e2d7ca24e618",
-    "void-runner/modules.js": "05f900ab4850d9ee07e117c19a4ed46691ec753c7daa6a54e769d06ef2f1fb29",
+    "void-runner/module-build.js": "ea41de421c36be712bdf8069a75fbf133c88c19d0cf2c50c6887b3860257b036",
+    "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
+    "void-runner/module-integration.js": "4d82f11e048a105d5aea4df655c3ce7b4aa393aea16e4ed4f8ed7f5e1d840652",
+    "void-runner/modules.js": "3819726a1aab56bc3849ec913ffd9e80b303484207c2cd673e8ccfcb36f95aca",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "a1fadf186558f7272b9d48e6fc6d265027e47ad1c8fef1d4639dfaf48ca4ffa7",
@@ -59663,7 +61031,7 @@
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "b014a2472776f73fec9f30f01449a8e75c834872e6cfee20f32c98edc9251761",
     "void-runner/npc-escort-indoors.js": "aefd4fde6d052f35a0d2a3170251f1264c8cb5193db325949799c2b9dd5a8ad0",
-    "void-runner/npc-escort.js": "6d7ca53c77f6bdfacb31153f91e5e19c7fb5f898c13d9452b821f8e91ca1ea43",
+    "void-runner/npc-escort.js": "6d093b5caca72445c95bc902c96fa7da251311372a5694622649f38253f36b44",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
@@ -59676,6 +61044,7 @@
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/ordnance.js": "a3e43868918ec882965f16c95cd859475b3e634f5d75e691e606f8aefaa383c8",
+    "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
     "void-runner/personal-device.js": "80f3334f03a807c6d8e81ed4116deb330c5a1e20c5407615d3d0d0e7ad6d220c",
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
