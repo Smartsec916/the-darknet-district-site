@@ -2,6 +2,27 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twenty-seventh pass (20 Nov 2026): the Awakening continuation (Missions 004–012) and reusable mechanics
+
+Branch `claude/awakening-tree`, build `2026-11-20-awakening-2-1`. Pushed, no PR, not merged. The owner's spec (Missions 004–011 with his dialogue, and a First Cargo Delivery tree after 011) built as mission DATA in `void-runner/main-story.js`, run by the same tree engine, every piece editable here.
+
+### How to use it (plain steps)
+
+1. **New kinds of step** (the step's kind list, Form view): **Watch someone** (stay within N m for N s; optional "too close"), **Overhear a conversation** (the lines below play as overheard subtitles while the player is in range and not too close; too close: they notice and start again), **Sneak past the guards** (reach a room or use a thing of a place of this mission without being seen; seen: back to the street, try again), **Copy evidence to the V1** (the document window opens when the thing is used: COPY TO V1), **Report / send evidence** (REPORT TO … on the mission in the V1 Mission Log, only with the evidence ticked, and only inside the place chosen for a hand-over in person), **They call** (a callback: by itself after the step before and its delay), **Wait in-game time** (in-game minutes; 12 are about a minute of play), **Watch a remote camera feed** (a feed of this mission, opened from the Mission Log; stages opened / watched / recorded / saved), **Follow someone at a distance** (someone placed with a route), **Leave a place of this mission**, **Flight** (board / take off / jump / dock). Steps that go into, use, copy, leave or hack have a **without being seen** box.
+2. **People for this mission** (under every mission): + PERSON, then the figure, the place (by name; x / z to put them on a spot, empty for the middle), what they do, from which step until which, and an optional route (`x,z; x,z`) for "follow at a distance". A **marker** is an invisible point the V1 camera identifies (a doorway to photograph).
+3. **Evidence** (under every mission): + EVIDENCE, its title, kind and your text. Players read what they hold in the V1 Mission Log.
+4. Unlock **Evidence item** gives one without a step. Credits (Mission 011's 25,000 CR is the unlock at "Receive the credit reward"), the ship (the Kestrel: `starter`, given once, never resets other ships) and "Start tree" work as before.
+
+### What the player sees
+
+- Fish's call 6 in-game hours after 003 (the old stub is now Mission 004's start), Iris and Admin calls, overheard subtitles in the tea house and the fight pit, the document window at Halden's computer, the Veyra office with its patrolling guard, the Corporate District's maintenance door keypad (hack) and the network facility behind it, OPEN REMOTE FEED in the Mission Log when BR-04 comes online (the existing Blackrock Cult Room scene with the owner's ritual lines, recorded to the Gallery), the hand-over in the meeting room, the sale, the reward, the Kestrel and the First Cargo Delivery tree.
+
+### For Claude and Codex
+
+- Rules: `void-runner/mission-mechanics.js` (pure; `tests/mission-mechanics.test.cjs`): `KINDS`, `stepProblems`, `castProblems`, `evidenceProblems`, `hit`, `gameWait` (`story.flags.tg_<mission>_<step>`), `overhearStep`, `observeStep`, `tailStep`, `castVisible`, evidence in ONE flag `story.flags.evidence` (comma-separated, 200 characters). `mission-content.js`: `MM` in `STEP_KINDS`, `AUTO` (`call`), mission keys `cast` / `evidence`, step keys `STEP_FIELDS`, unlock `evidence`, `mechanicsNow` / `castNow` / `evidenceNow`, consecutive `hear` steps, a later feed stage completes earlier ones, notification text 1,500 characters for Comms / Messages. Game: `mission-mechanics-game.js` (cast figures, distances, subtitles, the detection meter and SPOTTED, the document window, the Mission Log card hook `VoidMissionExtras` in `personal-device.js`, the feed through `camera-feed.js` `start({cam, onStage, savedText})`, flight stages). Editor: `mission-mechanics-editor.js`. Server: `void_runner_live_content.py` `mechanics_step_problems`, `cast_problems`, `evidence_problems`. Corporate door: `apartments.js CORP_DOORS` (`biz-corp-s-40`), `module-integration.js backToStreet`, `corporate-integration.js`.
+- Not in the Blocks view yet: the new kinds show as "(Form view only)" there; edit them in the Form view.
+- Tests: `tests/awakening-tree.test.cjs` (004–012 from a fresh character and from one who just finished 003, with reloads; reward and Kestrel once), `tests/mission-mechanics.test.cjs`, `tests/test_awakening_save.py`; the browser playthrough script is in the session notes (Python Playwright).
+
 ## Twenty-sixth pass (20 Nov 2026): "Follow them" / "They follow you" INTO a place of the mission
 
 Branch `claude/follow-into-locations`, build `2026-11-20-follow-into-1`. Pushed, no PR, not merged. The owner: "For the follow options if I add an apartment there should be an option to follow into the apartment".

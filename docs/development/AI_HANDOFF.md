@@ -6,6 +6,16 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 20 Nov 2026 (newest): THE AWAKENING CONTINUATION — MISSIONS 004–011 AND THE FIRST CARGO DELIVERY TREE (012); REUSABLE MISSION MECHANICS (branch `claude/awakening-tree`, build `2026-11-20-awakening-2-1`, pushed, NO PR, not merged)
+
+The owner's spec (his dialogue verbatim, APPROVED in `VOID_RUNNER_HANDOFF.md` §11). Full record: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Twenty-seventh pass".
+
+- **Missions (data in `main-story.js`, numbers 004–012 in the ledger and `save-manifest.json`):** 004 A Promising Investment (Fish's call 6 in-game hours after 003: the old stub; `under-tea-room`), 005 Behind Closed Doors (No. 31, The Avenue, luxury apartment 105), 006 Hostile Takeover (No. 41, The Avenue, office from modules, a patrolling guard), 007 The House Always Wins (`under-fight-pit`, then Far South No. 166's back entrance), 008 Private Network (No. 166's maintenance office), 009 Ghost in the Network (the Corporate District's maintenance door, a network facility from modules), 010 The Price of Admission (BR-04 online after 60 in-game minutes; the existing cult room scene with the owner's ritual lines, recorded), 011 Leverage (meeting room hand-over, 120 in-game minutes, 25,000 CR, the Kestrel once, the cargo tree), 012 First Cargo Delivery (tree `first-cargo-delivery`; PROPOSED placeholder lines).
+- **Reusable mechanics:** observe, overhear, sneak / unseen, collect (evidence), report, call (callbacks), wait-game, feed (remote camera), tail, apt-leave, flight; mission cast and evidence (`mission-mechanics.js`, `mission-mechanics-game.js`, `mission-mechanics-editor.js`; server `void_runner_live_content.py`). Server changed: **Render must be redeployed** before the owner publishes edits that use them.
+- **Saves:** nothing to migrate: new state is in tolerant `story.flags` (`evidence`, `tg_…` while an in-game wait runs, the usual `mt_` / `v1m_` / `ts_`); a full 001–012 run stays far under the 256-flag limit (`tests/test_awakening_save.py`). A player who finished 003 continues: Fish's call comes on the same in-game timer.
+- **Voices:** about 102 new lines, text only, NEEDS APPROVAL BEFORE RECORDING (`docs/VOID_RUNNER_VOICE_PRODUCTION.md`); nothing generated.
+- **Not verified / open:** see the session report: the tunnel places come from branch `claude/tunnel-network`; the meeting room has no Admin / Iris figures; real hardware and VR; multiplayer with two real players.
+
 ### 20 Nov 2026 (newest): THE THREE STAIRS DOWN TO THE TUNNELS PLACED; FLOATING LIGHTS AT THE ALLEY MOUTHS FIXED (branch `claude/tunnel-entrances`, build `2026-11-20-tunnel-entrances-1`, pushed, NO PR, not merged)
 
 The owner circled where the tunnels start on the v3 maps (one per quarter), and reported glowing teal bars hanging in the air on Far South's Main Street by door 135.
