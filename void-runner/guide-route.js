@@ -51,7 +51,7 @@
  const inRect=([x0,x1,z0,z1],x,z)=>x>=x0&&x<=x1&&z>=z0&&z<=z1;
 
  /* ---- the graph ---- region: {id, rects?, test?(x,z), outdoor?}; portal: {id, a, b, x, z, nx, nz (unit, from a into b), half, penalty?} */
- function graph(regions,portals,quarterAt,near){return {regions,portals,quarterAt:quarterAt||null,near:near||null};}
+ function graph(regions,portals,quarterAt,near,cross){return {regions,portals,quarterAt:quarterAt||null,near:near||null,cross:cross||null};}
  function regionAt(G,x,z,hint){if(!G||!Number.isFinite(x)||!Number.isFinite(z))return null;for(const r of G.regions){if(r.test?r.test(x,z):r.rects&&r.rects.some(q=>inRect(q,x,z)))return r.id;}
   if(G.near){const n=G.near(x,z,hint);if(n)return n;}   // a doorstep or a kerb just off a street's rect
   if(G.quarterAt){const q=G.quarterAt(x,z,hint);if(q)return 'q:'+q;}return null;}
@@ -95,7 +95,12 @@
    const street=(x,z)=>(streets.find(r=>inRect(r.rects[0],x,z))||{}).id;
    for(const p of portals)for(const [k,dir] of [['a',-1],['b',1]]){const id=p[k];if(typeof id!=='string'||!id.startsWith('q:'))continue;const hit=street(p.x+p.nx*dir,p.z+p.nz*dir);if(hit)p[k]=hit;}}
   const near=(x,z,hint)=>{let best=null;for(const r of streets){const q=r.rects[0],d=Math.hypot(Math.max(q[0]-x,0,x-q[1]),Math.max(q[2]-z,0,z-q[3]))+(hint&&r.quarter!==hint?.5:0);if(d<=3&&(!best||d<best.d))best={d,id:r.id};}return best&&best.id;};
-  return graph([...regions,...streets],portals,QT?(x,z,hint)=>QT.quarterAt(x,z,hint):null,near);}
+  // Over the road by a crosswalk (crosswalks.js, 20 Nov 2026): a leg from one pavement to the other goes to the near kerb of the best crossing, over it, then on.
+  const XW=d.XW,cross=XW&&XW.crossing?(a,b,prefer,first)=>{const pick=XW.crossing(a,b,{onRoad:first?'prefer':false,prefer:prefer?new Set([...prefer].filter(id=>id.startsWith('xw:')).map(id=>id.split(':')[1])):null});if(!pick)return null;
+   const c=pick.c,X=c.axis==='x',dir=pick.from<0?1:-1,nx=X?dir:0,nz=X?0:dir,half=c.w/2,id='xw:'+c.id+':'+(dir>0?'+':'-'),kerb=(v,e)=>({x:X?v:e.x,z:X?e.z:v});
+   const out=[];if(pick.entry)out.push({id:id+':in',kind:'door',x:kerb(dir>0?c.band[0]:c.band[1],pick.entry).x,y:1.7,z:kerb(dir>0?c.band[0]:c.band[1],pick.entry).z,nx,nz,half,r:TUNE.passRadius,crosswalk:c.id});
+   out.push({id:id+':out',kind:'door',x:kerb(dir>0?c.band[1]:c.band[0],pick.exit).x,y:1.7,z:kerb(dir>0?c.band[1]:c.band[0],pick.exit).z,nx,nz,half,r:TUNE.passRadius,crosswalk:c.id});return out;}:null;
+  return graph([...regions,...streets],portals,QT?(x,z,hint)=>QT.quarterAt(x,z,hint):null,near,cross);}
  // The older stations (hangar, Meridian, Kepler...): a hangar (z < 3), a corridor (3..19) and the concourse beyond, joined by doors on the centre line.
  function station(){const band=(lo,hi)=>(x,z)=>z>=lo&&z<hi;
   return graph([{id:'st-hangar',test:band(-1e9,3)},{id:'st-corridor',test:band(3,19)},{id:'st-concourse',test:band(19,1e9)}],
@@ -108,7 +113,10 @@
   return graph(regions,portals,null,null);}
  /* The route from `from` {x,z,quarter?} to `goal` {x,y?,z}: waypoints [{id, kind:'door'|'apron'|'goal', x, y, z, nx, nz, half, r, door?}], the goal last.
     opt.prefer: a Set of waypoint ids already in use (they win ties). */
- function plan(G,from,goal,opt={}){const end={id:'goal',kind:'goal',x:goal.x,y:Number.isFinite(goal.y)?goal.y:1.7,z:goal.z};if(!G)return [end];
+ function plan(G,from,goal,opt={}){const out=planDoors(G,from,goal,opt);if(!G||!G.cross)return out;
+  // a leg that goes from one pavement to the other (the player's own walk to the first waypoint included) is routed over the best crosswalk (crosswalks.js)
+  const res=[];let prev={x:from.x,z:from.z};for(const w of out){const xw=G.cross(prev,w,opt.prefer||null,!res.length);if(xw)res.push(...xw);res.push(w);prev=w;}return res;}
+ function planDoors(G,from,goal,opt={}){const end={id:'goal',kind:'goal',x:goal.x,y:Number.isFinite(goal.y)?goal.y:1.7,z:goal.z};if(!G)return [end];
   const start=regionAt(G,from.x,from.z,from.quarter),target=regionAt(G,goal.x,goal.z,null);if(!start||!target||start===target)return [end];
   const prefer=opt.prefer||null,best=new Map(),open=[{region:start,x:from.x,z:from.z,cost:0,path:[]}];let found=null;
   while(open.length){let k=0;for(let i=1;i<open.length;i++)if(open[i].cost<open[k].cost)k=i;const c=open.splice(k,1)[0];if(found&&c.cost>=found.total)break;
@@ -159,7 +167,7 @@
  const node=typeof module!=='undefined'&&module.exports;
  // The graph for a walking scene (cached; the gate list can grow: ncz-quarters.js define()). kind: 'station' for the older stations' corridor; null: straight to the goal.
  const cache=new Map();
- function deps(){if(node)return {N:require('./neochinatown.js'),QT:require('./ncz-quarters.js'),NC:require('./ncz-nightclub.js'),MK:require('./milked.js')};return {N:root.VoidNeoChinatown,QT:root.VoidQuarters,NC:root.VoidNightclub,MK:root.VoidMilked};}
+ function deps(){if(node)return {N:require('./neochinatown.js'),QT:require('./ncz-quarters.js'),NC:require('./ncz-nightclub.js'),MK:require('./milked.js'),XW:require('./crosswalks.js')};return {N:root.VoidNeoChinatown,QT:root.VoidQuarters,NC:root.VoidNightclub,MK:root.VoidMilked,XW:root.VoidCrosswalks};}
  function graphFor(scene,kind,loc){if(loc&&loc.modular&&loc.cluster){const k='mod:'+(loc.inst||'')+':'+loc.cluster.id+':'+JSON.stringify(loc.cluster.mods.map(m=>[m.id,m.cx,m.cz,m.w,m.d]));if(!cache.has(k))cache.set(k,modular(loc.cluster));return cache.get(k);}
   if(loc&&loc.apartment)return null;   // an apartment's hallway or rooms (one room or a straight corridor): straight to the goal (their id is 'neochinatown' too)
   if(kind==='station'){if(!cache.has('station'))cache.set('station',station());return cache.get('station');}

@@ -82,11 +82,11 @@ test('rooms with several doors: from the bar to the arcade and from the VR area 
  const near=s.find(q=>Math.abs(q.x-L(3.8,33)[0])<.04);assert.equal(near.waypoint.id,'district-bar-door<+');});
 
 test('multi-hop: from the District hall to Juno Vex inside NULL, through the vestibule, the alley, Main Street and NULL\'s entry',()=>{
- const [hx,hz]=L(0,50);assert.deepEqual(ids({x:hx,z:hz},JUNO),['district-inner-door<','district-door<','district-door<+','junction:s:oldtown:0:s:oldtown:1<','null-door>','null-inner-door>','goal']);
- const pts=[[0,50],[0,26],[0,20],[0,17.4]].map(([a,b])=>L(a,b));pts.push([71,-58.5],[NC.ENTRY.doors.outer.x+1,NC.DOOR.z],[NC.ENTRY.doors.inner.x-1.5,NC.DOOR.z],[JUNO.x+2,JUNO.z-1.5]);
+ const [hx,hz]=L(0,50);assert.deepEqual(ids({x:hx,z:hz},JUNO),['district-inner-door<','district-door<','district-door<+','junction:s:oldtown:0:s:oldtown:1<','xw:ot-alley:-:in','xw:ot-alley:-:out','null-door>','null-inner-door>','goal']);
+ const pts=[[0,50],[0,26],[0,20],[0,17.4]].map(([a,b])=>L(a,b));pts.push([71,-58.5],[68,-58.5],[54,-58.5],[NC.ENTRY.doors.outer.x+1,NC.DOOR.z],[NC.ENTRY.doors.inner.x-1.5,NC.DOOR.z],[JUNO.x+2,JUNO.z-1.5]);
  const s=walk(pts,JUNO);smooth(s,'hall to Juno');neverBackwards(s.filter(q=>q.seg<6),'hall to Juno');
  // and back out of NULL to Admin
- const back=ids({x:30,z:-55},admin());assert.deepEqual(back.filter(i=>!i.startsWith('junction:')),['null-inner-door<','null-door<','district-door>','district-inner-door>','district-shop-door>','goal']);});
+ const back=ids({x:30,z:-55},admin());assert.deepEqual(back.filter(i=>!i.startsWith('junction:')),['null-inner-door<','null-door<','xw:ot-alley:+:in','xw:ot-alley:+:out','district-door>','district-inner-door>','district-shop-door>','goal']);});
 
 test('quarter gates A1-A6: walkers go through the nearest foot lane, both doors, and out; the lane never alternates',()=>{
  // A2 North Gate: the Avenue to NULL
