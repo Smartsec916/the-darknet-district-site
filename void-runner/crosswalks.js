@@ -132,7 +132,7 @@
   const posts=cs.flatMap(c=>c.posts.map(p=>({c,...p})));
   if(!low&&posts.length){const parts=[],faces=[],metal=new B.PBRMaterial('ncz-crosswalk-post',scene);metal.albedoColor=new B.Color3(.09,.095,.1);metal.metallic=.75;metal.roughness=.55;own.push(metal);
    const it=new B.DynamicTexture('ncz-crosswalk-icons',{width:128,height:256},scene,true);icons(it.getContext(),128,256);it.update();own.push(it);
-   const im=new B.StandardMaterial('ncz-crosswalk-icon',scene);im.diffuseColor=B.Color3.Black();im.emissiveTexture=it;im.disableLighting=true;im.emissiveColor=new B.Color3(.85,.9,.95);own.push(im);
+   const im=new B.StandardMaterial('ncz-crosswalk-icon',scene);im.diffuseColor=B.Color3.Black();im.emissiveTexture=it;im.disableLighting=true;im.emissiveColor=B.Color3.Black();   // emissiveColor adds to the texture (it would wash the icon out to a white block)own.push(im);
    const box=(w,h,d,x,y,z)=>{const b=B.MeshBuilder.CreateBox('xw-post',{width:w,height:h,depth:d},scene);b.position.set(x,y,z);parts.push(b);};
    for(const p of posts){const X=p.c.axis==='x',[x,z]=p.p,top=.18;   // the pavement's top
     box(.1,2.75,.1,x,top+1.375,z);box(X?.14:.16,.26,X?.16:.14,x,top+1.05,z);   // pole, push-button box

@@ -39203,7 +39203,7 @@
       "spawn"
     ]
   },
-  "revision": "67cc5c744185010d",
+  "revision": "74ff1e3301f712f8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57643,7 +57643,7 @@
     "void-runner/corporate-integration.js": "a40d915794b4c392a86665a55f6ab163550394318d29cdd11d9fcb526a76f5fc",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crosswalks.js": "57d2a38603f482ab8671c5e9a50b7e9cfd64d0160ed241e87b190202d3d692df",
+    "void-runner/crosswalks.js": "63416fe0d214ad48030d51f1751d90962ce8958075950413b817cb5e3fecc05c",
     "void-runner/crowd.js": "1c7587f2aaac0397610df0fa2f8a798bcbcf00eda25c50de5b1ee08ad825d67e",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "ee1fcc752a36ace292f55b57531da64a4430fd61f6e84bceb1801480585f2ecd",
