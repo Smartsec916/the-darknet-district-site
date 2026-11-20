@@ -152,8 +152,8 @@
 
  /* One player's arrow. update({graph, scene, area, quarter, player:{x,z}, goal:{x,y,z}, key, dt}) ->
     {waypoint, index, route, bearing (smoothed world yaw), raw (unsmoothed), alpha, length (route metres), final, snapped}; null when there is no goal. */
- function follower(){let prev=null,key=null,cur=null,ang=NaN,fade=1,last=null,goal=null,where=null,ids=[],out=null;
-  function reset(){key=cur=prev=null;ang=NaN;last=null;goal=null;ids=[];out=null;}
+ function follower(){let prev=null,key=null,cur=null,ang=NaN,fade=1,last=null,goal=null,where=null,ids=[],out=null,goalRegion=null;
+  function reset(){key=cur=prev=null;ang=NaN;last=null;goal=null;ids=[];out=null;goalRegion=null;}
   function update(o){if(!o||!o.goal||!o.player||!Number.isFinite(o.player.x)||!Number.isFinite(o.goal.x)){reset();return null;}
    const dt=Math.max(0,Math.min(.25,Number(o.dt)||0)),p={x:o.player.x,z:o.player.z},k=String(o.key??'goal'),w=String(o.scene||'')+'|'+String(o.area||'')+'|'+String(o.quarter||'');let snap=false;
    if(k!==key){key=k;cur=prev=null;ids=[];goal=null;snap=true;}
@@ -165,7 +165,10 @@
    // Stepping over a region's edge can drop the waypoint in use from a fresh plan (just out of a door, the street plan no longer has that door's apron): keep
    // the rest of the route in use (advance() moves along it) while that waypoint is within `keep` metres, so the arrow never skips ahead and swings.
    if(cur&&prev&&!route.some(x=>x.id===cur)){const j=prev.findIndex(x=>x.id===cur),w=prev[j];if(w&&w.kind!=='goal'&&Math.hypot(w.x-p.x,w.z-p.z)<TUNE.keep)route=[...prev.slice(j,-1),route[route.length-1]];}
-   const i=advance(route,cur,p),t=route[i];cur=t.id;ids=route.map(x=>x.id);prev=route;
+   // The goal in use while a fresh plan has doors before it because the goal moved into another street (a person walking round a corner) or the player jumped (a
+   // teleport): the plan is from where the player stands, so start from its first waypoint (night QA 20 Nov 2026: the arrow pointed at Reverie through the buildings).
+   const gr=o.graph?regionAt(o.graph,goal.x,goal.z,null):null,moved=gr!==goalRegion;goalRegion=gr;
+   const i=advance(route,cur==='goal'&&route.length>1&&(moved||snap)?null:cur,p),t=route[i];cur=t.id;ids=route.map(x=>x.id);prev=route;
    const d=Math.hypot(t.x-p.x,t.z-p.z),raw=d>TUNE.hold?bearing(p,t):(Number.isFinite(ang)?ang:bearing(p,t));
    if(snap||!Number.isFinite(ang)){ang=wrap(raw);fade=0;}else ang=smoothAngle(ang,raw,dt);fade=snap?0:Math.min(1,fade+(TUNE.snapFade>0?dt/TUNE.snapFade:1));
    let length=d;for(let j=i+1;j<route.length;j++)length+=Math.hypot(route[j].x-route[j-1].x,route[j].z-route[j-1].z);

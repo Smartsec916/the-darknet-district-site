@@ -20,3 +20,10 @@ test('a walk from street to street never cuts through Milked (its front and rear
  const ids=(from,goal)=>G.plan(graph,{...from,quarter:'far-south'},goal).map(w=>w.id);
  for(const id of ['far-south-east-lane','far-south-east-yard','far-south-east-alley-south'])assert.ok(!ids({x:84.8,z:-191.8},(BA.places().find(p=>p.id===id))).some(i=>i.startsWith('milked-')),id);
  const MK=require('../void-runner/milked.js'),rec=(MK.ROOMS||[]).find(r=>r.id==='reception').rect;assert.ok(ids({x:61,z:-160},{x:(rec[0]+rec[1])/2,z:(rec[2]+rec[3])/2}).includes('milked-door>'));});
+test('a goal that moves into another street (a person walking round a corner) or a player who leaves the goal street gets the route again, not a straight line',()=>{
+ const f=G.follower(),u=(px,pz,gx,gz)=>f.update({graph,scene:'neochinatown',area:'street',quarter:'avenue',player:{x:px,z:pz},goal:{x:gx,y:1.7,z:gz},key:'her',dt:.1});
+ for(let k=0;k<5;k++)u(40.5,.5,40,1.5);assert.equal(f.last.waypoint.id,'goal');   // beside her in the alley behind the Avenue
+ for(let k=0;k<40;k++)u(40.5,.5,38.2,-6.6);   // she walked out to the Avenue's pavement: the way is out of the alley's mouth, not through the buildings
+ assert.notEqual(f.last.waypoint.id,'goal');assert.ok(f.last.waypoint.x>44,JSON.stringify(f.last.waypoint));
+ const g=G.follower();for(let k=0;k<5;k++)g.update({graph,scene:'neochinatown',area:'street',quarter:'avenue',player:{x:40,z:8},goal:{x:40,y:1.7,z:10},key:'bay',dt:.1});
+ g.update({graph,scene:'neochinatown',area:'street',quarter:'avenue',player:{x:60,z:-12},goal:{x:40,y:1.7,z:10},key:'bay',dt:.1});assert.notEqual(g.last.waypoint.id,'goal');});
