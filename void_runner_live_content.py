@@ -1454,7 +1454,11 @@ def escort_shape_problems(trees):
 
 
 def _ledge_at(mv, p):
-    return any(abs(p['x'] - l['x']) <= l['w'] / 2 + .3 and p['z'] >= l['front'] - 1 for l in mv.get('ledges') or [])
+    # a ledge of the Avenue, or (20 Nov 2026) a seat of the tunnels' alcoves: within 0.6 m of where one stands to sit on it (npc-paths.js ledgeAt / ncz-street-pair.js seatNear)
+    if any(abs(p['x'] - l['x']) <= l['w'] / 2 + .3 and p['z'] >= l['front'] - 1 for l in mv.get('ledges') or []):
+        return True
+    return any(isinstance(s.get('front'), list) and len(s['front']) == 2 and ((p['x'] - s['front'][0]) ** 2 + (p['z'] - s['front'][1]) ** 2) ** .5 <= .6 + 1e-6
+               for s in mv.get('seats') or [] if isinstance(s, dict))
 
 
 def wait_at_problems(giver, w, inv):
@@ -2958,7 +2962,9 @@ def with_made(chars, inv):
         v = md.get('adult') if adult and md.get('adult') else md
         name = c.get('name') if isinstance(c.get('name'), str) and c.get('name').strip() else cid
         mv = v.get('movable') or {}
-        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': [], 'actions': mv.get('actions') or [], 'anims': mv.get('anims') or [], 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
+        # (20 Nov 2026) made characters sit too: on the Avenue's ledges and the tunnels' alcove seats (the same list as everyone's, npc-paths.js inventory)
+        seat_src = next((m for m in (inv.get('npcPaths') or {}).get('movable', {}).values() if isinstance(m, dict) and m.get('ledges')), {})
+        paths['movable'][cid] = {'name': name, 'areas': areas, 'ledges': seat_src.get('ledges') or [], 'seats': seat_src.get('seats') or [], 'actions': mv.get('actions') or [], 'anims': mv.get('anims') or [], 'pathOnly': mv.get('pathOnly') or ['walk-on'], 'made': True, 'adult': adult}
         me['givers'][cid] = {'name': name, 'canTalk': True, 'players': True, 'draft': True, 'group': 'district'}
         if v.get('gestures'):
             me['gestures'][cid] = {'look': c.get('model'), 'clips': v['gestures']}

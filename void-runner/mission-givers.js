@@ -46,6 +46,11 @@
   // its missions; with none it only looks up at the player (text only, no voice, no lore).
   'street-cat':{name:'Street cat',group:D,say:'street-cat',where:'The Avenue (or wherever Developer Tools > NPCs places it), the north pavement by the LAUNDRY door (ncz-street-pair.js: PET THE CAT; it goes to whichever of Reverie and Lace is out).',targets:[{action:'street-cat',character:'street-cat'}],layout:'street-cat',enter:AREA.street('avenue'),players:true,draft:true,
    note:'No voice and no lines of its own: with no mission it only looks up at the player (“The cat looks up at you.”, text only).'},
+  // The tea room host (the owner, 20 Nov 2026: "an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver."): always at his post
+  // behind the tea station of the underground tea room (npc-paths.js MOVABLE home; drawn by npc-made.js BUILTIN, TALK TO TEA ROOM HOST). A separate person from anyone a
+  // mission places in the tea room. Placeholder name for the owner to rename; no lines of his own; his ElevenLabs voice is in revoice-engines.json.
+  'tea-host':{name:'Tea Room Host',group:D,say:'tea-host',where:'The Underground: the tea room, behind the tea station (or wherever Developer Tools > NPCs places him) (npc-made.js: TALK TO TEA ROOM HOST).',targets:[{action:'made-npc',character:'tea-host'}],layout:null,enter:AREA.street('underground'),players:true,draft:true,
+   note:'Placeholder name. Always at his post (no schedule). No lines of his own yet: with no mission, talking to him shows only “…”. Draft play starts at the Avenue tunnel checkpoint; walk south to the tea room.'},
   // ---- earlier characters (not in the District today) ----
   rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,
    reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},
