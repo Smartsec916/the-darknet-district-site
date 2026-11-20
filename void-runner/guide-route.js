@@ -202,6 +202,11 @@
   if(loc&&loc.apartment)return null;   // an apartment's hallway or rooms (one room or a straight corridor): straight to the goal (their id is 'neochinatown' too)
   if(kind==='station'){if(!cache.has('station'))cache.set('station',station());return cache.get('station');}
   if(scene!=='neochinatown'&&scene!=='milked')return null;const D=deps(),n=(D.QT&&D.QT.LANES||[]).length,c=cache.get('ncz');if(c&&c.lanes===n)return c.g;const g=neochinatown(D);cache.set('ncz',{g,lanes:n});return g;}
- const api={TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,modular,graphFor,plan,passed,behind,advance,nearAlpha,follower};
+ /* THE MISSION YELLOW (the owner, 20 Nov 2026: "I want any hints during mission to match the yellow arrow. Yellow is the mission and hints color."). The arrow's fill
+    (world-integration.js), its distance text and outline. Everything that is a mission hint uses these: the goal and target markers, the hint line, the tracked-mission
+    line, the V1's highlighted app and call-bar cue. In CSS: var(--mission-yellow) / --mission-yellow-rgb / --mission-yellow-text / --mission-yellow-ink
+    (set on the page root by world-integration.js). Non-mission UI keeps its own colours. */
+ const COLOR={rgb:'255,214,120',hex:'#ffd678',text:'#ffe7a8',ink:'#1a1206'};
+ const api={COLOR,TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,modular,graphFor,plan,passed,behind,advance,nearAlpha,follower};
  if(node)module.exports=api;else root.VoidGuideRoute=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

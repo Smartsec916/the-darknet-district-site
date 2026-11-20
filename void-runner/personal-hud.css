@@ -26,7 +26,7 @@
 #personal-hud .hud-card ul{margin:6px 0 10px;padding-left:18px}
 #personal-hud .hud-card li.complete{color:#6cf0c0}
 #personal-hud .hud-tag{font-size:11px;letter-spacing:.12em;color:#8fa7b1;border:1px solid #2b444a;padding:1px 6px}
-#personal-hud .hud-tag.tracked{color:#ffd23f;border-color:#6b5a1f}
+#personal-hud .hud-tag.tracked{color:var(--mission-yellow,#ffd678);border-color:#6b5a1f}
 #personal-hud .hud-tag.done{color:#6cf0c0;border-color:#2d6b58}
 #personal-hud .hud-meta{color:#7f979f!important;font-size:12px;letter-spacing:.06em}
 #personal-hud .hud-note{color:#8fa7b1;margin:4px 0 12px}

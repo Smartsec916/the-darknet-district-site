@@ -170,8 +170,20 @@
  const inboxUnread=()=>inbox().filter(m=>!m.read).length,callsUnread=()=>inbox('comms').filter(m=>!m.read).length;
  let call=null,callTail=6000;   // the call on screen in Comms: {id, start, ended, lines}
  const callClock=()=>{if(!call)return '00:00';const sec=Math.floor(((call.endedAt||Date.now())-call.start)/1000);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');};
- function endCall(){if(!call||call.ended)return;call.ended=true;call.endedAt=Date.now();root.VoidLiveContent?.markRead?.(call.id);updateBadges();if(open&&stack[0]==='comms')render({keepScroll:true});}
- setInterval(()=>{if(!call||call.ended)return;if(Date.now()-call.start>call.lines.length*3000+callTail){endCall();return;}/* the lines appear 2.2 s apart; the call stays a moment after the last one */const t=body&&body.querySelector('[data-call-timer]');if(t)t.textContent=callClock();},500);
+ /* The call starts when the V1 opens (or Comms is shown) with a fresh call waiting, and then runs on whatever screen is up and with the V1 closed: the call bar at the
+    top of the V1 and the call pill over the game show who is calling and the line now (the owner, 20 Nov 2026: L opened Comms during Admin's call, not the apps). */
+ function startCall(){const fresh=inbox('comms').find(m=>!m.read);if(fresh&&(!call||call.id!==fresh.id)){call={id:fresh.id,start:Date.now(),ended:false,lines:String(fresh.text).split('\n').map(x=>x.trim()).filter(Boolean),from:String(fresh.fromName||''),title:String(fresh.title||'')};try{if(bannerKey==='call:'+fresh.id){hideBanner();noteApp=null;}}catch{}}return call;}
+ const callLive=()=>!!call&&!call.ended;
+ let callBar=null,callPill=null;
+ /* The call bar (inside the V1 on every screen but Comms; click: the full call) and the call pill (over the game while the V1 is closed, on foot or through the camera):
+    the caller, the timer, the mission's name in the mission yellow and the line said now. Both go when the call ends. */
+ function callUi(){
+  const live=callLive(),i=live?D.callLine(call.lines.length,Date.now()-call.start):-1,line=!live?'':i<0?'CONNECTING…':call.lines[i]||'',who=live?esc(String(call.from||'CALLER').toUpperCase()):'';
+  if(callBar){const show=live&&open&&stack[0]!=='comms';callBar.hidden=!show;if(show){const html='<i class="pd-cb-dot" aria-hidden="true"></i><b>'+who+'</b><time>'+callClock()+'</time>'+(call.title?'<small class="pd-cb-mission">'+esc(call.title.toUpperCase())+'</small>':'')+'<em>OPEN CALL</em><span class="pd-cb-line">'+esc(line)+'</span>';if(callBar.dataset.html!==html){callBar.innerHTML=html;callBar.dataset.html=html;}callBar.setAttribute('aria-label','Call with '+(call.from||'the caller')+': '+line+'. Open the call in Comms.');}}
+  if(callPill){const show=live&&!open&&(!!root.VoidDeviceCamera?.active||typeof mode!=='undefined'&&mode==='walking')&&!root.VoidCharacterCreator?.isOpen;callPill.hidden=!show;if(show){callPill.dataset.device=dev?.model||'v1';const html='<i class="pd-cb-dot" aria-hidden="true"></i><b>'+who+'</b><time>'+callClock()+'</time><em>'+esc(keyLabel())+' · V1</em><span class="pd-cb-line">'+esc(line)+'</span>';if(callPill.dataset.html!==html){callPill.innerHTML=html;callPill.dataset.html=html;}}}
+ }
+ function endCall(){if(!call||call.ended)return;call.ended=true;call.endedAt=Date.now();root.VoidLiveContent?.markRead?.(call.id);updateBadges();callUi();if(open&&stack[0]==='comms')render({keepScroll:true});}
+ setInterval(()=>{if(open)startCall();callUi();if(!call||call.ended)return;if(Date.now()-call.start>call.lines.length*3000+callTail){endCall();return;}/* the lines appear 2.2 s apart; the call stays a moment after the last one */const t=body&&body.querySelector('[data-call-timer]');if(t)t.textContent=callClock();},500);
  const readAll=list=>{const ids=list.filter(m=>!m.read).map(m=>m.id);if(ids.length)setTimeout(()=>{let any=false;for(const id of ids)any=root.VoidLiveContent?.markRead?.(id)||any;if(any)updateBadges();},0);};
  let notes=0;   // notifications that arrived while the V1 was closed and that the player has not opened the V1 for yet
  /* The chat counts as "being looked at" only while the V1 is open, not mid-transition, on Messages > District chat. Looking at it reads everything that was waiting. */
@@ -285,11 +297,10 @@
   comms(){
    // Calls a mission made (start by notification, channel Comms). An unanswered call plays as a call: the caller, a timer and a waveform, the words appearing as a transcript
    // (audio only when a recorded clip exists: none does yet). No reply. It ends after the last line or with HANG UP, and stays below under RECENT CALLS to read again.
-   const calls=inbox('comms'),fresh=calls.find(m=>!m.read);
-   if(fresh&&(!call||call.id!==fresh.id))call={id:fresh.id,start:Date.now(),ended:false,lines:String(fresh.text).split('\n').map(x=>x.trim()).filter(Boolean)};
+   const calls=inbox('comms');startCall();const callAgo=call&&!call.ended?(Date.now()-call.start)/1000:0;   // a call already running (started on the home screen) keeps its place: its shown lines do not appear again
    const live=call&&calls.find(m=>m.id===call.id);
    const liveHtml=live?'<article class="pd-card pd-call-live'+(call.ended?' ended':'')+'" data-call-live="'+esc(live.id)+'"><div class="pd-call-who"><small>'+(call.ended?'CALL ENDED':'INCOMING CALL · CONNECTED')+'</small><b>'+esc(String(live.fromName||'').toUpperCase())+'</b><time data-call-timer>'+callClock()+'</time></div>'
-    +'<div class="pd-wave" aria-hidden="true">'+'<i></i>'.repeat(14)+'</div><div class="pd-note">'+esc(live.header||'')+' · TRANSCRIPT</div>'+call.lines.map((l,i)=>'<p class="pd-call-line" style="--d:'+(call.ended?0:(i*2.2+.4))+'s">'+esc(l)+'</p>').join('')
+    +'<div class="pd-wave" aria-hidden="true">'+'<i></i>'.repeat(14)+'</div><div class="pd-note">'+esc(live.header||'')+' · TRANSCRIPT</div>'+call.lines.map((l,i)=>'<p class="pd-call-line" style="--d:'+(call.ended?0:Math.max(-60,i*2.2+.4-callAgo).toFixed(2))+'s">'+esc(l)+'</p>').join('')
     +(call.ended?'':'<div class="pd-tabs"><button type="button" data-hangup="1">HANG UP</button></div>')+'</article>':'';
    const past=calls.filter(m=>!live||m.id!==live.id||call.ended);
    const callHtml=liveHtml+(past.length?'<h2>RECENT CALLS</h2>'+past.map(m=>'<article class="pd-card pd-inmsg pd-call'+(m.read?'':' unread')+'" data-call="'+esc(m.id)+'"><div class="pd-msg-h"><b>'+esc(m.header||('CALL FROM '+String(m.fromName||'').toUpperCase()))+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class="pd-note">'+esc(m.fromName)+' · TRANSCRIPT</div><div class="pd-inmsg-text">'+esc(m.text)+'</div>'+(m.title?'<div class="pd-note">'+esc(m.title)+'</div>':'')+'</article>').join(''):'')+(calls.length?'<h2>VOICE</h2>':'');
@@ -350,6 +361,8 @@
   el.innerHTML='<div class="pd-head"><span class="pd-brand">V1</span><span class="pd-tag"></span><span class="pd-clock" data-pd-clock role="timer" aria-label="In-game time" style="margin-left:auto;margin-right:10px;font:600 12px/1 ui-monospace,Consolas,monospace;letter-spacing:.12em;color:#9fe8ff;white-space:nowrap"></span><button type="button" data-do="expand" aria-label="Expand device"></button><button type="button" data-do="close" aria-label="Close device">CLOSE · L</button></div>'
    +'<div class="pd-nav"><button type="button" data-do="back" aria-label="Back">◀ BACK</button><span class="pd-title"></span></div><div class="pd-load"><i></i></div><div class="pd-main" tabindex="-1"></div>';
   document.body.appendChild(el);body=el.querySelector('.pd-main');
+  callBar=document.createElement('button');callBar.type='button';callBar.className='pd-callbar';callBar.dataset.callOpen='1';callBar.hidden=true;el.querySelector('.pd-head').after(callBar);
+  callPill=document.createElement('div');callPill.id='pd-callpill';callPill.hidden=true;callPill.setAttribute('role','status');callPill.setAttribute('aria-live','polite');document.body.appendChild(callPill);
   el.addEventListener('click',onClick);
   el.addEventListener('input',e=>{const t=e.target,V=root.VoidVoice;if(!V)return;if(t.matches?.('input[data-voice-volume]'))V.set('volume',t.value);else if(t.matches?.('input[data-voice-player]'))V.setPlayer(t.dataset.voicePlayer,{vol:t.value});});
   el.addEventListener('change',e=>{const t=e.target;if(t.matches?.('select[data-ach-sort]')){const k=t.dataset.achSort,v=achView.get(k)||{open:true,sort:'featured'};achView.set(k,{...v,sort:t.value});render();return;}if(t.matches?.('select[data-voice-device]')){root.VoidVoice?.set(t.dataset.voiceDevice,t.value);return;}if(!t.matches?.('select[data-jobsel]'))return;const P=DP(),f=flags_();if(!P||!f)return;const picks=[...body.querySelectorAll('select[data-jobsel]')].map(x=>x.value).filter(Boolean);P.writeJobs(f,picks);try{if(typeof save==='function')save();}catch{}render({keepScroll:true});});
@@ -385,16 +398,21 @@
   if(newsFilter==='broadcasts'){for(const a of ads)a.remove();for(const h of tpl.content.querySelectorAll('h2'))if(/SPONSORED/.test(h.textContent))h.remove();return bar+(hasReports?tpl.innerHTML:'<div class="pd-empty">No news received yet.<br>Reports appear here after you hear them on the Relay.</div>');}
   return bar+(people?'<h2>PEOPLE</h2>'+people:'')+old;
  }
+ /* The app the current mission step wants opened (device-v1.js appGoal): its tile glows in the mission yellow, with "ADMIN: OPEN CAMERA" over the apps. Hidden with
+    the help hints (story.flags.helpOff), like mission-guide.js's hints. */
+ function missionApp(){try{if(state_()?.story?.flags?.helpOff===true)return null;const L=root.VoidLiveContent,s=L?.step?.();if(!s||!s.step)return null;
+  const m=((L.env&&L.env.trees)||[]).flatMap(t=>t.missions||[]).find(x=>x.id===s.mission),who=m&&m.giver?(L.giverName?L.giverName(m.giver):m.giver):'',g=D.appGoal?.(s.step,who,dev);
+  return g&&dev.apps.includes(g.app)&&D.APPS[g.app]?.state==='ready'?g:null;}catch{return null;}}
  function render(opts={}){
   if(!el||!open||busy)return;   // while a transition card is showing nothing else redraws the screen
   const app=stack[0],def=D.DEVICES[dev.model];chrome();syncViewing();
   const top=body.scrollTop;
-  if(!app){const st=D.storage(dev);body.innerHTML='<div class="pd-home"><div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'||id==='comms'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
+  if(!app){const st=D.storage(dev),goal=missionApp();body.innerHTML='<div class="pd-home">'+(goal?'<div class="pd-goalhint" data-help="1" data-goal-app="'+esc(goal.app)+'" role="status">'+esc(goal.text)+'</div>':'')+'<div class="pd-grid">'+dev.apps.filter(id=>D.APPS[id]).map((id,i)=>{const a=D.APPS[id],off=a.state==='placeholder';return '<button type="button" class="pd-app'+(off?' off':'')+(goal&&goal.app===id?' pd-goal':'')+'" data-app="'+id+'" style="--i:'+i+'" aria-label="'+esc(D.appTitle(id,dev))+(off?' (not available yet)':'')+'">'+FRAME+'<span class="pd-index" aria-hidden="true">'+String(i+1).padStart(2,'0')+'</span>'+(id==='messages'||id==='comms'?'<span class="pd-badge" hidden></span>':'')+icon(id)+'<span class="pd-name">'+esc(D.appTitle(id,dev))+'</span><span class="pd-sub">'+(off?'COMING LATER':'')+'</span></button>';}).join('')+'</div><div class="pd-home-foot"><div class="pd-storage pd-mini" aria-label="Device storage"><div class="pd-stat"><span>STORAGE USED: '+st.usedPct+'%</span><span>AVAILABLE: '+st.availablePct+'%</span></div><div class="pd-bar"><i style="width:'+st.usedPct+'%"></i></div></div><div class="pd-foot">'+esc(def.tagline)+'</div></div></div>';}
   else{try{body.innerHTML=APP_VIEW[app]();}catch(e){body.innerHTML='<div class="pd-empty">This app could not be shown.</div>';}}
   body.scrollTop=opts.keepScroll?top:0;
   hydratePortraits();if(app==='map')drawMap();if(app==='comms')fillVoiceDevices();
   if(app==='messages'&&(stack[1]||'chat')==='chat'){const log=body.querySelector('[data-chatlog]');if(log)log.scrollTop=log.scrollHeight;if(wantFocus){wantFocus=false;const i=body.querySelector('[data-chatform] input:not([disabled])');if(i)setTimeout(()=>i.focus(),0);}}
-  updateBadges();
+  updateBadges();callUi();
  }
  /* Moves to another screen. The new screen's title shows at once; its content appears after the model's transition delay (a loading card, driven by a timer: nothing blocks).
     Only the LATEST request counts: clicking again, going back or closing cancels the one in flight, so transitions never pile up. */
@@ -439,6 +457,7 @@
   if(t.dataset.wf){const X=root.VoidWarFlyingScanner;if(X){if(t.dataset.wf==='send')X.upload(true);else X.setActive(t.dataset.wf==='on');}render({keepScroll:true});setTimeout(()=>{if(open&&stack[0]==='warflying')render({keepScroll:true});},1500);return;}
   if(t.dataset.follow){const P=DP(),f=flags_();if(P&&f){const [kind,id]=t.dataset.follow.split(':');P.toggleFollow(f,kind==='n'?{kind:'npc',id}:{kind:'player',id,name:t.dataset.name});try{if(typeof save==='function')save();}catch{}render({keepScroll:true});}return;}
   if(t.dataset.hangup){endCall();return;}
+  if(t.dataset.callOpen){if(stack[0]!=='comms')go(['comms'],'open');return;}   // the call bar: back to the full call in Comms
   if(t.dataset.track||t.dataset.untrack){const s=state_(),V=root.VoidMissions;try{if(t.dataset.track)V.track(s,t.dataset.track,C);else V.untrack(s);if(typeof save==='function')save();}catch{}render({keepScroll:true});return;}
   if(t.dataset.set){dev.settings[t.dataset.set]=t.dataset.value;if(t.dataset.set==='size')expanded=t.dataset.value==='expanded';commit();render({keepScroll:true});return;}
   if(t.dataset.act==='block'||t.dataset.act==='report'){
@@ -577,9 +596,10 @@
   updateBadges();return true;
  }
  // Opening the V1 clears the notification; with one waiting, the V1 opens on its app (Messages > INBOX for a message).
- {const so=setOpen;setOpen=function(v){if(v&&!open&&noteApp&&!pending&&D.APPS[noteApp.app]?.state==='ready')pending={app:noteApp.app,sub:noteApp.sub};const r=so.apply(this,arguments);if(v&&open){notes=0;noteApp=null;hideBanner();updateBadges();}return r;};}
+ // A Comms call does not: the V1 opens on its home (the apps) and the call goes on in the call bar (device-v1.js openTarget; the owner, 20 Nov 2026).
+ {const so=setOpen;setOpen=function(v){if(v&&!open&&noteApp&&!pending&&D.APPS[noteApp.app]?.state==='ready')pending=D.openTarget?D.openTarget(noteApp):{app:noteApp.app,sub:noteApp.sub};const r=so.apply(this,arguments);if(v&&open){notes=0;noteApp=null;hideBanner();startCall();updateBadges();callUi();}else if(!v)callUi();return r;};}
  // The banner is shown only on foot (a conversation, a menu or the pod card hides it; it comes back while it is still due).
  setInterval(()=>{if(!banner||banner.hidden&&!bannerKey)return;const show=!open&&typeof mode!=='undefined'&&mode==='walking'&&!root.VoidCharacterCreator?.isOpen;banner.classList.toggle('away',!show);},250);
- root.VoidV1={get bannerMs(){return FADE_MS;},set bannerMs(v){FADE_MS=Math.max(1000,Number(v)||15000);},get callTail(){return callTail;},set callTail(v){callTail=Math.max(0,Number(v)||0);},notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
+ root.VoidV1={get bannerMs(){return FADE_MS;},set bannerMs(v){FADE_MS=Math.max(1000,Number(v)||15000);},get callTail(){return callTail;},set callTail(v){callTail=Math.max(0,Number(v)||0);},get call(){return call?{id:call.id,from:call.from,ended:call.ended,line:callLive()?D.callLine(call.lines.length,Date.now()-call.start):-1,lines:call.lines.slice()}:null;},notify,get pending(){return notes;},get banner(){return banner&&!banner.hidden&&banner.classList.contains('on')?banner.textContent:'';},clear:()=>{notes=0;noteApp=null;hideBanner();updateBadges();}};
  root.VoidPersonalDevice={get isOpen(){return open;},get expanded(){return expanded;},open:()=>setOpen(true),close:()=>setOpen(false),toggle,get app(){return stack[0]||null;},get sub(){return stack[1]||null;},get thread(){return stack[0]==='messages'&&stack[1]==='inbox'?stack[2]||null:null;},get attach(){return {picking:attach.picking,photo:attach.photo};},contacts,openApp,get busy(){return busy;},get suppressed(){return [...suppressed];},get device(){return dev;},APP_VIEW};
 })(globalThis);

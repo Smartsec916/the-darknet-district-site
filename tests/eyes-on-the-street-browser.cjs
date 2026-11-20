@@ -47,7 +47,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    const way=()=>page.evaluate(()=>({wp:typeof trackedWalkWaypoint!=='undefined'&&trackedWalkWaypoint?{p:trackedWalkWaypoint.position,label:trackedWalkWaypoint.label||''}:null,g:VoidMissions.guidance(state,VoidMissions.tracked(state,C),true),area:walkingLocation.area}));
    // ---- finish Mission 001 (its own browser test covers it in detail)
    await page.waitForFunction(()=>!!state.universe.missions['m001-awakening']?.acquired);
-   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);await page.locator('[data-hangup]').dispatchEvent('click');await page.waitForSelector('#personal-device [data-call-live].ended');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
+   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen&&VoidPersonalDevice.app===null&&!VoidPersonalDevice.busy);await page.locator('#personal-device .pd-callbar:not([hidden])').dispatchEvent('click');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);await page.locator('[data-hangup]').dispatchEvent('click');await page.waitForSelector('#personal-device [data-call-live].ended');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    await useE('admin');await page.waitForFunction(()=>state.universe.missions['m001-awakening']?.completed===true);await page.evaluate(()=>{try{resumeWalking();}catch{}});await page.waitForFunction(()=>mode==='walking');
    // ---- the offer: NOT NOW, then again and ACCEPT
    log('offer');await useE('admin');
@@ -78,7 +78,17 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await page.waitForFunction(id=>state.universe.missions[id]?.objectives['enter-null']===true,ID,{timeout:30000});
    await page.waitForSelector('#pd-notify.on:not(.away)',{timeout:30000});const banner=(await page.locator('#pd-notify').innerText()).replace(/\s+/g,' ').trim();
    assert.equal(banner,'V1 · Incoming call from ADMIN · Press L to answer','the V1 notification, with the player\'s own key');await shot('call-banner');
-   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);const call=page.locator('#personal-device [data-call-live]');await call.waitFor();
+   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen&&VoidPersonalDevice.app===null&&!VoidPersonalDevice.busy);
+   // L during the call opens the apps, not Comms (the owner, 20 Nov 2026): the call goes on in the call bar, the Camera tile glows in the mission yellow with "ADMIN: OPEN CAMERA"
+   await page.waitForFunction(()=>VoidV1.call&&VoidV1.call.line>=0&&!document.querySelector('#personal-device .pd-callbar').hidden);
+   assert.match(await page.locator('#personal-device .pd-callbar').innerText(),/ADMIN[\s\S]*Your V1 has a camera\. Press L to open your device, then select the Camera app\./,'the call bar: the caller and the line now');
+   assert.equal(await page.locator('#personal-device [data-app=camera].pd-goal').count(),1,'the Camera tile is highlighted');assert.equal((await page.locator('#personal-device .pd-goalhint').innerText()).trim(),'ADMIN: OPEN CAMERA');
+   assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector('#personal-device .pd-goalhint')).color),'rgb(255, 214, 120)','the mission yellow of the arrow');
+   assert.equal((await S()).hint.id,'camera','hint: select the Camera app');await page.waitForTimeout(1200);await shot('call-home');
+   await page.locator('#personal-device [data-app=camera]').dispatchEvent('click');await page.waitForFunction(()=>VoidDeviceCamera.active&&!VoidPersonalDevice.isOpen);
+   await page.waitForFunction(()=>!document.getElementById('pd-callpill').hidden&&VoidV1.call.line>=1);assert.equal(await page.evaluate(()=>VoidV1.call.ended),false,'the call goes on with the camera up');await page.waitForTimeout(1500);await shot('call-camera');
+   await page.keyboard.press('KeyB');await page.waitForFunction(()=>!VoidDeviceCamera.active);await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen&&VoidPersonalDevice.app===null&&!VoidPersonalDevice.busy);
+   await page.locator('#personal-device .pd-callbar:not([hidden])').dispatchEvent('click');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);const call=page.locator('#personal-device [data-call-live]');await call.waitFor();
    await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].length===6&&[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:30000});
    assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'The owner\'s six lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
    await page.locator('[data-hangup]').dispatchEvent('click');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
