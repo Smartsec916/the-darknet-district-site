@@ -2079,20 +2079,14 @@
             [
               45.85,
               46.949999999999996,
-              6.25,
-              8.25
+              10.75,
+              12.75
             ],
             [
               33.126,
               34.326,
               12.75,
               13.95
-            ],
-            [
-              45.75,
-              46.95,
-              12.049999999999999,
-              13.249999999999998
             ],
             [
               33.05,
@@ -42340,7 +42334,7 @@
       "spawn"
     ]
   },
-  "revision": "0ebac2f1a701573d",
+  "revision": "b90dbf507f339e6a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -60895,7 +60889,7 @@
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
     "void-runner/character-creator.js": "cfd0082b0171c612f0881f485a9879e677a1af7e5d84d66d5a14d39c97c39d86",
-    "void-runner/character-finish.js": "7bc48060d478a439234e2ce69b31c83ef998c8069e3ed688e02e858c9dc3b676",
+    "void-runner/character-finish.js": "4fc7c0c8dd611061b6664284fe9dbee2708169cf01147e4db9afc0cb6a40908d",
     "void-runner/character-fit.js": "ee63772c43aa17513e8325b03ee8fee759e3fbf2407fa9adc3912921a6efcbc9",
     "void-runner/cockpit-3d.js": "469a2504e16205e01e860b0b9372d2ff15d55ba1b570e7629981ed03a2840d29",
     "void-runner/cockpit-math.js": "a63faf598eaf23722d22658ca22b5da5b16f0044437ac5277d34d42d1cbf0461",
@@ -60966,7 +60960,7 @@
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
-    "void-runner/guide-route.js": "4acbc82466da351067a18c07785e50ade8517554f65e0a8f8995f9834dc389af",
+    "void-runner/guide-route.js": "31458052dae87721d14bd6b358ac45584b6e8b33cedf6107e22a3fdfdd645424",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
     "void-runner/homeworld-scenes.js": "b0b9637b19f784f3474efe3a2f8cc2708f6bec82c14e1f00598a3311d1763fdb",
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
@@ -61012,7 +61006,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "61627565da17cf7e0dd9a72d8d159b0e3a50125674dd0055dddf8ee0f2fbef68",
+    "void-runner/ncz-backalleys.js": "d5b88d4fb4754ae3ec6c7eeb25fcecdb15908687db2832617ede48b657a4661e",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",

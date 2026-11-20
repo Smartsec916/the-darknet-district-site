@@ -101,3 +101,7 @@ test('wired in: scripts in order, the editor map draws them and the fire escapes
  assert.match(src('void-runner/npc-map.js'),/fire escape/);assert.match(src('void-runner/neochinatown.js'),/BA\.build\(\{B,scene,parent,quality,quarter:QK,base\}\)/);
  assert.match(require(R('void-runner/npc-behaviour.js')).prompt('grey-reverie'),/back alleys/);
  assert.match(src('void-runner-sw.js'),/const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';/);});
+test('a narrow opening between two pieces (the Avenue north alley into its loading bay) is kept clear of furniture (night QA)',()=>{const BA=require('../void-runner/ncz-backalleys.js');
+ // the alley's east leg [45.1,49.9] meets the bay [33,47] over x 45.1..47 at z 5: a player (0.76 m wide) must fit through
+ const inGap=BA.furniture('avenue').filter(f=>f.rect[0]<47&&f.rect[1]>45.1&&f.rect[2]<6.6&&f.rect[3]>3.4);assert.deepEqual(inGap.map(f=>f.id),[]);
+ for(const q of BA.QUARTERS)for(const f of BA.furniture(q))assert.ok(!(f.piece==='avenue-north-bay'&&f.z<9&&f.x>45),f.id);});

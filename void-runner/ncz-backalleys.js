@@ -145,7 +145,12 @@
  let FURN=null;const BACK={n:[0,1],s:[0,-1],e:[1,0],w:[-1,0]};   // a bay open toward n has its back wall on the south, facing north
  function furniture(q){if(!FURN){FURN=[];for(const qq of QUARTERS)FURN.push(...furnish(qq));}return q?FURN.filter(f=>f.quarter===q):FURN.slice();}
  const underZone=u=>{const r=u.rect,d=u.down;return [Math.min(r[0],r[0]-d[0]*2.2)-.5,Math.max(r[1],r[1]-d[0]*2.2)+.5,Math.min(r[2],r[2]-d[1]*2.2)-.5,Math.max(r[3],r[3]-d[1]*2.2)+.5];};   // the stairwell and the way onto its top step
- function furnish(q){const out=[],W=walls(q),zones=[...escapesIn(q).map(escZone),...MOUTHS.filter(o=>o.quarter===q).map(mouthZone),...UNDERGROUND_ENTRANCES.filter(u=>u.quarter===q).map(underZone)];
+ // Where two pieces meet through a narrow opening (an alley running into a bay or a yard), the way through is kept clear like a mouth (night QA 20 Nov 2026: a dumpster stood in the 1.9 m
+ // gap where the Avenue's north alley enters its loading bay, leaving 0.75 m, and the mission arrow pointed into it).
+ const joinZones=q=>{const P=list(q),out=[];for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++)for(const a of P[i].rects)for(const b of P[j].rects){const x0=Math.max(a[0],b[0]),x1=Math.min(a[1],b[1]),z0=Math.max(a[2],b[2]),z1=Math.min(a[3],b[3]);
+  if(x1<x0-.01||z1<z0-.01)continue;const tx=x1-x0<.05,tz=z1-z0<.05;if(!(tx||tz)||Math.max(x1-x0,z1-z0)>=4)continue;   // a narrow opening (an edge under 4 m); wide ones keep room beside their things
+  out.push([x0-(tx?1.6:.3),x1+(tx?1.6:.3),z0-(tz?1.6:.3),z1+(tz?1.6:.3)]);}return out;};
+ function furnish(q){const out=[],W=walls(q),zones=[...escapesIn(q).map(escZone),...MOUTHS.filter(o=>o.quarter===q).map(mouthZone),...UNDERGROUND_ENTRANCES.filter(u=>u.quarter===q).map(underZone),...joinZones(q)];
   // every quarter's pieces count for the "inside" test; a piece's own rectangles for where its things stand
   const inside=(r,own)=>[[r[0],r[2]],[r[1],r[2]],[r[0],r[3]],[r[1],r[3]],[(r[0]+r[1])/2,(r[2]+r[3])/2]].every(([x,z])=>own.some(R=>inR(R,x,z,-.02)));
   function tryPut(kind,p,wl,s,own,lane){const K=KINDS[kind],alongX=wl.z0===wl.z1,w=kind==='dock'?Math.min(6,(alongX?wl.x1-wl.x0:wl.z1-wl.z0)-5):K.w,d=K.d,n=wl.n;
