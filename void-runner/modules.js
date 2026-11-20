@@ -22,8 +22,8 @@
  const GRID=2,WALL=.1,DOOR={w:1.2,h:2.2,clear:1.04,frame:.08},SPAN=24,FLOORS=[-3,9],LIMIT={modules:12,items:20,links:12,locks:12,label:60};
  const MOD_ID=/^[a-z][a-z0-9-]{0,11}$/,REF=/^([a-z][a-z0-9-]{0,11})\.([a-z0-9-]{1,10})$/,ORIGIN=[600,600];
  const r2=v=>Math.round(v*100)/100;
- const CATS=[{id:'housing',name:'Housing'},{id:'commercial',name:'Commercial'},{id:'office',name:'Office'},{id:'server',name:'Server room'},{id:'hallway',name:'Hallways'},{id:'elevator',name:'Elevator'},{id:'other',name:'Other'}];
- const STYLE_NAMES={corp:'corporate',back:'back of house',tech:'technical',clinic:'clinical',legacy:'apartment set'};
+ const CATS=[{id:'housing',name:'Housing'},{id:'various',name:'Various'},{id:'office',name:'Office'},{id:'server',name:'Server room'},{id:'hallway',name:'Hallways'},{id:'elevator',name:'Elevator'},{id:'other',name:'Other'}];
+ const STYLE_NAMES={corp:'corporate',back:'back of house',tech:'technical',clinic:'clinical',kitchen:'kitchen',den:'warm wood',garage:'garage',pit:'raw concrete',gang:'gang checkpoint',tunnel:'service tunnel',legacy:'apartment set'};
  const O=(id,label,name)=>({id,label,name:name||label.toLowerCase()});
  const LIGHTS=O('lights','LIGHTS','the light switch');
  // ---------------------------------------------------------------- the module types
@@ -65,22 +65,165 @@
   objects:[LIGHTS],furn:[[.5,.88,2.05,2.45,1,'plant']],inter:hallInter(),sw:[-3,'w'],lights:[[0,2.45,-1.2,'#ffe8cc',1.2,9]]});
  T('hall-commercial',{cat:'hallway',style:'back',name:'Commercial hallway',note:'Back of house: painted block walls, sealed concrete, pipes, caged tubes, stacked crates.',w:1,d:4,ceil:2.8,sockets:'s0 n0 w1 e1 w2 e2',
   objects:[O('panel','ELECTRICAL PANEL','the electrical panel'),LIGHTS],furn:[[.45,.9,2.05,2.65,.95,'crates']],inter:[{id:'panel',label:'ELECTRICAL PANEL',pos:[-.75,1.4,3.1],object:'panel',range:1.3}],sw:[-3,'w'],lights:[[0,2.5,-1,'#d8f0e0',1.1,9]]});
- // COMMERCIAL: three 6 m x 6 m back rooms (doors in the middle of each wall; the corners are furnished, the middle stays clear).
- T('shop-back',{cat:'commercial',style:'back',name:'Shop back room',note:'A stockroom: steel shelving with stock, a pallet, a desk with the stock terminal, a safe, a mop sink.',w:3,d:3,ceil:2.8,sockets:'s1 n1 w1 e1',
+ // VARIOUS (were COMMERCIAL until 20 Nov 2026; the type ids are unchanged): three 6 m x 6 m back rooms (doors in the middle of each wall; the corners are furnished, the middle stays clear).
+ T('shop-back',{cat:'various',style:'back',name:'Shop back room',note:'A stockroom: steel shelving with stock, a pallet, a desk with the stock terminal, a safe, a mop sink.',w:3,d:3,ceil:2.8,sockets:'s1 n1 w1 e1',
   objects:[O('computer','STOCK TERMINAL','the stock terminal'),O('safe','SAFE','the safe'),O('shelves','SHELVES','the shelves'),LIGHTS],
   furn:[[-2.9,-.9,2.45,2.9,2,'shelf-n'],[-2.9,-2.45,.9,2.45,2,'shelf-w'],[1,2.4,1.2,2.6,1.1,'pallet'],[-2.9,-2.3,-2.9,-2.3,.9,'sink'],[-2.9,-2.45,-2.2,-.9,2,'shelf-sw'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.7,'safe']],
   inter:[{id:'computer',label:'STOCK TERMINAL',pos:[1.8,1.15,-2.2],object:'computer',range:1.4},{id:'safe',label:'SAFE',pos:[2.2,.9,-1.9],object:'safe',range:1.3},{id:'shelves',label:'SHELVES',pos:[-2.15,1.3,1.7],object:'shelves',range:1.5}],
   sw:[-.95,'s'],lights:[[0,2.5,0,'#ffe0b0',1.3,10]]});
- T('bar-back',{cat:'commercial',style:'back',name:'Bar back room',note:'Kegs on their lines, crates and bottle shelving, the bar office desk with a CCTV monitor, a safe, a glass washer.',w:3,d:3,ceil:2.8,sockets:'s1 n1 w1 e1',screen:true,
+ T('bar-back',{cat:'various',style:'back',name:'Bar back room',note:'Kegs on their lines, crates and bottle shelving, the bar office desk with a CCTV monitor, a safe, a glass washer.',w:3,d:3,ceil:2.8,sockets:'s1 n1 w1 e1',screen:true,
   objects:[O('computer','OFFICE COMPUTER','the bar office computer'),O('safe','SAFE','the safe'),O('kegs','KEG COOLER','the kegs'),O('screen','CCTV MONITOR','the CCTV monitor (on / off)'),LIGHTS],
   furn:[[-2.9,-1.2,1.5,2.9,1,'kegs'],[1,2.9,2.45,2.9,2,'bottles'],[2.3,2.9,1,2.3,.9,'crates'],[-2.9,-2.3,-2.6,-1,.76,'desk'],[2.35,2.9,-2.9,-2.35,.75,'safe'],[1,2.2,-2.9,-2.35,.9,'washer']],
   inter:[{id:'computer',label:'OFFICE COMPUTER',pos:[-2.2,1.15,-1.8],object:'computer',range:1.4},{id:'safe',label:'SAFE',pos:[2.6,.9,-2.15],object:'safe',range:1.3},{id:'kegs',label:'KEG COOLER',pos:[-1.3,1,2.1],object:'kegs',range:1.5},
    {id:'screen',label:'TURN SCREEN OFF',pos:[-2.6,1.8,-1.8],object:'screen',range:1.8}],sw:[-.95,'s'],lights:[[0,2.5,0,'#ffc890',1.3,10]]});
- T('clinic',{cat:'commercial',style:'clinic',name:'Street clinic',note:'An exam bed under a surgical lamp, a vitals monitor, a medicine cabinet and fridge, a counter with a sink, a med terminal.',w:3,d:3,ceil:2.7,sockets:'s1 n1 w1 e1',screen:true,
+ T('clinic',{cat:'various',style:'clinic',name:'Street clinic',note:'An exam bed under a surgical lamp, a vitals monitor, a medicine cabinet and fridge, a counter with a sink, a med terminal.',w:3,d:3,ceil:2.7,sockets:'s1 n1 w1 e1',screen:true,
   objects:[O('terminal','MED TERMINAL','the med terminal'),O('cabinet','MEDICINE CABINET','the medicine cabinet'),O('fridge','MED FRIDGE','the med fridge'),O('screen','VITALS MONITOR','the vitals monitor (on / off)'),LIGHTS],
   furn:[[-2.6,-.9,1.6,2.4,.7,'bed'],[1.1,2.9,2.45,2.9,2,'cabinet'],[2.4,2.9,1.1,2.1,1.6,'fridge'],[-2.9,-2.3,-2.8,-1,.9,'counter'],[1.1,2.7,-2.9,-2.3,.76,'desk']],
   inter:[{id:'terminal',label:'MED TERMINAL',pos:[1.9,1.15,-2.2],object:'terminal',range:1.4},{id:'cabinet',label:'MEDICINE CABINET',pos:[1.9,1.3,2.2],object:'cabinet',range:1.4},{id:'fridge',label:'MED FRIDGE',pos:[2.2,1.2,1.6],object:'fridge',range:1.3},
    {id:'screen',label:'TURN SCREEN OFF',pos:[-.55,1.55,2.5],object:'screen',range:1.8}],sw:[-.95,'s'],lights:[[0,2.45,0,'#e8f4ff',1.4,10]]});
+ /* VARIOUS (the owner, 20 Nov 2026: "can you make me more and place all of them in Various filter?"): small businesses and back-street rooms, each 6 m x 6 m (8 m x 8 m for the
+    fight pit, 4 m x 4 m for the shrine) with a door in the middle of each wall (the pit: second cell); corners furnished, the middle clear. `say`: what using a thing says
+    (module-integration.js); `opens`: an object that opens a panel (pawn-shop.js); `spots`: standing places for people the owner places later ([x, z, yaw], local metres). */
+ const PI=Math.PI,VAR=(id,o)=>T(id,{cat:'various',w:3,d:3,ceil:2.8,sockets:'s1 n1 w1 e1',sw:[-.95,'s'],...o});
+ VAR('pawn-back',{style:'back',name:'Pawn shop back room',note:'A broker’s back room: a padlocked storage cage of tagged goods, the buying counter behind a steel grille with an item scanner, an appraisal desk, a safe.',
+  objects:[O('counter','SELL ITEMS','the buying counter (sell items)'),O('scanner','ITEM SCANNER','the item scanner'),O('cage','STORAGE CAGE','the storage cage'),O('computer','APPRAISAL TERMINAL','the appraisal terminal'),O('safe','SAFE','the safe'),LIGHTS],
+  furn:[[-2.9,-1,1.2,2.9,2.2,'cage'],[1,2.9,2.3,2.9,1,'counter'],[2.3,2.9,.9,1.9,.9,'screens'],[-2.9,-2.45,-2.4,-.9,2,'shelf'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.72,'safe']],
+  inter:[{id:'counter',label:'SELL ITEMS',pos:[1.4,1.05,2.1],object:'counter',range:1.3},{id:'scanner',label:'ITEM SCANNER',pos:[2.3,1.05,2.1],object:'scanner',range:1},{id:'cage',label:'STORAGE CAGE',pos:[-1.9,1.2,1.05],object:'cage',range:1.4},
+   {id:'computer',label:'APPRAISAL TERMINAL',pos:[1.8,1.15,-2.2],object:'computer',range:1.4},{id:'safe',label:'SAFE',pos:[2.2,.9,-1.9],object:'safe',range:1.3}],opens:{counter:'pawn'},
+  say:{scanner:'ITEM SCANNER: a flatbed reader for serials and ownership chips. The last scan reads “REGISTERED OWNER: —”.',cage:'STORAGE CAGE: padlocked mesh. Tagged goods on the shelves, each with a date and a number.',computer:'APPRAISAL TERMINAL: tickets, loan dates, and a column headed “do not sell back”.'},
+  lights:[[0,2.5,0,'#ffd8a0',1.25,10]]});
+ VAR('noodle-kitchen',{style:'kitchen',ceil:2.7,name:'Noodle kitchen',note:'A cramped kitchen: a wok range under its hood, steam, a prep table, the walk-in cooler door, sacks of rice and flour, the order screen and terminal.',screen:true,
+  objects:[O('stove','WOK RANGE','the wok range'),O('cooler','WALK-IN COOLER','the walk-in cooler'),O('prep','PREP TABLE','the prep table'),O('computer','ORDER TERMINAL','the order terminal'),O('screen','ORDER SCREEN','the order screen (on / off)'),LIGHTS],
+  furn:[[-2.9,-.9,2.25,2.9,.9,'range'],[1.5,2.9,1.1,2.9,2.7,'cooler'],[-2.9,-2.2,-2.6,-1,.9,'prep'],[.9,2.4,-2.9,-2.3,.7,'sacks'],[2.3,2.9,-2,-1,.95,'orders']],
+  inter:[{id:'stove',label:'WOK RANGE',pos:[-1.9,1.1,2.05],object:'stove',range:1.4},{id:'cooler',label:'WALK-IN COOLER',pos:[1.35,1.2,2],object:'cooler',range:1.3},{id:'prep',label:'PREP TABLE',pos:[-2,1,-1.8],object:'prep',range:1.3},
+   {id:'computer',label:'ORDER TERMINAL',pos:[2.1,1.15,-1.2],object:'computer',range:1.2},{id:'screen',label:'TURN SCREEN OFF',pos:[2.6,1.7,-1.75],object:'screen',range:1.6}],
+  say:{stove:'WOK RANGE: three burners, one still ticking warm. Oil on everything.',cooler:'WALK-IN COOLER: a heavy latch, frost round the seal. Inside: noodles, broth in buckets, crates with no labels.',prep:'PREP TABLE: a cleaver, a board worn into a dip, scallions, a tub of dough.',computer:'ORDER TERMINAL: tonight’s tickets, a delivery list, and one order paid three times over.'},
+  lights:[[-1,2.4,1.2,'#ffcf98',1.3,9],[1,2.4,-1.4,'#e8eef0',.9,8]]});
+ VAR('repair-shop',{style:'back',name:'Electronics repair workshop',note:'Two benches with soldering stations, a magnifier lamp and gutted devices, a wall of parts drawers, a scope, shelves of jobs waiting, a terminal and a safe.',screen:true,
+  objects:[O('bench','SOLDERING STATION','the soldering station'),O('drawers','PARTS DRAWERS','the parts drawers'),O('computer','DIAGNOSTIC TERMINAL','the diagnostic terminal'),O('screen','SCOPE','the scope (on / off)'),O('safe','SAFE','the safe'),LIGHTS],
+  furn:[[-2.9,-1,2.2,2.9,.9,'bench-n'],[-2.9,-2.25,-2.6,-.9,.9,'bench-w'],[1,2.9,2.45,2.9,1.8,'drawers'],[2.45,2.9,.9,2.3,2,'shelf'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.72,'safe']],
+  inter:[{id:'bench',label:'SOLDERING STATION',pos:[-1.9,1.05,2],object:'bench',range:1.4},{id:'drawers',label:'PARTS DRAWERS',pos:[1.9,1.2,2.25],object:'drawers',range:1.3},{id:'computer',label:'DIAGNOSTIC TERMINAL',pos:[1.8,1.15,-2.2],object:'computer',range:1.4},
+   {id:'screen',label:'TURN SCREEN OFF',pos:[-2.1,1.1,-1.8],object:'screen',range:1.4},{id:'safe',label:'SAFE',pos:[2.2,.9,-1.9],object:'safe',range:1.3}],
+  say:{bench:'SOLDERING STATION: the iron is still warm. A phone board in the clamp, half its chips lifted.',drawers:'PARTS DRAWERS: hundreds of small drawers, hand-labelled. Resistors, screws, salvaged camera modules.',computer:'DIAGNOSTIC TERMINAL: a queue of repair jobs, and a folder of device unlock tools.'},
+  lights:[[-1.2,2.5,1,'#f0e8d8',1.2,9],[1.4,2.5,-1.4,'#ffd8a8',.8,7]]});
+ VAR('implant-shop',{style:'clinic',ceil:2.7,name:'Cyberware workshop',note:'A backstreet implant bench: a reclining chair under a ceiling tool arm, a scan monitor, a parts fridge, a bench with a prosthetic arm on its stand, a terminal and a safe.',screen:true,
+  objects:[O('chair','IMPLANT CHAIR','the implant chair'),O('bench','PARTS BENCH','the parts bench'),O('fridge','PARTS FRIDGE','the parts fridge'),O('terminal','IMPLANT TERMINAL','the implant terminal'),O('screen','SCAN MONITOR','the scan monitor (on / off)'),O('safe','SAFE','the safe'),LIGHTS],
+  furn:[[-2.4,-1,.9,2.6,1,'chair'],[.9,2.2,2.45,2.9,.9,'bench'],[2.3,2.9,1.1,2.4,1.9,'fridge'],[-2.9,-2.3,-2.6,-1,.9,'counter'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.72,'safe']],
+  inter:[{id:'chair',label:'IMPLANT CHAIR',pos:[-.95,.9,1.2],object:'chair',range:1.3},{id:'bench',label:'PARTS BENCH',pos:[1.55,1.05,2.25],object:'bench',range:1.2},{id:'fridge',label:'PARTS FRIDGE',pos:[2.15,1.2,1.75],object:'fridge',range:1.2},
+   {id:'terminal',label:'IMPLANT TERMINAL',pos:[1.8,1.15,-2.2],object:'terminal',range:1.4},{id:'screen',label:'TURN SCREEN OFF',pos:[-1.6,1.7,2.75],object:'screen',range:1.8},{id:'safe',label:'SAFE',pos:[2.2,.9,-1.9],object:'safe',range:1.3}],
+  say:{chair:'IMPLANT CHAIR: worn padding, wrist straps, a tool arm folded overhead. Clean, for this street.',bench:'PARTS BENCH: a prosthetic forearm on its stand, its cover off. Trays of connectors and tiny screws.',fridge:'PARTS FRIDGE: sealed implant boxes and gel packs, serial numbers scratched off.',terminal:'IMPLANT TERMINAL: fitting records under first names only, and a firmware folder called “unofficial”.'},
+  lights:[[-1.6,2.45,1.6,'#e8f4ff',1.3,9],[1.4,2.45,-1.2,'#dfe8f0',.9,8]]});
+ VAR('laundry-back',{style:'back',name:'Laundromat back room',note:'Industrial washers and stacked dryers, laundry carts, a folding table with stacks, an office desk and the change safe.',
+  objects:[O('washers','WASHERS','the washers'),O('dryers','DRYERS','the dryers'),O('table','FOLDING TABLE','the folding table'),O('computer','OFFICE COMPUTER','the office computer'),O('safe','CHANGE SAFE','the change safe'),LIGHTS],
+  furn:[[-2.9,-.9,2.15,2.9,1.3,'washers'],[.9,2.9,2.15,2.9,1.9,'dryers'],[-2.9,-2.1,-2.6,-1,.9,'table'],[1.9,2.7,-2,-1.1,1,'carts'],[.95,2.2,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.9,-2.35,.72,'safe']],
+  inter:[{id:'washers',label:'WASHERS',pos:[-1.9,1.1,1.95],object:'washers',range:1.4},{id:'dryers',label:'DRYERS',pos:[1.9,1.2,1.95],object:'dryers',range:1.4},{id:'table',label:'FOLDING TABLE',pos:[-1.9,1,-1.8],object:'table',range:1.3},
+   {id:'computer',label:'OFFICE COMPUTER',pos:[1.6,1.15,-2.2],object:'computer',range:1.3},{id:'safe',label:'CHANGE SAFE',pos:[2.6,.9,-2.2],object:'safe',range:1.2}],
+  say:{washers:'WASHERS: one mid-cycle, one with an OUT OF ORDER card taped on, one locked with a bag still inside.',dryers:'DRYERS: warm, lint everywhere. One drum holds something that is not laundry.',table:'FOLDING TABLE: stacks of folded work clothes with tickets pinned on, and a pile of uniforms from a company that is not on any ticket.',computer:'OFFICE COMPUTER: the books, the machine takings, and a spreadsheet of “pickups” with no laundry on it.'},
+  lights:[[0,2.5,0,'#e8ecd8',1.25,10]]});
+ VAR('tea-room',{style:'den',ceil:2.6,name:'Tea house private room',note:'A quiet, worn private room: dark wood, backlit paper sliding screens, tatami mats, two low tables with floor cushions, paper lanterns, a tea station with kettle and cups, an alcove with a bonsai.',
+  objects:[O('tea','TEA STATION','the tea station'),O('table','LOW TABLE','the low table'),O('alcove','ALCOVE','the alcove'),O('safe','STRONGBOX','the strongbox'),LIGHTS],
+  furn:[[-2.3,-1.1,1.1,2.3,.4,'table-n'],[-2.3,-1.1,-2.3,-1.1,.4,'table-s'],[2.35,2.9,.9,2.6,.85,'tea'],[2.35,2.9,-2.6,-1.1,.5,'alcove']],
+  inter:[{id:'tea',label:'TEA STATION',pos:[2.15,1,1.75],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-.9,.6,1.7],object:'table',range:1.3},{id:'alcove',label:'ALCOVE',pos:[2.15,1.2,-1.4],object:'alcove',range:1.2},{id:'safe',label:'STRONGBOX',pos:[2.2,.7,-2.2],object:'safe',range:1.1}],
+  say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},
+  lights:[[-1.7,2.2,1.7,'#ffc890',1.1,8],[1.2,2.2,-1.2,'#ffb878',.8,7]]});
+ VAR('card-room',{style:'den',ceil:2.7,name:'Card room',note:'A gambling den: a felt card table under a low lamp with chips and cards, chairs, a worn sofa, a bar cart, the lookout monitor on a desk, a cash safe.',screen:true,
+  objects:[O('table','CARD TABLE','the card table'),O('cart','BAR CART','the bar cart'),O('screen','LOOKOUT MONITOR','the lookout monitor (on / off)'),O('safe','CASH SAFE','the cash safe'),LIGHTS],
+  furn:[[-.9,.9,-.55,.55,.78,'table'],[-2.9,-2.1,1,2.6,.85,'sofa'],[2.1,2.8,1.8,2.6,.95,'cart'],[1,2.6,-2.9,-2.3,.76,'desk'],[-2.9,-2.35,-2.9,-2.35,.72,'safe']],
+  inter:[{id:'table',label:'CARD TABLE',pos:[0,.95,-.75],object:'table',range:1.3},{id:'cart',label:'BAR CART',pos:[1.9,1,2],object:'cart',range:1.2},{id:'screen',label:'TURN SCREEN OFF',pos:[1.8,1.15,-2.2],object:'screen',range:1.4},{id:'safe',label:'CASH SAFE',pos:[-2.2,.9,-2.2],object:'safe',range:1.2}],
+  say:{table:'CARD TABLE: a hand left face down, chips stacked by colour, an ashtray. Nobody is collecting the pot.',cart:'BAR CART: cheap spirits poured into expensive bottles.',safe:'CASH SAFE: a keypad, a smear of fingerprints on four of the keys. Locked.'},
+  spots:[['dealer',0,.95,PI],['lookout',1.8,-1.7,PI]],lights:[[0,1.6,0,'#ffd090',1.3,8],[-2,2.3,2,'#ff9a60',.6,6]]});
+ VAR('tattoo',{style:'den',ceil:2.7,name:'Tattoo parlour',note:'A tattoo chair under an articulated lamp, the ink station with its rows of bottles, flash boards of original designs, a waiting bench, the booking terminal and a safe.',
+  objects:[O('chair','TATTOO CHAIR','the tattoo chair'),O('ink','INK STATION','the ink station'),O('flash','FLASH BOARDS','the flash boards'),O('computer','BOOKING TERMINAL','the booking terminal'),O('safe','SAFE','the safe'),LIGHTS],
+  furn:[[-2.4,-1,1.1,2.5,.9,'chair'],[1,2.4,2.4,2.9,.95,'ink'],[2.4,2.9,.9,2.1,.45,'bench'],[-2.9,-2.3,-2.6,-1,.9,'counter'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.72,'safe']],
+  inter:[{id:'chair',label:'TATTOO CHAIR',pos:[-.95,.9,1.6],object:'chair',range:1.3},{id:'ink',label:'INK STATION',pos:[1.7,1.05,2.2],object:'ink',range:1.2},{id:'flash',label:'FLASH BOARDS',pos:[2.2,1.6,1.5],object:'flash',range:1.4},
+   {id:'computer',label:'BOOKING TERMINAL',pos:[1.8,1.15,-2.2],object:'computer',range:1.4},{id:'safe',label:'SAFE',pos:[2.2,.9,-1.9],object:'safe',range:1.3}],
+  say:{chair:'TATTOO CHAIR: fresh film on the padding, the lamp still angled where the last client lay.',ink:'INK STATION: rows of bottles, a machine on its cradle, gloves, a roll of film.',flash:'FLASH BOARDS: sheets of designs, pinned and re-pinned: stars, waves, flowers, knives, a lot of eyes.',computer:'BOOKING TERMINAL: appointments under nicknames, deposits paid in cash, one booking marked “cover-up, urgent”.'},
+  lights:[[-1.6,2.45,1.7,'#fff2dc',1.2,8],[1.4,2.45,-1.3,'#ffc890',.8,7]]});
+ VAR('radio-booth',{style:'back',ceil:2.6,name:'Pirate radio booth',note:'Egg-crate foam on the walls, a mixing desk with a microphone on its boom, the ON AIR light, transmitter racks, a worn couch, record shelves and the playout computer.',screen:true,
+  objects:[O('desk','MIXING DESK','the mixing desk'),O('mic','MICROPHONE','the microphone'),O('racks','TRANSMITTER RACK','the transmitter rack'),O('computer','PLAYOUT COMPUTER','the playout computer'),O('screen','BROADCAST MONITOR','the broadcast monitor (on / off)'),LIGHTS],
+  furn:[[-2.7,-.9,2,2.9,.8,'desk'],[1.7,2.9,2.1,2.9,1.9,'racks'],[-2.9,-2.2,-2.6,-1,.8,'couch'],[2.45,2.9,-2.6,-1,1.6,'records'],[.9,1.9,-2.9,-2.4,.76,'table']],
+  inter:[{id:'desk',label:'MIXING DESK',pos:[-1.9,1,1.8],object:'desk',range:1.3},{id:'mic',label:'MICROPHONE',pos:[-1.05,1.35,1.85],object:'mic',range:1},{id:'racks',label:'TRANSMITTER RACK',pos:[2.2,1.3,1.9],object:'racks',range:1.3},
+   {id:'computer',label:'PLAYOUT COMPUTER',pos:[1.4,1.15,-2.2],object:'computer',range:1.3},{id:'screen',label:'TURN SCREEN OFF',pos:[-2.6,1.7,1.1],object:'screen',range:1.4}],
+  say:{desk:'MIXING DESK: faders taped with handwritten labels, a cue sheet with the times crossed out.',mic:'MICROPHONE: the pop filter is split, the boom arm held with tape. The ON AIR light is off.',racks:'TRANSMITTER RACK: a homemade exciter, an amplifier with a fan that rattles, coax going up through the ceiling.',computer:'PLAYOUT COMPUTER: a playlist, a folder of station idents, and a list of frequencies that keep moving.'},
+  lights:[[-1.6,2.3,1.6,'#ffb080',1,8],[1.5,2.3,-1.5,'#c8d0ff',.7,7]]});
+ VAR('scooter-bay',{style:'garage',ceil:3,name:'Scooter garage',note:'A small bay: a scooter up on a scissor lift, a red tool chest under a pegboard, oil drums on a spill tray, a workbench with a vice and a diagnostic laptop, a stack of tyres.',
+  objects:[O('lift','SCOOTER LIFT','the scooter on its lift'),O('chest','TOOL CHEST','the tool chest'),O('drums','OIL DRUMS','the oil drums'),O('computer','DIAGNOSTIC LAPTOP','the diagnostic laptop'),LIGHTS],
+  furn:[[-2.6,-1,.9,2.7,1.2,'lift'],[2.2,2.9,1.1,2.3,1.1,'chest'],[1.5,2.8,-2.8,-1.5,.95,'drums'],[-2.9,-2.25,-2.6,-1,.9,'bench'],[-2.2,-1.4,-2.9,-2.2,.8,'tyres']],
+  inter:[{id:'lift',label:'SCOOTER LIFT',pos:[-.85,1,1.8],object:'lift',range:1.3},{id:'chest',label:'TOOL CHEST',pos:[2,1.1,1.7],object:'chest',range:1.2},{id:'drums',label:'OIL DRUMS',pos:[1.3,1,-2],object:'drums',range:1.3},{id:'computer',label:'DIAGNOSTIC LAPTOP',pos:[-2.05,1.15,-1.8],object:'computer',range:1.3}],
+  say:{lift:'SCOOTER LIFT: a delivery scooter up on the lift, side panel off, its ID plate unscrewed.',chest:'TOOL CHEST: sockets in the wrong drawers, a torque wrench, a tin of mismatched bolts.',drums:'OIL DRUMS: two full, one empty, one that sloshes too lightly for its weight.',computer:'DIAGNOSTIC LAPTOP: a scooter’s fault log, and a tool for rewriting its owner record.'},
+  lights:[[-1.5,2.7,1.5,'#e8eef0',1.3,10],[1.5,2.7,-1.5,'#ffd8a8',1,9]]});
+ VAR('shrine-room',{style:'den',w:2,d:2,ceil:2.5,sockets:'s0 w0 e1',sw:[.3,'s'],name:'Shrine room',note:'A small, quiet shrine behind a shop: a low altar with offerings, candles, incense smoke, paper charm strips, a worn floor mat, warm low light.',
+  objects:[O('altar','ALTAR','the altar'),O('incense','INCENSE','the incense burner'),O('candles','CANDLES','the candle stand'),O('charms','CHARM STRIPS','the paper charm strips'),LIGHTS],
+  furn:[[-1.5,.5,1.4,1.9,.75,'altar'],[-1.9,-1.6,.1,1.3,1.6,'charms'],[1.3,1.9,-1.9,-1.2,1,'candles']],
+  inter:[{id:'altar',label:'ALTAR',pos:[-.8,.9,1.15],object:'altar',range:1.2},{id:'incense',label:'INCENSE',pos:[.1,.9,1.2],object:'incense',range:1},{id:'candles',label:'CANDLES',pos:[1.1,1,-1.5],object:'candles',range:1.2},{id:'charms',label:'CHARM STRIPS',pos:[-1.4,1.3,.7],object:'charms',range:1.2}],
+  say:{altar:'ALTAR: fruit, a bowl of rice, a cup of tea gone cold, coins, a folded note nobody should read.',incense:'INCENSE: three sticks burning down in a bowl of ash. The smoke hangs under the ceiling.',candles:'CANDLES: a rack of small candles, most lit, wax over everything.',charms:'CHARM STRIPS: paper strips, brush marks faded past reading, tied with red thread.'},
+  lights:[[-.5,2,.8,'#ffb060',.9,6]]});
+ /* THE UNDERGROUND (the owner, 20 Nov 2026: "eventually I want underground locations", "underground will have a security vestibule, but guarded by gangs, not guards", "the
+    underground tunnels will be linked together"): a fight pit below the street, a gang checkpoint, a stairwell between floors, and service-tunnel pieces. How a player gets
+    there (which street door) is the owner's choice; linking tunnels of different locations into one network is a later feature (docs/development/AI_HANDOFF.md). */
+ VAR('fight-pit',{underground:true,style:'pit',w:4,d:4,ceil:3.4,sockets:'s1 n1 w1 e1',sw:[-2.2,'s'],name:'Underground fight pit',note:'UNDERGROUND. A room in the tunnels (join it to a tunnel): a chain-link ring on a stained mat under hanging work lights, standing room round it, concrete steps along one wall, the betting counter behind a grille.',
+  objects:[O('ring','RING','the ring'),O('betting','BETTING COUNTER','the betting counter'),O('board','ODDS BOARD','the odds board'),LIGHTS],
+  furn:[[-1.95,-1.85,-1.95,1.95,2.1,'fence-w'],[1.85,1.95,-1.95,1.95,2.1,'fence-e'],[-1.95,1.95,1.85,1.95,2.1,'fence-n'],[-1.95,-.6,-1.95,-1.85,2.1,'fence-s1'],[.6,1.95,-1.95,-1.85,2.1,'fence-s2'],[-3.9,-3.1,.2,3.6,.9,'steps'],[2.9,3.9,1.4,3.9,2.2,'betting'],[2.5,3.9,-3.9,-2.9,.9,'barrels']],
+  inter:[{id:'ring',label:'RING',pos:[0,1.1,-2.3],object:'ring',range:1.4},{id:'betting',label:'BETTING COUNTER',pos:[2.6,1.1,2.4],object:'betting',range:1.3},{id:'board',label:'ODDS BOARD',pos:[2.6,1.9,1.4],object:'board',range:1.6}],
+  say:{ring:'RING: chain-link on scaffold poles, the mat patched with tape, dark stains scrubbed half away.',betting:'BETTING COUNTER: a grille, a slot for chips and cash, a ledger chained to the counter. Closed between fights.',board:'ODDS BOARD: chalked names wiped out and rewritten. Tonight’s card is blank.'},
+  spots:[['host',0,-2.4,PI],['corner-a',-2.6,0,PI/2],['corner-b',2.6,0,-PI/2]],lights:[[0,2.9,0,'#ffe6c0',1.6,12],[2.8,2.6,2.6,'#ffb070',.8,6]]});
+ T('gang-vestibule',{underground:true,cat:'hallway',style:'gang',w:2,d:3,ceil:2.6,sockets:'s0 n0 e2',sw:[-1.95,'w'],name:'Gang checkpoint (vestibule)',note:'UNDERGROUND. The first room past the steel door at the foot of an alley stairwell, run by a gang: heavy steel doors with eye slots, a chain-link pass-through, a battered table with a cash box and a scanner wand, stools, a CCTV monitor on a crate, graffiti and bare bulbs. Room for two or three doormen.',screen:true,
+  objects:[O('table','CHECKPOINT TABLE','the checkpoint table'),O('cashbox','CASH BOX','the cash box'),O('wand','SCANNER WAND','the scanner wand'),O('screen','CCTV MONITOR','the CCTV monitor (on / off)'),LIGHTS],
+  furn:[[-.06,.06,-1.6,1.6,2.2,'fence'],[.25,1.25,-.6,.6,.75,'table'],[1.2,1.9,-2.9,-2.2,.9,'crate']],
+  inter:[{id:'table',label:'CHECKPOINT TABLE',pos:[-.35,1,0],object:'table',range:1.2},{id:'cashbox',label:'CASH BOX',pos:[.75,.9,-.85],object:'cashbox',range:1},{id:'wand',label:'SCANNER WAND',pos:[.6,.9,.85],object:'wand',range:1},{id:'screen',label:'TURN SCREEN OFF',pos:[1.55,1.2,-1.95],object:'screen',range:1.4}],
+  say:{table:'CHECKPOINT TABLE: a pass-through in the fence, a scarred table, a list of names with half of them crossed out.',cashbox:'CASH BOX: a dented tin with a padlock. The door fee goes in here.',wand:'SCANNER WAND: a cheap metal-detector wand, the grip wrapped in tape.'},
+  spots:[['door-1',-1.3,1.2,0],['door-2',1.55,0,-PI/2],['door-3',-1,-1.3,0]],lights:[[-.9,2.3,0,'#ffcf90',1.1,8]]});
+ T('stairwell',{underground:true,cat:'hallway',style:'tunnel',w:2,d:3,ceil:3,sockets:'s0 w0 e0',cab:true,stairs:true,arrive:[0,-1.7],name:'Stairwell (between floors)',note:'UNDERGROUND. Concrete stairs up and down. Put one on each floor (same place) and they link up, like an elevator: the stairs take the player between floors. Doors on the south half.',objects:[LIGHTS],
+  furn:[[-1.9,-.25,-.5,2.9,1.1,'flight-up'],[.25,1.9,-.5,2.9,1.1,'flight-down'],[-.25,.25,-.5,2.9,1.1,'divider']],sw:[-1.4,'w'],lights:[[0,2.7,-1.4,'#ffd8a0',1.1,8]]});
+ /* TUNNEL TUBES (the owner: "just make them repeatable so the tunnel [is] placed in the correct format"): every tube piece has the same cross-section (2 m wide, 2.6 m
+    high, floor at 0, the drainage channel on the centre line, pipes at the same heights on both walls, one cable tray on the ceiling's centre line) and is symmetric left
+    to right, so pieces join end to end in any number and either way round, and turn at the junction. Two tube pieces joined end to end have no wall and no door between
+    them (layout: `seam`): the tunnel runs straight through. Lamps hang every 2 m, at the middle of each cell. */
+ const TUBE=(id,o)=>T(id,{cat:'hallway',style:'tunnel',underground:true,tube:true,w:1,ceil:2.6,...o});
+ TUBE('tunnel-short',{d:1,sockets:'s0 n0',name:'Service tunnel, 2 m',note:'UNDERGROUND. A 2 m piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[0,'w'],lights:[[0,2,0,'#ffd8a0',1.1,7]]});
+ TUBE('tunnel-mid',{d:2,sockets:'s0 n0',name:'Service tunnel, 4 m',note:'UNDERGROUND. A 4 m piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[-1,'w'],lights:[[0,2,0,'#ffd8a0',1.1,8]]});
+ TUBE('tunnel',{d:3,sockets:'s0 n0',name:'Service tunnel, 6 m',note:'UNDERGROUND. An old service tunnel, 6 m: wet concrete, pipe runs, a cable tray, caged lamps, a drainage channel, puddles, graffiti. Joins end to end with any tunnel piece, seamlessly.',
+  objects:[O('panel','JUNCTION BOX','the junction box'),LIGHTS],furn:[[-.9,-.72,.4,1.3,1.6,'junction']],inter:[{id:'panel',label:'JUNCTION BOX',pos:[-.55,1.3,.85],object:'panel',range:1.2}],sw:[-2.2,'w'],lights:[[0,2,0,'#ffd8a0',1.2,9]]});
+ TUBE('tunnel-junction',{d:1,sockets:'s0 n0 w0 e0',name:'Service tunnel junction (corner / T / cross)',note:'UNDERGROUND. A 2 m tunnel junction with four openings: join two for a corner, three for a T, four for a crossing (unused ones are plain wall). Seamless with the tunnel pieces.',
+  objects:[],lights:[[0,2,0,'#ffcf90',1,6]]});
+ /* The UNDERGROUND TEA ROOM (the owner: "an underground tea room would be cool too"; a front door and a back door on opposite walls; "the back door must NOT be visible
+    from the seating area"): the back door opens into a service nook behind a full-height partition; the nook reaches the room round the end of the partition and behind a
+    folding screen (an L-shaped passage), so no seat looks at it. */
+ T('tea-under',{cat:'various',style:'tunnel',underground:true,ownLamps:true,w:3,d:3,ceil:3.2,sockets:'s1 n1',sw:[-.95,'s'],name:'Underground tea room',note:'UNDERGROUND. A tea room in a converted tunnel chamber: a raw concrete vault and pipes over a warm dark-wood interior, backlit paper screens, a tatami dais with low tables and cushions, a tea station, lanterns. Front door (south) and back door (north) join tunnel pieces; the back door is hidden in a service nook behind a partition and a folding screen.',
+  objects:[O('tea','TEA STATION','the tea station'),O('table','LOW TABLE','the low table'),O('safe','STRONGBOX','the strongbox'),LIGHTS],
+  furn:[[-2.9,-1.1,-2.5,1.3,.15,'dais'],[-2.9,1.3,1.5,1.6,2.3,'partition'],[-.8,1,1,1.5,.85,'tea'],[2,2.9,.85,.95,1.7,'screen'],[1.2,2.2,-2.2,-1,.4,'table-e'],[2.4,2.9,-2.9,-2.4,.9,'bonsai'],[-2.9,-2.4,1.7,2.9,1.8,'shelves'],[1.8,2.9,2.4,2.9,.9,'sink']],
+  inter:[{id:'tea',label:'TEA STATION',pos:[.1,1,.75],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-1,.6,-.3],object:'table',range:1.3},{id:'safe',label:'STRONGBOX',pos:[-2.2,1,2.3],object:'safe',range:1.2}],
+  say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},
+  plan:{seats:[[-2,-1.5],[-2,.4],[1.7,-1.6]],passage:[[0,2.3],[1.7,2],[1.6,1.2],[1.4,.4]]},
+  spots:[['host',.1,.55,PI],['front-door',1,-2.3,0],['back-door',-1,2.3,PI/2]],lights:[[-1.6,2.4,-.6,'#ffc890',1.5,9],[1.4,2.4,-.2,'#ffb878',1.2,8]]});
+ /* THE UNDERGROUND, EAST ASIAN SET (the owner, 20 Nov 2026: "lantern tunnel. mahjong. a small sleeping room with bed divided by curtains. underground food stall."):
+    converted tunnel chambers where raw concrete and pipes show round warm wood, lanterns and cloth. The lantern tunnel pieces are tubes like the plain ones (the same
+    cross-section, seamless with them), only dressed. Generic designs: no real brands, no readable writing, no religious symbols. */
+ TUBE('tunnel-lantern',{d:3,dress:'lantern',sockets:'s0 n0',name:'Lantern tunnel, 6 m',note:'UNDERGROUND. A service tunnel dressed with strings of paper lanterns, hanging cloth banners and small wall shrines. Same cross-section as the plain tunnel: mixes freely with it in a run.',
+  objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});
+ TUBE('tunnel-lantern-junction',{d:1,dress:'lantern',sockets:'s0 n0 w0 e0',name:'Lantern tunnel junction (corner / T / cross)',note:'UNDERGROUND. The tunnel junction dressed with lanterns and a banner. Seamless with every tunnel piece.',objects:[],lights:[[0,2,0,'#ffb070',1,6]]});
+ const UG=(id,o)=>T(id,{cat:'various',style:'tunnel',underground:true,ownLamps:true,w:3,d:3,sockets:'s1 n1',sw:[-.95,'s'],...o});
+ UG('mahjong',{ceil:3,name:'Mahjong parlour',note:'UNDERGROUND. A low-lit parlour in a tunnel chamber: three square game tables with tiles and stools, a cashier nook, smoke haze, a cloth curtain inside the front door. Front and back doors join tunnel pieces.',
+  objects:[O('table','GAME TABLE','a game table'),O('cashier','CASHIER','the cashier nook'),O('safe','CASH DRAWER','the cash drawer'),LIGHTS],
+  furn:[[-2.5,-1.3,-2.4,-1.2,.76,'table-sw'],[-2.5,-1.3,1,2.2,.76,'table-nw'],[1.2,2.4,-.6,.6,.76,'table-e'],[1.6,2.9,1.6,2.9,1.05,'cashier'],[2.2,2.9,-2.9,-2.2,1.2,'shelf']],
+  inter:[{id:'table',label:'GAME TABLE',pos:[-1,.9,1.6],object:'table',range:1.3},{id:'table2',label:'GAME TABLE',pos:[.9,.9,0],object:'table',range:1.2},{id:'cashier',label:'CASHIER',pos:[1.4,1.1,2.2],object:'cashier',range:1.2},{id:'safe',label:'CASH DRAWER',pos:[2.2,1.1,1.4],object:'safe',range:1}],
+  say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},
+  spots:[['cashier',2.25,2.3,-PI*3/4],['dealer',-1.9,-.9,PI],['door',.9,-2.3,0]],lights:[[-1.9,2.2,-.6,'#ffc890',1.2,8],[1.4,2.2,.6,'#ffb878',1,7]]});
+ UG('flophouse',{ceil:2.8,name:'Underground sleeping room',note:'UNDERGROUND. A cheap flophouse in a tunnel chamber: four cots, each in its own nook behind cloth curtains on rails, worn blankets, a locker and a dim bulb per nook, pipes overhead. Front and back doors join tunnel pieces.',
+  objects:[O('cot','COT','a cot'),O('locker','LOCKER','a locker'),O('curtain','CURTAIN','a curtain'),LIGHTS],
+  furn:[[-2.9,-1.05,-2.6,-.35,.6,'nook-sw'],[-2.9,-1.05,.35,2.6,.6,'nook-nw'],[1.05,2.9,-2.6,-.35,.6,'nook-se'],[1.05,2.9,.35,2.6,.6,'nook-ne']],
+  inter:[{id:'cot',label:'COT',pos:[-.85,.8,1.4],object:'cot',range:1.2},{id:'locker',label:'LOCKER',pos:[.85,1,-1.2],object:'locker',range:1.2},{id:'curtain',label:'CURTAIN',pos:[.85,1.3,1.6],object:'curtain',range:1.1}],
+  say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},
+  spots:[['keeper',0,-2.2,0]],lights:[[0,2.4,0,'#ffc890',.9,8]]});
+ UG('food-stall',{w:2,d:2,ceil:2.8,sockets:'s0 n0',sw:[-1.6,'s'],name:'Underground food stall',note:'UNDERGROUND. A small food counter in a tunnel nook: a steaming wok and stock pot, a menu board of pictures (no writing), three stools at the counter, a cooler, hanging lanterns, a cook’s spot behind the counter. The aisle runs between its two doors.',
+  objects:[O('counter','FOOD COUNTER','the food counter'),O('stove','WOK STATION','the wok station'),O('cooler','COOLER','the cooler'),O('menu','MENU BOARD','the menu board'),LIGHTS],
+  furn:[[.1,.7,-1.5,1.5,1,'counter'],[1.3,1.9,-1.4,.6,.9,'stove'],[1.3,1.9,1,1.9,1.8,'cooler']],
+  inter:[{id:'counter',label:'FOOD COUNTER',pos:[-.25,1.05,.2],object:'counter',range:1.2},{id:'stove',label:'WOK STATION',pos:[.85,1.1,-.8],object:'stove',range:1.4},{id:'cooler',label:'COOLER',pos:[.9,1.2,1.45],object:'cooler',range:1.3},{id:'menu',label:'MENU BOARD',pos:[1.7,1.85,-.4],object:'menu',range:2.2}],
+  say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},
+  spots:[['cook',1,0,-PI/2]],lights:[[.6,2.3,0,'#ffc890',1.2,7]]});
+ T('tunnel-chamber',{underground:true,ownLamps:true,cat:'hallway',style:'tunnel',w:2,d:2,ceil:3,sockets:'s0 s1 n0 n1 w0 w1 e0 e1',name:'Tunnel chamber',note:'UNDERGROUND. A wider 4 m x 4 m tunnel chamber: a sump with a pump, a valve wheel, pipe runs, cable trays, two openings on each side.',
+  objects:[O('valve','VALVE','the valve'),O('pump','SUMP PUMP','the sump pump'),LIGHTS],furn:[[-.35,.35,-.35,.35,.9,'pump']],inter:[{id:'pump',label:'SUMP PUMP',pos:[0,1,-.6],object:'pump',range:1.2},{id:'valve',label:'VALVE',pos:[1.7,1.2,1.7],object:'valve',range:1.2}],
+  say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});
  // OTHER: a storage room (4 m x 4 m) and a maintenance corridor (2 m x 6 m).
  T('storage',{cat:'other',style:'back',name:'Storage room',note:'Shelving with boxes, lockers, a breaker panel.',w:2,d:2,ceil:2.6,sockets:'s0 n1 w0 e1',
   objects:[O('lockers','LOCKERS','the lockers'),O('panel','BREAKER PANEL','the breaker panel'),LIGHTS],furn:[[-1.9,-.2,1.45,1.9,2,'shelf-n'],[-1.9,-1.45,.1,1.45,2,'shelf-w'],[1.45,1.9,-1.9,-.1,1.9,'lockers'],[.1,1.3,-1.9,-1.45,.8,'boxes']],
@@ -136,8 +279,8 @@
    for(const r of [[l.a,a],[l.b,b]]){const B=out.byId[r[1].mod];if(B.p){const w=world[r[0]],n=NORMAL[w.edge],q=[w.x+n[0]*.5,w.z+n[1]*.5];if(out.placed.some(o=>o!==B.p&&o.floor===B.p.floor&&inFoot(o,q[0],q[1])))P.push('door '+r[0]+' leads elsewhere but another module stands in front of it.');}}
    out.sockUse[l.a]=l.b;out.sockUse[l.b]=l.a;out.links.push({a:l.a,b:l.b});}
   // the elevator shaft: one cab per floor; every cab reaches every other
-  const floors={};for(const c of out.cabs){if(floors[c.floor])P.push('two elevator cabs on floor '+c.floor+': one cab per floor (they are the same lift).');else floors[c.floor]=c;}
-  if(out.cabs.length===1)P.push('the elevator '+nameOf(out.cabs[0].id)+' needs a second cab on another floor (same place), so it has somewhere to go.');
+  const floors={};for(const c of out.cabs){if(floors[c.floor])P.push('two elevator cabs (or stairwells) on floor '+c.floor+': one per floor (they are the same lift or stair).');else floors[c.floor]=c;}
+  if(out.cabs.length===1)P.push((out.cabs[0].t&&out.cabs[0].t.stairs?'the stairwell ':'the elevator ')+nameOf(out.cabs[0].id)+' needs a second '+(out.cabs[0].t&&out.cabs[0].t.stairs?'stairwell':'cab')+' on another floor (same place), so it has somewhere to go.');
   for(const c of out.cabs)if(!out.sockUse[c.id+'.s0'])P.push('the elevator cab '+nameOf(c.id)+' has to open onto a lobby, a hallway or a room (its door meets nothing).');
   // the entry (the street door leads there)
   const e=parseRef(loc&&loc.entry);
@@ -195,14 +338,14 @@
   if(loc.links!=null&&(!Array.isArray(loc.links)||loc.links.length>LIMIT.links||loc.links.some(l=>!keysOk(l,['a','b']))))out.push('connections are a list of door pairs (at most '+LIMIT.links+').');
   if(loc.locks!=null&&(!Array.isArray(loc.locks)||loc.locks.length>LIMIT.locks||loc.locks.some(r=>typeof r!=='string')))out.push('locked doors are a list (at most '+LIMIT.locks+').');
   if(out.length)return out;
-  const an=analyse(loc);if(!shapeOnly)out.push(...an.problems);else out.push(...an.problems.filter(p=>!/entrance|cannot be reached|needs a second cab|meets nothing/.test(p)));
+  const an=analyse(loc);if(!shapeOnly)out.push(...an.problems);else out.push(...an.problems.filter(p=>!/entrance|cannot be reached|needs a second (cab|stairwell)|meets nothing/.test(p)));
   for(const r of loc.locks||[]){const d=doorOf(an,r);if(!d)out.push('locked door '+r+': choose a door between two modules (or a connection).');else if(d.kind==='entry')out.push('locked door '+r+': the street door is locked by its own access point (a hack step on the street door).');}
   // the street door: an older housing hallway or apartment as the entrance keeps its own kind of door (a container behind a container door)
   if(!shapeOnly&&doorFamily){const e=parseRef(loc.entry),B=e&&an.byId[e.mod];if(B&&B.t.family&&(B.t.family==='container')!==(doorFamily==='container'))out.push(B.t.family==='container'?'a container hallway or apartment goes behind a container door in The Outskirts.':'a city hallway or apartment goes behind a city street door (any part of town, an office or shop entrance too), not a container in The Outskirts.');}   // any city style behind any city door (the owner, 20 Nov 2026); The Outskirts: the containers only
   return out;}
  const ITEM_TYPES=['loot','mission-item','note','other'];
  // A door reference a hack may name: any door of the location (either side), the entrance included.
- function hackable(loc,ref){if(!isLocation(loc))return false;const an=analyse(loc);return !!doorOf(an,ref);}
+ function hackable(loc,ref){if(!isLocation(loc))return false;const an=analyse(loc),d=doorOf(an,ref);return !!d&&!seamless(an,d);}   // a seam between two tunnel tubes is not a door
  // The content export (mission-content.js treeStrip): only the known fields.
  function strip(loc){const x={id:loc.id,door:loc.door||''};if(loc.from&&loc.from!=='start')x.from=loc.from;if(typeof loc.entry==='string')x.entry=loc.entry;
   x.modules=(loc.modules||[]).slice(0,LIMIT.modules).filter(m=>m&&TYPES[m.type]&&MOD_ID.test(m.id||'')).map(m=>{const y={id:m.id,type:m.type};const t=TYPES[m.type];if(!t.portal){y.x=m.x|0;y.z=m.z|0;if(ROT(m.rot))y.rot=ROT(m.rot);if(m.floor)y.floor=m.floor|0;}
@@ -225,7 +368,7 @@
  // The free doors of the location (for "attach to" and the entrance), per module.
  function freeSockets(loc){const an=analyse(loc),out=[];for(const [id,B] of Object.entries(an.byId))for(const s of B.t.sockets){const ref=id+'.'+s.id;if(an.sockUse[ref]||ref===loc.entry)continue;
    if(B.p){const w=an.world[ref],n=NORMAL[w.edge],q=[w.x+n[0]*.5,w.z+n[1]*.5];if(an.placed.some(o=>o!==B.p&&o.floor===B.p.floor&&inFoot(o,q[0],q[1])))continue;}out.push({ref,mod:id,sock:s.id,edge:B.p?an.world[ref].edge:null,portal:!B.p});}return out;}
- const newId=(loc,type)=>{const base=({'office-floor':'office','server-room':'servers','elevator':'lift','elevator-lobby':'lobby','hall-office':'hall','hall-commercial':'hall','shop-back':'shop','bar-back':'bar','clinic':'clinic','storage':'store','maint-corridor':'maint'}[type])||(TYPES[type]&&TYPES[type].legacy?(TYPES[type].legacy.part==='hall'?'hall':'flat'):'room');
+ const newId=(loc,type)=>{const base=({'office-floor':'office','server-room':'servers','elevator':'lift','elevator-lobby':'lobby','hall-office':'hall','hall-commercial':'hall','shop-back':'shop','bar-back':'bar','clinic':'clinic','storage':'store','maint-corridor':'maint','pawn-back':'pawn','noodle-kitchen':'kitchen','repair-shop':'repair','implant-shop':'cyber','laundry-back':'laundry','tea-room':'tea','card-room':'cards','tattoo':'tattoo','radio-booth':'radio','scooter-bay':'garage','shrine-room':'shrine','fight-pit':'pit','gang-vestibule':'gate','stairwell':'stairs','tunnel':'tunnel','tunnel-short':'tunnel','tunnel-mid':'tunnel','tunnel-junction':'junction','tunnel-chamber':'chamber','tea-under':'tearoom','tunnel-lantern':'lanterns','tunnel-lantern-junction':'junction','mahjong':'mahjong','flophouse':'sleep','food-stall':'stall'}[type])||(TYPES[type]&&TYPES[type].legacy?(TYPES[type].legacy.part==='hall'?'hall':'flat'):'room');
   const ids=new Set((loc.modules||[]).map(m=>m.id));if(!ids.has(base))return base;let n=2;while(ids.has(base+n))n++;return base+n;};
  /* Add a module to a location (the editor's "Add a location > category > module"): attached to the free door `to` when given (or the first free door that fits),
     a second elevator cab on another floor, or a portal module connected to a free portal door. Returns {ok, loc, id, why}. */
@@ -251,6 +394,22 @@
   {id:'shop',name:'Shop back room',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'shop',type:'shop-back',x:4,z:4}]}},
   {id:'bar',name:'Bar back room',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'bar',type:'bar-back',x:4,z:4}]}},
   {id:'clinic',name:'Street clinic',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'clinic',type:'clinic',x:4,z:4}]}},
+  {id:'pawn',name:'Pawn shop back room (sell items)',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'pawn',type:'pawn-back',x:4,z:4}]}},
+  {id:'kitchen',name:'Noodle kitchen',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'kitchen',type:'noodle-kitchen',x:4,z:4}]}},
+  {id:'repair',name:'Electronics repair workshop',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'repair',type:'repair-shop',x:4,z:4}]}},
+  {id:'cyber',name:'Cyberware workshop',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'cyber',type:'implant-shop',x:4,z:4}]}},
+  {id:'laundry',name:'Laundromat back room',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'laundry',type:'laundry-back',x:4,z:4}]}},
+  {id:'tea',name:'Tea house private room',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'tea',type:'tea-room',x:4,z:4}]}},
+  {id:'cards',name:'Card room',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'cards',type:'card-room',x:4,z:4}]}},
+  {id:'tattoo',name:'Tattoo parlour',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'tattoo',type:'tattoo',x:4,z:4}]}},
+  {id:'radio',name:'Pirate radio booth',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'radio',type:'radio-booth',x:4,z:4}]}},
+  {id:'garage',name:'Scooter garage',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'garage',type:'scooter-bay',x:4,z:4}]}},
+  {id:'shrine',name:'Shrine room behind a shop',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:0},{id:'shrine',type:'shrine-room',x:5,z:4}]}},
+  {id:'fight-pit',name:'Underground: fight pit off a tunnel (preview)',loc:{entry:'tunnel.n0',modules:[{id:'tunnel',type:'tunnel',x:5,z:4,floor:-1},{id:'pit',type:'fight-pit',x:4,z:0,floor:-1}]}},
+  {id:'tea-under',name:'Underground: tunnel run with a tea room off a T-junction (preview)',loc:{entry:'run.s0',modules:[{id:'run',type:'tunnel',x:10,z:10,floor:-1},{id:'junction',type:'tunnel-junction',x:10,z:13,floor:-1},{id:'run2',type:'tunnel-mid',x:10,z:14,floor:-1},{id:'spur',type:'tunnel-short',x:11,z:13,rot:1,floor:-1},{id:'tearoom',type:'tea-under',x:12,z:12,rot:1,floor:-1}]}},
+  {id:'east-asian',name:'Underground: lantern tunnel, mahjong parlour, food stall, sleeping room (preview)',loc:{entry:'lanterns.s0',modules:[{id:'lanterns',type:'tunnel-lantern',x:10,z:10,floor:-1},{id:'junction',type:'tunnel-lantern-junction',x:10,z:13,floor:-1},{id:'north',type:'tunnel-mid',x:10,z:14,floor:-1},{id:'mahjong',type:'mahjong',x:9,z:16,floor:-1},{id:'east',type:'tunnel-short',x:11,z:13,rot:1,floor:-1},{id:'stall',type:'food-stall',x:12,z:12,rot:1,floor:-1},{id:'west',type:'tunnel-mid',x:8,z:13,rot:1,floor:-1},{id:'sleep',type:'flophouse',x:5,z:12,rot:1,floor:-1}]}},
+  {id:'tunnel-run',name:'Underground: a long tunnel run with a T and a corner (preview)',loc:{entry:'t1.s0',modules:[{id:'t1',type:'tunnel',x:10,z:10,floor:-1},{id:'t2',type:'tunnel-short',x:10,z:13,floor:-1},{id:'t3',type:'tunnel-lantern',x:10,z:14,floor:-1},{id:'tee',type:'tunnel-junction',x:10,z:17,floor:-1},{id:'branch',type:'tunnel-short',x:9,z:17,rot:1,floor:-1},{id:'t4',type:'tunnel',x:10,z:18,floor:-1},{id:'corner',type:'tunnel-lantern-junction',x:10,z:21,floor:-1},{id:'t5',type:'tunnel-mid',x:11,z:21,rot:1,floor:-1}]}},
+  {id:'underground',name:'Underground: stairs down, gang checkpoint, tunnel, fight pit (preview)',loc:{entry:'hall.s0',modules:[{id:'hall',type:'hall-commercial',x:5,z:6},{id:'stairs',type:'stairwell',x:5,z:10},{id:'stairs2',type:'stairwell',x:5,z:10,floor:-1},{id:'gate',type:'gang-vestibule',x:5,z:7,floor:-1},{id:'tunnel',type:'tunnel',x:5,z:4,floor:-1},{id:'pit',type:'fight-pit',x:4,z:0,floor:-1}]}},
   {id:'storage',name:'Storage behind a maintenance corridor',loc:{entry:'maint.s0',modules:[{id:'maint',type:'maint-corridor',x:5,z:0},{id:'store',type:'storage',x:5,z:3}]}}];
  const template=(id,extra={})=>{const t=TEMPLATES.find(x=>x.id===id);return t?JSON.parse(JSON.stringify({...t.loc,...extra})):null;};
  /* MIGRATION: an older apartment entry {id, style, door, number?, from?, locked?, screenOff?, lightsOff?, items?} as a location of two portal modules (its hallway and
@@ -268,6 +427,8 @@
     and modular flags, solids (walls with door gaps, furniture, closed doors), interactions (objects, light switches, access points, exits, elevator buttons, items),
     spawn, and `cluster` (the placed modules and doors module-build.js draws). inst: an apartmentsNow() entry {key, mission, id, door, loc, hacked}. */
  const box=(x0,x1,z0,z1,id,h=2.4,y0=0)=>({id,position:[r2((x0+x1)/2),r2(y0+h/2),r2((z0+z1)/2)],size:[r2(x1-x0),r2(h),r2(z1-z0)]});
+ /* A SEAM: two tunnel tubes joined end to end (no wall, no door between them: the tunnel runs straight through). */
+ const seamless=(an,d)=>!!d&&d.kind==='snap'&&!!d.b&&[d.a,d.b].every(r=>{const b=an.byId[parseRef(r).mod];return !!(b&&b.t.tube);});
  function lockedNow(inst,an,d){const locks=(inst.loc&&inst.loc.locks)||[],hacked=inst.hacked||[];if(!locks.includes(d.a)&&!locks.includes(d.b))return false;return !(hacked.includes(d.a)||(d.b&&hacked.includes(d.b)));}
  function layout(inst,cid,opts={}){const loc=inst.loc,an=analyse(loc),cl=an.clusters.find(c=>c.id===cid)||an.clusterOf(parseRef(loc.entry)?.mod)||an.clusters[0];if(!cl)return null;
   if(cl.portal)return legacyLayout(inst,an,cl,opts);
@@ -278,7 +439,8 @@
    for(const s of t.sockets){const ref=id+'.'+s.id;const d=doorOf(an,ref);if(d)open.push({s,d,ref});}
    // walls: four edges, each split around its door gaps (local, then to the world)
    const B=bounds(p.type),hw=t.w*GRID/2,hd=t.d*GRID/2;
-   for(const e of ['s','n','w','e']){const gaps=open.filter(o=>o.s.edge===e).map(o=>{const c=sockLocal(t,o.s);return (e==='s'||e==='n')?c[0]:c[1];}).sort((a,b)=>a-b);const along=(e==='s'||e==='n')?[-hw,hw]:[-hd,hd];let a=along[0];
+   for(const e of ['s','n','w','e']){if(open.some(o=>o.s.edge===e&&seamless(an,o.d)))continue;   // a seam: no wall on that end
+    const gaps=open.filter(o=>o.s.edge===e).map(o=>{const c=sockLocal(t,o.s);return (e==='s'||e==='n')?c[0]:c[1];}).sort((a,b)=>a-b);const along=(e==='s'||e==='n')?[-hw,hw]:[-hd,hd];let a=along[0];
     const seg=(u0,u1)=>{if(u1-u0<.01)return;const bx=e==='s'?[u0,u1,-hd,-hd+WALL]:e==='n'?[u0,u1,hd-WALL,hd]:e==='w'?[-hw,-hw+WALL,u0,u1]:[hw-WALL,hw,u0,u1];const wb=boxWorld(p,bx),q=W(wb[0],wb[2]),q2=W(wb[1],wb[3]);solids.push(box(q[0],q2[0],q[1],q2[1],'wall-'+id+'-'+e+'-'+solids.length,t.ceil));};
     for(const g of gaps){seg(a,g-DOOR.clear/2);a=g+DOOR.clear/2;}seg(a,along[1]);}
    for(const f of t.furn){const wb=boxWorld(p,f),q=W(wb[0],wb[2]),q2=W(wb[1],wb[3]);solids.push(box(q[0],q2[0],q[1],q2[1],id+'-'+f[5],Math.max(.4,f[4])));}
@@ -286,14 +448,14 @@
    for(const it of t.inter)interactions.push({id:id+'-'+it.id,label:it.label,position:at(...it.pos),action:'mod-use',mod:id,object:it.object,range:it.range||1.4});
    if(t.sw){const [u,e]=t.sw,pt=e==='s'?[u,-hd+WALL+.08]:e==='n'?[u,hd-WALL-.08]:e==='w'?[-hw+WALL+.08,u]:[hw-WALL-.08,u];interactions.push({id:id+'-lights',label:'LIGHTS',position:at(pt[0],1.45,pt[1]),action:'mod-use',mod:id,object:'lights',range:1.3});}
    (mm.items||[]).forEach((it,k)=>interactions.push({id:id+'-item-'+k,label:'LOOK: '+String(it.label||'item').toUpperCase().slice(0,40),position:at(it.x,Number.isFinite(it.y)?it.y+.2:1.1,it.z),action:'mod-item',mod:id,index:k,range:1.3}));
-   if(t.cab){const fl=cabFloors(an).filter(f=>f!==p.floor);fl.forEach((f,k)=>interactions.push({id:id+'-floor-'+f,label:'ELEVATOR · FLOOR '+floorName(f),position:at(.8,1.05+.2*k,-.42),action:'mod-elev',mod:id,floor:f,range:1.2}));}
+   if(t.cab){const fl=cabFloors(an).filter(f=>f!==p.floor);fl.forEach((f,k)=>interactions.push(t.stairs?{id:id+'-floor-'+f,label:'STAIRS · '+(f<p.floor?'DOWN':'UP')+' TO '+floorName(f),position:at(f<p.floor?1.05+.25*k:-1.05-.25*k,1.2,-.8),action:'mod-elev',mod:id,floor:f,range:1.3}:{id:id+'-floor-'+f,label:'ELEVATOR · FLOOR '+floorName(f),position:at(.8,1.05+.2*k,-.42),action:'mod-elev',mod:id,floor:f,range:1.2}));}   // a stairwell: down at the foot of the east flight, up at the west one
    mods.push({id,type:p.type,cx:W(p.cx,p.cz)[0],cz:W(p.cx,p.cz)[1],rot:p.rot,w:p.w,d:p.d,floor:p.floor,ceil:t.ceil,lightsOff:mm.lightsOff===true,screenOff:mm.screenOff===true,items:(mm.items||[]).map(i=>({...i})),
-    open:open.map(o=>o.s.id),edges:edgeInfo(an,p)});}
+    open:open.map(o=>o.s.id),seam:open.filter(o=>seamless(an,o.d)).map(o=>o.s.edge),edges:edgeInfo(an,p)});}
   // doors: a snap inside this cluster (drawn once), the entrance and links that leave it (each with a dark vestibule behind)
   for(const d of an.doors){const ra=parseRef(d.a),rb=d.b&&parseRef(d.b);const inA=mine.has(ra.mod),inB=rb&&mine.has(rb.mod);if(!inA&&!inB)continue;
    const side=inA?d.a:d.b,sp=an.byId[parseRef(side).mod].p,w=an.world[side],q=W(w.x,w.z),n=NORMAL[w.edge],tg=TANGENT[w.edge],locked=lockedNow(inst,an,d);
    const leads=d.kind==='snap'&&inA&&inB?null:d.kind==='entry'?'street':(inA?d.b:d.a);
-   const rec={id:d.id,kind:leads?(leads==='street'?'entry':'portal'):'snap',a:d.a,b:d.b,side,x:q[0],z:q[1],edge:w.edge,n,tg,locked,leads,floor:sp.floor};doors.push(rec);
+   const rec={id:d.id,kind:leads?(leads==='street'?'entry':'portal'):'snap',a:d.a,b:d.b,side,x:q[0],z:q[1],edge:w.edge,n,tg,locked,leads,floor:sp.floor};if(seamless(an,d)){rec.seam=true;rec.locked=false;doors.push(rec);continue;}doors.push(rec);   // a seam: nothing to draw, nothing in the way
    {const sx=tg[0]?DOOR.clear/2:.05,sz=tg[1]?DOOR.clear/2:.05;solids.push({...box(q[0]-sx,q[0]+sx,q[1]-sz,q[1]+sz,'door:'+d.id,2.2),open:false,door:d.id});}
    // access points: on each side that is in this cluster
    for(const r of [d.a,d.b]){if(!r)continue;const pr=parseRef(r);if(!mine.has(pr.mod))continue;const pw=an.world[r],pn=NORMAL[pw.edge],pt=TANGENT[pw.edge],P0=W(pw.x,pw.z),inner=(pw.edge==='s'||pw.edge==='n'?an.byId[pr.mod].p.w:an.byId[pr.mod].p.d)*GRID/2;
@@ -308,7 +470,7 @@
   // spawn: from the street at the entrance, from a portal at that door, by elevator in the cab
   let spawn=null,yaw=0;const from=opts.from;
   const atDoor=r=>{const dd=doors.find(x=>x.a===r||x.b===r);if(!dd)return null;const n=NORMAL[an.world[r].edge];return {spawn:[r2(dd.x-n[0]*1.25),1.7,r2(dd.z-n[1]*1.25)],yaw:Math.atan2(-n[0],-n[1])};};
-  if(from&&from.cab){const c=ps.find(p=>p.t.cab);if(c){const q=W(c.cx,c.cz),f=toWorld(c,0,.25);const s=W(f[0],f[1]);spawn=[s[0],1.7,s[1]];const n=NORMAL[turnEdge('s',c.rot)];yaw=Math.atan2(n[0],n[1]);}}
+  if(from&&from.cab){const c=ps.find(p=>p.t.cab);if(c){const q=W(c.cx,c.cz),ar=c.t.arrive||[0,.25],f=toWorld(c,ar[0],ar[1]);const s=W(f[0],f[1]);spawn=[s[0],1.7,s[1]];const n=NORMAL[turnEdge('s',c.rot)];yaw=Math.atan2(n[0],n[1]);}}
   else if(from&&from.ref){const a=atDoor(from.ref);if(a){spawn=a.spawn;yaw=a.yaw;}}
   if(!spawn){const a=atDoor(loc.entry)||{spawn:[ORIGIN[0],1.7,ORIGIN[1]],yaw:0};spawn=a.spawn;yaw=a.yaw;}
   const name=[...new Set(ps.map(p=>p.t.name))].slice(0,3).join(' · ').toUpperCase();
@@ -340,7 +502,7 @@
 
  // ---------------------------------------------------------------- the admin inventory (what the server checks a location against)
  function inventory(){return {grid:GRID,span:SPAN,floors:FLOORS.slice(),limit:{...LIMIT},door:{...DOOR},categories:CATS.map(c=>c.id),itemTypes:ITEM_TYPES.slice(),
-  types:Object.fromEntries(TYPE_IDS.map(id=>{const t=TYPES[id];return [id,{cat:t.cat,name:t.name,w:t.w||null,d:t.d||null,ceil:t.ceil||null,portal:!!t.portal,cab:!!t.cab,screen:!!t.screen,family:t.family||null,legacy:t.legacy?{...t.legacy}:null,
+  types:Object.fromEntries(TYPE_IDS.map(id=>{const t=TYPES[id];return [id,{cat:t.cat,name:t.name,w:t.w||null,d:t.d||null,ceil:t.ceil||null,portal:!!t.portal,cab:!!t.cab,screen:!!t.screen,family:t.family||null,legacy:t.legacy?{...t.legacy}:null,stairs:!!t.stairs,underground:!!t.underground,spots:(t.spots||[]).map(x=>x[0]),
    sockets:t.sockets.map(s=>({id:s.id,edge:s.edge,cell:Number.isFinite(s.cell)?s.cell:null})),objects:objectsOf(id).map(o=>o.id),bounds:bounds(id).map(r2)}];}))};}
  const api={GRID,WALL,DOOR,SPAN,FLOORS,LIMIT,ORIGIN,CATS,STYLE_NAMES,TYPES,TYPE_IDS,MOD_ID,REF,ITEM_TYPES,TEMPLATES,NORMAL,TANGENT,OPP,
   objectsOf,bounds,place,sockLocal,sockWorld,rotP,turnEdge,toWorld,boxWorld,parseRef,analyse,doorOf,cabFloors,floorName,isLocation,problems,hackable,strip,attach,freeSpot,freeSockets,newId,addModule,removeModule,template,fromApartment,migrateMission,

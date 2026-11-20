@@ -216,7 +216,7 @@
     as they never go into the adult venues on the street (npc-areas.js). The place's street door must be in the area she is placed in for this mission. */
  const reqI=f=>{try{return require(f);}catch{return null;}};
  const APX=()=>node?reqI('./apartments.js'):root.VoidApartments,MDX=()=>node?reqI('./modules.js'):root.VoidModules;
- const ADULT_ROOMS=['bar-back'];
+ const ADULT_ROOMS=['bar-back','card-room','fight-pit','gang-vestibule'];   // a bar's back room, the card room, the fight pit, a gang checkpoint (20 Nov 2026)
  const INTO={pace:2.4,minDelay:.8,maxDelay:6,ride:2.6,ahead:2,through:.75,approach:.7};
  function canInto(id){const M=movable(id);if(!M)return {ok:false,why:'This character cannot walk with the player yet.'};if(M.cat)return {ok:false,why:'The cat stays outside: it does not go into buildings with the player. Pick a spot on the street for it.'};return {ok:true,why:null};}
  const isLoc=a=>!!a&&Array.isArray(a.modules);
@@ -253,7 +253,7 @@
   else if(o.mod!=null&&g.cabs.includes(o.mod))out.push('An elevator cab is the way between floors, not a place to stop: choose the room on the floor where the step should end.');
   else if(o.mod!=null&&g.entry&&!roomPath(g,g.entry,o.mod))out.push('That room cannot be reached from the street door.');
   if(M&&M.youthful&&!g.legacy&&g.entry){const dest=o.mod&&g.rooms.includes(o.mod)?o.mod:g.entry,path=roomPath(g,g.entry,dest)||[],rooms=[g.entry,...path.map(p=>p.room)];
-   if(rooms.some(r=>ADULT_ROOMS.includes(g.types[r])))out.push(who+' never goes into a bar’s back room (her content rule, as for the adult places on the street): choose another room or place, or someone marked as an adult.');}
+   if(rooms.some(r=>ADULT_ROOMS.includes(g.types[r])))out.push(who+' never goes into a bar’s back room or another adults-only room (card room, fight pit, gang checkpoint; her content rule, as for the adult places on the street): choose another room or place, or someone marked as an adult.');}
   if(!a.door){out.push('That place has no street door yet: choose its street door first.');return out;}
   const d=doorAt(a.door);if(!d){out.push('That place’s street door is not in the game.');return out;}
   const A=AR(),da=doorArea(d),area=ctx.area||'avenue';if(A&&!da)out.push(who+' cannot walk to that street door (it is not on ground the people of the city walk on): choose another place.');
