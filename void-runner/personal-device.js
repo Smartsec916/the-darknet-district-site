@@ -122,7 +122,7 @@
  /* How far away another player is, in metres. Inside The Darknet District everyone is simply "here", so no distance is shown; on the street, in NULL and
     everywhere else the list says how far each person is (the owner, 15 Nov 2026). null = not shown. */
  function distanceTo(p){try{if(areasHere().includes('interior')||typeof walker==='undefined'||!walker||!Number.isFinite(p.x)||!Number.isFinite(p.z))return null;return Math.round(Math.hypot(p.x-walker.x,p.z-walker.z));}catch{return null;}}
- const distText=d=>d==null?'':d<1000?d+' m away':(d/1000).toFixed(1)+' km away';
+ const distText=d=>d==null?'':VoidUnits.fmtDist(d)+' away';
  const REASONS=[['harassment','HARASSMENT'],['spam','SPAM'],['inappropriate','INAPPROPRIATE'],['cheating','CHEATING'],['other','OTHER']];
  function playerRows(){
   const r=rp(),rows=(r?.connected?r.peers:[]).map(p=>({id:p.id,name:p.name,here:true,dist:distanceTo(p)}));

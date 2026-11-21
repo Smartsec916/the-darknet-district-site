@@ -84,14 +84,36 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  applyPending(){if(this.pending){VoidBalance.apply(this.pending);this.pending=null;}},
  // The owner's developer account starts every session with 1,000 credits for trying purchases (the owner, 18 Nov 2026). Only after the server accepts the developer request; ordinary players are untouched. The cloud save allows any amount up to 100,000,000.
  testCredits(){if(!this.authorized||typeof state==='undefined'||!state||this.creditsSet)return;this.creditsSet=true;state.credits=1000;try{save();}catch{}try{hud();}catch{}},
- async identity(request){
-  this.authorized=false;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
+ async identity(request,info){
+  /* (21 Nov 2026, the owner: "the mission editor times out and goes to the previous page … while trying to play through a test mission the editor pops up")
+     account.js confirms the account every 4 minutes and on tab focus; each confirmation used to close this window and, during PLAY THIS DRAFT, reopen the Mission
+     Editor over the game. Now (editor-session.js identity): the same account confirmed again keeps everything ('swap'); a sign-out with the editor or a draft open
+     keeps them open with a SIGN IN bar ('expired'); the editor opens by itself only on the first confirmation of a page load, never during a draft. */
+  const uid=info&&info.uid||null,ES=globalThis.VoidEditorSession,T=globalThis.VoidDevTest;
+  const d=ES?ES.identity({authorized:this.authorized,uid:this.uid,open:!devPanel.hidden,testing:!!T?.active},{uid,request:!!request}):request?'fresh':'close';
+  if(d==='swap'){this.request=request;this.signin(false);return;}
+  if(d==='hold')return;
+  if(d==='expired'){this.request=null;this.signin(true);return;}
+  this.signin(false);this.authorized=false;this.uid=null;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
   if(devMissileTrial){devMissileTrial=false;resetMissileFlight();}
   if(!request)return;
-  try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.receive(data);devButton.hidden=false;this.testCredits();try{if(sessionStorage.getItem('mission-editor-return'))this.open('missions');else if(sessionStorage.getItem('npc-editor-return'))this.open('npcs');}catch{}}catch{/* Fail closed; ordinary players get no private controls. */}
+  try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.uid=uid;this.receive(data);devButton.hidden=false;this.testCredits();const first=!this.confirmed;this.confirmed=true;
+   let tab=null;try{const ret={first,testing:!!T?.active,open:!devPanel.hidden,missions:!!sessionStorage.getItem('mission-editor-return'),npcs:!!sessionStorage.getItem('npc-editor-return')};tab=ES?ES.autoOpen(ret):first&&!ret.testing?(ret.missions?'missions':ret.npcs?'npcs':null):null;}catch{}if(tab)this.open(tab);}catch{/* Fail closed; ordinary players get no private controls. */}
+ },
+ /* The small bar over everything (21 Nov 2026): "Sign-in expired" with SIGN IN (a silent token refresh first; Google only if signed out), and "Update ready" with
+    APPLY UPDATE (the only way a new build reloads the page while the editor was used or a draft plays). Neither closes the editor or touches its work. */
+ signin(on){this.expiredBar=!!on;if(!on)this.barNote='';this.bar();},
+ updateReady(){if(this.updateBar)return;this.updateBar=true;this.bar();},
+ bar(){const ES=globalThis.VoidEditorSession,t=ES?ES.TEXT:{};const parts=[];if(this.expiredBar)parts.push('<span data-dev-bar="signin">'+escapeText(t.signin||'Sign-in expired.')+'</span><button type="button" data-dev-bar-act="signin">SIGN IN</button>');
+  if(this.updateBar)parts.push('<span data-dev-bar="update">'+escapeText(t.update||'Update ready.')+'</span><button type="button" data-dev-bar-act="update">APPLY UPDATE</button>');
+  if(this.barNote)parts.push('<small data-dev-bar="note">'+escapeText(this.barNote)+'</small>');
+  sessionBar.innerHTML=parts.join('');sessionBar.hidden=!(this.expiredBar||this.updateBar);},
+ async barAction(act){
+  if(act==='update'){try{document.activeElement?.blur?.();}catch{}setTimeout(()=>{const T=globalThis.VoidDevTest;if(T?.active)T.exit();else location.reload();},50);return;}
+  if(act==='signin'){this.barNote='Signing in…';this.bar();try{await globalThis.VoidAccount?.reconfirm?.();this.barNote='';if(this.expiredBar){this.barNote='Still not signed in. Try SIGN IN again; your editor stays open.';}}catch(e){this.barNote=(e&&e.message||'Sign-in failed.')+' Your editor stays open; try SIGN IN again.';}this.bar();}
  },
  receive(data){this.values=VoidBalance.validate(data.values);this.revision=data.revision;this.preset=data.preset||'CUSTOM';this.pending=this.values;},
- open(tab){if(!this.authorized)return;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
+ open(tab){if(!this.authorized)return;this.used=true;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
  // One window, one section at a time. Sections that aren't built yet are listed, not faked.
  // Start (the welcome screen with the big task cards) comes first; every other tool is one click away. Plain names; each with an icon.
  sections:[['home','Start'],['missions','Mission Editor'],['npcs','NPCs'],['test','Test & Jump To'],['zones','Zones'],['balance','Combat Balance'],['achievements','Achievements']],
@@ -125,10 +147,14 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   debugInfo.textContent=`PLAYER Hull ${hp.toFixed(1)} Shield ${shieldHP.toFixed(1)}\nLaser ${s.damage.toFixed(2)} Missile ${VOID_BALANCE.missileDamage}\nTARGET ${e?`Hull ${e.armor.toFixed(1)} Shield ${(e.shield||0).toFixed(1)} Distance ${FM.length(e).toFixed(1)} Fire ${e.fire.toFixed(2)}s`:'NONE'}\nLock ${Math.round(missileLock.progress*100)}%`;
  }
 };
-const devButton=document.createElement('button');devButton.textContent='DEVELOPER TOOLS';devButton.hidden=true;devButton.id='dev-balance-open';document.body.append(devButton);devButton.onclick=()=>VoidDevTools.open();
+const devButton=document.createElement('button');devButton.textContent='DEVELOPER TOOLS';devButton.hidden=true;devButton.id='dev-balance-open';document.body.append(devButton);devButton.onclick=()=>{VoidDevTools.open();devButton.blur();};   // blurred: a focused button would reopen the editor on the game's Space / Enter (21 Nov 2026)
 const devPanel=document.createElement('section');devPanel.id='dev-balance';devPanel.hidden=true;devPanel.setAttribute('aria-label','Developer tools');document.body.append(devPanel);
 const debugInfo=document.createElement('pre');debugInfo.id='combat-debug';debugInfo.hidden=true;document.body.append(debugInfo);
-devPanel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape')devPanel.hidden=true;});
+devPanel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key!=='Escape')return;const ES=globalThis.VoidEditorSession;if(ES&&!ES.escapeCloses(event.target)){event.target.blur?.();return;}devPanel.hidden=true;});   // Escape in a text box only leaves the box (21 Nov 2026)
+const sessionBar=document.createElement('div');sessionBar.id='dev-session-bar';sessionBar.hidden=true;sessionBar.setAttribute('role','status');document.body.append(sessionBar);
+sessionBar.addEventListener('click',e=>{const a=e.target.closest?.('[data-dev-bar-act]')?.dataset.devBarAct;if(a)VoidDevTools.barAction(a);});
+// A field being typed in hands over its value before the page goes (its change event saves the draft in this browser), whatever makes the page go.
+addEventListener('pagehide',()=>{try{const a=document.activeElement;if(a&&devPanel.contains(a))a.blur();}catch{}});
 devPanel.addEventListener('change',event=>{
  if(!VoidDevTools.authorized)return;
  if(event.target.matches('[data-dev-advanced]')){VoidDevTools.setMode(event.target.checked?'advanced':'basic');return;}
