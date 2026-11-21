@@ -180,11 +180,11 @@
     to right, so pieces join end to end in any number and either way round, and turn at the junction. Two tube pieces joined end to end have no wall and no door between
     them (layout: `seam`): the tunnel runs straight through. Lamps hang every 2 m, at the middle of each cell. */
  const TUBE=(id,o)=>T(id,{cat:'hallway',style:'tunnel',underground:true,tube:true,w:1,ceil:2.6,...o});
- TUBE('tunnel-short',{d:1,sockets:'s0 n0',name:'Service tunnel, 2 m',note:'UNDERGROUND. A 2 m piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[0,'w'],lights:[[0,2,0,'#ffd8a0',1.1,7]]});
- TUBE('tunnel-mid',{d:2,sockets:'s0 n0',name:'Service tunnel, 4 m',note:'UNDERGROUND. A 4 m piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[-1,'w'],lights:[[0,2,0,'#ffd8a0',1.1,8]]});
- TUBE('tunnel',{d:3,sockets:'s0 n0',name:'Service tunnel, 6 m',note:'UNDERGROUND. An old service tunnel, 6 m: wet concrete, pipe runs, a cable tray, caged lamps, a drainage channel, puddles, graffiti. Joins end to end with any tunnel piece, seamlessly.',
+ TUBE('tunnel-short',{d:1,sockets:'s0 n0',name:'Service tunnel, 7 ft',note:'UNDERGROUND. A 7 ft piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[0,'w'],lights:[[0,2,0,'#ffd8a0',1.1,7]]});
+ TUBE('tunnel-mid',{d:2,sockets:'s0 n0',name:'Service tunnel, 13 ft',note:'UNDERGROUND. A 13 ft piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[-1,'w'],lights:[[0,2,0,'#ffd8a0',1.1,8]]});
+ TUBE('tunnel',{d:3,sockets:'s0 n0',name:'Service tunnel, 20 ft',note:'UNDERGROUND. An old service tunnel, 20 ft: wet concrete, pipe runs, a cable tray, caged lamps, a drainage channel, puddles, graffiti. Joins end to end with any tunnel piece, seamlessly.',
   objects:[O('panel','JUNCTION BOX','the junction box'),LIGHTS],furn:[[-.9,-.72,.4,1.3,1.6,'junction']],inter:[{id:'panel',label:'JUNCTION BOX',pos:[-.55,1.3,.85],object:'panel',range:1.2}],sw:[-2.2,'w'],lights:[[0,2,0,'#ffd8a0',1.2,9]]});
- TUBE('tunnel-junction',{d:1,sockets:'s0 n0 w0 e0',name:'Service tunnel junction (corner / T / cross)',note:'UNDERGROUND. A 2 m tunnel junction with four openings: join two for a corner, three for a T, four for a crossing (unused ones are plain wall). Seamless with the tunnel pieces.',
+ TUBE('tunnel-junction',{d:1,sockets:'s0 n0 w0 e0',name:'Service tunnel junction (corner / T / cross)',note:'UNDERGROUND. A 7 ft tunnel junction with four openings: join two for a corner, three for a T, four for a crossing (unused ones are plain wall). Seamless with the tunnel pieces.',
   objects:[],lights:[[0,2,0,'#ffcf90',1,6]]});
  /* The UNDERGROUND TEA ROOM (the owner: "an underground tea room would be cool too"; a front door and a back door on opposite walls; "the back door must NOT be visible
     from the seating area"): the back door opens into a service nook behind a full-height partition; the nook reaches the room round the end of the partition and behind a
@@ -199,7 +199,7 @@
  /* THE UNDERGROUND, EAST ASIAN SET (the owner, 20 Nov 2026: "lantern tunnel. mahjong. a small sleeping room with bed divided by curtains. underground food stall."):
     converted tunnel chambers where raw concrete and pipes show round warm wood, lanterns and cloth. The lantern tunnel pieces are tubes like the plain ones (the same
     cross-section, seamless with them), only dressed. Generic designs: no real brands, no readable writing, no religious symbols. */
- TUBE('tunnel-lantern',{d:3,dress:'lantern',sockets:'s0 n0',name:'Lantern tunnel, 6 m',note:'UNDERGROUND. A service tunnel dressed with strings of paper lanterns, hanging cloth banners and small wall shrines. Same cross-section as the plain tunnel: mixes freely with it in a run.',
+ TUBE('tunnel-lantern',{d:3,dress:'lantern',sockets:'s0 n0',name:'Lantern tunnel, 20 ft',note:'UNDERGROUND. A service tunnel dressed with strings of paper lanterns, hanging cloth banners and small wall shrines. Same cross-section as the plain tunnel: mixes freely with it in a run.',
   objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});
  TUBE('tunnel-lantern-junction',{d:1,dress:'lantern',sockets:'s0 n0 w0 e0',name:'Lantern tunnel junction (corner / T / cross)',note:'UNDERGROUND. The tunnel junction dressed with lanterns and a banner. Seamless with every tunnel piece.',objects:[],lights:[[0,2,0,'#ffb070',1,6]]});
  const UG=(id,o)=>T(id,{cat:'various',style:'tunnel',underground:true,ownLamps:true,w:3,d:3,sockets:'s1 n1',sw:[-.95,'s'],...o});
@@ -221,7 +221,7 @@
   inter:[{id:'counter',label:'FOOD COUNTER',pos:[-.25,1.05,.2],object:'counter',range:1.2},{id:'stove',label:'WOK STATION',pos:[.85,1.1,-.8],object:'stove',range:1.4},{id:'cooler',label:'COOLER',pos:[.9,1.2,1.45],object:'cooler',range:1.3},{id:'menu',label:'MENU BOARD',pos:[1.7,1.85,-.4],object:'menu',range:2.2}],
   say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},
   spots:[['cook',1,0,-PI/2]],lights:[[.6,2.3,0,'#ffc890',1.6,8]]});
- T('tunnel-chamber',{underground:true,ownLamps:true,cat:'hallway',style:'tunnel',w:2,d:2,ceil:3,sockets:'s0 s1 n0 n1 w0 w1 e0 e1',name:'Tunnel chamber',note:'UNDERGROUND. A wider 4 m x 4 m tunnel chamber: a sump with a pump, a valve wheel, pipe runs, cable trays, two openings on each side.',
+ T('tunnel-chamber',{underground:true,ownLamps:true,cat:'hallway',style:'tunnel',w:2,d:2,ceil:3,sockets:'s0 s1 n0 n1 w0 w1 e0 e1',name:'Tunnel chamber',note:'UNDERGROUND. A wider 13 ft x 13 ft tunnel chamber: a sump with a pump, a valve wheel, pipe runs, cable trays, two openings on each side.',
   objects:[O('valve','VALVE','the valve'),O('pump','SUMP PUMP','the sump pump'),LIGHTS],furn:[[-.35,.35,-.35,.35,.9,'pump']],inter:[{id:'pump',label:'SUMP PUMP',pos:[0,1,-.6],object:'pump',range:1.2},{id:'valve',label:'VALVE',pos:[1.7,1.2,1.7],object:'valve',range:1.2}],
   say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});
  // OTHER: a storage room (4 m x 4 m) and a maintenance corridor (2 m x 6 m).
@@ -335,7 +335,7 @@
    if(m.items!=null){if(!Array.isArray(m.items)){out.push(w+': placed items are a list.');continue;}const b=bounds(m.type);
     for(const it of m.items){items++;if(!keysOk(it,['type','label','x','z','y'])||!ITEM_TYPES.includes(it.type)||!plain(it.label,LIMIT.label)){out.push(w+': a placed item needs a type and a short label (60 characters, plain text).');continue;}
      const num=v=>typeof v==='number'&&Number.isFinite(v);if(!num(it.x)||!num(it.z)||it.x<b[0]+.1||it.x>b[1]-.1||it.z<b[2]+.1||it.z>b[3]-.1)out.push(w+': a placed item must be inside the module (x '+r2(b[0]+.1)+'..'+r2(b[1]-.1)+', z '+r2(b[2]+.1)+'..'+r2(b[3]-.1)+').');
-     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.6))out.push(w+': a placed item’s height is 0 to 2.6 m.');}}}
+     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.6))out.push(w+': a placed item’s height is 0 to 8.5 ft.');}}}
   if(items>LIMIT.items)out.push('a location has at most '+LIMIT.items+' placed items.');
   if(loc.links!=null&&(!Array.isArray(loc.links)||loc.links.length>LIMIT.links||loc.links.some(l=>!keysOk(l,['a','b']))))out.push('connections are a list of door pairs (at most '+LIMIT.links+').');
   if(loc.locks!=null&&(!Array.isArray(loc.locks)||loc.locks.length>LIMIT.locks||loc.locks.some(r=>typeof r!=='string')))out.push('locked doors are a list (at most '+LIMIT.locks+').');

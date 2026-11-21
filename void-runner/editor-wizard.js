@@ -53,7 +53,7 @@
  const STARTS=[
   {id:'person',title:'When the player talks to them',line:'The player walks up, presses TALK, and the mission is offered.'},
   {id:'person-accept',title:'They ask, the player says ACCEPT or DENY',line:'Like above, but the player chooses ACCEPT or DENY. DENY: they are asked again next time.'},
-  {id:'near',title:'When the player walks near them (starts automatically)',line:'No talking and nothing to press: when the player comes within the distance below (5 metres if you leave it), the mission starts by itself, a short banner pops up and they say what you write on the last page.'},
+  {id:'near',title:'When the player walks near them (starts automatically)',line:'No talking and nothing to press: when the player comes within the distance below (16 ft if you leave it), the mission starts by itself, a short banner pops up and they say what you write on the last page.'},
   {id:'near-accept',title:'When the player walks near them, they ask ACCEPT or DENY',line:'When the player comes within the distance, they offer it and the player chooses ACCEPT or DENY. Nothing starts until ACCEPT.'},
   {id:'messages',title:'A text message on the V1',line:'Arrives in the V1 Messages app when the player first leaves their Sleeping Pod.'}];
  const PAGES=[
@@ -126,7 +126,7 @@
   m.offer=[{who:a.giver,text:String(a.offer||'').trim().slice(0,500)}];
   const text=String(a.message&&a.message.text||'').trim().slice(0,500);
   if(a.start==='person-accept'||(a.start==='person'&&ask))m.start={how:'person',accept:true};
-  else if(a.start==='near'||a.start==='near-accept'){const d=Number(a.distance),dist=Number.isFinite(d)&&d>=1?Math.min(30,Math.round(d*10)/10):5;m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:dist}};}
+  else if(a.start==='near'||a.start==='near-accept'){const d=Number(a.distance),dist=Number.isFinite(d)&&d>=1?Math.min(30,Math.round(d*1000)/1000):5;m.start={how:'notification',channel:'notify',from:a.giver,header:'',text,when:{kind:'near',npc:a.giver,distance:dist}};}
   else if(a.start==='messages')m.start={how:'notification',channel:'messages',from:a.giver,header:String(a.message.header||'').trim().slice(0,80)||'MESSAGE',text,when:{kind:'pod-exit'}};
   if(ask&&m.start)m.start.accept=true;
   const apt=aptRecord(a);if(apt)m.apartments=[apt];   // a location built from modules (modules.js TEMPLATES: an office, a server room, a shop back room ...) or an apartment   // one apartment (apartments.js); the Mission Editor adds more
