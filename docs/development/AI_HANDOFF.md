@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: MOBILE COMPANION MODEL TOOLS (local, requires owner release approval)
+
+- Animation templates: categorize clips actually present on selected model; speed/loop preview; capture, replace, remove and interpolate up to 60 rotation-only keyframes; download/load JSON and export a new animation GLB on an owner-imported model only. No AI motion generation, translational root motion editing, or automatic publishing. Focused tests cover category and frame validation plus GLB export metadata; actual phone GPU/drag preview still requires testing.
+
+- Mobile appearance switch defaults to a near-black theme, persists its preference and is independent of Firebase. The browser-backed Android APK opens the hosted editor, so no APK reinstall is required for web updates.
+- Model tools: texture-only GLB downsizing (up to 100 MB input, 15 MB target, no external uploads; cannot guarantee the target when geometry dominates); experimental 19-joint humanoid auto-rig adds skin weights to a static single-mesh, upright A/T-pose model; it does not generate required game animations. Original file is unchanged and processed GLB can be downloaded. Model and Animations tabs have a basic preview poser, with draggable linked joint handles, reset, and pose JSON export. No AI inbetweening, collision-aware posing, or production animation publishing yet. Focused automated tests pass; real mobile touch/GPU posing and unusual rig deformation are not verified.
+
 ### 21 Nov 2026: VR COMPANION STUDIO (branch `codex/vr-companion-studio`, not merged)
 
 - Developer Tools > VR Companions: local account-scoped drafts stored in IndexedDB, male/female selection, import an already rigged self-contained GLB with the six required named animations, edit an existing companion, paste bounded personality/dialogue JSON from ChatGPT, and attach recordings to each exact line with the existing voice importer. No API credentials or paid generation; no licensed assets uploaded. Drafts are developer-only and solo in the VR picker. Meshy rigging, standalone animation retargeting, AI motion generation and production publishing are not implemented. Existing shipped profiles remain unchanged outside the local drafts.
