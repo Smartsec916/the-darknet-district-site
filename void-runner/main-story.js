@@ -104,11 +104,13 @@
   'Juno Vex has been arranging meetings between him and a group of private investors.','What\'s strange is that I can\'t find any public records identifying these investors.','I traced some communications to two of Juno\'s associates. They\'re meeting at an underground tea house.',
   'I\'ve sent you their location.','See if you can find out who they\'re working for. And try not to make yourself noticed.'];
  const UT=-3;   // the tunnel network's floor (y), for people placed down there
+ // (20 Nov 2026, the tea room host) the tea station became an island 0.8 m out from the partition with the host behind it: the two associates stand 1.05 m further east,
+ // in front of it at its south end (the same 1.3 m apart, facing each other), instead of one behind the counter and the counter between them.
  const M004={id:'m004-a-promising-investment',number:4,title:'A Promising Investment',type:'main',category:'Intelligence gathering / Eavesdropping',giver:'milked-fish',location:'under-tea-room',description:'',
   // Fish's follow-up call (replaces the Mission 003 stub): due 6 in-game hours after Corporate Connections (game-clock.js; about 30 minutes of play)
   start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL · V1 TRANSLATION',text:FISH_CALL.join('\n'),when:{kind:'game-time',mission:'m003-corporate-connections',value:360}},
   offer:[],
-  cast:[{id:'tea-associate-1',name:'Associate 1',model:'npc-office-m',place:'under-tea-room',x:-7.6,z:-104.2,y:UT,yaw:1.57,clip:'talk',from:'travel'},{id:'tea-associate-2',name:'Associate 2',model:'npc-executive',place:'under-tea-room',x:-6.3,z:-104.2,y:UT,yaw:-1.57,clip:'listen',from:'travel'}],
+  cast:[{id:'tea-associate-1',name:'Associate 1',model:'npc-office-m',place:'under-tea-room',x:-6.55,z:-104.2,y:UT,yaw:1.57,clip:'talk',from:'travel'},{id:'tea-associate-2',name:'Associate 2',model:'npc-executive',place:'under-tea-room',x:-5.25,z:-104.2,y:UT,yaw:-1.57,clip:'listen',from:'travel'}],
   evidence:[{id:'tea-talk',title:'Overheard at the tea house',kind:'audio',text:'Associate 1: "Reyes is getting desperate. He\'s running out of options."\nAssociate 2: "Has he agreed to the percentage?"\nAssociate 1: "Fifty-one. He\'s not happy about it, but he doesn\'t have much choice."\nAssociate 2: "And the admission requirement?"\nAssociate 1: "That comes later. The preliminary agreement has already been sent to his personal computer."\nAssociate 2: "The board wants this completed before the end of the week."'}],
   objectives:[
    {id:'receive-call',kind:'message',label:'Receive Fish\'s call.',npc:'',place:'',item:'',say:[],early:[]},

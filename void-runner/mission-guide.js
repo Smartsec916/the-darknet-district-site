@@ -56,6 +56,18 @@
  function wayOut(){try{const wl=walkingLocation;if(!wl||!wl.apartment)return null;const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:i.label||''}:null;};
   if(wl.modular){const e=here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(e)return e;const g=aptGoal({apt:{m:wl.apt&&wl.apt.mission,a:'\u0000none'},label:''});return g||here(i=>i.action==='mod-elev');}
   return wl.part==='hall'?here(i=>i.action==='apt-hall-exit'):here(i=>i.action==='apt-exit');}catch{return null;}}
+ /* A FOLLOW / LEAD / CAB STEP (20 Nov 2026, escort across: npc-escort-across.js): the person in another area than the player (left behind at a gate, at the stairs, or
+    still in the tunnels): her position, the route through the gates, the stairs and the District's door is guide-route.js's. With the player, on a "They follow you" step
+    (the player leads): the step's destination (its spot, or its place's street door), in whatever area it is. Otherwise null: the arrow stays on her (her TALK prompt). */
+ const ESC_KINDS=['follow-them','they-follow','their-cab','shared-cab'];
+ function escortLive(id){try{const sp=root.VoidStreetPair?.live?.();if(sp){if(id===root.VoidStreetPair.CAT_ID&&sp.cat)return {x:sp.cat.x,z:sp.cat.z};if(sp.her&&sp.her.id===id)return {x:sp.her.x,z:sp.her.z};}
+  const p=(root.VoidMadeNPCs?.live?.()?.people||[]).find(q=>q.id===id&&q.enabled!==false);if(p)return {x:p.x,z:p.z};}catch{}return null;}
+ function escortGoal(g){try{const C=LC();if(!C||!g||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.apartment||walkingLocation.modular||typeof walker==='undefined'||!walker)return null;
+  const s=C.step?.(),st=s&&s.step;if(!st||!ESC_KINDS.includes(st.kind)||!st.npc)return null;const P=(C.plans?.()||{})[st.npc];if(!P||P.mode!=='escort'||P.indoors)return null;
+  const her=escortLive(st.npc);if(!her){const w=C.escortWhere?.(st.npc);return w?{position:[w.x,1.7,w.z],route:true,label:g.label||''}:null;}
+  if(st.kind==='they-follow'&&P.final&&Math.hypot(her.x-walker.x,her.z-walker.z)<=Math.max(10,(P.set&&P.set.wait)||8))return {position:[P.final.x,1.7,P.final.z],route:true,label:g.label||''};
+  return null;}catch{return null;}}
+ root.missionEscortGoal=escortGoal;
  function missionPlaceRoute(g){
   try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!(g&&g.apt)){const wo=wayOut();if(wo)return wo;}if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
    const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
@@ -85,7 +97,12 @@
 
  // ---- contextual hints ----
  const hint=document.createElement('div');hint.id='mission-hint';hint.dataset.help='1';hint.hidden=true;hint.setAttribute('role','status');hint.setAttribute('aria-live','polite');document.body.appendChild(hint);
- const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;top:134px;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--mission-yellow,#ffd678);background:rgba(24,16,4,.72);border-left:2px solid var(--mission-yellow,#ffd678);border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:var(--mission-yellow-text,#ffe7a8);font-weight:700}';document.head.appendChild(style);
+ const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;top:134px;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--mission-yellow,#ffd678);background:rgba(24,16,4,.72);border-left:2px solid var(--mission-yellow,#ffd678);border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:var(--mission-yellow-text,#ffe7a8);font-weight:700}'
+  // (20 Nov 2026) with the V1 open on the right half, the hint and the tracker above it move to the middle of the free left part and wrap there (at 1366 px the hint sat
+  // under the V1's left edge); with the V1 expanded to the full width, the hint goes to the top-left corner above it. The camera keeps the hint in the middle.
+  +'body.v1-side #mission-hint,body.v1-side #mission-tracker:not([hidden]){left:calc((100vw - 24px - max(430px,50vw - 12px))/2);max-width:calc(100vw - 48px - max(430px,50vw - 12px));box-sizing:border-box;overflow-wrap:anywhere}'
+  +'body.v1-side #mission-hint{top:150px}'   // below the zone chip (top-left, to 140 px)
+  +'body.v1-wide #mission-hint{left:12px;transform:none;top:72px;max-width:min(320px,28vw)}';document.head.appendChild(style);
  const key=()=>{try{return root.VoidInput.label(root.VoidInput.bindings.missionLog||'KeyL');}catch{return 'L';}};
  const name=id=>{try{return LC()?.giverName?.(id)||id;}catch{return id;}};
  /* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */
@@ -100,6 +117,7 @@
  setInterval(()=>{try{
   const s=typeof state!=='undefined'&&state?state:null,off=s?.story?.flags?.helpOff===true,D=root.VoidPersonalDevice,on=typeof mode!=='undefined'&&(mode==='walking'||D?.isOpen);
   const cur=!off&&on?LC()?.step?.():null,h=cur?hintFor({step:cur.step,deviceOpen:!!D?.isOpen,app:D?.app||null,thread:D?.thread||null,attach:D?.attach||{},camera:!!root.VoidDeviceCamera?.active,key:key(),name}):null;
+  {const pd=document.getElementById('personal-device'),open=!!D?.isOpen&&!!pd&&pd.classList.contains('open')&&!root.VoidDeviceCamera?.active,wide=open&&pd.classList.contains('expanded');document.body.classList.toggle('v1-side',open&&!wide);document.body.classList.toggle('v1-wide',wide);}
   const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);
- root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
+ root.VoidMissionGuide={missionPlaceRoute,escortGoal,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
 })(globalThis);
