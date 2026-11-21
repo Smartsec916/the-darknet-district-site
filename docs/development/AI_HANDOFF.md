@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: FPS SKIRMISH — THREE-SECTOR STATION
+
+- Compact connected friendly, neutral and hostile sectors replace the FPS skirmish arena; the original derelict station asset remains intact. The player starts in the safe hangar. Open doorways separate the three modes. The zone HUD uses the campaign's zone labels and colours. Firing, neutral escalation and armed NPC AI share zones.js, with NPC movement and aggression confined to their assigned sector. Campaign state, missions and flight skirmish are unchanged.
+
 ### 21 Nov 2026: MISSION EDITOR V25 — FULL MISSION ROUTE (local)
 
 - Both Form and Blocks views display a read-only overview of mission area, starting location, objectives referring to places, NPCs, custom interiors and space destinations, and hand-in. Existing-place choices are grouped without changing option IDs or availability. Custom interior creation is explicitly optional; numbered hallway controls remain exclusive to housing. No runtime rules or mission records changed. 34 focused tests passed, including Awakening and mixed-route coverage.

@@ -75,10 +75,8 @@ const shot=async(page,name)=>{if(shots)await page.screenshot({path:path.join(sho
   c=await chip();log('hallway chip',c);assert.equal(c.word,'NEUTRAL');assert.equal(c.colour,'#ff9a2e');
   const g0=await face('guard');log('guard',JSON.stringify({x:g0.x,z:g0.z,alert:g0.alert}));assert.equal(g0.alert,false,'the guard is calm before a shot');
   await page.waitForTimeout(2500);assert.equal((await page.evaluate(()=>VoidZoneRun.stats.enemyShots)),0,'the guard does not shoot an armed player who has not fired');
-  const warn=await page.evaluate(()=>{if(!groundState.drawn)groundAction('draw');const a=state.progression.personal.ammo;groundAction('fire');return {before:a,after:state.progression.personal.ammo,toast:document.getElementById('zone-toast').textContent};});
-  log('Neutral first press',warn);assert.equal(warn.after,warn.before,'the safety catch holds the first press');assert.match(warn.toast,/NEUTRAL AREA/);
-  const fired=await page.evaluate(()=>{const a=state.progression.personal.ammo;groundAction('fire');return {before:a,after:state.progression.personal.ammo,esc:VoidZoneRun.escalation,shots:VoidZoneRun.stats.shots};});
-  log('Neutral second press',fired);await shot(page,'4-hallway-neutral-safety-then-shot');assert.equal(fired.after,fired.before-1);assert.ok(fired.esc.at,'the area is provoked');
+  const fired=await page.evaluate(()=>{if(!groundState.drawn)groundAction('draw');const a=state.progression.personal.ammo;groundAction('fire');return {before:a,after:state.progression.personal.ammo,esc:VoidZoneRun.escalation,shots:VoidZoneRun.stats.shots};});
+  log('Neutral first press fires',fired);await shot(page,'4-hallway-neutral-shot');assert.equal(fired.after,fired.before-1);assert.ok(fired.esc.at,'the area is provoked');
   await page.waitForFunction(()=>VoidZoneRun.stats.enemyShots>0&&groundState.health<100,null,{timeout:60000});
   log('the guard attacks',await page.evaluate(()=>({health:groundState.health,shots:VoidZoneRun.stats.enemyShots,alert:VoidZoneRun.enemies.find(e=>e.id==='guard').alert})));await shot(page,'5-hallway-guard-attacks');
   // ---- 3. the office floor: Friendly, then the "Change zone" step makes it Hostile and brings the mercenary in

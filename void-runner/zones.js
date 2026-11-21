@@ -4,7 +4,7 @@
    every city area and every location defaults to FRIENDLY; nothing here makes a place Neutral or Hostile on its own.
    - FRIENDLY: the gun can be drawn and holstered, never fired ("Weapons are locked here"). No PvP.
    - NEUTRAL:  the gun can be carried and fired; a SHOT (or hitting someone) makes the armed people nearby hostile for a while (Combat Balance guardHostileTime) and
-               civilians flee. Drawing or holstering never provokes anyone. A safety catch (Combat Balance neutralSafety, on by default): the first trigger press only
+               civilians flee. Drawing or holstering never provokes anyone. An optional safety catch (Combat Balance neutralSafety, off by default): the first trigger press only
                warns, a second press within safetyWindow seconds fires; holstering or waiting re-arms it.
    - HOSTILE:  enemies attack on sight (range detectRange, cone detectCone, a clear line); the player fires freely.
    WHERE A ZONE COMES FROM (zoneAt), most specific first:
@@ -35,7 +35,7 @@
  // (zone-integration.js) and Skirmish FPS (skirmish.js) both read these through tune() / gun() / skirmish(); the magazine, reserve and reload time are progression.js
  // tuning.ground (the save server checks the magazine). Skirmish difficulty only scales the enemies' Normal values (SKIRMISH_DIFFICULTY).
  const TUNE={pistolPrice:350,pistolDamage:34,pistolAimBonus:1.24,pistolCooldown:.25,pistolSpread:1.2,pistolRecoil:.6,footPlayerHealth:100,footEnemyHealth:60,footEnemyDamage:11,footEnemyAccuracy:.66,
-  footEnemyReaction:1.1,footEnemySpeed:1.05,detectRange:26,detectCone:110,guardHostileTime:45,civilianFleeRadius:25,neutralSafety:1,safetyWindow:2};
+  footEnemyReaction:1.1,footEnemySpeed:1.05,detectRange:26,detectCone:110,guardHostileTime:45,civilianFleeRadius:25,neutralSafety:0,safetyWindow:2};
  const SKIRMISH_DIFFICULTY={easy:{damage:.64,accuracy:.7,reaction:1.36,speed:.76},normal:{damage:1,accuracy:1,reaction:1,speed:1},hard:{damage:1.36,accuracy:1.24,reaction:.64,speed:1.24}};
  const GROUND={magazine:10,reserve:48,reload:1.1};   // progression.js tuning.ground (Node tests without it)
  /* The player's gun, the same in both modes. ground: progression.js tuning.ground. */
