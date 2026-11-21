@@ -79,6 +79,7 @@
   grp('People players can meet in the game today',now);grp('Only in a practice game for now',later,'Players cannot reach these people yet, so a mission from them can be tested but would not show up for players.');
   if(a.giver)box.append(el('p',G().status(givers().find(g=>g.id===a.giver)),'me-small'));}
  function pageStart(box,a){box.append(choice(W().STARTS,a.start,'data-eh-start',id=>{a.start=id;draw();}));
+  box.append(el('p','Only when nobody else is near, only at night, only after another mission…? Add conditions later in the editor: “…and only when (optional)”, under How this mission starts.','me-help',{'data-eh-only-note':'1'}));   // extra start conditions (start-conditions.js): set in the editor, not here
   if(a.start==='messages'||a.start==='near'||a.start==='near-accept'){const f=el('div','','eh-fields');
    if(a.start!=='messages'){const l=el('label','','me-field');l.append(el('span','How close the player comes (feet, 4 to 98)'));const d=el('input','','',{type:'number',min:'4',max:'98',step:'1','data-eh-distance':'1',style:'max-width:8em'});d.value=String(VoidUnits.ft(a.distance||5));d.oninput=()=>{a.distance=d.value===''?5:VoidUnits.m(d.value,a.distance||5);};
     l.append(d,el('span','Measured from where you talk to '+nameOf(a.giver)+'. 16 ft is a few steps. What '+nameOf(a.giver)+' says is written on the last page.','me-help'));f.append(l);}
