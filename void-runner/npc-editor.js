@@ -470,17 +470,23 @@
   f.onchange=async()=>{const file=f.files&&f.files[0];f.remove();if(file)await importFile(file);};f.click();}
  async function importFile(file){const ext=(file.name.match(/\.[a-z0-9]+$/i)||[''])[0].toLowerCase();if(!X().IMPORT.exts.includes(ext)){status='Only .glb or .gltf files can be imported.';draw();return null;}
   if(file.size>X().IMPORT.maxBytes){status='This file is '+(file.size/1048576).toFixed(1)+' MB; the limit is '+(X().IMPORT.maxBytes/1048576).toFixed(0)+' MB. Reduce it in Blender, or send it to Claude/Codex.';draw();return null;}
+  try{X().importDocument(await file.arrayBuffer(),ext);}catch(err){status='Import refused: '+err.message;draw();return null;}
   const rec={id:'imp-'+Date.now().toString(36),name:file.name.replace(/\.[^.]+$/,'').slice(0,60),fileName:file.name,type:file.type||'model/gltf-binary',bytes:file.size,blob:file,createdAt:new Date().toISOString(),licence:{source:'',type:'',noAI:null},placement:null,info:null};
   await dbPut(rec);await loadImports();ui.id='import:'+rec.id;status='Imported '+file.name+' (in this browser only). Press SHOW 3D PREVIEW to run the checklist.';root.VoidEditorGuide?.focusNext();draw();return rec;}
  async function saveRec(rec){await dbPut(rec);await loadImports();}
  function importDetail(main,rec,pv){
   main.append(el('p','LOCAL TEST ONLY · not in the live game · kept in this browser · '+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
-  const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,clips:ui.preview.clips,height:info.height};await saveRec(rec);draw();}};
+  const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height};await saveRec(rec);draw();}};
   previewBox(main,e,null,[],pv,file);
   const ck=el('section','','me-check',{'data-npc-checklist':rec.id});ck.append(el('h4','Checklist'),hint(HELP.check));
   const verdict=rec.info?X().importCheck(rec.info):null;
   if(!verdict)ck.append(el('p','Press SHOW 3D PREVIEW to measure the model.','me-small me-warn'));else for(const it of verdict.items)ck.append(el('p',(it.level==='ok'?'✓ ':it.level==='warn'?'△ ':'✗ ')+it.text,it.level==='ok'?'me-ok':it.level==='warn'?'me-warn':'me-bad',{'data-npc-check':it.level}));
   main.append(ck);
+  const compatible=el('section','','me-check');compatible.append(el('h4','Compatible game animations (preview)'),hint('Candidates are matched by skeleton and rest pose. Try each on the preview before using it. Nothing is published.'));
+  if(!rec.info?.rest)compatible.append(el('p','Show the model in 3D to scan its skeleton.','me-small'));
+  else if(!root.VoidNPCClipIndex){const load=btn('SCAN GAME ANIMATIONS',async()=>{load.disabled=true;try{const r=await fetch('void-runner/npc-clip-index.json',{cache:'no-cache'});if(!r.ok)throw new Error('HTTP '+r.status);root.VoidNPCClipIndex=await r.json();draw();}catch(err){status='Could not read animation index: '+err.message;draw();}});compatible.append(load);}
+  else{const offers=X().importClips(rec.info),select=el('select','','',{'aria-label':'Compatible game animation'});for(const o of offers)select.append(new Option(o.name+' — '+o.asset,o.id));const result=el('p',offers.length+' compatible candidates (runtime confirmation required).','me-small');compatible.append(result,select,btn('TRY ANIMATION',async()=>{if(!ui.preview||ui.previewFor!==e.id){result.textContent='Show me in 3D first.';return;}const r=await ui.preview.tryLibrary(select.value,e.id);result.textContent=r.ok?'Preview passed: '+select.value:r.why;},'',offers.length?{}:{disabled:''}));}
+  main.append(compatible);
   const nm=el('section','','me-check');const ni=el('input','','',{'aria-label':'Name of the model','data-npc-import-name':rec.id,maxlength:'60'});ni.value=rec.name||'';ni.onchange=async()=>{rec.name=ni.value.trim().slice(0,60);await saveRec(rec);draw();};
   const l=el('label','','me-field');l.append(el('span','Name'),ni,hint('What you call it (shown in the list and in the package).'));nm.append(l);main.append(nm);
   const refused=verdict&&!verdict.ok;
@@ -525,7 +531,7 @@
   const rec=e.rec,p=rec.placement,t=p.mode==='stay'?p:p.points[0];const r=await Sx.jumpTo(t.x,t.z,null,rec.name+' (local test only)',RETURN);if(r&&r.started)setTimeout(()=>spawn(rec).catch(err=>{try{announce('The imported model could not be shown: '+err.message);}catch{}}),400);}
  /* The imported model in the test session: loaded from this browser into the game's scene, scaled to a person's height if it is far off, and moved by a small loop. */
  async function spawn(rec){const B=root.BABYLON,scene=root.VoidBabylon?.scene;if(!scene)throw new Error('no scene');await root.VoidNPCPreview.loaders();const buf=await rec.blob.arrayBuffer(),ext=/\.gltf$/i.test(rec.fileName)?'.gltf':'.glb';
-  const c=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);c.addAllToScene();const n=new B.TransformNode('npc-import-'+rec.id,scene);
+  X().importDocument(buf,ext);const c=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);c.addAllToScene();const n=new B.TransformNode('npc-import-'+rec.id,scene);
   for(const m of c.meshes)if(!m.parent)m.parent=n;for(const t of c.transformNodes)if(!t.parent)t.parent=n;for(const m of c.meshes){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights>8)m.material.maxSimultaneousLights=8;}
   const h=rec.info&&rec.info.height;if(h&&(h<1.3||h>2.3))n.scaling.scaleInPlace(1.75/h);const groups=c.animationGroups;for(const g of groups)g.stop();const play=name=>{for(const g of groups)g.stop();const g=groups.find(x=>x.name===name||x.name.endsWith('-'+name));if(g)g.start(true);};
   const p=rec.placement,Y=.18;let i=0,left=0,doing=false;root.VoidNPCEditor.spawned={id:rec.id,node:n};
