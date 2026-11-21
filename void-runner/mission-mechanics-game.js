@@ -70,7 +70,16 @@
   const clear=e=>{try{const n=Math.ceil(Math.hypot(P.x-e.x,P.z-e.z)/.4);for(let i=1;i<n;i++){const t=i/n;if(root.VoidExplorer?.blocked?.(e.x+(P.x-e.x)*t,e.z+(P.z-e.z)*t,L))return false;}return true;}catch{return true;}};
   const seen=ex.some(e=>{try{return Z.sees(e,P,cfg,clear);}catch{return false;}});const r=run[x.key+'|seen']=run[x.key+'|seen']||{t:0};r.t=seen?r.t+dt:Math.max(0,r.t-dt*.5);
   meter.hidden=r.t<=0;meter.firstChild.style.width=Math.min(100,r.t/1.2*100)+'%';
+  if(x.o.onSpotted==='alarm')return alarmCheck(x,r,seen,dt);
   if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidIrisAmbient?.spotted?.();}catch{}try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}
+ // onSpotted:'alarm' (the owner, 21 Nov 2026: Mission 006's way out): a guard shouts, ALARM.grace seconds to get out of sight, then the armed people of the place open fire
+ // (zone-integration.js alarm: the Neutral rooms' "after you" rule); the step goes on either way. Taken down: zone-integration.js getUp puts the player back by the way out.
+ function alarmCheck(x,r,seen,dt){const k=x.key+'|alarm',R=root.VoidZoneRun;if(run[k]&&run[k].phase==='alarm'&&!(R&&R.alarmed&&R.alarmed()))delete run[k];   // calmed down, or after a retry
+  const a=MM.spottedStep(run[k],{spotted:r.t>=1.2,seen,dt});run[k]=a.st;if(a.st.phase!=='calm'){r.t=0;meter.hidden=true;}
+  if(a.warn){say('SPOTTED · get out of sight!');try{root.VoidDevTest?.stepNote?.('SPOTTED on the way out: '+MM.ALARM.grace+' s to get out of sight');}catch{}}
+  if(a.clear)say('Out of sight. The guard goes back to his rounds.');
+  if(a.alarm){try{R?.alarm?.();}catch{}say('ALARM · Security opens fire. Get out to the street.');try{root.VoidDevTest?.stepNote?.('still seen: the guards open fire');}catch{}}
+  return false;}
  function tick(){const t=performance.now(),dt=Math.min(.5,(t-lastT)/1000);lastT=t;try{castTick();}catch(e){console.warn('[mission cast]',e);}
   if(!on()){sub.hidden=true;meter.hidden=true;return;}const blocked=(()=>{try{return LC().nearBlocked();}catch{return true;}})(),p=me(),list=nowList();let subShown=false,meterUsed=false;
   for(const x of list){if(x.delayed)continue;const o=x.o,k=x.kind;
@@ -110,6 +119,8 @@
   if(miss.length)return '<p class="pd-note">Needed first: '+miss.map(id=>esc((defs[id]||{}).title||id)).join(', ')+'.</p>';
   if(hand&&!inPlace(o.place))return '<p class="pd-note">Hand it over in person: '+esc(((placeOf(o.place)||{}).name)||o.place)+'.</p>';
   return '<button type="button" class="mx-act" data-mx-report="'+esc(x.key)+'">'+(hand?'HAND OVER TO ':'REPORT TO ')+esc(who)+'</button>';}
+ function replyOnV1(x){const r=fire({type:'report',step:x.key}),D=root.VoidPersonalDevice;if(!r||!(r.messages||[]).some(m=>m.channel==='comms'))return r;
+  try{if(D&&D.isOpen){D.openApp?.('comms');root.VoidV1?.clear?.();}}catch{}return r;}   // closed meanwhile: it rings as a normal call
  root.VoidMissionExtras=(id,done)=>{if(!on())return '';const s=st_(),env=LC().env,m=(env.trees||[]).flatMap(t=>t.missions||[]).find(y=>y.id===id);if(!m)return '';let h='';
   const held=(m.evidence||[]).filter(e=>MM.hasEvidence(s,e.id));if(held.length)h+='<div class="mx-ev"><b>EVIDENCE</b>'+held.map(e=>'<button type="button" data-mx-read="'+esc(e.id)+'">'+esc(e.title)+'</button>').join('')+'</div>';
   if(done)return h;const x=nowList().find(y=>y.mission===id);if(!x||x.delayed)return h;
@@ -119,8 +130,9 @@
   return h;};
  document.addEventListener('click',e=>{const b=e.target&&e.target.closest?e.target.closest('[data-mx-report],[data-mx-feed],[data-mx-read]'):null;if(!b)return;e.preventDefault();e.stopPropagation();
   if(b.dataset.mxRead){read(b.dataset.mxRead);return;}const key=b.dataset.mxReport||b.dataset.mxFeed,x=nowList().find(y=>y.key===key);if(!x)return;
-  try{root.VoidPersonalDevice?.close?.();}catch{}
-  if(b.dataset.mxReport){if((x.o.evidence||[]).some(id=>!MM.hasEvidence(st_(),id))||(x.o.place&&!inPlace(x.o.place)))return;setTimeout(()=>fire({type:'report',step:x.key}),250);return;}
+  // (the owner, 21 Nov 2026) a reply by Comms call: the V1 stays open and the reply plays there as an answered call (Comms); in person: closed as before
+  const keep=!!b.dataset.mxReport&&!!MM.reportKeepsV1&&MM.reportKeepsV1(x.o);if(!keep)try{root.VoidPersonalDevice?.close?.();}catch{}
+  if(b.dataset.mxReport){if((x.o.evidence||[]).some(id=>!MM.hasEvidence(st_(),id))||(x.o.place&&!inPlace(x.o.place)))return;if(keep){replyOnV1(x);return;}setTimeout(()=>fire({type:'report',step:x.key}),250);return;}
   openFeed(x);},true);
  // ---------------------------------------------------------------- the remote camera feed
  function openFeed(x){const F=root.VoidCameraFeed,f=((x.m.feeds)||[]).find(y=>y.id===x.o.feed);if(!F||!f){say('REMOTE FEED: no signal.');return;}if(F.active)return;

@@ -11,6 +11,10 @@
      sneak      {apt, mod?, object?}   STEALTH: reach that room (or use that object) of a location of this mission without being seen by its armed people (mission.combat
                 .armed, best in a NEUTRAL room so they do not shoot). Seen: "SPOTTED", the player is put back outside the street door; the step stays (try again).
                 `unseen:true` on apt-enter / apt-use / collect / apt-leave / hack steps applies the same rule while those steps are in progress.
+                `onSpotted:'alarm'` on such a step (the owner, 21 Nov 2026, Mission 006's way out): seen, a guard shouts ("SPOTTED · get out of sight!") and the player has
+                ALARM.grace seconds to break the line of sight; out of sight in time: the guards go back to their rounds and the step goes on; still seen: the armed
+                people of that location turn hostile and shoot (zone-integration.js alarm), the player can shoot back or run; the step completes as usual (reaching the
+                street alive) and being taken down is the mission's onDeath. spottedStep() is the state machine.
      collect    {evidence, apt?, mod?, object?}   EVIDENCE: the player copies an evidence item (mission.evidence) to the V1: the document window opens when the player uses
                 that object (or straight after the step before it when no object is named) with COPY TO V1. The evidence is kept (story.flags.evidence) and listed
                 in the V1 Mission Log under the mission. An unlock {kind:'evidence', id} gives one without a step.
@@ -42,7 +46,8 @@
  const AUTO=['call'];
  const UNSEEN_KINDS=['apt-enter','apt-use','collect','apt-leave','sneak','hack'];
  const FEED_STAGES=['open','watched','recorded','saved'],FLIGHT_STAGES=['board','launch','jump','dock'];
- const STEP_FIELDS=['minutes','stage','evidence','unseen','close'];
+ const STEP_FIELDS=['minutes','stage','evidence','unseen','close','onSpotted'];
+ const ON_SPOTTED=['alarm'],ALARM={grace:3,hide:.5};   // grace: seconds to get out of sight; hide: out of sight this long (in a row) counts as hidden
  const CAST_KEYS=['id','name','model','place','x','z','y','yaw','clip','from','until','route','speed'],EVIDENCE_KEYS=['id','title','text','kind'];
  const EV_KINDS=['document','recording','audio','photo'];
  const LIMIT={cast:8,evidence:12,title:60,text:1500,route:12,minutes:10080,store:200};
@@ -96,6 +101,7 @@
  /* The checks of one step of a new kind (and of `unseen` / `minutes` / `stage` / `evidence` / `close` on any step). speakerOk(id): a known speaker. */
  function stepProblems(m,o,ctx={},speakerOk=()=>true){const out=[],k=o&&o.kind,cast=castIds(m),who=id=>typeof id==='string'&&(cast.has(id)||(ctx.subjects&&ctx.subjects.has(id))||speakerOk(id));
   if(o.unseen!=null&&(o.unseen!==true||!UNSEEN_KINDS.includes(k)))out.push('“without being seen” is only for a go into / use / collect / leave / sneak / hack step.');
+  if(o.onSpotted!=null&&(!ON_SPOTTED.includes(o.onSpotted)||!(o.unseen===true||k==='sneak')))out.push('“they shout, then open fire” is only for a step done without being seen.');
   if(o.minutes!=null&&k!=='wait-game')out.push('only an in-game wait has minutes.');if(o.stage!=null&&k!=='feed'&&k!=='flight')out.push('only a camera feed or a flight step has a stage.');
   if(o.evidence!=null&&k!=='collect'&&k!=='report')out.push('only a collect or report step names evidence.');if(o.close!=null&&!['observe','overhear','tail'].includes(k))out.push('only an observe, overhear or follow-at-a-distance step has a “too close” distance.');
   if(!KINDS.includes(k))return out;
@@ -153,7 +159,19 @@
   let left=inp.speed*inp.dt;while(left>0&&st.seg<r.length-1){const a=r[st.seg],b=r[st.seg+1],len=Math.hypot(b[0]-a[0],b[1]-a[1])||.001,rem=(1-st.u)*len;if(left<rem){st.u+=left/len;left=0;}else{left-=rem;st.seg++;st.u=0;}}
   const a=r[Math.min(st.seg,r.length-1)],b=r[Math.min(st.seg+1,r.length-1)],pos={x:a[0]+(b[0]-a[0])*st.u,z:a[1]+(b[1]-a[1])*st.u,yaw:Math.atan2(b[0]-a[0],b[1]-a[1])};
   return {st,pos,done:st.seg>=r.length-1};}
- const api={V1_APPS,KINDS,AUTO,UNSEEN_KINDS,FEED_STAGES,FLIGHT_STAGES,STEP_FIELDS,CAST_KEYS,EVIDENCE_KEYS,EV_KINDS,LIMIT,RANGE,DEF,CLIPS,FLOOR_CLIPS,CLIP_NAMES,FLAG,EV_ID,
+ /* SPOTTED WITH AN ALARM (onSpotted:'alarm'): st {phase:'calm'|'grace'|'alarm', left (s of grace), hid (s out of sight in a row)}; inp {spotted (the sight meter just
+    filled), seen (a guard sees the player now), dt, grace?, hide?}. Returns {st, warn (just spotted: show the warning), clear (got out of sight: back to their rounds),
+    alarm (just now: the guards open fire)}. 'alarm' stays until the step is done (the caller drops the state). */
+ function spottedStep(st,inp){st=st||{phase:'calm',left:0,hid:0};const out={st,warn:false,clear:false,alarm:false},dt=Math.max(0,Number(inp&&inp.dt)||0),g=Number.isFinite(inp&&inp.grace)?inp.grace:ALARM.grace,h=Number.isFinite(inp&&inp.hide)?inp.hide:ALARM.hide;
+  if(st.phase==='alarm')return out;
+  if(st.phase==='calm'){if(inp&&inp.spotted){st.phase='grace';st.left=g;st.hid=0;out.warn=true;}return out;}
+  st.left-=dt;st.hid=inp&&inp.seen?0:st.hid+dt;
+  if(st.hid>=h){st.phase='calm';st.left=0;st.hid=0;out.clear=true;return out;}
+  if(st.left<=0){st.phase='alarm';st.left=0;out.alarm=true;}return out;}
+ /* REPORT from the V1 Mission Log (the owner, 21 Nov 2026): a reply by Comms call keeps the V1 open and plays there as an answered call; a hand-over in person
+    (a place named) or a reply in the conversation window closes it as before. */
+ const reportKeepsV1=o=>!!o&&!o.place&&o.via==='comms';
+ const api={V1_APPS,KINDS,AUTO,UNSEEN_KINDS,ON_SPOTTED,ALARM,spottedStep,reportKeepsV1,FEED_STAGES,FLIGHT_STAGES,STEP_FIELDS,CAST_KEYS,EVIDENCE_KEYS,EV_KINDS,LIMIT,RANGE,DEF,CLIPS,FLOOR_CLIPS,CLIP_NAMES,FLAG,EV_ID,
   evidenceList,hasEvidence,addEvidence,evidenceDefs,castProblems,evidenceProblems,stepProblems,hit,rank,waitFlag,gameWait,castVisible,overhearStep,observeStep,tailStep,lineSecs,near,close,hold};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionMechanics=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

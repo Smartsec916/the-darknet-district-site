@@ -71,13 +71,16 @@
    else if(obj==='screen'){const on=z?.screenOf?.(mod)===false;z?.screen?.(mod,on);if(inst)memo.screens.set(inst.key+'|'+mod,on);msg=on?'You switch the screen on.':'You switch the screen off.';}
    else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)
     msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}
-   if(msg)note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod});}catch{}});
+   // (the owner, 21 Nov 2026) the thing the mission step in progress needs (the manager's computer in 006) shows only the mission's content, not its everyday description
+   if(msg&&!(wl?.apt&&!['lights','screen'].includes(obj)&&LC()?.stepWants?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod})))note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod});}catch{}});
   R('mod-item',({item})=>{const wl=here(),m=(wl?.cluster?.mods||[]).find(x=>x.id===item.mod),it=m&&(m.items||[])[item.index];note(it?(it.type==='mission-item'?'MISSION ITEM: ':it.type==='loot'?'LOOT: ':it.type==='note'?'NOTE: ':'')+it.label+' (placed for this mission; picking things up comes later).':'Nothing here.');});
   R('mod-exit',()=>{try{resumeWalking();}catch{}const z=zone();let w=0;for(const d of z?.doors||[])if(d.rec?.kind==='entry'||d.id==='street'){d.force?.(1);w=Math.max(w,DW(d));}setTimeout(()=>backToStreet(),w);});
   R('mod-portal',({item})=>{try{resumeWalking();}catch{}if(!item.door){note('Locked.');return;}const z=zone(),d=(z?.doors||[]).find(x=>x.id===item.door||x.rec?.id===item.door);const inst=visit&&now(visit.inst.key),an=inst&&M.analyse(inst.loc),dd=an&&an.doors.find(x=>x.id===item.door);
    if(dd&&M.lockedNow(inst,an,dd)){note('DOOR · LOCKED. The access point beside it could be bypassed.');return;}d?.force?.(1);setTimeout(()=>cross(item.door),DW(d));});
   R('mod-door',()=>note('DOOR · LOCKED. A card reader and a keypad; the access point beside it could be bypassed.'));
   R('mod-elev',({item})=>{try{resumeWalking();}catch{}ride(item.floor);});}
- Object.assign(M,{enter,backToStreet,cross,ride,moduleAt,resetRun(){memo.lights.clear();memo.screens.clear();}});
+ /* Back in by the street door (the entrance module): Mission 006's way out after being taken down in an alarm (zone-integration.js getUp; 21 Nov 2026). */
+ async function reenter(){const v=visit;if(!v||!v.door||!v.inst)return false;const inst=now(v.inst.key);if(!inst)return false;await enter(v.door,inst);return true;}
+ Object.assign(M,{enter,reenter,backToStreet,cross,ride,moduleAt,resetRun(){memo.lights.clear();memo.screens.clear();}});
  Object.defineProperty(M,'visit',{get:()=>visit,configurable:true});
 })(globalThis);

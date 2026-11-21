@@ -134,17 +134,24 @@
  const downEl=document.createElement('div');downEl.id='zone-down';downEl.hidden=true;document.body.append(downEl);
  function takenDown(){if(down)return;down=true;stats.deaths++;try{groundState.drawn=false;groundState.aim=false;}catch{}try{document.exitPointerLock?.();}catch{}
   const inside=insideNow(),t=inside&&taken().find(x=>x.m.id===inside.mission),fail=!!(t&&t.m.combat&&t.m.combat.onDeath==='fail');
-  downEl.innerHTML='<h2>TAKEN DOWN</h2><p>'+(fail?'The mission failed. It goes back to whoever gave it to you.':inside?'You come round outside. The mission is still yours: try again.':'You come round somewhere safe.')+'</p><button type="button" data-zone-up>GET UP</button>';downEl.hidden=false;downEl.dataset.fail=fail?'1':'';downEl.dataset.mission=t?t.m.id:'';}
+  const back=!fail&&!!(inside&&alarmRetry(inside.mission));downEl.dataset.back=back?'1':'';
+  downEl.innerHTML='<h2>TAKEN DOWN</h2><p>'+(fail?'The mission failed. It goes back to whoever gave it to you.':back?'You come round by the way out. The mission is still yours: get to the street.':inside?'You come round outside. The mission is still yours: try again.':'You come round somewhere safe.')+'</p><button type="button" data-zone-up>GET UP</button>';downEl.hidden=false;downEl.dataset.fail=fail?'1':'';downEl.dataset.mission=t?t.m.id:'';}
  downEl.addEventListener('click',e=>{if(e.target.closest('[data-zone-up]'))getUp();});
  async function getUp(){if(!down)return;const fail=downEl.dataset.fail==='1',mission=downEl.dataset.mission,wl=walkingLocation;downEl.hidden=true;
   for(const k of [...deadSet])if(!mission||k.startsWith(mission+'/'))deadSet.delete(k);esc.at=null;esc.until=0;Z.rearm(safety);clearEnemies();
   try{if(fail&&mission){MC().abandon(state,LC().env,mission);announce('MISSION FAILED · '+(root.VoidMissions?.definitions?.[mission]?.title||mission));try{root.VoidDevTest?.stepNote?.('you went down; the mission failed, its giver offers it again');}catch{}}save();}catch{}
   try{groundState.health=cfg().footPlayerHealth;const pp=state.progression.personal,T=root.VoidProgression?.tuning?.ground;if(T){pp.ammo=T.magazine;pp.reserve=Math.max(24,pp.reserve);}}catch{}   // as the old checkpoint respawn: a full magazine, at least 24 in reserve
-  try{if(wl&&wl.apt&&wl.modular&&MOD()?.backToStreet)await MOD().backToStreet();else if(wl&&wl.apt&&APT()?.door){const d=APT().door(wl.door||'');if(d)await enterWalking(root.VoidDistrictArea.KEY.street,{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw:Math.atan2(-d.n[0],-d.n[1])});else await enterWalking(root.VoidDistrictArea.KEY.interior,{silent:true});}
+  try{if(wl&&wl.apt&&wl.modular&&MOD()?.backToStreet){if(!(downEl.dataset.back==='1'&&MOD().reenter&&await MOD().reenter()))await MOD().backToStreet();}else if(wl&&wl.apt&&APT()?.door){const d=APT().door(wl.door||'');if(d)await enterWalking(root.VoidDistrictArea.KEY.street,{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw:Math.atan2(-d.n[0],-d.n[1])});else await enterWalking(root.VoidDistrictArea.KEY.interior,{silent:true});}
    else await enterWalking(root.VoidDistrictArea.KEY.interior,{silent:true,spawn:(()=>{try{const [x,z]=root.VoidNeoChinatown.toWorld(0,28.5);return [x,1.7,z];}catch{return undefined;}})(),yaw:Math.PI});}catch(e){stats.error=e.message;}
   down=false;}
  // ---------------------------------------------------------------- the ammo panel names the gun in hand
  setInterval(()=>{try{const el=document.querySelector('#fps-ammo-hud .ammo-title');if(el){const w=state?.progression?.personal?.weapon;const n=w==='base-pistol'?'PISTOL':'WARD PISTOL';if(el.textContent!==n)el.textContent=n;}}catch{}},500);
- root.VoidZoneRun={current,paint,get chip(){return chip;},get enemies(){return enemies.map(x=>({...x.e,key:x.key,mod:x.mod}));},get escalation(){return {...esc};},get safety(){return {...safety};},stats,
+ /* ALARM (mission-mechanics.js onSpotted:'alarm', 21 Nov 2026): the armed people of the location the player is in turn on them now (the Neutral rule's guardHostileTime,
+    as after a shot) and head for where they stand. alarmed(): still after the player. alarmRetry(mission): that mission's step in progress takes an alarm (taken
+    down: the player comes round inside by the way out, so the step is not done by being carried to the street). */
+ function alarm(){const r=current();if(!r||!r.inside)return false;Z.provoke(esc,r.key,now(),cfg());for(const x of enemies)if(!x.e.dead){x.e.alert=true;x.e.lost=0;x.e.last={x:walker.x,z:walker.z};}return true;}
+ function alarmed(){const r=current();return !!r&&Z.hostileNow(esc,r.key,now());}
+ function alarmRetry(mission){try{return (root.VoidMissionMechanicsGame?.now?.()||[]).some(x=>x.mission===mission&&x.o&&x.o.onSpotted==='alarm');}catch{return false;}}
+ root.VoidZoneRun={alarm,alarmed,current,paint,get chip(){return chip;},get enemies(){return enemies.map(x=>({...x.e,key:x.key,mod:x.mod}));},get escalation(){return {...esc};},get safety(){return {...safety};},stats,
   get down(){return down;},getUp,takenDown,build,hurtPlayer,toast,shot,reset(){deadSet.clear();esc.at=null;esc.until=0;Z.rearm(safety);clearEnemies();}};
 })(globalThis);
