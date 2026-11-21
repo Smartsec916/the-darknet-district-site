@@ -29,12 +29,12 @@ test('what each zone allows: Friendly never fires, Neutral provokes, Hostile att
 });
 
 test('the Neutral safety catch: the first press warns, a second within the window fires; holstering re-arms it; it can be switched off',()=>{
- const c=Z.tune({}),st={armedAt:null};
+ const c=Z.tune({neutralSafety:1}),st={armedAt:null};
  assert.equal(Z.press(st,'friendly',0,c),'locked');assert.equal(Z.press(st,'hostile',0,c),'fire');
  assert.equal(Z.press(st,'neutral',10,c),'warn');assert.equal(Z.press(st,'neutral',11,c),'fire');assert.equal(Z.press(st,'neutral',11.5,c),'fire');
  assert.equal(Z.press(st,'neutral',20,c),'warn','too long after: the safety is back on');
  Z.rearm(st);assert.equal(Z.press(st,'neutral',20.5,c),'warn','holstered: warns again');
- const off=Z.tune({neutralSafety:0});assert.equal(Z.press({armedAt:null},'neutral',0,off),'fire');
+ const off=Z.tune();assert.equal(Z.press({armedAt:null},'neutral',0,off),'fire');
 });
 
 test('escalation: a shot makes the area hostile for guardHostileTime; leaving it calms everyone at once',()=>{
@@ -116,7 +116,7 @@ test('the base pistol: sold by Admin for the Combat Balance price, bought once, 
  assert.equal(P.buyWeapon(s,'base-pistol',0),false,'once');assert.equal(P.buyWeapon({credits:10,progression:P.fresh()},'base-pistol',350),false,'not enough credits');assert.equal(P.buyWeapon(s,'rocket',0),false);
  const back=P.restore(JSON.parse(JSON.stringify(s.progression)),{quest:'inheritance'});assert.deepEqual(back.personal.weapons,['base-pistol']);assert.equal(back.personal.weapon,'base-pistol');
  assert.deepEqual(P.restore({...P.fresh(),personal:{...P.fresh().personal,weapons:['base-pistol','laser-sword']}},{quest:'inheritance'}).personal.weapons,['base-pistol']);
- const spec=require('../void-runner/balance.js').spec;for(const k of Object.keys(Z.TUNE))assert.ok(spec[k],'Combat Balance has '+k);assert.equal(spec.neutralSafety.value,1,'the safety catch is on by default');
+ const spec=require('../void-runner/balance.js').spec;for(const k of Object.keys(Z.TUNE))assert.ok(spec[k],'Combat Balance has '+k);assert.equal(spec.neutralSafety.value,0,'the safety catch is off by default');
  const py=read('void_runner_progression.py');assert.match(py,/WEAPONS = \['base-pistol'\]/);assert.match(py,/'weapons':weapons/);
  assert.match(read('void-runner/faction-scenes.js'),/admin-buy-weapon:/);assert.match(read('void-runner/mouse-control.js'),/id:'base-pistol',name:'PISTOL'/);
 });
@@ -139,7 +139,7 @@ test('ONE combat balance for on-foot combat: the campaign and Skirmish FPS read 
  const d=Z.skirmish(null,'normal');assert.equal(d.damage,11);assert.equal(d.accuracy,.66);assert.equal(d.reaction,1.1);assert.equal(d.speed,1.05);const g0=Z.gun(null);assert.equal(Math.round(g0.aimDamage),42);assert.equal(g0.damage,34);
  // both modes read them, and no copy of the old numbers is left in Skirmish
  const sk=read('void-runner/skirmish.js'),zi=read('void-runner/zone-integration.js');
- for(const re of [/Z\.gun\(bal\(\)/,/Z\.skirmish\(bal\(\),d\)/,/g\.aimDamage:g\.damage/,/Z\.sees\(/,/Z\.shotDir\(/,/c\.detectRange\*1\.2/])assert.match(sk,re);
+ for(const re of [/Z\.gun\(bal\(\)/,/Z\.skirmish\(bal\(\),d\)/,/g\.aimDamage:g\.damage/,/Z\.step\(/,/Z\.shotDir\(/,/Z\.press\(/])assert.match(sk,re);
  for(const old of ['s.aim?42:34','s.cooldown=.27','distance<29','ammo:12,reserve:96','12-s.ammo','reload=1.35','damage:7,accuracy:.46'])assert.ok(!sk.includes(old),'skirmish still has '+old);
  for(const re of [/Z\.gun\(root\.VOID_BALANCE/,/gg\.aimDamage:gg\.damage/,/footPlayerHealth/,/Z\.shotDir\(/])assert.match(zi,re);
  const spec=require('../void-runner/balance.js').spec;for(const k of ['pistolAimBonus','pistolCooldown','pistolSpread','pistolRecoil','footPlayerHealth'])assert.equal(spec[k].value,Z.TUNE[k],k+' default matches');

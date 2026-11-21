@@ -293,12 +293,14 @@
   if(when==='accept'&&!(m.start&&m.start.accept===true))err(w+': a mission the player pays for when accepting must ask the player ACCEPT or DENY.');}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
  const linked=trees=>new Set((trees||[]).flatMap(t=>(t.missions||[]).flatMap(m=>(m.unlocks||[]).filter(u=>u&&u.kind==='tree').map(u=>u.id))));
- /* ctx: givers (Map id → {canTalk}), places (Set), items (Set: buyable module ids), locations (Set), ships (Map id → {premium}), registryIds (Set: ids a draft id may not take). */
+ /* ctx: givers (Map id → roster entry), places, items, locations, ships and registryIds. TALK is required only for mechanics that execute through a walking interaction. */
  function checkTrees(trees,ctx,err){
   if(!Array.isArray(trees)||trees.length>10){err('New trees have an unknown shape (10 at most).');return;}
   const tids=new Set(),mids=new Set(),all=new Set(trees.map(t=>t&&t.id));let total=0;const evSeen=new Set(),evAll=new Set([...Object.keys(MM?MM.evidenceDefs(trees):{}),...((ctx.evidence)||[])]);
   const npcOk=id=>typeof id==='string'&&(!ctx.givers||(ctx.givers.get(id)||{}).canTalk===true);
-  const speakerOk=id=>id==='You'||(typeof id==='string'&&(!ctx.givers||ctx.givers.has(id)));
+  const knownNpc=id=>typeof id==='string'&&id!=='You'&&(!ctx.givers||ctx.givers.has(id));
+  const speakerOk=id=>id==='You'||knownNpc(id);
+  const giverOk=m=>m&&m.start&&m.start.how==='notification'?knownNpc(m.giver):npcOk(m&&m.giver);
   const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
   const animP=(who,clip)=>{const A=NGS();return A?A.problem(who,clip,{plan:(ctx.npcs||{})[who]||null}):'';};
   const sec=(v,lo,hi)=>v==null||(Number.isInteger(v)&&v>=lo&&v<=hi);
@@ -327,7 +329,7 @@
     if(m.objective!=null&&!plain(m.objective,200))err(w+': the objective must be plain text (200 characters at most).');
     if(m.location!=null&&(typeof m.location!=='string'||(ctx.places&&!ctx.places.has(m.location))))err(w+': unknown location "'+m.location+'".');if(mids.has(m.id)||(ctx.registryIds&&ctx.registryIds.has(m.id)))err(w+': duplicate mission id.');mids.add(m.id);
     if(!plain(m.title,LIMIT.title))err(w+': a title is required (60 characters at most, no HTML).');if(!TYPES.includes(m.type))err(w+': unknown mission type.');
-    if(!npcOk(m.giver))err(w+': the giver must be an NPC the game has a TALK prompt for.');
+    if(!giverOk(m))err(w+': '+(m.start&&m.start.how==='notification'?'the giver must be a known NPC.':'the giver must be an NPC the game has a TALK prompt for.'));
     if(m.description!=null&&!(typeof m.description==='string'&&m.description.length<=LIMIT.description&&!TAGS.test(m.description)))err(w+': the description must be plain text (600 characters at most).');
     if(m.rewards!=null&&!(Number.isInteger(m.rewards)&&m.rewards>=0&&m.rewards<=LIMIT.credits))err(w+': credits must be a whole number between 0 and 100000.');
     lines(m.offer,w,choiceOk(m,null)?{m,i:-1,t}:null);
@@ -793,9 +795,9 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  /* Why a draft mission cannot run in the game yet (plain words; empty = it can). givers: roster list; items: buyable ids (Set). */
  /* What a draft mission still needs before it can run, as {text (plain words), field (which input: the editor's "next required input" guide highlights it), step (the step id)}.
     treeBlockers is the same list as plain words, so the guide and the play / publish check never disagree. */
- function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
+ function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},known=id=>!!g(id),nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
   if(!String(m.title||'').trim())need('it needs a name','title');
-  if(!m.giver)need('nobody gives it yet','giver');else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')','giver');
+  if(!m.giver)need('nobody gives it yet','giver');else if(m.start&&m.start.how==='notification'){if(!known(m.giver))need(nm(m.giver)+' is not a known NPC','giver');}else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in person today ('+((g(m.giver)||{}).why||'no TALK prompt')+'). Start it by notification to use this NPC without adding a TALK interaction.','giver');
   if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},quiet=quietStart(st);if(!st.from&&!quiet)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!quiet&&!String(st.text||'').trim())need('the notification needs its text','start-text');
    if(w.kind==='after-mission'&&!w.mission)need('choose the mission it follows','start-mission');if((w.kind==='place'||w.kind==='leave')&&!w.place)need('choose the place that starts it','start-place');if(w.kind==='flag'&&!w.flag)need('name the story flag that starts it','start-flag');
    if(w.kind==='near'){const who=w.npc||m.giver;if(!who)need('choose who the player walks near','start-near');else if(!can(who))need(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)','start-near');}}

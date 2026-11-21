@@ -2,8 +2,9 @@
    played or published") and by the content adapter at play time (which interaction belongs to which NPC, where a "go to" place is). Every entry here is a FACT read from
    the game's own code (the source is named on each line); nothing here moves an NPC, gives anyone a new place or line, or decides story. Placing an earlier character in the
    District is the owner's story decision: this file only says where each character is today.
-   An NPC can give a mission or be the person a step happens with only if the game has a TALK prompt for them (`targets`: the interaction action, and for station people the
-   character id). `district` = in the current District game (NeoChinatown and the places a District player walks to); everyone else is an earlier character.
+   A walking-game TALK prompt (`targets`: interaction action, plus character id where needed) is required only for IN-PERSON offers and steps that wait on talking.
+   Any registered roster NPC may own or send a mission that starts by Messages / Comms / notification because that path is driven by the V1, not by a world interaction.
+   `district` = in the current District game (NeoChinatown and the places a District player walks to); everyone else is an earlier character.
    `players`: whether an ordinary District player can reach them today. `draft`: whether PLAY THIS DRAFT can start next to them (the same places Test & Jump To can open). */
 (function(root){
  'use strict';
@@ -84,8 +85,8 @@
    reach:'Rusthaven is not on a District campaign’s list of known places. An "open route / place: Rusthaven Port" unlock would open it.'},
   sol:{name:'Dr. Sol',group:E,say:'sol',where:'Kepler, the clinic network’s station (station-layouts.js: TALK / DR. SOL).',targets:[{action:'talk',character:'sol'}],layout:'sol',enter:AREA.station('kepler'),players:false,draft:true,
    reach:'Kepler is not on a District campaign’s list of known places. An "open route / place: Kepler" unlock would open it.'}};
- const RESIDENT='Stands in the District as a figure but has no TALK prompt (needs a code change before a mission can start with them).';
- const COMPANION='A VR companion: talks only inside a VR experience, not in the walking game (needs a code change to give missions).';
+ const RESIDENT='Stands in the District as a figure but has no walking TALK prompt. It can own/send a notification-started mission and speak in device content; an in-person offer, talk/deliver step or hand-in needs a walking interaction code change.';
+ const COMPANION='A VR companion: talks inside a VR experience, not in the walking game. It can own/send a notification-started mission and speak in device content; an in-person walking-game mission interaction needs a code change.';
  /* "Go to" places a step can ask for. walk/area: the walking scene (walkingLocation.id and .area); quarter: walkingLocation.quarter on the street; location: the save location (stations).
     (The `enter` of a giver above is different: the key enterWalking() is called with to put a draft player there.) */
  const PLACES=[
@@ -214,7 +215,7 @@
  }
  /* Plain words for the picker and the check screen. */
  function status(g){if(!g)return 'Not a known NPC.';
-  if(!g.canTalk)return g.why||'Cannot be talked to in the game today (needs a code change).';
+  if(!g.canTalk)return (g.why||'No walking TALK prompt.')+' Notification-started missions are supported; in-person TALK mechanics are not.';
   const at=g.enter&&g.enter.location,play=g.draft?'A draft with them can be played now'+(g.group===E&&at?' (draft play starts at '+((PLACE.get(at)||{}).name||at)+')':'')+'.':'A draft with them cannot be played yet.';
   const pub=g.players?'Players can reach them today.'+(g.group===E&&g.reach?' '+g.reach:''):'Players cannot reach them today. '+(g.reach||'Their place is not open to a District player.');
   return (g.group===E?'Earlier character: '+g.where+' ':'')+play+' '+pub+(g.shift?' '+shiftText(g):'');}

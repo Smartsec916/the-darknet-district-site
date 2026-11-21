@@ -102,6 +102,8 @@ test('How it starts: one list (walk near is its own choice), read back from the 
 
 test('the wizard: walk near (automatic) and walk near with ACCEPT / DENY, with a distance',()=>{
  fresh();const W=require(R('void-runner/editor-wizard.js')),T=require(R('void-runner/mission-trees.js'));assert.ok(W.STARTS.some(s=>s.id==='near'&&/automatically/.test(s.title)));assert.ok(W.STARTS.some(s=>s.id==='near-accept'));
+ const ctx={givers:[{id:'iris',name:'Iris',canTalk:true,draft:true},{id:'remote',name:'Remote NPC',canTalk:false,draft:false}]};
  for(const [start,ask] of [['near',false],['near-accept',true]]){const a=W.fresh('talk');Object.assign(a,{giver:'iris',start,title:'T',distance:9,message:{header:'',text:'Hi.'}});for(const st of a.steps){st.npc='iris';st.label='x';}
-  assert.deepEqual(W.problems(a,'start',{}),[]);const {mission:m}=W.build({trees:[]},a,{T,number:60});assert.equal(m.start.when.kind,'near');assert.equal(m.start.when.distance,9);assert.equal(m.start.accept===true,ask);}
- const a=W.fresh('talk');Object.assign(a,{giver:'iris',start:'near-accept',message:{header:'',text:''}});assert.equal(W.problems(a,'start',{}).length,1,'the banner words');});
+  assert.deepEqual(W.problems(a,'start',ctx),[]);const {mission:m}=W.build({trees:[]},a,{T,number:60});assert.equal(m.start.when.kind,'near');assert.equal(m.start.when.distance,9);assert.equal(m.start.accept===true,ask);
+  assert.match(W.problems({...a,giver:'remote'},'start',ctx).join(' '),/real walking-game interaction/);assert.deepEqual(W.problems({...a,giver:'remote',start:'messages'},'start',ctx),[]);}
+ const a=W.fresh('talk');Object.assign(a,{giver:'iris',start:'near-accept',message:{header:'',text:''}});assert.equal(W.problems(a,'start',ctx).length,1,'the banner words');});

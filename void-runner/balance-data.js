@@ -232,6 +232,6 @@ globalThis.VoidBalanceSpec = {
   "detectCone": {"value":110,"min":20,"max":360},
   "guardHostileTime": {"value":45,"min":5,"max":600},
   "civilianFleeRadius": {"value":25,"min":0,"max":120},
-  "neutralSafety": {"value":1,"min":0,"max":1},
+  "neutralSafety": {"value":0,"min":0,"max":1},
   "safetyWindow": {"value":2,"min":0.5,"max":10}
 };

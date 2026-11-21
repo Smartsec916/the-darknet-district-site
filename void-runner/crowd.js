@@ -139,6 +139,8 @@
   if(!casts[location])return {};
   // area: NeoChinatown's street and the District interior are separate environments; each needs only its own people.
   const set=new Set(area==='interior'&&location==='neochinatown'?[]:[...casts[location],...(staff[location]||[])]);if(location==='neochinatown'&&area!=='interior'){monks.forEach(l=>set.add(l));   /* the street's monks (ncz-nightlife.js) */streetFigures(quarter,quality).forEach(l=>set.add(l));}   /* the street people of this quarter (ncz-nightlife.js, ncz-outskirts-life.js, NULL) */if(location==='neochinatown'&&area!=='street')casts.district.forEach(l=>set.add(l));
+  // Dedicated food stand figures use their measured apron and seat rigs; do not replace the newer street cast.
+  if(location==='neochinatown'&&area!=='interior'){const F=typeof module!=='undefined'?require('./ncz-food-stands.js'):root.VoidFoodStands,stand=F?.STANDS[quarter];if(stand){set.add(stand.look);set.add('fixer-01');}}
   // Background: a figure that isn't downloaded within the scene's few seconds keeps loading and is
   // swapped in when it arrives (asset-pipeline.js), instead of being dropped for the procedural crew.
   // The named residents' own models are loaded with the District's people, so each is there when their spot is filled; if one fails, a look of the place stands in (babylon-renderer.js).

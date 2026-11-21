@@ -1,5 +1,15 @@
 # Mission Editor (Developer Tools > Mission Editor)
 
+## Dev Tools NPC capability audit (19 Nov 2026)
+
+Full matrix: [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md).
+
+**Rule to preserve:** a walking TALK prompt is a capability, not a definition of whether an NPC may participate in missions. An **in-person** offer, talk/deliver step, hand-in, and **walked near** trigger still require a real walking-game interaction. A mission that starts through **Messages, Comms or notification** may belong to any registered NPC because the V1 trigger already runs without a world TALK prompt. The NPC tab's **Give them a mission** action therefore creates a notification-started draft for a no-TALK NPC.
+
+Do not infer route/follow support from a `walk` clip. Generic placement, schedules and mission escort state are consumed today only by `npc-paths.js MOVABLE` / `ncz-street-pair.js` (Reverie, Lace, street cat). All other scene-specific movement restrictions remain until their runtime explicitly consumes Dev Tools plans.
+
+Animation compatibility remains based on the real `npc-clip-index.json` skeleton/rest-pose metadata and loaded animation groups, not on clip names alone.
+
 ## Street pair gameplay options (21 Nov 2026)
 
 Reverie and Lace have **Take a photo** in their placement actions. The verified ordinary shared motions in `npc-paths.js PAIR_GAMEPLAY` (27 for Reverie, 8 for Lace) are selectable directly in mission animations and in Add animation; they use the existing public clip index, matching joints/rest pose, and runtime retargeter. Reverie can use six security combat poses; Lace requires an offline retarget before those can be offered. These visual poses do not grant a weapon or combat AI. Existing voice selections, rotation, collision and age-sensitive content rules are unchanged.
