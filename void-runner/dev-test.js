@@ -20,7 +20,7 @@
    +'<label>Story stage<select id="dev-test-stage">'+stages.map(([id,name])=>'<option value="'+id+'"'+(id===choice.stage?' selected':'')+'>'+escapeText(name)+'</option>').join('')+'</select></label>'
    +'<label><span>Test kit</span><span><input id="dev-test-kit" type="checkbox"'+(choice.kit?' checked':'')+'> 10,000 credits, Ward pistol, missile launcher, every place discovered</span></label>'
    +'</div><div class="dev-actions"><button data-dev="test-start">START TEST SESSION</button>'+(active?'<button data-dev="test-exit">EXIT TEST</button>':'')+'</div>'
-   +'<h3 class="dev-group">Street life</h3><p class="dev-note">Two people argue a few metres in front of you; the people round about stop and most of them film it on their V1 (monks and V3 // Shadow carriers do not). Walking in NeoChinatown only.</p><div class="dev-actions"><button data-dev="test-argument">STAGE A STREET ARGUMENT HERE</button></div><p id="dev-status" role="status"></p>';
+   +'<h3 class="dev-group">Street life</h3><p class="dev-note">Two people argue a few steps in front of you; the people round about stop and most of them film it on their V1 (monks and V3 // Shadow carriers do not). Walking in NeoChinatown only.</p><div class="dev-actions"><button data-dev="test-argument">STAGE A STREET ARGUMENT HERE</button></div><p id="dev-status" role="status"></p>';
  }
  function read(panel){choice={location:panel.querySelector('#dev-test-location')?.value||choice.location,stage:panel.querySelector('#dev-test-stage')?.value||choice.stage,kit:!!panel.querySelector('#dev-test-kit')?.checked};}
 

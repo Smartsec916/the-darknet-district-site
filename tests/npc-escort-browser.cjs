@@ -34,7 +34,7 @@ const log=(...a)=>console.log('[npc-escort]',...a),PART=process.env.PART||'all';
   assert.deepEqual(who,{value:'grey-reverie',admin:true,cat:true});
   // the follow-them settings: change the waiting distance (UNDO-able like any edit), and the lost choice
   const step1=await page.evaluate(m=>m,made.mission),first=page.locator('[data-me-esc]').first();
-  await first.locator('input[data-me-esc-wait]').fill('6');await first.locator('input[data-me-esc-wait]').dispatchEvent('change');await page.waitForTimeout(250);
+  await first.locator('input[data-me-esc-wait]').fill('20');await first.locator('input[data-me-esc-wait]').dispatchEvent('change');await page.waitForTimeout(250);
   const draftStep=k=>page.evaluate(([id,k])=>{const d=JSON.parse(localStorage.getItem('mission-editor-drafts-v1'));for(const t of d.trees)for(const m of t.missions)if(m.id===id)return m.objectives[k];return null;},[step1,k]);
   assert.equal((await draftStep(0)).wait,6);
   await page.locator('[data-me-esc]').first().locator('select[data-me-esc-iflost]').selectOption('pause');await page.waitForTimeout(250);assert.equal((await draftStep(0)).ifLost,'pause');
