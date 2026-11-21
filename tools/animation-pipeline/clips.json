@@ -710,6 +710,74 @@
    "as": "shock",
    "loop": "exact",
    "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). One-shot: a start, a hand raised, then back."
+  },
+  "floor-kneel": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "loop": "exact",
+   "note": "Floor poses (21 Nov 2026, the owner: \"can you add kneeling and cross-legged pose? ... also a sitting knee to chest pose\"). No mocap in the pipeline has them, so they are posed by code on each figure's own skeleton: tools/animation-pipeline/make_floor_poses.py (no Blender, no outside service). A Blender rebuild skips them (source pose); run make_floor_poses.py on the rebuilt file. Kneeling, sitting back on the heels (seiza), hands on the thighs, breathing. 4 s loop."
+  },
+  "floor-cross": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "loop": "exact",
+   "note": "Floor poses (21 Nov 2026, the owner: \"can you add kneeling and cross-legged pose? ... also a sitting knee to chest pose\"). No mocap in the pipeline has them, so they are posed by code on each figure's own skeleton: tools/animation-pipeline/make_floor_poses.py (no Blender, no outside service). A Blender rebuild skips them (source pose); run make_floor_poses.py on the rebuilt file. Cross-legged on the floor, hands resting on the knees, breathing and a slow look about. 6 s loop."
+  },
+  "floor-knees": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "loop": "exact",
+   "note": "Floor poses (21 Nov 2026, the owner: \"can you add kneeling and cross-legged pose? ... also a sitting knee to chest pose\"). No mocap in the pipeline has them, so they are posed by code on each figure's own skeleton: tools/animation-pipeline/make_floor_poses.py (no Blender, no outside service). A Blender rebuild skips them (source pose); run make_floor_poses.py on the rebuilt file. Sitting on the floor, knees pulled up to the chest, arms wrapped round the shins, a small rocking sway. 5 s loop."
+  },
+  "floor-kneel-down": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). From standing, knees bending forward, the right knee down onto the cushion then the left (toes tucked), upright on the knees, then sitting back on the heels into floor-kneel. 1.8 s."
+  },
+  "floor-kneel-up": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-kneel-down played in reverse (1.6 s): up off the heels onto the knees, one foot then the other under the body, pushing up to standing."
+  },
+  "floor-cross-down": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). From standing on the cushion, a squat with the arms forward, one hand back onto the cushion, down onto it with the knees up, then the knees fall out and the shins cross into floor-cross. 1.6 s."
+  },
+  "floor-cross-up": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-cross-down played in reverse (1.5 s): the shins uncross, the knees come up, a push off the hand behind and up to standing."
+  },
+  "floor-knees-down": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). From standing on the cushion, a squat with the arms forward, one hand back onto the cushion, down onto it, then the arms round the shins into floor-knees. 1.5 s."
+  },
+  "floor-knees-up": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-knees-down played in reverse (1.4 s): the arms let go, a push off the hand behind and up to standing."
+  },
+  "floor-cross-down-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). A raised seat (a cot, an alcove bench, about 0.45 m): from standing on the floor in front of its edge, sitting on the edge, leaning back on the hands, lifting the legs onto it, pushing back and crossing them into floor-cross. 2 s."
+  },
+  "floor-cross-up-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-cross-down-hi played in reverse (1.8 s): forward to the edge with the hands, the feet down to the floor, up to standing in front of it."
+  },
+  "floor-knees-down-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). A raised seat (a cot, an alcove bench, about 0.45 m): from standing on the floor in front of its edge, sitting on the edge, leaning back on the hands, the feet up onto it, pushing back into floor-knees. 1.9 s."
+  },
+  "floor-knees-up-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-knees-down-hi played in reverse (1.7 s): forward to the edge with the hands, the feet down to the floor, up to standing in front of it."
   }
  },
  "fps": 15

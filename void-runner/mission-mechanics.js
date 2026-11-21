@@ -48,7 +48,10 @@
  const LIMIT={cast:8,evidence:12,title:60,text:1500,route:12,minutes:10080,store:200};
  const RANGE={near:[1,50],close:[.5,10],hold:[1,600],lost:[5,60],speed:[.4,3],xz:[-2000,2000],y:[-20,40]};
  const DEF={observe:{near:10,hold:2},overhear:{near:6,close:1.5},tail:{near:25,close:3,speed:1.25}};
- const CLIPS=['idle','talk','listen','sit','walk','look','watch','phone','lean','cheer','drink'];
+ const CLIPS=['idle','talk','listen','sit','walk','look','watch','phone','lean','cheer','drink','floor-kneel','floor-cross','floor-knees'];
+ // the floor poses (21 Nov 2026, crowd.js FLOOR): kneeling, cross-legged, knees to chest; only for a figure whose file has them (y: the cushion's or cot's top). CLIP_NAMES: the editor's words.
+ const FLOOR_CLIPS=['floor-kneel','floor-cross','floor-knees'],CLIP_NAMES={'floor-kneel':'kneel on the floor (seiza)','floor-cross':'sit cross-legged','floor-knees':'sit, knees to chest'};
+ const crowdClips=m=>{try{const C=typeof module!=='undefined'&&module.exports?require('./crowd.js'):root.VoidCrowd;return C&&C.clips?C.clips[m]||null:null;}catch{return null;}};
  const ID=/^[a-z][a-z0-9-]{0,39}$/,EV_ID=/^[a-z][a-z0-9-]{0,15}$/,MODEL=/^(npc-[a-z0-9-]{1,40}|marker)$/,TAGS=/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/;
  const num=(v,r)=>typeof v==='number'&&Number.isFinite(v)&&v>=r[0]&&v<=r[1];
  const plain=(v,max)=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!TAGS.test(v);
@@ -75,6 +78,7 @@
    for(const k of ['x','z'])if(c[k]!=null&&!num(c[k],RANGE.xz))out.push(w+': '+k+' is a number of metres.');if((c.x==null)!==(c.z==null))out.push(w+': give both x and z, or neither (the middle of the place).');
    if(c.y!=null&&!num(c.y,RANGE.y))out.push(w+': y is a number of metres.');if(c.yaw!=null&&!num(c.yaw,[-7,7]))out.push(w+': the way they face is a number (radians).');
    if(c.clip!=null&&!CLIPS.includes(c.clip))out.push(w+': what they do must be one of: '+CLIPS.join(', ')+'.');
+   else if(FLOOR_CLIPS.includes(c.clip)&&c.model!=='marker'){const have=crowdClips(c.model);if(have&&!have.includes(c.clip))out.push(w+': this figure has no “'+CLIP_NAMES[c.clip]+'” pose (choose another figure or what they do).');}
    for(const k of ['from','until'])if(c[k]!=null&&!steps.includes(c[k]))out.push(w+': “'+k+'” must be a step of this mission.');
    if(c.from!=null&&c.until!=null&&steps.indexOf(c.until)<steps.indexOf(c.from))out.push(w+': they must appear before they go.');
    if(c.route!=null&&(!Array.isArray(c.route)||c.route.length<2||c.route.length>LIMIT.route||c.route.some(p=>!Array.isArray(p)||p.length!==2||!num(p[0],RANGE.xz)||!num(p[1],RANGE.xz))))out.push(w+': a route is 2 to '+LIMIT.route+' points [x, z] in metres.');
@@ -149,7 +153,7 @@
   let left=inp.speed*inp.dt;while(left>0&&st.seg<r.length-1){const a=r[st.seg],b=r[st.seg+1],len=Math.hypot(b[0]-a[0],b[1]-a[1])||.001,rem=(1-st.u)*len;if(left<rem){st.u+=left/len;left=0;}else{left-=rem;st.seg++;st.u=0;}}
   const a=r[Math.min(st.seg,r.length-1)],b=r[Math.min(st.seg+1,r.length-1)],pos={x:a[0]+(b[0]-a[0])*st.u,z:a[1]+(b[1]-a[1])*st.u,yaw:Math.atan2(b[0]-a[0],b[1]-a[1])};
   return {st,pos,done:st.seg>=r.length-1};}
- const api={V1_APPS,KINDS,AUTO,UNSEEN_KINDS,FEED_STAGES,FLIGHT_STAGES,STEP_FIELDS,CAST_KEYS,EVIDENCE_KEYS,EV_KINDS,LIMIT,RANGE,DEF,CLIPS,FLAG,EV_ID,
+ const api={V1_APPS,KINDS,AUTO,UNSEEN_KINDS,FEED_STAGES,FLIGHT_STAGES,STEP_FIELDS,CAST_KEYS,EVIDENCE_KEYS,EV_KINDS,LIMIT,RANGE,DEF,CLIPS,FLOOR_CLIPS,CLIP_NAMES,FLAG,EV_ID,
   evidenceList,hasEvidence,addEvidence,evidenceDefs,castProblems,evidenceProblems,stepProblems,hit,rank,waitFlag,gameWait,castVisible,overhearStep,observeStep,tailStep,lineSecs,near,close,hold};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionMechanics=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -68,6 +68,14 @@
   'npc-cyber-respirator':{n:30,sex:'m',roles:['mixed','district','outskirts','creator'],cyber:true},'npc-cyber-pvc':{n:31,sex:'f',roles:['club','mixed','creator'],cyber:true},
   'npc-cyber-bouncer':{n:32,sex:'m',roles:['club','district','creator'],cyber:true},'npc-cyber-courier':{n:33,sex:'f',roles:['mixed','district','creator'],cyber:true}};
  for(const [id,f] of Object.entries(street))clips[id]=[...STREET_CLIPS,...(f.extra||[])];
+ /* FLOOR POSES (21 Nov 2026, the owner: "can you add kneeling and cross-legged pose? add them to any npc that has the correct skeleton. also a sitting knee to chest pose"):
+    posed by code on every figure here with the shared mixamorig skeleton (tools/animation-pipeline/make_floor_poses.py). Not the VR companions' figures (Kai, Zane and the
+    companion files: their own rules) nor the licensed files kept outside this repository. The figure's origin goes on the floor / cushion / cot top (the seat's height). */
+ const FLOOR=['floor-kneel','floor-cross','floor-knees'],NO_FLOOR=/^(vr-companion|npc-kai$|npc-zane$|npc-dax$|studio-warrior$)/;
+ /* With them, sitting down to each and standing up from it (21 Nov 2026, one-shot, posed by code the same way; the '-hi' pairs from the edge of a cot or a bench):
+    played by the seat runtime (ncz-street-pair.js FLOOR_MOVE), never offered as a choice in the editors (npc-gestures.js NO). */
+ const FLOOR_MOVES=['kneel','cross','knees'].flatMap(p=>['floor-'+p+'-down','floor-'+p+'-up']).concat(['cross','knees'].flatMap(p=>['floor-'+p+'-down-hi','floor-'+p+'-up-hi']));
+ for(const k of Object.keys(clips))if(!NO_FLOOR.test(k))clips[k]=[...clips[k],...FLOOR,...FLOOR_MOVES];
  const pool=role=>Object.keys(street).filter(id=>street[id].roles.includes(role));
  const pools={mixed:pool('mixed'),corporate:pool('corporate'),club:pool('club'),cook:pool('cook'),outskirts:pool('outskirts'),drunk:pool('drunk'),district:pool('district'),vendor:pool('vendor'),busker:pool('busker')};
  // The old anonymous looks and who now stands in their place (code that still names an old look, a crowd member of an old build, a saved id: swap(look)).
@@ -214,6 +222,6 @@
  }
  function release(){for(const c of [...controllers])c.dispose();groups.clear();}
 
- const api={casts,staff,clips,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
+ const api={casts,staff,clips,FLOOR,FLOOR_MOVES,monks,street,pools,replaced,swap,weightAt,orderAt,streetFigures,dress,STREET_CLIPS,ZONES,STREET_CAP,SPOTS,castFor,clipFor,activityClip,onceClip,clipIn,models,begin,pick,animate,controller:node=>ctrls.get(node)||null,figures:()=>controllers,release,variety,varietyFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidCrowd=api;
 })(globalThis);

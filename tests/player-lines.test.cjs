@@ -70,7 +70,7 @@ test('existing content still checks and plays (lines without a speaker id fall b
 
 test('the admin inventory lists each character\'s clips for the server, and the crowd controller can play a clip for a while (perform)',()=>{
  fresh();const inv=require(R('tools/admin-inventory.cjs')).build();const g=inv.missionEditor.gestures;
- assert.deepEqual(g.iris.clips.slice().sort(),['idle','look','shrug','talk']);assert.ok(!g['street-cat']);assert.ok(inv.missionEditor.stepKinds.includes('anim'));
+ assert.deepEqual(g.iris.clips.slice().sort(),['floor-cross','floor-kneel','floor-knees','idle','look','shrug','talk']);   // the floor poses (21 Nov 2026)assert.ok(!g['street-cat']);assert.ok(inv.missionEditor.stepKinds.includes('anim'));
  assert.ok(!g['grey-reverie'].clips.some(c=>/walk|run|^sit/.test(c)));
  const src=fs.readFileSync(R('void-runner/crowd.js'),'utf8');assert.match(src,/function perform\(name,/);assert.match(src,/if\(perf\)\{perf\.wanted=name;return;\}/,'the scene\'s own play() waits while a mission clip plays');
  const html=fs.readFileSync(R('void-runner.html'),'utf8');assert.ok(html.indexOf('npc-gestures.js')>html.indexOf('npc-paths.js')&&html.indexOf('npc-gestures.js')<html.indexOf('mission-content.js'));
