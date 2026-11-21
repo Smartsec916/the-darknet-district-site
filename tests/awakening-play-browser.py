@@ -11,7 +11,7 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.environ.get('SHOTS', os.path.join(ROOT, 'docs/development/awakening-shots'))
 RUN = os.environ.get('RUN', 'fresh')
-BASE = 'http://127.0.0.1:5187'
+BASE = os.environ.get('BASE', 'http://127.0.0.1:5187')
 EXE = os.environ.get('BROWSER_EXECUTABLE') or next((f for f in ['/opt/pw-browsers/chromium-1243/chrome-linux64/chrome'] if os.path.exists(f)), None)
 os.makedirs(OUT, exist_ok=True)
 t0 = time.time()

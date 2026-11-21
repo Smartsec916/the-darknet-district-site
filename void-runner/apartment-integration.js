@@ -122,14 +122,16 @@
  function run(job,pos){hacking={job,pos,t:0};hud.hidden=false;const pre=hud.querySelector('pre'),bar=hud.querySelector('i'),lines=[];let last=0;
   const id=setInterval(()=>{if(!hacking){clearInterval(id);return;}const now=performance.now();if(!last)last=now;const dt=Math.min(.25,(now-last)/1000);last=now;if(typeof mode!=='undefined'&&mode==='pause')return;hacking.t+=dt;
    lines.push(Array.from({length:6},()=>Math.floor(Math.random()*65536).toString(16).padStart(4,'0')).join(' ')+(Math.random()<.2?'  >> handshake':''));if(lines.length>5)lines.shift();pre.textContent=lines.join('\n');bar.style.width=Math.min(100,hacking.t/job.hold*100)+'%';
-   if(job.stay&&typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-pos[0],walker.z-pos[2])>1.8){end(false,'Connection lost: you walked away from the access point.');return;}
+   if(job.stay&&typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-pos[0],walker.z-pos[2])>1.8){end(false,'Connection lost: you walked away from the access point. Go back and press E at it to try again.');return;}
    if(hacking.t>=job.hold)end(true);},80);}
  function end(ok,why){const job=hacking&&hacking.job;hacking=null;hud.hidden=true;if(!job)return;if(!ok){try{announce(why||'Hack cancelled.');}catch{}return;}
   let r=null;try{r=LC()?.hack?.(job);}catch{}
   try{const wl=here(),z=root.VoidBabylon?.zone;if(wl&&wl.part==='hall'&&job.unlock)for(const o of wl.open||[])if(o.id+'/hall'===job.ap&&o.mission===job.mission){o.locked=false;z?.doors?.find(d=>d.slot===o.slot)?.set?.({locked:false});}
    z?.accessPoint?.(job.ap,'open');}catch{}try{announce('ACCESS POINT: bypassed.'+(job.unlock?' The door is open to you.':''));}catch{}}
  function useAP(item){const ap=item.ap;const wl=here(),mission=wl&&wl.apt?wl.apt.mission:item.mission||null;let jobs=[];try{jobs=LC()?.hacks?.()||[];}catch{}
-  const job=jobs.find(j=>j.ap===ap&&(!/\//.test(ap)||!mission||j.mission===mission));if(!job){note('ACCESS POINT · SECURED. A card reader, a keypad and a small status screen.');return;}
+  const job=jobs.find(j=>j.ap===ap&&(!/\//.test(ap)||!mission||j.mission===mission));if(!job){// already bypassed in a mission in progress (Awakening QA 20 Nov 2026: E at No. 31's panel after the hack said SECURED)
+   const by=(()=>{try{const recs=state.universe.missions||{};return (LC()?.env?.trees||[]).some(t=>(t.missions||[]).some(m=>{const r=recs[m.id];return r&&r.acquired&&!r.completed&&(m.objectives||[]).some(o=>o.kind==='hack'&&o.ap===ap&&(r.objectives||{})[o.id]===true);}));}catch{return false;}})();
+   note(by?'ACCESS POINT · BYPASSED. The door is open to you.':'ACCESS POINT · SECURED. A card reader, a keypad and a small status screen.');return;}
   if(job.needs){const has=(state?.progression?.personal?.items||[]).includes(job.needs);if(!has){const nm=(root.VoidProgression?.personalItems?.[job.needs]?.name||job.needs).toLowerCase();note('You need a'+(/^[aeiou]/.test(nm)?'n ':' ')+nm+'.');return;}}
   if(hacking){note('Already connected.');return;}try{resumeWalking();}catch{}run(job,item.position);}
  // ---- interactions ----
