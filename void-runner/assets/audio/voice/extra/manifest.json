@@ -487,7 +487,7 @@
     "ctbfMo4IDq5ExcIEim2K"
    ],
    "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js) — the laugh beat (empty words, anim 'laugh'): cult-room.js voiceText keys an empty line by its animation, '[laugh]'",
-   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 laugh with no time-stretch.",
+   "note": "Clear-lead chorus mix family; the laugh is the owner's pick 'H' (21 Nov 2026, \"less like a chorus\"): only four of the six (members 1, 3, 5, 6) laugh, starting 0 / 0.35 / 0.9 / 1.4 s apart at falling volumes, lighter room echo (aecho 0.8:0.4:50:0.06), loudnorm I=-18. Members laugh with no time-stretch.",
    "delivery": "[brief, restrained, mocking laughter] (eleven_v4 audio tag)"
   },
   "fish-m004-zh-1": {

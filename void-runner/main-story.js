@@ -238,7 +238,7 @@
  // carry his words (the six in unison as "All six (together)", Halden as the initiate), three line slots added before the initiate rises; the laugh slot has no words
  // ("brief laughter": shown as nothing; its recorded chorus laugh is keyed '[laugh]' by cult-room.js voiceText, extra/manifest.json robed-all-m010-8). Nothing moves differently.
  const RL=(who,text,extra={})=>({act:'line',who,text,...extra});
- const RITUAL={radius:2.6,speed:.5,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},
+ const RITUAL={radius:2.6,speed:.7,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},
   RL('robed-all','Are you ready for your Awakening, brother?',{wait:2}),RL('initiate','Yes. I am.',{wait:1.5}),
   RL('robed-all','Do you willingly surrender fifty-one percent of your enterprise in exchange for the prosperity, protection and influence of Blackrock?',{wait:2.7}),RL('initiate','I do.',{wait:1.5}),
   RL('robed-all','We offer you wealth in exchange for loyalty. Power in exchange for obedience. Brotherhood in exchange for sacrifice.',{wait:1.5}),
@@ -246,7 +246,7 @@
   RL('robed-all','Before you lies the vessel of sacrifice. Within it awaits your humiliation.',{wait:1.5}),
   RL('robed-all','Do you accept that your humiliation must become public knowledge, and that you shall bear its consequences without denial or regret?',{wait:1.5}),
   RL('initiate','Yes.',{wait:1.5}),RL('robed-all','Good. Accept your humiliation, brother.',{wait:1.5}),
-  {act:'rise',wait:2},{act:'turn',who:'six',to:'owl',wait:2,secs:4},{act:'walk',who:'initiate',to:'altar',wait:2,speed:.42},{act:'card',wait:1.5},{act:'anim',who:'initiate',clip:'read',secs:5},
+  {act:'rise',wait:2},{act:'turn',who:'six',to:'owl',wait:2,secs:4},{act:'walk',who:'initiate',to:'altar',wait:2,speed:.6},{act:'card',wait:1.5},{act:'anim',who:'initiate',clip:'read',secs:5},
   RL('initiate','Fucking dogs!?',{anim:'shock',wait:.5}),RL('robed-all','',{anim:'laugh',secs:3.5,wait:.6}),
   {act:'door',open:true,wait:2},{act:'exit',wait:1},{act:'door',open:false,wait:1},{act:'pause',secs:2}]};
  const M010={id:'m010-the-price-of-admission',number:10,title:'The Price of Admission',type:'main',category:'Remote surveillance',giver:'iris',location:'district',description:'',
