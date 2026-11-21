@@ -1,0 +1,29 @@
+name: Companion Studio Android APK
+on:
+  push:
+    branches: [codex/companion-studio-android]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: android/companion-studio
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android SDK packages
+        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Build and verify APK
+        run: bash android/companion-studio/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CompanionStudio-Android
+          path: android/companion-studio/build/CompanionStudio.apk
+          if-no-files-found: error
+          retention-days: 30
