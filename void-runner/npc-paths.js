@@ -192,6 +192,7 @@
  function importPlanProblems(p,clips){const A=AVENUE_NORTH,out=[],ok=new Set(['wait','walk-on',...(clips||[])]);if(!p||!['stay','path'].includes(p.mode))return ['Choose “Stay here” or “Route”.'];
   if(p.mode==='stay'){out.push(...areaProblems(A,'the model',p));if(!Array.isArray(p.actions)||!p.actions.length)out.push('Pick at least one thing for it to do.');else for(const a of p.actions)if(!ok.has(a)||a==='walk-on')out.push('“'+a+'” is not a clip in its file.');return out;}
   if(!Array.isArray(p.points)||p.points.length<2)return ['A route needs at least 2 points: click the pavement to add them.'];
+  if(!(clips||[]).some(c=>/walk/i.test(c)))out.push('A route needs a walking animation in the model. Choose Stay here until a walk clip is imported.');
   p.points.forEach((q,i)=>{for(const x of areaProblems(A,'the model',q))out.push('point '+(i+1)+': '+x);if(!ok.has(q.action))out.push('point '+(i+1)+': “'+q.action+'” is not a clip in its file.');});return out;}
  /* content.npcs: {id: plan}. */
  function checkAll(npcs){if(npcs==null)return [];if(!npcs||typeof npcs!=='object'||Array.isArray(npcs)||Object.keys(npcs).length>20)return ['NPC placements have an unknown shape.'];
@@ -241,6 +242,19 @@
     server reads the same numbers from the admin inventory for the "Add to the game" package). Over maxTriangles (whole model, every mesh) or maxBytes: refused.
     Over target: accepted with an amber note. A texture wider or taller than texWarn: an amber note. Imported models stay in this browser (local test only). */
  const IMPORT={maxTriangles:50000,target:20000,maxBytes:15*1024*1024,texWarn:2048,exts:['.glb','.gltf']};
+ /* Validate the container before Babylon sees it. Imported assets must not fetch arbitrary external resources. */
+ function importDocument(bytes,ext){const b=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);let json;
+  if(!b.length||b.length>IMPORT.maxBytes)throw new Error('Model file is empty or exceeds 15 MB.');
+  if(ext==='.glb'){const v=new DataView(b.buffer,b.byteOffset,b.byteLength);if(b.length<20||v.getUint32(0,true)!==0x46546c67||v.getUint32(4,true)!==2||v.getUint32(8,true)!==b.length||v.getUint32(16,true)!==0x4e4f534a)throw new Error('Not a valid glTF 2.0 GLB.');const len=v.getUint32(12,true);if(!len||20+len>b.length)throw new Error('Invalid GLB JSON chunk.');json=JSON.parse(new TextDecoder().decode(b.subarray(20,20+len)));}
+  else if(ext==='.gltf')json=JSON.parse(new TextDecoder().decode(b));else throw new Error('Choose a GLB or glTF model.');
+  if(!json||json.asset?.version!=='2.0'||!Array.isArray(json.meshes)||!json.meshes.length)throw new Error('Export a glTF 2.0 model containing a mesh.');
+  for(const r of [...(json.buffers||[]),...(json.images||[])])if(r.uri!=null&&(typeof r.uri!=='string'||!/^data:/i.test(r.uri)))throw new Error('This model has external buffers or textures. Export a single self-contained GLB from Blender or Meshy.');
+  return json;}
+ /* Conservative automatic candidates for an as-yet unclassified imported NPC. Each still needs the runtime retarget test. */
+ function importClips(info,idx=INDEX()){const L=AL();if(!L||!idx||!info||!info.rest||!L.compatible((info.bones||[]).map(L.bare))||!L.CORE.every(k=>Array.isArray(info.rest[k])))return [];
+  const result=[],banned=SP()?.BANNED||/$^/;for(const [asset,f] of Object.entries(idx.files||{})){if(!f.public||ADULT.test(asset)||!f.mixamo||f.joints!==info.bones.length||!L.CORE.every(k=>Array.isArray(f.rest?.[k]))||!L.restMatches(f.rest,info.rest))continue;
+   for(const c of f.clips||[]){const name=Array.isArray(c)?c[0]:c,id=asset+'/'+name;if(!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(id)||banned.test(id)||YOUNG_NO.test(id))continue;result.push({id,name,asset});}}
+  return result.sort((a,b)=>a.name.localeCompare(b.name)||a.asset.localeCompare(b.asset));}
  /* The checklist verdict for an imported file. info: {triangles, bytes, textures:[{name,w,h}], bones:[names], clips:[names], height}. */
  function importCheck(info){const out=[],add=(level,text)=>out.push({level,text}),t=info.triangles|0,mb=b=>(b/1048576).toFixed(1)+' MB';
   if(t>IMPORT.maxTriangles)add('bad','This model has '+t.toLocaleString('en')+' triangles; the limit is '+IMPORT.maxTriangles.toLocaleString('en')+'. Reduce it in Blender, or send it to Claude/Codex to reduce.');
@@ -281,6 +295,6 @@
    if(b.name!=null&&(typeof b.name!=='string'||!NAME_OK.test(b.name)))out.push(bw+'the name may use letters, numbers and simple punctuation only (40 at most).');
    if(b.mode!=='original'){const {from,to,name,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
   return out;}
- const api={PAIR_GAMEPLAY,pairGameplay,combatAllowed,missionClips,homeOf,homePlan,seatList,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
+ const api={PAIR_GAMEPLAY,pairGameplay,combatAllowed,missionClips,homeOf,homePlan,seatList,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -121,6 +121,19 @@ test('import caps: over 50,000 triangles or 15 MB is refused; 20,000-50,000 is a
  assert.equal(P.request('vr-companion-bm','vr-companion-bm','a wave').route,'local-retarget-only');assert.equal(P.request('grey-reverie','npc-grey-reverie','a wave').route,'retarget-or-library');
  assert.equal(P.noAI('studio-warrior'),true);assert.equal(P.noAI('npc-dax'),true);assert.equal(P.noAI('npc-fish','milked-fish'),false);});
 
+test('staging accepts self-contained glTF and rejects external resources',()=>{fresh();const P=X(),base={asset:{version:'2.0'},meshes:[{}]},bytes=o=>Buffer.from(JSON.stringify(o));
+ assert.deepEqual(P.importDocument(bytes(base),'.gltf'),base);
+ assert.throws(()=>P.importDocument(bytes({...base,images:[{uri:'https://example.org/image.png'}]}),'.gltf'),/external/);
+ assert.throws(()=>P.importDocument(bytes({...base,buffers:[{uri:'model.bin'}]}),'.gltf'),/external/);
+ assert.throws(()=>P.importDocument(Buffer.alloc(20),'.glb'),/valid glTF/);
+ assert.doesNotThrow(()=>P.importDocument(bytes({...base,buffers:[{uri:'data:application/octet-stream;base64,AA=='}]}),'.gltf'));
+});
+test('staged model candidate scan matches complete rest pose and joint count, not licensed files',()=>{fresh();const P=X(),L=require(R('void-runner/anim-library.js')),bones=L.CORE.slice(),rest=Object.fromEntries(bones.map(b=>[b,[0,0,0,1]])),f={public:true,mixamo:true,joints:bones.length,rest,clips:[['idle','idle']]};
+ const idx={files:{'npc-demo':f,'npc-other':{...f,joints:999},'npc-private':{...f,public:false}}};
+ assert.deepEqual(P.importClips({bones,rest},idx).map(x=>x.id),['npc-demo/idle']);
+ assert.deepEqual(P.importClips({bones,rest:{}},idx),[]);
+});
+
 test('the server’s copy of the rules (admin inventory npcPaths) matches npc-paths.js',()=>{fresh();const P=X(),inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths;
  assert.deepEqual(inv,JSON.parse(JSON.stringify(P.inventory())));assert.deepEqual(inv.import,{maxTriangles:50000,target:20000,maxBytes:15728640,texWarn:2048});
  for(const id of Object.keys(P.MOVABLE))for(const a of inv.movable[id].actions)assert.doesNotMatch(a,SP().BANNED);});

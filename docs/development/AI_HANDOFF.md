@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: NPC IMPORT STAGING (first increment, not deployed)
+
+- Owner approved developer-only staging with an explicit publish action. Imported files remain private to the browser. Before preview or local play, GLB/glTF 2.0 containers are checked for external resources and invalid headers. The normal size/triangle limits are unchanged.
+- The importer scans public game animation sources for matching joint count and complete core rest pose, and offers a runtime preview of candidates; existing restrictions remain. Route tests require an embedded walking clip rather than sliding a static model.
+- Next: persist verified animation selections and independently imported clips, integrate custom assets with the existing made-character and voice/mission editor flows, add authenticated persistent model storage and server-side validation, then explicit publish/rollback. Expand placement via real scene integration, never just a dropdown. No live publication or external storage was enabled here.
+- Targeted `node --test tests/npc-tools.test.cjs`: 16 passed. Browser and full API/player-save regression tests not yet run.
+
 ### 21 Nov 2026: NPC GAMEPLAY CAPABILITIES (Codex, build `2026-11-21-npc-capabilities-1`)
 
 - Independent `combatAnimations` flags for movable characters; Reverie and Lace can use compatible nonsexual combat motions independent of the age-sensitive classification. Existing source, venue, licensing and rig checks remain. Lace's security clips are still incompatible.

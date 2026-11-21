@@ -22,13 +22,14 @@
   function clear(){current=null;for(const g of groups)g.stop();container?.removeAllFromScene?.();container?.dispose?.();container=null;rootNode=null;groups=[];info=null;}
   function measure(bytes){const meshes=container.meshes.filter(m=>m.getTotalVertices&&m.getTotalVertices()>0);let tri=0;for(const m of meshes){const n=m.getTotalIndices?m.getTotalIndices():0;tri+=n?n/3:m.getTotalVertices()/3;}
    let min=new B.Vector3(Infinity,Infinity,Infinity),max=new B.Vector3(-Infinity,-Infinity,-Infinity);for(const m of meshes){m.computeWorldMatrix(true);const bb=m.getBoundingInfo().boundingBox;min=B.Vector3.Minimize(min,bb.minimumWorld);max=B.Vector3.Maximize(max,bb.maximumWorld);}
-   const bones=[...new Set([...(container.skeletons||[]).flatMap(s=>s.bones.map(b=>b.name))])];
+   const bones=[...new Set([...(container.skeletons||[]).flatMap(s=>s.bones.map(b=>b.name))])],rest={};
+   for(const sk of container.skeletons||[])for(const bone of sk.bones){const k=root.VoidAnimLibrary?.bare(bone.name);if(!k||rest[k])continue;const q=new B.Quaternion();bone.getRestMatrix().decompose(undefined,q);rest[k]=q.asArray();}
    const textures=(container.textures||[]).map(t=>{const s=t.getSize?.()||{};return {name:t.name,w:s.width|0,h:s.height|0};});
-   return {triangles:Math.round(tri),bytes:bytes|0,textures,bones,clips:groups.map(g=>g.name.split('-').pop()===g.name?g.name:g.name),height:Number.isFinite(max.y-min.y)?max.y-min.y:NaN,min,max};}
+   return {triangles:Math.round(tri),bytes:bytes|0,textures,bones,rest,clips:groups.map(g=>g.name.split('-').pop()===g.name?g.name:g.name),height:Number.isFinite(max.y-min.y)?max.y-min.y:NaN,min,max};}
   function frame(){const i=info;if(!i||!Number.isFinite(i.height))return;const h=i.height;const s=h>0&&(h<1.3||h>2.3)?1.75/h:1;if(rootNode&&s!==1)rootNode.scaling.scaleInPlace(s);cam.target=new B.Vector3(0,Math.min(1.2,h*s*.55),0);cam.radius=Math.max(2.2,h*s*1.9);}
   async function show(src){clear();await loaders();
    if(src.asset){container=await root.VoidAssets.loadContainer({src:'assets/models/crowd/'+src.asset+'.glb'},scene,null,'preview:'+src.asset);}
-   else if(src.file){const buf=src.buffer||await src.file.arrayBuffer(),ext=/\.gltf$/i.test(src.file.name||'')?'.gltf':'.glb';container=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);src.bytes=buf.byteLength;}
+   else if(src.file){const buf=src.buffer||await src.file.arrayBuffer(),ext=/\.gltf$/i.test(src.file.name||'')?'.gltf':'.glb';root.VoidNPCPaths.importDocument(buf,ext);container=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);src.bytes=buf.byteLength;}
    else return null;
    if(disposed){container.dispose();return null;}
    container.addAllToScene();groups=container.animationGroups.slice();for(const g of groups)g.stop();
