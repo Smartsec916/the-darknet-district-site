@@ -48,11 +48,14 @@
  const MODTYPES=(()=>{let t=null;return ()=>{if(t)return t;const M=typeof module!=='undefined'&&module.exports?require('./modules.js'):root.VoidModules;if(!M||!M.inventory)return null;t=M.inventory().types;return t;};})();
  const CRM=()=>typeof module!=='undefined'&&module.exports?require('./cult-room.js'):root.VoidCultRoom;   // camera-feed-only rooms (the Blackrock Cult Room, cult-room.js, 19 Nov 2026): mission.feeds, hack steps with a feed
  const MDE=()=>typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs;   // mission givers made in the editor (content.characters, npc-made.js)
+ const SC=typeof module!=='undefined'&&module.exports?require('./start-conditions.js'):root.VoidStartConditions;   // "…and only when": extra start conditions (start.only, start-conditions.js, 20 Nov 2026)
  const MM=typeof module!=='undefined'&&module.exports?require('./mission-mechanics.js'):root.VoidMissionMechanics;   // reusable mechanics of the Awakening continuation (20 Nov 2026): observe, overhear, sneak, collect, report, call, in-game wait, camera feed, tail, leave, flight; cast and evidence
  const VIM=()=>typeof module!=='undefined'&&module.exports?require('./voice-imports.js'):root.VoidVoiceImports;   // imported voice files (content.clips: [{who, text, hash, type, duration, bytes}], 19 Nov 2026)   // NPC looks (Developer Tools > NPCs > Appearance)   // ElevenLabs voice choices (Developer Tools > NPCs, giver card)   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
  /* "When walked near" (the owner, 18 Nov 2026): when:{kind:'near', npc (default: the giver), distance (metres, 1..30, default 5)}. The game measures the player's distance to that
     person's TALK prompt (live-content.js, four times a second) and sends {type:'near', near:{<npc>: metres}}; the mission starts once, in tree order. */
  const NEAR={min:1,max:30,def:5},nearMetres=v=>{const G=GVS();if(G&&G.nearMetres)return G.nearMetres(v);return typeof v==='number'&&Number.isFinite(v)?Math.min(NEAR.max,Math.max(NEAR.min,v)):NEAR.def;};
+ /* A walk-near start (a banner, triggered by walking near): its sender, header and body may be empty (checkStart). sender(m): who it comes from (default the giver). */
+ const quietStart=st=>!!(st&&st.how==='notification'&&st.channel==='notify'&&st.when&&st.when.kind==='near'),sender=m=>(m&&m.start&&typeof m.start.from==='string'&&m.start.from.trim())?m.start.from:m&&m.giver;
  /* Every "when walked near" trigger in the trees: [{tree, mission, npc, metres}] (the game watches only these people). */
  function nearList(trees){const out=[];for(const t of trees||[])for(const m of (t&&t.missions)||[]){const st=m&&m.start,w=st&&st.how==='notification'&&st.when;if(w&&w.kind==='near'&&(w.npc||m.giver))out.push({tree:t.id,mission:m.id,npc:w.npc||m.giver,metres:nearMetres(w.distance)});}return out;}
  /* Is the player near enough? d: metres to that person (Infinity / undefined: not in this scene). */
@@ -74,7 +77,7 @@
     is offered again (ncz-street-pair.js / npc-made.js never move her out of sight of the player in view). Existing missions keep what they did ('again'). */
  const MONEY={min:-100000,max:100000,label:20},DENY=['again','pod','after','never','start'],DENY_MIN={min:1,max:120,def:10},ASK_KEYS=['yes','no','deny','denyMinutes','denyStart','denySay'],YES='ACCEPT',NO='DENY';
  const denyMinutes=v=>Number.isInteger(v)&&v>=DENY_MIN.min&&v<=DENY_MIN.max?v:DENY_MIN.def;
- const costFlag=id=>'mc_'+String(id).slice(0,61),denyFlag=id=>'md_'+String(id).slice(0,61);
+ const costFlag=id=>'mc_'+String(id).slice(0,61),denyFlag=id=>'md_'+String(id).slice(0,61),armFlag=id=>'mq_'+String(id).slice(0,61);   // mq_: a one-moment trigger happened, its "…and only when" conditions not yet true (start-conditions.js)
  /* ACCEPT / DENY ANYWHERE IN A MISSION (the owner, 19 Nov 2026: "put the Accept/Deny the mission anywhere in the mission timeline"): a step kind 'ask' {question (the owner's
     words, 300 characters), npc? (who asks; default the giver), yes / no (button labels, 20 characters), deny: 'end' (default: the mission ends and goes back to its giver, who
     offers it again) | 'skip' (goto: a LATER step; the steps between are skipped and give nothing) | 'back' (goto: an EARLIER step; the steps from there are done again) | 'tree'
@@ -227,13 +230,18 @@
  const devLabel=m=>MS?MS.label(m.number,m.title):m.title;
  /* How a mission starts (closed shape). In person needs nothing else; by notification needs a channel, a sender, the text (a header for Messages and Comms) and a trigger. */
  function checkStart(st,w,ctx,err,speakerOk,trees){
-  if(!keysOk(st,['how','channel','from','header','text','when','accept',...ASK_KEYS])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
+  if(!keysOk(st,['how','channel','from','header','text','when','accept','only',...ASK_KEYS])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
   if(st.accept!=null&&typeof st.accept!=='boolean')err(w+': “Ask the player: ACCEPT or DENY” must be yes or no.');
-  if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'&&!ASK_KEYS.includes(k)))err(w+': a mission given in person has no notification fields.');return;}
+  if(st.only!=null){const ids=trees?new Set([...trees.flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[]),...((MS&&MS.MISSION_IDS)||[])]):null;   // "…and only when" (start-conditions.js)
+   for(const p of SC?SC.problems(st.only,{person:id=>!ctx.givers||!!(ctx.givers.get(id)||{}).canTalk,places:ctx.places||null,missions:ids}):['extra conditions are not available.'])err(w+': and only when, '+p);}
+  if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'&&k!=='only'&&!ASK_KEYS.includes(k)))err(w+': a mission given in person has no notification fields.');return;}
   if(!CHANNELS.includes(st.channel))err(w+': unknown notification channel.');
-  if(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from))err(w+': the notification must come from a known NPC.');
-  if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
-  if(!plain(st.text,st.channel==='notify'?LIMIT.text:LIMIT.call))err(w+': the notification needs its text (plain text, '+(st.channel==='notify'?LIMIT.text:LIMIT.call)+' characters at most).');else for(const p of tagP(st.text))err(w+': the notification text: '+p);
+  // WALK NEAR WITHOUT WORDS (the owner, 21 Nov 2026: "everything is said in person"): a walk-near start (channel 'notify', when.kind 'near') may leave the sender (the giver),
+  // the header and the body empty: no text is sent, only the "NEW MISSION" line, and the giver's offer lines play in person. Every other start still needs its words.
+  const quiet=quietStart(st),blank=v=>v==null||(typeof v==='string'&&!v.trim());
+  if(!(quiet&&blank(st.from))&&(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from)))err(w+': the notification must come from a known NPC.');
+  if(quiet&&blank(st.header));else if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
+  if(quiet&&blank(st.text));else if(!plain(st.text,st.channel==='notify'?LIMIT.text:LIMIT.call))err(w+': the notification needs its text (plain text, '+(st.channel==='notify'?LIMIT.text:LIMIT.call)+' characters at most).');else for(const p of tagP(st.text))err(w+': the notification text: '+p);
   const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value','npc','distance'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
   // "after N in-game hours / minutes" (Mission 003, 17 Nov 2026): value = IN-GAME minutes (1..10080, a week) after the mission named here was completed (game-clock.js)
   if(x.kind==='game-time'&&!(Number.isInteger(x.value)&&x.value>=1&&x.value<=10080))err(w+': “after in-game time” needs a whole number of in-game minutes from 1 to 10080 (a week).');
@@ -389,7 +397,8 @@
    if(o.kind==='photo'){const sub=g(o.npc);x.target=o.npc;if(sub&&sub.place)x.place=sub.place;x.destination='earth';}
    if(MM&&['observe','overhear','tail'].includes(o.kind)){const c=(m.cast||[]).find(y=>y&&y.id===o.npc);if(c&&c.place){x.place=c.place;x.destination='earth';x.target=o.npc;}}   // the arrow to the place where they stand
    if(MM&&o.kind==='report'&&o.place){x.place=o.place;x.destination='earth';}
-   if(MM&&['sneak','apt-leave','collect'].includes(o.kind)&&o.apt){x.destination='earth';x.apt={m:m.id,a:o.apt,kind:o.kind==='sneak'?'apt-enter':o.kind==='collect'?'apt-use':'apt-enter'};for(const k of ['object','mod'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}
+   if(MM&&o.kind==='report'&&!o.place){delete x.interaction;delete x.made;delete x.destination;}   // a report from anywhere (V1 Mission Log): no arrow to the person (Awakening QA 20 Nov 2026: it led to Fish at Milked, to Admin in the District)
+   if(MM&&['sneak','apt-leave','collect'].includes(o.kind)&&o.apt){x.destination='earth';x.apt={m:m.id,a:o.apt,kind:o.kind==='sneak'?'apt-enter':o.kind==='collect'?'apt-use':'apt-leave'};for(const k of ['object','mod'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}
    if(APT_KINDS.includes(o.kind)){x.destination='earth';x.apt={m:m.id,a:o.apt||null,kind:o.kind};for(const k of ['object','mod','ap'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}   // the arrow to an apartment / location step (mission-guide.js aptGoal)
    return x;});
   if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;else if(who&&who.made)x.made=m.ending.npc;if(at(who))x.destination=at(who);objectives.push(x);}
@@ -466,15 +475,24 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    out.messages.push(stepMessage(m,o,gv,at));};
   // A mission that starts by notification: its notification reaches the device (story.flags v1m_<mission>_start = the time, seconds; Messages and Comms keep it).
   const notify=(t,m)=>{const st=m.start,at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,'start')]))s.story.flags[msgFlag(m.id,'start')]=at;
-   out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};
+   const from=sender(m),text=String(st.text||'').trim(),header=String(st.header||'').trim();if(!text&&!header)return;   // a walk-near start without words: no message, only the NEW MISSION line (live-content.js report)
+   out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from,fromName:gv(from).name||from,header,text,at});};
   // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
   // A giver with a shift (Reverie, Lace) offers a mission only while she is out on the street (mission-givers.js onDuty, on the street clock; draft play is not exempt:
   // it runs on a simulated street clock inside her shift, ncz-street-pair.js testClock)
   const duty=id=>{const g=gv(id);if(!g.shift)return true;const G=GVS();return !G||!G.onDuty||G.onDuty(g,G.streetTime?G.streetTime(ev.at||Date.now()):ev.at||Date.now());};
-  const startsNow=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver)&&duty(m.giver);const w=st.when||{};
+  const fires=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver)&&duty(m.giver);const w=st.when||{};
    if(w.kind==='near'){const id=w.npc||m.giver;return ev.type==='near'&&!!ev.near&&nearHit(ev.near[id],w.distance)&&duty(id);}
    if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);if(w.kind==='leave')return ev.type==='place'&&(ev.left||[]).includes(w.place);
    if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='game-time')return !!(GC&&GC.due(s,w.mission,w.value));if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
+  /* "…and only when" (start.only, start-conditions.js, 20 Nov 2026): the trigger fires AND every condition is true. A one-moment trigger (pod exit, enter / leave a place) whose
+     conditions are not met is remembered (story.flags.mq_<mission>) and checked on every event after it until they are; the other triggers are checked again by themselves. */
+  let world;const worldNow=()=>{if(world===undefined){world=null;try{world=typeof env.world==='function'?env.world():null;}catch{world=null;}}return world;};
+  const condsOk=m=>{const st=m.start||{},w=st.when||{},who=st.how==='notification'&&w.kind==='near'?w.npc||m.giver:m.giver,G=GVS(),at=ev.at||Date.now();
+   return SC.check(st.only,s,{who,street:G&&G.streetTime?G.streetTime(at):at,world:SC.needsWorld(st.only)?worldNow():null,places:ev.type==='place'?places:null}).ok;};
+  const startsNow=m=>{const st=m.start||{};if(!SC||!SC.list(st))return fires(m);const armed=s.story.flags[armFlag(m.id)]===true;if(!armed&&!fires(m))return false;if(condsOk(m))return true;
+   if(!armed&&SC.oneShot(st)&&Missions.available(s,m.id))s.story.flags[armFlag(m.id)]=true;return false;};
+  const unarm=m=>{delete s.story.flags[armFlag(m.id)];};
   // After a step: the automatic steps that follow it (messages) complete at once.
   const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind)||held(m,o))break;if(!step(t,m,o))break;}};
   // After a talk step: a 'hear' step next shows its lines (done when the conversation closes), or is done at once when nothing can be shown.
@@ -491,7 +509,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const askOf=m=>({mission:m.id,title:titleOf(m),accept:(m.start&&m.start.yes)||YES,decline:(m.start&&m.start.no)||NO});
   /* An offer that arrives on the device and asks (Messages, Comms, a banner, walked near): out.prompt {ask, offer, lines (the notification's words), channel, tree}. It never
      stops the other trees (it is asked again on every event while its trigger holds; live-content.js shows it once in a while, never over a conversation). */
-  const prompt=(t,m)=>{const st=m.start;return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',lines:[{who:gv(st.from).say||st.from,text:(st.header?st.header+': ':'')+st.text}].filter(l=>env.draft||!placeholder(l.text)).concat(nearStart(m)?speak(m.offer):[])};};
+  const prompt=(t,m)=>{const st=m.start,from=sender(m);return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from,fromName:gv(from).name||from,header:st.header||'',lines:[{who:gv(from).say||from,text:[String(st.header||'').trim(),String(st.text||'').trim()].filter(Boolean).join(': ')}].filter(l=>l.text&&(env.draft||!placeholder(l.text))).concat(nearStart(m)?speak(m.offer):[])};};
   /* Walked near (19 Nov 2026): what the giver says when offering it is said as the player comes near (after the banner), as in person. */
   const nearStart=m=>!!(m.start&&m.start.how==='notification'&&m.start.when&&m.start.when.kind==='near');
   /* DENY with "start another mission": that tree's first mission starts now (or is offered now when it asks too). */
@@ -524,12 +542,12 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
       if(dn==='never')break;   // denied for good: nothing more from this tree
       if(ev.type==='accept'&&ev.mission===m.id){const c=costOf(m),pay=c&&c.when==='accept'?c:null;
        if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount});return out;}   // ACCEPT is greyed in the window; refused here too
-       if(!Missions.acquire(s,m.id))break;Missions.track(s,m.id,Camp);delete s.story.flags[denyFlag(m.id)];
+       if(!Missions.acquire(s,m.id))break;Missions.track(s,m.id,Camp);delete s.story.flags[denyFlag(m.id)];unarm(m);
        if(pay){const n=charge(s,m,pay);if(n){out.charged=n;out.notes.push('−'+n+' CREDITS');}}
        Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});
        if(byNote){notify(t,m);const first=m.objectives[0],w=st.when||{};if(first&&((first.kind==='pod-exit'&&w.kind==='pod-exit')||((first.kind==='go'||first.kind==='enter')&&w.kind==='place'&&first.place===w.place)))step(t,m,first);auto(t,m);}   // its trigger already happened
        return out;}
-      if(ev.type==='decline'&&ev.mission===m.id){const d=DENY.includes(st.deny)?st.deny:'again';Object.assign(out,{tree:t.id,mission:m.id,declined:true,deny:d});out.lines.push(...speak(st.denySay));
+      if(ev.type==='decline'&&ev.mission===m.id){const d=DENY.includes(st.deny)?st.deny:'again';unarm(m);Object.assign(out,{tree:t.id,mission:m.id,declined:true,deny:d});out.lines.push(...speak(st.denySay));
        if(d==='never'||d==='start')s.story.flags[denyFlag(m.id)]='never';else if(d==='after')s.story.flags[denyFlag(m.id)]=denyMinutes(st.denyMinutes)*60;else if(d==='pod'||byNote)s.story.flags[denyFlag(m.id)]='later';
        out.denyWait=d==='after'?denyMinutes(st.denyMinutes):d==='pod'||(d==='again'&&byNote)?'pod':d==='again'?'talk':null;
        if(d==='start')startInstead(st.denyStart);return out;}
@@ -538,7 +556,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
       if(startsNow(m)&&Missions.available(s,m.id)){if(byNote){if(!out.prompt)out.prompt=prompt(t,m);break;}
        Object.assign(out,{tree:t.id,mission:m.id,ask:askOf(m),offer:offerOf(s,m)});out.lines.push(...speak(m.offer));return out;}
       break;}
-     if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote){notify(t,m);if(nearStart(m))out.lines.push(...speak(m.offer));}else out.lines.push(...speak(m.offer));
+     if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);unarm(m);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote){notify(t,m);if(nearStart(m))out.lines.push(...speak(m.offer));}else out.lines.push(...speak(m.offer));
       const first=m.objectives[0];if(byNote&&first&&hit(first,m))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
      break;}
     const next=m.objectives.find(o=>rec.objectives[o.id]!==true);
@@ -564,7 +582,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
     read: story.flags v1r_<mission>_start. channel: only that channel. */
  function inbox(s,env,channel){const out=[];if(!s||!s.universe||!s.story||!s.story.flags||!env||!Array.isArray(env.trees))return out;const gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id],st=m.start;if(!rec||!rec.acquired||!st||st.how!=='notification'||st.channel==='notify'||(channel&&st.channel!==channel))continue;
-   out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
+   out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:sender(m),fromName:gv(sender(m)).name||sender(m),header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
   // lines a step sent as a Comms call or a message (Mission 002's call on entering NULL)
   for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id];if(!rec||!rec.acquired)continue;
    for(const o of m.objectives||[]){if((o.via!=='comms'&&o.via!=='messages')||(channel&&o.via!==channel)||rec.objectives[o.id]!==true||!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)])||!(o.say||[]).length)continue;
@@ -737,7 +755,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  const askStrip=(st,who)=>{if(!st||st.accept!==true)return {};const x={accept:true};for(const k of ['yes','no'])if(typeof st[k]==='string'&&st[k].trim())x[k]=st[k].trim().slice(0,MONEY.label);
   if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;if(x.deny==='after')x.denyMinutes=denyMinutes(st.denyMinutes);const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
  function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();
-   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;Object.assign(x,askStrip(st,st.from||m.giver));r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',...askStrip(m.start,m.giver)};
+   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;Object.assign(x,askStrip(st,st.from||m.giver));if(SC&&SC.list(st))x.only=SC.strip(st.only);r.start=x;}else if(m.start&&m.start.how==='person'&&(m.start.accept===true||(SC&&SC.list(m.start))))r.start={how:'person',...askStrip(m.start,m.giver),...(SC&&SC.list(m.start)?{only:SC.strip(m.start.only)}:{})};
   {const c=m.cost;if(c&&Number.isInteger(c.amount)&&c.amount>0){const x={amount:Math.min(c.amount,MONEY.max)};if(c.when&&c.when!=='accept')x.when=c.when;else if(c.refund===true)x.refund=true;r.cost=x;}}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
   {const X=NPX(),wa=X&&m.waitAt&&X.MOVABLE[m.giver]?X.cleanWait(m.waitAt):null;if(wa)r.waitAt=wa;}   // "Giver waits at" (Reverie, Lace)
   {const X=APT(),ap=X&&X.strip(m.apartments);if(ap)r.apartments=ap;}
@@ -768,7 +786,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
   if(!String(m.title||'').trim())need('it needs a name','title');
   if(!m.giver)need('nobody gives it yet','giver');else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')','giver');
-  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!st.from)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!String(st.text||'').trim())need('the notification needs its text','start-text');
+  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},quiet=quietStart(st);if(!st.from&&!quiet)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!quiet&&!String(st.text||'').trim())need('the notification needs its text','start-text');
    if(w.kind==='after-mission'&&!w.mission)need('choose the mission it follows','start-mission');if((w.kind==='place'||w.kind==='leave')&&!w.place)need('choose the place that starts it','start-place');if(w.kind==='flag'&&!w.flag)need('name the story flag that starts it','start-flag');
    if(w.kind==='near'){const who=w.npc||m.giver;if(!who)need('choose who the player walks near','start-near');else if(!can(who))need(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)','start-near');}}
   {const st=m.start||{},c=m.cost;if(c&&Number(c.amount)>0&&(c.when||'accept')==='accept'&&st.accept!==true)need('the player pays when accepting, so it must ask: tick “Ask the player: ACCEPT or DENY”','start-ask');
@@ -915,7 +933,14 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
  function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
  function doorsInUseNow(s,env){const X=APT();return X&&X.doorsInUse&&aptLive(s,env)?[...X.doorsInUse(s,env.trees)]:[];}   // the street doors a taken mission uses (their prompts show)
- const api={CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ /* "…and only when" right now, for the Mission Editor's draft play and tests: every mission not started yet whose start has conditions -> [{tree, mission, armed (its one-moment
+    trigger already happened), ok, each:[{kind, ok}]}]. at: the real moment (ms) for the street clock. */
+ function onlyNow(s,env,at=Date.now()){const out=[];if(!SC||!s||!env||!Array.isArray(env.trees))return out;let world;const W=()=>{if(world===undefined){try{world=typeof env.world==='function'?env.world():null;}catch{world=null;}}return world;};
+  for(const t of env.trees)for(const m of t.missions||[]){const st=m.start||{},l=SC.list(st),r=s.universe&&s.universe.missions&&s.universe.missions[m.id];if(!l||(r&&(r.acquired||r.completed)))continue;
+   const w=st.when||{},who=st.how==='notification'&&w.kind==='near'?w.npc||m.giver:m.giver,G=GVS(),c=SC.check(l,s,{who,street:G&&G.streetTime?G.streetTime(at):at,world:SC.needsWorld(l)?W():null});
+   out.push({tree:t.id,mission:m.id,armed:s.story.flags[armFlag(m.id)]===true,ok:c.ok,each:c.each});}
+  return out;}
+ const api={quietStart,onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

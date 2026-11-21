@@ -2,6 +2,81 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Fix (21 Nov 2026): the editor stays open (no more closing by itself, no more popping up during draft play)
+
+The owner: "sometimes the mission editor times out and goes to the previous page. also while trying to play through a test mission the editor pops up".
+
+### What was wrong
+- Every 4 minutes (and when the browser tab got focus back) the game re-checked the account. Each check closed the Developer tools window, and during PLAY THIS DRAFT it opened the Mission Editor over the game (the "back to the editor" note written for LEAVE DRAFT was still waiting).
+- A new version of the game, deployed while the editor was open over the main menu, reloaded the page by itself.
+
+### What the owner sees now
+- The editor stays open until he presses CLOSE, EXIT TO MAIN MENU or Escape (Escape inside a text box only leaves the box).
+- Sign-in expired: a small bar at the bottom, "Sign-in expired — your editor and your draft stay open. SIGN IN". Nothing closes.
+- Server asleep (the free server takes up to a minute to wake): the server-copy line says "Server waking up / retrying… next try in N s · your draft is safe in this browser" and saves by itself once it answers.
+- A new version: a bar "Update ready — APPLY UPDATE". The page reloads only when he presses it (his draft is saved first; during draft play it leaves the draft like LEAVE DRAFT).
+- Draft play: the editor comes back only with the banner's LEAVE DRAFT · BACK TO EDITOR button (or Developer tools). A failed step works as in the real game (try again in the game) and the banner shows a short "Draft: step failed — …" note for 25 seconds.
+
+### For Claude and Codex
+- Rules: `void-runner/editor-session.js` (`identity`, `autoOpen`, `problem`, `retryDelay`, `escapeCloses`), unit tests in `tests/editor-timeout.test.cjs`, browser run `tests/editor-timeout-browser.cjs` (`EXPECT_OLD=1` against older code lists what fails).
+- `VoidDevTools.identity(request,{uid})`: always pass the uid. `VoidDevTools.used` (the window was opened on this page) keeps `update-ready.js when()` at 'wait'. `VoidDevTools.signin(on)` / `updateReady()` drive `#dev-session-bar`. `VoidDevTest.stepNote(text)` is the draft banner note (only in a draft session).
+- Never call `location.reload`, `history.back` or close the window from editor code; report problems in the status line or the bar.
+## Twenty-eighth pass (20 Nov 2026): "…and only when": extra start conditions (a secondary trigger)
+
+Branch `claude/second-trigger`, build `2026-11-20-second-trigger-1`. Pushed, no PR, not merged. The owner: "can you add a secondary trigger. so like i can set the first one to 'when you get close to' giver, then a secondary trigger, like 'when other npcs are farther than . . .' and other ones. if a secondary isn't set it will just go off the first trigger."
+
+### How to use it (plain steps)
+
+1. Open the mission. Under **How this mission starts** (Form view), or in the **Start** block (Blocks view), find **…and only when (optional)**.
+2. Press **+ ADD CONDITION**, choose the kind, fill in its boxes. Add up to six. **×** removes one.
+3. The line above the conditions says the whole start in plain words, for example: "Starts when you walk within 4 m of Reverie, and only when no other placed people are within 6 m of Reverie and the player’s weapon is holstered."
+4. Leave it empty and nothing changes: the mission starts on its trigger alone.
+
+The kinds:
+
+| Condition | What it checks |
+|---|---|
+| No other people near someone | Nobody else within N m (1–30) of the giver (or another person you pick). Tick **count the street crowd** to count the crowd too; untick it to count only placed people (residents, characters you made, people placed for a mission). |
+| No other players near someone | No other online player within N m (1–50) of that person (multiplayer: the players drawn on your level). |
+| Time of day (street clock) | Between two times on the street clock (UTC, the clock Reverie's and Lace's shifts use). 20:00 to 04:00 goes past midnight. |
+| The player is in a place | An exact spot, a venue or a whole area / quarter (the place list). |
+| Another mission is finished / not finished | Pick the mission. |
+| A story flag is set / not set | Set means any value except false. |
+| The player has at least some credits | Checked, never taken. |
+| The player has a ship / has no ship | |
+| The player is on foot | Not riding a taxi, not flying. |
+| The player has not drawn their weapon | |
+| The zone where the player is | Friendly, Neutral or Hostile. |
+
+### What happens when the conditions are not true at that moment
+
+- **Walk near:** the game keeps checking (four times a second) while the player stays in range, and starts it the moment they all become true (the other person walks off).
+- **In person (talk):** the giver does not offer it this time; the next time the player talks to them it is checked again.
+- **After a mission / after in-game time / a story flag:** these are states; it starts as soon as the trigger and every condition are true.
+- **Leave the Sleeping Pod / enter a place / leave a place** (one moment): the game remembers that the trigger happened (`story.flags.mq_<mission>`) and keeps checking twice a second while the player walks; it starts once the conditions are true, and the mark is removed.
+
+A condition the game cannot measure at that moment (the person is not in this scene) counts as not true: the mission waits rather than starting wrongly.
+
+### Walk near without words (21 Nov 2026)
+
+The owner, of a walk-near start with the Tea Room Host: "everything is said in person". For **Walk near them** (the banner start triggered by walking near), the banner's **Sender**, **Header** and **Body** are now optional and folded under **Show the banner text**. Left empty, no text is sent: the player sees only the short line "NEW MISSION · <name> (tracked in your V1, L)", the mission goes into the Mission Log, and the giver says the offer lines in person (with ACCEPT / DENY when it asks). A header alone shows as the banner. Messages, Comms calls and banner starts with any other trigger still need their words. Game: `mission-content.js quietStart` (checkStart, treeNeeds, notify, prompt); server: `start_problems` (**Render redeploy** needed, as for the conditions).
+
+### What was left out
+
+- **"The giver is idle (not walking a route)"**: the people who walk routes (Reverie and Lace, made characters, mission cast) each keep their own state; there is no single clean "walking now" signal for every giver, so it was not built.
+- **Steps:** the conditions gate a mission's **start** only. There is no "walk near" step kind to gate (the wait step already has "only while within N m of someone").
+- The wizard does not set conditions; its "How does it start?" page says to add them later in the editor.
+
+### For Claude and Codex
+
+- Rules: `void-runner/start-conditions.js` (`VoidStartConditions`, pure, Node and browser; loaded before `mission-content.js`): `KINDS`, `problems()`, `check()`, `strip()`, `fresh()`, `sentence()`. Data: `start.only` (any way of starting), a list of `{kind, …}`.
+- Engine: `mission-content.js` `treeEvent` `startsNow` = the old trigger (`fires`) AND `SC.check`; one-moment triggers arm `mq_<mission>` (`armFlag`), cleared on ACCEPT / DENY / start. `MC.onlyNow(state, env)` lists every waiting mission and which condition fails (also `VoidLiveContent.onlyNow()`).
+- What the game measures: `live-content.js` `env.world` (people near the giver from `VoidCrowd.figures()`, named = placed; remote players from `VoidRemotePlayers.peers`; `lastPlaces`; `mode` for taxi / flight; `groundState.drawn`; `VoidZoneRun.current()`). Asked only while a mission with world conditions could start.
+- Checks: `checkStart` (game) and `only_problems` in `void_runner_live_content.py` (server; same messages). **Render must be redeployed** before the owner publishes a mission that uses them.
+- Editor: `mission-editor.js` `onlyPanel` (Form view; in the Blocks view only the Start block shows it, via `blocksKit.onlyPanel`); `mission-blocks.js setStartMode` keeps `only` when the way of starting changes.
+- Also fixed: the Form view's **+ ADD** for a **Shared game flag** reward saved it without `value: true` and with no flag to choose; the checks refused it. It now lists the flags the game knows and saves `value: true` (`mission-blocks.js newUnlock`).
+- Tests: `tests/start-conditions.test.cjs`, `tests/test_start_conditions.py`; browser: `tests/start-conditions-browser.py` (Python Playwright).
+
 ## Twenty-seventh pass (20 Nov 2026): follow / lead steps cross the gates, the stairs to the tunnels and the District's door, walking or in a taxi
 
 Branch `claude/escort-across`, build `2026-11-20-escort-across-1`. Pushed, no PR, not merged. The owner: a follow step did not carry the person through a city gate, or up / down the stairwells between the street and the tunnels: "I need this fixed. whether it's walking or in a taxi".
@@ -1019,6 +1094,8 @@ Add `--dry-run` first to see what it would record. More than 100 clips needs `--
 Totals: 10 trees, 40 missions, 382 listed lines (296 from the owner's scripts). All 40 of Admin's Kokoro lines and his ElevenLabs line are listed (63 entries: the faction scenes appear under both arcs).
 
 ## For Claude and Codex
+
+- **Distances are shown in feet, stored in metres (20 Nov 2026, the owner: "can you change the distances to feet instead of meters").** Every editor distance box (walked-near distance, "only while the player stays within", the escort's "waits when … behind" / "lost beyond", observe / overhear "within" / "lost beyond" / "too close", the Blackrock scene's circle radius and gap) shows whole feet with "ft" labels and limits in feet; it stores metres through `void-runner/units.js` (`VoidUnits.ft`, `VoidUnits.m`, `VoidUnits.ftRange`): a box nobody changed keeps the exact metres (no drift), a changed one stores feet / 3.28084 to 3 decimals (whole metres where the stored form must be whole: the wait step's distance and the escort distances). The checks (`mission-content.js`, `mission-mechanics.js`, `npc-escort.js`, `cult-room.js`) and the server still speak metres; the editors pass their messages and the server's through `VoidUnits.text` ("1 to 30 metres" reads "4 to 98 ft"). Map coordinates (x / z) stay metres. Tests: `tests/feet-units.test.cjs`.
 
 - `void-runner/mission-trees.js` (pure): extraction. Scene lines come from the `SCENES` anchor table (file, from/to text anchors, mission and slot, design doc); a test fails if an anchor disappears. Only plain quoted lines are extracted; a scene with code-built lines says "partial". `npcView` lists every speaker's lines from both voice manifests (Relay broadcasts excluded). `VOICE_ENGINES` must equal `tools/audio/revoice-engines.json` (tested).
 - `void-runner/mission-content.js` (pure, loaded for every player): the one adapter. `check` (closed schema), `apply` (in place over a shipped snapshot, so versions and undo never stack), `mapLine` (edited lines), `fromDrafts`, `notApplied`, `changes`, `warnings`, `migrate` (never deletes from a save: an in-progress mission whose remaining steps are all done is completed and paid once; a tracked removed mission is untracked).

@@ -195,7 +195,7 @@
     step wants the player to open: the step's own `app` (set in the Mission Editor, optional), or what its kind implies (a photo step: Camera; sending a photo:
     Messages). null: none. The home screen highlights that tile (personal-device.js) in the mission yellow. Future steps (a camera feed, a hacking tool) name theirs. */
  const STEP_APPS=['camera','gallery','messages','map','missions','comms','social','news','store','warflying','loadout'];
- const STEP_APP_BY_KIND={photo:'camera','send-photo':'messages'};
+ const STEP_APP_BY_KIND={photo:'camera','send-photo':'messages',report:'missions',feed:'missions'};   // report / feed: their buttons are on the mission's card in the Mission Log (Awakening QA 20 Nov 2026)
  const stepApp=step=>!step||typeof step!=='object'?null:STEP_APPS.includes(step.app)?step.app:STEP_APP_BY_KIND[step.kind]||null;
  /* The hint over the highlighted tile: "ADMIN: OPEN CAMERA" (who: the mission giver's name, optional). */
  function appGoal(step,who,device){const app=stepApp(step);if(!app||!APPS[app])return null;const t=appTitle(app,device);return {app,title:t,text:(who?String(who).toUpperCase().slice(0,40)+': ':'')+'OPEN '+t};}
@@ -205,6 +205,12 @@
  /* The line of a call on screen now (its live subtitle in the call bar): lines appear 2.2 s apart from 0.4 s, as in the Comms transcript. -1: still connecting. */
  const CALL_LINE={first:400,every:2200};
  const callLine=(count,elapsedMs)=>count>0&&elapsedMs>=CALL_LINE.first?Math.min(count-1,Math.floor((elapsedMs-CALL_LINE.first)/CALL_LINE.every)):-1;
- const api={STEP_APPS,stepApp,appGoal,openTarget,CALL_LINE,callLine,NOTIFY,notifyTier,SERIAL,DEVICE_ID,makeSerial,ensureSerial,deviceId,prefixOf,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ /* Which waiting Comms message rings as the call (Awakening QA 20 Nov 2026): of the calls that came in together with the newest one (within 10 s of it: one event's calls), the OLDEST,
+ never one older than the last call heard. Anything older is a missed call: it stays unread in Comms but does not ring later (an unanswered Mission 002 call rang
+ after Fish's Mission 004 call; Fish's 004 reply and Iris's 005 call arrive in the same second and rang newest first). list: newest first, `at` in seconds. */
+ const CALL_BURST=10;
+ const nextCall=list=>{const ls=Array.isArray(list)?list:[],at=m=>Number(m.at)||0,heard=ls.filter(m=>m&&m.read).reduce((a,m)=>Math.max(a,at(m)),0),un=ls.filter(m=>m&&!m.read&&at(m)>=heard);if(!un.length)return null;
+  const top=Math.max(...un.map(at));let pick=null;for(const m of un)if(at(m)>=top-CALL_BURST)pick=m;return pick;};
+ const api={STEP_APPS,stepApp,appGoal,openTarget,CALL_LINE,callLine,nextCall,CALL_BURST,NOTIFY,notifyTier,SERIAL,DEVICE_ID,makeSerial,ensureSerial,deviceId,prefixOf,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

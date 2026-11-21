@@ -138,7 +138,7 @@
  downEl.addEventListener('click',e=>{if(e.target.closest('[data-zone-up]'))getUp();});
  async function getUp(){if(!down)return;const fail=downEl.dataset.fail==='1',mission=downEl.dataset.mission,wl=walkingLocation;downEl.hidden=true;
   for(const k of [...deadSet])if(!mission||k.startsWith(mission+'/'))deadSet.delete(k);esc.at=null;esc.until=0;Z.rearm(safety);clearEnemies();
-  try{if(fail&&mission){MC().abandon(state,LC().env,mission);announce('MISSION FAILED · '+(root.VoidMissions?.definitions?.[mission]?.title||mission));}save();}catch{}
+  try{if(fail&&mission){MC().abandon(state,LC().env,mission);announce('MISSION FAILED · '+(root.VoidMissions?.definitions?.[mission]?.title||mission));try{root.VoidDevTest?.stepNote?.('you went down; the mission failed, its giver offers it again');}catch{}}save();}catch{}
   try{groundState.health=cfg().footPlayerHealth;const pp=state.progression.personal,T=root.VoidProgression?.tuning?.ground;if(T){pp.ammo=T.magazine;pp.reserve=Math.max(24,pp.reserve);}}catch{}   // as the old checkpoint respawn: a full magazine, at least 24 in reserve
   try{if(wl&&wl.apt&&wl.modular&&MOD()?.backToStreet)await MOD().backToStreet();else if(wl&&wl.apt&&APT()?.door){const d=APT().door(wl.door||'');if(d)await enterWalking(root.VoidDistrictArea.KEY.street,{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw:Math.atan2(-d.n[0],-d.n[1])});else await enterWalking(root.VoidDistrictArea.KEY.interior,{silent:true});}
    else await enterWalking(root.VoidDistrictArea.KEY.interior,{silent:true,spawn:(()=>{try{const [x,z]=root.VoidNeoChinatown.toWorld(0,28.5);return [x,1.7,z];}catch{return undefined;}})(),yaw:Math.PI});}catch(e){stats.error=e.message;}

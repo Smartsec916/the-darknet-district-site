@@ -9,6 +9,7 @@
  const el=(tag,text,cls,attrs)=>{const n=document.createElement(tag);if(text!=null&&text!=='')n.textContent=text;if(cls)n.className=cls;for(const [k,v] of Object.entries(attrs||{}))n.setAttribute(k,v);return n;};
  const btn=(text,fn,cls,attrs)=>{const b=el('button',text,cls||'',{type:'button',...(attrs||{})});b.onclick=fn;return b;};
  const num=(label,value,min,max,stepv,on,attrs,ph)=>{const i=el('input','','',{type:'number',min:String(min),max:String(max),step:String(stepv),size:'4','aria-label':label,...(ph?{placeholder:ph}:{}),...(attrs||{})});i.value=value==null?'':String(value);i.oninput=()=>{const n=parseFloat(i.value);on(Number.isFinite(n)?Math.max(min,Math.min(max,n)):null);};return i;};
+ const numFt=(label,m,lo,hi,on,attrs,ph)=>{const U=root.VoidUnits,r=U.ftRange(lo,hi);return num(label,m==null?null:U.ft(m),r[0],r[1],1,v=>on(v==null?null:U.m(v,m,{min:lo,max:hi})),attrs,ph);};   // a distance shown in feet, stored in metres (units.js)
  const sel=(label,options,value,on,attrs)=>{const s=el('select','','',{'aria-label':label,...(attrs||{})});for(const [v,n] of options)s.append(new Option(n,v));s.value=value==null?'':String(value);s.onchange=()=>on(s.value);return s;};
  const small=t=>el('span',t,'me-small');
  const placeName=id=>{try{return (root.VoidPlaces?.node?.(id)||{}).name||id;}catch{return id;}};
@@ -19,8 +20,8 @@
  function whoSelect(m,o,eo,npcSelect,label){const cast=(m.cast||[]).map(c=>[c.id,(c.name||c.id)+' (placed for this mission)']);const s=sel(label,[['','— choose —'],...cast],cast.some(c=>c[0]===o.npc)?o.npc:'',v=>eo(x=>{if(v)x.npc=v;},true),{'data-me-step-npc':o.id});
   const out=[s];if(npcSelect&&!cast.some(c=>c[0]===o.npc))out.push(small('or'),npcSelect(o.npc,v=>eo(x=>{x.npc=v;},true),{label,attrs:{'data-me-step-npc2':o.id}}));return out;}
  function distances(o,eo,{near=true,close=true,hold=false,lost=false}={}){const D=(MM()&&MM().DEF[o.kind])||{},out=[];
-  if(near)out.push(small(lost?'lost beyond':'within'),num(lost?'Lost beyond (metres)':'Within (metres)',o.near!=null?o.near:D.near,lost?5:1,lost?60:50,.5,v=>eo(x=>{if(v==null)delete x.near;else x.near=v;}),{'data-me-step-near':o.id}),small('m'));
-  if(close)out.push(small('· too close under'),num('Too close (metres)',o.close!=null?o.close:D.close,0.5,10,.5,v=>eo(x=>{if(v==null)delete x.close;else x.close=v;}),{'data-me-step-close':o.id},'—'),small('m'));
+  if(near)out.push(small(lost?'lost beyond':'within'),numFt(lost?'Lost beyond (feet)':'Within (feet)',o.near!=null?o.near:D.near,lost?5:1,lost?60:50,v=>eo(x=>{if(v==null)delete x.near;else x.near=v;}),{'data-me-step-near':o.id}),small('ft'));
+  if(close)out.push(small('· too close under'),numFt('Too close (feet)',o.close!=null?o.close:D.close,0.5,10,v=>eo(x=>{if(v==null)delete x.close;else x.close=v;}),{'data-me-step-close':o.id},'—'),small('ft'));
   if(hold)out.push(small('· for'),num('Seconds',o.hold!=null?o.hold:D.hold,1,600,1,v=>eo(x=>{if(v==null)delete x.hold;else x.hold=Math.round(v);}),{'data-me-step-hold':o.id}),small('s'));return out;}
  /* The fields of one step of a new kind (and the "without being seen" box on the steps that take it). k: {npcSelect, placeRow, placeSelect}. */
  function stepFields(m,o,eo,k={}){const out=[],K=o.kind,ev=(m.evidence||[]).map(e=>[e.id,e.title]);

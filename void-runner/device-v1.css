@@ -228,3 +228,6 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 #personal-device [data-thread-log]{max-height:46vh;overflow:auto}
 /* Gallery METADATA (the owner, 18 Nov 2026): the same key / value list as MY V1, each tagged person on their own lines. */
 #personal-device .pd-meta{margin-top:10px;border-top:1px solid var(--pd-line,rgba(127,240,255,.25));padding-top:6px}#personal-device .pd-meta .pd-kv{gap:6px 14px}#personal-device .pd-meta dd{word-break:break-word}#personal-device .pd-meta-tag{margin:0 0 6px}#personal-device .pd-meta-tag small{color:var(--pd-muted)}
+/* While the V1 is open beside the game (body.v1-side, mission-guide.js), the game's top lines keep clear of it and of each other (Awakening QA 20 Nov 2026: at 1366 x 768 the notice ran under the device, the tracked mission sat over the PLAYING SOLO chip): the notice in the free left part right of the FRIENDLY chip, the tracked mission below the chips, the hint line below it. */
+body.v1-side #notice{left:264px;right:calc(50vw + 12px)}
+body.v1-side #mission-tracker:not([hidden]){top:150px}body.v1-side #mission-hint:not([hidden]){top:192px}
