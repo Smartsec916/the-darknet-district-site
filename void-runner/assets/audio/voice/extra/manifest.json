@@ -889,6 +889,123 @@
    "source": "rook-cargo-jobs.js (lines.board)",
    "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take"
   },
+  "iris-bark-hack-1": {
+   "speaker": "iris",
+   "text": "Almost there.",
+   "file": "extra/iris-bark-hack-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-hack-2": {
+   "speaker": "iris",
+   "text": "Just a little longer.",
+   "file": "extra/iris-bark-hack-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-hack-3": {
+   "speaker": "iris",
+   "text": "Steady. You're halfway through.",
+   "file": "extra/iris-bark-hack-3.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-hack-4": {
+   "speaker": "iris",
+   "text": "Keep your hand still. Nearly done.",
+   "file": "extra/iris-bark-hack-4.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-sneak-1": {
+   "speaker": "iris",
+   "text": "Easy. Don't rush it.",
+   "file": "extra/iris-bark-sneak-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (sneak). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-sneak-2": {
+   "speaker": "iris",
+   "text": "He hasn't seen you. Let's keep it that way.",
+   "file": "extra/iris-bark-sneak-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (sneak). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-spotted-1": {
+   "speaker": "iris",
+   "text": "That happens. Try again, a little slower.",
+   "file": "extra/iris-bark-spotted-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (spotted). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-wait-1": {
+   "speaker": "iris",
+   "text": "Nothing yet. I'll tell you the moment it changes.",
+   "file": "extra/iris-bark-wait-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (wait). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-joke-1": {
+   "speaker": "iris",
+   "text": "For the record, I calculated your odds. I've decided not to share them.",
+   "file": "extra/iris-bark-joke-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (joke). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-joke-2": {
+   "speaker": "iris",
+   "text": "I'd come and help, but someone has to mind the counter.",
+   "file": "extra/iris-bark-joke-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (joke). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-joke-3": {
+   "speaker": "iris",
+   "text": "You're doing fine. Statistically, someone has done this worse.",
+   "file": "extra/iris-bark-joke-3.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (joke). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-store-1": {
+   "speaker": "iris",
+   "text": "Have you seen the new T-shirts in the store? You'd look a lot cooler doing this in one.",
+   "file": "extra/iris-bark-store-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (store). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-store-2": {
+   "speaker": "iris",
+   "text": "If you're going to break into places, you might as well look good doing it. The store has new shirts.",
+   "file": "extra/iris-bark-store-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (store). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
   "zen-greeting": {
    "speaker": "zen-zephyr",
    "text": "Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?",

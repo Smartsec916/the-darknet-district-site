@@ -70,7 +70,7 @@
   const clear=e=>{try{const n=Math.ceil(Math.hypot(P.x-e.x,P.z-e.z)/.4);for(let i=1;i<n;i++){const t=i/n;if(root.VoidExplorer?.blocked?.(e.x+(P.x-e.x)*t,e.z+(P.z-e.z)*t,L))return false;}return true;}catch{return true;}};
   const seen=ex.some(e=>{try{return Z.sees(e,P,cfg,clear);}catch{return false;}});const r=run[x.key+'|seen']=run[x.key+'|seen']||{t:0};r.t=seen?r.t+dt:Math.max(0,r.t-dt*.5);
   meter.hidden=r.t<=0;meter.firstChild.style.width=Math.min(100,r.t/1.2*100)+'%';
-  if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}
+  if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidIrisAmbient?.spotted?.();}catch{}try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}
  function tick(){const t=performance.now(),dt=Math.min(.5,(t-lastT)/1000);lastT=t;try{castTick();}catch(e){console.warn('[mission cast]',e);}
   if(!on()){sub.hidden=true;meter.hidden=true;return;}const blocked=(()=>{try{return LC().nearBlocked();}catch{return true;}})(),p=me(),list=nowList();let subShown=false,meterUsed=false;
   for(const x of list){if(x.delayed)continue;const o=x.o,k=x.kind;

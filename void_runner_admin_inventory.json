@@ -57983,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "ffd8b5af17d4d50d",
+  "revision": "880a7958acbbcfc3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -71210,6 +71210,174 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 2,
+      "text": "whether Iris says something now; a line shows as \"Iris (Comms): ...\" in the notice line and plays her recorded clip (voice-clips.js, speaker 'iris' + exact text)",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 6,
+      "text": "(Mission 009 done, Mission 010 not here yet), and everything that makes it busy (a conversation, a call, a banner, the V1 open, a camera feed, another voice line,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 27,
+      "text": "try{if(typeof speech!=='undefined'&&speech)return true;}catch{}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 31,
+      "text": "const n=root.VoidVoiceClips?.now;if(n&&!n.ended)return true;if(root.speechSynthesis?.speaking)return true;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 47,
+      "text": "function say(line){const text=line.text;try{announce('Iris (Comms): '+text);try{noticeTime=Math.max(noticeTime,Math.min(9,2.5+text.length/16));}catch{}}catch{}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 52,
+      "text": "try{const c=ctx(),l=R.decide(st,c,clock);if(l)say(l);}catch(e){console.warn('[iris ambient]',e);}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 57,
+      "text": "if(p&&!p.querySelector('[data-action=\"iris-chatter\"]'))p.insertAdjacentHTML('beforeend','<h2>Iris</h2><button data-action=\"iris-chatter\" class=\"quiet\" aria-pressed=\"'+playerOn+'\">IRIS CHATTER: '+(playerOn?'ON':'OFF')+'</button><p class=\"fine\">Now and then Iris says a short line over Comms while you work (a long hack, sneaking past a guard, a quiet walk).</p>');}catch{}return r;};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 1,
+      "text": "/* IRIS'S AMBIENT LINES: the rules (Node + browser; the game wiring is iris-ambient-game.js). The owner approved 13 short lines on 21 Nov 2026 that Iris says",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 4,
+      "text": "- Never while anything else is going on (a conversation, a call, a cutscene, a camera feed, another voice line, a menu): `busy` skips; nothing is queued.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 7,
+      "text": "25 s after 009 ends the wait line, then a shorter cooldown so she says a few more (jokes, the store line if it has not played this session), no line twice; it stops",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 13,
+      "text": "{id:'iris-bark-hack-1',cat:'hack',text:'Almost there.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 14,
+      "text": "{id:'iris-bark-hack-2',cat:'hack',text:'Just a little longer.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 15,
+      "text": "{id:'iris-bark-hack-3',cat:'hack',text:'Steady. You\\'re halfway through.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 16,
+      "text": "{id:'iris-bark-hack-4',cat:'hack',text:'Keep your hand still. Nearly done.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 17,
+      "text": "{id:'iris-bark-sneak-1',cat:'sneak',text:'Easy. Don\\'t rush it.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 18,
+      "text": "{id:'iris-bark-sneak-2',cat:'sneak',text:'He hasn\\'t seen you. Let\\'s keep it that way.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 19,
+      "text": "{id:'iris-bark-spotted-1',cat:'spotted',text:'That happens. Try again, a little slower.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 20,
+      "text": "{id:'iris-bark-wait-1',cat:'wait',text:'Nothing yet. I\\'ll tell you the moment it changes.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 21,
+      "text": "{id:'iris-bark-joke-1',cat:'joke',text:'For the record, I calculated your odds. I\\'ve decided not to share them.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 22,
+      "text": "{id:'iris-bark-joke-2',cat:'joke',text:'I\\'d come and help, but someone has to mind the counter.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 23,
+      "text": "{id:'iris-bark-joke-3',cat:'joke',text:'You\\'re doing fine. Statistically, someone has done this worse.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 24,
+      "text": "{id:'iris-bark-store-1',cat:'store',text:'Have you seen the new T-shirts in the store? You\\'d look a lot cooler doing this in one.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 25,
+      "text": "{id:'iris-bark-store-2',cat:'store',text:'If you\\'re going to break into places, you might as well look good doing it. The store has new shirts.'}];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 31,
+      "text": "calmFor:60,             // jokes and the store line: this long with no hack, sneak, combat, call, conversation or other voice first",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 52,
+      "text": "enabled (the player's \"Iris chatter\" setting and the developer switch), contact (Iris is a contact), busy (conversation, call, cutscene, feed, voice, menu, dev play-test),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 56,
+      "text": "Returns null or {id, cat, text, speak} (already recorded: say it now). */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 63,
+      "text": "const out=(l,quiet)=>{commit(st,l,now,quiet);if(st.gap)st.gap.used.add(l.id);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 91,
+      "text": "function force(st,cat,ctx={},now=0,opt={}){if(ctx.busy)return null;const rnd=opt.random||Math.random,l=choose(of(cat),rnd);if(!l)return null;commit(st,l,now,cat==='joke'||cat==='store');return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};}",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/live-content.js",
       "line": 4,
       "text": "the dialogue window through renderLine (its old voice clip no longer matches, so it is shown as text, the game's existing behaviour for a line without a clip).",
@@ -74320,7 +74488,7 @@
     {
       "source": "void-runner/mission-mechanics-game.js",
       "line": 73,
-      "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
+      "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidIrisAmbient?.spotted?.();}catch{}try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
       "kind": "source-reference"
     },
     {
@@ -77757,6 +77925,8 @@
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "2547e198158f5601799fe1c2a37183f5f8718853ec2e6852afd17752484a6289",
+    "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
+    "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "9c35d012f1d125d6c93bdf4a0eda94d0ccdd6fbd9ebe97b9e04aa32f2a016843",
     "void-runner/live-content.js": "695743eb31d1c7bf7bbc6ac0641c965fcef0a3b14986764ef4460944417e8e34",
@@ -77785,7 +77955,7 @@
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
     "void-runner/mission-mechanics-editor.js": "09b6ee7fcf0d40bd14f11f9552ccb48a5339cd73fdf9befbd5d996b9513259d1",
-    "void-runner/mission-mechanics-game.js": "0c2fe07494ff236b303f813d12b4b3a3d6128ddbbfa8eca3934f91948fca03e3",
+    "void-runner/mission-mechanics-game.js": "82b07e8ded5ef49961c907dd96863036b65341733e35d9b4b5868864810a66cc",
     "void-runner/mission-mechanics.js": "ddf0903cddcd9e6e07953b819ca7734005d991743bdeff91229bfd744cc9efa0",
     "void-runner/mission-trees.js": "05febd25649b556287acf918c84c0b5dc394ec4649f8be13771188bdd3105eeb",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
