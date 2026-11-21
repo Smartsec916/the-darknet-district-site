@@ -173,7 +173,7 @@
  /* The ground height (m) under a walkable spot (pavement slabs stand 0.18 m above the road), or null. */
  function groundY(p,id){const a=get(id||areaOf(p));if(!a)return null;const w=a.walk.find(v=>inR(v,p.x,p.z,1e-6));return w&&num(w.y)?w.y:null;}
  /* Which areas are built in a scene: the street (one quarter, or every street area when quarter is null) or the District interior. */
- function here(scene,quarter){return list().filter(a=>scene==='interior'||scene==='milked'?a.scene===scene:a.scene==='street'&&(!quarter||a.quarter===quarter)).map(a=>a.id);}
+ function here(scene,quarter){return list().filter(a=>a.scene===scene&&(scene!=='street'||!quarter||a.quarter===quarter)).map(a=>a.id);}
  /* Where draft play enters for an area: {walk:'sacramento', quarter} or {walk:'darknet-district'}. */
  function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:a.scene==='milked'?{walk:'sacramento',quarter:'far-south'}:{walk:'sacramento',quarter:a.quarter};}
  const r1=v=>Math.round(v*10)/10,slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');

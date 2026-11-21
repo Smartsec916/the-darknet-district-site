@@ -12,6 +12,9 @@ test('six areas, each with ground she may stand on and named places; the Distric
  for(const a of A.list().filter(a=>a.id!=='milked')){assert.ok(a.walk.length,a.id);const named=A.places().filter(p=>p.area===a.id);assert.ok(named.length>=2,a.id+' has named places');
   for(const p of named){const c=A.check(p);assert.ok(c.ok,p.id+': '+c.why);assert.equal(c.area,a.id,p.id);}}
  assert.equal(A.get('district').scene,'interior');assert.deepEqual(A.here('interior'),['district']);assert.deepEqual(A.here('street','oldtown'),['oldtown']);assert.equal(A.here('street',null).length,6);
+ assert.deepEqual(A.here('temple'),[],'unregistered independent scenes must not spawn street NPCs');
+ assert.deepEqual(A.here('corporate'),[],'corporate coordinates are not street coordinates');
+ assert.deepEqual(A.here('milked'),['milked'],'existing reception scene remains independent');
  assert.deepEqual(A.enter('outskirts'),{walk:'sacramento',quarter:'outskirts'});assert.deepEqual(A.enter('district'),{walk:'darknet-district'});
  assert.ok(A.GEN&&A.GEN.areas,'the obstacle reading from the built scenes is committed');for(const id of A.IDS.filter(x=>x!=='milked'&&x!=='underground'))assert.ok(A.GEN.areas[id],'read: '+id);});
 

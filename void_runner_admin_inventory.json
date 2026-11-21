@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "5486b940761b50a1",
+  "revision": "a9ce42c0701b3777",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79461,7 +79461,7 @@
     "void-runner/neochinatown.js": "6dbd1c0b043a9dc8dacc7ad0ac01a3fc1e37d5ddb226d2f7d2541ed54db2a1d1",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "6f142131557c7fed6e9866ba807813bec00afcb1593447a4c17e67a329b5077b",
+    "void-runner/npc-areas.js": "6cdf6dd7a02766d06a95691bd3448553f6413fa937414ba906ebbba515c62910",
     "void-runner/npc-behaviour.js": "8145de3c2ec74f87fa8f831c89a1b3d51699c0e65bfd3d78fd051f48aa0726a9",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "3f17336b2d92b2474d53bff3af0b30341b66691d9f03a5f7d5e323868b18ddef",
