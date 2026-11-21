@@ -58,7 +58,7 @@
   {id:'messages',title:'A text message on the V1',line:'Arrives in the V1 Messages app when the player first leaves their Sleeping Pod.'}];
  const PAGES=[
   {id:'kind',title:'What kind of mission?',help:'Pick the one closest to your idea. You can change everything later.'},
-  {id:'giver',title:'Who gives the mission?',help:'The person who hands it to the player. Only people the player can talk to in the game are listed.'},
+  {id:'giver',title:'Who gives the mission?',help:'Choose any registered NPC. If they have no walking-game TALK prompt, start the mission by Messages or another notification instead of in person.'},
   {id:'start',title:'How does it start?',help:'How the player first hears about it.'},
   {id:'steps',title:'What must the player do?',help:'One step at a time, in order. Each step starts when the one before it is done; a yellow arrow shows the way.'},
   {id:'reward',title:'What does the player get, or pay?',help:'Player gets: credits paid once, when the mission is done (0 is fine too). Player pays: credits taken once, when they press ACCEPT (never below 0).'},
@@ -81,14 +81,17 @@
  function aptChoices(a){const rec=aptRecord(a,true),B=MBK();return rec&&B?B.placeOptions({apartments:[rec]},'apt-enter'):[];}
  function relabel(a,ctx){for(const s of a.steps)if(s.auto||!String(s.label||'').trim()){s.label=labelFor(s,ctx);s.auto=true;}return a;}
  /* Who can give a mission or be talked to: a TALK prompt in the game and playable in a draft (mission-content.js treeNeeds uses the same test). */
+ const known=(givers,id)=>!!(givers||[]).find(x=>x.id===id);
  const canTalk=(givers,id)=>{const g=(givers||[]).find(x=>x.id===id);return !!(g&&g.canTalk&&g.draft);};
  const nameOf=(givers,id)=>((givers||[]).find(x=>x.id===id)||{}).name||id;
  /* What still stops this page, in plain words, each saying how to fix it. ctx: {givers, places (Set of ids), subjects (Set of ids)}. */
  function problems(a,page,ctx={}){const out=[],g=ctx.givers||[];
   if(page==='kind'&&!template(a.template))out.push('Pick one of the cards: click the kind of mission you want to make.');
   if(page==='giver'){if(!a.giver)out.push('Choose who gives the mission: pick a name from the list.');
-   else if(!canTalk(g,a.giver))out.push(nameOf(g,a.giver)+' cannot give missions in the game yet ('+(((g.find(x=>x.id===a.giver)||{}).why)||'no TALK prompt')+'). Pick someone else from the list.');}
+   else if(!known(g,a.giver))out.push('That NPC is not registered in the game. Pick a name from the list.');}
   if(page==='start'){if(!STARTS.some(s=>s.id===a.start))out.push('Choose how it starts: click one of the choices.');
+   if((a.start==='person'||a.start==='person-accept')&&a.giver&&!canTalk(g,a.giver))out.push(nameOf(g,a.giver)+' has no TALK prompt in the walking game. Choose “A text message on the V1” to use this NPC without changing their gameplay interaction.');
+   if((a.start==='near'||a.start==='near-accept')&&a.giver&&!canTalk(g,a.giver))out.push('“Walk near them” needs a real walking-game interaction to measure from. Choose a text-message start, or choose an NPC with a TALK prompt.');
    if((a.start==='messages'||a.start==='near'||a.start==='near-accept')&&!String(a.message&&a.message.text||'').trim())out.push(a.start==='messages'?'Write the message the player gets: type it in the box “What the message says”.':'Write the banner text: type it in the box “What the banner says”.');
    {const NV=typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;if((a.start==='messages'||a.start==='near'||a.start==='near-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.message&&a.message.text||'')))out.push(p);if((a.start==='person'||a.start==='person-accept'||a.start==='near'||a.start==='near-accept')&&NV&&NV.tagProblems)for(const p of NV.tagProblems(String(a.offer||'')))out.push('What they say when offering it: '+p);}}   // ElevenLabs voice tags: the same rules as a line
   if(page==='steps'){if(!a.steps.length)out.push('Add at least one step: press “+ ADD A STEP”.');
@@ -135,6 +138,6 @@
    if(s.kind==='follow-them'||s.kind==='they-follow'){if(/^in:/.test(s.spot||'')&&apt){const v=s.spot.slice(3),i=v.indexOf('/');o.apt=apt.id;if(i>0&&Array.isArray(apt.modules)&&apt.modules.some(x=>x&&x.id===v.slice(i+1)))o.mod=v.slice(i+1);}else{const p=(EX()?EX().spots(s.npc):[]).find(x=>x.id===s.spot);if(p)o.to={x:p.x,z:p.z};}}if((s.kind==='their-cab'||s.kind==='shared-cab')&&s.stop)o.stop=s.stop;if(s.kind==='anim'){if(s.clip)o.clip=s.clip;o.hold=3;}if(s.kind==='wait'){o.hold=s.secs;delete o.npc;}if(s.kind==='apt-enter'){delete o.npc;if(apt){o.apt=apt.id;if(s.mod&&Array.isArray(apt.modules)&&apt.modules.some(x=>x&&x.id===s.mod))o.mod=s.mod;}}}
   return {tree,mission:m};}
  const ICON_IDS=['mission','character','test','publish','balance','jump','trophy','people','parcel','meet','pin','camera','talk','undo','help','back','next','check'];
- const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,asks,template,fresh,setTemplate,labelFor,relabel,aptRecord,aptWords,aptChoices,canTalk,problems,allProblems,build,ICON_IDS};
+ const api={MODE_KEY,TOUR_KEY,mode,createUndo,STEPS,TEMPLATES,STARTS,PAGES,REWARDS,asks,template,fresh,setTemplate,labelFor,relabel,aptRecord,aptWords,aptChoices,known,canTalk,problems,allProblems,build,ICON_IDS};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidEditorWizard=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

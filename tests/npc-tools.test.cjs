@@ -142,8 +142,10 @@ test('the editor files load in order and the NPCs tab is a Developer Tools secti
  assert.ok(i>0&&j>i&&k>j,'npc-paths.js after the street pair and before mission-content.js');const dt=fs.readFileSync(R('void-runner/dev-tools.js'),'utf8');assert.match(dt,/\['npcs','NPCs'\]/);
  for(const f of ['void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/npc-editor.js'])assert.ok(dt.includes("'"+f+"'"),f);
  assert.ok(dt.indexOf("'void-runner/mission-editor.js'")<dt.indexOf("'void-runner/npc-editor.js'"));
- // the NPCs tab never writes voices
- const ne=fs.readFileSync(R('void-runner/npc-editor.js'),'utf8');assert.doesNotMatch(ne,/npc-voice-registry\.json['"]\s*,\s*\{\s*method/);assert.doesNotMatch(ne,/voice\s*=\s*['"]/);});
+ // the NPCs tab never writes voices; category labels do not disable notification mission ownership
+ const ne=fs.readFileSync(R('void-runner/npc-editor.js'),'utf8');assert.doesNotMatch(ne,/npc-voice-registry\.json['"]\s*,\s*\{\s*method/);assert.doesNotMatch(ne,/voice\s*=\s*['"]/);
+ assert.match(ne,/notification:!g\.canTalk/,'a no-TALK NPC creates a notification-started mission instead of a disabled button');
+ assert.match(ne,/Walking TALK available \(in-person missions\)/);assert.match(ne,/device-started missions; no walking TALK yet/);});
 
 test('every animation in the game is indexed from the real files; Reverie and Lace get compatible ordinary gameplay clips, with exact exceptions for verified shared motions',()=>{fresh();const P=X(),I=require(R('void-runner/npc-clip-index.json')),idx=require(R('tools/npc-clip-index.cjs'));
  assert.equal(JSON.stringify(idx.build())+'\n',fs.readFileSync(R('void-runner/npc-clip-index.json'),'utf8'),'npc-clip-index.json is current (node tools/npc-clip-index.cjs)');

@@ -38,6 +38,7 @@
  /* What a person wears: {belt, pouches (2..4), harness, thighs ('', 'L', 'R', 'LR'), knees, bracer ('', 'L', 'R'), goggles, accent (0..5)}. */
  function loadout(seed,look,body,teeShare=TEE_SHARE){
   if(KITS[seed])return {...KITS[seed]};
+  if(String(seed).includes(':food-vendor:'))return {tee:false,belt:true,pouches:2,harness:false,thighs:'',knees:false,bracer:'',goggles:false,jacket:false,apron:true,accent:hash(seed+'/accent')%ACCENTS.length};
   const r=k=>roll(seed,k),skirt=!!body?.skirt,t=r('thigh'),club=/:club:([a-z0-9-]+)$/.exec(String(seed)),tee=club?club[1]===CLUB_TEE:r('tee')<teeShare;   /* inside NULL: exactly one, always the same dancer */
   return {tee,belt:r('belt')<.92,pouches:2+Math.floor(r('pouches')*3),harness:!tee&&r('harness')<.55,   /* a chest rig would cover the shirt's print */thighs:skirt?'':t<.3?'L':t<.6?'R':t<.75?'LR':'',knees:!skirt&&r('knees')<.35,
    bracer:r('bracer')<.34?'L':r('bracer')<.68?'R':'',goggles:!HATS.has(look)&&r('goggles')<.3,jacket:false,accent:hash(seed+'/accent')%ACCENTS.length};
@@ -74,6 +75,9 @@
  /* The whole kit of one person as one mesh. body: that character file's entry in street-fit.json. Returns {positions, normals, uvs, indices, bone (per vertex: index into bones), bones (joint names), parts}. */
  function build(body,wear){
   const m=mesh(),J=body.joints,u=body.height/1.8,A=GLOW+wear.accent,parts=[];let print=null;
+  if(wear.apron){const w=body.waist,r=body.ribs,g=writer(m,UPRIGHT([0,0,0]),'Hips',PLATE),cx=J.Hips[0],front=Math.max(w.front,r.front)+.025*u,top=r.y-.04*u,bottom=w.y-.41*u,width=w.halfW*1.72;parts.push('apron');
+   g.box([cx,(top+bottom)/2,front],[width,top-bottom,.012*u]);g.box([cx,top-.08*u,front+.009*u],[width*.72,.05*u,.005*u],0,MATTE+wear.accent);
+   for(const sx of [-1,1])g.box([cx+sx*width*.25,w.y-.2*u,front+.011*u],[width*.28,.11*u,.006*u],0,STRAP);}
   if(wear.tee&&body.chest&&body.Left.upperarm){const w=body.waist,r=body.ribs,c=body.chest,k=.014*u,ring=(q,y,grow=1)=>({y,cx:J.Hips[0],cz:(q.front+q.back)/2,rx:(q.halfW+k)*grow,rz:((q.front-q.back)/2+k)*grow}),g=writer(m,UPRIGHT([0,0,0]),'Spine1',STRAP);parts.push('tee');
    // up the body: hem, waist, ribs, chest (never wider than the ribs: the chest measure takes in the arms), across the shoulders, and in to the collar
    const n=body.neck,cx=J.Hips[0],cd=(c.front-c.back)/2+k,chest={y:c.y,cx,cz:(c.front+c.back)/2,rx:Math.min(c.halfW,r.halfW*1.08)+k,rz:cd},sw=Math.abs(J.LeftArm[0]-J.RightArm[0])/2+.012*u,
@@ -202,7 +206,7 @@
      // A figure put together by the character assembler (parent "character:<look>") is a player, another player or a portrait, and keeps what its owner chose,
      // unless it stands for a named member of staff (Admin, Iris), who has a kit of their own.
      if(/^character:/.test(parent?.name||'')){const staff=parent.parent?.metadata?.character;if(KITS[staff])dress(node,look,staff).catch(()=>{});return;}
-     const who=node.metadata?.character||node.metadata?.id||(node.metadata?.club?'club:'+node.metadata.club:'')||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}
+     const who=node.metadata?.character||node.metadata?.id||(node.metadata?.foodVendor?'food-vendor:'+node.metadata.foodVendor:'')||(node.metadata?.club?'club:'+node.metadata.club:'')||'walker-'+n;dress(node,look,KITS[who]?who:look+':'+who).catch(()=>{});},0);}
    return node;};}
  root.VoidStreetGear={...pure,config,dress,eye,V3_GREEN,get dressed(){return count;}};
 })(typeof globalThis!=='undefined'?globalThis:this);

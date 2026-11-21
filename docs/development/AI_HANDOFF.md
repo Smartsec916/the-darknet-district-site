@@ -1,5 +1,16 @@
 # The Darknet District — current AI handoff
 
+## 19 Nov 2026 — DEV TOOLS NPC CAPABILITY AUDIT (CURRENT RULE)
+
+Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Mission Editor eligibility.
+
+- **TALK is a capability, not a global mission permission.** Any registered NPC may own/send a mission started by Messages, Comms or notification. Only in-person offers, talk/deliver/hand-in and walked-near triggers require a real walking TALK interaction.
+- Developer Tools > NPCs keeps the existing layout. The category labels describe capabilities; a no-TALK NPC's **Give them a mission** action creates a notification-started draft instead of being disabled.
+- Do **not** expose generic movement merely because a model has `walk`. Only Reverie, Lace and the street cat currently have runtime code that consumes generic placement/schedule/escort plans.
+- The animation compatibility source of truth is `npc-clip-index.json` plus `npc-paths.js` skeleton/rest-pose checks and the loaded model's actual animation groups. Never infer compatibility from names.
+- No model, animation, voice, default behavior/location, existing mission, save format, multiplayer protocol or developer-auth rule is changed by this audit.
+
+
 **Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions. The owner's reference pictures from 12 Nov 2026 are written out in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) so later work can use them without the files. The images are not in the repo yet ([`references/README.md`](references/README.md)).
 
 **Checked against:** `origin/main` `4fc1a70` (12 Nov 2026). That commit is the merge of #240 (Tropical Escape dolphins) on top of `7939256` (NULL nightclub, #238). Re-fetch GitHub before trusting pull-request numbers or deploy claims below.
@@ -9,6 +20,14 @@
 ### 21 Nov 2026: FPS SKIRMISH — THREE-SECTOR STATION
 
 - Compact connected friendly, neutral and hostile sectors replace the FPS skirmish arena; the original derelict station asset remains intact. The player starts in the safe hangar. Open doorways separate the three modes. The zone HUD uses the campaign's zone labels and colours. Firing, neutral escalation and armed NPC AI share zones.js, with NPC movement and aggression confined to their assigned sector. Campaign state, missions and flight skirmish are unchanged.
+
+### NPC logic audit — historical baseline and current route regression
+
+- The 16 Nov 2026 baseline report is retained in [NPC_LOGIC_AUDIT.md](NPC_LOGIC_AUDIT.md) as historical evidence, not current NPC capability guidance. Its resident-route collision regression was rechecked against V27 and passed. Other observations in the report require fresh validation before they are treated as current.
+
+### 21 Nov 2026: Food stands — integration draft
+
+- The five-quarter food stand draft is being reconciled with V27 and the newer crowd/scene systems. Not approved for production until current model, geometry and browser validation pass. See [NCZ_FOOD_STANDS.md](NCZ_FOOD_STANDS.md) for the original design.
 
 ### 21 Nov 2026: COMPANION STUDIO V27 — INDEPENDENT PRIVATE HOME TEST (branch `codex/companion-independent-residence`)
 
