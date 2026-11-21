@@ -19,7 +19,7 @@ How the game's recorded NPC dialogue is cast, approved, recorded and protected. 
 
 - Nothing is generated from the editor or the server, and no ElevenLabs key is ever in the browser. Queued lines wait until the owner approves the spend; Claude then records them with the ElevenLabs connector into `void-runner/assets/audio/voice/extra/`.
 - `python tools/audio/generate.py --from-queue [--voices revoice-engines.json]` lists those lines as waiting (voice, characters, estimated credits: about 1 credit per character on Multilingual v2 / v3, about half on Flash / Turbo) and records only the Kokoro ones.
-- The registry is never changed by a choice: recorded Kokoro clips keep their voice. The reserved slot, broadcast voices and The Function are refused; Reverie and Lace get ordinary, neutral street voices only.
+- The registry is never changed by a choice: recorded Kokoro clips keep their voice. The reserved slot, broadcast voices and The Function are refused; Reverie and Lace may use any owner-selected voice under the same rules as other eligible NPCs.
 
 ## Imported voice files (19 Nov 2026)
 

@@ -686,7 +686,7 @@ Branch `claude/editor-voices`, build `2026-11-18-editor-voices-1`. Pushed, no PR
 5. The choice is part of your **draft**: PLAY THIS DRAFT carries it, PUBLISH keeps it (the server checks it). **DOWNLOAD THE VOICES FILE** (NPCs tab) gives the same choices in the format of `tools/audio/revoice-engines.json`, for Claude or Codex to keep in the game files.
 6. **Nothing is generated or paid from the editor, and your ElevenLabs key is never asked for.** Lines you RE-VOICE for that character go to the re-voice queue marked "waiting for ElevenLabs re-voice (needs approval)". When you approve the spend, Claude records them with the ElevenLabs connector.
 
-Not offered: the reserved special-character slot, broadcast voices (The Relay) and The Function (no voice). Reverie and Lace can have one: choose an ordinary, neutral street voice (the editor reminds you).
+Not offered: the reserved special-character slot, broadcast voices (The Relay) and The Function (no voice). Reverie and Lace can use any owner-selected voice under the same rules as other eligible NPCs.
 
 ### For Claude and Codex
 

@@ -32,7 +32,7 @@ const shot=async(t,name)=>{if(shots)await t.screenshot({path:path.join(shots,nam
   // ---- Reverie: no voice yet; a bad link is refused in plain words; a pasted link plus a name is saved in the draft
   await open('grey-reverie');const P=()=>page.locator('[data-voice-panel="grey-reverie"]');
   assert.equal(await P().locator('[data-voice-current]').getAttribute('data-voice-current'),'elevenlabs');   // her voice in revoice-engines.json (19 Nov 2026)
-  assert.match(await P().locator('[data-voice-street]').textContent(),/ordinary, neutral street voice/);
+  assert.equal(await P().locator('[data-voice-street]').count(),0);
   await P().locator('[data-voice-choose] summary').click();
   await P().locator('[data-voice-input]').fill('https://example.com/voices/'+ID);assert.match(await P().locator('[data-voice-check]').textContent(),/Only an elevenlabs\.io link/);
   await P().locator('[data-voice-input]').fill('AbCdEf123');assert.match(await P().locator('[data-voice-check]').textContent(),/exactly 20 letters and digits/);
