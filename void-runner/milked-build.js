@@ -214,7 +214,8 @@
    chair:(x,z,yaw)=>{cyl(.5,.05,x,.06,z,standM,false,5);cyl(.06,.4,x,.26,z,standM,false,8);box(.5,.06,.5,x,.48,z,dark);rbox(.48,.6,.06,x-Math.sin(yaw)*.24,.85,z-Math.cos(yaw)*.24,dark,0,yaw,0);},
    cart:(x,z)=>{tbox(1,.6,.6,x,.52,z,S.cloth,1);for(const sx of [-1,1])for(const sz of [-1,1]){box(.03,.8,.03,x+sx*.5,.45,z+sz*.3,trim);cyl(.1,.04,x+sx*.45,.06,z+sz*.26,black,false,8).rotation.x=PI/2;}box(1.04,.03,.64,x,.84,z,trim);box(.8,.06,.4,x,.84,z,M('towel','#2a2c36','#12131a'));},
    flightCase:(x,z,w=.7,d=1,h=.6)=>{box(w,h,d,x,h/2+.06,z,black);for(const sx of [-1,1])for(const sz of [-1,1]){box(.04,h+.02,.04,x+sx*w/2,h/2+.06,z+sz*d/2,trim);}box(w+.03,.03,d+.03,x,h+.07,z,trim);box(w+.03,.03,d+.03,x,.07,z,trim);},
-   cat:(x,y,z)=>{ball(.16,x,y+.08,z,M('cat','#e9e4dc','#55504a'));ball(.12,x,y+.2,z,M('cat','#e9e4dc','#55504a'));box(.03,.09,.03,x+.07,y+.25,z,M('cat','#e9e4dc','#55504a'));},
+   // the lucky cat's stand-in: the shared parts (lucky-cat.js; the same cat stands on the underground tea room's counter)
+   cat:(x,y,z)=>{const L=root.VoidLuckyCat,m=M('cat',...(L?L.COLOUR:['#e9e4dc','#55504a']));if(L){L.standIn(x,y,z,{ball:(d,a,b,c)=>ball(d,a,b,c,m),box:(w,h,d,a,b,c)=>box(w,h,d,a,b,c,m)});return;}ball(.16,x,y+.08,z,m);ball(.12,x,y+.2,z,m);box(.03,.09,.03,x+.07,y+.25,z,m);},
    shark:(x,y,z)=>{ball(.3,x,y+.07,z,M('plush-shark','#5f7f9a','#22303c'),.45);}};
   const lantern=(x,z,h=.7)=>{box(.3,.03,.3,x,.015,z,black);const m=cyl(.26,h,x,h/2+.03,z,G('lantern','#ffcf9a',.75),false,12);box(.3,.03,.3,x,h+.045,z,black);for(let i=1;i<5;i++)torus(.265,.008,x,.03+i*h/5,z,black,0,0);return m;};
   // Ceiling services: a duct, two pipes and a cable tray run along `axis` between a and b at the given cross position.

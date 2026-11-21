@@ -24,7 +24,8 @@ test('who: never the cat (greyed with the reason); Reverie and Lace never into a
  const cat=E.problems(step({npc:'street-cat',apt:'a2'}),ctx([flat()]));assert.match(cat.join(' '),/cat stays outside/);assert.equal(E.canInto('street-cat').ok,false);assert.equal(E.canInto(REV).ok,true);
  const bar={id:'a3',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='bar').loc))};
  assert.deepEqual(E.problems(step({apt:'a3',mod:'bar'}),ctx([bar])),[]);const pit={id:'a4',door:DOOR,...JSON.parse(JSON.stringify(M.TEMPLATES.find(t=>t.id==='fight-pit').loc))};assert.match(E.problems(step({apt:'a4',mod:'pit'}),ctx([pit])).join(' '),/fight pit/);assert.match(E.problems(step({apt:'a3'}),ctx([bar])).join(' '),/^$/);
- assert.match(E.problems(step({apt:'a2'}),ctx([flat(OT_DOOR)])).join(' '),/is in Old Town, but Reverie is placed in The Avenue/);
+ assert.deepEqual(E.problems(step({apt:'a2'}),ctx([flat(OT_DOOR)])),[],'(escort across, 20 Nov 2026) a door in Old Town: she walks there through the North Gate');
+ assert.match(E.problems(step({npc:'street-cat',kind:'they-follow',to:{x:-2.7,z:-80}}),ctx([])).join(' '),/cat never goes inside or down into the tunnels/);
  assert.deepEqual(E.problems(step({apt:'a2'}),{...ctx([flat(OT_DOOR)]),area:'oldtown'}),[]);
  const steps=[{id:'s1',kind:'talk'},{id:'s2',kind:'follow-them'},{id:'s3',kind:'apt-enter'}];
  assert.match(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s3'}],steps)).join(' '),/opens later/);assert.deepEqual(E.problems(step({apt:'a2'}),ctx([{...flat(),from:'s2'}],steps)),[]);
@@ -86,7 +87,7 @@ test('wiring: the indoor controller is loaded after the module wiring; plans() k
  const html=fs.readFileSync(R('void-runner.html'),'utf8'),i=f=>html.indexOf('void-runner/'+f+'"');assert.ok(i('npc-escort-indoors.js')>i('module-integration.js')&&i('module-integration.js')>0);
  assert.equal(html,fs.readFileSync(R('static/void-runner.html'),'utf8'));
  for(const f of ['npc-escort-indoors.js','live-content.js','ncz-street-pair.js','npc-made.js','mission-editor.js','editor-home.js','editor-wizard.js'])assert.doesNotThrow(()=>new vm.Script(fs.readFileSync(R('void-runner/'+f),'utf8')),f);
- const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/if\(D&&I&&I\.away&&I\.away\(e\.key\)\)/);assert.match(lc,/door:D\?\{\.\.\.D\.inside\}:null/);assert.match(lc,/MC\.insideNow/);
+ const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/if\(D&&I&&I\.away&&I\.away\(e\.key\)\)/);assert.match(lc,/door:D&&fin\?\{\.\.\.D\.inside\}:null/);assert.match(lc,/MC\.insideNow/);
  for(const f of ['ncz-street-pair.js','npc-made.js'])assert.match(fs.readFileSync(R('void-runner/'+f),'utf8'),/door:P\.door\|\|null/);
  const ind=fs.readFileSync(R('void-runner/npc-escort-indoors.js'),'utf8');assert.match(ind,/X\.build=b1/);assert.match(ind,/E\(\)\.crossing\(/);assert.match(ind,/E\(\)\.insideDone\(/);assert.match(ind,/near\?\.\(true\)/,'doors open for her');
  const ed=fs.readFileSync(R('void-runner/mission-editor.js'),'utf8');assert.match(ed,/data-me-esc-into/);assert.match(ed,/'step-into':/);
