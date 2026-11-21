@@ -164,7 +164,7 @@ function rookFreightOffer(){
   if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}
  if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}
  // A District campaign (the owner, 20 Nov 2026): after the first delivery Rook sends the coordinates once (the Map app gets every location: nav-coords.js), then shows his side missions.
- // His lines here are PROPOSED placeholder text (rook-cargo-jobs.js lines): need owner approval before recording.
+ // His lines here are the owner-approved text in rook-cargo-jobs.js lines (21 Nov 2026).
  const district=VoidMissions.closed(state),RL=globalThis.VoidRookCargoJobs?.lines||{};
  if(district&&state.story.flags.rookNavSent!==true){state.story.flags.rookNavSent=true;globalThis.VoidNav?.grantCoordinates('rook');save();talk('',[{who:'rook',text:RL.coordinates}],()=>rookFreightOffer(),'NEXT →','Rook’s booth');return;}
  const board=C.rookBoard({...state,contract:null}),r=board[0],free=C.holdFree(state);
