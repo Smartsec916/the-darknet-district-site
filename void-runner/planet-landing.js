@@ -28,7 +28,7 @@
  /* ---- the landing areas. pad: where the ship stands in the walkable scene (x, z, ground y). face: the way the ship's nose points there (its view at touchdown).
     arrive: the direction flown over the area on the way in; leave: the climb-out direction. Light: 'night' (lit city, emissive) or 'day'. ---- */
  const BIOMES={
-  earth:{id:'neochinatown',planet:'Servo',place:'NeoChinatown',pad:'THE PORT · PAD 01',at:[22,-96,0],eye:3.4,face:[0,-1],arrive:[-1,0],leave:[1,0],light:'night',weather:'rain',
+  earth:{id:'neochinatown',planet:'Servo',place:'NeoChinatown',pad:'THE PORT · PAD 01',at:[22,-96,0],eye:3.4,face:[0,-1],arrive:[-1,0],leave:[.86,.51],light:'night',weather:'rain',
    sky:['#04050a','#1b1622','#3a2a2e'],fog:['#17131c',.0021],clouds:'#24212a',cloudGlow:'#3a2c2c',ground:'steam',
    orbit:{ocean:'#0b1622',land:'#1a1d22',lights:'#ffb46a',cloud:'#5d6370',rim:'#6e8cff',night:true,density:.9}},
   mars:{id:'vantor',planet:'Vantor',place:'Vantor · Subsurface Access',pad:'PRESSURE CONTROL · LANDING PAD',at:[-7,-24,0],eye:3.2,face:[0,1],arrive:[0,1],leave:[0,1],light:'night',weather:'dust',
@@ -73,7 +73,7 @@
  function approachPoints(b){const [px,pz]=b.at,[ax,az]=b.arrive,sx=-az,sz=ax,P=(back,alt,side=0)=>[px-ax*back+sx*side,alt,pz-az*back+sz*side];
   return [P(1300,900,-200),P(820,640,-120),P(440,400,60),P(210,215,30),P(95,105,-10),P(40,50,0),P(0,28,0)];}
  function climbPoints(b){const [px,pz]=b.at,[ax,az]=b.leave,sx=-az,sz=ax,P=(fwd,alt,side=0)=>[px+ax*fwd+sx*side,alt,pz+az*fwd+sz*side];
-  return [P(0,30,0),P(70,58,10),P(260,170,60),P(620,420,140),P(1050,760,200),P(1400,1320,240)];}
+  return [P(0,30,0),P(60,52,10),P(170,120,40),P(330,260,90),P(700,620,180),P(1200,1320,240)];}
  /* The camera (cockpit eye) at time t of a kind's city phases: {pos, yaw, pitch, roll, space:false}. Orbit / space phases return {space:true, k} (the browser draws those). */
  function camera(id,kind,t){const b=biome(id);if(!b)return null;const ph=phaseAt(kind,t);if(!ph)return null;const [px,pz]=b.at,gy=b.at[2]||0,faceYaw=yawOf(b.face),eye=gy+b.eye;
   const look=(P,u,pitch0,pitch1)=>{const p=spline(P,u),q=spline(P,Math.min(1,u+.02)),r=spline(P,Math.max(0,u-.02)),dx=q[0]-p[0],dz=q[2]-p[2],yaw=Math.atan2(dx,dz)||0,
@@ -91,7 +91,7 @@
    return {pos:[px,y,pz],yaw:turn(yawOf(b.arrive),faceYaw,ease(clamp(k/.7))),pitch:lerp(-.42,-.08,ease(k)),roll:0,phase:ph.id,k,touched:k>=.78};}
   if(ph.id==='liftoff'){const k=ph.k,up=ease(k),C=climbPoints(b);return {pos:[px,lerp(eye,C[0][1],up),pz],yaw:turn(faceYaw,yawOf(b.leave),ease(clamp((k-.25)/.75))),pitch:lerp(-.06,-.18,k),roll:0,phase:ph.id,k};}
   const C=climbPoints(b);
-  if(ph.id==='climb'){const u=easeIn(ph.k,1.25)*.8,c=look(C,u,-.34,-.06);return {...c,phase:ph.id,k:ph.k};}
+  if(ph.id==='climb'){const u=easeIn(ph.k,1.25)*.8,c=look(C,u,-.62,-.1);return {...c,phase:ph.id,k:ph.k};}
   if(ph.id==='clouds'){const u=.8+.2*ph.k,c=look(C,u,-.04,.26);return {...c,phase:ph.id,k:ph.k};}
   return {space:true,phase:ph.id,k:ph.k};}
  /* ---- NeoChinatown from the air: the real layout, built cheaply (the browser part instances it). Deterministic; no random numbers of the walkable city's. ----
@@ -120,11 +120,11 @@
    for(let i=0;i<n;i++){const a=i/n,b=(i+1)/n,r=along?[x0+(x1-x0)*a,x0+(x1-x0)*b,z0,z1]:[x0,x1,z0+(z1-z0)*a,z0+(z1-z0)*b];ring.push({x0:r[0],x1:r[1],z0:r[2],z1:r[3],h:26+rand()*20,k:i%3});}});
   const mid=[],R=low?240:300;for(let x=centre[0]-R;x<centre[0]+R;x+=26)for(let z=centre[1]-R;z<centre[1]+R;z+=26){if(Math.hypot(x+13-centre[0],z+13-centre[1])>R||x+26>X0-44&&x<X1+44&&z+26>Z0-40&&z<Z1+40)continue;
    const w=18+rand()*6,d=18+rand()*6,h=18+rand()*48;mid.push({x0:x+13-w/2,x1:x+13+w/2,z0:z+13-d/2,z1:z+13+d/2,h,k:Math.floor(rand()*3)});}
-  // the landing corridors (in from the east over the District, out the same way): the tallest towers stand clear of them (the flight lines' clearance is tested)
-  const [px,,pz]=[pad[0]+(pad[1]-pad[0])*.36,0,(pad[2]+pad[3])/2],lane=(x,z,half)=>x>px-40&&Math.abs(z-pz)<half+Math.max(0,x-px)*.22;
+  // the landing corridors: the tallest towers stand clear of them (the flight lines' clearance is tested)
+  const [px,,pz]=[pad[0]+(pad[1]-pad[0])*.36,0,(pad[2]+pad[3])/2],E=BIOMES.earth,line=(x,z,[dx,dz],sign)=>{const along=((x-px)*dx+(z-pz)*dz)*sign;return along>-60?Math.abs((x-px)*dz-(z-pz)*dx)-along*.15:1e9;},lane=(x,z,half)=>line(x,z,E.arrive,-1)<half||line(x,z,E.leave,1)<half;   // the flight lines: in from the east over the District, out to the north-east across Old Town
   const towers=[],rings=low?[[30,290,370,100,260]]:high?[[44,290,370,110,320],[58,400,560,220,620]]:[[40,290,370,110,320],[40,400,560,220,520]];
   rings.forEach(([n,r0,r1,h0,h1],ri)=>{for(let i=0;i<n;i++){const a=(i+rand()*.7)/n*Math.PI*2,r=r0+rand()*(r1-r0),x=centre[0]+Math.sin(a)*r,z=centre[1]+Math.cos(a)*r,w=18+rand()*26,d=18+rand()*26,h=h0+rand()*(h1-h0);
-   if(lane(x,z,170))continue;towers.push({x,z,w,d,h,k:(i*7+ri)%3,beacon:rand()<.7,screen:rand()<(low?.08:.16)});}});
+   if(lane(x,z,105))continue;towers.push({x,z,w,d,h,k:(i*7+ri)%3,beacon:rand()<.7,screen:rand()<(low?.08:.16)});}});
   for(const m of mid)if(lane((m.x0+m.x1)/2,(m.z0+m.z1)/2,60))m.h=Math.min(m.h,30);
   // the Corporate District (corporate.js BLOCKS, its own scene about 1.8 km away through the Function Gate): set to the west, towers taller than the city's own so they read on the skyline
   const corp=[];if(CORP&&CORP.BLOCKS){const cx=-1250,cz=-12,scale=2.2;for(const b of CORP.BLOCKS){const [a,bb,c,d]=b.rect;corp.push({x0:cx+a,x1:cx+bb,z0:cz+c,z1:cz+d,h:b.h*scale,k:b.id.length%3,id:b.id});}}
@@ -246,8 +246,11 @@
   const gm=new B.StandardMaterial('ls-city-ground',scene);gm.diffuseColor=B.Color3.Black();gm.specularColor=new B.Color3(.18,.18,.22);gm.specularPower=48;gm.emissiveTexture=ground;
   const gp=B.MeshBuilder.CreateGround('ls-city-ground',{width:GX1-GX0,height:GZ1-GZ0},scene);gp.position.set((GX0+GX1)/2,0,(GZ0+GZ1)/2);gp.material=gm;gp.isPickable=false;
   // the land beyond: the megacity's lit street grid out to the horizon (tiled)
-  const far=dyn(scene,'far-grid',512,512,(c,w,h)=>{const r=rng(9);c.fillStyle='#050608';c.fillRect(0,0,w,h);c.globalCompositeOperation='lighter';for(let i=0;i<8;i++){const y=i*64+(r()*8|0);c.fillStyle='rgba(255,170,90,.32)';c.fillRect(0,y,w,2);c.fillRect(y,0,2,h);}
-   for(let i=0;i<900;i++){const x=r()*w,y=r()*h,s=r()<.1?2:1;c.fillStyle=r()<.8?'rgba(255,190,120,'+(.25+r()*.5)+')':r()<.5?'rgba(255,80,180,.5)':'rgba(90,210,255,.5)';c.fillRect(x,y,s,s);}});far.uScale=far.vScale=40;
+  const far=dyn(scene,'far-grid',512,512,(c,w,h)=>{const r=rng(9);c.fillStyle='#07080b';c.fillRect(0,0,w,h);c.globalCompositeOperation='lighter';
+   // blocks of lit roofs and courtyards between sodium-lit streets, the odd neon square
+   for(let by=0;by<h;by+=32)for(let bx=0;bx<w;bx+=32){const k=r();c.fillStyle='rgba('+(40+k*50|0)+','+(30+k*30|0)+','+(28+k*20|0)+',1)';c.fillRect(bx+5,by+5,22,22);for(let i=0;i<9;i++){c.fillStyle=r()<.85?'rgba(255,196,130,'+(.4+r()*.6)+')':r()<.5?'rgba(255,70,180,.9)':'rgba(80,210,255,.9)';c.fillRect(bx+6+r()*19,by+6+r()*19,2,2);}}
+   for(let i=0;i<=16;i++){const y=i*32;c.fillStyle='rgba(255,165,80,.75)';c.fillRect(0,y,w,3);c.fillRect(y,0,3,h);}
+   for(let i=0;i<4;i++){const y=(i*128+64);c.fillStyle='rgba(255,190,110,.9)';c.fillRect(0,y,w,5);c.fillRect(y,0,5,h);}});far.uScale=far.vScale=30;far.level=.5;
   const fm=new B.StandardMaterial('ls-far',scene);fm.diffuseColor=B.Color3.Black();fm.specularColor=B.Color3.Black();fm.emissiveTexture=far;fm.disableLighting=true;
   const fg=B.MeshBuilder.CreateGround('ls-far',{width:9000,height:9000},scene);fg.position.set(plan.centre[0],-.6,plan.centre[1]);fg.material=fm;fg.isPickable=false;
   // the buildings (each a thin instance of its size class's box)
@@ -376,7 +379,7 @@
     else if(kind==='descent'){const d=lerp(1.42,1.012,easeIn(k,1.3)),p=dirIn.add(side.scale(.35*k)).normalize();pos=o.add(p.scale(PR*d));target=o.add(p.subtract(side.scale(lerp(.5,.32,k))).normalize().scale(PR*.99));up=p;}
     else{const d=lerp(1.01,1.65,easeIn(k,1.4)),p=dirIn.add(side.scale(.3)).normalize();pos=o.add(p.scale(PR*d));const tang=B.Vector3.Cross(side,p).normalize();target=pos.add(tang.scale(-PR)).add(p.scale(PR*lerp(-.22,-.08,k)));up=p;}
     cam.position.copyFrom(pos);cam.upVector=up;cam.setTarget(target);orbit.tick(t);return c;}
-   setSpace(false);cam.upVector=B.Vector3.Up();cam.position.set(c.pos[0],c.pos[1],c.pos[2]);const cp=Math.cos(c.pitch);tmp.set(c.pos[0]+Math.sin(c.yaw)*cp*100,c.pos[1]+Math.sin(c.pitch)*100,c.pos[2]+Math.cos(c.yaw)*cp*100);cam.setTarget(tmp);cam.rotation.z=c.roll||0;area.tick?.(t);return c;}
+   setSpace(false);cam.upVector=B.Vector3.Up();cam.position.set(c.pos[0],c.pos[1],c.pos[2]);const cp=Math.cos(c.pitch);tmp.set(c.pos[0]+Math.sin(c.yaw)*cp*100,c.pos[1]+Math.sin(c.pitch)*100,c.pos[2]+Math.cos(c.yaw)*cp*100);cam.setTarget(tmp);cam.rotation.z=c.roll||0;scene.fogDensity=b.fog[1]*lerp(1,.3,clamp((c.pos[1]-120)/650));area.tick?.(t);return c;}
   return {scene,cam,b,place,area,dispose(){try{glow?.dispose();}catch{}scene.dispose();}};}
  // ---- 2D: plasma, shimmer, clouds, rain, dust or steam, shake, letterbox, fades, the cockpit ----
  const sprites=new Map();function sprite(col){if(sprites.has(col))return sprites.get(col);const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d'),r=rng(3),[cr,cg,cb]=hex(col);
