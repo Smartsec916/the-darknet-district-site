@@ -1117,10 +1117,6 @@ def _zone_inv(inv):
     return dict(ZONE_DEFAULT, **((inv or {}).get('zones') or {}))
 
 
-def _num(v):
-    return type(v) in (int, float) and v == v and abs(v) != float('inf')
-
-
 def zone_ref(m, ref):
     """The room a reference names in a mission's apartments: (location, module id or None, module type or None), or None (zones.js refOf)."""
     r = ZONE_REF.match(ref) if isinstance(ref, str) else None
@@ -1807,23 +1803,98 @@ def import_package_problems(pkg, inv=None):
     return out
 
 
+# ---- "...and only when": extra start conditions (20 Nov 2026): the same rules as void-runner/start-conditions.js problems() ----
+ONLY_KINDS = ['alone', 'players', 'time', 'place', 'mission', 'flag', 'credits', 'ship', 'on-foot', 'holstered', 'zone']
+ONLY_KEYS = {'alone': ['kind', 'npc', 'distance', 'crowd'], 'players': ['kind', 'npc', 'distance'], 'time': ['kind', 'from', 'to'], 'place': ['kind', 'place'],
+             'mission': ['kind', 'mission', 'done'], 'flag': ['kind', 'flag', 'set'], 'credits': ['kind', 'amount'], 'ship': ['kind', 'has'], 'on-foot': ['kind'],
+             'holstered': ['kind'], 'zone': ['kind', 'zone']}
+ONLY_MAX, ONLY_DIST, ONLY_PDIST, ONLY_CREDITS = 6, (1, 30), (1, 50), (1, 10000000)
+ONLY_ZONES = ['friendly', 'neutral', 'hostile']
+ONLY_ID = re.compile(r'^[a-z0-9][a-z0-9_-]{0,63}$')
+
+
+def _only_num(v, lo, hi):
+    return type(v) in (int, float) and v == v and lo <= v <= hi
+
+
+def only_problems(only, givers, places, mission_ids):
+    """A start's extra conditions (start.only, a list of up to 6): the mission starts when its trigger fires AND every one is true. Same messages as start-conditions.js."""
+    if only is None:
+        return []
+    if not isinstance(only, list):
+        return ['the extra conditions must be a list.']
+    out = ['at most %d extra conditions.' % ONLY_MAX] if len(only) > ONLY_MAX else []
+    for i, c in enumerate(only[:ONLY_MAX]):
+        w = 'condition %d: ' % (i + 1)
+        if not isinstance(c, dict) or c.get('kind') not in ONLY_KINDS:
+            out.append(w + 'unknown kind of condition.')
+            continue
+        k = c['kind']
+        if any(x not in ONLY_KEYS[k] for x in c):
+            out.append(w + 'has fields it does not use.')
+            continue
+        if k in ('alone', 'players') and c.get('npc') is not None and not (isinstance(c['npc'], str) and (givers.get(c['npc']) or {}).get('canTalk')):
+            out.append(w + 'must name someone the game has a TALK prompt for (or leave it as the giver).')
+        if k == 'alone':
+            if not _only_num(c.get('distance'), *ONLY_DIST):
+                out.append(w + '\u201cno other people near\u201d needs a distance from %d to %d metres.' % ONLY_DIST)
+            if c.get('crowd') is not None and type(c['crowd']) is not bool:
+                out.append(w + '\u201ccount the street crowd\u201d must be yes or no.')
+        if k == 'players' and not _only_num(c.get('distance'), *ONLY_PDIST):
+            out.append(w + '\u201cno other players near\u201d needs a distance from %d to %d metres.' % ONLY_PDIST)
+        if k == 'time':
+            a, b = c.get('from'), c.get('to')
+            if not (isinstance(a, str) and HHMM.match(a) and isinstance(b, str) and HHMM.match(b)):
+                out.append(w + 'the times must be written hh:mm (00:00 to 23:59).')
+            elif a == b:
+                out.append(w + 'the start and end times must differ.')
+        if k == 'place' and not (isinstance(c.get('place'), str) and c['place'] and c['place'] in places):
+            out.append(w + 'choose the place the player must be in.')
+        if k == 'mission':
+            if not (isinstance(c.get('mission'), str) and ONLY_ID.match(c['mission']) and c['mission'] in mission_ids):
+                out.append(w + 'choose a mission that exists.')
+            if c.get('done') is not None and type(c['done']) is not bool:
+                out.append(w + '\u201cfinished / not finished\u201d must be yes or no.')
+        if k == 'flag':
+            if not (isinstance(c.get('flag'), str) and STORY_FLAG.match(c['flag'])):
+                out.append(w + 'the story flag needs a name (letters, digits, - or _).')
+            if c.get('set') is not None and type(c['set']) is not bool:
+                out.append(w + '\u201cset / not set\u201d must be yes or no.')
+        if k == 'credits' and not (type(c.get('amount')) is int and ONLY_CREDITS[0] <= c['amount'] <= ONLY_CREDITS[1]):
+            out.append(w + 'the credits must be a whole number from %d to %d.' % ONLY_CREDITS)
+        if k == 'ship' and c.get('has') is not None and type(c['has']) is not bool:
+            out.append(w + '\u201chas a ship / has none\u201d must be yes or no.')
+        if k == 'zone' and c.get('zone') not in ONLY_ZONES:
+            out.append(w + 'choose Friendly, Neutral or Hostile.')
+    return out
+
+
 def start_problems(st, givers, places, mission_ids):
     """How a mission starts: in person (the giver offers it) or by notification (channel, sender, header, text, trigger). Same rules as mission-content.js checkStart()."""
-    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept'] + ASK_KEYS) or st.get('how') not in HOW:
+    if not _keys(st, ['how', 'channel', 'from', 'header', 'text', 'when', 'accept', 'only'] + ASK_KEYS) or st.get('how') not in HOW:
         return ['unknown way of starting.']
     if st.get('accept') is not None and type(st['accept']) is not bool:
         return ['"Ask the player: ACCEPT or DENY" must be yes or no.']
+    only = ['and only when, ' + p for p in only_problems(st.get('only'), givers, places, mission_ids)]
     if st['how'] == 'person':
-        return [] if set(st) <= {'how', 'accept', *ASK_KEYS} else ['a mission given in person has no notification fields.']
-    out = []
+        return only + ([] if set(st) <= {'how', 'accept', 'only', *ASK_KEYS} else ['a mission given in person has no notification fields.'])
+    out = only
+    # walk near without words (21 Nov 2026, mission-content.js quietStart): a banner start triggered by walking near may leave the sender (the giver), header and body empty
+    w0 = st.get('when') if isinstance(st.get('when'), dict) else {}
+    quiet = st.get('channel') == 'notify' and w0.get('kind') == 'near'
+    blank = lambda v: v is None or (isinstance(v, str) and not v.strip())  # noqa: E731
     if st.get('channel') not in CHANNELS:
         out.append('unknown notification channel.')
-    if st.get('from') not in givers:
+    if not (quiet and blank(st.get('from'))) and st.get('from') not in givers:
         out.append('the notification must come from a known NPC.')
-    if (st.get('channel') != 'notify' or st.get('header') is not None) and not _plain(st.get('header'), 80):
+    if quiet and blank(st.get('header')):
+        pass
+    elif (st.get('channel') != 'notify' or st.get('header') is not None) and not _plain(st.get('header'), 80):
         out.append('the notification needs a header (plain text, 80 characters at most).')
     lim = 500 if st.get('channel') == 'notify' else 1500  # a Comms call or a message may be longer (mission-content.js LIMIT.call)
-    if not _plain(st.get('text'), lim):
+    if quiet and blank(st.get('text')):
+        pass
+    elif not _plain(st.get('text'), lim):
         out.append('the notification needs its text (plain text, %d characters at most).' % lim)
     else:
         out += ['the notification text: ' + p for p in voice_tag_problems(st['text'])]
