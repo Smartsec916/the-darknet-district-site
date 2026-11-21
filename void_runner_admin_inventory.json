@@ -57983,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "e31da3df443b3da8",
+  "revision": "299e121c03bdd409",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -70347,37 +70347,37 @@
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 22,
+      "line": 25,
       "text": "+'#cam-feed .cf-say{position:absolute;left:50%;bottom:11vh;transform:translateX(-50%);max-width:70vw;text-align:center;font:15px/1.4 ui-monospace,Consolas,monospace;background:rgba(0,0,0,.55);padding:6px 12px;border-radius:3px}#cam-feed .cf-say:empty{display:none}'",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 33,
+      "line": 36,
       "text": "+'<div class=\"cf-br\"><div data-cf=\"tc\">00:00:00:00</div><div>FPS : <b data-cf=\"fps\">0</b></div></div><div class=\"cf-say\" data-cf=\"say\"></div><div class=\"cf-msg\" data-cf=\"msg\"></div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 63,
-      "text": "$('cam').textContent=F.cam+' · SUB-LEVEL 2';el.hidden=false;$('zoom').textContent='1x';$('msg').textContent='CONNECTING TO '+F.cam+'…';$('say').textContent='';$('rec').style.visibility=o.record===false?'hidden':'visible';document.body.classList.add('cam-feed-on');",
+      "line": 99,
+      "text": "$('cam').textContent=F.cam+' · SUB-LEVEL 2';el.hidden=false;$('zoom').textContent='1x';$('aim').textContent=CR().aimLabel(0,0);$('hold').hidden=!!document.pointerLockElement;$('msg').textContent='CONNECTING TO '+F.cam+'…';$('say').textContent='';$('rec').style.visibility=o.record===false?'hidden':'visible';document.body.classList.add('cam-feed-on');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 76,
+      "line": 112,
       "text": "const say=CR().lineAt(F.cs,F.t);if(say.length){g.font='15px ui-monospace,Consolas,monospace';const txt=say.map(l=>l.name.toUpperCase()+': '+l.text).join('   ');const w=Math.min(W-40,g.measureText(txt).width+24);g.fillStyle='rgba(0,0,0,.6)';g.fillRect((W-w)/2,H-58,w,28);g.fillStyle='#e8eee8';g.textAlign='center';g.fillText(txt,W/2,H-52,W-60);g.textAlign='left';}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 84,
+      "line": 121,
       "text": "for(const e of F.cs.events){if(e.type!=='line'||F.spoken.has(e)||F.t<e.t)continue;const vt=CR().voiceText?CR().voiceText(e):e.text;if(!vt)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,vt)){if(root.VoidAudio?.speak)root.VoidAudio.speak(e.who,vt);else V.speak({characterId:e.who,text:vt}).catch(()=>{});}}catch{}}   // through the game's voice channel (VoidAudio: its bus and volume; 21 Nov 2026: a bare V.speak had no bus and never played)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/camera-feed.js",
-      "line": 85,
+      "line": 122,
       "text": "if(!F.date||now-F.lastHud>400){F.date=dateLine();F.lastHud=now;$('date').textContent=F.date;$('rect').textContent=hms(F.t);$('fps').textContent=String(Math.round(F.engine.getFps()));const say=CR().lineAt(F.cs,F.t);$('say').textContent=say.map(l=>l.name+': '+l.text).join('  ·  ');}",
       "kind": "source-reference"
     },
@@ -70611,7 +70611,7 @@
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 193,
+      "line": 225,
       "text": "function inventory(){return {rooms:FEED_ROOMS.map(r=>r.id),speakers:SPEAKERS.slice(),actors:ACTORS.slice(),acts:ACT_IDS.slice(),beatKeys:JSON.parse(JSON.stringify(BEAT_KEYS)),anims:ANIMS.slice(),turnWho:WHO_TURN.slice(),turnTo:TO_TURN.slice(),walkTo:TO_WALK.slice(),limit:{beats:LIMIT.beats,text:LIMIT.text,feeds:LIMIT_FEEDS,secs:LIMIT.secs.slice(),speed:LIMIT.speed.slice(),radius:LIMIT.radius.slice(),gap:LIMIT.gap.slice()}};}",
       "kind": "source-reference"
     },
@@ -77666,7 +77666,7 @@
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
-    "void-runner/camera-feed.js": "d14f4d2304c1384a57f414bb401bc456c274f5689a180731f149a848b16172b7",
+    "void-runner/camera-feed.js": "856d70a1dab0a4f89095ce85eb31dfb50c5cbf5686cafa258c9b3e31007bd678",
     "void-runner/campaign.js": "1e47cd44d124036bdff3626ded53366e686524efce7c4d0e65cf64785412cd39",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
@@ -77693,7 +77693,7 @@
     "void-runner/crowd.js": "e86065a4ae793e6633f2ef51a8470d0a3e2c518b4dc082ff1a1bb3c9bbfbbf44",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
-    "void-runner/cult-room.js": "94ffdcc5577c8ac82e712564ca3c23ddea3b3935ad3b9dc729e4596dfbd43775",
+    "void-runner/cult-room.js": "e4c485f0586d02c2aae26b5bfb4940f4e8abc434726aa42e9044734565431a1c",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",

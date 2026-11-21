@@ -15,7 +15,7 @@
  const ROOM={id:'blackrock-cult',name:'Blackrock cult room',size:14,height:7,
   door:{x:0,z:-7,w:1.5,h:2.5},corridor:{len:4.2,w:2.4,h:2.8},
   owl:{w:8.4,h:5.6,y:3.45},altar:{x:0,z:5.55,w:2.6,d:1.0,h:1.02},box:{w:.36,d:.24,h:.2},
-  centre:{x:0,z:0},camera:{x:6.0,y:5.8,z:-5.7,lookX:-1.8,lookY:0,lookZ:-1.2,fov:1.3,zooms:[1,1.5,2,3]}};
+  centre:{x:0,z:0},camera:{x:6.0,y:5.8,z:-5.7,lookX:-1.8,lookY:0,lookZ:-1.2,fov:1.3,zooms:[1,1.5,2,3],pan:[-25,30],tilt:[-15,15],top:0}};   // pan / tilt: how far the player may aim the camera (degrees from its default view); top: the highest the top of the picture may look (degrees above level), so the ceiling stays out of shot
  const FEED_ROOMS=[{id:ROOM.id,name:'Blackrock cult room (camera feed only)',cat:'other',note:'A large square basement room in a corporate building: the owl on the far wall, an altar and a box. Seen only through a hacked security camera (a “Hack the access point” step with this camera feed). Not walkable and not joined to other modules.'}];
  const SIX=['robed-1','robed-2','robed-3','robed-4','robed-5','robed-6'],ACTORS=['initiate',...SIX],SPEAKERS=[...ACTORS,'robed-all'];
  const NAMES={initiate:'The initiate','robed-all':'All six (together)'};SIX.forEach((id,i)=>{NAMES[id]='Robed figure '+(i+1);});
@@ -182,6 +182,38 @@
  const doorAt=(cs,t)=>{let open=0;for(const e of cs.events){if(e.type!=='door'||e.t>t)continue;const k=Math.min(1,(t-e.t)/e.dur);open=e.open?k:1-k;}return open;};
  /* ---- mission data ---- */
  const FEED_ID=/^[a-z][a-z0-9-]{0,23}$/,LIMIT_FEEDS=4;
+ /* AIMING THE FEED CAMERA (the owner, 21 Nov 2026: "Maybe it should work more like camera where it can move but only within certain angles"). A wall-mounted
+    pan / tilt security camera: the player aims it (camera-feed.js: mouse, a click-drag, arrow keys / WASD) within the room's limits (ROOM.camera pan / tilt, degrees
+    from the default view; positive pan turns right, positive tilt looks up). `top` keeps the top of the picture at or below that many degrees above level, so the
+    ceiling stays out of shot: wide, the camera can barely look up; zoomed in, up to the tilt limit. Moves are soft: the aim slows over the last few degrees before a
+    limit (aimNudge) and the head follows it with a servo's lag and ease (aimFollow), a little slower zoomed in. Pure: Node-tested. */
+ const AIM={pan:[-30,30],tilt:[-15,15],soft:6,mouse:.09,keys:30,lag:.2};
+ const DEG=Math.PI/180,clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
+ function aimLimits(cam){const c=cam||{},rng=(v,d)=>Array.isArray(v)&&v.length===2&&v.every(Number.isFinite)&&v[0]<=0&&v[1]>=0&&v[0]>=-90&&v[1]<=90?[v[0],v[1]]:d.slice();
+  return {pan:rng(c.pan,AIM.pan),tilt:rng(c.tilt,AIM.tilt),top:Number.isFinite(c.top)?c.top:null};}
+ // the camera's default heading and pitch (degrees; Babylon: +z forward, +x right, heading grows to the right)
+ function aimBase(cam){const dx=cam.lookX-cam.x,dy=cam.lookY-cam.y,dz=cam.lookZ-cam.z;return {yaw:Math.atan2(dx,dz)/DEG,pitch:Math.atan2(dy,Math.hypot(dx,dz))/DEG};}
+ // the tilt range at this field of view (radians, vertical): the top limit lowers the upper end while wide
+ function tiltRange(cam,fov){const L=aimLimits(cam);let hi=L.tilt[1];if(L.top!=null&&Number.isFinite(fov))hi=Math.min(hi,L.top-aimBase(cam).pitch-fov/2/DEG);return [L.tilt[0],Math.max(Math.min(0,L.tilt[1]),hi)];}
+ function aimClamp(cam,pan,tilt,fov){const L=aimLimits(cam),t=tiltRange(cam,fov);return {pan:clampN(Number(pan)||0,L.pan[0],L.pan[1]),tilt:clampN(Number(tilt)||0,t[0],t[1])};}
+ // move a target value by d within [lo, hi], slowing over the last `soft` degrees towards a limit (a soft stop, never past it)
+ function aimNudge(v,d,lo,hi,soft=AIM.soft){v=clampN(v,lo,hi);if(!d)return v;const room=d>0?hi-v:v-lo,k=clampN(room/soft,.15,1);return clampN(v+d*k,lo,hi);}
+ // input in degrees: a mouse / drag movement in pixels, or held keys (-1..1 each axis) for dt seconds; both slower zoomed in
+ function aimInput(px,py,zoom){const z=Math.max(1,zoom||1);return {pan:px*AIM.mouse/z,tilt:-py*AIM.mouse/z};}
+ function aimKeys(kx,ky,dt,zoom){const z=Math.max(1,zoom||1),s=AIM.keys/Math.pow(z,.6)*dt;return {pan:kx*s,tilt:ky*s};}
+ // the servo: a critically damped follow (smooth start and stop, no overshoot); lag in seconds, longer zoomed in. s = {v, vel}; -> the new {v, vel}
+ function smooth(v,vel,to,lag,dt){const w=2/Math.max(.01,lag),x=w*dt,e=1/(1+x+.48*x*x+.235*x*x*x),c=v-to,tmp=(vel+w*c)*dt;let nv=(vel-w*tmp)*e;let out=to+(c+tmp)*e;if((to-v>0)===(out>to)){out=to;nv=0;}return {v:out,vel:nv};}
+ function aimLag(zoom){return AIM.lag*(1+.25*(Math.max(1,zoom||1)-1));}
+ function aimFollow(s,target,dt,zoom){const lag=aimLag(zoom),p=smooth(s.pan,s.vp||0,target.pan,lag,dt),t=smooth(s.tilt,s.vt||0,target.tilt,lag,dt);return {pan:p.v,tilt:t.v,vp:p.vel,vt:t.vel};}
+ // where the camera looks for a pan / tilt (degrees): a point 10 m along its heading
+ function aimLook(cam,pan,tilt){const b=aimBase(cam),y=(b.yaw+pan)*DEG,p=clampN(b.pitch+tilt,-89,89)*DEG,c=Math.cos(p);return {x:cam.x+Math.sin(y)*c*10,y:cam.y+Math.sin(p)*10,z:cam.z+Math.cos(y)*c*10};}
+ // the readout: "PAN -12° TILT 4°"
+ const aimLabel=(pan,tilt)=>'PAN '+Math.round(pan)+'° TILT '+Math.round(tilt)+'°';
+ /* THE CAMERA'S SOUNDS (the owner, 21 Nov 2026: "Add a quiet motor sound and zoom sound. Very quiet."): a servo whir only while the head moves (its level and pitch
+    follow the speed) and a short lens-motor whirr on each zoom step. camera-feed.js synthesizes them with WebAudio on the game's effects channel; these are the shared
+    numbers (the video soundtrack uses the same). Levels are far below the voices (a voice line plays at about 0.8). */
+ const AIM_SOUND={motorMax:.035,motorFull:40,motorHz:[70,130],noiseHz:[900,1700],zoomLevel:.03,zoomSecs:.22,zoomHz:[1500,2300]};
+ function motorAt(speed){const k=clampN(Math.abs(speed||0)/AIM_SOUND.motorFull,0,1),S=AIM_SOUND;if(k<.02)return {gain:0,hz:S.motorHz[0],noise:S.noiseHz[0]};const e=Math.sqrt(k);return {gain:S.motorMax*e,hz:S.motorHz[0]+(S.motorHz[1]-S.motorHz[0])*k,noise:S.noiseHz[0]+(S.noiseHz[1]-S.noiseHz[0])*k};}
  function feedProblems(m){const out=[],fs=m&&m.feeds;const ids=new Set();
   if(fs!=null){if(!Array.isArray(fs)||fs.length>LIMIT_FEEDS)return ['a mission has at most '+LIMIT_FEEDS+' camera feeds.'];
    for(const f of fs){if(!keysOk(f,['id','room','scene'])||!FEED_ID.test(f.id||'')){out.push('a camera feed needs a short name (letters, digits, hyphens).');continue;}if(ids.has(f.id))out.push('two camera feeds are both called “'+f.id+'”.');ids.add(f.id);
@@ -192,7 +224,7 @@
  function addFeed(m,room=ROOM.id){const ids=new Set((m.feeds||[]).map(f=>f.id));let n=1;while(ids.has('cam'+n))n++;const f={id:'cam'+n,room,scene:defaultScene()};return {feeds:[...(m.feeds||[]),f],id:f.id};}
  function inventory(){return {rooms:FEED_ROOMS.map(r=>r.id),speakers:SPEAKERS.slice(),actors:ACTORS.slice(),acts:ACT_IDS.slice(),beatKeys:JSON.parse(JSON.stringify(BEAT_KEYS)),anims:ANIMS.slice(),turnWho:WHO_TURN.slice(),turnTo:TO_TURN.slice(),walkTo:TO_WALK.slice(),limit:{beats:LIMIT.beats,text:LIMIT.text,feeds:LIMIT_FEEDS,secs:LIMIT.secs.slice(),speed:LIMIT.speed.slice(),radius:LIMIT.radius.slice(),gap:LIMIT.gap.slice()}};}
  const api={CHORUS,GONE,DOOR_IN,ROOM,FEED_ROOMS,SIX,ACTORS,SPEAKERS,NAMES,ACTS,ACT_IDS,CLIPS,ANIMS,ONCE,STRIDE,LIMIT,DEF,WHO_TURN,TO_TURN,TO_WALK,BEAT_KEYS,LIMIT_FEEDS,
-  circleSpots,lineGap,enterPlan,exitPlan,defaultScene,sceneProblems,compile,poseAt,lineAt,doorAt,lineSecs,voiceText,feedProblems,strip,addFeed,inventory,poly,along,wrap,nameOf};
+  circleSpots,lineGap,enterPlan,exitPlan,defaultScene,sceneProblems,compile,poseAt,lineAt,doorAt,lineSecs,voiceText,feedProblems,strip,addFeed,inventory,poly,along,wrap,nameOf,AIM,AIM_SOUND,aimLimits,aimBase,tiltRange,aimClamp,aimNudge,aimInput,aimKeys,aimFollow,aimLag,aimLook,aimLabel,motorAt};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidCultRoom=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
