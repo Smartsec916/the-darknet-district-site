@@ -700,6 +700,195 @@
    "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 10, in her own voice; the owner's words)",
    "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-10) with the settings in translations['milked-fish']."
   },
+  "iris-m012-congrats": {
+   "speaker": "iris",
+   "text": "Congratulations on your new ship. Admin asked me to help you get familiar with her before your first assignment.",
+   "file": "extra/iris-m012-congrats.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.congrats)"
+  },
+  "iris-m012-walk": {
+   "speaker": "iris",
+   "text": "I'll walk you through everything you need to know. Let's start with your ship's loadout.",
+   "file": "extra/iris-m012-walk.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.walk)"
+  },
+  "iris-m012-there": {
+   "speaker": "iris",
+   "text": "There she is. The Kestrel. Not the newest ship in the Tessaly System, but she's reliable.",
+   "file": "extra/iris-m012-there.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.there)"
+  },
+  "iris-m012-board": {
+   "speaker": "iris",
+   "text": "Go ahead and board her. Let's get you acquainted with the controls.",
+   "file": "extra/iris-m012-board.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.boardHer)"
+  },
+  "iris-m012-nicely": {
+   "speaker": "iris",
+   "text": "Nicely done. You've officially completed your first flight.",
+   "file": "extra/iris-m012-nicely.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.nicely)"
+  },
+  "iris-m012-rook": {
+   "speaker": "iris",
+   "text": "Admin's contact, Rook, is expecting you. Get that shipment delivered and collect your payment.",
+   "file": "extra/iris-m012-rook.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.rook)"
+  },
+  "iris-m012-review": {
+   "speaker": "iris",
+   "text": "This is where you can review your ship's equipment and configuration.",
+   "file": "extra/iris-m012-review.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.review"
+  },
+  "iris-m012-slots": {
+   "speaker": "iris",
+   "text": "Each slot shows what's fitted: primary lasers, shield, drive, missiles and the upgrade bays.",
+   "file": "extra/iris-m012-slots.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.slots"
+  },
+  "iris-m012-manage": {
+   "speaker": "iris",
+   "text": "You can manage your loadout from here as you acquire additional equipment. Your default missile is set here too.",
+   "file": "extra/iris-m012-manage.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.manage"
+  },
+  "iris-m012-admin": {
+   "speaker": "iris",
+   "text": "If you're looking for something with a little more firepower, speak to Admin. He can help you with ship ordnance.",
+   "file": "extra/iris-m012-admin.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.admin"
+  },
+  "iris-m012-port": {
+   "speaker": "iris",
+   "text": "When you're ready, head to the Port. She's waiting on Pad 01.",
+   "file": "extra/iris-m012-port.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.port"
+  },
+  "iris-m012-display": {
+   "speaker": "iris",
+   "text": "You're in. Your speed, hull and shields are on the display. Keep an eye on them.",
+   "file": "extra/iris-m012-display.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.display"
+  },
+  "iris-m012-controls": {
+   "speaker": "iris",
+   "text": "Mouse to aim. W and S pitch, A and D turn, Q and R roll. Left Shift for thrust, X to brake.",
+   "file": "extra/iris-m012-controls.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.controls"
+  },
+  "iris-m012-weapons": {
+   "speaker": "iris",
+   "text": "Space fires the lasers, F a missile. You won't need either today. This run should be quiet.",
+   "file": "extra/iris-m012-weapons.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.weapons"
+  },
+  "iris-m012-nav": {
+   "speaker": "iris",
+   "text": "Navigation is on your V1. Open the Map app, select Meridian Station, then fly into its marker.",
+   "file": "extra/iris-m012-nav.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.nav"
+  },
+  "iris-m012-course": {
+   "speaker": "iris",
+   "text": "Line her up on the marker and hold her steady. The jump starts by itself.",
+   "file": "extra/iris-m012-course.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.course"
+  },
+  "iris-m012-jump": {
+   "speaker": "iris",
+   "text": "Smooth. Meridian's ahead. Docking is automatic once you arrive.",
+   "file": "extra/iris-m012-jump.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.jump"
+  },
+  "rook-m012-meet": {
+   "speaker": "rook",
+   "text": "You're Admin's new runner. Cargo intact?",
+   "file": "extra/rook-m012-meet.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take. ROOK_CARGO.rookMeet"
+  },
+  "rook-m012-pay": {
+   "speaker": "rook",
+   "text": "Good. Here's your fee. Come back when you want more work.",
+   "file": "extra/rook-m012-pay.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take. ROOK_CARGO.rookPay"
+  },
+  "rook-coordinates": {
+   "speaker": "rook",
+   "text": "Good run. I just sent you coordinates for places all over. Stations, planets. Your Map app already has them. Means I can send you just about anywhere.",
+   "file": "extra/rook-coordinates.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "rook-cargo-jobs.js (lines.coordinates)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take"
+  },
+  "rook-board": {
+   "speaker": "rook",
+   "text": "Got freight going all over. Take a job, the pay is on the board.",
+   "file": "extra/rook-board.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "rook-cargo-jobs.js (lines.board)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take"
+  },
   "zen-greeting": {
    "speaker": "zen-zephyr",
    "text": "Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?",

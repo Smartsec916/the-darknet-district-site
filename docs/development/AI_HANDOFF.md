@@ -6,11 +6,11 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 21 Nov 2026 (newest): MISSION 012 AND ROOK'S SIDE-MISSION LINES APPROVED (branch `claude/kestrel-lines`, build `2026-11-21-kestrel-lines-1`, committed, not pushed)
+### 21 Nov 2026 (newest): MISSION 012 AND ROOK'S SIDE-MISSION LINES APPROVED (branch `claude/kestrel-lines`, build `2026-11-21-kestrel-voices-1`, pushed, no PR)
 
 - The owner approved Iris's 11 Mission 012 tutorial lines, Rook's two Mission 012 lines and Rook's two side-mission lines ("those all look pretty solid unless anything in there aren't things the Kestrel can do"). Checked against the code first; three wordings corrected (Iris `slots`: "...missiles and the upgrade bays."; Iris `course`: "Line her up on the marker and hold her steady. The jump starts by itself."; Rook's coordinates line: no "landing pads", "just about anywhere"). Decision record: `VOID_RUNNER_HANDOFF.md` §11 Approved.
 - Code: `main-story.js` `PROPOSED_CARGO` / `isProposedCargo` removed (the PROPOSED: prefixes are gone); `ROOK_CARGO`, `CARGO_LINES` (IRIS_NEW + ROOK_CARGO) exported; `isApprovedCargo` covers every M012 line. `rook-cargo-jobs.js status.lines` is `APPROVED 21 Nov 2026: ready to record`.
-- **Next:** the owner records the 15 lines in ElevenLabs (Iris `CvD6hF1BJzAFN428j1cO`, Rook `wzVFxVZCBIi6KBxNhQDI`); wire them as `void-runner/assets/audio/voice/extra/*.ogg` (ogg/vorbis 24 kHz mono) with `extra/manifest.json` entries (speaker `iris` / `rook`, the exact text). No clip exists yet.
+- **Recorded (21 Nov 2026):** 21 clips in `void-runner/assets/audio/voice/extra/` (ogg/vorbis 24 kHz mono, ElevenLabs eleven_v4): Iris `iris-m012-*` (her six owner-written lines too; Kristen `CvD6hF1BJzAFN428j1cO`, dry, android effect live), Rook `rook-m012-meet` / `-pay`, `rook-coordinates`, `rook-board` (Jonas `wzVFxVZCBIi6KBxNhQDI`). Keyed by speaker + exact text; Iris's Comms calls play line by line (`personal-device.js callVoicePlan`). `tests/kestrel-voices.test.cjs` checks every line has its clip. Pushed to `claude/kestrel-lines`, no PR.
 
 ### 21 Nov 2026: NPC GAMEPLAY CAPABILITIES (Codex, build `2026-11-21-npc-capabilities-1`)
 
