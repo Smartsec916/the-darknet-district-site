@@ -3130,7 +3130,28 @@ def get_clip(db, h):
 # The same rules as npc-made.js problems(), against the admin inventory's madeCharacters (models, items, ships, devices, the ids the game already uses). A made character
 # placed in an adult venue must be marked adult (18+) (npc-areas.js `adult` rectangles; never on Reverie's or Lace's model).
 MADE_ID = re.compile(r'^[a-z][a-z0-9-]{1,39}$')
-MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when']
+MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when', 'companionProfile', 'worldBehavior']
+COMPANION_RANGES = {'initiative': (0, 1), 'flirtatiousness': (0, 1), 'approachFrequency': (0, 1), 'attention': (0, 1), 'personalSpace': (.7, 2), 'walkSpeed': (.5, 1.6), 'remarkCooldown': (10, 120)}
+COMPANION_POOLS = 'greet chat compliment flirt sit dance hands kiss kissAfter notYet notNow relax bye approach window joinSofa inviteSit inviteDance inviteRecline accepted declined welcomeBack aside comeHere recline'.split()
+
+
+def _companion_profile_ok(p):
+    if not _keys(p, ['about', 'personality', 'dialogue']):
+        return False
+    about, traits, lines = p.get('about'), p.get('personality'), p.get('dialogue')
+    return (isinstance(about, str) and len(about) <= 600 and not re.search(r'[<>\x00-\x1f]', about)
+            and _keys(traits, list(COMPANION_RANGES))
+            and all(type(v) in (int, float) and COMPANION_RANGES[k][0] <= v <= COMPANION_RANGES[k][1] for k, v in traits.items())
+            and _keys(lines, COMPANION_POOLS)
+            and all(isinstance(a, list) and len(a) <= 20 and all(_made_plain(t, 500) and not re.search(r'[<>]', t) for t in a) for a in lines.values()))
+
+
+def _world_behavior_ok(b):
+    return (_keys(b, ['trigger', 'distance', 'activity', 'room'])
+            and b.get('trigger') in ('interact', 'near')
+            and type(b.get('distance')) in (int, float) and 1 <= b['distance'] <= 8
+            and b.get('activity') in ('greet', 'approach', 'seat')
+            and b.get('room') in ('auto', 'tea', 'sleeping', 'apartment', 'container', 'office', 'custom'))
 
 
 def _made_plain(v, n):
@@ -3179,6 +3200,10 @@ def made_problems(content, inv=None):
             out.append(w + 'a name is needed (plain words, 40 characters at most).')
         if c.get('role') is not None and not _made_plain(c.get('role'), lim.get('role', 80)):
             out.append(w + 'the role line must be plain words (80 characters at most).')
+        if c.get('companionProfile') is not None and not _companion_profile_ok(c['companionProfile']):
+            out.append(w + 'invalid transferred companion personality or dialogue.')
+        if c.get('worldBehavior') is not None and not _world_behavior_ok(c['worldBehavior']):
+            out.append(w + 'invalid companion behavior trigger.')
         md = models.get(c.get('model')) if isinstance(c.get('model'), str) else None
         if md is None:
             out.append(w + 'not a model of the game.')

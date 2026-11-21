@@ -44,7 +44,15 @@
  const adultAllowed=asset=>!YOUNG.includes(asset);
  const ID=/^[a-z][a-z0-9-]{1,39}$/,TAGS=/<[^>]*>|[\u0000-\u001f]/;
  const LIMIT={characters:12,name:40,role:80,items:6};
- const KEYS=['name','role','model','adult','look','device','ship','items','when'];
+ const KEYS=['name','role','model','adult','look','device','ship','items','when','companionProfile','worldBehavior'];
+ const WORLD_DEFAULT={trigger:'interact',distance:3,activity:'greet',room:'auto'};
+ function validWorldBehavior(b){return keysOk(b,['trigger','distance','activity','room'])&&['interact','near'].includes(b.trigger)&&typeof b.distance==='number'&&Number.isFinite(b.distance)&&b.distance>=1&&b.distance<=8&&['greet','approach','seat'].includes(b.activity)&&['auto','tea','sleeping','apartment','container','office','custom'].includes(b.room);}
+ function nearbySeat(seats,origin,allowed){return seats.filter(s=>s&&Number.isFinite(s.x+s.z)&&allowed(s)).sort((a,b)=>Math.hypot(a.x-origin.x,a.z-origin.z)-Math.hypot(b.x-origin.x,b.z-origin.z))[0]||null;}
+ function proximityActive(b,d,was=false){return validWorldBehavior(b)&&b.trigger==='near'&&Number.isFinite(d)&&d<=b.distance+(was?.75:0);}
+ const PROFILE_RANGES={initiative:[0,1],flirtatiousness:[0,1],approachFrequency:[0,1],attention:[0,1],personalSpace:[.7,2],walkSpeed:[.5,1.6],remarkCooldown:[10,120]};
+ const PROFILE_POOLS='greet chat compliment flirt sit dance hands kiss kissAfter notYet notNow relax bye approach window joinSofa inviteSit inviteDance inviteRecline accepted declined welcomeBack aside comeHere recline'.split(' ');
+ function validProfile(p){return keysOk(p,['about','personality','dialogue'])&&typeof p.about==='string'&&p.about.length<=600&&!/[<>\u0000-\u001f]/.test(p.about)&&keysOk(p.personality,Object.keys(PROFILE_RANGES))&&Object.entries(p.personality).every(([k,v])=>typeof v==='number'&&Number.isFinite(v)&&v>=PROFILE_RANGES[k][0]&&v<=PROFILE_RANGES[k][1])&&keysOk(p.dialogue,PROFILE_POOLS)&&Object.values(p.dialogue).every(a=>Array.isArray(a)&&a.length<=20&&a.every(t=>plain(t,500)&&!/[<>]/.test(t)));}
+ function conversationLines(c,rnd=Math.random){const p=c?.companionProfile;if(!validProfile(p))return ['…'];const d=p.dialogue,settings=p.personality,pick=a=>a?.length?a[Math.min(a.length-1,Math.floor(rnd()*a.length))]:null;const greeting=pick(d.greet)||pick(d.welcomeBack),chat=pick(d.chat)||pick(d.aside),extra=rnd()<(settings.initiative??.5)?chat:null;return [...new Set([greeting,extra||(!greeting?chat:null)].filter(Boolean))].length?[...new Set([greeting,extra||(!greeting?chat:null)].filter(Boolean))]:['…'];}
  const DEVICES={v1:{name:'V1',help:'The everyday device: a teal hologram in front of the face, photos with a small frame in the hand.'},
   v2:{name:'V2',help:'Like the V1 in a different colour (a placeholder colour until the V2 has its own look).'},
   v3:{name:'V3 // SHADOW',help:'Streamed into the left eye: no hologram, the eye glows a little while they use it. They never take selfies or film.'}};
@@ -81,7 +89,7 @@
   if(c.adult===true&&!YOUNG.includes(x.model))x.adult=true;if(DEVICES[c.device])x.device=c.device;if(typeof c.ship==='string'&&c.ship)x.ship=c.ship;
   if(Array.isArray(c.items)&&c.items.length)x.items=c.items.filter(i=>i&&typeof i.id==='string').slice(0,LIMIT.items).map(i=>i.show===true&&SHOW[i.id]?{id:i.id,show:true}:{id:i.id});
   if(c.when&&typeof c.when==='object'&&typeof c.when.mission==='string'&&c.when.mission)x.when=c.when.step?{mission:c.when.mission,step:String(c.when.step)}:{mission:c.when.mission};
-  return x;}
+  if(validProfile(c.companionProfile))x.companionProfile=JSON.parse(JSON.stringify(c.companionProfile));if(validWorldBehavior(c.worldBehavior))x.worldBehavior={...c.worldBehavior};return x;}
  /* Where a character stands all day (her plan without the schedule), or null. */
  function basePlan(p){if(!p||typeof p!=='object')return null;const {schedule,...rest}=p;return rest.mode==='stay'||rest.mode==='path'?rest:null;}
  /* The area she is placed in (npc-areas.js), from her plan: the all-day spot or route, else her first time block with a place. */
@@ -97,6 +105,8 @@
    if(!keysOk(c,KEYS)){out.push(w+'unknown fields.');continue;}
    if(!plain(c.name,LIMIT.name))out.push(w+'a name is needed (plain words, '+LIMIT.name+' characters at most).');
    if(c.role!=null&&!plain(c.role,LIMIT.role))out.push(w+'the short role line must be plain words ('+LIMIT.role+' characters at most).');
+   if(c.companionProfile!=null&&!validProfile(c.companionProfile))out.push(w+'invalid transferred companion personality or dialogue.');
+   if(c.worldBehavior!=null&&!validWorldBehavior(c.worldBehavior))out.push(w+'invalid companion behavior trigger.');
    const m=ms.get(c.model);if(!m){out.push(w+'choose the model they are made from (one of the game’s NPC models).');continue;}
    if(c.adult!=null&&c.adult!==true)out.push(w+'“adult (18+)” is either ticked or left out.');else if(c.adult===true&&!adultAllowed(c.model))out.push(w+'this model reads youthful (Reverie’s and Lace’s models): it can never be marked adult.');
    if(c.look!=null){const L=NPL();if(!keysOk(c.look,['hide','colour','gear','hair']))out.push(w+'the look has unknown fields.');else if(L)for(const p of L.entryProblems(c.model,{looks:[{id:'own',name:'own look',...c.look}],use:'own'},ctx.lookInventory&&ctx.lookInventory[c.model]))out.push(w+p.replace(/^[^:]+: look “own look”: /,'look: '));}
@@ -128,7 +138,7 @@
    return {movable:mv?{actions:mv.actions,anims:mv.anims,pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
   for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
- const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game
@@ -203,6 +213,16 @@
    try{const v=new B.Vector3(x,(Number.isFinite(y)?y:0)+1,z);for(const pl of B.Frustum.GetPlanes(scene.getTransformMatrix()))if(pl.dotCoordinate(v)<-1.2)return false;return true;}catch{return true;}}
   const inView=(n,cam)=>!!cam&&n.isEnabled()&&seenAt(n.position.x,n.position.y,n.position.z,cam);
   const camNow=()=>scene.activeCamera?.globalPosition||null;
+  function companionPlan(p,plan,w,talk){const b=p.c.worldBehavior,traits=p.c.companionProfile?.personality||{};if(!validWorldBehavior(b)||!w||talk||p.going||plan.mode!=='stay'||b.trigger!=='near'||typeof mode!=='undefined'&&mode!=='walking'){p.near=false;return plan;}
+   // Mission routes, escorts and active missions retain priority over ambient companion actions.
+   try{if(typeof state!=='undefined'&&(env()?.trees||[]).some(t=>(t.missions||[]).some(m=>{const rec=state.universe?.missions?.[m.id];return rec?.acquired&&!rec.completed&&(m.giver===p.id||(m.objectives||[]).some(o=>[o.npc,o.who,o.subject,o.recipient,o.giver].includes(p.id)));}))){p.near=false;return plan;}}catch{}
+   if(!['auto','tea','sleeping'].includes(b.room)||b.room!=='auto'&&root.VoidUnderground?.placeAt(plan.x,plan.z)!==(b.room==='tea'?'under-tea-room':'under-sleeping-room')){p.near=false;return plan;}
+   const d=Math.hypot(w.x-plan.x,w.z-plan.z),active=proximityActive(b,d,p.near);if(!active){p.near=false;p.nearTarget=null;return plan;}
+   if(!p.near){p.near=true;p.nearTarget=null;const last=p.lastRemark??-Infinity;if(clock-last>=(traits.remarkCooldown??30)){p.lastRemark=clock;const lines=conversationLines(p.c,rnd);if(lines[0]!=='…'&&rnd()<(traits.initiative??.5)){try{if(typeof announce==='function')announce(p.c.name+' · '+lines[0]);}catch{}}}
+    const canWalk=NPX()?.crowdClips?.(p.c.model)?.includes('walk');if(canWalk&&b.activity==='approach'&&rnd()<(traits.approachFrequency??.5)&&d>.2){const space=traits.personalSpace??1.2,ratio=Math.max(0,d-space)/d,t={x:plan.x+(w.x-plan.x)*ratio,z:plan.z+(w.z-plan.z)*ratio};if(!Ar.leg(plan,t,{made:true,adult:!!p.c.adult}).length)p.nearTarget={...plan,...t,key:plan.key+':companion-near',actions:['idle'],yaw:Math.atan2(w.x-t.x,w.z-t.z)};}
+    if(canWalk&&b.activity==='seat'&&['auto','tea','sleeping'].includes(b.room)){const actions=NPX().actionsFor(p.id),seat=nearbySeat(SP.seats?.()||[],plan,s=>{const f=SP.standOf(s);return Math.hypot(f.x-plan.x,f.z-plan.z)<=b.distance&&(!Ar.leg(plan,f,{made:true,adult:!!p.c.adult}).length)&&(b.room==='auto'||String(s.id).startsWith(b.room==='tea'?'under-tea-room-':'under-sleeping-room-'))&&actions.some(a=>a.pose&&(s.poses||['chair']).includes(a.pose))&&![...people.values()].some(o=>o!==p&&Math.hypot(o.s.x-s.x,o.s.z-s.z)<.65);});if(seat){const f=SP.standOf(seat),a=actions.find(a=>a.pose&&(seat.poses||['chair']).includes(a.pose));p.nearTarget={...plan,x:f.x,z:f.z,yaw:seat.yaw,actions:[a.id],key:plan.key+':companion-seat'};}}
+   }const target=p.nearTarget||plan;if(b.activity!=='seat'&&(traits.attention??.5)>=.5)return {...target,yaw:Math.atan2(w.x-target.x,w.z-target.z)};return target;
+  }
   function step(p,dt,cam){const n=p.node,R=p.going?p.plan:planOf(p.id),talk=chatting()===p.id,w=me();
    if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
    const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
@@ -214,7 +234,7 @@
     if(talk&&SP.floorPose&&SP.floorPose(p.s)&&['sit','floor-in','floor-turn','floor-down','floor-up'].includes(p.s.mode)){if(!/^floor-(down|up)$/.test(p.s.mode))p.s.left=Math.max(p.s.left||0,2);}   // on a cushion or a cot (the floor poses): she stays seated to talk (sitting down / standing up: the clip finishes)
     else if(talk){const s=p.s;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left||0,1.2);if(w)s.face={x:w.x,z:w.z};}else if(p.s.sub==='chat'){p.s.sub=null;p.s.face=null;p.s.left=Math.min(p.s.left,1.2);}
     if(p.s.mode==='esc')p.s.mode='plan-go';const plan=P&&(P.mode==='stay'||P.mode==='path')?P:{key:'here',mode:'stay',x:p.s.x,z:p.s.z,yaw:p.s.yaw,actions:['idle']};
-    SP.routineStep(p.s,dt,rnd,cfg,{plan,player:w?{x:w.x,z:w.z}:null,cat:null,has:c=>!!p.anim&&!!p.anim.has&&p.anim.has(c)});if(p.s.mode==='walk'||p.s.mode==='run')p.s.mode='plan-go';clip=p.s.clip||'idle';}
+    SP.routineStep(p.s,dt,rnd,p.c.companionProfile?.personality?.walkSpeed?{...cfg,speed:p.c.companionProfile.personality.walkSpeed}:cfg,{plan:companionPlan(p,plan,w,talk),player:w?{x:w.x,z:w.z}:null,cat:null,has:c=>!!p.anim&&!!p.anim.has&&p.anim.has(c)});if(p.s.mode==='walk'||p.s.mode==='run')p.s.mode='plan-go';clip=p.s.clip||'idle';}
    if(!Number.isFinite(p.s.x+p.s.z+p.s.yaw)){const t=P&&(P.mode==='stay'?P:P.points?P.points[0]:null)||{x:n.position.x,z:n.position.z};p.s.x=t.x;p.s.z=t.z;p.s.yaw=0;}
    if(clip==='sit'&&p.seat&&p.esc&&p.esc.st.ride==='in-cab'){const sit=(NPX()?.crowdClips?.(p.c.model)||[]).includes('sit');n.position.set(p.s.x,p.seat.y,p.s.z);n.rotation.y=p.s.yaw;if(n.isEnabled()!==sit)n.setEnabled(sit);if(sit&&p.anim&&p.clip!=='sit'){p.clip='sit';p.anim.play('sit');}p.anim?.setActive?.(sit&&d<animRadius);const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}return;}   // riding in the player's taxi
    p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);{const o=SP.seatOffset?SP.seatOffset(p.s,p.s.zo||0):{x:0,z:0};n.position.set(p.s.x+o.x,p.y+(p.s.lift||0),p.s.z+o.z);}/* seated (lift: a floor pose on a cushion or cot top): the routine's eased offset (ledges and the tunnels' seats) */n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
@@ -245,5 +265,5 @@
    if(!h||!m)return h;let last=null;const t=h.tick,d=h.dispose;h.tick=function(time){const r=t.apply(this,arguments);const now=performance.now()/1000,dt=last==null?0:Math.min(.1,now-last);last=now;m.tick(dt);return r;};h.dispose=function(){try{m.dispose();}catch{}return d.apply(this,arguments);};h.made=m;return h;};b1.made=true;MK.build=b1;})();
  // TALK TO <NAME> with no mission waiting: a silent beat (no words are invented for them; live-content.js offers their missions first)
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof talk!=='function')return;clearInterval(wait);nameCards();
-  VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',[{who:id,text:'…'}],()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);
+  VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);
 })(typeof globalThis!=='undefined'?globalThis:this);
