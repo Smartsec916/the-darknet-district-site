@@ -121,13 +121,16 @@
   const G=graph(regions,portals,null,null);
   // Round the furniture (night QA 20 Nov 2026: in an office floor the arrow pointed from one door to the next straight through the desks; in the gang checkpoint into
   // its fence): a leg that runs into something solid gets the corners of a short walk round it (npc-escort.js gridRoute, the room's own solids) as waypoints.
-  const S=(solids||[]).filter(s=>s&&!s.door&&!s.open&&Array.isArray(s.position)&&Array.isArray(s.size)),R=.34;
+  const S=(solids||[]).filter(s=>s&&!s.door&&!s.open&&Array.isArray(s.position)&&Array.isArray(s.size)),R=.34,WALK=.42;
   if(S.length){const hit=(x,z)=>S.some(s=>Math.abs(x-s.position[0])<s.size[0]/2+R&&Math.abs(z-s.position[2])<s.size[2]/2+R);
    const blocked=(a,b)=>{const m=Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/.2);for(let t=1;t<m;t++)if(hit(a.x+(b.x-a.x)*t/m,a.z+(b.z-a.z)*t/m))return true;return false;};
    const memo=new Map(),E=()=>{try{return typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;}catch{return null;}};
    G.cross=(a,b)=>{if(!blocked(a,b))return null;const k=Math.round(a.x*2)+','+Math.round(a.z*2)+'>'+b.x.toFixed(2)+','+b.z.toFixed(2);if(memo.has(k))return memo.get(k);
     const e=E(),pts=e&&e.gridRoute?e.gridRoute({x:a.x,z:a.z},{x:b.x,z:b.z},S,{grid:.25,radius:R,pad:3}):null;let prev=a;
-    const out=pts&&pts.length>1?pts.slice(0,-1).map(q=>{const dx=q.x-prev.x,dz=q.z-prev.z,l=Math.hypot(dx,dz)||1;prev=q;return {id:'via:'+q.x.toFixed(2)+','+q.z.toFixed(2),kind:'apron',x:q.x,y:1.7,z:q.z,nx:dx/l,nz:dz/l,half:.3,r:.6};}):null;
+    // each corner kept clear of the walker's own collision radius (.38 m, exploration-controller.js; Awakening QA 20 Nov 2026: a corner 0.37 m from a cubicle wall stopped the
+    // player dead in Mission 006's office): nudged up to 0.24 m to the nearest spot clear by WALK
+    const clr=(x,z)=>!S.some(s=>Math.abs(x-s.position[0])<s.size[0]/2+WALK&&Math.abs(z-s.position[2])<s.size[2]/2+WALK),nudge=q=>{if(clr(q.x,q.z))return q;for(const d of [.08,.16,.24])for(const [ox,oz] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]])if(clr(q.x+ox*d,q.z+oz*d))return {x:q.x+ox*d,z:q.z+oz*d};return q;};
+    const out=pts&&pts.length>1?pts.slice(0,-1).map(nudge).map(q=>{const dx=q.x-prev.x,dz=q.z-prev.z,l=Math.hypot(dx,dz)||1;prev=q;return {id:'via:'+q.x.toFixed(2)+','+q.z.toFixed(2),kind:'apron',x:q.x,y:1.7,z:q.z,nx:dx/l,nz:dz/l,half:.3,r:.6};}):null;
     if(memo.size>500)memo.clear();memo.set(k,out);return out;};}
   return G;}
  /* The route from `from` {x,z,quarter?} to `goal` {x,y?,z}: waypoints [{id, kind:'door'|'apron'|'goal', x, y, z, nx, nz, half, r, door?}], the goal last.

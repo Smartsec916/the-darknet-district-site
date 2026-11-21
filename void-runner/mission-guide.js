@@ -21,7 +21,9 @@
  function aptGoal(g){try{const x=g&&g.apt;if(!x||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown')return null;
   const A=root.VoidApartments,M=root.VoidModules,wl=walkingLocation;if(!A)return null;
   const ap=x.ap?A.apOf(x.ap):null,aid=x.a||(ap&&ap.apt)||null,mis=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===x.m),rec=mis&&(mis.apartments||[]).find(a=>a&&a.id===aid);
-  const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:g.label||i.label||''}:null;};
+  // a lift's buttons: the goal is the middle of the cab (Awakening QA 20 Nov 2026: the arrow faded with the player in the cab's doorway, where the wall hides the buttons' E prompt)
+  const cabOf=p=>{const c=((wl.cluster||{}).mods||[]).filter(m=>m&&m.type==='elevator'&&Number.isFinite(m.cx)).sort((a,b)=>Math.hypot(a.cx-p[0],a.cz-p[2])-Math.hypot(b.cx-p[0],b.cz-p[2]))[0];return c&&Math.hypot(c.cx-p[0],c.cz-p[2])<3?[c.cx,1.7,c.cz]:p;};
+  const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.action==='mod-elev'?cabOf(i.position.slice()):i.position.slice(),route:true,label:g.label||i.label||''}:null;};
   const front=id=>{const d=A.door(id);return d&&d.front?{position:[d.front[0],1.7,d.front[1]],route:true,label:g.label||''}:null;};
   const door=ap&&ap.door?ap.door:rec&&rec.door;
   // on a fire escape's landing beside this apartment's window (ncz-backalleys.js; night QA 20 Nov 2026: the arrow pointed round the block to the street door): the window
@@ -101,6 +103,8 @@
    if(v.attach&&v.attach.picking)return {id:'attach',text:'Choose the photo of the target'};if(!(v.attach&&v.attach.photo))return {id:'attach',text:'Press <b>ATTACH</b>'};return {id:'send',text:'Press <b>SEND</b>'};}
   // the Mission Log's buttons (REPORT TO …, OPEN REMOTE FEED) and a V1 app to open (the Kestrel tutorial's Ship Loadout); Awakening QA 20 Nov 2026: the steps named the
   // button but not the key. A hand-over in person (a report with a place) is led by the arrow first: no hint. While the feed is on screen: nothing.
+  // a call that comes by itself after a moment (Mission 006 after the office, the Kestrel's cockpit calls): say so, so the player waits for it rather than wonders
+  if(st.kind==='call'&&!v.deviceOpen)return {id:'call',text:'A call is coming in on your V1 · answer it with <b>'+v.key+'</b>'};
   const app=st.kind==='v1-app'?st.app:(st.kind==='report'&&!st.place)||st.kind==='feed'?'missions':null;
   if(app&&!v.feed){const t=({missions:'Mission Log',loadout:'Ship Loadout',map:'Map'})[app]||String(app).toUpperCase();if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>'+t+'</b>'};if(v.app!==app)return v.app?{id:'app',text:'Go back (<b>Esc</b>) and open <b>'+t+'</b>'}:{id:'app',text:'Open <b>'+t+'</b>'};
    if(st.kind==='report')return {id:'report',text:'Press <b>REPORT TO '+String(v.name(st.npc)).toUpperCase()+'</b> on this mission'};if(st.kind==='feed')return {id:'feed',text:'Press <b>OPEN REMOTE FEED</b> on this mission'};}

@@ -41,6 +41,7 @@ test('the hint line names the key and the button for Mission Log steps and the V
  assert.equal(hintFor(v({step:{kind:'feed',feed:'br-04'},deviceOpen:true,app:'missions'})).text,'Press <b>OPEN REMOTE FEED</b> on this mission');
  assert.equal(hintFor(v({step:{kind:'feed',feed:'br-04'},feed:true})),null,'nothing while the feed is on screen');
  assert.equal(hintFor(v({step:{kind:'v1-app',app:'loadout'}})).text,'Press <b>L</b> to open your V1, then <b>Ship Loadout</b>');
+ assert.equal(hintFor(v({step:{kind:'call'}})).text,'A call is coming in on your V1 · answer it with <b>L</b>');assert.equal(hintFor(v({step:{kind:'call'},deviceOpen:true})),null);
  const D=require(R('void-runner/device-v1.js'));assert.equal(D.stepApp({kind:'report'}),'missions');assert.equal(D.stepApp({kind:'feed'}),'missions');assert.equal(D.stepApp({kind:'v1-app',app:'loadout'}),'loadout');});
 
 test('small clarity fixes are wired',()=>{
@@ -55,3 +56,10 @@ test('a pilot already docked at Meridian is not stuck on "take off" / "make the 
  // the catch-up events the game sends when the player is already at the jump's place: they complete those steps
  const m={id:MS.M012.id},h=(o,ev)=>MM.hit(ev,m,o,{story:{flags:{}},universe:{missions:{}}});assert.ok(h(launch,{type:'flight',stage:'launch',place:'meridian'}));assert.ok(h(jump,{type:'flight',stage:'jump',place:'meridian'}));assert.ok(!h(jump,{type:'flight',stage:'jump',place:'kepler'}));
  const g=src('void-runner/mission-mechanics-game.js');assert.match(g,/else if\(\(o\.stage==='launch'\|\|o\.stage==='jump'\)&&\['walking','dock','arrival'\]\.includes\(m\)&&s\.location!=='earth'\)/);});
+
+test('the arrow\'s detour corners round furniture are walkable (clear of the walker\'s 0.38 m radius)',()=>{const GR=require(R('void-runner/guide-route.js'));
+ // Mission 006's cubicle gap: a thin partition (x 599.0-600.9, z 596) beside the way into the office aisle
+ const solids=[{id:'cube',position:[599.95,.63,596],size:[1.9,1.25,.06]},{id:'cube-w',position:[596.1,.63,596],size:[1.8,1.25,.06]}];
+ const G=GR.modular({mods:[{id:'office',cx:601,cz:595,w:6,d:5}],doors:[]},solids);
+ const pts=G.cross({x:598.6,z:598},{x:601,z:595})||[];assert.ok(pts.length,'a detour round the partition');
+ for(const p of pts)for(const s of solids)assert.ok(!(Math.abs(p.x-s.position[0])<s.size[0]/2+.38&&Math.abs(p.z-s.position[2])<s.size[2]/2+.38),'corner '+p.id+' is inside the walker\'s collision of '+s.id);});
