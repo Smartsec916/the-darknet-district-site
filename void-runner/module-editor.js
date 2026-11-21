@@ -74,6 +74,10 @@
   if(L&&L.part==='flat')return 'apartment entry';return t.name.toLowerCase()+' door '+r.sock;}
  // A module's name for people: "Rundown apartment 101" (the number on its hallway door), "Rundown hallway", "Office floor".
  function modLabel(an,id){const B=an.byId[id];if(!B)return id;const L=B.t.legacy;if(L&&L.part==='flat'){if(Number.isInteger(B.m.number))return B.t.name+' '+B.m.number;const o=an.sockUse[id+'.entry'],m=o&&/^hallway door (\d+)$/.exec(doorLabel(an,o));if(m)return B.t.name+' '+m[1];}return B.t.name;}
+ // Show physical hallway positions separately from legacy custom door signs. Never rewrite existing links on render.
+ function housingAddresses(a,an,add){const box=el('section','','mod-addresses');box.append(el('h4','2. Apartment addresses'),hint('Every apartment connects to one fixed hallway position. The door sign may be different on older missions. Select an empty position to add a matching apartment.'));
+  for(const [id,B] of Object.entries(an.byId)){if(B.t.legacy?.part!=='hall')continue;const rows=el('div','','mod-address-grid');box.append(el('b',B.t.name+' · '+id));for(const s of B.t.sockets){if(!/^d\d+$/.test(s.id))continue;const ref=id+'.'+s.id,other=an.sockUse[ref],physical=X().slotNumber(+s.id.slice(1),B.t.legacy.style),label=other?modLabel(an,M().parseRef(other).mod):ref===a.entry?'Street entry':'Available position';const tile=el('div','','mod-address-tile '+(other||ref===a.entry?'occupied':'available'));tile.append(el('b','Position '+physical),el('span',label),el('small',other?doorLabel(an,ref):'No room connected'));const type=M().TYPE_IDS.find(t=>M().TYPES[t].legacy?.part==='flat'&&M().TYPES[t].legacy.style===B.t.legacy.style);if(!other&&ref!==a.entry&&type)tile.append(btn('Add apartment',()=>add(type,ref),'',{'data-mod-add-at':ref}));rows.append(tile);}box.append(rows);}
+  return box;}
  // The modules in the order you walk in: from the entrance, through every door (side by side, connections, the elevator). -> {order, missing}
  function walkOrder(an,loc){const adj={},link=(a,b)=>{(adj[a]=adj[a]||new Set()).add(b);(adj[b]=adj[b]||new Set()).add(a);},mod=r=>(M().parseRef(r)||{}).mod;
   for(const [a,b] of Object.entries(an.sockUse))if(mod(a)&&mod(b))link(mod(a),mod(b));for(const c of an.cabs)for(const d of an.cabs)if(c!==d)link(c.id,d.id);
@@ -157,6 +161,8 @@
   else fl.append(hint('Add an elevator cab (category Elevator) to get more floors.'));box.append(fl);
   // the plan and the selected module
   box.append(el('p',summary(a,d&&d.name),'me-small mod-sum',{'data-mod-summary':a.id}));
+  if(Object.values(an.byId).some(b=>b.t.legacy?.part==='hall'))box.append(housingAddresses(a,an,(type,ref)=>{if(!Mo.freeSockets(a).some(f=>f.ref===ref))return;const r=Mo.addModule(a,type,{to:ref});if(!r.ok||!r.loc.links?.some(l=>l.a===ref||l.b===ref)){alert(r.why||'Could not add an apartment at this position.');return;}st.sel=r.id;setLoc(r.loc);}));
+  box.append(el('h4','3. Room layout & settings'),hint('Click a room to inspect it. Apartments use fixed door connections, not grid alignment.'));
   const row=el('div','','me-row mod-plan-row');row.append(plan(a,st,id=>{st.sel=id;ed(()=>{},true);}));const side=el('div','','mod-side');row.append(side);box.append(row);
   const sel=(a.modules||[]).find(x=>x.id===st.sel)||null;
   if(sel){const t=Mo.TYPES[sel.type],mv=(dx,dz,dr)=>el2(y=>{const q=y.modules.find(z=>z.id===sel.id);if(!q||t.portal)return;q.x=Math.max(0,Math.min(Mo.SPAN-1,(q.x|0)+dx));q.z=Math.max(0,Math.min(Mo.SPAN-1,(q.z|0)+dz));if(dr){q.rot=((q.rot|0)+dr)%4;if(!q.rot)delete q.rot;}});

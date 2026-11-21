@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: MISSION EDITOR V25 — FULL MISSION ROUTE (local)
+
+- Both Form and Blocks views display a read-only overview of mission area, starting location, objectives referring to places, NPCs, custom interiors and space destinations, and hand-in. Existing-place choices are grouped without changing option IDs or availability. Custom interior creation is explicitly optional; numbered hallway controls remain exclusive to housing. No runtime rules or mission records changed. 34 focused tests passed, including Awakening and mixed-route coverage.
+
+### 21 Nov 2026: MISSION EDITOR V24 — ADDRESS WALKTHROUGH (local)
+
+- Mission locations now explain street entrance, numbered hallway position and testing in order. Modular housing displays occupied and empty physical positions separately from legacy custom signs; an empty position can add a matching apartment using the existing explicit connection API. Legacy automatic apartments remain unchanged and are labelled as such. Drafts and published missions were not deleted or migrated.
+
 ### 21 Nov 2026: COMPANION STUDIO V23 — MISSION STREET DOORS USED (local, not deployed)
 
 - Residence registry marks all known mission-reserved street entrances USED in the building picker and registry list, including inactive missions, modular mission locations and hack-only street doors. Shows authored apartment numbers where present, distinguishes dynamic hallway numbers, counts used entrances, and marks unverified data when a live lookup fails or is degraded. No mission apartment allocation or access behavior changed.

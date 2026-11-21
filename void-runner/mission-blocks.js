@@ -259,6 +259,11 @@
     without value:true and with no flag chosen, so the check refused it). o: {id, value (the typed text), store}. A story flag and a shared game flag are set to true. */
  function newUnlock(k,o={}){const n=parseInt(o.value,10),num=Number.isFinite(n)?n:0;if(k==='credits')return {kind:k,amount:num};if(k==='flag')return {kind:k,id:String(o.value||'').trim(),value:true};
   if(k==='nav-coords')return {kind:k};if(k==='contract-flag')return {kind:k,id:o.id||'',value:true};if(k==='reputation'||k==='missiles')return {kind:k,id:o.id||'',amount:num};return {kind:k,id:o.id||'',...(k==='item'?{store:o.store||''}:{})};}
- const api={TYPES,START_MODES,startMode,setStartMode,newUnlock,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS};
+ // Read-only overview. Never infer a physical location from dialogue or move an NPC.
+ function routeStops(m){const rows=[],add=(phase,kind,id,step,room)=>{if(id)rows.push({phase,kind,id,step,room});};
+  add('Mission area','place',m.location);const when=m.start?.when;if(when?.place)add('Start trigger','place',when.place);if(when?.kind==='near')add('Start trigger','npc',when.npc);
+  for(const [i,o] of (m.objectives||[]).entries()){const phase='Step '+(i+1);if(o.kind==='pod-exit')add(phase,'special','Sleeping Pod',o.id);if(o.place)add(phase,o.kind==='arrive'?'flight':'place',o.place,o.id);if(o.apt)add(phase,'interior',o.apt,o.id,o.mod);if(o.npc&&['talk','deliver','hear','photo','anim','follow-them','they-follow','their-cab','shared-cab','wait'].includes(o.kind)&&!['comms','messages'].includes(o.via))add(phase,'npc',o.npc,o.id);}
+  add('Hand-in','place',m.ending?.place);add('Hand-in','npc',m.ending?.npc);return rows;}
+ const api={TYPES,START_MODES,startMode,setStartMode,newUnlock,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS,routeStops};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionBlocks=api;
 })(globalThis);

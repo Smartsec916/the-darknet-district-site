@@ -110,3 +110,11 @@
 .companion-studio [data-step=relationships]{--step-color:#f19acb}
 .companion-studio [data-step=residence]{--step-color:#a7d5a2}
 .companion-studio .companion-quick-links{margin:0 0 18px}.companion-quick-links h4{font-size:18px;margin:16px 0 8px;color:var(--cs-text)}.companion-link-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}.companion-studio .companion-link-grid a{display:flex;flex-direction:column;gap:5px;padding:14px;border:1px solid var(--cs-border);border-left:4px solid var(--step-color);border-radius:10px;background:var(--cs-field);color:var(--cs-text);text-decoration:none;min-height:72px}.companion-link-grid a strong{font-size:17px}.companion-link-grid a small{font-size:14px;color:var(--cs-muted);line-height:1.4}.companion-link-grid a:focus-visible,.companion-link-grid a:hover{outline:2px solid var(--step-color);outline-offset:2px}
+/* Mission location walkthrough: visual-only, preserving existing controls and data. */
+.me-address-workflow,.mod-address-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px;margin:10px 0}
+.me-address-step,.mod-address-tile{display:flex;flex-direction:column;gap:5px;padding:12px;border:1px solid #476578;border-radius:8px;background:#13232e;color:#daf1fa;line-height:1.4}
+.me-address-step b,.mod-address-tile b{font-size:1.05rem;color:#79e7e6}
+.mod-address-tile.occupied{border-color:#c99c58;background:#29251c}.mod-address-tile.occupied b{color:#ffd391}
+.mod-address-tile.available{border-color:#467a66}.mod-address-tile small{color:#c9d5dc}
+.me-location-guide h4,.mod-addresses h4{font-size:1.15rem;color:#79e7e6}.mod-addresses{margin:12px 0}
+.me-mission-shortcuts button.me-address-step{text-align:left;white-space:normal;font-size:1rem;text-transform:none;min-height:65px}.me-mission-shortcuts button span{display:block;font-size:.8rem;color:#c5dce6;font-weight:normal}.mod-address-tile button{min-height:36px;white-space:normal}
