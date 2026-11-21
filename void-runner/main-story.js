@@ -94,8 +94,10 @@
     tail, leave, flight; mission cast and evidence) and the existing ones (apartments and locations from modules, hack steps, zones and armed people, photo steps).
     Every word, place, person, reward and timer is data: the Mission Editor edits all of it.
     - Fish speaks Mandarin with the V1's English translation (the owner's standard): her Comms call (Mission 004's start and her reply in step 6) shows the owner's
-      English as the V1 TRANSLATION transcript. Her Mandarin originals are NOT written here (no invented text): the owner supplies them (or approves a translation) before
-      anything is recorded. Every new line is text only: NEEDS APPROVAL BEFORE RECORDING (docs/VOICE: the re-voice queue; nothing is generated).
+      English as the V1 TRANSLATION transcript. Her Mandarin originals are NOT written here: (21 Nov 2026, at the owner's request) they are recorded in her approved voice
+      with the English over them (extra/manifest.json fish-m004-zh-N / fish-m004-en-N); the call shows the Mandarin and the owner's English under it (personal-device.js).
+      Mission 004's associates, 007's Juno Vex and the Blackrock associate and 010's initiate are recorded in generic placeholder voices (the owner may replace them).
+      Every other new line is text only: NEEDS APPROVAL BEFORE RECORDING (docs/VOICE: the re-voice queue; nothing is generated).
     - Places: the underground tea house and fight pit are the shared tunnel network's places (places.js 'under-tea-room', 'under-fight-pit', quarter 'underground').
     - Short functional words (objective labels, notification titles, control hints naming the real keys) are Claude's; the First Cargo Delivery lines of Admin, Iris and
       Rook are PROPOSED placeholders (PROPOSED_CARGO below) until the owner approves or rewrites them. */
@@ -168,12 +170,13 @@
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'br-portfolio',when:'documents'}]};
  // The associate's walk in Far South: up the tunnel stairs in the west yard (ncz-backalleys.js under-farsouth), along the west back alley, out onto Main Street to No. 166's back entrance
  const FS_ROUTE=[[36.2,-187.5],[37.5,-186],[37.5,-172.5],[48,-172.5],[52.6,-171.4],[52.6,-166.3]];
+ // (21 Nov 2026) models swapped to match the owner's script: Juno Vex is "her" (npc-cyber-exec, a woman), the Blackrock associate "he" (npc-fixer, a man), in the arena and on the street
  const M007={id:'m007-the-house-always-wins',number:7,title:'The House Always Wins',type:'main',category:'Surveillance / Following',giver:'iris',location:'under-fight-pit',description:'',
   start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Juno\'s already inside. Find her and keep your distance.','There are enough people down there that you should be able to blend in.'].join('\n'),when:{kind:'after-mission',mission:'m006-hostile-takeover'}},
   offer:[],
-  cast:[{id:'juno-vex',name:'Juno Vex',model:'npc-fixer',place:'under-fight-pit',x:-16.6,z:-141.4,y:UT,yaw:1.57,clip:'talk',until:'photograph'},{id:'blackrock-associate',name:'Blackrock associate',model:'npc-cyber-exec',place:'under-fight-pit',x:-15.4,z:-141.4,y:UT,yaw:-1.57,clip:'listen',until:'photograph'},
+  cast:[{id:'juno-vex',name:'Juno Vex',model:'npc-cyber-exec',place:'under-fight-pit',x:-16.6,z:-141.4,y:UT,yaw:1.57,clip:'talk',until:'photograph'},{id:'blackrock-associate',name:'Blackrock associate',model:'npc-fixer',place:'under-fight-pit',x:-15.4,z:-141.4,y:UT,yaw:-1.57,clip:'listen',until:'photograph'},
    {id:'spectator-1',name:'Spectator',model:'npc-club-m',place:'under-fight-pit',x:-12.4,z:-135.4,y:UT,yaw:3.14,clip:'cheer'},{id:'spectator-2',name:'Spectator',model:'npc-merc',place:'under-fight-pit',x:-14,z:-135.4,y:UT,yaw:3.14,clip:'cheer'},{id:'spectator-3',name:'Spectator',model:'npc-casual-f',place:'under-fight-pit',x:-10.8,z:-136.2,y:UT,yaw:-2.6,clip:'watch'},
-   {id:'associate-street',name:'Blackrock associate',model:'npc-cyber-exec',place:'far-south',x:FS_ROUTE[0][0],z:FS_ROUTE[0][1],y:0,clip:'walk',route:FS_ROUTE,speed:1.2,from:'follow',until:'follow'},
+   {id:'associate-street',name:'Blackrock associate',model:'npc-fixer',place:'far-south',x:FS_ROUTE[0][0],z:FS_ROUTE[0][1],y:0,clip:'walk',route:FS_ROUTE,speed:1.2,from:'follow',until:'follow'},
    {id:'blackrock-entrance',name:'Commercial back entrance',model:'marker',place:'far-south',x:52.6,z:-166.4,y:1.2,from:'follow'}],
   evidence:[{id:'arena-talk',title:'Juno Vex and the Blackrock associate',kind:'audio',text:'Juno Vex: "Is everything prepared for Reyes?"\nBlackrock associate: "The chamber is ready. All six members have confirmed."\nJuno Vex: "Make sure the recording system is operational. We don\'t want a repeat of the last induction."\nBlackrock associate: "It\'s been moved onto a private network. The recording equipment is connected directly to the corporate facility."\nJuno Vex: "Good. Let me know when everything\'s ready."'}],
   objectives:[

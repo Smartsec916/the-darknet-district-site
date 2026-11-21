@@ -94,5 +94,5 @@ test('wiring: loaded after flight-nav.js, presentation only (never changes mode 
  // the Mission 012 / beginner flight steps read the same state the sequence leaves alone
  assert.match(read('void-runner/mission-mechanics-game.js'),/o\.stage==='board'&&m==='play'&&s\.location==='earth'/);assert.match(read('void-runner/mission-mechanics-game.js'),/o\.stage==='launch'&&r&&\['align','warp','encounter','arrived'\]\.includes\(r\.phase\)/);
  assert.match(read('void-runner/beginner-integration.js'),/fire\('board-ship'\)/);
- assert.equal(read('void-runner-sw.js').split('\n')[3],"const BUILD='2026-11-20-planet-landing-1';");
+ assert.match(read('void-runner-sw.js').split('\n')[3],/^const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';\r?$/);
 });

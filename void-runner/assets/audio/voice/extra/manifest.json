@@ -204,6 +204,366 @@
    "text": "So, what brings you in today? Business or pleasure?",
    "file": "extra/eva-m003-welcome-3.ogg"
   },
+  "tea-associate-1-m004-1": {
+   "speaker": "tea-associate-1",
+   "text": "Reyes is getting desperate. He's running out of options.",
+   "file": "extra/tea-associate-1-m004-1.ogg",
+   "voice": "Douglas - Smooth, Refined & Trusted (ElevenLabs)",
+   "voiceId": "9dOAtmZTvILoncEvsUKb",
+   "source": "main-story.js (004 A Promising Investment, Associate 1 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, confident, a little smug] (eleven_v4 audio tag)"
+  },
+  "tea-associate-1-m004-2": {
+   "speaker": "tea-associate-1",
+   "text": "Fifty-one. He's not happy about it, but he doesn't have much choice.",
+   "file": "extra/tea-associate-1-m004-2.ogg",
+   "voice": "Douglas - Smooth, Refined & Trusted (ElevenLabs)",
+   "voiceId": "9dOAtmZTvILoncEvsUKb",
+   "source": "main-story.js (004 A Promising Investment, Associate 1 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, confident, a little smug] (eleven_v4 audio tag)"
+  },
+  "tea-associate-1-m004-3": {
+   "speaker": "tea-associate-1",
+   "text": "That comes later. The preliminary agreement has already been sent to his personal computer.",
+   "file": "extra/tea-associate-1-m004-3.ogg",
+   "voice": "Douglas - Smooth, Refined & Trusted (ElevenLabs)",
+   "voiceId": "9dOAtmZTvILoncEvsUKb",
+   "source": "main-story.js (004 A Promising Investment, Associate 1 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, confident, a little smug] (eleven_v4 audio tag)"
+  },
+  "tea-associate-2-m004-1": {
+   "speaker": "tea-associate-2",
+   "text": "Has he agreed to the percentage?",
+   "file": "extra/tea-associate-2-m004-1.ogg",
+   "voice": "Harper Lawson (ElevenLabs)",
+   "voiceId": "c1uwEpPUcC16tq1udqxk",
+   "source": "main-story.js (004 A Promising Investment, Associate 2 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, businesslike] (eleven_v4 audio tag)"
+  },
+  "tea-associate-2-m004-2": {
+   "speaker": "tea-associate-2",
+   "text": "And the admission requirement?",
+   "file": "extra/tea-associate-2-m004-2.ogg",
+   "voice": "Harper Lawson (ElevenLabs)",
+   "voiceId": "c1uwEpPUcC16tq1udqxk",
+   "source": "main-story.js (004 A Promising Investment, Associate 2 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, businesslike] (eleven_v4 audio tag)"
+  },
+  "tea-associate-2-m004-3": {
+   "speaker": "tea-associate-2",
+   "text": "The board wants this completed before the end of the week.",
+   "file": "extra/tea-associate-2-m004-3.ogg",
+   "voice": "Harper Lawson (ElevenLabs)",
+   "voiceId": "c1uwEpPUcC16tq1udqxk",
+   "source": "main-story.js (004 A Promising Investment, Associate 2 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, businesslike] (eleven_v4 audio tag)"
+  },
+  "juno-m007-1": {
+   "speaker": "juno-vex",
+   "text": "Is everything prepared for Reyes?",
+   "file": "extra/juno-m007-1.ogg",
+   "voice": "Everley Rhodes (ElevenLabs)",
+   "voiceId": "Xm5W2LBUW4LWizr18Fbd",
+   "source": "main-story.js (007 The House Always Wins, Juno Vex overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[low, cool, in control] (eleven_v4 audio tag)"
+  },
+  "juno-m007-2": {
+   "speaker": "juno-vex",
+   "text": "Make sure the recording system is operational. We don't want a repeat of the last induction.",
+   "file": "extra/juno-m007-2.ogg",
+   "voice": "Everley Rhodes (ElevenLabs)",
+   "voiceId": "Xm5W2LBUW4LWizr18Fbd",
+   "source": "main-story.js (007 The House Always Wins, Juno Vex overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[low, cool, in control] (eleven_v4 audio tag)"
+  },
+  "juno-m007-3": {
+   "speaker": "juno-vex",
+   "text": "Good. Let me know when everything's ready.",
+   "file": "extra/juno-m007-3.ogg",
+   "voice": "Everley Rhodes (ElevenLabs)",
+   "voiceId": "Xm5W2LBUW4LWizr18Fbd",
+   "source": "main-story.js (007 The House Always Wins, Juno Vex overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[low, cool, in control] (eleven_v4 audio tag)"
+  },
+  "blackrock-associate-m007-1": {
+   "speaker": "blackrock-associate",
+   "text": "The chamber is ready. All six members have confirmed.",
+   "file": "extra/blackrock-associate-m007-1.ogg",
+   "voice": "Jim - confident and informative corporate narration (ElevenLabs)",
+   "voiceId": "JjqNMa6BEYmyQYRCdHCa",
+   "source": "main-story.js (007 The House Always Wins, the Blackrock associate overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, matter-of-fact] (eleven_v4 audio tag)"
+  },
+  "blackrock-associate-m007-2": {
+   "speaker": "blackrock-associate",
+   "text": "It's been moved onto a private network. The recording equipment is connected directly to the corporate facility.",
+   "file": "extra/blackrock-associate-m007-2.ogg",
+   "voice": "Jim - confident and informative corporate narration (ElevenLabs)",
+   "voiceId": "JjqNMa6BEYmyQYRCdHCa",
+   "source": "main-story.js (007 The House Always Wins, the Blackrock associate overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, matter-of-fact] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-1": {
+   "speaker": "initiate",
+   "text": "Yes. I am.",
+   "file": "extra/initiate-m010-1.ogg",
+   "voice": "Darren (ElevenLabs)",
+   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[nervous, solemn, trying to sound steady] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-2": {
+   "speaker": "initiate",
+   "text": "I do.",
+   "file": "extra/initiate-m010-2.ogg",
+   "voice": "Darren (ElevenLabs)",
+   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[nervous, solemn] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-3": {
+   "speaker": "initiate",
+   "text": "Yes.",
+   "file": "extra/initiate-m010-3.ogg",
+   "voice": "Darren (ElevenLabs)",
+   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[hesitant, quiet] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-4": {
+   "speaker": "initiate",
+   "text": "Fucking dogs!?",
+   "file": "extra/initiate-m010-4.ogg",
+   "voice": "Darren (ElevenLabs)",
+   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[shocked, horrified outburst] (eleven_v4 audio tag)"
+  },
+  "fish-m004-zh-1": {
+   "speaker": "milked-fish",
+   "text": "嘿。还记得 Admin 问起过的那个人吗？Halden Reyes？",
+   "file": "extra/fish-m004-zh-1.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 1; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-1"
+   }
+  },
+  "fish-m004-zh-2": {
+   "speaker": "milked-fish",
+   "text": "我发现了一些有意思的东西。他是一家叫 Veyra Dynamics 的公司的创始人。他们在开发很厉害的运输技术，但是快没钱了。",
+   "file": "extra/fish-m004-zh-2.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 2; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-2"
+   }
+  },
+  "fish-m004-zh-3": {
+   "speaker": "milked-fish",
+   "text": "Juno Vex 一直在安排他和一群私人投资者见面。",
+   "file": "extra/fish-m004-zh-3.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 3; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-3"
+   }
+  },
+  "fish-m004-zh-4": {
+   "speaker": "milked-fish",
+   "text": "奇怪的是，我找不到任何公开记录能查出这些投资者是谁。",
+   "file": "extra/fish-m004-zh-4.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 4; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-4"
+   }
+  },
+  "fish-m004-zh-5": {
+   "speaker": "milked-fish",
+   "text": "我追踪到一些通讯，来自 Juno 的两个手下。他们正在一家地下茶馆碰头。",
+   "file": "extra/fish-m004-zh-5.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 5; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-5"
+   }
+  },
+  "fish-m004-zh-6": {
+   "speaker": "milked-fish",
+   "text": "我已经把他们的位置发给你了。",
+   "file": "extra/fish-m004-zh-6.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 6; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-6"
+   }
+  },
+  "fish-m004-zh-7": {
+   "speaker": "milked-fish",
+   "text": "看看能不能查出他们在替谁做事。还有，尽量别引起别人的注意。",
+   "file": "extra/fish-m004-zh-7.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 7; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-7"
+   }
+  },
+  "fish-m004-zh-8": {
+   "speaker": "milked-fish",
+   "text": "百分之五十一？这可不是普通的投资。有人想控制他的公司。",
+   "file": "extra/fish-m004-zh-8.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's reply call after the report, line 1; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-8"
+   }
+  },
+  "fish-m004-zh-9": {
+   "speaker": "milked-fish",
+   "text": "我查到了他的住址。现在就发给你。",
+   "file": "extra/fish-m004-zh-9.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's reply call after the report, line 2; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-9"
+   }
+  },
+  "fish-m004-zh-10": {
+   "speaker": "milked-fish",
+   "text": "我也已经把所有东西转给 Admin 和 Iris 了。",
+   "file": "extra/fish-m004-zh-10.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's reply call after the report, line 3; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-10"
+   }
+  },
+  "fish-m004-en-1": {
+   "speaker": "milked-fish",
+   "text": "Hey. Remember that man Admin asked you about? Halden Reyes?",
+   "file": "extra/fish-m004-en-1.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 1, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-1) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-2": {
+   "speaker": "milked-fish",
+   "text": "I found something interesting. He's the founder of a company called Veyra Dynamics. They're developing some impressive transportation technology, but they're running out of money.",
+   "file": "extra/fish-m004-en-2.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 2, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-2) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-3": {
+   "speaker": "milked-fish",
+   "text": "Juno Vex has been arranging meetings between him and a group of private investors.",
+   "file": "extra/fish-m004-en-3.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 3, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-3) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-4": {
+   "speaker": "milked-fish",
+   "text": "What's strange is that I can't find any public records identifying these investors.",
+   "file": "extra/fish-m004-en-4.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 4, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-4) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-5": {
+   "speaker": "milked-fish",
+   "text": "I traced some communications to two of Juno's associates. They're meeting at an underground tea house.",
+   "file": "extra/fish-m004-en-5.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 5, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-5) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-6": {
+   "speaker": "milked-fish",
+   "text": "I've sent you their location.",
+   "file": "extra/fish-m004-en-6.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 6, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-6) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-7": {
+   "speaker": "milked-fish",
+   "text": "See if you can find out who they're working for. And try not to make yourself noticed.",
+   "file": "extra/fish-m004-en-7.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 7, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-7) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-8": {
+   "speaker": "milked-fish",
+   "text": "Fifty-one percent? That's not an ordinary investment. Someone wants control of his company.",
+   "file": "extra/fish-m004-en-8.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 8, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-8) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-9": {
+   "speaker": "milked-fish",
+   "text": "I've managed to find his residential address. I'll send it to you now.",
+   "file": "extra/fish-m004-en-9.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 9, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-9) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-10": {
+   "speaker": "milked-fish",
+   "text": "I've also forwarded everything to Admin and Iris.",
+   "file": "extra/fish-m004-en-10.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 10, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-10) with the settings in translations['milked-fish']."
+  },
   "zen-greeting": {
    "speaker": "zen-zephyr",
    "text": "Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?",

@@ -56,6 +56,12 @@
  const sub=document.createElement('div');sub.id='mx-sub';sub.hidden=true;sub.setAttribute('role','status');sub.setAttribute('aria-live','polite');document.body.append(sub);
  const meter=document.createElement('div');meter.id='mx-meter';meter.hidden=true;meter.innerHTML='<i></i>';meter.setAttribute('aria-label','Being noticed');document.body.append(meter);
  const giverName=id=>{try{return LC().giverName(id)||id;}catch{return id;}};
+ /* (21 Nov 2026) An overheard line with a recording (voice-clips.js; Mission 004's associates, Mission 007's Juno Vex and the Blackrock associate) plays once as it shows,
+    and the line stays up until the recording has been heard. Noticed: they stop talking (the voice stops). */
+ const heardVoice={};
+ const heardSecs=l=>{const s=MM.lineSecs(l&&l.text);try{const d=root.VoidVoiceClips?.duration?.(l.who,l.text)||0;return d>0?Math.max(s,d+.6):s;}catch{return s;}};
+ function voiceHeard(key,i,l){if(heardVoice[key]===i)return;heardVoice[key]=i;try{if(root.VoidVoiceClips?.has?.(l.who,l.text))root.VoidAudio?.speak?.(l.who,l.text);}catch{}}
+ function hush(key){if(heardVoice[key]==null)return;delete heardVoice[key];try{const n=root.VoidVoiceClips?.now;if(n&&!n.ended)root.VoidAudio?.cancel?.();}catch{}}
  function showSub(who,text,note){sub.hidden=false;sub.innerHTML='<small>OVERHEARD</small>';const b=document.createElement('span');b.textContent=note?text:giverName(who)+': '+text;if(note)b.style.opacity='.75';sub.append(b);}
  // ---------------------------------------------------------------- the running steps
  const run={};let lastT=performance.now();
@@ -73,8 +79,8 @@
    if(x.unseen&&md()==='walking'){meterUsed=true;if(seenCheck(x,dt))return;}
    if(k==='observe'||k==='overhear'||k==='tail'){const d=dist(p,k==='tail'?(cast.get(x.mission+'/'+o.npc)||{}).pos:posOf(o.npc,x.mission));
     if(k==='observe'){const r=MM.observeStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),hold:MM.hold(o)});run[x.key]=r.st;if(r.noticed&&!run[x.key+'|n']){run[x.key+'|n']=1;say('Too close: they notice you. Back off a little.');}if(!r.noticed)delete run[x.key+'|n'];if(r.done){delete run[x.key];fire({type:'observe',step:x.key});return;}}
-    else if(k==='overhear'){const lines=(o.say||[]).filter(l=>l&&l.text);const r=MM.overhearStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),lines:lines.length,secs:i=>MM.lineSecs(lines[i]&&lines[i].text)});run[x.key]=r.st;
-     if(r.noticed)say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');if(r.show>=0&&lines[r.show]){showSub(lines[r.show].who,lines[r.show].text);subShown=true;}
+    else if(k==='overhear'){const lines=(o.say||[]).filter(l=>l&&l.text);const r=MM.overhearStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),lines:lines.length,secs:i=>heardSecs(lines[i])});run[x.key]=r.st;
+     if(r.noticed){say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');hush(x.key);}if(r.show>=0&&lines[r.show]){showSub(lines[r.show].who,lines[r.show].text);subShown=true;voiceHeard(x.key,r.show,lines[r.show]);}
      // walked away part-way (Awakening QA 20 Nov 2026: the subtitle just vanished): say why it paused, until they are in range again
      else if(!r.noticed&&!(r.st.noticed>0)&&(r.st.line>0||r.st.at>0)&&!(d<=MM.near(o))){showSub('','Too far away to hear them. Move closer (not right beside them).',true);subShown=true;}
      if(r.done){delete run[x.key];sub.hidden=true;fire({type:'overhear',step:x.key});return;}}
