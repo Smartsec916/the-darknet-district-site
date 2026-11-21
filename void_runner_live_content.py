@@ -1801,11 +1801,10 @@ ONLY_KEYS = {'alone': ['kind', 'npc', 'distance', 'crowd'], 'players': ['kind', 
              'holstered': ['kind'], 'zone': ['kind', 'zone']}
 ONLY_MAX, ONLY_DIST, ONLY_PDIST, ONLY_CREDITS = 6, (1, 30), (1, 50), (1, 10000000)
 ONLY_ZONES = ['friendly', 'neutral', 'hostile']
-HHMM = re.compile(r'^([01]\d|2[0-3]):[0-5]\d$')
 ONLY_ID = re.compile(r'^[a-z0-9][a-z0-9_-]{0,63}$')
 
 
-def _num(v, lo, hi):
+def _only_num(v, lo, hi):
     return type(v) in (int, float) and v == v and lo <= v <= hi
 
 
@@ -1828,11 +1827,11 @@ def only_problems(only, givers, places, mission_ids):
         if k in ('alone', 'players') and c.get('npc') is not None and not (isinstance(c['npc'], str) and (givers.get(c['npc']) or {}).get('canTalk')):
             out.append(w + 'must name someone the game has a TALK prompt for (or leave it as the giver).')
         if k == 'alone':
-            if not _num(c.get('distance'), *ONLY_DIST):
+            if not _only_num(c.get('distance'), *ONLY_DIST):
                 out.append(w + '\u201cno other people near\u201d needs a distance from %d to %d metres.' % ONLY_DIST)
             if c.get('crowd') is not None and type(c['crowd']) is not bool:
                 out.append(w + '\u201ccount the street crowd\u201d must be yes or no.')
-        if k == 'players' and not _num(c.get('distance'), *ONLY_PDIST):
+        if k == 'players' and not _only_num(c.get('distance'), *ONLY_PDIST):
             out.append(w + '\u201cno other players near\u201d needs a distance from %d to %d metres.' % ONLY_PDIST)
         if k == 'time':
             a, b = c.get('from'), c.get('to')
