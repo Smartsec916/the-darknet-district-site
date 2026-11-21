@@ -303,6 +303,43 @@ def developer_content(db, uid):
     return jsonify(result)
 
 
+
+@api.post('/developer/companion-voice')
+@signed_in
+def developer_companion_voice(db, uid):
+    """Generate one developer-confirmed recording; never expose the provider key."""
+    if not balance_admin(uid):
+        raise ApiError('Developer access is not authorized.', 403)
+    import re
+    import base64
+    import urllib.request
+    import urllib.error
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise ApiError('Expected a voice generation request.')
+    voice, text = body.get('voiceId'), body.get('text')
+    if not isinstance(voice, str) or not re.fullmatch(r'[A-Za-z0-9]{10,40}', voice):
+        raise ApiError('Enter a valid ElevenLabs voice ID.')
+    if not isinstance(text, str) or not text.strip() or len(text) > 700:
+        raise ApiError('Enter a spoken line of at most 700 characters.')
+    key = os.getenv('ELEVENLABS_API_KEY', '')
+    if not key:
+        raise ApiError('ElevenLabs is not configured on the server.', 503)
+    payload = json.dumps({'text': text, 'model_id': 'eleven_v4'}).encode()
+    url = 'https://api.elevenlabs.io/v1/text-to-speech/' + voice + '?output_format=mp3_44100_128'
+    req = urllib.request.Request(url, data=payload, headers={'xi-api-key': key, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg'})
+    try:
+        with urllib.request.urlopen(req, timeout=45) as response:
+            audio = response.read(600001)
+            if not audio or len(audio) > 600000 or response.headers.get_content_type() != 'audio/mpeg':
+                raise ApiError('Generated audio exceeds the recording limit or is invalid.', 502)
+    except urllib.error.HTTPError as error:
+        raise ApiError('ElevenLabs rejected the request (HTTP %s). Check voice access, credits and rate limits.' % error.code, 429 if error.code == 429 else 502)
+    except (urllib.error.URLError, TimeoutError):
+        raise ApiError('ElevenLabs is temporarily unavailable.', 502)
+    return jsonify(audio=base64.b64encode(audio).decode('ascii'))
+
+
 @api.route('/developer/balance', methods=['GET', 'POST'])
 @signed_in
 def developer_balance(db, uid):
