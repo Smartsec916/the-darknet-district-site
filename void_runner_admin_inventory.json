@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "a784e75d54a7e923",
+  "revision": "41867da6b9777b8d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -72562,12 +72562,6 @@
     },
     {
       "source": "void-runner/npc-voices.js",
-      "line": 10,
-      "text": "Reverie and Lace may have one: an ordinary, neutral street voice (the owner's rule; the editor says so).",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/npc-voices.js",
       "line": 11,
       "text": "COST ESTIMATE (an estimate only, never a quote): ElevenLabs text to speech bills by characters. Assumed: about 1 credit per character (Multilingual v2, v3 and newer",
       "kind": "source-reference"
@@ -74823,7 +74817,7 @@
     "void-runner/npc-paths.js": "e4ccb4ba23ec94fc001725ce0a21bfb327eb49de1af4a640cf41dc05536df738",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
-    "void-runner/npc-voices.js": "c7bd363661ce3aaa939cc9c2c3b09a9f1f5fb813a63bb5fb1e8b88676f47c5c7",
+    "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/ordnance.js": "a3e43868918ec882965f16c95cd859475b3e634f5d75e691e606f8aefaa383c8",
