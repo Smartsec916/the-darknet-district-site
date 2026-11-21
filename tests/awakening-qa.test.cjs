@@ -30,7 +30,11 @@ test('a report made from the V1 has no arrow to the person; a leave step leads o
  ev({type:'place',places:['avenue']});assert.equal(g().kind,'instruction','the report to Admin is made from the V1');assert.equal(g().interaction,undefined);
  // a hand-over in person (Mission 011) still leads to its place
  const m11=x.e.trees.flatMap(t=>t.missions).find(m=>m.id==='m011-leverage');assert.equal(m11.objectives.find(o=>o.id==='deliver').place,'district-meeting');
- assert.match(src('void-runner/mission-guide.js'),/if\(x\.kind==='apt-leave'\)\{const w=wayOut\(\);if\(w\)return w;\}/);});
+ const mg=src('void-runner/mission-guide.js');assert.match(mg,/if\(x\.kind==='apt-leave'\)\{const w=wayOut\(\);if\(w\)return w;\}/);
+ assert.match(mg,/walkingLocation\.id!=='neochinatown'&&walkingLocation\.id!=='corporate'/,'the Corporate District door and facility (Mission 009) are guided');
+ assert.match(mg,/const into=here\(i=>i\.action==='mod-portal'&&String\(i\.door\|\|''\)\.split\('\|'\)\.some\(p=>p\.split\('\.'\)\[0\]===mod\)\)/,'a hallway door straight into the apartment');
+ assert.match(mg,/\|\|here\(i=>i\.action==='apt-use'&&i\.object===x\.object\)/,'an apartment\'s things behind a modular hallway');
+ assert.match(mg,/position:i\.action==='mod-elev'\?cabOf\(i\.position\.slice\(\)\)/,'a lift button: the middle of the cab');});
 
 test('the hint line names the key and the button for Mission Log steps and the V1 app step',()=>{
  const v=(o={})=>({step:{kind:'report',npc:'milked-fish'},deviceOpen:false,app:null,thread:null,attach:{},camera:false,feed:false,key:'L',name:id=>id==='milked-fish'?'Fish':id,...o});

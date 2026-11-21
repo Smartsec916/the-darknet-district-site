@@ -18,7 +18,7 @@
  // On the street: the street door (or the street door's access point). In the hallway: the apartment's door (or its access point), or the exit when it is another
  // building's hallway. In the apartment or location: the thing to use or the access point; in another part of a location: the elevator button for its floor or the
  // door that leads there; in the wrong one: the way out. The route between rooms of a location is guide-route.js's (modular).
- function aptGoal(g){try{const x=g&&g.apt;if(!x||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown')return null;
+ function aptGoal(g){try{const x=g&&g.apt;if(!x||typeof walkingLocation==='undefined'||!walkingLocation||(walkingLocation.id!=='neochinatown'&&walkingLocation.id!=='corporate'))return null;   // corporate: Mission 009's maintenance door and the facility behind it (Awakening QA 20 Nov 2026: no arrow there)
   const A=root.VoidApartments,M=root.VoidModules,wl=walkingLocation;if(!A)return null;
   const ap=x.ap?A.apOf(x.ap):null,aid=x.a||(ap&&ap.apt)||null,mis=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===x.m),rec=mis&&(mis.apartments||[]).find(a=>a&&a.id===aid);
   // a lift's buttons: the goal is the middle of the cab (Awakening QA 20 Nov 2026: the arrow faded with the player in the cab's doorway, where the wall hides the buttons' E prompt)
