@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "4aa6b8bccd2f1e42",
+  "revision": "7dfbdbdbf6fb183a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -75029,223 +75029,223 @@
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 424,
+      "line": 425,
       "text": "{const nr=root.VoidMissionBlocks.startMode(m);if(!(m.start&&m.start.how==='notification')||nr==='near'||nr==='near-accept'){card.append(linesEditor(t,m,m.offer,'offer',m.giver,nr==='near'||nr==='near-accept'?'What '+(gv?gv.name:'the giver')+' says when the player walks near':'What '+(gv?gv.name:'the giver')+' says when offering it',{choice:MC().choiceOk(m,null)}));card.append(hint(HELP.offer));}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 433,
+      "line": 434,
       "text": "if(m.ending.npc){end.append(field('Hand-in step in the Mission Log',m.ending.label,v=>ed(x=>{x.ending.label=v.slice(0,200);}),false,{placeholder:'(empty: “Hand in to '+((giver(m.ending.npc)||{}).name||'')+'”)'}));end.append(linesEditor(t,m,m.ending.say||[],'ending',m.ending.npc,'What is said at the hand-in'));}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 461,
+      "line": 463,
       "text": "if(!by){box.append(el('p','Then it is in the Mission Log and tracked. What the giver says when offering it is further down.','me-small'),...onlyHere(m,ed));return box;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 467,
+      "line": 469,
       "text": "const tl=el('label','','me-field');tl.append(el('span','Body'+(near?' (optional for walk near: the giver speaks in person)':'')));const ta=el('textarea','','',{'aria-label':'Body',rows:'3',maxlength:'500','data-me-start-text':m.id,placeholder:'(your words)'});ta.value=st.text||'';ta.oninput=()=>{set(x=>{x.text=ta.value.slice(0,500);});guideSoon();};tl.append(ta,hint(near?'Leave it empty and no text is sent: the mission starts with a short NEW MISSION line and goes into the Mission Log; '+(gv0?gv0.name:'the giver')+' says the offer lines in person.':HELP.body));wbox.append(hl,tl);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 531,
+      "line": 533,
       "text": "deny:{again:'Today’s behaviour: an offer in person comes again the next time the player talks to them; a message, call, banner or walk-near comes again after the next Sleeping Pod exit.',pod:'It comes again after the player next leaves their Sleeping Pod. Meanwhile a giver who waits at a spot for it goes about her own routine.',after:'It comes again after that many minutes of play (1 to 120; only while the player is in the world, not in menus or conversations; a reload keeps the count). A walk-near offer also needs the player to walk out of its distance and come back. Meanwhile a giver who waits at a spot for it goes about her own routine, then walks back to it (never popping in or out in front of the player). In PLAY THIS DRAFT, SKIP THE WAIT in the banner ends the wait at once.',never:'It is never offered again (removed). Missions after it in this tree will not come either. A giver who waited at a spot for it goes back to her own routine, out of the player’s sight.',start:'Another mission starts instead: the first mission of another of your trees (if that one asks too, it is offered straight away).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 602,
+      "line": 604,
       "text": "missing (an old cached page, a failed load) the panel still shows, says \"Loading the street doors…\", loads what is missing and redraws (the owner, 19 Nov 2026: \"i also",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 629,
+      "line": 633,
       "text": "if(root.VoidNPCMap){const markers=X.doors().filter(dd=>(dd.family==='container')===!!X.isContainer(a.style||'normal')).map(dd=>({id:dd.id,x:dd.x,z:dd.z,color:dd.id===a.door?'#ffb347':'#7fd4ff',label:dd.id===a.door?dd.name:'',ghost:dd.id!==a.door}));const say=el('span',a.door?'Chosen: '+((X.door(a.door)||{}).name):'Click a door (the blue marks) to choose it.','me-small',{'data-me-apt-map-note':a.id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 630,
+      "line": 634,
       "text": "try{const map=root.VoidNPCMap.create({markers,area:d?{avenue:'avenue',oldtown:'oldtown','far-south':'far-south',port:'port',outskirts:'outskirts'}[d.quarter]:X.isContainer(a.style||'normal')?'outskirts':'oldtown',onPick:(x,z)=>{const n=X.nearestDoor(x,z,10,X.isContainer(a.style||'normal')?'container':'city');if(!n){say.textContent='No apartment door within 33 ft of that spot. Click nearer a blue mark.';return;}ea(a.id,y=>{y.door=n.id;},true);}});map.el.dataset.meAptMap=a.id;sec.append(map.el,say);}catch(e){sec.append(el('p','The map could not be drawn here; choose the door from the list.','me-small me-warn'));}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 678,
+      "line": 682,
       "text": "else if(o.kind==='message')head.append(el('span',m.start&&m.start.how==='notification'?'Done as the notification reaches the device (text: “How this mission starts” above).':'Needs the mission to start by notification.',m.start&&m.start.how==='notification'?'me-small':'me-warn'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 692,
+      "line": 696,
       "text": "if(!['message','pod-exit','hear','send-photo','await-call','anim','wait','ask',...((root.VoidMechanicsEditor&&root.VoidMechanicsEditor.NO_VIA)||[])].includes(o.kind)){const vr=el('div','','me-row'),vs=el('select','','',{'aria-label':'How it is said','data-me-step-via':o.id});for(const [v,n] of [['talk','In person (the conversation window)'],['comms','As a Comms call (on the V1)'],['messages','As a message (V1 Messages)']])vs.append(new Option(n,v));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 694,
+      "line": 698,
       "text": "const sayWho=o.kind==='photo'?m.giver:o.npc||m.giver;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 696,
+      "line": 700,
       "text": "if(o.kind==='ask')sb.append(linesEditor(t,m,o.denySay||[],o.id+'/denySay',sayWho,'What is said after DENY (optional)'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 697,
+      "line": 701,
       "text": "if(o.kind!=='message'&&o.kind!=='pod-exit'&&o.kind!=='anim'&&o.kind!=='wait'&&!((root.VoidMechanicsEditor&&root.VoidMechanicsEditor.NO_LINES)||[]).includes(o.kind))sb.append(linesEditor(t,m,o.say||[],o.id+'/say',sayWho,o.kind==='ask'?'What is said after ACCEPT (optional)':o.kind==='hear'?'What they say (shown right after the talk step; this step is done when the player closes it)':o.kind==='send-photo'?'Reply to the right photo (in Messages)':'What is said when this step is done',dev?{noPlayer:o.kind==='send-photo'?'A reply in Messages comes from one character: no player lines or animations here.':'A Comms call or a message comes from one character: no player lines here (choose “In person” for a back-and-forth).',noAnim:true}:{choice:MC().choiceOk(m,o)}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 777,
+      "line": 781,
       "text": "const body=el('div','','me-say'),player=l.who==='player';const unlocked=!player&&(!l.locked||(e&&e.unlocked));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 778,
+      "line": 782,
       "text": "const ta=el('textarea','','',{'aria-label':'What '+l.name+' says',rows:String(Math.min(4,Math.ceil(t.length/90)||1))});ta.value=t;ta.disabled=!unlocked;const tn=tagNoteEl(t,l.who,l.name);ta.oninput=()=>{setLine(l,ta.value);const s=row.querySelector('.me-vs');const v=voiceState(l);if(s){s.textContent=v.text;s.className='me-vs me-'+v.cls;}tagNoteSet(tn,ta.value,l.who,l.name);};body.append(ta,tn);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 809,
+      "line": 813,
       "text": "if(m.engine==='beginner'){const st=studioEnsure();const all=SM().validate(st.missions,{npcs:new Set(Object.values(src.registry?.npcs||{}).map(n=>n.displayName))});for(const i of all)if(i.where===m.id||i.where.startsWith(m.id+' /'))out.push({level:i.level,text:i.where+' — '+i.text});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 817,
+      "line": 821,
       "text": "\"Lines & voice\"). Every line the NPC says in a mission (grouped by tree and mission, with a button to open that mission) and outside missions; the registered voice",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 819,
+      "line": 823,
       "text": "function linesFor(id){if(!built)return null;const g=giver(id),ids=[id,g&&g.say].filter(Boolean);return (built.npcs||[]).find(x=>ids.includes(x.id))||null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 823,
+      "line": 827,
       "text": "const reg=src.registry?.npcs?.[id]||(g&&src.registry?.npcs?.[g.say]);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 841,
+      "line": 845,
       "text": "const gr=root.VoidStreetPair?.GREETING?.[id];if(gr&&gr.length){const d=el('div','','me-scene',{'data-npc-greeting':id});d.append(el('h5','When there is no mission for the player (placeholder in the game’s code)'));for(const t of gr)d.append(el('p','“'+t+'” · text only, no voice · needs a code change to edit','me-small'));root_.append(d);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 851,
+      "line": 855,
       "text": "const list=a==='offer'?m.offer:a==='deny'?(m.start||{}).denySay:a==='ending'?(m.ending||{}).say:((m.objectives||[]).find(o=>o.id===a)||{})[b],l=list&&list[Number(a==='offer'||a==='ending'||a==='deny'?b:c)];return l?String(l.text||''):undefined;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 858,
+      "line": 862,
       "text": "input.onchange=async()=>{const f=input.files&&input.files[0];input.value='';if(!f)return;const words=String(textNow()||'').trim();if(!words){msg.className='me-small me-bad';msg.textContent='Write what they say first, then import the voice file for those words.';return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 860,
+      "line": 864,
       "text": "const kept=await I.store(r.hash,r.type,r.data,r.duration);setClip(key,I.record({who,text:words,hash:r.hash,type:r.type,duration:r.duration,bytes:r.bytes,name:r.name,reencoded:r.reencoded}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 880,
+      "line": 884,
       "text": "function voicePanel(id,opt={}){const box=el('section','','me-check me-voice',{'data-voice-panel':id}),redraw=opt.redraw||draw,say=opt.say||(t=>{status=t;}),X=V();box.append(el(opt.compact?'h5':'h4','Voice'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 893,
+      "line": 897,
       "text": "const md=el('p',X.MODELS[mdl].text,'me-small',{'data-voice-model-text':id});ms.onchange=()=>{const v=(local().voices||{})[id];if(cur.from==='editor'&&v)setVoice(id,{...v,model:ms.value});else{const r=X.make(id,cur.voiceId,String(cur.name).replace(/\\s*[(,].*$/,'').slice(0,X.LIMIT.name)||'ElevenLabs voice',{registry:src&&src.registry,model:ms.value});if(!r.ok){say(r.why);redraw();return;}setVoice(id,r.voice);}say('Model for '+name+': '+X.MODELS[ms.value].label+'. Saved in your draft (UNDO takes it back).');redraw();};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 903,
+      "line": 907,
       "text": "const save=btn('USE THIS VOICE',()=>{const r=X.make(id,li.value,ni.value,{registry:src&&src.registry,model:mdl||undefined});if(!r.ok){msg.className='me-small me-bad';msg.textContent=r.why;return;}setVoice(id,r.voice);ui.voiceOpen=null;say('Voice for '+name+': '+r.voice.name+' (ElevenLabs). Saved in your draft (UNDO takes it back). Nothing was generated or paid: RE-VOICE puts their lines in the queue.');redraw();},'me-play',{'data-voice-save':id});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 907,
+      "line": 911,
       "text": "if(cur.kind==='elevenlabs'&&cur.from==='editor')r.append(btn('REMOVE MY CHOICE',()=>{setVoice(id,null);say('Removed your voice choice for '+name+' (UNDO puts it back).');redraw();},'me-x',{'data-voice-remove':id,title:'Back to '+(voiceNow(id).kind==='none'?'no voice':'the voice they had before')+'.'}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 934,
+      "line": 938,
       "text": "/* Who: everyone the editor knows, but only people who can walk with the player can be chosen; the rest are greyed with the reason. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 942,
+      "line": 946,
       "text": "const area=escArea(m,o.npc),AN=(root.VoidNPCAreas?.get(area)||{name:'The Avenue'}).name;box.append(el('p',who.name+' starts in '+AN+' for this mission (where she waits for it, else her placement in Developer Tools > NPCs). The step may go on into other areas: '+who.name+' comes through the city gates, the stairs to and from the tunnels and the District’s door with the player, walking or in a taxi (never where they may not go: a problem below says so).','me-small',{'data-me-esc-area':o.id}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1004,
+      "line": 1008,
       "text": "'step-subject':(m,o)=>'[data-me-step-subject=\"'+CSS.escape(o)+'\"]',label:(m,o)=>'[data-me-label=\"'+CSS.escape(o)+'\"]',say:(m,o)=>'[data-me-tstep=\"'+CSS.escape(o)+'\"] textarea',ending:m=>'[data-me-ending=\"'+CSS.escape(m.id)+'\"]','wait-at':m=>'[data-me-wait-at=\"'+CSS.escape(m.id)+'\"] canvas','step-spot':(m,o)=>'[data-me-esc-map=\"'+CSS.escape(o)+'\"] canvas','step-stop':(m,o)=>'[data-me-esc-stop=\"'+CSS.escape(o)+'\"]','step-into':(m,o)=>'[data-me-esc-into=\"'+CSS.escape(o)+'\"]',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1015,
+      "line": 1019,
       "text": "if(ui.newTree){const nm=sc.querySelector('[data-me-new-name]');return Gd.show(sc,nm&&!nm.value.trim()?[{sel:'[data-me-new-name]',text:'the tree’s name'}]:[],{done:{sel:'[data-me-create-tree]',text:'CREATE TREE'}});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1017,
+      "line": 1021,
       "text": "const needs=[];if(!String(raw.name||'').trim())needs.push({sel:'[data-me-rename=\"'+CSS.escape(raw.id)+'\"]',text:'the tree’s name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1018,
+      "line": 1022,
       "text": "if(!raw.missions.length)needs.push({sel:'[data-me-add-mission]',text:'add its first mission (+ NEW MISSION)'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1020,
+      "line": 1024,
       "text": "for(const n of list){const f=NEED_SEL[n.field];if(f)needs.push({sel:'[data-me-tree-mission=\"'+CSS.escape(m.id)+'\"] '+f(m,n.step),text:n.text});}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1021,
+      "line": 1025,
       "text": "return Gd.show(sc,needs,{done:doneM?{sel:'[data-me-play=\"tree:'+CSS.escape(doneM.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-me-owner-tree]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1024,
+      "line": 1028,
       "text": "const items=lines.filter(l=>l.who!=='player'&&(l.voice||canVoice(l))).map(l=>{const v=(local().voices||{})[l.who],x={ref:l.ref||l.key,who:l.who,text:shownText(l),from:l.text,mission:m?.key||l.mission||'',source:l.source||''};if(v&&V()&&V().clean(v)){x.voiceId=v.voiceId;x.voiceName=v.name;x.model=V().modelOf(v);}return x;});   // a voice chosen in the editor goes with the line (the server checks it)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-editor.js",
-      "line": 1111,
+      "line": 1115,
       "text": "used to vanish as an unhandled promise rejection; now the editor says what stopped it, in the status line, and the browser console keeps the details. */",
       "kind": "source-reference"
     },
@@ -76686,7 +76686,7 @@
     {
       "source": "void-runner/npc-editor.js",
       "line": 464,
-      "text": "function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));",
+      "text": "function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));const own=S().local().characters?.[e.id],cp=own?.companionProfile;if(own?.relationships?.length){const rel=el('details');rel.append(el('summary','Transferred relationships'));for(const r of own.relationships)rel.append(el('p',r.target+' · '+r.type+' · '+r.activity+' · '+r.distance+' m'),...r.lines.map(t=>el('p',t)));box.append(rel);}if(cp){const profile=el('details');profile.append(el('summary','Transferred companion personality'),el('p',cp.about||'No description'),el('p','Walking speed and conversation initiative apply outside missions. Other traits are available as authoring reference.'));for(const [k,v] of Object.entries(cp.personality))profile.append(el('p',k+': '+v));for(const [k,v] of Object.entries(cp.dialogue)){if(v.length)profile.append(el('h5',k),...v.map(t=>el('p',t)));}box.append(profile);}if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));",
       "kind": "source-reference"
     },
     {
@@ -76835,50 +76835,80 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 67,
+      "line": 60,
+      "text": "function validProfile(p){return keysOk(p,['about','personality','dialogue'])&&typeof p.about==='string'&&p.about.length<=600&&!/[<>\\u0000-\\u001f]/.test(p.about)&&keysOk(p.personality,Object.keys(PROFILE_RANGES))&&Object.entries(p.personality).every(([k,v])=>typeof v==='number'&&Number.isFinite(v)&&v>=PROFILE_RANGES[k][0]&&v<=PROFILE_RANGES[k][1])&&keysOk(p.dialogue,PROFILE_POOLS)&&Object.values(p.dialogue).every(a=>Array.isArray(a)&&a.length<=20&&a.every(t=>plain(t,500)&&!/[<>]/.test(t)));}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-made.js",
+      "line": 61,
+      "text": "function conversationLines(c,rnd=Math.random){const p=c?.companionProfile;if(!validProfile(p))return ['…'];const d=p.dialogue,settings=p.personality,pick=a=>a?.length?a[Math.min(a.length-1,Math.floor(rnd()*a.length))]:null;const greeting=pick(d.greet)||pick(d.welcomeBack),chat=pick(d.chat)||pick(d.aside),extra=rnd()<(settings.initiative??.5)?chat:null;return [...new Set([greeting,extra||(!greeting?chat:null)].filter(Boolean))].length?[...new Set([greeting,extra||(!greeting?chat:null)].filter(Boolean))]:['…'];}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-made.js",
+      "line": 81,
       "text": "/* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 117,
+      "line": 114,
+      "text": "if(c.companionProfile!=null&&!validProfile(c.companionProfile))out.push(w+'invalid transferred companion personality or dialogue.');",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-made.js",
+      "line": 135,
       "text": "out[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim():id,group:'district',say:id,made:true,role:typeof c.role==='string'?c.role:'',model:c.model,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 172,
+      "line": 149,
+      "text": "const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-made.js",
+      "line": 191,
       "text": "const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 180,
+      "line": 199,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatWho=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 182,
+      "line": 201,
       "text": "const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 213,
+      "line": 230,
+      "text": "if(!p.near){p.near=true;p.nearTarget=null;const last=p.lastRemark??-Infinity;if(clock-last>=(traits.remarkCooldown??30)){p.lastRemark=clock;const lines=rel?.r.lines.length?[rel.r.lines[Math.floor(rnd()*rel.r.lines.length)]]:conversationLines(p.c,rnd);if(lines[0]!=='…'&&rnd()<(rel?rel.r.affection:traits.initiative??.5)&&(!rel||rel.r.target==='player'||player&&Math.hypot(player.x-origin.x,player.z-origin.z)<8)){try{if(typeof announce==='function')announce(p.c.name+(rel&&rel.r.target!=='player'?' → '+rel.r.target:'')+' · '+lines[0]);}catch{}}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/npc-made.js",
+      "line": 242,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 236,
+      "line": 265,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 247,
-      "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',[{who:id,text:'…'}],()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
+      "line": 278,
+      "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
     {
@@ -78364,6 +78394,216 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 17,
+      "text": "const dialogue={};for(const [k,v] of Object.entries(raw.dialogue||{})){if(!pools.includes(k)||!Array.isArray(v)||v.length>20||v.some(t=>typeof t!=='string'||!t.trim()||t.length>500||/[<>\\u0000-\\u001f]/.test(t)))throw Error('Invalid dialogue pool: '+k);dialogue[k]=v.map(t=>t.trim());}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 18,
+      "text": "return {about,personality,dialogue};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 20,
+      "text": "const labels={greet:'Greeting',chat:'Small talk',compliment:'Compliments',flirt:'Flirting',sit:'Sitting',dance:'Dancing',hands:'Holding hands',kiss:'Kiss',kissAfter:'After a kiss',notYet:'Not yet',notNow:'Not now',relax:'Relaxing',bye:'Goodbye',approach:'Coming over',window:'At the window',joinSofa:'Joining the sofa',inviteSit:'Invite to sit',inviteDance:'Invite to dance',inviteRecline:'Invite to lie back',accepted:'Invitation accepted',declined:'Invitation declined',welcomeBack:'Welcome back',aside:'Casual remarks',comeHere:'Come here',recline:'Lying back'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 22,
+      "text": "friendly:['Warm & friendly','An approachable, thoughtful companion who enjoys good company and easy conversation.',.75,.35,.7,.9,1.05,1.15,22],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 26,
+      "text": "relaxed:['Calm & relaxed','A laid-back companion who prefers comfortable silence, conversation and relaxing together.',.4,.4,.35,.7,1.2,.8,45],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 29,
+      "text": "const starterLines={greet:['Hey, good to see you.','Welcome in. Make yourself comfortable.'],chat:['How has your day been?','What brings you to NeoChinatown?'],compliment:['You have good taste.','I like your company.'],flirt:['You certainly know how to get my attention.','I was hoping you would come over.'],sit:['This is a comfortable spot.','We can take a moment here.'],dance:['Let’s find the rhythm.','Just follow the music.'],hands:['Here, take my hand.','That’s nice.'],kiss:['May I kiss you?','Only if you would like to.'],kissAfter:['That was sweet.','What a lovely moment.'],notYet:['Let’s take our time.','Maybe after we get to know each other.'],notNow:['Not right now, thanks.','Let’s do something else.'],relax:['No rush tonight.','We can just enjoy the quiet.'],bye:['See you next time.','Take care out there.'],approach:['Thought I would come say hello.','Mind if I join you?'],window:['The city looks different from up here.','Look at those lights.'],joinSofa:['Is this seat taken?','May I sit with you?'],inviteSit:['Want to sit down together?','The sofa looks inviting.'],inviteDance:['Care to dance?','Want to join me for a dance?'],inviteRecline:['Want to lie back and relax?','How about taking a break?'],accepted:['Sounds good to me.','Lovely, let’s do it.'],declined:['No problem at all.','Whatever makes you comfortable.'],welcomeBack:['There you are again.','Welcome back!'],aside:['It’s nice to get away from the city noise.','I enjoy moments like this.'],comeHere:['Of course, I’m coming.','I’ll be right there.'],recline:['Much more comfortable.','This is a nice way to unwind.']};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 30,
+      "text": "const styleLines={friendly:{greet:'I’m glad you’re here.',chat:'Tell me something good that happened today.'},shy:{greet:'Oh, hi. I wasn’t expecting company.',chat:'I’m not great at starting conversations.'},playful:{greet:'Well, look who decided to show up.',flirt:'You’re making it difficult to concentrate.',aside:'I have a feeling you’re trouble.'},energetic:{greet:'Hey! Ready for a good evening?',dance:'Come on, let’s turn this up.'},relaxed:{greet:'Hey. No hurry, settle in.',relax:'The best plans are sometimes no plans.'},mysterious:{greet:'Interesting. I wondered when you would arrive.',chat:'Everyone in this city has a story. What’s yours?'}};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 31,
+      "text": "function presetProfile(id,current={},replace=false){const p=personalityPresets[id];if(!p)throw Error('Choose a personality template.');const fresh={about:p[1],personality:Object.fromEntries(Object.keys(ranges).map((k,i)=>[k,p[i+2]])),dialogue:Object.fromEntries(pools.map(k=>[k,[...(styleLines[id][k]?[styleLines[id][k]]:[]),...starterLines[k]]]))};if(!replace){if(current.about?.trim())fresh.about=current.about;fresh.personality={...current.personality,...fresh.personality};for(const k of pools)if(current.dialogue?.[k]?.length)fresh.dialogue[k]=[...current.dialogue[k]];}return profile(fresh);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 32,
+      "text": "function voiceBatch(entry){let i=0;const seen=new Set();return pools.flatMap(pool=>(entry.dialogue?.[pool]||[]).filter(t=>{if(seen.has(t))return false;seen.add(t);return true;}).map(text=>{let hash=2166136261;for(const c of entry.id+'|'+text)hash=Math.imul(hash^c.charCodeAt(0),16777619);return {id:'line-'+String(++i).padStart(3,'0')+'-'+pool.toLowerCase()+'-'+(hash>>>0).toString(16).padStart(8,'0'),pool,text};}));}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 34,
+      "text": "function giverDraft(entry,voiceRecords,local,id){const d={...local,characters:{...local.characters},clips:{...local.clips}};const role=String(entry.about||'VR companion').replace(/[<>\\u0000-\\u001f]/g,' ').trim().slice(0,80)||'VR companion';d.characters[id]={name:entry.name.slice(0,40),model:entry.model,role,adult:true,companionProfile:profile({...entry,about:String(entry.about||'').replace(/[<>\\u0000-\\u001f]/g,' ')})};if(entry.worldBehavior)d.characters[id].worldBehavior=worldBehavior(entry.worldBehavior);if(entry.relationships)d.characters[id].relationships=relationships(entry.relationships);if(entry.residence){const r=d.characters[id].residence=residence(entry.residence);for(const [other,c] of Object.entries(d.characters)){if(other===id||c.residence?.door!==r.door)continue;d.characters[other]={...c,residence:{...c.residence,...(r.streetAccess?{streetAccess:r.streetAccess}:{}),...(c.residence.slot===r.slot&&r.apartmentAccess?{apartmentAccess:r.apartmentAccess}:{})}};}}for(const [i,r] of Object.values(voiceRecords||{}).entries()){if(!Object.values(entry.dialogue||{}).some(p=>p.includes(r.text)))continue;if(Object.keys(d.clips).length>=200)break;d.clips['companion:'+id+':'+i]={...r,who:id};}return d;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 38,
+      "text": "const templateGroups={Everyday:/idle|walk|run|sit|stand|recline|relax/i,Conversation:/talk|wave|nod|shrug|laugh|explain|greet/i,Companion:/hug|kiss|coy|glance|hands|relax/i,Dancing:/dance|hips|sway/i,'Mission NPC':/point|beckon|interact|hand|give|gesture/i,Combat:/punch|kick|dodge|block|defend|attack|fight/i};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 43,
+      "text": "poseGroup('Conversation',[['wave','Wave right',relaxed,wave],['wave-left','Wave left',wave],['wave-low','Low wave',relaxed,[[.45,-.75,.2],[.1,.8,.35]]],['point','Point right hand forward',relaxed,point],['point-left','Point left hand forward',point],['point-side','Point sideways',relaxed,[[1,0,0],[1,0,0]]],['explain','Explain with both hands',bend,bend],['offer','Offer an object',relaxed,reach],['welcome','Open arms',open,open],['shrug','Shrug',[[.8,-.3,0],[.25,.55,.3]],[[.8,-.3,0],[.25,.55,.3]]],['think','Thinking',relaxed,[[.2,-.7,.25],[-.2,.9,.45]]],['hand-chest','Hand to chest',relaxed,[[.3,-.8,.1],[-.7,.65,.55]]],['salute','Salute',relaxed,[[.8,.1,0],[-.7,.8,.4]]]]);",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 145,
+      "text": "function relationshipTab(stage,button,msg,d){if(!d){stage.append(el('p','Save or select a companion first.'));return;}const targets=new Map([['player','The player'],['iris','Iris'],['admin','Admin'],['dax','Dax']]);for(const n of root.VoidDistrictPeople?.npcs?.()||[])targets.set(n.id,n.name);for(const n of C().companions.values())if(n.id!==d.entry.id)targets.set(n.id,n.name+' (companion)');for(const [id,n] of Object.entries(root.VoidMissionEditor?.shared?.local?.()?.characters||{}))if(id!==d.entry.id)targets.set(id,n.name);const rows=relationships(d.entry.relationships),target=el('select'),type=el('select'),affection=el('input'),distance=el('input'),activity=el('select'),lines=el('textarea'),list=el('div');for(const r of rows)if(!targets.has(r.target))targets.set(r.target,r.target+' (saved target)');for(const [id,n] of targets)if(id==='player'||/^[a-z][a-z0-9-]{1,39}$/.test(id))target.append(new Option(n,id));for(const [id,n] of Object.entries(RELATIONSHIPS))type.append(new Option(n,id));for(const [id,n] of [['greet','Greet and look toward them'],['approach','Walk toward them and greet'],['seat','Use a nearby compatible seat']])activity.append(new Option(n,id));affection.type='range';affection.min=0;affection.max=1;affection.step=.05;distance.type='number';distance.min=1;distance.max=8;distance.step=.5;lines.rows=4;lines.placeholder='One relationship-specific line per row';function pick(id){const r=rows.find(x=>x.target===id);type.value=r?.type||'friend';affection.value=r?.affection??.8;distance.value=r?.distance??3;activity.value=r?.activity||'greet';lines.value=(r?.lines||[]).join('\\n');}target.onchange=()=>pick(target.value);target.value='iris';pick('iris');function draw(){list.replaceChildren();for(const r of rows){const item=el('div');item.className='companion-card';item.append(el('strong',(targets.get(r.target)||r.target)+' · '+RELATIONSHIPS[r.type]),el('p','Affection '+Math.round(r.affection*100)+'% · '+r.distance+' m · '+r.activity),button('Edit relationship',()=>{target.value=r.target;pick(r.target);}),button('Remove relationship',async()=>{const i=rows.findIndex(x=>x.target===r.target);if(i>=0)rows.splice(i,1);await saveRows();draw();}));list.append(item);}}async function saveRows(){const a=relationships(rows);await save({...d,entry:{...d.entry,relationships:a}});d.entry.relationships=a;msg.textContent='Relationships saved to this companion.';}draw();stage.append(el('p','Give the same companion a different relationship with each person. They can greet, approach or use a nearby registered seat when that target is present. The other NPC keeps its own scripted behavior. VR-only companions must first exist as world NPCs to be recognized outside VR.'),field('Who are they interacting with?',target),field('Relationship type',type),field('Affection / likelihood of greeting',affection),field('Activation distance (m)',distance),field('Action',activity),field('Relationship-specific dialogue',lines),button('Save relationship',async()=>{const r=relationships([{target:target.value,type:type.value,affection:Number(affection.value),distance:Number(distance.value),activity:activity.value,lines:lines.value.split('\\n').map(t=>t.trim()).filter(Boolean)}])[0];const i=rows.findIndex(x=>x.target===r.target);if(i<0&&rows.length>=8)throw Error('Remove one relationship first.');if(i<0)rows.push(r);else rows[i]=r;await saveRows();draw();}),el('h3','Saved relationships'),list,el('h3','City routes'),...(!D()?.standalone?[button('Open NPC route editor',async()=>{await D().loadEditor();const S=root.VoidMissionEditor.shared;await S.ensure();const hit=Object.entries(S.local().characters||{}).find(([,c])=>c.name===d.entry.name&&c.model===d.entry.model);if(!hit)throw Error('Create this mission giver draft first in Mission giver.');S.openNpcTab(hit[0]);})]:[]),el('p','After transfer, open the NPC Editor on PC, select this character, open Where they are in the game, choose ROUTE and click the map to add stops. Set an action and wait time at each stop. R",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 150,
+      "text": "const stepInfo={model:['👤','Build your character','Choose the 3D model, make it small enough, and add a skeleton.','Choose a GLB, preview it, align the colored joints, then save.'],personality:['💬','Give them a personality','Decide how they act and what they say.','Pick a starter personality, edit the words and sliders, then save.'],voice:['🎙️','Give them a voice','Match your dialogue to actual audio recordings.','Save your dialogue first. Import recordings one at a time or in a batch.'],animation:['🎬','Make them move','Create, import, preview and adjust movements.','Generate the basic movements, show your model in 3D, then play each animation.'],mission:['📍','Turn them into a mission giver','Prepare a character for a mission in the main game.','Choose an existing game character or integrate your imported model first.'],publish:['✅','Check that everything is ready','See what is finished and what still needs work.','Tick off the model and required animations, then download the complete package.'],manager:['📦','Import & release','Bring a finished character from your phone into the PC game.','Import the .vrcompanion package, test privately, then prepare a public release.'],relationships:['💞','Build relationships','Choose who this companion reacts to and what they say.','Select an NPC or the player, set their relationship, then save.'],residence:['🏠','Choose their home','Assign a specific building and apartment.','Choose always home or set home hours, then save.'],guide:['📖','Learn at your own pace','Step-by-step instructions and illustrated joint placement.','Open any lesson and follow the instructions in order.']};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 151,
+      "text": "const fieldHelp={'Choose a companion':'Pick an existing character or choose New companion to start fresh.','Name':'The name shown to players in the VR room.','Male / Female':'Choose the roster where the companion should appear.','Model file — .GLB required':'A GLB file holds the 3D shape, textures and possibly a skeleton and animations.','Downsizer quality':'Automatic gives the best chance of getting below 15 MB; smaller texture sizes reduce detail.','Starting pose':'T-pose means arms straight out; A-pose means arms angled down.','Model forward direction':'Choose the direction the character faces. If a pose bends backwards, check this setting.','Personality template':'A ready-made starting point. Every line and slider can still be edited.','Personality description':'A short character description shown in their profile, not a live AI brain.','Starts conversations':'Higher means they speak or invite you to join them more readily.','Flirtatiousness':'Higher means the character chooses more playful or flirty dialogue and gestures.','Approaches player':'Higher means they come over to you more often.','Attention to player':'Higher means they generally spend more time looking at you.','Personal space (m)':'How far away they stop when they approach. Lower means closer.','Walking speed (m/s)':'How fast they move around the room.','Time between remarks (s)':'How long they wait between spontaneous comments. Shorter means more talkative.','Dialogue category':'Choose the situation that triggers these words.','What they say (one line per row)':'Write one possible spoken line on each new line. The game can pick among them.','Choose voice recording':'Import the exact MP3, WAV or Ogg recording for this line.','Choose multiple recordings':'Select several files named with their full line IDs from the downloaded list.','Filter dialogue':'Show only recordings from the selected dialogue situation.','Animation file — .GLB required':'Import a GLB containing a skeleton and animation clips; FBX/BVH need conversion first.','Clip in file':'Pick the movement inside your animation file.','Display name':'The friendly name you will see in your local motion library.','Target character model':'Choose which character to preview and test.','Pose category':'Browse poses by activity, such as sitting, dancing or yoga.','Free pose template':'A static body position, like a photograph; it is not an animation by itself.','Mirror left / right':'Swap the left and right limbs of the selected pose.','Joint':'Choose the specific bone you want to adjust.','Rotation axis':'Choose the direction of rotation. Try small steps first.','Playback speed':'Slow a movement down to inspect it; 1× is normal speed.','Playback mode':'Loop repeats the clip; play once stops after one cycle.','Animation position':'Move the slider to a moment in an animation, then jump and pause.','Keyframe time (seconds)':'The exact moment where your captured pose is stored. The editor fills the motion between poses.','Template category':'Filter available animation clips by what they do.','Template':'A motion already present on the model; not all skeletons carry the same clips.','Existing model animation':'Select an animation embedded in this character’s GLB.','Imported animation':'Select a saved motion from your local library.','Also create running animation':'Add a bonus running clip in addition to the six required movements.','Movement prompt':'Describe a movement for an external AI tool; this editor does not spend credits.','Open saved animation template':'Load a previously saved keyframe JSON for a compatible skeleton.','Select prop':'Choose a reference floor or piece of furniture to see next to the character.','Show floor grid':'Show lines on the floor to help judge position and distance.','Import your own prop (.glb)':'Load a 3D furniture or decoration model for the preview.','Move':'Choose whether the next position adjustment moves your character or your prop.','Choose saved .vrcompanion file':'A comp",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 152,
+      "text": "const actionHelp={'SAVE COMPANION':'Keep your changes on this device.','Auto Downsize to 15 MB':'Compress the model; the original file is kept.','Add humanoid skeleton':'Create the bones that allow a static character to move.','Align skeleton / Move dots only':'Place the bone centers without bending the character.','Apply skeleton alignment':'Rebuild the rig with your new joint positions.','Cancel dot adjustment':'Leave joint placement without applying the changes.','Preview original model':'See the unprocessed model.','Preview processed / current model':'Inspect the model you are editing now.','Pose character / Move limbs':'Drag the dots to bend the limbs.','Apply pose template':'Move the character into your selected pose.','Reset pose':'Return to the starting pose.','Auto-Generate Basic Animations':'Make the six required movements with no Meshy credits.','Regenerate starter animations':'Replace previously generated basic movements.','Apply template / fill empty categories':'Fill empty dialogue categories and set the behavior sliders.','Replace all with template':'Replace the existing description, sliders and dialogue.','Copy prompt for ChatGPT':'Copy instructions for making custom dialogue.','Apply pasted personality':'Load the JSON supplied by ChatGPT.','Play recording':'Listen to the selected imported voice line.','Download numbered dialogue list':'Get a list for naming multiple voice recordings.','Import matched recordings':'Attach files to matching dialogue line IDs.','Show character in 3D':'Load the selected model in the preview window.','Save animation to local library':'Keep the imported motion for future use.','Preview imported animation':'Test a motion on the chosen model.','Add motion to selected VR companion':'Assign a compatible imported motion to this companion.','Capture keyframe':'Save the current pose at the chosen time.','Play custom animation':'Watch the movement between your captured poses.','Clear keyframes':'Remove the captured poses from this editing session.','Play template':'Watch the selected existing motion.','Play existing clip':'Play a clip embedded in the model.','Apply playback speed':'Change how fast the animation plays.','Jump to position and pause':'Freeze a moment so you can edit its pose.','Resume original animation':'Resume playback and discard unsaved pose edits.','Export custom animation GLB':'Create a GLB containing the new keyframe animation.','Save animation mappings':'Give existing clips the required game animation names.','Create mission giver draft':'Open a separate draft in the NPC editor.','View release checklist':'See which required parts are finished.','Import package and add to VR area':'Load a complete character for private developer testing.','Prepare public release package':'Export the tested character for public integration.','Download saved companion package':'Save one file with model, profile, motions and recordings.','Download companion transfer':'Move the entire saved character to another device.','Download processed GLB':'Keep a copy of the processed model.','Download model GLB for game integration':'Export only the 3D model, skeleton and embedded clips.','Download personality and setup':'Export the character’s configuration as JSON.','Front view':'Look straight at the character.','Flip pose facing':'Reverse the direction used by the pose templates.','Reset camera':'Return the camera to its original view.','Snap to floor':'Move the character’s feet or lowest point onto the floor.','Reset position':'Restore the initial preview position.','Show selected prop':'Display the chosen reference furniture.','Load prop':'Open your own GLB prop in the preview.','Apply position':'Move or rotate the selected preview object.','Follow scrolling':'Keep the preview visible while you scroll.','Collapse preview':'Hide the preview temporarily to save screen space.'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 157,
+      "text": "function checklist(d,required){const e=d?.entry,lines=Object.values(e?.dialogue||{}).flat(),clips=d?.clips||[],missing=required.filter(k=>!clips.includes(k));return [{label:'Saved companion',ok:!!e},{label:'Imported model and skeleton',ok:!!d?.blob},{label:'Model under 15 MB',ok:!!d?.blob&&d.blob.size<=15*1024*1024},{label:'Required animations',ok:!!d?.blob&&!missing.length,detail:missing.length?'Missing: '+missing.join(', '):''},{label:'Personality description',ok:!!e?.about?.trim()},{label:'Dialogue lines',ok:lines.length>0,detail:lines.length+' lines'},{label:'Voice recordings',ok:lines.length>0&&lines.every(t=>Object.values(d?.voices||{}).some(r=>r.text===t)),detail:lines.filter(t=>Object.values(d?.voices||{}).some(r=>r.text===t)).length+' of '+lines.length+' lines recorded'}];}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 163,
+      "text": "function exportProfile(d){const e=d.entry;download(new Blob([JSON.stringify({id:e.id,name:e.name,sex:e.sex,about:e.about,personality:e.personality,dialogue:e.dialogue,model:e.model,requiredClips:d.clips,motions:d.motionIds||[],note:'Local draft. Integrate the separate model and animation files in the game asset pipeline before publishing.'},null,2)],{type:'application/json'}),e.id+'-companion.json');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 164,
+      "text": "async function exportTransfer(d){if(!auth())throw Error('Sign in again.');const uid=activeUid,e=d.entry,parts=[];if(d.blob)parts.push({meta:{kind:'model'},blob:d.blob});for(const id of d.motionIds||[]){const m=motions.get(id);if(!m)throw Error('An assigned animation is missing.');parts.push({meta:{kind:'motion',clip:m.clip,name:m.name},blob:m.blob});}for(const r of Object.values(d.voices||{})){if(!Object.values(e.dialogue||{}).some(p=>p.includes(r.text)))continue;if(!await V().available(r.hash))throw Error('A recording is missing on this device. Reimport it first.');parts.push({meta:{kind:'voice',record:r},blob:new Blob([await V().getData(r.hash,{draft:true})],{type:r.type})});}if(!auth()||activeUid!==uid)throw Error('Account changed.');const p={about:e.about,personality:Object.fromEntries(Object.entries(e.personality||{}).filter(([k])=>Object.hasOwn(ranges,k))),dialogue:e.dialogue};download(packTransfer({id:e.id,name:e.name,sex:e.sex,...p,...(e.worldBehavior?{worldBehavior:e.worldBehavior}:{}),...(e.roomPlan?{roomPlan:e.roomPlan}:{}),...(e.relationships?{relationships:e.relationships}:{}),...(e.residence?{residence:e.residence}:{})},parts),e.id+'.vrcompanion');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 168,
+      "text": "else if(m.kind==='voice'){const r=m.record;if(!r||V().recordProblems({line:r}).length||r.bytes!==blob.size||!Object.values(p.dialogue).some(pool=>pool.includes(r.text)))throw Error('Invalid recording in transfer.');const buf=await blob.arrayBuffer();if(await V().sha256(buf)!==r.hash||V().sniff(new Uint8Array(buf))!==r.type)throw Error('Recording data does not match its transfer record.');const decoded=await V().decode(buf);if(V().caps({duration:decoded.duration,bytes:blob.size}).length||Math.abs(decoded.duration-r.duration)>.1)throw Error('Recording duration or size does not match.');audio.push({r,buf});voices[V().keyOf(id,r.text)]={...r,who:id};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 172,
+      "text": "function publicGuide(){const d=el('details');d.className='companion-guide';d.append(el('summary','8. Add a companion to the public VR area — step by step'));const list=el('ol');for(const step of ['On your phone, save the companion and download its complete .vrcompanion package from Release checklist.','On your PC, sign in as developer, open Void Runner → Developer Tools → VR Companions → Companion Manager, select the package and press Import package and add to VR area.','Check the imported model is under 15 MB, has a skeleton and all six required animations: idle, talk, walk, sit, sit-enter and sit-exit. Finish missing personality, dialogue and recordings as desired.','Close Dev Tools, enter the VR Play area, choose the bedroom and the male or female roster, and test the character. Check walking, talking, sitting, standing, joint deformation and recorded audio. Return to Companion Manager to edit anything that needs fixing.','Confirm you have permission to distribute the model, animations and voice recordings publicly.','In Companion Manager, select Prepare public release package and confirm. This downloads the complete tested package.','Attach the downloaded .vrcompanion file in your development conversation and ask for integration into the public Void Runner VR roster and a live deployment. The direct public upload is not connected yet.','After the deployment succeeds, reload the public game and verify that the character appears in the correct male or female roster. Test without developer access to confirm it is available to normal players.'])list.append(el('li',step));d.append(list,el('p','Important: importing, saving, and downloading a package do not publish it to other players. Keep your original package as a backup.'));return d;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 175,
+      "text": "['2. Give them a personality',['Choose the companion, then Personality.','Pick a quick-start template and apply it to set sliders and fill empty dialogue categories. Replace all is optional.','Describe them and adjust the sliders.','Choose a dialogue category and type one spoken line per row.','Alternatively, expand Paste ChatGPT personality JSON, copy the prompt into ChatGPT, paste its JSON reply, and press Apply pasted personality.','Save Companion. Their dialogue pools and behavior are used in the local VR room; this is not a live ChatGPT chat service.']],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 176,
+      "text": "['3. Import voice lines',['Save the words in Personality first.','Open Voice lines, find the line, generate the recording in your chosen voice tool and download it.','Select the MP3, WAV or Ogg recording next to that exact line. A successful import overrides the recorded game line in your draft.','For bulk import, download the numbered dialogue list, name recordings with the full line ID and their audio extension, then select the files together and import matched recordings.','If the words change, import a matching recording again.']],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 178,
+      "text": "['5. Create a mission giver',['Select an existing game companion and open Mission giver.','Create a mission giver draft using their model, name, personality, dialogue and matching imported voice recordings. A new local-only model must be integrated into the game build first.','The NPC Editor opens. Use its map to place them, choose their route and schedule, and give them a mission.','The full companion profile and dialogue are copied. Walking speed and ordinary greetings work in the world; mission scripts take priority. Use Lines & voice for scripted mission dialogue.','Check and play the mission draft. Publishing is a separate explicit action in the Mission Editor.']],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 200,
+      "text": "function missionTab(stage,button,msg,d){if(!d){stage.append(el('p','Choose a companion first.'));return;}stage.append(worldControls(d,button,msg));if(D()?.standalone){stage.append(el('p','The world map and Mission Editor run in the PC game. Transfer this saved companion to your PC, then open Mission giver in the in-game studio.'),button('Download companion transfer',()=>exportTransfer(d)));return;}if(d.blob){stage.append(el('p','This model only exists on this computer. Integrate it into the game asset catalog first; the existing mission editor cannot publish a browser-only model.'));return;}stage.append(el('p','Create a separate draft world character from '+d.entry.name+'. Their model, full personality, dialogue and matching recordings carry over. Walking speed and ordinary greetings work in the world. Set their location, schedule, mission dialogue and actions in NPCs.'),button('Create mission giver draft',async()=>{if(!auth())throw Error('Sign in as developer.');await D().loadEditor();const S=root.VoidMissionEditor.shared;await S.ensure();const local=S.local(),MD=root.VoidMadeNPCs;if(!MD.modelOf(d.entry.model)||!MD.adultAllowed(d.entry.model))throw Error('This model is not available for an adult mission giver.');if(Object.keys(local.characters||{}).length>=MD.LIMIT.characters)throw Error('Mission giver limit reached.');const taken=new Set([...S.givers.map(g=>g.id),...Object.keys(local.characters||{})]);if(Object.values(local.characters||{}).some(c=>c.name===d.entry.name&&c.model===d.entry.model))throw Error('This companion already has a mission giver draft. Choose it in NPCs.');const id=MD.idFor(d.entry.name,taken);if(!auth())throw Error('Sign in again.');S.saveLocal(giverDraft(d.entry,d.voices,local,id));S.openNpcTab(id);}),el('p','All seven sliders are retained. Walking speed, conversation initiative, attention, approach frequency, personal space and remark cooldown influence supported world behaviors. Flirtatiousness and room-specific dialogue remain available as authoring reference.'));}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 203,
+      "text": "['ChatGPT','https://chatgpt.com/','Create personalities and dialogue using the prompt in Personality.'],['ElevenLabs','https://elevenlabs.io/','Generate and download voice recordings to import in Voice lines.']]],['Models, rigging & animations','animation',[",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 208,
+      "text": "const name=el('input');name.placeholder='Companion name';name.maxLength=40;const sex=el('select');sex.append(new Option('Female','female'),new Option('Male','male'));const file=el('input');file.type='file';file.accept='.glb';const editor=el('textarea');editor.rows=12;editor.style.width='100%';const lineList=el('div'),voicePool=el('select');voicePool.append(new Option('All dialogue categories',''));for(const k of pools)voicePool.append(new Option(labels[k],k));voicePool.onchange=()=>lines();const template=()=>({about:'',personality:{initiative:.55,attention:.85},dialogue:Object.fromEntries(pools.map(k=>[k,[]]))});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 211,
+      "text": "const behaviorLabels={initiative:'Starts conversations',flirtatiousness:'Flirtatiousness',approachFrequency:'Approaches player',attention:'Attention to player',personalSpace:'Personal space (m)',walkSpeed:'Walking speed (m/s)',remarkCooldown:'Time between remarks (s)'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 214,
+      "text": "function showProfile(){about.value=working.about||'';for(const [k,{input,val}] of Object.entries(behaviorInputs)){input.value=working.personality[k]??C().defaults[k];val.textContent=input.value;}words.value=(working.dialogue[dial.value]||[]).join('\\n');editor.value=JSON.stringify(working,null,2);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 215,
+      "text": "about.oninput=syncProfile;dial.onchange=()=>{words.value=(working.dialogue[dial.value]||[]).join('\\n');};words.oninput=()=>{working.dialogue[dial.value]=words.value.split('\\n').map(x=>x.trim()).filter(Boolean);syncProfile();};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 216,
+      "text": "function load(){selected=choose.value;const e=drafts.get(selected)?.entry||C().get(selected);d=e?(drafts.get(e.id)||{entry:{...e},voices:{}}):null;name.value=e?.name||'';sex.value=e?.sex||'female';working=e?{about:e.about||'',personality:Object.fromEntries(Object.entries(e.personality||{}).filter(([k])=>Object.hasOwn(ranges,k))),dialogue:JSON.parse(JSON.stringify(e.dialogue||{}))}:template();showProfile();file.value='';lines();}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 217,
+      "text": "function lines(){lineList.replaceChildren();if(!d)return;for(const [pool,items] of Object.entries(d.entry.dialogue||{})){if(voicePool.value&&voicePool.value!==pool)continue;for(const text of items){const row=el('div');row.className='companion-card';row.append(el('p',labels[pool]+' · '+text));const pick=el('input');pick.type='file';pick.accept='audio/*,.ogg,.mp3,.wav';const key=V().keyOf(d.entry.id,text),status=el('small',d.voices?.[key]?'Imported recording':'Existing recording or captions');pick.onchange=async()=>{const id=d.entry.id;try{if(!auth())throw Error('Sign in again.');if(!pick.files[0])return;const p=await V().prepare(pick.files[0]);if(!p.ok)throw Error(p.why||'Cannot decode audio.');if(!await V().store(p.hash,p.type,p.data,p.duration))throw Error('Browser storage is unavailable. Audio was not saved.');const r=V().record({...p,who:id,text}),now=drafts.get(id)||d;if(now.entry.id!==id)throw Error('The selected companion changed.');const updated={...now,voices:{...now.voices,[key]:r}};await save(updated);if(d.entry.id===id)d=updated;status.textContent='Imported recording';}catch(e){fail(e);}};row.append(field('Choose voice recording',pick),status,button('Play recording',async()=>{const r=d.voices?.[key];if(!r)throw Error('No imported recording for this line.');const data=await V().getData(r.hash,{draft:true}),url=URL.createObjectURL(new Blob([data],{type:r.type})),audio=new Audio(url);audio.onended=audio.onerror=()=>URL.revokeObjectURL(url);try{await audio.play();}catch(e){URL.revokeObjectURL(url);throw e;}}));lineList.append(row);}}if(!lineList.children.length)lineList.append(el('p','No saved lines in this category. Add some in Personality.'));}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 225,
+      "text": "if(!d&&!blob)throw Error('Choose a rigged GLB.');const base=d?.entry||{};const entry={...base,id,name:n,sex:sex.value,model:blob?'local-model-'+id:base.model,...p,personality:{...base.personality,...p.personality},dialogue:{...base.dialogue,...p.dialogue},voice:base.voice||{characterId:'vr-'+id,pending:true},pairable:base.pairable||false};if(blob){delete entry.file;delete entry.preview;delete entry.looks;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 245,
+      "text": "if(section==='personality'){if(!d){stage.append(el('p','First create or choose a companion in Model.'));return;}const preset=el('select');for(const [id,p] of Object.entries(personalityPresets))preset.append(new Option(p[0],id));const templateBox=box('Quick start — personality & dialogue');templateBox.append(field('Personality template',preset),el('p','Fill all 25 categories with starter lines and adjust the behavior sliders. Existing dialogue and description are kept unless you choose Replace. Nothing is saved until you press Save Companion.'),button('Apply template / fill empty categories',()=>{working=presetProfile(preset.value,working);showProfile();msg.textContent='Template applied. Edit any slider or dialogue category, then save.';}),button('Replace all with template',()=>{if(!root.confirm('Replace the current description, sliders and all dialogue? Existing recordings will only match unchanged lines.'))return;working=presetProfile(preset.value,working,true);showProfile();msg.textContent='Template replaced. Edit and save when ready.';}));const copy=button('Copy prompt for ChatGPT',()=>navigator.clipboard.writeText('Create a personality and dialogue for the original adult VR companion '+name.value+' in NeoChinatown. Return only JSON matching the template. Fill every listed dialogue pool with 3–5 short non-explicit lines. Respect declined invitations. Use these behavior ranges: '+JSON.stringify(ranges)+'\\n'+JSON.stringify({...working,dialogue:Object.fromEntries(pools.map(k=>[k,working.dialogue[k]||[]]))},null,2)));const adv=el('details');adv.append(el('summary','Paste ChatGPT personality JSON'),copy,editor,button('Apply pasted personality',()=>{const p=profile(JSON.parse(editor.value));working={about:p.about||working.about,personality:{...working.personality,...p.personality},dialogue:{...working.dialogue,...p.dialogue}};showProfile();msg.textContent='Personality loaded. Press Save Companion.';}));stage.append(templateBox,field('Personality description',about),sliders,field('Dialogue category',dial),field('What they say (one line per row)',words),adv,saveButton);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 246,
+      "text": "if(section==='voice'){stage.append(el('p','Save the dialogue first. Download recorded lines from ElevenLabs, then choose their files here.'));if(d){const bulk=box('Bulk voice import'),files=el('input');files.type='file';files.multiple=true;files.accept='audio/*,.ogg,.mp3,.wav';const batch=voiceBatch(d.entry);bulk.append(el('p','Download the numbered recording list. Name each recording with its exact line ID (for example line-001-greet-ab12cd34.mp3). Select multiple recordings to match them by filename. Unmatched files are skipped. Existing recordings are kept.'),button('Download numbered dialogue list',()=>download(new Blob([batch.map(r=>r.id+'\\t'+r.text).join('\\n')],{type:'text/plain'}),'companion-voice-list.txt')),field('Choose multiple recordings',files),button('Import matched recordings',async()=>{if(!auth())throw Error('Sign in again.');const id=d.entry.id,uid=activeUid,byId=new Map(batch.map(r=>[r.id,r])),voices={...d.voices};let imported=0,skipped=0;for(const f of Array.from(files.files)){const r=byId.get(f.name.replace(/\\.[^.]+$/,'').toLowerCase());if(!r||voices[V().keyOf(id,r.text)]){skipped++;continue;}const p=await V().prepare(f);if(!p.ok||!await V().store(p.hash,p.type,p.data,p.duration)){skipped++;continue;}voices[V().keyOf(id,r.text)]=V().record({...p,who:id,text:r.text});imported++;}if(d.entry.id!==id||!auth()||activeUid!==uid)throw Error('Account or companion changed.');if(imported){d={...d,voices};await save(d);lines();}msg.textContent=imported+' recordings imported, '+skipped+' skipped.';}));stage.append(bulk);}stage.append(field('Filter dialogue',voicePool),lineList);}",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/vr-companions.js",
       "line": 6,
       "text": "model, preview, dialogue and personality. Nothing else changes.",
@@ -78570,7 +78810,7 @@
     {
       "source": "void-runner/vr-suite.js",
       "line": 48,
-      "text": "function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text,unvoiced:!!comp.who.voice?.pending}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}",
+      "text": "function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text,unvoiced:!!comp.who.voice?.pending&&!globalThis.VoidVRCompanionStudio?.findVoice(comp.who.name,text)}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}",
       "kind": "source-reference"
     },
     {
@@ -78605,109 +78845,109 @@
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 284,
+      "line": 285,
       "text": "if(i.do==='say'){remark(i.pool);if(i.gesture)gesture(i.gesture);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 302,
+      "line": 303,
       "text": "function reseat(){if(c.youSeat)api.sit({...c.youSeat,text:'You settle back in.'});c.youSeat=null;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 313,
-      "text": "['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/vr-suite.js",
-      "line": 317,
-      "text": "function chat(){say(self,C.pick(L.chat,mem,'chat'),after);gesture(Math.random()<.4?'laugh':'idleAlt');}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/vr-suite.js",
-      "line": 318,
-      "text": "function compliment(){c.affection++;say(self,C.pick(L.compliment,mem,'compliment'),after);gesture(Math.random()<.5?'shy':'laugh');}",
+      "line": 315,
+      "text": "['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...localMoves,...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
       "line": 319,
-      "text": "function flirt(){c.affection++;say(self,C.pick(L.flirt,mem,'flirt'),after);gesture('flirt');}",
+      "text": "function chat(){say(self,C.pick(L.chat,mem,'chat'),after);gesture(Math.random()<.4?'laugh':'idleAlt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
       "line": 320,
+      "text": "function compliment(){c.affection++;say(self,C.pick(L.compliment,mem,'compliment'),after);gesture(Math.random()<.5?'shy':'laugh');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-suite.js",
+      "line": 321,
+      "text": "function flirt(){c.affection++;say(self,C.pick(L.flirt,mem,'flirt'),after);gesture('flirt');}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-suite.js",
+      "line": 322,
       "text": "function sitTogether(){c.dancing=false;resumeWalking();c.withYou=true;walkTo(...S.sofa.from,sitOnSofa,true);api.sit({...(party2?pairSeat:seats.sofa),text:C.pick(L.sit,mem,'sit')||'You sit down together.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 328,
+      "line": 330,
       "text": "if(!asked)say(self,C.pick(L.dance,mem,'dance'),()=>{resumeWalking();anim.play(c.danceClip);});else resumeWalking();}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 330,
+      "line": 332,
       "text": "function recline(){resumeWalking();walkTo(1.95,2.9,()=>{c.reclining=true;c.state='idle';c.faceTo=null;glide({x:.95,y:.5,z:3.35,yaw:-Math.PI/2},.8);c.looping=false;anim.play('recline');remark('recline');},true);api.sit({x:-.35,z:3.1,yaw:Math.PI/2+.25,eye:1.05,text:'You stretch out on the bed. The ceiling glows violet.'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 331,
+      "line": 333,
       "text": "function hands(){c.affection++;const near=Math.hypot(walker.x-node.position.x,walker.z-node.position.z);if(!c.sitting&&near>1.3)approach(()=>gesture('interact'));else gesture('interact');say(self,C.pick(L.hands,mem,'hands'),after);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 333,
+      "line": 335,
       "text": "function kiss(){if(!c.sitting&&!c.dancing&&!c.reclining)return say(self,C.pick(L.notNow,mem,'notNow'));if(c.affection<3)return say(self,C.pick(L.notYet,mem,'notYet'));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 334,
-      "text": "say(self,L.kiss[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}",
+      "line": 336,
+      "text": "say(self,L.kiss?.[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 335,
+      "line": 337,
       "text": "function relax(){c.affection++;if(!c.sitting)return sitTogether();say(self,C.pick(L.relax,mem,'relax'),after);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 336,
+      "line": 338,
       "text": "function goodbye(){say(self,C.pick(L.bye,mem,'bye'),()=>{api.exit();},'EXIT VR →');gesture('flirt');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 359,
+      "line": 361,
       "text": "greet(){c.greeted=true;gesture('greet');if(talks)say(self,C.pick(L.greet,mem,'greet'));},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 368,
+      "line": 370,
       "text": "return {tick:k.tick,dispose,companions:comps,anim:first.anim,companion:first.node,who:first.who,config:first.cfg,brain:first.brain,attention:first.att,bones:first.bones,state:first.c,act:first.act,overlay:(g,W,H)=>k.overlayFn(g,W,H),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 377,
+      "line": 379,
       "text": "else if(id.startsWith('sit-')||id==='balcony'){const s=seats[id.replace('sit-','')]||seats.balcony;api.sit({...s,text:id==='balcony'?'You lean on the rail. The city hums far below, all neon and rain-haze.':'You sit down. The room is quiet and soft.'});}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-suite.js",
-      "line": 398,
+      "line": 400,
       "text": "{title:'CHOOSE A COMPANION',prompt:'Pick who you would like to meet: one companion alone, or two together where a card says so. You can change your mind by leaving the simulation and choosing again.',",
       "kind": "source-reference"
     },
@@ -79031,14 +79271,14 @@
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "cb606f2d602c753f2b5b32bb943af27ecdc2f48172a4f32fc7db2e1fcc4ab301",
     "void-runner/ad-screens.js": "d8634ec993098c1970f550d47343414714b497ac3e0b3ef1f9ec45eb7669ec38",
-    "void-runner/anim-library.js": "17580f80c1293f158dd0afbe0d543d6a02035971b38468fc49d7af0eb8728f3d",
+    "void-runner/anim-library.js": "660f03c7a581a52012ca3119bd5d131e2e7230b18ffe4031eb8ee9756370e951",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/apartment-build.js": "e80ce0e5e9a7c11362aad5f7be8d24698b649d09ae87ca8f236bdf0f9f56bba5",
-    "void-runner/apartment-integration.js": "67bd3769bf8116bc2d349bf6c26020d7e4dd38f2dddf16dfda6b7cceb27cd2fd",
-    "void-runner/apartments.js": "27b17ec26c452a5a8f2bd8c8311391590f0a313df0d65296d74de58bfe4ba4f2",
+    "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
+    "void-runner/apartment-integration.js": "53f7c9b66281794a5c697c0dd2e30ebe4ebc73157f476cb5b73bd04321b369b4",
+    "void-runner/apartments.js": "2510e10e118e5692a4fd58088be8ed44c175fc7552c80a9c9ae1dde89193cc92",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
-    "void-runner/asset-pipeline.js": "d8a25d2e44dcc6c4ff1143e996b2a2c6a7ddbb7f808b12d386925ca285f89836",
+    "void-runner/asset-pipeline.js": "6d86cb9e2de2f43b2e1b8ca92ded2a8c93458997bb87a6a533a79b46789282bc",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
     "void-runner/babylon-integration.js": "6c4ac126e1accc4bf4e680b49a2943096681f265e1bfc8d0964d4571bb0c684b",
     "void-runner/babylon-renderer.js": "f22542ef8a23b41ea9d07f7f51668aba708bffaea266814f6e073f63d3adde0e",
@@ -79063,6 +79303,8 @@
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "3c25f546a54ecabd9d4703a0e97d057af5391522b180206c1fd673be19614e35",
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
+    "void-runner/companion-mobile.js": "0607edc843a41e3e534738784388377ea275406b844c2a5b93aa356035408c2f",
+    "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
@@ -79080,7 +79322,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "95d6ecf5bff491f8af1b0632ea7c3e2d439e12be9b68f7a488bf34f96562c030",
+    "void-runner/dev-tools.js": "373fe245442c1abeb374842e36ed4ffc9e58be4fa5d87856896a5561d33078e6",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -79126,6 +79368,7 @@
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
+    "void-runner/glb-downsizer.js": "002ce76e3ca9bb3dbc343d9d533f36d1a4711a1de04b00491704ad8e43e761b7",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/guide-route.js": "bd80fc52a4e50a9b9bd8f6b63d31fab12718cdfddb5235183fc53c0cab98152c",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
@@ -79155,10 +79398,10 @@
     "void-runner/milked.js": "a0600a70dd32b437fd11f7791a03cde58eb5da6ed1a9c0664bd60d5a5875bebc",
     "void-runner/missiles.js": "14b71508e47646f83e1a5953f532eb7717995a4c92f03843cbaa10b1c33b9027",
     "void-runner/mission-blocks-view.js": "8b506f0eb062f07591d8d5b26b264fa56ceba8aff0fdde6b1802a4099e35054c",
-    "void-runner/mission-blocks.js": "ce5077b67d2d80221298fd27b1de34007b6f7f362cd4b16e844d793eb85169f9",
+    "void-runner/mission-blocks.js": "061c4b824827d796bb71755b250dcbbf04d875167ab816fb2c4ec34e8353f49e",
     "void-runner/mission-content.js": "01d0ae8df446c90610bf331d506539997a7319f82557625878fee79089adaa37",
     "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
-    "void-runner/mission-editor.js": "9dcd6df10c46844b94ca01d2e6d976276cbf5606d8763d85247364ec62aacd6c",
+    "void-runner/mission-editor.js": "52de7f900ebd397b26674bd013814828ec4ff207b7fc1f251a346754e3928cf5",
     "void-runner/mission-givers.js": "f4673af3383f533a505600f3e16ca9fbe9b78c952c190e6a63e34a71a220b2c3",
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
@@ -79168,7 +79411,7 @@
     "void-runner/mission-trees.js": "05febd25649b556287acf918c84c0b5dc394ec4649f8be13771188bdd3105eeb",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "9dd79cceed2f428c060e498a6b34a4668667cf04d0baad80db2c7bd71004cf73",
-    "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
+    "void-runner/module-editor.js": "67cdac049bb19024d04685cfbccfb94c5f31be8ef9c9fd4f5d280a63a2567cfc",
     "void-runner/module-integration.js": "fea5aa8ff7343f8fc24e91bbe3837fe9fe04b356f8dcddfb356ce4ecde3df89e",
     "void-runner/modules.js": "411328274661dc1b1d53dfc73013c6f98484994bd486524d98b38ec4296ddbcf",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
@@ -79201,17 +79444,17 @@
     "void-runner/npc-areas.js": "6f142131557c7fed6e9866ba807813bec00afcb1593447a4c17e67a329b5077b",
     "void-runner/npc-behaviour.js": "8145de3c2ec74f87fa8f831c89a1b3d51699c0e65bfd3d78fd051f48aa0726a9",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "d97fd390001ee2685aa3d70bc0c052ee540708330051d7fc58494659ed2daf5e",
+    "void-runner/npc-editor.js": "343d38564d55b394e2a820e5db5ffecb667f13ff30f0056213b8484d76c82119",
     "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "0bcf5c4f33f9188c6b804c72ac08c0fbaa4d5c180bda42f01ada12cef42508db",
     "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
-    "void-runner/npc-made.js": "fdda6ec39b6e0841ef5770b47b85251fad3bdecf091bcf6eeb4c12bd2bd79f30",
+    "void-runner/npc-made.js": "13c2fba01f0a1e4a7040f2037c9f956beae2cae0dbb379407cf55a518fb0f53a",
     "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
     "void-runner/npc-paths.js": "915849f6ef714dafef2c102067e4116293c63b63f03d30e0a90541614cce504f",
-    "void-runner/npc-preview.js": "4847702bed1b2dc33c384639ffce82b4fc80713f924705420a6bb03f883b3782",
+    "void-runner/npc-preview.js": "afff33e036dfe53a59eb309c3a4ed291528458699813c591d36837286faf6800",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
@@ -79275,15 +79518,16 @@
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
     "void-runner/voice-clips.js": "c589b3f6ffc06d513f975e9396e7ab519938bc44fcefa5c22b9a7324265dd628",
-    "void-runner/voice-imports.js": "131f77de0380607ce871cfad660004b39317e3b3f4c8c71034574f482df55e5a",
+    "void-runner/voice-imports.js": "311d70382c55def40136fedcbf478618d6e1e9c0df28e62fd8bfd21cb8d88592",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
-    "void-runner/vr-companions.js": "8ee9a8b44adadf89ffd214802653ae38af9c6c9b281de8e097cade346b3a032c",
-    "void-runner/vr-core.js": "c364675b2545feb70e5e16813a2a0a9d61dfb98ab0ecf524f29e187a3581a2dd",
+    "void-runner/vr-companion-studio.js": "e52cc8730eefd4a306463de2eb8dd281056e743ed6846fc017fd78f191bb5f50",
+    "void-runner/vr-companions.js": "c0e5a16e373511d0d5c13fb3df39d9a9a42d29e45f251366c1893bdb21ba333f",
+    "void-runner/vr-core.js": "a8a8a8d42d85ae2f2e41145ec07d5729ec185c92a63bacc2fff6dabf24985408",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "90da4f894d8a4e32bfceed70974fd899aee6bd237e401dc2bd72fed99425af22",
-    "void-runner/vr-suite.js": "27be1975836361d2d4f211b02a4b1ed2827923a8e443847afc76c6db6d247491",
+    "void-runner/vr-suite.js": "46a66de107cd952c5acd9c8d03d2d6975b44288ac6251c60591727f8b9b75f4b",
     "void-runner/vr-tropical.js": "093635e6848f8b2dea73bc2fb9031e4158ac613363d2e337f1b7a8610175055b",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
