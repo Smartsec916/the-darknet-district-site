@@ -47,7 +47,7 @@
  const CLIPS=['stand','kneel','rise','talk','laugh','read','shock','idle'],ANIMS=['talk','laugh','read','shock','stand','idle'],ONCE=['rise','shock'];
  const STRIDE=1.2;   // m/s the walk clip covers at play rate 1 (the game's street walk); a slower walk plays it slower so the feet stay planted
  const LIMIT={beats:80,text:500,secs:[0,60],speed:[.2,1],radius:[2,3.4],gap:[1.2,3],turn:[1,8],lineDefault:3};
- const DEF={radius:2.6,speed:.5,gap:1.6,turn:3,rise:3.2,card:2.4,door:1.6};
+ const DEF={radius:2.6,speed:.7,gap:1.6,turn:3,rise:3.2,card:2.4,door:1.6};
  const deg=d=>d*Math.PI/180,r2=n=>Math.round(n*1000)/1000;
  const wrap=a=>{while(a>Math.PI)a-=2*Math.PI;while(a<-Math.PI)a+=2*Math.PI;return a;};
  const yawTo=(x,z,tx,tz)=>Math.atan2(tx-x,tz-z);   // yaw 0 faces +z (the owl), pi/2 faces +x
@@ -66,7 +66,7 @@
   L('robed-1',{wait:2}),L('robed-2',{wait:1.5}),L('robed-3',{wait:1.5}),L('robed-4',{wait:1.5}),L('robed-5',{wait:1.5}),L('robed-6',{wait:1.5}),L('initiate',{wait:2}),
   {act:'rise',wait:2},
   {act:'turn',who:'six',to:'owl',wait:2,secs:4},
-  {act:'walk',who:'initiate',to:'altar',wait:2,speed:.42},
+  {act:'walk',who:'initiate',to:'altar',wait:2,speed:.6},
   {act:'card',wait:1.5},
   {act:'anim',who:'initiate',clip:'read',secs:5},
   L('initiate',{anim:'shock',wait:.5}),

@@ -57983,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "9421c17e06dbfa44",
+  "revision": "e31da3df443b3da8",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -70576,7 +70576,7 @@
     {
       "source": "void-runner/cult-room.js",
       "line": 69,
-      "text": "{act:'walk',who:'initiate',to:'altar',wait:2,speed:.42},",
+      "text": "{act:'walk',who:'initiate',to:'altar',wait:2,speed:.6},",
       "kind": "source-reference"
     },
     {
@@ -71974,13 +71974,13 @@
     {
       "source": "void-runner/main-story.js",
       "line": 237,
-      "text": "const RITUAL={radius:2.6,speed:.5,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},",
+      "text": "const RITUAL={radius:2.6,speed:.7,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
       "line": 245,
-      "text": "{act:'rise',wait:2},{act:'turn',who:'six',to:'owl',wait:2,secs:4},{act:'walk',who:'initiate',to:'altar',wait:2,speed:.42},{act:'card',wait:1.5},{act:'anim',who:'initiate',clip:'read',secs:5},",
+      "text": "{act:'rise',wait:2},{act:'turn',who:'six',to:'owl',wait:2,secs:4},{act:'walk',who:'initiate',to:'altar',wait:2,speed:.6},{act:'card',wait:1.5},{act:'anim',who:'initiate',clip:'read',secs:5},",
       "kind": "source-reference"
     },
     {
@@ -77693,7 +77693,7 @@
     "void-runner/crowd.js": "e86065a4ae793e6633f2ef51a8470d0a3e2c518b4dc082ff1a1bb3c9bbfbbf44",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
-    "void-runner/cult-room.js": "c8ba34ef1a386b36c5493415bf9ba798142e04b870a7a245166e12901ca8e13d",
+    "void-runner/cult-room.js": "94ffdcc5577c8ac82e712564ca3c23ddea3b3935ad3b9dc729e4596dfbd43775",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -77757,7 +77757,7 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
-    "void-runner/main-story.js": "c488fe0b0b272c8320f4acc591edb929fb1e32e05d0e1d335146ecc295a94ba8",
+    "void-runner/main-story.js": "0f3b1f8e18e8d03ea66d9fbb818381b1aa65f170ed296266da38dddcc7ba40b7",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
