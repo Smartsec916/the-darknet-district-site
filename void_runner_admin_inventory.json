@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "79a66f729ba4780d",
+  "revision": "a6abac5819203f19",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -71177,7 +71177,7 @@
     {
       "source": "void-runner/mission-givers.js",
       "line": 176,
-      "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many metres of the person chosen (1 to 30; 5 if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
+      "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many feet of the person chosen (4 to 98 ft; 16 ft if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
       "kind": "source-reference"
     },
     {
@@ -74701,7 +74701,7 @@
     "void-runner/mission-blocks.js": "b480b615859584c02ae364833f2a38697d29ee575b20db227f8a8dea5e61d1f4",
     "void-runner/mission-content.js": "f50382bcc6ae73a7b468103a4ab17d62501bf739154ec5f59ab9cdec5035f226",
     "void-runner/mission-editor.js": "ddc7bf9ecd2142399fab1697bb9fee85f10399ae61cce7da1a0d7f982ae33464",
-    "void-runner/mission-givers.js": "4cd55265cba6cbdd4e536cc367fa942ffc05fc6d4057d234c7eb0bbf14691887",
+    "void-runner/mission-givers.js": "f4673af3383f533a505600f3e16ca9fbe9b78c952c190e6a63e34a71a220b2c3",
     "void-runner/mission-guide.js": "d7cce06a8170b4baccc42632f37c810d4659c08b7c2ae532467d4ccd4e8bfb01",
     "void-runner/mission-log.js": "c7d188c8d7dc5a089f4467eeee617ddfba6a356031a7a4616c6e23ddf5937c4f",
     "void-runner/mission-mechanics-editor.js": "4762d687305c1370b27737ca51845f8be22b25ba23d87067c18cea576a2c6d54",
