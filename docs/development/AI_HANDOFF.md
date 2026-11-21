@@ -6,6 +6,9 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: PLAY THIS DRAFT "does nothing at all" (branch `claude/draft-play-fix`, build `2026-11-21-draft-play-1`)
+
+- The owner (Firefox): PLAY THIS DRAFT, PLAY FROM HERE and play the tree from the start did nothing. Not reproduced in Chromium (mission-qa-browser plays a draft fine). The Render log showed no `developer/balance` call after his presses, so play() stopped before `VoidDevTest.session`; an exception there was an unhandled rejection. play() now wraps `playNow()` and shows `PLAY could not start: <message>` in the status line (console keeps the stack). Next: get the message from the owner and fix the cause.
 ### 21 Nov 2026: STREET PAIR GAMEPLAY OPTIONS (Codex, build `2026-11-21-street-pair-gameplay-1`)
 
 - Removed the character-specific voice reminder in the preceding commit; existing voice identities remain unchanged.

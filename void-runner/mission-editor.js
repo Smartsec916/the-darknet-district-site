@@ -1107,7 +1107,11 @@
   return btn('PLAY FROM THE START OF THIS TREE',()=>playStart(raw.id),'me-play',{'data-me-play-start':raw.id,...(b.length?{disabled:'',title:'Cannot be played yet: '+(f?'its first mission, '+(f.title||f.id)+', ':'')+b.join('; ')}:{title:'Starts a practice game with the whole tree reset, at the first mission ('+(f.title||f.id)+').'})});}
  function playStart(treeId){fresh();const raw=(local().trees||[]).find(x=>x.id===treeId),f=startOf(raw);if(!f){status='This tree has no mission yet: press + NEW MISSION first.';draw();return null;}
   return play('tree:'+f.id,null,{tree:raw});}
- async function play(key,stepId,opt={}){
+ /* (21 Nov 2026, the owner: PLAY THIS DRAFT / PLAY FROM HERE / play the tree from the start did "nothing at all"): anything that throws before the session starts
+    used to vanish as an unhandled promise rejection; now the editor says what stopped it, in the status line, and the browser console keeps the details. */
+ async function play(key,stepId,opt={}){try{return await playNow(key,stepId,opt);}catch(e){try{root.console?.error?.('[mission-editor] PLAY failed',e);}catch{}
+  status='PLAY could not start: '+String(e?.message||e).slice(0,200)+'. Nothing was changed and your draft is safe. Please tell Claude this exact message.';try{root.sessionStorage.removeItem(RETURN);}catch{}try{draw();}catch{}}}
+ async function playNow(key,stepId,opt={}){
   fresh();const f=findMission(key);if(!f)return;const m=f.mission;if(!playable(m)){status=playable(m,true);draw();return;}const whole=opt.tree||null,tname=whole?(whole.name||whole.id):'';
   const content=draftContent(),c=MC().check(content,checkCtx());if(!c.ok){status='Fix these first (Guide me highlights each box), then press PLAY again: '+VoidUnits.text(c.errors.slice(0,4).join(' · '));draw();return;}
   const not=MC().notApplied({studio:studio(),local:local(),givers,items});

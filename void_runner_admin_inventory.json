@@ -55254,7 +55254,7 @@
       "spawn"
     ]
   },
-  "revision": "32291e3b5432ae4e",
+  "revision": "d326ac9a7d630386",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -70971,6 +70971,12 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/mission-editor.js",
+      "line": 1111,
+      "text": "used to vanish as an unhandled promise rejection; now the editor says what stopped it, in the status line, and the browser console keeps the details. */",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/mission-givers.js",
       "line": 4,
       "text": "District is the owner's story decision: this file only says where each character is today.",
@@ -74828,7 +74834,7 @@
     "void-runner/mission-blocks-view.js": "8b506f0eb062f07591d8d5b26b264fa56ceba8aff0fdde6b1802a4099e35054c",
     "void-runner/mission-blocks.js": "ce5077b67d2d80221298fd27b1de34007b6f7f362cd4b16e844d793eb85169f9",
     "void-runner/mission-content.js": "b6dd6937730428fb109de2d0d4f5a345290e37357695f990d42db5d831c41b47",
-    "void-runner/mission-editor.js": "6bdcb28d067f40b89a28421a5d7e8cb7465074c47909dd6afeb947ee01801c31",
+    "void-runner/mission-editor.js": "9dcd6df10c46844b94ca01d2e6d976276cbf5606d8763d85247364ec62aacd6c",
     "void-runner/mission-givers.js": "f4673af3383f533a505600f3e16ca9fbe9b78c952c190e6a63e34a71a220b2c3",
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
     "void-runner/mission-log.js": "c7d188c8d7dc5a089f4467eeee617ddfba6a356031a7a4616c6e23ddf5937c4f",
