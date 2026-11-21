@@ -23,7 +23,7 @@
  // Clips that are one movement (played once, then she goes back); the others are loops played for the time set.
  const ONCE=/^(shrug|gesture|laugh|wave|head-tilt|glance-back|idle-stretch|look|interact|pickup|blow-kiss|wipe|nod)$/;
  // Never offered: the game walks, runs and seats people itself.
- const NO=/^(walk|run|jog|walk-f|drunk-walk|sit-enter|sit-exit|recline)$|^sit/;
+ const NO=/^(walk|run|jog|walk-f|drunk-walk|sit-enter|sit-exit|recline)$|^sit|^floor-[a-z]+-(down|up)(-hi)?$/;   // floor-*-down / -up: the floor seats' own sit-down and stand-up (21 Nov 2026)
  const LIMIT={hold:[0,30],line:{min:2,max:8},clip:80};
  const CLIP=/^[a-z0-9][a-z0-9-]{0,40}(\/[a-z0-9][a-z0-9-]{0,40})?$/;
  const bare=c=>String(c||'').split('/').pop();
