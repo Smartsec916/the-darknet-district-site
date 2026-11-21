@@ -226,6 +226,16 @@
  // Mission apartments occupy dynamically allocated hallway slots, so reserve the entire building, even before the mission starts.
  function addressRegistry(trees,characters){const result=new Map(),row=id=>{if(!result.has(id))result.set(id,{door:id,missions:[],apartments:[],residents:[]});return result.get(id);};for(const t of trees||[])for(const m of t?.missions||[]){const ids=new Set();for(const a of m.apartments||[]){if(!a?.door)continue;ids.add(a.door);const r=row(a.door),numbers=isLoc(a)?a.modules.filter(x=>Number.isInteger(x.number)).map(x=>x.number):Number.isInteger(a.number)?[a.number]:[];const existing=r.apartments.find(x=>x.mission===m.id&&x.id===a.id);if(existing){existing.numbers=[...new Set([...existing.numbers,...numbers])];}else r.apartments.push({mission:m.id,id:a.id,title:m.title||m.id,numbers:[...new Set(numbers)],modular:isLoc(a)});}for(const o of m.objectives||[]){const p=o?.kind==='hack'&&apOf(o.ap);if(p?.door)ids.add(p.door);}for(const id of ids){const r=row(id);if(!r.missions.some(x=>x.id===m.id))r.missions.push({id:m.id,title:m.title||m.id});}}for(const [id,c] of Object.entries(characters||{})){const r=c?.residence;if(r?.door&&Number.isInteger(r.slot)){const x=row(r.door);x.residents.push({id,name:c.name||id,slot:r.slot});}}return result;}
 
+ // Shared read-only address lookup. Neither editor needs to initialize the other.
+ async function readAddressRegistry({shipped=[],cached={},readLive,readDraft,readLocal,companions={}}={}){
+  const trees=[...shipped,...(cached.trees||[])],characters={...(cached.characters||{})};let complete=true;
+  const add=d=>{if(!d)return;trees.push(...(d.trees||[]));Object.assign(characters,d.characters||{});};
+  try{const live=await readLive();if(!live||live.degraded)complete=false;add(live?.content);}catch{complete=false;}
+  if(readDraft)try{const rec=await readDraft();add(rec?.document?.data?.bundle);}catch(e){if(e?.status!==404)complete=false;}
+  if(readLocal)try{const d=readLocal();if(d&&d.version!==1)throw Error('Unrecognized draft');add(d);}catch{complete=false;}
+  Object.assign(characters,companions);return {rows:addressRegistry(trees,characters),complete};
+ }
+
  // ---------------------------------------------------------------- mission data: checks and the instances open now
  const plain=(v,max)=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!/[<>]/.test(v);
  const keysOk=(o,keys)=>!!o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>keys.includes(k));
@@ -309,7 +319,7 @@
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
  const api={DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
   HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,residenceKey,residenceSpot,residenceInstances,mergeResidenceInstances,addressRegistry,ACCESS_MODES,validAccess,accessAllows,accessKey,problems,openNow,onDoor,strip,inventory,world:W,
-  reset(){cache=null;}};
+  readAddressRegistry,reset(){cache=null;}};
  if(node){module.exports=api;return;}
  root.VoidApartments=Object.assign(root.VoidApartments||{},api);
 })(typeof globalThis!=='undefined'?globalThis:this);

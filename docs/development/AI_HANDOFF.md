@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: SHARED ADDRESS REGISTRY — first separation step
+
+- Companion residence lookup now uses `VoidApartments.readAddressRegistry` with shipped, published, authenticated server-draft and browser-draft sources, without initializing the Mission Editor. Failed lookups remain unverified; mission-reserved street entrances (including Reyes 105) retain their existing conservative status. No mission definition, apartment allocation or runtime movement changed. This is the first separation step only: independent world placement/public release, visual mission route layers and collision avoidance still require implementation and regression testing.
+
 ### 21 Nov 2026: MISSION EDITOR V25 — FULL MISSION ROUTE (local)
 
 - Both Form and Blocks views display a read-only overview of mission area, starting location, objectives referring to places, NPCs, custom interiors and space destinations, and hand-in. Existing-place choices are grouped without changing option IDs or availability. Custom interior creation is explicitly optional; numbered hallway controls remain exclusive to housing. No runtime rules or mission records changed. 34 focused tests passed, including Awakening and mixed-route coverage.
