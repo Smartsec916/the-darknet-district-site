@@ -47,7 +47,7 @@
  /* METADATA rows for a photo. ctx.placeLabel(id) -> the location chain, most specific first. A field with `optional` shows only when it has a value. */
  const FIELDS=[
   {id:'tagged',label:'TAGGED',rows:p=>{const subj=new Map(((p.meta&&p.meta.subjects)||[]).map(x=>[x.name.toLowerCase(),x]));return (p.tags||[]).map(t=>{const x=subj.get(t.name.toLowerCase());
-    return {name:t.name,role:t.role||'',how:VIA[t.via]||(t.kind==='player'?VIA.player:VIA.resident),detail:x?(x.valid?'clear shot':x.why||'')+(Number.isFinite(x.dist)?' · '+x.dist+' m':''):''};});}},
+    return {name:t.name,role:t.role||'',how:VIA[t.via]||(t.kind==='player'?VIA.player:VIA.resident),detail:x?(x.valid?'clear shot':x.why||'')+(Number.isFinite(x.dist)?' · '+(root.VoidUnits||require('./units.js')).fmtDist(x.dist):''):''};});}},
   {id:'location',label:'LOCATION',value:(p,c)=>p.meta&&p.meta.place&&c.placeLabel?c.placeLabel(p.meta.place)||'':''},
   {id:'device',label:'DEVICE ID',value:p=>(p.meta&&p.meta.device)||''},
   {id:'taken',label:'TAKEN',value:p=>(p.meta&&p.meta.gameTime)||''},

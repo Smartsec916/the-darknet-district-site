@@ -65,5 +65,5 @@ test('the two scanning lines have stored recordings: the words match exactly, th
 test('player lists show distance outside The Darknet District and not inside it',()=>{
  const src=require('node:fs').readFileSync('void-runner/personal-device.js','utf8');
  assert.match(src,/function distanceTo\(p\)\{try\{if\(areasHere\(\)\.includes\('interior'\)/,'inside the District no distance is shown');
- assert.match(src,/distText=d=>d==null\?'':d<1000\?d\+' m away'/);assert.match(src,/rows\.sort\(\(a,b\)=>\(a\.dist\?\?0\)-\(b\.dist\?\?0\)\)/,'nearest first');
+ assert.match(src,/distText=d=>d==null\?'':VoidUnits\.fmtDist\(d\)\+' away'/,'shown in feet (units.js)');assert.match(src,/rows\.sort\(\(a,b\)=>\(a\.dist\?\?0\)-\(b\.dist\?\?0\)\)/,'nearest first');
 });

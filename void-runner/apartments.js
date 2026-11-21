@@ -138,8 +138,12 @@
 
  // ---------------------------------------------------------------- the interiors (local metres; world = ORIGIN + local)
  const ORIGIN=[600,600],BOUNDS=[700,700],CEIL=2.8,HALL_CEIL=2.7;
+ /* ONE TIMING FOR EVERY SLIDING DOOR (street doors, hallway and apartment doors, module doors, the tunnels' doors; apartment-build.js slider, door-views.js pass):
+    open: seconds to slide open (eased); hold: how long it stays open after nobody allowed is near (it never closes while the player is in the doorway: he is always near);
+    wait: from E (or the walk-in) to the fade, so the door is open and the next place shows in the doorway first; fadeIn / fadeOut: the short black fade over the swap. */
+ const DOOR={open:.6,hold:1.5,wait:.62,fadeIn:.18,fadeOut:.32};
  // The apartment: 8 m x 10 m inside, a bathroom in the north-east corner, the entry door in the middle of the south wall.
- const APT={w:8,d:10,x:[-4,4],z:[-5,5],door:{x:0,z:-5,w:1},bath:{x:[1.4,4],z:[2.2,5],door:[2.5,3.3]},spawn:[0,-3.55],yaw:0};
+ const APT={w:8,d:10,x:[-4,4],z:[-5,5],door:{x:0,z:-5,w:1},bath:{x:[1.4,4],z:[2.2,5],door:[2.5,3.3]},spawn:[-.3,-3.85],yaw:0};   // spawn: in the 1.4 m between the entry door and the couch / low table, clear of both (it was [0,-3.55]: inside the couch's and the table's collision, the player could not move; tests/interior-spawns.test.cjs)
  // Furniture common to all three styles (same places, so a mission's placed items fit any style). [x0,x1,z0,z1,height]
  const FURN={bed:[2,4,-1.6,.1,.55],nightstand:[3.45,4,.25,.75,.55],closet:[-4,-3.35,-4.7,-2.9,2.2],safe:[-4,-3.45,-2.8,-2.25,.62],desk:[-4,-3.3,-1.7,-.1,.76],
   vending:[-4,-3.15,1.25,2.35,1.95],storage:[-4,-3.4,3.65,4.95,1.9],toilet:[3.45,4,2.55,3.15,.45],couch:[.35,1.2,-3.7,-1.85,.45],table:[-.75,-.05,-3.25,-2.3,.42],shower:[2.9,4,4,5,2.1],sink:[1.5,1.95,3.2,3.9,.85]};
@@ -237,7 +241,7 @@
    if(a.items!=null){if(!Array.isArray(a.items)||a.items.length>LIMIT.items)out.push(w+': at most '+LIMIT.items+' placed items.');
     else for(const it of a.items){if(!keysOk(it,['type','label','x','z','y'])||!ITEM_TYPES.some(t=>t.id===it.type)||!plain(it.label,LIMIT.label)){out.push(w+': a placed item needs a type and a short label (60 characters, plain text).');continue;}
      const num=v=>typeof v==='number'&&Number.isFinite(v),GA=geo(a.style).APT,ax=GA.x,az=GA.z;if(!num(it.x)||!num(it.z)||it.x<ax[0]+.2||it.x>ax[1]-.2||it.z<az[0]+.2||it.z>az[1]-.2)out.push(w+': a placed item must be inside the apartment (x '+(ax[0]+.2)+'..'+(ax[1]-.2)+', z '+(az[0]+.2)+'..'+(az[1]-.2)+').');
-     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.4))out.push(w+': a placed item’s height is 0 to 2.4 m.');}}}
+     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.4))out.push(w+': a placed item’s height is 0 to 7.9 ft.');}}}
   const seen=new Set();for(const a of list){if(a&&typeof a.door==='string'){if(seen.has(a.door))out.push('two apartments of one mission use the same street door ('+a.door+').');seen.add(a.door);}}
   for(const o of m.objectives||[]){if(!o||(o.kind!=='apt-enter'&&o.kind!=='apt-use'))continue;if(!ids.has(o.apt))out.push('step '+o.id+': choose one of this mission’s apartments.');
    const la=list.find(x=>x&&x.id===o.apt);if(isLoc(la)){const mm=o.mod!=null?la.modules.find(x=>x&&x.id===o.mod):null;if(o.mod!=null&&!mm)out.push('step '+o.id+': choose one of the location’s rooms (modules).');
@@ -292,7 +296,7 @@
  // The admin inventory: what the server checks a published mission against.
  function inventory(){return {hack:{...HACK},items:itemIds(),styles:STYLE_IDS.slice(),objects:OBJECT_IDS.slice(),itemTypes:ITEM_TYPES.map(t=>t.id),limit:{...LIMIT},bounds:{x:AX.slice(),z:AZ.slice()},boundsByStyle:Object.fromEntries(STYLE_IDS.map(st=>[st,{x:geo(st).APT.x.slice(),z:geo(st).APT.z.slice()}])),containerStyles:CONTAINER_STYLES.slice(),screenStyles:SCREEN_STYLES.slice(),
   doors:Object.fromEntries(doors().map(d=>[d.id,{quarter:d.quarter,style:d.style,number:d.number,x:d.x,z:d.z,family:d.family||'city'}]))};}
- const api={CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
+ const api={DOOR,CONTAINER_STYLES,isContainer,geo,containerDoors,CAPT,CFURN,CHALL,STYLES,STYLE_IDS,OBJECTS,OBJECT_IDS,ITEM_TYPES,LIMIT,INST_ID,EDGES,KEEP_OUT,SEG,ORIGIN,BOUNDS,CEIL,HALL_CEIL,APT,FURN,SEATS,AD_SCREEN,PANEL,SWITCH,HALL,APT_INTERACTIONS,STREET_NAMES,
   HACK,apOf,hackedDoors,hacksNow,doorsInUse,itemIds,blockedWhy,styleAt,doors,door,doorsIn,nearestDoor,keyOf,layout,hallFront,slotsFor,slotNumber,problems,openNow,onDoor,strip,inventory,world:W,
   reset(){cache=null;}};
  if(node){module.exports=api;return;}

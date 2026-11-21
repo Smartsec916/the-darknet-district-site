@@ -33,14 +33,16 @@
  for(const st of A.STYLE_IDS)for(const part of ['hall','flat'])VoidExplorationData.locations[A.keyOf(part,st)]=A.layout(part,st);
  const note=t=>{try{resumeWalking();}catch{}try{announce(t);}catch{}};
  let busy=false;const screenOff=new Set(),screenSet=new Set(),lightOff=new Set(),lightSet=new Set();   // ad screens switched off, per apartment instance, for this session
- async function go(key,opts){if(busy)return;busy=true;try{await enterWalking(key,opts);}finally{busy=false;}}
- async function enterHall(door,list){list=(list||[]).filter(a=>!a.modular);const style=(list[0]&&list[0].style)||door.style,slots=A.slotsFor(list,style);visit={door,list,inst:null,slots};
+ const DW=()=>Math.round(((A.DOOR&&A.DOOR.wait)||.62)*1000);   // the shared door timing (apartments.js DOOR): the door is open before the fade
+ // every pass through a door: a short black fade over the game's silent load (no "Preparing" card), the doorway showing the next place first (door-views.js)
+ async function go(key,opts){if(busy)return;busy=true;try{const V=root.VoidDoorViews;if(V&&V.pass)await V.pass(()=>enterWalking(key,{...(opts||{}),silent:true}));else await enterWalking(key,opts);}finally{busy=false;}}
+ async function enterHall(door,list,at){list=(list||[]).filter(a=>!a.modular);const style=(list[0]&&list[0].style)||door.style,slots=A.slotsFor(list,style);visit={door,list,inst:null,slots};
   const def=A.layout('hall',style);def.open=list.map(a=>({slot:slots[a.key],number:a.number,key:a.key,locked:!!a.locked,id:a.id,mission:a.mission}));def.street=door.id;
   const GH=A.geo(style);for(const sl of GH.HALL.slots){const o=def.open.find(x=>x.slot===sl.i),w=A.world([sl.x-.75,1.4,sl.z>0?(GH.container?.55:.62):(GH.container?-.55:-.62)]);def.interactions.push({id:'hall-ap-'+sl.i,label:'ACCESS POINT',position:w,action:'apt-ap',ap:o?o.id+'/hall':'hall-slot-'+sl.i,mission:o?o.mission:null,range:1.0});}
+  if(at&&Array.isArray(at.spawn)){def.spawn=at.spawn.slice();def.yaw=at.yaw;}   // at: where he comes out (in front of the apartment's door), so the fade lifts on the right view
   VoidExplorationData.locations[A.keyOf('hall',style)]=def;await go(A.keyOf('hall',style));}
  async function enterFlat(inst){const def=A.layout('flat',inst.style,{items:inst.items});def.inst=inst.key;def.items=inst.items;def.apt={mission:inst.mission,id:inst.id};def.door=inst.door;def.screenOff=screenSet.has(inst.key)?screenOff.has(inst.key):inst.screenOff===true;def.lightsOff=lightSet.has(inst.key)?lightOff.has(inst.key):inst.lightsOff===true;def.interactions.push({id:'apt-ap',label:'ACCESS POINT',position:(()=>{const ap=A.geo(inst.style).AP;return A.world([ap.x,1.4,ap.z+.45]);})(),action:'apt-ap',ap:inst.id+'/entry',mission:inst.mission,range:1.0});VoidExplorationData.locations[A.keyOf('flat',inst.style)]=def;visit={...(visit||{}),inst};await go(A.keyOf('flat',inst.style));}
- async function backToHall(){const v=visit;if(!v||!v.door){return backToStreet();}const slot=v.inst?v.slots?.[v.inst.key]:0;const style=(v.list[0]&&v.list[0].style)||v.door.style;await enterHall(v.door,v.list.length?v.list:[]);
-  const f=A.hallFront(slot||0,style);try{walker.x=f.spawn[0];walker.z=f.spawn[2];walker.yaw=f.yaw;}catch{}}
+ async function backToHall(){const v=visit;if(!v||!v.door){return backToStreet();}const slot=v.inst?v.slots?.[v.inst.key]:0;const style=(v.list[0]&&v.list[0].style)||v.door.style;await enterHall(v.door,v.list.length?v.list:[],A.hallFront(slot||0,style));}
  // at: {spawn, yaw} to come out somewhere else than the street door (the hallway's window: the foot of the building's fire escape, ncz-backalleys-integration.js)
  async function backToStreet(at){const d=visit?.door;visit=null;if(!d){await go(STREET_KEY(),{});return;}if(at&&Array.isArray(at.spawn)){await go(STREET_KEY(),{quarter:at.quarter||d.quarter,spawn:at.spawn.slice(),yaw:at.yaw});return;}const yaw=Math.atan2(-d.n[0],-d.n[1]);await go(STREET_KEY(),{quarter:d.quarter,spawn:[d.front[0],1.7,d.front[1]],yaw});}
  // ---- street doors: the layout's prompts (two per door: the door, its access point) ----
@@ -67,6 +69,10 @@
   const SLAB={rundown:'rundown',normal:'normal',luxury:'luxury','container-rundown':'rundown','container-regular':'normal',office:'office',commercial:'commercial'};
   const M=B.Matrix,Q=B.Quaternion,V=B.Vector3;const mat=(x,y,z,ry,s=[1,1,1])=>M.Compose(new V(...s),Q.RotationYawPitchRoll(ry,0,0),new V(x,y,z));
   const slab={rundown:unit('slab-r',slabMat.rundown,1,2.15,.05),normal:unit('slab-n',slabMat.normal,1,2.15,.05),luxury:unit('slab-l',slabMat.luxury,1,2.15,.05),office:unit('slab-o',slabMat.office,1,2.15,.05),commercial:unit('slab-c',slabMat.commercial,1,2.15,.05)},lampM={locked:unit('lamp-red',lamp.locked,.7,.035,.03),mine:unit('lamp-amber',lamp.mine,.7,.035,.03),open:unit('lamp-green',lamp.open,.7,.035,.03)};
+  // behind each door, the place it leads to (door-views.js): its hallway, or the first room of a module location placed on it now
+  const DV=root.VoidDoorViews,viewCache=DV?DV.cache(B,scene,own):null,views={};
+  const viewKey=d=>{if(!DV)return 'dark';try{const loc=open().find(a=>a.door===d.id&&a.modular&&a.loc);if(loc){const MM=root.VoidModules,e=MM.parseRef(loc.loc.entry),m=e&&(loc.loc.modules||[]).find(x=>x.id===e.mod),t=m&&MM.TYPES[m.type];if(t&&t.legacy)return DV.housing('hall',t.legacy.style);if(t)return DV.mod(t.style);}
+   const inst=open().find(a=>a.door===d.id);if(d.family==='office')return DV.mod('corp');if(d.family==='commercial')return DV.mod('back');return DV.housing('hall',(inst&&inst.style)||d.style);}catch{return DV.housing('hall',d.style);}};
   const jamb=unit('jamb',frame,.09,2.27,.16),head=unit('head',frame,1.18,.1,.16),fill=unit('fill',surround,.16,3.1,.1),over=unit('over',surround,1.5,.86,.1),rec=unit('recess',dark,1.05,2.2,.02),apBox=unit('ap',panel,.2,.32,.05),apScr=unit('ap-scr',screen,.13,.09,.01);
   // number plates: one atlas, one merged mesh
   const nt=new B.DynamicTexture('aptst-numbers',{width:2048,height:64},scene,true);own.push(nt);const g=nt.getContext(),cw=2048/Math.max(1,list.length);g.fillStyle='#0d0d0f';g.fillRect(0,0,2048,64);g.fillStyle='#e7e1d4';g.font='bold 52px monospace';g.textAlign='center';g.textBaseline='middle';list.forEach((d,i)=>g.fillText(String(d.number),i*cw+cw/2,34));nt.update();
@@ -77,12 +83,13 @@
    add(jamb,-.545,1.135,.11);add(jamb,.545,1.135,.11);add(head,0,2.3,.11);if(d.family!=='container'&&d.family!=='office'&&d.family!=='commercial'){add(fill,-.67,1.55,.05);add(fill,.67,1.55,.05);add(over,0,2.78,.05);}   // a container door is cut into the steel: no shopfront filleradd(rec,0,1.1,.035);
    const ai=add(apBox,.85,1.35,.12),si=add(apScr,.85,1.42,.15);
    const li={};for(const k of Object.keys(lampM))li[k]=add(lampM[k],0,2.37,.2,[1,1,1]);
+   {const k=viewKey(d);if(!views[k]){const m=B.MeshBuilder.CreatePlane('aptst-view-'+k,{width:1.05,height:2.2},scene);m.material=viewCache?viewCache.get(k):dark;m.parent=parent;m.isPickable=false;m.alwaysSelectAsActiveMesh=true;own.push(m);views[k]=m;}add(views[k],0,1.1,.03);}   // the place behind the door, seen as it slides open (door-views.js)
    const sk=SLAB[d.style]||'normal',si2=add(slab[sk],0,1.075,.08);const ld={};for(const k of Object.keys(lampM))ld[k]=add(lampM[k],.85,1.25,.15,[.08,1,1]);   // the access point's LED
    const pl=B.MeshBuilder.CreatePlane('aptst-plate',{width:.44,height:.15,frontUVs:new B.Vector4(i/list.length,0,(i+1)/list.length,1),backUVs:new B.Vector4(i/list.length,0,(i+1)/list.length,1),sideOrientation:B.Mesh.DOUBLESIDE},scene);
    const pp=P0(-.85,1.62,.11);pl.position.set(pp[0],pp[1],pp[2]);pl.rotation.y=ry;plates.push(pl);
    const s=A.slider({mesh:{position:new V(0,0,0)},dir:[t[0],t[1]],dist:1.02,locked:true});s.door=d;s.slab=si2;s.style=sk;s.lamps=li;s.leds=ld;s.P0=P0;doors.push(s);});
   const plateMesh=B.Mesh.MergeMeshes(plates,true,true);if(plateMesh){plateMesh.material=nm;plateMesh.parent=parent;plateMesh.isPickable=false;own.push(plateMesh);}
-  for(const m of [jamb,head,fill,over,rec,apBox,apScr,...Object.values(slab),...Object.values(lampM)]){m.thinInstanceRefreshBoundingInfo?.(false);m.freezeWorldMatrix();}
+  for(const m of [jamb,head,fill,over,rec,apBox,apScr,...Object.values(slab),...Object.values(lampM),...Object.values(views)]){m.thinInstanceRefreshBoundingInfo?.(false);m.freezeWorldMatrix();}
   const hide=[0,0,0];
   function show(s,state){for(const k of Object.keys(lampM)){const p=s.P0(0,2.37,.2);lampM[k].thinInstanceSetMatrixAt(s.lamps[k],mat(p[0],p[1],p[2],s.door.ry,k===state?[1,1,1]:hide),false);const q=s.P0(.85,1.25,.15);lampM[k].thinInstanceSetMatrixAt(s.leds[k],mat(q[0],q[1],q[2],s.door.ry,k===(state==='open'?'open':state)?[.08,1,1]:hide),false);}dirty=true;}
   let dirty=true,clock=0,check=0;
@@ -112,7 +119,7 @@
    h.tick=function(time){const r=t.apply(this,arguments);const dt=last===null?0:Math.min(.1,Math.max(0,time-last));last=time;try{sd.tick(dt);}catch(e){console.warn('[apartments]',e);}return r;};h.dispose=function(){try{sd.dispose();}catch{}return d.apply(this,arguments);};}}}catch(e){console.warn('[apartments] street doors',e);}return h;};NC.build.apartments=true;}}
  // ---- going in and out ----
  async function enterDoor(id){const d=A.door(id);if(!d||busy)return;const list=onDoor(id);if(!list.length&&!hacked().some(h=>h.door===id)){note(d.name.toUpperCase()+': locked. A keypad and an intercom; nobody answers.');return;}
-  try{root.VoidBabylon?.district?.aptDoors?.forceOpen(id);}catch{}await new Promise(r=>setTimeout(r,450));
+  let was=1;try{const h=root.VoidBabylon?.district?.aptDoors;was=h?.doors?.find(s=>s.door.id===id)?.t??0;h?.forceOpen(id);}catch{}if(was<.9)await new Promise(r=>setTimeout(r,DW()));
   const loc=list.find(a=>a.modular);if(loc&&root.VoidModules?.enter){await root.VoidModules.enter(d,loc);return;}   // a location built from modules (modules.js, module-integration.js)
   await enterHall(d,list);}
  // ---- the hack (a stand-in for a later minigame): a progress bar over a scrolling screen ----
@@ -122,14 +129,16 @@
  function run(job,pos){hacking={job,pos,t:0};hud.hidden=false;const pre=hud.querySelector('pre'),bar=hud.querySelector('i'),lines=[];let last=0;
   const id=setInterval(()=>{if(!hacking){clearInterval(id);return;}const now=performance.now();if(!last)last=now;const dt=Math.min(.25,(now-last)/1000);last=now;if(typeof mode!=='undefined'&&mode==='pause')return;hacking.t+=dt;
    lines.push(Array.from({length:6},()=>Math.floor(Math.random()*65536).toString(16).padStart(4,'0')).join(' ')+(Math.random()<.2?'  >> handshake':''));if(lines.length>5)lines.shift();pre.textContent=lines.join('\n');bar.style.width=Math.min(100,hacking.t/job.hold*100)+'%';
-   if(job.stay&&typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-pos[0],walker.z-pos[2])>1.8){end(false,'Connection lost: you walked away from the access point.');return;}
+   if(job.stay&&typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-pos[0],walker.z-pos[2])>1.8){end(false,'Connection lost: you walked away from the access point. Go back and press E at it to try again.');return;}
    if(hacking.t>=job.hold)end(true);},80);}
  function end(ok,why){const job=hacking&&hacking.job;hacking=null;hud.hidden=true;if(!job)return;if(!ok){try{announce(why||'Hack cancelled.');}catch{}return;}
   let r=null;try{r=LC()?.hack?.(job);}catch{}
   try{const wl=here(),z=root.VoidBabylon?.zone;if(wl&&wl.part==='hall'&&job.unlock)for(const o of wl.open||[])if(o.id+'/hall'===job.ap&&o.mission===job.mission){o.locked=false;z?.doors?.find(d=>d.slot===o.slot)?.set?.({locked:false});}
    z?.accessPoint?.(job.ap,'open');}catch{}try{announce('ACCESS POINT: bypassed.'+(job.unlock?' The door is open to you.':''));}catch{}}
  function useAP(item){const ap=item.ap;const wl=here(),mission=wl&&wl.apt?wl.apt.mission:item.mission||null;let jobs=[];try{jobs=LC()?.hacks?.()||[];}catch{}
-  const job=jobs.find(j=>j.ap===ap&&(!/\//.test(ap)||!mission||j.mission===mission));if(!job){note('ACCESS POINT · SECURED. A card reader, a keypad and a small status screen.');return;}
+  const job=jobs.find(j=>j.ap===ap&&(!/\//.test(ap)||!mission||j.mission===mission));if(!job){// already bypassed in a mission in progress (Awakening QA 20 Nov 2026: E at No. 31's panel after the hack said SECURED)
+   const by=(()=>{try{const recs=state.universe.missions||{};return (LC()?.env?.trees||[]).some(t=>(t.missions||[]).some(m=>{const r=recs[m.id];return r&&r.acquired&&!r.completed&&(m.objectives||[]).some(o=>o.kind==='hack'&&o.ap===ap&&(r.objectives||{})[o.id]===true);}));}catch{return false;}})();
+   note(by?'ACCESS POINT · BYPASSED. The door is open to you.':'ACCESS POINT · SECURED. A card reader, a keypad and a small status screen.');return;}
   if(job.needs){const has=(state?.progression?.personal?.items||[]).includes(job.needs);if(!has){const nm=(root.VoidProgression?.personalItems?.[job.needs]?.name||job.needs).toLowerCase();note('You need a'+(/^[aeiou]/.test(nm)?'n ':' ')+nm+'.');return;}}
   if(hacking){note('Already connected.');return;}try{resumeWalking();}catch{}run(job,item.position);}
  // ---- interactions ----
@@ -139,8 +148,8 @@
   R('apt-ap',({item})=>useAP(item));
   R('apt-hall-exit',()=>{try{resumeWalking();}catch{}backToStreet();});
   R('apt-hall-door',({item})=>{const wl=here(),o=(wl?.open||[]).find(x=>x.slot===item.slot);if(!o){note('APARTMENT '+A.slotNumber(item.slot,wl?.style)+': locked.');return;}if(o.locked){note('APARTMENT '+(o.number||A.slotNumber(item.slot))+': locked. The access point beside it could be bypassed.');return;}
-   const inst=(visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key);if(!inst){note('Locked.');return;}try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.slot===item.slot);d?.force?.(1);setTimeout(()=>enterFlat(inst),450);});
-  R('apt-exit',()=>{try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;z?.doors?.find(x=>x.id==='entry')?.force?.(1);setTimeout(()=>backToHall(),450);});
+   const inst=(visit?.list||[]).find(a=>a.key===o.key)||open().find(a=>a.key===o.key);if(!inst){note('Locked.');return;}try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.slot===item.slot);d?.force?.(1);setTimeout(()=>enterFlat(inst),(d?.t??0)>.9?0:DW());});
+  R('apt-exit',()=>{try{resumeWalking();}catch{}const z=root.VoidBabylon?.zone;const d=z?.doors?.find(x=>x.id==='entry');d?.force?.(1);setTimeout(()=>backToHall(),(d?.t??0)>.9?0:DW());});
   R('apt-item',({item})=>{const wl=here(),it=(wl?.items||[])[item.index];note(it?(it.type==='mission-item'?'MISSION ITEM: ':it.type==='loot'?'LOOT: ':it.type==='note'?'NOTE: ':'')+it.label+' (placed for this mission; picking things up comes later).':'Nothing here.');});
   const TEXT={
    computer:{rundown:'COMPUTER: a cracked screen on a bootleg OS. Borrowed signal, an empty wallet, a mail client that has not synced in weeks.',normal:'COMPUTER: HomeOS asks for a passcode. Three unread messages, rent due in four days.',luxury:'COMPUTER: a secure home node, locked behind a biometric reader. The concierge service is online.'},

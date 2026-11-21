@@ -26,7 +26,13 @@ async function api(path,body,authenticated=true){
   if(authenticated&&!user)throw new Error('Sign in to continue.');
   const token=authenticated?await user.getIdToken():undefined;
   if(authenticated&&epoch!==generation)throw new Error('Sign in again.');
-  return VoidNetwork.request(path,{body,token,scope:authenticated?user.uid+':'+epoch:'public'});
+  try{return await VoidNetwork.request(path,{body,token,scope:authenticated?user.uid+':'+epoch:'public'});}
+  catch(error){
+    // (21 Nov 2026) a 401 (the sign-in token expired, e.g. after the computer slept): refresh the token once, silently, and ask again; only then report it.
+    if(!authenticated||error?.status!==401||epoch!==generation)throw error;
+    const fresh=await user.getIdToken(true);if(epoch!==generation)throw new Error('Sign in again.');
+    return VoidNetwork.request(path,{body,token:fresh,scope:user.uid+':'+epoch});
+  }
 }
 
 async function catalog(){
@@ -45,7 +51,7 @@ async function refresh(){
   clearTimeout(serviceRetryTimer);
   verifiedUntil=Date.now()+300000;clearTimeout(ownershipTimer);ownershipTimer=setTimeout(()=>{setOwnedGear([]);verifiedUntil=0;},300000);
   clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{if(epoch===generation&&account.user)run(refresh,true);},240000);
-  if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);});}
+  if(data.developer){const identityEpoch=generation;VoidDevTools.identity((path,body)=>{if(identityEpoch!==generation||!account.user)throw new Error('Sign in again.');return api(path,body);},{uid:account.user?.uid||null});}
   account.revision=data.revision;account.cloud=data.save;account.cloudRetired=data.retired===true;account.savedAt=data.savedAt;account.character=data.character||null;account.appearance=data.appearance||null;saveReady=true;account.profileReady=true;setOwnedGear(data.owned);render();
 }
 function cloudDescription(){if(account.cloudRetired&&!account.cloud)return 'Your earlier cloud campaign was retired in the District reset. Save this journey to start a new one.';return account.cloud?`${account.cloud.completed} deliveries · ${account.cloud.credits.toLocaleString()} CR · ${account.cloud.cleared?.length||0}/12 new missions`:'No cloud save yet.';}
@@ -105,7 +111,7 @@ function initializeAuth(){
     try{
       firebase=await import('../firebase-auth.js');
       if(!unsubscribe)unsubscribe=firebase.onAuthStateChanged(firebase.auth,user=>{
-        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;account.profileReady=false;VoidDevTools.identity(null);account.cloud=null;account.character=null;account.appearance=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
+        generation++;clearTimeout(ownershipTimer);clearTimeout(refreshTimer);verifiedUntil=0;account.user=user;account.handle=undefined;account.handleNextChange=null;account.profileReady=false;VoidDevTools.identity(null,{uid:user?.uid||null});account.cloud=null;account.character=null;account.appearance=null;account.revision=0;saveReady=false;setOwnedGear([]);render();
         VoidNetwork.report('identity','ready');
         if(user){loadHandle();run(async()=>{await confirmCheckout();await refresh();},true);}
       });
@@ -166,6 +172,12 @@ function requestAction(action){
   else if(action==='cloud-load'&&account.cloud){const restored=C.restore(JSON.stringify(account.cloud));if(!restored){announce(C.isLegacy(account.cloud)?'This cloud save is from before the District reset and has been retired. Your local progress is unchanged.':'This cloud save is incompatible. Your local progress is unchanged.');return;}globalThis.VoidFlightSession?.end();state=restored;save();current=null;VoidMenu.returnTo=null;hud();accountPage();announce('Cloud journey restored.');}
 }
 account.request=requestAction;
+// The Developer tools' SIGN IN bar (21 Nov 2026): a forced token refresh and an account check, without leaving the page; Google's popup only when signed out.
+account.reconfirm=async()=>{
+  if(account.user){await account.user.getIdToken(true);await refresh();return true;}
+  if(!firebase)throw new Error('The sign-in service is still connecting. Try again shortly.');
+  await firebase.signInWithPopup(firebase.auth,firebase.provider);account.user=firebase.auth.currentUser;await refresh();return true;
+};
 // First-campaign creation checks the existing account record before offering a
 // new look. A failed lookup must never be treated as proof that the slot is empty.
 // A handle-only (anonymous) account counts as a full District account once it holds a handle: the save server keeps its character and the hub admits it.

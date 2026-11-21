@@ -1,5 +1,5 @@
 /* Mission Editor, 18 Nov 2026, in a real browser (offline): the two separate features.
-   1. EDITOR: a new tree; mission 1 given by Reverie with the start trigger "When walked near" (distance set to 8 m; 99 is clamped to 30; back to 8), its availability note;
+   1. EDITOR: a new tree; mission 1 given by Reverie with the start trigger "When walked near" (distance shown in feet: 16 ft by default; 999 ft is clamped to 98 ft = 30 m; 26 ft is stored as 7.925 m), its availability note;
       mission 2 given by Lace, in person with ACCEPT / NOT NOW. Screenshots of both.
    2. GAME (PLAY THIS DRAFT of mission 1): draft play runs at a time Reverie is out (19 Nov 2026: a simulated street clock in her shift, not a forced figure); her TALK TO REVERIE prompt follows her; the trigger waits while the
       game is not in walking mode, does not fire at 12 m, fires once at 3 m (the notification); then TALK TO REVERIE completes the step and she stops for the conversation.
@@ -32,10 +32,10 @@ const log=(...a)=>console.log('[editor-givers]',...a);
   await c1().locator('[data-me-field="title"]').fill('TEST: walk past Reverie');
   await c1().locator('[data-me-starts]').selectOption('notify');await c1().locator('[data-me-start-text]').fill('TEST: Reverie waves you over.');
   await c1().locator('[data-me-start-when]').selectOption('near');await page.waitForSelector('[data-me-start-distance="'+m1+'"]');
-  assert.equal(await c1().locator('[data-me-start-distance]').inputValue(),'5','default 5 m');assert.equal(await c1().locator('[data-me-start-near]').inputValue(),'grey-reverie','the giver by default');
+  assert.equal(await c1().locator('[data-me-start-distance]').inputValue(),'16','default 5 m, shown as 16 ft');assert.equal(await c1().locator('[data-me-start-near]').inputValue(),'grey-reverie','the giver by default');
   const draftWhen=()=>page.evaluate(id=>JSON.parse(localStorage.getItem('mission-editor-drafts-v1')).trees.find(t=>t.missions.some(m=>m.id===id)).missions.find(m=>m.id===id).start.when,m1);
-  await c1().locator('[data-me-start-distance]').fill('99');await c1().locator('[data-me-start-distance]').dispatchEvent('change');assert.equal(await c1().locator('[data-me-start-distance]').inputValue(),'30','clamped to 30');assert.equal((await draftWhen()).distance,30);
-  await c1().locator('[data-me-start-distance]').fill('8');await c1().locator('[data-me-start-distance]').dispatchEvent('change');assert.deepEqual(await draftWhen(),{kind:'near',npc:'grey-reverie',distance:8},'saved in the draft');
+  await c1().locator('[data-me-start-distance]').fill('999');await c1().locator('[data-me-start-distance]').dispatchEvent('change');assert.equal(await c1().locator('[data-me-start-distance]').inputValue(),'98','clamped to 30 m (98 ft)');assert.equal((await draftWhen()).distance,30);
+  await c1().locator('[data-me-start-distance]').fill('26');await c1().locator('[data-me-start-distance]').dispatchEvent('change');assert.deepEqual(await draftWhen(),{kind:'near',npc:'grey-reverie',distance:7.925},'26 ft saved in the draft as metres');
   await c1().locator('[data-me-step-npc="step-1"]').selectOption('grey-reverie');await c1().locator('[data-me-label="step-1"]').fill('Talk to Reverie (test)');
   await c1().locator('[data-me-tline="step-1/say/0"] textarea').fill('TEST LINE: Reverie answers.');
   assert.match(await c1().locator('[data-me-near-shift]').textContent(),/Only while Reverie/);
@@ -47,7 +47,7 @@ const log=(...a)=>console.log('[editor-givers]',...a);
   assert.match(await page.locator('[data-me-giver-status="'+m2+'"]').textContent(),/Only while Lace is out on the street: 12:00 to 00:00 UTC/);
   await c2().locator('[data-me-giver]').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(shots,'editor-lace-giver.png')});
   const content=await page.evaluate(()=>VoidMissionEditor.draftContent()),mine=content.trees.find(t=>t.id===T);
-  assert.deepEqual(mine.missions[0].start.when,{kind:'near',npc:'grey-reverie',distance:8},'exported with the distance');assert.equal(mine.missions[1].giver,'ethereal-lace');
+  assert.deepEqual(mine.missions[0].start.when,{kind:'near',npc:'grey-reverie',distance:7.925},'exported with the distance');assert.equal(mine.missions[1].giver,'ethereal-lace');
   const chk=await page.evaluate(c=>VoidMissionContent.check(c,{givers:new Map(VoidLiveContent.env.givers.map(g=>[g.id,g])),places:VoidMissionGivers.placeIds()}).errors,content);assert.deepEqual(chk,[]);
   // ---- 2. the game: play mission 1
   await page.evaluate(()=>{try{VoidGraphics.quality='low';VoidBabylon.setQuality('low');}catch{}});

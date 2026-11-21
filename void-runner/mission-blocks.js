@@ -235,7 +235,7 @@
  const START_MODES=[
   {id:'person',name:'In person: the player talks to them',help:'The player walks up to the giver and presses TALK; the giver offers it (what they say is in the Start block).'},
   {id:'person-accept',name:'In person: they ask ACCEPT / DENY',help:'The player presses TALK; the giver offers it and the player chooses ACCEPT or DENY.'},
-  {id:'near',name:'Walk near them (starts automatically)',help:'No talking needed: when the player comes within the distance you set (5 m if not set), the mission starts by itself, a short banner shows and the giver says what you write for the offer. Nothing to press.'},
+  {id:'near',name:'Walk near them (starts automatically)',help:'No talking needed: when the player comes within the distance you set (16 ft if not set), the mission starts by itself, a short banner shows and the giver says what you write for the offer. Nothing to press.'},
   {id:'near-accept',name:'Walk near them and they ask ACCEPT / DENY',help:'When the player comes within the distance, the giver offers it and the player chooses ACCEPT or DENY. Nothing starts until ACCEPT.'},
   {id:'messages',name:'By Messages (a text on the V1)',help:'A text arrives in the V1 Messages app when its trigger happens (first pod exit, a place, after a mission …).'},
   {id:'comms',name:'By Comms call',help:'A call in the V1 Comms app when its trigger happens.'},
@@ -253,7 +253,12 @@
   else{x.start={how:'notification',from:x.giver||'',header:'',text:'',when:{kind:'pod-exit'},...(prev.how==='notification'?prev:{}),channel:mode};if(wasNear&&mode==='notify')x.start.when={kind:'pod-exit'};delete x.start.accept;
    if(prev.accept===true&&(prev.how==='notification'||askCustom(prev))){x.start.accept=true;for(const k of askKeys())if(prev[k]!=null)x.start[k]=prev[k];}}
   if(mode==='person-accept'&&prev.accept===true)for(const k of askKeys())if(prev[k]!=null)x.start[k]=prev[k];
+  if(Array.isArray(prev.only)&&prev.only.length)x.start.only=prev.only;   // "…and only when" stays through a change of how it starts (start-conditions.js)
   if(payAtAccept(x))x.start.accept=true;return x;}
- const api={TYPES,START_MODES,startMode,setStartMode,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS};
+ /* A new reward from the Form view's "+ ADD" (and the Blocks palette), in the shape mission-content.js and the server check (20 Nov 2026 fix: a "Shared game flag" was saved
+    without value:true and with no flag chosen, so the check refused it). o: {id, value (the typed text), store}. A story flag and a shared game flag are set to true. */
+ function newUnlock(k,o={}){const n=parseInt(o.value,10),num=Number.isFinite(n)?n:0;if(k==='credits')return {kind:k,amount:num};if(k==='flag')return {kind:k,id:String(o.value||'').trim(),value:true};
+  if(k==='nav-coords')return {kind:k};if(k==='contract-flag')return {kind:k,id:o.id||'',value:true};if(k==='reputation'||k==='missiles')return {kind:k,id:o.id||'',amount:num};return {kind:k,id:o.id||'',...(k==='item'?{store:o.store||''}:{})};}
+ const api={TYPES,START_MODES,startMode,setStartMode,newUnlock,PLAYER,PALETTE,KIND_TYPE,PICK,CHOICES,whoColor,castColors,isPlayer,typeOf,stepWho,lineSets,lineGroups,toBlocks,fromBlocks,orderProblem,move,nudge,insert,remove,duplicate,stepAbove,nextStepId,stepFor,autoLabel,cast,problems,START_FIELDS,clone,placeOptions,placeValue,placeSet,placeWords,wordsAuto,rewordAfter,hackOptions,apName,LEGACY_WORDS};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionBlocks=api;
 })(globalThis);
