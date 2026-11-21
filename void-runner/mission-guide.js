@@ -56,6 +56,18 @@
  function wayOut(){try{const wl=walkingLocation;if(!wl||!wl.apartment)return null;const here=f=>{const i=(wl.interactions||[]).find(f);return i?{position:i.position.slice(),route:true,label:i.label||''}:null;};
   if(wl.modular){const e=here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal');if(e)return e;const g=aptGoal({apt:{m:wl.apt&&wl.apt.mission,a:'\u0000none'},label:''});return g||here(i=>i.action==='mod-elev');}
   return wl.part==='hall'?here(i=>i.action==='apt-hall-exit'):here(i=>i.action==='apt-exit');}catch{return null;}}
+ /* A FOLLOW / LEAD / CAB STEP (20 Nov 2026, escort across: npc-escort-across.js): the person in another area than the player (left behind at a gate, at the stairs, or
+    still in the tunnels): her position, the route through the gates, the stairs and the District's door is guide-route.js's. With the player, on a "They follow you" step
+    (the player leads): the step's destination (its spot, or its place's street door), in whatever area it is. Otherwise null: the arrow stays on her (her TALK prompt). */
+ const ESC_KINDS=['follow-them','they-follow','their-cab','shared-cab'];
+ function escortLive(id){try{const sp=root.VoidStreetPair?.live?.();if(sp){if(id===root.VoidStreetPair.CAT_ID&&sp.cat)return {x:sp.cat.x,z:sp.cat.z};if(sp.her&&sp.her.id===id)return {x:sp.her.x,z:sp.her.z};}
+  const p=(root.VoidMadeNPCs?.live?.()?.people||[]).find(q=>q.id===id&&q.enabled!==false);if(p)return {x:p.x,z:p.z};}catch{}return null;}
+ function escortGoal(g){try{const C=LC();if(!C||!g||typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.apartment||walkingLocation.modular||typeof walker==='undefined'||!walker)return null;
+  const s=C.step?.(),st=s&&s.step;if(!st||!ESC_KINDS.includes(st.kind)||!st.npc)return null;const P=(C.plans?.()||{})[st.npc];if(!P||P.mode!=='escort'||P.indoors)return null;
+  const her=escortLive(st.npc);if(!her){const w=C.escortWhere?.(st.npc);return w?{position:[w.x,1.7,w.z],route:true,label:g.label||''}:null;}
+  if(st.kind==='they-follow'&&P.final&&Math.hypot(her.x-walker.x,her.z-walker.z)<=Math.max(10,(P.set&&P.set.wait)||8))return {position:[P.final.x,1.7,P.final.z],route:true,label:g.label||''};
+  return null;}catch{return null;}}
+ root.missionEscortGoal=escortGoal;
  function missionPlaceRoute(g){
   try{const mp=milkedPerson(g);if(mp)return mp;const ag=aptGoal(g);if(ag)return ag;const md=madePerson(g);if(md)return md;if(!(g&&g.apt)){const wo=wayOut();if(wo)return wo;}if(!g||(!g.place&&!g.target)||typeof walkingLocation==='undefined'||!walkingLocation||typeof walker==='undefined'||!walker)return null;
    const wl=walkingLocation,node=g.place?P()?.node(g.place):null;
@@ -107,5 +119,5 @@
   const cur=!off&&on?LC()?.step?.():null,h=cur?hintFor({step:cur.step,deviceOpen:!!D?.isOpen,app:D?.app||null,thread:D?.thread||null,attach:D?.attach||{},camera:!!root.VoidDeviceCamera?.active,key:key(),name}):null;
   {const pd=document.getElementById('personal-device'),open=!!D?.isOpen&&!!pd&&pd.classList.contains('open')&&!root.VoidDeviceCamera?.active,wide=open&&pd.classList.contains('expanded');document.body.classList.toggle('v1-side',open&&!wide);document.body.classList.toggle('v1-wide',wide);}
   const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);
- root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
+ root.VoidMissionGuide={missionPlaceRoute,escortGoal,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
 })(globalThis);

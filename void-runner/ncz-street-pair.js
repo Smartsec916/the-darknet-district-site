@@ -241,7 +241,7 @@
   const herArea=id=>areaOfPlan(planOf(id));
   function catArea(){const P=planOf(CAT_ID);if(P)return areaOfPlan(P);const w=out();return w?herArea(w.id):'avenue';}
   // the ground under a spot (pavement slabs stand about 0.18 m up): the area data, else the last known height
-  const yAt=(x,z,last)=>{const g=AR?AR.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:PAVE;};
+  const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=AR?AR.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:PAVE;};   // on the stairs down to the tunnels (20 Nov 2026): the steps' height
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
   const cam=()=>scene?.activeCamera?.globalPosition||null;
   // The pavement's top (the sidewalk slabs stand about 0.18 m above the road): read from the built street once, under Reverie's spot.
@@ -338,24 +338,29 @@
      player (walker) is followed or led: other players never move this player's NPC. Returns {clip, speed, seat: {x, y, z, yaw} while she sits in the cab}. */
   const escorts={};let frustum=null,frustumAt=-1;
   function seen(x,z){const cam=scene.activeCamera;if(!cam)return true;try{if(frustumAt!==clock){frustumAt=clock;frustum=B.Frustum.GetPlanes(cam.getTransformationMatrix());}return B.Frustum.IsPointInFrustum(new B.Vector3(x,PAVE+.8,z),frustum);}catch{return true;}}
-  function taxiJob(){const T=root.VoidRoadTaxi,R=root.VoidRoadTaxiRules,w=T&&T.world,j=w&&w.job;if(!j||j.released||!j.cab)return null;return {id:j.cab.id+':'+(j.dest&&j.dest.id),phase:j.cab.phase,dest:j.dest&&j.dest.id,released:false,cab:{x:j.cab.x,z:j.cab.z,yaw:j.cab.yaw},doors:R?R.doorPoints(j.cab):[]};}
+  function taxiJob(){const T=root.VoidRoadTaxi,R=root.VoidRoadTaxiRules,w=T&&T.world,j=w&&w.job;if(!j||j.released||!j.cab)return null;const did=j.dest&&j.dest.id;return {id:j.cab.id+':'+did,phase:j.cab.phase,dest:did,far:!!(root.VoidQuarters?.FAR||[]).some(f=>f.id===did),released:false,cab:{x:j.cab.x,z:j.cab.z,yaw:j.cab.yaw},doors:R?R.doorPoints(j.cab):[]};}
+  const taxiCrossing=()=>{try{return !!root.VoidRoadTaxi?.crossing||(typeof mode!=='undefined'&&mode==='preparing');}catch{return false;}};
   const tell=(npc,P,ev,e,extra)=>{try{root.VoidStreetPair?.onEscort?.({npc,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z,...(extra||{})});}catch{}};
   function escTick(who,npc,P,body,dt,isCat){const E=root.VoidNPCEscort;if(!E)return {clip:'idle',speed:0,seat:null};let e=escorts[who];
    if(!e||e.key!==P.key){e=escorts[who]={key:P.key,st:{x:body.x,z:body.z,yaw:body.yaw||0,phase:null},trail:{pts:[],shifted:0},cab:null,told:null};
-    const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;if(r&&r.unarmed)e.st.unarmed=true;}
-   const st=e.st,me=player(),meP=me&&Number.isFinite(me.x+me.z)?{x:me.x,z:me.z}:null,md=typeof mode!=='undefined'?mode:'',walking=md==='walking',riding=md==='road-taxi',job=P.kind==='their-cab'||P.kind==='shared-cab'?taxiJob():null;
+    const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;if(Number.isFinite(r.yaw))e.st.yaw=r.yaw;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;if(r&&r.unarmed)e.st.unarmed=true;
+    // carried with the player (npc-escort-across.js): still in the taxi through a gate's bay, or come through a link (ride / phase)
+    if(r&&r.ride==='in-cab')e.st.ride='in-cab';if(r&&E.CAB.has(P.kind)&&r.phase==='in-cab')e.st.phase='in-cab';}
+   const st=e.st,me=player(),meP=me&&Number.isFinite(me.x+me.z)?{x:me.x,z:me.z}:null,md=typeof mode!=='undefined'?mode:'',walking=md==='walking',riding=md==='road-taxi',job=taxiJob();
    if(walking&&meP)E.trailPush(e.trail,meP);
-   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,door:P.door||null,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job};
+   const inp={area:P.area||'avenue',me:riding?null:meP,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:isCat,trail:e.trail,seen:seen(st.x,st.z),kind:P.kind,stop:P.stop,walking,riding,job:E.CAB.has(P.kind)?job:null,crossing:taxiCrossing()};
    if(P.kind==='their-cab'||P.kind==='shared-cab')inp.me=meP;
-   const ev=P.kind==='follow-them'?E.lead(st,inp):P.kind==='they-follow'?E.follow(st,inp):E.cab(st,inp);
+   // a follow / lead step's taxi (20 Nov 2026): she rides along in the player's cab (the cat does not: it waits); the walking rules wait while the ride has her
+   let rv=null;if(!E.CAB.has(P.kind)&&E.rideAlong){const rr=E.rideAlong(st,{me:meP,job,riding,dt,set:P.set,crossing:inp.crossing,can:!isCat});rv=rr.ev;if(rv==='ride-out'||rv==='ride-left'){e.trail.pts.length=0;e.trail.shifted=0;}if(rr.busy){if(job&&st.ride==='in-cab')e.cab=job.cab;}}
+   const ev=st.ride==='in-cab'||st.ride==='to-cab'?null:P.kind==='follow-them'?E.lead(st,inp):P.kind==='they-follow'?E.follow(st,inp):E.cab(st,inp);
    if(st.want==='hail'){const T=root.VoidRoadTaxi,k=E.kerb(st,P.area);const res=T&&T.hailFor?T.hailFor(k.call||{x:k.x,z:k.z-.8},P.stop,P.name):{ok:false,reason:'Street taxis are not running.'};if(!res.ok&&e.told!==res.reason){e.told=res.reason;tell(npc,P,'hail-failed',e,{reason:res.reason});}}
    if(job&&st.phase==='in-cab')e.cab=job.cab;
-   let seat=null;if(st.phase==='in-cab'&&e.cab){const R=root.VoidRoadTaxiRules,sp=R&&R.companionSeat?R.companionSeat(e.cab):{x:e.cab.x,y:0,z:e.cab.z,yaw:e.cab.yaw};seat=sp;st.x=sp.x;st.z=sp.z;st.yaw=sp.yaw;}
-   if(ev==='out'||(ev==='kerb'||ev==='follow')&&st.out){// out of the cab: beside it, the side away from the player
-    const R=root.VoidRoadTaxiRules,c=e.cab;st.out=false;if(c&&R){const ds=R.doorPoints(c),blocked=p=>{try{return !!root.VoidExplorer?.blocked?.(p.x,p.z,typeof walkingLocation!=='undefined'?walkingLocation:null);}catch{return false;}};
+   let seat=null;if((st.phase==='in-cab'||st.ride==='in-cab')&&e.cab){const R=root.VoidRoadTaxiRules,sp=R&&R.companionSeat?R.companionSeat(e.cab):{x:e.cab.x,y:0,z:e.cab.z,yaw:e.cab.yaw};seat=sp;st.x=sp.x;st.z=sp.z;st.yaw=sp.yaw;}
+   if(ev==='out'||(ev==='kerb'||ev==='follow')&&st.out||rv==='ride-out'||rv==='ride-left'){// out of the cab: beside it, the side away from the player
+    const R=root.VoidRoadTaxiRules,c=e.cab;st.out=false;st.rideOut=false;if(c&&R){const ds=R.doorPoints(c),blocked=p=>{try{return !!root.VoidExplorer?.blocked?.(p.x,p.z,typeof walkingLocation!=='undefined'?walkingLocation:null);}catch{return false;}};
      const pick=ds.filter(p=>!blocked(p)).sort((a,b)=>(meP?Math.hypot(b.x-meP.x,b.z-meP.z)-Math.hypot(a.x-meP.x,a.z-meP.z):0))[0]||ds[2];if(pick){st.x=pick.x;st.z=pick.z;st.yaw=c.yaw||0;}}e.cab=null;}
    body.x=st.x;body.z=st.z;body.yaw=st.yaw;
-   if(ev)tell(npc,P,ev,e);
+   if(ev)tell(npc,P,ev,e);if(rv&&rv!==ev)tell(npc,P,rv,e,{ride:st.ride||null});
    return {clip:seat?'sit':st.clip||'idle',speed:st.speed||0,seat};}
   // ---- the cat ----
   let cat=null;   // {node, bones, x, z, yaw, gait, sit, mode, ...}
@@ -458,8 +463,8 @@
   const lamp=quality==='low'?null:new B.PointLight('street-pair-lamp',new B.Vector3(SEAT.x,PAVE+1.92,WALL-1.05),scene);if(lamp){lamp.parent=parent;lamp.diffuse=B.Color3.FromHexString('#ffd2a8');lamp.specular=B.Color3.FromHexString('#ffb48a').scale(.4);lamp.intensity=16;lamp.range=7;lamp.includedOnlyMeshes=[];owned.push(lamp);}
   function lit(n){if(!lamp||!n)return;for(const m of n.getChildMeshes(false))if(!lamp.includedOnlyMeshes.includes(m))lamp.includedOnlyMeshes.push(m);lamp.includedOnlyMeshes=lamp.includedOnlyMeshes;}
   function lampTo(){if(!lamp)return;const h=herNow(),c=cat;const x=h?h.x:c?c.x:SEAT.x,z=Math.min(WALL-1.05,(h?h.z:c?c.z:SEAT.z)-1.05);lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
-  function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&mode==='walking')ask();const c=cam();tickHer(dt,c);talkSync(dt,!!her&&her.node.isEnabled());tickCat(dt,c);lampTo();}
-  const self={tick,stats:()=>({held:Object.keys(held),pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,here:[...HERE],herArea:out()?herArea(out().id):null,catArea:catArea(),talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{area:herArea(her.p.id),id:her.p.id,plan:her.s.planKey||null,act:her.s.pact||null,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z,yaw:her.node.rotation.y}:null,cat:cat?{mode:cat.mode,plan:cat.planKey||null,act:cat.pact||null,pet:!!wl()?.interactions?.includes(catItem),x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null,escort:Object.fromEntries(Object.entries(escorts).map(([w,e])=>[w,{key:e.key,phase:e.st.phase,x:+e.st.x.toFixed(2),z:+e.st.z.toFixed(2),trail:e.trail.pts.length}]))}),
+  function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&(mode==='walking'||mode==='road-taxi'))ask();const c=cam();tickHer(dt,c);talkSync(dt,!!her&&her.node.isEnabled());tickCat(dt,c);lampTo();}
+  const self={tick,stats:()=>({held:Object.keys(held),pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,here:[...HERE],herArea:out()?herArea(out().id):null,catArea:catArea(),talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{area:herArea(her.p.id),id:her.p.id,plan:her.s.planKey||null,act:her.s.pact||null,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z,yaw:her.node.rotation.y}:null,cat:cat?{mode:cat.mode,plan:cat.planKey||null,act:cat.pact||null,pet:!!wl()?.interactions?.includes(catItem),x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null,escort:Object.fromEntries(Object.entries(escorts).map(([w,e])=>[w,{key:e.key,npc:w==='cat'?CAT_ID:her?.p?.id||null,phase:e.st.phase,ride:e.st.ride||null,x:+e.st.x.toFixed(2),z:+e.st.z.toFixed(2),yaw:+(e.st.yaw||0).toFixed(2),trail:e.trail.pts.length,here:w==='cat'?!!cat:!!her}]))}),
    get her(){return her;},get cat(){return cat;},catItem,setClock(fn){now=fn||clockFn;asked=-1;},talkItems,
    dispose(){disposed=true;talkOff();catLeave();scene.onBeforeAnimationsObservable.remove(lookBefore);scene.onAfterAnimationsObservable.remove(lookAfter);lookUndo();leave();cat?.node?.dispose?.();cat=null;for(const o of owned)o.dispose?.();if(root.VoidStreetPair&&root.VoidStreetPair.live===liveFn)root.VoidStreetPair.live=null;}};
   // the editor's map shows where she is now (Developer Tools)
