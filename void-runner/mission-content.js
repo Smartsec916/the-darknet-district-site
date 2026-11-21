@@ -649,9 +649,19 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function timersNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees),f=s.story.flags;
   for(const t of env.trees){if(gated.has(t.id)&&f[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
    const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o)break;const key=m.id+'/'+o.id,num=(v,d)=>Number.isSafeInteger(v)&&v>=0?Math.min(v,d):d;
-   if(delayed(s,m,o)){const fl=delayFlag(m.id,o.id);out.push({key,mission:m.id,step:o.id,kind:'delay',flag:fl,left:num(f[fl],o.delay),total:o.delay});}
+   if(delayed(s,m,o)){const fl=delayFlag(m.id,o.id);out.push({key,mission:m.id,step:o.id,kind:'delay',flag:fl,left:num(f[fl],o.delay),total:o.delay,stepKind:o.kind});}
    else if(o.kind==='wait'){const fl=waitFlag(m.id,o.id),x={key,mission:m.id,step:o.id,kind:'wait',flag:fl,left:num(f[fl],o.hold||1),total:o.hold||1};if(o.near&&o.npc){x.npc=o.npc;x.near=o.near;}out.push(x);}break;}}
   return out;}
+ /* Does a timer count now (live-content.js timerTick)? c: {hidden (the tab), blocked (live-content.js nearBlocked: not on foot, or a conversation / menu / pod wake-up /
+    creator / KeyMap open), busy (one of those windows open), mode (game.js), callBusy (a call is being heard: the V1's call on screen or a recorded line playing)}.
+    A CALL step's delay (the owner, 21 Nov 2026: Mission 012's cockpit calls, all four within about a minute) also counts in the cockpit (flight, docked, arriving),
+    and only once the call before it has been heard: it comes `delay` seconds after the last call ends, never on top of it. Every other timer: on foot only, as before. */
+ const CALL_TIMER_MODES=['walking','play','dock','arrival'];
+ function timerRuns(x,c){if(!x||!c||c.hidden)return false;if(x.kind==='delay'&&x.stepKind==='call'){if(c.callBusy)return false;return !c.busy&&CALL_TIMER_MODES.includes(c.mode);}return !c.blocked;}
+ /* A use of a thing (u: {mission, apt, object, mod?}) that the step in progress of that mission is waiting for: an apt-use or collect step naming it, or a sneak step
+    reaching it (the owner, 21 Nov 2026: Halden's computer in 005, the manager's computer in 006 show only the mission's content then, not their everyday description). */
+ function stepWants(s,env,u){if(!u||!u.mission||!u.object)return false;
+  return mechanicsNow(s,env).some(x=>x.mission===u.mission&&!x.delayed&&['apt-use','collect','sneak'].includes(x.kind)&&x.o.object===u.object&&(!x.o.apt||!u.apt||x.o.apt===u.apt)&&(!x.o.mod||!u.mod||x.o.mod===u.mod));}
  /* A timer's countdown (whole seconds left; 0: done). A delay that has run stays 0 until its step is done; the game then sends {type:'timer'} (a delay) or {type:'wait', step}. */
  function timerSet(s,x,left){s.story.flags[x.flag]=Math.max(0,Math.ceil(left));}
  /* ANIMATION STEPS (npc-gestures.js) in progress now: [{key ('<mission>/<step>'), mission, step, npc, clip, hold}]. The game plays the clip and sends {type:'anim', step:key}
@@ -766,7 +776,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
    if(ESCORT.includes(o.kind)){const F=(NEX()&&NEX().FIELDS[o.kind])||[];for(const k of F)if(o[k]!=null&&o[k]!=='')x[k]=k==='to'?{x:o.to.x,z:o.to.z}:o[k];}
    {const d=secs(o.delay,1,TIME.delay);if(d)x.delay=d;}   // a delay before the step starts
-   if(o.unseen===true&&MM&&MM.UNSEEN_KINDS.includes(o.kind))x.unseen=true;
+   if(o.unseen===true&&MM&&MM.UNSEEN_KINDS.includes(o.kind))x.unseen=true;if(MM&&MM.ON_SPOTTED&&MM.ON_SPOTTED.includes(o.onSpotted)&&(x.unseen===true||o.kind==='sneak'))x.onSpotted=o.onSpotted;
    if(MM&&MM.KINDS.includes(o.kind)){for(const k of ['near','close','minutes','stage','feed','apt','mod','object','evidence'])if(o[k]!=null&&o[k]!=='')x[k]=clone(o[k]);if(o.kind==='observe'&&Number.isInteger(o.hold))x.hold=o.hold;if(o.kind==='wait-game'||o.kind==='feed'||o.kind==='flight'||o.kind==='apt-leave'||o.kind==='sneak'||o.kind==='tail'||o.kind==='observe'){delete x.item;if(o.kind!=='flight')delete x.place;}}   // the reusable mechanics' own fields
    if(typeof o.app==='string'&&STEP_APPS.includes(o.app))x.app=o.app;   // the V1 app to highlight (optional; a photo step implies the Camera anyway)
    if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(typeof o.mod==='string'&&o.mod)x.mod=o.mod;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
@@ -940,7 +950,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    const w=st.when||{},who=st.how==='notification'&&w.kind==='near'?w.npc||m.giver:m.giver,G=GVS(),c=SC.check(l,s,{who,street:G&&G.streetTime?G.streetTime(at):at,world:SC.needsWorld(l)?W():null});
    out.push({tree:t.id,mission:m.id,armed:s.story.flags[armFlag(m.id)]===true,ok:c.ok,each:c.each});}
   return out;}
- const api={quietStart,onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={quietStart,onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,timerRuns,CALL_TIMER_MODES,stepWants,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

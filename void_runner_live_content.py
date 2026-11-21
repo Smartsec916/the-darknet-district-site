@@ -2128,7 +2128,8 @@ FLAGNAME = re.compile(r'^[a-zA-Z][a-zA-Z0-9_-]{0,47}$')
 CONTRACT_FLAGS = ('rook-first-delivery-done',)  # mission-content.js CONTRACT_FLAGS: story flags other systems read by their exact name
 MECH_KINDS = ('observe', 'overhear', 'sneak', 'collect', 'report', 'feed', 'call', 'wait-game', 'tail', 'apt-leave', 'flight', 'v1-app')
 MECH_UNSEEN = ('apt-enter', 'apt-use', 'collect', 'apt-leave', 'sneak', 'hack')
-MECH_FIELDS = ['minutes', 'stage', 'evidence', 'unseen', 'close']
+MECH_FIELDS = ['minutes', 'stage', 'evidence', 'unseen', 'close', 'onSpotted']
+MECH_ON_SPOTTED = ('alarm',)  # mission-mechanics.js ON_SPOTTED (21 Nov 2026): seen, a few seconds to hide, then the guards open fire
 FEED_STAGES = ('open', 'watched', 'recorded', 'saved')
 FLIGHT_STAGES = ('board', 'launch', 'jump', 'dock')
 CAST_KEYS = ['id', 'name', 'model', 'place', 'x', 'z', 'y', 'yaw', 'clip', 'from', 'until', 'route', 'speed']
@@ -2220,6 +2221,8 @@ def mechanics_step_problems(m, o, givers, subjects, places, locations, every_evi
     cast = {c.get('id') for c in (m.get('cast') or []) if isinstance(c, dict)}
     if o.get('unseen') is not None and (o['unseen'] is not True or k not in MECH_UNSEEN):
         out.append('"without being seen" is only for a go into / use / collect / leave / sneak / hack step.')
+    if o.get('onSpotted') is not None and (o['onSpotted'] not in MECH_ON_SPOTTED or not (o.get('unseen') is True or k == 'sneak')):
+        out.append('"they shout, then open fire" is only for a step done without being seen.')
     if o.get('minutes') is not None and k != 'wait-game':
         out.append('only an in-game wait has minutes.')
     if o.get('stage') is not None and k not in ('feed', 'flight'):

@@ -35,6 +35,7 @@ function play(x,s0){let s=s0;const id=n=>x.MS['M0'+String(n).padStart(2,'0')].id
  const oh=ev(x,s,{type:'overhear',step:K(id(4),'overhear')});assert.ok(oh.notes.some(n=>/^EVIDENCE/.test(n)),'the conversation is kept as evidence');assert.ok(x.MM.hasEvidence(s,'tea-talk'));
  const rep=ev(x,s,{type:'report',step:K(id(4),'report')});assert.equal(rep.completed,true);assert.equal(rep.messages[0].from,'milked-fish');assert.match(rep.messages[0].text,/^Fifty-one percent\?/);s=reload(x,s);
  // 005: Iris calls; the apartment; the hack; the computer; COPY TO V1; out; report to Admin
+ place(x,s,['avenue']);assert.equal(s.universe.missions[id(5)],undefined,'Iris calls a while after Fish\'s reply (the owner, 21 Nov 2026)');passTime(s,20);
  const i5=place(x,s,['avenue']);assert.equal(i5.offered,true);assert.match(i5.messages[0].text,/^Fish sent me the address\./);place(x,s,['avenue']);assert.equal(step(x,s,'M005'),'find-105');
  place(x,s,['avenue'],{apt:id(5)+'/reyes',mod:'hall'});assert.equal(step(x,s,'M005'),'hack-door');
  ev(x,s,{type:'hack',ap:'reyes/hall.d0',mission:id(5)});place(x,s,['avenue'],{apt:id(5)+'/reyes',mod:'flat'});ev(x,s,{type:'apt-use',mission:id(5),apt:'reyes',object:'computer',mod:'flat'});

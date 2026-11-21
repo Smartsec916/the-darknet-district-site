@@ -162,7 +162,8 @@
    else if(obj==='screen'){const v=z?.toggle?.('screen');const k=visit?.inst?.key;if(k){screenSet.add(k);if(v===false)screenOff.add(k);else screenOff.delete(k);}msg=v===false?'You switch the screen off.':'You switch the screen on. The city’s adverts, as on every street screen.';}
    else if(obj==='safe'){z?.toggle?.('safe');msg=TEXT.safe[st];}else if(obj==='computer')msg=TEXT.computer[st];
    else if(obj==='vending'){const g=(root.VoidPodVending?.products||[]).filter((d,i)=>(i+({rundown:0,normal:3,luxury:6}[st]||0))%3===0).slice(0,5);msg=({rundown:'VENDING (old, scuffed, half the lights dead): ',normal:'VENDING: ',luxury:'PANTRY DISPENSER: '}[st])+(g.length?g.map(d=>d.name+' '+Number(d.price).toFixed(2)).join(' · '):'food and drinks')+'. (Buying here comes later.)';}
-   note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod:wl.modId||null});}catch{}});}
+   // (the owner, 21 Nov 2026) the thing the mission step in progress needs (Halden's computer in 005) shows only the mission's content, not its everyday description
+   if(!(wl?.apt&&!['lights','screen'].includes(obj)&&LC()?.stepWants?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod:wl.modId||null})))note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod:wl.modId||null});}catch{}});}
  // walking through an open door inside: hallway door -> apartment, the apartment's door -> hallway, the hallway's street door -> street
  setInterval(()=>{try{const wl=here(),z=root.VoidBabylon?.zone;if(!wl||wl.modular||!z||busy||mode!=='walking'||typeof walker==='undefined'||!walker)return;
   for(const d of z.doors||[]){if(!(d.t>.9))continue;const dx=A.ORIGIN[0]+d.at[0]-walker.x,dz=A.ORIGIN[1]+d.at[1]-walker.z;if(dx*dx+dz*dz>.36)continue;
