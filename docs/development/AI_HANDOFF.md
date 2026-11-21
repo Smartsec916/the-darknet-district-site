@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: POSER AND DOWNSIZER IMPROVEMENTS (local, not deployed)
+
+- Dragging a joint now rotates a single parent segment relative to the start of the drag (bounded to 60 degrees per gesture) instead of accumulating rotations on two ancestors. Fine adjustment offers 5-degree local axis steps. Upper-body pose templates adjust recognizable humanoid arm chains for relaxed arms, wave, pointing, hands up and hands on hips; inspect and adjust results manually. These are not full-body IK or collision-aware poses.
+- Existing/imported clip playback can be slowed to 0.1x, paused for editing or scrubbed to a percentage of the clip, then resumed. Edited rotations can be downloaded as a pose or captured in a custom motion; original clips are not overwritten. Guide explains the workflow.
+- Preview-only scene controls include a floor grid, simplified copies of VR sofa/bed/chair/table/stool dimensions, a wall, local GLB props and independent reference positioning. Rotation-only clip export does not include placement or prop geometry. The release checklist reports saved model, required clips, description, dialogue and recorded voice coverage; incomplete imported models remain private and are not registered in the VR picker until all required names exist. Explicit clip mappings duplicate GLB animation metadata, preserving original clips. The transfer supports incomplete drafts. Public publishing still requires a reviewed game build.
+- Downsizing now tries textures down to 128 px, optionally converts opaque base-color/emissive PNGs to JPEG, and compacts eligible unshared index, UV and weight streams. Original topology, skin and animation accessors are retained. No guarantee of 15 MB if geometry or animation data dominates. Free animation download links are in the Guide and Animations tabs. Focused tests passed (48 passed, one licensed asset skip); actual mobile posing requires testing.
+
 ### 21 Nov 2026: MOBILE COMPANION MODEL TOOLS (local, requires owner release approval)
 
 - Animation templates: categorize clips actually present on selected model; speed/loop preview; capture, replace, remove and interpolate up to 60 rotation-only keyframes; download/load JSON and export a new animation GLB on an owner-imported model only. No AI motion generation, translational root motion editing, or automatic publishing. Focused tests cover category and frame validation plus GLB export metadata; actual phone GPU/drag preview still requires testing.
