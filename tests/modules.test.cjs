@@ -100,7 +100,7 @@ test('walking areas: one per cluster, walls with door gaps, closed-door collisio
 });
 
 test('office and shop entrances along the streets; the page, the inventory and the server read the same lists',()=>{
- fresh();const X=Ap(),M=Mo(),d=X.doors(),biz=d.filter(x=>x.family==='office'||x.family==='commercial');assert.ok(d.filter(x=>x.family==='office').length>=4&&d.filter(x=>x.family==='commercial').length>=6);
+ fresh();const X=Ap(),M=Mo(),d=X.doors(),biz=d.filter(x=>(x.family==='office'||x.family==='commercial')&&x.scene!=='corporate');assert.ok(d.filter(x=>x.family==='office').length>=4&&d.filter(x=>x.family==='commercial').length>=6);
  for(const b of biz){assert.match(b.id,/^biz-(avenue|main)-[nsew]-\d{1,3}$/);if(b.family==='office')assert.equal(b.quarter,'avenue');else assert.ok(['oldtown','far-south'].includes(b.quarter));for(const o of d)if(o!==b)assert.ok(Math.hypot(o.x-b.x,o.z-b.z)>2.5,b.id+' clear of '+o.id);assert.ok(X.apOf(b.id).door);}
  const inv=JSON.parse(read('void_runner_admin_inventory.json'));assert.deepEqual(inv.modules,JSON.parse(JSON.stringify(M.inventory())),'run node tools/admin-inventory.cjs');assert.equal(inv.apartments.doors[biz[0].id].family,biz[0].family);
  const html=read('void-runner.html'),i=f=>html.indexOf('void-runner/'+f+'"');assert.ok(i('apartments.js')<i('modules.js')&&i('modules.js')<i('apartment-build.js')&&i('apartment-build.js')<i('module-build.js')&&i('apartment-integration.js')<i('module-integration.js'));

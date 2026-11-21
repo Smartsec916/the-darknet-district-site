@@ -123,7 +123,7 @@ test('the base pistol: sold by Admin for the Combat Balance price, bought once, 
 
 test('server parity: the Python checks know the same fields and lists',()=>{
  const py=read('void_runner_live_content.py'),inv=Z.inventory();
- for(const f of ['def zone_table_problems','def combat_problems','def zone_step_problems','def zone_shape_problems',"'characters', 'zones']","'feeds', 'combat']","'target', 'zone', 'until', 'spawn'"])assert.ok(py.includes(f),f);
+ for(const f of ['def zone_table_problems','def combat_problems','def zone_step_problems','def zone_shape_problems',"'characters', 'zones']","'feeds', 'combat'","'target', 'zone', 'until', 'spawn'"])assert.ok(py.includes(f),f);
  const m=/ZONE_DEFAULT = \{'zones': \[([^\]]*)\], 'figures': \[([^\]]*)\]/.exec(py);assert.ok(m);assert.deepEqual(m[1].split(',').map(x=>x.trim().replace(/'/g,'')),inv.zones);assert.deepEqual(m[2].split(',').map(x=>x.trim().replace(/'/g,'')),inv.figures);
  assert.match(read('void_runner_drafts.py'),/'characters', 'zones'\]/);assert.deepEqual(JSON.parse(read('void_runner_admin_inventory.json')).zones,inv);
  const html=read('void-runner.html');assert.ok(html.indexOf('void-runner/zones.js')<html.indexOf('void-runner/mission-content.js'));assert.ok(html.indexOf('void-runner/zone-integration.js')>html.indexOf('void-runner/module-integration.js'));

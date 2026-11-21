@@ -3,11 +3,11 @@
      District's security vestibule, into NULL, through a gate lane) and how the arrow moves are guide-route.js's.
    - The yellow marker over the person to photograph (one marker over the middle of Juno Vex and Halden Reyes), drawn only while that photo step is in progress AND the mission is tracked. Not before, not after.
    - Contextual hints for the photo and the send-a-photo steps: open the V1 (the player's own key), open Camera, take the photo, open Messages, open the conversation,
-     ATTACH, SEND. Small, yellow-orange, at the top of the screen under the tracked-mission line (clear of the V1 banner at the bottom right, the KeyMap box and the [E] prompt); each goes once it is done (it follows what the player is actually doing). Every hint is tagged
+     ATTACH, SEND. Small, in the mission yellow (the arrow's colour), at the top of the screen under the tracked-mission line (clear of the V1 banner at the bottom right, the KeyMap box and the [E] prompt); each goes once it is done (it follows what the player is actually doing). Every hint is tagged
      data-help="1" for the owner's future Help switch, and hidden when story.flags.helpOff is true. */
 (function(root){
  'use strict';
- const LC=()=>root.VoidLiveContent,P=()=>root.VoidPlaces;
+ const LC=()=>root.VoidLiveContent,P=()=>root.VoidPlaces,Y=()=>root.VoidGuideRoute?.COLOR||{hex:'#ffd678'};   // the mission yellow (guide-route.js COLOR): the arrow's colour
  function subjectPoint(id){try{const x=root.VoidPhotoSubjects?.get?.(id);if(x&&x.node&&!x.node.isDisposed?.()){const p=x.node.getAbsolutePosition();return [p.x,1.7,p.z];}}catch{}
   if(id==='juno-vex'&&root.VoidNightclub?.JUNO){const j=root.VoidNightclub.JUNO;return [j.x,1.7,j.z];}return null;}
  // A person inside Milked (Mission 003: Eva at reception, Fish in her office) while the player is out on the street or in the other part of the building: the goal is their
@@ -89,15 +89,20 @@
   const ps=xs.map(x=>x.node.getAbsolutePosition()),p={x:ps.reduce((a,q)=>a+q.x,0)/ps.length,y:Math.min(...ps.map(q=>q.y)),z:ps.reduce((a,q)=>a+q.z,0)/ps.length},v=new B.Vector3(p.x,p.y+1.95,p.z);if(B.Vector3.TransformCoordinates(v,cam.getViewMatrix()).z<.3)return;
   const sp=B.Vector3.Project(v,B.Matrix.Identity(),sc.getTransformMatrix(),cam.viewport.toGlobal(W,H));if(sp.x<-40||sp.x>W+40||sp.y<-40||sp.y>H+40)return;
   const d=Math.hypot(p.x-walker.x,p.z-walker.z),r=Math.max(8,Math.min(14,200/Math.max(d,1))),pulse=.85+.15*Math.sin(performance.now()/180);
-  ctx.save();ctx.translate(sp.x,sp.y);ctx.shadowColor='#000';ctx.shadowBlur=8;ctx.fillStyle='#f2b33d';ctx.strokeStyle='#0b0f17';ctx.lineWidth=2.5;ctx.globalAlpha=pulse;
+  ctx.save();ctx.translate(sp.x,sp.y);ctx.shadowColor='#000';ctx.shadowBlur=8;ctx.fillStyle=Y().hex;ctx.strokeStyle='#0b0f17';ctx.lineWidth=2.5;ctx.globalAlpha=pulse;
   ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r,0);ctx.lineTo(0,r);ctx.lineTo(-r,0);ctx.closePath();ctx.stroke();ctx.fill();ctx.globalAlpha=1;ctx.shadowBlur=6;
-  ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.fillStyle='#f2b33d';ctx.fillText('TARGET · '+Math.round(d)+' m',0,r+16);ctx.restore();
+  ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.fillStyle=Y().hex;ctx.fillText('TARGET · '+Math.round(d)+' m',0,r+16);ctx.restore();
   try{root.VoidMissionGuide.markerShown=performance.now();}catch{}}
  if(typeof draw==='function'){const prior=draw;draw=function(){prior.apply(this,arguments);try{drawSubject();}catch{}};}
 
  // ---- contextual hints ----
  const hint=document.createElement('div');hint.id='mission-hint';hint.dataset.help='1';hint.hidden=true;hint.setAttribute('role','status');hint.setAttribute('aria-live','polite');document.body.appendChild(hint);
- const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;top:134px;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:#ffc35c;background:rgba(24,16,4,.72);border-left:2px solid #ff9f2e;border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:#ffe08a;font-weight:700}';document.head.appendChild(style);
+ const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;top:134px;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--mission-yellow,#ffd678);background:rgba(24,16,4,.72);border-left:2px solid var(--mission-yellow,#ffd678);border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:var(--mission-yellow-text,#ffe7a8);font-weight:700}'
+  // (20 Nov 2026) with the V1 open on the right half, the hint and the tracker above it move to the middle of the free left part and wrap there (at 1366 px the hint sat
+  // under the V1's left edge); with the V1 expanded to the full width, the hint goes to the top-left corner above it. The camera keeps the hint in the middle.
+  +'body.v1-side #mission-hint,body.v1-side #mission-tracker:not([hidden]){left:calc((100vw - 24px - max(430px,50vw - 12px))/2);max-width:calc(100vw - 48px - max(430px,50vw - 12px));box-sizing:border-box;overflow-wrap:anywhere}'
+  +'body.v1-side #mission-hint{top:150px}'   // below the zone chip (top-left, to 140 px)
+  +'body.v1-wide #mission-hint{left:12px;transform:none;top:72px;max-width:min(320px,28vw)}';document.head.appendChild(style);
  const key=()=>{try{return root.VoidInput.label(root.VoidInput.bindings.missionLog||'KeyL');}catch{return 'L';}};
  const name=id=>{try{return LC()?.giverName?.(id)||id;}catch{return id;}};
  /* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */
@@ -112,6 +117,7 @@
  setInterval(()=>{try{
   const s=typeof state!=='undefined'&&state?state:null,off=s?.story?.flags?.helpOff===true,D=root.VoidPersonalDevice,on=typeof mode!=='undefined'&&(mode==='walking'||D?.isOpen);
   const cur=!off&&on?LC()?.step?.():null,h=cur?hintFor({step:cur.step,deviceOpen:!!D?.isOpen,app:D?.app||null,thread:D?.thread||null,attach:D?.attach||{},camera:!!root.VoidDeviceCamera?.active,key:key(),name}):null;
+  {const pd=document.getElementById('personal-device'),open=!!D?.isOpen&&!!pd&&pd.classList.contains('open')&&!root.VoidDeviceCamera?.active,wide=open&&pd.classList.contains('expanded');document.body.classList.toggle('v1-side',open&&!wide);document.body.classList.toggle('v1-wide',wide);}
   const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);
  root.VoidMissionGuide={missionPlaceRoute,escortGoal,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
 })(globalThis);

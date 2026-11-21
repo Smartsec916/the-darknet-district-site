@@ -117,6 +117,20 @@
  function routineStart(p=PAIR[1],rnd=Math.random,cfg=config){const x=between(rnd,[STRETCH.x0+3,STRETCH.x1-3]);return {who:p.id,favourite:p.favourite||null,mode:'walk',x,z:STRETCH.z,dir:rnd()<.5?1:-1,left:between(rnd,cfg.walk),step:null,yaw:0,clip:'walk',once:false,device:null,face:null,sub:null};}
  // the sit clip puts the hips 0.35 m behind the figure's origin (its feet) and 0.65 m up: so she stands that far in front of the ledge's middle
  const seatOf=st=>st.z-.36,frontOf=st=>seatOf(st)-.05;   // the figure's origin while seated (hips over the ledge's middle), and where she stands to sit down
+ /* SEATS THAT FACE ANY WAY (20 Nov 2026: the underground alcoves' benches and crates, ncz-underground.js SEATS {id, x, z (the seat's middle), yaw (the way a sitter faces)}).
+    The same sit-down / sit / stand-up as at the ledges, measured along the way the seat faces: along(st, d) is the point d metres in front of the seat's middle.
+    A ledge (no yaw) faces the road (-z): exactly the numbers above. */
+ const SEAT_BACK=.36,SEAT_FRONT=.41,STEP_OFF=.71;
+ /* How far in front of the seat's middle the figure's origin is while seated: Reverie's and Lace's sit clip puts the hips 0.36 m behind the feet; the street figures'
+    (made givers on a street model) only about 0.08 m, so their runtime sets s.seatBack (npc-made.js SEAT_BACK_STREET) or they float in front of the seat. */
+ const backOf=s=>Number.isFinite(s&&s.seatBack)?s.seatBack:SEAT_BACK;
+ const seatYaw=st=>Number.isFinite(st&&st.yaw)?st.yaw:Math.PI;
+ const along=(st,d)=>Number.isFinite(st.yaw)?{x:st.x+Math.sin(st.yaw)*d,z:st.z+Math.cos(st.yaw)*d}:{x:st.x,z:st.z-d};
+ const UGS=()=>{try{return (typeof module==='object'&&module.exports?require('./ncz-underground.js'):root.VoidUnderground)||null;}catch{return null;}};
+ /* Every seat other than the Avenue's ledges: [{id, x, z, yaw, h}] (the tunnels' alcoves). */
+ function seats(){const U=UGS();return ((U&&U.SEATS)||[]).map(x=>({id:x.id,x:x.x,z:x.z,yaw:x.yaw,h:x.h,w:.5}));}
+ /* The ledge or seat a spot is in front of (to sit on), or null: a ledge as before; a seat when the spot is within 0.6 m of where one stands to sit on it. */
+ function seatNear(t){if(!t)return null;for(const st of STEPS)if(Math.abs(t.x-st.x)<=st.w/2+.3&&t.z>=frontOf(st)-1)return st;for(const st of seats()){const f=along(st,SEAT_FRONT);if(Math.hypot(t.x-f.x,t.z-f.z)<=.6)return st;}return null;}
  function chooseStep(s,rnd,cfg){const near=(a,b)=>Math.abs(a.x-s.x)-Math.abs(b.x-s.x);
   if(s.favourite&&rnd()<cfg.favourite){const f=STEPS.find(t=>t.id===s.favourite);if(f)return f;}
   const ahead=STEPS.filter(t=>(t.x-s.x)*s.dir>1.5).sort(near);return ahead[0]||STEPS.slice().sort(near)[0];}
@@ -135,11 +149,13 @@
     points:[{x, z, action, seconds}]}. She walks there (mode plan-go), does the action (plan-do: a clip, a V1 pose, or the ledge's sit through the usual sit-down / sit /
     stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her
     stretch on foot (never a jump). ACT: an action id -> {clip, device, sit}. */
- const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'walk-on':{clip:'walk',pass:true}};
+ const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'walk-on':{clip:'walk',pass:true},work:{clip:'interact'}};
  const actOf=a=>ACT[a]||{clip:a};
  const FREE=new Set(['walk','run','pause','stop']),PLAN=new Set(['plan-go','plan-do','esc']);   // esc: a mission's follow / lead / cab step (npc-escort.js; run in start())
  function planTarget(s,P){if(P.mode==='stay')return P;const n=P.points.length;s.pi=((s.pi||0)%n+n)%n;return P.points[s.pi];}
- function ledgeNear(t){for(const st of STEPS)if(Math.abs(t.x-st.x)<=st.w/2+.3&&t.z>=frontOf(st)-1)return st;return null;}
+ const ledgeNear=seatNear;
+ /* The seated figure's eased offset (zo, and a clip's own shift) as world x / z: back from the way the seat faces (a ledge: +z, as before). */
+ const seatOffset=(s,off)=>{const st=s&&s.step;if(!off||!st||!Number.isFinite(st.yaw))return {x:0,z:off||0};return {x:-Math.sin(st.yaw)*off,z:-Math.cos(st.yaw)*off};};
  function planNext(s,P){if(P.mode==='path')s.pi=((s.pi||0)+1)%P.points.length;}
  function planDo(s,P,rnd,cfg){const t=planTarget(s,P),a=P.mode==='stay'?pick(rnd,P.actions&&P.actions.length?P.actions:['idle']):t.action,A=actOf(a);s.pact=a;
   if(A.sit){const st=ledgeNear(t);if(st){s.step=st;s.mode='to-step';s.psit=true;s.psec=P.mode==='path'?t.seconds:null;s.psecSet=false;s.device=null;s.face=null;return;}}
@@ -176,24 +192,25 @@
   if(s.mode==='stop'){if(s.face&&ctx.cat){s.face.x=ctx.cat.x;s.face.z=ctx.cat.z;}
    if(s.face){const want=Math.atan2(s.face.x-s.x,s.face.z-s.z),dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*3);}
    if(s.left<=0)toWalk();return s;}
-  if(s.mode==='to-step'){const v=cfg.speed*dt,tx=s.step.x,tz=frontOf(s.step),dx=tx-s.x,dz=tz-s.z,d=Math.hypot(dx,dz);s.clip='walk';
+  if(s.mode==='to-step'){const v=cfg.speed*dt,f=along(s.step,SEAT_FRONT),tx=f.x,tz=f.z,dx=tx-s.x,dz=tz-s.z,d=Math.hypot(dx,dz);s.clip='walk';
    if(d<=v+.02){s.x=tx;s.z=tz;s.mode='settle';s.left=1.1;s.clip='idle';}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return s;}
   if(s.mode==='settle'){// turn to face the road, then sit down through the transition clip
-   const want=Math.PI,dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*5);s.clip='idle';
-   if(s.left<=0||Math.abs(dy)<.06){s.yaw=want;s.mode='sit-down';s.left=cfg.len['sit-enter'];s.clip=CLIPS.sitDown;s.once=true;s.z0=s.z;}return s;}
+   const want=seatYaw(s.step),dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*5);s.clip='idle';
+   if(s.left<=0||Math.abs(dy)<.06){s.yaw=want;s.mode='sit-down';s.left=cfg.len['sit-enter'];s.clip=CLIPS.sitDown;s.once=true;s.z0=s.z;s.sa0=SEAT_FRONT;}return s;}
   const sh=cfg.seatShift,ease=()=>{if(!s.zo)return;s.zoLeft-=dt;s.zo=s.zoLeft<=0?0:s.zo0*s.zoLeft/sh.blendFor;},shift=v=>{s.zo=s.zo0=v;s.zoLeft=sh.blendFor;};   // zo: an offset eased out over the cross-fade, so hips and feet stay put when the clip changes
   if(s.mode==='sit-down'){// she backs onto the ledge as she lowers: the figure moves back as fast as the clip slides her feet forward, so the feet stay put
-   const k=Math.min(1,1-Math.max(0,s.left)/cfg.len['sit-enter']);s.z=s.z0+sh.enter*k;s.clip=CLIPS.sitDown;
-   if(s.left<=0){s.z=seatOf(s.step);shift(sh.sit);s.mode='sit';s.left=between(rnd,cfg.sit);s.clip=CLIPS.sit;s.waved=false;s.device=rnd()<.45?'scroll':null;s.devLeft=between(rnd,[8,14]);}return s;}
+   const k=Math.min(1,1-Math.max(0,s.left)/cfg.len['sit-enter']);if(Number.isFinite(s.step.yaw)){const q=along(s.step,(s.sa0??SEAT_FRONT)-sh.enter*k);s.x=q.x;s.z=q.z;}else s.z=s.z0+sh.enter*k;s.clip=CLIPS.sitDown;
+   if(s.left<=0){const bk=backOf(s);if(Number.isFinite(s.step.yaw)){const q=along(s.step,bk);s.x=q.x;s.z=q.z;}else s.z=s.step.z-bk;shift(sh.sit);s.mode='sit';s.left=between(rnd,cfg.sit);s.clip=CLIPS.sit;s.waved=false;s.device=rnd()<.45?'scroll':null;s.devLeft=between(rnd,[8,14]);}return s;}
   if(s.mode==='sit'){ease();s.clip=CLIPS.sit;s.devLeft-=dt;if(s.device&&s.devLeft<=0)s.device=null;
    // a wave from the seat to a player who comes close (once a sit)
    if(!s.waved&&ctx.player&&dist(ctx.player,s)<4.5){s.waved=true;s.device=null;s.sub='wave';s.waveLeft=3.6;}
    if(s.sub==='wave'){s.waveLeft-=dt;s.clip=CLIPS.wave;if(s.waveLeft<=0)s.sub=null;}
-   if(s.left<=0&&s.sub!=='wave'){s.mode='stand-up';s.device=null;s.zo=0;s.z0=seatOf(s.step)+sh.exitStart;s.z=s.z0;s.left=cfg.len['sit-exit'];s.clip=CLIPS.standUp;s.once=true;}return s;}
+   if(s.left<=0&&s.sub!=='wave'){s.mode='stand-up';s.device=null;s.zo=0;s.z0=s.step.z-backOf(s)+sh.exitStart;s.sa0=backOf(s)-sh.exitStart;if(Number.isFinite(s.step.yaw)){const q=along(s.step,s.sa0);s.x=q.x;s.z=q.z;}else s.z=s.z0;s.left=cfg.len['sit-exit'];s.clip=CLIPS.standUp;s.once=true;}return s;}
   if(s.mode==='stand-up'){// she leans forward and rises over her feet: the figure moves forward with her hips
-   const k=Math.min(1,1-Math.max(0,s.left)/cfg.len['sit-exit']);s.z=s.z0-sh.exit*k;s.clip=CLIPS.standUp;
-   if(s.left<=0){s.z+=sh.walk;shift(-sh.walk);s.mode='step-off';s.clip='walk';s.dir=rnd()<.5?1:-1;}return s;}
-  if(s.mode==='step-off'){ease();const v=cfg.speed*dt,tz=frontOf(s.step)-.3;s.clip='walk';s.yaw=Math.PI;s.z-=v;if(s.z<=tz){s.step=null;s.zo=0;toWalk();}return s;}
+   const k=Math.min(1,1-Math.max(0,s.left)/cfg.len['sit-exit']),fy=Number.isFinite(s.step.yaw);s.sa=(s.sa0??0)+sh.exit*k;if(fy){const q=along(s.step,s.sa);s.x=q.x;s.z=q.z;}else s.z=s.z0-sh.exit*k;s.clip=CLIPS.standUp;
+   if(s.left<=0){if(fy){s.sa-=sh.walk;const q=along(s.step,s.sa);s.x=q.x;s.z=q.z;}else s.z+=sh.walk;shift(-sh.walk);s.mode='step-off';s.clip='walk';s.dir=rnd()<.5?1:-1;}return s;}
+  if(s.mode==='step-off'){ease();const v=cfg.speed*dt;s.clip='walk';if(Number.isFinite(s.step.yaw)){s.yaw=s.step.yaw;s.sa=(s.sa??SEAT_FRONT)+v;const q=along(s.step,s.sa);s.x=q.x;s.z=q.z;if(s.sa>=STEP_OFF){s.step=null;s.zo=0;toWalk();}return s;}
+   const tz=frontOf(s.step)-.3;s.yaw=Math.PI;s.z-=v;if(s.z<=tz){s.step=null;s.zo=0;toWalk();}return s;}
   return s;}
  /* Whom she glances at and how far. body: {x, z, yaw} (her figure); head: {x, y, z}; eyes: [{x, y, z}] the players' eyes (the local one and others in the
     scene). Returns {i (index of the nearest player in range and in front), yaw, pitch (clamped, radians, relative to the body), dist} or null. */
@@ -207,7 +224,7 @@
  const canLook=s=>!!s&&s.mode!=='run'&&s.sub!=='dance'&&!s.device;
  // Older names (the first version had only Lace walking).
  const laceStart=(rnd=Math.random,cfg=config)=>routineStart(PAIR[1],rnd,cfg),laceStep=routineStep;
- const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};
+ const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};
  if(typeof module==='object'&&module.exports){module.exports=api;return;}
 
  /* start({B, scene, parent, quality, player, now}) -> {tick(dt), stats(), dispose()}. The figures and the cat appear when their files have loaded. */
@@ -314,7 +331,7 @@
     ctx.plan=null;}   // talked to during the step: she stops and turns to the player (the ordinary hold), then the step goes on
    if(!Number.isFinite(her.s.x+her.s.z+her.s.yaw+(her.s.zo||0))){dbg.nan.her++;her.s=routineStart(her.p,rnd,cfg);}
    if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way
-   const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);her.y+=(yAt(s.x,s.z,her.y)-her.y)*Math.min(1,dt*8);n.position.set(s.x,her.y,s.z+(s.zo||0)+her.cz);n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
+   const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);her.y+=(yAt(s.x,s.z,her.y)-her.y)*Math.min(1,dt*8);{const o=seatOffset(s,(s.zo||0)+her.cz);n.position.set(s.x+o.x,her.y,s.z+o.z);}n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
    if(her.anim&&s.clip!==her.clip){her.clip=s.clip;if(s.once&&her.anim.playOnce)her.anim.playOnce(s.clip,s.clip===CLIPS.sitDown?CLIPS.sit:'idle');else her.anim.play(s.clip);}}
   // ---- a mission's follow / lead / cab step (npc-escort.js; the plan comes from live-content.js plans(): {key, mode:'escort', kind, npc, to, set, stop, resume}) ----
   /* One step for her or the cat: the pure rules move `body` ({x, z, yaw}); here only the frustum test, the cab (road-taxi.js) and getting in and out. Only the local

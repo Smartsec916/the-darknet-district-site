@@ -18,6 +18,39 @@ Branch `claude/escort-across`, build `2026-11-20-escort-across-1`. Pushed, no PR
 - **Multiplayer:** unchanged (each player's own copy of the person).
 
 **Code map.** `npc-escort.js` ACROSS section: `links()` (each link's `wait` / `ahead` / `behind` per area), `mayEnter`, `areaRoute`, `reach`, `reachWhy`, `legOf`, `linkBetween`, `across`, `arrival`, `rideAlong`; `stops` / `problems` / `intoProblems` use `reach`; `cab()` keeps her seated while a cab crosses; inventory `npcs[id].reach`. `live-content.js plans()`: the plan's `area` is where she is now (`setCarry`, else a reload's saved x / z, else where the step started), `to` is the leg (`via` a link: not done there), `final` / `dest` the destination; `escortWhere`; after a step she is held where it ended. New `npc-escort-across.js` (after `ncz-gate-transit.js`): wraps `enterWalking` and decides for each escort with the player before the old place is released. `ncz-street-pair.js` / `npc-made.js` escTick: `noDone` on a leg, `rideAlong`, the seat, the stairs' height (`VoidBackAlleys.groundAt`). `mission-guide.js escortGoal` + `world-integration.js` (the arrow). Server: `void_runner_live_content.py _reach` (spots and doors in a reachable area; reads the regenerated admin inventory). Tests: `tests/escort-across.test.cjs`, Python additions in `test_npc_escort.py`, `test_follow_into.py`, `test_npc_areas.py`.
+## 20 Nov 2026: "Unlock all nav coordinates" and where Rook's cargo jobs live (branch `claude/flight-map-coords`)
+
+### How to use it (plain steps)
+
+1. Open a mission in one of your trees and go to **What becomes available**.
+2. In the kind list choose **Unlock all nav coordinates** (there is nothing else to pick), then choose **when**: "when the mission is done" or "at step: ...". Press **+ ADD**.
+3. When the player reaches that point, the flight Map app gets every location: a warp marker to every place in the system they fly in and to every other system they can reach. Their V1 shows "NAV DATA RECEIVED". Before that, a new pilot sees only the markers on the way to the mission (and the way home).
+
+Rook gives the coordinates himself the first time he offers his cargo side missions (after the story flag `rook-first-delivery-done`), so a tree only needs this unlock to give them earlier. **Rook's cargo jobs are not in the editor:** they are the data file `void-runner/rook-cargo-jobs.js` (kinds of job, cargo, hold space, pay, which jobs are on his board, places he never sends freight to, and his two PROPOSED lines). Change the values there.
+
+### For Claude and Codex
+
+Unlock kind `nav-coords` (`{kind:'nav-coords'}`, optional `when`): `mission-givers.js UNLOCK_KINDS`, `mission-content.js UNLOCKS` and `unlockNow` (calls `nav-coords.js grant`), the editor's unlock row (no id), the server via `unlockKinds` in `void_runner_admin_inventory.json`. Details: `AI_HANDOFF.md` (20 Nov 2026, flight map).
+## Twenty-seventh pass (20 Nov 2026): the Awakening continuation (Missions 004–012) and reusable mechanics
+
+Branch `claude/awakening-tree`, build `2026-11-20-awakening-2-1`. Pushed, no PR, not merged. The owner's spec (Missions 004–011 with his dialogue, and a First Cargo Delivery tree after 011) built as mission DATA in `void-runner/main-story.js`, run by the same tree engine, every piece editable here.
+
+### How to use it (plain steps)
+
+1. **New kinds of step** (the step's kind list, Form view): **Watch someone** (stay within N m for N s; optional "too close"), **Overhear a conversation** (the lines below play as overheard subtitles while the player is in range and not too close; too close: they notice and start again), **Sneak past the guards** (reach a room or use a thing of a place of this mission without being seen; seen: back to the street, try again), **Copy evidence to the V1** (the document window opens when the thing is used: COPY TO V1), **Report / send evidence** (REPORT TO … on the mission in the V1 Mission Log, only with the evidence ticked, and only inside the place chosen for a hand-over in person), **They call** (a callback: by itself after the step before and its delay), **Wait in-game time** (in-game minutes; 12 are about a minute of play), **Watch a remote camera feed** (a feed of this mission, opened from the Mission Log; stages opened / watched / recorded / saved), **Follow someone at a distance** (someone placed with a route), **Leave a place of this mission**, **Flight** (board / take off / jump / dock), **Open an app on the V1** (`v1-app`: done when the player opens that app; the same app's tile glows through the step's `app` field: the Kestrel tutorial's Ship Loadout step). Steps that go into, use, copy, leave or hack have a **without being seen** box.
+2. **People for this mission** (under every mission): + PERSON, then the figure, the place (by name; x / z to put them on a spot, empty for the middle), what they do, from which step until which, and an optional route (`x,z; x,z`) for "follow at a distance". A **marker** is an invisible point the V1 camera identifies (a doorway to photograph).
+3. **Evidence** (under every mission): + EVIDENCE, its title, kind and your text. Players read what they hold in the V1 Mission Log.
+4. Unlock **Evidence item** gives one without a step. Credits (Mission 011's 25,000 CR is the unlock at "Receive the credit reward"), the ship (the Kestrel: `starter`, given once, never resets other ships) and "Start tree" work as before.
+
+### What the player sees
+
+- Fish's call 6 in-game hours after 003 (the old stub is now Mission 004's start), Iris and Admin calls, overheard subtitles in the tea house and the fight pit, the document window at Halden's computer, the Veyra office with its patrolling guard, the Corporate District's maintenance door keypad (hack) and the network facility behind it, OPEN REMOTE FEED in the Mission Log when BR-04 comes online (the existing Blackrock Cult Room scene with the owner's ritual lines, recorded to the Gallery), the hand-over in the meeting room, the sale, the reward, the Kestrel and the First Cargo Delivery tree.
+
+### For Claude and Codex
+
+- Rules: `void-runner/mission-mechanics.js` (pure; `tests/mission-mechanics.test.cjs`): `KINDS`, `stepProblems`, `castProblems`, `evidenceProblems`, `hit`, `gameWait` (`story.flags.tg_<mission>_<step>`), `overhearStep`, `observeStep`, `tailStep`, `castVisible`, evidence in ONE flag `story.flags.evidence` (comma-separated, 200 characters). `mission-content.js`: `MM` in `STEP_KINDS`, `AUTO` (`call`), mission keys `cast` / `evidence`, step keys `STEP_FIELDS`, unlock `evidence`, `mechanicsNow` / `castNow` / `evidenceNow`, consecutive `hear` steps, a later feed stage completes earlier ones, notification text 1,500 characters for Comms / Messages. Game: `mission-mechanics-game.js` (cast figures, distances, subtitles, the detection meter and SPOTTED, the document window, the Mission Log card hook `VoidMissionExtras` in `personal-device.js`, the feed through `camera-feed.js` `start({cam, onStage, savedText})`, flight stages). Editor: `mission-mechanics-editor.js`. Server: `void_runner_live_content.py` `mechanics_step_problems`, `cast_problems`, `evidence_problems`. Corporate door: `apartments.js CORP_DOORS` (`biz-corp-s-40`), `module-integration.js backToStreet`, `corporate-integration.js`.
+- Not in the Blocks view yet: the new kinds show as "(Form view only)" there; edit them in the Form view.
+- Tests: `tests/awakening-tree.test.cjs` (004–012 from a fresh character and from one who just finished 003, with reloads; reward and Kestrel once), `tests/mission-mechanics.test.cjs`, `tests/test_awakening_save.py`; the browser playthrough script is in the session notes (Python Playwright).
 
 ## Twenty-sixth pass (20 Nov 2026): "Follow them" / "They follow you" INTO a place of the mission
 
