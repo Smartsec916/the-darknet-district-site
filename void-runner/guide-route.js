@@ -111,6 +111,18 @@
   return graph([{id:'st-hangar',test:band(-1e9,3)},{id:'st-corridor',test:band(3,19)},{id:'st-concourse',test:band(19,1e9)}],
    [{id:'st-door-3',a:'st-hangar',b:'st-corridor',x:0,z:3,nx:0,nz:1,half:2},{id:'st-door-19',a:'st-corridor',b:'st-concourse',x:0,z:19,nx:0,nz:1,half:2}],null);}
 
+ // The Corporate District (corporate.js STREETS, world metres; Awakening QA 20 Nov 2026 / the owner 21 Nov 2026: the arrow pointed straight at Mission 009's maintenance
+ // door through the blocks): every street, alley and the back alley is a region, the open middle (the boulevard and its two plazas, no walls between them) is one, and
+ // a junction joins two that touch or overlap, so the arrow follows the streets like NeoChinatown's. Only the arrow: the area itself is unchanged.
+ function corporate(CO){if(!CO||!Array.isArray(CO.STREETS))return null;const MID=['boulevard','north-plaza','south-plaza'],regions=[],portals=[];
+  const mid=CO.STREETS.filter(x=>MID.includes(x.id)).map(x=>x.rect);if(mid.length)regions.push({id:'corp:central',rects:mid});
+  for(const x of CO.STREETS)if(!MID.includes(x.id))regions.push({id:'corp:'+x.id,rects:[x.rect]});
+  for(let i=0;i<regions.length;i++)for(let j=i+1;j<regions.length;j++)for(const a of regions[i].rects)for(const c of regions[j].rects){const x0=Math.max(a[0],c[0]),x1=Math.min(a[1],c[1]),z0=Math.max(a[2],c[2]),z1=Math.min(a[3],c[3]);
+   if(x1<x0-.05||z1<z0-.05)continue;const w=Math.max(0,x1-x0),h=Math.max(0,z1-z0);if(w<1&&h<1)continue;   // a corner touch is no way through
+   const alongX=w<h,ca=[(a[0]+a[1])/2,(a[2]+a[3])/2],cb=[(c[0]+c[1])/2,(c[2]+c[3])/2],sx=Math.sign(cb[0]-ca[0])||1,sz=Math.sign(cb[1]-ca[1])||1;
+   portals.push({id:'junction:'+regions[i].id+':'+regions[j].id,a:regions[i].id,b:regions[j].id,x:(x0+x1)/2,z:(z0+z1)/2,nx:alongX?sx:0,nz:alongX?0:sz,half:(alongX?h:w)/2,area:w>.05&&h>.05?[x0,x1,z0,z1]:null});}
+  const near=(x,z)=>{let best=null;for(const r of regions)for(const q of r.rects){const d=Math.hypot(Math.max(q[0]-x,0,x-q[1]),Math.max(q[2]-z,0,z-q[3]));if(d<=3&&(!best||d<best.d))best={d,id:r.id};}return best&&best.id;};   // a doorstep just off a street
+  return graph(regions,portals,null,near);}
  // A location built from modules (modules.js layout: the cluster the player walks in, one floor): every module is a region, every doorway between two of them a
  // portal, so the arrow goes from room to room through the doors (an office floor's hallway, the server room's door) instead of through a wall (QA, 19 Nov 2026).
  function modular(cl,solids){if(!cl||!Array.isArray(cl.mods))return null;const half=1.04/2,regions=cl.mods.map(m=>{const hw=m.w*2/2,hd=m.d*2/2;return {id:'mod:'+m.id,rects:[[m.cx-hw,m.cx+hw,m.cz-hd,m.cz+hd]]};}),portals=[],ids=new Set(cl.mods.map(m=>m.id)),modOf=r=>String(r||'').split('.')[0];
@@ -200,16 +212,18 @@
  const node=typeof module!=='undefined'&&module.exports;
  // The graph for a walking scene (cached; the gate list can grow: ncz-quarters.js define()). kind: 'station' for the older stations' corridor; null: straight to the goal.
  const cache=new Map();
+ const corpDep=()=>{try{return node?require('./corporate.js'):root.VoidCorporate;}catch{return null;}};
  function deps(){if(node)return {N:require('./neochinatown.js'),QT:require('./ncz-quarters.js'),NC:require('./ncz-nightclub.js'),MK:require('./milked.js'),XW:require('./crosswalks.js'),UG:require('./ncz-underground.js')};return {N:root.VoidNeoChinatown,QT:root.VoidQuarters,NC:root.VoidNightclub,MK:root.VoidMilked,XW:root.VoidCrosswalks,UG:root.VoidUnderground};}
  function graphFor(scene,kind,loc){if(loc&&loc.modular&&loc.cluster){const k='mod:'+(loc.inst||'')+':'+loc.cluster.id+':'+JSON.stringify(loc.cluster.mods.map(m=>[m.id,m.cx,m.cz,m.w,m.d]));if(!cache.has(k))cache.set(k,modular(loc.cluster,loc.solids));return cache.get(k);}
   if(loc&&loc.apartment)return null;   // an apartment's hallway or rooms (one room or a straight corridor): straight to the goal (their id is 'neochinatown' too)
   if(kind==='station'){if(!cache.has('station'))cache.set('station',station());return cache.get('station');}
+  if(scene==='corporate'){if(!cache.get('corporate')){const g=corporate(corpDep());if(g)cache.set('corporate',g);return g;}return cache.get('corporate');}
   if(scene!=='neochinatown'&&scene!=='milked')return null;const D=deps(),n=(D.QT&&D.QT.LANES||[]).length,c=cache.get('ncz');if(c&&c.lanes===n)return c.g;const g=neochinatown(D);cache.set('ncz',{g,lanes:n});return g;}
  /* THE MISSION YELLOW (the owner, 20 Nov 2026: "I want any hints during mission to match the yellow arrow. Yellow is the mission and hints color."). The arrow's fill
     (world-integration.js), its distance text and outline. Everything that is a mission hint uses these: the goal and target markers, the hint line, the tracked-mission
     line, the V1's highlighted app and call-bar cue. In CSS: var(--mission-yellow) / --mission-yellow-rgb / --mission-yellow-text / --mission-yellow-ink
     (set on the page root by world-integration.js). Non-mission UI keeps its own colours. */
  const COLOR={rgb:'255,214,120',hex:'#ffd678',text:'#ffe7a8',ink:'#1a1206'};
- const api={COLOR,TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,modular,graphFor,plan,passed,behind,advance,nearAlpha,follower};
+ const api={COLOR,TUNE,wrap,smoothAngle,bearing,graph,regionAt,neochinatown,station,corporate,modular,graphFor,plan,passed,behind,advance,nearAlpha,follower};
  if(node)module.exports=api;else root.VoidGuideRoute=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

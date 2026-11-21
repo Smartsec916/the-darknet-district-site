@@ -100,7 +100,7 @@
       Every other new line is text only: NEEDS APPROVAL BEFORE RECORDING (docs/VOICE: the re-voice queue; nothing is generated).
     - Places: the underground tea house and fight pit are the shared tunnel network's places (places.js 'under-tea-room', 'under-fight-pit', quarter 'underground').
     - Short functional words (objective labels, notification titles, control hints naming the real keys) are Claude's; the First Cargo Delivery lines of Admin, Iris and
-      Rook are PROPOSED placeholders (PROPOSED_CARGO below) until the owner approves or rewrites them. */
+      Rook are APPROVED (CARGO_LINES below: the owner, 21 Nov 2026, "those all look pretty solid"). */
  const IRIS=t=>({who:'iris',text:t}),AS1=t=>({who:'tea-associate-1',text:t}),AS2=t=>({who:'tea-associate-2',text:t}),JUNO=t=>({who:'juno-vex',text:t}),BRA=t=>({who:'blackrock-associate',text:t}),ROOK=t=>({who:'rook',text:t});
  const FISH_CALL=['Hey. Remember that man Admin asked you about? Halden Reyes?','I found something interesting. He\'s the founder of a company called Veyra Dynamics. They\'re developing some impressive transportation technology, but they\'re running out of money.',
   'Juno Vex has been arranging meetings between him and a group of private investors.','What\'s strange is that I can\'t find any public records identifying these investors.','I traced some communications to two of Juno\'s associates. They\'re meeting at an underground tea house.',
@@ -127,8 +127,11 @@
     say:[FISH('Fifty-one percent? That\'s not an ordinary investment. Someone wants control of his company.'),FISH('I\'ve managed to find his residential address. I\'ll send it to you now.'),FISH('I\'ve also forwarded everything to Admin and Iris.')]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'tea-talk',when:'overhear'}]};
  const REYES_LOC={id:'reyes',door:'apt-avenue-n-30',modules:[{id:'hall',type:'hall-luxury'},{id:'flat',type:'apt-luxury',number:105}],entry:'hall.street',links:[{a:'hall.d0',b:'flat.entry'}],locks:['hall.d0']};
+ // (the owner, 21 Nov 2026) Iris's call comes a while after Fish's 004 reply, not in the same second: 20 in-game minutes (game-clock.js: about 1 min 40 s of play).
+ // A save that already has 005 offered or running is unaffected (a start is only checked for a mission not yet offered).
+ const M005_AFTER=20;
  const M005={id:'m005-behind-closed-doors',number:5,title:'Behind Closed Doors',type:'main',category:'Infiltration / Hacking',giver:'iris',location:'avenue',description:'',
-  start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Fish sent me the address. Reyes is away from home at the moment, so now\'s our opportunity.','You\'re going to need to get inside his apartment.','Approach the door\'s access panel. Your device can interface with it.','I\'ll walk you through the process.'].join('\n'),when:{kind:'after-mission',mission:'m004-a-promising-investment'}},
+  start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Fish sent me the address. Reyes is away from home at the moment, so now\'s our opportunity.','You\'re going to need to get inside his apartment.','Approach the door\'s access panel. Your device can interface with it.','I\'ll walk you through the process.'].join('\n'),when:{kind:'game-time',mission:'m004-a-promising-investment',value:M005_AFTER}},
   offer:[],apartments:[REYES_LOC],
   evidence:[{id:'br-proposal',title:'Investment proposal (Halden Reyes)',kind:'document',text:'BLACKROCK HOLDINGS\nRecipient: Veyra Dynamics\nFounder: Halden Reyes\nProposed investment: 12,000,000 CR\nEquity transfer: 51%\nVoting rights: Majority control\nAdditional conditions: Confidential\nStatus: Pending admission'},
    {id:'reyes-message',title:'Message on Halden\'s computer',kind:'document',text:'"Mr. Reyes, your preliminary agreement has been received. Further instructions regarding admission will be provided following your final approval meeting."'},
@@ -163,7 +166,8 @@
    {id:'manager-pc',kind:'apt-use',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Access the manager\'s computer.',npc:'',place:'',item:'',say:[],early:[]},
    {id:'download',kind:'collect',evidence:'br-letters',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Download internal communications (COPY TO V1).'},
    {id:'documents',kind:'collect',evidence:'br-induction',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Locate the investment agreement and supporting documentation (COPY TO V1).'},
-   {id:'leave',kind:'apt-leave',apt:'veyra',unseen:true,label:'Leave without raising an alarm.'},
+   // (the owner, 21 Nov 2026) seen on the way out: a guard shouts, a few seconds to get out of sight, then the guards open fire (mission-mechanics.js spottedStep)
+   {id:'leave',kind:'apt-leave',apt:'veyra',unseen:true,onSpotted:'alarm',label:'Leave without raising an alarm.'},
    {id:'admin-call',kind:'call',via:'comms',label:'Take Admin\'s call.',say:[A('I had Fish look into those other companies.'),A('Almost every one of their founders has been involved in some kind of public scandal shortly after receiving funding.'),A('That\'s a hell of a coincidence.')]},
    {id:'iris-call',kind:'call',via:'comms',delay:4,label:'Take Iris\'s call.',say:[IRIS('The induction document mentions a mandatory recording.'),IRIS('Whatever happens during this admission ceremony, Blackrock wants a permanent record of it.'),IRIS('If we can find out where they\'re recording it, we might finally understand what they\'re doing.')]},
    {id:'admin-next',kind:'call',via:'comms',delay:4,label:'Take Admin\'s call.',say:[A('Sounds like Juno has another meeting scheduled. Let\'s see what we can learn from that.')]}],
@@ -292,15 +296,17 @@
     jump (Tessaly to Meridian has no interdiction: a peaceful flight, no combat), Meridian docking, Rook at the Dead Channel bar. Each instruction waits for the player to
     do it (the next step only completes when they have); the cockpit is explained in short timed calls once aboard. A missed call never blocks anything: the steps
     complete on what the player does, and every call stays in RECENT CALLS.
-    Lines: IRIS_OK are the owner's own (spec sections 2, 4 and 7, APPROVED, verbatim). IRIS_NEW are Claude's wording (spec section 3's examples adapted to what the Ship
-    Loadout app really shows, and the short tutorial lines the spec asks for): NEEDS OWNER APPROVAL BEFORE RECORDING. Rook's two lines stay PROPOSED placeholders.
+    Lines: IRIS_OK are the owner's own (spec sections 2, 4 and 7, APPROVED, verbatim). IRIS_NEW (Claude's wording: spec section 3's examples adapted to what the Ship
+    Loadout app really shows, and the short tutorial lines the spec asks for) and Rook's two lines (ROOK_CARGO) were APPROVED by the owner on 21 Nov 2026 ("those all
+    look pretty solid unless anything in there aren't things the Kestrel can do"), after a check against the game code: 'slots' names the app's UPGRADES bays, 'course'
+    no longer says "That's the one" (the call comes right after the navigation call, before the player has picked a marker). Ready to record (ElevenLabs).
     Payment: 500 CR, the existing Rook freight run's pay (campaign.js rookRunBase). */
  const IRIS_OK={congrats:'Congratulations on your new ship. Admin asked me to help you get familiar with her before your first assignment.',walk:'I\'ll walk you through everything you need to know. Let\'s start with your ship\'s loadout.',
   there:'There she is. The Kestrel. Not the newest ship in the Tessaly System, but she\'s reliable.',boardHer:'Go ahead and board her. Let\'s get you acquainted with the controls.',
   nicely:'Nicely done. You\'ve officially completed your first flight.',rook:'Admin\'s contact, Rook, is expecting you. Get that shipment delivered and collect your payment.'};
  const IRIS_NEW={
   review:'This is where you can review your ship\'s equipment and configuration.',
-  slots:'Each slot shows what\'s fitted: primary lasers, shield, drive, missiles, utility and the module bays.',
+  slots:'Each slot shows what\'s fitted: primary lasers, shield, drive, missiles and the upgrade bays.',
   manage:'You can manage your loadout from here as you acquire additional equipment. Your default missile is set here too.',
   admin:'If you\'re looking for something with a little more firepower, speak to Admin. He can help you with ship ordnance.',
   port:'When you\'re ready, head to the Port. She\'s waiting on Pad 01.',
@@ -308,9 +314,10 @@
   controls:'Mouse to aim. W and S pitch, A and D turn, Q and R roll. Left Shift for thrust, X to brake.',
   weapons:'Space fires the lasers, F a missile. You won\'t need either today. This run should be quiet.',
   nav:'Navigation is on your V1. Open the Map app, select Meridian Station, then fly into its marker.',
-  course:'That\'s the one. Hold her steady and the jump starts by itself.',
+  course:'Line her up on the marker and hold her steady. The jump starts by itself.',
   jump:'Smooth. Meridian\'s ahead. Docking is automatic once you arrive.'};
- const PROPOSED_CARGO={...IRIS_NEW,rookMeet:'PROPOSED: You\'re Admin\'s new runner. Cargo intact?',rookPay:'PROPOSED: Good. Here\'s your fee. Come back when you want more work.'};
+ const ROOK_CARGO={rookMeet:'You\'re Admin\'s new runner. Cargo intact?',rookPay:'Good. Here\'s your fee. Come back when you want more work.'};
+ const CARGO_LINES={...IRIS_NEW,...ROOK_CARGO};   // every approved Mission 012 line that is not the owner's own words (IRIS_OK)
  const M012={id:'m012-first-cargo-delivery',number:12,title:'First Cargo Delivery',type:'cargo',category:'First flight / Off-world cargo delivery',giver:'iris',location:'port',description:'',
   start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:IRIS_OK.congrats+'\n'+IRIS_OK.walk,when:{kind:'after-mission',mission:'m011-leverage'}},
   offer:[],rewards:500,
@@ -322,21 +329,22 @@
    {id:'port',kind:'enter',place:'port',label:'Travel to the Port.',npc:'',item:'',say:[],early:[]},
    {id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.there),IRIS(IRIS_OK.boardHer)]},
    {id:'board',kind:'flight',stage:'board',label:'Board the Kestrel (E at the ship).'},
-   // the cockpit in small sections: short timed calls once aboard (nothing to fail; each stays in RECENT CALLS)
+   // the cockpit in small sections: short timed calls once aboard (nothing to fail; each stays in RECENT CALLS). (The owner, 21 Nov 2026: all four within about a minute.)
+   // A call step's delay counts in the cockpit too, and only once the call before it has been heard (mission-content.js timerRuns): each comes 2 s after the last ends.
    {id:'cockpit-display',kind:'call',via:'comms',delay:3,label:'Listen to Iris: the cockpit display.',say:[IRIS(IRIS_NEW.display)]},
-   {id:'cockpit-controls',kind:'call',via:'comms',delay:10,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},
-   {id:'cockpit-weapons',kind:'call',via:'comms',delay:12,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},
-   {id:'cockpit-nav',kind:'call',via:'comms',delay:10,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},
+   {id:'cockpit-controls',kind:'call',via:'comms',delay:2,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},
+   {id:'cockpit-weapons',kind:'call',via:'comms',delay:2,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},
+   {id:'cockpit-nav',kind:'call',via:'comms',delay:2,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},
    {id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},
    {id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},
    {id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},
-   {id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},
-   {id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],
+   {id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(ROOK_CARGO.rookMeet)]},
+   {id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(ROOK_CARGO.rookPay)]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'},{kind:'contract-flag',id:'rook-first-delivery-done',value:true,when:'deliver'}]};   // the contract with the flight Map / Rook's cargo board (branch claude/flight-map-coords)
  const CARGO_TREE_ID='first-cargo-delivery';
- const CARGO_TREE={id:CARGO_TREE_ID,name:'First Cargo Delivery',note:'Unlocked by Mission 011 (Leverage): Iris\'s Kestrel first flight and Ship Loadout tutorial and the first run, to Rook at Meridian Station. New lines need the owner\'s approval before recording.',status:'active',shipped:true,seq:2,missions:[M012]};
- const isProposedCargo=t=>typeof t==='string'&&Object.values(PROPOSED_CARGO).includes(t);
- const isApprovedCargo=t=>typeof t==='string'&&Object.values(IRIS_OK).includes(t);
+ const CARGO_TREE={id:CARGO_TREE_ID,name:'First Cargo Delivery',note:'Unlocked by Mission 011 (Leverage): Iris\'s Kestrel first flight and Ship Loadout tutorial and the first run, to Rook at Meridian Station. Every line approved by the owner (21 Nov 2026).',status:'active',shipped:true,seq:2,missions:[M012]};
+ // (21 Nov 2026) nothing in the cargo tree is proposed any more: every line is the owner's (IRIS_OK) or approved by him (CARGO_LINES).
+ const isApprovedCargo=t=>typeof t==='string'&&(Object.values(IRIS_OK).includes(t)||Object.values(CARGO_LINES).includes(t));
  /* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */
  const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};
  const TREE={id:TREE_ID,name:'Awakening',note:'Your Awakening tree. Mission 001 starts the first time a player leaves their Sleeping Pod; Missions 002 to 011 follow it (the owner\'s continuation, 20 Nov 2026); Mission 011 starts the First Cargo Delivery tree.',status:'active',shipped:true,seq:1,missions:[AWAKENING,EYES,CORPORATE,M004,M005,M006,M007,M008,M009,M010,M011]};
@@ -368,6 +376,6 @@
    const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;
    const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}
   return changed;}
- const api={M004,M005,M006,M007,M008,M009,M010,M011,M012,CARGO_TREE,CARGO_TREE_ID,PROPOSED_CARGO,IRIS_OK,IRIS_NEW,isProposedCargo,isApprovedCargo,REWARD,ALL_EVIDENCE,RITUAL,FISH_CALL,CORPORATE,APPROVED,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
+ const api={M004,M005,M006,M007,M008,M009,M010,M011,M012,CARGO_TREE,CARGO_TREE_ID,CARGO_LINES,ROOK_CARGO,IRIS_OK,IRIS_NEW,isApprovedCargo,REWARD,ALL_EVIDENCE,RITUAL,FISH_CALL,CORPORATE,APPROVED,DRAFT,PROPOSED,isProposed,FOLLOWUPS,GESTURES,TRANSLATION:{zh:ZH,en:EN},TREE_ID,SUPERSEDED,refreshShipped,STORY_TREES,NUMBERS,MISSION_IDS,PLACEHOLDER,TREE,AWAKENING,EYES,OLD_NAME:'Main storyline',isPlaceholder,pad,label,trees,numbersIn,numberProblems,nextNumber};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMainStory=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

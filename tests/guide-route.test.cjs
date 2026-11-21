@@ -143,7 +143,7 @@ test('step change, STOP TRACKING, teleport, scene change and reload: snap with a
 test('the older stations: hangar, corridor and concourse doors on the centre line, as before',()=>{
  const S=R.graphFor('hangar','station');assert.deepEqual(R.plan(S,{x:2,z:-5},{x:4,z:30}).map(w=>w.id).filter(i=>!i.endsWith('+')),['st-door-3>','st-door-19>','goal']);
  assert.deepEqual(R.plan(S,{x:2,z:25},{x:-3,z:1}).map(w=>w.id).filter(i=>!i.endsWith('+')),['st-door-19<','st-door-3<','goal']);
- assert.equal(R.graphFor('corporate'),null);assert.equal(R.graphFor('temple'),null);assert.deepEqual(R.plan(null,{x:0,z:0},{x:5,z:5}).map(w=>w.id),['goal']);});
+ assert.ok(R.graphFor('corporate'),'the Corporate District has its streets (21 Nov 2026, tests/awakening-decisions.test.cjs)');assert.equal(R.graphFor('temple'),null);assert.deepEqual(R.plan(null,{x:0,z:0},{x:5,z:5}).map(w=>w.id),['goal']);});
 
 test('every route between the named places walks without a flip (all future missions use the same rules)',()=>{
  const P=require(path.join(__dirname,'..','void-runner','places.js'));const OLD=new Set(['port','oldtown','avenue','far-south','outskirts','district','district-vestibule','district-hall','district-pods','district-vr','district-arcade','district-store','district-bar','district-meeting','district-alley','null','null-entrance','milked']);   // the places named before the naming pass (18 Nov 2026); every exact location since then is checked as a goal from the District below

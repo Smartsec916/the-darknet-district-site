@@ -35,6 +35,7 @@ function play(x,s0){let s=s0;const id=n=>x.MS['M0'+String(n).padStart(2,'0')].id
  const oh=ev(x,s,{type:'overhear',step:K(id(4),'overhear')});assert.ok(oh.notes.some(n=>/^EVIDENCE/.test(n)),'the conversation is kept as evidence');assert.ok(x.MM.hasEvidence(s,'tea-talk'));
  const rep=ev(x,s,{type:'report',step:K(id(4),'report')});assert.equal(rep.completed,true);assert.equal(rep.messages[0].from,'milked-fish');assert.match(rep.messages[0].text,/^Fifty-one percent\?/);s=reload(x,s);
  // 005: Iris calls; the apartment; the hack; the computer; COPY TO V1; out; report to Admin
+ place(x,s,['avenue']);assert.equal(s.universe.missions[id(5)],undefined,'Iris calls a while after Fish\'s reply (the owner, 21 Nov 2026)');passTime(s,20);
  const i5=place(x,s,['avenue']);assert.equal(i5.offered,true);assert.match(i5.messages[0].text,/^Fish sent me the address\./);place(x,s,['avenue']);assert.equal(step(x,s,'M005'),'find-105');
  place(x,s,['avenue'],{apt:id(5)+'/reyes',mod:'hall'});assert.equal(step(x,s,'M005'),'hack-door');
  ev(x,s,{type:'hack',ap:'reyes/hall.d0',mission:id(5)});place(x,s,['avenue'],{apt:id(5)+'/reyes',mod:'flat'});ev(x,s,{type:'apt-use',mission:id(5),apt:'reyes',object:'computer',mod:'flat'});
@@ -97,13 +98,13 @@ test('an older player who owns the Kestrel and another ship keeps both; nothing 
  x.C.awardStarterShip(s);x.C.giveShip(s,'ship2');s.activeShip='ship2';const before=JSON.stringify(s.ownedShips);
  const u=x.MS.M011.unlocks.find(y=>y.kind==='ship');assert.deepEqual(u,{kind:'ship',id:'starter',when:'kestrel'});
  for(let i=0;i<3;i++)x.C.awardStarterShip(s);assert.equal(JSON.stringify(s.ownedShips),before);assert.equal(s.activeShip,'ship2','the active ship is kept');});
-test('the owner\'s words verbatim (a sample of every mission), PROPOSED placeholders only in the cargo tree, the ledger and the manifest',()=>{const x=env(),MS=x.MS;
+test('the owner\'s words verbatim (a sample of every mission), the cargo tree lines approved (21 Nov 2026), the ledger and the manifest',()=>{const x=env(),MS=x.MS;
  assert.deepEqual(Object.keys(MS.NUMBERS).map(Number),[1,2,3,4,5,6,7,8,9,10,11,12]);
  const man=JSON.parse(fs.readFileSync(R('void-runner/save-manifest.json'),'utf8'));for(const [n,id] of Object.entries(MS.NUMBERS)){assert.equal(man.missionNumbers[n],id);assert.ok(man.storyMissions.includes(id));}assert.deepEqual(man.storyTrees,['main-storyline','first-cargo-delivery']);
  assert.deepEqual([MS.M004,MS.M005,MS.M006,MS.M007,MS.M008,MS.M009,MS.M010,MS.M011].map(m=>m.title),['A Promising Investment','Behind Closed Doors','Hostile Takeover','The House Always Wins','Private Network','Ghost in the Network','The Price of Admission','Leverage']);
  const all=JSON.stringify([MS.M004,MS.M005,MS.M006,MS.M007,MS.M008,MS.M009,MS.M010,MS.M011]);
  for(const t of ['Has he agreed to the percentage?','Status: Pending admission','Induction documentation: Mandatory audiovisual recording','We don\'t want a repeat of the last induction.','Scheduled activation: Next approved induction','Get somewhere safe. When that camera comes online, I want you to record everything.','It isn\'t stupidity. It\'s the price of membership.','Congratulations. You\'re a runner now.'])assert.ok(all.includes(JSON.stringify(t).slice(1,-1)),t);
- assert.ok(!/PROPOSED/.test(all),'no placeholders in the owner\'s missions');for(const o of MS.M012.objectives)for(const l of o.say||[])assert.ok(MS.isProposedCargo(l.text)||MS.isApprovedCargo(l.text),'cargo lines: the owner\'s or marked for approval: '+l.text);
+ assert.ok(!/PROPOSED/.test(all),'no placeholders in the owner\'s missions');for(const o of MS.M012.objectives)for(const l of o.say||[]){assert.ok(MS.isApprovedCargo(l.text),'cargo lines: the owner\'s or approved by him: '+l.text);assert.ok(!/PROPOSED/.test(l.text),'no PROPOSED prefix left: '+l.text);}
  assert.ok(MS.M012.start.text.startsWith(MS.IRIS_OK.congrats));assert.deepEqual(MS.M012.objectives.map(o=>o.kind),['message','v1-app','enter','enter','flight','call','call','call','call','flight','flight','arrive','talk','hear']);assert.equal(MS.M012.objectives[1].app,'loadout','the Ship Loadout tile glows');
  // the ritual: the existing choreography (the same beats, in the same order); only line slots carry words
  const C=require(R('void-runner/cult-room.js')),def=C.defaultScene().beats.filter(b=>b.act!=='line'),rit=MS.RITUAL.beats.filter(b=>b.act!=='line');assert.deepEqual(rit,def,'the movements are the existing sequence');
