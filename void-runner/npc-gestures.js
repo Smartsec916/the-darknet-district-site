@@ -17,11 +17,13 @@
  // Plain names for the clips the game's models carry (anything else shows its own id).
  const NAMES={idle:'Stand still (idle)','idle-shift':'Shift her weight','idle-stretch':'Stretch','idle-m2':'Stand (second idle)','idle-f2':'Stand (second idle)',look:'Look about',watch:'Watch something',talk:'Talk with the hands',gesture:'Explaining gesture',
   shrug:'Shrug',laugh:'Laugh',wave:'Wave','head-tilt':'Tilt the head','glance-back':'Glance back',wipe:'Wipe the counter',smoke:'Smoke',drink:'Drink',interact:'Reach for something',pickup:'Pick something up',work:'Work with the hands',menu:'Use a menu','menu-tap':'Tap a menu',
+  'floor-kneel':'Idle pose: kneel on the floor (seiza)','floor-cross':'Idle pose: sit cross-legged on the floor','floor-knees':'Idle pose: sit on the floor, knees to chest',
   'dance-groove':'Dance a little (groove)','dance-bop':'Dance a little (happy bop)',dance:'Dance','slow-dance':'Slow dance','dance-samba':'Samba','blow-kiss':'Blow a kiss',coy:'Coy',hips:'Hands on hips'};
+ // pose:true marks the idle poses (21 Nov 2026: the floor poses, held loops on the spot: kneeling, cross-legged, knees to chest)
  // Clips that are one movement (played once, then she goes back); the others are loops played for the time set.
  const ONCE=/^(shrug|gesture|laugh|wave|head-tilt|glance-back|idle-stretch|look|interact|pickup|blow-kiss|wipe|nod)$/;
  // Never offered: the game walks, runs and seats people itself.
- const NO=/^(walk|run|jog|walk-f|drunk-walk|sit-enter|sit-exit|recline)$|^sit/;
+ const NO=/^(walk|run|jog|walk-f|drunk-walk|sit-enter|sit-exit|recline)$|^sit|^floor-[a-z]+-(down|up)(-hi)?$/;   // floor-*-down / -up: the floor seats' own sit-down and stand-up (21 Nov 2026)
  const LIMIT={hold:[0,30],line:{min:2,max:8},clip:80};
  const CLIP=/^[a-z0-9][a-z0-9-]{0,40}(\/[a-z0-9][a-z0-9-]{0,40})?$/;
  const bare=c=>String(c||'').split('/').pop();
@@ -36,7 +38,7 @@
   if(!id||id==='You')return {ok:false,why:'The player character has no animations to choose here.',look:null,clips:[]};
   if(M&&M.cat)return {ok:false,why:'The street cat is moved by its own code and plays no animation clips.',look:null,clips:[]};
   const look=lookOf(id);if(!look)return {ok:false,why:'This character is drawn by its own scene code, with no animations the editor can choose yet.',look:null,clips:[]};
-  const banned=(M&&(SP()||{}).BANNED)||/$^/,out=[],seen=new Set(),add=(c,source)=>{if(seen.has(c))return;seen.add(c);out.push({id:c,name:nameOf(c),source,once:ONCE.test(bare(c))});};
+  const banned=(M&&(SP()||{}).BANNED)||/$^/,out=[],seen=new Set(),add=(c,source)=>{if(seen.has(c))return;seen.add(c);out.push({id:c,name:nameOf(c),source,once:ONCE.test(bare(c)),...(/^floor-/.test(bare(c))?{pose:true}:{})});};
   for(const c of (C&&C.clips&&C.clips[look])||[])if(!NO.test(c)&&!banned.test(c))add(c,'own');
   if(M&&X.libraryOffer)for(const o of X.libraryOffer(id))if(o.ok&&o.library==='actorcore')add(o.id,'library');
   // These verified shared motions can be selected directly on a mission step without editing the NPC's default routine.

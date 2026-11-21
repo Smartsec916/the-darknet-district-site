@@ -211,13 +211,14 @@
    let clip;
    if(P&&P.mode==='escort'&&!talk&&(P.kind==='follow-them'||P.kind==='they-follow')){clip=escTick(p,P,dt);p.s.mode='esc';p.s.device=null;}
    else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}
-    if(talk){const s=p.s;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left||0,1.2);if(w)s.face={x:w.x,z:w.z};}else if(p.s.sub==='chat'){p.s.sub=null;p.s.face=null;p.s.left=Math.min(p.s.left,1.2);}
+    if(talk&&SP.floorPose&&SP.floorPose(p.s)&&['sit','floor-in','floor-turn','floor-down','floor-up'].includes(p.s.mode)){if(!/^floor-(down|up)$/.test(p.s.mode))p.s.left=Math.max(p.s.left||0,2);}   // on a cushion or a cot (the floor poses): she stays seated to talk (sitting down / standing up: the clip finishes)
+    else if(talk){const s=p.s;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left||0,1.2);if(w)s.face={x:w.x,z:w.z};}else if(p.s.sub==='chat'){p.s.sub=null;p.s.face=null;p.s.left=Math.min(p.s.left,1.2);}
     if(p.s.mode==='esc')p.s.mode='plan-go';const plan=P&&(P.mode==='stay'||P.mode==='path')?P:{key:'here',mode:'stay',x:p.s.x,z:p.s.z,yaw:p.s.yaw,actions:['idle']};
-    SP.routineStep(p.s,dt,rnd,cfg,{plan,player:w?{x:w.x,z:w.z}:null,cat:null});if(p.s.mode==='walk'||p.s.mode==='run')p.s.mode='plan-go';clip=p.s.clip||'idle';}
+    SP.routineStep(p.s,dt,rnd,cfg,{plan,player:w?{x:w.x,z:w.z}:null,cat:null,has:c=>!!p.anim&&!!p.anim.has&&p.anim.has(c)});if(p.s.mode==='walk'||p.s.mode==='run')p.s.mode='plan-go';clip=p.s.clip||'idle';}
    if(!Number.isFinite(p.s.x+p.s.z+p.s.yaw)){const t=P&&(P.mode==='stay'?P:P.points?P.points[0]:null)||{x:n.position.x,z:n.position.z};p.s.x=t.x;p.s.z=t.z;p.s.yaw=0;}
    if(clip==='sit'&&p.seat&&p.esc&&p.esc.st.ride==='in-cab'){const sit=(NPX()?.crowdClips?.(p.c.model)||[]).includes('sit');n.position.set(p.s.x,p.seat.y,p.s.z);n.rotation.y=p.s.yaw;if(n.isEnabled()!==sit)n.setEnabled(sit);if(sit&&p.anim&&p.clip!=='sit'){p.clip='sit';p.anim.play('sit');}p.anim?.setActive?.(sit&&d<animRadius);const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}return;}   // riding in the player's taxi
-   p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);{const o=SP.seatOffset?SP.seatOffset(p.s,p.s.zo||0):{x:0,z:0};n.position.set(p.s.x+o.x,p.y,p.s.z+o.z);}/* seated: the routine's eased offset (ledges and the tunnels' seats) */n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
-   if(p.anim&&clip!==p.clip){p.clip=clip;p.anim.play(clip);}
+   p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);{const o=SP.seatOffset?SP.seatOffset(p.s,p.s.zo||0):{x:0,z:0};n.position.set(p.s.x+o.x,p.y+(p.s.lift||0),p.s.z+o.z);}/* seated (lift: a floor pose on a cushion or cot top): the routine's eased offset (ledges and the tunnels' seats) */n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
+   if(p.anim&&clip!==p.clip){p.clip=clip;if(p.s.once&&p.s.after&&p.anim.playOnce)p.anim.playOnce(clip,p.s.after);else p.anim.play(clip);}   // a floor seat's sit-down / stand-up clip plays once, then its pose (ncz-street-pair.js FLOOR_MOVE)
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
    const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)){if(cs[id]&&inView(p.node,cam))p.going=true;else leave(id);}else p.going=false;

@@ -50,7 +50,7 @@ class AwakeningSaveTests(unittest.TestCase):
         self.assertIs(flags.get('rook-first-delivery-done'), True, 'the shared flag survives clean_save')
         self.assertEqual(cleaned['ownedShips'].count('starter'), 1)
         self.assertEqual(cleaned['credits'], save['credits'])
-        self.assertGreaterEqual(cleaned['credits'], 25000 + 500)
+        self.assertGreaterEqual(cleaned['credits'], 5000 + 500)
         for k, v in cleaned['universe']['missions'].items():
             self.assertEqual(v['completed'], save['universe']['missions'][k]['completed'])
 

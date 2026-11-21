@@ -36,6 +36,19 @@
  "addedClips": "18 Nov 2026: dance-allnight, dance-shake, dance-lovepop, dance-denim, dance-omg (Meshy library actions 64, 82, 76, 71, 79 on her rig task 01a1ef7d-f1ee-71cb-b295-8626faed4f05, animate task 01a1f03c-38d4-751a-ae09-d87d83428918) were added to the shipped file afterwards with retarget_world.py and meshy-bone-map.json; a rebuild from this spec must add them again.",
  "clips": [
   "pb-idle",
-  "pb-dance"
+  "pb-dance",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees",
+  "floor-kneel-down",
+  "floor-kneel-up",
+  "floor-cross-down",
+  "floor-cross-up",
+  "floor-knees-down",
+  "floor-knees-up",
+  "floor-cross-down-hi",
+  "floor-cross-up-hi",
+  "floor-knees-down-hi",
+  "floor-knees-up-hi"
  ]
 }

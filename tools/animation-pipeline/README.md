@@ -66,3 +66,17 @@ node tools/assets/optimize-textures.cjs OUT-full.glb void-runner/assets/models/c
 The walk comes from the Quaternius Universal Animation Library (Standard, CC0; free download from quaternius.itch.io). Pass its `Unreal-Godot` folder as `--ual DIR`; `clips.json` names the action (`Walk_Loop`) and the T-pose clip used as the reference pose (`A_TPose`), and marks it an exact loop (no end blend).
 
 Keep a spec's `clips` and its entry in `crowd.js` in step (`tests/crowd.test.cjs` checks). Named characters never use crowd looks.
+
+## Floor poses posed by code (21 Nov 2026)
+
+The owner asked for kneeling, cross-legged and knees-to-chest poses. No mocap the pipeline references has them, so `make_floor_poses.py` poses them on each figure's own skeleton (pure Python, no Blender, no outside service): hips height, knees, ankles and hands are placed from that figure's measured bone lengths, every limb is aimed bone by bone (two-bone reach, knees and elbows bending in their own plane, the forearm sharing the wrist's turn), and a small breathing / sway / head motion loops exactly. Each clip is about 16 KB.
+
+```text
+python3 tools/animation-pipeline/make_floor_poses.py void-runner/assets/models/crowd/<figure>.glb      # adds what is missing: the three poses and the ten sit-down / stand-up clips
+python3 tools/animation-pipeline/make_floor_poses.py --force <figure>.glb                             # makes them all again (old bytes stay unused: use on a freshly rebuilt file)
+python3 tools/animation-pipeline/make_floor_poses.py --check <figure>.glb                             # prints the measured heights only
+```
+
+**Sitting down and standing up (21 Nov 2026).** The same script makes ten one-shot clips per figure (`TRANS`): `floor-kneel-down/-up`, `floor-cross-down/-up`, `floor-knees-down/-up` (a cushion: standing on it, down onto it) and `floor-cross-down-hi/-up-hi`, `floor-knees-down-hi/-up-hi` (a cot or alcove bench about 0.45 m high: standing on the floor in front of the edge, sitting on the edge, legs up, pushing back with the hands). A few key bodies are placed with the figure's own bone lengths and solved every 1/15 s with the same two-bone reach; the first frames ease exactly into the figure's own idle (frame 0, read from the file, meshopt-compressed clips decoded) and the last exactly into the loop's first frame; each `-up` is its `-down` reversed. Root motion is shared with the runtime (`MOVES` here, `FLOOR_MOVE` in `ncz-street-pair.js`): the figure's origin moves from the stand point S (d metres in front of the loop's origin) to the loop's origin and up by hb with smoothstep, and the clip's hips carry the opposite, so the feet stay put. Fingers are left out (they keep the previous clip's curl). Keys are thinned to 0.4 degrees / 2 mm; about 140 KB a figure for the ten. `tests/floor-transitions.test.cjs` compares the ends numerically.
+
+All public figures on the mixamorig skeleton carry them (both the 52-joint MakeHuman and the 24-joint Meshy families), except the VR companions' figures (Kai, Zane, the companion files), the Blackrock robe (its own ritual `kneel`) and the licensed files kept outside this repository. `clips.json` lists them with `"source": "pose"`; the Blender builders skip such clips, so run the script again after rebuilding a figure. The game puts the figure's origin on the seat's top (`crowd.js FLOOR`, `ncz-street-pair.js POSE_CLIP / FLOOR_BACK`).

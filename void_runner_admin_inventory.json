@@ -825,7 +825,10 @@
           "idle",
           "talk",
           "look",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "iris": {
@@ -834,7 +837,10 @@
           "idle",
           "talk",
           "look",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "bishop-hale": {
@@ -847,7 +853,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "bartender": {
@@ -859,7 +868,10 @@
           "watch",
           "laugh",
           "shrug",
-          "wipe"
+          "wipe",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "milked-fish": {
@@ -872,7 +884,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "jonah-pike": {
@@ -885,7 +900,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "kei-navarro": {
@@ -898,7 +916,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "ethereal-lace": {
@@ -914,6 +935,9 @@
           "talk",
           "gesture",
           "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees",
           "npc-busker/idle",
           "npc-busker/talk",
           "npc-busker/look",
@@ -1015,7 +1039,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "nyx-district": {
@@ -1027,7 +1054,10 @@
           "watch",
           "laugh",
           "shrug",
-          "wipe"
+          "wipe",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "grey-reverie": {
@@ -1043,6 +1073,9 @@
           "talk",
           "gesture",
           "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees",
           "npc-busker/idle",
           "npc-busker/talk",
           "npc-busker/look",
@@ -1269,7 +1302,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "sable-quon": {
@@ -1282,7 +1318,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "tavi-rourke": {
@@ -1295,7 +1334,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       },
       "tea-host": {
@@ -1312,7 +1354,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ]
       }
     }
@@ -1354,6 +1399,9 @@
             "x": -4.88,
             "z": -8.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -7.71
@@ -1364,6 +1412,9 @@
             "x": -0.28,
             "z": -38.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -39.31
@@ -1374,6 +1425,9 @@
             "x": -4.88,
             "z": -88.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -87.71
@@ -1384,6 +1438,9 @@
             "x": -0.28,
             "z": -122.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -123.31
@@ -1394,6 +1451,9 @@
             "x": -4.88,
             "z": -160.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -159.71
@@ -1404,9 +1464,333 @@
             "x": -0.58,
             "z": -172.88,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.58,
               -173.29
+            ]
+          },
+          {
+            "id": "under-alcove-1-bench-up",
+            "x": -4.83,
+            "z": -8.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -7.65
+            ]
+          },
+          {
+            "id": "under-alcove-3-bench-up",
+            "x": -4.83,
+            "z": -88.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -87.65
+            ]
+          },
+          {
+            "id": "under-alcove-5-bench-up",
+            "x": -4.83,
+            "z": -160.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -159.65
+            ]
+          },
+          {
+            "id": "under-alcove-6-bench-up",
+            "x": -0.63,
+            "z": -172.82,
+            "yaw": -1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -1.18,
+              -173.35
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-sw-e",
+            "x": -4.93,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.48,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-s",
+            "x": -7.18,
+            "z": -57.4,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.18,
+              -56.85
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-e",
+            "x": -8.33,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -8.88,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-s",
+            "x": -5.58,
+            "z": -53.7,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.58,
+              -53.15
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-n",
+            "x": -7.88,
+            "z": -53.7,
+            "yaw": 1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.88,
+              -54.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-w",
+            "x": -6.73,
+            "z": -54.85,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -6.18,
+              -54.85
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-s",
+            "x": -4.43,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-e",
+            "x": -5.23,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.23,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-s",
+            "x": -6.23,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.98,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-e",
+            "x": -7.03,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-n",
+            "x": -7.83,
+            "z": -105.5,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -7.83,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-s",
+            "x": -4.18,
+            "z": -101.8,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.18,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-n",
+            "x": -6.08,
+            "z": -101.8,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.08,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-w",
+            "x": -5.13,
+            "z": -102.65,
+            "yaw": 0,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -102.65
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-e",
+            "x": -5.13,
+            "z": -100.95,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -100.95
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-1",
+            "x": -11.26,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-2",
+            "x": -14.21,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-3",
+            "x": -11.26,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -102.8
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-4",
+            "x": -14.21,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -102.8
             ]
           }
         ],
@@ -1426,6 +1810,9 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-kneel",
+          "sit-cross",
+          "sit-knees",
           "walk-on"
         ],
         "anims": [
@@ -1683,6 +2070,9 @@
             "x": -4.88,
             "z": -8.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -7.71
@@ -1693,6 +2083,9 @@
             "x": -0.28,
             "z": -38.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -39.31
@@ -1703,6 +2096,9 @@
             "x": -4.88,
             "z": -88.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -87.71
@@ -1713,6 +2109,9 @@
             "x": -0.28,
             "z": -122.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -123.31
@@ -1723,6 +2122,9 @@
             "x": -4.88,
             "z": -160.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -159.71
@@ -1733,9 +2135,333 @@
             "x": -0.58,
             "z": -172.88,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.58,
               -173.29
+            ]
+          },
+          {
+            "id": "under-alcove-1-bench-up",
+            "x": -4.83,
+            "z": -8.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -7.65
+            ]
+          },
+          {
+            "id": "under-alcove-3-bench-up",
+            "x": -4.83,
+            "z": -88.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -87.65
+            ]
+          },
+          {
+            "id": "under-alcove-5-bench-up",
+            "x": -4.83,
+            "z": -160.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -159.65
+            ]
+          },
+          {
+            "id": "under-alcove-6-bench-up",
+            "x": -0.63,
+            "z": -172.82,
+            "yaw": -1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -1.18,
+              -173.35
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-sw-e",
+            "x": -4.93,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.48,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-s",
+            "x": -7.18,
+            "z": -57.4,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.18,
+              -56.85
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-e",
+            "x": -8.33,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -8.88,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-s",
+            "x": -5.58,
+            "z": -53.7,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.58,
+              -53.15
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-n",
+            "x": -7.88,
+            "z": -53.7,
+            "yaw": 1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.88,
+              -54.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-w",
+            "x": -6.73,
+            "z": -54.85,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -6.18,
+              -54.85
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-s",
+            "x": -4.43,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-e",
+            "x": -5.23,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.23,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-s",
+            "x": -6.23,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.98,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-e",
+            "x": -7.03,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-n",
+            "x": -7.83,
+            "z": -105.5,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -7.83,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-s",
+            "x": -4.18,
+            "z": -101.8,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.18,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-n",
+            "x": -6.08,
+            "z": -101.8,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.08,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-w",
+            "x": -5.13,
+            "z": -102.65,
+            "yaw": 0,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -102.65
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-e",
+            "x": -5.13,
+            "z": -100.95,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -100.95
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-1",
+            "x": -11.26,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-2",
+            "x": -14.21,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-3",
+            "x": -11.26,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -102.8
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-4",
+            "x": -14.21,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -102.8
             ]
           }
         ],
@@ -1755,6 +2481,9 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-kneel",
+          "sit-cross",
+          "sit-knees",
           "walk-on"
         ],
         "anims": [
@@ -1887,6 +2616,9 @@
             "x": -4.88,
             "z": -8.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -7.71
@@ -1897,6 +2629,9 @@
             "x": -0.28,
             "z": -38.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -39.31
@@ -1907,6 +2642,9 @@
             "x": -4.88,
             "z": -88.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -87.71
@@ -1917,6 +2655,9 @@
             "x": -0.28,
             "z": -122.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -123.31
@@ -1927,6 +2668,9 @@
             "x": -4.88,
             "z": -160.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -159.71
@@ -1937,9 +2681,333 @@
             "x": -0.58,
             "z": -172.88,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.58,
               -173.29
+            ]
+          },
+          {
+            "id": "under-alcove-1-bench-up",
+            "x": -4.83,
+            "z": -8.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -7.65
+            ]
+          },
+          {
+            "id": "under-alcove-3-bench-up",
+            "x": -4.83,
+            "z": -88.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -87.65
+            ]
+          },
+          {
+            "id": "under-alcove-5-bench-up",
+            "x": -4.83,
+            "z": -160.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -159.65
+            ]
+          },
+          {
+            "id": "under-alcove-6-bench-up",
+            "x": -0.63,
+            "z": -172.82,
+            "yaw": -1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -1.18,
+              -173.35
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-sw-e",
+            "x": -4.93,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.48,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-s",
+            "x": -7.18,
+            "z": -57.4,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.18,
+              -56.85
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-e",
+            "x": -8.33,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -8.88,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-s",
+            "x": -5.58,
+            "z": -53.7,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.58,
+              -53.15
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-n",
+            "x": -7.88,
+            "z": -53.7,
+            "yaw": 1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.88,
+              -54.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-w",
+            "x": -6.73,
+            "z": -54.85,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -6.18,
+              -54.85
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-s",
+            "x": -4.43,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-e",
+            "x": -5.23,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.23,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-s",
+            "x": -6.23,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.98,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-e",
+            "x": -7.03,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-n",
+            "x": -7.83,
+            "z": -105.5,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -7.83,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-s",
+            "x": -4.18,
+            "z": -101.8,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.18,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-n",
+            "x": -6.08,
+            "z": -101.8,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.08,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-w",
+            "x": -5.13,
+            "z": -102.65,
+            "yaw": 0,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -102.65
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-e",
+            "x": -5.13,
+            "z": -100.95,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -100.95
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-1",
+            "x": -11.26,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-2",
+            "x": -14.21,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-3",
+            "x": -11.26,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -102.8
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-4",
+            "x": -14.21,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -102.8
             ]
           }
         ],
@@ -1990,6 +3058,9 @@
             "x": -4.88,
             "z": -8.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -7.71
@@ -2000,6 +3071,9 @@
             "x": -0.28,
             "z": -38.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -39.31
@@ -2010,6 +3084,9 @@
             "x": -4.88,
             "z": -88.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -87.71
@@ -2020,6 +3097,9 @@
             "x": -0.28,
             "z": -122.9,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.28,
               -123.31
@@ -2030,6 +3110,9 @@
             "x": -4.88,
             "z": -160.12,
             "yaw": 0,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -4.88,
               -159.71
@@ -2040,9 +3123,333 @@
             "x": -0.58,
             "z": -172.88,
             "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
             "front": [
               -0.58,
               -173.29
+            ]
+          },
+          {
+            "id": "under-alcove-1-bench-up",
+            "x": -4.83,
+            "z": -8.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -7.65
+            ]
+          },
+          {
+            "id": "under-alcove-3-bench-up",
+            "x": -4.83,
+            "z": -88.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -87.65
+            ]
+          },
+          {
+            "id": "under-alcove-5-bench-up",
+            "x": -4.83,
+            "z": -160.18,
+            "yaw": 1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -4.28,
+              -159.65
+            ]
+          },
+          {
+            "id": "under-alcove-6-bench-up",
+            "x": -0.63,
+            "z": -172.82,
+            "yaw": -1.5708,
+            "poses": [
+              "knees"
+            ],
+            "front": [
+              -1.18,
+              -173.35
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-sw-e",
+            "x": -4.93,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.48,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-s",
+            "x": -7.18,
+            "z": -57.4,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.18,
+              -56.85
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-nw-e",
+            "x": -8.33,
+            "z": -56.25,
+            "yaw": 3.1416,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -8.88,
+              -56.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-s",
+            "x": -5.58,
+            "z": -53.7,
+            "yaw": -1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -5.58,
+              -53.15
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-n",
+            "x": -7.88,
+            "z": -53.7,
+            "yaw": 1.5708,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -7.88,
+              -54.25
+            ]
+          },
+          {
+            "id": "under-mahjong-stool-e-w",
+            "x": -6.73,
+            "z": -54.85,
+            "yaw": 0,
+            "poses": [
+              "chair"
+            ],
+            "front": [
+              -6.18,
+              -54.85
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-s",
+            "x": -4.43,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-a-e",
+            "x": -5.23,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.23,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-s",
+            "x": -6.23,
+            "z": -105.5,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.98,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-e",
+            "x": -7.03,
+            "z": -104.75,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.43,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-b-n",
+            "x": -7.83,
+            "z": -105.5,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -7.83,
+              -104.25
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-s",
+            "x": -4.18,
+            "z": -101.8,
+            "yaw": -1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -4.18,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-n",
+            "x": -6.08,
+            "z": -101.8,
+            "yaw": 1.5708,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -6.08,
+              -101.8
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-w",
+            "x": -5.13,
+            "z": -102.65,
+            "yaw": 0,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -102.65
+            ]
+          },
+          {
+            "id": "under-tea-room-cushion-c-e",
+            "x": -5.13,
+            "z": -100.95,
+            "yaw": 3.1416,
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ],
+            "front": [
+              -5.13,
+              -100.95
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-1",
+            "x": -11.26,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-2",
+            "x": -14.21,
+            "z": -105.92,
+            "yaw": 0,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -104.2
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-3",
+            "x": -11.26,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -11.26,
+              -102.8
+            ]
+          },
+          {
+            "id": "under-sleeping-room-cot-4",
+            "x": -14.21,
+            "z": -101.08,
+            "yaw": 3.1416,
+            "poses": [
+              "knees",
+              "cross"
+            ],
+            "front": [
+              -14.21,
+              -102.8
             ]
           }
         ],
@@ -14609,6 +16016,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -14821,7 +16231,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -14917,6 +16330,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -15229,7 +16645,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -15330,6 +16749,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -15546,7 +16968,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -15642,6 +17067,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -15960,7 +17388,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -16061,6 +17492,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -16192,7 +17626,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -16288,6 +17725,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -16483,7 +17923,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -16584,6 +18027,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -16626,7 +18072,10 @@
           "dance",
           "pickup",
           "menu",
-          "menu-tap"
+          "menu-tap",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -16722,6 +18171,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -16770,7 +18222,10 @@
             "dance",
             "pickup",
             "menu",
-            "menu-tap"
+            "menu-tap",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -16871,6 +18326,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -17099,7 +18557,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -17195,6 +18656,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -17531,7 +18995,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -17632,6 +19099,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -17856,7 +19326,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -17952,6 +19425,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -18286,7 +19762,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -18387,6 +19866,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -18416,7 +19898,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -18512,6 +19997,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -18541,7 +20029,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -18642,6 +20133,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -18744,7 +20238,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -18840,6 +20337,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -18996,7 +20496,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -19097,6 +20600,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -19124,7 +20630,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -19220,6 +20729,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -19249,7 +20761,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -19350,6 +20865,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -19530,7 +21048,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -19626,6 +21147,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -19896,7 +21420,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -19997,6 +21524,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -20149,7 +21679,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -20245,6 +21778,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -20460,7 +21996,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -20561,6 +22100,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -20755,7 +22297,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -20851,6 +22396,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -21141,7 +22689,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -21242,6 +22793,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -21424,7 +22978,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -21520,6 +23077,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -21788,7 +23348,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -21889,6 +23452,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -22057,7 +23623,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -22153,6 +23722,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -22385,7 +23957,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -22486,6 +24061,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -22506,7 +24084,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -22602,6 +24183,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -22622,7 +24206,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -22723,6 +24310,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -22927,7 +24517,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -23023,6 +24616,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -23331,7 +24927,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -23432,6 +25031,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -23467,7 +25069,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -23563,6 +25168,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -23610,7 +25218,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -23711,6 +25322,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -23853,7 +25467,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -23949,6 +25566,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -24165,7 +25785,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -24266,6 +25889,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -24343,7 +25969,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -24439,6 +26068,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -24543,7 +26175,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -24644,6 +26279,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -24834,7 +26472,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -24930,6 +26571,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -25206,7 +26850,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -25307,6 +26954,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -25513,7 +27163,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -25609,6 +27262,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -25909,7 +27565,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -26010,6 +27669,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -26200,7 +27862,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -26296,6 +27961,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -26578,7 +28246,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -26679,6 +28350,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -26895,7 +28569,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -26991,6 +28668,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -27298,7 +28978,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -27399,6 +29082,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -27587,7 +29273,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -27683,6 +29372,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -27965,7 +29657,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -28066,6 +29761,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -28124,7 +29822,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -28220,6 +29921,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -28301,7 +30005,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -28402,6 +30109,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -28509,7 +30219,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -28605,6 +30318,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -28753,7 +30469,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -28854,6 +30573,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -29090,7 +30812,10 @@
           "vr-aim-down",
           "vr-shoot",
           "vr-hit",
-          "vr-duck"
+          "vr-duck",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -29186,6 +30911,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -29528,7 +31256,10 @@
             "vr-aim-down",
             "vr-shoot",
             "vr-hit",
-            "vr-duck"
+            "vr-duck",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -29629,6 +31360,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -29847,7 +31581,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -29943,6 +31680,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -30263,7 +32003,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -30364,6 +32107,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -30409,7 +32155,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -30505,6 +32254,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -30562,7 +32314,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -30663,6 +32418,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -30734,7 +32492,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -30830,6 +32591,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -30936,7 +32700,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -31037,6 +32804,9 @@
             "talk",
             "shrug",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -31243,7 +33013,10 @@
           "interact",
           "drunk-idle",
           "drunk-sway",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -31339,6 +33112,9 @@
               "talk",
               "shrug",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -31645,7 +33421,10 @@
             "interact",
             "drunk-idle",
             "drunk-sway",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -31744,6 +33523,9 @@
             "look",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -31822,7 +33604,10 @@
           "idle",
           "talk",
           "look",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -31916,6 +33701,9 @@
               "look",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -32033,7 +33821,10 @@
             "idle",
             "talk",
             "look",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -32133,6 +33924,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -32314,7 +34108,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -32409,6 +34206,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -32684,7 +34484,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -32790,6 +34593,9 @@
             "dance-groove",
             "dance-bop",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -32889,7 +34695,10 @@
           "dance-bop",
           "talk",
           "gesture",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -32988,6 +34797,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [],
@@ -33003,7 +34815,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -33098,6 +34913,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [],
@@ -33113,7 +34931,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -33219,6 +35040,9 @@
             "dance-groove",
             "dance-bop",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -33424,7 +35248,10 @@
           "dance-bop",
           "talk",
           "gesture",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -33522,6 +35349,9 @@
             "look",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -33743,7 +35573,10 @@
           "idle",
           "talk",
           "look",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -33837,6 +35670,9 @@
               "look",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -34170,7 +36006,10 @@
             "idle",
             "talk",
             "look",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -34270,6 +36109,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -34377,7 +36219,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -34472,6 +36317,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -34633,7 +36481,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -35503,6 +37354,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -35571,7 +37425,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -35666,6 +37523,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -35757,7 +37617,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -35857,6 +37720,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -36072,7 +37938,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -36167,6 +38036,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -36486,7 +38358,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -36581,7 +38456,10 @@
         "movable": {
           "actions": [
             "wait",
-            "idle"
+            "idle",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees"
           ],
           "anims": [
             "npc-cyber-exec/idle",
@@ -36628,7 +38506,10 @@
           "dance-shake",
           "dance-lovepop",
           "dance-denim",
-          "dance-omg"
+          "dance-omg",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -36718,7 +38599,10 @@
           "movable": {
             "actions": [
               "wait",
-              "idle"
+              "idle",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees"
             ],
             "anims": [
               "npc-cyber-exec/idle",
@@ -36775,7 +38659,10 @@
             "dance-shake",
             "dance-lovepop",
             "dance-denim",
-            "dance-omg"
+            "dance-omg",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -36874,6 +38761,9 @@
             "look",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -36956,7 +38846,10 @@
           "idle",
           "talk",
           "look",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -37050,6 +38943,9 @@
               "look",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -37158,7 +39054,10 @@
             "idle",
             "talk",
             "look",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -37257,6 +39156,9 @@
             "look",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -37311,7 +39213,10 @@
           "idle",
           "talk",
           "look",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -37405,6 +39310,9 @@
               "look",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -37473,7 +39381,10 @@
             "idle",
             "talk",
             "look",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -37572,6 +39483,9 @@
             "look",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -37703,7 +39617,10 @@
           "idle",
           "talk",
           "look",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -37797,6 +39714,9 @@
               "look",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -37991,7 +39911,10 @@
             "idle",
             "talk",
             "look",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -38091,6 +40014,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -38318,7 +40244,10 @@
           "watch",
           "laugh",
           "shrug",
-          "wipe"
+          "wipe",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -38413,6 +40342,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -38752,7 +40684,10 @@
             "watch",
             "laugh",
             "shrug",
-            "wipe"
+            "wipe",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -38852,6 +40787,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -39055,7 +40993,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -39150,6 +41091,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -39453,7 +41397,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -39553,6 +41500,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -39695,7 +41645,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -39790,6 +41743,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -39993,7 +41949,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -40093,6 +42052,9 @@
             "watch",
             "talk",
             "shrug",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -40123,7 +42085,10 @@
           "smoke",
           "drink",
           "laugh",
-          "shrug"
+          "shrug",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -40218,6 +42183,9 @@
               "watch",
               "talk",
               "shrug",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -40250,7 +42218,10 @@
             "smoke",
             "drink",
             "laugh",
-            "shrug"
+            "shrug",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -41106,6 +43077,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -41195,7 +43169,10 @@
           "idle",
           "talk",
           "work",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -41288,6 +43265,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -41422,7 +43402,10 @@
             "idle",
             "talk",
             "work",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -41520,6 +43503,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -41609,7 +43595,10 @@
           "idle",
           "talk",
           "work",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -41702,6 +43691,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -41836,7 +43828,10 @@
             "idle",
             "talk",
             "work",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -41936,6 +43931,9 @@
             "watch",
             "talk",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -42026,7 +44024,10 @@
           "work",
           "watch",
           "interact",
-          "look"
+          "look",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -42121,6 +44122,9 @@
               "watch",
               "talk",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -42256,7 +44260,10 @@
             "work",
             "watch",
             "interact",
-            "look"
+            "look",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -42353,6 +44360,9 @@
             "wait",
             "idle",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -42444,7 +44454,10 @@
           "smoke",
           "drink",
           "laugh",
-          "dance"
+          "dance",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -42536,6 +44549,9 @@
               "wait",
               "idle",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -42670,7 +44686,10 @@
             "smoke",
             "drink",
             "laugh",
-            "dance"
+            "dance",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -42767,6 +44786,9 @@
             "wait",
             "idle",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -42857,7 +44879,10 @@
         "gestures": [
           "idle",
           "talk",
-          "smoke"
+          "smoke",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -42949,6 +44974,9 @@
               "wait",
               "idle",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -43083,7 +45111,10 @@
           "gestures": [
             "idle",
             "talk",
-            "smoke"
+            "smoke",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -43183,6 +45214,9 @@
             "watch",
             "talk",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -43273,7 +45307,10 @@
           "talk",
           "watch",
           "interact",
-          "look"
+          "look",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -43368,6 +45405,9 @@
               "watch",
               "talk",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -43503,7 +45543,10 @@
             "talk",
             "watch",
             "interact",
-            "look"
+            "look",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -43603,6 +45646,9 @@
             "watch",
             "talk",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -43694,7 +45740,10 @@
           "smoke",
           "watch",
           "interact",
-          "look"
+          "look",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -43789,6 +45838,9 @@
               "watch",
               "talk",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -43924,7 +45976,10 @@
             "smoke",
             "watch",
             "interact",
-            "look"
+            "look",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -44021,6 +46076,9 @@
             "wait",
             "idle",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -44111,7 +46169,10 @@
           "talk",
           "interact",
           "pickup",
-          "wipe"
+          "wipe",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -44203,6 +46264,9 @@
               "wait",
               "idle",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -44338,7 +46402,10 @@
             "talk",
             "interact",
             "pickup",
-            "wipe"
+            "wipe",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -44436,6 +46503,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -44528,7 +46598,10 @@
           "drunk-idle",
           "drunk-sway",
           "laugh",
-          "smoke"
+          "smoke",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -44621,6 +46694,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -44755,7 +46831,10 @@
             "drunk-idle",
             "drunk-sway",
             "laugh",
-            "smoke"
+            "smoke",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -44853,6 +46932,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -44942,7 +47024,10 @@
           "idle",
           "talk",
           "work",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -45035,6 +47120,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -45169,7 +47257,10 @@
             "idle",
             "talk",
             "work",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -45267,6 +47358,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -45356,7 +47450,10 @@
           "idle",
           "talk",
           "work",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -45449,6 +47546,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -45583,7 +47683,10 @@
             "idle",
             "talk",
             "work",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -45681,6 +47784,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -45770,7 +47876,10 @@
           "idle",
           "talk",
           "work",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -45863,6 +47972,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -45997,7 +48109,10 @@
             "idle",
             "talk",
             "work",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -46097,6 +48212,9 @@
             "watch",
             "talk",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -46189,7 +48307,10 @@
           "interact",
           "look",
           "laugh",
-          "drink"
+          "drink",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -46284,6 +48405,9 @@
               "watch",
               "talk",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -46419,7 +48543,10 @@
             "interact",
             "look",
             "laugh",
-            "drink"
+            "drink",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -46519,6 +48646,9 @@
             "watch",
             "talk",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -46610,7 +48740,10 @@
           "interact",
           "look",
           "laugh",
-          "drink"
+          "drink",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -46705,6 +48838,9 @@
               "watch",
               "talk",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -46840,7 +48976,10 @@
             "interact",
             "look",
             "laugh",
-            "drink"
+            "drink",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -46938,6 +49077,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -47029,7 +49171,10 @@
           "watch",
           "drunk-idle",
           "drunk-sway",
-          "laugh"
+          "laugh",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -47122,6 +49267,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -47256,7 +49404,10 @@
             "watch",
             "drunk-idle",
             "drunk-sway",
-            "laugh"
+            "laugh",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -47354,6 +49505,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -47443,7 +49597,10 @@
           "idle",
           "talk",
           "work",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -47536,6 +49693,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -47670,7 +49830,10 @@
             "idle",
             "talk",
             "work",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -47768,6 +49931,9 @@
             "idle",
             "watch",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -47857,7 +50023,10 @@
           "idle",
           "talk",
           "work",
-          "watch"
+          "watch",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -47950,6 +50119,9 @@
               "idle",
               "watch",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -48084,7 +50256,10 @@
             "idle",
             "talk",
             "work",
-            "watch"
+            "watch",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -48184,6 +50359,9 @@
             "watch",
             "talk",
             "sit",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -48274,7 +50452,10 @@
           "work",
           "watch",
           "interact",
-          "look"
+          "look",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -48369,6 +50550,9 @@
               "watch",
               "talk",
               "sit",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -48504,7 +50688,10 @@
             "work",
             "watch",
             "interact",
-            "look"
+            "look",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -48600,6 +50787,9 @@
           "actions": [
             "wait",
             "idle",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "walk-on"
           ],
           "anims": [
@@ -48696,7 +50886,10 @@
           "vr-aim-down",
           "vr-shoot",
           "vr-hit",
-          "vr-duck"
+          "vr-duck",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -48787,6 +50980,9 @@
             "actions": [
               "wait",
               "idle",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "walk-on"
             ],
             "anims": [
@@ -48921,7 +51117,10 @@
             "vr-aim-down",
             "vr-shoot",
             "vr-hit",
-            "vr-duck"
+            "vr-duck",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -49018,6 +51217,9 @@
             "wait",
             "idle",
             "talk",
+            "sit-kneel",
+            "sit-cross",
+            "sit-knees",
             "work",
             "walk-on"
           ],
@@ -49115,7 +51317,10 @@
           "interact",
           "menu",
           "menu-tap",
-          "talk"
+          "talk",
+          "floor-kneel",
+          "floor-cross",
+          "floor-knees"
         ],
         "escort": {
           "stops": [],
@@ -49207,6 +51412,9 @@
               "wait",
               "idle",
               "talk",
+              "sit-kneel",
+              "sit-cross",
+              "sit-knees",
               "work",
               "walk-on"
             ],
@@ -49342,7 +51550,10 @@
             "interact",
             "menu",
             "menu-tap",
-            "talk"
+            "talk",
+            "floor-kneel",
+            "floor-cross",
+            "floor-knees"
           ],
           "escort": {
             "stops": [],
@@ -53104,6 +55315,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53155,6 +55367,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53200,6 +55413,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -53229,6 +55443,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "n1",
@@ -53276,6 +55491,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -53332,6 +55548,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -53389,6 +55606,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53438,6 +55656,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53488,6 +55707,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53538,6 +55758,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53589,6 +55810,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53640,6 +55862,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53691,6 +55914,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53743,6 +55967,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53794,6 +56019,72 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [
+          {
+            "name": "cushion-n-s",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-n-n",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-n-w",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-n-e",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-s-s",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-s-n",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-s-w",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-s-e",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          }
+        ],
         "sockets": [
           {
             "id": "s1",
@@ -53847,6 +56138,7 @@
           "dealer",
           "lookout"
         ],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53897,6 +56189,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53948,6 +56241,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -53999,6 +56293,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -54049,6 +56344,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54098,6 +56394,7 @@
           "corner-a",
           "corner-b"
         ],
+        "sits": [],
         "sockets": [
           {
             "id": "s1",
@@ -54151,6 +56448,7 @@
           "door-2",
           "door-3"
         ],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54196,6 +56494,7 @@
         "stairs": true,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54237,6 +56536,7 @@
         "stairs": false,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54273,6 +56573,7 @@
         "stairs": false,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54309,6 +56610,7 @@
         "stairs": false,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54346,6 +56648,7 @@
         "stairs": false,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54394,6 +56697,80 @@
           "front-door",
           "back-door"
         ],
+        "sits": [
+          {
+            "name": "cushion-a-s",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-a-e",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-b-s",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-b-e",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-b-n",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-c-s",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-c-n",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-c-w",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          },
+          {
+            "name": "cushion-c-e",
+            "poses": [
+              "kneel",
+              "cross",
+              "knees"
+            ]
+          }
+        ],
         "sockets": [
           {
             "id": "s1",
@@ -54433,6 +56810,7 @@
         "stairs": false,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54470,6 +56848,7 @@
         "stairs": false,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54518,6 +56897,44 @@
           "dealer",
           "door"
         ],
+        "sits": [
+          {
+            "name": "stool-sw-e",
+            "poses": [
+              "chair"
+            ]
+          },
+          {
+            "name": "stool-nw-s",
+            "poses": [
+              "chair"
+            ]
+          },
+          {
+            "name": "stool-nw-e",
+            "poses": [
+              "chair"
+            ]
+          },
+          {
+            "name": "stool-e-s",
+            "poses": [
+              "chair"
+            ]
+          },
+          {
+            "name": "stool-e-n",
+            "poses": [
+              "chair"
+            ]
+          },
+          {
+            "name": "stool-e-w",
+            "poses": [
+              "chair"
+            ]
+          }
+        ],
         "sockets": [
           {
             "id": "s1",
@@ -54558,6 +56975,36 @@
         "underground": true,
         "spots": [
           "keeper"
+        ],
+        "sits": [
+          {
+            "name": "cot-1",
+            "poses": [
+              "knees",
+              "cross"
+            ]
+          },
+          {
+            "name": "cot-2",
+            "poses": [
+              "knees",
+              "cross"
+            ]
+          },
+          {
+            "name": "cot-3",
+            "poses": [
+              "knees",
+              "cross"
+            ]
+          },
+          {
+            "name": "cot-4",
+            "poses": [
+              "knees",
+              "cross"
+            ]
+          }
         ],
         "sockets": [
           {
@@ -54600,6 +57047,7 @@
         "spots": [
           "cook"
         ],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54640,6 +57088,7 @@
         "stairs": false,
         "underground": true,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54708,6 +57157,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54756,6 +57206,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "s0",
@@ -54807,6 +57258,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "entry",
@@ -54847,6 +57299,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "street",
@@ -54929,6 +57382,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "entry",
@@ -54969,6 +57423,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "street",
@@ -55051,6 +57506,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "entry",
@@ -55090,6 +57546,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "street",
@@ -55172,6 +57629,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "entry",
@@ -55212,6 +57670,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "street",
@@ -55264,6 +57723,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "entry",
@@ -55304,6 +57764,7 @@
         "stairs": false,
         "underground": false,
         "spots": [],
+        "sits": [],
         "sockets": [
           {
             "id": "street",
@@ -55522,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "9fd91e4cb7ee4d1c",
+  "revision": "ffd8b5af17d4d50d",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -70819,6 +73280,204 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 23,
+      "text": "'- The line at the top of the Mission Editor starting \"How your edits reach the game\" says whether publishing is switched on. Click it for details.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 27,
+      "text": "'On the [[Start]] tab press [[Make a mission]]. There is one question per page. [[NEXT]] goes on, [[BACK]] goes back. If something is missing, a yellow box says what and how to fix it.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 30,
+      "text": "'3. [[How does it start?]] [[When the player talks to them]], [[They ask, the player says ACCEPT or DENY]], [[When the player walks near them (starts automatically)]], [[When the player walks near them, they ask ACCEPT or DENY]], or [[A text message on the V1]] (it arrives when the player first leaves the Sleeping Pod; you write the message).',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 33,
+      "text": "'6. [[What is it called?]] The name, an optional description, what the giver says when offering it, and which tree it goes in ([[My missions]] unless you pick another).',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 47,
+      "text": "'- The coloured edge says WHO (the player is always blue); the header says WHAT (WORDS, ACTION, ITEM, TIME, ASK, APARTMENT).',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 50,
+      "text": "'- Credits: [[Player gets]] or [[Player pays]]. For a cost, [[Charged]] says when (at ACCEPT, or when a step is done). Credits never go below 0; with too few, ACCEPT is greyed and says [[YOU NEED|YOU NEED]] and the amount.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 57,
+      "text": "'- [[Hear what they say]]: their lines show right after the talk step before it.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 71,
+      "text": "'- [[Watch someone (stay near them)]], [[Overhear a conversation (eavesdrop)]], [[Follow someone at a distance]], [[Watch a remote camera feed]].',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 75,
+      "text": "'> A few kinds are listed for planning only and say \"needs a code change\" ([[Win a fight]], [[Scan with WarFlying]], [[Escort someone]], [[Pick something up in the world]]). The game cannot run them yet; they are hidden in Basic.']],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 78,
+      "text": "'- [[In person: the player talks to them]]: the player walks up and presses TALK; the giver says [[What is said when the mission is offered]].',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 86,
+      "text": "'- An offer that arrives on the device shows a banner, then the ACCEPT / DENY window. It never opens over a conversation or a menu.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 87,
+      "text": "'- In the middle of a conversation (Blocks view): [[+ PLAYER REPLY]], then tick [[Make this a choice: ACCEPT / DENY|Make this a choice: ]]. Each choice can give or take credits once.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 89,
+      "text": "'For a walk-near start the banner text is folded under [[Show the banner text]]. Leave it empty and the player sees only a short \"NEW MISSION\" line; the giver says the offer in person.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 95,
+      "text": "'3. The line above the list says the whole start in plain words, so you can check it reads right.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 114,
+      "text": "'The [[Giver]] is who offers the mission. Only people with a TALK prompt in the game can give missions. The line beside the list says whether players can reach them today.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 119,
+      "text": "'- Pick [[Tea Room Host]] as the Giver like anyone else. For example, a walk-near start with no banner text: everything is said in person.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 129,
+      "text": "'- [[Let her do her usual thing]], [[Keep her at one spot]] or [[Make her walk a route]]. Click the green ground on the map; a click on a road or furniture moves to the nearest spot they can stand on. A spot that is never allowed says why.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 131,
+      "text": "'- Sitting: put the spot right in front of a seat (a ledge, a bench, an alcove chair in the tunnels) and tick the sit choice. Away from a seat it says it needs one.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 137,
+      "text": "'## Animations in conversations',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 138,
+      "text": "'- Under a character\\'s line: [[While saying this, |While saying this, ]]… pick an animation. They do it while the line is on screen.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 144,
+      "text": "'- Put the spot where one steps onto the seat. A line under it says [[Pose at this seat: |Pose at this seat: ]]… with the poses that seat takes; tick the matching one.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 145,
+      "text": "'- Only people whose model has the poses get them (most street figures and residents do; the VR companions, licensed models, the street cat and a few others do not). The editor says so in plain words.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 158,
+      "text": "'4. The card says \"Everything fits\" or lists what to fix.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 167,
+      "text": "'3. [[REPLACE]] picks a new file, [[REMOVE]] takes it off. Change the words afterwards and it says [[text changed since the voice was imported]]: import a new one.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 181,
+      "text": "'- When everything required is filled in it says [[All required fields filled]] and points at PLAY THIS DRAFT. Optional boxes are never highlighted.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 185,
+      "text": "'- Some steps have no arrow on purpose, for example a step done from the V1 Mission Log. The yellow hint line then says which key to press.']],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 193,
+      "text": "'- A banner at the top says [[PLAYING DRAFT]] and the mission name.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 197,
+      "text": "'- If a play button seems to do nothing, the status line under the Mission Editor\\'s top buttons now says \"PLAY could not start:\" and the reason. Nothing was changed and your draft is safe.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 201,
+      "text": "'Your draft is saved in this browser and copied to the server, so another computer can pick it up. The small line under the top of the Mission Editor says how that copy is doing.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 220,
+      "text": "'- If publishing is switched off on the server, the page says so. Your draft is safe.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 227,
+      "text": "'Look at the status line near the top for \"PLAY could not start: …\" and send Claude that message. If the button is greyed, hover over it: it says what is missing. Turn on Guide me to see the next box to fill in.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 232,
+      "text": "'- Is the giver out right now? The giver line says whether players can reach them.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 244,
+      "text": "'Put the spot right where one steps onto the seat. The editor says in red when a spot or an action does not work there, and why.',",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/mission-editor.js",
       "line": 2,
       "text": "every private read and write is checked by the API). The owner asked for it on 17 Nov 2026: every mission tree, the NPCs in it, what each NPC says, what has to be done,",
@@ -71750,31 +74409,31 @@
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 103,
+      "line": 107,
       "text": "if(k==='overhear'){if(!Array.isArray(o.say)||!o.say.length)out.push('write the conversation the player overhears.');else if(o.say.some(l=>l&&l.who==='You'))out.push('the player says nothing while eavesdropping.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 105,
+      "line": 109,
       "text": "if(k!=='overhear'&&o.say!=null&&k!=='observe')out.push('this step has no lines.');if(o.via!=null)out.push('this step has no Comms call or message.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 112,
+      "line": 116,
       "text": "else if(k==='call'){const say=o.say||[];if(!say.length||say.some(l=>!l||l.who==='You'||l.who!==say[0].who))out.push('a call needs its lines, all from one NPC.');if(o.via!=='comms'&&o.via!=='messages')out.push('a call comes as a Comms call or a message.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 113,
+      "line": 117,
       "text": "else if(k==='wait-game'){if(!(Number.isInteger(o.minutes)&&o.minutes>=1&&o.minutes<=LIMIT.minutes))out.push('an in-game wait is a whole number of in-game minutes from 1 to 10080 (a week).');if(o.say!=null||o.via!=null)out.push('an in-game wait has no lines (add a call after it).');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics.js",
-      "line": 134,
+      "line": 138,
       "text": "/* One overheard conversation's progress (the game keeps it per step; pure so it is tested): st {line, at, noticed}; inp {d (metres to the speaker), dt (s), near, close,",
       "kind": "source-reference"
     },
@@ -72080,115 +74739,115 @@
     },
     {
       "source": "void-runner/modules.js",
-      "line": 94,
+      "line": 108,
       "text": "say:{scanner:'ITEM SCANNER: a flatbed reader for serials and ownership chips. The last scan reads “REGISTERED OWNER: —”.',cage:'STORAGE CAGE: padlocked mesh. Tagged goods on the shelves, each with a date and a number.',computer:'APPRAISAL TERMINAL: tickets, loan dates, and a column headed “do not sell back”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 101,
+      "line": 115,
       "text": "say:{stove:'WOK RANGE: three burners, one still ticking warm. Oil on everything.',cooler:'WALK-IN COOLER: a heavy latch, frost round the seal. Inside: noodles, broth in buckets, crates with no labels.',prep:'PREP TABLE: a cleaver, a board worn into a dip, scallions, a tub of dough.',computer:'ORDER TERMINAL: tonight’s tickets, a delivery list, and one order paid three times over.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 108,
+      "line": 122,
       "text": "say:{bench:'SOLDERING STATION: the iron is still warm. A phone board in the clamp, half its chips lifted.',drawers:'PARTS DRAWERS: hundreds of small drawers, hand-labelled. Resistors, screws, salvaged camera modules.',computer:'DIAGNOSTIC TERMINAL: a queue of repair jobs, and a folder of device unlock tools.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 115,
+      "line": 129,
       "text": "say:{chair:'IMPLANT CHAIR: worn padding, wrist straps, a tool arm folded overhead. Clean, for this street.',bench:'PARTS BENCH: a prosthetic forearm on its stand, its cover off. Trays of connectors and tiny screws.',fridge:'PARTS FRIDGE: sealed implant boxes and gel packs, serial numbers scratched off.',terminal:'IMPLANT TERMINAL: fitting records under first names only, and a firmware folder called “unofficial”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 122,
+      "line": 136,
       "text": "say:{washers:'WASHERS: one mid-cycle, one with an OUT OF ORDER card taped on, one locked with a bag still inside.',dryers:'DRYERS: warm, lint everywhere. One drum holds something that is not laundry.',table:'FOLDING TABLE: stacks of folded work clothes with tickets pinned on, and a pile of uniforms from a company that is not on any ticket.',computer:'OFFICE COMPUTER: the books, the machine takings, and a spreadsheet of “pickups” with no laundry on it.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 128,
+      "line": 142,
       "text": "say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 134,
+      "line": 149,
       "text": "say:{table:'CARD TABLE: a hand left face down, chips stacked by colour, an ashtray. Nobody is collecting the pot.',cart:'BAR CART: cheap spirits poured into expensive bottles.',safe:'CASH SAFE: a keypad, a smear of fingerprints on four of the keys. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 141,
+      "line": 156,
       "text": "say:{chair:'TATTOO CHAIR: fresh film on the padding, the lamp still angled where the last client lay.',ink:'INK STATION: rows of bottles, a machine on its cradle, gloves, a roll of film.',flash:'FLASH BOARDS: sheets of designs, pinned and re-pinned: stars, waves, flowers, knives, a lot of eyes.',computer:'BOOKING TERMINAL: appointments under nicknames, deposits paid in cash, one booking marked “cover-up, urgent”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 148,
+      "line": 163,
       "text": "say:{desk:'MIXING DESK: faders taped with handwritten labels, a cue sheet with the times crossed out.',mic:'MICROPHONE: the pop filter is split, the boom arm held with tape. The ON AIR light is off.',racks:'TRANSMITTER RACK: a homemade exciter, an amplifier with a fan that rattles, coax going up through the ceiling.',computer:'PLAYOUT COMPUTER: a playlist, a folder of station idents, and a list of frequencies that keep moving.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 154,
+      "line": 169,
       "text": "say:{lift:'SCOOTER LIFT: a delivery scooter up on the lift, side panel off, its ID plate unscrewed.',chest:'TOOL CHEST: sockets in the wrong drawers, a torque wrench, a tin of mismatched bolts.',drums:'OIL DRUMS: two full, one empty, one that sloshes too lightly for its weight.',computer:'DIAGNOSTIC LAPTOP: a scooter’s fault log, and a tool for rewriting its owner record.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 160,
+      "line": 175,
       "text": "say:{altar:'ALTAR: fruit, a bowl of rice, a cup of tea gone cold, coins, a folded note nobody should read.',incense:'INCENSE: three sticks burning down in a bowl of ash. The smoke hangs under the ceiling.',candles:'CANDLES: a rack of small candles, most lit, wax over everything.',charms:'CHARM STRIPS: paper strips, brush marks faded past reading, tied with red thread.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 169,
+      "line": 184,
       "text": "say:{ring:'RING: chain-link on scaffold poles, the mat patched with tape, dark stains scrubbed half away.',betting:'BETTING COUNTER: a grille, a slot for chips and cash, a ledger chained to the counter. Closed between fights.',board:'ODDS BOARD: chalked names wiped out and rewritten. Tonight’s card is blank.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 175,
+      "line": 190,
       "text": "say:{table:'CHECKPOINT TABLE: a pass-through in the fence, a scarred table, a list of names with half of them crossed out.',cashbox:'CASH BOX: a dented tin with a padlock. The door fee goes in here.',wand:'SCANNER WAND: a cheap metal-detector wand, the grip wrapped in tape.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 197,
+      "line": 212,
       "text": "say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 204,
+      "line": 221,
       "text": "objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 211,
+      "line": 228,
       "text": "say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 217,
+      "line": 236,
       "text": "say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 223,
+      "line": 243,
       "text": "say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 227,
+      "line": 247,
       "text": "say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});",
       "kind": "source-reference"
     },
@@ -72380,55 +75039,61 @@
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 117,
+      "line": 118,
       "text": "function routineStart(p=PAIR[1],rnd=Math.random,cfg=config){const x=between(rnd,[STRETCH.x0+3,STRETCH.x1-3]);return {who:p.id,favourite:p.favourite||null,mode:'walk',x,z:STRETCH.z,dir:rnd()<.5?1:-1,left:between(rnd,cfg.walk),step:null,yaw:0,clip:'walk',once:false,device:null,face:null,sub:null};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 150,
+      "line": 135,
+      "text": "/* THE FLOOR POSES (21 Nov 2026: kneeling, cross-legged, knees to chest; crowd.js FLOOR): a seat's `poses` say which it takes ('chair': the sit-down clips; ledges are",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/ncz-street-pair.js",
+      "line": 183,
       "text": "stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 174,
+      "line": 207,
       "text": "return false;}   // sitting at a point, or held for a conversation: the ordinary steps below",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 227,
-      "text": "const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};",
+      "line": 291,
+      "text": "const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,POSES,POSE_CLIP,POSE_NAME,FLOOR_BACK,FLOOR_MOVE,RAISED,floorClip,floorFx,floorStart,floorRest,posesOf,standOf,floorPose,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 310,
+      "line": 374,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatHer=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 313,
+      "line": 377,
       "text": "const speaks=id=>{try{return typeof speech!=='undefined'&&!!speech&&Array.isArray(speech.lines)&&speech.lines.some(l=>l&&l.who===id);}catch{return false;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 333,
+      "line": 397,
       "text": "if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 478,
+      "line": 542,
       "text": "VoidInteractions.register(CAT_ACTION,()=>{talk('',CAT_REACTION.map(text=>({who:CAT_ID,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 479,
+      "line": 543,
       "text": "VoidInteractions.register(TALK_ACTION,({item}={})=>{const p=PAIR.find(x=>x.id===item?.character)||PAIR[0];talk('',(GREETING[p.id]||['Hi.']).map(text=>({who:p.id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -72440,13 +75105,13 @@
     },
     {
       "source": "void-runner/ncz-underground.js",
-      "line": 103,
+      "line": 113,
       "text": "const say=(type,obj)=>{const t=M.TYPES[type]||{};return (t.say&&t.say[obj])||null;};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-underground.js",
-      "line": 106,
+      "line": 116,
       "text": "if(i.action==='mod-use'&&i.object!=='lights'){const m=modById(i.mod),text=m&&say(m.type,i.object);if(text)inter.push({id:'under-'+i.id,label:i.label,position:[i.position[0],Y+i.position[1],i.position[2]],action:'under-look',text,place:PLACE_OF[i.mod],range:i.range});}}",
       "kind": "source-reference"
     },
@@ -72632,79 +75297,79 @@
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 378,
+      "line": 379,
       "text": "const setSch=(list,say,undoable)=>{const before=plan(id);const w=plan(id)||{mode:'original'};setPlan(id,{...w,schedule:list},{keep:false});if(say)status=say;if(undoable)ui.undo=()=>setPlan(id,before,{keep:false});if(!list.length)ui.block[id]=null;draw();};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 408,
+      "line": 409,
       "text": "const say=el('span','','me-small',{'aria-live':'polite','data-npc-try-say':id});const upd=()=>{const m=+rg.value,k=X().blockAt(sch,m),b=k>=0?sch[k]:null;ui.clock[id]=m;say.textContent='At '+X().hhmm(m)+' '+she+(b?' follows time block '+(k+1)+' ('+b.from+'–'+b.to+(b.name?' “'+b.name+'”':'')+')':' does the all-day plan')+(root.VoidNPCBehaviour?': '+root.VoidNPCBehaviour.describe(id,b||whole):'')+'.';};rg.oninput=upd;upd();",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 410,
+      "line": 411,
       "text": "tr.append(el('b','Try a time:'),rg,say,btn('PLAY THIS DRAFT AT THIS TIME',()=>playNpc(e,{minute:+rg.value}),'me-play',{'data-npc-play-at':id,...(probs.length?{disabled:'',title:'Fix the problems first.'}:{})}));box.append(tr,hint(HELP.tryTime));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 415,
+      "line": 416,
       "text": "const st=ui.recipe[id]=ui.recipe[id]||{text:'',res:null,show:'all'},whole=plan(id),anims=whole&&whole.anims||[];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 463,
+      "line": 464,
       "text": "function linesBox(main,e){const box=el('section','','me-check',{'data-npc-lines':e.id});box.append(el('h4','Lines & voice'),hint(HELP.lines));if(S().voicePanel)box.append(S().voicePanel(e.id,{redraw:draw,say:t=>{status=t;}}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 538,
+      "line": 545,
       "text": "if(e.kind==='roster'&&X().MOVABLE[e.id]){const p=curPlan(e.id),w=plan(e.id);if(w&&Array.isArray(w.schedule))w.schedule.forEach((b,k)=>{if(X().toMin(b.from)==null||X().toMin(b.to)==null)needs.push({sel:'[data-npc-block-time=\"from:'+k+'\"]',text:'give time block '+(k+1)+' its times'});});if(p&&p.mode==='path'){if(p.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:p.points.length?'click the pavement for the next point (at least 2)':'click the pavement for the first point'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 539,
+      "line": 546,
       "text": "p.points.forEach((q,i)=>{if(X().spotProblems(e.id,q).length)needs.push({sel:'[data-npc-point=\"'+i+'\"] td:nth-child(2) span',text:'move point '+(i+1)+' onto the green ground'});});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 540,
+      "line": 547,
       "text": "if(p&&p.mode==='stay'){if(!p.actions.length)needs.push({sel:'[data-npc-stay-actions] input',text:'tick at least one thing she does there'});if(X().spotProblems(e.id,p).length)needs.push({sel:'[data-npc-map] canvas',text:'put the spot on the green ground'});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 541,
+      "line": 548,
       "text": "return Gd.show(sc,needs,{done:p||w?{sel:'[data-npc-play=\"'+CSS.escape(e.id)+'\"]',text:'PLAY THIS DRAFT'}:null,box:sc.querySelector('[data-npc-place]')});}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 542,
+      "line": 549,
       "text": "if(e.kind==='import'){const r=e.rec,L=r.licence||{};if(!r.info)needs.push({sel:'[data-npc-preview-go]',text:'show the preview (it runs the checklist)'});if(!String(r.name||'').trim())needs.push({sel:'[data-npc-import-name]',text:'give it a name'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 544,
+      "line": 551,
       "text": "if(!r.placement)needs.push({sel:'[data-npc-place] [data-npc-mode]',text:'choose STAY HERE or ROUTE'});else if(r.placement.mode==='path'&&r.placement.points.length<2)needs.push({sel:'[data-npc-map] canvas',text:'click the pavement for the route points'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 545,
+      "line": 552,
       "text": "if(!L.source)needs.push({sel:'[data-npc-lic=\"source\"]',text:'where the model is from'});if(!L.type)needs.push({sel:'[data-npc-lic=\"type\"]',text:'the licence type'});if(L.noAI!==true&&L.noAI!==false)needs.push({sel:'[data-npc-noai=\"true\"]',text:'answer “No AI licence?”'});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-editor.js",
-      "line": 546,
+      "line": 553,
       "text": "return Gd.show(sc,needs,{done:{sel:'[data-npc-add-to-game]',text:'ADD TO THE GAME'},box:sc.querySelector('[data-npc-licence]')});}",
       "kind": "source-reference"
     },
@@ -72842,13 +75507,13 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 235,
+      "line": 236,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 246,
+      "line": 247,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',[{who:id,text:'…'}],()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -72896,13 +75561,13 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 128,
+      "line": 132,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 260,
+      "line": 282,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
@@ -73418,7 +76083,13 @@
     },
     {
       "source": "void-runner/rook-cargo-jobs.js",
-      "line": 32,
+      "line": 33,
+      "text": "and every finished run brings a new one. All of this is plain flavour text: change, add or remove entries freely (old saves keep their accepted job's text).",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/rook-cargo-jobs.js",
+      "line": 58,
       "text": "(Checked against the code before approval: the coordinates line no longer says \"landing pads\" or \"anywhere\": the coordinates are stations and planets",
       "kind": "source-reference"
     },
@@ -75002,7 +77673,7 @@
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "d14f4d2304c1384a57f414bb401bc456c274f5689a180731f149a848b16172b7",
-    "void-runner/campaign.js": "3b2657621fb68a7974e80903f6a0f03b29ddb9d97881285ba06458b49fe8d74d",
+    "void-runner/campaign.js": "1e47cd44d124036bdff3626ded53366e686524efce7c4d0e65cf64785412cd39",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -75025,7 +77696,7 @@
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
     "void-runner/crosswalks.js": "69acf44a540a6ba7314d68bf38fa74ad93482ca993629675eae3ca0d8a9a1d60",
-    "void-runner/crowd.js": "10b100bcb72a377931dfed8dae080c28af84856bdf04a2f7dfbcef9e15a2e161",
+    "void-runner/crowd.js": "e86065a4ae793e6633f2ef51a8470d0a3e2c518b4dc082ff1a1bb3c9bbfbbf44",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
     "void-runner/cult-room.js": "c8ba34ef1a386b36c5493415bf9ba798142e04b870a7a245166e12901ca8e13d",
@@ -75033,7 +77704,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "9b738d2f4168e038c4bd6ab4de77b280cecf25d4d246b9635459e4422f446410",
+    "void-runner/dev-tools.js": "95d6ecf5bff491f8af1b0632ea7c3e2d439e12be9b68f7a488bf34f96562c030",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -75050,7 +77721,7 @@
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
     "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
-    "void-runner/editor-home.js": "55667850354446c7a7da16d253a3e5c5baa46ed81cedb848d4357b832a12c361",
+    "void-runner/editor-home.js": "e4301b93b8abd8805591aa691d864798f42687dd0ae95d5c3710f78bc9229046",
     "void-runner/editor-session.js": "2b4ad761afad673cbb3e3f375b4c748a5fa6bfbf23eb7855717c5671674bdcff",
     "void-runner/editor-wizard.js": "fab15190f8edbfb50a129d320587bc52caa1c52e7517132039675ef13fd4961f",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
@@ -75092,7 +77763,7 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
-    "void-runner/main-story.js": "68eff24e016b9c73f4715cec362e3ba444a8fdf28fe4a1b383dce850ab9fb6a6",
+    "void-runner/main-story.js": "5b32c2ee9cbe6689520b5a08d650f20d127610a03ed0e0ff443938077e5c51b1",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -75108,19 +77779,20 @@
     "void-runner/mission-blocks-view.js": "8b506f0eb062f07591d8d5b26b264fa56ceba8aff0fdde6b1802a4099e35054c",
     "void-runner/mission-blocks.js": "ce5077b67d2d80221298fd27b1de34007b6f7f362cd4b16e844d793eb85169f9",
     "void-runner/mission-content.js": "b6dd6937730428fb109de2d0d4f5a345290e37357695f990d42db5d831c41b47",
+    "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "9dcd6df10c46844b94ca01d2e6d976276cbf5606d8763d85247364ec62aacd6c",
     "void-runner/mission-givers.js": "f4673af3383f533a505600f3e16ca9fbe9b78c952c190e6a63e34a71a220b2c3",
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
-    "void-runner/mission-log.js": "c7d188c8d7dc5a089f4467eeee617ddfba6a356031a7a4616c6e23ddf5937c4f",
-    "void-runner/mission-mechanics-editor.js": "4762d687305c1370b27737ca51845f8be22b25ba23d87067c18cea576a2c6d54",
+    "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
+    "void-runner/mission-mechanics-editor.js": "09b6ee7fcf0d40bd14f11f9552ccb48a5339cd73fdf9befbd5d996b9513259d1",
     "void-runner/mission-mechanics-game.js": "0c2fe07494ff236b303f813d12b4b3a3d6128ddbbfa8eca3934f91948fca03e3",
-    "void-runner/mission-mechanics.js": "c96242d2208ffe17200f81774f608bb9b5217bd8ccab930cfbec0939b97d25d4",
+    "void-runner/mission-mechanics.js": "ddf0903cddcd9e6e07953b819ca7734005d991743bdeff91229bfd744cc9efa0",
     "void-runner/mission-trees.js": "05febd25649b556287acf918c84c0b5dc394ec4649f8be13771188bdd3105eeb",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "ced93a07b13ceba87a37d3be66ea88991490ceb1da4952f5fde40a4bfc94990f",
+    "void-runner/module-build.js": "9dd79cceed2f428c060e498a6b34a4668667cf04d0baad80db2c7bd71004cf73",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
     "void-runner/module-integration.js": "dba88434d6ac82b9a3b5de4a1811f189c000a1cf600eb6eca1803535c0895d35",
-    "void-runner/modules.js": "9d31fa8c0a1630c853f4fc79bc1ba7f2c642c6920b920248df6cdf176c309062",
+    "void-runner/modules.js": "411328274661dc1b1d53dfc73013c6f98484994bd486524d98b38ec4296ddbcf",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
@@ -75142,26 +77814,26 @@
     "void-runner/ncz-quarters.js": "add265e7bd1863d86370b8b41fd2b01504793365c0c2cd6b6bb9b85d5f66d8ac",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
-    "void-runner/ncz-street-pair.js": "477f506079d0d5b2970de0e814b4d58f88bea91d374925d26cf370bc46e332ca",
+    "void-runner/ncz-street-pair.js": "12095d2cd7e9989e31a8547a65f1718f124d45d2f4e2f66c0ee218468646bd42",
     "void-runner/ncz-underground-integration.js": "2a1d02130526aa5bb4e6633b68f5efac59e6fcad49e8d4039de8315117b67efb",
-    "void-runner/ncz-underground.js": "19caacdd2c0f5410bfa19b83865c12c69a07c2d9ad1c3c7d3c9302671d3fbc66",
+    "void-runner/ncz-underground.js": "76b7d412136c3aed62c4974880c9bd262ccec0decd394e13af3cbc821c135012",
     "void-runner/neochinatown.js": "b0467951b7f204ec190a3853f7d88c41886ecca30272cfa46f8aef9c1c96d633",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-areas.js": "63948c8815711a7c264530e2695c234b7e91b5f53a6d5092121fc1d02d8df21d",
+    "void-runner/npc-areas.js": "6f142131557c7fed6e9866ba807813bec00afcb1593447a4c17e67a329b5077b",
     "void-runner/npc-behaviour.js": "8145de3c2ec74f87fa8f831c89a1b3d51699c0e65bfd3d78fd051f48aa0726a9",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "08b76728fe14ab73a02f77ab3055ef5c58dbd9e9f845d5e5f4439d931735b16a",
+    "void-runner/npc-editor.js": "d97fd390001ee2685aa3d70bc0c052ee540708330051d7fc58494659ed2daf5e",
     "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "0bcf5c4f33f9188c6b804c72ac08c0fbaa4d5c180bda42f01ada12cef42508db",
-    "void-runner/npc-gestures.js": "fdd66b8e362a7abd74b71febcfdbe9a003b95d5500b869a5c056cf6b4c6cbaa0",
+    "void-runner/npc-gestures.js": "8a0cd28995832b0b64b04bd087abce7953373aed30c35529776ab0600a8908fe",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
-    "void-runner/npc-made.js": "e7fd069a7bcaa29197edd4c7196d80b908acc2fa8538a7695c23aee6f9c74549",
+    "void-runner/npc-made.js": "fdda6ec39b6e0841ef5770b47b85251fad3bdecf091bcf6eeb4c12bd2bd79f30",
     "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
-    "void-runner/npc-paths.js": "7ecaec3f6cb3f18dd9b000639a949abbeccd356483bd9410b961f909c5d2be5d",
-    "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
+    "void-runner/npc-paths.js": "0e5729c6bc029c69a4ba603c7d52d9cdd47155959eb172fe9c0db27151e4c3a0",
+    "void-runner/npc-preview.js": "4847702bed1b2dc33c384639ffce82b4fc80713f924705420a6bb03f883b3782",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
@@ -75190,7 +77862,8 @@
     "void-runner/road-taxi-rules.js": "78f664cd9459e6b88b9e5bb14f80bfc2abc4535f995d6674223d7e809cf61f37",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "45791a8afbcbd2b494f4cc40e51c183ca29d193fbaee00ecdb0c96583d580b5a",
-    "void-runner/rook-cargo-jobs.js": "aa8ebdd405361bc36a2f47d73fe902df2d769b14775f00f28e7a538b2b8ad8f4",
+    "void-runner/rook-cargo-gen.js": "e45edad6a10678715449b343e9fe0dfac4858328ac14d24ef64bc57828ccd1d9",
+    "void-runner/rook-cargo-jobs.js": "c79c8c6e7ee79007fc0021306c869dcfed93a10da8de04772ddd5ab4599bc790",
     "void-runner/scenes.js": "cf1061512432f0329ed03cccf7dd5e15c771f9ef21aa51fb96aaffdbd68c858c",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -75239,7 +77912,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "660428b5731443bccce828ea14900fab93553c3c54852629fb082a49fe17f53a",
+    "void-runner/world-integration.js": "54006ef34cab747108e8902c1d8ed7cd42ceffef13f03db6bbf907ad0937e3f4",
     "void-runner/world-markers.js": "a46dbb285be035cb9a3d8543a14cdaf06af63201e89d4c1a5af77d1dd4897346",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",
