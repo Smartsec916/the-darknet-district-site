@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "bdec039f12227b7e",
+  "revision": "fe9196cb30efc331",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74708,7 +74708,7 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
-    "void-runner/main-story.js": "bf5e54a176fc47459228ada1685adc865d166ad1cd6d98399ff19790f0e8d613",
+    "void-runner/main-story.js": "342975162ed0b85a181b55e985097d41d393877b20e8a2ecc1b734380035f284",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",

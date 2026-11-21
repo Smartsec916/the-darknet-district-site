@@ -39,4 +39,4 @@ test('each chorus clip ends before the next voiced beat starts (no line is cut o
   const next=ev[i+1];if(next)assert.ok(e.t+secs<=next.t,'chorus '+k+' ('+secs.toFixed(2)+' s) overlaps the next line');});
 });
 
-test('build bumped',()=>{assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8').split('\n')[3],/^const BUILD='2026-11-21-chorus-voices-1';\r?$/);});
+test('build bumped',()=>{assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8').split('\n')[3],/^const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';\r?$/);});

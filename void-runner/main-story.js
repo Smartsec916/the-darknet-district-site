@@ -236,7 +236,7 @@
  const RL=(who,text,extra={})=>({act:'line',who,text,...extra});
  const RITUAL={radius:2.6,speed:.5,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},
   RL('robed-all','Are you ready for your Awakening, brother?',{wait:2}),RL('initiate','Yes. I am.',{wait:1.5}),
-  RL('robed-all','Do you willingly surrender fifty-one percent of your enterprise in exchange for the prosperity, protection and influence of Blackrock?',{wait:1.5}),RL('initiate','I do.',{wait:1.5}),
+  RL('robed-all','Do you willingly surrender fifty-one percent of your enterprise in exchange for the prosperity, protection and influence of Blackrock?',{wait:2.7}),RL('initiate','I do.',{wait:1.5}),
   RL('robed-all','We offer you wealth in exchange for loyalty. Power in exchange for obedience. Brotherhood in exchange for sacrifice.',{wait:1.5}),
   RL('robed-all','To become one of us, you must surrender more than your enterprise. You must surrender your pride.',{wait:1.5}),
   RL('robed-all','Before you lies the vessel of sacrifice. Within it awaits your humiliation.',{wait:1.5}),
