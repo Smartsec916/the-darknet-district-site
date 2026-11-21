@@ -7,6 +7,37 @@
     return location.solids.some(s => s.id!==ignoreId && !s.open && Math.abs(x - s.position[0]) < s.size[0] / 2 + radius && Math.abs(z - s.position[2]) < s.size[2] / 2 + radius);
   }
 
+  /* NEVER STUCK IN A SOLID (the owner, 20 Nov 2026: "look for reasons you might get stuck in a housing room and can't move once you enter. maybe stuck in the couch"):
+     - depth(): how far the player's circle reaches into the solids at (x, z) (0: standing free). A move that is blocked is still allowed when the player already
+       overlaps something and the move takes him further out of it, so a spawn, a door closing or a collision box placed on him can never hold him in place
+       (he walks out the way he came; never further in, never through a wall from outside).
+     - free(): the nearest spot (in rings of 0.1 m, up to `max` metres) where the player can stand; for arrivals and the stuck check below.
+     - watch(): the quiet unstick. When a movement key has been held for 2 s, the player has not moved and he cannot step even 5 cm in any of the four
+       directions, he is put on the nearest free spot. Walking into a wall never triggers it (the other directions are open). */
+  function depth(x, z, location) {
+    let d = 0;
+    for (const s of location.solids) { if (s.open) continue; const px = s.size[0] / 2 + radius - Math.abs(x - s.position[0]), pz = s.size[2] / 2 + radius - Math.abs(z - s.position[2]); if (px > 0 && pz > 0) d += Math.min(px, pz); }
+    const bx = Math.abs(x) - (location.bounds[0] - radius), bz = Math.abs(z) - (location.bounds[1] - radius); if (bx > 0) d += bx; if (bz > 0) d += bz;
+    return d;
+  }
+  function free(x, z, location, max = 4) {
+    if (!blocked(x, z, location)) return {x, z, moved: false};
+    for (let r = .1; r <= max + 1e-9; r += .1) { const n = Math.max(8, Math.round(r * 24));
+      for (let k = 0; k < n; k++) { const a = k / n * Math.PI * 2, px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r; if (!blocked(px, pz, location)) return {x: px, z: pz, moved: true, distance: r}; } }
+    return {x, z, moved: false, failed: true};
+  }
+  const pinned = (x, z, location) => [[.05, 0], [-.05, 0], [0, .05], [0, -.05]].every(([a, b]) => blocked(x + a, z + b, location));
+  function watch(player, input, dt, location) {
+    const pushing = !!(input && (input.x || input.z));
+    if (!pushing || !location || player.height > 0) { player.stuckTime = 0; player.stuckFrom = null; return false; }
+    if (!player.stuckFrom || Math.hypot(player.x - player.stuckFrom[0], player.z - player.stuckFrom[1]) > .05) { player.stuckFrom = [player.x, player.z]; player.stuckTime = 0; return false; }
+    player.stuckTime = (player.stuckTime || 0) + Math.max(0, Math.min(.1, dt || 0));
+    if (player.stuckTime < 2 || !pinned(player.x, player.z, location)) return false;
+    player.stuckTime = 0; player.stuckFrom = null;
+    const f = free(player.x, player.z, location, 6); if (!f.moved) return false;
+    player.x = f.x; player.z = f.z; player.vx = player.vz = 0; return true;
+  }
+
   const config={sensitivity:.0022,walk:3.9,sprint:6.4,crouch:1.65,acceleration:32,braking:44,gravity:18,jump:4.6};
   function step(player,input,dt,location){
     dt=Math.max(0,Math.min(.1,dt));const length=Math.max(1,Math.hypot(input.x,input.z)),speed=input.crouch?config.crouch:input.run?config.sprint:config.walk;
@@ -16,8 +47,9 @@
     for(let i=0;i<steps;i++){const t=dt/steps,acc=(length>1||input.x||input.z?config.acceleration:config.braking)*t;
       const ax=tx-(player.vx||0),az=tz-(player.vz||0),delta=Math.hypot(ax,az),gain=delta?Math.min(1,acc/delta):0;
       player.vx=(player.vx||0)+ax*gain;player.vz=(player.vz||0)+az*gain;
-      if(!blocked(player.x+player.vx*t,player.z,location))player.x+=player.vx*t;else player.vx=0;
-      if(!blocked(player.x,player.z+player.vz*t,location))player.z+=player.vz*t;else player.vz=0;
+      // a blocked move is still taken when it leads out of a solid the player already overlaps (depth(): never further in)
+      {const nx=player.x+player.vx*t;if(!blocked(nx,player.z,location)||(player.vx&&depth(nx,player.z,location)<depth(player.x,player.z,location)-1e-6))player.x=nx;else player.vx=0;}
+      {const nz=player.z+player.vz*t;if(!blocked(player.x,nz,location)||(player.vz&&depth(player.x,nz,location)<depth(player.x,player.z,location)-1e-6))player.z=nz;else player.vz=0;}
       if(player.height>0){player.vy-=config.gravity*t;player.height=Math.max(0,player.height+player.vy*t);if(!player.height)player.vy=0;}
       player.eye=approach(player.eye||1.68,input.crouch?1.08:1.68,4*t);player.y=player.eye+(player.height||0);
     }
@@ -59,6 +91,7 @@
     step,config,
     select, isTalk, TALK,
     blocked,
+    depth, free, watch,
     radius
   };
   if (typeof module !== 'undefined') module.exports = api;

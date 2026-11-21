@@ -18,14 +18,15 @@
  const note=t=>{try{resumeWalking();}catch{}try{announce(t);}catch{}};
  // the instance as it is now (a hack may have opened a door since the area was built)
  function now(key){let list=[];try{list=A.open?.()||[];}catch{}return list.find(a=>a.key===key&&a.modular)||(visit&&visit.inst&&visit.inst.key===key?visit.inst:null);}
- async function go(key,opts){if(busy)return false;busy=true;try{await enterWalking(key,opts);return true;}finally{busy=false;}}
+ async function go(key,opts){if(busy)return false;busy=true;try{const V=root.VoidDoorViews;if(V&&V.pass)await V.pass(()=>enterWalking(key,{...(opts||{}),silent:true}));else await enterWalking(key,opts);return true;}finally{busy=false;}}   // a short fade over a silent load (door-views.js pass)
+ const DW=d=>(d?.t??0)>.9?0:Math.round(((A.DOOR&&A.DOOR.wait)||.62)*1000);   // the shared door timing: wait for the door to be open
  // a short black fade over a transition inside (elevator rides, doors that lead elsewhere)
  const veil=document.createElement('div');veil.id='mod-veil';veil.style.cssText='position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .35s ease;z-index:60';document.body.append(veil);
  const fade=v=>new Promise(r=>{veil.style.opacity=v?'1':'0';setTimeout(r,360);});
  async function goCluster(inst,cid,from,{silent=true,veiled=false}={}){const def=M.layout(inst,cid,{from});if(!def)return false;
   for(const m of def.cluster?.mods||[]){const k=inst.key+'|'+m.id;if(memo.lights.has(k))m.lightsOff=!memo.lights.get(k);if(memo.screens.has(k))m.screenOff=!memo.screens.get(k);}
   if(def.legacyPart==='flat'){const k=inst.key+'|'+def.modId;if(memo.lights.has(k))def.lightsOff=!memo.lights.get(k);if(memo.screens.has(k))def.screenOff=!memo.screens.get(k);}
-  VoidExplorationData.locations[KEY]=def;visit={...(visit||{}),inst,cluster:def.cluster?.id||cid};if(veiled)await fade(1);try{return await go(KEY,{silent});}finally{if(veiled)setTimeout(()=>fade(0),250);}}
+  VoidExplorationData.locations[KEY]=def;visit={...(visit||{}),inst,cluster:def.cluster?.id||cid};return await go(KEY,{silent});}   // go() fades (the elevator's own longer fade stays in ride())
  /* In from the street: the location's entrance. */
  async function enter(door,inst){if(!inst||!inst.loc)return;visit={door,inst,cluster:null};const an=M.analyse(inst.loc),e=M.parseRef(inst.loc.entry),c=e&&an.clusterOf(e.mod);if(!c){note('Locked.');return;}
   return goCluster(inst,c.id,{ref:inst.loc.entry},{silent:false});}
@@ -72,9 +73,9 @@
     msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}
    if(msg)note(msg);try{if(wl?.apt)LC()?.aptUse?.({mission:wl.apt.mission,apt:wl.apt.id,object:obj,mod});}catch{}});
   R('mod-item',({item})=>{const wl=here(),m=(wl?.cluster?.mods||[]).find(x=>x.id===item.mod),it=m&&(m.items||[])[item.index];note(it?(it.type==='mission-item'?'MISSION ITEM: ':it.type==='loot'?'LOOT: ':it.type==='note'?'NOTE: ':'')+it.label+' (placed for this mission; picking things up comes later).':'Nothing here.');});
-  R('mod-exit',()=>{try{resumeWalking();}catch{}const z=zone();for(const d of z?.doors||[])if(d.rec?.kind==='entry'||d.id==='street')d.force?.(1);setTimeout(()=>backToStreet(),450);});
+  R('mod-exit',()=>{try{resumeWalking();}catch{}const z=zone();let w=0;for(const d of z?.doors||[])if(d.rec?.kind==='entry'||d.id==='street'){d.force?.(1);w=Math.max(w,DW(d));}setTimeout(()=>backToStreet(),w);});
   R('mod-portal',({item})=>{try{resumeWalking();}catch{}if(!item.door){note('Locked.');return;}const z=zone(),d=(z?.doors||[]).find(x=>x.id===item.door||x.rec?.id===item.door);const inst=visit&&now(visit.inst.key),an=inst&&M.analyse(inst.loc),dd=an&&an.doors.find(x=>x.id===item.door);
-   if(dd&&M.lockedNow(inst,an,dd)){note('DOOR · LOCKED. The access point beside it could be bypassed.');return;}d?.force?.(1);setTimeout(()=>cross(item.door),450);});
+   if(dd&&M.lockedNow(inst,an,dd)){note('DOOR · LOCKED. The access point beside it could be bypassed.');return;}d?.force?.(1);setTimeout(()=>cross(item.door),DW(d));});
   R('mod-door',()=>note('DOOR · LOCKED. A card reader and a keypad; the access point beside it could be bypassed.'));
   R('mod-elev',({item})=>{try{resumeWalking();}catch{}ride(item.floor);});}
  Object.assign(M,{enter,backToStreet,cross,ride,moduleAt,resetRun(){memo.lights.clear();memo.screens.clear();}});

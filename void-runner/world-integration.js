@@ -212,6 +212,8 @@ const originalFlight=C.flight;
 let routeMarkers=[],trackedWalkWaypoint=null;
 // The mission yellow (guide-route.js COLOR): the arrow's colour, shared with every mission hint; CSS reads it as var(--mission-yellow) and friends.
 const MISSION_YELLOW=VoidGuideRoute.COLOR;try{const st=document.documentElement.style;st.setProperty('--mission-yellow',MISSION_YELLOW.hex);st.setProperty('--mission-yellow-rgb',MISSION_YELLOW.rgb);st.setProperty('--mission-yellow-text',MISSION_YELLOW.text);st.setProperty('--mission-yellow-ink',MISSION_YELLOW.ink);}catch{}
+// The header's credits and ship (Awakening QA 20 Nov 2026: after CONTINUE into the Sleeping Pod it kept the page's placeholder, 100 credits and KESTREL / 01, until something called hud()): refreshed when they differ.
+setInterval(()=>{try{const c=$('credits'),n=document.querySelector('header .wide strong');if(!state||!c)return;const want=!VoidShips.hasShip(state)?'NONE':VoidFlightCraft.ship().name;if(c.textContent!==state.credits.toLocaleString()||n&&n.textContent!==want)hud();}catch{}},1000);
 const missionTracker=document.createElement('div');missionTracker.id='mission-tracker';missionTracker.hidden=true;document.body.append(missionTracker);
 const missionLogButton=document.createElement('button');missionLogButton.id='mission-log-button';missionLogButton.type='button';missionLogButton.textContent='MISSION LOG';missionLogButton.setAttribute('aria-keyshortcuts','L');missionLogButton.hidden=true;missionLogButton.addEventListener('click',()=>openMissionLog());document.body.append(missionLogButton);
 // Which markers: nav-coords.js (every location once Rook's coordinates are in; before that only the route to the mission and the way home). The angle follows the full list, so a marker never moves when the set changes.
@@ -229,9 +231,9 @@ update=function(dt){
   if(!missionLogButton.hidden&&state.story&&!state.story.flags.missionLogHint){state.story.flags.missionLogHint=true;announce('Mission Log unlocked. Press '+key+' to open it and choose what to track.');save();}}
  trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=(typeof missionEscortGoal==='function'?missionEscortGoal(g):null)||walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null)||districtRoute(g.interaction)||(typeof missionPlaceRoute==='function'?missionPlaceRoute(g):null);// trackedWalkWaypoint is the GOAL. The route to it (doors, the vestibule, gate lanes), the next waypoint, the smoothing and fading: guide-route.js (drawMissionWaypoint).
 // station: an older station's corridor (the hangar door at z 3, the concourse door at z 19), as the arrow used to pick here by hand.
-const waypoint=item?{position:item.position,label:item.label,key:(m?.id||'')+'|'+(g.label||'')+'|'+(g.interaction||g.place||g.target||''),station:!item.route&&!['neochinatown','milked'].includes(walkingLocation.id)}:null;trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(guideMetres(waypoint))+'m':'');}
+const waypoint=item?{position:item.position,label:item.label,key:(m?.id||'')+'|'+(g.label||'')+'|'+(g.interaction||g.place||g.target||''),station:!item.route&&!['neochinatown','milked'].includes(walkingLocation.id)}:null;trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+VoidUnits.fmtDist(guideMetres(waypoint)):'');}
   // The Kepler hand-over leads to Dr. Sol at the bar (through the door and corridor, as above).
-  const sol=solHandover&&state.location==='kepler'&&walkingLocation?.interactions.find(i=>i.id==='sol');if(sol){const waypoint={position:sol.position,label:sol.label,key:'kepler-sol',station:true};trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · Hand the delivery to Dr. Sol at the bar · '+Math.round(guideMetres(waypoint))+'m';}}
+  const sol=solHandover&&state.location==='kepler'&&walkingLocation?.interactions.find(i=>i.id==='sol');if(sol){const waypoint={position:sol.position,label:sol.label,key:'kepler-sol',station:true};trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · Hand the delivery to Dr. Sol at the bar · '+VoidUnits.fmtDist(guideMetres(waypoint));}}
 };
 // A tracked mission's person inside The Darknet District while the player is out on the NeoChinatown street: the goal is that person (inside the District's layout); the
 // route to them through the outer door, the vestibule and the inner door is guide-route.js's (17 Nov 2026, arrow smoothing). Before that the arrow aimed at the vestibule's middle,
@@ -277,7 +279,7 @@ function drawMissionWaypoint(){
  const o=guideFollower.update({graph:VoidGuideRoute.graphFor(scene,goal.station?'station':null,walkingLocation),scene,area:walkingLocation?.area||'',quarter:walkingLocation?.quarter||'',player:{x:walker.x,z:walker.z},goal:{x:p[0],y:p[1],z:p[2]},key:goal.key||goal.id||goal.label||'goal',dt});
  globalThis.VoidGuideRoute.live=o?{bearing:o.bearing,raw:o.raw,alpha:o.alpha,waypoint:o.waypoint.id,index:o.index,route:o.route.map(w=>w.id),length:o.length,snapped:o.snapped,key:o.key,player:{x:walker.x,z:walker.z,yaw:walker.yaw},t:now}:null;
  if(!o||o.alpha<=.01)return;
- const label=Math.round(o.length)+' m',pulse=reducedMotion?1:.75+.25*Math.sin(time*4),angle=o.bearing-walker.yaw,r=Math.min(W,H)*.15;
+ const label=VoidUnits.fmtDist(o.length),pulse=reducedMotion?1:.75+.25*Math.sin(time*4),angle=o.bearing-walker.yaw,r=Math.min(W,H)*.15;
  ctx.save();ctx.globalAlpha=o.alpha;ctx.lineJoin='round';ctx.font='bold 13px Consolas, monospace';ctx.textAlign='center';
  // Ring sits below the crosshair so a goal straight ahead is pointed at near floor level.
  ctx.translate(W*.5+Math.sin(angle)*r,H*.7-Math.cos(angle)*r);ctx.rotate(angle);

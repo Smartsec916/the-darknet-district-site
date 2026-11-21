@@ -122,7 +122,7 @@
  /* How far away another player is, in metres. Inside The Darknet District everyone is simply "here", so no distance is shown; on the street, in NULL and
     everywhere else the list says how far each person is (the owner, 15 Nov 2026). null = not shown. */
  function distanceTo(p){try{if(areasHere().includes('interior')||typeof walker==='undefined'||!walker||!Number.isFinite(p.x)||!Number.isFinite(p.z))return null;return Math.round(Math.hypot(p.x-walker.x,p.z-walker.z));}catch{return null;}}
- const distText=d=>d==null?'':d<1000?d+' m away':(d/1000).toFixed(1)+' km away';
+ const distText=d=>d==null?'':VoidUnits.fmtDist(d)+' away';
  const REASONS=[['harassment','HARASSMENT'],['spam','SPAM'],['inappropriate','INAPPROPRIATE'],['cheating','CHEATING'],['other','OTHER']];
  function playerRows(){
   const r=rp(),rows=(r?.connected?r.peers:[]).map(p=>({id:p.id,name:p.name,here:true,dist:distanceTo(p)}));
@@ -172,7 +172,7 @@
  const callClock=()=>{if(!call)return '00:00';const sec=Math.floor(((call.endedAt||Date.now())-call.start)/1000);return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');};
  /* The call starts when the V1 opens (or Comms is shown) with a fresh call waiting, and then runs on whatever screen is up and with the V1 closed: the call bar at the
     top of the V1 and the call pill over the game show who is calling and the line now (the owner, 20 Nov 2026: L opened Comms during Admin's call, not the apps). */
- function startCall(){const fresh=inbox('comms').find(m=>!m.read);if(fresh&&(!call||call.id!==fresh.id)){call={id:fresh.id,start:Date.now(),ended:false,lines:String(fresh.text).split('\n').map(x=>x.trim()).filter(Boolean),from:String(fresh.fromName||''),who:String(fresh.from||''),title:String(fresh.title||'')};call.voice=callVoicePlan(call,fresh.text);try{if(bannerKey==='call:'+fresh.id){hideBanner();noteApp=null;}}catch{}}return call;}
+ function startCall(){const fresh=D.nextCall(inbox('comms'));if(fresh&&(!call||call.id!==fresh.id)){call={id:fresh.id,start:Date.now(),ended:false,lines:String(fresh.text).split('\n').map(x=>x.trim()).filter(Boolean),from:String(fresh.fromName||''),who:String(fresh.from||''),title:String(fresh.title||'')};call.voice=callVoicePlan(call,fresh.text);try{if(bannerKey==='call:'+fresh.id){hideBanner();noteApp=null;}}catch{}}return call;}
  const callLive=()=>!!call&&!call.ended;
  /* A call whose lines are recorded one by one (21 Nov 2026, Mission 004: Fish's calls; any speaker): each line plays its clip (voice-clips.js; a translated recording plays
     the original with the V1 translation over it) and the next line comes when it has been heard, instead of every 2.2 s. A call recorded as one clip for all its words
@@ -234,7 +234,7 @@
   missions(){
    const s=state_(),V=root.VoidMissions;let list=[];try{list=s&&V?V.sync(s,C):[];}catch{}
    const steps=m=>{const o=(m.objectives||[]).filter(x=>x.required!==false),n=o.filter(x=>x.complete).length;return {n,total:o.length};};
-   const where=id=>{const p=root.VoidMissionGivers?.PLACE?.get(id);return p?String(p.name).replace(/^Inside /,''):id;};
+   const where=id=>{const p=root.VoidMissionGivers?.PLACE?.get(id)||root.VoidPlaces?.BY?.get?.(id);return p&&p.name?String(p.name).replace(/^Inside /,''):id;};   // VoidPlaces: the tunnels' rooms, the meeting room, the pad (Awakening QA: 'UNDER-TEA-ROOM')
    const card=m=>{const p=steps(m),rew=Number(m.rewards)>0?m.rewards+' credits':null;return '<article class="pd-card '+(m.completed?'done':'')+'"'+(m.number?' data-mission-number="'+m.number+'"':'')+'><h3>'+esc(m.title)+' <small>'+(m.completed?'COMPLETE':m.tracked?'TRACKED':'ACTIVE')+'</small></h3>'+(m.description?'<p>'+esc(m.description)+'</p>':'')+'<div class="pd-note">'+esc(String(m.category||m.type||'').toUpperCase())
     +(m.location?' · '+esc(where(m.location).toUpperCase()):m.destination?' · '+esc(C.stations?.[m.destination]?.name||m.destination):'')+(p.total?' · '+p.n+' OF '+p.total+' STEPS':'')+(rew?' · REWARD '+esc(rew):'')+'</div>'
     +(m.completed?'':(m.objective?'<div class="pd-obj"><b>OBJECTIVE</b> '+esc(m.objective)+'</div>':'')+'<ul class="pd-steps">'+(m.objectives||[]).map(o=>'<li class="'+(o.complete?'on':'')+'">'+(o.complete?'✓ ':'○ ')+esc(o.label)+'</li>').join('')+'</ul>')

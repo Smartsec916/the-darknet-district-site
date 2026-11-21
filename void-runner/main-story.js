@@ -119,7 +119,7 @@
    // entering the tea house: Iris calls (the owner's lines)
    {id:'travel',kind:'enter',place:'under-tea-room',label:'Travel to the underground tea house.',via:'comms',npc:'',item:'',early:[],say:[IRIS('Fish brought me up to speed. Find somewhere nearby where you can hear them.'),IRIS('Don\'t get too close. You\'re just another customer having tea.')]},
    {id:'locate',kind:'observe',npc:'tea-associate-1',near:12,hold:2,label:'Locate the two associates.'},
-   {id:'blend-in',kind:'observe',npc:'tea-associate-1',near:6,close:1.5,hold:6,label:'Sit or stand nearby without drawing attention (stay within a few metres, not right beside them).'},
+   {id:'blend-in',kind:'observe',npc:'tea-associate-1',near:6,close:1.5,hold:6,label:'Sit or stand nearby without drawing attention (stay within about twenty feet, not right beside them).'},
    {id:'overhear',kind:'overhear',npc:'tea-associate-1',near:6,close:1.5,label:'Overhear their conversation.',
     say:[AS1('Reyes is getting desperate. He\'s running out of options.'),AS2('Has he agreed to the percentage?'),AS1('Fifty-one. He\'s not happy about it, but he doesn\'t have much choice.'),AS2('And the admission requirement?'),AS1('That comes later. The preliminary agreement has already been sent to his personal computer.'),AS2('The board wants this completed before the end of the week.')]},
    // the player reports from the V1 (REPORT TO FISH on the mission card); Fish's reply arrives as her call (English: the V1 translation)
