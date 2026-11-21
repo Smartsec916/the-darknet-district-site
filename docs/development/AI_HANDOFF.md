@@ -6,6 +6,13 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026 (newest): ROOK JOBS TO NEOCHINATOWN ARE NO LONGER PAID BY WAKING THERE (branch `claude/rook-reload-fix`, build `2026-11-21-rook-reload-1`, pushed, NO PR, not merged)
+
+- The bug (pre-existing, more likely since the procedural board): every login wakes the player in their pod in NeoChinatown (`socialEntry`). With a Rook job to NeoChinatown (`earth`) aboard, `missionFlight` turned the job's flight into one to Meridian (destination = where you are), and `complete()` then delivered and paid it on arrival at Meridian.
+- The fix (`campaign.js flight()`): a Rook job whose destination is the player's current place (not Meridian) flies as a transit to Meridian with the cargo still aboard ("Cargo retained in hold", no pay). The job is delivered only on a real arrival at its destination (fly back to NeoChinatown), or handed back to Rook at Meridian as usual. Covers every Rook job type (procedural, older board, legacy). `missionFlight` is unchanged, so the HUD and Mission Log still show the cargo and its destination. With free travel a chosen destination is a free transit as before.
+- No save state, no server change, no Render redeploy. `save-manifest.json` unchanged.
+- Tests: `tests/rook-reload.test.cjs` (seeds 13 and 8 put the routine / high-value job in NeoChinatown: reload, fly away (no pay, cargo aboard), fly back (paid once / owed by Rook once), hand-back at Meridian, a job elsewhere unchanged). Not verified in a browser.
+
 ### 21 Nov 2026 (newest): IRIS'S AMBIENT COMMS LINES, AND IRIS FILLS THE BR-04 GAP (branch `claude/iris-ambient`, build `2026-11-21-iris-ambient-1`, pushed, NO PR, not merged)
 
 - **The lines:** the owner's 13 approved lines (21 Nov 2026; `VOID_RUNNER_HANDOFF.md` §11), recorded with ElevenLabs eleven_v4 in Iris's voice "Kristen" (`CvD6hF1BJzAFN428j1cO`), dry: `void-runner/assets/audio/voice/extra/iris-bark-*.ogg` (24 kHz mono vorbis), extra manifest entries (speaker `iris`, exact text, source `iris-ambient.js`). The manifest was rewritten by `node tools/audio/zen-import.cjs` (it keeps Zen's entries last; `--check` passes).
@@ -28,7 +35,7 @@
 - An accepted job stores its terms in `story.flags.rookTerms` (`units|credits|kg|cargo|title`, <=200 chars), cleared on delivery or hand-back. A job accepted on the older board (no `rookTerms`) keeps its older terms. The older non-District board (`rookBoard` outside a District campaign) is unchanged. Rook's two lines (`lines.coordinates`, `lines.board`) are unchanged.
 - Server: no change (both flags are ordinary story flags `clean_save()` already accepts; `tests/test_story_save.py` checks it); no Render redeploy needed. `save-manifest.json` unchanged (no new ids).
 - Board UI: each job shows kind, a flavour title, cargo, destination, weight, hold spaces and pay. Fixed a layout bug in the chat panel: the sticky choice buttons covered the job list (`play-ui.css`: the buttons follow the list when a Rook board is shown; the panel scrolls).
-- Tests: `tests/rook-cargo-gen.test.cjs`; `flight-map-coords` pay/units assertion updated. Known quirk (pre-existing, same on `main`): a reload wakes the player in NeoChinatown, so a job to NeoChinatown (`earth`) taken before a reload is completed and paid by the next flight (which goes to Meridian). Not changed here.
+- Tests: `tests/rook-cargo-gen.test.cjs`; `flight-map-coords` pay/units assertion updated. The older quirk (a job to NeoChinatown taken before a reload was completed and paid by the next flight) is fixed on `claude/rook-reload-fix`, see the entry above.
 ### 21 Nov 2026 (newest): SITTING DOWN AND STANDING UP AT THE FLOOR SEATS (branch `claude/floor-transitions`, built on `claude/seat-poses`, build `2026-11-21-floor-transitions-1`, pushed, NO PR, not merged)
 
 The owner asked for a proper standing-up animation for the floor poses (and a matching sit-down was promised). Before: a cross-fade into the pose while the figure was eased up to the seat's height.

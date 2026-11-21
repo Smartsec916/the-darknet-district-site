@@ -341,6 +341,10 @@
   }
   function flight(s){
     let mission=missionFlight({...s,destination:null});
+    /* A Rook job whose destination is where the player already is (every login wakes them in their pod in NeoChinatown, so a job to NeoChinatown taken before a reload
+       starts there): it is not delivered by flying away. The flight is a transit with the cargo still aboard; the job is delivered on the next real arrival there
+       (or handed back to Rook at Meridian). Before 21 Nov 2026 that flight went to Meridian as the job itself and completed and paid it. */
+    if(mission&&s.contract==='rook-run'&&/^rook-run-/.test(mission.id||'')&&s.location!=='meridian'&&rookRun(s).destination===s.location)mission={name:'Transit / cargo aboard',destination:'meridian',duration:U.route(s.location,'meridian').seconds,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
     // A run whose destination is the other system's hub is flown in one interstellar leg.
     if(mission&&U.system(s.location)!==U.system(mission.destination)&&U.nextHop(s.location,mission.destination)===mission.destination)mission={...mission,duration:Math.max(mission.duration,24)};
     else if(mission&&U.system(s.location)!==U.system(mission.destination))mission={name:'Interstellar connection',destination:U.nextHop(s.location,mission.destination),duration:24,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
