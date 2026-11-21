@@ -1337,6 +1337,14 @@ def placed_area(npc, wait_at, plan, inv):
     return 'avenue'
 
 
+def _reach(who, area):
+    """The areas this person can walk to from `area` (void-runner/npc-escort.js reach: through the city gates, the stairs to the tunnels and the District's door,
+    never into a place she may not go). An older inventory without it: only `area`."""
+    r = (who or {}).get('reach') if isinstance(who, dict) else None
+    lst = r.get(area) if isinstance(r, dict) else None
+    return set(lst) if isinstance(lst, list) else {area}
+
+
 def into_problems(o, inv, area='avenue', m=None):
     """A follow-them / they-follow step INTO one of the mission's places (void-runner/npc-escort.js intoProblems, 20 Nov 2026): never the cat, a place of this mission,
     a room of a location (not an elevator cab), its street door in the area she is placed in, never a bar's back room for a youthful character, open by then."""
@@ -1379,8 +1387,8 @@ def into_problems(o, inv, area='avenue', m=None):
         if door in areas:
             if areas[door] is None:
                 out.append('she cannot walk to that street door.')
-            elif areas[door] != area:
-                out.append('the street door of that place is not in the area she is placed in for this mission.')
+            elif areas[door] != area and areas[door] not in _reach(who, area):
+                out.append('the street door of that place is not in an area she can walk to from where she is placed for this mission.')
     f = a.get('from')
     steps = [x.get('id') for x in (m.get('objectives') or []) if isinstance(x, dict)]
     if f not in (None, 'start') and f in steps and o.get('id') in steps and steps.index(f) > steps.index(o.get('id')):
@@ -1409,8 +1417,9 @@ def escort_problems(o, inv, area='avenue', m=None):
         else:
             sp = spot_problems(npc, t, inv)
             out += sp
-            if not sp and _num(t.get('x')) and _num(t.get('z')) and area_of(t, inv) not in (None, area):
-                out.append('that spot is not in the area she is placed in for this mission.')
+            ta = area_of(t, inv) if not sp and _num(t.get('x')) and _num(t.get('z')) else None
+            if ta not in (None, area) and ta not in _reach(who, area):
+                out.append('that spot is not in an area she can walk to from where she is placed for this mission (through the gates, the stairs to the tunnels, the District door).')
     if kind == 'follow-them':
         lim = esc.get('limits') or {}
         w, l = lim.get('wait') or [3, 30], lim.get('lost') or [15, 150]
@@ -1426,7 +1435,7 @@ def escort_problems(o, inv, area='avenue', m=None):
         if not who.get('cab'):
             out.append('this one does not ride in cabs.')
         elif o.get('stop') not in ((who.get('stopsByArea') or {}).get(area, who.get('stops') or []) if who.get('stopsByArea') else (who.get('stops') or [])):
-            out.append('choose a cab stop they can get to (a stop in the area she is placed in for this mission).')
+            out.append('choose a cab stop they can get to (a city stop, called from the area she is placed in for this mission: it must have taxis).')
     return out
 
 
