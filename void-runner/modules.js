@@ -19,6 +19,7 @@
  'use strict';
  const node=typeof module!=='undefined'&&module.exports;
  const AP=()=>{try{return node?require('./apartments.js'):root.VoidApartments;}catch{return null;}};
+ const EXP=()=>{try{return node?require('./exploration-controller.js'):root.VoidExplorer;}catch{return null;}};   // the walk's own collision (blocked / free), for spawns
  const GRID=2,WALL=.1,DOOR={w:1.2,h:2.2,clear:1.04,frame:.08},SPAN=24,FLOORS=[-3,9],LIMIT={modules:12,items:20,links:12,locks:12,label:60};
  const MOD_ID=/^[a-z][a-z0-9-]{0,11}$/,REF=/^([a-z][a-z0-9-]{0,11})\.([a-z0-9-]{1,10})$/,ORIGIN=[600,600];
  const r2=v=>Math.round(v*100)/100;
@@ -477,7 +478,7 @@
   for(const d of an.doors){const ra=parseRef(d.a),rb=d.b&&parseRef(d.b);const inA=mine.has(ra.mod),inB=rb&&mine.has(rb.mod);if(!inA&&!inB)continue;
    const side=inA?d.a:d.b,sp=an.byId[parseRef(side).mod].p,w=an.world[side],q=W(w.x,w.z),n=NORMAL[w.edge],tg=TANGENT[w.edge],locked=lockedNow(inst,an,d);
    const leads=d.kind==='snap'&&inA&&inB?null:d.kind==='entry'?'street':(inA?d.b:d.a);
-   const rec={id:d.id,kind:leads?(leads==='street'?'entry':'portal'):'snap',a:d.a,b:d.b,side,x:q[0],z:q[1],edge:w.edge,n,tg,locked,leads,floor:sp.floor};if(seamless(an,d)){rec.seam=true;rec.locked=false;doors.push(rec);continue;}doors.push(rec);   // a seam: nothing to draw, nothing in the way
+   const rec={id:d.id,kind:leads?(leads==='street'?'entry':'portal'):'snap',a:d.a,b:d.b,side,x:q[0],z:q[1],edge:w.edge,n,tg,locked,leads,floor:sp.floor};if(leads&&leads!=='street'){const ob=an.byId[parseRef(leads).mod];if(ob)rec.leadsType=ob.m.type;}/* what is through it (module-build.js shows its picture in the doorway) */if(seamless(an,d)){rec.seam=true;rec.locked=false;doors.push(rec);continue;}doors.push(rec);   // a seam: nothing to draw, nothing in the way
    {const sx=tg[0]?DOOR.clear/2:.05,sz=tg[1]?DOOR.clear/2:.05;solids.push({...box(q[0]-sx,q[0]+sx,q[1]-sz,q[1]+sz,'door:'+d.id,2.2),open:false,door:d.id});}
    // access points: on each side that is in this cluster
    for(const r of [d.a,d.b]){if(!r)continue;const pr=parseRef(r);if(!mine.has(pr.mod))continue;const pw=an.world[r],pn=NORMAL[pw.edge],pt=TANGENT[pw.edge],P0=W(pw.x,pw.z),inner=(pw.edge==='s'||pw.edge==='n'?an.byId[pr.mod].p.w:an.byId[pr.mod].p.d)*GRID/2;
@@ -494,7 +495,11 @@
   const atDoor=r=>{const dd=doors.find(x=>x.a===r||x.b===r);if(!dd)return null;const n=NORMAL[an.world[r].edge];return {spawn:[r2(dd.x-n[0]*1.25),1.7,r2(dd.z-n[1]*1.25)],yaw:Math.atan2(-n[0],-n[1])};};
   if(from&&from.cab){const c=ps.find(p=>p.t.cab);if(c){const q=W(c.cx,c.cz),ar=c.t.arrive||[0,.25],f=toWorld(c,ar[0],ar[1]);const s=W(f[0],f[1]);spawn=[s[0],1.7,s[1]];const n=NORMAL[turnEdge('s',c.rot)];yaw=Math.atan2(n[0],n[1]);}}
   else if(from&&from.ref){const a=atDoor(from.ref);if(a){spawn=a.spawn;yaw=a.yaw;}}
-  if(!spawn){const a=atDoor(loc.entry)||{spawn:[ORIGIN[0],1.7,ORIGIN[1]],yaw:0};spawn=a.spawn;yaw=a.yaw;}
+  if(!spawn){const a=atDoor(loc.entry)||doors.filter(x=>!x.seam).map(x=>atDoor(x.side)).find(Boolean)||{spawn:[ps[0]?W(ps[0].cx,ps[0].cz)[0]:ORIGIN[0],1.7,ps[0]?W(ps[0].cx,ps[0].cz)[1]:ORIGIN[1]],yaw:0};spawn=a.spawn;yaw=a.yaw;}   // a cluster entered with no door of its own named: its first door, else its first module's middle (never the location's far-off origin)
+  // never ON furniture or a wall (the owner, 20 Nov 2026, "stuck in a housing room"): 1.25 m in from a door can land on furniture standing close inside it (the tea room's back
+  // door opens into a nook behind a partition); then the nearest place the player can stand, first along the line in from the door, then anywhere near (tests/interior-spawns.test.cjs)
+  {const X=EXP();if(X&&X.blocked(spawn[0],spawn[2],{bounds:[700,700],solids})){const n=[Math.sin(yaw),Math.cos(yaw)];let ok=null;for(let k=1.15;k>=.55&&!ok;k-=.1){const q=[r2(spawn[0]-n[0]*(1.25-k)),r2(spawn[2]-n[1]*(1.25-k))];if(!X.blocked(q[0],q[1],{bounds:[700,700],solids}))ok=q;}
+   if(!ok){const f=X.free(spawn[0],spawn[2],{bounds:[700,700],solids},3);if(f.moved)ok=[r2(f.x),r2(f.z)];}if(ok){spawn=[ok[0],1.7,ok[1]];}}}
   const name=[...new Set(ps.map(p=>p.t.name))].slice(0,3).join(' · ').toUpperCase();
   return {id:'neochinatown',name,kind:'city',apartment:true,modular:true,private:true,part:'modular',area:'module',style:dominant(ps),bounds:[700,700],spawn,yaw,color:'#0e0f12',music:'earth',solids,interactions,signs:[],
    cluster:{id:cl.id,floor:cl.floor,mods,doors,offset:off,floors:cabFloors(an)},inst:inst.key,apt:{mission:inst.mission,id:inst.id},door:inst.door};}

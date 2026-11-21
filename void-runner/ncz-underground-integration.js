@@ -21,14 +21,15 @@
   return r;};
  // ---- the fade and the move ----
  const veil=document.createElement('div');veil.id='under-veil';veil.style.cssText='position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .4s ease;z-index:60';document.body.append(veil);
- const fade=v=>new Promise(r=>{veil.style.opacity=v?'1':'0';setTimeout(r,420);});
+ const fade=v=>new Promise(r=>{const D=root.VoidApartments?.DOOR||{fadeIn:.18,fadeOut:.32},t=v?D.fadeIn:D.fadeOut;veil.style.transition='opacity '+t+'s ease';veil.style.opacity=v?'1':'0';setTimeout(r,t*1000+20);});   // the shared door fade (apartments.js DOOR)
  let busy=false;
  async function go(to){if(busy||!to)return;busy=true;try{resumeWalking();}catch{}try{root.VoidAudio?.event?.('door');}catch{}
   try{await fade(1);await enterWalking(KEY(),{silent:true,quarter:to.quarter,spawn:to.spawn,yaw:to.yaw});}catch(e){console.warn('[underground]',e);note('The door is stuck.');}
   finally{setTimeout(()=>{fade(0);busy=false;},250);}}
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof enterWalking==='undefined')return;clearInterval(wait);
-  VoidInteractions.register('under-down',({item})=>go(U.arrive(item.entrance)));
-  VoidInteractions.register('under-up',({item})=>{const h=root.VoidBabylon?.district?.underground,d=h?.door?.(item.door);try{d?.force?.(1);}catch{}setTimeout(()=>go(U.leave(item.entrance)),350);});
+  const DW=()=>Math.round(((root.VoidApartments?.DOOR?.wait)||.62)*1000);   // the shared door timing: the door is open (and the place beyond shows in it) before the fade
+  VoidInteractions.register('under-down',({item})=>{const sd=root.VoidBabylon?.district?.backAlleys?.underDoor?.(item.entrance);try{root.VoidAudio?.event?.('door');sd?.open?.(true);}catch{}setTimeout(()=>go(U.arrive(item.entrance)),sd?DW():0);});
+  VoidInteractions.register('under-up',({item})=>{const h=root.VoidBabylon?.district?.underground,d=h?.door?.(item.door);try{d?.force?.(1);}catch{}setTimeout(()=>go(U.leave(item.entrance)),(d?.t??0)>.9?0:DW());});
   VoidInteractions.register('under-look',({item})=>note(item.text||''));},300);
  /* For tests and the editor: where the player is in the network (the place id), or null. */
  root.VoidUnderground.here=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.id==='neochinatown'&&walkingLocation.area==='street'&&walkingLocation.quarter===U.ID&&typeof walker!=='undefined'&&walker?U.placeAt(walker.x,walker.z):null;}catch{return null;}};

@@ -57643,7 +57643,7 @@
       "spawn"
     ]
   },
-  "revision": "c71ccaf4188d2902",
+  "revision": "60fc5ee0a5018357",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -69911,13 +69911,13 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 250,
+      "line": 252,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 292,
+      "line": 294,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -74165,139 +74165,139 @@
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 58,
+      "line": 59,
       "text": "const SAY={computer:'DESK COMPUTER: a locked workstation. Mail, a ticket queue, a half-written report. It wants a badge and a PIN.','manager-pc':'MANAGER’S COMPUTER: locked behind a biometric pad. A calendar notification glows: “Board call — 09:00”.',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 71,
+      "line": 72,
       "text": "else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 72,
+      "line": 73,
       "text": "msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 85,
+      "line": 86,
       "text": "fight pit, 4 m x 4 m for the shrine) with a door in the middle of each wall (the pit: second cell); corners furnished, the middle clear. `say`: what using a thing says",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 107,
+      "line": 108,
       "text": "say:{scanner:'ITEM SCANNER: a flatbed reader for serials and ownership chips. The last scan reads “REGISTERED OWNER: —”.',cage:'STORAGE CAGE: padlocked mesh. Tagged goods on the shelves, each with a date and a number.',computer:'APPRAISAL TERMINAL: tickets, loan dates, and a column headed “do not sell back”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 114,
+      "line": 115,
       "text": "say:{stove:'WOK RANGE: three burners, one still ticking warm. Oil on everything.',cooler:'WALK-IN COOLER: a heavy latch, frost round the seal. Inside: noodles, broth in buckets, crates with no labels.',prep:'PREP TABLE: a cleaver, a board worn into a dip, scallions, a tub of dough.',computer:'ORDER TERMINAL: tonight’s tickets, a delivery list, and one order paid three times over.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 121,
+      "line": 122,
       "text": "say:{bench:'SOLDERING STATION: the iron is still warm. A phone board in the clamp, half its chips lifted.',drawers:'PARTS DRAWERS: hundreds of small drawers, hand-labelled. Resistors, screws, salvaged camera modules.',computer:'DIAGNOSTIC TERMINAL: a queue of repair jobs, and a folder of device unlock tools.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 128,
+      "line": 129,
       "text": "say:{chair:'IMPLANT CHAIR: worn padding, wrist straps, a tool arm folded overhead. Clean, for this street.',bench:'PARTS BENCH: a prosthetic forearm on its stand, its cover off. Trays of connectors and tiny screws.',fridge:'PARTS FRIDGE: sealed implant boxes and gel packs, serial numbers scratched off.',terminal:'IMPLANT TERMINAL: fitting records under first names only, and a firmware folder called “unofficial”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 135,
+      "line": 136,
       "text": "say:{washers:'WASHERS: one mid-cycle, one with an OUT OF ORDER card taped on, one locked with a bag still inside.',dryers:'DRYERS: warm, lint everywhere. One drum holds something that is not laundry.',table:'FOLDING TABLE: stacks of folded work clothes with tickets pinned on, and a pile of uniforms from a company that is not on any ticket.',computer:'OFFICE COMPUTER: the books, the machine takings, and a spreadsheet of “pickups” with no laundry on it.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 141,
+      "line": 142,
       "text": "say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 148,
+      "line": 149,
       "text": "say:{table:'CARD TABLE: a hand left face down, chips stacked by colour, an ashtray. Nobody is collecting the pot.',cart:'BAR CART: cheap spirits poured into expensive bottles.',safe:'CASH SAFE: a keypad, a smear of fingerprints on four of the keys. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 155,
+      "line": 156,
       "text": "say:{chair:'TATTOO CHAIR: fresh film on the padding, the lamp still angled where the last client lay.',ink:'INK STATION: rows of bottles, a machine on its cradle, gloves, a roll of film.',flash:'FLASH BOARDS: sheets of designs, pinned and re-pinned: stars, waves, flowers, knives, a lot of eyes.',computer:'BOOKING TERMINAL: appointments under nicknames, deposits paid in cash, one booking marked “cover-up, urgent”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 162,
+      "line": 163,
       "text": "say:{desk:'MIXING DESK: faders taped with handwritten labels, a cue sheet with the times crossed out.',mic:'MICROPHONE: the pop filter is split, the boom arm held with tape. The ON AIR light is off.',racks:'TRANSMITTER RACK: a homemade exciter, an amplifier with a fan that rattles, coax going up through the ceiling.',computer:'PLAYOUT COMPUTER: a playlist, a folder of station idents, and a list of frequencies that keep moving.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 168,
+      "line": 169,
       "text": "say:{lift:'SCOOTER LIFT: a delivery scooter up on the lift, side panel off, its ID plate unscrewed.',chest:'TOOL CHEST: sockets in the wrong drawers, a torque wrench, a tin of mismatched bolts.',drums:'OIL DRUMS: two full, one empty, one that sloshes too lightly for its weight.',computer:'DIAGNOSTIC LAPTOP: a scooter’s fault log, and a tool for rewriting its owner record.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 174,
+      "line": 175,
       "text": "say:{altar:'ALTAR: fruit, a bowl of rice, a cup of tea gone cold, coins, a folded note nobody should read.',incense:'INCENSE: three sticks burning down in a bowl of ash. The smoke hangs under the ceiling.',candles:'CANDLES: a rack of small candles, most lit, wax over everything.',charms:'CHARM STRIPS: paper strips, brush marks faded past reading, tied with red thread.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 183,
+      "line": 184,
       "text": "say:{ring:'RING: chain-link on scaffold poles, the mat patched with tape, dark stains scrubbed half away.',betting:'BETTING COUNTER: a grille, a slot for chips and cash, a ledger chained to the counter. Closed between fights.',board:'ODDS BOARD: chalked names wiped out and rewritten. Tonight’s card is blank.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 189,
+      "line": 190,
       "text": "say:{table:'CHECKPOINT TABLE: a pass-through in the fence, a scarred table, a list of names with half of them crossed out.',cashbox:'CASH BOX: a dented tin with a padlock. The door fee goes in here.',wand:'SCANNER WAND: a cheap metal-detector wand, the grip wrapped in tape.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 211,
+      "line": 212,
       "text": "say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 220,
+      "line": 221,
       "text": "objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 227,
+      "line": 228,
       "text": "say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 235,
+      "line": 236,
       "text": "say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 242,
+      "line": 243,
       "text": "say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 246,
+      "line": 247,
       "text": "say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});",
       "kind": "source-reference"
     },
@@ -77089,14 +77089,14 @@
     "void-runner/ad-screens.js": "d8634ec993098c1970f550d47343414714b497ac3e0b3ef1f9ec45eb7669ec38",
     "void-runner/anim-library.js": "17580f80c1293f158dd0afbe0d543d6a02035971b38468fc49d7af0eb8728f3d",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/apartment-build.js": "9e36df0efe1cd9681c27494e25a8c5e60196a3447d570c7a01267a6d81aaf848",
-    "void-runner/apartment-integration.js": "2c796191c20b44fbfd53b589a6a669cc0ce4b0cc3c1a48ad7b2347ff5f281eff",
-    "void-runner/apartments.js": "411d6441e813afaf48ec8512d3762a786d331091e7f0f6f636d84c2a9716c58e",
+    "void-runner/apartment-build.js": "e80ce0e5e9a7c11362aad5f7be8d24698b649d09ae87ca8f236bdf0f9f56bba5",
+    "void-runner/apartment-integration.js": "6154a9b2d7d24ca30937ce8898b7ff95e6206ea5d4f61a8f13b8c0b7f76d1be2",
+    "void-runner/apartments.js": "27b17ec26c452a5a8f2bd8c8311391590f0a313df0d65296d74de58bfe4ba4f2",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "d8a25d2e44dcc6c4ff1143e996b2a2c6a7ddbb7f808b12d386925ca285f89836",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "7e1878717c22dba1cb43713ecb5a1089f1fd8fc785e32108f95d5ff1faf0ccc1",
+    "void-runner/babylon-integration.js": "6c4ac126e1accc4bf4e680b49a2943096681f265e1bfc8d0964d4571bb0c684b",
     "void-runner/babylon-renderer.js": "f22542ef8a23b41ea9d07f7f51668aba708bffaea266814f6e073f63d3adde0e",
     "void-runner/balance-data.js": "f8b3f9b93bf6bf0930b30a408ce777d9ddaa160ff9d1cbfdc892c846a079ad0a",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -77105,7 +77105,7 @@
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "49d213dfcc4f72acac5fa20cb6cf024cb8c04d529bdabae2876cdde183ead076",
-    "void-runner/campaign.js": "4247e0f808bca9f7bb17d15619a2e0a4575b6ca407cad5e3288a1372eacfb494",
+    "void-runner/campaign.js": "3b2657621fb68a7974e80903f6a0f03b29ddb9d97881285ba06458b49fe8d74d",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -77151,6 +77151,7 @@
     "void-runner/district-rooms.js": "240bd61023dd1410f46b61b1f26ba8fa2a35fce3db27555960e2fff82cdc13ab",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
+    "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
     "void-runner/editor-home.js": "55667850354446c7a7da16d253a3e5c5baa46ed81cedb848d4357b832a12c361",
     "void-runner/editor-session.js": "2b4ad761afad673cbb3e3f375b4c748a5fa6bfbf23eb7855717c5671674bdcff",
@@ -77159,7 +77160,7 @@
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
-    "void-runner/exploration-controller.js": "264a65e0f3b20c6dff39ac1f66bdd6bcd953059c6d7d78f4d9467d48b2b23427",
+    "void-runner/exploration-controller.js": "8a088aad81e8e8d2c7dcfb6f1293ae5a63eb885831bd4873c13190c92f572f55",
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
@@ -77175,7 +77176,7 @@
     "void-runner/flight-runtime.js": "8fa697c7a0be1e670c21009fd995974f4c790802f1328372a44a08589cf39784",
     "void-runner/flight-session-integration.js": "0dc63b7cdab18fa333bed6e699c55b58b5ab6c391153fc414b8093bfb452a154",
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
-    "void-runner/flight-sfx.js": "ae959ba714e61342c6487ebfd554651300828ca41fffe53020ff2b489731ed09",
+    "void-runner/flight-sfx.js": "6106d3ebb07b01899f2a6893ede74e6b3ae177595063b86c3b360cae8de01110",
     "void-runner/flight-skirmish.js": "942bdfd16824ad0609daf15ddd6fee69a398087290e2b719805fdddef4f1bc7f",
     "void-runner/footsteps.js": "5caeb3f07017f1a72a1c91633de003f601104c9997862691e6b8b262ce1ff137",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
@@ -77219,10 +77220,10 @@
     "void-runner/mission-mechanics.js": "ddf0903cddcd9e6e07953b819ca7734005d991743bdeff91229bfd744cc9efa0",
     "void-runner/mission-trees.js": "4ca010fef01069ef2d46e012ef6b308168bc5fbab0abc6d85c620fc69dee2606",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "9695d756ec6482cbccfc7c52f75eeb2983f0e60db98d0733ff1824477a617bd7",
+    "void-runner/module-build.js": "9dd79cceed2f428c060e498a6b34a4668667cf04d0baad80db2c7bd71004cf73",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
-    "void-runner/module-integration.js": "f6b5c955d19d7b31bb44e21b8504272f9123c5877feebfeb1b378218716af52e",
-    "void-runner/modules.js": "d20c47860c942162910b07cd90e530beccb3ad3735fcc4fbc051cd408097bb0e",
+    "void-runner/module-integration.js": "dba88434d6ac82b9a3b5de4a1811f189c000a1cf600eb6eca1803535c0895d35",
+    "void-runner/modules.js": "411328274661dc1b1d53dfc73013c6f98484994bd486524d98b38ec4296ddbcf",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
@@ -77233,7 +77234,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "0dde00ceda271f76fa19ee69a89ddc0b9cf136d43229d900e3c1d4f130c060a1",
+    "void-runner/ncz-backalleys.js": "2e523f3f667932a38a99af7a57d7180626834258ea1b79402fd6dcbc1d21274a",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
@@ -77245,7 +77246,7 @@
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
     "void-runner/ncz-street-pair.js": "2460032a4bff91aa667dab20142767ab576d9f5d6741a1a8c00207707b880844",
-    "void-runner/ncz-underground-integration.js": "3d79c892c28fbc4ec5ed3350f308d5257f8fed44853e77192c9a249b4be75fd5",
+    "void-runner/ncz-underground-integration.js": "2a1d02130526aa5bb4e6633b68f5efac59e6fcad49e8d4039de8315117b67efb",
     "void-runner/ncz-underground.js": "76b7d412136c3aed62c4974880c9bd262ccec0decd394e13af3cbc821c135012",
     "void-runner/neochinatown.js": "b0467951b7f204ec190a3853f7d88c41886ecca30272cfa46f8aef9c1c96d633",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
@@ -77274,6 +77275,7 @@
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
+    "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",
