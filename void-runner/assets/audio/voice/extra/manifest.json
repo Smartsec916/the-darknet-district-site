@@ -318,41 +318,177 @@
    "speaker": "initiate",
    "text": "Yes. I am.",
    "file": "extra/initiate-m010-1.ogg",
-   "voice": "Darren (ElevenLabs)",
-   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
    "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
-   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
    "delivery": "[nervous, solemn, trying to sound steady] (eleven_v4 audio tag)"
   },
   "initiate-m010-2": {
    "speaker": "initiate",
    "text": "I do.",
    "file": "extra/initiate-m010-2.ogg",
-   "voice": "Darren (ElevenLabs)",
-   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
    "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
-   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
    "delivery": "[nervous, solemn] (eleven_v4 audio tag)"
   },
   "initiate-m010-3": {
    "speaker": "initiate",
    "text": "Yes.",
    "file": "extra/initiate-m010-3.ogg",
-   "voice": "Darren (ElevenLabs)",
-   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
    "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
-   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
    "delivery": "[hesitant, quiet] (eleven_v4 audio tag)"
   },
   "initiate-m010-4": {
    "speaker": "initiate",
    "text": "Fucking dogs!?",
    "file": "extra/initiate-m010-4.ogg",
-   "voice": "Darren (ElevenLabs)",
-   "voiceId": "74s0ZNaUEOKhDHSxgJZq",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
    "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
-   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
    "delivery": "[shocked, horrified outburst] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-1": {
+   "speaker": "robed-all",
+   "text": "Are you ready for your Awakening, brother?",
+   "file": "extra/robed-all-m010-1.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-2": {
+   "speaker": "robed-all",
+   "text": "Do you willingly surrender fifty-one percent of your enterprise in exchange for the prosperity, protection and influence of Blackrock?",
+   "file": "extra/robed-all-m010-2.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-3": {
+   "speaker": "robed-all",
+   "text": "We offer you wealth in exchange for loyalty. Power in exchange for obedience. Brotherhood in exchange for sacrifice.",
+   "file": "extra/robed-all-m010-3.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-4": {
+   "speaker": "robed-all",
+   "text": "To become one of us, you must surrender more than your enterprise. You must surrender your pride.",
+   "file": "extra/robed-all-m010-4.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-5": {
+   "speaker": "robed-all",
+   "text": "Before you lies the vessel of sacrifice. Within it awaits your humiliation.",
+   "file": "extra/robed-all-m010-5.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-6": {
+   "speaker": "robed-all",
+   "text": "Do you accept that your humiliation must become public knowledge, and that you shall bear its consequences without denial or regret?",
+   "file": "extra/robed-all-m010-6.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-7": {
+   "speaker": "robed-all",
+   "text": "Good. Accept your humiliation, brother.",
+   "file": "extra/robed-all-m010-7.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-8": {
+   "speaker": "robed-all",
+   "text": "[laugh]",
+   "file": "extra/robed-all-m010-8.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js) — the laugh beat (empty words, anim 'laugh'): cult-room.js voiceText keys an empty line by its animation, '[laugh]'",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 laugh with no time-stretch.",
+   "delivery": "[brief, restrained, mocking laughter] (eleven_v4 audio tag)"
   },
   "fish-m004-zh-1": {
    "speaker": "milked-fish",
