@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COLOR-CODED SKELETON PLACEMENT GUIDE (local)
+
+- Joint colors distinguish body regions; selected dots turn white and the magnifier displays descriptive anatomical names. A front and side schematic in Model and Guide tabs shows the 19 approximate auto-rig joint centers, with precise anatomical placement descriptions and a matching color legend.
+
 ### 21 Nov 2026: CAMERA SLIDERS AND SELECTED JOINT DETAIL (local)
 
 - Model and Animation previews offer distance, horizontal strafe, height and orbital rotation sliders, incremental zoom and reset. Selecting any draggable joint highlights it and opens a live magnified crop of the preview centered on the selected joint where possible; the full preview remains the drag surface. No changes to model data from camera controls.
