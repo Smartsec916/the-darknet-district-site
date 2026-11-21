@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V23 — MISSION STREET DOORS USED (local, not deployed)
+
+- Residence registry marks all known mission-reserved street entrances USED in the building picker and registry list, including inactive missions, modular mission locations and hack-only street doors. Shows authored apartment numbers where present, distinguishes dynamic hallway numbers, counts used entrances, and marks unverified data when a live lookup fails or is degraded. No mission apartment allocation or access behavior changed.
+
 ### 21 Nov 2026: COMPANION STUDIO V22 — QUICK LINKS (local, not deployed)
 
 - Phone and PC Companion Studio now share a collapsible Helpful links directory with descriptions for the standalone studio, game, developer studio, content atlas, ChatGPT, ElevenLabs, Meshy, Mixamo, Quaternius, KinemIQ and Blender. In-game shortcuts open the existing NPC, mission and zone editors. External links open in a separate tab; no uploads or automatic publishing. Cache version 22.
