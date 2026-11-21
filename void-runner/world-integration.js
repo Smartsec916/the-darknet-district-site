@@ -163,11 +163,16 @@ function rookFreightOffer(){
   // Handing the cargo back ends the job without pay or penalty.
   if(r.kind!=='legacy')screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforeend',button('HAND THE CARGO BACK','rook-cancel',true));return;}
  if(state.contract){talk('',[{who:'rook',text:'Finish the job you are carrying. Then come see me.'}],resumeWalking,'RETURN TO STATION');return;}
+ // A District campaign (the owner, 20 Nov 2026): after the first delivery Rook sends the coordinates once (the Map app gets every location: nav-coords.js), then shows his side missions.
+ // His lines here are PROPOSED placeholder text (rook-cargo-jobs.js lines): need owner approval before recording.
+ const district=VoidMissions.closed(state),RL=globalThis.VoidRookCargoJobs?.lines||{};
+ if(district&&state.story.flags.rookNavSent!==true){state.story.flags.rookNavSent=true;globalThis.VoidNav?.grantCoordinates('rook');save();talk('',[{who:'rook',text:RL.coordinates}],()=>rookFreightOffer(),'NEXT →','Rook’s booth');return;}
  const board=C.rookBoard({...state,contract:null}),r=board[0],free=C.holdFree(state);
+ if(!r){talk('',[{who:'rook',text:'Deliver the cargo. Then come back for more work.'}],resumeWalking,'RETURN TO STATION');return;}
  const served=String(state.story.flags.rookSystems||'erebus').split(','),opening=!served.includes(VoidUniverse.system(r.destination));
  const lead=opening?'Lanes into '+VoidUniverse.systems[VoidUniverse.system(r.destination)].name+' just opened up. Get in before everyone else does.':r.number===1?'Opening jobs are done. I keep freight moving, and you look like you could use steady work.':'Back for more? Good.';
  const jobs=board.map(j=>'<li><b>'+escapeText(j.label.toUpperCase())+'</b> · '+escapeText(j.cargo)+' to '+escapeText(place(j.destination))+(far(j.destination)?' (interstellar)':'')+' · '+(j.units>1?j.units+' hold spaces':'1 hold space')+' · '+(j.legal?'legal':'<em>not legal</em>')+' · <b>'+j.payment.toLocaleString()+' CR</b> '+(j.payAt==='rook'?'paid by Rook here after delivery':'paid on delivery')+'</li>').join('');
- talk('',[{who:'rook',text:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');
+ talk('',[{who:'rook',text:district?RL.board:lead+(r.number===1?' Admin is over in Tessaly if you want other work. '+key+' opens your Mission Log.':'')}],resumeWalking,'NOT NOW','Rook’s booth');
  speech.shown=speech.lines[0].text.length;$('speech-next').style.display='none';
  screen.querySelector('.dialogue-window')?.classList.add('choice-menu');
  screen.querySelector('.speech-controls')?.insertAdjacentHTML('beforebegin','<ul class="rook-board">'+jobs+'</ul>');
@@ -175,11 +180,11 @@ function rookFreightOffer(){
 }
 screen.addEventListener('click',e=>{const a=e.target.closest('button')?.dataset.action;if(!a||!state)return;
  if(a.startsWith('rook-job:')){speech=null;globalThis.VoidAudio?.cancel?.();
-  if(C.accept(state,a)){const r=C.rookRun(state);VoidMissions.track(state,r.id,C);save();announce('Cargo loaded. '+(C.stations[r.destination]?.name||r.destination)+' tracked. '+(r.payAt==='rook'?'Rook pays when you are back.':'Paid on delivery.'));}
+  if(C.accept(state,a)){const r=C.rookRun(state);VoidMissions.track(state,r.id,C);save();announce((VoidMissions.closed(state)?'SIDE MISSION · ':'')+'Cargo loaded. '+(C.stations[r.destination]?.name||r.destination)+' tracked. '+(r.payAt==='rook'?'Rook pays when you are back.':'Paid on delivery.'));}
   else announce('Not enough free hold space for that job.');resumeWalking();}
  else if(a==='rook-cancel'){speech=null;globalThis.VoidAudio?.cancel?.();if(C.cancelRook(state)){VoidMissions.sync(state,C);save();announce('Rook’s crew takes the cargo back. No pay, no hard feelings.');}resumeWalking();}
 });
-rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'){rookFreightOffer();return;}/* freight never waits on the missile drill (the owner, 2026-10-23) */originalRookConversation();};
+rookConversation=function(){if(state.location==='meridian'){VoidMissions.complete(state,'meet-rook','enter',C);VoidMissions.complete(state,'meet-rook','locate',C);VoidMissions.complete(state,'meet-rook','speak',C);save();}if(state.missileUnlocked&&!state.missileOfferSeen){state.missileOfferSeen=true;VoidUniverse.unlock(state);save();talk('',[rookMissileLine],resumeWalking,'RETURN TO STATION');return;}if(state.quest==='open'&&(!VoidMissions.closed(state)||C.rookOpen(state))){rookFreightOffer();return;}/* freight never waits on the missile drill (the owner, 2026-10-23); a District campaign: only once Rook's side missions are open */originalRookConversation();};
 VoidInteractions.register('talk',({item})=>{
  if(item.character==='rook')return rookConversation();
  if(item.character==='mara')return playStoryScene('mara_workshop_intro');
@@ -209,7 +214,8 @@ let routeMarkers=[],trackedWalkWaypoint=null;
 const MISSION_YELLOW=VoidGuideRoute.COLOR;try{const st=document.documentElement.style;st.setProperty('--mission-yellow',MISSION_YELLOW.hex);st.setProperty('--mission-yellow-rgb',MISSION_YELLOW.rgb);st.setProperty('--mission-yellow-text',MISSION_YELLOW.text);st.setProperty('--mission-yellow-ink',MISSION_YELLOW.ink);}catch{}
 const missionTracker=document.createElement('div');missionTracker.id='mission-tracker';missionTracker.hidden=true;document.body.append(missionTracker);
 const missionLogButton=document.createElement('button');missionLogButton.id='mission-log-button';missionLogButton.type='button';missionLogButton.textContent='MISSION LOG';missionLogButton.setAttribute('aria-keyshortcuts','L');missionLogButton.hidden=true;missionLogButton.addEventListener('click',()=>openMissionLog());document.body.append(missionLogButton);
-function flightRoutes(){return VoidUniverse.destinations(state).map((id,i)=>{const angle=-1.05+i*.42;return {id,vector:VoidWarp.skyward(state.location,{x:Math.sin(angle),y:0,z:Math.cos(angle)})};});}
+// Which markers: nav-coords.js (every location once Rook's coordinates are in; before that only the route to the mission and the way home). The angle follows the full list, so a marker never moves when the set changes.
+function flightRoutes(){const all=VoidUniverse.destinations(state),shown=globalThis.VoidNav?new Set(VoidNav.shown()):null;return all.map((id,i)=>{const angle=-1.05+i*.42;return {id,vector:VoidWarp.skyward(state.location,{x:Math.sin(angle),y:0,z:Math.cos(angle)})};}).filter(r=>!shown||shown.has(r.id));}
 const worldUpdate=update;
 update=function(dt){
  if(mode==='play'&&flight.route?.phase==='departure'){const speed=Math.max(0,Math.min(18,(flight.route.departure-1)*9));flight.velocity={x:0,y:0,z:speed};}
@@ -221,7 +227,7 @@ update=function(dt){
  {const key=VoidInput.label(VoidInput.bindings.missionLog||'KeyL'),text='MISSION LOG · '+key;if(missionLogButton.textContent!==text)missionLogButton.textContent=text;
   // First time the log becomes available, say how to open it.
   if(!missionLogButton.hidden&&state.story&&!state.story.flags.missionLogHint){state.story.flags.missionLogHint=true;announce('Mission Log unlocked. Press '+key+' to open it and choose what to track.');save();}}
- trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null)||districtRoute(g.interaction)||(typeof missionPlaceRoute==='function'?missionPlaceRoute(g):null);// trackedWalkWaypoint is the GOAL. The route to it (doors, the vestibule, gate lanes), the next waypoint, the smoothing and fading: guide-route.js (drawMissionWaypoint).
+ trackedWalkWaypoint=null;if(mode==='walking'&&walker){const m=VoidMissions.tracked(state,C),g=VoidMissions.guidance(state,m,true);if(g){const item=(typeof missionEscortGoal==='function'?missionEscortGoal(g):null)||walkingLocation.interactions.find(i=>i.id===g.interaction)||(g.interaction==='rook'?walkingLocation.interactions.find(i=>i.id==='jobs'):null)||districtRoute(g.interaction)||(typeof missionPlaceRoute==='function'?missionPlaceRoute(g):null);// trackedWalkWaypoint is the GOAL. The route to it (doors, the vestibule, gate lanes), the next waypoint, the smoothing and fading: guide-route.js (drawMissionWaypoint).
 // station: an older station's corridor (the hangar door at z 3, the concourse door at z 19), as the arrow used to pick here by hand.
 const waypoint=item?{position:item.position,label:item.label,key:(m?.id||'')+'|'+(g.label||'')+'|'+(g.interaction||g.place||g.target||''),station:!item.route&&!['neochinatown','milked'].includes(walkingLocation.id)}:null;trackedWalkWaypoint=waypoint;$('walking-caption').textContent=walkingLocation.name+' · '+g.label+(waypoint?' · '+Math.round(guideMetres(waypoint))+'m':'');}
   // The Kepler hand-over leads to Dr. Sol at the bar (through the door and corridor, as above).

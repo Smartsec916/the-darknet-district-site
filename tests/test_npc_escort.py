@@ -47,7 +47,11 @@ class NpcEscortServerTests(unittest.TestCase):
         bad({'kind': 'they-follow', 'npc': 'grey-reverie', 'to': {'x': 110, 'z': -6.4}, 'wait': 8}, 'no wait setting')
         bad({'kind': 'their-cab', 'npc': 'street-cat', 'stop': 'avenue'}, 'does not ride in cabs')
         bad({'kind': 'their-cab', 'npc': 'grey-reverie', 'stop': 'corporate'}, 'cab stop they can get to')
-        bad({'kind': 'shared-cab', 'npc': 'grey-reverie', 'stop': 'main'}, 'cab stop they can get to')
+        # escort across (20 Nov 2026): a stop in another quarter and a spot in another area she can walk to pass; the cat never goes down into the tunnels
+        self.assertEqual(problems({'kind': 'shared-cab', 'npc': 'grey-reverie', 'stop': 'main'}), [])
+        self.assertEqual(problems({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': -2.7, 'z': -80}}), [])
+        self.assertEqual(problems({'kind': 'they-follow', 'npc': 'grey-reverie', 'to': {'x': 53, 'z': -50}}), [])
+        bad({'kind': 'they-follow', 'npc': 'street-cat', 'to': {'x': -2.7, 'z': -80}}, 'can walk to')
         bad({'kind': 'talk', 'npc': 'admin', 'stop': 'avenue'}, 'only a follow')
         bad({'kind': 'follow-them', 'npc': 'grey-reverie', 'to': {'x': 110, 'z': -6.4, 'y': 2}}, 'pick the spot')
 

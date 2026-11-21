@@ -190,13 +190,13 @@
  /* The UNDERGROUND TEA ROOM (the owner: "an underground tea room would be cool too"; a front door and a back door on opposite walls; "the back door must NOT be visible
     from the seating area"): the back door opens into a service nook behind a full-height partition; the nook reaches the room round the end of the partition and behind a
     folding screen (an L-shaped passage), so no seat looks at it. */
- T('tea-under',{cat:'various',style:'tunnel',underground:true,ownLamps:true,w:3,d:3,ceil:3.2,sockets:'s1 n1',sw:[-.95,'s'],name:'Underground tea room',note:'UNDERGROUND. A tea room in a converted tunnel chamber: a raw concrete vault and pipes over a warm dark-wood interior, backlit paper screens, a tatami dais with low tables and cushions, a tea station, lanterns. Front door (south) and back door (north) join tunnel pieces; the back door is hidden in a service nook behind a partition and a folding screen.',
+ T('tea-under',{cat:'various',style:'tunnel',underground:true,ownLamps:true,w:3,d:3,ceil:3.2,sockets:'s1 n1',sw:[-.95,'s'],name:'Underground tea room',note:'UNDERGROUND. A tea room in a converted tunnel chamber: a raw concrete vault and pipes over a warm dark-wood interior, backlit paper screens, a tatami dais with low tables and cushions, a tea station (an island with the kettle, cups and a lucky cat; the host stands behind it, between it and the partition), lanterns. Front door (south) and back door (north) join tunnel pieces; the back door is hidden in a service nook behind a partition and a folding screen.',
   objects:[O('tea','TEA STATION','the tea station'),O('table','LOW TABLE','the low table'),O('safe','STRONGBOX','the strongbox'),LIGHTS],
-  furn:[[-2.9,-1.1,-2.5,1.3,.15,'dais'],[-2.9,1.15,1.5,1.6,2.3,'partition'],[-.8,1,1,1.5,.85,'tea'],[2.2,2.9,.85,.95,1.7,'screen'],[1.2,2.2,-2.2,-1,.4,'table-e'],[2.4,2.9,-2.9,-2.4,.9,'bonsai'],[-2.9,-2.4,1.7,2.9,1.8,'shelves'],[2.2,2.9,2.5,2.9,.9,'sink']],
-  inter:[{id:'tea',label:'TEA STATION',pos:[.1,1,.75],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-1,.6,-.3],object:'table',range:1.3},{id:'safe',label:'STRONGBOX',pos:[-2.2,1,2.3],object:'safe',range:1.2}],
+  furn:[[-2.9,-1.1,-2.5,1.3,.15,'dais'],[-2.9,1.15,1.5,1.6,2.3,'partition'],[-.8,1,.2,.7,.85,'tea'],[2.2,2.9,.85,.95,1.7,'screen'],[1.2,2.2,-2.2,-1,.4,'table-e'],[2.4,2.9,-2.9,-2.4,.9,'bonsai'],[-2.9,-2.4,1.7,2.9,1.8,'shelves'],[2.2,2.9,2.5,2.9,.9,'sink']],
+  inter:[{id:'tea',label:'TEA STATION',pos:[.1,1,-.05],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-1,.6,-.3],object:'table',range:1.3},{id:'safe',label:'STRONGBOX',pos:[-2.2,1,2.3],object:'safe',range:1.2}],
   say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},
   plan:{seats:[[-2,-1.5],[-2,.4],[1.7,-1.6]],passage:[[0,2.3],[1.7,2],[1.6,1.2],[1.4,.4]]},
-  spots:[['host',.1,.55,PI],['front-door',1,-2.3,0],['back-door',-1,2.3,PI/2]],lights:[[-1.6,2.4,-.6,'#ffc890',1.5,9],[1.4,2.4,-.2,'#ffb878',1.2,8]]});
+  spots:[['host',.1,1.1,PI],['front-door',1,-2.3,0],['back-door',-1,2.3,PI/2]],lights:[[-1.6,2.4,-.6,'#ffc890',1.5,9],[1.4,2.4,-.2,'#ffb878',1.2,8]]});
  /* THE UNDERGROUND, EAST ASIAN SET (the owner, 20 Nov 2026: "lantern tunnel. mahjong. a small sleeping room with bed divided by curtains. underground food stall."):
     converted tunnel chambers where raw concrete and pipes show round warm wood, lanterns and cloth. The lantern tunnel pieces are tubes like the plain ones (the same
     cross-section, seamless with them), only dressed. Generic designs: no real brands, no readable writing, no religious symbols. */
@@ -511,7 +511,12 @@
  function inventory(){return {grid:GRID,span:SPAN,floors:FLOORS.slice(),limit:{...LIMIT},door:{...DOOR},categories:CATS.map(c=>c.id),itemTypes:ITEM_TYPES.slice(),
   types:Object.fromEntries(TYPE_IDS.map(id=>{const t=TYPES[id];return [id,{cat:t.cat,name:t.name,w:t.w||null,d:t.d||null,ceil:t.ceil||null,portal:!!t.portal,cab:!!t.cab,screen:!!t.screen,family:t.family||null,legacy:t.legacy?{...t.legacy}:null,stairs:!!t.stairs,underground:!!t.underground,spots:(t.spots||[]).map(x=>x[0]),
    sockets:t.sockets.map(s=>({id:s.id,edge:s.edge,cell:Number.isFinite(s.cell)?s.cell:null})),objects:objectsOf(id).map(o=>o.id),bounds:bounds(id).map(r2)}];}))};}
- const api={GRID,WALL,DOOR,SPAN,FLOORS,LIMIT,ORIGIN,CATS,STYLE_NAMES,TYPES,TYPE_IDS,MOD_ID,REF,ITEM_TYPES,TEMPLATES,NORMAL,TANGENT,OPP,
+ /* SLIDING DOORS AND PEOPLE (20 Nov 2026: "room sliding doors only open for the player, so NPCs pass through closed doors"): a door opens while the player OR any NPC
+    (a placed or mission person, the street pair, made givers, people walking with the player indoors) is within `range` metres of its middle, as the street doors do for
+    residents (apartment-integration.js nearNpc). Never a door to the street (shut: it fades instead); a locked door stays locked (the slider ignores it). */
+ const DOOR_NPC_RANGE=1.6;
+ function doorWanted(rec,player,people,range=1.8,npcRange=DOOR_NPC_RANGE){if(!rec||rec.shut)return false;const near=(q,r)=>!!q&&Number.isFinite(q.x)&&Number.isFinite(q.z)&&(rec.x-q.x)**2+(rec.z-q.z)**2<r*r;return near(player,range)||(people||[]).some(q=>near(q,npcRange));}
+ const api={GRID,WALL,DOOR,SPAN,doorWanted,DOOR_NPC_RANGE,FLOORS,LIMIT,ORIGIN,CATS,STYLE_NAMES,TYPES,TYPE_IDS,MOD_ID,REF,ITEM_TYPES,TEMPLATES,NORMAL,TANGENT,OPP,
   objectsOf,bounds,place,sockLocal,sockWorld,rotP,turnEdge,toWorld,boxWorld,parseRef,analyse,doorOf,cabFloors,floorName,isLocation,problems,hackable,strip,attach,freeSpot,freeSockets,newId,addModule,removeModule,template,fromApartment,migrateMission,
   layout,lockedNow,across,clusterAtFloor,inventory};
  if(node){module.exports=api;return;}

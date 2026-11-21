@@ -24,7 +24,7 @@ const log=(...a)=>console.log('[door-views]',...a);
   const plan=await page.evaluate(()=>{const A=VoidApartments,M=VoidModules,U=VoidUnderground,BA=VoidBackAlleys,DV=VoidDoorViews,O=A.ORIGIN,out=[];
    for(const st of DV.HOUSING){const G=A.geo(st),H=G.HALL,P=G.APT,s0=H.slots[0];
     out.push({key:'hall-'+st,kind:'hall',style:st,cam:[O[0]+H.street.x+.3,O[1],Math.PI/2]});
-    out.push({key:'hallx-'+st,kind:'hall',style:st,cam:[O[0]+s0.x,O[1]+(s0.z>0?s0.z-.3:s0.z+.3),s0.z>0?Math.PI:0]});
+    out.push({key:'hallx-'+st,kind:'hall',style:st,cam:[O[0]+s0.x,O[1]+(s0.z>0?s0.z-.3:s0.z+.3),s0.z>0?Math.PI+.62:-.62]});   // across and a little toward the street end, so the corridor shows
     out.push({key:'apt-'+st,kind:'flat',style:st,cam:[O[0]+P.door.x,O[1]+P.z[0]+.3,0]});}
    for(const q of DV.QUARTERS){const d=A.doorsIn(q).find(x=>(x.family||'city')===(q==='outskirts'?'container':'city'))||A.doorsIn(q)[0];if(!d)continue;out.push({key:'street-'+q,kind:'street',quarter:q,cam:[d.x-d.n[0]*.45,d.z-d.n[1]*.45,Math.atan2(-d.n[0],-d.n[1])]});}
    for(const s of DV.MOD_STYLES){const type=DV.MOD_SAMPLE[s],t=M.TYPES[type];if(!t)continue;const sock=t.sockets[0];out.push({key:'mod-'+s,kind:'module',type,sock:sock.id});}

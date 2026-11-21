@@ -3,7 +3,7 @@
    - VIEWS: one still picture per destination style and quarter (void-runner/art/door-views/<key>.webp, 256 x 512), taken from that doorway at eye height in the real interior
      by tools/door-views/bake.cjs (Playwright, the game itself). Behind every door that leads elsewhere a short dark reveal (two jambs and a head) holds the picture a little
      way in, so as the door slides open the player sees the hallway, the apartment, the street at night, the module's first room, the checkpoint or the stair landing.
-     One unlit material per picture per built place; nothing renders live.
+     One unlit material per picture per built place (lifted a little, level 1.45, so the lit place beyond reads in a dark corridor); nothing renders live.
    - THE PASS: walking into the open door (or E) waits until the door is open (DOOR.wait), then a short black fade (DOOR.fadeIn), the place is swapped behind it (the
      game's silent load, no "Preparing" card), and the fade lifts (DOOR.fadeOut). Every sliding door shares one timing (VoidApartments.DOOR: open, hold, wait).
    Used by apartment-build.js / apartment-integration.js (housing), module-build.js / module-integration.js (module locations), ncz-backalleys.js and
@@ -24,7 +24,7 @@
  /* A material cache for one built place (pass the same object to every view of that place; dispose it with the place). */
  function cache(B,scene,own){const m=new Map();return {get(key){if(!KEYS.includes(key))key=null;const k=key||'dark';if(m.has(k))return m.get(k);
    const mat=new B.StandardMaterial('door-view-'+k,scene);mat.disableLighting=true;mat.diffuseColor=B.Color3.Black();mat.specularColor=B.Color3.Black();
-   if(key){const t=new B.Texture(url(key),scene,false,true,B.Texture.TRILINEAR_SAMPLINGMODE,null,()=>{mat.emissiveColor=new B.Color3(.02,.02,.025);});t.wrapU=t.wrapV=B.Texture.CLAMP_ADDRESSMODE;t.level=.92;mat.emissiveTexture=t;mat.emissiveColor=B.Color3.Black();own&&own.push(t);}
+   if(key){const t=new B.Texture(url(key),scene,false,true,B.Texture.TRILINEAR_SAMPLINGMODE,null,()=>{mat.emissiveColor=new B.Color3(.02,.02,.025);});t.wrapU=t.wrapV=B.Texture.CLAMP_ADDRESSMODE;t.level=1.45;mat.emissiveTexture=t;mat.emissiveColor=B.Color3.Black();own&&own.push(t);}
    else mat.emissiveColor=new B.Color3(.02,.02,.025);
    own&&own.push(mat);m.set(k,mat);return mat;},dark(){if(!m.has('#jamb')){const j=new B.StandardMaterial('door-view-jamb',scene);j.diffuseColor=new B.Color3(.05,.05,.055);j.specularColor=B.Color3.Black();j.emissiveColor=new B.Color3(.012,.012,.014);own&&own.push(j);m.set('#jamb',j);}return m.get('#jamb');}};}
  /* The reveal behind one door. at: the middle of the door opening on the floor [x, y, z]; n: [nx, nz] the way through the door (away from the viewer); w, h: the opening;
