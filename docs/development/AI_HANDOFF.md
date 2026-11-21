@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: PLAY THIS DRAFT "does nothing at all" (branch `claude/draft-play-fix`, build `2026-11-21-draft-play-1`)
+
+- The owner (Firefox): PLAY THIS DRAFT, PLAY FROM HERE and play the tree from the start did nothing. Not reproduced in Chromium (mission-qa-browser plays a draft fine). The Render log showed no `developer/balance` call after his presses, so play() stopped before `VoidDevTest.session`; an exception there was an unhandled rejection. play() now wraps `playNow()` and shows `PLAY could not start: <message>` in the status line (console keeps the stack). Next: get the message from the owner and fix the cause.
+
 ### 20 Nov 2026 (newest): AWAKENING QA — A PLAYTHROUGH OF MISSIONS 004–012 AND ROOK'S BOARD; ARROW, CALL AND LAYOUT FIXES (branch `claude/awakening-qa`, build `2026-11-20-awakening-qa-1`, pushed, NO PR, not merged)
 
 The owner: "once the full Awakening tree is finished and live do a full playthrough: one as perfectly implemented, failure of different things, getting lost, look for arrows not behaving, or bugs. way to make the mission run smoother, windows overlapping making it confusing". Played in Chromium (software GL, a heavily loaded container: about 1 frame a second, a reload took 4–5 minutes) from the after-003 test profile with real keys where practical (walking by the arrow with W, E at doors, panels, the lift and computers, L for the V1, clicks in the Mission Log and the document window); the rest of 004–012 and Rook by mission events (`tests/awakening-play-browser.py`, now `BASE=` configurable). No gameplay design, dialogue, voices, rewards or wait lengths changed.
