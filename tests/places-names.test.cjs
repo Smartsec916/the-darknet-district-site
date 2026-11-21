@@ -75,7 +75,7 @@ test('the metadata is recorded at capture: who, where, the device ID and the in-
  assert.equal(G.cleanMeta({subjects:[],device:'7F3A91C2'}).device,'','only a real device ID');
  const photo={tags:G.cleanTags([{name:'Juno Vex',role:'',kind:'npc',via:'subject'},{name:'Nyx',role:'Bartender',kind:'npc',via:'resident'}]),meta:m};
  const rows=G.metadata(photo,{placeLabel:P.chain});assert.deepEqual(rows.map(r=>r.label),['TAGGED','LOCATION','DEVICE ID','TAKEN'],'POSTED ONLINE BY shows only when set');
- assert.equal(rows[0].rows[0].name,'Juno Vex');assert.equal(rows[0].rows[0].how,'Camera identification');assert.match(rows[0].rows[0].detail,/clear shot · 6\.2 m/);assert.equal(rows[0].rows[1].how,'District resident registry');
+ assert.equal(rows[0].rows[0].name,'Juno Vex');assert.equal(rows[0].rows[0].how,'Camera identification');assert.match(rows[0].rows[0].detail,/clear shot · 20 ft/);assert.equal(rows[0].rows[1].how,'District resident registry');
  assert.equal(rows[1].value,'Bar · NULL · Old Town · NeoChinatown · Servo · Tessaly System');assert.equal(rows[2].value,'V1-7F3A-91C2');assert.equal(rows[3].value,'21:51 · DAY 1');
  const posted=G.metadata({...photo,meta:{...m,postedBy:'Zed_9'}},{placeLabel:P.chain});assert.equal(posted[4].label,'POSTED ONLINE BY');assert.equal(posted[4].value,'@Zed_9');});
 test('the fresh start: once, and only the Gallery\'s photos',()=>{

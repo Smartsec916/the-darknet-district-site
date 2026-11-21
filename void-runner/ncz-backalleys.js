@@ -210,7 +210,7 @@
 
  /* ---------------- browser: the build ---------------- */
  function build({B=root.BABYLON,scene,parent,quality='medium',quarter=null,base=null}){
-  const low=quality==='low',hi=quality==='high'||quality==='ultra',own=[],groups=new Map(),qs=quarter?[quarter]:QUARTERS,made={meshes:0,escapes:0,furniture:0,lamps:0};
+  const low=quality==='low',hi=quality==='high'||quality==='ultra',own=[],groups=new Map(),qs=quarter?[quarter]:QUARTERS,made={meshes:0,escapes:0,furniture:0,lamps:0};const underDoors={};
   if(!B||!scene||!qs.some(q=>QUARTERS.includes(q)))return {stats:()=>made,dispose(){}};   // a quarter with no back alleys (the Port, the Outskirts): nothing to build (night QA: an empty floor mesh and its materials were made)
   const url=f=>{const p='assets/textures/ncz/'+f+'.jpg';try{return base?new URL(p,base).href:root.document?.currentScript?new URL(p,root.document.currentScript.src).href:'void-runner/'+p;}catch{return 'void-runner/'+p;}};
   const tex=(f,u=1,v=1)=>{const t=new B.Texture(url(f),scene,false,true);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;t.uScale=u;t.vScale=v;own.push(t);return t;};
@@ -324,8 +324,14 @@
    // a handrail down the stairs on one side
    {const o=U.W/2-.08,[x0,z0]=P(0,o),[x1,z1]=P(U.STAIR,o),len=Math.hypot(U.STAIR,U.DEPTH),m=box(.05,.05,len,(x0+x1)/2,(-U.DEPTH)/2+.9,(z0+z1)/2,steel);m.rotation.y=Math.atan2(d[0],d[1]);m.rotation.x=Math.atan2(U.DEPTH,U.STAIR);}
    // the door at the bottom (closed): a heavy steel slab with braces in a black frame, on the end wall's inner face
-   const F=L-.02;piece(F-.06,F,-.65,.65,-U.DEPTH,-U.DEPTH+2.25,rust);piece(F-.09,F,-.78,-.66,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,.66,.78,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,-.78,.78,-U.DEPTH+2.25,-U.DEPTH+2.37,black);
-   for(const y of [.5,1.1,1.7])piece(F-.1,F-.06,-.6,.6,-U.DEPTH+y,-U.DEPTH+y+.08,steel);piece(F-.14,F-.06,.38,.46,-U.DEPTH+.95,-U.DEPTH+1.25,black);
+   // the door slides open (into the side wall) when the player goes down into the tunnels, showing the checkpoint inside (door-views.js; ncz-underground-integration.js)
+   const F=L-.02,leaf=[piece(F-.06,F,-.65,.65,-U.DEPTH,-U.DEPTH+2.25,rust)];piece(F-.09,F,-.78,-.66,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,.66,.78,-U.DEPTH,-U.DEPTH+2.35,black);piece(F-.09,F,-.78,.78,-U.DEPTH+2.25,-U.DEPTH+2.37,black);
+   for(const y of [.5,1.1,1.7])leaf.push(piece(F-.1,F-.06,-.6,.6,-U.DEPTH+y,-U.DEPTH+y+.08,steel));leaf.push(piece(F-.14,F-.06,.38,.46,-U.DEPTH+.95,-U.DEPTH+1.25,black));
+   {const DV=root.VoidDoorViews,dn=new B.TransformNode('back-under-door-'+u.id,scene);dn.parent=parent;own.push(dn);const byMat=new Map();for(const m of leaf){const g=groups.get(m.material);const i=g?g.indexOf(m):-1;if(i>=0)g.splice(i,1);if(!byMat.has(m.material))byMat.set(m.material,[]);byMat.get(m.material).push(m);}
+    for(const [mat,ms] of byMat){const mm=ms.length>1?B.Mesh.MergeMeshes(ms,true,true):ms[0];if(!mm)continue;mm.material=mat;mm.parent=dn;mm.isPickable=false;own.push(mm);}
+    if(DV){const vc=DV.cache(B,scene,own),[vx,vz]=P(F+.012,0),pm=B.MeshBuilder.CreatePlane('back-under-view',{width:1.3,height:2.25},scene);pm.position.set(vx,-U.DEPTH+1.125,vz);pm.rotation.y=Math.atan2(d[0],d[1]);pm.material=vc.get('checkpoint');pm.parent=parent;pm.isPickable=false;own.push(pm);}
+    let k=0,want=0,obs=null;const slide=()=>{const D=root.VoidApartments?.DOOR||{open:.6};const step=()=>{const dt=Math.min(.1,(scene.getEngine?.().getDeltaTime?.()||16)/1000);k=Math.max(0,Math.min(1,k+(want?1:-1)*dt/D.open));const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;dn.position.set(t[0]*1.15*e,0,t[1]*1.15*e);if(k===want){scene.onBeforeRenderObservable.remove(obs);obs=null;}};if(!obs)obs=scene.onBeforeRenderObservable.add(step);};
+    underDoors[u.id]={open(v=true){want=v?1:0;slide();},get t(){return k;}};}
    // the lamp over it: a caged housing, its dim sodium lens, a pool on the landing and a wash on the door; a sign scraped on the wall beside it
    piece(F-.3,F,-.18,.18,-U.DEPTH+2.55,-U.DEPTH+2.7,black);piece(F-.28,F-.04,-.14,.14,-U.DEPTH+2.52,-U.DEPTH+2.55,lens.sodium);{const [px,pz]=P(L-1,0),m=pool('sodium',px,pz,2.6,2.6,.8,true);m.position.y=-U.DEPTH+.02;const [wx,wz]=P(F,0);wash('sodium',wx,-U.DEPTH+1.5,wz,u.facing,2.4,2.6,.32);}
    {const [lx,lz]=P(-.05,U.W/2+U.WALL/2);box(.16,.16,.16,lx,U.RAIL+.12,lz,black);box(.1,.03,.1,lx,U.RAIL+.04,lz,lens.sodium);}   // a small lamp on the top railing
@@ -334,7 +340,7 @@
   // ---- merge: one mesh per material ----
   for(const [mat,list_] of groups){if(!list_.length)continue;const mm=list_.length>1?B.Mesh.MergeMeshes(list_,true,true,undefined,false,false):list_[0];if(!mm)continue;mm.name='back-'+mat.name;mm.material=mat;mm.parent=parent;mm.isPickable=false;mm.receiveShadows=false;if(mat===poolM)mm.alphaIndex=2;mm.freezeWorldMatrix();own.push(mm);made.meshes++;}
   for(const g of (scene.effectLayers||[]).filter(l=>l.addExcludedMesh&&/glow/i.test(l.getClassName?.()||'')))for(const o of own)if(o.getTotalVertices&&!/back-glow/.test(o.material?.name||''))g.addExcludedMesh(o);
-  return {stats:()=>({...made}),dispose(){for(const o of own.reverse())try{o.dispose();}catch{}own.length=0;groups.clear();}};}
+  return {stats:()=>({...made}),underDoor:id=>underDoors[id]||null,dispose(){for(const o of own.reverse())try{o.dispose();}catch{}own.length=0;groups.clear();}};}
 
  const api={PIECES,QUARTERS,STREETS,MOUTHS,faceMouths,clearFace,facePart,ESC,ESCAPES,CLIMB,KINDS,UNDER,UNDERGROUND_ENTRANCES,groundAt,minus,list,get,rectsOf,inPieces,pieceAt,open,streetRects,mouthAt,cutRun,floors,walls,escapesIn,escapeFor,escapeRule,grab,perch,climbPose,windowOpen,furniture,solids,obstacles,walk,places,extent,build};
  if(node)module.exports=api;else root.VoidBackAlleys=api;

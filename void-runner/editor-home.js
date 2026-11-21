@@ -63,7 +63,7 @@
   const fill=el('span');fill.style.width=Math.round((ui.page+1)/P.length*100)+'%';bar.append(fill);top.append(el('span','Question '+(ui.page+1)+' of '+P.length,'me-small'),bar);r.append(top);
   const box=el('section','','eh-page',{'data-eh-page':p.id});box.append(el('h3',p.title,'eh-title'),el('p',p.help,'dev-note'));r.append(box);
   ({kind:pageKind,giver:pageGiver,start:pageStart,steps:pageSteps,reward:pageReward,name:pageName})[p.id](box,a);
-  if(ui.tried&&probs.length){const pb=el('div','','eh-problems',{role:'alert','data-eh-problems':'1'});pb.append(el('b','Before you go on:'));const ul=el('ul');for(const t of probs)ul.append(el('li',t));pb.append(ul);r.append(pb);}
+  if(ui.tried&&probs.length){const pb=el('div','','eh-problems',{role:'alert','data-eh-problems':'1'});pb.append(el('b','Before you go on:'));const ul=el('ul');for(const t of probs)ul.append(el('li',VoidUnits.text(t)));pb.append(ul);r.append(pb);}
   const nav=el('div','','eh-nav');
   nav.append(iconBtn('back','BACK',()=>{if(ui.page===0){ui.view='home';}else{ui.page--;ui.tried=false;}draw();},'',{'data-eh-back':'1'}));
   const last=ui.page===P.length-1,nx=btn('',()=>next(),'eh-primary',{'data-eh-next':'1'});nx.append(document.createTextNode(last?'MAKE MY MISSION ':'NEXT '),icon(last?'check':'next',16));nav.append(nx);r.append(nav);}
@@ -81,8 +81,8 @@
  function pageStart(box,a){box.append(choice(W().STARTS,a.start,'data-eh-start',id=>{a.start=id;draw();}));
   box.append(el('p','Only when nobody else is near, only at night, only after another mission…? Add conditions later in the editor: “…and only when (optional)”, under How this mission starts.','me-help',{'data-eh-only-note':'1'}));   // extra start conditions (start-conditions.js): set in the editor, not here
   if(a.start==='messages'||a.start==='near'||a.start==='near-accept'){const f=el('div','','eh-fields');
-   if(a.start!=='messages'){const l=el('label','','me-field');l.append(el('span','How close the player comes (metres, 1 to 30)'));const d=el('input','','',{type:'number',min:'1',max:'30',step:'0.5','data-eh-distance':'1',style:'max-width:8em'});d.value=String(a.distance||5);d.oninput=()=>{a.distance=d.value===''?5:Number(d.value);};
-    l.append(d,el('span','Measured from where you talk to '+nameOf(a.giver)+'. 5 metres is a few steps. What '+nameOf(a.giver)+' says is written on the last page.','me-help'));f.append(l);}
+   if(a.start!=='messages'){const l=el('label','','me-field');l.append(el('span','How close the player comes (feet, 4 to 98)'));const d=el('input','','',{type:'number',min:'4',max:'98',step:'1','data-eh-distance':'1',style:'max-width:8em'});d.value=String(VoidUnits.ft(a.distance||5));d.oninput=()=>{a.distance=d.value===''?5:VoidUnits.m(d.value,a.distance||5);};
+    l.append(d,el('span','Measured from where you talk to '+nameOf(a.giver)+'. 16 ft is a few steps. What '+nameOf(a.giver)+' says is written on the last page.','me-help'));f.append(l);}
    if(a.start==='messages'){const l=el('label','','me-field');l.append(el('span','Top line of the message (optional)'));const i=el('input','','',{'data-eh-header':'1',maxlength:'80',placeholder:nameOf(a.giver).toUpperCase()+' // MESSAGE'});i.value=a.message.header||'';i.oninput=()=>{a.message.header=i.value;};l.append(i);f.append(l);}
    const l=el('label','','me-field');l.append(el('span',a.start==='messages'?'What the message says':'What the banner says'));const t=el('textarea','','',{'data-eh-message':'1',rows:'3',maxlength:'500',placeholder:'(your words)'});t.value=a.message.text||'';t.oninput=()=>{a.message.text=t.value;};l.append(t,el('span','Text only: no voice is made.','me-help'));f.append(l);box.append(f);}}
  function pageSteps(box,a){relabel();const kinds=W().STEPS;

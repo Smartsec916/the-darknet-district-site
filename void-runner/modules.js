@@ -19,6 +19,7 @@
  'use strict';
  const node=typeof module!=='undefined'&&module.exports;
  const AP=()=>{try{return node?require('./apartments.js'):root.VoidApartments;}catch{return null;}};
+ const EXP=()=>{try{return node?require('./exploration-controller.js'):root.VoidExplorer;}catch{return null;}};   // the walk's own collision (blocked / free), for spawns
  const GRID=2,WALL=.1,DOOR={w:1.2,h:2.2,clear:1.04,frame:.08},SPAN=24,FLOORS=[-3,9],LIMIT={modules:12,items:20,links:12,locks:12,label:60};
  const MOD_ID=/^[a-z][a-z0-9-]{0,11}$/,REF=/^([a-z][a-z0-9-]{0,11})\.([a-z0-9-]{1,10})$/,ORIGIN=[600,600];
  const r2=v=>Math.round(v*100)/100;
@@ -180,11 +181,11 @@
     to right, so pieces join end to end in any number and either way round, and turn at the junction. Two tube pieces joined end to end have no wall and no door between
     them (layout: `seam`): the tunnel runs straight through. Lamps hang every 2 m, at the middle of each cell. */
  const TUBE=(id,o)=>T(id,{cat:'hallway',style:'tunnel',underground:true,tube:true,w:1,ceil:2.6,...o});
- TUBE('tunnel-short',{d:1,sockets:'s0 n0',name:'Service tunnel, 2 m',note:'UNDERGROUND. A 2 m piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[0,'w'],lights:[[0,2,0,'#ffd8a0',1.1,7]]});
- TUBE('tunnel-mid',{d:2,sockets:'s0 n0',name:'Service tunnel, 4 m',note:'UNDERGROUND. A 4 m piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[-1,'w'],lights:[[0,2,0,'#ffd8a0',1.1,8]]});
- TUBE('tunnel',{d:3,sockets:'s0 n0',name:'Service tunnel, 6 m',note:'UNDERGROUND. An old service tunnel, 6 m: wet concrete, pipe runs, a cable tray, caged lamps, a drainage channel, puddles, graffiti. Joins end to end with any tunnel piece, seamlessly.',
+ TUBE('tunnel-short',{d:1,sockets:'s0 n0',name:'Service tunnel, 7 ft',note:'UNDERGROUND. A 7 ft piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[0,'w'],lights:[[0,2,0,'#ffd8a0',1.1,7]]});
+ TUBE('tunnel-mid',{d:2,sockets:'s0 n0',name:'Service tunnel, 13 ft',note:'UNDERGROUND. A 13 ft piece of service tunnel. Joins end to end with any tunnel piece, seamlessly.',objects:[LIGHTS],sw:[-1,'w'],lights:[[0,2,0,'#ffd8a0',1.1,8]]});
+ TUBE('tunnel',{d:3,sockets:'s0 n0',name:'Service tunnel, 20 ft',note:'UNDERGROUND. An old service tunnel, 20 ft: wet concrete, pipe runs, a cable tray, caged lamps, a drainage channel, puddles, graffiti. Joins end to end with any tunnel piece, seamlessly.',
   objects:[O('panel','JUNCTION BOX','the junction box'),LIGHTS],furn:[[-.9,-.72,.4,1.3,1.6,'junction']],inter:[{id:'panel',label:'JUNCTION BOX',pos:[-.55,1.3,.85],object:'panel',range:1.2}],sw:[-2.2,'w'],lights:[[0,2,0,'#ffd8a0',1.2,9]]});
- TUBE('tunnel-junction',{d:1,sockets:'s0 n0 w0 e0',name:'Service tunnel junction (corner / T / cross)',note:'UNDERGROUND. A 2 m tunnel junction with four openings: join two for a corner, three for a T, four for a crossing (unused ones are plain wall). Seamless with the tunnel pieces.',
+ TUBE('tunnel-junction',{d:1,sockets:'s0 n0 w0 e0',name:'Service tunnel junction (corner / T / cross)',note:'UNDERGROUND. A 7 ft tunnel junction with four openings: join two for a corner, three for a T, four for a crossing (unused ones are plain wall). Seamless with the tunnel pieces.',
   objects:[],lights:[[0,2,0,'#ffcf90',1,6]]});
  /* The UNDERGROUND TEA ROOM (the owner: "an underground tea room would be cool too"; a front door and a back door on opposite walls; "the back door must NOT be visible
     from the seating area"): the back door opens into a service nook behind a full-height partition; the nook reaches the room round the end of the partition and behind a
@@ -199,7 +200,7 @@
  /* THE UNDERGROUND, EAST ASIAN SET (the owner, 20 Nov 2026: "lantern tunnel. mahjong. a small sleeping room with bed divided by curtains. underground food stall."):
     converted tunnel chambers where raw concrete and pipes show round warm wood, lanterns and cloth. The lantern tunnel pieces are tubes like the plain ones (the same
     cross-section, seamless with them), only dressed. Generic designs: no real brands, no readable writing, no religious symbols. */
- TUBE('tunnel-lantern',{d:3,dress:'lantern',sockets:'s0 n0',name:'Lantern tunnel, 6 m',note:'UNDERGROUND. A service tunnel dressed with strings of paper lanterns, hanging cloth banners and small wall shrines. Same cross-section as the plain tunnel: mixes freely with it in a run.',
+ TUBE('tunnel-lantern',{d:3,dress:'lantern',sockets:'s0 n0',name:'Lantern tunnel, 20 ft',note:'UNDERGROUND. A service tunnel dressed with strings of paper lanterns, hanging cloth banners and small wall shrines. Same cross-section as the plain tunnel: mixes freely with it in a run.',
   objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});
  TUBE('tunnel-lantern-junction',{d:1,dress:'lantern',sockets:'s0 n0 w0 e0',name:'Lantern tunnel junction (corner / T / cross)',note:'UNDERGROUND. The tunnel junction dressed with lanterns and a banner. Seamless with every tunnel piece.',objects:[],lights:[[0,2,0,'#ffb070',1,6]]});
  const UG=(id,o)=>T(id,{cat:'various',style:'tunnel',underground:true,ownLamps:true,w:3,d:3,sockets:'s1 n1',sw:[-.95,'s'],...o});
@@ -221,7 +222,7 @@
   inter:[{id:'counter',label:'FOOD COUNTER',pos:[-.25,1.05,.2],object:'counter',range:1.2},{id:'stove',label:'WOK STATION',pos:[.85,1.1,-.8],object:'stove',range:1.4},{id:'cooler',label:'COOLER',pos:[.9,1.2,1.45],object:'cooler',range:1.3},{id:'menu',label:'MENU BOARD',pos:[1.7,1.85,-.4],object:'menu',range:2.2}],
   say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},
   spots:[['cook',1,0,-PI/2]],lights:[[.6,2.3,0,'#ffc890',1.6,8]]});
- T('tunnel-chamber',{underground:true,ownLamps:true,cat:'hallway',style:'tunnel',w:2,d:2,ceil:3,sockets:'s0 s1 n0 n1 w0 w1 e0 e1',name:'Tunnel chamber',note:'UNDERGROUND. A wider 4 m x 4 m tunnel chamber: a sump with a pump, a valve wheel, pipe runs, cable trays, two openings on each side.',
+ T('tunnel-chamber',{underground:true,ownLamps:true,cat:'hallway',style:'tunnel',w:2,d:2,ceil:3,sockets:'s0 s1 n0 n1 w0 w1 e0 e1',name:'Tunnel chamber',note:'UNDERGROUND. A wider 13 ft x 13 ft tunnel chamber: a sump with a pump, a valve wheel, pipe runs, cable trays, two openings on each side.',
   objects:[O('valve','VALVE','the valve'),O('pump','SUMP PUMP','the sump pump'),LIGHTS],furn:[[-.35,.35,-.35,.35,.9,'pump']],inter:[{id:'pump',label:'SUMP PUMP',pos:[0,1,-.6],object:'pump',range:1.2},{id:'valve',label:'VALVE',pos:[1.7,1.2,1.7],object:'valve',range:1.2}],
   say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});
  // OTHER: a storage room (4 m x 4 m) and a maintenance corridor (2 m x 6 m).
@@ -335,7 +336,7 @@
    if(m.items!=null){if(!Array.isArray(m.items)){out.push(w+': placed items are a list.');continue;}const b=bounds(m.type);
     for(const it of m.items){items++;if(!keysOk(it,['type','label','x','z','y'])||!ITEM_TYPES.includes(it.type)||!plain(it.label,LIMIT.label)){out.push(w+': a placed item needs a type and a short label (60 characters, plain text).');continue;}
      const num=v=>typeof v==='number'&&Number.isFinite(v);if(!num(it.x)||!num(it.z)||it.x<b[0]+.1||it.x>b[1]-.1||it.z<b[2]+.1||it.z>b[3]-.1)out.push(w+': a placed item must be inside the module (x '+r2(b[0]+.1)+'..'+r2(b[1]-.1)+', z '+r2(b[2]+.1)+'..'+r2(b[3]-.1)+').');
-     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.6))out.push(w+': a placed item’s height is 0 to 2.6 m.');}}}
+     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.6))out.push(w+': a placed item’s height is 0 to 8.5 ft.');}}}
   if(items>LIMIT.items)out.push('a location has at most '+LIMIT.items+' placed items.');
   if(loc.links!=null&&(!Array.isArray(loc.links)||loc.links.length>LIMIT.links||loc.links.some(l=>!keysOk(l,['a','b']))))out.push('connections are a list of door pairs (at most '+LIMIT.links+').');
   if(loc.locks!=null&&(!Array.isArray(loc.locks)||loc.locks.length>LIMIT.locks||loc.locks.some(r=>typeof r!=='string')))out.push('locked doors are a list (at most '+LIMIT.locks+').');
@@ -457,7 +458,7 @@
   for(const d of an.doors){const ra=parseRef(d.a),rb=d.b&&parseRef(d.b);const inA=mine.has(ra.mod),inB=rb&&mine.has(rb.mod);if(!inA&&!inB)continue;
    const side=inA?d.a:d.b,sp=an.byId[parseRef(side).mod].p,w=an.world[side],q=W(w.x,w.z),n=NORMAL[w.edge],tg=TANGENT[w.edge],locked=lockedNow(inst,an,d);
    const leads=d.kind==='snap'&&inA&&inB?null:d.kind==='entry'?'street':(inA?d.b:d.a);
-   const rec={id:d.id,kind:leads?(leads==='street'?'entry':'portal'):'snap',a:d.a,b:d.b,side,x:q[0],z:q[1],edge:w.edge,n,tg,locked,leads,floor:sp.floor};if(seamless(an,d)){rec.seam=true;rec.locked=false;doors.push(rec);continue;}doors.push(rec);   // a seam: nothing to draw, nothing in the way
+   const rec={id:d.id,kind:leads?(leads==='street'?'entry':'portal'):'snap',a:d.a,b:d.b,side,x:q[0],z:q[1],edge:w.edge,n,tg,locked,leads,floor:sp.floor};if(leads&&leads!=='street'){const ob=an.byId[parseRef(leads).mod];if(ob)rec.leadsType=ob.m.type;}/* what is through it (module-build.js shows its picture in the doorway) */if(seamless(an,d)){rec.seam=true;rec.locked=false;doors.push(rec);continue;}doors.push(rec);   // a seam: nothing to draw, nothing in the way
    {const sx=tg[0]?DOOR.clear/2:.05,sz=tg[1]?DOOR.clear/2:.05;solids.push({...box(q[0]-sx,q[0]+sx,q[1]-sz,q[1]+sz,'door:'+d.id,2.2),open:false,door:d.id});}
    // access points: on each side that is in this cluster
    for(const r of [d.a,d.b]){if(!r)continue;const pr=parseRef(r);if(!mine.has(pr.mod))continue;const pw=an.world[r],pn=NORMAL[pw.edge],pt=TANGENT[pw.edge],P0=W(pw.x,pw.z),inner=(pw.edge==='s'||pw.edge==='n'?an.byId[pr.mod].p.w:an.byId[pr.mod].p.d)*GRID/2;
@@ -474,7 +475,11 @@
   const atDoor=r=>{const dd=doors.find(x=>x.a===r||x.b===r);if(!dd)return null;const n=NORMAL[an.world[r].edge];return {spawn:[r2(dd.x-n[0]*1.25),1.7,r2(dd.z-n[1]*1.25)],yaw:Math.atan2(-n[0],-n[1])};};
   if(from&&from.cab){const c=ps.find(p=>p.t.cab);if(c){const q=W(c.cx,c.cz),ar=c.t.arrive||[0,.25],f=toWorld(c,ar[0],ar[1]);const s=W(f[0],f[1]);spawn=[s[0],1.7,s[1]];const n=NORMAL[turnEdge('s',c.rot)];yaw=Math.atan2(n[0],n[1]);}}
   else if(from&&from.ref){const a=atDoor(from.ref);if(a){spawn=a.spawn;yaw=a.yaw;}}
-  if(!spawn){const a=atDoor(loc.entry)||{spawn:[ORIGIN[0],1.7,ORIGIN[1]],yaw:0};spawn=a.spawn;yaw=a.yaw;}
+  if(!spawn){const a=atDoor(loc.entry)||doors.filter(x=>!x.seam).map(x=>atDoor(x.side)).find(Boolean)||{spawn:[ps[0]?W(ps[0].cx,ps[0].cz)[0]:ORIGIN[0],1.7,ps[0]?W(ps[0].cx,ps[0].cz)[1]:ORIGIN[1]],yaw:0};spawn=a.spawn;yaw=a.yaw;}   // a cluster entered with no door of its own named: its first door, else its first module's middle (never the location's far-off origin)
+  // never ON furniture or a wall (the owner, 20 Nov 2026, "stuck in a housing room"): 1.25 m in from a door can land on furniture standing close inside it (the tea room's back
+  // door opens into a nook behind a partition); then the nearest place the player can stand, first along the line in from the door, then anywhere near (tests/interior-spawns.test.cjs)
+  {const X=EXP();if(X&&X.blocked(spawn[0],spawn[2],{bounds:[700,700],solids})){const n=[Math.sin(yaw),Math.cos(yaw)];let ok=null;for(let k=1.15;k>=.55&&!ok;k-=.1){const q=[r2(spawn[0]-n[0]*(1.25-k)),r2(spawn[2]-n[1]*(1.25-k))];if(!X.blocked(q[0],q[1],{bounds:[700,700],solids}))ok=q;}
+   if(!ok){const f=X.free(spawn[0],spawn[2],{bounds:[700,700],solids},3);if(f.moved)ok=[r2(f.x),r2(f.z)];}if(ok){spawn=[ok[0],1.7,ok[1]];}}}
   const name=[...new Set(ps.map(p=>p.t.name))].slice(0,3).join(' · ').toUpperCase();
   return {id:'neochinatown',name,kind:'city',apartment:true,modular:true,private:true,part:'modular',area:'module',style:dominant(ps),bounds:[700,700],spawn,yaw,color:'#0e0f12',music:'earth',solids,interactions,signs:[],
    cluster:{id:cl.id,floor:cl.floor,mods,doors,offset:off,floors:cabFloors(an)},inst:inst.key,apt:{mission:inst.mission,id:inst.id},door:inst.door};}

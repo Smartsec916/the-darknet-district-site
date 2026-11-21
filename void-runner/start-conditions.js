@@ -96,10 +96,11 @@
  /* Every condition now: {ok, each:[{kind, ok}]}. An empty list is ok. */
  function check(only,s,q={}){const each=(only||[]).map(c=>({kind:c&&c.kind,ok:!!c&&one(c,s,q)}));return {ok:each.every(x=>x.ok),each};}
  /* Plain English, for the editor: "no other people are within 6 m of the Tea Room Host". names: {person(id), place(id), mission(id)} -> display names. */
+ const D=v=>{const U=root.VoidUnits;return U?U.fmtDist(v):v+' m';};   // the distance as the owner reads it (feet, units.js); the data stays in metres
  function words(c,names={},who){const P=id=>(names.person?names.person(id):id)||id||'the giver',p=c.npc||who;
   switch(c&&c.kind){
-   case 'alone':return 'no other '+(c.crowd===false?'placed people':'people')+' are within '+c.distance+' m of '+P(p);
-   case 'players':return 'no other players are within '+c.distance+' m of '+P(p);
+   case 'alone':return 'no other '+(c.crowd===false?'placed people':'people')+' are within '+D(c.distance)+' of '+P(p);
+   case 'players':return 'no other players are within '+D(c.distance)+' of '+P(p);
    case 'time':return 'the street clock is between '+(c.from||'?')+' and '+(c.to||'?');
    case 'place':return 'the player is in '+(c.place?(names.place?names.place(c.place):c.place):'(choose a place)');
    case 'mission':return '“'+(c.mission?(names.mission?names.mission(c.mission):c.mission):'(choose a mission)')+'” is '+(c.done===false?'not finished yet':'finished');
@@ -113,7 +114,7 @@
  /* The trigger in words: "when you walk within 4 m of the Tea Room Host". */
  function triggerWords(m,names={}){const st=(m&&m.start)||{how:'person'},w=st.when||{},P=id=>(names.person?names.person(id):id)||id||'the giver',M=id=>names.mission?names.mission(id):id,PL=id=>names.place?names.place(id):id;
   if(st.how!=='notification')return 'when the player talks to '+P(m&&m.giver);
-  switch(w.kind){case 'near':return 'when you walk within '+(num(w.distance)?w.distance:5)+' m of '+P(w.npc||(m&&m.giver));case 'pod-exit':return 'when the player leaves the Sleeping Pod';
+  switch(w.kind){case 'near':return 'when you walk within '+D(num(w.distance)?w.distance:5)+' of '+P(w.npc||(m&&m.giver));case 'pod-exit':return 'when the player leaves the Sleeping Pod';
    case 'after-mission':return 'when “'+M(w.mission||'?')+'” is finished';case 'game-time':return (w.value||'?')+' in-game minutes after “'+M(w.mission||'?')+'” is finished';
    case 'place':return 'when the player enters '+PL(w.place||'?');case 'leave':return 'when the player leaves '+PL(w.place||'?');case 'flag':return 'when the story flag '+(w.flag||'?')+' is '+String(w.value===undefined?true:w.value);}
   return 'when its trigger happens';}
