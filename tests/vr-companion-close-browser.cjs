@@ -14,7 +14,7 @@
 const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const base=process.env.SITE_TEST_URL||'http://127.0.0.1:5187',out=process.env.COMPANION_OUTPUT||path.resolve('work/companion-close');
 const channel=process.env.BROWSER_CHANNEL||'msedge',models=path.join(__dirname,'../void-runner/assets/models/crowd'),errors=[],report={};fs.mkdirSync(out,{recursive:true});
-const files={nadia:'vr-companion-fc1.vrpak',kai:'npc-kai.glb',zane:'npc-zane.glb',ava:'vr-companion-ava.vrpak',eva:'vr-companion-pg.vrpak','base-f':'vr-companion-bf.vrpak','base-m':'vr-companion-bm.vrpak'};
+const files={nadia:'vr-companion-fc1.vrpak',kai:'npc-kai.glb',zane:'npc-zane.glb',luna:'npc-luna.glb',ava:'vr-companion-ava.vrpak',eva:'vr-companion-pg.vrpak','base-f':'vr-companion-bf.vrpak','base-m':'vr-companion-bm.vrpak'};
 const wanted=(process.env.COMPANIONS||Object.keys(files).join(',')).split(',').filter(id=>files[id]&&fs.existsSync(path.join(models,files[id])));
 (async()=>{if(!wanted.length){console.log('SKIP: no companion model on this machine.');return;}
  const args=(process.env.BROWSER_ARGS||'').split(' ').filter(Boolean);

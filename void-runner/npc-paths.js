@@ -103,7 +103,7 @@
     library checks the rig again when it applies a clip). */
  const INDEX=()=>{if(node){try{return require('./npc-clip-index.json');}catch{return null;}}return root.VoidNPCClipIndex||null;};
  // Clips for grown-ups only (VR companions, the studios, the clubs): never for NPCs marked youthful (Reverie, Lace: ordinary street residents with youthful faces).
- const ADULT=/^(vr-companion|vr-player|studio-|npc-milked|npc-kai|npc-zane|npc-dax|npc-club)/;
+ const ADULT=/^(vr-companion|vr-player|studio-|npc-milked|npc-kai|npc-zane|npc-luna|npc-dax|npc-club)/;
  const YOUNG_NO=/smoke|drink|drunk|sway|beer|wine|cig/i,MOVE_CLIP=/^(walk|run|jog|sit-enter|sit-exit|walk-f|drunk-walk)$/;
  const CATS=[['idle',/idle|stand|breath|wait/],['walk / run',/walk|run|jog|stride/],['sit',/sit|seat|bench|ground|floor|lie/],['talk / gesture',/talk|gesture|wave|shrug|laugh|nod|point|look|watch|glance|head/],['dance',/dance|groove|bop|samba|hiphop/],
   ['V1 / device',/phone|device|selfie|scroll|menu/],['work',/work|wipe|pickup|interact|cook|smoke|drink|repair/],['combat / action',/aim|shoot|hit|duck|punch|fight|vr-/],['other',/./]];

@@ -1,0 +1,62 @@
+{
+ "name": "npc-luna",
+ "source": "Luna, a female VR companion (named by the owner, 21 Nov 2026), from the owner's own Meshy generation of 18 Nov 2026 (a static neon dancer posed mid-dance with one leg raised; his own account). Remade standing: Meshy image-to-3d (meshy-6-lite, a-pose, textured) from a front render of his model, then Meshy auto-rig at 1.70 m; prepared by prepare_meshy.py. Her clips are the female companion figure's (vr-companion-f.glb), retargeted (build with --crowd and --rest vr-companion-f.glb).",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "char1": {
+   "name": "body",
+   "maxTris": 40000
+  }
+ },
+ "clips": [
+  "cf-idle",
+  "cf-talk",
+  "cf-walk",
+  "cf-sit",
+  "cf-sit-enter",
+  "cf-sit-exit",
+  "cf-sit-talk",
+  "cf-dance",
+  "cf-interact",
+  "cf-idle-f2",
+  "cf-walk-f",
+  "cf-wave",
+  "cf-blow-kiss",
+  "cf-coy",
+  "cf-head-tilt",
+  "cf-hips",
+  "cf-laugh",
+  "cf-glance-back",
+  "cf-slow-dance",
+  "cf-dance-belly",
+  "cf-sit-relax",
+  "cf-sit-wave",
+  "cf-shrug",
+  "cf-recline"
+ ]
+}

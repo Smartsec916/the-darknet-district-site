@@ -16,6 +16,7 @@
   'vr-player-a':['idle','vr-aim','vr-aim-up','vr-aim-down','vr-shoot','vr-hit','vr-duck','walk'],'vr-player-b':['idle','dance','pickup','interact','menu','menu-tap','talk','walk'],   // walk: grafted 17 Nov 2026 (tools/animation-pipeline/graft_clip.py), for stepping out of the booth
   // Dax (dax.js): a licensed model, published with the live site only.
   'npc-kai':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Kai's own model (Meshy, 16 Nov 2026): the clips of the old Kai figure, retargeted
+  'npc-luna':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-f2','walk-f','wave','blow-kiss','coy','head-tilt','hips','laugh','glance-back','slow-dance','dance-belly','sit-relax','sit-wave','shrug','recline'],   // Luna's own model (the owner's Meshy dancer, made standing and rigged 21 Nov 2026; a female companion): the female companion clips (vr-companion-f), retargeted. VR bedroom only: never a street, crowd or floor-pose figure
   'npc-zane':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Zane's own model (Meshy, 18 Nov 2026; the second male companion): Kai's clips, retargeted the same way
   'npc-fish':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],   // Fish, Milked's owner: her own model (Meshy, 16 Nov 2026)
   'npc-dax':['idle','talk','look','watch','walk','glance-back','shrug'],
@@ -69,9 +70,9 @@
   'npc-cyber-bouncer':{n:32,sex:'m',roles:['club','district','creator'],cyber:true},'npc-cyber-courier':{n:33,sex:'f',roles:['mixed','district','creator'],cyber:true}};
  for(const [id,f] of Object.entries(street))clips[id]=[...STREET_CLIPS,...(f.extra||[])];
  /* FLOOR POSES (21 Nov 2026, the owner: "can you add kneeling and cross-legged pose? add them to any npc that has the correct skeleton. also a sitting knee to chest pose"):
-    posed by code on every figure here with the shared mixamorig skeleton (tools/animation-pipeline/make_floor_poses.py). Not the VR companions' figures (Kai, Zane and the
+    posed by code on every figure here with the shared mixamorig skeleton (tools/animation-pipeline/make_floor_poses.py). Not the VR companions' figures (Kai, Zane, Luna and the
     companion files: their own rules) nor the licensed files kept outside this repository. The figure's origin goes on the floor / cushion / cot top (the seat's height). */
- const FLOOR=['floor-kneel','floor-cross','floor-knees'],NO_FLOOR=/^(vr-companion|npc-kai$|npc-zane$|npc-dax$|studio-warrior$)/;
+ const FLOOR=['floor-kneel','floor-cross','floor-knees'],NO_FLOOR=/^(vr-companion|npc-kai$|npc-zane$|npc-luna$|npc-dax$|studio-warrior$)/;
  /* With them, sitting down to each and standing up from it (21 Nov 2026, one-shot, posed by code the same way; the '-hi' pairs from the edge of a cot or a bench):
     played by the seat runtime (ncz-street-pair.js FLOOR_MOVE), never offered as a choice in the editors (npc-gestures.js NO). */
  const FLOOR_MOVES=['kneel','cross','knees'].flatMap(p=>['floor-'+p+'-down','floor-'+p+'-up']).concat(['cross','knees'].flatMap(p=>['floor-'+p+'-down-hi','floor-'+p+'-up-hi']));
