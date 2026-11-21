@@ -10,6 +10,14 @@
 
 - Compact connected friendly, neutral and hostile sectors replace the FPS skirmish arena; the original derelict station asset remains intact. The player starts in the safe hangar. Open doorways separate the three modes. The zone HUD uses the campaign's zone labels and colours. Firing, neutral escalation and armed NPC AI share zones.js, with NPC movement and aggression confined to their assigned sector. Campaign state, missions and flight skirmish are unchanged.
 
+### 21 Nov 2026: COMPANION STUDIO V27 — INDEPENDENT PRIVATE HOME TEST (branch `codex/companion-independent-residence`)
+
+- PC Companion Studio now offers Test companion at home directly in its world / mission giver section. It reads the authoritative published content and shared address registry, checks the candidate with the existing server validator, and starts an isolated developer test outside the real building without initializing the Mission Editor. The full personality, relationships and residence settings are retained; other published content is copied unchanged. Rejects mission-reserved or occupied buildings and unavailable registry data. No live publishing, mission mutations or save changes occur. Existing model integration is required; this first increment supports always-home residents in unshared buildings, and does not inject local audio files or outdoor routes. 43 focused Node tests passed; actual authenticated PC gameplay verification remains pending. Independent public publishing must address subsequent Mission Editor full-snapshot overwrites before release.
+
+### 21 Nov 2026: SHARED ADDRESS REGISTRY — first separation step
+
+- Companion residence lookup now uses `VoidApartments.readAddressRegistry` with shipped, published, authenticated server-draft and browser-draft sources, without initializing the Mission Editor. Failed lookups remain unverified; mission-reserved street entrances (including Reyes 105) retain their existing conservative status. No mission definition, apartment allocation or runtime movement changed. This is the first separation step only: independent world placement/public release, visual mission route layers and collision avoidance still require implementation and regression testing.
+
 ### 21 Nov 2026: MISSION EDITOR V25 — FULL MISSION ROUTE (local)
 
 - Both Form and Blocks views display a read-only overview of mission area, starting location, objectives referring to places, NPCs, custom interiors and space destinations, and hand-in. Existing-place choices are grouped without changing option IDs or availability. Custom interior creation is explicitly optional; numbered hallway controls remain exclusive to housing. No runtime rules or mission records changed. 34 focused tests passed, including Awakening and mixed-route coverage.
