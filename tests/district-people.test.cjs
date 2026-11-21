@@ -1,7 +1,7 @@
 /* District residents and profile jobs (void-runner/district-people.js): the roster the V1 lists beside real players, and the jobs a profile can show. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const P=require('../void-runner/district-people.js'),Crowd=require('../void-runner/crowd.js'),D=require('../void-runner/device-v1.js');
-test('jobs: David\'s list is there, ids are unique, and a profile holds one or two known jobs',()=>{
+test('jobs: the owner\'s list is there, ids are unique, and a profile holds one or two known jobs',()=>{
  const labels=P.JOBS.map(j=>j.label);for(const l of ['Smuggler','Pirate','Mercenary','Merchant','Influencer','Dancer','DJ','Mechanic'])assert(labels.includes(l),l);
  assert.equal(new Set(P.JOBS.map(j=>j.id)).size,P.JOBS.length);for(const j of P.JOBS)assert.match(j.id,/^[a-z-]{2,20}$/);
  assert.deepEqual(P.cleanJobs('smuggler,nonsense,dj,smuggler,pirate,mechanic'),['smuggler','dj']);assert.deepEqual(P.cleanJobs(null),[]);assert.deepEqual(P.cleanJobs({}),[]);
@@ -51,7 +51,7 @@ test('the house rule on scanning: Admin half the time, Iris the other half, Iris
     const [wx,wz]=N.toWorld(lx,lz);assert(!Ex.blocked(wx,wz,interior),id+' walks through open floor at '+lx.toFixed(1)+','+lz.toFixed(1));}prev=p;}}
  assert.match(E.lines.admin,/rude/i);assert.match(E.lines.admin,/deactivate/i);assert.match(E.lines.iris,/rude/i);assert.match(E.lines.iris,/deactivate/i);
 });
-test('on foot is slightly faster (David, 15 Nov 2026) and still inside what the multiplayer server allows',()=>{
+test('on foot is slightly faster (the owner, 15 Nov 2026) and still inside what the multiplayer server allows',()=>{
  const src=require('node:fs').readFileSync('void-runner/exploration-controller.js','utf8'),m=src.match(/walk:([\d.]+),sprint:([\d.]+)/);assert(m);assert(+m[1]>3.4&&+m[1]<=4.2);assert(+m[2]>5.6&&+m[2]<=7);
  const hub=require('node:fs').readFileSync('tools/district-hub/protocol.cjs','utf8').match(/maxSpeed:(\d+)/);assert(+m[2]<+hub[1]);
 });
@@ -59,11 +59,11 @@ test('the two scanning lines have stored recordings: the words match exactly, th
  const fs=require('node:fs'),m=JSON.parse(fs.readFileSync('void-runner/assets/audio/voice/extra/manifest.json','utf8')),E=P.ETIQUETTE;
  for(const who of ['admin','iris']){const l=Object.values(m.lines).find(x=>x.speaker===who);assert(l,who);assert.equal(l.text,E.spoken[who][1]);assert.equal(E.lines[who],E.spoken[who][0]+': '+E.spoken[who][1]);assert.match(l.file,/^extra\/[a-z0-9-]+\.ogg$/);
   const st=fs.statSync('void-runner/assets/audio/voice/'+l.file);assert(st.size>5000&&st.size<400000,who+' clip size');assert(l.voice&&l.voiceId,'the voice used is recorded');}
- const main=JSON.parse(fs.readFileSync('void-runner/assets/audio/voice/manifest.json','utf8'));assert(!Object.values(main.lines).some(l=>l.text===E.spoken.admin[1]||l.text===E.spoken.iris[1]));assert.equal(Object.keys(main.lines).length,736,'the Kokoro manifest is as it was');
+ const main=JSON.parse(fs.readFileSync('void-runner/assets/audio/voice/manifest.json','utf8'));assert(!Object.values(main.lines).some(l=>l.text===E.spoken.admin[1]||l.text===E.spoken.iris[1]));assert.equal(Object.keys(main.lines).length,790,'the Kokoro manifest is as it was (736, plus Zane\'s 54 companion lines on 18 Nov 2026)');
  assert.match(fs.readFileSync('void-runner/voice-clips.js','utf8'),/extra\/manifest\.json/);
 });
 test('player lists show distance outside The Darknet District and not inside it',()=>{
  const src=require('node:fs').readFileSync('void-runner/personal-device.js','utf8');
  assert.match(src,/function distanceTo\(p\)\{try\{if\(areasHere\(\)\.includes\('interior'\)/,'inside the District no distance is shown');
- assert.match(src,/distText=d=>d==null\?'':d<1000\?d\+' m away'/);assert.match(src,/rows\.sort\(\(a,b\)=>\(a\.dist\?\?0\)-\(b\.dist\?\?0\)\)/,'nearest first');
+ assert.match(src,/distText=d=>d==null\?'':VoidUnits\.fmtDist\(d\)\+' away'/,'shown in feet (units.js)');assert.match(src,/rows\.sort\(\(a,b\)=>\(a\.dist\?\?0\)-\(b\.dist\?\?0\)\)/,'nearest first');
 });

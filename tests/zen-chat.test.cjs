@@ -1,46 +1,62 @@
-// Zen Zephyr's local conversation: the quotes (including the two exact lines), topic matching, fallback, no network, and an inactive provider hook.
+// Zen Zephyr's conversation (the owner's approved, voiced script, 18 Nov 2026): exact text, five topics, a recording for every line, random quotes without
+// immediate repeats, the follow-up after each quote, "Yes" to leave, the greeting once per visit, his sight line, and his live voice effect.
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const Z=require('../void-runner/zen-chat.js');
-const src=fs.readFileSync(path.join(__dirname,'../void-runner/zen-chat.js'),'utf8');
-test('there are about twenty local quotes, each with an id, topics and a source, and no duplicates',()=>{
-  assert.ok(Z.QUOTES.length>=20&&Z.QUOTES.length<=30,String(Z.QUOTES.length));assert.equal(new Set(Z.QUOTES.map(q=>q.id)).size,Z.QUOTES.length);assert.equal(new Set(Z.QUOTES.map(q=>q.text)).size,Z.QUOTES.length);
-  for(const q of Z.QUOTES){assert.ok(q.text.length>20&&q.text.length<200,q.id);assert.ok(q.topics.length>=1);assert.ok(['david','origins','placeholder'].includes(q.source));for(const t of q.topics)assert.ok(Z.TOPICS[t],q.id+' topic '+t);}
+const R=p=>path.join(__dirname,'..',p);
+const Z=require(R('void-runner/zen-chat.js')),T=require(R('void-runner/temple.js')),I=require(R('tools/audio/zen-import.cjs'));
+const script=JSON.parse(fs.readFileSync(R('tools/audio/zen-zephyr-script.json'),'utf8'));
+const extra=JSON.parse(fs.readFileSync(R('void-runner/assets/audio/voice/extra/manifest.json'),'utf8'));
+const seeded=(n=1)=>()=>{n=(n*16807)%2147483647;return (n-1)/2147483646;};
+test('the game carries the owner\'s script word for word (greeting, follow-up, five topics with label, subtitle and every line, in order)',()=>{
+ assert.equal(Z.SCRIPT.greeting,script.greeting);assert.equal(Z.SCRIPT.followUp,script.followUp);
+ assert.deepEqual(Z.SCRIPT.topics,script.topics.map(t=>({id:t.id,label:t.label,sub:t.sub,lines:t.lines})));
+ assert.equal(Z.SCRIPT.topics.length,5);assert.deepEqual(Z.SCRIPT.topics.map(t=>t.id),['tech','desire','peace','death','rebellion']);
+ assert.equal(Z.choiceLabel(Z.SCRIPT.topics[0]),'Enlightenment & Technology — Finding humanity beneath the chrome.');
+ const b=I.build();assert.equal(b.chatOut,b.chat,'zen-chat.js is up to date with the script (node tools/audio/zen-import.cjs)');
 });
-test('the two exact lines are present, word for word',()=>{
-  const texts=Z.QUOTES.map(q=>q.text);assert.ok(texts.includes('In the network of complex codes, serenity lies in the simplest line.'));assert.ok(texts.includes('A mindful soul is like a processor; it understands, computes, and calmly executes.'));
-  assert.deepEqual(Z.QUOTES.filter(q=>q.source==='david').length,2);
+test('every line has its recording registered by speaker and exact text, and the clip file is present',()=>{
+ const want=Z.voiced();assert.equal(want.length,2+script.topics.reduce((n,t)=>n+t.lines.length,0));
+ const mine=Object.entries(extra.lines).filter(([,l])=>l.speaker==='zen-zephyr');assert.equal(mine.length,want.length,'no stale or missing entries');
+ for(const [key,text] of want){const e=extra.lines['zen-'+key];assert.ok(e,key);assert.equal(e.speaker,'zen-zephyr');assert.equal(e.text,text,key);assert.equal(e.file,'extra/zen-'+key+'.ogg');assert.equal(e.voiceId,'bAq8AI9QURijOtmeFFqT');assert.match(e.voice,/Sigma Centauri/);
+  assert.ok(fs.existsSync(R('void-runner/assets/audio/voice/'+e.file)),'clip '+e.file);}
+ assert.equal(new Set(want.map(([,t])=>t)).size,want.length,'every line is unique, so speaker+text finds one clip');
+ assert.equal(fs.readFileSync(R('void-runner/assets/audio/voice/extra/manifest.json'),'utf8'),I.build().manifestText,'the manifest matches the script');
+ assert.deepEqual(extra.cast['zen-zephyr'],{effect:'monk'});
+ const eng=JSON.parse(fs.readFileSync(R('tools/audio/revoice-engines.json'),'utf8')).characters['zen-zephyr'];assert.equal(eng.engine,'elevenlabs');assert.equal(eng.voiceId,'bAq8AI9QURijOtmeFFqT');
 });
-test('every topic has at least two quotes, so matching can rotate',()=>{for(const t of Object.keys(Z.TOPICS))assert.ok(Z.QUOTES.filter(q=>q.topics.includes(t)).length>=2,t);});
-test('keyword matching picks the topic, case and punctuation do not matter, and stems count',async()=>{
-  const c=Z.create();for(const [ask,topic] of [['I am so AFRAID!','fear'],['how do I find serenity?','serenity'],['I keep thinking about my code','code'],['Tell me about the city and the rain','city'],['my network is down','network'],['I am tired and need rest','work'],['what about silence','silence']]){const r=await c.ask(ask);assert.equal(r.kind,'quote',ask);assert.ok(r.matched.includes(topic),ask+' -> '+r.matched);assert.ok(Z.QUOTES.some(q=>q.text===r.text));}
-  assert.ok(Z.topicsOf('breathing slowly').some(t=>t.topic==='breath'),'breathing counts as breath');
+test('the conversation opens with the greeting and the five choices plus a way out; a choice gives one of its quotes, then the follow-up, then the choices again and "Yes"',()=>{
+ const c=Z.create({random:seeded(7)}),o=c.open();
+ assert.deepEqual(o.lines,[{who:'zen-zephyr',text:script.greeting}]);assert.deepEqual(o.choices.filter(x=>!x.leave).map(x=>x.label),script.topics.map(t=>t.label+' — '+t.sub));
+ assert.equal(o.choices.filter(x=>x.leave).length,1);
+ for(const t of script.topics){const r=c.pick(t.id);assert.equal(r.lines.length,2);assert.ok(t.lines.includes(r.lines[0].text),t.id);assert.equal(r.lines[1].text,script.followUp);assert.ok(r.lines.every(l=>l.who==='zen-zephyr'));
+  assert.deepEqual(r.choices.map(x=>x.id),[...script.topics.map(x=>x.id),'leave']);assert.equal(r.choices.at(-1).label,'Yes');assert.equal(r.choices.at(-1).leave,true);}
+ assert.equal(c.pick('nonsense'),null);
 });
-test('the same question rotates through the matching quotes before repeating',async()=>{
-  const c=Z.create(),pool=Z.QUOTES.filter(q=>q.topics.includes('fear')),seen=[];for(let i=0;i<pool.length;i++)seen.push((await c.ask('I am afraid')).text);assert.equal(new Set(seen).size,pool.length,'each once');const again=(await c.ask('I am afraid')).text;assert.ok(pool.some(q=>q.text===again),'then it starts over');
-  const a=Z.create(),b=Z.create();assert.equal((await a.ask('fear')).text,(await b.ask('fear')).text,'deterministic');
+test('quotes are random, never the same twice in a row, and none repeats until the category is used up',()=>{
+ for(const seed of [1,2,5,99,12345]){const c=Z.create({random:seeded(seed)});
+ for(const t of script.topics){const said=[];for(let i=0;i<t.lines.length*3+1;i++)said.push(c.pick(t.id).lines[0].text);
+  for(let i=1;i<said.length;i++)assert.notEqual(said[i],said[i-1],t.id+' repeated at '+i);
+  assert.equal(new Set(said.slice(0,t.lines.length)).size,t.lines.length,t.id+': every line once before any repeats');}}
+ const orders=new Set([1,2,3,4].map(s=>{const k=Z.create({random:seeded(s)});return [0,1,2].map(()=>k.pick('tech').lines[0].text).join('|');}));assert.ok(orders.size>1,'the order is random');
 });
-test('greetings, farewells and thanks have their own short replies',async()=>{
-  const c=Z.create();assert.equal((await c.ask('hello')).kind,'greeting');assert.equal((await c.ask('goodbye')).kind,'farewell');assert.equal((await c.ask('thanks')).kind,'thanks');
+test('the greeting plays once per visit, at a distance, in his sight; E later shows his question without saying it again',()=>{
+ const c=Z.create();assert.ok(Z.GREET_RANGE>=12&&Z.GREET_RANGE<=15&&Z.TALK_RANGE<Z.GREET_RANGE);
+ assert.equal(c.shouldGreet(Z.GREET_RANGE+1,true),false,'too far');assert.equal(c.shouldGreet(Z.GREET_RANGE-1,false),false,'out of sight');assert.equal(c.shouldGreet(Z.GREET_RANGE-1,true),true);
+ assert.deepEqual(c.greet(),[{who:'zen-zephyr',text:script.greeting}]);assert.equal(c.shouldGreet(3,true),false,'not again this visit');
+ assert.equal(c.open().lines[0].silent,true,'opening after the greeting does not re-speak it');assert.equal(c.open().lines[0].silent,true);
+ c.visit();assert.equal(c.shouldGreet(10,true),true,'a new visit greets again');
+ const d=Z.create();assert.ok(!d.open().lines[0].silent,'reaching him without the greeting: it plays first');assert.equal(d.shouldGreet(5,true),false);
 });
-test('nothing matched: a calm fallback that invites a different question, never a claim to understand',async()=>{
-  const c=Z.create();for(const t of ['','   ','xyzzy plugh','what is the airspeed of a laden swallow','🚀🚀']){const r=await c.ask(t);assert.equal(r.kind,'fallback',JSON.stringify(t));assert.ok(Z.FALLBACKS.includes(r.text));}
-  for(const f of Z.FALLBACKS)assert.ok(!/I understand|as an AI|language model|I am an AI/i.test(f));
+test('he sees the player across the hall but not from outside it or from behind a pillar',()=>{
+ assert.equal(T.seesMonk(0,10),true);assert.equal(T.seesMonk(-11,8),true);assert.equal(T.seesMonk(0,-10),false,'outside the hall');assert.equal(T.seesMonk(11,0),false,'behind a pillar');
 });
-test('choosing a quote from the list says exactly that quote',()=>{
-  const c=Z.create(),q=Z.QUOTES[5],r=c.choose(q.id);assert.equal(r.text,q.text);assert.equal(r.kind,'chosen');assert.equal(c.choose('nope'),null);
+test('the placeholder chat is gone: no keyword matching, no typed panel, no provider hook',()=>{
+ const src=fs.readFileSync(R('void-runner/zen-chat.js'),'utf8'),wire=fs.readFileSync(R('void-runner/temple-integration.js'),'utf8');
+ for(const gone of ['QUOTES','TOPICS','registerProvider','FALLBACKS'])assert.ok(!src.includes(gone),gone);assert.ok(!/zen-chat'|#zen-log|<input/.test(wire),'no typed chat panel');
+ assert.ok(wire.includes('talkChoice')&&wire.includes('menu:true'),'the ordinary conversation window and its choice list');
 });
-test('it does not pretend to be an AI: the label says so and no reply claims otherwise',async()=>{
-  assert.match(Z.LABEL,/NOT AN AI/);const c=Z.create();for(const t of ['are you an AI','are you a person','do you think','who are you','are you alive']){const r=await c.ask(t);assert.ok(!/I am an AI|as a language model|I was trained/i.test(r.text),r.text);assert.equal(r.provider,'local');}
-  for(const q of Z.QUOTES)assert.ok(!/I am an AI|language model|trained on/i.test(q.text),q.id);
-});
-test('everything is local: no network, storage or credential code in the module',()=>{
-  const code=src.replace(/\/\*[\s\S]*?\*\//g,'').replace(/(^|[^:'"])\/\/.*$/gm,'$1');for(const bad of ['fetch(','XMLHttpRequest','WebSocket','sendBeacon','localStorage','sessionStorage','api_key','apiKey','Authorization','process.env','require('])assert.ok(!code.includes(bad),'no '+bad);
-});
-test('a future API provider can be registered but is OFF until switched on, and a failing one falls back',async()=>{
-  const c=Z.create();let called=0;assert.throws(()=>c.registerProvider({id:'x'}));assert.throws(()=>c.registerProvider(null));
-  c.registerProvider({id:'future-api',respond:async()=>{called++;return {text:'from the provider'};}});assert.equal(c.providerId,'future-api');assert.equal(c.providerOn,false);
-  assert.notEqual((await c.ask('hello')).text,'from the provider');assert.equal(called,0,'registered but never called by default');
-  assert.equal(c.enableProvider(true),true);const r=await c.ask('hello');assert.equal(r.text,'from the provider');assert.equal(r.provider,'future-api');assert.equal(called,1);
-  const bad=Z.create();bad.registerProvider({id:'broken',respond:async()=>{throw new Error('offline');}});bad.enableProvider(true);const f=await bad.ask('I am afraid');assert.equal(f.provider,'local','falls back to the local answer');assert.equal(f.kind,'quote');
-  assert.equal(Z.create().enableProvider(true),false,'cannot be enabled without a provider');
+test('his live voice effect: a named, tunable "monk" preset (the owner: more digital), applied only to him',()=>{
+ const V=require(R('void-runner/voice-clips.js')),M=V.PRESETS.monk;assert.ok(M&&V.PRESETS.android);
+ assert.equal(M.strength,V.ZEN_STRENGTH);assert.equal(M.highpassHz,90);assert.equal(M.crushBits,10);assert.equal(M.crushMix,.25);assert.equal(M.flangerMs,2);assert.equal(M.flangerDepthMs,1.5);assert.equal(M.flangerFeedback,.2);assert.equal(M.flangerHz,.25);assert.equal(M.echoMs,18);assert.equal(M.echoDecay,.18);
+ assert.ok(M.crushMix+M.echoDecay>V.PRESETS.android.combMix+V.PRESETS.android.chorusMix,'more digital than Iris\'s faint android colour');
+ const src=fs.readFileSync(R('void-runner/voice-clips.js'),'utf8');assert.match(src,/name==='monk'\?monk\(/);
 });

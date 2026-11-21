@@ -1,12 +1,12 @@
 # Playthrough fixes 1 (16 Nov 2026)
 
-Build `2026-11-16-fixes-1`, branch `claude/playthrough-fixes-1`. David played the live site (build `2026-11-16-quarters-1`) and sent five pictures and these notes, word for word:
+Build `2026-11-16-fixes-1`, branch `claude/playthrough-fixes-1`. The owner played the live site (build `2026-11-16-quarters-1`) and sent five pictures and these notes, word for word:
 
 > Remove these button from the Sleeping Pod now that there's an Exit the Pod button above the door. Move the music and lighting controls to the right side of the sleeping pod, not the back. update the keymap with any keys that have been added, like the camera. add a mouse controls map to this. remove the top two radios because they stick out the top. the east gate checkpoint doesn't have a pedestrian vestibule. Much of NeoChinaTown has gaps in the buildings.
 
 and later: "I couldn't get to Milked. Couldn't figure out how to call a taxi."
 
-David authorised changing the Sleeping Pod for the first two. The music player's function, its playlist and its songs were not touched.
+The owner authorised changing the Sleeping Pod for the first two. The music player's function, its playlist and its songs were not touched.
 
 ## 1. Sleeping Pod: the strip's buttons are gone
 
@@ -85,7 +85,7 @@ What there is now:
 
 ## 6. "Much of NeoChinaTown has gaps in the buildings"
 
-Done the way David set out: a repeatable check, one gap first, shown to fail before and pass after, then everywhere. Full record: [`NCZ_GAP_CHECK.md`](NCZ_GAP_CHECK.md).
+Done the way the owner set out: a repeatable check, one gap first, shown to fail before and pass after, then everywhere. Full record: [`NCZ_GAP_CHECK.md`](NCZ_GAP_CHECK.md).
 
 - **What it was.** When the city was cut into quarters, the body of every building that faces a street was thrown away by mistake (it was judged by the rule for street furniture, not the rule for buildings). Roofs, windows, signs and the 3 m shopfront panels were kept. So above the shopfronts, and through a 1.5 m opening every 7 m, the far city showed through. It was the same on the live site and here: none of these blocks uses a purchased model.
 - **The check** (`tests/ncz-gaps-browser.cjs`): before, 1,819 of 5,880 rays went through an expected wall in Old Town and 1,763 of 2,958 on the Avenue. After: 0 of 14,568 and 0 of 7,386 (on a finer grid).

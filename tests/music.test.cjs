@@ -70,11 +70,11 @@ test('every area of the soundtrack has a recording on disk, and so does every ne
   const fs=require('node:fs'),path=require('node:path'),S=require('../void-runner/music-score.js'),root=path.join(__dirname,'..');
   const areas=['theme','neochinatown','alley','district-hall','district-entry','district-store','district-vr','district-arcade','district-bar','nightclub','corporate','temple','milked','space'];
   for(const id of areas){assert.ok(S.styles[id],id+' is a style');assert.ok(S.files[id],id+' has a recording');}
-  // David, 15 Nov 2026: the hallway's music plays throughout the District at one level; only the arcade keeps its own.
+  // The owner, 15 Nov 2026: the hallway's music plays throughout the District at one level; only the arcade keeps its own.
   const hall=['district-hall','district-entry','district-store','district-vr','district-bar','district-rest'];for(const id of hall){assert.equal(S.files[id],S.files['district-hall'],id+' plays the hallway recording');assert.equal(S.styles[id].gain,S.styles['district-hall'].gain,id+' at the hallway level');}
   assert.notEqual(S.files['district-arcade'],S.files['district-hall'],'the arcade keeps its own music');
   assert.equal(new Set(areas.filter(id=>!hall.includes(id)||id==='district-hall').map(id=>S.files[id])).size,areas.length-4,'every other area has its own track');
-  for(const [id,f] of Object.entries(S.files)){assert.ok(S.styles[id],id);const st=fs.statSync(path.join(root,f));assert.ok(st.size>200000&&st.size<1500000,f+' is a compressed loop of sensible size');}
+  for(const [id,f] of Object.entries(S.files)){assert.ok(S.styles[id],id);const st=fs.statSync(path.join(root,f));assert.ok(st.size>200000&&st.size<(S.seamless[id]?3000000:1500000),f+' is a compressed loop of sensible size');}
   for(const [id,list] of Object.entries(D.neighbours)){assert.ok(S.styles[id],id);for(const n of list)assert.ok(S.files[n],id+' -> '+n);}
   assert.equal(S.files['district-terrace'],S.files['district-hall'],'the terrace hears the hall through the wall');
 });
@@ -83,4 +83,17 @@ test('dialogue ducks the music without stopping it',()=>{
 });
 test('the VOID//RUNNER motif and harmony resolve to real notes in every style',()=>{
   for(const s of Object.values(S.styles)){const notes=S.motif.map(i=>S.midi(s,i));assert(notes.every(n=>n>=24&&n<=96));assert.equal(S.triad(s,S.chord(s,0)).length,3);}
+});
+test('the Temple plays the owner\'s commissioned chant: looped seamlessly, loaded only there, ducked while Zen Zephyr talks',()=>{
+  const fs=require('node:fs'),path=require('node:path'),S=require('../void-runner/music-score.js'),root=path.join(__dirname,'..');
+  assert.equal(S.files.temple,'void-runner/assets/audio/score/temple-chant.ogg');assert.ok(fs.statSync(path.join(root,S.files.temple)).size>2000000,'the full 288 s recording');
+  assert.ok(!fs.existsSync(path.join(root,'void-runner/assets/audio/score/temple.ogg')),'the old temple loop is gone');assert.ok(!Object.values(S.files).includes('void-runner/assets/audio/score/temple.ogg'));
+  assert.deepEqual(Object.keys(S.seamless),['temple']);assert.ok(S.seamless.temple.fadeIn>=2&&S.seamless.temple.fadeIn<=3);
+  for(const [id,list] of Object.entries(D.neighbours))if(id!=='temple')assert.ok(!list.includes('temple'),id+' does not fetch the Temple\'s music ahead');
+  const e=fs.readFileSync(path.join(root,'void-runner/music-engine.js'),'utf8');assert.match(e,/src\.loop=true/);assert.match(e,/g\.connect\(bus\)/,'on the music bus (volume, mute, crossfade, duck)');assert.match(e,/inst\.audio\.src=null/,'released when it has faded out');
+  const at=(extra)=>D.step(D.create(),{...walk('earth',0,0),place:'temple',...extra},.1).duck;
+  assert.equal(at({}),0);assert.equal(at({conversation:true}),D.config.templeTalkDuck);assert.equal(at({dialogue:true}),D.config.templeTalkDuck);
+  assert.ok(1-D.config.templeTalkDuck>=.35&&1-D.config.templeTalkDuck<=.4,'to about 35-40%');
+  assert.equal(D.step(D.create(),{...walk('earth',0,0),conversation:true},.1).duck,0,'elsewhere an open walking conversation does not change the mix');
+  assert.match(fs.readFileSync(path.join(root,'void-runner/music-integration.js'),'utf8'),/conversation:onFoot&&!!globalThis\.VoidConversationUI\?\.isOpen/);
 });

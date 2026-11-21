@@ -7,17 +7,17 @@ const ids=l=>l.map(i=>i.id),at=item=>N.zone({x:item.position[0],z:item.position[
 const ENTRANCE_SOLIDS=['district-door','district-front-east','district-front-west','district-inner-door','vestibule-east','vestibule-west'];
 
 test('the default layout is still the whole combined layout, unchanged',()=>{
- assert.equal(all.solids.length,85+61,'85 original solids (the District\'s 82 and the shop\'s stock-cage partition, plus two city blocks (30 became 32 on 16 Nov 2026: Far South\'s street replaced the Main Street South and Container Settlement placeholders, and Milked\'s old side street and alley closed, and The Outskirts\' ground opened, so the blocks are cut differently)) + Milked\'s 61 (walls, furniture, its five doors, and the city blocks that its footprint, side street and service alley open)');assert.equal(all.interactions.length,26+1,'26 original interactions + Milked\'s check-in reader (the rest are inside, in its own environment)');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,146);
+ assert.equal(all.solids.filter(s=>!/^back-/.test(s.id)).length,85+61+52,'(20 Nov 2026: +52 city blocks, cut round the back alleys; their furniture is counted below) '+'85 original solids (the District\'s 82 and the shop\'s stock-cage partition, plus two city blocks (30 became 32 on 16 Nov 2026: Far South\'s street replaced the Main Street South and Container Settlement placeholders, and Milked\'s old side street and alley closed, and The Outskirts\' ground opened, so the blocks are cut differently)) + Milked\'s 61 (walls, furniture, its five doors, and the city blocks that its footprint, side street and service alley open)');assert.equal(all.interactions.length,27+1,'27 original interactions (Admin’s ordnance counter added 19 Nov 2026) + Milked\'s check-in reader (the rest are inside, in its own environment)');assert.equal(all.area,undefined);assert.equal(all.name,'NEOCHINATOWN / TESSALY');assert.equal(N.layout('all').solids.length,all.solids.length);
 });
 test('the street environment is the outdoors plus the entrance, and nothing of the District behind the inner door',()=>{
- assert.equal(street.area,'street');assert.equal(street.solids.length,37+61);
+ assert.equal(street.area,'street');assert.equal(street.solids.filter(s=>!/^back-/.test(s.id)).length,37+61+52);assert.equal(street.solids.filter(s=>/^back-/.test(s.id)).length,require('../void-runner/ncz-backalleys.js').solids().length,'the back alleys\' furniture (ncz-backalleys.js) is solid in the street');
  assert.deepEqual(ids(street.interactions).filter(i=>!/^milked-/.test(i)).sort(),['board','terminal']);
  for(const s of street.solids)if(at(s)!=='street')assert(ENTRANCE_SOLIDS.includes(s.id),s.id+' is part of the entrance');
  for(const id of ENTRANCE_SOLIDS)assert(ids(street.solids).includes(id),id+' is in the street');
  assert.deepEqual(street.spawn,all.spawn);assert.equal(street.yaw,all.yaw);assert.equal(street.name,all.name);
 });
 test('the interior environment is exactly the District and terrace part of the original layout',()=>{
- assert.equal(interior.area,'interior');assert.equal(interior.solids.length,54);assert.equal(interior.interactions.length,24);
+ assert.equal(interior.area,'interior');assert.equal(interior.solids.length,54);assert.equal(interior.interactions.length,25);   // +1: Admin's ordnance counter (19 Nov 2026)
  assert.equal(interior.interactions.filter(i=>i.action==='district-pod').length,10,'every pod has a hatch interaction');
  const original=all.solids.filter(s=>['district','terrace'].includes(at(s)));
  assert.deepEqual(interior.solids,original,'solids are identical, in the same order');
@@ -60,7 +60,9 @@ test('each environment loads only its own assets',()=>{
  // 'entry:' models are the security vestibule's pieces: the vestibule is built in both areas, so both load them.
  const entry=k=>k.startsWith('entry:');assert(s.every(k=>k.startsWith('ncz:')||entry(k))&&s.length>0);assert(i.every(k=>!k.startsWith('ncz:'))&&i.length>0);assert.deepEqual(s.filter(entry),i.filter(entry));assert(s.filter(entry).length>=6);assert.deepEqual([...s,...i.filter(k=>!entry(k))].sort(),a.sort());
  const cs=Object.keys(Crowd.models('neochinatown','high','street')),ci=Object.keys(Crowd.models('neochinatown','high','interior')),ca=Object.keys(Crowd.models('neochinatown','high'));
- assert.deepEqual([...cs,...ci].sort(),[...new Set(ca)].sort());assert(cs.includes('crowd:ncz-neon')&&!cs.includes('crowd:district-resident'));assert(ci.includes('crowd:district-resident')&&!ci.includes('crowd:ncz-neon'));
+ // the street people (NPC upgrade, 18 Nov 2026) may stand in both areas (the District's crew are street figures too): the two lists together are the whole city's, and each area has its own
+ assert.deepEqual([...new Set([...cs,...ci])].sort(),[...new Set(ca)].sort());assert(cs.includes('crowd:npc-casual-f')&&cs.includes('crowd:npc-monk-elder'));assert(Crowd.casts.district.every(l=>ci.includes('crowd:'+l))&&!ci.includes('crowd:npc-monk-elder'));
+ assert(!cs.includes('crowd:ncz-neon')&&!ci.includes('crowd:district-resident'),'the old anonymous looks are not loaded for NeoChinatown any more');
 });
 test('in the street area the inner door can never open, whatever the flags',()=>{
  const src=fs.readFileSync('void-runner/neochinatown.js','utf8');assert(src.includes("const isOpenable=d=>!(area==='street'&&d.id==='district-inner-door')&&!(area==='interior'&&d.id==='district-door');"),'and in the interior the outer door: the two are never open together');
@@ -74,7 +76,7 @@ test('the build is split into gated sections, the entrance is built in every are
  assert(/else if\(!wantStreet\)seed=SEAMS\[0\]/.test(src)&&/if\(!wantInterior\)\{seed=SEAMS\[1\]/.test(src),'each separate build resumes the combined build\'s random sequence');
 });
 test('the room loader passes the area to the build and to the asset lists',()=>{
- const r=fs.readFileSync('void-runner/babylon-renderer.js','utf8');assert(r.includes("area:def.area||'all'"));assert(r.includes("VoidNeoChinatown.modelsFor(def.area||'all')"));assert(r.includes("models('neochinatown',quality,def.area||'all')"));
+ const r=fs.readFileSync('void-runner/babylon-renderer.js','utf8');assert(r.includes("area:def.area||'all'"));assert(r.includes("VoidNeoChinatown.modelsFor(def.area||'all')"));assert(r.includes("models('neochinatown',quality,def.area||'all',def.quarter||null)"));
 });
 test('the security entrance has no interaction prompt and scans automatically',()=>{
  assert(!all.interactions.some(i=>i.id==='district-scan'||i.id==='tdd'));

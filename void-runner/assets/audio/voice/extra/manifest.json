@@ -1,6 +1,6 @@
 {
  "version": 1,
- "engine": "ElevenLabs eleven_v4 (rendered once on David's Starter plan, 15 Nov 2026; stored here so nothing is generated at play time)",
+ "engine": "ElevenLabs eleven_v4 (rendered once on the owner's Starter plan; stored here so nothing is generated at play time)",
  "format": "ogg/vorbis 24 kHz mono",
  "note": "Lines voiced outside the Kokoro pipeline. voice-clips.js merges these with manifest.json; a speaker's live effect (Iris: android) still applies.",
  "lines": {
@@ -8,10 +8,10 @@
    "speaker": "admin",
    "text": "Scanning in here is rude. Open WarFlying on your device and deactivate it.",
    "file": "extra/admin-scanning-rude.ogg",
-   "voice": "Bill Adams - Wise and Motivational American Storyteller",
-   "voiceId": "V2bPluzT7MuirpucVAKH",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
    "source": "district-people.js",
-   "note": "Re-voiced 15 Nov 2026: David asked for Admin to sound older."
+   "note": "Re-voiced 17 Nov 2026 in the voice the owner chose for Admin (was Bill Adams)."
   },
   "iris-scanning-rude": {
    "speaker": "iris",
@@ -20,6 +20,1826 @@
    "voice": "Clarice - Natural & Calm British Voice",
    "voiceId": "MWUpoNpAY0rOQGP294mF",
    "source": "district-people.js"
+  },
+  "admin-m001-call": {
+   "speaker": "admin",
+   "text": "You're awake. Good.\nWhen you're ready, come find me. We need to talk.",
+   "file": "extra/admin-m001-call.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (001 Awakening, Comms call)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-1": {
+   "speaker": "admin",
+   "text": "I heard you're looking for work.",
+   "file": "extra/admin-m002-offer-1.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 Eyes on the Street, offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-2": {
+   "speaker": "admin",
+   "text": "Before I trust you with anything important, I need you to do a little reconnaissance.",
+   "file": "extra/admin-m002-offer-2.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-3": {
+   "speaker": "admin",
+   "text": "Head outside. Across the street, you'll find a nightclub called NULL. There's someone hanging out in there I need you to take their picture so I can scrape it for more data",
+   "file": "extra/admin-m002-offer-3.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-offer-4": {
+   "speaker": "admin",
+   "text": "I'll mark their location",
+   "file": "extra/admin-m002-offer-4.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 offer)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-call": {
+   "speaker": "admin",
+   "text": "Your V1 has a camera. Press L to open your device, then select the Camera app.\nPoint it at the target. Your device should identify them automatically.\nLeft click will take a picture\nYou can also zoom with the camera by using the mouse wheel\nOnce you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.\nNothing complicated. Just keep your eyes open.",
+   "file": "extra/admin-m002-call.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 Comms call on entering NULL)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner. Re-recorded 17 Nov 2026 with the zoom line (402 credits)."
+  },
+  "admin-m002-received": {
+   "speaker": "admin",
+   "text": "Received. That's exactly what I needed. Come back when you're ready.",
+   "file": "extra/admin-m002-received.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 reply)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-wrong": {
+   "speaker": "admin",
+   "text": "That's not the person I'm looking for. Check the description and try again.",
+   "file": "extra/admin-m002-wrong.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 reply)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m002-not-bad": {
+   "speaker": "admin",
+   "text": "Not bad. You can follow instructions and keep a low profile. I might have more work for you.",
+   "file": "extra/admin-m002-not-bad.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (002 return)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-1": {
+   "speaker": "admin",
+   "text": "I did some digging. Halden Reyes has ties to an arms dealer who works closely with The Function.",
+   "file": "extra/admin-m003-brief-1.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-2": {
+   "speaker": "admin",
+   "text": "I know an intel broker named Fish. She's a close friend of mine and works over at Milked. She might be able to tell us more.",
+   "file": "extra/admin-m003-brief-2.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-3": {
+   "speaker": "admin",
+   "text": "Head over there and let the receptionist, Eva, know you're there to see Fish.",
+   "file": "extra/admin-m003-brief-3.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "admin-m003-brief-4": {
+   "speaker": "admin",
+   "text": "And tell Eva I said hi.",
+   "file": "extra/admin-m003-brief-4.ogg",
+   "voice": "Donovan (ElevenLabs)",
+   "voiceId": "DMyrgzQFny3JI1Y1paM5",
+   "source": "main-story.js (003 Corporate Connections, Admin's briefing)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 in the voice the owner chose for Admin; approved by the owner."
+  },
+  "eva-m003-hi": {
+   "speaker": "milked-eva",
+   "text": "Oh, Admin! Tell him I said hi, too.",
+   "file": "extra/eva-m003-hi.ogg",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4; approved by the owner."
+  },
+  "eva-m003-staff-door": {
+   "speaker": "milked-eva",
+   "text": "Fish is through the staff-only door. You'll find her in her office.",
+   "file": "extra/eva-m003-staff-door.ogg",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4; approved by the owner."
+  },
+  "fish-m003-zh": {
+   "speaker": "milked-fish",
+   "text": "给我一点时间调查一下。如果有什么消息，我会给你打电话。",
+   "file": "extra/fish-m003-zh.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (003 Corporate Connections, Fish in her office; Mandarin)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4; approved by the owner. Its English translation (`with`) plays over it with the settings in `translations` for this speaker (voice-clips.js).",
+   "with": {
+    "id": "fish-m003-en"
+   }
+  },
+  "fish-m003-en": {
+   "speaker": "milked-fish",
+   "text": "Give me some time to work on it. I'll call you if anything comes up.",
+   "file": "extra/fish-m003-en.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (003 Corporate Connections, the V1's English translation of Fish's line, in her own voice)",
+   "note": "Recorded 17 Nov 2026 with ElevenLabs eleven_v4 (about 68 credits); approved by the owner, who chose Fish's own voice for the translation. Played over her Mandarin line with the settings in translations['milked-fish']."
+  },
+  "eva-m003-welcome-1": {
+   "speaker": "milked-eva",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "The owner's words; recorded 17 Nov 2026 with ElevenLabs eleven_v4, one take.",
+   "text": "Hey there! Welcome to Milked. First time here?",
+   "file": "extra/eva-m003-welcome-1.ogg"
+  },
+  "eva-m003-welcome-2": {
+   "speaker": "milked-eva",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "The owner's words; recorded 17 Nov 2026 with ElevenLabs eleven_v4, one take.",
+   "text": "We're a little different from your average entertainment venue. We're both an adult streaming platform and a sperm bank. Our performers earn credits based on the samples collected from viewers tuning in from home.",
+   "file": "extra/eva-m003-welcome-2.ogg"
+  },
+  "eva-m003-welcome-3": {
+   "speaker": "milked-eva",
+   "voice": "Eva (ElevenLabs, the owner's choice)",
+   "voiceId": "gJx1vCzNCD1EQHT212Ls",
+   "source": "main-story.js (003 Corporate Connections, Eva at reception)",
+   "note": "The owner's words; recorded 17 Nov 2026 with ElevenLabs eleven_v4, one take.",
+   "text": "So, what brings you in today? Business or pleasure?",
+   "file": "extra/eva-m003-welcome-3.ogg"
+  },
+  "tea-associate-1-m004-1": {
+   "speaker": "tea-associate-1",
+   "text": "Reyes is getting desperate. He's running out of options.",
+   "file": "extra/tea-associate-1-m004-1.ogg",
+   "voice": "Douglas - Smooth, Refined & Trusted (ElevenLabs)",
+   "voiceId": "9dOAtmZTvILoncEvsUKb",
+   "source": "main-story.js (004 A Promising Investment, Associate 1 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, confident, a little smug] (eleven_v4 audio tag)"
+  },
+  "tea-associate-1-m004-2": {
+   "speaker": "tea-associate-1",
+   "text": "Fifty-one. He's not happy about it, but he doesn't have much choice.",
+   "file": "extra/tea-associate-1-m004-2.ogg",
+   "voice": "Douglas - Smooth, Refined & Trusted (ElevenLabs)",
+   "voiceId": "9dOAtmZTvILoncEvsUKb",
+   "source": "main-story.js (004 A Promising Investment, Associate 1 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, confident, a little smug] (eleven_v4 audio tag)"
+  },
+  "tea-associate-1-m004-3": {
+   "speaker": "tea-associate-1",
+   "text": "That comes later. The preliminary agreement has already been sent to his personal computer.",
+   "file": "extra/tea-associate-1-m004-3.ogg",
+   "voice": "Douglas - Smooth, Refined & Trusted (ElevenLabs)",
+   "voiceId": "9dOAtmZTvILoncEvsUKb",
+   "source": "main-story.js (004 A Promising Investment, Associate 1 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, confident, a little smug] (eleven_v4 audio tag)"
+  },
+  "tea-associate-2-m004-1": {
+   "speaker": "tea-associate-2",
+   "text": "Has he agreed to the percentage?",
+   "file": "extra/tea-associate-2-m004-1.ogg",
+   "voice": "Harper Lawson (ElevenLabs)",
+   "voiceId": "c1uwEpPUcC16tq1udqxk",
+   "source": "main-story.js (004 A Promising Investment, Associate 2 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, businesslike] (eleven_v4 audio tag)"
+  },
+  "tea-associate-2-m004-2": {
+   "speaker": "tea-associate-2",
+   "text": "And the admission requirement?",
+   "file": "extra/tea-associate-2-m004-2.ogg",
+   "voice": "Harper Lawson (ElevenLabs)",
+   "voiceId": "c1uwEpPUcC16tq1udqxk",
+   "source": "main-story.js (004 A Promising Investment, Associate 2 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, businesslike] (eleven_v4 audio tag)"
+  },
+  "tea-associate-2-m004-3": {
+   "speaker": "tea-associate-2",
+   "text": "The board wants this completed before the end of the week.",
+   "file": "extra/tea-associate-2-m004-3.ogg",
+   "voice": "Harper Lawson (ElevenLabs)",
+   "voiceId": "c1uwEpPUcC16tq1udqxk",
+   "source": "main-story.js (004 A Promising Investment, Associate 2 overheard at the underground tea house)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, businesslike] (eleven_v4 audio tag)"
+  },
+  "juno-m007-1": {
+   "speaker": "juno-vex",
+   "text": "Is everything prepared for Reyes?",
+   "file": "extra/juno-m007-1.ogg",
+   "voice": "Everley Rhodes (ElevenLabs)",
+   "voiceId": "Xm5W2LBUW4LWizr18Fbd",
+   "source": "main-story.js (007 The House Always Wins, Juno Vex overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[low, cool, in control] (eleven_v4 audio tag)"
+  },
+  "juno-m007-2": {
+   "speaker": "juno-vex",
+   "text": "Make sure the recording system is operational. We don't want a repeat of the last induction.",
+   "file": "extra/juno-m007-2.ogg",
+   "voice": "Everley Rhodes (ElevenLabs)",
+   "voiceId": "Xm5W2LBUW4LWizr18Fbd",
+   "source": "main-story.js (007 The House Always Wins, Juno Vex overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[low, cool, in control] (eleven_v4 audio tag)"
+  },
+  "juno-m007-3": {
+   "speaker": "juno-vex",
+   "text": "Good. Let me know when everything's ready.",
+   "file": "extra/juno-m007-3.ogg",
+   "voice": "Everley Rhodes (ElevenLabs)",
+   "voiceId": "Xm5W2LBUW4LWizr18Fbd",
+   "source": "main-story.js (007 The House Always Wins, Juno Vex overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[low, cool, in control] (eleven_v4 audio tag)"
+  },
+  "blackrock-associate-m007-1": {
+   "speaker": "blackrock-associate",
+   "text": "The chamber is ready. All six members have confirmed.",
+   "file": "extra/blackrock-associate-m007-1.ogg",
+   "voice": "Jim - confident and informative corporate narration (ElevenLabs)",
+   "voiceId": "JjqNMa6BEYmyQYRCdHCa",
+   "source": "main-story.js (007 The House Always Wins, the Blackrock associate overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, matter-of-fact] (eleven_v4 audio tag)"
+  },
+  "blackrock-associate-m007-2": {
+   "speaker": "blackrock-associate",
+   "text": "It's been moved onto a private network. The recording equipment is connected directly to the corporate facility.",
+   "file": "extra/blackrock-associate-m007-2.ogg",
+   "voice": "Jim - confident and informative corporate narration (ElevenLabs)",
+   "voiceId": "JjqNMa6BEYmyQYRCdHCa",
+   "source": "main-story.js (007 The House Always Wins, the Blackrock associate overheard in the fighting arena)",
+   "note": "Generic placeholder voice chosen 21 Nov 2026 at the owner's request ('just make generic voices for now'); the owner may replace it. Recorded with ElevenLabs eleven_v4, one take.",
+   "delivery": "[quiet, matter-of-fact] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-1": {
+   "speaker": "initiate",
+   "text": "Yes. I am.",
+   "file": "extra/initiate-m010-1.ogg",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
+   "delivery": "[nervous, solemn, trying to sound steady] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-2": {
+   "speaker": "initiate",
+   "text": "I do.",
+   "file": "extra/initiate-m010-2.ogg",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
+   "delivery": "[nervous, solemn] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-3": {
+   "speaker": "initiate",
+   "text": "Yes.",
+   "file": "extra/initiate-m010-3.ogg",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
+   "delivery": "[hesitant, quiet] (eleven_v4 audio tag)"
+  },
+  "initiate-m010-4": {
+   "speaker": "initiate",
+   "text": "Fucking dogs!?",
+   "file": "extra/initiate-m010-4.ogg",
+   "voice": "Brock (ElevenLabs, the owner's choice)",
+   "voiceId": "UXrpoYalpW5MpGiFHq3z",
+   "source": "main-story.js RITUAL (010 The Price of Admission, Halden Reyes as the initiate in the Blackrock Cult Room camera feed, cult-room.js)",
+   "note": "Halden Reyes's voice, owner-chosen 21 Nov 2026: ElevenLabs \"Brock\" (UXrpoYalpW5MpGiFHq3z), replacing the earlier generic placeholder (Darren). Recorded with ElevenLabs eleven_v4, one take; light room echo to match the chorus (aecho 0.8:0.4:50:0.08, loudnorm I=-18), ogg/vorbis 24 kHz mono.",
+   "delivery": "[shocked, horrified outburst] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-1": {
+   "speaker": "robed-all",
+   "text": "Are you ready for your Awakening, brother?",
+   "file": "extra/robed-all-m010-1.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-2": {
+   "speaker": "robed-all",
+   "text": "Do you willingly surrender fifty-one percent of your enterprise in exchange for the prosperity, protection and influence of Blackrock?",
+   "file": "extra/robed-all-m010-2.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-3": {
+   "speaker": "robed-all",
+   "text": "We offer you wealth in exchange for loyalty. Power in exchange for obedience. Brotherhood in exchange for sacrifice.",
+   "file": "extra/robed-all-m010-3.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-4": {
+   "speaker": "robed-all",
+   "text": "To become one of us, you must surrender more than your enterprise. You must surrender your pride.",
+   "file": "extra/robed-all-m010-4.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-5": {
+   "speaker": "robed-all",
+   "text": "Before you lies the vessel of sacrifice. Within it awaits your humiliation.",
+   "file": "extra/robed-all-m010-5.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-6": {
+   "speaker": "robed-all",
+   "text": "Do you accept that your humiliation must become public knowledge, and that you shall bear its consequences without denial or regret?",
+   "file": "extra/robed-all-m010-6.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-7": {
+   "speaker": "robed-all",
+   "text": "Good. Accept your humiliation, brother.",
+   "file": "extra/robed-all-m010-7.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js)",
+   "note": "Clear-lead chorus mix (owner's pick 'F', 21 Nov 2026): member 1 leads at full volume, members 2-3 tight behind at 0.35, members 4-6 straggle at 0.2 (delays 150/100 ms, member 5 slightly fast), light room echo (aecho 0.8:0.4:50:0.08), loudnorm I=-18. Members 1-3 time-stretched to their median length.",
+   "delivery": "[slow, solemn, ceremonial] (eleven_v4 audio tag)"
+  },
+  "robed-all-m010-8": {
+   "speaker": "robed-all",
+   "text": "[laugh]",
+   "file": "extra/robed-all-m010-8.ogg",
+   "voice": "Blackrock Members 1–6 (chorus mix)",
+   "voiceIds": [
+    "SO9JediIwzugrikv7xw0",
+    "VsQmyFHffusQDewmHB5v",
+    "oXuGG4PpSq1U1YAFxeEO",
+    "wqcUglz7RaiukTjAKIvu",
+    "hqsADTrqjrr0sI9LFcYV",
+    "ctbfMo4IDq5ExcIEim2K"
+   ],
+   "source": "main-story.js RITUAL (010 The Price of Admission, the six robed Blackrock members speaking together, speaker robed-all, in the Blackrock Cult Room camera feed BR-04, cult-room.js) — the laugh beat (empty words, anim 'laugh'): cult-room.js voiceText keys an empty line by its animation, '[laugh]'",
+   "note": "Clear-lead chorus mix family; the laugh is the owner's pick 'H' (21 Nov 2026, \"less like a chorus\"): only four of the six (members 1, 3, 5, 6) laugh, starting 0 / 0.35 / 0.9 / 1.4 s apart at falling volumes, lighter room echo (aecho 0.8:0.4:50:0.06), loudnorm I=-18. Members laugh with no time-stretch.",
+   "delivery": "[brief, restrained, mocking laughter] (eleven_v4 audio tag)"
+  },
+  "fish-m004-zh-1": {
+   "speaker": "milked-fish",
+   "text": "嘿。还记得 Admin 问起过的那个人吗？Halden Reyes？",
+   "file": "extra/fish-m004-zh-1.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 1; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-1"
+   }
+  },
+  "fish-m004-zh-2": {
+   "speaker": "milked-fish",
+   "text": "我发现了一些有意思的东西。他是一家叫 Veyra Dynamics 的公司的创始人。他们在开发很厉害的运输技术，但是快没钱了。",
+   "file": "extra/fish-m004-zh-2.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 2; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-2"
+   }
+  },
+  "fish-m004-zh-3": {
+   "speaker": "milked-fish",
+   "text": "Juno Vex 一直在安排他和一群私人投资者见面。",
+   "file": "extra/fish-m004-zh-3.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 3; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-3"
+   }
+  },
+  "fish-m004-zh-4": {
+   "speaker": "milked-fish",
+   "text": "奇怪的是，我找不到任何公开记录能查出这些投资者是谁。",
+   "file": "extra/fish-m004-zh-4.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 4; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-4"
+   }
+  },
+  "fish-m004-zh-5": {
+   "speaker": "milked-fish",
+   "text": "我追踪到一些通讯，来自 Juno 的两个手下。他们正在一家地下茶馆碰头。",
+   "file": "extra/fish-m004-zh-5.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 5; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-5"
+   }
+  },
+  "fish-m004-zh-6": {
+   "speaker": "milked-fish",
+   "text": "我已经把他们的位置发给你了。",
+   "file": "extra/fish-m004-zh-6.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 6; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-6"
+   }
+  },
+  "fish-m004-zh-7": {
+   "speaker": "milked-fish",
+   "text": "看看能不能查出他们在替谁做事。还有，尽量别引起别人的注意。",
+   "file": "extra/fish-m004-zh-7.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's Comms call line 7; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-7"
+   }
+  },
+  "fish-m004-zh-8": {
+   "speaker": "milked-fish",
+   "text": "百分之五十一？这可不是普通的投资。有人想控制他的公司。",
+   "file": "extra/fish-m004-zh-8.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's reply call after the report, line 1; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-8"
+   }
+  },
+  "fish-m004-zh-9": {
+   "speaker": "milked-fish",
+   "text": "我查到了他的住址。现在就发给你。",
+   "file": "extra/fish-m004-zh-9.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's reply call after the report, line 2; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-9"
+   }
+  },
+  "fish-m004-zh-10": {
+   "speaker": "milked-fish",
+   "text": "我也已经把所有东西转给 Admin 和 Iris 了。",
+   "file": "extra/fish-m004-zh-10.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, Fish's reply call after the report, line 3; Mandarin)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request ('can you make them? you have Fish's voice'). Her Mandarin version of the owner's English line; the English (`with`) plays over it with the settings in translations['milked-fish']. Her call shows the English line as the owner wrote it: voice-clips.js plays this recording for it.",
+   "with": {
+    "id": "fish-m004-en-10"
+   }
+  },
+  "fish-m004-en-1": {
+   "speaker": "milked-fish",
+   "text": "Hey. Remember that man Admin asked you about? Halden Reyes?",
+   "file": "extra/fish-m004-en-1.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 1, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-1) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-2": {
+   "speaker": "milked-fish",
+   "text": "I found something interesting. He's the founder of a company called Veyra Dynamics. They're developing some impressive transportation technology, but they're running out of money.",
+   "file": "extra/fish-m004-en-2.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 2, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-2) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-3": {
+   "speaker": "milked-fish",
+   "text": "Juno Vex has been arranging meetings between him and a group of private investors.",
+   "file": "extra/fish-m004-en-3.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 3, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-3) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-4": {
+   "speaker": "milked-fish",
+   "text": "What's strange is that I can't find any public records identifying these investors.",
+   "file": "extra/fish-m004-en-4.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 4, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-4) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-5": {
+   "speaker": "milked-fish",
+   "text": "I traced some communications to two of Juno's associates. They're meeting at an underground tea house.",
+   "file": "extra/fish-m004-en-5.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 5, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-5) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-6": {
+   "speaker": "milked-fish",
+   "text": "I've sent you their location.",
+   "file": "extra/fish-m004-en-6.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 6, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-6) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-7": {
+   "speaker": "milked-fish",
+   "text": "See if you can find out who they're working for. And try not to make yourself noticed.",
+   "file": "extra/fish-m004-en-7.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 7, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-7) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-8": {
+   "speaker": "milked-fish",
+   "text": "Fifty-one percent? That's not an ordinary investment. Someone wants control of his company.",
+   "file": "extra/fish-m004-en-8.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 8, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-8) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-9": {
+   "speaker": "milked-fish",
+   "text": "I've managed to find his residential address. I'll send it to you now.",
+   "file": "extra/fish-m004-en-9.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 9, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-9) with the settings in translations['milked-fish']."
+  },
+  "fish-m004-en-10": {
+   "speaker": "milked-fish",
+   "text": "I've also forwarded everything to Admin and Iris.",
+   "file": "extra/fish-m004-en-10.ogg",
+   "voice": "Fish (ElevenLabs, the owner's choice)",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "source": "main-story.js (004 A Promising Investment, the V1's English translation of Fish's call line 10, in her own voice; the owner's words)",
+   "note": "Recorded 21 Nov 2026 with ElevenLabs eleven_v4 in Fish's approved voice at the owner's request. Played over her Mandarin line (fish-m004-zh-10) with the settings in translations['milked-fish']."
+  },
+  "iris-m012-congrats": {
+   "speaker": "iris",
+   "text": "Congratulations on your new ship. Admin asked me to help you get familiar with her before your first assignment.",
+   "file": "extra/iris-m012-congrats.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.congrats)"
+  },
+  "iris-m012-walk": {
+   "speaker": "iris",
+   "text": "I'll walk you through everything you need to know. Let's start with your ship's loadout.",
+   "file": "extra/iris-m012-walk.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.walk)"
+  },
+  "iris-m012-there": {
+   "speaker": "iris",
+   "text": "There she is. The Kestrel. Not the newest ship in the Tessaly System, but she's reliable.",
+   "file": "extra/iris-m012-there.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.there)"
+  },
+  "iris-m012-board": {
+   "speaker": "iris",
+   "text": "Go ahead and board her. Let's get you acquainted with the controls.",
+   "file": "extra/iris-m012-board.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.boardHer)"
+  },
+  "iris-m012-nicely": {
+   "speaker": "iris",
+   "text": "Nicely done. You've officially completed your first flight.",
+   "file": "extra/iris-m012-nicely.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.nicely)"
+  },
+  "iris-m012-rook": {
+   "speaker": "iris",
+   "text": "Admin's contact, Rook, is expecting you. Get that shipment delivered and collect your payment.",
+   "file": "extra/iris-m012-rook.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). The owner's own words (IRIS_OK.rook)"
+  },
+  "iris-m012-review": {
+   "speaker": "iris",
+   "text": "This is where you can review your ship's equipment and configuration.",
+   "file": "extra/iris-m012-review.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.review"
+  },
+  "iris-m012-slots": {
+   "speaker": "iris",
+   "text": "Each slot shows what's fitted: primary lasers, shield, drive, missiles and the upgrade bays.",
+   "file": "extra/iris-m012-slots.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.slots"
+  },
+  "iris-m012-manage": {
+   "speaker": "iris",
+   "text": "You can manage your loadout from here as you acquire additional equipment. Your default missile is set here too.",
+   "file": "extra/iris-m012-manage.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.manage"
+  },
+  "iris-m012-admin": {
+   "speaker": "iris",
+   "text": "If you're looking for something with a little more firepower, speak to Admin. He can help you with ship ordnance.",
+   "file": "extra/iris-m012-admin.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.admin"
+  },
+  "iris-m012-port": {
+   "speaker": "iris",
+   "text": "When you're ready, head to the Port. She's waiting on Pad 01.",
+   "file": "extra/iris-m012-port.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.port"
+  },
+  "iris-m012-display": {
+   "speaker": "iris",
+   "text": "You're in. Your speed, hull and shields are on the display. Keep an eye on them.",
+   "file": "extra/iris-m012-display.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.display"
+  },
+  "iris-m012-controls": {
+   "speaker": "iris",
+   "text": "Mouse to aim. W and S pitch, A and D turn, Q and R roll. Left Shift for thrust, X to brake.",
+   "file": "extra/iris-m012-controls.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.controls"
+  },
+  "iris-m012-weapons": {
+   "speaker": "iris",
+   "text": "Space fires the lasers, F a missile. You won't need either today. This run should be quiet.",
+   "file": "extra/iris-m012-weapons.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.weapons"
+  },
+  "iris-m012-nav": {
+   "speaker": "iris",
+   "text": "Navigation is on your V1. Open the Map app, select Meridian Station, then fly into its marker.",
+   "file": "extra/iris-m012-nav.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.nav"
+  },
+  "iris-m012-course": {
+   "speaker": "iris",
+   "text": "Line her up on the marker and hold her steady. The jump starts by itself.",
+   "file": "extra/iris-m012-course.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.course"
+  },
+  "iris-m012-jump": {
+   "speaker": "iris",
+   "text": "Smooth. Meridian's ahead. Docking is automatic once you arrive.",
+   "file": "extra/iris-m012-jump.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take, dry (her android effect is applied live). IRIS_NEW.jump"
+  },
+  "rook-m012-meet": {
+   "speaker": "rook",
+   "text": "You're Admin's new runner. Cargo intact?",
+   "file": "extra/rook-m012-meet.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take. ROOK_CARGO.rookMeet"
+  },
+  "rook-m012-pay": {
+   "speaker": "rook",
+   "text": "Good. Here's your fee. Come back when you want more work.",
+   "file": "extra/rook-m012-pay.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "main-story.js (012 First Cargo Delivery)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take. ROOK_CARGO.rookPay"
+  },
+  "rook-coordinates": {
+   "speaker": "rook",
+   "text": "Good run. I just sent you coordinates for places all over. Stations, planets. Your Map app already has them. Means I can send you just about anywhere.",
+   "file": "extra/rook-coordinates.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "rook-cargo-jobs.js (lines.coordinates)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take"
+  },
+  "rook-board": {
+   "speaker": "rook",
+   "text": "Got freight going all over. Take a job, the pay is on the board.",
+   "file": "extra/rook-board.ogg",
+   "voice": "Jonas (ElevenLabs)",
+   "voiceId": "wzVFxVZCBIi6KBxNhQDI",
+   "source": "rook-cargo-jobs.js (lines.board)",
+   "note": "owner-approved 21 Nov 2026; recorded with ElevenLabs eleven_v4, one take"
+  },
+  "iris-bark-hack-1": {
+   "speaker": "iris",
+   "text": "Almost there.",
+   "file": "extra/iris-bark-hack-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-hack-2": {
+   "speaker": "iris",
+   "text": "Just a little longer.",
+   "file": "extra/iris-bark-hack-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-hack-3": {
+   "speaker": "iris",
+   "text": "Steady. You're halfway through.",
+   "file": "extra/iris-bark-hack-3.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-hack-4": {
+   "speaker": "iris",
+   "text": "Keep your hand still. Nearly done.",
+   "file": "extra/iris-bark-hack-4.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (hack). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-sneak-1": {
+   "speaker": "iris",
+   "text": "Easy. Don't rush it.",
+   "file": "extra/iris-bark-sneak-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (sneak). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-sneak-2": {
+   "speaker": "iris",
+   "text": "He hasn't seen you. Let's keep it that way.",
+   "file": "extra/iris-bark-sneak-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (sneak). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-spotted-1": {
+   "speaker": "iris",
+   "text": "That happens. Try again, a little slower.",
+   "file": "extra/iris-bark-spotted-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (spotted). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-wait-1": {
+   "speaker": "iris",
+   "text": "Nothing yet. I'll tell you the moment it changes.",
+   "file": "extra/iris-bark-wait-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (wait). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-joke-1": {
+   "speaker": "iris",
+   "text": "For the record, I calculated your odds. I've decided not to share them.",
+   "file": "extra/iris-bark-joke-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (joke). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-joke-2": {
+   "speaker": "iris",
+   "text": "I'd come and help, but someone has to mind the counter.",
+   "file": "extra/iris-bark-joke-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (joke). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-joke-3": {
+   "speaker": "iris",
+   "text": "You're doing fine. Statistically, someone has done this worse.",
+   "file": "extra/iris-bark-joke-3.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (joke). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-store-1": {
+   "speaker": "iris",
+   "text": "Have you seen the new T-shirts in the store? You'd look a lot cooler doing this in one.",
+   "file": "extra/iris-bark-store-1.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (store). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "iris-bark-store-2": {
+   "speaker": "iris",
+   "text": "If you're going to break into places, you might as well look good doing it. The store has new shirts.",
+   "file": "extra/iris-bark-store-2.ogg",
+   "voice": "Kristen (ElevenLabs)",
+   "voiceId": "CvD6hF1BJzAFN428j1cO",
+   "source": "iris-ambient.js",
+   "note": "owner-approved 21 Nov 2026; Iris's ambient Comms line (store). Recorded with ElevenLabs eleven_v4, one take, sent dry: her android effect is applied live in voice-clips.js."
+  },
+  "zen-greeting": {
+   "speaker": "zen-zephyr",
+   "text": "Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?",
+   "file": "extra/zen-greeting.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-followup": {
+   "speaker": "zen-zephyr",
+   "text": "Does your mind find peace in these words, or do you seek further wisdom?",
+   "file": "extra/zen-followup.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-1": {
+   "speaker": "zen-zephyr",
+   "text": "You may replace every part of the body, yet still carry the same suffering.",
+   "file": "extra/zen-tech-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-2": {
+   "speaker": "zen-zephyr",
+   "text": "A thousand implants cannot repair an undisciplined mind.",
+   "file": "extra/zen-tech-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-3": {
+   "speaker": "zen-zephyr",
+   "text": "Upgrade your consciousness before upgrading your flesh.",
+   "file": "extra/zen-tech-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-4": {
+   "speaker": "zen-zephyr",
+   "text": "Even artificial light casts a shadow.",
+   "file": "extra/zen-tech-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-5": {
+   "speaker": "zen-zephyr",
+   "text": "The enlightened mind requires no firmware.",
+   "file": "extra/zen-tech-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-6": {
+   "speaker": "zen-zephyr",
+   "text": "A machine may calculate infinity, but a monk must learn to embrace nothing.",
+   "file": "extra/zen-tech-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-7": {
+   "speaker": "zen-zephyr",
+   "text": "Do not confuse connectivity with connection.",
+   "file": "extra/zen-tech-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-8": {
+   "speaker": "zen-zephyr",
+   "text": "The mind without awareness is merely hardware running corrupted code.",
+   "file": "extra/zen-tech-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-9": {
+   "speaker": "zen-zephyr",
+   "text": "An optical implant may reveal a thousand wavelengths, yet remain blind to truth.",
+   "file": "extra/zen-tech-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-10": {
+   "speaker": "zen-zephyr",
+   "text": "Replace your eyes with machines, but do not let machines decide what you see.",
+   "file": "extra/zen-tech-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-11": {
+   "speaker": "zen-zephyr",
+   "text": "Enlightenment is not available behind a paywall.",
+   "file": "extra/zen-tech-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-12": {
+   "speaker": "zen-zephyr",
+   "text": "The illusion of self cannot be removed with a firmware update.",
+   "file": "extra/zen-tech-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-13": {
+   "speaker": "zen-zephyr",
+   "text": "A neural implant may accelerate thought, but wisdom has no clock speed.",
+   "file": "extra/zen-tech-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-14": {
+   "speaker": "zen-zephyr",
+   "text": "Do not mistake an artificial heaven for liberation.",
+   "file": "extra/zen-tech-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-15": {
+   "speaker": "zen-zephyr",
+   "text": "The machine learns through repetition. The monk learns through letting go.",
+   "file": "extra/zen-tech-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-16": {
+   "speaker": "zen-zephyr",
+   "text": "Consciousness is not measured in processing power.",
+   "file": "extra/zen-tech-16.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-tech-17": {
+   "speaker": "zen-zephyr",
+   "text": "The path to enlightenment has no downloadable shortcut.",
+   "file": "extra/zen-tech-17.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-1": {
+   "speaker": "zen-zephyr",
+   "text": "The corporations sell immortality to those afraid to live.",
+   "file": "extra/zen-desire-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-2": {
+   "speaker": "zen-zephyr",
+   "text": "Desire is the malware of the soul.",
+   "file": "extra/zen-desire-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-3": {
+   "speaker": "zen-zephyr",
+   "text": "The richest man in the district may still be a prisoner.",
+   "file": "extra/zen-desire-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-4": {
+   "speaker": "zen-zephyr",
+   "text": "A gilded implant is still a chain.",
+   "file": "extra/zen-desire-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-5": {
+   "speaker": "zen-zephyr",
+   "text": "He who owns nothing cannot be owned.",
+   "file": "extra/zen-desire-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-6": {
+   "speaker": "zen-zephyr",
+   "text": "The city profits from the emptiness within you.",
+   "file": "extra/zen-desire-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-7": {
+   "speaker": "zen-zephyr",
+   "text": "Every advertisement is a prayer to the gods of attachment.",
+   "file": "extra/zen-desire-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-8": {
+   "speaker": "zen-zephyr",
+   "text": "Beware the implant that promises happiness on a monthly subscription.",
+   "file": "extra/zen-desire-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-9": {
+   "speaker": "zen-zephyr",
+   "text": "The corporations manufacture desire and sell temporary relief.",
+   "file": "extra/zen-desire-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-10": {
+   "speaker": "zen-zephyr",
+   "text": "Craving is an endless transaction with insufficient funds.",
+   "file": "extra/zen-desire-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-11": {
+   "speaker": "zen-zephyr",
+   "text": "The flesh dealer sells perfection to those who cannot accept themselves.",
+   "file": "extra/zen-desire-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-12": {
+   "speaker": "zen-zephyr",
+   "text": "Not every addiction requires a chemical.",
+   "file": "extra/zen-desire-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-13": {
+   "speaker": "zen-zephyr",
+   "text": "The city installs desires faster than you can uninstall them.",
+   "file": "extra/zen-desire-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-14": {
+   "speaker": "zen-zephyr",
+   "text": "A debt-free account does not guarantee a liberated mind.",
+   "file": "extra/zen-desire-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-15": {
+   "speaker": "zen-zephyr",
+   "text": "The endless upgrade is another form of suffering.",
+   "file": "extra/zen-desire-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-desire-16": {
+   "speaker": "zen-zephyr",
+   "text": "Desire turns the human body into a corporate marketplace.",
+   "file": "extra/zen-desire-16.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-1": {
+   "speaker": "zen-zephyr",
+   "text": "Beneath the neon, the lotus still blooms.",
+   "file": "extra/zen-peace-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-2": {
+   "speaker": "zen-zephyr",
+   "text": "Find silence where the machines never sleep.",
+   "file": "extra/zen-peace-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-3": {
+   "speaker": "zen-zephyr",
+   "text": "The wise do not fear the darkness, for they carry no illusion of light.",
+   "file": "extra/zen-peace-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-4": {
+   "speaker": "zen-zephyr",
+   "text": "When the network falls silent, listen to yourself.",
+   "file": "extra/zen-peace-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-5": {
+   "speaker": "zen-zephyr",
+   "text": "Even in a city built of steel, compassion must take root.",
+   "file": "extra/zen-peace-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-6": {
+   "speaker": "zen-zephyr",
+   "text": "The rain does not distinguish between flesh and chrome.",
+   "file": "extra/zen-peace-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-7": {
+   "speaker": "zen-zephyr",
+   "text": "Amid a city that worships tomorrow, we teach the art of being here.",
+   "file": "extra/zen-peace-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-8": {
+   "speaker": "zen-zephyr",
+   "text": "Disconnect from the network before you forget how to connect with yourself.",
+   "file": "extra/zen-peace-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-9": {
+   "speaker": "zen-zephyr",
+   "text": "Between the drone patrols and the screaming advertisements, there is still silence.",
+   "file": "extra/zen-peace-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-10": {
+   "speaker": "zen-zephyr",
+   "text": "Do not let the city's algorithms determine the rhythm of your breath.",
+   "file": "extra/zen-peace-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-11": {
+   "speaker": "zen-zephyr",
+   "text": "The lotus does not require permission to bloom through concrete.",
+   "file": "extra/zen-peace-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-12": {
+   "speaker": "zen-zephyr",
+   "text": "Your thoughts need not travel at the speed of the network.",
+   "file": "extra/zen-peace-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-13": {
+   "speaker": "zen-zephyr",
+   "text": "Even beneath a thousand surveillance cameras, the mind may remain free.",
+   "file": "extra/zen-peace-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-14": {
+   "speaker": "zen-zephyr",
+   "text": "A peaceful mind is the rarest technology in NeoChinatown.",
+   "file": "extra/zen-peace-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-15": {
+   "speaker": "zen-zephyr",
+   "text": "Let the rain wash the neon from your thoughts.",
+   "file": "extra/zen-peace-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-16": {
+   "speaker": "zen-zephyr",
+   "text": "Not every notification deserves your consciousness.",
+   "file": "extra/zen-peace-16.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-peace-17": {
+   "speaker": "zen-zephyr",
+   "text": "Find the silence between two machine heartbeats.",
+   "file": "extra/zen-peace-17.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-1": {
+   "speaker": "zen-zephyr",
+   "text": "All things decay. Flesh, steel, memory, and empire.",
+   "file": "extra/zen-death-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-2": {
+   "speaker": "zen-zephyr",
+   "text": "A backup of the mind is not freedom from death.",
+   "file": "extra/zen-death-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-3": {
+   "speaker": "zen-zephyr",
+   "text": "Even the eternal server will one day go dark.",
+   "file": "extra/zen-death-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-4": {
+   "speaker": "zen-zephyr",
+   "text": "Do not mourn the rust. It is the nature of metal.",
+   "file": "extra/zen-death-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-5": {
+   "speaker": "zen-zephyr",
+   "text": "The neon fades, but the cycle continues.",
+   "file": "extra/zen-death-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-6": {
+   "speaker": "zen-zephyr",
+   "text": "Even chrome returns to dust.",
+   "file": "extra/zen-death-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-7": {
+   "speaker": "zen-zephyr",
+   "text": "A thousand backups cannot preserve a single moment.",
+   "file": "extra/zen-death-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-8": {
+   "speaker": "zen-zephyr",
+   "text": "Your digital ghost is not the self you believe it to be.",
+   "file": "extra/zen-death-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-9": {
+   "speaker": "zen-zephyr",
+   "text": "The corporation promises eternal life but cannot guarantee server uptime.",
+   "file": "extra/zen-death-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-10": {
+   "speaker": "zen-zephyr",
+   "text": "The richest executive and the poorest street beggar eventually become forgotten data.",
+   "file": "extra/zen-death-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-11": {
+   "speaker": "zen-zephyr",
+   "text": "Every signal eventually becomes silence.",
+   "file": "extra/zen-death-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-12": {
+   "speaker": "zen-zephyr",
+   "text": "Memory can be archived. Experience cannot.",
+   "file": "extra/zen-death-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-13": {
+   "speaker": "zen-zephyr",
+   "text": "Even the brightest hologram disappears when the power fails.",
+   "file": "extra/zen-death-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-14": {
+   "speaker": "zen-zephyr",
+   "text": "Do not fear becoming obsolete. Everything that exists already carries its expiration.",
+   "file": "extra/zen-death-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-death-15": {
+   "speaker": "zen-zephyr",
+   "text": "The body is temporary hardware. Do not mistake its serial number for your identity.",
+   "file": "extra/zen-death-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-1": {
+   "speaker": "zen-zephyr",
+   "text": "Break the chains within before breaking those around you.",
+   "file": "extra/zen-rebellion-1.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-2": {
+   "speaker": "zen-zephyr",
+   "text": "The greatest rebellion is refusing to become what you hate.",
+   "file": "extra/zen-rebellion-2.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-3": {
+   "speaker": "zen-zephyr",
+   "text": "A free mind cannot be purchased, programmed, or patented.",
+   "file": "extra/zen-rebellion-3.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-4": {
+   "speaker": "zen-zephyr",
+   "text": "Hatred is another corporation seeking ownership of your soul.",
+   "file": "extra/zen-rebellion-4.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-5": {
+   "speaker": "zen-zephyr",
+   "text": "When the world demands obedience, questioning becomes meditation.",
+   "file": "extra/zen-rebellion-5.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-6": {
+   "speaker": "zen-zephyr",
+   "text": "The most dangerous citizen is one who desires nothing the corporation sells.",
+   "file": "extra/zen-rebellion-6.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-7": {
+   "speaker": "zen-zephyr",
+   "text": "Compassion is an act of rebellion in a city that monetizes suffering.",
+   "file": "extra/zen-rebellion-7.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-8": {
+   "speaker": "zen-zephyr",
+   "text": "Do not trade one corporate master for another wearing the mask of revolution.",
+   "file": "extra/zen-rebellion-8.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-9": {
+   "speaker": "zen-zephyr",
+   "text": "Before hacking the system, examine the programming of your own mind.",
+   "file": "extra/zen-rebellion-9.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-10": {
+   "speaker": "zen-zephyr",
+   "text": "The prison with no visible bars is the hardest to escape.",
+   "file": "extra/zen-rebellion-10.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-11": {
+   "speaker": "zen-zephyr",
+   "text": "A government may blacklist your identity, but it cannot erase your awareness.",
+   "file": "extra/zen-rebellion-11.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-12": {
+   "speaker": "zen-zephyr",
+   "text": "The revolution that begins with hatred ends with another tyrant.",
+   "file": "extra/zen-rebellion-12.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-13": {
+   "speaker": "zen-zephyr",
+   "text": "Do not become the weapon of those who profit from your anger.",
+   "file": "extra/zen-rebellion-13.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-14": {
+   "speaker": "zen-zephyr",
+   "text": "The greatest firewall is a disciplined mind.",
+   "file": "extra/zen-rebellion-14.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  },
+  "zen-rebellion-15": {
+   "speaker": "zen-zephyr",
+   "text": "In a civilization built upon ownership, letting go is the ultimate rebellion.",
+   "file": "extra/zen-rebellion-15.ogg",
+   "voice": "Sigma Centauri - AI Robot (ElevenLabs)",
+   "voiceId": "bAq8AI9QURijOtmeFFqT",
+   "source": "zen-chat.js (Zen Zephyr, the Temple)",
+   "note": "The owner's words (approved 18 Nov 2026); recorded with ElevenLabs eleven_v4 in the voice the owner chose for Zen Zephyr on 18 Nov 2026, one take. His live effect (monk) is applied in voice-clips.js.",
+   "delivery": "[meditative] (eleven_v4 audio tag)"
+  }
+ },
+ "translations": {
+  "milked-fish": {
+   "voice": "Fish (ElevenLabs): her own voice speaking English",
+   "voiceId": "ggacvEjbmpoSuEinfFWs",
+   "effect": "device",
+   "offset": 0.75,
+   "gain": 0.7,
+   "note": "STANDARD (the owner, 17 Nov 2026): a V1 translation is spoken in the speaker's OWN voice, in English. ONE setting per character: the voice, a subtle live device filter ('device'; null for none), when the English starts after the original (s) and the original's volume. The clip is the line in `with`; its `file` can be swapped."
+  }
+ },
+ "cast": {
+  "zen-zephyr": {
+   "effect": "monk"
   }
  }
 }

@@ -12,7 +12,7 @@ test('taxi only: a road-taxi destination at a flat 60 CR through the East Gate, 
   assert.ok(d&&d.ok&&d.fare===60&&d.scene==='temple'&&!d.placeholder);assert.deepEqual(d.legs.map(l=>l.gate),['north','east']);s.credits=59;assert.equal(R.destinations(s,{player:[61,-100],quarter:'oldtown'}).find(x=>x.id==='temple').ok,false);
   assert.ok(!N.districts.some(x=>x.id==='temple'),'it is not a street stop or a district of NeoChinatown');assert.ok(!N.taxiZones.some(z=>z.id==='temple'));
   const cab=L.interactions.find(i=>i.action==='temple-cab');assert.ok(cab&&Math.hypot(cab.position[0]-T.CAB_PAD.x,cab.position[2]-T.CAB_PAD.z)<6,'the return cab is at the pad');
-  const f=QT.far('temple');assert.equal(f.fare,60);assert.equal(f.gate,'east');assert.equal(QT.lanesOf('east').filter(l=>l.kind==='foot').length,1,'the East Gate has a walkers\' lane (David, 16 Nov 2026)');
+  const f=QT.far('temple');assert.equal(f.fare,60);assert.equal(f.gate,'east');assert.equal(QT.lanesOf('east').filter(l=>l.kind==='foot').length,1,'the East Gate has a walkers\' lane (the owner, 16 Nov 2026)');
   {const w=L.interactions.find(i=>i.action==='temple-walk');assert.ok(w&&w.label==='EAST GATE · WALK TO NEOCHINATOWN');assert.equal(E.blocked(w.position[0],w.position[2],L),false,'the walk-back prompt is on open ground');assert.ok(Math.hypot(w.position[0]-cab.position[0],w.position[2]-cab.position[2])>w.range+cab.range,'and does not overlap the taxi prompt');
    assert.ok(Math.hypot(w.position[0]-L.spawn[0],w.position[2]-L.spawn[2])<12,'close to where a walker arrives');assert.match(fs.readFileSync(path.join(__dirname,'../void-runner/temple-integration.js'),'utf8'),/R\('temple-walk',[^\n]*returnFrom\('temple','foot'\)/);}assert.equal(R.returnTrip('temple').fare,0,'return included');assert.doesNotMatch(JSON.stringify(L.interactions)+JSON.stringify(T.mapModel()),/sky/i);
 });
@@ -29,7 +29,7 @@ test('the required features exist: layered walls, server pillars, braziers, data
   assert.match(read('temple-build.js'),/skyline|distant towers/i);
 });
 test('Zen Zephyr sits on the dais, in the middle of the chamber, with one documented replacement point',()=>{
-  const m=T.MODEL;assert.equal(m.id,'zen-zephyr');assert.equal(m.name,'Zen Zephyr');assert.equal(m.asset,null,'no real model yet');assert.match(m.note,/REPLACEMENT POINT/);assert.equal(m.placeholder,'primitives');
+  const m=T.MODEL;assert.equal(m.id,'zen-zephyr');assert.equal(m.name,'Zen Zephyr');assert.equal(m.asset,'npc-zen-zephyr','his own model (tests/monks.test.cjs)');assert.match(m.note,/REPLACEMENT POINT/);assert.equal(m.placeholder,'primitives');
   const [x,z]=m.seat;assert.ok(x>=T.HALL[0]&&x<=T.HALL[1]&&z>=T.HALL[2]&&z<=T.HALL[3],'inside the hall');assert.ok(Math.hypot(x-T.DAIS.x,z-T.DAIS.z)<.5,'on the dais');
   const talk=L.interactions.find(i=>i.action==='temple-monk');assert.ok(talk&&Math.hypot(talk.position[0]-x,talk.position[2]-z)<=talk.range+.5,'speakable from the dais edge');
   const src=read('temple.js');assert.match(src,/WHERE TO CHANGE THINGS/);assert.match(src,/MODEL/);
@@ -44,19 +44,29 @@ test('the V1 map has its own space: arrival, entrance, chamber, dais, altars, an
   const again=A.load(sp,flags);assert.equal(again.explored(),fog.explored());assert.equal(again.isExplored(0,6),true);assert.equal(again.isExplored(40,40),false);assert.equal(A.load(sp,{}).explored(),0,'an older save starts unexplored');
   assert.ok(!A.get('corporate').model().pois.some(p=>/^temple/.test(p.id)),'Corporate\'s map is separate');
 });
-test('lights: the Temple adds no real lights (the scene keeps its two), only emissive accents',()=>{
-  const src=strip(read('temple-build.js'));assert.ok(!/PointLight|SpotLight|DirectionalLight|HemisphericLight/.test(src));assert.ok(/ambient/.test(src));
+test('lights: Low adds none; Medium and up add a few real lights within the budget, each lit only for the hall and disposed with it (graphics pass, 18 Nov 2026)',()=>{
+  const src=strip(read('temple-build.js'));assert.ok(!/DirectionalLight|HemisphericLight/.test(src));assert.ok(/ambient/.test(src));
+  const made=(src.match(/new B\.(PointLight|SpotLight)\(/g)||[]).length;assert.ok(made>=2&&made<=4,'a handful of light sources in the code');
+  assert.match(src,/if\(!low\)\{const lit=/,'no extra light on Low');assert.match(src,/includedOnlyMeshes=lit/,'lit only for the hall\'s own meshes');assert.match(src,/if\(hi\)for\(const s of \[-1,1\]\)add/,'the two aisle fills on High only');
+  assert.match(src,/L\.parent=node/,'lights go with the area when it is disposed');assert.match(src,/own\.push\(L\)/);
+  assert.match(src,/if\(!low\)\{mirror=new B\.MirrorTexture/,'the floor mirror is Medium and up only');
 });
 test('scene lifecycle: it is built when the Temple loads and fully disposed (scene mood restored) when the player leaves',()=>{
   const src=read('temple-build.js');assert.match(src,/dispose\(\)\{/);for(const r of ['scene.clearColor=prev.clear','scene.fogDensity=prev.fogDensity','ip.exposure=prev.exposure','ambient.intensity=lp.amb','node.dispose(false,true)','Area.save(space,fog,flags)'])assert.ok(src.includes(r),r);
-  const rend=fs.readFileSync(path.join(__dirname,'../void-runner/babylon-renderer.js'),'utf8');assert.match(rend,/def\.temple&&root\.VoidTemple\?\.build/);assert.match(rend,/zoneHandle\?\.dispose/);assert.match(rend,/def\.corporate\|\|def\.temple\?'area':'scene'/);
+  const rend=fs.readFileSync(path.join(__dirname,'../void-runner/babylon-renderer.js'),'utf8');assert.match(rend,/def\.temple&&root\.VoidTemple\?\.build/);assert.match(rend,/zoneHandle\?\.dispose/);assert.match(rend,/def\.corporate\|\|def\.temple(\|\|def\.apartment)?\?'area':'scene'/);
 });
-test('nothing is downloaded: no images, models or network in the build; the conversation panel stays local',()=>{
-  const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.glb','.png','.jpg','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
-  for(const bad of ['fetch(','XMLHttpRequest','WebSocket','sendBeacon','localStorage'])assert.ok(!i.includes(bad),'panel: '+bad);assert.match(i,/Z\.LABEL/);assert.match(read('temple-integration.js'),/registerProvider/,'the future API hook is documented where it plugs in');assert.match(Z.LABEL,/NOT AN AI/);
+test('nothing else is downloaded: no images or network in the build, models only the monks\' and Zen Zephyr\'s through the shared loader; the conversation stays local',()=>{
+  const b=strip(read('temple-build.js')),i=strip(read('temple-integration.js'));for(const bad of ['.png','http','fetch(','XMLHttpRequest','ImportMesh','SceneLoader'])assert.ok(!b.includes(bad),'build: '+bad);
+  // models (18 Nov 2026): Zen Zephyr's own and the three monks', from assets/models/crowd, loaded in the background by VoidAssets (tests/monks.test.cjs)
+  assert.deepEqual(b.match(/[^;]*\.glb[^;]*/g).map(x=>x.trim()).length,2);assert.match(b,/'assets\/models\/crowd\/'\+m\.look\+'\.glb'/);assert.match(b,/assets\.load\(id,\{src,background:true\},scene\)/);
+  // the only files it reads are the game's own interior texture kit (the same files the District rooms use), never on Low
+  for(const m of b.match(/assets\/textures\/[^'"]+/g)||[])assert.match(m,/^assets\/textures\/district-interior\/$/,m);
+  for(const set of (b.match(/set:'(kit_[a-z]+)'/g)||[]).map(x=>x.slice(5,-1)))for(const k of ['color','normal','orm'])assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/textures/district-interior',set+'_'+k+'.jpg')),set+'_'+k);
+  assert.match(b,/if\(set&&!low\)/,'Low reads no texture files');
+  for(const bad of ['fetch(','XMLHttpRequest','WebSocket','sendBeacon','localStorage'])assert.ok(!i.includes(bad),'wiring: '+bad);
 });
-test('the typed panel keeps typing away from the game, and Escape closes the panel',()=>{
-  const i=read('temple-integration.js');assert.match(i,/stopPropagation/);assert.match(i,/key==='Escape'/);assert.match(i,/maxlength="200"/);assert.match(i,/resumeWalking/);assert.match(i,/CHOOSE A TEACHING/);assert.match(i,/R\('temple-monk'/);for(const a of new Set(L.interactions.map(x=>x.action)))assert.ok(i.includes("R('"+a+"'"),a);
+test('Zen Zephyr talks in the ordinary conversation window (voiced lines, a choice list), and every interaction is wired',()=>{
+  const i=read('temple-integration.js');assert.match(i,/talkChoice\(/);assert.match(i,/menu:true/);assert.match(i,/resumeWalking/);assert.match(i,/R\('temple-monk'/);assert.match(i,/seesMonk\(/);for(const a of new Set(L.interactions.map(x=>x.action)))assert.ok(i.includes("R('"+a+"'"),a);
 });
 test('the Temple adds no location id, mission or save field except the fog flag and the shared trip records',()=>{
   const man=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/save-manifest.json'),'utf8'));assert.ok(!JSON.stringify(man).includes('temple'));assert.equal(T.SPACE_FLAG,'templeFog');const src=strip(read('temple.js'));assert.ok(!/story\.flags|state\./.test(src));

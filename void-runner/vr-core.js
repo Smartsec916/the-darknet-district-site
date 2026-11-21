@@ -1,4 +1,4 @@
-/* The Darknet District's VR arcade (David's brief, 2026-10-27): a reusable simulation framework.
+/* The Darknet District's VR arcade (the owner's brief, 2026-10-27): a reusable simulation framework.
    - Experiences register with VoidVR.register({id,title,description,status,station,options,layout(opts),build(ctx)}).
      Each is a walkable location (the game's own first-person controller, collision and E-interactions), built only
      when launched and disposed on exit.
@@ -46,7 +46,7 @@
  // A slow chord pad: the suite's music presets.
  const padChords={lounge:[220,277.2,329.6,415.3],velvet:[196,246.9,293.7,369.9],midnight:[174.6,220,261.6,329.6]};
  function pad(preset){const c=audio.ctx,g=audioNode(c,'createGain'),f=audioNode(c,'createBiquadFilter');f.type='lowpass';f.frequency.value=900;g.gain.value=.05;f.connect(g);g.connect(audio.master);const osc=(padChords[preset]||padChords.lounge).flatMap(fr=>[0,4].map(d=>{const o=audioNode(c,'createOscillator');o.type='triangle';o.frequency.value=fr;o.detune.value=d;o.connect(f);o.start();return o;}));audio.layers.push({stop:()=>{osc.forEach(o=>o.stop());for(const n of [g,f]){n.disconnect();audio.nodes.delete(n);}},pad:true});return {gain:g,osc};}
- /* Recorded music for a simulation (David, 16 Nov 2026): one looped recording under the generated ambience, void-runner/assets/audio/vr/<id>.ogg (LICENSES.md there).
+ /* Recorded music for a simulation (the owner, 16 Nov 2026): one looped recording under the generated ambience, void-runner/assets/audio/vr/<id>.ogg (LICENSES.md there).
     Fetched when the simulation starts, faded in, faded over when it changes, gone with the rest of the simulation's sound. */
  const MUSIC_DIR='void-runner/assets/audio/vr/',PAD_MUSIC={lounge:'vr-lounge',velvet:'vr-sensual'},musicBuffers=new Map();let musicNow=null;
  function setMusic(id,level=.34){
@@ -156,6 +156,7 @@
   busy=true;
   // Tell the hub before anything changes on screen. Playing alone is a private session of one, so the player is not left standing in the District for others.
   let hubSession=share?.joined||null,type=share?.joined?(share.joined.private?'private':'public'):exp.shared?shareType:'solo';
+  if(id==='suite'&&globalThis.VoidVRCompanions?.party(opts).some(e=>e.localDraft)){type='solo';hubSession=null;}
   if(!hubSession&&online()){try{hubSession=await RP().vrCreate(id,exp.shared&&type!=='solo'?(exp.shareOpts?exp.shareOpts(opts):opts):{},type!=='public');}catch(e){type='solo';if(exp.shared&&shareType!=='solo')announce(e.message+' Starting on your own.');}}
   if(!hubSession)type='solo';
   menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();
@@ -231,7 +232,7 @@
  async function buildWorld(def,ctx){const exp=registry.get(def.vr);const world=await exp.build({...ctx,opts:session?.opts||{},settings:session?.settings||{},api});if(session)session.world=world;return world;}
  /* Brightness inside a simulation (found 16 Nov 2026). On Medium and High the renderer's sharpen pass has multiplied the finished picture by 0.3 since 12 Nov
     (babylon-renderer.js: sharpen.colorAmount = .3; Babylon's default is 1), so everything is drawn at about a third of the brightness it is lit for. The District and
-    the city have been judged and tuned by David in that state, so it is left alone there (his decision to change). The simulations were built bright before that
+    the city have been judged and tuned by the owner in that state, so it is left alone there (his decision to change). The simulations were built bright before that
     date and looked like night: while a simulation is running the picture is given back its full brightness, and the 0.3 returns on leaving. */
  setInterval(()=>{try{const p=globalThis.VoidBabylon?.scene?.postProcessRenderPipelineManager?.supportedPipelines?.find(x=>x.name==='void-look');if(p?.sharpen){const want=session?1:.3;if(p.sharpen.colorAmount!==want)p.sharpen.colorAmount=want;}}catch{}},150);
  const audioSet=(key,val)=>{if(audio.named)audio.named[key]=val;};

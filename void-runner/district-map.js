@@ -51,7 +51,7 @@
  if(typeof document==='undefined')return;
 
  // ---------------------------------------------------------------- browser ----------------------------------------------------------------
- const FLAG='deviceWaypoint',COLOR={entrance:'#58ffe1',service:'#9fd0ff',vr:'#c79bff',shop:'#ff3fb4',transit:'#ffb347',dev:'#7a8794',mission:'#ffe066',guard:'#ff5a6a'};
+ const FLAG='deviceWaypoint',COLOR={entrance:'#58ffe1',service:'#9fd0ff',vr:'#c79bff',shop:'#ff3fb4',transit:'#ffb347',dev:'#7a8794',mission:(root.VoidGuideRoute&&root.VoidGuideRoute.COLOR||{hex:'#ffd678'}).hex,guard:'#ff5a6a'};   // mission places: the mission yellow of the arrow (guide-route.js COLOR; the owner, 20 Nov 2026)
  const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  let M=null,view=null,selected=null,layers=Object.fromEntries(LAYERS.map(l=>[l[0],l[2]])),host=null,cv=null,drag=null,pulse=0;
  // Separate areas (Corporate District, later the Temple) register a map space in area-map.js; the map shows the one the player is in.
@@ -101,13 +101,13 @@
    g.fillStyle='#58ffe1';g.strokeStyle='#03080d';g.lineWidth=1.5;g.beginPath();g.moveTo(x+fx*12,y+fy*12);g.lineTo(x-fy*7-fx*6,y+fx*7-fy*6);g.lineTo(x+fy*7-fx*6,y-fx*7-fy*6);g.closePath();g.fill();g.stroke();}
   // north and scale
   g.fillStyle='rgba(190,235,240,.7)';g.textAlign='center';g.font='700 11px ui-monospace,Consolas,monospace';g.fillText('N',W-18,16);g.beginPath();g.moveTo(W-18,24);g.lineTo(W-22,34);g.lineTo(W-14,34);g.closePath();g.fill();
-  const metres=[5,10,25,50,100,250].find(v=>v*view.s>=60)||500;g.fillRect(12,H-14,metres*view.s,2);g.textAlign='left';g.fillText(metres+' m',12,H-24);
+  const U=VoidUnits,feet=[10,25,50,100,250,500,1000].find(v=>v/U.FT*view.s>=60)||2500;g.fillRect(12,H-14,feet/U.FT*view.s,2);g.textAlign='left';g.fillText(U.fmtDist(feet/U.FT,{miles:false}),12,H-24);
  }
  function paintInfo(){
   const el=host?.querySelector('[data-map-info]');if(!el)return;const p=me(),wp=waypoint(),q=selected;
   if(!q){el.innerHTML='<div class="pd-note">'+(wp?'Waypoint: <b>'+esc(wp.name)+'</b>. ':'')+'Select a marker or a place below. Drag to move the map; scroll or use + and − to zoom.</div>'+(wp?'<button type="button" data-map="clear">CLEAR WAYPOINT</button>':'');return;}
   const gd=p?guidance(data(),q,p):null,isWp=wp===q;
-  el.innerHTML='<div class="dm-card"><b>'+esc(q.name)+'</b><span>'+esc(q.kind==='dev'?'DEVELOPMENT ONLY':q.area==='interior'?'INSIDE THE DARKNET DISTRICT':q.area==='both'?'BETWEEN THE STREET AND THE DISTRICT':spaceName())+(gd?' · '+Math.round(gd.distance)+' m'+(gd.via?' to the security vestibule':''):'')+'</span>'
+  el.innerHTML='<div class="dm-card"><b>'+esc(q.name)+'</b><span>'+esc(q.kind==='dev'?'DEVELOPMENT ONLY':q.area==='interior'?'INSIDE THE DARKNET DISTRICT':q.area==='both'?'BETWEEN THE STREET AND THE DISTRICT':spaceName())+(gd?' · '+VoidUnits.fmtDist(gd.distance)+(gd.via?' to the security vestibule':''):'')+'</span>'
    +'<p>Direction only. This model has no route data: follow the pointer and find your own way around walls.'+(gd?.via?' The destination is on the other side of the security checkpoint.':'')+'</p>'
    +'<div><button type="button" data-map="'+(isWp?'clear':'set')+'">'+(isWp?'CLEAR WAYPOINT':'SET WAYPOINT')+'</button><button type="button" data-map="deselect">CLOSE</button></div></div>';
  }
@@ -154,7 +154,7 @@
   const Rules=root.VoidRoadTaxiRules;if(!Rules){if(hailHtml){hailHtml='';el.innerHTML='';}return;}
   const ctx=taxiCtx(),a=Rules.availability(typeof state!=='undefined'?state:null,ctx),list=ctx.player?Rules.destinations(typeof state!=='undefined'?state:null,ctx):[],st=root.VoidRoadTaxi?.status?.();
   let html='<h2>STREET TAXIS</h2>';
-  if(st)html+='<div class="pd-note">'+esc(st.label)+' · '+(st.phase==='waiting'?'waiting, door open':st.phase==='arrived'?'arrived':'on the way')+' · '+st.distance+' m · '+st.fare+' CR</div>'+(st.canCancel?'<button type="button" data-map="hail-cancel">CANCEL TAXI</button>':'');
+  if(st)html+='<div class="pd-note">'+esc(st.label)+' · '+(st.phase==='waiting'?'waiting, door open':st.phase==='arrived'?'arrived':'on the way')+' · '+VoidUnits.fmtDist(st.distance)+' · '+st.fare+' CR</div>'+(st.canCancel?'<button type="button" data-map="hail-cancel">CANCEL TAXI</button>':'');
   else html+=(a.ok?'<div class="pd-note">'+esc(a.network)+'. A cab drives the roads to you, then to the stop. The fare is paid when you board.</div>':'<div class="pd-note">'+esc(a.reason)+'</div>')
    +(list.length?list.map(d=>'<button type="button" data-map="hail:'+esc(d.id)+'"'+(d.ok&&a.ok?'':' disabled')+'>CALL TAXI · '+esc(d.label)+' · '+d.fare+' CR</button>').join(''):'<div class="pd-note">No street stops are registered.</div>');
   if(html!==hailHtml){hailHtml=html;el.innerHTML=html;}
@@ -175,7 +175,7 @@
   if(!p||!wp){if(!chip.hidden)chip.hidden=true;return;}
   const gd=guidance(data(),wp,p);
   if(gd.arrived){setWaypoint(null);try{announce('You have arrived: '+wp.name+'.');}catch{}return;}
-  const text=wp.name.toUpperCase()+' · '+Math.round(gd.distance)+' M'+(gd.via?' · VIA THE SECURITY VESTIBULE':'');
+  const text=wp.name.toUpperCase()+' · '+VoidUnits.fmtDist(gd.distance).toUpperCase()+(gd.via?' · VIA THE SECURITY VESTIBULE':'');
   chip.firstChild.style.transform='rotate('+gd.turn.toFixed(2)+'rad)';if(text!==chipText){chipText=text;chip.lastChild.innerHTML=esc(text)+' <small>DIRECTION ONLY</small>';}
   if(chip.hidden)chip.hidden=false;
  }

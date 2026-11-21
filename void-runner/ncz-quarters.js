@@ -1,11 +1,11 @@
-/* NeoChinatown's four quarters and the checkpoints between them (David's map A, 16 Nov 2026; Far South added the same day, docs/development/NEOCHINATOWN_QUARTERS.md).
+/* NeoChinatown's four quarters and the checkpoints between them (the owner's map A, 16 Nov 2026; Far South added the same day, docs/development/NEOCHINATOWN_QUARTERS.md).
    PURE RULES: no rendering, no clock, no network. Runs in the browser and in Node (tests/ncz-quarters.test.cjs).
 
    The outdoor city is one coordinate space (world metres, x east, z north) cut into four quarters. Only one is built at a time:
      port       The Port       the landing pad and the north part of the passage
      oldtown    Old Town       Main Street, the alley, NULL, the District's door, the access road
      avenue     The Avenue     the wide road across the top, between the Function Gate and the East Gate
-     far-south  Far South      Main Street's second stretch, south of the South Gate: Milked, its side street and its service alley (David, 16 Nov 2026)
+     far-south  Far South      Main Street's second stretch, south of the South Gate: Milked, its side street and its service alley (the owner, 16 Nov 2026)
      outskirts  The Outskirts  past the Far South Gate: a rundown residential area of makeshift shipping-container homes on gravel walkways; the paved road ends at the gate
    A checkpoint (a "gate") is a small building standing in the street. It is built in BOTH quarters it joins, in the same place, so the player stands in the
    same room before and after the exchange (the way the District's vestibule and Milked's work). Each lane of a gate is a room with a door at each end; in any
@@ -40,7 +40,7 @@
   // A5 opened on 16 Nov 2026 (it was a shut wall at z -124..-122.4): Main Street goes on south into Far South. Built like the North Gate, without the bridge.
   {id:'south',code:'A5',name:'South Gate',sign:'SOUTH GATE',guard:'private',rect:[51,71,-130,-124],axis:'z',ends:{lo:{quarter:'far-south'},hi:{quarter:'oldtown'}},
    lanes:[{id:'foot-w',kind:'foot',v:[51.3,54.3]},{id:'bay-s',kind:'bay',v:[57,60.6],heading:'lo'},{id:'bay-n',kind:'bay',v:[61.4,65],heading:'hi'},{id:'foot-e',kind:'foot',v:[67.7,70.7]}]},
-  // A6 (David, 16 Nov 2026): past it is The Outskirts. The road stops at the checkpoint, so it is a PEDESTRIAN vestibule only: one walkers' lane, no vehicle bay, and no taxi goes through (it is not in LINKS).
+  // A6 (the owner, 16 Nov 2026): past it is The Outskirts. The road stops at the checkpoint, so it is a PEDESTRIAN vestibule only: one walkers' lane, no vehicle bay, and no taxi goes through (it is not in LINKS).
   {id:'far-south-gate',code:'A6',name:'Far South Gate',sign:'FAR SOUTH GATE',guard:'private',rect:[51,71,-224,-218],axis:'z',ends:{lo:{quarter:'outskirts'},hi:{quarter:'far-south'}},
    lanes:[{id:'foot',kind:'foot',v:[59.5,62.5]}]}];
  const gate=id=>GATES.find(g=>g.id===id)||null;
@@ -50,10 +50,17 @@
   oldtown:{id:'oldtown',name:'Old Town',spawn:[126.9,1.7,-59.3],yaw:-Math.PI/2,
    streets:[[51,71,-124,-26],S.alley,S.road,[37.5,44,-116,-113],...(NC?[NC.RECT]:[])],places:[DISTRICT,TERRACE],gates:['customs','north','south']},
   avenue:{id:'avenue',name:'The Avenue',spawn:[69.2,1.7,-16.6],yaw:0,streets:[[10,144,-20,-5]],gates:['north','function','east']},
-  // Far South (David, 16 Nov 2026): Main Street's second stretch. Milked, its side street and its service alley moved here, whole (milked.js OFFSET).
+  // Far South (the owner, 16 Nov 2026): Main Street's second stretch. Milked, its side street and its service alley moved here, whole (milked.js OFFSET).
   'far-south':{id:'far-south',name:'Far South',spawn:[61,1.7,-140],yaw:Math.PI,streets:[[51,71,-218,-130],MK.LANE,MK.ALLEY],places:[MK.FOOTPRINT],gates:['south','far-south-gate']},
-  // The Outskirts (David, 16 Nov 2026): gravel walkways and container homes. A compact hub with two lanes that end at containers; walkers only.
+  // The Outskirts (the owner, 16 Nov 2026): gravel walkways and container homes. A compact hub with two lanes that end at containers; walkers only.
   outskirts:{id:'outskirts',name:'The Outskirts',spawn:[61,1.7,-229],yaw:Math.PI,streets:[S.outskirts,S.outskirtsWest,S.outskirtsEast],gates:['far-south-gate']}};
+ // The back alleys, bays and yards behind the housing (ncz-backalleys.js, the owner 20 Nov 2026) are part of their quarter's open ground, after its streets (the mission arrow
+ // routes through them; quarterAt finds them). Only placed / routed NPCs walk them: the street crowd keeps to its pavement lanes.
+ {const BA=node?require('./ncz-backalleys.js'):root.VoidBackAlleys;if(BA)for(const p of BA.PIECES)if(QUARTERS[p.quarter])QUARTERS[p.quarter].streets.push(...p.rects.map(r=>r.slice()));}
+ // THE UNDERGROUND (ncz-underground.js, the owner 20 Nov 2026): the one tunnel network under the city, a quarter of its own entered by the stairwells' doors (no gate). Its ground is
+ // `places` (not streets: the arrow routes it room by room, guide-route.js), its checkpoints 0.3 m short of the yards above (it never meets a street rectangle); the floor is 3 m down (`y`).
+ {const UG=node?require('./ncz-underground.js'):root.VoidUnderground;if(UG){let a=null;try{a=UG.arrive(UG.ENTRANCES[0].id);}catch{}
+   QUARTERS[UG.ID]={id:UG.ID,name:UG.NAME,spawn:a?a.spawn:[15.02,1.7,10.5],yaw:a?a.yaw:-Math.PI/2,streets:[],places:UG.MODS.map(UG.ground),gates:[],under:true,y:UG.Y};}}
  const IDS=Object.keys(QUARTERS),DEFAULT='port';
  const valid=q=>IDS.includes(q)?q:null;
  const inRect=([x0,x1,z0,z1],x,z,m=0)=>x>=x0-m&&x<=x1+m&&z>=z0-m&&z<=z1+m;
@@ -61,7 +68,7 @@
  // Every rectangle that belongs to a quarter: its streets, its buildings with their own walls, and the gates standing at its edges.
  const region=q=>{const Q=QUARTERS[q];return Q?[...Q.streets,...(Q.places||[]),...Q.gates.map(gateRect)]:[];};
  const REGION=Object.fromEntries(IDS.map(q=>[q,region(q)]));
- /* ADDING A CHECKPOINT (David, 16 Nov 2026: more may come, as gameplay): one entry is the whole definition. Put it in GATES above, or call define() with it.
+ /* ADDING A CHECKPOINT (the owner, 16 Nov 2026: more may come, as gameplay): one entry is the whole definition. Put it in GATES above, or call define() with it.
       id, code, name, sign (the word on the building), guard ('private' | 'function' | null), rect [x0,x1,z0,z1], axis ('z' | 'x'),
       ends {lo:{quarter|scene}, hi:{quarter|scene}} (what it connects; the SAME quarter at both ends makes a checkpoint inside a quarter: both doors work
       and nothing is exchanged), lanes [{id, kind:'foot'|'bay', v:[from,to], heading?}], and optionally shut, bridge, fortified, height.
@@ -143,7 +150,7 @@
   {id:'avenue',name:'The Avenue',quarter:'avenue',position:[40,-12.5],heading:Math.PI/2,post:[40,-7.7,0]},
   {id:'function-gate',name:'Function Gate',quarter:'avenue',position:[20,-12.5],heading:Math.PI/2,post:[20,-7.7,0]},
   {id:'east-gate',name:'East Gate',quarter:'avenue',position:[134,-12.5],heading:Math.PI/2,post:[134,-7.7,0]}];
- /* Where a taxi can be called by walking up and pressing the use key (David, 16 Nov 2026: "Couldn't figure out how to call a taxi"). post: [x, z, turn] of the pole with
+ /* Where a taxi can be called by walking up and pressing the use key (the owner, 16 Nov 2026: "Couldn't figure out how to call a taxi"). post: [x, z, turn] of the pole with
     the TAXI plate: one on the pavement at every stop, and one by The Darknet District's door, where no road runs (a cab called there waits at the alley's mouth). */
  const CALL_POINTS=[...STOPS.map(s=>({id:s.id,quarter:s.quarter,post:s.post,stop:s.id})),{id:'district-door',quarter:'oldtown',post:[122.4,-61.15,Math.PI/2],stop:null}];
  const CALL_LABEL='CALL A TAXI',CALL_REACH=.75,CALL_RANGE=2.6;
@@ -190,7 +197,12 @@
   if(f[FLAG]!==undefined&&!valid(f[FLAG]))delete f[FLAG];
   if(back&&typeof s.credits==='number')s.credits+=back;return back;}
 
- const api={S,lanesOfGate:lanes,settle,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,CALL_POINTS,CALL_LABEL,callPrompts,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
+ /* A fortified gate's two corner pylons (ncz-gates.js), as [from, to] spans ACROSS the gate. Each stands at its edge of the gate, 1.5 m wide, but never over a
+    lane's opening: where the outer core beside a lane is narrower than that (the East and Function Gates' walkers' lanes run 0.3 m from the gate's edge), the
+    pylon stands from the lane's wall outward instead, into the building row beside the gate. (The East Gate's foot lane was half hidden inside its pylon, 18 Nov 2026.) */
+ function pylons(g,w=1.5){const s=span(g),ls=(g.lanes||[]).slice().sort((a,b)=>a.v[0]-b.v[0]),first=ls[0],last=ls[ls.length-1];
+  const lo=first&&first.v[0]-s.v0<w?[first.v[0]-w,first.v[0]]:[s.v0,s.v0+w],hi=last&&s.v1-last.v[1]<w?[last.v[1],last.v[1]+w]:[s.v1-w,s.v1];return [lo,hi];}
+ const api={S,lanesOfGate:lanes,pylons,settle,QUARTERS,IDS,DEFAULT,GATES,LANES,STOPS,CALL_POINTS,CALL_LABEL,callPrompts,FAR,FAR_FARE,REMOVED_STOPS,FLAG,WALL_H,DOOR_T,valid,gate,lane,lanesOf,gatesOf,region,inQuarter,distanceTo,quarterAt,keepDetail,keepBuilding,
   span,world,endOf,sidesOf,internal,define,other,beyond,laneAt,atCentre,openable,footArrival,bayPoint,bayFor,yawInto,solids,stop,far,gatesBetween,resumeQuarter,remember,migrateSave};
  if(node)module.exports=api;else root.VoidQuarters=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

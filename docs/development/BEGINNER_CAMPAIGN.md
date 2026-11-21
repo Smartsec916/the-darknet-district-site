@@ -1,6 +1,6 @@
 # Beginner campaign: Sleeping Pod to first ship and first departure
 
-**Status: PROPOSED (David has not approved the story content).** The mechanics (ship award, arrival, travel) are fixes and are in force. The mission and dialogue wording in `void-runner/beginner.js` is UNREVIEWED placeholder text in the established voices of Admin and Iris, shown as text with no new voice clips, and uses no new character, place, mechanic or lore. Record David's decision in `VOID_RUNNER_HANDOFF.md` §11 before treating any of it as canon.
+**Status: PROPOSED (the owner has not approved the story content).** The mechanics (ship award, arrival, travel) are fixes and are in force. The mission and dialogue wording in `void-runner/beginner.js` is UNREVIEWED placeholder text in the established voices of Admin and Iris, shown as text with no new voice clips, and uses no new character, place, mechanic or lore. Record the owner's decision in `VOID_RUNNER_HANDOFF.md` §11 before treating any of it as canon.
 
 ## What stopped a new player from getting a ship (found by playing the real game, 14 Nov 2026)
 A new District campaign has `story.flags.shipAccess='none'`, `missionPool='closed'`, `quest='inheritance'` and `universe.freeTravel=false`. Nothing ever changed those, and four separate gates sat behind them:

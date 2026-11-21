@@ -170,7 +170,7 @@ def asphalt(out, n=1024):
 
 
 # The scrolling sign above the shops: one long LED strip of text that repeats every TICKER_METRES. The game scrolls it by sliding the texture sideways.
-# PLACEHOLDER WORDING (shop names already on the street, plus generic shop talk): David approves the final text.
+# PLACEHOLDER WORDING (shop names already on the street, plus generic shop talk): the owner approves the final text.
 TICKER_METRES = 20
 TICKER_TEXT = [('NIGHT MARKET', (255, 60, 190)), ('OPEN 24H', (60, 230, 255)), ('DRAGON NOODLES', (255, 170, 60)), ('HOT // FAST // CHEAP', (255, 60, 190)),
                ('ELECTRONICS', (60, 230, 255)), ('REPAIRS WHILE YOU WAIT', (90, 255, 150)), ('PHARMACY 24H', (90, 255, 150)), ('NO CREDIT', (255, 70, 70)),

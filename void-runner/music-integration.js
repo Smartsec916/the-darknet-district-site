@@ -13,7 +13,7 @@
    if(globalThis.VoidPodMusic){globalThis.VoidPodMusic.update();if(globalThis.VoidPodMusic.playing){E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});globalThis.VoidMusicArea=null;director.style=null;return;}}
    VoidAudio.composerActive(true);
    // In a sleeping pod (waking, or making a character) no area music plays: the pod is quiet unless the player starts their own playlist.
-   if(mode==='pod-waking'||mode==='character-creator'||state?.story?.flags?.podWakePending===true&&walkingLocation?.area==='interior'){   /* also with the pod's music panel open (David, 15 Nov 2026: the District's music is never heard in the pod) */E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});globalThis.VoidMusicArea=null;director.style=null;return;}
+   if(mode==='pod-waking'||mode==='character-creator'||state?.story?.flags?.podWakePending===true&&walkingLocation?.area==='interior'){   /* also with the pod's music panel open (the owner, 15 Nov 2026: the District's music is never heard in the pod) */E.stop?.();globalThis.VoidClubAudio?.update({active:false,dt});globalThis.VoidMusicArea=null;director.style=null;return;}
    const walking=!!walkingLocation&&!!walker&&['walking','dialogue','mission-log','road-taxi'].includes(mode);
    const flying=['play','pause','preparing-flight'].includes(mode)&&!!flight.route||mode==='play';
    const route=flight.route,far=route&&route.progress>=.5&&current?.destination;
@@ -28,9 +28,10 @@
     phase:route?.phase,hazard:flying&&current?.kind==='hazard',
     combat:flying&&enemies.some(VoidStory.hostile),
     danger:flying&&stats&&hp<stats.hull*.25,
-    dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,
+    dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,conversation:onFoot&&!!globalThis.VoidConversationUI?.isOpen,
     battle:flying&&!!globalThis.VoidFactionBattleState?.(),
     layoutKind:onFoot?walkingLocation.kind:null,place:onFoot?walkingLocation.id:null,
+    under:onFoot&&walkingLocation?.area==='street'&&walkingLocation?.quarter==='underground',
     walker:onFoot?{x:walker.x,z:walker.z}:null
    };
    // The nightclub's own sound (ncz-club-audio.js) decides how much of the city's music is left around it; the score keeps playing underneath.

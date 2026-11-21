@@ -80,7 +80,7 @@
     materials = {},
     lastWidth = 0,
     lastHeight = 0;
-  let roomFrame = 0;
+  let roomFrame = 0;const doorCache={root:null,count:-1,list:[]};
   const diagnostics = {
     ready: false,
     location: null,
@@ -97,7 +97,7 @@
   }
 
   // Station window glass: almost clear, with faint scratches and scuffs and a little specular glint, so the view
-  // outside reads true instead of through a green-teal tint (David, 2026-10-23).
+  // outside reads true instead of through a green-teal tint (the owner, 2026-10-23).
   function windowGlass(){
     if(materials['window-glass-clear'])return materials['window-glass-clear'];
     const b=B(),t=new b.DynamicTexture('window-scratches',{width:512,height:512},scene,true),g=t.getContext();let seed=11;const rnd=()=>((seed=seed*16807%2147483647)-1)/2147483646;
@@ -461,7 +461,8 @@
   }
   function shipModel(name, allegiance, parent, opts = {}) {
     const model = VoidAssets.instance('ship:' + name, parent);
-    if (model) return model;
+    // The Kestrel ('starter'): the Meshy model (kestrel-model.js) with its gear, engine glow and gun hooks; the code ship below stays the stand-in.
+    if (model) return name==='starter'&&root.VoidKestrel?VoidKestrel.dress(model,{scene,landed:!!opts.landed,allegiance}):model;
     if (/^(communion|order)-/.test(name)) return factionShipModel(name, parent);
     if (name === 'police-cutter') return policeShipModel(parent);
     const b = B(),
@@ -475,7 +476,7 @@
       for(const [z,w,h]of rings)for(let i=0;i<8;i++){const a=i*Math.PI/4+Math.PI/8;positions.push(Math.cos(a)*w,Math.sin(a)*h,z);uvs.push(i/8,(z+2)/4.15);}
       for(let r=0;r<3;r++)for(let i=0;i<8;i++){const a=r*8+i,c=r*8+(i+1)%8;indices.push(a,c,c+8,a,c+8,a+8);}for(let i=1;i<7;i++){indices.push(0,i+1,i,24,24+i,24+i+1);}
       for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];b.VertexData.ComputeNormals(positions,indices,normals);const hull=new b.Mesh('kestrel-hull',scene),data=new b.VertexData();Object.assign(data,{positions,indices,normals,uvs});data.applyToMesh(hull);hull.parent=node;hull.material=metal;hull.convertToFlatShadedMesh();
-      // Sleek flanks (David, 2026-10-23): no service stripes, vents, side panels or cheek plates; the cargo is carried inside.
+      // Sleek flanks (the owner, 2026-10-23): no service stripes, vents, side panels or cheek plates; the cargo is carried inside.
       const armor=material('kestrel-armor','#a5a297'),panel=material('kestrel-panel','#727a76'),wingMat=material('kestrel-wing','#a8a39b'),rust=material('kestrel-rust','#9d6550');
       if(!armor.diffuseTexture){armor.diffuseTexture=new b.Texture(new URL('art/vesper-weathered-panels.webp',base).href,scene,true,false);armor.diffuseTexture.uScale=2;armor.diffuseTexture.vScale=2;armor.diffuseColor=b.Color3.White();}
       // The landing-pad view sees the working ship from below; retain readable hull panels in shade.
@@ -533,7 +534,8 @@
       // Ship space: the hull's side is at x .72 and the deck at y -1 (the ship stands 1 unit up); the cockpit runs z 0 to 1.3,
       // clear of the wing and guns (they end at z .6). Steps climb from the deck to the hull's side by the cockpit, on the
       // left (sd -1): the right side is where the hangar's maintenance terminal stands, and the two must not share a spot.
-      const k=ship.scaling.y||1,ground=-ship.position.y/k,top=-.12,sd=-1,x0=sd*.8,x1=sd*1.9,z0=1.05,steps=6,steel=material('kestrel-steps','#7c858a'),lamp=material('kestrel-boarding-lamp','#ffcf80',true);
+      const k=ship.scaling.y||1,ground=-ship.position.y/k,top=-.12,sd=-1,x0=sd*(ship.metadata.kestrel?.62:.8),x1=sd*1.9,z0=1.05,steps=6,steel=material('kestrel-steps','#7c858a'),lamp=material('kestrel-boarding-lamp','#ffcf80',true);
+      ship.metadata.kestrel?.fitGround(ground);   // the Meshy Kestrel's legs stand on this floor (kestrel-model.js)
       for(let i=0;i<steps;i++){const f=(i+1)/steps,h=ground+(top-ground)*f;const s=box('kestrel-boarding-step',[Math.abs(x1-x0)/steps+.04,.035,.5],[x1-(x1-x0)*(i+.5)/steps,h-.018,z0],steel,ship);s.isPickable=false;}
       for(const dz of [-.26,.26]){const len=Math.hypot(x1-x0,top-ground),r=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:len},scene);r.parent=ship;r.position.set((x0+x1)/2,(ground+top)/2+.3,z0+dz);r.rotation.z=Math.atan2(x1-x0,top-ground);r.material=steel;r.isPickable=false;
         const post=b.MeshBuilder.CreateCylinder('kestrel-boarding-handrail',{diameter:.03,height:.3},scene);post.parent=ship;post.position.set(x1,ground+.15+.035,z0+dz);post.material=steel;post.isPickable=false;}
@@ -675,6 +677,7 @@
     parent.metadata={...parent.metadata,propGroups:Object.fromEntries(Object.entries(groups).map(([k,g])=>[k,g.ok]))};
   }
   async function prepareStation(def,task){
+    root.VoidKestrel?.register(VoidAssets,quality);
     release(); // A new visit owns exactly one room and its actors, signs and lights.
     const propModels=Object.fromEntries((def.props||[]).filter(p=>VoidAssets.models.props?.[p.model]).map(p=>['prop:'+p.model,VoidAssets.models.props[p.model]]));
     crowdLocation=def.id;root.VoidCrowd?.begin();await prepareSpace(def.id,['raider','courier','shuttle','security',def.ship],task,{...(root.VoidCrowd?.models(def.id,quality)||{}),...propModels,...(def.rooms&&globalThis.VoidMeridianInteriorKit?VoidMeridianInteriorKit.definitions('ikit:'):{}),...Object.fromEntries(def.interactions.filter(i=>i.character&&VoidAssets.models.characters[i.character]).map(i=>['character:'+i.character,VoidAssets.models.characters[i.character]]))});task.check();station.setEnabled(false);rocks.forEach((mesh,i)=>{mesh.position.set((i%2?-1:1)*(75+i*6),30+Math.sin(i)*24,90+i*17);mesh.scaling.setAll(2+i%5);});
@@ -695,7 +698,7 @@
       // Interior dressing from the reference sheet (meridian-interior-kit.js): visual only, after the fit-out so it is never merged.
       globalThis.VoidMeridianInteriorKit?.dress(scene,roomRoot,'ikit:');}
     const roomLight=new BABYLON.PointLight('concourse-light',new BABYLON.Vector3(0,4,25),scene);roomLight.parent=roomRoot;roomLight.diffuse=new BABYLON.Color3(1,.69,.38);roomLight.intensity=1.4;roomLight.range=28;
-    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(-3,7,-9),scene);fill.parent=roomRoot;fill.diffuse=new BABYLON.Color3(1,.8,.76);fill.specular=new BABYLON.Color3(.5,.4,.38);fill.intensity=1.5;fill.range=34;fill.falloffType=BABYLON.Light.FALLOFF_STANDARD; // brighter, slightly red (David, 2026-10-23); range falloff so the PBR wall panels 15 m out still catch it
+    const fill=new BABYLON.PointLight('hangar-light',new BABYLON.Vector3(-3,7,-9),scene);fill.parent=roomRoot;fill.diffuse=new BABYLON.Color3(1,.8,.76);fill.specular=new BABYLON.Color3(.5,.4,.38);fill.intensity=1.5;fill.range=34;fill.falloffType=BABYLON.Light.FALLOFF_STANDARD; // brighter, slightly red (the owner, 2026-10-23); range falloff so the PBR wall panels 15 m out still catch it
     // These routes are station-relative and visible through the observation apertures.
     for(let i=0;i<3;i++){const n=shipModel(i?'shuttle':'courier','neutral',roomRoot);n.metadata={...n.metadata,traffic:true,lane:i};actors.push({node:n,traffic:true,lane:i});}
     await task.wait('scene',()=>scene.whenReadyAsync(),'station-'+def.id);diagnostics.location=def.id;
@@ -1066,13 +1069,15 @@
         node.dispose();
         ships.delete(e);
       }
-    setPool('laser', snapshot.bullets, '#75ffe0', .16);
-    setPool('hostile', snapshot.hostile, '#ff715f', .2);
+    // Weapon visuals (flight-fx.js): glowing bolts, missiles with motor flame and smoke, muzzle flashes. Without it, the old simple shapes.
+    const fx = !!root.VoidFlightFx?.render({B: B(), scene, root: spaceRoot, vector, quality}, snapshot);
+    setPool('laser', fx ? [] : snapshot.bullets, '#75ffe0', .16);
+    setPool('hostile', fx ? [] : snapshot.hostile, '#ff715f', .2);
     // Faction battle bolts: precise cyan Communion fire, heavier amber Natural Order bursts.
     const factionShots = snapshot.factionShots || [];
     setPool('communion-bolt', factionShots.filter(q => q.side === 'communion'), '#8ff0ff', .12);
     setPool('order-bolt', factionShots.filter(q => q.side !== 'communion'), '#ffae4a', .19);
-    setPool('missile', snapshot.missiles, '#ffca7d', .35);
+    setPool('missile', fx ? [] : snapshot.missiles, '#ffca7d', .35);
     let count = 0;
     const activeEffects = new Set(snapshot.effects.slice(-12));
     for (const [cloud, visual] of effects)
@@ -1162,6 +1167,7 @@
   async function prepareRoom(def, task) {
     if(!task)return VoidPreparation.run(t=>prepareRoom(def,t));
     if(def.kind==='station')return prepareStation(def,task);
+    const kestrel=root.VoidKestrel?(VoidKestrel.register(VoidAssets,quality),VoidKestrel.definitions(quality)):{};
     await initialize(task);
     release();
     const b = B();
@@ -1177,19 +1183,21 @@
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     // Separate areas built by their own modules: the Corporate District (corporate.js, corporate-build.js), and the inside of Milked (milked-build.js). The handle is {tick(time,player), dispose()}.
-    if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.milked&&root.VoidMilked?.build)){
+    if((def.corporate&&root.VoidCorporate?.build)||(def.temple&&root.VoidTemple?.build)||(def.milked&&root.VoidMilked?.build)||(def.apartment&&root.VoidApartments?.build)){
       crowdLocation=def.id;root.VoidCrowd?.begin();
-      zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:root.VoidMilked).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
-      await task.wait(def.corporate||def.temple?'area':'scene',()=>scene.whenReadyAsync(),def.id);
+      zoneHandle=(def.corporate?root.VoidCorporate:def.temple?root.VoidTemple:def.apartment?root.VoidApartments:root.VoidMilked).build({scene,parent:roomRoot,quality,def,camera,characterModel,state:typeof state!=='undefined'?state:{}});
+      await zoneHandle?.prepare?.();   // Milked: its people and their shaders, behind the check-in card (milked-build.js prepare; bounded, never throws)
+      await task.wait(def.corporate||def.temple||def.apartment?'area':'scene',()=>scene.whenReadyAsync(),def.id);
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
     if(def.district&&root.VoidNeoChinatown){
-      crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all')||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{})},task),'district models');
+      crowdLocation='neochinatown';root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models('neochinatown',quality,def.area||'all',def.quarter||null)||{}),...((VoidNeoChinatown.modelsFor?VoidNeoChinatown.modelsFor(def.area||'all'):VoidNeoChinatown.models)||{}),...((typeof state!=='undefined'?state:{})?.story?.flags?.shipAccess!=='none'&&(def.area!=='street'||!def.quarter||def.quarter==='port')?kestrel:{})},task),'district models');
       districtHandle=VoidNeoChinatown.build({scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{},area:def.area||'all',quarter:def.quarter||null,instance:(id,parent,only)=>VoidAssets.instance(id,parent,only)});landBoarding(def);
+      await districtHandle.prepare?.();   // NULL and the street's light slots, behind the loading screen (neochinatown.js prepare; bounded, never throws)
       await task.wait('scene',()=>scene.whenReadyAsync(),'neochinatown');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
     }
-    if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,root.VoidCrowd?.models(def.planet,quality)||{},task),'crowd models');
+    if(def.planet&&root.VoidPlanets){crowdLocation=def.planet;root.VoidCrowd?.begin();await task.wait('assets',()=>VoidAssets.prepare(scene,{...(root.VoidCrowd?.models(def.planet,quality)||{}),...kestrel},task),'crowd models');
       planetHandle=VoidPlanets.build(def.planet,{scene,parent:roomRoot,quality,characterModel,shipModel,state:typeof state!=='undefined'?state:{}});landBoarding(def);
       await task.wait('scene',()=>scene.whenReadyAsync(),'homeworld');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
@@ -1198,6 +1206,7 @@
     if(def.vr&&root.VoidVR){vrHandle=await root.VoidVR.buildWorld(def,{scene,parent:roomRoot,quality,task,camera,characterModel,assets:VoidAssets});
       await task.wait('scene',()=>scene.whenReadyAsync(),'vr');diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;}
     if(def.kind==='derelict'){
+      await task.wait('assets',()=>VoidAssets.prepare(scene,kestrel,task),'derelict models');
       derelictHandle=VoidDerelictStation.build({scene,parent:roomRoot,quality,shipModel});
       await task.wait('scene',()=>scene.whenReadyAsync(),'derelict station');
       diagnostics.location=def.name;diagnostics.meshCount=scene.meshes.length;return;
@@ -1327,7 +1336,9 @@
     const roomDt=lastRoomTime===null?0:Math.min(.1,Math.max(0,time-lastRoomTime));lastRoomTime=time;
     if(stationActivity){VoidStationActivities.step(stationActivity,lastActivityTime===null?0:Math.min(.1,Math.max(0,time-lastActivityTime)));lastActivityTime=time;}
     // Doors slide rather than snap. Inner doors open for crew walking through and close behind them, unless the player opened them.
-    for(const mesh of roomRoot.getChildMeshes()){const d=mesh.metadata?.stationDoor;if(!d)continue;
+    // The door list is gathered again only when the room or its number of meshes changes (it was gathered from every mesh in the room every frame: about 1,000 in NeoChinatown, none of them doors).
+    if(doorCache.root!==roomRoot||doorCache.count!==scene.meshes.length){doorCache.root=roomRoot;doorCache.count=scene.meshes.length;doorCache.list=roomRoot.getChildMeshes().filter(m=>m.metadata?.stationDoor);}
+    for(const mesh of doorCache.list){const d=mesh.metadata?.stationDoor;if(!d||mesh.isDisposed())continue;
       if(stationActivity&&d.id!=='crew-pressure-door'){const near=(x,z,m)=>Math.abs(x-d.position[0])<d.size[0]/2+m&&Math.abs(z-d.position[2])<d.size[2]/2+m,crew=stationActivity.actors.some(a=>near(a.x,a.z,1.6));
         if(crew&&!d.open){d.open=true;d.byCrew=true;}else if(!crew&&d.byCrew&&!near(player.x,player.z,1.2)){d.open=false;d.byCrew=false;}}
       const target=d.position[1]+(d.open?3.5:0);mesh.position.y+=(target-mesh.position.y)*(roomDt?Math.min(1,roomDt*5):1);}

@@ -1,8 +1,8 @@
 # ActorCore motion capture and the shared animation library
 
-David bought ActorCore (Reallusion) motion capture and sent two downloads on 16 Nov 2026 (Blender preset, 60 fps, CC3+ skeleton, 101 bones). His brief: use them for VR companions, the Milked dancers and general NPCs; support group and synchronised interactions; build a reusable library; keep the originals out of the public repository; **check the licence before publishing**.
+The owner bought ActorCore (Reallusion) motion capture and sent two downloads on 16 Nov 2026 (Blender preset, 60 fps, CC3+ skeleton, 101 bones). His brief: use them for VR companions, the Milked dancers and general NPCs; support group and synchronised interactions; build a reusable library; keep the originals out of the public repository; **check the licence before publishing**.
 
-## STATUS: PUBLISHED on 16 Nov 2026. David decided: "Publish with the existing protection" (the same packing and encryption as the other licensed models). The library file is in the private asset repository (`void-runner/assets/models/anim/anim-actorcore.vrpak`) and is sealed into the site at the Pages build.
+## STATUS: PUBLISHED on 16 Nov 2026. The owner decided: "Publish with the existing protection" (the same packing and encryption as the other licensed models). The library file is in the private asset repository (`void-runner/assets/models/anim/anim-actorcore.vrpak`) and is sealed into the site at the Pages build.
 
 ## Inventory (14 motions)
 
@@ -25,14 +25,14 @@ David bought ActorCore (Reallusion) motion capture and sent two downloads on 16 
 
 **Missing partners (do not force mismatched parts together):** set 1 has only seat 1 (seats 2 and 3 missing); set 2 has seats 2 and 3 (seat 1 missing); both cuddle clips are the woman's half only. `VoidAnimLibrary.groups()` reports this. The missing parts must either be bought or made in Blender to fit.
 
-Originals: the two zips David uploaded, unpacked in the cloud session at `/home/user/actorcore/` (outside the repository; gone when the session ends) and on David's PC wherever he downloaded them. They are never committed.
+Originals: the two zips the owner uploaded, unpacked in the cloud session at `/home/user/actorcore/` (outside the repository; gone when the session ends) and on the owner's PC wherever he downloaded them. They are never committed.
 
 ## Licence position (read before publishing)
 
 - Reallusion's current content licence policy says exportable content bought with the Standard License can be exported to any engine and used in games and interactive services.
 - A Reallusion staff forum reply (2021) adds the condition that the end user of the game must not be able to download or extract the actual Reallusion content (characters, textures or animations). That is a forum statement, not licence text; the licence page itself could not be opened from the cloud session (the reallusion.com host is not on the session's allowed list).
 - A browser game sends its files to the player's browser. Ours are retargeted onto our own skeleton, stored without any Reallusion mesh, packed (`.vrpak`) and encrypted at the Pages build like the other licensed models. That stops casual downloading; it cannot stop a determined person, because the game itself must be able to read the file.
-- **So the question for David (or Reallusion support): is the protection we use for the other licensed assets acceptable for these animations?** Until he says yes, the library file is not put in the private asset repository and not deployed. The public repository only has the code.
+- **So the question for the owner (or Reallusion support): is the protection we use for the other licensed assets acceptable for these animations?** Until he says yes, the library file is not put in the private asset repository and not deployed. The public repository only has the code.
 
 ## How it works
 
@@ -50,9 +50,9 @@ In a browser, on Kai (MakeHuman male) in the companion room: standing pose, slow
 ## In use (16 Nov 2026)
 
 - **VR companions** (`vr-suite.js`): a companion whose figure takes the library gets three more choices in the Together group: "Dance for me" (the two slow dances), "Strike a pose" (the two standing poses) and "Relax on the floor" (the three floor poses). They hold until the player chooses Stop. "Dance together" now sometimes picks a motion-capture dance. Checked on the new Kai (a Meshy 24-joint figure): a standing pose, the slow movement and two floor poses.
-- David's idea for the group clips whose partners are missing (16 Nov): use the single seats where the other people are PLAYERS (two players and one companion: the companion plays her recorded seat and the players sit as themselves), or he may look for the missing parts. Not built yet.
+- The owner's idea for the group clips whose partners are missing (16 Nov): use the single seats where the other people are PLAYERS (two players and one companion: the companion plays her recorded seat and the players sit as themselves), or he may look for the missing parts. Not built yet.
 
-## NOT done yet (the rest of David's brief)
+## NOT done yet (the rest of the owner's brief)
 
 - No bench or bar NPC uses them yet; the Milked dancers are part of the Milked redesign (in progress).
 - Purchased companions (Ava, Eva, Yuki, Dex) and Nadia have their own skeletons; whether the library fits them has not been checked. The Meshy residents (24-joint rigs, no fingers) should take them but are unchecked.

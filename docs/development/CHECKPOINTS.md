@@ -1,10 +1,10 @@
-# Vestibules and checkpoints: David's decisions (16 Nov 2026)
+# Vestibules and checkpoints: The owner's decisions (16 Nov 2026)
 
 Status (build `2026-11-16-quarters-1`): the checkpoints of map A are BUILT as buildings you walk or ride through, with the scan as a picture only.
 Contraband, bribes and shielding are NOT built (not decided). What is built and how to add a checkpoint: see "Built" below and
 [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md).
 
-## Decided by David
+## Decided by the owner
 - **No loading-screen look.** Vestibules must not read as loading screens. Wording such as "PREPARING NEOCHINATOWN" is removed from view.
   Built in BUILD `2026-11-16-vestibule-1`: the District's checkpoint panel and corner frame, and Milked's card, logo and bars, are hidden
   (the wording remains for screen readers only). The still picture of the vestibule and the scan light remain.
@@ -17,12 +17,12 @@ Contraband, bribes and shielding are NOT built (not decided). What is built and 
 - **Standardise character quality** across the game: NPCs inside The Darknet District look much better than those outside. When doing this,
   also look for other ways to optimise the outdoors.
 
-- **Final wording of the rule (David):** vestibules match their surroundings; no wording that implies loading; no loading bar. He likes the
+- **Final wording of the rule (the owner):** vestibules match their surroundings; no wording that implies loading; no loading bar. He likes the
   scan effects, and the options listed below may be experimented with.
 - **NeoChinatown rework:** take the checkpoints into account from the start: place them where they allow better graphics in each area while
-  making sense for security and looking right. Bring David a map of the areas and checkpoint positions before building.
+  making sense for security and looking right. Bring the owner a map of the areas and checkpoint positions before building.
 - **Two kinds:** pedestrian vestibules and car vestibules (for road taxis).
-- **Air cars / sky taxis are scrapped**, specifically because the game has ships: David wants players to leave the planet and experience the
+- **Air cars / sky taxis are scrapped**, specifically because the game has ships: the owner wants players to leave the planet and experience the
   lore through other places. Remove the sky-cab stops during the NeoChinatown rework (they also exist in the Corporate District and Zen Zephyr
   Temple code: remove only the stops there). The V1 taxi map work becomes road taxis only.
 - **High-speed rail:** a "maybe". Not to be built without approval; show it as an option on the area map, as a short hop within the city.
@@ -37,15 +37,15 @@ Contraband, bribes and shielding are NOT built (not decided). What is built and 
 - **Rail: not now.**
 - **Players in different quarters do not see each other;** messages between players still work across quarters.
 - **The Function's gate guards, for now:** the Corporate District's existing silent robots, with no voice, no dialogue and no new look.
-- **Checkpoints are GAMEPLAY, not loading screens, and more may be added later (David, 16 Nov 2026).** So a checkpoint is a reusable, data-driven
+- **Checkpoints are GAMEPLAY, not loading screens, and more may be added later (the owner, 16 Nov 2026).** So a checkpoint is a reusable, data-driven
   thing: one definition per checkpoint (position, facing, operator [private guards / robots], lanes [pedestrian, vehicle], what it connects). A new
   one, including one INSIDE a quarter that does not change areas, is added by adding an entry. Contraband stays undecided: the scan is visual
   only and always passes.
-- **Zoom renders detail (David, 16 Nov 2026):** "if a player is zooming with the camera I want detail to render". Every outdoor distance test for
+- **Zoom renders detail (the owner, 16 Nov 2026):** "if a player is zooming with the camera I want detail to render". Every outdoor distance test for
   people and props now judges the distance as the zoomed picture shows it (`void-runner/zoom-detail.js`).
 
 ## Changed in build `2026-11-16-fixes-1`
-- **A4 East Gate has a walkers' lane** (David, 16 Nov 2026: "the east gate checkpoint doesn't have a pedestrian vestibule"). One more entry in the gate's `lanes` (`ncz-quarters.js`); the lane, its doors, scan, PEDESTRIANS sign and collision come from it as at every other gate. It is walked to the Zen Zephyr Temple and back exactly as the Function Gate is walked to the Corporate District. The scan is still a picture only and always passes.
+- **A4 East Gate has a walkers' lane** (the owner, 16 Nov 2026: "the east gate checkpoint doesn't have a pedestrian vestibule"). One more entry in the gate's `lanes` (`ncz-quarters.js`); the lane, its doors, scan, PEDESTRIANS sign and collision come from it as at every other gate. It is walked to the Zen Zephyr Temple and back exactly as the Function Gate is walked to the Corporate District. The scan is still a picture only and always passes.
 
 ## Built (build `2026-11-16-quarters-1`)
 - **One entry per checkpoint.** `void-runner/ncz-quarters.js` `GATES` (or `define(entry)` at run time). An entry: `id`, `code`, `name`, `sign` (the
@@ -68,7 +68,7 @@ Contraband, bribes and shielding are NOT built (not decided). What is built and 
 - Bribes as a gamble (price rises with what is carried; a chance the guard reports the player anyway); The Function's guards not bribable.
 - Shielding in grades; weaker scanners at NeoChinatown, stricter at The Function's checkpoints.
 
-## Needs David before building
+## Needs the owner before building
 - What counts as contraband, and what happens when caught.
 - How The Function's guards look and sound (The Function gets no voice or treatment without his approval).
 
@@ -80,6 +80,6 @@ Contraband, bribes and shielding are NOT built (not decided). What is built and 
 
 ## Stage 2 (16 Nov 2026, build `2026-11-16-outskirts-1`): the Far South Gate is live, walkers only
 
-David: past it is **The Outskirts**; the road stops at the checkpoint; **no car vestibule, only a pedestrian vestibule**.
+The owner: past it is **The Outskirts**; the road stops at the checkpoint; **no car vestibule, only a pedestrian vestibule**.
 - **A6 Far South Gate** (`far-south-gate`, rect `[51,71,-224,-218]`): one walkers' lane (v 59.5 to 62.5), no vehicle bay, private guards, the same scan, always passes. Not in `LINKS`, so no taxi route crosses it; the Far South stop ("Milked corner") stays on the Far South side; there is no taxi stop in The Outskirts.
 - Contraband, bribes and shielding are still undecided and not built.

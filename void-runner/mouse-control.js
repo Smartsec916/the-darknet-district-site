@@ -1,4 +1,4 @@
-/* First-person mouse (David's editor brief, part 7 and 8). One owner for pointer lock in the walking modes:
+/* First-person mouse (the owner's editor brief, part 7 and 8). One owner for pointer lock in the walking modes:
    the click that captures the mouse never fires, Esc (the browser releasing the lock) pauses, closing a
    dialogue or menu takes the mouse back, and the wheel cycles the weapons you own. Flight is untouched. */
 (function(){
@@ -34,8 +34,20 @@
   if(locked()){failures=0;gameReleased=false;return;}
   if(document.pointerLockElement){if(fps())document.exitPointerLock();return;}   // the mouse was taken by some other screen (the Sleeping Pod's view): not an Esc. If the pod has since been left, hand the mouse back to the game.
   if(gameReleased){gameReleased=false;if(!conversationOpen())reacquire();return;} // keep the cursor free over a conversation
-  if(fps()&&!conversationOpen()&&typeof openGameMenu==='function'){walkingKeys?.clear?.();openGameMenu();}
+  if(!fps()||conversationOpen())return;
+  walkingKeys?.clear?.();
+  // Clicking out of the browser (another window or app) also releases the mouse. That is not Esc: stay in the game, nothing opens, and a click on the game takes the mouse back (the owner, 17 Nov 2026). Focus is checked a moment later because the browser reports the release and the lost focus in either order.
+  const t0=performance.now();setTimeout(()=>{if(locked()||!fps())return;const now=performance.now();if(away||document.hidden||!document.hasFocus()||now-t0>600||now-lastAway<1500){hint(true);return;}if(typeof openGameMenu==='function')openGameMenu();},120);
  });
+ let away=false,lastAway=-1e9;
+ addEventListener('blur',()=>{away=true;lastAway=performance.now();});addEventListener('focus',()=>{away=false;lastAway=performance.now();});
+ // Switching browser tabs is not Esc either (the owner, 18 Nov 2026: only Esc opens the menu). A hidden tab can hold the timer above until the player comes back, when the page looks focused again: so any tab switch or focus change within 1.5 s of the release, or a timer that ran late, counts as leaving, never as Esc.
+ document.addEventListener('visibilitychange',()=>{lastAway=performance.now();});
+ // A quiet line in the middle of the screen while the game is waiting for a click to take the mouse back.
+ let tip=null;
+ function hint(on){if(on&&!tip){tip=document.createElement('div');tip.id='resume-hint';tip.textContent='CLICK TO RETURN TO THE GAME';tip.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);padding:10px 18px;background:rgba(5,10,14,.78);border:1px solid rgba(94,242,214,.55);color:#5ef2d6;font:600 13px/1.2 monospace;letter-spacing:.18em;pointer-events:none;z-index:40';document.body.appendChild(tip);}if(tip)tip.hidden=!on;}
+ document.addEventListener('pointerlockchange',()=>{if(locked())hint(false);});
+ setInterval(()=>{if(tip&&!tip.hidden&&(!fps()||conversationOpen()))hint(false);},500);
 
  // Closing a dialogue, menu or panel with a click or key returns to play: take the mouse straight back.
  const reacquire=()=>setTimeout(()=>{if(fps()&&!locked()&&!conversationOpen())lock();},0);
@@ -54,7 +66,7 @@
   owns:id=>id==='unarmed'||id===(VoidSkirmish.active?.weapon||'ward-pistol'),
   select:id=>{const s=VoidSkirmish.active;if(!s)return false;const want=id!=='unarmed';if(s.drawn!==want)VoidSkirmish.action('draw',true);return true;}
  };
- const weapons=[{id:'unarmed',name:'UNARMED',key:'KeyH'},{id:'ward-pistol',name:'WARD PISTOL',key:'Digit1'},{id:'rifle',name:'RIFLE',key:'Digit2'}];
+ const weapons=[{id:'unarmed',name:'UNARMED',key:'KeyH'},{id:'ward-pistol',name:'WARD PISTOL',key:'Digit1'},{id:'base-pistol',name:'PISTOL',key:'Digit1'},{id:'rifle',name:'RIFLE',key:'Digit2'}];
  const context=()=>mode==='skirmish-fps'?skirmish:mode==='walking'&&state?.progression?.personal?campaign:null;
  const available=c=>weapons.filter(w=>c.owns(w.id));
  function select(id){const c=context();if(!c||!c.owns(id)||c.current()===id)return false;const ok=c.select(id);if(ok)flash();return ok;}

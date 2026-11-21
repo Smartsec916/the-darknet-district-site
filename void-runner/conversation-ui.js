@@ -12,11 +12,13 @@
  const priorRender=renderLine;
  renderLine=function(...args){priorRender(...args);if(!floating())return;
   const line=speech.lines[speech.index],signature=speech.index+':'+line.who+':'+line.text;
-  if(lastLine!==signature){history.append(localStorage,uid(),{character:line.who||'companion',name:characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}
+  // the player's own line (who 'You', Mission Editor player lines): kept in the thread of the character the player is talking with, under the name You
+  const you=line.who==='You',partner=you?([...speech.lines.slice(0,speech.index).reverse(),...speech.lines.slice(speech.index+1)].find(l=>l&&l.who&&l.who!=='You')||{}).who||'You':line.who;
+  if(lastLine!==signature&&!line.silent){history.append(localStorage,uid(),{character:partner||'companion',name:you?'You':characters[line.who]?.name||line.who||'Companion',text:line.text,place:state.location,at:Date.now()});lastLine=signature;}
   const win=screen.querySelector('.dialogue-window');if(win&&!win.querySelector('.conversation-minimize')){
    const thread=document.createElement('div');thread.className='conversation-thread';thread.setAttribute('aria-label','Conversation history');
-   for(const row of history.filter(history.read(localStorage,uid()),'all',line.who||'companion').slice(-9,-1)){const bubble=document.createElement('article');bubble.className='social-message';const name=document.createElement('b');name.textContent=row.name;const time=document.createElement('time');time.dateTime=new Date(row.at).toISOString();time.textContent=' · '+new Date(row.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});const body=document.createElement('p');body.textContent=row.text;bubble.append(name,time,body);thread.append(bubble);}
-   win.insertBefore(thread,win.querySelector('.speech-body'));
+   for(const row of history.filter(history.read(localStorage,uid()),'all',partner||'companion').slice(-9,-1)){const bubble=document.createElement('article');bubble.className='social-message';const name=document.createElement('b');name.textContent=row.name;const time=document.createElement('time');time.dateTime=new Date(row.at).toISOString();time.textContent=' · '+new Date(row.at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});const body=document.createElement('p');body.textContent=row.text;bubble.append(name,time,body);thread.append(bubble);}
+   win.insertBefore(thread,win.querySelector('.speech-body'));thread.scrollTop=thread.scrollHeight;   // the latest line in view (a quote just before a follow-up)
    const b=document.createElement('button');b.type='button';b.className='conversation-minimize quiet';b.textContent='MINIMIZE';b.addEventListener('click',e=>{e.stopPropagation();minimized=true;screen.classList.add('hidden');restore.hidden=false;canvas.focus({preventScroll:true});});win.prepend(b);
   }
   show();
@@ -28,5 +30,8 @@
  advanceSpeech=function(...args){const result=priorAdvance(...args);if(!hasContent()&&screen.classList.contains('conversation-live')){activeMode=null;screen.classList.remove('conversation-live');screen.classList.add('hidden');restore.hidden=true;}return result;};
  if(typeof renderStoryChoices==='function'){const priorChoices=renderStoryChoices;renderStoryChoices=function(...args){priorChoices(...args);if(activeMode&&walkingLocation&&walker){screen.querySelector('.dialogue-window')?.classList.add('choice-menu');mode=activeMode;screen.classList.add('conversation-live');screen.classList.remove('hidden');}};}
  document.addEventListener('keydown',e=>{if(e.code==='Escape'&&speech&&screen.classList.contains('conversation-live')){minimized=true;screen.classList.add('hidden');restore.hidden=false;}},true);
+ // The walking update (babylon-integration.js) returns before the older update chain, so scenes.js never typed or advanced a walking conversation:
+ // the line sat empty until the player clicked (the owner, 17 Nov 2026). Tick it here, outside that chain (tickSpeech is safe to call twice a frame).
+ const priorUpdate=update;update=function(...args){const result=priorUpdate(...args);if(mode!=='pause')tickSpeech();return result;};
  globalThis.VoidConversationUI={get isOpen(){return hasContent()&&screen.classList.contains('conversation-live');},continueWalking(){if(!this.isOpen)return false;activeMode='walking';mode='walking';walkingKeys.clear();canvas.focus({preventScroll:true});return true;}};
 })();

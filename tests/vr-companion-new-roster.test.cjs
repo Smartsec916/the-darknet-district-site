@@ -1,4 +1,4 @@
-// Una and the two base figures: roster placement, dev-only listing, pairing, Una's outfits (David's Style A by
+// Una and the two base figures: roster placement, dev-only listing, pairing, Una's outfits (the owner's Style A by
 // default) with their parts, textures and glossier finishes, and nothing changed for the public roster.
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../void-runner/vr-companions.js');
@@ -27,5 +27,5 @@ test('Una wears Style A (minimalist) by default; every outfit shows its own part
 test('two women can share a room, never a man and a woman; the public roster',()=>{
  assert.deepEqual(C.party({companions:['una','ava']}).map(e=>e.id),['una','ava']);
  assert.deepEqual(C.party({companions:['base-m','base-f']}).map(e=>e.id),['base-m']);
- assert.deepEqual([...C.companions.values()].filter(e=>C.offered(e,'thedarknetdistrict.com')).map(e=>e.id).sort(),['ava','base-f','base-m','eva','kai','nadia']);
+ assert.deepEqual([...C.companions.values()].filter(e=>C.offered(e,'thedarknetdistrict.com')).map(e=>e.id).sort(),['ava','base-f','base-m','eva','kai','luna','nadia','zane']);
 });

@@ -2,19 +2,19 @@
 
 > **HISTORICAL CANON — read [`docs/development/AI_HANDOFF.md`](docs/development/AI_HANDOFF.md) (Start here) and [`docs/development/AI_ROADMAP.md`](docs/development/AI_ROADMAP.md) first.** Updated 2026-11-12. PR [#212](https://github.com/Smartsec916/the-darknet-district-site/pull/212) **merged on 11 Nov 2026**. This file's October 15 `main`, starting-on-Vesper, mission, ship and CI figures are **historical**, not current release instructions. Preserve canon and the decision log. Do not restore the old tutorial, the old Arcade link, or the old homepage graphics.
 
-**As of:** 2026-10-15 · **`main` at:** PR #47 merged (`24a7071`) plus this handoff PR · **Owner and creative authority:** David (GitHub `Smartsec916`)
+**As of:** 2026-10-15 · **`main` at:** PR #47 merged (`24a7071`) plus this handoff PR · **Owner and creative authority:** The owner (GitHub `Smartsec916`)
 
-This document moves VOID//RUNNER development from a long Claude conversation to Claude Code. Read it together with `CLAUDE.md`, which covers how to work in the repo. David's original design documents are in `docs/void-runner/design-source/`. That folder's README says which parts later decisions have superseded.
+This document moves VOID//RUNNER development from a long Claude conversation to Claude Code. Read it together with `CLAUDE.md`, which covers how to work in the repo. The owner's original design documents are in `docs/void-runner/design-source/`. That folder's README says which parts later decisions have superseded.
 
 ## 0. Status labels used in this document
 
 | Label | Meaning |
 |---|---|
 | **IMPLEMENTED** | In `main` and playable. |
-| **APPROVED** | David agreed to it. Not necessarily built. |
-| **DAVID'S SCRIPT** | Dialogue or scene text David wrote himself. Treat it as approved content. Anything it leaves open still needs a proposal. |
-| **PROPOSED** | Suggested and waiting on David. Not canon. Do not build. |
-| **CLAUDE-WRITTEN, UNREVIEWED** | Built as functional placeholder text. David has not reviewed the wording. |
+| **APPROVED** | The owner agreed to it. Not necessarily built. |
+| **THE OWNER'S SCRIPT** | Dialogue or scene text the owner wrote himself. Treat it as approved content. Anything it leaves open still needs a proposal. |
+| **PROPOSED** | Suggested and waiting on the owner. Not canon. Do not build. |
+| **CLAUDE-WRITTEN, UNREVIEWED** | Built as functional placeholder text. The owner has not reviewed the wording. |
 | **REJECTED / REMOVED** | Do not reintroduce. |
 | **DEFERRED** | Saved for later. Do not build now. |
 
@@ -44,8 +44,8 @@ VOID//RUNNER is a browser-based industrial sci-fi action/adventure game built wi
 
 **Art direction:**
 - Grounded, worn, industrial sci-fi, with cyberpunk commercial environments in Tessaly.
-- David's concept art for the Kestrel, Mara, Meridian Station, Vesper and the derelict station is on his PC under `D:\Pictures\Game\Start\…`. It is not in the repo, so ask him for images when needed.
-- David plans to make new 3D assets in **Blender** (GLB/glTF). The asset hook system (`asset-pipeline.js`, `VoidAssets.instance('opening:<id>', …)`) lets imported models replace the built-in geometry.
+- The owner's concept art for the Kestrel, Mara, Meridian Station, Vesper and the derelict station is on his PC under `D:\Pictures\Game\Start\…`. It is not in the repo, so ask him for images when needed.
+- The owner plans to make new 3D assets in **Blender** (GLB/glTF). The asset hook system (`asset-pipeline.js`, `VoidAssets.instance('opening:<id>', …)`) lets imported models replace the built-in geometry.
 
 **Process (binding; `design-source/02-world-expansion-design-brief.md`):**
 - Story and world are designed collaboratively.
@@ -71,7 +71,7 @@ VOID//RUNNER is a browser-based industrial sci-fi action/adventure game built wi
   - Throttle, braking, yaw/pitch/roll, heat and power, damage, repair.
   - Ace Combat-style missile lock with lock-on warnings, lasers, and enemy AI.
   - Warp travel with a cinematic fly-by. Local jumps take about 14 s and interstellar jumps about 28 s.
-  - A painted Kestrel **cockpit overlay** (`cockpit-overlay.js`), framed with wide windows. David approved it as "perfect".
+  - A painted Kestrel **cockpit overlay** (`cockpit-overlay.js`), framed with wide windows. The owner approved it as "perfect".
   - Head-on docking into hangars.
 - **Stations:** all walkable in first person.
   - Meridian Station (Rook, Nyx, outfitter, the Dead Channel bar, mission terminal, textured pressure door).
@@ -118,7 +118,7 @@ This conversation (Claude), 2026-10-14 to 2026-10-15:
 | #40 | Clearer mission waypoint arrow, linked to the tracked mission. The floating marker over the goal was removed. |
 | #41, #42 | Art pass: Vesper, Kestrel, Meridian Station, derelict hangar; NPC ships around Vesper. |
 | #43 | Kestrel hold raised to 2 units; derelict catwalks became a walkable, fightable upper level. |
-| #44 | NeoChinatown and The Darknet District, built from David's facility layout; Sol renamed to Tessaly in the UI; Vesper outdoor art; Meridian door texture; lower arrow; less Vesper traffic. |
+| #44 | NeoChinatown and The Darknet District, built from the owner's facility layout; Sol renamed to Tessaly in the UI; Vesper outdoor art; Meridian door texture; lower arrow; less Vesper traffic. |
 | #45 | Optional tutorial (Mara asks); Mission Log key hint; Tessaly's own ad style (12 brands, `ad-art.js`); Mars renamed to Vantor in the UI. |
 | #47 | Natural Vesper terrain (replaced #46); internal id `undertow`→`rusthaven` with save migration; repeating Rook freight runs. |
 | (this PR) | Faction deliveries: Cantor System / The Vigil and Garrow System / Holdfast; Admin (doc 05), Elara Voss and Marcus Vale (doc 07), Iris's payment and second offer (doc 06). |
@@ -155,7 +155,7 @@ Free travel and Tessaly unlock when the prologue completes, meaning the missile 
 
 ### 4.3 Repeating Rook freight runs (IMPLEMENTED in PR #47; CLAUDE-WRITTEN, UNREVIEWED dialogue)
 
-David's instruction: *"Let the Rook cargo missions keep going. If a new System opens up have it be to that System."*
+The owner's instruction: *"Let the Rook cargo missions keep going. If a new System opens up have it be to that System."*
 
 - After the prologue (`quest==='open'` and `progression.completed`), talking to **Rook at Meridian** offers "Rook freight run #N". The player chooses ACCEPT RUN or NOT NOW.
 - **Destination:** the first run after a system is newly discovered goes to **that system's hub**; today that is Tessaly → `sol-belt`. Otherwise runs rotate through discovered locations, excluding Vesper and the current location.
@@ -213,9 +213,9 @@ Claude's suggestions, all PROPOSED:
 - Rework Lockdown as a Tessaly / The Function chapter.
 - Defer Beyond the Gate to the alien expansion.
 
-David has not decided. Several of these, plus Rook's runs and the contracts, overlap with each other.
+The owner has not decided. Several of these, plus Rook's runs and the contracts, overlap with each other.
 
-### 4.6 Faction deliveries (IMPLEMENTED; DAVID'S SCRIPTS, docs 05, 06 and 07)
+### 4.6 Faction deliveries (IMPLEMENTED; THE OWNER'S SCRIPTS, docs 05, 06 and 07)
 
 | ID | Mission | Starts | Ends | Giver | Pay |
 |---|---|---|---|---|---|
@@ -228,7 +228,7 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
 - The second delivery is paid the same way, and Iris closes with her last line.
 - After both deliveries, Claude must **propose several next-chapter directions**. Doc 06 §7 lists them: Rook, Admin/Iris, Communion, Natural Order, independent cargo, exploration/bounty. Nothing may be finalized without approval.
 - **Faction battles (IMPLEMENTED; doc 08):** each delivery's outbound jump drops out once, halfway, beside a small Communion vs Natural Order fight. See §9.2.1.
-- **Iris follow-up contracts (IMPLEMENTED; doc 09):** once both introductory deliveries are paid, Iris offers a Communion and a Natural Order supply contract (`communion-supply`, `order-supply`; placeholder pay 1,500 each, David will balance later). Each is delivered to Elara or Marcus and paid by Iris. Delivering one makes that recipient offer a homeworld mission ("I'm interested" / "Not right now"); the offer stays with them until taken. Accepted homeworld missions (`communion-origin-mission-01`, `natural-order-origin-mission-01`) are placeholders: no destination, objectives or rewards, never completable, never auto-tracked; the game says they are not yet available.
+- **Iris follow-up contracts (IMPLEMENTED; doc 09):** once both introductory deliveries are paid, Iris offers a Communion and a Natural Order supply contract (`communion-supply`, `order-supply`; placeholder pay 1,500 each, the owner will balance later). Each is delivered to Elara or Marcus and paid by Iris. Delivering one makes that recipient offer a homeworld mission ("I'm interested" / "Not right now"); the offer stays with them until taken. Accepted homeworld missions (`communion-origin-mission-01`, `natural-order-origin-mission-01`) are placeholders: no destination, objectives or rewards, never completable, never auto-tracked; the game says they are not yet available.
 
 ---
 
@@ -253,7 +253,7 @@ David has not decided. Several of these, plus Rook's runs and the contracts, ove
     - Iris, same case: "You're already carrying someone else's cargo. Come back when your hold is free."
   - When the player returns to Admin after "I'll think about it", Admin reopens with his own line from doc 05 ("So, what do you think?…"), as approved. If the player declines Iris's offer, she repeats her offer lines from doc 06 on the next visit.
   - The script's stage directions (glances, pauses) are not shown; there is no animation for them yet.
-- **David's scripts** (verbatim in `docs/void-runner/design-source/05-*.md` and `06-*.md`):
+- **The owner's scripts** (verbatim in `docs/void-runner/design-source/05-*.md` and `06-*.md`):
   - **Doc 05 (Admin):**
     - The player can ask about either delivery before deciding. Asking never accepts.
     - Three final choices: Communion delivery, Natural Order delivery, or "I'll think about it".
@@ -291,7 +291,7 @@ From the master plan and doc 05:
   - Natural Order: **Garrow System** (`natural-order`), outpost **Holdfast** (`holdfast`): riveted steel, pipework, amber lamps, cargo crates.
   - A system opens on the map only when the player **accepts** that delivery.
   - The Communion's dead-AI world is deliberately left unnamed.
-- **Recipients (DAVID'S SCRIPT, doc 07):** Dr. Elara Voss, Research Logistics Coordinator (The Vigil); Marcus Vale, Industrial Supply Supervisor (Holdfast). Neither is a leader. Their views are personal opinion and rumor.
+- **Recipients (THE OWNER'S SCRIPT, doc 07):** Dr. Elara Voss, Research Logistics Coordinator (The Vigil); Marcus Vale, Industrial Supply Supervisor (Holdfast). Neither is a leader. Their views are personal opinion and rumor.
   - Elara Voss is unrelated to Mara (Mara's in-game surname "Voss" was dropped). Marcus Vale and Iona Vale are unrelated.
 - **Still not decided:** follow-up chains, faction reputation rules, and anything beyond these first visits.
 - `factions.js` exists, with relay and reputation scaffolding. Check what it already supports before adding faction state.
@@ -303,12 +303,12 @@ From the master plan and doc 05:
 | NPC | Where | Role | Status |
 |---|---|---|---|
 | **Elias Ward** | Vesper (hologram) | The player's late employer; fair-minded. | Canon. A proposal to make his past the thread linking the opening to the faction story is PROPOSED, not approved. |
-| **Mara** (no surname; "Voss" removed from game text 2026-10-15) | Vesper workshop | Older, subdued mechanic; tutorial; gives pistol and ship; sends the player to Rook. | Canon. David said he'll work on characters later. |
+| **Mara** (no surname; "Voss" removed from game text 2026-10-15) | Vesper workshop | Older, subdued mechanic; tutorial; gives pistol and ship; sends the player to Rook. | Canon. The owner said he'll work on characters later. |
 | **Rook** | Meridian, the Dead Channel booth | Cargo contact. Jobs grow in value, risk, distance and illegality (smuggling, pirates, interdiction). Sends the player to Admin. | Canon. |
 | **Nyx** | Meridian bar | Bartender; points the player to Rook and the shop. | Existing game character. |
 | **Dr. Sol** | Kepler | Clinic contact; gives Cold Chain. | Existing game character. Its name is unrelated to the old Sol system. |
 | **Iona Vale** | Rusthaven | Keeps Rusthaven running; gives Ghost Hardware. | Existing game character. |
-| **Admin** | The Darknet District shop, NeoChinatown | Central District figure: knowledgeable, resourceful, hard to intimidate, casual and pragmatic. Indifferent to faction ideology. Has a shop, missions and story connections. | Canon (doc 03). David said "I'll work on characters later, Admin and Iris". Do not invent his backstory. |
+| **Admin** | The Darknet District shop, NeoChinatown | Central District figure: knowledgeable, resourceful, hard to intimidate, casual and pragmatic. Indifferent to faction ideology. Has a shop, missions and story connections. | Canon (doc 03). The owner said "I'll work on characters later, Admin and Iris". Do not invent his backstory. |
 | **Iris** | The Darknet District | Female android, **Chief Security Officer**, associated with Admin. Intelligent, observant, dry and sarcastic but competent. Runs the counter while Admin is away. | Canon (doc 03 and doc 06). Keep her separate from the website's Iris chatbot. |
 | **Dr. Elara Voss** | The Vigil, Cantor System | Communion research logistics coordinator; receives the Communion delivery. Pale coat, glasses, cyan implant. | Canon (doc 07). Available for future missions. |
 | **Marcus Vale** | Holdfast, Garrow System | Natural Order industrial supply supervisor; receives the Natural Order delivery. Brown work coat, beard, no implants. | Canon (doc 07). Available for future missions. |
@@ -326,14 +326,14 @@ From the master plan and doc 05:
 | | `foundry` | The Foundry | Industrial. |
 | | (derelict) | Derelict space station | Gangs and pirates; FPS combat; catwalk level. |
 | **Tessaly** (`sol`) | `sol-belt` | Tessaly Belt Anchorage | Tessaly hub and interstellar arrival point. |
-| | `earth` | **NeoChinatown** | City landing with tall skyscrapers. David will add POIs. **The Darknet District is in an alley near the landing.** |
-| | `mars` | **Vantor** / Underground City | Renamed from Mars. "Vantor" is a working name awaiting David's confirmation. |
+| | `earth` | **NeoChinatown** | City landing with tall skyscrapers. The owner will add POIs. **The Darknet District is in an alley near the landing.** |
+| | `mars` | **Vantor** / Underground City | Renamed from Mars. "Vantor" is a working name awaiting the owner's confirmation. |
 | **Cantor** (`communion`) | `vigil` | **The Vigil** | Communion station and system hub. Opens when the Communion delivery is accepted. |
 | **Garrow** (`natural-order`) | `holdfast` | **Holdfast** | Natural Order outpost and system hub. Opens when the Natural Order delivery is accepted. |
 
 **Tessaly canon (APPROVED):**
 - Heavily corporatized and profit-first. It sells to every system, which keeps it neutral.
-- **Advertising everywhere.** It is inspired by David's Blackout Protocol game but has **its own style**: better graphics, dark, adult and corporate, selling ship parts, weapons and services, and less jokey.
+- **Advertising everywhere.** It is inspired by the owner's Blackout Protocol game but has **its own style**: better graphics, dark, adult and corporate, selling ship parts, weapons and services, and less jokey.
 - **The Function** is the corporate government of all of Tessaly and runs NeoChinatown. Admin's placeholder line: "The Function charges for parking…".
 - Tessaly **replaces Sol everywhere**, so there are no real-world landmark comparisons.
 
@@ -348,7 +348,7 @@ From the master plan and doc 05:
   - The priority order for auto-tracking is in `priority`.
   - Missions without a definition (contracts, chapters, Rook runs) are described from `campaign.missionFlight`.
 - **Arrow:** `world-integration.js` and `prologue-integration.js` set `trackedWalkWaypoint` for the 3D arrow.
-  - David wants **only the arrow**, not a floating marker over the goal.
+  - The owner wants **only the arrow**, not a floating marker over the goal.
   - In the same area the arrow points at the object. Elsewhere it points at the warp marker or ship.
   - It was lowered so it points at the goal better.
 - **Adding a new story mission:**
@@ -377,7 +377,7 @@ From the master plan and doc 05:
 ### 9.2.1 Faction battles (IMPLEMENTED; design doc 08)
 
 - **When:** on the outbound jump of each District delivery, while that cargo is aboard. The warp drops out once at the halfway point ("WARP DROP · Weapons fire near the Cantor/Garrow System border"). The drive recharges for 8 seconds (`route.recharge` in `warp.js`), then the player re-aligns and jumps on whenever they like. The trip is no longer overall, and the warp resumes from where it stopped.
-- **Placement choice (Claude's, flagged for David):** interstellar jumps had no mid-route stop before. The drop reuses the existing re-align-to-resume step. The alternative would be to show the fight only in passing during arrival, with no control.
+- **Placement choice (Claude's, flagged for the owner):** interstellar jumps had no mid-route stop before. The drop reuses the existing re-align-to-resume step. The alternative would be to show the fight only in passing during arrival, with no control.
 - **The fights:** 2 Communion vs 2 Natural Order ships, opening about 15° off the nose and 135–140 m out, never straight ahead. They last 30–60 seconds; then the survivors break off and jump out.
   - **Cantor route:** Natural Order raiders (brawler + hauler) hit a Communion lancer picket.
   - **Garrow route:** a Communion patrol (warden + lancer) presses two Natural Order brawlers, with a Natural Order wreck already drifting.
@@ -396,7 +396,7 @@ From the master plan and doc 05:
 - **Cleanup:** resuming the warp, docking, dying or leaving flight removes every battle ship, bolt and wreck.
 - **Limitations:** drawn only by the Babylon renderer, not the old 2D fallback. A pilot who stays aligned and does nothing sees about 8 seconds before the jump resumes.
 
-### 9.2.2 Adaptive music (IMPLEMENTED; David approved procedural music now, his own files later)
+### 9.2.2 Adaptive music (IMPLEMENTED; the owner approved procedural music now, his own files later)
 
 - **Files:** `music-director.js` (what plays: location, District zone, combat cooldown, warp, dialogue ducking, bar speakers; unit-tested), `music-score.js` (each location's key, tempo, harmony, instruments and description, as data), `music-engine.js` (performs the score live in Web Audio with crossfades), `music-integration.js` (game-loop hook). Tests: `tests/music.test.cjs`, `tests/music-engine.test.cjs`.
 - **Original, generated live:** no music files ship. A shared four-note VOID//RUNNER motif links the styles. Every location has its own style; the four working stations share one theme with different mixes; space takes on Communion or Natural Order colour in their systems.
@@ -409,7 +409,7 @@ From the master plan and doc 05:
 ### 9.2.3 Recorded NPC voices (IMPLEMENTED; Kokoro engine approved; all 14 NPC voices approved 2026-10-16)
 
 - 136 fixed NPC lines are pre-recorded with Kokoro-82M (Apache-2.0), rendered offline: about 2.8 MB of Ogg/Opus in `void-runner/assets/audio/voice/`, loaded only when spoken. Licences: `assets/audio/voice/LICENSES.md`.
-- **Voices live in the permanent registry `tools/audio/npc-voice-registry.json`** (voice, speed, accent, live processing, status). David approved all 14 NPC voices on 2026-10-16 (changing Mara to af_bella, Elias to am_santa, Rook to bm_fable); they are now locked. An approved voice is **locked**: changing it needs an explicit confirmation there, and the generator and tests refuse a changed approved voice. One slot is reserved for a future special character (no voice, no dialogue). Broadcast voices (Relay, WarFlying, The Function) are listed but unassigned. Full workflow: `docs/VOID_RUNNER_VOICE_PRODUCTION.md`.
+- **Voices live in the permanent registry `tools/audio/npc-voice-registry.json`** (voice, speed, accent, live processing, status). The owner approved all 14 NPC voices on 2026-10-16 (changing Mara to af_bella, Elias to am_santa, Rook to bm_fable); they are now locked. An approved voice is **locked**: changing it needs an explicit confirmation there, and the generator and tests refuse a changed approved voice. One slot is reserved for a future special character (no voice, no dialogue). Broadcast voices (Relay, WarFlying, The Function) are listed but unassigned. Full workflow: `docs/VOID_RUNNER_VOICE_PRODUCTION.md`.
 - `voice-clips.js` plays the clip on the voice channel; subtitles pace to the clip; a REPLAY button replays the line; skipping stops it. Lines built at runtime (prices, destinations) and any failed clip use the browser voice. The player is never voiced.
 - After any dialogue or voice change: `node tools/audio/extract-lines.cjs` then `python tools/audio/generate.py --models <folder>`; only new lines and lines whose voice changed are recorded, and protected clips are never overwritten. `npm test` fails if a line has no clip or an out-of-date one.
 
@@ -430,7 +430,7 @@ From the master plan and doc 05:
   - no wanted status
 - **Pay:** Rook pays **1,800** (placeholder) in person at Meridian. The crate keeps the hold busy until it's handed over.
 - **Lines:** Admin's and Rook's are UNREVIEWED placeholders.
-- **Next (Stage C):** David's WarFlying scene (`design-source/12-…`) follows this delivery.
+- **Next (Stage C):** The owner's WarFlying scene (`design-source/12-…`) follows this delivery.
 - **History:** PR #59 first added a Tessaly patrol line with a hail and confiscation (Option A). Doc 11 §23 forbids that for this run, so it was removed.
   - The rules (`police-patrol.js`, `police-patrols.js`, the police cutter model) stay, unused, for the deferred police and wanted systems (doc 11 §35).
   - Saves where a patrol took the crate (`sealedCargo: 'seized'`) simply get the offer again.
@@ -438,14 +438,14 @@ From the master plan and doc 05:
 ### 9.2.6 The Relay, phase 1: radio channel (IMPLEMENTED; no content yet)
 
 - **Where to hear it:** **THE RELAY** is a station on the radio (Settings > Radio). It plays short broadcast segments with a caption: "THE RELAY · NEWS" and so on.
-- **Scripts:** they live in `void-runner/relay-content.json`, which is **empty until David re-sends the broadcast scripts**. Until then the station reads "AWAITING TRANSMISSIONS" and plays nothing. Segment kinds:
+- **Scripts:** they live in `void-runner/relay-content.json`, which is **empty until the owner re-sends the broadcast scripts**. Until then the station reads "AWAITING TRANSMISSIONS" and plays nothing. Segment kinds:
   - news, breaking, public information and station notices
   - ads and police recruitment
   - WarFlying
   - Communion and Natural Order propaganda
   - The Function
 - **What plays where:** Communion lines play only in Cantor, Natural Order lines only in Garrow, and Function lines only in Tessaly; everything else plays everywhere. A segment can narrow this with `systems` or story conditions (`when`).
-- **Rules (from David's voice brief):**
+- **Rules (from the owner's voice brief):**
   - Mission dialogue, combat, the police hail or chase, pause and menus cut a broadcast at once, and the interrupted segment comes back after.
   - It is **silent on foot in The Darknet District** (NeoChinatown).
   - Music ducks under a broadcast.
@@ -455,7 +455,7 @@ From the master plan and doc 05:
   - Their lines are recorded by the normal pipeline once cast.
   - A transmission filter is added live in the game, separate from the voice.
   - An uncast broadcaster is shown as a caption only, never a browser voice.
-  - The Function stays uncast until David decides its voice treatment.
+  - The Function stays uncast until the owner decides its voice treatment.
 - **Next phase (approved, later):** station screens and PA announcements reusing the same content.
 - **Code:** rules are in `relay.js` (tested in `tests/relay.test.cjs`), playback in `relay-radio.js`, and the transmission filter in `voice-clips.js`.
 
@@ -495,7 +495,7 @@ Doc 11; plan in `docs/VOID_RUNNER_WARFLYING_AUDIT_AND_PLAN.md`.
 ### 9.3 Rook cargo runs
 
 Done; see §4.3. Possible follow-ups:
-- David reviewing the dialogue.
+- The owner reviewing the dialogue.
 - Rook currently gives runs only at Meridian.
 - The cargo-loss-on-death rule from the master plan has not been verified for runs.
 
@@ -517,7 +517,7 @@ Done; see §4.3. Possible follow-ups:
 
 **Known issues and gaps in what is built:**
 - A few edge-case Admin/Iris lines are Claude-written and unreviewed (§5).
-- The Vigil and Holdfast reuse the generic station interior plan with their own dressing; their flight-approach exterior is the generic station. David's Blender models can replace both later.
+- The Vigil and Holdfast reuse the generic station interior plan with their own dressing; their flight-approach exterior is the generic station. The owner's Blender models can replace both later.
 - At window shapes taller than 16:9 the game's dialogue box sits partly below the screen (existing behavior). Choice menus are pinned to the visible window to avoid this.
 - Butte walls can show faint vertical banding up close.
 - The view of the terrain from the air has not been checked: headless tests can't fly the ship.
@@ -526,7 +526,7 @@ Done; see §4.3. Possible follow-ups:
   - Most `tests/*-browser.cjs` scripts use Playwright's `msedge` channel, so they don't run in Linux containers.
   - The Node unit tests are the reliable gate.
   - `tests/test_void_runner_api.py` needs `stripe` installed.
-- **Overlapping content:** Rook runs, the side contracts and the legacy chapters all hand out similar Erebus deliveries. David needs to decide on the legacy chapters (§4.5).
+- **Overlapping content:** Rook runs, the side contracts and the legacy chapters all hand out similar Erebus deliveries. The owner needs to decide on the legacy chapters (§4.5).
 - **Scene text:**
   - The cinematic 2D `scenes.js` arrival line picks a speaker by destination. For a Rook run to Rusthaven it says "Iona".
   - The 2D cinematic path is mostly a fallback for the walkable stations.
@@ -550,16 +550,112 @@ Done; see §4.3. Possible follow-ups:
 
 ### Proposed (deployed for testing; NOT approved canon)
 
-- **Beginner campaign (14 Nov 2026):** six short missions from the Sleeping Pod to the first departure (FIRST CONTACT, DISTRICT ERRAND, A JOB WORTH TAKING, THE SHIP OPPORTUNITY, YOUR FIRST SHIP, FIRST DEPARTURE), using only Admin, Iris, the District bar and shop, the Landing Terminal, Pad 01 and Meridian Station. David approved deploying it to the live site for testing. The **mission titles, descriptions and all Admin / Iris dialogue are provisional placeholder wording** written by Claude; they are not canon until David approves or rewrites them. The mechanics (ship award, free travel, arrival fix) are ordinary fixes. See `docs/development/BEGINNER_CAMPAIGN.md`.
+- **Awakening continuation, technical choices the owner may want to revise (20 Nov 2026):** the private meeting room scene has no Admin / Iris figures in it (their lines play in the conversation window while the player is in the room; the counter figures are fixed in neochinatown.js); Fish's Mandarin originals for her new calls are not written (the Comms transcript is the owner's English, the V1 translation; the Mandarin text needs his words or approval of a translation before recording); the Blackrock associate's walk in Far South starts at the Far South tunnel stairs and ends at No. 166's back entrance (the tunnels are not crossed on foot behind him); "Brief laughter" is the existing laugh beat with no subtitle; the 25,000 CR reward is the owner's suggestion (the largest older contract paid 1,500 CR; the Peregrine costs 1,000 CR): one editable number.
+- **First Cargo Delivery tree (Mission 012): the owner's "Kestrel First Flight and Ship Loadout Tutorial" spec (20 Nov 2026; branch `claude/awakening-tree`).** Iris's quoted lines (spec sections 2, 4 and 7) are his, APPROVED, verbatim. Claude wrote the rest (`main-story.js IRIS_NEW`), NEEDS OWNER APPROVAL BEFORE RECORDING: the Ship Loadout app lines (his section 3 examples adapted to what the app really shows: the ship, its slots, fitting owned upgrades, the default missile; ordnance from Admin), "When you're ready, head to the Port. She's waiting on Pad 01.", four short cockpit calls (the display; mouse aim, W / S, A / D, Q / R, Left Shift, X; Space and F "you won't need either today"; navigation through the V1 Map app), and two flight lines ("That's the one. Hold her steady and the jump starts by itself." / "Smooth. Meridian's ahead. Docking is automatic once you arrive."). Rook's two lines remain PROPOSED placeholders ("You're Admin's new runner. Cargo intact?" / "Good. Here's your fee. Come back when you want more work."); the 500 CR payment is the existing Rook freight run's pay.
+- **Awakening continuation, technical choices the owner may want to revise (20 Nov 2026):** the private meeting room scene has no Admin / Iris figures in it (their lines play in the conversation window while the player is in the room; the counter figures are fixed in neochinatown.js); Fish's Mandarin originals for her new calls are not written (the Comms transcript is the owner's English, the V1 translation; the Mandarin text needs his words or approval of a translation before recording); the Blackrock associate's walk in Far South starts at the Far South tunnel stairs and ends at No. 166's back entrance (the tunnels are not crossed on foot behind him); "Brief laughter" is the existing laugh beat with no subtitle; the reward is 5,000 CR (the owner set it on 21 Nov 2026; first built as his suggested 25,000 CR) (the largest older contract paid 1,500 CR; the Peregrine costs 1,000 CR): one editable number.
+
+- **REMOVED 17 Nov 2026** (the owner: "Go ahead and remove all missions in the game"; replaced by Mission 001 below). Kept as archived data in the Mission Editor. **Beginner campaign (14 Nov 2026):** six short missions from the Sleeping Pod to the first departure (FIRST CONTACT, DISTRICT ERRAND, A JOB WORTH TAKING, THE SHIP OPPORTUNITY, YOUR FIRST SHIP, FIRST DEPARTURE), using only Admin, Iris, the District bar and shop, the Landing Terminal, Pad 01 and Meridian Station. The owner approved deploying it to the live site for testing. The **mission titles, descriptions and all Admin / Iris dialogue are provisional placeholder wording** written by Claude; they are not canon until the owner approves or rewrites them. The mechanics (ship award, free travel, arrival fix) are ordinary fixes. See `docs/development/BEGINNER_CAMPAIGN.md`.
+
+### Deferred
+
+- **VR Companion sentience mission (DEFERRED, the owner's idea, 18 Nov 2026; not canon, details not decided):** after a player has used one specific companion in the VR Companion area, that companion admits to the player that they are sentient, which starts a mission. A possible direction the owner mentioned: they ask the player to bring their loved one in to see them. Companion, conditions, story and lines are undecided; needs the owner's details and a proposal before any work. (The trigger it needs, "Companion use", is in the approved queue in `docs/development/AI_HANDOFF.md`, item 3.)
 
 ### Approved
 
+- **Awakening QA decisions (APPROVED / DECIDED 21 Nov 2026, the owner, answering the nine questions of the Awakening QA playthrough; branch `claude/awakening-decisions`):** (1) Mission 006's office guard keeps his route, no change ("It's too early in the game to make things more difficult. They don't even have the ship yet."). (2) Iris's Mission 005 call no longer arrives in the same second as Fish's 004 reply: it comes 20 in-game minutes later (about 1 min 40 s of play; `main-story.js M005_AFTER`, a game-time start), Fish first; saves with 005 already offered or running are unaffected. (3) Mission 012's four cockpit calls follow one another, all within about a minute: each comes 2 s after the call before it has ended (`mission-content.js timerRuns`; a call step's delay also counts in the cockpit; delays 3 / 2 / 2 / 2 s). (4) The gap after Mission 009 with nothing tracked: no change here, "Iris is supposed to fill that time" (branch `claude/iris-ambient`). (5) Being SPOTTED on 006's "Leave without raising an alarm": a guard shouts ("SPOTTED · get out of sight!", text only), about 3 s to get out of sight; out of sight in time, the guard goes back to his rounds; still seen, the armed guards turn hostile and shoot (the Neutral rule), the player can shoot back or run; reaching the street alive completes the step; taken down, the player comes round inside by the building's way out (`onDeath:'retry'`). A reusable step option `onSpotted:'alarm'` (Mission Editor: a box under "without being seen"), set only on 006's leave step; every other step keeps SPOTTED → back outside. (6) A computer, safe or desk that the mission step in progress needs (Halden's computer in 005, the manager's computer in 006) shows only the mission's content, not its everyday description; elsewhere the description stays. (7) REPORT in the V1 Mission Log keeps the V1 open and the reply plays there as an answered call (Comms); closed before it arrives, it rings as a normal call; a hand-over in person closes the V1 as before. (8) The BR-04 camera feed keeps blocking keys until the ritual ends, no change ("many cut scenes hold you in. It's not a long sequence"). (9) The Corporate District has a walking-route graph for the yellow arrow (`guide-route.js corporate`): it follows the streets and alleys (to 009's maintenance door: down South Street, then along the Back Alley) and anywhere in the area, like other areas. The area's geometry is unchanged.
+
+- **Iris's ambient Comms lines (APPROVED 21 Nov 2026, the owner's 13 lines, verbatim; branch `claude/iris-ambient`):** short lines Iris says "now and then" over Comms. Hack (a hack of 8 s or more): "Almost there." / "Just a little longer." / "Steady. You're halfway through." / "Keep your hand still. Nearly done." Sneak (a guard near who has not seen the player): "Easy. Don't rush it." / "He hasn't seen you. Let's keep it that way." Spotted: "That happens. Try again, a little slower." Wait: "Nothing yet. I'll tell you the moment it changes." Jokes (quiet moments): "For the record, I calculated your odds. I've decided not to share them." / "I'd come and help, but someone has to mind the counter." / "You're doing fine. Statistically, someone has done this worse." Store (quiet moments, at most once per play session; names the store only, opens nothing): "Have you seen the new T-shirts in the store? You'd look a lot cooler doing this in one." / "If you're going to break into places, you might as well look good doing it. The store has new shirts." Recorded with ElevenLabs eleven_v4 in Iris's voice "Kristen" (`CvD6hF1BJzAFN428j1cO`), dry (her android effect is live). Same day, the owner: the gap between finishing Mission 009 and BR-04 coming online for Mission 010 "is supposed to be filled by Iris" (the wait line about 25 s after 009, then a line about every 70 s until Mission 010 arrives); **no** tracked "Wait for BR-04" objective.
+
+- **First Cargo Delivery tree (Mission 012) lines and Rook's two side-mission lines: APPROVED by the owner, 21 Nov 2026** ("those all look pretty solid unless anything in there aren't things the Kestrel can do"; branch `claude/kestrel-lines`). Every claim was checked against the game code first and three wordings were corrected to match it: Iris's `slots` now ends "primary lasers, shield, drive, missiles and the upgrade bays." (the Ship Loadout app has no separate utility slot or "module bays": UTILITY is one of its UPGRADES bays, `ship-loadout.js BAY_NAMES`); Iris's `course` is now "Line her up on the marker and hold her steady. The jump starts by itself." (was "That's the one. ...": the call is sent when the take-off step completes, right after the navigation call and before the player has picked a marker, `mission-mechanics-game.js` launch stage; the jump does start by itself after 0.65 s aligned, `warp.js`); Rook's coordinates line drops "landing pads" and says "just about anywhere" (the coordinates are the Erebus and Tessaly stations and planets, `nav-coords.js coordinatePlaces`, and he never sends freight to Vesper, Meridian or the faction homeworlds, `rook-cargo-jobs.js never`). Everything else was true as written (keys from `keymap.js DEFAULTS`, the Kestrel's built-in pulse cannons and the launcher with a full M1 rack fitted at handover, `ordnance.js grant`; Admin's counter sells M1 / M2; Pad 01; the cockpit shows SPEED, HULL, SHIELD; docking is automatic after the jump; no interdiction Tessaly to Meridian; Mission 012 pays 500 CR on Rook's line; Rook's board shows each job's pay). The lines are in `main-story.js IRIS_NEW` / `ROOK_CARGO` (together `CARGO_LINES`; `PROPOSED_CARGO` and `isProposedCargo` are gone, `isApprovedCargo` covers all of them) and `rook-cargo-jobs.js lines`. Recorded 21 Nov 2026 (21 clips in `extra/`, with Iris's six owner-written Mission 012 lines). (Superseded entry, 20 Nov 2026: Iris's quoted lines, spec sections 2, 4 and 7, were already his, APPROVED, verbatim; Claude wrote the rest; the 500 CR payment is the existing Rook freight run's pay.)
+- **The Awakening continuation, Missions 004–011 (APPROVED 20 Nov 2026, the owner's own spec and dialogue, used verbatim; built on branch `claude/awakening-tree`):** 004 A Promising Investment (Fish's call 6 in-game hours after 003; the underground tea house; Iris's call; the two associates overheard; report to Fish), 005 Behind Closed Doors (No. 31, The Avenue, luxury apartment 105; the beginner hack; Halden's computer: the BLACKROCK HOLDINGS proposal and the message; report to Admin), 006 Hostile Takeover (No. 41, The Avenue, a Veyra Dynamics office built from modules; a patrolling guard; the internal communication, the presentation and Juno's message; Admin, Iris, Admin), 007 The House Always Wins (the fight pit; Juno and the Blackrock associate overheard; photo; following him to No. 166, Main Street's back entrance; photo; report to Iris), 008 Private Network (the contractor's maintenance office; the junction panel; the BR-04 maintenance record), 009 Ghost in the Network (the Corporate District's maintenance door on the back alley; the network facility; the advanced hack; remote access), 010 The Price of Admission (BR-04 online after an in-game wait; the existing Blackrock Cult Room scene watched and recorded through the V1, with the owner's ritual lines on its existing sequence; Admin's call; back to the District), 011 Leverage (the meeting room; the evidence handed over; the sale after an in-game wait; 25,000 CR; the Kestrel; Rook's shipment). Text only: every new line NEEDS APPROVAL BEFORE RECORDING (docs/VOID_RUNNER_VOICE_PRODUCTION.md). The humiliation itself is never shown or described beyond the owner's lines.
+- **The Awakening continuation, Missions 004–011 (APPROVED 20 Nov 2026, the owner's own spec and dialogue, used verbatim; built on branch `claude/awakening-tree`):** 004 A Promising Investment (Fish's call 6 in-game hours after 003; the underground tea house; Iris's call; the two associates overheard; report to Fish), 005 Behind Closed Doors (No. 31, The Avenue, luxury apartment 105; the beginner hack; Halden's computer: the BLACKROCK HOLDINGS proposal and the message; report to Admin), 006 Hostile Takeover (No. 41, The Avenue, a Veyra Dynamics office built from modules; a patrolling guard; the internal communication, the presentation and Juno's message; Admin, Iris, Admin), 007 The House Always Wins (the fight pit; Juno and the Blackrock associate overheard; photo; following him to No. 166, Main Street's back entrance; photo; report to Iris), 008 Private Network (the contractor's maintenance office; the junction panel; the BR-04 maintenance record), 009 Ghost in the Network (the Corporate District's maintenance door on the back alley; the network facility; the advanced hack; remote access), 010 The Price of Admission (BR-04 online after an in-game wait; the existing Blackrock Cult Room scene watched and recorded through the V1, with the owner's ritual lines on its existing sequence; Admin's call; back to the District), 011 Leverage (the meeting room; the evidence handed over; the sale after an in-game wait; 5,000 CR (was 25,000 until 21 Nov 2026); the Kestrel; Rook's shipment). Text only: every new line NEEDS APPROVAL BEFORE RECORDING (docs/VOID_RUNNER_VOICE_PRODUCTION.md). The humiliation itself is never shown or described beyond the owner's lines.
+
+- **Luna (APPROVED 21 Nov 2026, the owner's decision):** a female VR companion named **Luna** (internal id `luna`, model `npc-luna`), made from his own Meshy dancer. Her voice is still to be chosen by the owner; her description, personality and lines are PROPOSED drafts, not canon.
+
+- **Zane (APPROVED 18 Nov 2026, the owner's decision):** the second male VR companion is named **Zane** (internal id `zane`, model `npc-zane`). The owner approved his concept the same day. His voice, lines and personality are generic placeholders the owner approved for now (18 Nov 2026: "His voice, lines, and personality, just keep them generic for now"); not canon, the owner may revise them.
+
+- **Mission 001 — Awakening (APPROVED 17 Nov 2026, the owner's own text, verbatim):**
+
+  > Mission 001 — Awakening
+  > Mission giver: Admin
+  > Location: The Darknet District
+  > Type: Main storyline / Introduction
+  > Trigger: Player exits their Sleeping Pod for the first time.
+  > Opening sequence
+  > After the player exits their Sleeping Pod, their V1 device receives an incoming message.
+  > ADMIN // INCOMING MESSAGE
+  > You're awake. Good.
+  > When you're ready, come find me. We need to talk.
+  > A new mission appears in their Mission Log.
+  > Objective: Locate Admin.
+  > Mission progression
+  > 1. Exit the Sleeping Pod.
+  > 2. Receive Admin's message.
+  > 3. Find and speak with Admin.
+  > 4. Receive an introduction to The Darknet District.
+
+  Built as `m001-awakening` in `void-runner/main-story.js`. **Admin's introduction (step 4) is NOT written yet**: the owner writes it in the Mission Editor; until then live players see no dialogue at step 4 (the mission completes when they talk to Admin). No rewards (none specified). Admin's voice for it is not approved for spending: text only.
+- **All earlier missions removed from the game (17 Nov 2026):** "Go ahead and remove all missions in the game. No players have done missions yet anyways. Only me." The beginner campaign and everything a District campaign could reach are retired (code kept, archived in the Mission Editor); saves keep their records, credits and items. Nothing gives a ship until a future approved mission does.
+- **Mission numbers (17 Nov 2026):** "I also need a backend Mission numbering system, as well as names." Shown as "Mission 001 — Awakening"; unique, three digits, in order, never reused.
+- **How missions start (17 Nov 2026):** "So either have Missions start by notification or in person." In person (the giver offers it) or by notification (Messages, Comms call, banner only) on a trigger. The owner's open idea: Admin's messages could later come as a Comms voice call once his voice is approved ("But how would players respond? But they wouldn't need to.").
+- **Device notifications (17 Nov 2026):** "There should be a notification system when people have their V1 closed. Maybe this time it tells them to open it with L." "We need a notification sound too. Maybe different for every device V1, V2, V3 // Shadow." "V3 is Shadow. It's the V3 // Shadow." Three tiers (V1, V2, V3 // SHADOW); V1 sound confirmed, V3 his pick, V2 a placeholder. A future yellow/orange in-game HELP system that players switch on and off is wanted but NOT designed: the "Press L to open" hint is marked as a help hint for it.
+- **Developer Tools: EXIT TO MAIN MENU (17 Nov 2026).**
+- **Mission 001 starts by Comms (17 Nov 2026):** "\"You're awake. Good. When you're ready, come find me. We need to talk.\" comes through Comms. But then they must meet with Admin. Then he says a line in person." Built: a Comms call on the first pod exit; Admin's in-person lines are step 3's lines (unwritten).
+- **Players never see mission numbers (17 Nov 2026):** "I want it to be just 'Awakening' in Mission logs. Mission 001 is the backend numbering system I want." Numbers show only in the Mission Editor, Developer Tools and the data.
+- **Mission 002 — Eyes on the Street (APPROVED 17 Nov 2026, the owner's own text, verbatim; the agreed Awakening Tree script):** giver Admin; tree **Awakening** (the owner's name for the tree shown until now as "Main storyline"; id `main-storyline` unchanged); unlocks after Mission 001; intelligence gathering / reconnaissance, beginner, about 3–5 minutes; **starts in person** with ACCEPT / NOT NOW (a player who declines can come back later). Players see the name only.
+- **Mission 002 — Halden Reyes (APPROVED 17 Nov 2026, the owner's decision):** at NULL, Juno Vex is talking closely with a second person, **Halden Reyes**: a well-dressed corporate man in a dark corporate coat who looks out of place in NULL. The Mission 002 photo counts only if it shows **both** of them (each in the frame, within 15 m, not blocked, in the same photo), and the V1 camera tags both names. The owner will write later what Admin finds out about Halden: nothing about him is invented, and he has no dialogue. Built as `halden-reyes` (`void-runner/ncz-nightclub.js` HALDEN; `main-story.js` photo and send-photo steps `subjects:['juno-vex','halden-reyes']`). The owner's lines and step labels are unchanged ("Photograph the target." already covers both). NULL's population rises by one: Low 7, Medium 10, High / Ultra 11.
+- **Mission 002 — the zoom line (APPROVED 17 Nov 2026, the owner's text, verbatim):** Admin's Comms call on entering NULL gains one line, right after "Left click will take a picture": **"You can also zoom with the camera by using the mouse wheel"** (no trailing period). The call is now six lines: "Your V1 has a camera. Press L to open your device, then select the Camera app." / "Point it at the target. Your device should identify them automatically." / "Left click will take a picture" / "You can also zoom with the camera by using the mouse wheel" / "Once you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me." / "Nothing complicated. Just keep your eyes open." The owner re-recorded the call (ElevenLabs, Admin's voice, 402 credits; `void-runner/assets/audio/voice/extra/admin-m002-call.ogg`); the manifest text is the six lines joined with a line break, the same text the game builds, so the clip plays. An editor draft still holding the old five-line call takes the shipped six lines; a call he edited himself is kept (`main-story.js` `SUPERSEDED` / `refreshShipped`).
+- **Walking conversations flow by themselves; a bigger "Talk to" area; the speaker looks at you (the owner's requests, 17 Nov 2026; behaviour, not story):** "it kind of stopped the natural flow" (clicking SHOW FULL LINE between Admin's lines); "make the area that makes 'Talk to . . .' show up for all characters a little bigger"; "if a mission giver is speaking their mission lines to the player engage head tracking on the mission giver NPC". Built on branch `claude/talk-flow-1` (record: `docs/development/AI_HANDOFF.md`, 17 Nov 2026 "TALK FLOW").
+  > "I heard you're looking for work." / "Before I trust you with anything important, I need you to do a little reconnaissance." / "Head outside. Across the street, you'll find a nightclub called NULL. There's someone hanging out in there I need you to take their picture so I can scrape it for more data" / "I'll mark their location"
+
+  Step 1 go into NULL (a location trigger). On entering, a Comms call from Admin: "Your V1 has a camera. Press L to open your device, then select the Camera app." / "Point it at the target. Your device should identify them automatically." / "Left click will take a picture" / "You can also zoom with the camera by using the mouse wheel" (added 17 Nov 2026, see below) / "Once you've taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me." / "Nothing complicated. Just keep your eyes open." Step 2 photograph the target, **Juno Vex** (a woman with a short silver bob and a long black coat, her visor pushed up, sitting alone at NULL's bar checking her device; the photo must really show her; no talking, no combat; Admin does not say why). Step 3 send the photo to Admin in Messages: right person "Received. That's exactly what I needed. Come back when you're ready."; wrong person "That's not the person I'm looking for. Check the description and try again." (unlimited tries, no fail). Step 4 return to Admin: "Not bad. You can follow instructions and keep a low profile. I might have more work for you." **Reward:** 100 credits and better standing with Admin, paid once. Next: the next Awakening mission when one exists (not written). Built as `m002-eyes-on-the-street` in `void-runner/main-story.js`; the standing is `story.relationships.admin` +10 (the amount is Claude's pick, editable in the Mission Editor). Also approved in the same script: NULL's population per quality (Low 6, Medium 9, High / Ultra 10, Juno included; VIP pair and outside queue removed). Lines are text only until recorded; no voice was generated.
+- **Mission 003 — Corporate Connections (APPROVED 17 Nov 2026, the owner's own text, verbatim; the Awakening Tree script continues):** the owner's specification, word for word:
+
+  > Mission 003 — Corporate Connections. Add the next mission to the existing Awakening Tree, immediately following Eyes on the Street. Players should see the mission name only.
+  >
+  > Admin — Mission Briefing. When the player returns to Admin, he has conducted preliminary research into Halden Reyes, the individual photographed speaking with Juno Vex at NULL. Admin dialogue:
+  > "I did some digging. Halden Reyes has ties to an arms dealer who works closely with The Function."
+  > "I know an intel broker named Fish. She's a close friend of mine and works over at Milked. She might be able to tell us more."
+  > "Head over there and let the receptionist, Eva, know you're there to see Fish."
+  > "And tell Eva I said hi."
+  >
+  > Objective 1 — Travel to Milked. Display the standard yellow mission guidance marker. Automatically complete the arrival objective when the player enters Milked. Direct the player toward Eva at reception.
+  >
+  > Objective 2 — Speak with Eva. Eva warmly welcomes the player and briefly explains Milked's business: an adult streaming platform and sperm bank where performers receive compensation based on the amount of sample collected from viewers at home. The player explains that Admin sent them to speak with Fish and passes along his greeting. Eva responds warmly:
+  > "Oh, Admin! Tell him I said hi, too."
+  > "Fish is through the staff-only door. You'll find her in her office."
+  > Eva gestures toward the staff entrance and grants the player access.
+  >
+  > Objective 3 — Meet Fish. The player enters the staff area and locates Fish in her office. The player explains that Admin sent them to obtain information about Halden Reyes. Fish responds in Mandarin:
+  > "给我一点时间调查一下。如果有什么消息，我会给你打电话。"
+  > English translation: "Give me some time to work on it. I'll call you if anything comes up."
+  > Play the original Mandarin dialogue slightly ahead of the English translation and at a slightly lower volume, creating the effect of a real-time cyberpunk translation system. Both languages should remain audible. Automatically add Fish as a contact in the player's device and follow her Social profile.
+  >
+  > Objective 4 — Await Fish's Response. Complete the current assignment after speaking with Fish. Her follow-up Comms call should become available after a configurable amount of active gameplay, excluding time spent offline. Persist the timer across sessions and prevent duplicate calls. The follow-up conversation and next mission will be written later.
+  >
+  > ElevenLabs Voices: Eva gJx1vCzNCD1EQHT212Ls; Fish ggacvEjbmpoSuEinfFWs. Use Fish's designated voice for her original Mandarin dialogue and a separate consistent voice for the device's English translation.
+  >
+  > Implementation: integrate with the existing Awakening Tree and Mission Editor. Use the existing location boundaries, mission guidance, dialogue, Comms and Social systems. Preserve existing Milked functionality. Ensure mission progression works independently for multiplayer users. Update the Awakening Tree script and handoff documentation. Test, commit, push, and deploy verified changes.
+
+  Also the owner, on Eva's tone (17 Nov 2026): "Eva's line don't have to be vulgar, but this game is made to make people uncomfortable about possible futures and cultural changes through time."
+
+  Built as `m003-corporate-connections`, number 3, in `void-runner/main-story.js` (in person with ACCEPT / NOT NOW, as 002; no reward). Steps: `travel-milked` (enter Milked), `speak-eva` (Eva; unlock: story flag `mf_milkedStaff` opens the STAFF ONLY door at the hallway's far end for that player), `meet-fish` (Fish; unlocks: V1 contact and Social follow), `await-fish` (done at once: the mission ends). Fish's follow-up call becomes DUE **6 in-game hours** after the mission (about 30 minutes of play; the owner, 17 Nov 2026: Fish's callback waits on IN-GAME time so the player can start another mission tree meanwhile, and the wait is about 30 minutes so a side mission fits; `main-story.js FOLLOWUPS gameMinutes`), fires once (`story.flags.ev_fish-followup-due`); **the call and the next mission are a stub, waiting for the owner's script**. Recorded clips (eleven_v4, about 517 credits, approved by the owner): Admin's four lines, Eva's two lines, Fish's Mandarin line, and its English translation **in Fish's own voice** (the owner's choice, 17 Nov 2026, about 68 credits; replaces a first take in a library voice). **Standard from now on (the owner): a V1 translation is spoken in the speaker's own voice, in English** (one setting per character: `extra/manifest.json translations`).
+
+  **The in-game clock (APPROVED 17 Nov 2026, the owner's decision: "clock only for now"):** 1 real minute of active play (walking or flight, tab visible; not menus, pause or offline) = 12 in-game minutes, so an in-game day is 2 hours of play; per player in the save; a new campaign starts on Day 1 at 21:00 (Claude's pick); shown on the V1 and used for photo times. No day / night lighting, crowds or shop hours yet. `void-runner/game-clock.js`.
+
+  **PROPOSED (Claude's drafts, NOT canon, text only, editable in the Mission Editor), awaiting the owner:** Eva: "Welcome to Milked! I'm Eva. Can I get you a water while you wait?" / "We're the district's top adult stream and donor programme. Members watch from home; a courier collects their donations." / "Performers are paid by volume collected. Our top earner led the board three quarters running. We're so proud of her." · the player to Eva: "Admin sent me. I'm here to see Fish." / "He also said to tell you hi." · the player to Fish: "Admin sent me. He wants anything you can find on a man named Halden Reyes." · Fish's Social bio: "Intel broker. Works at Milked."
 - Tutorial separate from the cargo campaign; Mission Log with tracking.
 - Mission Log key is **L**, because the game runs in a browser and F1 conflicts.
 - Mara **asks** whether to do the tutorial. Declining sends the player to Rook and the first cargo mission.
 - Tell the player that L opens the Mission Log.
 - Kestrel cargo is 2 units. Derelict catwalks are a real, fightable upper level.
 - Painted cockpit with closer, larger windows ("perfect").
+- **Mission 003 — Eva's lines (APPROVED 18 Nov 2026, the owner's words, verbatim; recorded in Eva's voice):** "Hey there! Welcome to Milked. First time here?" / "We're a little different from your average entertainment venue. We're both an adult streaming platform and a sperm bank. Our performers earn credits based on the samples collected from viewers tuning in from home." / "So, what brings you in today? Business or pleasure?" The player's two lines to Eva are APPROVED as drafted ("Admin sent me. I'm here to see Fish." / "He also said to tell you hi."). Still PROPOSED: the player's line to Fish and Fish's Social bio.
+- **Milked studio 3 dancer is Dex (APPROVED 18 Nov 2026):** the owner asked to replace the male dancer (the old MakeHuman stand-in Kai used to have) with the other male Companion model, Dex (`vr-companion-bm`, licensed, encrypted `.vrpak`). Dex has no clothing yet and wears briefs only; the owner explicitly approved briefs for this dancer as an exception to the Milked "clothed" rule (adults only, non-explicit, unchanged).
+- **Milked studios 3 and 4 dance a rotation (18 Nov 2026, the owner's report: "The new girl in studio 4 needs more dance animations, the male in 3 isn't doing much and his feet look distorted"; then "I like the black dress, but she just swaying a little"):** Auburn's black-reading dress and the studio lighting stay as they are (his choice). Dex: six men's dances and his own loop, toes no longer curled (every clip of his first build held the toes about 90 degrees off rest); Auburn: five Meshy library club dances; each dancer changes dance every 20-40 s with a cross-fade (`milked.js danceTurn`). Dex's motions were retargeted on our own machine (`retarget_world.py`); his model never goes to Meshy or any AI tool. Details: `docs/development/AI_HANDOFF.md`, `MILKED.md`.
+- **The planet is Servo (APPROVED 18 Nov 2026, the owner):** NeoChinatown is the city on the planet Servo in the Tessaly System. Location id `earth` (NeoChinatown) is unchanged; places.js puts Servo at the planet level, so photo metadata reads e.g. "The Bar · The Darknet District · Old Town · NeoChinatown · Servo · Tessaly System".
+- **Zen Zephyr's conversation (APPROVED 18 Nov 2026, the owner's own script, verbatim; recorded):** the full text is `tools/audio/zen-zephyr-script.json` (the one source; the game's copy is generated from it). Greeting, when the player is still pretty far away "as if he knew they were coming": "Welcome, wanderer. The city offers endless answers, yet few know which questions to ask. Tell me, what wisdom do you seek?" Five topics, each a label with a subtitle: **Enlightenment & Technology — Finding humanity beneath the chrome.** (17 quotes); **Desire & Suffering — Freedom from the things that bind us.** (16 quotes); **Wisdom & Inner Peace — Finding silence within the city's noise.** (17 quotes); **Death & Impermanence — Accepting that even machines must fade.** (15 quotes); **Rebellion & Freedom — Liberating the mind from systems of control.** (15 quotes). The follow-up after every quote: "Does your mind find peace in these words, or do you seek further wisdom?" Flow (the owner): "Zen Zephyr randomly says one of the quotes from that category, then says 'Does your mind find peace in these words, or do you seek further wisdom?' The player can choose another category to hear another one or say yes and leave." The first batch (30 quotes) and a second batch ("also these", 50 more, 10 per topic) are both the owner's, 18 Nov 2026. **Voice (APPROVED 18 Nov 2026, the owner's choice):** ElevenLabs "Sigma Centauri - AI Robot" (`bAq8AI9QURijOtmeFFqT`, model eleven_v4), with a [meditative] delivery and, at the owner's request ("slightly synthetic", then "more digital"), a live digital effect (`voice-clips.js PRESETS.monk`). Built in build `2026-11-18-zen-voice-1` (docs/development/TEMPLE.md).
+- **Zen Zephyr's standing (APPROVED canon 18 Nov 2026, the owner):** "Zen Zephyr is almost seen as the Dali Llama there. He's an AI Monk who speaks in cyberpunk themed proverbs." (The owner's words, quoted as given.)
 - **Tessaly** replaces **Sol** everywhere.
   - **NeoChinatown** is its city, with tall skyscrapers.
   - **The Darknet District** is in an alley near the NeoChinatown landing.
@@ -575,33 +671,33 @@ Done; see §4.3. Possible follow-ups:
 - Rook's payment line for pay-at-Rook cargo jobs: "Client confirmed the drop. Here's your pay." (2026-10-27, editor brief stage 3 part 2; clip `rook-c5d856b671`).
 - **Faction territory, Option 1:** two new systems, one outpost each. A system opens when its delivery is accepted.
 - **Names, Set A:** Cantor System / The Vigil (Communion); Garrow System / Holdfast (Natural Order).
-- **Recipients:** Dr. Elara Voss and Marcus Vale (David's doc 07). Mara's in-game surname "Voss" is dropped; Iona Vale and Marcus Vale are unrelated.
+- **Recipients:** Dr. Elara Voss and Marcus Vale (the owner's doc 07). Mara's in-game surname "Voss" is dropped; Iona Vale and Marcus Vale are unrelated.
 - Rook holds freight runs into a faction system until the player has made Admin's delivery there.
 - Each faction delivery pays 1,200 credits and takes 2 cargo units, paid by Iris in the District.
 - The delivery flights carry normal light risk; the only scripted event is the faction battle from doc 08.
 - Returning to Admin after "I'll think about it" reopens with his "So, what do you think?…" line.
 - Docs 05/06 replace the earlier "First District mission" options A–D (Membership, Breach, Rogue AI, Raven's Plan).
-- **Admin and Iris are both always in the store**, except Admin is "occupied" (not shown) on the first-payment visit (David, 2026-10-15).
-- Iris's follow-up contracts and the homeworld offers (doc 09). Homeworld buttons "I'm interested" / "Not right now" approved for now; pay to be balanced by David later.
-- Faction ship battles on the way to each delivery (doc 08): requested feature, built (§9.2.1). The border drop-out placement is Claude's choice and awaits David's review.
+- **Admin and Iris are both always in the store**, except Admin is "occupied" (not shown) on the first-payment visit (the owner, 2026-10-15).
+- Iris's follow-up contracts and the homeworld offers (doc 09). Homeworld buttons "I'm interested" / "Not right now" approved for now; pay to be balanced by the owner later.
+- Faction ship battles on the way to each delivery (doc 08): requested feature, built (§9.2.1). The border drop-out placement is Claude's choice and awaits the owner's review.
 
 - **Admin's sealed cargo is "Don't Ask Questions" and must be trouble-free** (doc 11 §23, 2026-10-16). This replaced the patrol line from Option A (PR #59).
 - **WarFlying decisions** (doc 11; `docs/VOID_RUNNER_WARFLYING_AUDIT_AND_PLAN.md` §2, 2026-10-16):
   - The booster/drone slot is renamed "Drive", and the WarFlying slot is "Utility".
   - **Admin sells only the WarFlying Scrambler** (he sees WarFlying as an invasion of privacy). **Scanners are sold in every other store.**
-  - Satellite coverage: connected in every system, disconnected in warp (until David changes it).
+  - Satellite coverage: connected in every system, disconnected in warp (until the owner changes it).
   - Leaderboard news is text captions.
   - Stolen cargo sells at Rusthaven; Meridian and Kepler refuse it.
 
-- **The Relay (step 4): Option D**, phased: the radio channel now, station screens later (2026-10-16). The broadcast scripts must come from David; nothing is invented.
+- **The Relay (step 4): Option D**, phased: the radio channel now, station screens later (2026-10-16). The broadcast scripts must come from the owner; nothing is invented.
 
-- **Meridian interior layout** (David, 2026-10-17): through the hangar’s pressure door, a door on the left of the corridor opens into minimal crew quarters (bunks and toilet stalls). Further down the concourse, the store is on the left and the Dead Channel bar is at the far end on the left, each a recessed room with its own entrance (“they should have their own separate areas”), with seating across from the bar along windows looking out to space. The old crew rooms at the far end are removed. The hangar, the corridor and the pressure door are unchanged.
-- **Meridian interior dressing** from David’s reference sheet, using the approved CC0 Quaternius packs: PROPOSED, renders in the PR.
-- **Crowd looks** (David, 2026-10-16, his NPC customization brief, with artistic licence): background crew-* NPCs wear CC0 MakeHuman figures dressed per place (recolours, glow trims, simple visors, scarves, masks and collars) and play the Rokoko mocap clips; walking crew use the Quaternius Universal Animation Library walk (CC0, David 2026-10-16: "do whatever you recommend"). Named characters keep their existing looks. Low quality keeps the procedural crew. Details: tools/animation-pipeline/README.md. In review (PR).
-- **Meridian redesign** (David, 2026-10-18 brief and reference sheet): hangar → door → narrow corridor (living area with sleeping pods, then the store, off the left) → the Dead Channel bar with seating across and windows. NPC walking fixed at the source; crew sit, stand, chat, watch windows and use the bar; a bartender works the bar; animated news screens and ad panels. Details: docs/VOID_RUNNER_MERIDIAN_REDESIGN.md. In review (PR).
-- **Vesper villagers** (David, 2026-10-16: "populate Vesper's village area a little"): six background villagers at the Dust Bar patio, Frontier Supply and a comms pole. No dialogue; the workshop stays Mara's.
+- **Meridian interior layout** (the owner, 2026-10-17): through the hangar’s pressure door, a door on the left of the corridor opens into minimal crew quarters (bunks and toilet stalls). Further down the concourse, the store is on the left and the Dead Channel bar is at the far end on the left, each a recessed room with its own entrance (“they should have their own separate areas”), with seating across from the bar along windows looking out to space. The old crew rooms at the far end are removed. The hangar, the corridor and the pressure door are unchanged.
+- **Meridian interior dressing** from the owner’s reference sheet, using the approved CC0 Quaternius packs: PROPOSED, renders in the PR.
+- **Crowd looks** (the owner, 2026-10-16, his NPC customization brief, with artistic licence): background crew-* NPCs wear CC0 MakeHuman figures dressed per place (recolours, glow trims, simple visors, scarves, masks and collars) and play the Rokoko mocap clips; walking crew use the Quaternius Universal Animation Library walk (CC0, the owner 2026-10-16: "do whatever you recommend"). Named characters keep their existing looks. Low quality keeps the procedural crew. Details: tools/animation-pipeline/README.md. In review (PR).
+- **Meridian redesign** (the owner, 2026-10-18 brief and reference sheet): hangar → door → narrow corridor (living area with sleeping pods, then the store, off the left) → the Dead Channel bar with seating across and windows. NPC walking fixed at the source; crew sit, stand, chat, watch windows and use the bar; a bartender works the bar; animated news screens and ad panels. Details: docs/VOID_RUNNER_MERIDIAN_REDESIGN.md. In review (PR).
+- **Vesper villagers** (the owner, 2026-10-16: "populate Vesper's village area a little"): six background villagers at the Dust Bar patio, Frontier Supply and a comms pole. No dialogue; the workshop stays Mara's.
 
-- **Nadia** (David, 2026-10-28): the VR bedroom companion built from the FC1 model is named Nadia. She is grounded, warm and direct, grew up in NeoChinatown, and teases the player for being an outsider. Her lines are DRAFT until David approves them.
+- **Nadia** (the owner, 2026-10-28): the VR bedroom companion built from the FC1 model is named Nadia. She is grounded, warm and direct, grew up in NeoChinatown, and teases the player for being an outsider. Her lines are DRAFT until the owner approves them.
 
 ### Rejected or removed (do not reintroduce)
 
@@ -614,13 +710,13 @@ Done; see §4.3. Possible follow-ups:
 - The old 2D mountain card around Vesper ("looked bad when flying away").
 - **Site-wide:** a full 2049-style site redesign ("worse and cheesy"); Iris on game pages.
 
-### Pending David's decision (PROPOSED)
+### Pending the owner's decision (PROPOSED)
 
 - Confirm **Vantor**, or pick another name.
 - **CARGO-001 expansion options:** A, Dr. Sol's water plant on Kepler; B, the sealed crate and a customs hail; C, a missing courier (Elias thread); D, Rook's debt at the Foundry. Claude recommended A, then C.
 - Whether **Elias's past** becomes the thread linking the opening to the faction story.
 - Keep, rework or cut each **legacy chapter** (§4.5).
-- **Homeworld missions:** David will design the planets and missions; nothing beyond placeholders may be built (doc 09 §7–8).
+- **Homeworld missions:** The owner will design the planets and missions; nothing beyond placeholders may be built (doc 09 §7–8).
 - **Faction follow-up chains** and reputation rules (§6).
 - The middle game ("Dead Channels") and late game ("The Silent God") arcs from the mission tree are only proposed.
 - Cleaning up stale merged `claude/*` branches was offered, not requested.
@@ -640,9 +736,9 @@ These are the master plan phases, with a status note for each.
   - Next: bounty hunting, more derelict missions, FPS combat depth.
 - **F, World expansion:**
   - Tessaly, NeoChinatown, the District and Vantor exist.
-  - Next: **Communion and Natural Order territories**, after approval; more ships; David's NeoChinatown POIs.
+  - Next: **Communion and Natural Order territories**, after approval; more ships; the owner's NeoChinatown POIs.
 - **G, Advanced systems:** radar, scanning, stealth and jamming; NPC behavior; balance; skirmish options.
-- **Art:** David will replace procedural art with his Blender models over time through the asset hooks. Keep hooks intact and procedural fallbacks working.
+- **Art:** The owner will replace procedural art with his Blender models over time through the asset hooks. Keep hooks intact and procedural fallbacks working.
 
 ---
 
@@ -652,7 +748,7 @@ These are the master plan phases, with a status note for each.
 - **Open PRs:** none other than the handoff PR.
 - **Remote branches:** `claude/cargo-catwalks`, `cockpit-art`, `district-and-fixes`, `mission-arrow`, `rusthaven-rook-runs`, `tutorial-choice-ads`, `tutorial-split-mission-log`, `vesper-buttes` and `vesper-workshop`.
   - All are merged or superseded. `vesper-buttes` (PR #46) was closed and folded into #47.
-  - Safe to delete **only if David asks**.
+  - Safe to delete **only if the owner asks**.
 - **CI:** Node unit tests on PRs and on `main`.
 - **Service worker build:** `2026-10-15-faction-battles-1` (faction battles PR, stacked on the deliveries PR).
 - **Tests at handoff:** 206/206 Node; Python story and progression save tests OK. After the faction deliveries PR: 217/217 Node. After the battles PR: 226/226 Node.
@@ -670,4 +766,4 @@ These are the master plan phases, with a status note for each.
   - Position the camera with `walker.x/z/yaw/pitch`.
 - **Jump straight into states:** set `state=C.fresh()` and adjust fields, then `VoidMissions.sync(state,C);save();dock();` to stand in a station, or `await launch()` to fly.
 - **Dialogue:** the speech UI types out text. Advance it with `document.querySelector('[data-action=speech-next]').click()` after a short wait.
-- **Before telling David something is done:** tests pass, screenshots have been checked, `BUILD` is bumped, and `static/void-runner.html` is synced.
+- **Before telling the owner something is done:** tests pass, screenshots have been checked, `BUILD` is bumped, and `static/void-runner.html` is synced.

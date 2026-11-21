@@ -230,6 +230,8 @@ async function enterWalking(id, options = {}) {
     walkingLocation = def;
     // A parked-ship collision box only blocks when the player really has that ship; with no ship it would be an invisible wall.
     for (const solid of def.solids) if (solid.shipHull) solid.open = !VoidShips.hasShip(state);
+    // the safety net on arrival (20 Nov 2026, "stuck in a housing room"): in the apartments, the module locations and the tunnels, an arrival point on furniture or in a wall moves to the nearest spot the player can stand on (never the Sleeping Pod's wake-up view, which is inside the pod row on purpose)
+    try { const f = (def.apartment || def.underground) && !state.story?.flags?.podWakePending ? VoidExplorer.free(walker.x, walker.z, def) : {moved: false}; if (f.moved) { console.warn('[walk] arrival point inside a solid, moved ' + f.distance.toFixed(1) + ' m', id, options.spawn || def.spawn); walker.x = f.x; walker.z = f.z; } } catch {}
     resumeWalking();
     VoidAudio.event('door');
   } catch (error) {
@@ -347,13 +349,11 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => walkingKeys.delete(e.code));
 addEventListener('blur', () => {
-  walkingKeys.clear();
-  if (['walking', 'transit3d'].includes(mode)) openGameMenu();
+  walkingKeys.clear();   // clicking out of the browser keeps you in the game (no menu); mouse-control.js shows CLICK TO RETURN TO THE GAME
 });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
     walkingKeys.clear();
-    if (['walking', 'transit3d'].includes(mode)) openGameMenu();
   }
 });
 canvas.addEventListener('click', () => {
@@ -420,6 +420,7 @@ update = function(dt) {
       run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')||VoidInput.virtual.has('sprint')
     };
     VoidExplorer.step(walker, moving, dt, walkingLocation);
+    if (!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
     walkTarget = VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
     time += dt;
     $('walking-caption').textContent = walkingLocation.name + ' / '+(walkingLocation.kind==='station'?'CREW DECK':'LANDING ZONE');
@@ -490,11 +491,11 @@ function migrationSnapshot() {
     departureStation,
     bullets,
     hostile,
-    missiles: [...missiles, ...enemyMissiles],
+    missiles: [...missiles, ...enemyMissiles], trails: globalThis.VoidFlightCombat?.trail || [], dt: Math.min(.1, Math.max(0, time - (migrationSnapshot.last ?? time))),
     effects: VoidCombatEffects.clouds,
     time,
     approach: approachTime,
-    instruments:{hull:hp/Math.max(1,VoidFlightCraft.stats().hull)*100,shield:shieldHP/Math.max(1,VoidFlightCraft.stats().shield)*100,heat:weaponBank.heat/Math.max(1,VoidFlightCraft.systems().heatLimit)*100,power:weaponBank.energy/Math.max(1,VoidFlightCraft.systems().capacity)*100,speed:FM.length(flight.velocity||{x:0,y:0,z:0}),throttle:flight.throttle,route:current?.destination?C.stations[current.destination]?.name:'LOCAL',missiles:state.progression?.missiles??0,target:selectedTarget?.className||'NONE'}
+    instruments:{hull:hp/Math.max(1,VoidFlightCraft.stats().hull)*100,shield:shieldHP/Math.max(1,VoidFlightCraft.stats().shield)*100,heat:weaponBank.heat/Math.max(1,VoidFlightCraft.systems().heatLimit)*100,power:weaponBank.energy/Math.max(1,VoidFlightCraft.systems().capacity)*100,speed:FM.length(flight.velocity||{x:0,y:0,z:0}),throttle:flight.throttle,route:current?.destination?C.stations[current.destination]?.name:'LOCAL',missiles:missileState.ownsMissileLauncher?(missileState.type==='m2'?'M2 ':'M1 ')+missileState.missilesLoaded:0,target:(selectedTarget||missileLock.target)?.className||'NONE'}
   };
 }
 
@@ -534,7 +535,7 @@ draw = function() {
     return;
   }
   if (activeRenderer === 'babylon' && ['play', 'pause'].includes(mode) && VoidBabylon.diagnostics.exteriorReady) {
-    const snapshot = migrationSnapshot();
+    const snapshot = migrationSnapshot(); migrationSnapshot.last = time;
     const image = VoidBabylon.renderFlight(snapshot, W, H);
     if (!image) {
       throw Error('Babylon graphics context unavailable. Retry the route.');

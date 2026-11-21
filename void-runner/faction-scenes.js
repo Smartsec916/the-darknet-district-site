@@ -1,6 +1,6 @@
 /* The District's faction deliveries in play: Admin's offer (design doc 05), the recipients at
    The Vigil and Holdfast (doc 07), and Iris's payment and second offer (doc 06). The dialogue is
-   David's script; lines marked UNREVIEWED are Claude's functional placeholders. Rules live in campaign.js. */
+   The owner's script; lines marked UNREVIEWED are Claude's functional placeholders. Rules live in campaign.js. */
 (function(){
  const D=C.factionDeliveries,HEAD='The Darknet District';
  Object.assign(characters,{
@@ -67,7 +67,7 @@
   admin('Well, nothing that’s supposed to be exciting.'),
   adminPrompt
  ];
- // ---- "Don't Ask Questions": Admin's sealed cargo for Rook. UNREVIEWED: Claude's placeholder lines for David to rewrite. ----
+ // ---- "Don't Ask Questions": Admin's sealed cargo for Rook. UNREVIEWED: Claude's placeholder lines for the owner to rewrite. ----
  function sealedOffer(){
   const f=state.story.flags,first=!f.sealedIntro;f.sealedIntro=true;save();
   const opening=first?[admin('Got a minute? I’ve got something for Rook. Small crate. Sealed.'),you('What’s in it?'),admin('Something Rook paid for, and something you don’t need to know about. It stays sealed.')]
@@ -81,7 +81,7 @@
    {label:'NOT RIGHT NOW',quiet:true,run:()=>leave([you('Not right now.'),admin('Suit yourself. It’ll keep.')])}
   ],HEAD);
  }
- // ---- Admin introduces WarFlying (doc 12, David's script word for word) after "Don't Ask Questions" ----
+ // ---- Admin introduces WarFlying (doc 12, the owner's script word for word) after "Don't Ask Questions" ----
  const warflyingIntro=[
   admin('So, you made it back. Good. Rook said everything arrived.'),
   admin('Lucky you.'),
@@ -112,21 +112,30 @@
   admin('After that last delivery? I’d say you got lucky.')
  ];
  const warflyingDue=()=>state.story.flags.sealedCargo==='delivered'&&state.story.flags.warflyingIntro!==true;
- // Admin's stock: only the WarFlying Scrambler (David, 2026-10-16). Nothing is bought or fitted for the player.
+ // Admin's stock (the owner, 2026-10-16: the WarFlying Scrambler; 19 Nov 2026: "Admin will also sell a pistol, the base pistol"). The scrambler shows once Admin has told the
+ // player about it (warflyingIntro) or it is owned; the pistol always. Nothing is bought or fitted for the player. Price of the pistol: Combat Balance pistolPrice.
  function adminStore(){
+  const Z=globalThis.VoidZones,f=state.story.flags,items=[];
+  if(Z){const w=Z.PISTOL,price=Math.round(Number(globalThis.VOID_BALANCE?.pistolPrice??Z.TUNE.pistolPrice)),owned=(state.progression.personal.weapons||[]).includes(w.id);
+   items.push('<article data-admin-item="'+w.id+'">'+equipmentIcon('weapon')+'<h2>'+w.name+'</h2><p>'+price+' CR · sidearm · one-time purchase</p><p>A plain 10-round pistol. Draw and holster with '+escapeText(globalThis.VoidControls?.label?.('draw')||'1 / H')+'. In NeoChinatown the corner of your screen says where it may be fired: FRIENDLY (green) never, NEUTRAL (orange) at a price, HOSTILE (red) freely.</p>'
+    +button(owned?'OWNED':'BUY · '+price+' CR','admin-buy-weapon:'+w.id,false,owned||state.credits<price)+'</article>');}
   const id='warflying-scrambler',m=P.modules[id],owned=state.progression.equipment.owned.includes(id);
-  localPanel('Admin’s <em>stock.</em>','<p>Admin sells one thing here. WarFlying Modules are sold at station outfitters. Fit either at a hangar maintenance terminal; they share the one Utility slot.</p><div class="module-grid"><article>'+equipmentIcon(m.icon)+'<h2>'+m.name+'</h2><p>'+m.price+' CR · '+P.slotLabel(m.slot)+' slot · all current hulls</p>'
-   +'<p>Interferes with the electronic signatures WarFlying scanners use to identify ships, so new sightings of your ship can’t be tied together. It doesn’t hide you from radar, stop a visual check or an inspection, or remove sightings already uploaded. It can’t be fitted with a WarFlying Module.</p>'
-   +button(owned?'OWNED':'BUY · '+m.price+' CR','admin-buy:'+id,false,owned||state.credits<m.price)+'</article></div>');
+  if(f.warflyingIntro===true||owned)items.push('<article data-admin-item="'+id+'">'+equipmentIcon(m.icon)+'<h2>'+m.name+'</h2><p>'+m.price+' CR · '+P.slotLabel(m.slot)+' slot · all current hulls</p>'
+   +'<p>Interferes with the electronic signatures WarFlying scanners use to identify ships, so new sightings of your ship can’t be tied together. It doesn’t hide you from radar, stop a visual check or an inspection, or remove sightings already uploaded. It can’t be fitted with a WarFlying Module. WarFlying Modules are sold at station outfitters; fit either at a hangar maintenance terminal (they share the one Utility slot).</p>'
+   +button(owned?'OWNED':'BUY · '+m.price+' CR','admin-buy:'+id,false,owned||state.credits<m.price)+'</article>');
+  for(const x of globalThis.VoidShipLoadout?.adminItems?.()||[])items.push(x);   // ship missiles M1 / M2 for a pilot (ship-loadout.js, 19 Nov 2026)
+  localPanel('Admin’s <em>stock.</em>','<p>What Admin sells over the counter. You have '+state.credits+' CR.</p><div class="module-grid">'+items.join('')+'</div>'+(globalThis.VoidShipLoadout?.adminNote?.()||''));
  }
  screen.addEventListener('click',e=>{
-  const a=e.target.closest('button')?.dataset.action;if(!a?.startsWith('admin-buy:'))return;
-  if(P.buy(state,a.slice(10),'admin'))save();adminStore();
+  const a=e.target.closest('button')?.dataset.action;if(!a)return;
+  if(a.startsWith('admin-buy:')){if(P.buy(state,a.slice(10),'admin'))save();adminStore();return;}
+  if(a.startsWith('admin-buy-weapon:')){const id=a.slice(17),price=Math.round(Number(globalThis.VOID_BALANCE?.pistolPrice??globalThis.VoidZones?.TUNE.pistolPrice??350));if(P.buyWeapon(state,id,price)){save();announce('PISTOL BOUGHT · Draw / holster: 1 or H. Mind the zone at the top left.');}adminStore();}
  });
+ globalThis.VoidAdminStore=adminStore;   // the ordnance counter beside Admin opens the same stock (ship-loadout.js)
  const storeOptions=()=>[{label:'SHOW ME THE SCRAMBLER',run:adminStore},{label:'NOT RIGHT NOW',quiet:true,run:resumeWalking}];
  VoidInteractions.register('admin',()=>{
   // No missions in a new campaign yet, so nothing here may start the faction story. (An on-screen notice, so no new voice clip is needed.)
-  if(VoidMissions.closed(state)){resumeWalking();announce('Admin has nothing for you right now.');return;}
+  if(VoidMissions.closed(state)){adminStore();return;}   // no missions in a new campaign yet: Admin's counter is open (the pistol)
   const f=state.story.flags;
   if(!state.universe.completedObjectives.includes('meet-admin'))state.universe.completedObjectives.push('meet-admin');
   f.metAdmin=true;f.metIris=true;const offers=C.factionOffers(state);

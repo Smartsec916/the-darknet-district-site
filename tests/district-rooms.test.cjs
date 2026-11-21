@@ -1,4 +1,4 @@
-/* The District's rebuilt rooms (district-rooms.js; David, 16 Nov 2026): the data behind the vending machines, the store counter's display cases and the oxygen bar. */
+/* The District's rebuilt rooms (district-rooms.js; the owner, 16 Nov 2026): the data behind the vending machines, the store counter's display cases and the oxygen bar. */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=require('../void-runner/district-rooms.js'),N=require('../void-runner/neochinatown.js'),read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');
@@ -50,7 +50,7 @@ test('the hallway posters are down, their four spots are kept, and the advertise
  assert.equal(src.split("plane('hall-ad'").length,2,'no other hallway poster');
 });
 const LINES_HASH='6f865bb464d4bd93';
-test('the campaign screen carries David\'s header and his 25 lines word for word, one at a time',()=>{
+test('the campaign screen carries the owner\'s header and his 25 lines word for word, one at a time',()=>{
  const C=R.CAMPAIGN;assert.equal(C.header,'ANTI-WARFLYING CAMPAIGN');assert.equal(C.lines.length,25);assert.equal(new Set(C.lines).size,25);
  assert.equal(C.lines[0],"WarFlying is not a hobby. It's an invasion.");assert.equal(C.lines[19],"Scan my ship again and we'll discover how good your shields are.");assert.equal(C.lines[24],'The Tessaly System has room for everyone. Except snoops.');
  assert.equal(require('node:crypto').createHash('sha256').update(C.lines.join('\n')).digest('hex').slice(0,16),LINES_HASH,'no line was reworded');
@@ -76,7 +76,7 @@ test('the modelled props: each has its file, a size and a built prop to fall bac
  const names=Object.keys(R.PROPS);assert.deepEqual(names.slice().sort(),['bar-stool','flashlight','o2-station','o2-tank','pistol','radio','vr-headset']);
  const src=read('void-runner/district-rooms.js');
  for(const n of names){const p=R.PROPS[n],file=path.join(__dirname,'..','void-runner',R.propFile(n));assert.ok(fs.existsSync(file),n+': file');const size=fs.statSync(file).size;assert.ok(size>50e3&&size<1.5e6,n+': a web-sized file ('+size+')');
-  const b=fs.readFileSync(file),json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));assert.ok(!(json.extensionsUsed||[]).some(e=>/draco|meshopt/.test(e)),n+': no compressed geometry');
+  const b=fs.readFileSync(file),json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));assert.ok(!(json.extensionsUsed||[]).some(e=>/draco|meshopt/.test(e)&&e!=='EXT_meshopt_compression'),n+': no compressed geometry the game cannot decode (lossless meshopt is decoded locally since 18 Nov 2026)');
   const tris=json.meshes.reduce((a,m)=>a+m.primitives.reduce((s,q)=>s+json.accessors[q.indices].count/3,0),0);assert.ok(tris>500&&tris<=12500,n+': triangles '+tris);
   assert.ok(['x','y','z'].includes(p.fit[0])&&p.fit[1]>.05&&p.fit[1]<2,n+': size');assert.ok(src.includes("prop('"+n+"',")||src.includes('prop(it.kind,'),n+': placed');}
  for(const k of ['pistol','radio','flashlight'])assert.ok(R.ITEMS.some(i=>i.kind===k),k+' is a kind of goods the counter already shows');

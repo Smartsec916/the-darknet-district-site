@@ -1,4 +1,4 @@
-/* The Darknet District's rooms, made to look real (David, 16 Nov 2026; docs/development/DISTRICT_UPGRADE.md): the vending machines, the oxygen bar, the store counter's
+/* The Darknet District's rooms, made to look real (the owner, 16 Nov 2026; docs/development/DISTRICT_UPGRADE.md): the vending machines, the oxygen bar, the store counter's
    display cases and the VR play area. Looks only: every solid, interaction, person and room size stays where neochinatown.js puts it.
    The top part is plain data and runs in Node (tests/district-rooms.test.cjs); build() is browser only and is handed neochinatown.js's own kit (box, cyl, mat, texture...),
    so everything it makes is merged, owned and released with the rest of the interior.
@@ -25,7 +25,7 @@
     leaves its case or sits in front of a member of staff. dense=false (Low) halves the count. */
  const SCALE=1.25,TIERS=[[.025,.165,.045],[.175,.315,.1],[.33,.47,.2]];   // items are made a quarter larger than life so they read through the glass; tiers: [from, to (m behind the front pane), height above the counter]
  /* How tall each item stands, life size, in whichever form is taller (the modelled radio with its antenna is 0.17; the built one 0.165), and the underside of a case's top pane above the
-    counter. An item is only laid on a tier where it clears the pane (David, 16 Nov 2026: the radios on the top shelf stood through the top of the case). */
+    counter. An item is only laid on a tier where it clears the pane (the owner, 16 Nov 2026: the radios on the top shelf stood through the top of the case). */
  const TALL={knife:.026,multitool:.026,flashlight:.036,compass:.022,radio:.17,powerbank:.016,firestarter:.095,lighter:.083,sight:.06,weaponlight:.03,filter:.032,paracord:.061,stakes:.012,canister:.075,tin:.024,card:.01,headlamp:.031,pistol:.045,magazine:.106,ammo:.058},
   CASE_CEILING=.332,CASE_CLEAR=.015;
  const fitsTier=(kind,t)=>TIERS[t][2]+TALL[kind]*SCALE<=CASE_CEILING-CASE_CLEAR;
@@ -39,7 +39,7 @@
  // ---- Oxygen bar ----
  const BAR={counter:{x0:5.5,x1:14.5,z0:37.95,z1:39.05,top:1.11},back:{x0:6.4,x1:14.6,z:41.8},seats:[6.5,9,11.5,14],tanks:[[3.75,41.25],[4.42,41.25],[15.5,41.25],[16.15,41.25]],
   sign:['THE DARKNET DISTRICT','OXYGEN LOUNGE'],neon:['O₂  OXYGEN BAR']};
- /* The anti-WarFlying campaign screens (David, 16 Nov 2026): five lit panels (two in the hallway, two in the arcade where the posters for games not built yet hung, one in the bar) that show his lines one at a time, all of them the same
+ /* The anti-WarFlying campaign screens (the owner, 16 Nov 2026): five lit panels (two in the hallway, two in the arcade where the posters for games not built yet hung, one in the bar) that show his lines one at a time, all of them the same
     line (they share one picture). The header and every line are his, word for word: add a line by adding it to `lines`. No voice and no sound. `seconds` is how long a line stays,
     `fade` how long one gives way to the next. `screens`: `face` is the way a panel looks, (x, z) the middle of it on the wall's surface, y its middle height, `wall` the solid it hangs on.
     Each is whole on solid wall, clear of every doorway (a test checks the margin). `hall` screens follow the hallway's lining (the bare wall is 0.3 m further out). */
@@ -53,7 +53,7 @@
   "WarFlying today. Criminal charges tomorrow.","Keep your nose out of my packets.","Real pilots respect personal bandwidth.","Unauthorized scanning is digital trespassing.","The Tessaly System has room for everyone. Except snoops."]};
  // Which line shows at time t (seconds), which one it is giving way to, and how far the change has gone (0 = the old line, 1 = the new one).
  function campaignAt(t,C=CAMPAIGN){const n=C.lines.length,k=Math.floor(Math.max(0,t)/C.seconds),into=Math.max(0,t)-k*C.seconds,mix=k===0?1:Math.min(1,into/C.fade);return {index:k%n,from:(k+n-1)%n,mix};}
- /* Modelled props (David, 16 Nov 2026: the simplest built props replaced where they are seen close up). Each is one file in assets/models/district-props/ (made with Meshy:
+ /* Modelled props (the owner, 16 Nov 2026: the simplest built props replaced where they are seen close up). Each is one file in assets/models/district-props/ (made with Meshy:
     docs/development/DISTRICT_UPGRADE.md), loaded after the room is up on Medium and above and drawn as instances of one mesh. Low, and any quality where a file cannot be loaded,
     shows the built prop it replaces. `fit`: the size in metres the model is brought to along one of its axes once it is posed ('y' its height, 'x' its length). `pose`: the turn that
     stands the model the way the built prop stood (x, y, z in radians). `face`: a further turn about the vertical so its front looks the way the built prop looked.
@@ -290,7 +290,7 @@
     cyl('bar-o2-fluid',.17,1.36,[x,1,z],bubbleM,true,T);cyl('bar-o2-glass',.2,1.36,[x,1,z],tubeM,true,T);for(const y of [.6,1.4])torus('bar-o2-hoop',.41,.02,[x,y,z],chrome);for(const a of [.6,2.5,3.8,5.6])cyl('bar-o2-stay',.01,1.36,[x+Math.cos(a)*.21,1,z+Math.sin(a)*.21],chrome,true,5);
     M(B.MeshBuilder.CreatePlane('bar-o2-mark',{width:.24,height:.18},scene),o2M,[x,1.12,z-.206],true);
     cyl('bar-o2-cap',.24,.16,[x,1.76,z],S.steel,true,T);dome('bar-o2-dome',.42,[x,1.84,z],S.steel,.5);cyl('bar-o2-stem',.035,.2,[x,2.1,z],brass,true,8);torus('bar-o2-wheel',.2,.02,[x,2.2,z],pm('valve-red','#8c1c1c',.5,.4,.3));rod('bar-o2-spoke',.008,.19,[x,2.2,z],chrome,'x',5);rod('bar-o2-spoke',.008,.19,[x,2.2,z],chrome,'z',5);};
-   /* Medium and above: the modelled tank (a glass cylinder of lit fluid in a steel frame with a valve wheel) stands on a steel plinth, as the tanks in David's picture stand on the back counter;
+   /* Medium and above: the modelled tank (a glass cylinder of lit fluid in a steel frame with a valve wheel) stands on a steel plinth, as the tanks in the owner's picture stand on the back counter;
       a sleeve of rising bubbles moves over its glass. The pipe up to the manifold is the same. */
    const sleeveT=low?null:texture('dr-o2-sleeve',64,256,(g,W,H)=>{g.clearRect(0,0,W,H);const rnd=lcg(11);for(let n=0;n<46;n++){const x=rnd()*W,y=rnd()*H,r=.8+rnd()*2.2;g.fillStyle='rgba(225,255,255,'+(.3+rnd()*.5)+')';g.beginPath();g.arc(x,y,r,0,7);g.fill();if(y<r){g.beginPath();g.arc(x,y+H,r,0,7);g.fill();}}}),sleeveM=low?null:litMat('o2-sleeve',sleeveT,true);
    if(sleeveT){sleeveT.hasAlpha=true;sleeveT.wrapV=B.Texture.WRAP_ADDRESSMODE;sleeveT.uScale=2;ticks.push(dt=>{sleeveT.vOffset=(sleeveT.vOffset+dt*.09)%1;});}

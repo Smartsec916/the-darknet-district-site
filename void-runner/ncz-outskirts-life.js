@@ -1,4 +1,4 @@
-/* The residents of The Outskirts (David, 16 Nov 2026): "about half of the people living in The Outskirts will look like NPCs from north of Far South Gate and the other half
+/* The residents of The Outskirts (the owner, 16 Nov 2026): "about half of the people living in The Outskirts will look like NPCs from north of Far South Gate and the other half
    look poor". Ambient figures only: no names, no dialogue, no voices, no interactions, no missions, no collision. They live in that quarter only (started by neochinatown.js for
    the Outskirts' build and nowhere else), so nobody here is streamed to another quarter; like the alley's people they are not synchronised between players.
    HALF look like the street crowd (the same looks as ncz-alley.js). The OTHER HALF are the same bodies made to read as poor: their clothes and shoes are re-tinted dull, faded,
@@ -7,7 +7,7 @@
    (tests/ncz-outskirts-life.test.cjs). Figures hide with distance (zoom-detail rule) and wait for their looks to load, as the alley's do. */
 (function(root){
  'use strict';
- const CAST=['ncz-neon','fixer-01','hacker-01','outlaw-01','district-resident','district-smuggler','runner-02','communion-tech'];
+ const CAST=['npc-outskirts-f','npc-outskirts-m','npc-veteran','npc-outskirts-f','npc-elder-f','npc-outskirts-m','npc-courier','npc-cyber-respirator','npc-casual-f'];   // the Outskirts' own people first (NPC upgrade, 18 Nov 2026: #21, #22; crowd.js street). Before: the street crowd's eight MakeHuman looks
  // x, z (world metres, clear of the containers in ncz-containers.js), what they do (clips in order of preference), who they face, and `poor`.
  const PEOPLE=[
   // around the fire barrel in the plaza
@@ -40,7 +40,7 @@
   function poor(node,p){let k=0;for(const m of node.getChildMeshes()){const mat=m.material,nm=(mat?.name||'')+' '+(m.name||'');if(GEAR.test(nm)){m.setEnabled(false);continue;}
    if(mat&&CLOTHES.test(nm)&&(mat.albedoColor||mat.diffuseColor)){const c=p.worn[k++%p.worn.length],cl=mat.clone(mat.name+'-worn-'+p.id);if(cl.albedoColor)cl.albedoColor=cl.albedoColor.multiply(new B.Color3(c[0]*1.8,c[1]*1.8,c[2]*1.8));else cl.diffuseColor=cl.diffuseColor.multiply(new B.Color3(c[0]*1.8,c[1]*1.8,c[2]*1.8));if('roughness' in cl)cl.roughness=Math.min(1,(cl.roughness??.6)+.35);if(cl.emissiveColor)cl.emissiveColor=cl.emissiveColor.scale(.3);own.push(cl);m.material=cl;}}}
   const askForLooks=()=>{asked=true;for(const look of new Set(people.map(p=>p.look)))try{Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(look,scene)).catch(()=>{});}catch{}};
-  function spawn(p){if(p.node||disposed)return;const node=instance('crowd:'+p.look,parent);if(!node)return;node.metadata={...node.metadata,crowd:p.look,alley:p.id,outskirts:true};p.node=node;if(p.poor)poor(node,p);
+  function spawn(p){if(p.node||disposed)return;const node=instance('crowd:'+p.look,parent);if(!node)return;node.metadata={...node.metadata,crowd:p.look,alley:p.id,outskirts:true};p.node=node;if(root.VoidCrowd?.street?.[p.look])root.VoidCrowd.dress(node,p.look,p.id,p.poor?'worn':null);else if(p.poor)poor(node,p);   /* a street figure is one material: its worn variant (npc-variants.js) instead of re-colouring pieces */
    p.anim=animate(node,p.look,p.clip);node.position.set(p.x,-(p.seat||0),p.z);node.rotation.y=p.rot;}
   function tick(dt){if(disposed)return;clock+=dt;const c=cam();if(!asked&&clock>3&&typeof mode!=='undefined'&&mode==='walking')askForLooks();
    for(const p of people){if(!p.node){spawn(p);continue;}

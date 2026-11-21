@@ -42,7 +42,7 @@
 #pod-wake.looking { cursor: none; background: none; }
 #pod-wake.looking .pod-wake-card { opacity: .45; }
 #pod-wake.vending { cursor: default; }
-/* Nov 2026 (David): the pod is for looking around, not a menu. The card is a low strip along the bottom edge and the view stays clear. */
+/* Nov 2026 (the owner): the pod is for looking around, not a menu. The card is a low strip along the bottom edge and the view stays clear. */
 #pod-wake { padding: .6rem 1rem; background: linear-gradient(transparent 86%, rgba(4, 7, 19, .7)); cursor: crosshair; }
 #pod-wake:not(.vending) .pod-wake-card { width: min(60rem, 100%); padding: .55rem .9rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .4rem 1rem; background: rgba(5, 13, 26, .78); box-shadow: 0 0 14px rgba(42, 218, 223, .16); }
 #pod-wake:not(.vending) .pod-wake-card p { margin: 0; }

@@ -4,8 +4,8 @@
    Adding a companion: build a MakeHuman look with the companion clips (tools/animation-pipeline), or convert a
    licensed model with build_imported_character.py, list it in crowd.js, then register() an entry here with its
    model, preview, dialogue and personality. Nothing else changes.
-   DRAFT: every line of companion dialogue is Claude's placeholder for David's review. Every companion's lines are recorded (tools/audio, provisional voices): women's voices for the women, a man's
-   voice for the men (David, 2026-11-01). */
+   DRAFT: every line of companion dialogue is Claude's placeholder for the owner's review. Every companion's lines are recorded (tools/audio, provisional voices): women's voices for the women, a man's
+   voice for the men (the owner, 2026-11-01). Except a companion whose voice waits for the owner (voice.pending: Luna): her lines are shown, not read aloud. */
 (function(root){
  const DEG=Math.PI/180;
  // ---- Behaviour settings (sensible defaults; a companion's personality overrides any of them) ----
@@ -57,10 +57,10 @@
  const legacy={f:'nadia',m:'kai',seren:'nadia'};   // f/m: old saves; seren: removed 16 Nov 2026
  const current=e=>{for(let i=0;e?.replacedBy&&i<4;i++)e=get(e.replacedBy)||e;return e||null;};
  const resolve=opts=>{const id=Array.isArray(opts?.companions)?opts.companions[0]:opts?.companion;return current(get(id)||get(legacy[id])||get(legacy[opts?.choice]));};
- // Who comes along: one companion, or up to `partySize` together (all pairable and of one sex: David, 2026-10-31,
+ // Who comes along: one companion, or up to `partySize` together (all pairable and of one sex: the owner, 2026-10-31,
  // "Ava and Dex shouldn't be together"). Unknown ids drop out.
  const partySize=2;
- // Rooms for two offered at the terminal, beside each one's own room (David, 2026-10-31).
+ // Rooms for two offered at the terminal, beside each one's own room (the owner, 2026-10-31).
  const pairs=[{id:'ava+eva',name:'Ava & Eva',companions:['ava','eva']}];
  function party(opts){
   const ids=Array.isArray(opts?.companions)?opts.companions:[];
@@ -71,16 +71,16 @@
  // licence isn't confirmed for release yet). licensed:true marks purchased models kept out of the public repository:
  // the live site gets them, encrypted, from the private asset repository (tools/assets/build-pages.cjs).
  const localHost=h=>/^(localhost|127\.0\.0\.1|\[::1\])$/.test(h||'');
- const offered=(e,host=globalThis.location?.hostname)=>e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
+ const offered=(e,host=globalThis.location?.hostname)=>(!e.localDraft||typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized&&VoidDevTools.request)&&e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
  // A companion's own clip for a role (its personality picks its gestures), falling back through common names.
  function clipFor(entry,role,has){const want=[...(entry.clips[role]||[]),role,...(fallbackClips[role]||[])];for(const c of want)if(!has||has(c))return c;return 'idle';}
  const fallbackClips={greet:['wave','interact'],flirt:['blow-kiss','coy','head-tilt','interact'],laugh:['laugh','talk'],shy:['coy','head-tilt'],idleAlt:['idle'],dance:['slow-dance','dance'],
   playfulDance:['dance'],sitAlt:['sit-relax','sit'],sitGreet:['sit-wave','sit-talk'],decline:['shrug','head-tilt'],recline:['recline'],glance:['glance-back','head-tilt'],confident:['hips','head-tilt']};
 
  // Seren and Kai (original adult characters; MakeHuman CC0, Mixamo and Rokoko mocap). DRAFT lines throughout.
- // Seren was removed on 16 Nov 2026 at David's request (he will supply a better model). Anything that still asks for 'seren' (an old save, a shared
+ // Seren was removed on 16 Nov 2026 at the owner's request (he will supply a better model). Anything that still asks for 'seren' (an old save, a shared
  // session, a remembered choice) is given Nadia: see `retired` below.
- register({id:'kai',name:'Kai',sex:'male',model:'npc-kai',skin:[],   /* his own model since 16 Nov 2026 (Meshy, from a concept David approved); vr-companion-m was the MakeHuman stand-in */
+ register({id:'kai',name:'Kai',sex:'male',model:'npc-kai',skin:[],   /* his own model since 16 Nov 2026 (Meshy, from a concept the owner approved); vr-companion-m was the MakeHuman stand-in */
   preview:'void-runner/assets/vr/companions/kai.jpg',
   about:'Calm, wry and attentive. He listens more than he talks.',voice:{characterId:'vr-kai',voiceId:null},
   personality:{initiative:.45,flirtatiousness:.5,approachFrequency:.42,attention:.92,personalSpace:1.15,walkSpeed:1.05},
@@ -110,10 +110,44 @@
    aside:['You\'ve got a great laugh. Just so you know.','I could stay up here all night with you.','You make this city look quiet.'],
    comeHere:['Coming.','Right here.'],recline:['Not bad, right? Best ceiling in NeoChinatown.']}});
 
- // Nadia (named and characterised by David, 2026-10-28): grounded, warm and direct; grew up in NeoChinatown and
+ // Zane (named by the owner, 18 Nov 2026), the second male companion: his own Meshy model from a concept the owner approved (long charcoal overcoat with
+ // an oxblood lining, black high-neck knit, silver chain and rings; an original adult man of about 30), made and animated exactly as Kai (spec characters/npc-zane.json).
+ // GENERIC PLACEHOLDERS, approved for now by the owner (18 Nov 2026: "His voice, lines, and personality, just keep them generic for now"): his `about`,
+ // personality and every line below are generic and non-canon; the owner may revise them later. Voice: vr-zane in tools/audio/npc-voice-registry.json.
+ register({id:'zane',name:'Zane',sex:'male',model:'npc-zane',skin:[],
+  preview:'void-runner/assets/vr/companions/zane.jpg',
+  about:'Composed and observant. Says little, misses nothing.',voice:{characterId:'vr-zane',voiceId:null},
+  personality:{initiative:.38,flirtatiousness:.45,approachFrequency:.36,attention:.95,personalSpace:1.2,walkSpeed:1},
+  clips:{greet:['head-tilt'],flirt:['head-tilt','blow-kiss'],shy:['head-tilt'],idleAlt:['idle-m2','glance-back'],dance:['slow-dance'],playfulDance:['dance']},
+  dialogue:{
+   greet:['You came. Good.','Evening. Take your time, there is no hurry here.','There you are. Come in.'],
+   chat:['I notice things. It is a habit I never broke.','Rain on the glass. Best sound in the city.','You can sit in silence with me. I won\'t mind.','Most people talk to fill the quiet. You don\'t have to.','The lights below never sleep. Up here, I can.'],
+   compliment:['Careful. I remember everything.','I heard that. I\'ll keep it.','You say that like you mean it.'],
+   flirt:['Go on. I\'m listening.','You\'re trouble. Quiet trouble.','Say that again, slower.'],
+   sit:['Sit. Stay a while.','There. That\'s better.'],
+   dance:['Slowly, then. Follow me.','Just us. Forget the room.','You move well. I was watching.'],
+   hands:['Warm hands.','Don\'t let go yet.'],
+   kiss:['Closer.'],kissAfter:['I wondered how long you would wait.','Worth the wait.'],
+   notYet:['Not yet. Tell me something true first.','Patience. I like knowing who I\'m with.'],
+   notNow:['Sit with me, or ask me for a dance.'],
+   relax:['Breathe. Nobody needs you right now.','Stay like this a while.'],
+   bye:['Go carefully out there.','Goodnight. I\'ll be here.'],
+   approach:['You looked far away. I came to bring you back.','I thought you might want company.'],
+   window:['From up here, the city looks almost honest.','I count the drones sometimes. Fewer tonight.'],
+   joinSofa:['May I?','I\'ll sit. If you don\'t mind.'],
+   inviteSit:['Come and sit beside me.','The sofa is wide enough for two.'],
+   inviteDance:['Dance with me. One song.','Will you dance? I\'ll lead.'],
+   inviteRecline:['Lie back with me. Just for a minute.'],
+   accepted:['Good.','I hoped you would.'],
+   declined:['Another time.','Understood. The offer stays.'],
+   welcomeBack:['You\'re back. I noticed.','I kept your place.'],
+   aside:['You laugh more than you think you do.','I could listen to you a long time.','Quiet nights suit you.'],
+   comeHere:['On my way.','Here.'],recline:['Look up. That is the only view that never changes.']}});
+
+ // Nadia (named and characterised by the owner, 2026-10-28): grounded, warm and direct; grew up in NeoChinatown and
  // teases you for being an outsider. Model: "Realistic Contemporary Woman FC1" by Ludovisions (CGTrader, free,
  // Royalty Free License - no AI), converted by build_imported_character.py. Her licence asks that the file not be
- // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for David's review.
+ // easy to extract, so she ships scrambled (.vrpak). Every line is a DRAFT for the owner's review.
  register({id:'nadia',name:'Nadia',sex:'female',model:'vr-companion-fc1',file:'vr-companion-fc1.vrpak',skin:['ludovisions_FC1_mat_23','ludovisions_FC1_mat_24','ludovisions_FC1_mat_25','ludovisions_FC1_mat_26','ludovisions_FC1_mat_27'],preview:'void-runner/assets/vr/companions/nadia.jpg',
   about:'Grounded, warm and direct. Born and raised in NeoChinatown, and she\'ll never let you forget you weren\'t.',voice:{characterId:'vr-nadia',voiceId:null},
   personality:{initiative:.56,flirtatiousness:.5,approachFrequency:.7,attention:.88,personalSpace:.9,remarkCooldown:18},
@@ -144,13 +178,13 @@
    aside:['You\'re staring again. Locals notice that.','You\'re not so bad, for someone from out there.','The city likes you. I can tell. So do I, a little.'],
    comeHere:['Coming, coming.','What, lost already?'],recline:['Best ceiling in NeoChinatown. Don\'t tell anyone.']}});
 
- // Ava and Eva (names by David, 2026-10-30): characters from models David supplied from CGTrader, "Ava" v2.0 by
+ // Ava and Eva (names by the owner, 2026-10-30): characters from models the owner supplied from CGTrader, "Ava" v2.0 by
  // BGShop and "PrettyGirl_01" (Eva), prepared by prepare_ava.py / prepare_prettygirl.py and converted by
- // build_imported_character.py. Their personalities, descriptions and lines are DRAFTs by Claude (David, 2026-11-01:
+ // build_imported_character.py. Their personalities, descriptions and lines are DRAFTs by Claude (the owner, 2026-11-01:
  // "Draft it all"), each in their own voice (Ava: quick and stylish, a holo-fashion designer; Eva: gentle and dreamy,
  // she paints the skyline). They can come along together (pairable). Released on
- // the live site (David, 2026-10-31: CGTrader Royalty Free licences, subscription kept active).
- // Default looks are David's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
+ // the live site (the owner, 2026-10-31: CGTrader Royalty Free licences, subscription kept active).
+ // Default looks are the owner's picks: Ava in the red top and skirt with the bob and no glasses (the bikini bottom is
  // worn under the skirt, so nothing shows when she sits); Eva in the white slip dress with her natural
  // orange-and-white hair.
  register({id:'ava',name:'Ava',sex:'female',model:'vr-companion-ava',file:'vr-companion-ava.vrpak',skin:['head','body','arm','leg','genital','lips'],preview:'void-runner/assets/vr/companions/ava.jpg',
@@ -227,14 +261,14 @@
    {key:'eyes',label:'Eye colour',default:'brown',options:[['brown','Brown'],['blue','Blue'],['green','Green'],['hazel','Hazel']].map(([id,label])=>variant(id,label,'brown',c=>({eye_r3:'eyes-'+c,eye_l3:'eyes-'+c})))},
    {key:'face',label:'Make-up',default:'5',options:['1','2','3','4','5','6'].map(n=>variant(n,'Look '+n,'5',()=>({head5:'face-0'+n})))}]});
 
- // Una and the two base figures (CGTrader packages David supplied, 2026-10-31). Una was a static model: she is rigged
+ // Una and the two base figures (CGTrader packages the owner supplied, 2026-10-31). Una was a static model: she is rigged
  // on the Female Base skeleton (prepare_una.py); the base figures come rigged (prepare_basemesh.py). Like Ava and Eva:
  // their own DRAFT personality, description, lines and voice (Una: a guarded ex-corporate netrunner; Yuki: sporty
  // and upbeat; Dex: an easy-going dockworker), able to come along in pairs (not Dex). Yuki and Dex are released on the live
  // site (Male Female Base Rig, CGTrader #4027823, Royalty Free no AI); Una stays on a local development server until
- // her product page and licence are identified. The two base figures are Yuki and Dex (names by David, 2026-10-31; ids base-f / base-m); Dex comes in briefs
- // only, until David adds clothing.
- // Una's outfits are David's Style A (default), B and C made from her own clothes, plus the original. A look may
+ // her product page and licence are identified. The two base figures are Yuki and Dex (names by the owner, 2026-10-31; ids base-f / base-m); Dex comes in briefs
+ // only, until the owner adds clothing.
+ // Una's outfits are the owner's Style A (default), B and C made from her own clothes, plus the original. A look may
  // also set material values (`materials`: roughness factors) for a glossier finish.
  register({id:'una',name:'Una',sex:'female',model:'vr-companion-una',file:'vr-companion-una.vrpak',preview:'void-runner/assets/vr/companions/una.jpg',
   about:'Cool, precise and a little guarded. A former corporate netrunner who keeps her own hours now, and her own secrets.',
@@ -301,6 +335,38 @@
    aside:['You\'ve got a great smile.','I like hanging out with you.','You\'re fun. Has anyone told you that?'],
    comeHere:['Coming!','Right here!'],
    recline:['See? I can relax. Sometimes.']},voice:{characterId:'vr-base-f',voiceId:null},clips:{greet:['wave'],flirt:['blow-kiss','laugh','head-tilt'],shy:['coy'],laugh:['laugh'],playfulDance:['dance-belly'],idleAlt:['idle-f2'],walk:['walk-f']}});
+ // Luna (named by the owner, 21 Nov 2026), a female companion: from his own Meshy generation of 18 Nov 2026 (a neon dancer in glowing body paint, an adult woman), made
+ // standing in an A-pose with Meshy, rigged and given the female companion clips (spec characters/npc-luna.json; docs/development/MESHY_CHARACTERS.md). Her `about`,
+ // personality and every line below are PROPOSED / DRAFT placeholders by Claude for the owner's review, not canon. Voice: none yet (voice.pending): her lines are shown,
+ // not read aloud, until the owner chooses one (tools/audio skips her; vr-suite.js say marks them unvoiced). Companions appear only in the VR bedroom suite.
+ register({id:'luna',name:'Luna',sex:'female',model:'npc-luna',skin:[],preview:'void-runner/assets/vr/companions/luna.jpg',
+  about:'A neon dancer who lights up any room she walks into. Playful and warm, always moving to a beat only she can hear.',voice:{characterId:'vr-luna',voiceId:null,pending:true},
+  personality:{initiative:.64,flirtatiousness:.6,approachFrequency:.62,attention:.86,personalSpace:.95,walkSpeed:1.1,idleActivity:[10,20]},
+  clips:{greet:['wave'],flirt:['hips','blow-kiss','coy'],shy:['coy'],confident:['hips'],laugh:['laugh'],idleAlt:['idle-f2','hips'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly']},
+  dialogue:{
+   greet:['Hey, you. I was just warming up.','There you are. The lights look better with company.'],
+   chat:['I paint the glow on myself before every show. Takes an hour. Worth it.','Down in the clubs nobody looks you in the eye. Up here you actually see me.','Music is the only thing in this city that never lies.'],
+   compliment:['Careful. Compliments make me glow brighter.','Mm. Say that again, slower.'],
+   flirt:['Keep looking at me like that and I might start dancing.','Is that a line? I like the rhythm of it.'],
+   sit:['Sit with me. Even dancers need a rest.','There. Now the room is still for once.'],
+   dance:['Follow my lead. Feel the beat first.','Hips loose. There you go.','See? You were made for this.'],
+   hands:['Your hands are warm. Keep them there.'],
+   kiss:['Closer. Mind the paint.'],kissAfter:['Now you\'re glowing too.'],
+   notYet:['Slow down. Every good song has a build-up.'],
+   notNow:['Sit with me first, or ask me for a dance.'],
+   relax:['Close your eyes. Listen to the bass through the floor.'],
+   bye:['Go on. Come back when you need a little light.'],
+   approach:['You looked like you were missing a beat. Here I am.'],
+   window:['All those signs down there, and none of them move like I do.'],
+   joinSofa:['Scoot over. I\'m done performing for tonight.'],
+   inviteSit:['Come sit with me a while. No audience, just us.'],
+   inviteDance:['This song is too good to stand still. Dance with me?'],
+   inviteRecline:['Lie back with me. Watch the ceiling catch my glow.'],
+   accepted:['Yes. I knew you had rhythm.'],
+   declined:['Okay. I\'ll save you a dance.'],
+   welcomeBack:['You came back. The room just got brighter.'],
+   aside:['You\'re easy to dance for.','I like it when you watch me move.'],
+   comeHere:['Dancing over.'],recline:['See? I glow even lying down.']}});
  register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',skin:['Skin_M'],preview:'void-runner/assets/vr/companions/base-m.jpg',
   about:'Easy-going and funny. He works the cargo docks, loves old music and always has a story ready.',
   licensed:true,pairable:false,personality:{initiative:0.5,flirtatiousness:0.5,approachFrequency:0.5,attention:0.9,personalSpace:1.1,walkSpeed:1.05},
@@ -349,7 +415,7 @@
  function readLooks(store){try{return JSON.parse(store?.getItem(lookKey)||'{}')||{};}catch{return {};}}
  const savedLooks=(entry,store=globalThis.localStorage)=>chosen(entry,readLooks(store)[entry.id]);
  function saveLook(entry,key,id,store=globalThis.localStorage){const o=option(entry,key,id);if(!o)return false;try{const all=readLooks(store);all[entry.id]={...chosen(entry,all[entry.id]),[key]:o.id};store.setItem(lookKey,JSON.stringify(all));return true;}catch{return false;}}
- // Whether a companion has lines yet (Ava and Eva don't, until David writes them).
+ // Whether a companion has lines yet (Ava and Eva don't, until the owner writes them).
  const speaks=entry=>Object.values(entry?.dialogue||{}).some(p=>p?.length);
 
  // Lines drawn from a pool never repeat the last one used.
@@ -400,8 +466,11 @@
  // How far round the head must turn to face a target: yaw relative to the body's facing, pitch up/down, both
  // clamped; and whether the whole body should turn (standing only, beyond bodyTurnAt until within bodyTurnUntil).
  const wrap=a=>((a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;
- function look(bodyYaw,head,target,c=defaults,turning=false){
-  const dx=target.x-head.x,dz=target.z-head.z,dy=target.y-head.y,want=Math.atan2(dx,dz),off=wrap(want-bodyYaw),flat=Math.hypot(dx,dz)||1e-6;
+ // `side` (-1 or 1, optional): the side the head last turned to. With you almost straight behind them it keeps that side instead of whipping
+ // across from one shoulder to the other as you cross the line behind their back (17 Nov 2026).
+ function look(bodyYaw,head,target,c=defaults,turning=false,side=0){
+  const dx=target.x-head.x,dz=target.z-head.z,dy=target.y-head.y,want=Math.atan2(dx,dz),flat=Math.hypot(dx,dz)||1e-6;let off=wrap(want-bodyYaw);
+  if(side&&Math.abs(off)>behindAt&&Math.sign(off)!==Math.sign(side))off+=Math.sign(side)*2*Math.PI;
   const yaw=Math.max(-c.maxHeadYaw,Math.min(c.maxHeadYaw,off)),pitch=Math.max(-c.maxHeadPitch,Math.min(c.maxHeadPitch,Math.atan2(dy,flat)));
   const turn=turning?Math.abs(off)>c.bodyTurnUntil:Math.abs(off)>c.bodyTurnAt;
   return {yaw,pitch,offset:off,want,turn};}
@@ -409,6 +478,24 @@
  const ease=(from,to,rate,dt)=>from+(to-from)*Math.min(1,dt*rate);
  // Shares of the turn each bone takes, chest to head.
  const chain=[['Spine2',.22,.15],['Neck',.33,.35],['Head',.45,.5]];
+ /* Companion fixes (the owner, 17 Nov 2026: "sometimes their head, eyes, arms disappear ... sometimes in odd positions, probably because of head tracking").
+    behindAt: past this (you almost straight behind) the head keeps the side it was turned to (see look).
+    maxCorrection: the most the attention pass adds to whatever the clip is doing with the head, so a clip that already turns the head (a glance
+    back, a tilt) is never twisted round a further 70 degrees on top.
+    headWeight: one-off moves that act with the head themselves keep most of their own head movement (the attention pass steps back).
+    reach: the space a companion's body can occupy in any of their clips (standing, sitting, lying back, dancing, arms out), in metres around their own
+    origin. Every part's culling box is set to it (vr-suite.js): a skinned part's own box is measured once, in its bind pose, and an eye, the teeth or
+    an arm whose animated pose had left that box were dropped from the picture whenever the box fell outside the view (close up, at the screen edge).
+    turnSpeed: the fastest a standing companion turns on the spot, radians a second (no spinning on the heels). */
+ const behindAt=150*DEG,maxCorrection={yaw:80*DEG,pitch:35*DEG},turnSpeed=1.9;
+ const reach={x:[-1.9,1.9],y:[-.35,2.35],z:[-1.9,1.9]};
+ const headMoves={'glance-back':.35,'head-tilt':.55,coy:.55,laugh:.7,'blow-kiss':.7,shrug:.8,'sit-enter':.5,'sit-exit':.5,wave:.85};
+ const headWeight=clip=>{const n=String(clip||'');for(const [k,w] of Object.entries(headMoves))if(n===k||n.endsWith('-'+k))return w;return 1;};
+ // One step of an on-the-spot turn toward `want` (radians): eases in and out, never faster than turnSpeed. v: the turn's current speed (rad/s).
+ function turnStep(yaw,want,v,dt,{rate=2.6,max=turnSpeed,accel=6}={}){const d=wrap(want-yaw),goal=Math.max(-max,Math.min(max,d*rate)),nv=v+(goal-v)*Math.min(1,dt*accel);
+  let step=nv*dt;if(Math.sign(step)!==Math.sign(d)&&d)step=0;if(Math.abs(step)>Math.abs(d))step=d;return {yaw:yaw+step,v:step===d?0:nv,left:Math.abs(d-step)};}
+ // Smoothstep from a to b over u in 0..1 (positions and turns that glide instead of jumping).
+ const glideAt=(a,b,u)=>{const t=Math.max(0,Math.min(1,u));return a+(b-a)*t*t*(3-2*t);};
 
  // ---- Paths around furniture: A* on a 0.2 m grid over the room's collision, then string-pulled ----
  function path(from,to,blocked,{step=.2,limit=6000}={}){
@@ -427,7 +514,7 @@
   const out=[];let at=from;for(let i=1;i<cells.length;i++)if(!clear(at,cells[i])){out.push(cells[i-1]);at=cells[i-1];}
   out.push(cells[cells.length-1]);return out;}
 
- // ---- Organic finish (David, 2026-11-12): skin that lets a little light through at thin, backlit edges (PBR
+ // ---- Organic finish (the owner, 2026-11-12): skin that lets a little light through at thin, backlit edges (PBR
  // sub-surface translucency), shading in the creases (the model's own AO map where it has one, else a cavity term
  // worked out once from the mesh), a breath and a slight sway so nobody stands perfectly still (vr-suite.js), and a
  // soft rim light that follows the camera. Desktop and VR only; the per-pixel translucency is left out on Low quality.
@@ -468,7 +555,9 @@
  // (lavender, like the city glow through the glass), so it slides round the figure as the camera moves.
  let RimPlugin=null;
  function rimPlugin(B){return RimPlugin??=class CompanionRimPlugin extends B.MaterialPluginBase{
-  constructor(material){super(material,'CompanionRim',210,{COMPANION_RIM:false});this.color=new B.Color3(.62,.52,1);this.strength=.2;this.power=3.2;this._enable(true);}
+  constructor(material){super(material,'CompanionRim',210,{COMPANION_RIM:false});this.color=new B.Color3(.62,.52,1);this.strength=.2;this.power=3.2;this._isEnabled=false;this.isEnabled=true;}
+  get isEnabled(){return this._isEnabled;}   // Babylon 8's MaterialPluginBase keeps no enabled flag: without this the rim's define was never set (fixed 18 Nov 2026)
+  set isEnabled(on){on=!!on;if(this._isEnabled===on)return;this._isEnabled=on;this.markAllDefinesAsDirty();this._enable(on);}
   getClassName(){return 'CompanionRimPlugin';}
   isCompatible(){return true;}
   prepareDefines(defines){defines.COMPANION_RIM=this._isEnabled;}
@@ -489,7 +578,7 @@
    if(hasOrm(entry,name)&&mat.metallicTexture){mat.useAmbientOcclusionFromMetallicTextureRed=true;report.orm.push(name);}
    if(t.translucency&&isSkin(entry,name)&&mat.subSurface){const ss=mat.subSurface;ss.isTranslucencyEnabled=true;ss.translucencyIntensity=.55;ss.minimumThickness=0;ss.maximumThickness=.5;
     ss.diffusionDistance=new B.Color3(1,.36,.2);ss.tintColor=new B.Color3(1,.62,.5);report.translucent.push(name);}
-   /* Look pass (16 Nov 2026, waiting for David's approval): wet, bright eyes that catch the light; a soft sheen on skin and a glossier one on lips; hair that
+   /* Look pass (16 Nov 2026, waiting for the owner's approval): wet, bright eyes that catch the light; a soft sheen on skin and a glossier one on lips; hair that
       shines along the strand instead of looking like felt. Material settings only: no model file is opened, changed or sent anywhere. Not on Low. */
    if(t.translucency){
     if(/eye|cornea|cornia|iris|pupil|lacrimal/i.test(name)&&!/brow|lash|lid|shadow/i.test(name)){mat.clearCoat.isEnabled=true;mat.clearCoat.intensity=1;mat.clearCoat.roughness=.04;if(!mat.metallicTexture)mat.roughness=Math.min(mat.roughness??.3,.18);report.eyes.push(name);}
@@ -505,6 +594,6 @@
     m.setVerticesData(B.VertexBuffer.ColorKind,rgba,false,4);m.hasVertexAlpha=false;cavityDone.add(m.geometry);report.cavity++;});}
   return report;}
 
- const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
+ const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,behindAt,maxCorrection,turnSpeed,reach,headWeight,turnStep,glideAt,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);

@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
-const Fit=require('../void-runner/character-fit.js'),{parseGlb,accessor}=require('../tools/assets/glb-lib.cjs');
+const Fit=require('../void-runner/character-fit.js'),{parseGlb,accessor,ready}=require('../tools/assets/glb-lib.cjs');
+test.before(()=>ready);   // the hair parts are meshopt-compressed (lossless, 18 Nov 2026)
 const PARTS=path.join(__dirname,'..','void-runner/assets/models/parts'),DATA=JSON.parse(fs.readFileSync(path.join(PARTS,'bind-data.json'),'utf8'));
 
 test('matrix helpers: inverse and multiply',()=>{

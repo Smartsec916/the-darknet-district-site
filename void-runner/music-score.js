@@ -46,10 +46,10 @@
   danger:{bpm:66,root:45,mode:'phrygian',prog:[0,1,0,5],chordBars:2,gain:.8,mood:'Asteroids and hazards: low drones, sparse pulses, uncertain harmony.',layers:[L('drone',{vel:.09}),L('bass',{pattern:'x.......x.......',vel:.13,octave:-1}),L('metal',{pattern:'......x.........',chance:.45,vel:.05})],combat:'default'},
   derelict:{bpm:50,root:36,mode:'phrygian',prog:[0,1,0,4],chordBars:4,gain:.75,mood:'Derelict station: dark ambient, long near-silence, odd mechanical sounds.',layers:[L('drone',{vel:.09}),L('cluster',{everyBars:8,chance:.5,vel:.04}),L('metal',{pattern:'.......x........',chance:.25,vel:.035}),L('pad',{wave:'sawtooth',cutoff:400,vel:.03,attack:4,bars:3,of:8})],combat:'heavy'}
  };
- // Recorded tracks David supplies later: { styleId: 'void-runner/assets/audio/music/<file>.ogg' }.
+ // Recorded tracks the owner supplies later: { styleId: 'void-runner/assets/audio/music/<file>.ogg' }.
  // A style with a file plays that file instead of the generated score.
  // The club's final soundtrack goes here once it exists, e.g. files.nightclub='void-runner/assets/audio/music/nightclub.ogg' (loops; no commercial music without permission).
- // 15 Nov 2026: the area soundtrack (David). Each area below plays a recorded loop made with ElevenLabs Music; see void-runner/assets/audio/score/LICENSES.md.
+ // 15 Nov 2026: the area soundtrack (the owner). Each area below plays a recorded loop made with ElevenLabs Music; see void-runner/assets/audio/score/LICENSES.md.
  // The generated score above stays as the fallback (a file that fails to load) and for the places that have no recording yet (stations, warp, hazards).
  const SCORE='void-runner/assets/audio/score/',track=id=>SCORE+id+'.ogg';
  // Areas added with the soundtrack. Their generated fallback borrows a neighbour's.
@@ -57,20 +57,24 @@
  styles['district-vr']={...styles['district-arcade'],gain:.7,mood:'VR play area: shimmering, weightless, inside a simulation.'};
  styles.milked={...styles['district-bar'],gain:.8,mood:'Milked: slow, glossy, late night.'};
  styles.corporate={...styles.vantor,gain:.8,mood:'Corporate District: cold, imposing, watched.'};
- styles.temple={...styles.communion,gain:.8,mood:'Zen Zephyr Temple: bowls, flute and wind above the city.'};
- // David, 15 Nov 2026: the hallway's music is the music of the whole District, at one level; only the arcade keeps its own. The rooms are still separate areas
+ styles.temple={...styles.communion,gain:.8,mood:'Zen Zephyr Temple: overtone chant, bowls, bells and drones above the city.'};
+ // The owner, 15 Nov 2026: the hallway's music is the music of the whole District, at one level; only the arcade keeps its own. The rooms are still separate areas
  // (their ambience, footsteps and the door lock depend on that), they just all play the hallway's recording.
  for(const k of ['district-entry','district-store','district-bar','district-vr','district-rest'])styles[k]={...styles['district-hall'],mood:styles[k].mood};
  const files={theme:track('theme'),neochinatown:track('neochinatown'),alley:track('alley'),'district-hall':track('district-hall'),'district-entry':track('district-hall'),'district-store':track('district-hall'),
-  'district-vr':track('district-hall'),'district-arcade':track('district-arcade'),'district-bar':track('district-hall'),nightclub:track('nightclub'),corporate:track('corporate'),temple:track('temple'),milked:track('milked'),
+  'district-vr':track('district-hall'),'district-arcade':track('district-arcade'),'district-bar':track('district-hall'),nightclub:track('nightclub'),corporate:track('corporate'),temple:track('temple-chant'),milked:track('milked'),
   space:track('space'),'space-cantor':track('space'),'space-garrow':track('space'),
   // the pods end of the hall and the smoking terrace hear the hall's music, quieter (and through the wall on the terrace): same file, so walking between them is only a change of level
   'district-rest':track('district-hall'),'district-terrace':track('district-hall')};
+ // Recordings looped sample-accurately in Web Audio (decoded when the area starts, released when it has faded out) instead of an <audio> element, whose loop can
+ // leave a gap: the Temple's chant (the owner's commissioned soundtrack, 18 Nov 2026) is a 288 s loop with the seam baked in. rate: the decode rate in Hz (32 kHz stereo
+ // keeps the decoded copy near 74 MB for 288 s; the file itself is lowpassed below 16 kHz). fadeIn: seconds from silence when it starts.
+ const seamless={temple:{rate:32000,fadeIn:2.5}};
  const tension=[L('drone',{vel:.06}),L('kick',{pattern:'x.......x.......',vel:.18,tone:.6}),L('metal',{pattern:'............x...',chance:.4,vel:.035})];
  function chord(style,bar){const degree=style.prog[Math.floor(bar/(style.chordBars||1))%style.prog.length];return degree;}
  function midi(style,step,octave=0){const scale=modes[style.mode],n=scale.length,o=Math.floor(step/n);return style.root+scale[((step%n)+n)%n]+12*(o+octave);}
  function triad(style,degree,octave=0){return [0,2,4].map(i=>midi(style,degree+i,octave));}
  function layersFor(style,intensity,tensionOn){return [...style.layers,...(drums[style.combat]||[]),...(tensionOn?tension:[])].filter(l=>intensity>=l.min&&intensity<=l.max);}
- const api={modes,motif,styles,drums,files,tension,chord,midi,triad,layersFor};
+ const api={modes,motif,styles,drums,files,seamless,tension,chord,midi,triad,layersFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidMusicScore=api;
 })(globalThis);

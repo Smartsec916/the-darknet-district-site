@@ -2,7 +2,8 @@
    game state. Pure rules, unit-tested; music-engine.js decides HOW it sounds. Zone changes need a
    short hold (hysteresis) and combat keeps a cooldown so the score never flickers or cuts off. */
 (function(root){
- const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3};
+ // templeTalkDuck: in the Temple the chant steps back to about 38% while Zen Zephyr's conversation is open (18 Nov 2026), more than the usual dialogue duck.
+ const config={zoneHold:1.4,combatCooldown:7,dialogueDuck:.3,templeTalkDuck:.62};
  // Location id -> musical identity. Stations share one theme with per-station mixes.
  const locations={vesper:'vesper',meridian:'meridian',kepler:'station-kepler',rusthaven:'station-rusthaven',foundry:'station-foundry','sol-belt':'station-belt',earth:'neochinatown',mars:'vantor',vigil:'communion',holdfast:'natural-order',nexus:'nexus','order-homeworld':'order-homeworld'};
  // In-world speakers: music that belongs to a room and fades with distance (bar music).
@@ -27,7 +28,7 @@
  // Areas that are one walk apart: a change between them waits a moment (zoneHold) so a doorway never flickers.
  const local=s=>s==='neochinatown'||s==='alley'||s==='milked'||s.startsWith('district-');
  // The areas next to each one, whose recordings are fetched ahead so the next room starts at once.
- const neighbours={theme:['district-hall','neochinatown'],neochinatown:['alley','milked','nightclub','corporate','temple'],alley:['neochinatown','district-entry','nightclub'],'district-entry':['alley','district-hall'],
+ const neighbours={theme:['district-hall','neochinatown'],neochinatown:['alley','milked','nightclub','corporate'],alley:['neochinatown','district-entry','nightclub'],'district-entry':['alley','district-hall'],
   'district-hall':['district-entry','district-store','district-bar','district-vr','district-arcade'],'district-store':['district-hall','district-bar'],'district-bar':['district-hall','district-store'],'district-vr':['district-hall'],
   'district-arcade':['district-hall'],'district-rest':['district-hall','district-arcade'],'district-terrace':['district-hall'],milked:['neochinatown'],corporate:['neochinatown'],temple:['neochinatown'],space:['neochinatown']};
  function zoneStyle(c){
@@ -41,6 +42,7 @@
   // Places reached from NeoChinatown that are their own walking location.
   if(c.place==='corporate')return 'corporate';
   if(c.place==='temple')return 'temple';
+  if(c.under)return 'alley';   // the tunnels under the city (ncz-underground.js, 20 Nov 2026) sound like the alley: dripping water, the city far off
   if(c.location==='earth'&&c.walker){const N=typeof module!=='undefined'?require('./neochinatown.js'):root.VoidNeoChinatown,p=N?N.zone(c.walker):{area:'district',...c.walker};return p.area==='street'?streetStyle(p):p.area==='terrace'?'district-terrace':districtZones.find(z=>z.test(p)).style;}
   return locations[c.location]||'meridian';
  }
@@ -69,7 +71,7 @@
   return {style:d.style,intensity:d.intensity,
    // Faction skirmishes the player only watches get a tension layer, never player-combat drums.
    tension:!c.combat&&(c.battle||c.danger)?1:0,
-   duck:c.dialogue?config.dialogueDuck:0,speaker:speaker(c)};
+   duck:c.place==='temple'&&(c.dialogue||c.conversation)?config.templeTalkDuck:c.dialogue?config.dialogueDuck:0,speaker:speaker(c)};
  }
  const api={config,locations,speakers,districtZones,streetZones,neighbours,zoneStyle,speaker,create,step};
  if(typeof module!=='undefined')module.exports=api;else root.VoidMusicDirector=api;

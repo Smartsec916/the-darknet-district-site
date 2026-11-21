@@ -1,4 +1,4 @@
-/* The Gallery and the News app's PEOPLE feed (David, 15 Nov 2026). */
+/* The Gallery and the News app's PEOPLE feed (the owner, 15 Nov 2026). */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
 const G=require('../void-runner/device-gallery.js'),D=require('../void-runner/device-v1.js'),P=require('../void-runner/district-people.js');

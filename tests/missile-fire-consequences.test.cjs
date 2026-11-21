@@ -41,20 +41,29 @@ function run(code,o={}){
  }
  return {initial,trace,saves,...snapshot()};
 }
+// The missile objects now carry more (age, launch rail, type values): compare the fields the frozen oracle produced.
+const oldKeys=['x','y','z','direction','target','life','distance','damage'];
+// The launch point is a wing rail and a guided round leaves it outward and down (19 Nov 2026), so position and first heading differ from the oracle.
+const keep=list=>list.map(m=>Object.fromEntries(oldKeys.filter(k=>!'xyz'.includes(k)&&k!=='direction').map(k=>[k,m[k]])));const trim=r=>({...r,missiles:keep(r.missiles),trace:r.trace.map(t=>({...t,missiles:keep(t.missiles||[])}))});
+// The launch point moved to the wing rails (left / right in turn), so positions differ from the oracle's single offset.
+const same=(a,b)=>assert.deepEqual(trim(a),trim(b));
 const failures=[
- ['no ammunition',{runtime:{missilesLoaded:0}}],['no target',{noTarget:true}],
- ['dead target',{target:{dead:true}}],['friendly target',{target:{relationship:'friendly'}}],
- ['out-of-range target',{target:{z:B.missileRange+1}}],['target moved off reticle',{target:{x:100}}],
- ['incomplete lock',{progress:.5}],['cooldown active',{cooldown:1}],
+ ['no ammunition',{runtime:{missilesLoaded:0}}],['cooldown active',{cooldown:1}],
  ['launcher not owned',{runtime:{ownsMissileLauncher:false}}],['launcher unequipped',{runtime:{equipped:false}}]
 ];
+// No lock (the owner, 19 Nov 2026): the missile is fired straight ahead, unguided (dumb-fire), instead of a dry click.
+const dumb=[['no target',{noTarget:true}],['dead target',{target:{dead:true}}],['friendly target',{target:{relationship:'friendly'}}],
+ ['out-of-range target',{target:{z:B.missileRange+1}}],['target moved off reticle',{target:{x:100}}],['incomplete lock',{progress:.5}]];
+for(const [name,options]of dumb)test('missile without a lock is dumb-fired: '+name,()=>{
+ const a=run(current,options);assert.equal(a.missiles.length,1);assert.equal(a.missiles[0].target,null);assert.equal(a.runtime.missilesLoaded,2);assert.equal(a.state.progression.missiles,2);assert.equal(a.saves.length,1);
+ assert.deepEqual(a.trace.map(x=>x.name),['targeting','launch','missileLocked','missileFired','save','audio:missile','hud']);});
 for(const [name,options]of failures)test('missile-fire equivalence: '+name,()=>{
- const actual=run(current,options);assert.deepEqual(actual,run(previous,options));
+ const actual=run(current,options);same(actual,run(previous,options));
  assert.equal(actual.missiles.length,0);assert.deepEqual(actual.state,actual.initial);assert.equal(actual.saves.length,0);
  assert.deepEqual(actual.trace.map(x=>x.name),['targeting','launch','hud','audio:dry']);
 });
 test('successful missile preserves ammo, progression, save and presentation order',()=>{
- const actual=run(current);assert.deepEqual(actual,run(previous));
+ const actual=run(current);same(actual,run(previous));
  assert.deepEqual(actual.trace.map(x=>x.name),['targeting','launch','missileLocked','missileFired','save','audio:missile','hud']);
  assert.equal(actual.runtime.missilesLoaded,2);assert.equal(actual.state.progression.missiles,2);
  assert.equal(actual.missiles.length,1);assert.equal(actual.saves.length,1);
@@ -64,9 +73,9 @@ test('successful missile preserves ammo, progression, save and presentation orde
  assert.equal(saved.state.progression.flags.missileFired,true);
  assert.equal(actual.cooldown,B.missileCooldown);assert.equal(actual.lock.target,null);
 });
-test('non-play mode remains a silent no-op',()=>{const a=run(current,{mode:'menu'});assert.deepEqual(a,run(previous,{mode:'menu'}));assert.deepEqual(a.trace,[]);});
-test('developer trial fires without Campaign writes',()=>{const a=run(current,{trial:true});assert.deepEqual(a,run(previous,{trial:true}));assert.deepEqual(a.state,a.initial);assert.equal(a.saves.length,0);assert.equal(a.missiles.length,1);});
+test('non-play mode remains a silent no-op',()=>{const a=run(current,{mode:'menu'});same(a,run(previous,{mode:'menu'}));assert.deepEqual(a.trace,[]);});
+test('developer trial fires without Campaign writes',()=>{const a=run(current,{trial:true});same(a,run(previous,{trial:true}));assert.deepEqual(a.state,a.initial);assert.equal(a.saves.length,0);assert.equal(a.missiles.length,1);});
 test('neutral consequence policy consumes runtime ammo only',()=>{const a=run(current,{neutral:true});assert.deepEqual(a.state,a.initial);assert.equal(a.saves.length,0);assert.equal(a.runtime.missilesLoaded,2);assert.equal(a.missiles.length,1);assert.deepEqual(a.trace.map(x=>x.name),['targeting','launch','audio:missile','hud']);});
-test('repeated valid launches consume once each and stop at empty',()=>{const o={attempts:4,rearmLock:true},a=run(current,o);assert.deepEqual(a,run(previous,o));assert.equal(a.saves.length,3);assert.equal(a.missiles.length,3);assert.equal(a.state.progression.missiles,0);assert.deepEqual(a.saves.map(s=>s.progression.missiles),[2,1,0]);});
-test('immediate repeat preserves cooldown/lock rejection and saves once',()=>{const o={attempts:2},a=run(current,o);assert.deepEqual(a,run(previous,o));assert.equal(a.saves.length,1);assert.equal(a.missiles.length,1);});
-test('missile consequence handler follows replaced Campaign state',()=>{const o={replaceState:true},a=run(current,o);assert.deepEqual(a,run(previous,o));assert.equal(a.state.progression.missiles,2);assert.equal(a.state.progression.flags.missileFired,true);});
+test('repeated valid launches consume once each and stop at empty',()=>{const o={attempts:4,rearmLock:true},a=run(current,o);same(a,run(previous,o));assert.equal(a.saves.length,3);assert.equal(a.missiles.length,3);assert.equal(a.state.progression.missiles,0);assert.deepEqual(a.saves.map(s=>s.progression.missiles),[2,1,0]);});
+test('immediate repeat preserves cooldown/lock rejection and saves once',()=>{const o={attempts:2},a=run(current,o);same(a,run(previous,o));assert.equal(a.saves.length,1);assert.equal(a.missiles.length,1);});
+test('missile consequence handler follows replaced Campaign state',()=>{const o={replaceState:true},a=run(current,o);same(a,run(previous,o));assert.equal(a.state.progression.missiles,2);assert.equal(a.state.progression.flags.missileFired,true);});

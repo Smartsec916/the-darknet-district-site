@@ -1,6 +1,6 @@
 # District chat: moderation and handling path (early access)
 
-Written 2026-11-06. Nothing here is live until David approves the Render and publishing steps in `HUB_RENDER_SETTINGS.md`.
+Written 2026-11-06. Nothing here is live until the owner approves the Render and publishing steps in `HUB_RENDER_SETTINGS.md`.
 
 ## What players can do
 

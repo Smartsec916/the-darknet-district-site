@@ -7,9 +7,10 @@ function glb(json){const j=Buffer.from(JSON.stringify(json));const pad=(4-j.leng
  h.writeUInt32LE(0x46546c67,0);h.writeUInt32LE(2,4);h.writeUInt32LE(20+jl,8);h.writeUInt32LE(jl,12);h.writeUInt32LE(0x4e4f534a,16);
  const b=Buffer.concat([h,j,Buffer.alloc(pad,0x20)]);return b.buffer.slice(b.byteOffset,b.byteOffset+b.length);}
 
-test('GLBs with KTX2 textures are accepted; compressed geometry is still refused',()=>{
+test('GLBs with KTX2 textures are accepted, and meshopt geometry (decoded locally); other compressed geometry is still refused',()=>{
  assert.doesNotThrow(()=>assets.validate(glb({asset:{version:'2.0'},extensionsUsed:['KHR_texture_basisu'],extensionsRequired:['KHR_texture_basisu']})));
- for(const ext of ['KHR_draco_mesh_compression','EXT_meshopt_compression'])assert.throws(()=>assets.validate(glb({asset:{version:'2.0'},extensionsUsed:[ext]})),/Compressed geometry/);
+ assert.doesNotThrow(()=>assets.validate(glb({asset:{version:'2.0'},extensionsUsed:['EXT_meshopt_compression'],extensionsRequired:['EXT_meshopt_compression']})));
+ for(const ext of ['KHR_draco_mesh_compression','KHR_meshopt_compression'])assert.throws(()=>assets.validate(glb({asset:{version:'2.0'},extensionsUsed:[ext]})),/Compressed geometry/);
 });
 
 test('the decoder, every transcoder and their licences are in vendor/ktx2',()=>{

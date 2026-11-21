@@ -249,6 +249,7 @@ addEventListener('keydown', e => {
   VoidInput.held.add(e.code);
   if (e.repeat) return;
   if (action === 'missile') fireMissile();
+  else if (action === 'missileSwitch') switchMissile();
   else if (['nearest', 'next', 'previous', 'clear', 'lock'].includes(action)) selectCombatTarget(action);
 }, true);
 addEventListener('keyup', e => VoidInput.held.delete(e.code));

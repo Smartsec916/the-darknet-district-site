@@ -1,7 +1,11 @@
-/* THE BEGINNER CAMPAIGN (rules + content; runs in the browser and in Node tests). Six short missions that take a new player from the Sleeping Pod to their first ship and the
+/* RETIRED 17 Nov 2026 (the owner: "Go ahead and remove all missions in the game"). The beginner campaign is no longer offered, tracked or shown; Mission 001 — Awakening
+   (main-story.js) replaced it. The records below are kept as ARCHIVED data: the Mission Editor shows them under "Removed from the game (archived)" (viewable, copyable into a
+   new tree), and old saves that hold their records still load (the records are kept and ignored; mission-log.js hides them in a District campaign). RETIRED makes offer()
+   and event() do nothing; nothing else reads this file in the game. The text below is the original description.
+   THE BEGINNER CAMPAIGN (rules + content; runs in the browser and in Node tests). Six short missions that take a new player from the Sleeping Pod to their first ship and the
    first departure for Meridian Station. It uses only what exists: Admin and Iris in The Darknet District, the District bar and shop, the Landing Terminal and Pad 01 on the
    NeoChinatown street, the V1 Mission Log, the real ship system (Campaign.awardStarterShip) and real flight and travel. It adds no new character, place, mechanic or voice.
-   STATUS: PROPOSED (David has not approved this story content; CLAUDE.md). All mission and dialogue text here is UNREVIEWED placeholder wording in the established voices of Admin
+   STATUS: PROPOSED (the owner has not approved this story content; CLAUDE.md). All mission and dialogue text here is UNREVIEWED placeholder wording in the established voices of Admin
    and Iris, shown as text (no new voice clips). Nothing replaces or revives the archived missions: the mission pool of a District campaign stays closed for everything else.
    Progress is ordinary mission records (universe.missions) plus story.flags booleans, so saves need no new fields and the cloud save validator accepts them as they are.
    The records below are plain data: the Developer Studio reads and edits this same structure (docs/development/BEGINNER_CAMPAIGN.md). */
@@ -44,8 +48,9 @@
  const byId=Object.fromEntries(MISSIONS.map(m=>[m.id,m]));
  const flagOf=id=>'br_'+id;                                    // story.flags: this mission's reward was paid (never paid twice)
  const closed=s=>s?.story?.flags?.missionPool==='closed';
- // The campaign applies to a District campaign (closed pool) that has not had a developer test ship.
- const applies=s=>closed(s)&&s?.story?.flags?.testShip!==true;
+ const RETIRED=true;
+ // The campaign applied to a District campaign (closed pool) that had not had a developer test ship. Retired: it applies to nobody now.
+ const applies=s=>!RETIRED&&closed(s)&&s?.story?.flags?.testShip!==true;
  function register(Missions=M){for(const m of MISSIONS)Missions.define(m.id,{title:m.title,type:m.type,description:m.description,giver:m.giver,source:'beginner',beginner:true,destination:m.destination,rewards:m.rewards||null,prerequisites:m.prerequisites||[],objectives:m.objectives.map(o=>({id:o.id,label:o.label,...(o.interaction?{interaction:o.interaction}:{}),...(o.destination?{destination:o.destination}:{})}))});}
  const entry=(s,id)=>s.universe?.missions?.[id]||null;
  const done=(s,id)=>entry(s,id)?.completed===true;
@@ -63,7 +68,7 @@
     Returns {mission, objective, lines, early, missionCompleted, reward, next}. Nothing happens twice: finished objectives and paid rewards are never repeated. */
  function event(s,name,Missions=M,Camp=C){
   const out={mission:null,objective:null,lines:null,early:null,missionCompleted:false,reward:0,next:null};
-  if(!s?.universe||!s.story?.flags||!(applies(s)||Object.keys(s.universe.missions||{}).some(k=>byId[k]&&!s.story.flags.testShip)))return out;
+  if(RETIRED||!s?.universe||!s.story?.flags||!(applies(s)||Object.keys(s.universe.missions||{}).some(k=>byId[k]&&!s.story.flags.testShip)))return out;
   const m=current(s);if(!m)return out;const rec=entry(s,m.id);if(!rec?.acquired)return out;
   const o=m.objectives.find(x=>x.on===name&&rec.objectives?.[x.id]!==true&&(x.requires||[]).every(r=>rec.objectives?.[r]===true));
   if(!o){const early=m.objectives.find(x=>x.on===name&&rec.objectives?.[x.id]!==true&&x.early);if(early)out.early=early.early;return out;}
@@ -80,6 +85,6 @@
  }
  // Developer / test helper: where is this player in the campaign (no side effects).
  function summary(s){return MISSIONS.map(m=>({id:m.id,acquired:entry(s,m.id)?.acquired===true,completed:done(s,m.id),rewarded:s?.story?.flags?.[flagOf(m.id)]===true,objectives:m.objectives.map(o=>({id:o.id,done:entry(s,m.id)?.objectives?.[o.id]===true}))}));}
- const api={MISSIONS,byId,flagOf,applies,register,current,offer,event,summary};
+ const api={RETIRED,MISSIONS,byId,flagOf,applies,register,current,offer,event,summary};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidBeginner=api;
 })(globalThis);

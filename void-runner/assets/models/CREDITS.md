@@ -8,5 +8,6 @@
 - **Props** (`props/`): "Sci-Fi Essentials Kit" by Quaternius, CC0 1.0. https://quaternius.com
 - **Milked props** (`milked/`): ten models generated with Meshy on the owner's paid account from text prompts written for this game (16 Nov 2026). Details: `docs/development/MILKED.md`.
 - **District props** (`district-props/`): seven models generated with Meshy on the owner's paid account from text prompts written for this game (16 Nov 2026). Details: `docs/development/DISTRICT_UPGRADE.md`.
+- **Street taxi** (`vehicles/taxi-van.glb`, `taxi-van-low.glb` for Low quality): generated with Meshy on the owner's paid account (19 Nov 2026) from a concept made from the owner's own reference picture, then cut and re-baked in Blender for the game. Details: `docs/development/MESHY_CHARACTERS.md` and `docs/VOID_RUNNER_ASSET_LICENSES.md`.
 
 CC0 needs no attribution; this credit is given anyway. Full inventory: `docs/VOID_RUNNER_ASSET_LICENSES.md`.

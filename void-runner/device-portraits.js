@@ -42,7 +42,7 @@
    let top=-Infinity;for(const m of meshes){m.computeWorldMatrix(true);m.refreshBoundingInfo?.({applySkeleton:true,applyMorph:false});top=Math.max(top,m.getBoundingInfo().boundingBox.maximumWorld.y);}
    if(!isFinite(top))return null;
    const target=new B.Vector3(holder.position.x,top-.16,holder.position.z),fov=.6,dist=(.56/2)/Math.tan(fov/2);
-   /* Face on (David, 15 Nov 2026): the camera stands straight in front of the FACE, not in front of the body, so an idle pose that turns the head still gives a
+   /* Face on (the owner, 15 Nov 2026): the camera stands straight in front of the FACE, not in front of the body, so an idle pose that turns the head still gives a
       passport-style picture. The head bone gives where the face is and which way it looks; the toes say which of the bone's two directions is forward. */
    let eye=new B.Vector3(target.x,target.y+.03,target.z+dist);
    try{const nodes=holder.getDescendants(false),bone=n=>nodes.find(t=>new RegExp('(^|[:_ ])'+n+'$').test(t.name)&&t.getAbsolutePosition),head=bone('Head'),toe=bone('LeftToeBase'),foot=bone('LeftFoot');

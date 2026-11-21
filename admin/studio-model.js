@@ -10,12 +10,12 @@
  const SPEAKERS=['Admin','Iris','Landing terminal','You','Bartender'];   // on-screen speakers the beginner campaign uses; named NPCs come from the voice registry
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TYPES=['main','side','cargo','campaign','tutorial','bounty','station'];
  const clone=v=>JSON.parse(JSON.stringify(v));
- /* Mission flow chart (David, 15 Nov 2026): three more things a mission can carry. They are DESIGN FIELDS in a draft: the game does not act on them yet.
+ /* Mission flow chart (the owner, 15 Nov 2026): three more things a mission can carry. They are DESIGN FIELDS in a draft: the game does not act on them yet.
       offer    [{who,text}]                      what the giver says when handing the mission over
       choices  [{id,label,next}]                 the choices the mission creates; `next` is the mission a choice leads to ('' = not decided)
       unlocks  [{item,seller,where[],advert}]    store items that become available: where = ['everywhere'] or specific store ids; advert = the line for the V1 News feed */
  const STORES=[['everywhere','Everywhere (every store)'],['district-store','The Darknet District store (Admin, Iris)'],['district-vending','District vending machines'],['district-bar','District bar and oxygen lounge'],
-  ['meridian','Meridian Station'],['kepler','Kepler'],['foundry','Foundry'],['rusthaven','Rusthaven Port'],['sol-belt','Tessaly Belt Anchorage'],['vigil','The Vigil'],['holdfast','Holdfast'],['vesper','Vesper']].map(([id,name])=>({id,name}));
+  ['station-outfitter','Ship outfitter (stations with a hangar)'],['meridian','Meridian Station'],['kepler','Kepler'],['foundry','Foundry'],['rusthaven','Rusthaven Port'],['sol-belt','Tessaly Belt Anchorage'],['vigil','The Vigil'],['holdfast','Holdfast'],['vesper','Vesper']].map(([id,name])=>({id,name}));
  const STORE_IDS=new Set(STORES.map(s=>s.id)),SELLERS=['','admin','iris'];
  const whereText=w=>!Array.isArray(w)||!w.length?'nowhere yet':w.includes('everywhere')?'everywhere':w.map(id=>(STORES.find(s=>s.id===id)||{name:id}).name).join(', ');
  /* Choosing "everywhere" clears the specific stores; choosing a specific store clears "everywhere". */

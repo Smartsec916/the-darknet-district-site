@@ -1,10 +1,10 @@
-/* THE OUTSKIRTS' CONTAINER HOMES (David, 16 Nov 2026): past the Far South Gate the paved road stops and a rundown residential area of makeshift shipping-container
+/* THE OUTSKIRTS' CONTAINER HOMES (the owner, 16 Nov 2026): past the Far South Gate the paved road stops and a rundown residential area of makeshift shipping-container
    dwellings begins, on packed gravel. Everything here is BUILT IN CODE from simple shapes (no model, no generated picture): a small container kit that stacks, offsets
    and weathers containers, adds decks and stairs, lean-tos, tarps, rooftop clutter, cables, lamps and fences, all from a fixed seed so every visit is the same place.
    PURE PART (runs in Node, tests/ncz-containers.test.cjs): PLAN, solids(), KAI_HOME, rects. BROWSER PART (below): build({B,scene,parent,quality}) -> {dispose()}.
    Low keeps plain materials and fewer props; Medium and High use physically based paint with a normal map, wet gravel, puddles and lamp lights.
    Kai Kryptos' home is ONE container reserved for him (KAI_HOME): a closed door, a lit window and a step, nothing inside, no interaction yet. Nobody lives in it yet and
-   nothing here names or describes anyone (David, 16 Nov 2026: no character, dialogue or mission yet). No signs and no words are painted anywhere. */
+   nothing here names or describes anyone (the owner, 16 Nov 2026: no character, dialogue or mission yet). No signs and no words are painted anywhere. */
 (function(root){
  'use strict';
  const CL=6.06,CW=2.44,CH=2.59;   // a 20-foot container: length, width, height (metres)
@@ -50,11 +50,11 @@
  // The lean-to goes on the side away from the plaza, against the next container or the wall behind: the footprint is cut short so it never blocks a walkway.
  function leanRect(c){const away=c.axis==='z'?(c.x<61?-1:1):(c.z<-245?-1:1);return c.axis==='z'?(away>0?[c.x+c.w/2,c.x+c.w/2+1.1,c.z-2.2,c.z+2.2]:[c.x-c.w/2-1.1,c.x-c.w/2,c.z-2.2,c.z+2.2]):(away>0?[c.x-2.2,c.x+2.2,c.z+c.d/2,c.z+c.d/2+1.1]:[c.x-2.2,c.x+2.2,c.z-c.d/2-1.1,c.z-c.d/2]);}
  // Plank fences across the two lane ends, behind the end containers, and a short run by the east lane.
-// Two burnt-out wrecks (David, 16 Nov 2026): set dressing, half sunk, no driving. Code-built boxes until the optimised wreck model is made (the Blender bridge was offline).
+// Two burnt-out wrecks (the owner, 16 Nov 2026): set dressing, half sunk, no driving. Code-built boxes until the optimised wreck model is made (the Blender bridge was offline).
  const WRECKS=[{id:'wreck-1',x:44,z:-247,yaw:.35,w:4.4,d:1.9},{id:'wreck-2',x:84,z:-251,yaw:-.25,w:4.4,d:1.9}];
  const FENCES=[{id:'fence-west-n',r:[20,21,-250,-247.8]},{id:'fence-west-s',r:[20,21,-242.2,-240]},{id:'fence-east-n',r:[107.2,108,-248,-246.2]},{id:'fence-east-s',r:[107.2,108,-241.8,-240]}];
- /* GRAFFITI (David, 16 Nov 2026: "some graffiti everywhere would help with the feel of The Outskirts"). The marks are ABSTRACT: tags and scribbles, arrows, hazard triangles, crossed circles, stars, eyes,
-    lightning, simple skulls, drips and stencilled container-style codes. NO invented slogans or readable invented words. GRAFFITI_TEXT is David's own list of words, EMPTY until he supplies it. */
+ /* GRAFFITI (the owner, 16 Nov 2026: "some graffiti everywhere would help with the feel of The Outskirts"). The marks are ABSTRACT: tags and scribbles, arrows, hazard triangles, crossed circles, stars, eyes,
+    lightning, simple skulls, drips and stencilled container-style codes. NO invented slogans or readable invented words. GRAFFITI_TEXT is the owner's own list of words, EMPTY until he supplies it. */
  const GRAFFITI_TEXT=[];
  const api={WRECKS,GRAFFITI_TEXT,CL,CW,CH,PAINT,BASE,PLAN,FENCES,KAI_HOME,plan,solids,deckRect,leanRect,rng,size};
  if(typeof module!=='undefined'&&module.exports){module.exports=api;return;}
@@ -88,7 +88,7 @@
      if(i%3===0){for(let k=0;k<3;k++){g.lineWidth=5;g.beginPath();const dx=cx-60+r()*120;g.moveTo(dx,cy+60);g.lineTo(dx,cy+90+r()*40);g.stroke();}}   // drips
      if(i%5===0){g.fillStyle='rgba(0,0,0,.35)';for(let k=0;k<8;k++)g.fillRect(cx-100+r()*200,cy-100+r()*200,6+r()*30,3);}   // overpainted and worn
     }
-    if(GRAFFITI_TEXT.length){g.shadowBlur=0;g.fillStyle='#f2efe6';g.font='bold 50px Consolas,monospace';g.textAlign='center';GRAFFITI_TEXT.slice(0,4).forEach((w,i)=>g.fillText(w,S*3+S/2,S*3+40+i*60));}});   // (David's own words, when he supplies them)
+    if(GRAFFITI_TEXT.length){g.shadowBlur=0;g.fillStyle='#f2efe6';g.font='bold 50px Consolas,monospace';g.textAlign='center';GRAFFITI_TEXT.slice(0,4).forEach((w,i)=>g.fillText(w,S*3+S/2,S*3+40+i*60));}});   // (the owner's own words, when he supplies them)
    t.hasAlpha=true;const m=new B.StandardMaterial('outskirts-graffiti',scene);m.diffuseTexture=t;m.opacityTexture=t;m.emissiveColor=new B.Color3(low?.35:.2,low?.35:.2,low?.32:.18);m.specularColor=B.Color3.Black();m.backFaceCulling=false;m.zOffset=-2;track(m);
    const list=[];
    // cell uv rectangle of cell i
@@ -183,7 +183,7 @@
   // the fire barrel in the plaza and the lamps: an orange glow, no real light on Low
   cyl(.32,.85,61,.43,-238,dark);box(.5,.12,.5,61,.88,-238,fire);
   const lampAt=[[61,-232],[52,-248],[80,-246],[44,-226]];lampAt.forEach(([x,z])=>{cyl(.05,4.2,x,2.1,z,steel,6);box(.5,.12,.3,x,4.2,z,steel);box(.34,.08,.2,x,4.12,z,lamp);});
-  // ---- junk along the edges and in the gaps (David, 16 Nov 2026: the Outskirts has ONE way in and out, the Far South Gate; its boundary is containers and junk, no gap): heaps of scrap, tyres, drums, pallets, dead appliances and leaning corrugated sheet ----
+  // ---- junk along the edges and in the gaps (the owner, 16 Nov 2026: the Outskirts has ONE way in and out, the Far South Gate; its boundary is containers and junk, no gap): heaps of scrap, tyres, drums, pallets, dead appliances and leaning corrugated sheet ----
   const tyreM=flat('tyre','#111214',{rough:.95,metal:0}),appl=flat('appliance','#6b6e70',{rough:.7,metal:.4}),sheet=flat('sheet','#7a5a3c',{rough:.85,metal:.5});
   const heap=(x,z,k)=>{const n=low?5:9;for(let i=0;i<n;i++){const ox=(r()-.5)*2.2,oz=(r()-.5)*1.6,t=r(),y0=Math.floor(i/4)*.35;
     if(t<.22){const tor=B.MeshBuilder.CreateTorus('o-tyre',{diameter:.75,thickness:.28,tessellation:low?8:14},scene);add(tor,tyreM,x+ox,.14+y0,z+oz,r()*3);}

@@ -1,4 +1,4 @@
-/* Proximity voice (LiveKit), first stage (David, 15 Nov 2026). OFF until the player switches it on in the Comms app; switching it off disconnects.
+/* Proximity voice (LiveKit), first stage (the owner, 15 Nov 2026). OFF until the player switches it on in the Comms app; switching it off disconnects.
    - The player hears the people in the same place: each voice comes from where that player's character stands, fades with distance, and is muffled and
      quieter when a wall is between you (the place's own collision boxes). Nobody is heard through The Darknet District's security doors, because the street
      and the interior are different places with different voice rooms (the hub decides the room; a VR session has its own).

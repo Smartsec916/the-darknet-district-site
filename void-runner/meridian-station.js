@@ -1,7 +1,7 @@
 /* One exterior identity for the front end, flight approach and occupied Meridian. */
 (function(root){
  const model={src:null,path:'assets/models/stations/meridian.glb',scale:1,yaw:0};
- // H01–H03 stand side by side, mouths in one line, as in David's reference art (approved 2026-10-16).
+ // H01–H03 stand side by side, mouths in one line, as in the owner's reference art (approved 2026-10-16).
  // H01 is the walkable hangar and never moves. The large-ship collar sits past H03.
  const design={id:'meridian',hangars:[{id:'H01',x:0,z:-11,w:36,h:9,d:30},{id:'H02',x:38,z:-11,w:36,h:9,d:30},{id:'H03',x:76,z:-11,w:36,h:9,d:30}],features:['H01','H02','H03','solar arrays','docking collar','communications','warm windows','light tanks'],model,
   // Pressurised modules behind the hangars: one source for the builder and any cladding (meridian-kitbash.js).

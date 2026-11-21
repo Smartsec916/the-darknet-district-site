@@ -1,10 +1,10 @@
 # VOID//RUNNER: NeoChinatown redesign, brick alley and VR arcade
 
 - **As of:** 2026-10-26
-- **Brief:** David's "NeoChinatown Redesign, Cyberpunk Environment & Interactive VR Arcade", with his redesigned map
-- **Status:** built and tested locally, in review (PR). Nothing is live until David merges it.
+- **Brief:** The owner's "NeoChinatown Redesign, Cyberpunk Environment & Interactive VR Arcade", with his redesigned map
+- **Status:** built and tested locally, in review (PR). Nothing is live until the owner merges it.
 
-## 1. Layout (follows David's redesigned map)
+## 1. Layout (follows the owner's redesigned map)
 
 World metres: x runs east, z runs north. All of it is in `void-runner/neochinatown.js`.
 
@@ -63,11 +63,11 @@ World metres: x runs east, z runs north. All of it is in `void-runner/neochinato
 - **The bug:** whenever a model finished loading, Babylon's glTF loader raised every material in the scene to one light slot per light. In NeoChinatown that is 14 lights. That exceeds the 12 uniform buffers allowed by ANGLE/Direct3D 11 (Edge and Chrome on Windows), so shaders failed to compile and things silently stopped drawing. Crowd figures that loaded in the background were affected; main showed 436 such errors.
 - **The fix:** `asset-pipeline.js` now caps materials at 8 lights after each load (Meridian's own figure). Errors went to 0.
 
-## 5. What was not done (needs David's go-ahead)
+## 5. What was not done (needs the owner's go-ahead)
 
 - **Imported building models:** nothing was downloaded, because downloads need approval. The streets use the game's procedural towers, signage and materials, rebuilt for the new layout.
   - Free, commercially usable packs could add detailed facades, rooftop machinery and street clutter.
-  - The next step is to propose specific packs for David to approve (alongside `docs/VOID_RUNNER_ASSET_CANDIDATES.md`); each needs its licence checked before download.
+  - The next step is to propose specific packs for the owner to approve (alongside `docs/VOID_RUNNER_ASSET_CANDIDATES.md`); each needs its licence checked before download.
 - **The east strip on the map:** see §1.
 - **Eating:** there is no dedicated eating animation in the free library. The "meal" is a reach, a pickup and an interact move.
 
@@ -82,7 +82,7 @@ World metres: x runs east, z runs north. All of it is in `void-runner/neochinato
 
 ## Visual overhaul (2026-10-27)
 
-David's brief: make NeoChinatown look like his four references (an old, crowded neighbourhood under a vast megacity) without changing the layout. `VoidNeoChinatown.layout()` (walls, doors, interactions, spawn) is byte-identical to before; only what is drawn changed.
+The owner's brief: make NeoChinatown look like his four references (an old, crowded neighbourhood under a vast megacity) without changing the layout. `VoidNeoChinatown.layout()` (walls, doors, interactions, spawn) is byte-identical to before; only what is drawn changed.
 
 - **Lighting (NeoChinatown only, restored on leaving):**
   - teal-black sky; blue-green EXP2 haze (0.0028)
@@ -125,7 +125,7 @@ David's brief: make NeoChinatown look like his four references (an old, crowded 
   - no imported 3D models: no suitable CC0 building or prop packs in this style were found, so props are simple geometry
   - no rain splashes and no rain sound
   - no real-time reflections; puddles and light pools approximate them
-  - the grey storefront panels are unchanged (David's earlier choice)
+  - the grey storefront panels are unchanged (the owner's earlier choice)
 
 ## Purple gaps and invisible walls (2026-10-27)
 

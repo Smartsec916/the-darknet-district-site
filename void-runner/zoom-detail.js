@@ -1,4 +1,4 @@
-/* Zoom and detail (David, 16 Nov 2026: "if a player is zooming with the camera I want detail to render").
+/* Zoom and detail (the owner, 16 Nov 2026: "if a player is zooming with the camera I want detail to render").
    The camera app (device-camera.js) narrows the view: at 2x a person 60 m away fills the screen like one 30 m away. Everything outdoors that hides, simplifies
    or stops animating people and props BY DISTANCE must therefore judge the distance as the picture shows it, not as the ground measures it.
      factor(zoom)            1 with no zoom, 1/2 at 2x, 1/3 at 3x

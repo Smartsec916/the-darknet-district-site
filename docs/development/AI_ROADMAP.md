@@ -9,11 +9,11 @@ Done and live: ten pods, V1 (Phases 1-2), vestibule, NULL, arcade, character cre
 Current state is the Start here section of [`AI_HANDOFF.md`](AI_HANDOFF.md). This file is only the sequence. Do not reopen finished November 11 items (ten pods, V1 device, vestibule checkpoint): they are on `main`.
 
 1. Dolphins are on `main` ([#240](https://github.com/Smartsec916/the-darknet-district-site/pull/240)). Do not add crabs or a second dolphin pass.
-2. **Let the four visual wins finish on their own branch.** [bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f](https://cursor.com/agents/bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f). Do not merge until David says so. Do not start reflections, shadows, new buildings, or WebXR in that branch. Leave the Sleeping Pod room and the music player alone.
-3. **Wait for David's answers** in AI_HANDOFF.md "Open questions" before companion top-10 fixes, a noodle stand, a paid voice re-record, or the player part-assembler.
+2. **Let the four visual wins finish on their own branch.** [bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f](https://cursor.com/agents/bc-8ae0a04a-9e48-58cf-9465-9f4d838cd39f). Do not merge until the owner says so. Do not start reflections, shadows, new buildings, or WebXR in that branch. Leave the Sleeping Pod room and the music player alone.
+3. **Wait for the owner's answers** in AI_HANDOFF.md "Open questions" before companion top-10 fixes, a noodle stand, a paid voice re-record, or the player part-assembler.
 4. Later phases of the 10 Nov 2026 master specification, one at a time, each proposed before it is built. Phase 1 (vestibule) is done (`VESTIBULE_CHECKPOINT.md`).
 
-**Updated:** 12 November 2026. October-era campaign milestones in `VOID_RUNNER_HANDOFF.md` are historical. Owner: David (`Smartsec916`).
+**Updated:** 12 November 2026. October-era campaign milestones in `VOID_RUNNER_HANDOFF.md` are historical. Owner: GitHub `Smartsec916`.
 
 ## Milestone 0 — District-first entry (shipped)
 
@@ -31,7 +31,7 @@ PR **#212 merged on 11 Nov 2026** and later pull requests carried the runtime, p
 - [ ] Test guest login, account identity and saved progress against appropriate nonproduction services; verify Firebase/Render permissions.
 - [ ] Audit SW cache BUILD, licensed assets and production dependencies; review diff against latest main.
 - [x] PR #212 merged 11 Nov 2026. Later slices (runtime, pods, V1 device, vestibule, arcade, NULL) shipped on their own pull requests. Do not hold #212.
-- [ ] Manual checks above are still open. New merges still need David's "push" / "pull it" and a look at the live site afterwards.
+- [ ] Manual checks above are still open. New merges still need the owner's "push" / "pull it" and a look at the live site afterwards.
 
 ## Milestone 1 — District editor, interactions and world polish
 
@@ -50,7 +50,7 @@ PR **#212 merged on 11 Nov 2026** and later pull requests carried the runtime, p
 ## Milestone 3 — Missions and progression
 
 - First missions entirely local to NeoChinatown/District; preserve NPCs but **do not reinstate legacy Mara/Vesper starting tutorial**.
-- Ships become attainable by a **later approved mission**; scanner/scrambler, factions, bounty, radio and expanded planets remain later story features needing David's creative signoff.
+- Ships become attainable by a **later approved mission**; scanner/scrambler, factions, bounty, radio and expanded planets remain later story features needing the owner's creative signoff.
 - Keep story definitions distinct from active missions; zero new-campaign missions until approved.
 
 ## Cross-cutting safety / business

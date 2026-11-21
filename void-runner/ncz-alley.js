@@ -11,13 +11,13 @@
  const ALLEY={x0:71,x1:136,south:-61.6,north:-55.5},DOOR=[126.9,-61.9],LANE={z:-59.3,half:.75},CLEAR_DOOR=4.5;
  // Who is there. `clips` lists what the person does, in order of preference (the first one their look can play is used); `seat` is how far the figure is lowered
  // onto what they sit on; `face` is the point they look at; `tier` is the lowest quality setting that shows them (1 low, 2 medium, 3 high).
- // David, Nov 2026: fewer people in the alley, four at the most, and one of them is ALWAYS a drunk. Nobody else walks through (the nightlife lane here has no walkers).
+ // The owner, Nov 2026: fewer people in the alley, four at the most, and one of them is ALWAYS a drunk. Nobody else walks through (the nightlife lane here has no walkers).
  const PEOPLE=[
   {id:'alley-drunk',x:88.0,z:-56.5,face:[88.6,-60],clips:['drink','idle'],tier:1,drunk:true},
   {id:'alley-watcher',x:122.4,z:-56.25,face:DOOR,clips:['watch','idle'],tier:1,watchesDoor:true},
   {id:'alley-smoker',x:104.0,z:-56.15,face:[104.0,-60],clips:['smoke','idle'],tier:1},
   {id:'alley-sitter',x:93.6,z:-60.75,face:[93.6,-56],clips:['sit','idle'],seat:0,tier:2,sits:true}];
- const TIER={low:1,medium:2,high:3,ultra:3},CAST=['ncz-neon','fixer-01','hacker-01','outlaw-01','district-resident','district-smuggler','runner-02','communion-tech'];
+ const TIER={low:1,medium:2,high:3,ultra:3},CAST=['npc-hacker','npc-cyber-respirator','npc-enforcer','npc-lookout','npc-cyber-samurai','npc-club-m','npc-courier','npc-club-f','npc-student','npc-casual-f'];   // the street people (NPC upgrade, 18 Nov 2026; crowd.js street). Before: ncz-neon, fixer-01, hacker-01, outlaw-01, district-resident, district-smuggler, runner-02, communion-tech
  const config={reactRadius:3.2,reactFor:[2.5,4.5],doorWatchRadius:7,showRadius:75,turn:4};
  /* plan(quality, clipsOf): who appears, with the look and clip each will use. clipsOf(look) -> the clips that look can play. Looks are dealt in turn so
     neighbours differ; a person gets the first look in the deal that can do their first-choice clip, else any look and their best available clip. */
@@ -45,7 +45,7 @@
   let asked=false;const askForLooks=()=>{asked=true;for(const look of new Set(people.map(p=>p.look)))try{Promise.resolve(root.VoidCharacterAssembler?.ensureLook?.(look,scene)).catch(()=>{});}catch{}};
   function spawn(p){if(p.node||disposed)return;let node=instance('crowd:'+p.look,parent);
    if(!node&&clock>(p.drunk?.5:14)){for(const want of [p.clip,'idle']){   /* the drunk must always be there: if their look is slow or missing they take any ready look at once (the sway does not need a clip) */const alt=CAST.find(c=>clipsOf(c).includes(want)&&(node=instance('crowd:'+c,parent)));if(alt){p.look=alt;p.clip=p.now=want;break;}}}
-   if(!node)return;node.metadata={...node.metadata,crowd:p.look,alley:p.id};
+   if(!node)return;root.VoidCrowd?.dress?.(node,p.look,p.id);node.metadata={...node.metadata,crowd:p.look,alley:p.id};
    p.node=node;p.anim=animate(node,p.look,p.clip);node.position.set(p.x,-(p.seat||0),p.z);node.rotation.y=p.rot;}
   const cam=()=>scene?.activeCamera?.globalPosition||null;
   function tick(dt){
@@ -62,7 +62,7 @@
     // The drunk never stands straight: a slow sway on the spot, now and then a lurch.
     if(p.drunk){p.sway=(p.sway||0)+dt;const lurch=Math.max(0,Math.sin(p.sway*.23))**6;p.node.rotation.z=.07*Math.sin(p.sway*.9)+.05*lurch*Math.sin(p.sway*3.1);p.node.rotation.x=.05*Math.sin(p.sway*.61+1)+.04*lurch;}}
   }
-  return {tick,people,stats:()=>({people:people.length,spawned:people.filter(p=>p.node).length,reacting:people.filter(p=>p.react>0).length,clips:people.map(p=>p.id+':'+p.look+':'+p.now)}),
+  return {tick,people,prewarm(){for(const p of people)if(!p.node)spawn(p);},stats:()=>({people:people.length,spawned:people.filter(p=>p.node).length,reacting:people.filter(p=>p.react>0).length,clips:people.map(p=>p.id+':'+p.look+':'+p.now)}),
    dispose(){disposed=true;for(const p of people){p.anim?.dispose?.();p.node?.dispose?.();p.node=null;}}};
  }
  root.VoidAlley={...api,start};

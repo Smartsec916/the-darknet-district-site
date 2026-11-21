@@ -18,6 +18,10 @@
   'warflying-scrambler':{name:'WarFlying Scrambler',slot:'signal',price:900,icon:'sensor',stats:{},vendor:'admin',compatible:['starter','ship2','ship3']},
   'signal-tracker':{name:'Signal Tracker',slot:'signal',price:0,icon:'sensor',stats:{},vendor:null,available:false,compatible:['starter','ship2','ship3']}
  };
+ // Things a player carries (progression.personal.items). 'hacking-device' is RESERVED (19 Nov 2026) for the Mission Editor's "Hack the access point" step
+ // ("Player needs: a hacking device"): it is not sold anywhere yet (no price, no shop listing); the owner decides with Admin how it is sold.
+ const WEAPONS=['base-pistol'];   // on-foot weapons a player can own besides the opening's Ward pistol (void_runner_progression.py WEAPONS)
+ const personalItems={'ward-kit':{name:'Ward kit'},'hacking-device':{name:'Hacking device',sold:false}};
  // Player-facing slot names where they differ from the internal id. The booster/drone slot
  // (content.js 'utility') is shown as DRIVE; the WarFlying slot ('signal') is the UTILITY slot.
  const slotLabels={signal:'UTILITY',utility:'DRIVE'};
@@ -29,7 +33,7 @@
  const flight=['board','throttle','steer','roll','navigation','jumpTravel','dock','shipInventory','hangar','moduleInstalled','vendor','modulePurchased','purchasedInstalled','laserCombat','missileSelected','targetSelected','missileLocked','missileFired'];
  const flags=[...ground,...flight,'shootingTutorialComplete','maraShipHandoff'];
  const openingGround=['move','look','interact','draw','aim','fire','reload','groundCombat'];
- const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,ammo:tuning.ground.magazine,reserve:tuning.ground.reserve,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
+ const fresh=()=>({version:1,flags:{},completed:false,migrated:false,opening:{version:2,hologram:false,pistol:false,cans:[]},personal:{weapon:null,weapons:[],ammo:tuning.ground.magazine,reserve:tuning.ground.reserve,items:[],attachments:[],optic:null},equipment:{owned:[],installed:{}},missiles:null,m2:0,missileType:'m1',checkpoint:{location:'vesper'},reputation:{},cargo:[],data:[],relays:{}});
  const number=(x,f=0,max=1e8)=>Number.isFinite(x)?Math.max(0,Math.min(max,x)):f;
  function restore(raw,s){const p=fresh();
   if(!raw){if(s.quest!=='inheritance'){p.opening={version:1};p.personal.weapon='ward-pistol';}if(s.quest!=='inheritance'){for(const id of ground)p.flags[id]=true;p.migrated=true;p.checkpoint={location:s.location};}if(s.universe?.freeTravel||s.missileOfferSeen){for(const id of flags)p.flags[id]=true;p.completed=true;}return p;}
@@ -39,10 +43,10 @@
   for(const id of flags)if(raw.flags?.[id]===true)p.flags[id]=true;
   repairOpening({progression:p,quest:s.quest});
   p.completed=raw.completed===true&&groundDone({progression:p})&&flight.every(id=>p.flags[id]);p.migrated=raw.migrated===true;
-  const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>x==='ward-kit');p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;
+  const a=raw.personal||{};p.personal.ammo=number(a.ammo,tuning.ground.magazine,tuning.ground.magazine);p.personal.reserve=number(a.reserve,tuning.ground.reserve,999);p.personal.items=(a.items||[]).filter(x=>Object.prototype.hasOwnProperty.call(personalItems,x));p.personal.attachments=(a.attachments||[]).filter(x=>x==='red-dot');p.personal.optic=a.optic==='red-dot'&&p.personal.attachments.includes('red-dot')?'red-dot':null;p.personal.weapons=[...new Set((Array.isArray(a.weapons)?a.weapons:[]).filter(x=>WEAPONS.includes(x)))];if(!p.personal.weapon&&p.personal.weapons.includes('base-pistol'))p.personal.weapon='base-pistol';
   p.equipment.owned=[...new Set((raw.equipment?.owned||[]).filter(id=>Object.hasOwn(modules,id)&&modules[id].available!==false))];
   for(const ship of ['starter','ship2','ship3']){p.equipment.installed[ship]={};for(const [slot,id] of Object.entries(raw.equipment?.installed?.[ship]||{}))if(p.equipment.owned.includes(id)&&modules[id].slot===slot)p.equipment.installed[ship][slot]=id;}
-  p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};
+  p.missiles=raw.missiles===null?null:Math.floor(number(raw.missiles,0,30));p.m2=Math.floor(number(raw.m2,0,30));p.missileType=raw.missileType==='m2'?'m2':'m1';   /* M2 rounds and the selected missile type (ordnance.js) */p.checkpoint={location:typeof raw.checkpoint?.location==='string'?raw.checkpoint.location:s.location};
   for(const [id,v]of Object.entries(raw.reputation||{}))if(/^[a-z][a-z-]{0,39}$/.test(id)&&Number.isFinite(v))p.reputation[id]=Math.max(-100,Math.min(100,v));
   p.cargo=(raw.cargo||[]).filter(x=>x&&typeof x.id==='string'&&Number.isInteger(x.units)&&x.units>0&&x.units<=3).slice(0,3);p.data=(raw.data||[]).filter(x=>typeof x==='string'&&x.length<80).slice(0,16);
   for(const [id,v]of Object.entries(raw.relays||{}))if(['erebus','sol'].includes(id)&&['online','offline','damaged'].includes(v))p.relays[id]=v;
@@ -67,7 +71,7 @@
   if(s.universe){
    // A pilot may revisit skipped training maneuvers after completing the missile
    // qualification. Travel access does not certify those missing objectives.
-   // Rook's launcher offer opens independent routes; the missile drill is an optional tutorial (David, 2026-10-23).
+   // Rook's launcher offer opens independent routes; the missile drill is an optional tutorial (the owner, 2026-10-23).
    s.universe.freeTravel=p.completed||p.flags.missileFired===true||s.missileOfferSeen===true||s.universe.freeTravel===true;
    s.universe.missionLogUnlocked=p.opening?.pistol===true||p.completed||s.missileOfferSeen===true||s.quest!=='inheritance';
   }
@@ -75,6 +79,8 @@
  }
  function stage(s){if(s.progression.completed)return 'ACT-01_OPEN_WORLD';if(!groundDone(s))return 'PROLOGUE-01_GROUND';if(s.quest==='inheritance')return 'PROLOGUE-02_SHIP_ACQUISITION';if(!s.progression.flags.dock)return 'PROLOGUE-03_FLIGHT';if(!s.progression.flags.purchasedInstalled)return 'PROLOGUE-04_FIRST_STATION';if(!s.missileUnlocked)return 'PROLOGUE-05_COMBAT';return s.creditGear.includes('launcher')?'PROLOGUE-07_MISSILE_TRAINING':'PROLOGUE-06_MISSILE_ACQUISITION';}
  function next(s){sync(s);return (groundDone(s)?flight:s.progression.opening?.version===2?openingGround:ground).find(id=>!s.progression.flags[id])||null;}
+ // On-foot weapons bought from a vendor (zones.js PISTOL: Admin's base pistol, 19 Nov 2026): bought once, kept in personal.weapons; the drawn gun is personal.weapon.
+ function buyWeapon(s,id,price){const p=s.progression;if(!WEAPONS.includes(id)||!Number.isFinite(price)||price<0||(p.personal.weapons||[]).includes(id)||s.credits<price)return false;s.credits-=price;p.personal.weapons=[...(p.personal.weapons||[]),id];if(!p.personal.weapon)p.personal.weapon=id;return true;}
  function buy(s,id,vendor='outfitter'){const m=modules[id],p=s.progression;if(!m||m.reward||m.available===false||(m.vendor||'outfitter')!==vendor||p.equipment.owned.includes(id)||s.credits<m.price)return false;s.credits-=m.price;p.equipment.owned.push(id);mark(s,'modulePurchased');return true;}
  function install(s,slot,id){const p=s.progression,m=modules[id];if(id!==null&&(!m||m.slot!==slot||m.available===false||!m.compatible.includes(s.activeShip)||!p.equipment.owned.includes(id)))return false;if(!['weapon','shield','power','cooling','engine','sensor','thrusters','signal'].includes(slot))return false;(p.equipment.installed[s.activeShip]??={})[slot]=id;sync(s);return true;}
  function systems(s){const ship=Ships.get(s).id,t={...tuning.ships[ship],cost:tuning.laser.cost,heat:tuning.laser.heat};for(const id of Object.values(s.progression?.equipment.installed[ship]||{})){const m=modules[id];if(!m||!s.progression.equipment.owned.includes(id))continue;for(const [k,v]of Object.entries(m.stats))if(['capacity','recharge','cooling','heatLimit'].includes(k))t[k]+=v;else if(k==='cost'||k==='heat')t[k]*=v;}return t;}
@@ -83,5 +89,5 @@
  function consume(bank,s,t=systems(s)){if(bank.overheated||bank.energy<t.cost)return false;bank.energy-=t.cost;bank.heat=Math.min(t.heatLimit,bank.heat+t.heat);if(bank.heat>=t.heatLimit)bank.overheated=true;return true;}
  function checkpoint(s,location){s.progression.checkpoint={location};s.travel=null;}
  function respawn(s){s.story.cursor=null;s.location=s.progression.checkpoint.location;s.travel=null;s.destination=null;s.universe.station={location:s.location};s.progression.personal.ammo=tuning.ground.magazine;s.progression.personal.reserve=Math.max(24,s.progression.personal.reserve);}
- const api={tuning,modules,ground,flight,flags,fresh,restore,repairOpening,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn,slotLabels,slotLabel,utility};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
+ const api={WEAPONS,buyWeapon,tuning,modules,ground,flight,flags,fresh,restore,repairOpening,mark,groundDone,sync,stage,next,buy,install,systems,stats,powerStep,consume,checkpoint,respawn,slotLabels,slotLabel,utility,personalItems};if(typeof module!=='undefined')module.exports=api;else root.VoidProgression=api;
 })(globalThis);

@@ -82,7 +82,7 @@ Billing plan of the Firebase project (Spark or Blaze) is **unverified**; if it i
 
 ## 8. Smallest safe implementation: two real players meet in the District
 
-**Goal:** David and one invited player, on their own computers, see each other in the District interior.
+**Goal:** The owner and one invited player, on their own computers, see each other in the District interior.
 
 1. **Hub service**: deploy `tools/district-hub/` (renamed `district-hub`) as **one new free Render web service**, modelled on `iris-service/render.yaml` (`plan: free`, **`autoDeploy: false`**, secrets not in the repository). Needs no database and no Firebase credential.
 2. **Replace `emulator-providers.cjs`** with: (a) token verification using Google's public keys (copy the logic of `iris-service/server/firebaseAuth.ts`; project id `the-darknet-district-71873`), and (b) the **character lookup by forwarding the player's own token to the existing `GET /api/void-runner/character`** on the Flask API. The hub then holds no Firestore access at all and every read goes through the API's existing checks. A handle can be read the same way (`GET /api/identity/me`).
@@ -91,7 +91,7 @@ Billing plan of the Firebase project (Spark or Blaze) is **unverified**; if it i
 5. **Nothing else changes**: no new collections, no rules, no Auth settings, no Neon, no save changes, no VR or NPC changes.
 6. **Rollback**: stop or delete the Render service; clients simply find no hub and play single-player.
 
-### What this needs from David (not requested now)
+### What this needs from the owner (not requested now)
 Creating the Render service (free plan, but a new running service), setting its environment variables, and merging the client change (merging to `main` publishes the site). Test with the allow-list first. Everything in steps 1 to 4 is already prototyped except the two production providers.
 
 ## 8b. Status 2026-11-05: the hub is now built to this plan (not deployed)

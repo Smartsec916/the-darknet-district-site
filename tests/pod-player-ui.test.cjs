@@ -1,4 +1,4 @@
-/* The DARKNET·AMP on the Sleeping Pod wall (pod-player-ui.js): every button's click region, the song list's paging, and that the pop-up is gone (David, 16 Nov 2026). */
+/* The DARKNET·AMP on the Sleeping Pod wall (pod-player-ui.js): every button's click region, the song list's paging, and that the pop-up is gone (the owner, 16 Nov 2026). */
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const U=require('../void-runner/pod-player-ui.js'),A=require('../void-runner/district-area.js'),read=f=>fs.readFileSync(path.join(__dirname,'..',f),'utf8');

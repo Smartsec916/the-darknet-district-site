@@ -11,11 +11,11 @@
    - Eva's model:            MODELS.eva  (milked-eva; separate from the VR companion Eva)  -> set `asset` to a packaged model id; until then the `look` is a clothed crowd model.
    - Fish's model:           MODELS.fish (milked-fish) -> same.
    - The four dancers:       STUDIOS below (one per studio: `look` is a clothed crowd figure, `clips` its own dance, `library` the shared-library clip used when that file is installed).
-   - Dialogue (provisional): DIALOGUE below.  Nothing here is approved canon until David approves it.
+   - Dialogue (provisional): DIALOGUE below.  Nothing here is approved canon until the owner approves it.
    - The inactive mission:   MISSION below (data only; nothing registers it with VoidMissions). */
 (function(root){
  'use strict';
- /* WHERE IT STANDS (David, 16 Nov 2026: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved.").
+ /* WHERE IT STANDS (the owner, 16 Nov 2026: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved.").
     Everything below is written in the building's OWN frame, exactly as it was drawn and built (the numbers in docs/development/MILKED.md before the move).
     OFFSET carries the whole building, both environments (the street side and the inside), by ONE rigid translation [dx, dz] metres to where it stands in the
     city: Far South, the second stretch of Main Street (ncz-quarters.js). No mirror, no turn, no change of any offset to Main Street: the same side of the street,
@@ -31,7 +31,7 @@
  // process, then set `asset` to its id: create() uses it when VoidAssets has it and falls back to `look` when it does not.
  const MODELS={
   eva:{id:'milked-eva',name:CONFIG.EVA_NAME,role:'RECEPTION · MILKED',look:'ncz-neon',asset:null,clips:['talk','idle'],at:[81.3,-81.32],face:[81.3,-78],note:'REPLACEMENT POINT: Milked Eva (not the VR companion Eva).'},
-  fish:{id:'milked-fish',name:CONFIG.FISH_NAME,role:'OFFICE · MILKED',look:'npc-fish',asset:null,clips:['watch','idle'],at:[95.6,-76.9],face:[98,-76.9],note:'Her own model since 16 Nov 2026 (void-runner/assets/models/crowd/npc-fish.glb: Meshy, from a concept she and David approved).'}};
+  fish:{id:'milked-fish',name:CONFIG.FISH_NAME,role:'OFFICE · MILKED',look:'npc-fish',asset:null,clips:['watch','idle'],at:[95.6,-76.9],face:[98,-76.9],note:'Her own model since 16 Nov 2026 (void-runner/assets/models/crowd/npc-fish.glb: Meshy, from a concept she and the owner approved).'}};
  // Provisional placeholder lines. Eva's background follows Origins (livestream performer, neural-network engineer, built Iris with the player's character).
  const DIALOGUE={
   eva:{greeting:['Welcome to Milked. We are a small broadcast studio. Everything made here goes out live to members who watch from home.',
@@ -41,8 +41,9 @@
    'The studios are through the door beside my desk. You can watch from the hallway windows. Please do not knock on the glass. Fish is in the office at the back.']},
   fish:{greeting:['Office. Mind the cables.','Four studios, fixed cameras, nobody behind them. I run every camera from this desk.',
    'Eva runs the front and the technical side. I keep the lights on and the paperwork honest.']}};
- // MISSION 3: data only, INACTIVE. Nothing registers it with VoidMissions and nothing starts it; the beginner missions are untouched. Needs David's approval to activate.
- const MISSION={id:'meet-eva-milked',number:3,title:'MEET EVA AT MILKED',active:false,status:'inactive',approval:'PROPOSED (placeholder data, not approved canon)',giver:null,npc:'milked-eva',location:'milked',
+ // MISSION 3: data only, INACTIVE. Nothing registers it with VoidMissions and nothing starts it; the beginner missions are untouched. Needs the owner's approval to activate.
+ // number: none. This inactive draft once carried 3 as a placeholder; Mission 003 is the owner's Corporate Connections (main-story.js, 17 Nov 2026), and numbers are never shared.
+ const MISSION={id:'meet-eva-milked',number:null,title:'MEET EVA AT MILKED',active:false,status:'inactive',approval:'PROPOSED (placeholder data, not approved canon)',giver:null,npc:'milked-eva',location:'milked',
   objective:'Travel to Milked, on the side street off Main Street, and talk to Eva at reception.',steps:[{id:'arrive',text:'Reach Milked (the side street off the east side of Main Street, or take a taxi).'},{id:'reception',text:'Talk to Eva at the reception desk.'}],
   dialogue:['eva.greeting'],reward:null};
 
@@ -51,6 +52,10 @@
  const FOOTPRINT=[78,98,-90,-74],LANE=[71,101,-74,-68.5],ALLEY=[71,98.5,-93.5,-90];
  const DOOR={x:81.75,z:-74,half:1,height:2.7},INNER={x:81.75,z:-77,half:1,height:2.5},REAR={x:94.75,z:-90,half:.7,height:2.3};
  const VESTIBULE=[79.75,83.75,-77,-74],HALL=[85.5,93.5,-82.8,-80.8];
+ /* The STAFF ONLY door at the far (east) end of the studio hallway, into the staff corridor and Fish's office. Locked for a player until Eva grants access (Mission 003:
+    story.flags.mf_milkedStaff, set by the mission's 'flag' unlock). The rear lobby (from the service alley) is the staff and deliveries entrance and is not changed. */
+ const STAFF_DOOR={id:'milked-staff-door',x:93.5,z:-81.8,half:.65},STAFF_FLAG='mf_milkedStaff';
+ const staffAccess=flags=>!!flags&&typeof flags==='object'&&flags[STAFF_FLAG]===true;   // flags: the player's story flags (read only: nothing here writes to the save)
  // The rear lobby: a small airlock between the staff area and the service alley. Its two inner doors lead to the staff corridor (north) and the rear corridor (west).
  const LOBBY=[93.5,96,-90,-87.4],LOBBY_N={x:94.75,z:-87.4,half:.7,height:2.2},LOBBY_W={x:93.5,z:-89,half:.65,height:2.2};
  /* The five real doors. Each has a collision box (in solids(), id = the door's id) that is in place whenever the door is less than 80% open. `side` says which
@@ -110,11 +115,26 @@
  // The four livestream studios. Each has exactly one adult dancer (a clothed crowd figure), its own lighting and its own set. `window` and `door` are the spans
  // (along x) of the observation window and the closed studio door in the hallway wall. `clips` are the look's own clips, tried in order; `library` is a clip from
  // the shared animation library (anim-library.js), used instead when that licensed file is installed.
+ // Studio 3: Dex's dances (Meshy library hip hop and groove moves, Kai's samba, his own loop), retargeted onto his licensed rig on our own machine (his model never goes
+ // to Meshy or any AI tool: CGTrader "No AI" licence). Studio 4: Auburn's own Meshy rig, club dances from the Meshy library. Clip names are in crowd.js.
+ const DANCES={dex:['dance-hiphop','dance-hiphop-2','dance-hiphop-3','dance-groove','dance-bass','dance-samba','dance'],auburn:['dance-allnight','dance-shake','dance-lovepop','dance-denim','dance-omg']};
+ // Always show in Milked Studio 1 the OTHER resident from the Avenue's real-time UTC shift.
+ // Keep the same 00:00 and 12:00 boundaries as ncz-street-pair.js, independent of save/game time. ms: the STREET clock (VoidStreetPair.streetTime: a draft test may simulate it).
+ function studioOnePerformer(ms=root.VoidStreetPair?.streetTime?.()??Date.now()){
+  const street=root.VoidStreetPair?.onShift?.(ms)?.id||(new Date(ms).getUTCHours()<12?'grey-reverie':'ethereal-lace');
+  return {look:street==='grey-reverie'?'npc-ethereal-lace':'npc-grey-reverie',clips:['dance-groove','dance-bop','idle'],dances:['dance-groove','dance-bop'],library:null};
+ }
  const STUDIOS=[
-  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:{id:'milked-dancer-1',look:'district-resident',clips:['dance','idle'],library:'ac-sensual-dance-3'}},
-  {n:2,room:'studio-2',light:'green',theme:'fern',window:[90,92.4],door:[92.55,93.35],dancer:{id:'milked-dancer-2',look:'vr-companion-f',clips:['slow-dance','dance','idle'],library:'ac-sensual-movement-1'}},
-  {n:3,room:'studio-3',light:'mixed',theme:'arcade',window:[86.6,89],door:[85.65,86.45],dancer:{id:'milked-dancer-3',look:'vr-companion-m',clips:['dance-samba','dance','idle'],library:'ac-stand-curve-2'}},
-  {n:4,room:'studio-4',light:'mixed',theme:'mirror',window:[90.6,93],door:[89.65,90.45],dancer:{id:'milked-dancer-4',look:'vr-player-b',clips:['dance','idle'],library:'ac-stand-curve-3'}}];
+  {n:1,room:'studio-1',light:'pink',theme:'velvet',window:[86,88.4],door:[88.55,89.35],dancer:{...studioOnePerformer(),id:'milked-dancer-1'}},
+  {n:2,room:'studio-2',light:'green',theme:'fern',window:[90,92.4],door:[92.55,93.35],dancer:{id:'milked-dancer-2',look:'studio-warrior',file:'studio-warrior.vrpak',clips:['slow-dance','dance','idle'],library:'ac-sensual-movement-1'}},
+  {n:3,room:'studio-3',light:'mixed',theme:'arcade',window:[86.6,89],door:[85.65,86.45],dancer:{id:'milked-dancer-3',look:'vr-companion-bm',clips:['dance-hiphop','dance','idle'],library:'ac-stand-curve-2',dances:DANCES.dex}},
+  {n:4,room:'studio-4',light:'mixed',theme:'mirror',window:[90.6,93],door:[89.65,90.45],dancer:{id:'milked-auburn',name:'Auburn',look:'npc-milked-auburn',clips:['dance-allnight','dance','idle'],library:'ac-stand-curve-3',dances:DANCES.auburn}}];   // Auburn: the owner's own Meshy model (an adult woman of 21, his statement of 18 Nov 2026)
+ /* A dancer with `dances` changes dance every 20 to 40 s (the owner, 18 Nov 2026: "The new girl in studio 4 needs more dance animations, the male in 3 isn't doing
+    much"), cross-fading (crowd.js blends clips). Only the dances the loaded figure really has are used, so an older model file keeps dancing its one clip.
+    danceTurn(list, n, seed): the nth dance and how long it lasts; the order is shuffled once per dancer and cycled, so a dance never repeats back to back. */
+ function danceTurn(list,n,seed=0){const L=(list||[]).filter(Boolean);if(!L.length)return null;const h=k=>{let x=(seed*2654435761^(k+1)*40503)>>>0;x=(x^x>>>15)>>>0;x=Math.imul(x,2246822519)>>>0;x=(x^x>>>13)>>>0;return x/4294967296;};
+  const order=L.map((c,i)=>[h(97+i),c]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);   // one shuffled order per dancer, cycled: never the same dance twice running
+  return {clip:order[n%L.length],seconds:20+h(5000+n)*20};}
  // Everything the player can use. Handlers are registered by milked-integration.js.
  const INTERACTIONS=[
   {id:'milked-intercom',label:'VISITOR CHECK-IN',position:[80.2,1.7,-75.5],action:'milked-intercom',range:1.5,both:true},
@@ -148,10 +168,13 @@
   // the doors: shut until the door control (milked-build.js) opens them
   for(const d of DOORS)out.push({id:d.id,door:true,position:[d.x,d.height/2,d.z],size:d.axis==='x'?[d.half*2,d.height,T]:[T,d.height,d.half*2]});
   return out;}
+ // The staff-only door at the far end of the studio hallway (Mission 003, 17 Nov 2026): locked (solid) until Eva lets this player through (story flag STAFF_FLAG);
+ // milked-build.js opens it, per player, only for a player who has that flag. Only the interior has it (the street never reaches that part of the building).
+ const staffSolidLocal=()=>({id:STAFF_DOOR.id,staff:true,position:[STAFF_DOOR.x,1.1,STAFF_DOOR.z],size:[T,2.2,STAFF_DOOR.half*2]});
  const gateAtLocal=p=>{if(!p)return null;for(const g of Object.values(GATES))if(inRect(g.zone,p.x,p.z))return g;return null;};
  // Which doors an environment may open ('street' or the interior).
  const openable=(d,area)=>d.side===(area===AREA?'interior':'street');
- const LOCAL={CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
+ const LOCAL={studioOnePerformer,STAFF_DOOR,CONFIG,MODELS,FOOTPRINT,LANE,ALLEY,DOOR,INNER,REAR,VESTIBULE,HALL,LOBBY,LOBBY_N,LOBBY_W,DOORS,GATES,TAXI,SEGMENTS,FURNITURE,ROOMS,STUDIOS,DANCES,danceTurn,INTERACTIONS,PLACES,KEY,AREA,T,H,CEIL,spansOf,inside,distance,roomAt,solids:solidsLocal};
 
  // ---- the same things in WORLD metres: what the rest of the game reads ----
  const [OX,OZ]=OFFSET;
@@ -179,12 +202,13 @@
  /* The interior as a place of its own. It keeps NeoChinatown's id and world coordinates, so the map, the music zone, the camera's place label and multiplayer
     presence all carry on unchanged; `area` tells the street systems (taxis, street life) that this is indoors. A save made in here stores nothing of it:
     every login wakes in the player's Sleeping Pod, and anything that re-enters NeoChinatown uses the street. */
- function layout(){return {id:'neochinatown',name:CONFIG.NAME,kind:'city',milked:true,area:AREA,bounds:[260,270],spawn:[WDOOR.x,1.7,-78.6+OZ],yaw:Math.PI,color:'#17141c',music:'earth',solids:solids(),interactions:interactions(AREA),signs:[]};}
+ const staffSolid=()=>{const x=staffSolidLocal();return {...x,position:[x.position[0]+OX,x.position[1],x.position[2]+OZ]};};
+ function layout(){return {id:'neochinatown',name:CONFIG.NAME,kind:'city',milked:true,area:AREA,bounds:[260,270],spawn:[WDOOR.x,1.7,-78.6+OZ],yaw:Math.PI,color:'#17141c',music:'earth',solids:[...solids(),staffSolid()],interactions:interactions(AREA),signs:[]};}
  /* A position from a save or a link made BEFORE the move (the District's old street): where that point is now. Anything inside the building's old block (its footprint,
     the side street and the service alley, with a margin) goes with it, by OFFSET; anything else stays. Returns [x, z] or null when the point was not Milked's. */
  const OLD_BLOCK=[FOOTPRINT[0]-1,Math.max(LANE[1],ALLEY[1])+1,FOOTPRINT[2]-4,LANE[3]+1];
  const fromOld=(x,z)=>inRect(OLD_BLOCK,x,z)?[x+OX,z+OZ]:null;
 
- const api={OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
+ const api={studioOnePerformer,STAFF_DOOR:P(STAFF_DOOR),STAFF_FLAG,staffAccess,staffSolid,OFFSET,LOCAL,OLD_BLOCK,fromOld,CONFIG,MODELS:WMODELS,DIALOGUE,MISSION,FOOTPRINT:WFOOTPRINT,LANE:WLANE,ALLEY:WALLEY,DOOR:WDOOR,INNER:WINNER,REAR:WREAR,VESTIBULE:WVESTIBULE,HALL:WHALL,LOBBY:WLOBBY,LOBBY_N:WLOBBY_N,LOBBY_W:WLOBBY_W,DOORS:WDOORS,GATES:WGATES,KEY,AREA,T,H,CEIL,spansOf,gateAt,atCentre,openable,layout,TAXI:WTAXI,SEGMENTS:WSEGMENTS,FURNITURE:WFURNITURE,ROOMS:WROOMS,STUDIOS:WSTUDIOS,DANCES,danceTurn,INTERACTIONS:WINTERACTIONS,PLACES:WPLACES,BOUNDS:WBOUNDS,inside:winside,distance:wdistance,roomAt:wroomAt,solids,interactions};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMilked=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

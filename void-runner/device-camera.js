@@ -1,4 +1,4 @@
-/* The V1's Camera app: a live viewfinder over the game's own camera (David, 15 Nov 2026). Not a picture laid over the screen: the world keeps running, the
+/* The V1's Camera app: a live viewfinder over the game's own camera (the owner, 15 Nov 2026). Not a picture laid over the screen: the world keeps running, the
    player keeps walking and looking, and what is framed is the real scene.
    - HUD: corner brackets, a plain crosshair (no circle), a running timecode, battery, signal, zoom, focus, camera id, frame rate, ISO.
    - Name tags: a light-green tag for each named District resident (district-people.js) and each other player in view, with a thin line to the person's head.
@@ -7,8 +7,12 @@
    - Look: every colour, line weight and font comes from the device's own CSS variables (device-v1.css, --pd-*), and the HUD is tagged with the device model
      (`data-device`), so a later device with its own theme restyles the camera without any change here.
    Pure helpers (zoom steps, timecode, tag placement) run in Node too (tests/device-camera.test.cjs). 
-   - Photos (David, 15 Nov 2026): the LEFT MOUSE BUTTON takes a picture of what is framed, with the name tags in it, and keeps it in the Gallery
-     (device-gallery.js; this browser only, nothing is uploaded). */
+   - Photos (the owner, 15 Nov 2026): the LEFT MOUSE BUTTON takes a picture of what is framed, with the name tags in it, and keeps it in the Gallery
+     (device-gallery.js; this browser only, nothing is uploaded).
+   - Photo checks (Mission 002, 17 Nov 2026): at the moment of capture each person the camera can identify (the residents, and the people a scene registers with
+     VoidPhotoSubjects, such as Juno Vex in NULL) is judged: in the frame and roughly centred (generous), within 15 m, and not blocked (the line of sight to the head or
+     the chest is clear: the place's walls, then a ray against what is drawn). The result is kept with the photo (subjects, the place, the time, the mission step in
+     progress) and handed to the missions (live-content.js photo). The picture itself never leaves this browser. */
 (function(root){
  'use strict';
  const D=typeof module!=='undefined'&&module.exports?require('./device-v1.js'):root.VoidDeviceV1;
@@ -38,10 +42,18 @@
    if(hit)return true;}
   return false;
  }
+ /* A capture of one person, judged (pure). points: their head and chest on screen {x, y, front (in front of the camera), clear (line of sight clear)}; W, H: the frame;
+    dist: metres. Valid when they are close enough and one of the two points is in the frame, roughly centred and not blocked. */
+ const PHOTO={maxDist:15,centreX:.34,centreY:.4};
+ function judge({points,W,H,dist}){const pts=(points||[]).filter(p=>p&&p.front&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+  const inFrame=pts.filter(p=>p.x>=0&&p.x<=W&&p.y>=0&&p.y<=H),centred=inFrame.filter(p=>Math.abs(p.x-W/2)<=W*PHOTO.centreX&&Math.abs(p.y-H/2)<=H*PHOTO.centreY),near=Number.isFinite(dist)&&dist<=PHOTO.maxDist;
+  const clear=centred.some(p=>p.clear);
+  const why=!inFrame.length?'not in the frame':!centred.length?'too near the edge of the frame':!near?'too far away':!clear?'something is in the way':'';
+  return {valid:!why,why,inFrame:inFrame.length>0,centred:centred.length>0,near,clear};}
  /* Who the camera is aimed at: the person whose HEAD or whose TAG is nearest the crosshair, if either is inside the aperture (half-width `reach` pixels,
     a little generous so a moving person can be caught). list: [{key, hx, hy, tx, ty, tw, th}] (head point; tag box). -> key or null. */
  function aimed(list,cx,cy,reach){let best=null,bd=Infinity;for(const p of list||[]){const dh=Math.hypot(p.hx-cx,p.hy-cy),nx=Math.max(p.tx,Math.min(cx,p.tx+p.tw)),ny=Math.max(p.ty,Math.min(cy,p.ty+p.th)),dt=Math.hypot(nx-cx,ny-cy),d=Math.min(dh,dt);if(d<=reach&&d<bd){bd=d;best=p.key;}}return best;}
- const pure={zoomSteps,stepZoom,timecode,placeTag,sightBlocked,aimed};
+ const pure={zoomSteps,stepZoom,timecode,placeTag,sightBlocked,aimed,judge,PHOTO};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -70,9 +82,13 @@
   if(P){const nodes=sc.transformNodes.concat(sc.meshes);
    for(const n of P.NPCS){const ids=[n.id,n.crew].filter(Boolean);const node=nodes.find(t=>!t.isDisposed()&&t.isEnabled()&&(ids.includes(t.metadata?.character)||ids.includes(t.metadata?.club)||ids.some(i=>t.name==='npc-'+i)));
     if(node)out.push({key:'npc:'+n.id,name:n.name,role:P.jobsText(n.jobs.slice(0,1)),node});}}
+  for(const [id,x] of subjects)if(x.node&&!x.node.isDisposed?.()&&x.node.isEnabled?.()&&!out.some(o=>o.key==='npc:'+id))out.push({key:'subject:'+id,id,name:x.name,role:x.role||'',node:x.node});
   try{for(const p of root.VoidRemotePlayers?.peers||[]){if(!p.drawn)continue;const node=sc.getTransformNodeByName('remote-player:'+p.id);if(node)out.push({key:'player:'+p.id,name:p.name,role:'Player',node});}}catch{}
   return out;
  }
+ /* People a scene adds for the camera to identify (Juno Vex in NULL): id -> {name, role, node}. Set by the scene when the figure is placed, removed when it goes. */
+ const subjects=new Map();
+ root.VoidPhotoSubjects={set(id,node,info={}){if(typeof id==='string'&&node)subjects.set(id,{name:String(info.name||id),role:String(info.role||''),node});},remove(id,node){const x=subjects.get(id);if(x&&(!node||x.node===node))subjects.delete(id);},get(id){return subjects.get(id)||null;},ids:()=>[...subjects.keys()]};
  const heights=new WeakMap();
  function headOf(node){   // the top of the figure, measured once (a tag must not jitter with the idle sway)
   let h=heights.get(node);
@@ -101,7 +117,7 @@
   const key=pure.aimed(shown,W/2,H/2,Math.min(W,H)*.085);target=key?tags.get(key).who:null;
   for(const [k,t] of tags){const on=k===key;if(t.on!==on){t.on=on;t.tag.classList.toggle('aim',on);t.line.classList.toggle('aim',on);}}
   const hint=el.querySelector('[data-pc=aim]'),P=root.VoidDistrictPeople,fl=flags();let text='';
-  if(target&&P&&fl){const fk=target.key.startsWith('npc:')?'n:'+target.key.slice(4):'p:'+String(target.key.slice(7)).replace(/[^0-9a-f]/g,'').slice(0,12);text=(P.isFollowing(fl,fk)?'F · UNFOLLOW ':'F · FOLLOW ')+target.name.toUpperCase();}
+  if(target&&P&&fl&&!target.key.startsWith('subject:')){const fk=target.key.startsWith('npc:')?'n:'+target.key.slice(4):'p:'+String(target.key.slice(7)).replace(/[^0-9a-f]/g,'').slice(0,12);text=(P.isFollowing(fl,fk)?'F · UNFOLLOW ':'F · FOLLOW ')+target.name.toUpperCase();}
   if(hint.textContent!==text){hint.textContent=text;hint.hidden=!text;el.querySelector('.pc-aperture').classList.toggle('lock',!!text);}
   for(const [k,t] of tags)if(!seen.has(k)){t.tag.hidden=true;t.line.style.display=t.dot.style.display='none';}
  }
@@ -126,7 +142,7 @@
  let target=null,toastTimer=0;
  function onKey(e){
   if(!active||e.code!=='KeyF'||e.repeat||e.ctrlKey||e.metaKey||e.altKey)return;e.preventDefault();e.stopImmediatePropagation();
-  const P=root.VoidDistrictPeople,fl=flags();if(!target||!P||!fl)return;
+  const P=root.VoidDistrictPeople,fl=flags();if(!target||!P||!fl||target.key.startsWith('subject:'))return;
   const who=target.key.startsWith('npc:')?{kind:'npc',id:target.key.slice(4)}:{kind:'player',id:target.key.slice(7),name:target.name};
   const was=P.readFollowing(fl).length,now=P.toggleFollow(fl,who),changed=P.readFollowing(fl).length!==was;try{if(typeof save==='function')save();}catch{}
   const t=el.querySelector('[data-pc=toast]');t.textContent=!changed?'CANNOT FOLLOW '+target.name.toUpperCase()+' (NO REGISTERED HANDLE)':now?'FOLLOWING '+target.name.toUpperCase()+' · SEE SOCIAL':'UNFOLLOWED '+target.name.toUpperCase();t.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.hidden=true;},2600);
@@ -142,20 +158,46 @@
   const G=root.VoidGallery,sc=scene();if(!active||!G||!sc||shooting)return false;
   if(G.room(device)<=0){say('STORAGE FULL · DELETE PHOTOS IN THE GALLERY');return false;}
   shooting=true;const cv=sc.getEngine().getRenderingCanvas(),vw=el.clientWidth||cv.clientWidth||1,vh=el.clientHeight||cv.clientHeight||1;
-  const who=[...tags.values()].filter(t=>!t.tag.hidden&&t.box).map(t=>({name:t.name,role:t.role,kind:t.who?.key?.startsWith('player:')?'player':'npc',...t.box}));
-  const area=areaNow(sc),zoom=steps[zi];
+  const who=[...tags.values()].filter(t=>!t.tag.hidden&&t.box).map(t=>({name:t.name,role:t.role,kind:t.who?.key?.startsWith('player:')?'player':'npc',via:t.who?.key?.startsWith('player:')?'player':t.who?.key?.startsWith('subject:')?'subject':'resident',...t.box}));
+  const area=areaNow(sc),zoom=steps[zi];let meta=null;try{meta=capture(sc,vw,vh);}catch{meta=null;}
   sc.onAfterRenderObservable.addOnce(()=>{try{
    const W=G.WIDTH,H=Math.round(W*vh/vw),c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d'),k=W/vw;g.drawImage(cv,0,0,W,H);
    const green=getComputedStyle(el).getPropertyValue('--pd-tag').trim()||'#9dff5a';g.textBaseline='top';
    for(const t of who){g.strokeStyle=green;g.lineWidth=1.2;g.beginPath();g.moveTo(t.ax*k,t.ay*k);g.lineTo(t.hx*k,t.hy*k);g.stroke();g.fillStyle=green;g.beginPath();g.arc(t.hx*k,t.hy*k,2.5,0,7);g.fill();
     g.fillStyle='rgba(6,18,8,.72)';g.fillRect(t.left*k,t.top*k,t.tw*k,t.th*k);g.strokeRect(t.left*k,t.top*k,t.tw*k,t.th*k);g.fillStyle=green;g.font='700 '+Math.max(9,Math.round(t.th*k*.36))+'px monospace';g.fillText(t.name,t.left*k+6,t.top*k+3,t.tw*k-10);g.font=Math.max(7,Math.round(t.th*k*.26))+'px monospace';g.fillText(t.role,t.left*k+6,t.top*k+t.th*k*.56,t.tw*k-10);}
-   c.toBlob(async blob=>{shooting=false;const p=blob?await G.add(device,{blob,tags:who,area,zoom}):null;if(active)say(p?'PHOTO SAVED · '+G.count+' IN THE GALLERY'+(who.length?' · '+who.length+' TAGGED':''):'THE PHOTO COULD NOT BE SAVED',2200);},'image/jpeg',.82);
+   c.toBlob(async blob=>{shooting=false;const p=blob?await G.add(device,{blob,tags:who,area,zoom,meta}):null;if(active)say(p?'PHOTO SAVED · '+G.count+' IN THE GALLERY'+(who.length?' · '+who.length+' TAGGED':''):'THE PHOTO COULD NOT BE SAVED',2200);
+    if(p&&meta)try{root.VoidLiveContent?.photo?.(p.meta||meta);}catch{}},'image/jpeg',.82);
   }catch{shooting=false;if(active)say('THE PHOTO COULD NOT BE SAVED');}});
   const f=el.querySelector('[data-pc=flash]');f.classList.remove('on');void f.offsetWidth;f.classList.add('on');return true;
  }
+ /* What this capture shows, judged now (the moment of capture): every person the camera can identify within reach, valid or not, with why. */
+ function capture(sc,W,H){
+  const B=root.BABYLON,cam=sc.activeCamera;if(!B||!cam)return null;const from=cam.globalPosition,fwd=cam.getForwardRay(1).direction,vp=cam.viewport.toGlobal(W,H),tm=sc.getTransformMatrix(),I=B.Matrix.IdentityReadOnly;
+  const solids=typeof walkingLocation!=='undefined'&&walkingLocation?walkingLocation.solids:null,out=[],seen=new Set();
+  const own=node=>m=>m===node||m.isDescendantOf?.(node);
+  const blocked=(pt,node)=>{const dir=pt.subtract(from),len=dir.length();if(len<.01)return false;const ray=new B.Ray(from,dir.normalize(),Math.max(0,len-.25)),mine=own(node);
+   const hit=sc.pickWithRay(ray,m=>m.isEnabled()&&m.isVisible&&m.visibility>.5&&m.getTotalVertices?.()>0&&!mine(m)&&!(m.material&&(m.material.alpha<.95||m.material.disableDepthWrite))&&!/beam|cone|glow|light|flash|sky/i.test(m.name),false);
+   return !!(hit&&hit.hit&&hit.distance>.5);};
+  for(const p of people()){const id=p.key.startsWith('npc:')?p.key.slice(4):p.key.startsWith('subject:')?p.key.slice(8):null;if(!id||seen.has(id))continue;seen.add(id);
+   const head=headOf(p.node),chest=head.add(new B.Vector3(0,-.45,0)),dist=B.Vector3.Distance(from,head);if(dist>40)continue;
+   const pts=[head,chest].map(pt=>{const s=B.Vector3.Project(pt,I,tm,vp),front=B.Vector3.Dot(pt.subtract(from),fwd)>0&&s.z>0&&s.z<1;
+    return {x:s.x,y:s.y,front,clear:front&&!pure.sightBlocked(from.x,from.z,pt.x,pt.z,solids)&&!blocked(pt,p.node)};});
+   const j=pure.judge({points:pts,W,H,dist});out.push({id,name:p.name,valid:j.valid,dist:Math.round(dist*10)/10,...(j.why?{why:j.why}:{})});}
+  let place=null;try{const wl=walkingLocation;place=root.VoidPlaces?.deepest?.({scene:wl.id,x:from.x,z:from.z})||null;}catch{}
+  let during=[];try{during=root.VoidLiveContent?.during?.()||[];}catch{}
+  // the in-game time it was taken (game-clock.js): minutes since the campaign started and the V1's label, e.g. "21:40 · DAY 1"
+  let gameMin=null,gameTime='';try{if(root.VoidClock&&typeof state!=='undefined'&&state){gameMin=root.VoidClock.minutes(state);gameTime=root.VoidClock.now(state).label;}}catch{}
+  // the photographer's device ID (device-v1.js deviceId): the only link to who took it; never a handle, account or player id (the owner, 18 Nov 2026)
+  let device='';try{device=deviceIdNow();}catch{}
+  return {subjects:out,place,during,at:Date.now(),...(gameMin!==null?{gameMin,gameTime}:{}),device};
+ }
+ /* This player's device ID, made once per campaign (story.flags.deviceSerial) and saved. */
+ function deviceIdNow(){const fl=flags();if(!fl)return '';const had=fl[D.KEY.serial],serial=D.ensureSerial(fl,{account:root.VoidAccount?.user?.uid||'',epoch:fl.campaignEpoch||''});
+  if(serial!==had)try{if(typeof save==='function')save();}catch{}return D.deviceId(serial,(device||D.restore(fl)).model)||'';}
+ root.VoidDeviceId={now:()=>{try{return deviceIdNow();}catch{return '';}}};
  function onShot(e){
   if(!active||e.button!==0)return;const cv=scene()?.getEngine().getRenderingCanvas();
-  if(e.target!==cv&&!el.contains(e.target)&&e.target!==document.body)return;   // a click on a menu or the chat is not a photo
+  if(e.target!==cv&&e.target?.id!=='space'&&!el.contains(e.target)&&e.target!==document.body)return;   // a click on a menu or the chat is not a photo (the game's own overlay canvas, #space, is the view)
   if(root.VoidControls?.deviceClass!=='touch-first'&&!document.pointerLockElement&&cv?.requestPointerLock)try{cv.requestPointerLock()?.catch?.(()=>{});}catch{}
   e.preventDefault();e.stopImmediatePropagation();shoot();
  }
@@ -177,7 +219,7 @@
   try{if(baseFov!==null&&sc?.activeCamera)sc.activeCamera.fov=baseFov;}catch{}baseFov=null;
   if(el)el.hidden=true;for(const t of tags.values()){t.tag.remove();t.line.remove();t.dot.remove();}tags.clear();
  }
- /* B (David, 15 Nov 2026): the key the V3 // Shadow uses for the camera in its owner's eye raises and puts away the camera for EVERYONE, whatever device they carry,
+ /* B (the owner, 15 Nov 2026): the key the V3 // Shadow uses for the camera in its owner's eye raises and puts away the camera for EVERYONE, whatever device they carry,
     while on foot. In flight B is still the target lock (input.js), and it does nothing while typing. */
  addEventListener('keydown',e=>{if(e.code!=='KeyB'||e.repeat||e.ctrlKey||e.metaKey||e.altKey||typeof mode==='undefined'||mode!=='walking')return;
   const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return;
@@ -185,5 +227,5 @@
   let dev=null;try{dev=D.restore(flags()||{});}catch{}
   if(root.VoidPersonalDevice?.isOpen)root.VoidPersonalDevice.close();
   if(start(dev))e.preventDefault();});
- root.VoidDeviceCamera={start,stop,shoot,get active(){return active;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
+ root.VoidDeviceCamera={start,stop,shoot,capture:()=>{const sc=scene();return sc&&el?capture(sc,el.clientWidth||1,el.clientHeight||1):null;},get active(){return active;},get shooting(){return shooting;},get zoom(){return steps[zi];},get steps(){return steps.slice();},get target(){return target?{key:target.key,name:target.name}:null;},get tags(){return [...tags.entries()].filter(([,t])=>!t.tag.hidden).map(([k,t])=>({key:k,name:t.name,role:t.role}));},...pure};
 })(typeof globalThis!=='undefined'?globalThis:this);

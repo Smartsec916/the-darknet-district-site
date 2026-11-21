@@ -69,7 +69,14 @@
   const inst={id,style,bus,gain:0,step:0,next:ctx.currentTime+.05,intensity:0,tension:0,audio:null,play};
   // Same family (e.g. District zones): keep the beat so the change lands musically.
   if(inherit&&inherit.style.family&&inherit.style.family===style.family&&inherit.style.bpm===style.bpm){inst.step=inherit.step;inst.next=inherit.next;}
-  const file=S.files[id];
+  const file=S.files[id],seam=S.seamless?.[id];
+  // A seamless recording (music-score.js `seamless`): fetched and decoded only now, looped by a buffer source on the same bus (so the music volume, mute, the area
+  // crossfade and the dialogue duck all apply), started on the shared clock and faded in from silence; released by dispose(). Until it is ready nothing else plays.
+  if(file&&seam){inst.audio={seamless:true,src:null};(async()=>{try{const r=await fetch(file);if(!r.ok)throw Error('music '+r.status);const data=await r.arrayBuffer();if(inst.disposed)return;
+    const O=root.OfflineAudioContext||root.webkitOfflineAudioContext,dec=O&&seam.rate?new O(2,1,seam.rate):ctx,buf=await dec.decodeAudioData(data);if(inst.disposed||!inst.audio)return;
+    const src=ctx.createBufferSource(),g=ctx.createGain();src.buffer=buf;src.loop=true;g.gain.value=0;src.connect(g);g.connect(bus);const t=ctx.currentTime+.05;src.start(t,t%buf.duration);
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(1,t+(seam.fadeIn||2.5));inst.audio.src=src;inst.audio.gain=g;inst.audio.duration=buf.duration;}
+   catch(e){if(inst.audio?.seamless){inst.audio=null;inst.next=ctx.currentTime+.05;}}})();return inst;}
   if(file&&root.VoidAudio?.connectMedia){const a=new Audio(file);a.loop=true;a.preload='auto';const link=root.VoidAudio.connectMedia(a);if(link){link.gain.disconnect();link.gain.connect(bus);inst.audio={a,link};
    // Every recording runs on one clock: it starts where it would be had it been playing all along, so coming back to a room never restarts its music.
    const sync=()=>{try{if(a.duration>0)a.currentTime=ctx.currentTime%a.duration;}catch{}};if(a.readyState>=1)sync();else a.addEventListener('loadedmetadata',sync,{once:true});
@@ -85,7 +92,7 @@
   while(inst.next<now+lookahead){for(const l of layers)try{inst.play(inst.style,l,inst.step,inst.next);}catch{}inst.step++;inst.next+=sd;}
  }
  function level(inst,value,seconds){inst.gain=value;inst.bus.gain.setTargetAtTime(value*inst.style.gain,ctx.currentTime,seconds/3);}
- function dispose(inst){try{inst.bus.disconnect();inst.audio?.a.pause();inst.audio?.link.dispose();}catch{}}
+ function dispose(inst){inst.disposed=true;try{inst.bus.disconnect();inst.audio?.a?.pause();inst.audio?.link?.dispose();}catch{}try{inst.audio?.src?.stop();inst.audio?.src?.disconnect();}catch{}if(inst.audio?.seamless){inst.audio.src=null;inst.audio.gain=null;}}
  function retire(inst){if(!inst)return;level(inst,0,fade);inst.until=ctx.currentTime+fade+.5;retiring.push(inst);
   // Never let fading copies pile up if the state flickers: keep the newest few.
   while(retiring.length>4)dispose(retiring.shift());}
@@ -131,6 +138,6 @@
  // Fetch the recordings of the areas next door, once each, so they start without a wait (the browser keeps them).
  const warmed=new Set();
  function preload(ids){for(const id of ids||[]){const f=S.files[id];if(!f||warmed.has(f))continue;warmed.add(f);try{fetch(f).catch(()=>{});}catch{}}}
- const api={preload,worldSource,context(){return ensure()?ctx:null;},update,stop,voices,get current(){return main?.id||null;},get speaker(){return speakerInst?.id||null;}};
+ const api={preload,worldSource,context(){return ensure()?ctx:null;},update,stop,voices,get current(){return main?.id||null;},get seamless(){const a=main?.audio;return a?.seamless?{id:main.id,ready:!!a.src,duration:a.duration||0}:null;},get duck(){return duck;},get speaker(){return speakerInst?.id||null;}};
  root.VoidMusicEngine=api;
 })(globalThis);

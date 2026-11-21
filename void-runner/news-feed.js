@@ -1,12 +1,12 @@
 /* The News app's feed: the adverts the world already shows on its screens, as small sponsored lines mixed in among the reports like a social feed.
    Pure data and helpers (browser and Node; tests/news-feed.test.cjs). Nothing here invents a Relay broadcast: station adverts are the brands painted on the
-   screens (ad-art.js) and the Relay's own advert and police spots (relay-content.json, David's lines), repeated word for word.
+   screens (ad-art.js) and the Relay's own advert and police spots (relay-content.json, the owner's lines), repeated word for word.
    The Darknet District store adverts are posted by Admin or Iris for goods the District store really stocks (the same list the in-game shop shelves show,
    assets/textures/store/store-atlas.json), and point at the real storefront page.
-   GAME_ITEMS is for things Admin or Iris sell a player inside the game as their missions go on. It is EMPTY: when David adds such an item, add a line here
-       {id:'item-id', seller:'admin'|'iris', name:'ITEM NAME', ad:'the advert line David wants', requires:{flag:'storyFlagName'} | {mission:'mission-id'} | null}
+   GAME_ITEMS is for things Admin or Iris sell a player inside the game as their missions go on. It is EMPTY: when the owner adds such an item, add a line here
+       {id:'item-id', seller:'admin'|'iris', name:'ITEM NAME', ad:'the advert line the owner wants', requires:{flag:'storyFlagName'} | {mission:'mission-id'} | null}
    and its advert appears in the feed once the player has reached that point (requires: null = always).
-   DRAFT: the store advert sentences (STORE_LINES) are Claude's placeholders for David to rewrite. */
+   DRAFT: the store advert sentences (STORE_LINES) are Claude's placeholders for the owner to rewrite. */
 (function(root){
  'use strict';
  const STORE_URL='https://thedarknetdistrict.com/store-first-page.html';

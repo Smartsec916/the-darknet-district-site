@@ -129,7 +129,8 @@
     if(first){box('bridge-roof',[W+1.2,.3,D+2.8],[vc,top+.15,mid],dark);for(const x of [s.v0+3,s.v1-4]){box('roof-unit',[2,1.2,1.6],[x,top+.9,mid],rail);}cyl('mast',.06,5,[vc+4,top+2.8,mid],rail);box('mast-tip',[.1,.1,.1],[vc+4,top+5.35,mid],red);}
     box('bridge-pipe',[W+.4,.16,.16],[vc,H+1.0,fo(1.28)],rail);}
    if((g.fortified||TALL[g.id])&&!g.shut){   // a fortified portal: two pylons, a deep cap beam, slit lights, beacons
-    for(const sd of [-1,1]){if(first){box('pylon',[1.5,H+3,D+.6],[sd<0?s.v0+.75:s.v1-.75,(H+3)/2,mid],concrete);box('beacon',[.22,.22,.22],[sd<0?s.v0+.75:s.v1-.75,H+3.15,mid],red);}box('pylon-slit',[.12,4.2,.06],[sd<0?s.v0+.75:s.v1-.75,H-3,fo(.34)],dimRed);}
+    const py=Q.pylons(g);   // never over a lane's opening (ncz-quarters.js pylons)
+    for(const [a,b] of py){const pc=(a+b)/2;if(first){box('pylon',[b-a,H+3,D+.6],[pc,(H+3)/2,mid],concrete);box('beacon',[.22,.22,.22],[pc,H+3.15,mid],red);}box('pylon-slit',[.12,4.2,.06],[pc,H-3,fo(.34)],dimRed);}
     if(first)box('cap-beam',[W,1.4,D+.9],[vc,H-.2,mid],dark);for(let x=s.v0+2.6;x<s.v1-2;x+=2.4)box('cap-rib',[.25,2.6,.3],[x,H-2.2,fo(.15)],frame);
     box('upper-plate',[W-3.4,2.2,.1],[vc,9.6,fo(.05)],plate);for(let x=s.v0+3;x<s.v1-2.6;x+=1.6)box('slit',[.5,.07,.05],[x,11.4,fo(.06)],cold);}
    if(g.shut)buildShut(F,g,H,out,fo);
@@ -203,12 +204,13 @@
    if(fo_){const p=beside(fo_);if(p)spots.push(p);}
    if(ba&&(!low||!spots.length)){const p=beside(ba);if(p)spots.push(p);}
    spots.forEach(([x,z],i)=>guards.push({gate:g.id,kind:g.guard,x,z,yaw:facing+(i?-.35:.3),node:null,tried:0,i}));}
-  const UNIFORM=new B.Color3(.2,.24,.34),LOOKS=['fixer-01','communion-tech','runner-02','ncz-neon'];
+  const UNIFORM=new B.Color3(.2,.24,.34),LOOKS=['npc-security','fixer-01','communion-tech'];   // the corporate security contractor (NPC upgrade, 18 Nov 2026; crowd.js street), the old looks only if his file is missing
   function spawnGuard(p){
    if(p.kind==='function'){const A=root.VoidCorporateActors;if(!A?.buildRobot){p.tried=99;return;}const r=A.buildRobot({B,scene,parent,own,id:'gate-'+p.gate+'-'+p.i,x:p.x,z:p.z,yaw:p.yaw});p.node=r.root||r;p.robot=r;p.node.metadata={...(p.node.metadata||{}),gateGuard:p.gate,standIn:'corporate security robot (silent)'};return;}
    if(typeof instance!=='function')return;let node=null,look=null;for(let k=0;k<LOOKS.length&&!node;k++){look=LOOKS[(p.i+k+p.gate.length)%LOOKS.length];node=instance('crowd:'+look,parent);}if(!node)return;
    node.position.set(p.x,0,p.z);node.rotation.y=p.yaw;node.metadata={...(node.metadata||{}),crowd:look,gateGuard:p.gate,placeholder:'private security: street figure in a uniform tint'};p.node=node;p.anim=root.VoidCrowd?.animate?.(node,look,p.i?'watch':'idle')||null;if(p.anim&&!p.anim.has?.(p.i?'watch':'idle'))p.anim.play?.('idle');
-   // the uniform: every piece of clothing takes one dark blue-grey; skin, hair and eyes are left alone
+   // the uniform: every piece of clothing takes one dark blue-grey; skin, hair and eyes are left alone (the contractor comes in his own uniform: his navy variant)
+   if(root.VoidCrowd?.street?.[look]){root.VoidCrowd.dress(node,look,p.gate+p.i,'navy');return;}
    for(const m of node.getChildMeshes()){const mat=m.material,n=((m.name||'')+' '+(mat?.name||'')).toLowerCase();if(!mat||/\.body( |$)|eyebrow|eyelash|low-poly|short\d|long\d|bob\d|braid\d|ponytail\d|afro\d|hair|teeth|tongue|street-gear/.test(n))continue;const c=mat.clone(mat.name+'-uniform');if(!c)continue;own.push(c);
      if(c.albedoColor)c.albedoColor=UNIFORM.clone();else if(c.diffuseColor)c.diffuseColor=UNIFORM.clone();if(c.emissiveTexture)c.emissiveTexture=null;if(c.emissiveColor)c.emissiveColor=B.Color3.Black();m.material=c;}}
 
@@ -217,14 +219,17 @@
   {const paint=picture('stop-paint',tex('stop-paint',256,512,(g,W,H)=>{g.clearRect(0,0,W,H);g.strokeStyle='rgba(226,170,60,.8)';g.lineWidth=10;g.setLineDash([34,20]);g.strokeRect(12,12,W-24,H-24);g.setLineDash([]);g.save();g.translate(W/2,H/2);g.rotate(-Math.PI/2);g.fillStyle='rgba(226,170,60,.82)';g.font='bold 110px Consolas,monospace';g.textAlign='center';g.textBaseline='middle';g.fillText('TAXI',0,6);g.restore();}),{alpha:true,level:.5}),plateM=signMat('taxi',['TAXI'],{w:192,h:96,color:'#ffcf7a',edge:'#6a4a14'});
    for(const st of Q.STOPS.filter(x=>x.quarter===quarter)){const g=B.MeshBuilder.CreateGround('gate-taxi-stop',{width:2.6,height:5.6},scene);g.material=paint;g.parent=parent;g.position.set(st.position[0],.045,st.position[1]);g.rotation.y=st.heading||0;g.isPickable=false;nodes.push(g);}
    // the posts: one at every stop and one by the District's door. A lit TAXI plate both ways, an amber lamp on top and a lit call panel at hand height (CALL A TAXI: road-taxi.js).
+   // round each plate, both faces: a strip of yellow LEDs with a band chasing round it (road-taxi-van.js ledFrames: one mesh, one small shader; the owner, 19 Nov 2026)
+   const leds=[];
    for(const cp of Q.CALL_POINTS.filter(x=>x.quarter===quarter)){
-    const post=cp.post;if(post){const n=new B.TransformNode('gate-taxi-post',scene);n.parent=parent;n.position.set(post[0],0,post[1]);n.rotation.y=post[2];nodes.push(n);
+    const post=cp.post;if(post){leds.push({x:post[0],y:2.75,z:post[1],turn:post[2],w:.98,h:.53,faces:[-1,1],off:.032});const n=new B.TransformNode('gate-taxi-post',scene);n.parent=parent;n.position.set(post[0],0,post[1]);n.rotation.y=post[2];nodes.push(n);
      const pole=B.MeshBuilder.CreateCylinder('gate-taxi-pole',{diameter:.09,height:2.9,tessellation:8},scene);pole.material=rail;pole.parent=n;pole.position.y=1.45;pole.isPickable=false;
      for(const sgn of [-1,1]){const pl=B.MeshBuilder.CreatePlane('gate-taxi-plate',{width:.9,height:.45},scene);pl.material=plateM;pl.parent=n;pl.position.set(0,2.75,sgn*.03);pl.rotation.y=sgn<0?0:Math.PI;pl.isPickable=false;}
-     const back=B.MeshBuilder.CreateBox('gate-taxi-back',{width:.98,height:.53,depth:.05},scene);back.material=frame;back.parent=n;back.position.y=2.75;back.isPickable=false;
+     const back=B.MeshBuilder.CreateBox('gate-taxi-back',{width:1.06,height:.61,depth:.05},scene);back.material=frame;back.parent=n;back.position.y=2.75;back.isPickable=false;
      const lampP=B.MeshBuilder.CreateBox('gate-taxi-lamp',{width:.22,height:.12,depth:.22},scene);lampP.material=amber;lampP.parent=n;lampP.position.y=3.08;lampP.isPickable=false;
      const panel=B.MeshBuilder.CreateBox('gate-taxi-panel',{width:.26,height:.34,depth:.12},scene);panel.material=frame;panel.parent=n;panel.position.y=1.25;panel.isPickable=false;
-     for(const sgn of [-1,1]){const f=B.MeshBuilder.CreatePlane('gate-taxi-panel-face',{width:.2,height:.12},scene);f.material=amber;f.parent=n;f.position.set(0,1.3,sgn*.062);f.rotation.y=sgn<0?0:Math.PI;f.isPickable=false;}}}}
+     for(const sgn of [-1,1]){const f=B.MeshBuilder.CreatePlane('gate-taxi-panel-face',{width:.2,height:.12},scene);f.material=amber;f.parent=n;f.position.set(0,1.3,sgn*.062);f.rotation.y=sgn<0?0:Math.PI;f.isPickable=false;}}}
+   try{const m=root.VoidTaxiVan?.ledFrames?.(B,scene,leds,{quality,parent});if(m)nodes.push(m);}catch(e){console.warn('[gates] taxi plate LEDs',e);}}
   // merge the fixed pieces by material
   for(const [m,list] of merge){const merged=list.length>1?B.Mesh.MergeMeshes(list,true,true,undefined,false,false):list[0];if(merged){merged.name='gate-static';merged.isPickable=false;if(list.length>1){merged.parent=parent;merged.material=m;}nodes.push(merged);}}
   merge.clear();

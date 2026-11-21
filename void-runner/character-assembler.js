@@ -27,7 +27,11 @@
  function bindData(){return bindP||(bindP=fetch(new URL('void-runner/'+PARTS+'bind-data.json',document.baseURI||location.href)).then(r=>{if(!r.ok)throw Error('bind data HTTP '+r.status);return r.json();}).catch(e=>{bindP=null;throw e;}));}
  function ensureLook(model,scene){
   const id='crowd:'+model;if(root.VoidAssets.container(id))return Promise.resolve(id);
-  return once(looks,model,()=>root.VoidAssets.load(id,{src:CROWD+model+'.glb',background:true},scene).then(()=>{if(!root.VoidAssets.container(id))throw Error('look not loaded');return id;}));   /* a download dropped by a change of scene used to be remembered as done: the figure then stayed on its fallback until the page was reloaded */
+  /* A look loaded earlier and since released with its place (VoidAssets.release on every change of place: the District interior → the street → back in) is loaded again.
+     The finished promise used to be kept, so on coming back in every retry "succeeded" with no model: Admin stayed on his creator look, and Iris and Nyx on their
+     stand-in figures, until the page was reloaded (the owner, 18 Nov 2026, after Mission 002). */
+  if(looks.get(model)?.settled)looks.delete(model);
+  return once(looks,model,()=>{const p=root.VoidAssets.load(id,{src:CROWD+model+'.glb',background:true},scene).then(()=>{p.settled=true;if(!root.VoidAssets.container(id))throw Error('look not loaded');return id;});return p;});   /* a download dropped by a change of scene used to be remembered as done: the figure then stayed on its fallback until the page was reloaded */
  }
  function ensureHairPart(style,scene){
   return once(hairParts,style,()=>root.VoidAssets.loadContainer({src:PARTS+CAT.hair[style].part},scene,null,'hair:'+style).then(c=>{
@@ -68,7 +72,7 @@
    const look=CAT.looks[a.look];await ensureLook(look.model,scene);if(disposed)return null;
    const holder=new B.TransformNode('character:'+a.look,scene);holder.parent=parent;
    const made=root.VoidAssets.instance('crowd:'+look.model,holder);if(!made){holder.dispose();throw Error('model not available');}
-   const bind=await bindData();made.scaling.setAll(A.heightScale(look.base,bind.bodies[look.model].topY));   // ONE uniform scale: standard height, never a stretch
+   const topY=look.street?look.topY:(await bindData()).bodies[look.model].topY;made.scaling.setAll(A.heightScale(look.base,topY));   // ONE uniform scale: standard height, never a stretch (a street figure's own height is in the catalog)
    const s={look:a.look,lookDef:look,model:look.model,holder,node:made,made,ctrl:root.VoidCrowd.animate(made,look.model,clip),hairMesh:null,tinted:new Map(),hair:null};
    return s;
   }
@@ -107,6 +111,8 @@
     const s=await makeLook();if(!s)return;if(my!==seq||disposed){destroy(s);return;}st=s;
    }
    const s=st,look=s.lookDef,CATH=CAT.hair;
+   // A street figure (NPC upgrade, 18 Nov 2026) is one mesh: its outfit's colour version, or the chosen clothing colour on its clothes (never the skin), in the shader (npc-variants.js).
+   if(look.street){const V=root.VoidNPCVariants,cc=a.clothingColor&&CAT.clothingColors.find(c=>c.id===a.clothingColor);V?.apply?.(s.made,look.model,cc?V.colour(cc):(look.variant||'orig'));return;}
    faceDetail(s);
    // accessories (meshes that belong to the look): shown only when chosen
    // the gear visor replaces the outfit's own eyewear, and the gear collar its own collar (they would sit in the same place)

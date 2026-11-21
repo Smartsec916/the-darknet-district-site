@@ -1,11 +1,11 @@
-/* Relay screens at Meridian (David's Relay brief §27, animated per his Meridian brief Phase 7). Every screen is
+/* Relay screens at Meridian (the owner's Relay brief §27, animated per his Meridian brief Phase 7). Every screen is
    a live channel: it cycles through slides (each news story the player has received, the stations' ads,
    the WarFlying standings and a station notice) with animated backgrounds and transitions, and a scrolling
    ticker. News slides read relay.js headlines(), so a screen and the radio never disagree; ad slides show the
    ads' own scripted lines. Screens show NO SIGNAL without a satellite link, and none exist in The Darknet
    District. Performance: one small canvas texture per screen, redrawn about 12 times a second only while the
    screen is on camera and near, and not at all otherwise. Screens are silent; sound stays with the radio.
-   Look (David, 16 Nov 2026): the same as the street's advertisement screens (ad-screens.js): each ad is drawn by its category's template, the
+   Look (the owner, 16 Nov 2026): the same as the street's advertisement screens (ad-screens.js): each ad is drawn by its category's template, the
    standings are the WarFlying Leadership Board (this week's five), the news and station slides use the news template's backdrop, and each screen
    sits in a modelled housing. What the screens SAY is unchanged. */
 (function(){
@@ -20,7 +20,7 @@
   {id:'corridor-ad-2',type:'ad',style:1,position:[1.84,1.85,26],rotation:Math.PI/2,size:[1.6,.9],res:[512,288]}
  ];
  const fps=12,range=26;
- // Reading time per slide (David: there wasn't enough time to read them): headlines 14 s, the station notice 9 s,
+ // Reading time per slide (the owner: there wasn't enough time to read them): headlines 14 s, the station notice 9 s,
  // the standings 10 s, and ads about 5 s for each scripted line (12 s at least), one line at a time.
  const READ={news:14,standings:10,station:9},adTime=ad=>Math.max(12,R.lines(ad).length*5),TICKER=70;
  // The slide showing at time t in a playlist of {dur} slides, and how far into it.

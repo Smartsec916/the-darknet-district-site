@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),N=require('../void-runner/neochinatown.js'),E=require('../void-runner/exploration-controller.js');
 
-// Walks the map on a half-metre grid from where the player lands (David's redesigned NeoChinatown, 2026-10-26).
+// Walks the map on a half-metre grid from where the player lands (the owner's redesigned NeoChinatown, 2026-10-26).
 function reachable(layout){
  const S=.5,seen=new Set(),key=(x,z)=>x.toFixed(1)+','+z.toFixed(1),queue=[[layout.spawn[0],layout.spawn[2]]];seen.add(key(...queue[0]));
  for(let i=0;i<queue.length&&i<200000;i++){const [x,z]=queue[i];for(const [dx,dz] of [[S,0],[-S,0],[0,S],[0,-S]]){const nx=x+dx,nz=z+dz,k=key(nx,nz);if(seen.has(k)||E.blocked(nx,nz,layout))continue;seen.add(k);queue.push([nx,nz]);}}

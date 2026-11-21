@@ -10,7 +10,8 @@ test('the sight rectangles are the streets plus NULL, and cover every place stre
  for(const p of A.PEOPLE)assert.ok(S.within(R,p.x,p.z),p.id);
  for(const [x,z] of L.standing)assert.ok(S.within(R,x,z));
  // The District, the terrace and Milked are solid from outside.
- assert.ok(!S.within(R,126,-90,S.config.margin));assert.ok(!S.within(R,88,-105,S.config.margin));assert.ok(!S.within(R,88,-82,S.config.margin));
+ assert.ok(!S.within(R,126,-90,S.config.margin));assert.ok(!S.within(R,88,-105,S.config.margin));assert.ok(!S.within(R,96,-75,S.config.margin));   // (20 Nov 2026: 88,-82 is the back alleys' yard north of the terrace now)
+
 });
 
 test('a line of sight must stay inside the streets from end to end',()=>{
@@ -23,7 +24,7 @@ test('a line of sight must stay inside the streets from end to end',()=>{
  // Both ends inside a street is not enough.
  assert.ok(S.within(R,100,-58.5)&&S.within(R,100,-12.5)&&!S.clear(R,100,-58.5,100,-12.5));
  // A degenerate (zero length) segment inside a street is clear, outside it is not.
- assert.ok(S.clear(R,61,-60,61,-60));assert.ok(!S.clear(R,88,-82,88,-82));
+ assert.ok(S.clear(R,61,-60,61,-60));assert.ok(!S.clear(R,96,-75,96,-75));
 });
 
 test('the measured case: from the District door only the alley and the strip of Main Street at its mouth are in sight',()=>{

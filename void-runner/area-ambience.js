@@ -1,4 +1,4 @@
-/* Environmental sound (David, 15 Nov 2026): recorded ambience for each area, on top of the area's music.
+/* Environmental sound (the owner, 15 Nov 2026): recorded ambience for each area, on top of the area's music.
    - Beds: what a whole area sounds like (rain and the far city on the street, dripping in the alley, ventilation inside the District, wind at the temple,
      the hum of the corporate plaza). They fade in and out as you move; nothing restarts at a doorway.
    - Emitters: sounds that come from a place (the arcade machines, the shop terminals, the VR rigs, the bar's neon, the security scanner, the neon over the
@@ -26,8 +26,17 @@
  };
  const beds=area=>BEDS[area]||{};
  // the floor underfoot, by area
- const SURFACE={neochinatown:'wet',alley:'wet','district-terrace':'wet','district-entry':'metal',corporate:'metal'};
+ const SURFACE={neochinatown:'wet',alley:'wet','district-terrace':'wet','district-entry':'metal',corporate:'metal',temple:'stone'};
  const surface=area=>area?SURFACE[area]||'concrete':null;
+ /* How each floor's recorded steps are played: which recordings, how loud (times the usual level), how fast, and how much of the top is taken off (a low-pass in Hz, 0 for none).
+    Stone (the Temple, 18 Nov 2026): the concrete recordings, softer and a little lower, with the click taken off: the owner wanted the Temple's steps a little quieter. */
+ const STEPS={wet:{files:'wet',gain:1,rate:1,lowpass:0},metal:{files:'metal',gain:1,rate:1,lowpass:0},concrete:{files:'concrete',gain:1,rate:1,lowpass:0},stone:{files:'concrete',gain:.6,rate:.88,lowpass:2200}};
+ const stepSet=s=>s?STEPS[s]||STEPS.concrete:null;
+ /* The player's own step on floor s: {file, level, rate, lowpass}. pick in [0,1) chooses the recording, jitter in [0,1) varies the pitch a little. */
+ function ownStepSound(s,run,pick=0,jitter=.5){const k=stepSet(s);if(!k)return null;return {file:'steps-'+k.files+'-'+(1+Math.min(STEP_COUNT-1,Math.floor(pick*STEP_COUNT))),level:(run?.5:.3)*k.gain,rate:(.92+jitter*.16)*k.rate,lowpass:k.lowpass};}
+ /* The area to use for the floor when the music's report of where the player is has gone stale (a panel open over the game, pod music playing): a place that is its
+    own walking location (the Temple, the Corporate District) is known from the location alone. */
+ const placeArea=loc=>loc&&(loc.temple?'temple':loc.corporate?'corporate':null)||null;
  /* Sounds with a place. `plan` is in District plan metres (the same numbers the District's rooms use); `street` is in street metres. */
  const EMITTERS=[
   {id:'arcade',loop:'arcade-floor',plan:[-9.4,62],range:13,gain:.7},
@@ -45,7 +54,7 @@
   return {level:k*k,pan:Math.max(-1,Math.min(1,side))*Math.min(1,d/2)};}
  // A lock clunk when you go between the vestibule and what is on either side of it.
  const lockBetween=(from,to)=>!!from&&!!to&&from!==to&&(from==='district-entry'||to==='district-entry')&&[from,to].every(a=>a==='district-entry'||a==='district-hall'||a==='alley'||a==='neochinatown');
- const pure={DIR,BEDS,SURFACE,EMITTERS,STEP_COUNT,beds,surface,emittersFor,heard,lockBetween};
+ const pure={DIR,BEDS,SURFACE,STEPS,EMITTERS,STEP_COUNT,beds,surface,stepSet,ownStepSound,placeArea,emittersFor,heard,lockBetween};
  if(typeof module!=='undefined'&&module.exports){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
@@ -59,8 +68,10 @@
   src.start(0,Math.random()*b.duration);return {src,gain,pan,level:0};}
  function setLevel(v,level,seconds){if(Math.abs(level-v.level)<.004)return;v.level=level;v.gain.gain.setTargetAtTime(level,ctx.currentTime,seconds/3);}
  function reset(c){ctx=c;buffers.clear();loading.clear();bedVoices.clear();emitterVoices.clear();lastArea=null;}
- function oneShot(busName,name,level,rate){const bus=root.VoidAudio?.bus?.(busName);if(!bus||bus.context!==ctx||ctx.state!=='running')return false;const b=buffer(name);if(!b)return false;
-  const src=ctx.createBufferSource(),gain=ctx.createGain();src.buffer=b;src.playbackRate.value=rate||1;gain.gain.value=level;src.connect(gain);gain.connect(bus.node);src.onended=()=>{try{gain.disconnect();}catch{}};src.start();return true;}
+ function oneShot(busName,name,level,rate,lowpass){const bus=root.VoidAudio?.bus?.(busName);if(!bus||bus.context!==ctx||ctx.state!=='running')return false;const b=buffer(name);if(!b)return false;
+  const src=ctx.createBufferSource(),gain=ctx.createGain();src.buffer=b;src.playbackRate.value=rate||1;gain.gain.value=level;let lp=null;
+  if(lowpass>0){lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=lowpass;lp.Q.value=.5;src.connect(lp);lp.connect(gain);}else src.connect(gain);
+  gain.connect(bus.node);src.onended=()=>{try{gain.disconnect();lp?.disconnect();}catch{}};src.start();return true;}
  // Where the player is, as music-integration.js last reported it (stale after two seconds: the game is not running its frames).
  function where(){const a=root.VoidMusicArea;return a&&performance.now()-a.at<2000&&root.VoidAudio?.settings?.enabled?a:null;}
  function tick(){
@@ -76,15 +87,17 @@
    let v=emitterVoices.get(e.id);if(!v){if(!(level>0))continue;v=voice(bus,e.loop,true);if(!v)continue;emitterVoices.set(e.id,v);}
    setLevel(v,level,.5);if(v.pan&&level>0)v.pan.pan.setTargetAtTime(pan,ctx.currentTime,.08);}
   // the floor's steps and the lock, fetched as soon as the area is known
-  const s=surface(area);if(s)for(let i=1;i<=STEP_COUNT;i++)buffer('steps-'+s+'-'+i);
+  const s=stepSet(surface(area||stepArea()));if(s)for(let i=1;i<=STEP_COUNT;i++)buffer('steps-'+s.files+'-'+i);
   if(isInterior(area)||isStreet(area))buffer('door-lock');
   if(lockBetween(lastArea,area))oneShot('effects','door-lock',.5);
   if(area)lastArea=area;else if(!a)lastArea=null;
  }
  setInterval(tick,100);
  // A recorded step for the floor the player is on (null until its files have arrived: the caller falls back to its own sound).
- function stepBuffer(c){const s=surface(where()?.area);if(!s||c!==ctx)return null;return buffers.get('steps-'+s+'-'+(1+Math.floor(Math.random()*STEP_COUNT)))||null;}
+ function stepBuffer(c){const s=stepSet(surface(where()?.area||stepArea()));if(!s||c!==ctx)return null;return buffers.get('steps-'+s.files+'-'+(1+Math.floor(Math.random()*STEP_COUNT)))||null;}
+ // The area for the floor underfoot: the music's report of where the player is, else (stale) the walking location itself when it is a place of its own.
+ function stepArea(){try{return where()?.area||(typeof mode!=='undefined'&&typeof walkingLocation!=='undefined'&&mode==='walking'&&root.VoidAudio?.settings?.enabled?placeArea(walkingLocation):null);}catch{return null;}}
  // The player's own step. True when a recording was played.
- function ownStep(run){const s=surface(where()?.area);if(!s||!ctx)return false;return oneShot('effects','steps-'+s+'-'+(1+Math.floor(Math.random()*STEP_COUNT)),run?.5:.3,.92+Math.random()*.16);}
+ function ownStep(run){const k=ownStepSound(surface(stepArea()),run,Math.random(),Math.random());if(!k||!ctx)return false;return oneShot('effects',k.file,k.level,k.rate,k.lowpass);}
  root.VoidAmbience={...pure,stepBuffer,ownStep,get playing(){return {beds:[...bedVoices].filter(([,v])=>v.level>0).map(([k])=>k),emitters:[...emitterVoices].filter(([,v])=>v.level>0).map(([k])=>k)};}};
 })(typeof globalThis!=='undefined'?globalThis:this);

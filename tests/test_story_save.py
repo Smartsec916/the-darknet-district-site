@@ -27,6 +27,23 @@ class StorySaveTests(unittest.TestCase):
         state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags']['missionPool']='closed'
         clean=vr.clean_save(state)
         self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['missionPool'],'closed')
+    def test_street_pair_givers_survive_cloud_validation(self):
+        # Reverie and Lace as mission givers (18 Nov 2026): talking to them records their ids in story.met; a 'when walked near' mission is an ordinary record
+        state=self.state();state['story']['met']+=['grey-reverie','ethereal-lace'];state['story']['relationships']['grey-reverie']=5;state['story']['flags']['mt_draft-near-m1']=True
+        clean=vr.clean_save(state);self.assertEqual(clean['story']['met'][-2:],['grey-reverie','ethereal-lace']);self.assertEqual(clean['story']['relationships']['grey-reverie'],5);self.assertTrue(clean['story']['flags']['mt_draft-near-m1'])
+        state=self.state();state['story']['met'].append('grey reverie')
+        with self.assertRaises(vr.ApiError):vr.clean_save(state)
+    def test_device_serial_survives_cloud_validation(self):
+        # The V1's device ID (18 Nov 2026: photo metadata) is story.flags.deviceSerial, 8 hex digits; it must survive a cloud save unchanged.
+        state=self.state();state['story']['flags']['deviceSerial']='7f3a91c2'
+        self.assertEqual(vr.clean_save(state)['story']['flags']['deviceSerial'],'7f3a91c2')
+    def test_rook_procedural_cargo_flags_survive_cloud_validation(self):
+        # Rook's procedural board (rook-cargo-gen.js, 21 Nov 2026): the seed (a safe integer) and an accepted job's terms ('units|credits|kg|cargo|title', at most 200 characters) are story flags
+        state=self.state();f=state['story']['flags'];f.update({'rook-first-delivery-done':True,'rookSeed':1905272313,'rookJob':'routine','rookRunTo':'kepler','rookTerms':'1|670|720|4 sealed crates of general freight|Scheduled run'})
+        clean=vr.clean_save(state)['story']['flags']
+        for k in ['rookSeed','rookJob','rookRunTo','rookTerms']:self.assertEqual(clean[k],f[k])
+        f['rookTerms']='x'*201
+        with self.assertRaises(vr.ApiError):vr.clean_save(state)
     def state(self):
         return {'version':2,'quest':'open','location':'meridian','credits':100,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':0},'cleared':[],'contract':None,'loadout':{},'story':{'flags':{'campaignEpoch':1,'metMara':True,'promise':False},'met':['mara'],'events':['mara_workshop_intro'],'pending':['mara_workshop_intro'],'relationships':{'mara':2},'characters':{'pirate':'dead'},'chapter':'open','unlocked':['rusthaven'],'encounters':['mara_rendezvous']},'savedAt':1750000000000}
     def test_round_trip_preserves_story_without_ownership_claims(self):
@@ -93,3 +110,15 @@ class StorySaveTests(unittest.TestCase):
             state=self.state();state.update(quest='inheritance',location='earth',completed=0);state['story']['flags'].update(missionPool='closed',quarter=quarter)
             clean=vr.clean_save(state)
             self.assertEqual(clean['location'],'earth');self.assertEqual(clean['story']['flags']['quarter'],quarter)
+    def test_rook_side_missions_and_nav_coordinates_pass_cloud_validation(self):
+        # Flight-map coordinates (nav-coords.js): story.flags.navCoords is a plain boolean. Rook's side missions (rook-run-N, contract rook-run) stay tracked
+        # in a District campaign once story flag rook-first-delivery-done is set (campaign.js retireMissions does the same); before it they are untracked.
+        def side(flag):
+            state=self.state();state.update(quest='open',location='meridian',contract='rook-run');state['story']['flags'].update(missionPool='closed',shipAccess='granted',navCoords=True,rookNavSent=True,rookJob='routine',rookRunTo='kepler')
+            if flag:state['story']['flags'][flag]=True
+            state['universe']={'trackingInitialized':True,'trackedMission':'rook-run-1','freeTravel':True,'discoveredLocations':['vesper','meridian','kepler','rusthaven','foundry','sol-belt','earth','mars'],'missions':{'rook-run-1':{'acquired':True,'completed':False,'objectives':{'pickup':True}}}}
+            return vr.clean_save(state)
+        for flag in ('rook-first-delivery-done',):
+            clean=side(flag);self.assertEqual(clean['universe']['trackedMission'],'rook-run-1');self.assertEqual(clean['contract'],'rook-run');self.assertIs(clean['story']['flags']['navCoords'],True)
+            self.assertIn('kepler',clean['universe']['discoveredLocations'])
+        self.assertIsNone(side(None)['universe']['trackedMission']);self.assertIsNone(side('mf_rook-first-delivery-done')['universe']['trackedMission'])

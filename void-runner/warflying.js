@@ -1,4 +1,4 @@
-/* The WarFlying discovery database (David's doc 11 §6–§10). One record per unique signal source,
+/* The WarFlying discovery database (the owner's doc 11 §6–§10). One record per unique signal source,
    kept locally in the save so it works with or without a connection to the Relay.
    Scoring has exactly one rule, here and nowhere else: a source earns ONE point the first time it is
    confidently identified. Repeat sightings, other locations and partial contacts earn nothing more.

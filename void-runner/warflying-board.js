@@ -1,11 +1,11 @@
-/* The WarFlying Leadership Board (David, 16 Nov 2026; docs/void-runner/design-source/12-street-advertisements-david.md).
+/* The WarFlying Leadership Board (the owner, 16 Nov 2026; docs/void-runner/design-source/12-street-advertisements-owner.md).
    PURE RULES: runs in the browser and in Node (tests/warflying-board.test.cjs). No server, no save field.
    - Only the top 5 are ever shown.
    - The five change WEEKLY and are the same for every player: they are worked out from the real-world ISO week alone.
-   - #1 always comes from David's own handle list (HANDLES: both of his batches, verbatim, repeats removed), because #1 is the only name a voice ever says.
-   - #2 to #5 mostly come from the handle generator below (never spoken); a few are David's, a few are plain.
-   - During the week the lower four pick up the odd point at fixed moments (the same moments for everyone), so David's WarFlying commentary on the radio
-     ("...THAT SINGLE POINT HAS MOVED {NAME} INTO {RANK} PLACE!") still has real changes to report. Only handles from David's list ever move that way,
+   - #1 always comes from the owner's own handle list (HANDLES: both of his batches, verbatim, repeats removed), because #1 is the only name a voice ever says.
+   - #2 to #5 mostly come from the handle generator below (never spoken); a few are the owner's, a few are plain.
+   - During the week the lower four pick up the odd point at fixed moments (the same moments for everyone), so the owner's WarFlying commentary on the radio
+     ("...THAT SINGLE POINT HAS MOVED {NAME} INTO {RANK} PLACE!") still has real changes to report. Only handles from the owner's list ever move that way,
      because only those can be recorded. #1 is never overtaken by the other four.
    - The player's own score is measured against the week's five. A player who is #1 is announced as "a new number one" (NEW_ONE): there is no recording
      of a player's name.
@@ -13,13 +13,13 @@
 (function(root){
  'use strict';
  const HEADER='WARFLYING LEADERSHIP BOARD',NEW_ONE='a new number one',SHOWN=5;
- // David's handles, verbatim (doc 12, both batches, deduplicated in the order he gave them).
+ // The owner's handles, verbatim (doc 12, both batches, deduplicated in the order he gave them).
  const HANDLES=['GlitchBitch','ChromeSlut','DeepSocket','RustyProbe','DirtyCircuit','WetwareWhore','NeonNasty','FilthyFirmware','CyberPerv','DeadInside','SinDealer','ChromeDaddy','FleshGlitch','MalwareMama','DirtyRAM',
   'DirtyCircuits','RustyOrifice','CyberPimp','NeonSinner','BrokenCondom','ShadyBytes','SyntheticVice','DirtySocket','DaddysFirmware','NastyGlitch','BootyProtocol','FleshFirmware','EmotionalDamage','CorruptedVirgin','BarelyHuman',
   'HappyEnding','HardDrive','ForbiddenPlug','MaliciousIntent','GlitchedGSpot','DirtyMotherboard','MorningAfter','QuestionableUpgrade','MoistCircuit','SiliconeSinner','UnethicalPleasure','FatalAttraction','ScreamingImplant',
   'BadDecisions','ConsentError','BlackMass','OrganDonor','HumanError','LastBadIdea','UnholyHardware','CorporateBastard','CheapFlesh','DisposableHuman','TerminalPleasure','BeautifulMalfunction','NoRefunds','FactoryDefect'];
- const DAVID=new Set(HANDLES),isDavid=name=>DAVID.has(name);
- /* The generator's words. Every pairing of FIRST and SECOND is harmless (signal, ship and street words only): nothing here is ruder than David's own list,
+ const OWNER_HANDLES=new Set(HANDLES),isOwnerHandle=name=>OWNER_HANDLES.has(name);
+ /* The generator's words. Every pairing of FIRST and SECOND is harmless (signal, ship and street words only): nothing here is ruder than the owner's own list,
     and none of it is a person's name. PLAIN are ordinary hobbyist handles. To change the flavour, edit these lists. */
  const FIRST=['Neon','Chrome','Rust','Static','Ghost','Void','Null','Cold','Zero','Glitch','Proxy','Packet','Signal','Orbit','Vector','Cipher','Kernel','Solder','Carbon','Ember','Hollow','Night','Dust','Echo','Lunar','Vanta','Mono','Hex','Byte','Drift','Quiet','Stray','Rogue','Burnt','Cheap','Lost','Low','Side','Back','Dark'];
  const SECOND=['Runner','Sniffer','Hound','Moth','Rat','Wraith','Jockey','Socket','Ping','Daemon','Relay','Antenna','Scanner','Listener','Drifter','Circuit','Probe','Pilot','Fox','Crow','Monk','Punk','Mule','Leech','Vulture','Gremlin','Goblin','Lurker','Tuner','Band','Channel','Beacon','Carrier','Uplink','Squelch'];
@@ -39,7 +39,7 @@
   if(roll<.88)return {name:a+b+two(r),kind:'generated'};
   return {name:a+'_'+b+two(r),kind:'generated'};
  }
- // n generated handles from a seed (for David to look over, and for tests).
+ // n generated handles from a seed (for the owner to look over, and for tests).
  function sample(n,seed=1){const r=rng(hash('sample|'+seed)),out=[];while(out.length<n){const h=generate(r).name;if(!out.includes(h))out.push(h);}return out;}
 
  // ---- The week ----
@@ -56,24 +56,24 @@
  function plan(week){
   if(plans.has(week.key))return plans.get(week.key);
   const r=rng(hash('warflying-week|'+week.key)),prev=weekOf(new Date(week.start-864e5));
-  // #1: one of David's, never the same handle two weeks running.
+  // #1: one of the owner's, never the same handle two weeks running.
   let ti=topIndex(week.key);if(ti===topIndex(prev.key))ti=(ti+1)%HANDLES.length;
-  const used=new Set([HANDLES[ti]]),david=()=>{let n;do n=pick(r,HANDLES);while(used.has(n));used.add(n);return {name:n,kind:'david'};};
-  const made=()=>{let h;do h=generate(r);while(used.has(h.name)||isDavid(h.name));used.add(h.name);return h;};
-  // The other four: mostly generated. A planned move (below) is always one of David's, because the radio may name it.
+  const used=new Set([HANDLES[ti]]),ownerHandle=()=>{let n;do n=pick(r,HANDLES);while(used.has(n));used.add(n);return {name:n,kind:'owner'};};
+  const made=()=>{let h;do h=generate(r);while(used.has(h.name)||isOwnerHandle(h.name));used.add(h.name);return h;};
+  // The other four: mostly generated. A planned move (below) is always one of the owner's, because the radio may name it.
   const rows=[];let score=58+Math.floor(r()*35);
-  for(let i=0;i<4;i++){rows.push({...(r()<.15?david():made()),base:score,gains:[]});score=Math.max(9,score-3-Math.floor(r()*10));}
-  // A single point that lifts one of them a place (David's "THAT'S ONE POINT!"): it starts level with the handle above and finds one signal.
-  if(r()<.6){const j=1+Math.floor(r()*3);Object.assign(rows[j],david(),{base:rows[j-1].base,gains:[{at:.12+r()*.76,points:1}]});rows[j-1].still=true;
+  for(let i=0;i<4;i++){rows.push({...(r()<.15?ownerHandle():made()),base:score,gains:[]});score=Math.max(9,score-3-Math.floor(r()*10));}
+  // A single point that lifts one of them a place (the owner's "THAT'S ONE POINT!"): it starts level with the handle above and finds one signal.
+  if(r()<.6){const j=1+Math.floor(r()*3);Object.assign(rows[j],ownerHandle(),{base:rows[j-1].base,gains:[{at:.12+r()*.76,points:1}]});rows[j-1].still=true;
    for(let k=j+1;k<4;k++)rows[k].base=Math.min(rows[k].base,rows[k-1].base-2-Math.floor(r()*4));}
-  // A run of several signals that lifts one of them (David's "comeback").
+  // A run of several signals that lifts one of them (the owner's "comeback").
   if(r()<.35){const j=[1,2,3].filter(k=>!rows[k].gains.length&&!rows[k].still&&!rows[k-1].gains.length);if(j.length){const k=pick(r,j),n=2+Math.floor(r()*3);
-   Object.assign(rows[k],david(),{base:Math.max(rows[k].base,rows[k-1].base-n+1),gains:[{at:.2+r()*.6,points:n}]});rows[k-1].still=true;}}
+   Object.assign(rows[k],ownerHandle(),{base:Math.max(rows[k].base,rows[k-1].base-n+1),gains:[{at:.2+r()*.6,points:n}]});rows[k-1].still=true;}}
   // Ordinary finds: a point here and there for the handles with no planned move.
   for(const row of rows)if(!row.gains.length&&!row.still&&r()<.5)row.gains.push({at:.05+r()*.9,points:1});
   // #1 stays out of reach of the four, and below the number of signals that exist.
   const best=Math.max(...rows.map(x=>x.base+x.gains.reduce((n,g)=>n+g.points,0)));
-  const top={name:HANDLES[ti],kind:'david',base:Math.min(124,best+4+Math.floor(r()*12)),gains:r()<.5?[{at:.1+r()*.8,points:1}]:[]};
+  const top={name:HANDLES[ti],kind:'owner',base:Math.min(124,best+4+Math.floor(r()*12)),gains:r()<.5?[{at:.1+r()*.8,points:1}]:[]};
   const out=[top,...rows.map(({still,...x})=>x)];plans.set(week.key,out);if(plans.size>8)plans.delete(plans.keys().next().value);return out;
  }
  // The week's five at a moment, best first: [{name, points, kind}].
@@ -95,6 +95,6 @@
   const all=ranked(playerPoints,playerName,date),rows=all.slice(0,SHOWN),me=all.find(r=>r.player),first=rows[0];
   return {week:weekOf(date).key,header:HEADER,rows,you:{name:me.name,points:me.points,rank:me.rank<=SHOWN?me.rank:null},first,spoken:first.player?NEW_ONE:first.name};
  }
- const api={HEADER,NEW_ONE,SHOWN,HANDLES,FIRST,SECOND,PLAIN,isDavid,generate,sample,rng,hash,weekOf,plan,five,ranked,standings};
+ const api={HEADER,NEW_ONE,SHOWN,HANDLES,FIRST,SECOND,PLAIN,isOwnerHandle,generate,sample,rng,hash,weekOf,plan,five,ranked,standings};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidWarFlyingBoard=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

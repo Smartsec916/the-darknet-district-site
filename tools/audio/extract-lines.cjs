@@ -41,13 +41,14 @@ for(const file of fs.readdirSync(src).filter(f=>f.endsWith('.js'))){
   }
 }
 // VR companions (vr-companions.js): every line of their dialogue, under their voice id (vr-seren and so on).
-for(const e of require(path.join(src,'vr-companions.js')).companions.values())for(const text of Object.values(e.dialogue||{}).flat()){
+// A companion whose voice the owner has not chosen yet (voice.pending, e.g. Luna) is skipped: her lines are shown, not read aloud, until a voice is cast.
+for(const e of require(path.join(src,'vr-companions.js')).companions.values())if(!e.voice?.pending)for(const text of Object.values(e.dialogue||{}).flat()){
   const speaker=e.voice?.characterId;if(!speaker||typeof text!=='string'||!text)continue;const key=speaker+'|'+text;
   if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source:'vr-companions.js'});}
 // Voices come from the permanent registry (tools/audio/npc-voice-registry.json); never cast here.
 const Registry=require('./voice-registry.cjs'),reg=Registry.load(),problems=Registry.validate(reg);
 if(problems.length){console.error('Voice registry problems:\n - '+problems.join('\n - '));process.exit(1);}
-// Relay broadcasts (void-runner/relay-content.json): one clip per report line, in the broadcasters' registry voices (provisional until David picks).
+// Relay broadcasts (void-runner/relay-content.json): one clip per report line, in the broadcasters' registry voices (provisional until the owner picks).
 const Relay=require(path.join(src,'relay.js')),relayContent=JSON.parse(fs.readFileSync(path.join(src,'relay-content.json'),'utf8'));
 const relayProblems=Relay.validate(relayContent);if(relayProblems.length){console.error('Relay content problems:\n - '+relayProblems.join('\n - '));process.exit(1);}
 const voiced=Registry.voiced(reg);
@@ -57,13 +58,15 @@ for(const s of relayContent.segments){const speaker=Relay.speakerOf(s);if(!voice
   for(const text of Relay.lines(s)){if(/\{\w+\}/.test(text))continue;const key=speaker+'|'+text;
    if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source:'relay-content.json'});}}
 // The street advertisement screens (void-runner/ad-screens-data.js) and the WarFlying Leadership Board's handles (void-runner/warflying-board.js).
-// NOT recorded until David has picked the voices by ear (docs/development/AD_SCREENS_VOICE_AUDITION.md): RECORD in ad-screens-data.js is false for both,
-// so nothing is added here today. Turning a switch on adds each ad line (David's whole line, e.g. "Brand — tagline") and each of his handles plus
+// NOT recorded until the owner has picked the voices by ear (docs/development/AD_SCREENS_VOICE_AUDITION.md): RECORD in ad-screens-data.js is false for both,
+// so nothing is added here today. Turning a switch on adds each ad line (the owner's whole line, e.g. "Brand — tagline") and each of his handles plus
 // "a new number one" as its own clip, under the speaker named in ad-screens-data.js.
 const Ads=require(path.join(src,'ad-screens-data.js')),WFBoard=require(path.join(src,'warflying-board.js'));
 const addLine=(speaker,text,source)=>{if(!voiced[speaker]||!text)return;const key=speaker+'|'+text;if(!lines.has(key))lines.set(key,{id:speaker+'-'+crypto.createHash('sha1').update(key).digest('hex').slice(0,10),speaker,text,source});};
 if(Ads.RECORD.ads)for(const l of Ads.spokenLines(relayContent))addLine(l.speaker,l.text,'ad-screens-data.js');
 if(Ads.RECORD.board){const speaker=Ads.CATEGORIES.board.speaker;for(const h of WFBoard.HANDLES)addLine(speaker,h,'warflying-board.js');addLine(speaker,WFBoard.NEW_ONE,'warflying-board.js');}
+// Lines re-voiced from the Mission Editor's queue (python tools/audio/generate.py --from-queue) are kept: their text comes from published content, not from the scripts.
+try{const prev=JSON.parse(fs.readFileSync(path.join(out,'manifest.json'),'utf8'));for(const l of Object.values(prev.lines||{}))if(l.source==='mission-editor-queue')addLine(l.speaker,l.text,'mission-editor-queue');}catch{}
 const cast={},missingSpeakers=new Set();
 for(const l of lines.values()){const e=voiced[l.speaker];if(!e){missingSpeakers.add(l.speaker);continue;}cast[l.speaker]={voice:e.voice,...(e.profile!=='none'?{effect:e.profile}:{}),status:e.status};}
 if(missingSpeakers.size){console.error('Speakers missing from the registry: '+[...missingSpeakers].join(', '));process.exit(1);}

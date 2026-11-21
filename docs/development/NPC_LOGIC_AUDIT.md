@@ -1,4 +1,6 @@
-# NPC logic audit
+# NPC logic audit (historical baseline)
+
+**21 November 2026 update:** The resident route collision regression passes on V27. The runtime observations and capability inventory below describe the 16 November baseline; later game changes are not covered by these observations.
 
 16 November 2026. Baseline `origin/main` `81e802e9`. This is an evidence-led first pass over the running District and the NPC systems. Remaining browser routes are listed below for the next audit pass. No NPC runtime or production service was changed.
 

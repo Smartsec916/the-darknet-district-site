@@ -21,15 +21,17 @@
   elara:{name:'Dr. Elara Voss',where:'vigil',place:'The Vigil, Cantor System'},
   marcus:{name:'Marcus Vale',where:'holdfast',place:'Holdfast, Garrow System'},
   kess:{name:'Dr. Adrian Kess',where:'nexus',place:'The Nexus'},
-  mercer:{name:'Daniel Mercer',where:'order-homeworld',place:'The Natural Order homeworld'}
+  mercer:{name:'Daniel Mercer',where:'order-homeworld',place:'The Natural Order homeworld'},
+  // Added to the V1 by a mission (Mission 003: Fish), not by meeting: listed only when story.flags.v1Contacts names them (mission-content.js unlock 'contact').
+  'milked-fish':{name:'Fish',where:'earth',place:'Milked, Far South, NeoChinatown',remote:'calls',added:true}
  };
- const remoteNote={comm:'Ship comm. She calls you; you can’t call her.',messages:'Messages only. Business is done at his booth.'};
+ const remoteNote={comm:'Ship comm. She calls you; you can’t call her.',messages:'Messages only. Business is done at his booth.',calls:'Comms. She calls you when she has something.'};
  // The link the HUD reports: the game's own comms rules. ctx: {onFoot, route}.
  function link(s,ctx={}){const st=Comms.status(s,ctx);return {state:st.state,label:Comms.labels[st.state],reason:st.reason,local:true,
   note:st.reason==='premises'?'Relay traffic is blocked on these premises. Your terminal still works locally.':st.state==='disconnected'?'No signal in warp. Local functions only.':st.state==='connected'?'Relay link up. Nothing on this terminal is sent to it.':'Weak or no Relay signal here.'};}
  function contacts(s){
-  const met=new Set(s?.story?.met||[]);
-  return Object.entries(people).filter(([id])=>met.has(id)).map(([id,p])=>{const here=s.location===p.where;
+  const met=new Set(s?.story?.met||[]),added=new Set(String(s?.story?.flags?.v1Contacts||'').split(',').filter(Boolean));
+  return Object.entries(people).filter(([id,p])=>p.added?added.has(id):met.has(id)).map(([id,p])=>{const here=s.location===p.where;
    return {id,name:p.name,place:p.place,here,remote:p.remote||null,
     channel:here?'Here, in person':p.remote?remoteNote[p.remote]:'In person only'};});
  }

@@ -1,8 +1,8 @@
-/* Dax (David, 15 Nov 2026): a bounty hunter and mercenary who lives in The Darknet District on her own terms. There is only one of her.
+/* Dax (the owner, 15 Nov 2026): a bounty hunter and mercenary who lives in The Darknet District on her own terms. There is only one of her.
    STAGE 1 (this file): she is IN the District with a life of her own. She moves between the bar, the store, the VR area, the arcade, the vending machines and the
    pods end of the hall, stays a while at each, watches, looks about, uses her V3 // Shadow (its camera is in her left eye, which glows green while she does), and at
    times leaves the District altogether and comes back later. She has a profile in the Players list and the Social app like anyone else.
-   NOT in stage 1 (each needs David's decisions; see docs/development/DAX.md): talking to her (her voice and words), her memory of players and how she comes to
+   NOT in stage 1 (each needs the owner's decisions; see docs/development/DAX.md): talking to her (her voice and words), her memory of players and how she comes to
    trust or hunt them, her life outside the District's interior, her social posts, other outfits, the NPC editor.
    How her day works: there is no server for her and none is needed. Where she is at any moment is worked out from the clock alone (schedule(), below), the same on
    every player's machine, so two players standing together see her in the same place, and nothing is computed or drawn while nobody is near: when a player

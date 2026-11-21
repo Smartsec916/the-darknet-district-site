@@ -104,7 +104,7 @@ for o in [o for o in bpy.data.objects if o.type == 'MESH']:
         elif base != 'cloth':
             print('MATERIAL_AS_IS', m.name if m else None)
 
-# One dress and slippers, in the white print (David's default) on one material, "cloth"; the other prints are
+# One dress and slippers, in the white print (the owner's default) on one material, "cloth"; the other prints are
 # separate textures the game loads only when chosen (pack-variant-textures.cjs), so only the worn print is in GPU
 # memory.
 mat = bpy.data.materials.new('cloth')

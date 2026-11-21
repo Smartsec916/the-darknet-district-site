@@ -1,16 +1,16 @@
-/* What the street advertisement screens show, and where (David, 16 Nov 2026).
+/* What the street advertisement screens show, and where (the owner, 16 Nov 2026).
    PURE DATA AND RULES: runs in the browser and in Node (tests/ad-screens.test.cjs). The drawing, the screens and the sound are ad-screens.js.
    How to change things is written up in docs/development/AD_SCREENS.md.
 
-   THE WORDS ARE DAVID'S, VERBATIM (docs/void-runner/design-source/12-street-advertisements-david.md): brand, tagline, punctuation and the trademark sign.
+   THE WORDS ARE THE OWNER'S, VERBATIM (docs/void-runner/design-source/12-street-advertisements-owner.md): brand, tagline, punctuation and the trademark sign.
    Do not reword them and do not add to them; new ads, news or announcer lines need him. A test compares this file with his document.
    His seven space-station ads and his news stay in relay-content.json (RELAY below only says which of them the street may show).
-   The Function has NO content here: its "civic notice" is the old silent poster, and it gets no voice, look or announcement without David. */
+   The Function has NO content here: its "civic notice" is the old silent poster, and it gets no voice, look or announcement without the owner. */
 (function(root){
  'use strict';
- /* CATEGORIES. title: David's own heading (used as the small label only where `label` is set). look: the visual template in ad-screens.js (one per category,
+ /* CATEGORIES. title: the owner's own heading (used as the small label only where `label` is set). look: the visual template in ad-screens.js (one per category,
     so a food ad never looks like a government notice). speaker: whose recorded clips are looked up for these lines (tools/audio/npc-voice-registry.json).
-    The broadcast voices are PROVISIONAL until David picks by ear (docs/development/AD_SCREENS_VOICE_AUDITION.md); a line with no clip is shown silently. */
+    The broadcast voices are PROVISIONAL until the owner picks by ear (docs/development/AD_SCREENS_VOICE_AUDITION.md); a line with no clip is shown silently. */
  const CATEGORIES={
   cyber:{title:'Cybernetic enhancements',look:'cyber',speaker:'commercial-announcer'},
   food:{title:'Food & beverages',look:'food',speaker:'commercial-announcer'},
@@ -22,10 +22,10 @@
   tech:{title:'Technology & black-market services',look:'tech',speaker:'commercial-announcer'},
   government:{title:'Government announcements',label:'GOVERNMENT ANNOUNCEMENT',look:'government',speaker:'news-anchor'},
   warflying:{title:'Pro-WarFlying advertisements',look:'warflying',speaker:'warflying-host'},
-  // David's space-station ads (relay-content.json): the speaker is the segment's own.
-  shipgear:{title:'Ship equipment (David’s space-station ads)',look:'shipgear'},
-  police:{title:'Police recruitment (David’s space-station ads)',look:'police'},
-  district:{title:'The Darknet District apparel (David’s space-station ad)',look:'district',district:true},
+  // The owner's space-station ads (relay-content.json): the speaker is the segment's own.
+  shipgear:{title:'Ship equipment (the owner’s space-station ads)',look:'shipgear'},
+  police:{title:'Police recruitment (the owner’s space-station ads)',look:'police'},
+  district:{title:'The Darknet District apparel (the owner’s space-station ad)',look:'district',district:true},
   // The two things that come round between ads.
   news:{title:'News',label:'NEWS',look:'news'},
   board:{title:'WarFlying Leadership Board',look:'board',speaker:'warflying-host'}
@@ -90,33 +90,33 @@
   {id:'government-5',cat:'government',line:"Public executions have been postponed due to technical difficulties."},
   {id:'government-6',cat:'government',line:"Your dissatisfaction has been recorded for quality assurance."},
   {id:'government-7',cat:'government',line:"Attention citizens: Unauthorized happiness may indicate illegal substance use."},
-  // Pro-WarFlying advertisements (David, verbatim; his line breaks inside a sentence are joined).
+  // Pro-WarFlying advertisements (the owner, verbatim; his line breaks inside a sentence are joined).
   {id:'warflying-playground',cat:'warflying',title:'WARFLYING — THE GALAXY IS YOUR PLAYGROUND!',lines:['Think you\'re the best scanner in the Tessaly System?','Prove it!','Download WarFlying from the App Store.','Launch your ship and start scanning.','Hit SUBMIT SCANS to upload your discoveries.','Climb the WarFlying Leaderboard!','GET SCANNING. GET RANKED. GET LEGENDARY.']},
   {id:'warflying-dominate',cat:'warflying',title:'SCAN. SUBMIT. DOMINATE.',lines:['Join the Tessaly System\'s fastest-growing WarFlying community!','Install the WarFlying App from the App Store, explore uncharted frequencies, and submit your scans to climb the global leaderboard.','Who\'s watching the watchers?','YOU ARE.']},
   {id:'warflying-glory',cat:'warflying',title:'PRIVATE FREQUENCIES. PUBLIC GLORY.',lines:['Think you\'ve got what it takes to become the Tessaly System\'s #1 WarFlyer?','DOWNLOAD. FLY. SCAN. SUBMIT.','Thousands of signals.','Hundreds of competitors.','One top spot.','Install WarFlying from your App Store today!']}
  ];
- // David's space-station ads the street may show, by their id in relay-content.json, and the category each plays under.
+ // The owner's space-station ads the street may show, by their id in relay-content.json, and the category each plays under.
  const RELAY={'ad-maneuvering-thrusters':'shipgear','ad-shield-systems':'shipgear','ad-missile-lock':'shipgear','ad-personal-defense':'shipgear',
   'ad-darknet-district-apparel':'district','police-join-the-force':'police','police-enjoy-authority':'police'};
 
- /* WHERE EACH CATEGORY PLAYS (proposed table; David has not confirmed it, so it is kept as plain data: move a word from one list to another to change it).
+ /* WHERE EACH CATEGORY PLAYS (proposed table; the owner has not confirmed it, so it is kept as plain data: move a word from one list to another to change it).
     A zone with speaks:false shows its screens silently. */
  const ZONES={
   oldtown:{name:'Old Town',cats:['food','dating','tech','cyber','housing','warflying','district'],speaks:true},
   port:{name:'The Port',cats:['transport','housing','health','shipgear','police','warflying'],speaks:true},
   avenue:{name:'The Avenue',cats:['food','dating','cyber','housing','transport','health','corporate','shipgear','police','warflying','district','government'],speaks:true},
-  // The Function Gate end of the Avenue. David: no Darknet District advertisements near the Corporate District.
+  // The Function Gate end of the Avenue. The owner: no Darknet District advertisements near the Corporate District.
   corporate:{name:'Function Gate end of the Avenue',cats:['corporate','government','health'],speaks:true}
  };
  /* WHICH ZONE A SPOT IS IN. Checked top to bottom; the first match wins. rect is [x0,x1,z0,z1] in street metres (the same numbers as ncz-quarters.js).
-    zone:null means NO SCREEN stands there at all (David: none near the Temple; its road is the East Gate's). */
+    zone:null means NO SCREEN stands there at all (the owner: none near the Temple; its road is the East Gate's). */
  const AREAS=[
   {quarter:'avenue',rect:[106,160,-30,6],zone:null,why:'the East Gate approach: the road to the Zen Zephyr Temple stays quiet'},
   {quarter:'avenue',rect:[-6,36,-30,6],zone:'corporate',why:'the Function Gate end: the Corporate District is next door'},
   {quarter:'avenue',zone:'avenue'},
   {quarter:'oldtown',zone:'oldtown'},
   {quarter:'far-south',zone:'oldtown'},
-  {quarter:'outskirts',zone:null,why:'The Outskirts: no advertisement screens (David, 16 Nov 2026)'},
+  {quarter:'outskirts',zone:null,why:'The Outskirts: no advertisement screens (the owner, 16 Nov 2026)'},
   {quarter:'port',zone:'port'}
  ];
  /* Places with their own scene. null = no advertisement screens at all. 'silent' = whatever screens the place already has stay as they are, and nothing speaks.
@@ -129,26 +129,52 @@
   {id:'port-pad',quarter:'port',kind:'wall',at:[25,9.5,-86.6],faces:'s',w:6,posts:true},
   {id:'port-passage',quarter:'port',kind:'kiosk',at:[38.2,1.55,-96],faces:'e'}
  ];
- /* RECORDING SWITCHES, read by tools/audio/extract-lines.cjs. Both are OFF: David picks the voices by ear first, and nothing new is recorded before that.
-    ads: the street's ad and announcement lines. board: each of David's handles and "a new number one". */
+ /* RECORDING SWITCHES, read by tools/audio/extract-lines.cjs. Both are OFF: the owner picks the voices by ear first, and nothing new is recorded before that.
+    ads: the street's ad and announcement lines. board: each of the owner's handles and "a new number one". */
  const RECORD={ads:false,board:false};
  // No screen stands inside a checkpoint or within this many metres of one.
  const GATE_MARGIN=3;
  // The lore era now. null: no eras exist yet, so every ad without an `era` runs and an ad with one does not.
  const ERA=null;
- // Every Nth slot of a screen's programme is news or the board (David: "Not every other time, but maybe every 5th").
+ // Every Nth slot of a screen's programme is news or the board (the owner: "Not every other time, but maybe every 5th").
  const EVERY=5;
  // Seconds a line stays up when it has no recording.
  const TIMING={brand:8,notice:9,title:3.4,line:5,headline:4.5,board:12,gap:.7};
 
+ /* THE STREET-LEVEL SCREENS ON THE WALLS (the owner, 20 Nov 2026: "they would be on the side of buildings, not between the sidewalk and the street. They make the
+    sidewalk feel crowded", "a little smaller", "a little less ad screens"). The old kerb stands are gone: each screen hangs flat on the building wall behind its
+    old spot, bottom edge 2.8 m up (the awning is cut round it), beside the shop sign and clear of the street doors; 75% of the old 1.6 x 2.4 m picture.
+    w, h: the picture; bottom: its lower edge above the pavement; out: the picture's distance in front of the building line; half: half the housing's width;
+    sign: half the shop sign's width; door: half a street door's width with its frame; spots: where along its 7 m shopfront a screen may hang (metres from the middle,
+    the first that is clear wins). */
+ const MOUNT={w:1.2,h:1.8,bottom:2.8,out:.3,half:.72,sign:1.22,door:.75,spots:[0,-1.98,1.98]};
+ // Of the street screens a quarter's shopfronts would carry, this share is kept (the owner: "a little less"; the rest are thinned out where they bunch up, see thin()).
+ const KEEP_SHARE=2/3;
+ /* Where along a shopfront (offset from its middle, metres) a wall screen hangs, or null where nothing fits. sign: the shopfront has a sign in its middle;
+    doors: the street doors along the same building line, as offsets from the same middle; half: half the shopfront's usable length. */
+ function mountOffset({sign=false,doors=[],half=3.5}={}){
+  for(const o of MOUNT.spots){if(Math.abs(o)+MOUNT.half>half)continue;if(sign&&Math.abs(o)<MOUNT.sign+MOUNT.half)continue;if(doors.some(d=>Math.abs(d-o)<MOUNT.door+MOUNT.half))continue;return o;}
+  return null;}
+ /* Thinning (deterministic): from a list of screens [{x, y, z, side, kind}] keep `share` of them, taking out first the one that is most crowded (nearest
+    neighbour on the same side of the street, then the second nearest; a street-level screen before a big wall one; then the later one), so what is left is
+    evenly spread. count: how many to keep instead (the city counts the screens it had before any could not be hung). Returns a list of booleans (true = kept). */
+ function thin(list,share=KEEP_SHARE,count=null){
+  const n=list.length,keep=count==null?Math.round(n*share):Math.max(0,Math.min(n,count)),alive=list.map(()=>true);let left=n;
+  const near=i=>{let a=1e9,b=1e9;const p=list[i];for(let j=0;j<n;j++){if(j===i||!alive[j]||list[j].side!==p.side)continue;const q=list[j],d=Math.hypot(p.x-q.x,(p.y||0)-(q.y||0),p.z-q.z);if(d<a){b=a;a=d;}else if(d<b)b=d;}return [a,b];};
+  while(left>keep){let best=-1,bk=null;for(let i=0;i<n;i++){if(!alive[i])continue;const [a,b]=near(i),k=[a,b,list[i].kind==='wall'?1:0,-i];
+    if(!bk||k[0]<bk[0]-1e-9||Math.abs(k[0]-bk[0])<=1e-9&&(k[1]<bk[1]-1e-9||Math.abs(k[1]-bk[1])<=1e-9&&(k[2]<bk[2]||k[2]===bk[2]&&k[3]<bk[3]))){best=i;bk=k;}}
+   alive[best]=false;left--;}
+  return alive;}
  const inRect=([x0,x1,z0,z1],x,z)=>x>=x0&&x<=x1&&z>=z0&&z<=z1;
  // The zone id a screen at (x, z) of a quarter belongs to; null where no screen may stand.
  function zoneAt(quarter,x,z){for(const a of AREAS)if(a.quarter===quarter&&(!a.rect||inRect(a.rect,x,z)))return a.zone;return null;}
+ // May a screen stand at (x, z) of a quarter: its zone allows one and it is not in or against a checkpoint (gates: VoidQuarters.GATES).
+ const allowed=(quarter,x,z,gates=[])=>!!zoneAt(quarter,x,z)&&!gates.some(g=>x>=g.rect[0]-GATE_MARGIN&&x<=g.rect[1]+GATE_MARGIN&&z>=g.rect[2]-GATE_MARGIN&&z<=g.rect[3]+GATE_MARGIN);
  const inEra=(ad,era)=>ad.era===undefined||ad.era===null?true:era!=null&&(Array.isArray(ad.era)?ad.era.includes(era):ad.era===era);
  const mulberry=seed=>{let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
  const hash=text=>{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
  const shuffle=(list,r)=>{const a=list.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
- /* The ads of a zone, by category: {cat: [ad, ...]}. relay: the loaded relay-content.json (its ads are David's; drafts are never shown). */
+ /* The ads of a zone, by category: {cat: [ad, ...]}. relay: the loaded relay-content.json (its ads are the owner's; drafts are never shown). */
  function adsFor(zoneId,{relay=null,era=ERA}={}){
   const zone=ZONES[zoneId],out={};if(!zone)return out;
   for(const cat of zone.cats){
@@ -173,16 +199,16 @@
   for(const ad of ads){out.push({type:'ad',ad});if(out.length%EVERY===EVERY-1)out.push({type:'break',n:n++});}
   return out;
  }
- /* What a break shows: the WarFlying Leadership Board and David's news, turn about. news: the reports that may be shown now (see newsFor). With no news
+ /* What a break shows: the WarFlying Leadership Board and the owner's news, turn about. news: the reports that may be shown now (see newsFor). With no news
     that fits, it is always the board. Returns {type:'board'} or {type:'news', segment}. */
  function breakSlot(n,news){const list=news||[];if(!list.length||n%2===0)return {type:'board'};return {type:'news',segment:list[((n-1)/2)%list.length]};}
- /* David's news the street may show: his own reports only (kind 'news', never a draft, never a faction's or The Function's), and only those whose story
+ /* The owner's news the street may show: his own reports only (kind 'news', never a draft, never a faction's or The Function's), and only those whose story
     has happened for this player (occurred: the Relay's record of public events). */
  function newsFor(relay,occurred){return (relay?.segments||[]).filter(s=>s.kind==='news'&&!s.draft&&Array.isArray(s.lines)&&s.lines.length&&(!s.event||occurred?.[s.event]!==undefined));}
  /* One slot as something a screen can show and say. Each slide: {kind, cat, look, speaker, label, title, lines:[{text, say, hold}]}
-      kind 'brand'   a brand and its tagline: one spoken line, the whole of David's line ("Brand — tagline")
+      kind 'brand'   a brand and its tagline: one spoken line, the whole of the owner's line ("Brand — tagline")
       kind 'notice'  one announcement
-      kind 'script'  a title and its lines, one at a time (the title is spoken first when it is David's ad title)
+      kind 'script'  a title and its lines, one at a time (the title is spoken first when it is the owner's ad title)
       kind 'news'    a headline, then the report's lines
       kind 'board'   the top five; the only thing said is #1's handle or "a new number one"
     say: the exact text a recording is looked up by (null: nothing is ever said for it). hold: seconds on screen without a recording. */
@@ -196,6 +222,6 @@
  }
  // Every line a voice could ever say on a street screen, as {speaker, text, cat, id}: the recording list (see the audition plan). Board handles are separate.
  function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}
- const api={CATEGORIES,ADS,RELAY,ZONES,AREAS,SCENES,PLACES,ERA,EVERY,TIMING,GATE_MARGIN,RECORD,zoneAt,inEra,adsFor,programme,breakSlot,newsFor,slide,spokenLines,hash,mulberry};
+ const api={CATEGORIES,ADS,RELAY,ZONES,AREAS,SCENES,PLACES,ERA,EVERY,TIMING,GATE_MARGIN,RECORD,MOUNT,KEEP_SHARE,zoneAt,allowed,mountOffset,thin,inEra,adsFor,programme,breakSlot,newsFor,slide,spokenLines,hash,mulberry};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdData=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

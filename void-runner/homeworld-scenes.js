@@ -1,6 +1,6 @@
 /* Homeworld scenes (design doc 10): Dr. Adrian Kess on The Nexus and Daniel Mercer on the Natural
    Order homeworld receive Elara's and Marcus's shipments and offer optional work for a faction ship
-   module. Dialogue is David's script; lines marked UNREVIEWED are Claude's placeholders. */
+   module. Dialogue is the owner's script; lines marked UNREVIEWED are Claude's placeholders. */
 (function(){
  for(const id of ['nexus','order-homeworld'])VoidExplorationData.locations['planet-'+id]=VoidPlanets.layout(id);
  Object.assign(characters,{kess:{name:'Dr. Adrian Kess',role:'NEXUS INFRASTRUCTURE RECOVERY COORDINATOR'},mercer:{name:'Daniel Mercer',role:'AGRICULTURAL SUPPLY COORDINATOR'}});

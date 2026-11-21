@@ -2,6 +2,10 @@
 
 The V1 is the player's holographic device (L key, on foot or in a station). Rules and saved state: `void-runner/device-v1.js` (pure, unit-tested). Screen: `void-runner/personal-device.js`. Look: `void-runner/device-v1.css` (scoped to `#personal-device` and `#pd-chip`; loaded through `void-runner.html` like the other game stylesheets, and covered by the service-worker build number). `personal-hud.js` is the older P-key terminal and is NOT the V1.
 
+
+## 18 Nov 2026: Gallery METADATA and the device ID
+
+With a photo open, **METADATA** shows TAGGED, LOCATION, DEVICE ID and TAKEN (`device-gallery.js FIELDS`; add a row there). The photographer is anonymous: only the device ID (`device-v1.js deviceId`, e.g. V1-7F3A-91C2, from `story.flags.deviceSerial`) links a photo to its taker; tracing it to a person is a future gameplay mechanic. MY V1 shows the device ID. This update empties every Gallery once (IndexedDB version 2). Details: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), Sixth pass.
 ## Look (Phase 1, local)
 Matches the website navigation buttons (`home-navigation.css`): panel `#0c1b23`, edge `#38808b`, rail `#61eee9`, a single small `#d56cba` tick on launcher tiles. Teal is the main colour; pink is used only for that tick and the map's shop marker. Colours, spacing and timing are CSS variables at the top of the stylesheet.
 
@@ -33,14 +37,14 @@ Tests: `tests/district-chat-store.test.cjs` (mocked multiplayer service), `tests
 ## Graphics defaults (Phase 2)
 See `docs/development/GRAPHICS_TEST_ROG_ALLY.md`. New players start on Medium; `graphics-prefs.js` defines what a saved value means; Settings > Graphics has Reset to Medium; the game never changes the preset by itself.
 
-## 15 Nov 2026: District residents, profiles, jobs, face-on portraits (PR pending David's approval)
+## 15 Nov 2026: District residents, profiles, jobs, face-on portraits (PR pending the owner's approval)
 
-David asked for the NPCs in The Darknet District to be listed with the players, with names, profiles and jobs, and for players to pick their own jobs.
+The owner asked for the NPCs in The Darknet District to be listed with the players, with names, profiles and jobs, and for players to pick their own jobs.
 
-- **`void-runner/district-people.js`** (pure, tested): `JOBS` (David's eight first: Smuggler, Pirate, Mercenary, Merchant, Influencer, Dancer, DJ, Mechanic; then 24 additions for him to keep or cut) and `NPCS`, the roster of named residents: Admin, Iris, Nyx (bar), the two bar patrons, the VR watcher, the two VR booth players, the four hallway figures, and DJ Vanta at NULL. **Every name, job and line except Admin, Iris and Nyx is Claude's draft for David to change.** To add a resident who enters the District, add one line there.
+- **`void-runner/district-people.js`** (pure, tested): `JOBS` (the owner's eight first: Smuggler, Pirate, Mercenary, Merchant, Influencer, Dancer, DJ, Mechanic; then 24 additions for him to keep or cut) and `NPCS`, the roster of named residents: Admin, Iris, Nyx (bar), the two bar patrons, the VR watcher, the two VR booth players, the four hallway figures, and DJ Vanta at NULL. **Every name, job and line except Admin, Iris and Nyx is Claude's draft for the owner to change.** To add a resident who enters the District, add one line there.
 - **Players tab (Messages):** real players first (each now has a PROFILE button), then the residents of the place you are standing in (the District interior, or NULL for the DJ).
 - **Social:** residents here are listed; any profile opens with name, jobs, a line and where they are.
-- **Your own profile:** WHAT YOU DO (up to three jobs) and ABOUT YOU (one line, 120 characters, cleaned). Both are stored in the save (`story.flags.profileJobs`, `profileAbout`). **Other players cannot see them yet:** the District server accepts no profile fields; sending them needs a hub and API change and David's go-ahead (free text shown to others also needs the chat's moderation rules).
+- **Your own profile:** WHAT YOU DO (up to three jobs) and ABOUT YOU (one line, 120 characters, cleaned). Both are stored in the save (`story.flags.profileJobs`, `profileAbout`). **Other players cannot see them yet:** the District server accepts no profile fields; sending them needs a hub and API change and the owner's go-ahead (free text shown to others also needs the chat's moderation rules).
 - **Faces:** a named resident keeps one fixed crowd look (`crowd.js` asks `VoidDistrictPeople.lookFor`), and the portrait uses the look the scene really shows. Nyx has no model yet, so the portrait says unavailable (no face is invented).
 - **Face-on portraits:** `device-portraits.js` now aims the camera square at the face (found from the eyelashes of the posed figure) and frames tighter. `ASSET_VERSION` is 4, so old pictures are redrawn. Known limit: the idle pose can still tilt the head a little.
 
@@ -65,41 +69,41 @@ David asked for the NPCs in The Darknet District to be listed with the players, 
 
 - **Aim and follow:** in the Camera, putting the crosshair on a person OR on their tag selects them (the tag fills in, the aperture turns green, "F · FOLLOW NAME" appears). F follows or unfollows. Following is kept in the save (`story.flags.socialFollowing`, `district-people.js`) and listed in Social under FOLLOWING; a profile also has a FOLLOW button. Residents and players with a registered handle can be followed. Tags of people standing close together no longer cover each other.
 - **One look per character:** Admin's and Iris's figures and their profile portraits are drawn from the same record (`district-people.js`). Iris's portrait had been drawn from a wrong copy of her look; a test now compares them.
-- **Not built yet (David asked 15 Nov):** tagging people in Messages and Mission Logs, and bounties on NPCs or players. Both need the District server to carry and check them.
+- **Not built yet (the owner asked 15 Nov):** tagging people in Messages and Mission Logs, and bounties on NPCs or players. Both need the District server to carry and check them.
 - **Games page:** "The Darknet District - Game" card; `site-return.js` puts a "← WEBSITE" button on every game page (VOID//RUNNER: main menu only); inside the arcade the cabinet bar says EXIT GAME.
 
 ## 15 Nov 2026 (night): WarFlying is an app
 
-David: add the WarFlying app to the App Store; it takes 15% of storage on any personal device; it is no longer attached to ships; it has Activate / Deactivate; logged frequencies light the send button; the District interior is shielded. (He wrote "Warfling"; the game's existing name WarFlying is kept.)
+The owner: add the WarFlying app to the App Store; it takes 15% of storage on any personal device; it is no longer attached to ships; it has Activate / Deactivate; logged frequencies light the send button; the District interior is shielded. (He wrote "Warfling"; the game's existing name WarFlying is kept.)
 
 - **App Store:** WARFLYING, free, 15% (`STORE_EXTRA` in `device-v1.js`; `install`/`uninstall`). A stock V1 goes from 75% to 90%. Installed apps appear on the home screen after the built-in ones.
 - **The app:** ACTIVATE / DEACTIVATE (`story.flags.warflyingActive`), points, frequencies identified, waiting to send, **SEND DATA TO WARFLYING LEADERBOARD** (highlighted when anything is waiting; uses the existing Relay upload and its link rules, so it cannot send from inside the District), the leaderboard and recent discoveries.
 - **Scanning** (`warflying-scanner.js`): listens when the app is installed and active. In flight it hears what it always did. On foot it logs the transmitter of the place you are in. **Inside The Darknet District it is shielded and hears nothing.**
-- **The old ship module** (`warflying-module`, Utility slot) is no longer needed for scanning. It is still in the item list and still sold at outfitters so no save breaks. **Open question for David:** remove it from sale and refund owners? The scrambler is unchanged and still a ship module.
+- **The old ship module** (`warflying-module`, Utility slot) is no longer needed for scanning. It is still in the item list and still sold at outfitters so no save breaks. **Open question for the owner:** remove it from sale and refund owners? The scrambler is unchanged and still a ship module.
 
 ## 15 Nov 2026 (late): the scanning house rule, the V3 // SHADOW, walking speed
 
-- **House rule:** someone inside the District with the WarFlying app ACTIVE is noticed after a few seconds. Admin goes half the time, Iris the other half; when Admin is not in the District Iris always goes (`district-people.js` `ETIQUETTE`; the walking is in `neochinatown.js`, `etiquette`). They walk round the counter, down the hallway to the player, face them, say their line (shown as a notice; **no recorded voice, and the wording is Claude's draft of David's instruction**), and walk back. Once per visit; it re-arms when the app is switched off. Checked in a test browser with the clock sped up (the software renderer's game clock crawls): the route, the line and the return. The walk animation itself was not seen.
+- **House rule:** someone inside the District with the WarFlying app ACTIVE is noticed after a few seconds. Admin goes half the time, Iris the other half; when Admin is not in the District Iris always goes (`district-people.js` `ETIQUETTE`; the walking is in `neochinatown.js`, `etiquette`). They walk round the counter, down the hallway to the player, face them, say their line (shown as a notice; **no recorded voice, and the wording is Claude's draft of the owner's instruction**), and walk back. Once per visit; it re-arms when the app is switched off. Checked in a test browser with the clock sped up (the software renderer's game clock crawls): the route, the line and the return. The walk animation itself was not seen.
 - **V3 // SHADOW** (`DEVICES.v3`): faster timings, the same interface in monochrome green (`[data-device=v3]` in `device-v1.css`), camera `EYE 01` zooming to 4. The shared zoom array is now 1, 1.5, 2, 3, 4; the V1 still stops at 2. Nobody can get a V3 yet; it is Dax's device. Not built: the eye camera on B, and target lock on B in flight.
 - **On foot:** walk 3.4 to 3.9 m/s, run 5.6 to 6.4 m/s (`exploration-controller.js`); still under the multiplayer server's 9 m/s limit.
 
 ## 15 Nov 2026: play as Admin (developers), first stage
 
-David: when he signs in with his developer account (smartsec916@gmail.com) he wants the option to play as Admin; Admin has no missions, a ship available, and a V3 // SHADOW; Iris takes over Admin's tasks and mission dialogue.
+The owner: when he signs in with his developer account (smartsec916@gmail.com) he wants the option to play as Admin; Admin has no missions, a ship available, and a V3 // SHADOW; Iris takes over Admin's tasks and mission dialogue.
 
-- **Who sees it:** the main menu shows PLAY AS ADMIN beside DEVELOPER TOOLS, only for an account the game server confirms as a developer (`VOID_ADMIN_UIDS` on the game API; account ids, not emails), and the server is asked again when the session starts. If David's account does not show DEVELOPER TOOLS, its id is not in that list.
+- **Who sees it:** the main menu shows PLAY AS ADMIN beside DEVELOPER TOOLS, only for an account the game server confirms as a developer (`VOID_ADMIN_UIDS` on the game API; account ids, not emails), and the server is asked again when the session starts. If the owner's account does not show DEVELOPER TOOLS, its id is not in that list.
 - **What it is:** a developer test session (`dev-test.js` `playAsAdmin`), so **nothing is saved** and EXIT TEST returns to the real save. A District campaign with no missions, the starter ship awarded, 10,000 credits, every place discovered, `deviceModel` v3 (green interface, faster, zoom to 4), spawn inside the District. The V1 shows Admin's own name, job and portrait. Admin the NPC is away from the counter (`adminOccupied`), so Iris is the one there, and Iris is the one who walks over for the scanning house rule.
-- **Not built:** a kept Admin save; other players seeing David as Admin (they see his account's own saved character, because the multiplayer server sends that); Iris taking over Admin's mission steps and dialogue for OTHER players while David is online as Admin (needs the multiplayer server to say so, and David's approval of how Iris words Admin's lines); requesting a ship at the landing-pad terminal was not changed or re-checked.
+- **Not built:** a kept Admin save; other players seeing the owner as Admin (they see his account's own saved character, because the multiplayer server sends that); Iris taking over Admin's mission steps and dialogue for OTHER players while the owner is online as Admin (needs the multiplayer server to say so, and the owner's approval of how Iris words Admin's lines); requesting a ship at the landing-pad terminal was not changed or re-checked.
 
 ## 15 Nov 2026 (late night): distance in the player lists; footsteps
 
 - **Players (Messages) and Social:** outside The Darknet District each other player's row shows how far away they are ("42 m away"), nearest first. Inside the District no distance is shown (everyone is simply here).
-- **Footsteps** (`void-runner/footsteps.js`, `tests/footsteps.test.cjs`): other players and NPCs who are moving near you make steps that come from their position, fade with distance, and are quicker and louder when they run; your own steps are louder when you run. A thud made in code, on the Effects channel, nearest five movers only. Not heard by Claude (the test browser has no sound): David to judge level and feel.
+- **Footsteps** (`void-runner/footsteps.js`, `tests/footsteps.test.cjs`): other players and NPCs who are moving near you make steps that come from their position, fade with distance, and are quicker and louder when they run; your own steps are louder when you run. A thud made in code, on the Effects channel, nearest five movers only. Not heard by Claude (the test browser has no sound): the owner to judge level and feel.
 
 
 ## 15 Nov 2026: photos, the Gallery and News filters
 
-David: left mouse button takes a picture with the camera; pictures are kept in the Gallery at about 1% of storage each; players can delete them and post them to the News app; residents post too, at places like NULL; the tags of players and residents stay in every picture; News can be filtered (Broadcasts, Commerce, People).
+The owner: left mouse button takes a picture with the camera; pictures are kept in the Gallery at about 1% of storage each; players can delete them and post them to the News app; residents post too, at places like NULL; the tags of players and residents stay in every picture; News can be filtered (Broadcasts, Commerce, People).
 
 - **Taking a photo.** With the viewfinder up (B), the left mouse button takes the picture (`device-camera.js` `shoot`). The picture is the game's own frame with the name tags drawn in; the list of who was tagged is kept with it. A full device says so instead of saving.
 - **Gallery** (`device-gallery.js`). Photos are stored in this browser only (IndexedDB `void-runner-gallery`); nothing is uploaded. Each photo takes 1% of the device's storage on top of the apps (`D.storage` counts them), so a stock V1 holds 25. A photo can be opened, deleted (press twice) or posted.

@@ -1,5 +1,5 @@
 /* Tessaly police patrols in flight (currently no run triggers them; see police-patrol.js). Rules live in police-patrol.js.
-   The hail lines are Claude's UNREVIEWED placeholders for David to rewrite; the patrol is not voiced. */
+   The hail lines are Claude's UNREVIEWED placeholders for the owner to rewrite; the patrol is not voiced. */
 (function(){
  const PP=VoidPolicePatrol;let zone=null,zoneRoute=null,hail=null;
  const css=document.createElement('style');

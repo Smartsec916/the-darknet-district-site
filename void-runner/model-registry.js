@@ -1,12 +1,12 @@
 /* The registry of approved 3D models (graphics brief §6). Gameplay uses stable ids (ship:raider,
    prop:crate); this file maps them to files, so a model can be swapped without touching gameplay.
-   Every entry is approved by David and listed in docs/VOID_RUNNER_ASSET_LICENSES.md. If a file fails
+   Every entry is approved by the owner and listed in docs/VOID_RUNNER_ASSET_LICENSES.md. If a file fails
    to load, the procedural model is used automatically (asset-pipeline.js).
    scale: model metres -> game units. yaw: turn so the nose points along +z (the game's forward). */
 (function(root){
  const quaternius='Quaternius (CC0 1.0)';
  const registry={
-  // Pirates and traffic (approved 2026-10-16). The Kestrel and faction ships stay procedural.
+  // Pirates and traffic (approved 2026-10-16). Faction ships stay procedural; the Kestrel ('starter') is the Meshy model of kestrel-model.js (19 Nov 2026).
   ships:{
    raider:{src:'assets/models/ships/striker.glb',scale:.55,yaw:0,model:'Striker',pack:'Ultimate Spaceships',license:quaternius},
    interceptor:{src:'assets/models/ships/challenger.glb',scale:.45,yaw:0,model:'Challenger',pack:'Ultimate Spaceships',license:quaternius},
