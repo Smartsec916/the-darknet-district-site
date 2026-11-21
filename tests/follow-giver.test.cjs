@@ -40,7 +40,7 @@ test('with no "Giver waits at" she stays where she stood when it started (here:t
  load(x,tree('grey-reverie',null,{x:68.5,z:-6.4}));const s=player(x);assert.deepEqual(MC.waitingAt(s,x.e),{});
  near(x,s,'grey-reverie');assert.deepEqual(MC.waitingAt(s,x.e)['grey-reverie'],{mission:'draft-follow-m1',during:true,here:true});
  const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');
- assert.match(lc,/if\(w&&w\.here\)\{const h=holdAt\[id\];/);assert.match(lc,/if\(w&&w\.during\)p\.why='mission';const old=planCache\[id\];if\(old&&old\.key===p\.key\)old\.why=p\.why;/);assert.match(lc,/res=back\|\|\(saved&&saved\.key===e\.key\?\(D\?E\.resumeInto\(saved,D\)\|\|saved:saved\):null\)/);assert.match(lc,/resume:res,from:back\?\{x:back\.x,z:back\.z\}:from\}/);
+ assert.match(lc,/if\(w&&w\.here\)\{const h=holdAt\[id\];/);assert.match(lc,/if\(w&&w\.during\)p\.why='mission';const old=planCache\[id\];if\(old&&old\.key===p\.key\)old\.why=p\.why;/);assert.match(lc,/res=back\|\|C\|\|\(saved&&saved\.key===e\.key\?\(D\?E\.resumeInto\(saved,D\)\|\|saved:saved\):null\)/);assert.match(lc,/resume:res,from:back\?\{x:back\.x,z:back\.z\}:from\}/);
  assert.match(lc,/escOn\.clear\(\);for\(const k of Object\.keys\(holdAt\)\)delete holdAt\[k\];/,'a new draft session forgets the spots');});
 
 test('the figures: kept out for her mission, held while the conversation has her lines, never popped in or out while seen (the hold from main), and appear where the step started',()=>{

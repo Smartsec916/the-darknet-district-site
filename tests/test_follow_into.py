@@ -40,7 +40,7 @@ class FollowIntoServerTests(unittest.TestCase):
     def test_refused(self):
         cases = [({'apt': 'zz'}, None, 'places to go into'), ({'apt': 'a2', 'mod': 'office'}, None, 'built from modules'), ({'apt': 'a1', 'mod': 'lift2'}, None, 'elevator'),
                  ({'apt': 'a1', 'mod': 'nope'}, None, 'rooms'), ({'apt': 'a2', 'to': {'x': 60, 'z': -6.4}}, None, 'not both'),
-                 ({'apt': 'a4', 'mod': 'pit'}, [PIT], 'fight pit'), ({'apt': 'a2'}, [dict(FLAT, door='apt-main-w-96')], 'area she is placed in'),
+                 ({'apt': 'a4', 'mod': 'pit'}, [PIT], 'fight pit'), 
                  ({'apt': 'a2', 'npc': 'street-cat'}, None, 'cat stays outside'), ({'apt': 'a2'}, [dict(FLAT, **{'from': 's3'})], 'opens later')]
         for st, places, words in cases:
             errs = check(tree(st, places))
@@ -49,6 +49,12 @@ class FollowIntoServerTests(unittest.TestCase):
         t = tree({'apt': 'a2'})
         t['missions'][0]['objectives'][0]['apt'] = 'a2'
         self.assertTrue(any('only an apartment step names an apartment' in e for e in check(t)))
+
+    def test_door_in_another_area(self):
+        # escort across (20 Nov 2026): a place whose street door is in Old Town; she starts on The Avenue and walks there through the North Gate
+        self.assertEqual(check(tree({'apt': 'a2'}, [dict(FLAT, door='apt-main-w-96')])), [])
+        self.assertIn('oldtown', INV['npcEscort']['npcs']['grey-reverie']['reach']['avenue'])
+        self.assertNotIn('underground', INV['npcEscort']['npcs']['street-cat']['reach']['avenue'])
 
     def test_inventory_and_draft_copy(self):
         esc = INV['npcEscort']

@@ -929,7 +929,7 @@
   sel.title='Only people whose walking the game controls (Reverie, Lace, the street cat) can walk with the player. Others are greyed with the reason.';sel.onchange=()=>eo(x=>{x.npc=sel.value;if(E.CAB.has(x.kind)&&x.stop&&!E.stopOk(x.npc,x.stop,escArea(null,x.npc)))delete x.stop;},true);return sel;}
  function escortPanel(m,o,eo){const E=EX(),X=root.VoidNPCPaths,box=el('section','','me-end me-esc',{'data-me-esc':o.id}),who=giver(o.npc)||{name:o.npc||'they'},c=o.npc?E.can(o.npc,o.kind):{ok:false,why:'Choose who walks with the player first.'};
   box.append(el('h4',E.SPOT.has(o.kind)?'Where they go':'The cab ride'));if(!c.ok){box.append(el('p','⚠ '+c.why,'me-warn',{'data-me-esc-why':o.id}));return box;}
-  const area=escArea(m,o.npc),AN=(root.VoidNPCAreas?.get(area)||{name:'The Avenue'}).name;box.append(el('p',who.name+' is placed in '+AN+' for this mission (where she waits for it, else her placement in Developer Tools > NPCs): the step happens there.','me-small',{'data-me-esc-area':o.id}));
+  const area=escArea(m,o.npc),AN=(root.VoidNPCAreas?.get(area)||{name:'The Avenue'}).name;box.append(el('p',who.name+' starts in '+AN+' for this mission (where she waits for it, else her placement in Developer Tools > NPCs). The step may go on into other areas: '+who.name+' comes through the city gates, the stairs to and from the tunnels and the District’s door with the player, walking or in a taxi (never where they may not go: a problem below says so).','me-small',{'data-me-esc-area':o.id}));
   const ectx={area,apartments:m.apartments||[],steps:m.objectives||[]};
   for(const p of E.problems(o,ectx).filter(p=>!/Pick the spot|Choose the cab/.test(p)))box.append(el('p','⚠ '+p,'me-bad'));
   if(E.SPOT.has(o.kind))box.append(intoRow(m,o,eo,who));
@@ -940,7 +940,7 @@
    if(root.VoidNPCMap&&X){const live=root.VoidStreetPair?.live?.(),markers=[];if(live&&live.her&&live.her.id===o.npc)markers.push({id:'live',x:live.her.x,z:live.her.z,ghost:true,color:'#ffd34d',label:who.name+' now'});
     if(t)markers.push({id:'to',x:t.x,z:t.z,color:'#ff8ad8',label:o.kind==='follow-them'?who.name+' leads the player here':'the player leads '+who.name+' here',drag:true,bad:E.problems(o,{area}).length>0});
     const put=(x,z)=>{const p=X.snap(o.npc,{x,z});eo(oo=>{oo.to={x:p.x,z:p.z};},true);guideSoon();};
-    const map=root.VoidNPCMap.create({npc:o.npc,markers,center:t?t.x:null,selected:'to',area,lock:area,onPick:put,onDrag:(id,x,z)=>{if(id==='to')put(x,z);}});map.el.dataset.meEscMap=o.id;box.append(map.el);}
+    const map=root.VoidNPCMap.create({npc:o.npc,markers,center:t?t.x:null,selected:'to',area:(t&&root.VoidNPCAreas?.areaOf(t))||area,onPick:put,onDrag:(id,x,z)=>{if(id==='to')put(x,z);}});map.el.dataset.meEscMap=o.id;box.append(map.el);}
    if(o.kind==='follow-them')box.append(escDistances(m,o,eo,who));
    box.append(el('p','Multiplayer: only the player doing this mission is followed or led; other players see '+who.name+' as usual.','me-small'));}
   if(E.SPOT.has(o.kind)&&(o.apt!=null||o.mod!=null)){if(o.kind==='follow-them')box.append(escDistances(m,o,eo,who));box.append(el('p','Multiplayer: the place is private to the player doing this mission (each player has their own copy); other players see '+who.name+' on the street as usual.','me-small'));}
