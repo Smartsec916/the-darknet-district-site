@@ -57,10 +57,12 @@
 
  // ---- browser ----
  const loaded=new Map();   // library -> Promise<{container, hipY, groups: Map(clip id -> AnimationGroup)}> or null when the file is not there
+ const localFiles=new Map();
  function load(lib,scene){
   const key=lib,have=loaded.get(key);if(have&&have.scene===scene)return have.promise;
   const promise=(async()=>{try{
-    const container=await root.VoidAssets.loadContainer({src:FILES[lib]},scene,null,'anim:'+lib);
+    const local=localFiles.get(lib);if(local&&!root.VoidVRCompanionStudio?.authorized())return null;
+    const container=await root.VoidAssets.loadContainer({src:FILES[lib],localBuffer:local?await local.arrayBuffer():null},scene,null,'anim:'+lib);
     const groups=new Map();for(const g of container.animationGroups||[]){g.stop();groups.set(g.name,g);}
     const hips=(container.transformNodes||[]).find(t=>bare(t.name)==='Hips');
     const rest={};for(const t of container.transformNodes||[]){const b=bare(t.name);if(!rest[b]&&t.rotationQuaternion)rest[b]=t.rotationQuaternion.asArray();}
@@ -69,15 +71,16 @@
   loaded.set(key,{scene,promise});return promise;}
  /* Give a figure the library's clips. node: the figure's root (its bones are transform nodes under it); look: its look id (for VoidCrowd.clips);
     only: clip ids wanted (default: all). Returns the ids added. Safe to call twice. */
- async function apply(node,look,{library='actorcore',only=null,scene=null}={}){
+ async function apply(node,look,{library='actorcore',only=null,scene=null,catalog=true}={}){
   const sc=scene||node.getScene(),B=root.BABYLON,L=await load(library,sc);if(!L||node.isDisposed())return [];
   const bones=new Map();for(const t of node.getDescendants(false))if(t.rotationQuaternion!==undefined&&t.getClassName?.()==='TransformNode'){const b=bare(t.name);if(!bones.has(b))bones.set(b,t);}
   if(!compatible([...bones.keys()]))return [];
   // the figure's own rest pose (its skeleton's bind-time local rotations; the bones themselves are already posed by a clip)
   const rest={};for(const m of node.getChildMeshes(false)){const sk=m.skeleton;if(!sk)continue;for(const b of sk.bones){const k=bare(b.name);if(rest[k])continue;const q=new B.Quaternion();b.getRestMatrix().decompose(undefined,q);rest[k]=q.asArray();}}
+  if(localFiles.has(library)&&!CORE.every(k=>Array.isArray(L.rest[k])&&Array.isArray(rest[k])))return [];
   if(Object.keys(rest).length&&!restMatches(L.rest,rest)){node.metadata=node.metadata||{};node.metadata.animLibraryRefused=Math.round(restOffset(L.rest,rest));return [];}   // degrees off, for the browser test
   const hips=bones.get('Hips'),scale=hips&&L.hipsRest?(hips.position.length()||1)/(L.hipsRest.length()||1):1,meta=node.metadata=node.metadata||{},list=meta.animationGroups=meta.animationGroups||[],added=[];
-  for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.group||c.id)||(c.clip?[...L.groups.values()].find(g=>g.name.replace(/\.\d{3}$/,'')===c.clip):null);if(!src)continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
+  for(const c of CLIPS[library]){if(only&&!only.includes(c.id))continue;const src=L.groups.get(c.group||c.id)||(c.clip?L.groups.get(c.clip)||[...L.groups.values()].find(g=>g.name.replace(/\.\d{3}$/,'')===c.clip):null);if(!src)continue;if(localFiles.has(library)&&src.targetedAnimations.some(ta=>!bones.has(bare(ta.target.name))))continue;const name=look+'-'+c.id;if(list.some(g=>g.name===name)){added.push(c.id);continue;}
    const g=new B.AnimationGroup(name,sc);
    for(const ta of src.targetedAnimations){const target=bones.get(bare(ta.target.name));if(!target)continue;let a=ta.animation;
     if(a.targetProperty==='position'){if(bare(ta.target.name)!=='Hips')continue;a=a.clone();const rest=L.hipsRest,own=hips.position.clone();
@@ -86,11 +89,13 @@
     g.addTargetedAnimation(a,target);}
    if(!g.targetedAnimations.length){g.dispose();continue;}
    g.normalize(src.from,src.to);g.enableBlending=true;g.blendingSpeed=.045;g.loopAnimation=c.loop!==false;list.push(g);added.push(c.id);}
-  const clips=root.VoidCrowd?.clips;if(clips&&look){clips[look]=clips[look]||[];for(const id of added)if(!clips[look].includes(id))clips[look].push(id);}
+  const clips=root.VoidCrowd?.clips;if(catalog&&clips&&look){clips[look]=clips[look]||[];for(const id of added)if(!clips[look].includes(id))clips[look].push(id);}
   meta.animLibrary=[...(meta.animLibrary||[]),...added.filter(id=>!(meta.animLibrary||[]).includes(id))];
   return added;}
  /* Another model file as a source of clips (Developer Tools > NPCs > Add animation, 18 Nov 2026): a public crowd file on a compatible rig. lib 'crowd:<asset>'; clips
     [{id:'<asset>/<clip>', clip:'<clip>'}]. The same rules apply: matching bone names and the rest pose within REST_LIMIT, or nothing is added. */
  function register(lib,file,clips){FILES[lib]=file;const have=CLIPS[lib]||(CLIPS[lib]=[]);for(const c of clips||[])if(!have.some(x=>x.id===c.id))have.push({loop:true,root:'inplace',category:'shared',title:c.id,...c});return CLIPS[lib];}
- root.VoidAnimLibrary={...pure,register,load,apply,has:(node,id)=>!!node?.metadata?.animLibrary?.includes(id)};
+ function registerLocal(lib,blob,clips){if(!root.VoidVRCompanionStudio?.authorized())throw Error('Developer sign-in required.');localFiles.set(lib,blob);return register(lib,'assets/models/anim/'+lib+'.glb',clips);}
+ function clearLocal(){for(const lib of localFiles.keys()){delete FILES[lib];delete CLIPS[lib];loaded.delete(lib);}localFiles.clear();}
+ root.VoidAnimLibrary={...pure,register,registerLocal,clearLocal,load,apply,has:(node,id)=>!!node?.metadata?.animLibrary?.includes(id)};
 })(typeof globalThis!=='undefined'?globalThis:this);

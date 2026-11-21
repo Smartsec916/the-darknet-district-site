@@ -156,6 +156,7 @@
   busy=true;
   // Tell the hub before anything changes on screen. Playing alone is a private session of one, so the player is not left standing in the District for others.
   let hubSession=share?.joined||null,type=share?.joined?(share.joined.private?'private':'public'):exp.shared?shareType:'solo';
+  if(id==='suite'&&globalThis.VoidVRCompanions?.party(opts).some(e=>e.localDraft)){type='solo';hubSession=null;}
   if(!hubSession&&online()){try{hubSession=await RP().vrCreate(id,exp.shared&&type!=='solo'?(exp.shareOpts?exp.shareOpts(opts):opts):{},type!=='public');}catch(e){type='solo';if(exp.shared&&shareType!=='solo')announce(e.message+' Starting on your own.');}}
   if(!hubSession)type='solo';
   menu?.remove();menu=null;menuPage={view:'list'};mode='vr-transition';clearInput();walkingKeys?.clear?.();document.exitPointerLock?.();

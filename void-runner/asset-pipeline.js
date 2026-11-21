@@ -109,8 +109,9 @@
     const url = new URL(def.src, base);
     const packed = url.pathname.endsWith('.vrpak');
     if (url.origin !== location.origin || !(packed || url.pathname.endsWith('.glb'))) throw Error('Model must be a locally hosted GLB.');
-    let buffer;
-    for(let attempt=1;attempt<=2;attempt++){
+    let buffer=def.localBuffer;
+    if(buffer)validate(buffer);
+    for(let attempt=1;!def.localBuffer&&attempt<=2;attempt++){
       task?.check();
       try{
         const response=await fetch(url,{signal:task?.signal});
@@ -127,7 +128,7 @@
     }
     await loadPlugin(task);
     task?.check();
-    const container = packed
+    const container = packed || def.localBuffer
       ? await BABYLON.SceneLoader.LoadAssetContainerAsync('', new Uint8Array(buffer), scene, null, '.glb')
       : await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
     if(task?.signal.aborted){container.dispose();task.check();}

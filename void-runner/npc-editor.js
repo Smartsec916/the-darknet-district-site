@@ -86,7 +86,7 @@
   if(!importsLoaded){loadImports().then(draw);}
   restore();draw();}
  function restore(){let r=null;try{r=JSON.parse(root.sessionStorage.getItem(RETURN)||'null');root.sessionStorage.removeItem(RETURN);}catch{}if(r&&r.npc){ui.id=r.npc;status='Back from the test session. Your draft is saved.';}
-  const f=DTX()?.npcFocus;if(f){ui.id=f;DTX().npcFocus=null;}}
+  const f=DTX()?.npcFocus;if(f){ui.id=f;ui.make=null;ui.start=false;DTX().npcFocus=null;}}
  function draw(){if(!host)return;const keep=host.scrollTop;if(ui.make)ui.id=ui.make.step===0?(ui.make.model?'model:'+ui.make.model:'make:'):(ui.make.id||'make:');if(ui.preview&&ui.previewFor!==ui.id){ui.preview.dispose();ui.preview=null;ui.previewFor=null;}
   const pv=ui.preview?ui.preview.canvas.parentElement:null;
   host.innerHTML='';host.append(headNode());const r=el('div','','me-root npc-root',{id:'npc-root'});host.append(r);

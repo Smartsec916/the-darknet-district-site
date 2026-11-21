@@ -150,7 +150,7 @@
  function use(list,opt={}){byKey=new Map();source=opt.draft?'draft':'live';const givers=opt.givers||[];
   for(const c of Array.isArray(list)?list:[]){if(clipShape(c).length)continue;const e={...c,src:source},g=givers.find(x=>x&&x.id===c.who),names=new Set([c.who,g&&g.say,g&&g.name].filter(Boolean));for(const n of names)byKey.set(keyOf(n,c.text),e);}
   return byKey.size;}
- const find=(who,text)=>byKey.get(keyOf(who,text))||null;
+ const find=(who,text)=>root.VoidVRCompanionStudio?.findVoice(who,text)||byKey.get(keyOf(who,text))||null;
  const load=e=>getData(e.hash,{draft:e.src==='draft'});
  /* ---- PUBLISH: upload what the server does not have yet. request: VoidDevTools.request. Returns {uploaded, kept}. ---- */
  const b64=buf=>{const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);};

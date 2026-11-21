@@ -59,7 +59,7 @@
  const LICENSED=()=>(NPL()&&NPL().LICENSED)||/^(vr-companion-.+|studio-warrior|npc-dax)$/;
  const pretty=a=>a.replace(/^npc-|^vr-/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
  function models(){const C=CROWD()||{},clips=C.clips||{},street=C.street||{},out=[];
-  for(const [asset,list] of Object.entries(clips)){if(asset==='npc-street-cat'||!Array.isArray(list)||!list.includes('idle'))continue;const lic=LICENSED().test(asset);
+  for(const [asset,list] of Object.entries(clips)){if(asset==='npc-street-cat'||asset.startsWith('local-model-')||!Array.isArray(list)||!list.includes('idle'))continue;const lic=LICENSED().test(asset);
    out.push({asset,label:pretty(asset),licensed:lic,clips:list.slice(),walk:list.includes('walk'),group:lic?'licensed':street[asset]?'street':/^npc-/.test(asset)?'named':'older'});}
   const rank={street:0,named:1,older:2,licensed:3};return out.sort((a,b)=>rank[a.group]-rank[b.group]||a.asset.localeCompare(b.asset));}
  const GROUPS={street:'Street people',named:'Named characters’ models',older:'Older figures (off-world places)',licensed:'Licensed models (recolour and hide only, never any AI tool)'};
@@ -236,6 +236,7 @@
  /* Name cards for the dialogue window (as mission-givers do for their speakers). */
  function nameCards(){const ch=root.VoidStoryContent?.characters;if(!ch)return;for(const [id,c] of Object.entries(chars()))if(!ch[id]||ch[id].made)ch[id]={id,name:c.name,role:'',portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['made'],biography:'',relationshipDefault:0,made:true};}
  root.VoidMadeNPCs={...api,start,planOf,present,props,live:null,nameCards};
+ if(root.VoidDevTools?.standalone)return; // lightweight companion editor: no game runtime or interaction polling
  // every street quarter and the District interior: started (and ticked, and disposed) with the street pair, which neochinatown.js starts in each of them
  (function wrap(){const S=root.VoidStreetPair;if(!S||!S.start||S.start.made)return;const s0=S.start;const s1=function(o){const a=s0.apply(this,arguments);let b=null;try{b=start(o||{});}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}
    if(!a||!b)return a;const t=a.tick,d=a.dispose;a.tick=function(dt){t.apply(this,arguments);b.tick(dt);};a.dispose=function(){try{b.dispose();}catch{}return d.apply(this,arguments);};a.made=b;return a;};s1.made=true;S.start=s1;})();

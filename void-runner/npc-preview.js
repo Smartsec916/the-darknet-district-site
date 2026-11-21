@@ -28,7 +28,7 @@
    return {triangles:Math.round(tri),bytes:bytes|0,textures,bones,rest,clips:groups.map(g=>g.name.split('-').pop()===g.name?g.name:g.name),height:Number.isFinite(max.y-min.y)?max.y-min.y:NaN,min,max};}
   function frame(){const i=info;if(!i||!Number.isFinite(i.height))return;const h=i.height;const s=h>0&&(h<1.3||h>2.3)?1.75/h:1;if(rootNode&&s!==1)rootNode.scaling.scaleInPlace(s);cam.target=new B.Vector3(0,Math.min(1.2,h*s*.55),0);cam.radius=Math.max(2.2,h*s*1.9);}
   async function show(src){clear();await loaders();
-   if(src.asset){container=await root.VoidAssets.loadContainer({src:'assets/models/crowd/'+src.asset+'.glb'},scene,null,'preview:'+src.asset);}
+   if(src.asset){container=await root.VoidAssets.loadContainer({src:root.VoidMadeNPCs?.fileOf(src.asset)||'assets/models/crowd/'+src.asset+'.glb'},scene,null,'preview:'+src.asset);}
    else if(src.file){const buf=src.buffer||await src.file.arrayBuffer(),ext=/\.gltf$/i.test(src.file.name||'')?'.gltf':'.glb';root.VoidNPCPaths.importDocument(buf,ext);container=await B.SceneLoader.LoadAssetContainerAsync('',ext==='.gltf'?new TextDecoder().decode(buf):new Uint8Array(buf),scene,null,ext);src.bytes=buf.byteLength;}
    else return null;
    if(disposed){container.dispose();return null;}
@@ -38,7 +38,7 @@
   function play(name){const g=groups.find(x=>x.name===name||x.name.endsWith('-'+name));if(!g)return false;for(const x of groups)if(x!==g)x.stop();g.start(true,1);current=g.name;return true;}
   async function tryLibrary(id,look,library='actorcore'){const L=root.VoidAnimLibrary;if(!L?.apply)return {ok:false,why:'The animation library is not loaded here.'};if(!rootNode)return {ok:false,why:'Nothing is shown yet.'};
    const meta=rootNode.metadata=rootNode.metadata||{};meta.animationGroups=meta.animationGroups||groups;let added=[];
-   try{const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(id);if(m){library='crowd:'+m[1];L.register?.(library,'assets/models/crowd/'+m[1]+'.glb',[{id,clip:m[2]}]);}added=await L.apply(rootNode,look||'preview',{only:[id],scene,library});}catch(e){return {ok:false,why:'Could not try it: '+(e?.message||e)};}
+   try{const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(id);if(m){library='crowd:'+m[1];L.register?.(library,'assets/models/crowd/'+m[1]+'.glb',[{id,clip:m[2]}]);}added=await L.apply(rootNode,look||'preview',{only:[id],scene,library,catalog:!library.startsWith('local-motion-')});}catch(e){return {ok:false,why:'Could not try it: '+(e?.message||e)};}
    if(!added.length)return {ok:false,why:meta.animLibraryRefused!=null?'Her rig does not take it: the rest pose is '+meta.animLibraryRefused+' degrees off (the limit is '+L.REST_LIMIT+').':(library==='actorcore'?'The animation library file is not on this computer (licensed motion capture is published with the live site only), or her bones do not match.':'Her bones do not match that file’s, so it was not added.')};
    const g=(meta.animationGroups||[]).find(x=>x.name.endsWith(id));if(g&&!groups.includes(g))groups.push(g);play(id);return {ok:true};}
   function dispose(){disposed=true;clear();engine.stopRenderLoop();scene.dispose();engine.dispose();cv.remove();}

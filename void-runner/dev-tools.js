@@ -94,11 +94,11 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   if(d==='swap'){this.request=request;this.signin(false);return;}
   if(d==='hold')return;
   if(d==='expired'){this.request=null;this.signin(true);return;}
-  this.signin(false);this.authorized=false;this.uid=null;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
+  globalThis.VoidVRCompanionStudio?.reset();this.signin(false);this.authorized=false;this.uid=null;this.request=request;this.overlay=false;devPanel.hidden=true;devButton.hidden=true;debugInfo.hidden=true;
   if(devMissileTrial){devMissileTrial=false;resetMissileFlight();}
   if(!request)return;
   try{const data=await request('developer/balance');if(this.request!==request)return;this.authorized=true;this.uid=uid;this.receive(data);devButton.hidden=false;this.testCredits();const first=!this.confirmed;this.confirmed=true;
-   let tab=null;try{const ret={first,testing:!!T?.active,open:!devPanel.hidden,missions:!!sessionStorage.getItem('mission-editor-return'),npcs:!!sessionStorage.getItem('npc-editor-return')};tab=ES?ES.autoOpen(ret):first&&!ret.testing?(ret.missions?'missions':ret.npcs?'npcs':null):null;}catch{}if(tab)this.open(tab);}catch{/* Fail closed; ordinary players get no private controls. */}
+   this.loadCompanions().then(()=>globalThis.VoidVRCompanionStudio.restore()).catch(console.warn);let tab=null;try{const ret={first,testing:!!T?.active,open:!devPanel.hidden,missions:!!sessionStorage.getItem('mission-editor-return'),npcs:!!sessionStorage.getItem('npc-editor-return')};tab=ES?ES.autoOpen(ret):first&&!ret.testing?(ret.missions?'missions':ret.npcs?'npcs':null):null;}catch{}if(tab)this.open(tab);}catch{/* Fail closed; ordinary players get no private controls. */}
  },
  /* The small bar over everything (21 Nov 2026): "Sign-in expired" with SIGN IN (a silent token refresh first; Google only if signed out), and "Update ready" with
     APPLY UPDATE (the only way a new build reloads the page while the editor was used or a draft plays). Neither closes the editor or touches its work. */
@@ -116,13 +116,15 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
  open(tab){if(!this.authorized)return;this.used=true;if(mode==='play')pause();if(tab)this.tab=tab;devPanel.hidden=false;devPanel.classList.toggle('dev-basic',devMode()==='basic');this.render();},
  // One window, one section at a time. Sections that aren't built yet are listed, not faked.
  // Start (the welcome screen with the big task cards) comes first; every other tool is one click away. Plain names; each with an icon.
- sections:[['home','Start'],['missions','Mission Editor'],['npcs','NPCs'],['test','Test & Jump To'],['zones','Zones'],['balance','Combat Balance'],['achievements','Achievements'],['guide','Guide']],
- sectionIcons:{home:'home',missions:'mission',npcs:'people',test:'jump',zones:'balance',balance:'balance',achievements:'trophy',guide:'guide'},
+ sections:[['home','Start'],['missions','Mission Editor'],['npcs','NPCs'],['companions','VR Companions'],['test','Test & Jump To'],['zones','Zones'],['balance','Combat Balance'],['achievements','Achievements'],['guide','Guide']],
+ sectionIcons:{home:'home',missions:'mission',npcs:'people',companions:'people',test:'jump',zones:'balance',balance:'balance',achievements:'trophy',guide:'guide'},
+ loadCompanions(){return this.companionLoad??=new Promise((ok,no)=>{const s=document.createElement('script');s.src='void-runner/vr-companion-studio.js';s.onload=ok;s.onerror=()=>{this.companionLoad=null;no(Error('Could not load Companion Studio'));};document.head.append(s);});},
  // The Mission Editor's scripts load only when a confirmed developer opens it (players never download them).
  editorScripts:['admin/studio-model.js','admin/studio-flow.js','void-runner/mission-trees.js','void-runner/editor-guide.js','void-runner/npc-map.js','void-runner/npc-preview.js','void-runner/module-editor.js','void-runner/cult-room-editor.js','void-runner/mission-blocks.js','void-runner/mission-blocks-view.js','void-runner/zone-editor.js','void-runner/mission-mechanics-editor.js','void-runner/mission-editor.js','void-runner/npc-behaviour.js','void-runner/npc-editor.js','void-runner/editor-wizard.js','void-runner/editor-home.js'],
  loadGuide(){return this.guideLoad??=new Promise((ok,fail)=>{const s=document.createElement('script');s.src='void-runner/mission-editor-guide.js';s.onload=ok;s.onerror=()=>{this.guideLoad=null;fail(new Error('Could not load void-runner/mission-editor-guide.js'));};document.head.append(s);});},
  loadEditor(){return this.editorLoad??=this.editorScripts.reduce((p,src)=>p.then(()=>new Promise((ok,fail)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>fail(new Error('Could not load '+src));document.head.append(s);})),Promise.resolve());},
  render(){
+  globalThis.VoidVRCompanionStudio?.disposePreview();
   const tabs='<nav class="dev-tabs" aria-label="Developer sections">'+this.sections.map(([id,name])=>`<button data-dev-tab="${id}" class="${this.tab===id?'on':''}" aria-pressed="${this.tab===id}">${devIcon(this.sectionIcons[id],16)}<span>${name}</span></button>`).join('')+'</nav>';
   // UNDO (and REDO) for every edit made in the editors this session; Advanced switch; "?" replays the short tour (editor-home.js).
   const U=globalThis.VoidEditorHome,adv=devMode()==='advanced';
@@ -134,6 +136,7 @@ const VoidDevTools={authorized:false,request:null,pending:null,revision:0,values
   if(this.tab==='npcs'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};if(globalThis.VoidNPCEditor)return VoidNPCEditor.render(devPanel,heading);devPanel.innerHTML=head+'<p class="dev-note">Loading the NPCs…</p>';this.loadEditor().then(()=>{if(this.tab==='npcs'&&!devPanel.hidden)VoidNPCEditor.render(devPanel,heading);}).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The NPCs tab could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
   // Developer Tools > Zones (19 Nov 2026): the owner's table of Friendly / Neutral / Hostile areas and location types (zone-editor.js; saved in the same draft)
   if(this.tab==='zones'){const heading=()=>{const d=document.createElement('div');d.innerHTML=head;return d;};const go=()=>{if(this.tab==='zones'&&!devPanel.hidden)VoidZoneEditor.table(devPanel,heading);};if(globalThis.VoidZoneEditor&&globalThis.VoidMissionEditor)return go();devPanel.innerHTML=head+'<p class="dev-note">Loading the Zones…</p>';this.loadEditor().then(go).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The Zones could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
+  if(this.tab==='companions'){devPanel.innerHTML=head+'<p>Loading Companion Studio…</p>';this.loadCompanions().then(()=>VoidVRCompanionStudio.restore()).then(()=>{if(this.tab==='companions'&&!devPanel.hidden){VoidVRCompanionStudio.render(devPanel,()=>{const d=document.createElement('div');d.innerHTML=head;return d;});}}).catch(e=>{if(this.tab==='companions')devPanel.innerHTML=head+'<p>'+escapeText(e.message)+'</p>';});return;}
   if(this.tab==='test'){devPanel.innerHTML=head+(globalThis.VoidDevTest?.render()||'<p>Test tools are loading.</p>');return;}
   // Developer Tools > Guide (21 Nov 2026, the owner: "remake me a new mission editor guide and add it as a tab here next to Achievements"): mission-editor-guide.js, loaded on demand
   if(this.tab==='guide'){const go=()=>{if(this.tab==='guide'&&!devPanel.hidden)VoidMissionEditorGuide.render(devPanel,head);};if(globalThis.VoidMissionEditorGuide)return go();devPanel.innerHTML=head+'<p class="dev-note">Loading the guide…</p>';this.loadGuide().then(go).catch(e=>{devPanel.innerHTML=head+'<p class="dev-note">The guide could not load ('+escapeText(e.message)+'). Check your connection, then press CLOSE and open Developer tools again.</p>';});return;}
@@ -171,7 +174,7 @@ devPanel.addEventListener('click',async event=>{
  if(action.startsWith('test-'))return globalThis.VoidDevTest?.action(action,devPanel);
  const tools=VoidDevTools,request=tools.request;
  try{
-  if(action==='close'){devPanel.hidden=true;return;}
+  if(action==='close'){globalThis.VoidVRCompanionStudio?.disposePreview();devPanel.hidden=true;return;}
   if(action==='undo'||action==='redo'||action==='tour'){const H=globalThis.VoidEditorHome;if(H)H[action]();else if(action==='tour'){tools.tab='home';tools.render();}return;}
   // EXIT TO MAIN MENU (the owner, 17 Nov 2026): the game menu's own path (openGameMenu saves first when a normal save would, then shows the main menu). During a test or
   // PLAY THIS DRAFT session it is LEAVE DRAFT (the page reloads with the real save untouched) without reopening the Mission Editor: the game starts on its main menu.
