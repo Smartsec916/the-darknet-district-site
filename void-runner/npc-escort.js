@@ -10,9 +10,10 @@
                   boards with her (BOARD TAXI, fare as normal; the developer account rides free). Both get out at the stop; done then.
      shared-cab   "You call a cab, they ride along": she follows the player; when the player's cab to the chosen stop is waiting she gets in too (or as the player
                   boards, if she is close); both get out at the stop; done then. A cab to another stop: she does not get in (a short notice says where she goes).
-   WHERE: the spot must be walkable in the area where she is placed (placedArea; npc-areas.js, since 19 Nov 2026 anywhere walkable in the city). A cab stop must be in
-   that area's quarter (stops(id, area)); the other stops, the Corporate District and the Temple are greyed with the reason (Reverie / Lace: city only). The cat walks but
-   does not ride in cabs.
+   WHERE: the step STARTS in the area where she is placed (placedArea; npc-areas.js, since 19 Nov 2026 anywhere walkable in the city). Since 20 Nov 2026 (ACROSS, below) the
+   spot may be in any area she can walk to from there: she comes through the city gates, the stairs to and from the tunnels and the District's door with the player, walking
+   or in a taxi. A cab is called in her area (it must have taxis) to any stop of the city (through the gates' bays); the Corporate District and the Temple are greyed with the
+   reason (Reverie / Lace: city only). The cat walks (through the gates too) but never goes inside or down into the tunnels, and does not ride in cabs.
    MULTIPLAYER: the street is not shared (each player's own copy of the street pair): only the mission player's NPC follows them; other players see her as usual.
    SAVE: nothing new in the save shape. While a step runs, story.flags.npcEsc holds '<mission>/<step>|<phase>|<x>|<z>' (a string under 200 characters, which clean_save()
    accepts) so a reload puts her back where she was; it is removed when the step ends.
@@ -59,8 +60,10 @@
   return {ok:true,why:null};}
  /* Every cab stop and far place, with whether this NPC can go there: {id, name, quarter, far, ok, why}. */
  function stops(id,area='avenue'){const Q=QT(),M=movable(id),out=[],A=AR(),q=A&&A.get(area)?A.get(area).quarter:'avenue';if(!Q)return out;
-  for(const s of Q.STOPS||[]){const ok=!!M&&!M.cat&&!M.made&&!!q&&s.quarter===q;
-   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'Cab rides: only Reverie or Lace for now.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission, so a cab can only take her to a stop there ('+s.name+' is in '+((Q.QUARTERS[s.quarter]||{}).name||s.quarter)+').'});}
+  // (20 Nov 2026, escort across) the cab drives through the gates' bays like the player's own: any stop of the city, as long as her area has taxis (she calls it there)
+  const taxis=!!q&&(Q.STOPS||[]).some(s=>s.quarter===q);
+  for(const s of Q.STOPS||[]){const ok=!!M&&!M.cat&&!M.made&&taxis;
+   out.push({id:s.id,name:s.name,quarter:s.quarter,far:false,ok,why:ok?null:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.made?'Cab rides: only Reverie or Lace for now.':!q?M.name+' is placed inside The Darknet District for this mission: no taxis there.':M.name+' is placed in '+areaName(area)+' for this mission: no taxis run there, so she cannot call one.'});}
   for(const f of Q.FAR||[])out.push({id:f.id,name:f.name,quarter:null,far:true,ok:false,why:!M?'Only for characters who can walk with the player.':M.cat?'The cat does not ride in cabs.':M.name+' stays in the city (her content rule): never the Corporate District or the Temple.'});
   return out;}
  const stopOk=(id,stop,area='avenue')=>stops(id,area).some(s=>s.id===stop&&s.ok);
@@ -74,7 +77,7 @@
  function problems(o,ctx={}){const area=ctx.area||'avenue',out=[];if(!o||!IDS.includes(o.kind))return out;const k=kind(o.kind),c=can(o.npc,o.kind);if(!c.ok){out.push(c.why);return out;}
   for(const f of ALL_FIELDS)if(o[f]!=null&&!FIELDS[o.kind].includes(f))out.push('“'+k.name+'” has no '+f+' setting.');
   if(SPOT.has(o.kind)&&(o.apt!=null||o.mod!=null)){for(const p of intoProblems(o,ctx))out.push(p);}
-  else if(SPOT.has(o.kind)){const t=o.to;if(!t||typeof t!=='object'||Array.isArray(t)||Object.keys(t).some(x=>x!=='x'&&x!=='z'))out.push('Pick the spot on the map.');else{const X=NPX(),pp=X?X.spotProblems(o.npc,t):[];for(const p of pp)out.push(p);const ta=!pp.length&&AR()?AR().areaOf(t):null;if(ta&&ta!==area)out.push('That spot is in '+areaName(ta)+', but '+((movable(o.npc)||{}).name||'she')+' is placed in '+areaName(area)+' for this mission: pick a spot in '+areaName(area)+' (or move her placement).');}}
+  else if(SPOT.has(o.kind)){const t=o.to;if(!t||typeof t!=='object'||Array.isArray(t)||Object.keys(t).some(x=>x!=='x'&&x!=='z'))out.push('Pick the spot on the map.');else{const X=NPX(),pp=X?X.spotProblems(o.npc,t):[];for(const p of pp)out.push(p);const ta=!pp.length&&AR()?AR().areaOf(t):null,rw=ta&&ta!==area?reachWhy(o.npc,area,ta):null;if(rw)out.push(rw);}}   // (20 Nov 2026) another area is fine when she can walk there (through the gates, the stairs, the District's door)
   if(o.kind==='follow-them'){if(o.wait!=null&&!(num(o.wait)&&o.wait>=LIMIT.wait[0]&&o.wait<=LIMIT.wait[1]))out.push('“Waits when the player is this far behind” must be '+LIMIT.wait[0]+' to '+LIMIT.wait[1]+' metres.');
    if(o.lost!=null&&!(num(o.lost)&&o.lost>=LIMIT.lost[0]&&o.lost<=LIMIT.lost[1]))out.push('“The player is lost beyond” must be '+LIMIT.lost[0]+' to '+LIMIT.lost[1]+' metres.');
    const s=settings(o);if(num(o.lost)&&num(o.wait)&&o.lost<=o.wait)out.push('“The player is lost beyond” must be further than “waits when the player is this far behind” ('+s.wait+' m).');
@@ -177,6 +180,7 @@
   if(!st.phase)st.phase='ready';st.speed=0;st.clip='idle';st.want=null;if(st.phase==='done')return null;
   const mine=!!job&&job.dest===inp.stop,d=me?dist(me,st):Infinity;
   if(st.phase==='in-cab'){st.clip='sit';if(job){if(job.phase==='arrived')st.arrived=true;return ev;}   // riding
+   if(inp.crossing)return ev;   // (20 Nov 2026) the cab is going through a gate's bay into another quarter: no job for a moment, she stays in her seat
    // the trip is over: out of the cab together where it stopped (she arrived), or the cab went without the player
    st.out=true;if(st.arrived&&inp.walking){go('out');return ev;}if(!st.arrived){st.arrived=false;go(inp.kind==='their-cab'?'kerb':'follow');st.retry=3;return ev;}return ev;}
   if(st.phase==='out'){go('done');return ev;}
@@ -200,7 +204,7 @@
  function encode(e){if(!e||typeof e.key!=='string')return null;const w=e.w?String(e.w).replace(/[^a-z]/g,'').slice(0,4):'';const s=[e.key.slice(0,150),String(e.phase||'').replace(/[^a-z-]/g,'').slice(0,12),num(e.x)?e.x.toFixed(1):'',num(e.z)?e.z.toFixed(1):'',...(w?[w]:[])].join('|');return s.length<200?s:null;}
  function decode(v){if(typeof v!=='string')return null;const [key,phase,x,z,w]=v.split('|');if(!key)return null;const out={key,phase:phase||null};if(x!==''&&x!=null&&Number.isFinite(+x)&&z!==''&&z!=null&&Number.isFinite(+z)){out.x=+x;out.z=+z;}if(w)out.w=w;return out;}
  /* For the admin inventory (the server's copy of these rules: void_runner_live_content.py escort_problems). */
- function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok,into:canInto(id).ok,youthful:!!(X.MOVABLE[id]&&X.MOVABLE[id].youthful)};
+ function inventory(){const X=NPX(),out={},ids=(AR()&&AR().IDS)||['avenue'];for(const id of Object.keys((X&&X.MOVABLE)||{}))out[id]={stops:stops(id).filter(s=>s.ok).map(s=>s.id),stopsByArea:Object.fromEntries(ids.map(a=>[a,stops(id,a).filter(s=>s.ok).map(s=>s.id)])),cab:can(id,'their-cab').ok,into:canInto(id).ok,youthful:!!(X.MOVABLE[id]&&X.MOVABLE[id].youthful),reach:Object.fromEntries(ids.map(a=>[a,[...reach(id,a)].sort()]))};
   // into a place (the server's into_problems): the area of every street door's front (npc-areas.js), the rooms a youthful character never goes into
   const P=APX(),doorAreas={};try{for(const d of (P&&P.doors?P.doors():[]))doorAreas[d.id]=doorArea({front:{x:d.front[0],z:d.front[1]}})||null;}catch{}
   return {kinds:IDS.slice(),fields:FIELDS,limits:{wait:LIMIT.wait,lost:LIMIT.lost,def:LIMIT.def},ifLost:IF_LOST.map(x=>x.id),npcs:out,into:{kinds:[...SPOT],adultRooms:ADULT_ROOMS.slice(),doorAreas}};}
@@ -258,7 +262,7 @@
   if(!a.door){out.push('That place has no street door yet: choose its street door first.');return out;}
   const d=doorAt(a.door);if(!d){out.push('That place’s street door is not in the game.');return out;}
   const A=AR(),da=doorArea(d),area=ctx.area||'avenue';if(A&&!da)out.push(who+' cannot walk to that street door (it is not on ground the people of the city walk on): choose another place.');
-  else if(da&&da!==area)out.push('The street door of that place is in '+areaName(da)+', but '+who+' is placed in '+areaName(area)+' for this mission: choose a place whose street door is in '+areaName(area)+' (or move her placement).');
+  else if(da&&da!==area){const rw=reachWhy(o.npc,area,da);if(rw)out.push('The street door of that place is in '+areaName(da)+', but '+who+' starts in '+areaName(area)+' for this mission and cannot get there: '+rw);}
   const steps=Array.isArray(ctx.steps)?ctx.steps:null;if(steps&&a.from&&a.from!=='start'){const k=steps.findIndex(x=>x&&x.id===a.from),i=steps.findIndex(x=>x&&x.id===o.id);if(k>=0&&i>=0&&k>i)out.push('That place opens later in the mission (its “available from” is a later step): its door is still locked during this step.');}
   return out;}
  /* THE PLAYER CHANGES PLACE while the step runs (into a room, through a door that leads elsewhere, the elevator, back out to the street). inp: {kind, set, herIn (she is in
@@ -297,6 +301,101 @@
  /* A free standing spot near p (the walking area's solids), searched in rings: for where she waits and where she stays. */
  function freeSpot(p,solids,R=.35){const S=(solids||[]).filter(s=>s&&!s.door&&Array.isArray(s.position)&&Array.isArray(s.size)),hit=(x,z)=>S.some(s=>Math.abs(x-s.position[0])<s.size[0]/2+R&&Math.abs(z-s.position[2])<s.size[2]/2+R);
   if(!hit(p.x,p.z))return {x:p.x,z:p.z};for(let r=.25;r<=4;r+=.25)for(let k=0;k<16;k++){const t=k/16*Math.PI*2,q={x:p.x+Math.sin(t)*r,z:p.z+Math.cos(t)*r};if(!hit(q.x,q.z))return {x:+q.x.toFixed(2),z:+q.z.toFixed(2)};}return {x:p.x,z:p.z};}
- const api={ADULT_ROOMS,INTO,canInto,doorAt,doorArea,roomGraph,roomPath,destOf,intoProblems,crossing,insideDone,resumeInto,gridRoute,freeSpot,placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
+ // ================================================================= ACROSS GATES, THE STAIRS TO THE TUNNELS AND THE DISTRICT DOOR (20 Nov 2026)
+ /* The owner, 20 Nov 2026: a follow / lead step did not carry the person through a city gate or up / down the stairwells to the tunnels: "I need this fixed. whether it's
+    walking or in a taxi". The city's walking AREAS (npc-areas.js: The Avenue, Old Town, Far South, The Outskirts, The Port, The Underground, the District inside) are joined by
+    LINKS: each walkers' lane of a gate between two city quarters (ncz-quarters.js LANES, foot), each stairwell between a quarter and the tunnels (ncz-backalleys.js
+    UNDERGROUND_ENTRANCES, ncz-underground.js arrive / leave) and the District's door (Old Town <-> the District inside). Each end of a link has, in that end's area:
+      wait    where a person who LEADS waits for the player (just outside the gate's door, at the top of the stairs, a little inside the checkpoint's door)
+      ahead   where she stands when she comes through AHEAD of the player (follow-them): out of the door on the far side, facing on
+      behind  where she stands when she comes through BEHIND the player (they-follow, shared-cab): inside the lane / on the landing, facing the way the player goes
+    areaRoute (cheapest chain of links from her area to the destination's) gives a leading person her next leg: to the link's `wait` until the destination's area. across()
+    decides what happens when the player changes area while a step runs (npc-escort-across.js asks: with / ride / stay / fail / refused). rideAlong() is a follow / lead
+    step's taxi: she gets in the player's cab, rides (seated), and gets out with the player at the stop, also through a gate's bay into another quarter.
+    RULES KEPT: a link is usable only if she may stand at both ends (npc-paths.js spotProblems: Reverie, Lace and made characters not marked adult never go where the adult
+    places are); the cat never goes inside (the District) or down into the tunnels, and never rides a cab; the Corporate District and the Temple are never entered (city only). */
+ const BAX=()=>node?reqI('./ncz-backalleys.js'):root.VoidBackAlleys,UGX=()=>node?reqI('./ncz-underground.js'):root.VoidUnderground;
+ const ACROSS={wait:1.6,ahead:2.4,behind:1.4,snap:3,cross:6,rideNear:12,withMax:40};
+ const fwd=y=>({x:Math.sin(y),z:Math.cos(y)}),r2=v=>+v.toFixed(2);
+ const areaOfQuarter=q=>{const A=AR();const a=A&&A.list().find(x=>x.scene==='street'&&x.quarter===q);return a?a.id:null;};
+ const snapIn=(p,area)=>{const A=AR();let q=null;try{q=A&&A.nearest?A.nearest(p,area,ACROSS.snap):null;}catch{}return q?{x:r2(q.x),z:r2(q.z)}:{x:r2(p.x),z:r2(p.z)};};
+ let LINKS=null;
+ /* Every link: {id, kind: 'gate' | 'stairs' | 'door', name, ends: {[area]: {wait, ahead, behind}}}. Built once (data only). */
+ function links(){if(LINKS)return LINKS;const out=[],Q=QT(),A=AR();if(!Q||!A)return out;
+  for(const l of Q.LANES||[]){if(l.kind!=='foot')continue;const g=Q.gate(l.gate);if(!g||g.shut)continue;const ql=g.ends.lo&&g.ends.lo.quarter,qh=g.ends.hi&&g.ends.hi.quarter;if(!ql||!qh||ql===qh)continue;
+   const al=areaOfQuarter(ql),ah=areaOfQuarter(qh);if(!al||!ah)continue;const mid={x:l.mid[0],z:l.mid[1]},ends={};
+   for(const [e,a] of [['lo',al],['hi',ah]]){const d=l.doors[e],n=Math.hypot(d.x-mid.x,d.z-mid.z)||1,u={x:(d.x-mid.x)/n,z:(d.z-mid.z)/n},yaw=r2(Math.atan2(u.x,u.z));
+    ends[a]={wait:snapIn({x:d.x+u.x*ACROSS.wait,z:d.z+u.z*ACROSS.wait},a),ahead:{...snapIn({x:d.x+u.x*ACROSS.ahead,z:d.z+u.z*ACROSS.ahead},a),yaw},behind:{x:r2(mid.x-u.x*ACROSS.behind),z:r2(mid.z-u.z*ACROSS.behind),yaw}};}
+   out.push({id:'gate:'+l.key,kind:'gate',name:g.name,ends});}
+  const BA=BAX(),U=UGX(),ua=U?areaOfQuarter(U.ID||'underground'):null;
+  if(BA&&U&&ua&&U.arrive&&U.leave)for(const u of BA.UNDERGROUND_ENTRANCES||[]){const sa=areaOfQuarter(u.quarter),inn=U.arrive(u.id),lv=U.leave(u.id);if(!sa||!inn||!lv)continue;
+   const dn={x:u.down[0],z:u.down[1]},top={x:u.top[0],z:u.top[2]},up=r2(Math.atan2(-dn.x,-dn.z)),fi=fwd(inn.yaw),ip={x:inn.spawn[0],z:inn.spawn[2]},fl=fwd(lv.yaw),lp={x:lv.spawn[0],z:lv.spawn[2]};
+   out.push({id:'stairs:'+u.id,kind:'stairs',name:'the stairs down to the tunnels ('+areaName(sa)+')',ends:{
+    [sa]:{wait:snapIn({x:top.x-dn.x*1.4,z:top.z-dn.z*1.4},sa),ahead:{...snapIn({x:top.x-dn.x*1.9,z:top.z-dn.z*1.9},sa),yaw:up},behind:{x:r2(lp.x-fl.x*.7),z:r2(lp.z-fl.z*.7),yaw:r2(lv.yaw)}},
+    [ua]:{wait:snapIn({x:ip.x+fi.x*1.3,z:ip.z+fi.z*1.3},ua),ahead:{...snapIn({x:ip.x+fi.x*2.6,z:ip.z+fi.z*2.6},ua),yaw:r2(inn.yaw)},behind:{x:r2(ip.x-fi.x*.5),z:r2(ip.z-fi.z*.5),yaw:r2(inn.yaw)}}}});}
+  // the District's door (its security vestibule; npc-areas.js DOOR / toWorld: the street is north of the door, the District's plan runs south of it)
+  if(A.get('district')&&A.DOOR&&A.toWorld){const ot=areaOfQuarter('oldtown'),w=(x,z)=>{const [a,b]=A.toWorld(x,z);return {x:a,z:b};};
+   if(ot)out.push({id:'door:district',kind:'door',name:'the District’s door',ends:{
+    [ot]:{wait:snapIn(w(0,17.6),ot),ahead:{...snapIn(w(0,17.2),ot),yaw:0},behind:{...w(0,22.6),yaw:0}},
+    district:{wait:snapIn(w(0,28.4),'district'),ahead:{...snapIn(w(0,29.2),'district'),yaw:r2(Math.PI)},behind:{...w(0,23.4),yaw:r2(Math.PI)}}}});}
+  return LINKS=out;}
+ const linkById=id=>links().find(l=>l.id===id)||null;
+ /* May this person go into `area` at all, and stand at point p there? {ok, why}. The cat: streets only (never inside, never down into the tunnels). */
+ function mayEnter(id,area,p){const M=movable(id),A=AR(),a=A&&A.get(area),who=(M&&M.name)||'They';if(!M)return {ok:false,why:'This character cannot walk with the player.'};
+  if(!a)return {ok:false,why:who+' stays in the city: '+(M.cat?'it waits':'she waits')+' here for you.'};
+  if(M.cat&&(a.scene!=='street'||area===areaOfQuarter('underground')))return {ok:false,why:'The cat never goes inside or down into the tunnels: it waits here for you.'};
+  if(p){const X=NPX(),pp=X&&X.spotProblems?X.spotProblems(id,p):[];if(pp.length)return {ok:false,why:who+' does not go there ('+String(pp[0]).replace(/\.$/,'')+'): '+(M.cat?'it waits':'she waits')+' here for you.'};}
+  return {ok:true,why:null};}
+ const usable=(l,id)=>Object.entries(l.ends).every(([a,e])=>mayEnter(id,a,e.wait).ok&&mayEnter(id,a,e.ahead).ok);
+ /* The cheapest chain of links from `from` ({area, x, z}) to `to` ({area, x, z}) for this person: [{link, a (area she leaves), b (area she enters)}], [] when already
+    there, null when there is no way. Cost: metres walked (straight) plus a few per crossing. */
+ function areaRoute(id,from,to){if(!from||!to||!from.area||!to.area)return null;if(from.area===to.area)return [];const L=links().filter(l=>usable(l,id));
+  const best=new Map(),q=[{cost:0,area:from.area,at:{x:num(from.x)?from.x:0,z:num(from.z)?from.z:0},path:[]}];let win=null;
+  while(q.length){q.sort((u,v)=>u.cost-v.cost);const s=q.shift();if(s.area===to.area){const c=s.cost+(num(to.x)&&num(to.z)?dist(s.at,to):0);if(!win||c<win.cost)win={cost:c,path:s.path};continue;}
+   if(win&&s.cost>=win.cost)continue;
+   for(const l of L){const e=l.ends[s.area];if(!e)continue;for(const [b,f] of Object.entries(l.ends)){if(b===s.area||s.path.some(p=>p.a===b))continue;const cost=s.cost+dist(s.at,e.wait)+ACROSS.cross,k=l.id+'>'+b;if(best.has(k)&&best.get(k)<=cost)continue;best.set(k,cost);q.push({cost,area:b,at:{x:f.ahead.x,z:f.ahead.z},path:[...s.path,{link:l,a:s.area,b}]});}}}
+  return win?win.path:null;}
+ /* The areas this person can walk to from `area` (through the links she may use), `area` included. */
+ function reach(id,area){const out=new Set([area]),L=links().filter(l=>usable(l,id)),q=[area];while(q.length){const a=q.shift();for(const l of L){if(!l.ends[a])continue;for(const b of Object.keys(l.ends))if(!out.has(b)){out.add(b);q.push(b);}}}return out;}
+ /* Why she cannot get from area a to area b on foot (null: she can). */
+ function reachWhy(id,a,b){if(!a||!b||a===b||reach(id,a).has(b))return null;const M=movable(id),who=(M&&M.name)||'They',m=mayEnter(id,b,null);
+  return m.ok?who+' cannot walk from '+areaName(a)+' to '+areaName(b)+' (there is no way through for '+(M&&M.cat?'it':'her')+'): pick a spot in an area '+(M&&M.cat?'it':'she')+' can reach.':String(m.why).replace(/: (it|she) waits here for you\.$/,'.')+' Pick a spot in an area '+(M&&M.cat?'it':'she')+' can reach from '+areaName(a)+'.';}
+ /* Her next leg in `area` toward `dest` (a point in `destArea`): {to, via (a link id, or null on the last leg), next (the area beyond), final}. to null: no way. */
+ function legOf(id,area,pos,dest,destArea){if(!dest)return {to:null,via:null,final:true};if(!area||!destArea||area===destArea)return {to:{x:dest.x,z:dest.z},via:null,final:true};
+  const r=areaRoute(id,{area,x:pos&&pos.x,z:pos&&pos.z},{area:destArea,x:dest.x,z:dest.z});if(!r||!r.length)return {to:null,via:null,final:false,why:reachWhy(id,area,destArea)};
+  const w=r[0].link.ends[area].wait;return {to:{x:w.x,z:w.z},via:r[0].link.id,next:r[0].b,final:false};}
+ /* Which link the player just went through from area a to area b, the one nearest to where they stood (null: none). */
+ function linkBetween(a,b,at){let best=null,bd=Infinity;for(const l of links()){if(!l.ends[a]||!l.ends[b])continue;const d=at?dist(at,l.ends[a].wait):0;if(d<bd){bd=d;best=l;}}return best;}
+ /* THE PLAYER CHANGES AREA while a step runs. inp: {kind, set, npc, from (the area the player left), to (the area they go to, null: a place that is not a walking area),
+    herArea (the area she was in), dist (metres between them as they left), riding (the player is in a taxi), inCab (she sits in it with them), allowed ({ok, why}: may she
+    go there), farScene (the Corporate District / the Temple)}. Returns {go: 'with' | 'ride' | 'stay' | 'fail' | 'refused', place: 'ahead' | 'behind', why}. */
+ function across(inp){const S=settings(inp&&inp.set);if(!inp||!inp.herArea||inp.herArea!==inp.from)return {go:'stay'};
+  if(!inp.to)return inp.farScene?{go:'refused',why:inp.allowed&&inp.allowed.why||null}:{go:'stay'};
+  if(inp.riding){if(!inp.inCab)return {go:'stay'};return inp.allowed&&!inp.allowed.ok?{go:'refused',why:inp.allowed.why}:{go:'ride'};}
+  if(inp.inCab)return {go:'stay'};   // she sat in a cab the player walked away from
+  const d=num(inp.dist)?Math.max(0,inp.dist):Infinity;
+  if(inp.kind==='their-cab')return {go:'stay'};   // she waits at her kerb for her cab
+  if(inp.kind==='follow-them'){if(d>S.lost)return S.ifLost==='fail'?{go:'fail'}:{go:'stay'};if(inp.allowed&&!inp.allowed.ok)return {go:'refused',why:inp.allowed.why};return {go:'with',place:'ahead'};}
+  if(d>Math.max(S.lost,ACROSS.withMax))return {go:'stay'};
+  if(inp.allowed&&!inp.allowed.ok)return {go:'refused',why:inp.allowed.why};
+  return {go:'with',place:'behind'};}
+ /* Where she stands on the other side: the link's ahead / behind point, else beside the player's arrival (spawn {x, z, yaw}): ahead 2.4 m in front, behind 1.4 m. */
+ function arrival(link,area,place,spawn){const e=link&&link.ends[area];if(e){const p=e[place==='ahead'?'ahead':'behind'];return {x:p.x,z:p.z,yaw:num(p.yaw)?p.yaw:0};}
+  if(!spawn)return null;const y=num(spawn.yaw)?spawn.yaw:0,f=fwd(y),k=place==='ahead'?ACROSS.ahead:-ACROSS.behind;return {x:r2(spawn.x+f.x*k),z:r2(spawn.z+f.z*k),yaw:r2(y)};}
+ /* A FOLLOW / LEAD STEP'S TAXI (the owner: "whether it's walking or in a taxi"). st gains `ride`: null | 'to-cab' | 'in-cab'. inp: {me, job (the player's taxi job: {phase,
+    dest, far, released, cab:{x,z,yaw}, doors}), riding (the player sits in it), crossing (the cab is going through a gate: no job for a moment), dt, set, can (she rides
+    cabs)}. Returns {busy (the ride has her: the walking rules wait), ev}: events 'to-cab', 'in-cab', 'ride-out' (out with the player at the stop: st.route / phase reset so
+    the walk goes on from there), 'no-cab' (the cat, a far stop: she stays out; once per cab). */
+ function rideAlong(st,inp){const job=inp.job&&!inp.job.released?inp.job:null,me=inp.me,dt=inp.dt||0;let ev=null;
+  if(st.ride==='in-cab'){st.clip='sit';st.speed=0;if(job){if(job.phase==='arrived')st.rideArrived=true;return {busy:true,ev};}if(inp.crossing)return {busy:true,ev};
+   st.ride=null;st.route=null;st.routeFor=null;if(st.phase!=='done'&&st.phase!=='failed')st.phase='ready';st.rideOut=true;const was=st.rideArrived;st.rideArrived=false;return {busy:false,ev:was?'ride-out':'ride-left'};}
+  if(!job){if(st.ride==='to-cab')st.ride=null;return {busy:false,ev:null};}
+  const d=me?dist(me,st):Infinity,S=settings(inp.set);
+  if(!inp.can||job.far){if((inp.riding||job.phase==='waiting')&&d<=S.lost&&st.noCab!==job.id){st.noCab=job.id;ev='no-cab';}if(st.ride==='to-cab')st.ride=null;return {busy:false,ev};}
+  if(inp.riding){if(st.ride==='to-cab'||d<=LIMIT.cabNear){st.ride='in-cab';st.rideArrived=false;st.clip='sit';return {busy:true,ev:'in-cab'};}return {busy:false,ev};}   // the player got in first: she gets in too (left behind beyond cabNear)
+  if(job.phase==='waiting'&&me&&job.cab&&dist(me,job.cab)<=ACROSS.rideNear&&d<=Math.max(S.lost,LIMIT.cabNear)){const doors=job.doors||[],door=doors.slice(0,2).sort((a,b)=>dist(a,st)-dist(b,st))[0];if(!door)return {busy:false,ev};
+   if(st.ride!=='to-cab'){st.ride='to-cab';ev='to-cab';}st.clip='walk';st.speed=SPEED.walk*1.5;if(stepTo(st,door,SPEED.walk*1.5,dt)){st.ride='in-cab';st.rideArrived=false;st.clip='sit';ev='in-cab';}return {busy:true,ev};}
+  if(st.ride==='to-cab')st.ride=null;return {busy:false,ev};}
+ const api={ACROSS,links,linkById,mayEnter,areaRoute,reach,reachWhy,legOf,linkBetween,across,arrival,rideAlong,areaOfQuarter,ADULT_ROOMS,INTO,canInto,doorAt,doorArea,roomGraph,roomPath,destOf,intoProblems,crossing,insideDone,resumeInto,gridRoute,freeSpot,placedArea,draftPlans:null,KINDS,IDS,CAB,SPOT,IF_LOST,LIMIT,SPEED,FLAG,FIELDS,kind,can,stops,stopOk,stopPos,settings,problems,needs,spots,route,lead,trailPush,behind,follow,kerb,cab,walkRoute,keyOf,encode,decode,inventory};
  if(node)module.exports=api;else root.VoidNPCEscort=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
