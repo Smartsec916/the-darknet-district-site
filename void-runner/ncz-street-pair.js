@@ -149,7 +149,7 @@
     points:[{x, z, action, seconds}]}. She walks there (mode plan-go), does the action (plan-do: a clip, a V1 pose, or the ledge's sit through the usual sit-down / sit /
     stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her
     stretch on foot (never a jump). ACT: an action id -> {clip, device, sit}. */
- const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'walk-on':{clip:'walk',pass:true},work:{clip:'interact'}};
+ const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},photo:{clip:'idle',device:'photo'},sit:{sit:true},'walk-on':{clip:'walk',pass:true},work:{clip:'interact'}};
  const actOf=a=>ACT[a]||{clip:a};
  const FREE=new Set(['walk','run','pause','stop']),PLAN=new Set(['plan-go','plan-do','esc']);   // esc: a mission's follow / lead / cab step (npc-escort.js; run in start())
  function planTarget(s,P){if(P.mode==='stay')return P;const n=P.points.length;s.pi=((s.pi||0)%n+n)%n;return P.points[s.pi];}
@@ -161,7 +161,7 @@
   if(A.sit){const st=ledgeNear(t);if(st){s.step=st;s.mode='to-step';s.psit=true;s.psec=P.mode==='path'?t.seconds:null;s.psecSet=false;s.device=null;s.face=null;return;}}
   if(A.pass){planNext(s,P);s.mode='plan-go';return;}
   s.mode='plan-do';s.clip=A.clip;s.device=A.device||null;s.face=null;s.sub=null;const st=cfg.stop;
-  s.left=P.mode==='path'?Math.max(1,t.seconds||5):between(rnd,a==='scroll'?st.device:a==='selfie'?st.selfie:/^dance/.test(a)?st.dance:/^(talk|gesture)/.test(a)?st.talk:a==='shrug'?st.shrug:a==='look'||a==='watch'?st.look:st.idle);}
+  s.left=P.mode==='path'?Math.max(1,t.seconds||5):between(rnd,a==='scroll'?st.device:(a==='selfie'||a==='photo')?st.selfie:/^dance/.test(a)?st.dance:/^(talk|gesture)/.test(a)?st.talk:a==='shrug'?st.shrug:a==='look'||a==='watch'?st.look:st.idle);}
  function planStep(s,dt,rnd,cfg,P){
   if(s.planKey!==P.key){s.planKey=P.key;s.pi=0;s.psit=false;if(PLAN.has(s.mode)||FREE.has(s.mode)){s.mode='plan-go';s.device=null;s.sub=null;}}
   if(s.psit&&s.mode==='walk'){s.psit=false;planNext(s,P);s.mode='plan-go';}   // back on her feet after sitting at a point
