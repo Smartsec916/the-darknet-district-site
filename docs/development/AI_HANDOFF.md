@@ -6,6 +6,11 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V13 — EDITABLE PERSONALITY STARTERS
+
+- Six personality presets set the seven existing behavior sliders and provide at least two draft lines for all 25 dialogue categories. Default application preserves existing descriptions and non-empty dialogue; replacement requires confirmation. ChatGPT JSON import merges supplied fields/categories. Saved lines and existing voice identity remain unchanged until explicitly edited and saved.
+- Voice tab offers a downloadable numbered recording list and multi-file import using exact filenames that include a text/speaker fingerprint. Existing recordings are skipped. Audio remains account-local; no ElevenLabs keys or spending. Wider desktop standalone layout uses the same authorized page and mobile drafts remain browser-local. Cache version 13.
+
 ### 21 Nov 2026: EXPANDED CATEGORIZED FLOOR, COUCH, YOGA AND LYING POSES (local)
 
 - 94 free presets plus original reset, ten categories including 14 yoga/stretching poses. New presets can tilt/roll the pelvis/torso and ground using deformed bounds. Mirror left/right swaps template limb targets and signs of side tilt/roll. These are approximate static poses, not full IK, exact hand contacts or finger articulation; manually inspect and adjust per rig. Floor/root placement remains preview-only.

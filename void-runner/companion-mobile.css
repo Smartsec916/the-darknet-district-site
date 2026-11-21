@@ -7,3 +7,4 @@
 .companion-preview-panel[data-collapsed="true"] .npc-preview-canvas,.companion-preview-panel[data-collapsed="true"] .companion-joint-detail{display:none}
 .mobile-studio-main .companion-preview-actions{display:flex;gap:6px}
 .mobile-studio-main .companion-preview-actions button{flex:1;width:auto;font-size:13px;min-height:36px;padding:6px}
+@media(min-width:1000px){.mobile-studio-main{max-width:1500px;padding:24px 40px}.mobile-studio-main .companion-studio{max-width:none}.mobile-studio-main .companion-tabs{grid-template-columns:repeat(7,minmax(0,1fr))}.mobile-studio-main .companion-card{padding:24px}.mobile-studio-main .companion-preview-panel .npc-preview-canvas{width:min(100%,650px);height:auto;aspect-ratio:1;margin:auto}.mobile-studio-main .companion-preview-panel[data-follow="true"] .npc-preview-canvas{width:min(100%,50vh);max-height:50vh}.mobile-studio-main .companion-sliders{max-width:900px}.mobile-studio-main .companion-card textarea{min-height:120px}}
