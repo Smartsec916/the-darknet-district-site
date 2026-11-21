@@ -54,6 +54,16 @@
   "dr-dance",
   "floor-kneel",
   "floor-cross",
-  "floor-knees"
+  "floor-knees",
+  "floor-kneel-down",
+  "floor-kneel-up",
+  "floor-cross-down",
+  "floor-cross-up",
+  "floor-knees-down",
+  "floor-knees-up",
+  "floor-cross-down-hi",
+  "floor-cross-up-hi",
+  "floor-knees-down-hi",
+  "floor-knees-up-hi"
  ]
 }
