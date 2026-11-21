@@ -3130,7 +3130,7 @@ def get_clip(db, h):
 # The same rules as npc-made.js problems(), against the admin inventory's madeCharacters (models, items, ships, devices, the ids the game already uses). A made character
 # placed in an adult venue must be marked adult (18+) (npc-areas.js `adult` rectangles; never on Reverie's or Lace's model).
 MADE_ID = re.compile(r'^[a-z][a-z0-9-]{1,39}$')
-MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when', 'companionProfile', 'worldBehavior']
+MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when', 'companionProfile', 'worldBehavior', 'relationships']
 COMPANION_RANGES = {'initiative': (0, 1), 'flirtatiousness': (0, 1), 'approachFrequency': (0, 1), 'attention': (0, 1), 'personalSpace': (.7, 2), 'walkSpeed': (.5, 1.6), 'remarkCooldown': (10, 120)}
 COMPANION_POOLS = 'greet chat compliment flirt sit dance hands kiss kissAfter notYet notNow relax bye approach window joinSofa inviteSit inviteDance inviteRecline accepted declined welcomeBack aside comeHere recline'.split()
 
@@ -3152,6 +3152,25 @@ def _world_behavior_ok(b):
             and type(b.get('distance')) in (int, float) and 1 <= b['distance'] <= 8
             and b.get('activity') in ('greet', 'approach', 'seat')
             and b.get('room') in ('auto', 'tea', 'sleeping', 'apartment', 'container', 'office', 'custom'))
+
+
+def _relationships_ok(rows, cid):
+    if not isinstance(rows, list) or len(rows) > 8:
+        return False
+    seen = set()
+    for r in rows:
+        if not _keys(r, ['target', 'type', 'affection', 'distance', 'activity', 'lines']):
+            return False
+        target, affection, distance, lines = (r.get(k) for k in ('target', 'affection', 'distance', 'lines'))
+        if (not isinstance(target, str) or (target != 'player' and not MADE_ID.fullmatch(target)) or target == cid or target in seen
+                or r.get('type') not in ('friend', 'coworker', 'partner', 'rival', 'acquaintance')
+                or type(affection) not in (int, float) or not 0 <= affection <= 1
+                or type(distance) not in (int, float) or not 1 <= distance <= 8
+                or r.get('activity') not in ('greet', 'approach', 'seat')
+                or not isinstance(lines, list) or len(lines) > 10 or not all(_made_plain(t, 500) and not re.search(r'[<>]', t) for t in lines)):
+            return False
+        seen.add(target)
+    return True
 
 
 def _made_plain(v, n):
@@ -3204,6 +3223,8 @@ def made_problems(content, inv=None):
             out.append(w + 'invalid transferred companion personality or dialogue.')
         if c.get('worldBehavior') is not None and not _world_behavior_ok(c['worldBehavior']):
             out.append(w + 'invalid companion behavior trigger.')
+        if c.get('relationships') is not None and not _relationships_ok(c['relationships'], cid):
+            out.append(w + 'invalid relationship target or settings.')
         md = models.get(c.get('model')) if isinstance(c.get('model'), str) else None
         if md is None:
             out.append(w + 'not a model of the game.')

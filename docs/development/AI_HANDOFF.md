@@ -6,6 +6,11 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V18 — RELATIONSHIPS & CITY ROUTES (local, not deployed)
+
+- New Relationships tab supports eight distinct targets (player, named District NPCs such as Iris/Admin/Dax, or a made world NPC), relationship type, affection, activation distance, greeting/approach/seat preference, and target-specific dialogue. Settings survive phone-to-PC packages and made-giver conversion; validated on both client and server. Actual same-scene target figures are located by the game’s NPC gesture registry. Ambient greetings can happen during route stops; existing mission/escort control takes priority. Routes and visits are edited through the existing NPC map and schedule, not a new cross-quarter pathfinder. Relationship-specific lines are text unless separately recorded; other NPCs are not scripted to reply or perform paired romance animations automatically. VR-only models must be integrated into the world first.
+- V17 was verified on the live website and its Render backend, commit c6e75d15f9637c1db83236f36d4db8efacba81df (Render deployment dep-dc0souh7lnhs739le6j0). V18 needs a separate explicit push/deployment. Forty focused and regression tests passed; server relationship validation isolated checks passed. Actual game relationship playtesting remains pending.
+
 ### 21 Nov 2026: COMPANION STUDIO V17 — WORLD BEHAVIOR & ROOM PLANNING (local, not deployed)
 
 - Mission giver conversion retains the full companion description, all seven sliders, every dialogue category, and matching imported audio references. World NPCs use ordinary greeting/small-talk lines outside mission conversations and the selected walking speed on regular routes. Near-player triggers can greet, face, approach with a collision-checked straight leg, or use a compatible nearby registered seat; authored missions, escort routes, and explicit interactions take priority. The remaining VR-only activities are not automatically transplanted. Existing server validation now accepts the bounded profile and trigger settings.
