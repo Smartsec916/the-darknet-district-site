@@ -9,6 +9,13 @@
 ### 21 Nov 2026: PLAY THIS DRAFT "does nothing at all" (branch `claude/draft-play-fix`, build `2026-11-21-draft-play-1`)
 
 - The owner (Firefox): PLAY THIS DRAFT, PLAY FROM HERE and play the tree from the start did nothing. Not reproduced in Chromium (mission-qa-browser plays a draft fine). The Render log showed no `developer/balance` call after his presses, so play() stopped before `VoidDevTest.session`; an exception there was an unhandled rejection. play() now wraps `playNow()` and shows `PLAY could not start: <message>` in the status line (console keeps the stack). Next: get the message from the owner and fix the cause.
+### 21 Nov 2026: STREET PAIR GAMEPLAY OPTIONS (Codex, build `2026-11-21-street-pair-gameplay-1`)
+
+- Removed the character-specific voice reminder in the preceding commit; existing voice identities remain unchanged.
+- Reverie and Lace now have a **Take a photo** placement action. Exactly 27 additional public-model clips for Reverie and 8 for Lace passed the existing rig index and 25-degree rest-pose check: ordinary gestures, interaction, and six security combat poses for Reverie. The verified motions appear directly in the mission animation picker as well as Add animation; the runtime loads them through the existing retargeter. The server inventory mirrors both catalogs. Lace's security rig fails the check and is not offered those combat poses. No model or licensed asset was changed.
+- The UTC rotation, collision / path checks, and age-sensitive venue / animation restrictions remain unchanged. Temple and Corporate District are separate scenes and need actual placement/navigation integration, not just an editor dropdown change.
+- Targeted source-level checks passed; full browser and production verification still required.
+
 
 ### 21 Nov 2026 (newest): MISSION 010'S CHORUS: THE SIX BLACKROCK MEMBERS' LINES AND THE LAUGH; HALDEN'S OWNER-CHOSEN VOICE (branch `claude/chorus-voices`, on top of `claude/awakening-voices`, build `2026-11-21-chorus-voices-3`, shipped)
 
