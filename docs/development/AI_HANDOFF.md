@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: STREET PAIR GAMEPLAY OPTIONS (Codex, build `2026-11-21-street-pair-gameplay-1`)
+
+- Removed the character-specific voice reminder in the preceding commit; existing voice identities remain unchanged.
+- Reverie and Lace now have a **Take a photo** placement action. Exactly 27 additional public-model clips for Reverie and 8 for Lace passed the existing rig index and 25-degree rest-pose check: ordinary gestures, interaction, and six security combat poses for Reverie. The verified motions appear directly in the mission animation picker as well as Add animation; the runtime loads them through the existing retargeter. The server inventory mirrors both catalogs. Lace's security rig fails the check and is not offered those combat poses. No model or licensed asset was changed.
+- The UTC rotation, collision / path checks, and age-sensitive venue / animation restrictions remain unchanged. Temple and Corporate District are separate scenes and need actual placement/navigation integration, not just an editor dropdown change.
+- Targeted source-level checks passed; full browser and production verification still required.
+
+
 ### 21 Nov 2026 (newest): MISSION 010'S CHORUS: THE SIX BLACKROCK MEMBERS' LINES AND THE LAUGH; HALDEN'S OWNER-CHOSEN VOICE (branch `claude/chorus-voices`, on top of `claude/awakening-voices`, build `2026-11-21-chorus-voices-3`, shipped)
 
 - **Chorus clips (already generated with ElevenLabs eleven_v4 in the six approved voices; nothing new generated here):** `void-runner/assets/audio/voice/extra/robed-all-m010-1`..`8.ogg` (ogg/vorbis 24 kHz mono), one mix per line with the owner's "half in sync" recipe (sample v4-D, `cult-room.js CHORUS`); manifest entries speaker `robed-all`, the cult-room beats' exact text, voice "Blackrock Members 1–6 (chorus mix)", the six voice ids and the recipe. Lengths 3.2 / 9.2 / 10.3 / 7.6 / 6.6 / 8.8 / 4.3 s and the laugh 3.3 s; each ends before the next line starts.

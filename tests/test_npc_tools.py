@@ -57,7 +57,7 @@ class NpcToolsServerTests(unittest.TestCase):
     def test_shared_animations(self):
         ok = {'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6.5, 'yaw': 0, 'actions': ['npc-rin/laugh'], 'anims': ['npc-rin/laugh']}}
         self.assertEqual(live.npc_problems(ok, INV), [])
-        for bad in ['npc-rin/smoke', 'npc-kai/idle', 'npc-milked-auburn/dance', 'vr-companion-f/hips']:
+        for bad in ['npc-rin/smoke', 'npc-kai/blow-kiss', 'npc-milked-auburn/dance', 'vr-companion-f/hips']:
             p = live.npc_problems({'grey-reverie': {'mode': 'original', 'anims': [bad]}}, INV)
             self.assertTrue(p, bad)
 

@@ -1,5 +1,9 @@
 # Mission Editor (Developer Tools > Mission Editor)
 
+## Street pair gameplay options (21 Nov 2026)
+
+Reverie and Lace have **Take a photo** in their placement actions. The verified ordinary shared motions in `npc-paths.js PAIR_GAMEPLAY` (27 for Reverie, 8 for Lace) are selectable directly in mission animations and in Add animation; they use the existing public clip index, matching joints/rest pose, and runtime retargeter. Reverie can use six security combat poses; Lace requires an offline retarget before those can be offered. These visual poses do not grant a weapon or combat AI. Existing voice selections, rotation, collision and age-sensitive content rules are unchanged.
+
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
 ## Fix (21 Nov 2026): the editor stays open (no more closing by itself, no more popping up during draft play)
