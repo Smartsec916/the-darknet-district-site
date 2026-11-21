@@ -109,7 +109,7 @@ test('Ava and Eva are released on the live site, their models from the private a
  for(const id of ['ava','eva']){const e=C.get(id);assert.equal(e.listed,undefined);assert.equal(e.licensed,true);
   assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'thedarknetdistrict.com'),true);}
  assert.equal(C.offered(C.get('nadia'),'thedarknetdistrict.com'),true);
- assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['nadia','ava','eva','base-f','ava+eva'],'the public female gallery adds the released companions and the room for two');
+ assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['nadia','ava','eva','base-f','luna','ava+eva'],'the public female gallery adds the released companions and the room for two');
 });
 
 test('the VR menu has look rows per companion, named when two are in the room',()=>{

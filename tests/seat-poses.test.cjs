@@ -11,13 +11,13 @@ const glb=f=>{const b=fs.readFileSync(path.join(DIR,f+'.glb'));const n=b.readUIn
 test('every public figure on the shared skeleton carries the three floor poses (small looping clips); the companions and licensed files do not',()=>{
  assert.deepEqual(C.FLOOR,FLOOR);let n=0;
  for(const f of fs.readdirSync(DIR).filter(x=>x.endsWith('.glb')).map(x=>x.slice(0,-4))){const j=glb(f),sk=j.skins&&j.skins[0];
-  const mixamo=!!sk&&sk.joints.some(i=>j.nodes[i].name==='mixamorig:Hips'),own=/^(vr-companion|npc-kai$|npc-zane$|npc-blackrock-robe$)/.test(f),names=(j.animations||[]).map(a=>a.name);
+  const mixamo=!!sk&&sk.joints.some(i=>j.nodes[i].name==='mixamorig:Hips'),own=/^(vr-companion|npc-kai$|npc-zane$|npc-luna$|npc-blackrock-robe$)/.test(f),names=(j.animations||[]).map(a=>a.name);
   if(!mixamo||own){for(const c of FLOOR)assert.ok(!names.includes(c),f+' should not have '+c);continue;}
   n++;for(const c of FLOOR){const a=j.animations.find(x=>x.name===c);assert.ok(a,f+' '+c);assert.ok(C.clips[f]&&C.clips[f].includes(c),f+' lists '+c);
    assert.ok(a.channels.some(ch=>ch.target.path==='translation'&&j.nodes[ch.target.node].name==='mixamorig:Hips'),'the hips go down to the floor');
    const t=j.accessors[a.samplers[0].input];assert.equal(t.count,9);assert.ok(t.max[0]>=4&&t.max[0]<=6,'a 4 to 6 s loop');}}
  assert.ok(n>=60,'figures with the poses: '+n);
- for(const k of ['vr-companion-f','vr-companion-ava','npc-kai','npc-zane','npc-dax','studio-warrior'])for(const c of FLOOR)assert.ok(!(C.clips[k]||[]).includes(c),k);
+ for(const k of ['vr-companion-f','vr-companion-ava','npc-kai','npc-zane','npc-luna','npc-dax','studio-warrior'])for(const c of FLOOR)assert.ok(!(C.clips[k]||[]).includes(c),k);
  for(const c of FLOOR)assert.ok(SP.CLIP_LIST.includes(c),'Reverie and Lace list it');for(const c of SP.CLIP_LIST)assert.doesNotMatch(c,SP.BANNED);
  const lib=JSON.parse(read('tools/animation-pipeline/clips.json')).clips;for(const c of FLOOR)assert.equal(lib[c].source,'pose','a Blender rebuild skips it');
  assert.match(read('tools/animation-pipeline/build_mpfb_character.py'),/source'\) == 'pose': continue/);assert.match(read('tools/animation-pipeline/build_imported_character.py'),/source'\) == 'pose': continue/);

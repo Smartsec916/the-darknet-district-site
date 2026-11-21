@@ -33,7 +33,7 @@ test('every figure that has the floor poses carries the ten sit-down / stand-up 
   if(!names.includes('floor-kneel')){for(const c of MOVES)assert.ok(!names.includes(c),f+' should not have '+c);continue;}
   n++;for(const c of MOVES){assert.ok(names.includes(c),f+' '+c);assert.ok(C.clips[f].includes(c),f+' crowd.js lists '+c);}}
  assert.ok(n>=60,'figures: '+n);assert.deepEqual(C.FLOOR_MOVES,MOVES);
- for(const k of ['vr-companion-f','vr-companion-ava','npc-kai','npc-zane','npc-dax','studio-warrior','npc-blackrock-robe'])for(const c of MOVES)assert.ok(!(C.clips[k]||[]).includes(c),k);
+ for(const k of ['vr-companion-f','vr-companion-ava','npc-kai','npc-zane','npc-luna','npc-dax','studio-warrior','npc-blackrock-robe'])for(const c of MOVES)assert.ok(!(C.clips[k]||[]).includes(c),k);
  for(const c of MOVES){assert.ok(SP.CLIP_LIST.includes(c),'Reverie and Lace list '+c);assert.doesNotMatch(c,SP.BANNED);}
  // not choosable: the gestures / Doing lists filter them out; the loops stay
  const iris=NG.clipsFor('iris');if(iris.ok){assert.ok(!iris.clips.some(c=>MOVES.includes(c.id)),'never a "Doing" / gesture choice');}

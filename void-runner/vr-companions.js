@@ -5,7 +5,7 @@
    licensed model with build_imported_character.py, list it in crowd.js, then register() an entry here with its
    model, preview, dialogue and personality. Nothing else changes.
    DRAFT: every line of companion dialogue is Claude's placeholder for the owner's review. Every companion's lines are recorded (tools/audio, provisional voices): women's voices for the women, a man's
-   voice for the men (the owner, 2026-11-01). */
+   voice for the men (the owner, 2026-11-01). Except a companion whose voice waits for the owner (voice.pending: Luna): her lines are shown, not read aloud. */
 (function(root){
  const DEG=Math.PI/180;
  // ---- Behaviour settings (sensible defaults; a companion's personality overrides any of them) ----
@@ -335,6 +335,38 @@
    aside:['You\'ve got a great smile.','I like hanging out with you.','You\'re fun. Has anyone told you that?'],
    comeHere:['Coming!','Right here!'],
    recline:['See? I can relax. Sometimes.']},voice:{characterId:'vr-base-f',voiceId:null},clips:{greet:['wave'],flirt:['blow-kiss','laugh','head-tilt'],shy:['coy'],laugh:['laugh'],playfulDance:['dance-belly'],idleAlt:['idle-f2'],walk:['walk-f']}});
+ // Luna (named by the owner, 21 Nov 2026), a female companion: from his own Meshy generation of 18 Nov 2026 (a neon dancer in glowing body paint, an adult woman), made
+ // standing in an A-pose with Meshy, rigged and given the female companion clips (spec characters/npc-luna.json; docs/development/MESHY_CHARACTERS.md). Her `about`,
+ // personality and every line below are PROPOSED / DRAFT placeholders by Claude for the owner's review, not canon. Voice: none yet (voice.pending): her lines are shown,
+ // not read aloud, until the owner chooses one (tools/audio skips her; vr-suite.js say marks them unvoiced). Companions appear only in the VR bedroom suite.
+ register({id:'luna',name:'Luna',sex:'female',model:'npc-luna',skin:[],preview:'void-runner/assets/vr/companions/luna.jpg',
+  about:'A neon dancer who lights up any room she walks into. Playful and warm, always moving to a beat only she can hear.',voice:{characterId:'vr-luna',voiceId:null,pending:true},
+  personality:{initiative:.64,flirtatiousness:.6,approachFrequency:.62,attention:.86,personalSpace:.95,walkSpeed:1.1,idleActivity:[10,20]},
+  clips:{greet:['wave'],flirt:['hips','blow-kiss','coy'],shy:['coy'],confident:['hips'],laugh:['laugh'],idleAlt:['idle-f2','hips'],walk:['walk-f'],dance:['slow-dance'],playfulDance:['dance-belly']},
+  dialogue:{
+   greet:['Hey, you. I was just warming up.','There you are. The lights look better with company.'],
+   chat:['I paint the glow on myself before every show. Takes an hour. Worth it.','Down in the clubs nobody looks you in the eye. Up here you actually see me.','Music is the only thing in this city that never lies.'],
+   compliment:['Careful. Compliments make me glow brighter.','Mm. Say that again, slower.'],
+   flirt:['Keep looking at me like that and I might start dancing.','Is that a line? I like the rhythm of it.'],
+   sit:['Sit with me. Even dancers need a rest.','There. Now the room is still for once.'],
+   dance:['Follow my lead. Feel the beat first.','Hips loose. There you go.','See? You were made for this.'],
+   hands:['Your hands are warm. Keep them there.'],
+   kiss:['Closer. Mind the paint.'],kissAfter:['Now you\'re glowing too.'],
+   notYet:['Slow down. Every good song has a build-up.'],
+   notNow:['Sit with me first, or ask me for a dance.'],
+   relax:['Close your eyes. Listen to the bass through the floor.'],
+   bye:['Go on. Come back when you need a little light.'],
+   approach:['You looked like you were missing a beat. Here I am.'],
+   window:['All those signs down there, and none of them move like I do.'],
+   joinSofa:['Scoot over. I\'m done performing for tonight.'],
+   inviteSit:['Come sit with me a while. No audience, just us.'],
+   inviteDance:['This song is too good to stand still. Dance with me?'],
+   inviteRecline:['Lie back with me. Watch the ceiling catch my glow.'],
+   accepted:['Yes. I knew you had rhythm.'],
+   declined:['Okay. I\'ll save you a dance.'],
+   welcomeBack:['You came back. The room just got brighter.'],
+   aside:['You\'re easy to dance for.','I like it when you watch me move.'],
+   comeHere:['Dancing over.'],recline:['See? I glow even lying down.']}});
  register({id:'base-m',name:'Dex',sex:'male',model:'vr-companion-bm',file:'vr-companion-bm.vrpak',skin:['Skin_M'],preview:'void-runner/assets/vr/companions/base-m.jpg',
   about:'Easy-going and funny. He works the cargo docks, loves old music and always has a story ready.',
   licensed:true,pairable:false,personality:{initiative:0.5,flirtatiousness:0.5,approachFrequency:0.5,attention:0.9,personalSpace:1.1,walkSpeed:1.05},

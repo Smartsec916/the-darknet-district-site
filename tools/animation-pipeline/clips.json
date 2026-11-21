@@ -778,6 +778,198 @@
    "file": "make_floor_poses.py",
    "source": "pose",
    "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-knees-down-hi played in reverse (1.7 s): forward to the edge with the hands, the feet down to the floor, up to standing in front of it."
+  },
+  "cf-idle": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "idle",
+   "as": "idle",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-talk": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "talk",
+   "as": "talk",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-walk": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "walk",
+   "as": "walk",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit",
+   "as": "sit",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-enter": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-enter",
+   "as": "sit-enter",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-exit": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-exit",
+   "as": "sit-exit",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-talk": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-talk",
+   "as": "sit-talk",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-dance": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-interact": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "interact",
+   "as": "interact",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-idle-f2": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "idle-f2",
+   "as": "idle-f2",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-walk-f": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "walk-f",
+   "as": "walk-f",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-wave": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "wave",
+   "as": "wave",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-blow-kiss": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "blow-kiss",
+   "as": "blow-kiss",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-coy": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "coy",
+   "as": "coy",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-head-tilt": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "head-tilt",
+   "as": "head-tilt",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-hips": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "hips",
+   "as": "hips",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-laugh": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "laugh",
+   "as": "laugh",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-glance-back": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "glance-back",
+   "as": "glance-back",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-slow-dance": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "slow-dance",
+   "as": "slow-dance",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-dance-belly": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "dance-belly",
+   "as": "dance-belly",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-relax": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-relax",
+   "as": "sit-relax",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-wave": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-wave",
+   "as": "sit-wave",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-shrug": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "shrug",
+   "as": "shrug",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-recline": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "recline",
+   "as": "recline",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
   }
  },
  "fps": 15
