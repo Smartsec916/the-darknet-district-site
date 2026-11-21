@@ -6,6 +6,12 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: NPC GAMEPLAY CAPABILITIES (Codex, build `2026-11-21-npc-capabilities-1`)
+
+- Independent `combatAnimations` flags for movable characters; Reverie and Lace can use compatible nonsexual combat motions independent of the age-sensitive classification. Existing source, venue, licensing and rig checks remain. Lace's security clips are still incompatible.
+- All 214 / 89 previously verified shared clips are directly selectable in mission gestures without Add Animation setup, even before the editor clip index loads. Server inventory mirrors the selection. No changes to the NPC models or schedules.
+
+
 ### 21 Nov 2026: PLAY THIS DRAFT "does nothing at all" (branch `claude/draft-play-fix`, build `2026-11-21-draft-play-1`)
 
 - The owner (Firefox): PLAY THIS DRAFT, PLAY FROM HERE and play the tree from the start did nothing. Not reproduced in Chromium (mission-qa-browser plays a draft fine). The Render log showed no `developer/balance` call after his presses, so play() stopped before `VoidDevTest.session`; an exception there was an unhandled rejection. play() now wraps `playNow()` and shows `PLAY could not start: <message>` in the status line (console keeps the stack). Next: get the message from the owner and fix the cause.

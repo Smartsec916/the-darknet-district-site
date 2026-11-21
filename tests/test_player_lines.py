@@ -49,11 +49,11 @@ class PlayerLinesServerTests(unittest.TestCase):
         self.assertIn('no lines', errs([{'id': 'a', 'kind': 'anim', 'npc': 'iris', 'clip': 'shrug', 'label': 'x', 'say': [{'who': 'iris', 'text': 'x'}]}]))
         self.assertIn('only an animation step', errs([{**TALK, 'clip': 'shrug'}]))
 
-    def test_added_animation_counts_only_with_her_plan(self):
+    def test_verified_shared_animation_counts_with_or_without_a_plan(self):
         added = 'npc-busker/laugh'
         self.assertIn(added, INV['npcPaths']['movable']['grey-reverie']['anims'])
         rv = [{'id': 'rv', 'kind': 'talk', 'npc': 'grey-reverie', 'label': 'Talk to Reverie', 'say': [{'who': 'grey-reverie', 'text': 'Hey.', 'anim': added}]}]
-        self.assertTrue(live.check(doc([tree(rv)]), INV))
+        self.assertEqual(live.check(doc([tree(rv)]), INV), [])
         self.assertEqual(live.check(doc([tree(rv)], {'grey-reverie': {'mode': 'original', 'anims': [added]}}), INV), [])
         self.assertNotIn('dance-samba', INV['missionEditor']['gestures']['grey-reverie']['clips'])
 
