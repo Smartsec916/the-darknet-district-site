@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V14 — AUTOMATIC BASIC MOTIONS
+
+- Animations and Release checklist provide Auto-Generate Basic Animations for saved editor-generated humanoid GLBs. Procedural keyframes create idle, talk, walk, sit, sit-enter, sit-exit and optional run, including hip translation for seated motions. Existing populated clips and skin/binary streams are retained. No Meshy credits or external service. This is approximate in-place animation, not mocap or collision-aware IK; arbitrary third-party rigs are rejected and the owner should inspect each generated clip on the actual model. The revised model stays in the developer's local draft and remains under 15 MB or the operation fails before saving. Cache version 14.
+
 ### 21 Nov 2026: COMPANION STUDIO V13 — EDITABLE PERSONALITY STARTERS
 
 - Six personality presets set the seven existing behavior sliders and provide at least two draft lines for all 25 dialogue categories. Default application preserves existing descriptions and non-empty dialogue; replacement requires confirmation. ChatGPT JSON import merges supplied fields/categories. Saved lines and existing voice identity remain unchanged until explicitly edited and saved.
