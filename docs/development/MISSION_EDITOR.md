@@ -105,7 +105,7 @@ Branch `claude/escort-across`, build `2026-11-20-escort-across-1`. Pushed, no PR
 2. In the kind list choose **Unlock all nav coordinates** (there is nothing else to pick), then choose **when**: "when the mission is done" or "at step: ...". Press **+ ADD**.
 3. When the player reaches that point, the flight Map app gets every location: a warp marker to every place in the system they fly in and to every other system they can reach. Their V1 shows "NAV DATA RECEIVED". Before that, a new pilot sees only the markers on the way to the mission (and the way home).
 
-Rook gives the coordinates himself the first time he offers his cargo side missions (after the story flag `rook-first-delivery-done`), so a tree only needs this unlock to give them earlier. **Rook's cargo jobs are not in the editor:** they are the data file `void-runner/rook-cargo-jobs.js` (kinds of job, cargo, hold space, pay, which jobs are on his board, places he never sends freight to, and his two PROPOSED lines). Change the values there.
+Rook gives the coordinates himself the first time he offers his cargo side missions (after the story flag `rook-first-delivery-done`), so a tree only needs this unlock to give them earlier. **Rook's cargo jobs are not in the editor:** they are the data file `void-runner/rook-cargo-jobs.js` (kinds of job, cargo, hold space, pay, which jobs are on his board, places he never sends freight to, and his two lines, approved by the owner on 21 Nov 2026: changing a word means recording it again). Change the values there.
 
 ### For Claude and Codex
 

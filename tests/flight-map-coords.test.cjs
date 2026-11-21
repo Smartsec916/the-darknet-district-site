@@ -119,7 +119,7 @@ test('a pay-at-Rook side mission is paid by Rook once',()=>{
 
 test('pay is balanced with the older board and the data file drives it',()=>{
  for(const j of C.rookBoard(rookReady())){assert.ok(j.payment>=RC.pay.base&&j.payment<=RC.pay.cap+Math.max(...Object.values(RC.jobs).map(x=>x.bonus)));assert.equal(j.units,RC.jobs[j.kind].units);}
- assert.equal(C.rookJobs,RC.jobs);assert.ok(RC.lines.coordinates&&RC.lines.board);assert.match(RC.status.lines,/PROPOSED/);
+ assert.equal(C.rookJobs,RC.jobs);assert.ok(RC.lines.coordinates&&RC.lines.board);assert.match(RC.status.lines,/^APPROVED/);
 });
 
 test('wiring: scripts load before campaign.js, flight and Rook use them, the server keeps a tracked side mission',()=>{
