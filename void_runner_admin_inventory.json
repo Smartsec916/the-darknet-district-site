@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "98473a0688283905",
+  "revision": "7661c80c1e95308a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74706,7 +74706,7 @@
     "void-runner/mission-blocks-view.js": "8b506f0eb062f07591d8d5b26b264fa56ceba8aff0fdde6b1802a4099e35054c",
     "void-runner/mission-blocks.js": "ce5077b67d2d80221298fd27b1de34007b6f7f362cd4b16e844d793eb85169f9",
     "void-runner/mission-content.js": "358b2e69b4eca3312fd9a6b82fc891f26475d6a83cfe70ddd95cdfb56867a85f",
-    "void-runner/mission-editor.js": "2ca1992c618ca232eda65c7566e00a08f64ab60b118cf4e25feec549c8990ea4",
+    "void-runner/mission-editor.js": "e29e882242123757fc73a7fc9c14d1a97656a74e387437ba77a4869e48e4847b",
     "void-runner/mission-givers.js": "f4673af3383f533a505600f3e16ca9fbe9b78c952c190e6a63e34a71a220b2c3",
     "void-runner/mission-guide.js": "d7cce06a8170b4baccc42632f37c810d4659c08b7c2ae532467d4ccd4e8bfb01",
     "void-runner/mission-log.js": "c7d188c8d7dc5a089f4467eeee617ddfba6a356031a7a4616c6e23ddf5937c4f",
@@ -74798,7 +74798,7 @@
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
     "void-runner/skirmish.js": "b735ce94a7a4db14f4988684750ea3a4b3406a0a6a97d8c5b5617716d664f60e",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
-    "void-runner/start-conditions.js": "1f73a5051de8da1d2dfe32d9cc4d26945d17f37bdc4a27519f8a396017d9ee19",
+    "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",
     "void-runner/station-layouts.js": "8b188135c3525cc6843ce146b6fce3e4e37333d35d6b579b7753ae8b45e73529",
     "void-runner/story-content.js": "3f2846e89242894aa0123df0e39e7637cfd2868b73c6d89f885dbe4317b54b30",
