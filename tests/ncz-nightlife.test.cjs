@@ -11,7 +11,7 @@ test('crowd density follows quality: walkers plus people standing about',()=>{
 test('people standing about keep clear of doors, taxi stands and the static crew, and face something sensible',()=>{
   for(let seed=1;seed<6;seed++)for(const p of N.plan('high',seeded(seed)).filter(x=>x.fixed)){
    for(const [x,z,r] of N.keepClear)assert.ok(Math.hypot(p.x-x,p.z-z)>=r-.6,p.id+' too close to a kept-clear spot');
-   assert.ok(['group','couple','shop','lean'].includes(p.kind));assert.ok(Array.isArray(p.face));}});
+   assert.ok(['group','couple','shop','lean','food','cook','vendor','busker'].includes(p.kind));assert.ok(Array.isArray(p.face));}});
 test('about 8% are drunk, and only on nightlife lanes',()=>{
   for(let s=1;s<40;s++){const p=N.plan('high',seeded(s)),drunk=p.filter(x=>x.drunk);assert.ok(drunk.length>=1&&drunk.length<=Math.ceil(p.length*.1),'seed '+s);
    for(const d of drunk)assert.ok(N.lanes.find(l=>l.id===d.lane).nightlife,d.lane);}});

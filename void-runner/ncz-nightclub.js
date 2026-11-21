@@ -231,6 +231,8 @@
     // her device: a small dark slab with a lit screen, held in front of her at lap height (the seated clip keeps her hands there)
     const dev=B.MeshBuilder.CreateBox('ncz-null-juno-device',{width:.075,height:.012,depth:.14},scene),dm=new B.StandardMaterial('ncz-null-juno-device',scene);dm.diffuseColor=new B.Color3(.02,.02,.03);dm.emissiveColor=new B.Color3(.12,.55,.75);dm.disableLighting=true;own.push(dm);
     dev.material=dm;dev.parent=holder;dev.position.set(0,JUNO.device[1],JUNO.device[2]);dev.rotation.x=-.55;dev.isPickable=false;juno.prop=dev;
+    // her device beat uses the same hologram as everyone's V1 (npc-device.js): the old lit slab is then put away
+    if(root.VoidNPCDevice?.tag){for(const f of root.VoidCrowd?.figures?.()||[])if(f.node.isDescendantOf?.(holder))root.VoidNPCDevice.tag(f.node,{kind:'story',tier:'v1',force:()=>juno&&juno.state==='device'?'scroll':null});juno.prop.setEnabled(false);}
     for(const m of api.meshes())m.isPickable=false;
     root.VoidPhotoSubjects?.set?.('juno-vex',holder,{name:'Juno Vex',role:''});
    }).catch(e=>{try{console.warn('[VOID//RUNNER nightclub] Juno Vex could not be built:',e?.message||e);}catch{}});
@@ -261,7 +263,7 @@
   const pairBuild=()=>{if(clock>2){junoBuild();haldenBuild();}};
   // (FIXER is left out of the crowd since 17 Nov 2026: Juno Vex is built on it, and a second figure with her bob and shades at the bar would not let her read as alone)
   // (the TRADER look is Halden Reyes's and is not in the crowd; the bartender and the bar guests also never wear the other men's suit, SUITED, so nobody near the pair looks like him)
-  const CAST=['district-resident','ncz-neon','outlaw-01','hacker-01','runner-02','district-smuggler','communion-tech'],SUITED=['district-smuggler','vesper-trader'],clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
+  const CAST=['npc-club-f','npc-club-m','npc-cyber-pvc','npc-lookout','npc-cyber-samurai','npc-student','npc-hacker','npc-enforcer','npc-casual-f','npc-fixer','npc-cyber-bouncer'],SUITED=['npc-fixer','npc-office-m','district-smuggler','vesper-trader'],   /* club-goers (NPC upgrade, 18 Nov 2026: #8, #9; crowd.js street). Before: district-resident, ncz-neon, outlaw-01, hacker-01, runner-02, district-smuggler, communion-tech */clipsOf=look=>root.VoidCrowd?.clips?.[look]||['idle'];
   function staff(dt,near){
    if(!people.length&&!built){pairBuild();pairTick(dt,near);return;}   // the purchased model has no crowd of its own: Juno and Halden are still at the bar
    if(!people.length)return;
@@ -271,7 +273,7 @@
     if(!p.node){const want=p.clips[0],order=[...CAST.slice(i%CAST.length),...CAST.slice(0,i%CAST.length)].filter(c=>!(p.plain&&SUITED.includes(c)));let node=null,look=null,clip=null;
      for(const c of order){if(clipsOf(c).includes(want)&&(node=assets.instance('crowd:'+c,built))){look=c;clip=want;break;}}
      if(!node&&clock>14)for(const c of order){if((node=assets.instance('crowd:'+c,built))){look=c;clip=p.clips.find(k=>clipsOf(c).includes(k))||'idle';break;}}
-     if(!node)return;p.node=node;p.look=look;p.clip=clip;p.anim=root.VoidCrowd?.animate?.(node,look,clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw;node.metadata={...node.metadata,crowd:look,club:p.id};return;}
+     if(!node)return;root.VoidCrowd?.dress?.(node,look,p.id);p.node=node;p.look=look;p.clip=clip;p.anim=root.VoidCrowd?.animate?.(node,look,clip);node.position.set(p.x,0,p.z);node.rotation.y=p.yaw;node.metadata={...node.metadata,crowd:look,club:p.id};return;}
     if(p.node.isEnabled()!==near)p.node.setEnabled(near);if(!near)return;
     // Dancers without a dance of their own still move with the beat: a small bounce and sway.
     if(p.dance&&p.clip!=='dance'){const t=clock*3.9+p.phase;p.node.position.y=Math.abs(Math.sin(t))*(p.small?.02:.05);p.node.rotation.y=p.yaw+Math.sin(t*.5)*(p.small?.12:.45);}});

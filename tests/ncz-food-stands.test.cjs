@@ -7,11 +7,12 @@ const Night=require('../void-runner/ncz-nightlife.js');
 const Containers=require('../void-runner/ncz-containers.js');
 const Club=require('../void-runner/ncz-nightclub.js');
 const Outskirts=require('../void-runner/ncz-outskirts-life.js');
+const surface=Q.IDS.filter(q=>q!=='underground');
 
 test('each checkpoint quarter has one vendor, four seats, and three usable player prompts',()=>{
- assert.deepEqual(Object.keys(F.STANDS).sort(),Q.IDS.slice().sort());
- assert.equal(new Set(Object.values(F.STANDS).map(s=>s.name)).size,Q.IDS.length,'each stand needs its own name');
- for(const q of Q.IDS){
+ assert.deepEqual(Object.keys(F.STANDS).sort(),surface.slice().sort());
+ assert.equal(new Set(Object.values(F.STANDS).map(s=>s.name)).size,surface.length,'each stand needs its own name');
+ for(const q of surface){
   const layout=N.layout('street',q),seats=F.seats(q),prompts=F.seatPrompts(q);
   assert.ok(F.STANDS[q].name.trim()&&F.prompt(q).label.includes(F.STANDS[q].name.toUpperCase()),q+' name in vendor prompt');
   assert.equal(seats.length,4,q);assert.equal(seats.filter(s=>s.occupied).length,1,q);
@@ -21,10 +22,12 @@ test('each checkpoint quarter has one vendor, four seats, and three usable playe
   assert.equal(layout.solids.filter(s=>s.id==='food-cart-'+q).length,1,q);
   for(const p of [F.STANDS[q],...seats])assert.ok(Q.inQuarter(q,p.x,p.z,2.6),q+' placement outside quarter');
  }
+ const underground=N.layout('street','underground');assert.ok(!underground.interactions.some(i=>i.action==='ncz-food-vendor'||i.action==='ncz-food-seat'));
+ const Crowd=require('../void-runner/crowd.js');for(const q of surface){const defs=Crowd.models('neochinatown','low','street',q);assert.ok(defs['crowd:'+F.STANDS[q].look]);assert.ok(defs['crowd:fixer-01']);}
 });
 
 test('food carts and stools do not overlap existing solid walls or gate doors',()=>{
- for(const q of Q.IDS){
+ for(const q of surface){
   const base=N.layout('street',q).solids.filter(s=>!s.id?.startsWith('food-'));
   for(const s of F.solids(q))for(const wall of base){
    const [x,,z]=s.position,[sx,,sz]=s.size,[wx,,wz]=wall.position,[ww,,wd]=wall.size;
@@ -49,7 +52,7 @@ test('full food stand footprints clear destinations, checkpoint approaches, door
  const doors=[['District',N.door.x,N.door.z],['NULL',Club.DOOR.x,Club.DOOR.z],...N.milked.DOORS.filter(d=>d.side==='street').map(d=>[d.id,d.x,d.z]),['Kai home',Containers.KAI_HOME.door.x,Containers.KAI_HOME.door.z]];
  const destinations=[...doors,...Q.STOPS.map(s=>['taxi '+s.id,...s.position]),['Port terminal',34.5,-103],['ship boarding',27,-98]];
  const solids=N.layout('all').solids;
- for(const q of Q.IDS){const r=footprint(F.STANDS[q]),near=[...solids,...Q.solids(q),...(q==='outskirts'?Containers.solids():[])];
+ for(const q of surface){const r=footprint(F.STANDS[q]),near=[...solids,...Q.solids(q),...(q==='outskirts'?Containers.solids():[])];
   for(const s of near){const b=solidRect(s),gap=rectGap(r,b);assert.ok(gap>=1.5,q+' stand is '+gap.toFixed(2)+' m from '+s.id);
    if(s.id.startsWith('city-block-')||/^container-\d+$/.test(s.id))for(const x of b.slice(0,2))for(const z of b.slice(2))assert.ok(pointGap(r,x,z)>=3,q+' stand crowds a corner of '+s.id);}
   for(const g of Q.GATES)assert.ok(rectGap(r,g.rect)>=8,q+' stand crowds checkpoint '+g.id);

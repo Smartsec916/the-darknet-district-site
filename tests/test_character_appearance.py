@@ -9,11 +9,34 @@ GOOD = {'v': 1, 'base': 'male', 'look': 'hacker-01', 'hair': 'bob01', 'hairColor
 
 class AppearanceValidation(unittest.TestCase):
     def test_valid(self):
-        self.assertEqual(api.clean_appearance(copy.deepcopy(GOOD)), GOOD)
+        self.assertEqual(api.clean_appearance(copy.deepcopy(GOOD)), GOOD)   # a retired look (18 Nov 2026) is still valid and stored as sent
+        # ... and the game (and hub) show it as the street figure that replaced it, keeping its clothing colour
+        self.assertEqual(api.migrate_appearance(copy.deepcopy(GOOD)), {'v': 1, 'base': 'male', 'look': 'street-hacker', 'hair': 'native', 'hairColor': None, 'clothingColor': 'navy', 'accessories': []})
         for look in CAT['looks']:
             l = CAT['looks'][look]
             a = {'v': 1, 'base': l['base'], 'look': look, 'hair': 'native', 'hairColor': None, 'clothingColor': None, 'accessories': list(l['defaultAccessories'])}
             self.assertEqual(api.clean_appearance(a), a)
+            self.assertEqual(api.migrate_appearance(a), a if not l.get('retired') else {**a, 'look': l['replacedBy'], 'accessories': []})
+
+    def test_street_looks(self):
+        street = [k for k, l in CAT['looks'].items() if l.get('street')]
+        self.assertEqual(len(street), 36)   # 18 from the NPC upgrade and 18 CYBERPUNK PRESETS (19 Nov 2026)
+        cyber = [k for k in street if CAT['looks'][k].get('group') == 'cyber']
+        self.assertEqual(len(cyber), 18)
+        self.assertEqual({CAT['looks'][k]['model'] for k in cyber}, {'npc-cyber-samurai', 'npc-cyber-exec', 'npc-cyber-respirator', 'npc-cyber-pvc', 'npc-cyber-bouncer', 'npc-cyber-courier'})
+        with self.assertRaises(api.ApiError):
+            api.clean_appearance({'v': 1, 'base': 'male', 'look': 'street-cyber-exec', 'hair': 'native', 'hairColor': None, 'clothingColor': None, 'accessories': []})   # the executive is a female figure
+        for look in street:
+            l = CAT['looks'][look]
+            ok = {'v': 1, 'base': l['base'], 'look': look, 'hair': 'native', 'hairColor': None, 'clothingColor': 'crimson', 'accessories': []}
+            self.assertEqual(api.clean_appearance(copy.deepcopy(ok)), ok)
+            for bad in ({**ok, 'hair': 'none'}, {**ok, 'hair': 'bob01'}, {**ok, 'hairColor': 'jet'}, {**ok, 'accessories': ['gear-visor']}):
+                with self.assertRaises(api.ApiError, msg=repr(bad)):
+                    api.clean_appearance(bad)
+        for look, l in CAT['looks'].items():
+            if l.get('retired'):
+                to = CAT['looks'][l['replacedBy']]
+                self.assertTrue(to.get('street') and to['base'] == l['base'], look)
 
     def test_rejects_bad_data(self):
         def mut(**kw):
@@ -60,6 +83,8 @@ class GearAppearance(unittest.TestCase):
     def test_every_gear_combination_is_saved_unchanged_on_every_outfit(self):
         n = 0
         for look, l in CAT['looks'].items():
+            if l.get('street'):
+                continue   # the street figures (one mesh) wear no gear
             for mask in range(16):
                 gear = [g for i, g in enumerate(self.GEAR) if mask >> i & 1]
                 a = {'v': 1, 'base': l['base'], 'look': look, 'hair': 'native', 'hairColor': None, 'clothingColor': None, 'accessories': list(l['defaultAccessories']) + gear}

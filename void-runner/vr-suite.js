@@ -10,7 +10,7 @@
    DRAFT: Seren's and Kai's names and all their lines are Claude's placeholders for the owner's review. Unvoiced.
    Characters: MakeHuman (CC0); animation: Rokoko free mocap, Quaternius (CC0) and Mixamo. */
 (function(){
- const {kit,spot}=VoidVRKit,C=globalThis.VoidVRCompanions||require('./vr-companions.js');
+ const {kit,spot}=VoidVRKit,C=globalThis.VoidVRCompanions||require('./vr-companions.js'),DEG=Math.PI/180;
  // The apartment: 12 x 10 m, the bed against the fluted wall to the north, floor-to-ceiling glass to the east with a
  // sliding door onto a balcony, the lounge to the west, the desk and shelves to the south.
  // The sofa seat is angled toward the cushion beside it, so a companion sitting there is in view.
@@ -43,8 +43,9 @@
   function showLine(name,text){line.innerHTML='<b>'+name+'</b> '+text.replace(/</g,'&lt;');line.classList.add('show');lineTime=Math.min(7,2.5+text.length*.055);}
   k.every(dt=>{if(lineTime>0){lineTime-=dt;if(lineTime<=0)line.classList.remove('show');}});
   // A companion's line in the game's dialogue panel. With no line (a companion without dialogue) there's no panel at
-  // all: whatever follows the line happens straight away.
-  function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}
+  // all: whatever follows the line happens straight away. A companion whose voice is still to be chosen by the owner (voice.pending: Luna) is shown,
+  // not read aloud: an unvoiced line skips the voice and still goes in the history (talk-choice.js speakLine).
+  function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text,unvoiced:!!comp.who.voice?.pending&&!globalThis.VoidVRCompanionStudio?.findVoice(comp.who.name,text)}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}
   let choices=null;
   // The choice panel (vr.css: compact, opaque, beside the room rather than across it). Options may carry a group
   // (Talk / Together / Leave); arrows, WASD or the d-pad move the highlight, Enter / Space / E or A choose, Escape or B
@@ -89,11 +90,12 @@
   // the registry, settings, brain, tracking maths and paths) ----
   async function companion(who,S,slot){
    const L=who.dialogue||{},cfg=C.settings(who),look=who.model,mem={},home=S.home,talks=C.speaks(who),tag=slot?'-'+(slot+1):'',self={who,slot,cfg};
-   const container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+C.file(who)},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
-   const inst=container.instantiateModelsToScene(n=>look+'-'+n,false,{doNotInstantiate:true}),node=new B.TransformNode('vr-companion'+tag,k.scene),asset=new B.TransformNode('vr-companion-asset'+tag,k.scene);node.parent=k.parent;VoidAssets.ownInstance(inst,node);asset.parent=node;for(const r of inst.rootNodes)r.parent=asset;
+   const local=globalThis.VoidVRCompanionStudio?.model(who),container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+C.file(who),localBuffer:local?await local.arrayBuffer():null},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
+   const inst=VoidAssets.keepTrim(container,container.instantiateModelsToScene(n=>look+'-'+n,false,{doNotInstantiate:true})),node=new B.TransformNode('vr-companion'+tag,k.scene),asset=new B.TransformNode('vr-companion-asset'+tag,k.scene);node.parent=k.parent;VoidAssets.ownInstance(inst,node);asset.parent=node;for(const r of inst.rootNodes)r.parent=asset;
    for(const g of inst.animationGroups)g.stop();node.metadata={animationGroups:inst.animationGroups,companion:who.id};for(const m of node.getChildMeshes())m.isPickable=false;
    // The shared motion-capture library (anim-library.js): extra clips for any companion whose skeleton takes them; nothing happens where the library file is not installed.
    try{self.library=await globalThis.VoidAnimLibrary?.apply(node,look,{scene:k.scene})||[];}catch(e){self.library=[];console.warn('[VR companion library]',e);}
+   try{self.localMotions=await globalThis.VoidVRCompanionStudio?.applyMotions(node,who)||[];self.library.push(...self.localMotions);}catch{self.localMotions=[];}
    // Looks (vr-companions.js): the saved or default outfit, hairstyle, glasses and colours. Parts are shown or hidden;
    // colour variants are separate textures loaded the first time they are chosen.
    const lookParts=new Set(C.looks(who).flatMap(g=>g.options.flatMap(o=>o.parts||[]))),partOf=m=>{const n=m.name.replace(/_primitive\d+$/,'');let hit=null;for(const p of lookParts)if(n.endsWith('_'+p)&&(!hit||p.length>hit.length))hit=p;return hit;};// the longest part wins: "piping_jacket" is not "jacket"
@@ -124,29 +126,49 @@
    // A gesture for a role, picked at random from the companion's own list (their personality).
    const gestureFor=role=>{const own=(who.clips[role]||[]).filter(has);return own.length?own[Math.floor(Math.random()*own.length)]:clip(role);};
    const anim=VoidCrowd.animate(node,look,'idle');node.position.set(home[0],0,home[1]);node.rotation.y=-Math.PI/2;
+   // Clips cross-fade over about half a second (crowd.js uses a quicker fade for the street's people).
+   for(const g of node.metadata.animationGroups||[])g.blendingSpeed=.035;
+   // Every part's culling box covers everywhere the body can reach in any clip (vr-companions.js reach). A skinned part's own box is its bind pose:
+   // eyes, teeth, jewellery and arms that the clip had moved out of it vanished whenever that stale box fell outside the view (up close, at the
+   // screen's edge; measured 17 Nov 2026 in up to a quarter of close views while dancing, talking or lying back). The boxes move with the companion.
+   function fitReach(){node.computeWorldMatrix(true);const W=node.getWorldMatrix(),R=C.reach,corners=[];for(const x of R.x)for(const y of R.y)for(const z of R.z)corners.push(B.Vector3.TransformCoordinates(new B.Vector3(x,y,z),W));
+    for(const m of node.getChildMeshes()){if(!(m.getTotalVertices?.()>0))continue;m.computeWorldMatrix(true);const inv=m.getWorldMatrix().clone().invert(),lo=new B.Vector3(Infinity,Infinity,Infinity),hi=new B.Vector3(-Infinity,-Infinity,-Infinity);
+     for(const p of corners){const q=B.Vector3.TransformCoordinates(p,inv);lo.minimizeInPlace(q);hi.maximizeInPlace(q);}
+     m.setBoundingInfo(new B.BoundingInfo(lo,hi,m.getWorldMatrix()));for(const sm of m.subMeshes||[])sm.setBoundingInfo?.(new B.BoundingInfo(lo,hi,m.getWorldMatrix()));}}
+   fitReach();
    room.follow(node,()=>c.sitting||c.reclining?1.25:1.72);
    // mode: 'free' (their own initiative), 'follow' (they keep near you) or 'stay' (they keep their place).
-   const c={state:'idle',path:[],then:null,affection:0,sitting:false,dancing:false,reclining:false,busy:0,turning:false,greeted:false,watch:0,mode:'free'};
-   const loop=()=>c.reclining?'recline':c.sitting?(Math.random()<.35?clip('sitAlt'):'sit'):c.dancing?c.danceClip:'idle';
-   const idle=()=>anim.play(loop());
+   const c={state:'idle',path:[],then:null,affection:0,sitting:false,dancing:false,reclining:false,busy:0,turning:false,greeted:false,watch:0,mode:'free',
+    faceTo:null,turnV:0,faceYou:0,glide:null,looping:true,idleAlt:false,shiftIn:8+Math.random()*8,gestureClip:null};
+   // Standing, they now and then shift their weight: the idle loop and their second idle (idle-f2 / idle-m2) take turns, cross-faded.
+   const idle2=has('idle-f2')?'idle-f2':has('idle-m2')?'idle-m2':null;
+   const loop=()=>c.reclining?'recline':c.sitting?(Math.random()<.35?clip('sitAlt'):'sit'):c.dancing?c.danceClip:c.idleAlt&&idle2?idle2:'idle';
+   const idle=()=>{c.looping=true;anim.play(loop());};
+   // Glides (17 Nov 2026): sitting down, lying back and getting up move the companion to their place over a moment instead of jumping there.
+   // to: any of {x,y,z,yaw}; the walk moves only x and z, so a y glide (off the bed) can run while they walk away.
+   function glide(to,dur){c.glide={from:{x:node.position.x,y:node.position.y,z:node.position.z,yaw:node.rotation.y},to,t:0,dur};}
+   // A turn on the spot to a heading (arriving at a spot, the window, the sofa), eased in and out instead of snapping round.
+   const turnTo=yaw=>{c.faceTo=yaw;};
+   function turnInPlace(yaw,dt){const r=C.turnStep(node.rotation.y,yaw,c.turnV,dt);node.rotation.y=r.yaw;c.turnV=r.v;return r.left;}
    // One-shot gesture, then back to whatever they were doing. Keeps them "busy" (the brain waits) meanwhile.
-   function gesture(role){if(c.state==='walk')return;const name=typeof role==='string'&&has(role)?role:gestureFor(role),len=anim.playOnce(name,loop());if(len)c.busy=Math.max(c.busy,len);
+   function gesture(role){if(c.state==='walk')return;const name=typeof role==='string'&&has(role)?role:gestureFor(role),len=anim.playOnce(name,loop());if(len){c.busy=Math.max(c.busy,len);c.gestureClip=name;}
     if(['greet','flirt','laugh','confident','shy'].includes(role)){self.smile?.(1.2+Math.random()*1.5);for(const o of others(self))o.react?.(self);}}
    const at=()=>[node.position.x,node.position.z],dest=()=>c.state==='walk'&&c.path.length?c.path[c.path.length-1]:at();
    // Walking: a path round the furniture (A* on the room's collision), then `then` on arrival. Destinations keep
    // clear of the other companion unless `exact` (a seat).
-   function walkTo(x,z,then,exact){if(!exact)[x,z]=spaced(self,x,z);const p=C.path(at(),[x,z],blockedAt)||[[x,z]];stand(true);c.dancing=false;c.reclining=false;c.state='walk';c.path=p;c.then=then;anim.play(clip('walk'));}
+   function walkTo(x,z,then,exact){if(!exact)[x,z]=spaced(self,x,z);const p=C.path(at(),[x,z],blockedAt)||[[x,z]];stand(true);c.dancing=false;c.reclining=false;c.state='walk';c.path=p;c.then=then;c.faceTo=null;c.looping=false;if(c.glide&&c.glide.to.x!=null)c.glide=null;anim.play(clip('walk'));}
    // Towards you, stopping at their personal-space distance on their side.
    function approach(then){const dx=node.position.x-walker.x,dz=node.position.z-walker.z,d=Math.hypot(dx,dz)||1,gap=cfg.personalSpace;if(d<=gap+.25){then?.();return;}
     let tx=walker.x+dx/d*gap,tz=walker.z+dz/d*gap;if(blockedAt(tx,tz)){for(const a of [.6,-.6,1.2,-1.2,1.8,-1.8]){const ang=Math.atan2(dx,dz)+a,x=walker.x+Math.sin(ang)*gap,z=walker.z+Math.cos(ang)*gap;if(!blockedAt(x,z)){tx=x;tz=z;break;}}}walkTo(tx,tz,then);}
-   function stand(quiet){if(c.sitting){c.sitting=false;if(!quiet)anim.playOnce('sit-exit','idle');}if(c.reclining){c.reclining=false;node.position.y=0;}}
-   const face=(yaw,dt,rate)=>{const d=C.wrap(yaw-node.rotation.y);node.rotation.y+=d*Math.min(1,dt*rate);return Math.abs(d);};
+   function stand(quiet){if(c.sitting){c.sitting=false;if(!quiet)anim.playOnce('sit-exit','idle');}if(c.reclining){c.reclining=false;glide({y:0},.45);}}
+   // Turning toward where they walk; no faster than 5 radians a second.
+   const face=(yaw,dt,rate)=>{const d=C.wrap(yaw-node.rotation.y),step=Math.max(-5*dt,Math.min(5*dt,d*Math.min(1,dt*rate)));node.rotation.y+=step;return Math.abs(d);};
    // ---- Attention: chest, neck and head turn so the face points at your eyes, whatever the clip is doing ----
    // Each frame, after the clip has posed the body, the head's actual facing is measured and corrected toward the
    // wanted direction (clamped to a natural range), shared out down the chain. Nothing accumulates between frames.
    const bones={};for(const t of node.getDescendants(false))for(const [b] of C.chain)if(t.name.endsWith('mixamorig:'+b))bones[b]=t;
-   const att={yaw:0,pitch:0,weight:0,glance:null,glanceIn:2+Math.random()*4,last:{},base:{},axis:null,err:{yaw:0,pitch:0}},
-    M1=new B.Matrix(),qW=new B.Quaternion(),ID=B.Quaternion.Identity();
+   const att={yaw:0,pitch:0,weight:0,glance:null,glanceIn:2+Math.random()*4,last:{},base:{},axis:null,axisTries:0,side:0,err:{yaw:0,pitch:0},added:{yaw:0,pitch:0,roll:0}},
+    M1=new B.Matrix(),qW=new B.Quaternion(),qA=new B.Quaternion(),ID=B.Quaternion.Identity();
    // World matrices from the figure's root down to a bone, so a just-animated pose is measured, not last frame's.
    const refresh=b=>{const chain=[];for(let n=b;n&&n!==k.parent;n=n.parent)chain.unshift(n);for(const n of chain)n.computeWorldMatrix(true);};
    const forward=()=>{refresh(bones.Head);return B.Vector3.TransformNormal(att.axis,bones.Head.getWorldMatrix()).normalize();};
@@ -154,32 +176,51 @@
     const cam=k.scene.activeCamera;if(!cam||!bones.Head)return;
     // Restore any bone a paused clip didn't overwrite, so the correction is measured from the clip's own pose.
     for(const [name] of C.chain){const b=bones[name];if(b?.rotationQuaternion&&att.last[name]&&b.rotationQuaternion.equals(att.last[name]))b.rotationQuaternion.copyFrom(att.base[name]);if(b?.rotationQuaternion)(att.base[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);}
-    // The head bone's own "forward" axis: the one that points where the body faces (found once).
+    // The head bone's own "forward" axis: the one that points where the body faces. Taken only from a pose where one axis clearly does (a clip that
+    // has the head turned or bowed would otherwise pick an ear or the crown, and every later turn would come out sideways); after two seconds
+    // without one, a Mixamo-named head uses its own +Z, the rig's convention.
     if(!att.axis){refresh(bones.Head);const m=bones.Head.getWorldMatrix(),f=new B.Vector3(Math.sin(node.rotation.y),0,Math.cos(node.rotation.y));let best=null;
-     for(const a of [[1,0,0],[0,1,0],[0,0,1],[-1,0,0],[0,-1,0],[0,0,-1]]){const v=B.Vector3.TransformNormal(new B.Vector3(...a),m).normalize(),d=B.Vector3.Dot(v,f);if(!best||d>best.d)best={a,d};}att.axis=new B.Vector3(...best.a);}
+     for(const a of [[1,0,0],[0,1,0],[0,0,1],[-1,0,0],[0,-1,0],[0,0,-1]]){const v=B.Vector3.TransformNormal(new B.Vector3(...a),m).normalize(),d=B.Vector3.Dot(v,f);if(!best||d>best.d)best={a,d};}
+     if(best.d>.86||++att.axisTries>120){att.axis=new B.Vector3(...(best.d>.86?best.a:[0,0,1]));let up=null;for(const a of [[1,0,0],[0,1,0],[0,0,1],[-1,0,0],[0,-1,0],[0,0,-1]]){if(Math.abs(B.Vector3.Dot(new B.Vector3(...a),att.axis))>.5)continue;const v=B.Vector3.TransformNormal(new B.Vector3(...a),m).normalize();if(!up||v.y>up.d)up={a,d:v.y};}att.up=new B.Vector3(...up.a);}
+     else return;}
     const head=bones.Head.getAbsolutePosition();
     // Now and then they glance away (out of the window, or to one side), then come back to you.
     att.glanceIn-=dt;if(att.glance){att.glance.t-=dt;if(att.glance.t<=0){att.glance=null;att.glanceIn=cfg.glanceEvery[0]+Math.random()*(cfg.glanceEvery[1]-cfg.glanceEvery[0]);}}
-    else if(att.glanceIn<=0&&!c.kissing){const other=others(self)[0];if(other&&c.state!=='window'&&Math.random()<.18){const h=other.bones.Head?.getAbsolutePosition?.();if(h){att.glance={t:1.2+Math.random()*1.4,x:h.x,y:h.y,z:h.z};}}
+    else if(att.glanceIn<=0&&!c.kissing&&!(c.faceYou>0)){const other=others(self)[0];if(other&&c.state!=='window'&&Math.random()<.18){const h=other.bones.Head?.getAbsolutePosition?.();if(h){att.glance={t:1.2+Math.random()*1.4,x:h.x,y:h.y,z:h.z};}}
      else if(Math.random()>cfg.attention||c.state==='window'){const side=Math.random()<.5?-1:1,a=node.rotation.y+side*(.7+Math.random()*.5);att.glance={t:cfg.glanceFor[0]+Math.random()*(cfg.glanceFor[1]-cfg.glanceFor[0]),x:c.state==='window'?7:head.x+Math.sin(a)*3,y:head.y+(Math.random()-.6)*.6,z:c.state==='window'?node.position.z+(Math.random()-.5)*3:head.z+Math.cos(a)*3};}else att.glanceIn=2+Math.random()*3;}
-    const target=att.glance||cam.globalPosition,seated=c.sitting||c.reclining,lim={...cfg,maxHeadYaw:cfg.maxHeadYaw*(seated?1.2:1)},Lk=C.look(node.rotation.y,head,target,lim,c.turning);
-    // Standing still, they turn their whole body once you are well round to one side.
-    const free=c.state==='idle'&&!seated&&!att.glance&&!(c.busy>0);
-    if(free){if(Lk.turn){c.turning=true;if(face(Lk.want,dt,2.4)<cfg.bodyTurnUntil)c.turning=false;}else c.turning=false;}
-    else if(c.dancing&&!att.glance)face(Lk.want,dt,1.4);
-    const w=(c.state==='walk'?.35:c.reclining?.55:c.dancing?.75:1)*cfg.headTracking*(c.state==='window'&&!att.glance?.4:1);
+    const target=att.glance||cam.globalPosition,seated=c.sitting||c.reclining,lim={...cfg,maxHeadYaw:cfg.maxHeadYaw*(seated?1.2:1)},Lk=C.look(node.rotation.y,head,target,lim,c.turning,att.side);
+    if(Math.abs(Lk.yaw)>.05)att.side=Math.sign(Lk.yaw);
+    // Standing still, they turn their whole body once you are well round to one side; spoken to (faceYou), they turn to face you from a smaller
+    // angle. The turn eases in and out at a walking pace (C.turnStep) instead of spinning on the heels.
+    if(c.faceYou>0)c.faceYou-=dt;const talking=c.faceYou>0;
+    const free=c.state==='idle'&&!seated&&!att.glance&&!(c.busy>0&&!talking)&&!c.glide&&c.faceTo==null;
+    if(free&&(c.turning||Math.abs(Lk.offset)>(talking?20*DEG:cfg.bodyTurnAt))){c.turning=true;if(turnInPlace(Lk.want,dt)<(talking?6*DEG:cfg.bodyTurnUntil)){c.turning=false;c.turnV=0;}}
+    else{c.turning=false;if(c.dancing&&!att.glance)face(Lk.want,dt,1.4);}
+    const w=(c.state==='walk'?.35:c.reclining?.55:c.dancing?.75:1)*cfg.headTracking*(c.state==='window'&&!att.glance?.4:1)*(c.busy>0?C.headWeight(c.gestureClip):1);
     att.yaw=C.ease(att.yaw,Lk.yaw,5,dt);att.pitch=C.ease(att.pitch,Lk.pitch,5,dt);att.weight=C.ease(att.weight,w,2.5,dt);
-    // Where the face should point. Each bone takes its share of the remaining turn, worked out in its parent's own
-    // space (the glTF root mirrors the skeleton, so world-space rotations would flip the vertical part).
+    // Where the face should point, and how far that is from where the clip has it: no more than C.maxCorrection is added to the clip's own pose.
+    const yawOf=v=>Math.atan2(v.x,v.z),pitchOf=v=>Math.asin(Math.max(-1,Math.min(1,v.y)));
     const yw=node.rotation.y+att.yaw,want=new B.Vector3(Math.sin(yw)*Math.cos(att.pitch),Math.sin(att.pitch),Math.cos(yw)*Math.cos(att.pitch)).normalize(),f=forward();
-    const yawOf=v=>Math.atan2(v.x,v.z);att.err={yaw:C.wrap(yawOf(want)-yawOf(f)),pitch:Math.asin(want.y)-Math.asin(Math.max(-1,Math.min(1,f.y)))};
+    att.err={yaw:C.wrap(yawOf(want)-yawOf(f)),pitch:pitchOf(want)-pitchOf(f)};
+    const goalYaw=yawOf(f)+Math.max(-C.maxCorrection.yaw,Math.min(C.maxCorrection.yaw,att.err.yaw)),goalPitch=pitchOf(f)+Math.max(-C.maxCorrection.pitch,Math.min(C.maxCorrection.pitch,att.err.pitch));
+    const rollOf=()=>{if(!att.up)return 0;const u=B.Vector3.TransformNormal(att.up,bones.Head.getWorldMatrix()).normalize(),fw=forward(),r=B.Vector3.Cross(u,fw);return Math.asin(Math.max(-1,Math.min(1,r.normalize().y)));};
+    const roll0=att.debug?rollOf():0;
+    // Turns one bone so a world direction `from` becomes `to`, worked out in the bone's parent space (the glTF root mirrors the skeleton, so a
+    // world-space rotation would flip the vertical part). frac: the share of that turn this bone takes.
+    const turnBone=(b,from,to,frac)=>{refresh(b);b.parent.getWorldMatrix().invertToRef(M1);const fp=B.Vector3.TransformNormal(from,M1).normalize(),wp=B.Vector3.TransformNormal(to,M1).normalize();
+     B.Quaternion.FromUnitVectorsToRef(fp,wp,qA);B.Quaternion.SlerpToRef(ID,qA,frac,qA);qA.multiplyToRef(b.rotationQuaternion,qW);b.rotationQuaternion.copyFrom(qW);b.computeWorldMatrix(true);};
+    const dir=(y,p)=>new B.Vector3(Math.sin(y)*Math.cos(p),Math.sin(p),Math.cos(y)*Math.cos(p));
+    // Each bone takes its share of what is left, in two steps that keep the head level: first round the vertical (yaw), then up or down about a
+    // level axis (pitch). One combined shortest-arc turn tipped the head sideways when they looked up at you from well round to one side.
     let done=0,acc=0;
-    for(const [name,share] of C.chain){const b=bones[name];acc+=share;if(!b?.rotationQuaternion)continue;
+    for(const [name,share] of C.chain){const b=bones[name];acc+=share;if(!b?.rotationQuaternion||!b.parent)continue;
      const goal=acc*att.weight,frac=done>=1?0:Math.max(0,Math.min(1,(goal-done)/(1-done)));done=goal;if(!frac)continue;
-     const now=forward();refresh(b);b.parent.getWorldMatrix().invertToRef(M1);
-     const fp=B.Vector3.TransformNormal(now,M1).normalize(),wp=B.Vector3.TransformNormal(want,M1).normalize(),Q=new B.Quaternion();B.Quaternion.FromUnitVectorsToRef(fp,wp,Q);
-     B.Quaternion.Slerp(ID,Q,frac).multiplyToRef(b.rotationQuaternion,qW);b.rotationQuaternion.copyFrom(qW);b.computeWorldMatrix(true);(att.last[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);}
-    if(att.debug){const f2=forward();att.post={want:want.asArray().map(v=>+v.toFixed(3)),before:f.asArray().map(v=>+v.toFixed(3)),after:f2.asArray().map(v=>+v.toFixed(3)),w:+att.weight.toFixed(2)};}}
+     let now=forward();const p0=pitchOf(now);if(Math.abs(p0)<1.4){const y0=yawOf(now);turnBone(b,dir(y0,0),dir(y0+C.wrap(goalYaw-y0),0),frac);}
+     now=forward();const y1=yawOf(now),p1=pitchOf(now);turnBone(b,now,dir(y1,p1+(goalPitch-p1)),frac);
+     (att.last[name]??=new B.Quaternion()).copyFrom(b.rotationQuaternion);}
+    // What this pass added to the clip's pose (degrees; read by tests/vr-companion-close-browser.cjs): never past C.maxCorrection, no sideways tip.
+    if(att.debug){const f2=forward();att.added={yaw:C.wrap(yawOf(f2)-yawOf(f))/DEG,pitch:(pitchOf(f2)-pitchOf(f))/DEG,roll:(rollOf()-roll0)/DEG};
+     att.post={want:want.asArray().map(v=>+v.toFixed(3)),before:f.asArray().map(v=>+v.toFixed(3)),after:f2.asArray().map(v=>+v.toFixed(3)),w:+att.weight.toFixed(2),yawRel:C.wrap(yawOf(f2)-node.rotation.y)/DEG,pitch:pitchOf(f2)/DEG};}}
    // ---- Breath and sway: a small rotation of the spine and shoulders about the body's own axes on top of whatever
    // the clip is doing, so nobody ever stands perfectly still. Taken off again before the next frame's animation, so
    // it never accumulates, and applied before the attention pass so the face still finds your eyes. ----
@@ -204,9 +245,19 @@
    const playerSeat=()=>{const s=api.session?.seat;if(mode!=='vr-seated'||!s)return null;return Object.keys(seats).find(n=>Math.hypot(seats[n].x-s.x,seats[n].z-s.z)<.2)||(Math.hypot(pairSeat.x-s.x,pairSeat.z-s.z)<.2?'sofa':'other');};
    const spotId='vr-companion'+tag;
    k.every((dt)=>{
-    if(c.busy>0)c.busy-=dt;
+    if(c.busy>0)c.busy-=dt;else c.gestureClip=null;
+    // Gliding into a seat, onto the bed or off it (glide), and turning on the spot to a heading (turnTo).
+    if(c.glide){const g=c.glide;g.t+=dt;const u=g.t/g.dur;for(const a of ['x','y','z'])if(g.to[a]!=null)node.position[a]=C.glideAt(g.from[a],g.to[a],u);
+     if(g.to.yaw!=null)node.rotation.y=C.glideAt(g.from.yaw,g.from.yaw+C.wrap(g.to.yaw-g.from.yaw),u);if(u>=1)c.glide=null;}
+    else if(c.faceTo!=null&&c.state!=='walk'){if(turnInPlace(c.faceTo,dt)<.01){c.faceTo=null;c.turnV=0;}}
+    // Weight shifts: standing in their idle loop, they change between their two idles every 9-17 s.
+    if(idle2&&c.looping&&c.state==='idle'&&!c.sitting&&!c.dancing&&!c.reclining&&!c.kissing&&!(c.busy>0)&&!c.glide){c.shiftIn-=dt;if(c.shiftIn<=0){c.shiftIn=9+Math.random()*8;c.idleAlt=!c.idleAlt;anim.play(loop());}}
+    // Nobody walks into them: the player is kept half a metre from a standing companion (closer, the camera went inside their head and the near
+    // clipping plane cut the face away).
+    if(mode==='walking'&&walker&&!c.reclining){const dx=walker.x-node.position.x,dz=walker.z-node.position.z,d=Math.hypot(dx,dz),R=.5;
+     if(d<R){const ux=d>1e-3?dx/d:Math.sin(node.rotation.y),uz=d>1e-3?dz/d:Math.cos(node.rotation.y),nx=node.position.x+ux*R,nz=node.position.z+uz*R;if(!blockedAt(nx,nz)){walker.x=nx;walker.z=nz;}}}
     if(c.state==='walk'){const [x,z]=c.path[0],dx=x-node.position.x,dz=z-node.position.z,d=Math.hypot(dx,dz);face(Math.atan2(dx,dz),dt,6);
-     if(d<.08){c.path.shift();if(!c.path.length){c.state='idle';anim.play('idle');const t=c.then;c.then=null;t?.();}}
+     if(d<.08){c.path.shift();if(!c.path.length){c.state='idle';idle();const t=c.then;c.then=null;t?.();}}
      else{let st=Math.min(d,cfg.walkSpeed*dt),ux=dx/d,uz=dz/d;
       // On the way, keep clear of the other companion: the second gives way to the first for a moment, and either
       // steps round one standing (or still waiting) in the way.
@@ -238,10 +289,11 @@
     else if(i.do==='invite'){if(talks&&!(i.kind==='recline'&&others(self).some(o=>o.c.reclining)))invite(i.kind,i.pool);}
     else if(i.do==='activity'){
      if(i.kind==='gesture')gesture(Math.random()<.5?'idleAlt':Math.random()<cfg.flirtatiousness?'shy':'confident');
-     else if(i.kind==='window')walkTo(5.1,(Math.random()-.5)*3.4,()=>{c.state='window';c.windowFor=7+Math.random()*6;node.rotation.y=Math.PI/2;if(Math.random()<.5)k.after(()=>{if(api.session&&c.state==='window')gesture('glance');},2500);});
+     else if(i.kind==='window')walkTo(5.1,(Math.random()-.5)*3.4,()=>{c.state='window';c.windowFor=7+Math.random()*6;turnTo(Math.PI/2);if(Math.random()<.5)k.after(()=>{if(api.session&&c.state==='window')gesture('glance');},2500);});
      else if(i.kind==='sofa'&&has('sit'))walkTo(...S.sofa.from,()=>{sitOnSofa();k.after(()=>{if(api.session&&c.sitting&&mode!=='vr-seated'&&!c.withYou){stand();}},14000+Math.random()*8000);},true);
-     else{const [x,z,yaw]=spots[Math.floor(Math.random()*spots.length)];walkTo(x,z,()=>{node.rotation.y=yaw;});}}}
-   function sitOnSofa(){node.rotation.y=Math.PI/2;node.position.set(S.sofa.x,0,S.sofa.z);c.sitting=true;c.state='idle';anim.playOnce('sit-enter',loop());}
+     else{const [x,z,yaw]=spots[Math.floor(Math.random()*spots.length)];walkTo(x,z,()=>{turnTo(yaw);});}}}
+   // Sitting down: they turn and settle back into the seat while the sit-down plays (they used to jump 0.7 m into it and snap round).
+   function sitOnSofa(){c.faceTo=null;glide({x:S.sofa.x,y:0,z:S.sofa.z,yaw:Math.PI/2},.55);c.sitting=true;c.state='idle';c.looping=false;anim.playOnce('sit-enter',loop());}
    // An invitation: they come over if needed, ask, and respect the answer.
    function invite(kind,pool){const ask=()=>{const q=C.pick(L[pool],mem,pool);if(!q||!api.session)return;
      ask2(self,q,[['Yes',()=>{brain.note('accepted:'+kind);remark('accepted');if(kind==='dance')dance(true);else if(kind==='sit')sitTogether(true);else if(kind==='recline')recline(true);else if(kind==='join-sofa')joinSofa();}],
@@ -257,9 +309,10 @@
     const together=[['Sit together',()=>sitTogether(),'Together'],[c.dancing?'Stop':'Dance together',()=>dance(),'Together']];
     // Motion-capture moves from the shared library (anim-library.js), offered only to a companion whose figure took them.
     const lib=self.library||[],offer=(label,ids)=>ids.some(i=>lib.includes(i))?[[label,()=>perform(ids),'Together']]:[],moves=c.dancing?[]:[...offer('Dance for me',['ac-sensual-dance-3','ac-sensual-movement-1']),...offer('Strike a pose',['ac-stand-curve-2','ac-stand-curve-3']),...offer('Relax on the floor',['ac-ground-pose-2','ac-ground-pose-3','ac-ground-pose-4'])];
+    const localMoves=(self.localMotions||[]).map(id=>[String(globalThis.VoidVRCompanionStudio?.motionName(id)||'Imported motion').replace(/[<>&]/g,''),()=>perform([id]),'Imported animations']);
     const opts=far?[['Come over here',comeHere,'Together'],...together,...commands,never]:
      [...(talks?[['Chat',chat,'Talk'],['Compliment them',compliment,'Talk'],['Flirt',flirt,'Talk']]:[]),...together,...moves,...(has('recline')&&!others(self).some(o=>o.c.reclining)?[['Lie back together',()=>recline(),'Together']]:[]),
-      ['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];
+      ['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...localMoves,...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];
     const opening=c.greeted?C.pick(L.chat,mem,'menu'):C.pick(L.greet,mem,'greet');c.greeted=true;ask2(self,far?C.pick(L.approach,mem,'menu-far'):opening,opts);}
    const after=()=>{resumeWalking();idle();};
    function comeHere(){resumeWalking();c.mode=c.mode==='stay'?'free':c.mode;remark('comeHere');approach(()=>gesture('greet'));}
@@ -276,17 +329,17 @@
     const s=party2?S.side*.55:0;walkTo(walker.x+Math.sin(walker.yaw)*1.2+Math.cos(walker.yaw)*s,walker.z+Math.cos(walker.yaw)*1.2-Math.sin(walker.yaw)*s,()=>{c.dancing=true;anim.play(c.danceClip);});
     if(!asked)say(self,C.pick(L.dance,mem,'dance'),()=>{resumeWalking();anim.play(c.danceClip);});else resumeWalking();}
    // Lying back on the bed together: they stretch out on the duvet; you sit on its edge beside them.
-   function recline(){resumeWalking();walkTo(1.95,2.9,()=>{c.reclining=true;c.state='idle';node.rotation.y=-Math.PI/2;node.position.set(.95,.5,3.35);anim.play('recline');remark('recline');},true);api.sit({x:-.35,z:3.1,yaw:Math.PI/2+.25,eye:1.05,text:'You stretch out on the bed. The ceiling glows violet.'});}
+   function recline(){resumeWalking();walkTo(1.95,2.9,()=>{c.reclining=true;c.state='idle';c.faceTo=null;glide({x:.95,y:.5,z:3.35,yaw:-Math.PI/2},.8);c.looping=false;anim.play('recline');remark('recline');},true);api.sit({x:-.35,z:3.1,yaw:Math.PI/2+.25,eye:1.05,text:'You stretch out on the bed. The ceiling glows violet.'});}
    function hands(){c.affection++;const near=Math.hypot(walker.x-node.position.x,walker.z-node.position.z);if(!c.sitting&&near>1.3)approach(()=>gesture('interact'));else gesture('interact');say(self,C.pick(L.hands,mem,'hands'),after);}
    // A kiss is the companion's choice too: only when you've been close (sitting or dancing) and talking a while.
    function kiss(){if(!c.sitting&&!c.dancing&&!c.reclining)return say(self,C.pick(L.notNow,mem,'notNow'));if(c.affection<3)return say(self,C.pick(L.notYet,mem,'notYet'));
-    say(self,L.kiss[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}
+    say(self,L.kiss?.[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}
    function relax(){c.affection++;if(!c.sitting)return sitTogether();say(self,C.pick(L.relax,mem,'relax'),after);}
    function goodbye(){say(self,C.pick(L.bye,mem,'bye'),()=>{api.exit();},'EXIT VR →');gesture('flirt');}
    // Commands: they follow you, keep their place, or go back to their own spot by the window.
    function followMe(){after();stand(true);c.dancing=false;c.mode='follow';gesture('greet');announce(who.name+' is coming with you.');}
    function stayHere(){after();if(c.state==='walk'){c.path=[];c.then=null;c.state='idle';idle();}c.mode='stay';announce(who.name+' will wait here.');}
-   function goBack(){after();c.mode='free';c.withYou=false;walkTo(...home,()=>{node.rotation.y=-Math.PI/2;});announce(who.name+' heads back.');}
+   function goBack(){after();c.mode='free';c.withYou=false;walkTo(...home,()=>{turnTo(-Math.PI/2);});announce(who.name+' heads back.');}
    // Models with blink shapes blink every 2-6 s, now and then twice; a blink closes and opens in 0.18 s.
    const blinks=node.getChildMeshes().flatMap(m=>{const mt=m.morphTargetManager;return mt?Array.from({length:mt.numTargets},(_,i)=>mt.getTarget(i)).filter(t=>/^Eye_Blink_[LR]$/.test(t.name)):[];});
    if(blinks.length){let next=1.5+slot,t=-1;k.every(dt=>{next-=dt;if(next<=0&&t<0){t=0;next=Math.random()<.15?.3:2+Math.random()*4;}
@@ -303,10 +356,11 @@
     const h=from.bones.Head?.getAbsolutePosition?.();if(h)att.glance={t:1.6,x:h.x,y:h.y,z:h.z};
     k.after(()=>{if(api.session&&c.state==='idle'&&!(c.busy>0)){self.smile(1.5+Math.random());const r=Math.random();if(r<.5)gesture(has('laugh')?'laugh':'shy');else if(r<.8)gesture('shy');}},600+Math.random()*600);};
    Object.assign(self,{node,anim,c,brain,att,bones,life,act,at,dest,talks,menu,gesture,wear,idle,
-    talking(){anim.play(c.sitting?'sit-talk':c.dancing?c.danceClip:c.reclining?'recline':'talk');},
+    // Spoken to: they talk, and (standing) turn to face you, smoothly (applyLook), for the next few seconds.
+    talking(){c.looping=false;c.faceTo=null;c.faceYou=Math.max(c.faceYou,4);anim.play(c.sitting?'sit-talk':c.dancing?c.danceClip:c.reclining?'recline':'talk');},
     greet(){c.greeted=true;gesture('greet');if(talks)say(self,C.pick(L.greet,mem,'greet'));},
     onStand(){c.withYou=false;if(c.sitting||c.reclining){stand();c.state='idle';if(c.mode==='free')walkTo(...home);}},
-    open(){if(c.sitting&&mode!=='vr-seated'&&!c.withYou){stand();}menu();},
+    open(){c.faceYou=Math.max(c.faceYou,4);if(c.sitting&&mode!=='vr-seated'&&!c.withYou){stand();}menu();},
     follow:followMe,stay:stayHere,goBack,
     dispose(){k.scene.onAfterAnimationsObservable.remove(lookObserver);k.scene.onAfterAnimationsObservable.remove(lifeObserver);k.scene.onBeforeAnimationsObservable.remove(lifeUndo);node.dispose(false,false);for(const t of Object.values(loaded))t.then(x=>x.dispose(),()=>{});}});
    return self;}
@@ -335,7 +389,7 @@
    // Model files are checked when the picker opens; a missing one is shown but can't be chosen. Only companions
    // offered here are checked (Una's file isn't published, so asking for it would only log a 404).
    installed:{},
-   prepare(){const byModel=new Map([...C.companions.values()].filter(e=>C.offered(e)).map(e=>[e.model,e]));return Promise.all([...byModel.values()].map(e=>fetch('void-runner/assets/models/crowd/'+C.file(e),{method:'HEAD'}).then(r=>{this.installed[e.model]=r.ok;}).catch(()=>{})));},
+   async prepare(){await globalThis.VoidVRCompanionStudio?.restore();const byModel=new Map([...C.companions.values()].filter(e=>C.offered(e)).map(e=>[e.model,e]));return Promise.all([...byModel.values()].map(e=>globalThis.VoidVRCompanionStudio?.model(e)?(this.installed[e.model]=true):fetch('void-runner/assets/models/crowd/'+C.file(e),{method:'HEAD'}).then(r=>{this.installed[e.model]=r.ok;}).catch(()=>{})));},
    usable(sex){return C.list({sex,has:m=>VoidCrowd.clips[m]||[],installed:this.installed}).filter(e=>C.offered(e));},
    steps:[
     {title:'COMPANION',prompt:'Who would you like to spend the evening with? Every companion is an original adult character of this simulation.',
@@ -356,7 +410,7 @@
   // The session's options as the hub carries them (plain short text): the companions' ids joined with ':'. fromShare turns that back into the picker's own options.
   shareOpts:opts=>({party:C.party(opts).map(e=>e.id).join(':').slice(0,40)}),
   fromShare:o=>{const ids=String(o?.party||'').split(':').filter(id=>/^[a-z0-9-]{1,24}$/.test(id)).slice(0,2);return ids.length>1?{companions:ids}:{companion:ids[0]||''};},
-  validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>all.find(x=>x.id===e.id)?.usable);},
+  validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>C.offered(e)&&all.find(x=>x.id===e.id)?.usable);},
   defaults:{mood:'rose',music:'velvet'},   // The owner, 16 Nov 2026: the companion rooms' music is sensual and electronic (the Velvet recording) unless the player picks another
   // The VR menu's settings: mood and music, then each companion's looks (outfit, hairstyle, glasses, colours) that
   // have a choice, named for the companion when two are in the room.

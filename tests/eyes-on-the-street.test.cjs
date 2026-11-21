@@ -18,47 +18,47 @@ function after001(x){const s=district(x.C);s.story.flags.podWakePending=false;ev
 const accepted=x=>{const s=after001(x);talk(x,s,'admin');ev(x,s,{type:'accept',mission:ID});return s;};
 const photo=(subjects,during)=>({subjects:subjects.map(([id,valid])=>({id,valid})),during,place:'null',at:1});
 const OFFER=['I heard you\'re looking for work.','Before I trust you with anything important, I need you to do a little reconnaissance.','Head outside. Across the street, you\'ll find a nightclub called NULL. There\'s someone hanging out in there I need you to take their picture so I can scrape it for more data','I\'ll mark their location'];
-const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
+const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','You can also zoom with the camera by using the mouse wheel','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
 
 // ---------------------------------------------------------------- the place registry
 test('places: a hierarchy System > City > Area > place seeded from the game\'s own data; the District rooms match neochinatown.js',()=>{
  const {PL}=env(),N=require(R('void-runner/neochinatown.js')),Q=require(R('void-runner/ncz-quarters.js')),NC=require(R('void-runner/ncz-nightclub.js'));
  assert.deepEqual(PL.DISTRICT_DOOR,N.door,'the District frame is the one neochinatown.js uses');
  for(const id of ['tessaly','neochinatown','port','oldtown','avenue','far-south','outskirts','corporate','temple','district','district-pods','district-vr','district-arcade','district-store','district-bar','district-meeting','district-alley','null','null-entrance','milked','gate-customs','gate-north','gate-function','gate-east','gate-south','gate-far-south'])assert.ok(PL.node(id),id);
- assert.deepEqual(PL.path('null'),['tessaly','neochinatown','oldtown','null']);assert.equal(PL.label('district-bar'),'Tessaly System › NeoChinatown › Old Town › The Darknet District › The Bar');
- assert.deepEqual(PL.node('null').rects,[NC.HALL],'NULL is the club\'s hall');assert.deepEqual(PL.node('far-south').rects.slice(0,1),Q.QUARTERS['far-south'].streets.slice(0,1));
+ assert.deepEqual(PL.path('null'),['tessaly','ncz-planet','neochinatown','oldtown','null']);   // the planet level since the naming pass (18 Nov 2026)assert.equal(PL.label('district-bar'),'Tessaly System › NeoChinatown › NeoChinatown › Old Town › The Darknet District › The Bar');
+ assert.deepEqual(PL.node('null').rects,[NC.RECT],'NULL is the club\'s hall with its front (ncz-nightclub.js RECT)');assert.deepEqual(PL.node('far-south').rects.slice(0,1),Q.QUARTERS['far-south'].streets.slice(0,1));
  const at=(lx,lz)=>{const [x,z]=N.toWorld(lx,lz);return PL.at({scene:'neochinatown',x,z});};
  // rooms by the District's own plan (music-director.js zones say the same)
  assert.equal(at(10,35)[0],'district-bar');assert.equal(at(10,48)[0],'district-store');assert.equal(at(-10,36)[0],'district-vr');assert.equal(at(-6,62)[0],'district-arcade');assert.equal(at(0,74)[0],'district-pods');assert.equal(at(9,62)[0],'district-meeting');
  assert.equal(at(0,23)[0],'district-vestibule');assert.equal(N.zone({x:N.toWorld(10,35)[0],z:N.toWorld(10,35)[1]}).area,'district');
- assert.deepEqual(PL.at({scene:'neochinatown',x:30,z:-55}),['null','oldtown','neochinatown','tessaly']);assert.equal(PL.deepest({scene:'neochinatown',x:48,z:-58.5}),'null-entrance');
- assert.deepEqual(PL.at({scene:'temple',x:5,z:5}),['temple','neochinatown','tessaly'],'a scene beyond a gate is one place');assert.deepEqual(PL.at({scene:'meridian',x:30,z:-55}),[],'another scene is nowhere here');
+ assert.deepEqual(PL.at({scene:'neochinatown',x:30,z:-55}),['null-floor','null','oldtown','neochinatown','ncz-planet','tessaly']);assert.equal(PL.deepest({scene:'neochinatown',x:48,z:-58.5}),'null-entrance');
+ assert.equal(PL.deepest({scene:'temple',x:5,z:5}),'temple-chamber');assert.ok(PL.at({scene:'temple',x:5,z:5}).includes('temple'),'a scene beyond a gate is its own area');assert.deepEqual(PL.at({scene:'meridian',x:30,z:-55}),[],'another scene is nowhere here');
  // the picker: every node once, the group heading not selectable
- const o=PL.options();assert.equal(o.length,PL.NODES.length);assert.equal(o.find(x=>x.id==='gates').selectable,false);assert.equal(o.find(x=>x.id==='null').depth,3);
+ const o=PL.options();assert.equal(o.length,PL.NODES.length);assert.equal(o.find(x=>x.id==='gates').selectable,false);assert.equal(o.find(x=>x.id==='null').depth,4);
  assert.deepEqual(PL.target('null'),[NC.DOOR.x+1.6,1.7,NC.DOOR.z],'the arrow leads to NULL\'s door');
  // an optional height range
  const n={id:'roof',scene:'neochinatown',rects:[[0,10,0,10]],y:[5,9]};PL.NODES.push(n);PL.BY.set('roof',n);assert.ok(PL.at({scene:'neochinatown',x:1,y:6,z:1}).includes('roof'));assert.ok(!PL.at({scene:'neochinatown',x:1,y:1,z:1}).includes('roof'));
 });
 test('places: enter / leave events per player: no repeats, nothing on a menu or transition, through the vestibule without flapping',()=>{
  const {PL}=env(),N=require(R('void-runner/neochinatown.js')),t=PL.tracker(),w=(lx,lz)=>{const [x,z]=N.toWorld(lx,lz);return {scene:'neochinatown',x,z};};
- let r=t.update(w(10,35));assert.deepEqual(r.entered.sort(),['district','district-bar','neochinatown','oldtown','tessaly'].sort());assert.deepEqual(r.left,[]);
+ let r=t.update(w(10,35));assert.deepEqual(r.entered.sort(),['district','district-bar','ncz-planet','neochinatown','oldtown','tessaly'].sort());assert.deepEqual(r.left,[]);
  r=t.update(w(10,36));assert.deepEqual([r.entered,r.left],[[],[]],'standing still in the bar fires nothing again');
  r=t.update(null);assert.deepEqual([r.entered,r.left],[[],[]],'a menu or a transition changes nothing');assert.ok(t.has('district-bar'));
  // walking out: hall, vestibule, alley, Main Street, NULL
  const walk=[w(0,40),w(0,23),{scene:'neochinatown',x:126.9,z:-58},{scene:'neochinatown',x:60,z:-58},{scene:'neochinatown',x:52,z:-58.5},{scene:'neochinatown',x:47,z:-58.5},{scene:'neochinatown',x:40,z:-56}];
  const log=[];for(const p of walk){r=t.update(p);log.push(...r.entered.map(x=>'+'+x),...r.left.map(x=>'-'+x));}
- assert.deepEqual(log,['+district-hall','-district-bar','+district-vestibule','-district-hall','+district-alley','-district-vestibule','-district','-district-alley','+null-entrance','+null','-null-entrance']);
+ assert.deepEqual(log,['+district-hall','-district-bar','+district-vestibule','-district-hall','+alley-district-door','+district-alley','-district-vestibule','-district','+main-null','-alley-district-door','-district-alley','+null-entrance','+null','+null-floor','-main-null','-null-entrance']);   // the named stretches of street since the naming pass
  assert.equal(log.filter(x=>x==='+oldtown'||x==='-oldtown').length,0,'Old Town is never left on the way: no flapping across the vestibule');
  assert.equal(log.filter(x=>x==='+null').length,1);r=t.update({scene:'neochinatown',x:35,z:-58});assert.deepEqual([r.entered,r.left],[[],[]]);
- r=t.update({scene:'neochinatown',x:60,z:-58});assert.deepEqual(r.left,['null']);
+ r=t.update({scene:'neochinatown',x:60,z:-58});assert.deepEqual(r.left,['null-floor','null']);
 });
 
 // ---------------------------------------------------------------- the mission
 test('Mission 002 data: the Awakening tree, the owner\'s words verbatim, number 2, ledger and manifest',()=>{
  const {MS,MC,G,e}=env(),man=JSON.parse(fs.readFileSync(R('void-runner/save-manifest.json'),'utf8'));
- assert.equal(MS.TREE.name,'Awakening');assert.equal(MS.TREE_ID,'main-storyline','the id never changes');assert.deepEqual(MS.TREE.missions.map(m=>m.id),['m001-awakening',ID]);
- assert.deepEqual(man.storyMissions,['m001-awakening',ID]);assert.deepEqual(man.missionNumbers,{1:'m001-awakening',2:ID});assert.equal(MS.label(2,'Eyes on the Street'),'Mission 002 — Eyes on the Street');
- const m=MS.EYES;assert.equal(m.title,'Eyes on the Street');assert.equal(m.giver,'admin');assert.deepEqual(m.start,{how:'person',accept:true});assert.deepEqual(m.offer.map(l=>l.text),OFFER);
+ assert.equal(MS.TREE.name,'Awakening');assert.equal(MS.TREE_ID,'main-storyline','the id never changes');assert.deepEqual(MS.TREE.missions.map(m=>m.id).slice(0,2),['m001-awakening',ID]);   // Mission 003 follows (tests/mission-003.test.cjs)
+ assert.deepEqual(man.storyMissions.slice(0,2),['m001-awakening',ID]);assert.equal(man.missionNumbers[1],'m001-awakening');assert.equal(man.missionNumbers[2],ID);assert.equal(MS.label(2,'Eyes on the Street'),'Mission 002 — Eyes on the Street');
+ const m=MS.EYES;assert.equal(m.title,'Eyes on the Street');assert.equal(m.giver,'admin');assert.deepEqual(m.start,{how:'person',accept:true,no:'NOT NOW'});assert.deepEqual(m.offer.map(l=>l.text),OFFER);
  assert.deepEqual(m.objectives.map(o=>o.kind),['enter','photo','send-photo','talk']);assert.deepEqual(m.objectives[0].say.map(l=>l.text),CALL);assert.equal(m.objectives[0].via,'comms');
  assert.equal(m.objectives[2].say[0].text,'Received. That\'s exactly what I needed. Come back when you\'re ready.');assert.equal(m.objectives[2].wrong[0].text,'That\'s not the person I\'m looking for. Check the description and try again.');
  assert.equal(m.objectives[3].say[0].text,'Not bad. You can follow instructions and keep a low profile. I might have more work for you.');assert.equal(m.rewards,100);assert.deepEqual(m.unlocks,[{kind:'reputation',id:'admin',amount:10}]);
@@ -100,7 +100,7 @@ test('photo checks: in the frame, roughly centred, within 15 m, not blocked; the
  assert.equal(Cam.judge({points:[c],W,H,dist:15.5}).why,'too far away');assert.equal(Cam.judge({points:[{...c,clear:false}],W,H,dist:8}).why,'something is in the way');
  assert.equal(Cam.judge({points:[{...c,clear:false},{...c,y:450,clear:true}],W,H,dist:8}).valid,true,'a clear chest is enough when the head is hidden');assert.equal(Cam.judge({points:[{...c,front:false}],W,H,dist:8}).valid,false,'behind the camera');
  const meta=Gal.cleanMeta({subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.34},{id:'<x>',valid:true},{id:'dj-vanta',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph','bad step'],at:5,extra:1});
- assert.deepEqual(meta,{subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.3},{id:'dj-vanta',name:'',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph'],at:5});assert.equal(Gal.cleanMeta(null),null,'an older photo has no checks');
+ assert.deepEqual(meta,{subjects:[{id:'juno-vex',name:'Juno Vex',valid:true,dist:7.3},{id:'dj-vanta',name:'',valid:false,why:'too far away'}],place:'null',during:[ID+'/photograph'],at:5,device:'',postedBy:''});assert.equal(Gal.cleanMeta(null),null,'an older photo has no checks');
 });
 test('step 2: a valid capture of Juno AND Halden Reyes (the same photo) during the step completes it; Juno alone, him alone or others do not; what the camera records as "during"',()=>{
  const x=env(),s=accepted(x);place(x,s,'null');
@@ -142,15 +142,15 @@ test('a reload part-way keeps the step; the Comms call and records survive resto
 test('new reusable kinds: enter / leave a place (steps and triggers), photo and send-photo steps, reputation with an NPC or a faction, in-person accept',()=>{
  const x=env(),{MC,G}=x,ctx={givers:new Map(x.e.givers.map(g=>[g.id,g])),places:G.placeIds(),subjects:new Set(G.photoSubjects(x.e.givers).map(g=>g.id))};
  const story=MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,doc=t=>({format:MC.FORMAT,version:MC.VERSION,trees:[...story,t]});
- const tree={id:'draft-kinds',name:'Kinds',missions:[{id:'draft-kinds-m1',number:7,title:'K',type:'side',giver:'iris',start:{how:'person',accept:true},objectives:[
+ const tree={id:'draft-kinds',name:'Kinds',missions:[{id:'draft-kinds-m1',number:47,title:'K',type:'side',giver:'iris',start:{how:'person',accept:true},objectives:[
   {id:'a',label:'Leave the bar',kind:'leave',place:'district-bar'},{id:'b',label:'Go into the arcade',kind:'enter',place:'district-arcade',via:'messages',say:[{who:'iris',text:'TEST message.'}]},
   {id:'c',label:'Photograph Rin',kind:'photo',npc:'rin-takeda'},{id:'d',label:'Send it to Iris',kind:'send-photo',npc:'iris',subject:'rin-takeda',say:[{who:'iris',text:'TEST ok.'}],wrong:[{who:'iris',text:'TEST no.'}]}],
   unlocks:[{kind:'reputation',id:'iris',amount:5},{kind:'reputation',id:'communion',amount:-3,when:'c'}]},
-  {id:'draft-kinds-m2',number:8,title:'L',type:'side',giver:'admin',start:{how:'notification',channel:'notify',from:'admin',text:'TEST left.',when:{kind:'leave',place:'district'}},objectives:[{id:'a',label:'x',kind:'talk',npc:'admin'}]}]};
+  {id:'draft-kinds-m2',number:48,title:'L',type:'side',giver:'admin',start:{how:'notification',channel:'notify',from:'admin',text:'TEST left.',when:{kind:'leave',place:'district'}},objectives:[{id:'a',label:'x',kind:'talk',npc:'admin'}]}]};
  assert.deepEqual(MC.check(doc(tree),ctx).errors,[]);
  const bad=[t=>{t.missions[0].objectives[0].place='atlantis';},t=>{t.missions[0].objectives[2].npc='admin-x';},t=>{t.missions[0].objectives[3].subject='nobody';},t=>{t.missions[0].objectives[2].subject='rin-takeda';},
   t=>{t.missions[0].objectives[0].wrong=[{who:'iris',text:'x'}];},t=>{t.missions[0].objectives[1].via='fax';},t=>{t.missions[0].objectives[1].say=[];},t=>{t.missions[0].unlocks[0].amount=0;},t=>{t.missions[0].unlocks[0].amount=500;},
-  t=>{t.missions[0].unlocks[0].id='nobody';},t=>{t.missions[0].unlocks[1].id='player';},t=>{t.missions[0].start={how:'person',accept:'yes'};},t=>{t.missions[1].start.accept=true;},t=>{t.missions[1].start.when={kind:'leave',place:'atlantis'};}];
+  t=>{t.missions[0].unlocks[0].id='nobody';},t=>{t.missions[0].unlocks[1].id='player';},t=>{t.missions[0].start={how:'person',accept:'yes'};},t=>{t.missions[1].start.yes='ACCEPT';},/* labels need the ask (any start may ask since 19 Nov 2026) */t=>{t.missions[1].start.when={kind:'leave',place:'atlantis'};}];
  for(const f of bad){const t=MC.clone(tree);f(t);assert.equal(MC.check(doc(t),ctx).ok,false,f.toString());}
  // and they run
  MC.apply(doc(tree),x.e,ctx);const s=district(x.C);s.story.flags.podWakePending=false;ev(x,s,{type:'pod-exit'});talk(x,s,'admin');
@@ -182,7 +182,7 @@ test('NULL: the cast per quality (the owner\'s table); Juno Vex and Halden Reyes
  const h=NC.HALDEN,d=Math.hypot(h.x-j.x,h.z-j.z);assert.equal(A.validate(h.appearance),true);assert.equal(h.appearance.base,'male');assert.equal(h.appearance.look,'vesper-trader');assert.deepEqual(h.appearance.accessories,[]);
  assert.ok(d>=.6&&d<=.9,'close together: '+d);const facing=(yaw,fx,fz,tx,tz)=>Math.cos(yaw-Math.atan2(tx-fx,tz-fz));assert.ok(facing(h.yaw,h.x,h.z,j.x,j.z)>.9,'he faces her');assert.ok(facing(j.yaw,j.x,j.z,h.x,h.z)>.8,'she is turned toward him');
  assert.ok(h.cloth.every(c=>c<.6),'his suit is darker than the kit colour');assert.ok(!/CAST=\[[^\]]*'vesper-trader'/.test(src),'nobody in the crowd wears his look');
- assert.match(src,/spot\('bartender'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-a'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-b'[^;]*\{plain:true\}\)/);assert.match(src,/SUITED=\['district-smuggler','vesper-trader'\]/);
+ assert.match(src,/spot\('bartender'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-a'[^;]*\{plain:true\}\)/);assert.match(src,/spot\('bar-guest-b'[^;]*\{plain:true\}\)/);assert.match(src,/SUITED=\[[^\]]*'district-smuggler','vesper-trader'\]/);assert.match(src,/SUITED=\['npc-fixer','npc-office-m',/,'the street figures in suits (NPC upgrade) are kept from the plain spots too');
  assert.ok(NC.BEATS.some(b=>b[0]==='device')&&NC.BEATS.some(b=>b[0]==='talk'&&b[1]!=='talk')&&NC.BEATS.some(b=>b[1]==='talk'),'they take turns talking, and she still checks her device');
 });
 test('several people in one photo: the editor keeps them in `subjects`, the check accepts them, the draft runs them',()=>{
@@ -191,7 +191,7 @@ test('several people in one photo: the editor keeps them in `subjects`, the chec
  const story=MC.treesContent(x.MS.trees(),{givers:x.e.givers}).trees,doc=t=>({format:MC.FORMAT,version:MC.VERSION,trees:t?[...story,t]:story});
  const eyes=story[0].missions.find(m=>m.id===ID);assert.deepEqual(eyes.objectives[1].subjects,['juno-vex','halden-reyes'],'published with both');assert.deepEqual(eyes.objectives[2].subjects,['juno-vex','halden-reyes']);
  assert.equal(MC.check(doc(),ctx).ok,true,'the shipped tree passes');
- const tree={id:'draft-pair',name:'Pair',missions:[{id:'draft-pair-m1',number:9,title:'P',type:'side',giver:'iris',objectives:[{id:'p',label:'Photograph them',kind:'photo',npc:'rin-takeda',subjects:['rin-takeda','juno-vex']},{id:'s',label:'Send it',kind:'send-photo',npc:'iris',subject:'rin-takeda',subjects:['rin-takeda','juno-vex'],say:[{who:'iris',text:'TEST ok.'}]}]}]};
+ const tree={id:'draft-pair',name:'Pair',missions:[{id:'draft-pair-m1',number:49,title:'P',type:'side',giver:'iris',objectives:[{id:'p',label:'Photograph them',kind:'photo',npc:'rin-takeda',subjects:['rin-takeda','juno-vex']},{id:'s',label:'Send it',kind:'send-photo',npc:'iris',subject:'rin-takeda',subjects:['rin-takeda','juno-vex'],say:[{who:'iris',text:'TEST ok.'}]}]}]};
  assert.equal(MC.check(doc(tree),ctx).ok,true,JSON.stringify(MC.check(doc(tree),ctx).errors||''));
  for(const f of [o=>{o.subjects=['juno-vex','rin-takeda'];},o=>{o.subjects=['rin-takeda','nobody'];},o=>{o.subjects=['rin-takeda','rin-takeda'];},o=>{o.subjects=[];},o=>{o.subjects='rin-takeda';},o=>{o.subjects=Array(7).fill(0).map((_,i)=>'rin-takeda'+i);}]){const t=MC.clone(tree);f(t.missions[0].objectives[0]);assert.equal(MC.check(doc(t),ctx).ok,false,f.toString());}
  {const t=MC.clone(tree);t.missions[0].objectives.push({id:'t',label:'x',kind:'talk',npc:'iris',subjects:['iris']});assert.equal(MC.check(doc(t),ctx).ok,false,'only photo steps name several people');}
@@ -211,4 +211,19 @@ test('the game page loads the new files in order',()=>{
  for(const f of ['talk-choice.js','places.js','mission-guide.js'])assert.ok(i(f)>0,f);
  assert.ok(i('conversation-ui.js')<i('talk-choice.js')&&i('talk-choice.js')<i('main-story.js')&&i('places.js')<i('mission-givers.js')&&i('live-content.js')<i('mission-guide.js')&&i('ncz-quarters.js')<i('places.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);
+});
+test('straight on to Mission 003: Admin\'s "I might have more work for you" is followed in the same conversation by the Corporate Connections offer (ACCEPT / NOT NOW); a save that already finished 002 gets the offer by talking to Admin',()=>{
+ const x=env(),s=accepted(x);place(x,s,'null');ev(x,s,{type:'photo',subjects:['juno-vex','halden-reyes']});ev(x,s,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],['halden-reyes',true]],[ID+'/photograph'])});
+ const C3='m003-corporate-connections',r=talk(x,s,'admin');
+ assert.equal(r.mission,ID,'the completion is still reported for 002');assert.equal(r.completed,true);assert.equal(r.reward,100);
+ assert.deepEqual(r.lines.map(l=>l.text),['Not bad. You can follow instructions and keep a low profile. I might have more work for you.',...x.MS.CORPORATE.offer.map(l=>l.text)],'the completion line, then 003\'s offer, only shipped lines');
+ assert.ok(r.lines.every(l=>l.who==='Admin'));assert.deepEqual(r.ask,{mission:C3,title:'Corporate Connections',accept:'ACCEPT',decline:'NOT NOW'});assert.equal(s.universe.missions[C3],undefined,'nothing taken before ACCEPT');
+ // NOT NOW: the next conversation offers it again; ACCEPT takes it
+ ev(x,s,{type:'decline',mission:C3});const again=talk(x,s,'admin');assert.equal(again.ask.mission,C3);assert.equal(again.reward,0);assert.deepEqual(again.lines.map(l=>l.text),x.MS.CORPORATE.offer.map(l=>l.text));
+ const acc=ev(x,s,{type:'accept',mission:C3});assert.equal(acc.offered,true);assert.equal(s.universe.missions[C3].acquired,true);assert.equal(s.universe.trackedMission,C3);
+ // an existing save that finished 002 before this change (no offer was ever shown): talking to Admin offers 003
+ const old=x.C.restore(JSON.stringify((()=>{const t=accepted(x);place(x,t,'null');ev(x,t,{type:'photo',subjects:['juno-vex','halden-reyes']});ev(x,t,{type:'send-photo',to:'admin',photo:photo([['juno-vex',true],['halden-reyes',true]],[ID+'/photograph'])});talk(x,t,'admin');ev(x,t,{type:'decline',mission:C3});return t;})()));
+ assert.equal(old.universe.missions[ID].completed,true);assert.equal(x.MC.treeWants(old,x.e,['admin']),true,'Admin still has something for this player');const o=talk(x,old,'admin');assert.equal(o.ask.mission,C3);assert.equal(o.lines[0].text,x.MS.CORPORATE.offer[0].text);
+ // Iris completing nothing never offers Admin's mission
+ assert.equal(talk(x,old,'iris').ask,undefined);
 });

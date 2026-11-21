@@ -17,7 +17,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--no-sandbox'],...(exe?{executablePath:exe}:{})});
  const store={record:null,on:true,posts:0};   // the mocked server's private draft "mission-editor-workspace"
  try{
-  const ctx=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),page=await ctx.newPage();page.setDefaultTimeout(240000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const ctx=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),page=await ctx.newPage().then(async p=>{await p.addInitScript(()=>{try{if(!localStorage.getItem('mission-editor-view'))localStorage.setItem('mission-editor-view','form');}catch{}});return p;});page.setDefaultTimeout(240000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/api/**',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));
   await page.exposeFunction('__server',(p,body)=>{
    if(!store.on)return {status:503,error:'off'};

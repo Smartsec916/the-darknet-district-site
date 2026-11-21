@@ -1,7 +1,7 @@
 /* MISSION 002 — EYES ON THE STREET in the real game (Chromium, software GL, offline: every API call refused, so the shipped missions are in force).
    The whole flow at 1366x768 and 1920x1080: a new character finishes Awakening (EXIT POD, Admin's call, talk to Admin) → Admin's in-person offer: NOT NOW, then talking
    again and ACCEPT → Mission Log "Eyes on the Street", tracked, the yellow arrow out through the District's vestibule and then to NULL's door → walking into NULL brings
-   Admin's Comms call (the owner's five lines) → Juno Vex at the bar talking with Halden Reyes, the yellow marker over the pair, and the hints (open the V1 / Camera / take
+   Admin's Comms call (the owner's six lines) → Juno Vex at the bar talking with Halden Reyes, the yellow marker over the pair, and the hints (open the V1 / Camera / take
    the picture) → a photo of the wrong person, a photo of Juno ALONE (Halden out of the frame: does not count), then a valid photo of both (left click in the camera; the
    camera tags both by name) → Messages > Admin's conversation: ATTACH the wrong photo, SEND → "That's not the person...", the same for Juno alone, ATTACH the right photo, SEND → "Received..." → back to Admin in the District → "Not bad..." and the reward (100 credits, better standing with Admin), paid once.
    Usage: node tests/eyes-on-the-street-browser.cjs   (its own static server on a free port; SITE_TEST_URL to use another; SHOTS=dir; BROWSER_EXECUTABLE=path; SIZES=1366;
@@ -13,7 +13,7 @@ const bundled=['/opt/pw-browsers/chromium','/opt/pw-browsers/chromium-1243/chrom
 const sizes=(process.env.SIZES||'1366,1920').split(',').map(w=>w==='1920'?[1920,1080]:[1366,768]),quality=process.env.QUALITY||'low';
 const ID='m002-eyes-on-the-street';
 const OFFER=['I heard you\'re looking for work.','Before I trust you with anything important, I need you to do a little reconnaissance.','Head outside. Across the street, you\'ll find a nightclub called NULL. There\'s someone hanging out in there I need you to take their picture so I can scrape it for more data','I\'ll mark their location'];
-const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
+const CALL=['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','You can also zoom with the camera by using the mouse wheel','Once you\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.'];
 function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/javascript','.css':'text/css','.html':'text/html','.json':'application/json','.ogg':'audio/ogg','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.glb':'model/gltf-binary'};
  const srv=http.createServer((req,res)=>{let f;try{f=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));}catch{res.writeHead(400);return res.end();}if(!f.startsWith(root+path.sep)){res.writeHead(403);return res.end();}
   fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',types[path.extname(f)]||'application/octet-stream');res.end(d);});});
@@ -47,7 +47,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    const way=()=>page.evaluate(()=>({wp:typeof trackedWalkWaypoint!=='undefined'&&trackedWalkWaypoint?{p:trackedWalkWaypoint.position,label:trackedWalkWaypoint.label||''}:null,g:VoidMissions.guidance(state,VoidMissions.tracked(state,C),true),area:walkingLocation.area}));
    // ---- finish Mission 001 (its own browser test covers it in detail)
    await page.waitForFunction(()=>!!state.universe.missions['m001-awakening']?.acquired);
-   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);await page.locator('[data-hangup]').dispatchEvent('click');await page.waitForSelector('#personal-device [data-call-live].ended');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
+   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen&&VoidPersonalDevice.app===null&&!VoidPersonalDevice.busy);await page.locator('#personal-device .pd-callbar:not([hidden])').dispatchEvent('click');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);await page.locator('[data-hangup]').dispatchEvent('click');await page.waitForSelector('#personal-device [data-call-live].ended');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    await useE('admin');await page.waitForFunction(()=>state.universe.missions['m001-awakening']?.completed===true);await page.evaluate(()=>{try{resumeWalking();}catch{}});await page.waitForFunction(()=>mode==='walking');
    // ---- the offer: NOT NOW, then again and ACCEPT
    log('offer');await useE('admin');
@@ -64,8 +64,10 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await shot('mission-log');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    // ---- the arrow: out through the vestibule, then to NULL's door
    let w=await way();assert.deepEqual(w.g,{kind:'local',label:'Go to NULL, across the street.',place:'null'});assert.equal(w.area,'interior');
-   const vest=await page.evaluate(()=>VoidNeoChinatown.toWorld(0,23));assert.deepEqual(w.wp.p,[vest[0],1.7,vest[1]],'inside the District the arrow leads to the security vestibule first');
-   await page.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,32);Object.assign(walker,{x,z,yaw:Math.PI*0,pitch:0});const p=trackedWalkWaypoint.position;walker.yaw=Math.atan2(p[0]-walker.x,p[2]-walker.z);});await page.waitForTimeout(1500);await shot('arrow-vestibule');
+   // the goal is NULL's door; the arrow's route leads out through the District's inner door, the vestibule and the outer door first (guide-route.js, 17 Nov 2026)
+   assert.deepEqual(w.wp.p,await page.evaluate(()=>VoidPlaces.target('null')),'the goal is NULL\'s door');
+   await page.evaluate(()=>{const [x,z]=VoidNeoChinatown.toWorld(0,32);Object.assign(walker,{x,z,yaw:0,pitch:0});const [vx,vz]=VoidNeoChinatown.toWorld(0,23);walker.yaw=Math.atan2(vx-walker.x,vz-walker.z);});await page.waitForTimeout(1500);
+   const live=await page.evaluate(()=>VoidGuideRoute.live);assert.deepEqual(live.route.slice(0,3),['district-inner-door<','district-door<','district-door<+'],'inside the District the arrow leads out through the vestibule first');assert.equal(live.waypoint,'district-inner-door<');await shot('arrow-vestibule');
    log('to the street');await page.evaluate(async()=>{state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'oldtown'});});
    await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street');await page.evaluate(()=>{Object.assign(walker,{x:66,z:-58.5,yaw:-Math.PI/2,pitch:0});});await page.waitForTimeout(1500);
    w=await way();const door=await page.evaluate(()=>VoidPlaces.target('null'));assert.deepEqual(w.wp.p,door,'on the street the arrow leads to NULL\'s door');
@@ -76,9 +78,19 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
    await page.waitForFunction(id=>state.universe.missions[id]?.objectives['enter-null']===true,ID,{timeout:30000});
    await page.waitForSelector('#pd-notify.on:not(.away)',{timeout:30000});const banner=(await page.locator('#pd-notify').innerText()).replace(/\s+/g,' ').trim();
    assert.equal(banner,'V1 · Incoming call from ADMIN · Press L to answer','the V1 notification, with the player\'s own key');await shot('call-banner');
-   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);const call=page.locator('#personal-device [data-call-live]');await call.waitFor();
-   await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].length===5&&[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:30000});
-   assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'The owner\'s five lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
+   await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen&&VoidPersonalDevice.app===null&&!VoidPersonalDevice.busy);
+   // L during the call opens the apps, not Comms (the owner, 20 Nov 2026): the call goes on in the call bar, the Camera tile glows in the mission yellow with "ADMIN: OPEN CAMERA"
+   await page.waitForFunction(()=>VoidV1.call&&VoidV1.call.line>=0&&!document.querySelector('#personal-device .pd-callbar').hidden);
+   assert.match(await page.locator('#personal-device .pd-callbar').innerText(),/ADMIN[\s\S]*Your V1 has a camera\. Press L to open your device, then select the Camera app\./,'the call bar: the caller and the line now');
+   assert.equal(await page.locator('#personal-device [data-app=camera].pd-goal').count(),1,'the Camera tile is highlighted');assert.equal((await page.locator('#personal-device .pd-goalhint').innerText()).trim(),'ADMIN: OPEN CAMERA');
+   assert.equal(await page.evaluate(()=>getComputedStyle(document.querySelector('#personal-device .pd-goalhint')).color),'rgb(255, 214, 120)','the mission yellow of the arrow');
+   assert.equal((await S()).hint.id,'camera','hint: select the Camera app');await page.waitForTimeout(1200);await shot('call-home');
+   await page.locator('#personal-device [data-app=camera]').dispatchEvent('click');await page.waitForFunction(()=>VoidDeviceCamera.active&&!VoidPersonalDevice.isOpen);
+   await page.waitForFunction(()=>!document.getElementById('pd-callpill').hidden&&VoidV1.call.line>=1);assert.equal(await page.evaluate(()=>VoidV1.call.ended),false,'the call goes on with the camera up');await page.waitForTimeout(1500);await shot('call-camera');
+   await page.keyboard.press('KeyB');await page.waitForFunction(()=>!VoidDeviceCamera.active);await page.keyboard.press('KeyL');await page.waitForFunction(()=>VoidPersonalDevice.isOpen&&VoidPersonalDevice.app===null&&!VoidPersonalDevice.busy);
+   await page.locator('#personal-device .pd-callbar:not([hidden])').dispatchEvent('click');await page.waitForFunction(()=>VoidPersonalDevice.app==='comms'&&!VoidPersonalDevice.busy);const call=page.locator('#personal-device [data-call-live]');await call.waitFor();
+   await page.waitForFunction(()=>[...document.querySelectorAll('#personal-device .pd-call-line')].length===6&&[...document.querySelectorAll('#personal-device .pd-call-line')].every(l=>getComputedStyle(l).opacity==='1'),null,{timeout:30000});
+   assert.deepEqual(await call.locator('.pd-call-line').allInnerTexts(),CALL,'The owner\'s six lines, "Press L" kept');assert.match(await call.innerText(),/ADMIN \/\/ INCOMING CALL/);await shot('call');
    await page.locator('[data-hangup]').dispatchEvent('click');await page.keyboard.press('KeyL');await page.waitForFunction(()=>!VoidPersonalDevice.isOpen);
    s=await S();assert.equal(s.log[0].objective,'Photograph the target.');assert.equal(s.hint&&s.hint.id,'open','hint: open the V1');assert.match(s.hint.text,/Press L to open your V1/);
    // ---- Juno Vex, Halden Reyes and the marker over the pair
@@ -100,7 +112,7 @@ function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/java
     if(!await page.waitForFunction(n=>VoidGallery.count>n||VoidDeviceCamera.shooting,n,{timeout:4000}).then(()=>true,()=>false))await page.mouse.click(...c);
     await page.waitForFunction(n=>VoidGallery.count>n,n,{timeout:180000});return page.evaluate(()=>VoidGallery.photos[0]);};
    await page.evaluate(()=>{Object.assign(walker,{x:31,z:-58.6,yaw:-Math.PI/2,pitch:-.05});});await camera();await page.waitForFunction(()=>VoidDeviceCamera.tags.some(t=>t.name==='DJ Vanta'),null,{timeout:30000}).catch(()=>{});await shot('camera-wrong-person');
-   const wrong=await click();log('wrong photo '+JSON.stringify(wrong.meta));assert.ok(wrong.meta,'the checks are kept with the photo');assert.ok(!wrong.meta.subjects.some(x=>x.id==='juno-vex'&&x.valid),'Juno is not in this one');if(!wrong.meta.subjects.some(x=>x.id==='dj-vanta'&&x.valid))log('note: the DJ was not judged a valid subject in the wrong photo');assert.equal(wrong.meta.place,'null');assert.deepEqual(wrong.meta.during,[ID+'/photograph']);
+   const wrong=await click();log('wrong photo '+JSON.stringify(wrong.meta));assert.ok(wrong.meta,'the checks are kept with the photo');assert.ok(!wrong.meta.subjects.some(x=>x.id==='juno-vex'&&x.valid),'Juno is not in this one');if(!wrong.meta.subjects.some(x=>x.id==='dj-vanta'&&x.valid))log('note: the DJ was not judged a valid subject in the wrong photo');assert.equal(wrong.meta.place,'null-floor','NULL\'s main floor (places.js naming pass, 18 Nov 2026)');assert.deepEqual(wrong.meta.during,[ID+'/photograph']);
    assert.equal((await S()).rec.objectives.photograph,undefined,'a wrong photo does not complete the step');
    await page.keyboard.press('KeyB');await page.waitForFunction(()=>!VoidDeviceCamera.active);
    // Juno ALONE: close to the pair, side on, Juno in the middle of the frame and Halden out of it (the zoom at 2x). Found by trying aims with the camera's own judge.

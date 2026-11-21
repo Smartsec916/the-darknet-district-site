@@ -19,7 +19,8 @@
    +'<label>Place<select id="dev-test-location">'+byName.map(([id,name,sys])=>'<option value="'+id+'"'+(id===choice.location?' selected':'')+'>'+escapeText(name+' · '+sys)+'</option>').join('')+'</select></label>'
    +'<label>Story stage<select id="dev-test-stage">'+stages.map(([id,name])=>'<option value="'+id+'"'+(id===choice.stage?' selected':'')+'>'+escapeText(name)+'</option>').join('')+'</select></label>'
    +'<label><span>Test kit</span><span><input id="dev-test-kit" type="checkbox"'+(choice.kit?' checked':'')+'> 10,000 credits, Ward pistol, missile launcher, every place discovered</span></label>'
-   +'</div><div class="dev-actions"><button data-dev="test-start">START TEST SESSION</button>'+(active?'<button data-dev="test-exit">EXIT TEST</button>':'')+'</div><p id="dev-status" role="status"></p>';
+   +'</div><div class="dev-actions"><button data-dev="test-start">START TEST SESSION</button>'+(active?'<button data-dev="test-exit">EXIT TEST</button>':'')+'</div>'
+   +'<h3 class="dev-group">Street life</h3><p class="dev-note">Two people argue a few steps in front of you; the people round about stop and most of them film it on their V1 (monks and V3 // Shadow carriers do not). Walking in NeoChinatown only.</p><div class="dev-actions"><button data-dev="test-argument">STAGE A STREET ARGUMENT HERE</button></div><p id="dev-status" role="status"></p>';
  }
  function read(panel){choice={location:panel.querySelector('#dev-test-location')?.value||choice.location,stage:panel.querySelector('#dev-test-stage')?.value||choice.stage,kit:!!panel.querySelector('#dev-test-kit')?.checked};}
 
@@ -39,9 +40,9 @@
  async function start(panel){
   read(panel);const status=panel.querySelector('#dev-status');
   // Re-check with the server before handing out a test campaign.
-  try{await VoidDevTools.request('developer/balance');}catch(e){status.textContent='Developer access could not be confirmed: '+e.message;return;}
+  try{await VoidDevTools.request('developer/balance');}catch(e){status.textContent='Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.';return;}
   if(!VoidDevTools.authorized)return;
-  active=true;banner.hidden=false;panel.hidden=true;
+  try{document.activeElement?.blur?.();}catch{}active=true;stepNote('');banner.hidden=false;panel.hidden=true;
   state=build(choice);walkingLocation=walker=null;mode='menu';
   document.getElementById('screen')?.classList.add('hidden');
   if(choice.stage==='district-ship'){state.location='earth';delete state.story.flags.area;await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'port'});}   // stand on the street beside the pad (the Port quarter)
@@ -56,32 +57,42 @@
   d.story.flags.deviceModel='v3';d.story.flags.area='district';d.story.flags.districtBadge=true;d.story.flags.profileJobs='merchant';d.credits=10000;
   d.universe.discoveredLocations=[...new Set([...(d.universe.discoveredLocations||[]),...Object.keys(VoidUniverse.locations)])];VoidMissions.sync(d,C);return d;}
  async function playAsAdmin(){
-  try{await VoidDevTools.request('developer/balance');}catch(e){announce('Developer access could not be confirmed: '+e.message);return false;}
+  try{await VoidDevTools.request('developer/balance');}catch(e){announce('Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.');return false;}
   if(!VoidDevTools.authorized)return false;
-  active=true;banner.hidden=false;banner.querySelector('span').textContent='PLAYING AS ADMIN · TEST SESSION · NOTHING IS SAVED';
+  try{document.activeElement?.blur?.();}catch{}active=true;stepNote('');banner.hidden=false;banner.querySelector('span').textContent='PLAYING AS ADMIN · TEST SESSION · NOTHING IS SAVED';
   state=adminBuild();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');
   state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});
   if(typeof hud==='function')hud();announce('You are Admin. Iris has the counter. Nothing in this session is saved.');return true;
  }
  /* A throwaway session built by another tool (Mission Editor > PLAY THIS DRAFT). Same rules as a test: re-checked with the server first, nothing saved to this browser
-    or the cloud while it runs, and leaving reloads the page, which brings the real save back untouched. opts: {banner, leave, apply(), build()→state, enter(), message}. */
+    or the cloud while it runs, and leaving reloads the page, which brings the real save back untouched. opts: {banner, leave, apply(), build()→state, enter(), message, clock()→text}.
+    The street clock (ncz-street-pair.js) is reset to the real time at the start of every session; build() may simulate one (a draft test with Reverie or Lace); it ends with the session.
+    clock(): the clocks shown in the banner, refreshed every second (the Mission Editor: street UTC time and the in-game day). */
  async function session(opts){
-  try{await VoidDevTools.request('developer/balance');}catch(e){return {error:'Developer access could not be confirmed: '+e.message};}
-  if(!VoidDevTools.authorized)return {error:'Developer access could not be confirmed.'};
-  active=true;banner.hidden=false;banner.dataset.kind=opts.kind||'test';banner.querySelector('span').textContent=opts.banner||'TEST MODE · NOTHING IS SAVED';banner.querySelector('button').textContent=opts.leave||'EXIT TEST';
-  const panel=document.getElementById('dev-balance');if(panel)panel.hidden=true;
+  try{await VoidDevTools.request('developer/balance');}catch(e){return {error:'Developer access could not be confirmed: '+e.message+'. Sign in again with the developer account, then try once more.'};}
+  if(!VoidDevTools.authorized)return {error:'Developer access could not be confirmed. Sign in again with the developer account, then try once more.'};
+  try{document.activeElement?.blur?.();}catch{}active=true;stepNote('');banner.hidden=false;banner.dataset.kind=opts.kind||'test';banner.querySelector('span').textContent=opts.banner||'TEST MODE · NOTHING IS SAVED';banner.querySelector('button').textContent=opts.leave||'EXIT TEST';
+  const panel=document.getElementById('dev-balance');if(panel)panel.hidden=true;globalThis.VoidStreetPair?.simulate?.(null);
+  const ck=banner.querySelector('[data-dev-clock]');clearInterval(clockT);ck.textContent='';ck.hidden=!opts.clock;if(opts.clock){const f=()=>{try{ck.textContent=opts.clock()||'';}catch{}};clockT=setInterval(f,1000);setTimeout(f,0);}
   try{opts.apply?.();state=opts.build();walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');await opts.enter();if(typeof hud==='function')hud();}
-  catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Use '+(opts.leave||'EXIT TEST')+'.');return {started:true,problem:String(e?.message||e)};}
+  catch(e){announce('The session could not start: '+(e?.message||e)+'. Nothing was saved. Press '+(opts.leave||'EXIT TEST')+' to go back, then try again (if it keeps failing, reload the page).');return {started:true,problem:String(e?.message||e)};}
   const msg=typeof opts.message==='function'?opts.message():opts.message;if(msg)announce(msg);return {started:true};
  }
- function action(name,panel){if(name==='test-start')return start(panel);if(name==='test-exit')return exit();}
+ function action(name,panel){if(name==='test-start')return start(panel);if(name==='test-exit')return exit();if(name==='test-argument')return argument(panel);}
+ // STAGE A STREET ARGUMENT HERE (npc-device.js): nothing is saved and nobody is hurt; it ends by itself after about 15 seconds.
+ function argument(panel){const st=panel.querySelector('#dev-status');if(typeof mode==='undefined'||mode!=='walking'||!globalThis.VoidCrowdReact){if(st)st.textContent='Walk somewhere in NeoChinatown first.';return;}const r=VoidCrowdReact.stageArgument();if(r?.error){if(st)st.textContent=r.error;return;}panel.hidden=true;announce('Two people start arguing in front of you.');}
+ /* DRAFT: STEP FAILED (21 Nov 2026, the owner: "while trying to play through a test mission the editor pops up"). A failed step in draft play behaves as in the real
+    game (SPOTTED puts you back outside to try again; a lost follow fails the mission and its giver offers it again); the banner only adds a small note so the owner
+    knows; the editor opens only on the banner's button. Every session start also blurs the focused button: Space / Enter in the game must never press it again. */
+ function stepNote(text){const n=banner.querySelector('[data-dev-step-note]');clearTimeout(stepNote.t);if(!active||!text||banner.dataset.kind!=='draft'){n.hidden=true;n.textContent='';return false;}
+  n.textContent=(globalThis.VoidEditorSession?.TEXT.stepFailed||'Draft: step failed')+' — '+String(text).slice(0,140)+' · RETRY it in the game, or press '+banner.querySelector('button').textContent;n.hidden=false;stepNote.t=setTimeout(()=>{n.hidden=true;},25000);return true;}
  // Stays "active" through the reload so nothing can write the throwaway state on the way out.
- function exit(){location.reload();}
+ function exit(){globalThis.VoidStreetPair?.simulate?.(null);location.reload();}
 
  // While testing, the browser save is never written and cloud save/load is off.
  const campaignSave=save;save=function(){if(active)return false;return campaignSave.apply(this,arguments);};
  document.addEventListener('click',e=>{const a=e.target.closest?.('button')?.dataset.action;if(active&&a&&/^cloud-(save|load)/.test(a)){e.preventDefault();e.stopImmediatePropagation();announce('Test mode: cloud saves are off. Exit the test first.');}},{capture:true});
- const banner=document.createElement('div');banner.id='dev-test-banner';banner.hidden=true;banner.innerHTML='<span>TEST MODE · NOTHING IS SAVED</span><button type="button">EXIT TEST</button>';document.body.append(banner);
+ const banner=document.createElement('div');banner.id='dev-test-banner';banner.hidden=true;banner.innerHTML='<span>TEST MODE · NOTHING IS SAVED</span><small data-dev-clock hidden></small><small data-dev-step-note hidden></small><button type="button">EXIT TEST</button>';let clockT=0;document.body.append(banner);
  banner.querySelector('button').onclick=exit;
- globalThis.VoidDevTest={render,action,build,adminBuild,playAsAdmin,session,exit,get active(){return active;}};
+ globalThis.VoidDevTest={render,action,build,adminBuild,playAsAdmin,session,exit,stepNote,get active(){return active;}};
 })();

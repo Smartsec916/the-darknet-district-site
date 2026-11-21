@@ -28,27 +28,128 @@
    judges it at the moment of capture) and 'send-photo' (a photo of `subject`, taken during this mission, sent in Messages to `npc`; `say` is the reply to the right photo,
    `wrong` to any other; unlimited tries), a step's lines delivered `via` 'comms' or 'messages' instead of the dialogue window, a 'leave' trigger, and the unlock
    'reputation' (id: an NPC → story.relationships[id], or a faction → progression.reputation[id]; amount -100..100; both are kept by clean_save()).
+   COSTS AND ACCEPT / DENY (19 Nov 2026): a mission may cost the player credits (cost) and any offer may ask ACCEPT / DENY (start.accept, for every way of starting);
+   see MONEY below.
    Content shape: {format:'darknet-district-mission-content',version:1,beginner?:[...],registry?:{...},lines?:[...],trees?:[...],names?:{...}}. Unknown fields are refused, never ignored. */
 (function(root){
  'use strict';
  const MS=typeof module!=='undefined'&&module.exports?require('./main-story.js'):root.VoidMainStory;
  const PL=typeof module!=='undefined'&&module.exports?require('./places.js'):root.VoidPlaces;
+ const GC=typeof module!=='undefined'&&module.exports?require('./game-clock.js'):root.VoidClock;
+ const DPL=()=>typeof module!=='undefined'&&module.exports?require('./district-people.js'):root.VoidDistrictPeople;
+ const GVS=()=>typeof module!=='undefined'&&module.exports?require('./mission-givers.js'):root.VoidMissionGivers;
+ const NPX=()=>typeof module!=='undefined'&&module.exports?require('./npc-paths.js'):root.VoidNPCPaths;
+ const NPV=()=>typeof module!=='undefined'&&module.exports?require('./npc-voices.js'):root.VoidNPCVoices;
+ const NGS=()=>typeof module!=='undefined'&&module.exports?require('./npc-gestures.js'):root.VoidNPCGestures;   // animations on lines and animation steps (npc-gestures.js)
+ const NEX=()=>typeof module!=='undefined'&&module.exports?require('./npc-escort.js'):root.VoidNPCEscort;   // follow / lead / shared-cab steps (npc-escort.js)
+ const APT=()=>typeof module!=='undefined'&&module.exports?require('./apartments.js'):root.VoidApartments;   // mission-instanced apartments, access points and hacks (apartments.js, 19 Nov 2026)
+ const NPL=()=>typeof module!=='undefined'&&module.exports?require('./npc-looks.js'):root.VoidNPCLooks;
+ const ZN=()=>typeof module!=='undefined'&&module.exports?require('./zones.js'):root.VoidZones;   // zones (Friendly / Neutral / Hostile) and armed people (zones.js, 19 Nov 2026): content.zones, mission.combat
+ const MODTYPES=(()=>{let t=null;return ()=>{if(t)return t;const M=typeof module!=='undefined'&&module.exports?require('./modules.js'):root.VoidModules;if(!M||!M.inventory)return null;t=M.inventory().types;return t;};})();
+ const CRM=()=>typeof module!=='undefined'&&module.exports?require('./cult-room.js'):root.VoidCultRoom;   // camera-feed-only rooms (the Blackrock Cult Room, cult-room.js, 19 Nov 2026): mission.feeds, hack steps with a feed
+ const MDE=()=>typeof module!=='undefined'&&module.exports?require('./npc-made.js'):root.VoidMadeNPCs;   // mission givers made in the editor (content.characters, npc-made.js)
+ const SC=typeof module!=='undefined'&&module.exports?require('./start-conditions.js'):root.VoidStartConditions;   // "…and only when": extra start conditions (start.only, start-conditions.js, 20 Nov 2026)
+ const MM=typeof module!=='undefined'&&module.exports?require('./mission-mechanics.js'):root.VoidMissionMechanics;   // reusable mechanics of the Awakening continuation (20 Nov 2026): observe, overhear, sneak, collect, report, call, in-game wait, camera feed, tail, leave, flight; cast and evidence
+ const VIM=()=>typeof module!=='undefined'&&module.exports?require('./voice-imports.js'):root.VoidVoiceImports;   // imported voice files (content.clips: [{who, text, hash, type, duration, bytes}], 19 Nov 2026)   // NPC looks (Developer Tools > NPCs > Appearance)   // ElevenLabs voice choices (Developer Tools > NPCs, giver card)   // NPC placement, paths and "Giver waits at" (Developer Tools > NPCs)
+ /* "When walked near" (the owner, 18 Nov 2026): when:{kind:'near', npc (default: the giver), distance (metres, 1..30, default 5)}. The game measures the player's distance to that
+    person's TALK prompt (live-content.js, four times a second) and sends {type:'near', near:{<npc>: metres}}; the mission starts once, in tree order. */
+ const NEAR={min:1,max:30,def:5},nearMetres=v=>{const G=GVS();if(G&&G.nearMetres)return G.nearMetres(v);return typeof v==='number'&&Number.isFinite(v)?Math.min(NEAR.max,Math.max(NEAR.min,v)):NEAR.def;};
+ /* A walk-near start (a banner, triggered by walking near): its sender, header and body may be empty (checkStart). sender(m): who it comes from (default the giver). */
+ const quietStart=st=>!!(st&&st.how==='notification'&&st.channel==='notify'&&st.when&&st.when.kind==='near'),sender=m=>(m&&m.start&&typeof m.start.from==='string'&&m.start.from.trim())?m.start.from:m&&m.giver;
+ /* Every "when walked near" trigger in the trees: [{tree, mission, npc, metres}] (the game watches only these people). */
+ function nearList(trees){const out=[];for(const t of trees||[])for(const m of (t&&t.missions)||[]){const st=m&&m.start,w=st&&st.how==='notification'&&st.when;if(w&&w.kind==='near'&&(w.npc||m.giver))out.push({tree:t.id,mission:m.id,npc:w.npc||m.giver,metres:nearMetres(w.distance)});}return out;}
+ /* Is the player near enough? d: metres to that person (Infinity / undefined: not in this scene). */
+ const nearHit=(d,metres)=>typeof d==='number'&&Number.isFinite(d)&&d<=nearMetres(metres);
+ /* COSTS AND ACCEPT / DENY (the owner, 19 Nov 2026: "can i do -100 credit option and add an accept or deny").
+    cost {amount 1..100000, when:'accept' (default: charged as the player presses ACCEPT; the offer shows it) | a step id (charged as that step is done), refund:true (only for
+    'accept': given back if the mission is abandoned)}. Credits never go below 0: ACCEPT is refused (greyed, "You need N CR") while the player has less, and a step that costs is
+    not done until they have it. Charged ONCE: story.flags.mc_<mission> keeps the amount charged (a safe integer), so a replay, a reload or a second ACCEPT never charges again.
+    start.accept:true works for every start that presents an offer (in person, Messages, Comms, a banner, walked near). yes / no: the button labels (20 characters at most;
+    default ACCEPT / DENY). deny: what DENY does: 'again' (default: offered again later: the next talk for an offer in person, the next time the player leaves the Sleeping Pod
+    for an offer on the device: story.flags.md_<mission> = 'later' until then), 'never' (md_<mission> = 'never'; the missions after it in its tree do not come either), or
+    'start' (denyStart: the first mission of another tree starts instead, or is offered when it asks too). denySay: the owner's own lines after DENY (optional). */
+ /* WHEN A DENIED OFFER COMES BACK (the owner, 19 Nov 2026, of a walked-near offer the player denies: "Maybe set a time for return, or remove after"): deny is also
+    'after' (denyMinutes 1..120, default 10: offered again after that many minutes of PLAY, counted only while the player is in the world, not in menus, conversations or a
+    hidden tab; a walked-near offer also needs the player to have walked out of its distance and come back) or 'pod' (offered again after the next Sleeping Pod exit: what
+    'again' already does for an offer on the device; for an offer in person 'again' stays "the next time they talk"). 'never' is "Never offer again (remove it)".
+    md_<mission> in story.flags: 'never' | 'later' (until the next pod exit) | a safe integer (seconds of play left) | 'away' (the time is up; a walked-near offer waits for the
+    player to be out of its distance once). While it is set the giver's "Giver waits at" spot is not used: she goes about her own routine (waitingAt) and walks back when it
+    is offered again (ncz-street-pair.js / npc-made.js never move her out of sight of the player in view). Existing missions keep what they did ('again'). */
+ const MONEY={min:-100000,max:100000,label:20},DENY=['again','pod','after','never','start'],DENY_MIN={min:1,max:120,def:10},ASK_KEYS=['yes','no','deny','denyMinutes','denyStart','denySay'],YES='ACCEPT',NO='DENY';
+ const denyMinutes=v=>Number.isInteger(v)&&v>=DENY_MIN.min&&v<=DENY_MIN.max?v:DENY_MIN.def;
+ const costFlag=id=>'mc_'+String(id).slice(0,61),denyFlag=id=>'md_'+String(id).slice(0,61),armFlag=id=>'mq_'+String(id).slice(0,61);   // mq_: a one-moment trigger happened, its "…and only when" conditions not yet true (start-conditions.js)
+ /* ACCEPT / DENY ANYWHERE IN A MISSION (the owner, 19 Nov 2026: "put the Accept/Deny the mission anywhere in the mission timeline"): a step kind 'ask' {question (the owner's
+    words, 300 characters), npc? (who asks; default the giver), yes / no (button labels, 20 characters), deny: 'end' (default: the mission ends and goes back to its giver, who
+    offers it again) | 'skip' (goto: a LATER step; the steps between are skipped and give nothing) | 'back' (goto: an EARLIER step; the steps from there are done again) | 'tree'
+    (denyStart: the first mission of another tree starts, this one ends), denySay (lines after DENY), say (lines after ACCEPT), price (1..100000 credits charged ONCE on ACCEPT:
+    story.flags.ma_<mission>_<step>; the MONEY rules: never below 0, ACCEPT greyed while short)}. The mission waits at it; the game shows the choice window (live-content.js
+    askTick) and answers with {type:'ask-yes'|'ask-no', step:'<mission>/<step>'}. */
+ /* Also (19 Nov 2026, with the player reply choice below): gain (1..100000 credits the player GETS on ACCEPT, once: story.flags.mg_<mission>_<step>; never with a price) and
+    deny 'continue' (DENY: the lines after DENY, then the mission just goes on, like ACCEPT without its credits or its lines). */
+ const ASK_STEP={deny:['end','skip','back','tree','continue'],question:300,keys:['question','yes','no','deny','goto','denyStart','denySay','price','gain']},askPriceFlag=(mid,sid)=>'ma_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18),askGainFlag=(mid,sid)=>'mg_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
+ const askPrice=o=>o&&Number.isInteger(o.price)&&o.price>0?Math.min(o.price,MONEY.max):0,askGain=o=>o&&Number.isInteger(o.gain)&&o.gain>0&&!askPrice(o)?Math.min(o.gain,MONEY.max):0;
+ /* A PLAYER REPLY THAT IS A CHOICE (the owner, 19 Nov 2026: "in player reply add the accept or deny option, credit changes if accepted"): a player line in what is said
+    {who:'You', text (the reply said when ACCEPT is pressed; may be empty), choice:{yes? / no? (button words, 20 characters; default ACCEPT / DENY), noText? (the reply said
+    when DENY is pressed), credits? (signed, -100000..100000, not 0: + the player GETS them on ACCEPT, - the player PAYS them on ACCEPT; once; the MONEY rules: never below 0,
+    ACCEPT greyed while short), deny? 'end' (default) | 'skip' | 'back' | 'tree' | 'continue' (just go on with the conversation), goto? (skip: a LATER step; back: this step or an
+    earlier one), denyStart? (tree), yesSay? / noSay? (what is said next after each button)}}. Allowed in what is said when a step is done (not a Comms call, a message, a photo
+    reply or an "Ask the player" step) and in the offer of a mission that does not ask ACCEPT / DENY itself (in person, or walked near). NOT a second system: expandChoices()
+    turns each one, when the trees are loaded (storyTrees), into an "Ask the player" step (ASK_STEP, marked inline, with the line before it as its question) placed right after
+    its step; the lines after the choice become that step's lines after ACCEPT (and after DENY with 'continue'). The game shows it in the same conversation window. */
+ const CHOICE={deny:['end','skip','back','tree','continue'],keys:['yes','no','noText','credits','deny','goto','denyStart','yesSay','noSay']};
+ const choiceOk=(m,o)=>o?!['ask','send-photo','anim','wait','zone',...((MM&&MM.KINDS)||[])].includes(o.kind)&&o.via!=='comms'&&o.via!=='messages':!(m&&m.start&&m.start.accept===true)&&(!(m&&m.start&&m.start.how==='notification')||((m.start.when||{}).kind==='near'));
+ function costOf(m){const c=m&&m.cost;if(!c||!(Number.isInteger(c.amount)&&c.amount>0))return null;const when=c.when||'accept';return {amount:Math.min(c.amount,MONEY.max),when,refund:c.refund===true&&when==='accept'};}
+ /* Credits as one signed number for the editor ("Player gets" >= 0, "Player pays" < 0) and back (clamped to -100000..100000). */
+ const signed=m=>{const c=costOf(m);return c?-c.amount:(Number.isInteger(m&&m.rewards)?m.rewards:0);};
+ function setSigned(m,n){n=Math.trunc(Number(n))||0;n=Math.max(MONEY.min,Math.min(MONEY.max,n));if(n<0){m.cost={...(m.cost||{}),amount:-n};if(!m.cost.when)m.cost.when='accept';m.rewards=0;}else{m.rewards=n;delete m.cost;}return m;}
+ const charged=(s,id)=>{const v=s&&s.story&&s.story.flags&&s.story.flags[costFlag(id)];return Number.isSafeInteger(v)&&v>0?v:0;};
+ /* Can the player pay this cost now (or has it been paid already)? */
+ const affords=(s,m,c=costOf(m))=>!c||charged(s,m.id)>0||(Number(s&&s.credits)||0)>=c.amount;
+ /* Takes the cost once; never below 0 (nothing is taken when the player has less). Returns the amount taken. */
+ function charge(s,m,c=costOf(m)){if(!c||charged(s,m.id)>0)return 0;const have=Math.max(0,Number(s.credits)||0);if(have<c.amount)return 0;s.credits=have-c.amount;s.story.flags[costFlag(m.id)]=c.amount;return c.amount;}
+ /* What the offer window shows: the name, a short description, the cost (and when it is charged) or the reward, and whether ACCEPT can be pressed. */
+ function offerOf(s,m){const c=costOf(m),st=m.start||{},d=String(m.description||'').replace(/\s+/g,' ').trim(),atAccept=!!(c&&c.when==='accept'),ok=!atAccept||affords(s,m,c);
+  return {mission:m.id,title:m.title,description:d.length>160?d.slice(0,157)+'…':d,cost:c?c.amount:0,costWhen:c?c.when:null,reward:Number.isInteger(m.rewards)&&m.rewards>0?m.rewards:0,afford:ok,need:ok?0:c.amount,yes:st.yes||YES,no:st.no||NO};}
  const FORMAT='darknet-district-mission-content',VERSION=1;
  const ID=/^[a-z][a-z0-9-]{0,79}$/,TAGS=/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/;
  // The events the beginner runner fires (beginner-integration.js); the same list as the Developer Studio (admin/studio-model.js EVENTS, checked by a test).
  const EVENTS=['v1-open','keymap-seen','talk-admin','talk-iris','visit-bar','visit-shop','use-terminal','board-ship','launch','warp-meridian','dock-meridian'];
  const TYPES=['main','side','cargo','campaign','tutorial','bounty','station'],AWARDS=['ship'],DESTINATIONS=['earth','meridian'];
  const SPEAKERS=['Admin','Iris','Landing terminal','You','Bartender'];   // the beginner campaign's on-screen speakers (studio-model.js SPEAKERS)
- const LIMIT={lineEdits:600,missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000,subjects:6};
+ /* MISSION TIMERS (the owner, 19 Nov 2026: "mission timers. set the amount of time between actions, lines, etc"): a line's wait before it shows (0-60 s) and how long it
+    stays before the conversation goes on by itself (1-60 s), an animation's length on a line (1-30 s), a step's delay before it starts (0-600 s), a wait step (1-600 s). */
+ const TIME={lineWait:60,lineShow:60,animFor:30,delay:600,wait:600,near:50};
+ const LIMIT={call:1500,lineEdits:600,missions:40,objectives:20,lines:12,text:500,title:60,description:600,registry:60,credits:100000,subjects:6};
  const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
  const plain=(v,max)=>typeof v==='string'&&v.trim().length>0&&v.length<=max&&!TAGS.test(v);
+ /* ELEVENLABS VOICE TAGS (the owner, 19 Nov 2026) in what is said: checked here (npc-voices.js tagProblems) and removed for players in ONE place, where content is adapted
+    (apply: changed lines, every tree's lines and notification texts; mapLine). Only the re-voice queue keeps them, for ElevenLabs models that read them. */
+ const tagP=t=>{const V=NPV();return V&&V.tagProblems?V.tagProblems(t):[];},shown=t=>{const V=NPV();return V&&V.strip&&typeof t==='string'?V.strip(t):t;};
+ const shownLines=ls=>Array.isArray(ls)?ls.map(l=>l&&typeof l.text==='string'?{...l,text:shown(l.text),...(l.choice&&typeof l.choice==='object'?{choice:shownChoice(l.choice)}:{})}:l):ls;
+ const shownChoice=c=>({...c,...(typeof c.noText==='string'?{noText:shown(c.noText)}:{}),...(c.yesSay?{yesSay:shownLines(c.yesSay)}:{}),...(c.noSay?{noSay:shownLines(c.noSay)}:{})});
+ function shownTree(t){const x=clone(t);for(const m of x.missions||[]){if(!m)continue;m.offer=shownLines(m.offer);if(m.ending&&m.ending.say)m.ending.say=shownLines(m.ending.say);if(m.start&&typeof m.start.text==='string')m.start.text=shown(m.start.text);
+  for(const o of m.objectives||[])if(o){for(const k of ['say','early','wrong','denySay'])if(o[k])o[k]=shownLines(o[k]);if(typeof o.question==='string')o.question=shown(o.question);}}return x;}
  const keysOk=(o,allowed)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>allowed.includes(k));
  /* Strict check of a content record. ctx: {speakers:Set of extra speaker names (registry display names), registryIds:Set, interactions:Set (optional)}.
     Returns {ok, errors:[plain text]}; a record with any error is never applied. */
- function check(content,ctx={}){
+ /* MADE CHARACTERS (content.characters, npc-made.js): checked first, then for the rest of the check they are MOVABLE (npc-paths.js setMade: their placements, added animations,
+    follow / lead steps) and givers with a TALK prompt (ctx.givers). The editor's or the game's own registration is put back afterwards. */
+ function madeCtx(content,ctx){const MD=MDE(),ch=content&&content.characters;if(ch==null||!MD)return {ctx,errors:[]};const base=ctx.givers?new Map([...ctx.givers].filter(([,g])=>!g.made)):null;
+  const ms=new Map();for(const t of storyTrees(content.trees||[]))for(const m of t.missions||[])ms.set(m.id,(m.objectives||[]).map(o=>o.id));const offer=new Map();for(const t of storyTrees(content.trees||[]))for(const m of t.missions||[])if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);
+  const errors=MD.problems(ch,{npcs:content.npcs||{},missions:ms,reserved:base?new Set(base.keys()):ctx.reserved||null,givesOffer:offer,lookInventory:ctx.lookInventory&&ctx.lookInventory.assets});
+  const facts=MD.giverFacts(ch&&typeof ch==='object'&&!Array.isArray(ch)?ch:{},content.npcs||{}),givers=base?new Map(base):null;if(givers)for(const [id,f] of Object.entries(facts))givers.set(id,{id,name:f.name,canTalk:true,players:true,draft:true,made:true,targets:f.targets,group:'district'});
+  return {ctx:givers?{...ctx,givers}:ctx,errors};}
+ function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters','zones']))return {ok:false,errors:['The content record has an unknown shape.']};
+  const X=NPX(),had=X&&content.characters!=null&&X.setMade?X.setMade(content.characters):null;
+  try{const m=madeCtx(content,ctx),r=check_(content,m.ctx);return m.errors.length?{ok:false,errors:[...m.errors,...r.errors]}:r;}finally{if(had)X.setMade(had);}}
+ function check_(content,ctx={}){
   const errors=[],err=t=>errors.push(t),speakers=new Set([...SPEAKERS,...(ctx.speakers||[])]);
-  if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names']))return {ok:false,errors:['The content record has an unknown shape.']};
+  if(content.clips!=null){const I=VIM();if(!I)err('Imported voice files cannot be checked here.');else for(const p of I.clipProblems(content.clips))err(p);}
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
+  if(content.zones!=null){const X=ZN();if(!X)err('The Zones table cannot be checked here.');else for(const p of X.tableProblems(content.zones,{places:ctx.places,types:MODTYPES()}))err(p);}
+  if(content.npcs!=null){const X=NPX();if(!X)err('NPC placements cannot be checked here.');else for(const p of X.checkAll(content.npcs))err(p);}
+  if(content.looks!=null){const L=NPL();if(!L)err('NPC looks cannot be checked here.');else for(const p of L.problems(content.looks,{inventory:ctx.lookInventory}))err(p);}
+  if(content.voices!=null){const V=NPV();if(!V)err('Voice choices cannot be checked here.');else for(const p of V.problems(content.voices,{registry:ctx.registry}))err(p);}
   if(content.note!=null&&!(typeof content.note==='string'&&content.note.length<=500&&!TAGS.test(content.note)))err('The change note must be plain text (500 characters at most).');
   if(content.beginner!=null){
    const list=content.beginner;
@@ -80,7 +181,7 @@
       if(o.award!=null&&!AWARDS.includes(o.award))err(ow+': the only award the game can give at a step is the ship.');
       for(const k of ['say','early']){const lines=o[k];if(lines==null)continue;
        if(!Array.isArray(lines)||lines.length>LIMIT.lines){err(ow+': too many lines.');continue;}
-       for(const l of lines){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(ow+': a line must be plain text (500 characters at most).');else if(!speakers.has(l.who))err(ow+': speaker "'+l.who+'" is not a known NPC or speaker.');}}
+       for(const l of lines){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(ow+': a line must be plain text (500 characters at most).');else if(!speakers.has(l.who))err(ow+': speaker "'+l.who+'" is not a known NPC or speaker.');else for(const p of tagP(l.text))err(ow+': '+p);}}
      }
      for(const o of m.objectives)for(const r of (o&&o.requires)||[])if(!oids.has(r))err(w+' / '+o.id+': requires "'+r+'", which is not a step of this mission.');
      const loop=(id,seen)=>{if(seen.has(id))return true;const o=m.objectives.find(x=>x.id===id);return !!o&&(o.requires||[]).some(r=>loop(r,new Set([...seen,id])));};
@@ -106,16 +207,17 @@
   }
   if(content.lines!=null){
    if(!Array.isArray(content.lines)||content.lines.length>LIMIT.lineEdits)err('Line edits have an unknown shape (at most '+LIMIT.lineEdits+').');
-   else{const seen=new Set();for(const l of content.lines){if(!keysOk(l,['who','from','to'])||!/^[a-z][a-z0-9-]{0,40}$/.test(l.who||'')||!plain(l.from,LIMIT.text)||!plain(l.to,LIMIT.text)){err('A changed line must name a speaker and be plain text (500 characters at most).');continue;}
+   else{const seen=new Set();for(const l of content.lines){if(!keysOk(l,['who','from','to'])||!/^[a-z][a-z0-9-]{0,40}$/.test(l.who||'')||!plain(l.from,LIMIT.text)||!plain(l.to,LIMIT.text)){err('A changed line must name a speaker and be plain text (500 characters at most).');continue;}for(const p of tagP(l.to))err('“'+l.from.slice(0,40)+'…”: '+p);
     if(l.who==='player')err('The player’s own lines are not changed here.');const k=l.who+'|'+l.from;if(seen.has(k))err('The same line is changed twice.');seen.add(k);if(ctx.lines&&!ctx.lines.has(k))err('“'+l.from.slice(0,40)+'…” is not a line in the game.');}}
   }
   if(content.names!=null){const n=content.names;if(!n||typeof n!=='object'||Array.isArray(n)||Object.keys(n).length>60)err('Tree names have an unknown shape.');
    else for(const [id,name] of Object.entries(n)){if(!ID.test(id)||(ctx.treeIds&&!ctx.treeIds.has(id)&&!(content.trees||[]).some(t=>t&&t.id===id)))err('"'+id+'" is not a mission tree.');if(!plain(name,LIMIT.title))err('A tree name must be plain text (60 characters at most).');}}
-  if(content.trees!=null)checkTrees(content.trees,ctx,err);
+  if(content.trees!=null)checkTrees(content.trees,{...ctx,npcs:content.npcs||null},err);
   return {ok:!errors.length,errors};
  }
  // ---------------------------------------------------------------- the owner's new trees
- const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag'],AUTO=['message'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const DRAFT=/^draft-[a-z0-9][a-z0-9-]{0,53}$/,STEP_KINDS=['talk','go','arrive','deliver','buy','pod-exit','message','hear','enter','leave','photo','send-photo','await-call','follow-them','they-follow','their-cab','shared-cab','anim','wait','apt-enter','apt-use','hack','ask','zone',...((MM&&MM.KINDS)||[])],APT_KINDS=['apt-enter','apt-use','hack'],ESCORT=['follow-them','they-follow','their-cab','shared-cab'],HOW=['person','notification'],CHANNELS=['messages','comms','notify'],WHEN=['pod-exit','after-mission','place','leave','flag','game-time','near'],AUTO=['message','await-call','call'],STORY_FLAG=/^[a-zA-Z][\w-]{0,63}$/,UNLOCKS=['credits','flag','location','ship','tree','reputation','contact','follow','missiles','evidence','contract-flag','nav-coords'],CONTRACT_FLAGS=['rook-first-delivery-done'],FLAGNAME=/^[a-zA-Z][a-zA-Z0-9_-]{0,47}$/;
+ const STEP_APPS=['camera','gallery','messages','map','missions','comms','social','news','store','warflying','loadout'];   // a step's optional V1 app hint (device-v1.js STEP_APPS; void_runner_live_content.py STEP_APPS): the tile that glows when the V1 opens
  const VIA=['talk','comms','messages'],FACTIONS=['civilian','pirate','erebus-local','sol-local','communion','natural-order','neutral'];   // factions a reputation unlock may name (factions.js, without 'player'; void_runner_progression.py keeps the same list)
  const treeFlag=id=>'mt_'+id,linkFlag=id=>'ts_'+id;
  // Ids: an owner tree starts with draft-; a shipped story tree is listed in main-story.js. Story missions: m<NNN>-<name> or <story tree>-m<n> (made by the editor).
@@ -128,27 +230,82 @@
  const devLabel=m=>MS?MS.label(m.number,m.title):m.title;
  /* How a mission starts (closed shape). In person needs nothing else; by notification needs a channel, a sender, the text (a header for Messages and Comms) and a trigger. */
  function checkStart(st,w,ctx,err,speakerOk,trees){
-  if(!keysOk(st,['how','channel','from','header','text','when','accept'])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
-  if(st.accept!=null&&(typeof st.accept!=='boolean'||st.how!=='person'))err(w+': only a mission offered in person can be accepted or declined.');
-  if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'))err(w+': a mission given in person has no notification fields.');return;}
+  if(!keysOk(st,['how','channel','from','header','text','when','accept','only',...ASK_KEYS])||!HOW.includes(st.how)){err(w+': unknown way of starting.');return;}
+  if(st.accept!=null&&typeof st.accept!=='boolean')err(w+': “Ask the player: ACCEPT or DENY” must be yes or no.');
+  if(st.only!=null){const ids=trees?new Set([...trees.flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[]),...((MS&&MS.MISSION_IDS)||[])]):null;   // "…and only when" (start-conditions.js)
+   for(const p of SC?SC.problems(st.only,{person:id=>!ctx.givers||!!(ctx.givers.get(id)||{}).canTalk,places:ctx.places||null,missions:ids}):['extra conditions are not available.'])err(w+': and only when, '+p);}
+  if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'&&k!=='only'&&!ASK_KEYS.includes(k)))err(w+': a mission given in person has no notification fields.');return;}
   if(!CHANNELS.includes(st.channel))err(w+': unknown notification channel.');
-  if(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from))err(w+': the notification must come from a known NPC.');
-  if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
-  if(!plain(st.text,LIMIT.text))err(w+': the notification needs its text (plain text, 500 characters at most).');
-  const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
-  if(x.kind==='after-mission'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[])]);if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
+  // WALK NEAR WITHOUT WORDS (the owner, 21 Nov 2026: "everything is said in person"): a walk-near start (channel 'notify', when.kind 'near') may leave the sender (the giver),
+  // the header and the body empty: no text is sent, only the "NEW MISSION" line, and the giver's offer lines play in person. Every other start still needs its words.
+  const quiet=quietStart(st),blank=v=>v==null||(typeof v==='string'&&!v.trim());
+  if(!(quiet&&blank(st.from))&&(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from)))err(w+': the notification must come from a known NPC.');
+  if(quiet&&blank(st.header));else if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
+  if(quiet&&blank(st.text));else if(!plain(st.text,st.channel==='notify'?LIMIT.text:LIMIT.call))err(w+': the notification needs its text (plain text, '+(st.channel==='notify'?LIMIT.text:LIMIT.call)+' characters at most).');else for(const p of tagP(st.text))err(w+': the notification text: '+p);
+  const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value','npc','distance'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
+  // "after N in-game hours / minutes" (Mission 003, 17 Nov 2026): value = IN-GAME minutes (1..10080, a week) after the mission named here was completed (game-clock.js)
+  if(x.kind==='game-time'&&!(Number.isInteger(x.value)&&x.value>=1&&x.value<=10080))err(w+': “after in-game time” needs a whole number of in-game minutes from 1 to 10080 (a week).');
+  if(x.kind==='after-mission'||x.kind==='game-time'){const ids=new Set([...(trees||[]).flatMap(t=>((t&&t.missions)||[]).map(y=>y&&y.id)),...(ctx.registryIds||[]),...((MS&&MS.MISSION_IDS)||[])]);/* the shipped story's missions always exist */if(typeof x.mission!=='string'||!ID.test(x.mission)||(trees&&!ids.has(x.mission)))err(w+': “after mission” must name a mission that exists.');}
+  if(x.kind!=='near'&&(x.npc!=null||x.distance!=null))err(w+': only “when walked near” names a person and a distance.');
+  if(x.kind==='near'){if(x.npc!=null&&(typeof x.npc!=='string'||(ctx.givers&&!(ctx.givers.get(x.npc)||{}).canTalk)))err(w+': “when walked near” must name someone the game has a TALK prompt for.');
+   if(x.distance!=null&&!(typeof x.distance==='number'&&Number.isFinite(x.distance)&&x.distance>=NEAR.min&&x.distance<=NEAR.max))err(w+': “when walked near” needs a distance from 1 to 30 metres.');}
   if((x.kind==='place'||x.kind==='leave')&&(typeof x.place!=='string'||(ctx.places&&!ctx.places.has(x.place))))err(w+': unknown trigger place "'+x.place+'".');
   if(x.kind==='flag'){if(!STORY_FLAG.test(x.flag||''))err(w+': the trigger flag must be a story flag name (letters, digits, - or _).');if(!(typeof x.value==='boolean'||(typeof x.value==='string'&&x.value.length<=200&&!TAGS.test(x.value))||Number.isSafeInteger(x.value)))err(w+': the trigger flag value must be true/false, a number or short text.');}}
+ /* ACCEPT / DENY settings (any start) and the cost (MONEY above). */
+ function checkAsk(st,w,err,lines,trees,t){if(!st||typeof st!=='object')return;
+  if(ASK_KEYS.some(k=>st[k]!=null)&&st.accept!==true)err(w+': button labels and “what happens on DENY” need “Ask the player: ACCEPT or DENY”.');
+  for(const k of ['yes','no'])if(st[k]!=null&&!plain(st[k],MONEY.label))err(w+': a button label must be plain text, '+MONEY.label+' characters at most.');
+  if(st.deny!=null&&!DENY.includes(st.deny))err(w+': unknown “what happens on DENY”.');
+  if(st.deny==='start'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===st.denyStart))err(w+': on DENY it must start the first mission of another tree.');}
+  else if(st.denyStart!=null)err(w+': only “start another mission” names a mission to start.');
+  if(st.denyMinutes!=null&&(st.deny!=='after'||!(Number.isInteger(st.denyMinutes)&&st.denyMinutes>=DENY_MIN.min&&st.denyMinutes<=DENY_MIN.max)))err(w+': “offer again after N minutes” needs a whole number of minutes from '+DENY_MIN.min+' to '+DENY_MIN.max+'.');
+  lines(st.denySay,w+' / on DENY');}
+ /* An "Ask the player" step (ASK_STEP above): the question, the labels, what DENY does and where it goes, an optional price on ACCEPT. Going BACK repeats the steps from the
+    target, so a credits or standing unlock at one of them would be given again: refused (move it after the question or to the end). */
+ function checkAskStep(m,o,w,err,lines,speakerOk,trees,t){const ids=(m.objectives||[]).map(x=>x&&x.id),i=ids.indexOf(o.id),d=o.deny==null?'end':o.deny,j=ids.indexOf(o.goto);
+  if(!plain(o.question,ASK_STEP.question))err(w+': the question needs your words (plain text, 300 characters at most).');else for(const p of tagP(o.question))err(w+': the question: '+p);
+  if(o.npc!=null&&o.npc!==''&&(o.npc==='You'||!speakerOk(o.npc)))err(w+': who asks must be a known NPC.');
+  for(const k of ['yes','no'])if(o[k]!=null&&!plain(o[k],MONEY.label))err(w+': a button label must be plain text, '+MONEY.label+' characters at most.');
+  if(!ASK_STEP.deny.includes(d))err(w+': unknown “what happens on DENY”.');
+  if(d==='skip'){if(!(j>i))err(w+': on DENY it must skip to a LATER step of this mission.');}else if(d==='back'){if(!(j>=0&&j<i))err(w+': on DENY it must go back to an EARLIER step of this mission.');
+   else for(const x of m.objectives.slice(j,i))if((m.unlocks||[]).some(u=>u&&u.when===x.id&&(u.kind==='credits'||u.kind==='reputation')))err(w+': going back repeats step “'+(x.label||x.id)+'”, which gives credits or standing each time: move that to after the question or to the end.');}
+  else if(o.goto!=null)err(w+': only “skip to” or “go back to” names a step.');
+  if(d==='tree'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===o.denyStart))err(w+': on DENY it must start the first mission of another tree.');}else if(o.denyStart!=null)err(w+': only “start another tree” names a mission to start.');
+  if(o.price!=null&&!(Number.isInteger(o.price)&&o.price>=1&&o.price<=MONEY.max))err(w+': what the player pays on ACCEPT must be a whole number from 1 to 100000 credits.');
+  if(o.gain!=null&&!(Number.isInteger(o.gain)&&o.gain>=1&&o.gain<=MONEY.max))err(w+': what the player gets on ACCEPT must be a whole number from 1 to 100000 credits.');else if(o.gain!=null&&o.price!=null)err(w+': on ACCEPT the player either gets credits or pays them, not both.');
+  if(o.via!=null||o.early!=null||o.wrong!=null)err(w+': an “Ask the player” step has only the lines after ACCEPT and after DENY.');lines(o.denySay,w+' / after DENY');}
+ /* A player reply that is a choice (CHOICE). ch: {m, i (the index of its step; -1 for the offer), t}. Going back repeats the steps from the target to this one: a credits or
+    standing unlock at one of them is refused, as for an "Ask the player" step. */
+ function checkChoice(c,w,err,lines,ch,trees){const {m,i,t}=ch,w2=w+' / the player’s choice';if(!keysOk(c,CHOICE.keys)){err(w2+': unknown fields.');return;}
+  for(const k of ['yes','no'])if(c[k]!=null&&!plain(c[k],MONEY.label))err(w2+': a button label must be plain text, '+MONEY.label+' characters at most.');
+  if(c.noText!=null){if(!plain(c.noText,LIMIT.text))err(w2+': the reply on DENY must be plain text (500 characters at most).');else for(const p of tagP(c.noText))err(w2+': '+p);}
+  if(c.credits!=null&&!(Number.isInteger(c.credits)&&c.credits!==0&&Math.abs(c.credits)<=MONEY.max))err(w2+': the credits on ACCEPT must be a whole number from 1 to 100000 (the player gets them or pays them).');
+  const d=c.deny==null?'end':c.deny,ids=(m.objectives||[]).map(x=>x&&x.id),j=ids.indexOf(c.goto);if(!CHOICE.deny.includes(d))err(w2+': unknown “what happens on DENY”.');
+  if(d==='skip'){if(!(j>i))err(w2+': on DENY it must skip to a LATER step of this mission.');}else if(d==='back'){if(!(j>=0&&j<=i))err(w2+': on DENY it must go back to this step or an EARLIER one.');
+   else for(const x of m.objectives.slice(j,i+1))if((m.unlocks||[]).some(u=>u&&u.when===x.id&&(u.kind==='credits'||u.kind==='reputation')))err(w2+': going back repeats step “'+(x.label||x.id)+'”, which gives credits or standing each time: move that to after the choice or to the end.');}
+  else if(c.goto!=null)err(w2+': only “skip to” or “go back to” names a step.');
+  if(d==='tree'){if(!(trees||[]).some(x=>x&&x!==t&&Array.isArray(x.missions)&&x.missions[0]&&x.missions[0].id===c.denyStart))err(w2+': on DENY it must start the first mission of another tree.');}else if(c.denyStart!=null)err(w2+': only “start another tree” names a mission to start.');
+  lines(c.yesSay,w2+' / after '+(c.yes||YES));lines(c.noSay,w2+' / after '+(c.no||NO));}
+ function checkCost(m,w,err,oids){const c=m.cost;if(c==null)return;if(!keysOk(c,['amount','when','refund'])){err(w+': the cost has unknown fields.');return;}
+  if(!(Number.isInteger(c.amount)&&c.amount>=1&&c.amount<=MONEY.max))err(w+': what the player pays must be a whole number from 1 to 100000 credits.');
+  const when=c.when==null?'accept':c.when;if(when!=='accept'&&!oids.has(when))err(w+': the cost is charged at a step that is not in this mission.');
+  if(c.refund!=null&&(typeof c.refund!=='boolean'||(c.refund&&when!=='accept')))err(w+': “refund if abandoned” is only for a cost charged at ACCEPT.');
+  if(when==='accept'&&!(m.start&&m.start.accept===true))err(w+': a mission the player pays for when accepting must ask the player ACCEPT or DENY.');}
  /* Trees another tree starts (a "start tree" unlock): their first mission waits until the link fires (story.flags.ts_<tree id>). */
  const linked=trees=>new Set((trees||[]).flatMap(t=>(t.missions||[]).flatMap(m=>(m.unlocks||[]).filter(u=>u&&u.kind==='tree').map(u=>u.id))));
  /* ctx: givers (Map id → {canTalk}), places (Set), items (Set: buyable module ids), locations (Set), ships (Map id → {premium}), registryIds (Set: ids a draft id may not take). */
  function checkTrees(trees,ctx,err){
   if(!Array.isArray(trees)||trees.length>10){err('New trees have an unknown shape (10 at most).');return;}
-  const tids=new Set(),mids=new Set(),all=new Set(trees.map(t=>t&&t.id));let total=0;
+  const tids=new Set(),mids=new Set(),all=new Set(trees.map(t=>t&&t.id));let total=0;const evSeen=new Set(),evAll=new Set([...Object.keys(MM?MM.evidenceDefs(trees):{}),...((ctx.evidence)||[])]);
   const npcOk=id=>typeof id==='string'&&(!ctx.givers||(ctx.givers.get(id)||{}).canTalk===true);
   const speakerOk=id=>id==='You'||(typeof id==='string'&&(!ctx.givers||ctx.givers.has(id)));
   const subjectOk=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{0,40}$/.test(id)&&(!ctx.subjects||ctx.subjects.has(id));
-  const lines=(ls,w)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(!keysOk(l,['who','text'])||!plain(l.text,LIMIT.text))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');}};
+  const animP=(who,clip)=>{const A=NGS();return A?A.problem(who,clip,{plan:(ctx.npcs||{})[who]||null}):'';};
+  const sec=(v,lo,hi)=>v==null||(Number.isInteger(v)&&v>=lo&&v<=hi);
+  const lines=(ls,w,ch)=>{if(ls==null)return;if(!Array.isArray(ls)||ls.length>LIMIT.lines){err(w+': too many lines.');return;}for(const l of ls){if(l&&typeof l==='object'){if(!sec(l.wait,0,TIME.lineWait))err(w+': the wait before a line is a whole number of seconds from 0 to 60.');if(!sec(l.show,1,TIME.lineShow))err(w+': “show for” is a whole number of seconds from 1 to 60.');if(!sec(l.animFor,1,TIME.animFor))err(w+': an animation on a line lasts a whole number of seconds from 1 to 30.');else if(l.animFor!=null&&l.anim==null)err(w+': only a line with an animation has an animation time.');}
+   if(!keysOk(l,['who','text','anim','wait','show','animFor','choice'])||!(plain(l.text,LIMIT.text)||(l.choice!=null&&l.text==='')))err(w+': a line must be plain text (500 characters at most).');else if(!speakerOk(l.who))err(w+': speaker "'+l.who+'" is not a known NPC.');else{for(const p of tagP(l.text))err(w+': '+p);
+   if(l.anim!=null){if(l.who==='You')err(w+': the player’s own line has no animation.');else{const p=animP(l.who,l.anim);if(p)err(w+': '+p+'.');}}}
+   if(l&&typeof l==='object'&&l.choice!=null){if(!ch)err(w+': a player reply can be a choice only in what is said when a step is done, or in the offer of a mission that does not ask ACCEPT / DENY itself.');else if(l.who!=='You')err(w+': only the player’s reply can be a choice.');else checkChoice(l.choice,w,err,lines,ch,trees);}}};
   for(const t of trees){const tw=(t&&t.id)||'(tree)';
    if(!keysOk(t,['id','name','note','missions'])){err(tw+': unknown fields in a tree.');continue;}
    if(!treeIdOk(t.id))err(tw+': a new tree id must start with draft-.');if(tids.has(t.id))err(tw+': duplicate tree id.');tids.add(t.id);
@@ -156,11 +313,16 @@
    if(t.note!=null&&!(typeof t.note==='string'&&t.note.length<=300&&!TAGS.test(t.note)))err(tw+': the note must be plain text (300 characters at most).');
    if(!Array.isArray(t.missions)||!t.missions.length||t.missions.length>20){err(tw+': a tree needs 1 to 20 missions.');continue;}
    for(const m of t.missions){total++;const w=tw+' / '+((m&&m.id)||'?');
-    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks'])){err(w+': unknown fields in a mission.');continue;}
+    if(!keysOk(m,['id','number','title','type','category','giver','location','start','objective','description','rewards','offer','objectives','ending','unlocks','waitAt','cost','apartments','feeds','combat','cast','evidence'])){err(w+': unknown fields in a mission.');continue;}
+    if(MM){for(const p of MM.castProblems(m,{places:ctx.places,models:ctx.models}))err(w+': '+p);for(const p of MM.evidenceProblems(m))err(w+': '+p);for(const e of m.evidence||[])if(e&&e.id){if(evSeen.has(e.id))err(w+': evidence “'+e.id+'” is already handed out by another mission (evidence ids are unique).');evSeen.add(e.id);}}
+    if(m.combat!=null){const X=ZN();if(!X)err(w+': zones and enemies cannot be checked here.');else for(const p of X.combatProblems(m,{places:ctx.places,types:MODTYPES()}))err(w+': '+p);}
+    {const X=CRM();if(X)for(const p of X.feedProblems(m))err(w+': '+p);else if(m.feeds!=null||(m.objectives||[]).some(o=>o&&o.feed!=null))err(w+': camera feeds cannot be checked here.');}
+    {const X=APT();if(X)for(const p of X.problems(m,ctx.doors||null))err(w+': '+p);else if(m.apartments!=null||(m.objectives||[]).some(o=>o&&APT_KINDS.includes(o.kind)))err(w+': apartments cannot be checked here.');}
+    if(m.waitAt!=null){const X=NPX();for(const p of X?X.waitAtProblems(m.giver,m.waitAt):['“Giver waits at” cannot be checked here.'])err(w+': '+p);}
     if(!missionIdOk(m.id))err(w+': a new mission id must start with draft- (60 characters at most).');
     if(m.number!=null&&!(Number.isInteger(m.number)&&m.number>=1&&m.number<=999))err(w+': a mission number must be a whole number from 001 to 999.');
     if(m.number==null&&STORY.has(t.id))err(w+': every mission in the main storyline needs a mission number.');
-    if(m.start!=null)checkStart(m.start,w,ctx,err,speakerOk,trees);
+    if(m.start!=null){checkStart(m.start,w,ctx,err,speakerOk,trees);checkAsk(m.start,w,err,lines,trees,t);}
     if(m.category!=null&&!plain(m.category,LIMIT.title))err(w+': the mission type label must be plain text (60 characters at most).');
     if(m.objective!=null&&!plain(m.objective,200))err(w+': the objective must be plain text (200 characters at most).');
     if(m.location!=null&&(typeof m.location!=='string'||(ctx.places&&!ctx.places.has(m.location))))err(w+': unknown location "'+m.location+'".');if(mids.has(m.id)||(ctx.registryIds&&ctx.registryIds.has(m.id)))err(w+': duplicate mission id.');mids.add(m.id);
@@ -168,11 +330,17 @@
     if(!npcOk(m.giver))err(w+': the giver must be an NPC the game has a TALK prompt for.');
     if(m.description!=null&&!(typeof m.description==='string'&&m.description.length<=LIMIT.description&&!TAGS.test(m.description)))err(w+': the description must be plain text (600 characters at most).');
     if(m.rewards!=null&&!(Number.isInteger(m.rewards)&&m.rewards>=0&&m.rewards<=LIMIT.credits))err(w+': credits must be a whole number between 0 and 100000.');
-    lines(m.offer,w);
+    lines(m.offer,w,choiceOk(m,null)?{m,i:-1,t}:null);
     if(!Array.isArray(m.objectives)||!m.objectives.length||m.objectives.length>LIMIT.objectives){err(w+': a mission needs 1 to 20 steps.');continue;}
     const oids=new Set();
     for(const o of m.objectives){const ow=w+' / '+((o&&o.id)||'?');
-     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via'])){err(ow+': unknown fields in a step.');continue;}
+     if(!keysOk(o,['id','label','kind','npc','place','item','say','early','subject','subjects','wrong','via','to','wait','lost','ifLost','stop','clip','hold','delay','near','apt','mod','object','ap','stay','unlock','needs','feed','target','zone','until','spawn','app',...ASK_STEP.keys,...((MM&&MM.STEP_FIELDS)||[])])){err(ow+': unknown fields in a step.');continue;}
+     if(o.app!=null&&!STEP_APPS.includes(o.app))err(ow+': unknown V1 app to highlight.');
+     if(MM)for(const p of MM.stepProblems(m,o,{places:ctx.places,subjects:ctx.subjects,locations:ctx.locations,evidence:evAll},speakerOk))err(ow+': '+p);
+     {const X=ZN();if(X)for(const p of X.stepProblems(m,o,{places:ctx.places}))err(w+' / '+p);else if(o.kind==='zone')err(ow+': zones cannot be checked here.');}
+     if(!sec(o.delay,0,TIME.delay))err(ow+': the delay before a step is a whole number of seconds from 0 to 600.');
+     if(o.kind!=='anim'&&o.clip!=null)err(ow+': only an animation step names an animation.');if(o.kind!=='anim'&&o.kind!=='wait'&&o.kind!=='hack'&&o.kind!=='observe'&&o.hold!=null)err(ow+': only an animation, wait or hack step has a number of seconds.');if(!['wait','observe','overhear','tail'].includes(o.kind)&&o.near!=null)err(ow+': only a wait, observe, overhear or follow-at-a-distance step has a distance.');
+     if(!ESCORT.includes(o.kind)&&['to','wait','lost','ifLost','stop'].some(k=>o[k]!=null))err(ow+': only a follow / lead / cab step has a spot, distances or a cab stop.');
      if(!ID.test(o.id||'')||o.id==='turn-in')err(ow+': step id must be lowercase letters, digits and hyphens.');if(oids.has(o.id))err(ow+': duplicate step id.');oids.add(o.id);
      if(!plain(o.label,LIMIT.text))err(ow+': the step needs a label (plain text).');
      if(!STEP_KINDS.includes(o.kind))err(ow+': the game cannot run this kind of step yet (needs a code change).');
@@ -182,14 +350,21 @@
      else if(o.kind==='buy'){if(typeof o.item!=='string'||(ctx.items&&!ctx.items.has(o.item)))err(ow+': "'+o.item+'" is not an item a store sells.');}
      else if(o.kind==='message'){if(!(m.start&&m.start.how==='notification'))err(ow+': a “notification arrives” step needs the mission to start by notification.');}
      else if(o.kind==='hear'){if(o.npc!=null&&o.npc!==''&&!npcOk(o.npc))err(ow+': who is heard must be an NPC the game has a TALK prompt for.');}
+     else if(o.kind==='await-call'){if(o.npc!=null&&o.npc!==''&&!speakerOk(o.npc))err(ow+': who will call must be a known NPC.');}
      else if(o.kind==='enter'||o.kind==='leave'){if(typeof o.place!=='string'||(ctx.places&&!ctx.places.has(o.place)))err(ow+': unknown place "'+o.place+'".');}
+     else if(ESCORT.includes(o.kind)){const E=NEX();if(E)for(const p of E.problems(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null,plan:(ctx.npcs||{})[o.npc]||null}):'avenue',apartments:m.apartments||[],steps:m.objectives}))err(ow+': '+p);}   // in the area she is placed in for this mission (npc-areas.js)
+     else if(o.kind==='anim'){if(!speakerOk(o.npc)||o.npc==='You')err(ow+': choose who plays the animation.');else{const p=animP(o.npc,o.clip);if(p)err(ow+': '+p+'.');}const A=NGS();if(A&&!A.holdOk(o.hold))err(ow+': the wait after an animation is a whole number of seconds from 0 to 30.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': an animation step has no lines.');}
+     else if(o.kind==='wait'){if(!(Number.isInteger(o.hold)&&o.hold>=1&&o.hold<=TIME.wait))err(ow+': a wait step waits a whole number of seconds from 1 to 600.');if(o.near!=null&&!(Number.isInteger(o.near)&&o.near>=1&&o.near<=TIME.near))err(ow+': “only while the player stays within” is a whole number of metres from 1 to 50.');
+      if(o.near!=null&&!npcOk(o.npc))err(ow+': choose who the player must stay near (someone with a TALK prompt).');else if(o.npc!=null&&o.npc!==''&&o.near==null)err(ow+': a wait step names a person only with a distance.');if(o.say!=null||o.early!=null||o.via!=null)err(ow+': a wait step has no lines.');}
      else if(o.kind==='photo'){if(!subjectOk(o.npc))err(ow+': choose someone the V1 camera can identify.');}
      else if(o.kind==='send-photo'){if(typeof o.npc!=='string'||o.npc==='You'||!speakerOk(o.npc))err(ow+': the photo must be sent to a known NPC.');if(!subjectOk(o.subject))err(ow+': choose who must be in the photo (someone the V1 camera can identify).');}
      if(o.subject!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step names who must be in the photo.');
      if(o.subjects!=null){const one=o.kind==='photo'?o.npc:o.subject;if(o.kind!=='photo'&&o.kind!=='send-photo')err(ow+': only a photo step or a “send a photo” step names several people.');else if(!Array.isArray(o.subjects)||!o.subjects.length||o.subjects.length>LIMIT.subjects||new Set(o.subjects).size!==o.subjects.length||!o.subjects.every(subjectOk)||o.subjects[0]!==one)err(ow+': the people in the photo must be 1 to '+LIMIT.subjects+' different people the V1 camera can identify, the first one chosen above.');}
      if(o.wrong!=null&&o.kind!=='send-photo')err(ow+': only a “send a photo” step has a reply for the wrong photo.');
+     if(o.kind!=='ask'&&ASK_STEP.keys.some(k=>o[k]!=null))err(ow+': only an “Ask the player” step has a question, buttons or what happens on DENY.');else if(o.kind==='ask')checkAskStep(m,o,ow,err,lines,speakerOk,trees,t);
      if(o.via!=null){if(!VIA.includes(o.via))err(ow+': unknown way of saying the lines.');else if(o.via!=='talk'&&!((o.say||[]).length&&o.say.every(l=>l&&l.who!=='You'&&l.who===o.say[0].who)))err(ow+': a Comms call or a message needs its lines, all from one NPC.');}
-     lines(o.say,ow);lines(o.early,ow);lines(o.wrong,ow);}
+     lines(o.say,ow,choiceOk(m,o)?{m,i:m.objectives.indexOf(o),t}:null);lines(o.early,ow);lines(o.wrong,ow);}
+    checkCost(m,w,err,oids);
     if(m.ending!=null){if(!keysOk(m.ending,['npc','place','label','say']))err(w+': the ending has unknown fields.');else{
      if(m.ending.npc!=null&&!npcOk(m.ending.npc))err(w+': the hand-in NPC must be an NPC the game has a TALK prompt for.');
      if(m.ending.place!=null&&typeof m.ending.place!=='string')err(w+': unknown ending place.');if(m.ending.label!=null&&!plain(m.ending.label,LIMIT.text))err(w+': the hand-in label must be plain text.');lines(m.ending.say,w+' / ending');}}
@@ -200,7 +375,11 @@
      if(u.kind==='flag'){if(!FLAGNAME.test(u.id||''))err(uw+': a story flag name must be letters, digits, - or _ (48 at most).');if(!(typeof u.value==='boolean'||(typeof u.value==='string'&&u.value.length<=200&&!TAGS.test(u.value))||Number.isSafeInteger(u.value)))err(uw+': a story flag value must be true/false, a number or short text.');}
      if(u.kind==='location'&&(typeof u.id!=='string'||(ctx.locations&&!ctx.locations.has(u.id))))err(uw+': unknown place "'+u.id+'".');
      if(u.kind==='ship'&&(typeof u.id!=='string'||(ctx.ships?!ctx.ships.has(u.id)||ctx.ships.get(u.id).premium:!['starter','ship2'].includes(u.id))))err(uw+': only a ship from the ship list that is not a paid purchase can be given.');
+     if(u.kind==='contract-flag'&&(!CONTRACT_FLAGS.includes(u.id)||u.value!==true))err(uw+': a shared game flag must be one the game knows ('+CONTRACT_FLAGS.join(', ')+'), set to true.');
+     if(u.kind==='evidence'&&!evAll.has(u.id))err(uw+': “'+u.id+'” is not an evidence item of the missions.');
+     if(u.kind==='missiles'&&(!['m1','m2'].includes(u.id)||!(Number.isInteger(u.amount)&&u.amount>=1&&u.amount<=30)))err(uw+': missiles must be M1 or M2, 1 to 30 of them.');
      if(u.kind==='tree'&&(typeof u.id!=='string'||!all.has(u.id)||u.id===t.id))err(uw+': "'+u.id+'" is not another of the new trees being sent.');
+     if((u.kind==='contact'||u.kind==='follow')&&(typeof u.id!=='string'||!/^[a-z][a-z0-9-]{0,39}$/.test(u.id)||u.id==='You'||!speakerOk(u.id)))err(uw+': a contact or a follow must name a known NPC.');
      if(u.kind==='reputation'){if(typeof u.id!=='string'||!(FACTIONS.includes(u.id)||(ctx.givers?ctx.givers.has(u.id):/^[a-z][a-z0-9-]{0,40}$/.test(u.id))))err(uw+': reputation must name an NPC or a faction.');if(!(Number.isInteger(u.amount)&&u.amount!==0&&Math.abs(u.amount)<=100))err(uw+': a reputation change must be a whole number from -100 to 100 (not 0).');}}}
    }}
   if(total>40)err('New trees hold '+total+' missions; 40 at most (each one is a record in every player’s save).');
@@ -212,24 +391,39 @@
  function treeDefinition(t,m,i,givers){const g=id=>(givers||[]).find(x=>x.id===id)||null,name=id=>(g(id)||{}).name||id;
   // An NPC who stands in NeoChinatown (the District, the street) is at 'earth', so the Mission Log's guidance and waypoint lead to them (as the beginner campaign's did).
   const at=who=>who&&who.enter?(who.enter.location||(who.enter.walk?'earth':null)):null;
-  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&o.kind!=='photo'&&o.kind!=='send-photo'&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;const loc=at(who);if(loc)x.destination=loc;
+  const objectives=m.objectives.map(o=>{const x={id:o.id,label:o.label},who=o.npc&&o.kind!=='photo'&&o.kind!=='send-photo'&&g(o.npc);if(o.kind==='arrive')x.destination=o.place;if(who&&who.layout)x.interaction=who.layout;else if(who&&who.made)x.made=o.npc;const loc=at(who);if(loc)x.destination=loc;   // made: a giver made in the editor (no fixed TALK spot; mission-guide.js madePerson)
    // a place step (and a photo step: the arrow and the marker lead to the person in the photo) is guided in NeoChinatown (places.js target; mission-log.js guidance)
    if(o.kind==='enter'||o.kind==='leave'||o.kind==='go'&&PL&&PL.BY.has(o.place)){x.place=o.place;if(PL&&PL.within(o.place,'neochinatown'))x.destination='earth';}
    if(o.kind==='photo'){const sub=g(o.npc);x.target=o.npc;if(sub&&sub.place)x.place=sub.place;x.destination='earth';}
+   if(MM&&['observe','overhear','tail'].includes(o.kind)){const c=(m.cast||[]).find(y=>y&&y.id===o.npc);if(c&&c.place){x.place=c.place;x.destination='earth';x.target=o.npc;}}   // the arrow to the place where they stand
+   if(MM&&o.kind==='report'&&o.place){x.place=o.place;x.destination='earth';}
+   if(MM&&o.kind==='report'&&!o.place){delete x.interaction;delete x.made;delete x.destination;}   // a report from anywhere (V1 Mission Log): no arrow to the person (Awakening QA 20 Nov 2026: it led to Fish at Milked, to Admin in the District)
+   if(MM&&['sneak','apt-leave','collect'].includes(o.kind)&&o.apt){x.destination='earth';x.apt={m:m.id,a:o.apt,kind:o.kind==='sneak'?'apt-enter':o.kind==='collect'?'apt-use':'apt-leave'};for(const k of ['object','mod'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}
+   if(APT_KINDS.includes(o.kind)){x.destination='earth';x.apt={m:m.id,a:o.apt||null,kind:o.kind};for(const k of ['object','mod','ap'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}   // the arrow to an apartment / location step (mission-guide.js aptGoal)
    return x;});
-  if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;if(at(who))x.destination=at(who);objectives.push(x);}
-  const extra={};if(Number.isInteger(m.number))extra.number=m.number;for(const k of ['category','location','objective'])if(m[k])extra[k]=m[k];if(m.start&&m.start.how==='notification')extra.start={how:'notification',channel:m.start.channel,from:m.start.from};
+  if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;else if(who&&who.made)x.made=m.ending.npc;if(at(who))x.destination=at(who);objectives.push(x);}
+  const extra={};if(Number.isInteger(m.number))extra.number=m.number;{const fl=(m.objectives||[]).find(o=>(o.kind==='arrive'||(o.kind==='flight'&&o.stage==='jump'))&&typeof o.place==='string'&&o.place);if(fl)extra.destination=fl.place;}/* a mission that flies somewhere has it as its destination (the flight Map's route-only markers read it) */for(const k of ['category','location','objective'])if(m[k])extra[k]=m[k];if(m.start&&m.start.how==='notification')extra.start={how:'notification',channel:m.start.channel,from:m.start.from};
   return {title:titleOf(m),name:m.title,devLabel:devLabel(m),type:m.type,description:m.description||'',giver:name(m.giver),source:STORY.has(t.id)?'main-story':'owner-tree',ownerTree:t.id,rewards:m.rewards||null,prerequisites:i?[t.missions[i-1].id]:[],objectives,...extra};}
  /* Applies one unlock to a campaign state. Returns a plain description, or null when nothing changed. */
  function unlockNow(s,u,env,Camp){
   if(u.kind==='credits'){s.credits=(s.credits||0)+u.amount;return '+'+u.amount+' credits';}
   if(u.kind==='flag'){s.story.flags['mf_'+u.id]=u.value;return null;}
+  if(u.kind==='nav-coords'){const N=typeof module!=='undefined'?require('./nav-coords.js'):root.VoidNav;if(!N)return null;return N.grant(s,'mission')?'NAV DATA RECEIVED · every Erebus and Tessaly System location added to your Map':null;}   // "Unlock all nav coordinates": the full flight Map (nav-coords.js; the V1 banner follows the flag)
   if(u.kind==='location'){const U=env.U;if(U&&U.discover){const known=(s.universe.discoveredLocations||[]).includes(u.id);U.discover(s,u.id);return known?null:'NEW PLACE · '+((U.locations&&U.locations[u.id]&&U.locations[u.id].name)||u.id);}return null;}
   if(u.kind==='ship'&&Camp&&Camp.awardStarterShip){const had=(s.ownedShips||[]).includes(u.id)&&s.story.flags.starterShipAwarded===true;Camp.awardStarterShip(s);if(u.id!=='starter'&&Camp.giveShip)Camp.giveShip(s,u.id);return had?null:'SHIP ACQUIRED';}
+  if(u.kind==='missiles'){const O=typeof module!=='undefined'?require('./ordnance.js'):root.VoidOrdnance;if(!O)return null;const got=O.award(s,u.id,u.amount);return got>0?'+'+got+' '+O.TYPES[u.id].name+' MISSILE'+(got>1?'S':''):null;}   // Mission Editor: missiles for the ship (ordnance.js)
   if(u.kind==='reputation'){const n=Math.trunc(u.amount)||0,cl=v=>Math.max(-100,Math.min(100,v));if(!n)return null;
    if(FACTIONS.includes(u.id)){s.progression=s.progression||{};s.progression.reputation=s.progression.reputation||{};s.progression.reputation[u.id]=cl((Number(s.progression.reputation[u.id])||0)+n);}
    else{s.story.relationships=s.story.relationships||{};s.story.relationships[u.id]=cl((Number(s.story.relationships[u.id])||0)+n);}
    const who=((env.givers||[]).find(g=>g.id===u.id)||{}).name||u.id;return (n>0?'BETTER':'WORSE')+' STANDING WITH '+String(who).toUpperCase();}
+  // The V1 (Mission 003): a contact in the player's device (story.flags.v1Contacts, comma separated ids; hud-data.js lists them) and a follow on Social (district-people.js).
+  if(u.kind==='contact'){const who=((env.givers||[]).find(g=>g.id===u.id)||{}).name||u.id,list=String(s.story.flags.v1Contacts||'').split(',').filter(Boolean);if(list.includes(u.id))return null;
+   list.push(u.id);while(list.join(',').length>200)list.shift();s.story.flags.v1Contacts=list.join(',');return String(who).toUpperCase()+' ADDED TO CONTACTS';}
+  if(u.kind==='follow'){const P=DPL(),who=((env.givers||[]).find(g=>g.id===u.id)||{}).name||u.id;if(!P||!P.isFollowing||P.isFollowing(s.story.flags,'n:'+u.id))return null;return P.toggleFollow(s.story.flags,{kind:'npc',id:u.id})?'FOLLOWING '+String(who).toUpperCase()+' ON SOCIAL':null;}
+  /* A SHARED GAME FLAG (20 Nov 2026): a story flag other systems read by its exact name (no mf_ prefix), only from CONTRACT_FLAGS: 'rook-first-delivery-done' (the
+     First Cargo Delivery's handover to Rook: the flight Map's full coordinates and Rook's cargo board key off it, branch claude/flight-map-coords). Once, true. */
+  if(u.kind==='contract-flag'){if(!CONTRACT_FLAGS.includes(u.id)||s.story.flags[u.id]===true)return null;s.story.flags[u.id]=true;return null;}
+  if(u.kind==='evidence'){if(!MM||!MM.addEvidence(s,u.id))return null;const d=MM.evidenceDefs(env.trees)[u.id];return 'EVIDENCE · '+((d&&d.title)||u.id).toUpperCase();}
   if(u.kind==='tree'){if(s.story.flags[linkFlag(u.id)]===true)return null;s.story.flags[linkFlag(u.id)]=true;const t=(env.trees||[]).find(x=>x.id===u.id);return 'NEW STORY · '+((t&&t.name)||u.id);}
   return null;}
  const treeLive=s=>!!(s&&s.universe&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed');
@@ -255,59 +449,132 @@
   const out={tree:null,mission:null,offered:false,objective:null,done:[],lines:[],early:null,completed:false,reward:0,notes:[],messages:[],hear:null};
   if(!treeLive(s)||!env||!Array.isArray(env.trees)||!env.trees.length||!ev)return out;
   const npcs=ev.npcs||[],places=ev.places||[],gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
-  const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>({who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text}));
+  if(ev.type==='pod-exit')for(const k of Object.keys(s.story.flags))if(k.startsWith('md_')&&s.story.flags[k]==='later')delete s.story.flags[k];   // a DENY on the device: offered again from this pod exit
+  const speak=ls=>(ls||[]).filter(l=>env.draft||!placeholder(l.text)).map(l=>{const x={who:l.who==='You'?'You':gv(l.who).say||l.who,text:l.text};if(l.who==='You')x.player=true;   // the player's own line: never voiced (live-content.js)
+if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.animFor;}if(l.wait)x.wait=l.wait;if(l.show)x.show=l.show;return x;});
   const gated=linked(env.trees),open=t=>!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true;
-  const hit=(o,m)=>(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
-   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):false;
+  const hit=(o,m)=>MM&&MM.KINDS.includes(o.kind)?MM.hit(ev,m,o,s)&&(o.kind!=='wait-game'||!!(GC&&MM.gameWait(s,m,o,GC.minutes(s)).due)):(o.kind==='talk'||o.kind==='deliver')?ev.type==='talk'&&npcs.includes(o.npc):(o.kind==='go'||o.kind==='arrive'||o.kind==='enter')?ev.type==='place'&&places.includes(o.place):o.kind==='leave'?ev.type==='place'&&!places.includes(o.place):o.kind==='buy'?ev.type==='buy'&&ev.item===o.item:o.kind==='pod-exit'?ev.type==='pod-exit'
+   :o.kind==='photo'?ev.type==='photo'&&photoNeed(o).length>0&&photoNeed(o).every(id=>(ev.subjects||[]).includes(id)):o.kind==='send-photo'?ev.type==='send-photo'&&ev.to===o.npc&&photoOk(ev.photo,photoNeed(o),m):ESCORT.includes(o.kind)?ev.type==='escort'&&ev.step===m.id+'/'+o.id:o.kind==='anim'?ev.type==='anim'&&ev.step===m.id+'/'+o.id:o.kind==='wait'?ev.type==='wait'&&ev.step===m.id+'/'+o.id:o.kind==='zone'?ev.type==='zone'&&ev.step===m.id+'/'+o.id
+   // apartments (apartments.js): inside the apartment (the place event carries the one the player is in), a use of one of its objects, a hack of an access point
+   :o.kind==='apt-enter'?ev.type==='place'&&ev.apt===m.id+'/'+o.apt&&(o.mod==null||ev.mod===o.mod):o.kind==='apt-use'?ev.type==='apt-use'&&ev.mission===m.id&&ev.apt===o.apt&&ev.object===o.object&&(o.mod==null||ev.mod===o.mod)
+   // a hack with a camera feed (cult-room.js): done when the feed's recording is saved (camera-feed.js), not when the access point opens
+   :o.kind==='hack'&&o.feed?ev.type==='feed'&&ev.feed===o.feed&&ev.ap===o.ap&&ev.mission===m.id
+   :o.kind==='hack'?ev.type==='hack'&&ev.ap===o.ap&&(ev.mission==null||ev.mission===m.id)&&(!/\//.test(o.ap||'')||ev.mission===m.id):false;
+  const held=(m,o)=>delayed(s,m,o);
   const settle=(m,stepId)=>{const rec=s.universe.missions[m.id];for(const u of m.unlocks||[])if((u.when||'complete')===stepId){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}
-   if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
+   if(rec&&rec.completed&&s.story.flags[treeFlag(m.id)]!==true){s.story.flags[treeFlag(m.id)]=true;out.completed=true;if(GC)GC.stamp(s,m.id);/* the in-game wait of "after N in-game hours" starts here */if(m.rewards>0){s.credits=(s.credits||0)+m.rewards;out.reward=m.rewards;}
     for(const u of m.unlocks||[])if((u.when||'complete')==='complete'){const n=unlockNow(s,u,env,Camp);if(n)out.notes.push(n);}}};
-  const step=(t,m,o)=>{if(!Missions.complete(s,m.id,o.id,Camp))return false;Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
+  const step=(t,m,o,quiet)=>{const c=costOf(m),pay=c&&c.when===o.id?c:null;if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount,needStep:o.id});return false;}   // a step that costs: not done until the player has the credits
+   if(held(m,o))return false;if(!Missions.complete(s,m.id,o.id,Camp))return false;delete s.story.flags[delayFlag(m.id,o.id)];delete s.story.flags[waitFlag(m.id,o.id)];if(pay){const n=charge(s,m,pay);if(n){out.charged=(out.charged||0)+n;out.notes.push('−'+n+' CREDITS');}}Object.assign(out,{tree:t.id,mission:m.id,objective:o.id});out.done.push(o.id);
    if(o.kind==='send-photo')out.reply={to:o.npc,ok:true,lines:speak(o.say)};   // the reply to the right photo comes back in Messages
-   else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else out.lines.push(...speak(o.say));settle(m,o.id);return true;};
+   else if(o.via==='comms'||o.via==='messages')sendLines(m,o);else if(!quiet)out.lines.push(...speak(o.say));
+   if(MM){delete s.story.flags[MM.waitFlag(m.id,o.id)];if(o.kind==='collect'&&MM.addEvidence(s,o.evidence)){const d=MM.evidenceDefs(env.trees)[o.evidence];out.notes.push('EVIDENCE SAVED · '+((d&&d.title)||o.evidence).toUpperCase());out.evidence=o.evidence;}}
+   settle(m,o.id);return true;};
   // A step's lines that reach the device instead of the dialogue window (a Comms call or a message from the NPC who says them): kept like a start notification.
   const sendLines=(m,o)=>{const ls=speak(o.say);if(!ls.length)return;const at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)]))s.story.flags[msgFlag(m.id,o.id)]=at;
    out.messages.push(stepMessage(m,o,gv,at));};
   // A mission that starts by notification: its notification reaches the device (story.flags v1m_<mission>_start = the time, seconds; Messages and Comms keep it).
   const notify=(t,m)=>{const st=m.start,at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,'start')]))s.story.flags[msgFlag(m.id,'start')]=at;
-   out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};
+   const from=sender(m),text=String(st.text||'').trim(),header=String(st.header||'').trim();if(!text&&!header)return;   // a walk-near start without words: no message, only the NEW MISSION line (live-content.js report)
+   out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from,fromName:gv(from).name||from,header,text,at});};
   // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
-  const startsNow=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver);const w=st.when||{};
+  // A giver with a shift (Reverie, Lace) offers a mission only while she is out on the street (mission-givers.js onDuty, on the street clock; draft play is not exempt:
+  // it runs on a simulated street clock inside her shift, ncz-street-pair.js testClock)
+  const duty=id=>{const g=gv(id);if(!g.shift)return true;const G=GVS();return !G||!G.onDuty||G.onDuty(g,G.streetTime?G.streetTime(ev.at||Date.now()):ev.at||Date.now());};
+  const fires=m=>{const st=m.start;if(!st||st.how!=='notification')return ev.type==='talk'&&npcs.includes(m.giver)&&duty(m.giver);const w=st.when||{};
+   if(w.kind==='near'){const id=w.npc||m.giver;return ev.type==='near'&&!!ev.near&&nearHit(ev.near[id],w.distance)&&duty(id);}
    if(w.kind==='pod-exit')return ev.type==='pod-exit';if(w.kind==='place')return ev.type==='place'&&places.includes(w.place);if(w.kind==='leave')return ev.type==='place'&&(ev.left||[]).includes(w.place);
-   if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
+   if(w.kind==='after-mission')return !!(s.universe.missions&&s.universe.missions[w.mission]&&s.universe.missions[w.mission].completed===true);if(w.kind==='game-time')return !!(GC&&GC.due(s,w.mission,w.value));if(w.kind==='flag')return s.story.flags[w.flag]===w.value;return false;};
+  /* "…and only when" (start.only, start-conditions.js, 20 Nov 2026): the trigger fires AND every condition is true. A one-moment trigger (pod exit, enter / leave a place) whose
+     conditions are not met is remembered (story.flags.mq_<mission>) and checked on every event after it until they are; the other triggers are checked again by themselves. */
+  let world;const worldNow=()=>{if(world===undefined){world=null;try{world=typeof env.world==='function'?env.world():null;}catch{world=null;}}return world;};
+  const condsOk=m=>{const st=m.start||{},w=st.when||{},who=st.how==='notification'&&w.kind==='near'?w.npc||m.giver:m.giver,G=GVS(),at=ev.at||Date.now();
+   return SC.check(st.only,s,{who,street:G&&G.streetTime?G.streetTime(at):at,world:SC.needsWorld(st.only)?worldNow():null,places:ev.type==='place'?places:null}).ok;};
+  const startsNow=m=>{const st=m.start||{};if(!SC||!SC.list(st))return fires(m);const armed=s.story.flags[armFlag(m.id)]===true;if(!armed&&!fires(m))return false;if(condsOk(m))return true;
+   if(!armed&&SC.oneShot(st)&&Missions.available(s,m.id))s.story.flags[armFlag(m.id)]=true;return false;};
+  const unarm=m=>{delete s.story.flags[armFlag(m.id)];};
   // After a step: the automatic steps that follow it (messages) complete at once.
-  const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind))break;if(!step(t,m,o))break;}};
+  const auto=(t,m)=>{const rec=s.universe.missions[m.id];for(const o of m.objectives){if(rec.objectives[o.id]===true)continue;if(!AUTO.includes(o.kind)||held(m,o))break;if(!step(t,m,o))break;}};
   // After a talk step: a 'hear' step next shows its lines (done when the conversation closes), or is done at once when nothing can be shown.
-  const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear')return;const ls=speak(o.say);
+  const hearNext=(t,m)=>{const rec=s.universe.missions[m.id],o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o||o.kind!=='hear'||held(m,o))return;const ls=speak(o.say);
    if(ls.length){out.lines.push(...ls);out.hear={mission:m.id,step:o.id};}else if(out.lines.length)out.hear={mission:m.id,step:o.id};   // the talk step's own lines are the introduction: done when they close
    else if(step(t,m,o))auto(t,m);};
+  /* Straight on (the owner, 18 Nov 2026: after Admin's "I might have more work for you" he expected the next mission's offer): when talking to someone completes a mission and the
+     tree's next mission is offered in person, with ACCEPT / NOT NOW, by someone in this same conversation, its offer follows in the same window. Nothing is taken until ACCEPT
+     (out.ask; out.mission stays the completed one, so its MISSION COMPLETE notice and reward are reported as before). NOT NOW: the next conversation offers it again. */
+  const chain=(t,m)=>{if(ev.type!=='talk'||!out.completed||out.hear||out.ask||!out.lines.length)return;   /* only after a line that closes the mission (Mission 001's unwritten introduction says nothing, so it stays as it was) */
+   const n=t.missions[t.missions.indexOf(m)+1];if(!n||!(n.start&&n.start.how!=='notification'&&n.start.accept===true)||s.story.flags[denyFlag(n.id)]==='never')return;
+   const r=s.universe.missions&&s.universe.missions[n.id];if(r&&(r.acquired||r.completed))return;if(!startsNow(n)||!Missions.available(s,n.id))return;const ls=speak(n.offer);if(!ls.length)return;
+   out.ask=askOf(n);out.offer=offerOf(s,n);out.next=n.id;out.lines.push(...ls);};
+  const askOf=m=>({mission:m.id,title:titleOf(m),accept:(m.start&&m.start.yes)||YES,decline:(m.start&&m.start.no)||NO});
+  /* An offer that arrives on the device and asks (Messages, Comms, a banner, walked near): out.prompt {ask, offer, lines (the notification's words), channel, tree}. It never
+     stops the other trees (it is asked again on every event while its trigger holds; live-content.js shows it once in a while, never over a conversation). */
+  const prompt=(t,m)=>{const st=m.start,from=sender(m);return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from,fromName:gv(from).name||from,header:st.header||'',lines:[{who:gv(from).say||from,text:[String(st.header||'').trim(),String(st.text||'').trim()].filter(Boolean).join(': ')}].filter(l=>l.text&&(env.draft||!placeholder(l.text))).concat(nearStart(m)?speak(m.offer):[])};};
+  /* Walked near (19 Nov 2026): what the giver says when offering it is said as the player comes near (after the banner), as in person. */
+  const nearStart=m=>!!(m.start&&m.start.how==='notification'&&m.start.when&&m.start.when.kind==='near');
+  /* DENY with "start another mission": that tree's first mission starts now (or is offered now when it asks too). */
+  const startInstead=id=>{for(const tt of env.trees){const mm=(tt.missions||[])[0];if(!mm||mm.id!==id)continue;const r=s.universe.missions&&s.universe.missions[mm.id];if(r&&(r.acquired||r.completed))return;
+    if(gated.has(tt.id))s.story.flags[linkFlag(tt.id)]=true;delete s.story.flags[denyFlag(mm.id)];const sm=mm.start||{};
+    if(sm.accept===true){if(sm.how==='notification')out.prompt=prompt(tt,mm);else{out.ask=askOf(mm);out.offer=offerOf(s,mm);out.next=mm.id;out.lines.push(...speak(mm.offer));}return;}
+    if(Missions.acquire(s,mm.id)){Missions.track(s,mm.id,Camp);out.started=mm.id;out.notes.push('NEW MISSION · '+titleOf(mm));if(sm.how==='notification')notify(tt,mm);else out.lines.push(...speak(mm.offer));}return;}};
+  /* The player answers an "Ask the player" step (ASK_STEP). ACCEPT: the price once (never below 0; short: out.need and nothing else), then the step is done as usual (its
+     lines after ACCEPT, unlocks at it). DENY: the lines after DENY, then skip ahead (the steps between are marked done and give nothing), go back (the steps from the target are
+     to be done again), or the mission ends (it goes back to its giver; a cost paid at ACCEPT comes back only with "refund if abandoned"), with "start another tree" starting that. */
+  const answer=(t,m,o,yes)=>{Object.assign(out,{tree:t.id,mission:m.id,answered:yes?'yes':'no'});const rec=s.universe.missions[m.id],clear=x=>{delete s.story.flags[delayFlag(m.id,x.id)];delete s.story.flags[waitFlag(m.id,x.id)];};
+   if(yes){const p=askPrice(o),fl=askPriceFlag(m.id,o.id);if(p&&!(Number.isSafeInteger(s.story.flags[fl])&&s.story.flags[fl]>0)){const have=Math.max(0,Number(s.credits)||0);if(have<p){out.need=p;out.needStep=o.id;return;}s.credits=have-p;s.story.flags[fl]=p;out.charged=(out.charged||0)+p;out.notes.push('−'+p+' CREDITS');}
+    const g=askGain(o),gf=askGainFlag(m.id,o.id);if(g&&!(Number.isSafeInteger(s.story.flags[gf])&&s.story.flags[gf]>0)){s.credits=Math.min(1e8,Math.max(0,Number(s.credits)||0)+g);s.story.flags[gf]=g;out.gained=g;out.notes.push('+'+g+' CREDITS');}   // credits the player gets on ACCEPT, once
+    if(step(t,m,o)){auto(t,m);if(o.inline)hearNext(t,m);}return;}
+   out.lines.push(...speak(o.denySay));
+   if(o.deny==='continue'){out.deny='continue';if(step(t,m,o,true)){auto(t,m);if(o.inline)hearNext(t,m);}return;}   // DENY, then the mission just goes on (no credits, not the ACCEPT lines)
+   const d=ASK_STEP.deny.includes(o.deny)?o.deny:'end',ids=m.objectives.map(x=>x.id),i=ids.indexOf(o.id),j=ids.indexOf(o.goto);out.deny=d;
+   if(d==='skip'&&j>i){for(const x of m.objectives.slice(i,j)){Missions.complete(s,m.id,x.id,Camp);clear(x);}out.objective=o.id;out.skipped=ids.slice(i+1,j);settle(m,null);auto(t,m);return;}
+   if(d==='back'&&j>=0&&j<i){for(const x of m.objectives.slice(j,i+1)){delete rec.objectives[x.id];clear(x);}rec.completed=false;out.back=o.goto;return;}
+   const tracked=s.universe.trackedMission===m.id,back=abandon(s,env,m.id);if(tracked)s.universe.autoTrack=true;delete s.story.flags.npcEsc;clear(o);out.ended=true;out.refund=back;if(d==='tree')startInstead(o.denyStart);};
   for(const t of env.trees){if(!open(t))continue;
    for(const m of t.missions){
     const rec=s.universe.missions&&s.universe.missions[m.id];
     if(rec&&rec.completed)continue;
     if(!rec||!rec.acquired){
-     const byNote=!!(m.start&&m.start.how==='notification'),asks=!byNote&&!!(m.start&&m.start.accept===true);
-     // In person with ACCEPT / NOT NOW: talking to the giver shows the offer and asks; nothing is taken until ACCEPT ('accept' event). NOT NOW changes nothing, so the
-     // next conversation offers it again. Once accepted the mission has a record and is never offered again.
-     if(asks){
-      if(ev.type==='accept'&&ev.mission===m.id&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:'person'});return out;}
-      if(ev.type==='decline'&&ev.mission===m.id){Object.assign(out,{tree:t.id,mission:m.id,declined:true});return out;}
-      if(startsNow(m)&&Missions.available(s,m.id)){Object.assign(out,{tree:t.id,mission:m.id,ask:{mission:m.id,title:titleOf(m),accept:'ACCEPT',decline:'NOT NOW'}});out.lines.push(...speak(m.offer));return out;}
+     const byNote=!!(m.start&&m.start.how==='notification'),asks=!!(m.start&&m.start.accept===true),st=m.start||{};
+     // ACCEPT / DENY (in person, or on the device): the offer is shown and asks; nothing is taken until ACCEPT ('accept' event), and a cost at ACCEPT is charged then, once.
+     // DENY ('decline'): MONEY above. Once accepted the mission has a record and is never offered again.
+     if(asks){const dn=s.story.flags[denyFlag(m.id)];
+      if(dn==='never')break;   // denied for good: nothing more from this tree
+      if(ev.type==='accept'&&ev.mission===m.id){const c=costOf(m),pay=c&&c.when==='accept'?c:null;
+       if(pay&&!affords(s,m,pay)){Object.assign(out,{tree:t.id,mission:m.id,need:pay.amount});return out;}   // ACCEPT is greyed in the window; refused here too
+       if(!Missions.acquire(s,m.id))break;Missions.track(s,m.id,Camp);delete s.story.flags[denyFlag(m.id)];unarm(m);
+       if(pay){const n=charge(s,m,pay);if(n){out.charged=n;out.notes.push('−'+n+' CREDITS');}}
+       Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});
+       if(byNote){notify(t,m);const first=m.objectives[0],w=st.when||{};if(first&&((first.kind==='pod-exit'&&w.kind==='pod-exit')||((first.kind==='go'||first.kind==='enter')&&w.kind==='place'&&first.place===w.place)))step(t,m,first);auto(t,m);}   // its trigger already happened
+       return out;}
+      if(ev.type==='decline'&&ev.mission===m.id){const d=DENY.includes(st.deny)?st.deny:'again';unarm(m);Object.assign(out,{tree:t.id,mission:m.id,declined:true,deny:d});out.lines.push(...speak(st.denySay));
+       if(d==='never'||d==='start')s.story.flags[denyFlag(m.id)]='never';else if(d==='after')s.story.flags[denyFlag(m.id)]=denyMinutes(st.denyMinutes)*60;else if(d==='pod'||byNote)s.story.flags[denyFlag(m.id)]='later';
+       out.denyWait=d==='after'?denyMinutes(st.denyMinutes):d==='pod'||(d==='again'&&byNote)?'pod':d==='again'?'talk':null;
+       if(d==='start')startInstead(st.denyStart);return out;}
+      if(dn==='later'||Number.isSafeInteger(dn)&&dn>0)break;   // denied: offered again from the next pod exit, or once its minutes of play are over (denyTick)
+      if(dn==='away'){const w=st.when||{};if(ev.type==='near'&&w.kind==='near'&&ev.near&&!nearHit(ev.near[w.npc||m.giver],w.distance))delete s.story.flags[denyFlag(m.id)];break;}   // walked-near: the player must walk out of its distance once
+      if(startsNow(m)&&Missions.available(s,m.id)){if(byNote){if(!out.prompt)out.prompt=prompt(t,m);break;}
+       Object.assign(out,{tree:t.id,mission:m.id,ask:askOf(m),offer:offerOf(s,m)});out.lines.push(...speak(m.offer));return out;}
       break;}
-     if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote)notify(t,m);else out.lines.push(...speak(m.offer));
+     if(startsNow(m)&&Missions.acquire(s,m.id)){Missions.track(s,m.id,Camp);unarm(m);Object.assign(out,{tree:t.id,mission:m.id,offered:true,how:byNote?'notification':'person'});if(byNote){notify(t,m);if(nearStart(m))out.lines.push(...speak(m.offer));}else out.lines.push(...speak(m.offer));
       const first=m.objectives[0];if(byNote&&first&&hit(first,m))step(t,m,first);if(byNote)auto(t,m);return out;}   // started by its trigger: a first step that is the trigger itself (leave the pod, go to the place) is done
      break;}
     const next=m.objectives.find(o=>rec.objectives[o.id]!==true);
+    if(next&&held(m,next))break;   // its delay is still running (live-content.js timerTick): nothing about this step happens yet
     if(next){
      if(ev.type==='send-photo'&&next.kind==='send-photo'&&ev.to===next.npc&&!photoOk(ev.photo,photoNeed(next),m)){Object.assign(out,{tree:t.id,mission:m.id,reply:{to:next.npc,ok:false,lines:speak(next.wrong)}});return out;}   // the wrong photo: the reply says so; no fail, unlimited tries
-     if(ev.type==='heard'&&next.kind==='hear'&&(!ev.mission||ev.mission===m.id)){if(step(t,m,next))auto(t,m);return out;}
+     // a follow / lead step whose player got lost with "the mission fails": the mission goes back to waiting to be offered (abandon(): its record is removed)
+     if(ev.type==='escort-fail'&&ESCORT.includes(next.kind)&&ev.step===m.id+'/'+next.id){const tracked=s.universe.trackedMission===m.id,back=abandon(s,env,m.id);if(tracked)s.universe.autoTrack=true;delete s.story.flags.npcEsc;Object.assign(out,{tree:t.id,mission:m.id,objective:next.id,failed:true,refund:back});return out;}   // abandon(): a cost paid at ACCEPT comes back only with "refund if abandoned"; never charged twice
+     if((ev.type==='ask-yes'||ev.type==='ask-no')&&next.kind==='ask'&&ev.step===m.id+'/'+next.id){answer(t,m,next,ev.type==='ask-yes');return out;}   // ACCEPT / DENY in the middle of the mission
+     if(ev.type==='heard'&&next.kind==='hear'&&(!ev.mission||ev.mission===m.id)){if(step(t,m,next)){auto(t,m);hearNext(t,m);}return out;}   // (20 Nov 2026) several 'hear' steps in a row play as one conversation, each done as its part closes
      if(next.kind==='hear'&&ev.type==='talk'&&(npcs.includes(next.npc||m.giver))){Object.assign(out,{tree:t.id,mission:m.id});if(!speak(next.say).length){const k=m.objectives.indexOf(next),prev=m.objectives[k-1];if(prev)out.lines.push(...speak(prev.say));}hearNext(t,m);return out;}   // came back after a closed conversation
      if(AUTO.includes(next.kind)){auto(t,m);if(out.done.length)return out;}
-     if(hit(next,m)){if(!step(t,m,next))break;auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);return out;}
+     if(hit(next,m)){if(!step(t,m,next))break;if(next.kind==='feed'){let n2;while((n2=m.objectives.find(o=>rec.objectives[o.id]!==true))&&n2.kind==='feed'&&hit(n2,m)){if(!step(t,m,n2))break;}}   // a later stage of the camera feed completes the earlier ones too
+      auto(t,m);if(next.kind==='talk'||next.kind==='deliver')hearNext(t,m);chain(t,m);return out;}
      const later=ev.type==='talk'&&m.objectives.find(o=>rec.objectives[o.id]!==true&&o!==next&&hit(o,m)&&(o.early||[]).length);
      if(later){Object.assign(out,{tree:t.id,mission:m.id,early:speak(later.early)});return out;}
      break;}
-    if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');return out;}
+    if(m.ending&&m.ending.npc&&ev.type==='talk'&&npcs.includes(m.ending.npc)){if(!Missions.complete(s,m.id,'turn-in',Camp))break;Object.assign(out,{tree:t.id,mission:m.id,objective:'turn-in'});out.done.push('turn-in');out.lines.push(...speak(m.ending.say));settle(m,'turn-in');chain(t,m);return out;}
     break;}}
   return out;
  }
@@ -315,13 +582,114 @@
     read: story.flags v1r_<mission>_start. channel: only that channel. */
  function inbox(s,env,channel){const out=[];if(!s||!s.universe||!s.story||!s.story.flags||!env||!Array.isArray(env.trees))return out;const gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id],st=m.start;if(!rec||!rec.acquired||!st||st.how!=='notification'||st.channel==='notify'||(channel&&st.channel!==channel))continue;
-   out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
+   out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:sender(m),fromName:gv(sender(m)).name||sender(m),header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
   // lines a step sent as a Comms call or a message (Mission 002's call on entering NULL)
   for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id];if(!rec||!rec.acquired)continue;
    for(const o of m.objectives||[]){if((o.via!=='comms'&&o.via!=='messages')||(channel&&o.via!==channel)||rec.objectives[o.id]!==true||!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)])||!(o.say||[]).length)continue;
     out.push(stepMessage(m,o,gv,Number(s.story.flags[msgFlag(m.id,o.id)])||0,s.story.flags[readFlag(m.id,o.id)]===true));}}
   return out.sort((a,b)=>b.at-a.at);}
+ /* Abandoning a tree mission (the game has no abandon button for these yet: the rule is ready for one). The record is removed, so it can be offered again; a cost
+    charged at ACCEPT is given back only when the owner ticked "refund if abandoned" (once: the flag goes to 0, so accepting again charges again). Without the refund
+    the flag stays, so accepting again never charges twice. Returns the credits given back. */
+ function abandon(s,env,id){if(!s||!s.universe||!s.universe.missions||!env||!Array.isArray(env.trees))return 0;const rec=s.universe.missions[id];if(!rec||!rec.acquired||rec.completed)return 0;
+  const m=env.trees.flatMap(t=>t.missions||[]).find(x=>x.id===id);if(!m)return 0;delete s.universe.missions[id];if(s.universe.trackedMission===id)s.universe.trackedMission=null;
+  const c=costOf(m),paid=charged(s,id);if(!(c&&c.refund&&paid>0))return 0;s.credits=Math.min(100000000,(Number(s.credits)||0)+paid);s.story.flags[costFlag(id)]=0;return paid;}
+ /* The DENY waits running now (deny 'after'): [{mission, title, left (seconds of play), near (a walked-near offer)}]. */
+ function denyWaits(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;for(const t of env.trees)for(const m of t.missions||[]){const v=s.story.flags[denyFlag(m.id)];
+   if(Number.isSafeInteger(v)&&v>0)out.push({mission:m.id,title:titleOf(m),left:v,near:!!(m.start&&m.start.how==='notification'&&(m.start.when||{}).kind==='near')});}return out;}
+ /* dt seconds of play pass (live-content.js: only while the player is in the world). A wait that runs out: offered again (a walked-near offer: 'away', re-armed once the
+    player is out of its distance, which near events check). Returns the missions whose wait ended. skip: every wait ends now (the draft banner's SKIP THE WAIT). */
+ function denyTick(s,env,dt,skip){const done=[];for(const w of denyWaits(s,env)){const f=denyFlag(w.mission),left=skip?0:Math.max(0,s.story.flags[f]-Math.floor(Math.max(0,Number(dt)||0)));   // whole seconds (the caller keeps the fraction)
+   if(left>0){s.story.flags[f]=left;continue;}if(w.near)s.story.flags[f]='away';else delete s.story.flags[f];done.push(w.mission);}return done;}
+ /* A walked-near offer whose wait is over ('away') comes back once the player is out of its distance (near: {npc id: metres}, live-content.js nearTick). */
+ function denyRearm(s,env,near){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees)||!near)return out;for(const t of env.trees)for(const m of t.missions||[]){const f=denyFlag(m.id),w=m.start&&m.start.when||{};
+   if(s.story.flags[f]!=='away')continue;const id=w.npc||m.giver;if(w.kind!=='near'){delete s.story.flags[f];out.push(m.id);continue;}if(id in near&&!nearHit(near[id],w.distance)){delete s.story.flags[f];out.push(m.id);}}return out;}
  function markRead(s,id){const [mid,sid]=String(id||'').split('/');if(!mid||!sid||!s||!s.story||!s.story.flags)return false;if(s.story.flags[readFlag(mid,sid)]===true)return false;s.story.flags[readFlag(mid,sid)]=true;return true;}
+ /* "GIVER WAITS AT" (the owner approved it for Reverie and Lace, 18 Nov 2026): the spots where a giver should wait now, one per giver: the first mission of an open tree
+    that is waiting to be offered by her (not taken, not done, every mission before it done), offered in person or "when walked near" her, with a waitAt. */
+ function waitingAt(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;
+   if(!rec||!rec.acquired){const dn=s.story.flags[denyFlag(m.id)];if(m.start&&m.start.accept===true&&(dn==='never'||dn==='later'||Number.isSafeInteger(dn)&&dn>0))break;   // denied: she goes about her own routine meanwhile (and for good after "never")
+    const st=m.start,w=st&&st.how==='notification'?st.when||{}:null,byHer=!st||st.how!=='notification'||(w&&w.kind==='near'&&(w.npc||m.giver)===m.giver);
+    if(m.waitAt&&byHer&&!out[m.giver])out[m.giver]={...m.waitAt,mission:m.id};}
+   else if(m.giver&&!out[m.giver])out[m.giver]=holdOf(m,rec);
+   break;}}
+  return out;}
+ /* WHILE HER MISSION RUNS (fix, 19 Nov 2026; the owner: "the giver is either not at the mission giving location to start with, or after saying their first line they
+    shoot off ... I can never find them"): once taken, the giver no longer went back to her routine between steps (she walked off, or vanished when "Giver waits at" was in
+    another quarter, and a follow step then started from her routine's spot on The Avenue). Until the mission is done she stays: where its last follow / lead step with her
+    took the player (its spot), else her "Giver waits at" spot, else where she stood when it started (here:true: live-content.js plans() remembers that spot). A follow /
+    lead / cab step with her (escortNow) takes over while it runs. during:true marks these (ncz-street-pair.js keeps her out for them, as for a running step). */
+ function holdOf(m,rec){const done=(m.objectives||[]).filter(o=>rec.objectives&&rec.objectives[o.id]===true&&ESCORT.includes(o.kind)&&o.npc===m.giver),last=done[done.length-1];
+  if(last&&last.apt!=null)return {mission:m.id,during:true,inside:{apt:last.apt,mod:last.mod||null,step:m.id+'/'+last.id}};   // (20 Nov 2026) into a place: she stays in that room (npc-escort-indoors.js) until the mission is done
+  if(last&&last.to&&Number.isFinite(last.to.x)&&Number.isFinite(last.to.z))return {x:last.to.x,z:last.to.z,mission:m.id,during:true};
+  if(!last&&m.waitAt&&Number.isFinite(m.waitAt.x)&&Number.isFinite(m.waitAt.z))return {...m.waitAt,mission:m.id,during:true};
+  return {mission:m.id,during:true,here:true};}
+ /* FOLLOW / LEAD / SHARED-CAB (npc-escort.js): the follow / lead / cab steps in progress now, one per NPC (the first in tree order): {key ('<mission>/<step>'), mission, step,
+    kind, npc, to, wait, lost, ifLost, stop}. The game (live-content.js) gives that NPC an escort plan while it lasts. */
+ function escortNow(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&ESCORT.includes(o.kind)&&o.npc&&!out[o.npc]&&!delayed(s,m,o)){const e={key:m.id+'/'+o.id,mission:m.id,step:o.id,kind:o.kind,npc:o.npc};for(const k of ['to','wait','lost','ifLost','stop','apt','mod'])if(o[k]!=null)e[k]=o[k];
+    if(o.apt!=null){const a=(m.apartments||[]).find(x=>x&&x.id===o.apt);if(a){e.door=a.door||null;e.place=a;e.loc=m.id+'/'+a.id;}}   // into a place (npc-escort.js intoProblems): its street door and record, its instance key
+    out[o.npc]=e;}break;}}
+  return out;}
+ /* INTO A PLACE, AFTER THE STEP (20 Nov 2026): who stays inside a place of a running mission now: an NPC whose last finished follow-them / they-follow step with her went
+    into a place (apt, mod) stays in that room until the mission is done (as a giver stays at the spot of her last follow step: holdOf), unless a later step of hers is
+    running. {npc: {mission, apt, mod, step, loc}}. npc-escort-indoors.js keeps her figure there; live-content.js plans() keeps her off the street meanwhile. */
+ function insideNow(s,env){const out={};if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},run=escortNow(s,env);
+  for(const t of env.trees)for(const m of t.missions||[]){const rec=recs[m.id];if(!rec||!rec.acquired||rec.completed)continue;const last={};
+   for(const o of m.objectives||[]){if(!ESCORT.includes(o.kind)||!o.npc)continue;if(rec.objectives&&rec.objectives[o.id]===true)last[o.npc]=o;}
+   for(const [npc,o] of Object.entries(last)){if(o.apt==null||out[npc]||run[npc])continue;const a=(m.apartments||[]).find(x=>x&&x.id===o.apt);if(!a)continue;out[npc]={mission:m.id,apt:o.apt,mod:o.mod||null,step:m.id+'/'+o.id,loc:m.id+'/'+a.id,door:a.door||null,place:a,kind:o.kind};}}
+  return out;}
+ /* MISSION TIMERS: a step's delay and a wait step count down in story.flags (remaining whole seconds, so a reload resumes where it was): td_<mission>_<step> (0 = the delay
+    has run) and tw_<mission>_<step>. Both are removed when the step is done. The game counts only while the player is in the world (live-content.js timerTick). */
+ const delayFlag=(mid,sid)=>'td_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18),waitFlag=(mid,sid)=>'tw_'+String(mid).slice(0,40)+'_'+String(sid).slice(0,18);
+ function delayed(s,m,o){return !!(o&&Number.isInteger(o.delay)&&o.delay>0&&s.story.flags[delayFlag(m.id,o.id)]!==0);}
+ /* The timers running now: [{key, mission, step, kind:'delay'|'wait', flag, left (seconds), total, npc?, near?}]. */
+ function timersNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees),f=s.story.flags;
+  for(const t of env.trees){if(gated.has(t.id)&&f[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(!o)break;const key=m.id+'/'+o.id,num=(v,d)=>Number.isSafeInteger(v)&&v>=0?Math.min(v,d):d;
+   if(delayed(s,m,o)){const fl=delayFlag(m.id,o.id);out.push({key,mission:m.id,step:o.id,kind:'delay',flag:fl,left:num(f[fl],o.delay),total:o.delay,stepKind:o.kind});}
+   else if(o.kind==='wait'){const fl=waitFlag(m.id,o.id),x={key,mission:m.id,step:o.id,kind:'wait',flag:fl,left:num(f[fl],o.hold||1),total:o.hold||1};if(o.near&&o.npc){x.npc=o.npc;x.near=o.near;}out.push(x);}break;}}
+  return out;}
+ /* Does a timer count now (live-content.js timerTick)? c: {hidden (the tab), blocked (live-content.js nearBlocked: not on foot, or a conversation / menu / pod wake-up /
+    creator / KeyMap open), busy (one of those windows open), mode (game.js), callBusy (a call is being heard: the V1's call on screen or a recorded line playing)}.
+    A CALL step's delay (the owner, 21 Nov 2026: Mission 012's cockpit calls, all four within about a minute) also counts in the cockpit (flight, docked, arriving),
+    and only once the call before it has been heard: it comes `delay` seconds after the last call ends, never on top of it. Every other timer: on foot only, as before. */
+ const CALL_TIMER_MODES=['walking','play','dock','arrival'];
+ function timerRuns(x,c){if(!x||!c||c.hidden)return false;if(x.kind==='delay'&&x.stepKind==='call'){if(c.callBusy)return false;return !c.busy&&CALL_TIMER_MODES.includes(c.mode);}return !c.blocked;}
+ /* A use of a thing (u: {mission, apt, object, mod?}) that the step in progress of that mission is waiting for: an apt-use or collect step naming it, or a sneak step
+    reaching it (the owner, 21 Nov 2026: Halden's computer in 005, the manager's computer in 006 show only the mission's content then, not their everyday description). */
+ function stepWants(s,env,u){if(!u||!u.mission||!u.object)return false;
+  return mechanicsNow(s,env).some(x=>x.mission===u.mission&&!x.delayed&&['apt-use','collect','sneak'].includes(x.kind)&&x.o.object===u.object&&(!x.o.apt||!u.apt||x.o.apt===u.apt)&&(!x.o.mod||!u.mod||x.o.mod===u.mod));}
+ /* A timer's countdown (whole seconds left; 0: done). A delay that has run stays 0 until its step is done; the game then sends {type:'timer'} (a delay) or {type:'wait', step}. */
+ function timerSet(s,x,left){s.story.flags[x.flag]=Math.max(0,Math.ceil(left));}
+ /* ANIMATION STEPS (npc-gestures.js) in progress now: [{key ('<mission>/<step>'), mission, step, npc, clip, hold}]. The game plays the clip and sends {type:'anim', step:key}
+    after `hold` seconds (live-content.js animTick). */
+ function animNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&o.kind==='anim'&&!delayed(s,m,o))out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:o.npc,clip:o.clip,hold:Number.isInteger(o.hold)?o.hold:3});break;}}
+  return out;}
+ /* ASK STEPS in progress now (ASK_STEP): [{key, mission, step, npc, title, ask:{mission, title, accept, decline}, lines:[the question], price, afford, need, paid}]. The game shows
+    the choice window once no conversation or menu is open (live-content.js askTick) and sends {type:'ask-yes'|'ask-no', step:key}. */
+ function askNow(s,env){const out=[];if(!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees),gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const o=m.objectives.find(x=>rec.objectives[x.id]!==true);if(o&&o.kind==='ask'&&!delayed(s,m,o)&&(env.draft||!placeholder(o.question))){const who=o.npc||m.giver,p=askPrice(o),paid=Number.isSafeInteger(s.story.flags[askPriceFlag(m.id,o.id)])&&s.story.flags[askPriceFlag(m.id,o.id)]>0,ok=!p||paid||(Number(s.credits)||0)>=p;
+    out.push({key:m.id+'/'+o.id,mission:m.id,step:o.id,npc:who,title:titleOf(m),inline:o.inline===true,gain:askGain(o),ask:{mission:m.id,step:o.id,title:titleOf(m),accept:o.yes||YES,decline:o.no||NO},lines:[{who:gv(who).say||who,text:String(o.question||'')}],price:p,afford:ok,need:ok?0:p,paid});}break;}}
+  return out;}
+ /* THE REUSABLE MECHANICS IN PROGRESS NOW (mission-mechanics.js), one entry per running mission whose step in progress is one of them (or carries unseen:true):
+    [{key, mission, step, kind, o (the step), m (the mission), unseen, wait?:{left, due} (an in-game wait: stamped on first sight), cast (who of its cast is there now)}].
+    The game (mission-mechanics-game.js) runs them and sends the events that complete them. */
+ function mechanicsNow(s,env){const out=[];if(!MM||!treeLive(s)||!env||!Array.isArray(env.trees))return out;const recs=s.universe.missions||{},gated=linked(env.trees);
+  for(const t of env.trees){if(gated.has(t.id)&&s.story.flags[linkFlag(t.id)]!==true)continue;for(const m of t.missions||[]){const rec=recs[m.id];if(rec&&rec.completed)continue;if(!rec||!rec.acquired)break;
+   const i=m.objectives.findIndex(x=>rec.objectives[x.id]!==true);const o=m.objectives[i];if(!o)break;const x={key:m.id+'/'+o.id,mission:m.id,step:o.id,kind:o.kind,o,m,unseen:o.unseen===true||o.kind==='sneak',delayed:delayed(s,m,o),cast:MM.castVisible(m,i)};
+   if(o.kind==='wait-game'&&!x.delayed&&GC)x.wait=MM.gameWait(s,m,o,GC.minutes(s));
+   out.push(x);break;}}
+  return out;}
+ /* The people every running mission has placed right now (mission cast), with their mission: [{mission, ...cast entry}]. */
+ function castNow(s,env){const out=[];for(const x of mechanicsNow(s,env))for(const c of x.cast)out.push({mission:x.mission,step:x.step,...c});return out;}
+ /* The evidence this player holds: [{id, title, text, kind, mission}]. */
+ function evidenceNow(s,env){if(!MM||!s||!env)return [];const defs=MM.evidenceDefs(env.trees);return MM.evidenceList(s).filter(id=>defs[id]).map(id=>({id,...defs[id]}));}
  /* Does a tree mission want this NPC right now (so the interaction should go to the tree rather than to what the NPC normally does)? */
  function treeWants(s,env,npcs){if(!treeLive(s)||!env||!env.trees)return false;const recs=s.universe.missions||{},gated=linked(env.trees);
   for(const t of env.trees)if(!gated.has(t.id)||s.story.flags[linkFlag(t.id)]===true)for(const m of t.missions){const rec=recs[m.id];if(rec&&rec.completed)continue;
@@ -340,7 +708,7 @@
   const out={applied:[],refused:[]};const base=snapshot(env);
   if(content!=null){const c=check(content,ctx);if(!c.ok){out.refused=c.errors;return out;}}
   if(env.B){
-   const list=clone(content&&content.beginner?content.beginner:base.beginner);
+   const list=clone(content&&content.beginner?content.beginner:base.beginner);for(const m of list)for(const o of (m&&m.objectives)||[])if(o)for(const k of ['say','early'])if(o[k])o[k]=shownLines(o[k]);
    env.B.MISSIONS.splice(0,env.B.MISSIONS.length,...list);for(const k of Object.keys(env.B.byId))delete env.B.byId[k];for(const m of env.B.MISSIONS)env.B.byId[m.id]=m;
    if(env.Missions){for(const id of Object.keys(env.Missions.definitions))if(env.Missions.definitions[id]&&env.Missions.definitions[id].beginner===true&&!env.B.byId[id])delete env.Missions.definitions[id];env.B.register(env.Missions);}
    if(content&&content.beginner)out.applied.push('beginner campaign: '+list.length+' missions');
@@ -350,57 +718,137 @@
    for(const [id,e] of Object.entries((content&&content.registry)||{})){const d=env.Missions.definitions[id];if(!d||d.beginner===true)continue;
     if(e.title!=null)d.title=e.title;if(e.description!=null)d.description=e.description;for(const o of d.objectives||[])if(e.objectives&&e.objectives[o.id]!=null)o.label=e.objectives[o.id];out.applied.push('mission log text: '+id);}
   }
-  env.lineMap=new Map();for(const l of (content&&content.lines)||[])env.lineMap.set(l.who+'|'+l.from,l.to);if(content&&content.lines&&content.lines.length)out.applied.push(content.lines.length+' changed line(s)');
+  env.lineMap=new Map();for(const l of (content&&content.lines)||[])env.lineMap.set(l.who+'|'+l.from,shown(l.to));if(content&&content.lines&&content.lines.length)out.applied.push(content.lines.length+' changed line(s)');
   if(env.Missions){for(const id of Object.keys(env.Missions.definitions))if(env.Missions.definitions[id]&&env.Missions.definitions[id].ownerTree)delete env.Missions.definitions[id];}
+  env.voices=clone((content&&content.voices)||{});if(content&&content.voices&&Object.keys(content.voices).length)out.applied.push(Object.keys(content.voices).length+' voice choice(s) for re-voicing');
+  env.clips=clone((content&&content.clips)||[]);if(content&&content.clips&&content.clips.length)out.applied.push(content.clips.length+' imported voice file(s)');
+  env.looks=clone((content&&content.looks)||{});if(content&&content.looks&&Object.keys(content.looks).length)out.applied.push(Object.keys(content.looks).length+' NPC look setting(s)');
+  // mission givers made in the editor: movable (their placements) and in the giver roster for the trees below (env.baseGivers: the roster without them)
+  env.characters=clone((content&&content.characters)||{});{const X=NPX();if(X&&X.setMade)X.setMade(env.characters);const G=GVS();if(Array.isArray(env.givers)){env.baseGivers=env.baseGivers||env.givers.filter(g=>!g.made);
+   env.givers=[...env.baseGivers,...(G&&Object.keys(env.characters).length?G.roster({characters:env.characters,npcs:(content&&content.npcs)||{}}).filter(g=>g.made):[])];}}
+  if(Object.keys(env.characters).length)out.applied.push(Object.keys(env.characters).length+' character(s) made in the editor');
+  env.npcPlans=clone((content&&content.npcs)||{});if(content&&content.npcs&&Object.keys(content.npcs).length)out.applied.push(Object.keys(content.npcs).length+' NPC placement(s)');
+  env.zones=clone((content&&content.zones)||{});if(content&&content.zones)out.applied.push('the Zones table');   // zones.js
   env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
   if(env.Missions)for(const t of env.trees)t.missions.forEach((m,i)=>env.Missions.define(m.id,treeDefinition(t,m,i,env.givers)));
   if(env.trees.length)out.applied.push('new trees: '+env.trees.map(t=>t.name+' ('+t.missions.length+')').join(', '));if(Object.keys(env.names).length)out.applied.push(Object.keys(env.names).length+' tree name(s)');
   return out;
  }
  /* The trees that run: the shipped story trees (an edited copy in the content replaces the one with the same id), then the content's other trees. */
- function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x={...t};delete x.status;delete x.shipped;delete x.seq;return x;});}
+ function storyTrees(list){const own=clone(list||[]),shipped=MS?MS.trees():[];return [...shipped.map(t=>own.find(x=>x.id===t.id)||t),...own.filter(x=>!shipped.some(t=>t.id===x.id))].map(t=>{const x=shownTree(t);delete x.status;delete x.shipped;delete x.seq;if(Array.isArray(x.missions))x.missions=x.missions.map(expandChoices);return x;});}   // player reply choices: inline "Ask the player" steps (CHOICE)
  /* A line about to be shown ({who,text}) → the edited line, or the same object when nothing applies. */
  function mapLine(env,l){if(!l||!env||!env.lineMap||!env.lineMap.size||typeof l.text!=='string')return l;const to=env.lineMap.get(who(l.who)+'|'+l.text);return to==null?l:{...l,text:to,edited:true};}
  /* Builds content from the owner's drafts. studio: the Developer Studio's local draft {missions:[...]} (beginner campaign); local: Mission Editor edits {missions:{key:edit}}. */
  const strip=m=>{const r={id:m.id,title:m.title,type:m.type};for(const k of ['giver','description','destination','prerequisites'])if(m[k]!=null)r[k]=clone(m[k]);if(m.rewards!=null)r.rewards=Number(m.rewards)||0;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:o.label,on:o.on};for(const k of ['requires','interaction','destination','award','say','early'])if(o[k]!=null&&!(Array.isArray(o[k])&&!o[k].length))x[k]=clone(o[k]);if(x.requires)x.requires=x.requires.slice();return x;});return r;};
  /* ---- new trees in the owner's draft → content. Only what the game can run is sent: in each tree, the missions in order up to the first one that cannot run yet. */
- const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&l.text.trim()).map(l=>({who:l.who||who||'You',text:l.text.trim()}));
+ const secs=(v,lo,hi)=>{const n=Number(v);return Number.isFinite(n)&&n>=lo?Math.min(hi,Math.round(n)):null;};
+ const said=(ls,who)=>(ls||[]).filter(l=>l&&typeof l.text==='string'&&(l.text.trim()||(l.who==='You'&&l.choice))).map(l=>{const x={who:l.who||who||'You',text:l.text.trim()};if(l.anim&&typeof l.anim==='string'&&x.who!=='You'){x.anim=l.anim;const a=secs(l.animFor,1,TIME.animFor);if(a)x.animFor=a;}
+  const w=secs(l.wait,1,TIME.lineWait),sh=secs(l.show,1,TIME.lineShow);if(w)x.wait=w;if(sh)x.show=sh;if(x.who==='You'&&l.choice){const c=choiceStrip(l.choice,who);if(c)x.choice=c;}return x;});
+ /* A player reply's choice (CHOICE) as it is published: only the known fields, the follow-up lines cleaned like any line. */
+ function choiceStrip(c,who){if(!c||typeof c!=='object')return null;const x={};for(const k of ['yes','no'])if(typeof c[k]==='string'&&c[k].trim())x[k]=c[k].trim().slice(0,MONEY.label);if(typeof c.noText==='string'&&c.noText.trim())x.noText=c.noText.trim().slice(0,LIMIT.text);
+  if(Number.isInteger(c.credits)&&c.credits!==0)x.credits=Math.max(MONEY.min,Math.min(MONEY.max,c.credits));if(CHOICE.deny.includes(c.deny)&&c.deny!=='end')x.deny=c.deny;if((x.deny==='skip'||x.deny==='back')&&c.goto)x.goto=c.goto;if(x.deny==='tree'&&c.denyStart)x.denyStart=c.denyStart;
+  const ys=said(c.yesSay,who).map(l=>{delete l.choice;return l;}),ns=said(c.noSay,who).map(l=>{delete l.choice;return l;});if(ys.length)x.yesSay=ys;if(ns.length)x.noSay=ns;return x;}
+ /* The trees as the game runs them: every player reply choice becomes an inline "Ask the player" step right after its step (or before the first step, for the offer).
+    Ids: '<step>-c<n>' (never one the mission already has). The lines before the choice stay where they were; the step's question is the last line someone else said. */
+ function expandChoices(m){if(!m||!Array.isArray(m.objectives))return m;const has=ls=>Array.isArray(ls)&&ls.some(l=>l&&l.choice&&l.who==='You');
+  const offer=choiceOk(m,null)&&has(m.offer);if(!offer&&!m.objectives.some(o=>o&&choiceOk(m,o)&&has(o.say)))return m;
+  const ids=new Set(m.objectives.map(o=>o&&o.id)),fresh=base=>{let n=1,id;do id=String(base).slice(0,70)+'-c'+(n++);while(ids.has(id));ids.add(id);return id;};
+  const split=(L,who,host)=>{const k=L.findIndex(l=>l&&l.choice&&l.who==='You');if(k<0)return {lines:L,asks:[]};const id=fresh(host),before=L.slice(0,k),{lines:after,asks:more}=split(L.slice(k+1),who,host),c=L[k].choice||{};
+   const lead=[...before].reverse().find(l=>l&&l.who!=='You'),a={id,kind:'ask',label:(c.yes||YES)+' or '+(c.no||NO),inline:true,question:lead?lead.text:'…',npc:lead?lead.who:who};
+   for(const f of ['yes','no','deny','goto','denyStart'])if(c[f]!=null)a[f]=c[f];if(c.credits>0)a.gain=c.credits;else if(c.credits<0)a.price=-c.credits;
+   a.say=[...(L[k].text?[{who:'You',text:L[k].text}]:[]),...(c.yesSay||[]),...after];a.denySay=[...(c.noText?[{who:'You',text:c.noText}]:[]),...(c.noSay||[]),...(c.deny==='continue'?after:[])];return {lines:before,asks:[a,...more]};};
+  const x={...m},objs=[];if(offer){const r=split(m.offer,m.giver,'offer');x.offer=r.lines;objs.push(...r.asks);}
+  for(const o of m.objectives){if(!o||!choiceOk(m,o)||!has(o.say)){objs.push(o);continue;}const r=split(o.say,o.npc||m.giver,o.id),y={...o,say:r.lines};if(!y.say.length)delete y.say;objs.push(y,...r.asks);}
+  x.objectives=objs;return x;}
  const SUPPORTED_UNLOCK=u=>UNLOCKS.includes(u.kind)&&(u.kind!=='ship'||['starter','ship2'].includes(u.id));
+ const askStrip=(st,who)=>{if(!st||st.accept!==true)return {};const x={accept:true};for(const k of ['yes','no'])if(typeof st[k]==='string'&&st[k].trim())x[k]=st[k].trim().slice(0,MONEY.label);
+  if(DENY.includes(st.deny)&&st.deny!=='again')x.deny=st.deny;if(x.deny==='start'&&st.denyStart)x.denyStart=st.denyStart;if(x.deny==='after')x.denyMinutes=denyMinutes(st.denyMinutes);const ds=said(st.denySay,who);if(ds.length)x.denySay=ds;return x;};
  function treeStrip(m){const r={id:m.id,title:String(m.title||'').trim(),type:m.type||'side',giver:m.giver};if(Number.isInteger(m.number))r.number=m.number;for(const k of ['category','location','objective'])if(typeof m[k]==='string'&&m[k].trim())r[k]=m[k].trim();if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},x={how:'notification',channel:st.channel||'messages',from:st.from||m.giver,text:String(st.text||'').trim()};if(String(st.header||'').trim())x.header=String(st.header).trim();
-   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission')wk.mission=w.mission;if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;r.start=x;}else if(m.start&&m.start.how==='person'&&m.start.accept===true)r.start={how:'person',accept:true};if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
+   const wk={kind:w.kind||'pod-exit'};if(wk.kind==='after-mission'||wk.kind==='game-time')wk.mission=w.mission;if(wk.kind==='game-time')wk.value=w.value;if(wk.kind==='near'){wk.npc=w.npc||m.giver;wk.distance=nearMetres(w.distance);}if(wk.kind==='place'||wk.kind==='leave')wk.place=w.place;if(wk.kind==='flag'){wk.flag=w.flag;wk.value=w.value===undefined?true:w.value;}x.when=wk;Object.assign(x,askStrip(st,st.from||m.giver));if(SC&&SC.list(st))x.only=SC.strip(st.only);r.start=x;}else if(m.start&&m.start.how==='person'&&(m.start.accept===true||(SC&&SC.list(m.start))))r.start={how:'person',...askStrip(m.start,m.giver),...(SC&&SC.list(m.start)?{only:SC.strip(m.start.only)}:{})};
+  {const c=m.cost;if(c&&Number.isInteger(c.amount)&&c.amount>0){const x={amount:Math.min(c.amount,MONEY.max)};if(c.when&&c.when!=='accept')x.when=c.when;else if(c.refund===true)x.refund=true;r.cost=x;}}if(m.description)r.description=m.description;if(Number(m.rewards)>0)r.rewards=Math.floor(Number(m.rewards));
+  {const X=NPX(),wa=X&&m.waitAt&&X.MOVABLE[m.giver]?X.cleanWait(m.waitAt):null;if(wa)r.waitAt=wa;}   // "Giver waits at" (Reverie, Lace)
+  {const X=APT(),ap=X&&X.strip(m.apartments);if(ap)r.apartments=ap;}
+  {const X=ZN(),cb=X&&X.stripCombat(m.combat);if(cb)r.combat=cb;}   // zones and armed people (zones.js)
+  {const X=CRM(),fs=X&&X.strip(m.feeds);if(fs)r.feeds=fs;}
+  if(Array.isArray(m.cast)&&m.cast.length)r.cast=clone(m.cast);if(Array.isArray(m.evidence)&&m.evidence.length)r.evidence=clone(m.evidence);   // people placed for this mission and its evidence items (mission-mechanics.js)   // camera feeds (cult-room.js)   // apartment instances (apartments.js)
   const offer=said(m.offer,m.giver);if(offer.length)r.offer=offer;
   r.objectives=(m.objectives||[]).map(o=>{const x={id:o.id,label:String(o.label||'').trim(),kind:o.kind};for(const k of ['npc','place','item'])if(o[k]!=null&&o[k]!=='')x[k]=o[k];if(o.kind==='send-photo'&&o.subject)x.subject=o.subject;if((o.kind==='photo'||o.kind==='send-photo')&&Array.isArray(o.subjects)&&o.subjects.length>1)x.subjects=o.subjects.slice(0,LIMIT.subjects);
+   if(ESCORT.includes(o.kind)){const F=(NEX()&&NEX().FIELDS[o.kind])||[];for(const k of F)if(o[k]!=null&&o[k]!=='')x[k]=k==='to'?{x:o.to.x,z:o.to.z}:o[k];}
+   {const d=secs(o.delay,1,TIME.delay);if(d)x.delay=d;}   // a delay before the step starts
+   if(o.unseen===true&&MM&&MM.UNSEEN_KINDS.includes(o.kind))x.unseen=true;if(MM&&MM.ON_SPOTTED&&MM.ON_SPOTTED.includes(o.onSpotted)&&(x.unseen===true||o.kind==='sneak'))x.onSpotted=o.onSpotted;
+   if(MM&&MM.KINDS.includes(o.kind)){for(const k of ['near','close','minutes','stage','feed','apt','mod','object','evidence'])if(o[k]!=null&&o[k]!=='')x[k]=clone(o[k]);if(o.kind==='observe'&&Number.isInteger(o.hold))x.hold=o.hold;if(o.kind==='wait-game'||o.kind==='feed'||o.kind==='flight'||o.kind==='apt-leave'||o.kind==='sneak'||o.kind==='tail'||o.kind==='observe'){delete x.item;if(o.kind!=='flight')delete x.place;}}   // the reusable mechanics' own fields
+   if(typeof o.app==='string'&&STEP_APPS.includes(o.app))x.app=o.app;   // the V1 app to highlight (optional; a photo step implies the Camera anyway)
+   if(o.kind==='apt-enter'||o.kind==='apt-use'){if(o.apt)x.apt=o.apt;if(typeof o.mod==='string'&&o.mod)x.mod=o.mod;if(o.kind==='apt-use'&&o.object)x.object=o.object;}
+   if(o.kind==='hack'){const X=APT(),H=(X&&X.HACK)||{min:2,max:30,def:5};if(o.ap)x.ap=o.ap;x.hold=secs(o.hold,H.min,H.max)||H.def;if(o.stay===false)x.stay=false;if(o.unlock===false)x.unlock=false;if(o.needs)x.needs=o.needs;if(typeof o.feed==='string'&&o.feed){x.feed=o.feed;if(o.unlock===true)x.unlock=true;}}
+   if(o.kind==='anim'){if(o.clip)x.clip=o.clip;x.hold=Number.isInteger(o.hold)?o.hold:3;if(!x.label)x.label='Watch';return x;}
+   if(o.kind==='ask'){x.question=String(o.question||'').trim();for(const k of ['yes','no'])if(typeof o[k]==='string'&&o[k].trim())x[k]=o[k].trim().slice(0,MONEY.label);if(ASK_STEP.deny.includes(o.deny)&&o.deny!=='end')x.deny=o.deny;if((x.deny==='skip'||x.deny==='back')&&o.goto)x.goto=o.goto;if(x.deny==='tree'&&o.denyStart)x.denyStart=o.denyStart;
+   const p=askPrice(o),g=askGain(o);if(p)x.price=p;else if(g)x.gain=g;if(!x.label)x.label='Decide';const who=o.npc||m.giver,sy=said(o.say,who),dn=said(o.denySay,who);if(sy.length)x.say=sy;if(dn.length)x.denySay=dn;return x;}   // ACCEPT / DENY in the middle of a mission
+  if(o.kind==='zone'){const X=ZN();return X?X.stripStep(o,x):x;}   // "Change zone" (zones.js)
+  if(o.kind==='wait'){x.hold=secs(o.hold,1,TIME.wait)||10;const n=secs(o.near,1,TIME.near);if(n&&o.npc){x.near=n;x.npc=o.npc;}else delete x.npc;if(!x.label)x.label='Wait';return x;}   // an animation step: no lines (its label shows in the Mission Log for those seconds)
    const who=o.kind==='photo'?m.giver:o.npc||m.giver,sy=said(o.say,who),ea=said(o.early,who),wr=o.kind==='send-photo'?said(o.wrong,who):[];if(sy.length)x.say=sy;if(ea.length)x.early=ea;if(wr.length)x.wrong=wr;if((o.via==='comms'||o.via==='messages')&&sy.length)x.via=o.via;return x;});
   if(m.ending&&(m.ending.npc||m.ending.place||said(m.ending.say,m.giver).length)){const e={};if(m.ending.npc)e.npc=m.ending.npc;if(m.ending.place)e.place=m.ending.place;if(m.ending.label&&m.ending.label.trim())e.label=m.ending.label.trim();const sy=said(m.ending.say,m.ending.npc||m.giver);if(sy.length)e.say=sy;r.ending=e;}
   const un=(m.unlocks||[]).filter(SUPPORTED_UNLOCK).map(u=>{const x={kind:u.kind};for(const k of ['id','amount','value','when'])if(u[k]!=null&&u[k]!=='')x[k]=u[k];if(x.when==='complete')delete x.when;return x;});if(un.length)r.unlocks=un;
   return r;}
  /* Why a draft mission cannot run in the game yet (plain words; empty = it can). givers: roster list; items: buyable ids (Set). */
- function treeBlockers(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody';
-  if(!String(m.title||'').trim())out.push('it needs a name');
-  if(!m.giver)out.push('nobody gives it yet');else if(!can(m.giver))out.push(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')');
-  if(!(m.objectives||[]).length)out.push('it has no steps');
-  for(const [i,o] of (m.objectives||[]).entries()){const w='step '+(i+1);
-   if(!STEP_KINDS.includes(o.kind)){out.push(w+' ('+(o.kind||'no kind')+') needs a code change');continue;}
-   if(!String(o.label||'').trim())out.push(w+' needs “what the player must do”');
-   if((o.kind==='talk'||o.kind==='deliver')&&!can(o.npc))out.push(w+': '+(o.npc?nm(o.npc)+' cannot be talked to in the game today':'choose who it happens with'));
-   if((o.kind==='go'||o.kind==='arrive')&&!o.place)out.push(w+': choose the place');if(o.kind==='buy'&&(!o.item||(items&&!items.has(o.item))))out.push(w+': choose an item a store sells');
-   if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))out.push(w+': “the notification arrives” needs the mission to start by notification');
-   if((o.kind==='enter'||o.kind==='leave')&&!o.place)out.push(w+': choose the place');
-   if(o.kind==='photo'&&!o.npc)out.push(w+': choose who is photographed');
-   if(o.kind==='send-photo'){if(!o.npc)out.push(w+': choose who the photo is sent to');if(!o.subject)out.push(w+': choose who must be in the photo');}
-   if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)out.push(w+': a Comms call or a message needs its lines');}
-  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!String(st.text||'').trim())out.push('the notification needs its text');if(st.channel!=='notify'&&!String(st.header||'').trim())out.push('the notification needs a header');if(!st.from)out.push('choose who the notification is from');
-   if(w.kind==='after-mission'&&!w.mission)out.push('choose the mission it follows');if((w.kind==='place'||w.kind==='leave')&&!w.place)out.push('choose the place that starts it');if(w.kind==='flag'&&!w.flag)out.push('name the story flag that starts it');}
-  if(m.ending&&m.ending.npc&&!can(m.ending.npc))out.push('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today');
+ /* What a draft mission still needs before it can run, as {text (plain words), field (which input: the editor's "next required input" guide highlights it), step (the step id)}.
+    treeBlockers is the same list as plain words, so the guide and the play / publish check never disagree. */
+ function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
+  if(!String(m.title||'').trim())need('it needs a name','title');
+  if(!m.giver)need('nobody gives it yet','giver');else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')','giver');
+  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},quiet=quietStart(st);if(!st.from&&!quiet)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!quiet&&!String(st.text||'').trim())need('the notification needs its text','start-text');
+   if(w.kind==='after-mission'&&!w.mission)need('choose the mission it follows','start-mission');if((w.kind==='place'||w.kind==='leave')&&!w.place)need('choose the place that starts it','start-place');if(w.kind==='flag'&&!w.flag)need('name the story flag that starts it','start-flag');
+   if(w.kind==='near'){const who=w.npc||m.giver;if(!who)need('choose who the player walks near','start-near');else if(!can(who))need(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)','start-near');}}
+  {const st=m.start||{},c=m.cost;if(c&&Number(c.amount)>0&&(c.when||'accept')==='accept'&&st.accept!==true)need('the player pays when accepting, so it must ask: tick “Ask the player: ACCEPT or DENY”','start-ask');
+   if(c&&c.when&&c.when!=='accept'&&!(m.objectives||[]).some(o=>o.id===c.when))need('the step the player pays at is gone: choose when they pay','cost-when');
+   if(st.accept===true&&st.deny==='start'&&!st.denyStart)need('choose the mission that starts when the player says DENY','start-deny');}
+  if(!(m.objectives||[]).length)need('it has no steps','add-step');
+  for(const [i,o] of (m.objectives||[]).entries()){const w='step '+(i+1),id=o.id;
+   if(!STEP_KINDS.includes(o.kind)){need(w+' ('+(o.kind||'no kind')+') needs a code change','kind',id);continue;}
+   if((o.kind==='talk'||o.kind==='deliver')&&!can(o.npc))need(w+': '+(o.npc?nm(o.npc)+' cannot be talked to in the game today':'choose who it happens with'),'step-npc',id);
+   if((o.kind==='go'||o.kind==='arrive')&&!o.place)need(w+': choose the place','step-place',id);if(o.kind==='buy'&&(!o.item||(items&&!items.has(o.item))))need(w+': choose an item a store sells','step-item',id);
+   if(o.kind==='message'&&!(m.start&&m.start.how==='notification'))need(w+': “the notification arrives” needs the mission to start by notification','kind',id);
+   if((o.kind==='enter'||o.kind==='leave')&&!o.place)need(w+': choose the place','step-place',id);
+   if(o.kind==='photo'&&!o.npc)need(w+': choose who is photographed','step-subject',id);
+   if((o.kind==='apt-enter'||o.kind==='apt-use')&&!(m.apartments||[]).some(a=>a&&a.id===o.apt))need(w+': choose one of this mission’s apartments (add one under “Apartments for this mission”)','step-apt',id);
+   if(o.kind==='apt-use'&&!o.object)need(w+': choose what is used in the apartment','step-object',id);
+   if(o.kind==='apt-use'&&(m.apartments||[]).some(a=>a&&a.id===o.apt&&Array.isArray(a.modules))&&!o.mod)need(w+': choose the room (module) where it is used','step-mod',id);
+   if(o.kind==='hack'&&!o.ap)need(w+': choose the access point to hack','step-ap',id);
+   if(ESCORT.includes(o.kind)){const E=NEX();for(const n of (E?E.needs(o,{area:E.placedArea?E.placedArea(o.npc,{waitAt:m.giver===o.npc?m.waitAt:null}):'avenue',apartments:m.apartments||[],steps:m.objectives}):[]))need(w+': '+n.text,n.key,id);}
+   if(o.kind==='send-photo'){if(!o.npc)need(w+': choose who the photo is sent to','step-npc',id);if(!o.subject)need(w+': choose who must be in the photo','step-subject',id);}
+   if(o.kind==='wait'){if(o.near&&!o.npc)need(w+': choose who the player must stay near','step-npc',id);continue;}
+   if(o.kind==='zone'){if(!o.target)need(w+': choose the room, location or area that changes','step-zone-target',id);if(!o.zone)need(w+': choose Friendly, Neutral or Hostile','step-zone',id);continue;}
+   if(o.kind==='ask'){const d=o.deny||'end',ids=(m.objectives||[]).map(x=>x.id),j=ids.indexOf(o.goto);if(!String(o.question||'').trim())need(w+': write the question the player answers','step-question',id);
+   if(d==='skip'&&!(j>i))need(w+': choose the later step DENY skips to','step-goto',id);if(d==='back'&&!(j>=0&&j<i))need(w+': choose the earlier step DENY goes back to','step-goto',id);if(d==='tree'&&!o.denyStart)need(w+': choose the tree that starts on DENY','step-deny-start',id);continue;}
+  if(o.kind==='anim'){if(!o.npc)need(w+': choose who plays the animation','step-npc',id);else if(!o.clip)need(w+': choose the animation','step-clip',id);continue;}   // which clips are allowed: check() (with her NPCs-tab plan)
+   if(!String(o.label||'').trim())need(w+' needs “what the player must do”','label',id);
+   if((o.via==='comms'||o.via==='messages')&&!said(o.say,'x').length)need(w+': a Comms call or a message needs its lines','say',id);}
+  // a player reply that is a choice (CHOICE): where DENY goes
+  {const objs=m.objectives||[],ids=objs.map(x=>x&&x.id),chk=(ls,i,w,id)=>{for(const l of ls||[]){const c=l&&l.who==='You'&&l.choice;if(!c||typeof c!=='object')continue;const d=c.deny||'end',j=ids.indexOf(c.goto);
+    if(d==='skip'&&!(j>i))need(w+': the player’s choice: choose the later step DENY skips to','line-choice-goto',id);if(d==='back'&&!(j>=0&&j<=i))need(w+': the player’s choice: choose the step DENY goes back to','line-choice-goto',id);if(d==='tree'&&!c.denyStart)need(w+': the player’s choice: choose the tree that starts on DENY','line-choice-tree',id);}};
+   if(choiceOk(m,null))chk(m.offer,-1,'the offer');objs.forEach((o,i)=>{if(o&&choiceOk(m,o))chk(o.say,i,'step '+(i+1),o.id);});}
+  for(const a of m.apartments||[]){if(a&&!a.door)need('apartment “'+(a.id||'?')+'”: choose its street door (on the map or from the list)','apt-door');}
+  {const X=APT();if(X)for(const p of X.problems(m,null))if(!/choose a street door|choose one of this mission|choose what is used|choose the access point|choose the room \(module\)/.test(p))need(p,'apt-door');}
+  if(m.ending&&m.ending.npc&&!can(m.ending.npc))need('the hand-in NPC '+nm(m.ending.npc)+' cannot be talked to in the game today','ending');
+  {const X=NPX();if(X&&m.waitAt)for(const p of X.waitAtProblems(m.giver,m.waitAt))need('“Giver waits at”: '+p,'wait-at');}
   return out;}
+ function treeBlockers(m,givers,items){return treeNeeds(m,givers,items).map(x=>x.text);}
  function treesContent(trees,{givers,items}={}){const out=[],skipped=[];
   for(const t of trees||[]){const ms=[];for(const m of t.missions||[]){const b=treeBlockers(m,givers,items);if(b.length){skipped.push({tree:t.id,mission:m.id,title:m.title||'(no name)',why:b});for(const r of (t.missions||[]).slice(t.missions.indexOf(m)+1))skipped.push({tree:t.id,mission:r.id,title:r.title||'(no name)',why:['an earlier mission in this tree cannot run yet']});break;}ms.push(treeStrip(m));}
    if(ms.length){const x={id:t.id,name:String(t.name||'').trim()||t.id,missions:ms};if(t.note&&t.note.trim())x.note=t.note.trim().slice(0,300);out.push(x);}}
   // a link to a tree that is not sent is dropped (and said)
   const sent=new Set(out.map(t=>t.id));for(const t of out)for(const m of t.missions)if(m.unlocks){const keep=m.unlocks.filter(u=>u.kind!=='tree'||(sent.has(u.id)&&u.id!==t.id));if(keep.length<m.unlocks.length)skipped.push({tree:t.id,mission:m.id,title:m.title,why:['its “start tree” link points to a tree that cannot run yet (the link is left out)'],partial:true});if(keep.length)m.unlocks=keep;else delete m.unlocks;}
   return {trees:out,skipped};}
- function fromDrafts({studio,local,shippedBeginner,note,givers,items}={}){
+ /* The draft's made characters that can be sent: cleaned, and nothing in the way (npc-made.js problems with the draft's placements and trees). {id: character} */
+ function madeReady(local,givers){const MD=MDE(),ch=(local&&local.characters)||{};if(!MD||!Object.keys(ch).length)return {};const out={},ms=new Map(),offer=new Map();
+  for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
+  const reserved=new Set((givers||[]).filter(g=>!g.made).map(g=>g.id));for(const [id,c0] of Object.entries(ch)){const c=MD.clean(c0);if(c&&!MD.problems({[id]:c},{npcs:(local&&local.npcs)||{},missions:ms,reserved,givesOffer:offer}).length&&!placeNeeds(id,c,local).length)out[id]=c;}return out;}
+ /* Why a made character in the draft is not sent yet (plain words; empty: it is). */
+ function madeNeeds(local,givers,id){const MD=MDE(),c=((local&&local.characters)||{})[id];if(!MD||!c)return [];const ms=new Map(),offer=new Map();for(const t of storyTrees((local&&local.trees)||[]))for(const m of t.missions||[]){ms.set(m.id,(m.objectives||[]).map(o=>o.id));if(!(m.start&&m.start.how==='notification'))offer.set(m.id,m.giver);}
+  const p=MD.problems({[id]:MD.clean(c)},{npcs:(local&&local.npcs)||{},missions:ms,reserved:new Set((givers||[]).filter(g=>!g.made).map(g=>g.id)),givesOffer:offer});return p.length?p:placeNeeds(id,MD.clean(c),local);}
+ /* Their placement's own problems (npc-paths.js planProblems), with this character registered as it is in the draft. */
+ function placeNeeds(id,c,local){const X=NPX(),p=((local&&local.npcs)||{})[id];if(!X||!X.setMade||!p)return [];const had=X.madeNow(),reg=X.MOVABLE[id]&&X.MOVABLE[id].made&&had[id]===c;const before=reg?null:X.setMade({...had,[id]:c});try{return X.planProblems(id,X.clean(p)||p);}finally{if(before)X.setMade(before);}}
+ function fromDrafts({studio,local,shippedBeginner,note,givers,items,clipText}={}){
   const out={format:FORMAT,version:VERSION};
   if(studio&&Array.isArray(studio.missions)){const b=studio.missions.map(strip);if(!shippedBeginner||JSON.stringify(b)!==JSON.stringify((shippedBeginner||[]).map(strip)))out.beginner=b;}
   const reg={};
@@ -409,14 +857,22 @@
   if(Object.keys(reg).length)out.registry=reg;
   const lines=Object.entries((local&&local.lines)||{}).filter(([,e])=>e&&e.adapter==='talk'&&typeof e.to==='string'&&e.to!==e.from).map(([ref,e])=>({who:ref.split('|')[0],from:e.from,to:e.to}));if(lines.length)out.lines=lines;
   const tc=treesContent((local&&local.trees)||[],{givers,items});if(tc.trees.length)out.trees=tc.trees;
+  // mission givers made in the editor: only finished ones are sent (madeReady); their placements with them
+  const ready=madeReady(local,givers);if(Object.keys(ready).length)out.characters=ready;
+  {const X=NPX(),np={};for(const [id,p] of Object.entries((local&&local.npcs)||{})){const M=X&&X.MOVABLE[id];const c=M&&!(M.made&&!ready[id])?X.clean(p):null;if(c)np[id]=c;}if(Object.keys(np).length)out.npcs=np;}   // Developer Tools > NPCs
+  {const V=NPV(),vs={};for(const [id,v] of Object.entries((local&&local.voices)||{})){const c=V&&!V.refusal(id)?V.clean(v):null;if(c)vs[id]=c;}if(Object.keys(vs).length)out.voices=vs;}   // ElevenLabs voice choices
+  {const L=NPL(),lk={};for(const [a,e] of Object.entries((local&&local.looks)||{})){const c=L?L.clean(a,e):null;if(c)lk[a]=c;}if(Object.keys(lk).length)out.looks=lk;}   // NPC looks
+  {const I=VIM(),cl=I&&local&&local.clips?I.contentClips(local.clips,clipText):[];if(cl.length)out.clips=cl;}   // imported voice files (clipText: line key -> its words now; an import whose words changed is left out)
   const names=Object.fromEntries(Object.entries((local&&local.names)||{}).filter(([id,n])=>ID.test(id)&&typeof n==='string'&&n.trim()).map(([id,n])=>[id,n.trim().slice(0,60)]));if(Object.keys(names).length)out.names=names;
+  {const X=ZN(),z=X&&local?X.cleanTable(local.zones):null;if(z)out.zones=z;}   // the owner's Zones table (Developer Tools > Zones)
   if(note)out.note=String(note).slice(0,500);
   return out;
  }
- const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length));
+ const empty=c=>!c||(!c.beginner&&!c.registry&&!(c.lines&&c.lines.length)&&!(c.trees&&c.trees.length)&&!(c.names&&Object.keys(c.names).length)&&!(c.npcs&&Object.keys(c.npcs).length)&&!(c.voices&&Object.keys(c.voices).length)&&!(c.looks&&Object.keys(c.looks).length)&&!(c.clips&&c.clips.length)&&!(c.characters&&Object.keys(c.characters).length)&&!c.zones);
  /* Edits in the drafts that the game cannot apply live (draft play and publishing alike), in plain words. */
  function notApplied({studio,local,givers,items}={}){
   const out=[];
+  for(const id of Object.keys((local&&local.characters)||{})){const n=madeNeeds(local,givers,id);if(n.length)out.push('New character “'+(((local.characters[id]||{}).name)||id)+'”: not in the game yet: '+n.join(' ')+' It stays in your draft (Developer Tools > NPCs).');}
   for(const x of treesContent((local&&local.trees)||[],{givers,items}).skipped)out.push(x.partial?'New mission "'+x.title+'": '+x.why.join('; ')+'.':'New mission "'+x.title+'": cannot be played or published yet: '+x.why.join('; ')+'. It stays in your draft.');
   for(const t of (local&&local.trees)||[])for(const m of t.missions||[]){const n='"'+(m.title||m.id)+'"';
    if((m.choices||[]).length)out.push(n+': the branches (choices). The game does not offer mission choices yet (needs a code change); missions in a tree run in order.');
@@ -478,10 +934,23 @@
     s.story=s.story||{};s.story.flags=s.story.flags||{};if(s.story.flags[flagOf(m.id)]!==true){s.story.flags[flagOf(m.id)]=true;if(Number(m.rewards)>0){s.credits=(s.credits||0)+Number(m.rewards);acts.push('paid '+m.rewards+' for '+m.id);}}
     if(s.universe.trackedMission===m.id)s.universe.trackedMission=null;}}
   // In a District campaign (closed mission pool) only beginner missions can be held, so a tracked id that is not in the list now is a removed beginner mission.
-  const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}
+  const t=s.universe.trackedMission;if(t&&rec[t]&&!by.has(t)&&!(trees||[]).some(x=>x.missions.some(m=>m.id===t))&&!/^rook-run-\d+$/.test(t)&&s.story&&s.story.flags&&s.story.flags.missionPool==='closed'){s.universe.trackedMission=null;acts.push('untracked removed mission '+t);}   // Rook's side missions (campaign.js rookBoard) are not tree missions
   return acts;
  }
- const api={VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
-  treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
+ /* APARTMENTS (apartments.js): the instances open for this player now, the street doors a hack opened, the hack steps in progress. */
+ const aptLive=(s,env)=>treeLive(s)&&env&&Array.isArray(env.trees);
+ function apartmentsNow(s,env){const X=APT();return X&&aptLive(s,env)?X.openNow(s,env.trees):[];}
+ function hackedNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hackedDoors(s,env.trees):[];}
+ function hacksNow(s,env){const X=APT();return X&&aptLive(s,env)?X.hacksNow(s,env.trees):[];}
+ function doorsInUseNow(s,env){const X=APT();return X&&X.doorsInUse&&aptLive(s,env)?[...X.doorsInUse(s,env.trees)]:[];}   // the street doors a taken mission uses (their prompts show)
+ /* "…and only when" right now, for the Mission Editor's draft play and tests: every mission not started yet whose start has conditions -> [{tree, mission, armed (its one-moment
+    trigger already happened), ok, each:[{kind, ok}]}]. at: the real moment (ms) for the street clock. */
+ function onlyNow(s,env,at=Date.now()){const out=[];if(!SC||!s||!env||!Array.isArray(env.trees))return out;let world;const W=()=>{if(world===undefined){try{world=typeof env.world==='function'?env.world():null;}catch{world=null;}}return world;};
+  for(const t of env.trees)for(const m of t.missions||[]){const st=m.start||{},l=SC.list(st),r=s.universe&&s.universe.missions&&s.universe.missions[m.id];if(!l||(r&&(r.acquired||r.completed)))continue;
+   const w=st.when||{},who=st.how==='notification'&&w.kind==='near'?w.npc||m.giver:m.giver,G=GVS(),c=SC.check(l,s,{who,street:G&&G.streetTime?G.streetTime(at):at,world:SC.needsWorld(l)?W():null});
+   out.push({tree:t.id,mission:m.id,armed:s.story.flags[armFlag(m.id)]===true,ok:c.ok,each:c.each});}
+  return out;}
+ const api={quietStart,onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,timerRuns,CALL_TIMER_MODES,stepWants,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+  waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

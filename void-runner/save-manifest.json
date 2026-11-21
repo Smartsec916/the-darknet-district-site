@@ -59,15 +59,36 @@
     "gate-4"
   ],
   "storyTrees": [
-    "main-storyline"
+    "main-storyline",
+    "first-cargo-delivery"
   ],
   "storyMissions": [
     "m001-awakening",
-    "m002-eyes-on-the-street"
+    "m002-eyes-on-the-street",
+    "m003-corporate-connections",
+    "m004-a-promising-investment",
+    "m005-behind-closed-doors",
+    "m006-hostile-takeover",
+    "m007-the-house-always-wins",
+    "m008-private-network",
+    "m009-ghost-in-the-network",
+    "m010-the-price-of-admission",
+    "m011-leverage",
+    "m012-first-cargo-delivery"
   ],
   "missionNumbers": {
     "1": "m001-awakening",
-    "2": "m002-eyes-on-the-street"
+    "2": "m002-eyes-on-the-street",
+    "3": "m003-corporate-connections",
+    "4": "m004-a-promising-investment",
+    "5": "m005-behind-closed-doors",
+    "6": "m006-hostile-takeover",
+    "7": "m007-the-house-always-wins",
+    "8": "m008-private-network",
+    "9": "m009-ghost-in-the-network",
+    "10": "m010-the-price-of-admission",
+    "11": "m011-leverage",
+    "12": "m012-first-cargo-delivery"
   },
   "retiredMissions": [
     "first-contact",

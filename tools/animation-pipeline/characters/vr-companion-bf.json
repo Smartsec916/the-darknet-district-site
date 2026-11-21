@@ -106,6 +106,7 @@
    "name": "tongue"
   }
  },
+ "toeFix": "18 Nov 2026: the shipped file's clips hold LeftToeBase/RightToeBase at rest (retarget_world.py --fix-toes); the first build folded her toes under her feet (151-180 degrees off rest). A rebuild from this spec must be checked for the same fault (tests/companion-toes.test.cjs).",
  "clips": [
   "idle",
   "talk",

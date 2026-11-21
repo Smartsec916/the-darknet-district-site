@@ -188,7 +188,11 @@
     release(id,seconds=6){secured=false;const d=list.find(x=>x.id===id);if(d&&d.can)d.kick=seconds;},
     state:()=>list.map(d=>({id:d.id,open:+d.open.toFixed(2),locked:!d.can,blocking:!!solidOf(d)&&!solidOf(d).open}))};}
   // Small automatic doors inside the building (no collision of their own: they are open by the time anyone reaches them).
-  const autos=[],auto=(mesh,axis,travel,cx,cz,r=2.6)=>{autos.push({m:mesh,axis,from:mesh.position[axis],travel,cx,cz,r,k:0});return mesh;};
+  const autos=[],auto=(mesh,axis,travel,cx,cz,r=2.6,lock=null)=>{autos.push({m:mesh,axis,from:mesh.position[axis],travel,cx,cz,r,k:0,lock});return mesh;};
+  /* The staff-only door (Mission 003): it opens, and its collision box (milked.js solids, id STAFF_DOOR.id) gives way, only for a player Eva has let through. Per player:
+     each client reads its own save. Read every frame, so it opens the moment Eva grants access. */
+  const staffOpen=()=>{try{return !!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null);}catch{return false;}};
+  const staffSolid=()=>(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(s=>s.staff)||null;
 
   // ---------------- props: optional Meshy models (assets/models/milked/), sized by height and stood on the floor; a stand-in is built here if one is missing ----------------
   const model=name=>{let p=models.get(name);if(!p){p=root.VoidAssets.loadContainer({src:'assets/models/milked/milked-'+name+'.glb'},scene,null,'milked:'+name).then(c=>{if(disposed){c.dispose();throw Error('gone');}containers.push(c);
@@ -210,7 +214,8 @@
    chair:(x,z,yaw)=>{cyl(.5,.05,x,.06,z,standM,false,5);cyl(.06,.4,x,.26,z,standM,false,8);box(.5,.06,.5,x,.48,z,dark);rbox(.48,.6,.06,x-Math.sin(yaw)*.24,.85,z-Math.cos(yaw)*.24,dark,0,yaw,0);},
    cart:(x,z)=>{tbox(1,.6,.6,x,.52,z,S.cloth,1);for(const sx of [-1,1])for(const sz of [-1,1]){box(.03,.8,.03,x+sx*.5,.45,z+sz*.3,trim);cyl(.1,.04,x+sx*.45,.06,z+sz*.26,black,false,8).rotation.x=PI/2;}box(1.04,.03,.64,x,.84,z,trim);box(.8,.06,.4,x,.84,z,M('towel','#2a2c36','#12131a'));},
    flightCase:(x,z,w=.7,d=1,h=.6)=>{box(w,h,d,x,h/2+.06,z,black);for(const sx of [-1,1])for(const sz of [-1,1]){box(.04,h+.02,.04,x+sx*w/2,h/2+.06,z+sz*d/2,trim);}box(w+.03,.03,d+.03,x,h+.07,z,trim);box(w+.03,.03,d+.03,x,.07,z,trim);},
-   cat:(x,y,z)=>{ball(.16,x,y+.08,z,M('cat','#e9e4dc','#55504a'));ball(.12,x,y+.2,z,M('cat','#e9e4dc','#55504a'));box(.03,.09,.03,x+.07,y+.25,z,M('cat','#e9e4dc','#55504a'));},
+   // the lucky cat's stand-in: the shared parts (lucky-cat.js; the same cat stands on the underground tea room's counter)
+   cat:(x,y,z)=>{const L=root.VoidLuckyCat,m=M('cat',...(L?L.COLOUR:['#e9e4dc','#55504a']));if(L){L.standIn(x,y,z,{ball:(d,a,b,c)=>ball(d,a,b,c,m),box:(w,h,d,a,b,c)=>box(w,h,d,a,b,c,m)});return;}ball(.16,x,y+.08,z,m);ball(.12,x,y+.2,z,m);box(.03,.09,.03,x+.07,y+.25,z,m);},
    shark:(x,y,z)=>{ball(.3,x,y+.07,z,M('plush-shark','#5f7f9a','#22303c'),.45);}};
   const lantern=(x,z,h=.7)=>{box(.3,.03,.3,x,.015,z,black);const m=cyl(.26,h,x,h/2+.03,z,G('lantern','#ffcf9a',.75),false,12);box(.3,.03,.3,x,h+.045,z,black);for(let i=1;i<5;i++)torus(.265,.008,x,.03+i*h/5,z,black,0,0);return m;};
   // Ceiling services: a duct, two pipes and a cable tray run along `axis` between a and b at the given cross position.
@@ -304,7 +309,8 @@
   function finish(){merged=true;for(const [mat,list] of groups){if(list.length>1){const alphaIn=list.some(m=>m.hasVertexAlpha),mm=B.Mesh.MergeMeshes(list,true,true,undefined,false,false);if(mm){mm.parent=node;mm.position.set(-KX,0,-KZ);mm.material=mat;   /* a merge bakes the meshes' WORLD positions (this node's move included): the merged mesh stands back by the move so it is not carried twice */mm.isPickable=false;if(alphaIn)mm.hasVertexAlpha=true;mm.freezeWorldMatrix?.();}}else list[0].freezeWorldMatrix?.();}groups.clear();}
   let clock=0;
   function animate(dt,cam,near=true){clock+=dt;if(!near)return;for(const s of screens){if(clock>s.next){s.next=clock+s.period;const g=s.t.getContext();s.draw(g,s.cw,s.ch,clock);s.t.update();}}
-   if(cam)for(const o of autos){const want=Math.hypot(cam.x-o.cx,cam.z-o.cz)<o.r?1:0;if(o.k!==want){o.k+=Math.sign(want-o.k)*Math.min(Math.abs(want-o.k),dt*2.6);o.m.position[o.axis]=o.from+o.travel*o.k;}}}
+   if(area===AREA){const sd=staffSolid(),ok=staffOpen();if(sd&&sd.open!==ok)sd.open=ok;}
+   if(cam)for(const o of autos){const want=Math.hypot(cam.x-o.cx,cam.z-o.cz)<o.r&&(!o.lock||staffOpen())?1:0;if(o.k!==want){o.k+=Math.sign(want-o.k)*Math.min(Math.abs(want-o.k),dt*2.6);o.m.position[o.axis]=o.from+o.travel*o.k;}}}
   function dispose(){disposed=true;node.dispose(false,true);for(const c of containers)try{c.dispose();}catch{}containers.length=0;for(const o of own)try{o.dispose();}catch{}own.length=0;screens.length=0;autos.length=0;}
   return {B,scene,node,low,high,interior,own,pbrs,tag,lin,mirror,reflectIn,blob,blobM,normalFrom,S,M,G,metal,trim,dark,black,pink,green,glowW,red,pinkDim,greenDim,warm,tone,hexOf,put,box,rbox,tbox,cyl,pipe,cone,ball,torus,tex,painted,emissiveMat,plane,screen,sign,picture,FONT,LOGO,HAN,drop,droplets,logo,logoSign,plate,flat,pool,wash,
    rubber,grate,quilt,poster,photoWall,leaf,child,doorControl,auto,prop,simple,standM,leafM,potM,lantern,services,tube,drain,wallOf,seg,hazard,glassM,vestibule,lobby,finish,animate,dispose,rnd,reseed:v=>{seed=v;},get clock(){return clock;},get disposed(){return disposed;},late,screens,
@@ -556,7 +562,7 @@
   // the far end: staff only, and the way out
   plate(1.2,.5,93.36,2.5,-81.8,TOW,[['STAFF ONLY',PINK,54],['仅限员工','#f4f8ff',50,1]],{neon:true});
   sign(.7,.22,93.36,2.92,-81.8,TOW,224,70,(g,w,h)=>{g.fillStyle='#04140c';g.fillRect(0,0,w,h);g.fillStyle=GREEN;g.shadowColor=GREEN;g.shadowBlur=8;g.font=FONT(34);g.textAlign='left';g.textBaseline='middle';g.fillText('EXIT',12,h/2+2);g.font=HAN(30);g.fillText('出口',112,h/2+2);g.beginPath();g.moveTo(190,h/2-12);g.lineTo(210,h/2);g.lineTo(190,h/2+12);g.fill();});
-  {const f=box(.06,2.16,1.28,93.5,1.08,-81.8,doorM,true);auto(f,'z',1.2,93.5,-81.8);child(logoSign(.7,0,0,0,TOW),f,-.035,.45,0);}
+  {const f=box(.06,2.16,1.28,93.5,1.08,-81.8,doorM,true);auto(f,'z',1.2,93.5,-81.8,2.6,'staff');child(logoSign(.7,0,0,0,TOW),f,-.035,.45,0);}
 
   // ---------------- the four studios (seen through the windows; nobody goes in) ----------------
   
@@ -680,21 +686,63 @@
   const spot=(id,x,z,face,clips,opts={})=>people.push({id,x,z,y:0,yaw:Math.atan2(face[0]-x,face[1]-z),clips,node:null,anim:null,spawned:false,...opts});
   const eva=MODELS.eva,fish=MODELS.fish;
   spot(eva.id,eva.at[0],eva.at[1],eva.face,eva.clips,{fixedLook:eva.look,asset:eva.asset,role:'eva'});spot(fish.id,fish.at[0],fish.at[1],fish.face,fish.clips,{fixedLook:fish.look,asset:fish.asset,role:'fish'});
-  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,spare:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,y:.055,phase:s.n*1.3});
+  for(const s of STUDIOS)spot(s.dancer.id,s.spot[0],s.spot[1],s.face,s.dancer.clips,{fixedLook:s.dancer.look,file:s.dancer.file,spare:s.n===1?null:SPARE,role:'dancer',zone:'hall',lamp:s.lamp,key:s.key,studio:s.n,library:s.dancer.library,dances:s.dancer.dances,y:.055,phase:s.n*1.3});
   for(const p of people)if(p.role!=='dancer'){const fx=Math.sin(p.yaw),fz=Math.cos(p.yaw),hex=p.role==='eva'?PINK:WARM;p.zone=p.role==='eva'?'front':'office';
    p.lamp={x:p.x+fx*1.2,y:2.3,z:p.z+fz*1.2,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.55),spec:B.Color3.FromHexString(hex).scale(.5),i:30,r:6};
    p.key={x:p.x+fx*1.5+fz*.9,z:p.z+fz*1.5-fx*.9,dif:B.Color3.Lerp(B.Color3.FromHexString(hex),B.Color3.White(),.7)};}
   /* The dancers' clothes lean to black and pink (the owner's reference). The figures are the repository's own MakeHuman people (CC0), whose clothes and shoes are
      separate materials: each dancer gets its own tinted copy of those two (the model files and everyone else who wears the look are untouched). A face
      covering that came with a look (the street mask, the VR headset and its trackers) is hidden so that every dancer's face shows. Nothing else changes:
-     the same clothed figures, the same clips. */
-  const OUTFIT={'district-resident':{suit:[.5,.45,.55],shoes:[3,.6,2]},'vr-companion-f':{suit:[1.6,1,2.2],shoes:[.6,.6,.7]},'vr-companion-m':{suit:[.55,.5,.6],shoes:[1.4,.35,1.6]},'vr-player-b':{suit:[1.3,.3,5],shoes:[.2,.2,.22]}},COVER=/\.(mask0|headset0|trackers1)/;
+     the same clothed figures, the same clips. The licensed dancers (studio 2's Female Warrior, studio 3's Dex) keep their own outfits. */
+  const OUTFIT={'district-resident':{suit:[.5,.45,.55],shoes:[3,.6,2]},'vr-companion-m':{suit:[.55,.5,.6],shoes:[1.4,.35,1.6]},'vr-player-b':{suit:[1.3,.3,5],shoes:[.2,.2,.22]}},COVER=/\.(mask0|headset0|trackers1)/;
   function dress(p){const o=OUTFIT[p.look];p.meshes=p.meshes.filter(m=>{const mat=m.material,nm=mat?.name||'';if(COVER.test(nm)){m.setEnabled(false);return false;}
     const c=o&&mat?.albedoColor?(/suit/.test(nm)?o.suit:/shoes/.test(nm)?o.shoes:null):null;if(c){const cl=mat.clone(nm+'-milked-'+p.studio);cl.albedoColor=new B.Color3(c[0],c[1],c[2]);k.own.push(cl);m.material=cl;}return true;});}
-  const LOOKS=[...new Set(people.map(p=>p.fixedLook))];
+  const LOOKS=[...new Set([...people.map(p=>p.fixedLook),'npc-grey-reverie','npc-ethereal-lace'])];
   const asked=new Map();
-  function askLooks(list=LOOKS){for(const look of list){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);asked.set(look,Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+look+'.glb',background:true},scene)).catch(()=>{}).then(()=>{loading.delete(look);asked.delete(look);}));}}return [...asked.values()];}
-  function staff(clock){
+  // A look that is a licensed companion model (the studio 3 dancer is Dex since 18 Nov 2026, the owner's choice) ships as an encrypted .vrpak, not a .glb.
+  // Studio 2's dancer (the licensed Female Warrior, 18 Nov 2026) names her own .vrpak in milked.js; she is not a companion.
+  const FILES=new Map(people.filter(p=>p.file).map(p=>[p.fixedLook,p.file]));
+  const fileOf=look=>{if(FILES.has(look))return FILES.get(look);const C=root.VoidVRCompanions,e=C?.companions&&[...C.companions.values()].find(x=>x.model===look);return e?C.file(e):look+'.glb';};
+  function askLooks(list=LOOKS){for(const look of list){const id='crowd:'+look;if(!assets?.container?.(id)&&!loading.has(look)){loading.add(look);asked.set(look,Promise.resolve(assets?.load?.(id,{src:'assets/models/crowd/'+fileOf(look),background:true},scene)).catch(()=>{}).then(()=>{loading.delete(look);asked.delete(look);}));}}return [...asked.values()];}
+  // Who is speaking to the player now: the open walking conversation's current line (Eva and Fish speak as milked-eva / milked-fish, milked-integration.js).
+  let lastSpeaker=null;
+  function speakerNow(){try{const line=typeof speech!=='undefined'&&speech?.lines?.[speech.index];if(line){lastSpeaker=line.who;return lastSpeaker;}return root.VoidConversationUI?.isOpen?lastSpeaker:(lastSpeaker=null);}catch{return null;}}
+  const studioOne=people.find(p=>p.studio===1);
+  function syncStudioOne(){
+   if(!studioOne)return;
+   const wanted=MK.studioOnePerformer(root.VoidStreetPair?.streetTime?.()??Date.now());
+   if(wanted.look===studioOne.fixedLook)return;
+   studioOne.anim?.dispose?.();studioOne.node?.dispose?.();
+   studioOne.node=null;studioOne.anim=null;studioOne.rot=null;studioOne.requestUntil=0;studioOne.meshes=[];
+   studioOne.spawned=false;studioOne.fixedLook=wanted.look;
+   studioOne.clips=wanted.clips;studioOne.dances=wanted.dances;studioOne.library=null;
+   studioOne.look=null;studioOne.clip=null;
+   askLooks([wanted.look]); // first load at shift change, without waiting for the normal 20s retry
+   mirAll=null;mirNext=0;
+  }
+  // Requestable only while the named animation group exists on this exact loaded model.
+  // Keep walking, seated/floor, partner and prop-based clips out of a stationary studio.
+  const REQUESTABLE=/^(?:dance(?:-[a-z0-9-]+)?|slow-dance|idle(?:-[a-z0-9-]+)?|look|watch|gesture|shrug|talk|ac-stand-curve-[23])$/;
+  function animationChoices(studio){
+   syncStudioOne();const p=people.find(x=>x.studio===Number(studio));
+   if(!p||!p.node||!p.anim)return {look:p?.fixedLook||null,ready:false,clips:[]};
+   const groups=p.node.metadata?.animationGroups||[];
+   const present=name=>groups.some(g=>g.name===name||g.name.endsWith('-'+name)||g.name.replace(/\.\d{3}$/,'').endsWith('-'+name));
+   const options=[...new Set(root.VoidCrowd?.clips?.[p.look]||[])].filter(c=>REQUESTABLE.test(c)&&p.anim.has?.(c)&&present(c));
+   return {look:p.look,ready:true,clips:options.map(id=>({id,label:id.replace(/^ac-/,'').replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}))};
+  }
+  function requestAnimation(studio,clip){
+   const available=animationChoices(studio),p=people.find(x=>x.studio===Number(studio));
+   if(!p||!available.ready)return {ok:false,message:'Performer is loading.'};
+   if(typeof clip!=='string'||!available.clips.some(c=>c.id===clip))return {ok:false,message:'Animation unavailable for this performer.'};
+   if(k.disposed||!p.anim)return {ok:false,message:'Studio is unavailable.'};
+   try{
+    p.anim.play(clip);p.clip=clip;p.requestUntil=k.clock+12;
+    if(p.rot)p.rot.until=Math.max(p.rot.until,p.requestUntil+1);
+    return {ok:true,message:'REQUEST RECEIVED · '+clip.replace(/-/g,' ').toUpperCase()};
+   }catch{return {ok:false,message:'Unable to start the animation.'};}
+  }
+  function staff(clock,cam=null,dt=0){syncStudioOne();const speaker=cam?speakerNow():null;
    // The figures are loaded here, by this environment (nothing else preloads them for it). Asked again every 20 s while one is still missing: a download can be
    // dropped by a change of scene, and the shared look loader remembers such a download as done.
    if(clock>looksAsked&&typeof mode!=='undefined'&&mode==='walking'){looksAsked=clock+20;askLooks();}
@@ -702,13 +750,29 @@
     if(!p.node){let n=null,look=null,clip=null;
      if(p.asset&&assets?.container?.(p.asset)){n=assets.instance(p.asset,node);look=p.asset;clip='idle';}
      else{   // Eva and Fish only ever use their own look; a dancer whose look is not on this machine after a while uses a spare clothed figure
-      const order=p.spare&&clock>25?[p.fixedLook,...p.spare]:[p.fixedLook];
+      const order=p.spare&&clock>25&&!loading.has(p.fixedLook)?[p.fixedLook,...p.spare]:[p.fixedLook];   // a large licensed file still downloading is waited for, not replaced
       for(const c of order){if(clipsOf(c).some(q=>p.clips.includes(q))&&(n=assets?.instance?.('crowd:'+c,node))){look=c;clip=p.clips.find(q=>clipsOf(c).includes(q))||'idle';break;}}}
-     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id};p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
+     if(!n)continue;p.node=n;p.look=look;p.clip=clip;p.spawned=true;p.anim=p.asset?null:root.VoidCrowd?.animate?.(n,look,clip);n.position.set(p.x,p.y,p.z);n.rotation.y=p.yaw;n.metadata={...n.metadata,milked:p.id,...(p.role!=='dancer'?{character:p.id}:{})};   /* character: the head tracking (npc-look.js) finds Eva and Fish by it */p.meshes=n.getChildMeshes();if(p.role==='dancer')dress(p);for(const m of p.meshes)if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;   /* or a look made for four lights never sees its own lamp */if(key)for(const m of p.meshes)key.excludedMeshes.push(m);mirAll=null;mirNext=0;
      if(p.role==='dancer'){
+      // a rotation of dances (milked.js danceTurn), from the ones this figure's file really has; with fewer than two the old single loop below plays
+      const groupsOf=(n.metadata?.animationGroups||[]).map(g=>g.name.replace(/\.\d{3}$/,'')),own=(p.dances||[]).filter(c=>clipsOf(look).includes(c)&&groupsOf.some(g=>g===c||g.endsWith('-'+c)));
+      if(own.length>1){p.rot={list:own,n:0,until:clock+(MK.danceTurn(own,0,p.studio)?.seconds||30)};p.clip=MK.danceTurn(own,0,p.studio).clip;try{p.anim?.play?.(p.clip);}catch{}continue;}
       // the shared animation library, where it is installed: a different loop for each studio. Without it the look's own dance plays.
       if(p.library&&root.VoidAnimLibrary?.apply)Promise.resolve(root.VoidAnimLibrary.apply(n,look,{only:[p.library],scene})).then(added=>{if(k.disposed||p.node!==n||!added?.includes(p.library))return;p.anim?.play?.(p.library);p.clip=p.library;}).catch(()=>{});}
      continue;}
+    /* Where Eva and Fish face: a gesture's turn (Mission 003: Eva turns toward the staff-only door as she says where Fish is), else toward the player while she is
+       the one speaking to them (the owner, 18 Nov 2026: "When I got to Fish she didn't turn to look at me"), else her own way. Eased on its own value and written
+       outright every frame, so the small body turn of the head tracking (npc-look.js) is never added up. While she speaks she plays her talk clip, if her look has one. */
+    if(p.role!=='dancer'){const talking=!!cam&&speaker===p.id,want=p.turn&&clock<p.turn.until?p.turn.yaw:talking?Math.atan2(cam.x-p.x,cam.z-p.z):p.yaw;
+     if(p.face===undefined)p.face=p.node.rotation.y;const d=Math.atan2(Math.sin(want-p.face),Math.cos(want-p.face));p.face+=d*Math.min(1,p.turn?.12:dt*5);p.node.rotation.y=p.face;
+     if(talking!==!!p.talking){p.talking=talking;if(!p.turn)try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clip);}catch{}}
+     if(p.turn&&clock>=p.turn.until&&Math.abs(d)<.02){p.turn=null;try{p.anim?.play?.(talking&&clipsOf(p.look).includes('talk')?'talk':p.clips.includes('idle')?'idle':p.clip);}catch{}}}
+    if(p.role==='dancer'&&p.requestUntil&&clock>=p.requestUntil){
+     p.requestUntil=0;const resume=p.rot?.list?.[0]||p.dances?.[0]||p.clips[0];
+     if(resume){try{p.anim?.play?.(resume);p.clip=resume;}catch{}}
+     if(p.rot)p.rot.until=clock+20;
+    }
+    if(p.rot&&clock>=p.rot.until&&!p.requestUntil){const t=MK.danceTurn(p.rot.list,++p.rot.n,p.studio);p.rot.until=clock+t.seconds;p.clip=t.clip;try{p.anim?.play?.(t.clip);}catch{}}   // the next dance, cross-faded
     // a figure with no dance of its own still moves: a slow sway on the spot
     if(p.role==='dancer'&&!/dance|^ac-/.test(p.clip)){const t=clock*2.6+p.phase;p.node.position.y=p.y+Math.abs(Math.sin(t))*.03;p.node.rotation.y=p.yaw+Math.sin(t*.5)*.4;}}
   }
@@ -718,15 +782,15 @@
    expose();if(!low&&cam){const zone=zoneOf(cam.x,cam.z);relight(dt,cam,zone);keyLight(dt,cam,zone);if(k.clock>faceNext){faceNext=k.clock+.5;faceLamps(cam);}roomPicture(k.clock,zone);
     // the mirror's list: everything it may show is gathered a few times as the place fills up; on Medium only what is near the player is drawn into it
     if(k.clock>mirNext){mirNext=k.clock+.5;if(!mirAll||k.clock>mirAllNext){mirAllNext=k.clock+(k.clock<45?3:1e9);mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));}mir.renderList=high?mirAll:near(mirAll,cam.x,cam.z,10);}}
-   staff(k.clock);
+   staff(k.clock,cam,dt);
   }
   /* Behind the check-in card (17 Nov 2026, docs/development/SMOOTHNESS_AUDIT.md): the people's figures are fetched and placed now, and every shader the rooms need
      (the people, the floor mirror's view of them, the glow and the key light's shadow) is compiled before the inner doors open. They used to be fetched only once
      the player was walking, so they arrived, and their shaders compiled, just as the inner doors opened. A slow download (over 8 s) still finishes in the background. */
   const prepared={};   // how long each step behind the card took, in ms (state().prepared; for checking on a real graphics card)
-  async function prepare(){if(k.disposed)return;let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
+  async function prepare(){if(k.disposed)return;syncStudioOne();let t=performance.now();const lap=n=>{const now=performance.now();prepared[n]=Math.round(now-t);t=now;};const cap=(p,ms)=>Promise.race([Promise.resolve(p).catch(()=>{}),new Promise(r=>setTimeout(r,ms))]);
    // only figures already on this computer (in memory or the offline cache), the rule every place follows (asset-pipeline.js prepare): a first visit still downloads after the card
-   const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+look+'.glb'),1500)?look:null))).filter(Boolean);if(k.disposed)return;
+   const here=(await Promise.all(LOOKS.map(async look=>assets?.container?.('crowd:'+look)||await cap(assets?.isCached?.('assets/models/crowd/'+fileOf(look)),1500)?look:null))).filter(Boolean);if(k.disposed)return;
    await cap(Promise.all(askLooks(here)),8000);if(k.disposed)return;lap('figures');staff(k.clock);
    if(mir){mirAll=k.reflectIn(people.flatMap(p=>p.meshes||[]));mir.renderList=mirAll;}
    root.VoidAssets?.settleLights?.(scene);await cap(scene.whenReadyAsync(true),10000);if(k.disposed)return;lap('shaders');
@@ -736,7 +800,13 @@
    if(!low&&w&&probes.length){const zone=zoneOf(w.x,w.z);for(let i=0;i<3;i++){relight(1,w,zone);keyLight(1,w,zone);}faceLamps(w);expose();roomPicture(1.2,zone);const p=probes[probePending];if(p){try{p.cubeTexture.render();}catch{}roomPicture(1.5,zone);}lap('picture');}
    // The floor mirror draws the room with its own shader variants (a clip plane, mirrored); drawing it once here compiles them.
    if(mir){try{mir.render();}catch{}await cap(scene.whenReadyAsync(true),5000);try{mir.render();}catch{}lap('mirror');}}
-  return {tick,prepare,inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
+  /* gesture(who, toward, seconds): `who` (a person's id, e.g. milked-eva) turns up to 70 degrees toward `toward` ('staff-door': the STAFF ONLY door beside her desk, the way to
+     the staff area) and talks with her hands (her talk clip) for `seconds`, then turns back to her idle. Returns false when that person is not here. */
+  const TOWARD={'staff-door':[85.5,-81.8]};
+  function gesture(who,toward,seconds=4){const p=people.find(x=>x.id===who&&x.node);const at=TOWARD[toward];if(!p||!at)return false;let d=Math.atan2(at[0]-p.x,at[1]-p.z)-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));
+   p.turn={yaw:p.yaw+Math.max(-1.22,Math.min(1.22,d)),until:k.clock+Math.max(1,seconds),toward,at:k.clock};try{if(p.clips.includes('talk'))p.anim?.play?.('talk');}catch{}gestures.push({who,toward,at:k.clock});return true;}
+  const gestures=[];
+  return {tick,prepare,gesture,animationChoices,requestAnimation,get gestures(){return gestures.slice();},inside:()=>true,people,doors,area:AREA,state:()=>({ready:!k.disposed,area:AREA,staffDoor:(()=>{const sd=(typeof walkingLocation!=='undefined'?walkingLocation?.solids:null)?.find?.(x=>x.staff);return {granted:!!MK.staffAccess?.(typeof state!=='undefined'?state?.story?.flags:null),blocking:!!sd&&!sd.open};})(),prepared:{...prepared},people:people.filter(p=>p.spawned).length,dancers:people.filter(p=>p.spawned&&p.role==='dancer').map(p=>({studio:p.studio,look:p.look,clip:p.clip,dances:p.rot?.list.slice()||null,next:p.rot?+(p.rot.until-k.clock).toFixed(1):null})),screens:k.screens.length,doors:doors.state(),lights:lights.length}),
    dispose(){if(k.disposed)return;for(const p of people){try{p.anim?.dispose?.();p.node?.dispose?.();}catch{}}people.length=0;for(const p of probes){const i=scene.customRenderTargets.indexOf(p.cubeTexture);if(i>=0)scene.customRenderTargets.splice(i,1);}k.dispose();
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
     if(sun&&lightPrev.sun!=null)sun.intensity=lightPrev.sun;if(ambient){if(lightPrev.amb!=null)ambient.intensity=lightPrev.amb;if(lightPrev.dif)ambient.diffuse=lightPrev.dif;if(lightPrev.gnd&&ambient.groundColor)ambient.groundColor=lightPrev.gnd;}}};

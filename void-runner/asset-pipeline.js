@@ -17,9 +17,10 @@
     for (const item of [...data.buffers || [], ...data.images || []])
       if (item.uri && !item.uri.startsWith('data:')) throw Error('Use a self-contained GLB; external asset URIs are not enabled.');
     // KTX2 / Basis Universal textures (KHR_texture_basisu) are decoded by the locally hosted transcoder in
-    // vendor/ktx2 (useKTX2Locally); compressed geometry still has no decoder here.
-    const compressed = ['KHR_draco_mesh_compression', 'EXT_meshopt_compression'];
-    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed geometry needs a configured, locally hosted decoder. Export an uncompressed GLB for this milestone.');
+    // vendor/ktx2 (useKTX2Locally), and meshopt geometry (EXT_meshopt_compression, lossless, 18 Nov 2026) by the
+    // locally hosted vendor/meshopt_decoder-1.3.0.js (useMeshoptLocally). Draco still has no decoder here.
+    const compressed = ['KHR_draco_mesh_compression', 'KHR_meshopt_compression'];
+    if ((data.extensionsUsed || []).some(e => compressed.includes(e))) throw Error('Compressed geometry needs a configured, locally hosted decoder. Export an uncompressed or EXT_meshopt_compression GLB.');
     return data;
   }
 
@@ -34,6 +35,15 @@
       wasmUASTCToRGBA_UNORM: at('uastc_rgba8_unorm_v2.wasm'), wasmUASTCToRGBA_SRGB: at('uastc_rgba8_srgb_v2.wasm'), wasmUASTCToR8_UNORM: at('uastc_r8_unorm.wasm'),
       wasmUASTCToRG8_UNORM: at('uastc_rg8_unorm.wasm'), jsMSCTranscoder: at('msc_basis_transcoder.js'), wasmMSCTranscoder: at('msc_basis_transcoder.wasm'), wasmZSTDDecoder: at('zstddec.wasm')};
     K.DefaultNumWorkers = Math.max(1, Math.min(2, (root.navigator?.hardwareConcurrency || 2) - 1));
+  }
+
+  // Babylon's meshopt decoder defaults to a CDN; the game serves its own copy (meshoptimizer 1.3.0, MIT:
+  // vendor/LICENSE-meshoptimizer.md), set before any model loads.
+  function useMeshoptLocally() {
+    const M = root.BABYLON?.MeshoptCompression;
+    if (!M || !base) return;
+    const url = new URL('vendor/meshopt_decoder-1.3.0.js', base).href;
+    if (M.Configuration?.decoder?.url !== url) M.Configuration = {decoder: {url}};
   }
 
   // Licensed models whose terms ask games to keep the file from casual extraction ship as .vrpak: the GLB
@@ -68,6 +78,7 @@
 
   function loadPlugin(task) {
     useKTX2Locally();
+    useMeshoptLocally();
     if (loader) return loader;
     loader = new Promise((resolve, reject) => {
       const s = document.createElement('script');
@@ -98,8 +109,9 @@
     const url = new URL(def.src, base);
     const packed = url.pathname.endsWith('.vrpak');
     if (url.origin !== location.origin || !(packed || url.pathname.endsWith('.glb'))) throw Error('Model must be a locally hosted GLB.');
-    let buffer;
-    for(let attempt=1;attempt<=2;attempt++){
+    let buffer=def.localBuffer;
+    if(buffer)validate(buffer);
+    for(let attempt=1;!def.localBuffer&&attempt<=2;attempt++){
       task?.check();
       try{
         const response=await fetch(url,{signal:task?.signal});
@@ -116,7 +128,7 @@
     }
     await loadPlugin(task);
     task?.check();
-    const container = packed
+    const container = packed || def.localBuffer
       ? await BABYLON.SceneLoader.LoadAssetContainerAsync('', new Uint8Array(buffer), scene, null, '.glb')
       : await BABYLON.SceneLoader.LoadAssetContainerAsync(url.href.slice(0, url.href.lastIndexOf('/') + 1), url.href.slice(url.href.lastIndexOf('/') + 1), scene);
     if(task?.signal.aborted){container.dispose();task.check();}
@@ -127,8 +139,31 @@
     for(const m of [...container.materials,...scene.materials])if(m.maxSimultaneousLights>8)m.maxSimultaneousLights=8;
     // Character models get their edge light now, before any of their materials is prepared (character-finish.js): a material's plugins must be in place first.
     try{globalThis.VoidCharacterFinish?.applyContainer?.(id,container);}catch(error){console.warn('[VOID//RUNNER character finish]',error);}
+    trimLeadIn(container);
     return container;
   }
+
+  /* The bind pose at both ends of a clip (18 Nov 2026). The talk, watch, drink and wipe clips that almost every figure carries (the crowd looks, the named
+     residents, Fish, Eva, Admin, Iris, the companions) open with ONE key in the bind pose (arms straight out to the sides) and close by easing back into it
+     over their last nine keys (about half a second). So every time such a loop came round the figure raised its arms out to both sides and dropped them
+     again (the owner: "that arms down then out to both sides thing that many of the NPCs are currently doing"), and a clip started from its beginning flicked
+     them out. leadInEnd(keys) / leadOutStart(keys): given an upper arm's rotation keys ({frame, value:[x,y,z,w]}), the frame the clip should start at (the
+     first key that leaves a bind-pose opening by more than 45 degrees) and end at (where the closing ease toward that same pose begins), else null.
+     trimLeadIn plays each such clip between the two; copies of a figure get the same range (keepTrim). The model files are untouched. */
+  const keyAngle=(p,q)=>2*Math.acos(Math.min(1,Math.abs(p[0]*q[0]+p[1]*q[1]+p[2]*q[2]+p[3]*q[3])));
+  function leadInEnd(keys){if(!keys||keys.length<4)return null;const p=keys[0].value;
+    // the opening key may be doubled (Babylon copies a clip's first key to frame 0): skip copies of it, then look at the first key that differs
+    for(let i=1;i<Math.min(4,keys.length-1);i++){const a=keyAngle(p,keys[i].value);if(a<.02)continue;return a>Math.PI/4?keys[i].frame:null;}return null;}
+  function leadOutStart(keys){if(leadInEnd(keys)===null)return null;const bind=keys[0].value,n=keys.length,d=i=>keyAngle(keys[i].value,bind);if(d(n-1)>.05)return null;
+    // back from the end while each key is clearly further from the bind pose than the one after it (the closing ease); stop at the plateau before it
+    let i=n-1;while(i>1&&d(i-1)>d(i)+.02)i--;return i<n-1&&n-1-i<=n*.25?keys[i].frame:null;}
+  function trimLeadIn(container){let n=0;for(const g of container?.animationGroups||[]){let start=null,end=null;
+    for(const ta of g.targetedAnimations){if(ta.animation.targetProperty!=='rotationQuaternion'||!/(^|:)(Left|Right)Arm$/.test(ta.target?.name||''))continue;const keys=ta.animation.getKeys().map(k=>({frame:k.frame,value:k.value.asArray?k.value.asArray():k.value}));if(keys[0].frame>g.from+1e-3)continue;   // only keys that open the clip count
+     const f=leadInEnd(keys),e=leadOutStart(keys);if(f!==null)start=Math.max(start??f,f);if(e!==null)end=Math.min(end??e,e);}
+    if(start!==null&&(end??g.to)>start){g.normalize(start,end??g.to);n++;}}
+   return n;}
+  // A copy of a model (instantiateModelsToScene) rebuilds each clip's range from its keys: give the copies the trimmed start again (groups come in the same order).
+  function keepTrim(container,result){(result?.animationGroups||[]).forEach((g,i)=>{const src=container?.animationGroups?.[i];if(src&&src.name&&g.name.endsWith(src.name)&&(src.from>g.from+1e-3||src.to<g.to-1e-3)&&src.from<src.to)g.normalize(src.from,src.to);});return result;}
 
   // What the glTF loader does to every material when a model finishes loading (above), done now: one light slot per light in the scene, at most eight.
   // A place calls this before its loading screen lifts (neochinatown.js prepare), so the next model to arrive changes no material and no shader is rebuilt
@@ -152,7 +187,7 @@
   function instance(id, parent, only) {
     const item = containers.get(id);
     if (!item) return null;
-    const result = item.container.instantiateModelsToScene(name => id + '-' + name, false),
+    const result = keepTrim(item.container, item.container.instantiateModelsToScene(name => id + '-' + name, false)),
       node = new BABYLON.TransformNode(id + '-model', parent.getScene()),
       asset = new BABYLON.TransformNode(id + '-asset', parent.getScene());
     node.parent = parent;
@@ -235,9 +270,11 @@
   const api = {
     models,unload,container,loadContainer,ownInstance,onLoaded,get pending(){return pending();},get failed(){return new Map(failed);},
     validate,
+    leadInEnd,leadOutStart,trimLeadIn,keepTrim,
     unpack,
     open,
     useKTX2Locally,
+    useMeshoptLocally,
     load,
     instance,
     prepare,

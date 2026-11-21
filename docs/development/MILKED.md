@@ -1,5 +1,11 @@
 # MILKED
 
+> **Studio window animation requests (18 Nov 2026):** The existing E-key "View Studio" interaction now opens a compact near-black **65%-opaque / see-through** panel on the right, with the current performer's name and a dropdown of only the actual loaded model's available in-place animations. REQUEST plays the chosen motion for about 12 seconds, then the normal dance routine resumes. CLOSE or Escape dismisses the panel. Studio 1 automatically updates for Reverie/Lace's UTC rotation, including when the model is still loading. The panel is observation-only (no studio entry or save/network changes); walking, seated, floor and partner motions are excluded because the stage has no corresponding traversal or props.
+
+
+> **Studio 1 rotation (18 Nov 2026):** Reverie and Lace alternate in Milked Studio 1 on the same real-time UTC 12-hour shift as the Avenue but opposite to the street. From 00:00–11:59 UTC the Avenue shows Reverie and Studio 1 shows Lace; from 12:00–23:59 UTC the Avenue shows Lace and Studio 1 shows Reverie. The street has a 90-second arrival gap; Studio 1 switches immediately and keeps exactly one model. Both use their rigged character GLBs and alternate the available `dance-groove` and `dance-bop` clips in Studio 1. The animation, textures and poses for each character elsewhere are unchanged; Studios 2–4 are unaffected. The schedule uses wall-clock UTC, never the per-player game clock. No saved fields change.
+
+
 > **Moved, build `2026-11-16-far-south-1` (16 Nov 2026):** The owner: "I want Milked moved to the next area. Nothing changed on the exterior or interior of Milked, just moved." The whole building (street shell, side street, service alley, vestibule, rear lobby and the interior environment) was carried by ONE rigid translation, `OFFSET=[0,-100]` in `milked.js`: same side of Main Street, same offsets, same doors, no mirror or turn. It now stands in the **Far South** quarter, past the South Gate. Every number in the tables below is in the building's own frame; add 100 m south (z minus 100) for where it stands. `milked.js` exports world metres and `LOCAL` (the building's own frame, used by `milked-build.js`, which draws under a node moved by `OFFSET` so no number inside the build changed). The taxi stop "Milked corner" is now at (61, -182) in Far South. A pointer blade sign (existing logo, an arrow, the words SOUTH GATE) hangs on Main Street's east wall in Old Town at z -68 and z -118.3.
 
 > **Update, build `2026-11-16-quarters-1`:** Milked is in the Old Town quarter; nothing inside it changed. The sky cab that set down on Main Street is gone; the road-taxi stop there is "Milked corner". See [`NEOCHINATOWN_QUARTERS.md`](NEOCHINATOWN_QUARTERS.md).
@@ -8,7 +14,7 @@
 >
 > **Rebuilt on 16 Nov 2026 (third pass, build `2026-11-16-milked-3`, branch `claude/milked-aaa`)** after the owner's two reference sheets (one exterior picture, one six-panel interior sheet) and his request: "Since Milked is going to have a security vestibule it can have a loading screen that functions like the one at The Darknet District with Milked styling and be more detail inside. Make it AAA standard". The inside of Milked is now **its own environment behind a loading card**, like The Darknet District. The building's place, size and rooms are those of the second pass earlier the same day (PR #326); "What changed in this pass" lists the differences.
 
-A **small adult livestreaming production studio** on a quiet side street off Main Street in NeoChinatown. It makes live broadcasts and nothing else. Members watch from home; whatever else the service involves happens privately at the member's own address. **Nothing is collected and no procedure of any kind happens in this building.** It is not a nightclub, hospital, laboratory or public venue: no bar, no dance floor, no audience.
+A **small livestreaming production studio** on a quiet side street off Main Street in NeoChinatown. It makes live broadcasts and nothing else. Members watch from home; whatever else the service involves happens privately at the member's own address. **Nothing is collected and no procedure of any kind happens in this building.** It is not a nightclub, hospital, laboratory or public venue: no bar, no dance floor, no audience.
 
 Code:
 
@@ -24,7 +30,7 @@ Status: **built, provisional.** All dialogue and on-screen wording is placeholde
 
 ## Content rules (enforced in the build)
 
-Every performer is an adult. Everyone is clothed and nothing shown is explicit. Each studio has exactly one dancer and nobody else; the cameras are on stands and are run remotely from Fish's office, so there are no camera operators. The player watches through soundproof windows from the hallway and never enters a studio. Screens that show a "stream" draw a clothed silhouette, not a camera picture. Posters and pinned photographs are abstract shapes and text: no people, no real brands.
+Each studio has exactly one dancer and nobody else; the cameras are on stands and are run remotely from Fish's office, so there are no camera operators. The player watches through soundproof windows from the hallway and never enters a studio. Screens that show a "stream" draw a clothed silhouette, not a camera picture. Posters and pinned photographs are abstract shapes and text: no people, no real brands.
 
 ## The loading transition (new)
 
@@ -279,6 +285,13 @@ Pictures in `docs/development/milked/` (Medium quality, about 900 px wide). **"b
 - **Still short of the art direction's AAA standard.** The surfaces are now physically based with reflections and one shadow-casting light, but the rooms are still boxes built in code: no bevelled edges, no modelled wall panels, trims or door hardware. Only one room at a time has real shadows (the others have contact shadows only), the lamps do not cast shadows and their light passes through thin walls, and the room picture that metal and glass reflect is small. It remains an upgrade candidate for a Blender-built kit.
 - **Studio 2's dancer** plays a floor routine from the shared animation library and has her back to the window for part of it; the clip was not changed.
 - The orchid, the lantern, the desk bell and most plush toys are simple shapes.
+
+## Studios 3 and 4: a rotation of dances (18 Nov 2026)
+
+The owner: "The new girl in studio 4 needs more dance animations, the male in 3 isn't doing much and his feet look distorted", then "I like the black dress, but she just swaying a little" (dress and lighting unchanged). Dex (studio 3) had played `hips`, a women's standing hip-shift pose, with the build's fake sway on top, and every clip of his file curled his toes up about 90 degrees. Now `milked.js` gives studios 3 and 4 a `dances` list and `danceTurn` (one shuffled order per dancer, 20-40 s per dance, never the same twice running); `milked-build.js` plays only the dances the loaded file has and crowd.js cross-fades them.
+
+- **Dex:** `dance-hiphop`, `dance-hiphop-2`, `dance-hiphop-3`, `dance-groove`, `dance-bass` (Meshy library motions played on Auburn's rig, retargeted onto Dex locally with `tools/animation-pipeline/retarget_world.py`; Dex never sent to Meshy or any AI tool), `dance-samba` (Kai's old figure), his own `dance`. Toes held at rest in every clip. Private repo file `vr-companion-bm.vrpak` (branch `claude/studio-dances` there).
+- **Auburn:** `dance-allnight`, `dance-shake`, `dance-lovepop`, `dance-denim`, `dance-omg` (Meshy library, her own rig). `npc-milked-auburn.glb` 5.31 MB.
 
 ## What is not done or not verified
 

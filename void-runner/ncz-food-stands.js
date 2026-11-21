@@ -4,7 +4,7 @@
  'use strict';
  const STANDS={
   port:{name:'Docklight Noodles',x:32.5,z:-89.5,yaw:0,food:'NOODLES',accent:'#df9b5a',look:'communion-tech'},
-  oldtown:{name:'Lantern Kitchen',x:68.4,z:-87,yaw:Math.PI/2,food:'HOT NOODLES',accent:'#d58165',look:'ncz-neon'},
+  oldtown:{name:'Lantern Kitchen',x:68.4,z:-104.5,yaw:Math.PI/2,food:'HOT NOODLES',accent:'#d58165',look:'ncz-neon'},
   avenue:{name:'Jade Circuit Dumplings',x:110,z:-16.8,yaw:Math.PI,food:'DUMPLINGS',accent:'#8dc6af',look:'fixer-01'},
   'far-south':{name:'Southline Broth',x:53.6,z:-155,yaw:-Math.PI/2,food:'BROTH',accent:'#d0a66c',look:'runner-02'},
   outskirts:{name:'Last Light Rice & Tea',x:73,z:-241,yaw:0,food:'RICE / TEA',accent:'#b6a786',look:'fixer-01'}

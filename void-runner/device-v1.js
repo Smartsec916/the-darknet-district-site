@@ -45,7 +45,9 @@
   device:{id:'device',title:'MY DEVICE',glyph:'D',state:'ready',note:'This device: its model, storage and built-in apps.'},   // shown as MY V1, MY V2... (appTitle)
   settings:{id:'settings',title:'SETTINGS',glyph:'*',state:'ready',note:'Device preferences.'},
   // optional apps (installed from the App Store; listed in STORE_EXTRA)
-  warflying:{id:'warflying',title:'WARFLYING',glyph:'W',state:'ready',note:'Listens for nearby frequencies and logs them for the WarFlying leaderboard.'}
+  warflying:{id:'warflying',title:'WARFLYING',glyph:'W',state:'ready',note:'Listens for nearby frequencies and logs them for the WarFlying leaderboard.'},
+  // granted, not bought: the Ship Loadout app arrives with a ship (ordnance.js grant sets story.flags.loadoutApp; ship-loadout.js draws it). Takes no storage.
+  loadout:{id:'loadout',title:'SHIP LOADOUT',glyph:'L',state:'ready',note:'Your ship: its slots, lasers, missiles and upgrades.'}
  };
  // Apps a player could install later. Intentionally empty: no purchases, prices or unlocks exist yet.
  // Apps a player can install: {id,title,generation,note,storagePct}. An app runs on every model of its generation or later (V1, V2, V3 // Shadow...).
@@ -56,7 +58,7 @@
  const NPC_MODELS={};
  const DEFAULT_SETTINGS={motion:'auto',scan:'1',size:'half'};   // motion: auto (follow the system), full, reduced
  const SETTING_VALUES={motion:['auto','full','reduced'],scan:['0','1'],size:['half','expanded']};
- const KEY={model:'deviceModel',version:'deviceVersion',apps:'deviceApps',settings:'deviceSettings',map:'deviceMap'};
+ const KEY={serial:'deviceSerial',model:'deviceModel',version:'deviceVersion',apps:'deviceApps',settings:'deviceSettings',map:'deviceMap'};
 
  // ---- What is saved (in story.flags) ----
  function parseSettings(text){
@@ -66,12 +68,14 @@
   return out;
  }
  const settingsText=s=>Object.keys(SETTING_VALUES).map(k=>k+'='+(SETTING_VALUES[k].includes(s[k])?s[k]:DEFAULT_SETTINGS[k])).join(';');
+ // Apps a game event puts on the device (never from the App Store, never from the saved app list): the Ship Loadout app with a ship.
+ const GRANTED={loadout:f=>f.loadoutApp===true};
  function restore(flags){
   flags=flags&&typeof flags==='object'?flags:{};
   const model=DEVICES[flags[KEY.model]]?flags[KEY.model]:'v1',def=DEVICES[model];
   const optional=a=>STORE_EXTRA.some(x=>x.id===a&&x.generation<=def.generation);   // an optional app that really exists is kept; anything else is dropped
   const asked=typeof flags[KEY.apps]==='string'?flags[KEY.apps].split(',').filter(a=>(def.apps.includes(a)||optional(a))&&APPS[a]):[];
-  const apps=[...new Set([...def.apps,...asked])];   // the built-in apps are always installed; an unknown name is ignored, never trusted
+  const apps=[...new Set([...def.apps,...asked.filter(a=>!GRANTED[a]),...Object.keys(GRANTED).filter(a=>GRANTED[a](flags))])];   // the built-in apps are always installed; an unknown name is ignored, never trusted
   return {model,version:1,apps,settings:parseSettings(flags[KEY.settings]),map:{interior:String(flags[KEY.map+'Interior']||'').replace(/[^0-9a-f]/g,'').slice(0,60),street:String(flags[KEY.map+'Street']||'').replace(/[^0-9a-f]/g,'').slice(0,60)}};
  }
  function write(flags,device){
@@ -85,7 +89,7 @@
  function storage(device){
   const def=DEVICES[device.model]||DEVICES.v1,optional=device.apps.filter(a=>!def.apps.includes(a)),
    extra=optional.reduce((t,a)=>t+(Number((STORE_EXTRA.find(x=>x.id===a)||{}).storagePct)||0),0),
-   photos=Math.max(0,Number(arguments[1]??(typeof globalThis!=='undefined'&&globalThis.VoidGallery?globalThis.VoidGallery.count:0))||0),   // each photo in the Gallery takes 1% (device-gallery.js)
+   photos=Math.max(0,Number(arguments[1]??(typeof globalThis!=='undefined'&&globalThis.VoidGallery?(globalThis.VoidGallery.units??globalThis.VoidGallery.count):0))||0),   // each photo in the Gallery takes 1% (device-gallery.js)
    used=clampPct(def.storage.baseUsedPct+extra+photos);
   return {model:def.name,systemApps:def.apps.length,optionalApps:optional.length,usedPct:used,availablePct:100-used,baselinePct:def.storage.baseUsedPct};
  }
@@ -171,6 +175,42 @@
  const NOTIFY={v1:{name:'V1',sound:'void-runner/assets/audio/ui/device-v1-notify.ogg'},v2:{name:'V2',placeholder:true,sound:'void-runner/assets/audio/ui/device-v2-notify.ogg'},
   v3:{name:'V3 // SHADOW',sound:'void-runner/assets/audio/ui/device-v3-notify.ogg'}};
  const notifyTier=model=>NOTIFY[model]?model:'v1';
- const api={NOTIFY,notifyTier,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
+ /* DEVICE ID (the owner, 18 Nov 2026: a photo's metadata shows "the device ID on the person who took it"). Shown as V<generation>-XXXX-XXXX, e.g. "V1-7F3A-91C2".
+    The 8 hex digits (story.flags.deviceSerial, a short string the cloud save already accepts) are made ONCE per campaign from a hash of a one-time random number,
+    the campaign's epoch and, when signed in, the account id; the random number is thrown away, so the ID can never be turned back into the account, the email or the
+    handle, and nobody can check a guessed account against it. It stays the same across reloads and computers (it is in the save); a new campaign gets a new one.
+    The ID is the ONLY link from a photo to whoever took it (the owner: "the person who took it remains anonymous. Although there will be ways to track it later"):
+    tracing an ID back to a person is a FUTURE gameplay mechanic, not built. A later model keeps the serial and shows its own prefix (V3-...). */
+ const SERIAL=/^[0-9a-f]{8}$/;
+ function fnv(text,h=2166136261){for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h>>>0;}
+ /* The serial for a new device: seed = {account (optional), epoch, nonce (random)}. Two rounds of FNV-1a so every input bit spreads. */
+ function makeSerial(seed){const s=seed||{},base=String(s.nonce||'')+'|'+String(s.epoch||'')+'|'+String(s.account||'');return (fnv('void-device|'+base,fnv(base))>>>0).toString(16).padStart(8,'0');}
+ /* Reads the serial from the flags, creating it (seed: {account, epoch}; a random nonce is always added) when missing or malformed. Returns the serial. */
+ function ensureSerial(flags,seed){if(!flags||typeof flags!=='object')return null;if(!SERIAL.test(flags[KEY.serial]||''))flags[KEY.serial]=makeSerial({...(seed||{}),nonce:Math.random().toString(36).slice(2)+Date.now().toString(36)});return flags[KEY.serial];}
+ const prefixOf=model=>'V'+((DEVICES[model]||DEVICES.v1).generation||1);
+ /* "V1-7F3A-91C2" for a serial and model; null when the serial is missing or malformed. */
+ const deviceId=(serial,model)=>SERIAL.test(serial||'')?prefixOf(model)+'-'+serial.slice(0,4).toUpperCase()+'-'+serial.slice(4).toUpperCase():null;
+ const DEVICE_ID=/^V\d-[0-9A-F]{4}-[0-9A-F]{4}$/;
+ /* MISSION APP HINTS (the owner, 20 Nov 2026: Admin's call says "Press L to open your device, then select the Camera app", and L opened Comms). The V1 app a mission
+    step wants the player to open: the step's own `app` (set in the Mission Editor, optional), or what its kind implies (a photo step: Camera; sending a photo:
+    Messages). null: none. The home screen highlights that tile (personal-device.js) in the mission yellow. Future steps (a camera feed, a hacking tool) name theirs. */
+ const STEP_APPS=['camera','gallery','messages','map','missions','comms','social','news','store','warflying','loadout'];
+ const STEP_APP_BY_KIND={photo:'camera','send-photo':'messages',report:'missions',feed:'missions'};   // report / feed: their buttons are on the mission's card in the Mission Log (Awakening QA 20 Nov 2026)
+ const stepApp=step=>!step||typeof step!=='object'?null:STEP_APPS.includes(step.app)?step.app:STEP_APP_BY_KIND[step.kind]||null;
+ /* The hint over the highlighted tile: "ADMIN: OPEN CAMERA" (who: the mission giver's name, optional). */
+ function appGoal(step,who,device){const app=stepApp(step);if(!app||!APPS[app])return null;const t=appTitle(app,device);return {app,title:t,text:(who?String(who).toUpperCase().slice(0,40)+': ':'')+'OPEN '+t};}
+ /* Where the V1 opens when a notification is waiting: on that notification's app, EXCEPT a Comms call: the call carries on in the call bar at the top of the V1 and the
+    V1 opens on its home (the apps), so "open your device, then select the Camera app" works as said. null: the home screen. */
+ const openTarget=note=>!note||!note.app||note.app==='comms'?null:{app:note.app,sub:note.sub||null};
+ /* The line of a call on screen now (its live subtitle in the call bar): lines appear 2.2 s apart from 0.4 s, as in the Comms transcript. -1: still connecting. */
+ const CALL_LINE={first:400,every:2200};
+ const callLine=(count,elapsedMs)=>count>0&&elapsedMs>=CALL_LINE.first?Math.min(count-1,Math.floor((elapsedMs-CALL_LINE.first)/CALL_LINE.every)):-1;
+ /* Which waiting Comms message rings as the call (Awakening QA 20 Nov 2026): of the calls that came in together with the newest one (within 10 s of it: one event's calls), the OLDEST,
+ never one older than the last call heard. Anything older is a missed call: it stays unread in Comms but does not ring later (an unanswered Mission 002 call rang
+ after Fish's Mission 004 call; Fish's 004 reply and Iris's 005 call arrive in the same second and rang newest first). list: newest first, `at` in seconds. */
+ const CALL_BURST=10;
+ const nextCall=list=>{const ls=Array.isArray(list)?list:[],at=m=>Number(m.at)||0,heard=ls.filter(m=>m&&m.read).reduce((a,m)=>Math.max(a,at(m)),0),un=ls.filter(m=>m&&!m.read&&at(m)>=heard);if(!un.length)return null;
+  const top=Math.max(...un.map(at));let pick=null;for(const m of un)if(at(m)>=top-CALL_BURST)pick=m;return pick;};
+ const api={STEP_APPS,stepApp,appGoal,openTarget,CALL_LINE,callLine,nextCall,CALL_BURST,NOTIFY,notifyTier,SERIAL,DEVICE_ID,makeSerial,ensureSerial,deviceId,prefixOf,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidDeviceV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

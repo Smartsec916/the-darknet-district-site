@@ -5,7 +5,7 @@ David requested one food stand inside each of the five checkpoint quarters, with
 | Quarter | Stand name | Counter centre (x, z) | Faces |
 | --- | --- | ---: | --- |
 | Port | Docklight Noodles | 32.5, -89.5 | Pad |
-| Old Town | Lantern Kitchen | 68.4, -87 | Main Street |
+| Old Town | Lantern Kitchen | 68.4, -104.5 | Main Street (moved to clear the current building corner) |
 | Avenue | Jade Circuit Dumplings | 110, -16.8 | Road |
 | Far South | Southline Broth | 53.6, -155 | Main Street |
 | Outskirts | Last Light Rice & Tea | 73, -241 | Gravel plaza |
@@ -20,4 +20,4 @@ The static collider test checks all five carts and stools against the existing c
 
 The 17 Nov release clearance pass moved the Port stand away from the pad's building corner and moved the Outskirts stand away from Kai's home and a container stairway. The full canopy and stool footprint now clears the nearest fixed collision surface by **2.81 m (Port), 1.91 m (Old Town), 2.50 m (Avenue), 1.91 m (Far South), and 3.38 m (Outskirts)**. The test also requires at least 3 m from building corners, 6 m from named destination doors and taxi stops, and 8 m from checkpoint rectangles. The Outskirts placement clears its nearby resident positions; the Port stand leaves the ship, boarding point, terminal, and passage clear. These distances come from the game's collision plan and are checked in `tests/ncz-food-stands.test.cjs`.
 
-Player-eye captures from the local low-graphics browser run: [Port](ncz-food-stands/port-street.png), [Old Town](ncz-food-stands/oldtown-street.png), [Old Town seated](ncz-food-stands/oldtown-seated.png), [Avenue](ncz-food-stands/avenue-street.png), [Far South](ncz-food-stands/far-south-street.png), and [Outskirts](ncz-food-stands/outskirts-street.png). These show existing fallback crowd models and procedural cart materials. They are not production renders.
+Player-eye captures from the original local low-graphics browser run: [Port](ncz-food-stands/port-street.png), [Old Town](ncz-food-stands/oldtown-street.png), [Old Town seated](ncz-food-stands/oldtown-seated.png), [Avenue](ncz-food-stands/avenue-street.png), [Far South](ncz-food-stands/far-south-street.png), and [Outskirts](ncz-food-stands/outskirts-street.png). These are historical, not production renders; Old Town has since moved to clear updated geometry. The 21 November V27 integration passed 60 focused unit tests, but needs a new browser/visual check before release.

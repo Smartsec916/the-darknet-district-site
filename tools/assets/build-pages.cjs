@@ -13,7 +13,20 @@ const PACKED=0x4b505256,SEALED=0x45505256,PAGES_LIMIT=1024**3;
 
 // Published by Pages (as Jekyll did): no part of the path starts with "." or "_", and not exports/. Also not docs/ or tests/ (17 Nov 2026):
 // development notes, screenshots and test scripts are not part of the site (no page loads them) and pushed the site over GitHub Pages' 1 GB limit.
-const publishable=f=>!f.split('/').some(p=>p.startsWith('.')||p.startsWith('_'))&&!/^(exports|docs|tests)\//.test(f);
+// Also not tools/ (build and pipeline sources, except SITE_TOOLS) or static/ (the Flask mirror the Render backend serves from its own checkout: server.py static_folder) (18 Nov 2026, the
+// owner: "Yes take them off the live site"; no page links into any of them). They stay in the repository.
+// The one file under tools/ a page reads: the voice registry the mission editor (Developer Tools) loads.
+const SITE_TOOLS=new Set(['tools/audio/npc-voice-registry.json','tools/audio/revoice-engines.json']);   // the editor reads both (voices; ElevenLabs re-voice choices: ids and names only)
+// Not shipped either (18 Nov 2026, site slimming; the owner approved): files no page, script, stylesheet or the service worker loads. They stay in the
+// repository. The attached_assets PNG originals of the .webp images the pages use, the root copies of Blackout's backgrounds (Blackout loads its own
+// blackout-protocol/assets/ copies), two Blackout textures nothing loads, the unused Vesper ridges art and iris-service/ (the Render chat service's source).
+const UNSHIPPED=new Set(['attached_assets/epsiloncircle_420_Dark_cyberpunk_cityscape_at_night_glowing_neo_0ca6182c-0ff0-4948-bdfd-a6f406667165.png','attached_assets/epsiloncircle_420_Top_of_the_image_fades_to_pure_black_for_vert_d4be96d3-0564-4824-bf89-48e1c0575ada.png',
+'attached_assets/epsiloncircle_420_dark_cyberpunk_sleeping_pod_interior_viewed_f_82a73688-d6a7-4668-b80e-32dbd348dabc.png','attached_assets/top.png','attached_assets/Iris 01.png','attached_assets/Iris 01(1).png','attached_assets/cyber-hoodie.jpg',
+'01_bg_near.png','01_bg_far.png','blackout-protocol/assets/Neuroforge.png','blackout-protocol/assets/platform_rail.png','void-runner/art/vesper-ridges.webp']);
+// Blackout Protocol's textures that ship as lossless WebP instead (18 Nov 2026, the owner approved; pixel-identical, the game loads the .webp): their PNG
+// originals stay in the repository (and in static/) but are not published.
+const BLACKOUT_WEBP=new Set('01_bg_far 01_bg_near 02_bg_far 02_bg_near 03_bg_far 03_bg_near 4K Blackrock Bug Downthere Drink_Oil_01 Drink_Oil_02 HoloCompanion Meat Oxygen Pill Pinknoise Plug Rent Skinshift Touchless Zen ad_corelink ad_ioncell ad_voidwatt btc_glow drone_attack_32 drone_dead_32 drone_hover_32 drone_hurt_32 drone_idle_32 drone_move_32 female_idle female_run female_walk gang_rats_dead_48 gang_rats_hurt_48 gang_rats_idle_48 gang_rats_run_48 gang_rats_walk_48 gang_saints_dead_48 gang_saints_hurt_48 gang_saints_idle_48 gang_saints_run_48 gang_saints_walk_48 hacker_terminal_frame1 hacker_terminal_frame2 hacking_terminal_frame1 hacking_terminal_frame2 impact_8 ledge_tile platform_industrial player_dead_48 player_fall_48 player_hurt_48 player_idle_48 player_jump_48 player_run_48 player_walk_48 robot_armed_attack_48 robot_armed_hurt_48 robot_armed_idle_48 robot_armed_run_48 robot_armed_walk_48 robot_attack_48 robot_dead_48 robot_hurt_48 robot_idle_48 robot_run_48 robot_walk_48 security_bg_far security_fence_near shop_addmen shop_door_neon sidearm_16'.split(' ').map(n=>'blackout-protocol/assets/'+n+'.png'));
+const publishable=f=>!f.split('/').some(p=>p.startsWith('.')||p.startsWith('_'))&&!/^(exports|docs|tests|static|iris-service)\//.test(f)&&(!f.startsWith('tools/')||SITE_TOOLS.has(f))&&!UNSHIPPED.has(f)&&!BLACKOUT_WEBP.has(f);
 
 // The .vrpak scramble (tools/assets/pack-model.cjs), undone.
 function unscramble(buf){
@@ -53,7 +66,7 @@ function build(licensed,out,key){
  if(bytes>PAGES_LIMIT)throw Error(`Site is ${(bytes/1048576).toFixed(0)} MB, over GitHub Pages' 1 GB limit`);
  return {files,added,sealed,mb:+(bytes/1048576).toFixed(1)};}
 
-module.exports={publishable,unscramble,seal,keyFrom,build};
+module.exports={UNSHIPPED,BLACKOUT_WEBP,publishable,unscramble,seal,keyFrom,build};
 if(require.main===module){
  const args=process.argv.slice(2);
  if(args[0]==='--new-key'){console.log(crypto.randomBytes(32).toString('base64'));process.exit(0);}

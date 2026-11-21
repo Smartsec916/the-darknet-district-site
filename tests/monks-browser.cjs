@@ -1,0 +1,76 @@
+/* THE MONKS in a real browser (Chromium, software GL, offline), 18 Nov 2026: Old Town (the city centre, monks rare) against the Avenue by the East Gate (many more of
+   the walkers are monks, on the monk pace, in monk figures), close-ups of the three monks, the cost of the street's monks (draw calls and frame time with and without them),
+   then on foot through the East Gate to the Temple: its monks, Zen Zephyr's own seated model from the entrance side (he faces away) and from the front, and his gaze
+   while he speaks (npc-look.js turns his model's zz:Neck / zz:Head). Screenshots go to SHOTS (default docs/development/monks/).
+     node tests/monks-browser.cjs [low|medium|high]   (own static server on a free port; BROWSER_EXECUTABLE=path) */
+'use strict';
+const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const tier=['low','medium','high'].includes(process.argv[2])?process.argv[2]:'medium',shots=process.env.SHOTS||path.resolve(__dirname,'..','docs/development/monks');fs.mkdirSync(shots,{recursive:true});
+const bundled=['/opt/pw-browsers/chromium','/opt/pw-browsers/chromium-1243/chrome-linux64/chrome'].find(f=>fs.existsSync(f)&&fs.statSync(f).isFile()),exe=process.env.BROWSER_EXECUTABLE||bundled||null;
+function serve(){const root=path.resolve(__dirname,'..'),types={'.js':'text/javascript','.css':'text/css','.html':'text/html','.json':'application/json','.ogg':'audio/ogg','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.glb':'model/gltf-binary'};
+ const srv=http.createServer((req,res)=>{let f;try{f=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));}catch{res.writeHead(400);return res.end();}if(!f.startsWith(root+path.sep)){res.writeHead(403);return res.end();}
+  fs.readFile(f,(e,d)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',types[path.extname(f)]||'application/octet-stream');res.end(d);});});
+ return new Promise(r=>srv.listen(0,'127.0.0.1',()=>r(srv)));}
+(async()=>{
+ const srv=await serve(),base='http://127.0.0.1:'+srv.address().port,log=m=>console.log(new Date().toISOString().slice(11,19),m);
+ const b=await chromium.launch({headless:true,...(exe?{executablePath:exe}:{}),args:['--use-gl=swiftshader','--enable-webgl','--ignore-gpu-blocklist','--enable-unsafe-swiftshader','--no-sandbox','--autoplay-policy=no-user-gesture-required']});
+ try{
+  const page=await (await b.newContext({viewport:{width:1280,height:720},serviceWorkers:'block'})).newPage();page.setDefaultTimeout(600000);const errs=[];page.on('pageerror',e=>errs.push(e.message+' @ '+String(e.stack||'').split('\n').slice(1,4).join(' | ')));
+  await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));await page.route('**/api/**',r=>r.fulfill({status:503,contentType:'application/json',body:'{}'}));
+  await page.addInitScript(q=>localStorage.setItem('void-runner-graphics-v1',JSON.stringify({renderer:'babylon',quality:q,v:2,chosen:true})),tier);
+  await page.goto(base+'/void-runner.html');await page.waitForFunction(()=>window.VoidStartup?.started);
+  await page.evaluate(()=>Object.assign(VoidPreparation.limits,{scene:900000,assets:900000,optional:600000,area:900000,total:1800000,module:600000,artwork:300000}));
+  const at=(x,z,yaw=0,pitch=0)=>page.evaluate(([x,z,yaw,pitch])=>{Object.assign(walker,{x,z,yaw,pitch});},[x,z,yaw,pitch]);
+  const shot=async(name,wait=2500,bare=false)=>{await page.waitForTimeout(wait);await page.evaluate(b=>{document.getElementById('pd-notify')?.remove();const s=document.getElementById('screen');if(s)s.style.visibility=b?'hidden':'';},bare);await page.screenshot({path:path.join(shots,name+'-'+tier+'.png')});await page.evaluate(()=>{const s=document.getElementById('screen');if(s)s.style.visibility='';});log('shot '+name);};
+  const walk=async(x1,z1)=>{const t0=Date.now();for(;;){const r=await page.evaluate(([x1,z1])=>{if(mode!=='walking'||!walker)return 'wait';const dx=x1-walker.x,dz=z1-walker.z,d=Math.hypot(dx,dz);if(d<.05)return 'done';const s=Math.min(.35,d),nx=walker.x+dx/d*s,nz=walker.z+dz/d*s;if(VoidExplorer.blocked(nx,nz,walkingLocation))return 'blocked';walker.x=nx;walker.z=nz;walker.yaw=Math.atan2(dx,dz);return d<=s?'done':'moving';},[x1,z1]);
+   if(r==='done')return;assert.ok(Date.now()-t0<300000,'walk to '+x1+','+z1+' stuck ('+r+')');await page.waitForTimeout(r==='moving'?60:250);}};
+  const perf=()=>page.evaluate(()=>{const sc=VoidBabylon.scene,e=sc.getEngine(),gl=e._gl,t=[],d=[];for(let i=0;i<12;i++){const d0=e._drawCalls.current,a=performance.now();sc.render();gl.finish();t.push(performance.now()-a);d.push(e._drawCalls.current-d0);}t.sort((a,b)=>a-b);d.sort((a,b)=>a-b);return {drawCalls:d[6],activeMeshes:sc.getActiveMeshes().length,frameMs:+t[6].toFixed(1)};});
+  // Close-ups: the camera 2.5 m in front of a figure that is already in the scene (turned `off` radians round it), looking at its chest.
+  const frontOf=async(name,pos,yaw,off=0,dist=3,bare=true,pitch=.2)=>{const a=yaw+off,x=pos[0]+Math.sin(a)*dist,z=pos[1]+Math.cos(a)*dist;await at(x,z,Math.atan2(pos[0]-x,pos[1]-z),pitch);await shot(name,2500,bare);};   // pitch: positive looks down
+  const templeMonk=async id=>(await page.evaluate(i=>VoidBabylon.zone.monks().find(m=>m.id===i),id));
+  const street=async(quarter,spawn)=>{await page.evaluate(async([quarter,spawn])=>{const d=C.startDistrictCampaign(C.fresh());d.story.flags.podWakePending=false;d.credits=100;state=d;walkingLocation=walker=null;mode='menu';document.getElementById('screen')?.classList.add('hidden');state.location='earth';
+    await enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter,spawn});},[quarter,spawn]);
+   await page.waitForFunction(q=>mode==='walking'&&walkingLocation?.quarter===q&&VoidAssets.pending===0,quarter);
+   await page.waitForFunction(()=>{const N=VoidBabylon.district?.nightlife;return N&&N.people.filter(p=>!p.fixed&&p.monkPlan).every(p=>p.node)&&N.people.filter(p=>!p.fixed&&p.node).length>=N.people.filter(p=>!p.fixed).length*.8;},null,{timeout:600000,polling:1000});await page.waitForTimeout(3000);
+   return page.evaluate(()=>{const N=VoidBabylon.district.nightlife,w=N.people.filter(p=>!p.fixed);return {walkers:w.length,monks:w.filter(p=>p.monkPlan).length,monkFigures:w.filter(p=>p.monkPlan&&p.node&&/^npc-monk-/.test(p.look)).length,tagged:w.filter(p=>p.monkPlan&&VoidNPCDevice._agent?.(p.node)?.monk!==false).length,looks:[...new Set(w.filter(p=>p.monkPlan).map(p=>p.look))],stats:N.stats(),
+    monkPos:w.filter(p=>p.monkPlan).map(p=>[+p.node.position.x.toFixed(1),+p.node.position.z.toFixed(1)])};});};
+  // 1. Old Town, the city centre: monks are rare
+  const old=await street('oldtown',[61,1.7,-70]);log('old town '+JSON.stringify(old));await at(61,-70,Math.PI,-.04);await shot('01-old-town-centre');
+  // 2. the Avenue toward the East Gate: many more of the walkers are monks; they walk slowly and are tagged monks (no V1, never film)
+  const ave=await street('avenue',[100,1.7,-12]);log('avenue '+JSON.stringify(ave));
+  assert.ok(ave.monks/ave.walkers>old.monks/Math.max(1,old.walkers),'more monks toward the Temple');assert.equal(ave.monkFigures,ave.monks,'every street monk wears a monk figure');assert.ok(ave.monkPos.every(p=>p.every(Number.isFinite)),'every monk stands somewhere real');
+  const slow=await page.evaluate(()=>{const N=VoidBabylon.district.nightlife;return N.people.filter(p=>p.monk&&p.node).map(p=>+p.speed.toFixed(3));});log('monk speeds '+JSON.stringify(slow));const pace=await page.evaluate(()=>VoidNightlife.monkSpeed());assert.ok(slow.length&&slow.every(s=>Math.abs(s-pace)<1e-3),'monks walk at the monk pace');
+  await at(128,-12.5,-Math.PI/2,-.03);await shot('02-avenue-toward-city-from-east-gate');await at(110,-12.5,Math.PI/2,-.03);await shot('03-avenue-toward-east-gate');
+  // the street monks' cost: the camera 7 m from the nearest monk, looking at it; drawn with and without the monks (nightlife paused for the two measurements)
+  await page.evaluate(()=>{const N=VoidBabylon.district.nightlife,m=N.people.filter(p=>p.monkPlan&&p.node)[0];const q=m.node.position;Object.assign(walker,{x:q.x+7,z:-12.5,yaw:Math.atan2(-7,q.z+12.5),pitch:.05});});await page.waitForTimeout(1500);
+  const withMonks=await perf();const shown=await page.evaluate(()=>{const ps=VoidBabylon.district.nightlife.people.filter(p=>p.monkPlan&&p.node&&p.node.isEnabled());ps.forEach(p=>p.node.setEnabled(false));window.__hid=ps;return ps.length;});const withoutMonks=await perf();withMonks.monksShown=shown;await page.evaluate(()=>{for(const p of window.__hid)p.node.setEnabled(true);});
+  // for comparison: one ordinary walker in view (a MakeHuman crowd look) hidden the same way
+  const ordinary=await page.evaluate(()=>{const c=VoidBabylon.scene.activeCamera.globalPosition,ps=VoidBabylon.district.nightlife.people.filter(p=>!p.monkPlan&&p.node&&p.node.isEnabled()&&!p.fixed).sort((a,b)=>Math.hypot(a.node.position.x-c.x,a.node.position.z-c.z)-Math.hypot(b.node.position.x-c.x,b.node.position.z-c.z));const p=ps[0];if(!p)return null;p.node.setEnabled(false);window.__ord=p;return p.look;});
+  const withoutOrdinary=ordinary?await perf():null;if(ordinary){withoutOrdinary.look=ordinary;await page.evaluate(()=>window.__ord.node.setEnabled(true));}
+  log('avenue perf with monks '+JSON.stringify(withMonks)+' without '+JSON.stringify(withoutMonks)+' without one ordinary walker '+JSON.stringify(withoutOrdinary));
+  // 3. a street monk close up (held still for the picture)
+  const sm=await page.evaluate(()=>{const p=VoidBabylon.district.nightlife.people.find(p=>p.monkPlan&&p.node&&!p.hidden&&!p.away);if(!p)return null;p.state='stop';p.timer=999;p.anim?.play?.('idle');return {look:p.look,pos:[p.node.position.x,p.node.position.z],yaw:p.node.rotation.y};});
+  if(sm)await frontOf('04-street-monk-'+sm.look.slice(4),sm.pos,sm.yaw,.35,3.2);
+  // 4. through the East Gate on foot, to the Temple
+  await at(138,-6.8,Math.PI/2,0);await walk(144,-6.8);await walk(148,-6.8);await page.waitForFunction(()=>walkingLocation?.id==='temple'&&mode==='walking'&&!VoidGateTransit.busy,null,{timeout:600000});
+  await page.waitForFunction(()=>VoidAssets.pending===0);
+  await page.waitForFunction(()=>{const z=VoidBabylon.zone;return z?.zen?.().model&&z.monks().every(m=>m.shown);},null,{timeout:240000,polling:1000});await page.waitForTimeout(3000);
+  const temple=await page.evaluate(()=>({zen:VoidBabylon.zone.zen(),monks:VoidBabylon.zone.monks(),primitive:VoidBabylon.scene.meshes.filter(m=>/^mk-/.test(m.name)&&!m.isDisposed()).length,head:VoidBabylon.scene.transformNodes.filter(n=>/zz:(Head|Neck)$/.test(n.name)).map(n=>n.name)}));log('temple '+JSON.stringify(temple));
+  assert.equal(temple.zen.model,true);assert.equal(temple.zen.head,true);assert.equal(temple.primitive,0,'the primitive figure is gone');assert.equal(temple.monks.length,{low:2,medium:5,high:7}[tier]);
+  await at(0,-38,0,-.02);await shot('07-temple-arrival');await at(-2,-24,.35,-.03);await shot('08-temple-courtyard-monks');
+  await at(0,-3,0,-.02);await shot('09-temple-hall-entrance-zen-from-behind');await at(0,15,0,.02);await shot('10-zen-zephyr-from-the-entrance-side');
+  await at(0,29,Math.PI,-.12);await shot('11-zen-zephyr-front',2500,true);await frontOf('12-zen-zephyr-front-close',[0,22],0,-.3,3.4,true,.12);await frontOf('12b-zen-zephyr-back-close',[0,22],Math.PI,.4,4.2,true,.1);
+  await at(-12,9,.7,-.05);await shot('13-temple-monks-at-altars',2500,true);await at(12,20,-1.9,-.05);await shot('14-temple-monk-aisle',2500,true);
+  // close-ups of the three monks where they are (praying ones from beside their altar, walkers mid-stride)
+  const seen=new Set();for(const m of (await page.evaluate(()=>VoidBabylon.zone.monks())).sort((a,b)=>(a.kind==='pray'?0:1)-(b.kind==='pray'?0:1))){if(seen.has(m.look))continue;seen.add(m.look);await page.evaluate(i=>VoidBabylon.zone.holdMonk(i,12),m.id);const q=await templeMonk(m.id);await frontOf('0'+(4+seen.size)+'-close-'+m.look.slice(4)+'-temple',[q.x,q.z],q.yaw,m.kind==='pray'?.75:0,3);}
+  // the Temple's people: the hall from inside the entrance, with and without the monks, and with Zen Zephyr's model against the primitive figure it replaced (measured in Babylon: the same view)
+  await at(0,-3,0,-.02);await page.waitForTimeout(1500);const tAll=await perf();
+  const tNoMonks=await page.evaluate(()=>{const ns=VoidBabylon.scene.transformNodes.filter(n=>n.metadata?.temple&&n.isEnabled());ns.forEach(n=>n.setEnabled(false));window.__hid=ns;return ns.length;});const tWithout=await perf();await page.evaluate(()=>window.__hid.forEach(n=>n.setEnabled(true)));
+  const tperf={all:tAll,withoutMonks:tWithout,monks:tNoMonks};log('temple perf (hall from the entrance) '+JSON.stringify(tperf));
+  // 5. his gaze: talk to him (the prompt is on the entrance side; he sits facing away, so his head and a little of his body turn toward the player)
+  await at(0,16.2,0,.05);await page.evaluate(()=>{try{VoidAudio.unlock?.();}catch{}VoidInteractions.handlers.get('temple-monk')({item:{}});});
+  await page.waitForFunction(()=>VoidNPCLook.current?.character==='zen-zephyr'&&VoidNPCLook.current.weight>.8,null,{timeout:30000});const look=await page.evaluate(()=>VoidNPCLook.current);log('gaze '+JSON.stringify(look));
+  await at(1.5,16.6,-.15,.06);await shot('15-zen-zephyr-turns-to-speak',1500);
+  assert.deepEqual(errs,[]);console.log(JSON.stringify({ok:true,tier,old,avenue:ave,perf:{avenue:{withMonks,withoutMonks,withoutOrdinary},temple:tperf},gaze:look}));
+ }finally{await b.close();srv.close();}
+})().catch(e=>{console.error(String(e.stack||e).slice(0,1500));process.exit(1);});

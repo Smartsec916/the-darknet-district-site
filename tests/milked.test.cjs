@@ -85,8 +85,8 @@ test('the map lists the building, its named places and the taxi stop',()=>{
   const e=MK.PLACES.find(p=>p.id==='milked-entrance'),r=MK.PLACES.find(p=>p.id==='milked-rear-door');assert.ok(e.z>MK.LANE[2]&&e.z<MK.LANE[3],'the entrance pin is on the side street');assert.ok(r.z>MK.ALLEY[2]&&r.z<MK.ALLEY[3],'the rear-door pin is in the service alley');
   assert.ok(m.streets.some(s=>s.id==='milkedLane'&&/Side street/.test(s.name))&&m.streets.some(s=>s.id==='milkedAlley'&&/Service alley/.test(s.name)));
 });
-test('mission 3 is data only and inactive; the beginner missions are untouched',()=>{
-  const m=MK.MISSION;assert.equal(m.id,'meet-eva-milked');assert.equal(m.title,'MEET EVA AT MILKED');assert.equal(m.number,3);assert.equal(m.active,false);assert.equal(m.npc,'milked-eva');assert.equal(m.location,'milked');assert.ok(m.objective&&m.steps.length);
+test('the old Milked draft is data only and inactive; the beginner missions are untouched',()=>{
+  const m=MK.MISSION;assert.equal(m.id,'meet-eva-milked');assert.equal(m.title,'MEET EVA AT MILKED');assert.equal(m.number,null,'no number: 003 is the owner\'s Corporate Connections (main-story.js)');assert.equal(m.active,false);assert.equal(m.npc,'milked-eva');assert.equal(m.location,'milked');assert.ok(m.objective&&m.steps.length);
   const B=require('../void-runner/beginner.js'),V=require('../void-runner/mission-log.js');
   assert.equal(Object.keys(B.MISSIONS).length,6);assert.ok(!B.MISSIONS[m.id]&&!V.definitions[m.id],'nothing registers it');
   assert.ok(!/VoidMissions|register\(/.test(code),'milked.js never touches the mission manager');
@@ -107,8 +107,8 @@ test('each studio has exactly one adult dancer, a window and a closed door on th
   assert.equal(new Set(MK.STUDIOS.map(s=>s.dancer.clips[0])).size>=3,true,'the dances differ where the figures\' own clips allow');assert.equal(new Set(MK.STUDIOS.map(s=>s.dancer.library)).size,4,'and all four differ with the shared library');
   for(const c of ['pink','green','mixed'])assert.ok(MK.STUDIOS.some(s=>s.light===c),c+' lighting');
   for(const s of MK.STUDIOS){const r=MK.ROOMS.find(q=>q.id===s.room),d=s.dancer;assert.ok(r&&r.kind==='studio'&&r.closed);
-   assert.ok(Crowd.clips[d.look],d.look+' is a crowd figure');assert.ok(Crowd.clips[d.look].includes(d.clips[0]),d.look+' really has '+d.clips[0]);assert.match(d.clips[0],/dance/);assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+d.look+'.glb')),d.look+' is in the repository');
-   assert.ok(Lib.clip(d.library),d.library+' is a library clip');assert.ok(d.id!==MK.MODELS.eva.id&&d.look!==MK.MODELS.eva.look&&d.look!==MK.MODELS.fish.look);
+   assert.ok(Crowd.clips[d.look],d.look+' is a crowd figure');assert.ok(Crowd.clips[d.look].includes(d.clips[0]),d.look+' really has '+d.clips[0]);assert.match(d.clips[0],/dance|hips/);if(d.look==='studio-warrior'){assert.equal(d.id,'milked-dancer-2','the licensed Female Warrior (private .vrpak, not in the public repository) dances in studio 2: the owner\'s choice, 18 Nov 2026');assert.equal(d.file,'studio-warrior.vrpak');}else if(d.look==='vr-companion-bm')assert.equal(d.id,'milked-dancer-3','Dex (licensed, private .vrpak, not in the public repository) dances in studio 3: the owner\'s choice, 18 Nov 2026');else assert.ok(fs.existsSync(path.join(__dirname,'../void-runner/assets/models/crowd/'+d.look+'.glb')),d.look+' is in the repository');
+   if(s.n!==1)assert.ok(Lib.clip(d.library),d.library+' is a library clip');assert.ok(d.id!==MK.MODELS.eva.id&&d.look!==MK.MODELS.eva.look&&d.look!==MK.MODELS.fish.look);
    for(const span of [s.window,s.door])assert.ok(span[0]>=r.rect[0]&&span[1]<=r.rect[1]&&span[1]>span[0]);assert.ok(s.window[1]-s.window[0]>=2,'a real window');assert.ok(s.window[1]<=s.door[0]||s.door[1]<=s.window[0]);
    assert.ok(MK.INTERACTIONS.some(i=>i.action==='milked-studio'&&i.studio===s.n&&MK.roomAt(i.position[0],i.position[2]).id==='hallway'),'watched from the hallway');}
   // the build: one dancer per studio and nobody else in them; no camera operators; an ON AIR sign per studio door
@@ -123,7 +123,12 @@ test('the logo is MILKED followed by three white droplets drawn as shapes, in pi
 });
 test('inside: every room that is open and every interaction can be walked to; the studios are only seen through their windows; nobody walks out through a wall',()=>{
   // the interior environment, with its three inner doors open (the door control opens them as the player comes up) and the two outer doors shut
-  const L=MK.layout();for(const s of L.solids)if(s.door)s.open=MK.openable(MK.DOORS.find(d=>d.id===s.id),MK.AREA);const cells=reach(L);
+  const L=MK.layout();for(const s of L.solids)if(s.door)s.open=MK.openable(MK.DOORS.find(d=>d.id===s.id),MK.AREA);
+  // the STAFF ONLY door at the hallway's far end is locked until Eva lets the player through (Mission 003): solid, and the office cannot be reached that way
+  const staff=L.solids.find(s=>s.staff);assert.ok(staff&&!staff.open,'the staff-only door starts locked');assert.equal(E.blocked(93.5,-81.8+DZ,L),true,'locked staff door is solid');
+  assert.equal(MK.staffAccess({}),false);assert.equal(MK.staffAccess({[MK.STAFF_FLAG]:true}),true);assert.equal(MK.STAFF_FLAG,'mf_milkedStaff');
+  staff.open=true;   // granted (milked-build.js opens it for a player with the flag): everything below is the building as such a player walks it
+  const cells=reach(L);
   for(const i of L.interactions)assert.ok(near(cells,i.position[0],i.position[2],i.range),i.id+' within reach');
   for(const r of MK.ROOMS){const c=[(r.rect[0]+r.rect[1])/2,(r.rect[2]+r.rect[3])/2];assert.equal(near(cells,c[0],c[1],.8),!r.closed,r.id+(r.closed?' is closed':' is reachable'));}
   for(const s of MK.STUDIOS){const r=MK.ROOMS.find(q=>q.id===s.room).rect;assert.ok(!cells.some(([x,z])=>x>r[0]+.5&&x<r[1]-.5&&z>r[2]+.5&&z<r[3]-.5),s.room+' is never entered');}
@@ -144,9 +149,39 @@ test('outside: the street reaches the vestibule and the rear lobby and nothing f
 });
 test('Milked adds no save fields, no location id and no mission',()=>{
   const man=JSON.parse(fs.readFileSync(path.join(__dirname,'../void-runner/save-manifest.json'),'utf8'));assert.ok(!JSON.stringify(man).includes('milked'));
-  assert.ok(!/state\.|story\.flags/.test(code),'the data module touches no game state');assert.ok(!/story\.flags|[^.\w]save\(/.test(bcode),'the presentation module writes nothing to the save');
+  assert.ok(!/state\.|story\.flags/.test(code),'the data module touches no game state');assert.match(code,/const staffAccess=flags=>/,'the staff-only door only READS the flags it is given (Mission 003)');assert.ok(!/story\.flags|[^.\w]save\(/.test(bcode),'the presentation module writes nothing to the save');
 });
 test('every interaction has a registered handler in the integration script',()=>{
   const integ=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');
   for(const a of new Set(MK.INTERACTIONS.map(i=>i.action)))assert.ok(integ.includes("R('"+a+"'"),a);
+});
+
+test('Studio 1 uses the other Avenue resident on each 12-hour UTC shift',()=>{
+ const S=require('../void-runner/ncz-street-pair.js'),C=require('../void-runner/crowd.js');
+ for(let hour=0;hour<24;hour++)for(const minute of [0,1,30,59]){
+  const ms=Date.UTC(2026,10,18,hour,minute),p=MK.studioOnePerformer(ms),street=S.onShift(ms);
+  assert.equal(p.look,street.id==='grey-reverie'?'npc-ethereal-lace':'npc-grey-reverie');
+  assert.deepEqual(p.dances,['dance-groove','dance-bop']);
+  for(const clip of p.dances)assert.ok(C.clips[p.look].includes(clip),p.look+' has '+clip);
+ }
+ assert.equal(MK.STUDIOS[0].dancer.id,'milked-dancer-1');
+ assert.match(bcode,/function syncStudioOne\(/);
+ assert.match(bcode,/studioOne\.node\?\.dispose\?\.\(\)/);
+ assert.match(bcode,/syncStudioOne\(\);/);
+});
+
+test('the existing studio E action opens a translucent view with validated animation requests',()=>{
+ const ui=fs.readFileSync(path.join(__dirname,'../void-runner/milked-integration.js'),'utf8');
+ assert.match(ui,/R\('milked-studio'/);
+ assert.match(ui,/viewStudio\(item\?\.studio\)/);
+ assert.match(ui,/rgba\(7,11,19,\.65\)/,'panel is translucent');
+ assert.match(ui,/animationChoices/);assert.match(ui,/requestAnimation/);
+ assert.match(ui,/REQUEST ANIMATION/);assert.match(ui,/closeStudio/);
+ assert.match(bcode,/function animationChoices\(studio\)/);
+ assert.match(bcode,/function requestAnimation\(studio,clip\)/);
+ assert.match(bcode,/g\.name\.endsWith\('-'\+name\)/);
+ assert.match(bcode,/!available\.clips\.some\(c=>c\.id===clip\)/);
+ assert.match(bcode,/p\.requestUntil=k\.clock\+12/);
+ assert.match(bcode,/studioOne\.requestUntil=0/);
+ assert.match(bcode,/!p\.requestUntil/);
 });

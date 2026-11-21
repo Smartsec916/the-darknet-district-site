@@ -52,6 +52,7 @@ All of it is in **`void-runner/ad-screens-data.js`** unless noted. After any cha
 - **Move the edges of the Function Gate end or the East Gate quiet stretch:** the two rectangles at the top of `AREAS` (street metres, x from west to east). `zone:null` means no screen at all.
 - **Make an area silent:** `speaks:false` on its entry in `ZONES`.
 - **Add a screen by hand:** one entry in `PLACES` (quarter, `wall` or `kiosk`, position, the way it faces).
+- **Street-level screens (20 Nov 2026):** no longer stand at the kerb. Each hangs flat on the building wall behind its old spot (`MOUNT`: 1.2 x 1.8 m, 75% of the old stand's picture, bottom edge 2.8 m up, the awning cut round it), beside the shop sign and clear of the street doors (`mountOffset`; none where nothing fits). Of the street screens a third are thinned out where they bunch up (`KEEP_SHARE`, `thin()`, deterministic). The hand-placed `PLACES` are not thinned or moved.
 - **How often news or the board comes round:** `EVERY` (5).
 - **How long a silent line stays up:** `TIMING`.
 - **Eras (the lore timeline):** any ad can carry `era:'name'` (or a list). It then runs only when `ERA` is that name; an ad without `era` always runs. `ERA` is `null` today and **no eras exist**: none was invented. When the owner defines them, set `ERA` from the save (one line) and tag the ads.

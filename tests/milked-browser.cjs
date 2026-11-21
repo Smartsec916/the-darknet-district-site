@@ -16,8 +16,8 @@ fs.mkdirSync(shots,{recursive:true});
  await page.waitForSelector('#character-creator.on');await page.waitForFunction(()=>!document.querySelector('[data-cc=confirm]').disabled);await page.locator('[data-cc=confirm]').click();
  await page.waitForFunction(()=>mode==='pod-waking'&&walker);await page.waitForTimeout(3000);await page.keyboard.press('KeyE');await page.waitForFunction(()=>mode==='walking');
  await page.evaluate(()=>{delete state.story.flags.area;return enterWalking(VoidDistrictArea.KEY.street,{silent:true,quarter:'far-south'});});await page.waitForFunction(()=>mode==='walking'&&walkingLocation?.area==='street'&&walkingLocation.quarter==='far-south');   // Milked moved to Far South on 16 Nov 2026
- // the save's flags, apart from the V1's explored-map bits (walking anywhere charts the map)
- const flagsNow=()=>page.evaluate(()=>JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap/.test(k)))));
+ // the save's flags, apart from the V1's explored-map bits (walking anywhere charts the map) , the in-game clock (game-clock.js: it runs while walking) and the V1's read marks (opening the V1 reads Admin's Mission 001 call)
+ const flagsNow=()=>page.evaluate(()=>JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap|^gameMin$|^v1r_/.test(k)))));
  const saveBefore=await flagsNow(),mapBefore=await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length);
  // Every coordinate below is in the building's OWN frame (as drawn: front wall z -74); DZ carries it to where it stands (VoidMilked.OFFSET, 16 Nov 2026). at, walk and blocked take and give that frame.
  const DZ=await page.evaluate(()=>VoidMilked.OFFSET[1]);
@@ -79,6 +79,9 @@ fs.mkdirSync(shots,{recursive:true});
  for(const [n,x,z,tx,tz] of [[1,87.2,-82.3,87.4,-77.5],[2,91.2,-82.3,91.4,-77.5],[3,87.8,-81.3,87.6,-85.5],[4,91.8,-81.3,91.6,-85.5]]){await at(x,z,Math.atan2(tx-x,tz-z),-.02);await shot('07-studio-'+n,1200);}
  await page.evaluate(()=>VoidInteractions.handlers.get('milked-studio')({item:{studio:2}}));assert.match(await page.evaluate(()=>document.getElementById('notice').textContent),/STUDIO 2 is ON AIR/);
  // 6. the staff area: Fish in her office, the rear corridor
+ // the STAFF ONLY door is locked until Eva lets the player through (Mission 003, 17 Nov 2026: story flag mf_milkedStaff); this walk-through grants it for the rest of the tour
+ await at(92.6,-81.8,EAST);await stops(94.75,-81.8,'the locked staff-only door');assert.equal(await page.evaluate(()=>VoidBabylon.zone.state().staffDoor.blocking),true);
+ await page.evaluate(()=>{state.story.flags.mf_milkedStaff=true;});await page.waitForFunction(()=>VoidBabylon.zone.state().staffDoor.blocking===false);await page.waitForTimeout(1200*slow);
  await at(92.6,-81.8,EAST);await reaches(94.75,-81.8,'through the staff door');await reaches(94.75,-78.6,'into Fish\'s office');
  await page.waitForFunction(()=>VoidBabylon.zone.people.some(p=>p.spawned&&p.role==='fish'),null,{timeout:400000});await at(94.3,-79.2,Math.atan2(97-94.3,-76.2+79.2),-.03);await shot('08-fish-office',1500);
  const fish=await page.evaluate(()=>walkingLocation.interactions.find(i=>i.id==='milked-fish'));await page.evaluate(i=>VoidInteractions.handlers.get('milked-fish')({item:i}),fish);await page.waitForTimeout(400);
@@ -90,7 +93,10 @@ fs.mkdirSync(shots,{recursive:true});
  assert.equal(await page.evaluate(DZ=>VoidMilked.inside({x:89.5,z:-81.8+DZ})&&!VoidMilked.inside({x:89.5,z:-71+DZ}),DZ),true);
  assert.equal(await page.evaluate(()=>VoidMusicDirector.streetZones.find(q=>walker.x>=q.rect[0]&&walker.x<=q.rect[1]&&walker.z>=q.rect[2]&&walker.z<=q.rect[3])?.style),'milked','the music and the camera\'s place label read the same footprint');
  const taxi=await page.evaluate(()=>typeof VoidTaxi!=='undefined'?VoidTaxi?.status?.()||null:null);   // (the sky cabs are gone since the quarters: nothing to check unless it exists)if(taxi)assert.ok(!taxi.ok&&/Milked/.test(taxi.reason),'no cab indoors: '+JSON.stringify(taxi));
- await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');await page.locator('#personal-device [data-app=map]').click();await page.waitForSelector('#personal-device canvas.dm-canvas');
+ await page.keyboard.press('KeyL');await page.waitForSelector('#personal-device.open');
+ // the V1 opens on an app that has news for the player (Admin's Mission 001 call since 17 Nov 2026): back to the home screen first
+ for(let i=0;i<4&&await page.locator('#personal-device [data-do=back]:not([hidden])').count();i++){await page.locator('#personal-device [data-do=back]').click();await page.waitForTimeout(600);}
+ await page.locator('#personal-device [data-app=map]').click();await page.waitForSelector('#personal-device canvas.dm-canvas');
  const map=await page.evaluate(()=>{const m=VoidDistrictMap.model(VoidNeoChinatown);return {b:m.buildings.filter(x=>x.id==='milked').map(x=>x.name+'@'+x.rect.join(',')),p:m.pois.filter(x=>/^milked-|taxi-milked/.test(x.id)).map(x=>x.name),s:m.streets.map(s=>s.name)};});
  assert.ok(map.b.length===1&&/^MILKED/.test(map.b[0])&&map.b[0].endsWith('@'+(await page.evaluate(()=>VoidMilked.FOOTPRINT)).join(',')),'the building is on the map where it stands: '+map.b);
  for(const k of [/reception/,/studio hallway/,/office/,/rear door/,/Taxi stop/])assert.ok(map.p.some(n=>k.test(n)),k+' in '+map.p.join('|'));assert.ok(map.s.some(n=>/Side street/.test(n))&&map.s.some(n=>/Service alley/.test(n)));
@@ -113,7 +119,7 @@ fs.mkdirSync(shots,{recursive:true});
  // 10. nothing leaked, nothing saved, no errors
  const st=await page.evaluate(()=>VoidBabylon.zone.state());assert.ok(st.ready&&st.area==='milked'&&st.screens>=14&&st.doors.length===5,JSON.stringify(st));
  const w=await page.evaluate(()=>window.__mk);assert.ok(w.frames>50,'the door watch ran: '+w.frames);assert.deepEqual([...new Set(w.bad)].slice(0,5),[],'door rules held on every frame');
- assert.equal(await flagsNow(),saveBefore,'still nothing written to the save');assert.ok(await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length)>=mapBefore,'the explored-street map is not replaced by a smaller one (the inside is charted on the street\'s grid)');
+ assert.equal(await page.evaluate(()=>{delete state.story.flags.mf_milkedStaff;return JSON.stringify(Object.fromEntries(Object.entries(state.story.flags).filter(([k])=>!/^deviceMap|^gameMin$|^v1r_/.test(k))));}),saveBefore,'still nothing written to the save (the staff flag this test granted aside)');assert.ok(await page.evaluate(()=>String(state.story.flags.deviceMapStreet||'').length)>=mapBefore,'the explored-street map is not replaced by a smaller one (the inside is charted on the street\'s grid)');
  assert.equal(await page.evaluate(()=>VoidDistrictArea.keyFor(state)),'sacramento','a game saved in here resumes on the street side (and wakes in the Sleeping Pod)');
  assert.deepEqual(errs,[],'no page errors: '+errs.join(' | '));
  console.log('MILKED browser walk-through passed ('+tier+'), '+w.frames+' frames watched. Screenshots: '+shots);await b.close();

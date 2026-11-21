@@ -1,0 +1,30 @@
+/* Standalone editor only. The PC game and rendered preview lighting are unchanged. */
+:root {
+  color-scheme: dark;
+  --studio-bg:#07090d; --studio-panel:#11151c; --studio-field:#191f29;
+  --studio-text:#edf2f6; --studio-muted:#b0becb; --studio-border:#405363;
+  --studio-accent:#69f5db; --studio-on-accent:#061411; --studio-hover:#213d42;
+  --studio-warn:#ffc364; --studio-error:#ff9c9c;
+  background:var(--studio-bg); color:var(--studio-text); accent-color:var(--studio-accent);
+}
+:root[data-companion-theme="light"] {
+  color-scheme:light;
+  --studio-bg:#f4f7f8; --studio-panel:#fff; --studio-field:#f0f4f6;
+  --studio-text:#18252e; --studio-muted:#435765; --studio-border:#8c9eaa;
+  --studio-accent:#006c61; --studio-on-accent:#fff; --studio-hover:#d7eae7;
+  --studio-warn:#805000; --studio-error:#a51c2b;
+}
+.mobile-studio-header {display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; background:var(--studio-panel); border-color:var(--studio-border)}
+.mobile-studio-header a,.mobile-studio-main .companion-card a,.mobile-studio-main .companion-guide summary,.mobile-studio-main .me-status {color:var(--studio-accent)}
+.mobile-studio-header p,.mobile-studio-main .me-field>span,.mobile-studio-main .me-muted,.mobile-studio-main .me-small {color:var(--studio-muted)}
+.mobile-access,.mobile-studio-main .companion-card,.mobile-studio-main .me-how,.mobile-studio-main .me-check,.mobile-studio-main .me-mission-panel {background:var(--studio-panel);border-color:var(--studio-border)}
+.mobile-studio-main .me-root {color:var(--studio-text);--muted:var(--studio-muted);--warn:var(--studio-warn);--bad:var(--studio-error)}
+.mobile-studio-main .me-root input,.mobile-studio-main .me-root select,.mobile-studio-main .me-root textarea {background:var(--studio-field);color:var(--studio-text);border:1px solid var(--studio-border)}
+.mobile-studio-main .me-root textarea:disabled {color:var(--studio-muted);background:var(--studio-panel)}
+.mobile-studio-main .me-root input::placeholder,.mobile-studio-main .me-root textarea::placeholder {color:var(--studio-muted)}
+#companion-theme,.mobile-access button,.mobile-studio-main .me-root button {min-height:44px;padding:9px 12px;color:var(--studio-accent);background:var(--studio-field);border:1px solid var(--studio-accent);border-radius:6px}
+#companion-theme:hover,.mobile-access button:hover,.mobile-studio-main .me-root button:hover {background:var(--studio-hover)}
+#companion-theme[aria-pressed="true"],.mobile-studio-main .me-root button[aria-pressed="true"] {background:var(--studio-accent);color:var(--studio-on-accent)}
+.mobile-studio-main .companion-guide {border-color:var(--studio-border)}
+.mobile-studio-main .npc-preview {border-color:var(--studio-border)}
+:focus-visible {outline:3px solid var(--studio-accent);outline-offset:3px}

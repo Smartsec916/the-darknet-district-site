@@ -28,9 +28,10 @@
     phase:route?.phase,hazard:flying&&current?.kind==='hazard',
     combat:flying&&enemies.some(VoidStory.hostile),
     danger:flying&&stats&&hp<stats.hull*.25,
-    dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,
+    dialogue:mode==='dialogue'||globalThis.VoidRelayRadio?.speaking===true,conversation:onFoot&&!!globalThis.VoidConversationUI?.isOpen,
     battle:flying&&!!globalThis.VoidFactionBattleState?.(),
     layoutKind:onFoot?walkingLocation.kind:null,place:onFoot?walkingLocation.id:null,
+    under:onFoot&&walkingLocation?.area==='street'&&walkingLocation?.quarter==='underground',
     walker:onFoot?{x:walker.x,z:walker.z}:null
    };
    // The nightclub's own sound (ncz-club-audio.js) decides how much of the city's music is left around it; the score keeps playing underneath.

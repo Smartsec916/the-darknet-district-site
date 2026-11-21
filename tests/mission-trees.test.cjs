@@ -110,11 +110,11 @@ test('All lines for an NPC: every one of Admin’s voiced lines is found (in mis
  const src=sources(),out=T.build(src),admin=out.npcs[0];assert.equal(admin.id,'admin');assert.equal(admin.engine.engine,'elevenlabs');assert.equal(admin.engine.voiceId,'DMyrgzQFny3JI1Y1paM5');
  const refs=new Set([...admin.inMissions,...admin.outside].map(l=>l.ref));
  for(const l of Object.values(src.manifest.lines))if(l.speaker==='admin')assert(refs.has('admin|'+l.text),'Admin line listed: '+l.text.slice(0,50));
- for(const l of Object.values(src.extraManifest.lines))if(l.speaker==='admin')assert(admin.outside.some(x=>x.text===l.text&&x.adapter==='code-change'&&x.clip&&x.clip.engine==='elevenlabs'));
+ for(const l of Object.values(src.extraManifest.lines))if(l.speaker==='admin')assert(admin.outside.some(x=>x.text===l.text&&x.adapter==='code-change'&&x.clip&&x.clip.engine==='elevenlabs'),'extra Admin line listed: '+l.text.slice(0,50));
  assert(admin.inMissions.every(l=>['talk','records'].includes(l.adapter)),'every Admin mission line can be overridden live');
  const speakers=new Set(out.npcs.map(n=>n.id));for(const l of Object.values(src.manifest.lines))if(!/relay-content/.test(l.source))assert(speakers.has(l.speaker),l.speaker);
  assert(!out.npcs.some(n=>['news-anchor','commercial-announcer'].includes(n.id)),'Relay broadcasts are not listed');
- assert(out.npcs.find(n=>n.id==='milked-fish').outside.length===3);
+ assert(out.npcs.find(n=>n.id==='milked-fish').outside.length===25,'Fish: three greetings, her two recorded Mission 003 lines (Mandarin, and its English translation in her own voice) and her twenty Mission 004 call recordings (ten Mandarin, ten English; 21 Nov 2026)');
  const idx=T.lineIndex(out),locked=admin.inMissions.find(l=>l.locked),free=admin.inMissions.find(l=>!l.locked&&l.adapter==='talk');
  assert.equal(T.validateLines({[locked.ref]:{to:'Mine now.'}},idx).filter(i=>i.level==='error').length,1,'a locked line needs an unlock');
  const ok=T.validateLines({[locked.ref]:{to:'Mine now.',unlocked:true},[free.ref]:{to:'Also mine.'}},idx);assert.equal(ok.filter(i=>i.level==='error').length,0);assert(ok.some(i=>/voice clip out of date/.test(i.text)));
@@ -170,7 +170,7 @@ test('the giver roster lists every registered NPC, grouped, with where they are 
  assert(!by('rin-takeda').canTalk&&!by('vr-ava').canTalk&&!by('elias').canTalk,'figures, companions and a recording cannot give missions');
  assert(!g.some(x=>['news-anchor','commercial-announcer'].includes(x.id)),'broadcast voices are not givers');
  // every TALK target named here exists in the game's own layouts and handlers
- const files=['neochinatown.js','meridian-interior.js','station-layouts.js','planets.js','milked-integration.js','temple.js','opening-data.js'].map(f=>fs.readFileSync(R('void-runner/'+f),'utf8')).join('\n');
+ const files=['neochinatown.js','meridian-interior.js','station-layouts.js','planets.js','milked-integration.js','temple.js','opening-data.js','ncz-street-pair.js','npc-made.js'].map(f=>fs.readFileSync(R('void-runner/'+f),'utf8')).join('\n');
  for(const x of g)for(const t of x.targets){assert(files.includes("'"+t.action+"'")||files.includes('action:\''+t.action),x.id+' action '+t.action);if(t.character&&!['elara','marcus'].includes(t.character))assert(files.includes("'"+t.character+"'"),x.id+' character '+t.character);}
  assert.deepEqual(G.placesNow({walk:'neochinatown',area:'street',quarter:'far-south'}),['far-south']);assert.deepEqual(G.placesNow({walk:'neochinatown',area:'interior'}),['district']);assert.deepEqual(G.placesNow({location:'meridian',docked:true}),['meridian']);
  assert.deepEqual(G.whoAt(g,'talk','rook'),['rook']);assert.deepEqual(G.whoAt(g,'district-bar'),['bartender','nyx-district']);
@@ -197,7 +197,7 @@ test('adapter: a new tree is checked, applied, run step by step (talk, go, buy, 
  const after=s.credits;assert.equal(MC.treeEvent(s,e,{type:'talk',npcs:['iris']},e.Missions,e.C).completed,false);assert.equal(s.credits,after,'never paid twice');
  // a campaign that is not a District campaign is never touched
  const old=e.C.fresh();assert.equal(MC.treeEvent(old,e,{type:'talk',npcs:['admin']},e.Missions,e.C).mission,null);
- MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees.map(t=>t.id),['main-storyline'],'only the shipped main storyline stays');
+ MC.apply(null,e);assert(!e.Missions.definitions[m.id],'rollback removes the new missions');assert.deepEqual(e.trees.map(t=>t.id),['main-storyline','first-cargo-delivery'],'only the shipped story trees stay (the main storyline and, since 20 Nov 2026, the First Cargo Delivery)');
 });
 test('adapter refuses unknown kinds, givers without a TALK prompt, non-draft ids, unknown places and items; only runnable missions are sent',()=>{
  const givers=roster(),items=buyable(),ctx={givers:new Map(givers.map(g=>[g.id,g])),places:new Set(G.PLACES.map(p=>p.id)),items,locations:new Set(Object.keys(require(R('void-runner/universe.js')).locations))};

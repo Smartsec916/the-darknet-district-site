@@ -25,6 +25,16 @@ test('each has their own personality, dialogue and voice identity (nothing of Ka
  assert.equal(C.speaks(seren),true);
 });
 
+test('Zane (the second male companion) has his own personality and lines, nothing of Kai\'s; generic placeholders the owner approved for now',()=>{
+ const m2=C.get('zane'),kai=C.get('kai'),kaiLines=new Set(Object.values(kai.dialogue).flat());
+ assert.equal(m2.sex,'male');assert.equal(m2.name,'Zane');assert.equal(m2.model,'npc-zane');assert.equal(m2.preview,'void-runner/assets/vr/companions/zane.jpg');
+ assert.ok(Object.keys(m2.personality).length);assert.equal(C.speaks(m2),true);assert.equal(m2.voice.voiceId,null);
+ assert.deepEqual(Object.keys(m2.dialogue).sort(),Object.keys(kai.dialogue).sort(),'every pool Kai has');
+ for(const t of Object.values(m2.dialogue).flat())assert.ok(!kaiLines.has(t),'borrows Kai\'s line: '+t);
+ assert.match(m2.name,/^[a-zA-Z][\w-]{0,63}$/,'the name is talked to under goes into story.met, which the save validator checks');
+ assert.equal(C.resolve({companion:'zane'}).id,'zane');assert.equal(C.resolve({choice:'m'}).id,'kai','old saves asking for the male companion still get Kai');
+});
+
 test('default looks are the owner\'s picks',()=>{
  assert.deepEqual(C.chosen(C.get('ava')),{outfit:'red',hair:'bob',glasses:'none',face:'natural'});
  assert.deepEqual(C.chosen(C.get('eva')),{outfit:'white',hair:'natural',eyes:'brown',face:'5'});
@@ -99,7 +109,7 @@ test('Ava and Eva are released on the live site, their models from the private a
  for(const id of ['ava','eva']){const e=C.get(id);assert.equal(e.listed,undefined);assert.equal(e.licensed,true);
   assert.equal(C.offered(e,'localhost'),true);assert.equal(C.offered(e,'thedarknetdistrict.com'),true);}
  assert.equal(C.offered(C.get('nadia'),'thedarknetdistrict.com'),true);
- assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['nadia','ava','eva','base-f','ava+eva'],'the public female gallery adds the released companions and the room for two');
+ assert.deepEqual(suite.picker.steps[1].choices(['female']).map(c=>c.id),['nadia','ava','eva','base-f','luna','ava+eva'],'the public female gallery adds the released companions and the room for two');
 });
 
 test('the VR menu has look rows per companion, named when two are in the room',()=>{

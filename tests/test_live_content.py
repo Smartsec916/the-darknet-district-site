@@ -188,7 +188,7 @@ class MissionNumberTests(unittest.TestCase):
         return {'format': live.FORMAT, 'version': 1, 'trees': list(trees)}
 
     def test_shipped_ledger_and_main_storyline(self):
-        self.assertEqual(live.shipped_numbers(), {1: 'm001-awakening', 2: 'm002-eyes-on-the-street'})
+        self.assertEqual(live.shipped_numbers(), {1: 'm001-awakening', 2: 'm002-eyes-on-the-street', 3: 'm003-corporate-connections', 4: 'm004-a-promising-investment', 5: 'm005-behind-closed-doors', 6: 'm006-hostile-takeover', 7: 'm007-the-house-always-wins', 8: 'm008-private-network', 9: 'm009-ghost-in-the-network', 10: 'm010-the-price-of-admission', 11: 'm011-leverage', 12: 'm012-first-cargo-delivery'})  # 004-012: the owner's Awakening continuation and the First Cargo Delivery (20 Nov 2026)
         self.assertEqual(live.check(self.mc(awakening())), [], 'Mission 001 as shipped is valid')
         self.assertTrue(live.check(self.mc(awakening(number=None))), 'a main storyline mission needs a number')
         self.assertTrue(live.check(self.mc(awakening(number=1000))))
@@ -203,7 +203,7 @@ class MissionNumberTests(unittest.TestCase):
         bad = awakening()
         bad['missions'][0]['objectives'][1]['message'] = {'from': 'admin', 'header': 'H', 'text': 'x'}
         self.assertTrue(live.check(self.mc(bad)), 'steps carry no message of their own')
-        side = side_tree('draft-a', 5)
+        side = side_tree('draft-a', 55)
         for when in [{'kind': 'after-mission', 'mission': 'm001-awakening'}, {'kind': 'place', 'place': 'port'}, {'kind': 'flag', 'flag': 'mf_x', 'value': True}, {'kind': 'pod-exit'}]:
             side['missions'][0]['start'] = {'how': 'notification', 'channel': 'comms', 'from': 'iris', 'header': 'IRIS // CALL', 'text': 'Test.', 'when': when}
             self.assertEqual(live.check(self.mc(awakening(), side)), [], when)
@@ -213,22 +213,22 @@ class MissionNumberTests(unittest.TestCase):
         self.assertTrue(live.check(self.mc(other)), 'only listed story trees may skip the draft- prefix')
 
     def test_duplicates_and_reuse_are_refused(self):
-        self.assertTrue(any('two missions' in p for p in live.check(self.mc(awakening(), side_tree('draft-a', 5), side_tree('draft-b', 5)))))
+        self.assertTrue(any('two missions' in p for p in live.check(self.mc(awakening(), side_tree('draft-a', 55), side_tree('draft-b', 55)))))
         self.assertTrue(any('never reused' in p for p in live.check(self.mc(side_tree('draft-a', 1)))), 'number 1 belongs to Mission 001')
-        self.assertEqual(live.check(self.mc(awakening(), side_tree('draft-a', 5))), [])
+        self.assertEqual(live.check(self.mc(awakening(), side_tree('draft-a', 55))), [])
 
     def test_published_numbers_are_never_reused(self):
         # (002 is Mission 002 — Eyes on the Street since 17 Nov 2026: test trees use 005 and 006)
-        first = self.post('live-content/publish', {'expected': 0, 'content': self.mc(awakening(), side_tree('draft-a', 5))})
+        first = self.post('live-content/publish', {'expected': 0, 'content': self.mc(awakening(), side_tree('draft-a', 55))})
         self.assertEqual(first.status_code, 200, first.json)
-        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '5': 'draft-a-m1'})
+        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '3': 'm003-corporate-connections', '4': 'm004-a-promising-investment', '5': 'm005-behind-closed-doors', '6': 'm006-hostile-takeover', '7': 'm007-the-house-always-wins', '8': 'm008-private-network', '9': 'm009-ghost-in-the-network', '10': 'm010-the-price-of-admission', '11': 'm011-leverage', '12': 'm012-first-cargo-delivery', '55': 'draft-a-m1'})
         # draft-a is removed; its number 5 stays taken
-        again = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 5))})
+        again = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 55))})
         self.assertEqual(again.status_code, 422, again.json)
         self.assertIn('never reused', ' '.join(again.json.get('problems', [again.json.get('error', '')])))
-        ok = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 6))})
+        ok = self.post('live-content/publish', {'expected': 1, 'content': self.mc(awakening(), side_tree('draft-b', 56))})
         self.assertEqual(ok.status_code, 200, ok.json)
-        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '5': 'draft-a-m1', '6': 'draft-b-m1'})
+        self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '3': 'm003-corporate-connections', '4': 'm004-a-promising-investment', '5': 'm005-behind-closed-doors', '6': 'm006-hostile-takeover', '7': 'm007-the-house-always-wins', '8': 'm008-private-network', '9': 'm009-ghost-in-the-network', '10': 'm010-the-price-of-admission', '11': 'm011-leverage', '12': 'm012-first-cargo-delivery', '55': 'draft-a-m1', '56': 'draft-b-m1'})
 
 
 class MissionRemovalSaveTests(unittest.TestCase):
@@ -301,11 +301,76 @@ class MissionRemovalSaveTests(unittest.TestCase):
             change(bad['trees'][0]['missions'][1])
             self.assertTrue(live.check(bad), 'refused')
 
+    def test_mission_003_save_is_accepted(self):
+        """Mission 003 — Corporate Connections (17 Nov 2026): its record, the staff-door flag, the V1 contact, the Social follow, the in-game clock, the
+        completion stamp and the fired follow-up all pass clean_save as they are (story.flags: booleans, short strings, safe integers)."""
+        state = test_story_save.StorySaveTests.state(None)
+        mid = 'm003-corporate-connections'
+        state['story']['flags'].update({'missionPool': 'closed', 'mt_m001-awakening': True, 'mt_m002-eyes-on-the-street': True, 'mt_' + mid: True, 'mf_milkedStaff': True,
+                                        'v1Contacts': 'milked-fish', 'socialFollowing': 'n:milked-fish', 'gameMin': 5400, 'gc_' + mid: 4500, 'ev_fish-followup-due': True})
+        state['universe'] = {'trackingInitialized': True, 'trackedMission': None, 'freeTravel': False,
+                             'missions': {mid: {'acquired': True, 'completed': True, 'objectives': {'travel-milked': True, 'speak-eva': True, 'meet-fish': True, 'await-fish': True}}}}
+        clean = vr.clean_save(state)
+        self.assertEqual(clean['universe']['missions'][mid]['objectives'], {'travel-milked': True, 'speak-eva': True, 'meet-fish': True, 'await-fish': True})
+        for k, v in {'mf_milkedStaff': True, 'v1Contacts': 'milked-fish', 'socialFollowing': 'n:milked-fish', 'gameMin': 5400, 'gc_' + mid: 4500, 'ev_fish-followup-due': True}.items():
+            self.assertEqual(clean['story']['flags'][k], v, k)
+        state['universe']['trackedMission'] = mid
+        state['universe']['missions'][mid]['completed'] = False
+        self.assertEqual(vr.clean_save(state)['universe']['trackedMission'], mid, 'Mission 003 stays tracked')
+
+    def test_mission_003_publishes_with_its_new_kinds(self):
+        """The shipped Awakening tree with Mission 003 passes the server check; the new kinds (await-call step, contact and follow unlocks, the
+        "after in-game time" trigger) are checked the same way as in the game."""
+        import copy, subprocess
+        out = subprocess.run(['node', '-e', "const MC=require('./void-runner/mission-content.js'),MS=require('./void-runner/main-story.js');process.stdout.write(JSON.stringify(MC.treesContent(MS.trees(),{givers:['admin','milked-eva','milked-fish'].map(id=>({id,canTalk:true,draft:true}))}).trees))"],
+                             capture_output=True, text=True, cwd=str(Path(__file__).resolve().parent.parent), check=True)
+        content = {'format': 'darknet-district-mission-content', 'version': 1, 'trees': json.loads(out.stdout)}
+        self.assertEqual(live.check(content), [])
+        m3 = content['trees'][0]['missions'][2]
+        self.assertEqual(m3['id'], 'm003-corporate-connections')
+        self.assertEqual([o['kind'] for o in m3['objectives']], ['enter', 'talk', 'talk', 'await-call'])
+        for change in [lambda m: m['unlocks'][1].update(id='nobody'), lambda m: m['unlocks'][2].update(id='Bad Id'), lambda m: m['objectives'][3].update(npc='nobody'),
+                       lambda m: m['unlocks'][0].update(kind='teleport')]:
+            bad = copy.deepcopy(content)
+            change(bad['trees'][0]['missions'][2])
+            self.assertTrue(live.check(bad), 'refused')
+        # "after in-game time": a follow-up mission started by a Comms call N in-game minutes after Mission 003
+        follow = {'id': 'draft-fish', 'name': 'Fish', 'missions': [{'id': 'draft-fish-m1', 'number': 49, 'title': 'Fish calls', 'type': 'side', 'giver': 'milked-fish',
+                  'start': {'how': 'notification', 'channel': 'comms', 'from': 'milked-fish', 'header': 'FISH // INCOMING CALL', 'text': 'x', 'when': {'kind': 'game-time', 'mission': 'm003-corporate-connections', 'value': 360}},
+                  'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'milked-fish'}]}]}
+        good = copy.deepcopy(content)
+        good['trees'].append(follow)
+        self.assertEqual(live.check(good), [])
+        for v in (0, 10081, '360', 2.5):
+            bad = copy.deepcopy(good)
+            bad['trees'][1]['missions'][0]['start']['when']['value'] = v
+            self.assertTrue(live.check(bad), v)
+        bad = copy.deepcopy(good)
+        bad['trees'][1]['missions'][0]['start']['when']['mission'] = 'nowhere'
+        self.assertTrue(live.check(bad))
+        # "when walked near" (18 Nov 2026): who (a person with a TALK prompt; Reverie and Lace are givers) and how far (1..30 m, default 5)
+        near = {'id': 'draft-near', 'name': 'Near', 'missions': [{'id': 'draft-near-m1', 'number': 42, 'title': 'Walk by', 'type': 'side', 'giver': 'grey-reverie',
+                'start': {'how': 'notification', 'channel': 'notify', 'from': 'grey-reverie', 'text': 'x', 'when': {'kind': 'near', 'npc': 'grey-reverie', 'distance': 5}},
+                'objectives': [{'id': 's', 'label': 'x', 'kind': 'talk', 'npc': 'ethereal-lace'}]}]}
+        good = copy.deepcopy(content)
+        good['trees'].append(near)
+        self.assertEqual(live.check(good), [])
+        for w in ({'kind': 'near'}, {'kind': 'near', 'distance': 1}, {'kind': 'near', 'distance': 30}, {'kind': 'near', 'npc': 'admin', 'distance': 2.5}):
+            ok = copy.deepcopy(good)
+            ok['trees'][1]['missions'][0]['start']['when'] = w
+            self.assertEqual(live.check(ok), [], w)
+        for w in ({'kind': 'near', 'distance': 0}, {'kind': 'near', 'distance': 31}, {'kind': 'near', 'distance': '5'}, {'kind': 'near', 'distance': True},
+                  {'kind': 'near', 'npc': 'juno-vex'}, {'kind': 'near', 'npc': 'nobody'}, {'kind': 'place', 'place': 'port', 'distance': 5}, {'kind': 'near', 'radius': 5}):
+            bad = copy.deepcopy(good)
+            bad['trees'][1]['missions'][0]['start']['when'] = w
+            self.assertTrue(live.check(bad), w)
+
     def test_manifest_lists_mission_001(self):
         m = live.manifest()
         self.assertIn('m001-awakening', m['storyMissions'])
         self.assertIn('m002-eyes-on-the-street', m['storyMissions'])
-        self.assertEqual(m['missionNumbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street'})
+        self.assertIn('m003-corporate-connections', m['storyMissions'])
+        self.assertEqual(m['missionNumbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '3': 'm003-corporate-connections', '4': 'm004-a-promising-investment', '5': 'm005-behind-closed-doors', '6': 'm006-hostile-takeover', '7': 'm007-the-house-always-wins', '8': 'm008-private-network', '9': 'm009-ghost-in-the-network', '10': 'm010-the-price-of-admission', '11': 'm011-leverage', '12': 'm012-first-cargo-delivery'})
         self.assertIn('main-storyline', m['storyTrees'])
 
 

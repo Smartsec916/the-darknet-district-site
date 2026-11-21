@@ -76,7 +76,7 @@ test('the modelled props: each has its file, a size and a built prop to fall bac
  const names=Object.keys(R.PROPS);assert.deepEqual(names.slice().sort(),['bar-stool','flashlight','o2-station','o2-tank','pistol','radio','vr-headset']);
  const src=read('void-runner/district-rooms.js');
  for(const n of names){const p=R.PROPS[n],file=path.join(__dirname,'..','void-runner',R.propFile(n));assert.ok(fs.existsSync(file),n+': file');const size=fs.statSync(file).size;assert.ok(size>50e3&&size<1.5e6,n+': a web-sized file ('+size+')');
-  const b=fs.readFileSync(file),json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));assert.ok(!(json.extensionsUsed||[]).some(e=>/draco|meshopt/.test(e)),n+': no compressed geometry');
+  const b=fs.readFileSync(file),json=JSON.parse(b.subarray(20,20+b.readUInt32LE(12)).toString('utf8'));assert.ok(!(json.extensionsUsed||[]).some(e=>/draco|meshopt/.test(e)&&e!=='EXT_meshopt_compression'),n+': no compressed geometry the game cannot decode (lossless meshopt is decoded locally since 18 Nov 2026)');
   const tris=json.meshes.reduce((a,m)=>a+m.primitives.reduce((s,q)=>s+json.accessors[q.indices].count/3,0),0);assert.ok(tris>500&&tris<=12500,n+': triangles '+tris);
   assert.ok(['x','y','z'].includes(p.fit[0])&&p.fit[1]>.05&&p.fit[1]<2,n+': size');assert.ok(src.includes("prop('"+n+"',")||src.includes('prop(it.kind,'),n+': placed');}
  for(const k of ['pistol','radio','flashlight'])assert.ok(R.ITEMS.some(i=>i.kind===k),k+' is a kind of goods the counter already shows');

@@ -1,0 +1,54 @@
+{
+ "name": "npc-milked-auburn",
+ "source": "Auburn, Milked studio 4's dancer (an adult woman of 21, the owner's statement of 18 Nov 2026), from the owner's own Meshy generation: image-to-image concept (standing A-pose) from a render of his model, then image-to-3d, remesh and auto-rig on his Meshy account, 18 Nov 2026; prepared by prepare_meshy.py. Her clips are studio 4's dance and idle as vr-player-b ships them, retargeted.",
+ "bonePrefix": "",
+ "optionalBones": true,
+ "bones": {
+  "Hips": "Hips",
+  "Spine02": "Spine",
+  "Spine01": "Spine1",
+  "Spine": "Spine2",
+  "neck": "Neck",
+  "Head": "Head",
+  "LeftShoulder": "LeftShoulder",
+  "LeftArm": "LeftArm",
+  "LeftForeArm": "LeftForeArm",
+  "LeftHand": "LeftHand",
+  "LeftUpLeg": "LeftUpLeg",
+  "LeftLeg": "LeftLeg",
+  "LeftFoot": "LeftFoot",
+  "LeftToeBase": "LeftToeBase",
+  "RightShoulder": "RightShoulder",
+  "RightArm": "RightArm",
+  "RightForeArm": "RightForeArm",
+  "RightHand": "RightHand",
+  "RightUpLeg": "RightUpLeg",
+  "RightLeg": "RightLeg",
+  "RightFoot": "RightFoot",
+  "RightToeBase": "RightToeBase"
+ },
+ "meshes": {
+  "output_unwrapped": {
+   "name": "body",
+   "maxTris": 40000
+  }
+ },
+ "addedClips": "18 Nov 2026: dance-allnight, dance-shake, dance-lovepop, dance-denim, dance-omg (Meshy library actions 64, 82, 76, 71, 79 on her rig task 01a1ef7d-f1ee-71cb-b295-8626faed4f05, animate task 01a1f03c-38d4-751a-ae09-d87d83428918) were added to the shipped file afterwards with retarget_world.py and meshy-bone-map.json; a rebuild from this spec must add them again.",
+ "clips": [
+  "pb-idle",
+  "pb-dance",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees",
+  "floor-kneel-down",
+  "floor-kneel-up",
+  "floor-cross-down",
+  "floor-cross-up",
+  "floor-knees-down",
+  "floor-knees-up",
+  "floor-cross-down-hi",
+  "floor-cross-up-hi",
+  "floor-knees-down-hi",
+  "floor-knees-up-hi"
+ ]
+}

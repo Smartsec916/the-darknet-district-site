@@ -55,13 +55,17 @@ def service_error(error):
 
 @api.before_request
 def limit_body():
-    request.max_content_length = 256_000
-    if request.content_length and request.content_length > 256_000:
+    # An imported voice file (600 KB as base64) is the one larger body: only its upload route takes up to 900 KB.
+    limit = 900_000 if request.endpoint == 'void_runner.voice_clip_upload' else 256_000
+    request.max_content_length = limit
+    if request.content_length and request.content_length > limit:
         raise ApiError('Request is too large.', 413)
 
 
 @api.after_request
 def no_cache(response):
+    if request.endpoint == 'void_runner.voice_clip_public' and response.status_code == 200:
+        return response  # an imported voice file: its address is its content, cached for a year
     response.headers['Cache-Control'] = 'no-store'
     return response
 
@@ -144,6 +148,8 @@ def clean_appearance(value):
     look = cat['looks'][value['look']]
     if look['base'] != value['base']:
         bad()
+    if look.get('street') and (value['hair'] != 'native' or value['hairColor'] is not None):
+        bad()   # a street figure (NPC upgrade, 18 Nov 2026) is one mesh: its own hair, no hair colour
     hair = value['hair']
     if hair not in ('native', 'none') and not (ident(hair) and hair in cat['hair'] and hair in look['hairOk']):
         bad()
@@ -160,6 +166,18 @@ def clean_appearance(value):
         bad()
     return {'v': 1, 'base': value['base'], 'look': value['look'], 'hair': hair, 'hairColor': value['hairColor'],
             'clothingColor': value['clothingColor'], 'accessories': list(acc)}
+
+
+def migrate_appearance(value):
+    """A player's saved look from before the street figures (18 Nov 2026): stored looks are never rewritten and a retired look stays valid; the game moves it on load (and the hub when showing it). For server-side tools, the same rule: it moves to its `replacedBy` (same body), keeping the clothing colour; the old
+    figure's hairstyle, hair colour and extras do not exist on the new one. Mirrors migrate() in void-runner/character-appearance.js."""
+    look = APPEARANCE_CATALOG['looks'].get(value.get('look')) or {}
+    to = look.get('replacedBy') if look.get('retired') else None
+    new = APPEARANCE_CATALOG['looks'].get(to) if to else None
+    if not new or new['base'] != value.get('base'):
+        return value
+    return {'v': 1, 'base': value['base'], 'look': to, 'hair': 'native', 'hairColor': None, 'clothingColor': value.get('clothingColor'),
+            'accessories': list(new.get('defaultAccessories', []))}
 
 
 def inventory(db, uid):
@@ -504,7 +522,9 @@ def clean_save(value):
     # and the save is never rejected for it (campaign.js retireMissions does the same).
     if cleaned.get('flags', {}).get('missionPool') == 'closed':
         tracked_id = result['universe'].get('trackedMission')
-        if tracked_id is not None and not re.match(r'^(draft-|main-storyline-m\d|m\d{3}-)', tracked_id):
+        # Rook's side missions (rook-run-N) stay tracked once the first delivery to Rook is done (campaign.js rookOpen / retireMissions).
+        rook_open = cleaned['flags'].get('rook-first-delivery-done') is True
+        if tracked_id is not None and not re.match(r'^(draft-|main-storyline-m\d|m\d{3}-)', tracked_id) and not (rook_open and re.fullmatch(r'rook-run-\d+', tracked_id)):
             result['universe']['trackedMission'] = None
             result['universe']['autoTrack'] = True
     if 'story' in value:
@@ -991,3 +1011,34 @@ def revoice_queue(db, uid):
 def revoice_done(db, uid):
     live_content.owner(uid, balance_admin, need='queue')
     return jsonify(live_content.queue_done(db, uid, request.get_json(silent=True)))
+
+
+# Imported voice files (Developer Tools, 19 Nov 2026; void_runner_live_content.py). Uploading is for the content editor, with publishing switched on; reading a file is
+# public (players need no sign-in) and cached for a year: the address is the file's SHA-256, so it never changes.
+@api.post('/developer/voice-clips')
+@signed_in
+def voice_clip_check(db, uid):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.clips_check(db, request.get_json(silent=True)))
+
+
+@api.post('/developer/voice-clips/<clip_hash>')
+@signed_in
+def voice_clip_upload(db, uid, clip_hash):
+    live_content.owner(uid, balance_admin, need='publish')
+    return jsonify(live_content.store_clip(db, uid, clip_hash, request.get_json(silent=True)))
+
+
+@api.get('/voice-clip/<clip_hash>')
+def voice_clip_public(clip_hash):
+    if not live_content.enabled():
+        return jsonify(error='Published mission content is switched off.'), 404
+    db, _, _ = services()
+    found = live_content.get_clip(db, clip_hash)
+    if not found:
+        return jsonify(error='No such voice file.'), 404
+    data, kind = found
+    response = current_app.response_class(data, mimetype=kind)
+    response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    response.headers['ETag'] = '"' + clip_hash + '"'
+    return response

@@ -57,20 +57,24 @@
  styles['district-vr']={...styles['district-arcade'],gain:.7,mood:'VR play area: shimmering, weightless, inside a simulation.'};
  styles.milked={...styles['district-bar'],gain:.8,mood:'Milked: slow, glossy, late night.'};
  styles.corporate={...styles.vantor,gain:.8,mood:'Corporate District: cold, imposing, watched.'};
- styles.temple={...styles.communion,gain:.8,mood:'Zen Zephyr Temple: bowls, flute and wind above the city.'};
+ styles.temple={...styles.communion,gain:.8,mood:'Zen Zephyr Temple: overtone chant, bowls, bells and drones above the city.'};
  // The owner, 15 Nov 2026: the hallway's music is the music of the whole District, at one level; only the arcade keeps its own. The rooms are still separate areas
  // (their ambience, footsteps and the door lock depend on that), they just all play the hallway's recording.
  for(const k of ['district-entry','district-store','district-bar','district-vr','district-rest'])styles[k]={...styles['district-hall'],mood:styles[k].mood};
  const files={theme:track('theme'),neochinatown:track('neochinatown'),alley:track('alley'),'district-hall':track('district-hall'),'district-entry':track('district-hall'),'district-store':track('district-hall'),
-  'district-vr':track('district-hall'),'district-arcade':track('district-arcade'),'district-bar':track('district-hall'),nightclub:track('nightclub'),corporate:track('corporate'),temple:track('temple'),milked:track('milked'),
+  'district-vr':track('district-hall'),'district-arcade':track('district-arcade'),'district-bar':track('district-hall'),nightclub:track('nightclub'),corporate:track('corporate'),temple:track('temple-chant'),milked:track('milked'),
   space:track('space'),'space-cantor':track('space'),'space-garrow':track('space'),
   // the pods end of the hall and the smoking terrace hear the hall's music, quieter (and through the wall on the terrace): same file, so walking between them is only a change of level
   'district-rest':track('district-hall'),'district-terrace':track('district-hall')};
+ // Recordings looped sample-accurately in Web Audio (decoded when the area starts, released when it has faded out) instead of an <audio> element, whose loop can
+ // leave a gap: the Temple's chant (the owner's commissioned soundtrack, 18 Nov 2026) is a 288 s loop with the seam baked in. rate: the decode rate in Hz (32 kHz stereo
+ // keeps the decoded copy near 74 MB for 288 s; the file itself is lowpassed below 16 kHz). fadeIn: seconds from silence when it starts.
+ const seamless={temple:{rate:32000,fadeIn:2.5}};
  const tension=[L('drone',{vel:.06}),L('kick',{pattern:'x.......x.......',vel:.18,tone:.6}),L('metal',{pattern:'............x...',chance:.4,vel:.035})];
  function chord(style,bar){const degree=style.prog[Math.floor(bar/(style.chordBars||1))%style.prog.length];return degree;}
  function midi(style,step,octave=0){const scale=modes[style.mode],n=scale.length,o=Math.floor(step/n);return style.root+scale[((step%n)+n)%n]+12*(o+octave);}
  function triad(style,degree,octave=0){return [0,2,4].map(i=>midi(style,degree+i,octave));}
  function layersFor(style,intensity,tensionOn){return [...style.layers,...(drums[style.combat]||[]),...(tensionOn?tension:[])].filter(l=>intensity>=l.min&&intensity<=l.max);}
- const api={modes,motif,styles,drums,files,tension,chord,midi,triad,layersFor};
+ const api={modes,motif,styles,drums,files,seamless,tension,chord,midi,triad,layersFor};
  if(typeof module!=='undefined')module.exports=api;else root.VoidMusicScore=api;
 })(globalThis);
