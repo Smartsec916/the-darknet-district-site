@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "c1c795bdaea12a94",
+  "revision": "edd1d1a3bd735935",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74638,7 +74638,7 @@
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "49d213dfcc4f72acac5fa20cb6cf024cb8c04d529bdabae2876cdde183ead076",
-    "void-runner/campaign.js": "4247e0f808bca9f7bb17d15619a2e0a4575b6ca407cad5e3288a1372eacfb494",
+    "void-runner/campaign.js": "3b2657621fb68a7974e80903f6a0f03b29ddb9d97881285ba06458b49fe8d74d",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -74709,7 +74709,7 @@
     "void-runner/flight-runtime.js": "8fa697c7a0be1e670c21009fd995974f4c790802f1328372a44a08589cf39784",
     "void-runner/flight-session-integration.js": "0dc63b7cdab18fa333bed6e699c55b58b5ab6c391153fc414b8093bfb452a154",
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
-    "void-runner/flight-sfx.js": "ae959ba714e61342c6487ebfd554651300828ca41fffe53020ff2b489731ed09",
+    "void-runner/flight-sfx.js": "6106d3ebb07b01899f2a6893ede74e6b3ae177595063b86c3b360cae8de01110",
     "void-runner/flight-skirmish.js": "942bdfd16824ad0609daf15ddd6fee69a398087290e2b719805fdddef4f1bc7f",
     "void-runner/footsteps.js": "5caeb3f07017f1a72a1c91633de003f601104c9997862691e6b8b262ce1ff137",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
@@ -74808,6 +74808,7 @@
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
+    "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",
