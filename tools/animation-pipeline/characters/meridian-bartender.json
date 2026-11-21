@@ -75,7 +75,10 @@
   "interact",
   "pickup",
   "wipe",
-  "walk"
+  "walk",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ],
  "lean": true,
  "maxGarmentVerts": 9000

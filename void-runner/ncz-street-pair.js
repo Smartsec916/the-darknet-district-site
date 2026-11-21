@@ -43,8 +43,8 @@
  const CAT_ID='street-cat',CAT_ACTION='street-cat',CAT_REACTION=['The cat looks up at you.'];
  // The clip library both of them carry (crowd.js lists it per file; tools/animation-pipeline/characters/npc-*.json build it). Casual street clips only.
  const CLIPS={idles:['idle','idle-shift','idle-stretch'],look:['look','watch'],walk:'walk',run:'run',sitDown:'sit-enter',sit:'sit',standUp:'sit-exit',wave:'sit-wave',
-  dances:['dance-groove','dance-bop'],talk:['talk','gesture'],shrug:'shrug'};
- const CLIP_LIST=[...CLIPS.idles,...CLIPS.look,CLIPS.walk,CLIPS.run,CLIPS.sitDown,CLIPS.sit,CLIPS.standUp,CLIPS.wave,...CLIPS.dances,...CLIPS.talk,CLIPS.shrug];
+  dances:['dance-groove','dance-bop'],talk:['talk','gesture'],shrug:'shrug',floor:['floor-kneel','floor-cross','floor-knees']};   // floor: the floor poses (21 Nov 2026, posed by code: make_floor_poses.py), at a cushion, a cot or a bench
+ const CLIP_LIST=[...CLIPS.idles,...CLIPS.look,CLIPS.walk,CLIPS.run,CLIPS.sitDown,CLIPS.sit,CLIPS.standUp,CLIPS.wave,...CLIPS.dances,...CLIPS.talk,CLIPS.shrug,...CLIPS.floor];
  // Never add these to the pair (the owner's content rule for these two: youthful faces, ordinary street residents): no sensual, slow, belly, hip, twerk, grind,
  // pole, "milked", flirt, kiss or seductive clips, no reclining or lying poses.
  const BANNED=/sensual|slow|belly|hip|twerk|grind|pole|milk|flirt|kiss|seduc|coy|samba|recline|lap|strip|club/i;
@@ -123,14 +123,25 @@
  const SEAT_BACK=.36,SEAT_FRONT=.41,STEP_OFF=.71;
  /* How far in front of the seat's middle the figure's origin is while seated: Reverie's and Lace's sit clip puts the hips 0.36 m behind the feet; the street figures'
     (made givers on a street model) only about 0.08 m, so their runtime sets s.seatBack (npc-made.js SEAT_BACK_STREET) or they float in front of the seat. */
- const backOf=s=>Number.isFinite(s&&s.seatBack)?s.seatBack:SEAT_BACK;
+ /* A seat may set its own `back` (21 Nov 2026, the mahjong stools: measured in the game, every figure's sit clip puts the hips 0.36 to 0.38 m behind its origin, so on a
+    0.34 m stool the origin goes 0.37 m in front of the stool's middle; the benches keep the numbers above, the hips against the backrest). */
+ const backOf=s=>Number.isFinite(s&&s.step&&s.step.back)?s.step.back:Number.isFinite(s&&s.seatBack)?s.seatBack:SEAT_BACK;
  const seatYaw=st=>Number.isFinite(st&&st.yaw)?st.yaw:Math.PI;
  const along=(st,d)=>Number.isFinite(st.yaw)?{x:st.x+Math.sin(st.yaw)*d,z:st.z+Math.cos(st.yaw)*d}:{x:st.x,z:st.z-d};
  const UGS=()=>{try{return (typeof module==='object'&&module.exports?require('./ncz-underground.js'):root.VoidUnderground)||null;}catch{return null;}};
  /* Every seat other than the Avenue's ledges: [{id, x, z, yaw, h}] (the tunnels' alcoves). */
- function seats(){const U=UGS();return ((U&&U.SEATS)||[]).map(x=>({id:x.id,x:x.x,z:x.z,yaw:x.yaw,h:x.h,w:.5}));}
+ function seats(){const U=UGS();return ((U&&(U.seatsAll?U.seatsAll():U.SEATS))||[]).map(x=>({id:x.id,x:x.x,z:x.z,yaw:x.yaw,h:x.h,w:.5,poses:x.poses||['chair'],stand:x.stand||null,...(Number.isFinite(x.back)?{back:x.back}:{})}));}
+ /* THE FLOOR POSES (21 Nov 2026: kneeling, cross-legged, knees to chest; crowd.js FLOOR): a seat's `poses` say which it takes ('chair': the sit-down clips; ledges are
+    chairs only). POSE_CLIP: pose -> clip; FLOOR_BACK: how far behind the seat's middle the figure's origin (under her hips) goes, so the body sits on the cushion / cot.
+    standOf(seat): where one stands before sitting: the seat's own `stand`, else 0.41 m in front of a chair, else the seat itself. */
+ const POSES=['chair','kneel','cross','knees'],POSE_CLIP={chair:'sit',kneel:'floor-kneel',cross:'floor-cross',knees:'floor-knees'},FLOOR_BACK={kneel:.12,cross:.06,knees:.16};
+ const POSE_NAME={chair:'chair (sit on it)',kneel:'kneel (seiza)',cross:'cross-legged',knees:'knees to chest'};
+ const floorPose=s=>!!(s&&s.step&&s.pose&&s.pose!=='chair'&&POSE_CLIP[s.pose]);
+ const posesOf=st=>st&&Array.isArray(st.poses)?st.poses:['chair'];
+ const standOf=st=>st&&Array.isArray(st.stand)?{x:st.stand[0],z:st.stand[1]}:posesOf(st).includes('chair')?along(st,SEAT_FRONT):{x:st.x,z:st.z};
  /* The ledge or seat a spot is in front of (to sit on), or null: a ledge as before; a seat when the spot is within 0.6 m of where one stands to sit on it. */
- function seatNear(t){if(!t)return null;for(const st of STEPS)if(Math.abs(t.x-st.x)<=st.w/2+.3&&t.z>=frontOf(st)-1)return st;for(const st of seats()){const f=along(st,SEAT_FRONT);if(Math.hypot(t.x-f.x,t.z-f.z)<=.6)return st;}return null;}
+ function seatNear(t,pose){if(!t)return null;if(!pose||pose==='chair')for(const st of STEPS)if(Math.abs(t.x-st.x)<=st.w/2+.3&&t.z>=frontOf(st)-1)return st;let best=null,bd=.6+1e-6;
+  for(const st of seats()){if(pose&&!posesOf(st).includes(pose))continue;const f=standOf(st),d=Math.hypot(t.x-f.x,t.z-f.z);if(d<=bd){bd=d;best=st;}}return best;}   // the nearest seat whose stand point is within 0.6 m (pose: only seats that take it)
  function chooseStep(s,rnd,cfg){const near=(a,b)=>Math.abs(a.x-s.x)-Math.abs(b.x-s.x);
   if(s.favourite&&rnd()<cfg.favourite){const f=STEPS.find(t=>t.id===s.favourite);if(f)return f;}
   const ahead=STEPS.filter(t=>(t.x-s.x)*s.dir>1.5).sort(near);return ahead[0]||STEPS.slice().sort(near)[0];}
@@ -149,7 +160,7 @@
     points:[{x, z, action, seconds}]}. She walks there (mode plan-go), does the action (plan-do: a clip, a V1 pose, or the ledge's sit through the usual sit-down / sit /
     stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her
     stretch on foot (never a jump). ACT: an action id -> {clip, device, sit}. */
- const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},sit:{sit:true},'walk-on':{clip:'walk',pass:true},work:{clip:'interact'}};
+ const ACT={wait:{clip:'idle'},idle:{clip:'idle'},scroll:{clip:'idle',device:'scroll'},selfie:{clip:'idle',device:'selfie'},photo:{clip:'idle',device:'photo'},sit:{sit:true},'sit-kneel':{sit:true,pose:'kneel'},'sit-cross':{sit:true,pose:'cross'},'sit-knees':{sit:true,pose:'knees'},'walk-on':{clip:'walk',pass:true},work:{clip:'interact'}};
  const actOf=a=>ACT[a]||{clip:a};
  const FREE=new Set(['walk','run','pause','stop']),PLAN=new Set(['plan-go','plan-do','esc']);   // esc: a mission's follow / lead / cab step (npc-escort.js; run in start())
  function planTarget(s,P){if(P.mode==='stay')return P;const n=P.points.length;s.pi=((s.pi||0)%n+n)%n;return P.points[s.pi];}
@@ -158,10 +169,10 @@
  const seatOffset=(s,off)=>{const st=s&&s.step;if(!off||!st||!Number.isFinite(st.yaw))return {x:0,z:off||0};return {x:-Math.sin(st.yaw)*off,z:-Math.cos(st.yaw)*off};};
  function planNext(s,P){if(P.mode==='path')s.pi=((s.pi||0)+1)%P.points.length;}
  function planDo(s,P,rnd,cfg){const t=planTarget(s,P),a=P.mode==='stay'?pick(rnd,P.actions&&P.actions.length?P.actions:['idle']):t.action,A=actOf(a);s.pact=a;
-  if(A.sit){const st=ledgeNear(t);if(st){s.step=st;s.mode='to-step';s.psit=true;s.psec=P.mode==='path'?t.seconds:null;s.psecSet=false;s.device=null;s.face=null;return;}}
+  if(A.sit){const st=ledgeNear(t,A.pose||'chair');if(st){s.step=st;s.pose=A.pose||'chair';s.mode='to-step';s.psit=true;s.psec=P.mode==='path'?t.seconds:null;s.psecSet=false;s.device=null;s.face=null;return;}}
   if(A.pass){planNext(s,P);s.mode='plan-go';return;}
   s.mode='plan-do';s.clip=A.clip;s.device=A.device||null;s.face=null;s.sub=null;const st=cfg.stop;
-  s.left=P.mode==='path'?Math.max(1,t.seconds||5):between(rnd,a==='scroll'?st.device:a==='selfie'?st.selfie:/^dance/.test(a)?st.dance:/^(talk|gesture)/.test(a)?st.talk:a==='shrug'?st.shrug:a==='look'||a==='watch'?st.look:st.idle);}
+  s.left=P.mode==='path'?Math.max(1,t.seconds||5):between(rnd,a==='scroll'?st.device:(a==='selfie'||a==='photo')?st.selfie:/^dance/.test(a)?st.dance:/^(talk|gesture)/.test(a)?st.talk:a==='shrug'?st.shrug:a==='look'||a==='watch'?st.look:st.idle);}
  function planStep(s,dt,rnd,cfg,P){
   if(s.planKey!==P.key){s.planKey=P.key;s.pi=0;s.psit=false;if(PLAN.has(s.mode)||FREE.has(s.mode)){s.mode='plan-go';s.device=null;s.sub=null;}}
   if(s.psit&&s.mode==='walk'){s.psit=false;planNext(s,P);s.mode='plan-go';}   // back on her feet after sitting at a point
@@ -192,8 +203,21 @@
   if(s.mode==='stop'){if(s.face&&ctx.cat){s.face.x=ctx.cat.x;s.face.z=ctx.cat.z;}
    if(s.face){const want=Math.atan2(s.face.x-s.x,s.face.z-s.z),dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*3);}
    if(s.left<=0)toWalk();return s;}
-  if(s.mode==='to-step'){const v=cfg.speed*dt,f=along(s.step,SEAT_FRONT),tx=f.x,tz=f.z,dx=tx-s.x,dz=tz-s.z,d=Math.hypot(dx,dz);s.clip='walk';
-   if(d<=v+.02){s.x=tx;s.z=tz;s.mode='settle';s.left=1.1;s.clip='idle';}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return s;}
+  if(s.mode==='to-step'){const v=cfg.speed*dt,f=Number.isFinite(s.step.yaw)?standOf(s.step):along(s.step,SEAT_FRONT),tx=f.x,tz=f.z,dx=tx-s.x,dz=tz-s.z,d=Math.hypot(dx,dz);s.clip='walk';
+   if(d<=v+.02){s.x=tx;s.z=tz;const side=!floorPose(s)&&Array.isArray(s.step.stand);s.mode=floorPose(s)?'floor-in':side?'chair-in':'settle';s.left=1.1;s.clip=floorPose(s)||side?'walk':'idle';}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return s;}
+  // THE FLOOR POSES: step onto the cushion / cot, turn to face the way the seat does, and the pose takes over (no sit-down clip); `lift` raises the figure to the seat's
+  // top (eased, the runtimes add it to the ground's height); getting up: back down and out to the stand point, then walk on
+  if(s.liftTo!=null){const k=Math.min(1,dt*3.5);s.lift=(s.lift||0)+(s.liftTo-(s.lift||0))*k;if(Math.abs(s.lift-s.liftTo)<.002){s.lift=s.liftTo;if(!s.lift){s.lift=0;s.liftTo=null;}}}
+  // a chair one reaches from the side (the mahjong stools: the table leaves no room to stand in front until one is there): step round in front of it, then sit as usual
+  if(s.mode==='chair-in'){const v=cfg.speed*.7*dt,o=along(s.step,SEAT_FRONT),dx=o.x-s.x,dz=o.z-s.z,d=Math.hypot(dx,dz);s.clip='walk';
+   if(d<=v+.02){s.x=o.x;s.z=o.z;s.mode='settle';s.left=1.1;s.clip='idle';}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return s;}
+  if(s.mode==='floor-in'){const v=cfg.speed*.7*dt,o=along(s.step,-(FLOOR_BACK[s.pose]||0)),dx=o.x-s.x,dz=o.z-s.z,d=Math.hypot(dx,dz);s.clip='walk';s.device=null;
+   if(d<=v+.02){s.x=o.x;s.z=o.z;s.mode='floor-turn';s.left=1;s.clip='idle';}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return s;}
+  if(s.mode==='floor-turn'){const want=seatYaw(s.step),dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*6);s.clip='idle';
+   if(s.left<=0||Math.abs(dy)<.05){s.yaw=want;s.mode='sit';s.clip=POSE_CLIP[s.pose];s.liftTo=Number.isFinite(s.step.h)?s.step.h:0;s.left=between(rnd,cfg.sit);s.waved=true;s.device=null;s.sub=null;}return s;}
+  if(s.mode==='sit'&&floorPose(s)){s.clip=POSE_CLIP[s.pose];s.device=null;if(s.left<=0){s.mode='floor-out';s.liftTo=0;s.clip='idle';s.left=.5;}return s;}
+  if(s.mode==='floor-out'){s.clip=s.left>0?'idle':'walk';if(s.left>0)return s;const v=cfg.speed*.7*dt,f=standOf(s.step),dx=f.x-s.x,dz=f.z-s.z,d=Math.hypot(dx,dz);
+   if(d<=v+.02){s.x=f.x;s.z=f.z;s.step=null;s.pose=null;s.lift=0;s.liftTo=null;toWalk();}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return s;}
   if(s.mode==='settle'){// turn to face the road, then sit down through the transition clip
    const want=seatYaw(s.step),dy=Math.atan2(Math.sin(want-s.yaw),Math.cos(want-s.yaw));s.yaw+=dy*Math.min(1,dt*5);s.clip='idle';
    if(s.left<=0||Math.abs(dy)<.06){s.yaw=want;s.mode='sit-down';s.left=cfg.len['sit-enter'];s.clip=CLIPS.sitDown;s.once=true;s.z0=s.z;s.sa0=SEAT_FRONT;}return s;}
@@ -209,7 +233,9 @@
   if(s.mode==='stand-up'){// she leans forward and rises over her feet: the figure moves forward with her hips
    const k=Math.min(1,1-Math.max(0,s.left)/cfg.len['sit-exit']),fy=Number.isFinite(s.step.yaw);s.sa=(s.sa0??0)+sh.exit*k;if(fy){const q=along(s.step,s.sa);s.x=q.x;s.z=q.z;}else s.z=s.z0-sh.exit*k;s.clip=CLIPS.standUp;
    if(s.left<=0){if(fy){s.sa-=sh.walk;const q=along(s.step,s.sa);s.x=q.x;s.z=q.z;}else s.z+=sh.walk;shift(-sh.walk);s.mode='step-off';s.clip='walk';s.dir=rnd()<.5?1:-1;}return s;}
-  if(s.mode==='step-off'){ease();const v=cfg.speed*dt;s.clip='walk';if(Number.isFinite(s.step.yaw)){s.yaw=s.step.yaw;s.sa=(s.sa??SEAT_FRONT)+v;const q=along(s.step,s.sa);s.x=q.x;s.z=q.z;if(s.sa>=STEP_OFF){s.step=null;s.zo=0;toWalk();}return s;}
+  if(s.mode==='step-off'){ease();const v=cfg.speed*dt;s.clip='walk';if(Array.isArray(s.step.stand)){const f=standOf(s.step),dx=f.x-s.x,dz=f.z-s.z,d=Math.hypot(dx,dz);   // back out to the side of a stool
+    if(d<=v+.02){s.x=f.x;s.z=f.z;s.step=null;s.zo=0;toWalk();}else{s.x+=dx/d*v;s.z+=dz/d*v;s.yaw=Math.atan2(dx,dz);}return s;}
+   if(Number.isFinite(s.step.yaw)){s.yaw=s.step.yaw;s.sa=(s.sa??SEAT_FRONT)+v;const q=along(s.step,s.sa);s.x=q.x;s.z=q.z;if(s.sa>=STEP_OFF){s.step=null;s.zo=0;toWalk();}return s;}
    const tz=frontOf(s.step)-.3;s.yaw=Math.PI;s.z-=v;if(s.z<=tz){s.step=null;s.zo=0;toWalk();}return s;}
   return s;}
  /* Whom she glances at and how far. body: {x, z, yaw} (her figure); head: {x, y, z}; eyes: [{x, y, z}] the players' eyes (the local one and others in the
@@ -224,7 +250,7 @@
  const canLook=s=>!!s&&s.mode!=='run'&&s.sub!=='dance'&&!s.device;
  // Older names (the first version had only Lace walking).
  const laceStart=(rnd=Math.random,cfg=config)=>routineStart(PAIR[1],rnd,cfg),laceStep=routineStep;
- const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};
+ const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,POSES,POSE_CLIP,POSE_NAME,FLOOR_BACK,posesOf,standOf,floorPose,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};
  if(typeof module==='object'&&module.exports){module.exports=api;return;}
 
  /* start({B, scene, parent, quality, player, now}) -> {tick(dt), stats(), dispose()}. The figures and the cat appear when their files have loaded. */
@@ -267,7 +293,7 @@
    her.anim=root.VoidCrowd?.animate?.(node,p.asset,'walk')||null;her.clip='walk';node.position.set(her.s.x,her.y,her.s.z);
    for(const g of node.metadata?.animationGroups||[])g.blendingSpeed=cfg.blend;   // a slower cross-fade than the crowd's (about 0.4 s)
    // her V1 (npc-device.js): its own scheduler gives the walking glances; the routine forces a scroll, a selfie or a photo of the cat when she stops
-   try{root.VoidNPCDevice?.enlist?.(node,{kind:'walker',state:()=>({moving:her?.s?.mode==='walk'||her?.s?.mode==='run',can:her?.s?.mode==='walk'||her?.s?.mode==='sit'}),
+   try{root.VoidNPCDevice?.enlist?.(node,{kind:'walker',state:()=>({moving:her?.s?.mode==='walk'||her?.s?.mode==='run',can:her?.s?.mode==='walk'||her?.s?.mode==='sit'&&!floorPose(her.s)}),
     force:()=>her?.node===node?her.s.device:null,target:()=>cat&&her?.s?.device==='photo'?new B.Vector3(cat.x,PAVE+.15,cat.z):null});}catch{}}
   // the editor's plan for her (live-content.js sets VoidStreetPair.planFor: a mission's "Giver waits at" while it waits for her, else Developer Tools > NPCs)
   const planRaw=id=>{try{return root.VoidStreetPair?.planFor?.(id)||null;}catch{return null;}};
@@ -288,7 +314,7 @@
   // where she appears: as planSpot, and for a follow / lead / cab step where it had got to (a reload) or where she stood when it started (P.from, live-content.js;
   // fix 19 Nov 2026: she appeared at her routine's spot on The Avenue, outside the quarter the step happens in)
   const appearAt=P=>{if(!P)return null;const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null;return P.mode==='escort'?ok(P.resume)||ok(P.from):planSpot(P);};
-  const SITTING=new Set(['sit','settle','sit-down','stand-up']),MOVING=new Set(['walk','run','to-step','step-off']);
+  const SITTING=new Set(['sit','settle','sit-down','stand-up','floor-turn','floor-out']),MOVING=new Set(['walk','run','to-step','step-off','floor-in','chair-in']);
   function herNow(){if(!her?.node)return null;const n=her.node.position;return {x:n.x,z:n.z,sitting:SITTING.has(her.s.mode),moving:MOVING.has(her.s.mode)};}
   // ---- her TALK TO prompt: one interaction per woman, made once; its position follows her figure (mutated in place: no allocation per frame) ----
   const talkItems=Object.fromEntries(PAIR.map(p=>[p.id,{id:talkId(p.id),action:TALK_ACTION,character:p.id,label:'TALK TO '+p.name.toUpperCase(),position:[0,1.6,0],range:2.2,talk:true}]));
@@ -312,7 +338,7 @@
   // already lost her prompt (she was walking away) let a follow step that her line had just started walk her off while she was still talking
   const speaks=id=>{try{return typeof speech!=='undefined'&&!!speech&&Array.isArray(speech.lines)&&speech.lines.some(l=>l&&l.who===id);}catch{return false;}};
   function chatting(){if(!convo()){chatSeen=false;chatHer=null;return false;}if(!chatSeen){chatSeen=true;chatHer=her&&((typeof walkTarget!=='undefined'&&walkTarget===talkItems[her.p.id])||speaks(her.p.id))?her.p.id:null;}return !!her&&chatHer===her.p.id;}
-  const HOLD=new Set(['walk','run','pause','stop','to-step','plan-go','plan-do','esc']),SEATED=new Set(['sit','sit-down','settle']);
+  const HOLD=new Set(['walk','run','pause','stop','to-step','plan-go','plan-do','esc']),SEATED=new Set(['sit','sit-down','settle','floor-in','floor-turn']);
   function hold(s,me){if(SEATED.has(s.mode)){if(s.mode==='sit'){s.left=Math.max(s.left,2);if(s.sub==='wave')s.sub=null;}return;}
    if(!HOLD.has(s.mode))return;s.mode='stop';s.sub='chat';s.clip='idle';s.device=null;s.left=Math.max(s.left,1.2);
    if(me){if(!s.face)s.face={x:me.x,z:me.z};else{s.face.x=me.x;s.face.z=me.z;}}}
@@ -331,7 +357,7 @@
     ctx.plan=null;}   // talked to during the step: she stops and turns to the player (the ordinary hold), then the step goes on
    if(!Number.isFinite(her.s.x+her.s.z+her.s.yaw+(her.s.zo||0))){dbg.nan.her++;her.s=routineStart(her.p,rnd,cfg);}
    if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way
-   const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);her.y+=(yAt(s.x,s.z,her.y)-her.y)*Math.min(1,dt*8);{const o=seatOffset(s,(s.zo||0)+her.cz);n.position.set(s.x+o.x,her.y,s.z+o.z);}n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
+   const s=routineStep(her.s,dt,rnd,cfg,ctx),cz=cfg.clipShift[s.clip]||0;her.cz=(her.cz||0)+(cz-(her.cz||0))*Math.min(1,dt/cfg.seatShift.blendFor*2.5);her.y+=(yAt(s.x,s.z,her.y)-her.y)*Math.min(1,dt*8);{const o=seatOffset(s,(s.zo||0)+her.cz);n.position.set(s.x+o.x,her.y+(s.lift||0),s.z+o.z);}n.rotation.y=s.yaw;her.anim?.setActive?.(!far&&d<animRadius);
    if(her.anim&&s.clip!==her.clip){her.clip=s.clip;if(s.once&&her.anim.playOnce)her.anim.playOnce(s.clip,s.clip===CLIPS.sitDown?CLIPS.sit:'idle');else her.anim.play(s.clip);}}
   // ---- a mission's follow / lead / cab step (npc-escort.js; the plan comes from live-content.js plans(): {key, mode:'escort', kind, npc, to, set, stop, resume}) ----
   /* One step for her or the cat: the pure rules move `body` ({x, z, yaw}); here only the frustum test, the cab (road-taxi.js) and getting in and out. Only the local

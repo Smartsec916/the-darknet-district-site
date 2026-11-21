@@ -19,7 +19,7 @@
  const FEED_ROOMS=[{id:ROOM.id,name:'Blackrock cult room (camera feed only)',cat:'other',note:'A large square basement room in a corporate building: the owl on the far wall, an altar and a box. Seen only through a hacked security camera (a “Hack the access point” step with this camera feed). Not walkable and not joined to other modules.'}];
  const SIX=['robed-1','robed-2','robed-3','robed-4','robed-5','robed-6'],ACTORS=['initiate',...SIX],SPEAKERS=[...ACTORS,'robed-all'];
  const NAMES={initiate:'The initiate','robed-all':'All six (together)'};SIX.forEach((id,i)=>{NAMES[id]='Robed figure '+(i+1);});
- /* THE SIX MEMBERS' VOICES AND THE CHORUS (APPROVED by the owner 20 Nov 2026; voice choices only: no line is recorded). Each robed figure's ElevenLabs voice is in
+ /* THE SIX MEMBERS' VOICES AND THE CHORUS (APPROVED by the owner 20 Nov 2026; Mission 010's seven chorus lines and the laugh RECORDED 21 Nov 2026 with this recipe: extra/manifest.json robed-all-m010-1..8). Each robed figure's ElevenLabs voice is in
     tools/audio/revoice-engines.json ('robed-1'..'robed-6', labelled "Blackrock Member N (name)"): ordinary, slightly nerdy corporate men, not dramatic. A line by
     'robed-all' (the unison lines and the laugh) is ONE mix of the six, the owner's "half in sync" recipe below, so every future chorus line and the laugh sound the
     same: members 1-3 together (time-aligned to a common length, offsets 0 / 20 / 10 ms), member 4 about 230 ms late, member 6 about 160 ms late, member 5 rushing
@@ -75,6 +75,9 @@
   {act:'exit',wait:1},
   {act:'door',open:false,wait:1},
   {act:'pause',secs:2}]};}
+ /* The words a line's recorded voice is looked up by (voice-clips.js: speaker|text). An empty line with an animation (the laugh) has no words to show, so its voice is
+    keyed by the beat's animation instead: '[laugh]' (extra/manifest.json robed-all-m010-8). Nothing is shown for it; '' means no voice. */
+ const voiceText=e=>!e||e.type!=='line'?'':e.text||(e.anim?'['+e.anim+']':'');
  const num=(v,a,b)=>typeof v==='number'&&Number.isFinite(v)&&v>=a&&v<=b;
  const plainText=(s,n)=>typeof s==='string'&&s.length<=n&&!/<[^>]*>|[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(s);
  const keysOk=(o,ks)=>!!o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>ks.includes(k));
@@ -149,7 +152,7 @@
    else if(b.act==='enter'){const v=b.speed||V,pl=enterPlan(R,v);d=pl.dur;
     for(const w of pl.walkers){const st=state[w.id];st.in=true;push(w.id,{t0:T,t1:T+d,type:'path',path:w.path,s0:w.s0,s1:w.s1,speed:v,clip:'walk',end:(()=>{const e=along(w.path,w.s1);return {x:e.x,z:e.z,yaw:heading(w.path,w.s1),in:true,spot:{x:e.x,z:e.z}};})()});}}
    else if(b.act==='turn'){for(const id of b.who==='six'?SIX:[b.who]){if(!state[id].in)continue;d=Math.max(d,turnSeg(id,T,target(id,b.to),b.secs||DEF.turn)||0);}if(!d)d=b.secs||DEF.turn;}   // together: the same start, the same length
-   else if(b.act==='line'){d=lineSecs(b);const ids=who(b.who);events.push({t:T,type:'line',who:b.who,text:String(b.text||'').trim(),dur:d});
+   else if(b.act==='line'){d=lineSecs(b);const ids=who(b.who);events.push({t:T,type:'line',who:b.who,text:String(b.text||'').trim(),...(b.anim?{anim:b.anim}:{}),dur:d});
     if(b.anim){for(const id of ids){const st=state[id];if(!st.in||st.rest==='kneel')continue;push(id,{t0:T,t1:T+d,type:ONCE.includes(b.anim)?'once':'loop',x:st.x,z:st.z,yaw0:st.yaw,clip:b.anim});}}}
    else if(b.act==='rise'){const st=state.initiate;if(st.rest==='kneel'){d=DEF.rise;push('initiate',{t0:T,t1:T+d,type:'once',x:st.x,z:st.z,yaw0:st.yaw,clip:'rise',rest:'kneel',end:{rest:'stand'}});}}
    else if(b.act==='walk'){const id=ACTORS.includes(b.who)?b.who:'initiate',st=state[id],v=b.speed||V,to=b.to==='altar'?altarFront:b.to==='spot'&&st.spot?st.spot:{x:0,z:0};
@@ -189,7 +192,7 @@
  function addFeed(m,room=ROOM.id){const ids=new Set((m.feeds||[]).map(f=>f.id));let n=1;while(ids.has('cam'+n))n++;const f={id:'cam'+n,room,scene:defaultScene()};return {feeds:[...(m.feeds||[]),f],id:f.id};}
  function inventory(){return {rooms:FEED_ROOMS.map(r=>r.id),speakers:SPEAKERS.slice(),actors:ACTORS.slice(),acts:ACT_IDS.slice(),beatKeys:JSON.parse(JSON.stringify(BEAT_KEYS)),anims:ANIMS.slice(),turnWho:WHO_TURN.slice(),turnTo:TO_TURN.slice(),walkTo:TO_WALK.slice(),limit:{beats:LIMIT.beats,text:LIMIT.text,feeds:LIMIT_FEEDS,secs:LIMIT.secs.slice(),speed:LIMIT.speed.slice(),radius:LIMIT.radius.slice(),gap:LIMIT.gap.slice()}};}
  const api={CHORUS,GONE,DOOR_IN,ROOM,FEED_ROOMS,SIX,ACTORS,SPEAKERS,NAMES,ACTS,ACT_IDS,CLIPS,ANIMS,ONCE,STRIDE,LIMIT,DEF,WHO_TURN,TO_TURN,TO_WALK,BEAT_KEYS,LIMIT_FEEDS,
-  circleSpots,lineGap,enterPlan,exitPlan,defaultScene,sceneProblems,compile,poseAt,lineAt,doorAt,lineSecs,feedProblems,strip,addFeed,inventory,poly,along,wrap,nameOf};
+  circleSpots,lineGap,enterPlan,exitPlan,defaultScene,sceneProblems,compile,poseAt,lineAt,doorAt,lineSecs,voiceText,feedProblems,strip,addFeed,inventory,poly,along,wrap,nameOf};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.VoidCultRoom=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

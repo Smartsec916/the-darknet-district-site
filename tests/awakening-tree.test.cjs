@@ -109,12 +109,12 @@ test('the owner\'s words verbatim (a sample of every mission), PROPOSED placehol
  const C=require(R('void-runner/cult-room.js')),def=C.defaultScene().beats.filter(b=>b.act!=='line'),rit=MS.RITUAL.beats.filter(b=>b.act!=='line');assert.deepEqual(rit,def,'the movements are the existing sequence');
  assert.deepEqual(MS.RITUAL.beats.filter(b=>b.act==='line'&&b.text).map(b=>b.who).join(','),'robed-all,initiate,robed-all,initiate,robed-all,robed-all,robed-all,robed-all,initiate,robed-all,initiate');
  assert.ok(MS.RITUAL.beats.some(b=>b.text==='Fucking dogs!?'&&b.who==='initiate'),'Halden\'s line exactly as the owner wrote it');assert.deepEqual(C.sceneProblems(MS.RITUAL),[]);
- assert.equal(MS.REWARD,25000);assert.ok(MS.M011.unlocks.some(u=>u.kind==='credits'&&u.amount===MS.REWARD&&u.when==='reward'),'one editable number');
+ assert.equal(MS.REWARD,5000);assert.ok(MS.M011.unlocks.some(u=>u.kind==='credits'&&u.amount===MS.REWARD&&u.when==='reward'),'one editable number');
  assert.equal(MS.FOLLOWUPS[0].gameMinutes,MS.M004.start.when.value,'the same 6 in-game hours as the old stub');});
 test('every new mission round-trips through the Mission Editor\'s export (treesContent) unchanged in what the game runs',()=>{const x=env();
  const sent=x.MC.treesContent(x.MS.trees(),{givers:x.e.givers}),ids=sent.trees.flatMap(t=>t.missions.map(m=>m.id));assert.deepEqual(sent.skipped,[]);
  assert.equal(ids.length,12);const m4=sent.trees[0].missions[3];assert.deepEqual(m4.cast,x.MS.M004.cast);assert.deepEqual(m4.evidence,x.MS.M004.evidence);assert.deepEqual(m4.objectives.find(o=>o.id==='overhear').near,6);
- const m11=sent.trees[0].missions[10];assert.equal(m11.objectives.find(o=>o.id==='await-sale').minutes,120);assert.deepEqual(m11.unlocks.find(u=>u.kind==='credits'),{kind:'credits',amount:25000,when:'reward'});});
+ const m11=sent.trees[0].missions[10];assert.equal(m11.objectives.find(o=>o.id==='await-sale').minutes,120);assert.deepEqual(m11.unlocks.find(u=>u.kind==='credits'),{kind:'credits',amount:5000,when:'reward'});});
 test('the flight Map and Rook after the real Mission 012: route-only to Meridian during the delivery, then Rook\'s coordinates and his side-mission board (nav-coords.js)',()=>{
  const x=env(),N=require(R('void-runner/nav-coords.js')),s=play(x,through003(x,newChar(x)));
  assert.equal(s.story.flags.navCoords,false,'the Kestrel came with a route-only Map');

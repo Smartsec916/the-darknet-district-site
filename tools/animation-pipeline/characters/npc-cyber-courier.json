@@ -51,6 +51,9 @@
   "nz-drunk-walk",
   "nz-drunk-idle",
   "nz-drunk-sway",
-  "dr-dance"
+  "dr-dance",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ]
 }

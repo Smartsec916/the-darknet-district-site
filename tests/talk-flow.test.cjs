@@ -32,7 +32,7 @@ test('every Admin line of Missions 001 and 002 that has a clip matches its manif
   for(const o of m.objectives){lines.push(...(o.say||[]),...(o.wrong||[]));const own=(o.say||[]).filter(l=>l&&l.who!=='You');if(o.via&&own.length){joined.push(own.map(l=>l.text).join('\n'));}}
   lines.forEach((l,i)=>{if(l&&l.who!=='You'){texts.add(l.text);whoOf.set(l.text,l.who==='v1-translator'&&lines[i-1]?lines[i-1].who:l.who);}});}   // a V1 translation is in the speaker's own voice
  for(const j of joined){texts.add(j);whoOf.set(j,'admin');}
- const clips=Object.entries(extra()).filter(([,l])=>/^main-story\.js/.test(l.source||''));assert.ok(clips.length>=16);
+ const clips=Object.entries(extra()).filter(([,l])=>/^main-story\.js \(00[1-3]\b/.test(l.source||''));assert.ok(clips.length>=16);   // Missions 001-003 (004 onward: tests/awakening-voices.test.cjs)
  for(const [id,l] of clips){assert.ok(texts.has(l.text),id+' matches a line in main-story.js exactly: '+JSON.stringify(l.text));assert.equal(l.speaker,whoOf.get(l.text),id+' speaker');}
  // and every call or message has its clip
  const have=new Set(clips.map(([,l])=>l.text));for(const j of joined)assert.ok(have.has(j),'a clip for '+JSON.stringify(j.slice(0,60)));});

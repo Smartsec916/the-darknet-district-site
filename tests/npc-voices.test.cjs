@@ -15,10 +15,10 @@ test('a pasted ElevenLabs link or a bare voice id gives the 20-character id; any
   {const r=X.parse(s);assert.equal(r.ok,false,s);assert.match(r.why,new RegExp(why),s);}
  assert.equal(X.listenUrl(ID),'https://elevenlabs.io/voices/'+ID);assert.equal(X.listenUrl('nope'),null);});
 
-test('refused: the reserved slot, broadcast voices and The Function; Reverie and Lace allowed with the street-voice note',()=>{const X=V(),r=reg();
+test('refused: the reserved slot, broadcast voices and The Function; Reverie and Lace allowed without special voice restrictions',()=>{const X=V(),r=reg();
  for(const id of ['special-character','the-function','news-anchor','commercial-announcer',...Object.keys(r.broadcast),...Object.keys(r.reserved)])assert.ok(X.refusal(id,r),id);
  for(const id of ['admin','iris','rook','grey-reverie','ethereal-lace','zen-zephyr','mara'])assert.equal(X.refusal(id,r),null,id);
- assert.match(X.note('grey-reverie'),/ordinary, neutral street voice/);assert.equal(X.note('admin'),'');
+ for(const id of ['grey-reverie','ethereal-lace','admin'])assert.equal(X.note(id),'',id);
  assert.equal(X.make('special-character',ID,'x',{registry:r}).ok,false);assert.equal(X.make('the-function',ID,'x',{registry:r}).ok,false);
  const m=X.make('grey-reverie','https://elevenlabs.io/voices/'+ID,'  Gravel vendor ',{registry:r,date:'2026-11-18'});assert.deepEqual(m,{ok:true,voice:{...ok,model:'eleven_v4'}});   // a new choice records its model (default Eleven v4, 19 Nov 2026)
  for(const [n,why] of [['','Give the voice a name'],['x'.repeat(61),'too long'],['<b>x</b>','plain text']])assert.match(X.make('admin',ID,n,{registry:r}).why,new RegExp(why));});

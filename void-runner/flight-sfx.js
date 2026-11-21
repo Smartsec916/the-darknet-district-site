@@ -39,7 +39,16 @@
   boost(){const d=out(null,null,.8);if(!d)return;hiss(d,'lowpass',260,2600,.55,.18,0,.12,.9);tone(d,'sawtooth',70,190,.6,.04,0,.1);},
   warp(){const d=out(null,null,.6);if(!d)return;hiss(d,'bandpass',200,3000,1.2,.12,0,.3,1.5);tone(d,'sine',60,240,1.3,.08,0,.3);},
   exit(){const d=out(null,null,.6);if(!d)return;hiss(d,'lowpass',3000,200,.8,.12,0,.01,.6);tone(d,'sine',240,60,.7,.07);},
-  charge(){const d=out(null,null,.5);if(!d)return;tone(d,'sine',70,320,1,.05,0,.2);}
+  charge(){const d=out(null,null,.5);if(!d)return;tone(d,'sine',70,320,1,.05,0,.2);},
+  // planet landings and take-offs (planet-landing.js): played by name through play(), never by the flight loop
+  arrive(){const d=out(null,null,.5);if(!d)return;tone(d,'sine',180,90,2.2,.05,0,.4);hiss(d,'lowpass',900,300,2.4,.05,0,.6);},
+  entry(){const d=out(null,null,.9);if(!d)return;hiss(d,'lowpass',300,1600,4.2,.26,0,1.2,.6);hiss(d,'bandpass',900,2600,4,.1,.3,1.4,1.2);tone(d,'sawtooth',38,60,4.2,.05,0,1.2);},
+  wind(){const d=out(null,null,.7);if(!d)return;hiss(d,'bandpass',600,1800,3,.14,0,.4,.9);hiss(d,'highpass',2600,4200,2.6,.05,.2,.6);},
+  thrusters(){const d=out(null,null,.7);if(!d)return;hiss(d,'lowpass',420,260,6.5,.14,0,.8,.7);tone(d,'sawtooth',62,48,6.5,.035,0,.8);tone(d,'sine',124,110,6.5,.03,0,.8);},
+  gear(){const d=out(null,null,.8);if(!d)return;tone(d,'square',140,90,.12,.06);hiss(d,'bandpass',1200,500,.25,.08,0,.004,2);tone(d,'triangle',420,300,.08,.04,.22);hiss(d,'bandpass',900,400,.2,.07,.24,.004,2);},
+  touchdown(){const d=out(null,null,1);if(!d)return;tone(d,'sine',70,32,.6,.32,0,.004);hiss(d,'lowpass',1600,80,.7,.24,0,.003,.6);tone(d,'square',110,60,.2,.05,.02);},
+  steam(){const d=out(null,null,.7);if(!d)return;hiss(d,'highpass',2400,1400,2.6,.12,0,.08,.7);},
+  liftoff(){const d=out(null,null,1);if(!d)return;hiss(d,'lowpass',160,900,3.6,.26,0,.6,.7);tone(d,'sawtooth',40,90,3.6,.06,0,.6);tone(d,'sine',55,120,3.6,.08,0,.6);}
  };
  const FLIGHT_ONLY=new Set(['laser','enemyFire','missile','hit','shieldHit','incoming','warning','boost','warp','exit','charge','shield','hull']);
  const event=A.event;
@@ -76,5 +85,7 @@
  }
  // Leaving flight stops the engine layers and the lock tone at once.
  setInterval(()=>{if(!ctx||flying())return;try{const t=ctx.currentTime;if(engine){engine.rg.gain.setTargetAtTime(0,t,.1);engine.wg.gain.setTargetAtTime(0,t,.1);engine.w2g.gain.setTargetAtTime(0,t,.1);}if(lockNode)lockNode.g.gain.setTargetAtTime(0,t,.05);lockState='off';}catch{}},250);
- root.VoidFlightSfx={SFX,lockTone,get log(){return log;},get counts(){return counts;},get engineLevel(){return lastLevel;},get lockState(){return lockState;},get running(){return !!ctx&&ctx.state==='running';},reset(){log.length=0;for(const k of Object.keys(counts))delete counts[k];}};
+ /* A named sound outside the flight loop (planet-landing.js): the same channel, volume and mute; logged like the others. */
+ function play(name,o){if(!SFX[name])return false;note(name);if(!ready())return false;try{SFX[name](o||{});}catch{return false;}return true;}
+ root.VoidFlightSfx={SFX,play,lockTone,get log(){return log;},get counts(){return counts;},get engineLevel(){return lastLevel;},get lockState(){return lockState;},get running(){return !!ctx&&ctx.state==='running';},reset(){log.length=0;for(const k of Object.keys(counts))delete counts[k];}};
 })(globalThis);

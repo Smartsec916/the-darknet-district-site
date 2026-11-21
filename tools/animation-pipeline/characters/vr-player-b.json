@@ -42,7 +42,10 @@
   "interact",
   "menu",
   "menu-tap",
-  "talk"
+  "talk",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ],
  "accessories": [
   {

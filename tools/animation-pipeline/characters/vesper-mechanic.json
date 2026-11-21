@@ -74,7 +74,10 @@
   "talk",
   "work",
   "watch",
-  "walk"
+  "walk",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ],
  "accessories": [
   {

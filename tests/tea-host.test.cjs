@@ -86,7 +86,7 @@ test('placed people sit on the alcoves\' seats with the ledge\'s sit; the seats 
  // made characters may sit (their street models carry the sit clips); the server reads the seats from the admin inventory
  P.setMade({sitter:{name:'Sitter',model:'npc-casual-m'}});try{assert.ok(P.actionsFor('sitter').some(a=>a.id==='sit'));const g=U.SEATS[0],ff=SP.along(g,SP.SEAT_FRONT);
   assert.deepEqual(P.planProblems('sitter',{mode:'stay',x:+(ff.x+.2).toFixed(1),z:+ff.z.toFixed(1),yaw:0,actions:['sit']}),[]);}finally{P.setMade({});}
- const inv=JSON.parse(read('void_runner_admin_inventory.json'));assert.equal(inv.npcPaths.movable['grey-reverie'].seats.length,U.SEATS.length);
+ const inv=JSON.parse(read('void_runner_admin_inventory.json'));assert.equal(inv.npcPaths.movable['grey-reverie'].seats.length,U.seatsAll().length);   // with the rooms' seats (21 Nov 2026)
  assert.equal(C.clipIn('npc-casual-m','sit-wave'),'sit','a street figure waves from its seat by staying seated');});
 
 test('module spots and seats face the right way in a turned module (they subtracted the turn)',()=>{

@@ -40,9 +40,9 @@ test('animations are checked: only clips the speaker really has; never on the pl
  assert.equal(N.clipsFor('street-cat').ok,false);assert.match(N.problem('street-cat','idle'),/cat/);
  assert.equal(N.clipsFor('You').ok,false);assert.ok(N.clipsFor('admin').clips.some(c=>c.id==='shrug'));assert.ok(N.clipsFor('bartender').clips.some(c=>c.id==='wipe'),'the District bartender is Nyx');
  assert.equal(N.clipsFor('milked-eva').ok,false,'a shared street figure is not one person');
- const added='npc-busker/laugh';assert.ok(N.problem('grey-reverie',added),'not added yet');assert.equal(N.problem('grey-reverie',added,{plan:{mode:'original',anims:[added]}}),'');
+ const added='npc-busker/laugh';assert.equal(N.problem('grey-reverie',added),'','verified shared motion is directly available');assert.equal(N.problem('grey-reverie',added,{plan:{mode:'original',anims:[added]}}),'');
  const rv=[{id:'rv',kind:'talk',npc:'grey-reverie',label:'Talk to Reverie',say:[{who:'grey-reverie',text:'Hey.',anim:added}]}];
- assert.match(err(rv),/not an animation/);assert.equal(err(rv,{'grey-reverie':{mode:'original',anims:[added]}}),'');
+ assert.equal(err(rv),'');assert.equal(err(rv,{'grey-reverie':{mode:'original',anims:[added]}}),'');
 });
 
 test('an animation step: offered by the wizard and the step list, plays when it is the step in progress, done by the game\'s report after its seconds',()=>{
@@ -70,7 +70,7 @@ test('existing content still checks and plays (lines without a speaker id fall b
 
 test('the admin inventory lists each character\'s clips for the server, and the crowd controller can play a clip for a while (perform)',()=>{
  fresh();const inv=require(R('tools/admin-inventory.cjs')).build();const g=inv.missionEditor.gestures;
- assert.deepEqual(g.iris.clips.slice().sort(),['idle','look','shrug','talk']);assert.ok(!g['street-cat']);assert.ok(inv.missionEditor.stepKinds.includes('anim'));
+ assert.deepEqual(g.iris.clips.slice().sort(),['floor-cross','floor-kneel','floor-knees','idle','look','shrug','talk']);   // the floor poses (21 Nov 2026)assert.ok(!g['street-cat']);assert.ok(inv.missionEditor.stepKinds.includes('anim'));
  assert.ok(!g['grey-reverie'].clips.some(c=>/walk|run|^sit/.test(c)));
  const src=fs.readFileSync(R('void-runner/crowd.js'),'utf8');assert.match(src,/function perform\(name,/);assert.match(src,/if\(perf\)\{perf\.wanted=name;return;\}/,'the scene\'s own play() waits while a mission clip plays');
  const html=fs.readFileSync(R('void-runner.html'),'utf8');assert.ok(html.indexOf('npc-gestures.js')>html.indexOf('npc-paths.js')&&html.indexOf('npc-gestures.js')<html.indexOf('mission-content.js'));

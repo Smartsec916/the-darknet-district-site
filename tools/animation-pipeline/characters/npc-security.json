@@ -57,6 +57,9 @@
   "va-vr-aim-down",
   "va-vr-shoot",
   "va-vr-hit",
-  "va-vr-duck"
+  "va-vr-duck",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ]
 }
