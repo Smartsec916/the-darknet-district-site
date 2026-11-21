@@ -6,6 +6,11 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V15 — IMPORT MANAGER (local, not deployed)
+
+- Improved starter motion: rest leg rotations are unchanged for idle/talk, knee flexion stays on the lateral hinge axis, arm movement is less exaggerated, and skin weighting excludes the opposite leg for clearly separated lower-body vertices. Regenerate starter animations and Align skeleton can strip only the isolated editor-generated starter streams before regeneration, refusing custom or imported clips; changes are saved only after a valid model is produced. Model save now accepts a processed saved model without reselecting the source file. Actual Pinky model was not available for visual testing.
+- Companion Manager gives the PC developer an explicit package import tab and readiness list. A complete imported model is automatically registered in the existing private VR picker, while an incomplete draft stays hidden. Separate public-release preparation exports a reviewed package after the owner checks licensing and tests the motion. Public upload is not connected: Firebase CLI failed authentication while checking the existing database. No backend or public roster was changed.
+
 ### 21 Nov 2026: COMPANION STUDIO V14 — AUTOMATIC BASIC MOTIONS
 
 - Animations and Release checklist provide Auto-Generate Basic Animations for saved editor-generated humanoid GLBs. Procedural keyframes create idle, talk, walk, sit, sit-enter, sit-exit and optional run, including hip translation for seated motions. Existing populated clips and skin/binary streams are retained. No Meshy credits or external service. This is approximate in-place animation, not mocap or collision-aware IK; arbitrary third-party rigs are rejected and the owner should inspect each generated clip on the actual model. The revised model stays in the developer's local draft and remains under 15 MB or the operation fails before saving. Cache version 14.
