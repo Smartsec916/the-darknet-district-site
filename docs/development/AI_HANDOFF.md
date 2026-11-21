@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: MULTI-MESH AUTO-RIG PREPARATION (local)
+
+- Static GLB parts in a single scene are flattened through their world transforms into a combined mesh, retaining primitive materials, UVs, indices and embedded textures. Positions, normals and tangents are transformed before weighting. Existing skins, animations, morph targets, mirrored/singular transforms and unsupported hierarchy/geometry are rejected instead of silently damaged. Approximate humanoid rigging still requires an upright A/T pose and manual review.
+
 ### 21 Nov 2026: EXPANDED FREE POSE LIBRARY (local)
 
 - 53 distinct built-in poses plus original-pose reset, organized in five categories on mobile and PC. Recognizable arm and leg chains are posed in model-relative directions; seated poses require both leg chains. These are editable static poses, not AI motion, automatic finger posing or collision-aware IK. Align preview height independently, and capture poses as animation keyframes if desired. No external credits or downloads required.
