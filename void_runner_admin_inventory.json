@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "4a2eb2c2a32fff1f",
+  "revision": "5486b940761b50a1",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -71297,49 +71297,49 @@
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 208,
+      "line": 211,
       "text": "/* One slot as something a screen can show and say. Each slide: {kind, cat, look, speaker, label, title, lines:[{text, say, hold}]}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 214,
+      "line": 217,
       "text": "say: the exact text a recording is looked up by (null: nothing is ever said for it). hold: seconds on screen without a recording. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 216,
+      "line": 219,
       "text": "if(slot.type==='board'){const c=CATEGORIES.board;return {kind:'board',cat:'board',look:c.look,speaker:c.speaker,label:standings?.header||'WARFLYING LEADERSHIP BOARD',title:'',standings,lines:[{text:standings?.spoken||'',say:standings?.spoken||null,hold:TIMING.board}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 217,
+      "line": 220,
       "text": "if(slot.type==='news'){const s=slot.segment,c=CATEGORIES.news;return {kind:'news',cat:'news',look:c.look,speaker:s.speaker||'news-anchor',label:c.label,title:s.headline||'',id:s.id,lines:[{text:s.headline||'',say:null,hold:TIMING.headline,headline:true},...s.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 219,
+      "line": 222,
       "text": "if(ad.brand){const full=ad.brand+' — '+ad.line;return {...base,kind:'brand',title:ad.brand,lines:[{text:ad.line,say:full,hold:TIMING.brand}]};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 220,
+      "line": 223,
       "text": "if(ad.lines)return {...base,kind:'script',title:ad.title,lines:[...(ad.relay||!ad.title?[]:[{text:ad.title,say:ad.title,hold:TIMING.title,title:true}]),...ad.lines.map(t=>({text:t,say:t,hold:TIMING.line}))]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 221,
+      "line": 224,
       "text": "return {...base,kind:'notice',title:'',lines:[{text:ad.line,say:ad.line,hold:TIMING.notice}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ad-screens-data.js",
-      "line": 224,
+      "line": 227,
       "text": "function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}",
       "kind": "source-reference"
     },
@@ -79287,7 +79287,7 @@
     "void-runner/account.js": "f563947f736598329836da9f4b64b3b0af40921aa2a4ce9f943eb9c560ecc3c1",
     "void-runner/achievements.js": "c9fcfe10ff0b63159be95d0b2e139ac3dcc3848080d80f40f50589148fddf200",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
-    "void-runner/ad-screens-data.js": "cb606f2d602c753f2b5b32bb943af27ecdc2f48172a4f32fc7db2e1fcc4ab301",
+    "void-runner/ad-screens-data.js": "5b13747bea7f18ff550dbd856d84d262ecc7341ee1bef68a2db446b7f1e44e50",
     "void-runner/ad-screens.js": "d8634ec993098c1970f550d47343414714b497ac3e0b3ef1f9ec45eb7669ec38",
     "void-runner/anim-library.js": "660f03c7a581a52012ca3119bd5d131e2e7230b18ffe4031eb8ee9756370e951",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
