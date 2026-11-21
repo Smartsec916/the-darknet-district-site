@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V22 — QUICK LINKS (local, not deployed)
+
+- Phone and PC Companion Studio now share a collapsible Helpful links directory with descriptions for the standalone studio, game, developer studio, content atlas, ChatGPT, ElevenLabs, Meshy, Mixamo, Quaternius, KinemIQ and Blender. In-game shortcuts open the existing NPC, mission and zone editors. External links open in a separate tab; no uploads or automatic publishing. Cache version 22.
+
 ### 21 Nov 2026: COMPANION STUDIO V21 — APARTMENT REGISTRY (local, not deployed)
 
 - The Residence tab lists mission-reserved buildings, including inactive missions and street hack objectives, and exact companion apartment assignments. Mission hallway slots can change with active instances, so the entire building is flagged conservatively. Saving into a reserved building requires an explicit override. Phone reads shipped and published missions plus local companion drafts; PC also reads local mission editor drafts. Unknown/unverified data is labelled. V20 was pushed as 73fddb1cba9992e4158cb5a091c690da4bef12d1 and its public editor V20 verified; matching backend deployment dep-dc0t5aqvcj2c73bmg4i0 was in progress. V21 requires a separate push.
