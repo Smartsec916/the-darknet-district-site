@@ -57983,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "0fb93160c4eace16",
+  "revision": "a79e44e98f31ab40",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -71210,6 +71210,174 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 2,
+      "text": "whether Iris says something now; a line shows as \"Iris (Comms): ...\" in the notice line and plays her recorded clip (voice-clips.js, speaker 'iris' + exact text)",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 6,
+      "text": "(Mission 009 done, Mission 010 not here yet), and everything that makes it busy (a conversation, a call, a banner, the V1 open, a camera feed, another voice line,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 27,
+      "text": "try{if(typeof speech!=='undefined'&&speech)return true;}catch{}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 31,
+      "text": "const n=root.VoidVoiceClips?.now;if(n&&!n.ended)return true;if(root.speechSynthesis?.speaking)return true;",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 47,
+      "text": "function say(line){const text=line.text;try{announce('Iris (Comms): '+text);try{noticeTime=Math.max(noticeTime,Math.min(9,2.5+text.length/16));}catch{}}catch{}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 52,
+      "text": "try{const c=ctx(),l=R.decide(st,c,clock);if(l)say(l);}catch(e){console.warn('[iris ambient]',e);}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient-game.js",
+      "line": 57,
+      "text": "if(p&&!p.querySelector('[data-action=\"iris-chatter\"]'))p.insertAdjacentHTML('beforeend','<h2>Iris</h2><button data-action=\"iris-chatter\" class=\"quiet\" aria-pressed=\"'+playerOn+'\">IRIS CHATTER: '+(playerOn?'ON':'OFF')+'</button><p class=\"fine\">Now and then Iris says a short line over Comms while you work (a long hack, sneaking past a guard, a quiet walk).</p>');}catch{}return r;};}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 1,
+      "text": "/* IRIS'S AMBIENT LINES: the rules (Node + browser; the game wiring is iris-ambient-game.js). The owner approved 13 short lines on 21 Nov 2026 that Iris says",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 4,
+      "text": "- Never while anything else is going on (a conversation, a call, a cutscene, a camera feed, another voice line, a menu): `busy` skips; nothing is queued.",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 7,
+      "text": "25 s after 009 ends the wait line, then a shorter cooldown so she says a few more (jokes, the store line if it has not played this session), no line twice; it stops",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 13,
+      "text": "{id:'iris-bark-hack-1',cat:'hack',text:'Almost there.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 14,
+      "text": "{id:'iris-bark-hack-2',cat:'hack',text:'Just a little longer.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 15,
+      "text": "{id:'iris-bark-hack-3',cat:'hack',text:'Steady. You\\'re halfway through.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 16,
+      "text": "{id:'iris-bark-hack-4',cat:'hack',text:'Keep your hand still. Nearly done.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 17,
+      "text": "{id:'iris-bark-sneak-1',cat:'sneak',text:'Easy. Don\\'t rush it.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 18,
+      "text": "{id:'iris-bark-sneak-2',cat:'sneak',text:'He hasn\\'t seen you. Let\\'s keep it that way.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 19,
+      "text": "{id:'iris-bark-spotted-1',cat:'spotted',text:'That happens. Try again, a little slower.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 20,
+      "text": "{id:'iris-bark-wait-1',cat:'wait',text:'Nothing yet. I\\'ll tell you the moment it changes.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 21,
+      "text": "{id:'iris-bark-joke-1',cat:'joke',text:'For the record, I calculated your odds. I\\'ve decided not to share them.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 22,
+      "text": "{id:'iris-bark-joke-2',cat:'joke',text:'I\\'d come and help, but someone has to mind the counter.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 23,
+      "text": "{id:'iris-bark-joke-3',cat:'joke',text:'You\\'re doing fine. Statistically, someone has done this worse.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 24,
+      "text": "{id:'iris-bark-store-1',cat:'store',text:'Have you seen the new T-shirts in the store? You\\'d look a lot cooler doing this in one.'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 25,
+      "text": "{id:'iris-bark-store-2',cat:'store',text:'If you\\'re going to break into places, you might as well look good doing it. The store has new shirts.'}];",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 31,
+      "text": "calmFor:60,             // jokes and the store line: this long with no hack, sneak, combat, call, conversation or other voice first",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 52,
+      "text": "enabled (the player's \"Iris chatter\" setting and the developer switch), contact (Iris is a contact), busy (conversation, call, cutscene, feed, voice, menu, dev play-test),",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 56,
+      "text": "Returns null or {id, cat, text, speak} (already recorded: say it now). */",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 63,
+      "text": "const out=(l,quiet)=>{commit(st,l,now,quiet);if(st.gap)st.gap.used.add(l.id);return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/iris-ambient.js",
+      "line": 91,
+      "text": "function force(st,cat,ctx={},now=0,opt={}){if(ctx.busy)return null;const rnd=opt.random||Math.random,l=choose(of(cat),rnd);if(!l)return null;commit(st,l,now,cat==='joke'||cat==='store');return {id:l.id,cat:l.cat,text:l.text,speak:ctx.voice!==false};}",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/live-content.js",
       "line": 4,
       "text": "the dialogue window through renderLine (its old voice clip no longer matches, so it is shown as text, the game's existing behaviour for a line without a clip).",
@@ -72075,127 +72243,133 @@
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 315,
-      "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:IRIS_OK.congrats+'\\n'+IRIS_OK.walk,when:{kind:'after-mission',mission:'m011-leverage'}},",
+      "line": 298,
+      "text": "no longer says \"That's the one\" (the call comes right after the navigation call, before the player has picked a marker). Ready to record (ElevenLabs).",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
       "line": 318,
-      "text": "{id:'notice',kind:'message',label:'Take Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
+      "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:IRIS_OK.congrats+'\\n'+IRIS_OK.walk,when:{kind:'after-mission',mission:'m011-leverage'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
       "line": 321,
+      "text": "{id:'notice',kind:'message',label:'Take Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/main-story.js",
+      "line": 324,
       "text": "say:[IRIS(IRIS_NEW.review),IRIS(IRIS_NEW.slots),IRIS(IRIS_NEW.manage),IRIS(IRIS_NEW.admin),IRIS(IRIS_NEW.port)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 322,
+      "line": 325,
       "text": "{id:'port',kind:'enter',place:'port',label:'Travel to the Port.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 323,
+      "line": 326,
       "text": "{id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.there),IRIS(IRIS_OK.boardHer)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 326,
+      "line": 329,
       "text": "{id:'cockpit-display',kind:'call',via:'comms',delay:3,label:'Listen to Iris: the cockpit display.',say:[IRIS(IRIS_NEW.display)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 327,
+      "line": 330,
       "text": "{id:'cockpit-controls',kind:'call',via:'comms',delay:10,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 328,
+      "line": 331,
       "text": "{id:'cockpit-weapons',kind:'call',via:'comms',delay:12,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 329,
+      "line": 332,
       "text": "{id:'cockpit-nav',kind:'call',via:'comms',delay:10,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 330,
+      "line": 333,
       "text": "{id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 331,
+      "line": 334,
       "text": "{id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 332,
+      "line": 335,
       "text": "{id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 333,
-      "text": "{id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},",
+      "line": 336,
+      "text": "{id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(ROOK_CARGO.rookMeet)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 334,
-      "text": "{id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],",
+      "line": 337,
+      "text": "{id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(ROOK_CARGO.rookPay)]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 335,
+      "line": 338,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'},{kind:'contract-flag',id:'rook-first-delivery-done',value:true,when:'deliver'}]};   // the contract with the flight Map / Rook's cargo board (branch claude/flight-map-coords)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 340,
+      "line": 343,
       "text": "/* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 341,
+      "line": 344,
       "text": "const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 364,
+      "line": 367,
       "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 366,
+      "line": 369,
       "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 368,
+      "line": 371,
       "text": "const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 369,
+      "line": 372,
       "text": "const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}",
       "kind": "source-reference"
     },
@@ -74314,7 +74488,7 @@
     {
       "source": "void-runner/mission-mechanics-game.js",
       "line": 73,
-      "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
+      "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidIrisAmbient?.spotted?.();}catch{}try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
       "kind": "source-reference"
     },
     {
@@ -76083,8 +76257,8 @@
     },
     {
       "source": "void-runner/rook-cargo-jobs.js",
-      "line": 56,
-      "text": "/* Rook's lines for the side missions. PROPOSED placeholder text: needs owner approval before recording (no voice clip exists; they show as text).",
+      "line": 58,
+      "text": "(Checked against the code before approval: the coordinates line no longer says \"landing pads\" or \"anywhere\": the coordinates are stations and planets",
       "kind": "source-reference"
     },
     {
@@ -77751,13 +77925,15 @@
     "void-runner/hud-data.js": "fa55712c0156aabca3454ec157145e1ea8e2dc2e5fcdd41b35aee344864e2455",
     "void-runner/hud-math.js": "2c1bbf16c306bd1e1d6186db92938e391aba7aea8eb9fe4a671053771abf728c",
     "void-runner/input.js": "2547e198158f5601799fe1c2a37183f5f8718853ec2e6852afd17752484a6289",
+    "void-runner/iris-ambient-game.js": "c308b08449fad15f2690ae637be9d0e4369c187565cc824626aff8342bc449eb",
+    "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "9c35d012f1d125d6c93bdf4a0eda94d0ccdd6fbd9ebe97b9e04aa32f2a016843",
     "void-runner/live-content.js": "695743eb31d1c7bf7bbc6ac0641c965fcef0a3b14986764ef4460944417e8e34",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
-    "void-runner/main-story.js": "c488fe0b0b272c8320f4acc591edb929fb1e32e05d0e1d335146ecc295a94ba8",
+    "void-runner/main-story.js": "5b32c2ee9cbe6689520b5a08d650f20d127610a03ed0e0ff443938077e5c51b1",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -77779,9 +77955,9 @@
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
     "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
     "void-runner/mission-mechanics-editor.js": "09b6ee7fcf0d40bd14f11f9552ccb48a5339cd73fdf9befbd5d996b9513259d1",
-    "void-runner/mission-mechanics-game.js": "0c2fe07494ff236b303f813d12b4b3a3d6128ddbbfa8eca3934f91948fca03e3",
+    "void-runner/mission-mechanics-game.js": "82b07e8ded5ef49961c907dd96863036b65341733e35d9b4b5868864810a66cc",
     "void-runner/mission-mechanics.js": "ddf0903cddcd9e6e07953b819ca7734005d991743bdeff91229bfd744cc9efa0",
-    "void-runner/mission-trees.js": "8f34f4f6605212754a186a5aa19d59131361960a1bd5b834149b58b800f846de",
+    "void-runner/mission-trees.js": "05febd25649b556287acf918c84c0b5dc394ec4649f8be13771188bdd3105eeb",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "9dd79cceed2f428c060e498a6b34a4668667cf04d0baad80db2c7bd71004cf73",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
@@ -77857,7 +78033,7 @@
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "45791a8afbcbd2b494f4cc40e51c183ca29d193fbaee00ecdb0c96583d580b5a",
     "void-runner/rook-cargo-gen.js": "e45edad6a10678715449b343e9fe0dfac4858328ac14d24ef64bc57828ccd1d9",
-    "void-runner/rook-cargo-jobs.js": "a8e0627f8fd5a06e2261ec81017126d952e4bcdb6416f5b4f599b8726ac5fca8",
+    "void-runner/rook-cargo-jobs.js": "c79c8c6e7ee79007fc0021306c869dcfed93a10da8de04772ddd5ab4599bc790",
     "void-runner/scenes.js": "cf1061512432f0329ed03cccf7dd5e15c771f9ef21aa51fb96aaffdbd68c858c",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -77906,7 +78082,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "bb67207c790e2515d9ce3aca99c8268060a499b0c6c764b935f54fbcc4ee07a4",
+    "void-runner/world-integration.js": "54006ef34cab747108e8902c1d8ed7cd42ceffef13f03db6bbf907ad0937e3f4",
     "void-runner/world-markers.js": "a46dbb285be035cb9a3d8543a14cdaf06af63201e89d4c1a5af77d1dd4897346",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",

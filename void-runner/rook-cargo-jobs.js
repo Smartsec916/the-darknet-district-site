@@ -53,14 +53,17 @@
    extraSpace:.15,
    titles:{first:['Standard','Priority','Quiet','Steady','Short-notice','Overnight','Scheduled'],trip:['run','haul','drop','delivery']}
   },
-  /* Rook's lines for the side missions. PROPOSED placeholder text: needs owner approval before recording (no voice clip exists; they show as text).
+  /* Rook's lines for the side missions. APPROVED by the owner (21 Nov 2026, "those all look pretty solid"); recorded in his chosen voice (extra/rook-coordinates, extra/rook-board).
+     Changing a word needs a new recording: the clip is matched to the exact text.
+     (Checked against the code before approval: the coordinates line no longer says "landing pads" or "anywhere": the coordinates are stations and planets
+     (nav-coords.js), and he never sends freight to the places in `never` below.)
      coordinates: said once, the first time he offers the side missions; the Map app gets every location's coordinates at that moment (VoidNav.grantCoordinates).
      board: said when he shows the board (every later visit). */
   lines:{
-   coordinates:'Good run. I just sent you coordinates for places all over. Stations, planets, landing pads. Your Map app already has them. Means I can send you anywhere.',
+   coordinates:'Good run. I just sent you coordinates for places all over. Stations, planets. Your Map app already has them. Means I can send you just about anywhere.',
    board:'Got freight going all over. Take a job, the pay is on the board.'
   },
-  status:{lines:'PROPOSED: needs owner approval before recording'}
+  status:{lines:'APPROVED 21 Nov 2026: ready to record'}
  };
  if(typeof module!=='undefined')module.exports=data;else root.VoidRookCargoJobs=data;
 })(globalThis);
