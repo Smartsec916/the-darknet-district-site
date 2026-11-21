@@ -57983,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "9421c17e06dbfa44",
+  "revision": "0fb93160c4eace16",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -77667,7 +77667,7 @@
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "d14f4d2304c1384a57f414bb401bc456c274f5689a180731f149a848b16172b7",
-    "void-runner/campaign.js": "1e47cd44d124036bdff3626ded53366e686524efce7c4d0e65cf64785412cd39",
+    "void-runner/campaign.js": "d487751434b03dae022105534d6dc4a21519573a09f092a33b6a7c78c062e506",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
