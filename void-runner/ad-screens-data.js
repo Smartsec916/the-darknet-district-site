@@ -169,7 +169,10 @@
  // The zone id a screen at (x, z) of a quarter belongs to; null where no screen may stand.
  function zoneAt(quarter,x,z){for(const a of AREAS)if(a.quarter===quarter&&(!a.rect||inRect(a.rect,x,z)))return a.zone;return null;}
  // May a screen stand at (x, z) of a quarter: its zone allows one and it is not in or against a checkpoint (gates: VoidQuarters.GATES).
- const allowed=(quarter,x,z,gates=[])=>!!zoneAt(quarter,x,z)&&!gates.some(g=>x>=g.rect[0]-GATE_MARGIN&&x<=g.rect[1]+GATE_MARGIN&&z>=g.rect[2]-GATE_MARGIN&&z<=g.rect[3]+GATE_MARGIN);
+ const allowed=(quarter,x,z,gates=[])=>{
+  const stand=(root.VoidFoodStands||(typeof module!=='undefined'&&module.exports?require('./ncz-food-stands.js'):null))?.STANDS[quarter];
+  return !!zoneAt(quarter,x,z)&&!gates.some(g=>x>=g.rect[0]-GATE_MARGIN&&x<=g.rect[1]+GATE_MARGIN&&z>=g.rect[2]-GATE_MARGIN&&z<=g.rect[3]+GATE_MARGIN)&&(!stand||Math.hypot(x-stand.x,z-stand.z)>=6);
+ };
  const inEra=(ad,era)=>ad.era===undefined||ad.era===null?true:era!=null&&(Array.isArray(ad.era)?ad.era.includes(era):ad.era===era);
  const mulberry=seed=>{let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
  const hash=text=>{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};

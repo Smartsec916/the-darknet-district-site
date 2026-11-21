@@ -44,6 +44,13 @@ test('sidewalk NPCs keep the food counters clear',()=>{
  }
 });
 
+test('ad screen placement leaves a six metre buffer around food stands',()=>{
+ const A=require('../void-runner/ad-screens-data.js');
+ for(const [q,s] of Object.entries(F.STANDS))assert.equal(A.allowed(q,s.x,s.z,Q.GATES),false,q);
+ assert.equal(A.allowed('oldtown',70.7,-106.5,Q.GATES),false,'the Old Town wall screen found by browser regression');
+ assert.equal(A.allowed('oldtown',61,-80,Q.GATES),true,'unrelated screen stays eligible');
+});
+
 test('full food stand footprints clear destinations, checkpoint approaches, doors and building corners',()=>{
  const footprint=s=>{const p=[[-1.9,-1.8],[-1.9,.695],[1.9,-1.8],[1.9,.695]].map(([x,z])=>F.world(s,x,z));return [Math.min(...p.map(v=>v[0])),Math.max(...p.map(v=>v[0])),Math.min(...p.map(v=>v[1])),Math.max(...p.map(v=>v[1]))];};
  const pointGap=(r,x,z)=>Math.hypot(Math.max(r[0]-x,0,x-r[1]),Math.max(r[2]-z,0,z-r[3]));
