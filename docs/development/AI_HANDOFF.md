@@ -14,6 +14,7 @@
 - **Not verified:** real GPU; how the CJK fallback font looks on a Windows / ROG Ally machine (the font list prefers Noto / Yu Mincho / MS Mincho).
 
 ### 20 Nov 2026: THE TEA ROOM HOST (A GIVER BEHIND THE TEA STATION), THE LUCKY CAT ON HIS COUNTER, NPCs OPEN SLIDING DOORS, SITTING ON THE ALCOVE SEATS, SMALL UNDERGROUND FIXES (branch `claude/tea-master`, built on `claude/tunnel-network`, build `2026-11-20-tea-host-1`, pushed, NO PR, not merged)
+### 20 Nov 2026 (newest): THE TEA ROOM HOST (A GIVER BEHIND THE TEA STATION), THE LUCKY CAT ON HIS COUNTER, NPCs OPEN SLIDING DOORS, SITTING ON THE ALCOVE SEATS, SMALL UNDERGROUND FIXES (branch `claude/tea-master`, built on `claude/tunnel-network`, build `2026-11-20-tea-host-1`, pushed, NO PR, not merged)
 
 The owner: "give me an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver." Then: a maneki-neko on that counter (reuse Milked's), and his voice: ElevenLabs `zYD0xJl1ponKr8TwFBmJ`.
 
