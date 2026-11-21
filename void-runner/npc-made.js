@@ -159,7 +159,7 @@
   const A=root.VoidAssets,SP=root.VoidStreetPair,Ar=AR(),HERE=new Set(Ar?Ar.here(where.scene||'street',where.quarter||null):[]),cfg=SP&&SP.config;if(!A||!SP||!cfg||!scene)return null;
   const people=new Map(),asked=new Map(),items=new Map(),away=new Set(),rnd=Math.random;let clock=0,scan=0,disposed=false;
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null,me=()=>typeof walker!=='undefined'?walker:null;
-  const yAt=(x,z,last)=>{const g=Ar?Ar.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:.18;};
+  const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=Ar?Ar.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:.18;};   // on the stairs to the tunnels: the steps' height
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
   const has=m=>!!A.container?.('crowd:'+m);
   function ask(m){const t=asked.get(m);if(t!=null&&clock<t)return;asked.set(m,clock+20);Promise.resolve(A.load('crowd:'+m,{src:fileOf(m),background:true},scene)).catch(e=>{try{console.info('[VOID//RUNNER made givers] '+m+' is not on this machine ('+(e&&e.message||e)+').');}catch{}});}
@@ -182,12 +182,21 @@
   const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};
   function chatting(){if(!convo()){chatSeen=false;chatWho=null;return null;}if(!chatSeen){chatSeen=true;const t=typeof walkTarget!=='undefined'?walkTarget:null;chatWho=t&&t.action===ACTION?t.character:speaker();}return chatWho;}
   // a follow / lead step (npc-escort.js; cab rides are only Reverie's and Lace's)
+  /* the player's street taxi (road-taxi.js), as ncz-street-pair.js reads it: a follow / lead step's person rides along (20 Nov 2026) */
+  function taxiJob(){const T=root.VoidRoadTaxi,R=root.VoidRoadTaxiRules,j=T&&T.world&&T.world.job;if(!j||j.released||!j.cab)return null;const did=j.dest&&j.dest.id;return {id:j.cab.id+':'+did,phase:j.cab.phase,dest:did,far:!!(root.VoidQuarters?.FAR||[]).some(f=>f.id===did),released:false,cab:{x:j.cab.x,z:j.cab.z,yaw:j.cab.yaw},doors:R?R.doorPoints(j.cab):[]};}
   function escTick(p,P,dt){const E=root.VoidNPCEscort;if(!E)return 'idle';let e=p.esc;
-   if(!e||e.key!==P.key){e=p.esc={key:P.key,st:{x:p.s.x,z:p.s.z,yaw:p.s.yaw||0,phase:null},trail:{pts:[],shifted:0}};const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;if(r&&r.unarmed)e.st.unarmed=true;}
-   const w=me(),mp=w&&Number.isFinite(w.x+w.z)?{x:w.x,z:w.z}:null,walking=typeof mode!=='undefined'&&mode==='walking';if(walking&&mp)E.trailPush(e.trail,mp);
-   const inp={area:P.area||'avenue',me:mp,to:P.to||null,door:P.door||null,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
+   if(!e||e.key!==P.key){e=p.esc={key:P.key,st:{x:p.s.x,z:p.s.z,yaw:p.s.yaw||0,phase:null},trail:{pts:[],shifted:0},cab:null};const r=P.resume;if(r&&Number.isFinite(r.x)&&Number.isFinite(r.z)){e.st.x=r.x;e.st.z=r.z;if(Number.isFinite(r.yaw))e.st.yaw=r.yaw;}if(r&&P.kind==='follow-them'&&['walk','wait','paused','there'].includes(r.phase))e.st.phase=r.phase==='walk'?'wait':r.phase;if(r&&r.unarmed)e.st.unarmed=true;if(r&&r.ride==='in-cab')e.st.ride='in-cab';}
+   const w=me(),mp=w&&Number.isFinite(w.x+w.z)?{x:w.x,z:w.z}:null,md=typeof mode!=='undefined'?mode:'',walking=md==='walking',riding=md==='road-taxi';if(walking&&mp)E.trailPush(e.trail,mp);
+   const crossing=!!root.VoidRoadTaxi?.crossing||md==='preparing',job=taxiJob(),tellE=(ev,x)=>{try{root.VoidStreetPair?.onEscort?.({npc:p.id,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z,...(x||{})});}catch{}};
+   // her taxi ride with the player (npc-escort.js rideAlong): seated in the companion's seat (the model's sit clip, else out of sight behind the tinted glass)
+   const rr=E.rideAlong?E.rideAlong(e.st,{me:mp,job,riding,dt,set:P.set,crossing,can:true}):{busy:false,ev:null};if(rr.busy&&job&&e.st.ride==='in-cab')e.cab=job.cab;
+   if(rr.ev==='ride-out'||rr.ev==='ride-left'){e.trail.pts.length=0;e.trail.shifted=0;const R=root.VoidRoadTaxiRules,c=e.cab;if(c&&R){const ds=R.doorPoints(c),pick=ds.filter(q=>{try{return !root.VoidExplorer?.blocked?.(q.x,q.z,wl());}catch{return true;}}).sort((a,b)=>mp?Math.hypot(b.x-mp.x,b.z-mp.z)-Math.hypot(a.x-mp.x,a.z-mp.z):0)[0]||ds[2];if(pick){e.st.x=pick.x;e.st.z=pick.z;e.st.yaw=c.yaw||0;}}e.cab=null;}
+   if(rr.ev)tellE(rr.ev,{ride:e.st.ride||null});
+   if(e.st.ride==='in-cab'){p.seat=e.cab&&root.VoidRoadTaxiRules?.companionSeat?root.VoidRoadTaxiRules.companionSeat(e.cab):null;if(p.seat){e.st.x=p.seat.x;e.st.z=p.seat.z;e.st.yaw=p.seat.yaw;}p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return 'sit';}
+   p.seat=null;if(e.st.ride==='to-cab'){p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return e.st.clip||'walk';}
+   const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
-   if(ev)try{root.VoidStreetPair?.onEscort?.({npc:p.id,key:P.key,step:P.step,kind:P.kind,event:ev,phase:e.st.phase,x:e.st.x,z:e.st.z});}catch{}return e.st.clip||'idle';}
+   if(ev)tellE(ev);return e.st.clip||'idle';}
   /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026; as ncz-street-pair.js): a new plan she cannot walk to straight is held while she is in view
      (p.hold: the plan she keeps), and a figure that should go (its mission is over, its plan left this area) stays on its last plan until it is out of view (p.going). */
   function seenAt(x,y,z,cam){if(!cam||!Number.isFinite(x+z))return false;if(Math.hypot(cam.x-x,cam.z-z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius)return false;
@@ -206,6 +215,7 @@
     if(p.s.mode==='esc')p.s.mode='plan-go';const plan=P&&(P.mode==='stay'||P.mode==='path')?P:{key:'here',mode:'stay',x:p.s.x,z:p.s.z,yaw:p.s.yaw,actions:['idle']};
     SP.routineStep(p.s,dt,rnd,cfg,{plan,player:w?{x:w.x,z:w.z}:null,cat:null});if(p.s.mode==='walk'||p.s.mode==='run')p.s.mode='plan-go';clip=p.s.clip||'idle';}
    if(!Number.isFinite(p.s.x+p.s.z+p.s.yaw)){const t=P&&(P.mode==='stay'?P:P.points?P.points[0]:null)||{x:n.position.x,z:n.position.z};p.s.x=t.x;p.s.z=t.z;p.s.yaw=0;}
+   if(clip==='sit'&&p.seat&&p.esc&&p.esc.st.ride==='in-cab'){const sit=(NPX()?.crowdClips?.(p.c.model)||[]).includes('sit');n.position.set(p.s.x,p.seat.y,p.s.z);n.rotation.y=p.s.yaw;if(n.isEnabled()!==sit)n.setEnabled(sit);if(sit&&p.anim&&p.clip!=='sit'){p.clip='sit';p.anim.play('sit');}p.anim?.setActive?.(sit&&d<animRadius);const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}return;}   // riding in the player's taxi
    p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);{const o=SP.seatOffset?SP.seatOffset(p.s,p.s.zo||0):{x:0,z:0};n.position.set(p.s.x+o.x,p.y,p.s.z+o.z);}/* seated: the routine's eased offset (ledges and the tunnels' seats) */n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
    if(p.anim&&clip!==p.clip){p.clip=clip;p.anim.play(clip);}
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
@@ -219,7 +229,7 @@
    if(L&&Array.isArray(L.interactions))for(const [id,p] of people){const it=itemFor(id,p.c),k=L.interactions.indexOf(it),want=p.node.isEnabled()&&!p.going;if(want&&k<0)L.interactions.push(it);else if(!want&&k>=0)L.interactions.splice(k,1);}
    nameCards();}
   function tick(dt){if(disposed)return;clock+=dt;if((scan-=dt)<=0){scan=.25;try{sync();}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}}const cam=scene.activeCamera?.globalPosition||null;for(const p of people.values())try{step(p,dt,cam);}catch{}}
-  const self={tick,stats:()=>({here:[...HERE],people:[...people.values()].map(p=>({id:p.id,name:p.c.name,model:p.c.model,x:+p.node.position.x.toFixed(2),z:+p.node.position.z.toFixed(2),yaw:+(p.node.rotation.y||0).toFixed(2),mode:p.s.mode,clip:p.clip,device:p.c.device||null,props:p.props.map(m=>m.name),talk:!!wl()?.interactions?.includes(items.get(p.id)),look:p.node.metadata?.npcLook||null,enabled:p.node.isEnabled()}))}),
+  const self={tick,stats:()=>({here:[...HERE],people:[...people.values()].map(p=>({id:p.id,name:p.c.name,model:p.c.model,x:+p.node.position.x.toFixed(2),z:+p.node.position.z.toFixed(2),yaw:+(p.node.rotation.y||0).toFixed(2),mode:p.s.mode,clip:p.clip,device:p.c.device||null,props:p.props.map(m=>m.name),talk:!!wl()?.interactions?.includes(items.get(p.id)),look:p.node.metadata?.npcLook||null,enabled:p.node.isEnabled(),esc:p.esc?{key:p.esc.key,phase:p.esc.st.phase,ride:p.esc.st.ride||null,x:+p.esc.st.x.toFixed(2),z:+p.esc.st.z.toFixed(2),yaw:+(p.esc.st.yaw||0).toFixed(2)}:null}))}),
    get people(){return people;},dispose(){disposed=true;for(const id of [...people.keys()])leave(id);if(root.VoidMadeNPCs&&root.VoidMadeNPCs.live===liveFn)root.VoidMadeNPCs.live=null;}};
   const liveFn=()=>self.stats();root.VoidMadeNPCs.live=liveFn;return self;}
  /* Name cards for the dialogue window (as mission-givers do for their speakers). */

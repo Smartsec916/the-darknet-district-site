@@ -2,6 +2,78 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Twenty-eighth pass (20 Nov 2026): "…and only when": extra start conditions (a secondary trigger)
+
+Branch `claude/second-trigger`, build `2026-11-20-second-trigger-1`. Pushed, no PR, not merged. The owner: "can you add a secondary trigger. so like i can set the first one to 'when you get close to' giver, then a secondary trigger, like 'when other npcs are farther than . . .' and other ones. if a secondary isn't set it will just go off the first trigger."
+
+### How to use it (plain steps)
+
+1. Open the mission. Under **How this mission starts** (Form view), or in the **Start** block (Blocks view), find **…and only when (optional)**.
+2. Press **+ ADD CONDITION**, choose the kind, fill in its boxes. Add up to six. **×** removes one.
+3. The line above the conditions says the whole start in plain words, for example: "Starts when you walk within 4 m of Reverie, and only when no other placed people are within 6 m of Reverie and the player’s weapon is holstered."
+4. Leave it empty and nothing changes: the mission starts on its trigger alone.
+
+The kinds:
+
+| Condition | What it checks |
+|---|---|
+| No other people near someone | Nobody else within N m (1–30) of the giver (or another person you pick). Tick **count the street crowd** to count the crowd too; untick it to count only placed people (residents, characters you made, people placed for a mission). |
+| No other players near someone | No other online player within N m (1–50) of that person (multiplayer: the players drawn on your level). |
+| Time of day (street clock) | Between two times on the street clock (UTC, the clock Reverie's and Lace's shifts use). 20:00 to 04:00 goes past midnight. |
+| The player is in a place | An exact spot, a venue or a whole area / quarter (the place list). |
+| Another mission is finished / not finished | Pick the mission. |
+| A story flag is set / not set | Set means any value except false. |
+| The player has at least some credits | Checked, never taken. |
+| The player has a ship / has no ship | |
+| The player is on foot | Not riding a taxi, not flying. |
+| The player has not drawn their weapon | |
+| The zone where the player is | Friendly, Neutral or Hostile. |
+
+### What happens when the conditions are not true at that moment
+
+- **Walk near:** the game keeps checking (four times a second) while the player stays in range, and starts it the moment they all become true (the other person walks off).
+- **In person (talk):** the giver does not offer it this time; the next time the player talks to them it is checked again.
+- **After a mission / after in-game time / a story flag:** these are states; it starts as soon as the trigger and every condition are true.
+- **Leave the Sleeping Pod / enter a place / leave a place** (one moment): the game remembers that the trigger happened (`story.flags.mq_<mission>`) and keeps checking twice a second while the player walks; it starts once the conditions are true, and the mark is removed.
+
+A condition the game cannot measure at that moment (the person is not in this scene) counts as not true: the mission waits rather than starting wrongly.
+
+### Walk near without words (21 Nov 2026)
+
+The owner, of a walk-near start with the Tea Room Host: "everything is said in person". For **Walk near them** (the banner start triggered by walking near), the banner's **Sender**, **Header** and **Body** are now optional and folded under **Show the banner text**. Left empty, no text is sent: the player sees only the short line "NEW MISSION · <name> (tracked in your V1, L)", the mission goes into the Mission Log, and the giver says the offer lines in person (with ACCEPT / DENY when it asks). A header alone shows as the banner. Messages, Comms calls and banner starts with any other trigger still need their words. Game: `mission-content.js quietStart` (checkStart, treeNeeds, notify, prompt); server: `start_problems` (**Render redeploy** needed, as for the conditions).
+
+### What was left out
+
+- **"The giver is idle (not walking a route)"**: the people who walk routes (Reverie and Lace, made characters, mission cast) each keep their own state; there is no single clean "walking now" signal for every giver, so it was not built.
+- **Steps:** the conditions gate a mission's **start** only. There is no "walk near" step kind to gate (the wait step already has "only while within N m of someone").
+- The wizard does not set conditions; its "How does it start?" page says to add them later in the editor.
+
+### For Claude and Codex
+
+- Rules: `void-runner/start-conditions.js` (`VoidStartConditions`, pure, Node and browser; loaded before `mission-content.js`): `KINDS`, `problems()`, `check()`, `strip()`, `fresh()`, `sentence()`. Data: `start.only` (any way of starting), a list of `{kind, …}`.
+- Engine: `mission-content.js` `treeEvent` `startsNow` = the old trigger (`fires`) AND `SC.check`; one-moment triggers arm `mq_<mission>` (`armFlag`), cleared on ACCEPT / DENY / start. `MC.onlyNow(state, env)` lists every waiting mission and which condition fails (also `VoidLiveContent.onlyNow()`).
+- What the game measures: `live-content.js` `env.world` (people near the giver from `VoidCrowd.figures()`, named = placed; remote players from `VoidRemotePlayers.peers`; `lastPlaces`; `mode` for taxi / flight; `groundState.drawn`; `VoidZoneRun.current()`). Asked only while a mission with world conditions could start.
+- Checks: `checkStart` (game) and `only_problems` in `void_runner_live_content.py` (server; same messages). **Render must be redeployed** before the owner publishes a mission that uses them.
+- Editor: `mission-editor.js` `onlyPanel` (Form view; in the Blocks view only the Start block shows it, via `blocksKit.onlyPanel`); `mission-blocks.js setStartMode` keeps `only` when the way of starting changes.
+- Also fixed: the Form view's **+ ADD** for a **Shared game flag** reward saved it without `value: true` and with no flag to choose; the checks refused it. It now lists the flags the game knows and saves `value: true` (`mission-blocks.js newUnlock`).
+- Tests: `tests/start-conditions.test.cjs`, `tests/test_start_conditions.py`; browser: `tests/start-conditions-browser.py` (Python Playwright).
+
+## Twenty-seventh pass (20 Nov 2026): follow / lead steps cross the gates, the stairs to the tunnels and the District's door, walking or in a taxi
+
+Branch `claude/escort-across`, build `2026-11-20-escort-across-1`. Pushed, no PR, not merged. The owner: a follow step did not carry the person through a city gate, or up / down the stairwells between the street and the tunnels: "I need this fixed. whether it's walking or in a taxi".
+
+**In the editor.** A "Follow them" / "They follow you" step still **starts** where the person is placed for the mission ("Giver waits at", else her placement), but its spot (or the street door of its place) may now be in **any area she can walk to from there**: The Avenue, Old Town, Far South, The Outskirts, The Port, The Underground and the District inside, through the city gates' walkers' lanes, the three stairwells to the tunnels and the District's door. The spot map's area list is open (pick the area above the map). The old "the step happens there" note now says where she starts and that she comes through with the player. Cab steps may go to **any stop of the city** (the cab drives through the gates' bays); she calls it in her own area, which must have taxis (none in the tunnels, the District or the Outskirts). Still refused, with the reason as a problem: a spot she may not reach (the street cat never goes inside or down into the tunnels; Reverie, Lace and made characters not marked adult never go where the adult places are: Milked is never on a route), the Corporate District and the Temple. No wizard or blocks change was needed (they use the same checks).
+
+**In the game.**
+- **She leads ("Follow them") to another area:** she walks to the next gate / stairs / door on her route and waits just outside it (outside the gate lane's door, at the top of the stairs, a little inside the checkpoint's door below). The player walks through; she comes through **ahead** of them (out of the far door, at the top of the stairs, inside the checkpoint), waits for them and leads on. The arrow stays on her.
+- **She follows ("They follow you"):** the player goes through; she comes through **behind** them (in the lane, on the landing, by the checkpoint door) and follows on. While she is with the player, the arrow now points at the step's destination (any area); before, it pointed at her.
+- **Too far behind:** "Follow them" with the player beyond "lost": "stop and wait" leaves her where she is (the arrow leads back to her through the gates), "the mission fails" fails it. "They follow you" beyond 40 m: she stays and follows again when the player comes back.
+- **May not go:** she stops at the gate / door and says so ("Reverie does not go there (…): she waits here for you."); never a silent loss.
+- **Taxi:** in any follow / lead step, when the player's taxi waits close by she walks to its door and gets in (or gets in at once if the player boarded first and she is near), rides seated in the companion's seat, through a gate's bay into another quarter too, and gets out with the player; the step goes on from the stop. The cat never rides ("The cat does not ride in cabs: it waits here for you."); a cab to the Corporate District or the Temple: she stays out. A made character rides too (seated if its model has a sit clip, else out of sight behind the tinted glass). Cab steps through a gate keep her seated across the exchange.
+- **Reload mid-step:** as before (story.flags.npcEsc x / z); the area comes from where those put her. No new save field.
+- **Multiplayer:** unchanged (each player's own copy of the person).
+
+**Code map.** `npc-escort.js` ACROSS section: `links()` (each link's `wait` / `ahead` / `behind` per area), `mayEnter`, `areaRoute`, `reach`, `reachWhy`, `legOf`, `linkBetween`, `across`, `arrival`, `rideAlong`; `stops` / `problems` / `intoProblems` use `reach`; `cab()` keeps her seated while a cab crosses; inventory `npcs[id].reach`. `live-content.js plans()`: the plan's `area` is where she is now (`setCarry`, else a reload's saved x / z, else where the step started), `to` is the leg (`via` a link: not done there), `final` / `dest` the destination; `escortWhere`; after a step she is held where it ended. New `npc-escort-across.js` (after `ncz-gate-transit.js`): wraps `enterWalking` and decides for each escort with the player before the old place is released. `ncz-street-pair.js` / `npc-made.js` escTick: `noDone` on a leg, `rideAlong`, the seat, the stairs' height (`VoidBackAlleys.groundAt`). `mission-guide.js escortGoal` + `world-integration.js` (the arrow). Server: `void_runner_live_content.py _reach` (spots and doors in a reachable area; reads the regenerated admin inventory). Tests: `tests/escort-across.test.cjs`, Python additions in `test_npc_escort.py`, `test_follow_into.py`, `test_npc_areas.py`.
 ## 20 Nov 2026: "Unlock all nav coordinates" and where Rook's cargo jobs live (branch `claude/flight-map-coords`)
 
 ### How to use it (plain steps)
