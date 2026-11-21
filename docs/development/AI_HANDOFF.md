@@ -6,6 +6,12 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026 (newest): DEVELOPER TOOLS > GUIDE: A NEW MISSION EDITOR GUIDE (branch `claude/editor-guide`, build `2026-11-21-editor-guide-1`, pushed, NO PR, not merged)
+
+- The owner: "remake me a new mission editor guide and add it as a tab here next to Achievements". New tab **Guide** right after Achievements (book icon), also under More tools on the Start page. Content: `void-runner/mission-editor-guide.js` (loaded on demand by `dev-tools.js loadGuide`, never by players), 18 short sections in plain words with a clickable contents list and a search box that hides sections not matching; styles `.mg-*` in `dev-tools.css`.
+- Written from the code as it is today, plus two branches: the floor poses (`claude/seat-poses`) and "PLAY could not start: …" (`claude/draft-play-fix`). Every button / box name quoted as `[[LABEL]]` is checked against the editor code by `tests/editor-guide.test.cjs` (the seat-pose labels only once that branch is merged). **When you rename a label the guide quotes, update the guide.**
+- No game, save or server change. Screenshots checked at 1366 x 768 and 1920 x 1080.
+
 ### 21 Nov 2026 (newest): FLOOR POSES (KNEELING, CROSS-LEGGED, KNEES TO CHEST), SEATS IN THE TUNNEL ROOMS, MISSION 011 PAYS 5,000 CR (branch `claude/seat-poses`, build `2026-11-21-seat-poses-1`, pushed, NO PR, not merged)
 
 The owner: "can you add kneeling and cross-legged pose? add them to any npc that has the correct skeleton. also a sitting knee to chest pose." And: Mission 011's reward is 5,000 CR (was 25,000).

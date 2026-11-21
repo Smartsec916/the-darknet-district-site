@@ -47,7 +47,7 @@
   ['giver','people','Create a mission giver','Make a new character, step by step: a model, a name, a look, a device, a ship, items and a place in the world.'],
   ['test','test','Test my mission','Play your mission in a practice game. Your real save is never touched.'],
   ['publish','publish','Publish','Check your missions, then send them to every player.']];
- const MORE=[['missions','mission','Mission Editor','Every mission and every setting'],['npcs','people','NPCs','Every character: look, lines, places'],['test','jump','Test & Jump To','Jump to any place to look around'],['balance','balance','Combat Balance','Ship and enemy numbers'],['achievements','trophy','Achievements','The list of achievements']];
+ const MORE=[['missions','mission','Mission Editor','Every mission and every setting'],['npcs','people','NPCs','Every character: look, lines, places'],['test','jump','Test & Jump To','Jump to any place to look around'],['balance','balance','Combat Balance','Ship and enemy numbers'],['achievements','trophy','Achievements','The list of achievements'],['guide','guide','Guide','How the Mission Editor works, in plain words']];
  function home(r){r.append(el('h3','What do you want to do?','eh-title'),el('p','Pick a task. Everything you make is a DRAFT: only you see it until you publish it. UNDO (top right) puts back your last change.','dev-note'));
   const g=el('div','','eh-cards',{'data-eh-cards':'1'});
   for(const [id,ic,title,line] of TASKS){const b=btn('',()=>task(id),'eh-card',{'data-eh-task':id});const big=icon(ic,40);big.classList.add('eh-big');b.append(big,el('b',title),el('span',line));g.append(b);}r.append(g);

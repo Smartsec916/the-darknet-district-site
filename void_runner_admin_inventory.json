@@ -57983,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "07dddeeabec95fc3",
+  "revision": "f1844caee895cf0f",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -73274,6 +73274,204 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 23,
+      "text": "'- The line at the top of the Mission Editor starting \"How your edits reach the game\" says whether publishing is switched on. Click it for details.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 27,
+      "text": "'On the [[Start]] tab press [[Make a mission]]. There is one question per page. [[NEXT]] goes on, [[BACK]] goes back. If something is missing, a yellow box says what and how to fix it.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 30,
+      "text": "'3. [[How does it start?]] [[When the player talks to them]], [[They ask, the player says ACCEPT or DENY]], [[When the player walks near them (starts automatically)]], [[When the player walks near them, they ask ACCEPT or DENY]], or [[A text message on the V1]] (it arrives when the player first leaves the Sleeping Pod; you write the message).',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 33,
+      "text": "'6. [[What is it called?]] The name, an optional description, what the giver says when offering it, and which tree it goes in ([[My missions]] unless you pick another).',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 47,
+      "text": "'- The coloured edge says WHO (the player is always blue); the header says WHAT (WORDS, ACTION, ITEM, TIME, ASK, APARTMENT).',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 50,
+      "text": "'- Credits: [[Player gets]] or [[Player pays]]. For a cost, [[Charged]] says when (at ACCEPT, or when a step is done). Credits never go below 0; with too few, ACCEPT is greyed and says [[YOU NEED|YOU NEED]] and the amount.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 57,
+      "text": "'- [[Hear what they say]]: their lines show right after the talk step before it.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 71,
+      "text": "'- [[Watch someone (stay near them)]], [[Overhear a conversation (eavesdrop)]], [[Follow someone at a distance]], [[Watch a remote camera feed]].',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 75,
+      "text": "'> A few kinds are listed for planning only and say \"needs a code change\" ([[Win a fight]], [[Scan with WarFlying]], [[Escort someone]], [[Pick something up in the world]]). The game cannot run them yet; they are hidden in Basic.']],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 78,
+      "text": "'- [[In person: the player talks to them]]: the player walks up and presses TALK; the giver says [[What is said when the mission is offered]].',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 86,
+      "text": "'- An offer that arrives on the device shows a banner, then the ACCEPT / DENY window. It never opens over a conversation or a menu.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 87,
+      "text": "'- In the middle of a conversation (Blocks view): [[+ PLAYER REPLY]], then tick [[Make this a choice: ACCEPT / DENY|Make this a choice: ]]. Each choice can give or take credits once.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 89,
+      "text": "'For a walk-near start the banner text is folded under [[Show the banner text]]. Leave it empty and the player sees only a short \"NEW MISSION\" line; the giver says the offer in person.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 95,
+      "text": "'3. The line above the list says the whole start in plain words, so you can check it reads right.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 114,
+      "text": "'The [[Giver]] is who offers the mission. Only people with a TALK prompt in the game can give missions. The line beside the list says whether players can reach them today.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 119,
+      "text": "'- Pick [[Tea Room Host]] as the Giver like anyone else. For example, a walk-near start with no banner text: everything is said in person.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 129,
+      "text": "'- [[Let her do her usual thing]], [[Keep her at one spot]] or [[Make her walk a route]]. Click the green ground on the map; a click on a road or furniture moves to the nearest spot they can stand on. A spot that is never allowed says why.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 131,
+      "text": "'- Sitting: put the spot right in front of a seat (a ledge, a bench, an alcove chair in the tunnels) and tick the sit choice. Away from a seat it says it needs one.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 137,
+      "text": "'## Animations in conversations',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 138,
+      "text": "'- Under a character\\'s line: [[While saying this, |While saying this, ]]… pick an animation. They do it while the line is on screen.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 144,
+      "text": "'- Put the spot where one steps onto the seat. A line under it says [[Pose at this seat: |Pose at this seat: ]]… with the poses that seat takes; tick the matching one.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 145,
+      "text": "'- Only people whose model has the poses get them (most street figures and residents do; the VR companions, licensed models, the street cat and a few others do not). The editor says so in plain words.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 158,
+      "text": "'4. The card says \"Everything fits\" or lists what to fix.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 167,
+      "text": "'3. [[REPLACE]] picks a new file, [[REMOVE]] takes it off. Change the words afterwards and it says [[text changed since the voice was imported]]: import a new one.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 181,
+      "text": "'- When everything required is filled in it says [[All required fields filled]] and points at PLAY THIS DRAFT. Optional boxes are never highlighted.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 185,
+      "text": "'- Some steps have no arrow on purpose, for example a step done from the V1 Mission Log. The yellow hint line then says which key to press.']],",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 193,
+      "text": "'- A banner at the top says [[PLAYING DRAFT]] and the mission name.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 197,
+      "text": "'- If a play button seems to do nothing, the status line under the Mission Editor\\'s top buttons now says \"PLAY could not start:\" and the reason. Nothing was changed and your draft is safe.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 201,
+      "text": "'Your draft is saved in this browser and copied to the server, so another computer can pick it up. The small line under the top of the Mission Editor says how that copy is doing.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 220,
+      "text": "'- If publishing is switched off on the server, the page says so. Your draft is safe.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 227,
+      "text": "'Look at the status line near the top for \"PLAY could not start: …\" and send Claude that message. If the button is greyed, hover over it: it says what is missing. Turn on Guide me to see the next box to fill in.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 232,
+      "text": "'- Is the giver out right now? The giver line says whether players can reach them.',",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-editor-guide.js",
+      "line": 244,
+      "text": "'Put the spot right where one steps onto the seat. The editor says in red when a spot or an action does not work there, and why.',",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/mission-editor.js",
       "line": 2,
       "text": "every private read and write is checked by the API). The owner asked for it on 17 Nov 2026: every mission tree, the NPCs in it, what each NPC says, what has to be done,",
@@ -77494,7 +77692,7 @@
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "9b738d2f4168e038c4bd6ab4de77b280cecf25d4d246b9635459e4422f446410",
+    "void-runner/dev-tools.js": "95d6ecf5bff491f8af1b0632ea7c3e2d439e12be9b68f7a488bf34f96562c030",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -77511,7 +77709,7 @@
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
     "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
-    "void-runner/editor-home.js": "55667850354446c7a7da16d253a3e5c5baa46ed81cedb848d4357b832a12c361",
+    "void-runner/editor-home.js": "e4301b93b8abd8805591aa691d864798f42687dd0ae95d5c3710f78bc9229046",
     "void-runner/editor-session.js": "2b4ad761afad673cbb3e3f375b4c748a5fa6bfbf23eb7855717c5671674bdcff",
     "void-runner/editor-wizard.js": "fab15190f8edbfb50a129d320587bc52caa1c52e7517132039675ef13fd4961f",
     "void-runner/enemy-pilots.js": "a4bc5107dc51ac08a90fb7ebbb6404c25390991ad6ec10a65ae18a77af8e03a4",
@@ -77569,6 +77767,7 @@
     "void-runner/mission-blocks-view.js": "8b506f0eb062f07591d8d5b26b264fa56ceba8aff0fdde6b1802a4099e35054c",
     "void-runner/mission-blocks.js": "ce5077b67d2d80221298fd27b1de34007b6f7f362cd4b16e844d793eb85169f9",
     "void-runner/mission-content.js": "b6dd6937730428fb109de2d0d4f5a345290e37357695f990d42db5d831c41b47",
+    "void-runner/mission-editor-guide.js": "9e04141f7f9c444414cbdc9846be4940344aca0d7ca2e236ba81a67cbe19d1cf",
     "void-runner/mission-editor.js": "9dcd6df10c46844b94ca01d2e6d976276cbf5606d8763d85247364ec62aacd6c",
     "void-runner/mission-givers.js": "f4673af3383f533a505600f3e16ca9fbe9b78c952c190e6a63e34a71a220b2c3",
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
