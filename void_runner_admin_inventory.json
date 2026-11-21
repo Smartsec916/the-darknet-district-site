@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "cdd958d2deea687d",
+  "revision": "bdec039f12227b7e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -67571,7 +67571,7 @@
     {
       "source": "void-runner/camera-feed.js",
       "line": 84,
-      "text": "for(const e of F.cs.events){if(e.type!=='line'||!e.text||F.spoken.has(e)||F.t<e.t)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,e.text)){if(root.VoidAudio?.speak)root.VoidAudio.speak(e.who,e.text);else V.speak({characterId:e.who,text:e.text}).catch(()=>{});}}catch{}}   // through the game's voice channel (VoidAudio: its bus and volume; 21 Nov 2026: a bare V.speak had no bus and never played)",
+      "text": "for(const e of F.cs.events){if(e.type!=='line'||F.spoken.has(e)||F.t<e.t)continue;const vt=CR().voiceText?CR().voiceText(e):e.text;if(!vt)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,vt)){if(root.VoidAudio?.speak)root.VoidAudio.speak(e.who,vt);else V.speak({characterId:e.who,text:vt}).catch(()=>{});}}catch{}}   // through the game's voice channel (VoidAudio: its bus and volume; 21 Nov 2026: a bare V.speak had no bus and never played)",
       "kind": "source-reference"
     },
     {
@@ -67786,31 +67786,31 @@
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 97,
+      "line": 100,
       "text": "case 'pause':if(b.secs==null)out.push(w+': say how long the pause lasts.');break;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 152,
-      "text": "else if(b.act==='line'){d=lineSecs(b);const ids=who(b.who);events.push({t:T,type:'line',who:b.who,text:String(b.text||'').trim(),dur:d});",
+      "line": 155,
+      "text": "else if(b.act==='line'){d=lineSecs(b);const ids=who(b.who);events.push({t:T,type:'line',who:b.who,text:String(b.text||'').trim(),...(b.anim?{anim:b.anim}:{}),dur:d});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 155,
+      "line": 158,
       "text": "else if(b.act==='walk'){const id=ACTORS.includes(b.who)?b.who:'initiate',st=state[id],v=b.speed||V,to=b.to==='altar'?altarFront:b.to==='spot'&&st.spot?st.spot:{x:0,z:0};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 178,
+      "line": 181,
       "text": "const lineAt=(cs,t)=>cs.events.filter(e=>e.type==='line'&&t>=e.t&&t<e.t+e.dur&&e.text).map(e=>({who:e.who,name:NAMES[e.who]||e.who,text:e.text}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 190,
+      "line": 193,
       "text": "function inventory(){return {rooms:FEED_ROOMS.map(r=>r.id),speakers:SPEAKERS.slice(),actors:ACTORS.slice(),acts:ACT_IDS.slice(),beatKeys:JSON.parse(JSON.stringify(BEAT_KEYS)),anims:ANIMS.slice(),turnWho:WHO_TURN.slice(),turnTo:TO_TURN.slice(),walkTo:TO_WALK.slice(),limit:{beats:LIMIT.beats,text:LIMIT.text,feeds:LIMIT_FEEDS,secs:LIMIT.secs.slice(),speed:LIMIT.speed.slice(),radius:LIMIT.radius.slice(),gap:LIMIT.gap.slice()}};}",
       "kind": "source-reference"
     },
@@ -74619,7 +74619,7 @@
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "6b7f21b585f5ba585f333793cee48ded30388c10142ed0909bf8e7be3b2988c8",
-    "void-runner/camera-feed.js": "122485b15cf47f0a204411a87af464b6d894ee84752f81b7620011546bb8016f",
+    "void-runner/camera-feed.js": "d14f4d2304c1384a57f414bb401bc456c274f5689a180731f149a848b16172b7",
     "void-runner/campaign.js": "4247e0f808bca9f7bb17d15619a2e0a4575b6ca407cad5e3288a1372eacfb494",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
@@ -74646,7 +74646,7 @@
     "void-runner/crowd.js": "10b100bcb72a377931dfed8dae080c28af84856bdf04a2f7dfbcef9e15a2e161",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "ee1fcc752a36ace292f55b57531da64a4430fd61f6e84bceb1801480585f2ecd",
-    "void-runner/cult-room.js": "d74e5be20b2381fe46f4dc7b1fd0ea32d45d877f5db23cb654ca162bb6efd5f9",
+    "void-runner/cult-room.js": "c8ba34ef1a386b36c5493415bf9ba798142e04b870a7a245166e12901ca8e13d",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -74708,7 +74708,7 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
-    "void-runner/main-story.js": "0c839e6db1ed7b86124a92d659d0a29209b519900e6720b63b79d3e5f905308d",
+    "void-runner/main-story.js": "bf5e54a176fc47459228ada1685adc865d166ad1cd6d98399ff19790f0e8d613",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -74731,7 +74731,7 @@
     "void-runner/mission-mechanics-editor.js": "8e2ad0434f65efbd0c31e3f0ea462e96677818d0b509ad0c8dd9b9ab75d9f90c",
     "void-runner/mission-mechanics-game.js": "096da30a493a0c8141a189605086d948bc62ed16dee0412f0bb3a42b2fb910c4",
     "void-runner/mission-mechanics.js": "c96242d2208ffe17200f81774f608bb9b5217bd8ccab930cfbec0939b97d25d4",
-    "void-runner/mission-trees.js": "4abe012dce21c7ba05cbfd1fee7ce3d7ea6b2a4b35666461cd40b98c3fc43ee4",
+    "void-runner/mission-trees.js": "8f34f4f6605212754a186a5aa19d59131361960a1bd5b834149b58b800f846de",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
     "void-runner/module-build.js": "01dd44f88c4b9ee2922245d41965c8c364f9bca8f24e06bb891ddba47f40bde7",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",

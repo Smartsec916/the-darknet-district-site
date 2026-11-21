@@ -6,7 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
-### 21 Nov 2026 (newest): THE AWAKENING'S VOICES: MISSION 004'S ASSOCIATES AND FISH'S CALLS, MISSION 007'S JUNO VEX AND THE BLACKROCK ASSOCIATE, MISSION 010'S INITIATE (branch `claude/awakening-voices`, build `2026-11-21-awakening-voices-1`, pushed, NO PR, not merged)
+### 21 Nov 2026 (newest): MISSION 010'S CHORUS: THE SIX BLACKROCK MEMBERS' LINES AND THE LAUGH; HALDEN'S OWNER-CHOSEN VOICE (branch `claude/chorus-voices`, on top of `claude/awakening-voices`, build `2026-11-21-chorus-voices-1`, pushed, NO PR, not merged)
+
+- **Chorus clips (already generated with ElevenLabs eleven_v4 in the six approved voices; nothing new generated here):** `void-runner/assets/audio/voice/extra/robed-all-m010-1`..`8.ogg` (ogg/vorbis 24 kHz mono), one mix per line with the owner's "half in sync" recipe (sample v4-D, `cult-room.js CHORUS`); manifest entries speaker `robed-all`, the cult-room beats' exact text, voice "Blackrock Members 1–6 (chorus mix)", the six voice ids and the recipe. Lengths 3.2 / 9.2 / 10.3 / 7.6 / 6.6 / 8.8 / 4.3 s and the laugh 3.3 s; each ends before the next line starts.
+- **The laugh** (an empty line with `anim:'laugh'`) shows nothing; `cult-room.js voiceText` keys a wordless line by its animation (`[laugh]`), the compiled line event now carries `anim`, and `camera-feed.js` looks voices up by `voiceText`. Movements and timing unchanged.
+- **Halden (speaker `initiate`):** the owner chose ElevenLabs "Brock" (`UXrpoYalpW5MpGiFHq3z`), no longer a placeholder; `initiate-m010-1`..`4.ogg` replaced (same plain conversion), manifest, `revoice-engines.json` and `mission-trees.js VOICE_ENGINES` updated. His first take ("Yes. I am.", 4.6 s) is longer than its beat (about 3.6 s to the next line), so the chorus's second line cuts its tail; the owner may want a shorter take or a longer wait there.
+- **Tests:** `tests/chorus-voices.test.cjs` (entries, files, `voiceText`, no overlaps, build); `awakening-voices` updated.
+
+### 21 Nov 2026: THE AWAKENING'S VOICES: MISSION 004'S ASSOCIATES AND FISH'S CALLS, MISSION 007'S JUNO VEX AND THE BLACKROCK ASSOCIATE, MISSION 010'S INITIATE (branch `claude/awakening-voices`, build `2026-11-21-awakening-voices-1`, pushed, NO PR, not merged)
 
 The owner: "Voices for five characters: just make generic voices for now"; for Fish: "can you make them? you have Fish's voice" (her Mandarin lines with the V1 English translation). Record: [`../VOID_RUNNER_VOICE_PRODUCTION.md`](../VOID_RUNNER_VOICE_PRODUCTION.md), the Awakening table.
 

@@ -15,15 +15,15 @@ test('every overheard and initiate line has exactly one clip, a small ogg that e
  assert.equal(want.length,6+5+4);
  for(const l of want){const hit=find(l.who,l.text);assert.equal(hit.length,1,l.who+': '+l.text);const [,e]=hit[0];
   assert.match(e.file,/^extra\/[a-z0-9-]+\.ogg$/);const f=R('void-runner/assets/audio/voice/'+e.file);assert.ok(fs.existsSync(f),e.file);const n=fs.statSync(f).size;assert.ok(n>5000&&n<120000,e.file+' '+n);
-  assert.match(e.note,NOTE);assert.ok(e.voiceId&&e.voice&&e.source,e.file);}
+  assert.match(e.note,l.who==='initiate'?/owner-chosen 21 Nov 2026: ElevenLabs "Brock"/:NOTE);assert.ok(e.voiceId&&e.voice&&e.source,e.file);}
 });
 
-test('the five placeholder voices: each speaker keeps one voice id, matching the registry and the editor',()=>{
+test('the four placeholder voices and Halden\'s owner-chosen voice: each speaker keeps one voice id, matching the registry and the editor',()=>{
  const T=require(R('void-runner/mission-trees.js')),j=JSON.parse(fs.readFileSync(R('tools/audio/revoice-engines.json'),'utf8')).characters;
- const ids={'tea-associate-1':'9dOAtmZTvILoncEvsUKb','tea-associate-2':'c1uwEpPUcC16tq1udqxk','juno-vex':'Xm5W2LBUW4LWizr18Fbd','blackrock-associate':'JjqNMa6BEYmyQYRCdHCa','initiate':'74s0ZNaUEOKhDHSxgJZq'};
+ const ids={'tea-associate-1':'9dOAtmZTvILoncEvsUKb','tea-associate-2':'c1uwEpPUcC16tq1udqxk','juno-vex':'Xm5W2LBUW4LWizr18Fbd','blackrock-associate':'JjqNMa6BEYmyQYRCdHCa','initiate':'UXrpoYalpW5MpGiFHq3z'};
  for(const [who,id] of Object.entries(ids)){assert.deepEqual([...new Set(lines.filter(([,l])=>l.speaker===who).map(([,l])=>l.voiceId))],[id],who);
-  assert.equal(j[who].voiceId,id);assert.equal(j[who].engine,'elevenlabs');assert.equal(j[who].model,'eleven_v4');assert.match(j[who].note,/placeholder/i);assert.equal(T.VOICE_ENGINES[who].voice,j[who].voice);}
- assert.equal(j['juno-vex'].voice,'Juno Vex (Everley Rhodes)');
+  assert.equal(j[who].voiceId,id);assert.equal(j[who].engine,'elevenlabs');assert.equal(j[who].model,'eleven_v4');assert.match(j[who].note,who==='initiate'?/Owner-chosen voice, not a placeholder/:/placeholder/i);assert.equal(T.VOICE_ENGINES[who].voice,j[who].voice);}
+ assert.equal(j['juno-vex'].voice,'Juno Vex (Everley Rhodes)');assert.equal(j.initiate.voice,'Halden Reyes, the initiate (Brock)');
  // the approved voices are untouched
  assert.equal(j['milked-fish'].voiceId,'ggacvEjbmpoSuEinfFWs');assert.equal(j['robed-1'].voiceId,'SO9JediIwzugrikv7xw0');
 });
@@ -54,7 +54,7 @@ test('a Comms call with lines recorded one by one plays them in turn and shows t
 
 test('overheard lines and the camera feed speak through the game voice channel',()=>{
  const g=fs.readFileSync(R('void-runner/mission-mechanics-game.js'),'utf8');assert.match(g,/voiceHeard\(x\.key,r\.show,lines\[r\.show\]\)/);assert.match(g,/secs:i=>heardSecs\(lines\[i\]\)/);
- const f=fs.readFileSync(R('void-runner/camera-feed.js'),'utf8');assert.match(f,/root\.VoidAudio\.speak\(e\.who,e\.text\)/);
+ const f=fs.readFileSync(R('void-runner/camera-feed.js'),'utf8');assert.match(f,/root\.VoidAudio\.speak\(e\.who,vt\)/);assert.match(f,/const vt=CR\(\)\.voiceText\?CR\(\)\.voiceText\(e\):e\.text;if\(!vt\)continue;/);
 });
 
 test('Mission 007: Juno Vex is a woman\'s model, the Blackrock associate a man\'s (arena and street), positions kept',()=>{
@@ -63,4 +63,3 @@ test('Mission 007: Juno Vex is a woman\'s model, the Blackrock associate a man\'
  assert.deepEqual([c('juno-vex').x,c('juno-vex').z,c('blackrock-associate').x,c('blackrock-associate').z],[-16.6,-141.4,-15.4,-141.4]);
 });
 
-test('build bumped',()=>{assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8').split('\n')[3],/^const BUILD='2026-11-21-awakening-voices-1';\r?$/);});

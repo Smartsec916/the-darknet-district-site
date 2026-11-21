@@ -231,8 +231,8 @@
    {id:'exit',kind:'apt-leave',apt:'facility',unseen:true,label:'Exit the building.'}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};
  // The owner's ritual dialogue on the EXISTING Blackrock Cult Room sequence (cult-room.js defaultScene): the same beats and choreography; only the empty line slots
- // carry his words (the six in unison as "All six (together)", Halden as the initiate), three line slots added before the initiate rises; the laugh slot stays silent
- // ("brief laughter": a laugh voice file can be imported for it). Nothing moves differently.
+ // carry his words (the six in unison as "All six (together)", Halden as the initiate), three line slots added before the initiate rises; the laugh slot has no words
+ // ("brief laughter": shown as nothing; its recorded chorus laugh is keyed '[laugh]' by cult-room.js voiceText, extra/manifest.json robed-all-m010-8). Nothing moves differently.
  const RL=(who,text,extra={})=>({act:'line',who,text,...extra});
  const RITUAL={radius:2.6,speed:.5,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},
   RL('robed-all','Are you ready for your Awakening, brother?',{wait:2}),RL('initiate','Yes. I am.',{wait:1.5}),

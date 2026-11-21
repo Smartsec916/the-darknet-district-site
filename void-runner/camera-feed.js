@@ -80,8 +80,8 @@
   F.room.tick(F.t);F.room.scene.render();
   try{if(typeof ctx!=='undefined'&&typeof W!=='undefined'){ctx.clearRect(0,0,W,H);ctx.drawImage(F.cv,0,0,W,H);}}catch{}   // the game shows its 3D through the #space canvas (babylon-integration.js draw)
   if(!F.live)return;
-  // lines: an imported (or recorded) voice for these exact words plays once, as the line starts
-  for(const e of F.cs.events){if(e.type!=='line'||!e.text||F.spoken.has(e)||F.t<e.t)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,e.text)){if(root.VoidAudio?.speak)root.VoidAudio.speak(e.who,e.text);else V.speak({characterId:e.who,text:e.text}).catch(()=>{});}}catch{}}   // through the game's voice channel (VoidAudio: its bus and volume; 21 Nov 2026: a bare V.speak had no bus and never played)
+  // lines: an imported (or recorded) voice for these exact words plays once, as the line starts (an empty line with an animation, the six's laugh: by cult-room.js voiceText, '[laugh]')
+  for(const e of F.cs.events){if(e.type!=='line'||F.spoken.has(e)||F.t<e.t)continue;const vt=CR().voiceText?CR().voiceText(e):e.text;if(!vt)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,vt)){if(root.VoidAudio?.speak)root.VoidAudio.speak(e.who,vt);else V.speak({characterId:e.who,text:vt}).catch(()=>{});}}catch{}}   // through the game's voice channel (VoidAudio: its bus and volume; 21 Nov 2026: a bare V.speak had no bus and never played)
   if(!F.date||now-F.lastHud>400){F.date=dateLine();F.lastHud=now;$('date').textContent=F.date;$('rect').textContent=hms(F.t);$('fps').textContent=String(Math.round(F.engine.getFps()));const say=CR().lineAt(F.cs,F.t);$('say').textContent=say.map(l=>l.name+': '+l.text).join('  ·  ');}
   $('tc').textContent=hms(F.t)+':'+two((F.t%1)*24);
   if(F.rec||F.o.record!==false){const g=F.g;g.drawImage(F.cv,0,0,OUT.w,OUT.h);burn(g,F.t);if(!F.poster&&F.t>=Math.min(F.cs.dur*.3,(F.cs.events.find(e=>e.type==='line')||{t:F.cs.dur*.3}).t+.5))F.comp.toBlob(b=>{if(F)F.poster=b;},'image/jpeg',.8);}
