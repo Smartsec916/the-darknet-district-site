@@ -6,6 +6,12 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026 (newest): DEVELOPER TOOLS > GUIDE: A NEW MISSION EDITOR GUIDE (branch `claude/editor-guide`, build `2026-11-21-editor-guide-1`, pushed, NO PR, not merged)
+
+- The owner: "remake me a new mission editor guide and add it as a tab here next to Achievements". New tab **Guide** right after Achievements (book icon), also under More tools on the Start page. Content: `void-runner/mission-editor-guide.js` (loaded on demand by `dev-tools.js loadGuide`, never by players), 18 short sections in plain words with a clickable contents list and a search box that hides sections not matching; styles `.mg-*` in `dev-tools.css`.
+- Written from the code as it is today, plus two branches: the floor poses (`claude/seat-poses`) and "PLAY could not start: …" (`claude/draft-play-fix`). Every button / box name quoted as `[[LABEL]]` is checked against the editor code by `tests/editor-guide.test.cjs` (the seat-pose labels only once that branch is merged). **When you rename a label the guide quotes, update the guide.**
+- No game, save or server change. Screenshots checked at 1366 x 768 and 1920 x 1080.
+
 ### 20 Nov 2026 (newest): NEVER STUCK IN AN INTERIOR; ONE DOOR TIMING; THE NEXT PLACE SHOWN IN EVERY DOORWAY (branch `claude/apt-stuck`, build `2026-11-20-apt-stuck-1`, pushed, NO PR, not merged)
 
 The owner: "look for reasons you might get stuck in a housing room and can't move once you enter. maybe stuck in the couch or something else"; then: check the door animations (speed, how long they stay open, the fade starting too early); then: every housing door is "really a short loading screen": slide open and show part of the next area in the doorway, both directions, everywhere (faked is fine).
