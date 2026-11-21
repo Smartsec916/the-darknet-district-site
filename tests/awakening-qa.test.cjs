@@ -47,5 +47,11 @@ test('small clarity fixes are wired',()=>{
  assert.match(src('void-runner/apartment-integration.js'),/walked away from the access point\. Go back and press E at it to try again\./);
  const mg=src('void-runner/mission-mechanics-game.js');assert.match(mg,/Too far away to hear them\. Move closer/);assert.match(mg,/z\.o\.object===x\.o\.object&&z\.o\.apt===x\.o\.apt\);if\(y&&md\(\)==='walking'\)openDoc\(y\)/);
  assert.match(src('void-runner/personal-device.js'),/PLACE\?\.get\(id\)\|\|root\.VoidPlaces\?\.BY\?\.get\?\.\(id\)/);
- const css=src('void-runner/device-v1.css');assert.match(css,/body:has\(#personal-device\.open:not\(\.expanded\)\) #notice\{left:12px;right:calc\(50vw \+ 12px\)\}/);
+ const css=src('void-runner/device-v1.css');assert.match(css,/body:has\(#personal-device\.open:not\(\.expanded\)\) #notice\{left:264px;right:calc\(50vw \+ 12px\)\}/);
  assert.match(src('void-runner/world-integration.js'),/if\(c\.textContent!==state\.credits\.toLocaleString\(\)\|\|n&&n\.textContent!==want\)hud\(\);/);});
+
+test('a pilot already docked at Meridian is not stuck on "take off" / "make the jump" (Kestrel tutorial)',()=>{const MM=require(R('void-runner/mission-mechanics.js')),MS=require(R('void-runner/main-story.js'));
+ const ob=MS.M012.objectives,launch=ob.find(o=>o.id==='set-course'),jump=ob.find(o=>o.id==='jump');assert.equal(jump.place,'meridian');
+ // the catch-up events the game sends when the player is already at the jump's place: they complete those steps
+ const m={id:MS.M012.id},h=(o,ev)=>MM.hit(ev,m,o,{story:{flags:{}},universe:{missions:{}}});assert.ok(h(launch,{type:'flight',stage:'launch',place:'meridian'}));assert.ok(h(jump,{type:'flight',stage:'jump',place:'meridian'}));assert.ok(!h(jump,{type:'flight',stage:'jump',place:'kepler'}));
+ const g=src('void-runner/mission-mechanics-game.js');assert.match(g,/else if\(\(o\.stage==='launch'\|\|o\.stage==='jump'\)&&\['walking','dock','arrival'\]\.includes\(m\)&&s\.location!=='earth'\)/);});

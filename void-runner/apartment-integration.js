@@ -129,7 +129,9 @@
   try{const wl=here(),z=root.VoidBabylon?.zone;if(wl&&wl.part==='hall'&&job.unlock)for(const o of wl.open||[])if(o.id+'/hall'===job.ap&&o.mission===job.mission){o.locked=false;z?.doors?.find(d=>d.slot===o.slot)?.set?.({locked:false});}
    z?.accessPoint?.(job.ap,'open');}catch{}try{announce('ACCESS POINT: bypassed.'+(job.unlock?' The door is open to you.':''));}catch{}}
  function useAP(item){const ap=item.ap;const wl=here(),mission=wl&&wl.apt?wl.apt.mission:item.mission||null;let jobs=[];try{jobs=LC()?.hacks?.()||[];}catch{}
-  const job=jobs.find(j=>j.ap===ap&&(!/\//.test(ap)||!mission||j.mission===mission));if(!job){note('ACCESS POINT · SECURED. A card reader, a keypad and a small status screen.');return;}
+  const job=jobs.find(j=>j.ap===ap&&(!/\//.test(ap)||!mission||j.mission===mission));if(!job){// already bypassed in a mission in progress (Awakening QA 20 Nov 2026: E at No. 31's panel after the hack said SECURED)
+   const by=(()=>{try{const recs=state.universe.missions||{};return (LC()?.env?.trees||[]).some(t=>(t.missions||[]).some(m=>{const r=recs[m.id];return r&&r.acquired&&!r.completed&&(m.objectives||[]).some(o=>o.kind==='hack'&&o.ap===ap&&(r.objectives||{})[o.id]===true);}));}catch{return false;}})();
+   note(by?'ACCESS POINT · BYPASSED. The door is open to you.':'ACCESS POINT · SECURED. A card reader, a keypad and a small status screen.');return;}
   if(job.needs){const has=(state?.progression?.personal?.items||[]).includes(job.needs);if(!has){const nm=(root.VoidProgression?.personalItems?.[job.needs]?.name||job.needs).toLowerCase();note('You need a'+(/^[aeiou]/.test(nm)?'n ':' ')+nm+'.');return;}}
   if(hacking){note('Already connected.');return;}try{resumeWalking();}catch{}run(job,item.position);}
  // ---- interactions ----

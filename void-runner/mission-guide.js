@@ -37,9 +37,11 @@
    const out=()=>here(i=>i.action==='mod-exit')||here(i=>i.action==='mod-portal')||up();if(!mine)return out();
    const mod=x.mod||(ap&&ap.mod)||null,cl=wl.cluster||{},inCl=!mod||(cl.mods||[]).some(m=>m.id===mod);
    if(inCl){if(x.kind==='hack'&&ap&&ap.mod)return here(i=>i.action==='apt-ap'&&i.ap===aid+'/'+ap.mod+'.'+ap.sock);
-    if(x.kind==='apt-use')return here(i=>i.action==='mod-use'&&i.object===x.object&&(!mod||i.mod===mod));
+    if(x.kind==='apt-use')return here(i=>i.action==='mod-use'&&i.object===x.object&&(!mod||i.mod===mod))||here(i=>i.action==='apt-use'&&i.object===x.object);   // an apartment behind a hallway keeps the older 'apt-use' things (Awakening QA 20 Nov 2026: no arrow to Halden's computer)
     const mm=mod&&(cl.mods||[]).find(m=>m.id===mod);return mm?{position:[mm.cx,1.7,mm.cz],route:true,label:g.label||''}:null;}
    // another part of the location: its floor by elevator, or a door that leads to it
+   // a door straight into it (a hallway's apartment door, 'flat.entry|hall.d0'; Awakening QA 20 Nov 2026: after the hack at No. 31 the arrow led back to the street exit)
+   const into=here(i=>i.action==='mod-portal'&&String(i.door||'').split('|').some(p=>p.split('.')[0]===mod));if(into)return into;
    const an=M&&rec&&M.analyse?M.analyse(rec):null,tp=an&&an.byId[mod]&&an.byId[mod].p;if(!tp)return out();
    if(tp.floor!==cl.floor){const e=here(i=>i.action==='mod-elev'&&i.floor===tp.floor);if(e)return e;}
    const want=new Set(((an.clusterOf&&an.clusterOf(mod))||{mods:[]}).mods);const link=(cl.doors||[]).find(d=>d.kind==='portal'&&d.leads&&want.has(String(d.leads).split('.')[0]));

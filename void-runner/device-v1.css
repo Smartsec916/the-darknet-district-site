@@ -229,6 +229,6 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 /* Gallery METADATA (the owner, 18 Nov 2026): the same key / value list as MY V1, each tagged person on their own lines. */
 #personal-device .pd-meta{margin-top:10px;border-top:1px solid var(--pd-line,rgba(127,240,255,.25));padding-top:6px}#personal-device .pd-meta .pd-kv{gap:6px 14px}#personal-device .pd-meta dd{word-break:break-word}#personal-device .pd-meta-tag{margin:0 0 6px}#personal-device .pd-meta-tag small{color:var(--pd-muted)}
 /* While the V1 is open beside the game (not EXPANDED), the game's top lines step into the free left half so none of them runs under the device (Awakening QA 20 Nov 2026: the notice and the tracked mission were cut off by it at 1366 x 768, the yellow hint line covered the device header). */
-body:has(#personal-device.open:not(.expanded)) #notice{left:12px;right:calc(50vw + 12px)}
+body:has(#personal-device.open:not(.expanded)) #notice{left:264px;right:calc(50vw + 12px)}
 body:has(#personal-device.open:not(.expanded)) #mission-tracker:not([hidden]),body:has(#personal-device.open:not(.expanded)) #mission-hint{left:25vw;max-width:calc(50vw - 40px);box-sizing:border-box}
 body:has(#personal-device.open:not(.expanded)) #mission-tracker:not([hidden]){top:150px}body:has(#personal-device.open:not(.expanded)) #mission-hint{top:192px}   /* below the status chips at the top left */

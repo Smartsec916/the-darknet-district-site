@@ -24,3 +24,5 @@ body.cockpit-flight #notice{top:96px}
 /* Painted cockpit: keep route status and lessons in the canopy, above the console. */
 body.cockpit-flight.painted-cockpit #flight-objective{bottom:38.5%}
 @media(min-width:601px){body.cockpit-flight.painted-cockpit:not(.mobile-gameplay) #tutorial-prompt{bottom:44vh}}
+/* A long objective wraps to two lines and ran into the network status line under it (#service-status, z-index 25; Awakening QA 20 Nov 2026): the tracked mission now covers it. */
+#mission-tracker:not([hidden]){z-index:26}

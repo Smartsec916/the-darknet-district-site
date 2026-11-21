@@ -52,7 +52,7 @@
  // ---------------------------------------------------------------- overheard subtitles
  const css=document.createElement('style');css.textContent='#mx-sub{position:fixed;left:50%;bottom:21vh;transform:translateX(-50%);z-index:54;max-width:min(760px,86vw);padding:8px 14px;background:rgba(4,8,10,.72);border-left:3px solid #7fd8ff;font:14px/1.45 ui-monospace,Consolas,monospace;color:#e6f2f7;pointer-events:none}#mx-sub[hidden]{display:none}#mx-sub small{display:block;color:#7fd8ff;letter-spacing:.14em;font-size:11px}'
   +'#mx-meter{position:fixed;left:50%;top:16vh;transform:translateX(-50%);z-index:54;width:160px;height:6px;background:rgba(0,0,0,.5);border:1px solid #ff9a2e;pointer-events:none}#mx-meter[hidden]{display:none}#mx-meter i{display:block;height:100%;width:0;background:#ff9a2e}'
-  +'.pd-card .mx-ev{margin:6px 0 2px;font-size:12px}.pd-card .mx-ev b{display:block;letter-spacing:.12em;font-size:11px;opacity:.8}.pd-card .mx-ev button{margin:2px 6px 2px 0}.pd-card .mx-act{margin:6px 6px 0 0;border-color:var(--mission-yellow,#ffd678)!important;color:var(--mission-yellow-text,#ffe7a8)!important}';document.head.append(css);
+  +'.pd-card .mx-ev{margin:6px 0 2px;font-size:12px}.pd-card .mx-ev b{display:block;letter-spacing:.12em;font-size:11px;opacity:.8}.pd-card .mx-ev button{margin:2px 6px 2px 0}#screen .social-message p{white-space:pre-line}.pd-card .mx-act{margin:6px 6px 0 0;border-color:var(--mission-yellow,#ffd678)!important;color:var(--mission-yellow-text,#ffe7a8)!important}';document.head.append(css);
  const sub=document.createElement('div');sub.id='mx-sub';sub.hidden=true;sub.setAttribute('role','status');sub.setAttribute('aria-live','polite');document.body.append(sub);
  const meter=document.createElement('div');meter.id='mx-meter';meter.hidden=true;meter.innerHTML='<i></i>';meter.setAttribute('aria-label','Being noticed');document.body.append(meter);
  const giverName=id=>{try{return LC().giverName(id)||id;}catch{return id;}};
@@ -87,7 +87,8 @@
   if(!subShown)sub.hidden=true;if(!meterUsed)meter.hidden=true;}
  setInterval(tick,250);
  // ---------------------------------------------------------------- the document window (COPY TO V1) and reading evidence
- function lines(d){return [{who:'V1',text:d.title}].concat(String(d.text||'').split('\n').filter(t=>t.trim()).map(t=>({who:'V1',text:t})));}
+ // the document as ONE silent page under its title (Awakening QA 20 Nov 2026: each line was its own chat bubble, typed and timed one at a time); its line breaks are kept (#screen .social-message p, CSS above)
+ function lines(d){const body=String(d.text||'').split('\n').map(t=>t.trim()).filter(Boolean).join('\n');return [{who:'V1',text:d.title,silent:true}].concat(body?[{who:'V1',text:body,silent:true}]:[]);}
  function openDoc(x){const d=MM.evidenceDefs(LC().env.trees)[x.o.evidence];if(!d||typeof root.talkChoice!=='function')return false;
   return root.talkChoice(lines(d),[{label:'COPY TO V1',run:()=>{fire({type:'collect',step:x.key});try{resumeWalking();}catch{}
     // the next step copies another document from the same thing (Mission 006: the letters, then the induction file; Awakening QA 20 Nov 2026: the player had to press E at it again, unprompted)
@@ -127,6 +128,9 @@
   if(o.stage==='board'&&m==='play'&&s.location==='earth'&&f.shipAccess!=='none')fire({type:'flight',stage:'board'});
   else if(o.stage==='launch'&&r&&['align','warp','encounter','arrived'].includes(r.phase))fire({type:'flight',stage:'launch'});
   else if(o.stage==='jump'&&r&&r.destination&&(r.phase==='warp'||r.phase==='arrived'))fire({type:'flight',stage:'jump',place:r.destination});
-  else if(o.stage==='dock'&&['walking','dock','arrival'].includes(m)&&s.location!=='earth')fire({type:'flight',stage:'dock',place:s.location});}catch{}},500);
+  else if(o.stage==='dock'&&['walking','dock','arrival'].includes(m)&&s.location!=='earth')fire({type:'flight',stage:'dock',place:s.location});
+  // already there (Awakening QA 20 Nov 2026: a player who flew to Meridian while Iris's cockpit calls were still coming was docked when 'take off' and 'make the jump'
+  // came up, and the jump to the station they stood in could never happen): the trip is made, so these stages are done
+  else if((o.stage==='launch'||o.stage==='jump')&&['walking','dock','arrival'].includes(m)&&s.location!=='earth'){const ob=fl[0].m.objectives||[],j=o.stage==='jump'?o:ob.slice(ob.findIndex(y=>y&&y.id===o.id)+1).find(y=>y&&y.kind==='flight'&&y.stage==='jump');if(j&&j.place&&s.location===j.place)fire({type:'flight',stage:o.stage,place:j.place});}}catch{}},500);
  root.VoidMissionMechanicsGame={cast:()=>[...cast.entries()].map(([k,x])=>({key:k,id:x.c.id,pos:{...x.pos},model:x.model})),fire,openDoc,read,openFeed,now:nowList,run};
 })(globalThis);
