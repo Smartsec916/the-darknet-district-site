@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: CAMERA SLIDERS AND SELECTED JOINT DETAIL (local)
+
+- Model and Animation previews offer distance, horizontal strafe, height and orbital rotation sliders, incremental zoom and reset. Selecting any draggable joint highlights it and opens a live magnified crop of the preview centered on the selected joint where possible; the full preview remains the drag surface. No changes to model data from camera controls.
+
+### 21 Nov 2026: JOINT PLACEMENT AND PREVIEW ZOOM (local)
+
+- Static editor-generated rigs can be re-opened in Adjust skeleton dots mode. Drag points independently in the camera plane, orbit to check depth, and apply to rebuild skin weights and inverse bind matrices; cancel leaves the model unchanged. Existing arbitrary rigs/animated models are deliberately not rewritten. Preview zoom has reduced wheel/pinch sensitivity, incremental buttons and reset view.
+
 ### 21 Nov 2026: MULTI-MESH AUTO-RIG PREPARATION (local)
 
 - Static GLB parts in a single scene are flattened through their world transforms into a combined mesh, retaining primitive materials, UVs, indices and embedded textures. Positions, normals and tangents are transformed before weighting. Existing skins, animations, morph targets, mirrored/singular transforms and unsupported hierarchy/geometry are rejected instead of silently damaged. Approximate humanoid rigging still requires an upright A/T pose and manual review.
