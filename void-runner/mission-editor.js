@@ -104,14 +104,21 @@
  const wsOn=()=>!!(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled);
  function scheduleServer(){if(!wsOn()||ws.conflict)return;clearTimeout(ws.timer);ws.state='pending';showServerState();ws.timer=setTimeout(()=>{saveServer();},5000);}
  async function saveServer(){clearTimeout(ws.timer);if(!wsOn()||ws.conflict)return;ws.state='saving';showServerState();
-  try{const rec=await call('developer/drafts/'+WS,{revision:ws.revision,document:wsDoc(bundle())});ws.revision=rec.revision;ws.savedAt=Date.now();ws.state='saved';ws.note='';}
-  catch(e){if(e.status===409){await loadServer(true);}else if(e.status===413){ws.state='too-big';ws.note='Your draft is too big for the server copy (96 KB at most). It is still saved in this browser; EXPORT MY EDITS keeps a file.';}else{ws.state='off';}}
+  try{const rec=await call('developer/drafts/'+WS,{revision:ws.revision,document:wsDoc(bundle())});ws.revision=rec.revision;ws.savedAt=Date.now();ws.state='saved';ws.note='';ws.tries=0;}
+  catch(e){if(e.status===409){await loadServer(true);}else if(e.status===413){ws.state='too-big';ws.note='Your draft is too big for the server copy (96 KB at most). It is still saved in this browser; EXPORT MY EDITS keeps a file.';}else if(!trouble(e,()=>saveServer())){ws.state='off';}}
   showServerState();}
+ /* SERVER ASLEEP OR SIGN-IN EXPIRED (21 Nov 2026, the owner: "sometimes the mission editor times out"): the free server sleeps and its first answer can take a minute;
+    a failed copy is tried again by itself with a growing wait (editor-session.js retryDelay) and the line says so; a 401 also shows the SIGN IN bar. The draft is in
+    this browser all along (saved as he types); nothing closes. Returns true when a retry was scheduled. */
+ function trouble(e,again){const ES=root.VoidEditorSession,p=ES?ES.problem(e):'other';if(p==='other')return false;
+  if(p==='signin')DTX()?.signin?.(true);ws.tries=(ws.tries||0)+1;const sec=ES.retryDelay(ws.tries);ws.state=p;
+  ws.note=(p==='signin'?'Sign-in expired: press SIGN IN on the bar below; the server copy saves again by itself':ES.TEXT.waking+' next try in '+sec+' s')+' · your draft is safe in this browser.';
+  clearTimeout(ws.retry);ws.retry=setTimeout(()=>{Promise.resolve(again()).catch(()=>{}).then(()=>{if(ws.conflict&&host&&!host.hidden)draw();else showServerState();});},sec*1000);return true;}
  const treesOf=b=>(b&&b.trees||[]).filter(t=>!t.shipped).length;
  /* On open: an empty (or older) browser draft takes the server copy; a newer server copy over a browser draft with content is never applied silently: both are shown. */
- async function loadServer(afterConflict){if(!wsOn()){ws.state='off';return;}
-  let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}ws.state='off';return;}
-  ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
+ async function loadServer(afterConflict){if(!wsOn()){if(!refreshServer.waiting)ws.state='off';return;}
+  let rec=null;try{rec=await call('developer/drafts/'+WS);}catch(e){if(e.status===404){ws.state=afterConflict?'off':'none';if(!afterConflict)scheduleServer();return;}if(!trouble(e,()=>loadServer(afterConflict)))ws.state='off';return;}
+  ws.tries=0;ws.revision=rec.revision||0;const b=rec.document&&rec.document.data&&rec.document.data.bundle;if(!b){ws.state='saved';return;}
   const raw=readDraft(),empty=!raw||(!(raw.trees||[]).some(t=>!t.shipped)&&!Object.keys(raw.missions||{}).length&&!Object.keys(raw.lines||{}).length&&!Object.keys(raw.names||{}).length&&!Object.keys(raw.npcs||{}).length&&!Object.keys(raw.voices||{}).length&&!Object.keys(raw.looks||{}).length&&!Object.keys(raw.clips||{}).length&&!Object.keys(raw.characters||{}).length);
   const serverAt=Date.parse(b.savedAt||'')||0,localAt=Date.parse((raw&&raw.savedAt)||'')||0;
   if(empty&&!afterConflict){useServer(b,rec.updatedAt);return;}
@@ -120,6 +127,7 @@
  function useServer(b,at){const d={version:1,missions:b.missions||{},lines:b.lines||{},played:b.played||{},names:b.names||{},npcs:b.npcs||{},animRequests:b.animRequests||[],voices:b.voices||{},looks:b.looks||{},clips:b.clips||{},characters:b.characters||{},retiredNumbers:b.retiredNumbers||[],trees:b.trees||[],savedAt:b.savedAt};write(KEY,d);if(b.studio)write(STUDIO,b.studio);
   ws.state='saved';ws.savedAt=(at||0)*1000||Date.now();ws.conflict=null;status='Restored your drafts from the server (saved '+new Date(Date.parse(b.savedAt)||Date.now()).toLocaleString()+').';stale=true;syncMade();}
  function serverLine(){if(ws.conflict){const c=ws.conflict;return 'Your drafts on the server and in this browser differ.';}
+  if(ws.state==='waking'||ws.state==='signin')return ws.note;
   return ws.state==='saved'?'Saved on the server · '+new Date(ws.savedAt||Date.now()).toLocaleTimeString():ws.state==='pending'||ws.state==='saving'?'Saving to the server…':ws.state==='too-big'?ws.note:ws.state==='none'?'Saving to the server…':'Server copy not available — drafts are only in this browser';}
  function showServerState(){const n=host&&host.querySelector('[data-me-server-copy]');if(n){n.textContent=serverLine();n.className='me-small '+(ws.state==='saved'?'me-ok':'me-warn');}}
  function conflictBox(){const c=ws.conflict,box=el('section','','me-check',{'data-me-conflict':'1'});box.append(el('h4','Two copies of your drafts'),el('p','The server copy and this browser’s copy differ. Nothing was overwritten. Choose which one to keep; the other stays readable as an older server revision or in EXPORT MY EDITS.','me-warn'));
@@ -160,12 +168,14 @@
  async function call(path,body){const r=typeof VoidDevTools!=='undefined'?VoidDevTools.request:null;if(!r)throw new Error('Sign in again.');return r(path,body);}
  async function refreshServer(){
   const tries=[['roles','developer/drafts/schema'],['live','developer/live-content'],['queue','developer/revoice']];
-  await Promise.all(tries.map(async([k,p])=>{try{server[k]=await call(p);server.note[k]='';}catch(e){server[k]=null;server.note[k]=e.status===404?'off':e.status===403?'not-authorized':e.status===503?'off':'unreachable';}}));
+  await Promise.all(tries.map(async([k,p])=>{try{server[k]=await call(p);server.note[k]='';}catch(e){server[k]=null;if(root.VoidEditorSession?.problem(e)==='signin')DTX()?.signin?.(true);server.note[k]=e.status===404?'off':e.status===403?'not-authorized':e.status===503?'off':'unreachable';}}));
   // Lines recorded since they were queued (their clip now ships with the game) are marked done in the queue.
   const shipped_=(server.queue?.items||[]).filter(q=>q.status==='queued'&&q.engine==='kokoro'&&clipKeys.has(q.who+'|'+q.text)).map(q=>q.id);
   if(shipped_.length){try{server.queue=await call('developer/revoice/done',{ids:shipped_});}catch{}}
   if(server.roles?.roles?.editor&&server.roles.roles.draftsEnabled){try{server.drafts=((await call('developer/drafts')).drafts||[]).filter(x=>x.id!==WS);}catch{server.drafts=null;}}
   rebuild();
+  // (21 Nov 2026) the server did not answer (asleep, or the sign-in expired): ask again by itself with a growing wait; once it answers, the draft copy is loaded / saved.
+  if(server.note.roles==='unreachable'&&!refreshServer.waiting){const ES=root.VoidEditorSession;refreshServer.tries=(refreshServer.tries||0)+1;const sec=ES?ES.retryDelay(refreshServer.tries):60;ws.state='waking';ws.note=(ES?ES.TEXT.waking:'Server waking up / retrying…')+' next try in '+sec+' s · your draft is safe in this browser.';refreshServer.waiting=setTimeout(async()=>{refreshServer.waiting=0;try{await refreshServer();if(server.note.roles!=='unreachable'){refreshServer.tries=0;await loadServer();}}catch{}if(ws.conflict&&host&&!host.hidden)draw();else showServerState();},sec*1000);}
  }
  // ---------------------------------------------------------------- what is shown and how edits are stored
  const findMission=key=>{for(const t of built.trees)for(const m of t.missions)if(m.key===key)return {tree:t,mission:m};return null;};
@@ -1104,7 +1114,7 @@
   const d=local();d.played[m.key]=new Date().toISOString();saveLocal(d);if(wsOn())await saveServer();   // the server copy is up to date before the page reloads
   write(RETURN,{tree:f.tree.id,mission:m.key,step:stepId||null,at:Date.now()},root.sessionStorage);
   const env=root.VoidLiveContent?.env;
-  const r=await root.VoidDevTest.session({banner:(whole?'PLAYING DRAFT TREE FROM THE START: '+tname:'PLAYING DRAFT: '+m.title)+' — not your real save',leave:'LEAVE DRAFT',kind:'draft',
+  const r=await root.VoidDevTest.session({banner:(whole?'PLAYING DRAFT TREE FROM THE START: '+tname:'PLAYING DRAFT: '+m.title)+' — not your real save',leave:'LEAVE DRAFT · BACK TO EDITOR',kind:'draft',
    apply:()=>{root.VoidLiveContent?.useDraft(content);try{root.VoidLiveContent?.resetRun?.();root.VoidApartments?.resetRun?.();root.VoidModules?.resetRun?.();}catch{}},clock:clockText,
    build:()=>{const x=m.engine==='tree'?treeState(m.id,stepId):m.engine==='beginner'?beginnerState(m.id,stepId):registryState(m.id,stepId);play.notes=x.notes||[];play.where=x.where;return x.state;},
    enter:async()=>{const w=play.where;if(m.engine==='tree')return enterTree(w);if(w==='interior'||w==='earth'){state.location='earth';await enterWalking(VoidDistrictArea.KEY.interior,{silent:true,...VoidDistrictArea.resume(state,VoidNeoChinatown)});}

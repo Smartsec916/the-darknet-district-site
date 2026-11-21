@@ -2,6 +2,25 @@
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
 
+## Fix (21 Nov 2026): the editor stays open (no more closing by itself, no more popping up during draft play)
+
+The owner: "sometimes the mission editor times out and goes to the previous page. also while trying to play through a test mission the editor pops up".
+
+### What was wrong
+- Every 4 minutes (and when the browser tab got focus back) the game re-checked the account. Each check closed the Developer tools window, and during PLAY THIS DRAFT it opened the Mission Editor over the game (the "back to the editor" note written for LEAVE DRAFT was still waiting).
+- A new version of the game, deployed while the editor was open over the main menu, reloaded the page by itself.
+
+### What the owner sees now
+- The editor stays open until he presses CLOSE, EXIT TO MAIN MENU or Escape (Escape inside a text box only leaves the box).
+- Sign-in expired: a small bar at the bottom, "Sign-in expired — your editor and your draft stay open. SIGN IN". Nothing closes.
+- Server asleep (the free server takes up to a minute to wake): the server-copy line says "Server waking up / retrying… next try in N s · your draft is safe in this browser" and saves by itself once it answers.
+- A new version: a bar "Update ready — APPLY UPDATE". The page reloads only when he presses it (his draft is saved first; during draft play it leaves the draft like LEAVE DRAFT).
+- Draft play: the editor comes back only with the banner's LEAVE DRAFT · BACK TO EDITOR button (or Developer tools). A failed step works as in the real game (try again in the game) and the banner shows a short "Draft: step failed — …" note for 25 seconds.
+
+### For Claude and Codex
+- Rules: `void-runner/editor-session.js` (`identity`, `autoOpen`, `problem`, `retryDelay`, `escapeCloses`), unit tests in `tests/editor-timeout.test.cjs`, browser run `tests/editor-timeout-browser.cjs` (`EXPECT_OLD=1` against older code lists what fails).
+- `VoidDevTools.identity(request,{uid})`: always pass the uid. `VoidDevTools.used` (the window was opened on this page) keeps `update-ready.js when()` at 'wait'. `VoidDevTools.signin(on)` / `updateReady()` drive `#dev-session-bar`. `VoidDevTest.stepNote(text)` is the draft banner note (only in a draft session).
+- Never call `location.reload`, `history.back` or close the window from editor code; report problems in the status line or the bar.
 ## Twenty-eighth pass (20 Nov 2026): "…and only when": extra start conditions (a secondary trigger)
 
 Branch `claude/second-trigger`, build `2026-11-20-second-trigger-1`. Pushed, no PR, not merged. The owner: "can you add a secondary trigger. so like i can set the first one to 'when you get close to' giver, then a secondary trigger, like 'when other npcs are farther than . . .' and other ones. if a secondary isn't set it will just go off the first trigger."
