@@ -20,7 +20,9 @@
  // A line may carry `with` {id} (Mission 003: Fish's Mandarin line): the extra clip `id` (the V1's English translation, in her own voice) starts `offset` seconds after it, at full volume,
  // while this one plays at `gain`: both stay audible, like a real-time translator. offset, gain and the translation's live effect are ONE setting per speaker
  // (extra/manifest.json translations[speaker]; `with` may override them); the translation clip's file can be swapped in its own entry. `cast` gives a speaker a live effect.
- fetch(new URL('extra/manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(extraCast,m.cast||{});Object.assign(translations,m.translations||{});for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/[a-z0-9-]+\.ogg$/.test(l.file)){const e={id:'extra:'+id,...l};extraById.set(id,e);lookup.set(l.speaker+'|'+l.text,e);}}).catch(()=>{});
+ fetch(new URL('extra/manifest.json',base)).then(r=>r.ok?r.json():null).then(m=>{if(!m)return;Object.assign(extraCast,m.cast||{});Object.assign(translations,m.translations||{});for(const [id,l] of Object.entries(m.lines||{}))if(/^extra\/[a-z0-9-]+\.ogg$/.test(l.file)){const e={id:'extra:'+id,...l};extraById.set(id,e);lookup.set(l.speaker+'|'+l.text,e);}
+  // (21 Nov 2026) the same speaker saying the TRANSLATION's words (Mission 004: Fish's Comms calls are written in the owner's English) plays the original with its translation over it
+  for(const e of extraById.values()){const w=e.with&&extraById.get(e.with.id);if(w&&w.speaker===e.speaker&&w.text!==e.text)lookup.set(e.speaker+'|'+w.text,{...e,shown:w.text});}}).catch(()=>{});
  const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
  // Imported voice files (voice-imports.js, Developer Tools, 19 Nov 2026) override any recorded clip for that exact line text; same playback, same live effects.
  const imported=(who,text)=>{const I=root.VoidVoiceImports;return I&&I.find?I.find(who,text):null;};
@@ -93,7 +95,10 @@
  }
  // seq: a clip still loading when the next line (or a cancel) comes is dropped instead of playing over it.
  function cancel(){seq++;clearTimeout(stopTimer);try{source?.stop();}catch{}try{source2?.stop();}catch{}source=null;source2=null;}
- async function speak({characterId,text,bus}){
+ // now: the line being said ({who, text, ended, endedAt}): a Comms call with recorded lines (personal-device.js) moves on when its line has been heard.
+ let now=null;
+ async function speak(o){const job={who:o&&o.characterId,text:o&&o.text,ended:false,endedAt:0};now=job;try{return await speakOne(o);}finally{job.ended=true;job.endedAt=performance.now();}}
+ async function speakOne({characterId,text,bus}){
   cancel();const mine=seq,im=imported(characterId,text),line=im?importLine(im,characterId):lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
   // The conversation's line this recording is for (scenes.js speakLine): told when it starts and ends, so a walking conversation moves on when it has been heard.
   const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};
@@ -119,7 +124,11 @@
   for(const o of [...extra,...extra2])try{o.stop();}catch{}out.disconnect();if(source===playing)source=null;if(source2===second)source2=null;
  }
  const played=[];
- root.VoidVoiceClips={has,speak,cancel,broadcast,PRESETS,get count(){return lookup.size;},get played(){return played.slice();},pairOf:(who,text)=>{const l=lookup.get(key(who,text));return l&&l.with?{...(translations[l.speaker]||{}),...l.with}:null;},get translations(){return JSON.parse(JSON.stringify(translations));}};
+ // duration: seconds the recorded line lasts with its translation over it (0 until its clip has loaded once). foreign: the original words a translated recording says
+ // ({text, translation}) when the line asked for is its translation, else null: a Comms call shows them as the original and V1 TRANSLATION (personal-device.js).
+ function duration(who,text){const l=lookup.get(key(who,text)),d=l&&cache.get(l.id);if(!d)return 0;const w=l.with&&extraById.get(l.with.id),pd=w&&cache.get(w.id),t={...(translations[l.speaker]||{}),...(l.with||{})};return pd?Math.max(d.duration,Math.max(0,Number(t.offset)||0)+pd.duration):d.duration;}
+ function foreign(who,text){const l=lookup.get(key(who,text));return l&&l.shown===text&&l.text!==text?{text:l.text,translation:text}:null;}
+ root.VoidVoiceClips={has,speak,cancel,broadcast,PRESETS,duration,foreign,get now(){return now;},get count(){return lookup.size;},get played(){return played.slice();},pairOf:(who,text)=>{const l=lookup.get(key(who,text));return l&&l.with?{...(translations[l.speaker]||{}),...l.with}:null;},get translations(){return JSON.parse(JSON.stringify(translations));}};
  root.VoidAudio?.setVoiceProvider?.(root.VoidVoiceClips);
  // Replay the current line on demand.
  const voicedRender=renderLine;

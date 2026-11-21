@@ -218,6 +218,7 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 @keyframes pd-wave{0%,100%{height:20%}50%{height:95%}}
 #personal-device .pd-call-line{color:var(--pd-text-hi);margin:6px 0;opacity:0;animation:pd-line .4s ease forwards;animation-delay:var(--d)}
 @keyframes pd-line{to{opacity:1}}
+#personal-device .pd-call-line .pd-call-tr{display:block;margin-top:3px;color:var(--pd-text);font-size:.92em}#personal-device .pd-call-line .pd-call-tr b{display:block;font-size:10px;letter-spacing:.14em;opacity:.75;font-weight:600}
 @media (prefers-reduced-motion:reduce){#personal-device .pd-wave i{animation:none;height:50%}#personal-device .pd-call-line{animation:none;opacity:1}}
 /* Conversations with contacts (Mission 002, 17 Nov 2026): a contact card, a photo in the conversation, the ATTACH picker and the send form. */
 #personal-device .pd-thread{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;cursor:pointer;color:var(--pd-text-hi);font:inherit;border-top:0;border-right:0;border-bottom:0}

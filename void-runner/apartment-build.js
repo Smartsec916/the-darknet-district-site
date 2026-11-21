@@ -7,7 +7,7 @@
    Performance: every static piece is merged into one mesh per material (MergeMeshes), so a room is a few dozen draw calls; only the doors, hatches and the lights move.
    One or two real point lights, the rest are emissive fixtures. Everything this file makes is disposed on leaving, and the scene's mood is put back.
    build({scene, parent, quality, def}) -> {tick(time, player), dispose(), lights(on), lightsOn, open(object), toggle(object), doors, stats()}.
-   DOORS (the owner, 19 Nov 2026: "automatic sliding doors"): every door here is a pocket door that slides sideways into the wall (0.5 s, eased) when someone allowed
+   DOORS (the owner, 19 Nov 2026: "automatic sliding doors"): every door here is a pocket door that slides sideways into the wall (apartments.js DOOR.open: 0.6 s, eased) when someone allowed
    comes near and slides back about 1.5 s after they have gone; a light on the frame shows green (open / yours), red (locked) or amber (closed, yours). */
 (function(root){
  'use strict';
@@ -16,7 +16,7 @@
  const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
  /* A sliding door: mesh (or instance) moved along `dir` by `dist` metres. lamps: {open, locked, mine} meshes shown one at a time (any may be missing).
     want(): true while someone allowed is near. Locked doors never open. */
- function slider({mesh,dir,dist=1.05,lamps={},locked=false,mine=false,hold=1.5,dur=.5,sound=null}){
+ function slider({mesh,dir,dist=1.05,lamps={},locked=false,mine=false,hold=root.VoidApartments?.DOOR?.hold??1.5,dur=root.VoidApartments?.DOOR?.open??.6,sound=null}){   // the shared door timing (apartments.js DOOR)
   const c=mesh.position.clone();let t=0,target=0,lastNear=-1e9,clock=0,sliding=false;const d={mesh,closed:c,dir,dist,locked,mine,get t(){return t;},get open(){return t>.98;},get moving(){return sliding;}};
   function lamp(){const s=t>.02?'open':d.locked?'locked':d.mine?'mine':'idle';for(const [k,m] of Object.entries(lamps))if(m)m.isVisible=k===s||(s==='idle'&&k==='locked'&&!d.mine&&false);}
   d.near=(on)=>{if(on&&!d.locked)lastNear=clock;};
@@ -28,6 +28,9 @@
  function build({scene,parent,quality,def}){
   const B=root.BABYLON,A=root.VoidApartments,style=def.style||'normal',hall=def.part==='hall',low=quality==='low',hi=quality==='high'||quality==='ultra';
   const own=[],late=[],containers=[],node=new B.TransformNode('apartment-'+def.part+'-'+style,scene);node.parent=parent;node.position.set(A.ORIGIN[0],0,A.ORIGIN[1]);let disposed=false;
+  // the next place in each doorway (door-views.js): the street behind the hallway's street door, the apartment behind the mission's hallway door, the hallway behind the apartment's
+  const DV=root.VoidDoorViews,viewCache=DV?DV.cache(B,scene,own):null,view=(x,z,n,key,w,h,depth)=>{try{if(DV)DV.reveal(B,scene,{at:[x,0,z],n,w,h,depth,key,cache:viewCache,parent:node,own});}catch(e){console.warn('[apartments] door view',e);}};
+  const streetQ=(()=>{try{const d=A.door&&A.door(def.street||'');return d?d.quarter:(String(style).startsWith('container')?'outskirts':'avenue');}catch{return 'avenue';}})();
   // ---- the scene's mood: an interior at night. Put back on dispose. ----
   const ip=scene.imageProcessingConfiguration,prev={clear:scene.clearColor.clone(),fogMode:scene.fogMode,fogDensity:scene.fogDensity,fogColor:scene.fogColor.clone(),exposure:ip.exposure,contrast:ip.contrast,env:scene.environmentIntensity};
   const sun=scene.getLightByName('sun'),amb=scene.getLightByName('ambient'),lp={sun:sun?.intensity,amb:amb?.intensity,dif:amb?.diffuse?.clone(),gnd:amb?.groundColor?.clone()};
@@ -247,7 +250,7 @@
     const hm=box2(style==='rundown'?S.door:metal,x-.26,x+.26,y-.36,y+.36,zw+.06,zw+.085,true);box2(black,x-.06,x+.06,y+.25,y+.3,zw+.085,zw+.09);const hn=hinge(hm,[x-.26,0,zw+.06]);swinging('panel',hn,1.9);}
    // the light switch, the entry door (it slides into the wall: the way out)
    {const {x,y}=A.SWITCH;box2(style==='luxury'?S.trim:white,x-.05,x+.05,y-.07,y+.07,Z0,Z0+.015);box2(amber,x-.01,x+.01,y+.03,y+.05,Z0+.015,Z0+.02);
-    const ed=slidingDoor({x:0,z:Z0-.1,axis:'x',face:1,w:1.1,h:2.15,slide:-1,id:'entry'});ed.range=1.3;ed.set({mine:true});accessPanel(-.85,1.38,Z0+.01,1,'x',def.apt?def.apt.id+'/entry':'entry',true);}
+    const ed=slidingDoor({x:0,z:Z0-.1,axis:'x',face:1,w:1.1,h:2.15,slide:-1,id:'entry'});ed.range=1.3;ed.set({mine:true});if(DV)view(0,Z0-.1,[0,-1],DV.housing('hallx',style),1.1,2.15,.5);accessPanel(-.85,1.38,Z0+.01,1,'x',def.apt?def.apt.id+'/entry':'entry',true);}
    // the window: glass, a frame, the city beyond (luxury: the whole wall)
    {const sk=P('skyline',{dyn:skyline(),unlit:true}),[wx0,wx1,wy0,wy1]=win,wz=Z1+.1;plane(sk,(wx1-wx0)*3.2+6,(wy1-wy0)*2.4+4,[(wx0+wx1)/2,(wy0+wy1)/2+.4,Z1+3.5],0);plane(glass,wx1-wx0,wy1-wy0,[(wx0+wx1)/2,(wy0+wy1)/2,wz],Math.PI);
     for(const xx of [wx0,wx1])box2(S.trim,xx-.04,xx+.04,wy0,wy1,Z1,Z1+.2);for(const yy of [wy0,wy1])box2(S.trim,wx0,wx1,yy-.04,yy+.04,Z1,Z1+.2);box2(S.trim,wx0-.05,wx1+.05,wy0-.06,wy0,Z1-.12,Z1);
@@ -356,7 +359,7 @@
    {const {x,y}=G.PANEL,zw=Z0;box2(metal,x-.27,x+.27,y-.37,y+.37,zw,zw+.05);box2(black,x-.24,x+.24,y-.34,y+.34,zw+.05,zw+.055);for(let i=0;i<6;i++)box2(i%3===1?red:dark,x-.2+i*.07,x-.15+i*.07,y+.05,y+.2,zw+.055,zw+.08);box2(green,x+.15,x+.18,y-.12,y-.09,zw+.055,zw+.065);
     const hm=box2(rd?rust:metal,x-.26,x+.26,y-.36,y+.36,zw+.06,zw+.085,true);const hn=hinge(hm,[x-.26,0,zw+.06]);swinging('panel',hn,1.9);cyl(dark,.06,C-y-.37,[x+.18,(C+y+.37)/2,zw+.04],6);}
    {const {x,y}=G.SWITCH;box2(white,x-.05,x+.05,y-.07,y+.07,Z0,Z0+.015);box2(amber,x-.01,x+.01,y+.03,y+.05,Z0+.015,Z0+.02);
-    const ed=slidingDoor({x:G.APT.door.x,z:Z0-.06,axis:'x',face:1,w:1.05,h:2.1,slide:-1,id:'entry'});ed.range=1.3;ed.set({mine:true});const ap=G.AP;accessPanel(ap.x,ap.y,Z0+.01,1,'x',def.apt?def.apt.id+'/entry':'entry',true);}
+    const ed=slidingDoor({x:G.APT.door.x,z:Z0-.06,axis:'x',face:1,w:1.05,h:2.1,slide:-1,id:'entry'});ed.range=1.3;ed.set({mine:true});if(DV)view(G.APT.door.x,Z0-.06,[0,-1],DV.housing('hallx',style),1.05,2.1,.5);const ap=G.AP;accessPanel(ap.x,ap.y,Z0+.01,1,'x',def.apt?def.apt.id+'/entry':'entry',true);}
    // the window: a hole cut in the north wall (rundown: half covered by a tarp), the city glow beyond
    {const sk=P('skyline',{dyn:skyline(),unlit:true}),[wx0,wx1,wy0,wy1]=win;plane(sk,8,5,[(wx0+wx1)/2,(wy0+wy1)/2+.4,Z1+3.5],0);plane(glass,wx1-wx0,wy1-wy0,[(wx0+wx1)/2,(wy0+wy1)/2,Z1+.06],Math.PI);for(const xx of [wx0,wx1])box2(S.trim,xx-.04,xx+.04,wy0,wy1,Z1-.02,Z1+.12);for(const yy of [wy0,wy1])box2(S.trim,wx0,wx1,yy-.04,yy+.04,Z1-.02,Z1+.12);
     if(rd){bx(P('tarp',{c:'#2a5a8a',rough:.9}),[.8,.7,.02],[wx0+.4,(wy0+wy1)/2+.05,Z1-.04],0);for(let i=1;i<5;i++)cyl(metal,.02,wy1-wy0,[wx0+i*(wx1-wx0)/5,(wy0+wy1)/2,Z1-.05],6);}}
@@ -385,12 +388,12 @@
    // the east end: welded-shut cargo doors with their locking bars, a vent; the west end: the street door
    box2(S.door,X1,X1+W,0,Ch,Z0,Z1);for(const z of [-.7,-.25,.25,.7])cyl(metal,.04,Ch-.3,[X1-.05,Ch/2,z],8);for(const y of [.6,1.9])for(const z of [-.7,-.25,.25,.7])box2(metal,X1-.1,X1-.02,y-.06,y+.06,z-.08,z+.08);box2(dark,X1-.03,X1,1.6,2.0,-.25,.25);
    box2(steel,X0-W,X0,0,Ch,Z0,-.58);box2(steel,X0-W,X0,0,Ch,.58,Z1);box2(steel,X0-W,X0,2.18,Ch,-.58,.58);
-   const street=slidingDoor({x:X0-.06,z:0,axis:'z',face:1,w:1.08,h:2.12,slide:1,id:'street'});street.set({mine:true});street.range=1.4;
+   const street=slidingDoor({x:X0-.06,z:0,axis:'z',face:1,w:1.08,h:2.12,slide:1,id:'street'});street.set({mine:true});street.range=1.4;view(X0-.06,0,[-1,0],DV&&DV.street(streetQ),1.08,2.12,.5);
    const exitSign=P('exit',{dyn:canvas(256,96,(g,w,h)=>{g.fillStyle='#062a12';g.fillRect(0,0,w,h);g.fillStyle='#39ff9c';g.font='bold 48px Arial';g.textAlign='center';g.fillText('◂ YARD',w/2,64);},'apt-exit'),unlit:true});plane(exitSign,.5,.19,[X0+.03,2.3,0],-Math.PI/2);fixtureMats.push(exitSign);
    const open=new Map((def.open||[]).map(o=>[o.slot,o]));const nums=H.slots.map(sl=>open.get(sl.i)?.number||A.slotNumber(sl.i,style)),nm=P('numbers',{dyn:numberTex(nums),unlit:true});
    for(const sl of H.slots){const mine=open.has(sl.i),face=sl.z>0?-1:1,d=slidingDoor({x:sl.x,z:sl.z+(sl.z>0?.06:-.06),axis:'x',face,w:1.0,h:2.05,slide:1,locked:!mine||!!(open.get(sl.i)||{}).locked,mine,id:'slot-'+sl.i});d.slot=sl.i;d.range=1.15;
     const k=sl.i,n=nums.length,pl=B.MeshBuilder.CreatePlane('apt-num',{width:.36,height:.12,frontUVs:new B.Vector4(k/n,0,(k+1)/n,1),backUVs:new B.Vector4(k/n,0,(k+1)/n,1),sideOrientation:B.Mesh.DOUBLESIDE},scene);pl.position.set(sl.x+.75,1.55,sl.z+face*.005);pl.rotation.y=sl.z>0?0:Math.PI;add(pl,nm);
-    accessPanel(sl.x-.75,1.38,sl.z>0?sl.z-.03:sl.z+.03,sl.z>0?-1:1,'x',mine?open.get(sl.i).id+'/hall':null,mine&&!(open.get(sl.i)||{}).locked);box2(black,sl.x-.55,sl.x+.55,0,2.2,sl.z>0?sl.z+.14:sl.z-.24,sl.z>0?sl.z+.24:sl.z-.14);}
+    accessPanel(sl.x-.75,1.38,sl.z>0?sl.z-.03:sl.z+.03,sl.z>0?-1:1,'x',mine?open.get(sl.i).id+'/hall':null,mine&&!(open.get(sl.i)||{}).locked);if(mine&&DV)view(sl.x,sl.z+(sl.z>0?.06:-.06),[0,sl.z>0?1:-1],DV.housing('apt',style),1.0,2.05,.45);else box2(black,sl.x-.55,sl.x+.55,0,2.2,sl.z>0?sl.z+.14:sl.z-.24,sl.z>0?sl.z+.24:sl.z-.14);}
    if(rd){const bulb=P('bulb',{em:'#ffcf8a',unlit:true});for(const x of [-4,0.3,4.5]){cyl(black,.01,.35,[x,Ch-.18,0],4);const b=B.MeshBuilder.CreateSphere('bulb',{diameter:.12,segments:8},scene);b.position.set(x,Ch-.4,0);add(b,bulb);}fixtureMats.push(bulb);const L=pointLight('main',[0,2.0,0],'#ffcf9a',2.0,9);flicker={mat:bulb,light:L,t:2,on:true};
     cyl(P('pipe-rust',{c:'#5a4030',tex:'ncz/metal-leaks-color.jpg',tile:1,rough:.6,metal:.5}),.08,X1-X0,[0,Ch-.15,Z1-.2],8,0,Math.PI/2);for(const [x,z] of [[-4.5,.8],[5.5,-.85]]){const m=B.MeshBuilder.CreateSphere('bag',{diameter:.5,segments:6},scene);m.scaling.y=.8;m.position.set(x,.2,z);add(m,P('bag',{c:'#101012',rough:.25}));}}
    else{const strip=P('panel-light',{em:'#ffe6c4',unlit:true});box2(strip,X0+.5,X1-.5,Ch-.11,Ch-.1,-.04,.04);fixtureMats.push(strip);pointLight('main',[-1,2.1,0],'#ffe0b8',2.0,10);prop('milked/milked-pothos.glb',[5.9,0,-.75],0,.7,()=>cyl(P('leaf',{c:'#2a5a3a',rough:.9}),.3,.6,[5.9,.3,-.75],8));}
@@ -440,7 +443,7 @@ for(let i=0;i<7;i++)cyl(P('can',{c:'#b03a30',rough:.4,metal:.6}),.07,.12,[-1.5+r
    // the east end (a window onto the city, or the stairs) and the west end (the street door)
    box2(S.wall,X1,X1+W,0,Ch,Z0,Z1);{const sk=P('skyline',{dyn:skyline(),unlit:true});box2(S.wall,X1-.02,X1,0,.9,Z0,Z1);plane(glass,2.0,1.4,[X1-.03,1.6,0],-Math.PI/2);plane(sk,7,4,[X1+3,1.6,0],-Math.PI/2);if(style==='rundown')for(let i=1;i<5;i++)cyl(metal,.025,1.4,[X1-.06,1.6,Z0+i*.5],6);}
    box2(S.wall,X0-W,X0,0,Ch,Z0,-.6);box2(S.wall,X0-W,X0,0,Ch,.6,Z1);box2(S.wall,X0-W,X0,2.2,Ch,-.6,.6);
-   const street=slidingDoor({x:X0-.1,z:0,axis:'z',face:1,w:1.1,h:2.15,slide:1,id:'street',slabMat:style==='luxury'?P('street-glass',{c:'#202830',rough:.05,metal:.3,alpha:.55}):S.door});street.mine=true;street.range=1.4;
+   const street=slidingDoor({x:X0-.1,z:0,axis:'z',face:1,w:1.1,h:2.15,slide:1,id:'street',slabMat:style==='luxury'?P('street-glass',{c:'#202830',rough:.05,metal:.3,alpha:.55}):S.door});street.mine=true;street.range=1.4;view(X0-.1,0,[-1,0],DV&&DV.street(streetQ),1.1,2.15,.5);
    const exitSign=P('exit',{dyn:canvas(256,96,(g,w,h)=>{g.fillStyle='#062a12';g.fillRect(0,0,w,h);g.fillStyle='#39ff9c';g.font='bold 48px Arial';g.textAlign='center';g.fillText('EXIT ▸',w/2,64);},'apt-exit'),unlit:true});plane(exitSign,.5,.19,[X0+.03,2.45,0],-Math.PI/2);fixtureMats.push(exitSign);
    // the apartment doors: numbered; the open one (this player's mission) amber, the rest locked (red)
    const open=new Map((def.open||[]).map(o=>[o.slot,o]));const nums=H.slots.map(sl=>open.get(sl.i)?.number||A.slotNumber(sl.i)),ntex=numberTex(nums),nm=P('numbers',{dyn:ntex,unlit:true});
@@ -448,8 +451,8 @@ for(let i=0;i<7;i++)cyl(P('can',{c:'#b03a30',rough:.4,metal:.6}),.07,.12,[-1.5+r
     if(mine)apLeds[open.get(sl.i).id+'/hall']=null;
     const pl=B.MeshBuilder.CreatePlane('apt-num',{width:.36,height:.12,frontUVs:new B.Vector4(sl.i/10,0,(sl.i+1)/10,1),backUVs:new B.Vector4(sl.i/10,0,(sl.i+1)/10,1),sideOrientation:B.Mesh.DOUBLESIDE},scene);pl.position.set(sl.x+.75,1.55,sl.z+face*.005);pl.rotation.y=sl.z>0?0:Math.PI;add(pl,nm);
     accessPanel(sl.x-.75,1.38,sl.z>0?sl.z-.03:sl.z+.03,sl.z>0?-1:1,'x',mine?open.get(sl.i).id+'/hall':null,mine&&!(open.get(sl.i)||{}).locked);
-    // a dark entry beyond the door (seen when it opens)
-    box2(black,sl.x-.55,sl.x+.55,0,2.2,sl.z>0?sl.z+.2:sl.z-.3,sl.z>0?sl.z+.3:sl.z-.2);}
+    // beyond the door: the apartment (its picture, door-views.js) for the mission's door, a dark entry for the doors that never open
+    if(mine&&DV)view(sl.x,sl.z+(sl.z>0?.12:-.12),[0,sl.z>0?1:-1],DV.housing('apt',style),1.0,2.1,.45);else box2(black,sl.x-.55,sl.x+.55,0,2.2,sl.z>0?sl.z+.2:sl.z-.3,sl.z>0?sl.z+.3:sl.z-.2);}
    // lights: fixtures down the ceiling, one or two real lights
    if(style==='rundown'){const tube=P('tube',{em:'#d6f0e0',unlit:true});for(const x of [-8,-2,4,9]){box2(dark,x-.7,x+.7,Ch-.05,Ch,-.08,.08);cyl(tube,.045,1.3,[x,Ch-.08,0],8,0,Math.PI/2);}fixtureMats.push(tube);const L=pointLight('main',[-2,2.3,0],'#cfe6d4',2.07,12);flicker={mat:tube,light:L,t:1,on:true};
     for(const [x,z] of [[-6,1.0],[6.5,-1.0]]){const m=B.MeshBuilder.CreateSphere('bag',{diameter:.5,segments:6},scene);m.scaling.y=.8;m.position.set(x,.2,z);add(m,P('bag',{c:'#101012',rough:.25}));}

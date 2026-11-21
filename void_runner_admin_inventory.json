@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "1bf1508d981ff873",
+  "revision": "a784e75d54a7e923",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -67450,13 +67450,13 @@
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 250,
+      "line": 252,
       "text": "speech = null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/babylon-integration.js",
-      "line": 292,
+      "line": 294,
       "text": "screen.querySelector('.speech-controls,.cinematic-space')?.insertAdjacentHTML('beforeend', button('RETURN TO EXPLORATION', 'walk-resume', true));",
       "kind": "source-reference"
     },
@@ -67571,7 +67571,7 @@
     {
       "source": "void-runner/camera-feed.js",
       "line": 84,
-      "text": "for(const e of F.cs.events){if(e.type!=='line'||!e.text||F.spoken.has(e)||F.t<e.t)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,e.text))V.speak({characterId:e.who,text:e.text});}catch{}}",
+      "text": "for(const e of F.cs.events){if(e.type!=='line'||F.spoken.has(e)||F.t<e.t)continue;const vt=CR().voiceText?CR().voiceText(e):e.text;if(!vt)continue;F.spoken.add(e);try{const V=root.VoidVoiceClips;if(V?.has?.(e.who,vt)){if(root.VoidAudio?.speak)root.VoidAudio.speak(e.who,vt);else V.speak({characterId:e.who,text:vt}).catch(()=>{});}}catch{}}   // through the game's voice channel (VoidAudio: its bus and volume; 21 Nov 2026: a bare V.speak had no bus and never played)",
       "kind": "source-reference"
     },
     {
@@ -67786,31 +67786,31 @@
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 97,
+      "line": 100,
       "text": "case 'pause':if(b.secs==null)out.push(w+': say how long the pause lasts.');break;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 152,
-      "text": "else if(b.act==='line'){d=lineSecs(b);const ids=who(b.who);events.push({t:T,type:'line',who:b.who,text:String(b.text||'').trim(),dur:d});",
+      "line": 155,
+      "text": "else if(b.act==='line'){d=lineSecs(b);const ids=who(b.who);events.push({t:T,type:'line',who:b.who,text:String(b.text||'').trim(),...(b.anim?{anim:b.anim}:{}),dur:d});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 155,
+      "line": 158,
       "text": "else if(b.act==='walk'){const id=ACTORS.includes(b.who)?b.who:'initiate',st=state[id],v=b.speed||V,to=b.to==='altar'?altarFront:b.to==='spot'&&st.spot?st.spot:{x:0,z:0};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 178,
+      "line": 181,
       "text": "const lineAt=(cs,t)=>cs.events.filter(e=>e.type==='line'&&t>=e.t&&t<e.t+e.dur&&e.text).map(e=>({who:e.who,name:NAMES[e.who]||e.who,text:e.text}));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/cult-room.js",
-      "line": 190,
+      "line": 193,
       "text": "function inventory(){return {rooms:FEED_ROOMS.map(r=>r.id),speakers:SPEAKERS.slice(),actors:ACTORS.slice(),acts:ACT_IDS.slice(),beatKeys:JSON.parse(JSON.stringify(BEAT_KEYS)),anims:ANIMS.slice(),turnWho:WHO_TURN.slice(),turnTo:TO_TURN.slice(),walkTo:TO_WALK.slice(),limit:{beats:LIMIT.beats,text:LIMIT.text,feeds:LIMIT_FEEDS,secs:LIMIT.secs.slice(),speed:LIMIT.speed.slice(),radius:LIMIT.radius.slice(),gap:LIMIT.gap.slice()}};}",
       "kind": "source-reference"
     },
@@ -68818,583 +68818,583 @@
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 102,
+      "line": 104,
       "text": "const IRIS=t=>({who:'iris',text:t}),AS1=t=>({who:'tea-associate-1',text:t}),AS2=t=>({who:'tea-associate-2',text:t}),JUNO=t=>({who:'juno-vex',text:t}),BRA=t=>({who:'blackrock-associate',text:t}),ROOK=t=>({who:'rook',text:t});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 111,
+      "line": 113,
       "text": "start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL · V1 TRANSLATION',text:FISH_CALL.join('\\n'),when:{kind:'game-time',mission:'m003-corporate-connections',value:360}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 114,
+      "line": 116,
       "text": "evidence:[{id:'tea-talk',title:'Overheard at the tea house',kind:'audio',text:'Associate 1: \"Reyes is getting desperate. He\\'s running out of options.\"\\nAssociate 2: \"Has he agreed to the percentage?\"\\nAssociate 1: \"Fifty-one. He\\'s not happy about it, but he doesn\\'t have much choice.\"\\nAssociate 2: \"And the admission requirement?\"\\nAssociate 1: \"That comes later. The preliminary agreement has already been sent to his personal computer.\"\\nAssociate 2: \"The board wants this completed before the end of the week.\"'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 116,
+      "line": 118,
       "text": "{id:'receive-call',kind:'message',label:'Receive Fish\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 118,
+      "line": 120,
       "text": "{id:'travel',kind:'enter',place:'under-tea-room',label:'Travel to the underground tea house.',via:'comms',npc:'',item:'',early:[],say:[IRIS('Fish brought me up to speed. Find somewhere nearby where you can hear them.'),IRIS('Don\\'t get too close. You\\'re just another customer having tea.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 121,
+      "line": 123,
       "text": "{id:'overhear',kind:'overhear',npc:'tea-associate-1',near:6,close:1.5,label:'Overhear their conversation.',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 122,
+      "line": 124,
       "text": "say:[AS1('Reyes is getting desperate. He\\'s running out of options.'),AS2('Has he agreed to the percentage?'),AS1('Fifty-one. He\\'s not happy about it, but he doesn\\'t have much choice.'),AS2('And the admission requirement?'),AS1('That comes later. The preliminary agreement has already been sent to his personal computer.'),AS2('The board wants this completed before the end of the week.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 125,
+      "line": 127,
       "text": "say:[FISH('Fifty-one percent? That\\'s not an ordinary investment. Someone wants control of his company.'),FISH('I\\'ve managed to find his residential address. I\\'ll send it to you now.'),FISH('I\\'ve also forwarded everything to Admin and Iris.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 126,
+      "line": 128,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'tea-talk',when:'overhear'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 129,
+      "line": 131,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Fish sent me the address. Reyes is away from home at the moment, so now\\'s our opportunity.','You\\'re going to need to get inside his apartment.','Approach the door\\'s access panel. Your device can interface with it.','I\\'ll walk you through the process.'].join('\\n'),when:{kind:'after-mission',mission:'m004-a-promising-investment'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 131,
+      "line": 133,
       "text": "evidence:[{id:'br-proposal',title:'Investment proposal (Halden Reyes)',kind:'document',text:'BLACKROCK HOLDINGS\\nRecipient: Veyra Dynamics\\nFounder: Halden Reyes\\nProposed investment: 12,000,000 CR\\nEquity transfer: 51%\\nVoting rights: Majority control\\nAdditional conditions: Confidential\\nStatus: Pending admission'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 132,
+      "line": 134,
       "text": "{id:'reyes-message',title:'Message on Halden\\'s computer',kind:'document',text:'\"Mr. Reyes, your preliminary agreement has been received. Further instructions regarding admission will be provided following your final approval meeting.\"'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 133,
+      "line": 135,
       "text": "{id:'reyes-calendar',title:'Office address and calendar entry',kind:'document',text:'Veyra Dynamics office: No. 41, The Avenue.\\nCalendar: confidential investment correspondence is stored on the company\\'s internal network.'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 135,
+      "line": 137,
       "text": "{id:'receive-call',kind:'message',label:'Receive Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 136,
+      "line": 138,
       "text": "{id:'locate-building',kind:'enter',place:'avenue',label:'Locate the apartment building: No. 31, The Avenue.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 137,
+      "line": 139,
       "text": "{id:'find-105',kind:'apt-enter',apt:'reyes',mod:'hall',label:'Find apartment 105 (inside No. 31).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 139,
+      "line": 141,
       "text": "{id:'hack-door',kind:'hack',ap:'reyes/hall.d0',hold:6,stay:true,unlock:true,label:'Hack the apartment door: face the access panel beside door 105, press E and stay at the panel until the bar fills.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 140,
+      "line": 142,
       "text": "{id:'search',kind:'apt-enter',apt:'reyes',mod:'flat',label:'Enter and search the apartment.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 141,
+      "line": 143,
       "text": "{id:'computer',kind:'apt-use',apt:'reyes',mod:'flat',object:'computer',label:'Access Halden\\'s computer (E at the computer).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 145,
+      "line": 147,
       "text": "say:[A('Blackrock Holdings. I\\'ve heard that name before.'),A('They\\'re offering him enough money to save his company, but taking control of it in return.'),A('That\\'s not unusual around here. What interests me is this admission requirement.'),A('According to his correspondence, there\\'s more information on the company\\'s internal network.'),A('Let\\'s take a look at his office.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 146,
+      "line": 148,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'reyes-message',when:'copy'},{kind:'evidence',id:'reyes-calendar',when:'copy'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 149,
+      "line": 151,
       "text": "start:{how:'notification',channel:'notify',from:'admin',text:'Veyra Dynamics office: No. 41, The Avenue. After business hours.',when:{kind:'after-mission',mission:'m005-behind-closed-doors'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 153,
+      "line": 155,
       "text": "evidence:[{id:'br-letters',title:'Halden Reyes and Blackrock: correspondence',kind:'document',text:'Confidential correspondence between Halden Reyes and Blackrock Holdings (Veyra Dynamics internal network, manager\\'s computer).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 154,
+      "line": 156,
       "text": "{id:'br-portfolio',title:'Presentation: businesses Blackrock has funded',kind:'document',text:'An attached presentation lists several businesses that Blackrock has successfully funded under similar investment arrangements.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 155,
+      "line": 157,
       "text": "{id:'br-induction',title:'BLACKROCK — INTERNAL COMMUNICATION',kind:'document',text:'BLACKROCK — INTERNAL COMMUNICATION\\nCandidate: Halden Reyes\\nSponsor: Juno Vex\\nAdmission status: Approved\\nCouncil attendance: Six confirmed\\nInduction documentation: Mandatory audiovisual recording\\nChamber location: Restricted\\n\\n\"Juno, I\\'ll be at the usual place watching the fights. Meet me there before the induction. We need to confirm the surveillance arrangements.\"'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 158,
+      "line": 160,
       "text": "say:[IRIS('There\\'s security inside. Watch how they move before you go anywhere.'),IRIS('Use the furniture and corners to stay out of sight.'),IRIS('You\\'re looking for the manager\\'s computer. We want information, not a confrontation.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 159,
+      "line": 161,
       "text": "{id:'reach-floor',kind:'apt-enter',apt:'veyra',mod:'hall',label:'Reach the office floor (the elevator: E at its buttons).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 161,
+      "line": 163,
       "text": "{id:'manager-pc',kind:'apt-use',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Access the manager\\'s computer.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 165,
+      "line": 167,
       "text": "{id:'admin-call',kind:'call',via:'comms',label:'Take Admin\\'s call.',say:[A('I had Fish look into those other companies.'),A('Almost every one of their founders has been involved in some kind of public scandal shortly after receiving funding.'),A('That\\'s a hell of a coincidence.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 166,
+      "line": 168,
       "text": "{id:'iris-call',kind:'call',via:'comms',delay:4,label:'Take Iris\\'s call.',say:[IRIS('The induction document mentions a mandatory recording.'),IRIS('Whatever happens during this admission ceremony, Blackrock wants a permanent record of it.'),IRIS('If we can find out where they\\'re recording it, we might finally understand what they\\'re doing.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 167,
+      "line": 169,
       "text": "{id:'admin-next',kind:'call',via:'comms',delay:4,label:'Take Admin\\'s call.',say:[A('Sounds like Juno has another meeting scheduled. Let\\'s see what we can learn from that.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 168,
+      "line": 170,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'br-portfolio',when:'documents'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 172,
+      "line": 175,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Juno\\'s already inside. Find her and keep your distance.','There are enough people down there that you should be able to blend in.'].join('\\n'),when:{kind:'after-mission',mission:'m006-hostile-takeover'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 178,
+      "line": 181,
       "text": "evidence:[{id:'arena-talk',title:'Juno Vex and the Blackrock associate',kind:'audio',text:'Juno Vex: \"Is everything prepared for Reyes?\"\\nBlackrock associate: \"The chamber is ready. All six members have confirmed.\"\\nJuno Vex: \"Make sure the recording system is operational. We don\\'t want a repeat of the last induction.\"\\nBlackrock associate: \"It\\'s been moved onto a private network. The recording equipment is connected directly to the corporate facility.\"\\nJuno Vex: \"Good. Let me know when everything\\'s ready.\"'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 180,
+      "line": 183,
       "text": "{id:'receive-call',kind:'message',label:'Receive Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 181,
+      "line": 184,
       "text": "{id:'enter-arena',kind:'enter',place:'under-fight-pit',label:'Enter the underground fighting arena.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 184,
+      "line": 187,
       "text": "say:[JUNO('Is everything prepared for Reyes?'),BRA('The chamber is ready. All six members have confirmed.'),JUNO('Make sure the recording system is operational. We don\\'t want a repeat of the last induction.'),BRA('It\\'s been moved onto a private network. The recording equipment is connected directly to the corporate facility.'),JUNO('Good. Let me know when everything\\'s ready.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 185,
+      "line": 188,
       "text": "{id:'photograph',kind:'photo',npc:'blackrock-associate',label:'Photograph the associate (V1 Camera: L, Camera app, left click).',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 188,
+      "line": 191,
       "text": "{id:'photo-entrance',kind:'photo',npc:'blackrock-entrance',label:'Photograph the entrance.',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 190,
+      "line": 193,
       "text": "say:[IRIS('Fish identified the person you photographed.'),IRIS('He works for a surveillance contractor that maintains private security equipment for several corporations.'),IRIS('That building appears to be one of their maintenance offices.'),IRIS('Get me a look inside. We need to find out where that camera system connects.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 191,
+      "line": 194,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'arena-talk',when:'observe'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 194,
+      "line": 197,
       "text": "start:{how:'notification',channel:'notify',from:'iris',text:'Surveillance contractor\\'s maintenance office: No. 166, Main Street (Far South), back entrance.',when:{kind:'after-mission',mission:'m007-the-house-always-wins'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 196,
+      "line": 199,
       "text": "evidence:[{id:'br04-route',title:'Junction panel: where the camera network goes',kind:'document',text:'Camera BR-04 — private network route.\\nArchive destination: Corporate server facility (Corporate District).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 197,
+      "line": 200,
       "text": "{id:'br04-record',title:'BLACKROCK PRIVATE SURVEILLANCE — BR-04',kind:'document',text:'BLACKROCK PRIVATE SURVEILLANCE\\nCamera: BR-04\\nLocation: Restricted basement chamber\\nAudio capture: Enabled\\nRecording: Mandatory\\nNetwork access: Internal only\\nArchive destination: Corporate server facility\\nScheduled activation: Next approved induction'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 200,
+      "line": 203,
       "text": "{id:'hack-panel',kind:'hack',ap:'biz-main-w-166',hold:8,stay:true,unlock:true,label:'Hack the access panel (E at the panel beside the door; stay until the bar fills).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 201,
+      "line": 204,
       "text": "{id:'enter',kind:'apt-enter',apt:'contractor',label:'Enter the maintenance office.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 202,
+      "line": 205,
       "text": "{id:'terminals',kind:'apt-use',apt:'contractor',mod:'shop',object:'computer',label:'Search the available computer terminals.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 203,
+      "line": 206,
       "text": "{id:'junction',kind:'apt-use',apt:'contractor',mod:'maint',object:'panel',label:'Access the junction panel (in the maintenance corridor).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 207,
+      "line": 210,
       "text": "say:[IRIS('BR-04. That\\'s our camera.'),IRIS('The feed is routed through a private server facility in the Corporate District. We won\\'t be able to access it from here.'),IRIS('But now we know exactly where to look.'),IRIS('I\\'ve marked the facility on your map. We\\'re going to have to get inside.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 208,
+      "line": 211,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 212,
+      "line": 215,
       "text": "start:{how:'notification',channel:'notify',from:'iris',text:'Blackrock network facility: the Corporate District, the maintenance door on the back alley. Marked on your map.',when:{kind:'after-mission',mission:'m008-private-network'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 218,
+      "line": 221,
       "text": "say:[IRIS('The camera feed is on a private network. Once you\\'re at the core server, I should be able to establish a connection.'),IRIS('Don\\'t touch anything unnecessary. We\\'re not here to shut them down.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 220,
+      "line": 223,
       "text": "{id:'access',kind:'hack',ap:'biz-corp-s-40',hold:8,stay:true,unlock:true,label:'Obtain access to the restricted area (hack the keypad: E, stay until the bar fills).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 222,
+      "line": 225,
       "text": "{id:'server-room',kind:'apt-enter',apt:'facility',mod:'servers',unseen:true,label:'Enter the server room.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 223,
+      "line": 226,
       "text": "{id:'core',kind:'apt-use',apt:'facility',mod:'servers',object:'core',unseen:true,label:'Locate the core server rack.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 224,
+      "line": 227,
       "text": "{id:'advanced-hack',kind:'hack',ap:'facility/servers.s1',hold:20,stay:true,unseen:true,label:'Complete an advanced hacking challenge (the server room\\'s access point: E, stay 20 seconds).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 225,
+      "line": 228,
       "text": "{id:'find-br04',kind:'apt-use',apt:'facility',mod:'servers',object:'terminal',unseen:true,label:'Locate camera BR-04 (the server room terminal).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 227,
+      "line": 230,
       "text": "say:[IRIS('That\\'s it. I\\'ve established a connection to the camera.'),IRIS('The camera isn\\'t transmitting yet, but I\\'ve configured your device to notify you the moment it becomes active.'),IRIS('Get somewhere safe. When that camera comes online, I want you to record everything.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 229,
+      "line": 232,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 234,
+      "line": 237,
       "text": "const RITUAL={radius:2.6,speed:.5,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 242,
+      "line": 245,
       "text": "{act:'rise',wait:2},{act:'turn',who:'six',to:'owl',wait:2,secs:4},{act:'walk',who:'initiate',to:'altar',wait:2,speed:.42},{act:'card',wait:1.5},{act:'anim',who:'initiate',clip:'read',secs:5},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 247,
+      "line": 250,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'BLACKROCK CAMERA BR-04 — NOW ONLINE',text:'The camera\\'s online. Open the feed. Make sure you\\'re recording.',when:{kind:'game-time',mission:'m009-ghost-in-the-network',value:60}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 249,
+      "line": 252,
       "text": "evidence:[{id:'induction-rec',title:'RECORDING — BLACKROCK INDUCTION',kind:'recording',text:'Camera BR-04: the Blackrock induction of Halden Reyes, recorded through the V1 (the video is in your V1 Gallery).'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 251,
+      "line": 254,
       "text": "{id:'notice',kind:'message',label:'BLACKROCK CAMERA BR-04 — NOW ONLINE.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 256,
+      "line": 259,
       "text": "{id:'admin-call',kind:'call',via:'comms',delay:3,label:'Take Admin\\'s call.',say:[A('Tell me you recorded that.'),A('Good. Don\\'t send it over an open channel. Bring it back here.'),A('I think we\\'ve just stumbled onto something worth a considerable amount of money.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 257,
+      "line": 260,
       "text": "{id:'return',kind:'enter',place:'district',label:'Return to The Darknet District.',npc:'',item:'',say:[],early:[]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 258,
+      "line": 261,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'induction-rec',when:'save'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 263,
+      "line": 266,
       "text": "start:{how:'notification',channel:'notify',from:'admin',text:'Meet Admin and Iris in the private meeting room.',when:{kind:'after-mission',mission:'m010-the-price-of-admission'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 266,
+      "line": 269,
       "text": "{id:'meet',kind:'enter',place:'district-meeting',label:'Meet Admin and Iris in the private meeting room.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 269,
+      "line": 272,
       "text": "say:[A('Fifty-one percent of the company, and a public scandal to make sure he never walks away.'),A('Now I understand why so many of these executives seem to destroy their own reputations after receiving funding.'),A('It isn\\'t stupidity. It\\'s the price of membership.'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 274,
+      "line": 277,
       "text": "{id:'admin-call',kind:'call',via:'comms',label:'Take Admin\\'s call.',say:[A('Come see me when you\\'ve got a minute. I\\'ve got some good news.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 276,
+      "line": 279,
       "text": "say:[A('Fish found us a buyer. Someone with a rather substantial investment in Veyra Dynamics.'),A('Turns out they weren\\'t particularly excited about handing control of their investment to a religious society of corporate psychopaths.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 277,
+      "line": 280,
       "text": "{id:'reward',kind:'hear',npc:'admin',label:'Receive the credit reward.',place:'',item:'',early:[],say:[A('The money\\'s cleared. You\\'ve earned your share.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 279,
+      "line": 282,
       "text": "say:[A('You\\'ve proven you can handle yourself.'),A('You know how to gather information, get into places you shouldn\\'t be, and get out without causing too much trouble.'),A('Frankly, I could use someone like you beyond NeoChinatown.'),A('I\\'ve got a ship sitting at the Port. She\\'s an older light transport, but she\\'s reliable.'),A('Her name\\'s the Kestrel.'),A('I\\'ve transferred ownership to you. Consider it an investment in our future business relationship.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 281,
+      "line": 284,
       "text": "say:[A('There\\'s a shipment I need delivered to an associate of mine at Meridian Station. His name is Rook.'),A('The cargo\\'s already been loaded aboard.'),A('Get it there safely and he\\'ll pay you for the delivery.'),A('Congratulations. You\\'re a runner now.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 282,
+      "line": 285,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 312,
+      "line": 315,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:IRIS_OK.congrats+'\\n'+IRIS_OK.walk,when:{kind:'after-mission',mission:'m011-leverage'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 315,
+      "line": 318,
       "text": "{id:'notice',kind:'message',label:'Take Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 318,
+      "line": 321,
       "text": "say:[IRIS(IRIS_NEW.review),IRIS(IRIS_NEW.slots),IRIS(IRIS_NEW.manage),IRIS(IRIS_NEW.admin),IRIS(IRIS_NEW.port)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 319,
+      "line": 322,
       "text": "{id:'port',kind:'enter',place:'port',label:'Travel to the Port.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 320,
+      "line": 323,
       "text": "{id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.there),IRIS(IRIS_OK.boardHer)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 323,
+      "line": 326,
       "text": "{id:'cockpit-display',kind:'call',via:'comms',delay:3,label:'Listen to Iris: the cockpit display.',say:[IRIS(IRIS_NEW.display)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 324,
+      "line": 327,
       "text": "{id:'cockpit-controls',kind:'call',via:'comms',delay:10,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 325,
+      "line": 328,
       "text": "{id:'cockpit-weapons',kind:'call',via:'comms',delay:12,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 326,
+      "line": 329,
       "text": "{id:'cockpit-nav',kind:'call',via:'comms',delay:10,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 327,
+      "line": 330,
       "text": "{id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 328,
+      "line": 331,
       "text": "{id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 329,
+      "line": 332,
       "text": "{id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 330,
+      "line": 333,
       "text": "{id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 331,
+      "line": 334,
       "text": "{id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 332,
+      "line": 335,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'},{kind:'contract-flag',id:'rook-first-delivery-done',value:true,when:'deliver'}]};   // the contract with the flight Map / Rook's cargo board (branch claude/flight-map-coords)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 337,
+      "line": 340,
       "text": "/* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 338,
+      "line": 341,
       "text": "const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 361,
+      "line": 364,
       "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 363,
+      "line": 366,
       "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 365,
+      "line": 368,
       "text": "const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 366,
+      "line": 369,
       "text": "const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}",
       "kind": "source-reference"
     },
@@ -71308,61 +71308,61 @@
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 59,
+      "line": 65,
       "text": "function showSub(who,text,note){sub.hidden=false;sub.innerHTML='<small>OVERHEARD</small>';const b=document.createElement('span');b.textContent=note?text:giverName(who)+': '+text;if(note)b.style.opacity='.75';sub.append(b);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 67,
+      "line": 73,
       "text": "if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 75,
+      "line": 81,
       "text": "if(k==='observe'){const r=MM.observeStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),hold:MM.hold(o)});run[x.key]=r.st;if(r.noticed&&!run[x.key+'|n']){run[x.key+'|n']=1;say('Too close: they notice you. Back off a little.');}if(!r.noticed)delete run[x.key+'|n'];if(r.done){delete run[x.key];fire({type:'observe',step:x.key});return;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 76,
-      "text": "else if(k==='overhear'){const lines=(o.say||[]).filter(l=>l&&l.text);const r=MM.overhearStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),lines:lines.length,secs:i=>MM.lineSecs(lines[i]&&lines[i].text)});run[x.key]=r.st;",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-mechanics-game.js",
-      "line": 77,
-      "text": "if(r.noticed)say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');if(r.show>=0&&lines[r.show]){showSub(lines[r.show].who,lines[r.show].text);subShown=true;}",
+      "line": 82,
+      "text": "else if(k==='overhear'){const lines=(o.say||[]).filter(l=>l&&l.text);const r=MM.overhearStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),lines:lines.length,secs:i=>heardSecs(lines[i])});run[x.key]=r.st;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
       "line": 83,
+      "text": "if(r.noticed){say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');hush(x.key);}if(r.show>=0&&lines[r.show]){showSub(lines[r.show].who,lines[r.show].text);subShown=true;voiceHeard(x.key,r.show,lines[r.show]);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-mechanics-game.js",
+      "line": 89,
       "text": "if(r.reset)say(r.why==='noticed'?'He noticed you. Hang back further: he heads back to where he started.':'You lost him. He is back where you first saw him: follow again.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 86,
+      "line": 92,
       "text": "if(k==='feed'&&!run[x.key+'|note']){run[x.key+'|note']=1;try{root.VoidV1?.notify?.({app:'missions',key:'feed:'+x.key,from:'V1',text:((x.m.start&&x.m.start.header)||String(o.feed||'').toUpperCase())+' · open the feed from your Mission Log (L)',hint:{text:'open',help:true}});}catch{}}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 91,
+      "line": 97,
       "text": "function lines(d){const body=String(d.text||'').split('\\n').map(t=>t.trim()).filter(Boolean).join('\\n');return [{who:'V1',text:d.title,silent:true}].concat(body?[{who:'V1',text:body,silent:true}]:[]);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 120,
+      "line": 126,
       "text": "function openFeed(x){const F=root.VoidCameraFeed,f=((x.m.feeds)||[]).find(y=>y.id===x.o.feed);if(!F||!f){say('REMOTE FEED: no signal.');return;}if(F.active)return;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-mechanics-game.js",
-      "line": 123,
+      "line": 129,
       "text": ".then(r=>{if(!r.saved&&r.why)say('REMOTE FEED: '+String(r.why).toLowerCase()+'. Open the feed again from your Mission Log.');});},300);}",
       "kind": "source-reference"
     },
@@ -71710,139 +71710,139 @@
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 58,
+      "line": 59,
       "text": "const SAY={computer:'DESK COMPUTER: a locked workstation. Mail, a ticket queue, a half-written report. It wants a badge and a PIN.','manager-pc':'MANAGER’S COMPUTER: locked behind a biometric pad. A calendar notification glows: “Board call — 09:00”.',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 71,
+      "line": 72,
       "text": "else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 72,
+      "line": 73,
       "text": "msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 85,
+      "line": 86,
       "text": "fight pit, 4 m x 4 m for the shrine) with a door in the middle of each wall (the pit: second cell); corners furnished, the middle clear. `say`: what using a thing says",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 93,
+      "line": 94,
       "text": "say:{scanner:'ITEM SCANNER: a flatbed reader for serials and ownership chips. The last scan reads “REGISTERED OWNER: —”.',cage:'STORAGE CAGE: padlocked mesh. Tagged goods on the shelves, each with a date and a number.',computer:'APPRAISAL TERMINAL: tickets, loan dates, and a column headed “do not sell back”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 100,
+      "line": 101,
       "text": "say:{stove:'WOK RANGE: three burners, one still ticking warm. Oil on everything.',cooler:'WALK-IN COOLER: a heavy latch, frost round the seal. Inside: noodles, broth in buckets, crates with no labels.',prep:'PREP TABLE: a cleaver, a board worn into a dip, scallions, a tub of dough.',computer:'ORDER TERMINAL: tonight’s tickets, a delivery list, and one order paid three times over.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 107,
+      "line": 108,
       "text": "say:{bench:'SOLDERING STATION: the iron is still warm. A phone board in the clamp, half its chips lifted.',drawers:'PARTS DRAWERS: hundreds of small drawers, hand-labelled. Resistors, screws, salvaged camera modules.',computer:'DIAGNOSTIC TERMINAL: a queue of repair jobs, and a folder of device unlock tools.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 114,
+      "line": 115,
       "text": "say:{chair:'IMPLANT CHAIR: worn padding, wrist straps, a tool arm folded overhead. Clean, for this street.',bench:'PARTS BENCH: a prosthetic forearm on its stand, its cover off. Trays of connectors and tiny screws.',fridge:'PARTS FRIDGE: sealed implant boxes and gel packs, serial numbers scratched off.',terminal:'IMPLANT TERMINAL: fitting records under first names only, and a firmware folder called “unofficial”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 121,
+      "line": 122,
       "text": "say:{washers:'WASHERS: one mid-cycle, one with an OUT OF ORDER card taped on, one locked with a bag still inside.',dryers:'DRYERS: warm, lint everywhere. One drum holds something that is not laundry.',table:'FOLDING TABLE: stacks of folded work clothes with tickets pinned on, and a pile of uniforms from a company that is not on any ticket.',computer:'OFFICE COMPUTER: the books, the machine takings, and a spreadsheet of “pickups” with no laundry on it.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 127,
+      "line": 128,
       "text": "say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 133,
+      "line": 134,
       "text": "say:{table:'CARD TABLE: a hand left face down, chips stacked by colour, an ashtray. Nobody is collecting the pot.',cart:'BAR CART: cheap spirits poured into expensive bottles.',safe:'CASH SAFE: a keypad, a smear of fingerprints on four of the keys. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 140,
+      "line": 141,
       "text": "say:{chair:'TATTOO CHAIR: fresh film on the padding, the lamp still angled where the last client lay.',ink:'INK STATION: rows of bottles, a machine on its cradle, gloves, a roll of film.',flash:'FLASH BOARDS: sheets of designs, pinned and re-pinned: stars, waves, flowers, knives, a lot of eyes.',computer:'BOOKING TERMINAL: appointments under nicknames, deposits paid in cash, one booking marked “cover-up, urgent”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 147,
+      "line": 148,
       "text": "say:{desk:'MIXING DESK: faders taped with handwritten labels, a cue sheet with the times crossed out.',mic:'MICROPHONE: the pop filter is split, the boom arm held with tape. The ON AIR light is off.',racks:'TRANSMITTER RACK: a homemade exciter, an amplifier with a fan that rattles, coax going up through the ceiling.',computer:'PLAYOUT COMPUTER: a playlist, a folder of station idents, and a list of frequencies that keep moving.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 153,
+      "line": 154,
       "text": "say:{lift:'SCOOTER LIFT: a delivery scooter up on the lift, side panel off, its ID plate unscrewed.',chest:'TOOL CHEST: sockets in the wrong drawers, a torque wrench, a tin of mismatched bolts.',drums:'OIL DRUMS: two full, one empty, one that sloshes too lightly for its weight.',computer:'DIAGNOSTIC LAPTOP: a scooter’s fault log, and a tool for rewriting its owner record.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 159,
+      "line": 160,
       "text": "say:{altar:'ALTAR: fruit, a bowl of rice, a cup of tea gone cold, coins, a folded note nobody should read.',incense:'INCENSE: three sticks burning down in a bowl of ash. The smoke hangs under the ceiling.',candles:'CANDLES: a rack of small candles, most lit, wax over everything.',charms:'CHARM STRIPS: paper strips, brush marks faded past reading, tied with red thread.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 168,
+      "line": 169,
       "text": "say:{ring:'RING: chain-link on scaffold poles, the mat patched with tape, dark stains scrubbed half away.',betting:'BETTING COUNTER: a grille, a slot for chips and cash, a ledger chained to the counter. Closed between fights.',board:'ODDS BOARD: chalked names wiped out and rewritten. Tonight’s card is blank.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 174,
+      "line": 175,
       "text": "say:{table:'CHECKPOINT TABLE: a pass-through in the fence, a scarred table, a list of names with half of them crossed out.',cashbox:'CASH BOX: a dented tin with a padlock. The door fee goes in here.',wand:'SCANNER WAND: a cheap metal-detector wand, the grip wrapped in tape.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 196,
+      "line": 197,
       "text": "say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 203,
+      "line": 204,
       "text": "objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 210,
+      "line": 211,
       "text": "say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 216,
+      "line": 217,
       "text": "say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 222,
+      "line": 223,
       "text": "say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 226,
+      "line": 227,
       "text": "say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});",
       "kind": "source-reference"
     },
@@ -72718,67 +72718,73 @@
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 238,
+      "line": 175,
+      "text": "function startCall(){const fresh=D.nextCall(inbox('comms'));if(fresh&&(!call||call.id!==fresh.id)){call={id:fresh.id,start:Date.now(),ended:false,lines:String(fresh.text).split('\\n').map(x=>x.trim()).filter(Boolean),from:String(fresh.fromName||''),who:String(fresh.from||''),title:String(fresh.title||'')};call.voice=callVoicePlan(call,fresh.text);try{if(bannerKey==='call:'+fresh.id){hideBanner();noteApp=null;}}catch{}}return call;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/personal-device.js",
+      "line": 250,
       "text": "const tabs='<div class=\"pd-tabs\">'+tab('inbox','INBOX',ib?unreadText(ib):'')+tab('chat','DISTRICT CHAT',un?(un>99?'99+':un):'')+tab('players','PLAYERS','')+tab('talk','CONVERSATIONS','')+tab('dm','PRIVATE','')+'</div>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 244,
+      "line": 256,
       "text": "return tabs+(people.length?'<h2>CONVERSATIONS</h2>'+people.map(id=>'<button type=\"button\" class=\"pd-card pd-thread\" data-thread=\"'+esc(id)+'\"><b>'+esc(String(contactName(id)).toUpperCase())+'</b><span class=\"pd-note\">'+esc(last(id)||'Open the conversation')+'</span></button>').join('')+'<h2>INBOX</h2>':'')+'<div class=\"pd-note\">Messages sent to your V1. No reply is needed.</div>'+(list.length?list.map(m=>'<article class=\"pd-card pd-inmsg'+(m.read?'':' unread')+'\" data-inbox=\"'+esc(m.id)+'\"><div class=\"pd-msg-h\"><b>'+esc(m.header)+'</b>'+(m.at?'<time>'+esc(new Date(m.at*1000).toLocaleString())+'</time>':'')+'</div><div class=\"pd-inmsg-text\">'+esc(m.text)+'</div>'+(m.title?'<div class=\"pd-note\">'+esc(m.title)+'</div>':'')+'</article>').join(''):'<div class=\"pd-empty\">No messages yet.</div>');}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 247,
+      "line": 259,
       "text": "return tabs+'<div class=\"pd-note\">People you have talked to in this browser. Not synced.</div>'+(rows.length?rows.slice(-40).reverse().map(m=>'<div class=\"pd-line\"><b>'+esc(m.name)+'</b><span class=\"pd-note\">'+esc(new Date(m.at).toLocaleString())+'</span><div>'+esc(m.text)+'</div></div>').join(''):'<div class=\"pd-empty\">No conversations yet. People you talk to appear here.</div>');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 253,
+      "line": 265,
       "text": "+'<form data-chatform class=\"pd-compose\"><input type=\"text\" maxlength=\"200\" autocomplete=\"off\" aria-label=\"Chat message\" placeholder=\"'+(can?'Say something to the District (no links)':'Chat needs a registered account and a connection')+'\"'+(can?'':' disabled')+'><button type=\"submit\"'+(can?'':' disabled')+'>SEND</button></form>';",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 373,
+      "line": 386,
       "text": "const f=e.target.closest('[data-chatform]');if(!f)return;e.preventDefault();const i=f.querySelector('input'),t=i.value.trim();if(!t)return;const res=chat()?.submit(t)||{ok:false,text:'Chat is not available.'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 435,
+      "line": 448,
       "text": "if(t.dataset.thread){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox',t.dataset.thread],'tab','OPENING CONVERSATION');return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 436,
+      "line": 449,
       "text": "if(t.dataset.attachOpen){attach={picking:true,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 437,
+      "line": 450,
       "text": "if(t.dataset.attachPhoto){attach={picking:false,photo:t.dataset.attachPhoto,text:'',sending:false};render({keepScroll:true});setTimeout(()=>body?.querySelector('[data-attach-form] input')?.focus(),0);return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 438,
+      "line": 451,
       "text": "if(t.dataset.attachCancel){attach={picking:false,photo:null,text:'',sending:false};render({keepScroll:true});return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 473,
+      "line": 486,
       "text": "function back(){if(stack[0]==='messages'&&stack[2]){attach={picking:false,photo:null,text:'',sending:false};go(['messages','inbox'],'tab','LOADING');return true;}   // a conversation goes back to the list",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/personal-device.js",
-      "line": 558,
+      "line": 571,
       "text": "if(open&&!onFootOrDock())setOpen(false);   // a conversation, the pod card or a menu took over",
       "kind": "source-reference"
     },
@@ -73894,31 +73900,43 @@
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 27,
+      "line": 29,
       "text": "const importLine=(im,who)=>({id:'import:'+im.hash,speaker:manifest?.cast?.[im.who]||extraCast[im.who]?im.who:key(who,'').slice(0,-1),imported:im});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 99,
+      "line": 100,
+      "text": "async function speak(o){const job={who:o&&o.characterId,text:o&&o.text,ended:false,endedAt:0};now=job;try{return await speakOne(o);}finally{job.ended=true;job.endedAt=performance.now();}}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/voice-clips.js",
+      "line": 104,
       "text": "const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 110,
+      "line": 115,
       "text": "if(typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text)speech.rate=Math.max(20,text.length/Math.max(.5,data.duration-.15));",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 126,
+      "line": 130,
+      "text": "function foreign(who,text){const l=lookup.get(key(who,text));return l&&l.shown===text&&l.text!==text?{text:l.text,translation:text}:null;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/voice-clips.js",
+      "line": 135,
       "text": "renderLine=function(){if(speech)speech.rate=null;voicedRender();const line=speech?.lines[speech.index];if(line&&line.who!=='pilot')screen.querySelector('.speech-controls')?.insertAdjacentHTML('afterbegin','<button data-action=\"speech-replay\" class=\"quiet\" title=\"Replay line\">REPLAY ↺</button>');};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/voice-clips.js",
-      "line": 127,
+      "line": 136,
       "text": "screen.addEventListener('click',e=>{if(e.target.closest('button')?.dataset.action!=='speech-replay'||!speech)return;speakLine();});",
       "kind": "source-reference"
     },
@@ -74628,14 +74646,14 @@
     "void-runner/ad-screens.js": "d8634ec993098c1970f550d47343414714b497ac3e0b3ef1f9ec45eb7669ec38",
     "void-runner/anim-library.js": "17580f80c1293f158dd0afbe0d543d6a02035971b38468fc49d7af0eb8728f3d",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
-    "void-runner/apartment-build.js": "9e36df0efe1cd9681c27494e25a8c5e60196a3447d570c7a01267a6d81aaf848",
-    "void-runner/apartment-integration.js": "2c796191c20b44fbfd53b589a6a669cc0ce4b0cc3c1a48ad7b2347ff5f281eff",
-    "void-runner/apartments.js": "411d6441e813afaf48ec8512d3762a786d331091e7f0f6f636d84c2a9716c58e",
+    "void-runner/apartment-build.js": "e80ce0e5e9a7c11362aad5f7be8d24698b649d09ae87ca8f236bdf0f9f56bba5",
+    "void-runner/apartment-integration.js": "6154a9b2d7d24ca30937ce8898b7ff95e6206ea5d4f61a8f13b8c0b7f76d1be2",
+    "void-runner/apartments.js": "27b17ec26c452a5a8f2bd8c8311391590f0a313df0d65296d74de58bfe4ba4f2",
     "void-runner/area-ambience.js": "46f613edbe9a8f6555486c58c5b5d5499a27d4728a7f7cbcfb2fad4c582256cb",
     "void-runner/area-map.js": "d646fa592c4a5277432c8f085456431e1bd5a45dc30543dd109f158abd9ecd4b",
     "void-runner/asset-pipeline.js": "d8a25d2e44dcc6c4ff1143e996b2a2c6a7ddbb7f808b12d386925ca285f89836",
     "void-runner/avatar-preview.js": "49fc0fd31a95e4d8a78968688a50a299381779839aadbc9aabe3f253a48db052",
-    "void-runner/babylon-integration.js": "7e1878717c22dba1cb43713ecb5a1089f1fd8fc785e32108f95d5ff1faf0ccc1",
+    "void-runner/babylon-integration.js": "6c4ac126e1accc4bf4e680b49a2943096681f265e1bfc8d0964d4571bb0c684b",
     "void-runner/babylon-renderer.js": "f22542ef8a23b41ea9d07f7f51668aba708bffaea266814f6e073f63d3adde0e",
     "void-runner/balance-data.js": "f8b3f9b93bf6bf0930b30a408ce777d9ddaa160ff9d1cbfdc892c846a079ad0a",
     "void-runner/balance.js": "7841de7125ea50127b8df4f3c6617f1bd7d3dcf8deef75c84a722ed78f296968",
@@ -74643,8 +74661,8 @@
     "void-runner/beginner.js": "c888c02498242272a7b1f9d595a7dd025bfa7521a83747b4edef74d739da9bca",
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
-    "void-runner/camera-feed.js": "49d213dfcc4f72acac5fa20cb6cf024cb8c04d529bdabae2876cdde183ead076",
-    "void-runner/campaign.js": "4247e0f808bca9f7bb17d15619a2e0a4575b6ca407cad5e3288a1372eacfb494",
+    "void-runner/camera-feed.js": "d14f4d2304c1384a57f414bb401bc456c274f5689a180731f149a848b16172b7",
+    "void-runner/campaign.js": "3b2657621fb68a7974e80903f6a0f03b29ddb9d97881285ba06458b49fe8d74d",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -74670,7 +74688,7 @@
     "void-runner/crowd.js": "10b100bcb72a377931dfed8dae080c28af84856bdf04a2f7dfbcef9e15a2e161",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
-    "void-runner/cult-room.js": "d74e5be20b2381fe46f4dc7b1fd0ea32d45d877f5db23cb654ca162bb6efd5f9",
+    "void-runner/cult-room.js": "c8ba34ef1a386b36c5493415bf9ba798142e04b870a7a245166e12901ca8e13d",
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
@@ -74690,6 +74708,7 @@
     "void-runner/district-rooms.js": "240bd61023dd1410f46b61b1f26ba8fa2a35fce3db27555960e2fff82cdc13ab",
     "void-runner/district-transition.js": "b30bd28e61d9965793fd3ec207c303b8b9a1b4de7b88682ac8fd67ac0bd45684",
     "void-runner/district-voice.js": "fd5d5e62fe70c2b8e4450bb8d0334d8789e837fc4c764bf6beb09aa55eebd3c7",
+    "void-runner/door-views.js": "405e4d41bb5b9827b918e10fcbae636cfe17ba146b5435d51d224ddc11f46232",
     "void-runner/editor-guide.js": "fbfefbda81a17329e9f80ee5f3ba0c0c354c857ddd719ca686f8c09b090bb3dc",
     "void-runner/editor-home.js": "55667850354446c7a7da16d253a3e5c5baa46ed81cedb848d4357b832a12c361",
     "void-runner/editor-session.js": "2b4ad761afad673cbb3e3f375b4c748a5fa6bfbf23eb7855717c5671674bdcff",
@@ -74698,7 +74717,7 @@
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
-    "void-runner/exploration-controller.js": "264a65e0f3b20c6dff39ac1f66bdd6bcd953059c6d7d78f4d9467d48b2b23427",
+    "void-runner/exploration-controller.js": "8a088aad81e8e8d2c7dcfb6f1293ae5a63eb885831bd4873c13190c92f572f55",
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
@@ -74714,7 +74733,7 @@
     "void-runner/flight-runtime.js": "8fa697c7a0be1e670c21009fd995974f4c790802f1328372a44a08589cf39784",
     "void-runner/flight-session-integration.js": "0dc63b7cdab18fa333bed6e699c55b58b5ab6c391153fc414b8093bfb452a154",
     "void-runner/flight-session.js": "1027dd1a11d5c087d2d754f96cfd8ecce8948ace49398ac78aab5efef0e52bfa",
-    "void-runner/flight-sfx.js": "ae959ba714e61342c6487ebfd554651300828ca41fffe53020ff2b489731ed09",
+    "void-runner/flight-sfx.js": "6106d3ebb07b01899f2a6893ede74e6b3ae177595063b86c3b360cae8de01110",
     "void-runner/flight-skirmish.js": "942bdfd16824ad0609daf15ddd6fee69a398087290e2b719805fdddef4f1bc7f",
     "void-runner/footsteps.js": "5caeb3f07017f1a72a1c91633de003f601104c9997862691e6b8b262ce1ff137",
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
@@ -74733,7 +74752,7 @@
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
-    "void-runner/main-story.js": "0db1a63e6a8894e447fb0e6930c14fc25edc022b9d93d5efe3e7bb370ecae2f7",
+    "void-runner/main-story.js": "700ba9c1acf235baa7bbdd962317c771a38722adb792f3f65a7db08aba8ee43d",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -74754,14 +74773,14 @@
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
     "void-runner/mission-log.js": "c7d188c8d7dc5a089f4467eeee617ddfba6a356031a7a4616c6e23ddf5937c4f",
     "void-runner/mission-mechanics-editor.js": "4762d687305c1370b27737ca51845f8be22b25ba23d87067c18cea576a2c6d54",
-    "void-runner/mission-mechanics-game.js": "d6ed338165f3436592efa87b4d086339d5fb88a744f854a3f2d1f82381fd8478",
+    "void-runner/mission-mechanics-game.js": "0c2fe07494ff236b303f813d12b4b3a3d6128ddbbfa8eca3934f91948fca03e3",
     "void-runner/mission-mechanics.js": "c96242d2208ffe17200f81774f608bb9b5217bd8ccab930cfbec0939b97d25d4",
-    "void-runner/mission-trees.js": "4ca010fef01069ef2d46e012ef6b308168bc5fbab0abc6d85c620fc69dee2606",
+    "void-runner/mission-trees.js": "8f34f4f6605212754a186a5aa19d59131361960a1bd5b834149b58b800f846de",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "f05df94f085f3a4d18ec8fcb53f976ef88bfa9ed4c2d3e53189971771bed4de6",
+    "void-runner/module-build.js": "ced93a07b13ceba87a37d3be66ea88991490ceb1da4952f5fde40a4bfc94990f",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
-    "void-runner/module-integration.js": "f6b5c955d19d7b31bb44e21b8504272f9123c5877feebfeb1b378218716af52e",
-    "void-runner/modules.js": "3e8c44c123855292efb9a631c1943447baf85f7d9d852dd7c1ff13e3cdfbb7f0",
+    "void-runner/module-integration.js": "dba88434d6ac82b9a3b5de4a1811f189c000a1cf600eb6eca1803535c0895d35",
+    "void-runner/modules.js": "9d31fa8c0a1630c853f4fc79bc1ba7f2c642c6920b920248df6cdf176c309062",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
@@ -74772,7 +74791,7 @@
     "void-runner/navigation-reveal.js": "187b35e52b7b2b9df53dbac8b5fd0145b97611e9052334ccb932176459636734",
     "void-runner/ncz-alley.js": "258e56647ce3958db64e6e6068e3f453b86915f7518dfbb14fb0f30c88a248c1",
     "void-runner/ncz-backalleys-integration.js": "00d1afe1e3edda336e11afc7c068129e24c62a50040f1c0a6de1ec6e3b0698b1",
-    "void-runner/ncz-backalleys.js": "0dde00ceda271f76fa19ee69a89ddc0b9cf136d43229d900e3c1d4f130c060a1",
+    "void-runner/ncz-backalleys.js": "2e523f3f667932a38a99af7a57d7180626834258ea1b79402fd6dcbc1d21274a",
     "void-runner/ncz-club-audio.js": "cb275de9bd1fcd3bad26f5901d73c270018ba53074915ff3217e168194bd6a95",
     "void-runner/ncz-containers.js": "85116b48b6e91853e438ac176f98cee2c2c8c61414f66d6a4b4b911fd4040e1f",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
@@ -74784,7 +74803,7 @@
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
     "void-runner/ncz-street-pair.js": "9a38dc7846ad09432b26e42c121bec66ca4928eec5e4bd82b6d09390f6cd04b8",
-    "void-runner/ncz-underground-integration.js": "3d79c892c28fbc4ec5ed3350f308d5257f8fed44853e77192c9a249b4be75fd5",
+    "void-runner/ncz-underground-integration.js": "2a1d02130526aa5bb4e6633b68f5efac59e6fcad49e8d4039de8315117b67efb",
     "void-runner/ncz-underground.js": "19caacdd2c0f5410bfa19b83865c12c69a07c2d9ad1c3c7d3c9302671d3fbc66",
     "void-runner/neochinatown.js": "b0467951b7f204ec190a3853f7d88c41886ecca30272cfa46f8aef9c1c96d633",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
@@ -74809,10 +74828,11 @@
     "void-runner/opening-scene.js": "5ff3857836fdf1bd377406e96da92d79055279f8ed5e815f31cfe8d9274fc24f",
     "void-runner/ordnance.js": "a3e43868918ec882965f16c95cd859475b3e634f5d75e691e606f8aefaa383c8",
     "void-runner/pawn-shop.js": "88eef96f4d1f0506fb51ec3f54b74d7f27c7bfbd97307d2ce9d97ce070c58823",
-    "void-runner/personal-device.js": "be56160994556dedfc993c6c9fbb19daa9b1ea2474e6b6b0f8848d01adc76718",
+    "void-runner/personal-device.js": "528a407502346c4c2f277611cbef67d353a21619a27e04fad54368f936fe8713",
     "void-runner/personal-hud.js": "e67f7a1651bc97ddde43e065c4b7503d167a07f2daed6aa3e985e8ccc678a8ed",
     "void-runner/pilot-flight.js": "81d1478343c5cb3b0d4db602b75e8103811c811fa692e0ec0be3ac3d185a30cb",
     "void-runner/places.js": "5dacf65064c739fed8d4576cd23df7cb20ed27f3b08fcd18fc6d559c6ac20e5b",
+    "void-runner/planet-landing.js": "3fab0ac66d1feca50ccf274efc416a155f01dae38cf7aaad486e586b8a1fbe69",
     "void-runner/planets.js": "b5982acd39005316447ab67a5a577c8ad320d1924bc55c5e9827631ba3f4e187",
     "void-runner/pod-music.js": "133d8bbe8e94332eb6a51bbb73ea3c3a170ca7cd4aa18474e1607635c5e03a89",
     "void-runner/pod-player-ui.js": "b7550caffdba86c4e68b83a120e769e089b97038161da8dd740225e59c0d1ad9",
@@ -74863,7 +74883,7 @@
     "void-runner/universe.js": "b4230d16307e4209ba781e04841d1be043b0360f2aa0ca35380af88718a67887",
     "void-runner/update-ready.js": "7ab741c803e0f656d0fd6cf2966dfa0d0f718d28bbbdd46fa8e4734d43261ee4",
     "void-runner/vesper-visuals.js": "846984627ff015464eaba1b76ee045bb82e769c715b9d6906f6bb922c691590d",
-    "void-runner/voice-clips.js": "dcb4d20d8a8d3e9d97dfa4b9cceb4ba70d5677c0f7aa42d7d7b4cd451433cf85",
+    "void-runner/voice-clips.js": "c589b3f6ffc06d513f975e9396e7ab519938bc44fcefa5c22b9a7324265dd628",
     "void-runner/voice-imports.js": "131f77de0380607ce871cfad660004b39317e3b3f4c8c71034574f482df55e5a",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",

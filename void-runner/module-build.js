@@ -806,6 +806,10 @@
   // extra dressing from the caller (def.dress: the tunnel network's alcoves and signs, ncz-underground.js), with the same materials, helpers and merging; `at(modId)` puts new pieces in a module's own frame
   if(typeof def.dress==='function')try{def.dress({B,P,S,STY,VM,box2,bx,cyl,plane,decal,graffiti,crate,stool,bulb,lantern,signTex,stainMat,puddleMat,pipeM,darkWood,lampOf,paperOf,low,hi,at:id=>{cur=modState[id]?modState[id].node:rootN;return cur;}});}catch(e){console.warn('[modules] dress',e);}
   cur=rootN;const doors=[],sound=()=>{try{root.VoidAudio?.event?.('door');}catch{}};
+  // what each exit shows beyond its vestibule (door-views.js): the street of that quarter (the tunnels: the stair landing), or the module / apartment / hallway through a connection
+  const DV=root.VoidDoorViews,viewCache=DV?DV.cache(B,scene,own):null;
+  const viewKey=d=>{if(!DV)return null;try{if(d.leads==='street'){if(def.network)return 'landing';const sd=root.VoidApartments?.door?.(def.door||'');return DV.street(sd?sd.quarter:'avenue');}
+   const t=M.TYPES[d.leadsType];if(!t)return null;if(t.legacy)return DV.housing(t.legacy.part==='hall'?'hallx':'apt',t.legacy.style);return t.style==='gang'?'checkpoint':DV.mod(t.style);}catch{return null;}};
   for(const d of C.doors){if(d.seam)continue;   // a seam between two tunnel tubes: open tunnel, no door
    const ax=d.tg[0]!==0,x=d.x,z=d.z,Wd=M.DOOR.w,H=M.DOOR.h,fw=M.DOOR.frame;const sideMod=C.mods.find(m=>m.id===M.parseRef(d.side).mod),otherMod=d.kind==='snap'?C.mods.find(m=>m.id===M.parseRef(d.side===d.a?d.b:d.a).mod):null;
    const both=[sideMod,otherMod].map(m=>m&&m.type),gang=both.some(x=>x&&styleOf(x)==='gang'),teaU=both.includes('tea-under'),teaSide=teaU?(sideMod&&sideMod.type==='tea-under'?-1:1)*(ax?d.n[1]:d.n[0]):0;   // the tea room's side of the door (b across the wall)
@@ -821,7 +825,7 @@
    const lA=leaf(-half+fw,-.004),lB=leaf(.004,half-fw);
    const lamps={};for(const [k,m] of [['open',S.ledG],['locked',S.ledR],['mine',S.ledA]])lamps[k]=B2(m,-.3,.3,H+.11,H+.14,-.14,.14,true);
    const sA=A.slider({mesh:lA,dir:[-d.tg[0],-d.tg[1]],dist:half-fw+.02,lamps,locked:!!d.locked,mine:d.kind!=='snap',sound}),sB=A.slider({mesh:lB,dir:[d.tg[0],d.tg[1]],dist:half-fw+.02,locked:!!d.locked,mine:d.kind!=='snap'});
-   const s={id:d.id,rec:d,range:1.8,mesh:lA,get t(){return sA.t;},get locked(){return sA.locked;},get mine(){return sA.mine;},near(v){sA.near(v);sB.near(v);},tick(dt){sA.tick(dt);sB.tick(dt);},force(v){sA.force(v);sB.force(v);},set(o){sA.set(o);sB.set(o);},dispose(){lA.dispose();lB.dispose();}};doors.push(s);
+   const s={id:d.id,rec:d,range:2.2,mesh:lA,get t(){return sA.t;},get locked(){return sA.locked;},get mine(){return sA.mine;},near(v){sA.near(v);sB.near(v);},tick(dt){sA.tick(dt);sB.tick(dt);},force(v){sA.force(v);sB.force(v);},set(o){sA.set(o);sB.set(o);},dispose(){lA.dispose();lB.dispose();}};doors.push(s);
    // the access points (one on each side that is here): a card reader with a screen and a red / green LED
    for(const [ref,pos] of Object.entries(d.ap||{})){const pw=d.side===ref?d:null,n=ref===d.side?d.n:[-d.n[0],-d.n[1]];const px=pos[0],pz=pos[2],o=.03;
     if(ax){box2(S.dark,px-.1,px+.1,1.22,1.52,pz-o*n[1]-.02,pz-o*n[1]+.02);box2(S.apScreen,px-.065,px+.065,1.42,1.49,pz-n[1]*.055-.003,pz-n[1]*.055+.003);}else{box2(S.dark,px-o*n[0]-.02,px-o*n[0]+.02,1.22,1.52,pz-.1,pz+.1);box2(S.apScreen,px-n[0]*.055-.003,px-n[0]*.055+.003,1.42,1.49,pz-.065,pz+.065);}
@@ -829,7 +833,7 @@
    // beyond an exit: a short dark vestibule (walls, a ceiling, an EXIT sign over the door) so an open door never shows the void
    if(d.leads){const n=d.n,V=(mat,a0,a1,y0,y1,c0,c1)=>ax?box2(mat,x+a0,x+a1,y0,y1,z+n[1]*c0,z+n[1]*c1):box2(mat,x+n[0]*c0,x+n[0]*c1,y0,y1,z+a0,z+a1);
     const vm=P('vest',{c:'#2a2c30',tex:'district-interior/kit_gunmetal_color.jpg',tile:1.2,rough:.6,metal:.4});const V2=(mat,a0,a1,y0,y1,c0,c1)=>{const lo=Math.min(c0,c1),hi2=Math.max(c0,c1);V(mat,a0,a1,y0,y1,lo,hi2);};
-    V2(vm,-.75,-.6,0,2.5,.1,1.3);V2(vm,.6,.75,0,2.5,.1,1.3);V2(S.void,-.75,.75,0,2.5,1.25,1.3);V2(vm,-.75,.75,2.45,2.5,.1,1.3);V2(S.concrete,-.75,.75,-.02,0,.1,1.3);V2(P('vest-lamp',{em:'#ffb070',unlit:true}),-.4,.4,2.43,2.45,.6,.7);
+    V2(vm,-.75,-.6,0,2.5,.1,1.3);V2(vm,.6,.75,0,2.5,.1,1.3);V2(S.void,-.75,.75,0,2.5,1.27,1.3);{const k=viewKey(d);if(k)plane(viewCache.get(k),1.25,2.5,[x+n[0]*1.25,1.25,z+n[1]*1.25],Math.atan2(n[0],n[1]));}/* the place beyond, in the doorway (door-views.js) */V2(vm,-.75,.75,2.45,2.5,.1,1.3);V2(S.concrete,-.75,.75,-.02,0,.1,1.3);V2(P('vest-lamp',{em:'#ffb070',unlit:true}),-.4,.4,2.43,2.45,.6,.7);
     const sg=P(d.leads==='street'?'exit-street':'exit-door',{dyn:signTex(d.leads==='street'?'EXIT · STREET':'EXIT','#7cf0a0','#08140c',256,64,'bold 34px Arial'),unlit:true});const sp=plane(sg,.42,.11,[x-n[0]*.14,H+.3,z-n[1]*.14],Math.atan2(-n[0],-n[1])+PI);}}
   // the shared collision of each door (walkingLocation.solids): closed unless the door is open
   const doorSolids=new Map((def.solids||[]).filter(s=>s.door).map(s=>[s.door,s]));

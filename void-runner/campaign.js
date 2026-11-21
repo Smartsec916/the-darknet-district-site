@@ -375,7 +375,7 @@
       Story.emit(s,'arriveLocation',s.location);
       return {...f,repairCharged:0,gunReward:false,training:true};
     }
-    s.location = f.destination; U.visit(s);P.checkpoint(s,s.location);P.mark(s,'dock');if(!s.progression.equipment.owned.includes('cooling')){s.progression.equipment.owned.push('cooling');if(previous==='arrival')s.credits+=200;} s.credits += f.reward;
+    s.location = f.destination; U.visit(s);if(s.location==='earth'&&s.story?.flags){delete s.story.flags.area;delete s.story.flags.quarter;}/* a flight sets down at the Port, on the street (planet-landing.js): never inside the District or in another quarter */P.checkpoint(s,s.location);P.mark(s,'dock');if(!s.progression.equipment.owned.includes('cooling')){s.progression.equipment.owned.push('cooling');if(previous==='arrival')s.credits+=200;} s.credits += f.reward;
     const repairCharged=Math.min(s.credits,Math.round(B.repairCost));s.credits-=repairCharged;
     if (f.reward) s.completed++;
     if (f.chapter && !s.cleared.includes(f.id)) s.cleared.push(f.id);
