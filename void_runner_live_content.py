@@ -3130,7 +3130,32 @@ def get_clip(db, h):
 # The same rules as npc-made.js problems(), against the admin inventory's madeCharacters (models, items, ships, devices, the ids the game already uses). A made character
 # placed in an adult venue must be marked adult (18+) (npc-areas.js `adult` rectangles; never on Reverie's or Lace's model).
 MADE_ID = re.compile(r'^[a-z][a-z0-9-]{1,39}$')
-MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when', 'companionProfile', 'worldBehavior', 'relationships']
+MADE_KEYS = ['name', 'role', 'model', 'adult', 'look', 'device', 'ship', 'items', 'when', 'companionProfile', 'worldBehavior', 'relationships', 'residence']
+
+def _residence_access_ok(a, inv):
+    if a is None:
+        return True
+    if not _keys(a, ['mode', 'value']):
+        return False
+    m, v = a.get('mode'), a.get('value')
+    if m in ('public', 'locked', 'hack'):
+        return v in (None, '')
+    if m == 'item':
+        return isinstance(v, str) and v in (inv.get('apartments', {}).get('items') or ['ward-kit', 'hacking-device'])
+    if m == 'device':
+        return v in ('v1', 'v2', 'v3')
+    return m == 'mission' and isinstance(v, str) and bool(re.fullmatch(r'[a-z][a-z0-9-]{1,59}', v))
+
+def _residence_ok(r, inv):
+    if not _keys(r, ['door', 'slot', 'mode', 'from', 'to', 'streetAccess', 'apartmentAccess']) or not isinstance(r.get('door'), str):
+        return False
+    d = (inv.get('apartments', {}).get('doors') or {}).get(r['door']) or {}
+    if d.get('family', 'city') not in ('city', 'container') or d.get('style') not in ('normal', 'rundown', 'luxury', 'container-rundown', 'container-regular'):
+        return False
+    return (type(r.get('slot')) is int and 0 <= r['slot'] < (4 if d.get('family') == 'container' else 10)
+            and r.get('mode') in ('always', 'schedule') and all(isinstance(r.get(k), str) and re.fullmatch(r'([01]\d|2[0-3]):[0-5]\d', r[k]) for k in ('from', 'to'))
+            and (r['mode'] == 'always' or r['from'] != r['to'])
+            and all(_residence_access_ok(r.get(k), inv) for k in ('streetAccess', 'apartmentAccess')))
 COMPANION_RANGES = {'initiative': (0, 1), 'flirtatiousness': (0, 1), 'approachFrequency': (0, 1), 'attention': (0, 1), 'personalSpace': (.7, 2), 'walkSpeed': (.5, 1.6), 'remarkCooldown': (10, 120)}
 COMPANION_POOLS = 'greet chat compliment flirt sit dance hands kiss kissAfter notYet notNow relax bye approach window joinSofa inviteSit inviteDance inviteRecline accepted declined welcomeBack aside comeHere recline'.split()
 
@@ -3268,11 +3293,15 @@ def made_problems(content, inv=None):
             elif offers.get(wn['mission']) == cid:
                 out.append(w + 'they appear only while that mission is active, so they cannot offer it.')
         p = npcs.get(cid)
-        if not isinstance(p, dict) or not (_base_plan(p) or any(isinstance(b, dict) and b.get('mode') in ('stay', 'path') for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
+        r = c.get('residence')
+        if r is not None and not _residence_ok(r, inv):
+            out.append(w + 'invalid apartment residence.')
+        home = _residence_ok(r, inv) and r['mode'] == 'always'
+        if not home and (not isinstance(p, dict) or not (_base_plan(p) or any(isinstance(b, dict) and b.get('mode') in ('stay', 'path') for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list)))):
             out.append(w + 'put them somewhere in the world.')
-        elif not _base_plan(p):
+        elif not home and not _base_plan(p):
             out.append(w + 'outside their time blocks they need a place too.')
-        elif not md.get('walk') and (p.get('mode') == 'path' or any(isinstance(b, dict) and b.get('mode') == 'path' for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
+        elif isinstance(p, dict) and not md.get('walk') and (p.get('mode') == 'path' or any(isinstance(b, dict) and b.get('mode') == 'path' for b in (p.get('schedule') or []) if isinstance(p.get('schedule'), list))):
             out.append(w + 'this model has no walking animation: keep them at one spot.')
     return out
 

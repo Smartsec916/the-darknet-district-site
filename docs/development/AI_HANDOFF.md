@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V20 — RESIDENCE ACCESS (local, not deployed)
+
+- Residence has separate street entrance and apartment door controls: public, locked, mission acquired/completed, existing inventory item, exact personal device model, or hackable with the existing hacking device. Shared building access is synchronized during PC transfer/update; conflicting imported rules fail closed. Apartment rules are independent across the hallway. Existing active mission apartment access keeps priority. Hacking records a per-address save flag; both automatic walking entry and explicit interaction check authorization. Resident access is configured through made-world-NPC residence drafts, not a global vacant-address editor. Existing housing numbers and built-in NPC assignments are unchanged. The guide includes access instructions. 38 focused regression tests and isolated server validator checks passed; real PC playtesting pending. No deployment.
+
+### 21 Nov 2026: COMPANION STUDIO V19 — APARTMENT RESIDENCE (local, not deployed)
+
+- Residence tab on phone and PC selects a specific existing city or container apartment, with always-home or overnight-capable game-clock hours. Settings transfer to made NPC drafts, or update an existing made NPC from the PC studio. Multiple residents share a stable room number; mission access takes priority over incompatible residences. Apartment builds instantiate compatible shipped models, idle animation and ordinary TALK prompts. Outdoor plans suppress residents during home hours. Imported browser-only models still need game asset integration; no automatic paired interactions or seated routines inside private apartments. Real PC playtesting is pending. Publish through the existing NPC content workflow after testing; V19 itself is not deployed.
+
 ### 21 Nov 2026: COMPANION STUDIO V18 — RELATIONSHIPS & CITY ROUTES (local, not deployed)
 
 - New Relationships tab supports eight distinct targets (player, named District NPCs such as Iris/Admin/Dax, or a made world NPC), relationship type, affection, activation distance, greeting/approach/seat preference, and target-specific dialogue. Settings survive phone-to-PC packages and made-giver conversion; validated on both client and server. Actual same-scene target figures are located by the game’s NPC gesture registry. Ambient greetings can happen during route stops; existing mission/escort control takes priority. Routes and visits are edited through the existing NPC map and schedule, not a new cross-quarter pathfinder. Relationship-specific lines are text unless separately recorded; other NPCs are not scripted to reply or perform paired romance animations automatically. VR-only models must be integrated into the world first.

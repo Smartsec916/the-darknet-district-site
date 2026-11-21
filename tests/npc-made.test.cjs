@@ -11,6 +11,7 @@ function env(){fresh();
  const givers=G.roster({registry:JSON.parse(fs.readFileSync(R('tools/audio/npc-voice-registry.json'),'utf8')),people:require(R('void-runner/district-people.js')).npcs(),story:require(R('void-runner/story-content.js')).characters,temple:require(R('void-runner/temple.js')).MODEL});
  const e={B,Missions:M,U,givers};MC.snapshot(e);MC.apply(null,e);return {e,M,C,MC,G,X:require(R('void-runner/npc-paths.js')),MD:require(R('void-runner/npc-made.js')),A:require(R('void-runner/npc-areas.js'))};}
 const ev=(x,s,e)=>x.MC.treeEvent(s,x.e,e,x.M,x.C);
+test('residence hours support overnight schedules and always home',()=>{const {MD}=env(),r={door:'apt-avenue-n-16',slot:0,mode:'schedule',from:'20:00',to:'08:00'};assert.equal(MD.residenceAtHome(r,23*60),true);assert.equal(MD.residenceAtHome(r,7*60),true);assert.equal(MD.residenceAtHome(r,8*60),false);assert.equal(MD.residenceAtHome({...r,mode:'always'},12*60),true);assert.equal(MD.validResidence({...r,to:'20:00'}),false);});
 const player=x=>{const s=x.C.startDistrictCampaign(x.C.fresh());s.story.flags.appearanceOffered=true;s.story.flags.podWakePending=false;return s;};
 const ctx=x=>({givers:new Map(x.e.givers.map(g=>[g.id,g])),places:x.G.placeIds()});
 const KARA={name:'Kara Voss',role:'a fixer (placeholder)',model:'npc-courier',device:'v3',ship:'ship2',items:[{id:'ward-pistol',show:true}],look:{colour:{'*':{tint:'#aa2233'}}}};

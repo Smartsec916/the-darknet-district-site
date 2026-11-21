@@ -44,7 +44,10 @@
  const adultAllowed=asset=>!YOUNG.includes(asset);
  const ID=/^[a-z][a-z0-9-]{1,39}$/,TAGS=/<[^>]*>|[\u0000-\u001f]/;
  const LIMIT={characters:12,name:40,role:80,items:6};
- const KEYS=['name','role','model','adult','look','device','ship','items','when','companionProfile','worldBehavior','relationships'];
+ const KEYS=['name','role','model','adult','look','device','ship','items','when','companionProfile','worldBehavior','relationships','residence'];
+ const residenceMinute=s=>typeof s==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(s)?Number(s.slice(0,2))*60+Number(s.slice(3)):null;
+ function validResidence(r){return keysOk(r,['door','slot','mode','from','to','streetAccess','apartmentAccess'])&&typeof r.door==='string'&&r.door.length<=100&&Number.isInteger(r.slot)&&r.slot>=0&&r.slot<10&&['always','schedule'].includes(r.mode)&&residenceMinute(r.from)!=null&&residenceMinute(r.to)!=null&&(r.mode==='always'||r.from!==r.to)&&[r.streetAccess,r.apartmentAccess].every(a=>(node?req('./apartments.js'):root.VoidApartments)?.validAccess(a)??a==null);}
+ function residenceAtHome(r,minute){if(!validResidence(r))return false;if(r.mode==='always')return true;if(!Number.isFinite(minute))return false;const a=residenceMinute(r.from),b=residenceMinute(r.to);return a<b?minute>=a&&minute<b:minute>=a||minute<b;}
  const REL_TYPES=['friend','coworker','partner','rival','acquaintance'];
  function validRelationships(a){return Array.isArray(a)&&a.length<=8&&new Set(a.map(r=>r?.target)).size===a.length&&a.every(r=>keysOk(r,['target','type','affection','distance','activity','lines'])&&(r.target==='player'||ID.test(r.target||''))&&REL_TYPES.includes(r.type)&&typeof r.affection==='number'&&Number.isFinite(r.affection)&&r.affection>=0&&r.affection<=1&&typeof r.distance==='number'&&r.distance>=1&&r.distance<=8&&['greet','approach','seat'].includes(r.activity)&&Array.isArray(r.lines)&&r.lines.length<=10&&r.lines.every(t=>plain(t,500)&&!/[<>]/.test(t)));}
  function selectRelationship(a,origin,locate,self){if(!validRelationships(a))return null;return a.map(r=>({r,w:r.target!==self?locate(r.target):null})).filter(x=>x.w&&Number.isFinite(x.w.x+x.w.z)&&Math.hypot(x.w.x-origin.x,x.w.z-origin.z)<=x.r.distance).sort((a,b)=>Math.hypot(a.w.x-origin.x,a.w.z-origin.z)-Math.hypot(b.w.x-origin.x,b.w.z-origin.z))[0]||null;}
@@ -92,7 +95,7 @@
   if(c.adult===true&&!YOUNG.includes(x.model))x.adult=true;if(DEVICES[c.device])x.device=c.device;if(typeof c.ship==='string'&&c.ship)x.ship=c.ship;
   if(Array.isArray(c.items)&&c.items.length)x.items=c.items.filter(i=>i&&typeof i.id==='string').slice(0,LIMIT.items).map(i=>i.show===true&&SHOW[i.id]?{id:i.id,show:true}:{id:i.id});
   if(c.when&&typeof c.when==='object'&&typeof c.when.mission==='string'&&c.when.mission)x.when=c.when.step?{mission:c.when.mission,step:String(c.when.step)}:{mission:c.when.mission};
-  if(validProfile(c.companionProfile))x.companionProfile=JSON.parse(JSON.stringify(c.companionProfile));if(validWorldBehavior(c.worldBehavior))x.worldBehavior={...c.worldBehavior};if(validRelationships(c.relationships))x.relationships=JSON.parse(JSON.stringify(c.relationships));return x;}
+  if(validProfile(c.companionProfile))x.companionProfile=JSON.parse(JSON.stringify(c.companionProfile));if(validWorldBehavior(c.worldBehavior))x.worldBehavior={...c.worldBehavior};if(validRelationships(c.relationships))x.relationships=JSON.parse(JSON.stringify(c.relationships));if(validResidence(c.residence))x.residence={...c.residence};return x;}
  /* Where a character stands all day (her plan without the schedule), or null. */
  function basePlan(p){if(!p||typeof p!=='object')return null;const {schedule,...rest}=p;return rest.mode==='stay'||rest.mode==='path'?rest:null;}
  /* The area she is placed in (npc-areas.js), from her plan: the all-day spot or route, else her first time block with a place. */
@@ -111,6 +114,7 @@
    if(c.companionProfile!=null&&!validProfile(c.companionProfile))out.push(w+'invalid transferred companion personality or dialogue.');
    if(c.worldBehavior!=null&&!validWorldBehavior(c.worldBehavior))out.push(w+'invalid companion behavior trigger.');
    if(c.relationships!=null&&(!validRelationships(c.relationships)||c.relationships.some(r=>r.target===id)))out.push(w+'invalid relationship target or settings.');
+   if(c.residence!=null&&!validResidence(c.residence))out.push(w+'invalid residence settings.');
    const m=ms.get(c.model);if(!m){out.push(w+'choose the model they are made from (one of the game’s NPC models).');continue;}
    if(c.adult!=null&&c.adult!==true)out.push(w+'“adult (18+)” is either ticked or left out.');else if(c.adult===true&&!adultAllowed(c.model))out.push(w+'this model reads youthful (Reverie’s and Lace’s models): it can never be marked adult.');
    if(c.look!=null){const L=NPL();if(!keysOk(c.look,['hide','colour','gear','hair']))out.push(w+'the look has unknown fields.');else if(L)for(const p of L.entryProblems(c.model,{looks:[{id:'own',name:'own look',...c.look}],use:'own'},ctx.lookInventory&&ctx.lookInventory[c.model]))out.push(w+p.replace(/^[^:]+: look “own look”: /,'look: '));}
@@ -122,8 +126,8 @@
     else if(ctx.missions&&!ctx.missions.has(x.mission))out.push(w+'they are there only during a mission that is not in your missions (“'+x.mission+'”).');
     else if(x.step!=null&&(typeof x.step!=='string'||(ctx.missions&&!(ctx.missions.get(x.mission)||[]).includes(x.step))))out.push(w+'the step they appear from is not a step of that mission.');
     else if(ctx.givesOffer&&ctx.givesOffer.get(x.mission)===id)out.push(w+'they appear only while that mission is active, so they cannot be the one who offers it: choose “always”, or another giver.');}
-   const p=npcs[id];if(!p||!(basePlan(p)||(Array.isArray(p.schedule)&&p.schedule.some(b=>b&&(b.mode==='stay'||b.mode==='path')))))out.push(w+'put them somewhere in the world (Where they are: a spot or a route).');
-   else if(!basePlan(p))out.push(w+'outside their time blocks they need a place too: keep them at a spot or give them a route for the rest of the day.');
+   const p=npcs[id],home=validResidence(c.residence)&&c.residence.mode==='always';if(!home&&(!p||!(basePlan(p)||(Array.isArray(p.schedule)&&p.schedule.some(b=>b&&(b.mode==='stay'||b.mode==='path'))))))out.push(w+'put them somewhere in the world (Where they are: a spot or a route).');
+   else if(!home&&!basePlan(p))out.push(w+'outside their time blocks they need a place too: keep them at a spot or give them a route for the rest of the day.');
    if(p&&!m.walk&&usesPath(p))out.push(w+'this model has no walking animation: keep them at one spot.');}
   return out;}
  /* Roster entries (mission-givers.js roster) for made characters: a TALK prompt that follows the figure, in the District game, reachable by players. npcs: content.npcs. */
@@ -142,7 +146,7 @@
    return {movable:mv?{actions:mv.actions,anims:mv.anims,pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
   for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
- const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,validProfile,conversationLines,WORLD_DEFAULT,validWorldBehavior,validRelationships,validResidence,residenceAtHome,selectRelationship,nearbySeat,proximityActive,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game
@@ -153,6 +157,7 @@
  function planOf(id){const P=plansAll()[id];if(P)return P;const b=basePlan(((env()&&env().npcPlans)||{})[id]);return NPX().planNow(id,{plan:b||null});}   // no plan: a built-in character's post (npc-paths.js homePlan), else nothing
  const areaOfPlan=P=>P?(P.area||(AR()&&AR().areaOf(P.mode==='path'?P.points[0]:P))||null):null;
  function present(id){const c=chars()[id];if(!c)return false;try{return exists(c,typeof state!=='undefined'?state:null,env()&&env().trees);}catch{return true;}}
+ function atHome(c){return residenceAtHome(c?.residence,root.VoidClock?.now?.(typeof state!=='undefined'?state:null)?.minuteOfDay);}
  // ---- props: a holstered pistol and a hand-held device, built from boxes (one merged mesh, one shared material each per scene), on the figure's own bones
  function mat(scene,name,hex,glow){const B=root.BABYLON;let m=scene.getMaterialByName(name);if(m)return m;m=new B.PBRMaterial(name,scene);m.albedoColor=B.Color3.FromHexString(hex);m.metallic=.55;m.roughness=.45;if(glow){m.emissiveColor=B.Color3.FromHexString(glow);m.emissiveIntensity=1.4;}return m;}
  function boxes(scene,name,parts){const B=root.BABYLON,ms=parts.map(([w,h,d,x,y,z],i)=>{const b=B.MeshBuilder.CreateBox(name+'-'+i,{width:w,height:h,depth:d},scene);b.position.set(x,y,z);return b;});return B.Mesh.MergeMeshes(ms,true,true);}
@@ -245,8 +250,8 @@
    if(p.anim&&clip!==p.clip){p.clip=clip;if(p.s.once&&p.s.after&&p.anim.playOnce)p.anim.playOnce(clip,p.s.after);else p.anim.play(clip);}   // a floor seat's sit-down / stand-up clip plays once, then its pose (ncz-street-pair.js FLOOR_MOVE)
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
-   const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)){if(cs[id]&&inView(p.node,cam))p.going=true;else leave(id);}else p.going=false;
-   for(const [id,c] of Object.entries(cs)){if(!present(id))continue;const P=planOf(id),a=areaOfPlan(P);if(P&&P.indoors)away.add(id);   // inside a place (npc-escort-indoors.js)
+   const cam=camNow();for(const [id,p] of [...people])if(!cs[id]||!present(id)||atHome(cs[id])){if(cs[id]&&inView(p.node,cam)&&!atHome(cs[id]))p.going=true;else leave(id);}else p.going=false;
+   for(const [id,c] of Object.entries(cs)){if(!present(id)||atHome(c))continue;const P=planOf(id),a=areaOfPlan(P);if(P&&P.indoors)away.add(id);   // inside a place (npc-escort-indoors.js)
     if(!a||!HERE.has(a)){const p=people.get(id);if(p&&inView(p.node,cam))p.going=true;else if(p)leave(id);continue;}
     if(people.has(id)&&people.get(id).c!==c){leave(id);}   // changed in a new version of the content: made again
     if(!people.has(id)){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(away.has(id)&&t&&seenAt(t.x,0,t.z,cam))continue;   // back from inside a place: never in front of the player
@@ -259,7 +264,8 @@
   const liveFn=()=>self.stats();root.VoidMadeNPCs.live=liveFn;return self;}
  /* Name cards for the dialogue window (as mission-givers do for their speakers). */
  function nameCards(){const ch=root.VoidStoryContent?.characters;if(!ch)return;for(const [id,c] of Object.entries(chars()))if(!ch[id]||ch[id].made)ch[id]={id,name:c.name,role:'',portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['made'],biography:'',relationshipDefault:0,made:true};}
- root.VoidMadeNPCs={...api,start,planOf,present,props,live:null,nameCards};
+ function startResidents({scene,parent,def}){const A=root.VoidAssets,AP=root.VoidApartments,people=new Map(),pending=new Set(),failed=new Set();let stopped=false;const remove=id=>{const p=people.get(id);if(!p)return;p.anim?.dispose?.();p.node.dispose(false,false);const i=def.interactions.indexOf(p.item);if(i>=0)def.interactions.splice(i,1);people.delete(id);};function tick(){if(stopped)return;const cs=chars(),ids=def.residents||[];for(const id of people.keys())if(!ids.includes(id)||!present(id)||!atHome(cs[id]))remove(id);for(const [i,id] of ids.entries()){const c=cs[id];if(!c||!present(id)||!atHome(c)||people.has(id)||pending.has(id)||failed.has(id))continue;pending.add(id);Promise.resolve(A.container?.('crowd:'+c.model)||A.load('crowd:'+c.model,{src:fileOf(c.model),background:true},scene)).then(()=>{if(stopped||!present(id)||!atHome(c))return;const n=A.instance('crowd:'+c.model,parent);if(!n)return;const spot=AP.residenceSpot(def.style,i);if(!spot){n.dispose(false,false);return;}n.position.set(spot[0],0,spot[1]);n.metadata={...n.metadata,character:id,made:id,displayName:c.name};for(const m of n.getChildMeshes(false))m.isPickable=false;try{NPL()?.applyLook?.(n,c.model,c.look?{id:'made-'+id,name:c.name,...c.look}:null,{scene});}catch{}const anim=root.VoidCrowd?.animate?.(n,c.model,'idle');const item={id:'made-'+id,action:ACTION,character:id,label:'TALK TO '+c.name.toUpperCase(),position:AP.world([spot[0],1.6,spot[1]]),range:2.2,talk:true};def.interactions.push(item);people.set(id,{node:n,anim,item});nameCards();}).catch(()=>failed.add(id)).finally(()=>pending.delete(id));}}return {tick,dispose(){stopped=true;for(const id of people.keys())remove(id);}};}
+ root.VoidMadeNPCs={...api,start,startResidents,planOf,present,props,live:null,nameCards};
  if(root.VoidDevTools?.standalone)return; // lightweight companion editor: no game runtime or interaction polling
  // every street quarter and the District interior: started (and ticked, and disposed) with the street pair, which neochinatown.js starts in each of them
  (function wrap(){const S=root.VoidStreetPair;if(!S||!S.start||S.start.made)return;const s0=S.start;const s1=function(o){const a=s0.apply(this,arguments);let b=null;try{b=start(o||{});}catch(e){try{console.warn('[VOID//RUNNER made givers]',e);}catch{}}
