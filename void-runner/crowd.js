@@ -122,7 +122,7 @@
  const variety={talk:['laugh','drink'],idle:['laugh','drink'],watch:['laugh'],'sit-talk':['laugh']};
  const varietyFor=(look,base)=>(variety[base]||[]).filter(c=>(clips[look]||[]).includes(c));
  // A look without a clip falls back to the nearest one it has, then to idle.
- const fallback={look:'watch','sit-talk':'sit',typing:'watch',wipe:'interact',pickup:'interact'};
+ const fallback={look:'watch','sit-talk':'sit','sit-wave':'sit',typing:'watch',wipe:'interact',pickup:'interact'};   // sit-wave: a seated wave falls back to sitting (20 Nov 2026: street figures seated by the made-giver runtime stood up to wave)
  function clipIn(look,want){const have=clips[look]||[];for(let w=want;w;w=fallback[w])if(have.includes(w))return w;return 'idle';}
  // Model definitions to preload for a place, at every quality (the owner, 2026-10-28: no primitive stand-ins on the
  // street). Low quality simply has fewer people (ncz-nightlife.js).
