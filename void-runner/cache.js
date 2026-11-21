@@ -11,8 +11,9 @@
   api.update=()=>({loaded,update});
   navigator.serviceWorker.addEventListener('controllerchange',()=>{navigator.serviceWorker.controller?.postMessage({type:'VERSION'});});
   // The game's own globals (let bindings in game.js) exist once game.js has run; before that typeof is 'undefined'.
-  const decide=()=>{if(!update||!U)return;const ctx={started:!!root.VoidStartup?.started,mode:typeof mode!=='undefined'?mode:undefined,mainMenu:!!document.querySelector('#screen:not(.hidden) .main-menu'),flight:!!root.VoidFlightSession?.active,speech:typeof speech!=='undefined'&&!!speech,testing:!!root.VoidDevTest?.active};
+  const decide=()=>{if(!update||!U)return;const ctx={started:!!root.VoidStartup?.started,mode:typeof mode!=='undefined'?mode:undefined,mainMenu:!!document.querySelector('#screen:not(.hidden) .main-menu'),flight:!!root.VoidFlightSession?.active,speech:typeof speech!=='undefined'&&!!speech,testing:!!root.VoidDevTest?.active,editor:typeof VoidDevTools!=='undefined'&&!!VoidDevTools.used};
     if(U.when(ctx)==='reload'){update=null;location.reload();return;}
+    if(ctx.editor||ctx.testing){if(typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized)VoidDevTools.updateReady?.();}   // the editor / draft play: an APPLY UPDATE bar; the reload only on that click (dev-tools.js)
     if(ctx.started&&!noticed&&root.VoidV1?.notify){noticed=!!root.VoidV1.notify({key:'update',text:U.NOTICE,silent:true});}};
   setInterval(decide,1000);
   navigator.serviceWorker.addEventListener('message',event=>{
@@ -21,6 +22,7 @@
   });
   navigator.serviceWorker.register(sw,{scope:new URL('../',sw).pathname,updateViaCache:'none'})
     .then(async registration=>{
+      if(!registration)return;   // no registration (a browser that blocks service workers, e.g. automated tests): nothing to update
       api.worker=registration;
       try{await registration.update();}catch{}
       setInterval(()=>{registration.update().catch(()=>{});},15*60*1000);   // a deploy during a long session is noticed too

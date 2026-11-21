@@ -58,13 +58,16 @@
     keeps its name; the NeoChinatown street (with the alley and NULL nightclub, which are part of it) is one room; every other place is a room named by its own id.
     The hub refuses a name it does not know (tools/district-hub/protocol.cjs ROOMS), and then this place is simply played alone. */
  const PLACES=new Set(['corporate','temple','vesper','meridian','kepler','foundry','rusthaven','sol-belt','vigil','holdfast','mars','nexus','order-homeworld']);
- const roomOf=wl=>!wl||wl.kind==='vr'?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:null;
+ const roomOf=wl=>!wl||wl.kind==='vr'||wl.private?null:wl.id==='neochinatown'?(wl.area==='interior'?ROOM:'neochinatown-street'):PLACES.has(wl.id)?wl.id:null;
  const QZ=root.VoidQuarters||null;
  const roomNow=()=>{try{return typeof walkingLocation!=='undefined'?roomOf(walkingLocation):null;}catch{return null;}};
  let joinedRoom=null,refusedRoom=null;
  const inRoom=()=>typeof walker!=='undefined'&&walker&&ROOM_MODES.has(mode)&&((!!roomNow()&&roomNow()!==refusedRoom)||(inVrWorld()&&hubVr));
  // What the others are told about where I am. A pod is private: while I lie in mine they see me standing at its door, never inside it.
- const reported=()=>{if(mode==='pod-waking'){try{const e=root.VoidDistrictArea.podExit(root.VoidNeoChinatown,state.story.flags.activePod||1);return [e.spawn[0],e.spawn[2],e.yaw];}catch{}}return [walker.x,walker.z,walker.yaw];};
+ /* THE UNDERGROUND (ncz-underground.js, 20 Nov 2026) is a quarter of the street, so it shares the street's room on the hub (no hub change), but it lies UNDER the city in the same
+    x / z: a player down there reports x + UNDER_SHIFT (the hub's rooms accept +-3000 m), so everyone can tell the two levels apart and draws only the people on their own level. */
+ const UNDER_SHIFT=2000,underNow=()=>{try{return typeof walkingLocation!=='undefined'&&walkingLocation?.area==='street'&&walkingLocation.quarter==='underground';}catch{return false;}};
+ const reported=()=>{if(mode==='pod-waking'){try{const e=root.VoidDistrictArea.podExit(root.VoidNeoChinatown,state.story.flags.activePod||1);return [e.spawn[0],e.spawn[2],e.yaw];}catch{}}return [walker.x+(underNow()?UNDER_SHIFT:0),walker.z,walker.yaw];};
  const floorY=()=>walker.y-(walker.eye||1.68);
  // ---- Shared VR sessions (the hub's rules are in tools/district-hub/protocol.cjs; the menu is in vr-core.js) ----
  let vrSession=null,vrWant=null,vrWaiting=null,vrListWaiting=null,outSince=0;
@@ -110,9 +113,9 @@
   parent.position.set(p.x,floorY(),p.z);parent.rotation.y=p.yaw;return true;
  }
  function upsert(v){
-  let p=peers.get(v.id);
-  if(!p){p={id:v.id,name:clean(v.name),model:v.model,appearance:v.appearance||null,x:v.x,z:v.z,yaw:v.yaw,tx:v.x,tz:v.z,tyaw:v.yaw,clip:v.clip};peers.set(v.id,p);}
-  else{p.tx=v.x;p.tz=v.z;p.tyaw=v.yaw;p.clip=v.clip;}
+  let p=peers.get(v.id);const under=Number.isFinite(v.x)&&v.x>UNDER_SHIFT/2,vx=under?v.x-UNDER_SHIFT:v.x;
+  if(!p){p={id:v.id,name:clean(v.name),model:v.model,appearance:v.appearance||null,x:vx,z:v.z,yaw:v.yaw,tx:vx,tz:v.z,tyaw:v.yaw,clip:v.clip,under};peers.set(v.id,p);}
+  else{if(p.under!==under){p.x=vx;p.z=v.z;}p.under=under;p.tx=vx;p.tz=v.z;p.tyaw=v.yaw;p.clip=v.clip;}
   if(typeof v.eye==='boolean')p.eye=v.eye;
   if('dev' in v){const d=theirDevice(v);p.dev=d.dev;p.devPose=d.pose;}
   (p.seen||(p.seen=new Set())).add(v.clip);   // every animation the hub has sent for this player (lets a test see short clips on a slow machine)
@@ -198,7 +201,7 @@
    p.x+=(p.tx-p.x)*k;p.z+=(p.tz-p.z)*k;let d=p.tyaw-p.yaw;d=Math.atan2(Math.sin(d),Math.cos(d));p.yaw+=d*k;
    p.node.position.set(p.x,floorY(),p.z);p.node.rotation.y=p.yaw;
    // The quarters of NeoChinatown share one room on the hub (so chat reaches everyone in the city), but a player in another quarter is not drawn here.
-   const here=!QZ||!walkingLocation?.quarter||walkingLocation.area!=='street'||QZ.inQuarter(walkingLocation.quarter,p.x,p.z,1);if(p.node.isEnabled()!==here)p.node.setEnabled(here);p.elsewhere=!here;if(!here)continue;
+   const here=!!p.under===underNow()&&(!QZ||!walkingLocation?.quarter||walkingLocation.area!=='street'||QZ.inQuarter(walkingLocation.quarter,p.x,p.z,1));if(p.node.isEnabled()!==here)p.node.setEnabled(here);p.elsewhere=!here;if(!here)continue;
    const zf=root.VoidZoom?root.VoidZoom.now():1;   // zoomed with the camera app: tags and faces as the picture shows them (zoom-detail.js)
    if(p.tag)p.tag.isVisible=Math.hypot(p.x-walker.x,p.z-walker.z)*zf<TAG_RANGE;
    if(p.char){const d=Math.hypot(p.x-walker.x,p.z-walker.z)*zf,far=root.VoidGraphics?.quality==='low'?8:14;p.char.setDetail(p.char.detailNear?d<far:d<far*.8);}   // face details only when close (distance-based rendering; hysteresis avoids flicker)   // no name tags across the whole hall
@@ -221,7 +224,7 @@
   else{eyeSent=false;devSent='';}
   for(const p of peers.values()){const want=!!p.eye&&!p.dev;if(p.node&&!p.fallback&&want!==!!p.eyeShown){p.eyeShown=want;root.VoidStreetGear?.eye?.(p.node,want);}}},500);
  setInterval(()=>{if(ws?.readyState===1&&status==='in'&&hubVr&&performance.now()-lastSend>=3500){lastSend=performance.now();try{ws.send('{"t":"vr-list"}');}catch{}}},2000);
- root.VoidRemotePlayers={get status(){return status;},
+ root.VoidRemotePlayers={underShift:UNDER_SHIFT,get status(){return status;},
   // For the on-screen indicator and for developers (no token, no account id, no address): where the connection stands and how many players are really drawn.
   get diagnostics(){const list=[...peers.values()];return {status,room:vrSession?'vr:'+vrSession.id:(joinedRoom||ROOM),vr:vrSession?{exp:vrSession.exp,private:vrSession.private,count:vrSession.count}:null,inRoom:!!inRoom(),socket:ws?ws.readyState:-1,players:list.length,rendered:list.filter(p=>p.node&&!p.node.isDisposed()).length,fallbackAvatars:list.filter(p=>p.fallback).length,...diag,lastClose};},get lastClose(){return lastClose;},get socketState(){return ws?ws.readyState:-1;},get trace(){return traceLog.slice(-16);},get connected(){return status==='in';},
   get features(){return features;},get me(){return selfId;},voiceToken,get room(){return status==='in'?(vrSession?'vr:'+vrSession.id:(joinedRoom||ROOM)):null;},

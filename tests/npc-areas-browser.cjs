@@ -1,5 +1,5 @@
 /* "Let me place REVERIE or LACE anywhere" (the owner, 19 Nov 2026), in a real browser (offline): Developer Tools > NPCs > Reverie, "Keep her at one spot"; the map's
-   area list; clicks on NULL's door (Old Town) and on Milked (Far South) refused with the plain reason; a click on the road moved onto the pavement; her spot put in Old
+   area list; clicks in NULL's doorway (Old Town) and on Milked (Far South) refused with the plain reason; a click on the road moved onto the pavement; her spot put in Old
    Town (the District alley) and PLAY THIS DRAFT: the test session opens in Old Town and she is there (the street cat follows her there); then her spot in The Outskirts
    (the container yard) and PLAY THIS DRAFT again: she is there. Screenshots in SHOTS (default docs/development/npc-areas).
    Usage: node tests/serve-modern.cjs, then node tests/npc-areas-browser.cjs (SITE_TEST_URL, SHOTS=dir, BROWSER_EXECUTABLE; default the bundled Chromium, software GL). */
@@ -10,7 +10,7 @@ const log=(...a)=>console.log('[npc-areas]',...a),REV='grey-reverie';
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'],...(exe?{executablePath:exe}:{})});const errors=[];
  try{
-  const ctx=await browser.newContext({viewport:{width:1366,height:900},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));
+  const ctx=await browser.newContext({viewport:{width:1366,height:900},serviceWorkers:'block'}),page=await ctx.newPage().then(async p=>{await p.addInitScript(()=>{try{if(!localStorage.getItem('mission-editor-view'))localStorage.setItem('mission-editor-view','form');}catch{}});return p;});page.on('pageerror',e=>errors.push(e.message));
   await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
   await page.route('**/api/**',r=>{const p=new URL(r.request().url()).pathname.replace('/api/void-runner/','');if(p==='live-content')return r.fulfill({status:404,contentType:'application/json',body:'{"error":"off"}'});return r.fulfill({status:503,contentType:'application/json',body:'{"error":"offline test"}'});});
   const boot=()=>page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:180000});
@@ -31,13 +31,13 @@ const log=(...a)=>console.log('[npc-areas]',...a),REV='grey-reverie';
   assert.deepEqual(names,['The Avenue','Old Town','Far South','The Outskirts','The Port','The Darknet District (inside)']);
   // the road on the Avenue: moved onto the pavement
   await clickMap(100,-9.5);let p=await plan();log('road click ->',p.x,p.z,await note());assert.ok(p.z>=-7.6&&p.z<=-5.8,'moved onto the north pavement');assert.match(await note(),/nearest spot/);
-  // Old Town: NULL's door refused, the alley taken
-  await area('oldtown');const before=JSON.stringify(await plan());await clickMap(52.5,-58);assert.match(await note(),/NULL/);assert.equal(JSON.stringify(await plan()),before,'nothing placed at NULL');
+  // Old Town: NULL's doorway refused (its pavement is public since 20 Nov 2026), the alley taken
+  await area('oldtown');const before=JSON.stringify(await plan());await clickMap(52,-58.5);assert.match(await note(),/NULL’s doorway/);assert.equal(JSON.stringify(await plan()),before,'nothing placed at NULL');
   await page.locator(sel).screenshot({path:path.join(shots,'01-oldtown-null-refused.png')});
   const alley=await page.evaluate(()=>VoidNPCAreas.places().find(q=>q.id==='oldtown-alley-mouth'));await clickMap(alley.x+4,alley.z);p=await plan();log('Old Town spot',JSON.stringify(p));
   assert.equal(await page.evaluate(q=>VoidNPCAreas.areaOf(q),p),'oldtown');assert.equal(await page.locator('[data-npc-problem]').count(),0);
   // Far South: Milked refused
-  await area('far-south');await clickMap(88,-182);assert.match(await note(),/Milked/);await clickMap(69.5,-171);assert.match(await note(),/Milked/);await page.locator(sel).screenshot({path:path.join(shots,'02-far-south-milked-refused.png')});
+  await area('far-south');await clickMap(88,-182);assert.match(await note(),/Milked/);await clickMap(81.75,-173);assert.match(await note(),/Milked’s front doorway/);await page.locator(sel).screenshot({path:path.join(shots,'02-far-south-milked-refused.png')});
   assert.equal(await page.evaluate(q=>VoidNPCAreas.areaOf(q),await plan()),'oldtown','still in Old Town');
   await area('district');await page.locator(sel).screenshot({path:path.join(shots,'03-district-map.png')});
   // ---- play the draft: she is in Old Town

@@ -74,7 +74,7 @@
  function buildNetwork(quarter){
   const q=Q.valid(quarter)||'oldtown',bay=key=>{const l=Q.lane(key);return {x:l.mid[0],z:l.mid[1]};},poly=(...pts)=>{const out=[];pts.forEach((p,i)=>{if(i){const seg=line(pts[i-1],p);for(let k=out.length?1:0;k<seg.length;k++)out.push(seg[k]);}});return out;};
   let P,edges,loopIds=[],rank=null;const bays={};
-  if(q==='outskirts')return {quarter:q,nodes:{},edges:[],loop:[],bays,rank:null,drive:DRIVE,none:true};   // no road and no taxi beyond the Far South Gate (walkers only)
+  if(q==='outskirts'||q==='underground')return {quarter:q,nodes:{},edges:[],loop:[],bays,rank:null,drive:DRIVE,none:true};   // the tunnels under the city (ncz-underground.js): no road either   // no road and no taxi beyond the Far South Gate (walkers only)
   if(q==='port'){const b=bay('customs:bay'),x=b.x,top={x,z:-95.5};bays['customs:bay']=b;P={bay:b,top};rank={x,z:-95.5,yaw:Math.PI};
    edges=[{id:'from-customs',a:'bay',b:'top',pts:line(b,top)},{id:'to-customs',a:'top',b:'bay',pts:line(top,b)}];}
   else if(q==='oldtown'){const xc=61,off=2.2,sbX=xc-off,nbX=xc+off,zTop=-31.5,zRoad=-118.5,zSouth=-119.6,c=bay('customs:bay'),bn=bay('north:bay-n'),bs=bay('north:bay-s'),sn=bay('south:bay-n'),ss=bay('south:bay-s');
@@ -207,9 +207,12 @@
   if(back.d>4)assignPath(cab,route(world.net,cab,{x:back.x,z:back.z}),'rejoin');
   else enterCruise(world,cab,back.s);
  }
- function stepWorld(world,dt,player){
-  dt=Math.max(0,Math.min(.1,dt||0));const riding=!!player?.riding;
-  for(const t of world.taxis){const obs=[];if(player&&!riding)obs.push({x:player.x,z:player.z,r:SPEC.playerR});
+ /* Crosswalks (crosswalks.js, 20 Nov 2026): a cab slows and stops short of a crossing ahead with somebody on it: the player on foot, or anyone in `peds` ({x, z}: the street's
+    walkers and mission characters, crosswalks.js peds()). */
+ const XW=()=>node?require('./crosswalks.js'):root.VoidCrosswalks;
+ function stepWorld(world,dt,player,peds){
+  dt=Math.max(0,Math.min(.1,dt||0));const riding=!!player?.riding,X=XW(),walkers=[...(player&&!riding?[{x:player.x,z:player.z}]:[]),...(peds||[])];
+  for(const t of world.taxis){const obs=[];if(player&&!riding)obs.push({x:player.x,z:player.z,r:SPEC.playerR});if(X&&walkers.length&&t.phase!=='waiting')obs.push(...X.yieldTo(t,walkers,world.quarter,SPEC));
    for(const o of world.taxis)if(o!==t)obs.push({x:o.x,z:o.z,r:SPEC.taxiR});follow(t,dt,obs);}
   for(const t of world.taxis)if(t.phase==='rejoin'&&t.pathLen-t.s<=0.45){if(!world.net.loop.length)park(world,t);else{const back=projectPath(world.net.loop,t);enterCruise(world,t,back.s);}}
   const job=world.job;if(!job||job.released)return world;const cab=job.cab;
@@ -281,13 +284,13 @@
  }
  function seatPoint(taxi){
   const yaw=taxi.yaw||0,fx=Math.sin(yaw),fz=Math.cos(yaw),rx=fz,rz=-fx;
-  return {x:taxi.x+rx*0.42+fx*0.35,y:1.08,z:taxi.z+rz*0.42+fz*0.35,yaw};
+  return {x:taxi.x+rx*0.42-fx*0.35,y:1.56,z:taxi.z+rz*0.42-fz*0.35,yaw};   // the eye of a passenger on the minivan's middle row, right seat (road-taxi-van.js)
  }
  /* A companion's seat (a mission's follow / shared-cab step, npc-escort.js): beside the passenger, on the other side of the cab. y is where her figure stands (the seated clip
     puts her hips about half a metre up, so she sits low in the cab like the passenger). */
  function companionSeat(taxi){
   const yaw=taxi.yaw||0,fx=Math.sin(yaw),fz=Math.cos(yaw),rx=fz,rz=-fx;
-  return {x:taxi.x-rx*0.42+fx*0.05,y:-0.12,z:taxi.z-rz*0.42+fz*0.05,yaw};
+  return {x:taxi.x-rx*0.42-fx*0.1,y:0.3,z:taxi.z-rz*0.42-fz*0.1,yaw};   // her root on the middle row's left seat: the sit clip puts the hips 0.54 m up and 0.35 m back of it; the cushion is 0.84 m up
  }
  function onRoad(x,z,margin){
   const m=margin||0,S=Q.S;

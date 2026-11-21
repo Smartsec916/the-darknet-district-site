@@ -82,11 +82,11 @@ test('rooms with several doors: from the bar to the arcade and from the VR area 
  const near=s.find(q=>Math.abs(q.x-L(3.8,33)[0])<.04);assert.equal(near.waypoint.id,'district-bar-door<+');});
 
 test('multi-hop: from the District hall to Juno Vex inside NULL, through the vestibule, the alley, Main Street and NULL\'s entry',()=>{
- const [hx,hz]=L(0,50);assert.deepEqual(ids({x:hx,z:hz},JUNO),['district-inner-door<','district-door<','district-door<+','junction:s:oldtown:0:s:oldtown:1<','null-door>','null-inner-door>','goal']);
- const pts=[[0,50],[0,26],[0,20],[0,17.4]].map(([a,b])=>L(a,b));pts.push([71,-58.5],[NC.ENTRY.doors.outer.x+1,NC.DOOR.z],[NC.ENTRY.doors.inner.x-1.5,NC.DOOR.z],[JUNO.x+2,JUNO.z-1.5]);
+ const [hx,hz]=L(0,50);assert.deepEqual(ids({x:hx,z:hz},JUNO),['district-inner-door<','district-door<','district-door<+','junction:s:oldtown:0:s:oldtown:1<','xw:ot-alley:-:in','xw:ot-alley:-:out','null-door>','null-inner-door>','goal']);
+ const pts=[[0,50],[0,26],[0,20],[0,17.4]].map(([a,b])=>L(a,b));pts.push([71,-58.5],[68,-58.5],[54,-58.5],[NC.ENTRY.doors.outer.x+1,NC.DOOR.z],[NC.ENTRY.doors.inner.x-1.5,NC.DOOR.z],[JUNO.x+2,JUNO.z-1.5]);
  const s=walk(pts,JUNO);smooth(s,'hall to Juno');neverBackwards(s.filter(q=>q.seg<6),'hall to Juno');
  // and back out of NULL to Admin
- const back=ids({x:30,z:-55},admin());assert.deepEqual(back.filter(i=>!i.startsWith('junction:')),['null-inner-door<','null-door<','district-door>','district-inner-door>','district-shop-door>','goal']);});
+ const back=ids({x:30,z:-55},admin());assert.deepEqual(back.filter(i=>!i.startsWith('junction:')),['null-inner-door<','null-door<','xw:ot-alley:+:in','xw:ot-alley:+:out','district-door>','district-inner-door>','district-shop-door>','goal']);});
 
 test('quarter gates A1-A6: walkers go through the nearest foot lane, both doors, and out; the lane never alternates',()=>{
  // A2 North Gate: the Avenue to NULL
@@ -143,7 +143,7 @@ test('step change, STOP TRACKING, teleport, scene change and reload: snap with a
 test('the older stations: hangar, corridor and concourse doors on the centre line, as before',()=>{
  const S=R.graphFor('hangar','station');assert.deepEqual(R.plan(S,{x:2,z:-5},{x:4,z:30}).map(w=>w.id).filter(i=>!i.endsWith('+')),['st-door-3>','st-door-19>','goal']);
  assert.deepEqual(R.plan(S,{x:2,z:25},{x:-3,z:1}).map(w=>w.id).filter(i=>!i.endsWith('+')),['st-door-19<','st-door-3<','goal']);
- assert.equal(R.graphFor('corporate'),null);assert.equal(R.graphFor('temple'),null);assert.deepEqual(R.plan(null,{x:0,z:0},{x:5,z:5}).map(w=>w.id),['goal']);});
+ assert.ok(R.graphFor('corporate'),'the Corporate District has its streets (21 Nov 2026, tests/awakening-decisions.test.cjs)');assert.equal(R.graphFor('temple'),null);assert.deepEqual(R.plan(null,{x:0,z:0},{x:5,z:5}).map(w=>w.id),['goal']);});
 
 test('every route between the named places walks without a flip (all future missions use the same rules)',()=>{
  const P=require(path.join(__dirname,'..','void-runner','places.js'));const OLD=new Set(['port','oldtown','avenue','far-south','outskirts','district','district-vestibule','district-hall','district-pods','district-vr','district-arcade','district-store','district-bar','district-meeting','district-alley','null','null-entrance','milked']);   // the places named before the naming pass (18 Nov 2026); every exact location since then is checked as a goal from the District below

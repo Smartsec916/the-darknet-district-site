@@ -30,6 +30,7 @@
     if(mode==='skirmish-fps'){root.VoidSkirmish?.action(id,pressed);return;}
     if(mode==='play'&&pressed){
       if(id==='missile')fireMissile();
+      else if(id==='missileSwitch')switchMissile();
       else if(['nearest','next','previous','clear','lock'].includes(id))selectCombatTarget(id);
     }
   }

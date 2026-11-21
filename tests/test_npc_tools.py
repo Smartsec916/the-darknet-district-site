@@ -29,11 +29,12 @@ class NpcToolsServerTests(unittest.TestCase):
         self.assertEqual(live.npc_problems(ok, INV), [])
         self.assertEqual(live.check(doc(npcs=ok), INV), [])
         self.assertEqual(live.npc_problems({'grey-reverie': {'mode': 'original'}}, INV), [])
+        # (20 Nov 2026) the ad screen that stood at the kerb here hangs on the wall now: the pavement there is free
+        self.assertEqual(live.npc_problems({'grey-reverie': {'mode': 'stay', 'x': 96.5, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, INV), [])
         bad = [({'admin': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['idle']}}, 'cannot be moved'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -12, 'yaw': 0, 'actions': ['idle']}}, 'the road'),
                ({'grey-reverie': {'mode': 'stay', 'x': 40, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, 'standing there'),
                ({'grey-reverie': {'mode': 'stay', 'x': 98, 'z': -6, 'yaw': 0, 'actions': ['sit']}}, 'needs a ledge'),
-               ({'grey-reverie': {'mode': 'stay', 'x': 96.5, 'z': -7.4, 'yaw': 0, 'actions': ['idle']}}, 'street furniture'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['dance-belly']}}, 'not something'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['slow-dance']}}, 'not something'),
                ({'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6, 'yaw': 0, 'actions': ['idle'], 'speed': 3}}, 'unknown fields'),
@@ -51,12 +52,15 @@ class NpcToolsServerTests(unittest.TestCase):
         banned = ['sensual', 'slow', 'belly', 'hip', 'twerk', 'grind', 'pole', 'milk', 'flirt', 'kiss', 'seduc', 'recline', 'club']
         for npc, mv in INV['npcPaths']['movable'].items():
             for a in mv['actions'] + mv['anims']:
-                self.assertFalse(any(b in a for b in banned), (npc, a))
+                self.assertFalse(any(b in a.rsplit('/', 1)[-1] for b in banned), (npc, a))
+                if a.startswith(('npc-club-m/', 'npc-milked-auburn/')):
+                    self.assertIn(npc, ('grey-reverie', 'ethereal-lace'))
+                    self.assertIn(a.rsplit('/', 1)[-1], ('idle', 'talk', 'look', 'watch', 'laugh', 'shrug', 'interact'))
 
     def test_shared_animations(self):
         ok = {'grey-reverie': {'mode': 'stay', 'x': 100, 'z': -6.5, 'yaw': 0, 'actions': ['npc-rin/laugh'], 'anims': ['npc-rin/laugh']}}
         self.assertEqual(live.npc_problems(ok, INV), [])
-        for bad in ['npc-rin/smoke', 'npc-kai/idle', 'npc-milked-auburn/dance', 'vr-companion-f/hips']:
+        for bad in ['npc-rin/smoke', 'npc-kai/blow-kiss', 'npc-milked-auburn/dance', 'vr-companion-f/hips']:
             p = live.npc_problems({'grey-reverie': {'mode': 'original', 'anims': [bad]}}, INV)
             self.assertTrue(p, bad)
 

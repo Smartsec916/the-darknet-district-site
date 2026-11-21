@@ -22,8 +22,8 @@ test('who can do these steps: path-capable NPCs only; the cat walks but does not
  fresh();const X=E();
  for(const k of X.IDS){assert.equal(X.can('grey-reverie',k).ok,true);assert.equal(X.can('ethereal-lace',k).ok,true);assert.equal(X.can('admin',k).ok,false);assert.match(X.can('admin',k).why,/cannot walk with the player yet/);}
  assert.equal(X.can('street-cat','follow-them').ok,true);assert.equal(X.can('street-cat','they-follow').ok,true);assert.equal(X.can('street-cat','their-cab').ok,false);assert.match(X.can('street-cat','shared-cab').why,/does not ride in cabs/);
- const st=X.stops('grey-reverie');assert.deepEqual(st.filter(s=>s.ok).map(s=>s.id),['avenue','function-gate','east-gate']);
- for(const s of st.filter(s=>!s.ok))assert.ok(s.why&&s.why.length>10,s.id);assert.match(st.find(s=>s.id==='corporate').why,/stays in the city/);assert.match(st.find(s=>s.id==='main').why,/placed in The Avenue/);
+ const st=X.stops('grey-reverie'),Q=require(require('path').join(__dirname,'..','void-runner','ncz-quarters.js'));assert.deepEqual(st.filter(s=>s.ok).map(s=>s.id).sort(),Q.STOPS.map(s=>s.id).sort(),'(escort across, 20 Nov 2026) every stop of the city: the cab drives through the gates');
+ for(const s of st.filter(s=>!s.ok))assert.ok(s.why&&s.why.length>10,s.id);assert.match(st.find(s=>s.id==='corporate').why,/stays in the city/);assert.equal(st.find(s=>s.id==='main').ok,true);
  assert.deepEqual(X.stops('street-cat').filter(s=>s.ok),[]);
  // settings: defaults 8 / 40 / pause, clamped, lost always beyond wait
  assert.deepEqual(X.settings({}),{wait:8,lost:40,ifLost:'pause'});assert.deepEqual(X.settings({wait:99,lost:1,ifLost:'fail'}),{wait:30,lost:40,ifLost:'fail'});
@@ -96,13 +96,13 @@ test('shared cab: she follows; she gets in only a cab to her stop (another stop:
  const s3={x:100,z:-6.6,yaw:0};run(X.cab,s3,{...base,job:null},.3);s3.x=s3.f.x=20;evs=run(X.cab,s3,{...base,job:{...right,phase:'to-dest'},riding:true},.2);assert.notEqual(s3.phase,'in-cab','too far away: she does not ride');
 });
 
-test('mission content: the four step kinds are checked (who, spot, distances, stop), run by events, and a lost player with "fails" sends the mission back',()=>{
+test('mission content: the four step kinds are checked (who, spot, distances, stop), run by events, and a lost player with "fails" sends the mission back',t=>{const realNow=Date.now;Date.now=()=>Date.UTC(2026,10,19,3,0);t.after(()=>{Date.now=realNow;});   // Reverie's shift (00-12 UTC): the result must not depend on the hour the test runs
  const x=env(),{MC}=x;
  const good=[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:8,lost:40,ifLost:'fail'},{kind:'they-follow',npc:'street-cat',to:{x:60,z:-6.4}},{kind:'their-cab',npc:'ethereal-lace',stop:'east-gate'},{kind:'shared-cab',npc:'grey-reverie',stop:'avenue'}];
  for(const o of good)assert.deepEqual(MC.check(doc(x,tree(o)),ctx(x)).errors,[],o.kind);
  const bad=[[{kind:'follow-them',npc:'admin',to:{x:110,z:-6.4}},/cannot walk with the player/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-14}},/the road/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:50},/3 to 30/],
   [{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},wait:20,lost:15},/further than/],[{kind:'they-follow',npc:'grey-reverie',to:{x:110,z:-6.4},stop:'avenue'},/no stop setting/],[{kind:'their-cab',npc:'street-cat',stop:'avenue'},/does not ride in cabs/],
-  [{kind:'their-cab',npc:'grey-reverie',stop:'corporate'},/stays in the city/],[{kind:'shared-cab',npc:'grey-reverie',stop:'main'},/placed in The Avenue/],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
+  [{kind:'their-cab',npc:'grey-reverie',stop:'corporate'},/stays in the city/],[{kind:'they-follow',npc:'street-cat',to:{x:-2.7,z:-80}},/cat never goes inside or down into the tunnels/],[{kind:'talk',npc:'admin',stop:'avenue'},/only a follow/],[{kind:'follow-them',npc:'grey-reverie',to:{x:110,z:-6.4},ifLost:'run'},/stop and wait/]];
  for(const [o,re] of bad){const errs=MC.check(doc(x,tree(o)),ctx(x)).errors;assert.ok(errs.some(e=>re.test(e)),o.kind+': '+errs.join(' | '));}
  // what is still missing (Guide me / the play check)
  const need=o=>MC.treeNeeds({...tree(o).missions[0]},x.e.givers).filter(n=>n.step==='walk').map(n=>n.field);
@@ -143,6 +143,6 @@ test('save flag, wizard steps, the editor and the server copy of the rules',()=>
  // the street pair runs the plan, and only for the local player (walker)
  const sp=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8');
  // her shift (one street clock): never brought out off-shift; a started step keeps the one who is out until it ends; the step starts only while she is on duty
- assert.match(sp,/const out=\(\)=>\{const o=onStreet\(now\(\),cfg\);if\(her&&\(!o\|\|o\.id!==her\.p\.id\)&&planOf\(her\.p\.id\)\?\.mode==='escort'\)return her\.p;return o;\};/);assert.doesNotMatch(sp,/VoidStreetPair\?\.force/);
- assert.match(fs.readFileSync(R('void-runner/live-content.js'),'utf8'),/G\.onDuty\(g\);\}catch\{\}if\(on\|\|\(saved&&saved\.key===e\.key\)\)escOn\.add/);assert.match(sp,/function escTick/);assert.match(sp,/P\.mode==='escort'/);assert.doesNotMatch(sp.slice(sp.indexOf('function escTick'),sp.indexOf('// ---- the cat ----')),/remote-player/);
+ assert.match(sp,/const out=\(\)=>\{const o=onStreet\(now\(\),cfg\);if\(her&&\(!o\|\|o\.id!==her\.p\.id\)\)\{const P=planOf\(her\.p\.id\);if\(P&&\(P\.mode==='escort'\|\|P\.why==='mission'\)\)return her\.p;\}return o;\};/);assert.doesNotMatch(sp,/VoidStreetPair\?\.force/);
+ assert.match(fs.readFileSync(R('void-runner/live-content.js'),'utf8'),/G\.onDuty\(g\);\}catch\{\}if\(on\|\|\(saved&&saved\.key===e\.key\)\|\|\(planCache\[id\]&&planCache\[id\]\.why==='mission'&&livePos\(id\)\)\)escOn\.add/);assert.match(sp,/function escTick/);assert.match(sp,/P\.mode==='escort'/);assert.doesNotMatch(sp.slice(sp.indexOf('function escTick'),sp.indexOf('// ---- the cat ----')),/remote-player/);
 });

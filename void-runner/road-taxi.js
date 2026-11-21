@@ -1,5 +1,6 @@
-/* Street taxis on NeoChinatown's roads. Rules are in road-taxi-rules.js. The cab is built from simple shapes
-   (no external model; see docs/VOID_RUNNER_ASSET_LICENSES.md). Ambient cabs drive the avenue and Main Street.
+/* Street taxis on NeoChinatown's roads. Rules are in road-taxi-rules.js. The cab is the autonomous minivan of road-taxi-van.js (built from code, from the owner's
+   reference picture of 19 Nov 2026; no external model: docs/VOID_RUNNER_ASSET_LICENSES.md); the old box cab below is kept as the stand-in if that script is missing.
+   Ambient cabs drive the avenue and Main Street.
    Call one from the V1 map. It drives to the nearest road point, waits, and after you board it drives to the stop.
    A person in front of a cab slows it to a stop; it moves again once the road is clear.
    Since the quarters (16 Nov 2026): each quarter has its own cabs. A trip to another quarter, the Corporate District or the Zen Zephyr Temple drives into a
@@ -11,12 +12,18 @@
  const SPEC=R.SPEC,Q=globalThis.VoidQuarters;
  let crossing=false,exitDoor=null;
  const gates=()=>globalThis.VoidBabylon?.district?.gates||null,quarterNow=()=>walkingLocation?.quarter||null;
- let world=null,own=[],signTex=null,mats=null,look={yaw:0,pitch:.08},visual={};
+ let world=null,own=[],signTex=null,mats=null,van=null,look={yaw:0,pitch:.08},visual={},upgrade=false;
+ let modelLoading=false,modelFailed=false;   // the Meshy van's file: one load at a time (a quarter change releases the scene's models), none after a failure
  const B=()=>globalThis.BABYLON,scene=()=>globalThis.VoidBabylon?.scene;
  const inCity=()=>!!walkingLocation&&walkingLocation.id==='neochinatown'&&walkingLocation.area!=='interior'&&walkingLocation.area!=='milked'&&!!walker&&state?.location==='earth';
  const yawDelta=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 
  function makeMats(sc){
+  van=null;const V=globalThis.VoidTaxiVan,A=globalThis.VoidAssets,q=globalThis.VoidGraphics?.quality||'medium';
+  // the Meshy van when its file has loaded (the code van meanwhile, and for good if the file is missing: road-taxi-van.js)
+  if(V&&A?.container){const c=A.container(V.MODEL.id(q));if(c){try{van=V.modelParts(B(),sc,q,c);return {own:van.own};}catch(e){console.warn('[road taxi] model',e);van=null;}}
+   else if(A.load&&!modelLoading&&!modelFailed){modelLoading=true;Promise.resolve(A.load(V.MODEL.id(q),{src:V.MODEL.src(q),background:true},sc)).then(()=>{modelLoading=false;if(scene()===sc)upgrade=true;}).catch(e=>{modelLoading=false;if(/releas|abort/i.test(String(e?.message||e)))return;modelFailed=true;console.warn('[road taxi] the taxi model did not load; the built van stays',e?.message||e);});}}
+  try{if(V){van=V.parts(B(),sc,q);return {own:van.own};}}catch(e){console.warn('[road taxi] van',e);van=null;}
   const b=B(),ownM=[];
   const mat=(n,f)=>{const m=new b.StandardMaterial('road-taxi-'+n,sc);f(m);ownM.push(m);return m;};
   const body=mat('body',m=>{m.diffuseColor=b.Color3.FromHexString('#14181e');m.specularColor=new b.Color3(.04,.05,.06);});
@@ -29,6 +36,7 @@
   ownM.push(t);signTex=t;return {own:ownM,body,glass,skirt,head,tail,lamp,sign};
  }
  function buildCab(sc,id){
+  if(van)return van.model?globalThis.VoidTaxiVan.buildModel(B(),sc,van,id):globalThis.VoidTaxiVan.build(B(),sc,van,id);
   const b=B(),root=new b.TransformNode('road-taxi-'+id,sc),parts=[],box=(n,s,m,p)=>{const mesh=b.MeshBuilder.CreateBox(n,{width:s[0],height:s[1],depth:s[2]},sc);mesh.material=m;mesh.position.set(p[0],p[1],p[2]);mesh.parent=root;mesh.isPickable=false;parts.push(mesh);return mesh;};
   box('body',[1.85,.5,4.2],mats.body,[0,.62,0]);
   box('nose',[1.5,.28,1.1],mats.body,[0,.5,1.7]);
@@ -46,10 +54,10 @@
   }
   return {root,parts,door,wheels,doorOpen:0};
  }
- function disposeCab(cab){cab?.root?.dispose?.();}
+ function disposeCab(cab){cab?.root?.dispose?.();for(const o of cab?.own||[])try{o.dispose();}catch{}}
  function teardown(){
   if(world)for(const t of world.taxis)disposeCab(t.mesh);
-  for(const m of own)m.dispose?.();own=[];signTex=null;mats=null;world=null;visual={};exitDoor=null;
+  for(const m of own)m.dispose?.();own=[];signTex=null;mats=null;van=null;world=null;visual={};exitDoor=null;
   if(walkingLocation)walkingLocation.interactions=walkingLocation.interactions.filter(i=>i.id!=='road-taxi-board');
  }
  function ensure(){
@@ -78,6 +86,7 @@
  function placeRider(){
   const job=world?.job;if(!job||job.released||mode!=='road-taxi')return;
   const s=R.seatPoint(job.cab);
+  look.yaw=Math.max(-1.5,Math.min(1.5,look.yaw));look.pitch=Math.max(van?-.3:-.6,Math.min(.45,look.pitch));   // in the van the roof lining is close above: looking up stops at the window tops
   walker.x=s.x;walker.y=s.y;walker.z=s.z;walker.yaw=s.yaw+look.yaw;walker.pitch=look.pitch;
  }
  function hail(destId){
@@ -85,7 +94,7 @@
   const player={x:walker.x,z:walker.z,riding:false};
   const res=R.hail(world,state,player,destId,context());
   if(!res.ok){announce?.(res.reason);return false;}
-  announce?.(res.walk>15?'Street taxi called. It will wait on the road, about '+res.walk+' m from you. Fare '+res.fare+' CR, paid when you board.':'Street taxi on its way to you. Fare '+res.fare+' CR, paid when you board.');
+  announce?.(res.walk>15?'Street taxi called. It will wait on the road, about '+VoidUnits.fmtDist(res.walk)+' from you. Fare '+res.fare+' CR, paid when you board.':'Street taxi on its way to you. Fare '+res.fare+' CR, paid when you board.');
   try{globalThis.VoidPersonalDevice?.close?.();}catch{}
   return true;
  }
@@ -144,7 +153,7 @@
  function hudHtml(){const esc=s=>escapeText(String(s??''));
   if(!inCity())return '<p class="hud-note">'+esc(walkingLocation?.corporate||walkingLocation?.temple?'The taxi stop here takes you back to NeoChinatown. The ride back is included in your fare.':walkingLocation?.id==='neochinatown'&&state?.location==='earth'?'Street taxis stay on the roads. Step outside first.':'No street taxi service operates here.')+'</p>';
   ensure();const ctx=context(),a=R.availability(state,{...ctx,trip:!!(world?.job&&!world.job.released)}),st=status();
-  if(st)return '<article class="hud-card"><h3>'+esc(st.label)+' <small class="hud-tag tracked">'+esc((phaseText[st.phase]||st.phase).toUpperCase())+'</small></h3><p>'+st.distance+' m away · fare '+esc(st.fare)+' CR</p>'+(st.canCancel?'<div class="hud-actions"><button type="button" data-hud-action="taxi-cancel" data-hud-key="taxi-cancel">CANCEL TAXI</button></div>':'')+'</article>';
+  if(st)return '<article class="hud-card"><h3>'+esc(st.label)+' <small class="hud-tag tracked">'+esc((phaseText[st.phase]||st.phase).toUpperCase())+'</small></h3><p>'+VoidUnits.fmtDist(st.distance)+' away · fare '+esc(st.fare)+' CR</p>'+(st.canCancel?'<div class="hud-actions"><button type="button" data-hud-action="taxi-cancel" data-hud-key="taxi-cancel">CANCEL TAXI</button></div>':'')+'</article>';
   if(!a.ok)return '<p class="hud-note">'+esc(a.reason)+'</p>';
   return '<p class="hud-note">'+esc(a.network)+'. A cab drives the roads to you, then to the stop. The fare is paid when you board; cancelling before that costs nothing.</p><h2>DESTINATIONS</h2>'+R.destinations(state,ctx).map(d=>'<article class="hud-card"><h3>'+esc(d.label)+'</h3><p class="hud-meta">'+esc(d.ok?[d.via,d.blurb,d.fare+' CR'].filter(Boolean).join(' · '):d.reason)+'</p><button type="button" data-hud-action="taxi-call:'+esc(d.id)+'" data-hud-key="taxi-'+esc(d.id)+'"'+(d.ok?'':' disabled')+'>'+(d.ok?'CALL TAXI · '+esc(d.fare)+' CR':'UNAVAILABLE')+'</button></article>').join('');}
  function action(a,{close,render}){if(a.startsWith('taxi-call:')){if(hail(a.slice(10)))close();else render();}else if(a==='taxi-cancel'){cancel();render();}}
@@ -165,8 +174,14 @@
    const vy=visual[t.id]??t.yaw;visual[t.id]=vy+yawDelta(vy,t.yaw)*Math.min(1,dt*5);
    cab.root.position.set(t.x,0,t.z);cab.root.rotation.y=visual[t.id];
    const open=t.phase==='waiting'||t.phase==='arrived',target=open?1:0;
-   cab.doorOpen+=(target-cab.doorOpen)*Math.min(1,dt*3);cab.door.position.x=.96+cab.doorOpen*.55;
-   const spin=t.speed*dt*1.6;for(const w of cab.wheels)w.rotation.x+=spin;
+   cab.doorOpen+=(target-cab.doorOpen)*Math.min(1,dt*3);
+   if(cab.state){// the van: the sliding door runs back along the side; brake lights, flashers while it stands for a fare, the windscreen display
+    cab.door.position.x=Math.min(1,cab.doorOpen*3)*.07;cab.door.position.z=-cab.doorOpen*1.0;
+    const job=world.job&&!world.job.released&&world.job.cab===t?world.job:null,pv=cab.pv??t.speed;cab.pv=t.speed;
+    const brake=t.speed<.3||dt>0&&(pv-t.speed)/dt>1.5,flash=open&&Math.floor(time*1.6)%2===0;
+    cab.state({show:job?(t.phase==='arrived'?'arrived':'trip'):'free',brake,flash});
+    const spin=t.speed*dt/.34;for(const w of cab.wheels)w.rotation.x+=spin;
+   }else{cab.door.position.x=.96+cab.doorOpen*.55;const spin=t.speed*dt*1.6;for(const w of cab.wheels)w.rotation.x+=spin;}
    cab.root.setEnabled(true);
   }
  }
@@ -201,16 +216,17 @@
   if(!inCity()){if(world?.job?.charged&&world.job.cab?.phase!=='arrived'){const back=R.recover(state);if(back){try{save();hud();}catch{}announce?.('The taxi trip was refunded: '+back+' CR.');}}if(world)teardown();return;}
   if(!scene()||scene().isDisposed)return;
   ensure();if(!world)return;
-  if(world.taxis.some(t=>!t.mesh?.root||t.mesh.root.isDisposed())){for(const m of own){try{m.dispose();}catch{}}own=[];mats=null;signTex=null;mats=makeMats(scene());own=mats.own;for(const t of world.taxis)t.mesh=buildCab(scene(),t.id);}
+  if(upgrade){upgrade=false;if(!van?.model){for(const t of world.taxis){disposeCab(t.mesh);t.mesh=null;}}}   // the model has loaded: rebuild the cabs with it (below)
+  if(world.taxis.some(t=>!t.mesh?.root||t.mesh.root.isDisposed())){for(const t of world.taxis)disposeCab(t.mesh);for(const m of own){try{m.dispose();}catch{}}own=[];mats=null;signTex=null;mats=makeMats(scene());own=mats.own;for(const t of world.taxis)t.mesh=buildCab(scene(),t.id);}
   const riding=mode==='road-taxi';
   const player={x:walker.x,z:walker.z,riding};
-  R.stepWorld(world,dt,player);
+  R.stepWorld(world,dt,player,globalThis.VoidCrosswalks?.peds?.()||[]);   // anyone on a crosswalk ahead stops the cabs (crosswalks.js)
   shutters();if(world.job&&!world.job.released&&world.job.cab.phase==='in-bay'&&riding){cross();return;}
   if(riding){if(!world.job||world.job.released||world.job.cab.phase==='rejoin'){mode='walking';}else placeRider();}
   if(mode==='road-taxi'){let pad=null;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected!==false);}catch{}const a=!!pad?.buttons?.[0]?.pressed;if(a&&!prevA&&world?.job?.cab?.phase==='arrived')exit();prevA=a;if(pad)look.yaw=Math.max(-1.5,Math.min(1.5,look.yaw+(pad.axes?.[2]||0)*dt*1.6));}
   syncBoard();paint(dt,performance.now()/1000);
   const st=status();
-  if(st&&st.canCancel&&mode==='walking'){chip.hidden=false;chip.querySelector('span').textContent='STREET TAXI · '+st.label.toUpperCase()+' · '+st.distance+' M';}
+  if(st&&st.canCancel&&mode==='walking'){chip.hidden=false;chip.querySelector('span').textContent='STREET TAXI · '+st.label.toUpperCase()+' · '+VoidUnits.fmtDist(st.distance).toUpperCase();}
   else chip.hidden=true;
  };
  const taxiDraw=draw;draw=function(){taxiDraw();

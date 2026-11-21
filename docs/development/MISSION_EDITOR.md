@@ -10,8 +10,487 @@ Do not infer route/follow support from a `walk` clip. Generic placement, schedul
 
 Animation compatibility remains based on the real `npc-clip-index.json` skeleton/rest-pose metadata and loaded animation groups, not on clip names alone.
 
+## Street pair gameplay options (21 Nov 2026)
+
+Reverie and Lace have **Take a photo** in their placement actions. The verified ordinary shared motions in `npc-paths.js PAIR_GAMEPLAY` (27 for Reverie, 8 for Lace) are selectable directly in mission animations and in Add animation; they use the existing public clip index, matching joints/rest pose, and runtime retargeter. Reverie can use six security combat poses; Lace requires an offline retarget before those can be offered. These visual poses do not grant a weapon or combat AI. Existing voice selections, rotation, collision and age-sensitive content rules are unchanged.
 
 Built 17 Nov 2026 on branch `claude/mission-editor-1` (build `2026-11-17-mission-editor-1`), merged as #344. Second pass (naming trees, new trees, givers, ships, routes, tree links): branch `claude/mission-editor-2`, build `2026-11-17-mission-editor-3`, pushed, no PR, not merged.
+
+## Fix (21 Nov 2026): the editor stays open (no more closing by itself, no more popping up during draft play)
+
+The owner: "sometimes the mission editor times out and goes to the previous page. also while trying to play through a test mission the editor pops up".
+
+### What was wrong
+- Every 4 minutes (and when the browser tab got focus back) the game re-checked the account. Each check closed the Developer tools window, and during PLAY THIS DRAFT it opened the Mission Editor over the game (the "back to the editor" note written for LEAVE DRAFT was still waiting).
+- A new version of the game, deployed while the editor was open over the main menu, reloaded the page by itself.
+
+### What the owner sees now
+- The editor stays open until he presses CLOSE, EXIT TO MAIN MENU or Escape (Escape inside a text box only leaves the box).
+- Sign-in expired: a small bar at the bottom, "Sign-in expired — your editor and your draft stay open. SIGN IN". Nothing closes.
+- Server asleep (the free server takes up to a minute to wake): the server-copy line says "Server waking up / retrying… next try in N s · your draft is safe in this browser" and saves by itself once it answers.
+- A new version: a bar "Update ready — APPLY UPDATE". The page reloads only when he presses it (his draft is saved first; during draft play it leaves the draft like LEAVE DRAFT).
+- Draft play: the editor comes back only with the banner's LEAVE DRAFT · BACK TO EDITOR button (or Developer tools). A failed step works as in the real game (try again in the game) and the banner shows a short "Draft: step failed — …" note for 25 seconds.
+
+### For Claude and Codex
+- Rules: `void-runner/editor-session.js` (`identity`, `autoOpen`, `problem`, `retryDelay`, `escapeCloses`), unit tests in `tests/editor-timeout.test.cjs`, browser run `tests/editor-timeout-browser.cjs` (`EXPECT_OLD=1` against older code lists what fails).
+- `VoidDevTools.identity(request,{uid})`: always pass the uid. `VoidDevTools.used` (the window was opened on this page) keeps `update-ready.js when()` at 'wait'. `VoidDevTools.signin(on)` / `updateReady()` drive `#dev-session-bar`. `VoidDevTest.stepNote(text)` is the draft banner note (only in a draft session).
+- Never call `location.reload`, `history.back` or close the window from editor code; report problems in the status line or the bar.
+## Twenty-eighth pass (20 Nov 2026): "…and only when": extra start conditions (a secondary trigger)
+
+Branch `claude/second-trigger`, build `2026-11-20-second-trigger-1`. Pushed, no PR, not merged. The owner: "can you add a secondary trigger. so like i can set the first one to 'when you get close to' giver, then a secondary trigger, like 'when other npcs are farther than . . .' and other ones. if a secondary isn't set it will just go off the first trigger."
+
+### How to use it (plain steps)
+
+1. Open the mission. Under **How this mission starts** (Form view), or in the **Start** block (Blocks view), find **…and only when (optional)**.
+2. Press **+ ADD CONDITION**, choose the kind, fill in its boxes. Add up to six. **×** removes one.
+3. The line above the conditions says the whole start in plain words, for example: "Starts when you walk within 4 m of Reverie, and only when no other placed people are within 6 m of Reverie and the player’s weapon is holstered."
+4. Leave it empty and nothing changes: the mission starts on its trigger alone.
+
+The kinds:
+
+| Condition | What it checks |
+|---|---|
+| No other people near someone | Nobody else within N m (1–30) of the giver (or another person you pick). Tick **count the street crowd** to count the crowd too; untick it to count only placed people (residents, characters you made, people placed for a mission). |
+| No other players near someone | No other online player within N m (1–50) of that person (multiplayer: the players drawn on your level). |
+| Time of day (street clock) | Between two times on the street clock (UTC, the clock Reverie's and Lace's shifts use). 20:00 to 04:00 goes past midnight. |
+| The player is in a place | An exact spot, a venue or a whole area / quarter (the place list). |
+| Another mission is finished / not finished | Pick the mission. |
+| A story flag is set / not set | Set means any value except false. |
+| The player has at least some credits | Checked, never taken. |
+| The player has a ship / has no ship | |
+| The player is on foot | Not riding a taxi, not flying. |
+| The player has not drawn their weapon | |
+| The zone where the player is | Friendly, Neutral or Hostile. |
+
+### What happens when the conditions are not true at that moment
+
+- **Walk near:** the game keeps checking (four times a second) while the player stays in range, and starts it the moment they all become true (the other person walks off).
+- **In person (talk):** the giver does not offer it this time; the next time the player talks to them it is checked again.
+- **After a mission / after in-game time / a story flag:** these are states; it starts as soon as the trigger and every condition are true.
+- **Leave the Sleeping Pod / enter a place / leave a place** (one moment): the game remembers that the trigger happened (`story.flags.mq_<mission>`) and keeps checking twice a second while the player walks; it starts once the conditions are true, and the mark is removed.
+
+A condition the game cannot measure at that moment (the person is not in this scene) counts as not true: the mission waits rather than starting wrongly.
+
+### Walk near without words (21 Nov 2026)
+
+The owner, of a walk-near start with the Tea Room Host: "everything is said in person". For **Walk near them** (the banner start triggered by walking near), the banner's **Sender**, **Header** and **Body** are now optional and folded under **Show the banner text**. Left empty, no text is sent: the player sees only the short line "NEW MISSION · <name> (tracked in your V1, L)", the mission goes into the Mission Log, and the giver says the offer lines in person (with ACCEPT / DENY when it asks). A header alone shows as the banner. Messages, Comms calls and banner starts with any other trigger still need their words. Game: `mission-content.js quietStart` (checkStart, treeNeeds, notify, prompt); server: `start_problems` (**Render redeploy** needed, as for the conditions).
+
+### What was left out
+
+- **"The giver is idle (not walking a route)"**: the people who walk routes (Reverie and Lace, made characters, mission cast) each keep their own state; there is no single clean "walking now" signal for every giver, so it was not built.
+- **Steps:** the conditions gate a mission's **start** only. There is no "walk near" step kind to gate (the wait step already has "only while within N m of someone").
+- The wizard does not set conditions; its "How does it start?" page says to add them later in the editor.
+
+### For Claude and Codex
+
+- Rules: `void-runner/start-conditions.js` (`VoidStartConditions`, pure, Node and browser; loaded before `mission-content.js`): `KINDS`, `problems()`, `check()`, `strip()`, `fresh()`, `sentence()`. Data: `start.only` (any way of starting), a list of `{kind, …}`.
+- Engine: `mission-content.js` `treeEvent` `startsNow` = the old trigger (`fires`) AND `SC.check`; one-moment triggers arm `mq_<mission>` (`armFlag`), cleared on ACCEPT / DENY / start. `MC.onlyNow(state, env)` lists every waiting mission and which condition fails (also `VoidLiveContent.onlyNow()`).
+- What the game measures: `live-content.js` `env.world` (people near the giver from `VoidCrowd.figures()`, named = placed; remote players from `VoidRemotePlayers.peers`; `lastPlaces`; `mode` for taxi / flight; `groundState.drawn`; `VoidZoneRun.current()`). Asked only while a mission with world conditions could start.
+- Checks: `checkStart` (game) and `only_problems` in `void_runner_live_content.py` (server; same messages). **Render must be redeployed** before the owner publishes a mission that uses them.
+- Editor: `mission-editor.js` `onlyPanel` (Form view; in the Blocks view only the Start block shows it, via `blocksKit.onlyPanel`); `mission-blocks.js setStartMode` keeps `only` when the way of starting changes.
+- Also fixed: the Form view's **+ ADD** for a **Shared game flag** reward saved it without `value: true` and with no flag to choose; the checks refused it. It now lists the flags the game knows and saves `value: true` (`mission-blocks.js newUnlock`).
+- Tests: `tests/start-conditions.test.cjs`, `tests/test_start_conditions.py`; browser: `tests/start-conditions-browser.py` (Python Playwright).
+
+## Twenty-seventh pass (20 Nov 2026): follow / lead steps cross the gates, the stairs to the tunnels and the District's door, walking or in a taxi
+
+Branch `claude/escort-across`, build `2026-11-20-escort-across-1`. Pushed, no PR, not merged. The owner: a follow step did not carry the person through a city gate, or up / down the stairwells between the street and the tunnels: "I need this fixed. whether it's walking or in a taxi".
+
+**In the editor.** A "Follow them" / "They follow you" step still **starts** where the person is placed for the mission ("Giver waits at", else her placement), but its spot (or the street door of its place) may now be in **any area she can walk to from there**: The Avenue, Old Town, Far South, The Outskirts, The Port, The Underground and the District inside, through the city gates' walkers' lanes, the three stairwells to the tunnels and the District's door. The spot map's area list is open (pick the area above the map). The old "the step happens there" note now says where she starts and that she comes through with the player. Cab steps may go to **any stop of the city** (the cab drives through the gates' bays); she calls it in her own area, which must have taxis (none in the tunnels, the District or the Outskirts). Still refused, with the reason as a problem: a spot she may not reach (the street cat never goes inside or down into the tunnels; Reverie, Lace and made characters not marked adult never go where the adult places are: Milked is never on a route), the Corporate District and the Temple. No wizard or blocks change was needed (they use the same checks).
+
+**In the game.**
+- **She leads ("Follow them") to another area:** she walks to the next gate / stairs / door on her route and waits just outside it (outside the gate lane's door, at the top of the stairs, a little inside the checkpoint's door below). The player walks through; she comes through **ahead** of them (out of the far door, at the top of the stairs, inside the checkpoint), waits for them and leads on. The arrow stays on her.
+- **She follows ("They follow you"):** the player goes through; she comes through **behind** them (in the lane, on the landing, by the checkpoint door) and follows on. While she is with the player, the arrow now points at the step's destination (any area); before, it pointed at her.
+- **Too far behind:** "Follow them" with the player beyond "lost": "stop and wait" leaves her where she is (the arrow leads back to her through the gates), "the mission fails" fails it. "They follow you" beyond 40 m: she stays and follows again when the player comes back.
+- **May not go:** she stops at the gate / door and says so ("Reverie does not go there (…): she waits here for you."); never a silent loss.
+- **Taxi:** in any follow / lead step, when the player's taxi waits close by she walks to its door and gets in (or gets in at once if the player boarded first and she is near), rides seated in the companion's seat, through a gate's bay into another quarter too, and gets out with the player; the step goes on from the stop. The cat never rides ("The cat does not ride in cabs: it waits here for you."); a cab to the Corporate District or the Temple: she stays out. A made character rides too (seated if its model has a sit clip, else out of sight behind the tinted glass). Cab steps through a gate keep her seated across the exchange.
+- **Reload mid-step:** as before (story.flags.npcEsc x / z); the area comes from where those put her. No new save field.
+- **Multiplayer:** unchanged (each player's own copy of the person).
+
+**Code map.** `npc-escort.js` ACROSS section: `links()` (each link's `wait` / `ahead` / `behind` per area), `mayEnter`, `areaRoute`, `reach`, `reachWhy`, `legOf`, `linkBetween`, `across`, `arrival`, `rideAlong`; `stops` / `problems` / `intoProblems` use `reach`; `cab()` keeps her seated while a cab crosses; inventory `npcs[id].reach`. `live-content.js plans()`: the plan's `area` is where she is now (`setCarry`, else a reload's saved x / z, else where the step started), `to` is the leg (`via` a link: not done there), `final` / `dest` the destination; `escortWhere`; after a step she is held where it ended. New `npc-escort-across.js` (after `ncz-gate-transit.js`): wraps `enterWalking` and decides for each escort with the player before the old place is released. `ncz-street-pair.js` / `npc-made.js` escTick: `noDone` on a leg, `rideAlong`, the seat, the stairs' height (`VoidBackAlleys.groundAt`). `mission-guide.js escortGoal` + `world-integration.js` (the arrow). Server: `void_runner_live_content.py _reach` (spots and doors in a reachable area; reads the regenerated admin inventory). Tests: `tests/escort-across.test.cjs`, Python additions in `test_npc_escort.py`, `test_follow_into.py`, `test_npc_areas.py`.
+## 20 Nov 2026: "Unlock all nav coordinates" and where Rook's cargo jobs live (branch `claude/flight-map-coords`)
+
+### How to use it (plain steps)
+
+1. Open a mission in one of your trees and go to **What becomes available**.
+2. In the kind list choose **Unlock all nav coordinates** (there is nothing else to pick), then choose **when**: "when the mission is done" or "at step: ...". Press **+ ADD**.
+3. When the player reaches that point, the flight Map app gets every location: a warp marker to every place in the system they fly in and to every other system they can reach. Their V1 shows "NAV DATA RECEIVED". Before that, a new pilot sees only the markers on the way to the mission (and the way home).
+
+Rook gives the coordinates himself the first time he offers his cargo side missions (after the story flag `rook-first-delivery-done`), so a tree only needs this unlock to give them earlier. **Rook's cargo jobs are not in the editor:** they are the data file `void-runner/rook-cargo-jobs.js` (kinds of job, cargo, hold space, pay, which jobs are on his board, places he never sends freight to, and his two lines, approved by the owner on 21 Nov 2026: changing a word means recording it again). Change the values there.
+
+### For Claude and Codex
+
+Unlock kind `nav-coords` (`{kind:'nav-coords'}`, optional `when`): `mission-givers.js UNLOCK_KINDS`, `mission-content.js UNLOCKS` and `unlockNow` (calls `nav-coords.js grant`), the editor's unlock row (no id), the server via `unlockKinds` in `void_runner_admin_inventory.json`. Details: `AI_HANDOFF.md` (20 Nov 2026, flight map).
+## Twenty-seventh pass (20 Nov 2026): the Awakening continuation (Missions 004–012) and reusable mechanics
+
+Branch `claude/awakening-tree`, build `2026-11-20-awakening-2-1`. Pushed, no PR, not merged. The owner's spec (Missions 004–011 with his dialogue, and a First Cargo Delivery tree after 011) built as mission DATA in `void-runner/main-story.js`, run by the same tree engine, every piece editable here.
+
+### How to use it (plain steps)
+
+1. **New kinds of step** (the step's kind list, Form view): **Watch someone** (stay within N m for N s; optional "too close"), **Overhear a conversation** (the lines below play as overheard subtitles while the player is in range and not too close; too close: they notice and start again), **Sneak past the guards** (reach a room or use a thing of a place of this mission without being seen; seen: back to the street, try again), **Copy evidence to the V1** (the document window opens when the thing is used: COPY TO V1), **Report / send evidence** (REPORT TO … on the mission in the V1 Mission Log, only with the evidence ticked, and only inside the place chosen for a hand-over in person), **They call** (a callback: by itself after the step before and its delay), **Wait in-game time** (in-game minutes; 12 are about a minute of play), **Watch a remote camera feed** (a feed of this mission, opened from the Mission Log; stages opened / watched / recorded / saved), **Follow someone at a distance** (someone placed with a route), **Leave a place of this mission**, **Flight** (board / take off / jump / dock), **Open an app on the V1** (`v1-app`: done when the player opens that app; the same app's tile glows through the step's `app` field: the Kestrel tutorial's Ship Loadout step). Steps that go into, use, copy, leave or hack have a **without being seen** box.
+2. **People for this mission** (under every mission): + PERSON, then the figure, the place (by name; x / z to put them on a spot, empty for the middle), what they do, from which step until which, and an optional route (`x,z; x,z`) for "follow at a distance". A **marker** is an invisible point the V1 camera identifies (a doorway to photograph).
+3. **Evidence** (under every mission): + EVIDENCE, its title, kind and your text. Players read what they hold in the V1 Mission Log.
+4. Unlock **Evidence item** gives one without a step. Credits (Mission 011's 5,000 CR (was 25,000 until 21 Nov 2026) is the unlock at "Receive the credit reward"), the ship (the Kestrel: `starter`, given once, never resets other ships) and "Start tree" work as before.
+
+### What the player sees
+
+- Fish's call 6 in-game hours after 003 (the old stub is now Mission 004's start), Iris and Admin calls, overheard subtitles in the tea house and the fight pit, the document window at Halden's computer, the Veyra office with its patrolling guard, the Corporate District's maintenance door keypad (hack) and the network facility behind it, OPEN REMOTE FEED in the Mission Log when BR-04 comes online (the existing Blackrock Cult Room scene with the owner's ritual lines, recorded to the Gallery), the hand-over in the meeting room, the sale, the reward, the Kestrel and the First Cargo Delivery tree.
+
+### For Claude and Codex
+
+- Rules: `void-runner/mission-mechanics.js` (pure; `tests/mission-mechanics.test.cjs`): `KINDS`, `stepProblems`, `castProblems`, `evidenceProblems`, `hit`, `gameWait` (`story.flags.tg_<mission>_<step>`), `overhearStep`, `observeStep`, `tailStep`, `castVisible`, evidence in ONE flag `story.flags.evidence` (comma-separated, 200 characters). `mission-content.js`: `MM` in `STEP_KINDS`, `AUTO` (`call`), mission keys `cast` / `evidence`, step keys `STEP_FIELDS`, unlock `evidence`, `mechanicsNow` / `castNow` / `evidenceNow`, consecutive `hear` steps, a later feed stage completes earlier ones, notification text 1,500 characters for Comms / Messages. Game: `mission-mechanics-game.js` (cast figures, distances, subtitles, the detection meter and SPOTTED, the document window, the Mission Log card hook `VoidMissionExtras` in `personal-device.js`, the feed through `camera-feed.js` `start({cam, onStage, savedText})`, flight stages). Editor: `mission-mechanics-editor.js`. Server: `void_runner_live_content.py` `mechanics_step_problems`, `cast_problems`, `evidence_problems`. Corporate door: `apartments.js CORP_DOORS` (`biz-corp-s-40`), `module-integration.js backToStreet`, `corporate-integration.js`.
+- Not in the Blocks view yet: the new kinds show as "(Form view only)" there; edit them in the Form view.
+- Tests: `tests/awakening-tree.test.cjs` (004–012 from a fresh character and from one who just finished 003, with reloads; reward and Kestrel once), `tests/mission-mechanics.test.cjs`, `tests/test_awakening_save.py`; the browser playthrough script is in the session notes (Python Playwright).
+
+## Twenty-sixth pass (20 Nov 2026): "Follow them" / "They follow you" INTO a place of the mission
+
+Branch `claude/follow-into-locations`, build `2026-11-20-follow-into-1`. Pushed, no PR, not merged. The owner: "For the follow options if I add an apartment there should be an option to follow into the apartment".
+
+### How to use it (plain steps)
+
+1. Add the place to the mission first (an apartment, or a location built from modules), with its street door.
+2. On a **Follow them** or **They follow you** step, the new list **Where to** has "A spot on the street (pick it on the map)" and, under it, every place of this mission by the same names as the **Go into** step: "Follow Reverie into: Rundown apartment 104 (…)", "… Server room (…)", "… Anywhere inside (…)". Pick one. The map goes away (the place's street door is the spot on the street), the Mission Log words become "Follow Reverie into apartment 104" / "Bring Lace into the server room" while they are the automatic ones, and the distances ("waits when the player is more than …", "lost beyond …") stay.
+3. The same list is in the **Blocks** view (it uses the same panel) and in **Make a mission** (the step's second list shows "Follow them into: …" once the mission has its place). **Guide me** points at the list when the place is missing or not allowed.
+4. Greyed with the reason: the street cat ("it does not go into buildings"). Shown as a problem: a place whose street door is in another area than where she is placed for this mission, the fight pit for Reverie, Lace or a made character not marked adult, an elevator cab as the end, a place that opens later in the mission ("available from" a later step), a spot and a place together.
+
+### What the player sees
+
+- **Follow them:** she walks along the pavement to the place's street door. When the player is close she goes in first (the door slides open; she walks into the dark doorway). When the player comes in she is waiting a couple of metres inside the hallway; she leads room to room, through doorways, through doors that lead elsewhere (she goes through first when the player is near and is waiting on the other side) and into the elevator cab (she rides with the player when they are in the cab together). Done when both are inside the chosen room.
+- **They follow you:** the player walks to the door and goes in; she comes in through the same door a moment later (about her walk to it, 0.8 to 6 seconds), the door sliding open for her, and follows the player room to room, rides the elevator with them when she is in the cab, and comes through the next door behind them. Done when both are inside the chosen room.
+- **Leaving during the step:** she comes back out behind the player (out of the same street door) and carries on from the street; a "Follow them" player who went further than "lost" first: she waits where she is, or the mission fails, as on the street. A reload during the step (every login wakes in the Sleeping Pod) starts it again at the street door, she waiting there.
+- **After the step** she stays in that room (TALK TO her works there) until the mission is over, then goes back to her routine where the player does not see her come back.
+- **Multiplayer:** the place is private to the player doing the mission; other players see her on the street as usual.
+
+### For Claude and Codex
+
+- Step fields: `apt` (a `mission.apartments` id) and `mod` (a module of a location; none = anywhere inside) on `follow-them` / `they-follow`, instead of `to`. `npc-escort.js`: `FIELDS`, `intoProblems`, `canInto`, `doorAt` / `doorArea`, `roomGraph` / `roomPath` / `destOf`, `crossing` (the state machine for a change of place: with / ride / stay / fail and the delay), `insideDone`, `resumeInto`, `gridRoute` (A* around the walking area's solids, door slabs left out unless locked), `freeSpot`, `lead()` (`inp.door`: phases `enter` -> `in`; `inp.route`, `noDone`, `unarmed` after coming back out), `follow()` (`inp.door` / `noDone`: not done at the door), `encode` / `decode` (a fifth field `in` in `story.flags.npcEsc`), inventory `into` (door areas, adult rooms) and `npcs[id].into` / `youthful`.
+- `mission-content.js`: `escortNow` carries `apt`, `mod`, `door`, `place`, `loc`; `insideNow` (who stays inside after the step); `holdOf` returns `inside` for the giver; the check passes the mission's places and steps. `apartments.js problems` lets a follow step name a place.
+- `live-content.js plans()`: a step into a place has the door's front as its spot and `door` (just inside it); while she is inside (`VoidEscortIndoors.away`) and after the step (`insideNow`) her plan is `{mode:'stay', area:'indoors', indoors:true, why:'mission'}` (no street figure); `replan()`. `ncz-street-pair.js` / `npc-made.js`: `door:P.door` to the rules; back from indoors only out of view (`rejoin` / `away`).
+- `npc-escort-indoors.js` (new, loaded after `module-integration.js`): wraps `VoidApartments.build` (both the older apartments and module locations), preloads her model behind the loading screen (zone `prepare`), builds her figure (same model, look, added animations, made characters' props), leads / follows inside, opens doors near her, the TALK prompt, done / failed through the street pair's `onEscort`. `VoidEscortIndoors.live()` for tests.
+- Server: `void_runner_live_content.py into_problems` (from `escort_problems`), `ESCORT_FIELDS`, `apartment_problems` (a follow step may name a place), `escort_shape_problems` (shapes of `apt` / `mod`). Admin inventory regenerated.
+- Tests: `tests/follow-into.test.cjs`, `tests/test_follow_into.py`, browser `tests/follow-into-browser.cjs` (KIND=lead: Reverie into a rundown apartment; KIND=bring: Lace into the server room by the elevator).
+## Fix (20 Nov 2026): the Location plan was empty for a hallway + apartment; a street map of numbered doors; any city apartment style behind any city door
+
+Branch `claude/location-plan-fix`, build `2026-11-20-location-plan-1`. Pushed, no PR, not merged.
+
+**What was wrong.** The top-down plan in a Location block drew only the modules that stand on the grid (offices, server rooms, the elevator...). A housing hallway and its apartment are *portal* modules: they have no place on the grid and are joined by a connection (a door that leads elsewhere). So a location made of "Rundown hallway + Rundown apartment" (what **Add › Housing › Rundown apartment** makes) drew nothing, though its connection existed and the checks said "Everything fits". Nothing else made the plan empty: the canvas has a fixed size (folded blocks and hidden panels draw it the same), it is drawn after the module rules load, and the Blocks and Form views use the same card.
+
+### How to use it (plain steps)
+
+1. **The one-line summary** above the plan says how the player walks in: "Street door No. 104, Main Street → Rundown hallway → Rundown apartment 101". Anything not reached from the street is listed after it.
+2. **The plan** now draws every module. Modules on the grid stand where they are. A hallway and an apartment are drawn as tiles beside each other (dashed outline) in the order you walk in, joined by a dashed green line labelled with the doors ("hallway door 101 → apartment entry"). Amber: the street entrance. Red: a door locked until hacked. Click a tile to select it: grid modules can be moved and turned; a hallway or apartment can be set up or removed (its place on the plan is only a drawing).
+3. **Joins at / Connections** are explained under the Add row and the Connections row, and every door is named in plain words ("hallway door 101 of Rundown hallway (hall.d0)").
+4. **Street door map.** Beside every street-door list (Location blocks in Blocks and Form, older apartments, and the wizard's "An apartment for this mission") there is **SHOW ON MAP / HIDE MAP**. The map shows one part of town (pick it in the list) with every door the list offers as a numbered marker at its real place: violet luxury, blue normal, tan rundown buildings, a square for an office entrance, a diamond for a shop's back entrance, rust / green for the Outskirts' containers; grey = already used by another location of this mission; the chosen door has a white and amber ring. Hover a door: "No. 104, Main Street — normal apartment building". Click it to choose it (the list follows). "Close up" zooms on the chosen door. It opens by itself while no door is chosen.
+5. **Any apartment style anywhere in the city** (the owner, 20 Nov 2026): rundown, normal and luxury apartments (and their hallways) may go behind any city street door, in any part of town; a location's housing also behind an office or shop entrance. The Outskirts' container doors take only the two container styles. A building's own style is only the suggestion: the Add list preselects it after you choose the door. (The older one-piece apartment entries still go behind apartment-building doors only.)
+
+### For Claude and Codex
+
+- `void-runner/module-editor.js`: `planLayout(loc, floor)` (pure, unit-tested) lays out the plan's tiles and connectors; portal modules go on the floor of the grid module they connect to (else the ground floor), in columns by walk order; nothing is written to the location. `summary`, `doorLabel`, `modLabel`; `doorMap` / `doorPick` (the street map, drawn from `VoidNPCPaths.mapData` and `VoidApartments.doors()`; it lists exactly the doors its `<select>` offers) and `usedDoors`. An apartment added to an empty location comes with its hallway, as Add a location does.
+- `mission-editor.js doorSelect(value, on, attrs, empty, style, pick)`: with `pick` ({key, used}) it returns the list wrapped with its map (`display:contents`, so callers append it as before; `[data-me-apt-door]` is still the `<select>`).
+- Style rule: `modules.js problems()` and `void_runner_live_content.py module_location_problems()` compare only container vs city now.
+- Tests: `tests/location-plan.test.cjs`, `tests/test_modules.py` (any city style behind any city door), browser `tests/location-plan-browser.cjs` (wizard map; Blocks: + ADD A BLOCK › Location, choose a door on the map, Add › Housing › Rundown apartment, plan pixels, fold / unfold; Form view the same).
+
+## Fix (19 Nov 2026): a giver who leads the way ("Follow them") no longer walks off or vanishes
+
+Branch `claude/follow-giver-fix`, build `2026-11-19-follow-fix-1`. Pushed, no PR, not merged. The owner: "add a mission that starts when you walk near the giver, have them say a line, then set it to follow them to another location ... the giver is either not at the mission giving location to start with, or after saying their first line they shoot off in the direction of where they're supposed to lead you and disappear ... I can never find them after the first line".
+
+### What was wrong (found by playing exactly that mission in a browser, every frame recorded)
+
+1. **Once the mission started, nothing kept her there.** "Giver waits at" only held her while the mission was *waiting to be offered*. The moment walking near her started it, she went back to her own routine: on The Avenue she walked off along her stretch; when her spot was in another quarter (Old Town, Far South …) she **vanished on the spot** (her routine is on The Avenue, so that quarter no longer had her).
+2. **Then the "Follow them" step put her in the wrong place.** The step started from wherever her routine had left her; when she had vanished, she reappeared at her routine's spot on **The Avenue's coordinates** while the player was in Old Town, i.e. far outside the quarter: nowhere to be found, and the arrow pointed off into the buildings. A made character with no all-day placement was put at the map's 0, 0.
+3. **She could walk off while still saying her line.** The game decided "the player is talking to her" from the prompt under the player's crosshair, which is picked again every frame while a conversation floats over walking. If that first frame had lost her prompt, the follow step (which starts the moment her line completes the talk step) walked her away during the conversation.
+4. **She disappeared in front of the player** when she had to go (her shift, a spot she could not walk to, the end of the mission in another quarter): she was removed at once, even on screen. A made character was moved (teleported) on screen in the same case.
+5. **A spot she could not reach in a straight line or round one corner** was walked to in a straight line: through shopfronts and diagonally across the road.
+
+Not a cause (checked): the walked-near distance is measured from her TALK prompt, which follows her figure every frame; her walking pace while leading is 1.2 m/s with no catch-up teleport ("they follow you" only puts her behind the player when she is 20 m+ behind *and* off-screen); the draft's street clock puts her on shift.
+
+### What it does now
+
+- **Before and during her mission she stays put:** at "Giver waits at" if set, else where she stood when the mission started (or her all-day placement until then); after a "Follow them" step, at its spot until the mission is done; then her own routine again. Reverie and Lace are kept out for a mission in progress even if the shift changes (as for a running follow step).
+- **Her line first, then she walks:** she stands still for the whole conversation (also recognised from her lines in it), then leads at walking pace, stops and waits when the player is more than "Waits when …" metres behind, and the step completes at the spot. The yellow arrow and marker stay on her.
+- **She appears where the step started** (entering the quarter, a reload), never at her Avenue routine.
+- **Never gone or moved on screen:** if she must go, she keeps her old plan until the player looks away or is out of sight range (main's hold, kept).
+- **Along the pavements:** a route that is not straight or round one corner follows the pavements; the road is crossed only where it must be, straight over.
+
+### For Claude and Codex
+
+- `mission-content.js waitingAt` / `holdOf`: acquired, unfinished missions hold their giver (`{x, z, mission, during:true}` = last done escort step's `to`, else `waitAt`; or `{mission, during:true, here:true}`).
+- `live-content.js plans()`: `here` -> `holdAt[id]` (her live position when the mission started, `livePos`: street pair / cat / made); the plan gets `why:'mission'`; escort plans carry `from`; a step starts if she is out for that mission (`escOn`); `resetRun` clears `holdAt`.
+- `ncz-street-pair.js`: `out()` keeps her for `why:'mission'`; `appearAt` (resume, else `from`; `planSpot` is main's); `chatting()` also checks `speech.lines`; `stats().her.yaw`. `npc-made.js`: `from`, `speaker()`. Cause 4 (gone / moved on screen) is covered by main's "never popped in or out in front of the player" hold (`holdCheck`, `p.going`, merged from `origin/main` the same day); this branch's own version of it was dropped in the merge. One change to it: main's hold skipped a plan change *out of* a follow step, so a mission that ends with a follow step sent her straight back to her Avenue routine and she vanished at the spot on screen (seen in the browser test after the merge); now the end of a follow step is held too (`holdCheck`, npc-made.js `step`).
+- `npc-escort.js walkRoute` (half-metre grid A*, road and kerb cost 8x, shortened to legs that add no road; used by `route` when straight / one corner fail).
+- Tests: `tests/follow-giver.test.cjs`; browser `tests/follow-giver-browser.cjs` (WHO=grey-reverie|ethereal-lace|street-cat|made, WHERE=avenue|oldtown, WAIT=0): built with the wizard's builder, PLAY THIS DRAFT, walk near, TALK, the line, follow; asserts the spot at the start, no movement during the line, no per-frame jump above her speed x the frame time, never gone, never out of her area, within 2 m of her route, done at the spot. **Checked in a browser** (bundled Chromium, software GL, all PASS: no frame-to-frame jump over her speed, never gone, never out of her area, within 2 m of her route, done at the spot): Reverie on The Avenue and in Old Town with "Giver waits at", Lace on The Avenue without it (held where she stood when it started), the street cat on The Avenue, a made character (giver creator data, placed in Old Town). Not verified: real hardware / frame rate, VR, a shift change in the middle of a real (non-draft) mission (unit-checked), the deferred "leave once unseen" seen in a browser (unit/source-checked only). Older source-text tests updated (`npc-areas`, `npc-behaviour`, `npc-escort`, `npc-tools`: "once accepted she goes back" is now "she stays until it is done"; `cult-room`: any BUILD).
+## Twenty-fifth pass (19 Nov 2026): a player reply can be ACCEPT / DENY; "walk near the giver" is its own way of starting
+
+Branch `claude/reply-choice-near-start`, build `2026-11-19-reply-choice-1`, pushed, no PR, not merged. The owner: "in player reply add the accept or deny option, credit changes if accepted. also i don't see the when the player walks closer to the giver option".
+
+**Where the walk-near option was hidden.** It existed, but only as the trigger "When walked near", and the Trigger list appears only after choosing a device start (By Messages, By Comms call or Notification only) under **Starts**. Choosing "In person" (the normal choice) never showed it; the Blocks view's Start block only described the start in words (no control); Basic mode showed the same panel; the wizard listed it, without a distance.
+
+### How to use it (plain steps)
+
+1. **Walk near the giver.** In the Blocks view the **Start** block now has **How it starts**: *In person: the player talks to them*, *In person: they ask ACCEPT / DENY*, **Walk near them (starts automatically)**, **Walk near them and they ask ACCEPT / DENY**, *By Messages*, *By Comms call*, *Notification only*. With walk near, the same block shows **Starts when the player comes within [5] metres of <giver>**, whether it starts by itself or asks, and **the banner** (the short notification). The Form view's **Starts** list has the same choices (walk near no longer hides under Notification only › Trigger; the Trigger list still has it for Messages and Comms). "Make a mission" lists *When the player walks near them (starts automatically)* and *…they ask ACCEPT or DENY*, with **How close the player comes** (1 to 30 m).
+2. **She speaks when you walk near.** With a walk-near start, what the giver says for the offer (**What <giver> says when the player walks near**, in the Start block and in the Form view) is said as the mission starts (after the banner). Before, a walk-near start only showed the banner. Missions with no offer words are unchanged.
+3. **A player reply as a choice.** Under a blue **Player reply** (Blocks view: + PLAYER REPLY inside someone's Words; Form view: + ADD A PLAYER LINE) tick **Make this a choice: ACCEPT / DENY**. The reply becomes two buttons. Set:
+   - **Buttons**: your own words (empty: ACCEPT / DENY).
+   - **Your reply when they press ACCEPT** (the line's own box) and **Your reply when they press DENY** (both optional; shown as "You").
+   - **Credits if accepted**: *No credits*, *Player gets N*, or *Player pays N* (the MONEY rules: given or taken once, never twice after a reload; never below 0; with too few credits ACCEPT is greyed with "YOU NEED N CR"). The window shows a REWARD or COST card.
+   - **On DENY**: *End the mission* (normal: it goes back to its giver), *Skip ahead to a later block*, *Go back to a block* (this one or an earlier one), *Start another tree*, or **Just continue the conversation** (no credits).
+   - **After ACCEPT, said next** and **After DENY, said next** (optional lines). The lines written after the reply in the same Words are said after ACCEPT (and after DENY with "Just continue").
+4. In the game the conversation stops at the reply: the buttons sit on the line before it in the same window; nothing goes on until the player presses one. Closed without an answer (Esc), the question comes back a few seconds later on its own.
+5. Allowed in what is said when a block is done, and in the offer of a mission that does not ask ACCEPT / DENY itself (in person or walk near). Not in a Comms call, a message, a photo reply, "If the player comes too soon", the hand-in or the lines after a choice (one choice cannot hold another; two choices in one conversation are fine).
+6. The "Ask the player" block also has **or ACCEPT gives N CR** and DENY **Just go on**.
+
+### For Claude and Codex
+
+- Data (no migration): a player line `{who:'You', text (the reply on ACCEPT, may be empty), choice:{yes?, no? (20), noText? (500), credits? (signed, ±1..100000), deny?: 'end' (default) | 'skip' | 'back' | 'tree' | 'continue', goto? (skip: a later step; back: this step or earlier), denyStart? (tree), yesSay?, noSay? (lines, no nested choice)}}`. Ask step: `gain` (1..100000, never with `price`; flag `story.flags.mg_<mission>_<step>`), deny `'continue'`.
+- `mission-content.js`: `CHOICE`, `choiceOk(m, o)`, `choiceStrip` (inside `said`, which keeps a choice line with empty text), `checkChoice` (in `checkTrees` `lines(ls, w, ch)`), `treeNeeds` fields `line-choice-goto` / `line-choice-tree`, `expandChoices(m)` (run by `storyTrees`: each choice becomes an inline ask step `<step>-c<n>` right after its step, or `offer-c<n>` before the first step; question = the last line someone else said; `say` = ACCEPT reply + yesSay + the following lines; `denySay` = DENY reply + noSay (+ the following lines with 'continue')). `answer()`: gain once, 'continue' (`step(t,m,o,true)` completes without the ACCEPT lines), `hearNext` after an inline ask. Walk near: `nearStart(m)` speaks `m.offer` on start and appends it to a walk-near prompt. `askNow` items carry `inline` and `gain`.
+- `live-content.js`: `openAsk(a, lead)` (shared by `askTick`), `inlineAsk(r)`; `show()` puts the buttons on the lines that lead into an inline ask; `nearTick` shows the lines of a walk-near start.
+- `mission-blocks.js`: `START_MODES`, `startMode(m)`, `setStartMode(x, mode)` (the Form's old rules for device channels; walk near = notify + near; leaving walk near for Notification only resets the trigger to the first pod exit); `lineSets` items carry `choice`.
+- `mission-blocks-view.js`: Start block "How it starts" (`data-mb-start-mode`, `data-mb-start-distance`, `data-mb-start-text`, `data-mb-near-auto`), `choiceFields` (exported; `data-mb-choice-on/-yes/-no/-notext/-way/-credits/-deny/-goto/-tree`), nested line keys `<…>/<k>/yesSay|noSay` in `linesAt`; `askFields` gain + 'continue'. `mission-editor.js`: Starts list from `START_MODES`, offer lines shown for walk near, `linesEditor` choice + nested `pick`, `NEED_SEL`. `editor-wizard.js` / `editor-home.js`: `near-accept`, `a.distance`, offer words for walk near.
+- Server: `void_runner_live_content.py` `CHOICE_KEYS`, `choice_ok`, `choice_problems` (in `check_trees` `lines(ls, w, ch)`), ask `gain` / 'continue', `workspace_money_problems` checks choice credits / labels / DENY.
+- Tests: `tests/reply-choice.test.cjs`, `tests/test_reply_choice.py`, browser `tests/reply-choice-browser.cjs` (Blocks Start block → walk near; a reply choice +100; Form shows both; walk near from the Form's Starts; play: walk near → Admin speaks → ACCEPT +100 credits; played again: DENY ends it, nothing given; passes with the bundled Chromium and software GL).
+- Not verified: real hardware; VR; a reply choice inside a step's lines (not the offer) in a browser, 'skip' / 'back' / 'tree' / 'continue' and Player pays in a browser (all unit-tested); publishing with the server switched on. Voice files are matched by speaker and words as before; the lines after a choice have IMPORT VOICE FILE in the Blocks view.
+
+## Twenty-fourth pass (19 Nov 2026): zones (Friendly / Neutral / Hostile), armed people and the "Change zone" block
+
+Branch `claude/pistol-zones`, build `2026-11-19-pistol-zones-1`. The owner: Admin sells a pistol; in NeoChinatown it can be carried but not fired; a green FRIENDLY, orange NEUTRAL, red HOSTILE indicator at the top left; "let me change a room or area from friendly to hostile in the mission timeline". He decides which places are which: **everything starts Friendly**.
+
+### How to use it (plain steps)
+
+1. **Developer Tools > ZONES** (new tab): every NeoChinatown area (Old Town, Main Street, the District, NULL, The Avenue …) and every kind of location (office floor, server room, apartments, hallways …) with a Friendly / Neutral / Hostile list. Change one and it is saved in your draft. Try it with PLAY in the Mission Editor; PUBLISH sends it to players (the server checks it).
+2. **A mission's "Zones and armed people"** (under every tree mission, Blocks and Form view):
+   - *If the player is taken down*: they try again (outside the location, full health) or the mission fails (it goes back to its giver).
+   - *This mission's locations*: the zone of the whole location and of each room (Normal = what the Zones table says).
+   - *City areas while this mission runs*: add an area and choose its zone; it goes back to normal when the mission ends.
+   - *Armed people*: + ARMED PERSON, then the figure (security guard, mercenary, enforcer), the room, guards the spot / patrols (route: `x,z; x,z` in metres inside the room; the room's size is shown), where they stand and which way they face. In a Hostile room they attack on sight; in a Neutral one only after the player fires; never in a Friendly one.
+3. **The Zone block** (Blocks view: + ADD A BLOCK › Zone; Form view: step kind "Change zone"): choose a room or location of this mission or a city area, Friendly / Neutral / Hostile, "until the mission ends" or until a later step, and optionally "Bring in the armed people placed there". It is done the moment the mission reaches it; the chip changes at once if the player is there.
+4. **Combat Balance > On foot** (the same numbers drive Skirmish FPS; its difficulty only scales the enemies): the pistol's price, damage, aimed bonus, time between shots, spread and recoil, the player's health, the safety catch (1 = on), the safety window, how long guards stay angry, how far civilians run, the detection range and cone, the enemies' health, damage, accuracy, reaction time and speed.
+
+What players see: drawing or holstering never provokes anyone and never fails a step. Friendly: the trigger only says "Weapons are locked here." Neutral with the safety catch on: the first press says "NEUTRAL AREA — firing will make people attack you. Press fire again to shoot."; a second press within the safety window fires. No player-versus-player damage anywhere.
+
+### For Claude and Codex
+
+Rules and checks: `void-runner/zones.js` (pure; `tests/zones.test.cjs`); game: `zone-integration.js` (chip, firing gate, enemies with the Skirmish AI, civilians flee through `npc-device.js` spectacle `{flee:true}`, taken down); editor: `zone-editor.js` (tab, mission panel, step fields), `mission-blocks.js` / `mission-blocks-view.js` (Zone block), `mission-editor.js` (Form view). Data: `content.zones` {areas, modules}; `mission.combat` {areas, places, armed, onDeath}; step `{kind:'zone', target ('<loc>', '<loc>/<module>' or 'area:<place>'), zone, until?, spawn?}`; workspace key `zones`. Server: `void_runner_live_content.py` `zone_table_problems`, `combat_problems`, `zone_step_problems`, `zone_shape_problems` (`tests/test_zones.py`). Browser walkthrough: `tests/zones-browser.cjs`.
+## Twenty-third pass (19 Nov 2026): places picked by name in "Go into" / "Use" / "Hack" steps; when a denied offer comes back
+
+Branch `claude/deny-retry-place-words`, build `2026-11-19-deny-retry-1`, pushed, no PR, not merged. The owner: a "Go into" step for an office said "Go into the apartment": "I won't remember this. Can it be in a drop-down?"; and of a walked-near offer the player denies: "Maybe set a time for return, or remove after".
+
+### How to use it (plain steps)
+
+1. **Go into / Use something / Hack:** the step has ONE list of this mission's places by their real names: "Office floor (No. 13, The Avenue, offices)", "Server room (…)", "Elevator cab, floor B1 (…)", "Rundown apartment 104 (…)", "Container apartment, regular (…)", and for Go into "Anywhere inside (…)". Pick one; the Mission Log words are written for you ("Go into the office floor", "Use the server rack in the server room", "Hack the access point at the door between the office hallway and the office floor"). Change the place and the words follow, as long as they are still the automatic ones. Type your own words and they are kept; a small **USE THE AUTOMATIC WORDS** button puts the made words back. The same list is in the Form view, the Blocks view and "Make a mission" (an office template: which room).
+2. **On DENY** (any offer that asks ACCEPT / DENY, in person, by message, call, banner or walked near): **Offer again after a number of minutes** (1 to 120, default 10; minutes of play: they count only while the player is in the world, not in menus, conversations or a hidden tab; a reload keeps the count; a walked-near offer also needs the player to walk out of its distance and come back), **Offer again after the next pod exit** (for a message / call / banner / walk-near this is what DENY always did; an offer in person also has "the next time they talk to them", what it always did), **Never offer again (remove it)**, or **Start another mission**. Missions made before keep what they did.
+3. A giver who **waits at a spot** for that mission goes about her own routine while the offer waits (and for good after "never"), then walks back to her spot when it can be offered again. She is never moved in or out of the player's view: a move she cannot walk is held until she is out of sight (and the new spot is out of sight too).
+4. Testing: in PLAY THIS DRAFT the banner shows **SKIP THE WAIT (m:ss)** while a denied offer is waiting; it ends the wait at once.
+
+### For Claude and Codex
+
+- Places: `mission-blocks.js` `placeOptions(m, kind)`, `placeValue`, `placeSet`, `placeWords(o, m)`, `wordsAuto` (empty, the made words, or the older fixed words `LEGACY_WORDS`), `rewordAfter(o, m, fn)`, `hackOptions(m)`, `apName`. Data unchanged: `o.apt`, `o.mod`, `o.object`, `o.ap`. Editor: `mission-editor.js placeRow`, `autoWordsBtn` (in `blocksKit`), the hack list uses `hackOptions`; a kind change re-words automatic words. Wizard: `editor-wizard.js aptRecord`, `aptWords`, `aptChoices`, step `s.mod` built into `o.mod`.
+- DENY: `mission-content.js` `DENY=['again','pod','after','never','start']`, `DENY_MIN` {1, 120, 10}, `start.denyMinutes` (only with 'after'), `denyWaits`, `denyTick(s, env, wholeSeconds, skip)`, `denyRearm(s, env, near)`. `story.flags.md_<mission>`: 'never' | 'later' (next pod exit) | a safe integer (seconds of play left) | 'away' (walked-near: waiting for the player to leave its distance). `waitingAt` skips a mission while it is denied. `live-content.js denyClock` (4 times a second, `nearBlocked` + hidden tab stop it, saves every 5 s outside test sessions), `skipButton` (draft banner `[data-deny-skip]`), `nearTick` calls `denyRearm`, a "DECLINED · …" notice says when it comes back. Server: `void_runner_live_content.py` `DENY`, `DENY_MIN_MIN/MAX`, `ask_problems` and `workspace_money_problems`.
+- Never popped in or out in view: `ncz-street-pair.js` `held` / `holdCheck` / `inView` (camera frustum + show radius) / `rejoin` (Reverie, Lace, the cat); `npc-made.js` `p.hold` and `p.going` (a made character that should leave stays on its last plan until unseen; its TALK prompt goes meanwhile).
+- Tests: `tests/deny-retry.test.cjs`, `tests/test_deny_retry.py`, browser `tests/deny-retry-browser.cjs` (office words from the list; walked-near DENY -> SKIP THE WAIT -> walk away and back -> offered again; a real minute of play -> offered again; "never" -> not offered).
+- Browser `tests/giver-hold-browser.cjs`: a plan change that would move Reverie or Lace out of the Avenue while the player looks at her is held, and released once the camera turns away; a walkable spot is never held. This also answers the QA pass's open question (a denied walked-near offer could only come back after a pod exit).
+- Not verified: the cat and made givers' hold in a browser (same code shape); the walk back after a real wait with a "Giver waits at" spot; real hardware; VR.
+
+## Twenty-second pass (19 Nov 2026): camera feeds — the Blackrock Cult Room
+
+The owner's queued room: seen only through a hacked security camera, recorded to the V1 Gallery. Details: `docs/development/BLACKROCK_CULT_ROOM.md`.
+
+### How to use it (plain steps)
+
+1. Open the mission. Under **Add a location**, choose the category **Other**, then **Blackrock cult room (camera feed only)**, then **+ ADD**. A **CAMERA FEED “cam1”** card appears. (It is not a place the player walks into and it joins no other module.)
+2. Add a step **Hack the access point** (in the Blocks view: + ADD A BLOCK › Action › Hack the access point). Choose the access point where the player hacks the camera (any street door, or a door of one of the mission's apartments or locations), then **Camera feed: shows camera feed “cam1”**. (No feed yet? Press **+ ADD THE BLACKROCK CULT ROOM FEED** right there.) "Opens that door for them" is off for a camera hack; tick it if the hack should also open the door.
+3. Open **EDIT THE SCENE** under the step (or use the feed's card under the locations). The scene is already your choreography of 19 Nov 2026. Each beat plays after the one above it, after its own **pause before**:
+   - **A line:** choose who speaks (the initiate, robed figure 1 to 6, or all six together), write the words, and press **IMPORT VOICE FILE** for them (as for every other line). An empty line is silence and nothing is shown on the recording. "lasts (s)" can be left on auto. An animation on a line: talk, laugh, read, shock, stand, idle (the initiate cannot play one while he is kneeling).
+   - **Timing and movement:** the pause before each beat, the scene's **walking speed** (0.5 m/s, about half a normal walk) and the **circle radius**, a speed on the entry, a walk or the exit, the **gap in the exit line**, how long a turn takes and what they turn to face.
+   - **+ ADD A BEAT** (choose the kind first), **↑ ↓** to move one, **×** to remove one, **RESET TO THE OWNER'S CHOREOGRAPHY** to start again (UNDO brings your version back).
+   - The card says how long the scene lasts and how many lines are still empty, or what to fix in plain words (for example "the initiate must rise first").
+4. **▶ PREVIEW THE SCENE** plays it in the game through the camera, without recording. **PLAY THIS DRAFT** plays the whole mission: hack the camera, watch, the video lands in the V1 Gallery and the step is done.
+
+### For Claude and Codex
+
+`void-runner/cult-room.js` (rules, timeline, choreography maths), `cult-room-build.js` (the 3D room and the seven figures), `camera-feed.js` (the feed, the pause, the recording, the mission hook), `cult-room-editor.js` (this card; loaded with the editor). Wired in `module-editor.js` (Other > the feed room, `create`), `mission-editor.js` (`hackRow` adds the feed choice and the scene editor; `aptPanel` lists the feeds; `treeLineText` reads a feed line for IMPORT VOICE FILE, key `tree:<mission>/feed/<feed>/<beat>`), `mission-content.js` (mission key `feeds`, step key `feed`, the event `feed`), `apartments.js` (`hacksNow` carries the feed; a camera hack opens no door unless `unlock:true`), `live-content.js` (`feedSaved`), `device-gallery.js` (videos). Server: `void_runner_live_content.py feed_problems`, `void_runner_drafts.py`. Tests: `tests/cult-room.test.cjs`, `tests/test_cult_room.py`, `tests/cult-room-browser.cjs`. A voice file is keyed by the beat's place in the list: moving a line with ↑ ↓ after importing its voice shows "text changed" until it is imported again.
+## NPC voice summary (19 Nov 2026, branch `claude/npc-voice-summary`, build `2026-11-19-npc-voice-summary-1`)
+
+The owner: "In the NPC editor when you select an NPC show which Elevenlabs voice was selected for them. Maybe link to it".
+
+- **Top of every NPC's page** (Developer tools > NPCs, the About box, Basic and Advanced): `Voice: ElevenLabs — <name> (<model, e.g. Eleven v4>) · LISTEN ON ELEVENLABS ↗ · your draft choice / saved in the voice file`. The link opens `https://elevenlabs.io/voices/<voiceId>` in a new tab (`rel=noopener noreferrer`). Kokoro: `Voice: free local voice <name> (locked)` (plus the recorded lines' Kokoro voice); nothing: `Voice: none yet — choose one in Lines & voice`.
+- **NPC list:** an **EL** badge after every name with an ElevenLabs voice (hover: the voice and model).
+- **Mission Editor giver card:** its Voice box already named the voice and linked to it; it now names the model too.
+- Lace, Reverie and Dax show the voices chosen for them in `tools/audio/revoice-engines.json`. Code: `npc-voices.js summary()` / `modelLabel()` (pure), `mission-editor.js voiceSummary()` (shared), `npc-editor.js` About and list. No API calls, nothing generated or spent.
+- Tests: `tests/npc-voice-summary.test.cjs`, browser `tests/npc-voice-summary-browser.cjs` (passes, offline, no request to ElevenLabs); `tests/npc-voices-browser.cjs` updated (Reverie now has a voice in the file).
+
+## Twenty-first pass (19 Nov 2026): locations built from modules (offices, a server room, shops, an elevator)
+
+The owner: "in the mission editor i need to be able to add locations by type: housing, commercial, other, office and commercial style hallways ... an office building interior ... a server room with server racks ... connect these areas together so make sure they fit ... elevator ... like modules". Details: `docs/development/MODULES.md`.
+
+### How to use it (plain steps)
+
+1. Open a mission. Under "Apartments for this mission", find **Add a location**: choose a category (Housing, Various, Office, Server room, Hallways, Elevator, Other; underground pieces under an Underground heading), then the module, then press **+ ADD**. A new location card opens.
+2. Choose its **street door** from the list (office entrances are on The Avenue's west end, shop back entrances in Old Town and Far South; any apartment-building door works too).
+3. Add more modules with **Add** on the card. "joins at" picks the free door the new module goes against (or leave it on "the first free door that fits"). Modules always fit: their doors meet.
+4. The **plan** shows the floor from above. Click a module to select it: the arrows move it, **TURN** turns it, **REMOVE** takes it out. Green marks are doors between modules, amber the entrance, red a locked door.
+5. For more floors: add an **Elevator cab** where the lift should be, then **+ FLOOR BELOW** or **+ FLOOR ABOVE**; the new floor has the same cab; add modules at its door. The floor buttons above the plan switch floors.
+6. In the selected module: **Lights start On / Off**, **Screens start On / Off** (where it has screens), **MAKE ENTRANCE** on a free door, **locked until hacked** on a door, **+ ITEM** (placed items, for later).
+7. **Connections** join a door to a door that is not next to it (a short fade in the game): a housing hallway's door to an apartment, or an outside door to an apartment.
+8. Steps: **Go into an apartment** (choose the location, then "any room" or one room), **Use something** (choose the location, the room, then the thing), **Hack the access point** (every door of the location is in the list, from either side).
+9. The card says "Everything fits" or lists what to fix. **JUMP INSIDE** walks in at once (a test, nothing saved); PLAY THIS DRAFT plays the mission.
+10. Quicker: "start again from a template" on the card (office; office with a server room downstairs; shop, bar, clinic and the other Various rooms; the underground previews; storage). In the **Blocks view**: + ADD A BLOCK › Location › Build a location from modules. In **Make a mission**: "An apartment for this mission" › what it is.
+11. Older apartments keep working. **CONVERT THESE APARTMENTS TO MODULES** (optional) turns them into locations.
+
+### For Claude and Codex
+
+- `void-runner/module-editor.js` (loaded with the editor scripts, before the Blocks view): `card`, `picker`, `create`, `stepMod`, `objects`, `accessPoints`. The rules are `void-runner/modules.js` (`addModule`, `attach`, `freeSockets`, `problems`, `template`, `migrateMission`).
+- `mission-editor.js aptPanel` shows a location card for an entry with `modules`; `jumpApt` enters a location through `VoidModules.enter`. Guide me key `step-mod` (`[data-me-step-mod]`).
+- Blocks: `mission-blocks.js` second level `location`; `mission-blocks-view.js aptBlock` shows the card; the step fields add the room picker.
+- Make a mission: `a.apt.template` (editor-home.js, editor-wizard.js build: `VoidModules.template`).
+
+## Twentieth pass (19 Nov 2026): the Blocks view, and ACCEPT / DENY anywhere in a mission
+
+The owner: "also to put the Accept/Deny the mission anywhere in the mission timeline. it would also be nice if in the mission editor were in blocks. i create the next block by selecting what kind it is. an action, words, who, an item, a time, etc, adding another npc. color coded based on who and what type. so the player would get a blue block within that block i selected an action, actions get an orange block so within the blue block there would be a orange block, etc". Branch `claude/mission-blocks`, build `2026-11-19-mission-blocks-1`. Pushed, no PR, not merged.
+
+### How to use it (plain steps)
+
+1. Open a mission. Under its name there is a switch: **Blocks | Form**. Both show the SAME mission; a change in one is in the other at once. In Basic mode a mission opens in Blocks; in Advanced, in Form; the switch remembers your last choice in this browser. **Make a mission** opens the new mission in Blocks.
+2. The mission reads from top to bottom, in the order it plays: **START** (who gives it, what they say when offering it, and the ACCEPT / DENY question of the offer if it asks), then one block per step, then **END** (the hand-in, if any).
+3. **+ ADD A BLOCK** (the big button above END, or a small **+** between any two blocks) asks *What kind of block?*: **Who** (someone does something: the player talks to them, they play an animation, lead the way, follow the player, ride a cab; or *The player …*), **Words** (someone says something: in person, as a Comms call, as a message), **Action** (go to an area, go into or leave a place, take or send a photo, pet the street cat, go into / use something in an apartment, hack an access point, follow, cabs, an animation), **Item** (buy, deliver, the player gets credits / a ship / a contact here, the player pays credits here), **Time** (wait a number of seconds), **Ask ACCEPT / DENY**, **Apartment**, **Add another NPC** (bring someone new in: the player talks to them next). Then choose exactly what, and who. The new block opens and Guide me points at its first empty box.
+4. **Colours.** The coloured left edge and the round name chip say **WHO** (the player is always blue; every character has their own colour, the same everywhere, and no two people of one mission share one). The header says **WHAT**, with its colour, its icon and its word: WHO, WORDS (grey-white), ACTION (orange), ITEM (green), TIME (purple), ASK (yellow), APARTMENT (teal), grey *FORM VIEW ONLY*. Blocks sit inside blocks: Lace's block holds her WORDS; a WORDS block holds the orange ACTION she does while saying it ("While saying this, Lace does: Shrug"); the player's reply is a blue block inside hers; the player's "Go to The Port" is a blue block holding an orange ACTION block. "What the colours mean" (under the names) explains them.
+5. **Words.** In a block: **+ WORDS FOR <NAME>**, **+ PLAYER REPLY** (blue), **+ another character says…**. Each line has ↑ ↓ ×, its Timing (wait before, show for), IMPORT VOICE FILE and, for a character, the animation while saying it.
+6. **Move** a block by dragging its ⠿ handle (the gap or the half of a block under the pointer lights up; Esc cancels), or with ↑ ↓. **FOLD** hides a block's details. **⧉** copies a block (right below it). **×** deletes it; the line that appears has **UNDO** (as does UNDO at the top right and Ctrl+Z).
+7. **Where a reward sits matters.** An ITEM block (credits, a ship, a contact, a story flag …) is given when the block ABOVE it is done; below END it is given when the mission is done. An APARTMENT block is open from the block above it (or from the start) until the mission ends. Moving a step leaves the rewards where they are on the timeline. A reward cannot go above the first step (it says why).
+8. **Problems** show on the block itself: a red outline and "To fix: …" in plain words (the same check as PLAY and PUBLISH).
+9. A step the Blocks view does not show yet (a "needs a code change" kind) is a grey block: kept exactly as it is, movable, and **EDIT IN FORM VIEW** opens it there.
+
+**ACCEPT / DENY anywhere in the mission (new step: "Ask the player: ACCEPT or DENY").** Add it with + ADD A BLOCK › Ask ACCEPT / DENY (or in the Form view, Kind of step). Write **the question** (your words; voice tags allowed), optionally who asks (the giver by default) and the two button words (default ACCEPT / DENY). **On DENY:** *End the mission* (normal: it stops and goes back to its giver, who offers it again), *Skip ahead to a later block* (the blocks in between are skipped and give nothing), *Go back to an earlier block* (the player does those again), or *Start another tree* (this mission ends; that tree's first mission starts). **ACCEPT costs** (optional): credits taken once when the player presses ACCEPT, never below 0 (with too few, ACCEPT is greyed: "YOU NEED N CR"). "After ACCEPT" and "After DENY" hold what is said then. In the game the mission waits at the question: the choice window shows once no conversation or menu is open (the timers of the block apply: a "Wait before this block" delays it). The offer's own ACCEPT / DENY (How this mission starts) and its cost rules are unchanged.
+
+### For Claude and Codex
+
+- `void-runner/mission-blocks.js` (pure, Node-tested): `toBlocks(m)` / `fromBlocks(model, m)` (the timeline: `start`, `step:<id>`, `apt:<id>`, `unlock:<n>`, `end`; an unlock / apartment anchors to the step above it: `when` / `from`, kept as stored unless moved; dangling ones are kept and flagged), `move`, `nudge`, `insert`, `remove`, `duplicate`, `stepAbove`, `orderProblem`, `stepFor` / `autoLabel` (new blocks in the draft shape), `TYPES` (colour + icon + word), `PLAYER` / `PALETTE`, `whoColor`, `castColors`, `stepWho`, `typeOf`, `lineSets`, `lineGroups`, `cast`, `problems(m, treeNeeds)` (per block), `PICK` / `CHOICES` (the picker). No second format: the view edits the draft mission through the Mission Editor's `editTree`.
+- `void-runner/mission-blocks-view.js` (browser): `VoidMissionBlocksView.on(mid)` / `set` / `openBlocks` (key `mission-editor-view` in localStorage), `toggle`, `view({t, raw, m, ed, issues, kit})`, `askFields` (shared with the Form view). Controls carry the Form view's `data-me-*` names (`data-me-tstep`, `data-me-step-npc`, `data-me-label`, `data-me-add-step`, `data-me-ending`, `data-me-apt-panel` …), so Guide me works unchanged. Drag uses pointer events (not HTML5 drag and drop). No `<header>` elements: `body.frontend header` is hidden by menu.css. `void-runner/mission-blocks.css` (linked in `void-runner.html`).
+- `mission-editor.js` hooks: `blocksKit` (the Form view's pickers: npcSelect, placeSelect, animPick, escortPanel, hackRow, doorSelect, importBox, …; also `shared.blocksKit`), the switch and the Blocks view in `treeMissionCard` (the offer, apartments, steps, ending, branches and unlocks sections are the blocks), the Ask kind in `treeStepRow` (+ "What is said after DENY"), Guide me keys `step-question`, `step-goto`, `step-deny-start`. `editor-home.js`: the wizard calls `openBlocks`. `dev-tools.js editorScripts` loads mission-blocks.js and mission-blocks-view.js before mission-editor.js.
+- Data: step kind `ask` {question (300), npc?, yes? / no? (20), deny?: 'end' (default) | 'skip' | 'back' | 'tree', goto (skip: a later step; back: an earlier one), denyStart (tree), price (1..100000), say (after ACCEPT), denySay (after DENY), delay?}. `mission-content.js ASK_STEP`, `checkAskStep` (going back over a step whose unlock gives credits or standing is refused), `treeStrip` (label default "Decide"), `treeNeeds`, `askNow(s, env)`, `treeEvent` events `{type:'ask-yes'|'ask-no', step:'<mission>/<step>'}` (out `answered`, `need`, `charged`, `deny`, `ended`, `refund`, `skipped`, `back`, `started`), flag `story.flags.ma_<mission>_<step>` (the price paid, once). `mission-givers.js STEP_KINDS` lists it. Game: `live-content.js askTick` (every 250 ms; talk-choice.js window; cost card with the price; "MISSION ENDED" / "back to:" notices). Server: `void_runner_live_content.py ask_step_problems` (+ `ASK_STEP_KEYS`), `workspace_money_problems` (the editor's server copy: price, labels, DENY); admin inventory `missionEditor.stepKinds`.
+- Tests: `tests/mission-blocks.test.cjs` (round trip of every shipped / wizard / fixture mission, the timeline, moves and rewards, colours, the ask check and runtime), `tests/test_mission_blocks.py`, browser `tests/mission-blocks-browser.cjs` (`PART=editor` for the editor only). The older Form-view browser tests open the Form view (an init script sets `mission-editor-view` to `form` when it is not set).
+- Not representable in blocks yet (grey or Form view only): steps of kinds the game cannot run ("needs a code change"), Branches (the design note), how a mission starts and its ACCEPT / DENY settings, the "Giver waits at" map, an apartment's map, lights and screen, its items; a step's "If the player comes too soon" lines are under "More". "Take an item from the player" and "only at a time of the in-game day" are listed in the picker as not in the game yet.
+- Not verified: real hardware; VR; touch screens (pointer events, untested); a price on a mid-mission ACCEPT in a browser (unit-tested); DENY skip / back / start another tree in a browser (unit-tested); publishing with the server switched on.
+
+## Nineteenth pass (19 Nov 2026): PLAY FROM THE START OF THIS TREE; the apartments panel always shows; an apartment in "Make a mission"
+
+Branch `claude/play-tree-start`, build `2026-11-19-play-tree-1`. Pushed, no PR, not merged.
+
+The owner: "i also don't see the apartment add in mission editor", and "play draft from the beginning of the tree".
+
+**Play from the start of a tree.** Every tree of yours (and the Main storyline) has **PLAY FROM THE START OF THIS TREE** under its name, and the same button sits beside every mission's **PLAY THIS DRAFT**. It starts a practice game with the whole tree reset: no mission of the tree started, none of its story flags, follow / lead / cab steps, step timers, apartment hacks or switched-off lights and screens left over. It begins with the tree's first mission the way a player meets it: talk to its giver, or wait for its message, banner, walked-near start or EXIT POD. Finish it and the next mission comes as it would for a player. The banner says PLAYING DRAFT TREE FROM THE START; LEAVE DRAFT brings you back; your real save is never touched. (PLAY THIS DRAFT on a later mission still starts with the missions before it done.)
+
+**The apartments panel.** "Apartments for this mission" (with **+ INSTANCE AN APARTMENT**) is on every mission of your own trees and the Main storyline, in Basic and Advanced, from the main menu, the pod or the street. If the door list is not ready it says "Loading the street doors…" and fills in by itself. Missions of the older game data (the archived trees, the beginner campaign) cannot hold apartments: their page says so and offers **COPY THIS MISSION INTO A NEW TREE**.
+
+**Make a mission.** The steps page ("What must the player do?") has **An apartment for this mission (optional)**: **+ INSTANCE AN APARTMENT** adds one (style and street door, grouped by part of town; an Outskirts container door takes only the two container styles, a city door the three city styles) and the step **Go into the mission's apartment**; × removes both. More apartments, a later opening step, a lock behind a hack and items: in the Mission Editor afterwards.
+
+**Cause of the hidden panel (for Claude and Codex).** On current `main` the panel was not hidden in any case tried in a browser (main menu, pod, Basic, Advanced): `apartments.js` is loaded with the page and its doors are pure data (street edges, `ncz-quarters.js`, the generated `npc-areas.js` obstacles), not the built scene. What did hide it: the panel was added only `if(root.VoidApartments?.doors)` (so any page where `apartments.js` was missing or late, e.g. a stale cached page from before #424, showed nothing and no message); the "Make a mission" wizard had no apartment at all (the owner works in Basic mode, where the wizard is the main path); and missions of the older trees have no panel, with no word why. Also fixed: `apartments.js doors()` cached its list even when `VoidQuarters` was not loaded yet, which would have frozen an empty list.
+
+For Claude and Codex:
+- `mission-editor.js`: `aptReady` / `aptEnsure` (loads `ncz-quarters.js`, `ncz-containers.js`, `npc-areas.js`, `apartments.js` if missing, then redraws), `aptPanel` always added (`data-me-apt-loading` while waiting); `data-me-apt-other` on non-tree missions. `startOf`, `startBtn(raw)` (`data-me-play-start=<tree>`, greyed by the first mission's blockers; `syncPlay` keeps it live), `playStart(treeId)` = `play('tree:'+first, null, {tree})` (banner / message name the tree); `shared.playStart`, `VoidMissionEditor.playStart`; `HELP.playStart`. `treeState` already builds a brand-new campaign with nothing of the tree done when no step is given.
+- Every draft session (`play`) now calls `VoidLiveContent.resetRun()` (animation and step-timer countdowns, started escort steps, offer / need / walked-near memories, the plan cache) and `VoidApartments.resetRun()` (JUMP INSIDE preview, lights / screen switches) in `apply`, so a session started inside another one starts clean.
+- Wizard: `editor-wizard.js` STEPS `apt-enter` (needs `apt`), answer `a.apt {style, door}`, `problems('steps')` checks it (door exists, style fits the door's family), `build()` writes `apartments:[{id:'a1', style, door}]` and the step's `apt`; `editor-home.js aptBox`. No new wizard page (PAGES unchanged).
+- Tests: `tests/play-tree-start.test.cjs`, browser `tests/play-tree-start-browser.cjs`; `tests/play-stale.test.cjs` updated for `play(key,stepId,opt)`.
+## Nineteenth pass (19 Nov 2026): container apartments in The Outskirts
+
+Branch `claude/container-apartments`, build `2026-11-19-container-apartments-1`. Record: [`APARTMENTS.md`](APARTMENTS.md), "Container apartments in The Outskirts".
+
+1. In **Apartments for this mission**, the style list now has **Container — rundown** and **Container — regular** as well as the three city styles.
+2. A container style offers only the container doors in The Outskirts (the list and the map, which opens on The Outskirts); a city style offers only city doors. Changing between them clears a door of the other kind.
+3. Everything else is the same: the number on its hallway door (the container hallway has four doors), open from the start or a step, locked until hacked, Lights start / Screen starts, JUMP TO THE DOOR / JUMP INSIDE, the steps Go into / Use something in / Hack the access point, Items (coming later).
+
+## Eighteenth pass (19 Nov 2026): instance an apartment, apartment steps, hack an access point
+
+The owner: "in the mission editor add 'instance an apartment' then I will assign it to a specific door along the street. I can add more than one apartment per mission." Branch `claude/apartments`, build `2026-11-19-apartments-1`. Full record: [`APARTMENTS.md`](APARTMENTS.md).
+
+### How to use it (plain steps)
+
+1. Open a mission. Above the steps there is **Apartments for this mission**. Press **+ INSTANCE AN APARTMENT**.
+2. Choose its **style** (Rundown, Normal or Luxury apartment), then its **street door**: click a door on the map (the blue marks; the area list above the map picks the part of town) or choose it from the list (grouped by area, "No. 96, Main Street (normal building)"). Any style may go behind any door; the note says when the street is a different kind of neighbourhood.
+3. Optional: **Number on its door in the hallway** (empty: the building's own), **open from** the mission's start or from a step (until the mission ends), **its hallway door is locked until the player hacks its access point**, **Lights start: On / Off** and **Screen starts: On / Off** (the ad screen; rundown and normal only). The player can still switch both in the game.
+4. **JUMP TO THE DOOR** / **JUMP INSIDE** open a throwaway test session at the door or inside (the door is open for the test; nothing is saved).
+5. Steps: **Go into an apartment** (done while the player is inside it), **Use something in an apartment** (the computer, the utility panel, the safe, the vending machine, the closet, the light switch or the ad screen), **Hack the access point** (pick the apartment's hallway door, its entry, its street door or any street door; the seconds it takes, 2 to 30; "fails if they walk away"; "opens that door for them"; **Player needs:** nothing or an item, for example the **Hacking device**, which is reserved and not sold anywhere yet).
+6. **Items (coming later)** (Advanced mode): a placed item (loot, mission item, note, other) with a short label. The game shows it as a small marked case on the desk with its label; picking things up comes later.
+7. A mission can have up to 4 apartments. **PLAY THIS DRAFT**: the mission's door is open (amber) for you from the moment you choose; walk in.
+
+### For Claude and Codex
+
+- Data: mission `apartments`, steps `apt-enter` / `apt-use` / `hack` (fields `apt`, `object`, `ap`, `hold`, `stay`, `unlock`, `needs`): `apartments.js problems()`; the same rules in `void_runner_live_content.py apartment_problems` (admin inventory `apartments`); the editor's server copy `apartment_shape_problems`.
+- Editor: `mission-editor.js aptPanel`, `aptSelect`, `doorSelect`, `hackRow`, `jumpApt`; `HELP_APT`; Guide me keys `step-apt`, `step-object`, `step-ap`, `apt-door`; Basic mode hides `[data-me-apt-adv]` (the apartment's internal name and the items). Not in the wizard yet.
+- Tests: `tests/apartments.test.cjs`, `tests/test_apartments.py`, browser `tests/apartments-browser.cjs`.
+## Seventeenth pass (19 Nov 2026): the Mission giver creator
+
+The owner: "also in the editor, a mission giver creator. i can select any npc, create their look based on what's available for that model, give them a device model (ie V1), a ship, other items (gun, hacking device, etc), place them in the world for a mission". Then (approved the same day): characters made with the creator may be marked adult (18+) and placed in the adult places. Branch `claude/giver-creator`, build `2026-11-19-giver-creator-1`.
+
+### How to use it (plain steps)
+
+1. Open **Developer tools**. On the **Start** page press **Create a mission giver** (or in **NPCs**, open "What do you want to do?" and press the same card).
+2. **Model**: choose who your character is made from (street people first; every person the game has is listed). The 3D preview shows it; drag to turn it. A licensed model can only be recoloured and have accessories hidden, and is never sent to any AI tool.
+3. **Name**: type their name (required: this is what players see). The role line is optional and only for you. Tick **This character is an adult (18+)** only for a grown-up (it is off by default; Reverie's and Lace's models can never be ticked).
+4. **Look**: press "Show me in 3D to change the look", then hide accessories, pick colours, add creator pieces where the model allows. It changes only this character.
+5. **Device**: none, V1, V2 or V3 // SHADOW (the V3's eye glows a little while they use it).
+6. **Ship**: none or one of the game's ships (data for your missions; no ship appears in the world).
+7. **Items**: tick what they carry. "visible on them" shows a holstered pistol on the right hip, or a hacking device in the left hand (once the game has the hacking device; until then the list says so). Everything else is data for your missions.
+8. **Voice** and **Animations**: the usual Voice box (ElevenLabs or none; IMPORT VOICE FILE per line) and Add animation.
+9. **Place**: pick the area on the map, then "Keep her at one spot" (click the map, turn her with the round handle) or "Make her walk a route". Then **When are they there?**: always, or only while one of your missions is in progress (optionally from one of its steps).
+10. **Done**: if it says "Ready", press **Give them a mission** (the Mission Editor opens with a new mission given by them) or make one with **Make a mission**. **PLAY THIS DRAFT** and walk up to them: **TALK TO <NAME>**.
+
+Everything is part of your DRAFT (UNDO works; Close keeps what you made). Your characters are listed in **NPCs** under **Made by you**, with a box to change device, ship, items and "when", **CHANGE STEP BY STEP** and **DELETE THIS CHARACTER**. **PUBLISH** sends them to every player with your missions.
+
+**Places.** The same map rules as Reverie and Lace: never Milked's studios and staff rooms, the Sleeping Pod room, the Corporate District or the Temple. A character marked **adult (18+)** may also stand in Milked's side street, service alley and reception, inside NULL and at its door, the District bar, the VR area, the arcade room and the smoking terrace. Reverie, Lace and the street cat never.
+
+### For Claude and Codex
+
+- Data: `content.characters[id] = {name, role?, model, adult?, look?, device?, ship?, items?:[{id, show?}], when?:{mission, step?}}` (`void-runner/npc-made.js`); the placement is `content.npcs[id]` (the same plan as Reverie's: stay / path / schedule, added `anims`); the voice `content.voices[id]`. Drafts carry `characters` (local draft and the server workspace).
+- `npc-paths.js setMade(chars)` makes them MOVABLE (`made:true`, `adult`, `youthful:!adult`, no ledge sit). `mission-givers.js roster({characters, npcs})` lists them (target `{action:'made-npc', character:id}`, `enter` from the placement's area). `mission-content.js check` checks them first (`madeCtx`), registers them for the rest of the check and puts the registry back; `apply` sets `env.characters` and adds them to `env.givers`; `fromDrafts` sends only finished ones (`madeReady`; `madeNeeds` says why not, also in "not applied"). Cab steps stay Reverie's and Lace's (`npc-escort.js can`); follow / lead work.
+- Game: `npc-made.js` wraps `VoidStreetPair.start` (every street quarter and the District interior) and `VoidMilked.build` (reception). A figure loads only while the player is in its area and while it exists (`when`); its own look (`npc-looks.js applyLook`), its device (`npc-device.js enlist` with the tier), props built from boxes on its Hips / LeftHand bones, the plan moved by `ncz-street-pair.js routineStep`. With no mission the TALK prompt shows "…" (no words invented).
+- Adult places: `npc-areas.js` rules with `adult:true` and walkable rectangles marked `adult` (NULL's floor keeps clear of its furniture from `ncz-nightclub.js solids`; the District rooms' furniture is not mapped); a new area `milked` (scene `milked`, reception only). `check(p, prefer, m, {adult, made})`, `leg(a, b, opts)`, `nearest(p, id, limit, opts)`.
+- Server: `void_runner_live_content.py made_problems` / `with_made` (admin inventory `madeCharacters`: per model the actions, added animations, gestures and escort for a non-adult and an adult character, the items, ships, devices and the ids the game uses), `area_check(..., adult)`, `made_shape_problems`; `void_runner_drafts.py` keeps `characters` and allows adult characters' adult spots.
+- Tests: `tests/npc-made.test.cjs`, `tests/test_npc_made.py`, browser `tests/npc-made-browser.cjs`.
+- Not verified: real hardware; VR; a licensed model in a browser; publishing with the server on; the reception and the District rooms with a figure in a browser (rules unit-tested).
+
+## Fix (19 Nov 2026): "When walked near" starts by itself
+
+Branch `claude/near-auto-start`, build `2026-11-19-near-auto-1`. Pushed, no PR, not merged. The owner: "I noticed 'When walked near' still needs a click option by the player, even though i want it to start automatically".
+
+**Cause.** The game itself was right: with **Ask the player: ACCEPT or DENY** off, walking near starts the mission at once (checked again in a browser for Messages, Comms call and Notification only). The click came from the question being **on** without the owner choosing it, in two editor paths: (1) changing **Starts** from "In person, asking ACCEPT / DENY" to By Messages / By Comms call / Notification only silently kept the question; (2) **Player pays** turns the question on (paying at ACCEPT needs it) and going back to **Player gets** left it on. The tick box sits above Sender / Header / Body, far from the trigger, so it was easy to miss.
+
+**Now.**
+1. Under **When walked near** one plain line says either **Starts automatically — no click** (walking near starts it at once: a notification shows and it goes into the Mission Log; nothing to press) or **Asks ACCEPT / DENY** (the mission starts only when the player presses ACCEPT), with a button **START AUTOMATICALLY INSTEAD** / **ASK ACCEPT / DENY INSTEAD**. When the player pays at ACCEPT it says so and has no button (it must ask).
+2. Choosing the trigger **When walked near** makes it automatic unless the question has your own button words / DENY settings, or the player pays at ACCEPT.
+3. Changing **Starts** to a device start keeps the question only when you had it on a device start already (or had set button words / DENY settings, or the player pays at ACCEPT). "In person, asking" no longer carries it over.
+4. **Player gets** after **Player pays** turns the question off again if paying had turned it on (in this editing session).
+5. **Make a mission**: "When the player walks near them" was already automatic unless you answer Yes to ACCEPT / DENY or the player pays; the summary now says "(starts automatically — no click)".
+6. In person (with or without ACCEPT / DENY) is unchanged.
+
+**Existing missions.** A mission keeps the question only as `start.accept: true`; nothing records whether it was ticked by you or left over from a default, so existing drafts and published missions are **not** changed. Open the mission: the line under the trigger shows "Asks ACCEPT / DENY"; press **START AUTOMATICALLY INSTEAD** and publish again.
+
+- Code: `mission-editor.js` (`nearMode`, `payAtAccept`, `askCustom`, `forceAsk` / `unforceAsk`, the Starts and Trigger selects), `editor-home.js` (wizard summary / help). No rule or server change.
+- Tests: `tests/near-auto-start.test.cjs` (7: automatic for each channel, the question, a cost at ACCEPT, in person, the wizard); browser `tests/near-auto-start-browser.cjs` (the editor paths above, then PLAY THIS DRAFT: walking within 5 m of Admin starts it with no click, no conversation, no offer window; passes).
+
+## Sixteenth pass (19 Nov 2026): player lines, animations in lines and between steps, mission timers
+
+The owner: "after I create a voice line, i can not create the line for the player. i also can't add animations anywhere between the steps", then "mission timers. set the amount of time between actions, lines, etc". Branch `claude/player-lines-anims`, build `2026-11-19-player-lines-1`.
+
+**What was wrong with player lines.** Nothing was broken in the code: a player line already existed, but only as "You (the player)", the first entry of the 50-name "Who says it" list on a line made with a plain "+ LINE" button. Nothing on screen said so, a new line always started as the NPC's, the player's line then showed "no voice yet" and the line's status stayed "empty: a placeholder" after typing (it only updated on a redraw), so it looked like it did not work. Also, in the game a player line went into a separate "You" conversation thread, and an unrecorded player line could be read out by the browser's speech voice.
+
+### How to use it (plain steps)
+
+1. **A back-and-forth.** Under every set of lines (what the giver says when offering it, "What is said when this step is done", "If the player comes too soon", the hand-in, after DENY) there are two buttons: **+ ADD A LINE FOR <NPC>** and **+ ADD A PLAYER LINE**. Add them in the order they are said; ▲ ▼ move a line. The player's line shows as **You** in the conversation window and has no voice (the player character has none). A Comms call, a message and a photo reply come from one character only, so there the player button is greyed with the reason.
+2. **An animation on a line.** Under an NPC's line: **While saying this, <NPC> does: [ … ]**. Pick a shrug, a laugh, looking about … She does it while the line is on screen, then goes back to what she was doing. Only animations that character really has are listed (her own model's, compatible animation-library ones, and for Reverie and Lace the ones added in **Developer tools > NPCs > Add animation**). Reverie and Lace: casual street animations only; the street cat has none; characters drawn by their own scene code (Milked's Eva, Zen Zephyr) have none yet and say so.
+3. **An animation between steps.** **+ STEP**, kind **Someone plays an animation**: choose who, the animation, and how many seconds the mission waits (0 to 30). It plays as soon as the step before is done and the conversation is closed. Also in the "Make a mission" wizard ("Someone does an animation").
+4. **Timers.** Each line has **Timing** (click to open; it says the timing in words): **Wait before this line** (0 to 60 s: the conversation shows "…" and cannot be skipped past it), **show for** (1 to 60 s: the conversation goes on by itself instead of waiting for CONTINUE; never past ACCEPT / DENY), and for a line with an animation **animation lasts** (1 to 30 s; empty: about as long as the line). Each step has **Delay before this step starts** (0 to 600 s): until then that step's person does not react and its lines are not said. New step kind **Wait (a number of seconds)** (1 to 600), optionally "only while the player stays within N m of <someone>" (also in the wizard: "Wait a number of seconds").
+5. The clocks stop in the pause menu, in conversations (step delays and waits), the KeyMap, the pod wake-up, the character creator and a hidden browser tab, and a step's delay or wait carries on after a reload.
+
+### For Claude and Codex
+
+- Data: line `{who, text, anim?, wait?, show?, animFor?}` (`anim` never on `who:'You'`; `animFor` only with `anim`); step `delay?` (0..600, any kind); step kind `anim {npc, clip, hold 0..30}`; step kind `wait {hold 1..600, near? 1..50 with npc}`; `clip` / `hold` / `near` refused on other kinds. Ranges: `mission-content.js TIME`, `void_runner_live_content.py TIME`.
+- `void-runner/npc-gestures.js` (new, pure + browser): `clipsFor(id,{plan})`, `problem`, `lookOf` (own model only; the District bartender is Nyx's model), `inventory` (admin inventory `missionEditor.gestures`), `perform(id, clip, seconds)` (the nearest crowd controller of her model; library / added clips applied first with `npc-paths.js applyAnims`).
+- `crowd.js` controller `perform(name,{seconds,once})`: the scene's own `play` / `playOnce` / `walk` wait (the last one wanted comes back after); `performing`, `busy`.
+- `mission-content.js`: `speak()` carries `anim`, `npc` (the speaker's id), `animFor`, `wait`, `show`, `player:true`; `animNow`, `timersNow`, `timerSet`; flags `td_<mission>_<step>` (delay seconds left; 0 = ran) and `tw_<mission>_<step>` (wait seconds left), removed when the step is done; events `{type:'anim', step}`, `{type:'wait', step}`, `{type:'timer'}`; a delayed step is skipped by every event, `auto`, `hearNext`, `animNow`, `escortNow`.
+- `live-content.js`: `lineAnim` (in the renderLine wrapper), the line-wait wrapper (a silent "…" line first; `advanceSpeech` / `tickSpeech` held), the 100 ms line timer, `speakLine` silent for `player` lines, `animTick`, `timerTick` (`nearBlocked()`; `giverDistance` for "within N m"). `conversation-ui.js`: a player line is kept in the partner's thread as "You".
+- Editor: `mission-editor.js linesEditor` (the two add buttons, ▲ ▼, live status chip, `animPick`, the Timing box), `treeStepRow` (anim / wait heads, delay row); `editor-wizard.js` / `editor-home.js` steps `anim` and `wait`; `mission-givers.js STEP_KINDS`.
+- Server: `void_runner_live_content.py gesture_problem`, `line_time_problems`, `gesture_shape_problems` (also the editor's server copy, `void_runner_drafts.py`).
+- Tests: `tests/player-lines.test.cjs`, `tests/test_player_lines.py`, browser `tests/player-lines-browser.cjs` (NPC line, player line with a 3-second wait, NPC line with a shrug; an animation step; a 2-second Wait step; passes with the bundled Chromium and software GL).
+- Not verified: real hardware; VR; Reverie / Lace and library or added clips in a browser (unit-checked); "only while within N m" and a reload in the middle of a delay in a browser (unit-checked); publishing with the server switched on. Software GL runs page timers only every second or so while a screenshot renders, so the browser test allows 3 to 12 s for the 3-second wait.
 
 ## Fifteenth pass (19 Nov 2026): place Reverie, Lace and the street cat anywhere walkable
 
@@ -50,7 +529,7 @@ Four new kinds of step, in a step's "Kind of step" list and in "Make a mission" 
 - **They follow you:** choose who and the spot. They follow the player about 2 metres behind, walking or running to keep up (the cat at its own pace: it trots and dashes but lags behind a walking player). If they are far behind and off-screen they are put a few metres behind the player. Done when both are at the spot.
 - **They call a cab, you ride together:** choose who and the cab stop. When the player comes near, they walk to the kerb and call a street taxi; when it waits they get in; the player presses BOARD TAXI (the normal fare; your developer account rides free); both get out at the stop. If the cab gives up waiting, they get out and call another.
 - **You call a cab, they ride along:** choose who and the stop. They follow the player; when the player calls a taxi to that stop (CALL A TAXI or G) they get in as it waits (or as the player boards, if close by), and both get out there. A taxi to another stop: they stay out (a short notice says so).
-- **Cab stops:** only The Avenue's three stops (The Avenue, Function Gate, East Gate): Reverie, Lace and the cat exist only on The Avenue for now, so Old Town, The Port, Far South, the Corporate District and the Temple are greyed with the reason (Reverie and Lace stay in the city). The cat does not ride in cabs.
+- **Cab stops:** the stops in the quarter where she is placed for the mission (The Avenue's three unless she is placed elsewhere: see "Fifteenth pass", place anywhere walkable); stops in other quarters, the Corporate District and the Temple are greyed with the reason (Reverie and Lace stay in the city). The cat does not ride in cabs. (Text updated 19 Nov 2026 with the taxi upgrade: the wizard said "Only The Avenue's stops".)
 - JUMP THERE (on a spot) opens a throwaway test session on The Avenue with that person out. PLAY THIS DRAFT works as usual. UNDO works on every change.
 - Reverie and Lace: the step starts only while she is out on the street (her shift; a test play simulates a time she is out). If her shift ends during the step she finishes it, then goes.
 - Multiplayer: only the player doing the mission is followed or led; other players see the person as usual (each player has their own copy of the street).
@@ -221,7 +700,7 @@ Branch `claude/editor-voices`, build `2026-11-18-editor-voices-1`. Pushed, no PR
 5. The choice is part of your **draft**: PLAY THIS DRAFT carries it, PUBLISH keeps it (the server checks it). **DOWNLOAD THE VOICES FILE** (NPCs tab) gives the same choices in the format of `tools/audio/revoice-engines.json`, for Claude or Codex to keep in the game files.
 6. **Nothing is generated or paid from the editor, and your ElevenLabs key is never asked for.** Lines you RE-VOICE for that character go to the re-voice queue marked "waiting for ElevenLabs re-voice (needs approval)". When you approve the spend, Claude records them with the ElevenLabs connector.
 
-Not offered: the reserved special-character slot, broadcast voices (The Relay) and The Function (no voice). Reverie and Lace can have one: choose an ordinary, neutral street voice (the editor reminds you).
+Not offered: the reserved special-character slot, broadcast voices (The Relay) and The Function (no voice). Reverie and Lace can use any owner-selected voice under the same rules as other eligible NPCs.
 
 ### For Claude and Codex
 
@@ -629,6 +1108,8 @@ Add `--dry-run` first to see what it would record. More than 100 clips needs `--
 Totals: 10 trees, 40 missions, 382 listed lines (296 from the owner's scripts). All 40 of Admin's Kokoro lines and his ElevenLabs line are listed (63 entries: the faction scenes appear under both arcs).
 
 ## For Claude and Codex
+
+- **Distances are shown in feet, stored in metres (20 Nov 2026, the owner: "can you change the distances to feet instead of meters").** Every editor distance box (walked-near distance, "only while the player stays within", the escort's "waits when … behind" / "lost beyond", observe / overhear "within" / "lost beyond" / "too close", the Blackrock scene's circle radius and gap) shows whole feet with "ft" labels and limits in feet; it stores metres through `void-runner/units.js` (`VoidUnits.ft`, `VoidUnits.m`, `VoidUnits.ftRange`): a box nobody changed keeps the exact metres (no drift), a changed one stores feet / 3.28084 to 3 decimals (whole metres where the stored form must be whole: the wait step's distance and the escort distances). The checks (`mission-content.js`, `mission-mechanics.js`, `npc-escort.js`, `cult-room.js`) and the server still speak metres; the editors pass their messages and the server's through `VoidUnits.text` ("1 to 30 metres" reads "4 to 98 ft"). Map coordinates (x / z) stay metres. Tests: `tests/feet-units.test.cjs`.
 
 - `void-runner/mission-trees.js` (pure): extraction. Scene lines come from the `SCENES` anchor table (file, from/to text anchors, mission and slot, design doc); a test fails if an anchor disappears. Only plain quoted lines are extracted; a scene with code-built lines says "partial". `npcView` lists every speaker's lines from both voice manifests (Relay broadcasts excluded). `VOICE_ENGINES` must equal `tools/audio/revoice-engines.json` (tested).
 - `void-runner/mission-content.js` (pure, loaded for every player): the one adapter. `check` (closed schema), `apply` (in place over a shipped snapshot, so versions and undo never stack), `mapLine` (edited lines), `fromDrafts`, `notApplied`, `changes`, `warnings`, `migrate` (never deletes from a save: an in-progress mission whose remaining steps are all done is completed and paid once; a tracked removed mission is untracked).

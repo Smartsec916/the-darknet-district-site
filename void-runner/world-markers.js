@@ -1,10 +1,10 @@
 /* On-foot markers and optional Guidance (the owner's editor brief, parts 4 and 6).
-   Markers: the tracked objective (coloured by mission type, with its distance), a "!" over people who have work
+   Markers: the tracked objective (in the mission yellow of the arrow, with its distance), a "!" over people who have work
    or payment for you. (The quiet name labels on shops and terminals were removed in Nov 2026.) They show with Guidance on or off.
    Guidance: pick a topic in the menu; a small card shows the next step for where you actually are, and the place
    to go is highlighted. It only shows things: it never grants items, credits or mission progress. */
 (function(){
- const typeColor={main:'#f2b33d',cargo:'#38e8ff',side:'#c39bff',tutorial:'#7fb2e5',campaign:'#f2b33d',bounty:'#ff6b5b',station:'#9fe3c9'};
+ // (The goal marker was coloured by mission type until 20 Nov 2026; the owner: "Yellow is the mission and hints color": it is the arrow's yellow now, guide-route.js COLOR.)
  const services={services:'OUTFITTER',maintenance:'HANGAR',jobs:'JOBS','meridian-pod':'PODS','district-pod':'PODS','district-pod-music':'MUSIC','district-wardrobe':'WARDROBE','district-shop':'SHOP','district-vending':'VENDING',terminal:'TERMINAL','personal-shop':'SHOP'};
  const flags=()=>state?.story?.flags||{};
  const safe=f=>{try{return f();}catch{return false;}};
@@ -57,15 +57,15 @@
  function label(x,y,text,color){ctx.save();ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.shadowColor='#000';ctx.shadowBlur=6;ctx.fillStyle=color;ctx.fillText(text,x,y);ctx.restore();}
   function drawMarkers(){
   if(mode!=='walking'||!walker||!walkingLocation?.interactions){card.hidden=true;return;}
-  const tracked=safe(()=>VoidMissions.tracked(state,C)),color=typeColor[tracked?.type]||typeColor.main,goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());
+  const Y=globalThis.VoidGuideRoute?.COLOR||{hex:'#ffd678'},goal=typeof trackedWalkWaypoint!=='undefined'?trackedWalkWaypoint:null,t=performance.now()/1000,guide=topic(),step=guide&&safe(()=>guide.steps());
   for(const item of walkingLocation.interactions){
    const p=item.visualPosition||item.position,d=Math.hypot(p[0]-walker.x,p[2]-walker.z),person=!!item.character;
    const isGoal=goal&&(goal===item||(goal.position[0]===item.position[0]&&goal.position[2]===item.position[2])),isGuide=step?.target&&(item.action===step.target||item.id===step.target);
    if(!isGoal&&!isGuide&&d>(person?32:14))continue;
    const sp=project(p,person?2.35:2.15);if(!sp)continue;const r=Math.max(7,Math.min(13,180/Math.max(d,1)));
-   if(isGuide){const pulse=.5+.5*Math.sin(t*5);ctx.save();ctx.strokeStyle='rgba(127,240,255,'+(.55+.4*pulse)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(sp.x,sp.y,r+8+pulse*4,0,Math.PI*2);ctx.stroke();ctx.restore();label(sp.x,sp.y-r-14,'GUIDE · '+Math.round(d)+' m','#7ff0ff');}
-   if(isGoal){diamond(sp.x,sp.y,r+2,color,'');label(sp.x,sp.y+r+16,Math.round(d)+' m',color);}
-   else if(person&&hasWork(item))diamond(sp.x,sp.y,r,'#ffd23f','!');
+   if(isGuide){const pulse=.5+.5*Math.sin(t*5);ctx.save();ctx.strokeStyle='rgba(127,240,255,'+(.55+.4*pulse)+')';ctx.lineWidth=3;ctx.beginPath();ctx.arc(sp.x,sp.y,r+8+pulse*4,0,Math.PI*2);ctx.stroke();ctx.restore();label(sp.x,sp.y-r-14,'GUIDE · '+VoidUnits.fmtDist(d),'#7ff0ff');}
+   if(isGoal){diamond(sp.x,sp.y,r+2,Y.hex,'');label(sp.x,sp.y+r+16,VoidUnits.fmtDist(d),Y.hex);}
+   else if(person&&hasWork(item))diamond(sp.x,sp.y,r,Y.hex,'!');
    // The quiet name tags that used to float over shops, pods and terminals (PODS, SHOP, VENDING...) are gone (the owner, Nov 2026: floating text near objects read as asset tags). The interaction prompt still names a thing when you are close enough to use it.
   }
   // Guidance card.

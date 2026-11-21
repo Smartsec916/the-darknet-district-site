@@ -17,7 +17,7 @@
   const first=()=>{const p=(o.markers||[]).find(m=>m.drag)||(o.route||[])[0]||(o.markers||[])[0];return p&&AR()?AR().areaOf(p):null;};
   if(!o.area)o.area=o.lock||first()||'avenue';
   if(typeof o.center==='number'){const m=(o.markers||[]).find(q=>q.drag)||(o.route||[])[0];o.center={x:o.center,z:m?m.z:null};}if(!o.zoom)o.zoom=o.area==='avenue'?'pair':'all';
-  let data=X().mapData(o.area);
+  let data=X().mapData(o.area,o.npc);
   const wrap=document.createElement('div');wrap.className='npcmap';wrap.dataset.npcMap='1';
   const bar=document.createElement('div');bar.className='npcmap-bar';
   const areaSel=document.createElement('select');areaSel.setAttribute('aria-label','Which area the map shows');areaSel.dataset.npcMapArea='1';for(const a of data.areas)areaSel.append(new Option(a.name,a.id));areaSel.value=data.area;
@@ -48,8 +48,8 @@
    if(data.area==='avenue'){c.strokeStyle='#8a7b3a';c.setLineDash([10,10]);c.beginPath();c.moveTo(px(2),py(-12.5));c.lineTo(px(152),py(-12.5));c.stroke();c.setLineDash([]);}
    // where the chosen NPC can walk
    if(o.npc&&X().MOVABLE[o.npc])for(const w of data.walk)rect(c,w,'rgba(70,200,120,.22)','rgba(90,230,140,.8)');
-   // places never used for her (the content rule) and rooms she may not enter
-   for(const n of data.no){rect(c,n,n.rule?'rgba(200,40,60,.33)':'rgba(120,120,140,.3)',n.rule?'#e0485c':'#777b88');if(n.name&&(n.x1-n.x0)*k>40){text(c,(n.rule?'✕ ':'')+n.name,px((n.x0+n.x1)/2),py((n.z0+n.z1)/2)+4,n.rule?'#ffb3bd':'#c3c6d0',10);}}
+   // places never used for her (the content rule, red), rooms she may not enter (grey), a venue's doorway on a public pavement (amber: walked past, never stood in)
+   for(const n of data.no){const dw=!!n.doorway;rect(c,n,dw?'rgba(230,150,40,.35)':n.rule?'rgba(200,40,60,.33)':'rgba(120,120,140,.3)',dw?'#f0a040':n.rule?'#e0485c':'#777b88');if(n.name&&(n.x1-n.x0)*k>40){text(c,(dw?'no standing: ':n.rule?'✕ ':'')+n.name,px((n.x0+n.x1)/2),py((n.z0+n.z1)/2)+4,dw?'#ffd9a0':n.rule?'#ffb3bd':'#c3c6d0',10);}}
    for(const g of data.gates){rect(c,g,'rgba(200,60,70,.35)','#d04a55');c.fillStyle='#ffb3b9';c.font='11px ui-monospace,monospace';c.fillText(g.name,px(g.x0)+2,py((g.z0+g.z1)/2));}
    if(data.stretch){c.strokeStyle='rgba(255,190,120,.7)';c.setLineDash([4,4]);c.beginPath();c.moveTo(px(data.stretch.x0),py(data.stretch.z));c.lineTo(px(data.stretch.x1),py(data.stretch.z));c.stroke();c.setLineDash([]);
     if(k>4){c.fillStyle='rgba(255,190,120,.9)';c.font='10px ui-monospace,monospace';c.fillText('their usual walk',px(data.stretch.x0)+2,py(data.stretch.z)+11);}}
@@ -57,7 +57,17 @@
    for(const ob of data.obstacles){c.fillStyle='rgba(255,170,60,.55)';c.fillRect(px(ob.x0),py(ob.z1),Math.max(2,(ob.x1-ob.x0)*k),Math.max(2,(ob.z1-ob.z0)*k));}   // furniture read from the built scene
    for(const p of data.posts){c.fillStyle='#ffd34d';c.beginPath();c.arc(px(p.x),py(p.z),Math.max(3,.25*k),0,7);c.fill();if(k>4){c.font='10px ui-monospace,monospace';c.fillText('taxi',px(p.x)+5,py(p.z)+4);}}
    if(k>3)for(const s of data.shops){const x=px(s.x),y=py(s.z);if(x<-40||x>W+40||y<-10||y>H+10)continue;const off=s.side==='n'?-4:s.side==='s'?12:0;text(c,s.name,s.side==='w'?x-6-c.measureText(s.name).width/2:s.side==='e'?x+6+c.measureText(s.name).width/2:x,y+off,'#9fb4ff',k>8?12:10);}
-   for(const l of data.labels)text(c,l.name,px(l.x),py(l.z),'#c9cede',11);
+   // the back alleys' fire escapes (ncz-backalleys.js): the landing against the wall, a tick for its drop ladder, FE beside it
+   for(const e of data.escapes||[]){const a=[e.x-e.t[0]*1.2,e.z-e.t[1]*1.2],b=[e.x+e.t[0]*1.2+e.u[0]*1.2,e.z+e.t[1]*1.2+e.u[1]*1.2];c.fillStyle='rgba(150,190,255,.55)';c.strokeStyle='#9cc4ff';c.beginPath();c.rect(px(Math.min(a[0],b[0])),py(Math.max(a[1],b[1])),Math.abs(b[0]-a[0])*k,Math.abs(b[1]-a[1])*k);c.fill();c.stroke();
+    c.fillStyle='#d6e6ff';c.beginPath();c.arc(px(e.foot[0]),py(e.foot[1]),Math.max(2,.2*k),0,7);c.fill();if(k>3){c.font='10px ui-monospace,monospace';c.fillText('fire escape',px(e.x+e.u[0]*1.6)+4,py(e.z+e.u[1]*1.6)+4);}}
+   // the stairs down to the tunnels (ncz-backalleys.js UNDERGROUND_ENTRANCES): the stairwell, its steps, an arrow down them, "stairs down"
+   for(const u of data.tunnels||[]){const r=u.rect;c.fillStyle='rgba(120,110,160,.6)';c.strokeStyle='#b8a8ff';c.beginPath();c.rect(px(r[0]),py(r[3]),(r[1]-r[0])*k,(r[3]-r[2])*k);c.fill();c.stroke();
+    c.strokeStyle='rgba(230,220,255,.55)';for(let a=.4;a<5;a+=.6){const x=u.top[0]+u.down[0]*a,z=u.top[1]+u.down[1]*a,t=[-u.down[1]*1.2,u.down[0]*1.2];c.beginPath();c.moveTo(px(x-t[0]),py(z-t[1]));c.lineTo(px(x+t[0]),py(z+t[1]));c.stroke();}
+    if(k>3){c.fillStyle='#e6dcff';c.font='10px ui-monospace,monospace';c.fillText('stairs down (tunnels)',px(r[0]),py(r[3])-3);}}
+   // the tunnels (ncz-underground.js): the door up to each alley stairwell (purple, "stairs up to ..."), the alcoves' seats (brown); place names in sand colour
+   for(const d of data.stairDoors||[]){if(!d.inside)continue;const x=px(d.inside.x),y=py(d.inside.z);c.fillStyle='#b8a8ff';c.fillRect(x-3,y-Math.max(4,.6*k),6,Math.max(8,1.2*k));c.fillStyle='#e6dcff';c.font='10px ui-monospace,monospace';c.fillText('stairs up: '+d.name,x+6,y+4);}
+   for(const s of data.seats||[]){c.fillStyle='#a07850';c.beginPath();c.arc(px(s.x),py(s.z),Math.max(2.5,.22*k),0,7);c.fill();}
+   for(const l of data.labels)text(c,l.name,px(l.x),py(l.z),l.back?'#a8d8b8':l.under?'#e0cc98':'#c9cede',l.back||l.under?10:11);
    c.fillStyle='#6c7280';c.font='11px ui-monospace,monospace';c.fillText('N ↑',W-30,14);
    // the route
    const R=o.route||[];if(R.length){c.lineWidth=2;for(let i=0;i<R.length;i++){const a=R[i],b=R[(i+1)%R.length];if(R.length<2)break;c.strokeStyle=(o.routeBad||[]).includes(i)?'#ff4d5e':'rgba(120,210,255,.9)';c.setLineDash(i===R.length-1?[6,5]:[]);c.beginPath();c.moveTo(px(a.x),py(a.z));c.lineTo(px(b.x),py(b.z));c.stroke();}c.setLineDash([]);c.lineWidth=1;
@@ -91,13 +101,13 @@
    const lockWas=o.lock;if(d.kind==='point'&&(o.route||[]).length<=1)o.lock=null;   // the only point of a route may go anywhere
    const src=d.kind==='marker'?d.m:o.route[d.i],q=place(src.x,src.z);o.lock=lockWas;
    if(!q){src.x=d.x0;src.z=d.z0;draw();return;}src.x=q.x;src.z=q.z;if(d.kind==='marker')o.onDrag?.(d.m.id,q.x,q.z);else o.onPoint?.(d.i,q.x,q.z);};
-  areaSel.onchange=()=>{o.area=areaSel.value;o.center=null;data=X().mapData(o.area);if(o.zoom==='pair'&&o.area!=='avenue')o.zoom='all';zooms();say('');draw();o.onArea?.(o.area);};
+  areaSel.onchange=()=>{o.area=areaSel.value;o.center=null;data=X().mapData(o.area,o.npc);if(o.zoom==='pair'&&o.area!=='avenue')o.zoom='all';zooms();say('');draw();o.onArea?.(o.area);};
   zoomSel.onchange=()=>{o.zoom=zoomSel.value;if(o.zoom!=='all'&&!o.center){const m=(o.markers||[]).find(q=>AR()&&AR().areaOf(q)===data.area)||(o.route||[])[0];o.center=m?{x:m.x,z:m.z}:null;}draw();};
   pan.oninput=()=>{o.center={...(o.center||{}),x:Number(pan.value),z:o.center&&Number.isFinite(o.center.z)?o.center.z:Number(panZ.value)};draw();};
   panZ.oninput=()=>{o.center={...(o.center||{}),z:Number(panZ.value),x:o.center&&Number.isFinite(o.center.x)?o.center.x:Number(pan.value)};draw();};
   const ro=root.ResizeObserver?new ResizeObserver(()=>draw()):null;ro?.observe(wrap);
   setTimeout(draw,0);
-  const api={el:wrap,draw,set(n){o={...o,...n};if(typeof o.center==='number')o.center={x:o.center,z:null};if(n.area&&n.area!==data.area){data=X().mapData(o.area);areaSel.value=data.area;zooms();}draw();},get opts(){return o;},get area(){return data.area;},toWorld:(a,b)=>({x:wx(a),z:wz(b)}),toScreen:(x,z)=>({x:px(x),y:py(z)}),canvas:cv,say};cv.npcMap=api;   // tests and the guide reach the map from its canvas
+  const api={el:wrap,draw,set(n){o={...o,...n};if(typeof o.center==='number')o.center={x:o.center,z:null};if(n.area&&n.area!==data.area){data=X().mapData(o.area,o.npc);areaSel.value=data.area;zooms();}draw();},get opts(){return o;},get area(){return data.area;},toWorld:(a,b)=>({x:wx(a),z:wz(b)}),toScreen:(x,z)=>({x:px(x),y:py(z)}),canvas:cv,say};cv.npcMap=api;   // tests and the guide reach the map from its canvas
   return api;
  }
  root.VoidNPCMap={create,ZOOMS};

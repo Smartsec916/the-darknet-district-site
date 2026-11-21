@@ -47,6 +47,7 @@ if '--mocap' in rest_args:
     rest_reference = mocap / library_doc['restReference']
     for name in spec.get('clips', []):
         c = library[name]
+        if c.get('source') == 'pose': continue  # posed by code after the build (make_floor_poses.py)
         folder = sources[c['source']] if c.get('source') else mocap
         span = (c['start'], c['end']) if 'start' in c else None
         clips.append((name, folder / c['file'], span, c))

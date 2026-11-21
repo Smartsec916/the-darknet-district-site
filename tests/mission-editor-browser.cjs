@@ -21,7 +21,7 @@ const EDITED='TEST LINE: Admin introduces the District (test text).';
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader'],...(exe?{executablePath:exe}:{})});const errors=[],posts=[];
  try{
-  const ctx=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),page=await ctx.newPage();
+  const ctx=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),page=await ctx.newPage().then(async p=>{await p.addInitScript(()=>{try{if(!localStorage.getItem('mission-editor-view'))localStorage.setItem('mission-editor-view','form');}catch{}});return p;});
   page.on('pageerror',e=>errors.push(e.message));
   let publishMode='off';
   await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
@@ -131,7 +131,7 @@ const EDITED='TEST LINE: Admin introduces the District (test text).';
 })().catch(e=>{console.error(e);process.exit(1);});
 // ---------------- 5. a NEW tree: create, name, add missions, play, check, leave, publish screen ----------------
 async function newTrees(browser,errors,posts){
- const ctx=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push('trees: '+e.message));
+ const ctx=await browser.newContext({viewport:{width:1366,height:768},serviceWorkers:'block'}),page=await ctx.newPage().then(async p=>{await p.addInitScript(()=>{try{if(!localStorage.getItem('mission-editor-view'))localStorage.setItem('mission-editor-view','form');}catch{}});return p;});page.on('pageerror',e=>errors.push('trees: '+e.message));
  await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
  await page.route('**/api/**',r=>{const p=new URL(r.request().url()).pathname.replace('/api/void-runner/','');if(r.request().method()==='POST')posts.push(p);return r.fulfill({status:p==='live-content'?404:503,contentType:'application/json',body:'{"error":"offline test"}'});});
  const boot=async()=>{await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});};
@@ -231,7 +231,7 @@ function chainDraft(){const step=(id,kind,x,label,say)=>({id,label,kind,npc:'',p
   objectives:[step('step-1','talk',{npc:'nyx'},'Talk to Nyx (test)','Nyx answers.')],ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]}]};
  return {version:1,missions:{},lines:{},played:{},trees:[a,b],names:{}};}
 async function chain(browser,errors,posts){
- const ctx=await browser.newContext({viewport:{width:1920,height:1080},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push('chain: '+e.message));const log=t=>console.log('[chain] '+t);
+ const ctx=await browser.newContext({viewport:{width:1920,height:1080},serviceWorkers:'block'}),page=await ctx.newPage().then(async p=>{await p.addInitScript(()=>{try{if(!localStorage.getItem('mission-editor-view'))localStorage.setItem('mission-editor-view','form');}catch{}});return p;});page.on('pageerror',e=>errors.push('chain: '+e.message));const log=t=>console.log('[chain] '+t);
  await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
  await page.route('**/api/**',r=>{const p=new URL(r.request().url()).pathname.replace('/api/void-runner/','');if(r.request().method()==='POST')posts.push(p);return r.fulfill({status:p==='live-content'?404:503,contentType:'application/json',body:'{"error":"offline test"}'});});
  const boot=async()=>{await page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:90000});};

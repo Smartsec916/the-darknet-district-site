@@ -70,7 +70,9 @@
  function available(s,id){const d=definitions[id];if(!d)return true;const requirements=d.prerequisites||[];return requirements.every(key=>s.universe?.missions?.[key]?.completed===true)&&Object.entries(d.storyFlags||{}).every(([key,value])=>s.story?.flags?.[key]===value)&&Object.entries(d.factionFlags||{}).every(([key,value])=>(s.progression?.reputation?.[key]||0)>=value)&&(!d.availability?.locations||d.availability.locations.includes(s.location));}
  // A District campaign (closed pool) runs only tree missions: the main storyline (main-story.js) and the owner's published trees. Every older mission, the beginner
  // campaign included, is retired there (the owner, 17 Nov 2026: "Go ahead and remove all missions in the game"): never offered, tracked or shown; old records stay in the save.
- const live=(s,id)=>!closed(s)||!!definitions[id]?.ownerTree;
+ // Rook's side missions (rook-run-N) also run there once the first delivery to Rook is done (story flag rook-first-delivery-done; campaign.js rookOpen, nav-coords.js).
+ const rookSide=s=>{const f=s?.story?.flags||{};return f['rook-first-delivery-done']===true;};
+ const live=(s,id)=>!closed(s)||!!definitions[id]?.ownerTree||rookSide(s)&&/^rook-run-\d+$/.test(id);
  function acquire(s,id){if(!live(s,id)||!safeId(id)||(!records(s)[id]&&!available(s,id)))return null;const entries=records(s);return entries[id]??={acquired:true,completed:false,objectives:{}};}
  function finish(s,id,entry){
   if(entry.completed&&s.universe.trackedMission===id){s.universe.trackedMission=null;s.universe.autoTrack=true;}
@@ -153,10 +155,10 @@
  }
  // A Rook cargo-board run: pick up at Rook's booth, deliver, and (for some jobs) collect pay from Rook at Meridian.
  function rookDescription(r){
-  const place=U.locations[r.destination]?.name||r.destination,byRook=r.payAt==='rook';
+  const place=r.destinationName||U.locations[r.destination]?.name||r.destination,byRook=r.payAt==='rook';
   const pay=r.payment?(byRook?r.payment+' credits, paid by Rook at Meridian after delivery.':r.payment+' credits, paid by the receiver on delivery.'):'';
   const objectives=r.kind==='legacy'?[{id:'arrive',label:'Deliver '+r.cargo+' to '+place}]:[{id:'pickup',label:'Collect the cargo from Rook'},{id:'arrive',label:'Deliver '+r.cargo+' to '+place},...(byRook?[{id:'payment',label:'Collect '+r.payment+' credits from Rook at Meridian',destination:'meridian',interaction:'rook'}]:[])];
-  return {title:r.name+(r.label?' · '+r.label:''),type:'cargo',description:(r.label?r.label+'. ':'')+r.cargo+' to '+place+(r.units>1?' ('+r.units+' hold spaces)':'')+'. '+(r.legal===false?'Not legal. ':'')+pay,rewards:r.payment||null,destination:r.destination,source:'rook',giver:'Rook',start:'meridian',end:r.destination,prerequisites:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:r.destination},objectives};
+  return {title:r.name+(r.label?' · '+r.label:''),type:r.side?'side':'cargo',description:(r.title?r.title.charAt(0).toUpperCase()+r.title.slice(1)+'. ':'')+(r.label?r.label+'. ':'')+r.cargo+' to '+place+(r.weightKg?' ('+(r.weightKg/1000).toFixed(1)+' t':'')+(r.units>1?(r.weightKg?', ':' (')+r.units+' hold spaces)':r.weightKg?')':'')+'. '+(r.legal===false?'Not legal. ':'')+pay,rewards:r.payment||null,destination:r.destination,source:'rook',giver:'Rook',start:'meridian',end:r.destination,prerequisites:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:r.destination},objectives};
  }
  function all(s,C){
   if(!s?.universe)return [];
@@ -166,7 +168,7 @@
    const stage=Object.entries(def.after||{}).filter(([key])=>entry.objectives?.[key]===true).map(([,next])=>next).pop();const pendingStep=def.objectives.find(o=>o.required!==false&&entry.objectives?.[o.id]!==true);
    const complete=entry.completed===true||!tutorials.includes(id)&&objectives.filter(objective=>objective.required!==false).every(objective=>objective.complete);
    const destination=stage?.destination?stage.destination:pendingStep?.destination?pendingStep.destination:id==='flight-training'&&pastWorkshop(s)?C?.missionFlight?.({...s,destination:null})?.destination||def.destination:id==='meet-rook'&&entry.objectives?.dock?'meridian':def.destination;
-   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,...(pendingStep?.place?{place:pendingStep.place}:{}),...(pendingStep?.target?{target:pendingStep.target}:{}),objectives,objective:complete?'Complete':def.objective||objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id,...(Number.isInteger(def.number)?{number:def.number,name:def.name||def.title}:{}),...(def.category?{category:def.category}:{}),...(def.location?{location:def.location}:{})};
+   return {id,title:def.title,type:def.type,description:def.description||'',destination,rewards:def.rewards||null,interaction:stage?.interaction||pendingStep?.interaction||def.interaction,...(pendingStep?.place?{place:pendingStep.place}:{}),...(pendingStep?.target?{target:pendingStep.target}:{}),...(pendingStep?.apt?{apt:pendingStep.apt}:{}),...(pendingStep?.made?{made:pendingStep.made}:{}),objectives,objective:complete?'Complete':def.objective||objectives.find(objective=>objective.required!==false&&!objective.complete)?.label||'Complete',completed:complete,tracked:s.universe.trackedMission===id,...(Number.isInteger(def.number)?{number:def.number,name:def.name||def.title}:{}),...(def.category?{category:def.category}:{}),...(def.location?{location:def.location}:{})};
   });
  }
  function active(s,C){sync(s,C);return all(s,C).filter(mission=>!mission.completed);}
@@ -195,7 +197,7 @@
   if(!mission.destination)return {kind:'instruction',label:mission.objective};
   if(inside){if(s.location!==mission.destination)return {kind:'ship',label:'YOUR SHIP / HANGAR',interaction:'board'};
    // a place step or a photo step (tree missions): the arrow leads to the place (places.js) or to the person to photograph (world-integration.js, mission-world.js)
-   if(!mission.interaction&&(mission.place||mission.target))return {kind:'local',label:mission.objective,...(mission.place?{place:mission.place}:{}),...(mission.target?{target:mission.target}:{})};
+   if(!mission.interaction&&(mission.place||mission.target||mission.apt||mission.made))return {kind:'local',label:mission.objective,...(mission.place?{place:mission.place}:{}),...(mission.target?{target:mission.target}:{}),...(mission.apt?{apt:mission.apt}:{}),...(mission.made?{made:mission.made}:{})};
    return {kind:'local',label:mission.objective,interaction:mission.interaction||'rook'};}
   const hop=U.nextHop(s.location,mission.destination);
   return {kind:U.route(s.location,hop).kind,label:(U.system(s.location)!==U.system(hop)?'INTERSTELLAR / ':'LOCAL / ')+(U.locations[hop]?.name||hop).toUpperCase(),destination:hop};

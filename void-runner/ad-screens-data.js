@@ -141,9 +141,35 @@
  // Seconds a line stays up when it has no recording.
  const TIMING={brand:8,notice:9,title:3.4,line:5,headline:4.5,board:12,gap:.7};
 
+ /* THE STREET-LEVEL SCREENS ON THE WALLS (the owner, 20 Nov 2026: "they would be on the side of buildings, not between the sidewalk and the street. They make the
+    sidewalk feel crowded", "a little smaller", "a little less ad screens"). The old kerb stands are gone: each screen hangs flat on the building wall behind its
+    old spot, bottom edge 2.8 m up (the awning is cut round it), beside the shop sign and clear of the street doors; 75% of the old 1.6 x 2.4 m picture.
+    w, h: the picture; bottom: its lower edge above the pavement; out: the picture's distance in front of the building line; half: half the housing's width;
+    sign: half the shop sign's width; door: half a street door's width with its frame; spots: where along its 7 m shopfront a screen may hang (metres from the middle,
+    the first that is clear wins). */
+ const MOUNT={w:1.2,h:1.8,bottom:2.8,out:.3,half:.72,sign:1.22,door:.75,spots:[0,-1.98,1.98]};
+ // Of the street screens a quarter's shopfronts would carry, this share is kept (the owner: "a little less"; the rest are thinned out where they bunch up, see thin()).
+ const KEEP_SHARE=2/3;
+ /* Where along a shopfront (offset from its middle, metres) a wall screen hangs, or null where nothing fits. sign: the shopfront has a sign in its middle;
+    doors: the street doors along the same building line, as offsets from the same middle; half: half the shopfront's usable length. */
+ function mountOffset({sign=false,doors=[],half=3.5}={}){
+  for(const o of MOUNT.spots){if(Math.abs(o)+MOUNT.half>half)continue;if(sign&&Math.abs(o)<MOUNT.sign+MOUNT.half)continue;if(doors.some(d=>Math.abs(d-o)<MOUNT.door+MOUNT.half))continue;return o;}
+  return null;}
+ /* Thinning (deterministic): from a list of screens [{x, y, z, side, kind}] keep `share` of them, taking out first the one that is most crowded (nearest
+    neighbour on the same side of the street, then the second nearest; a street-level screen before a big wall one; then the later one), so what is left is
+    evenly spread. count: how many to keep instead (the city counts the screens it had before any could not be hung). Returns a list of booleans (true = kept). */
+ function thin(list,share=KEEP_SHARE,count=null){
+  const n=list.length,keep=count==null?Math.round(n*share):Math.max(0,Math.min(n,count)),alive=list.map(()=>true);let left=n;
+  const near=i=>{let a=1e9,b=1e9;const p=list[i];for(let j=0;j<n;j++){if(j===i||!alive[j]||list[j].side!==p.side)continue;const q=list[j],d=Math.hypot(p.x-q.x,(p.y||0)-(q.y||0),p.z-q.z);if(d<a){b=a;a=d;}else if(d<b)b=d;}return [a,b];};
+  while(left>keep){let best=-1,bk=null;for(let i=0;i<n;i++){if(!alive[i])continue;const [a,b]=near(i),k=[a,b,list[i].kind==='wall'?1:0,-i];
+    if(!bk||k[0]<bk[0]-1e-9||Math.abs(k[0]-bk[0])<=1e-9&&(k[1]<bk[1]-1e-9||Math.abs(k[1]-bk[1])<=1e-9&&(k[2]<bk[2]||k[2]===bk[2]&&k[3]<bk[3]))){best=i;bk=k;}}
+   alive[best]=false;left--;}
+  return alive;}
  const inRect=([x0,x1,z0,z1],x,z)=>x>=x0&&x<=x1&&z>=z0&&z<=z1;
  // The zone id a screen at (x, z) of a quarter belongs to; null where no screen may stand.
  function zoneAt(quarter,x,z){for(const a of AREAS)if(a.quarter===quarter&&(!a.rect||inRect(a.rect,x,z)))return a.zone;return null;}
+ // May a screen stand at (x, z) of a quarter: its zone allows one and it is not in or against a checkpoint (gates: VoidQuarters.GATES).
+ const allowed=(quarter,x,z,gates=[])=>!!zoneAt(quarter,x,z)&&!gates.some(g=>x>=g.rect[0]-GATE_MARGIN&&x<=g.rect[1]+GATE_MARGIN&&z>=g.rect[2]-GATE_MARGIN&&z<=g.rect[3]+GATE_MARGIN);
  const inEra=(ad,era)=>ad.era===undefined||ad.era===null?true:era!=null&&(Array.isArray(ad.era)?ad.era.includes(era):ad.era===era);
  const mulberry=seed=>{let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};};
  const hash=text=>{let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
@@ -196,6 +222,6 @@
  }
  // Every line a voice could ever say on a street screen, as {speaker, text, cat, id}: the recording list (see the audition plan). Board handles are separate.
  function spokenLines(relay){const out=[];for(const z of Object.keys(ZONES))for(const list of Object.values(adsFor(z,{relay})))for(const ad of list)for(const l of slide({type:'ad',ad}).lines)if(l.say&&!out.some(o=>o.text===l.say&&o.speaker===(ad.speaker||CATEGORIES[ad.cat].speaker)))out.push({speaker:ad.speaker||CATEGORIES[ad.cat].speaker,text:l.say,cat:ad.cat,id:ad.id,relay:!!ad.relay});return out;}
- const api={CATEGORIES,ADS,RELAY,ZONES,AREAS,SCENES,PLACES,ERA,EVERY,TIMING,GATE_MARGIN,RECORD,zoneAt,inEra,adsFor,programme,breakSlot,newsFor,slide,spokenLines,hash,mulberry};
+ const api={CATEGORIES,ADS,RELAY,ZONES,AREAS,SCENES,PLACES,ERA,EVERY,TIMING,GATE_MARGIN,RECORD,MOUNT,KEEP_SHARE,zoneAt,allowed,mountOffset,thin,inEra,adsFor,programme,breakSlot,newsFor,slide,spokenLines,hash,mulberry};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdData=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

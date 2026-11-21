@@ -66,7 +66,7 @@
   owns:id=>id==='unarmed'||id===(VoidSkirmish.active?.weapon||'ward-pistol'),
   select:id=>{const s=VoidSkirmish.active;if(!s)return false;const want=id!=='unarmed';if(s.drawn!==want)VoidSkirmish.action('draw',true);return true;}
  };
- const weapons=[{id:'unarmed',name:'UNARMED',key:'KeyH'},{id:'ward-pistol',name:'WARD PISTOL',key:'Digit1'},{id:'rifle',name:'RIFLE',key:'Digit2'}];
+ const weapons=[{id:'unarmed',name:'UNARMED',key:'KeyH'},{id:'ward-pistol',name:'WARD PISTOL',key:'Digit1'},{id:'base-pistol',name:'PISTOL',key:'Digit1'},{id:'rifle',name:'RIFLE',key:'Digit2'}];
  const context=()=>mode==='skirmish-fps'?skirmish:mode==='walking'&&state?.progression?.personal?campaign:null;
  const available=c=>weapons.filter(w=>c.owns(w.id));
  function select(id){const c=context();if(!c||!c.owns(id)||c.current()===id)return false;const ok=c.select(id);if(ok)flash();return ok;}

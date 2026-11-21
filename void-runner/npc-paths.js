@@ -23,20 +23,45 @@
  // The Avenue's north pavement (neochinatown.js: the shopfront wall at z -5, a 3 m pavement, the road from z -8): a little clear of the wall and the kerb, and short of the
  // Function Gate (x 10) and the East Gate (x 144). Taxi posts (ncz-quarters.js STOPS post) are kept clear by `post` metres.
  const AVENUE_NORTH={id:'avenue-north',name:'The Avenue, north pavement',quarter:'avenue',x0:12.5,x1:141.5,z0:-7.6,z1:-5.8,post:.7};
- /* Street furniture on that pavement, read from the built city on 18 Nov 2026 (tests/npc-obstacles-browser.cjs: rays at knee, waist and head height): the ad screens'
-    stands and the taxi poles along the kerb, [x0, x1, z0, z1] in metres. Kept clear by `clear` metres (her body). The city's furniture follows its fixed random sequence:
-    rerun the reading when the street changes. */
- const OBSTACLES=[[19.63,20.13,-7.9,-7.5,'the taxi pole'],[32.38,34.38,-7.9,-7.3,'an advertising screen'],[39.38,41.38,-7.9,-7.5,'an advertising screen and the taxi pole'],[46.63,48.38,-7.9,-7.5,'an advertising screen'],[53.63,55.38,-7.9,-7.5,'an advertising screen'],
-  [95.63,97.38,-7.9,-7.5,'an advertising screen'],[123.38,125.38,-7.9,-7.3,'an advertising screen'],[133.63,134.13,-7.9,-7.5,'the taxi pole']],CLEAR=.3;
+ /* Street furniture on that pavement: the taxi poles along the kerb, [x0, x1, z0, z1] in metres (read from the built city, tests/npc-obstacles-browser.cjs). Kept clear by
+    `clear` metres (her body). (20 Nov 2026) The ad screens' kerb stands are gone: the screens hang on the walls now (ad-screens-data.js MOUNT). */
+ const OBSTACLES=[[19.63,20.13,-7.9,-7.5,'the taxi pole'],[39.88,40.13,-7.9,-7.5,'the taxi pole'],[133.63,134.13,-7.9,-7.5,'the taxi pole']],CLEAR=.3;
  const inBox=(p,o,m=CLEAR)=>p.x>o[0]-m&&p.x<o[1]+m&&p.z>o[2]-m&&p.z<o[3]+m;
  const posts=()=>((QT()&&QT().STOPS)||[]).filter(s=>s.quarter==='avenue'&&Array.isArray(s.post)).map(s=>({x:s.post[0],z:s.post[1],id:s.id}));
  const ledges=()=>{const S=SP();return ((S&&S.STEPS)||[]).map(st=>({id:st.id,x:st.x,z:st.z,w:st.w,d:st.d,front:S.frontOf(st)}));};
  /* Movable NPCs. asset: the crowd file (crowd.js clips[asset] is the clip list); device: the npc-device.js poses they use. */
- const MOVABLE={'grey-reverie':{name:'Reverie',asset:'npc-grey-reverie',area:'city',quarter:'avenue',device:true,sit:true,youthful:true},
-  'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'city',quarter:'avenue',device:true,sit:true,youthful:true},
+ const MOVABLE={'grey-reverie':{name:'Reverie',asset:'npc-grey-reverie',area:'city',quarter:'avenue',device:true,sit:true,youthful:true,combatAnimations:true},
+  'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'city',quarter:'avenue',device:true,sit:true,youthful:true,combatAnimations:true},
   // the street cat (the owner, 18 Nov 2026: "add the cat as an npc and giver"): moved by its own code in ncz-street-pair.js (no clips: a procedural pose), so its actions are its own (CAT_ACTIONS)
-  'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'city',quarter:'avenue',device:false,sit:false,youthful:false,cat:true,it:true}};
+  'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'city',quarter:'avenue',device:false,sit:false,youthful:false,combatAnimations:false,cat:true,it:true},
+  // THE TEA ROOM HOST (the owner, 20 Nov 2026: "give me an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver."): a
+  // character of the game drawn by the made-giver runtime (npc-made.js BUILTIN: builtin, made), always at his post behind the tea station of the underground tea room
+  // (`home`: a spot of ncz-underground.js spots(); his own routine). The NPCs tab can move him like anyone here. Placeholder name; no lines of his own.
+  'tea-host':{name:'Tea Room Host',asset:'npc-cook-old',area:'city',quarter:'underground',device:false,sit:false,youthful:false,combatAnimations:true,made:true,builtin:true,he:true,home:{spot:'under-tea-room/host',actions:['idle','work','watch','work','idle','look']}}};
+ // Ordinary, non-sexual shared clips verified against the current public rig index (24 joints, rest offset <=25°).
+ // Keep these exact allowlists so a missing index never widens the permission to untested assets.
+ const PAIR_GAMEPLAY={"grey-reverie":["npc-club-m/idle","npc-club-m/talk","npc-club-m/look","npc-club-m/watch","npc-club-m/laugh","npc-club-m/shrug","npc-club-m/interact","npc-kai/idle","npc-kai/talk","npc-kai/interact","npc-kai/head-tilt","npc-kai/laugh","npc-kai/glance-back","npc-kai/shrug","npc-security/vr-aim","npc-security/vr-aim-up","npc-security/vr-aim-down","npc-security/vr-shoot","npc-security/vr-hit","npc-security/vr-duck","npc-zane/idle","npc-zane/talk","npc-zane/interact","npc-zane/head-tilt","npc-zane/laugh","npc-zane/glance-back","npc-zane/shrug"],"ethereal-lace":["npc-club-m/idle","npc-club-m/talk","npc-club-m/look","npc-club-m/watch","npc-club-m/laugh","npc-club-m/shrug","npc-club-m/interact","npc-milked-auburn/idle"]};
+ const pairGameplay=(id,clip)=>!!PAIR_GAMEPLAY[id]?.includes(clip);
+ // Combat is an ordinary gameplay capability, independent of age-sensitive source and venue rules.
+ const COMBAT=/^vr-|aim|shoot|punch|fight/;
+ const combatAllowed=(id,clip,indexed=false)=>!COMBAT.test(String(clip).split('/').pop())||!!(MOVABLE[id]?.combatAnimations&&(!PAIR_GAMEPLAY[id]||indexed||pairGameplay(id,clip)));
+ // Verified per-rig shared mission motions; the fallback is needed during game startup before the clip index loads.
+ const PAIR_MISSION_CLIPS={"grey-reverie":["npc-busker/idle","npc-busker/talk","npc-busker/look","npc-busker/watch","npc-busker/laugh","npc-busker/shrug","npc-busker/interact","npc-busker/dance","npc-casual-m/idle","npc-casual-m/talk","npc-casual-m/look","npc-casual-m/watch","npc-casual-m/laugh","npc-casual-m/shrug","npc-casual-m/interact","npc-casual-m/dance","npc-club-m/idle","npc-club-m/talk","npc-club-m/look","npc-club-m/watch","npc-club-m/laugh","npc-club-m/shrug","npc-club-m/interact","npc-cook-f/idle","npc-cook-f/talk","npc-cook-f/look","npc-cook-f/watch","npc-cook-f/laugh","npc-cook-f/shrug","npc-cook-f/interact","npc-cook-f/dance","npc-cyber-courier/idle","npc-cyber-courier/talk","npc-cyber-courier/look","npc-cyber-courier/watch","npc-cyber-courier/laugh","npc-cyber-courier/shrug","npc-cyber-courier/interact","npc-cyber-courier/dance","npc-cyber-exec/idle","npc-cyber-exec/talk","npc-cyber-exec/look","npc-cyber-exec/watch","npc-cyber-exec/laugh","npc-cyber-exec/shrug","npc-cyber-exec/interact","npc-cyber-exec/dance","npc-cyber-pvc/idle","npc-cyber-pvc/talk","npc-cyber-pvc/look","npc-cyber-pvc/watch","npc-cyber-pvc/laugh","npc-cyber-pvc/shrug","npc-cyber-pvc/interact","npc-cyber-pvc/dance","npc-cyber-respirator/idle","npc-cyber-respirator/talk","npc-cyber-respirator/look","npc-cyber-respirator/watch","npc-cyber-respirator/laugh","npc-cyber-respirator/shrug","npc-cyber-respirator/interact","npc-cyber-respirator/dance","npc-cyber-samurai/idle","npc-cyber-samurai/talk","npc-cyber-samurai/look","npc-cyber-samurai/watch","npc-cyber-samurai/laugh","npc-cyber-samurai/shrug","npc-cyber-samurai/interact","npc-cyber-samurai/dance","npc-hacker/idle","npc-hacker/talk","npc-hacker/look","npc-hacker/watch","npc-hacker/laugh","npc-hacker/shrug","npc-hacker/interact","npc-hacker/dance","npc-iris/idle","npc-iris/talk","npc-iris/look","npc-iris/shrug","npc-kai/idle","npc-kai/talk","npc-kai/interact","npc-kai/head-tilt","npc-kai/laugh","npc-kai/glance-back","npc-kai/shrug","npc-kei/idle","npc-kei/talk","npc-kei/look","npc-kei/watch","npc-kei/laugh","npc-kei/shrug","npc-lookout/idle","npc-lookout/talk","npc-lookout/look","npc-lookout/watch","npc-lookout/laugh","npc-lookout/shrug","npc-lookout/interact","npc-lookout/dance","npc-mags/idle","npc-mags/talk","npc-mags/look","npc-mags/watch","npc-mags/laugh","npc-mags/shrug","npc-medic/idle","npc-medic/talk","npc-medic/look","npc-medic/watch","npc-medic/laugh","npc-medic/shrug","npc-medic/interact","npc-medic/dance","npc-merc/idle","npc-merc/talk","npc-merc/look","npc-merc/watch","npc-merc/laugh","npc-merc/shrug","npc-merc/interact","npc-merc/dance","npc-nyx/idle","npc-nyx/talk","npc-nyx/look","npc-nyx/watch","npc-nyx/laugh","npc-nyx/shrug","npc-nyx/wipe","npc-office-f/idle","npc-office-f/talk","npc-office-f/look","npc-office-f/watch","npc-office-f/laugh","npc-office-f/shrug","npc-office-f/interact","npc-office-f/dance","npc-office-m/idle","npc-office-m/talk","npc-office-m/look","npc-office-m/watch","npc-office-m/laugh","npc-office-m/shrug","npc-office-m/interact","npc-office-m/dance","npc-outskirts-m/idle","npc-outskirts-m/talk","npc-outskirts-m/look","npc-outskirts-m/watch","npc-outskirts-m/laugh","npc-outskirts-m/shrug","npc-outskirts-m/interact","npc-outskirts-m/dance","npc-rin/idle","npc-rin/talk","npc-rin/look","npc-rin/watch","npc-rin/laugh","npc-rin/shrug","npc-sable/idle","npc-sable/talk","npc-sable/look","npc-sable/watch","npc-sable/laugh","npc-sable/shrug","npc-security/idle","npc-security/talk","npc-security/look","npc-security/watch","npc-security/laugh","npc-security/shrug","npc-security/interact","npc-security/dance","npc-security/vr-aim","npc-security/vr-aim-up","npc-security/vr-aim-down","npc-security/vr-shoot","npc-security/vr-hit","npc-security/vr-duck","npc-student/idle","npc-student/talk","npc-student/look","npc-student/watch","npc-student/laugh","npc-student/shrug","npc-student/interact","npc-student/dance","npc-vendor/idle","npc-vendor/talk","npc-vendor/look","npc-vendor/watch","npc-vendor/laugh","npc-vendor/shrug","npc-vendor/interact","npc-vendor/dance","npc-veteran/idle","npc-veteran/talk","npc-veteran/look","npc-veteran/watch","npc-veteran/laugh","npc-veteran/shrug","npc-veteran/interact","npc-veteran/dance","npc-zane/idle","npc-zane/talk","npc-zane/interact","npc-zane/head-tilt","npc-zane/laugh","npc-zane/glance-back","npc-zane/shrug"],"ethereal-lace":["npc-busker/idle","npc-busker/talk","npc-busker/look","npc-busker/watch","npc-busker/laugh","npc-busker/shrug","npc-busker/interact","npc-busker/dance","npc-club-m/idle","npc-club-m/talk","npc-club-m/look","npc-club-m/watch","npc-club-m/laugh","npc-club-m/shrug","npc-club-m/interact","npc-cyber-exec/idle","npc-cyber-exec/talk","npc-cyber-exec/look","npc-cyber-exec/watch","npc-cyber-exec/laugh","npc-cyber-exec/shrug","npc-cyber-exec/interact","npc-cyber-exec/dance","npc-cyber-respirator/idle","npc-cyber-respirator/talk","npc-cyber-respirator/look","npc-cyber-respirator/watch","npc-cyber-respirator/laugh","npc-cyber-respirator/shrug","npc-cyber-respirator/interact","npc-cyber-respirator/dance","npc-lookout/idle","npc-lookout/talk","npc-lookout/look","npc-lookout/watch","npc-lookout/laugh","npc-lookout/shrug","npc-lookout/interact","npc-lookout/dance","npc-mags/idle","npc-mags/talk","npc-mags/look","npc-mags/watch","npc-mags/laugh","npc-mags/shrug","npc-medic/idle","npc-medic/talk","npc-medic/look","npc-medic/watch","npc-medic/laugh","npc-medic/shrug","npc-medic/interact","npc-medic/dance","npc-milked-auburn/idle","npc-nyx/idle","npc-nyx/talk","npc-nyx/look","npc-nyx/watch","npc-nyx/laugh","npc-nyx/shrug","npc-nyx/wipe","npc-office-f/idle","npc-office-f/talk","npc-office-f/look","npc-office-f/watch","npc-office-f/laugh","npc-office-f/shrug","npc-office-f/interact","npc-office-f/dance","npc-rin/idle","npc-rin/talk","npc-rin/look","npc-rin/watch","npc-rin/laugh","npc-rin/shrug","npc-sable/idle","npc-sable/talk","npc-sable/look","npc-sable/watch","npc-sable/laugh","npc-sable/shrug","npc-student/idle","npc-student/talk","npc-student/look","npc-student/watch","npc-student/laugh","npc-student/shrug","npc-student/interact","npc-student/dance"]};
+ function missionClips(id){if(!PAIR_MISSION_CLIPS[id])return [];const idx=INDEX();if(idx){const allowed=new Set(libraryOffer(id,idx).filter(o=>o.ok).map(o=>o.id));return PAIR_MISSION_CLIPS[id].filter(clip=>allowed.has(clip));}return PAIR_MISSION_CLIPS[id].filter(clip=>!animAllowed(id,clip));}
  const AREAS={'avenue-north':AVENUE_NORTH};
+ /* MISSION GIVERS MADE IN THE EDITOR (Developer Tools > NPCs > Create a mission giver, npc-made.js; 19 Nov 2026): content.characters[id] are moved by data (their placement is
+    content.npcs[id], the same plan as Reverie's), so they join MOVABLE: made:true, the model they were made from as `asset`, a V1 / V2 / V3 if they carry one (device poses),
+    never the ledge's sit (their runtime has no seated transitions), and Reverie's content rule (youthful: casual street clips only; the forbidden places of npc-areas.js).
+    setMade(chars) replaces every made entry (the draft in the editor, the content in force in the game) and returns the ones it replaced (a check puts them back). */
+ let MADE={};
+ /* An adult made character (the owner, 19 Nov 2026): marked "adult (18+)" in the creator, on a model that does not read youthful (never Reverie's or Lace's). */
+ const YOUNG_MODELS=['npc-grey-reverie','npc-ethereal-lace','npc-street-cat'],adultOk=c=>!!c&&c.adult===true&&!YOUNG_MODELS.includes(c.model);
+ function setMade(chars){const before=MADE;for(const id of Object.keys(MADE))if(MOVABLE[id]&&MOVABLE[id].made&&!MOVABLE[id].builtin)delete MOVABLE[id];MADE={};
+  for(const [id,c] of Object.entries(chars&&typeof chars==='object'&&!Array.isArray(chars)?chars:{})){if(!/^[a-z][a-z0-9-]{1,39}$/.test(id)||!c||typeof c!=='object'||typeof c.model!=='string'||(MOVABLE[id]&&(!MOVABLE[id].made||MOVABLE[id].builtin)))continue;
+   MOVABLE[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim().slice(0,40):id,asset:c.model,area:'city',quarter:null,device:['v1','v2','v3'].includes(c.device),sit:true,youthful:!adultOk(c),combatAnimations:adultOk(c),adult:adultOk(c),made:true};MADE[id]=c;}
+  return before;}
+ const madeNow=()=>MADE;
+ const ar=M=>M&&M.made?{made:true,adult:!!M.adult}:{};   // npc-areas.js check options: an adult made character may use the adult venues
  /* Every action a stay or a path point may use, in plain words. clip: the clip played (must be in the NPC's own list); device: an npc-device.js pose; sit: the
     ledge's sit-down, sit and stand-up clips (only at a ledge). */
  const ACTIONS=[
@@ -48,12 +73,18 @@
   {id:'watch',name:'Watch something',clip:'watch',help:'Stands watching something in front of her.'},
   {id:'scroll',name:'Scroll her V1',clip:'idle',device:'scroll',help:'Takes out her V1 device and scrolls it.'},
   {id:'selfie',name:'Take a selfie',clip:'idle',device:'selfie',help:'Holds up her V1 and takes a selfie.'},
+  {id:'photo',name:'Take a photo',clip:'idle',device:'photo',pairOnly:true,help:'Uses the V1 camera to take a picture of the surroundings.'},
   {id:'talk',name:'Talk (silently)',clip:'talk',help:'Talks with her hands, no sound (as she does to the cat).'},
   {id:'gesture',name:'Gesture',clip:'gesture',help:'A small explaining gesture.'},
   {id:'shrug',name:'Shrug',clip:'shrug',help:'A shrug.'},
   {id:'dance-groove',name:'Dance a little (groove)',clip:'dance-groove',help:'A casual groove on the spot (her everyday dance; nothing from the clubs).'},
   {id:'dance-bop',name:'Dance a little (happy bop)',clip:'dance-bop',help:'A happy little bop on the spot.'},
-  {id:'sit',name:'Sit on the ledge',clip:'sit',needs:['sit-enter','sit','sit-exit'],sit:true,help:'Sits down on the ledge here, stays seated (a wave to a player who comes close), then stands up. Only at a ledge.'},
+  {id:'sit',name:'Sit — pose: chair (ledge, bench, stool)',clip:'sit',needs:['sit-enter','sit','sit-exit'],sit:true,pose:'chair',help:'Sits down on the ledge, bench, crates or stool here, stays seated (a wave to a player who comes close), then stands up. Only at a seat that takes a chair pose.'},
+  // the floor poses (21 Nov 2026; crowd.js FLOOR, posed by code): only at a seat whose poses include it (ncz-street-pair.js seatNear: the tea room cushions, the cots, the alcove benches)
+  {id:'sit-kneel',name:'Sit — pose: kneel (seiza)',clip:'floor-kneel',sit:true,pose:'kneel',help:'Kneels on the cushion here, sitting back on the heels, hands on the thighs, facing the table. Only at a floor cushion.'},
+  {id:'sit-cross',name:'Sit — pose: cross-legged',clip:'floor-cross',sit:true,pose:'cross',help:'Sits cross-legged on the cushion or cot here, hands on the knees, looking about a little. Only at a cushion or a cot.'},
+  {id:'sit-knees',name:'Sit — pose: knees to chest',clip:'floor-knees',sit:true,pose:'knees',help:'Sits with the knees pulled up to the chest and the arms round the shins. At a cushion, a cot, or sideways along an alcove bench.'},
+  {id:'work',name:'Work at a counter',clip:'interact',help:'Works with his hands at a counter or table in front of him (wiping, pouring, setting things down).'},
   {id:'walk-on',name:'Walk on (no stop)',clip:'walk',path:true,help:'Walks through this point without stopping (to make her go round a corner of your route).'},
   // the cat's own (ncz-street-pair.js catPlan: its procedural pose, no clips)
   {id:'cat-sit',name:'Sit',cat:true,help:'The cat sits down, facing the way you set, and looks about.'},
@@ -72,14 +103,14 @@
     library checks the rig again when it applies a clip). */
  const INDEX=()=>{if(node){try{return require('./npc-clip-index.json');}catch{return null;}}return root.VoidNPCClipIndex||null;};
  // Clips for grown-ups only (VR companions, the studios, the clubs): never for NPCs marked youthful (Reverie, Lace: ordinary street residents with youthful faces).
- const ADULT=/^(vr-companion|vr-player|studio-|npc-milked|npc-kai|npc-zane|npc-dax|npc-club)/;
+ const ADULT=/^(vr-companion|vr-player|studio-|npc-milked|npc-kai|npc-zane|npc-luna|npc-dax|npc-club)/;
  const YOUNG_NO=/smoke|drink|drunk|sway|beer|wine|cig/i,MOVE_CLIP=/^(walk|run|jog|sit-enter|sit-exit|walk-f|drunk-walk)$/;
  const CATS=[['idle',/idle|stand|breath|wait/],['walk / run',/walk|run|jog|stride/],['sit',/sit|seat|bench|ground|floor|lie/],['talk / gesture',/talk|gesture|wave|shrug|laugh|nod|point|look|watch|glance|head/],['dance',/dance|groove|bop|samba|hiphop/],
   ['V1 / device',/phone|device|selfie|scroll|menu/],['work',/work|wipe|pickup|interact|cook|smoke|drink|repair/],['combat / action',/aim|shoot|hit|duck|punch|fight|vr-/],['other',/./]];
  const category=c=>(CATS.find(([,re])=>re.test(c))||CATS[CATS.length-1])[0];
  /* Every clip the game has, for NPC id, with whether she can use it: {id, title, source, category, status ('own' | 'shared' | 'library' | 'no'), ok, why}. */
  function libraryOffer(id,idx=INDEX()){if(MOVABLE[id]&&MOVABLE[id].cat)return [];const M=MOVABLE[id],S=SP(),banned=(S&&S.BANNED)||/$^/,L=AL(),young=!!(M&&M.youthful),out=[];
-  const rule=(clipId,title,src)=>!M?'Only for NPCs the editor can move.':banned.test(clipId)||banned.test(title||'')?'Not allowed for '+M.name+' (her content rule: casual street clips only).':young&&src&&ADULT.test(src)?'Not for '+M.name+': it comes from an adult-only model (companions, studios, clubs).':young&&YOUNG_NO.test(clipId)?'Not for '+M.name+' (no smoking, drinking or drunk clips for her).':MOVE_CLIP.test(String(clipId).split('/').pop())?'A walking or sit-down/stand-up clip: the game plays her own for that.':/^sit/.test(String(clipId).split('/').pop())?'A seated clip: she sits only through her own sit-down on a ledge (use “Sit on the ledge”).':young&&/^vr-|aim|shoot|punch|fight/.test(String(clipId).split('/').pop())?'Not for '+M.name+' (casual street clips only).':'';
+  const rule=(clipId,title,src)=>!M?'Only for NPCs the editor can move.':!pairGameplay(id,clipId)&&(banned.test(clipId)||banned.test(title||''))?'Not allowed for '+M.name+' (her content rule: casual street clips only).':young&&src&&ADULT.test(src)&&!pairGameplay(id,clipId)?'Not for '+M.name+': it comes from an adult-only model (companions, studios, clubs).':young&&YOUNG_NO.test(clipId)?'Not for '+M.name+' (no smoking, drinking or drunk clips for her).':MOVE_CLIP.test(String(clipId).split('/').pop())?'A walking or sit-down/stand-up clip: the game plays her own for that.':/^sit/.test(String(clipId).split('/').pop())?'A seated clip: she sits only through her own sit-down on a ledge (use “Sit on the ledge”).':/^floor-/.test(String(clipId).split('/').pop())?'A floor pose: use “Sit — pose: …” at a cushion, cot or bench (her own pose, when her file has it).':!combatAllowed(id,clipId,!!src)?'Not for '+M.name+' (combat animations not enabled or verified).':'';
   if(L&&L.all)for(const c of L.all()){if(c.library!=='actorcore')continue;let why=rule(c.id,(c.title||'')+' '+(c.category||''),'');if(!why){if(c.needs)why='Needs a '+c.needs+' to play on (not a standing action yet).';else if(c.group||c.partner)why='A clip for two or more people together.';else if(c.root!=='inplace')why='Moves her about the room (not a standing action).';}
    out.push({id:c.id,title:c.title,library:'actorcore',source:'animation library (ActorCore)',category:category(c.category+' '+c.id),status:why?'no':'library',ok:!why,why});}
   const mine=M&&idx&&idx.files[M.asset],limit=(idx&&idx.restLimit)||(L&&L.REST_LIMIT)||25;
@@ -93,7 +124,7 @@
  /* Is an added clip id allowed without the index (the game's own check)? Its rules only: a library clip offered as above, or '<asset>/<clip>' of a known file and clip. */
  function animAllowed(id,a){if(MOVABLE[id]&&MOVABLE[id].cat)return 'the cat is moved by its own code and plays no animation clips';const off=libraryOffer(id,INDEX());const o=off.find(x=>x.id===a);if(o)return o.ok?'':o.why||'not allowed';if(INDEX())return 'unknown animation';
   const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a||'');const M=MOVABLE[id],S=SP(),C=node?require('./crowd.js'):root.VoidCrowd;if(!m||!M)return 'unknown animation';
-  if((S&&S.BANNED||/$^/).test(a))return 'not allowed for her';if(M.youthful&&(ADULT.test(m[1])||YOUNG_NO.test(m[2])))return 'not for her';if(MOVE_CLIP.test(m[2])||/^sit/.test(m[2]))return 'a walking, seated or transition clip';if(M.youthful&&/^vr-|aim|shoot|punch|fight/.test(m[2]))return 'not for her';if(!(C&&C.clips&&(C.clips[m[1]]||[]).includes(m[2])))return 'unknown animation';return '';}
+  if(!pairGameplay(id,a)&&(S&&S.BANNED||/$^/).test(a))return 'not allowed for her';if(M.youthful&&((ADULT.test(m[1])&&!pairGameplay(id,a))||YOUNG_NO.test(m[2])))return 'not for her';if(MOVE_CLIP.test(m[2])||/^(sit|floor-)/.test(m[2]))return 'a walking, seated or transition clip';if(!combatAllowed(id,a))return 'combat animation not enabled or verified';if(!(C&&C.clips&&(C.clips[m[1]]||[]).includes(m[2])))return 'unknown animation';return '';}
  /* Put added clips on a figure (the game): library clips, and clips of other public crowd files through the same runtime retarget. */
  function applyAnims(n,look,ids){const L=AL();if(!L||!L.apply||!ids||!ids.length)return Promise.resolve([]);const by=new Map();
   for(const a of ids){const m=/^([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(a);const lib=m?'crowd:'+m[1]:'actorcore';if(m&&L.register)L.register(lib,'assets/models/crowd/'+m[1]+'.glb',[{id:a,clip:m[2]}]);if(!by.has(lib))by.set(lib,[]);by.get(lib).push(a);}
@@ -108,15 +139,25 @@
  /* The actions an NPC may use: only clips its own file has (crowd.js), never a banned one, device poses only for NPCs that carry a V1, sit only with the sit clips. */
  function actionsFor(id,anims){const M=MOVABLE[id];if(!M)return [];if(M.cat)return CAT_ACTIONS.map(a=>ACTION.get(a));const have=new Set(crowdClips(M.asset)),S=SP(),banned=(S&&S.BANNED)||/$^/;
   const extra=(anims||[]).filter(a=>!animAllowed(id,a)).map(a=>({id:a,name:a.replace(/^.*\//,'')+' (added animation)',clip:a,library:true,help:'An animation you added in Add animation.'}));
-  return [...ACTIONS.filter(a=>!banned.test(a.id)&&!banned.test(a.clip)&&have.has(a.clip)&&(a.needs||[]).every(c=>have.has(c)&&!banned.test(c))&&(!a.device||M.device&&((S&&S.DEVICE)||[]).includes(a.device))&&(!a.sit||M.sit)),...extra];}
+  return [...ACTIONS.filter(a=>(!a.pairOnly||!!PAIR_GAMEPLAY[id])&&!banned.test(a.id)&&!banned.test(a.clip)&&have.has(a.clip)&&(a.needs||[]).every(c=>have.has(c)&&!banned.test(c))&&(!a.device||M.device&&((S&&S.DEVICE)||[]).includes(a.device))&&(!a.sit||M.sit)),...extra];}
  const num=v=>typeof v==='number'&&Number.isFinite(v);
  const r1=v=>Math.round(v*10)/10,r2=v=>Math.round(v*100)/100;
  const wrap=a=>{const t=((a+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI;return r2(t);};
  /* The ledge a spot is in front of (to sit on), or null. */
- function ledgeAt(p){if(!p)return null;for(const l of ledges())if(Math.abs(p.x-l.x)<=l.w/2+.3&&p.z>=l.front-1)return l;return null;}
+ /* The ledge or seat a spot is in front of (to sit on), or null: the Avenue's ledges, and (20 Nov 2026) the seats of the tunnels' alcoves (ncz-street-pair.js seatNear). */
+ const POSE_OF=a=>(ACTION.get(a)||{}).pose||null;   // a sit action's pose ('chair', 'kneel', 'cross', 'knees'), or null
+ function ledgeAt(p,pose){if(!p)return null;const S=SP();if(S&&S.seatNear)return S.seatNear(p,pose);if(pose&&pose!=='chair')return null;for(const l of ledges())if(Math.abs(p.x-l.x)<=l.w/2+.3&&p.z>=l.front-1)return l;return null;}
+ /* Every seat besides the ledges, for the inventory (the server's check of "Sit"): {x, z, yaw, front:[x, z]} (front: where one stands to sit down). */
+ function seatList(){const S=SP();return ((S&&S.seats&&S.seats())||[]).map(st=>{const f=S.standOf?S.standOf(st):S.along(st,S.SEAT_FRONT);return {id:st.id,x:st.x,z:st.z,yaw:st.yaw,poses:(st.poses||['chair']).slice(),front:[Math.round(f.x*1000)/1000,Math.round(f.z*1000)/1000]};});}
+ /* The seat a spot is at and the poses it takes ({seat, poses:[{pose, name, action}]}), for the editor's "Pose" line; null away from every seat. */
+ function seatPoses(p){const S=SP(),st=ledgeAt(p);if(!st&&!(S&&S.seatNear))return null;const all=S&&S.seats?S.seats():[];const near=all.filter(x=>{const f=S.standOf(x);return Math.hypot(p.x-f.x,p.z-f.z)<=.6+1e-6;});
+  const seat=st||near[0]||null;if(!seat)return null;const poses=[...new Set([...(seat.poses||['chair']),...near.flatMap(x=>x.poses||[])])];return {seat:seat.id||'ledge',poses:poses.map(q=>({pose:q,name:(S.POSE_NAME||{})[q]||q,action:ACTIONS.find(a=>a.pose===q).id}))};}
+ /* An NPC's own post (MOVABLE[id].home: the tea room host behind his counter): {x, z, yaw, actions} in world metres, or null. */
+ const UG=()=>{try{return node?require('./ncz-underground.js'):root.VoidUnderground;}catch{return null;}};
+ function homeOf(id){const M=MOVABLE[id],h=M&&M.home;if(!h)return null;if(h.spot){const U=UG(),sp=U&&U.spots?U.spots().find(x=>x.id===h.spot):null;if(!sp)return null;return {x:sp.x,z:sp.z,yaw:sp.yaw,actions:h.actions.slice()};}return num(h.x)&&num(h.z)?{x:h.x,z:h.z,yaw:h.yaw||0,actions:h.actions.slice()}:null;}
  /* Plain-language problems with one spot for NPC id (empty: fine). An imported model (local test only) uses the same pavement: areaProblems. */
  function spotProblems(id,p){const M=MOVABLE[id];if(!M)return ['This NPC cannot be moved by the editor yet.'];if(M.area!=='city')return areaProblems(AREAS[M.area],M.name,p);
-  const c=AR().check(p);const out=c.ok?[]:[c.why];if(p&&p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');return out;}
+  const c=AR().check(p,null,undefined,ar(M));const out=c.ok?[]:[c.why];if(p&&p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');return out;}
  function areaProblems(A,name,p){
   if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>LIMIT.coord||Math.abs(p.z)>LIMIT.coord)return ['The spot has no position.'];
   const out=[];if(p.x<A.x0||p.x>A.x1||p.z<A.z0||p.z>A.z1)out.push('That is off '+A.name+' ('+name+' can only walk there: across the road it would be in front of the taxis, and the gates are closed).');
@@ -125,7 +166,7 @@
   if(p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');
   return out;}
  /* Can she walk straight from a to b? Both on the pavement (a rectangle, so the line stays on it) and the line clear of the taxi posts. */
- function legProblems(id,a,b){const M=MOVABLE[id];if(M&&M.area==='city')return AR().leg(a,b);const A=M&&AREAS[M.area];if(!A)return ['This NPC cannot be moved by the editor yet.'];
+ function legProblems(id,a,b){const M=MOVABLE[id];if(M&&M.area==='city')return AR().leg(a,b,ar(M));const A=M&&AREAS[M.area];if(!A)return ['This NPC cannot be moved by the editor yet.'];
   for(const o of OBSTACLES){for(let k=0;k<=20;k++){const t=k/20,q={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};if(inBox(q,o,CLEAR-.1))return ['The walk between these two points goes through '+o[4]+': add a point to go round it (nearer the shops).'];}}
   for(const s of posts()){const dx=b.x-a.x,dz=b.z-a.z,L=dx*dx+dz*dz,t=L?Math.max(0,Math.min(1,((s.x-a.x)*dx+(s.z-a.z)*dz)/L)):0,d=Math.hypot(a.x+dx*t-s.x,a.z+dz*t-s.z);if(d<A.post-.15)return ['The walk between these two points goes through the taxi post at '+s.id+': add a point to go round it.'];}
   return [];}
@@ -142,13 +183,13 @@
   if(p.mode==='original'){if(!keysOk(p,['mode','anims']))out.push(w+'“her own routine” has unknown fields.');return out;}
   if(p.mode==='stay'){if(!keysOk(p,['mode','x','z','yaw','actions','anims']))return [w+'the stay has unknown fields.'];for(const x of spotProblems(id,p))out.push(w+x);
    if(!Array.isArray(p.actions)||p.actions.length<LIMIT.actions[0]||p.actions.length>LIMIT.actions[1])out.push(w+'a stay needs 1 to 6 actions.');
-   else for(const a of p.actions){if(!ok.has(a)||(ACTION.get(a)||{}).path)out.push(w+'“'+a+'” is not something she can do here.');else if(a==='sit'&&!ledgeAt(p))out.push(w+'“Sit” needs a ledge: put the spot just in front of one.');}
+   else for(const a of p.actions){if(!ok.has(a)||(ACTION.get(a)||{}).path)out.push(w+'“'+a+'” is not something she can do here.');else if(POSE_OF(a)&&!ledgeAt(p,POSE_OF(a)))out.push(w+(a==='sit'?'“Sit” needs a ledge: put the spot just in front of one.':'“'+(ACTION.get(a)||{}).name+'” needs a seat that takes that pose (a tea room cushion, a cot or an alcove bench): put the spot where one steps onto it.'));}
    return out;}
   if(!keysOk(p,['mode','points','anims']))return [w+'the path has unknown fields.'];
   if(!Array.isArray(p.points)||p.points.length<LIMIT.points[0]||p.points.length>LIMIT.points[1])return [w+'a path needs 2 to 12 points.'];
   p.points.forEach((q,i)=>{const pw=w+'point '+(i+1)+': ';if(!keysOk(q,['x','z','action','seconds'])){out.push(pw+'unknown fields.');return;}
    for(const x of spotProblems(id,q))out.push(pw+x);
-   if(!ok.has(q.action))out.push(pw+'“'+q.action+'” is not something she can do.');else if(q.action==='sit'&&!ledgeAt(q))out.push(pw+'“Sit” needs a ledge: put the point just in front of one.');
+   if(!ok.has(q.action))out.push(pw+'“'+q.action+'” is not something she can do.');else if(POSE_OF(q.action)&&!ledgeAt(q,POSE_OF(q.action)))out.push(pw+(q.action==='sit'?'“Sit” needs a ledge: put the point just in front of one.':'“'+(ACTION.get(q.action)||{}).name+'” needs a seat that takes that pose: put the point where one steps onto it.'));
    if(q.action!=='walk-on'&&!(Number.isInteger(q.seconds)&&q.seconds>=LIMIT.seconds[0]&&q.seconds<=LIMIT.seconds[1]))out.push(pw+'how long: a whole number of seconds from 1 to 120.');
    const n=p.points[(i+1)%p.points.length];if(num(q.x)&&num(q.z)&&n&&num(n.x)&&num(n.z))for(const x of legProblems(id,q,n))out.push(pw+x);});
   if(p.points.every(q=>q.action==='walk-on'))out.push(w+'at least one point needs something to do (not only “walk on”).');
@@ -159,6 +200,7 @@
  function importPlanProblems(p,clips){const A=AVENUE_NORTH,out=[],ok=new Set(['wait','walk-on',...(clips||[])]);if(!p||!['stay','path'].includes(p.mode))return ['Choose “Stay here” or “Route”.'];
   if(p.mode==='stay'){out.push(...areaProblems(A,'the model',p));if(!Array.isArray(p.actions)||!p.actions.length)out.push('Pick at least one thing for it to do.');else for(const a of p.actions)if(!ok.has(a)||a==='walk-on')out.push('“'+a+'” is not a clip in its file.');return out;}
   if(!Array.isArray(p.points)||p.points.length<2)return ['A route needs at least 2 points: click the pavement to add them.'];
+  if(!(clips||[]).some(c=>/walk/i.test(c)))out.push('A route needs a walking animation in the model. Choose Stay here until a walk clip is imported.');
   p.points.forEach((q,i)=>{for(const x of areaProblems(A,'the model',q))out.push('point '+(i+1)+': '+x);if(!ok.has(q.action))out.push('point '+(i+1)+': “'+q.action+'” is not a clip in its file.');});return out;}
  /* content.npcs: {id: plan}. */
  function checkAll(npcs){if(npcs==null)return [];if(!npcs||typeof npcs!=='object'||Array.isArray(npcs)||Object.keys(npcs).length>20)return ['NPC placements have an unknown shape.'];
@@ -177,33 +219,50 @@
  /* What the game should do with a movable NPC now (ncz-street-pair.js). waiting: a mission's waitAt for her, or null; plan: content.npcs[id] or null.
     Returns {key, mode:'stay'|'path', ...} (key changes when the plan does) or null (her own routine). */
  function planNow(id,{waiting=null,plan=null,minute=null}={}){
-  if(waiting&&num(waiting.x)&&num(waiting.z)){const l=ledgeAt(waiting);return {area:AR().areaOf(waiting)||null,key:'wait:'+(waiting.mission||'')+':'+waiting.x+':'+waiting.z,mode:'stay',x:waiting.x,z:waiting.z,yaw:num(waiting.yaw)?waiting.yaw:Math.PI,actions:MOVABLE[id]&&MOVABLE[id].cat?CAT_STAY.slice():l?[...STAY_DEFAULT,'sit']:STAY_DEFAULT.slice(),why:'waiting'};}
+  if(waiting&&num(waiting.x)&&num(waiting.z)){const l=ledgeAt(waiting);return {area:AR().areaOf(waiting)||null,key:'wait:'+(waiting.mission||'')+':'+waiting.x+':'+waiting.z,mode:'stay',x:waiting.x,z:waiting.z,yaw:num(waiting.yaw)?waiting.yaw:Math.PI,actions:MOVABLE[id]&&MOVABLE[id].cat?CAT_STAY.slice():homeOf(id)?homeOf(id).actions:l?(SP()&&SP().posesOf&&!SP().posesOf(l).includes('chair')?['idle',ACTIONS.find(a=>a.pose===SP().posesOf(l)[0]).id]:[...STAY_DEFAULT,'sit']):STAY_DEFAULT.slice(),why:'waiting'};}
   // a daily schedule: the block for this in-game minute of the day (minute: game-clock.js now(state).minuteOfDay); "her usual thing" in a block is her own routine
-  if(plan&&Array.isArray(plan.schedule)&&num(minute)){const i=blockAt(plan.schedule,minute);if(i>=0){const b=plan.schedule[i];if(b.mode==='original')return null;const r=planNow(id,{plan:b});if(r){r.key='sched:'+i+':'+b.from+'-'+b.to+':'+r.key;r.why='schedule';r.block=i;}return r;}}
+  if(plan&&Array.isArray(plan.schedule)&&num(minute)){const i=blockAt(plan.schedule,minute);if(i>=0){const b=plan.schedule[i];if(b.mode==='original')return homePlan(id);const r=planNow(id,{plan:b});if(r){r.key='sched:'+i+':'+b.from+'-'+b.to+':'+r.key;r.why='schedule';r.block=i;}return r;}}
   if(plan&&plan.mode==='stay')return {area:AR().areaOf(plan)||null,key:'stay:'+plan.x+':'+plan.z+':'+plan.yaw+':'+plan.actions.join(','),mode:'stay',x:plan.x,z:plan.z,yaw:plan.yaw,actions:plan.actions.slice(),why:'stay'};
   if(plan&&plan.mode==='path')return {area:AR().areaOf(plan.points[0]||{})||null,key:'path:'+plan.points.map(q=>q.x+','+q.z+','+q.action+','+q.seconds).join(';'),mode:'path',points:plan.points.map(q=>({...q})),why:'path'};
-  return null;}
+  return homePlan(id);}
+ /* No placement (or "his own routine"): an NPC with a post of his own (the tea room host) stands at it; everyone else follows their own routine (null). */
+ function homePlan(id){const h=homeOf(id);if(!h)return null;return {area:AR().areaOf(h)||null,key:'home:'+h.x+':'+h.z+':'+h.yaw+':'+h.actions.join(','),mode:'stay',x:h.x,z:h.z,yaw:h.yaw,actions:h.actions,why:'home'};}
  /* Map data (the editor's top-down map): the walkable area, the road, the gates, the ledges, the taxi posts, the shopfront names, her usual stretch. */
- function mapData(areaId='avenue'){const S=SP(),Ar=AR(),a=Ar.get(areaId)||Ar.get('avenue'),P=node?require('./places.js'):root.VoidPlaces,v=a.view,inV=(x,z)=>x>=v.x0&&x<=v.x1&&z>=v.z0&&z<=v.z1;
+ function mapData(areaId='avenue',npc=null){const ad=!!(npc&&MOVABLE[npc]&&MOVABLE[npc].adult);const S=SP(),Ar=AR(),a=Ar.get(areaId)||Ar.get('avenue'),P=node?require('./places.js'):root.VoidPlaces,v=a.view,inV=(x,z)=>x>=v.x0&&x<=v.x1&&z>=v.z0&&z<=v.z1;
   const shop=a.scene==='street'?((P&&P.SHOPFRONTS)||[]).filter(([,x,z])=>inV(x,z)).map(([name,x,z,side])=>({name,x,z,side})):[];const av=a.id==='avenue',rc=r=>({x0:r.x0,x1:r.x1,z0:r.z0,z1:r.z1,...(r.name?{name:r.name}:{})});
-  return {area:a.id,name:a.name,scene:a.scene,view:{...v},floors:a.floors.map(rc),walk:a.walk.map(rc),roads:a.roads.map(rc),no:a.no.map(n=>({...rc(n),why:n.why,rule:!!n.rule})),gates:a.gates.map(rc),
-   obstacles:a.obstacles.map(o=>({x0:o[0],x1:o[1],z0:o[2],z1:o[3],name:o[4]})),posts:a.posts.map(([x,z])=>({x,z})),labels:a.labels.map(l=>({...l})),shops:shop,
+  return {area:a.id,name:a.name,scene:a.scene,view:{...v},floors:a.floors.map(rc),walk:a.walk.filter(w=>!w.adult||ad).map(rc),roads:a.roads.map(rc),no:a.no.filter(n=>!(ad&&n.adult)).map(n=>({...rc(n),why:n.why,rule:!!n.rule,...(n.doorway?{doorway:true}:{})})),gates:a.gates.map(rc),
+   obstacles:a.obstacles.map(o=>({x0:o[0],x1:o[1],z0:o[2],z1:o[3],name:o[4]})),posts:a.posts.map(([x,z])=>({x,z})),labels:a.labels.map(l=>({...l})),shops:shop,escapes:(a.escapes||[]).map(e=>({...e,u:e.u.slice(),t:e.t.slice(),foot:e.foot.slice()})),tunnels:(a.tunnels||[]).map(u=>({...u,rect:u.rect.slice(),top:u.top.slice(),down:u.down.slice()})),stairDoors:(a.tunnelDoors||[]).map(d=>({id:d.id,name:d.name,place:d.place,inside:d.inside?{...d.inside}:null})),seats:(a.seats||[]).map(x=>({...x})),under:!!a.under,   // the tunnels (ncz-underground.js): the stair doors and the alcoves' seats
+   // the back alleys' fire escapes (ncz-backalleys.js)
+   
    ledges:av?ledges():[],stretch:av&&S?{x0:S.STRETCH.x0,x1:S.STRETCH.x1,z:S.STRETCH.z}:null,seat:av&&S?{...S.SEAT}:null,catHome:av&&S?{...S.CAT_HOME}:null,
-   areas:Ar.list().map(x=>({id:x.id,name:x.name}))};}
+   areas:Ar.list().filter(x=>ad||x.walk.some(w=>!w.adult)).map(x=>({id:x.id,name:x.name}))};}
  /* Snap a clicked spot onto ground she may stand on (the editor: a click on the road, a kerb or a piece of furniture lands on the nearest allowed spot, within a few metres;
     a click in a forbidden place is never moved). pick() -> {spot:{x, z, moved} or null, why}. area: the area shown on the map. */
  function pick(id,p,area){const M=MOVABLE[id];if(!M||!p)return {spot:null,why:'This NPC cannot be moved by the editor yet.'};
   if(M.area!=='city'){const A=AREAS[M.area];return {spot:{x:r1(Math.max(A.x0,Math.min(A.x1,p.x))),z:r1(Math.max(A.z0,Math.min(A.z1,p.z))),moved:true},why:''};}
-  const c=AR().check(p,area);if(c.ok&&(!area||c.area===area))return {spot:{x:r1(p.x),z:r1(p.z),moved:false},why:''};
-  const q=c.kind==='rule'?null:AR().nearest(p,area||c.area);if(q)return {spot:q,why:c.why};return {spot:null,why:c.ok?'That is in '+AR().get(c.area).name+', not the area shown: pick it in the area list first.':c.why+(c.kind==='rule'?'':' (nothing she can stand on nearby)')};}
+  const c=AR().check(p,area,undefined,ar(M));if(c.ok&&(!area||c.area===area))return {spot:{x:r1(p.x),z:r1(p.z),moved:false},why:''};
+  const q=c.kind==='rule'?null:AR().nearest(p,area||c.area,undefined,ar(M));if(q)return {spot:q,why:c.why};return {spot:null,why:c.ok?'That is in '+AR().get(c.area).name+', not the area shown: pick it in the area list first.':c.why+(c.kind==='rule'?'':' (nothing she can stand on nearby)')};}
  function snap(id,p,area){if(!p)return p;const r=pick(id,p,area);return r.spot?{...p,x:r.spot.x,z:r.spot.z}:p;}
  /* For the admin inventory (the server's copy of these rules). */
  function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:AR().IDS.slice(),
-  ledges:ledges().map(l=>({x:l.x,w:l.w,front:Math.round(l.front*1000)/1000})),actions:actionsFor(id).map(a=>a.id),anims:libraryOffer(id).filter(o=>o.ok).map(o=>o.id),pathOnly:ACTIONS.filter(a=>a.path).map(a=>a.id)};}return {movable:out,areas:AR().inventory(),limits:LIMIT,import:{maxTriangles:IMPORT.maxTriangles,target:IMPORT.target,maxBytes:IMPORT.maxBytes,texWarn:IMPORT.texWarn}};}
+  ledges:ledges().map(l=>({x:l.x,w:l.w,front:Math.round(l.front*1000)/1000})),seats:seatList(),actions:actionsFor(id).map(a=>a.id),anims:libraryOffer(id).filter(o=>o.ok).map(o=>o.id),pathOnly:ACTIONS.filter(a=>a.path).map(a=>a.id)};}return {movable:out,areas:AR().inventory(),limits:LIMIT,import:{maxTriangles:IMPORT.maxTriangles,target:IMPORT.target,maxBytes:IMPORT.maxBytes,texWarn:IMPORT.texWarn}};}
  /* IMPORT MODEL (the owner, 18 Nov 2026: "import new models, then place them in" and "just have a cap on poly counts for each import"): the caps, in ONE place (the
     server reads the same numbers from the admin inventory for the "Add to the game" package). Over maxTriangles (whole model, every mesh) or maxBytes: refused.
     Over target: accepted with an amber note. A texture wider or taller than texWarn: an amber note. Imported models stay in this browser (local test only). */
  const IMPORT={maxTriangles:50000,target:20000,maxBytes:15*1024*1024,texWarn:2048,exts:['.glb','.gltf']};
+ /* Validate the container before Babylon sees it. Imported assets must not fetch arbitrary external resources. */
+ function importDocument(bytes,ext){const b=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);let json;
+  if(!b.length||b.length>IMPORT.maxBytes)throw new Error('Model file is empty or exceeds 15 MB.');
+  if(ext==='.glb'){const v=new DataView(b.buffer,b.byteOffset,b.byteLength);if(b.length<20||v.getUint32(0,true)!==0x46546c67||v.getUint32(4,true)!==2||v.getUint32(8,true)!==b.length||v.getUint32(16,true)!==0x4e4f534a)throw new Error('Not a valid glTF 2.0 GLB.');const len=v.getUint32(12,true);if(!len||20+len>b.length)throw new Error('Invalid GLB JSON chunk.');json=JSON.parse(new TextDecoder().decode(b.subarray(20,20+len)));}
+  else if(ext==='.gltf')json=JSON.parse(new TextDecoder().decode(b));else throw new Error('Choose a GLB or glTF model.');
+  if(!json||json.asset?.version!=='2.0'||!Array.isArray(json.meshes)||!json.meshes.length)throw new Error('Export a glTF 2.0 model containing a mesh.');
+  for(const r of [...(json.buffers||[]),...(json.images||[])])if(r.uri!=null&&(typeof r.uri!=='string'||!/^data:/i.test(r.uri)))throw new Error('This model has external buffers or textures. Export a single self-contained GLB from Blender or Meshy.');
+  return json;}
+ /* Conservative automatic candidates for an as-yet unclassified imported NPC. Each still needs the runtime retarget test. */
+ function importClips(info,idx=INDEX()){const L=AL();if(!L||!idx||!info||!info.rest||!L.compatible((info.bones||[]).map(L.bare))||!L.CORE.every(k=>Array.isArray(info.rest[k])))return [];
+  const result=[],banned=SP()?.BANNED||/$^/;for(const [asset,f] of Object.entries(idx.files||{})){if(!f.public||ADULT.test(asset)||!f.mixamo||f.joints!==info.bones.length||!L.CORE.every(k=>Array.isArray(f.rest?.[k]))||!L.restMatches(f.rest,info.rest))continue;
+   for(const c of f.clips||[]){const name=Array.isArray(c)?c[0]:c,id=asset+'/'+name;if(!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(id)||banned.test(id)||YOUNG_NO.test(id))continue;result.push({id,name,asset});}}
+  return result.sort((a,b)=>a.name.localeCompare(b.name)||a.asset.localeCompare(b.asset));}
  /* The checklist verdict for an imported file. info: {triangles, bytes, textures:[{name,w,h}], bones:[names], clips:[names], height}. */
  function importCheck(info){const out=[],add=(level,text)=>out.push({level,text}),t=info.triangles|0,mb=b=>(b/1048576).toFixed(1)+' MB';
   if(t>IMPORT.maxTriangles)add('bad','This model has '+t.toLocaleString('en')+' triangles; the limit is '+IMPORT.maxTriangles.toLocaleString('en')+'. Reduce it in Blender, or send it to Claude/Codex to reduce.');
@@ -215,7 +274,7 @@
   else{const rig=bones.length===24&&!missing.length?'the 24-joint Mixamo-named rig of the Meshy street people':bones.length>=50&&!missing.length?'the larger crowd rig (about 52 joints)':!missing.length?'a Mixamo-named rig ('+bones.length+' joints)':null;
    add(rig?'ok':'warn',bones.length+' joints'+(rig?': matches '+rig+', so library clips can be tried on it (the rest pose is checked when a clip is tried).':': not the game’s rig (missing '+missing.slice(0,6).join(', ')+(missing.length>6?'…':'')+'), so only its own clips can play.'));}
   add((info.clips||[]).length?'ok':'warn',(info.clips||[]).length?'Clips in the file: '+info.clips.join(', ')+'.':'No clips in the file.');
-  if(Number.isFinite(info.height))add(info.height>1.3&&info.height<2.3?'ok':'warn','Height '+info.height.toFixed(2)+' m'+(info.height>1.3&&info.height<2.3?'.':' (a person is about 1.6 to 1.9 m: it will be scaled to 1.75 m in the test).'));
+  if(Number.isFinite(info.height))add(info.height>1.3&&info.height<2.3?'ok':'warn','Height '+(info.height*3.28084).toFixed(1)+' ft'+(info.height>1.3&&info.height<2.3?'.':' (a person is about 5.2 to 6.2 ft: it will be scaled to 5.7 ft in the test).'));
   return {ok:!out.some(x=>x.level==='bad'),items:out};}
  /* DAILY SCHEDULES (the owner, 18 Nov 2026, queue item 1: "daily NPC schedules by in-game hour"). plan.schedule = [{from:'HH:MM', to:'HH:MM', name?, mode:'stay'|'path'|
     'original', ...that mode's fields}]: from `from` until `to` on the game's own clock (game-clock.js; an in-game day is 2 hours of play) she does that block; outside every
@@ -244,6 +303,6 @@
    if(b.name!=null&&(typeof b.name!=='string'||!NAME_OK.test(b.name)))out.push(bw+'the name may use letters, numbers and simple punctuation only (40 at most).');
    if(b.mode!=='original'){const {from,to,name,...rest}=b;for(const x of planOnly(id,{...rest,...(Array.isArray(anims)?{anims}:{})}))out.push(bw+x.replace(w,''));}});
   return out;}
- const api={CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
+ const api={PAIR_GAMEPLAY,pairGameplay,combatAllowed,missionClips,homeOf,homePlan,seatList,seatPoses,POSE_OF,setMade,madeNow,YOUNG_MODELS,adultOk,CAT_ACTIONS,CAT_STAY,blockAt,scheduleProblems,toMin,hhmm,span,cleanBlock,BLOCK_KEYS,NAME_OK,HHMM,OBSTACLES,animAllowed,applyAnims,category,ADULT,INDEX,areaProblems,importPlanProblems,IMPORT,importCheck,importDocument,importClips,libraryOffer,noAI,request,MOVABLE,AREAS,AVENUE_NORTH,ACTIONS,ACTION,LIMIT,STAY_DEFAULT,actionsFor,crowdClips,ledgeAt,spotProblems,legProblems,waitAtProblems,planProblems,checkAll,clean,cleanWait,planNow,mapData,snap,pick,inventory,posts,ledges,wrap};
  if(node)module.exports=api;else root.VoidNPCPaths=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

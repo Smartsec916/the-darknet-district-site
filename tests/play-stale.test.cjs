@@ -6,7 +6,7 @@ const body=name=>{const i=s.indexOf(name);assert.ok(i>=0,name);return s.slice(i,
 test('one shared helper: the field being typed in hands over its value, the trees are rebuilt from the saved draft, the waiting Guide me pass runs now',()=>{
  const f=body(' function fresh(){');assert.match(f,/a\.blur\(\)/);assert.match(f,/if\(src\)rebuild\(\)/);assert.match(f,/clearTimeout\(guideT\);guideT=0;guideNow\(\)/);});
 test('PLAY THIS DRAFT, PLAY FROM HERE, Test my mission / PLAY IT NOW and JUMP THERE all go through it before checking',()=>{
- const p=s.slice(s.indexOf(' async function play(key,stepId){'));assert.match(p,/^ async function play\(key,stepId\)\{\n  fresh\(\);const f=findMission\(key\)/);
+ assert.match(s,/ async function play\(key,stepId,opt=\{\}\)\{try\{return await playNow\(key,stepId,opt\);/);const p=s.slice(s.indexOf(' async function playNow(key,stepId,opt={}){'));assert.match(p,/^ async function playNow\(key,stepId,opt=\{\}\)\{\r?\n  fresh\(\);const f=findMission\(key\)/);
  assert.match(body('  playTree(id,step){'),/playTree\(id,step\)\{return play\('tree:'\+id,step\|\|null\);\}/);
  assert.match(body(' async function jumpTo('),/return;fresh\(\);const content=draftContent\(\)/);
  for(const m of s.matchAll(/btn\('PLAY THIS DRAFT(?: FROM HERE)?',\(\)=>(\w+)\(/g))assert.equal(m[1],'play');});

@@ -15,15 +15,15 @@ const player=x=>{const s=x.C.startDistrictCampaign(x.C.fresh());s.story.flags.ap
 const tree=(waitAt,extra={})=>({id:'draft-street',name:'Street',missions:[{id:'draft-street-m1',number:41,title:'A favour',type:'side',giver:'grey-reverie',start:{how:'person',accept:true},offer:[{who:'grey-reverie',text:'Got a minute?'}],
  objectives:[{id:'go',kind:'go',place:'port',label:'Go to the Port.'}],...(waitAt?{waitAt}:{}),...extra}]});
 
-test('only Reverie, Lace and the street cat can be moved; their actions come from their own clip list (crowd.js) and never a banned clip',()=>{fresh();const P=X(),S=SP(),C=CR();
- assert.deepEqual(Object.keys(P.MOVABLE).sort(),['ethereal-lace','grey-reverie','street-cat']);
+test('only Reverie, Lace, the street cat and the tea room host can be moved; their actions come from their own clip list (crowd.js) and never a banned clip',()=>{fresh();const P=X(),S=SP(),C=CR();
+ assert.deepEqual(Object.keys(P.MOVABLE).sort(),['ethereal-lace','grey-reverie','street-cat','tea-host']);
  assert.deepEqual(P.actionsFor('street-cat').map(a=>a.id),P.CAT_ACTIONS);assert.deepEqual(P.libraryOffer('street-cat'),[]);   // the cat: its own procedural actions, no clips
  for(const id of Object.keys(P.MOVABLE).filter(k=>!P.MOVABLE[k].cat)){const have=new Set(C.clips[P.MOVABLE[id].asset]);assert.ok(have.size>10,id);
   for(const a of P.actionsFor(id)){assert.ok(have.has(a.clip),id+' '+a.id+' plays '+a.clip+' which is in the file');assert.doesNotMatch(a.id+' '+a.clip,S.BANNED,'not banned: '+a.id);for(const c of a.needs||[])assert.ok(have.has(c));}
-  for(const want of ['wait','idle','look','scroll','selfie','sit','dance-groove','walk-on'])assert.ok(P.actionsFor(id).some(a=>a.id===want),want);}
+  for(const want of P.MOVABLE[id].builtin?['wait','idle','look','watch','work','walk-on']:['wait','idle','look','scroll','selfie','sit','dance-groove','walk-on'])assert.ok(P.actionsFor(id).some(a=>a.id===want),id+' '+want);}
  assert.deepEqual(P.actionsFor('admin'),[]);
  // banned words are never offered as actions or library animations, even if somebody adds them to the list
- for(const o of P.libraryOffer('grey-reverie'))if(S.BANNED.test(o.id)||S.BANNED.test(o.title))assert.equal(o.ok,false,o.id);
+ for(const o of P.libraryOffer('grey-reverie'))if((S.BANNED.test(o.id)||S.BANNED.test(o.title))&&!P.pairGameplay('grey-reverie',o.id))assert.equal(o.ok,false,o.id);
  assert.ok(P.libraryOffer('grey-reverie').every(o=>!o.ok||(!o.id.includes('sensual')&&!/kiss|hip/i.test(o.title))));
  assert.match(P.planProblems('grey-reverie',{mode:'stay',x:100,z:-6.5,yaw:0,actions:['dance-belly']}).join(),/not something she can do/);
  assert.match(P.planProblems('grey-reverie',{mode:'path',points:[{x:100,z:-6.5,action:'slow-dance',seconds:4},{x:110,z:-6.5,action:'idle',seconds:4}]}).join(),/not something she can do/);
@@ -87,10 +87,11 @@ test('content: a mission’s waitAt and content.npcs are checked, kept by the ex
  // apply puts placements where the game reads them
  MC.apply(doc(x,{npcs:{'grey-reverie':{mode:'stay',x:100,z:-6.5,yaw:0,actions:['look']}}}),x.e,ctx(x));assert.equal(x.e.npcPlans['grey-reverie'].x,100);MC.apply(null,x.e);assert.deepEqual(x.e.npcPlans,{});});
 
-test('“Giver waits at” applies only while that mission waits to be offered by her; once accepted she goes back',()=>{const x=env(),{MC}=x;
+test('“Giver waits at” holds her while that mission waits to be offered by her and while it runs (fix 19 Nov 2026: she no longer walks off once it is taken); once done she goes back',()=>{const x=env(),{MC}=x;
  MC.apply(doc(x,{trees:[tree({x:104.4,z:-5.9,yaw:3.14})]}),x.e,ctx(x));const s=player(x);
  assert.deepEqual(MC.waitingAt(s,x.e)['grey-reverie'],{x:104.4,z:-5.9,yaw:3.14,mission:'draft-street-m1'});
- assert.equal(MC.treeEvent(s,x.e,{type:'accept',mission:'draft-street-m1'},x.M,x.C).offered,true);assert.deepEqual(MC.waitingAt(s,x.e),{});
+ assert.equal(MC.treeEvent(s,x.e,{type:'accept',mission:'draft-street-m1'},x.M,x.C).offered,true);assert.deepEqual(MC.waitingAt(s,x.e),{'grey-reverie':{x:104.4,z:-5.9,yaw:3.14,mission:'draft-street-m1',during:true}});
+ s.universe.missions['draft-street-m1'].completed=true;assert.deepEqual(MC.waitingAt(s,x.e),{},'done: back to her own routine');
  // a later mission in the same tree waits until the earlier one is done
  const t2=tree(null);t2.missions.unshift({id:'draft-street-m0',number:40,title:'First',type:'side',giver:'admin',offer:[{who:'admin',text:'Hi'}],objectives:[{id:'go',kind:'go',place:'port',label:'Go.'}]});t2.missions[1].waitAt={x:100,z:-6.5,yaw:0};
  MC.apply(doc(x,{trees:[t2]}),x.e,ctx(x));assert.deepEqual(MC.waitingAt(player(x),x.e),{},'the earlier mission is not done');
@@ -120,6 +121,19 @@ test('import caps: over 50,000 triangles or 15 MB is refused; 20,000-50,000 is a
  assert.equal(P.request('vr-companion-bm','vr-companion-bm','a wave').route,'local-retarget-only');assert.equal(P.request('grey-reverie','npc-grey-reverie','a wave').route,'retarget-or-library');
  assert.equal(P.noAI('studio-warrior'),true);assert.equal(P.noAI('npc-dax'),true);assert.equal(P.noAI('npc-fish','milked-fish'),false);});
 
+test('staging accepts self-contained glTF and rejects external resources',()=>{fresh();const P=X(),base={asset:{version:'2.0'},meshes:[{}]},bytes=o=>Buffer.from(JSON.stringify(o));
+ assert.deepEqual(P.importDocument(bytes(base),'.gltf'),base);
+ assert.throws(()=>P.importDocument(bytes({...base,images:[{uri:'https://example.org/image.png'}]}),'.gltf'),/external/);
+ assert.throws(()=>P.importDocument(bytes({...base,buffers:[{uri:'model.bin'}]}),'.gltf'),/external/);
+ assert.throws(()=>P.importDocument(Buffer.alloc(20),'.glb'),/valid glTF/);
+ assert.doesNotThrow(()=>P.importDocument(bytes({...base,buffers:[{uri:'data:application/octet-stream;base64,AA=='}]}),'.gltf'));
+});
+test('staged model candidate scan matches complete rest pose and joint count, not licensed files',()=>{fresh();const P=X(),L=require(R('void-runner/anim-library.js')),bones=L.CORE.slice(),rest=Object.fromEntries(bones.map(b=>[b,[0,0,0,1]])),f={public:true,mixamo:true,joints:bones.length,rest,clips:[['idle','idle']]};
+ const idx={files:{'npc-demo':f,'npc-other':{...f,joints:999},'npc-private':{...f,public:false}}};
+ assert.deepEqual(P.importClips({bones,rest},idx).map(x=>x.id),['npc-demo/idle']);
+ assert.deepEqual(P.importClips({bones,rest:{}},idx),[]);
+});
+
 test('the server’s copy of the rules (admin inventory npcPaths) matches npc-paths.js',()=>{fresh();const P=X(),inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths;
  assert.deepEqual(inv,JSON.parse(JSON.stringify(P.inventory())));assert.deepEqual(inv.import,{maxTriangles:50000,target:20000,maxBytes:15728640,texWarn:2048});
  for(const id of Object.keys(P.MOVABLE))for(const a of inv.movable[id].actions)assert.doesNotMatch(a,SP().BANNED);});
@@ -133,15 +147,20 @@ test('the editor files load in order and the NPCs tab is a Developer Tools secti
  assert.match(ne,/notification:!g\.canTalk/,'a no-TALK NPC creates a notification-started mission instead of a disabled button');
  assert.match(ne,/Walking TALK available \(in-person missions\)/);assert.match(ne,/device-started missions; no walking TALK yet/);});
 
-test('every animation in the game is indexed from the real files; Reverie and Lace get only casual clips that her rig takes (no smoking, drinking, adult or club sources)',()=>{fresh();const P=X(),I=require(R('void-runner/npc-clip-index.json')),idx=require(R('tools/npc-clip-index.cjs'));
+test('every animation in the game is indexed from the real files; Reverie and Lace get compatible ordinary gameplay clips, with exact exceptions for verified shared motions',()=>{fresh();const P=X(),I=require(R('void-runner/npc-clip-index.json')),idx=require(R('tools/npc-clip-index.cjs'));
  assert.equal(JSON.stringify(idx.build())+'\n',fs.readFileSync(R('void-runner/npc-clip-index.json'),'utf8'),'npc-clip-index.json is current (node tools/npc-clip-index.cjs)');
  assert.equal(I.files['npc-grey-reverie'].joints,24);assert.ok(Object.keys(I.files).length>50);
- for(const id of Object.keys(P.MOVABLE).filter(k=>!P.MOVABLE[k].cat)){const o=P.libraryOffer(id),ok=o.filter(x=>x.ok);assert.ok(ok.length>20,id+' has shared clips');
-  for(const x of ok){assert.doesNotMatch(x.id+' '+x.title,SP().BANNED);assert.doesNotMatch(x.id,/smoke|drink|drunk|vr-|shoot/);assert.doesNotMatch(x.source,P.ADULT);assert.equal(P.animAllowed(id,x.id),'');}
-  assert.notEqual(P.animAllowed(id,'npc-kai/idle'),'','an adult-only source');assert.notEqual(P.animAllowed(id,'npc-rin/smoke'),'');assert.notEqual(P.animAllowed(id,'npc-rin/walk'),'','her own walk is used');}
+ {const ok=P.libraryOffer('tea-host').filter(x=>x.ok);for(const x of ok)assert.equal(P.animAllowed('tea-host',x.id),'');}   // the tea room host's model (the old street cook) rests differently from most rigs: fewer shared clips
+ for(const id of Object.keys(P.MOVABLE).filter(k=>!P.MOVABLE[k].cat&&!P.MOVABLE[k].builtin)){const o=P.libraryOffer(id),ok=o.filter(x=>x.ok);assert.ok(ok.length>20,id+' has shared clips');
+  for(const x of ok){if(!P.pairGameplay(id,x.id)){assert.doesNotMatch(x.id+' '+x.title,SP().BANNED);assert.doesNotMatch(x.id,/smoke|drink|drunk|vr-|shoot/);assert.doesNotMatch(x.source,P.ADULT);}assert.equal(P.animAllowed(id,x.id),'');}
+  assert.equal(P.animAllowed(id,'npc-kai/idle')==='',P.pairGameplay(id,'npc-kai/idle'));assert.notEqual(P.animAllowed(id,'npc-rin/smoke'),'');assert.notEqual(P.animAllowed(id,'npc-rin/walk'),'','her own walk is used');}
  // a different rig or rest pose is refused with the reason (offline retarget)
  const lace=P.libraryOffer('grey-reverie').find(x=>x.source==='npc-ethereal-lace'&&x.clip==='idle');assert.equal(lace.ok,false);assert.match(lace.why,/Request an animation/);
  const old=P.libraryOffer('grey-reverie').find(x=>x.source==='hacker-01');assert.match(old.why,/different skeleton/);
  assert.deepEqual(P.planProblems('grey-reverie',{mode:'stay',x:100,z:-6.5,yaw:0,actions:['npc-rin/laugh'],anims:['npc-rin/laugh']}),[]);
  assert.match(P.planProblems('grey-reverie',{mode:'stay',x:100,z:-6.5,yaw:0,actions:['npc-rin/laugh']}).join(),/not something/,'only once added');
- const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths.movable['grey-reverie'];assert.ok(inv.anims.includes('npc-rin/laugh'));assert.ok(!inv.anims.some(a=>/smoke|kai\//.test(a)));});
+ const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths.movable['grey-reverie'];assert.ok(inv.anims.includes('npc-rin/laugh'));assert.ok(!inv.anims.some(a=>/smoke|blow-kiss/.test(a)));});
+
+ test('verified shared gameplay motions appear directly in mission gestures and photo is a native action',()=>{fresh();const P=X(),G=require(R('void-runner/npc-gestures.js')),S=SP();for(const id of ['grey-reverie','ethereal-lace']){assert.ok(P.actionsFor(id).some(a=>a.id==='photo'));assert.ok(P.PAIR_GAMEPLAY[id].every(c=>G.clipsFor(id).clips.some(x=>x.id===c)));assert.ok(P.animAllowed(id,'npc-kai/blow-kiss'));}assert.equal(P.animAllowed('grey-reverie','npc-security/vr-shoot'),'');assert.notEqual(P.animAllowed('ethereal-lace','npc-security/vr-shoot'),'');assert.equal(S.ACT.photo.device,'photo');});
+
+ test('combat permission is independent of age classification; all verified shared motions are directly selectable',()=>{fresh();const P=X(),G=require(R('void-runner/npc-gestures.js'));for(const id of ['grey-reverie','ethereal-lace']){assert.equal(P.MOVABLE[id].combatAnimations,true);assert.equal(P.MOVABLE[id].youthful,true);const clips=P.libraryOffer(id).filter(o=>o.ok).map(o=>o.id);assert.deepEqual(P.missionClips(id),clips);const missions=new Set(G.clipsFor(id).clips.map(x=>x.id));assert.ok(clips.every(c=>missions.has(c)));assert.ok(P.animAllowed(id,'npc-kai/blow-kiss'));}assert.equal(P.animAllowed('grey-reverie','npc-security/vr-shoot'),'');assert.notEqual(P.animAllowed('ethereal-lace','npc-security/vr-shoot'),'');P.MOVABLE['grey-reverie'].combatAnimations=false;try{assert.notEqual(P.animAllowed('grey-reverie','npc-security/vr-shoot'),'');}finally{P.MOVABLE['grey-reverie'].combatAnimations=true;}});

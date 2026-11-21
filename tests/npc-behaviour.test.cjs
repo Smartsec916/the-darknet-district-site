@@ -92,7 +92,7 @@ test('daily schedules: the block for an in-game minute, across midnight; outside
  // a block that is "her usual thing" inside a stay all day: her own routine then
  const o={...stayAll,schedule:[{from:'10:00',to:'11:00',mode:'original'}]};assert.equal(X.planNow(REV,{plan:o,minute:at(10,30)}),null);assert.deepEqual(X.planProblems(REV,o),[]);
  // the game: live-content.js passes the game clock's minute of the day
- const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/GC\.now\(state\)\.minuteOfDay/);assert.match(lc,/planNow\(id,\{waiting:wait\[id\]\|\|null,plan:\(env\.npcPlans\|\|\{\}\)\[id\]\|\|null,minute\}\)/);});
+ const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/GC\.now\(state\)\.minuteOfDay/);assert.match(lc,/let w=wait\[id\]\|\|null;/);assert.match(lc,/planNow\(id,\{waiting:w,plan:\(env\.npcPlans\|\|\{\}\)\[id\]\|\|null,minute\}\)/);});
 
 test('schedules are checked in the content (PLAY THIS DRAFT, PUBLISH) and tidied by clean',()=>{
  const MC=require(R('void-runner/mission-content.js'));const plan=B.validate(B.examples(REV)[0],REV).plan;

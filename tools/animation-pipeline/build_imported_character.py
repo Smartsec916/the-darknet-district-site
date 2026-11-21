@@ -2,10 +2,12 @@
 into a light companion GLB with our clips.
 
 blender -b --factory-startup --python build_imported_character.py -- SPEC.json OUT.glb --source MODEL.fbx \
-    --mocap DIR [--ual DIR] [--mixamo DIR] [--crowd DIR] [--own DIR] [--master MASTER.blend]
+    --mocap DIR [--ual DIR] [--mixamo DIR] [--crowd DIR] [--own DIR] [--master MASTER.blend] [--rest FILE]
 
 --crowd DIR is the game's own void-runner/assets/models/crowd folder: a clip whose source is "crowd" is taken from a
 character the game already ships (same 52 joints, T-pose bind), for machines that do not have the UAL or Mixamo files.
+--rest FILE replaces clips.json's T-pose reference (restReference, read from --mocap) with another file on the Mixamo names, e.g. the crowd file the
+clips come from (vr-companion-f.glb: T-pose bind): for a build whose clips all come from --crowd on a machine without the mocap folder (Luna, 21 Nov 2026).
 --own DIR holds clips made on the character's own skeleton (a Meshy rig's bundled running clip, "source": "own", "sameRig": true):
 their bones carry the source names of the spec's "bones" map and their rest pose is the character's own, so they map one to one.
 
@@ -30,7 +32,7 @@ args = sys.argv[sys.argv.index('--') + 1:]
 spec = json.loads(Path(args[0]).read_text(encoding='utf-8'))
 output_path = Path(args[1])
 opts = {}
-for flag in ('--source', '--mocap', '--ual', '--mixamo', '--crowd', '--own', '--master'):
+for flag in ('--source', '--mocap', '--ual', '--mixamo', '--crowd', '--own', '--master', '--rest'):
     if flag in args:
         opts[flag[2:]] = Path(args[args.index(flag) + 1])
 library_doc = json.loads((Path(__file__).resolve().parent / 'clips.json').read_text(encoding='utf-8'))
@@ -39,9 +41,10 @@ folders = {'ual': opts.get('ual'), 'mixamo': opts.get('mixamo'), 'crowd': opts.g
 clips = []
 for name in ([] if '--noclips' in args else spec.get('clips', [])):  # --noclips: a quick look at the geometry
     c = library_doc['clips'][name]
-    folder = folders[c['source']] if c.get('source') else opts['mocap']
+    if c.get('source') == 'pose': continue  # posed by code after the build (make_floor_poses.py)
+    folder = folders[c['source']] if c.get('source') else opts.get('mocap')
     clips.append((name, folder / c['file'], (c['start'], c['end']) if 'start' in c else None, c))
-rest_reference = opts['mocap'] / library_doc['restReference']
+rest_reference = opts['rest'] if opts.get('rest') else opts['mocap'] / library_doc['restReference']
 
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)

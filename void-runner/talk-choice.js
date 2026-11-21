@@ -21,11 +21,14 @@ const next=box.querySelector('#speech-next');if(next)next.style.display='none';
     speech.choices.forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type="button" class="talk-menu-choice'+(c.leave?' quiet':'')+'" data-talk-choice="'+i+'" data-action="talk-choice">'+esc(c.label)+'</button>'));return;}
    speech.choices.slice(1).forEach((c,i)=>box.insertAdjacentHTML('beforeend','<button type="button" class="quiet" data-talk-choice="'+(i+1)+'" data-action="talk-choice"'+(c.disabled?' disabled aria-disabled="true" title="'+esc(c.label)+'"':'')+'>'+esc(c.label)+'</button>'));}catch{}}
  // A silent line is shown but not spoken (and so waits only for its reading time).
- if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&l.silent){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}
+ if(typeof speakLine==='function'){const spoken=speakLine;speakLine=function(){const l=typeof speech!=='undefined'&&speech?speech.lines[speech.index]:null;if(l&&(l.silent||l.unvoiced)){try{root.VoidAudio?.cancel();}catch{}speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:false};return;}return spoken.apply(this,arguments);};}
  const shown=renderLine;renderLine=function(){const r=shown.apply(this,arguments);decorate();return r;};
+ // The window's choice buttons and offer card are left in the (hidden) dialogue once a choice is made: remove them, or live-content.js askTick, which waits while
+ // a [data-talk-choice] is on the page, never shows the next ACCEPT / DENY question until another conversation redraws the window (QA, 19 Nov 2026).
+ function clear(){try{screen.querySelectorAll('[data-talk-choice],[data-talk-offer]').forEach(n=>n.remove());}catch{}}
  function talkChoice(lines,choices,heading,opts={}){
   if(!Array.isArray(lines)||!lines.length||!Array.isArray(choices)||!choices.length)return false;
-  let done=false;const once=c=>()=>{if(done)return;done=true;try{c.run();}catch(e){try{console.warn('[VOID//RUNNER] choice failed',e);}catch{}}};
+  let done=false;const once=c=>()=>{if(done)return;done=true;clear();try{c.run();}catch(e){try{console.warn('[VOID//RUNNER] choice failed',e);}catch{}}};
   const list=choices.map(c=>({label:String(c.label||'CONTINUE'),leave:!!c.leave,disabled:!!c.disabled,run:c.disabled?()=>{}:once(c)})),menu=!!opts.menu;
   talk('',lines,menu?once({run:opts.cancel||(()=>{try{resumeWalking();}catch{}})}):list[0].run,menu?'CONTINUE':list[0].label,heading||'');
   if(typeof speech!=='undefined'&&speech){speech.choices=list;speech.menu=menu;speech.offer=opts.offer||null;decorate();}

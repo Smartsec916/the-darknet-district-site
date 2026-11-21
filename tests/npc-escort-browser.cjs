@@ -11,7 +11,7 @@ const log=(...a)=>console.log('[npc-escort]',...a),PART=process.env.PART||'all';
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--use-gl=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'],...(exe?{executablePath:exe}:{})});const errors=[];
  try{
-  const ctx=await browser.newContext({viewport:{width:1366,height:900},serviceWorkers:'block'}),page=await ctx.newPage();page.on('pageerror',e=>errors.push(e.message));
+  const ctx=await browser.newContext({viewport:{width:1366,height:900},serviceWorkers:'block'}),page=await ctx.newPage().then(async p=>{await p.addInitScript(()=>{try{if(!localStorage.getItem('mission-editor-view'))localStorage.setItem('mission-editor-view','form');}catch{}});return p;});page.on('pageerror',e=>errors.push(e.message));
   await page.route('https://**/*',r=>r.abort());await page.route('**/firebase-auth.js',r=>r.fulfill({status:503,body:'offline test'}));
   await page.route('**/api/**',r=>{const p=new URL(r.request().url()).pathname.replace('/api/void-runner/','');if(p==='live-content')return r.fulfill({status:404,contentType:'application/json',body:'{"error":"off"}'});return r.fulfill({status:503,contentType:'application/json',body:'{"error":"offline test"}'});});
   const boot=()=>page.waitForFunction(()=>globalThis.VoidStartup?.started,null,{timeout:180000});
@@ -34,7 +34,7 @@ const log=(...a)=>console.log('[npc-escort]',...a),PART=process.env.PART||'all';
   assert.deepEqual(who,{value:'grey-reverie',admin:true,cat:true});
   // the follow-them settings: change the waiting distance (UNDO-able like any edit), and the lost choice
   const step1=await page.evaluate(m=>m,made.mission),first=page.locator('[data-me-esc]').first();
-  await first.locator('input[data-me-esc-wait]').fill('6');await first.locator('input[data-me-esc-wait]').dispatchEvent('change');await page.waitForTimeout(250);
+  await first.locator('input[data-me-esc-wait]').fill('20');await first.locator('input[data-me-esc-wait]').dispatchEvent('change');await page.waitForTimeout(250);
   const draftStep=k=>page.evaluate(([id,k])=>{const d=JSON.parse(localStorage.getItem('mission-editor-drafts-v1'));for(const t of d.trees)for(const m of t.missions)if(m.id===id)return m.objectives[k];return null;},[step1,k]);
   assert.equal((await draftStep(0)).wait,6);
   await page.locator('[data-me-esc]').first().locator('select[data-me-esc-iflost]').selectOption('pause');await page.waitForTimeout(250);assert.equal((await draftStep(0)).ifLost,'pause');

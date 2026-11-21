@@ -43,8 +43,9 @@
   function showLine(name,text){line.innerHTML='<b>'+name+'</b> '+text.replace(/</g,'&lt;');line.classList.add('show');lineTime=Math.min(7,2.5+text.length*.055);}
   k.every(dt=>{if(lineTime>0){lineTime-=dt;if(lineTime<=0)line.classList.remove('show');}});
   // A companion's line in the game's dialogue panel. With no line (a companion without dialogue) there's no panel at
-  // all: whatever follows the line happens straight away.
-  function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}
+  // all: whatever follows the line happens straight away. A companion whose voice is still to be chosen by the owner (voice.pending: Luna) is shown,
+  // not read aloud: an unvoiced line skips the voice and still goes in the history (talk-choice.js speakLine).
+  function say(comp,text,done,label='CONTINUE'){if(!text){done?.();return;}talk('',[{who:comp.who.name,text,unvoiced:!!comp.who.voice?.pending&&!globalThis.VoidVRCompanionStudio?.findVoice(comp.who.name,text)}],()=>{done?done():resumeWalking();},label);comp.talking();comp.brain.note('talked');}
   let choices=null;
   // The choice panel (vr.css: compact, opaque, beside the room rather than across it). Options may carry a group
   // (Talk / Together / Leave); arrows, WASD or the d-pad move the highlight, Enter / Space / E or A choose, Escape or B
@@ -89,11 +90,12 @@
   // the registry, settings, brain, tracking maths and paths) ----
   async function companion(who,S,slot){
    const L=who.dialogue||{},cfg=C.settings(who),look=who.model,mem={},home=S.home,talks=C.speaks(who),tag=slot?'-'+(slot+1):'',self={who,slot,cfg};
-   const container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+C.file(who)},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
+   const local=globalThis.VoidVRCompanionStudio?.model(who),container=await VoidAssets.loadContainer({src:'assets/models/crowd/'+C.file(who),localBuffer:local?await local.arrayBuffer():null},k.scene,ctx.task,'vr:'+look);(k._containers||(k._containers=[])).push(container);
    const inst=VoidAssets.keepTrim(container,container.instantiateModelsToScene(n=>look+'-'+n,false,{doNotInstantiate:true})),node=new B.TransformNode('vr-companion'+tag,k.scene),asset=new B.TransformNode('vr-companion-asset'+tag,k.scene);node.parent=k.parent;VoidAssets.ownInstance(inst,node);asset.parent=node;for(const r of inst.rootNodes)r.parent=asset;
    for(const g of inst.animationGroups)g.stop();node.metadata={animationGroups:inst.animationGroups,companion:who.id};for(const m of node.getChildMeshes())m.isPickable=false;
    // The shared motion-capture library (anim-library.js): extra clips for any companion whose skeleton takes them; nothing happens where the library file is not installed.
    try{self.library=await globalThis.VoidAnimLibrary?.apply(node,look,{scene:k.scene})||[];}catch(e){self.library=[];console.warn('[VR companion library]',e);}
+   try{self.localMotions=await globalThis.VoidVRCompanionStudio?.applyMotions(node,who)||[];self.library.push(...self.localMotions);}catch{self.localMotions=[];}
    // Looks (vr-companions.js): the saved or default outfit, hairstyle, glasses and colours. Parts are shown or hidden;
    // colour variants are separate textures loaded the first time they are chosen.
    const lookParts=new Set(C.looks(who).flatMap(g=>g.options.flatMap(o=>o.parts||[]))),partOf=m=>{const n=m.name.replace(/_primitive\d+$/,'');let hit=null;for(const p of lookParts)if(n.endsWith('_'+p)&&(!hit||p.length>hit.length))hit=p;return hit;};// the longest part wins: "piping_jacket" is not "jacket"
@@ -307,9 +309,10 @@
     const together=[['Sit together',()=>sitTogether(),'Together'],[c.dancing?'Stop':'Dance together',()=>dance(),'Together']];
     // Motion-capture moves from the shared library (anim-library.js), offered only to a companion whose figure took them.
     const lib=self.library||[],offer=(label,ids)=>ids.some(i=>lib.includes(i))?[[label,()=>perform(ids),'Together']]:[],moves=c.dancing?[]:[...offer('Dance for me',['ac-sensual-dance-3','ac-sensual-movement-1']),...offer('Strike a pose',['ac-stand-curve-2','ac-stand-curve-3']),...offer('Relax on the floor',['ac-ground-pose-2','ac-ground-pose-3','ac-ground-pose-4'])];
+    const localMoves=(self.localMotions||[]).map(id=>[String(globalThis.VoidVRCompanionStudio?.motionName(id)||'Imported motion').replace(/[<>&]/g,''),()=>perform([id]),'Imported animations']);
     const opts=far?[['Come over here',comeHere,'Together'],...together,...commands,never]:
      [...(talks?[['Chat',chat,'Talk'],['Compliment them',compliment,'Talk'],['Flirt',flirt,'Talk']]:[]),...together,...moves,...(has('recline')&&!others(self).some(o=>o.c.reclining)?[['Lie back together',()=>recline(),'Together']]:[]),
-      ['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];
+      ['Hold hands',hands,'Together'],...(talks?[['Kiss',kiss,'Together'],['Relax together',relax,'Together']]:[]),...localMoves,...commands,...(talks?[['Say goodnight',goodbye,'Leave']]:[]),never];
     const opening=c.greeted?C.pick(L.chat,mem,'menu'):C.pick(L.greet,mem,'greet');c.greeted=true;ask2(self,far?C.pick(L.approach,mem,'menu-far'):opening,opts);}
    const after=()=>{resumeWalking();idle();};
    function comeHere(){resumeWalking();c.mode=c.mode==='stay'?'free':c.mode;remark('comeHere');approach(()=>gesture('greet'));}
@@ -330,7 +333,7 @@
    function hands(){c.affection++;const near=Math.hypot(walker.x-node.position.x,walker.z-node.position.z);if(!c.sitting&&near>1.3)approach(()=>gesture('interact'));else gesture('interact');say(self,C.pick(L.hands,mem,'hands'),after);}
    // A kiss is the companion's choice too: only when you've been close (sitting or dancing) and talking a while.
    function kiss(){if(!c.sitting&&!c.dancing&&!c.reclining)return say(self,C.pick(L.notNow,mem,'notNow'));if(c.affection<3)return say(self,C.pick(L.notYet,mem,'notYet'));
-    say(self,L.kiss[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}
+    say(self,L.kiss?.[0],()=>{resumeWalking();c.kissing=true;k.kiss=1.6;api.sfx(520,1.2,'sine',.02);k.after(()=>{c.kissing=false;if(api.session){gesture('shy');say(self,C.pick(L.kissAfter,mem,'kissAfter'),after);}},1700);});}
    function relax(){c.affection++;if(!c.sitting)return sitTogether();say(self,C.pick(L.relax,mem,'relax'),after);}
    function goodbye(){say(self,C.pick(L.bye,mem,'bye'),()=>{api.exit();},'EXIT VR →');gesture('flirt');}
    // Commands: they follow you, keep their place, or go back to their own spot by the window.
@@ -386,7 +389,7 @@
    // Model files are checked when the picker opens; a missing one is shown but can't be chosen. Only companions
    // offered here are checked (Una's file isn't published, so asking for it would only log a 404).
    installed:{},
-   prepare(){const byModel=new Map([...C.companions.values()].filter(e=>C.offered(e)).map(e=>[e.model,e]));return Promise.all([...byModel.values()].map(e=>fetch('void-runner/assets/models/crowd/'+C.file(e),{method:'HEAD'}).then(r=>{this.installed[e.model]=r.ok;}).catch(()=>{})));},
+   async prepare(){await globalThis.VoidVRCompanionStudio?.restore();const byModel=new Map([...C.companions.values()].filter(e=>C.offered(e)).map(e=>[e.model,e]));return Promise.all([...byModel.values()].map(e=>globalThis.VoidVRCompanionStudio?.model(e)?(this.installed[e.model]=true):fetch('void-runner/assets/models/crowd/'+C.file(e),{method:'HEAD'}).then(r=>{this.installed[e.model]=r.ok;}).catch(()=>{})));},
    usable(sex){return C.list({sex,has:m=>VoidCrowd.clips[m]||[],installed:this.installed}).filter(e=>C.offered(e));},
    steps:[
     {title:'COMPANION',prompt:'Who would you like to spend the evening with? Every companion is an original adult character of this simulation.',
@@ -407,7 +410,7 @@
   // The session's options as the hub carries them (plain short text): the companions' ids joined with ':'. fromShare turns that back into the picker's own options.
   shareOpts:opts=>({party:C.party(opts).map(e=>e.id).join(':').slice(0,40)}),
   fromShare:o=>{const ids=String(o?.party||'').split(':').filter(id=>/^[a-z0-9-]{1,24}$/.test(id)).slice(0,2);return ids.length>1?{companions:ids}:{companion:ids[0]||''};},
-  validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>all.find(x=>x.id===e.id)?.usable);},
+  validate:opts=>{const all=C.list({has:m=>(globalThis.VoidCrowd?.clips[m]||[]),installed:suitePicker().installed}),party=C.party(opts);return party.length>0&&party.every(e=>C.offered(e)&&all.find(x=>x.id===e.id)?.usable);},
   defaults:{mood:'rose',music:'velvet'},   // The owner, 16 Nov 2026: the companion rooms' music is sensual and electronic (the Velvet recording) unless the player picks another
   // The VR menu's settings: mood and music, then each companion's looks (outfit, hairstyle, glasses, colours) that
   // have a choice, named for the companion when two are in the room.

@@ -673,6 +673,303 @@
    "as": "shrug",
    "loop": "exact",
    "note": "The Avenue's street pair (Reverie and Lace, 18 Nov 2026): casual street clips only, never sensual, flirt or club clips (ncz-street-pair.js BANNED). Taken from the female companion figure as the game ships it."
+  },
+  "br-kneel": {
+   "file": "Rise_01_mixamo.fbx",
+   "start": 2,
+   "end": 9,
+   "as": "kneel",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s)."
+  },
+  "br-rise": {
+   "file": "Rise_01_mixamo.fbx",
+   "start": 10.3,
+   "end": 13.3,
+   "as": "rise",
+   "loop": "exact",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). One-shot: kneeling to standing, played once and held on its last pose."
+  },
+  "br-stand": {
+   "file": "Rise_01_mixamo.fbx",
+   "start": 15,
+   "end": 21,
+   "as": "stand",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). Standing still with the arms down: no idle variation (the owner: no fidgeting)."
+  },
+  "br-read": {
+   "file": "StarWars_TrooperCheckingPapers_HUMANIK_769.fbx",
+   "start": 2,
+   "end": 8,
+   "as": "read",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). Holding a paper at chest height and looking down at it."
+  },
+  "br-shock": {
+   "file": "DoubleTakes_mixamo.fbx",
+   "start": 25.5,
+   "end": 30.5,
+   "as": "shock",
+   "loop": "exact",
+   "note": "The Blackrock Cult Room (19 Nov 2026): slow, still, ritual clips for the robed figure (npc-blackrock-robe). Times chosen from hip, knee, head and hand heights measured in Blender (rise1: kneeling on one knee 1-10.5 s, rising 10.5-12.5 s, standing still from 13 s). One-shot: a start, a hand raised, then back."
+  },
+  "floor-kneel": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "loop": "exact",
+   "note": "Floor poses (21 Nov 2026, the owner: \"can you add kneeling and cross-legged pose? ... also a sitting knee to chest pose\"). No mocap in the pipeline has them, so they are posed by code on each figure's own skeleton: tools/animation-pipeline/make_floor_poses.py (no Blender, no outside service). A Blender rebuild skips them (source pose); run make_floor_poses.py on the rebuilt file. Kneeling, sitting back on the heels (seiza), hands on the thighs, breathing. 4 s loop."
+  },
+  "floor-cross": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "loop": "exact",
+   "note": "Floor poses (21 Nov 2026, the owner: \"can you add kneeling and cross-legged pose? ... also a sitting knee to chest pose\"). No mocap in the pipeline has them, so they are posed by code on each figure's own skeleton: tools/animation-pipeline/make_floor_poses.py (no Blender, no outside service). A Blender rebuild skips them (source pose); run make_floor_poses.py on the rebuilt file. Cross-legged on the floor, hands resting on the knees, breathing and a slow look about. 6 s loop."
+  },
+  "floor-knees": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "loop": "exact",
+   "note": "Floor poses (21 Nov 2026, the owner: \"can you add kneeling and cross-legged pose? ... also a sitting knee to chest pose\"). No mocap in the pipeline has them, so they are posed by code on each figure's own skeleton: tools/animation-pipeline/make_floor_poses.py (no Blender, no outside service). A Blender rebuild skips them (source pose); run make_floor_poses.py on the rebuilt file. Sitting on the floor, knees pulled up to the chest, arms wrapped round the shins, a small rocking sway. 5 s loop."
+  },
+  "floor-kneel-down": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). From standing, knees bending forward, the right knee down onto the cushion then the left (toes tucked), upright on the knees, then sitting back on the heels into floor-kneel. 1.8 s."
+  },
+  "floor-kneel-up": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-kneel-down played in reverse (1.6 s): up off the heels onto the knees, one foot then the other under the body, pushing up to standing."
+  },
+  "floor-cross-down": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). From standing on the cushion, a squat with the arms forward, one hand back onto the cushion, down onto it with the knees up, then the knees fall out and the shins cross into floor-cross. 1.6 s."
+  },
+  "floor-cross-up": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-cross-down played in reverse (1.5 s): the shins uncross, the knees come up, a push off the hand behind and up to standing."
+  },
+  "floor-knees-down": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). From standing on the cushion, a squat with the arms forward, one hand back onto the cushion, down onto it, then the arms round the shins into floor-knees. 1.5 s."
+  },
+  "floor-knees-up": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-knees-down played in reverse (1.4 s): the arms let go, a push off the hand behind and up to standing."
+  },
+  "floor-cross-down-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). A raised seat (a cot, an alcove bench, about 0.45 m): from standing on the floor in front of its edge, sitting on the edge, leaning back on the hands, lifting the legs onto it, pushing back and crossing them into floor-cross. 2 s."
+  },
+  "floor-cross-up-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-cross-down-hi played in reverse (1.8 s): forward to the edge with the hands, the feet down to the floor, up to standing in front of it."
+  },
+  "floor-knees-down-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). A raised seat (a cot, an alcove bench, about 0.45 m): from standing on the floor in front of its edge, sitting on the edge, leaning back on the hands, the feet up onto it, pushing back into floor-knees. 1.9 s."
+  },
+  "floor-knees-up-hi": {
+   "file": "make_floor_poses.py",
+   "source": "pose",
+   "note": "Sit-down / stand-up for the floor poses (21 Nov 2026, the owner asked for a proper standing-up animation; a matching sit-down). One-shot, posed by code on each figure's own skeleton like the floor poses: tools/animation-pipeline/make_floor_poses.py TRANS (no Blender, no outside service); starts on the figure's idle and ends on the pose's first frame (-down), or the reverse (-up); the runtime moves the figure with it (ncz-street-pair.js FLOOR_MOVE). A Blender rebuild skips them (source pose). floor-knees-down-hi played in reverse (1.7 s): forward to the edge with the hands, the feet down to the floor, up to standing in front of it."
+  },
+  "cf-idle": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "idle",
+   "as": "idle",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-talk": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "talk",
+   "as": "talk",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-walk": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "walk",
+   "as": "walk",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit",
+   "as": "sit",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-enter": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-enter",
+   "as": "sit-enter",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-exit": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-exit",
+   "as": "sit-exit",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-talk": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-talk",
+   "as": "sit-talk",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-dance": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "dance",
+   "as": "dance",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-interact": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "interact",
+   "as": "interact",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-idle-f2": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "idle-f2",
+   "as": "idle-f2",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-walk-f": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "walk-f",
+   "as": "walk-f",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-wave": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "wave",
+   "as": "wave",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-blow-kiss": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "blow-kiss",
+   "as": "blow-kiss",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-coy": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "coy",
+   "as": "coy",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-head-tilt": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "head-tilt",
+   "as": "head-tilt",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-hips": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "hips",
+   "as": "hips",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-laugh": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "laugh",
+   "as": "laugh",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-glance-back": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "glance-back",
+   "as": "glance-back",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-slow-dance": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "slow-dance",
+   "as": "slow-dance",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-dance-belly": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "dance-belly",
+   "as": "dance-belly",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-relax": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-relax",
+   "as": "sit-relax",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-sit-wave": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "sit-wave",
+   "as": "sit-wave",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-shrug": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "shrug",
+   "as": "shrug",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
+  },
+  "cf-recline": {
+   "file": "vr-companion-f.glb",
+   "source": "crowd",
+   "action": "recline",
+   "as": "recline",
+   "loop": "exact",
+   "note": "The female companion clips as the game already ships them on the female companion figure (vr-companion-f), for Luna's Meshy model (21 Nov 2026), retargeted locally in Blender like Kai's and Zane's."
   }
  },
  "fps": 15

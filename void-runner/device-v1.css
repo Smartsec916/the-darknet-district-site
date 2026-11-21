@@ -1,7 +1,7 @@
 /* V1 personal device: its look. Scoped to #personal-device and #pd-chip only (nothing here touches another game screen).
    The shapes and colours come from the website's navigation buttons (home-navigation.css): panel #0c1b23, edge #38808b, rail #61eee9, one small #d56cba tick.
    Timing for transitions is NOT here: it comes from DEVICES.v1.ui in device-v1.js (the starter V1 is deliberately a little slow; later models can be faster). */
-#pd-notify,#personal-device,#pd-chip,#pd-camera{--pd-panel:#0c1b23;--pd-panel-hi:#122d37;--pd-panel-on:#103139;--pd-edge:#38808b;--pd-edge-hi:#61eee9;--pd-text:#c3d8de;--pd-text-hi:#f1ffff;--pd-muted:#8caaaf;--pd-tick:#d56cba;--pd-line:#21454d;
+#pd-callpill,#pd-notify,#personal-device,#pd-chip,#pd-camera{--pd-panel:#0c1b23;--pd-panel-hi:#122d37;--pd-panel-on:#103139;--pd-edge:#38808b;--pd-edge-hi:#61eee9;--pd-text:#c3d8de;--pd-text-hi:#f1ffff;--pd-muted:#8caaaf;--pd-tick:#d56cba;--pd-line:#21454d;
  --pd-gap:10px;--pd-pad:14px;--pd-font:'Courier New',Courier,monospace;--pd-fast:160ms;--pd-ms:.3s}
 #personal-device{position:fixed;top:54px;right:12px;bottom:12px;width:max(430px,calc(50vw - 12px));z-index:44;display:none;flex-direction:column;box-sizing:border-box;color:var(--pd-text);font:13px/1.5 var(--pd-font);
  background:linear-gradient(160deg,rgba(7,17,22,.94),rgba(8,13,20,.96) 72%,rgba(10,16,22,.96));border:1px solid var(--pd-edge);box-shadow:0 0 22px rgba(97,238,233,.10),inset 0 0 36px rgba(97,238,233,.04);
@@ -124,13 +124,34 @@
 #personal-device .pd-obj{margin:6px 0;color:var(--pd-text-hi)}#personal-device .pd-obj b{color:var(--pd-edge-hi);letter-spacing:.12em;font-size:10px;margin-right:6px}
 #personal-device .pd-steps{list-style:none;margin:4px 0 8px;padding:0;font-size:11px;color:var(--pd-muted)}#personal-device .pd-steps li.on{color:var(--pd-edge-hi)}
 /* V3 // SHADOW: the same interface as an old monochrome green monitor. Only the variables change, so every screen and the camera follow. */
-#personal-device[data-device=v3],#pd-camera[data-device=v3]{--pd-panel:#031006;--pd-panel-hi:#07200d;--pd-panel-on:#0a2b12;--pd-edge:#1f7a3a;--pd-edge-hi:#46ff7a;--pd-text:#3fe070;--pd-text-hi:#8dffb0;--pd-muted:#2a9a4e;--pd-tick:#46ff7a;--pd-line:#0f3d1c}
+#personal-device[data-device=v3],#pd-camera[data-device=v3],#pd-callpill[data-device=v3]{--pd-panel:#031006;--pd-panel-hi:#07200d;--pd-panel-on:#0a2b12;--pd-edge:#1f7a3a;--pd-edge-hi:#46ff7a;--pd-text:#3fe070;--pd-text-hi:#8dffb0;--pd-muted:#2a9a4e;--pd-tick:#46ff7a;--pd-line:#0f3d1c}
 /* profile and social pictures stay in full colour on the V3, as on the V1 (the owner, 15 Nov 2026) */
+/* Ship Loadout app (ship-loadout.js) */
+#personal-device .lo-head{display:flex;gap:12px;align-items:center;flex-wrap:wrap}#personal-device .lo-ship{width:200px;max-width:100%;height:auto}#personal-device .lo-row button{margin-left:8px;padding:2px 8px;font-size:10px}#personal-device .lo-racks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}#personal-device .lo-rack{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;text-align:left}#personal-device .lo-rack span{font-size:18px;letter-spacing:.08em}#personal-device .lo-rack small{opacity:.75;font-size:10px}
+/* Admin's ordnance counter (a game panel) */
+.module-grid .ord-card{background:#11171c;border:1px solid #4a5157;padding:14px}.module-grid .ord-m2{border-color:#8a6a44}.ord-kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:12px;margin:8px 0 12px;letter-spacing:.05em}.ord-kv dt{opacity:.7}.ord-kv dd{margin:0}.ord-card button{margin:4px 6px 0 0}.ord-note{color:#e8c98a}.ord-help{font-size:12px;opacity:.8;margin-top:14px}.ord-full{letter-spacing:.12em;opacity:.7}
+/* Map app in flight (flight-nav.js) */
+#personal-device .fn-row{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;width:100%;text-align:left;margin:3px 0;padding:7px 10px}#personal-device .fn-row small{flex-basis:100%;opacity:.7;font-size:10px}#personal-device .fn-kind{font-size:9px;letter-spacing:.14em;opacity:.7;min-width:56px}#personal-device .fn-tag{font-style:normal;font-size:10px;letter-spacing:.08em;padding:1px 6px;border:1px solid currentColor}#personal-device .fn-blue{color:#5ea8ff}#personal-device .fn-yellow{color:#ffd75e}#personal-device .fn-sel{border-color:#5ea8ff;box-shadow:inset 3px 0 0 #5ea8ff}
+/* A call that goes on while the V1 shows another screen (personal-device.js callUi; 20 Nov 2026): the call bar under the V1 header (click: the call in Comms) and the
+   call pill over the game while the V1 is closed. Comms colours; only the mission name is in the mission yellow (the arrow's colour, guide-route.js COLOR). */
+#personal-device .pd-callbar{display:grid;grid-template-columns:auto auto auto 1fr auto;align-items:center;gap:4px 10px;width:auto;margin:0;padding:7px var(--pd-pad);flex:none;text-align:left;text-transform:none;border:0;border-bottom:1px solid var(--pd-edge-hi);background:rgba(97,238,233,.09);clip-path:none;color:var(--pd-text-hi);cursor:pointer}
+#personal-device .pd-callbar[hidden]{display:none}#personal-device .pd-callbar:hover{background:rgba(97,238,233,.16)}#personal-device .pd-callbar b{letter-spacing:.14em}#personal-device .pd-callbar time{color:var(--pd-edge-hi)}
+#personal-device .pd-callbar em{grid-column:5;font-style:normal;color:var(--pd-edge-hi);letter-spacing:.12em;border:1px solid var(--pd-edge);padding:2px 8px}#personal-device .pd-callbar .pd-cb-line{grid-column:1/-1;font-weight:400;letter-spacing:.02em;white-space:normal;color:var(--pd-text-hi)}
+#personal-device .pd-cb-mission,#pd-callpill .pd-cb-mission{color:var(--mission-yellow,#ffd678);letter-spacing:.1em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pd-cb-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4dff8f;box-shadow:0 0 8px #4dff8f;animation:pd-cb-dot 1.2s ease-in-out infinite}@keyframes pd-cb-dot{50%{opacity:.35}}
+#pd-callpill{position:fixed;left:50%;top:172px;transform:translateX(-50%);z-index:245;pointer-events:none;display:grid;grid-template-columns:auto auto auto 1fr auto;align-items:center;gap:3px 10px;max-width:min(620px,80vw);min-width:min(360px,80vw);padding:7px 14px;font:600 13px/1.45 var(--pd-font);letter-spacing:.06em;color:var(--pd-text-hi);background:rgba(12,27,35,.9);border:1px solid var(--pd-edge);border-left:3px solid var(--pd-edge-hi);text-shadow:0 1px 2px #000}
+#pd-callpill[hidden]{display:none}#pd-callpill b{letter-spacing:.14em}#pd-callpill time{color:var(--pd-edge-hi)}#pd-callpill em{grid-column:5;font-style:normal;color:var(--pd-muted);justify-self:end}#pd-callpill .pd-cb-line{grid-column:1/-1;font-weight:400;letter-spacing:.02em}
+/* The app a mission step wants opened (personal-device.js missionApp): its tile glows in the mission yellow, with "ADMIN: OPEN CAMERA" over the apps. */
+#personal-device .pd-goalhint{margin:0 0 10px;padding:5px 12px;font:600 12px/1.45 var(--pd-font);letter-spacing:.08em;color:var(--mission-yellow,#ffd678);background:rgba(var(--mission-yellow-rgb,255,214,120),.08);border-left:2px solid var(--mission-yellow,#ffd678)}
+#personal-device .pd-app.pd-goal{color:var(--mission-yellow-text,#ffe7a8)}#personal-device .pd-app.pd-goal .pd-panel{stroke:var(--mission-yellow,#ffd678)}#personal-device .pd-app.pd-goal .pd-icon{color:var(--mission-yellow,#ffd678)}
+#personal-device .pd-app.pd-goal::after{content:"";position:absolute;inset:3px;z-index:-1;pointer-events:none;border:2px solid var(--mission-yellow,#ffd678);box-shadow:0 0 16px rgba(var(--mission-yellow-rgb,255,214,120),.65),inset 0 0 12px rgba(var(--mission-yellow-rgb,255,214,120),.25);animation:pd-goal 1.4s ease-in-out infinite}
+@keyframes pd-goal{0%,100%{opacity:.4}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.pd-cb-dot,#personal-device .pd-app.pd-goal::after{animation:none;opacity:1}}
 /* ---- Camera viewfinder (device-camera.js). Every colour is a device variable, so a later model's theme restyles it; --pd-tag is the name-tag green. ---- */
 #pd-camera{--pd-tag:#9dff5a;position:fixed;inset:0;z-index:240;pointer-events:none;font:600 clamp(11px,1.25vw,17px)/1.5 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--pd-text-hi);text-shadow:0 0 6px rgba(97,238,233,.45),0 1px 2px #000}
 #pd-camera[hidden]{display:none}
 /* while filming, the game's own readouts step aside (the interact prompt and any dialog stay) */
-body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(#personal-device):not(#mission-log):not(#notice):not(#flash):not(#loading-screen):not(#walking-ui):not(#arcade-play):not(#character-creator):not(#pod-wake):not(#mission-hint):not(script):not(style){visibility:hidden!important}
+body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(#personal-device):not(#mission-log):not(#notice):not(#flash):not(#loading-screen):not(#walking-ui):not(#arcade-play):not(#character-creator):not(#pod-wake):not(#mission-hint):not(#pd-callpill):not(script):not(style){visibility:hidden!important}
 #pd-camera b{font-weight:600;color:var(--pd-text-hi)}
 #pd-camera .pc-frame{position:absolute;inset:2.4vmin}
 #pd-camera .pc-corner{position:absolute;width:9vmin;height:9vmin;border:0 solid var(--pd-edge-hi);filter:drop-shadow(0 0 4px var(--pd-edge-hi));opacity:.95}
@@ -171,6 +192,7 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 #personal-device .pd-photogrid img{width:100%;height:100%;object-fit:cover;display:block}
 #personal-device .pd-photogrid i{position:absolute;left:3px;bottom:3px;padding:0 4px;background:var(--pd-edge-hi);color:#000;font:700 9px monospace;font-style:normal;letter-spacing:.06em}
 #personal-device .pd-photo img,#personal-device .pd-post img{width:100%;display:block;border:1px solid var(--pd-line);background:#000}
+#personal-device .pd-photo video{width:100%;display:block;border:1px solid var(--pd-line);background:#000;max-height:60vh}
 #personal-device .pd-phototags{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
 #personal-device .pd-phototags span{padding:1px 6px;border:1px solid var(--pd-edge-hi);color:var(--pd-edge-hi);font-size:.78em}
 #personal-device .pd-phototags small{opacity:.75}
@@ -196,6 +218,7 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 @keyframes pd-wave{0%,100%{height:20%}50%{height:95%}}
 #personal-device .pd-call-line{color:var(--pd-text-hi);margin:6px 0;opacity:0;animation:pd-line .4s ease forwards;animation-delay:var(--d)}
 @keyframes pd-line{to{opacity:1}}
+#personal-device .pd-call-line .pd-call-tr{display:block;margin-top:3px;color:var(--pd-text);font-size:.92em}#personal-device .pd-call-line .pd-call-tr b{display:block;font-size:10px;letter-spacing:.14em;opacity:.75;font-weight:600}
 @media (prefers-reduced-motion:reduce){#personal-device .pd-wave i{animation:none;height:50%}#personal-device .pd-call-line{animation:none;opacity:1}}
 /* Conversations with contacts (Mission 002, 17 Nov 2026): a contact card, a photo in the conversation, the ATTACH picker and the send form. */
 #personal-device .pd-thread{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;cursor:pointer;color:var(--pd-text-hi);font:inherit;border-top:0;border-right:0;border-bottom:0}
@@ -206,3 +229,6 @@ body.pd-camera-on>:not(#space):not(#pd-camera):not(#screen):not(#game-menu):not(
 #personal-device [data-thread-log]{max-height:46vh;overflow:auto}
 /* Gallery METADATA (the owner, 18 Nov 2026): the same key / value list as MY V1, each tagged person on their own lines. */
 #personal-device .pd-meta{margin-top:10px;border-top:1px solid var(--pd-line,rgba(127,240,255,.25));padding-top:6px}#personal-device .pd-meta .pd-kv{gap:6px 14px}#personal-device .pd-meta dd{word-break:break-word}#personal-device .pd-meta-tag{margin:0 0 6px}#personal-device .pd-meta-tag small{color:var(--pd-muted)}
+/* While the V1 is open beside the game (body.v1-side, mission-guide.js), the game's top lines keep clear of it and of each other (Awakening QA 20 Nov 2026: at 1366 x 768 the notice ran under the device, the tracked mission sat over the PLAYING SOLO chip): the notice in the free left part right of the FRIENDLY chip, the tracked mission below the chips, the hint line below it. */
+body.v1-side #notice{left:264px;right:calc(50vw + 12px)}
+body.v1-side #mission-tracker:not([hidden]){top:150px}body.v1-side #mission-hint:not([hidden]){top:192px}

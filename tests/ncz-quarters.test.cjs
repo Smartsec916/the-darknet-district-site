@@ -9,7 +9,7 @@ function reach(L,from,limit=60000){const key=(x,z)=>Math.round(x*2)+':'+Math.rou
 
 test('the streets here are the streets neochinatown.js walks',()=>{for(const k of Object.keys(Q.S))assert.deepEqual(Q.S[k],N.streets[k],k);assert.equal(N.quarters,Q);});
 test('four quarters; the everyday loop (the District, the alley, NULL) is all in Old Town and never meets a checkpoint',()=>{
- assert.deepEqual(Q.IDS,['port','oldtown','avenue','far-south','outskirts']);assert.deepEqual(Object.values(Q.QUARTERS).map(q=>q.name),['The Port','Old Town','The Avenue','Far South','The Outskirts']);
+ assert.deepEqual(Q.IDS,['port','oldtown','avenue','far-south','outskirts','underground']);assert.deepEqual(Object.values(Q.QUARTERS).map(q=>q.name),['The Port','Old Town','The Avenue','Far South','The Outskirts','The Underground']);
  const exit=A.exitSpawn(N).spawn,loop={districtDoor:[exit[0],exit[2]],alley:[100,-58.5],mainStreet:[61,-58.5],nullDoor:[52,-58.5],accessRoad:[30,-118.5]};
  for(const [name,[x,z]] of Object.entries(loop)){assert.equal(Q.quarterAt(x,z),'oldtown',name);assert.equal(Q.laneAt({x,z}),null,name+' is not inside a checkpoint');}
  // and a walker really can get round it with every gate door shut
@@ -18,10 +18,10 @@ test('four quarters; the everyday loop (the District, the alley, NULL) is all in
  assert.equal(Q.quarterAt(31,-96),'port');assert.equal(Q.quarterAt(61,-12),'avenue');assert.equal(Q.quarterAt(-50,-12),null,'the retired west street is nobody\'s');assert.equal(Q.quarterAt(61,-150),'far-south','Main Street goes on south of the South Gate');assert.equal(Q.quarterAt(61,-250),'outskirts','beyond the Far South Gate');assert.equal(Q.quarterAt(61,-270),null);
  // Milked is in Far South now (the owner, 16 Nov 2026): its doors, side street and alley are nobody else's, and nothing of it is left in Old Town
  for(const [name,x,z] of [['front door',MK.DOOR.x,MK.DOOR.z+1],['rear door',MK.REAR.x,MK.REAR.z-1.5],['side street',MK.LANE[0]+10,(MK.LANE[2]+MK.LANE[3])/2],['inside',MK.DOOR.x,MK.DOOR.z-3]])assert.equal(Q.quarterAt(x,z),'far-south','Milked '+name);
- for(const [x,z] of [[84,-80],[75,-71],[90,-91.8],[81.75,-73]])assert.equal(Q.quarterAt(x,z),null,'where Milked stood ('+x+', '+z+') is solid block, nobody\'s street');assert.equal(Q.quarterAt(61,-23,'avenue'),'avenue');assert.equal(Q.quarterAt(61,-23,'oldtown'),'oldtown');
+ for(const [x,z] of [[84,-79],[75,-71],[95,-93.5],[81.75,-73]])assert.equal(Q.quarterAt(x,z),null,'where Milked stood ('+x+', '+z+') is solid block, nobody\'s street');assert.equal(Q.quarterAt(61,-23,'avenue'),'avenue');assert.equal(Q.quarterAt(61,-23,'oldtown'),'oldtown');
 });
 test('each quarter is sealed by its gates: with the doors shut nobody walks out of it, and its spawn is open floor',()=>{
- for(const q of Q.IDS){const L=N.layout('street',q),sp=Q.QUARTERS[q].spawn;assert.equal(L.quarter,q);assert.equal(L.area,'street');assert.equal(L.id,'neochinatown');assert.deepEqual(L.spawn,sp);assert.equal(E.blocked(sp[0],sp[2],L),false,q+' spawn');
+ for(const q of Q.IDS){const L=N.layout('street',q),sp=Q.QUARTERS[q].spawn;assert.equal(L.quarter,q);assert.equal(L.area,'street');assert.equal(L.id,'neochinatown');assert.deepEqual(L.spawn,sp);assert.equal(E.blocked(sp[0],sp[2],L),false,q+' spawn');if(Q.QUARTERS[q].under)continue;   // the tunnels: 1 m doorways a half-metre grid cannot walk (tests/underground.test.cjs walks them)
   const cells=reach(L,[sp[0],sp[2]]);assert.ok(cells.length>400&&cells.length<60000,q+' '+cells.length);
   for(const [x,z] of cells)assert.ok(Q.inQuarter(q,x,z,.8),q+': a walker got to '+x+','+z);
   // open this quarter's door of every foot lane: the room is reached, the far side is not
