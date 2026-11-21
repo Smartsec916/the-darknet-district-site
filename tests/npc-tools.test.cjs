@@ -69,6 +69,12 @@ test('the street pair follows a stay and a route with real clips, sits at a ledg
  const seen=new Set();for(let i=0;i<60*150;i++){S.routineStep(s,1/60,rnd,S.config,{plan:route});seen.add(s.mode+':'+(s.pact||''));if(s.device)assert.ok(S.DEVICE.includes(s.device));assert.ok(clips.has(s.clip),s.clip);assert.ok(Number.isFinite(s.x+s.z+s.yaw));}
  for(const k of ['plan-do:look','sit:sit','plan-do:scroll','plan-go:look'])assert.ok(seen.has(k),k+' in '+[...seen].join(' '));});
 
+test('explicit seated wave uses a supported chair and plays with no player nearby',()=>{fresh();const P=X(),S=SP();
+ for(const p of S.PAIR){const draft={mode:'stay',x:104.4,z:-5.9,yaw:0,actions:['sit-wave']};assert.deepEqual(P.planProblems(p.id,draft),[]);assert.ok(P.planProblems(p.id,{...draft,x:98}).length);
+ const plan=P.planNow(p.id,{plan:draft}),s=S.routineStart(p,()=>.5);s.x=draft.x;s.z=draft.z;let waved=false;
+ for(let i=0;i<60*60;i++){S.routineStep(s,1/60,()=>.5,S.config,{plan});if(s.clip==='sit-wave')waved=true;}assert.ok(waved,p.id);}
+});
+
 test('a conversation still stops her while she follows a plan',()=>{fresh();const P=X(),S=SP();const s=S.routineStart(S.PAIR[1],()=>.5);const plan=P.planNow('ethereal-lace',{plan:{mode:'stay',x:100,z:-6.5,yaw:Math.PI,actions:['look']}});
  for(let i=0;i<60*30;i++)S.routineStep(s,1/60,Math.random,S.config,{plan});s.mode='stop';s.sub='chat';s.left=2;const x0=s.x;for(let i=0;i<30;i++)S.routineStep(s,1/60,Math.random,S.config,{plan});assert.equal(s.mode,'stop');assert.equal(s.x,x0);});
 

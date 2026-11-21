@@ -80,6 +80,7 @@
   {id:'dance-groove',name:'Dance a little (groove)',clip:'dance-groove',help:'A casual groove on the spot (her everyday dance; nothing from the clubs).'},
   {id:'dance-bop',name:'Dance a little (happy bop)',clip:'dance-bop',help:'A happy little bop on the spot.'},
   {id:'sit',name:'Sit — pose: chair (ledge, bench, stool)',clip:'sit',needs:['sit-enter','sit','sit-exit'],sit:true,pose:'chair',help:'Sits down on the ledge, bench, crates or stool here, stays seated (a wave to a player who comes close), then stands up. Only at a seat that takes a chair pose.'},
+  {id:'sit-wave',name:'Sit and wave — chair pose',clip:'sit-wave',needs:['sit-enter','sit','sit-exit'],sit:true,pose:'chair',help:'Sits at a compatible seat, waves once, then stands up.'},
   // the floor poses (21 Nov 2026; crowd.js FLOOR, posed by code): only at a seat whose poses include it (ncz-street-pair.js seatNear: the tea room cushions, the cots, the alcove benches)
   {id:'sit-kneel',name:'Sit — pose: kneel (seiza)',clip:'floor-kneel',sit:true,pose:'kneel',help:'Kneels on the cushion here, sitting back on the heels, hands on the thighs, facing the table. Only at a floor cushion.'},
   {id:'sit-cross',name:'Sit — pose: cross-legged',clip:'floor-cross',sit:true,pose:'cross',help:'Sits cross-legged on the cushion or cot here, hands on the knees, looking about a little. Only at a cushion or a cot.'},

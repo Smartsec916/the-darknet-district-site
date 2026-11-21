@@ -1461,7 +1461,7 @@ def escort_shape_problems(trees):
 
 
 # the sit actions and the pose each needs at its seat (npc-paths.js ACTIONS pose; 21 Nov 2026: the floor poses at the tea room cushions, the cots and the alcove benches)
-SIT_POSES = {'sit': 'chair', 'sit-kneel': 'kneel', 'sit-cross': 'cross', 'sit-knees': 'knees'}
+SIT_POSES = {'sit': 'chair', 'sit-wave': 'chair', 'sit-kneel': 'kneel', 'sit-cross': 'cross', 'sit-knees': 'knees'}
 
 
 def _ledge_at(mv, p, pose='chair'):

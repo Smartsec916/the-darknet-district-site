@@ -174,6 +174,24 @@
  function groundY(p,id){const a=get(id||areaOf(p));if(!a)return null;const w=a.walk.find(v=>inR(v,p.x,p.z,1e-6));return w&&num(w.y)?w.y:null;}
  /* Which areas are built in a scene: the street (one quarter, or every street area when quarter is null) or the District interior. */
  function here(scene,quarter){return list().filter(a=>a.scene===scene&&(scene!=='street'||!quarter||a.quarter===quarter)).map(a=>a.id);}
+ /* Independent environments use their own coordinate frames. Geometry-only preflight for future placement integration;
+    this does not register a placement area or grant any NPC access. Use actual scene collision boxes rather than city coordinates. */
+ function sceneGeometry(scene){
+  const S=scene==='temple'?(node?require('./temple.js'):root.VoidTemple):scene==='corporate'?(node?require('./corporate.js'):root.VoidCorporate):null;
+  if(!S||!S.solids)return null;
+  const floors=scene==='temple'?S.STREETS.map(s=>s.rect):S.STREETS.filter(s=>s.kind==='plaza').map(s=>s.rect);
+  return {floors,solids:S.solids(),reserved:S.INTERACTIONS.map(i=>({x:i.position[0],z:i.position[2],r:i.range||2}))};
+ }
+ function sceneGroundCheck(scene,p){return checkSceneGeometry(sceneGeometry(scene),p);}
+ function checkSceneGeometry(g,p){if(!g||!p||!num(p.x)||!num(p.z))return {ok:false,why:'No registered scene geometry or position.'};
+  const {x,z}=p;if(!g.floors.some(r=>inO(r,x,z,-CLEAR)))return {ok:false,why:'Outside the public placement floor.'};
+  for(const s of g.solids){const [sx,,sz]=s.position,[w,,d]=s.size;if(inO([sx-w/2,sx+w/2,sz-d/2,sz+d/2],x,z,CLEAR))return {ok:false,why:'Too close to '+s.id+'.'};}
+  if(g.reserved.some(r=>Math.hypot(x-r.x,z-r.z)<r.r+CLEAR))return {ok:false,why:'Reserved interaction space.'};
+  return {ok:true,why:''};
+ }
+ function sceneGroundLeg(scene,a,b){const g=sceneGeometry(scene);if(!g||!a||!b||!num(a.x)||!num(a.z)||!num(b.x)||!num(b.z)||!checkSceneGeometry(g,a).ok||!checkSceneGeometry(g,b).ok)return false;const n=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.z-a.z)/STEP));
+  for(let i=1;i<n;i++){const t=i/n;if(!checkSceneGeometry(g,{x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t}).ok)return false;}return true;
+ }
  /* Where draft play enters for an area: {walk:'sacramento', quarter} or {walk:'darknet-district'}. */
  function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:a.scene==='milked'?{walk:'sacramento',quarter:'far-south'}:{walk:'sacramento',quarter:a.quarter};}
  const r1=v=>Math.round(v*10)/10,slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
@@ -200,6 +218,6 @@
   walk:a.walk.map(rr),adultWalk:a.walk.map((w,i)=>w.adult?i:-1).filter(i=>i>=0),floors:a.floors.map(rr),roads:a.roads.map(rr),gates:a.gates.map(g=>({rect:rr(g),name:g.name})),no:a.no.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule,...(n.adult?{adult:true}:{}),...(n.doorway?{doorway:true}:{})})),obstacles:a.obstacles.map(o=>o.slice(0,4)),posts:a.posts.map(p=>p.slice())}))};}
  /* For the ChatGPT prompt: each area in plain words with its walkable rectangles. */
  function describe(){return list().map(a=>({id:a.id,name:a.name,inside:a.scene==='interior',walk:a.walk.filter(w=>!w.adult).map(w=>({name:w.name,x0:w.x0,x1:w.x1,z0:w.z0,z1:w.z1})),never:a.no.filter(n=>n.rule).map(n=>n.name)})).filter(a=>a.walk.length);}
- const api={IDS,CLEAR,STEP,RULE,DOOR,toWorld:WP,local:W,list,get,areaOf,check,leg,nearest,groundY,here,enter,places,inventory,describe,get GEN(){return GEN;},reset(){CACHE=null;}};
+ const api={IDS,CLEAR,STEP,RULE,DOOR,toWorld:WP,local:W,list,get,areaOf,check,leg,nearest,groundY,here,sceneGroundCheck,sceneGroundLeg,enter,places,inventory,describe,get GEN(){return GEN;},reset(){CACHE=null;}};
  if(node)module.exports=api;else root.VoidNPCAreas=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

@@ -18,6 +18,19 @@ test('six areas, each with ground she may stand on and named places; the Distric
  assert.deepEqual(A.enter('outskirts'),{walk:'sacramento',quarter:'outskirts'});assert.deepEqual(A.enter('district'),{walk:'darknet-district'});
  assert.ok(A.GEN&&A.GEN.areas,'the obstacle reading from the built scenes is committed');for(const id of A.IDS.filter(x=>x!=='milked'&&x!=='underground'))assert.ok(A.GEN.areas[id],'read: '+id);});
 
+test('independent scene geometry rejects collisions, locked buildings and reserved interactions without enabling placement',()=>{
+ assert.ok(A.sceneGroundCheck('temple',{x:5,z:5}).ok);
+ assert.ok(!A.sceneGroundCheck('temple',{x:0,z:22}).ok);
+ assert.ok(!A.sceneGroundCheck('temple',{x:0,z:-39.6}).ok);
+ assert.ok(A.sceneGroundLeg('temple',{x:4,z:5},{x:6,z:5}));
+ assert.ok(!A.sceneGroundLeg('temple',{x:8,z:2},{x:14,z:2}),'pillar in the middle');
+ assert.ok(A.sceneGroundCheck('corporate',{x:10,z:15}).ok);
+ assert.ok(!A.sceneGroundCheck('corporate',{x:-30,z:16}).ok);
+ assert.ok(!A.sceneGroundCheck('corporate',{x:30,z:50}).ok);
+ assert.ok(!A.sceneGroundCheck('milked',{x:10,z:15}).ok,'not a neutral scene preflight');
+ assert.deepEqual(A.here('temple'),[]);assert.deepEqual(A.here('corporate'),[]);
+});
+
 test('the content rule: never Milked, NULL, the District bar, VR or arcade room, the terrace, the Corporate District',()=>{
  const rule=[[52,-58,/NULL/],[30,-58,/NULL/],[88,-182,/Milked/],[81.75,-173,/Milked’s front doorway/],[94.75,-190.8,/Milked’s rear doorway/],[81.75,-176,/Milked/],[-90,0,/Corporate/],[88,-105,/terrace/],[-30,-12,/Function Gate|Corporate/],[170,-12,/Temple/]];
  for(const [x,z,re] of rule){const c=A.check({x,z});assert.equal(c.ok,false,x+','+z);assert.equal(c.kind,'rule',x+','+z+' '+c.why);assert.match(c.why,re);assert.deepEqual(P.pick(REV,{x,z},c.area).spot,null,'never moved out of a forbidden place');}

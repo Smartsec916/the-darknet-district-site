@@ -31,6 +31,8 @@ class SeatPoseServerTests(unittest.TestCase):
         self.assertEqual(live.npc_problems(stay('grey-reverie', c, ['sit-kneel', 'sit-cross', 'sit-knees']), INV), [])
         self.assertTrue(live.npc_problems(stay('grey-reverie', c, ['sit']), INV), 'no chair on a cushion')
         self.assertEqual(live.npc_problems(stay('grey-reverie', st, ['sit']), INV), [])
+        self.assertEqual(live.npc_problems(stay('grey-reverie', st, ['sit-wave']), INV), [])
+        self.assertTrue(live.npc_problems(stay('grey-reverie', c, ['sit-wave']), INV))
         self.assertTrue(live.npc_problems(stay('grey-reverie', st, ['sit-kneel']), INV), 'no kneeling on a stool')
         self.assertEqual(live.npc_problems(stay('grey-reverie', cot, ['sit-knees']), INV), [])
         self.assertTrue(live.npc_problems(stay('grey-reverie', cot, ['sit-kneel']), INV))
