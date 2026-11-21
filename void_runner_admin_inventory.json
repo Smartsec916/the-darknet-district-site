@@ -283,6 +283,13 @@
         "draft": false,
         "group": "district"
       },
+      "tea-host": {
+        "name": "Tea Room Host",
+        "canTalk": true,
+        "players": true,
+        "draft": true,
+        "group": "district"
+      },
       "vr-una": {
         "name": "Una",
         "canTalk": false,
@@ -987,6 +994,23 @@
           "laugh",
           "shrug"
         ]
+      },
+      "tea-host": {
+        "look": "npc-cook-old",
+        "clips": [
+          "idle",
+          "talk",
+          "look",
+          "watch",
+          "smoke",
+          "drink",
+          "laugh",
+          "shrug",
+          "interact",
+          "drunk-idle",
+          "drunk-sway",
+          "dance"
+        ]
       }
     }
   },
@@ -1019,6 +1043,68 @@
             "x": 113.2,
             "w": 1.5,
             "front": -5.685
+          }
+        ],
+        "seats": [
+          {
+            "id": "under-alcove-1-seat",
+            "x": -4.88,
+            "z": -8.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -7.71
+            ]
+          },
+          {
+            "id": "under-alcove-2-seat",
+            "x": -0.28,
+            "z": -38.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -39.31
+            ]
+          },
+          {
+            "id": "under-alcove-3-seat",
+            "x": -4.88,
+            "z": -88.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -87.71
+            ]
+          },
+          {
+            "id": "under-alcove-4-seat",
+            "x": -0.28,
+            "z": -122.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -123.31
+            ]
+          },
+          {
+            "id": "under-alcove-5-seat",
+            "x": -4.88,
+            "z": -160.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -159.71
+            ]
+          },
+          {
+            "id": "under-alcove-6-seat",
+            "x": -0.58,
+            "z": -172.88,
+            "yaw": 3.1416,
+            "front": [
+              -0.58,
+              -173.29
+            ]
           }
         ],
         "actions": [
@@ -1260,6 +1346,68 @@
             "front": -5.685
           }
         ],
+        "seats": [
+          {
+            "id": "under-alcove-1-seat",
+            "x": -4.88,
+            "z": -8.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -7.71
+            ]
+          },
+          {
+            "id": "under-alcove-2-seat",
+            "x": -0.28,
+            "z": -38.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -39.31
+            ]
+          },
+          {
+            "id": "under-alcove-3-seat",
+            "x": -4.88,
+            "z": -88.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -87.71
+            ]
+          },
+          {
+            "id": "under-alcove-4-seat",
+            "x": -0.28,
+            "z": -122.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -123.31
+            ]
+          },
+          {
+            "id": "under-alcove-5-seat",
+            "x": -4.88,
+            "z": -160.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -159.71
+            ]
+          },
+          {
+            "id": "under-alcove-6-seat",
+            "x": -0.58,
+            "z": -172.88,
+            "yaw": 3.1416,
+            "front": [
+              -0.58,
+              -173.29
+            ]
+          }
+        ],
         "actions": [
           "wait",
           "idle",
@@ -1393,6 +1541,68 @@
             "front": -5.685
           }
         ],
+        "seats": [
+          {
+            "id": "under-alcove-1-seat",
+            "x": -4.88,
+            "z": -8.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -7.71
+            ]
+          },
+          {
+            "id": "under-alcove-2-seat",
+            "x": -0.28,
+            "z": -38.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -39.31
+            ]
+          },
+          {
+            "id": "under-alcove-3-seat",
+            "x": -4.88,
+            "z": -88.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -87.71
+            ]
+          },
+          {
+            "id": "under-alcove-4-seat",
+            "x": -0.28,
+            "z": -122.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -123.31
+            ]
+          },
+          {
+            "id": "under-alcove-5-seat",
+            "x": -4.88,
+            "z": -160.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -159.71
+            ]
+          },
+          {
+            "id": "under-alcove-6-seat",
+            "x": -0.58,
+            "z": -172.88,
+            "yaw": 3.1416,
+            "front": [
+              -0.58,
+              -173.29
+            ]
+          }
+        ],
         "actions": [
           "wait",
           "cat-sit",
@@ -1401,6 +1611,121 @@
           "walk-on"
         ],
         "anims": [],
+        "pathOnly": [
+          "walk-on"
+        ]
+      },
+      "tea-host": {
+        "name": "Tea Room Host",
+        "areas": [
+          "avenue",
+          "oldtown",
+          "far-south",
+          "outskirts",
+          "port",
+          "district",
+          "milked",
+          "underground"
+        ],
+        "ledges": [
+          {
+            "x": 90.5,
+            "w": 1.5,
+            "front": -5.685
+          },
+          {
+            "x": 104.4,
+            "w": 1.5,
+            "front": -5.685
+          },
+          {
+            "x": 113.2,
+            "w": 1.5,
+            "front": -5.685
+          }
+        ],
+        "seats": [
+          {
+            "id": "under-alcove-1-seat",
+            "x": -4.88,
+            "z": -8.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -7.71
+            ]
+          },
+          {
+            "id": "under-alcove-2-seat",
+            "x": -0.28,
+            "z": -38.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -39.31
+            ]
+          },
+          {
+            "id": "under-alcove-3-seat",
+            "x": -4.88,
+            "z": -88.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -87.71
+            ]
+          },
+          {
+            "id": "under-alcove-4-seat",
+            "x": -0.28,
+            "z": -122.9,
+            "yaw": 3.1416,
+            "front": [
+              -0.28,
+              -123.31
+            ]
+          },
+          {
+            "id": "under-alcove-5-seat",
+            "x": -4.88,
+            "z": -160.12,
+            "yaw": 0,
+            "front": [
+              -4.88,
+              -159.71
+            ]
+          },
+          {
+            "id": "under-alcove-6-seat",
+            "x": -0.58,
+            "z": -172.88,
+            "yaw": 3.1416,
+            "front": [
+              -0.58,
+              -173.29
+            ]
+          }
+        ],
+        "actions": [
+          "wait",
+          "idle",
+          "look",
+          "watch",
+          "talk",
+          "shrug",
+          "work",
+          "walk-on"
+        ],
+        "anims": [
+          "npc-admin/idle",
+          "npc-admin/talk",
+          "npc-admin/look",
+          "npc-admin/shrug",
+          "npc-monk-elder/idle",
+          "npc-monk-elder/talk",
+          "npc-monk-elder/look",
+          "npc-monk-elder/watch"
+        ],
         "pathOnly": [
           "walk-on"
         ]
@@ -11888,8 +12213,8 @@
               -102.345
             ],
             [
-              -8.23,
-              -7.73,
+              -7.43,
+              -6.93,
               -104.3,
               -102.5
             ],
@@ -12226,6 +12551,22 @@
         },
         "cab": false,
         "into": false,
+        "youthful": false
+      },
+      "tea-host": {
+        "stops": [],
+        "stopsByArea": {
+          "avenue": [],
+          "oldtown": [],
+          "far-south": [],
+          "outskirts": [],
+          "port": [],
+          "district": [],
+          "milked": [],
+          "underground": []
+        },
+        "cab": false,
+        "into": true,
         "youthful": false
       }
     },
@@ -13627,6 +13968,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -13865,6 +14208,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -14208,6 +14553,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -14450,6 +14797,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -14799,6 +15148,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -14956,6 +15307,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -15182,6 +15535,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -15250,6 +15605,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -15329,6 +15686,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -15583,6 +15942,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -15950,6 +16311,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -16200,6 +16563,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -16565,6 +16930,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -16620,6 +16987,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -16680,6 +17049,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -16808,6 +17179,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -16995,6 +17368,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -17048,6 +17423,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -17108,6 +17485,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -17314,6 +17693,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -17615,6 +17996,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -17793,6 +18176,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -18039,6 +18424,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -18259,6 +18646,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -18580,6 +18969,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -18788,6 +19179,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -19087,6 +19480,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -19281,6 +19676,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -19544,6 +19941,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -19590,6 +19989,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -19641,6 +20042,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -19871,6 +20274,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -20210,6 +20615,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -20271,6 +20678,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -20349,6 +20758,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -20517,6 +20928,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -20764,6 +21177,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -20867,6 +21282,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -21002,6 +21419,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -21218,6 +21637,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -21525,6 +21946,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -21757,6 +22180,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -22088,6 +22513,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -22304,6 +22731,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -22617,6 +23046,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -22859,6 +23290,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -23197,6 +23630,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -23411,6 +23846,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -23724,6 +24161,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -23808,6 +24247,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -23920,6 +24361,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -24053,6 +24496,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -24232,6 +24677,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -24494,6 +24941,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -24867,6 +25316,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -25111,6 +25562,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -25462,6 +25915,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -25533,6 +25988,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -25621,6 +26078,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -25718,6 +26177,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -25855,6 +26316,8 @@
             "watch",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -26087,6 +26550,8 @@
               "watch",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -27196,6 +27661,7 @@
             "shrug",
             "dance-groove",
             "dance-bop",
+            "sit",
             "walk-on"
           ],
           "anims": [
@@ -27420,6 +27886,7 @@
             "shrug",
             "dance-groove",
             "dance-bop",
+            "sit",
             "walk-on"
           ],
           "anims": [
@@ -28592,6 +29059,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -28851,6 +29320,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -32709,6 +33180,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -32964,6 +33437,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -33884,6 +34359,8 @@
             "look",
             "watch",
             "talk",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -33999,6 +34476,8 @@
               "look",
               "watch",
               "talk",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -34719,6 +35198,8 @@
             "look",
             "watch",
             "talk",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -34834,6 +35315,8 @@
               "look",
               "watch",
               "talk",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -34999,6 +35482,8 @@
             "look",
             "watch",
             "talk",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -35115,6 +35600,8 @@
               "look",
               "watch",
               "talk",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -35278,6 +35765,7 @@
             "wait",
             "idle",
             "talk",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -35391,6 +35879,7 @@
               "wait",
               "idle",
               "talk",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -36671,6 +37160,8 @@
             "look",
             "watch",
             "talk",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -36788,6 +37279,8 @@
               "look",
               "watch",
               "talk",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -36953,6 +37446,8 @@
             "look",
             "watch",
             "talk",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -37069,6 +37564,8 @@
               "look",
               "watch",
               "talk",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -38070,6 +38567,8 @@
             "look",
             "watch",
             "talk",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -38185,6 +38684,8 @@
               "look",
               "watch",
               "talk",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -38629,6 +39130,7 @@
             "wait",
             "idle",
             "talk",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -38749,6 +39251,7 @@
               "wait",
               "idle",
               "talk",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -39065,6 +39568,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -39107,6 +39612,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -39154,6 +39661,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -39196,6 +39705,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -39244,6 +39755,8 @@
             "talk",
             "shrug",
             "dance-groove",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -39289,6 +39802,8 @@
               "talk",
               "shrug",
               "dance-groove",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -39338,6 +39853,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -39462,6 +39979,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -39626,6 +40145,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -39668,6 +40189,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -39715,6 +40238,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [
@@ -39838,6 +40363,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [
@@ -40002,6 +40529,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -40044,6 +40573,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -40091,6 +40622,8 @@
             "idle",
             "talk",
             "shrug",
+            "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -40133,6 +40666,8 @@
               "idle",
               "talk",
               "shrug",
+              "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -40216,6 +40751,7 @@
       "tavi-rourke",
       "tea-associate-1",
       "tea-associate-2",
+      "tea-host",
       "v1-translator",
       "vr-ava",
       "vr-base-f",
@@ -43602,7 +44138,7 @@
       "spawn"
     ]
   },
-  "revision": "1f87b13f1154ff7b",
+  "revision": "462eaecf2a21ab10",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -57238,577 +57774,577 @@
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 109,
+      "line": 111,
       "text": "start:{how:'notification',channel:'comms',from:'milked-fish',header:'FISH // INCOMING CALL · V1 TRANSLATION',text:FISH_CALL.join('\\n'),when:{kind:'game-time',mission:'m003-corporate-connections',value:360}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 112,
+      "line": 114,
       "text": "evidence:[{id:'tea-talk',title:'Overheard at the tea house',kind:'audio',text:'Associate 1: \"Reyes is getting desperate. He\\'s running out of options.\"\\nAssociate 2: \"Has he agreed to the percentage?\"\\nAssociate 1: \"Fifty-one. He\\'s not happy about it, but he doesn\\'t have much choice.\"\\nAssociate 2: \"And the admission requirement?\"\\nAssociate 1: \"That comes later. The preliminary agreement has already been sent to his personal computer.\"\\nAssociate 2: \"The board wants this completed before the end of the week.\"'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 114,
+      "line": 116,
       "text": "{id:'receive-call',kind:'message',label:'Receive Fish\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 116,
+      "line": 118,
       "text": "{id:'travel',kind:'enter',place:'under-tea-room',label:'Travel to the underground tea house.',via:'comms',npc:'',item:'',early:[],say:[IRIS('Fish brought me up to speed. Find somewhere nearby where you can hear them.'),IRIS('Don\\'t get too close. You\\'re just another customer having tea.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 119,
+      "line": 121,
       "text": "{id:'overhear',kind:'overhear',npc:'tea-associate-1',near:6,close:1.5,label:'Overhear their conversation.',",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 120,
+      "line": 122,
       "text": "say:[AS1('Reyes is getting desperate. He\\'s running out of options.'),AS2('Has he agreed to the percentage?'),AS1('Fifty-one. He\\'s not happy about it, but he doesn\\'t have much choice.'),AS2('And the admission requirement?'),AS1('That comes later. The preliminary agreement has already been sent to his personal computer.'),AS2('The board wants this completed before the end of the week.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 123,
+      "line": 125,
       "text": "say:[FISH('Fifty-one percent? That\\'s not an ordinary investment. Someone wants control of his company.'),FISH('I\\'ve managed to find his residential address. I\\'ll send it to you now.'),FISH('I\\'ve also forwarded everything to Admin and Iris.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 124,
+      "line": 126,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'tea-talk',when:'overhear'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 127,
+      "line": 129,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Fish sent me the address. Reyes is away from home at the moment, so now\\'s our opportunity.','You\\'re going to need to get inside his apartment.','Approach the door\\'s access panel. Your device can interface with it.','I\\'ll walk you through the process.'].join('\\n'),when:{kind:'after-mission',mission:'m004-a-promising-investment'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 129,
+      "line": 131,
       "text": "evidence:[{id:'br-proposal',title:'Investment proposal (Halden Reyes)',kind:'document',text:'BLACKROCK HOLDINGS\\nRecipient: Veyra Dynamics\\nFounder: Halden Reyes\\nProposed investment: 12,000,000 CR\\nEquity transfer: 51%\\nVoting rights: Majority control\\nAdditional conditions: Confidential\\nStatus: Pending admission'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 130,
+      "line": 132,
       "text": "{id:'reyes-message',title:'Message on Halden\\'s computer',kind:'document',text:'\"Mr. Reyes, your preliminary agreement has been received. Further instructions regarding admission will be provided following your final approval meeting.\"'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 131,
+      "line": 133,
       "text": "{id:'reyes-calendar',title:'Office address and calendar entry',kind:'document',text:'Veyra Dynamics office: No. 41, The Avenue.\\nCalendar: confidential investment correspondence is stored on the company\\'s internal network.'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 133,
+      "line": 135,
       "text": "{id:'receive-call',kind:'message',label:'Receive Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 134,
+      "line": 136,
       "text": "{id:'locate-building',kind:'enter',place:'avenue',label:'Locate the apartment building: No. 31, The Avenue.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 135,
+      "line": 137,
       "text": "{id:'find-105',kind:'apt-enter',apt:'reyes',mod:'hall',label:'Find apartment 105 (inside No. 31).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 137,
+      "line": 139,
       "text": "{id:'hack-door',kind:'hack',ap:'reyes/hall.d0',hold:6,stay:true,unlock:true,label:'Hack the apartment door: face the access panel beside door 105, press E and stay at the panel until the bar fills.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 138,
+      "line": 140,
       "text": "{id:'search',kind:'apt-enter',apt:'reyes',mod:'flat',label:'Enter and search the apartment.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 139,
+      "line": 141,
       "text": "{id:'computer',kind:'apt-use',apt:'reyes',mod:'flat',object:'computer',label:'Access Halden\\'s computer (E at the computer).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 143,
+      "line": 145,
       "text": "say:[A('Blackrock Holdings. I\\'ve heard that name before.'),A('They\\'re offering him enough money to save his company, but taking control of it in return.'),A('That\\'s not unusual around here. What interests me is this admission requirement.'),A('According to his correspondence, there\\'s more information on the company\\'s internal network.'),A('Let\\'s take a look at his office.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 144,
+      "line": 146,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'reyes-message',when:'copy'},{kind:'evidence',id:'reyes-calendar',when:'copy'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 147,
+      "line": 149,
       "text": "start:{how:'notification',channel:'notify',from:'admin',text:'Veyra Dynamics office: No. 41, The Avenue. After business hours.',when:{kind:'after-mission',mission:'m005-behind-closed-doors'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 151,
+      "line": 153,
       "text": "evidence:[{id:'br-letters',title:'Halden Reyes and Blackrock: correspondence',kind:'document',text:'Confidential correspondence between Halden Reyes and Blackrock Holdings (Veyra Dynamics internal network, manager\\'s computer).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 152,
+      "line": 154,
       "text": "{id:'br-portfolio',title:'Presentation: businesses Blackrock has funded',kind:'document',text:'An attached presentation lists several businesses that Blackrock has successfully funded under similar investment arrangements.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 153,
+      "line": 155,
       "text": "{id:'br-induction',title:'BLACKROCK — INTERNAL COMMUNICATION',kind:'document',text:'BLACKROCK — INTERNAL COMMUNICATION\\nCandidate: Halden Reyes\\nSponsor: Juno Vex\\nAdmission status: Approved\\nCouncil attendance: Six confirmed\\nInduction documentation: Mandatory audiovisual recording\\nChamber location: Restricted\\n\\n\"Juno, I\\'ll be at the usual place watching the fights. Meet me there before the induction. We need to confirm the surveillance arrangements.\"'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 156,
+      "line": 158,
       "text": "say:[IRIS('There\\'s security inside. Watch how they move before you go anywhere.'),IRIS('Use the furniture and corners to stay out of sight.'),IRIS('You\\'re looking for the manager\\'s computer. We want information, not a confrontation.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 157,
+      "line": 159,
       "text": "{id:'reach-floor',kind:'apt-enter',apt:'veyra',mod:'hall',label:'Reach the office floor (the elevator: E at its buttons).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 159,
+      "line": 161,
       "text": "{id:'manager-pc',kind:'apt-use',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Access the manager\\'s computer.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 163,
+      "line": 165,
       "text": "{id:'admin-call',kind:'call',via:'comms',label:'Take Admin\\'s call.',say:[A('I had Fish look into those other companies.'),A('Almost every one of their founders has been involved in some kind of public scandal shortly after receiving funding.'),A('That\\'s a hell of a coincidence.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 164,
+      "line": 166,
       "text": "{id:'iris-call',kind:'call',via:'comms',delay:4,label:'Take Iris\\'s call.',say:[IRIS('The induction document mentions a mandatory recording.'),IRIS('Whatever happens during this admission ceremony, Blackrock wants a permanent record of it.'),IRIS('If we can find out where they\\'re recording it, we might finally understand what they\\'re doing.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 165,
+      "line": 167,
       "text": "{id:'admin-next',kind:'call',via:'comms',delay:4,label:'Take Admin\\'s call.',say:[A('Sounds like Juno has another meeting scheduled. Let\\'s see what we can learn from that.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 166,
+      "line": 168,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'br-portfolio',when:'documents'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 170,
+      "line": 172,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Juno\\'s already inside. Find her and keep your distance.','There are enough people down there that you should be able to blend in.'].join('\\n'),when:{kind:'after-mission',mission:'m006-hostile-takeover'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 176,
+      "line": 178,
       "text": "evidence:[{id:'arena-talk',title:'Juno Vex and the Blackrock associate',kind:'audio',text:'Juno Vex: \"Is everything prepared for Reyes?\"\\nBlackrock associate: \"The chamber is ready. All six members have confirmed.\"\\nJuno Vex: \"Make sure the recording system is operational. We don\\'t want a repeat of the last induction.\"\\nBlackrock associate: \"It\\'s been moved onto a private network. The recording equipment is connected directly to the corporate facility.\"\\nJuno Vex: \"Good. Let me know when everything\\'s ready.\"'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 178,
+      "line": 180,
       "text": "{id:'receive-call',kind:'message',label:'Receive Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 179,
+      "line": 181,
       "text": "{id:'enter-arena',kind:'enter',place:'under-fight-pit',label:'Enter the underground fighting arena.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 182,
+      "line": 184,
       "text": "say:[JUNO('Is everything prepared for Reyes?'),BRA('The chamber is ready. All six members have confirmed.'),JUNO('Make sure the recording system is operational. We don\\'t want a repeat of the last induction.'),BRA('It\\'s been moved onto a private network. The recording equipment is connected directly to the corporate facility.'),JUNO('Good. Let me know when everything\\'s ready.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 183,
+      "line": 185,
       "text": "{id:'photograph',kind:'photo',npc:'blackrock-associate',label:'Photograph the associate (V1 Camera: L, Camera app, left click).',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 186,
+      "line": 188,
       "text": "{id:'photo-entrance',kind:'photo',npc:'blackrock-entrance',label:'Photograph the entrance.',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 188,
+      "line": 190,
       "text": "say:[IRIS('Fish identified the person you photographed.'),IRIS('He works for a surveillance contractor that maintains private security equipment for several corporations.'),IRIS('That building appears to be one of their maintenance offices.'),IRIS('Get me a look inside. We need to find out where that camera system connects.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 189,
+      "line": 191,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'arena-talk',when:'observe'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 192,
+      "line": 194,
       "text": "start:{how:'notification',channel:'notify',from:'iris',text:'Surveillance contractor\\'s maintenance office: No. 166, Main Street (Far South), back entrance.',when:{kind:'after-mission',mission:'m007-the-house-always-wins'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 194,
+      "line": 196,
       "text": "evidence:[{id:'br04-route',title:'Junction panel: where the camera network goes',kind:'document',text:'Camera BR-04 — private network route.\\nArchive destination: Corporate server facility (Corporate District).'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 195,
+      "line": 197,
       "text": "{id:'br04-record',title:'BLACKROCK PRIVATE SURVEILLANCE — BR-04',kind:'document',text:'BLACKROCK PRIVATE SURVEILLANCE\\nCamera: BR-04\\nLocation: Restricted basement chamber\\nAudio capture: Enabled\\nRecording: Mandatory\\nNetwork access: Internal only\\nArchive destination: Corporate server facility\\nScheduled activation: Next approved induction'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 198,
+      "line": 200,
       "text": "{id:'hack-panel',kind:'hack',ap:'biz-main-w-166',hold:8,stay:true,unlock:true,label:'Hack the access panel (E at the panel beside the door; stay until the bar fills).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 199,
+      "line": 201,
       "text": "{id:'enter',kind:'apt-enter',apt:'contractor',label:'Enter the maintenance office.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 200,
+      "line": 202,
       "text": "{id:'terminals',kind:'apt-use',apt:'contractor',mod:'shop',object:'computer',label:'Search the available computer terminals.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 201,
+      "line": 203,
       "text": "{id:'junction',kind:'apt-use',apt:'contractor',mod:'maint',object:'panel',label:'Access the junction panel (in the maintenance corridor).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 205,
+      "line": 207,
       "text": "say:[IRIS('BR-04. That\\'s our camera.'),IRIS('The feed is routed through a private server facility in the Corporate District. We won\\'t be able to access it from here.'),IRIS('But now we know exactly where to look.'),IRIS('I\\'ve marked the facility on your map. We\\'re going to have to get inside.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 206,
+      "line": 208,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 210,
+      "line": 212,
       "text": "start:{how:'notification',channel:'notify',from:'iris',text:'Blackrock network facility: the Corporate District, the maintenance door on the back alley. Marked on your map.',when:{kind:'after-mission',mission:'m008-private-network'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 216,
+      "line": 218,
       "text": "say:[IRIS('The camera feed is on a private network. Once you\\'re at the core server, I should be able to establish a connection.'),IRIS('Don\\'t touch anything unnecessary. We\\'re not here to shut them down.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 218,
+      "line": 220,
       "text": "{id:'access',kind:'hack',ap:'biz-corp-s-40',hold:8,stay:true,unlock:true,label:'Obtain access to the restricted area (hack the keypad: E, stay until the bar fills).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 220,
+      "line": 222,
       "text": "{id:'server-room',kind:'apt-enter',apt:'facility',mod:'servers',unseen:true,label:'Enter the server room.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 221,
+      "line": 223,
       "text": "{id:'core',kind:'apt-use',apt:'facility',mod:'servers',object:'core',unseen:true,label:'Locate the core server rack.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 222,
+      "line": 224,
       "text": "{id:'advanced-hack',kind:'hack',ap:'facility/servers.s1',hold:20,stay:true,unseen:true,label:'Complete an advanced hacking challenge (the server room\\'s access point: E, stay 20 seconds).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 223,
+      "line": 225,
       "text": "{id:'find-br04',kind:'apt-use',apt:'facility',mod:'servers',object:'terminal',unseen:true,label:'Locate camera BR-04 (the server room terminal).',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 225,
+      "line": 227,
       "text": "say:[IRIS('That\\'s it. I\\'ve established a connection to the camera.'),IRIS('The camera isn\\'t transmitting yet, but I\\'ve configured your device to notify you the moment it becomes active.'),IRIS('Get somewhere safe. When that camera comes online, I want you to record everything.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 227,
+      "line": 229,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 232,
+      "line": 234,
       "text": "const RITUAL={radius:2.6,speed:.5,beats:[{act:'pause',secs:3},{act:'door',open:true},{act:'enter',wait:.5},{act:'turn',who:'six',to:'initiate',wait:2,secs:3},{act:'door',open:false,wait:.5},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 240,
+      "line": 242,
       "text": "{act:'rise',wait:2},{act:'turn',who:'six',to:'owl',wait:2,secs:4},{act:'walk',who:'initiate',to:'altar',wait:2,speed:.42},{act:'card',wait:1.5},{act:'anim',who:'initiate',clip:'read',secs:5},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 245,
+      "line": 247,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'BLACKROCK CAMERA BR-04 — NOW ONLINE',text:'The camera\\'s online. Open the feed. Make sure you\\'re recording.',when:{kind:'game-time',mission:'m009-ghost-in-the-network',value:60}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 247,
+      "line": 249,
       "text": "evidence:[{id:'induction-rec',title:'RECORDING — BLACKROCK INDUCTION',kind:'recording',text:'Camera BR-04: the Blackrock induction of Halden Reyes, recorded through the V1 (the video is in your V1 Gallery).'}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 249,
+      "line": 251,
       "text": "{id:'notice',kind:'message',label:'BLACKROCK CAMERA BR-04 — NOW ONLINE.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 254,
+      "line": 256,
       "text": "{id:'admin-call',kind:'call',via:'comms',delay:3,label:'Take Admin\\'s call.',say:[A('Tell me you recorded that.'),A('Good. Don\\'t send it over an open channel. Bring it back here.'),A('I think we\\'ve just stumbled onto something worth a considerable amount of money.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 255,
+      "line": 257,
       "text": "{id:'return',kind:'enter',place:'district',label:'Return to The Darknet District.',npc:'',item:'',say:[],early:[]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 256,
+      "line": 258,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'induction-rec',when:'save'}]};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 261,
+      "line": 263,
       "text": "start:{how:'notification',channel:'notify',from:'admin',text:'Meet Admin and Iris in the private meeting room.',when:{kind:'after-mission',mission:'m010-the-price-of-admission'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 264,
+      "line": 266,
       "text": "{id:'meet',kind:'enter',place:'district-meeting',label:'Meet Admin and Iris in the private meeting room.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 267,
+      "line": 269,
       "text": "say:[A('Fifty-one percent of the company, and a public scandal to make sure he never walks away.'),A('Now I understand why so many of these executives seem to destroy their own reputations after receiving funding.'),A('It isn\\'t stupidity. It\\'s the price of membership.'),",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 272,
+      "line": 274,
       "text": "{id:'admin-call',kind:'call',via:'comms',label:'Take Admin\\'s call.',say:[A('Come see me when you\\'ve got a minute. I\\'ve got some good news.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 274,
+      "line": 276,
       "text": "say:[A('Fish found us a buyer. Someone with a rather substantial investment in Veyra Dynamics.'),A('Turns out they weren\\'t particularly excited about handing control of their investment to a religious society of corporate psychopaths.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 275,
+      "line": 277,
       "text": "{id:'reward',kind:'hear',npc:'admin',label:'Receive the credit reward.',place:'',item:'',early:[],say:[A('The money\\'s cleared. You\\'ve earned your share.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 277,
+      "line": 279,
       "text": "say:[A('You\\'ve proven you can handle yourself.'),A('You know how to gather information, get into places you shouldn\\'t be, and get out without causing too much trouble.'),A('Frankly, I could use someone like you beyond NeoChinatown.'),A('I\\'ve got a ship sitting at the Port. She\\'s an older light transport, but she\\'s reliable.'),A('Her name\\'s the Kestrel.'),A('I\\'ve transferred ownership to you. Consider it an investment in our future business relationship.')]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 279,
+      "line": 281,
       "text": "say:[A('There\\'s a shipment I need delivered to an associate of mine at Meridian Station. His name is Rook.'),A('The cargo\\'s already been loaded aboard.'),A('Get it there safely and he\\'ll pay you for the delivery.'),A('Congratulations. You\\'re a runner now.')]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 280,
+      "line": 282,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 310,
+      "line": 312,
       "text": "start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:IRIS_OK.congrats+'\\n'+IRIS_OK.walk,when:{kind:'after-mission',mission:'m011-leverage'}},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 313,
+      "line": 315,
       "text": "{id:'notice',kind:'message',label:'Take Iris\\'s call.',npc:'',place:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 316,
+      "line": 318,
       "text": "say:[IRIS(IRIS_NEW.review),IRIS(IRIS_NEW.slots),IRIS(IRIS_NEW.manage),IRIS(IRIS_NEW.admin),IRIS(IRIS_NEW.port)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 317,
+      "line": 319,
       "text": "{id:'port',kind:'enter',place:'port',label:'Travel to the Port.',npc:'',item:'',say:[],early:[]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 318,
+      "line": 320,
       "text": "{id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.there),IRIS(IRIS_OK.boardHer)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 321,
+      "line": 323,
       "text": "{id:'cockpit-display',kind:'call',via:'comms',delay:3,label:'Listen to Iris: the cockpit display.',say:[IRIS(IRIS_NEW.display)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 322,
+      "line": 324,
       "text": "{id:'cockpit-controls',kind:'call',via:'comms',delay:10,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 323,
+      "line": 325,
       "text": "{id:'cockpit-weapons',kind:'call',via:'comms',delay:12,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 324,
+      "line": 326,
       "text": "{id:'cockpit-nav',kind:'call',via:'comms',delay:10,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 325,
+      "line": 327,
       "text": "{id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 326,
+      "line": 328,
       "text": "{id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 327,
+      "line": 329,
       "text": "{id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 328,
+      "line": 330,
       "text": "{id:'meet-rook',kind:'talk',npc:'rook',label:'Meet Rook at the Dead Channel bar.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookMeet)]},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 329,
+      "line": 331,
       "text": "{id:'deliver',kind:'hear',npc:'rook',label:'Deliver the cargo and collect your payment.',place:'',item:'',early:[],say:[ROOK(PROPOSED_CARGO.rookPay)]}],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 330,
+      "line": 332,
       "text": "ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'flag',id:'kestrelCargo',value:'delivered',when:'deliver'},{kind:'contract-flag',id:'rook-first-delivery-done',value:true,when:'deliver'}]};   // the contract with the flight Map / Rook's cargo board (branch claude/flight-map-coords)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 335,
+      "line": 337,
       "text": "/* What a speaker turns toward while saying a step's last line (milked-build.js gesture): Eva toward the staff-only door. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 336,
+      "line": 338,
       "text": "const GESTURES={'m003-corporate-connections/speak-eva':{who:'milked-eva',toward:'staff-door',seconds:4}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 359,
+      "line": 361,
       "text": "const SUPERSEDED={'m002-eyes-on-the-street/enter-null':[['Your V1 has a camera. Press L to open your device, then select the Camera app.','Point it at the target. Your device should identify them automatically.','Left click will take a picture','Once you\\'ve taken the photograph, open Messages, select my conversation, attach the photograph, and send it to me.','Nothing complicated. Just keep your eyes open.']],",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 361,
+      "line": 363,
       "text": "const textsOf=say=>(say||[]).map(l=>l&&l.text);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 363,
+      "line": 365,
       "text": "const now=textsOf(o.say);if(!old.some(v=>v.length===now.length&&v.every((t,i)=>t===now[i])))continue;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/main-story.js",
-      "line": 364,
+      "line": 366,
       "text": "const sm=shipped.missions.find(x=>x.id===m.id),so=sm&&sm.objectives.find(x=>x.id===o.id);if(!so)continue;o.say=JSON.parse(JSON.stringify(so.say));changed++;}",
       "kind": "source-reference"
     },
@@ -57862,19 +58398,19 @@
     },
     {
       "source": "void-runner/milked-build.js",
-      "line": 391,
+      "line": 392,
       "text": "/* Finding it from Main Street (the owner, 16 Nov 2026: \"I couldn't get to Milked\"; the side street had nothing on Main Street saying what is down it). A blade sign on a bracket",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked-build.js",
-      "line": 708,
+      "line": 709,
       "text": "function speakerNow(){try{const line=typeof speech!=='undefined'&&speech?.lines?.[speech.index];if(line){lastSpeaker=line.who;return lastSpeaker;}return root.VoidConversationUI?.isOpen?lastSpeaker:(lastSpeaker=null);}catch{return null;}}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/milked-build.js",
-      "line": 762,
+      "line": 763,
       "text": "/* Where Eva and Fish face: a gesture's turn (Mission 003: Eva turns toward the staff-only door as she says where Fish is), else toward the player while she is",
       "kind": "source-reference"
     },
@@ -59470,133 +60006,139 @@
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 63,
-      "text": "rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-givers.js",
-      "line": 64,
-      "text": "reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-givers.js",
       "line": 65,
-      "text": "nyx:{name:'Nyx',group:E,say:'nyx',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / NYX).',targets:[{action:'talk',character:'nyx'}],layout:'nyx',enter:AREA.station('meridian'),players:false,draft:true,",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/mission-givers.js",
-      "line": 67,
-      "text": "mara:{name:'Mara',group:E,say:'mara',where:'Vesper, the Ward Freight workshop of the old opening (opening-data.js, station-layouts.js).',targets:[{action:'talk',character:'mara'},{action:'opening-mara'}],enter:AREA.station('vesper'),players:false,draft:true,",
+      "text": "'tea-host':{name:'Tea Room Host',group:D,say:'tea-host',where:'The Underground: the tea room, behind the tea station (or wherever Developer Tools > NPCs places him) (npc-made.js: TALK TO TEA ROOM HOST).',targets:[{action:'made-npc',character:'tea-host'}],layout:null,enter:AREA.street('underground'),players:true,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 68,
-      "text": "reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship (once a mission grants one) can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},",
+      "text": "rook:{name:'Rook',group:E,say:'rook',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / ROOK).',targets:[{action:'talk',character:'rook'}],layout:'rook',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 69,
-      "text": "elias:{name:'Elias Ward',group:E,kind:'recording',say:'elias',where:'Vesper: an archived recording (PLAY ARCHIVE), not a person.',targets:[],players:false,draft:false,why:'A recording cannot hand over a mission (needs a code change).'},",
+      "text": "reach:'Not in the District. Since the missions were removed (17 Nov 2026) nothing gives a District player a ship, so nobody reaches Meridian until a mission grants a ship (GRANT SHIP). Talking to him otherwise runs his older freight conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 70,
-      "text": "elara:{name:'Dr. Elara Voss',group:E,say:'Dr. Elara Voss',where:'The Vigil, Cantor System (station-layouts.js: TALK / DR. ELARA VOSS).',targets:[{action:'talk',character:'elara'}],layout:'elara',enter:AREA.station('vigil'),players:false,draft:true,",
+      "text": "nyx:{name:'Nyx',group:E,say:'nyx',where:'Meridian Station, the Dead Channel bar (meridian-interior.js: TALK / NYX).',targets:[{action:'talk',character:'nyx'}],layout:'nyx',enter:AREA.station('meridian'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 72,
-      "text": "marcus:{name:'Marcus Vale',group:E,say:'Marcus Vale',where:'Holdfast, Garrow System (station-layouts.js: TALK / MARCUS VALE).',targets:[{action:'talk',character:'marcus'}],layout:'marcus',enter:AREA.station('holdfast'),players:false,draft:true,",
+      "text": "mara:{name:'Mara',group:E,say:'mara',where:'Vesper, the Ward Freight workshop of the old opening (opening-data.js, station-layouts.js).',targets:[{action:'talk',character:'mara'},{action:'opening-mara'}],enter:AREA.station('vesper'),players:false,draft:true,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-givers.js",
+      "line": 73,
+      "text": "reach:'Not in the District. Vesper is on a District campaign’s list of known places, so a player with a ship (once a mission grants one) can fly there; what she says there today is her old opening scene. Not checked with a draft mission in a browser.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
       "line": 74,
+      "text": "elias:{name:'Elias Ward',group:E,kind:'recording',say:'elias',where:'Vesper: an archived recording (PLAY ARCHIVE), not a person.',targets:[],players:false,draft:false,why:'A recording cannot hand over a mission (needs a code change).'},",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-givers.js",
+      "line": 75,
+      "text": "elara:{name:'Dr. Elara Voss',group:E,say:'Dr. Elara Voss',where:'The Vigil, Cantor System (station-layouts.js: TALK / DR. ELARA VOSS).',targets:[{action:'talk',character:'elara'}],layout:'elara',enter:AREA.station('vigil'),players:false,draft:true,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-givers.js",
+      "line": 77,
+      "text": "marcus:{name:'Marcus Vale',group:E,say:'Marcus Vale',where:'Holdfast, Garrow System (station-layouts.js: TALK / MARCUS VALE).',targets:[{action:'talk',character:'marcus'}],layout:'marcus',enter:AREA.station('holdfast'),players:false,draft:true,",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/mission-givers.js",
+      "line": 79,
       "text": "kess:{name:'Dr. Adrian Kess',group:E,say:'Dr. Adrian Kess',where:'The Nexus, the Communion homeworld (planets.js: TALK / DR. ADRIAN KESS).',targets:[{action:'homeworld-talk',character:'kess'}],layout:'kess',enter:AREA.station('nexus'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 76,
+      "line": 81,
       "text": "mercer:{name:'Daniel Mercer',group:E,say:'Daniel Mercer',where:'The Natural Order homeworld, Garrow (planets.js: TALK / DANIEL MERCER).',targets:[{action:'homeworld-talk',character:'mercer'}],layout:'mercer',enter:AREA.station('order-homeworld'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 78,
+      "line": 83,
       "text": "iona:{name:'Iona Vale',group:E,say:'iona',where:'Rusthaven Port (station-layouts.js: TALK / IONA).',targets:[{action:'talk',character:'iona'}],layout:'iona',enter:AREA.station('rusthaven'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 80,
+      "line": 85,
       "text": "sol:{name:'Dr. Sol',group:E,say:'sol',where:'Kepler, the clinic network’s station (station-layouts.js: TALK / DR. SOL).',targets:[{action:'talk',character:'sol'}],layout:'sol',enter:AREA.station('kepler'),players:false,draft:true,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 100,
+      "line": 105,
       "text": "/* What a step can ask for. supported: the game can run it today (draft play and publish). The others are listed so the owner can plan them; they say \"needs a code change\". */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 108,
+      "line": 113,
       "text": "{id:'enter',name:'Enter a place',supported:true,needs:'region',note:'Done while the player is inside the place (places.js; a player already inside when the step starts counts). Use “say it as a Comms call” for a call that arrives as they walk in.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 111,
+      "line": 116,
       "text": "{id:'send-photo',name:'Send a photo to someone',supported:true,needs:'recipient',note:'In Messages: the player opens the recipient’s conversation, ATTACH, picks the photo, SEND. Only a photo of the chosen person taken during this mission counts. “What is said” is the reply to the right photo; the second set of lines is the reply to any other photo (unlimited tries, no fail). Photos stay on the player’s computer; only what was checked when the photo was taken is used.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 114,
+      "line": 119,
       "text": "{id:'hear',name:'Hear what they say',supported:true,note:'The lines below are shown right after the talk step before it; the step is done when the player closes that conversation.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 121,
+      "line": 126,
       "text": "{id:'anim',name:'Someone plays an animation',supported:true,needs:'anim',note:'The person you choose does the animation (a shrug, a laugh, looking about …) where they stand, as soon as the step before is done and the conversation is closed; the mission then waits the seconds you set (0 to 30) and goes on to the next step. Only animations that person really has.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 130,
+      "line": 135,
       "text": "{id:'overhear',name:'Overhear a conversation (eavesdrop)',supported:true,needs:'observe',note:'While the player stays within the distance (and not too close) the lines play as overheard subtitles, one by one. Walking away pauses it; too close: “they noticed you”, it starts again once the player backs off. Done when the last line is heard. Unlimited tries.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 146,
+      "line": 151,
       "text": "{id:'wait',name:'Wait (a number of seconds)',supported:true,needs:'seconds',note:'The mission waits the seconds you set (1 to 600), then goes on to the next step. Optionally only while the player stays within a distance of someone. The clock stops in the pause menu, conversations and the KeyMap, and carries on after a reload.'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 171,
+      "line": 176,
       "text": "{id:'near',name:'When walked near',note:'The mission starts when the player comes within this many metres of the person chosen (1 to 30; 5 if not set), without talking to them. Measured from where their TALK prompt is, so it follows people who move (Reverie and Lace). Checked four times a second while the player walks: never in a conversation, a cutscene, the character creator, the pod or the KeyMap. Once only; the missions before it in the tree must be done.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 172,
+      "line": 177,
       "text": "{id:'game-time',name:'After in-game time',note:'N in-game hours / minutes after a mission is completed. The in-game clock runs 12 in-game minutes for every real minute of walking or flight with the game on screen (not menus, pause, conversations, a hidden tab or time offline): 6 in-game hours is about 30 minutes of play. Kept in the save, so it carries on after a reload or on another computer (game-clock.js).'}];",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-givers.js",
-      "line": 204,
+      "line": 209,
       "text": "out.push({id,name,say:/^[a-zA-Z][\\w-]{0,63}$/.test(e.say||'')?e.say:id,kind:e.kind||'person',group:e.group,groupText:e.group===D?'in the current District game':'earlier character (not in the District today)',where:e.where,targets:e.targets,layout:e.layout||null,enter:e.enter||null,",
       "kind": "source-reference"
     },
@@ -59608,49 +60150,49 @@
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 91,
+      "line": 96,
       "text": "/* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 93,
+      "line": 98,
       "text": "if(st.kind==='photo'){if(v.camera)return {id:'shoot',text:'Put the target in the frame · <b>LEFT CLICK</b> takes a picture'};if(v.deviceOpen)return v.app?{id:'camera',text:'Go back (<b>Esc</b>) and select the <b>Camera</b> app'}:{id:'camera',text:'Select the <b>Camera</b> app'};return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 94,
+      "line": 99,
       "text": "if(st.kind==='send-photo'){const who=v.name(st.npc);if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 95,
+      "line": 100,
       "text": "if(v.app!=='messages')return v.app?{id:'messages',text:'Go back (<b>Esc</b>) and open <b>Messages</b>'}:{id:'messages',text:'Open <b>Messages</b>'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 96,
+      "line": 101,
       "text": "if(v.thread!==st.npc)return {id:'thread',text:'Select <b>'+who+'</b>’s conversation (INBOX)'};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 97,
+      "line": 102,
       "text": "if(v.attach&&v.attach.picking)return {id:'attach',text:'Choose the photo of the target'};if(!(v.attach&&v.attach.photo))return {id:'attach',text:'Press <b>ATTACH</b>'};return {id:'send',text:'Press <b>SEND</b>'};}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 103,
+      "line": 109,
       "text": "const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/mission-guide.js",
-      "line": 104,
+      "line": 110,
       "text": "root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};",
       "kind": "source-reference"
     },
@@ -60406,49 +60948,49 @@
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 136,
+      "line": 150,
       "text": "stand-up), then the next action (stay) or the next point (path, round and round). A conversation still stops her (hold); once the plan is gone she walks back to her",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 158,
+      "line": 174,
       "text": "return false;}   // sitting at a point, or held for a conversation: the ordinary steps below",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 210,
-      "text": "const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};",
+      "line": 227,
+      "text": "const api={ACT,PLAN_MODES:PLAN,PAIR,CLIPS,CLIP_LIST,BANNED,DEVICE,QUARTER,CAT,WALL,SEAT,STRETCH,STEPS,CAT_HOME,config,onShift,shiftStart,nextChange,onStreet,catTarget,routineStart,routineStep,laceStart,laceStep,frontOf,seatOf,seats,seatNear,seatYaw,seatOffset,along,SEAT_BACK,SEAT_FRONT,lookAt,canLook,streetTime,simulated,simulate,utcLabel,TEST,shiftMoment,testClock,GREETING,TALK_ACTION,talkId,CAT_ID,CAT_ACTION,CAT_REACTION};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 293,
+      "line": 310,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatHer=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 296,
+      "line": 313,
       "text": "const speaks=id=>{try{return typeof speech!=='undefined'&&!!speech&&Array.isArray(speech.lines)&&speech.lines.some(l=>l&&l.who===id);}catch{return false;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 316,
+      "line": 333,
       "text": "if(talking)hold(her.s,me);else if(her.s.sub==='chat'){her.s.sub=null;her.s.face=null;her.s.left=Math.min(her.s.left,1.2);}   // after the conversation: a moment, then on her way",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 456,
+      "line": 473,
       "text": "VoidInteractions.register(CAT_ACTION,()=>{talk('',CAT_REACTION.map(text=>({who:CAT_ID,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-street-pair.js",
-      "line": 457,
+      "line": 474,
       "text": "VoidInteractions.register(TALK_ACTION,({item}={})=>{const p=PAIR.find(x=>x.id===item?.character)||PAIR[0];talk('',(GREETING[p.id]||['Hi.']).map(text=>({who:p.id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -60460,13 +61002,13 @@
     },
     {
       "source": "void-runner/ncz-underground.js",
-      "line": 100,
+      "line": 103,
       "text": "const say=(type,obj)=>{const t=M.TYPES[type]||{};return (t.say&&t.say[obj])||null;};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/ncz-underground.js",
-      "line": 103,
+      "line": 106,
       "text": "if(i.action==='mod-use'&&i.object!=='lights'){const m=modById(i.mod),text=m&&say(m.type,i.object);if(text)inter.push({id:'under-'+i.id,label:i.label,position:[i.position[0],Y+i.position[1],i.position[2]],action:'under-look',text,place:PLACE_OF[i.mod],range:i.range});}}",
       "kind": "source-reference"
     },
@@ -60814,49 +61356,49 @@
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 61,
+      "line": 67,
       "text": "/* The file the game loads for a model: a licensed one ships scrambled (.vrpak) where its licence asks for it (vr-companions.js says which). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 111,
+      "line": 117,
       "text": "out[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim():id,group:'district',say:id,made:true,role:typeof c.role==='string'?c.role:'',model:c.model,",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 166,
-      "text": "const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null};",
+      "line": 172,
+      "text": "const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 174,
+      "line": 180,
       "text": "const convo=()=>!!root.VoidConversationUI?.isOpen||(typeof mode!=='undefined'&&mode==='dialogue');let chatSeen=false,chatWho=null;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 176,
+      "line": 182,
       "text": "const speaker=()=>{try{if(typeof speech==='undefined'||!speech||!Array.isArray(speech.lines))return null;const cs=chars();const l=speech.lines.find(x=>x&&cs[x.who]);return l?l.who:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 198,
+      "line": 204,
       "text": "else{if(P&&P.mode==='escort'){/* talked to during the step: she stops for the conversation */}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 219,
+      "line": 225,
       "text": "/* Name cards for the dialogue window (as mission-givers do for their speakers). */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-made.js",
-      "line": 230,
+      "line": 236,
       "text": "VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',[{who:id,text:'…'}],()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);",
       "kind": "source-reference"
     },
@@ -60904,13 +61446,13 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 112,
+      "line": 117,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 236,
+      "line": 249,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
@@ -63014,8 +63556,8 @@
     "void-runner/corporate-integration.js": "8f3bfa9d2b5c710a0df5eba90b45e231cb1ea49517a1e50aac38aaa6756226e3",
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
-    "void-runner/crosswalks.js": "2e08c52b51e0788a4023e0396b5c3bfde54d8c535ae5809be3a011b2aa5805c2",
-    "void-runner/crowd.js": "1c7587f2aaac0397610df0fa2f8a798bcbcf00eda25c50de5b1ee08ad825d67e",
+    "void-runner/crosswalks.js": "69acf44a540a6ba7314d68bf38fa74ad93482ca993629675eae3ca0d8a9a1d60",
+    "void-runner/crowd.js": "10b100bcb72a377931dfed8dae080c28af84856bdf04a2f7dfbcef9e15a2e161",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "ee1fcc752a36ace292f55b57531da64a4430fd61f6e84bceb1801480585f2ecd",
     "void-runner/cult-room.js": "d74e5be20b2381fe46f4dc7b1fd0ea32d45d877f5db23cb654ca162bb6efd5f9",
@@ -63079,7 +63621,8 @@
     "void-runner/live-content.js": "e4c4ee5dd6123eb3f7653b92f8bb5be13b91fa698492fd5d823dc0feea9e8e9e",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
-    "void-runner/main-story.js": "3ccca561398eab006710520b513a978aa08fb993a534b7ca043eeb92170e13bf",
+    "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
+    "void-runner/main-story.js": "9ceb708066a8eb94d885adb2cb49537f995c68a7170bd5d467dd8c3a246b511c",
     "void-runner/menu-backdrop.js": "33b1d2c38a2c2f0efc1f2ce8d64d5135180f21ca38e19aa8cbea5b5b8f394e63",
     "void-runner/menu.js": "0f3ce2373d80ae6e8f7b68afd6f09b2f9ceee8ec74af0762cbfedf198b0452f9",
     "void-runner/meridian-art.js": "c57334461baaaae4aacd049deaeadf58f54c79f6fdfa538735673ae6589e8c20",
@@ -63087,7 +63630,7 @@
     "void-runner/meridian-interior.js": "a0689f98ce5713e84c4fd36d9ee5147a790837838dca04ca98b1fbc449354b1b",
     "void-runner/meridian-kitbash.js": "9a56e451e8020d2eab0294e2a8f7c763e1fb1dc62d29bfa02dbf7646b715ed28",
     "void-runner/meridian-station.js": "39d79973df4dd6b069d1826cfb85a755f83e2ae90a6cf05b54f97b3f7c80c109",
-    "void-runner/milked-build.js": "e046539c5d4a5a1cc1e6095a8ec55e4d461b93ac5f38141946f01bf1c28a3ec6",
+    "void-runner/milked-build.js": "9e390d4fd33d92a49c81d36d07fe15e8b2f04e181a604d2b5389965ca5591b4d",
     "void-runner/milked-integration.js": "0e02264944a473a0e63a2100ba880e677103e3eda6a6956d99c9c10f02ee9d9e",
     "void-runner/milked-transition.js": "7500b9256cf7eee7aa0a8f7fbc3622512ede8b7e7c5dc71b5732892a69f59688",
     "void-runner/milked.js": "a0600a70dd32b437fd11f7791a03cde58eb5da6ed1a9c0664bd60d5a5875bebc",
@@ -63096,18 +63639,18 @@
     "void-runner/mission-blocks.js": "0e96db6cc90fb02de85a5c491a9c71a3afe1cbb9134ae65d278b6b29cbba3785",
     "void-runner/mission-content.js": "f50382bcc6ae73a7b468103a4ab17d62501bf739154ec5f59ab9cdec5035f226",
     "void-runner/mission-editor.js": "133f790d313285d4d5f4790a391027347e3ee0ce0ee2ae6856b234321128ec15",
-    "void-runner/mission-givers.js": "bf9756b63879bade9ab12e9d0da3f923d5e49292cd2e66de73bef5e7066f0e00",
-    "void-runner/mission-guide.js": "a867336b548d4fea54a774a14585051f7607f58d7de170f8288ec4ee77cfdf43",
+    "void-runner/mission-givers.js": "5c7ac32336e67b46b411951999f4a09f1ce00d17311051a7e822b40c4aaf4a83",
+    "void-runner/mission-guide.js": "5b565f0f73cd4151dc2e11b5e4615de5f2680242b580bd90bad2977735345631",
     "void-runner/mission-log.js": "c7d188c8d7dc5a089f4467eeee617ddfba6a356031a7a4616c6e23ddf5937c4f",
     "void-runner/mission-mechanics-editor.js": "8e2ad0434f65efbd0c31e3f0ea462e96677818d0b509ad0c8dd9b9ab75d9f90c",
     "void-runner/mission-mechanics-game.js": "d526617ca8802e0d3e37545eb91b591bfe71a06067956c5d3e460b210e04032e",
     "void-runner/mission-mechanics.js": "c96242d2208ffe17200f81774f608bb9b5217bd8ccab930cfbec0939b97d25d4",
-    "void-runner/mission-trees.js": "67dea1e9656bf6edae8bffeba4d9a6478ba101cf39f931228eed400c64b7fe9e",
+    "void-runner/mission-trees.js": "4ca010fef01069ef2d46e012ef6b308168bc5fbab0abc6d85c620fc69dee2606",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "86c5c4faf999278f8f3ee6bd2c867d9bcc0f8c6359db3e7a19310595f4ce4d16",
+    "void-runner/module-build.js": "01dd44f88c4b9ee2922245d41965c8c364f9bca8f24e06bb891ddba47f40bde7",
     "void-runner/module-editor.js": "c7b313a490feac156aa1e32940506dfe7d05a4e2458c29210133d6aca77ba9a4",
     "void-runner/module-integration.js": "f6b5c955d19d7b31bb44e21b8504272f9123c5877feebfeb1b378218716af52e",
-    "void-runner/modules.js": "38f05b0cb1befff4aaa44310fa8c0ed789efaeb51fa31673a1fb0b9b0cc10f9c",
+    "void-runner/modules.js": "093b4e0b7ef1e9959f28b5aeb47e1d140f78ce593657b0cfa026d328758506a1",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
@@ -63129,9 +63672,9 @@
     "void-runner/ncz-quarters.js": "add265e7bd1863d86370b8b41fd2b01504793365c0c2cd6b6bb9b85d5f66d8ac",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
-    "void-runner/ncz-street-pair.js": "432388decd1ac1b956d3d03adad43cac908cc5f9a4643d2bc1ffa8c492d3cbc4",
+    "void-runner/ncz-street-pair.js": "8e735b6db1cc9413195092621ef18134ee815dd1843bc16ed61b99f4af3eaf30",
     "void-runner/ncz-underground-integration.js": "3d79c892c28fbc4ec5ed3350f308d5257f8fed44853e77192c9a249b4be75fd5",
-    "void-runner/ncz-underground.js": "8bcd58947d2a720d001347c01a1831bd2a7be1dca36a59df93e2651c843d5cd1",
+    "void-runner/ncz-underground.js": "19caacdd2c0f5410bfa19b83865c12c69a07c2d9ad1c3c7d3c9302671d3fbc66",
     "void-runner/neochinatown.js": "b0467951b7f204ec190a3853f7d88c41886ecca30272cfa46f8aef9c1c96d633",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
@@ -63139,14 +63682,14 @@
     "void-runner/npc-behaviour.js": "8145de3c2ec74f87fa8f831c89a1b3d51699c0e65bfd3d78fd051f48aa0726a9",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
     "void-runner/npc-editor.js": "08b76728fe14ab73a02f77ab3055ef5c58dbd9e9f845d5e5f4439d931735b16a",
-    "void-runner/npc-escort-indoors.js": "aefd4fde6d052f35a0d2a3170251f1264c8cb5193db325949799c2b9dd5a8ad0",
+    "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "b622f7e38e0356c46091f3e86ff9063bb85e8a33a2a3ff974d82d8f003278537",
     "void-runner/npc-gestures.js": "0d0c7ef1a43ac149ae4f0cc538230c7e01bc451bfaba8260da3aa970f6c03199",
     "void-runner/npc-look.js": "56979c6d56e88e9f4d76cab8377daaf0aa7529a7dd639d4467c9d497e42b0a29",
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
-    "void-runner/npc-made.js": "914db3617694de581c1648e817b3d747ec8eac27c3507ca9ca0954686657719c",
+    "void-runner/npc-made.js": "b8f7d5fea403acd9f6d7e429a23362e823cbe6c38079edd411b2a86e03d3362b",
     "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
-    "void-runner/npc-paths.js": "8a46fb80c09220cc15df67b2021997959665e4ac6f9e6db0fddc4cd5946073a3",
+    "void-runner/npc-paths.js": "d51bf06e32cdcbc6692c54f7d7d3b803dc2c416093991e771c228a0f01c16ec8",
     "void-runner/npc-preview.js": "c1666e1677937002923d955b7d3778ab9a1c803d6b1767481d0f80d023de677f",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "c7bd363661ce3aaa939cc9c2c3b09a9f1f5fb813a63bb5fb1e8b88676f47c5c7",

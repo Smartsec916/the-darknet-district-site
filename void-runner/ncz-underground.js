@@ -84,9 +84,12 @@
   {n:4,kit:['crates','cooler','lantern','graffiti']},{n:5,kit:['bench','valve','lamp','pipes']},{n:6,kit:['bench','shrine','lantern','noodles']}].map(a=>({...a,id:'under-alcove-'+a.n,mod:'al'+a.n}));
  // local (x, z) of a tube piece -> world: the module's turn (modules.js rotP: rot 1 sends local -z to the west, rot 3 to the east)
  function localToWorld(m,x,z){const s=SIZE[m.type],odd=m.rot%2,w=(odd?s[1]:s[0])*GRID,d=(odd?s[0]:s[1])*GRID,ccx=cx(m.x)+w/2,ccz=cz(m.z)+d/2,c=[1,0,-1,0][m.rot],sn=[0,1,0,-1][m.rot];return [ccx+x*c+z*sn,ccz-x*sn+z*c];}
+ /* A facing in a module's own frame -> the world's (yaw 0 = +z, PI/2 = +x): the module's turn adds rot quarter turns (localToWorld). (20 Nov 2026: the spots and
+    seats subtracted them, so every turned module's people and seats faced the wrong way.) */
+ const turnYaw=(yaw,rot)=>{const a=yaw+(rot|0)*Math.PI/2,t=Math.atan2(Math.sin(a),Math.cos(a));return +(Math.abs(t+Math.PI)<1e-9?Math.PI:t).toFixed(4)||0;};
  const localBox=(m,[x0,x1,z0,z1])=>{const a=localToWorld(m,x0,z0),b=localToWorld(m,x1,z1);return [Math.min(a[0],b[0]),Math.max(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[1],b[1])];};
  const alcoveFurniture=()=>ALCOVES.flatMap(a=>{const m=modById(a.mod);return a.kit.filter(k=>KIT[k].furn).map(k=>{const f=KIT[k].furn;return {id:a.id+'-'+k,place:a.id,rect:localBox(m,f),h:f[4],name:f[5]};});});
- const SEATS=ALCOVES.flatMap(a=>{const m=modById(a.mod);return a.kit.filter(k=>KIT[k].seat).map(k=>{const s=KIT[k].seat,[x,z]=localToWorld(m,s[0],s[1]);return {id:a.id+'-seat',place:a.id,x:+x.toFixed(2),z:+z.toFixed(2),yaw:+(s[2]-m.rot*Math.PI/2).toFixed(4),h:s[3]};});});
+ const SEATS=ALCOVES.flatMap(a=>{const m=modById(a.mod);return a.kit.filter(k=>KIT[k].seat).map(k=>{const s=KIT[k].seat,[x,z]=localToWorld(m,s[0],s[1]);return {id:a.id+'-seat',place:a.id,x:+x.toFixed(2),z:+z.toFixed(2),yaw:turnYaw(s[2],m.rot),h:s[3]};});});
  /* ---- the module location, its analysis and its walking layout (modules.js; lazy: in the browser modules.js loads after this file) ---- */
  const LOC={id:ID,entry:'none.x',exits:ENTRANCES.map(e=>e.vest+'.e2'),modules:MODS.map(m=>({...m}))};
  let AN=null,LAY=null;
@@ -138,7 +141,7 @@
  /* Named places for npc-areas.js places() (the ChatGPT prompt, the editor's spot list): a spot near the middle of each place. */
  function places(){return PLACES.map(p=>{const r=p.rects[p.kind==='trunk'?Math.floor(p.rects.length/2):p.rects.length-1]||p.rects[0];return {id:p.id,name:p.name,area:ID,x:(r[0]+r[1])/2,z:(r[2]+r[3])/2};});}
  /* Spots for people the owner places later (modules.js spots: doormen, the tea room host, the cook ...), in world metres, by place. Data only. */
- function spots(){const M=MOD();if(!M)return [];const out=[];for(const m of MODS){const t=M.TYPES[m.type];for(const [name,x,z,yaw] of (t&&t.spots)||[]){const [wx,wz]=localToWorld(m,x,z);out.push({id:PLACE_OF[m.id]+'/'+name,place:PLACE_OF[m.id],x:+wx.toFixed(2),z:+wz.toFixed(2),yaw:+((yaw||0)-m.rot*Math.PI/2).toFixed(4)});}}return out;}
+ function spots(){const M=MOD();if(!M)return [];const out=[];for(const m of MODS){const t=M.TYPES[m.type];for(const [name,x,z,yaw] of (t&&t.spots)||[]){const [wx,wz]=localToWorld(m,x,z);out.push({id:PLACE_OF[m.id]+'/'+name,place:PLACE_OF[m.id],x:+wx.toFixed(2),z:+wz.toFixed(2),yaw:turnYaw(yaw||0,m.rot)});}}return out;}
  /* ---- for the mission arrow (guide-route.js): one region per module, a portal at every door and tunnel seam, and one at each stair door to the city ---- */
  // the network's ground for "which part am I in" (the arrow, the quarter): each module's footprint, the checkpoints 0.3 m short of their outer (east) wall, which stands
  // where the stairwell's end wall does, at the edge of the yard above
@@ -174,8 +177,8 @@
    const sign=(modId,text,x,z,ry)=>{k.at(modId);plane(P('stencil-'+text,{dyn:signTex(text,'#d8cfae','#1a1a18',512,96,'bold 46px monospace'),unlit:true}),1.05,.2,[x,1.95,z],ry);};
    sign('j1','↗ THE AVENUE',-.97,0,-H);sign('j6','→ OLD TOWN',-.97,0,-H);sign('j13','↘ FAR SOUTH',-.97,0,-H);sign('j10','← PIT',.97,0,H);k.at(null);}
   const h=M.build({scene,parent:base,quality,def});if(!h){base.dispose();return null;}
-  return {...h,quarter:ID,gates:null,doors:null,streetPair:null,nightlife:null,dispose(){try{h.dispose();}catch{}try{base.dispose(false,true);}catch{}}};}
- const api={ground,ID,NAME,Y,OFF,GRID,TRUNK,SIZE,PLACES,MODS,PLACE_OF,ENTRANCES,ALCOVES,KIT,SEATS,LOC,cx,cz,footprint,rects,extent,modAt,placeAt,inside,ready,analysis,walking,arrive,leave,doors,graph,path,walk,obstacles,places,spots,regions,portals,alcoveFurniture,localToWorld,pit:PIT,build,
+  return {...h,moduleDoors:h.doors,quarter:ID,gates:null,doors:null,streetPair:null,nightlife:null,dispose(){try{h.dispose();}catch{}try{base.dispose(false,true);}catch{}}};}
+ const api={ground,ID,NAME,Y,OFF,GRID,TRUNK,SIZE,PLACES,MODS,PLACE_OF,ENTRANCES,ALCOVES,KIT,SEATS,LOC,cx,cz,footprint,rects,extent,modAt,placeAt,inside,ready,analysis,walking,arrive,leave,doors,graph,path,walk,obstacles,places,spots,regions,portals,alcoveFurniture,localToWorld,turnYaw,pit:PIT,build,
   placeById,get:placeById};
  if(node)module.exports=api;else root.VoidUnderground=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

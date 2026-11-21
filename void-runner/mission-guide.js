@@ -85,7 +85,12 @@
 
  // ---- contextual hints ----
  const hint=document.createElement('div');hint.id='mission-hint';hint.dataset.help='1';hint.hidden=true;hint.setAttribute('role','status');hint.setAttribute('aria-live','polite');document.body.appendChild(hint);
- const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;top:134px;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--mission-yellow,#ffd678);background:rgba(24,16,4,.72);border-left:2px solid var(--mission-yellow,#ffd678);border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:var(--mission-yellow-text,#ffe7a8);font-weight:700}';document.head.appendChild(style);
+ const style=document.createElement('style');style.textContent='#mission-hint{position:fixed;left:50%;top:134px;transform:translateX(-50%);z-index:250;pointer-events:none;max-width:min(560px,80vw);padding:5px 12px;font:600 12px/1.45 ui-monospace,Consolas,monospace;letter-spacing:.06em;color:var(--mission-yellow,#ffd678);background:rgba(24,16,4,.72);border-left:2px solid var(--mission-yellow,#ffd678);border-radius:2px;text-shadow:0 1px 2px #000}#mission-hint b{color:var(--mission-yellow-text,#ffe7a8);font-weight:700}'
+  // (20 Nov 2026) with the V1 open on the right half, the hint and the tracker above it move to the middle of the free left part and wrap there (at 1366 px the hint sat
+  // under the V1's left edge); with the V1 expanded to the full width, the hint goes to the top-left corner above it. The camera keeps the hint in the middle.
+  +'body.v1-side #mission-hint,body.v1-side #mission-tracker:not([hidden]){left:calc((100vw - 24px - max(430px,50vw - 12px))/2);max-width:calc(100vw - 48px - max(430px,50vw - 12px));box-sizing:border-box;overflow-wrap:anywhere}'
+  +'body.v1-side #mission-hint{top:150px}'   // below the zone chip (top-left, to 140 px)
+  +'body.v1-wide #mission-hint{left:12px;transform:none;top:72px;max-width:min(320px,28vw)}';document.head.appendChild(style);
  const key=()=>{try{return root.VoidInput.label(root.VoidInput.bindings.missionLog||'KeyL');}catch{return 'L';}};
  const name=id=>{try{return LC()?.giverName?.(id)||id;}catch{return id;}};
  /* The hint for what the player is doing now (null: nothing to say). Pure enough to test with a fake view: {step, deviceOpen, app, thread, attach:{picking,photo}, camera, key, name}. */
@@ -100,6 +105,7 @@
  setInterval(()=>{try{
   const s=typeof state!=='undefined'&&state?state:null,off=s?.story?.flags?.helpOff===true,D=root.VoidPersonalDevice,on=typeof mode!=='undefined'&&(mode==='walking'||D?.isOpen);
   const cur=!off&&on?LC()?.step?.():null,h=cur?hintFor({step:cur.step,deviceOpen:!!D?.isOpen,app:D?.app||null,thread:D?.thread||null,attach:D?.attach||{},camera:!!root.VoidDeviceCamera?.active,key:key(),name}):null;
+  {const pd=document.getElementById('personal-device'),open=!!D?.isOpen&&!!pd&&pd.classList.contains('open')&&!root.VoidDeviceCamera?.active,wide=open&&pd.classList.contains('expanded');document.body.classList.toggle('v1-side',open&&!wide);document.body.classList.toggle('v1-wide',wide);}
   const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);
  root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
 })(globalThis);

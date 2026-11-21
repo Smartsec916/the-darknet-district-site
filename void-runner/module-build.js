@@ -236,7 +236,7 @@
   function prop(file,[x,y,z],ry,h,standIn){if(low||!root.VoidAssets?.loadContainer){standIn?.();return;}const node=cur;
    if(!propCache.has(file))propCache.set(file,root.VoidAssets.loadContainer({src:'assets/models/'+file},scene,null,'mod:'+file).then(c=>{containers.push(c);for(const m of c.materials)if('usePhysicalLightFalloff' in m){m.usePhysicalLightFalloff=false;m.environmentIntensity=.5;m.maxSimultaneousLights=6;}return c;}));
    late.push(propCache.get(file).then(c=>{if(disposed)return;if(file.includes('office-chair')&&!c.metadata?.toned){c.metadata={...(c.metadata||{}),toned:true};for(const m of c.materials)if(m.albedoColor){m.albedoTexture=null;m.albedoColor=B.Color3.FromHexString('#1c1e22');m.roughness=.55;m.metallic=.25;}}   /* Milked's pink trim: a corporate charcoal here */const inst=c.instantiateModelsToScene(n=>'mod-'+n,false,{doNotInstantiate:false}),n=new B.TransformNode('mod-prop',scene);n.parent=node;for(const r0 of inst.rootNodes)r0.parent=n;
-     n.position.set(x,0,z);n.rotation.y=ry;n.computeWorldMatrix(true);for(const m of n.getChildMeshes())m.computeWorldMatrix(true);const bb=n.getHierarchyBoundingVectors(true),sc=h/Math.max(.01,bb.max.y-bb.min.y);n.scaling.setAll(sc);n.position.y=y-(bb.min.y-0)*sc;
+     n.position.set(x,0,z);n.rotation.y=ry;n.computeWorldMatrix(true);for(const m of n.getChildMeshes())m.computeWorldMatrix(true);const bb=n.getHierarchyBoundingVectors(true),sc=h/Math.max(.01,bb.max.y-bb.min.y),py=node&&node.getAbsolutePosition?node.getAbsolutePosition().y:0;n.scaling.setAll(sc);n.position.y=y-(bb.min.y-py)*sc;   // (20 Nov 2026) measured from its parent's height: underground (y -3) a prop stood ~0.6 m off its mark
      for(const m of n.getChildMeshes()){m.isPickable=false;m.freezeWorldMatrix?.();}props.push(n);}).catch(e=>{if(disposed)return;console.warn('[modules] prop '+file,e?.message||e);try{const keep=cur;cur=node;standIn?.();cur=keep;merge();}catch{}}));}
   // a stand-in office chair (Low, or the model missing): seat, back, column, star base
   function chairStandIn(x,z,ry){const c=Math.cos(ry),s=Math.sin(ry);box2(S.plastic,x-.24,x+.24,.44,.52,z-.24,z+.24);bx(S.plastic,[.44,.5,.06],[x-s*.22,.82,z-c*.22],ry);cyl(S.steel,.05,.4,[x,.24,z]);cyl(S.dark,.56,.04,[x,.05,z],10);}
@@ -547,12 +547,14 @@
     box2(dw,-2.9,-1.1,0,.15,-2.5,1.3);box2(lq,-1.12,-1.08,0,.16,-2.5,1.3);tatamiMats(-2.85,-1.15,-2.45,1.25,.15);lowTable(-2.4,-1.6,-1.95,-1.05,.18);lowTable(-2.4,-1.6,-.15,.75,.18);tatamiMats(1.05,2.35,-2.75,-.45);lowTable(1.2,2.2,-2.2,-1,.03);
     // the service partition (hides the back door), the tea station against it, the folding screen at the end of the passage
     box2(dw,-2.9,1.15,0,2.3,1.5,1.6);shojiWall('n',-2.6,-.1,3,1.42,.6,2.0);box2(dw,1.1,1.18,0,2.3,1.48,1.62);
-    box2(dw,-.8,1,0,.85,1,1.5);box2(lq,-.82,1.02,.85,.88,.98,1.5);kettleSet(-.45,1.25,.88);const ce=celadon();for(let i=0;i<6;i++)cyl(ce,.07,.06,[.05+(i%3)*.17,.915,1.12+Math.floor(i/3)*.2],10);for(let i=0;i<3;i++)cyl(P('tin'+(i%2),{c:['#5a4a2a','#2a3a3a'][i%2],rough:.4,metal:.6}),.11,.15,[.75,.955,1.1+i*.15],12);
+    // (20 Nov 2026) the station stands out from the partition as an island: the tea room host stands behind it (spot 'host'), the lucky cat on its east end faces the room
+    box2(dw,-.8,1,0,.85,.2,.7);box2(lq,-.82,1.02,.85,.88,.18,.72);kettleSet(-.45,.45,.88);const ce=celadon();for(let i=0;i<6;i++)cyl(ce,.07,.06,[.05+(i%3)*.17,.915,.32+Math.floor(i/3)*.2],10);for(let i=0;i<3;i++)cyl(P('tin'+(i%2),{c:['#5a4a2a','#2a3a3a'][i%2],rough:.4,metal:.6}),.11,.15,[.6,.955,.3+i*.15],12);
+    {const L=root.VoidLuckyCat,cx=.86,cy=.88,cz=.42,cm=P('lucky-cat',{c:(L?L.COLOUR[0]:'#e9e4dc'),rough:.35});const sb=()=>L&&L.standIn(cx,cy,cz,{ball:(d,x,y,z)=>{const m=B.MeshBuilder.CreateSphere('mod-ball',{diameter:d,segments:8},scene);m.position.set(x,y,z);add(m,cm);},box:(w,h,d,x,y,z)=>bx(cm,[w,h,d],[x,y,z],0)});if(L)prop(L.FILE,[cx,cy,cz],0,.24,sb);}
     {const sp=P('byobu',{c:'#6a5a40',dyn:inkTex(),rough:.8});for(let i=0;i<3;i++){const x=2.34+i*.22,m=bx(sp,[.23,1.7,.03],[x,.85,.9],(i%2?.25:-.25));}box2(dw,2.2,2.9,1.69,1.72,.86,.94);}
     // the nook behind the partition: shelves of supplies and the strongbox, a service sink, crates
     bulb(-.3,2.25,2.15,Ch,lamp);shelving(-2.9,-2.4,1.7,2.9,'z');box2(P('lacquer-red',{c:'#4a1410',rough:.22}),-2.38,-2.2,.95,1.15,2.2,2.45);box2(S.steel,2.2,2.9,0,.88,2.5,2.9);box2(S.dark,2.3,2.8,.84,.881,2.58,2.82);cyl(S.steel,.03,.3,[2.55,1.03,2.86],8);crate(-1.65,2.6,.3,.45);
     // the bonsai on its stand, lanterns (the room's light), a scroll; the floor of the aisle stays raw, wet concrete
-    box2(dw,2.4,2.9,0,.9,-2.9,-2.4);bonsai(2.65,-2.65,.9);inkScroll(2.885,-.95,1.5,HALF,.4,.8);lantern(-2,-1.5,2,Ch,lamp,.4);lantern(-2,.3,2,Ch,lamp,.4);lantern(1.7,-1.6,2,Ch,lamp,.36);lantern(.1,.9,2.05,Ch,lamp,.3);
+    box2(dw,2.4,2.9,0,.9,-2.9,-2.4);bonsai(2.65,-2.65,.9);inkScroll(2.885,-.95,1.5,HALF,.4,.8);lantern(-2,-1.5,2,Ch,lamp,.4);lantern(-2,.3,2,Ch,lamp,.4);lantern(1.7,-1.6,2,Ch,lamp,.36);lantern(.1,.45,2.1,Ch,lamp,.3);
     decal(puddleMat(),.9,.6,.2,-2.3);},
    'card-room'(mod,t){const lamp=lampOf(mod.id),felt=P('felt',{c:'#2a5a3a',dyn:TX.felt(),tile:1.8,rough:.95}),rail=P('table-rail',{c:'#2a1a12',rough:.35});
     // the card table: pedestal, a padded rail round an oval of felt; chips, cards, glasses, an ashtray; six chairs
@@ -767,7 +769,7 @@
     // the cook's side: the wok and a stock pot on their burners with steam, a hood duct, ladles; the cooler with drinks; the menu board of pictures
     box2(ss,1.3,1.9,0,.86,-1.4,.6);box2(S.black,1.3,1.9,.86,.9,-1.4,.6);torus(flame,.2,.025,[1.6,.91,-.9]);cyl(wok,.14,.12,[1.6,.98,-.9],18,0,0,.46);torus(flame,.2,.025,[1.6,.91,.1]);cyl(ss,.34,.36,[1.6,1.08,.1],16);cyl(P('broth',{c:'#5a3a1a',rough:.15}),.31,.005,[1.6,1.262,.1],16);
     const st=smokeMat('steam');for(const z of [-.9,.1]){plane(st,.6,.9,[1.6,1.6,z],0);plane(st,.6,.9,[1.6,1.6,z],HALF);}box2(ss,1.3,1.9,2.0,2.2,-1.4,.6);box2(ss,1.5,1.8,2.2,Ch,-.6,-.2);for(let i=0;i<3;i++)cyl(S.steel,.02,.4,[1.85,1.55,-1.2+i*.12],6);
-    box2(S.white,1.3,1.9,0,1.8,1,1.9);box2(S.glass,1.28,1.29,.1,1.7,1.05,1.85);box2(S.dark,1.27,1.3,.02,.1,1,1.9);box2(P('fridge-light',{em:'#d8ecff',unlit:true}),1.4,1.85,1.65,1.67,1.1,1.8);for(const y of [.4,.8,1.2])for(let i=0;i<5;i++)cyl(P('can'+(i%3),{c:['#c83a2a','#2a7ac8','#e8c040'][i%3],rough:.3,metal:.6}),.07,.14,[1.45,y+.08,1.1+i*.15],8);
+    {const cb=P('cooler-body',{c:'#2a2e32',rough:.6,metal:.3}),ci=P('cooler-inside',{c:'#14181b',rough:.9});cb.directIntensity=.4;ci.directIntensity=.3;/* the stall's lamp hangs a metre away: full direct light washed the cooler out to white */box2(cb,1.84,1.9,0,1.8,1,1.9);box2(ci,1.82,1.84,.1,1.7,1.05,1.85);for(const z of [1,1.85])box2(cb,1.3,1.9,0,1.8,z,z+.05);box2(cb,1.3,1.9,1.7,1.8,1,1.9);box2(cb,1.3,1.9,0,.1,1,1.9);for(const y of [.38,.78,1.18])box2(S.dark,1.32,1.82,y,y+.02,1.05,1.85);}box2(P('cooler-glass',{c:'#3a4a52',rough:.08,metal:.1,alpha:.12}),1.28,1.29,.1,1.7,1.05,1.85);/* (20 Nov 2026) a hollow, dark cooler: it was a solid white box behind the glass, a bright white panel over the counter with the cans hidden inside it */box2(S.dark,1.27,1.3,.02,.1,1,1.9);box2(P('fridge-light',{em:'#d8ecff',unlit:true}),1.4,1.85,1.65,1.67,1.1,1.8);for(const y of [.4,.8,1.2])for(let i=0;i<5;i++)cyl(P('can'+(i%3),{c:['#c83a2a','#2a7ac8','#e8c040'][i%3],rough:.3,metal:.6}),.07,.14,[1.45,y+.08,1.1+i*.15],8);
     bx(dw,[.05,.7,1.2],[1.88,1.85,-.4],0);plane(P('menu',{dyn:menuTex(),rough:.9}),1.1,.55,[1.852,1.85,-.4],HALF);
     // paper lanterns over the counter (the stall's light), a crate of vegetables, pipes, a puddle
     for(const z of [-1,0,1])lantern(.4,z,2.0,Ch,lamp,.3);crate(-1.6,1.6,.2,.4);box2(P('greens',{c:'#4a7a3a',rough:.8}),-1.75,-1.45,.4,.48,1.45,1.75);cyl(pipeM('#5a5e5a'),.14,3.8,[-1.82,Ch-.25,0],10,HALF);decal(puddleMat(),.9,.6,-1.2,-1.2);decal(oilMat(),.8,.6,1,-.4);}
@@ -840,8 +842,15 @@
    pool.forEach((l,i)=>{const o=best[i];if(!o){l.intensity=0;return;}l.position.copyFrom(o.a.p);l.diffuse=o.a.c;l.specular=o.a.c.scale(.35);l.intensity=o.a.i*1.4;l.range=o.a.r*1.25;l.metadata.mod=o.a.mod;});}
   // ---- tick: doors (and their collision), LED blink ----
   let clock=0,blinkT=0;
+  // the people who may walk through a door here: the street pair and the cat, givers made in the editor and the built-in ones (the tea room host), people walking with the
+  // player inside a location (npc-escort-indoors.js), and any other code's figures (root.VoidModuleWalkers: a function giving [{x, z}])
+  let npcT=0,people=[];
+  function walkers(){const out=[],add=q=>{if(q&&Number.isFinite(q.x)&&Number.isFinite(q.z))out.push({x:q.x,z:q.z});};
+   try{const sp=root.VoidStreetPair?.live?.();if(sp){add(sp.her);add(sp.cat);}}catch{}try{for(const q of root.VoidMadeNPCs?.live?.()?.people||[])if(q.enabled!==false)add(q);}catch{}
+   try{for(const f of root.VoidBabylon?.zone?.escortIndoors?.stats?.()||[])add(f);}catch{}try{for(const f of (typeof root.VoidModuleWalkers==='function'?root.VoidModuleWalkers():[])||[])add(f);}catch{}return out;}
   function tick(time,player){const dt=Math.min(.1,Math.max(0,clock?time-clock:0));clock=time;const p=player||(typeof walker!=='undefined'?walker:null);
-   for(const d of doors){if(p){const dx=d.rec.x-p.x,dz=d.rec.z-p.z;d.near(!d.rec.shut&&dx*dx+dz*dz<d.range*d.range);}d.tick(dt);const so=doorSolids.get(d.id);if(so)so.open=d.t>.62;}
+   if((npcT-=dt)<=0){npcT=.2;people=walkers();}   // NPCs open the doors too (modules.js doorWanted), looked up five times a second
+   for(const d of doors){d.near(M.doorWanted(d.rec,p,people,d.range));d.tick(dt);const so=doorSolids.get(d.id);if(so)so.open=d.t>.62;}
    if(pool.length){poolT+=dt;if(poolT>.3){poolT=0;placePool(p);}}
    blinkT+=dt;if(blinkT>.45){blinkT=0;for(const st of Object.values(modState))if(st.blink&&screenOn[st.mod.id]!==false)st.blink.uOffset=st.blink.uOffset?0:.5;}}
   function disposeAll(){disposed=true;for(const d of doors)try{d.dispose?.();}catch{}for(const c of containers)try{c.dispose();}catch{}for(const n of props)try{n.dispose(false,false);}catch{}rootN.dispose(false,true);for(const x of own)try{x.dispose();}catch{}

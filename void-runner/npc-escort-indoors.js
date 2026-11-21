@@ -75,7 +75,7 @@
  setInterval(poll,100);
  // ---------------------------------------------------------------- inside: her figure in the interior scene
  const TALK=npc=>{const S=SP(),X=NPX(),Mv=X&&X.MOVABLE&&X.MOVABLE[npc];if(Mv&&Mv.made)return {id:'made-'+npc,action:'made-npc'};return {id:(S&&S.talkId?S.talkId(npc):'street-pair-'+npc),action:(S&&S.TALK_ACTION)||'street-pair'};};
- function who(npc){const X=NPX(),Mv=X&&X.MOVABLE&&X.MOVABLE[npc];if(!Mv)return null;const ch=(LC()?.env?.characters||{})[npc]||null;return {npc,name:Mv.name,asset:Mv.asset,made:!!Mv.made,c:ch,src:Mv.made&&MD()?.fileOf?MD().fileOf(Mv.asset):'assets/models/crowd/'+Mv.asset+'.glb'};}
+ function who(npc){const X=NPX(),Mv=X&&X.MOVABLE&&X.MOVABLE[npc];if(!Mv)return null;const ch=(LC()?.env?.characters||{})[npc]||MD()?.BUILTIN?.[npc]||null;   /* a built-in character drawn as a made one (the tea room host) */return {npc,name:Mv.name,asset:Mv.asset,made:!!Mv.made,c:ch,src:Mv.made&&MD()?.fileOf?MD().fileOf(Mv.asset):'assets/models/crowd/'+Mv.asset+'.glb'};}
  const want=(locs)=>{const out=[];sync();for(const s of steps.values())if(locs.includes(s.loc))out.push(s.npc);for(const [npc,h] of Object.entries(held()))if(locs.includes(h.loc))out.push(npc);return [...new Set(out)];};
  function zone(args,h){const B=root.BABYLON,def=args&&args.def,scene=args&&args.scene,parent=args&&args.parent;if(!B||!def||!scene||!parent||!h)return h;
   const here=sceneOf(def);if(here.kind!=='loc')return h;const AS=root.VoidAssets,figs=new Map();let disposed=false,lastT=null,frustum=null,frustumAt=-1,clock=0;
