@@ -140,3 +140,26 @@ test('load order: start-conditions.js before mission-content.js; the editor pane
  assert.match(fs.readFileSync(R('void-runner/mission-blocks-view.js'),'utf8'),/kit\.onlyPanel\(m,/);assert.match(fs.readFileSync(R('void-runner/mission-editor.js'),'utf8'),/const blocksKit=\{onlyPanel,/);
  assert.match(fs.readFileSync(R('void-runner/editor-home.js'),'utf8'),/data-eh-only-note/);assert.match(fs.readFileSync(R('void-runner/live-content.js'),'utf8'),/env\.world=\(\)=>/);
 });
+
+/* WALK NEAR WITHOUT WORDS (the owner, 21 Nov 2026, of a walk-near start with the Tea Room Host: "everything is said in person"): the banner's sender, header and body are
+   optional for a walk-near start; empty, no text is sent, only the NEW MISSION line, and the giver's offer lines play. Every other start still needs its words. */
+const quiet=(extra={})=>({how:'notification',channel:'notify',from:'',header:'',text:'',when:{kind:'near',npc:'admin',distance:4},...extra});
+test('walk near: an empty body (and header, and sender) is accepted; every other start still needs its text',()=>{
+ const x=env(),errs=st=>x.MC.check(doc(x,tree(st)),ctx(x)).errors;
+ assert.deepEqual(errs(quiet()),[]);assert.deepEqual(errs(quiet({text:'   '})),[]);const {from,header,text,...bare}=quiet();assert.deepEqual(errs(bare),[],'no sender, header or body at all');void from;void header;void text;
+ assert.deepEqual(errs(quiet({accept:true})),[],'asking ACCEPT / DENY too');
+ assert.deepEqual(x.MC.treeNeeds(tree(quiet()).missions[0],x.e.givers,[]).filter(n=>/^start-(text|from)/.test(n.field)),[],'no “To fix” for the body or the sender');
+ for(const st of [{how:'notification',channel:'notify',from:'admin',text:'',when:{kind:'pod-exit'}},{how:'notification',channel:'messages',from:'admin',header:'ADMIN',text:'',when:{kind:'near',npc:'admin',distance:4}},{how:'notification',channel:'comms',from:'admin',header:'ADMIN',text:'',when:{kind:'near',npc:'admin',distance:4}}]){
+  assert.ok(errs(st).some(e=>/the notification needs its text/.test(e)),st.channel+' / '+st.when.kind+': still needs its text');
+  assert.ok(x.MC.treeNeeds(tree(st).missions[0],x.e.givers,[]).some(n=>n.field==='start-text'));}
+ assert.ok(errs(quiet({from:'nobody-at-all'})).some(e=>/known NPC/.test(e)),'a sender that is set must still be real');
+});
+test('walk near with an empty body: no message is sent, it starts and is tracked, the giver says the offer in person; ACCEPT / DENY shows only the offer',()=>{
+ const x=env();use(x,tree(quiet()));const s=player(x),r=ev(x,s,{type:'near',near:{admin:3}});
+ assert.equal(r.offered,true);assert.deepEqual(r.messages,[],'no text sent');assert.deepEqual(r.lines.map(l=>l.text),['Not here. Not now.']);assert.equal(s.universe.trackedMission,'draft-only-m1');
+ assert.deepEqual(x.MC.inbox(s,x.e),[]);
+ const x2=env();use(x2,tree(quiet({accept:true})));const p=ev(x2,player(x2),{type:'near',near:{admin:3}}).prompt;assert.equal(p.ask.mission,'draft-only-m1');assert.deepEqual(p.lines.map(l=>l.text),['Not here. Not now.'],'no empty banner line');
+ assert.equal(p.from,'admin','the sender is the giver');
+ const x3=env();use(x3,tree(quiet({header:'TEA ROOM'})));const r3=ev(x3,player(x3),{type:'near',near:{admin:3}});assert.deepEqual(r3.messages.map(m=>[m.header,m.text,m.from]),[['TEA ROOM','','admin']],'a header alone is the banner');
+ const st=x.MC.treesContent([tree(quiet())],{givers:x.e.givers}).trees[0].missions[0].start;assert.equal(st.from,'admin');assert.equal(st.text,'');
+});

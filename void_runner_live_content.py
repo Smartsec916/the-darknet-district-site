@@ -1117,10 +1117,6 @@ def _zone_inv(inv):
     return dict(ZONE_DEFAULT, **((inv or {}).get('zones') or {}))
 
 
-def _num(v):
-    return type(v) in (int, float) and v == v and abs(v) != float('inf')
-
-
 def zone_ref(m, ref):
     """The room a reference names in a mission's apartments: (location, module id or None, module type or None), or None (zones.js refOf)."""
     r = ZONE_REF.match(ref) if isinstance(ref, str) else None
@@ -1874,14 +1870,22 @@ def start_problems(st, givers, places, mission_ids):
     if st['how'] == 'person':
         return only + ([] if set(st) <= {'how', 'accept', 'only', *ASK_KEYS} else ['a mission given in person has no notification fields.'])
     out = only
+    # walk near without words (21 Nov 2026, mission-content.js quietStart): a banner start triggered by walking near may leave the sender (the giver), header and body empty
+    w0 = st.get('when') if isinstance(st.get('when'), dict) else {}
+    quiet = st.get('channel') == 'notify' and w0.get('kind') == 'near'
+    blank = lambda v: v is None or (isinstance(v, str) and not v.strip())  # noqa: E731
     if st.get('channel') not in CHANNELS:
         out.append('unknown notification channel.')
-    if st.get('from') not in givers:
+    if not (quiet and blank(st.get('from'))) and st.get('from') not in givers:
         out.append('the notification must come from a known NPC.')
-    if (st.get('channel') != 'notify' or st.get('header') is not None) and not _plain(st.get('header'), 80):
+    if quiet and blank(st.get('header')):
+        pass
+    elif (st.get('channel') != 'notify' or st.get('header') is not None) and not _plain(st.get('header'), 80):
         out.append('the notification needs a header (plain text, 80 characters at most).')
     lim = 500 if st.get('channel') == 'notify' else 1500  # a Comms call or a message may be longer (mission-content.js LIMIT.call)
-    if not _plain(st.get('text'), lim):
+    if quiet and blank(st.get('text')):
+        pass
+    elif not _plain(st.get('text'), lim):
         out.append('the notification needs its text (plain text, %d characters at most).' % lim)
     else:
         out += ['the notification text: ' + p for p in voice_tag_problems(st['text'])]

@@ -84,7 +84,7 @@
   if(m.channel==='comms'){root.VoidV1?.notify?.({app:'comms',sub:'call',key:'call:'+m.id,from:m.fromName,text:'Incoming call from '+who,hint:{text:'answer',help:true}});
    // The call's voice: only a clip that already exists (voice-clips.js). Admin's ElevenLabs voice is not approved for new lines yet, so his calls are text for now.
    try{if(root.VoidVoiceClips?.has?.(m.from,m.text))root.VoidAudio?.speak?.(m.from,m.text);}catch{}}
-  else if(m.channel==='notify')root.VoidV1?.notify?.({app:'missions',key:'note:'+m.id,from:m.fromName,text:(m.header||who)+' · '+String(m.text).replace(/\s+/g,' ').slice(0,90),hint});
+  else if(m.channel==='notify')root.VoidV1?.notify?.({app:'missions',key:'note:'+m.id,from:m.fromName,text:[m.header||who,String(m.text||'').replace(/\s+/g,' ').trim().slice(0,90)].filter(Boolean).join(' · '),hint});   // a walk-near start with a header and no body: the header alone
   else root.VoidV1?.notify?.({app:'messages',sub:'inbox',key:'msg:'+m.id,from:m.fromName,header:m.header,text:'New message from '+who,hint});}catch{}}}
  // The NPC's lines; when the mission waits on a 'hear' step, closing the conversation completes it.
  /* A line by the V1 translator straight after another speaker's line becomes that line's translation: one line on screen (the original, then V1 TRANSLATION), and

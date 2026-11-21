@@ -67,3 +67,21 @@ class OnlyProblems(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class WalkNearWithoutWords(unittest.TestCase):
+    """21 Nov 2026: a walk-near start (channel notify, when near) may leave its sender, header and body empty (mission-content.js quietStart)."""
+    NEAR = {'kind': 'near', 'npc': 'admin', 'distance': 4}
+
+    def test_empty_body_allowed_for_walk_near(self):
+        for st in ({'how': 'notification', 'channel': 'notify', 'from': '', 'header': '', 'text': '', 'when': self.NEAR},
+                   {'how': 'notification', 'channel': 'notify', 'text': '  ', 'when': self.NEAR},
+                   {'how': 'notification', 'channel': 'notify', 'when': self.NEAR, 'accept': True}):
+            self.assertEqual(L.start_problems(st, GIVERS, PLACES, MISSIONS), [], st)
+
+    def test_other_starts_still_need_their_text(self):
+        for st in ({'how': 'notification', 'channel': 'notify', 'from': 'admin', 'text': '', 'when': {'kind': 'pod-exit'}},
+                   {'how': 'notification', 'channel': 'messages', 'from': 'admin', 'header': 'ADMIN', 'text': '', 'when': self.NEAR},
+                   {'how': 'notification', 'channel': 'comms', 'from': 'admin', 'header': 'ADMIN', 'text': '', 'when': self.NEAR}):
+            self.assertIn('the notification needs its text (plain text, %d characters at most).' % (500 if st['channel'] == 'notify' else 1500), L.start_problems(st, GIVERS, PLACES, MISSIONS))
+        self.assertIn('the notification must come from a known NPC.', L.start_problems({'how': 'notification', 'channel': 'notify', 'from': 'ghost', 'when': self.NEAR}, GIVERS, PLACES, MISSIONS))

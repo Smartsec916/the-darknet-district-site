@@ -38,6 +38,10 @@ The kinds:
 
 A condition the game cannot measure at that moment (the person is not in this scene) counts as not true: the mission waits rather than starting wrongly.
 
+### Walk near without words (21 Nov 2026)
+
+The owner, of a walk-near start with the Tea Room Host: "everything is said in person". For **Walk near them** (the banner start triggered by walking near), the banner's **Sender**, **Header** and **Body** are now optional and folded under **Show the banner text**. Left empty, no text is sent: the player sees only the short line "NEW MISSION · <name> (tracked in your V1, L)", the mission goes into the Mission Log, and the giver says the offer lines in person (with ACCEPT / DENY when it asks). A header alone shows as the banner. Messages, Comms calls and banner starts with any other trigger still need their words. Game: `mission-content.js quietStart` (checkStart, treeNeeds, notify, prompt); server: `start_problems` (**Render redeploy** needed, as for the conditions).
+
 ### What was left out
 
 - **"The giver is idle (not walking a route)"**: the people who walk routes (Reverie and Lace, made characters, mission cast) each keep their own state; there is no single clean "walking now" signal for every giver, so it was not built.

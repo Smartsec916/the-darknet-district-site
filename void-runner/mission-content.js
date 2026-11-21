@@ -54,6 +54,8 @@
  /* "When walked near" (the owner, 18 Nov 2026): when:{kind:'near', npc (default: the giver), distance (metres, 1..30, default 5)}. The game measures the player's distance to that
     person's TALK prompt (live-content.js, four times a second) and sends {type:'near', near:{<npc>: metres}}; the mission starts once, in tree order. */
  const NEAR={min:1,max:30,def:5},nearMetres=v=>{const G=GVS();if(G&&G.nearMetres)return G.nearMetres(v);return typeof v==='number'&&Number.isFinite(v)?Math.min(NEAR.max,Math.max(NEAR.min,v)):NEAR.def;};
+ /* A walk-near start (a banner, triggered by walking near): its sender, header and body may be empty (checkStart). sender(m): who it comes from (default the giver). */
+ const quietStart=st=>!!(st&&st.how==='notification'&&st.channel==='notify'&&st.when&&st.when.kind==='near'),sender=m=>(m&&m.start&&typeof m.start.from==='string'&&m.start.from.trim())?m.start.from:m&&m.giver;
  /* Every "when walked near" trigger in the trees: [{tree, mission, npc, metres}] (the game watches only these people). */
  function nearList(trees){const out=[];for(const t of trees||[])for(const m of (t&&t.missions)||[]){const st=m&&m.start,w=st&&st.how==='notification'&&st.when;if(w&&w.kind==='near'&&(w.npc||m.giver))out.push({tree:t.id,mission:m.id,npc:w.npc||m.giver,metres:nearMetres(w.distance)});}return out;}
  /* Is the player near enough? d: metres to that person (Infinity / undefined: not in this scene). */
@@ -234,9 +236,12 @@
    for(const p of SC?SC.problems(st.only,{person:id=>!ctx.givers||!!(ctx.givers.get(id)||{}).canTalk,places:ctx.places||null,missions:ids}):['extra conditions are not available.'])err(w+': and only when, '+p);}
   if(st.how==='person'){if(Object.keys(st).some(k=>k!=='how'&&k!=='accept'&&k!=='only'&&!ASK_KEYS.includes(k)))err(w+': a mission given in person has no notification fields.');return;}
   if(!CHANNELS.includes(st.channel))err(w+': unknown notification channel.');
-  if(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from))err(w+': the notification must come from a known NPC.');
-  if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
-  if(!plain(st.text,st.channel==='notify'?LIMIT.text:LIMIT.call))err(w+': the notification needs its text (plain text, '+(st.channel==='notify'?LIMIT.text:LIMIT.call)+' characters at most).');else for(const p of tagP(st.text))err(w+': the notification text: '+p);
+  // WALK NEAR WITHOUT WORDS (the owner, 21 Nov 2026: "everything is said in person"): a walk-near start (channel 'notify', when.kind 'near') may leave the sender (the giver),
+  // the header and the body empty: no text is sent, only the "NEW MISSION" line, and the giver's offer lines play in person. Every other start still needs its words.
+  const quiet=quietStart(st),blank=v=>v==null||(typeof v==='string'&&!v.trim());
+  if(!(quiet&&blank(st.from))&&(typeof st.from!=='string'||st.from==='You'||!speakerOk(st.from)))err(w+': the notification must come from a known NPC.');
+  if(quiet&&blank(st.header));else if(st.channel!=='notify'&&!plain(st.header,80))err(w+': the notification needs a header (plain text, 80 characters at most).');else if(st.header!=null&&!plain(st.header,80))err(w+': the header must be plain text (80 characters at most).');
+  if(quiet&&blank(st.text));else if(!plain(st.text,st.channel==='notify'?LIMIT.text:LIMIT.call))err(w+': the notification needs its text (plain text, '+(st.channel==='notify'?LIMIT.text:LIMIT.call)+' characters at most).');else for(const p of tagP(st.text))err(w+': the notification text: '+p);
   const x=st.when;if(!keysOk(x,['kind','mission','place','flag','value','npc','distance'])||!WHEN.includes(x.kind)){err(w+': the notification needs a trigger it knows.');return;}
   // "after N in-game hours / minutes" (Mission 003, 17 Nov 2026): value = IN-GAME minutes (1..10080, a week) after the mission named here was completed (game-clock.js)
   if(x.kind==='game-time'&&!(Number.isInteger(x.value)&&x.value>=1&&x.value<=10080))err(w+': “after in-game time” needs a whole number of in-game minutes from 1 to 10080 (a week).');
@@ -469,7 +474,8 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    out.messages.push(stepMessage(m,o,gv,at));};
   // A mission that starts by notification: its notification reaches the device (story.flags v1m_<mission>_start = the time, seconds; Messages and Comms keep it).
   const notify=(t,m)=>{const st=m.start,at=Math.floor((ev.at||Date.now())/1000);if(!Number.isSafeInteger(s.story.flags[msgFlag(m.id,'start')]))s.story.flags[msgFlag(m.id,'start')]=at;
-   out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at});};
+   const from=sender(m),text=String(st.text||'').trim(),header=String(st.header||'').trim();if(!text&&!header)return;   // a walk-near start without words: no message, only the NEW MISSION line (live-content.js report)
+   out.messages.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from,fromName:gv(from).name||from,header,text,at});};
   // Is this the moment the mission starts? In person: the giver is talked to. By notification: its trigger.
   // A giver with a shift (Reverie, Lace) offers a mission only while she is out on the street (mission-givers.js onDuty, on the street clock; draft play is not exempt:
   // it runs on a simulated street clock inside her shift, ncz-street-pair.js testClock)
@@ -502,7 +508,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const askOf=m=>({mission:m.id,title:titleOf(m),accept:(m.start&&m.start.yes)||YES,decline:(m.start&&m.start.no)||NO});
   /* An offer that arrives on the device and asks (Messages, Comms, a banner, walked near): out.prompt {ask, offer, lines (the notification's words), channel, tree}. It never
      stops the other trees (it is asked again on every event while its trigger holds; live-content.js shows it once in a while, never over a conversation). */
-  const prompt=(t,m)=>{const st=m.start;return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',lines:[{who:gv(st.from).say||st.from,text:(st.header?st.header+': ':'')+st.text}].filter(l=>env.draft||!placeholder(l.text)).concat(nearStart(m)?speak(m.offer):[])};};
+  const prompt=(t,m)=>{const st=m.start,from=sender(m);return {ask:askOf(m),offer:offerOf(s,m),tree:t.id,channel:st.channel,from,fromName:gv(from).name||from,header:st.header||'',lines:[{who:gv(from).say||from,text:[String(st.header||'').trim(),String(st.text||'').trim()].filter(Boolean).join(': ')}].filter(l=>l.text&&(env.draft||!placeholder(l.text))).concat(nearStart(m)?speak(m.offer):[])};};
   /* Walked near (19 Nov 2026): what the giver says when offering it is said as the player comes near (after the banner), as in person. */
   const nearStart=m=>!!(m.start&&m.start.how==='notification'&&m.start.when&&m.start.when.kind==='near');
   /* DENY with "start another mission": that tree's first mission starts now (or is offered now when it asks too). */
@@ -575,7 +581,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
     read: story.flags v1r_<mission>_start. channel: only that channel. */
  function inbox(s,env,channel){const out=[];if(!s||!s.universe||!s.story||!s.story.flags||!env||!Array.isArray(env.trees))return out;const gv=id=>(env.givers||[]).find(g=>g.id===id)||{};
   for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id],st=m.start;if(!rec||!rec.acquired||!st||st.how!=='notification'||st.channel==='notify'||(channel&&st.channel!==channel))continue;
-   out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:st.from,fromName:gv(st.from).name||st.from,header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
+   out.push({id:m.id+'/start',mission:m.id,number:m.number,title:titleOf(m),channel:st.channel,from:sender(m),fromName:gv(sender(m)).name||sender(m),header:st.header||'',text:st.text,at:Number(s.story.flags[msgFlag(m.id,'start')])||0,read:s.story.flags[readFlag(m.id,'start')]===true});}
   // lines a step sent as a Comms call or a message (Mission 002's call on entering NULL)
   for(const t of env.trees)for(const m of t.missions||[]){const rec=s.universe.missions&&s.universe.missions[m.id];if(!rec||!rec.acquired)continue;
    for(const o of m.objectives||[]){if((o.via!=='comms'&&o.via!=='messages')||(channel&&o.via!==channel)||rec.objectives[o.id]!==true||!Number.isSafeInteger(s.story.flags[msgFlag(m.id,o.id)])||!(o.say||[]).length)continue;
@@ -779,7 +785,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
  function treeNeeds(m,givers,items){const out=[],g=id=>(givers||[]).find(x=>x.id===id),can=id=>{const x=g(id);return !!(x&&x.canTalk&&x.draft);},nm=id=>(g(id)||{}).name||id||'nobody',need=(text,field,step)=>out.push(step?{text,field,step}:{text,field});
   if(!String(m.title||'').trim())need('it needs a name','title');
   if(!m.giver)need('nobody gives it yet','giver');else if(!can(m.giver))need(nm(m.giver)+' cannot hand over a mission in the game today ('+((g(m.giver)||{}).why||'no TALK prompt')+')','giver');
-  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{};if(!st.from)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!String(st.text||'').trim())need('the notification needs its text','start-text');
+  if(m.start&&m.start.how==='notification'){const st=m.start,w=st.when||{},quiet=quietStart(st);if(!st.from&&!quiet)need('choose who the notification is from','start-from');if(st.channel!=='notify'&&!String(st.header||'').trim())need('the notification needs a header','start-header');if(!quiet&&!String(st.text||'').trim())need('the notification needs its text','start-text');
    if(w.kind==='after-mission'&&!w.mission)need('choose the mission it follows','start-mission');if((w.kind==='place'||w.kind==='leave')&&!w.place)need('choose the place that starts it','start-place');if(w.kind==='flag'&&!w.flag)need('name the story flag that starts it','start-flag');
    if(w.kind==='near'){const who=w.npc||m.giver;if(!who)need('choose who the player walks near','start-near');else if(!can(who))need(nm(who)+' cannot be walked near in the game today (no TALK prompt to measure from)','start-near');}}
   {const st=m.start||{},c=m.cost;if(c&&Number(c.amount)>0&&(c.when||'accept')==='accept'&&st.accept!==true)need('the player pays when accepting, so it must ask: tick “Ask the player: ACCEPT or DENY”','start-ask');
@@ -933,7 +939,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    const w=st.when||{},who=st.how==='notification'&&w.kind==='near'?w.npc||m.giver:m.giver,G=GVS(),c=SC.check(l,s,{who,street:G&&G.streetTime?G.streetTime(at):at,world:SC.needsWorld(l)?W():null});
    out.push({tree:t.id,mission:m.id,armed:s.story.flags[armFlag(m.id)]===true,ok:c.ok,each:c.each});}
   return out;}
- const api={onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={quietStart,onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
