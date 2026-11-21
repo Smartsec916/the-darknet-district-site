@@ -207,7 +207,7 @@ def main():
         ev({'type': 'talk', 'npcs': ['admin']}); ev({'type': 'heard', 'mission': 'm011-leverage'}); ev({'type': 'heard', 'mission': 'm011-leverage'}); ev({'type': 'heard', 'mission': 'm011-leverage'})
         page.evaluate("()=>{try{resumeWalking();}catch{}}")
         st = page.evaluate("()=>({credits:state.credits,ships:state.ownedShips,access:state.story.flags.shipAccess,cargo:state.story.flags['ts_first-cargo-delivery'],m12:!!state.universe.missions['m012-first-cargo-delivery']})")
-        log('after 011', st); assert st['credits'] == c0 + 25000 and st['access'] == 'granted' and st['cargo'] is True and st['ships'].count('starter') == 1
+        log('after 011', st); assert st['credits'] == c0 + 5000 and st['access'] == 'granted' and st['cargo'] is True and st['ships'].count('starter') == 1
         cont(); st2 = page.evaluate("()=>({credits:state.credits,ships:state.ownedShips})"); assert st2['credits'] == st['credits'] and st2['ships'] == st['ships'], st2
         v1('missions'); page.wait_for_timeout(800); t = page.inner_text('#personal-device'); assert 'FIRST CARGO DELIVERY' in t.upper(), t[:500]; shot('08-mission-log-cargo'); v1_close()
         # ---- 012 (driven)

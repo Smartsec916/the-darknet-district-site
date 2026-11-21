@@ -23,7 +23,7 @@ class TeaHostServerTests(unittest.TestCase):
         self.assertEqual(out['npcPaths']['movable'][HOST]['name'], 'Tea Room Host')
 
     def test_sit_on_alcove_seats(self):
-        seats = INV['npcPaths']['movable']['grey-reverie']['seats']
+        seats = [s for s in INV['npcPaths']['movable']['grey-reverie']['seats'] if s['id'].endswith('-seat')]   # the alcoves' chairs (21 Nov 2026: the rooms' seats are listed too)
         self.assertEqual(len(seats), 6)
         f = seats[0]['front']
         ok = {'grey-reverie': {'mode': 'stay', 'x': round(f[0] + .2, 1), 'z': round(f[1], 1), 'yaw': 0, 'actions': ['sit']}}

@@ -39,6 +39,7 @@ folders = {'ual': opts.get('ual'), 'mixamo': opts.get('mixamo'), 'crowd': opts.g
 clips = []
 for name in ([] if '--noclips' in args else spec.get('clips', [])):  # --noclips: a quick look at the geometry
     c = library_doc['clips'][name]
+    if c.get('source') == 'pose': continue  # posed by code after the build (make_floor_poses.py)
     folder = folders[c['source']] if c.get('source') else opts['mocap']
     clips.append((name, folder / c['file'], (c['start'], c['end']) if 'start' in c else None, c))
 rest_reference = opts['mocap'] / library_doc['restReference']

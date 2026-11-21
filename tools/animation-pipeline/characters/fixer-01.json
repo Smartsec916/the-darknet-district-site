@@ -68,7 +68,10 @@
   "sit-exit",
   "sit-talk",
   "interact",
-  "look"
+  "look",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ],
  "accessories": [
   {

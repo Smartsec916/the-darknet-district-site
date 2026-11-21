@@ -69,7 +69,7 @@
    ]
   }
  },
- "clips": ["idle", "talk", "sit", "watch", "walk", "sit-enter", "sit-exit", "sit-talk", "interact", "look", "laugh", "drink"],
+ "clips": ["idle", "talk", "sit", "watch", "walk", "sit-enter", "sit-exit", "sit-talk", "interact", "look", "laugh", "drink", "floor-kneel", "floor-cross", "floor-knees"],
  "accessories": [
   {
    "type": "mask",

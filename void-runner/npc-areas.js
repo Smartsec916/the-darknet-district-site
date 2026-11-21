@@ -113,7 +113,7 @@
     labels:U.PLACES.map(p=>({name:p.name,x:p.at[0],z:p.at[1],under:true})),under:true});}
   for(const a of A){a.gates=a.scene==='street'?gates(a.quarter):[];const g=GEN&&GEN.areas&&GEN.areas[a.id];
    a.obstacles=g?g.obstacles.map(o=>o.slice()):a.id==='avenue'?AVENUE_OLD.map(o=>o.slice()):a.id==='underground'?U.obstacles().map(o=>o.slice()):[];
-   if(a.id==='underground'){a.tunnelDoors=U.doors();a.seats=U.SEATS.map(x=>({...x}));}   // the stair doors (city and checkpoint side) and the alcoves' seats, for the editor map
+   if(a.id==='underground'){a.tunnelDoors=U.doors();a.seats=(U.seatsAll?U.seatsAll():U.SEATS).map(x=>({...x}));}   // the stair doors (city and checkpoint side) and the alcoves' seats, for the editor map
    if(g&&Array.isArray(g.y))a.walk.forEach((w,i)=>{if(Number.isFinite(g.y[i]))w.y=g.y[i];});
    for(const w of a.more||[])a.walk.push({...w});delete a.more;   // Milked's lanes (20 Nov 2026): after the read heights (GEN y), as the adult ground
    // The back alleys, bays and yards (ncz-backalleys.js, 20 Nov 2026): their ground (and a step onto the pavement at each mouth), floors, furniture and fire escapes. A reading of

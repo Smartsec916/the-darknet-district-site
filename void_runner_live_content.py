@@ -1460,11 +1460,17 @@ def escort_shape_problems(trees):
     return out
 
 
-def _ledge_at(mv, p):
-    # a ledge of the Avenue, or (20 Nov 2026) a seat of the tunnels' alcoves: within 0.6 m of where one stands to sit on it (npc-paths.js ledgeAt / ncz-street-pair.js seatNear)
-    if any(abs(p['x'] - l['x']) <= l['w'] / 2 + .3 and p['z'] >= l['front'] - 1 for l in mv.get('ledges') or []):
+# the sit actions and the pose each needs at its seat (npc-paths.js ACTIONS pose; 21 Nov 2026: the floor poses at the tea room cushions, the cots and the alcove benches)
+SIT_POSES = {'sit': 'chair', 'sit-kneel': 'kneel', 'sit-cross': 'cross', 'sit-knees': 'knees'}
+
+
+def _ledge_at(mv, p, pose='chair'):
+    # a ledge of the Avenue (chair only), or a seat (20 Nov 2026 the alcoves; 21 Nov 2026 the rooms' cushions, stools and cots) that takes this pose: within 0.6 m of
+    # where one stands to sit on it (npc-paths.js ledgeAt / ncz-street-pair.js seatNear); a seat without `poses` is a chair
+    if pose == 'chair' and any(abs(p['x'] - l['x']) <= l['w'] / 2 + .3 and p['z'] >= l['front'] - 1 for l in mv.get('ledges') or []):
         return True
-    return any(isinstance(s.get('front'), list) and len(s['front']) == 2 and ((p['x'] - s['front'][0]) ** 2 + (p['z'] - s['front'][1]) ** 2) ** .5 <= .6 + 1e-6
+    return any(isinstance(s.get('front'), list) and len(s['front']) == 2 and pose in (s.get('poses') or ['chair'])
+               and ((p['x'] - s['front'][0]) ** 2 + (p['z'] - s['front'][1]) ** 2) ** .5 <= .6 + 1e-6
                for s in mv.get('seats') or [] if isinstance(s, dict))
 
 
@@ -1522,8 +1528,8 @@ def _plan_only(npc, p, mv, inv, ok):
             for a in acts:
                 if not isinstance(a, str) or a not in ok or a in path_only:
                     out.append('an action is not something she can do here.')
-                elif a == 'sit' and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p):
-                    out.append('"Sit" needs a ledge.')
+                elif a in SIT_POSES and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p, SIT_POSES[a]):
+                    out.append('"Sit" needs a ledge.' if a == 'sit' else 'that sitting pose needs a seat that takes it (a cushion, a cot or a bench).')
         return out
     if not _keys(p, ['mode', 'points', 'anims']):
         return ['the path has unknown fields.']
@@ -1538,8 +1544,8 @@ def _plan_only(npc, p, mv, inv, ok):
         out += [pw + x for x in spot_problems(npc, q, inv)]
         if not isinstance(q.get('action'), str) or q.get('action') not in ok:
             out.append(pw + 'not something she can do.')
-        elif q['action'] == 'sit' and _num(q.get('x')) and _num(q.get('z')) and not _ledge_at(mv, q):
-            out.append(pw + '"Sit" needs a ledge.')
+        elif q['action'] in SIT_POSES and _num(q.get('x')) and _num(q.get('z')) and not _ledge_at(mv, q, SIT_POSES[q['action']]):
+            out.append(pw + ('"Sit" needs a ledge.' if q['action'] == 'sit' else 'that sitting pose needs a seat that takes it.'))
         if q.get('action') != 'walk-on' and not (type(q.get('seconds')) is int and 1 <= q['seconds'] <= 120):
             out.append(pw + 'how long: 1 to 120 seconds.')
         n = pts[(i + 1) % len(pts)]
@@ -2126,7 +2132,7 @@ MECH_FIELDS = ['minutes', 'stage', 'evidence', 'unseen', 'close']
 FEED_STAGES = ('open', 'watched', 'recorded', 'saved')
 FLIGHT_STAGES = ('board', 'launch', 'jump', 'dock')
 CAST_KEYS = ['id', 'name', 'model', 'place', 'x', 'z', 'y', 'yaw', 'clip', 'from', 'until', 'route', 'speed']
-CAST_CLIPS = ('idle', 'talk', 'listen', 'sit', 'walk', 'look', 'watch', 'phone', 'lean', 'cheer', 'drink')
+CAST_CLIPS = ('idle', 'talk', 'listen', 'sit', 'walk', 'look', 'watch', 'phone', 'lean', 'cheer', 'drink', 'floor-kneel', 'floor-cross', 'floor-knees')
 EVIDENCE_KEYS = ['id', 'title', 'text', 'kind']
 EV_KINDS = ('document', 'recording', 'audio', 'photo')
 EV_ID = re.compile(r'^[a-z][a-z0-9-]{0,15}$')

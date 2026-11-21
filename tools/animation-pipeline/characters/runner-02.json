@@ -62,7 +62,7 @@
    ]
   }
  },
- "clips": ["idle", "talk", "watch", "walk", "drunk-walk", "drunk-idle", "drunk-sway", "laugh"],
+ "clips": ["idle", "talk", "watch", "walk", "drunk-walk", "drunk-idle", "drunk-sway", "laugh", "floor-kneel", "floor-cross", "floor-knees"],
  "accessories": [
   {
    "type": "shades",

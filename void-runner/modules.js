@@ -85,6 +85,20 @@
     fight pit, 4 m x 4 m for the shrine) with a door in the middle of each wall (the pit: second cell); corners furnished, the middle clear. `say`: what using a thing says
     (module-integration.js); `opens`: an object that opens a panel (pawn-shop.js); `spots`: standing places for people the owner places later ([x, z, yaw], local metres). */
  const PI=Math.PI,VAR=(id,o)=>T(id,{cat:'various',w:3,d:3,ceil:2.8,sockets:'s1 n1 w1 e1',sw:[-.95,'s'],...o});
+ /* SEATS IN ROOMS (21 Nov 2026, the owner: kneeling, cross-legged and knees-to-chest poses; "make sitting work" at the mahjong stools): `sits` [name, x, z, yaw (the way
+    a sitter faces: 0 = +z, PI/2 = +x), h (the seat's top above the room floor), poses, stand] in the module's own metres. poses: 'chair' (the sit-down / sit / stand-up
+    clips at ledge height; an 8th value `back` puts the seated origin that far in front of the seat's middle) and the floor poses 'kneel', 'cross', 'knees' (crowd.js FLOOR, posed by code). stand: [x, z] where a person stands before sitting (walkable);
+    none: 0.41 m in front for a chair, the seat itself for the floor. module-build.js draws the cushions and stools from the same numbers. */
+ const FLOOR_POSES=['kneel','cross','knees'];
+ // the cushions round a low table (module-build.js lowTable: 0.35 m out from each edge, 0.09 m thick on y0): sides from 's', 'n', 'w', 'e' -> sits
+ function cushionSits(pre,[x0,x1,z0,z1],y0,sides,stand){const xc=(x0+x1)/2,zc=(z0+z1)/2,at={s:[xc,z0-.35,0],n:[xc,z1+.35,PI],w:[x0-.35,zc,PI/2],e:[x1+.35,zc,-PI/2]};
+  return sides.map(k=>{const [x,z,yaw]=at[k],sd=typeof stand==='function'?stand(k,x,z):null;return [pre+'-'+k,+x.toFixed(3),+z.toFixed(3),yaw,+(y0+.09).toFixed(3),FLOOR_POSES.slice(),sd];});}
+ // the mahjong parlour's stools: four round each square table, 0.3 m out from the edge; the ones people sit on stand 0.55 m out (room to stand between stool and table)
+ const MJ_TABLES=[['sw',-2.5,-1.3,-2.4,-1.2],['nw',-2.5,-1.3,1,2.2],['e',1.2,2.4,-.6,.6]],MJ_SEATED={sw:['e'],nw:['s','e'],e:['w','n','s']},MJ_OUT=.55,MJ_H=.48,MJ_BACK=.37;   // MJ_BACK: a sitter's origin goes this far in front of the stool's middle (the sit clip's hips sit that far behind it)
+ const MJ_STOOLS=MJ_TABLES.flatMap(([id,x0,x1,z0,z1])=>{const xc=(x0+x1)/2,zc=(z0+z1)/2,hs=(x1-x0)/2;return [['s',0,-1],['n',0,1],['w',-1,0],['e',1,0]].map(([k,sx,sz])=>{const seat=MJ_SEATED[id].includes(k),d=hs+(seat?MJ_OUT:.3);
+  return {id:id+'-'+k,x:+(xc+sx*d).toFixed(3),z:+(zc+sz*d).toFixed(3),yaw:+Math.atan2(-sx,-sz).toFixed(4),seat};});});
+ // the sleeping room's cots (module-build.js flophouse): sitting on the mattress, back to the wall, facing the aisle; one steps in from the aisle
+ const COTS=[[-1,-1],[-1,1],[1,-1],[1,1]].map(([sx,sz],k)=>{const za=sz>0?.35:-2.6,zb=sz>0?2.6:-.35,zc=+((za+zb)/2).toFixed(3);return ['cot-'+(k+1),+(sx*2.42).toFixed(3),zc,sx>0?-PI/2:PI/2,.44,['knees','cross'],[+(sx*.7).toFixed(3),zc]];});
  VAR('pawn-back',{style:'back',name:'Pawn shop back room',note:'A broker’s back room: a padlocked storage cage of tagged goods, the buying counter behind a steel grille with an item scanner, an appraisal desk, a safe.',
   objects:[O('counter','SELL ITEMS','the buying counter (sell items)'),O('scanner','ITEM SCANNER','the item scanner'),O('cage','STORAGE CAGE','the storage cage'),O('computer','APPRAISAL TERMINAL','the appraisal terminal'),O('safe','SAFE','the safe'),LIGHTS],
   furn:[[-2.9,-1,1.2,2.9,2.2,'cage'],[1,2.9,2.3,2.9,1,'counter'],[2.3,2.9,.9,1.9,.9,'screens'],[-2.9,-2.45,-2.4,-.9,2,'shelf'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.72,'safe']],
@@ -125,6 +139,7 @@
   furn:[[-2.3,-1.1,1.1,2.3,.4,'table-n'],[-2.3,-1.1,-2.3,-1.1,.4,'table-s'],[2.35,2.9,.9,2.6,.85,'tea'],[2.35,2.9,-2.6,-1.1,.5,'alcove']],
   inter:[{id:'tea',label:'TEA STATION',pos:[2.15,1,1.75],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-.9,.6,1.7],object:'table',range:1.3},{id:'alcove',label:'ALCOVE',pos:[2.15,1.2,-1.4],object:'alcove',range:1.2},{id:'safe',label:'STRONGBOX',pos:[2.2,.7,-2.2],object:'safe',range:1.1}],
   say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},
+  sits:[...cushionSits('cushion-n',[-2.3,-1.1,1.1,2.3],.03,['s','n','w','e']),...cushionSits('cushion-s',[-2.3,-1.1,-2.3,-1.1],.03,['s','n','w','e'])],
   lights:[[-1.7,2.2,1.7,'#ffc890',1.4,9],[1.2,2.2,-1.2,'#ffb878',1.1,8]]});
  VAR('card-room',{style:'den',ceil:2.7,name:'Card room',note:'A gambling den: a felt card table under a low lamp with chips and cards, chairs, a worn sofa, a bar cart, the lookout monitor on a desk, a cash safe.',screen:true,
   objects:[O('table','CARD TABLE','the card table'),O('cart','BAR CART','the bar cart'),O('screen','LOOKOUT MONITOR','the lookout monitor (on / off)'),O('safe','CASH SAFE','the cash safe'),LIGHTS],
@@ -195,6 +210,8 @@
   inter:[{id:'tea',label:'TEA STATION',pos:[.1,1,-.05],object:'tea',range:1.3},{id:'table',label:'LOW TABLE',pos:[-1,.6,-.3],object:'table',range:1.3},{id:'safe',label:'STRONGBOX',pos:[-2.2,1,2.3],object:'safe',range:1.2}],
   say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},
   plan:{seats:[[-2,-1.5],[-2,.4],[1.7,-1.6]],passage:[[0,2.3],[1.7,2],[1.6,1.2],[1.4,.4]]},
+  // the cushions: on the dais (west; one steps up from the aisle at x -0.75, clear of the dais and the tea station: both are furniture) the two tables' outer sides, never two backs together or a back to the wall; the east table's four
+  sits:[...cushionSits('cushion-a',[-2.4,-1.6,-1.95,-1.05],.18,['s','e'],(k,x,z)=>[-.75,z]),...cushionSits('cushion-b',[-2.4,-1.6,-.15,.75],.18,['s','e','n'],(k,x,z)=>[-.75,k==='e'?-.3:k==='s'?-.75:z]),...cushionSits('cushion-c',[1.2,2.2,-2.2,-1],.03,['s','n','w','e'])],
   spots:[['host',.1,1.1,PI],['front-door',1,-2.3,0],['back-door',-1,2.3,PI/2]],lights:[[-1.6,2.4,-.6,'#ffc890',1.5,9],[1.4,2.4,-.2,'#ffb878',1.2,8]]});
  /* THE UNDERGROUND, EAST ASIAN SET (the owner, 20 Nov 2026: "lantern tunnel. mahjong. a small sleeping room with bed divided by curtains. underground food stall."):
     converted tunnel chambers where raw concrete and pipes show round warm wood, lanterns and cloth. The lantern tunnel pieces are tubes like the plain ones (the same
@@ -208,12 +225,15 @@
   furn:[[-2.5,-1.3,-2.4,-1.2,.76,'table-sw'],[-2.5,-1.3,1,2.2,.76,'table-nw'],[1.2,2.4,-.6,.6,.76,'table-e'],[1.6,2.9,1.6,2.9,1.05,'cashier'],[2.2,2.9,-2.9,-2.2,1.2,'shelf']],
   inter:[{id:'table',label:'GAME TABLE',pos:[-1,.9,1.6],object:'table',range:1.3},{id:'table2',label:'GAME TABLE',pos:[.9,.9,0],object:'table',range:1.2},{id:'cashier',label:'CASHIER',pos:[1.4,1.1,2.2],object:'cashier',range:1.2},{id:'safe',label:'CASH DRAWER',pos:[2.2,1.1,1.4],object:'safe',range:1}],
   say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},
+  // one steps up beside the stool (0.55 m to its side: the table leaves no room to stand in front of it until one is there), then in front of it to sit down
+  stools:MJ_STOOLS,sits:MJ_STOOLS.filter(t=>t.seat).map(t=>['stool-'+t.id,t.x,t.z,t.yaw,MJ_H,['chair'],[+(t.x+Math.cos(t.yaw)*.55).toFixed(3),+(t.z-Math.sin(t.yaw)*.55).toFixed(3)],MJ_BACK]),
   spots:[['cashier',2.25,2.3,-PI*3/4],['dealer',-1.9,-.9,PI],['door',.9,-2.3,0]],lights:[[-1.9,2.2,-.6,'#ffc890',1.7,9],[1.4,2.2,.6,'#ffb878',1.4,8]]});
  UG('flophouse',{ceil:2.8,name:'Underground sleeping room',note:'UNDERGROUND. A cheap flophouse in a tunnel chamber: four cots, each in its own nook behind cloth curtains on rails, worn blankets, a locker and a dim bulb per nook, pipes overhead. Front and back doors join tunnel pieces.',
   objects:[O('cot','COT','a cot'),O('locker','LOCKER','a locker'),O('curtain','CURTAIN','a curtain'),LIGHTS],
   furn:[[-2.9,-1.05,-2.6,-.35,.6,'nook-sw'],[-2.9,-1.05,.35,2.6,.6,'nook-nw'],[1.05,2.9,-2.6,-.35,.6,'nook-se'],[1.05,2.9,.35,2.6,.6,'nook-ne']],
   inter:[{id:'cot',label:'COT',pos:[-.85,.8,1.4],object:'cot',range:1.2},{id:'locker',label:'LOCKER',pos:[.85,1,-1.2],object:'locker',range:1.2},{id:'curtain',label:'CURTAIN',pos:[.85,1.3,1.6],object:'curtain',range:1.1}],
   say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},
+  sits:COTS,
   spots:[['keeper',0,-2.2,0]],lights:[[0,2.4,-1.2,'#ffc890',1.4,8],[0,2.4,1.4,'#ffb878',1.2,8]]});
  UG('food-stall',{w:2,d:2,ceil:2.8,sockets:'s0 n0',sw:[-1.6,'s'],name:'Underground food stall',note:'UNDERGROUND. A small food counter in a tunnel nook: a steaming wok and stock pot, a menu board of pictures (no writing), three stools at the counter, a cooler, hanging lanterns, a cook’s spot behind the counter. The aisle runs between its two doors.',
   objects:[O('counter','FOOD COUNTER','the food counter'),O('stove','WOK STATION','the wok station'),O('cooler','COOLER','the cooler'),O('menu','MENU BOARD','the menu board'),LIGHTS],
@@ -504,14 +524,14 @@
 
  // ---------------------------------------------------------------- the admin inventory (what the server checks a location against)
  function inventory(){return {grid:GRID,span:SPAN,floors:FLOORS.slice(),limit:{...LIMIT},door:{...DOOR},categories:CATS.map(c=>c.id),itemTypes:ITEM_TYPES.slice(),
-  types:Object.fromEntries(TYPE_IDS.map(id=>{const t=TYPES[id];return [id,{cat:t.cat,name:t.name,w:t.w||null,d:t.d||null,ceil:t.ceil||null,portal:!!t.portal,cab:!!t.cab,screen:!!t.screen,family:t.family||null,legacy:t.legacy?{...t.legacy}:null,stairs:!!t.stairs,underground:!!t.underground,spots:(t.spots||[]).map(x=>x[0]),
+  types:Object.fromEntries(TYPE_IDS.map(id=>{const t=TYPES[id];return [id,{cat:t.cat,name:t.name,w:t.w||null,d:t.d||null,ceil:t.ceil||null,portal:!!t.portal,cab:!!t.cab,screen:!!t.screen,family:t.family||null,legacy:t.legacy?{...t.legacy}:null,stairs:!!t.stairs,underground:!!t.underground,spots:(t.spots||[]).map(x=>x[0]),sits:(t.sits||[]).map(x=>({name:x[0],poses:x[5].slice()})),
    sockets:t.sockets.map(s=>({id:s.id,edge:s.edge,cell:Number.isFinite(s.cell)?s.cell:null})),objects:objectsOf(id).map(o=>o.id),bounds:bounds(id).map(r2)}];}))};}
  /* SLIDING DOORS AND PEOPLE (20 Nov 2026: "room sliding doors only open for the player, so NPCs pass through closed doors"): a door opens while the player OR any NPC
     (a placed or mission person, the street pair, made givers, people walking with the player indoors) is within `range` metres of its middle, as the street doors do for
     residents (apartment-integration.js nearNpc). Never a door to the street (shut: it fades instead); a locked door stays locked (the slider ignores it). */
  const DOOR_NPC_RANGE=1.6;
  function doorWanted(rec,player,people,range=1.8,npcRange=DOOR_NPC_RANGE){if(!rec||rec.shut)return false;const near=(q,r)=>!!q&&Number.isFinite(q.x)&&Number.isFinite(q.z)&&(rec.x-q.x)**2+(rec.z-q.z)**2<r*r;return near(player,range)||(people||[]).some(q=>near(q,npcRange));}
- const api={GRID,WALL,DOOR,SPAN,doorWanted,DOOR_NPC_RANGE,FLOORS,LIMIT,ORIGIN,CATS,STYLE_NAMES,TYPES,TYPE_IDS,MOD_ID,REF,ITEM_TYPES,TEMPLATES,NORMAL,TANGENT,OPP,
+ const api={FLOOR_POSES,MJ_STOOLS,GRID,WALL,DOOR,SPAN,doorWanted,DOOR_NPC_RANGE,FLOORS,LIMIT,ORIGIN,CATS,STYLE_NAMES,TYPES,TYPE_IDS,MOD_ID,REF,ITEM_TYPES,TEMPLATES,NORMAL,TANGENT,OPP,
   objectsOf,bounds,place,sockLocal,sockWorld,rotP,turnEdge,toWorld,boxWorld,parseRef,analyse,doorOf,cabFloors,floorName,isLocation,problems,hackable,strip,attach,freeSpot,freeSockets,newId,addModule,removeModule,template,fromApartment,migrateMission,
   layout,lockedNow,across,clusterAtFloor,inventory};
  if(node){module.exports=api;return;}

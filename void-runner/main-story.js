@@ -257,7 +257,7 @@
    {id:'return',kind:'enter',place:'district',label:'Return to The Darknet District.',npc:'',item:'',say:[],early:[]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'induction-rec',when:'save'}]};
  // Mission 011: the reward (REWARD below) and the Kestrel; the First Cargo Delivery tree starts when it is done
- const REWARD=25000;   // the owner's suggested amount; one number, editable in the Mission Editor (the credits unlock at "Receive the credit reward")
+ const REWARD=5000;   // the owner set it to 5,000 CR (21 Nov 2026; was 25,000); one number, editable in the Mission Editor (the credits unlock at "Receive the credit reward")
  const ALL_EVIDENCE=['tea-talk','br-proposal','br-induction','arena-talk','br04-record','induction-rec'];
  const M011={id:'m011-leverage',number:11,title:'Leverage',type:'main',category:'Information sale',giver:'admin',location:'district-meeting',description:'',
   start:{how:'notification',channel:'notify',from:'admin',text:'Meet Admin and Iris in the private meeting room.',when:{kind:'after-mission',mission:'m010-the-price-of-admission'}},

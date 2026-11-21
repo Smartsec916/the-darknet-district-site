@@ -89,7 +89,17 @@
  const turnYaw=(yaw,rot)=>{const a=yaw+(rot|0)*Math.PI/2,t=Math.atan2(Math.sin(a),Math.cos(a));return +(Math.abs(t+Math.PI)<1e-9?Math.PI:t).toFixed(4)||0;};
  const localBox=(m,[x0,x1,z0,z1])=>{const a=localToWorld(m,x0,z0),b=localToWorld(m,x1,z1);return [Math.min(a[0],b[0]),Math.max(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[1],b[1])];};
  const alcoveFurniture=()=>ALCOVES.flatMap(a=>{const m=modById(a.mod);return a.kit.filter(k=>KIT[k].furn).map(k=>{const f=KIT[k].furn;return {id:a.id+'-'+k,place:a.id,rect:localBox(m,f),h:f[4],name:f[5]};});});
- const SEATS=ALCOVES.flatMap(a=>{const m=modById(a.mod);return a.kit.filter(k=>KIT[k].seat).map(k=>{const s=KIT[k].seat,[x,z]=localToWorld(m,s[0],s[1]);return {id:a.id+'-seat',place:a.id,x:+x.toFixed(2),z:+z.toFixed(2),yaw:turnYaw(s[2],m.rot),h:s[3]};});});
+ const SEATS=ALCOVES.flatMap(a=>{const m=modById(a.mod);return a.kit.filter(k=>KIT[k].seat).map(k=>{const s=KIT[k].seat,[x,z]=localToWorld(m,s[0],s[1]);return {id:a.id+'-seat',place:a.id,x:+x.toFixed(2),z:+z.toFixed(2),yaw:turnYaw(s[2],m.rot),h:s[3],poses:['chair']};});});
+ /* MORE SEATS (21 Nov 2026, the floor poses): the rooms' own seats (modules.js `sits`: the tea room's cushions, the mahjong stools, the sleeping room's cots) and, on each
+    alcove bench, sitting sideways along it with the knees pulled up (facing the trunk). {id, place, x, z, yaw, h, poses, stand:[x, z] | null} (stand: where one stands
+    to sit down; null: in front of a chair, or on the spot for the floor). Lazy: in the browser modules.js loads after this file. SEATS (above) stays the alcoves' chairs. */
+ const BENCH_UP=[.68,-.1,0,.46,['knees'],[.15,.45]];
+ let ROOM_SEATS=null;
+ function seatsAll(){if(ROOM_SEATS)return SEATS.concat(ROOM_SEATS);const M=MOD();if(!M||!M.TYPES)return SEATS.slice();const out=[];
+  const put_=(m,place,id,[x0,z0,yaw,h,poses,st,back])=>{const [x,z]=localToWorld(m,x0,z0),sw=st?localToWorld(m,st[0],st[1]):null;out.push({id,place,x:+x.toFixed(2),z:+z.toFixed(2),yaw:turnYaw(yaw,m.rot),h,poses:poses.slice(),stand:sw?[+sw[0].toFixed(2),+sw[1].toFixed(2)]:null,...(Number.isFinite(back)?{back}:{})});};
+  for(const a of ALCOVES)if(a.kit.includes('bench'))put_(modById(a.mod),a.id,a.id+'-bench-up',BENCH_UP);
+  for(const m of MODS){const t=M.TYPES[m.type];for(const q of (t&&t.sits)||[])put_(m,PLACE_OF[m.id],PLACE_OF[m.id]+'-'+q[0],q.slice(1));}
+  ROOM_SEATS=out;return SEATS.concat(out);}
  /* ---- the module location, its analysis and its walking layout (modules.js; lazy: in the browser modules.js loads after this file) ---- */
  const LOC={id:ID,entry:'none.x',exits:ENTRANCES.map(e=>e.vest+'.e2'),modules:MODS.map(m=>({...m}))};
  let AN=null,LAY=null;
@@ -178,7 +188,7 @@
    sign('j1','↗ THE AVENUE',-.97,0,-H);sign('j6','→ OLD TOWN',-.97,0,-H);sign('j13','↘ FAR SOUTH',-.97,0,-H);sign('j10','← PIT',.97,0,H);k.at(null);}
   const h=M.build({scene,parent:base,quality,def});if(!h){base.dispose();return null;}
   return {...h,moduleDoors:h.doors,quarter:ID,gates:null,doors:null,streetPair:null,nightlife:null,dispose(){try{h.dispose();}catch{}try{base.dispose(false,true);}catch{}}};}
- const api={ground,ID,NAME,Y,OFF,GRID,TRUNK,SIZE,PLACES,MODS,PLACE_OF,ENTRANCES,ALCOVES,KIT,SEATS,LOC,cx,cz,footprint,rects,extent,modAt,placeAt,inside,ready,analysis,walking,arrive,leave,doors,graph,path,walk,obstacles,places,spots,regions,portals,alcoveFurniture,localToWorld,turnYaw,pit:PIT,build,
+ const api={ground,ID,NAME,Y,OFF,GRID,TRUNK,SIZE,PLACES,MODS,PLACE_OF,ENTRANCES,ALCOVES,KIT,SEATS,seatsAll,LOC,cx,cz,footprint,rects,extent,modAt,placeAt,inside,ready,analysis,walking,arrive,leave,doors,graph,path,walk,obstacles,places,spots,regions,portals,alcoveFurniture,localToWorld,turnYaw,pit:PIT,build,
   placeById,get:placeById};
  if(node)module.exports=api;else root.VoidUnderground=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
