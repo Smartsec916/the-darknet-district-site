@@ -57983,7 +57983,7 @@
       "spawn"
     ]
   },
-  "revision": "cbf4629b37b22a5b",
+  "revision": "9421c17e06dbfa44",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -76077,7 +76077,13 @@
     },
     {
       "source": "void-runner/rook-cargo-jobs.js",
-      "line": 30,
+      "line": 33,
+      "text": "and every finished run brings a new one. All of this is plain flavour text: change, add or remove entries freely (old saves keep their accepted job's text).",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/rook-cargo-jobs.js",
+      "line": 56,
       "text": "/* Rook's lines for the side missions. PROPOSED placeholder text: needs owner approval before recording (no voice clip exists; they show as text).",
       "kind": "source-reference"
     },
@@ -77661,7 +77667,7 @@
     "void-runner/bootstrap.js": "d031dac48a60895ea5de7301e3b712e37b99b6093365edd153be8fa6a8ca26dd",
     "void-runner/cache.js": "57b745387df92716ba37cb30cd2d04160e4c14a2054088372db7667ba37f2331",
     "void-runner/camera-feed.js": "d14f4d2304c1384a57f414bb401bc456c274f5689a180731f149a848b16172b7",
-    "void-runner/campaign.js": "3b2657621fb68a7974e80903f6a0f03b29ddb9d97881285ba06458b49fe8d74d",
+    "void-runner/campaign.js": "1e47cd44d124036bdff3626ded53366e686524efce7c4d0e65cf64785412cd39",
     "void-runner/character-appearance.js": "ca0215d4a126e1964ea6d217e2eff83af987306a73f5586e5780389d21afe8a9",
     "void-runner/character-assembler.js": "428de97795e2d6dd0add2a0cb608b262da8ec906459076dcf67f29e85cc2e42c",
     "void-runner/character-catalog.js": "fcae3cf68e6facdb3aeaf521e27f2d336ed939f8a7eef386b72e2924b9b05057",
@@ -77771,7 +77777,7 @@
     "void-runner/mission-editor.js": "9dcd6df10c46844b94ca01d2e6d976276cbf5606d8763d85247364ec62aacd6c",
     "void-runner/mission-givers.js": "f4673af3383f533a505600f3e16ca9fbe9b78c952c190e6a63e34a71a220b2c3",
     "void-runner/mission-guide.js": "c8114b22762cb1d5d5a2580159d713a8d8d119e30bce4404e8a0f3334efbc736",
-    "void-runner/mission-log.js": "c7d188c8d7dc5a089f4467eeee617ddfba6a356031a7a4616c6e23ddf5937c4f",
+    "void-runner/mission-log.js": "38a641771fbf2068ca42f2886df98ece744b2de0286e28e06e47273ad1d42532",
     "void-runner/mission-mechanics-editor.js": "09b6ee7fcf0d40bd14f11f9552ccb48a5339cd73fdf9befbd5d996b9513259d1",
     "void-runner/mission-mechanics-game.js": "0c2fe07494ff236b303f813d12b4b3a3d6128ddbbfa8eca3934f91948fca03e3",
     "void-runner/mission-mechanics.js": "ddf0903cddcd9e6e07953b819ca7734005d991743bdeff91229bfd744cc9efa0",
@@ -77850,7 +77856,8 @@
     "void-runner/road-taxi-rules.js": "78f664cd9459e6b88b9e5bb14f80bfc2abc4535f995d6674223d7e809cf61f37",
     "void-runner/road-taxi-van.js": "136e313eadf1ec3112b310e1685f09cf5a7b55e2716b75c0ca20511b518a8f02",
     "void-runner/road-taxi.js": "45791a8afbcbd2b494f4cc40e51c183ca29d193fbaee00ecdb0c96583d580b5a",
-    "void-runner/rook-cargo-jobs.js": "ad1acf4b47ac48d0c297df37671db7c51a53771ea6cbb4903c9d65e4bab1a390",
+    "void-runner/rook-cargo-gen.js": "e45edad6a10678715449b343e9fe0dfac4858328ac14d24ef64bc57828ccd1d9",
+    "void-runner/rook-cargo-jobs.js": "a8e0627f8fd5a06e2261ec81017126d952e4bcdb6416f5b4f599b8726ac5fca8",
     "void-runner/scenes.js": "cf1061512432f0329ed03cccf7dd5e15c771f9ef21aa51fb96aaffdbd68c858c",
     "void-runner/sensor-integration.js": "ab9806976bd703c8fcea47d7f414a72612c86efbb861a36ae8a0eb0666c83f24",
     "void-runner/sensors.js": "da2b6dc9c79cede5d52b7349e01b21ec11af02a2b8d614cd1a054c3873964f37",
@@ -77899,7 +77906,7 @@
     "void-runner/warflying-scanner.js": "dd8160d8bf6105f73a7bce77f80e7bf33dbdb3d685e41fc4081d635fd6aa34eb",
     "void-runner/warflying.js": "9ac353d5efbd49b8be8ed4e86e714d96f9e1ed538474f74165ff0758ac1e8a1b",
     "void-runner/warp.js": "5c20a7759b9a65d80cc2aa85f4aa68560e0fd09dc890cfe355c48a2fffab8318",
-    "void-runner/world-integration.js": "ea243e784f56e529cb329ea06e58d700f8faaebce25d933ef8331a8103226d77",
+    "void-runner/world-integration.js": "bb67207c790e2515d9ce3aca99c8268060a499b0c6c764b935f54fbcc4ee07a4",
     "void-runner/world-markers.js": "a46dbb285be035cb9a3d8543a14cdaf06af63201e89d4c1a5af77d1dd4897346",
     "void-runner/world.js": "1e3f5748ffeb4f397290ff2e6c1c7f8cfabe6a8e09187094d97f2f769ebcc532",
     "void-runner/zen-chat.js": "1e748415af78a2a016abd238ac07b1b94c3521d3881653fa0724352f4e4419ae",

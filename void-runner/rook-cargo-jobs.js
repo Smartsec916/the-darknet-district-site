@@ -11,11 +11,12 @@
      label: the name on Rook's board and in the Mission Log. legal: false marks the job "not legal". units: hold spaces it takes (the Kestrel and the Peregrine hold 2).
      payAt: 'delivery' (the receiving dock pays when the cargo is unloaded) or 'rook' (the receiver confirms the drop and Rook pays in person at Meridian).
      bonus: credits added to the base pay. danger: extra raiders on the route. far: true = only to places in another system than Meridian's.
-     cargo: what is carried (a different one each run, in turn). */
+     cargo: what is carried (a different one each run, in turn) on the older board; the District board picks its goods from `procedural` below
+     (valueGoods: true = only goods marked value). */
   jobs:{
    routine:{label:'Routine freight',legal:true,units:1,payAt:'delivery',bonus:0,danger:0,cargo:['Med-gel canisters','Hydroponic seed stock','Coolant cells','Salvaged drive coils']},
    'long-haul':{label:'Long-haul freight',legal:true,units:1,payAt:'delivery',bonus:300,danger:1,far:true,cargo:['Hydroponic seed stock','Coolant cells','Med-gel canisters']},
-   valuable:{label:'High-value freight',legal:true,units:2,payAt:'rook',bonus:500,danger:2,cargo:['Sealed reactor couplings','Encrypted ledger drives','Surplus targeting optics']},
+   valuable:{label:'High-value freight',legal:true,units:2,payAt:'rook',bonus:500,danger:2,valueGoods:true,cargo:['Sealed reactor couplings','Encrypted ledger drives','Surplus targeting optics']},
    hazard:{label:'Dangerous lane',legal:true,units:1,payAt:'delivery',bonus:600,danger:4,cargo:['Salvaged drive coils','Coolant cells','Surplus targeting optics']},
    restricted:{label:'Restricted cargo',legal:false,units:1,payAt:'rook',bonus:500,danger:2,cargo:['Unmarked data cores','Unregistered memory wafers']}
   },
@@ -27,6 +28,31 @@
   /* Places Rook never sends freight to (Vesper, the faction homeworlds, and Meridian itself, where the freight starts). Places in a system the player
      cannot reach yet are never offered either. */
   never:['vesper','nexus','order-homeworld','meridian'],
+  /* PROCEDURAL BOARD (District campaign, 21 Nov 2026). The owner: "For Rook after this make cargo missions Procedural".
+     rook-cargo-gen.js builds each job of the districtBoard kinds above from these lists, seeded per player and per run, so a reload shows the same board
+     and every finished run brings a new one. All of this is plain flavour text: change, add or remove entries freely (old saves keep their accepted job's text).
+     goods: name (what it is), container (what it comes in), min/max (how many containers), kg (each container), value: true = can be high-value freight.
+     holdKg: the weight one hold space takes (a heavier load takes more spaces, never more than the ship's hold).
+     distance: pay factors added for a landing (a planet's surface), another system, and a faction's system. variance: +/- this share of the pay, at random.
+     extraSpace: pay added (as a share) for each hold space beyond the kind's own. titles: the first word of a job's name, and the word for the trip. */
+  procedural:{
+   goods:[
+    {name:'general freight',container:'sealed crates',min:3,max:10,kg:180,value:true},
+    {name:'medical supplies',container:'cases',min:6,max:20,kg:40,value:true},
+    {name:'machine parts',container:'crates',min:3,max:9,kg:260},
+    {name:'data cores',container:'padded cases',min:2,max:6,kg:25,value:true},
+    {name:'perishable food',container:'cold boxes',min:6,max:16,kg:70},
+    {name:'water filters',container:'crates',min:4,max:12,kg:90},
+    {name:'coolant cells',container:'racks',min:2,max:8,kg:150},
+    {name:'spare electronics',container:'cases',min:4,max:14,kg:35,value:true},
+    {name:'building materials',container:'pallets',min:2,max:6,kg:420}
+   ],
+   holdKg:1200,
+   distance:{landing:.1,interstellar:.3,faction:.15},
+   variance:.1,
+   extraSpace:.15,
+   titles:{first:['Standard','Priority','Quiet','Steady','Short-notice','Overnight','Scheduled'],trip:['run','haul','drop','delivery']}
+  },
   /* Rook's lines for the side missions. PROPOSED placeholder text: needs owner approval before recording (no voice clip exists; they show as text).
      coordinates: said once, the first time he offers the side missions; the Map app gets every location's coordinates at that moment (VoidNav.grantCoordinates).
      board: said when he shows the board (every later visit). */
