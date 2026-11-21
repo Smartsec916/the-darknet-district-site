@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026 (newest): THE TEA ROOM'S PAINTING AND SIGN (branch `claude/tea-painting`, built on `claude/tea-master`, build `2026-11-20-tea-painting-1`, pushed, NO PR, not merged)
+
+- **The owner's painting** (`void-runner/assets/textures/paintings/tea-room-cat-painting.jpg`, a white cat among cherry blossoms, 768 x 1024) hangs in the tea room's service nook on its north wall above the sink, where he marked it: x 2.36 (moved 0.16 m west so the folding screen never covers it from the east seats), y 1.62, 0.57 x 0.76 m, thin dark frame flush with the wall, small warm picture lamp. Not mirrored; toned down (less self-light, little reflection) because the first version read pale and washed out. The file ships (tracked; `build-pages.cjs publishable`) and the service worker caches it like every .jpg under void-runner/.
+- **The sign 表と裏** (his text) on the partition, centred over the tea room host (x 0.1), 0.72 x 0.24 m (3:1 like its texture) at y 2.15: above the partition's paper panel, which stands 8 cm proud of the partition up to 2.0 m and hid the sign's left end from the dais. Glyphs render (CJK font list; no tofu seen). The counter's lantern hangs higher over the counter's front edge (0.1, 0.1, y 2.35) so it never crosses the sight line to the sign from any seat or the door.
+- **Tests:** `tests/tea-painting.test.cjs` (the module builds both; placement, proportions, frame, packaging and caching, the sign's text and position, sight lines past the lantern). Screenshots: seat views (east table, dais), close-ups of each, from the door.
+- **Not verified:** real GPU; how the CJK fallback font looks on a Windows / ROG Ally machine (the font list prefers Noto / Yu Mincho / MS Mincho).
+
+### 20 Nov 2026: THE TEA ROOM HOST (A GIVER BEHIND THE TEA STATION), THE LUCKY CAT ON HIS COUNTER, NPCs OPEN SLIDING DOORS, SITTING ON THE ALCOVE SEATS, SMALL UNDERGROUND FIXES (branch `claude/tea-master`, built on `claude/tunnel-network`, build `2026-11-20-tea-host-1`, pushed, NO PR, not merged)
 ### 21 Nov 2026 (newest): THE MISSION EDITOR NO LONGER CLOSES BY ITSELF OR POPS UP DURING DRAFT PLAY (branch `claude/editor-timeout`, build `2026-11-21-editor-timeout-1`, pushed, NO PR, not merged)
 
 The owner: "sometimes the mission editor times out and goes to the previous page. also while trying to play through a test mission the editor pops up". How-to and code map: [`MISSION_EDITOR.md`](MISSION_EDITOR.md), "Fix (21 Nov 2026): the editor stays open".
