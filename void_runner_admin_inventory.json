@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "ad29897c52bf9844",
+  "revision": "fbabcd7ca89a00cf",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79499,7 +79499,7 @@
     "void-runner/ships.js": "cdbd691a643b21a1acd6fa3c00542cf1916e6a0a5dff030d5bd3c2fcd1e3cf37",
     "void-runner/signals.js": "ca98ad645a3799bfe81aac6931a428fa07becd3661b2e5f602a99e00fa1e93eb",
     "void-runner/simulation-effects.js": "f6aac1ce655f6f79e900da09e79938ecf7c162aa6d5c765187b294510793342a",
-    "void-runner/skirmish.js": "0569be4c39ff6cb83807820ef9935498483dc17821840089e1ef658ee82a3c52",
+    "void-runner/skirmish.js": "5a1c0de05df523b3baef6704c5cd1a41ef7b858c51bcaa2f74e91e467b56ec20",
     "void-runner/social-profiles.js": "fd88c0388f4dfccdb0bfc24edaabb5ce48e415b1d3cceb1bb82a235ef8bed418",
     "void-runner/start-conditions.js": "3861bcaa2d0a6e95d6d226752d5e0f826ee7f50e340fe1f9ea1acebdc1951add",
     "void-runner/station-activities.js": "06fbc8ae9530c5c612be8539f1af9bc29a314e39d7918eb6b670044da512141a",

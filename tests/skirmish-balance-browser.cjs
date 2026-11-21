@@ -12,10 +12,13 @@ const bundled=fs.existsSync('/opt/pw-browsers/chromium-1243/chrome-linux64/chrom
   await page.waitForFunction(()=>mode==='skirmish-fps'&&VoidSkirmish.active,null,{timeout:300000});await page.waitForTimeout(1500);
   const m=await page.evaluate(()=>{const s=VoidSkirmish.active;return {health:s.health,ammo:s.ammo,reserve:s.reserve,hp:s.enemies.map(e=>e.hp)};});console.log('[skirmish]',JSON.stringify({...m,hp:[...new Set(m.hp)]}));
   assert.equal(m.health,140);assert.equal(m.ammo,10);assert.equal(m.reserve,96);assert.ok(m.hp.includes(120)&&m.hp.includes(162),'shared enemy health (stronghold x1.35)');
+  assert.match(await page.locator('.skirmish-objective').innerText(),/NEAREST [\d,.]+ FT/);
   const gates=await page.evaluate(()=>{const s=VoidSkirmish.active,p=s.player,ammo=s.ammo;VoidSkirmish.action('fire',true);const friendly=s.ammo===ammo;p.z=0;VoidSkirmish.action('fire',true);return {friendly,neutralFire:s.ammo===ammo-1,provoked:s.esc.at==='neutral'};});assert.deepEqual(gates,{friendly:true,neutralFire:true,provoked:true});
   const hit=await page.evaluate(()=>{const s=VoidSkirmish.active,p=s.player;const e=s.enemies.find(x=>!x.dead&&x.zone==='hostile');p.x=e.x;p.z=e.z-4;s.grace=0;const before=e.hp;
    p.yaw=Math.atan2(e.x-p.x,e.z-p.z);p.pitch=Math.atan2(p.y-1.3,4);e.node.computeWorldMatrix(true);e.node.getChildMeshes().forEach(m=>m.computeWorldMatrix(true));s.cooldown=0;s.aim=false;VoidSkirmish.action('fire',true);return {before,after:e.hp,id:e.id,py:p.y,ex:e.x,ez:e.z,px:p.x,pz:p.z,vis:VoidExplorer.blocked(p.x,p.z,VoidDerelictStation.layout)};});
   console.log('[skirmish] shot',JSON.stringify(hit));assert.equal(hit.before-hit.after,50,'the shared pistol damage');
   if(shots)await page.screenshot({path:path.join(shots,'skirmish-shared-balance.png'),timeout:240000});
+  const win=await page.evaluate(id=>{const s=VoidSkirmish.active,p=s.player,e=s.enemies.find(x=>x.id===id);for(const other of s.enemies)if(other.zone==='hostile'&&other!==e){other.dead=true;other.node.setEnabled(false);}e.hp=1;p.yaw=Math.atan2(e.x-p.x,e.z-p.z);p.pitch=Math.atan2(p.y-1.3,Math.hypot(e.x-p.x,e.z-p.z));s.cooldown=0;VoidSkirmish.action('fire',true);return {mode,status:s.status,neutralAlive:s.enemies.some(x=>x.zone==='neutral'&&!x.dead)};},hit.id);
+  assert.deepEqual(win,{mode:'skirmish-result',status:'cleared',neutralAlive:true});
   assert.deepEqual(errors,[]);console.log('[skirmish] PASS');}finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1);});
