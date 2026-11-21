@@ -1,5 +1,17 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const studio=require('../void-runner/vr-companion-studio.js'),C=require('../void-runner/vr-companions.js');
+test('independent home test preserves published mission content and rejects reserved or unverified addresses',()=>{
+ const entry={id:'test-person',name:'Test Person',model:'npc-kai',about:'A resident',personality:{initiative:.8},dialogue:{greet:['Hello']},residence:{door:'example',slot:2,mode:'always',from:'20:00',to:'08:00'}};
+ const live={format:'darknet-district-mission-content',version:1,trees:[{id:'existing',missions:[{id:'untouched'}]}],characters:{other:{name:'Other'}},npcs:{other:{mode:'stay'}},clips:[{who:'other'}]};
+ const original=JSON.stringify(live),registry={complete:true,rows:new Map()},content=studio.worldHomeDraft(entry,live,registry,'test-world');
+ assert.equal(JSON.stringify(live),original);assert.deepEqual(content.trees,live.trees);assert.deepEqual(content.npcs,live.npcs);assert.deepEqual(content.clips,live.clips);assert.deepEqual(content.characters.other,live.characters.other);assert.deepEqual(content.characters['test-world'].companionProfile.personality,entry.personality);assert.deepEqual(content.characters['test-world'].residence,entry.residence);
+ assert.throws(()=>studio.worldHomeDraft(entry,live,{...registry,complete:false},'test-world'),/verified/);
+ assert.throws(()=>studio.worldHomeDraft(entry,live,{complete:true,rows:new Map([['example',{missions:[{id:'mission'}],residents:[]} ]])},'test-world'),/reserved/);
+ assert.throws(()=>studio.worldHomeDraft(entry,live,{complete:true,rows:new Map([['example',{missions:[],residents:[{id:'other',slot:2}]}]])},'test-world'),/already has/);
+ assert.throws(()=>studio.worldHomeDraft(entry,live,registry,'other'),/already in use/);
+ assert.throws(()=>studio.worldHomeDraft({...entry,residence:{...entry.residence,mode:'schedule'}},live,registry,'test-world'),/Always home/);
+ assert.equal(studio.worldHomeDraft(entry,null,registry,'test-world').version,1);
+});
 test('all shipped pools are supported and the editor preserves the existing behavior fields',()=>{
  for(const e of C.companions.values())assert.deepEqual(studio.profile({about:e.about,dialogue:e.dialogue}).dialogue,e.dialogue);
 });
