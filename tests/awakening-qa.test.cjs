@@ -25,7 +25,7 @@ test('a report made from the V1 has no arrow to the person; a leave step leads o
  for(const k of ['locate','blend-in'])ev({type:'observe',step:'m004-a-promising-investment/'+k});ev({type:'overhear',step:'m004-a-promising-investment/overhear'});
  const g=()=>{const m=x.M.tracked(s,x.C);return x.M.guidance(s,m,true);};
  assert.deepEqual(g(),{kind:'instruction',label:'Report the information to Fish (V1 Mission Log: REPORT TO FISH).'},'no arrow to Fish at Milked');
- ev({type:'report',step:'m004-a-promising-investment/report'});ev({type:'place',places:['avenue']});ev({type:'place',places:['avenue']});
+ ev({type:'report',step:'m004-a-promising-investment/report'});s.story.flags.gameMin+=20;ev({type:'place',places:['avenue']});ev({type:'place',places:['avenue']});
  ev({type:'place',places:['avenue'],apt:'m005-behind-closed-doors/reyes',mod:'hall'});ev({type:'hack',ap:'reyes/hall.d0',mission:'m005-behind-closed-doors'});ev({type:'place',places:['avenue'],apt:'m005-behind-closed-doors/reyes',mod:'flat'});
  ev({type:'apt-use',mission:'m005-behind-closed-doors',apt:'reyes',object:'computer',mod:'flat'});ev({type:'collect',step:'m005-behind-closed-doors/copy'});
  assert.equal(g().apt.kind,'apt-leave','"Leave the apartment" is guided as a way out (mission-guide.js aptGoal)');

@@ -127,8 +127,11 @@
     say:[FISH('Fifty-one percent? That\'s not an ordinary investment. Someone wants control of his company.'),FISH('I\'ve managed to find his residential address. I\'ll send it to you now.'),FISH('I\'ve also forwarded everything to Admin and Iris.')]}],
   ending:{npc:'',place:'',label:'',say:[]},choices:[],unlocks:[{kind:'evidence',id:'tea-talk',when:'overhear'}]};
  const REYES_LOC={id:'reyes',door:'apt-avenue-n-30',modules:[{id:'hall',type:'hall-luxury'},{id:'flat',type:'apt-luxury',number:105}],entry:'hall.street',links:[{a:'hall.d0',b:'flat.entry'}],locks:['hall.d0']};
+ // (the owner, 21 Nov 2026) Iris's call comes a while after Fish's 004 reply, not in the same second: 20 in-game minutes (game-clock.js: about 1 min 40 s of play).
+ // A save that already has 005 offered or running is unaffected (a start is only checked for a mission not yet offered).
+ const M005_AFTER=20;
  const M005={id:'m005-behind-closed-doors',number:5,title:'Behind Closed Doors',type:'main',category:'Infiltration / Hacking',giver:'iris',location:'avenue',description:'',
-  start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Fish sent me the address. Reyes is away from home at the moment, so now\'s our opportunity.','You\'re going to need to get inside his apartment.','Approach the door\'s access panel. Your device can interface with it.','I\'ll walk you through the process.'].join('\n'),when:{kind:'after-mission',mission:'m004-a-promising-investment'}},
+  start:{how:'notification',channel:'comms',from:'iris',header:'IRIS // INCOMING CALL',text:['Fish sent me the address. Reyes is away from home at the moment, so now\'s our opportunity.','You\'re going to need to get inside his apartment.','Approach the door\'s access panel. Your device can interface with it.','I\'ll walk you through the process.'].join('\n'),when:{kind:'game-time',mission:'m004-a-promising-investment',value:M005_AFTER}},
   offer:[],apartments:[REYES_LOC],
   evidence:[{id:'br-proposal',title:'Investment proposal (Halden Reyes)',kind:'document',text:'BLACKROCK HOLDINGS\nRecipient: Veyra Dynamics\nFounder: Halden Reyes\nProposed investment: 12,000,000 CR\nEquity transfer: 51%\nVoting rights: Majority control\nAdditional conditions: Confidential\nStatus: Pending admission'},
    {id:'reyes-message',title:'Message on Halden\'s computer',kind:'document',text:'"Mr. Reyes, your preliminary agreement has been received. Further instructions regarding admission will be provided following your final approval meeting."'},
@@ -163,7 +166,8 @@
    {id:'manager-pc',kind:'apt-use',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Access the manager\'s computer.',npc:'',place:'',item:'',say:[],early:[]},
    {id:'download',kind:'collect',evidence:'br-letters',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Download internal communications (COPY TO V1).'},
    {id:'documents',kind:'collect',evidence:'br-induction',apt:'veyra',mod:'office',object:'manager-pc',unseen:true,label:'Locate the investment agreement and supporting documentation (COPY TO V1).'},
-   {id:'leave',kind:'apt-leave',apt:'veyra',unseen:true,label:'Leave without raising an alarm.'},
+   // (the owner, 21 Nov 2026) seen on the way out: a guard shouts, a few seconds to get out of sight, then the guards open fire (mission-mechanics.js spottedStep)
+   {id:'leave',kind:'apt-leave',apt:'veyra',unseen:true,onSpotted:'alarm',label:'Leave without raising an alarm.'},
    {id:'admin-call',kind:'call',via:'comms',label:'Take Admin\'s call.',say:[A('I had Fish look into those other companies.'),A('Almost every one of their founders has been involved in some kind of public scandal shortly after receiving funding.'),A('That\'s a hell of a coincidence.')]},
    {id:'iris-call',kind:'call',via:'comms',delay:4,label:'Take Iris\'s call.',say:[IRIS('The induction document mentions a mandatory recording.'),IRIS('Whatever happens during this admission ceremony, Blackrock wants a permanent record of it.'),IRIS('If we can find out where they\'re recording it, we might finally understand what they\'re doing.')]},
    {id:'admin-next',kind:'call',via:'comms',delay:4,label:'Take Admin\'s call.',say:[A('Sounds like Juno has another meeting scheduled. Let\'s see what we can learn from that.')]}],
@@ -322,11 +326,12 @@
    {id:'port',kind:'enter',place:'port',label:'Travel to the Port.',npc:'',item:'',say:[],early:[]},
    {id:'find-kestrel',kind:'enter',place:'landing-pad',via:'comms',label:'Find the Kestrel on Pad 01.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.there),IRIS(IRIS_OK.boardHer)]},
    {id:'board',kind:'flight',stage:'board',label:'Board the Kestrel (E at the ship).'},
-   // the cockpit in small sections: short timed calls once aboard (nothing to fail; each stays in RECENT CALLS)
+   // the cockpit in small sections: short timed calls once aboard (nothing to fail; each stays in RECENT CALLS). (The owner, 21 Nov 2026: all four within about a minute.)
+   // A call step's delay counts in the cockpit too, and only once the call before it has been heard (mission-content.js timerRuns): each comes 2 s after the last ends.
    {id:'cockpit-display',kind:'call',via:'comms',delay:3,label:'Listen to Iris: the cockpit display.',say:[IRIS(IRIS_NEW.display)]},
-   {id:'cockpit-controls',kind:'call',via:'comms',delay:10,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},
-   {id:'cockpit-weapons',kind:'call',via:'comms',delay:12,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},
-   {id:'cockpit-nav',kind:'call',via:'comms',delay:10,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},
+   {id:'cockpit-controls',kind:'call',via:'comms',delay:2,label:'Listen to Iris: the flight controls.',say:[IRIS(IRIS_NEW.controls)]},
+   {id:'cockpit-weapons',kind:'call',via:'comms',delay:2,label:'Listen to Iris: the weapons.',say:[IRIS(IRIS_NEW.weapons)]},
+   {id:'cockpit-nav',kind:'call',via:'comms',delay:2,label:'Listen to Iris: navigation.',say:[IRIS(IRIS_NEW.nav)]},
    {id:'set-course',kind:'flight',stage:'launch',app:'map',via:'comms',label:'Take off and set Meridian Station as your destination (V1 Map: select it, then fly into its marker).',say:[IRIS(IRIS_NEW.course)]},
    {id:'jump',kind:'flight',stage:'jump',place:'meridian',via:'comms',label:'Make the jump to Meridian Station.',say:[IRIS(IRIS_NEW.jump)]},
    {id:'dock',kind:'arrive',place:'meridian',via:'comms',label:'Approach and dock at Meridian Station.',npc:'',item:'',early:[],say:[IRIS(IRIS_OK.nicely),IRIS(IRIS_OK.rook)]},
