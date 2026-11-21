@@ -3,7 +3,8 @@ import {auth,provider,signInWithPopup,signInWithRedirect,getRedirectResult,onAut
 const panel=document.getElementById('companion-standalone'),status=document.getElementById('companion-auth-status'),signin=document.getElementById('companion-signin'),signout=document.getElementById('companion-signout');
 const base=['localhost','127.0.0.1'].includes(location.hostname)?'':'https://the-darknet-district-site.onrender.com';
 let generation=0,current=null,loaded=null,previewLoaded=null,lastVerified=0;
-const script=src=>new Promise((ok,no)=>{const el=document.createElement('script');el.src=src;el.onload=ok;el.onerror=()=>no(Error('Could not load '+src));document.head.append(el);});
+const version=new URL(import.meta.url).searchParams.get('v')||'12';globalThis.VoidCompanionBuild=version;
+const script=src=>new Promise((ok,no)=>{const el=document.createElement('script');el.src=src+'?v='+encodeURIComponent(version);el.onload=ok;el.onerror=()=>no(Error('Could not load '+src));document.head.append(el);});
 const tell=t=>{status.textContent=t;};
 const D=globalThis.VoidDevTools={standalone:true,authorized:false,uid:null,request:null,async loadEditor(){return previewLoaded??=(async()=>{await script('void-runner/vendor/babylon-8.26.0.js');await script('void-runner/npc-preview.js');})().catch(e=>{previewLoaded=null;throw e;});}};
 const load=()=>loaded??=(async()=>{for(const f of ['network','asset-pipeline','crowd','npc-paths','npc-voices','vr-companions','npc-made','anim-library','voice-imports','vr-companion-studio'])await script('void-runner/'+f+'.js');})().catch(e=>{loaded=null;throw e;});

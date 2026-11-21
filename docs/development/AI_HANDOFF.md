@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: EXPANDED CATEGORIZED FLOOR, COUCH, YOGA AND LYING POSES (local)
+
+- 94 free presets plus original reset, ten categories including 14 yoga/stretching poses. New presets can tilt/roll the pelvis/torso and ground using deformed bounds. Mirror left/right swaps template limb targets and signs of side tilt/roll. These are approximate static poses, not full IK, exact hand contacts or finger articulation; manually inspect and adjust per rig. Floor/root placement remains preview-only.
+
+### 21 Nov 2026: MOBILE PREVIEW FOLLOW, CACHE VERSION, ALIGNMENT AND FACING (local)
+
+- Mobile entry and dynamically loaded editor/model tools share a versioned URL to avoid mixed cached scripts. Static editor auto-rigs enter dot alignment first; posing requires applying or cancelling alignment. Preview can stay in flow or stick to the viewport while scrolling and collapse on demand. Template facing uses the toe direction when present, with manual flip and front view; kneeling/crouch presets refresh skinned bounds before grounding, and reset restores prior placement. Actual phone verification remains necessary.
+
 ### 21 Nov 2026: COLOR-CODED SKELETON PLACEMENT GUIDE (local)
 
 - Joint colors distinguish body regions; selected dots turn white and the magnifier displays descriptive anatomical names. A front and side schematic in Model and Guide tabs shows the 19 approximate auto-rig joint centers, with precise anatomical placement descriptions and a matching color legend.
