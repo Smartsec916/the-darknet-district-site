@@ -95,5 +95,5 @@ test('wiring: npc-escort-across.js wraps enterWalking after every transition, li
  const lc=fs.readFileSync(R('void-runner/live-content.js'),'utf8');assert.match(lc,/E\.legOf\(id,here/);assert.match(lc,/setCarry,escortWhere/);assert.match(lc,/via:L\.via\|\|null/);
  for(const f of ['ncz-street-pair.js','npc-made.js']){const s=fs.readFileSync(R('void-runner/'+f),'utf8');assert.match(s,/noDone:!!P\.via/,f);assert.match(s,/E\.rideAlong\(/,f);assert.match(s,/groundAt/,f);}
  assert.match(fs.readFileSync(R('void-runner/mission-guide.js'),'utf8'),/root\.missionEscortGoal=escortGoal/);assert.match(fs.readFileSync(R('void-runner/world-integration.js'),'utf8'),/missionEscortGoal\(g\)/);
- assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8').split(/\r?\n/)[3],/^const BUILD='2026-11-20-escort-across-1';$/);
+ assert.match(fs.readFileSync(R('void-runner-sw.js'),'utf8').split(/\r?\n/)[3],/^const BUILD='\d{4}-\d\d-\d\d-[a-z0-9-]+';$/);
  const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8'));assert.ok(inv.npcEscort.npcs[REV].reach.avenue.includes('underground'));assert.ok(!inv.npcEscort.npcs[CAT].reach.avenue.includes('underground'));});

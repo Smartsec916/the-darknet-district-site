@@ -12,6 +12,7 @@ test('a missed call does not ring later; waiting calls ring oldest first',()=>{c
  assert.equal(D.nextCall([{id:'m004/start',at:900,read:true},{id:'m002/enter-null',at:500,read:false}]),null,'an unread call older than the last one heard is a missed call');
  assert.equal(D.nextCall([{id:'m005/start',at:903,read:false},{id:'m004/report',at:900,read:false},{id:'m004/travel',at:600,read:true}]).id,'m004/report','Fish\'s reply before Iris\'s next call');
  assert.equal(D.nextCall([{id:'m004/start',at:9000,read:false},{id:'m001/start',at:500,read:false},{id:'m002/enter-null',at:500,read:false}]).id,'m004/start','nothing heard yet: the new call rings, not the oldest unanswered one');
+ assert.equal(D.nextCall([{id:'m004/start',at:1434,read:false},{id:'m002/enter-null',at:1377,read:false}]).id,'m004/start','a call a minute older is not part of the same burst');
  assert.equal(D.nextCall([]),null);assert.equal(D.nextCall([{id:'a',at:1,read:false}]).id,'a');
  assert.match(src('void-runner/personal-device.js'),/function startCall\(\)\{const fresh=D\.nextCall\(inbox\('comms'\)\)/);});
 

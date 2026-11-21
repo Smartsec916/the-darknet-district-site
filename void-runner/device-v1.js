@@ -205,10 +205,10 @@
  /* The line of a call on screen now (its live subtitle in the call bar): lines appear 2.2 s apart from 0.4 s, as in the Comms transcript. -1: still connecting. */
  const CALL_LINE={first:400,every:2200};
  const callLine=(count,elapsedMs)=>count>0&&elapsedMs>=CALL_LINE.first?Math.min(count-1,Math.floor((elapsedMs-CALL_LINE.first)/CALL_LINE.every)):-1;
- /* Which waiting Comms message rings as the call (Awakening QA 20 Nov 2026): of the calls that came in together with the newest one (within a minute of it), the OLDEST,
+ /* Which waiting Comms message rings as the call (Awakening QA 20 Nov 2026): of the calls that came in together with the newest one (within 10 s of it: one event's calls), the OLDEST,
  never one older than the last call heard. Anything older is a missed call: it stays unread in Comms but does not ring later (an unanswered Mission 002 call rang
  after Fish's Mission 004 call; Fish's 004 reply and Iris's 005 call arrive in the same second and rang newest first). list: newest first, `at` in seconds. */
- const CALL_BURST=60;
+ const CALL_BURST=10;
  const nextCall=list=>{const ls=Array.isArray(list)?list:[],at=m=>Number(m.at)||0,heard=ls.filter(m=>m&&m.read).reduce((a,m)=>Math.max(a,at(m)),0),un=ls.filter(m=>m&&!m.read&&at(m)>=heard);if(!un.length)return null;
   const top=Math.max(...un.map(at));let pick=null;for(const m of un)if(at(m)>=top-CALL_BURST)pick=m;return pick;};
  const api={STEP_APPS,stepApp,appGoal,openTarget,CALL_LINE,callLine,nextCall,CALL_BURST,NOTIFY,notifyTier,SERIAL,DEVICE_ID,makeSerial,ensureSerial,deviceId,prefixOf,ASSET_VERSION,DEVICES,APPS,STORE_EXTRA,NPC_MODELS,KEY,DEFAULT_SETTINGS,SETTING_VALUES,restore,write,parseSettings,settingsText,storage,storeListing,install,uninstall,appTitle,delayMs,CELL,RADIUS,extent,explore,explored,visible,encode,decode,hash,portraitKey,profile,HANDLE};
