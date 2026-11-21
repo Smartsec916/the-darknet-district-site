@@ -44,9 +44,9 @@
  // the taxi poles on the Avenue's north pavement (kept when no newer reading exists; the ad screens' kerb stands went onto the walls on 20 Nov 2026)
  const AVENUE_OLD=[[19.63,20.13,-7.9,-7.5,'the taxi pole'],[39.88,40.13,-7.9,-7.5,'the taxi pole'],[133.63,134.13,-7.9,-7.5,'the taxi pole']];
  const RULE={milked:'That is Milked, the studio building (never used for her: its side street and service alley are fine).',null:'That is NULL, the nightclub (never used for her).',
-   doorway:'That is right in NULL’s doorway: she may walk past it on the pavement, but is never put or kept waiting in the club’s door (stand at least 1.5 m from it).',
-   milkedFront:'That is right in Milked’s front doorway: she may walk past it along the side street, but is never put or kept waiting in its door (stand at least 1.5 m from it).',
-   milkedRear:'That is right in Milked’s rear doorway: she may walk past it along the service alley, but is never put or kept waiting in its door (stand at least 1.5 m from it).',
+   doorway:'That is right in NULL’s doorway: she may walk past it on the pavement, but is never put or kept waiting in the club’s door (stand at least 5 ft from it).',
+   milkedFront:'That is right in Milked’s front doorway: she may walk past it along the side street, but is never put or kept waiting in its door (stand at least 5 ft from it).',
+   milkedRear:'That is right in Milked’s rear doorway: she may walk past it along the service alley, but is never put or kept waiting in its door (stand at least 5 ft from it).',
   bar:'That is the District bar (never used for her).',vr:'That is the District’s VR play area (never used for her).',arcade:'That is the District’s arcade room (left out: only the hallway, the store and the vending alcove are used).',
   pods:'That is the Sleeping Pod room (the players’ own pods: never used for her).',studios:'That is inside Milked beyond reception (the studios, the hallway and the staff rooms are never used: only reception, for a character marked adult).',corporate:'That is the Corporate District (not part of the city: never used for her).',terrace:'That is the smoking terrace (never used for her).',pit:'That is the underground fight pit (never used for her: the tunnels, the tea room, the sleeping room, mahjong, the food stall and the alcoves are fine).'};
  let CACHE=null;

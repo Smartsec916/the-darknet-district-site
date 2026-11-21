@@ -237,7 +237,7 @@
    if(a.items!=null){if(!Array.isArray(a.items)||a.items.length>LIMIT.items)out.push(w+': at most '+LIMIT.items+' placed items.');
     else for(const it of a.items){if(!keysOk(it,['type','label','x','z','y'])||!ITEM_TYPES.some(t=>t.id===it.type)||!plain(it.label,LIMIT.label)){out.push(w+': a placed item needs a type and a short label (60 characters, plain text).');continue;}
      const num=v=>typeof v==='number'&&Number.isFinite(v),GA=geo(a.style).APT,ax=GA.x,az=GA.z;if(!num(it.x)||!num(it.z)||it.x<ax[0]+.2||it.x>ax[1]-.2||it.z<az[0]+.2||it.z>az[1]-.2)out.push(w+': a placed item must be inside the apartment (x '+(ax[0]+.2)+'..'+(ax[1]-.2)+', z '+(az[0]+.2)+'..'+(az[1]-.2)+').');
-     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.4))out.push(w+': a placed item’s height is 0 to 2.4 m.');}}}
+     if(it.y!=null&&!(num(it.y)&&it.y>=0&&it.y<=2.4))out.push(w+': a placed item’s height is 0 to 7.9 ft.');}}}
   const seen=new Set();for(const a of list){if(a&&typeof a.door==='string'){if(seen.has(a.door))out.push('two apartments of one mission use the same street door ('+a.door+').');seen.add(a.door);}}
   for(const o of m.objectives||[]){if(!o||(o.kind!=='apt-enter'&&o.kind!=='apt-use'))continue;if(!ids.has(o.apt))out.push('step '+o.id+': choose one of this mission’s apartments.');
    const la=list.find(x=>x&&x.id===o.apt);if(isLoc(la)){const mm=o.mod!=null?la.modules.find(x=>x&&x.id===o.mod):null;if(o.mod!=null&&!mm)out.push('step '+o.id+': choose one of the location’s rooms (modules).');

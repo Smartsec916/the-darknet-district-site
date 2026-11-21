@@ -94,7 +94,7 @@
   const player={x:walker.x,z:walker.z,riding:false};
   const res=R.hail(world,state,player,destId,context());
   if(!res.ok){announce?.(res.reason);return false;}
-  announce?.(res.walk>15?'Street taxi called. It will wait on the road, about '+res.walk+' m from you. Fare '+res.fare+' CR, paid when you board.':'Street taxi on its way to you. Fare '+res.fare+' CR, paid when you board.');
+  announce?.(res.walk>15?'Street taxi called. It will wait on the road, about '+VoidUnits.fmtDist(res.walk)+' from you. Fare '+res.fare+' CR, paid when you board.':'Street taxi on its way to you. Fare '+res.fare+' CR, paid when you board.');
   try{globalThis.VoidPersonalDevice?.close?.();}catch{}
   return true;
  }
@@ -153,7 +153,7 @@
  function hudHtml(){const esc=s=>escapeText(String(s??''));
   if(!inCity())return '<p class="hud-note">'+esc(walkingLocation?.corporate||walkingLocation?.temple?'The taxi stop here takes you back to NeoChinatown. The ride back is included in your fare.':walkingLocation?.id==='neochinatown'&&state?.location==='earth'?'Street taxis stay on the roads. Step outside first.':'No street taxi service operates here.')+'</p>';
   ensure();const ctx=context(),a=R.availability(state,{...ctx,trip:!!(world?.job&&!world.job.released)}),st=status();
-  if(st)return '<article class="hud-card"><h3>'+esc(st.label)+' <small class="hud-tag tracked">'+esc((phaseText[st.phase]||st.phase).toUpperCase())+'</small></h3><p>'+st.distance+' m away · fare '+esc(st.fare)+' CR</p>'+(st.canCancel?'<div class="hud-actions"><button type="button" data-hud-action="taxi-cancel" data-hud-key="taxi-cancel">CANCEL TAXI</button></div>':'')+'</article>';
+  if(st)return '<article class="hud-card"><h3>'+esc(st.label)+' <small class="hud-tag tracked">'+esc((phaseText[st.phase]||st.phase).toUpperCase())+'</small></h3><p>'+VoidUnits.fmtDist(st.distance)+' away · fare '+esc(st.fare)+' CR</p>'+(st.canCancel?'<div class="hud-actions"><button type="button" data-hud-action="taxi-cancel" data-hud-key="taxi-cancel">CANCEL TAXI</button></div>':'')+'</article>';
   if(!a.ok)return '<p class="hud-note">'+esc(a.reason)+'</p>';
   return '<p class="hud-note">'+esc(a.network)+'. A cab drives the roads to you, then to the stop. The fare is paid when you board; cancelling before that costs nothing.</p><h2>DESTINATIONS</h2>'+R.destinations(state,ctx).map(d=>'<article class="hud-card"><h3>'+esc(d.label)+'</h3><p class="hud-meta">'+esc(d.ok?[d.via,d.blurb,d.fare+' CR'].filter(Boolean).join(' · '):d.reason)+'</p><button type="button" data-hud-action="taxi-call:'+esc(d.id)+'" data-hud-key="taxi-'+esc(d.id)+'"'+(d.ok?'':' disabled')+'>'+(d.ok?'CALL TAXI · '+esc(d.fare)+' CR':'UNAVAILABLE')+'</button></article>').join('');}
  function action(a,{close,render}){if(a.startsWith('taxi-call:')){if(hail(a.slice(10)))close();else render();}else if(a==='taxi-cancel'){cancel();render();}}
@@ -226,7 +226,7 @@
   if(mode==='road-taxi'){let pad=null;try{pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected!==false);}catch{}const a=!!pad?.buttons?.[0]?.pressed;if(a&&!prevA&&world?.job?.cab?.phase==='arrived')exit();prevA=a;if(pad)look.yaw=Math.max(-1.5,Math.min(1.5,look.yaw+(pad.axes?.[2]||0)*dt*1.6));}
   syncBoard();paint(dt,performance.now()/1000);
   const st=status();
-  if(st&&st.canCancel&&mode==='walking'){chip.hidden=false;chip.querySelector('span').textContent='STREET TAXI · '+st.label.toUpperCase()+' · '+st.distance+' M';}
+  if(st&&st.canCancel&&mode==='walking'){chip.hidden=false;chip.querySelector('span').textContent='STREET TAXI · '+st.label.toUpperCase()+' · '+VoidUnits.fmtDist(st.distance).toUpperCase();}
   else chip.hidden=true;
  };
  const taxiDraw=draw;draw=function(){taxiDraw();

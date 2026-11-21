@@ -91,7 +91,7 @@
   const d=Math.hypot(p.x-walker.x,p.z-walker.z),r=Math.max(8,Math.min(14,200/Math.max(d,1))),pulse=.85+.15*Math.sin(performance.now()/180);
   ctx.save();ctx.translate(sp.x,sp.y);ctx.shadowColor='#000';ctx.shadowBlur=8;ctx.fillStyle=Y().hex;ctx.strokeStyle='#0b0f17';ctx.lineWidth=2.5;ctx.globalAlpha=pulse;
   ctx.beginPath();ctx.moveTo(0,-r);ctx.lineTo(r,0);ctx.lineTo(0,r);ctx.lineTo(-r,0);ctx.closePath();ctx.stroke();ctx.fill();ctx.globalAlpha=1;ctx.shadowBlur=6;
-  ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.fillStyle=Y().hex;ctx.fillText('TARGET · '+Math.round(d)+' m',0,r+16);ctx.restore();
+  ctx.font='bold 11px Consolas, monospace';ctx.textAlign='center';ctx.fillStyle=Y().hex;ctx.fillText('TARGET · '+VoidUnits.fmtDist(d),0,r+16);ctx.restore();
   try{root.VoidMissionGuide.markerShown=performance.now();}catch{}}
  if(typeof draw==='function'){const prior=draw;draw=function(){prior.apply(this,arguments);try{drawSubject();}catch{}};}
 
