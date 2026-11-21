@@ -55182,7 +55182,7 @@
       "spawn"
     ]
   },
-  "revision": "26fbd1c768039d40",
+  "revision": "2a8920e49ada2a08",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74656,7 +74656,7 @@
     "void-runner/device-gallery.js": "d0f3e1180ebf13d0b3c312e63978a4bc2320d651584468cda78d099f121fedb3",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "ac582ed30699de5c983ef2f3f74b711e3818db33c17a574f4649fbb4aa14e95d",
-    "void-runner/device-v1.js": "a459c415cf3328fa3a9769ef923308699817d9eec0276526c075d363c040ccc5",
+    "void-runner/device-v1.js": "4fb198cb4b873819aa7b1224780b4bb23c11431983c59b44cd5504d5c08375d5",
     "void-runner/district-arcade.js": "c3af70e2fb4cf3ca567309ed745a0862bb455f01397fa075805e5dc6b1a0476c",
     "void-runner/district-area.js": "79c5ecc0b211ae9659e1a27e1fdbda54324c89adaa400fa85d53d1c4e0933a38",
     "void-runner/district-chat.js": "343251c89f1e226ebbe94bdc52a9cf0daad5ff93885e54ea5033a1617646cbee",
