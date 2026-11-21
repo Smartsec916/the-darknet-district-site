@@ -230,6 +230,8 @@ async function enterWalking(id, options = {}) {
     walkingLocation = def;
     // A parked-ship collision box only blocks when the player really has that ship; with no ship it would be an invisible wall.
     for (const solid of def.solids) if (solid.shipHull) solid.open = !VoidShips.hasShip(state);
+    // the safety net on arrival (20 Nov 2026, "stuck in a housing room"): in the apartments, the module locations and the tunnels, an arrival point on furniture or in a wall moves to the nearest spot the player can stand on (never the Sleeping Pod's wake-up view, which is inside the pod row on purpose)
+    try { const f = (def.apartment || def.underground) && !state.story?.flags?.podWakePending ? VoidExplorer.free(walker.x, walker.z, def) : {moved: false}; if (f.moved) { console.warn('[walk] arrival point inside a solid, moved ' + f.distance.toFixed(1) + ' m', id, options.spawn || def.spawn); walker.x = f.x; walker.z = f.z; } } catch {}
     resumeWalking();
     VoidAudio.event('door');
   } catch (error) {
@@ -418,6 +420,7 @@ update = function(dt) {
       run: walkingKeys.has('ShiftLeft') || walkingKeys.has('ShiftRight')||VoidInput.virtual.has('sprint')
     };
     VoidExplorer.step(walker, moving, dt, walkingLocation);
+    if (!state.story?.flags?.podWakePending && VoidExplorer.watch?.(walker, moving, dt, walkingLocation)) console.warn('[walk] pinned for 2 s: moved to free floor');   // the quiet unstick (exploration-controller.js watch)
     walkTarget = VoidExplorer.select(walker, walkingLocation, item => !item.when || VoidStory.matches(state, item.when));
     time += dt;
     $('walking-caption').textContent = walkingLocation.name + ' / '+(walkingLocation.kind==='station'?'CREW DECK':'LANDING ZONE');
