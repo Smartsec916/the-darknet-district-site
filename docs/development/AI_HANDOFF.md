@@ -6,6 +6,11 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: AUTOMATIC POLYGON REDUCTION AND PREVIEW POSITIONING
+
+- Auto Downsize targets 15 MiB: textures and compact streams first, then progressively coarser spatial vertex clustering on supported triangle meshes. Complete representative attributes are retained, animation and inverse-bind data are not changed, and unsupported shared/morph/extension meshes are skipped. Geometry simplification is lossy; preview original and processed files separately, compare triangle counts, and keep the original. A generated rigged grid regression reaches its target and checks indices, weights, skin and animation streams. User's particular GLB was not provided for testing, so its target is not guaranteed.
+- Character preview has its own nonanimated placement parent, automatic initial floor alignment, raise/lower, forward/backward, snap to floor and reset buttons. This does not change exported model or animation data. Actual phone GPU behavior still needs verification.
+
 ### 21 Nov 2026: POSER AND DOWNSIZER IMPROVEMENTS (local, not deployed)
 
 - Dragging a joint now rotates a single parent segment relative to the start of the drag (bounded to 60 degrees per gesture) instead of accumulating rotations on two ancestors. Fine adjustment offers 5-degree local axis steps. Upper-body pose templates adjust recognizable humanoid arm chains for relaxed arms, wave, pointing, hands up and hands on hips; inspect and adjust results manually. These are not full-body IK or collision-aware poses.
