@@ -25,7 +25,7 @@ test('every robed-all beat of the BR-04 ritual (7 lines and the laugh) has exact
  want.forEach((text,i)=>{const id='robed-all-m010-'+(i+1),e=X.lines[id];assert.ok(e,id);
   assert.deepEqual(Object.entries(X.lines).filter(([,l])=>l.speaker==='robed-all'&&l.text===text).map(([k])=>k),[id]);
   assert.equal(e.speaker,'robed-all');assert.equal(e.text,text);assert.equal(e.file,'extra/'+id+'.ogg');
-  assert.equal(e.voice,'Blackrock Members 1–6 (chorus mix)');assert.deepEqual(e.voiceIds,IDS);assert.match(e.note,/half in sync/);
+  assert.equal(e.voice,'Blackrock Members 1–6 (chorus mix)');assert.deepEqual(e.voiceIds,IDS);assert.match(e.note,/Clear-lead chorus mix/);
   const f=R('void-runner/assets/audio/voice/'+e.file),n=fs.statSync(f).size;assert.ok(n>8000&&n<120000,e.file+' '+n);
   assert.equal(fs.readFileSync(f).subarray(0,4).toString(),'OggS');assert.match(fs.readFileSync(f).subarray(0,200).toString('latin1'),/vorbis/);});
  assert.match(X.lines['robed-all-m010-8'].note,/no time-stretch/);
