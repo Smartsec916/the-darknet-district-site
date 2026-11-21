@@ -6,6 +6,14 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: EXPANDED FREE POSE LIBRARY (local)
+
+- 53 distinct built-in poses plus original-pose reset, organized in five categories on mobile and PC. Recognizable arm and leg chains are posed in model-relative directions; seated poses require both leg chains. These are editable static poses, not AI motion, automatic finger posing or collision-aware IK. Align preview height independently, and capture poses as animation keyframes if desired. No external credits or downloads required.
+
+### 21 Nov 2026: AUTO-RIG FEEDBACK AND POSER DISCOVERY (local)
+
+- Model selection inspects GLB skeleton metadata; rigging reports errors beside its own button, detects an existing skin rather than creating a duplicate, reloads the processed model and immediately shows dots when editable. Poser button is adjacent to the preview. Babylon preview distinguishes no bones from bones without linked nodes and attempts a conservative unique-name link recovery for missing joint nodes. Real Babylon NullEngine regression checks 19 linked auto-rig joints and 18 draggable child handles. The user's actual GLB is not available, so the reason their previous rig failed is still unverified.
+
 ### 21 Nov 2026: AUTOMATIC POLYGON REDUCTION AND PREVIEW POSITIONING
 
 - Auto Downsize targets 15 MiB: textures and compact streams first, then progressively coarser spatial vertex clustering on supported triangle meshes. Complete representative attributes are retained, animation and inverse-bind data are not changed, and unsupported shared/morph/extension meshes are skipped. Geometry simplification is lossy; preview original and processed files separately, compare triangle counts, and keep the original. A generated rigged grid regression reaches its target and checks indices, weights, skin and animation streams. User's particular GLB was not provided for testing, so its target is not guaranteed.
