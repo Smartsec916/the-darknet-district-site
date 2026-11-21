@@ -43602,7 +43602,7 @@
       "spawn"
     ]
   },
-  "revision": "abf4bc6e7e8f422f",
+  "revision": "5694b688fd2a39c6",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -63025,7 +63025,7 @@
     "void-runner/dev-test.js": "f8c399540bf82abf7360e31d82fc8f667991e03a0f247251328edd5370c5a89d",
     "void-runner/dev-tools.js": "5693f3d5ca153e9482c95dbb8332747833ac12dea85d3ec4edd7dc390ed7c2f1",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
-    "void-runner/device-gallery.js": "7b922c6f927a8b2d3330a71717165d179c30c00c9ba63948da5382fd40631100",
+    "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
     "void-runner/device-portraits.js": "ac582ed30699de5c983ef2f3f74b711e3818db33c17a574f4649fbb4aa14e95d",
     "void-runner/device-v1.js": "8b2fcf37201a4f23376da78f9fea489f621615ef54a0d54c5ea16f5121a5899a",
