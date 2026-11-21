@@ -158,7 +158,7 @@
   const place=r.destinationName||U.locations[r.destination]?.name||r.destination,byRook=r.payAt==='rook';
   const pay=r.payment?(byRook?r.payment+' credits, paid by Rook at Meridian after delivery.':r.payment+' credits, paid by the receiver on delivery.'):'';
   const objectives=r.kind==='legacy'?[{id:'arrive',label:'Deliver '+r.cargo+' to '+place}]:[{id:'pickup',label:'Collect the cargo from Rook'},{id:'arrive',label:'Deliver '+r.cargo+' to '+place},...(byRook?[{id:'payment',label:'Collect '+r.payment+' credits from Rook at Meridian',destination:'meridian',interaction:'rook'}]:[])];
-  return {title:r.name+(r.label?' · '+r.label:''),type:r.side?'side':'cargo',description:(r.label?r.label+'. ':'')+r.cargo+' to '+place+(r.units>1?' ('+r.units+' hold spaces)':'')+'. '+(r.legal===false?'Not legal. ':'')+pay,rewards:r.payment||null,destination:r.destination,source:'rook',giver:'Rook',start:'meridian',end:r.destination,prerequisites:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:r.destination},objectives};
+  return {title:r.name+(r.label?' · '+r.label:''),type:r.side?'side':'cargo',description:(r.title?r.title.charAt(0).toUpperCase()+r.title.slice(1)+'. ':'')+(r.label?r.label+'. ':'')+r.cargo+' to '+place+(r.weightKg?' ('+(r.weightKg/1000).toFixed(1)+' t':'')+(r.units>1?(r.weightKg?', ':' (')+r.units+' hold spaces)':r.weightKg?')':'')+'. '+(r.legal===false?'Not legal. ':'')+pay,rewards:r.payment||null,destination:r.destination,source:'rook',giver:'Rook',start:'meridian',end:r.destination,prerequisites:[],availability:{},storyFlags:{},factionFlags:{},completion:{event:'dock',location:r.destination},objectives};
  }
  function all(s,C){
   if(!s?.universe)return [];

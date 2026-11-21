@@ -37,6 +37,13 @@ class StorySaveTests(unittest.TestCase):
         # The V1's device ID (18 Nov 2026: photo metadata) is story.flags.deviceSerial, 8 hex digits; it must survive a cloud save unchanged.
         state=self.state();state['story']['flags']['deviceSerial']='7f3a91c2'
         self.assertEqual(vr.clean_save(state)['story']['flags']['deviceSerial'],'7f3a91c2')
+    def test_rook_procedural_cargo_flags_survive_cloud_validation(self):
+        # Rook's procedural board (rook-cargo-gen.js, 21 Nov 2026): the seed (a safe integer) and an accepted job's terms ('units|credits|kg|cargo|title', at most 200 characters) are story flags
+        state=self.state();f=state['story']['flags'];f.update({'rook-first-delivery-done':True,'rookSeed':1905272313,'rookJob':'routine','rookRunTo':'kepler','rookTerms':'1|670|720|4 sealed crates of general freight|Scheduled run'})
+        clean=vr.clean_save(state)['story']['flags']
+        for k in ['rookSeed','rookJob','rookRunTo','rookTerms']:self.assertEqual(clean[k],f[k])
+        f['rookTerms']='x'*201
+        with self.assertRaises(vr.ApiError):vr.clean_save(state)
     def state(self):
         return {'version':2,'quest':'open','location':'meridian','credits':100,'completed':2,'upgrades':{'guns':0,'armor':0,'engines':0,'shields':0},'cleared':[],'contract':None,'loadout':{},'story':{'flags':{'campaignEpoch':1,'metMara':True,'promise':False},'met':['mara'],'events':['mara_workshop_intro'],'pending':['mara_workshop_intro'],'relationships':{'mara':2},'characters':{'pirate':'dead'},'chapter':'open','unlocked':['rusthaven'],'encounters':['mara_rendezvous']},'savedAt':1750000000000}
     def test_round_trip_preserves_story_without_ownership_claims(self):
