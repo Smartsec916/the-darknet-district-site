@@ -71,7 +71,7 @@
   const seen=ex.some(e=>{try{return Z.sees(e,P,cfg,clear);}catch{return false;}});const r=run[x.key+'|seen']=run[x.key+'|seen']||{t:0};r.t=seen?r.t+dt:Math.max(0,r.t-dt*.5);
   meter.hidden=r.t<=0;meter.firstChild.style.width=Math.min(100,r.t/1.2*100)+'%';
   if(x.o.onSpotted==='alarm')return alarmCheck(x,r,seen,dt);
-  if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}
+  if(r.t>=1.2){r.t=0;meter.hidden=true;say('SPOTTED · Security saw you. You slip back out to the street: try again.');try{root.VoidIrisAmbient?.spotted?.();}catch{}try{root.VoidDevTest?.stepNote?.('SPOTTED by security; you are back outside');}catch{}try{root.VoidModules?.backToStreet?.();}catch{}return true;}return false;}
  // onSpotted:'alarm' (the owner, 21 Nov 2026: Mission 006's way out): a guard shouts, ALARM.grace seconds to get out of sight, then the armed people of the place open fire
  // (zone-integration.js alarm: the Neutral rooms' "after you" rule); the step goes on either way. Taken down: zone-integration.js getUp puts the player back by the way out.
  function alarmCheck(x,r,seen,dt){const k=x.key+'|alarm',R=root.VoidZoneRun;if(run[k]&&run[k].phase==='alarm'&&!(R&&R.alarmed&&R.alarmed()))delete run[k];   // calmed down, or after a retry

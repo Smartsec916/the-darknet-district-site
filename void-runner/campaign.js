@@ -11,6 +11,7 @@
   const Missions=typeof module!=='undefined'?require('./mission-log.js'):root.VoidMissions;
   const Nav=()=>typeof module!=='undefined'?require('./nav-coords.js'):root.VoidNav;   // flight-map coordinates: route-only until Rook sends them (nav-coords.js)
   const RC=typeof module!=='undefined'?require('./rook-cargo-jobs.js'):root.VoidRookCargoJobs;   // Rook's cargo jobs: data the owner can edit (rook-cargo-jobs.js)
+  const RG=typeof module!=='undefined'?require('./rook-cargo-gen.js'):root.VoidRookCargoGen;   // Rook's procedural District board (rook-cargo-gen.js)
   const Ord=()=>typeof module!=='undefined'?require('./ordnance.js'):root.VoidOrdnance;   // missiles M1 / M2, the launcher and the Ship Loadout app that come with a ship
   const WarFlying=typeof module!=='undefined'?require('./warflying.js'):root.VoidWarFlying;const Relay=typeof module!=='undefined'?require('./relay.js'):root.VoidRelay;
   const stations=Story.content.locations;for(const [id,def] of Object.entries(U.locations))stations[id]={...stations[id],...def};
@@ -200,14 +201,14 @@
       return rookJobOffer(n,kind,destination);
     });
   }
-  /* Rook's side-mission board in a District campaign: the kinds in rook-cargo-jobs.js districtBoard, each to a different reachable place (a known place in a known system,
-     never Vesper, a homeworld or Meridian, nor a system Admin's delivery holds). It depends only on the save, so a reload never rerolls it; each finished run moves it on. */
+  /* Rook's side-mission board in a District campaign (procedural since 21 Nov 2026, rook-cargo-gen.js): one job for each kind in rook-cargo-jobs.js districtBoard,
+     each to a different reachable place (a known place in a known system whose warp marker is known, never Vesper, a homeworld or Meridian, nor a system Admin's
+     delivery holds), with generated cargo, hold spaces (never more than the ship holds) and distance-based pay. Seeded by the player's story.flags.rookSeed and the
+     run number, so a reload never rerolls it; each finished run brings a new board. */
+  function districtPool(s){const u=s.universe||U.fresh(),known=u.discoveredLocations||[];return rookPool(s).filter(id=>(u.discoveredSystems||[]).includes(U.system(id))&&(U.system(id)===U.system('meridian')||known.includes(U.systems[U.system(id)].hub)));}
   function districtBoard(s){
-    const n=rookRunNumber(s),u=s.universe||U.fresh(),pool=rookPool(s).filter(id=>(u.discoveredSystems||[]).includes(U.system(id))),used=new Set(),out=[];
-    for(const [i,kind] of [...new Set(RC.districtBoard)].entries()){const j=rookJobs[kind],list=j?(j.far?pool.filter(id=>U.system(id)!=='erebus'):pool):[];if(!list.length)continue;
-      let destination=null;for(let k=0;k<list.length&&!destination;k++){const c=list[(n-1+i+k)%list.length];if(!used.has(c))destination=c;}
-      destination=destination||list[(n-1+i)%list.length];used.add(destination);out.push({...rookJobOffer(n,kind,destination),side:true});}
-    return out;
+    const n=rookRunNumber(s),served=String(s.story?.flags?.rookSystems||'erebus').split(','),capacity=P.systems(s).cargo;
+    return RG.board({seed:RG.seedOf(s),number:n,kinds:[...new Set(RC.districtBoard)],pool:districtPool(s),capacity,served}).map(g=>({...rookJobOffer(n,g.kind,g.destination),cargo:g.cargo,units:g.units,payment:g.payment,title:g.title,weightKg:g.weightKg,procedural:true,side:true}));
   }
   function rookJobOffer(n,kind,destination){
     const j=rookJobs[kind],step=Math.min(n-1,RC.pay.steps);
@@ -218,7 +219,8 @@
   function rookRun(s){
     const n=rookRunNumber(s),f=s.story?.flags||{},to=f.rookRunTo,kind=s.contract==='rook-run'&&Object.hasOwn(rookJobs,f.rookJob)?f.rookJob:null;
     const destination=s.contract==='rook-run'&&typeof to==='string'&&Object.hasOwn(stations,to)?to:rookRunTarget(s);
-    if(kind){const r=rookJobOffer(n,kind,destination);return {...r,reward:r.payAt==='delivery'?r.payment:0};}
+    // A procedural job keeps its generated terms (rookTerms); a job taken before the procedural board keeps the older terms.
+    if(kind){const t=s.contract==='rook-run'?RG.decode(f.rookTerms):null,r={...rookJobOffer(n,kind,destination),...(t?{...t,procedural:true}:{})};if(!t||!t.title)delete r.title;return {...r,reward:r.payAt==='delivery'?r.payment:0};}
     // A run accepted before the cargo board (older saves): its original terms, paid on delivery.
     const step=Math.min(n-1,8);
     return {...rookRunBase,id:'rook-run-'+n,number:n,kind:'legacy',payAt:'delivery',units:1,name:'Rook freight run #'+n,cargo:rookCargo[(n-1)%rookCargo.length],legal:n%2===1,destination,reward:Math.min(2000,500+150*step),payment:Math.min(2000,500+150*step),enemies:4+step,tier:1+step*.3,duration:36+step*2};
@@ -226,7 +228,7 @@
   function acceptRook(s,kind='routine'){
     if(rookShut(s)||s.quest!=='open'||s.contract||rookOwed(s))return false;
     const job=rookBoard(s).find(j=>j.kind===kind);if(!job||holdFree(s)<job.units)return false;
-    s.destination=null;s.contract='rook-run';s.story.flags.rookJob=kind;s.story.flags.rookRunTo=job.destination;
+    s.destination=null;s.contract='rook-run';s.story.flags.rookJob=kind;s.story.flags.rookRunTo=job.destination;if(job.procedural){s.story.flags.rookTerms=RG.encode(job);if(!RG.validSeed(s.story.flags.rookSeed))s.story.flags.rookSeed=RG.seedOf(s);}else delete s.story.flags.rookTerms;
     U.discover(s,job.destination);Missions.acquire(s,job.id);Missions.complete(s,job.id,'pickup',api);Story.emit(s,'missionAccepted','rook-run');return true;
   }
   // Payment waiting with Rook: {number, amount} or null.
@@ -241,7 +243,7 @@
   function cancelRook(s){
     if(rookShut(s))return false;
     if(s.contract!=='rook-run'||s.location!=='meridian')return false;
-    const id=rookRun(s).id;s.contract=null;delete s.story.flags.rookJob;delete s.story.flags.rookRunTo;
+    const id=rookRun(s).id;s.contract=null;delete s.story.flags.rookJob;delete s.story.flags.rookRunTo;delete s.story.flags.rookTerms;
     if(s.universe?.missions)delete s.universe.missions[id];if(s.universe?.trackedMission===id)s.universe.trackedMission=null;return true;
   }
   // Recent finished runs, newest first: 'run.kind.destination.credits.status' joined by ','.
@@ -305,7 +307,7 @@
   // inheritance quest as its mission id, so cloud saves need no new quest state.
   function trainingPending(s){ return s.quest==='inheritance'&&P.groundDone(s)&&s.progression?.flags?.board===true&&s.story?.flags?.flightTrainingComplete!==true; }
   // A new campaign wakes in a District pod with no missions, no pistol and no ship. Saves from before this keep their campaign.
-  function startDistrictCampaign(s){s.story.flags.missionPool='closed';s.story.flags.shipAccess='none';s.story.flags.area='district';s.story.flags.districtDoor=true;s.story.flags.districtBadge=true;s.story.flags.podWakePending=true;s.location='earth';s.progression.checkpoint={location:'earth'};U.discover(s,'earth');s.universe.visitedLocations=[...new Set([...s.universe.visitedLocations,'earth'])];s.universe.currentSystem=U.system('earth');s.universe.discoveredSystems=[...new Set([...s.universe.discoveredSystems,s.universe.currentSystem])];return s;}
+  function startDistrictCampaign(s){s.story.flags.missionPool='closed';s.story.flags.shipAccess='none';s.story.flags.area='district';s.story.flags.districtDoor=true;s.story.flags.districtBadge=true;s.story.flags.podWakePending=true;s.story.flags.rookSeed=RG.freshSeed();s.location='earth';s.progression.checkpoint={location:'earth'};U.discover(s,'earth');s.universe.visitedLocations=[...new Set([...s.universe.visitedLocations,'earth'])];s.universe.currentSystem=U.system('earth');s.universe.discoveredSystems=[...new Set([...s.universe.discoveredSystems,s.universe.currentSystem])];return s;}
   function socialEntry(s){if(!s?.story?.flags)return s;const f=s.story.flags;if(s.location!=='earth')f.previousLocation=s.location;f.missionPool='closed';f.area='district';f.districtDoor=true;f.districtBadge=true;f.podWakePending=true;s.location='earth';return s;}
   function beginJourney(s) { if (Missions.closed(s)||s.quest !== 'inheritance'||!P.groundDone(s)) return false; s.quest = 'arrival'; s.story.chapter='arrival';P.sync(s);Missions.acquire(s,'flight-training');Missions.acquire(s,'meet-rook');Missions.complete(s,'meet-rook','instructions',{missionFlight});Missions.sync(s,{missionFlight}); Story.emit(s,'leaveLocation','vesper'); return true; }
   function stats(s, owned = []) {
@@ -339,6 +341,10 @@
   }
   function flight(s){
     let mission=missionFlight({...s,destination:null});
+    /* A Rook job whose destination is where the player already is (every login wakes them in their pod in NeoChinatown, so a job to NeoChinatown taken before a reload
+       starts there): it is not delivered by flying away. The flight is a transit with the cargo still aboard; the job is delivered on the next real arrival there
+       (or handed back to Rook at Meridian). Before 21 Nov 2026 that flight went to Meridian as the job itself and completed and paid it. */
+    if(mission&&s.contract==='rook-run'&&/^rook-run-/.test(mission.id||'')&&s.location!=='meridian'&&rookRun(s).destination===s.location)mission={name:'Transit / cargo aboard',destination:'meridian',duration:U.route(s.location,'meridian').seconds,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
     // A run whose destination is the other system's hub is flown in one interstellar leg.
     if(mission&&U.system(s.location)!==U.system(mission.destination)&&U.nextHop(s.location,mission.destination)===mission.destination)mission={...mission,duration:Math.max(mission.duration,24)};
     else if(mission&&U.system(s.location)!==U.system(mission.destination))mission={name:'Interstellar connection',destination:U.nextHop(s.location,mission.destination),duration:24,enemies:0,tier:0,reward:0,legal:true,cargo:'Cargo retained in hold',kind:'transit'};
@@ -394,7 +400,7 @@
       if(s.contract==='rook-run'){
         const run=f,flags=s.story.flags,served=new Set(String(flags.rookSystems||'erebus').split(','));served.add(U.system(s.location));
         if(run.payAt==='rook')flags.rookOwed=run.number+':'+run.payment;rookHistory(s,run.number,run.payAt==='rook'?'owed':'paid',run);
-        flags.rookRuns=(Number.isSafeInteger(flags.rookRuns)?flags.rookRuns:0)+1;flags.rookSystems=[...served].join(',');delete flags.rookRunTo;delete flags.rookJob;
+        flags.rookRuns=(Number.isSafeInteger(flags.rookRuns)?flags.rookRuns:0)+1;flags.rookSystems=[...served].join(',');delete flags.rookRunTo;delete flags.rookJob;delete flags.rookTerms;
         // Older finished runs leave the Mission Log (cloud saves hold up to 100 entries); rookLog keeps the recent history.
         for(const [id,entry] of Object.entries(s.universe.missions||{})){const m=/^rook-run-(\d+)$/.exec(id);if(m&&entry.completed&&Number(m[1])<=run.number-6)delete s.universe.missions[id];}s.universe.completedObjectives=s.universe.completedObjectives.filter(id=>!/^rook-run-/.test(id));
       }
@@ -431,7 +437,7 @@
     {const f=out.story.flags,first=factionDeliveries[f.factionFirst];delete f.adminAway;if(first&&stageOf(out,first)==='delivered')f.adminOccupied=true;else delete f.adminOccupied;}out.savedAt=Number.isSafeInteger(raw.savedAt)&&raw.savedAt>0?raw.savedAt:null;
     if(!Object.hasOwn(stations,out.progression.checkpoint.location))out.progression.checkpoint={location:out.location};
     if(stations[out.progression.checkpoint.location]){out.location=out.progression.checkpoint.location;out.universe.station={location:out.location};}
-    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Ord()?.migrate(out);Nav()?.migrate(out);Missions.sync(out,{missionFlight,contracts});return out;
+    out.travel=null;out.destination=null;out.story.cursor=null;out.universe.currentSystem=U.system(out.location);retireMissions(out);Ord()?.migrate(out);Nav()?.migrate(out);if(Missions.closed(out)&&rookOpen(out)&&!RG.validSeed(out.story.flags.rookSeed))out.story.flags.rookSeed=RG.seedOf(out);/* Rook's procedural board: a save with his board open but no seed gets one derived from it, once (rook-cargo-gen.js) */Missions.sync(out,{missionFlight,contracts});return out;
   }
   // The one place a ship is awarded. A future mission calls this; nothing else does.
   /* Missions removed from the game (the owner, 17 Nov 2026): in a District campaign only the main storyline (m<NNN>-..., main-storyline-m<n>) and the owner's trees (draft-...) run.
@@ -510,7 +516,7 @@
       }
     };
   }
-  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, rookOpen, districtBoard, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
+  const api = {retireMissions,storyMission, campaignEpoch: CAMPAIGN_EPOCH, isCurrent, isLegacy, retireLegacy, retiredKeys, startDistrictCampaign, socialEntry, grantShip, awardStarterShip, giveShip, stations, contracts, allContracts, sealedCargo, sealedStage, sealedOffered, acceptSealed, sealedDeliverable, deliverSealed, rookRun, rookRunTarget, rookJobs, rookBoard, rookOpen, districtBoard, districtPool, rookGen: RG, acceptRook, rookOwed, collectRook, cancelRook, rookLog, rookRunInfo, holdFree, factionDeliveries, factionStage, factionOffers, acceptFaction, deliverFaction, collectFactionPayment, heldForAdmin, supplyDeliveries, supplyStage, supplyOffers, acceptSupply, originMissions, originState, acceptOrigin, homeworlds, loadOrigin, deliverOrigin, workState, acceptWork, workStep, workReady, completeWork, factionEquipment, upgrades, fresh, restore, beginJourney, trainingPending, stats, flight, missionFlight, accept, complete, buy, buyGear, unlocked, buyShip, switchShip, ownsEquipment, equip, chooseDestination, enemyHitConsequences, missileFireConsequences, pistolConsequences, pistolHandlingConsequences };
   if (typeof module !== 'undefined') module.exports = api;
   else root.VoidCampaign = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
