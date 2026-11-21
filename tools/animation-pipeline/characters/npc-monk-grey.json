@@ -39,6 +39,9 @@
   "walk-game",
   "look",
   "watch",
-  "sit"
+  "sit",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ]
 }

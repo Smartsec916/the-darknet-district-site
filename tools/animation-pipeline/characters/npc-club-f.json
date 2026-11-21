@@ -54,6 +54,9 @@
   "vb-dance",
   "vb-pickup",
   "vb-menu",
-  "vb-menu-tap"
+  "vb-menu-tap",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ]
 }

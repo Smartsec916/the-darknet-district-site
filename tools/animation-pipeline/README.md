@@ -66,3 +66,14 @@ node tools/assets/optimize-textures.cjs OUT-full.glb void-runner/assets/models/c
 The walk comes from the Quaternius Universal Animation Library (Standard, CC0; free download from quaternius.itch.io). Pass its `Unreal-Godot` folder as `--ual DIR`; `clips.json` names the action (`Walk_Loop`) and the T-pose clip used as the reference pose (`A_TPose`), and marks it an exact loop (no end blend).
 
 Keep a spec's `clips` and its entry in `crowd.js` in step (`tests/crowd.test.cjs` checks). Named characters never use crowd looks.
+
+## Floor poses posed by code (21 Nov 2026)
+
+The owner asked for kneeling, cross-legged and knees-to-chest poses. No mocap the pipeline references has them, so `make_floor_poses.py` poses them on each figure's own skeleton (pure Python, no Blender, no outside service): hips height, knees, ankles and hands are placed from that figure's measured bone lengths, every limb is aimed bone by bone (two-bone reach, knees and elbows bending in their own plane, the forearm sharing the wrist's turn), and a small breathing / sway / head motion loops exactly. Each clip is about 16 KB.
+
+```text
+python3 tools/animation-pipeline/make_floor_poses.py void-runner/assets/models/crowd/<figure>.glb      # adds or replaces floor-kneel, floor-cross, floor-knees
+python3 tools/animation-pipeline/make_floor_poses.py --check <figure>.glb                             # prints the measured heights only
+```
+
+All public figures on the mixamorig skeleton carry them (both the 52-joint MakeHuman and the 24-joint Meshy families), except the VR companions' figures (Kai, Zane, the companion files), the Blackrock robe (its own ritual `kneel`) and the licensed files kept outside this repository. `clips.json` lists them with `"source": "pose"`; the Blender builders skip such clips, so run the script again after rebuilding a figure. The game puts the figure's origin on the seat's top (`crowd.js FLOOR`, `ncz-street-pair.js POSE_CLIP / FLOOR_BACK`).

@@ -41,7 +41,10 @@
   "vr-aim-down",
   "vr-shoot",
   "vr-hit",
-  "vr-duck"
+  "vr-duck",
+  "floor-kneel",
+  "floor-cross",
+  "floor-knees"
  ],
  "accessories": [
   {
