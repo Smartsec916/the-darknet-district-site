@@ -6,6 +6,10 @@
 
 ## CURRENT DEVELOPMENT STATE — RESUME HERE
 
+### 21 Nov 2026: COMPANION STUDIO V21 — APARTMENT REGISTRY (local, not deployed)
+
+- The Residence tab lists mission-reserved buildings, including inactive missions and street hack objectives, and exact companion apartment assignments. Mission hallway slots can change with active instances, so the entire building is flagged conservatively. Saving into a reserved building requires an explicit override. Phone reads shipped and published missions plus local companion drafts; PC also reads local mission editor drafts. Unknown/unverified data is labelled. V20 was pushed as 73fddb1cba9992e4158cb5a091c690da4bef12d1 and its public editor V20 verified; matching backend deployment dep-dc0t5aqvcj2c73bmg4i0 was in progress. V21 requires a separate push.
+
 ### 21 Nov 2026: COMPANION STUDIO V20 — RESIDENCE ACCESS (local, not deployed)
 
 - Residence has separate street entrance and apartment door controls: public, locked, mission acquired/completed, existing inventory item, exact personal device model, or hackable with the existing hacking device. Shared building access is synchronized during PC transfer/update; conflicting imported rules fail closed. Apartment rules are independent across the hallway. Existing active mission apartment access keeps priority. Hacking records a per-address save flag; both automatic walking entry and explicit interaction check authorization. Resident access is configured through made-world-NPC residence drafts, not a global vacant-address editor. Existing housing numbers and built-in NPC assignments are unchanged. The guide includes access instructions. 38 focused regression tests and isolated server validator checks passed; real PC playtesting pending. No deployment.
