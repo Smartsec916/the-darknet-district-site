@@ -23,7 +23,7 @@ test('only Reverie, Lace, the street cat and the tea room host can be moved; the
   for(const want of P.MOVABLE[id].builtin?['wait','idle','look','watch','work','walk-on']:['wait','idle','look','scroll','selfie','sit','dance-groove','walk-on'])assert.ok(P.actionsFor(id).some(a=>a.id===want),id+' '+want);}
  assert.deepEqual(P.actionsFor('admin'),[]);
  // banned words are never offered as actions or library animations, even if somebody adds them to the list
- for(const o of P.libraryOffer('grey-reverie'))if(S.BANNED.test(o.id)||S.BANNED.test(o.title))assert.equal(o.ok,false,o.id);
+ for(const o of P.libraryOffer('grey-reverie'))if((S.BANNED.test(o.id)||S.BANNED.test(o.title))&&!P.pairGameplay('grey-reverie',o.id))assert.equal(o.ok,false,o.id);
  assert.ok(P.libraryOffer('grey-reverie').every(o=>!o.ok||(!o.id.includes('sensual')&&!/kiss|hip/i.test(o.title))));
  assert.match(P.planProblems('grey-reverie',{mode:'stay',x:100,z:-6.5,yaw:0,actions:['dance-belly']}).join(),/not something she can do/);
  assert.match(P.planProblems('grey-reverie',{mode:'path',points:[{x:100,z:-6.5,action:'slow-dance',seconds:4},{x:110,z:-6.5,action:'idle',seconds:4}]}).join(),/not something she can do/);
@@ -132,16 +132,18 @@ test('the editor files load in order and the NPCs tab is a Developer Tools secti
  // the NPCs tab never writes voices
  const ne=fs.readFileSync(R('void-runner/npc-editor.js'),'utf8');assert.doesNotMatch(ne,/npc-voice-registry\.json['"]\s*,\s*\{\s*method/);assert.doesNotMatch(ne,/voice\s*=\s*['"]/);});
 
-test('every animation in the game is indexed from the real files; Reverie and Lace get only casual clips that her rig takes (no smoking, drinking, adult or club sources)',()=>{fresh();const P=X(),I=require(R('void-runner/npc-clip-index.json')),idx=require(R('tools/npc-clip-index.cjs'));
+test('every animation in the game is indexed from the real files; Reverie and Lace get compatible ordinary gameplay clips, with exact exceptions for verified shared motions',()=>{fresh();const P=X(),I=require(R('void-runner/npc-clip-index.json')),idx=require(R('tools/npc-clip-index.cjs'));
  assert.equal(JSON.stringify(idx.build())+'\n',fs.readFileSync(R('void-runner/npc-clip-index.json'),'utf8'),'npc-clip-index.json is current (node tools/npc-clip-index.cjs)');
  assert.equal(I.files['npc-grey-reverie'].joints,24);assert.ok(Object.keys(I.files).length>50);
  {const ok=P.libraryOffer('tea-host').filter(x=>x.ok);for(const x of ok)assert.equal(P.animAllowed('tea-host',x.id),'');}   // the tea room host's model (the old street cook) rests differently from most rigs: fewer shared clips
  for(const id of Object.keys(P.MOVABLE).filter(k=>!P.MOVABLE[k].cat&&!P.MOVABLE[k].builtin)){const o=P.libraryOffer(id),ok=o.filter(x=>x.ok);assert.ok(ok.length>20,id+' has shared clips');
-  for(const x of ok){assert.doesNotMatch(x.id+' '+x.title,SP().BANNED);assert.doesNotMatch(x.id,/smoke|drink|drunk|vr-|shoot/);assert.doesNotMatch(x.source,P.ADULT);assert.equal(P.animAllowed(id,x.id),'');}
-  assert.notEqual(P.animAllowed(id,'npc-kai/idle'),'','an adult-only source');assert.notEqual(P.animAllowed(id,'npc-rin/smoke'),'');assert.notEqual(P.animAllowed(id,'npc-rin/walk'),'','her own walk is used');}
+  for(const x of ok){if(!P.pairGameplay(id,x.id)){assert.doesNotMatch(x.id+' '+x.title,SP().BANNED);assert.doesNotMatch(x.id,/smoke|drink|drunk|vr-|shoot/);assert.doesNotMatch(x.source,P.ADULT);}assert.equal(P.animAllowed(id,x.id),'');}
+  assert.equal(P.animAllowed(id,'npc-kai/idle')==='',P.pairGameplay(id,'npc-kai/idle'));assert.notEqual(P.animAllowed(id,'npc-rin/smoke'),'');assert.notEqual(P.animAllowed(id,'npc-rin/walk'),'','her own walk is used');}
  // a different rig or rest pose is refused with the reason (offline retarget)
  const lace=P.libraryOffer('grey-reverie').find(x=>x.source==='npc-ethereal-lace'&&x.clip==='idle');assert.equal(lace.ok,false);assert.match(lace.why,/Request an animation/);
  const old=P.libraryOffer('grey-reverie').find(x=>x.source==='hacker-01');assert.match(old.why,/different skeleton/);
  assert.deepEqual(P.planProblems('grey-reverie',{mode:'stay',x:100,z:-6.5,yaw:0,actions:['npc-rin/laugh'],anims:['npc-rin/laugh']}),[]);
  assert.match(P.planProblems('grey-reverie',{mode:'stay',x:100,z:-6.5,yaw:0,actions:['npc-rin/laugh']}).join(),/not something/,'only once added');
- const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths.movable['grey-reverie'];assert.ok(inv.anims.includes('npc-rin/laugh'));assert.ok(!inv.anims.some(a=>/smoke|kai\//.test(a)));});
+ const inv=JSON.parse(fs.readFileSync(R('void_runner_admin_inventory.json'),'utf8')).npcPaths.movable['grey-reverie'];assert.ok(inv.anims.includes('npc-rin/laugh'));assert.ok(!inv.anims.some(a=>/smoke|blow-kiss/.test(a)));});
+
+ test('verified shared gameplay motions appear directly in mission gestures and photo is a native action',()=>{fresh();const P=X(),G=require(R('void-runner/npc-gestures.js')),S=SP();for(const id of ['grey-reverie','ethereal-lace']){assert.ok(P.actionsFor(id).some(a=>a.id==='photo'));assert.ok(P.PAIR_GAMEPLAY[id].every(c=>G.clipsFor(id).clips.some(x=>x.id===c)));assert.ok(P.animAllowed(id,'npc-kai/blow-kiss'));}assert.equal(P.animAllowed('grey-reverie','npc-security/vr-shoot'),'');assert.notEqual(P.animAllowed('ethereal-lace','npc-security/vr-shoot'),'');assert.equal(S.ACT.photo.device,'photo');});

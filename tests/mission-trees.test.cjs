@@ -114,7 +114,7 @@ test('All lines for an NPC: every one of Admin’s voiced lines is found (in mis
  assert(admin.inMissions.every(l=>['talk','records'].includes(l.adapter)),'every Admin mission line can be overridden live');
  const speakers=new Set(out.npcs.map(n=>n.id));for(const l of Object.values(src.manifest.lines))if(!/relay-content/.test(l.source))assert(speakers.has(l.speaker),l.speaker);
  assert(!out.npcs.some(n=>['news-anchor','commercial-announcer'].includes(n.id)),'Relay broadcasts are not listed');
- assert(out.npcs.find(n=>n.id==='milked-fish').outside.length===5,'Fish: three greetings and her two recorded Mission 003 lines (Mandarin, and its English translation in her own voice)');
+ assert(out.npcs.find(n=>n.id==='milked-fish').outside.length===25,'Fish: three greetings, her two recorded Mission 003 lines (Mandarin, and its English translation in her own voice) and her twenty Mission 004 call recordings (ten Mandarin, ten English; 21 Nov 2026)');
  const idx=T.lineIndex(out),locked=admin.inMissions.find(l=>l.locked),free=admin.inMissions.find(l=>!l.locked&&l.adapter==='talk');
  assert.equal(T.validateLines({[locked.ref]:{to:'Mine now.'}},idx).filter(i=>i.level==='error').length,1,'a locked line needs an unlock');
  const ok=T.validateLines({[locked.ref]:{to:'Mine now.',unlocked:true},[free.ref]:{to:'Also mine.'}},idx);assert.equal(ok.filter(i=>i.level==='error').length,0);assert(ok.some(i=>/voice clip out of date/.test(i.text)));
