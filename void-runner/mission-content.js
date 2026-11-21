@@ -389,7 +389,8 @@
    if(o.kind==='photo'){const sub=g(o.npc);x.target=o.npc;if(sub&&sub.place)x.place=sub.place;x.destination='earth';}
    if(MM&&['observe','overhear','tail'].includes(o.kind)){const c=(m.cast||[]).find(y=>y&&y.id===o.npc);if(c&&c.place){x.place=c.place;x.destination='earth';x.target=o.npc;}}   // the arrow to the place where they stand
    if(MM&&o.kind==='report'&&o.place){x.place=o.place;x.destination='earth';}
-   if(MM&&['sneak','apt-leave','collect'].includes(o.kind)&&o.apt){x.destination='earth';x.apt={m:m.id,a:o.apt,kind:o.kind==='sneak'?'apt-enter':o.kind==='collect'?'apt-use':'apt-enter'};for(const k of ['object','mod'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}
+   if(MM&&o.kind==='report'&&!o.place){delete x.interaction;delete x.made;delete x.destination;}   // a report from anywhere (V1 Mission Log): no arrow to the person (Awakening QA 20 Nov 2026: it led to Fish at Milked, to Admin in the District)
+   if(MM&&['sneak','apt-leave','collect'].includes(o.kind)&&o.apt){x.destination='earth';x.apt={m:m.id,a:o.apt,kind:o.kind==='sneak'?'apt-enter':o.kind==='collect'?'apt-use':'apt-leave'};for(const k of ['object','mod'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}
    if(APT_KINDS.includes(o.kind)){x.destination='earth';x.apt={m:m.id,a:o.apt||null,kind:o.kind};for(const k of ['object','mod','ap'])if(typeof o[k]==='string'&&o[k])x.apt[k]=o[k];}   // the arrow to an apartment / location step (mission-guide.js aptGoal)
    return x;});
   if(m.ending&&m.ending.npc){const who=g(m.ending.npc),x={id:'turn-in',label:m.ending.label||('Hand in to '+name(m.ending.npc))};if(who&&who.layout)x.interaction=who.layout;else if(who&&who.made)x.made=m.ending.npc;if(at(who))x.destination=at(who);objectives.push(x);}

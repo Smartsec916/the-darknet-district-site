@@ -28,6 +28,8 @@
   if(!wl.apartment&&door&&!(ap&&ap.door)){const fe=root.VoidBackAlleys?.live?.();if(fe&&fe.phase==='perch'&&fe.door===door){const w=here(i=>i.action==='fe-window'&&i.door===door);if(w)return w;}}
   if(!wl.apartment){if(!door)return null;return ap&&ap.door?here(i=>i.id==='aptap-'+door)||front(door):here(i=>i.id==='aptdoor-'+door)||front(door);}
   const mine=!!(wl.apt&&wl.apt.mission===x.m&&wl.apt.id===aid);
+  // a 'leave the place' step (Awakening QA 20 Nov 2026: in the hallway the arrow led back to the apartment's door; inside, no arrow): the way out
+  if(x.kind==='apt-leave'){const w=wayOut();if(w)return w;}
   // the way out of a location: its exit, a door that leads elsewhere, or (on a floor with neither: underground, upstairs; night QA 20 Nov 2026, there was no arrow at all)
   // the stairs / elevator to the floor its street door is on
   if(wl.modular){const up=()=>{let f=0;try{const cm=((LC()?.env?.trees)||[]).flatMap(t=>t.missions||[]).find(m=>m.id===wl.apt?.mission),cr=cm&&(cm.apartments||[]).find(a=>a&&a.id===wl.apt?.id),ca=cr&&M&&M.analyse?M.analyse(cr):null,em=cr&&String(cr.entry||'').split('.')[0];if(ca&&ca.byId[em]&&ca.byId[em].p)f=ca.byId[em].p.floor||0;}catch{}
@@ -95,11 +97,16 @@
    if(v.app!=='messages')return v.app?{id:'messages',text:'Go back (<b>Esc</b>) and open <b>Messages</b>'}:{id:'messages',text:'Open <b>Messages</b>'};
    if(v.thread!==st.npc)return {id:'thread',text:'Select <b>'+who+'</b>’s conversation (INBOX)'};
    if(v.attach&&v.attach.picking)return {id:'attach',text:'Choose the photo of the target'};if(!(v.attach&&v.attach.photo))return {id:'attach',text:'Press <b>ATTACH</b>'};return {id:'send',text:'Press <b>SEND</b>'};}
+  // the Mission Log's buttons (REPORT TO …, OPEN REMOTE FEED) and a V1 app to open (the Kestrel tutorial's Ship Loadout); Awakening QA 20 Nov 2026: the steps named the
+  // button but not the key. A hand-over in person (a report with a place) is led by the arrow first: no hint. While the feed is on screen: nothing.
+  const app=st.kind==='v1-app'?st.app:(st.kind==='report'&&!st.place)||st.kind==='feed'?'missions':null;
+  if(app&&!v.feed){const t=({missions:'Mission Log',loadout:'Ship Loadout',map:'Map'})[app]||String(app).toUpperCase();if(!v.deviceOpen)return {id:'open',text:'Press <b>'+v.key+'</b> to open your V1, then <b>'+t+'</b>'};if(v.app!==app)return v.app?{id:'app',text:'Go back (<b>Esc</b>) and open <b>'+t+'</b>'}:{id:'app',text:'Open <b>'+t+'</b>'};
+   if(st.kind==='report')return {id:'report',text:'Press <b>REPORT TO '+String(v.name(st.npc)).toUpperCase()+'</b> on this mission'};if(st.kind==='feed')return {id:'feed',text:'Press <b>OPEN REMOTE FEED</b> on this mission'};}
   return null;}
  let shown='';
  setInterval(()=>{try{
   const s=typeof state!=='undefined'&&state?state:null,off=s?.story?.flags?.helpOff===true,D=root.VoidPersonalDevice,on=typeof mode!=='undefined'&&(mode==='walking'||D?.isOpen);
-  const cur=!off&&on?LC()?.step?.():null,h=cur?hintFor({step:cur.step,deviceOpen:!!D?.isOpen,app:D?.app||null,thread:D?.thread||null,attach:D?.attach||{},camera:!!root.VoidDeviceCamera?.active,key:key(),name}):null;
+  const cur=!off&&on?LC()?.step?.():null,h=cur?hintFor({step:cur.step,deviceOpen:!!D?.isOpen,app:D?.app||null,thread:D?.thread||null,attach:D?.attach||{},camera:!!root.VoidDeviceCamera?.active,feed:!!root.VoidCameraFeed?.active,key:key(),name}):null;
   const html=h?h.text:'';if(html!==shown){shown=html;hint.innerHTML=html;hint.dataset.hint=h?h.id:'';}hint.hidden=!h;}catch{hint.hidden=true;}},300);
  root.VoidMissionGuide={missionPlaceRoute,aptGoal,madePerson,hintFor,subjectPoint,get hint(){return hint.hidden?null:{id:hint.dataset.hint,text:hint.textContent};},markerShown:0};
 })(globalThis);

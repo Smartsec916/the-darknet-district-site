@@ -52,11 +52,11 @@
  // ---------------------------------------------------------------- overheard subtitles
  const css=document.createElement('style');css.textContent='#mx-sub{position:fixed;left:50%;bottom:21vh;transform:translateX(-50%);z-index:54;max-width:min(760px,86vw);padding:8px 14px;background:rgba(4,8,10,.72);border-left:3px solid #7fd8ff;font:14px/1.45 ui-monospace,Consolas,monospace;color:#e6f2f7;pointer-events:none}#mx-sub[hidden]{display:none}#mx-sub small{display:block;color:#7fd8ff;letter-spacing:.14em;font-size:11px}'
   +'#mx-meter{position:fixed;left:50%;top:16vh;transform:translateX(-50%);z-index:54;width:160px;height:6px;background:rgba(0,0,0,.5);border:1px solid #ff9a2e;pointer-events:none}#mx-meter[hidden]{display:none}#mx-meter i{display:block;height:100%;width:0;background:#ff9a2e}'
-  +'.pd-card .mx-ev{margin:6px 0 2px;font-size:12px}.pd-card .mx-ev b{display:block;letter-spacing:.12em;font-size:11px;opacity:.8}.pd-card .mx-ev button{margin:2px 6px 2px 0}.pd-card .mx-act{margin:6px 6px 0 0}';document.head.append(css);
+  +'.pd-card .mx-ev{margin:6px 0 2px;font-size:12px}.pd-card .mx-ev b{display:block;letter-spacing:.12em;font-size:11px;opacity:.8}.pd-card .mx-ev button{margin:2px 6px 2px 0}.pd-card .mx-act{margin:6px 6px 0 0;border-color:var(--mission-yellow,#ffd678)!important;color:var(--mission-yellow-text,#ffe7a8)!important}';document.head.append(css);
  const sub=document.createElement('div');sub.id='mx-sub';sub.hidden=true;sub.setAttribute('role','status');sub.setAttribute('aria-live','polite');document.body.append(sub);
  const meter=document.createElement('div');meter.id='mx-meter';meter.hidden=true;meter.innerHTML='<i></i>';meter.setAttribute('aria-label','Being noticed');document.body.append(meter);
  const giverName=id=>{try{return LC().giverName(id)||id;}catch{return id;}};
- function showSub(who,text){sub.hidden=false;sub.innerHTML='<small>OVERHEARD</small>';const b=document.createElement('span');b.textContent=giverName(who)+': '+text;sub.append(b);}
+ function showSub(who,text,note){sub.hidden=false;sub.innerHTML='<small>OVERHEARD</small>';const b=document.createElement('span');b.textContent=note?text:giverName(who)+': '+text;if(note)b.style.opacity='.75';sub.append(b);}
  // ---------------------------------------------------------------- the running steps
  const run={};let lastT=performance.now();
  function seenCheck(x,dt){const L=wl(),p=me(),Z=root.VoidZones,R=root.VoidZoneRun;if(!L||!L.apt||L.apt.mission!==x.mission||!p||!Z||!R)return false;
@@ -75,6 +75,8 @@
     if(k==='observe'){const r=MM.observeStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),hold:MM.hold(o)});run[x.key]=r.st;if(r.noticed&&!run[x.key+'|n']){run[x.key+'|n']=1;say('Too close: they notice you. Back off a little.');}if(!r.noticed)delete run[x.key+'|n'];if(r.done){delete run[x.key];fire({type:'observe',step:x.key});return;}}
     else if(k==='overhear'){const lines=(o.say||[]).filter(l=>l&&l.text);const r=MM.overhearStep(run[x.key],{d,dt,near:MM.near(o),close:MM.close(o),lines:lines.length,secs:i=>MM.lineSecs(lines[i]&&lines[i].text)});run[x.key]=r.st;
      if(r.noticed)say('THEY NOTICED YOU · They stop talking. Back off and wait for them to start again.');if(r.show>=0&&lines[r.show]){showSub(lines[r.show].who,lines[r.show].text);subShown=true;}
+     // walked away part-way (Awakening QA 20 Nov 2026: the subtitle just vanished): say why it paused, until they are in range again
+     else if(!r.noticed&&!(r.st.noticed>0)&&(r.st.line>0||r.st.at>0)&&!(d<=MM.near(o))){showSub('','Too far away to hear them. Move closer (not right beside them).',true);subShown=true;}
      if(r.done){delete run[x.key];sub.hidden=true;fire({type:'overhear',step:x.key});return;}}
     else{const cx=cast.get(x.mission+'/'+o.npc);if(cx&&Array.isArray(cx.c.route)){const r=MM.tailStep(cx.tail,{d,dt,near:MM.near(o),close:MM.close(o),route:cx.c.route,speed:cx.c.speed||MM.DEF.tail.speed});cx.tail=r.st;
       if(r.pos){cx.pos={x:r.pos.x,z:r.pos.z};cx.node.position.x=r.pos.x;cx.node.position.z=r.pos.z;if(Number.isFinite(r.pos.yaw))cx.node.rotation.y=r.pos.yaw;}
@@ -87,7 +89,9 @@
  // ---------------------------------------------------------------- the document window (COPY TO V1) and reading evidence
  function lines(d){return [{who:'V1',text:d.title}].concat(String(d.text||'').split('\n').filter(t=>t.trim()).map(t=>({who:'V1',text:t})));}
  function openDoc(x){const d=MM.evidenceDefs(LC().env.trees)[x.o.evidence];if(!d||typeof root.talkChoice!=='function')return false;
-  return root.talkChoice(lines(d),[{label:'COPY TO V1',run:()=>{fire({type:'collect',step:x.key});try{resumeWalking();}catch{}}},{label:'CLOSE',run:()=>{try{resumeWalking();}catch{}}}],'',{});}
+  return root.talkChoice(lines(d),[{label:'COPY TO V1',run:()=>{fire({type:'collect',step:x.key});try{resumeWalking();}catch{}
+    // the next step copies another document from the same thing (Mission 006: the letters, then the induction file; Awakening QA 20 Nov 2026: the player had to press E at it again, unprompted)
+    setTimeout(()=>{try{const y=nowList().find(z=>z.kind==='collect'&&z.mission===x.mission&&!z.delayed&&z.o.object&&z.o.object===x.o.object&&z.o.apt===x.o.apt);if(y&&md()==='walking')openDoc(y);}catch{}},500);}},{label:'CLOSE',run:()=>{try{resumeWalking();}catch{}}}],'',{});}
  function read(id){const d=MM.evidenceDefs(LC().env.trees)[id];if(!d||typeof root.talkChoice!=='function')return;try{root.VoidPersonalDevice?.close?.();}catch{}root.talkChoice(lines(d),[{label:'CLOSE',run:()=>{try{resumeWalking();}catch{}}}],'',{});}
  // a use of something: the evidence the step in progress copies there (the window opens a moment after the use itself is reported)
  {const wrapUse=()=>{const L=LC();if(!L||L.__mx)return !!L;const orig=L.aptUse;L.aptUse=function(arg){const r=orig.apply(this,arguments);setTimeout(()=>{try{const x=nowList().find(y=>y.kind==='collect'&&y.mission===arg.mission&&(!y.o.apt||y.o.apt===arg.apt)&&(!y.o.object||y.o.object===arg.object)&&(!y.o.mod||!arg.mod||y.o.mod===arg.mod));if(x)openDoc(x);}catch{}},700);return r;};L.__mx=true;return true;};

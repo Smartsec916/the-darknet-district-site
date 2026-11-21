@@ -122,7 +122,7 @@
  function run(job,pos){hacking={job,pos,t:0};hud.hidden=false;const pre=hud.querySelector('pre'),bar=hud.querySelector('i'),lines=[];let last=0;
   const id=setInterval(()=>{if(!hacking){clearInterval(id);return;}const now=performance.now();if(!last)last=now;const dt=Math.min(.25,(now-last)/1000);last=now;if(typeof mode!=='undefined'&&mode==='pause')return;hacking.t+=dt;
    lines.push(Array.from({length:6},()=>Math.floor(Math.random()*65536).toString(16).padStart(4,'0')).join(' ')+(Math.random()<.2?'  >> handshake':''));if(lines.length>5)lines.shift();pre.textContent=lines.join('\n');bar.style.width=Math.min(100,hacking.t/job.hold*100)+'%';
-   if(job.stay&&typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-pos[0],walker.z-pos[2])>1.8){end(false,'Connection lost: you walked away from the access point.');return;}
+   if(job.stay&&typeof walker!=='undefined'&&walker&&Math.hypot(walker.x-pos[0],walker.z-pos[2])>1.8){end(false,'Connection lost: you walked away from the access point. Go back and press E at it to try again.');return;}
    if(hacking.t>=job.hold)end(true);},80);}
  function end(ok,why){const job=hacking&&hacking.job;hacking=null;hud.hidden=true;if(!job)return;if(!ok){try{announce(why||'Hack cancelled.');}catch{}return;}
   let r=null;try{r=LC()?.hack?.(job);}catch{}
