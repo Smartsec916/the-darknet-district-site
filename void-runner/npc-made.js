@@ -34,6 +34,12 @@
  const COMP=()=>node?req('./vr-companions.js'):root.VoidVRCompanions;
  const ITEMS_REG=()=>node?req('./items.js'):root.VoidItems;   // a future item registry (the hacking device is being added on another branch): read if it exists
  const ACTION='made-npc';
+ const SEAT_BACK_STREET=.1;   // seated, a street figure's hips sit ~0.08 m behind its feet (measured in the game, 20 Nov 2026): the origin stays this far in front of a seat's middle
+ /* CHARACTERS OF THE GAME DRAWN BY THIS RUNTIME (built in, not made in the editor; never in content.characters): the tea room host (the owner, 20 Nov 2026), an adult East
+    Asian man behind the underground tea room's tea station, in a dark work jacket. Model: the old street cook (npc-cook-old, a Meshy street figure of the game, not a
+    licensed model), its jacket darkened by a look (npc-looks.js colour, skin kept). His post and actions: npc-paths.js MOVABLE['tea-host'].home; the roster entry and
+    TALK prompt: mission-givers.js FACTS (action ACTION). Placeholder name; no lines. */
+ const BUILTIN={'tea-host':{name:'Tea Room Host',model:'npc-cook-old',look:{colour:{'*':{tint:'#30343a',sat:.55,bright:.62}}}}};
  const YOUNG=['npc-grey-reverie','npc-ethereal-lace','npc-street-cat'];   // models that read youthful: never marked adult (npc-paths.js YOUNG_MODELS)
  const adultAllowed=asset=>!YOUNG.includes(asset);
  const ID=/^[a-z][a-z0-9-]{1,39}$/,TAGS=/<[^>]*>|[\u0000-\u001f]/;
@@ -122,15 +128,15 @@
    return {movable:mv?{actions:mv.actions,anims:mv.anims,pathOnly:mv.pathOnly}:null,gestures:NG?((NG.inventory([K])[K]||{clips:[]}).clips):[],escort:E?((E.inventory().npcs||{})[K]||null):null};};
   for(const m of models()){const a=one(m,false);out.models[m.asset]={licensed:m.licensed,walk:m.walk,adultOk:adultAllowed(m.asset),...a,...(adultAllowed(m.asset)?{adult:one(m,true)}:{})};}
   X.setMade(before);return out;}
- const api={YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
+ const api={BUILTIN,YOUNG,adultAllowed,ACTION,ID,LIMIT,KEYS,DEVICES,SHOW,SHOW_TEXT,GROUPS,slug,idFor,models,modelOf,fileOf,items,ships,clean,basePlan,areaOf,usesPath,problems,giverFacts,exists,inventory};
  if(node){module.exports=api;return;}
 
  // ================================================================= browser: the figures in the game
  const env=()=>(root.VoidLiveContent&&root.VoidLiveContent.env)||null;
- const chars=()=>(env()&&env().characters)||{};
+ const chars=()=>{const own=(env()&&env().characters)||{},out={...BUILTIN};for(const [id,c] of Object.entries(own))if(!BUILTIN[id])out[id]=c;return out;};   // the built-in ones first (an editor character never takes their id)
  const plansAll=()=>{try{return (root.VoidLiveContent&&root.VoidLiveContent.plans&&root.VoidLiveContent.plans())||{};}catch{return {};}};
  /* What she does now: the plan live-content.js works out (a mission's "waits at", a follow / lead step, her daily schedule), else her all-day spot or route. */
- function planOf(id){const P=plansAll()[id];if(P)return P;const b=basePlan(((env()&&env().npcPlans)||{})[id]);return b?NPX().planNow(id,{plan:b}):null;}
+ function planOf(id){const P=plansAll()[id];if(P)return P;const b=basePlan(((env()&&env().npcPlans)||{})[id]);return NPX().planNow(id,{plan:b||null});}   // no plan: a built-in character's post (npc-paths.js homePlan), else nothing
  const areaOfPlan=P=>P?(P.area||(AR()&&AR().areaOf(P.mode==='path'?P.points[0]:P))||null):null;
  function present(id){const c=chars()[id];if(!c)return false;try{return exists(c,typeof state!=='undefined'?state:null,env()&&env().trees);}catch{return true;}}
  // ---- props: a holstered pistol and a hand-held device, built from boxes (one merged mesh, one shared material each per scene), on the figure's own bones
@@ -163,7 +169,7 @@
    for(const m of n.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
    // a follow / lead step: where it had got to (a reload), else where she stood when it started (P.from, live-content.js; fix 19 Nov 2026: she appeared at 0, 0)
    const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null)||{x:0,z:0};
-   const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null};
+   const s={who:id,mode:'plan-go',x:t.x,z:t.z,dir:1,left:0,step:null,yaw:Number.isFinite(P&&P.yaw)?P.yaw:0,clip:'idle',once:false,device:null,face:null,sub:null,seatBack:SEAT_BACK_STREET};
    const p={id,c,node:n,s,anim:null,clip:null,y:yAt(t.x,t.z),props:[],esc:null,key:P?P.key:null};people.set(id,p);n.position.set(s.x,p.y,s.z);n.rotation.y=s.yaw;
    p.anim=root.VoidCrowd?.animate?.(n,c.model,'idle')||null;p.clip='idle';for(const g of n.metadata?.animationGroups||[])g.blendingSpeed=cfg.blend;
    try{NPL()?.applyLook?.(n,c.model,c.look?{id:'made-'+id,name:c.name,...c.look}:null,{scene});}catch{}   // her own look (or the model as made), never the model's crowd look
@@ -200,7 +206,7 @@
     if(p.s.mode==='esc')p.s.mode='plan-go';const plan=P&&(P.mode==='stay'||P.mode==='path')?P:{key:'here',mode:'stay',x:p.s.x,z:p.s.z,yaw:p.s.yaw,actions:['idle']};
     SP.routineStep(p.s,dt,rnd,cfg,{plan,player:w?{x:w.x,z:w.z}:null,cat:null});if(p.s.mode==='walk'||p.s.mode==='run')p.s.mode='plan-go';clip=p.s.clip||'idle';}
    if(!Number.isFinite(p.s.x+p.s.z+p.s.yaw)){const t=P&&(P.mode==='stay'?P:P.points?P.points[0]:null)||{x:n.position.x,z:n.position.z};p.s.x=t.x;p.s.z=t.z;p.s.yaw=0;}
-   p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);n.position.set(p.s.x,p.y,p.s.z);n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
+   p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);{const o=SP.seatOffset?SP.seatOffset(p.s,p.s.zo||0):{x:0,z:0};n.position.set(p.s.x+o.x,p.y,p.s.z+o.z);}/* seated: the routine's eased offset (ledges and the tunnels' seats) */n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
    if(p.anim&&clip!==p.clip){p.clip=clip;p.anim.play(clip);}
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
