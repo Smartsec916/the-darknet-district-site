@@ -139,11 +139,15 @@
   const errors=MD.problems(ch,{npcs:content.npcs||{},missions:ms,reserved:base?new Set(base.keys()):ctx.reserved||null,givesOffer:offer,lookInventory:ctx.lookInventory&&ctx.lookInventory.assets});
   const facts=MD.giverFacts(ch&&typeof ch==='object'&&!Array.isArray(ch)?ch:{},content.npcs||{}),givers=base?new Map(base):null;if(givers)for(const [id,f] of Object.entries(facts))givers.set(id,{id,name:f.name,canTalk:true,players:true,draft:true,made:true,targets:f.targets,group:'district'});
   return {ctx:givers?{...ctx,givers}:ctx,errors};}
- function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters','zones']))return {ok:false,errors:['The content record has an unknown shape.']};
+ function interactionProblems(table,givers){if(!table||typeof table!=='object'||Array.isArray(table)||Object.keys(table).length>100)return ['Invalid NPC interactions.'];const errors=[];for(const [id,r] of Object.entries(table)){if(!ID.test(id)||(givers&&!givers.get(id)?.canTalk)||!keysOk(r,['near','talk','distance','cooldown','choice','reply'])||(!r.near&&!r.talk)||['near','talk','choice','reply'].some(k=>r[k]!=null&&!plain(r[k],k==='choice'?60:500))||!Number.isFinite(r.distance)||r.distance<1||r.distance>8||!Number.isInteger(r.cooldown)||r.cooldown<5||r.cooldown>600||!!r.choice!==!!r.reply||r.choice&&!r.talk)errors.push('Invalid interaction for '+id+'.');}return errors;}
+ function interactionDue(r,p,d,now,blocked=false){if(d>r.distance+.75){p.inside=false;return false;}if(blocked||d>r.distance||p.inside)return false;p.inside=true;return now-p.last>=r.cooldown*1000;}
+ function interactionLine(text,index=0){const lines=String(text||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);return lines.length?lines[index%lines.length]:'';}
+ function check(content,ctx={}){if(!keysOk(content,['format','version','beginner','registry','lines','note','trees','names','npcs','voices','looks','clips','characters','zones','interactions']))return {ok:false,errors:['The content record has an unknown shape.']};
   const X=NPX(),had=X&&content.characters!=null&&X.setMade?X.setMade(content.characters):null;
   try{const m=madeCtx(content,ctx),r=check_(content,m.ctx);return m.errors.length?{ok:false,errors:[...m.errors,...r.errors]}:r;}finally{if(had)X.setMade(had);}}
  function check_(content,ctx={}){
   const errors=[],err=t=>errors.push(t),speakers=new Set([...SPEAKERS,...(ctx.speakers||[])]);
+  if(content.interactions!=null)for(const p of interactionProblems(content.interactions,ctx.givers))err(p);
   if(content.clips!=null){const I=VIM();if(!I)err('Imported voice files cannot be checked here.');else for(const p of I.clipProblems(content.clips))err(p);}
   if(content.format!==FORMAT||content.version!==VERSION)err('Unknown content format or version.');
   if(content.zones!=null){const X=ZN();if(!X)err('The Zones table cannot be checked here.');else for(const p of X.tableProblems(content.zones,{places:ctx.places,types:MODTYPES()}))err(p);}
@@ -729,6 +733,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   env.characters=clone((content&&content.characters)||{});{const X=NPX();if(X&&X.setMade)X.setMade(env.characters);const G=GVS();if(Array.isArray(env.givers)){env.baseGivers=env.baseGivers||env.givers.filter(g=>!g.made);
    env.givers=[...env.baseGivers,...(G&&Object.keys(env.characters).length?G.roster({characters:env.characters,npcs:(content&&content.npcs)||{}}).filter(g=>g.made):[])];}}
   if(Object.keys(env.characters).length)out.applied.push(Object.keys(env.characters).length+' character(s) made in the editor');
+  env.interactions=clone((content&&content.interactions)||{});
   env.npcPlans=clone((content&&content.npcs)||{});if(content&&content.npcs&&Object.keys(content.npcs).length)out.applied.push(Object.keys(content.npcs).length+' NPC placement(s)');
   env.zones=clone((content&&content.zones)||{});if(content&&content.zones)out.applied.push('the Zones table');   // zones.js
   env.trees=storyTrees((content&&content.trees)||[]);env.names=clone((content&&content.names)||{});
@@ -861,6 +866,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
   const tc=treesContent((local&&local.trees)||[],{givers,items});if(tc.trees.length)out.trees=tc.trees;
   // mission givers made in the editor: only finished ones are sent (madeReady); their placements with them
   const ready=madeReady(local,givers);if(Object.keys(ready).length)out.characters=ready;
+  if(local?.interactions&&Object.keys(local.interactions).length)out.interactions=clone(local.interactions);
   {const X=NPX(),np={};for(const [id,p] of Object.entries((local&&local.npcs)||{})){const M=X&&X.MOVABLE[id];const c=M&&!(M.made&&!ready[id])?X.clean(p):null;if(c)np[id]=c;}if(Object.keys(np).length)out.npcs=np;}   // Developer Tools > NPCs
   {const V=NPV(),vs={};for(const [id,v] of Object.entries((local&&local.voices)||{})){const c=V&&!V.refusal(id)?V.clean(v):null;if(c)vs[id]=c;}if(Object.keys(vs).length)out.voices=vs;}   // ElevenLabs voice choices
   {const L=NPL(),lk={};for(const [a,e] of Object.entries((local&&local.looks)||{})){const c=L?L.clean(a,e):null;if(c)lk[a]=c;}if(Object.keys(lk).length)out.looks=lk;}   // NPC looks
@@ -952,7 +958,7 @@ if(l.anim&&l.who!=='You'){x.anim=l.anim;x.npc=l.who;if(l.animFor)x.animFor=l.ani
    const w=st.when||{},who=st.how==='notification'&&w.kind==='near'?w.npc||m.giver:m.giver,G=GVS(),c=SC.check(l,s,{who,street:G&&G.streetTime?G.streetTime(at):at,world:SC.needsWorld(l)?W():null});
    out.push({tree:t.id,mission:m.id,armed:s.story.flags[armFlag(m.id)]===true,ok:c.ok,each:c.each});}
   return out;}
- const api={quietStart,onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,timerRuns,CALL_TIMER_MODES,stepWants,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
+ const api={interactionProblems,interactionDue,interactionLine,quietStart,onlyNow,armFlag,CONTRACT_FLAGS,STEP_APPS,mechanicsNow,castNow,evidenceNow,askNow,ASK_STEP,askPriceFlag,askGainFlag,askGain,CHOICE,choiceOk,choiceStrip,expandChoices,apartmentsNow,hackedNow,hacksNow,doorsInUseNow,APT_KINDS,madeReady,madeNeeds,madeCtx,ESCORT,escortNow,insideNow,animNow,timersNow,timerSet,timerRuns,CALL_TIMER_MODES,stepWants,delayFlag,waitFlag,TIME,MONEY,DENY,DENY_MIN,denyMinutes,denyWaits,denyTick,denyRearm,ASK_KEYS,YES,NO,costOf,signed,setSigned,affords,charge,charged,offerOf,costFlag,denyFlag,abandon,NEAR,nearMetres,nearList,nearHit,VIA,FACTIONS,photoOk,photoNeed,during,HOW,CHANNELS,WHEN,inbox,markRead,storyTrees,FORMAT,VERSION,EVENTS,TYPES,SPEAKERS,LIMIT,DRAFT,STEP_KINDS,UNLOCKS,check,apply,mapLine,who,snapshot,fromDrafts,notApplied,changes,warnings,migrate,empty,strip,clone,
   waitingAt,treeNeeds,treeStrip,treeBlockers,treesContent,treeDefinition,treeEvent,treeWants,treeTouches,treeFlag,linkFlag,linked,unlockNow};
  if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidMissionContent=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
