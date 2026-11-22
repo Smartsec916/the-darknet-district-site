@@ -20,3 +20,7 @@ Next: add persistent schema and mirrored validation in mission-content.js and vo
 - Iris relationship visit: ambient partner conversation and compatible animations may continue while another player receives a private Comms mission call. Local in-person mission interactions take priority; resume afterward. Mission 011 evidence handover includes Iris; Mission 012 tutorial is remote. Test with two clients.
 
 - Tier policy (owner clarification): Tier 1 ambient filler stays within its local area and never crosses vestibules as part of ordinary wandering. Cross-area itineraries and vestibule navigation are opt-in for Tier 2 and Tier 3 NPCs only. Preserve existing crowd budgets and local movement; test that Tier 1 cannot enter the cross-area planner.
+
+## Crowd checkpoint
+- NeoChinatown ambient walker targets 12/28/44 -> 8/20/31 (Low/Medium/High), standers and diners also reduced roughly 30%; cook/vendor configuration unchanged. NULL ambient count reduced by one per preset (6/9/10 total; named NPCs and staff retained). Syntax checks passed; regression testing pending, including monk counts and nightclub cast assertions.
+- Add NPC Tier selector in editor and independent configurable Tier 1 density by area. Tier 2 and 3 must never be hidden or culled merely because of graphics quality or crowd-budget governor; preserve normal off-screen/unloaded-area optimizations and schedule state. No changes deployed yet.
