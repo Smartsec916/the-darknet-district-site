@@ -77,3 +77,10 @@ Keep separate commits, update this handoff at each completed stage, and do not c
 - Apartment picker: expose building hallway style (high-end, medium/standard, run-down) at street entrance/building level with visual thumbnails and current style shown. Changing a shared hallway affects its associated units; warn before publishing, preserve numbered doors, unit assignments, navigation, geometry clearance and mission references. Use existing compatible hallway presets or create missing variants; preview before publishing.
 
 - Persist hallway style by stable street-door/building ID and apartment interior style independently by stable unit ID. Published overrides survive scene reloads, player sessions, server restarts and future builds; never regenerate or reset them on entry. Example: street door 202 high-end hallway, one unit run-down. Change only through explicit owner edit/publish; preserve all existing assignments and verify persistence and independent overrides.
+
+### Awakening existing location seed (verified against main-story.js)
+- Mission 005 `reyes`: street `apt-avenue-n-30` (No. 31 The Avenue), `hall-luxury`, apartment 105 `apt-luxury`, retain lock `hall.d0` and existing links.
+- Mission 006 `veyra`: `biz-avenue-n-41`, existing office layout with `hall-office`.
+- Mission 008 `contractor`: `biz-main-w-166`, existing commercial back entrance and `hall-commercial`; Mission 007 also references this entrance.
+- Mission 009 `facility`: `biz-corp-s-40`, existing maintenance/network facility with `hall-office`. Preserve all module geometry and access rules. These are commercial locations, not residential units.
+- Seed the persistent registry from these exact canonical definitions, including inactive/completed missions in editor occupancy; do not overwrite existing mission definitions, change access, or invent apartment numbers. Current definitions already specify layouts; persistent independent style registry and editor wiring remain to implement.
