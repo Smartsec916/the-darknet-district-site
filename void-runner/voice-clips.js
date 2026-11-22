@@ -25,9 +25,9 @@
   for(const e of extraById.values()){const w=e.with&&extraById.get(e.with.id);if(w&&w.speaker===e.speaker&&w.text!==e.text)lookup.set(e.speaker+'|'+w.text,{...e,shown:w.text});}}).catch(()=>{});
  const key=(who,text)=>(alias[who]||root.VoidVRCompanions?.voiceOf?.(who)?.characterId||who)+'|'+text;
  // Imported voice files (voice-imports.js, Developer Tools, 19 Nov 2026) override any recorded clip for that exact line text; same playback, same live effects.
- const imported=(who,text)=>{const I=root.VoidVoiceImports;return I&&I.find?I.find(who,text):null;};
+ const imported=(who,text,ordinary)=>{const I=root.VoidVoiceImports;return I&&I.find?I.find(who,text,ordinary):null;};
  const importLine=(im,who)=>({id:'import:'+im.hash,speaker:manifest?.cast?.[im.who]||extraCast[im.who]?im.who:key(who,'').slice(0,-1),imported:im});
- function has(who,text){return !!imported(who,text)||lookup.has(key(who,text));}
+ function has(who,text,ordinary){return !!imported(who,text,ordinary)||lookup.has(key(who,text));}
  async function clip(context,line){
   if(cache.has(line.id))return cache.get(line.id);
   if(line.imported){const data=await context.decodeAudioData(await root.VoidVoiceImports.load(line.imported));cache.set(line.id,data);if(cache.size>40)cache.delete(cache.keys().next().value);return data;}
@@ -98,8 +98,8 @@
  // now: the line being said ({who, text, ended, endedAt}): a Comms call with recorded lines (personal-device.js) moves on when its line has been heard.
  let now=null;
  async function speak(o){const job={who:o&&o.characterId,text:o&&o.text,ended:false,endedAt:0};now=job;try{return await speakOne(o);}finally{job.ended=true;job.endedAt=performance.now();}}
- async function speakOne({characterId,text,bus}){
-  cancel();const mine=seq,im=imported(characterId,text),line=im?importLine(im,characterId):lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
+ async function speakOne({characterId,text,bus,ordinary}){
+  cancel();const mine=seq,im=imported(characterId,text,ordinary),line=im?importLine(im,characterId):lookup.get(key(characterId,text));if(!line||!bus)throw Error('No recorded line');
   // The conversation's line this recording is for (scenes.js speakLine): told when it starts and ends, so a walking conversation moves on when it has been heard.
   const v=typeof speech!=='undefined'&&speech&&speech.lines[speech.index]?.text===text?speech.voice:null,play={};
   const ctx=bus.context,data=await clip(ctx,line);if(mine!==seq)return;const cast=manifest?.cast?.[line.speaker]||extraCast[line.speaker]||{};

@@ -21,7 +21,7 @@ function nextLabel(){return speech.index===speech.lines.length-1?speech.label:'N
 // While a line is still typing: a walking conversation offers SKIP (to the next line; on the last line it shows the whole line, so a choice is never taken by accident).
 function typingLabel(){return speech.auto?'SKIP ›':'SHOW FULL LINE';}
 // Speaks the current line and notes what to wait for: speech.voice.clip (a recording exists), started / ended (voice-clips.js reports them).
-function speakLine(){const line=speech.lines[speech.index];speech.readyAt=null;speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:!!globalThis.VoidVoiceClips?.has?.(line.who,line.text)};if(!globalThis.VoidAudio?.speak(line.who,line.text))speech.voice.clip=false;}
+function speakLine(){const line=speech.lines[speech.index];speech.readyAt=null;speech.voice={index:speech.index,at:performance.now(),started:false,ended:false,clip:!!globalThis.VoidVoiceClips?.has?.(line.who,line.text,!!line.ambient)};if(!globalThis.VoidAudio?.speak(line.who,line.text,false,false,!!line.ambient))speech.voice.clip=false;}
 function advanceSpeech(){
  if(!speech)return;
  const line=speech.lines[speech.index];

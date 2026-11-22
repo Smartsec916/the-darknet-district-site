@@ -61,6 +61,14 @@ test('keyOf matches how the game speaks: display names, ids, voice tags removed'
  assert.equal(VI.keyOf('Admin','Hello. '),VI.keyOf('admin','Hello.'));assert.equal(VI.keyOf('Arcade attendant','x'),'attendant|x');assert.equal(VI.keyOf('zen-zephyr','x'),'zen-zephyr|x');
 });
 
+test('ordinary interaction audio cannot override a mission recording of identical words',()=>{
+ const ctx={document:{},console};require('node:vm').runInNewContext(fs.readFileSync(path.join(__dirname,'..','void-runner/voice-imports.js'),'utf8'),ctx);const I=ctx.VoidVoiceImports;
+ const mission={who:'tea-host',text:'Welcome.',hash:H,type:'audio/mpeg',duration:2,bytes:100};const ordinary={...mission,hash:H2};
+ I.use([mission],{interactions:[ordinary],givers:[{id:'tea-host',say:'tea-host',name:'Tea Room Host'}]});assert.equal(I.find('Tea Room Host','Welcome.').hash,H);assert.equal(I.find('Tea Room Host','Welcome.',true).hash,H2);
+ I.use([],{interactions:[ordinary]});assert.equal(I.find('tea-host','Welcome.'),null);assert.equal(I.find('tea-host','Welcome.',true).hash,H2);
+ I.use([]);assert.equal(I.find('tea-host','Welcome.',true),null);
+});
+
 test('the file address is its SHA-256 (the fallback matches the platform)',async()=>{
  for(const n of [0,1,55,56,63,64,65,1000,70001]){const b=crypto.randomBytes(n);assert.equal(VI.sha256Sync(b),crypto.createHash('sha256').update(b).digest('hex'),'n='+n);assert.equal(await VI.sha256(b),crypto.createHash('sha256').update(b).digest('hex'));}
 });

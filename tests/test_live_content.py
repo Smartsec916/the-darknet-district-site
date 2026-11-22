@@ -113,6 +113,34 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(result.status_code, 200, result.json)
         self.assertEqual(result.json['content'], dict(content(note='Mission edit'), interactions={}))
 
+    def test_interaction_audio_upload_and_mission_publish_are_independent(self):
+        import base64
+        from test_voice_imports import wav, clip
+        raw = wav(2)
+        recording = clip(raw, who='tea-host', text='Welcome.')
+        original = content()
+        self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': original}).status_code, 200)
+        value = {'near': 'Welcome.\nTea?', 'distance': 3, 'cooldown': 60, 'clips': [recording]}
+        payload = {'expected': 1, 'interaction': {'npc': 'tea-host', 'value': value}}
+        self.assertEqual(self.post('live-content/publish', payload).status_code, 422)
+        self.assertEqual(self.post('voice-clips/' + recording['hash'], {'type': recording['type'], 'data': base64.b64encode(raw).decode()}).status_code, 200)
+        result = self.post('live-content/publish', payload)
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content'], dict(original, interactions={'tea-host': value}))
+        result = self.post('live-content/publish', {'expected': 2, 'content': content(note='Mission edit')})
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content']['interactions'], {'tea-host': value})
+
+    def test_interaction_pool_limit_is_per_line(self):
+        many = '\n'.join('Greeting %d %s' % (i, 'x' * 100) for i in range(100))
+        value = {'near': many, 'distance': 3, 'cooldown': 60}
+        self.assertEqual(live.interaction_problems({'tea-host': value}), [])
+        self.assertTrue(live.interaction_problems({'tea-host': dict(value, near=many + '\nExtra')}))
+        self.assertTrue(live.interaction_problems({'tea-host': dict(value, near='x' * 501)}))
+        self.assertEqual(live.interaction_problems({'tea-host': dict(value, near='x' * 500)}), [])
+        result = self.post('live-content/publish', {'expected': 0, 'interaction': {'npc': 'tea-host', 'value': value}})
+        self.assertEqual(result.status_code, 200, result.json)
+
     def test_validation_blocks_bad_content(self):
         bad = []
         c = content(); c['beginner'][0]['objectives'][0]['on'] = 'teleport'; bad.append(c)

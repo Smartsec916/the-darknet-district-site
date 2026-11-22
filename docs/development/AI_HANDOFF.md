@@ -13,6 +13,12 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 **Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions. The owner's reference pictures from 12 Nov 2026 are written out in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) so later work can use them without the files. The images are not in the repo yet ([`references/README.md`](references/README.md)).
 
+### 22 Nov 2026 — NPC interaction audio (local draft)
+
+- Dialogue pool limits are 100 nonempty alternatives per box, 500 characters per individual line, with existing overall workspace and published-document byte limits unchanged. Client and server enforce the same structure.
+
+- Ordinary interaction lines have per-line audio import/replace/play/remove, stable filename-list bulk import, and approved ElevenLabs voice generation using Eleven v4 with separate delivery tags and explicit per-batch credit confirmation. Recordings attach to the interaction's own validated metadata; the per-NPC publish uploads content-addressed audio first and preserves all other published content. Runtime lookup is independently scoped to ordinary dialogue, so identical mission lines retain their original audio. Mission publication preserves the interaction audio metadata. No paid audio generated, approved voice changed, or mission content authored.
+
 ### 21 Nov 2026 — NPC Conversations & Interactions (local draft)
 
 - Developer Tools > NPCs now gives walking TALK NPCs independent approach greetings, TALK dialogue, optional response/reply, distance and cooldown. Newline-separated alternatives cycle in order. No default dialogue is authored; the owner supplies it. The Tea Room Host is included and can be tested near his home spot in an isolated draft session.

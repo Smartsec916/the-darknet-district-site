@@ -408,23 +408,23 @@
     const score = v => (/natural|neural|enhanced|premium/i.test(v.name) ? 20 : 0) + (p.preferred?.some(n => v.name.toLowerCase().includes(n)) ? 5 : 0);
     return matches.sort((a,b) => score(b)-score(a) || a.name.localeCompare(b.name))[0] || null;
   }
-  function speak(id, text, waitedForVoices = false, browserOnly = false) {
+  function speak(id, text, waitedForVoices = false, browserOnly = false, ordinary = false) {
     cancel();
     if (!settings.enabled || !settings.voiceEnabled || !settings.voice) return false;
     const p = profileOf(id);
     // Recorded clips when the line has one; otherwise (or if a clip fails) the browser voice.
-    if (voiceProvider && !browserOnly && (!voiceProvider.has || voiceProvider.has(id, text))) {
+    if (voiceProvider && !browserOnly && (!voiceProvider.has || voiceProvider.has(id, text, ordinary))) {
       try {
         speaking = true;
         mix();
         const current = token;
         Promise.resolve(voiceProvider.speak({
           characterId: id,
-          text,
+          text, ordinary,
           profile: p,
           volume: settings.master * settings.voice,
           bus: buses?.voice
-        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true);}).finally(() => {
+        })).catch(error => {console.warn('[VOID voice]',{character:id,recovery:'browser voice',reason:error.message});if (token === current) speak(id, text, false, true, ordinary);}).finally(() => {
           if (token === current) {
             speaking = false;
             mix();
@@ -441,7 +441,7 @@
       refreshVoices();
       if (!voices.length && !waitedForVoices) {
         const current = token;
-        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true); }, 1000);
+        speechTimer = setTimeout(() => { if(token === current) speak(id, text, true, false, ordinary); }, 1000);
         return true;
       }
       const selected = selectVoice(id);
