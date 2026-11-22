@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "2e3dd3f04198d0f8",
+  "revision": "dd238928d8384787",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79405,7 +79405,7 @@
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "3c25f546a54ecabd9d4703a0e97d057af5391522b180206c1fd673be19614e35",
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
-    "void-runner/companion-mobile.js": "9bbb1bab012434c3207208408c4d1106664e93cfd6ee0a196b1032501ee30541",
+    "void-runner/companion-mobile.js": "dc12c639549052816db9b2eba8fd4e416a379198398199ebf4c4352be7bfe2d0",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
@@ -79558,7 +79558,7 @@
     "void-runner/npc-made.js": "13c2fba01f0a1e4a7040f2037c9f956beae2cae0dbb379407cf55a518fb0f53a",
     "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
     "void-runner/npc-paths.js": "915849f6ef714dafef2c102067e4116293c63b63f03d30e0a90541614cce504f",
-    "void-runner/npc-preview.js": "afff33e036dfe53a59eb309c3a4ed291528458699813c591d36837286faf6800",
+    "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
     "void-runner/opening-data.js": "430973841f02c268bf87cf996f12183296a060a3c0ee3fe8f950d4c7a3ef6318",
