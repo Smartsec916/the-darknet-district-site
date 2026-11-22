@@ -3,6 +3,14 @@ const MC=require('../void-runner/mission-content.js');
 const G=require('../void-runner/mission-givers.js');
 const givers=new Map(G.roster({}).map(g=>[g.id,g]));
 const interaction={near:'Welcome.\nGood to see you.\nTea?',talk:'What can I get you?',choice:'Tea, please',reply:'Of course.',distance:3,cooldown:60};
+test('audio filenames match exact words independently of ordering and exclude player choice',()=>{
+ const rows=MC.interactionRows('tea-host',interaction);assert.equal(rows.length,5);assert.equal(new Set(rows.map(r=>r.file)).size,5);assert.equal(rows.some(r=>r.text===interaction.choice),false);
+ assert.equal(MC.interactionRows('tea-host',{near:'Tea?\nWelcome.'})[1].file,rows[0].file);assert.notEqual(MC.interactionRows('tea-host',{near:'Welcome!'})[0].file,rows[0].file);
+ const c={who:'tea-host',text:'Welcome.',hash:'a'.repeat(64),type:'audio/mpeg',duration:1,bytes:100};assert.deepEqual(MC.interactionProblems({'tea-host':{...interaction,clips:[c]}},givers),[]);
+ for(const bad of [{...c,who:'admin'},{...c,text:'Other words'},{...c,hash:'invalid'}])assert.ok(MC.interactionProblems({'tea-host':{...interaction,clips:[bad]}},givers).length);
+ assert.ok(MC.interactionProblems({'tea-host':{...interaction,clips:[c,c]}},givers).length);
+ const env={lineMap:new Map([['tea-host|Welcome.','Mission words']])};assert.equal(MC.mapLine(env,{who:'tea-host',text:'Welcome.',ambient:true}).text,'Welcome.');
+});
 test('ordinary interactions are checked independently of missions',()=>{
  const c={format:MC.FORMAT,version:1,interactions:{'tea-host':interaction}};
  assert.equal(MC.check(c,{givers}).ok,true);

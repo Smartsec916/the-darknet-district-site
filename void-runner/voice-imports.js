@@ -146,11 +146,11 @@
   {const p=caps({duration,bytes:data.byteLength});if(p.length)return fail(p[0]);}
   const hash=await sha256(data);return {ok:true,data,hash,type,duration:r2(duration),bytes:data.byteLength,reencoded,name:String(file.name||'voice file').slice(0,LIMIT.name)};}
  /* ---- the game: which lines have an imported file (draft or published) ---- */
- let byKey=new Map(),source='none';
- function use(list,opt={}){byKey=new Map();source=opt.draft?'draft':'live';const givers=opt.givers||[];
-  for(const c of Array.isArray(list)?list:[]){if(clipShape(c).length)continue;const e={...c,src:source},g=givers.find(x=>x&&x.id===c.who),names=new Set([c.who,g&&g.say,g&&g.name].filter(Boolean));for(const n of names)byKey.set(keyOf(n,c.text),e);}
+ let byKey=new Map(),ordinaryByKey=new Map(),source='none';
+ function use(list,opt={}){byKey=new Map();ordinaryByKey=new Map();source=opt.draft?'draft':'live';const givers=opt.givers||[];
+  for(const [table,records] of [[byKey,list],[ordinaryByKey,opt.interactions]])for(const c of Array.isArray(records)?records:[]){if(clipShape(c).length)continue;const e={...c,src:source},g=givers.find(x=>x&&x.id===c.who),names=new Set([c.who,g&&g.say,g&&g.name].filter(Boolean));for(const n of names)table.set(keyOf(n,c.text),e);}
   return byKey.size;}
- const find=(who,text)=>root.VoidVRCompanionStudio?.findVoice(who,text)||byKey.get(keyOf(who,text))||null;
+ const find=(who,text,ordinary=false)=>(ordinary?ordinaryByKey.get(keyOf(who,text)):null)||root.VoidVRCompanionStudio?.findVoice(who,text)||byKey.get(keyOf(who,text))||null;
  const load=e=>getData(e.hash,{draft:e.src==='draft'});
  /* ---- PUBLISH: upload what the server does not have yet. request: VoidDevTools.request. Returns {uploaded, kept}. ---- */
  const b64=buf=>{const u=new Uint8Array(buf);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s);};

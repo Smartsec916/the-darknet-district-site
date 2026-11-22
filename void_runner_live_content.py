@@ -96,13 +96,17 @@ def interaction_problems(table, givers=None):
     errors = []
     for npc, r in table.items():
         if (not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', npc) or (givers is not None and not (givers.get(npc) or {}).get('canTalk'))
-                or not _keys(r, ['near', 'talk', 'distance', 'cooldown', 'choice', 'reply'])
+                or not _keys(r, ['near', 'talk', 'distance', 'cooldown', 'choice', 'reply', 'clips'])
                 or not (r.get('near') or r.get('talk'))
                 or any(k in r and r[k] is not None and not _plain(r[k], 60 if k == 'choice' else 500) for k in ('near', 'talk', 'choice', 'reply'))
                 or type(r.get('distance')) not in (int, float) or not 1 <= r['distance'] <= 8
                 or type(r.get('cooldown')) is not int or not 5 <= r['cooldown'] <= 600
                 or bool(r.get('choice')) != bool(r.get('reply')) or (r.get('choice') and not r.get('talk'))):
             errors.append('Invalid interaction for ' + npc + '.')
+        elif 'clips' in r:
+            lines = {line.strip() for k in ('near', 'talk', 'reply') for line in (r.get(k) or '').splitlines() if line.strip()}
+            if clip_problems(r['clips']) or any(c['who'] != npc or c['text'] not in lines for c in r['clips']):
+                errors.append('Invalid interaction audio for ' + npc + '.')
     return errors
 
 
@@ -2716,6 +2720,8 @@ def publish(db, uid, payload):
         npc, value = edit['npc'], edit['value']
         if value is not None and interaction_problems({npc: value}):
             raise DraftError('Invalid interaction.', 422)
+        if value and clips_missing(db, sorted({c['hash'] for c in value.get('clips', [])})):
+            raise DraftError('Upload the interaction audio before publishing.', 422)
         def update_interaction(tx, live, history):
             # Copy exactly the active content; do not publish any mission drafts.
             record = _version_ref(db, live).get(transaction=tx).to_dict() or {} if live else {}

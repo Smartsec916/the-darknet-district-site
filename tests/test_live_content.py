@@ -113,6 +113,24 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(result.status_code, 200, result.json)
         self.assertEqual(result.json['content'], dict(content(note='Mission edit'), interactions={}))
 
+    def test_interaction_audio_upload_and_mission_publish_are_independent(self):
+        import base64
+        from test_voice_imports import wav, clip
+        raw = wav(2)
+        recording = clip(raw, who='tea-host', text='Welcome.')
+        original = content()
+        self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': original}).status_code, 200)
+        value = {'near': 'Welcome.\nTea?', 'distance': 3, 'cooldown': 60, 'clips': [recording]}
+        payload = {'expected': 1, 'interaction': {'npc': 'tea-host', 'value': value}}
+        self.assertEqual(self.post('live-content/publish', payload).status_code, 422)
+        self.assertEqual(self.post('voice-clips/' + recording['hash'], {'type': recording['type'], 'data': base64.b64encode(raw).decode()}).status_code, 200)
+        result = self.post('live-content/publish', payload)
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content'], dict(original, interactions={'tea-host': value}))
+        result = self.post('live-content/publish', {'expected': 2, 'content': content(note='Mission edit')})
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content']['interactions'], {'tea-host': value})
+
     def test_validation_blocks_bad_content(self):
         bad = []
         c = content(); c['beginner'][0]['objectives'][0]['on'] = 'teleport'; bad.append(c)
