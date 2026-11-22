@@ -27,4 +27,19 @@ function drawFlightHud(){
  ctx.textAlign='right';ctx.fillText('MSL '+missileState.missilesLoaded,right,cy-13);
  if(missileLock.target){ctx.fillText('RNG '+data.range.toFixed(0)+'u',right,cy+3);if(!small)ctx.fillText('CLS '+data.closing.toFixed(1)+'u/s',right,cy+19);}
  ctx.restore();
+ drawInterdictionWarning();
+}
+
+/* Route-backed cockpit alert: never imply interdiction during an ordinary encounter. */
+function drawInterdictionWarning(){
+ const r=flight.route;
+ if(r?.phase!=='encounter'||!r.policy?.interdiction||r.encounter?.type!=='combat'||r.encounter.state!=='active')return;
+ const cx=W*.5,y=H*(W<650?.145:.112),half=Math.min(W*.34,155),h=34;
+ ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=1;
+ ctx.fillStyle='rgba(24,8,13,.88)';ctx.strokeStyle='#ff555d';
+ ctx.beginPath();ctx.moveTo(cx-half,y-h/2);ctx.lineTo(cx+half-10,y-h/2);ctx.lineTo(cx+half,y-h/2+10);ctx.lineTo(cx+half,y+h/2);ctx.lineTo(cx-half+10,y+h/2);ctx.lineTo(cx-half,y+h/2-10);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle='#ff686e';ctx.fillRect(cx-half+5,y-8,3,16);ctx.fillRect(cx+half-8,y-8,3,16);
+ ctx.font='bold 14px Consolas';ctx.fillText('INTERDICTED',cx,y-6);
+ ctx.font='10px Consolas';ctx.fillText('WARP DRIVE DISRUPTED',cx,y+8);
+ ctx.restore();
 }
