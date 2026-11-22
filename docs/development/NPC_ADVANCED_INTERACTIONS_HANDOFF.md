@@ -140,3 +140,7 @@ Keep separate commits, update this handoff at each completed stage, and do not c
 - Existing audio fingerprinting now enumerates room dialogue pools, preserving legacy exact-text audio identities and rejecting unrelated clips. Draft round-trips retain the settings. No authored NPC dialogue, paid audio, save format or live data changed.
 - Shared JSON fixtures tested by Node and Python; 8 Node tests (including existing ordinary interactions), 3 Python tests passed locally. Admin inventory source references/fingerprints refreshed for this branch. Full CI pending.
 - Next: room settings editor using canonical place picker; per-player room visit runtime state with actual scene/underground quarter identity, per-NPC presence and mission priority, no hidden/blocked speech; test duration classification, re-entry, cooldown, blocked dialog and multiplayer scope. Then follow/group configuration and runtime integration. Keep draft until complete.
+
+
+## 22 Nov — collapsed room editor checkpoint
+- Added optional Advanced room dialogue controls using canonical place options; room-only drafts accepted; existing exact audio matching preserved. 9 Node checks and 3 Python schema tests passed. Runtime adapter, room boundary/occlusion, playback, multiplayer and real browser verification still required. Do not deploy this draft. Crowd-density increment separated into PR #501.
