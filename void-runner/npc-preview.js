@@ -7,7 +7,10 @@
 (function(root){
  'use strict';
  let loaderP=null;
- function loaders(){const B=root.BABYLON;if(B?.SceneLoader?.IsPluginForExtensionAvailable?.('.glb'))return Promise.resolve();
+ function loaders(){const B=root.BABYLON;
+  // File imports bypass VoidAssets.loadContainer, so configure the same local decoders here.
+  root.VoidAssets?.useKTX2Locally?.();root.VoidAssets?.useMeshoptLocally?.();
+  if(B?.SceneLoader?.IsPluginForExtensionAvailable?.('.glb'))return Promise.resolve();
   return loaderP??=new Promise((ok,fail)=>{const s=document.createElement('script');s.src='void-runner/vendor/babylonjs-loaders-8.26.0.min.js?v='+encodeURIComponent(root.VoidCompanionBuild||'12');s.onload=ok;s.onerror=()=>fail(new Error('The model loader could not be loaded.'));document.head.append(s);});}
  function mount(host){
   const B=root.BABYLON,cv=document.createElement('canvas');cv.className='npc-preview-canvas';cv.width=360;cv.height=360;cv.setAttribute('aria-label','3D preview of the NPC');const viewPanel=document.createElement('div');viewPanel.className='companion-preview-panel';host.append(viewPanel);viewPanel.append(cv);const detail=document.createElement('div'),detailLabel=document.createElement('p'),detailCanvas=document.createElement('canvas');detail.className='companion-joint-detail';detail.hidden=true;detailCanvas.width=180;detailCanvas.height=180;detailCanvas.setAttribute('aria-label','Magnified selected joint');detail.append(detailLabel,detailCanvas);viewPanel.append(detail);const detailCtx=detailCanvas.getContext('2d');
