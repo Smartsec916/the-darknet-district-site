@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "3af51527e3c746ed",
+  "revision": "fb28a3ffe5d48c00",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -76674,7 +76674,7 @@
     {
       "source": "void-runner/npc-editor.js",
       "line": 157,
-      "text": "const generate=work=>{if(voice.kind!=='elevenlabs'||!voice.voiceId){note.textContent='Choose an ElevenLabs voice in Lines & voice first.';return;}if(busy)return;const jobs=work.map(row=>{const t=tags.get(row.text).value.trim();return {row,spoken:(t?(t.startsWith('[')?t:'['+t+']')+' ':'')+row.text};});if(!jobs.length){note.textContent='All selected lines already have audio.';return;}if(jobs.some(j=>j.spoken.length>700||root.VoidNPCVoices?.tagProblems(j.spoken).length)){note.textContent='Use valid lowercase delivery tags and keep tagged lines below 700 characters.';return;}if(!confirm('Generate '+jobs.length+' recordings using '+voice.name+' and Eleven v4 ('+jobs.reduce((n,j)=>n+j.spoken.length,0)+' input characters)? ElevenLabs credits will be used. Existing selected recordings will be replaced.'))return;run(jobs,async({row,spoken})=>{if(!match(row))throw Error('Dialogue changed.');const response=await root.VoidDevTools.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});const bytes=Uint8Array.from(atob(response.audio),c=>c.charCodeAt(0));await store(row,new File([bytes],row.file+'.mp3',{type:'audio/mpeg'}));});};",
+      "text": "const generate=work=>{if(voice.kind!=='elevenlabs'||!voice.voiceId){note.textContent='Choose an ElevenLabs voice in Lines & voice first.';return;}if(busy)return;const dev=DTX();if(typeof dev?.request!=='function'){note.textContent='Sign in again to generate audio.';return;}const jobs=work.map(row=>{const t=tags.get(row.text).value.trim();return {row,spoken:(t?(t.startsWith('[')?t:'['+t+']')+' ':'')+row.text};});if(!jobs.length){note.textContent='All selected lines already have audio.';return;}if(jobs.some(j=>j.spoken.length>700||root.VoidNPCVoices?.tagProblems(j.spoken).length)){note.textContent='Use valid lowercase delivery tags and keep tagged lines below 700 characters.';return;}if(!confirm('Generate '+jobs.length+' recordings using '+voice.name+' and Eleven v4 ('+jobs.reduce((n,j)=>n+j.spoken.length,0)+' input characters)? ElevenLabs credits will be used. Existing selected recordings will be replaced.'))return;run(jobs,async({row,spoken})=>{if(!match(row))throw Error('Dialogue changed.');const response=await dev.request('developer/companion-voice',{voiceId:voice.voiceId,text:spoken});const bytes=Uint8Array.from(atob(response.audio),c=>c.charCodeAt(0));await store(row,new File([bytes],row.file+'.mp3',{type:'audio/mpeg'}));});};",
       "kind": "source-reference"
     },
     {
@@ -79548,7 +79548,7 @@
     "void-runner/npc-areas.js": "6f142131557c7fed6e9866ba807813bec00afcb1593447a4c17e67a329b5077b",
     "void-runner/npc-behaviour.js": "8145de3c2ec74f87fa8f831c89a1b3d51699c0e65bfd3d78fd051f48aa0726a9",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "6e7c04f5863d6feba9e8ceeab5615fe8187aaaa6abc2ee9f4289bd59963e6970",
+    "void-runner/npc-editor.js": "cf328963afe16f9e5393207e19e5bbd24f80a865fb272803c42a4343cbe4017e",
     "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "0bcf5c4f33f9188c6b804c72ac08c0fbaa4d5c180bda42f01ada12cef42508db",
