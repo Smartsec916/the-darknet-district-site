@@ -94,6 +94,25 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual([h['action'] for h in state['history']], ['publish', 'publish', 'rollback', 'rollback'])
         self.assertTrue(all(k.startswith(('vr_live_content_state/', 'vr_live_content_versions/')) for k in self.db.data))
 
+    def test_publish_one_interaction_leaves_existing_missions_and_other_npcs_unchanged(self):
+        original = content()
+        self.assertEqual(self.post('live-content/publish', {'expected': 0, 'content': original}).status_code, 200)
+        value = {'near': 'Welcome.\nTea?', 'talk': 'Good evening.', 'distance': 3, 'cooldown': 60}
+        edit = {'expected': 1, 'interaction': {'npc': 'tea-host', 'value': value}}
+        self.assertEqual(self.post('live-content/publish', edit, token='outsider').status_code, 403)
+        result = self.post('live-content/publish', edit)
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content'], dict(original, interactions={'tea-host': value}))
+        self.assertEqual(self.post('live-content/publish', edit).status_code, 409)
+        invalid = {'expected': 2, 'interaction': {'npc': 'unknown-person', 'value': value}}
+        self.assertEqual(self.post('live-content/publish', invalid).status_code, 422)
+        result = self.post('live-content/publish', {'expected': 2, 'content': content(note='Mission edit')})
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content']['interactions'], {'tea-host': value})
+        result = self.post('live-content/publish', {'expected': 3, 'interaction': {'npc': 'tea-host', 'value': None}})
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content'], dict(content(note='Mission edit'), interactions={}))
+
     def test_validation_blocks_bad_content(self):
         bad = []
         c = content(); c['beginner'][0]['objectives'][0]['on'] = 'teleport'; bad.append(c)

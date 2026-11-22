@@ -90,11 +90,27 @@ def _source_lines():
     return '\n'.join(texts)
 
 
+def interaction_problems(table, givers=None):
+    if not isinstance(table, dict) or len(table) > 100:
+        return ['Invalid NPC interactions.']
+    errors = []
+    for npc, r in table.items():
+        if (not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', npc) or (givers is not None and not (givers.get(npc) or {}).get('canTalk'))
+                or not _keys(r, ['near', 'talk', 'distance', 'cooldown', 'choice', 'reply'])
+                or not (r.get('near') or r.get('talk'))
+                or any(k in r and r[k] is not None and not _plain(r[k], 60 if k == 'choice' else 500) for k in ('near', 'talk', 'choice', 'reply'))
+                or type(r.get('distance')) not in (int, float) or not 1 <= r['distance'] <= 8
+                or type(r.get('cooldown')) is not int or not 5 <= r['cooldown'] <= 600
+                or bool(r.get('choice')) != bool(r.get('reply')) or (r.get('choice') and not r.get('talk'))):
+            errors.append('Invalid interaction for ' + npc + '.')
+    return errors
+
+
 def check(content, inv=None):
     """The same closed rules as void-runner/mission-content.js check(). Returns a list of problems in plain words (empty = valid)."""
     errors = []
     err = errors.append
-    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'characters', 'zones']):
+    if not _keys(content, ['format', 'version', 'beginner', 'registry', 'lines', 'note', 'trees', 'names', 'npcs', 'voices', 'looks', 'clips', 'characters', 'zones', 'interactions']):
         return ['The content record has an unknown shape.']
     if content.get('characters') is not None:
         # mission givers made in the editor (void-runner/npc-made.js): checked, then movable and givers for the rest of the check (with_made)
@@ -102,6 +118,8 @@ def check(content, inv=None):
         for p in made_problems(content, inv):
             err(p)
         inv = with_made(content.get('characters'), inv)
+    if content.get('interactions') is not None:
+        errors.extend(interaction_problems(content['interactions'], (inv or _json('void_runner_admin_inventory.json'))['missionEditor']['givers']))
     if content.get('zones') is not None:
         for p in zone_table_problems(content['zones'], inv or _json('void_runner_admin_inventory.json')):
             err(p)
@@ -2691,6 +2709,28 @@ def _commit(db, uid, expected, action, content_for, note=''):
 
 def publish(db, uid, payload):
     expected = _expected(payload)
+    if _keys(payload, ['expected', 'interaction']) and 'interaction' in payload:
+        edit = payload['interaction']
+        if not _keys(edit, ['npc', 'value']) or not isinstance(edit.get('npc'), str) or 'value' not in edit or not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', edit['npc']):
+            raise DraftError('Invalid interaction edit.', 422)
+        npc, value = edit['npc'], edit['value']
+        if value is not None and interaction_problems({npc: value}):
+            raise DraftError('Invalid interaction.', 422)
+        def update_interaction(tx, live, history):
+            # Copy exactly the active content; do not publish any mission drafts.
+            record = _version_ref(db, live).get(transaction=tx).to_dict() or {} if live else {}
+            content = dict(record.get('content') or {'format': FORMAT, 'version': 1})
+            table = dict(content.get('interactions') or {})
+            if value is None:
+                table.pop(npc, None)
+            else:
+                table[npc] = value
+            content['interactions'] = table
+            problems = check(content)
+            if problems:
+                raise DraftError('The interaction has problems: ' + '; '.join(problems[:5]), 422)
+            return content, None
+        return _commit(db, uid, expected, 'publish', update_interaction, 'NPC interaction: ' + npc)
     if not _keys(payload, ['expected', 'content']):
         raise DraftError('Unknown fields.')
     content = payload.get('content')
@@ -2703,7 +2743,17 @@ def publish(db, uid, payload):
     if missing:
         raise DraftError('%d imported voice file(s) are not on the server yet. Press PUBLISH again (the editor uploads them first).' % len(missing), 422, {'missing': missing})
     note = (content.get('note') or '')[:200]
-    return _commit(db, uid, expected, 'publish', lambda tx, live, history: (content, None), note)
+    def update_missions(tx, live, history):
+        record = _version_ref(db, live).get(transaction=tx).to_dict() or {} if live else {}
+        previous = (record.get('content') or {}).get('interactions')
+        next_content = {k: v for k, v in content.items() if k != 'interactions'}
+        if previous is not None:
+            next_content['interactions'] = previous
+        problems = check(next_content)
+        if problems:
+            raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422)
+        return next_content, None
+    return _commit(db, uid, expected, 'publish', update_missions, note)
 
 
 def rollback(db, uid, payload):

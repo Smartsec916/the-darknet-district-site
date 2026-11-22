@@ -224,7 +224,12 @@ def validate_workspace(doc):
         raise DraftError('The workspace has one fixed identifier.')
     text(d['title'], 160)
     b = d['bundle']
-    keys(b, WORKSPACE_KEYS)
+    keys(b, WORKSPACE_KEYS + ['interactions'])
+    if 'interactions' in b:
+        from void_runner_live_content import interaction_problems
+        problems = interaction_problems(b['interactions'])
+        if problems:
+            raise DraftError(problems[0], 422)
     for k, kind in [('missions', dict), ('lines', dict), ('played', dict), ('names', dict), ('trees', list), ('retiredNumbers', list), ('npcs', dict), ('animRequests', list), ('voices', dict), ('looks', dict), ('clips', dict), ('characters', dict), ('zones', dict)]:
         if k in b and not isinstance(b[k], kind):
             raise DraftError('Invalid workspace field: ' + k)

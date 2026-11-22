@@ -13,6 +13,12 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 **Start here.** This file is the one current handoff. Read the checklist and the sections through "Open questions" before any other handoff document. The dated diary under [Historical log](#historical-log) is kept so older notes are not lost. Entries in that log contradict each other. They are snapshots, not instructions. The owner's reference pictures from 12 Nov 2026 are written out in [`VISUAL_REFERENCES.md`](VISUAL_REFERENCES.md) so later work can use them without the files. The images are not in the repo yet ([`references/README.md`](references/README.md)).
 
+### 21 Nov 2026 — NPC Conversations & Interactions (local draft)
+
+- Developer Tools > NPCs now gives walking TALK NPCs independent approach greetings, TALK dialogue, optional response/reply, distance and cooldown. Newline-separated alternatives cycle in order. No default dialogue is authored; the owner supplies it. The Tea Room Host is included and can be tested near his home spot in an isolated draft session.
+- Existing mission dialogue retains priority. Ordinary greetings are non-modal notices with the existing voice playback (recorded clip if available, otherwise browser fallback); ordinary TALK does not emit a story event. New lines do not spend ElevenLabs credits automatically.
+- The per-NPC publish action copies the active published record and changes only that NPC's interaction, with owner authorization, expected-version guard and standard rollback. Normal mission publication preserves the separate published interaction table. No shipped mission, NPC placement, approved voice, or player save schema is changed.
+
 ### 21 Nov 2026 — Companion Studio V29 (local draft)
 
 - Custom model target of 1–15 MB, default 14.5 MB; fine texture steps stop when the selected target is reached. Compression uses the current processed/rigged model, preserving existing profile and voice data; restore original explicitly before retrying from scratch. Existing publication limit remains 15 MB. Target is best effort, not a guarantee. Separate branch from PR #419; not deployed.
