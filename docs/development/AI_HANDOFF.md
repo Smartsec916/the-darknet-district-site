@@ -15,6 +15,8 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 ### 22 Nov 2026 — NPC interaction audio (local draft)
 
+- Dialogue pool limits are 100 nonempty alternatives per box, 500 characters per individual line, with existing overall workspace and published-document byte limits unchanged. Client and server enforce the same structure.
+
 - Ordinary interaction lines have per-line audio import/replace/play/remove, stable filename-list bulk import, and approved ElevenLabs voice generation using Eleven v4 with separate delivery tags and explicit per-batch credit confirmation. Recordings attach to the interaction's own validated metadata; the per-NPC publish uploads content-addressed audio first and preserves all other published content. Runtime lookup is independently scoped to ordinary dialogue, so identical mission lines retain their original audio. Mission publication preserves the interaction audio metadata. No paid audio generated, approved voice changed, or mission content authored.
 
 ### 21 Nov 2026 — NPC Conversations & Interactions (local draft)

@@ -3,6 +3,11 @@ const MC=require('../void-runner/mission-content.js');
 const G=require('../void-runner/mission-givers.js');
 const givers=new Map(G.roster({}).map(g=>[g.id,g]));
 const interaction={near:'Welcome.\nGood to see you.\nTea?',talk:'What can I get you?',choice:'Tea, please',reply:'Of course.',distance:3,cooldown:60};
+test('dialogue pools accept 100 independently bounded alternatives rather than 500 characters total',()=>{
+ const many=Array.from({length:100},(_,i)=>'Greeting '+i+' '+ 'x'.repeat(100)).join('\n');
+ for(const pool of ['near','talk','reply']){const value={...interaction,[pool]:many};assert.equal(MC.interactionProblems({'tea-host':value},givers).length,0);assert.equal(MC.interactionProblems({'tea-host':{...value,[pool]:many+'\nExtra'}},givers).length,1);assert.equal(MC.interactionProblems({'tea-host':{...value,[pool]:'x'.repeat(501)}},givers).length,1);}
+ assert.equal(MC.interactionProblems({'tea-host':{...interaction,near:'x'.repeat(500)}},givers).length,0);assert.equal(MC.interactionProblems({'tea-host':{...interaction,choice:'x'.repeat(61)}},givers).length,1);
+});
 test('audio filenames match exact words independently of ordering and exclude player choice',()=>{
  const rows=MC.interactionRows('tea-host',interaction);assert.equal(rows.length,5);assert.equal(new Set(rows.map(r=>r.file)).size,5);assert.equal(rows.some(r=>r.text===interaction.choice),false);
  assert.equal(MC.interactionRows('tea-host',{near:'Tea?\nWelcome.'})[1].file,rows[0].file);assert.notEqual(MC.interactionRows('tea-host',{near:'Welcome!'})[0].file,rows[0].file);

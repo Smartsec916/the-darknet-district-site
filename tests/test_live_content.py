@@ -131,6 +131,16 @@ class LiveContentTests(unittest.TestCase):
         self.assertEqual(result.status_code, 200, result.json)
         self.assertEqual(result.json['content']['interactions'], {'tea-host': value})
 
+    def test_interaction_pool_limit_is_per_line(self):
+        many = '\n'.join('Greeting %d %s' % (i, 'x' * 100) for i in range(100))
+        value = {'near': many, 'distance': 3, 'cooldown': 60}
+        self.assertEqual(live.interaction_problems({'tea-host': value}), [])
+        self.assertTrue(live.interaction_problems({'tea-host': dict(value, near=many + '\nExtra')}))
+        self.assertTrue(live.interaction_problems({'tea-host': dict(value, near='x' * 501)}))
+        self.assertEqual(live.interaction_problems({'tea-host': dict(value, near='x' * 500)}), [])
+        result = self.post('live-content/publish', {'expected': 0, 'interaction': {'npc': 'tea-host', 'value': value}})
+        self.assertEqual(result.status_code, 200, result.json)
+
     def test_validation_blocks_bad_content(self):
         bad = []
         c = content(); c['beginner'][0]['objectives'][0]['on'] = 'teleport'; bad.append(c)
