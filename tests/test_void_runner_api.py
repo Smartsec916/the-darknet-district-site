@@ -51,6 +51,26 @@ class ApiTests(unittest.TestCase):
         self.stripe=SimpleNamespace(checkout=SimpleNamespace(Session=SimpleNamespace(retrieve=lambda *a,**k:copy.deepcopy(self.session))))
         self.db.collection('vr_checkouts').document('abc').set({'uid':'pilot','price':'price_example','item':'wraith','amount':499,'currency':'usd','live':False})
     def tearDown(self): self.services.stop();self.tx.stop()
+    def test_companion_voice_requires_developer_and_uses_v4(self):
+        route='/api/void-runner/developer/companion-voice'
+        body={'voiceId':'abcdefghij1234567890','text':'[excited] Hello!'}
+        with patch.dict(os.environ, {'VOID_ADMIN_UIDS':'other','ELEVENLABS_API_KEY':'test-key'}):
+            self.assertEqual(self.client.post(route,json=body).status_code,401)
+            self.assertEqual(self.client.post(route,headers=self.header,json=body).status_code,403)
+        with patch.dict(os.environ, {'VOID_ADMIN_UIDS':'pilot','ELEVENLABS_API_KEY':''}):
+            self.assertEqual(self.client.post(route,headers=self.header,json=body).status_code,503)
+            self.assertEqual(self.client.post(route,headers=self.header,json={**body,'voiceId':'../bad'}).status_code,400)
+        with patch.dict(os.environ, {'VOID_ADMIN_UIDS':'pilot','ELEVENLABS_API_KEY':'test-key'}), patch('urllib.request.urlopen') as fetch:
+            response=fetch.return_value.__enter__.return_value
+            response.read.return_value=b'ID3'
+            response.headers.get_content_type.return_value='audio/mpeg'
+            result=self.client.post(route,headers=self.header,json=body)
+            self.assertEqual(result.status_code,200)
+            self.assertEqual(result.json['audio'],'SUQz')
+            req=fetch.call_args.args[0]
+            self.assertEqual(json.loads(req.data),{'text':body['text'],'model_id':'eleven_v4'})
+            self.assertNotIn('test-key',result.get_data(as_text=True))
+
     def test_missing_and_invalid_login_rejected(self):
         self.assertEqual(self.client.get('/api/void-runner/account').status_code,401)
         self.assertEqual(self.client.get('/api/void-runner/account',headers={'Authorization':'Bearer forged'}).status_code,401)

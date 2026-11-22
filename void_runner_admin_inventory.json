@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "5486b940761b50a1",
+  "revision": "7184735292fa45a4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -78569,56 +78569,86 @@
     },
     {
       "source": "void-runner/vr-companion-studio.js",
-      "line": 222,
-      "text": "const name=el('input');name.placeholder='Companion name';name.maxLength=40;const sex=el('select');sex.append(new Option('Female','female'),new Option('Male','male'));const file=el('input');file.type='file';file.accept='.glb';const editor=el('textarea');editor.rows=12;editor.style.width='100%';const lineList=el('div'),voicePool=el('select');voicePool.append(new Option('All dialogue categories',''));for(const k of pools)voicePool.append(new Option(labels[k],k));voicePool.onchange=()=>lines();const template=()=>({about:'',personality:{initiative:.55,attention:.85},dialogue:Object.fromEntries(pools.map(k=>[k,[]]))});",
+      "line": 240,
+      "text": "let now=drafts.get(id)||d;if(!voiceBatch(now.entry).some(x=>x.text===r.text))throw Error('Dialogue changed; batch stopped.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companion-studio.js",
-      "line": 225,
-      "text": "const behaviorLabels={initiative:'Starts conversations',flirtatiousness:'Flirtatiousness',approachFrequency:'Approaches player',attention:'Attention to player',personalSpace:'Personal space (m)',walkSpeed:'Walking speed (m/s)',remarkCooldown:'Time between remarks (s)'};",
+      "line": 243,
+      "text": "const result=await D().request('developer/companion-voice',{voiceId,text:r.spoken});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companion-studio.js",
-      "line": 228,
-      "text": "function showProfile(){about.value=working.about||'';for(const [k,{input,val}] of Object.entries(behaviorInputs)){input.value=working.personality[k]??C().defaults[k];val.textContent=input.value;}words.value=(working.dialogue[dial.value]||[]).join('\\n');editor.value=JSON.stringify(working,null,2);}",
+      "line": 247,
+      "text": "now=drafts.get(id)||d;if(!voiceBatch(now.entry).some(x=>x.text===r.text)||activeUid!==uid)throw Error('Dialogue or account changed; batch stopped.');",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companion-studio.js",
-      "line": 229,
-      "text": "about.oninput=syncProfile;dial.onchange=()=>{words.value=(working.dialogue[dial.value]||[]).join('\\n');};words.oninput=()=>{working.dialogue[dial.value]=words.value.split('\\n').map(x=>x.trim()).filter(Boolean);syncProfile();};",
+      "line": 249,
+      "text": "const updated={...now,voices:{...now.voices,[V().keyOf(id,r.text)]:V().record({...p,who:id,text:r.text})},voiceGeneration:{voiceId,tags:{...now.voiceGeneration?.tags,[r.text]:r.tag}}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companion-studio.js",
-      "line": 230,
-      "text": "function load(){selected=choose.value;const e=drafts.get(selected)?.entry||C().get(selected);d=e?(drafts.get(e.id)||{entry:{...e},voices:{}}):null;name.value=e?.name||'';sex.value=e?.sex||'female';working=e?{about:e.about||'',personality:Object.fromEntries(Object.entries(e.personality||{}).filter(([k])=>Object.hasOwn(ranges,k))),dialogue:JSON.parse(JSON.stringify(e.dialogue||{}))}:template();showProfile();file.value='';lines();}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/vr-companion-studio.js",
-      "line": 231,
-      "text": "function lines(){lineList.replaceChildren();if(!d)return;for(const [pool,items] of Object.entries(d.entry.dialogue||{})){if(voicePool.value&&voicePool.value!==pool)continue;for(const text of items){const row=el('div');row.className='companion-card';row.append(el('p',labels[pool]+' · '+text));const pick=el('input');pick.type='file';pick.accept='audio/*,.ogg,.mp3,.wav';const key=V().keyOf(d.entry.id,text),status=el('small',d.voices?.[key]?'Imported recording':'Existing recording or captions');pick.onchange=async()=>{const id=d.entry.id;try{if(!auth())throw Error('Sign in again.');if(!pick.files[0])return;const p=await V().prepare(pick.files[0]);if(!p.ok)throw Error(p.why||'Cannot decode audio.');if(!await V().store(p.hash,p.type,p.data,p.duration))throw Error('Browser storage is unavailable. Audio was not saved.');const r=V().record({...p,who:id,text}),now=drafts.get(id)||d;if(now.entry.id!==id)throw Error('The selected companion changed.');const updated={...now,voices:{...now.voices,[key]:r}};await save(updated);if(d.entry.id===id)d=updated;status.textContent='Imported recording';}catch(e){fail(e);}};row.append(field('Choose voice recording',pick),status,button('Play recording',async()=>{const r=d.voices?.[key];if(!r)throw Error('No imported recording for this line.');const data=await V().getData(r.hash,{draft:true}),url=URL.createObjectURL(new Blob([data],{type:r.type})),audio=new Audio(url);audio.onended=audio.onerror=()=>URL.revokeObjectURL(url);try{await audio.play();}catch(e){URL.revokeObjectURL(url);throw e;}}));lineList.append(row);}}if(!lineList.children.length)lineList.append(el('p','No saved lines in this category. Add some in Personality.'));}",
-      "kind": "source-reference"
-    },
-    {
-      "source": "void-runner/vr-companion-studio.js",
-      "line": 239,
-      "text": "if(!d&&!blob)throw Error('Choose a rigged GLB.');const base=d?.entry||{};const entry={...base,id,name:n,sex:sex.value,model:blob?'local-model-'+id:base.model,...p,personality:{...base.personality,...p.personality},dialogue:{...base.dialogue,...p.dialogue},voice:base.voice||{characterId:'vr-'+id,pending:true},pairable:base.pairable||false};if(blob){delete entry.file;delete entry.preview;delete entry.looks;}",
+      "line": 253,
+      "text": "boxNode.append(el('p','Eleven v4 · Tags affect audio only; subtitles and dialogue IDs stay unchanged. Each completed recording is saved immediately.'),field('ElevenLabs voice ID or link',voice),button('Generate missing recordings',()=>run(rows,false)),button('Generate all recordings (replace existing)',()=>run(rows,true)),progress,el('p','Expand a line to edit its delivery or generate it separately.'),list);",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companion-studio.js",
       "line": 259,
+      "text": "const name=el('input');name.placeholder='Companion name';name.maxLength=40;const sex=el('select');sex.append(new Option('Female','female'),new Option('Male','male'));const file=el('input');file.type='file';file.accept='.glb';const editor=el('textarea');editor.rows=12;editor.style.width='100%';const lineList=el('div'),voicePool=el('select');voicePool.append(new Option('All dialogue categories',''));for(const k of pools)voicePool.append(new Option(labels[k],k));voicePool.onchange=()=>lines();const template=()=>({about:'',personality:{initiative:.55,attention:.85},dialogue:Object.fromEntries(pools.map(k=>[k,[]]))});",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 262,
+      "text": "const behaviorLabels={initiative:'Starts conversations',flirtatiousness:'Flirtatiousness',approachFrequency:'Approaches player',attention:'Attention to player',personalSpace:'Personal space (m)',walkSpeed:'Walking speed (m/s)',remarkCooldown:'Time between remarks (s)'};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 265,
+      "text": "function showProfile(){about.value=working.about||'';for(const [k,{input,val}] of Object.entries(behaviorInputs)){input.value=working.personality[k]??C().defaults[k];val.textContent=input.value;}words.value=(working.dialogue[dial.value]||[]).join('\\n');editor.value=JSON.stringify(working,null,2);}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 266,
+      "text": "about.oninput=syncProfile;dial.onchange=()=>{words.value=(working.dialogue[dial.value]||[]).join('\\n');};words.oninput=()=>{working.dialogue[dial.value]=words.value.split('\\n').map(x=>x.trim()).filter(Boolean);syncProfile();};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 267,
+      "text": "function load(){selected=choose.value;const e=drafts.get(selected)?.entry||C().get(selected);d=e?(drafts.get(e.id)||{entry:{...e},voices:{}}):null;name.value=e?.name||'';sex.value=e?.sex||'female';working=e?{about:e.about||'',personality:Object.fromEntries(Object.entries(e.personality||{}).filter(([k])=>Object.hasOwn(ranges,k))),dialogue:JSON.parse(JSON.stringify(e.dialogue||{}))}:template();showProfile();file.value='';lines();}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 268,
+      "text": "function lines(){lineList.replaceChildren();if(!d)return;for(const [pool,items] of Object.entries(d.entry.dialogue||{})){if(voicePool.value&&voicePool.value!==pool)continue;for(const text of items){const row=el('div');row.className='companion-card';row.append(el('p',labels[pool]+' · '+text));const pick=el('input');pick.type='file';pick.accept='audio/*,.ogg,.mp3,.wav';const key=V().keyOf(d.entry.id,text),status=el('small',d.voices?.[key]?'Imported recording':'Existing recording or captions');pick.onchange=async()=>{const id=d.entry.id;try{if(!auth())throw Error('Sign in again.');if(!pick.files[0])return;const p=await V().prepare(pick.files[0]);if(!p.ok)throw Error(p.why||'Cannot decode audio.');if(!await V().store(p.hash,p.type,p.data,p.duration))throw Error('Browser storage is unavailable. Audio was not saved.');const r=V().record({...p,who:id,text}),now=drafts.get(id)||d;if(now.entry.id!==id)throw Error('The selected companion changed.');const updated={...now,voices:{...now.voices,[key]:r}};await save(updated);if(d.entry.id===id)d=updated;status.textContent='Imported recording';}catch(e){fail(e);}};row.append(field('Choose voice recording',pick),status,button('Play recording',async()=>{const r=d.voices?.[key];if(!r)throw Error('No imported recording for this line.');const data=await V().getData(r.hash,{draft:true}),url=URL.createObjectURL(new Blob([data],{type:r.type})),audio=new Audio(url);audio.onended=audio.onerror=()=>URL.revokeObjectURL(url);try{await audio.play();}catch(e){URL.revokeObjectURL(url);throw e;}}));lineList.append(row);}}if(!lineList.children.length)lineList.append(el('p','No saved lines in this category. Add some in Personality.'));}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 276,
+      "text": "if(!d&&!blob)throw Error('Choose a rigged GLB.');const base=d?.entry||{};const entry={...base,id,name:n,sex:sex.value,model:blob?'local-model-'+id:base.model,...p,personality:{...base.personality,...p.personality},dialogue:{...base.dialogue,...p.dialogue},voice:base.voice||{characterId:'vr-'+id,pending:true},pairable:base.pairable||false};if(blob){delete entry.file;delete entry.preview;delete entry.looks;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/vr-companion-studio.js",
+      "line": 296,
       "text": "if(section==='personality'){if(!d){stage.append(el('p','First create or choose a companion in Model.'));return;}const preset=el('select');for(const [id,p] of Object.entries(personalityPresets))preset.append(new Option(p[0],id));const templateBox=box('Quick start — personality & dialogue');templateBox.append(field('Personality template',preset),el('p','Fill all 25 categories with starter lines and adjust the behavior sliders. Existing dialogue and description are kept unless you choose Replace. Nothing is saved until you press Save Companion.'),button('Apply template / fill empty categories',()=>{working=presetProfile(preset.value,working);showProfile();msg.textContent='Template applied. Edit any slider or dialogue category, then save.';}),button('Replace all with template',()=>{if(!root.confirm('Replace the current description, sliders and all dialogue? Existing recordings will only match unchanged lines.'))return;working=presetProfile(preset.value,working,true);showProfile();msg.textContent='Template replaced. Edit and save when ready.';}));const copy=button('Copy prompt for ChatGPT',()=>navigator.clipboard.writeText('Create a personality and dialogue for the original adult VR companion '+name.value+' in NeoChinatown. Return only JSON matching the template. Fill every listed dialogue pool with 3–5 short non-explicit lines. Respect declined invitations. Use these behavior ranges: '+JSON.stringify(ranges)+'\\n'+JSON.stringify({...working,dialogue:Object.fromEntries(pools.map(k=>[k,working.dialogue[k]||[]]))},null,2)));const adv=el('details');adv.append(el('summary','Paste ChatGPT personality JSON'),copy,editor,button('Apply pasted personality',()=>{const p=profile(JSON.parse(editor.value));working={about:p.about||working.about,personality:{...working.personality,...p.personality},dialogue:{...working.dialogue,...p.dialogue}};showProfile();msg.textContent='Personality loaded. Press Save Companion.';}));stage.append(templateBox,field('Personality description',about),sliders,field('Dialogue category',dial),field('What they say (one line per row)',words),adv,saveButton);}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/vr-companion-studio.js",
-      "line": 260,
-      "text": "if(section==='voice'){stage.append(el('p','Save the dialogue first. Download recorded lines from ElevenLabs, then choose their files here.'));if(d){const bulk=box('Bulk voice import'),files=el('input');files.type='file';files.multiple=true;files.accept='audio/*,.ogg,.mp3,.wav';const batch=voiceBatch(d.entry);bulk.append(el('p','Download the numbered recording list. Name each recording with its exact line ID (for example line-001-greet-ab12cd34.mp3). Select multiple recordings to match them by filename. Unmatched files are skipped. Existing recordings are kept.'),button('Download numbered dialogue list',()=>download(new Blob([batch.map(r=>r.id+'\\t'+r.text).join('\\n')],{type:'text/plain'}),'companion-voice-list.txt')),field('Choose multiple recordings',files),button('Import matched recordings',async()=>{if(!auth())throw Error('Sign in again.');const id=d.entry.id,uid=activeUid,byId=new Map(batch.map(r=>[r.id,r])),voices={...d.voices};let imported=0,skipped=0;for(const f of Array.from(files.files)){const r=byId.get(f.name.replace(/\\.[^.]+$/,'').toLowerCase());if(!r||voices[V().keyOf(id,r.text)]){skipped++;continue;}const p=await V().prepare(f);if(!p.ok||!await V().store(p.hash,p.type,p.data,p.duration)){skipped++;continue;}voices[V().keyOf(id,r.text)]=V().record({...p,who:id,text:r.text});imported++;}if(d.entry.id!==id||!auth()||activeUid!==uid)throw Error('Account or companion changed.');if(imported){d={...d,voices};await save(d);lines();}msg.textContent=imported+' recordings imported, '+skipped+' skipped.';}));stage.append(bulk);}stage.append(field('Filter dialogue',voicePool),lineList);}",
+      "line": 297,
+      "text": "if(section==='voice'){stage.append(el('p','Save the dialogue first. Download recorded lines from ElevenLabs, then choose their files here.'));if(d){const bulk=box('Bulk voice import'),files=el('input');files.type='file';files.multiple=true;files.accept='audio/*,.ogg,.mp3,.wav';const batch=voiceBatch(d.entry);bulk.append(el('p','Download the numbered recording list. Name each recording with its exact line ID (for example line-001-greet-ab12cd34.mp3). Select multiple recordings to match them by filename. Unmatched files are skipped. Existing recordings are kept.'),button('Download numbered dialogue list',()=>download(new Blob([batch.map(r=>r.id+'\\t'+r.text).join('\\n')],{type:'text/plain'}),'companion-voice-list.txt')),field('Choose multiple recordings',files),button('Import matched recordings',async()=>{if(!auth())throw Error('Sign in again.');const id=d.entry.id,uid=activeUid,byId=new Map(batch.map(r=>[r.id,r])),voices={...d.voices};let imported=0,skipped=0;for(const f of Array.from(files.files)){const r=byId.get(f.name.replace(/\\.[^.]+$/,'').toLowerCase());if(!r||voices[V().keyOf(id,r.text)]){skipped++;continue;}const p=await V().prepare(f);if(!p.ok||!await V().store(p.hash,p.type,p.data,p.duration)){skipped++;continue;}voices[V().keyOf(id,r.text)]=V().record({...p,who:id,text:r.text});imported++;}if(d.entry.id!==id||!auth()||activeUid!==uid)throw Error('Account or companion changed.');if(imported){d={...d,voices};await save(d);lines();}msg.textContent=imported+' recordings imported, '+skipped+' skipped.';}));stage.append(elevenBatch(d,button,box,updated=>{if(d?.entry.id===updated.entry.id){d=updated;lines();}}),bulk);}stage.append(field('Filter dialogue',voicePool),lineList);}",
       "kind": "source-reference"
     },
     {
@@ -79321,7 +79351,7 @@
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "3c25f546a54ecabd9d4703a0e97d057af5391522b180206c1fd673be19614e35",
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
-    "void-runner/companion-mobile.js": "0607edc843a41e3e534738784388377ea275406b844c2a5b93aa356035408c2f",
+    "void-runner/companion-mobile.js": "856f937d8e3613e6d6479cbedaf72199e2896c3acbfca4fdcfc91aeb529345c8",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
@@ -79541,7 +79571,7 @@
     "void-runner/voice-imports.js": "311d70382c55def40136fedcbf478618d6e1e9c0df28e62fd8bfd21cb8d88592",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
-    "void-runner/vr-companion-studio.js": "fb6cb3f75c96c7d148614d81b602425eb4ca8e1305a38e190638fb3f22b41c46",
+    "void-runner/vr-companion-studio.js": "6d1ea2a44e3e7be924f8744883f90ea4b37dbaca6e42900e59cce6ff49563aee",
     "void-runner/vr-companions.js": "c0e5a16e373511d0d5c13fb3df39d9a9a42d29e45f251366c1893bdb21ba333f",
     "void-runner/vr-core.js": "a8a8a8d42d85ae2f2e41145ec07d5729ec185c92a63bacc2fff6dabf24985408",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
