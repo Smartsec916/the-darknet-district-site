@@ -40,6 +40,17 @@ function roomDialogueStep(room,previous,{inside,npcPresent,audible,blocked,now})
  const index=state.index[pool]||0;state.last[pool]=now;state.index[pool]=index+1;
  return {state,line:lines[index%lines.length],pool};
 }
+// Use the walking scene's collision solids, including its live open-door state.
+function clearRoomLine(a,b,solids){
+ if(!Array.isArray(solids)||!a||!b)return false;
+ for(const s of solids){if(!s||s.open||!Array.isArray(s.position)||!Array.isArray(s.size))continue;
+  let lo=0,hi=1;
+  for(let axis=0;axis<3;axis++){const d=b[axis]-a[axis],min=s.position[axis]-s.size[axis]/2,max=s.position[axis]+s.size[axis]/2;
+   if(Math.abs(d)<1e-9){if(a[axis]<min||a[axis]>max){lo=2;break;}continue;}
+   const t=(min-a[axis])/d,u=(max-a[axis])/d;lo=Math.max(lo,Math.min(t,u));hi=Math.min(hi,Math.max(t,u));if(lo>hi)break;
+  }if(lo<=hi&&hi>0&&lo<1)return false;
+ }return true;
+}
 function followStep({phase='invite',waited=0}={},input){
  const {dt=0,accepted=false,declined=false,near=false,atDestination=false,playerArrived=false,maxWait=30}=input;
  if(phase==='done'||phase==='return')return {phase,waited};
@@ -49,6 +60,6 @@ function followStep({phase='invite',waited=0}={},input){
  if(near&&!atDestination)return {phase:'lead',waited:0};
  const w=waited+Math.max(0,dt);return {phase:w>=maxWait?'return':'wait',waited:w};
 }
-const api={createDialogueCoordinator,roomVisit,roomDialogueStep,followStep};
+const api={createDialogueCoordinator,roomVisit,roomDialogueStep,clearRoomLine,followStep};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdvancedInteractions=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

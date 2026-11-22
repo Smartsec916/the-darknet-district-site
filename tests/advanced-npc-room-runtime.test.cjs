@@ -1,7 +1,8 @@
 const test=require('node:test'),assert=require('node:assert/strict');
-const {roomDialogueStep}=require('../void-runner/npc-advanced-interactions.js');
+const {roomDialogueStep,clearRoomLine}=require('../void-runner/npc-advanced-interactions.js');
 const room={enter:'Hello\nWelcome',exit:'Bye',shortVisit:'Leaving already?',longVisit:'See you',longSeconds:10,cooldown:5};
 function run(r=room){let state;return (inside,now,over={})=>{const x=roomDialogueStep(r,state,{inside,now,npcPresent:true,audible:true,blocked:false,...over});state=x.state;return x;};}
 test('entry, timing, rotation and independent cooldowns',()=>{const step=run();assert.equal(step(true,0).line,'Hello');assert.equal(step(true,100).line,null);assert.equal(step(false,2000).line,'Leaving already?');assert.equal(step(true,3000).line,null);assert.equal(step(false,4000).line,null);assert.equal(step(true,6000).line,'Welcome');assert.equal(step(false,17000).line,'See you');});
 test('no speech through walls, absent NPCs or blocked dialogue, and no stale replay',()=>{const step=run();assert.equal(step(true,0,{audible:false}).line,null);assert.equal(step(true,100).line,null);assert.equal(step(false,200,{npcPresent:false}).line,null);assert.equal(step(true,300,{blocked:true}).line,null);assert.equal(step(true,400).line,null);});
 test('generic departure fallback and independent players',()=>{const a=run({enter:'Hi',exit:'Bye',cooldown:5}),b=run();assert.equal(a(true,0).line,'Hi');assert.equal(b(true,0).line,'Hello');assert.equal(a(false,10).line,'Bye');});
+test('walking collision solids block dialogue across walls and closed doors but not open doors',()=>{const wall={position:[2,1,0],size:[.2,2,2]},a=[0,1,0],b=[4,1,0];assert.equal(clearRoomLine(a,b,[wall]),false);assert.equal(clearRoomLine(a,b,[{...wall,open:true}]),true);assert.equal(clearRoomLine(a,b,[{...wall,position:[2,1,5]}]),true);assert.equal(clearRoomLine(a,b,null),false);});
