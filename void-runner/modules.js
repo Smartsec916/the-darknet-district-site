@@ -99,7 +99,7 @@
  const MJ_STOOLS=MJ_TABLES.flatMap(([id,x0,x1,z0,z1])=>{const xc=(x0+x1)/2,zc=(z0+z1)/2,hs=(x1-x0)/2;return [['s',0,-1],['n',0,1],['w',-1,0],['e',1,0]].map(([k,sx,sz])=>{const seat=MJ_SEATED[id].includes(k),d=hs+(seat?MJ_OUT:.3);
   return {id:id+'-'+k,x:+(xc+sx*d).toFixed(3),z:+(zc+sz*d).toFixed(3),yaw:+Math.atan2(-sx,-sz).toFixed(4),seat};});});
  // the sleeping room's cots (module-build.js flophouse): sitting on the mattress, back to the wall, facing the aisle; one steps in from the aisle
- const COT_LAYOUT=[[-1,-1],[-1,1],[1,-1],[1,1]].map(([sx,sz],k)=>{const za=sz>0?.18:-2.78,zb=sz>0?2.78:-.18,zc=(za+zb)/2,cx=sx*2.28;return {id:'cot-'+(k+1),curtain:'curtain-'+(k+1),sx,sz,za,zb,zc,cx,width:1.08,depth:2.16,xi:sx*.92,open:k===1};});
+ const COT_LAYOUT=[[-1,-1],[-1,1],[1,-1],[1,1]].map(([sx,sz],k)=>{const za=sz>0?.18:-2.78,zb=sz>0?2.78:-.18,zc=(za+zb)/2,cx=sx*2.28;return {id:'cot-'+(k+1),curtain:'curtain-'+(k+1),sx,sz,za,zb,zc,cx,width:1.08,depth:2.16,xi:sx*.92,open:k===1||k===2};});
  const COTS=COT_LAYOUT.map(c=>[c.id,c.cx,c.zc,c.sx>0?-PI/2:PI/2,.54,['knees','cross'],[c.sx*1.22,c.zc]]);
  VAR('pawn-back',{style:'back',name:'Pawn shop back room',note:'A broker’s back room: a padlocked storage cage of tagged goods, the buying counter behind a steel grille with an item scanner, an appraisal desk, a safe.',
   objects:[O('counter','SELL ITEMS','the buying counter (sell items)'),O('scanner','ITEM SCANNER','the item scanner'),O('cage','STORAGE CAGE','the storage cage'),O('computer','APPRAISAL TERMINAL','the appraisal terminal'),O('safe','SAFE','the safe'),LIGHTS],

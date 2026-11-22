@@ -51,6 +51,7 @@ test('all four sleeping room curtains are individually interactive and walkable 
  const m=U.MODS.find(m=>m.type==='flophouse'),L=N.layout('street','underground');
  const curtains=L.interactions.filter(i=>i.action==='under-curtain');
  assert.equal(curtains.length,4);
+ assert.deepEqual(M.COT_LAYOUT.filter(c=>c.open).map(c=>c.sx).sort(),[-1,1],'one curtain open by default on each side');
  for(const c of M.COT_LAYOUT){
   assert.ok(c.width>=1&&c.depth>=2);
   assert.ok(curtains.some(i=>i.mod===m.id&&i.curtain===c.curtain));
