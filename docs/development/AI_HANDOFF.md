@@ -1,5 +1,10 @@
 # The Darknet District — current AI handoff
 
+## 22 Nov 2026 — PR #419 animation recovery
+
+- Recovered the explicit native seated wave and preview clip-count/button fix on current main without reverting the newer underground seating or placement rules. Both models retain 16 original clips plus the newer floor-pose entries. The client and API require a compatible chair-pose seat for the new action.
+- The original draft #419 remains incomplete: independent scene placement and lifecycle integration needs separate geometry and gameplay checks using eligible NPCs. Do not merge the stale branch as-is. No player saves or published configurations are modified by this increment.
+
 ## 22 Nov 2026 — Underground sleeping room
 
 - The four cots behind the tea room share their geometry, collision and seat positions in `modules.js` (`COT_LAYOUT`). Each is 1.08 × 2.16 m with a clear approach; lockers are beneath the mattresses, not in the aisle.

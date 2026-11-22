@@ -1811,6 +1811,7 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-wave",
           "sit-kneel",
           "sit-cross",
           "sit-knees",
@@ -2482,6 +2483,7 @@
           "dance-groove",
           "dance-bop",
           "sit",
+          "sit-wave",
           "sit-kneel",
           "sit-cross",
           "sit-knees",
@@ -58866,7 +58868,7 @@
       "spawn"
     ]
   },
-  "revision": "436de170ccce8f2a",
+  "revision": "5833f7edafc58ea3",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -77021,13 +77023,13 @@
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 132,
+      "line": 133,
       "text": "/* Models whose licence says No AI (docs/VOID_RUNNER_ASSET_LICENSES.md): an animation request for them is a local retarget only (Blender, tools/animation-pipeline), never Meshy or any AI tool. */",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/npc-paths.js",
-      "line": 282,
+      "line": 283,
       "text": "keep their real-time street shift (12 hours UTC each, ncz-street-pair.js): a schedule says what she does while she is out, never when she is out. */",
       "kind": "source-reference"
     },
@@ -79539,7 +79541,7 @@
     "void-runner/ncz-quarters.js": "add265e7bd1863d86370b8b41fd2b01504793365c0c2cd6b6bb9b85d5f66d8ac",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
-    "void-runner/ncz-street-pair.js": "12095d2cd7e9989e31a8547a65f1718f124d45d2f4e2f66c0ee218468646bd42",
+    "void-runner/ncz-street-pair.js": "e47de380a808ad27dd354e8defffba63806723d98bcd79b63087ec2fbcf1ab51",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
     "void-runner/neochinatown.js": "6dbd1c0b043a9dc8dacc7ad0ac01a3fc1e37d5ddb226d2f7d2541ed54db2a1d1",
@@ -79548,7 +79550,7 @@
     "void-runner/npc-areas.js": "6f142131557c7fed6e9866ba807813bec00afcb1593447a4c17e67a329b5077b",
     "void-runner/npc-behaviour.js": "8145de3c2ec74f87fa8f831c89a1b3d51699c0e65bfd3d78fd051f48aa0726a9",
     "void-runner/npc-device.js": "85d27c373ea77fe3e150fb5d8999b1e90bdfad649856ed14470f61e5a232f263",
-    "void-runner/npc-editor.js": "cf328963afe16f9e5393207e19e5bbd24f80a865fb272803c42a4343cbe4017e",
+    "void-runner/npc-editor.js": "698be160d5cd034582af2817fdc910a6929426bba85d68f2ba398f6be93d5f30",
     "void-runner/npc-escort-across.js": "b4ccb220195c5808006ac890a8f5caa40f761f69e455fe14606405709ee2b2e4",
     "void-runner/npc-escort-indoors.js": "822721e1aa6390e8746040b3c7956dde5d8228da9c7b6507564ac4ce0f279939",
     "void-runner/npc-escort.js": "0bcf5c4f33f9188c6b804c72ac08c0fbaa4d5c180bda42f01ada12cef42508db",
@@ -79557,7 +79559,7 @@
     "void-runner/npc-looks.js": "76e24adff7da130d5583af58fc328940077f6bba353554431d356776af993516",
     "void-runner/npc-made.js": "13c2fba01f0a1e4a7040f2037c9f956beae2cae0dbb379407cf55a518fb0f53a",
     "void-runner/npc-map.js": "85e62565750f65cd3cb15121db81a81fedf936fef3e01027c56042a52b136f1c",
-    "void-runner/npc-paths.js": "915849f6ef714dafef2c102067e4116293c63b63f03d30e0a90541614cce504f",
+    "void-runner/npc-paths.js": "91cf24548451edf4a53cee4b8c6dcb693ecd58060dbf9cddf1391e792af465b4",
     "void-runner/npc-preview.js": "44843f5aba7f418c537d35682d359de8a2105f1186ab8b4177ff6313444f5c47",
     "void-runner/npc-variants.js": "054bedcbc07dad892b2ac066424104a3473a96a627a901357523d34cde93433e",
     "void-runner/npc-voices.js": "a4c180a85131a3e4080cc9a2b10f835fdece72a9e01443ad40a12c423c3324b3",
