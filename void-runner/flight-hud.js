@@ -27,4 +27,30 @@ function drawFlightHud(){
  ctx.textAlign='right';ctx.fillText('MSL '+missileState.missilesLoaded,right,cy-13);
  if(missileLock.target){ctx.fillText('RNG '+data.range.toFixed(0)+'u',right,cy+3);if(!small)ctx.fillText('CLS '+data.closing.toFixed(1)+'u/s',right,cy+19);}
  ctx.restore();
+ drawInterdictionWarning();
+}
+
+/* Brief one-shot route-backed warning; never obstruct the ensuing fight. */
+let interdictionAlertRoute=null,interdictionAlertState=null,interdictionAlertStart=0,interdictionAlertKind=null;
+function drawInterdictionWarning(){
+ const r=flight.route;
+ const now=performance.now();
+ const status=r?.policy?.interdiction&&r.encounter?.type==='combat'?r.encounter.state:null;
+ if(interdictionAlertRoute!==r){interdictionAlertRoute=r;interdictionAlertState=null;interdictionAlertKind=null;}
+ const active=status==='active'&&r.phase==='encounter';
+ if(active&&interdictionAlertState!=='active'){interdictionAlertKind='active';interdictionAlertStart=now;}
+ else if(status==='cleared'&&interdictionAlertState==='active'){interdictionAlertKind='cleared';interdictionAlertStart=now;}
+ else if(!active&&status!=='cleared')interdictionAlertKind=null;
+ interdictionAlertState=active?'active':status==='cleared'?'cleared':null;
+ const age=now-interdictionAlertStart;
+ if(!interdictionAlertKind||age>=3000)return;
+ const cleared=interdictionAlertKind==='cleared',accent=cleared?'#70f5a7':'#ff686e';
+ const cx=W*.5,y=H*(W<650?.145:.112),half=Math.min(W*.34,155),h=34;
+ ctx.save();ctx.globalAlpha=age<2500?1:Math.max(0,(3000-age)/500);ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=1;
+ ctx.fillStyle=cleared?'rgba(8,24,15,.88)':'rgba(24,8,13,.88)';ctx.strokeStyle=accent;
+ ctx.beginPath();ctx.moveTo(cx-half,y-h/2);ctx.lineTo(cx+half-10,y-h/2);ctx.lineTo(cx+half,y-h/2+10);ctx.lineTo(cx+half,y+h/2);ctx.lineTo(cx-half+10,y+h/2);ctx.lineTo(cx-half,y+h/2-10);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle=accent;ctx.fillRect(cx-half+5,y-8,3,16);ctx.fillRect(cx+half-8,y-8,3,16);
+ ctx.font='bold 14px Consolas';ctx.fillText(cleared?'INTERDICTION CLEAR':'INTERDICTED',cx,y-6);
+ ctx.font='10px Consolas';ctx.fillText(cleared?'WARP DRIVE AVAILABLE':'WARP DRIVE DISRUPTED',cx,y+8);
+ ctx.restore();
 }

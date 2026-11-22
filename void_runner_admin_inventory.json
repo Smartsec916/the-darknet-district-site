@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "dd238928d8384787",
+  "revision": "436de170ccce8f2a",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79456,7 +79456,7 @@
     "void-runner/factions.js": "f7328ffb89f28c2579613d502da7c7572491f3b26d3f1511e1cd0781680c568e",
     "void-runner/fleet.js": "3ad8d092775422ff63a7e7096df2e5211f9b3ffa01e7303fc78a3b31f083fe0b",
     "void-runner/flight-fx.js": "a39f921f115b6e0ec2830ed4a4b4dd150428654b6d5022b4ecadcfcd56bd8b97",
-    "void-runner/flight-hud.js": "8db3c456786143c5b8a56caf33157554878db29d4cd0879bab45516c3cf8b5e9",
+    "void-runner/flight-hud.js": "aaa74c9d9960fd6267d0c081d247b9cc875a122f40ad553752ad3940ff9f189a",
     "void-runner/flight-nav.js": "b3fbdc7ca65e89f5b3edcb1ffa9ff57edaa0632e9391d53bc49f3f60412e23fc",
     "void-runner/flight-physics.js": "b996699897bb5197930c37c4e397b701b0b1ee028f9b00d474137b7e4a40a40c",
     "void-runner/flight-presentation.js": "5c7772fdbf1e4dff9539c8ac30fbb3220f0cc3964751457003a323089d1609d2",
