@@ -24,3 +24,10 @@ Next: add persistent schema and mirrored validation in mission-content.js and vo
 ## Crowd checkpoint
 - NeoChinatown ambient walker targets 12/28/44 -> 8/20/31 (Low/Medium/High), standers and diners also reduced roughly 30%; cook/vendor configuration unchanged. NULL ambient count reduced by one per preset (6/9/10 total; named NPCs and staff retained). Syntax checks passed; regression testing pending, including monk counts and nightclub cast assertions.
 - Add NPC Tier selector in editor and independent configurable Tier 1 density by area. Tier 2 and 3 must never be hidden or culled merely because of graphics quality or crowd-budget governor; preserve normal off-screen/unloaded-area optimizations and schedule state. No changes deployed yet.
+
+## Owner-approved execution order (22 Nov)
+1. Finish Advanced NPC interaction editor, timing, room triggers, dialogue branches, follow/return and arrival actions; Eleven v4 controls and linked group conversations. Test and checkpoint.
+2. Finish companion residence/relationship visit support, cross-area Tier 2/3 itineraries, explicit tier selector and protected visibility; verify Iris remote calls do not interrupt unrelated local social interactions. Complete crowd-density changes and regression checks.
+3. Tier 3 awareness and configurable reactions, compatible animation assignment; staged player hand-to-hand combat beginning in underground fighting ring, first-person arms only in combat, rounds and server-validated credit rewards. Preserve exploration and missions.
+4. Underground entrance audit: Avenue, Old Town/NULL and Far South, both directions; clear visual and collision obstructions at door, stair and landing, improve localized lighting and obvious route to main tunnel; retain security and ambience. Verify actual walks and existing mission/escort routes.
+Keep separate commits, update this handoff at each completed stage, and do not claim deployment until verified. The current checkpoint is not a complete implementation.
