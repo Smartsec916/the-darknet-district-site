@@ -97,21 +97,42 @@ def interaction_pool_ok(text):
     return 0 < len(lines) <= 100 and all(_plain(line, 500) for line in lines)
 
 
-def interaction_problems(table, givers=None):
+ROOM_DIALOGUE_POOLS = ('enter', 'exit', 'shortVisit', 'longVisit')
+
+
+def advanced_room_ok(advanced):
+    if not _keys(advanced, ['room']):
+        return False
+    room = advanced.get('room')
+    if (not _keys(room, ['id', 'cooldown', 'longSeconds', *ROOM_DIALOGUE_POOLS])
+            or not isinstance(room.get('id'), str) or not ID.fullmatch(room['id'])
+            or type(room.get('cooldown')) is not int or not 5 <= room['cooldown'] <= 600):
+        return False
+    pools = [k for k in ROOM_DIALOGUE_POOLS if k in room]
+    if not pools or any(not interaction_pool_ok(room[k]) for k in pools):
+        return False
+    timed = 'shortVisit' in pools or 'longVisit' in pools
+    return (type(room.get('longSeconds')) is int and 5 <= room['longSeconds'] <= 600) if timed else 'longSeconds' not in room
+
+
+def interaction_problems(table, givers=None, places=None):
     if not isinstance(table, dict) or len(table) > 100:
         return ['Invalid NPC interactions.']
     errors = []
     for npc, r in table.items():
         if (not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', npc) or (givers is not None and not (givers.get(npc) or {}).get('canTalk'))
-                or not _keys(r, ['near', 'talk', 'distance', 'cooldown', 'choice', 'reply', 'clips'])
-                or not (r.get('near') or r.get('talk'))
+                or not _keys(r, ['near', 'talk', 'distance', 'cooldown', 'choice', 'reply', 'clips', 'advanced'])
+                or ('advanced' in r and (not advanced_room_ok(r['advanced']) or (places is not None and r['advanced']['room']['id'] not in places)))
+                or not (r.get('near') or r.get('talk') or r.get('advanced'))
                 or any(k in r and r[k] is not None and not (_plain(r[k], 60) if k == 'choice' else interaction_pool_ok(r[k])) for k in ('near', 'talk', 'choice', 'reply'))
                 or type(r.get('distance')) not in (int, float) or not 1 <= r['distance'] <= 8
                 or type(r.get('cooldown')) is not int or not 5 <= r['cooldown'] <= 600
                 or bool(r.get('choice')) != bool(r.get('reply')) or (r.get('choice') and not r.get('talk'))):
             errors.append('Invalid interaction for ' + npc + '.')
         elif 'clips' in r:
-            lines = {line.strip() for k in ('near', 'talk', 'reply') for line in (r.get(k) or '').splitlines() if line.strip()}
+            room = r.get('advanced', {}).get('room', {})
+            pools = [r.get(k) for k in ('near', 'talk', 'reply')] + [room.get(k) for k in ROOM_DIALOGUE_POOLS]
+            lines = {line.strip() for text in pools for line in (text or '').splitlines() if line.strip()}
             if clip_problems(r['clips']) or any(c['who'] != npc or c['text'] not in lines for c in r['clips']):
                 errors.append('Invalid interaction audio for ' + npc + '.')
     return errors
@@ -130,7 +151,8 @@ def check(content, inv=None):
             err(p)
         inv = with_made(content.get('characters'), inv)
     if content.get('interactions') is not None:
-        errors.extend(interaction_problems(content['interactions'], (inv or _json('void_runner_admin_inventory.json'))['missionEditor']['givers']))
+        interaction_index = (inv or _json('void_runner_admin_inventory.json'))['missionEditor']
+        errors.extend(interaction_problems(content['interactions'], interaction_index['givers'], set(interaction_index['places'])))
     if content.get('zones') is not None:
         for p in zone_table_problems(content['zones'], inv or _json('void_runner_admin_inventory.json')):
             err(p)
