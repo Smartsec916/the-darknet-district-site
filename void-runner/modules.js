@@ -99,7 +99,8 @@
  const MJ_STOOLS=MJ_TABLES.flatMap(([id,x0,x1,z0,z1])=>{const xc=(x0+x1)/2,zc=(z0+z1)/2,hs=(x1-x0)/2;return [['s',0,-1],['n',0,1],['w',-1,0],['e',1,0]].map(([k,sx,sz])=>{const seat=MJ_SEATED[id].includes(k),d=hs+(seat?MJ_OUT:.3);
   return {id:id+'-'+k,x:+(xc+sx*d).toFixed(3),z:+(zc+sz*d).toFixed(3),yaw:+Math.atan2(-sx,-sz).toFixed(4),seat};});});
  // the sleeping room's cots (module-build.js flophouse): sitting on the mattress, back to the wall, facing the aisle; one steps in from the aisle
- const COTS=[[-1,-1],[-1,1],[1,-1],[1,1]].map(([sx,sz],k)=>{const za=sz>0?.35:-2.6,zb=sz>0?2.6:-.35,zc=+((za+zb)/2).toFixed(3);return ['cot-'+(k+1),+(sx*2.42).toFixed(3),zc,sx>0?-PI/2:PI/2,.44,['knees','cross'],[+(sx*.7).toFixed(3),zc]];});
+ const COT_LAYOUT=[[-1,-1],[-1,1],[1,-1],[1,1]].map(([sx,sz],k)=>{const za=sz>0?.18:-2.78,zb=sz>0?2.78:-.18,zc=(za+zb)/2,cx=sx*2.28;return {id:'cot-'+(k+1),curtain:'curtain-'+(k+1),sx,sz,za,zb,zc,cx,width:1.08,depth:2.16,xi:sx*.92,open:k===1||k===2};});
+ const COTS=COT_LAYOUT.map(c=>[c.id,c.cx,c.zc,c.sx>0?-PI/2:PI/2,.54,['knees','cross'],[c.sx*1.22,c.zc]]);
  VAR('pawn-back',{style:'back',name:'Pawn shop back room',note:'A broker’s back room: a padlocked storage cage of tagged goods, the buying counter behind a steel grille with an item scanner, an appraisal desk, a safe.',
   objects:[O('counter','SELL ITEMS','the buying counter (sell items)'),O('scanner','ITEM SCANNER','the item scanner'),O('cage','STORAGE CAGE','the storage cage'),O('computer','APPRAISAL TERMINAL','the appraisal terminal'),O('safe','SAFE','the safe'),LIGHTS],
   furn:[[-2.9,-1,1.2,2.9,2.2,'cage'],[1,2.9,2.3,2.9,1,'counter'],[2.3,2.9,.9,1.9,.9,'screens'],[-2.9,-2.45,-2.4,-.9,2,'shelf'],[1,2.6,-2.9,-2.3,.76,'desk'],[2.35,2.9,-2.2,-1.65,.72,'safe']],
@@ -231,9 +232,9 @@
   spots:[['cashier',2.25,2.3,-PI*3/4],['dealer',-1.9,-.9,PI],['door',.9,-2.3,0]],lights:[[-1.9,2.2,-.6,'#ffc890',1.7,9],[1.4,2.2,.6,'#ffb878',1.4,8]]});
  UG('flophouse',{ceil:2.8,name:'Underground sleeping room',note:'UNDERGROUND. A cheap flophouse in a tunnel chamber: four cots, each in its own nook behind cloth curtains on rails, worn blankets, a locker and a dim bulb per nook, pipes overhead. Front and back doors join tunnel pieces.',
   objects:[O('cot','COT','a cot'),O('locker','LOCKER','a locker'),O('curtain','CURTAIN','a curtain'),LIGHTS],
-  furn:[[-2.9,-1.05,-2.6,-.35,.6,'nook-sw'],[-2.9,-1.05,.35,2.6,.6,'nook-nw'],[1.05,2.9,-2.6,-.35,.6,'nook-se'],[1.05,2.9,.35,2.6,.6,'nook-ne']],
-  inter:[{id:'cot',label:'COT',pos:[-.85,.8,1.4],object:'cot',range:1.2},{id:'locker',label:'LOCKER',pos:[.85,1,-1.2],object:'locker',range:1.2},{id:'curtain',label:'CURTAIN',pos:[.85,1.3,1.6],object:'curtain',range:1.1}],
-  say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},
+  furn:COT_LAYOUT.map(c=>[c.cx-c.width/2,c.cx+c.width/2,c.zc-c.depth/2,c.zc+c.depth/2,.54,c.id]),
+  inter:COT_LAYOUT.flatMap((c,k)=>[{id:k===1?'cot':c.id,label:'COT',pos:[c.sx*1.68,.65,c.zc],object:'cot',range:1.1},{id:k===3?'curtain':c.curtain,curtain:c.curtain,label:'DRAW CURTAIN',pos:[c.xi,1.35,c.zc],object:'curtain',range:1.1},{id:k===2?'locker':'locker-'+c.id,label:'UNDER-BED LOCKER',pos:[c.sx*1.7,.25,c.zc-c.sz*.65],object:'locker',range:1.1}]),
+  say:{cot:'COT: a worn mattress, a folded blanket and a pillow.',locker:'LOCKER: a low storage box tucked beneath the bed.',curtain:'CURTAIN: heavy cloth on rings.'},
   sits:COTS,
   spots:[['keeper',0,-2.2,0]],lights:[[0,2.4,-1.2,'#ffc890',1.4,8],[0,2.4,1.4,'#ffb878',1.2,8]]});
  UG('food-stall',{w:2,d:2,ceil:2.8,sockets:'s0 n0',sw:[-1.6,'s'],name:'Underground food stall',note:'UNDERGROUND. A small food counter in a tunnel nook: a steaming wok and stock pot, a menu board of pictures (no writing), three stools at the counter, a cooler, hanging lanterns, a cook’s spot behind the counter. The aisle runs between its two doors.',
@@ -468,7 +469,7 @@
     for(const g of gaps){seg(a,g-DOOR.clear/2);a=g+DOOR.clear/2;}seg(a,along[1]);}
    for(const f of t.furn){const wb=boxWorld(p,f),q=W(wb[0],wb[2]),q2=W(wb[1],wb[3]);solids.push(box(q[0],q2[0],q[1],q2[1],id+'-'+f[5],Math.max(.4,f[4])));}
    const at=(x,y,z)=>{const w=toWorld(p,x,z),q=W(w[0],w[1]);return [q[0],y,q[1]];};
-   for(const it of t.inter)interactions.push({id:id+'-'+it.id,label:it.label,position:at(...it.pos),action:'mod-use',mod:id,object:it.object,range:it.range||1.4});
+   for(const it of t.inter)interactions.push({id:id+'-'+it.id,label:it.label,position:at(...it.pos),action:'mod-use',mod:id,object:it.object,...(it.curtain?{curtain:it.curtain}:{}),range:it.range||1.4});
    if(t.sw){const [u,e]=t.sw,pt=e==='s'?[u,-hd+WALL+.08]:e==='n'?[u,hd-WALL-.08]:e==='w'?[-hw+WALL+.08,u]:[hw-WALL-.08,u];interactions.push({id:id+'-lights',label:'LIGHTS',position:at(pt[0],1.45,pt[1]),action:'mod-use',mod:id,object:'lights',range:1.3});}
    (mm.items||[]).forEach((it,k)=>interactions.push({id:id+'-item-'+k,label:'LOOK: '+String(it.label||'item').toUpperCase().slice(0,40),position:at(it.x,Number.isFinite(it.y)?it.y+.2:1.1,it.z),action:'mod-item',mod:id,index:k,range:1.3}));
    if(t.cab){const fl=cabFloors(an).filter(f=>f!==p.floor);fl.forEach((f,k)=>interactions.push(t.stairs?{id:id+'-floor-'+f,label:'STAIRS · '+(f<p.floor?'DOWN':'UP')+' TO '+floorName(f),position:at(f<p.floor?1.05+.25*k:-1.05-.25*k,1.2,-.8),action:'mod-elev',mod:id,floor:f,range:1.3}:{id:id+'-floor-'+f,label:'ELEVATOR · FLOOR '+floorName(f),position:at(.8,1.05+.2*k,-.42),action:'mod-elev',mod:id,floor:f,range:1.2}));}   // a stairwell: down at the foot of the east flight, up at the west one
@@ -536,7 +537,7 @@
     residents (apartment-integration.js nearNpc). Never a door to the street (shut: it fades instead); a locked door stays locked (the slider ignores it). */
  const DOOR_NPC_RANGE=1.6;
  function doorWanted(rec,player,people,range=1.8,npcRange=DOOR_NPC_RANGE){if(!rec||rec.shut)return false;const near=(q,r)=>!!q&&Number.isFinite(q.x)&&Number.isFinite(q.z)&&(rec.x-q.x)**2+(rec.z-q.z)**2<r*r;return near(player,range)||(people||[]).some(q=>near(q,npcRange));}
- const api={FLOOR_POSES,MJ_STOOLS,GRID,WALL,DOOR,SPAN,doorWanted,DOOR_NPC_RANGE,FLOORS,LIMIT,ORIGIN,CATS,STYLE_NAMES,TYPES,TYPE_IDS,MOD_ID,REF,ITEM_TYPES,TEMPLATES,NORMAL,TANGENT,OPP,
+ const api={FLOOR_POSES,MJ_STOOLS,COT_LAYOUT,GRID,WALL,DOOR,SPAN,doorWanted,DOOR_NPC_RANGE,FLOORS,LIMIT,ORIGIN,CATS,STYLE_NAMES,TYPES,TYPE_IDS,MOD_ID,REF,ITEM_TYPES,TEMPLATES,NORMAL,TANGENT,OPP,
   objectsOf,bounds,place,sockLocal,sockWorld,rotP,turnEdge,toWorld,boxWorld,parseRef,analyse,doorOf,cabFloors,floorName,isLocation,problems,hackable,strip,attach,freeSpot,freeSockets,newId,addModule,removeModule,template,fromApartment,migrateMission,
   layout,lockedNow,across,clusterAtFloor,inventory};
  if(node){module.exports=api;return;}

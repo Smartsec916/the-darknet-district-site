@@ -755,13 +755,13 @@ const sh=P('shade-green',{c:'#1e3a2a',rough:.45,metal:.3});cyl(S.black,.01,Ch-2.
     for(const x of [-.6,.6])cyl(pm,.14,5.8,[x,Ch-.2,0],10,HALF);cyl(pipeM('#7a3a2a'),.08,5.8,[0,Ch-.35,0],8,HALF);box2(S.steel,-.25,.25,Ch-.5,Ch-.48,-2.9,2.9);
     // four nooks: a cot with a worn blanket and a pillow, a locker, a shelf, a dim bulb; cloth curtains on rails (one drawn open) and between the nooks
     const blanket=[clothMat('blanket0','#5a4a3a',TX.fold('#4a3e30')),clothMat('blanket1','#3a4652',TX.fold('#323c46')),clothMat('blanket2','#5a3030',TX.fold('#4a2a2a'))],cur2=clothMat('curtain-cloth','#a89070',TX.fold('#8a7456')),lk=P('locker',{c:'#4a5a5a',tex:'district-interior/kit_steel_color.jpg',tile:.8,rough:.45,metal:.7});
-    [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx,sz],k)=>{const xw=sx*2.85,xi=sx*1.05,za=sz>0?.35:-2.6,zb=sz>0?2.6:-.35,zc=(za+zb)/2,cx=sx*2.42;
-     box2(S.steel,cx-.4,cx+.4,.3,.34,za+.1,zb-.1);for(const x of [cx-.38,cx+.38])for(const z of [za+.12,zb-.12])box2(S.steel,x-.02,x+.02,0,.3,z-.02,z+.02);box2(P('mattress-w',{c:'#6a6a5e',rough:.9}),cx-.38,cx+.38,.34,.44,za+.12,zb-.12);
-     box2(blanket[k%3],cx-.4,cx+.4,.44,.48,(sz>0?za+.12:zc-.3),(sz>0?zc+.3:zb-.12));box2(P('pillow',{c:'#b8b4a4',rough:1}),cx-.25,cx+.25,.44,.54,sz>0?zb-.45:za+.15,sz>0?zb-.15:za+.45);
-     const lz=sz>0?za+.05:zb-.45;box2(lk,Math.min(sx*1.6,sx*1.15),Math.max(sx*1.6,sx*1.15),0,1.2,lz,lz+.4);box2(S.black,Math.min(sx*1.6,sx*1.15),Math.max(sx*1.6,sx*1.15),1.0,1.02,lz+.02,lz+.38);
+    M.COT_LAYOUT.forEach((c,k)=>{const {sx,sz,xi,za,zb,zc,cx,width,depth}=c,xw=sx*2.85,hx=width/2,z0=zc-depth/2,z1=zc+depth/2;
+     box2(S.steel,cx-hx,cx+hx,.34,.40,z0,z1);for(const x of [cx-hx+.05,cx+hx-.05])for(const z of [z0+.08,z1-.08])box2(S.steel,x-.02,x+.02,0,.34,z-.02,z+.02);box2(P('mattress-w',{c:'#6a6a5e',rough:.9}),cx-hx,cx+hx,.40,.54,z0,z1);
+     box2(blanket[k%3],cx-hx,cx+hx,.54,.59,sz>0?z0:zc-.45,sz>0?zc+.45:z1);box2(P('pillow',{c:'#b8b4a4',rough:1}),cx-.36,cx+.36,.54,.65,sz>0?z1-.40:z0+.08,sz>0?z1-.08:z0+.40);
+     const lz=zc-sz*.65;box2(lk,cx-.25,cx+.25,.02,.29,lz-.25,lz+.25);box2(S.black,cx-.24,cx+.24,.27,.30,lz-.24,lz+.24);
      box2(darkWood(),Math.min(xw,xw-sx*.25),Math.max(xw,xw-sx*.25),1.3,1.33,za+.3,zb-.3);for(let i=0;i<3;i++)box2(P('stuff'+(i%3),{c:['#6a3a2a','#3a4a5a','#8a8a7a'][i%3],rough:.7}),Math.min(xw,xw-sx*.2),Math.max(xw,xw-sx*.2),1.33,1.43+i*.04,za+.5+i*.4,za+.75+i*.4);
-     bulb(sx*2.1,zc,1.95,Ch,lamp);box2(S.steel,xi-.015,xi+.015,2.12,2.15,za,zb);const open=k===1;
-     if(open){plane(cur2,.5,2.0,[xi,1.1,sz>0?zb-.25:za+.25],sx>0?HALF:-HALF);}else{plane(cur2,zb-za-.05,2.0,[xi,1.1,zc],sx>0?HALF:-HALF);}
+     bulb(sx*2.1,zc,1.95,Ch,lamp);box2(S.steel,xi-.015,xi+.015,2.12,2.15,za,zb);
+     const w=zb-za-.05,mesh=plane(cur2,w,2.0,[xi,1.1,zc],sx>0?HALF:-HALF,true),ct={mesh,w,zc,sz,open:c.open,amount:c.open?1:0};(modState[mod.id].curtains??={})[c.curtain]=ct;drawCurtain(ct);
      box2(S.rubber,cx-.1,cx+.1,0,.08,sz>0?za-.1+.2:zb-.25,sz>0?za+.3:zb-.05);});
     for(const sx of [-1,1]){const xi=sx*1.05;box2(S.steel,Math.min(sx*2.9,xi),Math.max(sx*2.9,xi),2.12,2.15,-.015,.015);plane(cur2,1.8,2.0,[sx*1.97,1.1,0],0);}
     // the aisle: a worn runner, a mop bucket, a sign of house rules in pictures, stains
@@ -856,7 +856,10 @@ const sh=P('shade-green',{c:'#1e3a2a',rough:.45,metal:.3});cyl(S.black,.01,Ch-2.
   function walkers(){const out=[],add=q=>{if(q&&Number.isFinite(q.x)&&Number.isFinite(q.z))out.push({x:q.x,z:q.z});};
    try{const sp=root.VoidStreetPair?.live?.();if(sp){add(sp.her);add(sp.cat);}}catch{}try{for(const q of root.VoidMadeNPCs?.live?.()?.people||[])if(q.enabled!==false)add(q);}catch{}
    try{for(const f of root.VoidBabylon?.zone?.escortIndoors?.stats?.()||[])add(f);}catch{}try{for(const f of (typeof root.VoidModuleWalkers==='function'?root.VoidModuleWalkers():[])||[])add(f);}catch{}return out;}
+  function drawCurtain(c){c.mesh.scaling.x=1-.8*c.amount;c.mesh.position.z=c.zc+c.sz*c.w*.4*c.amount;}
+  function toggleCurtain(mod,id){const c=modState[mod]?.curtains?.[id];if(!c)return null;c.open=!c.open;return c.open;}
   function tick(time,player){const dt=Math.min(.1,Math.max(0,clock?time-clock:0));clock=time;const p=player||(typeof walker!=='undefined'?walker:null);
+   for(const st of Object.values(modState))for(const c of Object.values(st.curtains||{})){const target=c.open?1:0;if(c.amount!==target){c.amount+=Math.sign(target-c.amount)*Math.min(Math.abs(target-c.amount),dt*2.5);drawCurtain(c);}}
    if((npcT-=dt)<=0){npcT=.2;people=walkers();}   // NPCs open the doors too (modules.js doorWanted), looked up five times a second
    for(const d of doors){d.near(M.doorWanted(d.rec,p,people,d.range));d.tick(dt);const so=doorSolids.get(d.id);if(so)so.open=d.t>.62;}
    if(pool.length){poolT+=dt;if(poolT>.3){poolT=0;placePool(p);}}
@@ -864,7 +867,7 @@ const sh=P('shade-green',{c:'#1e3a2a',rough:.45,metal:.3});cyl(S.black,.01,Ch-2.
   function disposeAll(){disposed=true;for(const d of doors)try{d.dispose?.();}catch{}for(const c of containers)try{c.dispose();}catch{}for(const n of props)try{n.dispose(false,false);}catch{}rootN.dispose(false,true);for(const x of own)try{x.dispose();}catch{}
    scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;scene.environmentIntensity=prev.env;
    if(sun&&lp.sun!=null)sun.intensity=lp.sun;if(amb){if(lp.amb!=null)amb.intensity=lp.amb;if(lp.dif)amb.diffuse=lp.dif;if(lp.gnd&&amb.groundColor)amb.groundColor=lp.gnd;}}
-  return {area:'module',modular:true,cluster:C.id,tick,dispose:disposeAll,doors,lights:setLights,lightsOf:id=>lightsOn[id]!==false,get lightsOn(){return C.mods.every(m=>lightsOn[m.id]!==false);},screen:setScreen,screenOf:id=>screenOn[id]!==false,
+  return {area:'module',modular:true,cluster:C.id,tick,dispose:disposeAll,doors,toggleCurtain,lights:setLights,lightsOf:id=>lightsOn[id]!==false,get lightsOn(){return C.mods.every(m=>lightsOn[m.id]!==false);},screen:setScreen,screenOf:id=>screenOn[id]!==false,
    door:id=>doors.find(d=>d.id===id)||null,unlock(id){const d=doors.find(x=>x.id===id);if(d){d.set({locked:false});for(const ref of [d.rec.a,d.rec.b])if(apLeds[ref]){apLeds[ref].r.isVisible=false;apLeds[ref].g.isVisible=true;}}},
    accessPoint(ap,st){const ref=String(ap||'').split('/').pop(),l=apLeds[ref];if(l){l.r.isVisible=st!=='open';l.g.isVisible=st==='open';}},
    prepare:()=>Promise.race([Promise.allSettled(late),new Promise(r=>setTimeout(r,8000))]),stats:()=>({merged,doors:doors.length,lights:realLights.length,anchors:anchors.length,meshes:rootN.getChildMeshes().length+own.filter(x=>x.getClassName&&x.getClassName()==='Mesh').length,props:props.length})};}

@@ -47,6 +47,20 @@ test('the player walks it: from each stair door to every place, room doors openi
    assert.deepEqual([...hit].sort(),IDS.slice().sort(),e.id+': every place is reached on foot');}}
  finally{for(const s of opened)s.open=false;}});
 
+test('all four sleeping room curtains are individually interactive and walkable up to full-sized cots',()=>{
+ const m=U.MODS.find(m=>m.type==='flophouse'),L=N.layout('street','underground');
+ const curtains=L.interactions.filter(i=>i.action==='under-curtain');
+ assert.equal(curtains.length,4);
+ for(const id of ['cot','locker','curtain'])assert.ok(L.interactions.some(i=>i.id==='under-'+m.id+'-'+id),'legacy interaction id '+id);
+ assert.deepEqual(M.COT_LAYOUT.filter(c=>c.open).map(c=>c.sx).sort(),[-1,1],'one curtain open by default on each side');
+ for(const c of M.COT_LAYOUT){
+  assert.ok(c.width>=1&&c.depth>=2);
+  assert.ok(curtains.some(i=>i.mod===m.id&&i.curtain===c.curtain));
+  for(let x=0;x<=1.22;x+=.05){const [wx,wz]=U.localToWorld(m,x*c.sx,c.zc);assert.equal(X.blocked(wx,wz,L),false,c.id+' entry at '+x);}
+  const [bx,bz]=U.localToWorld(m,c.cx,c.zc);assert.equal(X.blocked(bx,bz,L),true,c.id+' mattress remains solid');
+ }
+});
+
 test('the stair doors: down from each landing, up to the same landing; the checkpoint door stands where the stair door is (the Avenue\'s within 1.2 m)',()=>{
  const D=U.doors();assert.deepEqual(D.map(d=>d.id),BA.UNDERGROUND_ENTRANCES.map(u=>u.id));
  for(const d of D){assert.ok(d.city&&d.inside,d.id);const off=Math.hypot(d.city.x-d.inside.x,d.city.z-d.inside.z);assert.ok(off<=1.2,d.id+' '+off.toFixed(2));
