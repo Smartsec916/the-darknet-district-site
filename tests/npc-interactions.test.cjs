@@ -3,6 +3,16 @@ const MC=require('../void-runner/mission-content.js');
 const G=require('../void-runner/mission-givers.js');
 const givers=new Map(G.roster({}).map(g=>[g.id,g]));
 const interaction={near:'Welcome.\nGood to see you.\nTea?',talk:'What can I get you?',choice:'Tea, please',reply:'Of course.',distance:3,cooldown:60};
+test('interaction generation uses desktop lexical Dev Tools and saves audio without a window property',async()=>{
+ const vm=require('node:vm'),fs=require('node:fs'),source=fs.readFileSync(require.resolve('../void-runner/npc-editor.js'),'utf8');
+ const lookup=source.match(/^ const DTX=.*$/m)[0],audio=source.slice(source.indexOf(' function interactionAudio('),source.indexOf(' // ---- the 3D preview'));
+ const draft={interactions:{'tea-host':{near:'[cheerful] Welcome.'}}},calls=[];let done;
+ const node=(kind,text)=>({kind,text,textContent:text||'',children:[],value:'',append(...x){this.children.push(...x);}});
+ const context=vm.createContext({draft,calls,MC,Uint8Array,atob,File:class{},confirm:()=>true,el:node,hint:t=>node('hint',t),btn:(t,click)=>({...node('button',t),click}),S:()=>({MC:()=>MC,local:()=>draft,saveLocal:()=>done(),voiceNow:()=>({kind:'elevenlabs',voiceId:'test-voice',name:'Test'})}),VoidVoiceImports:{prepare:async()=>({ok:true,hash:'a'.repeat(64),type:'audio/mpeg',duration:1,bytes:1}),store:async()=>true}});
+ vm.runInContext('const root=globalThis; const VoidDevTools={request:async(path,body)=>{calls.push({path,body});return {audio:"YQ=="};}};'+lookup+'\n'+audio+'\n globalThis.box=interactionAudio({id:"tea-host"},draft.interactions["tea-host"]);',context);
+ assert.equal(context.VoidDevTools,undefined);const saved=new Promise(r=>done=r);context.box.children.find(x=>x.text==='GENERATE MISSING AUDIO — ELEVEN V4').click();await saved;
+ assert.equal(calls[0].path,'developer/companion-voice');assert.equal(calls[0].body.text,'[cheerful] Welcome.');assert.equal(draft.interactions['tea-host'].clips.length,1);
+});
 test('dialogue pools accept 100 independently bounded alternatives rather than 500 characters total',()=>{
  const many=Array.from({length:100},(_,i)=>'Greeting '+i+' '+ 'x'.repeat(100)).join('\n');
  for(const pool of ['near','talk','reply']){const value={...interaction,[pool]:many};assert.equal(MC.interactionProblems({'tea-host':value},givers).length,0);assert.equal(MC.interactionProblems({'tea-host':{...value,[pool]:many+'\nExtra'}},givers).length,1);assert.equal(MC.interactionProblems({'tea-host':{...value,[pool]:'x'.repeat(501)}},givers).length,1);}
