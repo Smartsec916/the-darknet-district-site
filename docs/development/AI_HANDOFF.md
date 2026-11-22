@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 22 Nov 2026 — Mobile Dev Tools v0.1
+
+- Separate Android-installable PWA at `/dev-tools-mobile/`, reusing existing Firebase and revision-guarded private workspace API. Draft NPC interactions, existing missions, Eleven v4 voice choices and individual MP3 downloads; no publishing or player-save changes. Voice selection honors current registry restrictions. Full graphical placement, flowchart, bulk attachment, undo history and authenticated device verification remain outstanding.
+
 ## 22 Nov 2026 — PR #419 animation recovery
 
 - Recovered the explicit native seated wave and preview clip-count/button fix on current main without reverting the newer underground seating or placement rules. Both models retain 16 original clips plus the newer floor-pose entries. The client and API require a compatible chair-pose seat for the new action.
