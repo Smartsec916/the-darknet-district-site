@@ -12,6 +12,8 @@ Owner-approved scope:
 
 Checkpoint 1: isolated pure helpers in void-runner/npc-advanced-interactions.js; smoke checks for speaker exclusivity, alternate turn, visit duration and timeout passed. Not loaded by game yet.
 
+Checkpoint 2 (22 Nov): reproduced stale crowd-density, NULL cast and monk-count assertions against the approved reduced density. Corrected regression expectations without removing spatial, named-character, staff, tee-dancer or sober/solitary monk requirements. Monk count is bounded by the rounded target and actual eligible walkers. Added tracked tests for coordinated speaker exclusivity/alternation/cooldown, independent player-session instances, room visit transitions, follow wait/catch-up/cancel/arrival. 15 focused interaction/nightlife tests and all 9 selected count/helper regressions passed locally. Fresh full CI pending. This is still a draft; schema, editor/runtime and multiplayer integration remain required.
+
 Next: add persistent schema and mirrored validation in mission-content.js and void_runner_live_content.py, editor controls in npc-editor.js, runtime adapters in live-content.js and path/escort adapters; verify script loading and draft/publish flow, audio completion/cancellation and room identity, multiplayer separation, and all existing regressions before merging. Add repository tests for helpers and integration before release. Do not treat this checkpoint as a complete implementation.
 
 ## Additional approved requirement: cross-area daily itineraries

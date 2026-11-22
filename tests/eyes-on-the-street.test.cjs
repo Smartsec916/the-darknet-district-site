@@ -173,7 +173,8 @@ test('server parity: the admin inventory lists the places, the people the camera
 });
 test('NULL: the cast per quality (the owner\'s table); Juno Vex and Halden Reyes are always there; no VIP pair or queue',()=>{
  const NC=require(R('void-runner/ncz-nightclub.js')),total=q=>{const c=NC.castCounts(q);return c.dancers+c.staff+c.guests+2;};
- assert.deepEqual(['low','medium','high','ultra'].map(total),[7,10,11,11]);
+ assert.deepEqual(['low','medium','high','ultra'].map(total),[6,9,10,10]);
+ for(const q of ['low','medium','high','ultra'])assert.equal(NC.castCounts(q).staff,3,'staff are not culled');
  const src=fs.readFileSync(R('void-runner/ncz-nightclub.js'),'utf8');assert.ok(!/spot\('(vip|queue)-/.test(src),'the VIP pair and the outside queue are gone');assert.ok(!/'fixer-01'.*CAST|CAST=\[[^\]]*'fixer-01'/.test(src),'no crowd figure shares Juno\'s look');
  const j=NC.JUNO;assert.deepEqual(j.appearance,{v:1,base:'female',look:'fixer-01',hair:'bob01',hairColor:'silver',clothingColor:'black',accessories:['gear-visor']});
  assert.ok(j.x>=NC.BUILT.solid[0].x0&&j.x<=NC.BUILT.solid[0].x1&&j.z<NC.BUILT.solid[0].z0,'on a stool at the bar');assert.ok(Math.abs(j.x-28.8)>3,'apart from the bar guests at the west end');

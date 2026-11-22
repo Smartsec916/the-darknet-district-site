@@ -107,7 +107,7 @@
    else if(!drunk&&rnd()<cfg.groupShare&&i+1<n){people.push({...p,id:'night-'+(++i),side:p.side+.75,speed:p.speed,pairOf:p.id});}}
   void total;
   // Monks: lone sober walkers, more of them toward the East Gate (config.monkShare). Each keeps to its stretch of lane (monkRange).
-  // How many: the walkers times the average share along these lanes, rounded (so a quarter's count never swings with chance: medium has 2 on the Avenue, 1 in Old Town);
+  // How many: rounded target capped by eligible lone sober walkers (medium targets 2 on the Avenue and 0 in Old Town);
   // who: drawn by the share where each starts (weighted, without repeats), so monks start mostly where the share is high.
   {const ms=cfg.monkShare||config.monkShare,cand=[];for(const p of people){if(p.drunk||p.pairOf||p.friendOf||people.some(o=>o.pairOf===p.id||o.friendOf===p.id))continue;const l=lanes.find(x=>x.id===p.lane),pos=at(l,p.t),w=monkShareAt(pos[0],pos[1],ms);
     if(w>0)cand.push({p,l,key:Math.pow(Math.max(1e-9,unit('monk:'+p.id+':'+p.lane+':'+Math.round(p.t*10))),1/w),w});}
