@@ -2670,7 +2670,12 @@ def public(db, now=None):
         if record.get('content') is not None and not check(record['content']):
             value = {'version': live, 'content': record['content'], 'publishedAt': record.get('at')}
         else:
-            value = {'version': live, 'content': None, 'publishedAt': record.get('at')}
+            # A historical mission snapshot may no longer match the shipped game.
+            # Keep the existing shipped-mission fallback, but expose independently
+            # validated ordinary interactions for NPCs that exist in the shipped roster.
+            table = (record.get('content') or {}).get('interactions')
+            ordinary = {'format': FORMAT, 'version': 1, 'interactions': table} if table else None
+            value = {'version': live, 'content': ordinary if ordinary and not check(ordinary) else None, 'publishedAt': record.get('at')}
     _cache.update(at=now, value=value)
     return value
 
@@ -2685,7 +2690,7 @@ def _expected(payload):
     return payload['expected']
 
 
-def _commit(db, uid, expected, action, content_for, note=''):
+def _commit(db, uid, expected, action, content_for, note='', interaction_only=False):
     from firebase_admin import firestore
     owner_tag = hashlib.sha256(uid.encode()).hexdigest()[:12]
 
@@ -2702,16 +2707,17 @@ def _commit(db, uid, expected, action, content_for, note=''):
         # Numbers once published are never reused: the ledger on the state document keeps every number any version published.
         ledger = {int(k): v for k, v in (state.get('numbers') or {}).items()}
         ledger.update({k: v for k, v in shipped_numbers().items() if k not in ledger})
-        problems = number_problems((content or {}).get('trees') or [], ledger)
-        if problems:
-            raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
-        for n, mid in content_numbers(content).items():
-            ledger.setdefault(n, mid)
+        if not interaction_only:
+            problems = number_problems((content or {}).get('trees') or [], ledger)
+            if problems:
+                raise DraftError('The draft has problems: ' + '; '.join(problems[:5]), 422, {'problems': problems})
+            for n, mid in content_numbers(content).items():
+                ledger.setdefault(n, mid)
         at = int(time.time())
         record = {'version': nxt, 'action': action, 'from': source, 'content': content, 'at': at, 'by': owner_tag, 'note': note}
         tx.create(_version_ref(db, nxt), record)
         history.append({'version': nxt, 'at': at, 'action': action, 'from': source, 'note': note})
-        tx.set(_state_ref(db), {'live': nxt, 'at': at, 'history': history, 'numbers': {str(k): v for k, v in sorted(ledger.items())}})
+        tx.set(_state_ref(db), {'live': nxt, 'at': at, 'history': history, 'numbers': (state.get('numbers') or {}) if interaction_only else {str(k): v for k, v in sorted(ledger.items())}})
         return record
     result = commit(db.transaction())
     clear_cache()
@@ -2732,18 +2738,26 @@ def publish(db, uid, payload):
         def update_interaction(tx, live, history):
             # Copy exactly the active content; do not publish any mission drafts.
             record = _version_ref(db, live).get(transaction=tx).to_dict() or {} if live else {}
-            content = dict(record.get('content') or {'format': FORMAT, 'version': 1})
+            previous = record.get('content') or {'format': FORMAT, 'version': 1}
+            content = dict(previous)
             table = dict(content.get('interactions') or {})
             if value is None:
                 table.pop(npc, None)
             else:
                 table[npc] = value
             content['interactions'] = table
-            problems = check(content)
+            # Old mission snapshots can be stale after a shipped story update.
+            # Never change or reactivate those missions as part of an NPC edit.
+            if check(previous):
+                problems = check({'format': FORMAT, 'version': 1, 'interactions': table})
+                if len(json.dumps(content).encode('utf-8')) > MAX_BYTES:
+                    problems.append('The content is too large.')
+            else:
+                problems = check(content)
             if problems:
                 raise DraftError('The interaction has problems: ' + '; '.join(problems[:5]), 422)
             return content, None
-        return _commit(db, uid, expected, 'publish', update_interaction, 'NPC interaction: ' + npc)
+        return _commit(db, uid, expected, 'publish', update_interaction, 'NPC interaction: ' + npc, interaction_only=True)
     if not _keys(payload, ['expected', 'content']):
         raise DraftError('Unknown fields.')
     content = payload.get('content')

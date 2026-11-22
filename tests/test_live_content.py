@@ -288,6 +288,28 @@ class MissionNumberTests(unittest.TestCase):
         self.assertEqual(ok.status_code, 200, ok.json)
         self.assertEqual(self.get('developer/live-content').json['numbers'], {'1': 'm001-awakening', '2': 'm002-eyes-on-the-street', '3': 'm003-corporate-connections', '4': 'm004-a-promising-investment', '5': 'm005-behind-closed-doors', '6': 'm006-hostile-takeover', '7': 'm007-the-house-always-wins', '8': 'm008-private-network', '9': 'm009-ghost-in-the-network', '10': 'm010-the-price-of-admission', '11': 'm011-leverage', '12': 'm012-first-cargo-delivery', '55': 'draft-a-m1', '56': 'draft-b-m1'})
 
+    def test_npc_only_publish_preserves_historical_conflicting_missions_and_ledger(self):
+        original = self.mc(awakening(), side_tree('draft-a', 4), side_tree('draft-b', 8))
+        old_numbers = {n: m for n, m in live.shipped_numbers().items() if n not in (4, 8)}
+        with patch.object(live, 'shipped_numbers', return_value=old_numbers):
+            first = self.post('live-content/publish', {'expected': 0, 'content': original})
+        self.assertEqual(first.status_code, 200, first.json)
+        self.assertIsNone(self.get('live-content', token=None).json['content'])
+        ledger = copy.deepcopy(live._state_ref(self.db).get().to_dict()['numbers'])
+        import base64
+        from test_voice_imports import wav, clip
+        raw = wav(2)
+        recording = clip(raw, who='tea-host', text='[cheerful] Welcome.')
+        self.assertEqual(self.post('voice-clips/' + recording['hash'], {'type': recording['type'], 'data': base64.b64encode(raw).decode()}).status_code, 200)
+        value = {'near': '[cheerful] Welcome.', 'distance': 4, 'cooldown': 300, 'clips': [recording]}
+        result = self.post('live-content/publish', {'expected': 1, 'interaction': {'npc': 'tea-host', 'value': value}})
+        self.assertEqual(result.status_code, 200, result.json)
+        self.assertEqual(result.json['content'], dict(original, interactions={'tea-host': value}))
+        self.assertEqual(live._state_ref(self.db).get().to_dict()['numbers'], ledger)
+        self.assertEqual(self.get('live-content', token=None).json['content'], {'format': live.FORMAT, 'version': 1, 'interactions': {'tea-host': value}})
+        self.assertEqual(self.post('live-content/publish', {'expected': 2, 'content': original}).status_code, 422)
+        self.assertEqual(self.post('live-content/publish', {'expected': 2, 'interaction': {'npc': 'unknown-person', 'value': value}}).status_code, 422)
+
 
 class MissionRemovalSaveTests(unittest.TestCase):
     """Saves after the missions were removed (17 Nov 2026): never rejected, removed missions untracked, Mission 001 accepted."""
