@@ -15,6 +15,8 @@ Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Miss
 
 ### 22 Nov 2026 — NPC interaction audio (local draft)
 
+- Publishing hotfix: an NPC-only edit no longer revalidates or updates the historical mission-number ledger. If the old published mission snapshot conflicts with the current shipped story (e.g. 004/008), preserve it verbatim; the public API continues to use the shipped missions and exposes only independently validated ordinary interactions. Normal mission publications still enforce all number rules. Regression reproduces historical 004/008 conflicts and checks raw saved missions, ledger, public projection, and invalid NPC rejection.
+
 - Desktop interaction audio hotfix: use the existing lexical Dev Tools lookup for generation and show a sign-in prompt when the authenticated request is absent. Regression test exercises generation with a classic-script `const VoidDevTools` and no window property; no provider call is made in tests.
 
 - Dialogue pool limits are 100 nonempty alternatives per box, 500 characters per individual line, with existing overall workspace and published-document byte limits unchanged. Client and server enforce the same structure.
