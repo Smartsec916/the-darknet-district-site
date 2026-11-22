@@ -1,5 +1,10 @@
 # The Darknet District — current AI handoff
 
+## 22 Nov 2026 — #495 room-dialogue release candidate
+
+- Room-aware ordinary NPC dialogue now checks walking TALK positions, registered room boundaries, closed-door collision solids, mission priority and per-player transition timing. It supports entry, exit, short/long visits, independent cooldowns and exact recording preservation. Desktop includes the actual tea room; mobile has matching room dialogue fields and private draft-only synchronization. No existing dialogue, saves, publishing privileges or NPC eligibility changed.
+- Focused tests: 14 Node and 3 Python passed locally. Full CI, authenticated gameplay and production deployment remain pending. This release is isolated from stale #495; follow/lead and coordinated NPC group behaviors remain separate work.
+
 ## 22 Nov 2026 — Mobile Dev Tools v0.1
 
 - Separate Android-installable PWA at `/dev-tools-mobile/`, reusing existing Firebase and revision-guarded private workspace API. Draft NPC interactions, existing missions, Eleven v4 voice choices and individual MP3 downloads; no publishing or player-save changes. Voice selection honors current registry restrictions. Full graphical placement, flowchart, bulk attachment, undo history and authenticated device verification remain outstanding.

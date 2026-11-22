@@ -1,0 +1,14 @@
+[
+  {"name":"legacy unchanged","record":{"near":"Hello","distance":3,"cooldown":60},"valid":true},
+  {"name":"room-only entry","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"Welcome"}}},"valid":true},
+  {"name":"room exit and duration dialogue","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"exit":"Goodbye","shortVisit":"A short stay","longVisit":"Thanks for staying","longSeconds":90}}},"valid":true},
+  {"name":"missing duration threshold","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"shortVisit":"Bye"}}},"valid":false},
+  {"name":"no dialogue","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30}}},"valid":false},
+  {"name":"invalid room identifier","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"../invalid","cooldown":30,"enter":"Welcome"}}},"valid":false},
+  {"name":"invalid cooldown","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":0,"enter":"Welcome"}}},"valid":false},
+  {"name":"invalid duration","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"longSeconds":601,"longVisit":"Welcome"}}},"valid":false},
+  {"name":"unknown advanced field","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"Welcome"},"unsupported":true}},"valid":false},
+  {"name":"unsafe text","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"<script>"}}},"valid":false},
+  {"name":"null advanced not accepted","record":{"distance":3,"cooldown":60,"near":"Hello","advanced":null},"valid":false},
+  {"name":"irrelevant duration threshold rejected","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"Hello","longSeconds":90}}},"valid":false}
+]
