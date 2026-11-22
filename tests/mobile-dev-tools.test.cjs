@@ -1,0 +1,1 @@
+const test=require('node:test');const {execFileSync}=require('node:child_process');const path=require('node:path');test('mobile Dev Tools workspace model',()=>{execFileSync(process.execPath,['--test',path.join(__dirname,'mobile-dev-tools.test.mjs')],{stdio:'pipe'});});
