@@ -233,7 +233,7 @@
  UG('flophouse',{ceil:2.8,name:'Underground sleeping room',note:'UNDERGROUND. A cheap flophouse in a tunnel chamber: four cots, each in its own nook behind cloth curtains on rails, worn blankets, a locker and a dim bulb per nook, pipes overhead. Front and back doors join tunnel pieces.',
   objects:[O('cot','COT','a cot'),O('locker','LOCKER','a locker'),O('curtain','CURTAIN','a curtain'),LIGHTS],
   furn:COT_LAYOUT.map(c=>[c.cx-c.width/2,c.cx+c.width/2,c.zc-c.depth/2,c.zc+c.depth/2,.54,c.id]),
-  inter:COT_LAYOUT.flatMap(c=>[{id:c.id,label:'COT',pos:[c.sx*1.68,.65,c.zc],object:'cot',range:1.1},{id:c.curtain,label:'DRAW CURTAIN',pos:[c.xi,1.35,c.zc],object:'curtain',range:1.1},{id:'locker-'+c.id,label:'UNDER-BED LOCKER',pos:[c.sx*1.7,.25,c.zc-c.sz*.65],object:'locker',range:1.1}]),
+  inter:COT_LAYOUT.flatMap((c,k)=>[{id:k===1?'cot':c.id,label:'COT',pos:[c.sx*1.68,.65,c.zc],object:'cot',range:1.1},{id:k===3?'curtain':c.curtain,curtain:c.curtain,label:'DRAW CURTAIN',pos:[c.xi,1.35,c.zc],object:'curtain',range:1.1},{id:k===2?'locker':'locker-'+c.id,label:'UNDER-BED LOCKER',pos:[c.sx*1.7,.25,c.zc-c.sz*.65],object:'locker',range:1.1}]),
   say:{cot:'COT: a worn mattress, a folded blanket and a pillow.',locker:'LOCKER: a low storage box tucked beneath the bed.',curtain:'CURTAIN: heavy cloth on rings.'},
   sits:COTS,
   spots:[['keeper',0,-2.2,0]],lights:[[0,2.4,-1.2,'#ffc890',1.4,8],[0,2.4,1.4,'#ffb878',1.2,8]]});
@@ -469,7 +469,7 @@
     for(const g of gaps){seg(a,g-DOOR.clear/2);a=g+DOOR.clear/2;}seg(a,along[1]);}
    for(const f of t.furn){const wb=boxWorld(p,f),q=W(wb[0],wb[2]),q2=W(wb[1],wb[3]);solids.push(box(q[0],q2[0],q[1],q2[1],id+'-'+f[5],Math.max(.4,f[4])));}
    const at=(x,y,z)=>{const w=toWorld(p,x,z),q=W(w[0],w[1]);return [q[0],y,q[1]];};
-   for(const it of t.inter)interactions.push({id:id+'-'+it.id,label:it.label,position:at(...it.pos),action:'mod-use',mod:id,object:it.object,...(it.object==='curtain'?{curtain:it.id}:{}),range:it.range||1.4});
+   for(const it of t.inter)interactions.push({id:id+'-'+it.id,label:it.label,position:at(...it.pos),action:'mod-use',mod:id,object:it.object,...(it.curtain?{curtain:it.curtain}:{}),range:it.range||1.4});
    if(t.sw){const [u,e]=t.sw,pt=e==='s'?[u,-hd+WALL+.08]:e==='n'?[u,hd-WALL-.08]:e==='w'?[-hw+WALL+.08,u]:[hw-WALL-.08,u];interactions.push({id:id+'-lights',label:'LIGHTS',position:at(pt[0],1.45,pt[1]),action:'mod-use',mod:id,object:'lights',range:1.3});}
    (mm.items||[]).forEach((it,k)=>interactions.push({id:id+'-item-'+k,label:'LOOK: '+String(it.label||'item').toUpperCase().slice(0,40),position:at(it.x,Number.isFinite(it.y)?it.y+.2:1.1,it.z),action:'mod-item',mod:id,index:k,range:1.3}));
    if(t.cab){const fl=cabFloors(an).filter(f=>f!==p.floor);fl.forEach((f,k)=>interactions.push(t.stairs?{id:id+'-floor-'+f,label:'STAIRS · '+(f<p.floor?'DOWN':'UP')+' TO '+floorName(f),position:at(f<p.floor?1.05+.25*k:-1.05-.25*k,1.2,-.8),action:'mod-elev',mod:id,floor:f,range:1.3}:{id:id+'-floor-'+f,label:'ELEVATOR · FLOOR '+floorName(f),position:at(.8,1.05+.2*k,-.42),action:'mod-elev',mod:id,floor:f,range:1.2}));}   // a stairwell: down at the foot of the east flight, up at the west one
