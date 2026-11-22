@@ -6,7 +6,8 @@ test('crowd density follows quality: walkers plus people standing about',()=>{
    assert.equal(walk.length,N.config.walkers[q],q+' walkers');
    const want=Object.values(N.config.standers[q]).reduce((a,b)=>a+b,0);assert.ok(stand.length>=want,q+' standers '+stand.length);}
   assert.ok(N.plan('high',seeded(2)).length>N.plan('medium',seeded(2)).length);
-  assert.ok(N.plan('high',seeded(3)).length>=70,'High is visibly busier than before (22)');});
+  assert.deepEqual(N.config.walkers,{high:31,medium:20,low:8},'owner-approved reduced walker budgets');
+  assert.ok(N.plan('high',seeded(3)).length>=60,'High retains a lively street after the approved crowd reduction');});
 
 test('people standing about keep clear of doors, taxi stands and the static crew, and face something sensible',()=>{
   for(let seed=1;seed<6;seed++)for(const p of N.plan('high',seeded(seed)).filter(x=>x.fixed)){

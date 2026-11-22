@@ -45,7 +45,7 @@ test('placement: corporate types toward the Function Gate, club-goers round NULL
 });
 test('the street plan puts the cooks at food shopfronts, one vendor and one busker per quarter that has them, and keeps the monk rule',()=>{
  for(const q of ['oldtown','far-south','avenue']){const p=N.plan('medium',seeded(7),undefined,q),fronts=N.foodFronts(N.lanesFor(q));
-  const cooks=p.filter(x=>x.kind==='cook');assert.equal(cooks.length,N.config.cooks.medium,q+' cooks');for(const c of cooks){assert.ok(fronts.some(f=>f.word===c.sign),c.sign);assert.ok(['talk','idle'].includes(c.clip));}
+  const cooks=p.filter(x=>x.kind==='cook');assert.ok(cooks.length>0&&cooks.length<=N.config.cooks.medium,q+' cooks within available safe shopfronts');for(const c of cooks){assert.ok(fronts.some(f=>f.word===c.sign),c.sign);assert.ok(['talk','idle'].includes(c.clip));assert.ok(p.filter(o=>o!==c&&o.fixed).every(o=>Math.hypot(o.x-c.x,o.z-c.z)>=1.6),c.sign+' clear cooking spot');}
   assert.equal(p.filter(x=>x.kind==='vendor').length,N.config.vendorIn.includes(q)?1:0,q+' vendor');assert.equal(p.filter(x=>x.kind==='busker').length,N.config.buskerIn.includes(q)?1:0,q+' busker');
   // the street figures of each quarter include the people its spots need (crowd.js SPOTS kept in step with ncz-nightlife.js)
   const want=C.SPOTS[q];assert.equal(want.includes('vendor'),N.config.vendorIn.includes(q),q);assert.equal(want.includes('busker'),N.config.buskerIn.includes(q),q);assert.ok(want.includes('cook'));

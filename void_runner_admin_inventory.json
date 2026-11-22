@@ -58868,7 +58868,7 @@
       "spawn"
     ]
   },
-  "revision": "5833f7edafc58ea3",
+  "revision": "59ba4b5a99cade2e",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79535,8 +79535,8 @@
     "void-runner/ncz-food-stands.js": "8376f76f0e961ddfd29e749c5c711c268e6991fff8d72b0b94a8bfc5e6e90710",
     "void-runner/ncz-gate-transit.js": "bf43bbba5b59e390841f90b85bfc7507991dd56b3bbf286a61f8f8c2c6d9ce34",
     "void-runner/ncz-gates.js": "b18462d37472b9b02d0761d15f5efca0073c7abab8f95378bb8636338a9d1598",
-    "void-runner/ncz-nightclub.js": "361ceae200383217c9ca48e0ad61ac4d650527973f6efecf9dc387949e97b421",
-    "void-runner/ncz-nightlife.js": "3637251e79511f2a500ed17b2c861fb29aea111c0bf1651ecde14c1b5811cf79",
+    "void-runner/ncz-nightclub.js": "333b3963ce534b64b4eb29c348f3f75bca2b1c5eedda6d5db10702fe747e7eb4",
+    "void-runner/ncz-nightlife.js": "cbdf405a66688c0f67da12e4fa3d246de3fbbd35449768875ad36af6a6874987",
     "void-runner/ncz-outskirts-life.js": "499e7eb615081e6575e17d8f357887f2b54f48db480463cd0381ef31a633010b",
     "void-runner/ncz-quarters.js": "add265e7bd1863d86370b8b41fd2b01504793365c0c2cd6b6bb9b85d5f66d8ac",
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",

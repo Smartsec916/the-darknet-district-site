@@ -12,12 +12,12 @@
 (function(root){
  // Settings: how many people, how many drunk, how often things happen.
  const config={
-  walkers:{high:44,medium:28,low:12},
+  walkers:{high:31,medium:20,low:8},
   // People standing about: groups of 2-3 talking, couples, window-shoppers, people leaning or smoking on a wall.
-  standers:{high:{group:7,couple:4,shop:7,lean:6},medium:{group:4,couple:3,shop:4,lean:4},low:{group:2,couple:1,shop:1,lean:1}},
+  standers:{high:{group:5,couple:3,shop:5,lean:4},medium:{group:3,couple:2,shop:3,lean:3},low:{group:1,couple:1,shop:1,lean:1}},
   // People outside the food shopfronts (noodles, ramen, tacos, tea, the night market: places.js SHOPFRONTS), bowl in hand; now and then they photograph it
   // (npc-device.js food photo). Per quality for the whole street, scaled to the quarter like the standers. There are no food stalls yet: these are the street's food spots.
-  diners:{high:6,medium:4,low:2},foodSigns:/NOODLE|RAMEN|TACOS|TEA HOUSE|CHAI|NIGHT MARKET|BENTO/,
+  diners:{high:4,medium:3,low:1},foodSigns:/NOODLE|RAMEN|TACOS|TEA HOUSE|CHAI|NIGHT MARKET|BENTO/,
   // The street food's cooks (NPC upgrade, 18 Nov 2026: the old Japanese cook #5 and the cook #7) at the window of a food shopfront, facing the street, per quarter with food
   // shopfronts; the street vendor (#14) and the busker (#24) each at one spot of the quarters crowd.js SPOTS names (kept in step by tests/npc-upgrade.test.cjs).
   cooks:{high:3,medium:2,low:1},vendorIn:['oldtown','far-south',null],buskerIn:['oldtown','avenue',null],
@@ -107,7 +107,7 @@
    else if(!drunk&&rnd()<cfg.groupShare&&i+1<n){people.push({...p,id:'night-'+(++i),side:p.side+.75,speed:p.speed,pairOf:p.id});}}
   void total;
   // Monks: lone sober walkers, more of them toward the East Gate (config.monkShare). Each keeps to its stretch of lane (monkRange).
-  // How many: the walkers times the average share along these lanes, rounded (so a quarter's count never swings with chance: medium has 2 on the Avenue, 1 in Old Town);
+  // How many: rounded target capped by eligible lone sober walkers (medium targets 2 on the Avenue and 0 in Old Town);
   // who: drawn by the share where each starts (weighted, without repeats), so monks start mostly where the share is high.
   {const ms=cfg.monkShare||config.monkShare,cand=[];for(const p of people){if(p.drunk||p.pairOf||p.friendOf||people.some(o=>o.pairOf===p.id||o.friendOf===p.id))continue;const l=lanes.find(x=>x.id===p.lane),pos=at(l,p.t),w=monkShareAt(pos[0],pos[1],ms);
     if(w>0)cand.push({p,l,key:Math.pow(Math.max(1e-9,unit('monk:'+p.id+':'+p.lane+':'+Math.round(p.t*10))),1/w),w});}
