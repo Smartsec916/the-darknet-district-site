@@ -69,6 +69,7 @@
   R('mod-use',({item})=>{const wl=here(),z=zone(),inst=visit&&now(visit.inst.key),obj=item.object,mod=item.mod;let msg='';const type=(wl?.cluster?.mods||[]).find(m=>m.id===mod)?.type||'';
    if(obj==='lights'){const on=z?.lightsOf?.(mod)===false;z?.lights?.(on,mod);if(inst)memo.lights.set(inst.key+'|'+mod,on);msg='Lights '+(on?'on.':'off.');}
    else if(obj==='screen'){const on=z?.screenOf?.(mod)===false;z?.screen?.(mod,on);if(inst)memo.screens.set(inst.key+'|'+mod,on);msg=on?'You switch the screen on.':'You switch the screen off.';}
+   else if(obj==='curtain'&&type==='flophouse'){const open=z?.toggleCurtain?.(mod,item.curtain);msg=open==null?'Curtain.':open?'You draw the curtain open.':'You close the curtain.';}
    else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)
     msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}
    // (the owner, 21 Nov 2026) the thing the mission step in progress needs (the manager's computer in 006) shows only the mission's content, not its everyday description

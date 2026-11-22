@@ -1,5 +1,10 @@
 # The Darknet District — current AI handoff
 
+## 22 Nov 2026 — Underground sleeping room
+
+- The four cots behind the tea room share their geometry, collision and seat positions in `modules.js` (`COT_LAYOUT`). Each is 1.08 × 2.16 m with a clear approach; lockers are beneath the mattresses, not in the aisle.
+- Curtain cloth is passable. Each front curtain has its own E interaction and animates open/closed, including in the underground network. Existing room, seat and mission-object IDs are retained; no mission tree or player-save data changes.
+
 ## 19 Nov 2026 — DEV TOOLS NPC CAPABILITY AUDIT (CURRENT RULE)
 
 Read [NPC_CAPABILITY_AUDIT.md](NPC_CAPABILITY_AUDIT.md) before changing NPC/Mission Editor eligibility.

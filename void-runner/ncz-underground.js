@@ -113,7 +113,7 @@
   const say=(type,obj)=>{const t=M.TYPES[type]||{};return (t.say&&t.say[obj])||null;};
   const inter=[];for(const i of def.interactions){
    if(i.action==='mod-exit'){const e=exits.get(i.door);if(e)inter.push({id:'under-up-'+e.id,label:'GO UP THE STAIRS TO THE STREET',position:[i.position[0],Y+1.6,i.position[2]],action:'under-up',entrance:e.id,door:i.door,range:1.6});continue;}
-   if(i.action==='mod-use'&&i.object!=='lights'){const m=modById(i.mod),text=m&&say(m.type,i.object);if(text)inter.push({id:'under-'+i.id,label:i.label,position:[i.position[0],Y+i.position[1],i.position[2]],action:'under-look',text,place:PLACE_OF[i.mod],range:i.range});}}
+   if(i.action==='mod-use'&&i.object!=='lights'){const m=modById(i.mod),text=m&&say(m.type,i.object);if(text)inter.push({id:'under-'+i.id,label:i.label,position:[i.position[0],Y+i.position[1],i.position[2]],action:i.curtain?'under-curtain':'under-look',...(i.curtain?{mod:i.mod,curtain:i.curtain}:{text}),place:PLACE_OF[i.mod],range:i.range});}}
   const solids=def.solids.map(s=>({...s,position:[s.position[0],s.position[1]+Y,s.position[2]]}));
   // the alcoves' furniture
   for(const f of alcoveFurniture())solids.push({id:'under-'+f.id,position:[(f.rect[0]+f.rect[1])/2,Y+f.h/2,(f.rect[2]+f.rect[3])/2],size:[f.rect[1]-f.rect[0],f.h,f.rect[3]-f.rect[2]]});
