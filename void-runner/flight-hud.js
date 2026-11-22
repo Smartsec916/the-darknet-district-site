@@ -30,12 +30,17 @@ function drawFlightHud(){
  drawInterdictionWarning();
 }
 
-/* Route-backed cockpit alert: never imply interdiction during an ordinary encounter. */
+/* Brief one-shot route-backed warning; never obstruct the ensuing fight. */
+let interdictionAlertRoute=null,interdictionAlertStart=0;
 function drawInterdictionWarning(){
  const r=flight.route;
- if(r?.phase!=='encounter'||!r.policy?.interdiction||r.encounter?.type!=='combat'||r.encounter.state!=='active')return;
+ if(r?.phase!=='encounter'||!r.policy?.interdiction||r.encounter?.type!=='combat'||r.encounter.state!=='active'){interdictionAlertRoute=null;return;}
+ const now=performance.now();
+ if(interdictionAlertRoute!==r){interdictionAlertRoute=r;interdictionAlertStart=now;}
+ const age=now-interdictionAlertStart;
+ if(age>=3000)return;
  const cx=W*.5,y=H*(W<650?.145:.112),half=Math.min(W*.34,155),h=34;
- ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=1;
+ ctx.save();ctx.globalAlpha=age<2500?1:Math.max(0,(3000-age)/500);ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=1;
  ctx.fillStyle='rgba(24,8,13,.88)';ctx.strokeStyle='#ff555d';
  ctx.beginPath();ctx.moveTo(cx-half,y-h/2);ctx.lineTo(cx+half-10,y-h/2);ctx.lineTo(cx+half,y-h/2+10);ctx.lineTo(cx+half,y+h/2);ctx.lineTo(cx-half+10,y+h/2);ctx.lineTo(cx-half,y+h/2-10);ctx.closePath();ctx.fill();ctx.stroke();
  ctx.fillStyle='#ff686e';ctx.fillRect(cx-half+5,y-8,3,16);ctx.fillRect(cx+half-8,y-8,3,16);
