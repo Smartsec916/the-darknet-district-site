@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "3c395aebced82569",
+  "revision": "0a05fbe92aa4e009",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79464,7 +79464,7 @@
     "void-runner/iris-ambient.js": "8f31a9d683c0f8d2aad511085aa8e84ca3d737d3b9c670f2bb556240ab858d4a",
     "void-runner/kestrel-model.js": "99b735c7ee25b73896fc227936e9842495bed3373e4425d4c07d6a3774d0936d",
     "void-runner/keymap.js": "9c35d012f1d125d6c93bdf4a0eda94d0ccdd6fbd9ebe97b9e04aa32f2a016843",
-    "void-runner/live-content.js": "758b56415755614214c8d635c023b79ac25c5d2db481129c37a9488d972e6e2d",
+    "void-runner/live-content.js": "46621bc0388a779bf691e281616d7fcdc70e5e941074d10053c2b4bd2815bc9f",
     "void-runner/loading.js": "3b1ce003609f717d0bb8bc7f75ed29408007bea0fdeb582fee24247e50440d94",
     "void-runner/local-progress.js": "a277ca2a7f3c54df324fbbb99052281699e10eebae4a81ffd38c362d0ad753d8",
     "void-runner/lucky-cat.js": "ffd9366d9a813a05c928d66364ba72ec702d670313dd926ba5e45539b73d1b03",
