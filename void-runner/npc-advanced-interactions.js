@@ -24,6 +24,22 @@ function roomVisit(previous,inside,now){
  if(!inside&&p.inside)return {state:{inside:false,enteredAt:null},event:'exit',duration:Math.max(0,now-p.enteredAt)};
  return {state:p,event:null,duration:inside?Math.max(0,now-p.enteredAt):0};
 }
+// A room transition is consumed even when speech is blocked: never replay a stale line.
+// Timed departure pools override the generic departure pool when configured.
+function roomDialogueStep(room,previous,{inside,npcPresent,audible,blocked,now}){
+ const p=previous||{inside:false,enteredAt:null,last:{},index:{}};
+ const visit=roomVisit(p,inside,now),state={...p,...visit.state,last:{...p.last},index:{...p.index}};
+ if(!visit.event||blocked||!npcPresent||!audible)return {state,line:null};
+ let pool=visit.event;
+ if(pool==='exit'){
+  const timed=visit.duration>=room.longSeconds*1000?'longVisit':'shortVisit';
+  if(room[timed])pool=timed;
+ }
+ const lines=String(room[pool]||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+ if(!lines.length||now-(state.last[pool]??-Infinity)<room.cooldown*1000)return {state,line:null};
+ const index=state.index[pool]||0;state.last[pool]=now;state.index[pool]=index+1;
+ return {state,line:lines[index%lines.length],pool};
+}
 function followStep({phase='invite',waited=0}={},input){
  const {dt=0,accepted=false,declined=false,near=false,atDestination=false,playerArrived=false,maxWait=30}=input;
  if(phase==='done'||phase==='return')return {phase,waited};
@@ -33,6 +49,6 @@ function followStep({phase='invite',waited=0}={},input){
  if(near&&!atDestination)return {phase:'lead',waited:0};
  const w=waited+Math.max(0,dt);return {phase:w>=maxWait?'return':'wait',waited:w};
 }
-const api={createDialogueCoordinator,roomVisit,followStep};
+const api={createDialogueCoordinator,roomVisit,roomDialogueStep,followStep};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdvancedInteractions=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
