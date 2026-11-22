@@ -1740,22 +1740,22 @@
           },
           {
             "id": "under-sleeping-room-cot-1",
-            "x": -11.26,
-            "z": -105.92,
+            "x": -11.25,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -104.2
+              -11.25,
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-2",
             "x": -14.21,
-            "z": -105.92,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
@@ -1763,27 +1763,27 @@
             ],
             "front": [
               -14.21,
-              -104.2
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-3",
-            "x": -11.26,
-            "z": -101.08,
+            "x": -11.25,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -102.8
+              -11.25,
+              -102.28
             ]
           },
           {
             "id": "under-sleeping-room-cot-4",
             "x": -14.21,
-            "z": -101.08,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
@@ -1791,7 +1791,7 @@
             ],
             "front": [
               -14.21,
-              -102.8
+              -102.28
             ]
           }
         ],
@@ -2411,22 +2411,22 @@
           },
           {
             "id": "under-sleeping-room-cot-1",
-            "x": -11.26,
-            "z": -105.92,
+            "x": -11.25,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -104.2
+              -11.25,
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-2",
             "x": -14.21,
-            "z": -105.92,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
@@ -2434,27 +2434,27 @@
             ],
             "front": [
               -14.21,
-              -104.2
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-3",
-            "x": -11.26,
-            "z": -101.08,
+            "x": -11.25,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -102.8
+              -11.25,
+              -102.28
             ]
           },
           {
             "id": "under-sleeping-room-cot-4",
             "x": -14.21,
-            "z": -101.08,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
@@ -2462,7 +2462,7 @@
             ],
             "front": [
               -14.21,
-              -102.8
+              -102.28
             ]
           }
         ],
@@ -2957,22 +2957,22 @@
           },
           {
             "id": "under-sleeping-room-cot-1",
-            "x": -11.26,
-            "z": -105.92,
+            "x": -11.25,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -104.2
+              -11.25,
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-2",
             "x": -14.21,
-            "z": -105.92,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
@@ -2980,27 +2980,27 @@
             ],
             "front": [
               -14.21,
-              -104.2
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-3",
-            "x": -11.26,
-            "z": -101.08,
+            "x": -11.25,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -102.8
+              -11.25,
+              -102.28
             ]
           },
           {
             "id": "under-sleeping-room-cot-4",
             "x": -14.21,
-            "z": -101.08,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
@@ -3008,7 +3008,7 @@
             ],
             "front": [
               -14.21,
-              -102.8
+              -102.28
             ]
           }
         ],
@@ -3399,22 +3399,22 @@
           },
           {
             "id": "under-sleeping-room-cot-1",
-            "x": -11.26,
-            "z": -105.92,
+            "x": -11.25,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -104.2
+              -11.25,
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-2",
             "x": -14.21,
-            "z": -105.92,
+            "z": -105.78,
             "yaw": 0,
             "poses": [
               "knees",
@@ -3422,27 +3422,27 @@
             ],
             "front": [
               -14.21,
-              -104.2
+              -104.72
             ]
           },
           {
             "id": "under-sleeping-room-cot-3",
-            "x": -11.26,
-            "z": -101.08,
+            "x": -11.25,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
               "cross"
             ],
             "front": [
-              -11.26,
-              -102.8
+              -11.25,
+              -102.28
             ]
           },
           {
             "id": "under-sleeping-room-cot-4",
             "x": -14.21,
-            "z": -101.08,
+            "z": -101.22,
             "yaw": 3.1416,
             "poses": [
               "knees",
@@ -3450,7 +3450,7 @@
             ],
             "front": [
               -14.21,
-              -102.8
+              -102.28
             ]
           }
         ],
@@ -13997,28 +13997,28 @@
               -100.6
             ],
             [
-              -12.375,
-              -10.125,
-              -106.395,
-              -104.545
+              -12.33,
+              -10.17,
+              -106.32,
+              -105.24
             ],
             [
-              -15.325,
-              -13.075,
-              -106.395,
-              -104.545
+              -15.29,
+              -13.13,
+              -106.32,
+              -105.24
             ],
             [
-              -12.375,
-              -10.125,
-              -102.445,
-              -100.595
+              -12.33,
+              -10.17,
+              -101.76,
+              -100.68
             ],
             [
-              -15.325,
-              -13.075,
-              -102.445,
-              -100.595
+              -15.29,
+              -13.13,
+              -101.76,
+              -100.68
             ],
             [
               -6.33,
@@ -58866,7 +58866,7 @@
       "spawn"
     ]
   },
-  "revision": "39676dee5889226b",
+  "revision": "4e681ea7beacc2f4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -76109,13 +76109,13 @@
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 72,
+      "line": 73,
       "text": "else{const tt=M.TYPES[type]||{},pf=tt.opens&&tt.opens[obj]&&root.VoidPanels&&root.VoidPanels[tt.opens[obj]];if(pf)try{pf({mod,type,object:obj});}catch(e){console.warn('[modules] panel',e);}   // a panel (pawn-shop.js), else what the type says (modules.js `say`)",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/module-integration.js",
-      "line": 73,
+      "line": 74,
       "text": "msg=pf?'':(tt.say&&tt.say[obj])||((obj==='computer'||obj==='terminal')&&COMPUTER[type]?COMPUTER[type]:SAY[obj]||'Nothing to do here yet.');}",
       "kind": "source-reference"
     },
@@ -76127,115 +76127,115 @@
     },
     {
       "source": "void-runner/modules.js",
-      "line": 108,
+      "line": 109,
       "text": "say:{scanner:'ITEM SCANNER: a flatbed reader for serials and ownership chips. The last scan reads “REGISTERED OWNER: —”.',cage:'STORAGE CAGE: padlocked mesh. Tagged goods on the shelves, each with a date and a number.',computer:'APPRAISAL TERMINAL: tickets, loan dates, and a column headed “do not sell back”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 115,
+      "line": 116,
       "text": "say:{stove:'WOK RANGE: three burners, one still ticking warm. Oil on everything.',cooler:'WALK-IN COOLER: a heavy latch, frost round the seal. Inside: noodles, broth in buckets, crates with no labels.',prep:'PREP TABLE: a cleaver, a board worn into a dip, scallions, a tub of dough.',computer:'ORDER TERMINAL: tonight’s tickets, a delivery list, and one order paid three times over.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 122,
+      "line": 123,
       "text": "say:{bench:'SOLDERING STATION: the iron is still warm. A phone board in the clamp, half its chips lifted.',drawers:'PARTS DRAWERS: hundreds of small drawers, hand-labelled. Resistors, screws, salvaged camera modules.',computer:'DIAGNOSTIC TERMINAL: a queue of repair jobs, and a folder of device unlock tools.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 129,
+      "line": 130,
       "text": "say:{chair:'IMPLANT CHAIR: worn padding, wrist straps, a tool arm folded overhead. Clean, for this street.',bench:'PARTS BENCH: a prosthetic forearm on its stand, its cover off. Trays of connectors and tiny screws.',fridge:'PARTS FRIDGE: sealed implant boxes and gel packs, serial numbers scratched off.',terminal:'IMPLANT TERMINAL: fitting records under first names only, and a firmware folder called “unofficial”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 136,
+      "line": 137,
       "text": "say:{washers:'WASHERS: one mid-cycle, one with an OUT OF ORDER card taped on, one locked with a bag still inside.',dryers:'DRYERS: warm, lint everywhere. One drum holds something that is not laundry.',table:'FOLDING TABLE: stacks of folded work clothes with tickets pinned on, and a pile of uniforms from a company that is not on any ticket.',computer:'OFFICE COMPUTER: the books, the machine takings, and a spreadsheet of “pickups” with no laundry on it.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 142,
+      "line": 143,
       "text": "say:{tea:'TEA STATION: a dented kettle still warm, cups upside down on a cloth, tins with faded labels.',table:'LOW TABLE: two cups, one untouched. A ring where a third stood.',alcove:'ALCOVE: a bonsai in a cracked pot, an ink painting of mountains, the paper browned at the edges.',safe:'STRONGBOX: lacquered wood over steel, a brass lock. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 149,
+      "line": 150,
       "text": "say:{table:'CARD TABLE: a hand left face down, chips stacked by colour, an ashtray. Nobody is collecting the pot.',cart:'BAR CART: cheap spirits poured into expensive bottles.',safe:'CASH SAFE: a keypad, a smear of fingerprints on four of the keys. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 156,
+      "line": 157,
       "text": "say:{chair:'TATTOO CHAIR: fresh film on the padding, the lamp still angled where the last client lay.',ink:'INK STATION: rows of bottles, a machine on its cradle, gloves, a roll of film.',flash:'FLASH BOARDS: sheets of designs, pinned and re-pinned: stars, waves, flowers, knives, a lot of eyes.',computer:'BOOKING TERMINAL: appointments under nicknames, deposits paid in cash, one booking marked “cover-up, urgent”.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 163,
+      "line": 164,
       "text": "say:{desk:'MIXING DESK: faders taped with handwritten labels, a cue sheet with the times crossed out.',mic:'MICROPHONE: the pop filter is split, the boom arm held with tape. The ON AIR light is off.',racks:'TRANSMITTER RACK: a homemade exciter, an amplifier with a fan that rattles, coax going up through the ceiling.',computer:'PLAYOUT COMPUTER: a playlist, a folder of station idents, and a list of frequencies that keep moving.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 169,
+      "line": 170,
       "text": "say:{lift:'SCOOTER LIFT: a delivery scooter up on the lift, side panel off, its ID plate unscrewed.',chest:'TOOL CHEST: sockets in the wrong drawers, a torque wrench, a tin of mismatched bolts.',drums:'OIL DRUMS: two full, one empty, one that sloshes too lightly for its weight.',computer:'DIAGNOSTIC LAPTOP: a scooter’s fault log, and a tool for rewriting its owner record.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 175,
+      "line": 176,
       "text": "say:{altar:'ALTAR: fruit, a bowl of rice, a cup of tea gone cold, coins, a folded note nobody should read.',incense:'INCENSE: three sticks burning down in a bowl of ash. The smoke hangs under the ceiling.',candles:'CANDLES: a rack of small candles, most lit, wax over everything.',charms:'CHARM STRIPS: paper strips, brush marks faded past reading, tied with red thread.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 184,
+      "line": 185,
       "text": "say:{ring:'RING: chain-link on scaffold poles, the mat patched with tape, dark stains scrubbed half away.',betting:'BETTING COUNTER: a grille, a slot for chips and cash, a ledger chained to the counter. Closed between fights.',board:'ODDS BOARD: chalked names wiped out and rewritten. Tonight’s card is blank.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 190,
+      "line": 191,
       "text": "say:{table:'CHECKPOINT TABLE: a pass-through in the fence, a scarred table, a list of names with half of them crossed out.',cashbox:'CASH BOX: a dented tin with a padlock. The door fee goes in here.',wand:'SCANNER WAND: a cheap metal-detector wand, the grip wrapped in tape.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 212,
+      "line": 213,
       "text": "say:{tea:'TEA STATION: a kettle on a hot plate, cups drying on a cloth, tins of leaves. A pipe overhead ticks as it cools.',table:'LOW TABLE: cups for four, a game board left mid-play.',safe:'STRONGBOX: on the service-nook shelf, lacquered wood over steel. Locked.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 221,
+      "line": 222,
       "text": "objects:[O('shrine','WALL SHRINE','the wall shrine'),LIGHTS],inter:[{id:'shrine',label:'WALL SHRINE',pos:[.6,1.3,-1.5],object:'shrine',range:1.2}],say:{shrine:'WALL SHRINE: a niche in the concrete, a stub of candle, a cup of rice, a paper charm gone soft with damp.'},sw:[-2.2,'w'],lights:[[0,2,0,'#ffb070',1.2,9]]});",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 228,
+      "line": 229,
       "text": "say:{table:'GAME TABLE: tiles face down in walls of four, a dish of chips, a cold cup of tea. A game left mid-hand.',cashier:'CASHIER: a hatch, a calculator, a ledger in a hand nobody else can read.',safe:'CASH DRAWER: locked, and chained to the counter.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 236,
-      "text": "say:{cot:'COT: a thin mattress, a blanket worn shiny, somebody’s shoes lined up underneath.',locker:'LOCKER: dented, a padlock that has been forced once and replaced.',curtain:'CURTAIN: heavy cloth on rings. Behind it, someone breathing slowly, asleep.'},",
+      "line": 237,
+      "text": "say:{cot:'COT: a worn mattress, a folded blanket and a pillow.',locker:'LOCKER: a low storage box tucked beneath the bed.',curtain:'CURTAIN: heavy cloth on rings.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 243,
+      "line": 244,
       "text": "say:{counter:'FOOD COUNTER: a steel top worn bright, chopsticks in a tin, a jar of chilli oil, a bell.',stove:'WOK STATION: a wok spitting over a blue flame, a stock pot that has been simmering for days.',cooler:'COOLER: drinks, eggs, a tray of something wrapped in paper.',menu:'MENU BOARD: pictures of bowls with prices in chalk. The cook points at the one you want.'},",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/modules.js",
-      "line": 247,
+      "line": 248,
       "text": "say:{pump:'SUMP PUMP: it coughs, runs, stops. The water in the sump does not go down.'},sw:[-1,'s'],lights:[[0,2.6,0,'#ffd8a0',1.2,8]]});",
       "kind": "source-reference"
     },
@@ -76506,7 +76506,7 @@
     {
       "source": "void-runner/ncz-underground.js",
       "line": 116,
-      "text": "if(i.action==='mod-use'&&i.object!=='lights'){const m=modById(i.mod),text=m&&say(m.type,i.object);if(text)inter.push({id:'under-'+i.id,label:i.label,position:[i.position[0],Y+i.position[1],i.position[2]],action:'under-look',text,place:PLACE_OF[i.mod],range:i.range});}}",
+      "text": "if(i.action==='mod-use'&&i.object!=='lights'){const m=modById(i.mod),text=m&&say(m.type,i.object);if(text)inter.push({id:'under-'+i.id,label:i.label,position:[i.position[0],Y+i.position[1],i.position[2]],action:i.curtain?'under-curtain':'under-look',...(i.curtain?{mod:i.mod,curtain:i.curtain}:{text}),place:PLACE_OF[i.mod],range:i.range});}}",
       "kind": "source-reference"
     },
     {
@@ -79512,10 +79512,10 @@
     "void-runner/mission-mechanics.js": "490404ac68cb920dfe5a1fc217b16fefaa7ab007c26b4367ee60feb3ab9fff82",
     "void-runner/mission-trees.js": "05febd25649b556287acf918c84c0b5dc394ec4649f8be13771188bdd3105eeb",
     "void-runner/model-registry.js": "26f0e1beb4940d86a5b0e88aeb378b15ddf9aca58ffce37733364a22af15688e",
-    "void-runner/module-build.js": "9dd79cceed2f428c060e498a6b34a4668667cf04d0baad80db2c7bd71004cf73",
+    "void-runner/module-build.js": "7b44f2db369ad53643c8000a391ad9d146e6a1abed856929c968a9353d1088f8",
     "void-runner/module-editor.js": "67cdac049bb19024d04685cfbccfb94c5f31be8ef9c9fd4f5d280a63a2567cfc",
-    "void-runner/module-integration.js": "fea5aa8ff7343f8fc24e91bbe3837fe9fe04b356f8dcddfb356ce4ecde3df89e",
-    "void-runner/modules.js": "411328274661dc1b1d53dfc73013c6f98484994bd486524d98b38ec4296ddbcf",
+    "void-runner/module-integration.js": "d10abadfdfb95e82521ea8ebe2888b989a79a6ec43a3fce53862d3408fb283e4",
+    "void-runner/modules.js": "c9ce658def160c3b5b1822cd8b6cf3df06e900c07a37948cffc4e2bd3d8978ce",
     "void-runner/mouse-control.js": "30de079f5da59ff08bbca4a72a82034d0849d97ae681e2029cbb9d0e61c30018",
     "void-runner/music-catalog.js": "c8ee04d4d73ab8239c72de6d0964ffe187d39094d1d37ffdb15c463306168bdb",
     "void-runner/music-director.js": "39fd2a2e99c058fd6d5e52f7e8abf6c953ca33826edd27c9f084bf439c095ddb",
@@ -79540,8 +79540,8 @@
     "void-runner/ncz-rooftop-signs.js": "c9f7ed074eec8ef818999e1e359a36d2378907fab0b57c9b0623575655f619f1",
     "void-runner/ncz-street-glow.js": "08f704732726789a8373078904d8250827715b442750e1f69da992b78195354f",
     "void-runner/ncz-street-pair.js": "12095d2cd7e9989e31a8547a65f1718f124d45d2f4e2f66c0ee218468646bd42",
-    "void-runner/ncz-underground-integration.js": "2a1d02130526aa5bb4e6633b68f5efac59e6fcad49e8d4039de8315117b67efb",
-    "void-runner/ncz-underground.js": "76b7d412136c3aed62c4974880c9bd262ccec0decd394e13af3cbc821c135012",
+    "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
+    "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
     "void-runner/neochinatown.js": "6dbd1c0b043a9dc8dacc7ad0ac01a3fc1e37d5ddb226d2f7d2541ed54db2a1d1",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",

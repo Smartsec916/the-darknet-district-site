@@ -28,7 +28,7 @@ test('the seats: cushions take the floor poses, the mahjong stools are chairs wi
  assert.equal(U.SEATS.length,6,'the alcoves\' chairs unchanged');
  const cush=by('under-tea-room');assert.equal(cush.length,9);for(const s of cush)assert.deepEqual(s.poses,['kneel','cross','knees']);
  const mj=by('under-mahjong');assert.equal(mj.length,6);for(const s of mj){assert.deepEqual(s.poses,['chair']);assert.equal(s.h,.48);}
- const cots=by('under-sleeping-room');assert.equal(cots.length,4);for(const s of cots){assert.deepEqual(s.poses,['knees','cross']);assert.equal(s.h,.44);}
+ const cots=by('under-sleeping-room');assert.equal(cots.length,4);for(const s of cots){assert.deepEqual(s.poses,['knees','cross']);assert.equal(s.h,.54);}
  assert.equal(all.filter(s=>/bench-up$/.test(s.id)).length,4);
  for(const s of all){   // (the alcoves' chairs from 20 Nov 2026 are reached within 0.6 m of their front, as before)
   assert.equal(U.placeAt(s.x,s.z),s.place,s.id+' in its place');const f=SP.standOf(s);assert.equal(U.placeAt(f.x,f.z),s.place,s.id+' stand point in its place');
