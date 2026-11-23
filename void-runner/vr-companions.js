@@ -31,6 +31,13 @@
   glanceEvery:[5,11],    // seconds between brief natural glances away
   glanceFor:[.8,1.8]};
  const settings=(entry)=>({...defaults,...(entry?.personality||{})});
+ // Reusable floor correction for an imported GLB. Never alter its skeleton or animation data.
+ // Bounding values must be in world coordinates; apply the result to the model's visual root.
+ function floorOffset(minY,maxY,floorY=0){
+  if(![minY,maxY,floorY].every(Number.isFinite)||maxY<=minY)return 0;
+  return floorY-minY;
+ }
+
 
  // ---- The registry ----
  const companions=new Map();
@@ -594,6 +601,6 @@
     m.setVerticesData(B.VertexBuffer.ColorKind,rgba,false,4);m.hasVertexAlpha=false;cavityDone.add(m.geometry);report.cavity++;});}
   return report;}
 
- const api={defaults,settings,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,behindAt,maxCorrection,turnSpeed,reach,headWeight,turnStep,glideAt,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
+ const api={defaults,settings,floorOffset,register,get,voiceOf,pairs,list,file,resolve,requiredClips,clipFor,pick,brain,look,ease,wrap,chain,behindAt,maxCorrection,turnSpeed,reach,headWeight,turnStep,glideAt,path,companions,party,partySize,offered,looks,option,chosen,wears,lookTextures,variantTextures,lookMaterials,variantMaterials,savedLooks,saveLook,speaks,isSkin,hasOrm,tier,cavity,breath,breathWeight,finish};
  if(typeof module!=='undefined')module.exports=api;else root.VoidVRCompanions=api;
 })(globalThis);
