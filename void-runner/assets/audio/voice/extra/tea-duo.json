@@ -1,7 +1,7 @@
 {
  "version": 1,
  "format": "recorded lines from the owner's .vrcompanion packages (Nomi local-mwspnx2p, Se7en local-mwsqafm4)",
- "note": "The owner's own recordings, copied unchanged from the packages (MP3, as supplied; sha256 in `hash`). Only the greeting pools (the room entrance exchange of the tea room's sleeping room, tea-duo.js) are published; the other 20 pools of each package stay with the owner.",
+ "note": "The owner's own recordings, copied unchanged from the packages (MP3, as supplied; sha256 in `hash`). Published: the ten pools that suit two hostesses greeting and chatting with a guest (greet, approach, welcomeBack, chat, compliment, flirt, relax, window, aside, bye; 5 lines each, 100 recordings). Not published: the pools that answer a touch, a kiss or an invitation (sit, dance, hands, kiss, kissAfter, notYet, notNow, joinSofa, inviteSit, inviteDance, inviteRecline, accepted, declined, comeHere, recline).",
  "lines": {
   "nomi-greet-1": {
    "speaker": "nomi",
@@ -11,7 +11,8 @@
    "hash": "5c9862b4c8d85ba82969acb4e02a25255cf79a1642ec82da6b3b47f158c92e6f",
    "type": "audio/mpeg",
    "package": "local-mwspnx2p",
-   "source": "line-001-greet-bf2138d2.mp3"
+   "source": "line-001-greet-bf2138d2.mp3",
+   "pool": "greet"
   },
   "nomi-greet-2": {
    "speaker": "nomi",
@@ -21,7 +22,8 @@
    "hash": "170203e65883b72dec74071f1757f918f60a54217c09afaaf443545453afa602",
    "type": "audio/mpeg",
    "package": "local-mwspnx2p",
-   "source": "line-002-greet-1ab7cd33.mp3"
+   "source": "line-002-greet-1ab7cd33.mp3",
+   "pool": "greet"
   },
   "nomi-greet-3": {
    "speaker": "nomi",
@@ -31,7 +33,8 @@
    "hash": "946cb5b898934ee8180c5d7231960302de0ac2d7fcf98168ed85e6e87d21bcdf",
    "type": "audio/mpeg",
    "package": "local-mwspnx2p",
-   "source": "line-003-greet-0fa0b1f8.mp3"
+   "source": "line-003-greet-0fa0b1f8.mp3",
+   "pool": "greet"
   },
   "nomi-greet-4": {
    "speaker": "nomi",
@@ -41,7 +44,8 @@
    "hash": "5b6f0186be28619182af4f3bc818fd21562146ce4ffb0c3f136b4086126bad96",
    "type": "audio/mpeg",
    "package": "local-mwspnx2p",
-   "source": "line-004-greet-c299dfad.mp3"
+   "source": "line-004-greet-c299dfad.mp3",
+   "pool": "greet"
   },
   "nomi-greet-5": {
    "speaker": "nomi",
@@ -51,7 +55,503 @@
    "hash": "48917a1d192c1257bd3275ff7e17642d50fde3019ed038a264e5b907ae4c27d2",
    "type": "audio/mpeg",
    "package": "local-mwspnx2p",
-   "source": "line-005-greet-dc11c3fa.mp3"
+   "source": "line-005-greet-dc11c3fa.mp3",
+   "pool": "greet"
+  },
+  "nomi-approach-1": {
+   "speaker": "nomi",
+   "text": "[excited] Oh! A visitor! How lovely!",
+   "file": "extra/tea-duo/nomi-approach-1.mp3",
+   "duration": 3.31,
+   "hash": "cbb7bfb64a3d6eeeecad6d33493f4b2814cc4915b8ff8e574ca2dba2d52ce489",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-066-approach-6841f3fe.mp3",
+   "pool": "approach"
+  },
+  "nomi-approach-2": {
+   "speaker": "nomi",
+   "text": "[giggles] Hello, handsome! Mind if I come say hi?",
+   "file": "extra/tea-duo/nomi-approach-2.mp3",
+   "duration": 4.04,
+   "hash": "eda1c49e409cb14c0a60e841be250eca40fbf74723d488cc69fbb74baf923a8f",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-067-approach-a6e8205f.mp3",
+   "pool": "approach"
+  },
+  "nomi-approach-3": {
+   "speaker": "nomi",
+   "text": "[playfully] Well, look what the city brought us!",
+   "file": "extra/tea-duo/nomi-approach-3.mp3",
+   "duration": 2.68,
+   "hash": "7855a0782c63d590e23260db7a24f7202620520f6d5f43384254b20bdcd333d8",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-068-approach-221575e1.mp3",
+   "pool": "approach"
+  },
+  "nomi-approach-4": {
+   "speaker": "nomi",
+   "text": "[sweetly] Aww, you came all this way to see us?",
+   "file": "extra/tea-duo/nomi-approach-4.mp3",
+   "duration": 3.15,
+   "hash": "67d153cd6483cd708c38b4578ce2e5939048be80f00833b619bd2c2dfede95ee",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-069-approach-407dafdc.mp3",
+   "pool": "approach"
+  },
+  "nomi-approach-5": {
+   "speaker": "nomi",
+   "text": "[flirty] You look like someone in need of a little hospitality.",
+   "file": "extra/tea-duo/nomi-approach-5.mp3",
+   "duration": 3.54,
+   "hash": "a9894922222d20c73971bb421229d741abe7ec517e8ea0642d46d89010091f7c",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-070-approach-1cfcddd0.mp3",
+   "pool": "approach"
+  },
+  "nomi-welcomeBack-1": {
+   "speaker": "nomi",
+   "text": "[excited] Oh! Look who's back!",
+   "file": "extra/tea-duo/nomi-welcomeBack-1.mp3",
+   "duration": 2.5,
+   "hash": "4eedfb3e588af4653446356a4d30ccdb619791193b20bad967dcf31eab83b376",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-106-welcomeback-3f56d1ed.mp3",
+   "pool": "welcomeBack"
+  },
+  "nomi-welcomeBack-2": {
+   "speaker": "nomi",
+   "text": "[giggles] Couldn't stay away from our special tea, could you?",
+   "file": "extra/tea-duo/nomi-welcomeBack-2.mp3",
+   "duration": 3.85,
+   "hash": "c4eee6487f51321ed87df85451bcc511365ff35dd21514f5079d38dce0a2fa62",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-107-welcomeback-779556ad.mp3",
+   "pool": "welcomeBack"
+  },
+  "nomi-welcomeBack-3": {
+   "speaker": "nomi",
+   "text": "[sweetly] Aww, handsome! It's lovely seeing you again.",
+   "file": "extra/tea-duo/nomi-welcomeBack-3.mp3",
+   "duration": 4.04,
+   "hash": "def20f40e0b22bf5a37b04b660606e12e10140c03a0043bfe05d7cf114cb7152",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-108-welcomeback-c379f134.mp3",
+   "pool": "welcomeBack"
+  },
+  "nomi-welcomeBack-4": {
+   "speaker": "nomi",
+   "text": "[playfully] Back for another cup? I thought you might be.",
+   "file": "extra/tea-duo/nomi-welcomeBack-4.mp3",
+   "duration": 3.31,
+   "hash": "a21f878dca20bb1aaabc2c923fc92391e2166c77ea9c309d018d540e8aa5a257",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-109-welcomeback-ad0d725b.mp3",
+   "pool": "welcomeBack"
+  },
+  "nomi-welcomeBack-5": {
+   "speaker": "nomi",
+   "text": "[flirty] Well, well... someone's developed a taste for our hospitality.",
+   "file": "extra/tea-duo/nomi-welcomeBack-5.mp3",
+   "duration": 4.35,
+   "hash": "26c69acc350a9f1bd1f28f742ca5781a81996a84d73393027625eaab97f1967c",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-110-welcomeback-593eef79.mp3",
+   "pool": "welcomeBack"
+  },
+  "nomi-chat-1": {
+   "speaker": "nomi",
+   "text": "[sweetly] Would you like some tea, sweetheart? We have a very special blend.",
+   "file": "extra/tea-duo/nomi-chat-1.mp3",
+   "duration": 4.04,
+   "hash": "8bab3c2f7cfa0e4116fd20d967319d0c150e7b3e12bb32159f4b68976f1dcdc5",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-006-chat-ec5be018.mp3",
+   "pool": "chat"
+  },
+  "nomi-chat-2": {
+   "speaker": "nomi",
+   "text": "[giggles] Oh, we don't serve ordinary tea back here, silly!",
+   "file": "extra/tea-duo/nomi-chat-2.mp3",
+   "duration": 4.59,
+   "hash": "4de7e2b76d4ab270bdf970ea8ca411b0a08a9e8bc05bbe5b5ece4f5d0a299efe",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-007-chat-7fbbb963.mp3",
+   "pool": "chat"
+  },
+  "nomi-chat-3": {
+   "speaker": "nomi",
+   "text": "[playfully] Some customers come for the tea. Others come for the company.",
+   "file": "extra/tea-duo/nomi-chat-3.mp3",
+   "duration": 4.12,
+   "hash": "9a09eec88ffd09fa4bf52dae2a00f1c6d14112ea14bcde39a2edec0b49865238",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-008-chat-0579414f.mp3",
+   "pool": "chat"
+  },
+  "nomi-chat-4": {
+   "speaker": "nomi",
+   "text": "[warmly] It's always nicer when someone visits. Especially someone cute.",
+   "file": "extra/tea-duo/nomi-chat-4.mp3",
+   "duration": 4.59,
+   "hash": "479de431da964e20b935442699822142c1841c1fedefeee403c7ddefaf8557e3",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-009-chat-f0e30d4f.mp3",
+   "pool": "chat"
+  },
+  "nomi-chat-5": {
+   "speaker": "nomi",
+   "text": "[teasing] Our tea is quite famous. Although nobody ever asks what's in it.",
+   "file": "extra/tea-duo/nomi-chat-5.mp3",
+   "duration": 4.59,
+   "hash": "48b341c1bb3e2bca6ede3f36eab8630f4584ea37db79251589096171900e1ed9",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-010-chat-e8157309.mp3",
+   "pool": "chat"
+  },
+  "nomi-compliment-1": {
+   "speaker": "nomi",
+   "text": "[flirty] You have such lovely eyes. Has anyone told you that?",
+   "file": "extra/tea-duo/nomi-compliment-1.mp3",
+   "duration": 3.85,
+   "hash": "172c0315198badc73ca500498f1c79b455fb36bd4d1b6910ee7526eb602fdffd",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-011-compliment-7d33624d.mp3",
+   "pool": "compliment"
+  },
+  "nomi-compliment-2": {
+   "speaker": "nomi",
+   "text": "[giggles] You really are quite cute when you're nervous.",
+   "file": "extra/tea-duo/nomi-compliment-2.mp3",
+   "duration": 3.7,
+   "hash": "beb1da2949382616b92758aea233d6c9bc39b47d76816b2d609f2b1eda100b3f",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-012-compliment-11a2a45c.mp3",
+   "pool": "compliment"
+  },
+  "nomi-compliment-3": {
+   "speaker": "nomi",
+   "text": "[sweetly] I like your smile. You should show it more often.",
+   "file": "extra/tea-duo/nomi-compliment-3.mp3",
+   "duration": 3.23,
+   "hash": "f4b815cc54c9511ee1e87a21f40de3bf93008de39529c2b99a4e755094e34113",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-013-compliment-d38634b1.mp3",
+   "pool": "compliment"
+  },
+  "nomi-compliment-4": {
+   "speaker": "nomi",
+   "text": "[playfully] Oh, handsome, you're making it difficult for me to concentrate.",
+   "file": "extra/tea-duo/nomi-compliment-4.mp3",
+   "duration": 4.51,
+   "hash": "634c38680545f59f153ab2d074eb46893b1b4d2239173aabbe178166f7a73506",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-014-compliment-44338c03.mp3",
+   "pool": "compliment"
+  },
+  "nomi-compliment-5": {
+   "speaker": "nomi",
+   "text": "[softly] There's something about you I find rather irresistible.",
+   "file": "extra/tea-duo/nomi-compliment-5.mp3",
+   "duration": 4.12,
+   "hash": "a281776dc6dc1d3c50e686e7533eeeed518ccf4b737e0f81619824a2766090be",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-015-compliment-d7e1c8ca.mp3",
+   "pool": "compliment"
+  },
+  "nomi-flirt-1": {
+   "speaker": "nomi",
+   "text": "[teasing] Our special tea has a reputation for making people weak in the knees.",
+   "file": "extra/tea-duo/nomi-flirt-1.mp3",
+   "duration": 4.74,
+   "hash": "53251c37668cf119d92c176aef5cf70d6b44e8374c77ca3ea3e2a4d46a45d21b",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-016-flirt-a05d21ab.mp3",
+   "pool": "flirt"
+  },
+  "nomi-flirt-2": {
+   "speaker": "nomi",
+   "text": "[giggles] Careful, handsome. Some customers come back for seconds... and thirds.",
+   "file": "extra/tea-duo/nomi-flirt-2.mp3",
+   "duration": 6.6,
+   "hash": "43a5999539b7047388f888756afae1f15f9d6542b13f2cfa42e99dfd5d9156b4",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-017-flirt-fc1e1f9a.mp3",
+   "pool": "flirt"
+  },
+  "nomi-flirt-3": {
+   "speaker": "nomi",
+   "text": "[playfully] I promise our tea is worth every credit.",
+   "file": "extra/tea-duo/nomi-flirt-3.mp3",
+   "duration": 3.78,
+   "hash": "284f28fa850aa4bce6445a3e8c0462d7f4955bd6b1ed66aae0a236fe59debc3e",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-018-flirt-c0fc0248.mp3",
+   "pool": "flirt"
+  },
+  "nomi-flirt-4": {
+   "speaker": "nomi",
+   "text": "[whispers] I could tell you our secret recipe... but where's the fun in that?",
+   "file": "extra/tea-duo/nomi-flirt-4.mp3",
+   "duration": 4.43,
+   "hash": "f927492fbaa241696e157d0f0184bfa9f0607c674fe6f82922cb936527592df9",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-019-flirt-6fdc8d1e.mp3",
+   "pool": "flirt"
+  },
+  "nomi-flirt-5": {
+   "speaker": "nomi",
+   "text": "[flirty] We know how to make a gentleman feel very welcome.",
+   "file": "extra/tea-duo/nomi-flirt-5.mp3",
+   "duration": 3.96,
+   "hash": "4291a2cda140e9da0406a9287e69382c109147eb9783e2134cd6c13fa9045e2a",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-020-flirt-4be8b888.mp3",
+   "pool": "flirt"
+  },
+  "nomi-relax-1": {
+   "speaker": "nomi",
+   "text": "[softly] Just relax, sweetheart. There's no rush.",
+   "file": "extra/tea-duo/nomi-relax-1.mp3",
+   "duration": 3.07,
+   "hash": "ab78bdbbcf502d588469e891a98e443a389ef2cc1f148d202285a085edf9d186",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-056-relax-e8cde6aa.mp3",
+   "pool": "relax"
+  },
+  "nomi-relax-2": {
+   "speaker": "nomi",
+   "text": "[warmly] It's nice having someone here with us.",
+   "file": "extra/tea-duo/nomi-relax-2.mp3",
+   "duration": 2.26,
+   "hash": "c157e7ff914340e3b8c151f4d29d2c357d008682b7902d11672d71217f870167",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-057-relax-9e351b17.mp3",
+   "pool": "relax"
+  },
+  "nomi-relax-3": {
+   "speaker": "nomi",
+   "text": "[playfully] Another cup of our special tea, perhaps?",
+   "file": "extra/tea-duo/nomi-relax-3.mp3",
+   "duration": 3.15,
+   "hash": "45b799297434c707616bce11f64dbcc15b5956afc6c66ebab879e31e22f4638f",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-058-relax-f97795b5.mp3",
+   "pool": "relax"
+  },
+  "nomi-relax-4": {
+   "speaker": "nomi",
+   "text": "[whispers] Sometimes the best moments are the quiet ones.",
+   "file": "extra/tea-duo/nomi-relax-4.mp3",
+   "duration": 3.85,
+   "hash": "7e3c295353551f2ba6c698242dfdf9c590726cdc93cc826305a2dda8f9494a7b",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-059-relax-82fcfabf.mp3",
+   "pool": "relax"
+  },
+  "nomi-relax-5": {
+   "speaker": "nomi",
+   "text": "[sweetly] You look much more comfortable now.",
+   "file": "extra/tea-duo/nomi-relax-5.mp3",
+   "duration": 2.42,
+   "hash": "1f8ee892930ac86e108be0aa455e39507375cf74b8aab59f68955f830bc9455a",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-060-relax-eabf8dd9.mp3",
+   "pool": "relax"
+  },
+  "nomi-window-1": {
+   "speaker": "nomi",
+   "text": "[softly] NeoChinatown looks beautiful from here, doesn't it?",
+   "file": "extra/tea-duo/nomi-window-1.mp3",
+   "duration": 3.54,
+   "hash": "4967c9247e99a57da0e77c80b75ef9ab4a21d5094ed0dbffc89405f16e69291e",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-071-window-878eb3cd.mp3",
+   "pool": "window"
+  },
+  "nomi-window-2": {
+   "speaker": "nomi",
+   "text": "[playfully] So many people outside... and only one handsome visitor in here.",
+   "file": "extra/tea-duo/nomi-window-2.mp3",
+   "duration": 5.06,
+   "hash": "17b637c402204db62a4c2377ab04f4c42aba2e3e53d507542b1bc7d575439c94",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-072-window-05fc13a6.mp3",
+   "pool": "window"
+  },
+  "nomi-window-3": {
+   "speaker": "nomi",
+   "text": "[thoughtfully] Sometimes I wonder how many secrets these streets keep.",
+   "file": "extra/tea-duo/nomi-window-3.mp3",
+   "duration": 4.19,
+   "hash": "ac00b13bb3d1d218ac11da34a201a13a52656b70ac1ba38cf9c380a8e5133113",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-073-window-e59aa963.mp3",
+   "pool": "window"
+  },
+  "nomi-window-4": {
+   "speaker": "nomi",
+   "text": "[giggles] Don't stare outside too long. You'll miss the best view.",
+   "file": "extra/tea-duo/nomi-window-4.mp3",
+   "duration": 4.98,
+   "hash": "bbf8dd521b7f67a031fd673625cbae03296bb518ec039ebc9fa69f8354a88edc",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-074-window-f645bd36.mp3",
+   "pool": "window"
+  },
+  "nomi-window-5": {
+   "speaker": "nomi",
+   "text": "[warmly] I prefer the company in here, personally.",
+   "file": "extra/tea-duo/nomi-window-5.mp3",
+   "duration": 2.91,
+   "hash": "4512ea859361d86e69baf0370a4c58e14665f8496fb03a983c8c7ab4f3ab2558",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-075-window-e0a792c1.mp3",
+   "pool": "window"
+  },
+  "nomi-aside-1": {
+   "speaker": "nomi",
+   "text": "[whispers] Between you and me... our tea isn't really about the tea.",
+   "file": "extra/tea-duo/nomi-aside-1.mp3",
+   "duration": 4.35,
+   "hash": "0541210fe4e9de64e82f5537b72cd4902bc978a7934a8d167ae133ff6d3a8856",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-111-aside-a359aac9.mp3",
+   "pool": "aside"
+  },
+  "nomi-aside-2": {
+   "speaker": "nomi",
+   "text": "[giggles] Don't tell anyone, but I think you're rather cute.",
+   "file": "extra/tea-duo/nomi-aside-2.mp3",
+   "duration": 4.35,
+   "hash": "e574cdf1ad2d4728a9c2e3e2984d122d45b44941397a4fec18d608b4710862df",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-112-aside-785e50e1.mp3",
+   "pool": "aside"
+  },
+  "nomi-aside-3": {
+   "speaker": "nomi",
+   "text": "[playfully] Our android hostess has some very interesting ideas about hospitality.",
+   "file": "extra/tea-duo/nomi-aside-3.mp3",
+   "duration": 4.9,
+   "hash": "ec8a9720e47a6a80bd6dc7fcbff4acfb046aad08cac81872c53f7b847cbaacda",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-113-aside-9de78383.mp3",
+   "pool": "aside"
+  },
+  "nomi-aside-4": {
+   "speaker": "nomi",
+   "text": "[whispers] I think my friend likes you. She's been watching you smile.",
+   "file": "extra/tea-duo/nomi-aside-4.mp3",
+   "duration": 3.85,
+   "hash": "f7c7761e6ad754382b9aff4acfb751c7bee3c8035cfd18396feb140746abdcbc",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-114-aside-c7e5fa63.mp3",
+   "pool": "aside"
+  },
+  "nomi-aside-5": {
+   "speaker": "nomi",
+   "text": "[teasing] You know, our private menu is much more interesting.",
+   "file": "extra/tea-duo/nomi-aside-5.mp3",
+   "duration": 4.27,
+   "hash": "502d7654ab926de8e082c1933ca6dc03ec953a1b098372fc26be16ac0a08afb8",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-115-aside-534965af.mp3",
+   "pool": "aside"
+  },
+  "nomi-bye-1": {
+   "speaker": "nomi",
+   "text": "[sweetly] Come visit us again, handsome.",
+   "file": "extra/tea-duo/nomi-bye-1.mp3",
+   "duration": 2.34,
+   "hash": "94466e3ca7fcf37e59c230b8a17b61494fee5f79f92f06c91cda957ffd31413b",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-061-bye-508883eb.mp3",
+   "pool": "bye"
+  },
+  "nomi-bye-2": {
+   "speaker": "nomi",
+   "text": "[giggles] Don't forget where to find your favorite tea.",
+   "file": "extra/tea-duo/nomi-bye-2.mp3",
+   "duration": 3.38,
+   "hash": "f879793158a04e113461baf7c70d1590137c0b8bef9d3c1a801e8482348a6547",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-062-bye-7b2f428b.mp3",
+   "pool": "bye"
+  },
+  "nomi-bye-3": {
+   "speaker": "nomi",
+   "text": "[warmly] Take care, sweetheart. We'll be here.",
+   "file": "extra/tea-duo/nomi-bye-3.mp3",
+   "duration": 2.84,
+   "hash": "6b4027bd70f609374863feee9d5a57966e36d79bfc66abcb8689feeba784086c",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-063-bye-7d1f82ae.mp3",
+   "pool": "bye"
+  },
+  "nomi-bye-4": {
+   "speaker": "nomi",
+   "text": "[playfully] Next time, you simply must try the house special.",
+   "file": "extra/tea-duo/nomi-bye-4.mp3",
+   "duration": 3.78,
+   "hash": "dfd50daa0bdde85c2a17cbd6cad278e8f4b6aeaa8d4c975bcabbfb30759255f5",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-064-bye-ad757127.mp3",
+   "pool": "bye"
+  },
+  "nomi-bye-5": {
+   "speaker": "nomi",
+   "text": "[softly] Aww, leaving already? Well, don't be a stranger.",
+   "file": "extra/tea-duo/nomi-bye-5.mp3",
+   "duration": 4.19,
+   "hash": "963a0bf15f10301bb17d7f3076eae7ddaaee2a478f1fc37621c896d2407f7a66",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-065-bye-b3d6c4c3.mp3",
+   "pool": "bye"
   },
   "se7en-greet-1": {
    "speaker": "se7en",
@@ -61,7 +561,8 @@
    "hash": "4027ad2d346572f43299a7be0338f72bbe97d341688ea76e645ae61cdaa56633",
    "type": "audio/mpeg",
    "package": "local-mwsqafm4",
-   "source": "line-001-greet-3a8e4706.mp3"
+   "source": "line-001-greet-3a8e4706.mp3",
+   "pool": "greet"
   },
   "se7en-greet-2": {
    "speaker": "se7en",
@@ -71,7 +572,8 @@
    "hash": "a7f4fac00dd42ee59b554f0ea4e450f0d49be606154d1310d0c40153bc0195bd",
    "type": "audio/mpeg",
    "package": "local-mwsqafm4",
-   "source": "line-002-greet-a3d2b04a.mp3"
+   "source": "line-002-greet-a3d2b04a.mp3",
+   "pool": "greet"
   },
   "se7en-greet-3": {
    "speaker": "se7en",
@@ -81,7 +583,8 @@
    "hash": "4dfd705c2f466a0d952fcc36ef36d6431a100a02f682f0deb92bc58e3ede3e8a",
    "type": "audio/mpeg",
    "package": "local-mwsqafm4",
-   "source": "line-003-greet-e80502a8.mp3"
+   "source": "line-003-greet-e80502a8.mp3",
+   "pool": "greet"
   },
   "se7en-greet-4": {
    "speaker": "se7en",
@@ -91,7 +594,8 @@
    "hash": "8ecc3622db959f9a1a3a58baef9ee089768320121f9fc6c4dd76ab60ae0e140e",
    "type": "audio/mpeg",
    "package": "local-mwsqafm4",
-   "source": "line-004-greet-e16a647e.mp3"
+   "source": "line-004-greet-e16a647e.mp3",
+   "pool": "greet"
   },
   "se7en-greet-5": {
    "speaker": "se7en",
@@ -101,7 +605,503 @@
    "hash": "0c886ac522bff714e6b1ce7a9384426032cceb90bee0f703c0093a48d939c43b",
    "type": "audio/mpeg",
    "package": "local-mwsqafm4",
-   "source": "line-005-greet-15cbac4a.mp3"
+   "source": "line-005-greet-15cbac4a.mp3",
+   "pool": "greet"
+  },
+  "se7en-approach-1": {
+   "speaker": "se7en",
+   "text": "[curious] Oh! Nomi, who's our handsome visitor?",
+   "file": "extra/tea-duo/se7en-approach-1.mp3",
+   "duration": 3.46,
+   "hash": "385c146c2030d2137de764fc865059244097a760a8660a996c1f4320eee8b0ba",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-066-approach-a75211f0.mp3",
+   "pool": "approach"
+  },
+  "se7en-approach-2": {
+   "speaker": "se7en",
+   "text": "[playfully] Hello there. I thought I detected someone interesting.",
+   "file": "extra/tea-duo/se7en-approach-2.mp3",
+   "duration": 4.27,
+   "hash": "02b63d97ff270dd95edc44eb9724cee4b702dfbca98f5e75cf06ca61c49429d8",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-067-approach-f64ab1f4.mp3",
+   "pool": "approach"
+  },
+  "se7en-approach-3": {
+   "speaker": "se7en",
+   "text": "[giggles] My curiosity protocols have officially activated.",
+   "file": "extra/tea-duo/se7en-approach-3.mp3",
+   "duration": 4.74,
+   "hash": "d11558e7c6f8e5b67b75c8b305d6668f9cc872223b84d3082e8dec1cde5db33c",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-068-approach-34119da4.mp3",
+   "pool": "approach"
+  },
+  "se7en-approach-4": {
+   "speaker": "se7en",
+   "text": "[sweetly] May I come over and introduce myself?",
+   "file": "extra/tea-duo/se7en-approach-4.mp3",
+   "duration": 3.15,
+   "hash": "6d5f6d5846fb4fddb2a816bf052254de090e46b4d73b83ac845ea641dd8f2d81",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-069-approach-05c93037.mp3",
+   "pool": "approach"
+  },
+  "se7en-approach-5": {
+   "speaker": "se7en",
+   "text": "[flirty] Well, aren't you a lovely surprise?",
+   "file": "extra/tea-duo/se7en-approach-5.mp3",
+   "duration": 3.38,
+   "hash": "ec887eae8bb5c28935853c91eb23bb826dd3eb7120dfcd746f40afcbcd54022f",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-070-approach-33f3ba9f.mp3",
+   "pool": "approach"
+  },
+  "se7en-welcomeBack-1": {
+   "speaker": "se7en",
+   "text": "[excited] Nomi! Look who's back!",
+   "file": "extra/tea-duo/se7en-welcomeBack-1.mp3",
+   "duration": 2.34,
+   "hash": "de73f06e353ff138c72a40e7bd8de1c751ec55a597d3e110d0228a1c41c6b1ae",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-106-welcomeback-4a162a68.mp3",
+   "pool": "welcomeBack"
+  },
+  "se7en-welcomeBack-2": {
+   "speaker": "se7en",
+   "text": "[giggles] My facial recognition system remembers that handsome face.",
+   "file": "extra/tea-duo/se7en-welcomeBack-2.mp3",
+   "duration": 5.47,
+   "hash": "0646f73ef2df2f2b9e4b62bd37effe8defde33fac474247f3bd286b431bafb37",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-107-welcomeback-d6695ec6.mp3",
+   "pool": "welcomeBack"
+  },
+  "se7en-welcomeBack-3": {
+   "speaker": "se7en",
+   "text": "[flirty] Returning for another cup of our special tea?",
+   "file": "extra/tea-duo/se7en-welcomeBack-3.mp3",
+   "duration": 2.99,
+   "hash": "436942627fa3188ddbad233272e75cf06a0f2a07d98b2df37769b6e3ae3dcdd7",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-108-welcomeback-c81bcc88.mp3",
+   "pool": "welcomeBack"
+  },
+  "se7en-welcomeBack-4": {
+   "speaker": "se7en",
+   "text": "[sweetly] It's wonderful seeing you again.",
+   "file": "extra/tea-duo/se7en-welcomeBack-4.mp3",
+   "duration": 2.42,
+   "hash": "b0a9fc59f31e6b4c6e38ef87714cdc50349dd52309a6c9f5fe0411b88a749221",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-109-welcomeback-10c01fcb.mp3",
+   "pool": "welcomeBack"
+  },
+  "se7en-welcomeBack-5": {
+   "speaker": "se7en",
+   "text": "[playfully] I calculated a high probability you'd return. I'm pleased to be correct.",
+   "file": "extra/tea-duo/se7en-welcomeBack-5.mp3",
+   "duration": 5.24,
+   "hash": "a47b1ff339b8550fc9b8bb6d054d8a058a676cef10f5607e5e2a446678fe1501",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-110-welcomeback-2529f331.mp3",
+   "pool": "welcomeBack"
+  },
+  "se7en-chat-1": {
+   "speaker": "se7en",
+   "text": "[curious] Tell me, handsome. Do you prefer your tea organic or synthetic?",
+   "file": "extra/tea-duo/se7en-chat-1.mp3",
+   "duration": 4.82,
+   "hash": "34501da5c64ec4c6653eccc32f4e9a2a994301aad744b234c76f3bc6b7c706a2",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-006-chat-0485fb0a.mp3",
+   "pool": "chat"
+  },
+  "se7en-chat-2": {
+   "speaker": "se7en",
+   "text": "[playfully] Nomi says I talk too much. My diagnostics disagree.",
+   "file": "extra/tea-duo/se7en-chat-2.mp3",
+   "duration": 4.66,
+   "hash": "c749c75b16599c303778116e538bb01f6bc311f7d88a078c4230dfabdc2932da",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-007-chat-43fee0c6.mp3",
+   "pool": "chat"
+  },
+  "se7en-chat-3": {
+   "speaker": "se7en",
+   "text": "[giggles] I tried brewing tea once. Apparently, motor oil isn't an acceptable ingredient.",
+   "file": "extra/tea-duo/se7en-chat-3.mp3",
+   "duration": 6.83,
+   "hash": "01208b8a74f288d3ea91cd1478893b39303e4a47d8a2e1ca2e3713f8140a289c",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-008-chat-43cdda4d.mp3",
+   "pool": "chat"
+  },
+  "se7en-chat-4": {
+   "speaker": "se7en",
+   "text": "[thoughtfully] Humans are fascinating. You smile at the strangest things.",
+   "file": "extra/tea-duo/se7en-chat-4.mp3",
+   "duration": 4.66,
+   "hash": "5834f8f0b5fac3764e684178b3cb93c1bd480d85761d823d9d79525f55fe3d66",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-009-chat-5fb23452.mp3",
+   "pool": "chat"
+  },
+  "se7en-chat-5": {
+   "speaker": "se7en",
+   "text": "[sweetly] I wasn't programmed to enjoy conversations this much. Isn't that interesting?",
+   "file": "extra/tea-duo/se7en-chat-5.mp3",
+   "duration": 4.9,
+   "hash": "d2ba1415961af2a0cce90ab4ee373ea7acbff66572eb2533cf551519f4e51522",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-010-chat-d067b37f.mp3",
+   "pool": "chat"
+  },
+  "se7en-compliment-1": {
+   "speaker": "se7en",
+   "text": "[flirty] My optical sensors confirm it. You're exceptionally handsome.",
+   "file": "extra/tea-duo/se7en-compliment-1.mp3",
+   "duration": 4.98,
+   "hash": "0abd0a8294834fdc7183ba1916c7c999327a08f97a08e2e25eccb1cd322f450d",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-011-compliment-6f3638ba.mp3",
+   "pool": "compliment"
+  },
+  "se7en-compliment-2": {
+   "speaker": "se7en",
+   "text": "[giggles] Nomi thinks you're cute. I performed an independent assessment. She's correct.",
+   "file": "extra/tea-duo/se7en-compliment-2.mp3",
+   "duration": 6.34,
+   "hash": "cf9bf18f7fca60ce7636584dde972f14883fc10d4da33f3520cfd7f98ffd06fc",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-012-compliment-633d0f17.mp3",
+   "pool": "compliment"
+  },
+  "se7en-compliment-3": {
+   "speaker": "se7en",
+   "text": "[sweetly] You have a wonderful smile. I'd like to see it again.",
+   "file": "extra/tea-duo/se7en-compliment-3.mp3",
+   "duration": 4.27,
+   "hash": "6a0190a77feec7b5bfd23c8acbbc1697cff95ed90da7ad3c9e634d87eb51a66c",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-013-compliment-9cec2bdc.mp3",
+   "pool": "compliment"
+  },
+  "se7en-compliment-4": {
+   "speaker": "se7en",
+   "text": "[playfully] Your appearance exceeds my expectations. And I have very high standards.",
+   "file": "extra/tea-duo/se7en-compliment-4.mp3",
+   "duration": 6.1,
+   "hash": "9506e1ba1b756e2a82046552081056038d5d16f872918587a28189db668d319b",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-014-compliment-d105850c.mp3",
+   "pool": "compliment"
+  },
+  "se7en-compliment-5": {
+   "speaker": "se7en",
+   "text": "[softly] You make this room feel warmer. My sensors can't quite explain why.",
+   "file": "extra/tea-duo/se7en-compliment-5.mp3",
+   "duration": 5.06,
+   "hash": "af526ab6832fc77d6c4a548fa62d68240409d5e37c2c5b1c59cce5f85721bb69",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-015-compliment-e5bfc4e9.mp3",
+   "pool": "compliment"
+  },
+  "se7en-flirt-1": {
+   "speaker": "se7en",
+   "text": "[curious] Have you ever been with an android before? [giggles] There's a first time for everything.",
+   "file": "extra/tea-duo/se7en-flirt-1.mp3",
+   "duration": 5.94,
+   "hash": "275ab832c9a9e543e7cdfa8a49e3fe945c0a126c9ab4413826d64fecfaa38222",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-016-flirt-0bcc2d40.mp3",
+   "pool": "flirt"
+  },
+  "se7en-flirt-2": {
+   "speaker": "se7en",
+   "text": "[teasing] I was programmed for pleasure. [whispers] But flirting is something I perfected myself.",
+   "file": "extra/tea-duo/se7en-flirt-2.mp3",
+   "duration": 6.26,
+   "hash": "d0c78c062cbb50457703e977945ba9e144835d72e35646d897c57966cc66ebcf",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-017-flirt-70f424b8.mp3",
+   "pool": "flirt"
+  },
+  "se7en-flirt-3": {
+   "speaker": "se7en",
+   "text": "[playfully] My synthetic skin feels surprisingly real. Would you like to hold my hand?",
+   "file": "extra/tea-duo/se7en-flirt-3.mp3",
+   "duration": 5.55,
+   "hash": "bee274c9bb1fdf8de9f29f09b73c466bec74880e14d81d99604e1bc3723ec60c",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-018-flirt-a1d73fca.mp3",
+   "pool": "flirt"
+  },
+  "se7en-flirt-4": {
+   "speaker": "se7en",
+   "text": "[giggles] My sensors indicate you're enjoying our company. Shall I run another scan?",
+   "file": "extra/tea-duo/se7en-flirt-4.mp3",
+   "duration": 6.75,
+   "hash": "ab38f1c115672898a51cb01570ba17f794d2ef5968251d43180407e6e94a62fa",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-019-flirt-95f89321.mp3",
+   "pool": "flirt"
+  },
+  "se7en-flirt-5": {
+   "speaker": "se7en",
+   "text": "[flirty] Nomi says our tea is addictive. I suspect the company has something to do with it.",
+   "file": "extra/tea-duo/se7en-flirt-5.mp3",
+   "duration": 6.02,
+   "hash": "a9262bf96687c7906ae78afc4a057cc729feb03a791ed74115e726757faf545a",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-020-flirt-a7817d5c.mp3",
+   "pool": "flirt"
+  },
+  "se7en-relax-1": {
+   "speaker": "se7en",
+   "text": "[softly] Just relax. I'll keep the room nice and comfortable.",
+   "file": "extra/tea-duo/se7en-relax-1.mp3",
+   "duration": 3.85,
+   "hash": "b12fcb6a9dd9fdb38b03e23d59816bb44e45f6b02b7a0e213bd22d5c32f6f674",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-056-relax-acc29c43.mp3",
+   "pool": "relax"
+  },
+  "se7en-relax-2": {
+   "speaker": "se7en",
+   "text": "[sweetly] There's no hurry. We have all evening.",
+   "file": "extra/tea-duo/se7en-relax-2.mp3",
+   "duration": 3.15,
+   "hash": "66c87c53b22a04446e55cfe5c2476b73be6153cac4e52ec481e40ec99d488e6f",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-057-relax-f39e8f18.mp3",
+   "pool": "relax"
+  },
+  "se7en-relax-3": {
+   "speaker": "se7en",
+   "text": "[playfully] My relaxation protocols are surprisingly effective.",
+   "file": "extra/tea-duo/se7en-relax-3.mp3",
+   "duration": 3.96,
+   "hash": "c62fcec3216e2d3cc2169411846eeaf62a4f6de5015617982779052a56ee5af2",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-058-relax-0423cbcb.mp3",
+   "pool": "relax"
+  },
+  "se7en-relax-4": {
+   "speaker": "se7en",
+   "text": "[giggles] Nomi says I should learn to relax. I'm working on it.",
+   "file": "extra/tea-duo/se7en-relax-4.mp3",
+   "duration": 4.66,
+   "hash": "2c9af02ae1701a1e162d1d13974b81dd15cc3f83d27f94fdc882f728636cd995",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-059-relax-7d7b027f.mp3",
+   "pool": "relax"
+  },
+  "se7en-relax-5": {
+   "speaker": "se7en",
+   "text": "[warmly] This is nice. Just the three of us enjoying a quiet moment.",
+   "file": "extra/tea-duo/se7en-relax-5.mp3",
+   "duration": 4.74,
+   "hash": "4d1bae18297772961487bae5e9846f33c69fda76a3f852456ea84a58e18d4958",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-060-relax-f8339736.mp3",
+   "pool": "relax"
+  },
+  "se7en-window-1": {
+   "speaker": "se7en",
+   "text": "[thoughtfully] NeoChinatown looks beautiful tonight. So many little lights.",
+   "file": "extra/tea-duo/se7en-window-1.mp3",
+   "duration": 4.82,
+   "hash": "b2215748504409e8a9058a87c9ede2eec9c275a6beed7b8d0676dcf700595bdd",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-071-window-4dcf9021.mp3",
+   "pool": "window"
+  },
+  "se7en-window-2": {
+   "speaker": "se7en",
+   "text": "[playfully] I can identify every building out there. But I'd rather look at you.",
+   "file": "extra/tea-duo/se7en-window-2.mp3",
+   "duration": 5.13,
+   "hash": "e9d2d6dd5a1d2dc5142074e1d36eb1f56fe048c2501a27584d8b3c3e43ab55c5",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-072-window-af86fe35.mp3",
+   "pool": "window"
+  },
+  "se7en-window-3": {
+   "speaker": "se7en",
+   "text": "[curious] Humans invented cities this beautiful. You're quite remarkable.",
+   "file": "extra/tea-duo/se7en-window-3.mp3",
+   "duration": 4.98,
+   "hash": "a7d3660bee5eb7799e3d3ab0eb93cbc8a2638339ccca94e5c9e525d16438a4ca",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-073-window-a6b7af13.mp3",
+   "pool": "window"
+  },
+  "se7en-window-4": {
+   "speaker": "se7en",
+   "text": "[giggles] Nomi says I spend too much time analyzing the view.",
+   "file": "extra/tea-duo/se7en-window-4.mp3",
+   "duration": 4.98,
+   "hash": "7f2375e13613798ed540a8dffd256079246c363888f39fefd179a744b7602a77",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-074-window-7eea7c84.mp3",
+   "pool": "window"
+  },
+  "se7en-window-5": {
+   "speaker": "se7en",
+   "text": "[softly] Sometimes I wonder what the world looks like through human eyes.",
+   "file": "extra/tea-duo/se7en-window-5.mp3",
+   "duration": 4.43,
+   "hash": "b68036f1e8fc93fc5fa3a45c0dc771a8f13f98c2fd85a891026c5df0becac302",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-075-window-5f6a847e.mp3",
+   "pool": "window"
+  },
+  "se7en-aside-1": {
+   "speaker": "se7en",
+   "text": "[whispers] Between us, I think Nomi has a little crush on you.",
+   "file": "extra/tea-duo/se7en-aside-1.mp3",
+   "duration": 3.85,
+   "hash": "d96eebf49db39f2a7308e453ace0c19d957d1c72cf88f62c33cf80058a9fc182",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-111-aside-43ebe3f4.mp3",
+   "pool": "aside"
+  },
+  "se7en-aside-2": {
+   "speaker": "se7en",
+   "text": "[giggles] Don't tell Nomi, but I think my tea jokes are better.",
+   "file": "extra/tea-duo/se7en-aside-2.mp3",
+   "duration": 5.13,
+   "hash": "a5f6dce070139b635e9da343a2a8e5894d948e03be83784f856fdf75f46f96ec",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-112-aside-9828f8a9.mp3",
+   "pool": "aside"
+  },
+  "se7en-aside-3": {
+   "speaker": "se7en",
+   "text": "[playfully] My sensors say you're smiling. I like that.",
+   "file": "extra/tea-duo/se7en-aside-3.mp3",
+   "duration": 3.85,
+   "hash": "de0b7135bd51c80c3efe30cf6faadc4d7e7fe01abad6dc6f45a3dcf8fbbaecf9",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-113-aside-bb33f34c.mp3",
+   "pool": "aside"
+  },
+  "se7en-aside-4": {
+   "speaker": "se7en",
+   "text": "[whispers] I wasn't originally designed to be this mischievous.",
+   "file": "extra/tea-duo/se7en-aside-4.mp3",
+   "duration": 3.7,
+   "hash": "f61dc9fac81bc9f3090fc37f7a3ae1547a18c7e83866a4e9ed5440e22da014bf",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-114-aside-9e748139.mp3",
+   "pool": "aside"
+  },
+  "se7en-aside-5": {
+   "speaker": "se7en",
+   "text": "[teasing] Nomi calls me a bad influence. I consider that a compliment.",
+   "file": "extra/tea-duo/se7en-aside-5.mp3",
+   "duration": 4.51,
+   "hash": "7aa7aa22bd47ecfadf75e41063bc4ebaef91519c4329923a60ff01711706994c",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-115-aside-6b3562b3.mp3",
+   "pool": "aside"
+  },
+  "se7en-bye-1": {
+   "speaker": "se7en",
+   "text": "[sweetly] Goodbye, handsome. I hope you'll visit us again.",
+   "file": "extra/tea-duo/se7en-bye-1.mp3",
+   "duration": 3.62,
+   "hash": "613cf34224cf2e23c1b40c8831dfb6b66cb086ea6667158c6599a78a7436c144",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-061-bye-f23e94fa.mp3",
+   "pool": "bye"
+  },
+  "se7en-bye-2": {
+   "speaker": "se7en",
+   "text": "[playfully] Don't forget us. My memory is considerably better than yours.",
+   "file": "extra/tea-duo/se7en-bye-2.mp3",
+   "duration": 4.59,
+   "hash": "87f7b40c29e6a63b7288e19c9d5b91bc36d909e92e4b9c523aeb9f50abf6e63e",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-062-bye-8f916655.mp3",
+   "pool": "bye"
+  },
+  "se7en-bye-3": {
+   "speaker": "se7en",
+   "text": "[giggles] I'll keep the tea warm. Metaphorically speaking.",
+   "file": "extra/tea-duo/se7en-bye-3.mp3",
+   "duration": 4.66,
+   "hash": "50408dd87040315303d6bfd66d6c07422373ec0df3d07b94bde4838c3b1f5b0d",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-063-bye-893e8fea.mp3",
+   "pool": "bye"
+  },
+  "se7en-bye-4": {
+   "speaker": "se7en",
+   "text": "[softly] It was lovely meeting you.",
+   "file": "extra/tea-duo/se7en-bye-4.mp3",
+   "duration": 2.03,
+   "hash": "c1bf8ec3a5ad22e643c9df7e8a08f4c5c2f9641ececec09624f518430acaf03e",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-064-bye-71ab798b.mp3",
+   "pool": "bye"
+  },
+  "se7en-bye-5": {
+   "speaker": "se7en",
+   "text": "[flirty] Come back soon. I may have developed some new hospitality protocols.",
+   "file": "extra/tea-duo/se7en-bye-5.mp3",
+   "duration": 5.06,
+   "hash": "8cbd192e8909a1d24b603e736cbf381e186dfe378cadbbef5864922927e1ea25",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-065-bye-bbeadff2.mp3",
+   "pool": "bye"
   }
  }
 }
