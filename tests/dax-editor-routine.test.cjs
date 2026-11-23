@@ -28,3 +28,26 @@ test('invalid or empty plans cannot remove Dax from the world',()=>{
  assert.equal(R.position({mode:'path',points:[]}).source,'default');
  assert.equal(R.position({mode:'stay',x:NaN,z:1}).source,'default');
 });
+
+test('world-map stay converts to District plan metres and preserves editor action',()=>{
+ const d={x:126.9,z:-61.9},plan={mode:'stay',area:'district',x:125.3,z:-96.4,yaw:0,actions:['watch']};
+ const s=R.positionWorld(plan,100,d);
+ assert.ok(Math.abs(s.x-1.6)<1e-6);
+ assert.ok(Math.abs(s.z-54.5)<1e-6);
+ assert.equal(s.clip,'watch');
+ assert.ok(Math.abs(s.yaw-Math.PI)<1e-6);
+});
+test('world-map route is converted consistently and rejects unsupported areas',()=>{
+ const door={x:126.9,z:-61.9};
+ const plan={mode:'path',area:'district',points:[
+  {x:125.3,z:-96.4,action:'idle',seconds:2},
+  {x:125.3,z:-90.4,action:'look',seconds:2}]};
+ const result=R.positionWorld(plan,4,door);
+ assert.equal(result.mode,'path');
+ assert.ok(Number.isFinite(result.x)&&Number.isFinite(result.z));
+ const refused=R.positionWorld({...plan,area:'avenue'},4,door);
+ assert.equal(refused.source,'default');
+});
+test('missing published plan stays stationary even when the clock changes',()=>{
+ assert.deepEqual(R.positionWorld(null,0),R.positionWorld(null,86400));
+});
