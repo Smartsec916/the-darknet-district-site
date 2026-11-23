@@ -56,6 +56,27 @@
              ...(gltf.animations||[]).length||motions.length?[]:['No animations were supplied.']]
   };
  }
- const api={inspect};
+ // Rebuild an export package from the current local NPC draft, including newly
+ // generated voice blobs. Purely local: does not upload, charge or publish.
+ async function repack(original,draft){
+  if(!studio?.unpackTransfer||!studio?.packTransfer||!draft||!Array.isArray(draft.voices))
+   throw Error('Companion export tools or draft voice data are unavailable.');
+  const originalParts=await studio.unpackTransfer(original);
+  const profile=studio.profile(draft);
+  const name=String(draft.name||originalParts.meta.name||'').trim();
+  if(!name||name.length>40)throw Error('Choose a character name no longer than 40 characters before exporting.');
+  const active=new Set(Object.values(profile.dialogue).flat());
+  const byText=new Map();
+  for(const v of draft.voices){
+   if(!v||!v.blob||typeof v.record?.text!=='string'||!active.has(v.record.text))continue;
+   byText.set(v.record.text,{meta:{kind:'voice',record:v.record},blob:v.blob});
+  }
+  const parts=originalParts.parts.filter(p=>p.meta.kind==='model'||p.meta.kind==='motion');
+  if(parts.filter(p=>p.meta.kind==='model').length!==1)throw Error('The original transfer needs exactly one model.');
+  const meta={...originalParts.meta,name,about:profile.about,personality:profile.personality,dialogue:profile.dialogue,
+   ...(draft.voiceSelection?{voiceSelection:draft.voiceSelection}:{})};
+  return studio.packTransfer(meta,[...parts,...byText.values()]);
+ }
+ const api={inspect,repack};
  if(node)module.exports=api;else root.VoidNPCCompanionImport=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
