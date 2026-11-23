@@ -1,10 +1,10 @@
 /* Dax (the owner, 15 Nov 2026): a bounty hunter and mercenary who lives in The Darknet District on her own terms. There is only one of her.
-   STAGE 1 (this file): she is IN the District with a life of her own. She moves between the bar, the store, the VR area, the arcade, the vending machines and the
+   STAGE 1 history: she originally followed a predefined autonomous itinerary. She moves between the bar, the store, the VR area, the arcade, the vending machines and the
    pods end of the hall, stays a while at each, watches, looks about, uses her V3 // Shadow (its camera is in her left eye, which glows green while she does), and at
    times leaves the District altogether and comes back later. She has a profile in the Players list and the Social app like anyone else.
    NOT in stage 1 (each needs the owner's decisions; see docs/development/DAX.md): talking to her (her voice and words), her memory of players and how she comes to
    trust or hunt them, her life outside the District's interior, her social posts, other outfits, the NPC editor.
-   How her day works: there is no server for her and none is needed. Where she is at any moment is worked out from the clock alone (schedule(), below), the same on
+   Legacy schedule functions below are retained only for compatibility tests, not called by the live actor. Her live movement now reads shared NPC Editor plans. Historically, Where she is at any moment is worked out from the clock alone (schedule(), below), the same on
    every player's machine, so two players standing together see her in the same place, and nothing is computed or drawn while nobody is near: when a player
    walks in, she is simply where the clock says she is.
    Her model is a purchased, licensed one (docs/VOID_RUNNER_ASSET_LICENSES.md). It is NOT in this repository: the live site gets it from the private asset
@@ -82,8 +82,18 @@
    const parent=new root.BABYLON.TransformNode('npc-dax',scene),made=A.instance('crowd:'+MODEL,parent);if(!made){parent.dispose();return;}
    parent.metadata={character:'dax',npc:true};made.metadata={...made.metadata,character:'dax',crowd:MODEL};
    fig={node:parent,made,ctrl:C.animate(made,MODEL,'idle')};sceneRef=scene;observer=scene.onBeforeRenderObservable.add(step);})().finally(()=>{loading=null;});}
+ // The shared NPC plan resolver already selects the published draft/schedule for the
+ // current game-clock minute. It replaces, rather than competes with, the old
+ // autonomous Dax timetable. Dax's private asset is still spawned only once.
+ function editorState(){
+  const R=root.VoidDaxEditorRoutine;
+  if(!R)return {inside:true,x:1.6,z:54.5,yaw:Math.PI/2,clip:'idle',device:false,place:'No routine configured'};
+  let plan=null;
+  try{plan=root.VoidLiveContent?.plans?.()?.dax||null;}catch{}
+  return R.positionWorld(plan,now(),root.VoidNeoChinatown?.door);
+ }
  function step(){
-  if(!fig||fig.node.isDisposed()){drop();return;}const N=root.VoidNeoChinatown,s=schedule(now());
+  if(!fig||fig.node.isDisposed()){drop();return;}const N=root.VoidNeoChinatown,s=editorState();
   fig.node.setEnabled(!!s.inside);if(!s.inside)return;
   const w=N.toWorld(s.x,s.z),f=N.toWorld(s.x+Math.sin(s.yaw),s.z+Math.cos(s.yaw));fig.node.position.set(w[0],0,w[1]);
   // turn smoothly toward where the schedule faces her
@@ -92,5 +102,5 @@
   if(s.device!==eyeOn){eyeOn=s.device;root.VoidStreetGear?.eye?.(fig.node,eyeOn,EYE);}}
  setInterval(()=>{const scene=root.VoidBabylon?.scene;if(fig&&(fig.node.isDisposed()||scene!==sceneRef||!interior()&&typeof mode!=='undefined'&&mode==='menu')){drop();}
   if(!fig&&scene&&interior())ensure(scene);},1000);
- root.VoidDax={...pure,offset:0,get shown(){return !!fig&&fig.node.isEnabled();},get available(){return !missing;},get where(){return schedule(now());}};
+ root.VoidDax={...pure,offset:0,get shown(){return !!fig&&fig.node.isEnabled();},get available(){return !missing;},get where(){return editorState();}};
 })(typeof globalThis!=='undefined'?globalThis:this);
