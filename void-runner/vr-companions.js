@@ -71,7 +71,9 @@
  // licence isn't confirmed for release yet). licensed:true marks purchased models kept out of the public repository:
  // the live site gets them, encrypted, from the private asset repository (tools/assets/build-pages.cjs).
  const localHost=h=>/^(localhost|127\.0\.0\.1|\[::1\])$/.test(h||'');
- const offered=(e,host=globalThis.location?.hostname)=>(!e.localDraft||typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized&&VoidDevTools.request)&&e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
+ // The owner moved these private workshop drafts out of the VR bedroom while preparing their Tea Room release. Keep the source packages intact.
+ const teaRoomDrafts=new Set(['Nomi','Se7en','Tao']);
+ const offered=(e,host=globalThis.location?.hostname)=>!(e.localDraft&&teaRoomDrafts.has(e.name))&&(!e.localDraft||typeof VoidDevTools!=='undefined'&&VoidDevTools.authorized&&VoidDevTools.request)&&e.listed!==false&&!e.replacedBy&&(e.listed!=='dev'||localHost(host));
  // A companion's own clip for a role (its personality picks its gestures), falling back through common names.
  function clipFor(entry,role,has){const want=[...(entry.clips[role]||[]),role,...(fallbackClips[role]||[])];for(const c of want)if(!has||has(c))return c;return 'idle';}
  const fallbackClips={greet:['wave','interact'],flirt:['blow-kiss','coy','head-tilt','interact'],laugh:['laugh','talk'],shy:['coy','head-tilt'],idleAlt:['idle'],dance:['slow-dance','dance'],
