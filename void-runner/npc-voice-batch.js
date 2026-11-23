@@ -26,7 +26,7 @@
    });
   };
   const missing=rows.filter(r=>!matches(r));
-  const selected=voice?.kind==='elevenlabs'&&typeof voice.voiceId==='string'&&voice.voiceId.trim();
+  const selected=voice?.kind==='elevenlabs'&&Voices.ID.test(voice.voiceId||'')&&(!voice.model||Voices.modelOk(voice.model));
   const spoken=missing.map(r=>Voices.speakText(r.text,voice));
   const estimate=Voices.estimate(spoken,voice?.model);
   return {total:rows.length,existing:rows.length-missing.length,missing:missing.length,
