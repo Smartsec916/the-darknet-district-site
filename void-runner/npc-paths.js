@@ -63,7 +63,7 @@
    MOVABLE[id]={name:typeof c.name==='string'&&c.name.trim()?c.name.trim().slice(0,40):id,asset:c.model,area:'city',quarter:null,device:['v1','v2','v3'].includes(c.device),sit:true,youthful:!adultOk(c),combatAnimations:adultOk(c),adult:adultOk(c),made:true};MADE[id]=c;}
   return before;}
  const madeNow=()=>MADE;
- const ar=M=>M&&M.made?{made:true,adult:!!M.adult}:{};   // npc-areas.js check options: an adult made character may use the adult venues
+ const ar=M=>M&&M.made?{made:true,adult:!!M.adult}:M?.asset==='npc-dax'?{made:true,adult:true}:{};   // Dax already visits the District's adult-access rooms; this flag is for area validation only, never spawning.   // npc-areas.js check options: an adult made character may use the adult venues
  /* Every action a stay or a path point may use, in plain words. clip: the clip played (must be in the NPC's own list); device: an npc-device.js pose; sit: the
     ledge's sit-down, sit and stand-up clips (only at a ledge). */
  const ACTIONS=[
