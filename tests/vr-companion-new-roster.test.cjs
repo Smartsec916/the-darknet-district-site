@@ -34,7 +34,7 @@ test('two women can share a room, never a man and a woman; the public roster',()
 test('imported companion feet alignment is independent of the model skeleton',()=>{
  assert.equal(C.floorOffset(-0.8,1.1),0.8);
  assert.equal(C.floorOffset(0,1.7),0);
- assert.equal(C.floorOffset(-0.3,1.5,0.4),0.7);
+ assert.ok(Math.abs(C.floorOffset(-0.3,1.5,0.4)-0.7)<1e-9);
  assert.equal(C.floorOffset(NaN,2),0);
  assert.equal(C.floorOffset(2,1),0);
  const fs=require('node:fs'),suite=fs.readFileSync(require.resolve('../void-runner/vr-suite.js'),'utf8');
