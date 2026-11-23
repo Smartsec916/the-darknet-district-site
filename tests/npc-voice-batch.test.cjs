@@ -3,9 +3,9 @@ const {plan}=require('../void-runner/npc-voice-batch.js');
 const sample={about:'Friendly adult',personality:{initiative:.5},dialogue:{
  greet:['Hello there','Welcome back','Hello there'],
  chat:['How was your trip?']}};
-const voice={kind:'elevenlabs',voiceId:'test-voice',model:'eleven_multilingual_v2'};
+const voice={kind:'elevenlabs',voiceId:'ABCDEFGHIJKLMNOPQRST',model:'eleven_multilingual_v2'};
 test('only unique missing dialogue is queued, and costs are estimated',()=>{
- const result=plan(sample,{id:'desire',voice,recordings:[{text:'Hello there',voiceId:'test-voice'}]});
+ const result=plan(sample,{id:'desire',voice,recordings:[{text:'Hello there',voiceId:'ABCDEFGHIJKLMNOPQRST'}]});
  assert.equal(result.total,3);
  assert.equal(result.existing,1);
  assert.equal(result.missing,2);
@@ -19,7 +19,7 @@ test('edited text becomes missing while unchanged recordings are retained',()=>{
  assert.equal(result.missing,2);
 });
 test('voice changes invalidate explicitly voice-bound recordings but preserve manually imported unbound audio',()=>{
- const a=plan(sample,{id:'desire',voice,recordings:[{text:'Hello there',voiceId:'old-voice'}]});
+ const a=plan(sample,{id:'desire',voice,recordings:[{text:'Hello there',voiceId:'ZYXWVUTSRQPONMLKJIHG'}]});
  assert.equal(a.missing,3);
  const b=plan(sample,{id:'desire',voice,recordings:[{text:'Hello there'}]});
  assert.equal(b.missing,2);
