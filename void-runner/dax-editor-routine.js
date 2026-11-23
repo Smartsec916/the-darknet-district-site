@@ -19,9 +19,11 @@
   const name=s.split('/').pop();
   return ['idle','talk','look','watch','walk','glance-back','shrug'].includes(name)?name:'idle';
  };
- const stay=p=>({inside:true,x:p.x,z:p.z,yaw:finite(p.yaw)?p.yaw:0,
-  clip:normalizedAction(p.actions&&p.actions[0]),device:false,
-  place:'Editor location',source:'editor',mode:'stay'});
+ const stay=(p,seconds=0)=>{const actions=Array.isArray(p.actions)&&p.actions.length?p.actions:['idle'];
+  const ix=Math.floor(Math.max(0,finite(seconds)?seconds:0)/DEFAULT_SECONDS)%actions.length;
+  return {inside:true,x:p.x,z:p.z,yaw:finite(p.yaw)?p.yaw:0,
+   clip:normalizedAction(actions[ix]),device:false,
+   place:'Editor location',source:'editor',mode:'stay'};};
  function pathAt(p,seconds,speed=SPEED){
   if(!p||!Array.isArray(p.points)||p.points.length<2||p.points.some(q=>!finite(q.x)||!finite(q.z)))
    return {...DEFAULT};
@@ -52,7 +54,7 @@
  }
  function position(plan,seconds=0){
   if(!plan)return {...DEFAULT};
-  if(plan.mode==='stay'&&finite(plan.x)&&finite(plan.z))return stay(plan);
+  if(plan.mode==='stay'&&finite(plan.x)&&finite(plan.z))return stay(plan,seconds);
   if(plan.mode==='path')return pathAt(plan,seconds);
   return {...DEFAULT};
  }
