@@ -29,3 +29,11 @@ test('each player session has an independent dialogue order and state',()=>{
  const second=A.roomDuoStep(x.state,input(true,8000));assert.equal(second.line.speaker,'se7en');
  assert.equal(y.state.queue[0].speaker,'se7en');
 });
+
+test('the walking room trigger connects the duet to the underground sleeping room',()=>{
+ const fs=require('node:fs'),src=fs.readFileSync(require.resolve('../void-runner/live-content.js'),'utf8');
+ assert.match(src,/roomDuoStep\(duoState/);
+ assert.match(src,/under-sleeping-room/);
+ assert.match(src,/duoNames=\['nomi','se7en'\]/);
+ assert.match(src,/duoState=null/);
+});
