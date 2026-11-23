@@ -19,3 +19,15 @@ test('room dialogue is preserved in drafts and matches exact audio words without
  assert.equal(MC.interactionProblems({'tea-host':{...advanced,clips:[clip]}}).length,0);
  assert.equal(MC.interactionProblems({'tea-host':{...advanced,clips:[{...clip,text:'Unrelated'}]}}).length,1);
 });
+test('follow and group settings stay closed, registered and consistent',()=>{
+ const places=new Set(['district-hall']);
+ const follow={distance:3,cooldown:60,advanced:{follow:{role:'lead',invite:'This way',accept:'LEAD ON',decline:'STAY',maxWait:20,place:'district-hall'}}};
+ assert.equal(MC.interactionProblems({'grey-reverie':follow},null,places).length,0);
+ assert.equal(MC.interactionProblems({'grey-reverie':follow},null,new Set(['avenue'])).length,1);
+ const group=id=>({distance:3,cooldown:60,advanced:{group:{id:'pair',members:['grey-reverie','ethereal-lace'],order:'authored',cooldown:12,lines:id==='grey-reverie'?'After you':'Your turn'}}});
+ assert.equal(MC.interactionProblems({'grey-reverie':group('grey-reverie'),'ethereal-lace':group('ethereal-lace')}).length,0);
+ const broken=group('ethereal-lace');broken.advanced.group.order='alternate';
+ assert.equal(MC.interactionProblems({'grey-reverie':group('grey-reverie'),'ethereal-lace':broken}).length,1);
+ const clip={who:'grey-reverie',text:'This way',hash:'b'.repeat(64),type:'audio/mpeg',duration:1,bytes:80};
+ assert.equal(MC.interactionProblems({'grey-reverie':{...follow,clips:[clip]}}).length,0);
+});

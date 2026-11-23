@@ -10,5 +10,10 @@
   {"name":"unknown advanced field","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"Welcome"},"unsupported":true}},"valid":false},
   {"name":"unsafe text","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"<script>"}}},"valid":false},
   {"name":"null advanced not accepted","record":{"distance":3,"cooldown":60,"near":"Hello","advanced":null},"valid":false},
-  {"name":"irrelevant duration threshold rejected","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"Hello","longSeconds":90}}},"valid":false}
+  {"name":"irrelevant duration threshold rejected","record":{"distance":3,"cooldown":60,"advanced":{"room":{"id":"tea-room","cooldown":30,"enter":"Hello","longSeconds":90}}},"valid":false},
+  {"name":"follow invitation","record":{"distance":3,"cooldown":60,"advanced":{"follow":{"role":"follow","invite":"Come with me","accept":"I'LL FOLLOW","decline":"NOT NOW","maxWait":30}}},"valid":true},
+  {"name":"lead to a place","record":{"distance":3,"cooldown":60,"advanced":{"follow":{"role":"lead","invite":"This way","accept":"LEAD ON","decline":"STAY","arrive":"We are here","maxWait":20,"place":"district-hall"}}},"valid":true},
+  {"name":"lead without a place","record":{"distance":3,"cooldown":60,"advanced":{"follow":{"role":"lead","invite":"This way","accept":"LEAD ON","decline":"STAY","maxWait":20}}},"valid":false},
+  {"name":"same follow buttons","record":{"distance":3,"cooldown":60,"advanced":{"follow":{"role":"follow","invite":"Come","accept":"OK","decline":"OK","maxWait":30}}},"valid":false},
+  {"name":"linked group","record":{"distance":3,"cooldown":60,"advanced":{"group":{"id":"tea-chat","members":["tea-host","grey-reverie"],"order":"alternate","cooldown":15,"lines":"After you"}}},"valid":true}
 ]

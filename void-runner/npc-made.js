@@ -215,6 +215,7 @@
    p.seat=null;if(e.st.ride==='to-cab'){p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;return e.st.clip||'walk';}
    const inp={area:P.area||'avenue',me:riding?null:mp,to:P.to||null,door:P.door||null,noDone:!!P.via,set:P.set,dt,cat:false,trail:e.trail,seen:true,kind:P.kind,walking};
    const ev=P.kind==='follow-them'?E.lead(e.st,inp):P.kind==='they-follow'?E.follow(e.st,inp):null;p.s.x=e.st.x;p.s.z=e.st.z;p.s.yaw=e.st.yaw;
+   if(P.social){const others=[...people.values()].filter(o=>o!==p&&o.node?.isEnabled?.()).map(o=>({x:o.s.x,z:o.s.z}));if(mp)others.push(mp);const n=root.VoidAdvancedInteractions?.separate?.({x:p.s.x,z:p.s.z},others,.85);if(n&&Ar&&!Ar.leg({x:p.s.x,z:p.s.z},n,{passing:true,adult:!!p.c.adult,made:true}).length){p.s.x=e.st.x=n.x;p.s.z=e.st.z=n.z;}}
    if(ev)tellE(ev);return e.st.clip||'idle';}
   /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026; as ncz-street-pair.js): a new plan she cannot walk to straight is held while she is in view
      (p.hold: the plan she keeps), and a figure that should go (its mission is over, its plan left this area) stays on its last plan until it is out of view (p.going). */
@@ -247,6 +248,7 @@
    if(!Number.isFinite(p.s.x+p.s.z+p.s.yaw)){const t=P&&(P.mode==='stay'?P:P.points?P.points[0]:null)||{x:n.position.x,z:n.position.z};p.s.x=t.x;p.s.z=t.z;p.s.yaw=0;}
    if(clip==='sit'&&p.seat&&p.esc&&p.esc.st.ride==='in-cab'){const sit=(NPX()?.crowdClips?.(p.c.model)||[]).includes('sit');n.position.set(p.s.x,p.seat.y,p.s.z);n.rotation.y=p.s.yaw;if(n.isEnabled()!==sit)n.setEnabled(sit);if(sit&&p.anim&&p.clip!=='sit'){p.clip='sit';p.anim.play('sit');}p.anim?.setActive?.(sit&&d<animRadius);const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}return;}   // riding in the player's taxi
    p.y+=(yAt(p.s.x,p.s.z,p.y)-p.y)*Math.min(1,dt*8);{const o=SP.seatOffset?SP.seatOffset(p.s,p.s.zo||0):{x:0,z:0};n.position.set(p.s.x+o.x,p.y+(p.s.lift||0),p.s.z+o.z);}/* seated (lift: a floor pose on a cushion or cot top): the routine's eased offset (ledges and the tunnels' seats) */n.rotation.y=p.s.yaw;p.anim?.setActive?.(!far&&d<animRadius);
+   {const sp=root.VoidLiveContent?.socialPose?.(p.id);if(sp&&p.s.mode!=='esc'){const clips=NPX()?.crowdClips?.(p.c.model)||[];clip=sp==='talk'&&clips.includes('talk')?'talk':clips.includes('idle')?'idle':clip;if(sp==='talk'&&w)p.s.yaw=Math.atan2(w.x-p.s.x,w.z-p.s.z);}}
    if(p.anim&&clip!==p.clip){p.clip=clip;if(p.s.once&&p.s.after&&p.anim.playOnce)p.anim.playOnce(clip,p.s.after);else p.anim.play(clip);}   // a floor seat's sit-down / stand-up clip plays once, then its pose (ncz-street-pair.js FLOOR_MOVE)
    const it=items.get(p.id);if(it){it.position[0]=n.position.x;it.position[2]=n.position.z;}}
   function sync(){const L=wl(),cs=chars();
