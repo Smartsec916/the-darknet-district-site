@@ -39,6 +39,7 @@ test('imported companion feet alignment is independent of the model skeleton',()
  assert.equal(C.floorOffset(2,1),0);
  const fs=require('node:fs'),suite=fs.readFileSync(require.resolve('../void-runner/vr-suite.js'),'utf8');
  assert.match(suite,/if\(local\)\{try\{/);
- assert.match(suite,/asset\.position\.y\+=lift/);
+ assert.match(suite,/B\.Vector3\.TransformNormal\(new B\.Vector3\(0,lift,0\),parentMatrix\.clone\(\)\.invert\(\)\)/);
+ assert.match(suite,/asset\.position\.addInPlace\(localLift\)/);
  assert.match(suite,/C\.floorOffset\(bounds\.min\.y,bounds\.max\.y\)/);
 });
