@@ -32,6 +32,8 @@
  /* Movable NPCs. asset: the crowd file (crowd.js clips[asset] is the clip list); device: the npc-device.js poses they use. */
  const MOVABLE={'grey-reverie':{name:'Reverie',asset:'npc-grey-reverie',area:'city',quarter:'avenue',device:true,sit:true,youthful:true,combatAnimations:true},
   'ethereal-lace':{name:'Lace',asset:'npc-ethereal-lace',area:'city',quarter:'avenue',device:true,sit:true,youthful:true,combatAnimations:true},
+  // Dax's ONE existing licensed interior actor now follows editor plans; this does not spawn a second model.
+  'dax':{name:'Dax',asset:'npc-dax',area:'city',quarter:'district',device:false,sit:false,youthful:false,adult:true,combatAnimations:false,home:{x:125.3,z:-96.4,yaw:Math.PI/2,actions:['idle']}},
   // the street cat (the owner, 18 Nov 2026: "add the cat as an npc and giver"): moved by its own code in ncz-street-pair.js (no clips: a procedural pose), so its actions are its own (CAT_ACTIONS)
   'street-cat':{name:'Street cat',asset:'npc-street-cat',area:'city',quarter:'avenue',device:false,sit:false,youthful:false,combatAnimations:false,cat:true,it:true},
   // THE TEA ROOM HOST (the owner, 20 Nov 2026: "give me an Oriental NPC working at the Tea Room standing behind the island with the tea on it. He will be a giver."): a
@@ -157,7 +159,7 @@
  const UG=()=>{try{return node?require('./ncz-underground.js'):root.VoidUnderground;}catch{return null;}};
  function homeOf(id){const M=MOVABLE[id],h=M&&M.home;if(!h)return null;if(h.spot){const U=UG(),sp=U&&U.spots?U.spots().find(x=>x.id===h.spot):null;if(!sp)return null;return {x:sp.x,z:sp.z,yaw:sp.yaw,actions:h.actions.slice()};}return num(h.x)&&num(h.z)?{x:h.x,z:h.z,yaw:h.yaw||0,actions:h.actions.slice()}:null;}
  /* Plain-language problems with one spot for NPC id (empty: fine). An imported model (local test only) uses the same pavement: areaProblems. */
- function spotProblems(id,p){const M=MOVABLE[id];if(!M)return ['This NPC cannot be moved by the editor yet.'];if(M.area!=='city')return areaProblems(AREAS[M.area],M.name,p);
+ function spotProblems(id,p){const M=MOVABLE[id];if(!M)return ['This NPC cannot be moved by the editor yet.'];if(id==='dax'&&AR().areaOf(p)!=='district')return ['Dax currently supports placement inside the District only; other areas need scene support.'];if(M.area!=='city')return areaProblems(AREAS[M.area],M.name,p);
   const c=AR().check(p,null,undefined,ar(M));const out=c.ok?[]:[c.why];if(p&&p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');return out;}
  function areaProblems(A,name,p){
   if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>LIMIT.coord||Math.abs(p.z)>LIMIT.coord)return ['The spot has no position.'];
@@ -167,7 +169,7 @@
   if(p.yaw!=null&&!num(p.yaw))out.push('The facing is not a number.');
   return out;}
  /* Can she walk straight from a to b? Both on the pavement (a rectangle, so the line stays on it) and the line clear of the taxi posts. */
- function legProblems(id,a,b){const M=MOVABLE[id];if(M&&M.area==='city')return AR().leg(a,b,ar(M));const A=M&&AREAS[M.area];if(!A)return ['This NPC cannot be moved by the editor yet.'];
+ function legProblems(id,a,b){const M=MOVABLE[id];if(id==='dax'&&(AR().areaOf(a)!=='district'||AR().areaOf(b)!=='district'))return ['Dax route endpoints must both be inside the District.'];if(M&&M.area==='city')return AR().leg(a,b,ar(M));const A=M&&AREAS[M.area];if(!A)return ['This NPC cannot be moved by the editor yet.'];
   for(const o of OBSTACLES){for(let k=0;k<=20;k++){const t=k/20,q={x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t};if(inBox(q,o,CLEAR-.1))return ['The walk between these two points goes through '+o[4]+': add a point to go round it (nearer the shops).'];}}
   for(const s of posts()){const dx=b.x-a.x,dz=b.z-a.z,L=dx*dx+dz*dz,t=L?Math.max(0,Math.min(1,((s.x-a.x)*dx+(s.z-a.z)*dz)/L)):0,d=Math.hypot(a.x+dx*t-s.x,a.z+dz*t-s.z);if(d<A.post-.15)return ['The walk between these two points goes through the taxi post at '+s.id+': add a point to go round it.'];}
   return [];}
@@ -251,7 +253,7 @@
  function snap(id,p,area){if(!p)return p;const r=pick(id,p,area);return r.spot?{...p,x:r.spot.x,z:r.spot.z}:p;}
  /* For the admin inventory (the server's copy of these rules). */
  function crossMap(){const E=ESC(),ids=AR().IDS,out={walker:{},cat:{}};if(!E||!E.reach)return out;for(const [kind,who] of [['walker','grey-reverie'],['cat','street-cat']])for(const a of ids){const reach=[...E.reach(who,a)].filter(x=>x!==a).sort();if(reach.length)out[kind][a]=reach;}return out;}
- function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:AR().IDS.slice(),
+ function inventory(){const out={};for(const [id,M] of Object.entries(MOVABLE)){out[id]={name:M.name,areas:id==='dax'?['district']:AR().IDS.slice(),
   ledges:ledges().map(l=>({x:l.x,w:l.w,front:Math.round(l.front*1000)/1000})),seats:seatList(),actions:actionsFor(id).map(a=>a.id),anims:libraryOffer(id).filter(o=>o.ok).map(o=>o.id),pathOnly:ACTIONS.filter(a=>a.path).map(a=>a.id)};}return {movable:out,areas:AR().inventory(),limits:LIMIT,cross:crossMap(),import:{maxTriangles:IMPORT.maxTriangles,target:IMPORT.target,maxBytes:IMPORT.maxBytes,texWarn:IMPORT.texWarn}};}
  /* IMPORT MODEL (the owner, 18 Nov 2026: "import new models, then place them in" and "just have a cap on poly counts for each import"): the caps, in ONE place (the
     server reads the same numbers from the admin inventory for the "Add to the game" package). Over maxTriangles (whole model, every mesh) or maxBytes: refused.
