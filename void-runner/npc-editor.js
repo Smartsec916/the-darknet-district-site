@@ -704,7 +704,7 @@
     }
     download(rec.fileName,rec.blob);
     if(companionExport)download(rec.sourceFileName,companionExport);
-    download((rec.name||'model').replace(/[^\\w-]+/g,'-')+'-package.json',packageOf(rec));
+    download((rec.name||'model').replace(/[^\w-]+/g,'-')+'-package.json',packageOf(rec));
     status='Downloaded model, '+(companionExport?'updated companion transfer with current voices and personality, and ':'')+'integration package. No character was published.';
    }catch(err){status='Cannot export companion package: '+err.message;}
    draw();
