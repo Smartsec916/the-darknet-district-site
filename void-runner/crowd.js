@@ -20,8 +20,8 @@
   'npc-zane':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Zane's own model (Meshy, 18 Nov 2026; the second male companion): Kai's clips, retargeted the same way
   'npc-fish':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],   // Fish, Milked's owner: her own model (Meshy, 16 Nov 2026)
   'npc-dax':['idle','talk','look','watch','walk','glance-back','shrug'],
-  // Nomi and Se7en (tea-duo.js; the owner's own models from his Companion Studio packages, licensed, private .vrpak): the seven clips each package carries, embedded in the model.
-  'npc-nomi':['idle','talk','walk','sit','sit-enter','sit-exit','run'],'npc-se7en':['idle','talk','walk','sit','sit-enter','sit-exit','run'],
+  // Nomi and Se7en (tea-duo.js; the owner's own models from his Companion Studio packages, licensed, private .vrpak): the seven clips each package carries plus the female companion clip set retargeted onto them (23 Nov 2026, tools/animation-pipeline/prepare_nomi_se7en.py), embedded in the model.
+  'npc-nomi':['idle','talk','walk','sit','sit-enter','sit-exit','run','sit-talk','sit-relax','sit-wave','coy','head-tilt','laugh','blow-kiss','glance-back','recline','shrug','interact','idle-f2','wave','hips','dance','slow-dance','dance-belly','idle-f','talk-f'],'npc-se7en':['idle','talk','walk','sit','sit-enter','sit-exit','run','sit-talk','sit-relax','sit-wave','coy','head-tilt','laugh','blow-kiss','glance-back','recline','shrug','interact','idle-f2','wave','hips','dance','slow-dance','dance-belly','idle-f','talk-f'],
   // Characters made with Meshy from the owner's reference pictures (docs/development/MESHY_CHARACTERS.md): one skinned mesh each on a 24-joint skeleton (no fingers).
   'npc-admin':['idle','talk','walk','look','shrug'],'npc-iris':['idle','talk','walk','look','shrug'],
   'npc-nyx':['idle','talk','walk','look','watch','laugh','shrug','wipe'],   // Nyx, the District's bartender: her own model (Meshy, 16 Nov 2026)

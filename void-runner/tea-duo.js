@@ -75,35 +75,38 @@
     {speaker, text, id, pool, step, actions[], posture{nomi,se7en}} or null (a "show" step whose invitation was declined is skipped); the speaker is whoever did not speak last,
     Nomi first. ctx.near(speaker) says whether the guest has come close to that hostess (the game measures it; the tests set it). memory: {visits, last: line id -> the visit it last
     played in, pools: pool -> same}; it is returned updated and never changed. rng is any () => [0,1) (Math.random in the game, a seeded one in the tests). */
- function visit(rng=Math.random,memory=null,ctx={near:()=>true}){
-  const mem={visits:memory?.visits||0,last:{...(memory?.last||{})},pools:{...(memory?.pools||{})}},v=mem.visits+1,used=new Set();
-  const age=k=>{const l=mem.last[k];return Number.isFinite(l)?Math.min(6,v-l):6;},poolAge=p=>{const l=mem.pools[p];return Number.isFinite(l)?Math.min(6,v-l):6;};
-  const pickPools=(list,n)=>{const out=[],rest=list.slice();while(out.length<n&&rest.length){const p=pickWeighted(rest,x=>poolAge(x)**2,rng);out.push(p);rest.splice(rest.indexOf(p),1);}return out;};
-  // the plan
-  const target=9+Math.floor(rng()*4),steps=[];const back=mem.visits>0&&rng()<.5,arrive=back?BACK:pickWeighted(OPEN,p=>poolAge(p)**2,rng);
-  steps.push({k:'arrive',pool:arrive},{k:'arrive',pool:arrive});mem.visits=v;
-  const need=target-3,invites=pickPools(INVITES,need>=8?2:1),beats=invites.map(type=>({kind:'invite',type}));
-  if(rng()<.65&&need-beats.length*3>=2)beats.push({kind:'affection'});
-  if(rng()<.5&&need-beats.reduce((n,b)=>n+(b.kind==='invite'?3:b.kind==='affection'?2:1),0)>=1)beats.push({kind:'hands'});
-  const cost=b=>b.kind==='invite'?3:b.kind==='affection'?2:1;let left=need-beats.reduce((n,b)=>n+cost(b),0);
-  const chats=[];for(;left>0;left--)chats.push({kind:'chat'});
-  const order=[];const all=[...beats,...chats];while(all.length){const i=Math.floor(rng()*all.length);order.push(all.splice(i,1)[0]);}
+ function visit(rng=Math.random,memory=null,ctx={near:()=>true},opts={}){
+  const arrive=opts.arrive!==false,close=opts.bye!==false;
+  const mem={visits:memory?.visits||0,n:memory?.n??Math.max(0,...Object.values(memory?.last||{}).filter(Number.isFinite)),last:{...(memory?.last||{})},pools:{...(memory?.pools||{})}},used=new Set();
+  const poolAge=p=>Number.isFinite(mem.pools[p])?Math.min(80,mem.n-mem.pools[p]):80;
+  const pickPools=(list,n)=>{const out=[],rest=list.slice();while(out.length<n&&rest.length){const p=pickWeighted(rest,x=>1+poolAge(x),rng);out.push(p);rest.splice(rest.indexOf(p),1);}return out;};
+  // the plan: an arrival pair (first round only), beats, a goodbye (last round only)
+  const steps=[],back=arrive&&mem.visits>0&&rng()<.5,first=back?BACK:pickWeighted(OPEN,p=>1+poolAge(p),rng);
+  const target=opts.steps?opts.steps[0]+Math.floor(rng()*(opts.steps[1]-opts.steps[0]+1)):9+Math.floor(rng()*4);
+  if(arrive){steps.push({k:'arrive',pool:first},{k:'arrive',pool:first});mem.visits++;}
+  const need=target-(arrive?2:0)-(close?1:0),invites=pickPools(INVITES,need>=8?2:need>=4?1:0),beats=invites.map(type=>({kind:'invite',type}));
+  const cost=b=>b.kind==='invite'?3:b.kind==='affection'?2:1,sum=()=>beats.reduce((n,b)=>n+cost(b),0);
+  if(rng()<.65&&need-sum()>=2)beats.push({kind:'affection'});
+  if(rng()<.5&&need-sum()>=1)beats.push({kind:'hands'});
+  const chats=[];for(let left=need-sum();left>0;left--)chats.push({kind:'chat'});
+  const order=[],all=[...beats,...chats];while(all.length){const i=Math.floor(rng()*all.length);order.push(all.splice(i,1)[0]);}
   if(order[0]&&order[0].kind!=='chat'){const j=order.findIndex(b=>b.kind==='chat');if(j>0)[order[0],order[j]]=[order[j],order[0]];}   // a little talk before the first invitation
   for(const b of order){if(b.kind==='chat')steps.push({k:'chat'});else if(b.kind==='invite')steps.push({k:'invite',type:b.type},{k:'reply'},{k:'show'});else if(b.kind==='affection')steps.push({k:'kiss'},{k:'after'});else steps.push({k:'hands'});}
-  steps.push({k:'bye'});
+  if(close)steps.push({k:'bye'});
   // the resolver (stateful: who spoke last, who asked what, who stands)
-  let last=null,ask=null,touch=null,recent=[];const stand={nomi:false,se7en:false};
-  const line=(speaker,pool)=>{const free=LINES[speaker][pool].filter(l=>!used.has(l.id));if(!free.length)return null;const l=pickWeighted(free,x=>age(x.id)**2,rng);used.add(l.id);mem.last[l.id]=v;mem.pools[pool]=v;return {speaker,text:l.text,id:l.id,pool};};
-  const chatPool=speaker=>{const ok=MIDDLE.filter(p=>!recent.includes(p)&&LINES[speaker][p].some(l=>!used.has(l.id)));const list=ok.length?ok:MIDDLE;return pickWeighted(list,p=>poolAge(p)**2,rng);};
+  let last=opts.after||null,ask=null,touch=null,recent=[];const stand={nomi:false,se7en:false};
+  // of the lines of a pool not yet used in this round, the one heard longest ago (never = first), so the whole set is heard before any comes round again
+  const line=(speaker,pool)=>{const free=LINES[speaker][pool].filter(l=>!used.has(l.id));if(!free.length)return null;const old=Math.min(...free.map(l=>Number.isFinite(mem.last[l.id])?mem.last[l.id]:-1)),oldest=free.filter(l=>(Number.isFinite(mem.last[l.id])?mem.last[l.id]:-1)===old),l=oldest[Math.floor(rng()*oldest.length)];used.add(l.id);mem.n++;mem.last[l.id]=mem.n;mem.pools[pool]=mem.n;return {speaker,text:l.text,id:l.id,pool};};
+  const chatPool=speaker=>{const ok=MIDDLE.filter(p=>!recent.includes(p)&&LINES[speaker][p].some(l=>!used.has(l.id)));const list=ok.length?ok:MIDDLE;return pickWeighted(list,p=>1+poolAge(p),rng);};
   function resolve(step){
-   const speaker=last?MEMBERS[1-MEMBERS.indexOf(last)]:MEMBERS[0],other=MEMBERS[1-MEMBERS.indexOf(speaker)];let pool=null;
+   const speaker=last?MEMBERS[1-MEMBERS.indexOf(last)]:MEMBERS[0];let pool=null;
    // whoever stood for an invitation sits back down once its beat is over
    if(!['reply','show'].includes(step.k))stand.nomi=stand.se7en=false;
    switch(step.k){
     case 'arrive':pool=step.pool;break;
     case 'chat':pool=chatPool(speaker);recent.push(pool);if(recent.length>2)recent.shift();break;
     case 'invite':pool=step.type;ask={type:step.type,by:speaker,yes:false};if(STANDS.includes(step.type))stand[speaker]=true;break;
-    case 'reply':{const yes=!!ctx.near(ask.by);ask.yes=yes;pool=yes?REPLY_YES:pickWeighted(REPLY_NO,p=>poolAge(p)**2,rng);break;}
+    case 'reply':{const yes=!!ctx.near(ask.by);ask.yes=yes;pool=yes?REPLY_YES:pickWeighted(REPLY_NO,p=>1+poolAge(p),rng);break;}
     case 'show':if(!ask||!ask.yes){ask=null;return null;}pool=ACT_OF[ask.type];break;
     case 'kiss':pool=TOUCH;touch={by:speaker};break;
     case 'after':pool=ctx.near(touch.by)?AFTER_YES:AFTER_NO;break;
@@ -118,6 +121,10 @@
    last=speaker;
    return {...l,step:step.k,actions,posture:{nomi:stand.nomi?'stand':'sit',se7en:stand.se7en?'stand':'sit'}};}
   return {steps,resolve,memory:mem,mem};}
+ /* A guest who stays: more rounds, each 4 to 8 lines (no arrival, no goodbye until the last), a quiet gap of GAP ms between them; ROUNDS rounds in all, the last ends on a goodbye,
+    then they only live on quietly until the guest leaves. */
+ const GAP=[6000,15000],ROUNDS=12,ROUND_STEPS=[5,9];
+ const gapAfter=rng=>GAP[0]+Math.floor(rng()*(GAP[1]-GAP[0]+1));
  // ---------------- poses: the gestures, as turns of the figure's own bones ----------------
  /* A pose is {Bone: [[axis, degrees], ...]} about the figure's axes (x: to its right, y: up, z: the way it faces); applied after the clip each frame, about each joint, parents
     first. A positive turn about x leans a bone forward (a hanging arm swings back), about y turns it to the right, about z swings a hanging arm out to the right (the left arm
@@ -127,33 +134,56 @@
  const sin=Math.sin,PI=Math.PI;
  const POSES={
   'wave':{needs:'any',dur:2.8,at:(u,t,s,e)=>({RightUpperArm:[['z',80*e],['x',-16*e]],RightForeArm:[['z',(62+26*sin(t*9))*e]],RightHand:[['z',10*sin(t*9)*e]],Head:[['z',-7*e]]})},
-  'head-tilt':{needs:'any',dur:2.2,at:(u,t,s,e)=>({Head:[['z',14*s*e],['x',-2*e]],Neck:[['z',6*s*e]]})},
-  'glance':{needs:'any',dur:2.2,at:(u,t,s,e)=>({Head:[['y',38*s*e]],Neck:[['y',14*s*e]],Chest:[['y',5*s*e]]})},
-  'nod':{needs:'any',dur:1.8,at:(u,t,s,e)=>({Head:[['x',(5+9*sin(t*6.5))*e]],Neck:[['x',3*sin(t*6.5)*e]]})},
-  'lean-in':{needs:'any',dur:2.6,at:(u,t,s,e)=>({Spine:[['x',8*e]],Chest:[['x',10*e]],Neck:[['x',4*e]],Head:[['x',-9*e],['z',5*s*e]]})},
-  'lean-back':{needs:'any',dur:3,at:(u,t,s,e)=>({Spine:[['x',-8*e]],Chest:[['x',-11*e]],Head:[['x',8*e]],LeftUpperArm:[['x',20*e]],RightUpperArm:[['x',20*e]]})},
-  'laugh':{needs:'any',dur:2.4,at:(u,t,s,e)=>({Spine:[['x',3.5*sin(t*14)*e]],Chest:[['x',(-2+3*sin(t*14+1))*e]],Head:[['x',(-9+3*sin(t*14+2))*e]],LeftUpperArm:[['z',-3*sin(t*14)*e]],RightUpperArm:[['z',3*sin(t*14)*e]]})},
+  'head-tilt':{needs:'any',dur:2.2,at:(u,t,s,e)=>({Head:[['z',20*s*e],['x',-3*e]],Neck:[['z',9*s*e]]})},
+  'glance':{needs:'any',dur:2.2,at:(u,t,s,e)=>({Head:[['y',46*s*e]],Neck:[['y',18*s*e]],Chest:[['y',8*s*e]]})},
+  'nod':{needs:'any',dur:1.8,at:(u,t,s,e)=>({Head:[['x',(6+12*sin(t*6.5))*e]],Neck:[['x',4*sin(t*6.5)*e]]})},
+  'lean-in':{needs:'any',dur:2.6,at:(u,t,s,e)=>({Spine:[['x',12*e]],Chest:[['x',15*e]],Neck:[['x',5*e]],Head:[['x',-12*e],['z',6*s*e]]})},
+  'lean-back':{needs:'any',dur:3,at:(u,t,s,e)=>({Spine:[['x',-12*e]],Chest:[['x',-16*e]],Head:[['x',10*e]],LeftUpperArm:[['x',28*e]],RightUpperArm:[['x',28*e]]})},
+  'laugh':{needs:'any',dur:2.4,at:(u,t,s,e)=>({Spine:[['x',5*sin(t*14)*e]],Chest:[['x',(-4+4*sin(t*14+1))*e]],Head:[['x',(-14+4*sin(t*14+2))*e]],LeftUpperArm:[['z',-4*sin(t*14)*e]],RightUpperArm:[['z',4*sin(t*14)*e]]})},
   'blow-kiss':{needs:'any',dur:2.8,at:(u,t,s,e)=>{const throwIt=Math.max(0,Math.min(1,(u-.5)/.2))*Math.max(0,Math.min(1,(.85-u)/.15));return {RightUpperArm:[['x',-62*e],['z',8*e]],RightForeArm:[['x',(-88+48*throwIt)*e]],RightHand:[['x',-10*throwIt*e]],Head:[['z',-8*e],['x',-3*e]],Chest:[['x',3*e]]};}},
   'reach-hand':{needs:'any',dur:3,at:(u,t,s,e)=>({RightUpperArm:[['x',-58*e],['z',14*e]],RightForeArm:[['x',-26*e]],RightHand:[['x',-8*e]],Chest:[['x',4*e],['y',-6*e]],Head:[['z',6*e]]})},
   'hands-out':{needs:'any',dur:2.6,at:(u,t,s,e)=>({RightUpperArm:[['x',-38*e],['z',20*e]],LeftUpperArm:[['x',-38*e],['z',-20*e]],RightForeArm:[['x',-30*e]],LeftForeArm:[['x',-30*e]],Head:[['z',5*s*e]]})},
   'settle':{needs:'any',dur:2.6,at:(u,t,s,e)=>({Spine:[['x',-4*e]],Chest:[['x',-6*e]],Head:[['z',7*s*e],['x',3*e]],LeftUpperArm:[['x',10*e]],RightUpperArm:[['x',10*e]]})},
   'recline':{needs:'any',dur:5,at:(u,t,s,e)=>({Spine:[['x',-16*e]],Chest:[['x',-22*e]],Neck:[['x',4*e]],Head:[['x',10*e],['z',6*s*e]],LeftUpperArm:[['x',42*e],['z',-6*e]],RightUpperArm:[['x',42*e],['z',6*e]],LeftForeArm:[['x',16*e]],RightForeArm:[['x',16*e]]})},
   'dance':{needs:'stand',dur:6,at:(u,t,s,e)=>{const w=t*3.2;return {Spine:[['y',14*sin(w)*e]],Chest:[['y',10*sin(w+.6)*e],['z',6*sin(w)*e]],Head:[['z',-6*sin(w)*e]],RightUpperArm:[['z',(58+10*sin(w))*e],['x',-12*e]],LeftUpperArm:[['z',-(58+10*sin(w+PI))*e],['x',-12*e]],RightForeArm:[['z',(66+16*sin(w))*e]],LeftForeArm:[['z',-(66+16*sin(w+PI))*e]]};}}};
+ // the quiet movements that go on whether anyone speaks or not (small and slow; a = {yaw: degrees to turn the head, for 'look'})
+ POSES['look']={needs:'any',dur:3.4,at:(u,t,s,e,a)=>({Head:[['y',(a?.yaw||0)*e],['x',-2*e]],Neck:[['y',(a?.yaw||0)*.35*e]],Chest:[['y',(a?.yaw||0)*.12*e]]})};
+ POSES['shift']={needs:'any',dur:4.2,at:(u,t,s,e)=>({Spine:[['z',5*s*e],['x',2*e]],Chest:[['z',-4*s*e],['y',5*s*e]],Head:[['z',-3*s*e]],LeftUpperArm:[['z',-3*s*e]],RightUpperArm:[['z',-3*s*e]]})};
+ POSES['adjust']={needs:'any',dur:3.2,at:(u,t,s,e)=>({RightUpperArm:[['x',-22*e],['z',8*e]],RightForeArm:[['x',(-38+8*sin(t*5))*e]],RightHand:[['z',12*sin(t*5)*e]],Head:[['z',5*e]],Chest:[['x',2*e]]})};
+ POSES['stretch']={needs:'any',dur:3.6,at:(u,t,s,e)=>({Spine:[['x',-6*e]],Chest:[['x',-10*e]],Neck:[['x',6*e]],Head:[['x',12*e]],LeftUpperArm:[['z',-70*e],['x',-20*e]],RightUpperArm:[['z',70*e],['x',-20*e]],LeftForeArm:[['z',-30*e]],RightForeArm:[['z',30*e]]})};
+ const QUIET=['look','look','shift','head-tilt','nod','adjust','lean-in','lean-back','stretch'];   // what they do between lines (look: toward the guest, the other, or round the room)
  const ACTIONS=Object.keys(POSES);
+
+ /* Real clips (retargeted onto them, tools/animation-pipeline/prepare_nomi_se7en.py) for the line actions when she is standing; seated she has only sit and sit-talk, so there the gestures are code poses. */
+ const CLIP_OF={wave:'wave','blow-kiss':'blow-kiss','head-tilt':'head-tilt',laugh:'laugh',glance:'glance-back','reach-hand':'interact',dance:['slow-dance','dance-belly','hips','dance']};
+ const STAND_CLIPS=['idle-f','talk-f','idle-f2','hips','coy','shrug','head-tilt','laugh','wave','blow-kiss','glance-back','interact','slow-dance','dance-belly','dance','walk'];
+ const SEAT_CLIPS=['sit','sit-talk'];
+ const LONG_QUIET=[30000,75000];   // a hostess who has been quiet this long gets up for a while (if the other is not already up)
+ /* An episode: she gets up, does something real for a while, perhaps crosses to her standing spot (modules.js spots, PR #512) and back, and sits down again.
+    -> {kind, steps:[{k:'stand'} | {k:'walk',to:'spot'|'seat'} | {k:'do',clip,dur} | {k:'sit'}]} */
+ const EPISODES={stretch:{w:3,steps:rng=>[{k:'stand'},{k:'do',clip:'shrug',dur:8},{k:'do',clip:'hips',dur:10+rng()*5},{k:'do',clip:'coy',dur:8},{k:'sit'}]},
+  walkabout:{w:3,steps:rng=>[{k:'stand'},{k:'walk',to:'spot'},{k:'do',clip:rng()<.5?'idle-f2':'hips',dur:7+rng()*5},{k:'do',clip:'head-tilt',dur:8},{k:'walk',to:'seat'},{k:'sit'}]},
+  dance:{w:2,steps:rng=>[{k:'stand'},{k:'do',clip:['slow-dance','dance-belly'][Math.floor(rng()*2)],dur:12+rng()*6},{k:'sit'}]},
+  greet:{w:2,steps:rng=>[{k:'stand'},{k:'walk',to:'spot'},{k:'do',clip:rng()<.5?'wave':'blow-kiss',dur:8},{k:'do',clip:'laugh',dur:8},{k:'walk',to:'seat'},{k:'sit'}]}};
+ function episode(rng=Math.random){const kind=pickWeighted(Object.keys(EPISODES),k=>EPISODES[k].w,rng);return {kind,steps:EPISODES[kind].steps(rng)};}
+ const quietIn=rng=>LONG_QUIET[0]+rng()*(LONG_QUIET[1]-LONG_QUIET[0]);
  /* the clips the figures rely on, on both rigs (crowd.js) */
  const CLIPS_NEEDED=['idle','talk','sit','sit-enter','sit-exit'];
- const pure={ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,allLines,lineInfo,visit,mulberry32,
-  OPEN,BACK,CLOSE,MIDDLE,INVITES,ACT_OF,STANDS,ROLE,ACTS,POSES,ACTIONS,BONES,ease,CLIPS_NEEDED,REPLY_YES,REPLY_NO,AFTER_YES,AFTER_NO,TOUCH,HANDS};
+ const CLIPS_ALL=[...new Set([...CLIPS_NEEDED,...STAND_CLIPS,...SEAT_CLIPS,'walk'])];
+ const pure={GAP,ROUNDS,ROUND_STEPS,gapAfter,ROOM,MEMBERS,PEOPLE,LINES,POOLS,SIT_FORWARD,HEAR,COOLDOWN,PAUSE,NOTICE,MAX_LINE,NEAR_GUEST,FOOT,standOffset,strip,floorLift,door,seating,placement,allLines,lineInfo,visit,mulberry32,
+  OPEN,BACK,CLOSE,MIDDLE,INVITES,ACT_OF,STANDS,ROLE,ACTS,POSES,ACTIONS,BONES,ease,CLIPS_NEEDED,CLIPS_ALL,CLIP_OF,STAND_CLIPS,SEAT_CLIPS,LONG_QUIET,EPISODES,episode,quietIn,QUIET,REPLY_YES,REPLY_NO,AFTER_YES,AFTER_NO,TOUCH,HANDS};
  if(node){module.exports=pure;return;}
  if(typeof document==='undefined')return;
 
+
  // ---------------- the browser part ----------------
- const figs=new Map();let loading=null,missing=false,told=false,sceneRef=null,duo=null,rec=null,memory=null,current=null,obs=null,visiting=false;
+ const figs=new Map();let loading=null,missing=false,told=false,sceneRef=null,duo=null,rec=null,memory=null,current=null,obs=null,visiting=false,lastSpeaker=null,lastT=0;
  const NEAR=[ROOM,TEA];
  const where=()=>{try{if(typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.area!=='street'||walkingLocation.quarter!=='underground')return null;if(typeof mode==='undefined'||!['walking','dialogue','mission-log'].includes(mode))return null;const w=typeof walker!=='undefined'?walker:null;return w&&Number.isFinite(w.x+w.z)?w:null;}catch{return null;}};
  const placeOf=w=>{try{return UG().placeAt(w.x,w.z);}catch{return null;}};
- const clock=()=>performance.now()/1000,D2R=Math.PI/180;
- function drop(){try{if(obs&&sceneRef)sceneRef.onAfterAnimationsObservable.remove(obs);}catch{}obs=null;for(const f of figs.values()){try{f.ctrl?.dispose?.();f.node.dispose();}catch{}}figs.clear();sceneRef=null;rec=null;duo=null;}
+ const clock=()=>performance.now()/1000,D2R=Math.PI/180,rnd=(a,b)=>a+Math.random()*(b-a),clampAbs=(x,m)=>Math.max(-m,Math.min(m,x));
+ const WALK_SPEED=.65;   // metres a second: the stride of the walk clip (measured: its foot travels 0.71 m in half a cycle of 1.1 s)
+ function drop(){try{if(obs&&sceneRef)sceneRef.onAfterAnimationsObservable.remove(obs);}catch{}obs=null;for(const f of figs.values()){try{f.ctrl?.dispose?.();f.node.dispose();}catch{}}figs.clear();sceneRef=null;rec=null;duo=null;visiting=false;}
  // the figure's bones by name, parents first
  function bonesOf(made){const all=made.getChildTransformNodes(false),out=[];for(const key of BONES){const n=all.find(t=>new RegExp('(^|[^A-Za-z])'+key+'$').test(t.name));if(n)out.push({key,bone:n,depth:(()=>{let d=0;for(let p=n.parent;p;p=p.parent)d++;return d;})()});}return out.sort((a,b)=>a.depth-b.depth);}
  async function ensure(scene){
@@ -168,32 +198,59 @@
     const made=A.instance('crowd:'+P.model,asset);if(!made){nd.dispose();continue;}
     nd.metadata={character:id,npc:true};made.metadata={...made.metadata,character:id,crowd:P.model};
     for(const m of made.getChildMeshes?.()||[])m.isPickable=false;
-    const has=n=>{try{return C.clipIn(P.model,n)===n;}catch{return false;}},pl=placement(id,CLIPS_NEEDED.every(has))||placement(id,false);
+    const has=n=>{try{return C.clipIn(P.model,n)===n;}catch{return false;}},pl=placement(id,CLIPS_NEEDED.every(has))||placement(id,false),spot=placement(id,false);
     if(!pl){nd.dispose();continue;}
-    const ctrl=C.animate(made,P.model,pl.pose==='sit'?'sit':'idle');   // seated from the first frame: no stand-to-sit blend to watch
+    const ctrl=C.animate(made,P.model,pl.pose==='sit'?'sit':has('idle-f')?'idle-f':'idle');   // seated from the first frame: no stand-to-sit blend to watch
     nd.position.set(pl.x,pl.y,pl.z);nd.rotation.y=pl.yaw;
     // feet (or, seated, the origin) on the floor: the lift from the bind-pose bounds, once, as an absolute height on the visual child
     asset.position.y=0;nd.computeWorldMatrix(true);asset.computeWorldMatrix(true);const bb=made.getHierarchyBoundingVectors(true);asset.position.y=floorLift(bb.min.y,bb.max.y,pl.y);
-    figs.set(id,{id,node:nd,asset,made,ctrl,pl,has,clip:pl.pose==='sit'?'sit':'idle',order:bonesOf(made),lock:null,tail:0,post:pl.pose==='sit'?'sit':'stand',want:pl.pose==='sit'?'sit':'stand',tr:null,acts:[],lookY:0,yaw:pl.yaw});
+    const fx=Math.sin(pl.yaw),fz=Math.cos(pl.yaw),t=clock();
+    figs.set(id,{id,node:nd,asset,made,ctrl,pl,has,clip:pl.pose==='sit'?'sit':'idle-f',order:bonesOf(made),lock:null,tail:0,post:pl.pose==='sit'?'sit':'stand',want:pl.pose==='sit'?'sit':'stand',tr:null,acts:[],lookY:0,
+     ph:Math.random()*6.3,idleAt:t+rnd(2,5),epAt:t+quietIn(Math.random),ep:null,walk:null,accent:null,doClip:null,
+     homeStand:{x:pl.x+fx*standOffset(id),z:pl.z+fz*standOffset(id)},spot:spot?{x:spot.x,z:spot.z}:null});
    }
    sceneRef=scene;obs=scene.onAfterAnimationsObservable.add(frame);
   })().finally(()=>{loading=null;});}
-  function play(f,name){if(f.clip===name)return;f.clip=name;try{f.ctrl.play(name);}catch{}}
+ function play(f,name){if(f.clip===name||!f.has(name))return;f.clip=name;try{f.ctrl.play(name);}catch{}}
  const feetMid=f=>{f.node.computeWorldMatrix(true);let x=0,z=0,n=0;for(const k of ['LeftFoot','RightFoot']){const b=f.order.find(o=>o.key===k);if(!b)continue;b.bone.computeWorldMatrix(true);const p=b.bone.getAbsolutePosition();x+=p.x;z+=p.z;n++;}return n?[x/n,z/n]:null;};
  // standing up or sitting down: the packages' own clip, and her body is moved every frame so that her feet stay exactly where they were (no sliding, whatever the frame rate)
- function transition(f,toStand,t){f.post=toStand?'rising':'sitting';let len=0;try{len=f.ctrl.playOnce(toStand?'sit-exit':'sit-enter',toStand?'idle':'sit')||0;}catch{}f.tr={t0:t,len:len||2.8};f.clip=null;f.lock=feetMid(f);}
+ function transition(f,toStand,t){f.post=toStand?'rising':'sitting';f.walk=null;f.accent=null;let len=0;try{len=f.ctrl.playOnce(toStand?'sit-exit':'sit-enter',toStand?(f.has('idle-f')?'idle-f':'idle'):'sit')||0;}catch{}f.tr={t0:t,len:len||2.8};f.clip=null;f.lock=feetMid(f);}
  function holdFeet(f){if(!f.lock)return;const m=feetMid(f);if(!m)return;f.node.position.x+=f.lock[0]-m[0];f.node.position.z+=f.lock[1]-m[1];f.node.computeWorldMatrix(true);}
- function posture(f,t,speaking){
-  if(f.pl.pose==='sit'){
-   if((f.post==='sit'||f.post==='stand')&&f.want!==f.post&&!f.tail)transition(f,f.want==='stand',t);
-   if(f.post==='rising'||f.post==='sitting'){if(t-f.tr.t0>=f.tr.len){f.post=f.post==='rising'?'stand':'sit';f.tr=null;f.tail=t+1.3;f.clip=f.post==='stand'?'idle':'sit';}}
-   if(f.lock){holdFeet(f);if(f.tail&&t>=f.tail){f.lock=null;f.tail=0;if(f.post==='sit'){f.node.position.x=f.pl.x;f.node.position.z=f.pl.z;}}}   // the feet were held through the last of the blend; seated, she is then exactly on her seat
+ const turnTo=(f,want,rate,dt)=>{let d=want-f.node.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));f.node.rotation.y+=d*Math.min(1,rate*dt);return Math.abs(d);};
+ // one step of an episode (a long quiet: she gets up, does something, perhaps crosses to her spot and back, sits again)
+ function episodeStep(f,t){
+  const e=f.ep;if(!e)return;
+  if(e.i<0||e.done(t)){e.i++;const st=e.steps[e.i];if(!st){f.ep=null;f.doClip=null;f.epAt=t+quietIn(Math.random);return;}
+   if(st.k==='stand'){f.want='stand';e.done=()=>f.post==='stand'&&!f.tail;}
+   else if(st.k==='walk'){const to=st.to==='spot'?f.spot:f.homeStand;if(!to){e.done=()=>true;return;}f.walk={x:to.x,z:to.z};f.doClip=null;e.done=()=>!f.walk;}
+   else if(st.k==='do'){f.doClip=f.has(st.clip)?st.clip:null;const end=t+st.dur;e.done=tt=>tt>=end;}
+   else{f.want='sit';f.doClip=null;e.done=()=>f.post==='sit'&&!f.tail;}
   }
-  if(f.post==='stand'&&!f.tail)play(f,speaking&&f.has('talk')?'talk':'idle');
+ }
+ function posture(f,t,dt,speaking,g){
+  const can=f.pl.pose==='sit';if(!can){play(f,speaking?'talk':'idle');return;}
+  const home=f.homeStand;
+  if(f.post==='stand'&&f.walk){   // walking: the walk clip, the body carried at the stride's own speed
+   const dx=f.walk.x-f.node.position.x,dz=f.walk.z-f.node.position.z,d=Math.hypot(dx,dz),step=WALK_SPEED*dt;
+   if(d<=step+.02){f.node.position.x=f.walk.x;f.node.position.z=f.walk.z;f.walk=null;}
+   else{f.node.position.x+=dx/d*step;f.node.position.z+=dz/d*step;turnTo(f,Math.atan2(dx,dz),7,dt);play(f,'walk');}
+  }
+  if((f.post==='sit'||f.post==='stand')&&f.want!==f.post&&!f.tail&&!f.walk){
+   if(f.want==='stand')transition(f,true,t);
+   else{const d=Math.hypot(f.node.position.x-home.x,f.node.position.z-home.z);   // back to the bed first (the spot beside it), facing it, then sit
+    if(d>.12)f.walk={x:home.x,z:home.z};else if(turnTo(f,f.pl.yaw,8,dt)<.25)transition(f,false,t);}
+  }
+  if(f.post==='rising'||f.post==='sitting'){if(t-f.tr.t0>=f.tr.len){f.post=f.post==='rising'?'stand':'sit';f.tr=null;f.tail=t+1.3;f.clip=f.post==='stand'?(f.has('idle-f')?'idle-f':'idle'):'sit';}}
+  if(f.lock){holdFeet(f);if(f.tail&&t>=f.tail){f.lock=null;f.tail=0;if(f.post==='sit'){f.node.position.x=f.pl.x;f.node.position.z=f.pl.z;}}}   // the feet were held through the last of the blend; seated, she is then exactly on her seat
+  if(f.tail)return;
+  if(f.post==='sit')play(f,speaking&&f.has('sit-talk')?'sit-talk':'sit');
+  else if(f.post==='stand'&&!f.walk){
+   if(f.accent&&t>=f.accent.until)f.accent=null;
+   play(f,f.accent?f.accent.clip:speaking&&f.has('talk-f')?'talk-f':f.doClip||(f.has('idle-f')?'idle-f':'idle'));
+  }
  }
  // the guest's place in the figure's own frame (x to its right, z the way it faces)
- function guestLocal(f,g){const B=root.BABYLON;f.node.computeWorldMatrix(true);const inv=f.node.getWorldMatrix().clone().invert();return B.Vector3.TransformCoordinates(new B.Vector3(g.x,Number.isFinite(g.y)?g.y:f.pl.y+1.7,g.z),inv);}
- const clampAbs=(x,m)=>Math.max(-m,Math.min(m,x));
+ function localOf(f,x,y,z){const B=root.BABYLON;f.node.computeWorldMatrix(true);const inv=f.node.getWorldMatrix().clone().invert();return B.Vector3.TransformCoordinates(new B.Vector3(x,Number.isFinite(y)?y:f.pl.y+1.7,z),inv);}
  function applyPose(f,pose){
   const B=root.BABYLON;f.node.computeWorldMatrix(true);const NW=f.node.getWorldMatrix(),ax={x:B.Vector3.TransformNormal(new B.Vector3(1,0,0),NW).normalize(),y:B.Vector3.TransformNormal(new B.Vector3(0,1,0),NW).normalize(),z:B.Vector3.TransformNormal(new B.Vector3(0,0,1),NW).normalize()};
   for(const {key,bone} of f.order){bone.computeWorldMatrix(true);const spec=pose[key];if(!spec||!bone.parent)continue;
@@ -202,28 +259,45 @@
    L.decompose(new B.Vector3(),q,new B.Vector3());bone.rotationQuaternion=q;bone.computeWorldMatrix(true);}
  }
  function frame(){
-  try{const t=clock(),g=where(),now=Date.now();if(!g)return;
+  try{const t=clock(),dt=Math.min(.25,Math.max(0,t-lastT||.016));lastT=t;const g=where(),now=Date.now();if(!g)return;
+   const talking=!!rec&&playing(now),quiet=!visiting&&!talking||visiting&&!talking&&duo&&!duo.queue.length&&!duo.waiting;
    for(const f of figs.values()){if(!f.node.isEnabled())continue;
-    const speaking=!!rec&&rec.id===f.id&&playing(now);posture(f,t,speaking);
-    const gl=guestLocal(f,g),bearing=Math.atan2(gl.x,gl.z)/D2R,dist=Math.hypot(gl.x,gl.z);
-    // standing, she turns toward the guest (within 70 degrees of where she faced); seated she looks round with her head only
-    if(f.post==='stand'){const want=f.pl.yaw+clampAbs(bearing,70)*D2R*(dist<6?1:0);let d=want-f.node.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));f.node.rotation.y+=d*.06;}
-    else if(f.post==='sit'){let d=f.pl.yaw-f.node.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));f.node.rotation.y+=d*.1;}
+    const speaking=talking&&rec.id===f.id,other=figs.get(MEMBERS[1-MEMBERS.indexOf(f.id)]);
+    // a long quiet: she may get up for a while (never both at once)
+    if(!f.ep&&quiet&&f.post==='sit'&&f.want==='sit'&&t>=f.epAt&&!(other&&(other.ep||other.post!=='sit'))&&placeOf(g)===ROOM){f.ep={...episode(Math.random),i:-1,done:()=>true};}
+    if(f.ep)episodeStep(f,t);
+    posture(f,t,dt,speaking,g);
+    const gl=localOf(f,g.x,g.y,g.z),bearing=Math.atan2(gl.x,gl.z)/D2R,dist=Math.hypot(gl.x,gl.z);
+    // standing, she turns toward the guest (within 70 degrees of where she faced, all round at her spot); seated she looks round with her head only
+    if(f.post==='stand'&&!f.walk&&f.want==='stand'){const at=f.spot&&Math.hypot(f.node.position.x-f.spot.x,f.node.position.z-f.spot.z)<.4;turnTo(f,f.pl.yaw+(at?bearing*D2R:clampAbs(bearing,70)*D2R)*(dist<6?1:0),3,dt);}
+    else if(f.post==='sit')turnTo(f,f.pl.yaw,6,dt);
     if(f.post==='rising'||f.post==='sitting'||f.tail)continue;
-    const lookWant=dist<7&&Math.abs(bearing)<115?clampAbs(bearing*.6,34):0;f.lookY+=(lookWant-f.lookY)*.08;
-    const pose={Head:[['y',f.lookY*.7]],Neck:[['y',f.lookY*.3]]},keep=[];
-    for(const a of f.acts){const P=POSES[a.id];if(!P||t>a.t0+a.dur)continue;keep.push(a);if(t<a.t0)continue;const u=(t-a.t0)/a.dur,e=ease(u),add=P.at(u,t-a.t0,a.s,e);for(const [k,v] of Object.entries(add))pose[k]=(pose[k]||[]).concat(v);}
+    // base: breathing and the head following the guest
+    const lookWant=dist<7&&Math.abs(bearing)<115?clampAbs(bearing*.6,34):0;f.lookY+=(lookWant-f.lookY)*Math.min(1,3*dt);
+    const br=Math.sin((t+f.ph)*1.45),br2=Math.sin((t+f.ph)*.55+1);
+    const pose={Chest:[['x',1.6*br]],Spine:[['x',.9*br],['z',1.6*br2]],Head:[['y',f.lookY*.7+2*br2],['x',.9*Math.sin((t+f.ph)*1.45+1)]],Neck:[['y',f.lookY*.3]],LeftUpperArm:[['z',-.8*br]],RightUpperArm:[['z',.8*br]]};
+    // the quiet movements, one after another with random gaps (they never move in step: their timers are their own)
+    if(!f.acts.length&&t>=f.idleAt&&f.post!=='rising'){const kind=QUIET[Math.floor(Math.random()*QUIET.length)],s=Math.random()<.5?-1:1;let a=null;
+     if(kind==='look'){const pick=Math.random(),pg=other&&other.node.isEnabled()?localOf(f,other.node.position.x,f.pl.y+1.5,other.node.position.z):null,pb=pg?Math.atan2(pg.x,pg.z)/D2R:0;
+      a={yaw:clampAbs(pick<.34&&dist<8?bearing:pick<.7&&pg?pb:rnd(-50,50),55)};}
+     f.acts.push({id:kind,t0:t,dur:POSES[kind].dur,s,a});f.idleAt=t+POSES[kind].dur+rnd(.4,3.2);}
+    const keep=[];
+    for(const a of f.acts){const P=POSES[a.id];if(!P||t>a.t0+a.dur)continue;keep.push(a);if(t<a.t0)continue;const u=(t-a.t0)/a.dur,e=ease(u),add=P.at(u,t-a.t0,a.s,e,a.a);for(const [k,v] of Object.entries(add))pose[k]=(pose[k]||[]).concat(v);}
     f.acts=keep;applyPose(f,pose);}
   }catch(e){if(!frame.warned){frame.warned=true;console.warn('[VOID//RUNNER] Nomi and Se7en frame',e);}}
  }
  // a line is starting: who stands or sits, and what each does while it is said
  function perform(line,info){
   const t=clock(),side=()=>Math.random()<.5?-1:1;
-  for(const id of MEMBERS){const f=figs.get(id);if(f&&line.posture)f.want=line.posture[id]==='stand'?'stand':'sit';}
+  for(const id of MEMBERS){const f=figs.get(id);if(f&&line.posture){f.want=line.posture[id]==='stand'?'stand':'sit';if(f.ep){f.ep=null;f.doClip=null;}}}
   const f=figs.get(line.speaker),o=figs.get(MEMBERS[1-MEMBERS.indexOf(line.speaker)]);if(!f)return;
   const settled=f.post===f.want||f.pl.pose!=='sit',busyUntil=f.tr?f.tr.t0+f.tr.len:t,ready=settled?t+.3:Math.max(busyUntil,t)+(f.post==='sit'||f.post==='stand'?3.1:.4);
-  let at=ready;for(const a of line.actions||[]){const P=POSES[a];if(!P||P.needs==='stand'&&f.want!=='stand')continue;f.acts.push({id:a,t0:at,dur:P.dur,s:side()});at+=P.dur*.8;}
-  if(o&&o.pl.pose==='sit'&&Math.random()<.55){const pick=['head-tilt','nod','laugh','glance'][Math.floor(Math.random()*4)];if(!(pick==='laugh'&&line.pool==='bye'))o.acts.push({id:pick,t0:t+.8+Math.random()*(Math.max(1,(info?.duration||3)-1.5)),dur:POSES[pick].dur,s:side()});}
+  let at=ready;
+  for(const a of line.actions||[]){const P=POSES[a];if(!P||P.needs==='stand'&&f.want!=='stand'&&!CLIP_OF[a])continue;
+   const clip=f.want==='stand'&&f.post!=='sit'&&CLIP_OF[a];
+   if(clip){const list=Array.isArray(clip)?clip.filter(c=>f.has(c)):f.has(clip)?[clip]:[];if(list.length){const c=list[Math.floor(Math.random()*list.length)];setTimeout(()=>{if(f.post==='stand')f.accent={clip:c,until:clock()+(a==='dance'?9:3.4)};},Math.max(0,(at-t)*1000));at+=3;continue;}}
+   f.acts.push({id:a,t0:at,dur:P.dur,s:side()});at+=P.dur*.8;}
+  if(o&&o.pl.pose==='sit'&&Math.random()<.6){const pick=['head-tilt','nod','laugh','glance','look','lean-in'][Math.floor(Math.random()*6)];if(!(pick==='laugh'&&line.pool==='bye'))o.acts.push({id:pick,t0:t+.8+Math.random()*(Math.max(1,(info?.duration||3)-1.5)),dur:POSES[pick].dur,s:side(),a:{yaw:rnd(-40,40)}});}
  }
  const isBlocked=()=>{try{return !!((typeof speech!=='undefined'&&speech)||root.VoidLiveContent?.nearBlocked?.()||(typeof document!=='undefined'&&document.hidden));}catch{return true;}};
  function audible(w){const f=figs.get('nomi')||figs.get('se7en');if(!f)return false;const A=ADV();const to=[f.pl.x,UG().Y+1.2,f.pl.z],d=Math.hypot(w.x-f.pl.x,w.z-f.pl.z);
@@ -231,30 +305,31 @@
  // is the recording of the line just started still sounding? (the voice player's own record of the line; a line that has none is held for its recorded length, or its text's)
  function playing(now){if(!rec)return false;const v=root.VoidVoiceClips?.now;if(v&&v.who===rec.id&&v.text===rec.text&&v.ended&&v.endedAt>=rec.perf-50)return false;return now<rec.until;}
  const guestNear=id=>{const w=where(),f=figs.get(id);return !!(w&&f&&Math.hypot(w.x-f.node.position.x,w.z-f.node.position.z)<=NEAR_GUEST);};
- function sitAll(){for(const f of figs.values()){f.want='sit';f.acts=[];}}
+ function sitAll(){for(const f of figs.values()){f.want='sit';f.acts=[];f.ep=null;f.doClip=null;f.accent=null;}}
+ const round=k=>{current=visit(Math.random,memory,{near:guestNear},k===0?{bye:false}:{arrive:false,bye:k>=ROUNDS-1,steps:ROUND_STEPS,after:lastSpeaker});memory=current.memory;return current.steps;};
  function tick(){
   try{
    const w=where(),scene=root.VoidBabylon?.scene;
-   if(!w){if(duo?.inside||rec){stopSpeech();}if(duo?.inside)sitAll();duo=null;rec=null;if(figs.size&&(!scene||scene!==sceneRef||typeof mode!=='undefined'&&mode==='menu'))drop();return;}
+   if(!w){if(duo?.inside||rec){stopSpeech();}if(duo?.inside)sitAll();duo=null;rec=null;visiting=false;if(figs.size&&(!scene||scene!==sceneRef||typeof mode!=='undefined'&&mode==='menu'))drop();return;}
    if(sceneRef&&scene!==sceneRef)drop();
    const place_=placeOf(w),near=NEAR.includes(place_);
    if(near&&scene&&!figs.size)ensure(scene);
    for(const f of figs.values())f.node.setEnabled(near||f.post!=='sit');
    const A=ADV(),inside=place_===ROOM,now=Date.now();if(!A)return;
    const present=figs.size===MEMBERS.length;
-   const r=A.roomDuoStep(duo,{inside,present,blocked:isBlocked()||(inside&&!audible(w)),playing:playing(now),now,script:()=>{current=visit(Math.random,memory,{near:guestNear});memory=current.memory;return current.steps;},resolve:s=>current?current.resolve(s):null,members:MEMBERS,pauseMs:PAUSE,noticeMs:NOTICE,cooldownMs:COOLDOWN,maxTurns:14,maxLineMs:MAX_LINE});
-   duo=r.state;if(r.cancel){stopSpeech();rec=null;sitAll();visiting=false;}
+   const r=A.roomDuoStep(duo,{inside,present,blocked:isBlocked()||(inside&&!audible(w))||[...figs.values()].some(f=>f.ep),playing:playing(now),now,script:()=>round(0),resolve:s=>current?current.resolve(s):null,refill:{gap:()=>gapAfter(Math.random),script:k=>round(k),max:ROUNDS},members:MEMBERS,pauseMs:PAUSE,noticeMs:NOTICE,cooldownMs:COOLDOWN,maxTurns:14,maxLineMs:MAX_LINE});
+   duo=r.state;if(r.cancel){stopSpeech();rec=null;sitAll();visiting=false;lastSpeaker=null;}
    if(r.line){
-    const id=r.line.speaker,info=lineInfo(id,r.line.text),P=PEOPLE[id];
+    const id=r.line.speaker,info=lineInfo(id,r.line.text),P=PEOPLE[id];lastSpeaker=id;
     try{if(typeof announce==='function')announce(P.name+' · '+strip(r.line.text));}catch{}
     let spoke=false;try{spoke=!!root.VoidAudio?.speak?.(id,r.line.text,false,false,true);}catch{}
     const ms=spoke&&info?info.duration*1000+2500:Math.min(MAX_LINE,2200+strip(r.line.text).length*65);
-    rec={id,text:r.line.text,perf:performance.now(),until:now+ms};perform(r.line,info);
+    rec={id,text:r.line.text,perf:performance.now(),until:now+ms};perform(r.line,info);visiting=true;
    }
-   if(duo&&(duo.queue.length||duo.waiting))visiting=true;else if(visiting&&!playing(now)){visiting=false;for(const f of figs.values())f.want='sit';}   // the visit is over: whoever stands sits back down (her last gesture finishes first)
+   if(duo&&!duo.queue.length&&!duo.waiting&&!playing(now)&&visiting&&duo.rounds>=ROUNDS){visiting=false;for(const f of figs.values())f.want='sit';}   // the last round is over: whoever stands sits back down (they live on quietly until the guest goes)
   }catch(e){if(!tick.warned){tick.warned=true;console.warn('[VOID//RUNNER] Nomi and Se7en',e);}}
  }
  function stopSpeech(){try{const v=root.VoidVoiceClips?.now;if(v&&MEMBERS.includes(v.who)&&!v.ended)root.VoidAudio?.cancel?.();}catch{}}
  setInterval(tick,250);
- root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear};
+ root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,get rounds(){return duo?duo.rounds:0;}};
 })(typeof globalThis!=='undefined'?globalThis:this);
