@@ -72,3 +72,15 @@ test('Dax cycles through all assigned stay actions instead of playing only the f
  assert.equal(R.position(p,21).clip,'shrug');
  assert.equal(R.position(p,31).clip,'look');
 });
+
+test('Dax editor only offers supported District maps and rejects street placement',()=>{
+ const X=require('../void-runner/npc-paths.js');
+ const fs=require('node:fs'),path=require('node:path');
+ const map=fs.readFileSync(path.resolve(__dirname,'../void-runner/npc-map.js'),'utf8');
+ assert.match(map,/if\(o\.npc==='dax'\)o\.area='district'/);
+ assert.match(map,/o\.npc!=='dax'\|\|a\.id==='district'/);
+ const outside=X.spotProblems('dax',{x:100,z:-6.4});
+ assert.ok(outside.length>0,'a normal Avenue position is not supported by Dax interior runtime');
+ const N=require('../void-runner/neochinatown.js'),hall=N.toWorld(1.6,54.5);
+ assert.deepEqual(X.spotProblems('dax',{x:hall[0],z:hall[1]}),[]);
+});
