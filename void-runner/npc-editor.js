@@ -540,7 +540,7 @@
     el('p',Object.values(p.dialogue||{}).reduce((n,arr)=>n+arr.length,0)+' dialogue entries · '+(p.recordedLineCount||0)+' recorded lines · '+(p.missingVoiceLines||[]).length+' missing voice lines','me-small'),
     el('p',(p.animationNames||[]).length+' model animations · '+(p.motions||[]).length+' companion motion files','me-small'));
    for(const warning of p.warnings||[])summary.append(el('p',warning,'me-warn'));
-   summary.append(el('p','Personality, recordings and motion attachments are stored only in this browser. Missing voice generation and world publishing require the separate NPC voice/publishing workflow.','me-small'));
+   summary.append(el('p','Personality, recordings and motion attachments are stored privately in this browser. ElevenLabs generation below requires an authorized developer and an explicit confirmation. Publishing remains a separate step.','me-small'));
    const detail=el('details','','me-check',{'data-npc-companion-personality':'1'});
    detail.append(el('summary','Edit personality and dialogue JSON (local draft)'));
    const area=el('textarea','','',{'aria-label':'Personality JSON',rows:'12','data-npc-personality-json':'1'});
