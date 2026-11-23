@@ -22,3 +22,13 @@ class AdvancedNpcRoomSchemaTests(unittest.TestCase):
         record = {'distance': 3, 'cooldown': 60, 'advanced': {'room': {'id': 'under-tea-room', 'enter': 'Come in', 'cooldown': 30}}}
         self.assertEqual(live.interaction_problems({'tea-host': record}, places={'under-tea-room'}), [])
         self.assertTrue(live.interaction_problems({'tea-host': record}, places={'somewhere-else'}))
+
+    def test_follow_and_group_match_the_client(self):
+        follow = {'distance': 3, 'cooldown': 60, 'advanced': {'follow': {'role': 'lead', 'invite': 'This way', 'accept': 'LEAD ON', 'decline': 'STAY', 'maxWait': 20, 'place': 'district-hall'}}}
+        self.assertEqual(live.interaction_problems({'grey-reverie': follow}, places={'district-hall'}), [])
+        self.assertTrue(live.interaction_problems({'grey-reverie': follow}, places={'avenue'}))
+        group = lambda who: {'distance': 3, 'cooldown': 60, 'advanced': {'group': {'id': 'pair', 'members': ['grey-reverie', 'ethereal-lace'], 'order': 'authored', 'cooldown': 12, 'lines': who}}}
+        self.assertEqual(live.interaction_problems({'grey-reverie': group('After you'), 'ethereal-lace': group('Your turn')}), [])
+        broken = group('Your turn')
+        broken['advanced']['group']['order'] = 'alternate'
+        self.assertTrue(live.interaction_problems({'grey-reverie': group('After you'), 'ethereal-lace': broken}))

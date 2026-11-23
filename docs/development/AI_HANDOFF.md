@@ -6,6 +6,12 @@
 - The District bar, VR play area, arcade, Milked reception and NULL floor keep their existing adult-made placement. Reverie and Lace still carry the same 16 native clips, including the seated wave.
 - The scene builders start and dispose the made-character runtime with the area. Draft play can enter either scene.
 
+## 23 Nov 2026 — #495 follow, lead and group dialogue
+
+- Walking TALK NPCs can invite the local player to follow them or lead them to a registered place. Movement uses the existing escort walk, obstacle routing and per-player copy. A mission escort or active mission dialogue cancels it and can play the cancel line. Arrival dialogue plays when both reach the place. Desktop and mobile Dev Tools edit the same record; the server rejects unknown fields and unregistered places. Released in #503.
+- Linked groups speak one at a time, in member order, with talk/idle poses on made NPCs who are close enough. Mission dialogue suppresses the group. No new save field and no shared NPC position sync.
+- Still open on #495: cross-area daily itineraries, tier awareness, consumables and the later studio requests in the draft handoff.
+
 ## 22 Nov 2026 — #495 room-dialogue release candidate
 
 - Room-aware ordinary NPC dialogue now checks walking TALK positions, registered room boundaries, closed-door collision solids, mission priority and per-player transition timing. It supports entry, exit, short/long visits, independent cooldowns and exact recording preservation. Desktop includes the actual tea room; mobile has matching room dialogue fields and private draft-only synchronization. No existing dialogue, saves, publishing privileges or NPC eligibility changed.

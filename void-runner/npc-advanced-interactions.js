@@ -16,7 +16,8 @@ function createDialogueCoordinator(now=()=>Date.now()){
   const i=members.indexOf(token.speaker);if(i>=0)turn.set(token.group,i+1);return true;
  }
  function clear(){active.clear();last.clear();turn.clear();}
- return {acquire,release,clear,busy:group=>active.has(group)};
+ function next(group,members,alternate=false){if(!Array.isArray(members)||!members.length)return null;return alternate?members[(turn.get(group)||0)%members.length]:members[0];}
+ return {acquire,release,clear,next,busy:group=>active.has(group)};
 }
 function roomVisit(previous,inside,now){
  const p=previous||{inside:false,enteredAt:null};
@@ -51,6 +52,39 @@ function clearRoomLine(a,b,solids){
   }if(lo<=hi&&hi>0&&lo<1)return false;
  }return true;
 }
+// Push overlapping people apart. The caller keeps the result only when it stays on walkable ground.
+function separate(self,others,radius=0.8){
+ if(!self||!Number.isFinite(self.x+self.z))return null;
+ let x=self.x,z=self.z;
+ for(const o of others||[]){if(!o||!Number.isFinite(o.x+o.z)||o===self)continue;let dx=x-o.x,dz=z-o.z,d=Math.hypot(dx,dz);
+  if(d>=radius)continue;if(d<1e-4){dx=radius;dz=0;d=1e-4;}const k=(radius-d)/d;x+=dx*k;z+=dz*k;}
+ return {x,z};
+}
+// Invitation only. Movement after acceptance is the existing escort follow/lead, which already routes around obstacles.
+function followInvite(previous,{now,accepted=false,declined=false,maxWait=30}={}){
+ const p=previous&&previous.phase?previous:{phase:'offer',at:now};
+ if(p.phase==='active'||p.phase==='done')return p;
+ if(declined)return {phase:'return',at:now,generation:p.generation||0};
+ if(accepted)return {phase:'active',at:now,generation:(p.generation||0)+1};
+ if(p.phase==='return')return {phase:'offer',at:now,generation:p.generation||0};
+ if(now-(p.at??now)>=Math.max(0,maxWait)*1000)return {phase:'return',at:now,generation:p.generation||0};
+ return p;
+}
+// One speaker, then the listeners. Authored and alternate both take turns in member order; a free order lets the first present member speak.
+function groupStep(coordinator,spec){
+ const members=Array.isArray(spec.members)?spec.members:[],near=spec.near instanceof Set?spec.near:new Set(spec.near||[]);
+ const present=members.filter(id=>near.has(id)),alternate=spec.order!=='free';
+ if(present.length<2)return {line:null,poses:{}};
+ const speaker=coordinator.next(spec.id,present,alternate),lines=speaker?spec.lines?.[speaker]||[]:[];
+ if(!speaker||!lines.length)return {line:null,poses:{}};
+ const token=coordinator.acquire(spec.id,speaker,present,spec.cooldownMs||0,alternate);
+ if(!token)return {line:null,poses:{}};
+ const index=spec.index?.[speaker]||0,line=lines[index%lines.length];
+ if(spec.index)spec.index[speaker]=index+1;
+ coordinator.release(token,present);
+ const poses={};for(const id of members)if(near.has(id))poses[id]=id===speaker&&line?'talk':'idle';
+ return {speaker,line,poses};
+}
 function followStep({phase='invite',waited=0}={},input){
  const {dt=0,accepted=false,declined=false,near=false,atDestination=false,playerArrived=false,maxWait=30}=input;
  if(phase==='done'||phase==='return')return {phase,waited};
@@ -60,6 +94,6 @@ function followStep({phase='invite',waited=0}={},input){
  if(near&&!atDestination)return {phase:'lead',waited:0};
  const w=waited+Math.max(0,dt);return {phase:w>=maxWait?'return':'wait',waited:w};
 }
-const api={createDialogueCoordinator,roomVisit,roomDialogueStep,clearRoomLine,followStep};
+const api={createDialogueCoordinator,roomVisit,roomDialogueStep,clearRoomLine,separate,followInvite,groupStep,followStep};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdvancedInteractions=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

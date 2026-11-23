@@ -100,10 +100,10 @@ def interaction_pool_ok(text):
 ROOM_DIALOGUE_POOLS = ('enter', 'exit', 'shortVisit', 'longVisit')
 
 
-def advanced_room_ok(advanced):
-    if not _keys(advanced, ['room']):
-        return False
-    room = advanced.get('room')
+FOLLOW_POOLS = ('invite', 'arrive', 'cancel')
+
+
+def room_record_ok(room):
     if (not _keys(room, ['id', 'cooldown', 'longSeconds', *ROOM_DIALOGUE_POOLS])
             or not isinstance(room.get('id'), str) or not ID.fullmatch(room['id'])
             or type(room.get('cooldown')) is not int or not 5 <= room['cooldown'] <= 600):
@@ -115,6 +115,70 @@ def advanced_room_ok(advanced):
     return (type(room.get('longSeconds')) is int and 5 <= room['longSeconds'] <= 600) if timed else 'longSeconds' not in room
 
 
+def follow_record_ok(follow, places=None):
+    if (not _keys(follow, ['role', 'invite', 'accept', 'decline', 'arrive', 'cancel', 'maxWait', 'place'])
+            or follow.get('role') not in ('lead', 'follow') or not interaction_pool_ok(follow.get('invite'))
+            or not _plain(follow.get('accept'), 60) or not _plain(follow.get('decline'), 60)
+            or follow.get('accept') == follow.get('decline')):
+        return False
+    if 'arrive' in follow and not interaction_pool_ok(follow['arrive']) or 'cancel' in follow and not interaction_pool_ok(follow['cancel']):
+        return False
+    if type(follow.get('maxWait')) is not int or not 5 <= follow['maxWait'] <= 120:
+        return False
+    if follow['role'] == 'lead' and (not isinstance(follow.get('place'), str) or not ID.fullmatch(follow['place'])):
+        return False
+    if 'place' in follow and (not isinstance(follow.get('place'), str) or not ID.fullmatch(follow['place']) or (places is not None and follow['place'] not in places)):
+        return False
+    return True
+
+
+def group_record_ok(group, self_id):
+    members = group.get('members')
+    if (not _keys(group, ['id', 'members', 'order', 'cooldown', 'lines']) or not isinstance(group.get('id'), str)
+            or not ID.fullmatch(group['id']) or not isinstance(members, list) or not 2 <= len(members) <= 6
+            or len(set(members)) != len(members) or any(not isinstance(m, str) or not ID.fullmatch(m) for m in members)
+            or self_id not in members or group.get('order') not in ('alternate', 'authored')):
+        return False
+    return type(group.get('cooldown')) is int and 5 <= group['cooldown'] <= 600 and interaction_pool_ok(group.get('lines'))
+
+
+def advanced_ok(advanced, places=None, self_id=''):
+    if not _keys(advanced, ['room', 'follow', 'group']) or not advanced:
+        return False
+    if 'room' in advanced and not room_record_ok(advanced['room']):
+        return False
+    if 'follow' in advanced and not follow_record_ok(advanced['follow'], places):
+        return False
+    if 'group' in advanced and not group_record_ok(advanced['group'], self_id):
+        return False
+    return not (advanced.get('room') and places is not None and advanced['room']['id'] not in places)
+
+
+def groups_agree(table):
+    for npc, record in table.items():
+        group = (record.get('advanced') or {}).get('group') or {}
+        members = group.get('members')
+        if not isinstance(members, list):
+            continue
+        for member in members:
+            other = table.get(member)
+            if not other:
+                continue
+            theirs = (other.get('advanced') or {}).get('group')
+            if not theirs or theirs.get('id') != group['id'] or theirs.get('order') != group['order'] or theirs.get('cooldown') != group['cooldown'] or theirs.get('members') != group['members']:
+                return npc
+    return None
+
+
+def interaction_lines(record):
+    advanced = record.get('advanced') or {}
+    room = advanced.get('room') or {}
+    follow = advanced.get('follow') or {}
+    group = advanced.get('group') or {}
+    pools = [record.get(k) for k in ('near', 'talk', 'reply')] + [room.get(k) for k in ROOM_DIALOGUE_POOLS] + [follow.get(k) for k in FOLLOW_POOLS] + [group.get('lines')]
+    return {line.strip() for text in pools for line in (text or '').splitlines() if line.strip()}
+
+
 def interaction_problems(table, givers=None, places=None):
     if not isinstance(table, dict) or len(table) > 100:
         return ['Invalid NPC interactions.']
@@ -122,19 +186,18 @@ def interaction_problems(table, givers=None, places=None):
     for npc, r in table.items():
         if (not re.fullmatch(r'[a-z][a-z0-9-]{0,79}', npc) or (givers is not None and not (givers.get(npc) or {}).get('canTalk'))
                 or not _keys(r, ['near', 'talk', 'distance', 'cooldown', 'choice', 'reply', 'clips', 'advanced'])
-                or ('advanced' in r and (not advanced_room_ok(r['advanced']) or (places is not None and r['advanced']['room']['id'] not in places)))
+                or ('advanced' in r and not advanced_ok(r['advanced'], places, npc))
                 or not (r.get('near') or r.get('talk') or r.get('advanced'))
                 or any(k in r and r[k] is not None and not (_plain(r[k], 60) if k == 'choice' else interaction_pool_ok(r[k])) for k in ('near', 'talk', 'choice', 'reply'))
                 or type(r.get('distance')) not in (int, float) or not 1 <= r['distance'] <= 8
                 or type(r.get('cooldown')) is not int or not 5 <= r['cooldown'] <= 600
                 or bool(r.get('choice')) != bool(r.get('reply')) or (r.get('choice') and not r.get('talk'))):
             errors.append('Invalid interaction for ' + npc + '.')
-        elif 'clips' in r:
-            room = r.get('advanced', {}).get('room', {})
-            pools = [r.get(k) for k in ('near', 'talk', 'reply')] + [room.get(k) for k in ROOM_DIALOGUE_POOLS]
-            lines = {line.strip() for text in pools for line in (text or '').splitlines() if line.strip()}
-            if clip_problems(r['clips']) or any(c['who'] != npc or c['text'] not in lines for c in r['clips']):
-                errors.append('Invalid interaction audio for ' + npc + '.')
+        elif 'clips' in r and (clip_problems(r['clips']) or any(c['who'] != npc or c['text'] not in interaction_lines(r) for c in r['clips'])):
+            errors.append('Invalid interaction audio for ' + npc + '.')
+    disagree = groups_agree(table)
+    if disagree and not errors:
+        errors.append('Invalid interaction for ' + disagree + '.')
     return errors
 
 
