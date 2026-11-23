@@ -126,6 +126,17 @@
    // A gesture for a role, picked at random from the companion's own list (their personality).
    const gestureFor=role=>{const own=(who.clips[role]||[]).filter(has);return own.length?own[Math.floor(Math.random()*own.length)]:clip(role);};
    const anim=VoidCrowd.animate(node,look,'idle');node.position.set(home[0],0,home[1]);node.rotation.y=-Math.PI/2;
+   // Imported studio models sometimes use a pelvis-centred origin. Place their feet on
+   // the bedroom floor via a visual-root offset, preserving all bones and animation tracks.
+   // The same C.floorOffset calculation can be used by a separate world-room loader.
+   if(local){try{
+    asset.computeWorldMatrix(true);
+    const bounds=asset.getHierarchyBoundingVectors(true);
+    const lift=C.floorOffset(bounds.min.y,bounds.max.y);
+    asset.position.y+=lift;
+    asset.computeWorldMatrix(true);
+   }catch(err){console.warn('[VR companion floor alignment]',err);}}
+
    // Clips cross-fade over about half a second (crowd.js uses a quicker fade for the street's people).
    for(const g of node.metadata.animationGroups||[])g.blendingSpeed=.035;
    // Every part's culling box covers everywhere the body can reach in any clip (vr-companions.js reach). A skinned part's own box is its bind pose:
