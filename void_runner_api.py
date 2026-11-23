@@ -1079,3 +1079,85 @@ def voice_clip_public(clip_hash):
     response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     response.headers['ETag'] = '"' + clip_hash + '"'
     return response
+
+# Consumables Studio and Items & Vendors (Developer Tools > Studios; void_runner_items.py). Admin-only edit and publish (VOID_ADMIN_UIDS, like every developer route);
+# players read the live catalog and buy and use items here. Price, stock, carrying limits, cooldowns and every effect amount are the server's own.
+import void_runner_items as items_service
+
+
+def items_admin(uid):
+    if not balance_admin(uid):
+        raise DraftError('Administrator access is not authorized.', 403)
+
+
+@api.get('/items/catalog')
+def items_catalog():
+    if os.getenv('VOID_ACCOUNTS_ENABLED') != 'true':
+        return jsonify(version=0, content=items_service.SEED)
+    db, _, _ = services()
+    return jsonify(items_service.live(db))
+
+
+@api.get('/developer/items')
+@signed_in
+def items_developer(db, uid):
+    items_admin(uid)
+    return jsonify(draft=items_service.draft_get(db, uid), state=items_service.summary(db), live=items_service.live(db), spec={'vendorRegistry': items_service.SPEC['vendorRegistry']})
+
+
+@api.post('/developer/items/draft')
+@signed_in
+def items_draft_save(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.draft_save(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/items/publish')
+@signed_in
+def items_publish(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.publish(db, uid, request.get_json(silent=True)))
+
+
+@api.post('/developer/items/rollback')
+@signed_in
+def items_rollback(db, uid):
+    items_admin(uid)
+    return jsonify(items_service.rollback(db, uid, request.get_json(silent=True)))
+
+
+@api.get('/developer/items/versions/<int:version>')
+@signed_in
+def items_version(db, uid, version):
+    items_admin(uid)
+    return jsonify(items_service.load_version(db, version))
+
+
+@api.get('/shop/vendor/<vendor>')
+@signed_in
+def shop_vendor(db, uid, vendor):
+    return jsonify(items_service.vendor_listing(db, vendor))
+
+
+@api.get('/shop/state')
+@signed_in
+def shop_state(db, uid):
+    return jsonify(items_service.player_state(db, uid))
+
+
+@api.post('/shop/purchase')
+@signed_in
+def shop_purchase(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise DraftError('A JSON object is required.')
+    return jsonify(items_service.purchase(db, uid, body))
+
+
+@api.post('/shop/use')
+@signed_in
+def shop_use(db, uid):
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        raise DraftError('A JSON object is required.')
+    return jsonify(items_service.use_item(db, uid, body))
