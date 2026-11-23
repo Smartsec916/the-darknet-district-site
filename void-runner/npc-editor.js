@@ -695,7 +695,20 @@
   lic.append(f('Where it is from','source','e.g. made in Meshy by me / CGTrader item 12345 / Sketchfab link'),f('Licence type','type','e.g. my own work / Royalty Free / CC-BY 4.0'));
   const ai=el('div','','me-row',{'data-npc-lic':'noAI'});ai.append(el('b','No AI licence?'));for(const [v,n] of [[true,'YES (No AI)'],[false,'NO']])ai.append(btn(n,async()=>{L.noAI=v;await saveRec(rec);draw();},L.noAI===v?'on':'',{'data-npc-noai':String(v),'aria-pressed':String(L.noAI===v)}));ai.append(hint('Yes if its licence forbids AI tools or AI training. Then it is only ever processed on your PC (Blender), never with Meshy or any AI tool.'));lic.append(ai);
   const ready=rec.info&&!refused&&L.source&&L.type&&(L.noAI===true||L.noAI===false)&&rec.name;
-  const r=el('div','','me-row me-actions');r.append(btn('ADD TO THE GAME (DOWNLOAD THE PACKAGE)',()=>{download(rec.fileName,rec.blob);if(rec.transferBlob)download(rec.sourceFileName,rec.transferBlob);download((rec.name||'model').replace(/[^\w-]+/g,'-')+'-package.json',packageOf(rec));status='Downloaded '+rec.fileName+(rec.transferBlob?' and its original companion transfer':'')+' with the integration package. Send all files to Claude or Codex.';draw();},'me-play',{'data-npc-add-to-game':rec.id,...(ready?{}:{disabled:'',title:'Fill in the name and the licence questions first (and the checklist must pass).'})}),hint(HELP.addToGame));lic.append(r);
+  const r=el('div','','me-row me-actions');r.append(btn('ADD TO THE GAME (DOWNLOAD THE PACKAGE)',async()=>{
+   try{
+    let companionExport=null;
+    if(rec.transferBlob){
+     const importer=await ensureCompanionImporter();
+     companionExport=await importer.repack(rec.transferBlob,{...rec.companion,name:rec.name});
+    }
+    download(rec.fileName,rec.blob);
+    if(companionExport)download(rec.sourceFileName,companionExport);
+    download((rec.name||'model').replace(/[^\\w-]+/g,'-')+'-package.json',packageOf(rec));
+    status='Downloaded model, '+(companionExport?'updated companion transfer with current voices and personality, and ':'')+'integration package. No character was published.';
+   }catch(err){status='Cannot export companion package: '+err.message;}
+   draw();
+  },'me-play',{'data-npc-add-to-game':rec.id,...(ready?{}:{disabled:'',title:'Fill in the name and the licence questions first (and the checklist must pass).'})}),hint(HELP.addToGame));lic.append(r);
   lic.append(btn('Delete this model (from this browser)',async()=>{if(!confirm('Delete '+rec.fileName+' from this browser? You can press UNDO straight after.'))return;const keep=rec;await dbDel(rec.id);await loadImports();ui.id=null;status='Deleted '+keep.fileName+'.';ui.undo=async()=>{await dbPut(keep);await loadImports();ui.id='import:'+keep.id;};draw();},'me-x',{'data-npc-import-delete':rec.id}));
   main.append(lic);}
  function packageOf(rec){const I=rec.info||{};return {format:'darknet-district-npc-import',version:1,exportedAt:new Date().toISOString(),name:rec.name,fileName:rec.fileName,
