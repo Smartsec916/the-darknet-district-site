@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — Tier 2 and 3 sight and hearing
+
+- A Tier 2 or 3 character can keep a sight distance, a field of view, and hearing ranges for a walk, a sprint and combat. Sight stops at a wall. Hearing is a distance, not a view through the building. Tier 1 keeps a short fixed notice and ignores a saved record. When a record is set, Reverie or Lace turns her head toward a player only if she can see or hear them. There is no memory and no device night vision in this release.
+
 ## 23 Nov 2026 — Tier 2 and 3 characters can walk from one area to the next
 
 - A character’s placement can be Tier 1, 2 or 3. Tier 1 is the ordinary case and stays in one area. Tier 2 or 3 may mark a later time block “Walk through the gates.” She walks to the gate in the area she is leaving and, after the player goes through, comes in on the far side and walks to the spot. There is still no walked route from the city into the Corporate District or the Temple, and the cat still does not go inside or underground.

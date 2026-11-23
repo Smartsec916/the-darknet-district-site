@@ -517,7 +517,8 @@
   function lookApply(dt){if(!her?.node||!her.node.isEnabled()){lk.w=0;return;}if(lk.node!==her.node){lk.node=her.node;lk.bones=lookBones(her.node);lk.w=0;}if(!lk.bones)return;
    const head=lk.bones.Head;head.computeWorldMatrix(true);const hp=head.getAbsolutePosition(),n=her.node.position;lookEyes();
    if(!Number.isFinite(hp.x+hp.y+hp.z)){dbg.nan.look++;lk.w=0;return;}
-   const t=canLook(her.s)?lookAt({x:n.x,z:n.z,yaw:her.node.rotation.y},hp,lk.eyes,cfg.look):null;
+   let t=canLook(her.s)?lookAt({x:n.x,z:n.z,yaw:her.node.rotation.y},hp,lk.eyes,cfg.look):null;
+   if(t&&her.plan&&her.plan.tier>=2&&her.plan.awareness&&root.VoidNPCAwareness){const area=her.plan.area,obs=AR&&area&&AR.get(area)?AR.get(area).obstacles:[];const ok=lk.eyes.some(e=>{const s=root.VoidNPCAwareness.notice({x:n.x,z:n.z,yaw:her.node.rotation.y,tier:her.plan.tier,awareness:her.plan.awareness},{x:e.x,z:e.z,kind:'walk'},obs);return s.seen||s.heard;});if(!ok)t=null;}
    const k=Math.min(1,dt/cfg.look.blend);lk.w=Math.max(0,Math.min(1,lk.w+(t?k:-k)));if(t){lk.yaw+=(t.yaw-lk.yaw)*Math.min(1,dt*6);lk.pitch+=(t.pitch-lk.pitch)*Math.min(1,dt*6);}
    if(!Number.isFinite(lk.yaw+lk.pitch)){dbg.nan.look++;lk.yaw=lk.pitch=0;lk.w=0;}lk.debug={on:!!t,w:+lk.w.toFixed(2),yaw:+(lk.yaw*180/Math.PI).toFixed(1),pitch:+(lk.pitch*180/Math.PI).toFixed(1)};if(lk.w<.005)return;
    // turn the head's forward (+Z of a Mixamo head) toward body yaw + yaw, pitch: the neck takes its share, the head the rest
