@@ -290,5 +290,5 @@
     scene.clearColor=prev.clear;scene.fogMode=prev.fogMode;scene.fogDensity=prev.fogDensity;scene.fogColor=prev.fogColor;ip.exposure=prev.exposure;ip.contrast=prev.contrast;if(prev.env!=null)scene.environmentIntensity=prev.env;
     if(sun&&lp.sun!=null)sun.intensity=lp.sun;if(ambient){if(lp.amb!=null)ambient.intensity=lp.amb;if(lp.dif)ambient.diffuse=lp.dif;if(lp.gnd&&ambient.groundColor)ambient.groundColor=lp.gnd;}}};
  }
- T.build=build;try{root.VoidMadeNPCs?.watchScene?.('temple',T);}catch(e){}
+ T.build=build;try{root.VoidMadeNPCs?.watchScene?.('temple',T);}catch(e){}try{root.VoidStreetPair?.watchScene?.('temple',T);}catch(e){}
 })(typeof globalThis!=='undefined'?globalThis:this);

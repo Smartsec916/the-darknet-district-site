@@ -7,9 +7,11 @@
      outskirts  The Outskirts                  the gravel walkways between the container homes
      port       The Port                       the landing pad and the walkers' side of the passage
      district   The Darknet District (inside)  the hallway (the entry inside the inner door), the store's customer side, the vending alcove (never the Sleeping Pod room: the player's own pod)
+     corporate  The Corporate District         its open streets (a separate scene; saved spots are shifted so they are not a city pavement)
+     temple     Zen Zephyr Temple              the terrace and the courtyard (a separate scene; saved spots are shifted the same way)
    THE CONTENT RULE (the owner's, never relaxed): never Milked (the building: inside its doors), never NULL (the club), never the District bar, the VR
-   play area or the arcade room, never the Corporate District or the Temple (not city). Also blocked: roads (the taxis' lanes), the gates' insides, building interiors
-   players cannot walk, walls and furniture.
+   play area or the arcade room, never the city tiles beyond the Function Gate or the East Gate (those tiles are not the Corporate District or Temple scenes).
+   The scenes themselves are ordinary ground. Also blocked: roads (the taxis' lanes), the gates' insides, building interiors players cannot walk, walls and furniture.
    PUBLIC PAVEMENTS IN FRONT OF A VENUE (the owner, 20 Nov 2026: "but the sidewalk isn't inside the location. can you change this rule for places on sidewalks"): Main
    Street's pavement at NULL's door and in front of Milked's side street and service alley is ordinary public pavement: walked along and passed by everyone (routes,
    escorts, the crosswalks). Only a venue's DOORWAY (within about 1.5 m of its street door: `doorway:true`) stays a place nobody is put or waits in: check() refuses it
@@ -129,10 +131,10 @@
    if(a.scene==='street'){const X=XW();for(const c of (X?X.list(a.quarter):[]))for(const p of c.posts)a.obstacles.push([p.p[0]-.12,p.p[0]+.12,p.p[1]-.12,p.p[1]+.12,'a crosswalk signal post']);}   // crosswalks.js (20 Nov 2026): the crossings themselves are road
    a.posts=((Q&&Q.CALL_POINTS)||[]).filter(c=>c.quarter===a.quarter&&Array.isArray(c.post)).map(c=>[c.post[0],c.post[1]]);}
   // Corporate District and the Temple are separate scenes with their own origins. Their stored placement coordinates are shifted so they cannot be confused with a city spot.
-  // Reverie, Lace and the cat stay out (cast:'made'). A character made in the editor may stand on the open streets. The Sleeping Pod room is not part of either scene.
+  // Anyone the editor can place may stand on the open streets (Reverie, Lace, the cat, and a character made in the editor). The Sleeping Pod room is not part of either scene.
   {const CO=node?require('./corporate.js'):root.VoidCorporate,TP=node?require('./temple.js'):root.VoidTemple,inset=(r,m)=>[r[0]+m,r[1]-m,r[2]+m,r[3]-m],move=(r,sx,sz)=>[r[0]+sx,r[1]+sx,r[2]+sz,r[3]+sz];
    const sceneArea=(id,name,scene,sx,sz,streets,blocks)=>{const walk=streets.map(s=>R(move(inset(s.rect,.45),sx,sz),{name:s.name,y:0})),box=walk.reduce((b,w)=>[Math.min(b[0],w.x0),Math.max(b[1],w.x1),Math.min(b[2],w.z0),Math.max(b[3],w.z1)],[Infinity,-Infinity,Infinity,-Infinity]);
-    A.push({id,name,scene,quarter:null,view:R(box),floors:walk.map(w=>({...w})),walk,roads:[],no:[R(box,{why:'That is '+name+' (only a character made in the editor may stand on its open ground).',rule:true,cast:'made',name})],obstacles:blocks.map(b=>[...move(b.rect,sx,sz),b.name]),posts:[],labels:streets.slice(0,4).map(s=>({name:s.name,x:sx+(s.rect[0]+s.rect[1])/2,z:sz+(s.rect[2]+s.rect[3])/2})),gates:[]});};
+    A.push({id,name,scene,quarter:null,view:R(box),floors:walk.map(w=>({...w})),walk,roads:[],no:[],obstacles:blocks.map(b=>[...move(b.rect,sx,sz),b.name]),posts:[],labels:streets.slice(0,4).map(s=>({name:s.name,x:sx+(s.rect[0]+s.rect[1])/2,z:sz+(s.rect[2]+s.rect[3])/2})),gates:[]});};
    if(CO&&CO.STREETS)sceneArea('corporate','The Corporate District','corporate',0,220,CO.STREETS,[...CO.BLOCKS.map(b=>({rect:b.rect,name:b.name})),...CO.PROPS.map(p=>({rect:p[1],name:p[0]})),...CO.DOORS.map(d=>({rect:d.rect,name:d.name})),...CO.PERIMETER.map((r,i)=>({rect:r,name:'the perimeter'}))]);
    if(TP&&TP.STREETS)sceneArea('temple','Zen Zephyr Temple','temple',280,0,TP.STREETS,[...TP.PROPS.map(p=>({rect:p[1],name:p[0]})),...TP.PARAPET.map(r=>({rect:r,name:'the parapet'}))]);}
   // Places beyond the city (never used): reasons for a spot there
@@ -203,7 +205,7 @@
   for(const [area,id,name,x,z] of L)add(id,name,area,x,z);
   {const X=BA();for(const b of (X?X.places():[]))add(b.id,b.name,b.area,b.x,b.z);}
   {const U=UG();if(U&&get('underground'))for(const b of U.places())add(b.id,b.name,b.area,b.x,b.z);}   // the tunnels' places (ncz-underground.js): their own ids and names   // the back alleys, bays and yards (ncz-backalleys.js): their own ids and names
-  for(const [area,id,name,x,z] of [['corporate','corporate-boulevard','the Main Boulevard',0,220],['corporate','corporate-south-plaza','the South Plaza',0,202],['temple','temple-terrace','the arrival terrace',280,-38],['temple','temple-courtyard','the courtyard',280,-18]]){const q=nearest({x,z},area,3,{made:true});if(q&&!seen.has(id)){seen.add(id);out.push({id,name,area,x:q.x,z:q.z});}}
+  for(const [area,id,name,x,z] of [['corporate','corporate-boulevard','the Main Boulevard',0,220],['corporate','corporate-south-plaza','the South Plaza',0,202],['temple','temple-terrace','the arrival terrace',280,-38],['temple','temple-courtyard','the courtyard',280,-18]])add(id,name,area,x,z);
   return out;}
  /* For the admin inventory (the server's copy of these rules): every area's rectangles, obstacles and posts, as plain numbers. */
  function inventory(){const rr=r=>[r.x0,r.x1,r.z0,r.z1];return {clear:CLEAR,step:STEP,out:defs().out.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule})),areas:list().map(a=>({id:a.id,name:a.name,scene:a.scene,quarter:a.quarter,

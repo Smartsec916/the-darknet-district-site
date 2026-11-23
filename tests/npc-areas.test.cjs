@@ -1,6 +1,6 @@
-/* "Let me place REVERIE or LACE anywhere" (the owner, 19 Nov 2026): the walkable areas of the city and the District interior (npc-areas.js), the owner's content rule
-   (never Milked, NULL, the District bar, VR, the arcade room, the Corporate District), snapping a click onto ground she may stand on, routes in one area, the placement
-   rules that use them (npc-paths.js), the ChatGPT prompt (npc-behaviour.js) and the game starting the pair in every area. */
+/* "Let me place REVERIE or LACE anywhere" (the owner, 19 Nov 2026): the walkable areas of the city, the District interior, the Corporate District and the Temple
+   (npc-areas.js), the owner's content rule (never Milked, NULL, the District bar, VR, the arcade room, and the city tiles beyond the gates), snapping a click onto
+   ground she may stand on, routes in one area, the placement rules that use them (npc-paths.js), the ChatGPT prompt (npc-behaviour.js) and the game starting the pair. */
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const R=p=>path.join(__dirname,'..',p);
 const A=require(R('void-runner/npc-areas.js')),P=require(R('void-runner/npc-paths.js')),B=require(R('void-runner/npc-behaviour.js'));
@@ -8,7 +8,7 @@ const REV='grey-reverie',CAT='street-cat',W=(x,z)=>{const [a,b]=A.toWorld(x,z);r
 const place=id=>{const p=A.places().find(q=>q.id===id);assert.ok(p,'place '+id);return {x:p.x,z:p.z};};
 
 test('six areas, each with ground she may stand on and named places; the District interior is its own scene',()=>{
- assert.deepEqual(A.list().map(a=>a.id),['avenue','oldtown','far-south','outskirts','port','district','milked','underground','corporate','temple']);   // milked: reception, for adult made characters only; corporate and temple: made characters, shifted into their own scenes
+ assert.deepEqual(A.list().map(a=>a.id),['avenue','oldtown','far-south','outskirts','port','district','milked','underground','corporate','temple']);   // milked: reception, for adult made characters only; corporate and temple: open ground, shifted into their own scenes
  for(const a of A.list().filter(a=>!['milked','corporate','temple'].includes(a.id))){assert.ok(a.walk.length,a.id);const named=A.places().filter(p=>p.area===a.id);assert.ok(named.length>=2,a.id+' has named places');
   for(const p of named){const c=A.check(p);assert.ok(c.ok,p.id+': '+c.why);assert.equal(c.area,a.id,p.id);}}
  assert.equal(A.get('district').scene,'interior');assert.deepEqual(A.here('interior'),['district']);assert.deepEqual(A.here('street','oldtown'),['oldtown']);assert.equal(A.here('street',null).length,6);assert.deepEqual(A.here('corporate'),['corporate']);assert.deepEqual(A.here('temple'),['temple']);assert.deepEqual(A.enter('temple'),{walk:'temple'});
@@ -70,12 +70,18 @@ test('the game: the pair is started in every street quarter and inside the Distr
  const html=fs.readFileSync(R('void-runner.html'),'utf8');assert.ok(html.indexOf('void-runner/npc-areas.js')>0&&html.indexOf('void-runner/npc-areas.js')<html.indexOf('void-runner/npc-paths.js'));
  assert.equal(fs.readFileSync(R('static/void-runner.html'),'utf8'),html);});
 
-test('Corporate District and the Temple take made characters on their own ground, and keep Reverie out',()=>{
+test('Corporate District and the Temple take Reverie, Lace, the cat and made characters on their own ground',()=>{
  const made={made:true},overlap=(a,b)=>a.x0<b.x1&&a.x1>b.x0&&a.z0<b.z1&&a.z1>b.z0,far=A.list().filter(a=>a.id==='corporate'||a.id==='temple'),city=A.list().filter(a=>a.scene!=='corporate'&&a.scene!=='temple');
  for(const f of far)for(const w of f.walk)for(const c of city)for(const u of [...c.walk,...c.floors,...c.roads])assert.equal(overlap(w,u),false,f.id+' overlaps '+c.id);
- for(const id of ['corporate-boulevard','corporate-south-plaza','temple-terrace','temple-courtyard']){const full=A.places().find(q=>q.id===id),p={x:full.x,z:full.z},local=A.toLocal(full.area,p);assert.equal(A.check(p,null,undefined,made).ok,true,id);assert.equal(A.check(p).kind,'rule',id);assert.ok(P.spotProblems(REV,p).length,id);assert.ok(Math.abs(local.x)<120&&Math.abs(local.z)<120,id+' local');}
- const html=fs.readFileSync(R('void-runner.html'),'utf8'),madeJs=fs.readFileSync(R('void-runner/npc-made.js'),'utf8'),corp=fs.readFileSync(R('void-runner/corporate-build.js'),'utf8'),temple=fs.readFileSync(R('void-runner/temple-build.js'),'utf8');
- assert.match(madeJs,/watchScene\('corporate'/);assert.match(corp,/watchScene\?\.\('corporate'/);assert.match(temple,/watchScene\?\.\('temple'/);assert.ok(html.indexOf('npc-made.js')<html.indexOf('corporate-build.js'));
+ for(const id of ['corporate-boulevard','corporate-south-plaza','temple-terrace','temple-courtyard']){const full=A.places().find(q=>q.id===id),p={x:full.x,z:full.z},local=A.toLocal(full.area,p);assert.equal(A.check(p).ok,true,id+' '+A.check(p).why);assert.equal(A.check(p,null,undefined,made).ok,true,id);assert.equal(A.areaOf(p),full.area,id);
+  for(const who of [REV,'ethereal-lace',CAT])assert.deepEqual(P.spotProblems(who,p),[],who+' '+id);assert.deepEqual(P.planProblems(REV,{mode:'stay',...p,yaw:0,actions:['idle','look']}),[],id);assert.ok(Math.abs(local.x)<120&&Math.abs(local.z)<120,id+' local');
+  assert.match(P.planProblems(REV,{mode:'stay',...p,yaw:0,actions:['sit-wave']}).join(' '),/seat|ledge/,'a seated wave still needs a chair there');}
+ const E=require(R('void-runner/npc-escort.js')),blvd=place('corporate-boulevard');
+ assert.equal(E.mayEnter(REV,'corporate',blvd).ok,true);assert.equal(E.mayEnter('ethereal-lace','temple',place('temple-courtyard')).ok,true);assert.equal(E.mayEnter(CAT,'corporate',blvd).ok,true,'the cat may stand on those streets');
+ assert.deepEqual(E.problems({kind:'follow-them',npc:REV,to:blvd},{area:'corporate'}),[]);assert.deepEqual(E.problems({kind:'they-follow',npc:CAT,to:blvd},{area:'corporate'}),[]);
+ assert.match(E.problems({kind:'follow-them',npc:REV,to:blvd},{area:'avenue'}).join(' '),/cannot walk/);
+ const html=fs.readFileSync(R('void-runner.html'),'utf8'),madeJs=fs.readFileSync(R('void-runner/npc-made.js'),'utf8'),pair=fs.readFileSync(R('void-runner/ncz-street-pair.js'),'utf8'),corp=fs.readFileSync(R('void-runner/corporate-build.js'),'utf8'),temple=fs.readFileSync(R('void-runner/temple-build.js'),'utf8');
+ assert.match(madeJs,/watchScene\('corporate'/);assert.match(pair,/watchScene\('corporate'/);assert.match(pair,/SCENE_SHIFT/);assert.match(pair,/if\(AVENUE\)c\.z=Math\.min\(WALL/);assert.match(corp,/VoidStreetPair\?\.watchScene/);assert.match(temple,/VoidStreetPair\?\.watchScene/);assert.match(corp,/watchScene\?\.\('corporate'/);assert.match(temple,/watchScene\?\.\('temple'/);assert.ok(html.indexOf('ncz-street-pair.js')<html.indexOf('corporate-build.js')&&html.indexOf('npc-made.js')<html.indexOf('corporate-build.js'));
  const clips=['idle','idle-shift','idle-stretch','look','watch','walk','run','sit-enter','sit','sit-exit','sit-wave','dance-groove','dance-bop','talk','gesture','shrug'];
  const S=require(R('void-runner/ncz-street-pair.js')),C=require(R('void-runner/crowd.js'));
  assert.equal(clips.length,16);for(const id of ['grey-reverie','ethereal-lace']){for(const c of clips)assert.ok(S.CLIP_LIST.includes(c)&&C.clips[P.MOVABLE[id].asset].includes(c),id+' '+c);assert.ok(P.actionsFor(id).some(a=>a.id==='sit-wave'));}

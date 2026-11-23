@@ -301,11 +301,14 @@
   const assets=root.VoidAssets,owned=[];let disposed=false,clock=0,asked=-1;
   // which areas this scene has (npc-areas.js): one street quarter, every street area (the whole city), or the District interior; where each of them is now
   const AR=root.VoidNPCAreas,HERE=new Set(AR?AR.here(where.scene||'street',where.quarter||null):['avenue']),AVENUE=HERE.has('avenue');
-  const areaOfPlan=P=>P?(P.area||(AR&&AR.areaOf(P.mode==='path'?P.points[0]:P))||'avenue'):'avenue';
+  // Corporate and Temple store spots shifted off the city map. The figure stands in the scene's own metres; area and obstacle checks use the stored spot.
+  const shift=AR&&AR.SCENE_SHIFT&&AR.SCENE_SHIFT[where.scene]||null,finite=p=>!!(p&&Number.isFinite(+p.x)&&Number.isFinite(+p.z)),world=p=>shift&&finite(p)?{...p,x:+p.x+shift.x,z:+p.z+shift.z}:p,localOf=p=>shift&&finite(p)?{...p,x:+p.x-shift.x,z:+p.z-shift.z}:p;
+  const localPlan=P=>{if(!shift||!P)return P;if(P.mode==='stay')return localOf(P);if(P.mode==='path')return {...P,points:(P.points||[]).map(localOf)};if(P.mode==='escort')return {...P,to:localOf(P.to),from:localOf(P.from),resume:localOf(P.resume),final:localOf(P.final)};return P;};
+  const areaOfPlan=P=>{if(!P)return 'avenue';if(P.area)return P.area;const q=P.mode==='path'?P.points&&P.points[0]:P,id=AR&&AR.areaOf(world(q));return id||(shift?null:'avenue');};
   const herArea=id=>areaOfPlan(planOf(id));
   function catArea(){const P=planOf(CAT_ID);if(P)return areaOfPlan(P);const w=out();return w?herArea(w.id):'avenue';}
   // the ground under a spot (pavement slabs stand about 0.18 m up): the area data, else the last known height
-  const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=AR?AR.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:PAVE;};   // on the stairs down to the tunnels (20 Nov 2026): the steps' height
+  const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=AR?AR.groundY(world({x,z})):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:(shift?0:PAVE);};   // on the stairs down to the tunnels (20 Nov 2026): the steps' height
   const animRadius=quality==='low'?cfg.lowAnimRadius:cfg.animRadius;
   const cam=()=>scene?.activeCamera?.globalPosition||null;
   // The pavement's top (the sidewalk slabs stand about 0.18 m above the road): read from the built street once, under Reverie's spot.
@@ -334,7 +337,7 @@
    try{root.VoidNPCDevice?.enlist?.(node,{kind:'walker',state:()=>({moving:her?.s?.mode==='walk'||her?.s?.mode==='run',can:her?.s?.mode==='walk'||her?.s?.mode==='sit'&&!floorPose(her.s)}),
     force:()=>her?.node===node?her.s.device:null,target:()=>cat&&her?.s?.device==='photo'?new B.Vector3(cat.x,PAVE+.15,cat.z):null});}catch{}}
   // the editor's plan for her (live-content.js sets VoidStreetPair.planFor: a mission's "Giver waits at" while it waits for her, else Developer Tools > NPCs)
-  const planRaw=id=>{try{return root.VoidStreetPair?.planFor?.(id)||null;}catch{return null;}};
+  const planRaw=id=>{try{return localPlan(root.VoidStreetPair?.planFor?.(id)||null);}catch{return null;}};
   /* NEVER POPPED IN OR OUT IN FRONT OF THE PLAYER (the owner, 19 Nov 2026, about a giver whose offer was denied: she goes about her own routine meanwhile and walks back for
      the offer; "never offer again" sends her back to her own routine): a new plan she cannot walk to in a straight line, or in another area, is HELD (she keeps the old one)
      while she is in the player's view; she is moved once she is out of it, and comes back in at a new spot only while that spot is out of view too. held: id -> {plan, key}. */
@@ -383,10 +386,10 @@
   /* Is she in this scene? Out on her shift, and her plan (or her usual routine, on The Avenue) is in an area this scene has. A plan that moves her to another area, or a
      new spot she could not walk to in a straight line (across a road, through a wall), takes her away and puts her at the new spot (never a walk across town). */
   function tickHer(dt,c){{const w=out(),R=w?planRaw(w.id):null;if(R&&R.indoors)rejoin[w.id]=true;}   // inside a place with the player (npc-escort-indoors.js): when she is back on the street, never in front of the player
-   if(her){const n=her.node.position;holdCheck(her.p.id,{x:n.x,y:n.y,z:n.z,key:her.key,plan:her.plan,enabled:her.node.isEnabled()},c,t=>{if(!AR)return false;if(!t)return AR.areaOf({x:n.x,z:n.z})!=='avenue'||n.z<-8.2;const from=AR.nearest({x:n.x,z:n.z},null,1.2)||{x:n.x,z:n.z};return !!AR.leg(from,t).length;});}
+   if(her){const n=her.node.position;holdCheck(her.p.id,{x:n.x,y:n.y,z:n.z,key:her.key,plan:her.plan,enabled:her.node.isEnabled()},c,t=>{if(!AR)return false;const here=world({x:n.x,z:n.z}),to=world(t);if(!to||!Number.isFinite(+to.x))return AR.areaOf(here)!=='avenue'||(!shift&&n.z<-8.2);const from=AR.nearest(here,null,1.2)||here;return !!AR.leg(from,to).length;});}
    const w0=out(),want=w0&&HERE.has(herArea(w0.id))?w0:null;if(her&&(!want||want.id!==her.p.id))leave();
    if(her){const P=planOf(her.p.id),k=P?P.key:null;if(k!==her.key){const n=her.node.position,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'&&P.resume&&Number.isFinite(P.resume.x)?P.resume:null);
-     const from=AR&&(AR.nearest({x:n.x,z:n.z},null,1.2)||{x:n.x,z:n.z}),jump=P?!!(AR&&t&&AR.leg(from,t).length):!!(AR&&(AR.areaOf({x:n.x,z:n.z})!=='avenue'||n.z<-8.2));her.key=k;if(jump){leave();}}}
+     const here=world({x:n.x,z:n.z}),from=AR&&(AR.nearest(here,null,1.2)||here),jump=P?!!(AR&&t&&AR.leg(from,world(t)).length):!!(AR&&(AR.areaOf(here)!=='avenue'||(!shift&&n.z<-8.2)));her.key=k;if(jump){leave();}}}
    if(!her&&want&&has(want.asset)){const t=planSpot(planOf(want.id));if(!(rejoin[want.id]&&t&&inView(t.x,null,t.z,c))){delete rejoin[want.id];arrive(want);}}if(!her)return;her.plan=planOf(her.p.id);
    const n=her.node,d=c?Math.hypot(c.x-n.position.x,c.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
    const me=player(),talking=chatting(),ctx={cat:cat&&!talking?{x:cat.x,z:cat.z}:null,player:me?{x:me.x,z:me.z}:null,plan:planOf(her.p.id),has:c=>!!her.anim&&her.anim.has(c)};
@@ -424,7 +427,7 @@
     const R=root.VoidRoadTaxiRules,c=e.cab;st.out=false;st.rideOut=false;if(c&&R){const ds=R.doorPoints(c),blocked=p=>{try{return !!root.VoidExplorer?.blocked?.(p.x,p.z,typeof walkingLocation!=='undefined'?walkingLocation:null);}catch{return false;}};
      const pick=ds.filter(p=>!blocked(p)).sort((a,b)=>(meP?Math.hypot(b.x-meP.x,b.z-meP.z)-Math.hypot(a.x-meP.x,a.z-meP.z):0))[0]||ds[2];if(pick){st.x=pick.x;st.z=pick.z;st.yaw=c.yaw||0;}}e.cab=null;}
    body.x=st.x;body.z=st.z;body.yaw=st.yaw;
-   if(P.social){const others=[];if(meP)others.push(meP);if(who==='her'&&cat)others.push(cat);else if(who==='cat'&&her?.s)others.push(her.s);const n=root.VoidAdvancedInteractions?.separate?.({x:body.x,z:body.z},others,.85);if(n&&AR&&!AR.leg({x:body.x,z:body.z},n,{passing:true}).length){body.x=st.x=n.x;body.z=st.z=n.z;}}
+   if(P.social){const others=[];if(meP)others.push(meP);if(who==='her'&&cat)others.push(cat);else if(who==='cat'&&her?.s)others.push(her.s);const n=root.VoidAdvancedInteractions?.separate?.({x:body.x,z:body.z},others,.85);if(n&&AR&&!AR.leg(world({x:body.x,z:body.z}),world(n),{passing:true}).length){body.x=st.x=n.x;body.z=st.z=n.z;}}
    if(ev)tell(npc,P,ev,e);if(rv&&rv!==ev)tell(npc,P,rv,e,{ride:st.ride||null});
    return {clip:seat?'sit':st.clip||'idle',speed:st.speed||0,seat};}
   // ---- the cat ----
@@ -448,7 +451,7 @@
    c.y+=(yAt(c.x,c.z,c.y)-c.y)*Math.min(1,dt*8);c.node.position.y=c.y-.11*s+Math.abs(Math.sin(c.gait))*.008*st;}
   function catGo(c,tx,tz,dt,fast){const dx=tx-c.x,dz=tz-c.z,d=Math.hypot(dx,dz);if(d<.04)return 0;const sp=Math.min(d/dt,fast?cfg.cat.trot:cfg.cat.walk)*(1-c.sit*.95),want=Math.atan2(dx,dz);
    let dy=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw));c.yaw+=dy*Math.min(1,dt*cfg.cat.turn);const k=Math.max(0,Math.cos(dy));const step=sp*k*dt;c.x+=Math.sin(c.yaw)*step;c.z+=Math.cos(c.yaw)*step;
-   c.z=Math.min(WALL-.12,c.z);c.gait+=step/(fast?.3:.22)*Math.PI*2;return dt>0?step/dt:0;}
+   if(AVENUE)c.z=Math.min(WALL-.12,c.z);c.gait+=step/(fast?.3:.22)*Math.PI*2;return dt>0?step/dt:0;}
   /* The NPCs tab's plan for the cat (npc-paths.js planNow for CAT_ID: a stay, a route, a schedule block, a mission's "Giver waits at"): it walks (trots when far) to
      the spot or point and does the action: cat-sit (sits, facing the plan's way), cat-look (looks about), cat-wander (potters about within a metre), wait (stands). */
   function catPlan(c,P,dt){if(c.planKey!==P.key){c.planKey=P.key;c.pi=0;c.pk=-1;c.pdo=0;c.pact=null;c.pw=null;}let speed=0,sit=0;
@@ -459,14 +462,14 @@
    c.pdo-=dt;const a=c.pact;c.look=0;
    if(a==='cat-sit'){sit=1;const want=Number.isFinite(t.yaw)?t.yaw:Math.PI;c.yaw+=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw))*Math.min(1,dt*2);}
    else if(a==='cat-look'){c.look=Math.sin(clock*.7)*.6;}
-   else if(a==='cat-wander'){if(!c.pw||(c.pwLeft-=dt)<=0){c.pw={x:t.x+(rnd()-.5)*1.6,z:Math.min(WALL-.25,t.z+(rnd()-.5)*.6)};c.pwLeft=3+rnd()*3;}const dd=Math.hypot(c.pw.x-c.x,c.pw.z-c.z);if(dd>.06)speed=catGo(c,c.pw.x,c.pw.z,dt,false);}
+   else if(a==='cat-wander'){if(!c.pw||(c.pwLeft-=dt)<=0){c.pw={x:t.x+(rnd()-.5)*1.6,z:AVENUE?Math.min(WALL-.25,t.z+(rnd()-.5)*.6):t.z+(rnd()-.5)*.6};c.pwLeft=3+rnd()*3;}const dd=Math.hypot(c.pw.x-c.x,c.pw.z-c.z);if(dd>.06)speed=catGo(c,c.pw.x,c.pw.z,dt,false);}
    if(c.pdo<=0){c.pact=null;if(P.mode==='path')c.pi++;}
    return {speed,sit};}
   function sitTo(c,v,dt){c.sit+=(v-c.sit)*Math.min(1,dt*(v>c.sit?2.2:4));}
   function catLeave(){if(!cat)return;cat.node?.dispose?.();cat=null;}
-  function tickCat(dt,c0){if(cat)holdCheck(CAT_ID,{x:cat.x,y:cat.y,z:cat.z,key:cat.key,plan:cat.plan,enabled:cat.node.isEnabled()},c0,t=>!!(AR&&t&&AR.leg({x:cat.x,z:cat.z},t).length));
+  function tickCat(dt,c0){if(cat)holdCheck(CAT_ID,{x:cat.x,y:cat.y,z:cat.z,key:cat.key,plan:cat.plan,enabled:cat.node.isEnabled()},c0,t=>!!(AR&&t&&AR.leg(world({x:cat.x,z:cat.z}),world(t)).length));
    const area=catArea();if(!HERE.has(area)){catLeave();return;}
-   if(cat){const P=planOf(CAT_ID),k=P?P.key:null;if(k!==cat.key){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(AR&&t&&AR.leg({x:cat.x,z:cat.z},t).length)catLeave();else if(cat)cat.key=k;}}
+   if(cat){const P=planOf(CAT_ID),k=P?P.key:null;if(k!==cat.key){const t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:null);if(AR&&t&&AR.leg(world({x:cat.x,z:cat.z}),world(t)).length)catLeave();else if(cat)cat.key=k;}}
    // away from the Avenue with no plan of its own it comes out beside her, once she is here
    if(!cat){const t=planSpot(planOf(CAT_ID));if(has(CAT)&&(area==='avenue'||planOf(CAT_ID)||herNow())&&!(rejoin[CAT_ID]&&t&&inView(t.x,null,t.z,c0))){delete rejoin[CAT_ID];catArrive();}if(!cat)return;}cat.plan=planOf(CAT_ID);const c=cat,n=c.node;if(!Number.isFinite(c.x+c.z+c.yaw+c.sit+c.gait)){dbg.nan.cat++;Object.assign(c,{x:CAT_HOME.x,z:CAT_HOME.z,yaw:Math.PI,sit:0,gait:0,ang:0,mode:'home'});}
    const far=c0?Math.hypot(c0.x-c.x,c0.z-c.z)*(root.VoidZoom?root.VoidZoom.now():1)>cfg.showRadius:false;if(n.isEnabled()===far)n.setEnabled(!far);if(far&&planOf(CAT_ID)?.mode!=='escort')return;   // far away: still, unless a mission step has it following the player
@@ -499,7 +502,7 @@
     const want=Math.atan2(h.x-c.x,h.z-c.z);c.look=Math.atan2(Math.sin(want-c.yaw),Math.cos(want-c.yaw));}
    else if(c.mode==='wait'){sit=1;c.look=Math.sin(clock*.35)*.5;}   // in another area with her not here yet: it sits where it is
    else{// home: a short wander by the LAUNDRY door, then sits a while
-    c.wanderLeft-=dt;if(!c.wander||c.wanderLeft<=0){c.wander={x:CAT_HOME.x+(rnd()-.5)*2*cfg.cat.homeWander,z:Math.min(WALL-.25,CAT_HOME.z-rnd()*.8)};c.wanderLeft=6+rnd()*10;}
+    c.wanderLeft-=dt;if(!c.wander||c.wanderLeft<=0){c.wander={x:CAT_HOME.x+(rnd()-.5)*2*cfg.cat.homeWander,z:AVENUE?Math.min(WALL-.25,CAT_HOME.z-rnd()*.8):CAT_HOME.z-rnd()*.8};c.wanderLeft=6+rnd()*10;}
     const dd=Math.hypot(c.wander.x-c.x,c.wander.z-c.z);if(dd>.06&&c.wanderLeft>4)speed=catGo(c,c.wander.x,c.wander.z,dt,false);else sit=c.wanderLeft<4?1:0;c.look=Math.sin(clock*.35)*.5;}
    sitTo(c,sit,dt);n.position.x=c.x;n.position.z=c.z;n.rotation.y=c.yaw;if(c0&&Math.hypot(c0.x-c.x,c0.z-c.z)>animRadius)return;pose(c,dt,speed);}
   // ---- the glance (head and neck toward the nearest player in front of her), applied after the clip each frame and taken off before the next ----
@@ -527,7 +530,7 @@
   // A small warm light from the shop windows on whoever is out and the cat (Medium and up; it lights only them: the pavement is untouched). Low: none.
   const lamp=quality==='low'?null:new B.PointLight('street-pair-lamp',new B.Vector3(SEAT.x,PAVE+1.92,WALL-1.05),scene);if(lamp){lamp.parent=parent;lamp.diffuse=B.Color3.FromHexString('#ffd2a8');lamp.specular=B.Color3.FromHexString('#ffb48a').scale(.4);lamp.intensity=16;lamp.range=7;lamp.includedOnlyMeshes=[];owned.push(lamp);}
   function lit(n){if(!lamp||!n)return;for(const m of n.getChildMeshes(false))if(!lamp.includedOnlyMeshes.includes(m))lamp.includedOnlyMeshes.push(m);lamp.includedOnlyMeshes=lamp.includedOnlyMeshes;}
-  function lampTo(){if(!lamp)return;const h=herNow(),c=cat;const x=h?h.x:c?c.x:SEAT.x,z=Math.min(WALL-1.05,(h?h.z:c?c.z:SEAT.z)-1.05);lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
+  function lampTo(){if(!lamp)return;const h=herNow(),c=cat;const x=h?h.x:c?c.x:SEAT.x,raw=(h?h.z:c?c.z:SEAT.z)-1.05,z=AVENUE?Math.min(WALL-1.05,raw):raw;lamp.position.x+=(x-lamp.position.x)*.1;lamp.position.z+=(z-lamp.position.z)*.1;}   // a little in front of her (toward the road), so her face is lit wherever she walks
   function tick(dt){if(disposed)return;clock+=dt;if(clock>3&&typeof mode!=='undefined'&&(mode==='walking'||mode==='road-taxi'))ask();const c=cam();tickHer(dt,c);talkSync(dt,!!her&&her.node.isEnabled());tickCat(dt,c);lampTo();}
   const self={tick,stats:()=>({held:Object.keys(held),pave:+PAVE.toFixed(3),asks:dbg.asks,fails:dbg.fails.slice(),nan:{...dbg.nan},clock:+clock.toFixed(1),onShift:onShift(now()).id,onStreet:out()?.id||null,here:[...HERE],herArea:out()?herArea(out().id):null,catArea:catArea(),talk:her&&wl()?.interactions?.includes(talkItems[her.p.id])?{id:talkItems[her.p.id].id,label:talkItems[her.p.id].label,x:talkItems[her.p.id].position[0],z:talkItems[her.p.id].position[2]}:null,chat:chatting(),her:her?{area:herArea(her.p.id),id:her.p.id,plan:her.s.planKey||null,act:her.s.pact||null,mode:her.s.mode,sub:her.s.sub||null,clip:her.clip||null,device:her.s.device||null,x:her.node.position.x,z:her.node.position.z,yaw:her.node.rotation.y}:null,cat:cat?{mode:cat.mode,plan:cat.planKey||null,act:cat.pact||null,pet:!!wl()?.interactions?.includes(catItem),x:cat.x,z:cat.z,sit:+cat.sit.toFixed(2),bones:Object.keys(cat.bones).length}:null,look:lk.debug||null,escort:Object.fromEntries(Object.entries(escorts).map(([w,e])=>[w,{key:e.key,npc:w==='cat'?CAT_ID:her?.p?.id||null,phase:e.st.phase,ride:e.st.ride||null,x:+e.st.x.toFixed(2),z:+e.st.z.toFixed(2),yaw:+(e.st.yaw||0).toFixed(2),trail:e.trail.pts.length,here:w==='cat'?!!cat:!!her}]))}),
    get her(){return her;},get cat(){return cat;},catItem,setClock(fn){now=fn||clockFn;asked=-1;},talkItems,
@@ -535,7 +538,9 @@
   // the editor's map shows where she is now (Developer Tools)
   const liveFn=()=>self.stats();if(root.VoidStreetPair)root.VoidStreetPair.live=liveFn;return self;
  }
- root.VoidStreetPair={...api,start};
+ function watchScene(sceneId,owner){if(!owner||typeof owner.build!=='function'||owner.build.pair)return;const b0=owner.build;const b1=function(o){const h=b0.apply(this,arguments);let pair=null;try{pair=start({...(o||{}),where:{scene:sceneId}});}catch(e){}
+  if(!h||!pair)return h;let last=null;const t=h.tick,d=h.dispose;h.tick=function(){const r=t.apply(this,arguments);const now=performance.now()/1000,dt=last==null?0:Math.min(.1,now-last);last=now;if(dt>0)pair.tick(dt);return r;};h.dispose=function(){try{pair.dispose();}catch{}return d.apply(this,arguments);};h.pair=pair;return h;};b1.pair=true;owner.build=b1;}
+ root.VoidStreetPair={...api,start,watchScene};watchScene('corporate',root.VoidCorporate);watchScene('temple',root.VoidTemple);
  // TALK TO REVERIE / LACE with no mission waiting: her greeting (live-content.js offers a Mission Editor mission first). Name cards for the dialogue window.
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof talk!=='function')return;clearInterval(wait);
   const chars=root.VoidStoryContent?.characters;if(chars)for(const p of PAIR)if(!chars[p.id])chars[p.id]={id:p.id,name:p.name,role:'',portrait:'art/characters.png',cell:'0% 0%',faction:'independent',tags:['street'],biography:'',relationshipDefault:0};
