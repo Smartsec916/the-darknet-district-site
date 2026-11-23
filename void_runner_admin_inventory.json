@@ -61440,7 +61440,7 @@
       "spawn"
     ]
   },
-  "revision": "37bf0226549525bf",
+  "revision": "38f6d834ed9d6b80",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -74128,6 +74128,18 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/consumable-spec.js",
+      "line": 2,
+      "text": "Item definitions, effect definitions, gameplay modifiers and vendor entries are validated against it. `supported:false` modifiers are listed so the editor can say why",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/consumable-spec.js",
+      "line": 105,
+      "text": "\"audioWhispers\": {\"group\": \"audio\", \"label\": \"Whispers and imagined voices\", \"help\": \"Soft synthetic murmurs round the head. They are made up by the game, are clearly not speech from other players, and are never mixed into voice chat.\", \"params\": {",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/conversation-history.js",
       "line": 3,
       "text": "const prefix='tdd:npc-conversations:v1:';",
@@ -82113,6 +82125,8 @@
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
     "void-runner/companion-mobile.js": "e8a56f9ad38d68d87397f40ed29b9ca1e32b0c745ac3e26214c09aa0a8d7a929",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
+    "void-runner/consumable-spec.js": "d04e34bf47da920fa441b6af84c3117a020824ce6d98a3bb0772356ad5573e0e",
+    "void-runner/consumables.js": "4f219d4db6c48427743c2ec63e1af68c8fc6212beb7d79c9ce03ea3b367f5b7c",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
     "void-runner/conversation-ui.js": "9f9372d7b89386ea63029227e5852ede0f5a280ab7baddca83cdf8e3c0a2596b",
