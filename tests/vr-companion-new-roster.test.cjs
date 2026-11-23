@@ -29,3 +29,16 @@ test('two women can share a room, never a man and a woman; the public roster',()
  assert.deepEqual(C.party({companions:['base-m','base-f']}).map(e=>e.id),['base-m']);
  assert.deepEqual([...C.companions.values()].filter(e=>C.offered(e,'thedarknetdistrict.com')).map(e=>e.id).sort(),['ava','base-f','base-m','eva','kai','luna','nadia','zane']);
 });
+
+
+test('imported companion feet alignment is independent of the model skeleton',()=>{
+ assert.equal(C.floorOffset(-0.8,1.1),0.8);
+ assert.equal(C.floorOffset(0,1.7),0);
+ assert.equal(C.floorOffset(-0.3,1.5,0.4),0.7);
+ assert.equal(C.floorOffset(NaN,2),0);
+ assert.equal(C.floorOffset(2,1),0);
+ const fs=require('node:fs'),suite=fs.readFileSync(require.resolve('../void-runner/vr-suite.js'),'utf8');
+ assert.match(suite,/if\(local\)\{try\{/);
+ assert.match(suite,/asset\.position\.y\+=lift/);
+ assert.match(suite,/C\.floorOffset\(bounds\.min\.y,bounds\.max\.y\)/);
+});
