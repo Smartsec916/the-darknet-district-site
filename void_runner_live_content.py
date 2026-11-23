@@ -1630,12 +1630,16 @@ def _plan_only(npc, p, mv, inv, ok):
     path_only = set(mv.get('pathOnly') or [])
     if p.get('tier') not in (None, 1, 2, 3):
         out.append('the tier is 1, 2 or 3.')
+    if p.get('awareness') is not None:
+        if (p.get('tier') or 1) < 2:
+            out.append('only a Tier 2 or Tier 3 character keeps a sight and hearing record.')
+        out += _awareness_problems(p.get('awareness'))
     if p['mode'] == 'original':
-        if not _keys(p, ['mode', 'anims', 'tier']):
+        if not _keys(p, ['mode', 'anims', 'tier', 'awareness']):
             out.append('unknown fields.')
         return out
     if p['mode'] == 'stay':
-        if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims', 'tier']):
+        if not _keys(p, ['mode', 'x', 'z', 'yaw', 'actions', 'anims', 'tier', 'awareness']):
             return ['the stay has unknown fields.']
         out += spot_problems(npc, p, inv)
         acts = p.get('actions')
@@ -1648,7 +1652,7 @@ def _plan_only(npc, p, mv, inv, ok):
                 elif a in SIT_POSES and _num(p.get('x')) and _num(p.get('z')) and not _ledge_at(mv, p, SIT_POSES[a]):
                     out.append('"Sit" needs a ledge.' if a == 'sit' else 'that sitting pose needs a seat that takes it (a cushion, a cot or a bench).')
         return out
-    if not _keys(p, ['mode', 'points', 'anims', 'tier']):
+    if not _keys(p, ['mode', 'points', 'anims', 'tier', 'awareness']):
         return ['the path has unknown fields.']
     pts = p.get('points')
     if not isinstance(pts, list) or not 2 <= len(pts) <= 12:
@@ -1703,6 +1707,29 @@ def schedule_shape_problems(sched):
         if b.get('name') is not None and not (isinstance(b['name'], str) and BLOCK_NAME.match(b['name'])):
             return ['time block %d: the name may use letters, numbers and simple punctuation only.' % (i + 1)]
     return []
+
+
+def _awareness_problems(rec):
+    if not isinstance(rec, dict) or not _keys(rec, ['sight', 'fov', 'hear']):
+        return ['Awareness has unknown fields.']
+    out = []
+    def span(v, a, b):
+        return isinstance(v, (int, float)) and not isinstance(v, bool) and a <= v <= b
+    if not span(rec.get('sight'), 10, 80):
+        out.append('Sight is 10 to 80 feet.')
+    if not span(rec.get('fov'), 40, 160):
+        out.append('The field of view is 40 to 160 degrees.')
+    h = rec.get('hear')
+    if not isinstance(h, dict) or not _keys(h, ['walk', 'sprint', 'combat']):
+        out.append('Hearing needs a walk, a sprint and a combat range.')
+    else:
+        if not all(span(h.get(k), 10, 150) for k in ('walk', 'sprint', 'combat')):
+            out.append('Each hearing range is 10 to 150 feet.')
+        if span(h.get('walk'), 10, 150) and span(h.get('sprint'), 10, 150) and h['sprint'] < h['walk']:
+            out.append('A sprint is heard at least as far as a walk.')
+        if span(h.get('sprint'), 10, 150) and span(h.get('combat'), 10, 150) and h['combat'] < h['sprint']:
+            out.append('Combat is heard at least as far as a sprint.')
+    return out
 
 
 def _block_area(b, inv):
