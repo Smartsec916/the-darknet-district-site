@@ -546,6 +546,7 @@
    const area=el('textarea','','',{'aria-label':'Personality JSON',rows:'12','data-npc-personality-json':'1'});
    area.value=JSON.stringify({about:p.about||'',personality:p.personality||{},dialogue:p.dialogue||{}},null,2);
    detail.append(area,hint('Paste the ChatGPT JSON here, then validate and save. This edits only this private model draft. Existing recordings are kept; changed dialogue lines are marked missing.'));
+   const importError=el('p','','me-bad',{'data-npc-personality-error':'1'});detail.append(importError);
    const row=el('div','','me-row me-actions');
    row.append(btn('COPY CHATGPT PROMPT',async()=>{
     try{
@@ -567,7 +568,7 @@
      await saveRec(rec);
      status='Saved personality JSON for '+rec.name+' in this browser only; '+rec.companion.missingVoiceLines.length+' voice lines need recording.';
      draw();
-    }catch(err){status='Personality JSON not imported: '+err.message;draw();}
+    }catch(err){importError.textContent='Personality JSON not imported: '+err.message;}
    },'me-play',{'data-npc-personality-import':'1'}));
    detail.append(row);summary.append(detail);
    main.append(summary);
