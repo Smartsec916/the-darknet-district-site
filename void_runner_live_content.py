@@ -506,12 +506,12 @@ def area_of(p, inv, prefer=None):
     return None
 
 
-def area_check(p, inv, prefer=None, m=None, adult=False, passing=False):
+def area_check(p, inv, prefer=None, m=None, adult=False, passing=False, made=False):
     """The same rule as void-runner/npc-areas.js check(): (ok, area, kind, why). Kinds: ok, rule (the owner's content rule: Milked, NULL, the District bar, VR, arcade,
     Corporate District, and standing in NULL's doorway), blocked, gate, road, obstacle, post, outside. passing: a walk over a venue's doorway on a public pavement
     (`doorway` rectangles: walked past, never a spot to stand or wait in; the owner, 20 Nov 2026)."""
     def skip(n):
-        return (adult and n.get('adult')) or (passing and n.get('doorway'))
+        return (adult and n.get('adult')) or (passing and n.get('doorway')) or (made and n.get('cast') == 'made')
     A = _areas(inv)
     if m is None:
         m = A.get('clear', .3)
@@ -593,7 +593,7 @@ def spot_problems(npc, p, inv):
     mv = _movable(inv).get(npc)
     if not mv:
         return ['This NPC cannot be moved by the editor yet.']
-    ok, _a, _k, why = area_check(p, inv, adult=bool(mv.get('adult')))
+    ok, _a, _k, why = area_check(p, inv, adult=bool(mv.get('adult')), made=bool(mv.get('made')))
     out = [] if ok else [why]
     if isinstance(p, dict) and p.get('yaw') is not None and not _num(p.get('yaw')):
         out.append('The facing is not a number.')
@@ -604,8 +604,9 @@ def _leg_problems(mv, a, b, inv=None):
     A = _areas(inv)
     m = A.get('clear', .3) - .1
     ad = bool((mv or {}).get('adult'))
-    oka, aa, _, _ = area_check(a, inv, None, m, ad, True)
-    okb, ab, _, _ = area_check(b, inv, aa, m, ad, True)
+    md = bool((mv or {}).get('made'))
+    oka, aa, _, _ = area_check(a, inv, None, m, ad, True, md)
+    okb, ab, _, _ = area_check(b, inv, aa, m, ad, True, md)
     if oka and okb and aa != ab:
         return ['the walk to the next point goes into another area: a route stays in one area.']
     area = aa or ab
@@ -616,7 +617,7 @@ def _leg_problems(mv, a, b, inv=None):
     for k in range(n + 1):
         t = k / n
         q = {'x': a['x'] + (b['x'] - a['x']) * t, 'z': a['z'] + (b['z'] - a['z']) * t}
-        ok, qa, kind, _ = area_check(q, inv, area, m, ad, True)
+        ok, qa, kind, _ = area_check(q, inv, area, m, ad, True, md)
         if ok and qa == area:
             continue
         if ok:

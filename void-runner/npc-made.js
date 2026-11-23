@@ -176,6 +176,7 @@
  // ---- one scene's figures (every street quarter and the District interior)
  function start({B=root.BABYLON,scene,parent,quality='medium',where={scene:'street',quarter:'avenue'}}={}){
   const A=root.VoidAssets,SP=root.VoidStreetPair,Ar=AR(),HERE=new Set(Ar?Ar.here(where.scene||'street',where.quarter||null):[]),cfg=SP&&SP.config;if(!A||!SP||!cfg||!scene)return null;
+  const shift=Ar?.SCENE_SHIFT?.[where.scene]||null,scenePlan=P=>{if(!shift||!P)return P;const u=q=>q&&Number.isFinite(q.x)?{...q,x:q.x-shift.x,z:q.z-shift.z}:q;if(P.mode==='stay')return u(P);if(P.mode==='path')return {...P,points:(P.points||[]).map(u)};if(P.mode==='escort')return {...P,to:u(P.to),from:u(P.from),resume:u(P.resume),final:u(P.final)};return P;};
   const people=new Map(),asked=new Map(),items=new Map(),away=new Set(),rnd=Math.random;let clock=0,scan=0,disposed=false;
   const wl=()=>typeof walkingLocation!=='undefined'?walkingLocation:null,me=()=>typeof walker!=='undefined'?walker:null;
   const yAt=(x,z,last)=>{try{const s=root.VoidBackAlleys?.groundAt?.(x,z);if((where.scene||'street')==='street'&&Number.isFinite(s)&&s<0)return s;}catch{}const g=Ar?Ar.groundY({x,z}):null;return Number.isFinite(g)?g:Number.isFinite(last)?last:.18;};   // on the stairs to the tunnels: the steps' height
@@ -184,7 +185,7 @@
   function ask(m){const t=asked.get(m);if(t!=null&&clock<t)return;asked.set(m,clock+20);Promise.resolve(A.load('crowd:'+m,{src:fileOf(m),background:true},scene)).catch(e=>{try{console.info('[VOID//RUNNER made givers] '+m+' is not on this machine ('+(e&&e.message||e)+').');}catch{}});}
   function itemFor(id,c){let it=items.get(id);if(!it){it={id:'made-'+id,action:ACTION,character:id,label:'TALK TO '+String(c.name||id).toUpperCase(),position:[0,1.6,0],range:2.2,talk:true};items.set(id,it);}it.label='TALK TO '+String(c.name||id).toUpperCase();return it;}
   function leave(id){const p=people.get(id);if(!p)return;people.delete(id);const L=wl(),it=items.get(id);if(L&&Array.isArray(L.interactions)&&it){const k=L.interactions.indexOf(it);if(k>=0)L.interactions.splice(k,1);}try{p.anim?.dispose?.();}catch{}for(const x of p.props)try{x.dispose();}catch{}try{p.node.dispose();}catch{}}
-  function arrive(id,c,P){const n=A.instance?.('crowd:'+c.model,parent);if(!n)return;n.metadata={...n.metadata,character:id,made:id,displayName:c.name};
+  function arrive(id,c,P){P=scenePlan(P);const n=A.instance?.('crowd:'+c.model,parent);if(!n)return;n.metadata={...n.metadata,character:id,made:id,displayName:c.name};
    for(const m of n.getChildMeshes(false)){m.isPickable=false;if(m.material&&m.material.maxSimultaneousLights<8)m.material.maxSimultaneousLights=8;}
    // a follow / lead step: where it had got to (a reload), else where she stood when it started (P.from, live-content.js; fix 19 Nov 2026: she appeared at 0, 0)
    const ok=q=>q&&Number.isFinite(q.x)&&Number.isFinite(q.z)?q:null,t=P&&(P.mode==='stay'?P:P.mode==='path'?P.points[0]:P.mode==='escort'?ok(P.resume)||ok(P.from)||ok(P.to):null)||{x:0,z:0};
@@ -233,7 +234,7 @@
     if(canWalk&&b.activity==='seat'&&['auto','tea','sleeping'].includes(b.room)){const actions=NPX().actionsFor(p.id),seat=nearbySeat(SP.seats?.()||[],plan,s=>{const f=SP.standOf(s);return Math.hypot(f.x-plan.x,f.z-plan.z)<=b.distance&&(!Ar.leg(plan,f,{made:true,adult:!!p.c.adult}).length)&&(b.room==='auto'||String(s.id).startsWith(b.room==='tea'?'under-tea-room-':'under-sleeping-room-'))&&actions.some(a=>a.pose&&(s.poses||['chair']).includes(a.pose))&&![...people.values()].some(o=>o!==p&&Math.hypot(o.s.x-s.x,o.s.z-s.z)<.65);});if(seat){const f=SP.standOf(seat),a=actions.find(a=>a.pose&&(seat.poses||['chair']).includes(a.pose));p.nearTarget={...plan,x:f.x,z:f.z,yaw:seat.yaw,actions:[a.id],key:plan.key+':companion-seat'};}}
    }const target=p.nearTarget||plan;if(b.activity!=='seat'&&(traits.attention??.5)>=.5)return {...target,yaw:Math.atan2(w.x-target.x,w.z-target.z)};return target;
   }
-  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:planOf(p.id),talk=chatting()===p.id,w=me();
+  function step(p,dt,cam){const n=p.node,R=p.going?p.plan:scenePlan(planOf(p.id)),talk=chatting()===p.id,w=me();
    if(!p.going&&R&&R.key!==p.key&&R.mode!=='escort'){   /* (follow fix) the end of a follow step is held too, as in ncz-street-pair.js */const t=R.mode==='stay'?R:R.mode==='path'?R.points[0]:null;if(t&&Ar&&Ar.leg({x:n.position.x,z:n.position.z},t).length&&(inView(n,cam)||seenAt(t.x,n.position.y,t.z,cam)))p.hold=true;else p.hold=false;}else if(!R||R.key===p.key)p.hold=false;
    const P=p.hold?p.plan:R;if(!p.hold)p.plan=P;
    const d=cam?Math.hypot(cam.x-n.position.x,cam.z-n.position.z)*(root.VoidZoom?root.VoidZoom.now():1):0,far=d>cfg.showRadius;if(n.isEnabled()===far)n.setEnabled(!far);
@@ -275,6 +276,9 @@
  // the inside of Milked (milked-build.js build, its own scene): reception, for adult made characters only (npc-areas.js area 'milked')
  (function wrapMilked(){const MK=root.VoidMilked;if(!MK||!MK.build||MK.build.made)return;const b0=MK.build;const b1=function(o){const h=b0.apply(this,arguments);let m=null;try{m=start({...(o||{}),where:{scene:'milked'}});}catch(e){}
    if(!h||!m)return h;let last=null;const t=h.tick,d=h.dispose;h.tick=function(time){const r=t.apply(this,arguments);const now=performance.now()/1000,dt=last==null?0:Math.min(.1,now-last);last=now;m.tick(dt);return r;};h.dispose=function(){try{m.dispose();}catch{}return d.apply(this,arguments);};h.made=m;return h;};b1.made=true;MK.build=b1;})();
+ function watchScene(sceneId,owner){if(!owner||typeof owner.build!=='function'||owner.build.made)return;const b0=owner.build;const b1=function(o){const h=b0.apply(this,arguments);let m=null;try{m=start({...(o||{}),where:{scene:sceneId}});}catch(e){}
+   if(!h||!m)return h;let last=null;const t=h.tick,d=h.dispose;h.tick=function(time){const r=t.apply(this,arguments);const now=performance.now()/1000,dt=last==null?0:Math.min(.1,now-last);last=now;m.tick(dt);return r;};h.dispose=function(){try{m.dispose();}catch{}return d.apply(this,arguments);};h.made=m;return h;};b1.made=true;owner.build=b1;}
+ root.VoidMadeNPCs.watchScene=watchScene;watchScene('corporate',root.VoidCorporate);watchScene('temple',root.VoidTemple);
  // TALK TO <NAME> with no mission waiting: a silent beat (no words are invented for them; live-content.js offers their missions first)
  const wait=setInterval(()=>{if(typeof VoidInteractions==='undefined'||!VoidInteractions.register||typeof talk!=='function')return;clearInterval(wait);nameCards();
   VoidInteractions.register(ACTION,({item}={})=>{const id=item&&item.character;nameCards();talk('',conversationLines(chars()[id]).map(text=>({who:id,text})),()=>{try{resumeWalking();}catch{}},'CLOSE');});},300);

@@ -1,10 +1,16 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — #419 Corporate District and Temple scene hooks
+
+- Made characters can be placed on the open ground of the Corporate District and Zen Zephyr Temple. Stored coordinates are shifted so they cannot land on a city pavement. In those scenes the figures use the scene’s own metres. Reverie, Lace and the street cat stay off both scenes, and off the city side of the gates.
+- The District bar, VR play area, arcade, Milked reception and NULL floor keep their existing adult-made placement. Reverie and Lace still carry the same 16 native clips, including the seated wave.
+- The scene builders start and dispose the made-character runtime with the area. Draft play can enter either scene.
+
 ## 23 Nov 2026 — #495 follow, lead and group dialogue
 
-- Walking TALK NPCs can invite the local player to follow them or lead them to a registered place. Movement uses the existing escort walk, obstacle routing and per-player copy. A mission escort or active mission dialogue cancels it and can play the cancel line. Arrival dialogue plays when both reach the place. Desktop and mobile Dev Tools edit the same record; the server rejects unknown fields and unregistered places.
+- Walking TALK NPCs can invite the local player to follow them or lead them to a registered place. Movement uses the existing escort walk, obstacle routing and per-player copy. A mission escort or active mission dialogue cancels it and can play the cancel line. Arrival dialogue plays when both reach the place. Desktop and mobile Dev Tools edit the same record; the server rejects unknown fields and unregistered places. Released in #503.
 - Linked groups speak one at a time, in member order, with talk/idle poses on made NPCs who are close enough. Mission dialogue suppresses the group. No new save field and no shared NPC position sync.
-- Still open on #495: cross-area daily itineraries, tier awareness, consumables and the later studio requests in the draft handoff. Still open on #419: scene lifecycle for Corporate, Temple and any interior that does not already spawn eligible NPCs.
+- Still open on #495: cross-area daily itineraries, tier awareness, consumables and the later studio requests in the draft handoff.
 
 ## 22 Nov 2026 — #495 room-dialogue release candidate
 

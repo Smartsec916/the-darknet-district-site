@@ -128,17 +128,25 @@
    if(a.id==='far-south'){const M=MK();try{for(const o of (M&&M.solids?M.solids():[]))if(!/door|shutter/.test(o.id||'')){const [x,,z]=o.position,[w,,d]=o.size;if(x>71&&x<101&&((z>lane[2]-.2&&z<lane[3])||(z>alley[2]&&z<alley[3]+.2)))a.obstacles.push([x-w/2,x+w/2,z-d/2,z+d/2,/clad|wall/.test(o.id)?'Milked’s wall':'Milked’s '+String(o.id).replace(/^milked-(alley-|front-)?/,'')]);}}catch{}}   // its lanes' walls, planter, dumpster and crates (milked.js solids)
    if(a.scene==='street'){const X=XW();for(const c of (X?X.list(a.quarter):[]))for(const p of c.posts)a.obstacles.push([p.p[0]-.12,p.p[0]+.12,p.p[1]-.12,p.p[1]+.12,'a crosswalk signal post']);}   // crosswalks.js (20 Nov 2026): the crossings themselves are road
    a.posts=((Q&&Q.CALL_POINTS)||[]).filter(c=>c.quarter===a.quarter&&Array.isArray(c.post)).map(c=>[c.post[0],c.post[1]]);}
+  // Corporate District and the Temple are separate scenes with their own origins. Their stored placement coordinates are shifted so they cannot be confused with a city spot.
+  // Reverie, Lace and the cat stay out (cast:'made'). A character made in the editor may stand on the open streets. The Sleeping Pod room is not part of either scene.
+  {const CO=node?require('./corporate.js'):root.VoidCorporate,TP=node?require('./temple.js'):root.VoidTemple,inset=(r,m)=>[r[0]+m,r[1]-m,r[2]+m,r[3]-m],move=(r,sx,sz)=>[r[0]+sx,r[1]+sx,r[2]+sz,r[3]+sz];
+   const sceneArea=(id,name,scene,sx,sz,streets,blocks)=>{const walk=streets.map(s=>R(move(inset(s.rect,.45),sx,sz),{name:s.name,y:0})),box=walk.reduce((b,w)=>[Math.min(b[0],w.x0),Math.max(b[1],w.x1),Math.min(b[2],w.z0),Math.max(b[3],w.z1)],[Infinity,-Infinity,Infinity,-Infinity]);
+    A.push({id,name,scene,quarter:null,view:R(box),floors:walk.map(w=>({...w})),walk,roads:[],no:[R(box,{why:'That is '+name+' (only a character made in the editor may stand on its open ground).',rule:true,cast:'made',name})],obstacles:blocks.map(b=>[...move(b.rect,sx,sz),b.name]),posts:[],labels:streets.slice(0,4).map(s=>({name:s.name,x:sx+(s.rect[0]+s.rect[1])/2,z:sz+(s.rect[2]+s.rect[3])/2})),gates:[]});};
+   if(CO&&CO.STREETS)sceneArea('corporate','The Corporate District','corporate',0,220,CO.STREETS,[...CO.BLOCKS.map(b=>({rect:b.rect,name:b.name})),...CO.PROPS.map(p=>({rect:p[1],name:p[0]})),...CO.DOORS.map(d=>({rect:d.rect,name:d.name})),...CO.PERIMETER.map((r,i)=>({rect:r,name:'the perimeter'}))]);
+   if(TP&&TP.STREETS)sceneArea('temple','Zen Zephyr Temple','temple',280,0,TP.STREETS,[...TP.PROPS.map(p=>({rect:p[1],name:p[0]})),...TP.PARAPET.map(r=>({rect:r,name:'the parapet'}))]);}
   // Places beyond the city (never used): reasons for a spot there
   const OUT=[R([-120,-60,-40,15],{why:RULE.corporate,rule:true,name:'the Corporate District'}),R([-60,2,-20,-5],{why:'That is beyond the Function Gate (the way to the Corporate District: never used for her).',rule:true}),R([152,200,-20,-5],{why:'That is beyond the East Gate (the way to the Temple: never used for her).',rule:true})];
   const res={list:A,by:new Map(A.map(a=>[a.id,a])),out:OUT};if(U&&!uOk)return res;return CACHE=res;}   // (the underground is added once modules.js has loaded)
- const IDS=['avenue','oldtown','far-south','outskirts','port','district','milked','underground'];
+ const IDS=['avenue','oldtown','far-south','outskirts','port','district','milked','underground','corporate','temple'];
+ const SCENE_SHIFT={corporate:{x:0,z:220},temple:{x:280,z:0}};
  const inR=(r,x,z,m=0)=>x>r.x0-m&&x<r.x1+m&&z>r.z0-m&&z<r.z1+m,inO=(o,x,z,m)=>x>o[0]-m&&x<o[1]+m&&z>o[2]-m&&z<o[3]+m,size=r=>(r.x1-r.x0)*(r.z1-r.z0);
  const num=v=>typeof v==='number'&&Number.isFinite(v);
  const list=()=>defs().list,get=id=>defs().by.get(id)||null;
  /* The area a point is in (its walkable part), or null. prefer: an area id to try first. */
  function areaOf(p,prefer){if(!p||!num(p.x)||!num(p.z))return null;const L=list(),order=prefer&&get(prefer)?[get(prefer),...L.filter(a=>a.id!==prefer)]:L;for(const a of order)if(a.walk.some(w=>inR(w,p.x,p.z,1e-6)))return a.id;return null;}
  /* Is p a spot she may stand on? {ok, area, kind:'ok'|'rule'|'blocked'|'road'|'gate'|'obstacle'|'post'|'outside', why}. m: the clearance from furniture (CLEAR). */
- function check(p,prefer,m=CLEAR,opts={}){const ad=!!(opts&&opts.adult),pass=!!(opts&&opts.passing),skip=n=>(ad&&n.adult)||(pass&&n.doorway);/* passing: a walk over a doorway (never a spot in it) */if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>400||Math.abs(p.z)>400)return {ok:false,area:null,kind:'outside',why:'The spot has no position.'};
+ function check(p,prefer,m=CLEAR,opts={}){const ad=!!(opts&&opts.adult),pass=!!(opts&&opts.passing),made=!!(opts&&opts.made),skip=n=>(ad&&n.adult)||(pass&&n.doorway)||(made&&n.cast==='made');/* passing: a walk over a doorway (never a spot in it) */if(!p||!num(p.x)||!num(p.z)||Math.abs(p.x)>400||Math.abs(p.z)>400)return {ok:false,area:null,kind:'outside',why:'The spot has no position.'};
   const {x,z}=p,id=areaOf(p,prefer);
   if(id){const a=get(id);const no=a.no.filter(n=>inR(n,x,z)&&!skip(n)).sort((u,v)=>size(u)-size(v))[0];if(no)return {ok:false,area:id,kind:no.rule?'rule':'blocked',why:no.why+(no.adult&&opts&&opts.made?' Only characters made in the editor and marked “adult (18+)” may stand here.':'')};
    for(const g of a.gates)if(inR(g,x,z))return {ok:false,area:id,kind:'gate',why:'That is inside the '+g.name+' (a checkpoint building): she stays on one side of it.'};
@@ -173,9 +181,10 @@
  /* The ground height (m) under a walkable spot (pavement slabs stand 0.18 m above the road), or null. */
  function groundY(p,id){const a=get(id||areaOf(p));if(!a)return null;const w=a.walk.find(v=>inR(v,p.x,p.z,1e-6));return w&&num(w.y)?w.y:null;}
  /* Which areas are built in a scene: the street (one quarter, or every street area when quarter is null) or the District interior. */
- function here(scene,quarter){return list().filter(a=>scene==='interior'||scene==='milked'?a.scene===scene:a.scene==='street'&&(!quarter||a.quarter===quarter)).map(a=>a.id);}
- /* Where draft play enters for an area: {walk:'sacramento', quarter} or {walk:'darknet-district'}. */
- function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:a.scene==='milked'?{walk:'sacramento',quarter:'far-south'}:{walk:'sacramento',quarter:a.quarter};}
+ function here(scene,quarter){return list().filter(a=>scene==='interior'||scene==='milked'||scene==='corporate'||scene==='temple'?a.scene===scene:a.scene==='street'&&(!quarter||a.quarter===quarter)).map(a=>a.id);}
+ /* Where draft play enters for an area: {walk:'sacramento', quarter}, {walk:'darknet-district'}, or the separate scene id. */
+ function enter(id){const a=get(id);if(!a)return {walk:'sacramento',quarter:'avenue'};return a.scene==='interior'?{walk:'darknet-district'}:a.scene==='milked'?{walk:'sacramento',quarter:'far-south'}:a.scene==='corporate'||a.scene==='temple'?{walk:a.scene}:{walk:'sacramento',quarter:a.quarter};}
+ function toLocal(scene,p){const s=SCENE_SHIFT[scene];if(!s||!p||!num(p.x)||!num(p.z))return p;return {...p,x:p.x-s.x,z:p.z-s.z};}
  const r1=v=>Math.round(v*10)/10,slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
  /* Named places in every area (for the ChatGPT prompt and the editor): shopfronts (places.js SHOPFRONTS: the spot on the pavement in front), and landmarks. [{id, name, area, x, z}]
     The Avenue's north pavement keeps its first names (laundry, repair, ...); every other id starts with its area. Only spots she may stand on are listed. */
@@ -194,12 +203,13 @@
   for(const [area,id,name,x,z] of L)add(id,name,area,x,z);
   {const X=BA();for(const b of (X?X.places():[]))add(b.id,b.name,b.area,b.x,b.z);}
   {const U=UG();if(U&&get('underground'))for(const b of U.places())add(b.id,b.name,b.area,b.x,b.z);}   // the tunnels' places (ncz-underground.js): their own ids and names   // the back alleys, bays and yards (ncz-backalleys.js): their own ids and names
+  for(const [area,id,name,x,z] of [['corporate','corporate-boulevard','the Main Boulevard',0,220],['corporate','corporate-south-plaza','the South Plaza',0,202],['temple','temple-terrace','the arrival terrace',280,-38],['temple','temple-courtyard','the courtyard',280,-18]]){const q=nearest({x,z},area,3,{made:true});if(q&&!seen.has(id)){seen.add(id);out.push({id,name,area,x:q.x,z:q.z});}}
   return out;}
  /* For the admin inventory (the server's copy of these rules): every area's rectangles, obstacles and posts, as plain numbers. */
  function inventory(){const rr=r=>[r.x0,r.x1,r.z0,r.z1];return {clear:CLEAR,step:STEP,out:defs().out.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule})),areas:list().map(a=>({id:a.id,name:a.name,scene:a.scene,quarter:a.quarter,
-  walk:a.walk.map(rr),adultWalk:a.walk.map((w,i)=>w.adult?i:-1).filter(i=>i>=0),floors:a.floors.map(rr),roads:a.roads.map(rr),gates:a.gates.map(g=>({rect:rr(g),name:g.name})),no:a.no.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule,...(n.adult?{adult:true}:{}),...(n.doorway?{doorway:true}:{})})),obstacles:a.obstacles.map(o=>o.slice(0,4)),posts:a.posts.map(p=>p.slice())}))};}
+  walk:a.walk.map(rr),adultWalk:a.walk.map((w,i)=>w.adult?i:-1).filter(i=>i>=0),floors:a.floors.map(rr),roads:a.roads.map(rr),gates:a.gates.map(g=>({rect:rr(g),name:g.name})),no:a.no.map(n=>({rect:rr(n),why:n.why,rule:!!n.rule,...(n.adult?{adult:true}:{}),...(n.doorway?{doorway:true}:{}),...(n.cast?{cast:n.cast}:{})})),obstacles:a.obstacles.map(o=>o.slice(0,4)),posts:a.posts.map(p=>p.slice())}))};}
  /* For the ChatGPT prompt: each area in plain words with its walkable rectangles. */
- function describe(){return list().map(a=>({id:a.id,name:a.name,inside:a.scene==='interior',walk:a.walk.filter(w=>!w.adult).map(w=>({name:w.name,x0:w.x0,x1:w.x1,z0:w.z0,z1:w.z1})),never:a.no.filter(n=>n.rule).map(n=>n.name)})).filter(a=>a.walk.length);}
- const api={IDS,CLEAR,STEP,RULE,DOOR,toWorld:WP,local:W,list,get,areaOf,check,leg,nearest,groundY,here,enter,places,inventory,describe,get GEN(){return GEN;},reset(){CACHE=null;}};
+ function describe(){return list().map(a=>({id:a.id,name:a.name,inside:a.scene==='interior',walk:a.walk.filter(w=>!w.adult).map(w=>({name:w.name,x0:w.x0,x1:w.x1,z0:w.z0,z1:w.z1})),never:a.no.filter(n=>n.rule&&n.cast!=='made').map(n=>n.name)})).filter(a=>a.walk.length);}
+ const api={IDS,CLEAR,STEP,RULE,DOOR,SCENE_SHIFT,toWorld:WP,local:W,toLocal,list,get,areaOf,check,leg,nearest,groundY,here,enter,places,inventory,describe,get GEN(){return GEN;},reset(){CACHE=null;}};
  if(node)module.exports=api;else root.VoidNPCAreas=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
