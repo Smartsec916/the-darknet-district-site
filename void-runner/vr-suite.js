@@ -133,8 +133,14 @@
     asset.computeWorldMatrix(true);
     const bounds=asset.getHierarchyBoundingVectors(true);
     const lift=C.floorOffset(bounds.min.y,bounds.max.y);
-    asset.position.y+=lift;
-    asset.computeWorldMatrix(true);
+    // Hierarchy bounds are world-space. Transform the upward correction into
+    // the asset parent's local space (important for scaled/rotated room roots).
+    if(lift){
+     const parentMatrix=asset.parent?.getWorldMatrix();
+     const localLift=parentMatrix?B.Vector3.TransformNormal(new B.Vector3(0,lift,0),parentMatrix.clone().invert()):new B.Vector3(0,lift,0);
+     asset.position.addInPlace(localLift);
+     asset.computeWorldMatrix(true);
+    }
    }catch(err){console.warn('[VR companion floor alignment]',err);}}
 
    // Clips cross-fade over about half a second (crowd.js uses a quicker fade for the street's people).
