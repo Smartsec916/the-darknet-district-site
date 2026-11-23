@@ -61440,7 +61440,7 @@
       "spawn"
     ]
   },
-  "revision": "969bdc0e0d758f0f",
+  "revision": "37bf0226549525bf",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -80772,49 +80772,55 @@
     {
       "source": "void-runner/tea-duo.js",
       "line": 7,
-      "text": "WHEN A PLAYER WALKS IN: Nomi notices and speaks, Se7en answers when Nomi's recording has ended, and so on through the ten greeting lines (Nomi, Se7en, Nomi, ... Se7en: the last is",
+      "text": "WHEN A PLAYER WALKS IN: Nomi notices and speaks, Se7en answers when Nomi's recording has ended, and so on for 6 to 8 lines (visit() below: a greeting each, then turns drawn from",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
       "line": 8,
-      "text": "Se7en's), one voice at a time with a short pause between; walking out stops it; walking back in within 90 s starts nothing; another conversation or a mission line holds it.",
+      "text": "different pools, never a line twice in a visit, lines not heard lately first, ending on a goodbye), one voice at a time with a short pause between; walking out stops it; walking back in within 90 s starts nothing; another conversation or a mission line holds it.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 19,
-      "text": "/* The greeting pools of the two packages, in the owner's order (his text, exactly; file: the recording beside it in assets/audio/voice/extra/tea-duo/, duration in seconds). */",
+      "line": 21,
+      "text": "const LINES={\"nomi\": {\"greet\": [{\"id\": \"nomi-greet-1\", \"text\": \"[surprised] Oh! There's someone here!\", \"file\": \"nomi-greet-1.mp3\", \"duration\": 2.03}, {\"id\": \"nomi-greet-2\", \"text\": \"[excited] Well, hello there, handsome! [giggles] We don't get many visitors this charming.\", \"file\": \"nomi-greet-2.mp3\", \"duration\": 5.55}, {\"id\": \"nomi-greet-3\", \"text\": \"[softly] Aww, don't be shy. Come a little closer.\", \"file\": \"nomi-greet-3.mp3\", \"duration\": 3.62}, {\"id\": \"nomi-greet-4\", \"text\": \"[playfully] Were you looking for some tea... [whispers] or something a little sweeter?\", \"file\": \"nomi-greet-4.mp3\", \"duration\": 4.12}, {\"id\": \"nomi-greet-5\", \"text\": \"[flirty] I think you're going to like it here. [giggles] We take very good care of our guests.\", \"file\": \"nomi-greet-5.mp3\", \"duration\": 5.06}], \"approach\": [{\"id\": \"nomi-approach-1\", \"text\": \"[excited] Oh! A visitor! How lovely!\", \"file\": \"nomi-approach-1.mp3\", \"duration\": 3.31}, {\"id\": \"nomi-approach-2\", \"text\": \"[giggles] Hello, handsome! Mind if I come say hi?\", \"file\": \"nomi-approach-2.mp3\", \"duration\": 4.04}, {\"id\": \"nomi-approach-3\", \"text\": \"[playfully] Well, look what the city brought us!\", \"file\": \"nomi-approach-3.mp3\", \"duration\": 2.68}, {\"id\": \"nomi-approach-4\", \"text\": \"[sweetly] Aww, you came all this way to see us?\", \"file\": \"nomi-approach-4.mp3\", \"duration\": 3.15}, {\"id\": \"nomi-approach-5\", \"text\": \"[flirty] You look like someone in need of a little hospitality.\", \"file\": \"nomi-approach-5.mp3\", \"duration\": 3.54}], \"welcomeBack\": [{\"id\": \"nomi-welcomeBack-1\", \"text\": \"[excited] Oh! Look who's back!\", \"file\": \"nomi-welcomeBack-1.mp3\", \"duration\": 2.5}, {\"id\": \"nomi-welcomeBack-2\", \"text\": \"[giggles] Couldn't stay away from our special tea, could you?\", \"file\": \"nomi-welcomeBack-2.mp3\", \"duration\": 3.85}, {\"id\": \"nomi-welcomeBack-3\", \"text\": \"[sweetly] Aww, handsome! It's lovely seeing you again.\", \"file\": \"nomi-welcomeBack-3.mp3\", \"duration\": 4.04}, {\"id\": \"nomi-welcomeBack-4\", \"text\": \"[playfully] Back for another cup? I thought you might be.\", \"file\": \"nomi-welcomeBack-4.mp3\", \"duration\": 3.31}, {\"id\": \"nomi-welcomeBack-5\", \"text\": \"[flirty] Well, well... someone's developed a taste for our hospitality.\", \"file\": \"nomi-welcomeBack-5.mp3\", \"duration\": 4.35}], \"chat\": [{\"id\": \"nomi-chat-1\", \"text\": \"[sweetly] Would you like some tea, sweetheart? We have a very special blend.\", \"file\": \"nomi-chat-1.mp3\", \"duration\": 4.04}, {\"id\": \"nomi-chat-2\", \"text\": \"[giggles] Oh, we don't serve ordinary tea back here, silly!\", \"file\": \"nomi-chat-2.mp3\", \"duration\": 4.59}, {\"id\": \"nomi-chat-3\", \"text\": \"[playfully] Some customers come for the tea. Others come for the company.\", \"file\": \"nomi-chat-3.mp3\", \"duration\": 4.12}, {\"id\": \"nomi-chat-4\", \"text\": \"[warmly] It's always nicer when someone visits. Especially someone cute.\", \"file\": \"nomi-chat-4.mp3\", \"duration\": 4.59}, {\"id\": \"nomi-chat-5\", \"text\": \"[teasing] Our tea is quite famous. Although nobody ever asks what's in it.\", \"file\": \"nomi-chat-5.mp3\", \"duration\": 4.59}], \"compliment\": [{\"id\": \"nomi-compliment-1\", \"text\": \"[flirty] You have such lovely eyes. Has anyone told you that?\", \"file\": \"nomi-compliment-1.mp3\", \"duration\": 3.85}, {\"id\": \"nomi-compliment-2\", \"text\": \"[giggles] You really are quite cute when you're nervous.\", \"file\": \"nomi-compliment-2.mp3\", \"duration\": 3.7}, {\"id\": \"nomi-compliment-3\", \"text\": \"[sweetly] I like your smile. You should show it more often.\", \"file\": \"nomi-compliment-3.mp3\", \"duration\": 3.23}, {\"id\": \"nomi-compliment-4\", \"text\": \"[playfully] Oh, handsome, you're making it difficult for me to concentrate.\", \"file\": \"nomi-compliment-4.mp3\", \"duration\": 4.51}, {\"id\": \"nomi-compliment-5\", \"text\": \"[softly] There's something about you I find rather irresistible.\", \"file\": \"nomi-compliment-5.mp3\", \"duration\": 4.12}], \"flirt\": [{\"id\": \"nomi-flirt-1\", \"text\": \"[teasing] Our special tea has a reputation for making people weak in the knees.\", \"file\": \"nomi-flirt-1.mp3\", \"duration\": 4.74}, {\"id\": \"nomi-flirt-2",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 25,
+      "line": 26,
       "text": "/* A model's feet onto the floor: its bind-pose bounds (world, floor level `floorY`) say how far below the floor its lowest point is. Applied to the visual child only (never to",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 51,
-      "text": "const where=()=>{try{if(typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.area!=='street'||walkingLocation.quarter!=='underground')return null;if(typeof mode==='undefined'||!['walking','dialogue','mission-log'].includes(mode))return null;const w=typeof walker!=='undefined'?walker:null;return w&&Number.isFinite(w.x+w.z)?w:null;}catch{return null;}};",
+      "line": 57,
+      "text": "const line=(speaker,pool)=>{const free=LINES[speaker][pool].filter(l=>!used.has(l.id));if(!free.length)return null;const l=pickWeighted(free,x=>age(x.id)**2,rng);used.add(l.id);mem.last[l.id]=v;mem.pools[pool]=v;return {speaker,text:l.text,id:l.id,pool};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
       "line": 77,
+      "text": "const where=()=>{try{if(typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.area!=='street'||walkingLocation.quarter!=='underground')return null;if(typeof mode==='undefined'||!['walking','dialogue','mission-log'].includes(mode))return null;const w=typeof walker!=='undefined'?walker:null;return w&&Number.isFinite(w.x+w.z)?w:null;}catch{return null;}};",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/tea-duo.js",
+      "line": 103,
       "text": "const isBlocked=()=>{try{return !!((typeof speech!=='undefined'&&speech)||root.VoidLiveContent?.nearBlocked?.()||(typeof document!=='undefined'&&document.hidden));}catch{return true;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 100,
+      "line": 126,
       "text": "rec={id,text:r.line.text,perf:performance.now(),until:now+ms};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 108,
-      "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick};",
+      "line": 134,
+      "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick};",
       "kind": "source-reference"
     },
     {
@@ -82246,7 +82252,7 @@
     "void-runner/neochinatown.js": "a546cff053ccdd2bed8cf0b773487ce99a3a731075db57d095579feb3728a3bc",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-advanced-interactions.js": "9c35ba18590be7ebbed2dfbcb5935a5dec2f681bab5280778d4b64c70aacdd51",
+    "void-runner/npc-advanced-interactions.js": "c5b43cccb7b73f1b06abca6ed75c5b74801589ea20f886ded3b682c4d0e75a71",
     "void-runner/npc-areas.js": "429ffa6f16f3a0cafe3de9f78ca3d06cfaee2119bbde04e66b98f6a2243648d8",
     "void-runner/npc-awareness.js": "51fd809a9f41f2cc0e398ad45683512d46536cb273de0952f5e282afa58d0e52",
     "void-runner/npc-behaviour.js": "4dab0fa9f778a8ed6f27eb136512eb56d69e4cf71a6d32b460cfebeb93ee1d2a",
@@ -82312,7 +82318,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/tea-duo.js": "80bfc048d48c7b62932be5d03cdce42587209d38acd6c3d113448f89f806e1d3",
+    "void-runner/tea-duo.js": "b67ad07eaccfeff664ee5d9fb65285501c8758edeeeed46cff35e7559464f522",
     "void-runner/temple-build.js": "a0f27e109c5521f7dce23bc022b6c135c48da61cd5a3bf2614f4dad903a70d7c",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",
