@@ -40,7 +40,8 @@
 
   const config={sensitivity:.0022,walk:3.9,sprint:6.4,crouch:1.65,acceleration:32,braking:44,gravity:18,jump:4.6};
   function step(player,input,dt,location){
-    dt=Math.max(0,Math.min(.1,dt));const length=Math.max(1,Math.hypot(input.x,input.z)),speed=input.crouch?config.crouch:input.run?config.sprint:config.walk;
+    dt=Math.max(0,Math.min(.1,dt));const length=Math.max(1,Math.hypot(input.x,input.z));let speed=input.crouch?config.crouch:input.run?config.sprint:config.walk;
+    try{const m=root.VoidDevStudios?.moveMul?.(typeof state!=='undefined'?state?.story?.flags?.shopEffect:null,Date.now()/1000);if(m>1)speed*=m;}catch{}
     const tx=(Math.cos(player.yaw)*input.x+Math.sin(player.yaw)*input.z)/length*speed,tz=(-Math.sin(player.yaw)*input.x+Math.cos(player.yaw)*input.z)/length*speed;
     const approach=(a,b,d)=>a+Math.sign(b-a)*Math.min(Math.abs(b-a),d),steps=Math.max(1,Math.ceil(dt/.008));
     if(player.jumpRequested){if(!(player.height>0)){player.vy=config.jump;player.height=.001;}player.jumpRequested=false;}
