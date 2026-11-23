@@ -60962,7 +60962,7 @@
       "spawn"
     ]
   },
-  "revision": "36a2e84028c910b8",
+  "revision": "a2f05421b196ad64",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81561,7 +81561,7 @@
     "void-runner/combat-effects.js": "23d02e9aa41175200267e38701d8c47a60c4728743706a8edbce80d55f275064",
     "void-runner/combat.js": "3c25f546a54ecabd9d4703a0e97d057af5391522b180206c1fd673be19614e35",
     "void-runner/comms.js": "fc7aa1cfb2ad376c6f3c2de6aed1e2ed918d0e68b702674a0e8b71a54c38493a",
-    "void-runner/companion-mobile.js": "dc12c639549052816db9b2eba8fd4e416a379198398199ebf4c4352be7bfe2d0",
+    "void-runner/companion-mobile.js": "e8a56f9ad38d68d87397f40ed29b9ca1e32b0c745ac3e26214c09aa0a8d7a929",
     "void-runner/companion-theme.js": "3237d0f36355066ffc90cfe6a3fedb563dab1d275519320d012a062e815e415e",
     "void-runner/content.js": "f0a387c90a7359a9f9571dc31f8fac19c26c74f8108380e854a06b1804d7f9dd",
     "void-runner/conversation-history.js": "81244b2e623ec0aa9a0bad40fb6d5705c264b61f790bff8dc5391885f8ccccba",
@@ -81626,7 +81626,7 @@
     "void-runner/frame-timing.js": "e8073ded3fd716a217e0770e96d0612e7a36df133723052fe0c5c871fa0acb24",
     "void-runner/game-clock.js": "3a5769a2bd39929e1b43d05ae58689d13054105bcc5269866553a89a39a494cd",
     "void-runner/game.js": "2181f623aa45fbae29d8d2d09a1d7b534b4b8688265b7c066dc39e578f31acef",
-    "void-runner/glb-downsizer.js": "d47cbacb8a0c8772b9cc9d1a8558d9217d75cb1c1f7d6a64555d26699d40669a",
+    "void-runner/glb-downsizer.js": "b306d69bdbcb49713e9f6ee4eb2f8ae640c6962a492ac8ddfad23121d33df507",
     "void-runner/graphics-prefs.js": "5b0092cbc6e4ed50c21d51bc2856a2caeb0c5957e46cb4415c3f28514d2dd6fe",
     "void-runner/guide-route.js": "bd80fc52a4e50a9b9bd8f6b63d31fab12718cdfddb5235183fc53c0cab98152c",
     "void-runner/hangar.js": "ad1b8a2ba16c02072658de4c20727ff2746bceedaba739405fd420cc7b2b181b",
@@ -81783,7 +81783,7 @@
     "void-runner/voice-imports.js": "5f49383da56a625797faf30ec4de65a596e4371f4ea583b327b9ffd8343011f4",
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
-    "void-runner/vr-companion-studio.js": "8fdad881c92c45ccc71b877164e0917d18362cec8cc95c11e5fb87de83d8dc71",
+    "void-runner/vr-companion-studio.js": "050a7c5bb43eb46e9d9ac35a027ad23af5b5a3e790c76865c290c4de83ac1c19",
     "void-runner/vr-companions.js": "c0e5a16e373511d0d5c13fb3df39d9a9a42d29e45f251366c1893bdb21ba333f",
     "void-runner/vr-core.js": "a8a8a8d42d85ae2f2e41145ec07d5729ec185c92a63bacc2fff6dabf24985408",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
