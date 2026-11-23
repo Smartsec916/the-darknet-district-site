@@ -1,5 +1,12 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — Graphics modernization (Blender), batch 1: NeoChinatown back-alley props (branch `claude/graphics-modernization`, build `2026-11-23-gfx-1`, draft PR, not merged)
+
+- The owner's brief: only change how the game looks. Then: "work outside The Darknet District" (nothing inside the District interior is changed; it is listed in the audit as out of scope).
+- **Audit:** `docs/development/GRAPHICS_AUDIT.md` (by location: object, size, purpose and dependencies, shortcomings, replacement, priority, status). Read it before the next batch.
+- **Batch 1:** nine Blender-made props (two dumpsters, crate, pallet, two drums, generator, wall utility box, caged wall lamp) in ONE self-contained GLB with ONE shared atlas material: `void-runner/assets/models/ncz-props/ncz_street_props.glb`, built by `tools/assets/kit/build_street_props.py` (run with the `bpy` venv; Pillow needed). They replace the back alleys' box-built furniture, wall boxes and lamp housings on Medium and above (`ncz-backalleys.js`, `prop()` / `finishProps()`: one thin-instanced mesh per kind and quarter). Low and a missing model keep the old boxes. Collision, NPC obstacles, placement and the random sequence are unchanged.
+- **Next batch (recommended):** reuse the same models in the District entrance alley and The Outskirts (`alley-crates`, `alley-pallet`, `dumpster`, `alley-drum`, `junction-box` in `neochinatown.js`; drums and pallets in `ncz-containers.js`), the kit's unused AC units for `alley-ac` / `wall-ac` / `roof-ac`, then bin bags and the loading docks.
+
 ## 23 Nov 2026 — Developer studios
 
 - SHOP HERE stands in the District store, apart from Admin and Iris. It sells a sprint tonic and a street tint. Buying again refreshes the time. The sprint is capped and changes walking speed. The tint stays off when reduced motion is on. Credits save; the effect is a short flag.

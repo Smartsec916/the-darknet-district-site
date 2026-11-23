@@ -209,8 +209,8 @@
  const extent=q=>{const R=rectsOf(q);return R.length?[Math.min(...R.map(r=>r[0])),Math.max(...R.map(r=>r[1])),Math.min(...R.map(r=>r[2])),Math.max(...R.map(r=>r[3]))]:null;};
 
  /* ---------------- browser: the build ---------------- */
- function build({B=root.BABYLON,scene,parent,quality='medium',quarter=null,base=null}){
-  const low=quality==='low',hi=quality==='high'||quality==='ultra',own=[],groups=new Map(),qs=quarter?[quarter]:QUARTERS,made={meshes:0,escapes:0,furniture:0,lamps:0};const underDoors={};
+ function build({B=root.BABYLON,scene,parent,quality='medium',quarter=null,base=null,instance=null}){
+  const low=quality==='low',hi=quality==='high'||quality==='ultra',own=[],groups=new Map(),qs=quarter?[quarter]:QUARTERS,made={meshes:0,escapes:0,furniture:0,lamps:0,props:0};const underDoors={};
   if(!B||!scene||!qs.some(q=>QUARTERS.includes(q)))return {stats:()=>made,dispose(){}};   // a quarter with no back alleys (the Port, the Outskirts): nothing to build (night QA: an empty floor mesh and its materials were made)
   const url=f=>{const p='assets/textures/ncz/'+f+'.jpg';try{return base?new URL(p,base).href:root.document?.currentScript?new URL(p,root.document.currentScript.src).href:'void-runner/'+p;}catch{return 'void-runner/'+p;}};
   const tex=(f,u=1,v=1)=>{const t=new B.Texture(url(f),scene,false,true);t.wrapU=t.wrapV=B.Texture.WRAP_ADDRESSMODE;t.uScale=u;t.vScale=v;own.push(t);return t;};
@@ -258,6 +258,25 @@
   // "along a wall": a box w wide (along), h high, d deep (out from the wall), its back against the wall at s along it
   const onWall=(wl,s,o)=>wl.z0===wl.z1?[s,wl.z0+wl.n[1]*o]:[wl.x0+wl.n[0]*o,s];
   const wbox=(wl,s,o,y,w,h,d,mat)=>{const [x,z]=onWall(wl,s,o);return wl.z0===wl.z1?box(w,h,d,x,y,z,mat):box(d,h,w,x,y,z,mat);};
+  /* Graphics modernization, batch 1 (docs/development/GRAPHICS_AUDIT.md): on Medium and above the furniture, the wall utility boxes and the lamp housings are drawn
+     with the Blender-made street props (assets/models/ncz-props/ncz_street_props.glb, made by tools/assets/kit/build_street_props.py), one shared material, every
+     copy hardware-instanced. LOOKS ONLY: where things stand, their solids and NPC obstacles (solids(), obstacles()) and every random number drawn here are unchanged
+     (the old parts are still worked out in the same order, only not drawn). Low, or a model that did not load, keeps the box-built look. The lamps' glowing lenses
+     and the generator's LED stay this file's own glow materials. */
+  const PROP='ncz:street_props',propSets=new Map(),yawOf=n=>Math.atan2(n[0],n[1]);
+  let propsOk=!low&&typeof instance==='function';
+  if(propsOk){try{const t=instance(PROP,parent,'crate');if(t)t.dispose();else propsOk=false;}catch{propsOk=false;}}
+  // a prop is only noted here (its place, turn and size); finishProps() draws each kind once, every copy a thin instance of it: one draw call per kind and quarter
+  const prop=(name,x,y,z,ry,sx=1,sy=1,sz=1)=>{if(!propSets.has(name))propSets.set(name,[]);propSets.get(name).push(B.Matrix.Compose(new B.Vector3(sx,sy,sz),B.Quaternion.RotationAxis(B.Axis.Y,ry),new B.Vector3(x,y,z)));made.props++;return true;};
+  const finishProps=()=>{const done=new Set();for(const [name,list_] of propSets){let n=null;try{n=instance(PROP,parent,name);}catch{n=null;}if(!n)continue;n.parent=null;n.position.setAll(0);n.rotation.setAll(0);n.computeWorldMatrix(true);
+    const buf=new Float32Array(list_.length*16);list_.forEach((m,i)=>m.copyToArray(buf,i*16));
+    for(const c of n.getChildMeshes(false)){if(!c.getTotalVertices?.()||/__(lens|led)$/.test(c.name)){c.setEnabled(false);continue;}
+     c.makeGeometryUnique();c.bakeTransformIntoVertices(c.computeWorldMatrix(true));c.parent=parent;c.rotationQuaternion=null;c.position.setAll(0);c.rotation.setAll(0);c.scaling.setAll(1);
+     c.thinInstanceSetBuffer('matrix',buf.slice(),16,true);c.thinInstanceRefreshBoundingInfo(false);c.isPickable=false;c.receiveShadows=false;c.freezeWorldMatrix();own.push(c);
+     const m=c.material;if(m&&!done.has(m)){done.add(m);if(m.albedoTexture){m.emissiveTexture=m.albedoTexture;m.emissiveColor=new B.Color3(.15,.16,.18);}m.maxSimultaneousLights=4;}}   // the faint haze self-light the alley's own materials have
+    own.push(n);}};
+  // a point given in a prop's own frame (x along the wall, z out from it) for a prop turned by yawOf(n); the glTF import mirrors x (handedness), so a part at +x in Blender is at -x here
+  const propAt=(x,z,ry,lx,lz)=>[x+lx*Math.cos(ry)+lz*Math.sin(ry),z-lx*Math.sin(ry)+lz*Math.cos(ry)];
   for(const q of qs){
    // ---- the ground: wet cracked concrete, a darker drain line down the middle of the narrow alleys, puddles ----
    {const pos=[],idx=[],uv=[],nrm=[];for(const f of floors(q).flatMap(f=>minus(f,UNDERGROUND_ENTRANCES.map(u=>u.inner)))){const k=pos.length/3;for(const [x,z] of [[f[0],f[2]],[f[1],f[2]],[f[1],f[3]],[f[0],f[3]]]){pos.push(x,.006,z);uv.push(x/3.5,z/3.5);nrm.push(0,1,0);}idx.push(k,k+2,k+1,k,k+3,k+2);}
@@ -268,10 +287,10 @@
    for(const wl of W){const L=wl.x1-wl.x0+wl.z1-wl.z0,s0=wl.z0===wl.z1?wl.x0:wl.z0,mid=s0+L/2,n=wl.n,[mx,mz]=onWall(wl,mid,.03);
     if(!low){const g=B.MeshBuilder.CreatePlane('back-grime',{width:L,height:1.2},scene);g.position.set(mx,.6,mz);g.rotation.y=Math.atan2(-n[0],-n[1]);put(g,grime);}
     if(L>5){const y=2.5+R()*.8;wbox(wl,mid,.16,y,L-.4,.16,.16,R()<.5?rust:steel);if(!low){for(let s=s0+1;s<s0+L-.5;s+=2.2)wbox(wl,s,.06,y,.06,.28,.14,black);if(R()<.6)wbox(wl,mid,.1,y+.45,L-.6,.07,.07,black);}}
-    for(let s=s0+1.5+R()*3;s<s0+L-1;s+=6+R()*7){const [x,z]=onWall(wl,s,.12);if(R()<.6)cyl(.07,9,x,4.5,z,R()<.5?rust:steel);else if(!low)wbox(wl,s,.15,1.4+R()*2,.9,.6,.3,steel);}
+    for(let s=s0+1.5+R()*3;s<s0+L-1;s+=6+R()*7){const [x,z]=onWall(wl,s,.12);if(R()<.6)cyl(.07,9,x,4.5,z,R()<.5?rust:steel);else if(!low){const y=1.4+R()*2,[wx,wz]=onWall(wl,s,0);if(!(propsOk&&prop('utility_box',wx,y,wz,yawOf(n))))wbox(wl,s,.15,y,.9,.6,.3,steel);}}
     if(!low)for(let s=s0+1+R()*4;s<s0+L-1;s+=5+R()*6){if(R()<.55){const [x,z]=onWall(wl,s,.025),w=.6+R()*.4,m=B.MeshBuilder.CreatePlane('back-poster',{width:w,height:w*1.3,frontUVs:new B.Vector4((Math.floor(R()*4))/4,Math.floor(R()*2)/2,(Math.floor(R()*4)+1)/4,(Math.floor(R()*2)+1)/2)},scene);m.position.set(x,1.3+R()*1.1,z);m.rotation.y=Math.atan2(-n[0],-n[1]);m.rotation.z=(R()-.5)*.12;put(m,poster);}}
     // a wall lamp every 11 m or so: a caged housing on an arm, its lens, a pool on the ground and a wash on the wall (no real light)
-    for(let s=s0+lampGap;s<s0+L-1;s+=8+R()*3){const c=R()<.78?'sodium':R()<.5?'teal':'magenta',y=c==='sodium'?3.6:2.9,[x,z]=onWall(wl,s,.3);wbox(wl,s,.12,y+.08,.08,.08,.36,black);wbox(wl,s,.32,y,.42,.16,.3,black);wbox(wl,s,.32,y-.09,.34,.03,.24,lens[c]);
+    for(let s=s0+lampGap;s<s0+L-1;s+=8+R()*3){const c=R()<.78?'sodium':R()<.5?'teal':'magenta',y=c==='sodium'?3.6:2.9,[x,z]=onWall(wl,s,.3);{const [lx,lz]=onWall(wl,s,0);if(!(propsOk&&prop('wall_lamp',lx,y,lz,yawOf(n)))){wbox(wl,s,.12,y+.08,.08,.08,.36,black);wbox(wl,s,.32,y,.42,.16,.3,black);}}wbox(wl,s,.32,y-.09,.34,.03,.24,lens[c]);
      const [px,pz]=onWall(wl,s,2.2);pool(c,px,pz,6.5,6.5,c==='sodium'?1.25:.95);const [wx,wz]=onWall(wl,s,0);wash(c,wx,y-1,wz,n,5,3.8,.5);made.lamps++;lampGap=s-s0+8;}
     lampGap=Math.max(2,lampGap-L);}
    // cables strung across the narrow alleys and lanes, 5-7 m up, sagging
@@ -279,19 +298,27 @@
    // ---- furniture ----
    for(const f of furniture(q)){made.furniture++;const n=f.n,alongX=f.w>=f.d===(n[1]!==0)||n[1]!==0,ry=n[1]!==0?0:Math.PI/2,A=n[1]!==0?f.w:f.d,D=n[1]!==0?f.d:f.w;   // A along the wall, D out from it
     const P=(a,o)=>n[1]!==0?[f.x+a,f.z+o*n[1]]:[f.x+o*n[0],f.z+a];
-    if(f.kind==='dumpster'){const m=R()<.55?greenBin:blueBin;box(A,1.05,D,f.x,.62,f.z,m,ry);box(A+.08,.08,D+.08,f.x,1.17,f.z,black,ry);const [lx,lz]=P(0,D*.25);const open=R()<.3;box(A+.04,.05,D*.55,lx,1.24+(open?.18:0),lz,black,ry,open?(n[1]!==0?-.5*n[1]:0):0,open?(n[0]!==0?.5*n[0]:0):0);
-     for(const a of [-A/2+.25,A/2-.25])for(const o of [-D/2+.2,D/2-.2]){const [x,z]=P(a,o);cyl(.07,.1,x,.07,z,black,0,Math.PI/2,6,ry);}const [hx,hz]=P(0,-D/2-.04);box(A*.8,.06,.06,hx,.9,hz,steel,ry);
+    const rec=propsOk&&/^(dumpster|crates?|pallets|drums|generator)$/.test(f.kind)?[]:null,bx=rec?(...a)=>{rec.push(a);}:box,cy=rec?(...a)=>{rec.push(a);}:cyl;   // the batch-1 props: the old parts are recorded (same random numbers), the models drawn from them
+    if(f.kind==='dumpster'){const m=R()<.55?greenBin:blueBin;bx(A,1.05,D,f.x,.62,f.z,m,ry);bx(A+.08,.08,D+.08,f.x,1.17,f.z,black,ry);const [lx,lz]=P(0,D*.25);const open=R()<.3;bx(A+.04,.05,D*.55,lx,1.24+(open?.18:0),lz,black,ry,open?(n[1]!==0?-.5*n[1]:0):0,open?(n[0]!==0?.5*n[0]:0):0);
+     for(const a of [-A/2+.25,A/2-.25])for(const o of [-D/2+.2,D/2-.2]){const [x,z]=P(a,o);cy(.07,.1,x,.07,z,black,0,Math.PI/2,6,ry);}const [hx,hz]=P(0,-D/2-.04);bx(A*.8,.06,.06,hx,.9,hz,steel,ry);
      if(!low)for(let i=0;i<2+Math.floor(R()*3);i++){const [x,z]=P((R()-.5)*(A+1.2),D/2+.25+R()*.5),b=B.MeshBuilder.CreateSphere('back-bag',{diameter:.6+R()*.25,segments:6},scene);b.position.set(x,.22,z);b.scaling.y=.7;put(b,bagM);}}
-    else if(f.kind==='crates'||f.kind==='crate'){const k=f.kind==='crate'?1:2+Math.floor(R()*2);for(let i=0;i<k;i++){const s=1.05-i*.08;box(s,s,s,f.x+(R()-.5)*.1,i*1.02+s/2,f.z+(R()-.5)*.1,wood,R()*.3);}}
-    else if(f.kind==='pallets'){for(let i=0;i<5;i++)box(A,.12,D,f.x+(R()-.5)*.08,.06+i*.14,f.z+(R()-.5)*.08,wood,ry+(R()-.5)*.08);}
-    else if(f.kind==='drums'){for(const a of [-.32,.32]){const [x,z]=P(a,0);cyl(.29,.9,x,.45,z,R()<.5?rust:blueBin,0,0,10);}}
-    else if(f.kind==='generator'){box(A,1.2,D,f.x,.65,f.z,greenBin,ry);box(A+.06,.1,D+.06,f.x,.05,f.z,black,ry);const [vx,vz]=P(0,D/2+.01);box(A*.6,.5,.02,vx,.8,vz,black,ry);const [lx,lz]=P(A/2-.2,D/2+.02);box(.05,.05,.02,lx,1.05,lz,lens.red,ry);
-     const [ex,ez]=P(A/2-.3,0);cyl(.06,.8,ex,1.6,ez,steel);}
+    else if(f.kind==='crates'||f.kind==='crate'){const k=f.kind==='crate'?1:2+Math.floor(R()*2);for(let i=0;i<k;i++){const s=1.05-i*.08;bx(s,s,s,f.x+(R()-.5)*.1,i*1.02+s/2,f.z+(R()-.5)*.1,wood,R()*.3);}}
+    else if(f.kind==='pallets'){for(let i=0;i<5;i++)bx(A,.12,D,f.x+(R()-.5)*.08,.06+i*.14,f.z+(R()-.5)*.08,wood,ry+(R()-.5)*.08);}
+    else if(f.kind==='drums'){for(const a of [-.32,.32]){const [x,z]=P(a,0);cy(.29,.9,x,.45,z,R()<.5?rust:blueBin,0,0,10);}}
+    else if(f.kind==='generator'){bx(A,1.2,D,f.x,.65,f.z,greenBin,ry);bx(A+.06,.1,D+.06,f.x,.05,f.z,black,ry);const [vx,vz]=P(0,D/2+.01);bx(A*.6,.5,.02,vx,.8,vz,black,ry);const [lx,lz]=P(A/2-.2,D/2+.02);bx(.05,.05,.02,lx,1.05,lz,lens.red,ry);
+     const [ex,ez]=P(A/2-.3,0);cy(.06,.8,ex,1.6,ez,steel);}
     else if(f.kind==='dock'){box(A,f.h,D,f.x,f.h/2,f.z,concrete,ry);const [ex,ez]=P(0,D/2+.01);box(A,.18,.02,ex,f.h-.09,ez,hazard,ry);for(const a of [-A/2+.6,A/2-.6]){const [bx,bz]=P(a,D/2+.08);box(.3,.45,.16,bx,f.h-.3,bz,black,ry);}
      // the roller shutter over the dock, a sodium flood above it, a bollard each side
      const [sx,sz]=P(0,-D/2+.04),sm=shutters[Math.floor(R()*3)];box(A-.6,3.2,.06,sx,f.h+1.6,sz,sm,ry);const [hx,hz]=P(0,-D/2+.2);box(A-.3,.35,.4,hx,f.h+3.35,hz,steel,ry);
      const [fx,fz]=P(0,-D/2+.35);box(.6,.18,.4,fx,f.h+4,fz,black,ry);box(.5,.03,.3,fx,f.h+3.9,fz,lens.sodium,ry);const [px,pz]=P(0,D/2+2);pool('sodium',px,pz,7,7,1.1);const [wx,wz]=P(0,-D/2);wash('sodium',wx,f.h+2,wz,n,6,4,.4);made.lamps++;
-     for(const a of [-A/2-.5,A/2+.5]){const [bx,bz]=P(a,D/2+.6);cyl(.11,1,bx,.5,bz,hazard,0,0,8);}}}
+     for(const a of [-A/2-.5,A/2+.5]){const [bx,bz]=P(a,D/2+.6);cyl(.11,1,bx,.5,bz,hazard,0,0,8);}}
+    if(rec){const ry0=yawOf(n);
+     if(f.kind==='dumpster')prop(rec[0][6]===greenBin?'dumpster_green':'dumpster_blue',f.x,0,f.z,ry0);
+     else if(f.kind==='generator'){prop('generator',f.x,0,f.z,ry0);const [lx,lz]=propAt(f.x,f.z,ry0,-.74,.545);box(.08,.04,.012,lx,.52,lz,lens.red,ry0);}
+     else for(const a of rec){if(f.kind==='drums')prop(a[5]===blueBin?'drum_blue':'drum_rust',a[2],0,a[4],(a[2]*7.3+a[4]*3.1)%6.283);
+      else if(f.kind==='pallets')prop('pallet',a[3],a[4]-a[1]/2,a[5],a[7],a[0]/1.2,1,a[2]/1);
+      else prop('crate',a[3],a[4]-a[1]/2,a[5],a[7],a[0],a[1],a[2]);}}
+   }
    // ---- fire escapes ----
    for(const e of escapesIn(q)){made.escapes++;const {H,depth,half,ladder,ladderW,ladderLow}=ESC,t=e.t,u=e.u,at=(s,o)=>[e.x+t[0]*s+u[0]*o,e.z+t[1]*s+u[1]*o],ry=u[1]!==0?0:Math.PI/2,along=(w,h,d)=>u[1]!==0?[w,h,d]:[d,h,w];
     const level=(Y,top)=>{const [cx,cz]=at(0,depth/2);box(...along(half*2,.05,depth),cx,Y,cz,steel);   // the grating
@@ -338,6 +365,7 @@
    if(!low){const [sx,sz]=P(U.STAIR+.4,-U.W/2+.02),m=B.MeshBuilder.CreatePlane('back-under-sign',{width:.55,height:.72,frontUVs:new B.Vector4(.75,.5,1,1)},scene);m.position.set(sx,-U.DEPTH+1.5,sz);m.rotation.y=Math.atan2(-t[0],-t[1]);put(m,poster);}
    made.underground=(made.underground||0)+1;}
   // ---- merge: one mesh per material ----
+  finishProps();
   for(const [mat,list_] of groups){if(!list_.length)continue;const mm=list_.length>1?B.Mesh.MergeMeshes(list_,true,true,undefined,false,false):list_[0];if(!mm)continue;mm.name='back-'+mat.name;mm.material=mat;mm.parent=parent;mm.isPickable=false;mm.receiveShadows=false;if(mat===poolM)mm.alphaIndex=2;mm.freezeWorldMatrix();own.push(mm);made.meshes++;}
   for(const g of (scene.effectLayers||[]).filter(l=>l.addExcludedMesh&&/glow/i.test(l.getClassName?.()||'')))for(const o of own)if(o.getTotalVertices&&!/back-glow/.test(o.material?.name||''))g.addExcludedMesh(o);
   return {stats:()=>({...made}),underDoor:id=>underDoors[id]||null,dispose(){for(const o of own.reverse())try{o.dispose();}catch{}own.length=0;groups.clear();}};}

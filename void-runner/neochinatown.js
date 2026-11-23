@@ -1479,7 +1479,7 @@
     // Crosswalks (crosswalks.js, the owner 20 Nov 2026): one merged mesh of worn zebra paint and stop lines per quarter, plus signal posts and their icons at junctions and gates.
     const crosswalks=QK&&wantStreet&&root.VoidCrosswalks?root.VoidCrosswalks.build({B,scene,parent,quality,quarter:QK,road:mats.asphalt}):null;
     // The back alleys, bays, yards and fire escapes behind the housing (ncz-backalleys.js, the owner 20 Nov 2026): one merged mesh per material for the quarter.
-    const backAlleys=QK&&wantStreet&&BA&&BA.build?BA.build({B,scene,parent,quality,quarter:QK,base}):null;
+    const backAlleys=QK&&wantStreet&&BA&&BA.build?BA.build({B,scene,parent,quality,quarter:QK,base,instance:modelInstance}):null;
     function atmosphere(time,dt){const cam=scene.activeCamera?.globalPosition,inClub=!!cam&&!!clubCtl&&clubCtl.inside(cam),inside=inClub||!!cam&&(zone({x:cam.x,z:cam.z}).area==='district'||MK.inside(cam));applyLook(inside&&!inClub);const sky=inClub?clubSky:inside?indoor:outdoor,key=inClub?'club':inside?'district':'street';
      if(ambient){ambient.intensity+=(sky.intensity-ambient.intensity)*Math.min(1,dt*3);if(key!==wasInside){if(sky.diffuse)ambient.diffuse=sky.diffuse;if(sky.ground&&ambient.groundColor)ambient.groundColor=sky.ground;wasInside=key;}}
      // Haze: thicker and violet inside the club, the street's teal fog everywhere else.
@@ -1517,6 +1517,9 @@
    // keeps its built buildings.
    'ncz:building5':{src:'assets/models/ncz/building5.vrpak'},'ncz:storefronts':{src:'assets/models/ncz/storefronts.vrpak'},
    // The Outskirts' purchased packs (CGTrader, Royalty Free, NO AI use, no redistribution; docs/VOID_RUNNER_ASSET_LICENSES.md): 20 ft containers and dirty solar panels. Private repository only; without them ncz-containers.js builds its own.
+   // The street props made in Blender for this project (graphics modernization batch 1; tools/assets/kit/build_street_props.py, no third-party assets): the back alleys'
+   // dumpsters, crates, pallets, drums, generators, wall utility boxes and lamp housings (ncz-backalleys.js). One file, one shared material; without it the alleys keep their box-built props.
+   'ncz:street_props':{src:'assets/models/ncz-props/ncz_street_props.glb',scale:1},
    'ncz:outskirts-containers':{src:'assets/models/ncz/outskirts-containers.vrpak'},'ncz:outskirts-solar':{src:'assets/models/ncz/outskirts-solar.vrpak'},'ncz:outskirts-dish':{src:'assets/models/ncz/outskirts-dish.vrpak'}};
   // The models one environment needs: the street's city pack, or the District's furniture and VR players.
   function modelsFor(area='all'){if(area==='all')return models;const street=k=>k.startsWith('ncz:'),entry=k=>k.startsWith('entry:');return Object.fromEntries(Object.entries(models).filter(([k])=>entry(k)||(area==='street'?street(k):!street(k))));}

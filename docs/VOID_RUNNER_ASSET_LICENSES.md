@@ -270,3 +270,13 @@ muffled 124 BPM thump), nothing recorded or licensed.
 ## Store display sheets in the in-game shop (Nov 2026)
 
 `void-runner/assets/textures/store/store-apparel.png` is made from The Darknet District's own Shopify product pictures (the owner's designs). `store-survival.jpg` is made from the product photos in `attached_assets/` that the website's survival page already shows: they picture **other makers' products and brand names** (Leatherman, Holosun, MIRA Safety, Fenix and others). **Question for the owner, not yet answered:** whether showing those branded products inside the game is covered by the same arrangement as showing them on the store page. If not, replace that sheet with unbranded stand-ins (`tools/assets/store/build_atlas.py`).
+
+## Project-made Blender assets: graphics modernization (from 23 Nov 2026)
+
+Not third-party: made in Blender (the `bpy` module, by code) by Claude for this project, with procedurally generated textures. No downloaded models, textures, scans
+or AI-generated images are in them; the label wording and operator names on them are fictional. They may be committed to this public repository. Audit and batch log:
+`docs/development/GRAPHICS_AUDIT.md`.
+
+| File | Contents | Source | Date | State |
+|---|---|---|---|---|
+| `void-runner/assets/models/ncz-props/ncz_street_props.glb` (+ `ncz-props-manifest.json`) | NeoChinatown back-alley props, batch 1: two dumpsters, crate, pallet, two oil drums, generator, wall utility box, caged wall lamp; one embedded 2048 px atlas (colour, normal, metal/roughness) | `tools/assets/kit/build_street_props.py` | 2026-11-23 | In the game on Medium and above (branch `claude/graphics-modernization`) |

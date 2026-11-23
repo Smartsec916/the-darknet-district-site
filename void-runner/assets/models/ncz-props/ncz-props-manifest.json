@@ -1,0 +1,115 @@
+{
+ "file": "ncz_street_props.glb",
+ "source": "tools/assets/kit/build_street_props.py (made in Blender by code for this project; no third-party assets)",
+ "units": "metres",
+ "up": "+Y",
+ "front": "+Z",
+ "origin": "floor props: centre of the footprint on the ground; utility_box and wall_lamp: on the wall, centre line",
+ "material": "ncz_props (one 2048 px atlas: colour, normal, metal/roughness; wear in COLOR_0); lens/led nodes: ncz_props_glow, replaced by the game",
+ "atlasRegions": [
+  "paint_green",
+  "paint_blue",
+  "galv",
+  "rust",
+  "plastic",
+  "crate_wood",
+  "pallet_wood",
+  "hazard",
+  "paint_olive",
+  "steel_dark",
+  "labels",
+  "paint_grey",
+  "rubber",
+  "lens",
+  "spare1",
+  "spare2"
+ ],
+ "triangles": 10182,
+ "props": {
+  "dumpster_green": {
+   "triangles": 1704,
+   "size": {
+    "x": 2.04,
+    "y_up": 1.302,
+    "z_depth": 1.222
+   },
+   "nodes": []
+  },
+  "dumpster_blue": {
+   "triangles": 1704,
+   "size": {
+    "x": 2.04,
+    "y_up": 1.302,
+    "z_depth": 1.222
+   },
+   "nodes": []
+  },
+  "crate": {
+   "triangles": 840,
+   "size": {
+    "x": 1.012,
+    "y_up": 1.006,
+    "z_depth": 1.012
+   },
+   "nodes": []
+  },
+  "pallet": {
+   "triangles": 400,
+   "size": {
+    "x": 1.2,
+    "y_up": 0.12,
+    "z_depth": 1.0
+   },
+   "nodes": []
+  },
+  "drum_rust": {
+   "triangles": 1180,
+   "size": {
+    "x": 0.594,
+    "y_up": 0.9,
+    "z_depth": 0.594
+   },
+   "nodes": []
+  },
+  "drum_blue": {
+   "triangles": 1164,
+   "size": {
+    "x": 0.594,
+    "y_up": 0.9,
+    "z_depth": 0.594
+   },
+   "nodes": []
+  },
+  "generator": {
+   "triangles": 1958,
+   "size": {
+    "x": 1.842,
+    "y_up": 2.0,
+    "z_depth": 1.14
+   },
+   "nodes": [
+    "generator__led"
+   ]
+  },
+  "utility_box": {
+   "triangles": 796,
+   "size": {
+    "x": 0.96,
+    "y_up": 1.56,
+    "z_depth": 0.345
+   },
+   "nodes": []
+  },
+  "wall_lamp": {
+   "triangles": 436,
+   "size": {
+    "x": 0.416,
+    "y_up": 0.31,
+    "z_depth": 0.47
+   },
+   "nodes": [
+    "wall_lamp__lens"
+   ]
+  }
+ }
+}

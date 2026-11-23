@@ -98,7 +98,7 @@ test('wired in: scripts in order, the editor map draws them and the fire escapes
  const html=src('void-runner.html'),i=n=>html.indexOf('void-runner/'+n+'"');assert.ok(i('ncz-backalleys.js')>0&&i('ncz-backalleys.js')<i('npc-areas.js')&&i('ncz-backalleys.js')<i('ncz-quarters.js')&&i('ncz-backalleys.js')<i('neochinatown.js'));
  assert.ok(i('ncz-backalleys-integration.js')>i('apartment-integration.js')&&i('ncz-backalleys-integration.js')>i('prologue-integration.js'));assert.equal(src('static/void-runner.html'),html);
  const P=require(R('void-runner/npc-paths.js'));for(const q of BA.QUARTERS){const m=P.mapData(q);assert.equal(m.escapes.length,BA.escapesIn(q).length);const [x0,x1,z0,z1]=BA.extent(q);assert.ok(m.view.x0<=x0&&m.view.x1>=x1&&m.view.z0<=z0&&m.view.z1>=z1,q+' map shows them');}
- assert.match(src('void-runner/npc-map.js'),/fire escape/);assert.match(src('void-runner/neochinatown.js'),/BA\.build\(\{B,scene,parent,quality,quarter:QK,base\}\)/);
+ assert.match(src('void-runner/npc-map.js'),/fire escape/);assert.match(src('void-runner/neochinatown.js'),/BA\.build\(\{B,scene,parent,quality,quarter:QK,base,instance:modelInstance\}\)/);
  assert.match(require(R('void-runner/npc-behaviour.js')).prompt('grey-reverie'),/back alleys/);
  assert.match(src('void-runner-sw.js'),/const BUILD='\d{4}-\d{2}-\d{2}-[a-z0-9-]+';/);});
 test('a narrow opening between two pieces (the Avenue north alley into its loading bay) is kept clear of furniture (night QA)',()=>{const BA=require('../void-runner/ncz-backalleys.js');
