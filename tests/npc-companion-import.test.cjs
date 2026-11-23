@@ -60,3 +60,31 @@ test('rejects invalid personality but ignores stale recordings safely',async()=>
  assert.deepEqual(x.missingVoiceLines,['Hello there']);
  assert.match(x.warnings[0],/old voice recording/);
 });
+
+test('repacking a character exports edited JSON and newly generated voices instead of the stale transfer',async()=>{
+ const original=studio.packTransfer(meta,[{meta:{kind:'model'},blob:glb()},
+  {meta:{kind:'voice',record:{text:'Hello there'}},blob:new Blob(['old-audio'])}]);
+ const updated={...meta,name:'Example Two',
+  dialogue:{greet:['Hello there','Welcome back']},
+  voices:[
+   {record:{text:'Hello there'},blob:new Blob(['old-audio'])},
+   {record:{text:'Welcome back',voiceId:'ABCDEFGHIJKLMNOPQRST',model:'eleven_v4'},blob:new Blob(['new-audio'])},
+   {record:{text:'Deleted old line'},blob:new Blob(['orphan-audio'])}
+  ]};
+ const repacked=await importer.repack(original,updated);
+ const manifest=await studio.unpackTransfer(repacked);
+ assert.equal(manifest.meta.name,'Example Two');
+ assert.deepEqual(manifest.meta.dialogue,updated.dialogue);
+ assert.equal(manifest.parts.filter(p=>p.meta.kind==='model').length,1);
+ assert.deepEqual(manifest.parts.filter(p=>p.meta.kind==='voice').map(p=>p.meta.record.text),
+  ['Hello there','Welcome back']);
+ assert.equal(await manifest.parts.at(-1).blob.text(),'new-audio');
+ const checked=await importer.inspect(repacked);
+ assert.equal(checked.recordedLineCount,2);
+ assert.deepEqual(checked.missingVoiceLines,[]);
+});
+test('repacking refuses invalid new personality and invalid export name',async()=>{
+ const original=studio.packTransfer(meta,[{meta:{kind:'model'},blob:glb()}]);
+ await assert.rejects(importer.repack(original,{...meta,voices:[],personality:{initiative:4}}),/Invalid behavior setting/);
+ await assert.rejects(importer.repack(original,{...meta,voices:[],name:'X'.repeat(41)}),/40 characters/);
+});
