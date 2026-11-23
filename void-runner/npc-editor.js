@@ -598,7 +598,61 @@
       ' unique lines · estimated '+planned.estimate.credits+' credits (actual billing may differ). No voices have been generated.';
     }catch(err){voiceStatus.textContent='Cannot preview voice batch: '+err.message;}
    },'',{'data-npc-voice-batch-preview':'1'}),voiceStatus);
-   voiceBox.append(el('p','Generation still requires the authenticated ElevenLabs backend, your explicit approval, and the publish workflow. This button only prepares the missing-line count.','me-warn'));
+   // Generate only on an explicit, owner-confirmed click. The backend holds the ElevenLabs key.
+   // Each successful line is saved immediately, so a failed batch can resume missing-only.
+   let generating=false;
+   voiceBox.append(btn('GENERATE ALL MISSING VOICES',async()=>{
+    if(generating)return;
+    const dev=DTX();
+    if(!dev?.authorized||typeof dev.request!=='function'){voiceStatus.textContent='Developer authentication is required.';return;}
+    try{
+     await ensureCompanionImporter();
+     for(const [name,url] of [['VoidNPCVoices','void-runner/npc-voices.js'],['VoidNPCVoiceBatch','void-runner/npc-voice-batch.js'],['VoidVoiceImports','void-runner/voice-imports.js']]){
+      if(root[name])continue;
+      await new Promise((ok,no)=>{const s=document.createElement('script');s.src=url;s.onload=ok;s.onerror=()=>no(Error('Could not load '+url));document.head.append(s);});
+     }
+     const voice={kind:'elevenlabs',voiceId:voiceId.value.trim(),model:models.value};
+     if(voice.model!=='eleven_v4')throw Error('The authenticated generation endpoint currently supports Eleven v4. Choose Eleven v4.');
+     const current=()=>root.VoidNPCVoiceBatch.plan(rec.companion,{id:rec.companion.id,
+      recordings:(rec.companion.voices||[]).map(v=>v.record),voice});
+     const preview=current();
+     if(!preview.canGenerate)throw Error('Enter a valid 20-character ElevenLabs voice ID.');
+     if(!preview.missing){voiceStatus.textContent='Every dialogue line already has a recording.';return;}
+     if(!root.confirm('Generate '+preview.missing+' missing ElevenLabs recordings for '+rec.name+
+      '? Estimated '+preview.estimate.credits+' credits; actual credits depend on your ElevenLabs plan. Existing recordings will not be replaced.'))return;
+     generating=true;let saved=0;
+     try{
+      for(const job of preview.jobs){
+       if(!DTX()?.authorized||DTX()?.request!==dev.request)throw Error('Developer session changed; batch stopped.');
+       if(voiceId.value.trim()!==voice.voiceId||models.value!==voice.model)throw Error('Voice selection changed; batch stopped.');
+       const now=current();
+       if(!now.jobs.some(x=>x.text===job.text))continue;
+       if(!Object.values(rec.companion.dialogue||{}).flat().includes(job.text))throw Error('Dialogue changed; batch stopped.');
+       if(job.speakText.length>700)throw Error('One dialogue line exceeds the 700-character generation limit.');
+       voiceStatus.textContent='Generating '+(saved+1)+' of '+preview.missing+' missing voice lines…';
+       const output=await dev.request('developer/companion-voice',{voiceId:voice.voiceId,text:job.speakText});
+       if(!DTX()?.authorized)throw Error('Developer session changed; batch stopped.');
+       const bytes=Uint8Array.from(atob(output.audio||''),c=>c.charCodeAt(0));
+       const file=new File([bytes],job.id+'.mp3',{type:'audio/mpeg'});
+       const prepared=await root.VoidVoiceImports.prepare(file);
+       if(!prepared.ok||!await root.VoidVoiceImports.store(prepared.hash,prepared.type,prepared.data,prepared.duration))
+        throw Error('Generated audio could not be stored; the batch was stopped.');
+       if(!current().jobs.some(x=>x.text===job.text))continue;
+       rec.companion.voices=[...(rec.companion.voices||[]),{
+        record:{...root.VoidVoiceImports.record({...prepared,who:rec.companion.id,text:job.text}),voiceId:voice.voiceId,model:voice.model},
+        blob:file
+       }];
+       rec.companion.voiceSelection=voice;
+       await saveRec(rec);
+       saved++;
+      }
+      const remaining=current().missing;
+      voiceStatus.textContent=saved+' recordings generated and saved privately. '+remaining+' lines still missing. Use the normal package/publish workflow to make voices available to players.';
+     }catch(err){voiceStatus.textContent=saved+' saved. Batch stopped: '+err.message;}
+     finally{generating=false;}
+    }catch(err){voiceStatus.textContent='Could not generate: '+err.message;}
+   },'me-play',{'data-npc-voice-batch-generate':'1'}));
+   voiceBox.append(el('p','Eleven v4 uses the existing developer-authorized voice endpoint. This generates and saves private recordings only; publishing NPC assets and voice clips is still a separate approval step.','me-warn'));
    summary.append(voiceBox);
    main.append(summary);
   }
