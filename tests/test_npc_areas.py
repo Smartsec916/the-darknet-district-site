@@ -48,6 +48,14 @@ class NpcAreasServerTests(unittest.TestCase):
         self.assertTrue(any('road' in p for p in live.npc_problems({'grey-reverie': road}, INV)))
         self.assertTrue(live.wait_at_problems('grey-reverie', {'x': 52, 'z': -58, 'yaw': 0}, INV))
 
+    def test_tier_two_may_walk_through_a_gate_and_tier_one_may_not(self):
+        ave = {'from': '08:00', 'to': '12:00', 'mode': 'stay', 'x': 103.5, 'z': -6.4, 'yaw': 0, 'actions': ['idle']}
+        town = {'from': '12:00', 'to': '14:00', 'mode': 'stay', 'x': 73, 'z': -58.5, 'yaw': 0, 'actions': ['idle'], 'cross': True}
+        self.assertTrue(any('Tier 1' in p for p in live.npc_problems({'grey-reverie': {'mode': 'original', 'schedule': [ave, town]}}, INV)))
+        self.assertEqual(live.npc_problems({'grey-reverie': {'mode': 'original', 'tier': 2, 'schedule': [ave, town]}}, INV), [])
+        corp = {**town, 'x': 0, 'z': 220}
+        self.assertTrue(any('cannot walk' in p for p in live.npc_problems({'grey-reverie': {'mode': 'original', 'tier': 2, 'schedule': [ave, corp]}}, INV)))
+
     def test_the_draft_copy_refuses_forbidden_spots(self):
         base = {'version': 1, 'missions': {}, 'lines': {}, 'trees': [], 'npcs': {}, 'animRequests': []}
         self.assertTrue(drafts.validate_workspace(ws({**base, 'npcs': {'grey-reverie': {'mode': 'stay', 'x': 64, 'z': -242, 'yaw': 0, 'actions': ['idle']}}}))['valid'])
