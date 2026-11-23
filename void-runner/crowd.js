@@ -20,6 +20,8 @@
   'npc-zane':['idle','talk','walk','sit','sit-enter','sit-exit','sit-talk','dance','interact','idle-m2','blow-kiss','head-tilt','laugh','glance-back','slow-dance','dance-samba','sit-relax','sit-wave','shrug','recline'],   // Zane's own model (Meshy, 18 Nov 2026; the second male companion): Kai's clips, retargeted the same way
   'npc-fish':['idle','talk','walk','look','watch','sit','smoke','drink','laugh','shrug'],   // Fish, Milked's owner: her own model (Meshy, 16 Nov 2026)
   'npc-dax':['idle','talk','look','watch','walk','glance-back','shrug'],
+  // Nomi and Se7en (tea-duo.js; the owner's own models from his Companion Studio packages, licensed, private .vrpak): the seven clips each package carries, embedded in the model.
+  'npc-nomi':['idle','talk','walk','sit','sit-enter','sit-exit','run'],'npc-se7en':['idle','talk','walk','sit','sit-enter','sit-exit','run'],
   // Characters made with Meshy from the owner's reference pictures (docs/development/MESHY_CHARACTERS.md): one skinned mesh each on a 24-joint skeleton (no fingers).
   'npc-admin':['idle','talk','walk','look','shrug'],'npc-iris':['idle','talk','walk','look','shrug'],
   'npc-nyx':['idle','talk','walk','look','watch','laugh','shrug','wipe'],   // Nyx, the District's bartender: her own model (Meshy, 16 Nov 2026)
@@ -72,7 +74,7 @@
  /* FLOOR POSES (21 Nov 2026, the owner: "can you add kneeling and cross-legged pose? add them to any npc that has the correct skeleton. also a sitting knee to chest pose"):
     posed by code on every figure here with the shared mixamorig skeleton (tools/animation-pipeline/make_floor_poses.py). Not the VR companions' figures (Kai, Zane, Luna and the
     companion files: their own rules) nor the licensed files kept outside this repository. The figure's origin goes on the floor / cushion / cot top (the seat's height). */
- const FLOOR=['floor-kneel','floor-cross','floor-knees'],NO_FLOOR=/^(vr-companion|npc-kai$|npc-zane$|npc-luna$|npc-dax$|studio-warrior$)/;
+ const FLOOR=['floor-kneel','floor-cross','floor-knees'],NO_FLOOR=/^(vr-companion|npc-kai$|npc-zane$|npc-luna$|npc-dax$|studio-warrior$|npc-nomi$|npc-se7en$)/;
  /* With them, sitting down to each and standing up from it (21 Nov 2026, one-shot, posed by code the same way; the '-hi' pairs from the edge of a cot or a bench):
     played by the seat runtime (ncz-street-pair.js FLOOR_MOVE), never offered as a choice in the editors (npc-gestures.js NO). */
  const FLOOR_MOVES=['kneel','cross','knees'].flatMap(p=>['floor-'+p+'-down','floor-'+p+'-up']).concat(['cross','knees'].flatMap(p=>['floor-'+p+'-down-hi','floor-'+p+'-up-hi']));

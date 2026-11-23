@@ -53,6 +53,32 @@ function clearRoomLine(a,b,solids){
  }return true;
 }
 // Push overlapping people apart. The caller keeps the result only when it stays on walkable ground.
+// Paired room conversation (Nomi and Se7en behind the tea room): one speaker at a time, their authored entrance lines in author order, one state per player.
+// The caller reports `playing` (the current line's recording is still sounding); the next line waits for it to finish, then a short pause (pauseMs). A line whose
+// audio never reports back is released after maxLineMs. Walking out clears the queue (cancel: true tells the caller to stop a line still sounding); a re-entry before
+// cooldownMs has passed starts nothing. A conversation held up by `blocked` (another conversation or a mission line) waits, it is not dropped.
+function roomDuoStep(previous,{inside,present,blocked,playing=false,now,lines,members=['nomi','se7en'],pauseMs=900,noticeMs=700,cooldownMs=90000,maxTurns=10,maxLineMs=20000}){
+ const p=previous||{inside:false,last:-Infinity,queue:[],nextAt:0,waiting:false,waitUntil:0};
+ const state={inside:!!inside,last:p.last??-Infinity,queue:[...(p.queue||[])],nextAt:p.nextAt||0,waiting:!!p.waiting,waitUntil:p.waitUntil||0};
+ if(!inside){const cancel=!!(state.queue.length||state.waiting);state.queue=[];state.nextAt=0;state.waiting=false;return {state,line:null,cancel};}
+ if(!p.inside){
+  state.queue=[];state.waiting=false;
+  if(present&&now-state.last>=cooldownMs){
+   const pools=Object.fromEntries(members.map(id=>[id,Array.isArray(lines?.[id])?lines[id].filter(s=>typeof s==='string'&&s.trim()).map(s=>s.trim()):[]]));
+   for(let i=0;state.queue.length<maxTurns;i++){
+    let any=false;
+    for(const id of members){const text=pools[id]?.[i];if(text&&state.queue.length<maxTurns){state.queue.push({speaker:id,text});any=true;}}
+    if(!any)break;
+   }
+   if(state.queue.length){state.last=now;state.nextAt=now+noticeMs;}
+  }
+ }
+ if(state.waiting){if(playing&&now<state.waitUntil)return {state,line:null};state.waiting=false;state.nextAt=Math.max(state.nextAt,now+pauseMs);}
+ if(blocked||!present||now<state.nextAt||!state.queue.length)return {state,line:null};
+ const line=state.queue.shift();
+ state.waiting=true;state.waitUntil=now+maxLineMs;
+ return {state,line};
+}
 function separate(self,others,radius=0.8){
  if(!self||!Number.isFinite(self.x+self.z))return null;
  let x=self.x,z=self.z;
@@ -94,6 +120,6 @@ function followStep({phase='invite',waited=0}={},input){
  if(near&&!atDestination)return {phase:'lead',waited:0};
  const w=waited+Math.max(0,dt);return {phase:w>=maxWait?'return':'wait',waited:w};
 }
-const api={createDialogueCoordinator,roomVisit,roomDialogueStep,clearRoomLine,separate,followInvite,groupStep,followStep};
+const api={createDialogueCoordinator,roomVisit,roomDialogueStep,clearRoomLine,roomDuoStep,separate,followInvite,groupStep,followStep};
 if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.VoidAdvancedInteractions=api;
 })(typeof globalThis!=='undefined'?globalThis:this);

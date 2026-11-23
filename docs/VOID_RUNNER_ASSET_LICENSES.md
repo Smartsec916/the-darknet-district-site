@@ -270,3 +270,13 @@ muffled 124 BPM thump), nothing recorded or licensed.
 ## Store display sheets in the in-game shop (Nov 2026)
 
 `void-runner/assets/textures/store/store-apparel.png` is made from The Darknet District's own Shopify product pictures (the owner's designs). `store-survival.jpg` is made from the product photos in `attached_assets/` that the website's survival page already shows: they picture **other makers' products and brand names** (Leatherman, Holosun, MIRA Safety, Fenix and others). **Question for the owner, not yet answered:** whether showing those branded products inside the game is covered by the same arrangement as showing them on the store page. If not, replace that sheet with unbranded stand-ins (`tools/assets/store/build_atlas.py`).
+
+## 23 Nov 2026 — Nomi and Se7en (underground sleeping room)
+
+| What | Source and licence evidence | Where it lives |
+|---|---|---|
+| Nomi's model (`npc-nomi`), 10,040 triangles, three 1761 px PNG textures, 19-joint skeleton, clips idle, talk, walk, sit, sit-enter, sit-exit, run | The owner's own Companion Studio package `nomi.vrcompanion` (id `local-mwspnx2p`, supplied 23 Nov 2026). The seller or generator and licence terms are **not recorded in the package**: treated as the owner's purchased or supplied companion model, licensed for his intended use, and as **No AI** (never sent to Meshy or any AI service). **Question for the owner:** the source and licence text, to record here. | `npc-nomi.vrpak` (the GLB unchanged, scrambled by `tools/assets/pack-model.cjs`) in the private repository `Smartsec916/void-runner-licensed-assets`, `void-runner/assets/models/crowd/`, commit 708caab8; sealed (VRPE) at the Pages build; git-ignored here. Used only by `void-runner/tea-duo.js`. |
+| Se7en's model (`npc-se7en`), 216,286 triangles in 10 parts, 1024 px JPEG textures, same skeleton and clips | The owner's package `se7en.vrcompanion` (id `local-mwsqafm4`). Same open question and same handling. | `npc-se7en.vrpak`, same place and commit. |
+| Ten recorded lines (the five `greet` lines of each, MP3 as supplied, sha256 in the list) | The owner's own recordings in the same packages (each package holds 125 recordings: 25 pools of 5). Only the greeting pools are published; they are the room-entrance exchange. | `void-runner/assets/audio/voice/extra/tea-duo/` and `extra/tea-duo.json` (public repository; the owner's words and voices, nothing generated here). |
+
+Placement rule: only the sleeping room (`under-sleeping-room`) behind the underground tea room. Both are adult characters. The other 20 pools of each package (about 230 recordings) stay with the owner until the game plays them.

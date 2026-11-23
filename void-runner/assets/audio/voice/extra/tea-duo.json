@@ -1,0 +1,107 @@
+{
+ "version": 1,
+ "format": "recorded lines from the owner's .vrcompanion packages (Nomi local-mwspnx2p, Se7en local-mwsqafm4)",
+ "note": "The owner's own recordings, copied unchanged from the packages (MP3, as supplied; sha256 in `hash`). Only the greeting pools (the room entrance exchange of the tea room's sleeping room, tea-duo.js) are published; the other 20 pools of each package stay with the owner.",
+ "lines": {
+  "nomi-greet-1": {
+   "speaker": "nomi",
+   "text": "[surprised] Oh! There's someone here!",
+   "file": "extra/tea-duo/nomi-greet-1.mp3",
+   "duration": 2.03,
+   "hash": "5c9862b4c8d85ba82969acb4e02a25255cf79a1642ec82da6b3b47f158c92e6f",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-001-greet-bf2138d2.mp3"
+  },
+  "nomi-greet-2": {
+   "speaker": "nomi",
+   "text": "[excited] Well, hello there, handsome! [giggles] We don't get many visitors this charming.",
+   "file": "extra/tea-duo/nomi-greet-2.mp3",
+   "duration": 5.55,
+   "hash": "170203e65883b72dec74071f1757f918f60a54217c09afaaf443545453afa602",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-002-greet-1ab7cd33.mp3"
+  },
+  "nomi-greet-3": {
+   "speaker": "nomi",
+   "text": "[softly] Aww, don't be shy. Come a little closer.",
+   "file": "extra/tea-duo/nomi-greet-3.mp3",
+   "duration": 3.62,
+   "hash": "946cb5b898934ee8180c5d7231960302de0ac2d7fcf98168ed85e6e87d21bcdf",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-003-greet-0fa0b1f8.mp3"
+  },
+  "nomi-greet-4": {
+   "speaker": "nomi",
+   "text": "[playfully] Were you looking for some tea... [whispers] or something a little sweeter?",
+   "file": "extra/tea-duo/nomi-greet-4.mp3",
+   "duration": 4.12,
+   "hash": "5b6f0186be28619182af4f3bc818fd21562146ce4ffb0c3f136b4086126bad96",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-004-greet-c299dfad.mp3"
+  },
+  "nomi-greet-5": {
+   "speaker": "nomi",
+   "text": "[flirty] I think you're going to like it here. [giggles] We take very good care of our guests.",
+   "file": "extra/tea-duo/nomi-greet-5.mp3",
+   "duration": 5.06,
+   "hash": "48917a1d192c1257bd3275ff7e17642d50fde3019ed038a264e5b907ae4c27d2",
+   "type": "audio/mpeg",
+   "package": "local-mwspnx2p",
+   "source": "line-005-greet-dc11c3fa.mp3"
+  },
+  "se7en-greet-1": {
+   "speaker": "se7en",
+   "text": "[surprised] Oh! Nomi, you didn't tell me we had company!",
+   "file": "extra/tea-duo/se7en-greet-1.mp3",
+   "duration": 3.78,
+   "hash": "4027ad2d346572f43299a7be0338f72bbe97d341688ea76e645ae61cdaa56633",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-001-greet-3a8e4706.mp3"
+  },
+  "se7en-greet-2": {
+   "speaker": "se7en",
+   "text": "[playfully] Well, hello, handsome. [giggles] Have you ever spent time with an android before?",
+   "file": "extra/tea-duo/se7en-greet-2.mp3",
+   "duration": 6.02,
+   "hash": "a7f4fac00dd42ee59b554f0ea4e450f0d49be606154d1310d0c40153bc0195bd",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-002-greet-a3d2b04a.mp3"
+  },
+  "se7en-greet-3": {
+   "speaker": "se7en",
+   "text": "[flirty] I'm Se7en. Programmed for pleasure... [whispers] but I've learned a few tricks of my own.",
+   "file": "extra/tea-duo/se7en-greet-3.mp3",
+   "duration": 5.55,
+   "hash": "4dfd705c2f466a0d952fcc36ef36d6431a100a02f682f0deb92bc58e3ede3e8a",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-003-greet-e80502a8.mp3"
+  },
+  "se7en-greet-4": {
+   "speaker": "se7en",
+   "text": "[sweetly] Don't be shy. My hospitality protocols are exceptionally friendly.",
+   "file": "extra/tea-duo/se7en-greet-4.mp3",
+   "duration": 5.32,
+   "hash": "8ecc3622db959f9a1a3a58baef9ee089768320121f9fc6c4dd76ab60ae0e140e",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-004-greet-e16a647e.mp3"
+  },
+  "se7en-greet-5": {
+   "speaker": "se7en",
+   "text": "[teasing] Nomi makes the tea. [giggles] I make sure you enjoy it.",
+   "file": "extra/tea-duo/se7en-greet-5.mp3",
+   "duration": 4.66,
+   "hash": "0c886ac522bff714e6b1ce7a9384426032cceb90bee0f703c0093a48d939c43b",
+   "type": "audio/mpeg",
+   "package": "local-mwsqafm4",
+   "source": "line-005-greet-15cbac4a.mp3"
+  }
+ }
+}
