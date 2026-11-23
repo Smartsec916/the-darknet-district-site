@@ -60962,7 +60962,7 @@
       "spawn"
     ]
   },
-  "revision": "f096f64b54e69b35",
+  "revision": "4106cc3d510bc9a7",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -81797,12 +81797,12 @@
     "void-runner/voice-provider.js": "8a1cd10de8ea7160bbeafe0853204b996fff4e1d6a8e5dbf654a60f132a319ef",
     "void-runner/vr-combat.js": "cb3efeecb5aa2e84d49c1590b4bc916e2bf9e4ddb7194c97ef07b400b80d24d0",
     "void-runner/vr-companion-studio.js": "050a7c5bb43eb46e9d9ac35a027ad23af5b5a3e790c76865c290c4de83ac1c19",
-    "void-runner/vr-companions.js": "c0e5a16e373511d0d5c13fb3df39d9a9a42d29e45f251366c1893bdb21ba333f",
+    "void-runner/vr-companions.js": "cdeec7bf34a8c92f84cec29396c794c525951992e5a3bd3ecd6d6982dde11a22",
     "void-runner/vr-core.js": "a8a8a8d42d85ae2f2e41145ec07d5729ec185c92a63bacc2fff6dabf24985408",
     "void-runner/vr-forest.js": "6f3d4e0566de2bf9b5a73021a5a97471e8a735e582ff38bf09fbb960a544bf2b",
     "void-runner/vr-kit.js": "f7552ee5e7823a36689ad2c7f3c86f9045e4664ca019c3a95becf6b6d50f69a9",
     "void-runner/vr-suite-room.js": "90da4f894d8a4e32bfceed70974fd899aee6bd237e401dc2bd72fed99425af22",
-    "void-runner/vr-suite.js": "46a66de107cd952c5acd9c8d03d2d6975b44288ac6251c60591727f8b9b75f4b",
+    "void-runner/vr-suite.js": "54ae073968272ae118bf011edb3b41ece91fb8518e31c801ec58933d9eab573e",
     "void-runner/vr-tropical.js": "093635e6848f8b2dea73bc2fb9031e4158ac613363d2e337f1b7a8610175055b",
     "void-runner/warflying-board.js": "38e3f8bd2f2619a8c847785517603ca24ba1a56a2950a65782b46aeb51ea0c5b",
     "void-runner/warflying-scan.js": "6586f316406ea1d32b4a0dbd784cd5a0915602201bb82a1cbf107caea26f9eff",
