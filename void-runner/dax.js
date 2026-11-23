@@ -88,8 +88,15 @@
  function editorState(){
   const R=root.VoidDaxEditorRoutine;
   if(!R)return {inside:true,x:1.6,z:54.5,yaw:Math.PI/2,clip:'idle',device:false,place:'No routine configured'};
+  // Read the same published/draft content for every client. The ordinary game clock
+  // tracks each player's save independently; using it here would put Dax at
+  // different schedule stops for players standing together. Dax uses UTC instead.
   let plan=null;
-  try{plan=root.VoidLiveContent?.plans?.()?.dax||null;}catch{}
+  try{
+   const raw=root.VoidLiveContent?.current?.content?.npcs?.dax||null;
+   const X=root.VoidNPCPaths,minute=((Math.floor(now()/60)%1440)+1440)%1440;
+   plan=X?.planNow?.('dax',{plan:raw,minute})||null;
+  }catch{}
   return R.positionWorld(plan,now(),root.VoidNeoChinatown?.door);
  }
  function step(){
