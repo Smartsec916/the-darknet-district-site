@@ -492,16 +492,57 @@
   q.oninput=()=>{ui.lineSearch=q.value;inner.replaceChildren();S().linesView(inner,e.id,{search:ui.lineSearch});};box.append(q,hint(HELP.lineSearch),inner);S().linesView(inner,e.id,{search:ui.lineSearch});main.append(box);}
  const download=(name,data)=>{const a=document.createElement('a');a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([JSON.stringify(data,null,1)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);};
  // ---------------------------------------------------------------- import a model (this browser only)
- function importPick(){const f=document.createElement('input');f.type='file';f.accept='.glb,.gltf,model/gltf-binary,model/gltf+json';f.dataset.npcImportFile='1';f.style.display='none';document.body.append(f);
+ function importPick(){const f=document.createElement('input');f.type='file';f.accept='.glb,.gltf,.vrcompanion,model/gltf-binary,model/gltf+json';f.dataset.npcImportFile='1';f.style.display='none';document.body.append(f);
   f.onchange=async()=>{const file=f.files&&f.files[0];f.remove();if(file)await importFile(file);};f.click();}
- async function importFile(file){const ext=(file.name.match(/\.[a-z0-9]+$/i)||[''])[0].toLowerCase();if(!X().IMPORT.exts.includes(ext)){status='Only .glb or .gltf files can be imported.';draw();return null;}
-  if(file.size>X().IMPORT.maxBytes){status='This file is '+(file.size/1048576).toFixed(1)+' MB; the limit is '+(X().IMPORT.maxBytes/1048576).toFixed(0)+' MB. Reduce it in Blender, or send it to Claude/Codex.';draw();return null;}
-  try{X().importDocument(await file.arrayBuffer(),ext);}catch(err){status='Import refused: '+err.message;draw();return null;}
-  const rec={id:'imp-'+Date.now().toString(36),name:file.name.replace(/\.[^.]+$/,'').slice(0,60),fileName:file.name,type:file.type||'model/gltf-binary',bytes:file.size,blob:file,createdAt:new Date().toISOString(),licence:{source:'',type:'',noAI:null},placement:null,info:null};
-  await dbPut(rec);await loadImports();ui.id='import:'+rec.id;status='Imported '+file.name+' (in this browser only). Press SHOW 3D PREVIEW to run the checklist.';root.VoidEditorGuide?.focusNext();draw();return rec;}
+ // Studio is loaded on demand, after developer authorization, not for ordinary players.
+ async function ensureCompanionImporter(){
+  for(const [prop,src] of [['VoidVRCompanionStudio','void-runner/vr-companion-studio.js'],['VoidNPCCompanionImport','void-runner/npc-companion-import.js']]){
+   if(root[prop])continue;
+   await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=src;s.onload=resolve;s.onerror=()=>reject(Error('Could not load '+src));document.head.append(s);});
+   if(!root[prop])throw Error('Missing companion importer: '+src);
+  }
+  return root.VoidNPCCompanionImport;
+ }
+ async function importFile(file){
+  const ext=(file.name.match(/\\.[a-z0-9]+$/i)||[''])[0].toLowerCase(),transfer=ext==='.vrcompanion';
+  if(!transfer&&!X().IMPORT.exts.includes(ext)){status='Only .glb, .gltf or .vrcompanion files can be imported.';draw();return null;}
+  let model=file, companion=null, original=null, modelName=file.name;
+  try{
+   if(transfer){
+    const inspected=await(await ensureCompanionImporter()).inspect(file);
+    model=inspected.model;original=file;modelName=inspected.id+'.glb';
+    companion={id:inspected.id,name:inspected.name,sex:inspected.sex,about:inspected.about,
+     personality:inspected.personality,dialogue:inspected.dialogue,worldBehavior:inspected.worldBehavior,
+     relationships:inspected.relationships,residence:inspected.residence,roomPlan:inspected.roomPlan,
+     voices:inspected.voices,motions:inspected.motions,
+     animationNames:inspected.animationNames,warnings:inspected.warnings,
+     dialogueLineCount:inspected.dialogueLineCount,recordedLineCount:inspected.recordedLineCount,
+     missingVoiceLines:inspected.missingVoiceLines};
+   }
+   if(model.size>X().IMPORT.maxBytes)throw Error('Model exceeds the '+(X().IMPORT.maxBytes/1048576).toFixed(0)+' MB limit. Reduce it in Blender.');
+   X().importDocument(await model.arrayBuffer(),transfer?'.glb':ext);
+  }catch(err){status='Import refused: '+err.message;draw();return null;}
+  const rec={id:'imp-'+Date.now().toString(36),name:(companion?.name||file.name.replace(/\\.[^.]+$/,'')).slice(0,60),
+   fileName:modelName,sourceFileName:file.name,type:model.type||'model/gltf-binary',bytes:model.size,
+   blob:model,transferBlob:original,companion,createdAt:new Date().toISOString(),
+   licence:{source:'',type:'',noAI:null},placement:null,info:null};
+  try{await dbPut(rec);await loadImports();}catch(err){status='Could not save the local import: '+err.message;draw();return null;}
+  ui.id='import:'+rec.id;
+  status='Imported '+file.name+' privately. Press SHOW 3D PREVIEW to check its model and animations.';
+  root.VoidEditorGuide?.focusNext();draw();return rec;
+ }
  async function saveRec(rec){await dbPut(rec);await loadImports();}
  function importDetail(main,rec,pv){
   main.append(el('p','LOCAL TEST ONLY · not in the live game · kept in this browser · '+rec.fileName+' · '+(rec.bytes/1048576).toFixed(1)+' MB','me-warn',{'data-npc-local-only':'1'}),hint(HELP.import));
+  if(rec.companion){
+   const p=rec.companion,summary=el('section','','me-check',{'data-npc-companion-profile':'1'});
+   summary.append(el('h4','Imported companion profile'),el('p',p.about||'No personality description','me-small'),
+    el('p',Object.values(p.dialogue||{}).reduce((n,arr)=>n+arr.length,0)+' dialogue entries · '+(p.recordedLineCount||0)+' recorded lines · '+(p.missingVoiceLines||[]).length+' missing voice lines','me-small'),
+    el('p',(p.animationNames||[]).length+' model animations · '+(p.motions||[]).length+' companion motion files','me-small'));
+   for(const warning of p.warnings||[])summary.append(el('p',warning,'me-warn'));
+   summary.append(el('p','Personality, recordings and motion attachments are stored only in this browser. Missing voice generation and world publishing require the separate NPC voice/publishing workflow.','me-small'));
+   main.append(summary);
+  }
   const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height};await saveRec(rec);draw();}};
   previewBox(main,e,null,[],pv,file);
   const ck=el('section','','me-check',{'data-npc-checklist':rec.id});ck.append(el('h4','Checklist'),hint(HELP.check));
@@ -538,12 +579,13 @@
   lic.append(f('Where it is from','source','e.g. made in Meshy by me / CGTrader item 12345 / Sketchfab link'),f('Licence type','type','e.g. my own work / Royalty Free / CC-BY 4.0'));
   const ai=el('div','','me-row',{'data-npc-lic':'noAI'});ai.append(el('b','No AI licence?'));for(const [v,n] of [[true,'YES (No AI)'],[false,'NO']])ai.append(btn(n,async()=>{L.noAI=v;await saveRec(rec);draw();},L.noAI===v?'on':'',{'data-npc-noai':String(v),'aria-pressed':String(L.noAI===v)}));ai.append(hint('Yes if its licence forbids AI tools or AI training. Then it is only ever processed on your PC (Blender), never with Meshy or any AI tool.'));lic.append(ai);
   const ready=rec.info&&!refused&&L.source&&L.type&&(L.noAI===true||L.noAI===false)&&rec.name;
-  const r=el('div','','me-row me-actions');r.append(btn('ADD TO THE GAME (DOWNLOAD THE PACKAGE)',()=>{download(rec.fileName,rec.blob);download((rec.name||'model').replace(/[^\w-]+/g,'-')+'-package.json',packageOf(rec));status='Downloaded '+rec.fileName+' and its package. Send both to Claude or Codex.';draw();},'me-play',{'data-npc-add-to-game':rec.id,...(ready?{}:{disabled:'',title:'Fill in the name and the licence questions first (and the checklist must pass).'})}),hint(HELP.addToGame));lic.append(r);
+  const r=el('div','','me-row me-actions');r.append(btn('ADD TO THE GAME (DOWNLOAD THE PACKAGE)',()=>{download(rec.fileName,rec.blob);if(rec.transferBlob)download(rec.sourceFileName,rec.transferBlob);download((rec.name||'model').replace(/[^\w-]+/g,'-')+'-package.json',packageOf(rec));status='Downloaded '+rec.fileName+(rec.transferBlob?' and its original companion transfer':'')+' with the integration package. Send all files to Claude or Codex.';draw();},'me-play',{'data-npc-add-to-game':rec.id,...(ready?{}:{disabled:'',title:'Fill in the name and the licence questions first (and the checklist must pass).'})}),hint(HELP.addToGame));lic.append(r);
   lic.append(btn('Delete this model (from this browser)',async()=>{if(!confirm('Delete '+rec.fileName+' from this browser? You can press UNDO straight after.'))return;const keep=rec;await dbDel(rec.id);await loadImports();ui.id=null;status='Deleted '+keep.fileName+'.';ui.undo=async()=>{await dbPut(keep);await loadImports();ui.id='import:'+keep.id;};draw();},'me-x',{'data-npc-import-delete':rec.id}));
   main.append(lic);}
  function packageOf(rec){const I=rec.info||{};return {format:'darknet-district-npc-import',version:1,exportedAt:new Date().toISOString(),name:rec.name,fileName:rec.fileName,
   model:{triangles:I.triangles|0,bytes:rec.bytes|0,textures:I.textures||[],joints:(I.bones||[]).length,bones:(I.bones||[]).slice(0,80),clips:I.clips||[],height:Number.isFinite(I.height)?Math.round(I.height*100)/100:null},
   caps:{maxTriangles:X().IMPORT.maxTriangles,target:X().IMPORT.target,maxBytes:X().IMPORT.maxBytes,texWarn:X().IMPORT.texWarn},checklist:I.triangles!=null?X().importCheck(I).items:[],
+  companion:rec.companion?{id:rec.companion.id,about:rec.companion.about,personality:rec.companion.personality,dialogue:rec.companion.dialogue,dialogueLineCount:rec.companion.dialogueLineCount,recordedLineCount:rec.companion.recordedLineCount,missingVoiceLines:rec.companion.missingVoiceLines,originalPackage:rec.sourceFileName,voiceAndMotionFiles:'Included only in original .vrcompanion transfer'}:null,
   placement:rec.placement||null,licence:{source:rec.licence?.source||'',type:rec.licence?.type||'',noAI:rec.licence?.noAI},
   note:'Local test import from Developer Tools > NPCs. Not in the live game. Check the licence before committing; a licensed or unknown-licence model never goes into the public repository; a No AI model is processed locally only (never Meshy or any AI tool).'};}
  // ---------------------------------------------------------------- PLAY THIS DRAFT for a placement (and the local test of an imported model)
