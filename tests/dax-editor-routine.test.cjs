@@ -51,3 +51,16 @@ test('world-map route is converted consistently and rejects unsupported areas',(
 test('missing published plan stays stationary even when the clock changes',()=>{
  assert.deepEqual(R.positionWorld(null,0),R.positionWorld(null,86400));
 });
+
+test('Dax in-game actor uses the editor plan and loads its engine before the actor',()=>{
+ const fs=require('node:fs'),path=require('node:path');
+ const src=fs.readFileSync(path.resolve(__dirname,'../void-runner/dax.js'),'utf8');
+ const html=fs.readFileSync(path.resolve(__dirname,'../void-runner.html'),'utf8');
+ const paths=require('../void-runner/npc-paths.js');
+ assert.equal(paths.MOVABLE.dax.asset,'npc-dax');
+ assert.equal(paths.MOVABLE.dax.quarter,'district');
+ assert.match(src,/const N=root\.VoidNeoChinatown,s=editorState\(\)/);
+ assert.match(src,/root\.VoidLiveContent\?\.current\?\.content\?\.npcs\?\.dax/);
+ assert.match(src,/R\.positionWorld\(plan,now\(\),root\.VoidNeoChinatown\?\.door\)/);
+ assert.ok(html.indexOf('void-runner/dax-editor-routine.js')<html.indexOf('void-runner/dax.js'));
+});
