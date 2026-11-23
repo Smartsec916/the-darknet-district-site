@@ -541,6 +541,35 @@
     el('p',(p.animationNames||[]).length+' model animations · '+(p.motions||[]).length+' companion motion files','me-small'));
    for(const warning of p.warnings||[])summary.append(el('p',warning,'me-warn'));
    summary.append(el('p','Personality, recordings and motion attachments are stored only in this browser. Missing voice generation and world publishing require the separate NPC voice/publishing workflow.','me-small'));
+   const detail=el('details','','me-check',{'data-npc-companion-personality':'1'});
+   detail.append(el('summary','Edit personality and dialogue JSON (local draft)'));
+   const area=el('textarea','','',{'aria-label':'Personality JSON',rows:'12','data-npc-personality-json':'1'});
+   area.value=JSON.stringify({about:p.about||'',personality:p.personality||{},dialogue:p.dialogue||{}},null,2);
+   detail.append(area,hint('Paste the ChatGPT JSON here, then validate and save. This edits only this private model draft. Existing recordings are kept; changed dialogue lines are marked missing.'));
+   const row=el('div','','me-row me-actions');
+   row.append(btn('COPY CHATGPT PROMPT',async()=>{
+    try{
+     await ensureCompanionImporter();
+     const studio=root.VoidVRCompanionStudio;
+     const template={about:'600 characters maximum',personality:Object.fromEntries(Object.entries(studio.ranges).map(([k,v])=>[k,v[0]])),dialogue:Object.fromEntries(studio.pools.map(k=>[k,[]]))};
+     const prompt='Create a personality and dialogue for a Void Runner NPC named '+rec.name+'. Return ONLY a JSON object matching this template. Include 3–5 concise, non-explicit lines in each dialogue pool. Keep the description below 600 characters, all numeric settings within the documented ranges, and respect declined invitations. Adapt the personality to my instructions.\\nBehavior ranges: '+JSON.stringify(studio.ranges)+'\\nTemplate: '+JSON.stringify(template,null,2);
+     await navigator.clipboard.writeText(prompt);status='Copied the ChatGPT personality prompt for '+rec.name+'.';
+    }catch(err){status='Could not copy the prompt: '+err.message;}draw();
+   },'',{'data-npc-personality-prompt':'1'}));
+   row.append(btn('VALIDATE & IMPORT JSON',async()=>{
+    try{
+     await ensureCompanionImporter();
+     const profile=root.VoidVRCompanionStudio.profile(JSON.parse(area.value));
+     const all=[...new Set(Object.values(profile.dialogue).flat())];
+     const recorded=new Set((rec.companion.voices||[]).map(v=>v.record?.text).filter(t=>all.includes(t)));
+     Object.assign(rec.companion,profile,{dialogueLineCount:all.length,recordedLineCount:recorded.size,
+      missingVoiceLines:all.filter(line=>!recorded.has(line))});
+     await saveRec(rec);
+     status='Saved personality JSON for '+rec.name+' in this browser only; '+rec.companion.missingVoiceLines.length+' voice lines need recording.';
+     draw();
+    }catch(err){status='Personality JSON not imported: '+err.message;draw();}
+   },'me-play',{'data-npc-personality-import':'1'}));
+   detail.append(row);summary.append(detail);
    main.append(summary);
   }
   const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height};await saveRec(rec);draw();}};
