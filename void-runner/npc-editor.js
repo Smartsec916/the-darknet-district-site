@@ -571,6 +571,35 @@
     }catch(err){importError.textContent='Personality JSON not imported: '+err.message;}
    },'me-play',{'data-npc-personality-import':'1'}));
    detail.append(row);summary.append(detail);
+   // Private batch preparation: no paid ElevenLabs generation occurs in the browser.
+   const voiceBox=el('details','','me-check',{'data-npc-voice-batch':'1'});
+   voiceBox.append(el('summary','Voices · ElevenLabs missing-line batch'));
+   const voiceId=el('input','','',{'aria-label':'ElevenLabs voice ID (20 characters)',maxlength:'20',placeholder:'ElevenLabs voice ID'});
+   voiceId.value=p.voiceSelection?.voiceId||'';
+   const models=el('select','','',{'aria-label':'ElevenLabs model'});
+   const choices=[['eleven_v4','Eleven v4'],['eleven_v3','Eleven v3'],['eleven_multilingual_v2','Multilingual v2'],['eleven_flash_v2_5','Flash v2.5'],['eleven_turbo_v2_5','Turbo v2.5']];
+   for(const [key,label] of choices)models.append(new Option(label,key));
+   models.value=p.voiceSelection?.model||'eleven_v4';
+   voiceBox.append(el('p','Select the voice, then preview exactly which lines still need recording. Existing matching recordings will not be replaced. This is a private estimate, not an ElevenLabs request.','me-small'),voiceId,models);
+   const voiceStatus=el('p','','me-small',{'data-npc-voice-batch-status':'1'});
+   voiceBox.append(btn('PREVIEW MISSING VOICES',async()=>{
+    try{
+     await ensureCompanionImporter();
+     for(const [name,url] of [['VoidNPCVoices','void-runner/npc-voices.js'],['VoidNPCVoiceBatch','void-runner/npc-voice-batch.js']]){
+      if(root[name])continue;
+      await new Promise((ok,no)=>{const s=document.createElement('script');s.src=url;s.onload=ok;s.onerror=()=>no(Error('Could not load '+url));document.head.append(s);});
+     }
+     const voice={kind:'elevenlabs',voiceId:voiceId.value.trim(),model:models.value};
+     const planned=root.VoidNPCVoiceBatch.plan(p,{id:p.id,recordings:(p.voices||[]).map(v=>v.record),voice});
+     if(!planned.canGenerate)throw Error('Enter a valid 20-character ElevenLabs voice ID.');
+     p.voiceSelection=voice;
+     await saveRec(rec);
+     voiceStatus.textContent=planned.existing+' existing · '+planned.missing+' missing of '+planned.total+
+      ' unique lines · estimated '+planned.estimate.credits+' credits (actual billing may differ). No voices have been generated.';
+    }catch(err){voiceStatus.textContent='Cannot preview voice batch: '+err.message;}
+   },'',{'data-npc-voice-batch-preview':'1'}),voiceStatus);
+   voiceBox.append(el('p','Generation still requires the authenticated ElevenLabs backend, your explicit approval, and the publish workflow. This button only prepares the missing-line count.','me-warn'));
+   summary.append(voiceBox);
    main.append(summary);
   }
   const file=rec.blob;const e={id:'import:'+rec.id,onInfo:async info=>{rec.info={triangles:info.triangles,bytes:rec.bytes,textures:info.textures,bones:info.bones,rest:info.rest,clips:info.clips,height:info.height};await saveRec(rec);draw();}};
