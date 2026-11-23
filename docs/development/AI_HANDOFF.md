@@ -1,5 +1,10 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — Developer studios
+
+- SHOP HERE stands in the District store, apart from Admin and Iris. It sells a sprint tonic and a street tint. Buying again refreshes the time. The sprint is capped and changes walking speed. The tint stays off when reduced motion is on. Credits save; the effect is a short flag.
+- Developer Tools > Studios lists the existing area music, says an ad playlist may only use ads that already exist, and says a cinematic shot jumps in a throwaway session. A shared skirmish lobby is not on the multiplayer service. Practice on this machine still does not spend credits.
+
 ## 23 Nov 2026 — VOID//RUNNER branding
 
 - The games directory card and the main menu use the VOID//RUNNER wordmark. The homepage keeps Enter The Darknet District and shows the wordmark underneath. Every game card has a staggered edge glow that stops on hover, focus, reduced motion and forced colors. Site navigation is unchanged.

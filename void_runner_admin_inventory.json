@@ -60962,7 +60962,7 @@
       "spawn"
     ]
   },
-  "revision": "82d2bc73275c102e",
+  "revision": "f096f64b54e69b35",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -73896,6 +73896,18 @@
       "kind": "source-reference"
     },
     {
+      "source": "void-runner/dev-studios.js",
+      "line": 35,
+      "text": "const out=[];for(const k of ['music','ambient','effects','dialogue']){if(mix[k]!=null&&!(typeof mix[k]==='number'&&mix[k]>=0&&mix[k]<=1))out.push(k+' is a level from 0 to 1.');}return out;}",
+      "kind": "source-reference"
+    },
+    {
+      "source": "void-runner/dev-studios.js",
+      "line": 57,
+      "text": "const cr=Number.isInteger(root.state?.credits)?root.state.credits:0;let html='<h2 style=\"margin:0 0 8px;font-size:18px\">SHOP HERE</h2><p>This counter sells tonics. Admin and Iris keep their own conversation. You have '+cr+' CR.</p>';",
+      "kind": "source-reference"
+    },
+    {
       "source": "void-runner/dev-tools.js",
       "line": 107,
       "text": "bar(){const ES=globalThis.VoidEditorSession,t=ES?ES.TEXT:{};const parts=[];if(this.expiredBar)parts.push('<span data-dev-bar=\"signin\">'+escapeText(t.signin||'Sign-in expired.')+'</span><button type=\"button\" data-dev-bar-act=\"signin\">SIGN IN</button>');",
@@ -78649,19 +78661,19 @@
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 979,
+      "line": 980,
       "text": "rooms.every(dt=>{if(!ctrl||gone)return;const now=typeof speech!=='undefined'&&!!speech&&speech.lines?.[speech.index]?.who==='Bartender';if(now!==talking){talking=now;ctrl.play(now?'talk':'idle');next=8+Math.random()*8;return;}",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1143,
+      "line": 1144,
       "text": "const podPick=(x,y)=>{   // (x, y) is where the pointer is in the window. The game's picture is drawn smaller than the window and stretched whenever the quality setting says so, so the point is first brought to the picture's own size: without this a click landed beside what was drawn.",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/neochinatown.js",
-      "line": 1264,
+      "line": 1265,
       "text": "const playableGames=new Set((root.VoidNeoChinatown?.arcade||api.arcade).filter(c=>c.playable).map(c=>c.game));   /* a switched-on cabinet invites play; only the placeholders say COMING SOON */",
       "kind": "source-reference"
     },
@@ -81528,7 +81540,7 @@
     "void-runner/achievements.js": "c9fcfe10ff0b63159be95d0b2e139ac3dcc3848080d80f40f50589148fddf200",
     "void-runner/ad-art.js": "95aa9edc5b00507726638fd58694cf0908e54011690a013bdeb3047f7ccd511b",
     "void-runner/ad-screens-data.js": "5b13747bea7f18ff550dbd856d84d262ecc7341ee1bef68a2db446b7f1e44e50",
-    "void-runner/ad-screens.js": "d8634ec993098c1970f550d47343414714b497ac3e0b3ef1f9ec45eb7669ec38",
+    "void-runner/ad-screens.js": "5792c93ef49ad52000b82b2a8e73e216d1d1430e1e111f1db295b83d8f5ab944",
     "void-runner/anim-library.js": "660f03c7a581a52012ca3119bd5d131e2e7230b18ffe4031eb8ee9756370e951",
     "void-runner/animation-library.js": "99c052d646d975d912741b99dda7972234fa03a614600cf9cdc7b5c2957281c3",
     "void-runner/apartment-build.js": "6c55ad0c71ea04db0d947248fb02d26f04ea38e9668ba049c7d3fee8380a4cb7",
@@ -81579,8 +81591,9 @@
     "void-runner/dax.js": "f698cc465329779d91d4b893275427ee64316009ee124f5643f32ad47f5712ef",
     "void-runner/departure-art.js": "3e461d2b650ad6fdc202ec9166b87ec99d272ddf9110dd1f51c313c90fba831a",
     "void-runner/derelict-station.js": "1792f5117ac5d97f15a5b354202201348cf367175684b814f83531ad91cf8456",
+    "void-runner/dev-studios.js": "a81c044f49dcc5a7dcaf8f5fc511b78145f742de2b9288fc99e823d278b28bfe",
     "void-runner/dev-test.js": "4d6cb8d7d9205b2501f4422c93e39e9a1022b60c3a8609b8d80bc93845775091",
-    "void-runner/dev-tools.js": "373fe245442c1abeb374842e36ed4ffc9e58be4fa5d87856896a5561d33078e6",
+    "void-runner/dev-tools.js": "f39917f99d79e28a7f3d7ffa7d5fb2a582ba8c6108f29601c56c0da9de2eea62",
     "void-runner/device-camera.js": "0e78b5c042246543b0fa25f40f48c6902e33b04c7a63b7581952c2398fa49ebd",
     "void-runner/device-gallery.js": "221abd30684d44a0f30ec913c48f3b87a90bfeef9674536bd95f6107a8649764",
     "void-runner/device-gate.js": "05a42c5fc41a6973e00f103dc790e40e454f79257e29ca2252aed2308bbd542f",
@@ -81604,7 +81617,7 @@
     "void-runner/enemy-views.js": "4ce970761b64886ba7ed65feef4e1559e69a612786e28f9d6394bbccd53e55aa",
     "void-runner/escort.js": "0d8213a1b25b4748f954d1e1e86fecd14c22429682ec1f5f36a8b46b81bd8ec2",
     "void-runner/expansion.js": "98ea57022ac62f7ed5e83151093329644a7c510d3dba3b8c83677673bbbfc518",
-    "void-runner/exploration-controller.js": "8a088aad81e8e8d2c7dcfb6f1293ae5a63eb885831bd4873c13190c92f572f55",
+    "void-runner/exploration-controller.js": "bc779a07a767ca532f45aaec793ab95e19340e7f261a837ce7bd126eb057e8b2",
     "void-runner/exploration-data.js": "1a7f311dd37ddf545a0d83423848a7959f66976456f8dfbdcb7c1e6c56e6c638",
     "void-runner/faction-battle.js": "3566336f27e8a33636ec164fd2a31c2d3c2d1473bbdac3ca02df176432d3887a",
     "void-runner/faction-battles.js": "a5eb4863fb899e5cffa3c20a451cb342588026b45c400ade1bcacdf955aa4add",
@@ -81698,7 +81711,7 @@
     "void-runner/ncz-street-pair.js": "60080ba5facb4d9bc92b4ff84b156edd383ceed74cc5133146382ed5b3f58e93",
     "void-runner/ncz-underground-integration.js": "e5b9d8a2498beadcc76450bab246ab5016c42b974e998b79297e11028e9db938",
     "void-runner/ncz-underground.js": "b4970795f5b8aa46ea0a97900374d8bfc3f0d37c26bbbb8a8147177b4a0c2339",
-    "void-runner/neochinatown.js": "6dbd1c0b043a9dc8dacc7ad0ac01a3fc1e37d5ddb226d2f7d2541ed54db2a1d1",
+    "void-runner/neochinatown.js": "a546cff053ccdd2bed8cf0b773487ce99a3a731075db57d095579feb3728a3bc",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
     "void-runner/npc-advanced-interactions.js": "5e032f95b22efcbdbd286cf0a5c9e5d4708e794f35e223196fe1683a0b81e055",

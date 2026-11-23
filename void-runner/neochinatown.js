@@ -105,6 +105,7 @@
     // Admin's ordnance counter (ship-loadout.js): for pilots (a ship granted: story.flags.loadoutApp), so it is reachable even while Admin has a mission to offer.
     {id:'admin-ordnance',label:'ADMIN’S COUNTER · SHIP ORDNANCE',position:[10.2,1.7,46.2],action:'admin-ordnance',range:1.6,when:{flags:{loadoutApp:true},notFlags:{adminOccupied:true}}},
     {id:'district-shop',label:'BROWSE THE SHOP',position:[14.8,1.7,50.5],action:'district-shop',range:2.8},
+    {id:'district-shop-here',label:'SHOP HERE',position:[6.2,1.7,50.5],action:'district-shop-here',range:2.2},
     {id:'district-bar',label:'TALK TO THE BARTENDER',position:[10,1.7,37.2],action:'district-bar',range:3},
     {id:'district-vr',label:'ACCESS VR EXPERIENCES',position:[-6.2,1.7,36],action:'district-vr',range:3},
     {id:'district-vending',label:'VENDING MACHINES',position:[-5,1.7,49.5],action:'district-vending',range:2.6},
