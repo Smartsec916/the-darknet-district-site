@@ -1,8 +1,13 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — Reverie, Lace and the cat in the Corporate District and the Temple
+
+- The open streets of the Corporate District and Zen Zephyr Temple are ordinary placement ground for Reverie, Lace and the street cat, as well as characters made in the editor. Saved spots stay shifted off the city map. Those scenes start the street-pair runtime and convert the spots into the scene’s own metres. The cat’s Avenue shop-wall clamp does not apply there.
+- A seated wave still needs a chair-pose seat. These scenes do not have one, so that action is refused at a bare spot. Standing and walking clips are unchanged. A follow or lead step can use a spot in the same scene. She still cannot be walked or taken by cab from the city into those scenes in one step: there is no walking link, and those cab stops stay far stops. She is there when the scene loads if her placement says so. The city tiles beyond the Function Gate and the East Gate stay unused. Adult venues, Milked’s studios and the Sleeping Pod room are unchanged.
+
 ## 23 Nov 2026 — #419 Corporate District and Temple scene hooks
 
-- Made characters can be placed on the open ground of the Corporate District and Zen Zephyr Temple. Stored coordinates are shifted so they cannot land on a city pavement. In those scenes the figures use the scene’s own metres. Reverie, Lace and the street cat stay off both scenes, and off the city side of the gates.
+- Made characters can be placed on the open ground of the Corporate District and Zen Zephyr Temple. Stored coordinates are shifted so they cannot land on a city pavement. In those scenes the figures use the scene’s own metres. The follow-up above also lets Reverie, Lace and the street cat stand there. The city side of the gates stays unused.
 - The District bar, VR play area, arcade, Milked reception and NULL floor keep their existing adult-made placement. Reverie and Lace still carry the same 16 native clips, including the seated wave.
 - The scene builders start and dispose the made-character runtime with the area. Draft play can enter either scene.
 

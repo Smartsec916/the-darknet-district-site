@@ -343,7 +343,7 @@
  /* May this person go into `area` at all, and stand at point p there? {ok, why}. The cat: streets only (never inside, never down into the tunnels). */
  function mayEnter(id,area,p){const M=movable(id),A=AR(),a=A&&A.get(area),who=(M&&M.name)||'They';if(!M)return {ok:false,why:'This character cannot walk with the player.'};
   if(!a)return {ok:false,why:who+' stays in the city: '+(M.cat?'it waits':'she waits')+' here for you.'};
-  if(M.cat&&(a.scene!=='street'||area===areaOfQuarter('underground')))return {ok:false,why:'The cat never goes inside or down into the tunnels: it waits here for you.'};
+  if(M.cat&&(a.scene==='interior'||a.scene==='milked'||area==='underground'||area===areaOfQuarter('underground')))return {ok:false,why:'The cat never goes inside or down into the tunnels: it waits here for you.'};
   if(p){const X=NPX(),pp=X&&X.spotProblems?X.spotProblems(id,p):[];if(pp.length)return {ok:false,why:who+' does not go there ('+String(pp[0]).replace(/\.$/,'')+'): '+(M.cat?'it waits':'she waits')+' here for you.'};}
   return {ok:true,why:null};}
  const usable=(l,id)=>Object.entries(l.ends).every(([a,e])=>mayEnter(id,a,e.wait).ok&&mayEnter(id,a,e.ahead).ok);
