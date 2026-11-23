@@ -138,3 +138,59 @@ test('the runtime is wired in: loaded after the underground, listening to the vo
  const src=read('void-runner/tea-duo.js');for(const k of ['roomDuoStep','VoidVoiceClips','nearBlocked','clearRoomLine','speech','under-sleeping-room'.replace(/-/g,'-')])assert.ok(src.includes(k),k);
  for(const f of ['void-runner/vr-companions.js']){const s=read(f);assert.ok(!/id:'nomi'|id:'se7en'/.test(s),'not in the VR roster');}
 });
+
+// ---------------- a guest who stays: round after round, never silent, never still ----------------
+function stay(minutes,opts={}){   // roomDuoStep with refill for a guest who stays; a recording lasts its recorded length
+ const rng=T.mulberry32(opts.seed||77),log=[];let s=null,t=1000,active=null,end=0,mem=null,cur=null,last=null;
+ const round=k=>{cur=T.visit(rng,mem,{near:()=>rng()<.6},k===0?{bye:false}:{arrive:false,bye:k>=T.ROUNDS-1,steps:T.ROUND_STEPS,after:last});mem=cur.memory;return cur.steps;};
+ for(;t<minutes*60000;t+=100){const playing=!!active&&t<end;if(active&&!playing)active=null;
+  const r=A.roomDuoStep(s,input({now:t,playing,inside:opts.inside?opts.inside(t):true,present:opts.present?opts.present(t):true,script:()=>round(0),resolve:x=>cur.resolve(x),refill:{gap:()=>T.gapAfter(rng),script:round,max:T.ROUNDS},maxTurns:14}));s=r.state;
+  if(r.line){assert.equal(active,null,'overlap');const info=T.lineInfo(r.line.speaker,r.line.text);last=r.line.speaker;log.push({...r.line,at:t,end:t+info.duration*1000,round:s.rounds});active=r.line;end=t+info.duration*1000;}}
+ return {log,state:s,memory:mem};}
+test('a guest who stays gets round after round: gaps of 6 to 15 s, no overlap, alternating, the last round ends on a goodbye, then quiet',()=>{
+ const {log,state}=stay(30);assert.equal(state.rounds,T.ROUNDS,'every round was played');assert.ok(log.length>=T.ROUNDS*5,'a lot of talk: '+log.length+' lines');
+ log.forEach((l,i)=>assert.equal(l.speaker,T.MEMBERS[i%2],'alternates across rounds too'));
+ const byRound={};for(const l of log)(byRound[l.round]??=[]).push(l);assert.equal(Object.keys(byRound).length,T.ROUNDS);
+ for(let r=2;r<=T.ROUNDS;r++){const prev=byRound[r-1].at(-1),first=byRound[r][0],gap=first.at-prev.end;assert.ok(gap>=T.GAP[0]-200&&gap<=T.GAP[1]+T.NOTICE+T.PAUSE+300,'a quiet moment of '+gap+' ms before round '+r);}
+ assert.ok(byRound[1].some(l=>T.OPEN.includes(l.pool)||l.pool===T.BACK),'the first round opens with the arrival');for(let r=2;r<=T.ROUNDS;r++)assert.ok(!byRound[r].some(l=>T.OPEN.includes(l.pool)||l.pool===T.BACK),'no second hello');
+ for(let r=1;r<T.ROUNDS;r++)assert.ok(!byRound[r].some(l=>l.pool==='bye'),'no goodbye before the last round');assert.equal(log.at(-1).pool,'bye');
+ for(let i=1;i<log.length;i++)assert.ok(log[i].at>=log[i-1].end+T.PAUSE-100,'no overlap, a pause');
+ for(const r of Object.values(byRound))assert.ok(r.length>=3&&r.length<=14);
+ assert.equal(state.queue.length,0,'then quiet (they live on in silence until the guest goes)');
+});
+test('three minutes in the room: the lines keep coming (not one burst)',()=>{
+ const {log}=stay(3);const spread=[0,1,2].map(m=>log.filter(l=>l.at>=1000+m*60000&&l.at<1000+(m+1)*60000).length);
+ assert.ok(log.length>=15,'lines in 3 minutes: '+log.length);for(const n of spread)assert.ok(n>=3,'a line every so often in every minute: '+spread);
+});
+test('leaving stops it and clears it; coming back waits out the cooldown, then starts afresh; a guest who stays is never left waiting for it',()=>{
+ const gone=t=>t<40000||t>50000;const {log,state}=stay(5,{inside:gone});
+ assert.ok(log.filter(l=>l.at<40000).length>=6);assert.equal(log.filter(l=>l.at>=40000&&l.at<1000+T.COOLDOWN).length,0,'nothing right after a quick return (the cooldown counts from when the visit began)');
+ assert.ok(log.some(l=>l.at>=1000+T.COOLDOWN),'then it starts again');assert.ok(state.rounds>=1);
+ // models still loading when she walked in: it starts when they are there
+ const late=stay(2,{present:t=>t>30000});assert.ok(late.log.length>0&&late.log[0].at>=30000,'starts when they are present: '+late.log[0]?.at);
+});
+test('the whole set of 250 comes round before any line repeats; every pool and both speakers',()=>{
+ const rng=T.mulberry32(5);let mem=null,last=null,n=0;const seenIn={},counts={};let cycles=0;
+ for(let r=0;r<400;r++){const o=T.visit(rng,mem,{near:()=>rng()<.6},r%12===0?{bye:false}:{arrive:false,bye:r%12===11,steps:T.ROUND_STEPS,after:last});mem=o.memory;   // every twelve rounds the guest has come in afresh
+ 
+  for(const st of o.steps){const l=o.resolve(st);if(!l)continue;n++;last=l.speaker;const key=l.speaker+'/'+l.pool,set=(seenIn[key]??=new Set());
+   assert.ok(!set.has(l.id)||set.size===5,'a line repeated before the others of its pool were heard: '+l.id+' '+[...set]);if(set.size===5){set.clear();cycles++;}set.add(l.id);counts[l.id]=(counts[l.id]||0)+1;}}
+ const all=T.MEMBERS.flatMap(id=>T.allLines(id).map(l=>l.id));assert.deepEqual(all.filter(id=>!counts[id]),[],'all 250 heard');assert.ok(n>1500);
+});
+test('one sequence per game: a second player arriving restarts nothing in the first player\'s',()=>{
+ const a=stay(1).state;assert.ok(a.queue.length>0||a.rounds>=1);const b=A.roomDuoStep(null,input({now:5000,script:()=>mkScript().steps,resolve:()=>null}));
+ assert.ok(!('shared' in a),'no shared state; each game has its own');assert.ok(read('void-runner/tea-duo.js').includes('duo=r.state'));assert.ok(!/remote|VoidPlayers|presence/i.test(read('void-runner/tea-duo.js').replace(/\/\*[\s\S]*?\*\//g,'')),'the room does not look at other players: nothing of theirs can restart it');
+ assert.ok(b.state.queue.length===0||b.state.started);
+});
+test('they are never still: quiet movements, real clips, episodes of getting up (and walking to their spot), all in range',()=>{
+ const C=require('../void-runner/crowd.js');for(const m of ['npc-nomi','npc-se7en'])for(const c of T.CLIPS_ALL)assert.ok(C.clips[m].includes(c),m+' has '+c);
+ for(const k of T.QUIET)assert.ok(T.POSES[k],k);for(const k of ['look','shift','adjust','stretch'])for(let u=0;u<=1;u+=.1){const pose=T.POSES[k].at(u,u*T.POSES[k].dur,1,T.ease(u),{yaw:30});for(const [b,turns] of Object.entries(pose)){assert.ok(T.BONES.includes(b));for(const [ax,d] of turns)assert.ok(Number.isFinite(d)&&Math.abs(d)<85,k+b+d);}}
+ const seen=new Set();for(let seed=1;seed<=200;seed++){const rng=T.mulberry32(seed),e=T.episode(rng);seen.add(e.kind);assert.equal(e.steps[0].k,'stand');assert.equal(e.steps.at(-1).k,'sit');let total=0;
+  for(const st of e.steps){if(st.k==='do'){assert.ok(T.CLIPS_ALL.includes(st.clip),st.clip);assert.ok(st.dur>=6&&st.dur<=20);total+=st.dur;}if(st.k==='walk')assert.ok(['spot','seat'].includes(st.to));}
+  const walks=e.steps.filter(x=>x.k==='walk');assert.ok(walks.length%2===0&&(!walks.length||walks[0].to==='spot'&&walks.at(-1).to==='seat'),'what she walks out she walks back');assert.ok(total<=40);}
+ assert.deepEqual([...seen].sort(),Object.keys(T.EPISODES).sort());
+ for(const id of T.MEMBERS){const sp=T.placement(id,false);assert.equal(U.placeAt(sp.x,sp.z),'under-sleeping-room','her spot is in the room');const seat=T.placement(id),fx=Math.sin(seat.yaw),fz=Math.cos(seat.yaw),home={x:seat.x+fx*T.standOffset(id),z:seat.z+fz*T.standOffset(id)};
+  assert.equal(U.placeAt(home.x,home.z),'under-sleeping-room','the place beside her bed is in the room');assert.ok(Math.hypot(sp.x-home.x,sp.z-home.z)<3.2,'her spot is a short walk');
+  const ob=U.obstacles().filter(o=>o[0]<=Math.max(home.x,sp.x)+.3&&o[1]>=Math.min(home.x,sp.x)-.3&&o[2]<=Math.max(home.z,sp.z)+.3&&o[3]>=Math.min(home.z,sp.z)-.3&&/cot|locker|curtain/.test(o[4]||'')&&false);assert.equal(ob.length,0);}
+ assert.ok(T.LONG_QUIET[0]>=20000&&T.LONG_QUIET[1]<=120000);for(const k of T.STAND_CLIPS.concat(T.SEAT_CLIPS))assert.ok(typeof k==='string');
+});

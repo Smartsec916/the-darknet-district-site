@@ -42426,7 +42426,9 @@
             "wait",
             "idle",
             "talk",
+            "shrug",
             "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -42436,7 +42438,17 @@
         },
         "gestures": [
           "idle",
-          "talk"
+          "talk",
+          "head-tilt",
+          "laugh",
+          "glance-back",
+          "shrug",
+          "interact",
+          "idle-f2",
+          "wave",
+          "dance",
+          "idle-f",
+          "talk-f"
         ],
         "escort": {
           "stops": [],
@@ -42536,7 +42548,9 @@
               "wait",
               "idle",
               "talk",
+              "shrug",
               "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -42546,7 +42560,17 @@
           },
           "gestures": [
             "idle",
-            "talk"
+            "talk",
+            "head-tilt",
+            "laugh",
+            "glance-back",
+            "shrug",
+            "interact",
+            "idle-f2",
+            "wave",
+            "dance",
+            "idle-f",
+            "talk-f"
           ],
           "escort": {
             "stops": [],
@@ -44757,7 +44781,9 @@
             "wait",
             "idle",
             "talk",
+            "shrug",
             "sit",
+            "work",
             "walk-on"
           ],
           "anims": [],
@@ -44767,7 +44793,17 @@
         },
         "gestures": [
           "idle",
-          "talk"
+          "talk",
+          "head-tilt",
+          "laugh",
+          "glance-back",
+          "shrug",
+          "interact",
+          "idle-f2",
+          "wave",
+          "dance",
+          "idle-f",
+          "talk-f"
         ],
         "escort": {
           "stops": [],
@@ -44867,7 +44903,9 @@
               "wait",
               "idle",
               "talk",
+              "shrug",
               "sit",
+              "work",
               "walk-on"
             ],
             "anims": [],
@@ -44877,7 +44915,17 @@
           },
           "gestures": [
             "idle",
-            "talk"
+            "talk",
+            "head-tilt",
+            "laugh",
+            "glance-back",
+            "shrug",
+            "interact",
+            "idle-f2",
+            "wave",
+            "dance",
+            "idle-f",
+            "talk-f"
           ],
           "escort": {
             "stops": [],
@@ -61440,7 +61488,7 @@
       "spawn"
     ]
   },
-  "revision": "2cfe2bf4b9b4125c",
+  "revision": "c9020f07645791e4",
   "missions": [
     {
       "title": "GROUND TRAINING",
@@ -79193,7 +79241,7 @@
     },
     {
       "source": "void-runner/npc-advanced-interactions.js",
-      "line": 83,
+      "line": 89,
       "text": "while(state.queue.length){const item=state.queue.shift(),r=typeof resolve==='function'?resolve(item):item;if(r){line=r;break;}}   // resolve turns a planned step into the line to say now, or null to skip it (a reply's \"show\" step when the invitation was declined)",
       "kind": "source-reference"
     },
@@ -80813,32 +80861,32 @@
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 96,
-      "text": "const line=(speaker,pool)=>{const free=LINES[speaker][pool].filter(l=>!used.has(l.id));if(!free.length)return null;const l=pickWeighted(free,x=>age(x.id)**2,rng);used.add(l.id);mem.last[l.id]=v;mem.pools[pool]=v;return {speaker,text:l.text,id:l.id,pool};};",
+      "line": 99,
+      "text": "const line=(speaker,pool)=>{const free=LINES[speaker][pool].filter(l=>!used.has(l.id));if(!free.length)return null;const old=Math.min(...free.map(l=>Number.isFinite(mem.last[l.id])?mem.last[l.id]:-1)),oldest=free.filter(l=>(Number.isFinite(mem.last[l.id])?mem.last[l.id]:-1)===old),l=oldest[Math.floor(rng()*oldest.length)];used.add(l.id);mem.n++;mem.last[l.id]=mem.n;mem.pools[pool]=mem.n;return {speaker,text:l.text,id:l.id,pool};};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 153,
+      "line": 182,
       "text": "const where=()=>{try{if(typeof walkingLocation==='undefined'||!walkingLocation||walkingLocation.id!=='neochinatown'||walkingLocation.area!=='street'||walkingLocation.quarter!=='underground')return null;if(typeof mode==='undefined'||!['walking','dialogue','mission-log'].includes(mode))return null;const w=typeof walker!=='undefined'?walker:null;return w&&Number.isFinite(w.x+w.z)?w:null;}catch{return null;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 228,
+      "line": 302,
       "text": "const isBlocked=()=>{try{return !!((typeof speech!=='undefined'&&speech)||root.VoidLiveContent?.nearBlocked?.()||(typeof document!=='undefined'&&document.hidden));}catch{return true;}};",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 252,
-      "text": "rec={id,text:r.line.text,perf:performance.now(),until:now+ms};perform(r.line,info);",
+      "line": 327,
+      "text": "rec={id,text:r.line.text,perf:performance.now(),until:now+ms};perform(r.line,info);visiting=true;",
       "kind": "source-reference"
     },
     {
       "source": "void-runner/tea-duo.js",
-      "line": 259,
-      "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear};",
+      "line": 334,
+      "text": "root.VoidTeaDuo={...pure,get ready(){return figs.size===MEMBERS.length;},get available(){return !missing;},figure:id=>figs.get(id)||null,get state(){return duo;},get memory(){return memory;},get speaking(){return rec?{id:rec.id,text:rec.text}:null;},tick,perform,guestNear,get rounds(){return duo?duo.rounds:0;}};",
       "kind": "source-reference"
     },
     {
@@ -82142,7 +82190,7 @@
     "void-runner/corporate-security.js": "dab3f0b81984694d41bd7364a2f6ed2f3bd89eeff74b4ef9db493b037220c8e4",
     "void-runner/corporate.js": "44e87ff810126250fb5005ac91f0dd05c0c71ebba394e73b66baf8313492a319",
     "void-runner/crosswalks.js": "69acf44a540a6ba7314d68bf38fa74ad93482ca993629675eae3ca0d8a9a1d60",
-    "void-runner/crowd.js": "c3b5051167e8de27c6761aa6b61c3a6b963d59a6bdd376208f57f9315fa38a5d",
+    "void-runner/crowd.js": "db8c04b4b8e9edab29088ab9e1914e35557b46f95e793370a55b9d15538424b0",
     "void-runner/cult-room-build.js": "0c214de2d365ced6fb53b49724e2f1e98cd629ab16b3a2981929399237f6efc4",
     "void-runner/cult-room-editor.js": "9b23ec2070f4f29563f029af14e960326abacd20403bf53842c86af8535be865",
     "void-runner/cult-room.js": "e4c485f0586d02c2aae26b5bfb4940f4e8abc434726aa42e9044734565431a1c",
@@ -82272,7 +82320,7 @@
     "void-runner/neochinatown.js": "a546cff053ccdd2bed8cf0b773487ce99a3a731075db57d095579feb3728a3bc",
     "void-runner/network.js": "51baeacc86a8c0f787fe392db8b581d59be347204e245334a20ba0c30454c022",
     "void-runner/news-feed.js": "b2a2c5821fbf1216e678cb1dd2bafc81218e4df89da39d242348d0380d4ecb19",
-    "void-runner/npc-advanced-interactions.js": "8fbc42aee8e58677e9d9ab424b700ffe88434cf7682f86a2276484caa38b7274",
+    "void-runner/npc-advanced-interactions.js": "dac2a8fc5cbe7e0e6a09384510fb72145041152fa1c28fb6f2ee59d7bf06a45f",
     "void-runner/npc-areas.js": "429ffa6f16f3a0cafe3de9f78ca3d06cfaee2119bbde04e66b98f6a2243648d8",
     "void-runner/npc-awareness.js": "51fd809a9f41f2cc0e398ad45683512d46536cb273de0952f5e282afa58d0e52",
     "void-runner/npc-behaviour.js": "4dab0fa9f778a8ed6f27eb136512eb56d69e4cf71a6d32b460cfebeb93ee1d2a",
@@ -82338,7 +82386,7 @@
     "void-runner/street-sight.js": "973f653d47eca13bbbf146f4c4c9450f2bf9373f49704ad68c49dbde643690c4",
     "void-runner/talk-choice.js": "f0fb203a889bc4e6b284770552cfca9d0b0272acaf54ca87f56adff5e3d6bac8",
     "void-runner/targeting.js": "5c1b533beb2651fbf537b92b1f521e4d1fb4f2d619c6f6a39571c410c6c730ca",
-    "void-runner/tea-duo.js": "20970f6b6496855b09c883730633b0474a226b45e41d85c4cdfd2c5c2b5362ea",
+    "void-runner/tea-duo.js": "3d8c44950722bc6ea7fc4467537946b2575d6455b9d5f30db9dcbcca2012aebf",
     "void-runner/temple-build.js": "a0f27e109c5521f7dce23bc022b6c135c48da61cd5a3bf2614f4dad903a70d7c",
     "void-runner/temple-integration.js": "0b5604071df3dd5686eea9c496fdd5931372ca66bc955bbf7a8de646807fb758",
     "void-runner/temple-wall.js": "655dec79bde6cfdf0e552264c8a52be198dc3f7c0a3bd62a8633fa2751f03f24",
