@@ -64,3 +64,11 @@ test('Dax in-game actor uses the editor plan and loads its engine before the act
  assert.match(src,/R\.positionWorld\(plan,now\(\),root\.VoidNeoChinatown\?\.door\)/);
  assert.ok(html.indexOf('void-runner/dax-editor-routine.js')<html.indexOf('void-runner/dax.js'));
 });
+
+test('Dax cycles through all assigned stay actions instead of playing only the first',()=>{
+ const p={mode:'stay',x:1,z:2,actions:['look','watch','shrug']};
+ assert.equal(R.position(p,0).clip,'look');
+ assert.equal(R.position(p,11).clip,'watch');
+ assert.equal(R.position(p,21).clip,'shrug');
+ assert.equal(R.position(p,31).clip,'look');
+});
