@@ -424,6 +424,7 @@
     const R=root.VoidRoadTaxiRules,c=e.cab;st.out=false;st.rideOut=false;if(c&&R){const ds=R.doorPoints(c),blocked=p=>{try{return !!root.VoidExplorer?.blocked?.(p.x,p.z,typeof walkingLocation!=='undefined'?walkingLocation:null);}catch{return false;}};
      const pick=ds.filter(p=>!blocked(p)).sort((a,b)=>(meP?Math.hypot(b.x-meP.x,b.z-meP.z)-Math.hypot(a.x-meP.x,a.z-meP.z):0))[0]||ds[2];if(pick){st.x=pick.x;st.z=pick.z;st.yaw=c.yaw||0;}}e.cab=null;}
    body.x=st.x;body.z=st.z;body.yaw=st.yaw;
+   if(P.social){const others=[];if(meP)others.push(meP);if(who==='her'&&cat)others.push(cat);else if(who==='cat'&&her?.s)others.push(her.s);const n=root.VoidAdvancedInteractions?.separate?.({x:body.x,z:body.z},others,.85);if(n&&AR&&!AR.leg({x:body.x,z:body.z},n,{passing:true}).length){body.x=st.x=n.x;body.z=st.z=n.z;}}
    if(ev)tell(npc,P,ev,e);if(rv&&rv!==ev)tell(npc,P,rv,e,{ride:st.ride||null});
    return {clip:seat?'sit':st.clip||'idle',speed:st.speed||0,seat};}
   // ---- the cat ----
