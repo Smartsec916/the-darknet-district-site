@@ -19,3 +19,12 @@ test('companion script loading stays behind the developer-only import UI',()=>{
  assert.match(source,/void-runner\/npc-companion-import\.js/);
  assert.doesNotMatch(source,/autoPublishCompanion|uploadCompanionToServer/);
 });
+
+test('imported NPC personality JSON has prompt, validation, save, and inline failures',()=>{
+ assert.match(source,/data-npc-personality-json/);
+ assert.match(source,/data-npc-personality-prompt/);
+ assert.match(source,/data-npc-personality-import/);
+ assert.match(source,/VoidVRCompanionStudio\.profile\(JSON\.parse\(area\.value\)\)/);
+ assert.match(source,/rec\.companion\.missingVoiceLines\.length/);
+ assert.match(source,/data-npc-personality-error/);
+});
