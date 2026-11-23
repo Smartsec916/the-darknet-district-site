@@ -1,5 +1,9 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — VOID//RUNNER branding
+
+- The games directory card and the main menu use the VOID//RUNNER wordmark. The homepage keeps Enter The Darknet District and shows the wordmark underneath. Every game card has a staggered edge glow that stops on hover, focus, reduced motion and forced colors. Site navigation is unchanged.
+
 ## 23 Nov 2026 — Tier 2 and 3 sight and hearing
 
 - A Tier 2 or 3 character can keep a sight distance, a field of view, and hearing ranges for a walk, a sprint and combat. Sight stops at a wall. Hearing is a distance, not a view through the building. Tier 1 keeps a short fixed notice and ignores a saved record. When a record is set, Reverie or Lace turns her head toward a player only if she can see or hear them. There is no memory and no device night vision in this release.
