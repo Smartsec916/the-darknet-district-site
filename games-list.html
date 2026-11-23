@@ -64,6 +64,14 @@
       margin-bottom: 20px; /* Added margin to create space between cards */
     }
 
+    /* Quiet attract sequence: edge illumination, staggered across every game. */
+    @keyframes game-attract { 0%, 72%, 100% { background-color:var(--frame-accent); } 84% { background-color:#9ce8e5; } }
+    @media (prefers-reduced-motion:no-preference) and (forced-colors:none) {
+      body.directory-panels .games-grid > .game-card { animation:game-attract 9s ease-in-out infinite!important; }
+      body.directory-panels .games-grid > .game-card:nth-child(2n) { animation-delay:-3s!important; }
+      body.directory-panels .games-grid > .game-card:nth-child(3n) { animation-delay:-6s!important; }
+      body.directory-panels .games-grid > .game-card:hover, body.directory-panels .games-grid > .game-card:focus-visible { animation:none!important; }
+    }
     .game-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 0 30px rgba(0, 255, 157, 0.4);
@@ -142,7 +150,7 @@
     <div class="games-grid">
       <!-- The Darknet District - Game (VOID//RUNNER, the 3D District game; desktop and VR headsets) -->
       <a class="district-panel game-card" href="void-runner.html">
-        <h3>The Darknet District - Game</h3>
+        <h3>VOID//RUNNER</h3>
         <p>Walk The Darknet District and NeoChinatown in 3D: meet other players, take work, fly out. Desktop and VR headsets</p>
         <div class="status-tag ready">Ready to play now</div>
       </a>
