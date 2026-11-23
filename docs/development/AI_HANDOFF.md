@@ -1,5 +1,10 @@
 # The Darknet District — current AI handoff
 
+## 23 Nov 2026 — Approach greetings are random (Tea Room Host)
+
+- Bug: the NPC editor's "Approach greetings (one alternative per line)" box (Conversations & Interactions, saved as `interactions[id].near`) was stored in full, but the game played its lines strictly in written order from a counter that restarts at 0 on every page load or content reload. So a tester who reloads always saw line 1 (for the Tea Room Host, the "Our more intimate services" line).
+- Fix: `MC.interactionPick(text,state)` (mission-content.js) is a shuffle bag: every line plays once, random order, before any repeats, never the same line twice in a row, one line works. `ordinaryTick` in live-content.js uses it for any NPC's approach greeting. Cooldown, distance, TALK, room, follow and group lines are unchanged (still in written order); the mission editor's walk-near banner is a different, single-text field and was not touched. No schema change, no server change, no Render redeploy. Test: tests/near-lines.test.cjs.
+
 ## 23 Nov 2026 — Developer studios
 
 - SHOP HERE stands in the District store, apart from Admin and Iris. It sells a sprint tonic and a street tint. Buying again refreshes the time. The sprint is capped and changes walking speed. The tint stays off when reduced motion is on. Credits save; the effect is a short flag.
