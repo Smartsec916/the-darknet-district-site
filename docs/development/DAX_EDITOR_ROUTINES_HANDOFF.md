@@ -24,3 +24,17 @@ Remove Dax's hard-coded wandering, daily itinerary and automatic disappearance f
 6. On complete tests, merge through normal rules, deploy, verify the live game; keep PR draft until then.
 
 **Separate independent work:** Companion importer #520 / PR #521; Desire #524. This Dax branch does not add any model files or alter missions.
+
+## Subsequent implementation: editor UI and multi-action behavior
+
+- `npc-map.js` now restricts Dax's map-area picker to **District interior** until scene-specific outside routing is available, avoiding misleading location options.
+- `npc-paths.js` allows Dax's legitimate adult-access bar, VR and arcade positions in the District, consistent with her original gameplay visits; street locations remain rejected.
+- The routine engine now cycles through the owner's selected stay actions, instead of playing only the first action forever.
+- Added regression checks for the map picker, interior-only restriction, and stay-action cycling.
+
+### Remaining work only
+- Rebuild `void_runner_admin_inventory.json` from the source with `node tools/admin-inventory.cjs` and commit; verify all CI, including the newest Dax-specific tests. Prior repo tests also showed inventory drift.
+- Perform browser runtime testing with Dax's licensed private model (floor/collision, animations and transitions, multiplayer same-place check, publish/clear schedule/route, no duplicates).
+- New areas outside the District still require dedicated spawn/scene/transition support, not just a dropdown unlock.
+- Decide whether Dax's daily editor schedule should follow the synchronized UTC clock currently implemented or a future shared in-game world clock. Do NOT switch back to per-player save time; that would desync her between players.
+- After acceptance tests, merge PR #523 and deploy. The PR is still draft and no live Dax behavior is changed by these commits.
