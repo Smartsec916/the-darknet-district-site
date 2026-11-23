@@ -284,7 +284,7 @@
     }return {point,dist};
    });
    const present=positions.every(({point})=>!!point),audible=positions.every(({point,dist})=>point&&dist<=8&&Number.isFinite(W.y)&&A.clearRoomLine([W.x,W.y,W.z],point,L.solids));
-   const lines=Object.fromEntries(duo.map(({g,r,name})=>[name,String(r.advanced.room.enter||'').split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean)]));
+   const lines=Object.fromEntries(duo.map(({g,r,name})=>[name,String(r.advanced.room.enter||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean)]));
    const busy=blocked||!audible||duo.some(({g})=>g.targets.some(t=>beginnerWants(t.action))||(treesOn()&&MC.treeWants(state,env,[g.id])));
    const next=A.roomDuoStep(duoState,{inside,present,blocked:busy,now,lines,members:duoNames});duoState=next.state;
    if(next.line){const actor=duo.find(x=>x.name===next.line.speaker).g;
