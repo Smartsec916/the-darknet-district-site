@@ -643,6 +643,9 @@
         blob:file
        }];
        rec.companion.voiceSelection=voice;
+       const updatedCount=current();
+       rec.companion.recordedLineCount=updatedCount.existing;
+       rec.companion.missingVoiceLines=updatedCount.jobs.map(line=>line.text);
        await saveRec(rec);
        saved++;
       }
