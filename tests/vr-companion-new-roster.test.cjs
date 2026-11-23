@@ -43,3 +43,11 @@ test('imported companion feet alignment is independent of the model skeleton',()
  assert.match(suite,/asset\.position\.addInPlace\(localLift\)/);
  assert.match(suite,/C\.floorOffset\(bounds\.min\.y,bounds\.max\.y\)/);
 });
+
+test('Nomi, Se7en and unfinished Tao are not offered in the VR bedroom',()=>{
+ for(const name of ['Nomi','Se7en','Tao']){
+  assert.equal(C.offered({id:'draft-'+name,name,localDraft:true,listed:true},'localhost'),false,name);
+  assert.equal(C.offered({id:'draft-'+name,name,localDraft:true,listed:true},'thedarknetdistrict.com'),false,name);
+ }
+ assert.equal(C.offered({id:'another',name:'Another Companion',localDraft:false,listed:true},'localhost'),true);
+});
