@@ -236,7 +236,9 @@
   inter:COT_LAYOUT.flatMap((c,k)=>[{id:k===1?'cot':c.id,label:'COT',pos:[c.sx*1.68,.65,c.zc],object:'cot',range:1.1},{id:k===3?'curtain':c.curtain,curtain:c.curtain,label:'DRAW CURTAIN',pos:[c.xi,1.35,c.zc],object:'curtain',range:1.1},{id:k===2?'locker':'locker-'+c.id,label:'UNDER-BED LOCKER',pos:[c.sx*1.7,.25,c.zc-c.sz*.65],object:'locker',range:1.1}]),
   say:{cot:'COT: a worn mattress, a folded blanket and a pillow.',locker:'LOCKER: a low storage box tucked beneath the bed.',curtain:'CURTAIN: heavy cloth on rings.'},
   sits:COTS,
-  spots:[['keeper',0,-2.2,0]],lights:[[0,2.4,-1.2,'#ffc890',1.4,8],[0,2.4,1.4,'#ffb878',1.2,8]]});
+  // Named, unobstructed floor anchors for the Tea Room's two visiting androids.
+  // These are placement targets only; character models and dialogue remain separately published.
+  spots:[['keeper',0,-2.2,0],['nomi',-.62,-1.05,0],['se7en',.62,1.05,Math.PI]],lights:[[0,2.4,-1.2,'#ffc890',1.4,8],[0,2.4,1.4,'#ffb878',1.2,8]]});
  UG('food-stall',{w:2,d:2,ceil:2.8,sockets:'s0 n0',sw:[-1.6,'s'],name:'Underground food stall',note:'UNDERGROUND. A small food counter in a tunnel nook: a steaming wok and stock pot, a menu board of pictures (no writing), three stools at the counter, a cooler, hanging lanterns, a cook’s spot behind the counter. The aisle runs between its two doors.',
   objects:[O('counter','FOOD COUNTER','the food counter'),O('stove','WOK STATION','the wok station'),O('cooler','COOLER','the cooler'),O('menu','MENU BOARD','the menu board'),LIGHTS],
   furn:[[.1,.7,-1.5,1.5,1,'counter'],[1.3,1.9,-1.4,.6,.9,'stove'],[1.3,1.9,1,1.9,1.8,'cooler']],
