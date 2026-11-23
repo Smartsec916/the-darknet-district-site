@@ -504,7 +504,7 @@
   return root.VoidNPCCompanionImport;
  }
  async function importFile(file){
-  const ext=(file.name.match(/\\.[a-z0-9]+$/i)||[''])[0].toLowerCase(),transfer=ext==='.vrcompanion';
+  const ext=(file.name.match(/\.[a-z0-9]+$/i)||[''])[0].toLowerCase(),transfer=ext==='.vrcompanion';
   if(!transfer&&!X().IMPORT.exts.includes(ext)){status='Only .glb, .gltf or .vrcompanion files can be imported.';draw();return null;}
   let model=file, companion=null, original=null, modelName=file.name;
   try{
@@ -522,7 +522,7 @@
    if(model.size>X().IMPORT.maxBytes)throw Error('Model exceeds the '+(X().IMPORT.maxBytes/1048576).toFixed(0)+' MB limit. Reduce it in Blender.');
    X().importDocument(await model.arrayBuffer(),transfer?'.glb':ext);
   }catch(err){status='Import refused: '+err.message;draw();return null;}
-  const rec={id:'imp-'+Date.now().toString(36),name:(companion?.name||file.name.replace(/\\.[^.]+$/,'')).slice(0,60),
+  const rec={id:'imp-'+Date.now().toString(36),name:(companion?.name||file.name.replace(/\.[^.]+$/,'')).slice(0,60),
    fileName:modelName,sourceFileName:file.name,type:model.type||'model/gltf-binary',bytes:model.size,
    blob:model,transferBlob:original,companion,createdAt:new Date().toISOString(),
    licence:{source:'',type:'',noAI:null},placement:null,info:null};
