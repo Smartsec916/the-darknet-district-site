@@ -8,6 +8,7 @@
  const DEFAULT=Object.freeze({x:1.6,z:54.5,yaw:Math.PI/2,clip:'idle',device:false,
   place:'The Darknet District · no routine configured',inside:true,source:'default'});
  const SPEED=1.3,DEFAULT_SECONDS=10;
+ const node=typeof module==='object'&&!!module.exports;
  const finite=n=>typeof n==='number'&&Number.isFinite(n);
  const distance=(a,b)=>Math.hypot(b.x-a.x,b.z-a.z);
  const angle=(a,b)=>Math.atan2(b.x-a.x,b.z-a.z);
@@ -55,7 +56,22 @@
   if(plan.mode==='path')return pathAt(plan,seconds);
   return {...DEFAULT};
  }
- const api={DEFAULT,SPEED,normalizedAction,pathAt,position};
+ // Editor coordinates use NeoChinatown world metres; Dax's animated actor uses District plan metres.
+ // N.toWorld(x,z) = [door.x - x, door.z + 20 - z], so invert once before evaluating.
+ function positionWorld(plan,seconds=0,door=null){
+  if(!plan)return {...DEFAULT};
+  if(plan.area&&plan.area!=='district')return {...DEFAULT};
+  const D=door||(node?require('./neochinatown.js'):root.VoidNeoChinatown)?.door;
+  if(!D||!finite(D.x)||!finite(D.z))return {...DEFAULT};
+  const inv=p=>({x:D.x-p.x,z:D.z+20-p.z,...(finite(p.yaw)?{yaw:p.yaw+Math.PI}:{}) ,
+   ...(p.seconds!=null?{seconds:p.seconds}:{}),...(p.action?{action:p.action}:{})});
+  if(plan.mode==='stay'&&finite(plan.x)&&finite(plan.z))
+   return position({...plan,...inv(plan)},seconds);
+  if(plan.mode==='path'&&Array.isArray(plan.points)&&plan.points.every(p=>finite(p.x)&&finite(p.z)))
+   return position({...plan,points:plan.points.map(inv)},seconds);
+  return {...DEFAULT};
+ }
+ const api={DEFAULT,SPEED,normalizedAction,pathAt,position,positionWorld};
  if(typeof module==='object'&&module.exports)module.exports=api;
  else root.VoidDaxEditorRoutine=api;
 })(typeof globalThis!=='undefined'?globalThis:this);
